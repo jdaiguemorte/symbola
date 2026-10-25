@@ -184,4 +184,23 @@ Une story est terminée quand :
 
 ## 9. Commandes
 
-À compléter au lot 0 (installation, dev, tests, lint, migrations, lancement du socle en local).
+Julien travaille sans toolchain Node/Python natif sur son Mac ; toutes les commandes tournent
+dans Docker Desktop. Les commandes `pnpm` ci-dessous sont celles que Claude Code utilise en
+interne (Node est disponible dans cet environnement de développement) ; Julien passe par
+l'équivalent Docker donné à droite.
+
+| Besoin | Commande (si Node est disponible) | Équivalent Docker (poste de Julien) |
+| --- | --- | --- |
+| Installer les dépendances | `pnpm install` | `docker run --rm -v "$PWD":/app -w /app node:22-slim corepack enable && corepack use pnpm@9.15.0 && pnpm install` |
+| Démarrer le socle + l'app en dev | `pnpm dev` | `docker compose -f infra/compose/docker-compose.dev.yml up -d && pnpm dev` (le compose de dev arrive en SOC-03 : Postgres, MinIO, ClamAV, Mailpit, Traefik) |
+| Lint | `pnpm lint` | `docker run --rm -v "$PWD":/app -w /app node:22-slim pnpm lint` |
+| Vérification des types | `pnpm typecheck` | `docker run --rm -v "$PWD":/app -w /app node:22-slim pnpm typecheck` |
+| Tests | `pnpm test` | `docker run --rm -v "$PWD":/app -w /app node:22-slim pnpm test` |
+| Contrôle des frontières de modules (ADR 0011) | `pnpm check:boundaries` | `docker run --rm -v "$PWD":/app -w /app node:22-slim pnpm check:boundaries` |
+| Migrations de base (arrivent en SOC-05) | `pnpm --filter @symbola/db migrate` | `docker run --rm -v "$PWD":/app -w /app node:22-slim pnpm --filter @symbola/db migrate` |
+| Lancer le socle en local (arrive en SOC-03) | — | `docker compose -f infra/compose/docker-compose.dev.yml up` |
+
+Au lot 0 (SOC-01), `pnpm dev` démarre uniquement l'app `apps/symbola` (module `hello`) : le socle
+local (Postgres, MinIO, ClamAV, Mailpit, Traefik) sera ajouté par SOC-03 et branché dans la même
+commande. Cette section se complète à chaque story qui ajoute une commande (migrations, build des
+images, déploiement — SOC-02 à SOC-12).
