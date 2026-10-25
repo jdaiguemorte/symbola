@@ -1,0 +1,99 @@
+# Socle de développement (SOC-03, ADR 0013-0014 : pas de Zitadel ni de NATS).
+# Lancer depuis la racine du dépôt, pour que --env-file pointe vers .env :
+#   docker compose -f infra/compose/docker-compose.dev.yml --env-file .env up -d
+#
+# Note : ce fichier n'a pas pu être exécuté dans l'environnement de
+# développement de cette session (daemon Docker indisponible). Merci de
+# signaler tout écart constaté au premier `docker compose up`.
+name: symbola-dev
+
+services:
+  postgres:
+    image: postgres:17.2-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - symbola_postgres_data:/var/lib/postgresql/data
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  minio:
+    image: minio/minio:RELEASE.2024-12-18T13-15-44Z
+    restart: unless-stopped
+    command: server /data --console-address ":9091"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
+    ports:
+      - "${MINIO_PORT:-9000}:9000"
+      - "9091:9091"
+    volumes:
+      - symbola_minio_data:/data
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  clamav:
+    image: clamav/clamav:1.4
+    restart: unless-stopped
+    ports:
+      - "${CLAMAV_PORT:-3310}:3310"
+    volumes:
+      - symbola_clamav_data:/var/lib/clamav
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "clamdcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 90s # le téléchargement initial des signatures est long
+
+  mailpit:
+    image: axllent/mailpit:v1.21
+    restart: unless-stopped
+    ports:
+      - "8025:8025" # interface web
+      - "${SMTP_PORT:-1025}:1025" # SMTP
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8025/"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  traefik:
+    image: traefik:v3.2
+    restart: unless-stopped
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--api.insecure=true" # tableau de bord en dev uniquement
+    ports:
+      - "8080:80"
+      - "8081:8080" # tableau de bord Traefik
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  symbola_postgres_data:
+  symbola_minio_data:
+  symbola_clamav_data:

@@ -192,15 +192,17 @@ l'équivalent Docker donné à droite.
 | Besoin | Commande (si Node est disponible) | Équivalent Docker (poste de Julien) |
 | --- | --- | --- |
 | Installer les dépendances | `pnpm install` | `docker run --rm -v "$PWD":/app -w /app node:22-slim corepack enable && corepack use pnpm@9.15.0 && pnpm install` |
-| Démarrer le socle + l'app en dev | `pnpm dev` | `docker compose -f infra/compose/docker-compose.dev.yml up -d && pnpm dev` (le compose de dev arrive en SOC-03 : Postgres, MinIO, ClamAV, Mailpit, Traefik) |
+| Démarrer le socle + l'app en dev | `pnpm dev` | `cp .env.example .env` (une fois, puis remplir les mots de passe) puis `docker compose -f infra/compose/docker-compose.dev.yml --env-file .env up -d && pnpm dev`, depuis la racine du dépôt |
 | Lint | `pnpm lint` | `docker run --rm -v "$PWD":/app -w /app node:22-slim pnpm lint` |
 | Vérification des types | `pnpm typecheck` | `docker run --rm -v "$PWD":/app -w /app node:22-slim pnpm typecheck` |
 | Tests | `pnpm test` | `docker run --rm -v "$PWD":/app -w /app node:22-slim pnpm test` |
 | Contrôle des frontières de modules (ADR 0011) | `pnpm check:boundaries` | `docker run --rm -v "$PWD":/app -w /app node:22-slim pnpm check:boundaries` |
 | Migrations de base (arrivent en SOC-05) | `pnpm --filter @symbola/db migrate` | `docker run --rm -v "$PWD":/app -w /app node:22-slim pnpm --filter @symbola/db migrate` |
-| Lancer le socle en local (arrive en SOC-03) | — | `docker compose -f infra/compose/docker-compose.dev.yml up` |
+| Lancer le socle en local seul | — | `docker compose -f infra/compose/docker-compose.dev.yml --env-file .env up` |
 
-Au lot 0 (SOC-01), `pnpm dev` démarre uniquement l'app `apps/symbola` (module `hello`) : le socle
-local (Postgres, MinIO, ClamAV, Mailpit, Traefik) sera ajouté par SOC-03 et branché dans la même
-commande. Cette section se complète à chaque story qui ajoute une commande (migrations, build des
-images, déploiement — SOC-02 à SOC-12).
+Le socle de dev (Postgres, MinIO, ClamAV, Mailpit, Traefik) est défini dans
+`infra/compose/docker-compose.dev.yml` (SOC-03) ; les variables d'environnement sont validées par
+Zod au démarrage de l'app (`packages/env`, voir `.env.example`). `pnpm dev` démarre l'app ; le
+socle se lance à part tant qu'ils ne sont pas encore orchestrés en une seule commande (prévu avant
+la fin du lot si le temps le permet, sinon noté comme limite connue). Cette section se complète à
+chaque story qui ajoute une commande (migrations, build des images, déploiement — SOC-05 à SOC-12).
