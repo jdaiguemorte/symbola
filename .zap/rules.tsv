@@ -1,0 +1,6 @@
+# Seuils des règles ZAP (SOC-02). Par défaut : seules les alertes HIGH
+# bloquent la promotion en staging -> production (critère SOC-02). Les
+# alertes WARN restent visibles dans le rapport, sans bloquer.
+# Format : <id-règle>	<IGNORE|WARN|FAIL>	<commentaire optionnel>
+# Exemple, à affiner au lot où l'app expose de vraies routes :
+# 10020	WARN	En-tête X-Frame-Options : vérifié par un test dédié (SOC-09), pas par ZAP
