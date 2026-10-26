@@ -1,6 +1,6 @@
 # ADR 0009 — Déploiement : Docker Compose et Traefik
 
-- Statut : accepté
+- Statut : accepté ; le choix du reverse-proxy (Traefik) est remplacé par l'ADR 0018 (Caddy partagé du VPS) — le reste (Docker Compose, un fichier par environnement) reste en vigueur
 - Date : 2026-10-25
 
 ## Contexte
