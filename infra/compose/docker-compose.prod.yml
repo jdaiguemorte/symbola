@@ -1,16 +1,17 @@
 # Compose d'environnement (SOC-09, ADR 0009, ADR 0011 : une seule app) —
 # réutilisé tel quel pour staging ET production, distingués par le fichier
-# --env-file (ENVIRONMENT_NAME) et le nom de projet. Suppose le socle
-# (docker-compose.socle.yml, Traefik partagé) déjà démarré.
+# --env-file (ENVIRONMENT_NAME) et le nom de projet.
+#
+# Proxy : Caddy partagé du VPS (ADR 0018, remplace Traefik) — pas démarré
+# par ce fichier. L'app n'est jamais exposée directement : seulement en
+# boucle locale (comme PostgreSQL), à l'adresse que le bloc Caddyfile de
+# cet environnement reverse-proxy (docs/runbooks/deploiement.md).
 #
 # Isolation staging ↔ production (ADR 0016) :
 # - nom de projet dérivé de ENVIRONMENT_NAME : oublier -p ne fait jamais
 #   partager conteneurs ni volumes entre les deux environnements ;
-# - PostgreSQL, Garage et ClamAV ne sont que sur le réseau `default` du
-#   projet (symbola-staging_default, symbola-production_default) : le nom
-#   `postgres` ne peut résoudre que la base de son propre environnement ;
-# - seul le conteneur `symbola` rejoint le réseau frontal de SON
-#   environnement (symbola-edge-<env>), partagé uniquement avec Traefik ;
+# - PostgreSQL, Garage, ClamAV et symbola ne sont que sur le réseau
+#   `default` du projet (symbola-staging_default, symbola-production_default) ;
 # - limites mémoire/CPU par conteneur, fixées dans chaque .env (staging
 #   bridé pour ne jamais pénaliser la production).
 #
@@ -129,9 +130,13 @@ services:
       - postgres
       - garage
       - clamav
+    # Boucle locale uniquement, comme PostgreSQL : jamais exposé à
+    # Internet directement. Caddy (hors de ce compose, ADR 0018)
+    # reverse-proxy depuis ce port. Port distinct par environnement.
+    ports:
+      - "127.0.0.1:${APP_LOCAL_PORT:?APP_LOCAL_PORT requis, distinct par environnement}:3000"
     networks:
       - default
-      - edge
     deploy:
       resources:
         limits:
@@ -142,22 +147,9 @@ services:
     # Pas de read_only ici : Next.js en standalone écrit dans .next/cache
     # (cache de rendu) au runtime — à vérifier et durcir plus tard si
     # confirmé sans risque (pas testable sans déploiement réel).
-    labels:
-      - "traefik.enable=true"
-      - "traefik.docker.network=symbola-edge-${ENVIRONMENT_NAME}"
-      - "traefik.http.routers.symbola-${ENVIRONMENT_NAME}.rule=Host(`${APP_DOMAIN}`)"
-      - "traefik.http.routers.symbola-${ENVIRONMENT_NAME}.entrypoints=websecure"
-      - "traefik.http.routers.symbola-${ENVIRONMENT_NAME}.tls.certresolver=le"
-      - "traefik.http.services.symbola-${ENVIRONMENT_NAME}.loadbalancer.server.port=3000"
 
 networks:
-  # Réseau interne du projet, propre à chaque environnement.
   default:
-  # Réseau frontal de cet environnement seulement, créé par le socle :
-  # Traefik y est relié, l'autre environnement non.
-  edge:
-    name: symbola-edge-${ENVIRONMENT_NAME}
-    external: true
 
 volumes:
   postgres_data:

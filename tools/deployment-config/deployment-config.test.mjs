@@ -61,11 +61,9 @@ describe("SOC-09 — Compose d'environnement (staging et production)", () => {
     expect(prodCompose).toMatch(/image:\s*ghcr\.io\/.*\$\{APP_IMAGE_TAG/);
   });
 
-  it("route l'app via Traefik sur le réseau partagé, avec TLS", () => {
-    expect(prodCompose).toMatch(/traefik\.docker\.network=symbola-edge-\$\{ENVIRONMENT_NAME\}/);
-    expect(prodCompose).toMatch(/traefik\.http\.routers\.symbola-.*\.rule=Host/);
-    expect(prodCompose).toMatch(/tls\.certresolver=le/);
-    expect(prodCompose).toMatch(/external:\s*true/); // réseau créé par le socle, pas ici
+  it("expose l'app seulement en boucle locale, pour le Caddy partagé du VPS (ADR 0018)", () => {
+    expect(prodCompose).toMatch(/"127\.0\.0\.1:\$\{APP_LOCAL_PORT[^}]*\}:3000"/);
+    expect(prodCompose).not.toMatch(/traefik\./);
   });
 
   it("n'expose PostgreSQL qu'en boucle locale (jamais au réseau public)", () => {
@@ -92,9 +90,8 @@ describe("SOC-09 — Isolation staging ↔ production sur le même VPS (ADR 0016
     },
   );
 
-  it("relie l'app au réseau interne et au seul réseau frontal de son environnement", () => {
-    expect(networksOf(serviceBlock(prodCompose, "symbola"))).toEqual(["default", "edge"]);
-    expect(prodCompose).toMatch(/\n {2}edge:\n {4}name:\s*symbola-edge-\$\{ENVIRONMENT_NAME\}\n {4}external:\s*true/);
+  it("relie l'app seulement au réseau interne de son environnement", () => {
+    expect(networksOf(serviceBlock(prodCompose, "symbola"))).toEqual(["default"]);
   });
 
   it("impose un port PostgreSQL distinct par environnement", () => {
