@@ -40,6 +40,9 @@ importers:
       '@symbola/files':
         specifier: workspace:*
         version: link:../../packages/files
+      '@symbola/mail':
+        specifier: workspace:*
+        version: link:../../packages/mail
       '@symbola/privacy':
         specifier: workspace:*
         version: link:../../packages/privacy

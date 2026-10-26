@@ -19,6 +19,7 @@
     "@symbola/db": "workspace:*",
     "@symbola/env": "workspace:*",
     "@symbola/files": "workspace:*",
+    "@symbola/mail": "workspace:*",
     "@symbola/privacy": "workspace:*",
     "drizzle-orm": "^0.45.4",
     "next": "15.5.28",
