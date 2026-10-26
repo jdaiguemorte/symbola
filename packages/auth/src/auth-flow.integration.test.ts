@@ -4,10 +4,13 @@
 // aussi que la session reste valide entre plusieurs appels (« navigue
 // entre les modules sans se reconnecter »).
 import { randomUUID } from "node:crypto";
+import { eq } from "drizzle-orm";
 import * as OTPAuth from "otpauth";
 import { afterAll, describe, expect, it } from "vitest";
 import { createAppConnection } from "@symbola/db/client";
+import { sessions } from "@symbola/db/schema/hub";
 import { confirmTotp, createOrganization, createUser, login, requireUser, setupTotp } from "./service";
+import { hashSessionToken } from "./session-token";
 
 const { sql, db } = createAppConnection();
 
@@ -95,4 +98,34 @@ describe("SOC-04 — Parcours de connexion (PostgreSQL réel)", () => {
     const result = await requireUser(db, "jeton-qui-n-existe-pas");
     expect(result.status).toBe("unauthenticated");
   });
+
+  it("HUB-01 — prolonge la session à chaque activité (8h glissantes, pas depuis la connexion)", async () => {
+    const organization = await createOrganization(db, `Org ${randomUUID()}`);
+    const email = `glissante-${randomUUID()}@example.test`;
+    await createUser(db, {
+      organizationId: organization.id,
+      email,
+      password: "mot-de-passe",
+      role: "client", // pas de MFA requis, pour isoler le comportement de session
+    });
+
+    const loginResult = await login(db, email, "mot-de-passe");
+    expect(loginResult.outcome).toBe("success");
+    if (loginResult.outcome !== "success") return;
+
+    const firstExpiry = await expiresAtFor(loginResult.sessionToken);
+    await requireUser(db, loginResult.sessionToken);
+    const secondExpiry = await expiresAtFor(loginResult.sessionToken);
+
+    expect(secondExpiry.getTime()).toBeGreaterThan(firstExpiry.getTime());
+  });
 });
+
+async function expiresAtFor(sessionToken: string): Promise<Date> {
+  const [row] = await db
+    .select({ expiresAt: sessions.expiresAt })
+    .from(sessions)
+    .where(eq(sessions.tokenHash, hashSessionToken(sessionToken)));
+  if (!row) throw new Error("session introuvable");
+  return row.expiresAt;
+}

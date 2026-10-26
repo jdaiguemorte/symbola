@@ -47,6 +47,11 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
+      mailpit:
+        image: axllent/mailpit:v1.21
+        ports:
+          - 1025:1025
+          - 8025:8025
     env:
       POSTGRES_HOST: localhost
       POSTGRES_PORT: 5432
@@ -60,6 +65,8 @@ jobs:
       S3_BUCKET: symbola
       CLAMAV_HOST: localhost
       CLAMAV_PORT: 3310
+      SMTP_HOST: localhost
+      SMTP_PORT: 1025
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -90,6 +97,7 @@ jobs:
       - run: pnpm --filter @symbola/db bootstrap
       - run: pnpm --filter @symbola/db migrate
       - run: pnpm --filter @symbola/db test:integration
+      - run: pnpm --filter @symbola/mail test:integration
       - run: pnpm --filter @symbola/auth test:integration
       - run: pnpm --filter @symbola/files test:integration
       - run: pnpm --filter @symbola/app test:integration

@@ -26,6 +26,10 @@ export async function loginAction(
     return { error: "Identifiants invalides." };
   }
 
+  if (result.outcome === "locked") {
+    return { error: "Compte temporairement verrouillé après plusieurs échecs. Réessayez dans quelques minutes." };
+  }
+
   await setSessionCookie(result.sessionToken);
   redirect(result.requiresMfa ? "/mfa" : "/");
 }

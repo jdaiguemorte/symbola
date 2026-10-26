@@ -4,7 +4,7 @@
 // (events, budget, quotes le seront). L'isolation entre organisations pour
 // ces tables est assurée exclusivement par packages/auth (seule porte
 // d'entrée, ADR 0013) : aucun autre code n'y accède directement.
-import { boolean, pgSchema, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { boolean, integer, pgSchema, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
 export const hubSchema = pgSchema("hub");
 
@@ -25,6 +25,11 @@ export const users = hubSchema.table("users", {
   role: roleEnum("role").notNull(),
   totpSecret: text("totp_secret"),
   mfaEnabled: boolean("mfa_enabled").notNull().default(false),
+  // Verrouillage de compte (PRD HUB-01) : 5 mots de passe faux d'affilée
+  // bloquent la connexion 15 min, un e-mail part au titulaire. Remis à
+  // zéro à chaque connexion réussie.
+  failedLoginAttempts: integer("failed_login_attempts").notNull().default(0),
+  lockedUntil: timestamp("locked_until", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
