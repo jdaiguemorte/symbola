@@ -24,6 +24,11 @@ describe("SOC-03 — Validation des variables d'environnement (Zod)", () => {
     expect(() => parseEnv(rest)).toThrow(/POSTGRES_APP_PASSWORD/);
   });
 
+  it("expose la version déployée, « dev » par défaut (SOC-11)", () => {
+    expect(parseEnv(validEnv).APP_VERSION).toBe("dev");
+    expect(parseEnv({ ...validEnv, APP_VERSION: "e451107" }).APP_VERSION).toBe("e451107");
+  });
+
   it("refuse un NODE_ENV inconnu", () => {
     expect(() => parseEnv({ ...validEnv, NODE_ENV: "staging" })).toThrow(/NODE_ENV/);
   });

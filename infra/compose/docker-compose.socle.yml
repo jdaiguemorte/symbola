@@ -35,9 +35,26 @@ services:
     security_opt:
       - no-new-privileges:true
 
+  # Surveillance (SOC-11) : une seule instance pour tout le VPS, qui
+  # surveille staging et production par leurs URL publiques (/health), ce
+  # qui teste aussi Traefik, le DNS et le certificat. Console jamais
+  # exposée : publiée uniquement en boucle locale, accès par tunnel SSH
+  # (docs/runbooks/surveillance.md). Pas sur symbola-edge : elle n'a besoin
+  # que de sortir vers Internet. Healthcheck fourni par l'image.
+  uptime-kuma:
+    image: louislam/uptime-kuma:2.5.7
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3001:3001"
+    volumes:
+      - uptime_kuma_data:/app/data
+    security_opt:
+      - no-new-privileges:true
+
 networks:
   symbola-edge:
     name: symbola-edge
 
 volumes:
   symbola_traefik_letsencrypt:
+  uptime_kuma_data:

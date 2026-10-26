@@ -1,7 +1,7 @@
 // Client de stockage objet compatible S3 (Garage, ADR 0015 — remplace
 // MinIO ; SOC-08). Bucket privé : jamais d'ACL publique, téléchargement
 // uniquement par lien signé à durée limitée.
-import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { GetObjectCommand, HeadBucketCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { parseEnv } from "@symbola/env";
 
@@ -42,4 +42,10 @@ export async function getSignedDownloadUrl(
 ): Promise<string> {
   const command = new GetObjectCommand({ Bucket: storage.bucket, Key: key });
   return getSignedUrl(storage.client, command, { expiresIn: expiresInSeconds });
+}
+
+// Vérification de disponibilité du stockage (SOC-11, page /health) : le
+// bucket existe et les clés de l'app y ont accès.
+export async function checkBucket(storage: ReturnType<typeof createStorageClient>): Promise<void> {
+  await storage.client.send(new HeadBucketCommand({ Bucket: storage.bucket }));
 }

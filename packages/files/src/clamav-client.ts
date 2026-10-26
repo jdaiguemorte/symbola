@@ -63,3 +63,24 @@ export function scanBuffer(
     });
   });
 }
+
+// Vérification de disponibilité de clamd (SOC-11, page /health) : commande
+// PING du protocole clamd, réponse attendue « PONG ».
+export function pingClamav(options: { host: string; port: number; timeoutMs?: number }): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const socket = new Socket();
+    let response = "";
+    socket.setTimeout(options.timeoutMs ?? 2_000, () => socket.destroy(new Error("Délai dépassé (PING ClamAV)")));
+    socket.on("error", reject);
+    socket.on("data", (data) => {
+      response += data.toString("utf8");
+    });
+    socket.on("close", () => {
+      if (response.replace(/\0+$/, "").trim() === "PONG") resolve();
+      else reject(new Error("Réponse inattendue au PING ClamAV"));
+    });
+    socket.connect(options.port, options.host, () => {
+      socket.end("zPING\0");
+    });
+  });
+}

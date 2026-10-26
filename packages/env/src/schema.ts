@@ -24,6 +24,9 @@ const booleanFromEnv = z.preprocess((value) => {
 export const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   APP_PORT: z.coerce.number().int().positive().default(3000),
+  // Version déployée, affichée par /health (SOC-11) : SHA du commit gravé
+  // dans l'image par la CI, « dev » en local.
+  APP_VERSION: z.string().min(1).default("dev"),
 
   // PostgreSQL — rôle applicatif uniquement (packages/db, SOC-05)
   POSTGRES_HOST: z.string().min(1).default("localhost"),

@@ -22,6 +22,9 @@ RUN pnpm --filter @symbola/app build
 FROM node:22-slim AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
+# Version affichée par /health (SOC-11) : SHA du commit, passé par la CI.
+ARG APP_VERSION=dev
+ENV APP_VERSION=${APP_VERSION}
 RUN addgroup --system --gid 1001 symbola && adduser --system --uid 1001 symbola
 COPY --from=build --chown=symbola:symbola /repo/apps/symbola/.next/standalone ./
 COPY --from=build --chown=symbola:symbola /repo/apps/symbola/.next/static ./apps/symbola/.next/static
