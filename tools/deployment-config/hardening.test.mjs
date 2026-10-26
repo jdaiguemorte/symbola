@@ -1,6 +1,7 @@
 // SOC-12 — Durcissement du VPS : runbook exécuté par Julien, script de
 // vérification après exécution, et garde-fou sur les composes (Docker
 // contourne le pare-feu UFW pour les ports publiés).
+import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -95,5 +96,30 @@ describe("SOC-12 — Aucun port publié sur toutes les interfaces, hors Traefik 
     const published = portBlocks.flatMap((block) => [...block.matchAll(/- "([^"]+)"/g)].map((match) => match[1]));
     const publicPorts = published.filter((port) => !port.startsWith("127.0.0.1:"));
     for (const port of publicPorts) expect(["80:80", "443:443"]).toContain(port);
+  });
+});
+
+describe("SOC-12 — Script de vérification : ports en écoute sur l'hôte", () => {
+  // Rejoue le filtre réel du script sur des sorties `ss -Htln` types, pour éviter les
+  // faux positifs constatés sur le VPS (résolveur systemd affiché « 127.0.0.53%lo:53 »).
+  const pipeline = script.match(/public_listeners=\$\(ss -Htln 2>\/dev\/null (\| awk[\s\S]*?) \|\| true\)/)?.[1];
+  const publicListeners = (addresses) =>
+    spawnSync("bash", ["-c", `printf '%s\\n' "$@" | awk '{print "LISTEN 0 4096 " $1 " 0.0.0.0:*"}' | awk '{print $4}' ${pipeline.replace(/^\| awk '\{print \$4\}'/, "")} || true`, "_", ...addresses], {
+      encoding: "utf8",
+    }).stdout.trim();
+
+  it("retrouve le filtre dans le script", () => {
+    expect(pipeline).toBeDefined();
+  });
+
+  it.each(["127.0.0.53%lo:53", "127.0.0.54:53", "127.0.0.1:3001", "[::1]:25", "0.0.0.0:22", "[::]:443", "0.0.0.0:80"])(
+    "n'alerte pas pour %s (boucle locale ou port attendu)",
+    (address) => {
+      expect(publicListeners([address])).toBe("");
+    },
+  );
+
+  it.each(["0.0.0.0:9443", "[::]:8000", "5.182.17.166:5432", "0.0.0.0%eth0:8080"])("alerte pour %s", (address) => {
+    expect(publicListeners([address])).toBe(address);
   });
 });

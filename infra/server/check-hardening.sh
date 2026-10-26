@@ -110,17 +110,19 @@ if has docker; then
   else
     fail "ports Docker publics en trop : $(tr '\n' ' ' <<<"${public_docker_ports}")"
   fi
-  docker_members=$(getent group docker | cut -d: -f4)
-  if [[ -n ${docker_members} ]]; then warn "membres du groupe docker (équivaut à root) : ${docker_members}"; else ok "groupe docker vide"; fi
+  # root a déjà tous les droits : seuls les autres membres élargissent l'accès.
+  docker_members=$(getent group docker | cut -d: -f4 | tr ',' '\n' | grep -vx root | paste -sd, - || true)
+  if [[ -n ${docker_members} ]]; then warn "membres du groupe docker (équivaut à root) : ${docker_members}"; else ok "aucun membre du groupe docker hors root"; fi
 else
   fail "Docker non installé"
 fi
 
 echo "Ports en écoute sur l'hôte"
 # Tout ce qui écoute hors boucle locale doit être SSH ou un port publié
-# par Traefik (80/443). Le résolveur systemd (127.0.0.53/54) est local.
+# par Traefik (80/443). Le résolveur systemd (127.0.0.53%lo:53) est local :
+# ss peut suffixer l'adresse par l'interface (%lo).
 public_listeners=$(ss -Htln 2>/dev/null | awk '{print $4}' \
-  | grep -Ev '^(127\.[0-9.]+|\[::1\]|\[::ffff:127\.[0-9.]+\]):[0-9]+$' \
+  | grep -Ev '^(127\.[0-9.]+|\[::1\]|\[::ffff:127\.[0-9.]+\])(%[[:alnum:]]+)?:[0-9]+$' \
   | grep -Ev ':(22|80|443)$' || true)
 if ! has ss; then
   fail "commande ss absente (paquet iproute2) : ports en écoute non vérifiés"
