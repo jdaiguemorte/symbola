@@ -3,10 +3,11 @@
 // connexion + MFA. Jamais destiné à la production — refuse de s'exécuter
 // si NODE_ENV=production.
 import { createAppConnection } from "@symbola/db/client";
-import { env } from "@symbola/env";
+import { parseEnv } from "@symbola/env";
 import { createOrganization, createUser } from "../src/service";
 
 async function main() {
+  const env = parseEnv(process.env);
   if (env.NODE_ENV === "production") {
     throw new Error("seed-demo-user ne doit jamais tourner en production");
   }

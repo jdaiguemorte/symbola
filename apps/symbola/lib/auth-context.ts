@@ -2,6 +2,12 @@
 // d'authentification : tout est délégué à @symbola/auth (seule porte
 // d'entrée, ADR 0013). Ce fichier ne fait que lire/écrire le cookie de
 // session httpOnly et appeler requireUser().
+// Plomberie pure : pas d'import "next/server" ici. Importer next/server
+// (after()) dans ce fichier a cassé setSessionCookie()/cookies() sur une
+// requête ultérieure (login) en dev — bundling Server Actions perturbé,
+// même quand after() n'était jamais exécuté. La collecte d'usage (SOC-13,
+// ADR 0017) est câblée séparément, au niveau de chaque page protégée
+// (voir app/page.tsx), pas ici.
 import { cookies } from "next/headers";
 import { createAppConnection } from "@symbola/db/client";
 import { requireUser, type AuthResult } from "@symbola/auth";

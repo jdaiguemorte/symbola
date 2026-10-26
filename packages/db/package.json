@@ -10,7 +10,8 @@
     "./schema/hub": "./src/schema/hub.ts",
     "./schema/core": "./src/schema/core.ts",
     "./events/emit": "./src/events/emit.ts",
-    "./events/worker": "./src/events/worker.ts"
+    "./events/worker": "./src/events/worker.ts",
+    "./usage/increment": "./src/usage/increment.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
