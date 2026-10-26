@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { confirmTotp, requireUser, setupTotp } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
 import { getSessionToken } from "@/lib/auth-context";
@@ -41,7 +42,10 @@ export async function confirmMfaAction(
     await sql.end();
   }
 
-  if (!confirmed) return { error: "Code invalide." };
+  if (!confirmed) {
+    const t = await getTranslations("Mfa");
+    return { error: t("invalidCode") };
+  }
 
   redirect("/");
 }

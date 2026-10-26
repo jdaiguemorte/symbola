@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getTranslations } from "next-intl/server";
 import { createAppConnection } from "@symbola/db/client";
 import { createOrganizationWithInvitation, setModuleEnabled, type ModuleKey } from "@/modules/hub/service";
 import { requireAdmin } from "@/lib/require-admin";
@@ -19,7 +20,8 @@ export async function createOrganizationAction(
   const titulaireEmail = String(formData.get("titulaireEmail") ?? "").trim();
 
   if (!name || !titulaireEmail) {
-    return { error: "Le nom de l'organisation et l'e-mail du titulaire sont obligatoires." };
+    const t = await getTranslations("AdminOrganizationForm");
+    return { error: t("missingFields") };
   }
 
   const { sql, db } = createAppConnection();

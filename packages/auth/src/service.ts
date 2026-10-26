@@ -22,6 +22,8 @@ export type AuthenticatedUser = {
   email: string;
   role: Role;
   organizationId: string | null;
+  // Choix explicite dans le profil (HUB-04) ; nul = pas encore choisi.
+  language: "fr" | "en" | null;
 };
 
 export type AuthResult =
@@ -163,6 +165,7 @@ export async function requireUser(
       email: users.email,
       role: users.role,
       organizationId: users.organizationId,
+      language: users.language,
       totpSecret: users.totpSecret,
       mfaVerified: sessions.mfaVerified,
       expiresAt: sessions.expiresAt,
@@ -193,10 +196,17 @@ export async function requireUser(
       email: row.email,
       role: row.role,
       organizationId: row.organizationId,
+      language: row.language,
     },
   };
 }
 
 export async function destroySession(db: AppDatabase, sessionToken: string): Promise<void> {
   await db.delete(sessions).where(eq(sessions.tokenHash, hashSessionToken(sessionToken)));
+}
+
+// HUB-04 — « Quand il choisit FR ou EN dans son profil, toutes les apps
+// s'affichent dans cette langue. »
+export async function setUserLanguage(db: AppDatabase, userId: string, language: "fr" | "en"): Promise<void> {
+  await db.update(users).set({ language }).where(eq(users.id, userId));
 }

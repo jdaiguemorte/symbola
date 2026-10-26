@@ -1,26 +1,28 @@
 "use client";
 
 import { useActionState } from "react";
+import { useTranslations } from "next-intl";
 import { loginAction, type LoginFormState } from "./actions";
 
 export default function LoginPage() {
+  const t = useTranslations("Login");
   const initialState: LoginFormState = {};
   const [state, formAction, pending] = useActionState(loginAction, initialState);
 
   return (
     <main>
-      <h1>Connexion</h1>
+      <h1>{t("title")}</h1>
       <form action={formAction}>
         <label>
-          E-mail
+          {t("email")}
           <input type="email" name="email" required />
         </label>
         <label>
-          Mot de passe
+          {t("password")}
           <input type="password" name="password" required />
         </label>
         <button type="submit" disabled={pending}>
-          Se connecter
+          {t("submit")}
         </button>
       </form>
       {state.error ? <p role="alert">{state.error}</p> : null}

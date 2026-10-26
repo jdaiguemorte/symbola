@@ -3,6 +3,7 @@
 // pour l'instant (ADR 0011) : réutilise les mêmes vérifications que
 // /health plutôt que de les dupliquer.
 import { sql as rawSql } from "drizzle-orm";
+import { getTranslations } from "next-intl/server";
 import { createAppConnection } from "@symbola/db/client";
 import { parseEnv } from "@symbola/env";
 import { checkBucket, createStorageClient, pingClamav } from "@symbola/files";
@@ -11,6 +12,7 @@ import { runHealthChecks } from "@/lib/health";
 
 export default async function AdminHealthPage() {
   await requireAdmin();
+  const t = await getTranslations("AdminHealth");
 
   const env = parseEnv(process.env);
   const report = await runHealthChecks(
@@ -31,19 +33,19 @@ export default async function AdminHealthPage() {
 
   return (
     <main>
-      <h1>Santé</h1>
+      <h1>{t("title")}</h1>
       <table>
         <thead>
           <tr>
-            <th>App</th>
-            <th>État</th>
-            <th>Version</th>
+            <th>{t("app")}</th>
+            <th>{t("status")}</th>
+            <th>{t("version")}</th>
           </tr>
         </thead>
         <tbody>
           <tr>
             <td>Symbola</td>
-            <td>{report.status === "ok" ? "en ligne" : "hors ligne"}</td>
+            <td>{report.status === "ok" ? t("online") : t("offline")}</td>
             <td>{report.version}</td>
           </tr>
         </tbody>

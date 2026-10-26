@@ -1,4 +1,7 @@
 import type { NextConfig } from "next";
+import createNextIntlPlugin from "next-intl/plugin";
+
+const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 
 // En-têtes de sécurité (SOC-09, CLAUDE.md §5) — posés au niveau de l'app,
 // pas seulement de Traefik, pour qu'ils tiennent même si un module est
@@ -30,4 +33,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withNextIntl(nextConfig);
