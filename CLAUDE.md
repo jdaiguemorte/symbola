@@ -201,7 +201,10 @@ l'équivalent Docker donné à droite.
 | Appliquer les migrations de base (après le bootstrap, SOC-05) | `pnpm --filter @symbola/db migrate` | `docker run --rm --network symbola-dev_default -v "$PWD":/app -w /app --env-file .env node:22-slim pnpm --filter @symbola/db migrate` |
 | Tests d'isolation RLS réels (SOC-05, nécessite le socle démarré + bootstrap + migrate) | `pnpm --filter @symbola/db test:integration` | `docker run --rm --network symbola-dev_default -v "$PWD":/app -w /app --env-file .env node:22-slim pnpm --filter @symbola/db test:integration` |
 | Lancer le socle en local seul | — | `docker compose -f infra/compose/docker-compose.dev.yml --env-file .env up` |
-| Vérifier les scripts serveur (SOC-12) | `shellcheck infra/server/*.sh` | `docker run --rm -v "$PWD/infra/server":/mnt:ro koalaman/shellcheck:stable /mnt/check-hardening.sh` |
+| Vérifier les scripts serveur (SOC-10, SOC-12) | `shellcheck -x infra/server/*.sh infra/backup/*.sh` | `docker run --rm -v "$PWD/infra":/mnt:ro -w /mnt koalaman/shellcheck:stable -x server/check-hardening.sh backup/backup.sh backup/restore.sh backup/lib.sh` |
+| Tests des sauvegardes et des configurations de déploiement (SOC-09 à SOC-12) | `pnpm --filter @symbola/tools-deployment-config test` | `docker run --rm -v "$PWD":/app -w /app node:22-slim pnpm --filter @symbola/tools-deployment-config test` |
+| Sauvegarder un environnement à la main (SOC-10, **Julien, sur le VPS**) | — | `sudo systemctl start symbola-backup@staging.service` (voir `docs/runbooks/restauration.md`) |
+| Restaurer un environnement (SOC-10, **Julien, sur le VPS**, destructif) | — | `sudo /opt/symbola/infra/backup/restore.sh staging --confirm=staging` |
 | Vérifier le durcissement du VPS (SOC-12, **Julien, sur le VPS**) | — | `sudo bash infra/server/check-hardening.sh` (lecture seule, voir `docs/runbooks/durcissement-serveur.md`) |
 
 Le socle de dev (Postgres, Garage, ClamAV, Mailpit, Traefik) est défini dans

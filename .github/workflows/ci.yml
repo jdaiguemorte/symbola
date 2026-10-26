@@ -27,8 +27,8 @@ jobs:
       - run: pnpm check:boundaries
       - name: Registre RGPD (SOC-07) — colonnes personnelles non déclarées
         run: pnpm --filter @symbola/privacy check:registry
-      - name: Scripts serveur (SOC-12) — shellcheck
-        run: shellcheck infra/server/*.sh
+      - name: Scripts serveur (SOC-10, SOC-12) — shellcheck
+        run: shellcheck -x infra/server/*.sh infra/backup/*.sh
 
   db-isolation:
     name: Isolation RLS, authentification, événements et fichiers (services réels, SOC-04/05/06/08)

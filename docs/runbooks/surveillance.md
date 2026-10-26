@@ -68,9 +68,10 @@ puis `http://localhost:3001` dans le navigateur.
    | Notification expiration certificat | activée (14 jours) | activée (14 jours) |
 
 4. **Sauvegarde nocturne** (lien avec SOC-10) : une sonde de type *Push*
-   « Sauvegarde restic », intervalle 26 h. Le script de sauvegarde appelle
-   l'URL Push en fin de sauvegarde réussie : une nuit sans sauvegarde
-   déclenche une alerte.
+   par environnement (« Sauvegarde restic — production », « — staging »),
+   intervalle 26 h. Le script de sauvegarde appelle l'URL Push en fin de
+   sauvegarde réussie : une nuit sans sauvegarde déclenche une alerte.
+   Mise en place : `docs/runbooks/restauration.md`, § 6.
 
 ## Vérification
 

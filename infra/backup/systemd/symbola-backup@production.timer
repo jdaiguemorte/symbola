@@ -1,0 +1,13 @@
+# Sauvegarde nocturne de la production (SOC-10) : avant celle du staging et bien avant
+# le redémarrage automatique éventuel de 05:00 (runbook de durcissement).
+[Unit]
+Description=Sauvegarde nocturne Symbola (production)
+
+[Timer]
+OnCalendar=*-*-* 02:30:00 Europe/Paris
+RandomizedDelaySec=10min
+# Rattrape une sauvegarde manquée (VPS éteint à l'heure prévue).
+Persistent=true
+
+[Install]
+WantedBy=timers.target

@@ -82,7 +82,7 @@ Claude Code prépare les fichiers, scripts et runbooks. **Julien exécute lui-m�
 
 ### SOC-10 — Sauvegardes
 
-- restic sauvegarde chaque nuit les bases PostgreSQL (dump), Zitadel et MinIO, chiffré, dans un dossier dédié du VPS, séparé des données. Pas de copie externe ni de serveur de secours au démarrage : risque accepté et documenté dans le runbook ; une copie externe sera ajoutée avant l'ouverture à d'autres clients.
+- restic sauvegarde chaque nuit la base PostgreSQL (dump) et Garage (ADR 0015) de chaque environnement, plus les données d'Uptime Kuma, chiffré, dans un dossier dédié du VPS, séparé des données. Pas de copie externe ni de serveur de secours au démarrage : risque accepté et documenté dans le runbook ; une copie externe sera ajoutée avant l'ouverture à d'autres clients.
 - Runbook `docs/runbooks/restauration.md` ; une restauration complète est réalisée et chronométrée sur le staging.
 
 ### SOC-11 — Surveillance
