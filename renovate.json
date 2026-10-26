@@ -1,0 +1,26 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "timezone": "Europe/Paris",
+  "schedule": ["before 6am on monday"],
+  "labels": ["dependencies"],
+  "dependencyDashboard": true,
+  "packageRules": [
+    {
+      "description": "Grouper toutes les mises à jour mineures/patch en une seule PR hebdomadaire",
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "dépendances mineures/patch",
+      "schedule": ["before 6am on monday"]
+    },
+    {
+      "description": "Les montées de version majeures restent séparées, pour revue individuelle",
+      "matchUpdateTypes": ["major"],
+      "groupName": null,
+      "schedule": ["before 6am on monday"]
+    }
+  ],
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "labels": ["security"]
+  }
+}

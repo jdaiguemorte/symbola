@@ -1,0 +1,157 @@
+# Compose d'environnement (SOC-09, ADR 0009, ADR 0011 : une seule app) —
+# réutilisé tel quel pour staging ET production, distingués par le fichier
+# --env-file (ENVIRONMENT_NAME) et le nom de projet.
+#
+# Proxy : Caddy partagé du VPS (ADR 0018, remplace Traefik) — pas démarré
+# par ce fichier. L'app n'est jamais exposée directement : seulement en
+# boucle locale (comme PostgreSQL), à l'adresse que le bloc Caddyfile de
+# cet environnement reverse-proxy (docs/runbooks/deploiement.md).
+#
+# Isolation staging ↔ production (ADR 0016) :
+# - nom de projet dérivé de ENVIRONMENT_NAME : oublier -p ne fait jamais
+#   partager conteneurs ni volumes entre les deux environnements ;
+# - PostgreSQL, Garage, ClamAV et symbola ne sont que sur le réseau
+#   `default` du projet (symbola-staging_default, symbola-production_default) ;
+# - limites mémoire/CPU par conteneur, fixées dans chaque .env (staging
+#   bridé pour ne jamais pénaliser la production).
+#
+#   docker compose -f infra/compose/docker-compose.prod.yml \
+#     --env-file .env.staging -p symbola-staging up -d
+#
+#   docker compose -f infra/compose/docker-compose.prod.yml \
+#     --env-file .env.production -p symbola-production up -d
+name: symbola-${ENVIRONMENT_NAME:?ENVIRONMENT_NAME requis (staging ou production)}
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_ADMIN_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_ADMIN_PASSWORD}
+    # Lien uniquement en boucle locale sur le VPS (jamais exposé à
+    # Internet) : les migrations se lancent depuis le poste de Julien via
+    # un tunnel SSH (docs/runbooks/deploiement.md), sans ouvrir le port au
+    # réseau public.
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:?POSTGRES_PORT requis, distinct par environnement}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - default
+    deploy:
+      resources:
+        limits:
+          memory: ${POSTGRES_MEM_LIMIT:?POSTGRES_MEM_LIMIT requis}
+          cpus: ${POSTGRES_CPUS:?POSTGRES_CPUS requis}
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  garage:
+    image: dxflrs/garage:v2.5.0
+    restart: unless-stopped
+    command: ["/garage", "server", "--single-node", "--default-bucket"]
+    environment:
+      GARAGE_DEFAULT_ACCESS_KEY: ${S3_ACCESS_KEY}
+      GARAGE_DEFAULT_SECRET_KEY: ${S3_SECRET_KEY}
+      GARAGE_DEFAULT_BUCKET: ${S3_BUCKET:-symbola}
+    volumes:
+      - garage_data:/data
+      # Jamais le infra/compose/garage.toml du dépôt (secrets de dev fixes,
+      # documentés comme tels dans ADR 0015) : un fichier propre à chaque
+      # environnement, jamais committé (voir le runbook de déploiement).
+      - ./garage.${ENVIRONMENT_NAME}.toml:/etc/garage.toml:ro
+    networks:
+      - default
+    deploy:
+      resources:
+        limits:
+          memory: ${GARAGE_MEM_LIMIT:?GARAGE_MEM_LIMIT requis}
+          cpus: ${GARAGE_CPUS:?GARAGE_CPUS requis}
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "/garage", "status"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+
+  clamav:
+    image: clamav/clamav:1.4
+    restart: unless-stopped
+    volumes:
+      - clamav_data:/var/lib/clamav
+    networks:
+      - default
+    deploy:
+      resources:
+        limits:
+          memory: ${CLAMAV_MEM_LIMIT:?CLAMAV_MEM_LIMIT requis}
+          cpus: ${CLAMAV_CPUS:?CLAMAV_CPUS requis}
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "clamdcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 90s
+
+  symbola:
+    image: ghcr.io/${GITHUB_REPOSITORY:-jdaiguemorte/symbola}:${APP_IMAGE_TAG:-latest}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      APP_PORT: 3000
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_APP_USER: ${POSTGRES_APP_USER}
+      POSTGRES_APP_PASSWORD: ${POSTGRES_APP_PASSWORD}
+      S3_ENDPOINT: garage
+      S3_PORT: 3900
+      S3_USE_SSL: "false"
+      S3_REGION: ${S3_REGION:-garage}
+      S3_BUCKET: ${S3_BUCKET:-symbola}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY}
+      S3_SECRET_KEY: ${S3_SECRET_KEY}
+      CLAMAV_HOST: clamav
+      CLAMAV_PORT: 3310
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT:-587}
+    depends_on:
+      - postgres
+      - garage
+      - clamav
+    # Aucun port publié sur l'hôte : le Caddy partagé du VPS (ADR 0018,
+    # conteneur du compose petites-voitures) rejoint ce réseau Docker
+    # après coup (`docker network connect`, runbook de déploiement) et
+    # route vers `symbola:3000` par nom de service — même mécanisme que
+    # son bloc Caddyfile existant pour kindo-server-1.
+    networks:
+      - default
+    deploy:
+      resources:
+        limits:
+          memory: ${APP_MEM_LIMIT:?APP_MEM_LIMIT requis}
+          cpus: ${APP_CPUS:?APP_CPUS requis}
+    security_opt:
+      - no-new-privileges:true
+    # Pas de read_only ici : Next.js en standalone écrit dans .next/cache
+    # (cache de rendu) au runtime — à vérifier et durcir plus tard si
+    # confirmé sans risque (pas testable sans déploiement réel).
+
+networks:
+  default:
+
+volumes:
+  postgres_data:
+  garage_data:
+  clamav_data:

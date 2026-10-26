@@ -1,0 +1,16 @@
+# Registre des champs personnels (SOC-07, CLAUDE.md §2.8). Chaque champ
+# personnel nouveau doit être déclaré ici avant/au moment de sa migration —
+# sinon la CI échoue (packages/privacy/scripts/check-registry.ts).
+version: 1
+fields:
+  - schema: hub
+    table: users
+    field: email
+    category: identifiant
+    retention: >-
+      Tant que le compte existe. Après suppression ou demande d'oubli :
+      voir RGPD-03/RGPD-05 (purge selon les règles de conservation du
+      cahier des charges).
+    anonymization: >-
+      Remplacé par une valeur générée non réversible lors d'une demande
+      d'oubli (RGPD-03).

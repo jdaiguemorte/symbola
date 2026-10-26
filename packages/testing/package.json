@@ -1,0 +1,18 @@
+{
+  "name": "@symbola/testing",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "main": "./src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "vitest": "^4.1.12"
+  },
+  "devDependencies": {
+    "@symbola/config": "workspace:*",
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2"
+  }
+}

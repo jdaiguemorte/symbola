@@ -1,0 +1,23 @@
+{
+  "name": "@symbola/privacy",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "main": "./src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "check:registry": "tsx scripts/check-registry.ts"
+  },
+  "dependencies": {
+    "yaml": "^2.7.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@symbola/config": "workspace:*",
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^4.1.12"
+  }
+}

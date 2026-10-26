@@ -1,0 +1,178 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-typecheck-test:
+    name: Lint, typecheck, tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm check:boundaries
+      - name: Registre RGPD (SOC-07) — colonnes personnelles non déclarées
+        run: pnpm --filter @symbola/privacy check:registry
+      - name: Scripts serveur (SOC-10, SOC-12) — shellcheck
+        run: shellcheck -x infra/server/*.sh infra/backup/*.sh
+
+  db-isolation:
+    name: Isolation RLS, authentification, événements et fichiers (services réels, SOC-04/05/06/08)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: symbola
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ci-admin-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d symbola"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: symbola
+      POSTGRES_ADMIN_USER: postgres
+      POSTGRES_ADMIN_PASSWORD: ci-admin-password
+      POSTGRES_APP_USER: symbola_app
+      POSTGRES_APP_PASSWORD: ci-app-password
+      S3_ACCESS_KEY: ci-s3-access-key-000000
+      S3_SECRET_KEY: ci-s3-secret-key-0000000000000000000000
+      S3_BUCKET: symbola
+      CLAMAV_HOST: localhost
+      CLAMAV_PORT: 3310
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+      - run: pnpm install --frozen-lockfile
+      # Garage (ADR 0015) et ClamAV n'ont pas d'options "command" dans les
+      # services GitHub Actions : démarrés manuellement en réseau hôte.
+      - name: Démarrer Garage (stockage objet, SOC-08)
+        run: |
+          docker run -d --name garage --network host \
+            -v "$GITHUB_WORKSPACE/infra/compose/garage.toml:/etc/garage.toml:ro" \
+            -e GARAGE_DEFAULT_ACCESS_KEY="$S3_ACCESS_KEY" \
+            -e GARAGE_DEFAULT_SECRET_KEY="$S3_SECRET_KEY" \
+            -e GARAGE_DEFAULT_BUCKET="$S3_BUCKET" \
+            -e GARAGE_RPC_SECRET="$(openssl rand -hex 32)" \
+            -e GARAGE_ADMIN_TOKEN="$(openssl rand -base64 32)" \
+            -e GARAGE_METRICS_TOKEN="$(openssl rand -base64 32)" \
+            dxflrs/garage:v2.5.0 /garage server --single-node --default-bucket
+      - name: Démarrer ClamAV (SOC-08)
+        run: docker run -d --name clamav --network host clamav/clamav:1.4
+      - name: Attendre que Garage et ClamAV soient prêts
+        run: |
+          timeout 120 bash -c 'until curl -sf http://localhost:3903/health; do sleep 2; done'
+          timeout 180 bash -c 'until docker exec clamav clamdcheck.sh; do sleep 5; done'
+      - run: pnpm --filter @symbola/db bootstrap
+      - run: pnpm --filter @symbola/db migrate
+      - run: pnpm --filter @symbola/db test:integration
+      - run: pnpm --filter @symbola/auth test:integration
+      - run: pnpm --filter @symbola/files test:integration
+      - run: pnpm --filter @symbola/app test:integration
+
+  semgrep:
+    name: Semgrep (SAST)
+    runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep
+    steps:
+      - uses: actions/checkout@v4
+      - run: semgrep scan --config=auto --error --severity=ERROR
+
+  gitleaks:
+    name: Gitleaks (secrets)
+    runs-on: ubuntu-latest
+    container:
+      image: zricethezav/gitleaks:latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - run: gitleaks detect --source . -v --redact --exit-code 1
+
+  osv-scanner:
+    name: OSV-Scanner (dépendances)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: google/osv-scanner-action/osv-scanner-action@v1.9.1
+        with:
+          scan-args: |-
+            --lockfile=./pnpm-lock.yaml
+
+  build-and-scan-image:
+    name: Build image + Trivy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build l'image symbola (non poussée)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/symbola/Dockerfile
+          tags: symbola-app:ci
+          push: false
+          load: true
+      # Image officielle de Trivy, figée par version et empreinte (Renovate
+      # propose les montées) : l'action aquasecurity/trivy-action@0.29.0 a
+      # disparu de GitHub et faisait échouer ce job avant tout scan.
+      - name: Scan Trivy (bloque sur CRITICAL)
+        run: |
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+            aquasec/trivy:0.75.0@sha256:af6acf9a6b85dfe389a1941505c0ce9efef52a4719635e1a962f022a3d855daa \
+            image --severity CRITICAL --ignore-unfixed --exit-code 1 --no-progress symbola-app:ci
+
+  publish-image:
+    name: Publier l'image (GHCR, SOC-09)
+    # Seulement sur main, après que tous les contrôles de sécurité soient
+    # verts : déployer par tag d'image (ADR 0009) suppose une image
+    # publiée quelque part pour que staging/production puissent la tirer.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [lint-typecheck-test, db-isolation, semgrep, gitleaks, osv-scanner, build-and-scan-image]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/symbola/Dockerfile
+          push: true
+          build-args: |
+            APP_VERSION=${{ github.sha }}
+          tags: |
+            ghcr.io/${{ github.repository }}:${{ github.sha }}
+            ghcr.io/${{ github.repository }}:latest

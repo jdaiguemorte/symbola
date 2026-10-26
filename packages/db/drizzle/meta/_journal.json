@@ -1,0 +1,62 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1792972775380,
+      "tag": "0000_create_hello_schema",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1792972784839,
+      "tag": "0001_enable_rls_and_module_schemas",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792996202635,
+      "tag": "0002_create_hub_identity_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792996231669,
+      "tag": "0003_grant_hub_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792998307654,
+      "tag": "0004_create_domain_events",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792998315274,
+      "tag": "0005_grant_core_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793000658864,
+      "tag": "0006_create_usage_counters",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1793000667770,
+      "tag": "0007_grant_usage_counters",
+      "breakpoints": true
+    }
+  ]
+}

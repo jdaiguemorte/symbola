@@ -64,10 +64,10 @@ du cahier des charges, à activer seulement si un second client ou une équipe l
 | Base | **Une seule base PostgreSQL, un schéma par module** | Une base et un rôle par app |
 | Identité | **Authentification maison** (argon2id, session opaque, MFA TOTP) derrière `packages/auth` | Zitadel (OIDC, organisations, rôles, MFA) |
 | Événements | **Table `domain_events`** (outbox interne), schémas versionnés dans `packages/contracts` | NATS JetStream |
-| Fichiers | MinIO (S3), liens signés à durée limitée, antivirus ClamAV à l'envoi | — (inchangé) |
+| Fichiers | Garage (S3, ADR 0015 — remplace MinIO, image retirée des registres publics), liens signés à durée limitée, antivirus ClamAV à l'envoi | — (inchangé) |
 | i18n | next-intl | — (inchangé) |
 | Tests | Vitest (unitaires et intégration), Playwright (bout en bout, mobile 375 px), axe-core (accessibilité) | — (inchangé) |
-| Proxy | Traefik v3, HTTPS Let's Encrypt, un seul sous-domaine | Un sous-domaine par app |
+| Proxy | Caddy partagé du VPS (ADR 0018, remplace Traefik), HTTPS Let's Encrypt, un seul sous-domaine ; Traefik reste utilisé en dev local uniquement (socle Docker Compose, SOC-03) | Un sous-domaine par app |
 | Déploiement | Docker Compose, un seul fichier pour le socle + l'app | Un fichier par app + un pour le socle |
 | CI | GitHub Actions | — (inchangé) |
 | Sécurité CI | Semgrep, Gitleaks, Trivy, OSV-Scanner, Renovate, OWASP ZAP (staging) | — (inchangé) |
@@ -184,4 +184,32 @@ Une story est terminée quand :
 
 ## 9. Commandes
 
-À compléter au lot 0 (installation, dev, tests, lint, migrations, lancement du socle en local).
+Julien travaille sans toolchain Node/Python natif sur son Mac ; toutes les commandes tournent
+dans Docker Desktop. Les commandes `pnpm` ci-dessous sont celles que Claude Code utilise en
+interne (Node est disponible dans cet environnement de développement) ; Julien passe par
+l'équivalent Docker donné à droite.
+
+| Besoin | Commande (si Node est disponible) | Équivalent Docker (poste de Julien) |
+| --- | --- | --- |
+| Installer les dépendances | `pnpm install` | `docker run --rm -v "$PWD":/app -w /app node:22-slim corepack enable && corepack use pnpm@9.15.0 && pnpm install` |
+| Démarrer le socle + l'app en dev | `pnpm dev` | `cp .env.example .env` (une fois, puis remplir les mots de passe et les trois secrets `GARAGE_*`, générés par `openssl rand`) puis `docker compose -f infra/compose/docker-compose.dev.yml --env-file .env up -d && pnpm dev`, depuis la racine du dépôt |
+| Lint | `pnpm lint` | `docker run --rm -v "$PWD":/app -w /app node:22-slim pnpm lint` |
+| Vérification des types | `pnpm typecheck` | `docker run --rm -v "$PWD":/app -w /app node:22-slim pnpm typecheck` |
+| Tests | `pnpm test` | `docker run --rm -v "$PWD":/app -w /app node:22-slim pnpm test` |
+| Contrôle des frontières de modules (ADR 0011) | `pnpm check:boundaries` | `docker run --rm -v "$PWD":/app -w /app node:22-slim pnpm check:boundaries` |
+| Créer/mettre à jour le rôle applicatif PostgreSQL (une fois par base, SOC-05) | `pnpm --filter @symbola/db bootstrap` | `docker run --rm --network symbola-dev_default -v "$PWD":/app -w /app --env-file .env node:22-slim pnpm --filter @symbola/db bootstrap` |
+| Appliquer les migrations de base (après le bootstrap, SOC-05) | `pnpm --filter @symbola/db migrate` | `docker run --rm --network symbola-dev_default -v "$PWD":/app -w /app --env-file .env node:22-slim pnpm --filter @symbola/db migrate` |
+| Tests d'isolation RLS réels (SOC-05, nécessite le socle démarré + bootstrap + migrate) | `pnpm --filter @symbola/db test:integration` | `docker run --rm --network symbola-dev_default -v "$PWD":/app -w /app --env-file .env node:22-slim pnpm --filter @symbola/db test:integration` |
+| Lancer le socle en local seul | — | `docker compose -f infra/compose/docker-compose.dev.yml --env-file .env up` |
+| Vérifier les scripts serveur (SOC-10, SOC-12) | `shellcheck -x infra/server/*.sh infra/backup/*.sh` | `docker run --rm -v "$PWD/infra":/mnt:ro -w /mnt koalaman/shellcheck:stable -x server/check-hardening.sh backup/backup.sh backup/restore.sh backup/lib.sh` |
+| Tests des sauvegardes et des configurations de déploiement (SOC-09 à SOC-12) | `pnpm --filter @symbola/tools-deployment-config test` | `docker run --rm -v "$PWD":/app -w /app node:22-slim pnpm --filter @symbola/tools-deployment-config test` |
+| Sauvegarder un environnement à la main (SOC-10, **Julien, sur le VPS**) | — | `sudo systemctl start symbola-backup@staging.service` (voir `docs/runbooks/restauration.md`) |
+| Restaurer un environnement (SOC-10, **Julien, sur le VPS**, destructif) | — | `sudo /opt/symbola/infra/backup/restore.sh staging --confirm=staging` |
+| Vérifier le durcissement du VPS (SOC-12, **Julien, sur le VPS**) | — | `sudo bash infra/server/check-hardening.sh` (lecture seule, voir `docs/runbooks/durcissement-serveur.md`) |
+
+Le socle de dev (Postgres, Garage, ClamAV, Mailpit, Traefik) est défini dans
+`infra/compose/docker-compose.dev.yml` (SOC-03) ; les variables d'environnement sont validées par
+Zod au démarrage de l'app (`packages/env`, voir `.env.example`). `pnpm dev` démarre l'app ; le
+socle se lance à part tant qu'ils ne sont pas encore orchestrés en une seule commande (prévu avant
+la fin du lot si le temps le permet, sinon noté comme limite connue). Cette section se complète à
+chaque story qui ajoute une commande (migrations, build des images, déploiement — SOC-05 à SOC-12).

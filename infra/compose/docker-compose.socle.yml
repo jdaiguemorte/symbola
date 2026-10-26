@@ -1,0 +1,69 @@
+# Socle partagé du VPS (SOC-09, ADR 0009) : un seul Traefik pour toute la
+# machine, staging et production compris — les deux ne peuvent pas
+# chacune écouter les ports 80/443. Lancé une fois, avant les composes
+# d'environnement (docker-compose.prod.yml, un par environnement).
+#
+# Démarrage (une seule fois, ou après modification) :
+#   docker compose -f infra/compose/docker-compose.socle.yml --env-file .env.socle -p symbola-socle up -d
+name: symbola-socle
+
+services:
+  traefik:
+    image: traefik:v3.2
+    restart: unless-stopped
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.le.acme.email=${ACME_EMAIL}"
+      - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.le.acme.httpchallenge.entrypoint=web"
+      - "--accesslog=true"
+      - "--log.level=INFO"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - symbola_traefik_letsencrypt:/letsencrypt
+    # Relié aux réseaux frontaux des deux environnements : Traefik est le
+    # seul pont entre eux, et ne fait que router par nom d'hôte (ADR 0016).
+    # Chaque app indique son réseau par le label traefik.docker.network.
+    networks:
+      - edge-staging
+      - edge-production
+    security_opt:
+      - no-new-privileges:true
+
+  # Surveillance (SOC-11) : une seule instance pour tout le VPS, qui
+  # surveille staging et production par leurs URL publiques (/health), ce
+  # qui teste aussi Traefik, le DNS et le certificat. Console jamais
+  # exposée : publiée uniquement en boucle locale, accès par tunnel SSH
+  # (docs/runbooks/surveillance.md). Sur aucun réseau frontal : elle n'a besoin
+  # que de sortir vers Internet (réseau `default` du socle). Healthcheck fourni par l'image.
+  uptime-kuma:
+    image: louislam/uptime-kuma:2.5.7
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3001:3001"
+    volumes:
+      - uptime_kuma_data:/app/data
+    security_opt:
+      - no-new-privileges:true
+
+# Un réseau frontal par environnement, jamais partagé entre eux : un
+# conteneur de staging ne peut pas joindre un conteneur de production
+# (ADR 0016). Les services internes (PostgreSQL, Garage, ClamAV) ne
+# rejoignent aucun de ces réseaux.
+networks:
+  edge-staging:
+    name: symbola-edge-staging
+  edge-production:
+    name: symbola-edge-production
+
+volumes:
+  symbola_traefik_letsencrypt:
+  uptime_kuma_data:

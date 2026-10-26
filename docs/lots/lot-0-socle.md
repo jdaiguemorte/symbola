@@ -82,7 +82,7 @@ Claude Code prépare les fichiers, scripts et runbooks. **Julien exécute lui-m�
 
 ### SOC-10 — Sauvegardes
 
-- restic sauvegarde chaque nuit les bases PostgreSQL (dump), Zitadel et MinIO, chiffré, dans un dossier dédié du VPS, séparé des données. Pas de copie externe ni de serveur de secours au démarrage : risque accepté et documenté dans le runbook ; une copie externe sera ajoutée avant l'ouverture à d'autres clients.
+- restic sauvegarde chaque nuit la base PostgreSQL (dump) et Garage (ADR 0015) de chaque environnement, plus les données d'Uptime Kuma, chiffré, dans un dossier dédié du VPS, séparé des données. Pas de copie externe ni de serveur de secours au démarrage : risque accepté et documenté dans le runbook ; une copie externe sera ajoutée avant l'ouverture à d'autres clients.
 - Runbook `docs/runbooks/restauration.md` ; une restauration complète est réalisée et chronométrée sur le staging.
 
 ### SOC-11 — Surveillance
@@ -94,6 +94,13 @@ Claude Code prépare les fichiers, scripts et runbooks. **Julien exécute lui-m�
 
 - Runbook `docs/runbooks/durcissement-serveur.md` pour le VPS : connexion SSH par clé uniquement, root désactivé, pare-feu limité à 80/443 (+ SSH restreint), CrowdSec, mises à jour de sécurité automatiques, Docker à jour.
 - Une checklist de vérification après exécution.
+
+### SOC-13 — Compteurs d'usage (préparation future empreinte carbone, ADR 0017)
+
+- Table `usage_counters` (`packages/db`) : organisation, date, requêtes comptées, octets de réponse cumulés.
+- Middleware Next.js (ou équivalent au niveau du routeur) qui incrémente ces compteurs à chaque requête authentifiée, sans ralentir la requête de façon perceptible (écriture asynchrone ou batchée).
+- Pas de calcul carbone ici, seulement la collecte brute — le module `carbon` qui l'exploitera est V2 (CARB-02 à CARB-04).
+- Test : une requête du module `hello` incrémente bien le compteur de la bonne organisation.
 
 ## Fin du lot 0
 

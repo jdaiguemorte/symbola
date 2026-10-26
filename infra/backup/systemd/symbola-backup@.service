@@ -1,0 +1,15 @@
+# Sauvegarde restic d'un environnement Symbola (SOC-10). Instance = staging ou production.
+# Installé dans /etc/systemd/system/ (docs/runbooks/restauration.md, § 3), déclenché par
+# symbola-backup@<environnement>.timer.
+[Unit]
+Description=Sauvegarde restic Symbola (%i)
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/symbola/infra/backup/backup.sh %i
+# Ne jamais ralentir l'app pendant la sauvegarde.
+Nice=10
+IOSchedulingClass=idle

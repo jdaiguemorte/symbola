@@ -1,0 +1,22 @@
+# Config Garage (ADR 0015) — mono-nœud, développement et CI uniquement.
+# Aucun secret ici : rpc_secret, admin_token et metrics_token sont fournis
+# par les variables GARAGE_RPC_SECRET, GARAGE_ADMIN_TOKEN et
+# GARAGE_METRICS_TOKEN (.env en dev, générées à chaque exécution en CI).
+# Staging/production : garage.<environnement>.toml, jamais commité
+# (docs/runbooks/deploiement.md).
+metadata_dir = "/data/meta"
+data_dir = "/data/data"
+db_engine = "sqlite"
+
+replication_factor = 1
+
+rpc_bind_addr = "[::]:3901"
+rpc_public_addr = "127.0.0.1:3901"
+
+[s3_api]
+s3_region = "garage"
+api_bind_addr = "[::]:3900"
+root_domain = ".s3.garage.localhost"
+
+[admin]
+api_bind_addr = "[::]:3903"

@@ -1,0 +1,27 @@
+{
+  "name": "@symbola/auth",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "main": "./src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
+    "seed:demo-user": "tsx scripts/seed-demo-user.ts"
+  },
+  "dependencies": {
+    "@node-rs/argon2": "^2.0.2",
+    "@symbola/db": "workspace:*",
+    "drizzle-orm": "^0.45.4",
+    "otpauth": "^9.3.6"
+  },
+  "devDependencies": {
+    "@symbola/config": "workspace:*",
+    "@symbola/env": "workspace:*",
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^4.1.12"
+  }
+}

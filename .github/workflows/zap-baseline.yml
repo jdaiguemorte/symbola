@@ -1,0 +1,26 @@
+name: ZAP baseline (staging)
+
+# Se déclenche après un déploiement en staging (SOC-09 câble le trigger réel
+# une fois l'URL de staging disponible). En attendant, lancement manuel
+# (workflow_dispatch) pour préparer le job.
+on:
+  workflow_dispatch:
+    inputs:
+      staging_url:
+        description: "URL du staging à scanner"
+        required: true
+        default: "https://staging.symbola.fr"
+
+jobs:
+  zap-baseline:
+    name: OWASP ZAP baseline
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: ZAP baseline scan
+        uses: zaproxy/action-baseline@v0.12.0
+        with:
+          target: ${{ github.event.inputs.staging_url }}
+          rules_file_name: ".zap/rules.tsv"
+          cmd_options: "-I"
+          fail_action: true

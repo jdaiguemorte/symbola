@@ -391,7 +391,29 @@ Le critère que tu proposais (« plus de 3 ans sans interaction ») correspond a
 | RGPD-08 | En tant que Marié ou prospect, je fais ma demande depuis mon espace ou un formulaire public | V2 |
 | RGPD-09 | En tant que titulaire, j'obtiens un registre des traitements pré-rempli | V2 |
 
-## 7. MVP, roadmap et questions ouvertes
+## 7. Empreinte numérique (transverse)
+
+L'empreinte carbone numérique de la plateforme est gérée par le socle, pas app par app — même logique que le RGPD (section 6). Périmètre : l'empreinte de Symbola elle-même (serveur, stockage, requêtes), pas celle des événements organisés par les clientes (hors périmètre).
+
+**Méthodologie (ADR 0017)**
+
+- Cadre de calcul : SCI (*Software Carbon Intensity*, norme ISO/IEC 21031:2024, Green Software Foundation) — `SCI = ((E × I) + M) / R`.
+- E (énergie) et M (empreinte matérielle incorporée) : méthodologie ouverte Boavizta, à partir des caractéristiques du VPS Contabo.
+- I (intensité carbone du réseau électrique) : valeur publiée et sourcée, figée pour l'année — jamais une API temps réel. VPS Contabo au Luxembourg : méthode consommation (imports inclus, ≈ 300 gCO2eq/kWh), jamais la seule production domestique luxembourgeoise (≈ 123 gCO2eq/kWh, trompeuse) — détail complet et sources dans l'ADR 0017. Revue annuelle.
+- Allocation par organisation : compteurs d'usage légers (requêtes, octets de réponse) captés une seule fois au niveau de la requête HTTP, pas module par module.
+- Tous les paramètres (I, hypothèses M, poids d'allocation) sont versionnés dans un fichier de méthodologie, jamais codés en dur (section 5, règle « aucune donnée métier codée en dur »). Un bilan publié est immuable ; une correction passe par une nouvelle version documentée.
+- Aucune donnée personnelle dans cette brique : compteurs agrégés par organisation, jamais par personne.
+
+**User stories**
+
+| ID | User story | Priorité |
+| --- | --- | --- |
+| CARB-01 | En tant que socle, je collecte dès le lot 0 les compteurs d'usage (requêtes, octets) par organisation, pour qu'un historique existe quand le bilan sera construit | MVP (lot 0, SOC-13) |
+| CARB-02 | En tant que titulaire, je consulte le bilan carbone mensuel de mon organisation (SCI détaillé, hypothèses affichées) | V2 |
+| CARB-03 | En tant que titulaire, j'exporte le bilan annuel en PDF, à présenter à mes clients ou dans un dossier RSE/CSRD | V2 |
+| CARB-04 | En tant que visiteur, je consulte une page de méthodologie publique expliquant le calcul et ses hypothèses | V2 |
+
+## 8. MVP, roadmap et questions ouvertes
 
 Le MVP remplace Wedding Plan avec l'import assisté, le module RGPD et quatre briques : Hub, Événements et Chrono, Budget, Devis et Facturation. Il passe d'abord par une phase de fondations, qui installe le socle et la chaîne de sécurité une fois pour toutes.
 
