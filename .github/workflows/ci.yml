@@ -77,6 +77,9 @@ jobs:
             -e GARAGE_DEFAULT_ACCESS_KEY="$S3_ACCESS_KEY" \
             -e GARAGE_DEFAULT_SECRET_KEY="$S3_SECRET_KEY" \
             -e GARAGE_DEFAULT_BUCKET="$S3_BUCKET" \
+            -e GARAGE_RPC_SECRET="$(openssl rand -hex 32)" \
+            -e GARAGE_ADMIN_TOKEN="$(openssl rand -base64 32)" \
+            -e GARAGE_METRICS_TOKEN="$(openssl rand -base64 32)" \
             dxflrs/garage:v2.5.0 /garage server --single-node --default-bucket
       - name: Démarrer ClamAV (SOC-08)
         run: docker run -d --name clamav --network host clamav/clamav:1.4
@@ -135,13 +138,14 @@ jobs:
           tags: symbola-app:ci
           push: false
           load: true
+      # Image officielle de Trivy, figée par version et empreinte (Renovate
+      # propose les montées) : l'action aquasecurity/trivy-action@0.29.0 a
+      # disparu de GitHub et faisait échouer ce job avant tout scan.
       - name: Scan Trivy (bloque sur CRITICAL)
-        uses: aquasecurity/trivy-action@0.29.0
-        with:
-          image-ref: symbola-app:ci
-          severity: CRITICAL
-          ignore-unfixed: true
-          exit-code: "1"
+        run: |
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+            aquasec/trivy:0.75.0@sha256:af6acf9a6b85dfe389a1941505c0ce9efef52a4719635e1a962f022a3d855daa \
+            image --severity CRITICAL --ignore-unfixed --exit-code 1 --no-progress symbola-app:ci
 
   publish-image:
     name: Publier l'image (GHCR, SOC-09)

@@ -27,9 +27,11 @@ describe("SOC-02 — Pipeline CI de sécurité", () => {
 
   it("fait échouer la CI sur une dépendance vulnérable (OSV-Scanner) et une image vulnérable critique (Trivy)", () => {
     expect(ciWorkflow).toMatch(/osv-scanner-action/);
-    expect(ciWorkflow).toMatch(/trivy-action/);
-    expect(ciWorkflow).toMatch(/severity:\s*CRITICAL/);
-    expect(ciWorkflow).toMatch(/exit-code:\s*"1"/);
+    // Trivy par son image officielle, figée par version et empreinte : l'action
+    // aquasecurity/trivy-action@0.29.0 a disparu et cassait la CI.
+    expect(ciWorkflow).toMatch(/aquasec\/trivy:\d+\.\d+\.\d+@sha256:[0-9a-f]{64}/);
+    expect(ciWorkflow).toMatch(/--severity CRITICAL/);
+    expect(ciWorkflow).toMatch(/--exit-code 1/);
   });
 
   it("construit l'image Docker de l'app avant de la scanner", () => {
