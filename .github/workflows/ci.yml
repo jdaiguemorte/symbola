@@ -29,7 +29,7 @@ jobs:
         run: pnpm --filter @symbola/privacy check:registry
 
   db-isolation:
-    name: Isolation RLS, authentification et événements internes (PostgreSQL réel, SOC-04/05/06)
+    name: Isolation RLS, authentification, événements et fichiers (services réels, SOC-04/05/06/08)
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -53,8 +53,11 @@ jobs:
       POSTGRES_ADMIN_PASSWORD: ci-admin-password
       POSTGRES_APP_USER: symbola_app
       POSTGRES_APP_PASSWORD: ci-app-password
-      MINIO_ACCESS_KEY: ci-minio-access
-      MINIO_SECRET_KEY: ci-minio-secret
+      S3_ACCESS_KEY: ci-s3-access-key-000000
+      S3_SECRET_KEY: ci-s3-secret-key-0000000000000000000000
+      S3_BUCKET: symbola
+      CLAMAV_HOST: localhost
+      CLAMAV_PORT: 3310
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -63,10 +66,27 @@ jobs:
           node-version: 22
           cache: "pnpm"
       - run: pnpm install --frozen-lockfile
+      # Garage (ADR 0015) et ClamAV n'ont pas d'options "command" dans les
+      # services GitHub Actions : démarrés manuellement en réseau hôte.
+      - name: Démarrer Garage (stockage objet, SOC-08)
+        run: |
+          docker run -d --name garage --network host \
+            -v "$GITHUB_WORKSPACE/infra/compose/garage.toml:/etc/garage.toml:ro" \
+            -e GARAGE_DEFAULT_ACCESS_KEY="$S3_ACCESS_KEY" \
+            -e GARAGE_DEFAULT_SECRET_KEY="$S3_SECRET_KEY" \
+            -e GARAGE_DEFAULT_BUCKET="$S3_BUCKET" \
+            dxflrs/garage:v2.5.0 /garage server --single-node --default-bucket
+      - name: Démarrer ClamAV (SOC-08)
+        run: docker run -d --name clamav --network host clamav/clamav:1.4
+      - name: Attendre que Garage et ClamAV soient prêts
+        run: |
+          timeout 120 bash -c 'until curl -sf http://localhost:3903/health; do sleep 2; done'
+          timeout 180 bash -c 'until docker exec clamav clamdcheck.sh; do sleep 5; done'
       - run: pnpm --filter @symbola/db bootstrap
       - run: pnpm --filter @symbola/db migrate
       - run: pnpm --filter @symbola/db test:integration
       - run: pnpm --filter @symbola/auth test:integration
+      - run: pnpm --filter @symbola/files test:integration
       - run: pnpm --filter @symbola/app test:integration
 
   semgrep:

@@ -3,8 +3,8 @@ import { parseEnv } from "./parse";
 
 const validEnv = {
   POSTGRES_APP_PASSWORD: "dev-password",
-  MINIO_ACCESS_KEY: "dev-access-key",
-  MINIO_SECRET_KEY: "dev-secret-key",
+  S3_ACCESS_KEY: "dev-access-key",
+  S3_SECRET_KEY: "dev-secret-key",
 };
 
 describe("SOC-03 — Validation des variables d'environnement (Zod)", () => {
@@ -32,5 +32,13 @@ describe("SOC-03 — Validation des variables d'environnement (Zod)", () => {
     const env = parseEnv({ ...validEnv, POSTGRES_PORT: "5555" });
 
     expect(env.POSTGRES_PORT).toBe(5555);
+  });
+
+  it("traite S3_USE_SSL='false' comme faux (SOC-08, non-régression)", () => {
+    // z.coerce.boolean() traiterait toute chaîne non vide comme vraie :
+    // "false" devenait `true`. Vérifie que ce n'est plus le cas.
+    expect(parseEnv({ ...validEnv, S3_USE_SSL: "false" }).S3_USE_SSL).toBe(false);
+    expect(parseEnv({ ...validEnv, S3_USE_SSL: "true" }).S3_USE_SSL).toBe(true);
+    expect(parseEnv(validEnv).S3_USE_SSL).toBe(false); // valeur par défaut
   });
 });

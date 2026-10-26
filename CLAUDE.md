@@ -64,7 +64,7 @@ du cahier des charges, à activer seulement si un second client ou une équipe l
 | Base | **Une seule base PostgreSQL, un schéma par module** | Une base et un rôle par app |
 | Identité | **Authentification maison** (argon2id, session opaque, MFA TOTP) derrière `packages/auth` | Zitadel (OIDC, organisations, rôles, MFA) |
 | Événements | **Table `domain_events`** (outbox interne), schémas versionnés dans `packages/contracts` | NATS JetStream |
-| Fichiers | MinIO (S3), liens signés à durée limitée, antivirus ClamAV à l'envoi | — (inchangé) |
+| Fichiers | Garage (S3, ADR 0015 — remplace MinIO, image retirée des registres publics), liens signés à durée limitée, antivirus ClamAV à l'envoi | — (inchangé) |
 | i18n | next-intl | — (inchangé) |
 | Tests | Vitest (unitaires et intégration), Playwright (bout en bout, mobile 375 px), axe-core (accessibilité) | — (inchangé) |
 | Proxy | Traefik v3, HTTPS Let's Encrypt, un seul sous-domaine | Un sous-domaine par app |
@@ -202,7 +202,7 @@ l'équivalent Docker donné à droite.
 | Tests d'isolation RLS réels (SOC-05, nécessite le socle démarré + bootstrap + migrate) | `pnpm --filter @symbola/db test:integration` | `docker run --rm --network symbola-dev_default -v "$PWD":/app -w /app --env-file .env node:22-slim pnpm --filter @symbola/db test:integration` |
 | Lancer le socle en local seul | — | `docker compose -f infra/compose/docker-compose.dev.yml --env-file .env up` |
 
-Le socle de dev (Postgres, MinIO, ClamAV, Mailpit, Traefik) est défini dans
+Le socle de dev (Postgres, Garage, ClamAV, Mailpit, Traefik) est défini dans
 `infra/compose/docker-compose.dev.yml` (SOC-03) ; les variables d'environnement sont validées par
 Zod au démarrage de l'app (`packages/env`, voir `.env.example`). `pnpm dev` démarre l'app ; le
 socle se lance à part tant qu'ils ne sont pas encore orchestrés en une seule commande (prévu avant

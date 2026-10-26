@@ -7,6 +7,7 @@ import type {
   CreateGreetingResult,
   Greeting,
 } from "@symbola/contracts";
+import { getSignedDownloadUrl, createStorageClient, uploadFile } from "@symbola/files";
 
 export { helloPrivacy } from "./privacy";
 export type { CreateGreetingInput, CreateGreetingResult, Greeting };
@@ -18,4 +19,14 @@ export function getGreeting(): Greeting {
 export async function createGreeting(input: CreateGreetingInput): Promise<CreateGreetingResult> {
   const row = await createGreetingRow(input);
   return { id: row.id, message: row.message };
+}
+
+// Envoi d'un fichier via hello (SOC-08, démonstration du pipeline
+// @symbola/files) : type vérifié par le contenu, taille maximale
+// paramétrable par l'appelant, antivirus, stockage privé.
+export const uploadGreetingAttachment = uploadFile;
+
+export async function getGreetingAttachmentUrl(key: string, expiresInSeconds: number): Promise<string> {
+  const storage = createStorageClient();
+  return getSignedDownloadUrl(storage, key, expiresInSeconds);
 }

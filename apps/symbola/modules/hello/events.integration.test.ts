@@ -17,6 +17,10 @@ afterAll(async () => {
 describe("SOC-06 — hello publie hello.greeting.created (PostgreSQL réel)", () => {
   it("publie l'événement à la création d'une salutation et le worker le consomme une seule fois", async () => {
     const organizationId = randomUUID();
+    // Un consommateur tout juste créé reçoit aussi le passif non réclamé
+    // d'exécutions précédentes de ce test (comportement correct d'un
+    // nouvel abonné) — on ne compte donc pas le total, on vérifie
+    // seulement combien de fois NOTRE événement précis a été livré.
     const consumerName = `hello-test-consumer-${randomUUID()}`;
     const receivedPayloads: unknown[] = [];
 
@@ -29,12 +33,14 @@ describe("SOC-06 — hello publie hello.greeting.created (PostgreSQL réel)", ()
         },
       });
 
-    const first = await run();
-    expect(first.processed).toBe(1);
-    expect(receivedPayloads).toEqual([{ greetingId: greeting.id, message: greeting.message }]);
+    await run();
+    const occurrences = () =>
+      receivedPayloads.filter(
+        (payload) => (payload as { greetingId: string }).greetingId === greeting.id,
+      );
+    expect(occurrences()).toEqual([{ greetingId: greeting.id, message: greeting.message }]);
 
-    const second = await run();
-    expect(second.processed).toBe(0);
-    expect(receivedPayloads).toHaveLength(1); // toujours une seule réception
+    await run();
+    expect(occurrences()).toHaveLength(1); // toujours une seule réception pour cet événement précis
   });
 });

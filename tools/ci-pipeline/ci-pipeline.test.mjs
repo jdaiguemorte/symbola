@@ -54,6 +54,12 @@ describe("SOC-02 — Pipeline CI de sécurité", () => {
     expect(ciWorkflow).toMatch(/run:\s*pnpm --filter @symbola\/privacy check:registry/);
   });
 
+  it("démarre Garage et ClamAV réels et exécute les tests de fichiers (SOC-08)", () => {
+    expect(ciWorkflow).toMatch(/dxflrs\/garage/);
+    expect(ciWorkflow).toMatch(/clamav\/clamav/);
+    expect(ciWorkflow).toMatch(/run:\s*pnpm --filter @symbola\/files test:integration/);
+  });
+
   it("prépare un scan ZAP baseline du staging qui bloque sur une alerte haute", () => {
     expect(zapWorkflow).toMatch(/zaproxy\/action-baseline/);
     expect(zapWorkflow).toMatch(/fail_action:\s*true/);

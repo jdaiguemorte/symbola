@@ -12,6 +12,15 @@
 // déployée.
 import { z } from "zod";
 
+// z.coerce.boolean() utilise Boolean(valeur) — "false" (chaîne non vide)
+// devient donc `true`, ce qui a cassé S3_USE_SSL (SOC-08, détecté par les
+// tests d'intégration : Garage en HTTP forcé en HTTPS). Ce helper traite
+// explicitement "false"/"0" comme faux.
+const booleanFromEnv = z.preprocess((value) => {
+  if (typeof value !== "string") return value;
+  return !["false", "0", ""].includes(value.toLowerCase());
+}, z.boolean());
+
 export const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   APP_PORT: z.coerce.number().int().positive().default(3000),
@@ -23,12 +32,16 @@ export const envSchema = z.object({
   POSTGRES_APP_USER: z.string().min(1).default("symbola_app"),
   POSTGRES_APP_PASSWORD: z.string().min(1),
 
-  // MinIO / stockage objet (SOC-08)
-  MINIO_ENDPOINT: z.string().min(1).default("localhost"),
-  MINIO_PORT: z.coerce.number().int().positive().default(9000),
-  MINIO_USE_SSL: z.coerce.boolean().default(false),
-  MINIO_ACCESS_KEY: z.string().min(1),
-  MINIO_SECRET_KEY: z.string().min(1),
+  // Stockage objet compatible S3 — Garage en dev/MVP (ADR 0015, remplace
+  // MinIO), SOC-08. Noms de variables génériques (S3_*, pas GARAGE_*) pour
+  // qu'un futur changement de fournisseur ne touche que le compose.
+  S3_ENDPOINT: z.string().min(1).default("localhost"),
+  S3_PORT: z.coerce.number().int().positive().default(3900),
+  S3_USE_SSL: booleanFromEnv.default(false),
+  S3_REGION: z.string().min(1).default("garage"),
+  S3_BUCKET: z.string().min(1).default("symbola"),
+  S3_ACCESS_KEY: z.string().min(1),
+  S3_SECRET_KEY: z.string().min(1),
 
   // ClamAV (SOC-08)
   CLAMAV_HOST: z.string().min(1).default("localhost"),

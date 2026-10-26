@@ -17,6 +17,7 @@
     "@symbola/contracts": "workspace:*",
     "@symbola/db": "workspace:*",
     "@symbola/env": "workspace:*",
+    "@symbola/files": "workspace:*",
     "@symbola/privacy": "workspace:*",
     "drizzle-orm": "^0.38.3",
     "next": "15.1.3",

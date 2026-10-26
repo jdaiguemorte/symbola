@@ -16,3 +16,4 @@ Un fichier par décision structurante, numéroté. Pour changer une décision : 
 - [0012 — Une seule base PostgreSQL, schémas logiques par module](0012-base-unique-schemas-logiques-pour-le-mvp.md)
 - [0013 — Authentification maison derrière `packages/auth`](0013-auth-maison-pour-le-mvp.md)
 - [0014 — Table d'événements internes, pas de bus séparé](0014-evenements-internes-pour-le-mvp.md)
+- [0015 — Garage remplace MinIO pour le stockage objet](0015-garage-remplace-minio-stockage-objet.md)
