@@ -3,6 +3,12 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "exports": {
+    "./client": "./src/client.ts",
+    "./with-organization": "./src/with-organization.ts",
+    "./schema/hello": "./src/schema/hello.ts",
+    "./schema/hub": "./src/schema/hub.ts"
+  },
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "vitest run",

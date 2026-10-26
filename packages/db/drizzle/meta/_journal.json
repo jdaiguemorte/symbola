@@ -15,6 +15,20 @@
       "when": 1792972784839,
       "tag": "0001_enable_rls_and_module_schemas",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792996202635,
+      "tag": "0002_create_hub_identity_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792996231669,
+      "tag": "0003_grant_hub_tables",
+      "breakpoints": true
     }
   ]
 }

@@ -27,7 +27,7 @@ jobs:
       - run: pnpm check:boundaries
 
   db-isolation:
-    name: Isolation RLS (PostgreSQL réel, SOC-05)
+    name: Isolation RLS et authentification (PostgreSQL réel, SOC-04/05)
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -64,6 +64,7 @@ jobs:
       - run: pnpm --filter @symbola/db bootstrap
       - run: pnpm --filter @symbola/db migrate
       - run: pnpm --filter @symbola/db test:integration
+      - run: pnpm --filter @symbola/auth test:integration
 
   semgrep:
     name: Semgrep (SAST)
