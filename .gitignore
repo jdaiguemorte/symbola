@@ -5,7 +5,14 @@ dist/
 coverage/
 .env
 .env.*.local
+.env.staging
+.env.production
+.env.socle
+infra/compose/garage.staging.toml
+infra/compose/garage.production.toml
 !.env.example
+!infra/compose/.env.*.example
+!infra/compose/garage.toml.example
 *.log
 .DS_Store
 *.tsbuildinfo

@@ -1,0 +1,129 @@
+# Compose d'environnement (SOC-09, ADR 0009, ADR 0011 : une seule app) —
+# réutilisé tel quel pour staging ET production, distingués uniquement par
+# le fichier --env-file et le nom de projet (-p). Suppose le socle
+# (docker-compose.socle.yml, Traefik partagé) déjà démarré.
+#
+#   docker compose -f infra/compose/docker-compose.prod.yml \
+#     --env-file .env.staging -p symbola-staging up -d
+#
+#   docker compose -f infra/compose/docker-compose.prod.yml \
+#     --env-file .env.production -p symbola-production up -d
+name: symbola-env
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_ADMIN_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_ADMIN_PASSWORD}
+    # Lien uniquement en boucle locale sur le VPS (jamais exposé à
+    # Internet) : les migrations se lancent depuis le poste de Julien via
+    # un tunnel SSH (docs/runbooks/deploiement.md), sans ouvrir le port au
+    # réseau public.
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - symbola-edge
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  garage:
+    image: dxflrs/garage:v2.5.0
+    restart: unless-stopped
+    command: ["/garage", "server", "--single-node", "--default-bucket"]
+    environment:
+      GARAGE_DEFAULT_ACCESS_KEY: ${S3_ACCESS_KEY}
+      GARAGE_DEFAULT_SECRET_KEY: ${S3_SECRET_KEY}
+      GARAGE_DEFAULT_BUCKET: ${S3_BUCKET:-symbola}
+    volumes:
+      - garage_data:/data
+      # Jamais le infra/compose/garage.toml du dépôt (secrets de dev fixes,
+      # documentés comme tels dans ADR 0015) : un fichier propre à chaque
+      # environnement, jamais committé (voir le runbook de déploiement).
+      - ./garage.${ENVIRONMENT_NAME}.toml:/etc/garage.toml:ro
+    networks:
+      - symbola-edge
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "/garage", "status"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+
+  clamav:
+    image: clamav/clamav:1.4
+    restart: unless-stopped
+    volumes:
+      - clamav_data:/var/lib/clamav
+    networks:
+      - symbola-edge
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "clamdcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 90s
+
+  symbola:
+    image: ghcr.io/${GITHUB_REPOSITORY:-jdaiguemorte/symbola}:${APP_IMAGE_TAG:-latest}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      APP_PORT: 3000
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_APP_USER: ${POSTGRES_APP_USER}
+      POSTGRES_APP_PASSWORD: ${POSTGRES_APP_PASSWORD}
+      S3_ENDPOINT: garage
+      S3_PORT: 3900
+      S3_USE_SSL: "false"
+      S3_REGION: ${S3_REGION:-garage}
+      S3_BUCKET: ${S3_BUCKET:-symbola}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY}
+      S3_SECRET_KEY: ${S3_SECRET_KEY}
+      CLAMAV_HOST: clamav
+      CLAMAV_PORT: 3310
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT:-587}
+    depends_on:
+      - postgres
+      - garage
+      - clamav
+    networks:
+      - symbola-edge
+    security_opt:
+      - no-new-privileges:true
+    # Pas de read_only ici : Next.js en standalone écrit dans .next/cache
+    # (cache de rendu) au runtime — à vérifier et durcir plus tard si
+    # confirmé sans risque (pas testable sans déploiement réel).
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=symbola-edge"
+      - "traefik.http.routers.symbola-${ENVIRONMENT_NAME}.rule=Host(`${APP_DOMAIN}`)"
+      - "traefik.http.routers.symbola-${ENVIRONMENT_NAME}.entrypoints=websecure"
+      - "traefik.http.routers.symbola-${ENVIRONMENT_NAME}.tls.certresolver=le"
+      - "traefik.http.services.symbola-${ENVIRONMENT_NAME}.loadbalancer.server.port=3000"
+
+networks:
+  symbola-edge:
+    name: symbola-edge
+    external: true # créé par docker-compose.socle.yml
+
+volumes:
+  postgres_data:
+  garage_data:
+  clamav_data:

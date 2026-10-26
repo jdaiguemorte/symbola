@@ -1,0 +1,43 @@
+# Socle partagé du VPS (SOC-09, ADR 0009) : un seul Traefik pour toute la
+# machine, staging et production compris — les deux ne peuvent pas
+# chacune écouter les ports 80/443. Lancé une fois, avant les composes
+# d'environnement (docker-compose.prod.yml, un par environnement).
+#
+# Démarrage (une seule fois, ou après modification) :
+#   docker compose -f infra/compose/docker-compose.socle.yml --env-file .env.socle -p symbola-socle up -d
+name: symbola-socle
+
+services:
+  traefik:
+    image: traefik:v3.2
+    restart: unless-stopped
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=symbola-edge"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.le.acme.email=${ACME_EMAIL}"
+      - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.le.acme.httpchallenge.entrypoint=web"
+      - "--accesslog=true"
+      - "--log.level=INFO"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - symbola_traefik_letsencrypt:/letsencrypt
+    networks:
+      - symbola-edge
+    security_opt:
+      - no-new-privileges:true
+
+networks:
+  symbola-edge:
+    name: symbola-edge
+
+volumes:
+  symbola_traefik_letsencrypt:

@@ -1,0 +1,27 @@
+# Modèle de config Garage pour staging/production (SOC-09). Copier en
+# garage.staging.toml ou garage.production.toml sur le serveur et
+# remplacer les trois secrets par des valeurs générées sur place :
+#   openssl rand -hex 32        # rpc_secret
+#   openssl rand -base64 32     # admin_token
+#   openssl rand -base64 32     # metrics_token
+# Jamais les mêmes valeurs qu'en dev (infra/compose/garage.toml, secrets
+# fixes documentés comme dev-only dans ADR 0015), jamais committées.
+metadata_dir = "/data/meta"
+data_dir = "/data/data"
+db_engine = "sqlite"
+
+replication_factor = 1
+
+rpc_bind_addr = "[::]:3901"
+rpc_public_addr = "127.0.0.1:3901"
+rpc_secret = "À_REMPLACER"
+
+[s3_api]
+s3_region = "garage"
+api_bind_addr = "[::]:3900"
+root_domain = ".s3.garage.localhost"
+
+[admin]
+api_bind_addr = "[::]:3903"
+admin_token = "À_REMPLACER"
+metrics_token = "À_REMPLACER"

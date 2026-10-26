@@ -60,6 +60,12 @@ describe("SOC-02 — Pipeline CI de sécurité", () => {
     expect(ciWorkflow).toMatch(/run:\s*pnpm --filter @symbola\/files test:integration/);
   });
 
+  it("publie l'image sur GHCR seulement depuis main, après les contrôles de sécurité (SOC-09)", () => {
+    expect(ciWorkflow).toMatch(/ghcr\.io/);
+    expect(ciWorkflow).toMatch(/refs\/heads\/main/);
+    expect(ciWorkflow).toMatch(/needs:\s*\[lint-typecheck-test, db-isolation, semgrep, gitleaks, osv-scanner, build-and-scan-image\]/);
+  });
+
   it("prépare un scan ZAP baseline du staging qui bloque sur une alerte haute", () => {
     expect(zapWorkflow).toMatch(/zaproxy\/action-baseline/);
     expect(zapWorkflow).toMatch(/fail_action:\s*true/);
