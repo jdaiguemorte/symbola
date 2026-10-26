@@ -94,8 +94,9 @@ describe("SOC-09 — Isolation staging ↔ production sur le même VPS (ADR 0016
     },
   );
 
-  it("relie l'app seulement au réseau interne de son environnement", () => {
-    expect(networksOf(serviceBlock(prodCompose, "symbola"))).toEqual(["default"]);
+  it("relie l'app seulement au réseau interne de son environnement, avec un alias distinct par environnement (ADR 0018)", () => {
+    const symbolaBlock = serviceBlock(prodCompose, "symbola");
+    expect(symbolaBlock).toMatch(/\n {4}networks:\n {6}default:\n {8}aliases:\n {10}- symbola-\$\{ENVIRONMENT_NAME\}\n/);
   });
 
   it("impose un port PostgreSQL distinct par environnement", () => {

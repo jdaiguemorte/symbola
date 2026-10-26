@@ -132,11 +132,18 @@ services:
       - clamav
     # Aucun port publié sur l'hôte : le Caddy partagé du VPS (ADR 0018,
     # conteneur du compose petites-voitures) rejoint ce réseau Docker
-    # après coup (`docker network connect`, runbook de déploiement) et
-    # route vers `symbola:3000` par nom de service — même mécanisme que
-    # son bloc Caddyfile existant pour kindo-server-1.
+    # après coup (`docker network connect`, sans alias — runbook de
+    # déploiement) et route vers ce conteneur par l'alias ci-dessous.
+    # L'alias est porté par CE conteneur (pas par Caddy) : donné à Caddy,
+    # il résoudrait vers l'IP de Caddy lui-même et non celle de l'app
+    # (erreur rencontrée au premier déploiement réel). Dérivé de
+    # ENVIRONMENT_NAME pour rester distinct entre staging et production
+    # même si Caddy est un jour membre des deux réseaux à la fois — recréé
+    # automatiquement par Compose à chaque déploiement, sans geste manuel.
     networks:
-      - default
+      default:
+        aliases:
+          - symbola-${ENVIRONMENT_NAME}
     deploy:
       resources:
         limits:
