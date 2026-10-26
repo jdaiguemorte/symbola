@@ -1,5 +1,6 @@
 "use server";
 
+import { getTranslations } from "next-intl/server";
 import { createAppConnection } from "@symbola/db/client";
 import { acceptInvitation } from "@/modules/hub/service";
 
@@ -11,9 +12,10 @@ export async function acceptInvitationAction(
 ): Promise<AcceptInvitationFormState> {
   const token = String(formData.get("token") ?? "");
   const password = String(formData.get("password") ?? "");
+  const t = await getTranslations("Invitation");
 
   if (!password) {
-    return { error: "Le mot de passe est obligatoire." };
+    return { error: t("missingPassword") };
   }
 
   const { sql, db } = createAppConnection();
@@ -25,10 +27,10 @@ export async function acceptInvitationAction(
   }
 
   if (result.outcome === "invalid_or_expired") {
-    return { error: "Ce lien d'invitation est invalide ou a expiré." };
+    return { error: t("invalidOrExpired") };
   }
   if (result.outcome === "already_accepted") {
-    return { error: "Cette invitation a déjà été utilisée." };
+    return { error: t("alreadyAccepted") };
   }
 
   return { success: true };

@@ -27,6 +27,8 @@ jobs:
       - run: pnpm check:boundaries
       - name: Registre RGPD (SOC-07) — colonnes personnelles non déclarées
         run: pnpm --filter @symbola/privacy check:registry
+      - name: Traductions (HUB-04) — clés manquantes en FR ou EN
+        run: pnpm --filter @symbola/i18n check:messages
       - name: Scripts serveur (SOC-10, SOC-12) — shellcheck
         run: shellcheck -x infra/server/*.sh infra/backup/*.sh
 

@@ -12,6 +12,10 @@ export default defineConfig({
   use: {
     baseURL: "http://localhost:3000",
     trace: "on-first-retry",
+    // HUB-04 : la langue par défaut suit celle du navigateur. Les
+    // parcours existants attendent du français ; un test dédié vérifie
+    // le changement de langue avec un contexte en anglais.
+    locale: "fr-FR",
   },
   projects: [
     {

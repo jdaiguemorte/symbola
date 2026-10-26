@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { login } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
 import { setSessionCookie } from "@/lib/auth-context";
@@ -23,11 +24,13 @@ export async function loginAction(
   }
 
   if (result.outcome === "invalid_credentials") {
-    return { error: "Identifiants invalides." };
+    const t = await getTranslations("Login");
+    return { error: t("invalidCredentials") };
   }
 
   if (result.outcome === "locked") {
-    return { error: "Compte temporairement verrouillé après plusieurs échecs. Réessayez dans quelques minutes." };
+    const t = await getTranslations("Login");
+    return { error: t("locked") };
   }
 
   await setSessionCookie(result.sessionToken);

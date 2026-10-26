@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { createAppConnection } from "@symbola/db/client";
 import { isModuleEnabled, listOrganizations, MODULE_KEYS } from "@/modules/hub/service";
 import { requireAdmin } from "@/lib/require-admin";
@@ -7,6 +8,7 @@ import { toggleModuleAction } from "./actions";
 
 export default async function AdminPage() {
   await requireAdmin();
+  const t = await getTranslations("Admin");
 
   const { sql, db } = createAppConnection();
   let organizationsWithModules;
@@ -29,19 +31,21 @@ export default async function AdminPage() {
 
   return (
     <main>
-      <h1>Administration</h1>
+      <h1>{t("title")}</h1>
       <p>
-        <Link href="/admin/health">Voir la page Santé</Link>
+        <Link href="/admin/health">{t("viewHealth")}</Link>
+        {" · "}
+        <Link href="/profil">{t("viewProfile")}</Link>
       </p>
-      <h2>Créer une organisation</h2>
+      <h2>{t("createOrganizationTitle")}</h2>
       <AdminOrganizationForm />
 
-      <h2>Organisations</h2>
+      <h2>{t("organizationsTitle")}</h2>
       <table>
         <thead>
           <tr>
-            <th>Nom</th>
-            <th>Modules</th>
+            <th>{t("name")}</th>
+            <th>{t("modules")}</th>
           </tr>
         </thead>
         <tbody>
@@ -55,8 +59,7 @@ export default async function AdminPage() {
                     <input type="hidden" name="moduleKey" value={moduleKey} />
                     <input type="hidden" name="enabled" value={(!enabled).toString()} />
                     <button type="submit">
-                      {moduleKey} : {enabled ? "activé" : "désactivé"} (
-                      {enabled ? "désactiver" : "activer"})
+                      {t(enabled ? "moduleEnabledLabel" : "moduleDisabledLabel", { module: moduleKey })}
                     </button>
                   </form>
                 ))}

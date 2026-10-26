@@ -1,0 +1,73 @@
+{
+  "Login": {
+    "title": "Connexion",
+    "email": "E-mail",
+    "password": "Mot de passe",
+    "submit": "Se connecter",
+    "invalidCredentials": "Identifiants invalides.",
+    "locked": "Compte temporairement verrouillé après plusieurs échecs. Réessayez dans quelques minutes."
+  },
+  "Mfa": {
+    "title": "Double authentification",
+    "scanInstructions": "Scannez ce code dans votre application d'authentification :",
+    "enterCodeInstructions": "Saisissez le code de votre application d'authentification.",
+    "code": "Code",
+    "submit": "Valider",
+    "invalidCode": "Code invalide."
+  },
+  "Home": {
+    "title": "Symbola",
+    "connectedAs": "Connecté comme {email}",
+    "moduleUnavailable": "Module indisponible",
+    "logout": "Se déconnecter",
+    "myProfile": "Mon profil",
+    "administration": "Administration"
+  },
+  "Admin": {
+    "title": "Administration",
+    "viewHealth": "Voir la page Santé",
+    "viewProfile": "Mon profil",
+    "createOrganizationTitle": "Créer une organisation",
+    "organizationsTitle": "Organisations",
+    "name": "Nom",
+    "modules": "Modules",
+    "moduleEnabledLabel": "{module} : activé (désactiver)",
+    "moduleDisabledLabel": "{module} : désactivé (activer)"
+  },
+  "AdminOrganizationForm": {
+    "name": "Nom de l'organisation",
+    "language": "Langue",
+    "languageFr": "Français",
+    "languageEn": "English",
+    "siret": "SIRET (facultatif)",
+    "titulaireEmail": "E-mail du titulaire",
+    "submit": "Créer et inviter",
+    "success": "Organisation créée, invitation envoyée.",
+    "missingFields": "Le nom de l'organisation et l'e-mail du titulaire sont obligatoires."
+  },
+  "AdminHealth": {
+    "title": "Santé",
+    "app": "App",
+    "status": "État",
+    "version": "Version",
+    "online": "en ligne",
+    "offline": "hors ligne"
+  },
+  "Invitation": {
+    "welcome": "Bienvenue sur Symbola",
+    "choosePassword": "Choisissez un mot de passe",
+    "submit": "Créer mon compte",
+    "success": "Compte créé. Vous pouvez maintenant vous connecter.",
+    "invalidOrExpired": "Ce lien d'invitation est invalide ou a expiré.",
+    "alreadyAccepted": "Cette invitation a déjà été utilisée.",
+    "missingPassword": "Le mot de passe est obligatoire."
+  },
+  "Profile": {
+    "title": "Mon profil",
+    "language": "Langue",
+    "languageFr": "Français",
+    "languageEn": "English",
+    "submit": "Enregistrer",
+    "success": "Préférences enregistrées."
+  }
+}

@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { localeFromAcceptLanguage } from "@symbola/i18n";
+
+export const LOCALE_COOKIE = "symbola_locale";
 
 // CSP par nonce (SOC-09) : une CSP statique sans script-src (donc
 // repliée sur default-src 'self') bloque les scripts inline que Next.js
@@ -26,6 +29,18 @@ export function middleware(request: NextRequest) {
 
   const response = NextResponse.next({ request: { headers: requestHeaders } });
   response.headers.set("Content-Security-Policy", csp);
+
+  // HUB-04 : langue par défaut du navigateur, posée une seule fois (la
+  // Server Action de profil et le choix lié au compte en prennent le
+  // relais ensuite) — jamais écrasée si déjà présente.
+  if (!request.cookies.get(LOCALE_COOKIE)) {
+    response.cookies.set(LOCALE_COOKIE, localeFromAcceptLanguage(request.headers.get("accept-language")), {
+      path: "/",
+      maxAge: 60 * 60 * 24 * 365,
+      sameSite: "lax",
+    });
+  }
+
   return response;
 }
 

@@ -42,6 +42,9 @@ export const users = hubSchema.table("users", {
   email: text("email").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
   role: roleEnum("role").notNull(),
+  // Choix explicite dans le profil (HUB-04) ; nul = pas encore choisi,
+  // suit le cookie de langue du navigateur (apps/symbola/middleware.ts).
+  language: languageEnum("language"),
   totpSecret: text("totp_secret"),
   mfaEnabled: boolean("mfa_enabled").notNull().default(false),
   // Verrouillage de compte (PRD HUB-01) : 5 mots de passe faux d'affilée

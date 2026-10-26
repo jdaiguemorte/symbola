@@ -9,6 +9,7 @@ export {
   destroySession,
   login,
   requireUser,
+  setUserLanguage,
   setupTotp,
   type AuthenticatedUser,
   type AuthResult,

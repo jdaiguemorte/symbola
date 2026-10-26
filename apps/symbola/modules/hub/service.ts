@@ -64,10 +64,19 @@ export async function createOrganizationWithInvitation(db: AppDatabase, input: C
 
   const env = parseEnv(process.env);
   const invitationUrl = `${env.APP_PUBLIC_URL}/invitations/${invitationToken}`;
+  // HUB-04 : l'e-mail suit la langue de l'organisation (pas encore de
+  // fiche « marié » à qui appliquer sa propre langue — ADR 0011, lot
+  // suivant). Ce service n'est pas un composant React : pas d'accès à
+  // next-intl ici, deux variantes inline suffisent pour deux clés.
+  const subject = input.language === "en" ? "Your Symbola invitation" : "Votre invitation Symbola";
+  const text =
+    input.language === "en"
+      ? `Hello,\n\nYou have been invited to join "${organization.name}" on Symbola. This link is valid for 7 days:\n${invitationUrl}\n\nSee you soon,\nThe Symbola team`
+      : `Bonjour,\n\nVous avez été invité·e à rejoindre « ${organization.name} » sur Symbola. Ce lien est valable 7 jours :\n${invitationUrl}\n\nÀ bientôt,\nL'équipe Symbola`;
   await sendMail({
     to: input.titulaireEmail,
-    subject: "Votre invitation Symbola",
-    text: `Bonjour,\n\nVous avez été invité·e à rejoindre « ${organization.name} » sur Symbola. Ce lien est valable 7 jours :\n${invitationUrl}\n\nÀ bientôt,\nL'équipe Symbola`,
+    subject,
+    text,
   });
 
   return { organizationId: organization.id, invitationId: invitation.id, invitationToken };

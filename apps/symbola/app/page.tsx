@@ -1,5 +1,7 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { after } from "next/server";
+import { getTranslations } from "next-intl/server";
 import { createAppConnection } from "@symbola/db/client";
 import { getGreeting } from "@/modules/hello/service";
 import { isModuleEnabled } from "@/modules/hub/service";
@@ -36,14 +38,19 @@ export default async function HomePage() {
     }
   }
   const greeting = helloAvailable ? getGreeting() : null;
+  const t = await getTranslations("Home");
 
   return (
     <main>
-      <h1>Symbola</h1>
-      <p>Connecté comme {auth.user.email}</p>
-      <p>{greeting ? greeting.message : "Module indisponible"}</p>
+      <h1>{t("title")}</h1>
+      <p>{t("connectedAs", { email: auth.user.email })}</p>
+      <p>{greeting ? greeting.message : t("moduleUnavailable")}</p>
+      <nav>
+        <Link href="/profil">{t("myProfile")}</Link>
+        {auth.user.role === "admin" ? <Link href="/admin">{t("administration")}</Link> : null}
+      </nav>
       <form action={logoutAction}>
-        <button type="submit">Se déconnecter</button>
+        <button type="submit">{t("logout")}</button>
       </form>
     </main>
   );

@@ -1,0 +1,73 @@
+{
+  "Login": {
+    "title": "Log in",
+    "email": "Email",
+    "password": "Password",
+    "submit": "Log in",
+    "invalidCredentials": "Invalid credentials.",
+    "locked": "Account temporarily locked after several failed attempts. Try again in a few minutes."
+  },
+  "Mfa": {
+    "title": "Two-factor authentication",
+    "scanInstructions": "Scan this code in your authenticator app:",
+    "enterCodeInstructions": "Enter the code from your authenticator app.",
+    "code": "Code",
+    "submit": "Confirm",
+    "invalidCode": "Invalid code."
+  },
+  "Home": {
+    "title": "Symbola",
+    "connectedAs": "Signed in as {email}",
+    "moduleUnavailable": "Module unavailable",
+    "logout": "Log out",
+    "myProfile": "My profile",
+    "administration": "Administration"
+  },
+  "Admin": {
+    "title": "Administration",
+    "viewHealth": "View health page",
+    "viewProfile": "My profile",
+    "createOrganizationTitle": "Create an organization",
+    "organizationsTitle": "Organizations",
+    "name": "Name",
+    "modules": "Modules",
+    "moduleEnabledLabel": "{module}: enabled (disable)",
+    "moduleDisabledLabel": "{module}: disabled (enable)"
+  },
+  "AdminOrganizationForm": {
+    "name": "Organization name",
+    "language": "Language",
+    "languageFr": "Français",
+    "languageEn": "English",
+    "siret": "SIRET (optional)",
+    "titulaireEmail": "Owner's email",
+    "submit": "Create and invite",
+    "success": "Organization created, invitation sent.",
+    "missingFields": "The organization name and the owner's email are required."
+  },
+  "AdminHealth": {
+    "title": "Health",
+    "app": "App",
+    "status": "Status",
+    "version": "Version",
+    "online": "online",
+    "offline": "offline"
+  },
+  "Invitation": {
+    "welcome": "Welcome to Symbola",
+    "choosePassword": "Choose a password",
+    "submit": "Create my account",
+    "success": "Account created. You can now log in.",
+    "invalidOrExpired": "This invitation link is invalid or has expired.",
+    "alreadyAccepted": "This invitation has already been used.",
+    "missingPassword": "A password is required."
+  },
+  "Profile": {
+    "title": "My profile",
+    "language": "Language",
+    "languageFr": "Français",
+    "languageEn": "English",
+    "submit": "Save",
+    "success": "Preferences saved."
+  }
+}

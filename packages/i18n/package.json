@@ -1,0 +1,23 @@
+{
+  "name": "@symbola/i18n",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./messages/fr.json": "./src/messages/fr.json",
+    "./messages/en.json": "./src/messages/en.json"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "check:messages": "tsx scripts/check-messages.ts"
+  },
+  "devDependencies": {
+    "@symbola/config": "workspace:*",
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^4.1.12"
+  }
+}

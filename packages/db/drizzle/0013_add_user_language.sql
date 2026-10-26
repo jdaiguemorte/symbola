@@ -1,0 +1,1 @@
+ALTER TABLE "hub"."users" ADD COLUMN "language" "hub"."language";
