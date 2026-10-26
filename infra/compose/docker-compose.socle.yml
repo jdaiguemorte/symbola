@@ -14,7 +14,6 @@ services:
     command:
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
-      - "--providers.docker.network=symbola-edge"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
       - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
@@ -30,8 +29,12 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - symbola_traefik_letsencrypt:/letsencrypt
+    # Relié aux réseaux frontaux des deux environnements : Traefik est le
+    # seul pont entre eux, et ne fait que router par nom d'hôte (ADR 0016).
+    # Chaque app indique son réseau par le label traefik.docker.network.
     networks:
-      - symbola-edge
+      - edge-staging
+      - edge-production
     security_opt:
       - no-new-privileges:true
 
@@ -39,8 +42,8 @@ services:
   # surveille staging et production par leurs URL publiques (/health), ce
   # qui teste aussi Traefik, le DNS et le certificat. Console jamais
   # exposée : publiée uniquement en boucle locale, accès par tunnel SSH
-  # (docs/runbooks/surveillance.md). Pas sur symbola-edge : elle n'a besoin
-  # que de sortir vers Internet. Healthcheck fourni par l'image.
+  # (docs/runbooks/surveillance.md). Sur aucun réseau frontal : elle n'a besoin
+  # que de sortir vers Internet (réseau `default` du socle). Healthcheck fourni par l'image.
   uptime-kuma:
     image: louislam/uptime-kuma:2.5.7
     restart: unless-stopped
@@ -51,9 +54,15 @@ services:
     security_opt:
       - no-new-privileges:true
 
+# Un réseau frontal par environnement, jamais partagé entre eux : un
+# conteneur de staging ne peut pas joindre un conteneur de production
+# (ADR 0016). Les services internes (PostgreSQL, Garage, ClamAV) ne
+# rejoignent aucun de ces réseaux.
 networks:
-  symbola-edge:
-    name: symbola-edge
+  edge-staging:
+    name: symbola-edge-staging
+  edge-production:
+    name: symbola-edge-production
 
 volumes:
   symbola_traefik_letsencrypt:

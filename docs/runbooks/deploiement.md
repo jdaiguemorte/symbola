@@ -18,8 +18,16 @@ VPS » ou « sur ton poste ».
   d'hôte vers le bon environnement.
 - Chaque environnement (`docker-compose.prod.yml`, un fichier réutilisé
   pour les deux, ADR 0009) a ses propres PostgreSQL, Garage, ClamAV et
-  son propre conteneur `symbola`, reliés au réseau partagé `symbola-edge`
-  créé par le socle.
+  son propre conteneur `symbola`. L'isolation est décrite dans l'ADR 0016 :
+  - projet Compose `symbola-<environnement>`, dérivé de
+    `ENVIRONMENT_NAME` (un oubli de `-p` ne mélange rien) ;
+  - PostgreSQL, Garage et ClamAV sont uniquement sur le réseau interne du
+    projet. Le nom `postgres` ne peut désigner que la base du même
+    environnement ;
+  - seul `symbola` rejoint le réseau frontal de son environnement
+    (`symbola-edge-staging` ou `symbola-edge-production`, créés par le
+    socle), partagé uniquement avec Traefik ;
+  - limites mémoire/CPU par conteneur dans chaque `.env` (staging bridé).
 - L'image `symbola` est construite et publiée par la CI
   (`.github/workflows/ci.yml`, job `publish-image`) sur
   `ghcr.io/<owner>/<repo>` à chaque fusion sur `main`, taguée par le SHA
@@ -144,3 +152,39 @@ compose d'environnement et son propre sous-domaine à ce moment-là — le
 socle partagé (Traefik) reste commun à toutes les apps du VPS, il
 suffit d'ajouter un routeur Traefik (mêmes labels `traefik.*`) sur le
 nouveau service.
+
+## Vérifier l'isolation staging ↔ production (après chaque premier déploiement)
+
+Sur le VPS (Julien), une fois les deux environnements démarrés :
+
+```bash
+# Chaque nom interne ne résout qu'une seule adresse, celle de son environnement
+docker run --rm --network symbola-staging_default alpine:3.20 nslookup postgres
+docker run --rm --network symbola-production_default alpine:3.20 nslookup postgres
+# Le réseau frontal ne voit aucune base : « can't find postgres » attendu
+docker run --rm --network symbola-edge-staging alpine:3.20 nslookup postgres
+# Seuls Traefik et l'app de l'environnement sont sur chaque réseau frontal
+docker network inspect symbola-edge-staging -f '{{range .Containers}}{{.Name}} {{end}}'
+docker network inspect symbola-edge-production -f '{{range .Containers}}{{.Name}} {{end}}'
+# Limites appliquées
+docker stats --no-stream --format 'table {{.Name}}\t{{.MemUsage}}\t{{.CPUPerc}}'
+```
+
+### Migration depuis la première version de SOC-09 (réseau `symbola-edge` unique)
+
+Seulement si un environnement a déjà tourné avec l'ancien compose :
+
+```bash
+docker compose -f infra/compose/docker-compose.socle.yml \
+  --env-file infra/compose/.env.socle -p symbola-socle up -d   # crée les deux réseaux frontaux
+docker compose -f infra/compose/docker-compose.prod.yml \
+  --env-file infra/compose/.env.staging -p symbola-staging up -d --force-recreate
+docker compose -f infra/compose/docker-compose.prod.yml \
+  --env-file infra/compose/.env.production -p symbola-production up -d --force-recreate
+docker network rm symbola-edge   # une fois plus aucun conteneur dessus
+```
+
+Ajouter d'abord les variables `*_MEM_LIMIT` et `*_CPUS` dans chaque
+`.env.<environnement>` (voir les `.example`). Les volumes sont conservés
+tant que le nom de projet reste le même (`-p symbola-staging`,
+`-p symbola-production`).

@@ -17,3 +17,4 @@ Un fichier par décision structurante, numéroté. Pour changer une décision : 
 - [0013 — Authentification maison derrière `packages/auth`](0013-auth-maison-pour-le-mvp.md)
 - [0014 — Table d'événements internes, pas de bus séparé](0014-evenements-internes-pour-le-mvp.md)
 - [0015 — Garage remplace MinIO pour le stockage objet](0015-garage-remplace-minio-stockage-objet.md)
+- [0016 — Isolation réseau staging ↔ production sur le VPS unique](0016-isolation-reseau-staging-production.md)

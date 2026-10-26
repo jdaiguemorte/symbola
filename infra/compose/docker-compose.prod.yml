@@ -1,14 +1,25 @@
 # Compose d'environnement (SOC-09, ADR 0009, ADR 0011 : une seule app) —
-# réutilisé tel quel pour staging ET production, distingués uniquement par
-# le fichier --env-file et le nom de projet (-p). Suppose le socle
+# réutilisé tel quel pour staging ET production, distingués par le fichier
+# --env-file (ENVIRONMENT_NAME) et le nom de projet. Suppose le socle
 # (docker-compose.socle.yml, Traefik partagé) déjà démarré.
+#
+# Isolation staging ↔ production (ADR 0016) :
+# - nom de projet dérivé de ENVIRONMENT_NAME : oublier -p ne fait jamais
+#   partager conteneurs ni volumes entre les deux environnements ;
+# - PostgreSQL, Garage et ClamAV ne sont que sur le réseau `default` du
+#   projet (symbola-staging_default, symbola-production_default) : le nom
+#   `postgres` ne peut résoudre que la base de son propre environnement ;
+# - seul le conteneur `symbola` rejoint le réseau frontal de SON
+#   environnement (symbola-edge-<env>), partagé uniquement avec Traefik ;
+# - limites mémoire/CPU par conteneur, fixées dans chaque .env (staging
+#   bridé pour ne jamais pénaliser la production).
 #
 #   docker compose -f infra/compose/docker-compose.prod.yml \
 #     --env-file .env.staging -p symbola-staging up -d
 #
 #   docker compose -f infra/compose/docker-compose.prod.yml \
 #     --env-file .env.production -p symbola-production up -d
-name: symbola-env
+name: symbola-${ENVIRONMENT_NAME:?ENVIRONMENT_NAME requis (staging ou production)}
 
 services:
   postgres:
@@ -23,11 +34,16 @@ services:
     # un tunnel SSH (docs/runbooks/deploiement.md), sans ouvrir le port au
     # réseau public.
     ports:
-      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+      - "127.0.0.1:${POSTGRES_PORT:?POSTGRES_PORT requis, distinct par environnement}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - symbola-edge
+      - default
+    deploy:
+      resources:
+        limits:
+          memory: ${POSTGRES_MEM_LIMIT:?POSTGRES_MEM_LIMIT requis}
+          cpus: ${POSTGRES_CPUS:?POSTGRES_CPUS requis}
     security_opt:
       - no-new-privileges:true
     healthcheck:
@@ -51,7 +67,12 @@ services:
       # environnement, jamais committé (voir le runbook de déploiement).
       - ./garage.${ENVIRONMENT_NAME}.toml:/etc/garage.toml:ro
     networks:
-      - symbola-edge
+      - default
+    deploy:
+      resources:
+        limits:
+          memory: ${GARAGE_MEM_LIMIT:?GARAGE_MEM_LIMIT requis}
+          cpus: ${GARAGE_CPUS:?GARAGE_CPUS requis}
     security_opt:
       - no-new-privileges:true
     healthcheck:
@@ -67,7 +88,12 @@ services:
     volumes:
       - clamav_data:/var/lib/clamav
     networks:
-      - symbola-edge
+      - default
+    deploy:
+      resources:
+        limits:
+          memory: ${CLAMAV_MEM_LIMIT:?CLAMAV_MEM_LIMIT requis}
+          cpus: ${CLAMAV_CPUS:?CLAMAV_CPUS requis}
     security_opt:
       - no-new-privileges:true
     healthcheck:
@@ -104,7 +130,13 @@ services:
       - garage
       - clamav
     networks:
-      - symbola-edge
+      - default
+      - edge
+    deploy:
+      resources:
+        limits:
+          memory: ${APP_MEM_LIMIT:?APP_MEM_LIMIT requis}
+          cpus: ${APP_CPUS:?APP_CPUS requis}
     security_opt:
       - no-new-privileges:true
     # Pas de read_only ici : Next.js en standalone écrit dans .next/cache
@@ -112,16 +144,20 @@ services:
     # confirmé sans risque (pas testable sans déploiement réel).
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=symbola-edge"
+      - "traefik.docker.network=symbola-edge-${ENVIRONMENT_NAME}"
       - "traefik.http.routers.symbola-${ENVIRONMENT_NAME}.rule=Host(`${APP_DOMAIN}`)"
       - "traefik.http.routers.symbola-${ENVIRONMENT_NAME}.entrypoints=websecure"
       - "traefik.http.routers.symbola-${ENVIRONMENT_NAME}.tls.certresolver=le"
       - "traefik.http.services.symbola-${ENVIRONMENT_NAME}.loadbalancer.server.port=3000"
 
 networks:
-  symbola-edge:
-    name: symbola-edge
-    external: true # créé par docker-compose.socle.yml
+  # Réseau interne du projet, propre à chaque environnement.
+  default:
+  # Réseau frontal de cet environnement seulement, créé par le socle :
+  # Traefik y est relié, l'autre environnement non.
+  edge:
+    name: symbola-edge-${ENVIRONMENT_NAME}
+    external: true
 
 volumes:
   postgres_data:
