@@ -14,3 +14,14 @@ fields:
     anonymization: >-
       Remplacé par une valeur générée non réversible lors d'une demande
       d'oubli (RGPD-03).
+  - schema: hub
+    table: invitations
+    field: email
+    category: identifiant
+    retention: >-
+      7 jours (durée de validité de l'invitation, PRD HUB-03), puis
+      purgée ou anonymisée après expiration ou acceptation — à outiller
+      avec la purge RGPD-05.
+    anonymization: >-
+      Remplacé par une valeur générée non réversible lors d'une demande
+      d'oubli (RGPD-03) antérieure à l'expiration.

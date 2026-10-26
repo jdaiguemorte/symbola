@@ -9,10 +9,29 @@ import { boolean, integer, pgSchema, text, timestamp, uuid } from "drizzle-orm/p
 export const hubSchema = pgSchema("hub");
 
 export const roleEnum = hubSchema.enum("role", ["owner", "member", "client", "admin"]);
+export const languageEnum = hubSchema.enum("language", ["fr", "en"]);
 
 export const organizations = hubSchema.table("organizations", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: text("name").notNull(),
+  language: languageEnum("language").notNull().default("fr"),
+  // Facultatif (PRD HUB-03) : une organisation peut être créée avant
+  // d'avoir un SIRET (prospect, structure en cours de création).
+  siret: text("siret"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+// Invitation du titulaire par l'Admin (PRD HUB-03) : valable 7 jours
+// (proposé), un seul usage (acceptedAt posé à la première utilisation).
+export const invitations = hubSchema.table("invitations", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id")
+    .notNull()
+    .references(() => organizations.id),
+  email: text("email").notNull(),
+  tokenHash: text("token_hash").notNull().unique(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  acceptedAt: timestamp("accepted_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
@@ -45,5 +64,18 @@ export const sessions = hubSchema.table("sessions", {
   // session pleinement authentifiée pour les rôles professionnels.
   mfaVerified: boolean("mfa_verified").notNull().default(false),
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+// Journal d'audit des actions Admin (PRD HUB-03, « qui, quoi, quand »).
+// targetOrganizationId nul pour une action qui ne vise aucune organisation
+// précise.
+export const auditLog = hubSchema.table("audit_log", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  adminUserId: uuid("admin_user_id")
+    .notNull()
+    .references(() => users.id),
+  action: text("action").notNull(),
+  targetOrganizationId: uuid("target_organization_id").references(() => organizations.id),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });

@@ -24,6 +24,9 @@ const booleanFromEnv = z.preprocess((value) => {
 export const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   APP_PORT: z.coerce.number().int().positive().default(3000),
+  // URL publique de l'app (HUB-03) : construit les liens dans les e-mails
+  // (invitation…). Dérivée de APP_DOMAIN par le compose de déploiement.
+  APP_PUBLIC_URL: z.string().min(1).default("http://localhost:3000"),
   // Version déployée, affichée par /health (SOC-11) : SHA du commit gravé
   // dans l'image par la CI, « dev » en local.
   APP_VERSION: z.string().min(1).default("dev"),

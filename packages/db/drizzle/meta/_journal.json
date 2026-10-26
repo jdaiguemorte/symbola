@@ -64,6 +64,20 @@
       "when": 1793050480922,
       "tag": "0008_add_account_lockout",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1793051686846,
+      "tag": "0009_hub03_org_invitations_audit",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1793051700000,
+      "tag": "0010_grant_hub03_tables",
+      "breakpoints": true
     }
   ]
 }
