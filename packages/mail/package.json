@@ -1,0 +1,24 @@
+{
+  "name": "@symbola/mail",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:integration": "vitest run --config vitest.integration.config.ts"
+  },
+  "dependencies": {
+    "@symbola/env": "workspace:*",
+    "nodemailer": "^10.2.1"
+  },
+  "devDependencies": {
+    "@symbola/config": "workspace:*",
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2",
+    "vitest": "^4.1.12"
+  }
+}

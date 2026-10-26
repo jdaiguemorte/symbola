@@ -4,6 +4,7 @@
 // d'ici (createAppUser, login, setupTotp, confirmTotp, requireUser…).
 import { and, eq } from "drizzle-orm";
 import type { AppDatabase } from "@symbola/db/client";
+import { sendMail } from "@symbola/mail";
 import { organizations, sessions, users } from "@symbola/db/schema/hub";
 import { hashPassword, verifyPassword } from "./password";
 import { isProfessionalRole, type Role } from "./roles";
@@ -11,6 +12,10 @@ import { generateSessionToken, hashSessionToken } from "./session-token";
 import { buildTotpProvisioningUri, generateTotpSecret, verifyTotpToken } from "./totp";
 
 const SESSION_DURATION_MS = 8 * 60 * 60 * 1000; // 8h sans activité (PRD HUB-01, proposé)
+// Verrouillage de compte (PRD HUB-01) : 5 mots de passe faux d'affilée
+// bloquent la connexion 15 min, un e-mail part au titulaire.
+const MAX_FAILED_ATTEMPTS = 5;
+const LOCKOUT_DURATION_MS = 15 * 60 * 1000;
 
 export type AuthenticatedUser = {
   id: string;
@@ -26,6 +31,7 @@ export type AuthResult =
 
 export type LoginResult =
   | { outcome: "invalid_credentials" }
+  | { outcome: "locked" }
   | { outcome: "success"; sessionToken: string; requiresMfa: boolean };
 
 export async function createOrganization(db: AppDatabase, name: string) {
@@ -56,8 +62,33 @@ export async function login(db: AppDatabase, email: string, password: string): P
   const [user] = await db.select().from(users).where(eq(users.email, email));
   if (!user) return { outcome: "invalid_credentials" };
 
+  if (user.lockedUntil && user.lockedUntil.getTime() > Date.now()) {
+    return { outcome: "locked" };
+  }
+
   const validPassword = await verifyPassword(user.passwordHash, password);
-  if (!validPassword) return { outcome: "invalid_credentials" };
+  if (!validPassword) {
+    const failedAttempts = user.failedLoginAttempts + 1;
+    if (failedAttempts >= MAX_FAILED_ATTEMPTS) {
+      await db
+        .update(users)
+        .set({ failedLoginAttempts: 0, lockedUntil: new Date(Date.now() + LOCKOUT_DURATION_MS) })
+        .where(eq(users.id, user.id));
+      await sendMail({
+        to: user.email,
+        subject: "Votre compte Symbola a été verrouillé",
+        text: "Cinq mots de passe incorrects d'affilée ont été saisis sur votre compte. Il est verrouillé pendant 15 minutes par mesure de sécurité. Si ce n'était pas vous, pensez à changer votre mot de passe dès le déverrouillage.",
+      });
+      return { outcome: "locked" };
+    }
+
+    await db.update(users).set({ failedLoginAttempts: failedAttempts }).where(eq(users.id, user.id));
+    return { outcome: "invalid_credentials" };
+  }
+
+  if (user.failedLoginAttempts > 0 || user.lockedUntil) {
+    await db.update(users).set({ failedLoginAttempts: 0, lockedUntil: null }).where(eq(users.id, user.id));
+  }
 
   const requiresMfa = isProfessionalRole(user.role);
   const sessionToken = generateSessionToken();
@@ -142,6 +173,14 @@ export async function requireUser(
 
   if (!row) return { status: "unauthenticated" };
   if (row.expiresAt.getTime() < Date.now()) return { status: "unauthenticated" };
+
+  // Session glissante (PRD HUB-01, « 8h sans activité ») : chaque appel
+  // réussi repousse l'expiration, plutôt qu'une durée fixe depuis la
+  // connexion.
+  await db
+    .update(sessions)
+    .set({ expiresAt: new Date(Date.now() + SESSION_DURATION_MS) })
+    .where(eq(sessions.tokenHash, tokenHash));
 
   if (isProfessionalRole(row.role) && !row.mfaVerified) {
     return { status: "mfa_required", userId: row.userId, hasTotpSecret: row.totpSecret !== null };

@@ -50,9 +50,14 @@ export const envSchema = z.object({
   CLAMAV_HOST: z.string().min(1).default("localhost"),
   CLAMAV_PORT: z.coerce.number().int().positive().default(3310),
 
-  // E-mail de dev (Mailpit) — jamais d'e-mail réel hors production (CLAUDE.md §3)
+  // E-mail de dev (Mailpit) — jamais d'e-mail réel hors production (CLAUDE.md §3).
+  // Mailpit n'exige pas d'authentification : SMTP_USER/PASSWORD restent
+  // vides en dev, remplis en staging/production (compte Ionos réel).
   SMTP_HOST: z.string().min(1).default("localhost"),
   SMTP_PORT: z.coerce.number().int().positive().default(1025),
+  SMTP_USER: z.string().default(""),
+  SMTP_PASSWORD: z.string().default(""),
+  SMTP_FROM: z.string().min(1).default("Symbola <no-reply@symbola.test>"),
 });
 
 export type Env = z.infer<typeof envSchema>;

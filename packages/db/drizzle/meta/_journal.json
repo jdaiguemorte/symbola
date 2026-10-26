@@ -57,6 +57,13 @@
       "when": 1793000667770,
       "tag": "0007_grant_usage_counters",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1793050480922,
+      "tag": "0008_add_account_lockout",
+      "breakpoints": true
     }
   ]
 }
