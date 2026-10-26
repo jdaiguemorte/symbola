@@ -26,6 +26,45 @@ jobs:
       - run: pnpm test
       - run: pnpm check:boundaries
 
+  db-isolation:
+    name: Isolation RLS (PostgreSQL réel, SOC-05)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: symbola
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ci-admin-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d symbola"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: symbola
+      POSTGRES_ADMIN_USER: postgres
+      POSTGRES_ADMIN_PASSWORD: ci-admin-password
+      POSTGRES_APP_USER: symbola_app
+      POSTGRES_APP_PASSWORD: ci-app-password
+      MINIO_ACCESS_KEY: ci-minio-access
+      MINIO_SECRET_KEY: ci-minio-secret
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @symbola/db bootstrap
+      - run: pnpm --filter @symbola/db migrate
+      - run: pnpm --filter @symbola/db test:integration
+
   semgrep:
     name: Semgrep (SAST)
     runs-on: ubuntu-latest

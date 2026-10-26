@@ -197,7 +197,9 @@ l'équivalent Docker donné à droite.
 | Vérification des types | `pnpm typecheck` | `docker run --rm -v "$PWD":/app -w /app node:22-slim pnpm typecheck` |
 | Tests | `pnpm test` | `docker run --rm -v "$PWD":/app -w /app node:22-slim pnpm test` |
 | Contrôle des frontières de modules (ADR 0011) | `pnpm check:boundaries` | `docker run --rm -v "$PWD":/app -w /app node:22-slim pnpm check:boundaries` |
-| Migrations de base (arrivent en SOC-05) | `pnpm --filter @symbola/db migrate` | `docker run --rm -v "$PWD":/app -w /app node:22-slim pnpm --filter @symbola/db migrate` |
+| Créer/mettre à jour le rôle applicatif PostgreSQL (une fois par base, SOC-05) | `pnpm --filter @symbola/db bootstrap` | `docker run --rm --network symbola-dev_default -v "$PWD":/app -w /app --env-file .env node:22-slim pnpm --filter @symbola/db bootstrap` |
+| Appliquer les migrations de base (après le bootstrap, SOC-05) | `pnpm --filter @symbola/db migrate` | `docker run --rm --network symbola-dev_default -v "$PWD":/app -w /app --env-file .env node:22-slim pnpm --filter @symbola/db migrate` |
+| Tests d'isolation RLS réels (SOC-05, nécessite le socle démarré + bootstrap + migrate) | `pnpm --filter @symbola/db test:integration` | `docker run --rm --network symbola-dev_default -v "$PWD":/app -w /app --env-file .env node:22-slim pnpm --filter @symbola/db test:integration` |
 | Lancer le socle en local seul | — | `docker compose -f infra/compose/docker-compose.dev.yml --env-file .env up` |
 
 Le socle de dev (Postgres, MinIO, ClamAV, Mailpit, Traefik) est défini dans

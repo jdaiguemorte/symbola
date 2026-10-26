@@ -1,19 +1,27 @@
-// Schéma des variables d'environnement du socle (SOC-03). Chaque story qui
+// Schéma des variables d'environnement de l'app (SOC-03). Chaque story qui
 // ajoute un service (auth SOC-04, événements SOC-06, fichiers SOC-08…)
 // complète ce schéma plutôt que d'en créer un autre : une seule validation,
 // un seul point d'échec clair au démarrage.
+//
+// Note (SOC-05) : seules les variables du rôle applicatif PostgreSQL
+// (POSTGRES_APP_*) sont ici — l'app qui tourne ne détient jamais les
+// identifiants admin. Les identifiants admin (POSTGRES_ADMIN_*), utilisés
+// uniquement pour les migrations et le bootstrap des rôles/RLS, sont
+// validés séparément dans packages/db (voir packages/db/src/admin-env.ts) :
+// ils n'ont pas besoin d'être présents dans l'environnement de l'app
+// déployée.
 import { z } from "zod";
 
 export const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   APP_PORT: z.coerce.number().int().positive().default(3000),
 
-  // PostgreSQL (packages/db, SOC-05)
+  // PostgreSQL — rôle applicatif uniquement (packages/db, SOC-05)
   POSTGRES_HOST: z.string().min(1).default("localhost"),
   POSTGRES_PORT: z.coerce.number().int().positive().default(5432),
   POSTGRES_DB: z.string().min(1).default("symbola"),
-  POSTGRES_USER: z.string().min(1).default("symbola_app"),
-  POSTGRES_PASSWORD: z.string().min(1),
+  POSTGRES_APP_USER: z.string().min(1).default("symbola_app"),
+  POSTGRES_APP_PASSWORD: z.string().min(1),
 
   // MinIO / stockage objet (SOC-08)
   MINIO_ENDPOINT: z.string().min(1).default("localhost"),

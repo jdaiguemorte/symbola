@@ -41,6 +41,13 @@ describe("SOC-02 — Pipeline CI de sécurité", () => {
     expect(ciWorkflow).toMatch(/semgrep scan/);
   });
 
+  it("vérifie l'isolation RLS (SOC-05) contre un vrai PostgreSQL de service", () => {
+    expect(ciWorkflow).toMatch(/postgres:16-alpine/);
+    expect(ciWorkflow).toMatch(/run:\s*pnpm --filter @symbola\/db bootstrap/);
+    expect(ciWorkflow).toMatch(/run:\s*pnpm --filter @symbola\/db migrate/);
+    expect(ciWorkflow).toMatch(/run:\s*pnpm --filter @symbola\/db test:integration/);
+  });
+
   it("prépare un scan ZAP baseline du staging qui bloque sur une alerte haute", () => {
     expect(zapWorkflow).toMatch(/zaproxy\/action-baseline/);
     expect(zapWorkflow).toMatch(/fail_action:\s*true/);
