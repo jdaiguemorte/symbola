@@ -41,4 +41,9 @@ COPY --from=build --chown=symbola:symbola /repo/apps/symbola/public ./apps/symbo
 USER symbola
 EXPOSE 3000
 ENV PORT=3000
+# Docker fixe HOSTNAME au nom d'hôte du conteneur ; le serveur standalone
+# de Next.js l'utilise comme adresse d'écoute, ce qui le fait écouter en
+# local uniquement et le rend inatteignable depuis les autres conteneurs
+# (Caddy) — forcer l'écoute sur toutes les interfaces.
+ENV HOSTNAME="0.0.0.0"
 CMD ["node", "apps/symbola/server.js"]
