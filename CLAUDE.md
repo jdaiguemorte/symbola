@@ -201,6 +201,8 @@ l'équivalent Docker donné à droite.
 | Appliquer les migrations de base (après le bootstrap, SOC-05) | `pnpm --filter @symbola/db migrate` | `docker run --rm --network symbola-dev_default -v "$PWD":/app -w /app --env-file .env node:22-slim pnpm --filter @symbola/db migrate` |
 | Tests d'isolation RLS réels (SOC-05, nécessite le socle démarré + bootstrap + migrate) | `pnpm --filter @symbola/db test:integration` | `docker run --rm --network symbola-dev_default -v "$PWD":/app -w /app --env-file .env node:22-slim pnpm --filter @symbola/db test:integration` |
 | Lancer le socle en local seul | — | `docker compose -f infra/compose/docker-compose.dev.yml --env-file .env up` |
+| Vérifier les scripts serveur (SOC-12) | `shellcheck infra/server/*.sh` | `docker run --rm -v "$PWD/infra/server":/mnt:ro koalaman/shellcheck:stable /mnt/check-hardening.sh` |
+| Vérifier le durcissement du VPS (SOC-12, **Julien, sur le VPS**) | — | `sudo bash infra/server/check-hardening.sh` (lecture seule, voir `docs/runbooks/durcissement-serveur.md`) |
 
 Le socle de dev (Postgres, Garage, ClamAV, Mailpit, Traefik) est défini dans
 `infra/compose/docker-compose.dev.yml` (SOC-03) ; les variables d'environnement sont validées par
