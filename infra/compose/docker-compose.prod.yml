@@ -130,11 +130,11 @@ services:
       - postgres
       - garage
       - clamav
-    # Boucle locale uniquement, comme PostgreSQL : jamais exposé à
-    # Internet directement. Caddy (hors de ce compose, ADR 0018)
-    # reverse-proxy depuis ce port. Port distinct par environnement.
-    ports:
-      - "127.0.0.1:${APP_LOCAL_PORT:?APP_LOCAL_PORT requis, distinct par environnement}:3000"
+    # Aucun port publié sur l'hôte : le Caddy partagé du VPS (ADR 0018,
+    # conteneur du compose petites-voitures) rejoint ce réseau Docker
+    # après coup (`docker network connect`, runbook de déploiement) et
+    # route vers `symbola:3000` par nom de service — même mécanisme que
+    # son bloc Caddyfile existant pour kindo-server-1.
     networks:
       - default
     deploy:

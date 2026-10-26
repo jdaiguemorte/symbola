@@ -61,9 +61,13 @@ describe("SOC-09 — Compose d'environnement (staging et production)", () => {
     expect(prodCompose).toMatch(/image:\s*ghcr\.io\/.*\$\{APP_IMAGE_TAG/);
   });
 
-  it("expose l'app seulement en boucle locale, pour le Caddy partagé du VPS (ADR 0018)", () => {
-    expect(prodCompose).toMatch(/"127\.0\.0\.1:\$\{APP_LOCAL_PORT[^}]*\}:3000"/);
+  it("n'expose l'app sur aucun port hôte (Caddy rejoint le réseau Docker, ADR 0018)", () => {
     expect(prodCompose).not.toMatch(/traefik\./);
+    const symbolaBlock = prodCompose.slice(
+      prodCompose.indexOf("\n  symbola:"),
+      prodCompose.indexOf("\nnetworks:"),
+    );
+    expect(symbolaBlock).not.toMatch(/ports:/);
   });
 
   it("n'expose PostgreSQL qu'en boucle locale (jamais au réseau public)", () => {
