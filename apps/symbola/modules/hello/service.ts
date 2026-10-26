@@ -3,6 +3,8 @@
 // HTTP /v1/hello si ce module est extrait en app autonome.
 import { findGreetingText } from "./repository";
 
+export { helloPrivacy } from "./privacy";
+
 export type Greeting = {
   message: string;
 };

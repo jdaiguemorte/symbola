@@ -25,6 +25,8 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm check:boundaries
+      - name: Registre RGPD (SOC-07) — colonnes personnelles non déclarées
+        run: pnpm --filter @symbola/privacy check:registry
 
   db-isolation:
     name: Isolation RLS et authentification (PostgreSQL réel, SOC-04/05)
@@ -65,6 +67,7 @@ jobs:
       - run: pnpm --filter @symbola/db migrate
       - run: pnpm --filter @symbola/db test:integration
       - run: pnpm --filter @symbola/auth test:integration
+      - run: pnpm --filter @symbola/app test:integration
 
   semgrep:
     name: Semgrep (SAST)
