@@ -3,11 +3,11 @@ import type { NextConfig } from "next";
 // En-têtes de sécurité (SOC-09, CLAUDE.md §5) — posés au niveau de l'app,
 // pas seulement de Traefik, pour qu'ils tiennent même si un module est
 // extrait en app autonome plus tard (ADR 0011) et change de frontal.
+// La Content-Security-Policy n'est PAS ici : elle a besoin d'un nonce
+// différent à chaque requête (middleware.ts) pour autoriser les scripts
+// inline que Next.js injecte lui-même à l'hydratation, sans quoi l'app
+// affiche un écran blanc (constaté au premier déploiement réel).
 const securityHeaders = [
-  {
-    key: "Content-Security-Policy",
-    value: "default-src 'self'; frame-ancestors 'none'; base-uri 'self'; object-src 'none'",
-  },
   { key: "X-Frame-Options", value: "DENY" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "X-Content-Type-Options", value: "nosniff" },

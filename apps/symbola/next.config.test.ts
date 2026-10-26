@@ -13,10 +13,9 @@ async function getHeaderRules() {
 }
 
 describe("SOC-09 — En-têtes de sécurité", () => {
-  it("pose une CSP stricte", async () => {
-    const headers = await getHeaderRules();
-    expect(headers["Content-Security-Policy"]).toContain("default-src 'self'");
-  });
+  // La Content-Security-Policy est testée dans middleware.test.ts : elle a
+  // besoin d'un nonce par requête (voir next.config.ts), donc n'est pas
+  // posée par cette configuration statique.
 
   it("pose X-Frame-Options: DENY", async () => {
     const headers = await getHeaderRules();
