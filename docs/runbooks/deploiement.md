@@ -90,6 +90,20 @@ Exemple pour staging (remplacer `staging` par `production` pour l'autre) :
    docker compose -f infra/compose/docker-compose.prod.yml \
      --env-file infra/compose/.env.staging -p symbola-staging up -d
    ```
+   **Note (ADR 0018)** : ce runbook date du choix initial (Traefik,
+   socle dédié) ; en réalité le VPS utilise le Caddy déjà en place pour
+   les autres projets (ADR 0018), pas `docker-compose.socle.yml`. Reste
+   à faire une fois par environnement : connecter ce Caddy existant au
+   réseau Docker de l'environnement (sans alias — l'alias
+   `symbola-<environnement>` est déjà porté par le conteneur `symbola`
+   lui-même, voir `docker-compose.prod.yml`) et ajouter le bloc
+   correspondant dans son Caddyfile :
+   ```bash
+   docker network connect symbola-staging_default <conteneur-caddy>
+   ```
+   Le reste de ce runbook (sections suivantes) décrit encore l'ancienne
+   architecture Traefik/socle partagé — à réviser entièrement pour
+   refléter ADR 0018 (noté comme dette documentaire, pas bloquant).
 2. Créer le rôle applicatif PostgreSQL et appliquer les migrations
    **depuis le poste de Julien**, via un tunnel SSH vers le port
    PostgreSQL en boucle locale du VPS (jamais exposé publiquement) :
