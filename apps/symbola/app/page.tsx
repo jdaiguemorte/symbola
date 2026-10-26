@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import { after } from "next/server";
+import { createAppConnection } from "@symbola/db/client";
 import { getGreeting } from "@/modules/hello/service";
+import { isModuleEnabled } from "@/modules/hub/service";
 import { getAuthContext } from "@/lib/auth-context";
 import { recordUsage } from "@/lib/usage";
 import { logoutAction } from "./logout-action";
@@ -20,13 +22,26 @@ export default async function HomePage() {
     after(() => recordUsage(organizationId));
   }
 
-  const greeting = getGreeting();
+  // Dégradation propre (CLAUDE.md §2.3) : un module désactivé par l'Admin
+  // n'affiche jamais d'erreur, juste « indisponible ». L'Admin (pas
+  // d'organisation) n'a pas de module à vérifier.
+  let helloAvailable = true;
+  if (auth.user.organizationId) {
+    const organizationId = auth.user.organizationId;
+    const { sql, db } = createAppConnection();
+    try {
+      helloAvailable = await isModuleEnabled(db, organizationId, "hello");
+    } finally {
+      await sql.end();
+    }
+  }
+  const greeting = helloAvailable ? getGreeting() : null;
 
   return (
     <main>
       <h1>Symbola</h1>
       <p>Connecté comme {auth.user.email}</p>
-      <p>{greeting.message}</p>
+      <p>{greeting ? greeting.message : "Module indisponible"}</p>
       <form action={logoutAction}>
         <button type="submit">Se déconnecter</button>
       </form>

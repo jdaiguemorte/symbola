@@ -4,7 +4,7 @@
 // (events, budget, quotes le seront). L'isolation entre organisations pour
 // ces tables est assurée exclusivement par packages/auth (seule porte
 // d'entrée, ADR 0013) : aucun autre code n'y accède directement.
-import { boolean, integer, pgSchema, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { boolean, integer, pgSchema, primaryKey, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
 export const hubSchema = pgSchema("hub");
 
@@ -66,6 +66,23 @@ export const sessions = hubSchema.table("sessions", {
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
+
+// Activation d'un module par organisation (PRD HUB-03). Pas de ligne =
+// activé par défaut (absence = « jamais désactivé »), pour qu'un nouveau
+// module n'ait besoin d'aucune migration de données pour être actif
+// partout. Désactiver un module ne supprime jamais ses données.
+export const organizationModules = hubSchema.table(
+  "organization_modules",
+  {
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id),
+    moduleKey: text("module_key").notNull(),
+    enabled: boolean("enabled").notNull().default(true),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.organizationId, table.moduleKey] })],
+);
 
 // Journal d'audit des actions Admin (PRD HUB-03, « qui, quoi, quand »).
 // targetOrganizationId nul pour une action qui ne vise aucune organisation

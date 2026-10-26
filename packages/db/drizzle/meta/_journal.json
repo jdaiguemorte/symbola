@@ -78,6 +78,20 @@
       "when": 1793051700000,
       "tag": "0010_grant_hub03_tables",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1793052652498,
+      "tag": "0011_create_organization_modules",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1793052652499,
+      "tag": "0012_grant_organization_modules",
+      "breakpoints": true
     }
   ]
 }

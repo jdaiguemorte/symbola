@@ -1,9 +1,9 @@
 // Accès aux données du module hub — jamais importé hors de modules/hub/
 // (ADR 0011). Pas de RLS sur ces tables (packages/db/src/schema/hub.ts) :
 // l'isolation est assurée par le code applicatif, pas par PostgreSQL.
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import type { AppDatabase } from "@symbola/db/client";
-import { auditLog, invitations, organizations } from "@symbola/db/schema/hub";
+import { auditLog, invitations, organizationModules, organizations } from "@symbola/db/schema/hub";
 import type { Language } from "./types";
 
 export async function insertOrganization(
@@ -38,4 +38,29 @@ export async function insertAuditLog(
   input: { adminUserId: string; action: string; targetOrganizationId: string | null },
 ) {
   await db.insert(auditLog).values(input);
+}
+
+export async function listAllOrganizations(db: AppDatabase) {
+  return db.select().from(organizations);
+}
+
+export async function findOrganizationModule(db: AppDatabase, organizationId: string, moduleKey: string) {
+  const [row] = await db
+    .select()
+    .from(organizationModules)
+    .where(and(eq(organizationModules.organizationId, organizationId), eq(organizationModules.moduleKey, moduleKey)));
+  return row ?? null;
+}
+
+export async function upsertOrganizationModule(
+  db: AppDatabase,
+  input: { organizationId: string; moduleKey: string; enabled: boolean },
+) {
+  await db
+    .insert(organizationModules)
+    .values({ ...input, updatedAt: new Date() })
+    .onConflictDoUpdate({
+      target: [organizationModules.organizationId, organizationModules.moduleKey],
+      set: { enabled: input.enabled, updatedAt: new Date() },
+    });
 }

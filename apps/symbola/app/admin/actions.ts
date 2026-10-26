@@ -1,7 +1,8 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { createAppConnection } from "@symbola/db/client";
-import { createOrganizationWithInvitation } from "@/modules/hub/service";
+import { createOrganizationWithInvitation, setModuleEnabled, type ModuleKey } from "@/modules/hub/service";
 import { requireAdmin } from "@/lib/require-admin";
 
 export type CreateOrganizationFormState = { error?: string; success?: boolean };
@@ -35,4 +36,21 @@ export async function createOrganizationAction(
   }
 
   return { success: true };
+}
+
+export async function toggleModuleAction(formData: FormData): Promise<void> {
+  const admin = await requireAdmin();
+
+  const organizationId = String(formData.get("organizationId") ?? "");
+  const moduleKey = String(formData.get("moduleKey") ?? "") as ModuleKey;
+  const enabled = formData.get("enabled") === "true";
+
+  const { sql, db } = createAppConnection();
+  try {
+    await setModuleEnabled(db, { adminUserId: admin.userId, organizationId, moduleKey, enabled });
+  } finally {
+    await sql.end();
+  }
+
+  revalidatePath("/admin");
 }
