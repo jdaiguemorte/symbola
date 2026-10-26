@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -80,5 +80,19 @@ describe("SOC-02 — Pipeline CI de sécurité", () => {
     );
     expect(hasGroupedRule).toBe(true);
     expect(renovateConfig.vulnerabilityAlerts?.enabled).toBe(true);
+  });
+});
+
+describe("SOC-09 — Image Docker de l'app", () => {
+  // L'étape d'installation ne copie que des package.json : un paquet du
+  // workspace oublié ici n'est pas installé, et le build de l'image échoue
+  // (« Can't resolve '@symbola/db/...' »).
+  const dockerfile = readFileSync(resolve(repoRoot, "apps/symbola/Dockerfile"), "utf8");
+  const workspacePackages = readdirSync(resolve(repoRoot, "packages")).filter((name) =>
+    existsSync(resolve(repoRoot, "packages", name, "package.json")),
+  );
+
+  it.each(workspacePackages)("copie packages/%s/package.json avant pnpm install", (name) => {
+    expect(dockerfile).toContain(`COPY packages/${name}/package.json packages/${name}/package.json`);
   });
 });

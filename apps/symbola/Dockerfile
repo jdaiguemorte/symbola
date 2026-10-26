@@ -10,7 +10,16 @@ RUN corepack enable
 
 FROM base AS deps
 COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
+# Tous les paquets du workspace dont l'app dépend : un package.json absent ici
+# n'est pas installé et le build échoue (test : tools/ci-pipeline).
+COPY packages/auth/package.json packages/auth/package.json
 COPY packages/config/package.json packages/config/package.json
+COPY packages/contracts/package.json packages/contracts/package.json
+COPY packages/db/package.json packages/db/package.json
+COPY packages/env/package.json packages/env/package.json
+COPY packages/files/package.json packages/files/package.json
+COPY packages/privacy/package.json packages/privacy/package.json
+COPY packages/testing/package.json packages/testing/package.json
 COPY apps/symbola/package.json apps/symbola/package.json
 COPY tools/boundaries/package.json tools/boundaries/package.json
 RUN pnpm install --frozen-lockfile --filter @symbola/app... --filter @symbola/config
