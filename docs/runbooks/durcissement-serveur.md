@@ -13,6 +13,30 @@ Hypothèse : image **Ubuntu 24.04 LTS** proposée par Contabo. Vérifier
 avec `lsb_release -a`. Pour une autre distribution, s'arrêter et adapter
 les commandes avant de continuer.
 
+## Serveur partagé : ce qu'il faut savoir (constaté le 2026-10-26)
+
+Le VPS n'est pas dédié à Symbola. Il héberge déjà d'autres projets
+Docker : `kindo` (`/root/kindo`), `petites-voitures` (`/opt/petites-voitures`,
+dont le Caddy occupe les ports 80/443) et `wedding-stack`
+(`/opt/wedding-stack`). Conséquences pour ce runbook :
+
+- Aucune commande ne doit arrêter tous les conteneurs : la configuration du
+  démon Docker se **recharge** (`systemctl reload docker`), elle ne se
+  redémarre pas tant que `live-restore` n'est pas actif (étape 6).
+- `no-new-privileges` n'est **pas** imposé à tout le démon : il
+  s'appliquerait aussi aux conteneurs des autres projets, dont certaines
+  images peuvent en avoir besoin. Les composes Symbola le fixent service par
+  service.
+- L'API locale de CrowdSec ne peut pas utiliser son port par défaut 8080,
+  déjà pris (étape 4).
+- Les ports publiés par les autres projets doivent être limités à
+  `127.0.0.1` (Docker contourne UFW, étape 3). Pour `wedding-stack`, c'est
+  fait (préfixe `127.0.0.1:` sur chaque port de `docker-compose.yml`) ; on y
+  accède par tunnel SSH.
+- Qui reçoit les ports 80/443 (le Caddy existant ou le Traefik de Symbola)
+  est une décision à prendre avant le premier déploiement de Symbola
+  (`docs/runbooks/deploiement.md`), par un ADR.
+
 ## Avant de commencer : ne pas se fermer la porte
 
 - Garder **une session SSH root ouverte** pendant toutes les étapes 1 à 3.
@@ -169,6 +193,18 @@ attaques par force brute SSH. Analyser aussi les journaux d'accès de
 Traefik (collection `crowdsecurity/traefik`) est une amélioration à
 prévoir après le premier déploiement. Ce n'est pas un critère du lot 0.
 
+**Port 8080 déjà utilisé** : si l'installation affiche « *Not attempting to
+start crowdsec, port 8080 is already used* » (cas de ce VPS, pris par un
+autre conteneur), déplacer l'API locale sur un port libre, puis démarrer :
+
+```bash
+ss -tlnH | grep -E ':(8080|8081)\b'      # 8081 doit être libre
+sudo sed -i.orig 's#127\.0\.0\.1:8080#127.0.0.1:8081#' /etc/crowdsec/config.yaml \
+  /etc/crowdsec/local_api_credentials.yaml /etc/crowdsec/bouncers/crowdsec-firewall-bouncer.yaml
+sudo systemctl enable --now crowdsec
+sudo systemctl restart crowdsec-firewall-bouncer
+```
+
 L'inscription à la console en ligne CrowdSec (`cscli console enroll`) est
 facultative et non nécessaire.
 
@@ -205,7 +241,9 @@ timedatectl          # « System clock synchronized: yes »
 
 ## 6. Docker depuis le dépôt officiel
 
-Pas le paquet `docker.io` d'Ubuntu, souvent en retard sur les correctifs :
+Pas le paquet `docker.io` d'Ubuntu, souvent en retard sur les correctifs.
+Si `dpkg -l | grep docker-ce` montre déjà `docker-ce` du dépôt officiel (cas
+de ce VPS), passer directement à la configuration du démon :
 
 ```bash
 sudo install -m 0755 -d /etc/apt/keyrings
@@ -223,19 +261,24 @@ Configuration du démon :
 sudo tee /etc/docker/daemon.json >/dev/null <<'CONF'
 {
   "live-restore": true,
-  "no-new-privileges": true,
   "log-driver": "local",
   "log-opts": { "max-size": "20m", "max-file": "5" }
 }
 CONF
-sudo systemctl restart docker
-docker info --format '{{.ServerVersion}} live-restore={{.LiveRestoreEnabled}}'
+sudo dockerd --validate --config-file /etc/docker/daemon.json
+sudo systemctl reload docker      # applique live-restore sans arrêter les conteneurs
+sudo docker info --format '{{.ServerVersion}} live-restore={{.LiveRestoreEnabled}}'
 ```
+
+Ne pas écraser un `daemon.json` existant sans l'avoir lu (`ls -l
+/etc/docker/daemon.json`). Une fois `live-restore` actif, un
+`systemctl restart docker` (demandé par exemple après une mise à jour de
+bibliothèque) ne coupe plus les conteneurs.
 
 - `live-restore` : les conteneurs continuent de tourner pendant une mise
   à jour ou un redémarrage du démon Docker.
-- `no-new-privileges` : appliqué par défaut à tous les conteneurs (les
-  composes le fixent aussi).
+- `no-new-privileges` : pas au niveau du démon sur ce serveur partagé
+  (voir « Serveur partagé ») ; chaque service Symbola le fixe dans son compose.
 - Journaux rotatifs : un conteneur bavard ne remplit pas le disque.
 
 **Ne pas ajouter `julien` au groupe `docker`** : ce groupe équivaut à
@@ -278,7 +321,7 @@ erreur s'il y a au moins un `ÉCHEC`. Puis cocher :
 - [ ] Depuis ton poste : une connexion par mot de passe est refusée (`ssh -o PubkeyAuthentication=no julien@<vps>`).
 - [ ] Depuis ton poste : seuls 22 (si autorisé pour ton IP), 80 et 443 répondent. `nc -vz -w 3 <vps> 5432`, `nc -vz -w 3 <vps> 3001` et `nc -vz -w 3 <vps> 3900` échouent.
 - [ ] `http://<domaine>` redirige vers `https://` (après le premier déploiement).
-- [ ] Bannissement de test : `sudo cscli decisions add --ip 192.0.2.1 --duration 2m`, puis `sudo ipset test crowdsec-blacklists 192.0.2.1` le trouve et `sudo iptables -L DOCKER-USER -n` contient un renvoi vers `CROWDSEC_CHAIN`. Ensuite `sudo cscli decisions delete --ip 192.0.2.1`.
+- [ ] Bannissement de test : `sudo cscli decisions add --ip 192.0.2.1 --duration 2m`, puis `sudo ipset test crowdsec-blacklists-0 192.0.2.1` le trouve (nom de l'ensemble : `sudo ipset list -n`) et `sudo iptables -L DOCKER-USER -n` contient un renvoi vers `CROWDSEC_CHAIN`. Ensuite `sudo cscli decisions delete --ip 192.0.2.1`.
 - [ ] `sudo unattended-upgrade --dry-run` ne signale aucune erreur.
 - [ ] `timedatectl` indique une horloge synchronisée.
 - [ ] La date d'exécution et la version de Docker sont notées dans le journal d'exploitation ci-dessous.

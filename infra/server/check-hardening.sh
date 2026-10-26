@@ -90,7 +90,13 @@ echo "Docker"
 if has docker; then
   ok "Docker $(docker info --format '{{.ServerVersion}}' 2>/dev/null || echo '?') installé"
   check "live-restore actif" live_restore
-  check "no-new-privileges par défaut (daemon.json)" grep -q '"no-new-privileges": *true' /etc/docker/daemon.json
+  # Serveur partagé avec d'autres projets : no-new-privileges est fixé service par
+  # service dans les composes Symbola, pas imposé à tout le démon (runbook).
+  if grep -q '"no-new-privileges": *true' /etc/docker/daemon.json 2>/dev/null; then
+    ok "no-new-privileges par défaut (daemon.json)"
+  else
+    warn "no-new-privileges non imposé par le démon : vérifier qu'il est fixé dans chaque compose Symbola"
+  fi
   if dpkg -s docker.io >/dev/null 2>&1; then
     fail "paquet docker.io d'Ubuntu installé : utiliser docker-ce du dépôt officiel"
   else
