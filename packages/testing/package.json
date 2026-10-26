@@ -8,10 +8,11 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "vitest": "^2.1.8"
+    "vitest": "^4.1.12"
   },
   "devDependencies": {
     "@symbola/config": "workspace:*",
+    "@types/node": "^22.10.2",
     "typescript": "^5.7.2"
   }
 }
