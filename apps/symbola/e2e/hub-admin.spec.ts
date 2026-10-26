@@ -10,7 +10,10 @@ import * as OTPAuth from "otpauth";
 
 const MAILPIT_API = "http://localhost:8025/api/v1";
 
-async function loginAndPassMfa(page: Page, email: string, password: string) {
+// Premier login : le TOTP n'est pas encore configuré, /mfa affiche le
+// lien otpauth:// à « scanner ». Renvoie le secret pour les logins
+// suivants (configuré une fois, plus de lien ensuite).
+async function loginAndSetupMfa(page: Page, email: string, password: string): Promise<string> {
   await page.goto("/login");
   await page.getByLabel("E-mail").fill(email);
   await page.getByLabel("Mot de passe").fill(password);
@@ -18,9 +21,21 @@ async function loginAndPassMfa(page: Page, email: string, password: string) {
   await expect(page).toHaveURL(/\/mfa$/);
 
   const provisioningUri = await page.locator("code").textContent();
-  const secret = new URL(provisioningUri!.replace("otpauth://totp/", "https://x/")).searchParams.get("secret");
-  const totp = new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret!) });
-  await page.getByLabel("Code").fill(totp.generate());
+  const secret = new URL(provisioningUri!.replace("otpauth://totp/", "https://x/")).searchParams.get("secret")!;
+  await page.getByLabel("Code").fill(new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret) }).generate());
+  await page.getByRole("button", { name: "Valider" }).click();
+  return secret;
+}
+
+// Login suivant : le TOTP est déjà configuré, pas de lien otpauth:// sur
+// /mfa — le secret doit être connu de l'appelant (capturé au premier login).
+async function loginWithKnownMfa(page: Page, email: string, password: string, secret: string) {
+  await page.goto("/login");
+  await page.getByLabel("E-mail").fill(email);
+  await page.getByLabel("Mot de passe").fill(password);
+  await page.getByRole("button", { name: "Se connecter" }).click();
+  await expect(page).toHaveURL(/\/mfa$/);
+  await page.getByLabel("Code").fill(new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret) }).generate());
   await page.getByRole("button", { name: "Valider" }).click();
 }
 
@@ -51,7 +66,7 @@ test("HUB-03-01 — l'Admin crée une organisation, le titulaire accepte son inv
     await sql.end();
   }
 
-  await loginAndPassMfa(page, adminEmail, adminPassword);
+  await loginAndSetupMfa(page, adminEmail, adminPassword);
   await expect(page).toHaveURL("/");
 
   await page.goto("/admin");
@@ -92,9 +107,57 @@ test("HUB-03-02 — un utilisateur non-Admin n'accède pas à /admin", async ({ 
     await sql.end();
   }
 
-  await loginAndPassMfa(page, email, password);
+  await loginAndSetupMfa(page, email, password);
   await expect(page).toHaveURL("/");
 
   await page.goto("/admin");
   await expect(page).toHaveURL("/");
+});
+
+test("HUB-03-03 — désactiver un module l'affiche « indisponible » sans erreur, et la page Santé affiche la version", async ({
+  page,
+}) => {
+  const adminEmail = `admin-e2e-${randomUUID()}@symbola.test`;
+  const adminPassword = "mot-de-passe-admin-e2e";
+  const email = `titulaire-degrade-e2e-${randomUUID()}@symbola.test`;
+  const password = "mot-de-passe-titulaire-e2e";
+
+  const organizationName = `Org dégradée ${randomUUID()}`;
+  const { sql, db } = createAppConnection();
+  let organizationId: string;
+  try {
+    await createUser(db, { organizationId: null, email: adminEmail, password: adminPassword, role: "admin" });
+    const organization = await createOrganization(db, organizationName);
+    organizationId = organization.id;
+    await createUser(db, { organizationId, email, password, role: "owner" });
+  } finally {
+    await sql.end();
+  }
+
+  // Avant désactivation : le module s'affiche normalement.
+  const titulaireSecret = await loginAndSetupMfa(page, email, password);
+  await expect(page.getByText("Bonjour depuis Symbola")).toBeVisible();
+  await page.getByRole("button", { name: "Se déconnecter" }).click();
+
+  // L'Admin désactive le module hello pour cette organisation (la liste
+  // contient toutes les organisations créées par les autres tests : on
+  // cible la ligne de celle-ci par son nom, pas un bouton générique).
+  await loginAndSetupMfa(page, adminEmail, adminPassword);
+  await page.goto("/admin");
+  const row = page.getByRole("row", { name: organizationName });
+  await row.getByRole("button", { name: /hello : activé \(désactiver\)/ }).click();
+  await expect(row.getByRole("button", { name: /hello : désactivé \(activer\)/ })).toBeVisible();
+
+  await page.goto("/admin/health");
+  const violations = await new AxeBuilder({ page }).analyze();
+  expect(violations.violations, JSON.stringify(violations.violations, null, 2)).toEqual([]);
+  await expect(page.getByText("en ligne")).toBeVisible();
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Se déconnecter" }).click();
+  await expect(page).toHaveURL(/\/login$/);
+
+  // Le titulaire voit « indisponible », sans erreur.
+  await loginWithKnownMfa(page, email, password, titulaireSecret);
+  await expect(page.getByText("Module indisponible")).toBeVisible();
 });

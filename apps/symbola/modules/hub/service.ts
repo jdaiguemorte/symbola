@@ -8,12 +8,20 @@ import { sendMail } from "@symbola/mail";
 import { parseEnv } from "@symbola/env";
 import {
   findInvitationByTokenHash,
+  findOrganizationModule,
   insertAuditLog,
   insertInvitation,
   insertOrganization,
+  listAllOrganizations,
   markInvitationAccepted,
+  upsertOrganizationModule,
 } from "./repository";
 import type { Language } from "./types";
+
+// Un seul module « métier » existe pour l'instant (hello, SOC-01) — les
+// futurs modules (events, budget, quotes) ajouteront leur clé ici.
+export const MODULE_KEYS = ["hello"] as const;
+export type ModuleKey = (typeof MODULE_KEYS)[number];
 
 const INVITATION_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 jours (PRD HUB-03, proposé)
 
@@ -91,4 +99,27 @@ export async function acceptInvitation(
   await markInvitationAccepted(db, invitation.id);
 
   return { outcome: "success", organizationId: invitation.organizationId };
+}
+
+export async function listOrganizations(db: AppDatabase) {
+  return listAllOrganizations(db);
+}
+
+// Absence de ligne = activé (CLAUDE.md §2.3, dégradation propre : un
+// nouveau module est actif partout tant qu'un Admin ne l'a pas désactivé).
+export async function isModuleEnabled(db: AppDatabase, organizationId: string, moduleKey: ModuleKey): Promise<boolean> {
+  const row = await findOrganizationModule(db, organizationId, moduleKey);
+  return row?.enabled ?? true;
+}
+
+export async function setModuleEnabled(
+  db: AppDatabase,
+  input: { adminUserId: string; organizationId: string; moduleKey: ModuleKey; enabled: boolean },
+): Promise<void> {
+  await upsertOrganizationModule(db, input);
+  await insertAuditLog(db, {
+    adminUserId: input.adminUserId,
+    action: input.enabled ? "hub.module.enabled" : "hub.module.disabled",
+    targetOrganizationId: input.organizationId,
+  });
 }
