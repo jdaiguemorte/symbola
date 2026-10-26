@@ -16,3 +16,5 @@ infra/compose/garage.production.toml
 *.log
 .DS_Store
 *.tsbuildinfo
+playwright-report/
+test-results/
