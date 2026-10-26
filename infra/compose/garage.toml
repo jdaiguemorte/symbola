@@ -1,8 +1,9 @@
-# Config Garage (ADR 0015) — mono-nœud, développement uniquement.
-# rpc_secret / admin_token / metrics_token : valeurs fixes de dev, un
-# cluster mono-nœud sans exposition réseau externe n'en dépend pas pour sa
-# sécurité. SOC-09/SOC-12 génèrent des valeurs propres à la production
-# (jamais ces valeurs-ci, jamais committées).
+# Config Garage (ADR 0015) — mono-nœud, développement et CI uniquement.
+# Aucun secret ici : rpc_secret, admin_token et metrics_token sont fournis
+# par les variables GARAGE_RPC_SECRET, GARAGE_ADMIN_TOKEN et
+# GARAGE_METRICS_TOKEN (.env en dev, générées à chaque exécution en CI).
+# Staging/production : garage.<environnement>.toml, jamais commité
+# (docs/runbooks/deploiement.md).
 metadata_dir = "/data/meta"
 data_dir = "/data/data"
 db_engine = "sqlite"
@@ -11,7 +12,6 @@ replication_factor = 1
 
 rpc_bind_addr = "[::]:3901"
 rpc_public_addr = "127.0.0.1:3901"
-rpc_secret = "35e329156bf83450870ede95e5954164404a70aca8cb55957e65e0b8ed0ee8bb"
 
 [s3_api]
 s3_region = "garage"
@@ -20,5 +20,3 @@ root_domain = ".s3.garage.localhost"
 
 [admin]
 api_bind_addr = "[::]:3903"
-admin_token = "S1y6Fj+bzl41oid9hsLhnjpgrSplo9t1j+oslsDdoBA="
-metrics_token = "eOOiOh3w52WmhzJl9QplOvetcigosLD1DaFPwyrYZB4="

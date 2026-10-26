@@ -141,3 +141,28 @@ describe("SOC-09 — Secrets de staging/production jamais commités", () => {
     expect(tracked).toMatch(/garage\.toml\.example/);
   });
 });
+
+describe("SOC-03/SOC-08 — Aucun secret Garage commité, même de développement", () => {
+  // Semgrep (generic-secret) bloquait la CI sur les valeurs fixes de garage.toml.
+  const devGarageToml = readFileSync(resolve(repoRoot, "infra/compose/garage.toml"), "utf8");
+  const devCompose = readFileSync(resolve(repoRoot, "infra/compose/docker-compose.dev.yml"), "utf8");
+  const ciWorkflow = readFileSync(resolve(repoRoot, ".github/workflows/ci.yml"), "utf8");
+  const rootEnvExample = readFileSync(resolve(repoRoot, ".env.example"), "utf8");
+  const secrets = ["GARAGE_RPC_SECRET", "GARAGE_ADMIN_TOKEN", "GARAGE_METRICS_TOKEN"];
+
+  it("garage.toml de dev ne contient ni rpc_secret, ni admin_token, ni metrics_token", () => {
+    expect(devGarageToml).not.toMatch(/^\s*(rpc_secret|admin_token|metrics_token)\s*=/m);
+  });
+
+  it.each(secrets)("le compose de dev exige %s depuis .env", (name) => {
+    expect(devCompose).toMatch(new RegExp(`${name}: \\$\\{${name}:\\?`));
+  });
+
+  it.each(secrets)(".env.example déclare %s sans valeur", (name) => {
+    expect(envValue(rootEnvExample, name)).toBe("");
+  });
+
+  it.each(secrets)("la CI génère %s à chaque exécution", (name) => {
+    expect(ciWorkflow).toMatch(new RegExp(`-e ${name}="\\$\\(openssl rand`));
+  });
+});

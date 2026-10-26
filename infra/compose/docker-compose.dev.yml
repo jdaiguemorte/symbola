@@ -33,6 +33,10 @@ services:
       GARAGE_DEFAULT_ACCESS_KEY: ${S3_ACCESS_KEY}
       GARAGE_DEFAULT_SECRET_KEY: ${S3_SECRET_KEY}
       GARAGE_DEFAULT_BUCKET: ${S3_BUCKET:-symbola}
+      # Secrets du cluster, jamais dans garage.toml (voir .env.example).
+      GARAGE_RPC_SECRET: ${GARAGE_RPC_SECRET:?GARAGE_RPC_SECRET requis dans .env (openssl rand -hex 32)}
+      GARAGE_ADMIN_TOKEN: ${GARAGE_ADMIN_TOKEN:?GARAGE_ADMIN_TOKEN requis dans .env (openssl rand -base64 32)}
+      GARAGE_METRICS_TOKEN: ${GARAGE_METRICS_TOKEN:?GARAGE_METRICS_TOKEN requis dans .env (openssl rand -base64 32)}
     ports:
       - "${S3_PORT:-3900}:3900" # API S3
       - "3903:3903" # API admin

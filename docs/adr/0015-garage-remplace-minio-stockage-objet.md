@@ -38,3 +38,13 @@ cluster mono-nœud sans exposition réseau externe ; des valeurs de
 développement fixes suffisent et sont documentées comme telles dans
 `infra/compose/garage.toml` — SOC-09/SOC-12 généreront des valeurs
 propres à la production via le runbook de déploiement, jamais committées.
+
+## Mise à jour du 2026-10-26
+
+Les valeurs de développement fixes de `infra/compose/garage.toml` ont été
+retirées : Semgrep (règle `generic-secret`) bloquait la CI, et aucun secret,
+même de développement, ne doit être commité. `rpc_secret`, `admin_token` et
+`metrics_token` passent par les variables `GARAGE_RPC_SECRET`,
+`GARAGE_ADMIN_TOKEN` et `GARAGE_METRICS_TOKEN` : `.env` en développement
+(voir `.env.example`), valeurs générées à chaque exécution en CI. Staging et
+production gardent un `garage.<environnement>.toml` jamais commité.
