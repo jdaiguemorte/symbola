@@ -135,7 +135,7 @@ l'instantané. L'autre environnement n'est jamais touché.
 
 | Date | Environnement | Instantané | Taille (base / fichiers) | Durée affichée | Résultat | Par |
 | --- | --- | --- | --- | --- | --- | --- |
-| | staging | | | | | Julien |
+| 2026-10-26 | staging | 6fb7f730 | 1,351 MiB | 0 min 21 s | OK — repère hello.greetings retrouvé après restauration, `/health` ok, production non affectée (aucun redémarrage) | Julien |
 
 ## 6. Surveillance et entretien
 
