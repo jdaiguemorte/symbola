@@ -29,6 +29,20 @@
       "when": 1792996231669,
       "tag": "0003_grant_hub_tables",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792998307654,
+      "tag": "0004_create_domain_events",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792998315274,
+      "tag": "0005_grant_core_tables",
+      "breakpoints": true
     }
   ]
 }

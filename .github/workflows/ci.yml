@@ -29,7 +29,7 @@ jobs:
         run: pnpm --filter @symbola/privacy check:registry
 
   db-isolation:
-    name: Isolation RLS et authentification (PostgreSQL réel, SOC-04/05)
+    name: Isolation RLS, authentification et événements internes (PostgreSQL réel, SOC-04/05/06)
     runs-on: ubuntu-latest
     services:
       postgres:
