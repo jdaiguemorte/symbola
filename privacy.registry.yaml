@@ -35,3 +35,21 @@ fields:
     anonymization: >-
       Remplacé par une valeur générée non réversible lors d'une demande
       d'oubli (RGPD-03) antérieure à l'expiration.
+  - schema: events
+    table: event_clients
+    field: first_name
+    category: identifiant
+    retention: >-
+      Tant que l'événement existe. Après suppression ou demande d'oubli :
+      voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Remplacé par « [anonymisé] » lors d'une demande d'oubli (RGPD-03).
+  - schema: events
+    table: event_clients
+    field: last_name
+    category: identifiant
+    retention: >-
+      Tant que l'événement existe. Après suppression ou demande d'oubli :
+      voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Mis à nul lors d'une demande d'oubli (RGPD-03).

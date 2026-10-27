@@ -11,6 +11,7 @@ import { randomUUID } from "node:crypto";
 import { afterAll, describe, expect, it } from "vitest";
 import { createAppConnection } from "./client";
 import { greetings } from "./schema/hello";
+import { events } from "./schema/events";
 import { withOrganization } from "./with-organization";
 
 const { sql, db } = createAppConnection();
@@ -40,6 +41,18 @@ describe("HUB-03 — L'Admin ne lit jamais de donnée métier", () => {
       // N'importe quelle erreur ici confirme l'absence d'accès : la
       // requête n'a renvoyé aucune donnée métier, sous quelque forme
       // que ce soit.
+      expect(error).toBeTruthy();
+    }
+  });
+
+  it("vaut aussi pour le module events (même mécanisme, PostgreSQL réel)", async () => {
+    const organizationId = randomUUID();
+    await withOrganization(db, organizationId, (tx) => tx.insert(events).values({ organizationId }));
+
+    try {
+      const rows = await db.select().from(events);
+      expect(rows).toHaveLength(0);
+    } catch (error) {
       expect(error).toBeTruthy();
     }
   });

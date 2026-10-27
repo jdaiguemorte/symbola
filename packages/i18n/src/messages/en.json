@@ -24,7 +24,8 @@
     "settings": "Settings",
     "administration": "Administration",
     "onboardingIncomplete": "Your company profile is not complete yet.",
-    "completeProfile": "Complete it"
+    "completeProfile": "Complete it",
+    "events": "Events"
   },
   "Admin": {
     "title": "Administration",
@@ -171,6 +172,22 @@
     "profile": {
       "title": "My profile",
       "body": "Choose the language Symbola displays for you."
+    },
+    "eventsList": {
+      "title": "Event list",
+      "body": "Find your prospects and upcoming weddings here, and past ones in the “Finished” tab. Filter by name, year or status, then open an event to see its details."
+    },
+    "eventsNew": {
+      "title": "New prospect",
+      "body": "Enter at least one partner's first name and the prospect source (how they found you). The date and venue can be filled in later."
+    },
+    "eventsDetail": {
+      "title": "Event details",
+      "body": "Track the event's progress here: prospect, quote sent, confirmed, done or lost. For a lost event, give the reason; some reasons require details."
+    },
+    "eventsSettings": {
+      "title": "Sources and loss reasons",
+      "body": "Define your own prospect sources (wedding fair, Instagram, word of mouth…) and loss reasons. Tick “ask for details” for a reason such as “Other”."
     }
   },
   "FirstSteps": {
@@ -183,5 +200,65 @@
     "search": "Search help articles",
     "noResults": "No article matches your search.",
     "link": "Help"
+  },
+  "Events": {
+    "title": "Events",
+    "moduleUnavailable": "The Events module is not enabled for your organization.",
+    "unauthenticated": "Your session has expired. Sign in again and retry.",
+    "newProspect": "New prospect",
+    "settingsLink": "Sources and loss reasons",
+    "tabsLabel": "Period",
+    "tabUpcoming": "Upcoming",
+    "tabPast": "Finished",
+    "searchLabel": "Search a name",
+    "yearLabel": "Year",
+    "statusLabel": "Status",
+    "statusAll": "All",
+    "filter": "Filter",
+    "noClient": "Couple not specified",
+    "dateUnset": "Date to be set",
+    "noResults": "No event matches these criteria.",
+    "statusProspect": "Prospect",
+    "statusQuoteSent": "Quote sent",
+    "statusConfirmed": "Confirmed",
+    "statusDone": "Done",
+    "statusLost": "Lost",
+    "client1FirstName": "First partner's first name",
+    "client1LastName": "First partner's last name",
+    "client2FirstName": "Second partner's first name (optional)",
+    "client2LastName": "Second partner's last name (optional)",
+    "source": "Prospect source",
+    "sourceChoose": "Choose…",
+    "noSourcesYet": "No source is defined yet. Add one in “Sources and loss reasons”.",
+    "eventDate": "Event date",
+    "venueName": "Venue",
+    "venueCity": "City",
+    "createProspect": "Create prospect",
+    "missingFirstName": "The first partner's first name is required.",
+    "missingSource": "Choose the prospect source.",
+    "status": "Status",
+    "lossReason": "Loss reason",
+    "lossReasonNote": "Details on the reason",
+    "onlyIfLost": "if Lost",
+    "changeStatus": "Change status",
+    "invalidStatus": "This status does not exist.",
+    "missingLossReason": "Choose a loss reason.",
+    "missingLossReasonNote": "This reason requires details.",
+    "suggestMarkDone": "This event's date has passed: you can mark it as Done.",
+    "settingsTitle": "Sources and loss reasons",
+    "sourcesTitle": "Prospect sources",
+    "newSourceLabel": "New source",
+    "addSource": "Add source",
+    "sourceAdded": "Source added.",
+    "lossReasonsTitle": "Loss reasons",
+    "newReasonLabel": "New reason",
+    "reasonFreeText": "Ask for details when this reason is chosen (for example “Other”)",
+    "addReason": "Add reason",
+    "reasonAdded": "Reason added.",
+    "freeTextTag": "details required",
+    "missingLabel": "The label is required.",
+    "sourceAll": "All",
+    "eventNotFound": "This event cannot be found.",
+    "statusChanged": "Status updated."
   }
 }
