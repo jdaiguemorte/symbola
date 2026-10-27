@@ -183,7 +183,7 @@
     },
     "eventsDetail": {
       "title": "Event details",
-      "body": "Track the event's progress here (prospect, quote sent, confirmed, done or lost) and its vendor slots: the top bar counts booked slots out of required ones. A booked slot needs the vendor's name; the amount is optional. The planning timeline lists tasks by month: apply a template, add, check or reorder tasks. If the event date changes, the app offers to shift the due dates of unfinished tasks."
+      "body": "Track the event's progress here (prospect, quote sent, confirmed, done or lost) and its vendor slots: the top bar counts booked slots out of required ones. A booked slot needs the vendor's name; the amount is optional. The planning timeline lists tasks by month: apply a template, add, check or reorder tasks. If the event date changes, the app offers to shift the due dates of unfinished tasks. The wedding day schedule lists lines by time; the app flags, without blocking, a participant scheduled on two overlapping lines. Export it as a PDF: couple version (without internal notes) or vendors version."
     },
     "eventsSettings": {
       "title": "Event settings",
@@ -192,6 +192,10 @@
     "eventsTemplates": {
       "title": "Planning timeline templates",
       "body": "Create your planning timeline templates, or load the starter template and adapt it. Each task is placed relative to the event date: 365 days before, 30 days before, event day… Apply a template from the page of an event with a date."
+    },
+    "eventsProgramTemplates": {
+      "title": "Schedule templates",
+      "body": "Prepare your typical wedding day schedules, or load the starter template and adapt it. Apply a template from an event's page: its lines are added to the schedule, and participants named like one of the event's vendor slots are linked to it."
     }
   },
   "FirstSteps": {
@@ -346,6 +350,57 @@
     "moveTaskUp": "Move task {label} up",
     "moveTaskDown": "Move task {label} down",
     "removeTask": "Delete task {label}",
-    "taskNotFound": "Task not found."
+    "taskNotFound": "Task not found.",
+    "programTitle": "Wedding day schedule",
+    "programExports": "Schedule exports",
+    "programExportCouple": "Download the “couple” PDF",
+    "programExportVendors": "Download the “vendors” PDF",
+    "programOverlapsTitle": "Overlaps to check",
+    "programOverlap": "{participant} is scheduled on both “{first}” and “{second}”.",
+    "noProgramItems": "No line in the schedule.",
+    "newProgramItem": "New schedule line",
+    "addProgramItem": "Add line",
+    "programItemAdded": "Line added.",
+    "editProgramItem": "Edit line {label}",
+    "saveProgramItem": "Save line",
+    "programItemSaved": "Line saved.",
+    "removeProgramItem": "Delete line {label}",
+    "programItemNotFound": "Schedule line not found.",
+    "programParticipantNotFound": "A chosen participant is not a vendor slot of this event.",
+    "programStartTime": "Start time",
+    "programEndTime": "End time (optional)",
+    "programItemLabel": "Line title",
+    "programLocation": "Location",
+    "programParticipants": "Participants",
+    "programVendorParticipants": "Participants among the event's vendor slots",
+    "programFreeParticipants": "Other participants (comma-separated)",
+    "programInternalNote": "Internal note",
+    "programTime": "Time",
+    "invalidTime": "Invalid time.",
+    "programTemplatesTitle": "Schedule templates",
+    "programTemplatesLink": "Schedule templates",
+    "programTemplatesIntro": "A schedule template is a list of lines (times, title, location, participants). Applied to an event, it adds its lines to the schedule; a participant named like one of the event's vendor slots is linked to that slot.",
+    "noProgramTemplates": "No schedule template yet.",
+    "noProgramTemplateItems": "This template has no line yet.",
+    "newProgramTemplateTitle": "New schedule template",
+    "newProgramTemplateName": "Schedule template name",
+    "createProgramTemplate": "Create schedule template",
+    "programTemplateCreated": "Schedule template created.",
+    "loadStarterProgram": "Load the starter schedule template",
+    "starterProgramLoaded": "Starter template loaded: adapt it to the way you work.",
+    "removeProgramTemplate": "Delete schedule template {name}",
+    "addProgramTemplateItemTo": "Add a line to template {name}",
+    "addProgramTemplateItem": "Add line to template",
+    "programTemplateItemAdded": "Line added to the template.",
+    "programTemplateParticipants": "Participants (comma-separated)",
+    "programTemplateNotFound": "Schedule template not found.",
+    "programTemplateToApply": "Schedule template to apply",
+    "applyProgramTemplate": "Apply schedule template",
+    "programTemplateApplied": "Template applied: the lines were added to the schedule.",
+    "programPdfCouple": "Couple version",
+    "programPdfVendors": "Vendors version",
+    "programPdfVersion": "Version of {date}",
+    "programPdfFileCouple": "schedule-couple",
+    "programPdfFileVendors": "schedule-vendors"
   }
 }
