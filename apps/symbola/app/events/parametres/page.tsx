@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { HelpButton } from "@symbola/ui";
 import { listLossReasons, listProspectSources } from "@/modules/events/service";
 import { getAuthContext } from "@/lib/auth-context";
+import { isEventsModuleEnabled } from "../module-access";
 import { ProspectSourceForm } from "./prospect-source-form";
 import { LossReasonForm } from "./loss-reason-form";
 
@@ -15,6 +16,14 @@ export default async function EventsSettingsPage() {
 
   const t = await getTranslations("Events");
   const tHelp = await getTranslations("Help");
+  if (!(await isEventsModuleEnabled(auth.user.organizationId))) {
+    return (
+      <main>
+        <h1>{t("title")}</h1>
+        <p>{t("moduleUnavailable")}</p>
+      </main>
+    );
+  }
   const [sources, reasons] = await Promise.all([listProspectSources(organizationId), listLossReasons(organizationId)]);
 
   return (

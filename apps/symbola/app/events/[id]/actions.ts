@@ -4,8 +4,9 @@ import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { changeEventStatus, listLossReasons, type EventStatus } from "@/modules/events/service";
 import { getAuthContext } from "@/lib/auth-context";
+import { isEventsModuleEnabled, isValidId } from "../module-access";
 
-export type ChangeStatusFormState = { error?: string };
+export type ChangeStatusFormState = { error?: string; success?: boolean };
 
 const VALID_STATUSES: EventStatus[] = ["prospect", "quote_sent", "confirmed", "done", "lost"];
 
@@ -13,12 +14,14 @@ export async function changeEventStatusAction(
   _prevState: ChangeStatusFormState,
   formData: FormData,
 ): Promise<ChangeStatusFormState> {
-  const auth = await getAuthContext();
-  if (auth.status !== "authenticated" || !auth.user.organizationId) return { error: "unauthenticated" };
-  const organizationId = auth.user.organizationId;
   const t = await getTranslations("Events");
+  const auth = await getAuthContext();
+  if (auth.status !== "authenticated" || !auth.user.organizationId) return { error: t("unauthenticated") };
+  const organizationId = auth.user.organizationId;
+  if (!(await isEventsModuleEnabled(organizationId))) return { error: t("moduleUnavailable") };
 
   const eventId = String(formData.get("eventId") ?? "");
+  if (!isValidId(eventId)) return { error: t("eventNotFound") };
   const toStatus = String(formData.get("toStatus") ?? "");
   if (!VALID_STATUSES.includes(toStatus as EventStatus)) return { error: t("invalidStatus") };
 
@@ -44,5 +47,5 @@ export async function changeEventStatusAction(
 
   revalidatePath(`/events/${eventId}`);
   revalidatePath("/events");
-  return {};
+  return { success: true };
 }

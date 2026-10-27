@@ -24,7 +24,8 @@
     "settings": "Paramètres",
     "administration": "Administration",
     "onboardingIncomplete": "Votre fiche entreprise n'est pas encore complète.",
-    "completeProfile": "La compléter"
+    "completeProfile": "La compléter",
+    "events": "Événements"
   },
   "Admin": {
     "title": "Administration",
@@ -171,6 +172,22 @@
     "profile": {
       "title": "Mon profil",
       "body": "Choisissez la langue dans laquelle Symbola s'affiche pour vous."
+    },
+    "eventsList": {
+      "title": "Liste des événements",
+      "body": "Retrouvez ici vos prospects et vos mariages à venir, ou terminés dans l'onglet « Terminés ». Filtrez par nom, année ou statut, puis ouvrez un événement pour voir sa fiche."
+    },
+    "eventsNew": {
+      "title": "Nouveau prospect",
+      "body": "Saisissez au moins le prénom d'un marié et la source du prospect (par où il vous a connu). La date et le lieu peuvent être complétés plus tard."
+    },
+    "eventsDetail": {
+      "title": "Fiche de l'événement",
+      "body": "Suivez ici l'avancement de l'événement : prospect, devis envoyé, confirmé, réalisé ou perdu. Pour un événement perdu, indiquez le motif ; certains motifs demandent une précision."
+    },
+    "eventsSettings": {
+      "title": "Sources et motifs de perte",
+      "body": "Définissez vos propres sources de prospect (salon, Instagram, bouche-à-oreille…) et vos motifs de perte. Cochez « demander une précision » pour un motif comme « Autre »."
     }
   },
   "FirstSteps": {
@@ -183,5 +200,65 @@
     "search": "Rechercher dans l'aide",
     "noResults": "Aucun article ne correspond à votre recherche.",
     "link": "Aide"
+  },
+  "Events": {
+    "title": "Événements",
+    "moduleUnavailable": "Le module Événements n'est pas activé pour votre organisation.",
+    "unauthenticated": "Votre session a expiré. Reconnectez-vous puis recommencez.",
+    "newProspect": "Nouveau prospect",
+    "settingsLink": "Sources et motifs de perte",
+    "tabsLabel": "Période",
+    "tabUpcoming": "À venir",
+    "tabPast": "Terminés",
+    "searchLabel": "Rechercher un nom",
+    "yearLabel": "Année",
+    "statusLabel": "Statut",
+    "statusAll": "Tous",
+    "filter": "Filtrer",
+    "noClient": "Mariés non renseignés",
+    "dateUnset": "Date à définir",
+    "noResults": "Aucun événement ne correspond à ces critères.",
+    "statusProspect": "Prospect",
+    "statusQuoteSent": "Devis envoyé",
+    "statusConfirmed": "Confirmé",
+    "statusDone": "Réalisé",
+    "statusLost": "Perdu",
+    "client1FirstName": "Prénom du premier marié",
+    "client1LastName": "Nom du premier marié",
+    "client2FirstName": "Prénom du second marié (facultatif)",
+    "client2LastName": "Nom du second marié (facultatif)",
+    "source": "Source du prospect",
+    "sourceChoose": "Choisir…",
+    "noSourcesYet": "Aucune source n'est encore définie. Ajoutez-en une dans « Sources et motifs de perte ».",
+    "eventDate": "Date de l'événement",
+    "venueName": "Lieu",
+    "venueCity": "Ville",
+    "createProspect": "Créer le prospect",
+    "missingFirstName": "Le prénom du premier marié est obligatoire.",
+    "missingSource": "Choisissez la source du prospect.",
+    "status": "Statut",
+    "lossReason": "Motif de perte",
+    "lossReasonNote": "Précision sur le motif",
+    "onlyIfLost": "si Perdu",
+    "changeStatus": "Changer le statut",
+    "invalidStatus": "Ce statut n'existe pas.",
+    "missingLossReason": "Choisissez un motif de perte.",
+    "missingLossReasonNote": "Ce motif demande une précision.",
+    "suggestMarkDone": "La date de cet événement est passée : vous pouvez le passer en Réalisé.",
+    "settingsTitle": "Sources et motifs de perte",
+    "sourcesTitle": "Sources de prospect",
+    "newSourceLabel": "Nouvelle source",
+    "addSource": "Ajouter la source",
+    "sourceAdded": "Source ajoutée.",
+    "lossReasonsTitle": "Motifs de perte",
+    "newReasonLabel": "Nouveau motif",
+    "reasonFreeText": "Demander une précision quand ce motif est choisi (par exemple « Autre »)",
+    "addReason": "Ajouter le motif",
+    "reasonAdded": "Motif ajouté.",
+    "freeTextTag": "précision demandée",
+    "missingLabel": "Le libellé est obligatoire.",
+    "sourceAll": "Toutes",
+    "eventNotFound": "Cet événement est introuvable.",
+    "statusChanged": "Statut mis à jour."
   }
 }

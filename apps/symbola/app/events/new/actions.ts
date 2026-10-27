@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { createProspect, listProspectSources } from "@/modules/events/service";
 import { getAuthContext } from "@/lib/auth-context";
+import { isEventsModuleEnabled } from "../module-access";
 
 export type NewProspectFormState = { error?: string };
 
@@ -11,10 +12,11 @@ export async function createProspectAction(
   _prevState: NewProspectFormState,
   formData: FormData,
 ): Promise<NewProspectFormState> {
-  const auth = await getAuthContext();
-  if (auth.status !== "authenticated" || !auth.user.organizationId) return { error: "unauthenticated" };
-  const organizationId = auth.user.organizationId;
   const t = await getTranslations("Events");
+  const auth = await getAuthContext();
+  if (auth.status !== "authenticated" || !auth.user.organizationId) return { error: t("unauthenticated") };
+  const organizationId = auth.user.organizationId;
+  if (!(await isEventsModuleEnabled(organizationId))) return { error: t("moduleUnavailable") };
 
   const firstName1 = String(formData.get("firstName1") ?? "").trim();
   const lastName1 = String(formData.get("lastName1") ?? "").trim();

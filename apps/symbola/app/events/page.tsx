@@ -2,10 +2,9 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { HelpButton } from "@symbola/ui";
-import { createAppConnection } from "@symbola/db/client";
-import { isModuleEnabled } from "@/modules/hub/service";
-import { listEvents, type EventStatus } from "@/modules/events/service";
+import { listEvents, listProspectSources, type EventStatus } from "@/modules/events/service";
 import { getAuthContext } from "@/lib/auth-context";
+import { isEventsModuleEnabled } from "./module-access";
 
 const UPCOMING_STATUSES: EventStatus[] = ["prospect", "quote_sent", "confirmed"];
 const PAST_STATUSES: EventStatus[] = ["done", "lost"];
@@ -21,7 +20,7 @@ const STATUS_LABEL_KEYS: Record<EventStatus, string> = {
 export default async function EventsListPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string; year?: string; search?: string; status?: string }>;
+  searchParams: Promise<{ tab?: string; year?: string; search?: string; status?: string; source?: string }>;
 }) {
   const auth = await getAuthContext();
   if (auth.status === "unauthenticated") redirect("/login");
@@ -31,17 +30,9 @@ export default async function EventsListPage({
 
   const t = await getTranslations("Events");
   const tHelp = await getTranslations("Help");
-  const { tab, year, search, status } = await searchParams;
+  const { tab, year, search, status, source } = await searchParams;
 
-  const { sql, db } = createAppConnection();
-  let moduleEnabled: boolean;
-  try {
-    moduleEnabled = await isModuleEnabled(db, organizationId, "events");
-  } finally {
-    await sql.end();
-  }
-
-  if (!moduleEnabled) {
+  if (!(await isEventsModuleEnabled(organizationId))) {
     return (
       <main>
         <h1>{t("title")}</h1>
@@ -56,11 +47,16 @@ export default async function EventsListPage({
     status && tabStatuses.includes(status as EventStatus) ? [status as EventStatus] : tabStatuses;
   const yearFilter = year ? Number(year) : undefined;
 
+  const sources = await listProspectSources(organizationId);
+  // EVT-07 : seule une source de l'organisation est retenue comme filtre.
+  const sourceFilter = sources.some((candidate) => candidate.id === source) ? source : undefined;
+
   const items = await listEvents({
     organizationId,
     statusIn: statusFilter,
     year: yearFilter && !Number.isNaN(yearFilter) ? yearFilter : undefined,
     search: search || undefined,
+    prospectSourceId: sourceFilter,
   });
 
   function clientNames(clients: { firstName: string; lastName: string | null }[]): string {
@@ -105,6 +101,17 @@ export default async function EventsListPage({
             {tabStatuses.map((value) => (
               <option key={value} value={value}>
                 {t(STATUS_LABEL_KEYS[value])}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          {t("source")}
+          <select name="source" defaultValue={sourceFilter ?? ""}>
+            <option value="">{t("sourceAll")}</option>
+            {sources.map((candidate) => (
+              <option key={candidate.id} value={candidate.id}>
+                {candidate.label}
               </option>
             ))}
           </select>

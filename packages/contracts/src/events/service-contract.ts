@@ -36,6 +36,8 @@ export type ListEventsInput = {
   statusIn?: EventStatus[] | undefined;
   year?: number | undefined;
   search?: string | undefined;
+  // EVT-07 : la source est filtrable dans la liste.
+  prospectSourceId?: string | undefined;
 };
 
 export type CreateProspectInput = {

@@ -1,8 +1,9 @@
 import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { HelpButton } from "@symbola/ui";
-import { getEvent, listLossReasons } from "@/modules/events/service";
+import { getEvent, listLossReasons, listProspectSources } from "@/modules/events/service";
 import { getAuthContext } from "@/lib/auth-context";
+import { isEventsModuleEnabled, isValidId } from "../module-access";
 import { ChangeStatusForm } from "./change-status-form";
 
 export default async function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -16,8 +17,23 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
   const t = await getTranslations("Events");
   const tHelp = await getTranslations("Help");
 
-  const [event, reasons] = await Promise.all([getEvent(organizationId, id), listLossReasons(organizationId)]);
+  if (!(await isEventsModuleEnabled(organizationId))) {
+    return (
+      <main>
+        <h1>{t("title")}</h1>
+        <p>{t("moduleUnavailable")}</p>
+      </main>
+    );
+  }
+  if (!isValidId(id)) notFound();
+
+  const [event, reasons, sources] = await Promise.all([
+    getEvent(organizationId, id),
+    listLossReasons(organizationId),
+    listProspectSources(organizationId),
+  ]);
   if (!event) notFound();
+  const sourceLabel = sources.find((candidate) => candidate.id === event.prospectSourceId)?.label;
 
   const clientNames = event.clients.length
     ? event.clients.map((client) => client.firstName).join(" & ")
@@ -38,6 +54,9 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
       </p>
       <p>
         {t("venueName")} : {event.venueName ?? "—"} {event.venueCity ? `(${event.venueCity})` : ""}
+      </p>
+      <p>
+        {t("source")} : {sourceLabel ?? "—"}
       </p>
 
       {isPastConfirmed ? <p role="status">{t("suggestMarkDone")}</p> : null}

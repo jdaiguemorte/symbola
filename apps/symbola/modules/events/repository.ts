@@ -26,7 +26,12 @@ export type LossReasonRow = typeof lossReasons.$inferSelect;
 
 export async function findEvents(
   organizationId: string,
-  filters: { statusIn?: EventStatus[] | undefined; year?: number | undefined; search?: string | undefined },
+  filters: {
+    statusIn?: EventStatus[] | undefined;
+    year?: number | undefined;
+    search?: string | undefined;
+    prospectSourceId?: string | undefined;
+  },
 ): Promise<{ event: EventRow; clients: EventClientRow[] }[]> {
   const { sql: pg, db } = createAppConnection();
   try {
@@ -56,6 +61,9 @@ export async function findEvents(
       }
       if (filters.year !== undefined) {
         conditions.push(sql`extract(year from ${events.eventDate}) = ${filters.year}`);
+      }
+      if (filters.prospectSourceId) {
+        conditions.push(eq(events.prospectSourceId, filters.prospectSourceId));
       }
       if (matchingIds) {
         conditions.push(inArray(events.id, matchingIds));

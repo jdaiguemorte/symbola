@@ -71,6 +71,7 @@ export async function listEvents(input: ListEventsInput): Promise<EventSummary[]
     statusIn: input.statusIn,
     year: input.year,
     search: input.search,
+    prospectSourceId: input.prospectSourceId,
   });
   return rows.map(({ event, clients }) => toEventSummary(event, clients));
 }
