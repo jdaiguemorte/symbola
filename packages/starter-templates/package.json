@@ -1,0 +1,19 @@
+{
+  "name": "@symbola/starter-templates",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "main": "./src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@symbola/config": "workspace:*",
+    "typescript": "^5.7.2",
+    "vitest": "^4.1.12"
+  }
+}

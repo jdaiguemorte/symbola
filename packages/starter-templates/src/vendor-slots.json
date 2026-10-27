@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "items": [
+    { "key": "venue", "label": { "fr": "Lieu de réception", "en": "Venue" } },
+    { "key": "caterer", "label": { "fr": "Traiteur", "en": "Caterer" } },
+    { "key": "photographer", "label": { "fr": "Photographe", "en": "Photographer" } },
+    { "key": "videographer", "label": { "fr": "Vidéaste", "en": "Videographer" } },
+    { "key": "music", "label": { "fr": "DJ / musiciens", "en": "DJ / musicians" } },
+    { "key": "florist", "label": { "fr": "Fleuriste", "en": "Florist" } },
+    { "key": "decoration", "label": { "fr": "Décoration", "en": "Decoration" } },
+    { "key": "officiant", "label": { "fr": "Officiant de cérémonie laïque", "en": "Celebrant" } },
+    { "key": "cake", "label": { "fr": "Pièce montée / gâteau", "en": "Wedding cake" } },
+    { "key": "hair_makeup", "label": { "fr": "Coiffure et maquillage", "en": "Hair and make-up" } },
+    { "key": "stationery", "label": { "fr": "Papeterie", "en": "Stationery" } },
+    { "key": "transport", "label": { "fr": "Transport des invités", "en": "Guest transport" } }
+  ]
+}

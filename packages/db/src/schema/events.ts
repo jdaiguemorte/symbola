@@ -82,3 +82,44 @@ export const eventStatusHistory = eventsSchema.table("event_status_history", {
   changedByUserId: uuid("changed_by_user_id").notNull(),
   changedAt: timestamp("changed_at", { withTimezone: true }).defaultNow().notNull(),
 });
+
+// EVT-03 : statuts fixes d'un poste prestataire (PRD) — pas une liste
+// personnalisable, à la différence des postes eux-mêmes.
+export const vendorSlotStatusEnum = eventsSchema.enum("vendor_slot_status", [
+  "to_find",
+  "quote_requested",
+  "quote_received",
+  "booked",
+  "not_required",
+]);
+
+// EVT-03 : « la liste de postes par défaut de la planner » — paramétrable
+// par organisation (CLAUDE.md §2.5), éventuellement chargée depuis le
+// modèle de départ (packages/starter-templates), jamais codée en dur.
+export const defaultVendorSlots = eventsSchema.table("default_vendor_slots", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  label: text("label").notNull(),
+  position: integer("position").notNull().default(0),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+// EVT-03 : postes d'un événement, copiés de la liste par défaut à la
+// création puis modifiables événement par événement.
+export const eventVendorSlots = eventsSchema.table("event_vendor_slots", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  eventId: uuid("event_id")
+    .notNull()
+    .references(() => events.id),
+  label: text("label").notNull(),
+  status: vendorSlotStatusEnum("status").notNull().default("to_find"),
+  // Nom du prestataire en texte libre au MVP (l'app Prestataires est V2).
+  vendorName: text("vendor_name"),
+  // Montant en centimes, devise explicite (CLAUDE.md §5) ; facultatif.
+  amountCents: integer("amount_cents"),
+  currency: text("currency").notNull().default("EUR"),
+  position: integer("position").notNull().default(0),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});

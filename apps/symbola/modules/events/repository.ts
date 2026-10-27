@@ -3,9 +3,11 @@
 import { and, asc, eq, ilike, inArray, or, sql } from "drizzle-orm";
 import { createAppConnection } from "@symbola/db/client";
 import {
+  defaultVendorSlots,
   eventClients,
   events,
   eventStatusHistory,
+  eventVendorSlots,
   lossReasons,
   prospectSources,
 } from "@symbola/db/schema/events";
@@ -16,12 +18,18 @@ import {
   EVT_EVENT_CREATED_VERSION,
   EVT_EVENT_STATUS_CHANGED,
   EVT_EVENT_STATUS_CHANGED_VERSION,
+  EVT_VENDOR_SLOT_BOOKED,
+  EVT_VENDOR_SLOT_BOOKED_VERSION,
+  vendorSlotBookedPayloadSchema,
   type EventStatus,
+  type VendorSlotStatus,
 } from "@symbola/contracts";
 
 export type EventRow = typeof events.$inferSelect;
 export type EventClientRow = typeof eventClients.$inferSelect;
 export type ProspectSourceRow = typeof prospectSources.$inferSelect;
+export type DefaultVendorSlotRow = typeof defaultVendorSlots.$inferSelect;
+export type EventVendorSlotRow = typeof eventVendorSlots.$inferSelect;
 export type LossReasonRow = typeof lossReasons.$inferSelect;
 
 export async function findEvents(
@@ -149,6 +157,22 @@ export async function insertProspect(input: {
           lastName: client.lastName ?? null,
           position: index,
         });
+      }
+
+      // EVT-03 : l'événement reçoit la liste de postes par défaut de la planner.
+      const defaults = await tx
+        .select()
+        .from(defaultVendorSlots)
+        .orderBy(asc(defaultVendorSlots.position), asc(defaultVendorSlots.createdAt));
+      if (defaults.length > 0) {
+        await tx.insert(eventVendorSlots).values(
+          defaults.map((slot, index) => ({
+            organizationId: input.organizationId,
+            eventId: event.id,
+            label: slot.label,
+            position: index,
+          })),
+        );
       }
 
       await tx.insert(eventStatusHistory).values({
@@ -281,6 +305,166 @@ export async function insertLossReason(
       if (!row) throw new Error("création du motif échouée");
       return row;
     });
+  } finally {
+    await pg.end();
+  }
+}
+
+// EVT-03 — liste de postes par défaut de l'organisation.
+export async function findDefaultVendorSlots(organizationId: string): Promise<DefaultVendorSlotRow[]> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    return await withOrganization(db, organizationId, (tx) =>
+      tx
+        .select()
+        .from(defaultVendorSlots)
+        .orderBy(asc(defaultVendorSlots.position), asc(defaultVendorSlots.createdAt)),
+    );
+  } finally {
+    await pg.end();
+  }
+}
+
+// Ajoute les libellés absents de la liste (comparaison sans tenir compte
+// de la casse), à la suite des postes existants : recharger le modèle de
+// départ ne crée pas de doublon.
+export async function insertDefaultVendorSlots(
+  organizationId: string,
+  labels: string[],
+): Promise<DefaultVendorSlotRow[]> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    return await withOrganization(db, organizationId, async (tx) => {
+      const existing = await tx.select().from(defaultVendorSlots);
+      const known = new Set(existing.map((slot) => slot.label.trim().toLowerCase()));
+      let nextPosition = existing.reduce((max, slot) => Math.max(max, slot.position + 1), 0);
+      const toInsert = [];
+      for (const label of labels.map((value) => value.trim()).filter(Boolean)) {
+        const key = label.toLowerCase();
+        if (known.has(key)) continue;
+        known.add(key);
+        toInsert.push({ organizationId, label, position: nextPosition++ });
+      }
+      if (toInsert.length === 0) return [];
+      return tx.insert(defaultVendorSlots).values(toInsert).returning();
+    });
+  } finally {
+    await pg.end();
+  }
+}
+
+export async function deleteDefaultVendorSlot(organizationId: string, defaultVendorSlotId: string): Promise<void> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    await withOrganization(db, organizationId, (tx) =>
+      tx.delete(defaultVendorSlots).where(eq(defaultVendorSlots.id, defaultVendorSlotId)),
+    );
+  } finally {
+    await pg.end();
+  }
+}
+
+// EVT-03 — postes d'un événement.
+export async function findEventVendorSlots(organizationId: string, eventId: string): Promise<EventVendorSlotRow[]> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    return await withOrganization(db, organizationId, (tx) =>
+      tx
+        .select()
+        .from(eventVendorSlots)
+        .where(eq(eventVendorSlots.eventId, eventId))
+        .orderBy(asc(eventVendorSlots.position), asc(eventVendorSlots.createdAt)),
+    );
+  } finally {
+    await pg.end();
+  }
+}
+
+export async function insertEventVendorSlot(
+  organizationId: string,
+  eventId: string,
+  label: string,
+): Promise<EventVendorSlotRow | null> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    return await withOrganization(db, organizationId, async (tx) => {
+      // La clé étrangère est vérifiée sans RLS : sans ce contrôle, un
+      // identifiant d'événement d'une autre organisation serait accepté.
+      const [event] = await tx.select({ id: events.id }).from(events).where(eq(events.id, eventId));
+      if (!event) return null;
+
+      const existing = await tx
+        .select({ position: eventVendorSlots.position })
+        .from(eventVendorSlots)
+        .where(eq(eventVendorSlots.eventId, eventId));
+      const position = existing.reduce((max, slot) => Math.max(max, slot.position + 1), 0);
+      const [row] = await tx.insert(eventVendorSlots).values({ organizationId, eventId, label, position }).returning();
+      if (!row) throw new Error("ajout du poste échoué");
+      return row;
+    });
+  } finally {
+    await pg.end();
+  }
+}
+
+export async function updateEventVendorSlotRow(input: {
+  organizationId: string;
+  vendorSlotId: string;
+  changedByUserId: string;
+  status: VendorSlotStatus;
+  vendorName?: string | null | undefined;
+  amountCents?: number | null | undefined;
+}): Promise<EventVendorSlotRow | null> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    return await withOrganization(db, input.organizationId, async (tx) => {
+      const [current] = await tx.select().from(eventVendorSlots).where(eq(eventVendorSlots.id, input.vendorSlotId));
+      if (!current) return null;
+
+      const vendorName = input.vendorName === undefined ? current.vendorName : input.vendorName;
+      const amountCents = input.amountCents === undefined ? current.amountCents : input.amountCents;
+
+      const [updated] = await tx
+        .update(eventVendorSlots)
+        .set({ status: input.status, vendorName, amountCents, updatedAt: new Date() })
+        .where(eq(eventVendorSlots.id, input.vendorSlotId))
+        .returning();
+      if (!updated) throw new Error("mise à jour du poste échouée");
+
+      // Publié à la réservation, puis à chaque changement de montant d'un
+      // poste réservé (le futur module Budget garde la dernière valeur).
+      const becomesBooked = current.status !== "booked" && updated.status === "booked";
+      const bookedAmountChanged =
+        current.status === "booked" && updated.status === "booked" && current.amountCents !== updated.amountCents;
+      if (becomesBooked || bookedAmountChanged) {
+        await emitDomainEvent(tx, {
+          organizationId: input.organizationId,
+          name: EVT_VENDOR_SLOT_BOOKED,
+          version: EVT_VENDOR_SLOT_BOOKED_VERSION,
+          payload: vendorSlotBookedPayloadSchema.parse({
+            eventId: updated.eventId,
+            vendorSlotId: updated.id,
+            label: updated.label,
+            amountCents: updated.amountCents,
+            currency: "EUR",
+            bookedByUserId: input.changedByUserId,
+          }),
+        });
+      }
+
+      return updated;
+    });
+  } finally {
+    await pg.end();
+  }
+}
+
+export async function deleteEventVendorSlot(organizationId: string, vendorSlotId: string): Promise<void> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    await withOrganization(db, organizationId, (tx) =>
+      tx.delete(eventVendorSlots).where(eq(eventVendorSlots.id, vendorSlotId)),
+    );
   } finally {
     await pg.end();
   }

@@ -141,6 +141,20 @@
       "when": 1793089677604,
       "tag": "0019_grant_events_tables",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1793092383020,
+      "tag": "0020_evt_vendor_slots",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1793092388618,
+      "tag": "0021_grant_vendor_slots",
+      "breakpoints": true
     }
   ]
 }

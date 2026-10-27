@@ -11,7 +11,7 @@ import { randomUUID } from "node:crypto";
 import { afterAll, describe, expect, it } from "vitest";
 import { createAppConnection } from "./client";
 import { greetings } from "./schema/hello";
-import { events } from "./schema/events";
+import { defaultVendorSlots, events, eventVendorSlots } from "./schema/events";
 import { withOrganization } from "./with-organization";
 
 const { sql, db } = createAppConnection();
@@ -54,6 +54,25 @@ describe("HUB-03 — L'Admin ne lit jamais de donnée métier", () => {
       expect(rows).toHaveLength(0);
     } catch (error) {
       expect(error).toBeTruthy();
+    }
+  });
+
+  it("vaut aussi pour les postes prestataires (EVT-03, PostgreSQL réel)", async () => {
+    const organizationId = randomUUID();
+    await withOrganization(db, organizationId, async (tx) => {
+      const [event] = await tx.insert(events).values({ organizationId }).returning();
+      if (!event) throw new Error("insertion de l'événement attendue");
+      await tx.insert(defaultVendorSlots).values({ organizationId, label: "Traiteur" });
+      await tx.insert(eventVendorSlots).values({ organizationId, eventId: event.id, label: "Traiteur" });
+    });
+
+    for (const table of [defaultVendorSlots, eventVendorSlots]) {
+      try {
+        const rows = await db.select().from(table);
+        expect(rows).toHaveLength(0);
+      } catch (error) {
+        expect(error).toBeTruthy();
+      }
     }
   });
 });

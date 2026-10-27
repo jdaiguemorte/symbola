@@ -6,7 +6,7 @@ import { assertOrganizationIsolation } from "@symbola/testing";
 import { eq } from "drizzle-orm";
 import { afterAll, describe, it } from "vitest";
 import { createAppConnection } from "./client";
-import { eventClients, events } from "./schema/events";
+import { defaultVendorSlots, eventClients, events, eventVendorSlots } from "./schema/events";
 import { withOrganization } from "./with-organization";
 
 const { sql, db } = createAppConnection();
@@ -62,6 +62,61 @@ describe("EVT-01/02 — Isolation entre organisations (module events, PostgreSQL
             .update(eventClients)
             .set({ firstName: "falsifié" })
             .where(eq(eventClients.id, targetRow.id))
+            .returning(),
+        );
+        return { affectedRows: updated.length };
+      },
+    });
+  });
+
+  it("EVT-03 — une organisation ne voit et ne modifie jamais la liste de postes par défaut d'une autre", async () => {
+    await assertOrganizationIsolation({
+      seed: async (organizationId) =>
+        withOrganization(db, organizationId, async (tx) => {
+          const [row] = await tx.insert(defaultVendorSlots).values({ organizationId, label: "Traiteur" }).returning();
+          if (!row) throw new Error("insertion attendue, aucune ligne renvoyée");
+          return row;
+        }),
+
+      listVisible: async (organizationId) =>
+        withOrganization(db, organizationId, (tx) => tx.select().from(defaultVendorSlots)),
+
+      attemptCrossOrganizationUpdate: async (organizationId, targetRow) => {
+        const updated = await withOrganization(db, organizationId, (tx) =>
+          tx
+            .update(defaultVendorSlots)
+            .set({ label: "falsifié" })
+            .where(eq(defaultVendorSlots.id, targetRow.id))
+            .returning(),
+        );
+        return { affectedRows: updated.length };
+      },
+    });
+  });
+
+  it("EVT-03 — une organisation ne voit et ne modifie jamais les postes prestataires d'une autre", async () => {
+    await assertOrganizationIsolation({
+      seed: async (organizationId) =>
+        withOrganization(db, organizationId, async (tx) => {
+          const [event] = await tx.insert(events).values({ organizationId }).returning();
+          if (!event) throw new Error("insertion de l'événement attendue");
+          const [row] = await tx
+            .insert(eventVendorSlots)
+            .values({ organizationId, eventId: event.id, label: "Photographe" })
+            .returning();
+          if (!row) throw new Error("insertion attendue, aucune ligne renvoyée");
+          return row;
+        }),
+
+      listVisible: async (organizationId) =>
+        withOrganization(db, organizationId, (tx) => tx.select().from(eventVendorSlots)),
+
+      attemptCrossOrganizationUpdate: async (organizationId, targetRow) => {
+        const updated = await withOrganization(db, organizationId, (tx) =>
+          tx
+            .update(eventVendorSlots)
+            .set({ vendorName: "falsifié" })
+            .where(eq(eventVendorSlots.id, targetRow.id))
             .returning(),
         );
         return { affectedRows: updated.length };

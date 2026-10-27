@@ -18,6 +18,53 @@ export function formatAmount(cents: number, locale: Locale): string {
   }).format(cents / 100);
 }
 
+// Montant maximal stockable en centimes (colonne integer PostgreSQL).
+const MAX_CENTS = 2_147_483_647;
+
+// Saisie en euros (« 2 500,50 », « 1,234.56 », « 12 € ») vers des centimes
+// entiers, par manipulation de texte : aucun calcul à virgule flottante
+// (CLAUDE.md §5). null = saisie vide ; undefined = saisie invalide, trop
+// grande ou ambiguë (« 1,005 » : 1,005 € en français ou 1 005 € en anglais).
+export function parseAmountToCents(input: string): number | null | undefined {
+  const compact = input.replace(/[\s\u00a0\u202f€]/g, "");
+  if (compact === "") return null;
+  if (!/^\d[\d.,]*$/.test(compact)) return undefined;
+
+  const lastSeparator = Math.max(compact.lastIndexOf(","), compact.lastIndexOf("."));
+  let integerPart = compact;
+  let decimals = "";
+  if (lastSeparator !== -1) {
+    const separator = compact[lastSeparator]!;
+    const otherSeparator = separator === "," ? "." : ",";
+    const usesBoth = compact.includes(otherSeparator);
+    const occurrences = compact.split(separator).length - 1;
+    const tail = compact.slice(lastSeparator + 1);
+    if (usesBoth || (occurrences === 1 && tail.length <= 2)) {
+      // Le dernier séparateur est la virgule décimale ; l'autre, s'il
+      // existe, sépare les milliers.
+      if (tail.length === 0 || tail.length > 2 || compact.split(separator).length - 1 > 1) return undefined;
+      decimals = tail;
+      integerPart = compact.slice(0, lastSeparator);
+      if (usesBoth) {
+        const groups = integerPart.split(otherSeparator);
+        if (!groups.slice(1).every((group) => /^\d{3}$/.test(group))) return undefined;
+        integerPart = groups.join("");
+      }
+    } else {
+      // Séparateur de milliers seul : « 1,234,567 ». Un groupe unique de
+      // trois chiffres (« 1,005 ») reste ambigu, donc refusé.
+      if (occurrences === 1) return undefined;
+      const groups = compact.split(separator);
+      if (!groups.slice(1).every((group) => /^\d{3}$/.test(group))) return undefined;
+      integerPart = groups.join("");
+    }
+  }
+  if (!/^\d+$/.test(integerPart) || !/^\d{0,2}$/.test(decimals)) return undefined;
+
+  const cents = Number(integerPart + decimals.padEnd(2, "0"));
+  return Number.isSafeInteger(cents) && cents <= MAX_CENTS ? cents : undefined;
+}
+
 export function formatDate(date: Date, locale: Locale): string {
   return new Intl.DateTimeFormat(INTL_LOCALE[locale], {
     year: "numeric",

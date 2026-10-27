@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatAmount, formatDate, localeFromAcceptLanguage } from "./index";
+import { formatAmount, formatDate, localeFromAcceptLanguage, parseAmountToCents } from "./index";
 
 describe("@symbola/i18n — formatAmount", () => {
   it("formate en français : 1 234,56 €", () => {
@@ -37,5 +37,27 @@ describe("@symbola/i18n — localeFromAcceptLanguage (HUB-04)", () => {
 
   it("détecte le français explicitement", () => {
     expect(localeFromAcceptLanguage("fr-FR,fr;q=0.9,en;q=0.8")).toBe("fr");
+  });
+});
+
+describe("@symbola/i18n — parseAmountToCents (saisie en euros, CLAUDE.md §5)", () => {
+  it.each([
+    ["2500", 250000],
+    ["2 500", 250000],
+    ["2 500,50", 250050],
+    ["1234.5", 123450],
+    ["1,234.56", 123456],
+    ["0,07", 7],
+    ["12 €", 1200],
+  ])("convertit « %s » en %i centimes sans calcul à virgule flottante", (input, cents) => {
+    expect(parseAmountToCents(input)).toBe(cents);
+  });
+
+  it("renvoie null pour une saisie vide (montant facultatif)", () => {
+    expect(parseAmountToCents("  ")).toBeNull();
+  });
+
+  it.each(["abc", "-50", "12,345,67", "1.2.3", "9999999999", "1,005"])("refuse « %s » (invalide, trop grand ou ambigu)", (input) => {
+    expect(parseAmountToCents(input)).toBeUndefined();
   });
 });
