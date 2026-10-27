@@ -21,11 +21,15 @@
     "moduleUnavailable": "Module indisponible",
     "logout": "Se déconnecter",
     "myProfile": "Mon profil",
-    "administration": "Administration"
+    "settings": "Paramètres",
+    "administration": "Administration",
+    "onboardingIncomplete": "Votre fiche entreprise n'est pas encore complète.",
+    "completeProfile": "La compléter"
   },
   "Admin": {
     "title": "Administration",
     "viewHealth": "Voir la page Santé",
+    "viewSettings": "Paramètres de la plateforme",
     "viewProfile": "Mon profil",
     "createOrganizationTitle": "Créer une organisation",
     "organizationsTitle": "Organisations",
@@ -69,5 +73,46 @@
     "languageEn": "English",
     "submit": "Enregistrer",
     "success": "Préférences enregistrées."
+  },
+  "Settings": {
+    "title": "Paramètres",
+    "companyProfileTitle": "Fiche entreprise",
+    "siren": "SIREN",
+    "address": "Adresse",
+    "legalForm": "Forme juridique",
+    "legalFormUnset": "Non renseignée",
+    "legalForm_ei": "Entreprise individuelle (EI)",
+    "legalForm_eirl": "EIRL",
+    "legalForm_eurl": "EURL",
+    "legalForm_sarl": "SARL",
+    "legalForm_sas": "SAS",
+    "legalForm_sasu": "SASU",
+    "legalForm_sa": "SA",
+    "legalForm_auto_entrepreneur": "Auto-entrepreneur",
+    "legalForm_autre": "Autre",
+    "metier": "Métier",
+    "metierUnset": "Non renseigné",
+    "metierWeddingPlanner": "Wedding planner",
+    "metierAutre": "Autre métier de l'événementiel",
+    "metierPrecision": "Précisez (si « autre »)",
+    "save": "Enregistrer",
+    "profileSaved": "Fiche entreprise enregistrée.",
+    "vatRegimeTitle": "Régime de TVA",
+    "currentRegime": "Régime actuel",
+    "newRegime": "Nouveau régime",
+    "vatRegimeFranchise": "Franchise en base",
+    "vatRegimeAssujetti": "Assujetti",
+    "vatRegimeUnset": "Non renseigné",
+    "effectiveDate": "Date d'effet",
+    "changeRegime": "Changer de régime",
+    "regimeChanged": "Régime de TVA mis à jour.",
+    "missingEffectiveDate": "La date d'effet est obligatoire."
+  },
+  "AdminSettings": {
+    "title": "Paramètres de la plateforme",
+    "thresholdServices": "Seuil de franchise — prestations de services (€)",
+    "thresholdGoods": "Seuil de franchise — vente de marchandises (€)",
+    "save": "Enregistrer",
+    "saved": "Paramètres enregistrés."
   }
 }

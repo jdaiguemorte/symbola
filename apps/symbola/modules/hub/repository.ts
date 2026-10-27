@@ -3,7 +3,15 @@
 // l'isolation est assurée par le code applicatif, pas par PostgreSQL.
 import { and, eq } from "drizzle-orm";
 import type { AppDatabase } from "@symbola/db/client";
-import { auditLog, invitations, organizationModules, organizations } from "@symbola/db/schema/hub";
+import {
+  auditLog,
+  invitations,
+  organizationModules,
+  organizationProfiles,
+  organizations,
+  platformSettings,
+  vatRegimeChanges,
+} from "@symbola/db/schema/hub";
 import type { Language } from "./types";
 
 export async function insertOrganization(
@@ -63,4 +71,51 @@ export async function upsertOrganizationModule(
       target: [organizationModules.organizationId, organizationModules.moduleKey],
       set: { enabled: input.enabled, updatedAt: new Date() },
     });
+}
+
+export async function findOrganizationProfile(db: AppDatabase, organizationId: string) {
+  const [row] = await db.select().from(organizationProfiles).where(eq(organizationProfiles.organizationId, organizationId));
+  return row ?? null;
+}
+
+export async function upsertOrganizationProfileFields(
+  db: AppDatabase,
+  organizationId: string,
+  fields: Partial<typeof organizationProfiles.$inferInsert>,
+) {
+  await db
+    .insert(organizationProfiles)
+    .values({ organizationId, ...fields, updatedAt: new Date() })
+    .onConflictDoUpdate({
+      target: organizationProfiles.organizationId,
+      set: { ...fields, updatedAt: new Date() },
+    });
+}
+
+export async function insertVatRegimeChange(
+  db: AppDatabase,
+  input: {
+    organizationId: string;
+    previousRegime: "franchise" | "assujetti" | null;
+    newRegime: "franchise" | "assujetti";
+    effectiveDate: string;
+    changedByUserId: string;
+  },
+) {
+  await db.insert(vatRegimeChanges).values(input);
+}
+
+export async function findPlatformSettings(db: AppDatabase) {
+  const [row] = await db.select().from(platformSettings).where(eq(platformSettings.id, 1));
+  return row ?? null;
+}
+
+export async function upsertPlatformSettings(
+  db: AppDatabase,
+  fields: { franchiseThresholdServicesCents: number | null; franchiseThresholdGoodsCents: number | null },
+) {
+  await db
+    .insert(platformSettings)
+    .values({ id: 1, ...fields, updatedAt: new Date() })
+    .onConflictDoUpdate({ target: platformSettings.id, set: { ...fields, updatedAt: new Date() } });
 }

@@ -9,14 +9,23 @@ import { parseEnv } from "@symbola/env";
 import {
   findInvitationByTokenHash,
   findOrganizationModule,
+  findOrganizationProfile,
+  findPlatformSettings,
   insertAuditLog,
   insertInvitation,
   insertOrganization,
+  insertVatRegimeChange,
   listAllOrganizations,
   markInvitationAccepted,
   upsertOrganizationModule,
+  upsertOrganizationProfileFields,
+  upsertPlatformSettings,
 } from "./repository";
 import type { Language } from "./types";
+
+export type VatRegime = "franchise" | "assujetti";
+export type LegalForm = "ei" | "eirl" | "eurl" | "sarl" | "sas" | "sasu" | "sa" | "auto_entrepreneur" | "autre";
+export type Metier = "wedding_planner" | "autre";
 
 // Un seul module « métier » existe pour l'instant (hello, SOC-01) — les
 // futurs modules (events, budget, quotes) ajouteront leur clé ici.
@@ -130,5 +139,132 @@ export async function setModuleEnabled(
     adminUserId: input.adminUserId,
     action: input.enabled ? "hub.module.enabled" : "hub.module.disabled",
     targetOrganizationId: input.organizationId,
+  });
+}
+
+export type OrganizationProfile = {
+  siren: string | null;
+  address: string | null;
+  logoKey: string | null;
+  legalForm: LegalForm | null;
+  metier: Metier | null;
+  metierPrecision: string | null;
+  vatRegime: VatRegime | null;
+  vatRateDefaultBasisPoints: number | null;
+  completedAt: Date | null;
+};
+
+const EMPTY_PROFILE: OrganizationProfile = {
+  siren: null,
+  address: null,
+  logoKey: null,
+  legalForm: null,
+  metier: null,
+  metierPrecision: null,
+  vatRegime: null,
+  vatRateDefaultBasisPoints: null,
+  completedAt: null,
+};
+
+// ONB-01 — Pas encore de ligne = questionnaire jamais commencé : toutes
+// les réponses sont nulles plutôt que de bloquer l'accès à l'app.
+export async function getOrganizationProfile(db: AppDatabase, organizationId: string): Promise<OrganizationProfile> {
+  const row = await findOrganizationProfile(db, organizationId);
+  return row ?? EMPTY_PROFILE;
+}
+
+export type OnboardingStepInput = Partial<Omit<OrganizationProfile, "completedAt">>;
+
+// ONB-01 — « Il peut interrompre le questionnaire et le reprendre plus
+// tard. » Chaque étape sauvegarde seulement les champs qu'elle porte,
+// jamais la fiche entière (une étape ultérieure ne doit pas écraser les
+// réponses déjà données).
+export async function saveOnboardingStep(
+  db: AppDatabase,
+  organizationId: string,
+  step: OnboardingStepInput,
+): Promise<void> {
+  await upsertOrganizationProfileFields(db, organizationId, step);
+}
+
+const REQUIRED_PROFILE_FIELDS: (keyof OrganizationProfile)[] = ["legalForm", "metier", "vatRegime"];
+
+export async function completeOnboarding(
+  db: AppDatabase,
+  organizationId: string,
+): Promise<{ outcome: "success" } | { outcome: "missing_fields"; fields: (keyof OrganizationProfile)[] }> {
+  const profile = await getOrganizationProfile(db, organizationId);
+  const missing = REQUIRED_PROFILE_FIELDS.filter((field) => profile[field] === null);
+  if (missing.length > 0) return { outcome: "missing_fields", fields: missing };
+
+  await upsertOrganizationProfileFields(db, organizationId, { completedAt: new Date() });
+  return { outcome: "success" };
+}
+
+// ONB-01 — mentions légales déduites du régime de TVA (exemple du PRD :
+// « TVA non applicable, art. 293 B du CGI » en franchise). Fonction pure,
+// prête à être appelée par les futurs modules devis/factures (lot 4) ;
+// rien ne l'affiche encore, aucun document n'existe pour l'instant.
+export function computeLegalMention(profile: {
+  vatRegime: VatRegime | null;
+  vatRateDefaultBasisPoints: number | null;
+}): string {
+  if (profile.vatRegime === "franchise") {
+    return "TVA non applicable, art. 293 B du CGI";
+  }
+  if (profile.vatRegime === "assujetti" && profile.vatRateDefaultBasisPoints !== null) {
+    return `TVA ${(profile.vatRateDefaultBasisPoints / 100).toFixed(2)} %`;
+  }
+  return "";
+}
+
+// ONB-02 — « Il saisit une date d'effet. Les devis et factures déjà émis
+// ne changent pas. » L'historique garde la date d'effet pour les futurs
+// modules devis/factures (lot 4, pas encore construits) ; la fiche
+// reflète le régime courant dès l'enregistrement du changement.
+export async function changeVatRegime(
+  db: AppDatabase,
+  input: { organizationId: string; userId: string; newRegime: VatRegime; effectiveDate: string },
+): Promise<void> {
+  const profile = await getOrganizationProfile(db, input.organizationId);
+
+  await insertVatRegimeChange(db, {
+    organizationId: input.organizationId,
+    previousRegime: profile.vatRegime,
+    newRegime: input.newRegime,
+    effectiveDate: input.effectiveDate,
+    changedByUserId: input.userId,
+  });
+
+  await upsertOrganizationProfileFields(db, input.organizationId, { vatRegime: input.newRegime });
+}
+
+export type PlatformSettings = {
+  franchiseThresholdServicesCents: number | null;
+  franchiseThresholdGoodsCents: number | null;
+};
+
+// ONB-02 — « Le seuil de chiffre d'affaires de la franchise est un
+// paramètre, mis à jour par l'Admin, jamais une valeur dans le code. »
+// Deux seuils (prestations de services / vente de marchandises) : la
+// réalité fiscale française distingue les deux, le MVP ne les confond
+// pas même si les wedding planners sont presque tous en services.
+export async function getPlatformSettings(db: AppDatabase): Promise<PlatformSettings> {
+  const row = await findPlatformSettings(db);
+  return row ?? { franchiseThresholdServicesCents: null, franchiseThresholdGoodsCents: null };
+}
+
+export async function setPlatformSettings(
+  db: AppDatabase,
+  input: { adminUserId: string } & PlatformSettings,
+): Promise<void> {
+  await upsertPlatformSettings(db, {
+    franchiseThresholdServicesCents: input.franchiseThresholdServicesCents,
+    franchiseThresholdGoodsCents: input.franchiseThresholdGoodsCents,
+  });
+  await insertAuditLog(db, {
+    adminUserId: input.adminUserId,
+    action: "hub.platform_settings.updated",
+    targetOrganizationId: null,
   });
 }
