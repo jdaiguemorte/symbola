@@ -1,7 +1,23 @@
 // Porte d'entrée publique du module events — seul fichier que les autres
 // modules peuvent importer (ADR 0011). Pensé comme le futur contrat HTTP
 // /v1/events si ce module est extrait en app autonome.
+import { createHash, randomBytes } from "node:crypto";
+import { z } from "zod";
+import { createUser, findAccountByEmail } from "@symbola/auth";
+import { createAppConnection } from "@symbola/db/client";
+import { parseEnv } from "@symbola/env";
+import { sendMail } from "@symbola/mail";
 import {
+  findClientAccessByTokenHash,
+  findClientEventIds,
+  findEventActivity,
+  findEventClientAccesses,
+  hasActiveClientAccess,
+  markClientAccessAccepted,
+  revokeClientAccessRow,
+  saveClientAccess,
+  toggleClientTask,
+  type EventClientAccessRow,
   applyProgramTemplateRows,
   applyTaskTemplateRows,
   deleteProgramItem,
@@ -55,7 +71,7 @@ import {
   type TaskTemplateRow,
 } from "./repository";
 import { addDays } from "./schedule";
-import { findProgramOverlaps, normalizeTime, sortProgramItems } from "./program";
+import { findProgramOverlaps, normalizeTime, programForVariant, sortProgramItems } from "./program";
 import type {
   ChangeEventStatusInput,
   CreateProspectInput,
@@ -65,6 +81,13 @@ import type {
   EventDetail,
   EventsServiceContract,
   EventSummary,
+  AcceptClientInvitationResult,
+  ClientAccessStatus,
+  ClientEventView,
+  EventActivity,
+  EventClientAccess,
+  InviteEventClientInput,
+  InviteEventClientResult,
   EventProgram,
   EventTask,
   EventTaskInput,
@@ -126,6 +149,14 @@ export type {
   ProgramTemplate,
   ProgramTemplateItem,
   ProgramTemplateItemInput,
+  AcceptClientInvitationResult,
+  ClientAccessStatus,
+  ClientEventView,
+  EventActivity,
+  EventActivityKind,
+  EventClientAccess,
+  InviteEventClientInput,
+  InviteEventClientResult,
 } from "@symbola/contracts";
 
 function toEventClient(row: EventClientRow): EventClient {
@@ -679,6 +710,212 @@ export async function applyProgramTemplate(
   return sortProgramItems(result.items.map(toProgramItem));
 }
 
+// EVT-06 — accès des mariés.
+
+const CLIENT_INVITATION_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 jours, comme HUB-03
+// Longueur minimale d'un mot de passe de marié (recommandation CNIL pour un
+// mot de passe seul, sans double authentification imposée).
+const CLIENT_PASSWORD_MIN_LENGTH = 12;
+
+// L'e-mail a déjà un compte professionnel ou un compte d'une autre
+// organisation : un compte par personne (PRD EVT-06).
+export class ClientEmailUnavailableError extends Error {
+  constructor() {
+    super("cet e-mail est déjà utilisé par un autre compte");
+    this.name = "ClientEmailUnavailableError";
+  }
+}
+
+export class ClientAlreadyInvitedError extends Error {
+  constructor() {
+    super("ce marié a déjà accès à l'événement");
+    this.name = "ClientAlreadyInvitedError";
+  }
+}
+
+export class ClientPasswordTooShortError extends Error {
+  constructor() {
+    super(`le mot de passe doit contenir au moins ${CLIENT_PASSWORD_MIN_LENGTH} caractères`);
+    this.name = "ClientPasswordTooShortError";
+  }
+}
+
+// Accès absent, retiré, ou demande hors de l'événement du marié : même
+// réponse dans tous les cas, sans dire ce qui existe.
+export class ClientAccessDeniedError extends Error {
+  constructor() {
+    super("accès refusé");
+    this.name = "ClientAccessDeniedError";
+  }
+}
+
+const emailSchema = z.email();
+
+// Le jeton porte l'organisation en clair (« <organisation>.<secret> ») :
+// la recherche se fait sous RLS dans cette organisation, et seul le haché
+// du secret est stocké.
+function hashClientToken(secret: string): string {
+  return createHash("sha256").update(secret).digest("hex");
+}
+
+function parseClientToken(token: string): { organizationId: string; secret: string } | null {
+  const [organizationId, secret, ...rest] = token.split(".");
+  if (rest.length > 0 || !secret || !z.uuid().safeParse(organizationId).success) return null;
+  return { organizationId: organizationId!, secret };
+}
+
+function clientAccessStatus(row: EventClientAccessRow, now = new Date()): ClientAccessStatus {
+  if (row.revokedAt) return "revoked";
+  if (row.acceptedAt) return "active";
+  return row.expiresAt.getTime() < now.getTime() ? "expired" : "invited";
+}
+
+function toEventClientAccess(row: EventClientAccessRow): EventClientAccess {
+  return {
+    id: row.id,
+    eventId: row.eventId,
+    email: row.email,
+    status: clientAccessStatus(row),
+    createdAt: row.createdAt.toISOString(),
+  };
+}
+
+async function sendClientMail(email: string, locale: "fr" | "en", invitationUrl: string | null): Promise<void> {
+  const appUrl = parseEnv(process.env).APP_PUBLIC_URL;
+  // Service sans next-intl : deux variantes inline, comme l'invitation HUB-03.
+  const fr = invitationUrl
+    ? `Bonjour,\n\nVotre wedding planner vous invite à suivre la préparation de votre mariage sur Symbola. Créez votre compte avec ce lien, valable 7 jours :\n${invitationUrl}\n\nÀ bientôt,\nL'équipe Symbola`
+    : `Bonjour,\n\nVotre wedding planner vous a ouvert l'accès à un nouvel événement sur Symbola. Connectez-vous pour le retrouver :\n${appUrl}/login\n\nÀ bientôt,\nL'équipe Symbola`;
+  const en = invitationUrl
+    ? `Hello,\n\nYour wedding planner invites you to follow your wedding preparations on Symbola. Create your account with this link, valid for 7 days:\n${invitationUrl}\n\nSee you soon,\nThe Symbola team`
+    : `Hello,\n\nYour wedding planner has given you access to a new event on Symbola. Log in to find it:\n${appUrl}/login\n\nSee you soon,\nThe Symbola team`;
+  await sendMail({
+    to: email,
+    subject: locale === "en" ? "Your wedding on Symbola" : "Votre mariage sur Symbola",
+    text: locale === "en" ? en : fr,
+  });
+}
+
+async function withAuthDb<T>(fn: (db: ReturnType<typeof createAppConnection>["db"]) => Promise<T>): Promise<T> {
+  const { sql, db } = createAppConnection();
+  try {
+    return await fn(db);
+  } finally {
+    await sql.end();
+  }
+}
+
+export async function inviteEventClient(input: InviteEventClientInput): Promise<InviteEventClientResult> {
+  const email = input.email.trim();
+  if (!emailSchema.safeParse(email).success) throw new RangeError("e-mail invalide");
+
+  const account = await withAuthDb((db) => findAccountByEmail(db, email));
+  if (account && (account.role !== "client" || account.organizationId !== input.organizationId)) {
+    throw new ClientEmailUnavailableError();
+  }
+
+  const secret = account ? null : randomBytes(32).toString("base64url");
+  const result = await saveClientAccess({
+    organizationId: input.organizationId,
+    eventId: input.eventId,
+    email,
+    invitedByUserId: input.invitedByUserId,
+    expiresAt: new Date(Date.now() + CLIENT_INVITATION_DURATION_MS),
+    tokenHash: secret ? hashClientToken(secret) : null,
+    userId: account?.id ?? null,
+  });
+  if (result.status !== "saved") {
+    throw result.status === "event_not_found" ? new EventNotFoundError() : new ClientAlreadyInvitedError();
+  }
+
+  const invitationToken = secret ? `${input.organizationId}.${secret}` : null;
+  const appUrl = parseEnv(process.env).APP_PUBLIC_URL;
+  await sendClientMail(email, input.locale, invitationToken ? `${appUrl}/espace/invitation/${invitationToken}` : null);
+  return { access: toEventClientAccess(result.access), invitationToken };
+}
+
+export async function listEventClientAccesses(organizationId: string, eventId: string): Promise<EventClientAccess[]> {
+  return (await findEventClientAccesses(organizationId, eventId)).map(toEventClientAccess);
+}
+
+export async function revokeEventClientAccess(organizationId: string, accessId: string): Promise<void> {
+  await revokeClientAccessRow(organizationId, accessId);
+}
+
+export async function acceptEventClientInvitation(token: string, password: string): Promise<AcceptClientInvitationResult> {
+  const parsed = parseClientToken(token);
+  if (!parsed) return { outcome: "invalid_or_expired" };
+  const access = await findClientAccessByTokenHash(parsed.organizationId, hashClientToken(parsed.secret));
+  if (!access) {
+    return { outcome: "invalid_or_expired" };
+  }
+  if (access.acceptedAt) return { outcome: "already_accepted" };
+  if (access.revokedAt || access.expiresAt.getTime() < Date.now()) return { outcome: "invalid_or_expired" };
+  if (password.length < CLIENT_PASSWORD_MIN_LENGTH) throw new ClientPasswordTooShortError();
+
+  const userId = await withAuthDb(async (db) => {
+    const account = await findAccountByEmail(db, access.email);
+    if (account) {
+      if (account.role !== "client" || account.organizationId !== parsed.organizationId) {
+        throw new ClientEmailUnavailableError();
+      }
+      return account.id;
+    }
+    const user = await createUser(db, {
+      organizationId: parsed.organizationId,
+      email: access.email,
+      password,
+      role: "client",
+    });
+    return user.id;
+  });
+  if (!(await markClientAccessAccepted(parsed.organizationId, access.id, userId))) {
+    return { outcome: "already_accepted" };
+  }
+  return { outcome: "success", email: access.email };
+}
+
+export async function listClientEvents(organizationId: string, userId: string): Promise<EventSummary[]> {
+  const eventIds = new Set(await findClientEventIds(organizationId, userId));
+  if (eventIds.size === 0) return [];
+  const rows = await findEvents(organizationId, {});
+  return rows.filter(({ event }) => eventIds.has(event.id)).map(({ event, clients }) => toEventSummary(event, clients));
+}
+
+export async function getClientEventView(organizationId: string, userId: string, eventId: string): Promise<ClientEventView> {
+  if (!(await hasActiveClientAccess(organizationId, userId, eventId))) throw new ClientAccessDeniedError();
+  const found = await findEventById(organizationId, eventId);
+  if (!found) throw new ClientAccessDeniedError();
+  const [tasks, program] = await Promise.all([listEventTasks(organizationId, eventId), getEventProgram(organizationId, eventId)]);
+  return {
+    // Résumé seulement : ni source du prospect ni motif de perte.
+    event: toEventSummary(found.event, found.clients),
+    tasks,
+    program: { items: programForVariant(program.items, "couple"), overlaps: [], updatedAt: program.updatedAt },
+  };
+}
+
+export async function setClientTaskDone(
+  organizationId: string,
+  userId: string,
+  taskId: string,
+  done: boolean,
+): Promise<EventTask> {
+  const result = await toggleClientTask(organizationId, userId, taskId, done);
+  if (result.status === "denied") throw new ClientAccessDeniedError();
+  return toEventTask(result.task);
+}
+
+export async function listEventActivity(organizationId: string, eventId: string): Promise<EventActivity[]> {
+  return (await findEventActivity(organizationId, eventId)).map(({ activity, actorEmail }) => ({
+    id: activity.id,
+    kind: activity.kind,
+    taskLabel: activity.taskLabel,
+    actorEmail,
+    createdAt: activity.createdAt.toISOString(),
+  }));
+}
+
 const _contractCheck: EventsServiceContract = {
   listEvents,
   getEvent,
@@ -719,5 +956,13 @@ const _contractCheck: EventsServiceContract = {
   removeProgramTemplateItem,
   removeProgramTemplate,
   applyProgramTemplate,
+  inviteEventClient,
+  listEventClientAccesses,
+  revokeEventClientAccess,
+  acceptEventClientInvitation,
+  listClientEvents,
+  getClientEventView,
+  setClientTaskDone,
+  listEventActivity,
 };
 void _contractCheck;

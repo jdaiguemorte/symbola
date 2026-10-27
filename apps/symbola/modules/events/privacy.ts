@@ -3,10 +3,16 @@
 // EVT-01/02/07) et nom du prestataire d'un poste (event_vendor_slots,
 // EVT-03 : un prestataire indépendant est une personne), intervenants
 // libres et notes internes du programme du jour J (EVT-05 : un officiant,
-// un témoin y sont nommés).
+// un témoin y sont nommés), e-mail d'invitation des mariés (EVT-06).
 import { ilike, or } from "drizzle-orm";
 import { createAppConnection } from "@symbola/db/client";
-import { eventClients, eventVendorSlots, programItemParticipants, programItems } from "@symbola/db/schema/events";
+import {
+  eventClientAccesses,
+  eventClients,
+  eventVendorSlots,
+  programItemParticipants,
+  programItems,
+} from "@symbola/db/schema/events";
 import { withOrganization } from "@symbola/db/with-organization";
 import type { PersonQuery, PrivacyContractV1 } from "@symbola/privacy";
 
@@ -27,6 +33,10 @@ function participantMatch(term: string) {
   return ilike(programItemParticipants.freeLabel, term);
 }
 
+function accessMatch(term: string) {
+  return ilike(eventClientAccesses.email, term);
+}
+
 function noteMatch(term: string) {
   return ilike(programItems.internalNote, term);
 }
@@ -40,11 +50,13 @@ async function find(query: PersonQuery) {
       const vendors = await tx.select().from(eventVendorSlots).where(vendorMatch(term));
       const participants = await tx.select().from(programItemParticipants).where(participantMatch(term));
       const notes = await tx.select().from(programItems).where(noteMatch(term));
+      const accesses = await tx.select().from(eventClientAccesses).where(accessMatch(term));
       return [
         ...clients.map((row) => ({ recordId: row.id, summary: fullName(row.firstName, row.lastName) })),
         ...vendors.map((row) => ({ recordId: row.id, summary: `${row.vendorName ?? ""} (${row.label})` })),
         ...participants.map((row) => ({ recordId: row.id, summary: row.freeLabel ?? "" })),
         ...notes.map((row) => ({ recordId: row.id, summary: `${row.label} : ${row.internalNote ?? ""}` })),
+        ...accesses.map((row) => ({ recordId: row.id, summary: row.email })),
       ];
     });
   } finally {
@@ -84,7 +96,13 @@ export const eventsPrivacy: PrivacyContractV1 = {
           .set({ internalNote: "[anonymisé]" })
           .where(noteMatch(term))
           .returning({ id: programItems.id });
-        return clients.length + vendors.length + participants.length + notes.length;
+        // Un accès anonymisé est aussi retiré : l'e-mail ne permet plus d'inviter ni d'entrer.
+        const accesses = await tx
+          .update(eventClientAccesses)
+          .set({ email: "[anonymisé]", tokenHash: null, revokedAt: new Date() })
+          .where(accessMatch(term))
+          .returning({ id: eventClientAccesses.id });
+        return clients.length + vendors.length + participants.length + notes.length + accesses.length;
       });
       return { affected };
     } finally {
@@ -114,7 +132,11 @@ export const eventsPrivacy: PrivacyContractV1 = {
           .set({ internalNote: null })
           .where(noteMatch(term))
           .returning({ id: programItems.id });
-        return clients.length + vendors.length + participants.length + notes.length;
+        const accesses = await tx
+          .delete(eventClientAccesses)
+          .where(accessMatch(term))
+          .returning({ id: eventClientAccesses.id });
+        return clients.length + vendors.length + participants.length + notes.length + accesses.length;
       });
       return { affected };
     } finally {

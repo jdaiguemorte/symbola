@@ -88,3 +88,16 @@ fields:
     anonymization: >-
       Remplacée par « [anonymisé] » lors d'une demande d'oubli (RGPD-03) ;
       mise à nul lors d'un effacement.
+  - schema: events
+    table: event_client_accesses
+    field: email
+    category: contact
+    retention: >-
+      Tant que l'accès du marié à l'événement existe (EVT-06 : e-mail de
+      l'invitation, affiché dans la fiche et dans le fil d'activité). Le
+      compte du marié lui-même relève de hub.users. Après suppression ou
+      demande d'oubli : voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Remplacé par « [anonymisé] » lors d'une demande d'oubli (RGPD-03),
+      l'accès étant retiré en même temps ; la ligne d'accès est supprimée
+      lors d'un effacement.

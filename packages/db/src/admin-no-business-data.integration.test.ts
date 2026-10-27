@@ -13,6 +13,8 @@ import { createAppConnection } from "./client";
 import { greetings } from "./schema/hello";
 import {
   defaultVendorSlots,
+  eventActivities,
+  eventClientAccesses,
   events,
   eventTasks,
   eventVendorSlots,
@@ -127,6 +129,33 @@ describe("HUB-03 — L'Admin ne lit jamais de donnée métier", () => {
     });
 
     for (const table of [programItems, programItemParticipants, programTemplates, programTemplateItems]) {
+      try {
+        const rows = await db.select().from(table);
+        expect(rows).toHaveLength(0);
+      } catch (error) {
+        expect(error).toBeTruthy();
+      }
+    }
+  });
+
+  it("vaut aussi pour les accès des mariés et le fil d'activité (EVT-06, PostgreSQL réel)", async () => {
+    const organizationId = randomUUID();
+    await withOrganization(db, organizationId, async (tx) => {
+      const [event] = await tx.insert(events).values({ organizationId }).returning();
+      if (!event) throw new Error("insertion attendue");
+      await tx.insert(eventClientAccesses).values({
+        organizationId,
+        eventId: event.id,
+        email: "marie@example.test",
+        expiresAt: new Date(Date.now() + 86_400_000),
+        invitedByUserId: organizationId,
+      });
+      await tx
+        .insert(eventActivities)
+        .values({ organizationId, eventId: event.id, actorUserId: organizationId, kind: "task_done", taskLabel: "Faire-part" });
+    });
+
+    for (const table of [eventClientAccesses, eventActivities]) {
       try {
         const rows = await db.select().from(table);
         expect(rows).toHaveLength(0);

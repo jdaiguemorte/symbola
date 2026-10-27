@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { createLossReason, createProspectSource } from "@/modules/events/service";
-import { getAuthContext } from "@/lib/auth-context";
+import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isEventsModuleEnabled } from "../module-access";
 
 export type EventsSettingsFormState = { error?: string; success?: boolean };
@@ -13,7 +13,7 @@ export async function createProspectSourceAction(
   formData: FormData,
 ): Promise<EventsSettingsFormState> {
   const t = await getTranslations("Events");
-  const auth = await getAuthContext();
+  const auth = await getPlannerAuthContext();
   if (auth.status !== "authenticated" || !auth.user.organizationId) return { error: t("unauthenticated") };
   if (!(await isEventsModuleEnabled(auth.user.organizationId))) return { error: t("moduleUnavailable") };
 
@@ -31,7 +31,7 @@ export async function createLossReasonAction(
   formData: FormData,
 ): Promise<EventsSettingsFormState> {
   const t = await getTranslations("Events");
-  const auth = await getAuthContext();
+  const auth = await getPlannerAuthContext();
   if (auth.status !== "authenticated" || !auth.user.organizationId) return { error: t("unauthenticated") };
   if (!(await isEventsModuleEnabled(auth.user.organizationId))) return { error: t("moduleUnavailable") };
 

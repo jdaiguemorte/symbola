@@ -10,7 +10,7 @@
 // (voir app/page.tsx), pas ici.
 import { cookies } from "next/headers";
 import { createAppConnection } from "@symbola/db/client";
-import { requireUser, type AuthResult } from "@symbola/auth";
+import { isPlannerRole, requireUser, type AuthResult } from "@symbola/auth";
 
 export const SESSION_COOKIE_NAME = "symbola_session";
 
@@ -24,6 +24,33 @@ export async function getAuthContext(): Promise<AuthResult> {
   } finally {
     await sql.end();
   }
+}
+
+// EVT-06 : écrans et actions de la planner. Un compte marié (ou l'Admin)
+// y reçoit « forbidden » : le type oblige chaque page à le traiter, et
+// toute action qui n'accepte que « authenticated » le refuse d'office.
+export type PlannerAuthResult = AuthResult | { status: "forbidden"; role: string };
+
+export function toPlannerAuth(result: AuthResult): PlannerAuthResult {
+  if (result.status !== "authenticated") return result;
+  if (!isPlannerRole(result.user.role)) return { status: "forbidden", role: result.user.role };
+  return result;
+}
+
+export async function getPlannerAuthContext(): Promise<PlannerAuthResult> {
+  return toPlannerAuth(await getAuthContext());
+}
+
+// EVT-06 : espace du marié, réservé au rôle « client ». L'appartenance à
+// l'événement est vérifiée ensuite par le module events, à chaque requête.
+export function toClientAuth(result: AuthResult): PlannerAuthResult {
+  if (result.status !== "authenticated") return result;
+  if (result.user.role !== "client") return { status: "forbidden", role: result.user.role };
+  return result;
+}
+
+export async function getClientAuthContext(): Promise<PlannerAuthResult> {
+  return toClientAuth(await getAuthContext());
 }
 
 export async function setSessionCookie(token: string): Promise<void> {

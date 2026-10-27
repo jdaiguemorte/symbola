@@ -21,3 +21,4 @@ Un fichier par décision structurante, numéroté. Pour changer une décision : 
 - [0017 — Empreinte carbone numérique (brique transverse)](0017-empreinte-carbone-numerique.md)
 - [0018 — Caddy partagé remplace Traefik comme reverse-proxy](0018-caddy-remplace-traefik-proxy-partage.md)
 - [0019 — Génération des PDF avec @react-pdf/renderer](0019-generation-pdf-react-pdf.md)
+- [0020 — Accès des mariés : rôle client et accès par événement](0020-acces-maries-par-evenement.md)

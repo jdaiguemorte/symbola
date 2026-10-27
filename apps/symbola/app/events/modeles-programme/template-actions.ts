@@ -12,7 +12,7 @@ import {
   removeProgramTemplateItem,
   TaskLabelRequiredError,
 } from "@/modules/events/service";
-import { getAuthContext } from "@/lib/auth-context";
+import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isEventsModuleEnabled, isValidId } from "../module-access";
 
 export type ProgramTemplateFormState = { error?: string; success?: boolean };
@@ -20,7 +20,7 @@ export type ProgramTemplateFormState = { error?: string; success?: boolean };
 const PATH = "/events/modeles-programme";
 
 async function authorizedOrganizationId(): Promise<string | null> {
-  const auth = await getAuthContext();
+  const auth = await getPlannerAuthContext();
   if (auth.status !== "authenticated" || !auth.user.organizationId) return null;
   if (!(await isEventsModuleEnabled(auth.user.organizationId))) return null;
   return auth.user.organizationId;

@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
-import { formatAmount, formatCalendarDate, formatMonth, type Locale } from "@symbola/i18n";
+import { formatAmount, formatCalendarDate, formatDateTime, formatMonth, type Locale } from "@symbola/i18n";
 import { HelpButton } from "@symbola/ui";
 import {
   getEvent,
   getEventProgram,
   getTaskRecalculation,
+  listEventActivity,
+  listEventClientAccesses,
   listEventTasks,
   listEventVendorSlots,
   listTaskTemplates,
@@ -17,9 +19,11 @@ import {
   summarizeVendorSlots,
   type EventTask,
 } from "@/modules/events/service";
-import { getAuthContext } from "@/lib/auth-context";
+import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isEventsModuleEnabled, isValidId } from "../module-access";
 import { ChangeStatusForm } from "./change-status-form";
+import { revokeClientAccessAction } from "./client-access-actions";
+import { InviteClientForm } from "./client-access-forms";
 import { removeProgramItemAction } from "./program-actions";
 import { AddProgramItemForm, ApplyProgramTemplateForm, EditProgramItemForm } from "./program-forms";
 import {
@@ -39,10 +43,18 @@ import { removeVendorSlotAction } from "./vendor-slot-actions";
 import { AddVendorSlotForm, VendorSlotForm } from "./vendor-slot-forms";
 import { VENDOR_STATUS_COLORS, VENDOR_STATUS_LABEL_KEYS } from "./vendor-slot-status";
 
+const CLIENT_ACCESS_STATUS_KEYS = {
+  invited: "clientAccessInvited",
+  active: "clientAccessActive",
+  expired: "clientAccessExpired",
+  revoked: "clientAccessRevoked",
+} as const;
+
 export default async function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const auth = await getAuthContext();
+  const auth = await getPlannerAuthContext();
   if (auth.status === "unauthenticated") redirect("/login");
   if (auth.status === "mfa_required") redirect("/mfa");
+  if (auth.status === "forbidden") redirect(auth.role === "client" ? "/espace" : "/");
   if (!auth.user.organizationId) redirect("/");
   const organizationId = auth.user.organizationId;
 
@@ -62,7 +74,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
 
   const event = await getEvent(organizationId, id);
   if (!event) notFound();
-  const [reasons, sources, vendorSlots, tasks, templates, recalculation, program, programTemplates] =
+  const [reasons, sources, vendorSlots, tasks, templates, recalculation, program, programTemplates, clientAccesses, activity] =
     await Promise.all([
       listLossReasons(organizationId),
       listProspectSources(organizationId),
@@ -72,6 +84,8 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
       getTaskRecalculation(organizationId, id),
       getEventProgram(organizationId, id),
       listProgramTemplates(organizationId),
+      listEventClientAccesses(organizationId, id),
+      listEventActivity(organizationId, id),
     ]);
   const programLabels = new Map(program.items.map((item) => [item.id, item.label]));
   const locale = (await getLocale()) as Locale;
@@ -294,6 +308,40 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
         ))}
       </ul>
       <AddProgramItemForm eventId={event.id} vendorSlots={vendorSlots} />
+
+      {/* EVT-06 : accès des mariés et fil d'activité. */}
+      <h2>{t("clientAccessTitle")}</h2>
+      <p>{t("clientAccessIntro")}</p>
+      {clientAccesses.length === 0 ? <p>{t("noClientAccess")}</p> : null}
+      <ul aria-label={t("clientAccessTitle")}>
+        {clientAccesses.map((access) => (
+          <li key={access.id}>
+            {access.email} — {t(CLIENT_ACCESS_STATUS_KEYS[access.status])}
+            {access.status === "active" || access.status === "invited" ? (
+              <form action={revokeClientAccessAction}>
+                <input type="hidden" name="eventId" value={event.id} />
+                <input type="hidden" name="accessId" value={access.id} />
+                <button type="submit">{t("revokeClientAccess", { email: access.email })}</button>
+              </form>
+            ) : null}
+          </li>
+        ))}
+      </ul>
+      <InviteClientForm eventId={event.id} />
+
+      <h2>{t("activityTitle")}</h2>
+      {activity.length === 0 ? <p>{t("noActivity")}</p> : null}
+      <ul aria-label={t("activityTitle")}>
+        {activity.map((entry) => (
+          <li key={entry.id}>
+            {formatDateTime(new Date(entry.createdAt), locale)} —{" "}
+            {t(entry.kind === "task_done" ? "activityTaskDone" : "activityTaskUndone", {
+              actor: entry.actorEmail ?? t("activityFormerClient"),
+              task: entry.taskLabel,
+            })}
+          </li>
+        ))}
+      </ul>
     </main>
   );
 }

@@ -5,13 +5,13 @@ import { revalidatePath } from "next/cache";
 import { getLocale, getTranslations } from "next-intl/server";
 import { starterVendorSlots, type StarterLocale } from "@symbola/starter-templates";
 import { addDefaultVendorSlots, removeDefaultVendorSlot } from "@/modules/events/service";
-import { getAuthContext } from "@/lib/auth-context";
+import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isEventsModuleEnabled, isValidId } from "../module-access";
 
 export type DefaultVendorSlotFormState = { error?: string; success?: boolean; added?: number };
 
 async function authorizedOrganizationId(): Promise<string | null> {
-  const auth = await getAuthContext();
+  const auth = await getPlannerAuthContext();
   if (auth.status !== "authenticated" || !auth.user.organizationId) return null;
   if (!(await isEventsModuleEnabled(auth.user.organizationId))) return null;
   return auth.user.organizationId;

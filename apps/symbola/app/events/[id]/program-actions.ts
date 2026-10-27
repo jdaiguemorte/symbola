@@ -15,7 +15,7 @@ import {
   updateProgramItem,
   type ProgramItemInput,
 } from "@/modules/events/service";
-import { getAuthContext } from "@/lib/auth-context";
+import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isEventsModuleEnabled, isValidId } from "../module-access";
 
 export type ProgramFormState = { error?: string; success?: boolean };
@@ -23,7 +23,7 @@ export type ProgramFormState = { error?: string; success?: boolean };
 type Translator = Awaited<ReturnType<typeof getTranslations>>;
 
 async function authorize(t: Translator) {
-  const auth = await getAuthContext();
+  const auth = await getPlannerAuthContext();
   if (auth.status !== "authenticated" || !auth.user.organizationId) return { error: t("unauthenticated") } as const;
   if (!(await isEventsModuleEnabled(auth.user.organizationId))) return { error: t("moduleUnavailable") } as const;
   return { organizationId: auth.user.organizationId } as const;

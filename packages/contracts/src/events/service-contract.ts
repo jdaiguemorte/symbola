@@ -225,6 +225,56 @@ export type ProgramTemplateItemInput = {
   participantLabels: string[];
 };
 
+// EVT-06 — accès des mariés.
+export type ClientAccessStatus = "invited" | "active" | "expired" | "revoked";
+
+export type EventClientAccess = {
+  id: string;
+  eventId: string;
+  email: string;
+  status: ClientAccessStatus;
+  createdAt: string;
+};
+
+export type InviteEventClientInput = {
+  organizationId: string;
+  eventId: string;
+  email: string;
+  invitedByUserId: string;
+  // Langue de l'e-mail d'invitation.
+  locale: "fr" | "en";
+};
+
+export type InviteEventClientResult = {
+  access: EventClientAccess;
+  // Nul quand l'e-mail a déjà un compte marié dans l'organisation : l'accès
+  // est ouvert directement, sans création de compte.
+  invitationToken: string | null;
+};
+
+export type AcceptClientInvitationResult =
+  | { outcome: "invalid_or_expired" }
+  | { outcome: "already_accepted" }
+  | { outcome: "success"; email: string };
+
+// Vue du marié : jamais de note interne (programme en variante « mariés »).
+export type ClientEventView = {
+  event: EventSummary;
+  tasks: EventTask[];
+  program: EventProgram;
+};
+
+export type EventActivityKind = "task_done" | "task_undone";
+
+export type EventActivity = {
+  id: string;
+  kind: EventActivityKind;
+  taskLabel: string;
+  // E-mail du marié tel qu'invité par la planner (null si l'accès a disparu).
+  actorEmail: string | null;
+  createdAt: string;
+};
+
 export interface EventsServiceContract {
   listEvents(input: ListEventsInput): Promise<EventSummary[]>;
   getEvent(organizationId: string, eventId: string): Promise<EventDetail | null>;
@@ -269,4 +319,12 @@ export interface EventsServiceContract {
   removeProgramTemplateItem(organizationId: string, itemId: string): Promise<void>;
   removeProgramTemplate(organizationId: string, templateId: string): Promise<void>;
   applyProgramTemplate(organizationId: string, eventId: string, templateId: string): Promise<ProgramItem[]>;
+  inviteEventClient(input: InviteEventClientInput): Promise<InviteEventClientResult>;
+  listEventClientAccesses(organizationId: string, eventId: string): Promise<EventClientAccess[]>;
+  revokeEventClientAccess(organizationId: string, accessId: string): Promise<void>;
+  acceptEventClientInvitation(token: string, password: string): Promise<AcceptClientInvitationResult>;
+  listClientEvents(organizationId: string, userId: string): Promise<EventSummary[]>;
+  getClientEventView(organizationId: string, userId: string, eventId: string): Promise<ClientEventView>;
+  setClientTaskDone(organizationId: string, userId: string, taskId: string, done: boolean): Promise<EventTask>;
+  listEventActivity(organizationId: string, eventId: string): Promise<EventActivity[]>;
 }
