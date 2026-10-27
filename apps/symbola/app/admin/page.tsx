@@ -35,6 +35,8 @@ export default async function AdminPage() {
       <p>
         <Link href="/admin/health">{t("viewHealth")}</Link>
         {" · "}
+        <Link href="/admin/parametres">{t("viewSettings")}</Link>
+        {" · "}
         <Link href="/profil">{t("viewProfile")}</Link>
       </p>
       <h2>{t("createOrganizationTitle")}</h2>

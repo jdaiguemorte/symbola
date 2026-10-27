@@ -21,11 +21,15 @@
     "moduleUnavailable": "Module unavailable",
     "logout": "Log out",
     "myProfile": "My profile",
-    "administration": "Administration"
+    "settings": "Settings",
+    "administration": "Administration",
+    "onboardingIncomplete": "Your company profile is not complete yet.",
+    "completeProfile": "Complete it"
   },
   "Admin": {
     "title": "Administration",
     "viewHealth": "View health page",
+    "viewSettings": "Platform settings",
     "viewProfile": "My profile",
     "createOrganizationTitle": "Create an organization",
     "organizationsTitle": "Organizations",
@@ -69,5 +73,46 @@
     "languageEn": "English",
     "submit": "Save",
     "success": "Preferences saved."
+  },
+  "Settings": {
+    "title": "Settings",
+    "companyProfileTitle": "Company profile",
+    "siren": "SIREN",
+    "address": "Address",
+    "legalForm": "Legal form",
+    "legalFormUnset": "Not set",
+    "legalForm_ei": "Sole proprietorship (EI)",
+    "legalForm_eirl": "EIRL",
+    "legalForm_eurl": "EURL",
+    "legalForm_sarl": "SARL",
+    "legalForm_sas": "SAS",
+    "legalForm_sasu": "SASU",
+    "legalForm_sa": "SA",
+    "legalForm_auto_entrepreneur": "Sole trader (auto-entrepreneur)",
+    "legalForm_autre": "Other",
+    "metier": "Business",
+    "metierUnset": "Not set",
+    "metierWeddingPlanner": "Wedding planner",
+    "metierAutre": "Other event business",
+    "metierPrecision": "Please specify (if \"other\")",
+    "save": "Save",
+    "profileSaved": "Company profile saved.",
+    "vatRegimeTitle": "VAT regime",
+    "currentRegime": "Current regime",
+    "newRegime": "New regime",
+    "vatRegimeFranchise": "VAT exemption (franchise en base)",
+    "vatRegimeAssujetti": "Subject to VAT",
+    "vatRegimeUnset": "Not set",
+    "effectiveDate": "Effective date",
+    "changeRegime": "Change regime",
+    "regimeChanged": "VAT regime updated.",
+    "missingEffectiveDate": "The effective date is required."
+  },
+  "AdminSettings": {
+    "title": "Platform settings",
+    "thresholdServices": "Franchise threshold — services (€)",
+    "thresholdGoods": "Franchise threshold — goods (€)",
+    "save": "Save",
+    "saved": "Settings saved."
   }
 }

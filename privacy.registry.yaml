@@ -15,6 +15,16 @@ fields:
       Remplacé par une valeur générée non réversible lors d'une demande
       d'oubli (RGPD-03).
   - schema: hub
+    table: organization_profiles
+    field: address
+    category: contact
+    retention: >-
+      Tant que l'organisation existe. Après suppression ou demande
+      d'oubli : voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Remplacé par une valeur générée non réversible lors d'une demande
+      d'oubli (RGPD-03).
+  - schema: hub
     table: invitations
     field: email
     category: identifiant

@@ -4,12 +4,27 @@
 // (events, budget, quotes le seront). L'isolation entre organisations pour
 // ces tables est assurée exclusivement par packages/auth (seule porte
 // d'entrée, ADR 0013) : aucun autre code n'y accède directement.
-import { boolean, integer, pgSchema, primaryKey, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { boolean, date, integer, pgSchema, primaryKey, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
 export const hubSchema = pgSchema("hub");
 
 export const roleEnum = hubSchema.enum("role", ["owner", "member", "client", "admin"]);
 export const languageEnum = hubSchema.enum("language", ["fr", "en"]);
+// Valeurs réglementaires fixes (CLAUDE.md §2.5 : pas une liste
+// personnalisable par organisation, au même titre que roleEnum).
+export const legalFormEnum = hubSchema.enum("legal_form", [
+  "ei",
+  "eirl",
+  "eurl",
+  "sarl",
+  "sas",
+  "sasu",
+  "sa",
+  "auto_entrepreneur",
+  "autre",
+]);
+export const metierEnum = hubSchema.enum("metier", ["wedding_planner", "autre"]);
+export const vatRegimeEnum = hubSchema.enum("vat_regime", ["franchise", "assujetti"]);
 
 export const organizations = hubSchema.table("organizations", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -86,6 +101,59 @@ export const organizationModules = hubSchema.table(
   },
   (table) => [primaryKey({ columns: [table.organizationId, table.moduleKey] })],
 );
+
+// Fiche entreprise (PRD ONB-01) : une ligne par organisation, remplie
+// progressivement (questionnaire interruptible/reprenable) — toute
+// colonne peut rester nulle tant qu'elle n'a pas été répondue.
+// completedAt nul = questionnaire pas encore terminé.
+export const organizationProfiles = hubSchema.table("organization_profiles", {
+  organizationId: uuid("organization_id")
+    .primaryKey()
+    .references(() => organizations.id),
+  siren: text("siren"),
+  address: text("address"),
+  // Clé de l'objet dans le stockage privé (@symbola/files), jamais l'URL
+  // directement — même patron que les pièces jointes du module hello.
+  logoKey: text("logo_key"),
+  legalForm: legalFormEnum("legal_form"),
+  metier: metierEnum("metier"),
+  metierPrecision: text("metier_precision"),
+  vatRegime: vatRegimeEnum("vat_regime"),
+  // Taux par défaut en centièmes de point (2000 = 20,00 %), utilisé
+  // seulement si vatRegime = "assujetti".
+  vatRateDefaultBasisPoints: integer("vat_rate_default_basis_points"),
+  completedAt: timestamp("completed_at", { withTimezone: true }),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+// Historique des changements de régime de TVA (PRD ONB-02) : chaque
+// changement est daté d'effet, jamais appliqué rétroactivement aux
+// documents déjà émis (devis/factures, lots suivants).
+export const vatRegimeChanges = hubSchema.table("vat_regime_changes", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id")
+    .notNull()
+    .references(() => organizations.id),
+  previousRegime: vatRegimeEnum("previous_regime"),
+  newRegime: vatRegimeEnum("new_regime").notNull(),
+  effectiveDate: date("effective_date").notNull(),
+  changedByUserId: uuid("changed_by_user_id")
+    .notNull()
+    .references(() => users.id),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+// Seuils de franchise en base de TVA (PRD ONB-02, « jamais une valeur
+// dans le code ») : une seule ligne pour toute la plateforme, modifiable
+// par l'Admin. Deux seuils (prestations de services / vente de
+// marchandises), chacun peut rester nul tant que l'Admin ne l'a pas
+// renseigné — aucune valeur par défaut codée en dur.
+export const platformSettings = hubSchema.table("platform_settings", {
+  id: integer("id").primaryKey().default(1),
+  franchiseThresholdServicesCents: integer("franchise_threshold_services_cents"),
+  franchiseThresholdGoodsCents: integer("franchise_threshold_goods_cents"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
 
 // Journal d'audit des actions Admin (PRD HUB-03, « qui, quoi, quand »).
 // targetOrganizationId nul pour une action qui ne vise aucune organisation
