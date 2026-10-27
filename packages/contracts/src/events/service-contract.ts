@@ -167,6 +167,64 @@ export type TaskRecalculation = {
   undoneTasks: number;
 };
 
+// EVT-05 — programme du jour J.
+export type ProgramParticipant = {
+  // Poste prestataire de l'événement (EVT-03), ou nul pour un intervenant libre.
+  vendorSlotId: string | null;
+  label: string;
+};
+
+export type ProgramItem = {
+  id: string;
+  eventId: string;
+  // « HH:MM » ; une heure de fin antérieure au début = après minuit.
+  startTime: string;
+  endTime: string | null;
+  label: string;
+  location: string | null;
+  internalNote: string | null;
+  participants: ProgramParticipant[];
+};
+
+export type ProgramItemInput = {
+  startTime: string;
+  endTime?: string | null | undefined;
+  label: string;
+  location?: string | null | undefined;
+  internalNote?: string | null | undefined;
+  vendorSlotIds: string[];
+  freeParticipants: string[];
+};
+
+export type ProgramOverlap = { participant: string; itemIds: [string, string] };
+
+export type EventProgram = {
+  items: ProgramItem[];
+  overlaps: ProgramOverlap[];
+  // Date de version du PDF : dernière modification du programme (ISO 8601).
+  updatedAt: string | null;
+};
+
+export type ProgramTemplateItem = {
+  id: string;
+  startTime: string;
+  endTime: string | null;
+  label: string;
+  location: string | null;
+  participantLabels: string[];
+  position: number;
+};
+
+export type ProgramTemplate = { id: string; name: string; items: ProgramTemplateItem[] };
+
+export type ProgramTemplateItemInput = {
+  startTime: string;
+  endTime?: string | null | undefined;
+  label: string;
+  location?: string | null | undefined;
+  participantLabels: string[];
+};
+
 export interface EventsServiceContract {
   listEvents(input: ListEventsInput): Promise<EventSummary[]>;
   getEvent(organizationId: string, eventId: string): Promise<EventDetail | null>;
@@ -197,4 +255,18 @@ export interface EventsServiceContract {
   updateEventTask(input: UpdateEventTaskInput): Promise<EventTask>;
   moveEventTask(organizationId: string, taskId: string, direction: "up" | "down"): Promise<void>;
   removeEventTask(organizationId: string, taskId: string): Promise<void>;
+  getEventProgram(organizationId: string, eventId: string): Promise<EventProgram>;
+  addProgramItem(organizationId: string, eventId: string, item: ProgramItemInput): Promise<ProgramItem>;
+  updateProgramItem(organizationId: string, itemId: string, item: ProgramItemInput): Promise<ProgramItem>;
+  removeProgramItem(organizationId: string, itemId: string): Promise<void>;
+  listProgramTemplates(organizationId: string): Promise<ProgramTemplate[]>;
+  createProgramTemplate(organizationId: string, name: string, items: ProgramTemplateItemInput[]): Promise<ProgramTemplate>;
+  addProgramTemplateItem(
+    organizationId: string,
+    templateId: string,
+    item: ProgramTemplateItemInput,
+  ): Promise<ProgramTemplateItem>;
+  removeProgramTemplateItem(organizationId: string, itemId: string): Promise<void>;
+  removeProgramTemplate(organizationId: string, templateId: string): Promise<void>;
+  applyProgramTemplate(organizationId: string, eventId: string, templateId: string): Promise<ProgramItem[]>;
 }
