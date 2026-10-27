@@ -183,11 +183,15 @@
     },
     "eventsDetail": {
       "title": "Event details",
-      "body": "Track the event's progress here (prospect, quote sent, confirmed, done or lost) and its vendor slots: the top bar counts booked slots out of required ones. A booked slot needs the vendor's name; the amount is optional."
+      "body": "Track the event's progress here (prospect, quote sent, confirmed, done or lost) and its vendor slots: the top bar counts booked slots out of required ones. A booked slot needs the vendor's name; the amount is optional. The planning timeline lists tasks by month: apply a template, add, check or reorder tasks. If the event date changes, the app offers to shift the due dates of unfinished tasks."
     },
     "eventsSettings": {
       "title": "Event settings",
       "body": "Define your prospect sources (wedding fair, Instagram, word of mouth…), your loss reasons, and the vendor slots every new event receives. The starter template offers a list of common slots that you then adapt."
+    },
+    "eventsTemplates": {
+      "title": "Planning timeline templates",
+      "body": "Create your planning timeline templates, or load the starter template and adapt it. Each task is placed relative to the event date: 365 days before, 30 days before, event day… Apply a template from the page of an event with a date."
     }
   },
   "FirstSteps": {
@@ -288,6 +292,60 @@
     "defaultVendorSlotAdded": "Slot added.",
     "vendorSlotAlreadyExists": "This slot already exists.",
     "loadStarterVendorSlots": "Load the starter template",
-    "starterVendorSlotsLoaded": "{count, plural, =0 {The starter template is already loaded.} one {# slot added from the starter template.} other {# slots added from the starter template.}}"
+    "starterVendorSlotsLoaded": "{count, plural, =0 {The starter template is already loaded.} one {# slot added from the starter template.} other {# slots added from the starter template.}}",
+    "tasksTitle": "Planning timeline",
+    "taskTemplatesTitle": "Planning timeline templates",
+    "taskTemplatesLink": "Planning timeline templates",
+    "taskTemplatesIntro": "Each task in a template has a title, an offset in days from the event date (-365 for 365 days before, 0 for the event day) and an owner. Applied to an event with a date, the template creates the tasks with their due dates.",
+    "noTaskTemplates": "No planning timeline template yet.",
+    "noTaskTemplateItems": "This template has no task yet.",
+    "newTaskTemplateTitle": "New template",
+    "newTaskTemplateName": "Template name",
+    "createTaskTemplate": "Create template",
+    "taskTemplateCreated": "Template created.",
+    "loadStarterRetroplanning": "Load the starter template",
+    "starterRetroplanningLoaded": "Starter template loaded: adapt it to the way you work.",
+    "removeTaskTemplate": "Delete template {name}",
+    "addTaskTemplateItemTo": "Add a task to template {name}",
+    "addTaskTemplateItem": "Add task to template",
+    "taskTemplateItemAdded": "Task added to the template.",
+    "taskOffsetDays": "Offset in days (negative before the event, positive after)",
+    "offsetEventDay": "Event day",
+    "offsetBefore": "D-{days}",
+    "offsetAfter": "D+{days}",
+    "invalidOffset": "Enter a whole number of days, between -1095 and 1095.",
+    "taskTemplateNotFound": "Template not found.",
+    "taskTemplateToApply": "Template to apply",
+    "applyTaskTemplate": "Apply template",
+    "taskTemplateApplied": "Template applied: the tasks were created.",
+    "taskTemplateNeedsDate": "Add a date to the event to apply a planning timeline template.",
+    "recalculationPendingFirst": "First answer the due date recalculation proposal.",
+    "recalculationTitle": "Due date recalculation",
+    "recalculationProposal": "The event date was moved {direction, select, later {later} other {earlier}} by {days, plural, one {# day} other {# days}}. Shift {count, plural, one {the unfinished task} other {the # unfinished tasks}} by the same amount?",
+    "recalculationAccept": "Shift due dates",
+    "recalculationDecline": "Keep due dates",
+    "changeEventDate": "Change date",
+    "eventDateChanged": "Date updated.",
+    "invalidDate": "Invalid date.",
+    "noTasks": "No task for this event.",
+    "newTask": "New task",
+    "taskLabel": "Task title",
+    "taskDueDate": "Due date",
+    "taskResponsible": "Owner",
+    "responsiblePlanner": "Planner",
+    "responsibleClients": "Couple",
+    "invalidResponsible": "Choose an owner.",
+    "addTask": "Add task",
+    "taskAdded": "Task added.",
+    "editTask": "Edit task {label}",
+    "saveTask": "Save task",
+    "taskSaved": "Task saved.",
+    "taskDone": "done",
+    "markTaskDone": "Check task {label}",
+    "markTaskUndone": "Uncheck task {label}",
+    "moveTaskUp": "Move task {label} up",
+    "moveTaskDown": "Move task {label} down",
+    "removeTask": "Delete task {label}",
+    "taskNotFound": "Task not found."
   }
 }
