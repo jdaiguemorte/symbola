@@ -114,5 +114,74 @@
     "thresholdGoods": "Seuil de franchise — vente de marchandises (€)",
     "save": "Enregistrer",
     "saved": "Paramètres enregistrés."
+  },
+  "Tour": {
+    "skip": "Passer",
+    "next": "Suivant",
+    "finish": "Terminer",
+    "hub": [
+      {
+        "title": "Bienvenue sur Symbola",
+        "body": "Ce tableau de bord est le point de départ : vous y retrouvez votre profil, vos paramètres et, selon vos droits, l'administration."
+      },
+      {
+        "title": "Complétez votre fiche entreprise",
+        "body": "Pour profiter de toutes les fonctions (devis, facturation), complétez d'abord votre fiche entreprise et votre régime de TVA dans « Paramètres »."
+      },
+      {
+        "title": "De l'aide à tout moment",
+        "body": "Chaque écran a un bouton « ? » qui ouvre un article court sur ce que vous pouvez y faire. Vous pouvez aussi relancer cette visite depuis ce bouton."
+      }
+    ]
+  },
+  "Help": {
+    "relaunchTour": "Relancer la visite guidée",
+    "login": {
+      "title": "Connexion",
+      "body": "Connectez-vous avec votre e-mail et votre mot de passe. Après plusieurs échecs, le compte est verrouillé temporairement pour le protéger."
+    },
+    "mfa": {
+      "title": "Double authentification",
+      "body": "La première fois, scannez le code avec une application d'authentification (Google Authenticator, Authy…). Ensuite, saisissez simplement le code à 6 chiffres à chaque connexion."
+    },
+    "home": {
+      "title": "Tableau de bord",
+      "body": "C'est votre page d'accueil. Vous y accédez à votre profil, vos paramètres, et à l'administration si vous en avez les droits."
+    },
+    "settings": {
+      "title": "Paramètres",
+      "body": "Renseignez ici la fiche entreprise de votre organisation (SIREN, adresse, forme juridique, métier) et son régime de TVA."
+    },
+    "admin": {
+      "title": "Administration",
+      "body": "Créez des organisations, invitez leur titulaire, et activez ou désactivez leurs modules. Cette page n'affiche aucune donnée métier des organisations."
+    },
+    "adminSettings": {
+      "title": "Paramètres de la plateforme",
+      "body": "Ces seuils de franchise en base de TVA s'appliquent à toutes les organisations et doivent être mis à jour selon la réglementation en vigueur."
+    },
+    "adminHealth": {
+      "title": "Santé",
+      "body": "Cette page indique si l'application répond et sa version déployée, pour vérifier rapidement l'état du service."
+    },
+    "invitation": {
+      "title": "Créer mon compte",
+      "body": "Ce lien d'invitation est personnel et à usage unique. Choisissez un mot de passe pour activer votre compte."
+    },
+    "profile": {
+      "title": "Mon profil",
+      "body": "Choisissez la langue dans laquelle Symbola s'affiche pour vous."
+    }
+  },
+  "FirstSteps": {
+    "title": "Premiers pas",
+    "hide": "Masquer cette liste",
+    "completeProfile": "Compléter la fiche entreprise"
+  },
+  "Aide": {
+    "title": "Aide",
+    "search": "Rechercher dans l'aide",
+    "noResults": "Aucun article ne correspond à votre recherche.",
+    "link": "Aide"
   }
 }

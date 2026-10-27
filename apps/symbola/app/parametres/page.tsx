@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import { HelpButton } from "@symbola/ui";
 import { createAppConnection } from "@symbola/db/client";
 import { getOrganizationProfile } from "@/modules/hub/service";
 import { getAuthContext } from "@/lib/auth-context";
@@ -13,6 +14,7 @@ export default async function SettingsPage() {
   if (!auth.user.organizationId) redirect("/");
 
   const t = await getTranslations("Settings");
+  const tHelp = await getTranslations("Help");
   const { sql, db } = createAppConnection();
   let profile;
   try {
@@ -24,6 +26,7 @@ export default async function SettingsPage() {
   return (
     <main>
       <h1>{t("title")}</h1>
+      <HelpButton title={tHelp("settings.title")} body={tHelp("settings.body")} />
       <h2>{t("companyProfileTitle")}</h2>
       <ProfileForm profile={profile} />
 

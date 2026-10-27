@@ -22,6 +22,7 @@
     "@symbola/i18n": "workspace:^",
     "@symbola/mail": "workspace:*",
     "@symbola/privacy": "workspace:*",
+    "@symbola/ui": "workspace:*",
     "drizzle-orm": "^0.45.4",
     "next": "15.5.28",
     "next-intl": "^4.14.9",

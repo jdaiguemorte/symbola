@@ -10,6 +10,8 @@ import {
   organizationProfiles,
   organizations,
   platformSettings,
+  userTourSeen,
+  users,
   vatRegimeChanges,
 } from "@symbola/db/schema/hub";
 import type { Language } from "./types";
@@ -118,4 +120,20 @@ export async function upsertPlatformSettings(
     .insert(platformSettings)
     .values({ id: 1, ...fields, updatedAt: new Date() })
     .onConflictDoUpdate({ target: platformSettings.id, set: { ...fields, updatedAt: new Date() } });
+}
+
+export async function findTourSeen(db: AppDatabase, userId: string, moduleKey: string) {
+  const [row] = await db
+    .select()
+    .from(userTourSeen)
+    .where(and(eq(userTourSeen.userId, userId), eq(userTourSeen.moduleKey, moduleKey)));
+  return row ?? null;
+}
+
+export async function insertTourSeen(db: AppDatabase, userId: string, moduleKey: string) {
+  await db.insert(userTourSeen).values({ userId, moduleKey }).onConflictDoNothing();
+}
+
+export async function updateFirstStepsHidden(db: AppDatabase, userId: string, hidden: boolean) {
+  await db.update(users).set({ firstStepsHidden: hidden }).where(eq(users.id, userId));
 }

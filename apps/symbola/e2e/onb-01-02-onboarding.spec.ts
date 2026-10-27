@@ -17,6 +17,10 @@ async function loginAndSetupMfa(page: Page, email: string, password: string) {
   const secret = new URL(provisioningUri!.replace("otpauth://totp/", "https://x/")).searchParams.get("secret")!;
   await page.getByLabel("Code").fill(new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret) }).generate());
   await page.getByRole("button", { name: "Valider" }).click();
+  // Attend l'atterrissage sur l'accueil avant de rendre la main : sinon un
+  // page.goto() immédiat de l'appelant peut courir plus vite que la
+  // redirection post-MFA et partir sans le cookie de session.
+  await expect(page).toHaveURL("/");
 }
 
 test("ONB-01-01 — le bandeau guide vers la fiche entreprise incomplète, sans bloquer l'accès", async ({ page }) => {
