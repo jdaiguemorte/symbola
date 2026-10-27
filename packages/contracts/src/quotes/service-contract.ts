@@ -24,6 +24,9 @@ export type QuoteSettings = {
   creditNotePrefix: string;
   // DEV-03 : horizon des encaissements à venir au tableau de bord.
   upcomingHorizonDays: number;
+  // DEV-04 : délai de paiement d'une facture de solde, mentions de facturation.
+  invoicePaymentTermDays: number;
+  invoiceMentions: string | null;
 };
 
 // DEV-03 — modes de paiement (liste paramétrable par organisation).
@@ -154,6 +157,83 @@ export type QuoteVersionView = {
   schedule: PaymentScheduleView;
 };
 
+// DEV-04 : un client professionnel exige Factur-X (lot dédié).
+export type ClientKind = "individual" | "professional";
+
+export type InvoiceTotalsView = {
+  totalHtCents: number;
+  vatByRate: { rateBasisPoints: number; baseCents: number; vatCents: number }[];
+  totalVatCents: number;
+  totalTtcCents: number;
+};
+
+export type InvoiceBuyer = { name: string; billingAddress: string };
+
+export type CreditNoteView = {
+  id: string;
+  invoiceId: string;
+  invoiceNumber: string;
+  number: string;
+  isDemo: boolean;
+  issuedOn: string;
+  amountCents: number;
+  reason: string;
+  legalMention: string | null;
+  seller: SellerSnapshot;
+  buyers: InvoiceBuyer[];
+  totals: InvoiceTotalsView;
+};
+
+// DEV-04 — facture émise, copie figée de tout ce qui y figure.
+export type InvoiceView = {
+  id: string;
+  quoteId: string;
+  quoteNumber: string;
+  kind: "deposit" | "balance";
+  number: string;
+  isDemo: boolean;
+  issuedOn: string;
+  serviceDate: string | null;
+  paymentDueOn: string;
+  amountCents: number;
+  vatRegime: "franchise" | "assujetti";
+  vatApplicable: boolean;
+  legalMention: string | null;
+  mentions: string | null;
+  seller: SellerSnapshot;
+  buyers: InvoiceBuyer[];
+  // Lignes du devis (solde) ou libellé de l'acompte.
+  lines: { label: string; description: string | null; unit: string; quantityMilli: number; unitPriceCents: number; vatRateBasisPoints: number; discountBasisPoints: number; netCents: number }[];
+  depositLabel: string | null;
+  quoteTotals: QuoteTotalsView;
+  // Acomptes déjà facturés, déduits d'une facture de solde.
+  deductions: { number: string; amountCents: number }[];
+  totals: InvoiceTotalsView;
+  creditNotes: CreditNoteView[];
+  creditedCents: number;
+};
+
+export type IssueDepositInvoiceInput = { organizationId: string; scheduleItemId: string; now?: Date | undefined };
+export type IssueBalanceInvoiceInput = { organizationId: string; quoteId: string; now?: Date | undefined };
+export type IssueCreditNoteInput = {
+  organizationId: string;
+  invoiceId: string;
+  amountCents: number;
+  reason: string;
+  now?: Date | undefined;
+};
+
+// DEV-04 — données d'e-reporting d'une période (clients particuliers) :
+// factures et avoirs émis, encaissements reçus ; jamais de donnée d'essai.
+export type EReportingView = {
+  from: string;
+  to: string;
+  invoices: { number: string; issuedOn: string; kind: "deposit" | "balance"; totalHtCents: number; totalVatCents: number; totalTtcCents: number }[];
+  creditNotes: { number: string; invoiceNumber: string; issuedOn: string; totalHtCents: number; totalVatCents: number; totalTtcCents: number }[];
+  payments: { paidOn: string; amountCents: number; paymentMethod: string | null; quoteNumber: string; label: string }[];
+  totals: { invoicedTtcCents: number; creditedTtcCents: number; netHtCents: number; netVatCents: number; netTtcCents: number; collectedCents: number };
+};
+
 export type QuoteSummary = {
   id: string;
   eventId: string;
@@ -161,6 +241,7 @@ export type QuoteSummary = {
   status: QuoteStatus;
   currentVersion: number;
   isDemo: boolean;
+  clientKind: ClientKind;
   totalTtcCents: number;
 };
 
@@ -272,4 +353,12 @@ export interface QuotesServiceContract {
   handleSignatureWebhook(input: { headers: Headers; rawBody: string }): Promise<SignatureWebhookResult>;
   getSignatureDocumentUrl(organizationId: string, quoteId: string, kind: "signed" | "certificate"): Promise<string>;
   listClientQuotesToSign(organizationId: string, eventId: string, clientEmail: string): Promise<ClientQuoteToSign[]>;
+  setQuoteClientKind(organizationId: string, quoteId: string, clientKind: ClientKind): Promise<QuoteDetail>;
+  issueDepositInvoice(input: IssueDepositInvoiceInput): Promise<InvoiceView>;
+  issueBalanceInvoice(input: IssueBalanceInvoiceInput): Promise<InvoiceView>;
+  issueCreditNote(input: IssueCreditNoteInput): Promise<CreditNoteView>;
+  listQuoteInvoices(organizationId: string, quoteId: string): Promise<InvoiceView[]>;
+  getInvoice(organizationId: string, invoiceId: string): Promise<InvoiceView>;
+  getCreditNote(organizationId: string, creditNoteId: string): Promise<CreditNoteView>;
+  getEReporting(organizationId: string, period: { from: string; to: string }): Promise<EReportingView>;
 }

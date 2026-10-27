@@ -14,6 +14,8 @@ import { budgetLineAttachments, budgetLines } from "./schema/budget";
 import { greetings } from "./schema/hello";
 import {
   catalogItems,
+  creditNotes,
+  invoices,
   numberSeries,
   paymentMethods,
   paymentScheduleItems,
@@ -205,7 +207,7 @@ describe("HUB-03 — L'Admin ne lit jamais de donnée métier", () => {
     }
   });
 
-  it("vaut aussi pour le catalogue, les devis et les échéanciers (DEV-01/03, PostgreSQL réel)", async () => {
+  it("vaut aussi pour le catalogue, les devis et les échéanciers (DEV-01 à 04, PostgreSQL réel)", async () => {
     const organizationId = randomUUID();
     await withOrganization(db, organizationId, async (tx) => {
       await tx.insert(quoteSettings).values({ organizationId });
@@ -246,9 +248,40 @@ describe("HUB-03 — L'Admin ne lit jamais de donnée métier", () => {
         signingUrl: "https://signature.example.test/s/abc",
       });
       await tx.insert(signatureWebhookLog).values({ organizationId, requestId: request!.id, eventType: "form.completed", outcome: "applied" });
+      const [invoice] = await tx
+        .insert(invoices)
+        .values({
+          organizationId,
+          quoteId: quote.id,
+          versionId: version.id,
+          kind: "balance",
+          number: "F-2027-0001",
+          issuedAt: new Date(),
+          issuedOn: "2027-06-01",
+          paymentDueOn: "2027-07-01",
+          amountCents: 1,
+          vatRegime: "franchise",
+          sellerSnapshot: {},
+          buyerSnapshot: [],
+          linesSnapshot: [],
+          totalsSnapshot: {},
+        })
+        .returning();
+      await tx.insert(creditNotes).values({
+        organizationId,
+        invoiceId: invoice!.id,
+        number: "A-2027-0001",
+        issuedAt: new Date(),
+        issuedOn: "2027-06-02",
+        amountCents: 1,
+        reason: "Correction",
+        sellerSnapshot: {},
+        buyerSnapshot: [],
+        totalsSnapshot: {},
+      });
     });
 
-    for (const table of [quoteSettings, numberSeries, catalogItems, quotes, quoteVersions, quoteLines, paymentMethods, paymentScheduleItems, signatureRequests, quoteSigners, signatureWebhookLog]) {
+    for (const table of [quoteSettings, numberSeries, catalogItems, quotes, quoteVersions, quoteLines, paymentMethods, paymentScheduleItems, signatureRequests, quoteSigners, signatureWebhookLog, invoices, creditNotes]) {
       try {
         const rows = await db.select().from(table);
         expect(rows).toHaveLength(0);

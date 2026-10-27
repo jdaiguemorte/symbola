@@ -30,6 +30,15 @@ import type {
   UnpaidPayment,
   UnpaidPaymentsView,
   ClientQuoteToSign,
+  ClientKind,
+  CreditNoteView,
+  EReportingView,
+  InvoiceBuyer,
+  InvoiceTotalsView,
+  InvoiceView,
+  IssueBalanceInvoiceInput,
+  IssueCreditNoteInput,
+  IssueDepositInvoiceInput,
   SendForSignatureInput,
   SignatureView,
   SignatureWebhookResult,
@@ -48,7 +57,18 @@ import { fakeSignatureProvider, realSignatureProvider, signatureProviderFor } fr
 import { signatureTag, type SignatureProvider } from "./signature/provider";
 import { computeQuoteTotals, formatDocumentNumber, lineAmounts, validUntil, type GlobalDiscount } from "./amounts";
 import { addCalendarDays, groupByMonth, isOverdue, parisToday, resolveSchedule } from "./schedule";
+import { addDays, prorateTotals } from "./invoicing";
 import {
+  findCreditNoteById,
+  findEReportingRows,
+  findInvoiceById,
+  findQuoteInvoices,
+  insertCreditNote,
+  insertInvoice,
+  updateQuoteClientKind,
+  type CreditNoteRow,
+  type InvoiceRow,
+  type InvoicingContext,
   applySignatureStateRows,
   archiveCatalogItemRow,
   archivePaymentMethodRow,
@@ -119,6 +139,15 @@ export type {
   UnpaidPayment,
   UnpaidPaymentsView,
   ClientQuoteToSign,
+  ClientKind,
+  CreditNoteView,
+  EReportingView,
+  InvoiceBuyer,
+  InvoiceTotalsView,
+  InvoiceView,
+  IssueBalanceInvoiceInput,
+  IssueCreditNoteInput,
+  IssueDepositInvoiceInput,
   SendForSignatureInput,
   SignatureView,
   SignatureWebhookResult,
@@ -216,6 +245,44 @@ export class SignatureUnavailableError extends Error {
   }
 }
 
+// DEV-04 — une facture ne s'émet que depuis un devis signé.
+export class QuoteNotSignedError extends Error {
+  constructor() {
+    super("devis non signé");
+    this.name = "QuoteNotSignedError";
+  }
+}
+
+export class InvoiceAlreadyIssuedError extends Error {
+  constructor() {
+    super("facture déjà émise");
+    this.name = "InvoiceAlreadyIssuedError";
+  }
+}
+
+// Décision 1 du lot 4 : Factur-X (client professionnel) vient dans un lot
+// dédié ; d'ici là, l'émission est refusée avec un message clair.
+export class ProfessionalInvoiceNotSupportedError extends Error {
+  constructor() {
+    super("facture Factur-X pour un client professionnel : pas encore disponible");
+    this.name = "ProfessionalInvoiceNotSupportedError";
+  }
+}
+
+export class InvoiceNotFoundError extends Error {
+  constructor() {
+    super("facture introuvable");
+    this.name = "InvoiceNotFoundError";
+  }
+}
+
+export class CreditNoteExceedsInvoiceError extends Error {
+  constructor() {
+    super("avoir supérieur au montant restant de la facture");
+    this.name = "CreditNoteExceedsInvoiceError";
+  }
+}
+
 export class SignatureDocumentNotFoundError extends Error {
   constructor() {
     super("document signé indisponible");
@@ -229,6 +296,8 @@ const DEFAULT_SETTINGS: QuoteSettings = {
   invoicePrefix: "F",
   creditNotePrefix: "A",
   upcomingHorizonDays: 90,
+  invoicePaymentTermDays: 30,
+  invoiceMentions: null,
 };
 const DEMO_PREFIX = "DEMO";
 const MAX_AMOUNT_CENTS = 100_000_000_00; // 100 M€ : garde-fou contre les débordements d'entier
@@ -321,6 +390,8 @@ export async function getQuoteSettings(organizationId: string): Promise<QuoteSet
     invoicePrefix: row.invoicePrefix,
     creditNotePrefix: row.creditNotePrefix,
     upcomingHorizonDays: row.upcomingHorizonDays,
+    invoicePaymentTermDays: row.invoicePaymentTermDays,
+    invoiceMentions: row.invoiceMentions,
   };
 }
 
@@ -329,17 +400,22 @@ const PREFIX_PATTERN = /^[A-Z0-9]{1,8}$/;
 export async function updateQuoteSettings(organizationId: string, settings: QuoteSettings): Promise<QuoteSettings> {
   requireInteger(settings.validityDays, 1, 365, "validité");
   requireInteger(settings.upcomingHorizonDays, 1, 730, "horizon");
+  requireInteger(settings.invoicePaymentTermDays, 0, 120, "délai de paiement");
+  const invoiceMentions = optionalText(settings.invoiceMentions);
+  if (invoiceMentions && invoiceMentions.length > 2000) throw new RangeError("mentions trop longues");
   for (const prefix of [settings.quotePrefix, settings.invoicePrefix, settings.creditNotePrefix]) {
     // DEMO est réservé à la série d'essai (ADR 0008).
     if (!PREFIX_PATTERN.test(prefix) || prefix === DEMO_PREFIX) throw new RangeError("préfixe invalide");
   }
-  const row = await upsertQuoteSettings(organizationId, settings);
+  const row = await upsertQuoteSettings(organizationId, { ...settings, invoiceMentions });
   return {
     validityDays: row.validityDays,
     quotePrefix: row.quotePrefix,
     invoicePrefix: row.invoicePrefix,
     creditNotePrefix: row.creditNotePrefix,
     upcomingHorizonDays: row.upcomingHorizonDays,
+    invoicePaymentTermDays: row.invoicePaymentTermDays,
+    invoiceMentions: row.invoiceMentions,
   };
 }
 
@@ -477,6 +553,7 @@ function toSummary(aggregate: QuoteAggregate, current: QuoteVersionView): QuoteS
     status: quote.status,
     currentVersion: quote.currentVersion,
     isDemo: quote.isDemo,
+    clientKind: quote.clientKind,
     totalTtcCents: current.totals.totalTtcCents,
   };
 }
@@ -1135,6 +1212,321 @@ export async function actOnFakeSignature(token: string, action: "sign" | "declin
   return true;
 }
 
+// --- DEV-04 : factures conformes ---
+
+export async function setQuoteClientKind(organizationId: string, quoteId: string, clientKind: ClientKind): Promise<QuoteDetail> {
+  if (clientKind !== "individual" && clientKind !== "professional") throw new RangeError("type de client inconnu");
+  if (!(await updateQuoteClientKind(organizationId, quoteId, clientKind))) throw new QuoteNotFoundError();
+  return loadDetail(organizationId, quoteId);
+}
+
+type FrozenLine = InvoiceView["lines"][number];
+
+function creditedOf(invoiceId: string, notes: CreditNoteRow[]): number {
+  return notes.filter((note) => note.invoiceId === invoiceId).reduce((sum, note) => sum + note.amountCents, 0);
+}
+
+// Facture « active » : pas entièrement annulée par ses avoirs.
+function isActive(invoice: InvoiceRow, notes: CreditNoteRow[]): boolean {
+  return invoice.amountCents - creditedOf(invoice.id, notes) > 0;
+}
+
+function documentNumbering(settingsPrefix: string, isDemo: boolean, now: Date) {
+  const year = Number(parisDate(now).slice(0, 4));
+  const prefix = isDemo ? `${DEMO_PREFIX}-${settingsPrefix}` : settingsPrefix;
+  return { year, formatNumber: (rank: number) => formatDocumentNumber(prefix, year, rank) };
+}
+
+// Contrôles communs puis copies figées : vendeur et mention (figés à
+// l'envoi du devis), acheteurs (signataires), réglages de facturation.
+function invoiceBase(context: InvoicingContext, now: Date) {
+  if (context.quote.status !== "signed" || !context.version.sentAt) throw new QuoteNotSignedError();
+  if (context.quote.clientKind === "professional") throw new ProfessionalInvoiceNotSupportedError();
+  const buyers: InvoiceBuyer[] = context.signers.map((signer) => ({ name: signer.name, billingAddress: signer.billingAddress }));
+  if (buyers.length === 0) throw new QuoteNotSignedError();
+  const totals = context.version.totalsSnapshot as QuoteTotalsView;
+  const settings = context.settings;
+  return {
+    issuedOn: parisDate(now),
+    totals,
+    buyers,
+    settings: {
+      invoicePrefix: settings?.invoicePrefix ?? DEFAULT_SETTINGS.invoicePrefix,
+      paymentTermDays: settings?.invoicePaymentTermDays ?? DEFAULT_SETTINGS.invoicePaymentTermDays,
+      mentions: settings?.invoiceMentions ?? null,
+    },
+    common: {
+      quoteId: context.quote.id,
+      versionId: context.version.id,
+      issuedAt: now,
+      vatRegime: context.version.vatRegime ?? "franchise",
+      legalMention: context.version.legalMention,
+      mentions: settings?.invoiceMentions ?? null,
+      sellerSnapshot: context.version.sellerSnapshot ?? {},
+      buyerSnapshot: buyers,
+    },
+  };
+}
+
+function frozenLines(context: InvoicingContext): FrozenLine[] {
+  return context.lines.map((line) => ({
+    label: line.label,
+    description: line.description,
+    unit: line.unit,
+    quantityMilli: line.quantityMilli,
+    unitPriceCents: line.unitPriceCents,
+    vatRateBasisPoints: line.vatRateBasisPoints,
+    discountBasisPoints: line.discountBasisPoints,
+    netCents: lineAmounts(line).netCents,
+  }));
+}
+
+type InvoiceTotalsSnapshot = {
+  quoteTotals: QuoteTotalsView;
+  totals: InvoiceTotalsView;
+  deductions: { number: string; amountCents: number }[];
+  depositLabel: string | null;
+};
+
+function toCreditNoteView(note: CreditNoteRow, invoiceNumber: string): CreditNoteView {
+  return {
+    id: note.id,
+    invoiceId: note.invoiceId,
+    invoiceNumber,
+    number: note.number,
+    isDemo: note.isDemo,
+    issuedOn: note.issuedOn,
+    amountCents: note.amountCents,
+    reason: note.reason,
+    legalMention: note.legalMention,
+    seller: note.sellerSnapshot as SellerSnapshot,
+    buyers: note.buyerSnapshot as InvoiceBuyer[],
+    totals: note.totalsSnapshot as InvoiceTotalsView,
+  };
+}
+
+function toInvoiceView(invoice: InvoiceRow, quoteNumber: string, notes: CreditNoteRow[]): InvoiceView {
+  const snapshot = invoice.totalsSnapshot as InvoiceTotalsSnapshot;
+  const own = notes.filter((note) => note.invoiceId === invoice.id);
+  return {
+    id: invoice.id,
+    quoteId: invoice.quoteId,
+    quoteNumber,
+    kind: invoice.kind,
+    number: invoice.number,
+    isDemo: invoice.isDemo,
+    issuedOn: invoice.issuedOn,
+    serviceDate: invoice.serviceDate,
+    paymentDueOn: invoice.paymentDueOn,
+    amountCents: invoice.amountCents,
+    vatRegime: invoice.vatRegime === "assujetti" ? "assujetti" : "franchise",
+    vatApplicable: invoice.vatRegime !== "franchise",
+    legalMention: invoice.legalMention,
+    mentions: invoice.mentions,
+    seller: invoice.sellerSnapshot as SellerSnapshot,
+    buyers: invoice.buyerSnapshot as InvoiceBuyer[],
+    lines: invoice.linesSnapshot as FrozenLine[],
+    depositLabel: snapshot.depositLabel,
+    quoteTotals: snapshot.quoteTotals,
+    deductions: snapshot.deductions,
+    totals: snapshot.totals,
+    creditNotes: own.map((note) => toCreditNoteView(note, invoice.number)),
+    creditedCents: own.reduce((sum, note) => sum + note.amountCents, 0),
+  };
+}
+
+// DEV-04 — « Quand elle génère une facture d'acompte depuis un devis signé,
+// alors elle reçoit un numéro de la série de facturation, continu et sans
+// trou. » Une facture par échéance (sauf si un avoir l'a annulée), jamais
+// après la facture de solde.
+export async function issueDepositInvoice(input: IssueDepositInvoiceInput): Promise<InvoiceView> {
+  const now = input.now ?? new Date();
+  const row = await insertInvoice(input.organizationId, { scheduleItemId: input.scheduleItemId }, (context) => {
+    const base = invoiceBase(context, now);
+    const index = context.scheduleItems.findIndex((item) => item.id === input.scheduleItemId);
+    const item = context.scheduleItems[index];
+    if (!item) throw new QuoteVersionLockedError();
+    const active = context.invoices.filter((invoice) => isActive(invoice, context.creditNotes));
+    if (active.some((invoice) => invoice.kind === "balance" || invoice.scheduleItemId === item.id)) throw new InvoiceAlreadyIssuedError();
+    const amountCents = resolveSchedule(context.scheduleItems, base.totals.totalTtcCents).amounts[index] ?? 0;
+    const snapshot: InvoiceTotalsSnapshot = {
+      quoteTotals: base.totals,
+      totals: prorateTotals(base.totals, amountCents),
+      deductions: [],
+      depositLabel: item.label,
+    };
+    return {
+      isDemo: context.quote.isDemo,
+      ...documentNumbering(base.settings.invoicePrefix, context.quote.isDemo, now),
+      values: {
+        ...base.common,
+        scheduleItemId: item.id,
+        kind: "deposit",
+        issuedOn: base.issuedOn,
+        // « Date de l'acompte » : celle du paiement s'il est reçu, sinon l'échéance.
+        serviceDate: item.paidOn ?? item.dueDate,
+        paymentDueOn: item.dueDate > base.issuedOn ? item.dueDate : base.issuedOn,
+        amountCents,
+        linesSnapshot: [],
+        totalsSnapshot: snapshot,
+      },
+    };
+  });
+  if (!row) throw new QuoteNotFoundError();
+  return getInvoice(input.organizationId, row.id);
+}
+
+// DEV-04 — facture de solde : lignes du devis, acomptes facturés déduits
+// (nets de leurs avoirs), date de la prestation = date de l'événement.
+export async function issueBalanceInvoice(input: IssueBalanceInvoiceInput): Promise<InvoiceView> {
+  const now = input.now ?? new Date();
+  const quote = await findQuoteAggregate(input.organizationId, input.quoteId);
+  if (!quote) throw new QuoteNotFoundError();
+  const event = await getEvent(input.organizationId, quote.quote.eventId);
+  const row = await insertInvoice(input.organizationId, { quoteId: input.quoteId }, (context) => {
+    const base = invoiceBase(context, now);
+    const active = context.invoices.filter((invoice) => isActive(invoice, context.creditNotes));
+    if (active.some((invoice) => invoice.kind === "balance")) throw new InvoiceAlreadyIssuedError();
+    const deductions = active
+      .filter((invoice) => invoice.kind === "deposit")
+      .map((invoice) => ({ number: invoice.number, amountCents: invoice.amountCents - creditedOf(invoice.id, context.creditNotes) }));
+    const amountCents = base.totals.totalTtcCents - deductions.reduce((sum, deduction) => sum + deduction.amountCents, 0);
+    if (amountCents <= 0) throw new InvoiceAlreadyIssuedError();
+    const snapshot: InvoiceTotalsSnapshot = {
+      quoteTotals: base.totals,
+      totals: prorateTotals(base.totals, amountCents),
+      deductions,
+      depositLabel: null,
+    };
+    return {
+      isDemo: context.quote.isDemo,
+      ...documentNumbering(base.settings.invoicePrefix, context.quote.isDemo, now),
+      values: {
+        ...base.common,
+        scheduleItemId: null,
+        kind: "balance",
+        issuedOn: base.issuedOn,
+        serviceDate: event?.eventDate ?? null,
+        paymentDueOn: addDays(base.issuedOn, base.settings.paymentTermDays),
+        amountCents,
+        linesSnapshot: frozenLines(context),
+        totalsSnapshot: snapshot,
+      },
+    };
+  });
+  if (!row) throw new QuoteNotFoundError();
+  return getInvoice(input.organizationId, row.id);
+}
+
+// DEV-04 — avoir (série à part), partiel ou total ; jamais plus que le
+// montant restant de la facture, qui elle ne change pas.
+export async function issueCreditNote(input: IssueCreditNoteInput): Promise<CreditNoteView> {
+  const now = input.now ?? new Date();
+  requireInteger(input.amountCents, 1, MAX_AMOUNT_CENTS, "montant de l'avoir");
+  const reason = requireText(input.reason, "motif de l'avoir");
+  const row = await insertCreditNote(input.organizationId, input.invoiceId, (invoice, existing, settings) => {
+    const remaining = invoice.amountCents - existing.reduce((sum, note) => sum + note.amountCents, 0);
+    if (input.amountCents > remaining) throw new CreditNoteExceedsInvoiceError();
+    const invoiceTotals = (invoice.totalsSnapshot as InvoiceTotalsSnapshot).totals;
+    const asQuoteTotals = { subtotalCents: invoiceTotals.totalHtCents, globalDiscountCents: 0, ...invoiceTotals };
+    return {
+      isDemo: invoice.isDemo,
+      ...documentNumbering(settings?.creditNotePrefix ?? DEFAULT_SETTINGS.creditNotePrefix, invoice.isDemo, now),
+      values: {
+        invoiceId: invoice.id,
+        issuedAt: now,
+        issuedOn: parisDate(now),
+        amountCents: input.amountCents,
+        reason,
+        legalMention: invoice.legalMention,
+        sellerSnapshot: invoice.sellerSnapshot,
+        buyerSnapshot: invoice.buyerSnapshot,
+        totalsSnapshot: prorateTotals(asQuoteTotals, input.amountCents),
+      },
+    };
+  });
+  if (!row) throw new InvoiceNotFoundError();
+  return getCreditNote(input.organizationId, row.id);
+}
+
+export async function listQuoteInvoices(organizationId: string, quoteId: string): Promise<InvoiceView[]> {
+  const found = await findQuoteInvoices(organizationId, quoteId);
+  if (!found) throw new QuoteNotFoundError();
+  return found.invoices.map((invoice) => toInvoiceView(invoice, found.quote.number, found.creditNotes));
+}
+
+export async function getInvoice(organizationId: string, invoiceId: string): Promise<InvoiceView> {
+  const found = await findInvoiceById(organizationId, invoiceId);
+  if (!found) throw new InvoiceNotFoundError();
+  return toInvoiceView(found.invoice, found.quote.number, found.creditNotes);
+}
+
+export async function getCreditNote(organizationId: string, creditNoteId: string): Promise<CreditNoteView> {
+  const found = await findCreditNoteById(organizationId, creditNoteId);
+  if (!found) throw new InvoiceNotFoundError();
+  return toCreditNoteView(found.creditNote, found.invoice.number);
+}
+
+// DEV-04 — e-reporting (clients particuliers) : factures et avoirs émis,
+// encaissements reçus sur la période ; jamais de donnée d'essai.
+export async function getEReporting(organizationId: string, period: { from: string; to: string }): Promise<EReportingView> {
+  const from = requireDate(period.from, "début de période");
+  const to = requireDate(period.to, "fin de période");
+  if (from > to) throw new RangeError("période inversée");
+  const rows = await findEReportingRows(organizationId, from, to);
+  const invoiceRows = rows.invoices.map((invoice) => {
+    const totals = (invoice.totalsSnapshot as InvoiceTotalsSnapshot).totals;
+    return {
+      number: invoice.number,
+      issuedOn: invoice.issuedOn,
+      kind: invoice.kind,
+      totalHtCents: totals.totalHtCents,
+      totalVatCents: totals.totalVatCents,
+      totalTtcCents: totals.totalTtcCents,
+    };
+  });
+  const noteRows = rows.creditNotes.map((note) => {
+    const totals = note.totalsSnapshot as InvoiceTotalsView;
+    return {
+      number: note.number,
+      invoiceNumber: note.invoiceNumber,
+      issuedOn: note.issuedOn,
+      totalHtCents: totals.totalHtCents,
+      totalVatCents: totals.totalVatCents,
+      totalTtcCents: totals.totalTtcCents,
+    };
+  });
+  const payments = rows.payments.map((row) => {
+    const totalTtcCents = (row.version.totalsSnapshot as QuoteTotalsView | null)?.totalTtcCents ?? 0;
+    const index = row.versionItems.findIndex((item) => item.id === row.item.id);
+    return {
+      paidOn: row.item.paidOn!,
+      amountCents: resolveSchedule(row.versionItems, totalTtcCents).amounts[index] ?? 0,
+      paymentMethod: row.method,
+      quoteNumber: row.quote.number,
+      label: row.item.label,
+    };
+  });
+  const sum = (values: number[]) => values.reduce((total, value) => total + value, 0);
+  const invoicedTtcCents = sum(invoiceRows.map((row) => row.totalTtcCents));
+  const creditedTtcCents = sum(noteRows.map((row) => row.totalTtcCents));
+  return {
+    from,
+    to,
+    invoices: invoiceRows,
+    creditNotes: noteRows,
+    payments,
+    totals: {
+      invoicedTtcCents,
+      creditedTtcCents,
+      netHtCents: sum(invoiceRows.map((row) => row.totalHtCents)) - sum(noteRows.map((row) => row.totalHtCents)),
+      netVatCents: sum(invoiceRows.map((row) => row.totalVatCents)) - sum(noteRows.map((row) => row.totalVatCents)),
+      netTtcCents: invoicedTtcCents - creditedTtcCents,
+      collectedCents: sum(payments.map((payment) => payment.amountCents)),
+    },
+  };
+}
+
 const _contractCheck: QuotesServiceContract = {
   listCatalogItems,
   createCatalogItem,
@@ -1166,5 +1558,13 @@ const _contractCheck: QuotesServiceContract = {
   handleSignatureWebhook,
   getSignatureDocumentUrl,
   listClientQuotesToSign,
+  setQuoteClientKind,
+  issueDepositInvoice,
+  issueBalanceInvoice,
+  issueCreditNote,
+  listQuoteInvoices,
+  getInvoice,
+  getCreditNote,
+  getEReporting,
 };
 void _contractCheck;

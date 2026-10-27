@@ -29,6 +29,11 @@ export async function updateQuoteSettingsAction(
     return { error: t("invalidHorizon") };
   }
 
+  const termText = String(formData.get("invoicePaymentTermDays") ?? "").trim();
+  const invoicePaymentTermDays = /^\d{1,3}$/.test(termText) ? Number(termText) : NaN;
+  if (!Number.isInteger(invoicePaymentTermDays) || invoicePaymentTermDays > 120) return { error: t("invalidPaymentTerm") };
+  const invoiceMentions = String(formData.get("invoiceMentions") ?? "").trim() || null;
+
   const prefix = (name: string) => String(formData.get(name) ?? "").trim().toUpperCase();
   try {
     await updateQuoteSettings(planner.organizationId, {
@@ -37,6 +42,8 @@ export async function updateQuoteSettingsAction(
       invoicePrefix: prefix("invoicePrefix"),
       creditNotePrefix: prefix("creditNotePrefix"),
       upcomingHorizonDays,
+      invoicePaymentTermDays,
+      invoiceMentions,
     });
   } catch (error) {
     if (error instanceof RangeError) return { error: t("invalidPrefix") };

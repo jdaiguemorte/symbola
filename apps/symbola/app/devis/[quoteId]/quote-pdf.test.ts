@@ -63,6 +63,7 @@ function quote(current: QuoteVersionView, isDemo = false): QuoteDetail {
     status: current.sentAt ? "sent" : "draft",
     currentVersion: current.version,
     isDemo,
+    clientKind: "individual",
     totalTtcCents: current.totals.totalTtcCents,
     versions: [current],
     current,
