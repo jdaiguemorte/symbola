@@ -1659,3 +1659,27 @@ export async function countRealEvents(organizationId: string): Promise<number> {
     await pg.end();
   }
 }
+
+// AIDE-02 : essais expirés, pour que les autres modules (budget) purgent
+// leurs propres données avant la suppression de l'événement.
+export async function findExpiredDemoEventIds(
+  organizationIds: string[],
+  now: Date,
+): Promise<{ organizationId: string; eventId: string }[]> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    const found: { organizationId: string; eventId: string }[] = [];
+    for (const organizationId of organizationIds) {
+      const rows = await withOrganization(db, organizationId, (tx) =>
+        tx
+          .select({ id: events.id })
+          .from(events)
+          .where(and(eq(events.isDemo, true), lte(events.demoExpiresAt, now))),
+      );
+      found.push(...rows.map((row) => ({ organizationId, eventId: row.id })));
+    }
+    return found;
+  } finally {
+    await pg.end();
+  }
+}

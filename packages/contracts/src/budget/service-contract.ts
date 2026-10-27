@@ -136,4 +136,8 @@ export interface BudgetServiceContract {
   listBudgetLineHistory(organizationId: string, eventVendorSlotId: string): Promise<BudgetLineHistoryEntry[]>;
   attachBudgetLineQuote(input: AttachBudgetLineQuoteInput): Promise<BudgetLineAttachment>;
   getBudgetLineAttachmentUrl(organizationId: string, attachmentId: string): Promise<string>;
+  // BUD-04 : lecture seule pour un compte marié ayant accès à l'événement.
+  getClientBudgetView(organizationId: string, userId: string, eventId: string): Promise<BudgetLinesView>;
+  // AIDE-02 : purge des données budget d'événements d'essai.
+  removeEventBudgetData(organizationId: string, eventIds: string[]): Promise<void>;
 }

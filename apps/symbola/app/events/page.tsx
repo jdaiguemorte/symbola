@@ -7,11 +7,11 @@ import {
   getActiveEventsTrial,
   listEvents,
   listProspectSources,
-  purgeExpiredDemoEvents,
   type EventStatus,
 } from "@/modules/events/service";
 import { hasSeenTour } from "@/modules/hub/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
+import { purgeOrganizationsDemoData } from "@/lib/demo-purge";
 import { EventsTourAndHelp } from "./events-tour";
 import { isEventsModuleEnabled } from "./module-access";
 import { startTrialAction } from "./trial-actions";
@@ -54,7 +54,7 @@ export default async function EventsListPage({
 
   // AIDE-02 : un essai abandonné depuis plus de 24 h disparaît aussi dès
   // que la planner revient ici, sans attendre la purge horaire.
-  await purgeExpiredDemoEvents(organizationId);
+  await purgeOrganizationsDemoData([organizationId]);
   const trial = await getActiveEventsTrial(organizationId);
   const tTour = await getTranslations("Tour");
   const { sql, db } = createAppConnection();

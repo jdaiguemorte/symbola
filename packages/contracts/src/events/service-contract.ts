@@ -344,6 +344,7 @@ export interface EventsServiceContract {
   endEventsTrial(organizationId: string, eventId: string): Promise<void>;
   purgeExpiredDemoEvents(organizationId: string, now?: Date): Promise<number>;
   hasRealEvents(organizationId: string): Promise<boolean>;
+  listExpiredDemoEvents(organizationIds: string[], now?: Date): Promise<{ organizationId: string; eventId: string }[]>;
   // Lot 3 (BUD-04) : vérifie qu'un compte marié a accès à l'événement avant
   // de lui montrer son budget en lecture seule. Extension additive du
   // contrat — la fonction existait déjà côté repository, utilisée en

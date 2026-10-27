@@ -10,6 +10,7 @@ import { sendMail } from "@symbola/mail";
 import { starterDemoEvent, starterProgram, starterRetroplanning, starterVendorSlots } from "@symbola/starter-templates";
 import {
   countRealEvents,
+  findExpiredDemoEventIds,
   deleteDemoEvent,
   deleteExpiredDemoEvents,
   findActiveDemoEvent,
@@ -995,6 +996,15 @@ export async function purgeExpiredDemoEventsForOrganizations(
   return deleteExpiredDemoEvents(organizationIds, now);
 }
 
+// Essais expirés (organisation, événement) : les autres modules y
+// purgent leurs données avant purgeExpiredDemoEvents (lib/demo-purge.ts).
+export async function listExpiredDemoEvents(
+  organizationIds: string[],
+  now: Date = new Date(),
+): Promise<{ organizationId: string; eventId: string }[]> {
+  return findExpiredDemoEventIds(organizationIds, now);
+}
+
 // Tableau de bord (AIDE-04) : un événement d'essai ne compte pas.
 export async function hasRealEvents(organizationId: string): Promise<boolean> {
   return (await countRealEvents(organizationId)) > 0;
@@ -1059,5 +1069,6 @@ const _contractCheck: EventsServiceContract = {
   purgeExpiredDemoEvents,
   hasRealEvents,
   hasActiveClientAccess,
+  listExpiredDemoEvents,
 };
 void _contractCheck;
