@@ -5,6 +5,7 @@ import { randomUUID } from "node:crypto";
 import { afterAll, describe, expect, it } from "vitest";
 import { createAppConnection } from "@symbola/db/client";
 import {
+  eventClientAccesses,
   eventClients,
   events,
   eventVendorSlots,
@@ -120,5 +121,37 @@ describe("SOC-07 — privacy/v1 du module events (PostgreSQL réel)", () => {
     expect(await withOrganization(db, organizationId, (tx) => tx.select().from(programItemParticipants))).toEqual([]);
 
     expect(await eventsPrivacy.find({ organizationId: otherOrganizationId, term })).toHaveLength(2);
+  });
+
+  it("EVT-06 — couvre l'e-mail d'invitation d'un marié ; anonymisé, l'accès est retiré", async () => {
+    const organizationId = randomUUID();
+    const otherOrganizationId = randomUUID();
+    const term = `marie-${randomUUID()}@example.test`;
+
+    for (const id of [organizationId, otherOrganizationId]) {
+      await withOrganization(db, id, async (tx) => {
+        const [event] = await tx.insert(events).values({ organizationId: id }).returning();
+        if (!event) throw new Error("insertion de l'événement attendue");
+        await tx.insert(eventClientAccesses).values({
+          organizationId: id,
+          eventId: event.id,
+          email: term,
+          userId: randomUUID(),
+          acceptedAt: new Date(),
+          expiresAt: new Date(),
+          invitedByUserId: randomUUID(),
+        });
+      });
+    }
+
+    expect(await eventsPrivacy.find({ organizationId, term })).toHaveLength(1);
+    expect((await eventsPrivacy.anonymize({ organizationId, term })).affected).toBe(1);
+    const [anonymized] = await withOrganization(db, organizationId, (tx) => tx.select().from(eventClientAccesses));
+    expect(anonymized).toMatchObject({ email: "[anonymisé]" });
+    expect(anonymized?.revokedAt).not.toBeNull();
+
+    expect((await eventsPrivacy.erase({ organizationId, term: "anonymisé" })).affected).toBe(1);
+    expect(await withOrganization(db, organizationId, (tx) => tx.select().from(eventClientAccesses))).toEqual([]);
+    expect(await eventsPrivacy.find({ organizationId: otherOrganizationId, term })).toHaveLength(1);
   });
 });

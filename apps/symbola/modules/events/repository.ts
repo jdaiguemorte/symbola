@@ -1,9 +1,11 @@
 // Accès aux données du module events — jamais importé hors de
 // modules/events/ (ADR 0011).
-import { and, asc, eq, ilike, inArray, isNull, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, inArray, isNotNull, isNull, or, sql } from "drizzle-orm";
 import { createAppConnection } from "@symbola/db/client";
 import {
   defaultVendorSlots,
+  eventActivities,
+  eventClientAccesses,
   eventClients,
   events,
   eventStatusHistory,
@@ -46,6 +48,8 @@ export type TaskTemplateRow = typeof taskTemplates.$inferSelect;
 export type TaskTemplateItemRow = typeof taskTemplateItems.$inferSelect;
 export type EventTaskRow = typeof eventTasks.$inferSelect;
 export type ProgramItemRow = typeof programItems.$inferSelect;
+export type EventClientAccessRow = typeof eventClientAccesses.$inferSelect;
+export type EventActivityRow = typeof eventActivities.$inferSelect;
 export type ProgramItemParticipantRow = typeof programItemParticipants.$inferSelect;
 export type ProgramTemplateRow = typeof programTemplates.$inferSelect;
 export type ProgramTemplateItemRow = typeof programTemplateItems.$inferSelect;
@@ -1216,6 +1220,254 @@ export async function applyProgramTemplateRows(
       }
       if (created.length > 0) await touchProgram(tx, eventId);
       return { status: "applied", items: await withParticipants(tx, created) };
+    });
+  } finally {
+    await pg.end();
+  }
+}
+
+// EVT-06 — accès des mariés.
+export async function findEventClientAccesses(organizationId: string, eventId: string): Promise<EventClientAccessRow[]> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    return await withOrganization(db, organizationId, (tx) =>
+      tx
+        .select()
+        .from(eventClientAccesses)
+        .where(eq(eventClientAccesses.eventId, eventId))
+        .orderBy(asc(eventClientAccesses.createdAt)),
+    );
+  } finally {
+    await pg.end();
+  }
+}
+
+export type SaveClientAccessResult =
+  | { status: "saved"; access: EventClientAccessRow }
+  | { status: "event_not_found" | "already_active" };
+
+// Une invitation encore en attente pour le même e-mail est renouvelée
+// (nouveau jeton, nouvelle échéance) plutôt que doublée.
+export async function saveClientAccess(input: {
+  organizationId: string;
+  eventId: string;
+  email: string;
+  invitedByUserId: string;
+  expiresAt: Date;
+  tokenHash: string | null;
+  userId: string | null;
+}): Promise<SaveClientAccessResult> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    return await withOrganization(db, input.organizationId, async (tx) => {
+      // Clé étrangère vérifiée sans RLS : on contrôle que l'événement est visible.
+      const [event] = await tx.select({ id: events.id }).from(events).where(eq(events.id, input.eventId));
+      if (!event) return { status: "event_not_found" };
+
+      const [current] = await tx
+        .select()
+        .from(eventClientAccesses)
+        .where(
+          and(
+            eq(eventClientAccesses.eventId, input.eventId),
+            sql`lower(${eventClientAccesses.email}) = lower(${input.email})`,
+            isNull(eventClientAccesses.revokedAt),
+          ),
+        );
+      const acceptedAt = input.userId ? new Date() : null;
+      if (current?.acceptedAt) return { status: "already_active" };
+      if (current) {
+        const [access] = await tx
+          .update(eventClientAccesses)
+          .set({
+            tokenHash: input.tokenHash,
+            userId: input.userId,
+            acceptedAt,
+            expiresAt: input.expiresAt,
+            invitedByUserId: input.invitedByUserId,
+          })
+          .where(eq(eventClientAccesses.id, current.id))
+          .returning();
+        return { status: "saved", access: access! };
+      }
+      const [access] = await tx
+        .insert(eventClientAccesses)
+        .values({
+          organizationId: input.organizationId,
+          eventId: input.eventId,
+          email: input.email,
+          tokenHash: input.tokenHash,
+          userId: input.userId,
+          acceptedAt,
+          expiresAt: input.expiresAt,
+          invitedByUserId: input.invitedByUserId,
+        })
+        .returning();
+      if (!access) throw new Error("création de l'accès échouée");
+      return { status: "saved", access };
+    });
+  } finally {
+    await pg.end();
+  }
+}
+
+// Retirer un accès invalide aussi le jeton d'une invitation en attente.
+export async function revokeClientAccessRow(organizationId: string, accessId: string): Promise<void> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    await withOrganization(db, organizationId, (tx) =>
+      tx
+        .update(eventClientAccesses)
+        .set({ revokedAt: new Date(), tokenHash: null })
+        .where(and(eq(eventClientAccesses.id, accessId), isNull(eventClientAccesses.revokedAt))),
+    );
+  } finally {
+    await pg.end();
+  }
+}
+
+export async function findClientAccessByTokenHash(
+  organizationId: string,
+  tokenHash: string,
+): Promise<EventClientAccessRow | null> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    return await withOrganization(db, organizationId, async (tx) => {
+      const [access] = await tx.select().from(eventClientAccesses).where(eq(eventClientAccesses.tokenHash, tokenHash));
+      return access ?? null;
+    });
+  } finally {
+    await pg.end();
+  }
+}
+
+// Le jeton ne sert qu'une fois (acceptedAt) ; son haché reste pour pouvoir
+// répondre « invitation déjà acceptée » à un second clic sur le lien.
+export async function markClientAccessAccepted(organizationId: string, accessId: string, userId: string): Promise<boolean> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    return await withOrganization(db, organizationId, async (tx) => {
+      const updated = await tx
+        .update(eventClientAccesses)
+        .set({ userId, acceptedAt: new Date() })
+        .where(
+          and(
+            eq(eventClientAccesses.id, accessId),
+            isNull(eventClientAccesses.acceptedAt),
+            isNull(eventClientAccesses.revokedAt),
+          ),
+        )
+        .returning({ id: eventClientAccesses.id });
+      return updated.length === 1;
+    });
+  } finally {
+    await pg.end();
+  }
+}
+
+function activeAccessFor(userId: string) {
+  return and(
+    eq(eventClientAccesses.userId, userId),
+    isNotNull(eventClientAccesses.acceptedAt),
+    isNull(eventClientAccesses.revokedAt),
+  );
+}
+
+export async function findClientEventIds(organizationId: string, userId: string): Promise<string[]> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    return await withOrganization(db, organizationId, async (tx) => {
+      const rows = await tx
+        .selectDistinct({ eventId: eventClientAccesses.eventId })
+        .from(eventClientAccesses)
+        .where(activeAccessFor(userId));
+      return rows.map((row) => row.eventId);
+    });
+  } finally {
+    await pg.end();
+  }
+}
+
+export async function hasActiveClientAccess(organizationId: string, userId: string, eventId: string): Promise<boolean> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    return await withOrganization(db, organizationId, async (tx) => {
+      const [row] = await tx
+        .select({ id: eventClientAccesses.id })
+        .from(eventClientAccesses)
+        .where(and(activeAccessFor(userId), eq(eventClientAccesses.eventId, eventId)));
+      return row !== undefined;
+    });
+  } finally {
+    await pg.end();
+  }
+}
+
+export type ClientTaskToggleResult = { status: "saved"; task: EventTaskRow } | { status: "denied" };
+
+// Le marié ne coche que les tâches « mariés » d'un événement auquel il a
+// accès ; chaque changement est inscrit au fil d'activité, dans la même
+// transaction.
+export async function toggleClientTask(
+  organizationId: string,
+  userId: string,
+  taskId: string,
+  done: boolean,
+): Promise<ClientTaskToggleResult> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    return await withOrganization(db, organizationId, async (tx) => {
+      const [task] = await tx.select().from(eventTasks).where(eq(eventTasks.id, taskId));
+      if (!task || task.responsible !== "clients") return { status: "denied" };
+      const [access] = await tx
+        .select({ id: eventClientAccesses.id })
+        .from(eventClientAccesses)
+        .where(and(activeAccessFor(userId), eq(eventClientAccesses.eventId, task.eventId)));
+      if (!access) return { status: "denied" };
+
+      if ((task.doneAt !== null) === done) return { status: "saved", task };
+      const [updated] = await tx
+        .update(eventTasks)
+        .set({ doneAt: done ? new Date() : null, updatedAt: new Date() })
+        .where(eq(eventTasks.id, taskId))
+        .returning();
+      await tx.insert(eventActivities).values({
+        organizationId,
+        eventId: task.eventId,
+        actorUserId: userId,
+        kind: done ? "task_done" : "task_undone",
+        taskId,
+        taskLabel: task.label,
+      });
+      return { status: "saved", task: updated! };
+    });
+  } finally {
+    await pg.end();
+  }
+}
+
+export async function findEventActivity(
+  organizationId: string,
+  eventId: string,
+): Promise<{ activity: EventActivityRow; actorEmail: string | null }[]> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    return await withOrganization(db, organizationId, async (tx) => {
+      const activity = await tx
+        .select()
+        .from(eventActivities)
+        .where(eq(eventActivities.eventId, eventId))
+        .orderBy(desc(eventActivities.createdAt));
+      const actorIds = [...new Set(activity.map((row) => row.actorUserId))];
+      const accesses =
+        actorIds.length > 0
+          ? await tx
+              .select({ userId: eventClientAccesses.userId, email: eventClientAccesses.email })
+              .from(eventClientAccesses)
+              .where(and(eq(eventClientAccesses.eventId, eventId), inArray(eventClientAccesses.userId, actorIds)))
+          : [];
+      const emailByUser = new Map(accesses.map((access) => [access.userId, access.email]));
+      return activity.map((row) => ({ activity: row, actorEmail: emailByUser.get(row.actorUserId) ?? null }));
     });
   } finally {
     await pg.end();
