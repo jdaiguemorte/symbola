@@ -70,3 +70,14 @@ export type {
   EventsTrial,
   StartEventsTrialInput,
 } from "./events/service-contract";
+export type {
+  AdjustEventBudgetItemInput,
+  AllocationModel,
+  AllocationModelItem,
+  AllocationModelItemInput,
+  BudgetServiceContract,
+  CreateAllocationModelInput,
+  EventBudgetItem,
+  EventBudgetView,
+  SimulateEventBudgetInput,
+} from "./budget/service-contract";

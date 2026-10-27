@@ -154,6 +154,11 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
 
       {isPastConfirmed ? <p role="status">{t("suggestMarkDone")}</p> : null}
 
+      {/* Lot 3, BUD-01 : simulation/suivi budgétaire de cet événement. */}
+      <p>
+        <Link href={`/budget/${event.id}`}>{t("budgetLink")}</Link>
+      </p>
+
       <ChangeStatusForm eventId={event.id} currentStatus={event.status} reasons={reasons} />
 
       <h2>{t("vendorSlotsTitle")}</h2>

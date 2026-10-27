@@ -1000,6 +1000,11 @@ export async function hasRealEvents(organizationId: string): Promise<boolean> {
   return (await countRealEvents(organizationId)) > 0;
 }
 
+// Lot 3 (BUD-04) : exposition publique de la vérification déjà utilisée en
+// interne par getClientEventView — le module budget en a besoin pour sa
+// propre vue en lecture seule du marié.
+export { hasActiveClientAccess };
+
 const _contractCheck: EventsServiceContract = {
   listEvents,
   getEvent,
@@ -1053,5 +1058,6 @@ const _contractCheck: EventsServiceContract = {
   endEventsTrial,
   purgeExpiredDemoEvents,
   hasRealEvents,
+  hasActiveClientAccess,
 };
 void _contractCheck;
