@@ -392,3 +392,39 @@ export async function findBudgetLineAttachment(
     await sql.end();
   }
 }
+
+// AIDE-02 — suppression de toutes les données budget d'événements
+// (essais guidés terminés ou expirés), enfants d'abord. Renvoie les clés
+// des devis stockés, à supprimer ensuite du stockage.
+export async function deleteEventBudgetRows(organizationId: string, eventIds: string[]): Promise<string[]> {
+  if (eventIds.length === 0) return [];
+  const { sql, db } = createAppConnection();
+  try {
+    return await withOrganization(db, organizationId, async (tx) => {
+      const lines = await tx.select({ id: budgetLines.id }).from(budgetLines).where(inArray(budgetLines.eventId, eventIds));
+      const lineIds = lines.map((line) => line.id);
+      let fileKeys: string[] = [];
+      if (lineIds.length > 0) {
+        const attachments = await tx
+          .delete(budgetLineAttachments)
+          .where(inArray(budgetLineAttachments.lineId, lineIds))
+          .returning({ fileKey: budgetLineAttachments.fileKey });
+        fileKeys = attachments.map((attachment) => attachment.fileKey);
+        await tx.delete(budgetLineHistory).where(inArray(budgetLineHistory.lineId, lineIds));
+        await tx.delete(budgetLines).where(inArray(budgetLines.id, lineIds));
+      }
+      const budgets = await tx
+        .select({ id: eventBudgets.id })
+        .from(eventBudgets)
+        .where(inArray(eventBudgets.eventId, eventIds));
+      const budgetIds = budgets.map((budget) => budget.id);
+      if (budgetIds.length > 0) {
+        await tx.delete(eventBudgetItems).where(inArray(eventBudgetItems.eventBudgetId, budgetIds));
+        await tx.delete(eventBudgets).where(inArray(eventBudgets.id, budgetIds));
+      }
+      return fileKeys;
+    });
+  } finally {
+    await sql.end();
+  }
+}

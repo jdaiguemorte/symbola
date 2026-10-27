@@ -230,7 +230,7 @@
     },
     "clientEvent": {
       "title": "Following the preparations",
-      "body": "Tasks “For you to do” are checked once done: your planner sees it right away. The others are handled by your planner. The wedding day schedule can be downloaded as a PDF."
+      "body": "Tasks “For you to do” are checked once done: your planner sees it right away. The others are handled by your planner. The wedding day schedule can be downloaded as a PDF. The budget (planned, actual, variance per vendor slot) also shows, read-only, as soon as your planner has prepared it."
     },
     "clientSecurity": {
       "title": "Two-factor authentication",
@@ -586,7 +586,9 @@
     "mfaCode": "6-digit code",
     "mfaConfirm": "Confirm",
     "mfaInvalidCode": "Incorrect code, try again.",
-    "mfaEnabledNow": "Two-factor authentication enabled: it will be asked at every login."
+    "mfaEnabledNow": "Two-factor authentication enabled: it will be asked at every login.",
+    "budgetTitle": "Budget",
+    "noBudgetYet": "Your planner has not shared a budget for this event yet."
   },
   "NotFound": {
     "title": "Page not found",

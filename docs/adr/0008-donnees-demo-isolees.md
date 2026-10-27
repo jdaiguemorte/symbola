@@ -31,6 +31,14 @@ Un test automatisé vérifie qu'aucune donnée de démo ne subsiste après un es
 - Purge : à la fin de l'essai (bouton de la fiche), et pour un essai
   abandonné, au retour sur la liste des événements et chaque heure côté
   serveur (`lib/demo-purge.ts`, lancé par `instrumentation.ts`).
+- Tous modules confondus (lot 3) : `lib/demo-purge.ts` orchestre la purge —
+  le module budget supprime d'abord ses données de l'événement fictif
+  (simulation, lignes, historique, devis joints et leurs fichiers stockés,
+  `removeEventBudgetData`), puis le module events supprime l'événement. Les
+  modules ne se connaissent que par leur `service.ts` (ADR 0011) ; tout
+  nouveau module rattaché à un événement doit s'ajouter à cet orchestrateur.
 - Le test `trial.integration.test.ts` vérifie qu'après l'essai aucune ligne
   de l'événement fictif ne subsiste dans les tables du module ni dans
-  `domain_events`, et la purge à 24 h (veille et lendemain de l'échéance).
+  `domain_events`, et la purge à 24 h (veille et lendemain de l'échéance) ;
+  `lib/demo-purge.integration.test.ts` vérifie la même chose pour le budget
+  et les fichiers stockés.

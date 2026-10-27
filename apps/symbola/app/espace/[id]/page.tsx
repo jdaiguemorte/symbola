@@ -4,7 +4,10 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { formatCalendarDate, formatMonth, type Locale } from "@symbola/i18n";
 import { HelpButton } from "@symbola/ui";
 import { ClientAccessDeniedError, getClientEventView, monthKey, type EventTask } from "@/modules/events/service";
+import { ClientBudgetAccessDeniedError, getClientBudgetView } from "@/modules/budget/service";
 import { getClientAuthContext } from "@/lib/auth-context";
+import { isBudgetModuleEnabled } from "@/app/budget/module-access";
+import { ClientBudget } from "./client-budget";
 import { isEventsModuleEnabled, isValidId } from "@/app/events/module-access";
 import { toggleClientTaskAction } from "./actions";
 
@@ -37,6 +40,18 @@ export default async function ClientEventPage({ params }: { params: Promise<{ id
     // Accès absent, retiré ou événement d'un autre couple : même réponse.
     if (error instanceof ClientAccessDeniedError) notFound();
     throw error;
+  }
+
+  // BUD-04 : budget en lecture seule, masqué si le module n'est pas
+  // souscrit (dégradation propre, CLAUDE.md §2.3). L'accès est revérifié
+  // par le module budget lui-même.
+  let budget = null;
+  if (await isBudgetModuleEnabled(auth.user.organizationId)) {
+    try {
+      budget = await getClientBudgetView(auth.user.organizationId, auth.user.id, id);
+    } catch (error) {
+      if (!(error instanceof ClientBudgetAccessDeniedError)) throw error;
+    }
   }
 
   const t = await getTranslations("ClientSpace");
@@ -113,6 +128,13 @@ export default async function ClientEventPage({ params }: { params: Promise<{ id
           </li>
         ))}
       </ul>
+
+      {budget ? (
+        <section aria-labelledby="client-budget-title">
+          <h2 id="client-budget-title">{t("budgetTitle")}</h2>
+          <ClientBudget view={budget} locale={locale} />
+        </section>
+      ) : null}
     </main>
   );
 }

@@ -1,7 +1,7 @@
 // Client de stockage objet compatible S3 (Garage, ADR 0015 — remplace
 // MinIO ; SOC-08). Bucket privé : jamais d'ACL publique, téléchargement
 // uniquement par lien signé à durée limitée.
-import { GetObjectCommand, HeadBucketCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { DeleteObjectCommand, GetObjectCommand, HeadBucketCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { parseEnv } from "@symbola/env";
 
@@ -50,6 +50,13 @@ export async function getPrivateObject(storage: ReturnType<typeof createStorageC
   const response = await storage.client.send(new GetObjectCommand({ Bucket: storage.bucket, Key: key }));
   if (!response.Body) throw new Error("objet vide");
   return Buffer.from(await response.Body.transformToByteArray());
+}
+
+// Suppression d'un objet privé (AIDE-02 : devis joint à un événement
+// d'essai, supprimé avec l'essai). Supprimer un objet absent ne lève pas
+// d'erreur (comportement S3).
+export async function deletePrivateObject(storage: ReturnType<typeof createStorageClient>, key: string): Promise<void> {
+  await storage.client.send(new DeleteObjectCommand({ Bucket: storage.bucket, Key: key }));
 }
 
 // Vérification de disponibilité du stockage (SOC-11, page /health) : le
