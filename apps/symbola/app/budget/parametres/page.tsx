@@ -1,9 +1,11 @@
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { HelpButton } from "@symbola/ui";
+import type { TourStep } from "@symbola/ui";
 import { listDefaultVendorSlots } from "@/modules/events/service";
 import { listAllocationModels } from "@/modules/budget/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
+import { isTourInitiallyOpen } from "@/lib/module-tour";
+import { ModuleTourAndHelp } from "@/app/module-tour";
 import { isBudgetModuleEnabled } from "../module-access";
 import { AllocationModelForm } from "./allocation-model-form";
 import { removeAllocationModelAction } from "./actions";
@@ -18,6 +20,7 @@ export default async function BudgetSettingsPage() {
 
   const t = await getTranslations("Budget");
   const tHelp = await getTranslations("Help");
+  const tTour = await getTranslations("Tour");
 
   if (!(await isBudgetModuleEnabled(organizationId))) {
     return (
@@ -36,7 +39,17 @@ export default async function BudgetSettingsPage() {
   return (
     <main>
       <h1>{t("settingsTitle")}</h1>
-      <HelpButton title={tHelp("budgetSettings.title")} body={tHelp("budgetSettings.body")} />
+      <ModuleTourAndHelp
+        moduleKey="budget"
+        tourInitiallyOpen={await isTourInitiallyOpen(auth.user.id, "budget")}
+        tourSteps={tTour.raw("budget") as TourStep[]}
+        skipLabel={tTour("skip")}
+        nextLabel={tTour("next")}
+        finishLabel={tTour("finish")}
+        helpTitle={tHelp("budgetSettings.title")}
+        helpBody={tHelp("budgetSettings.body")}
+        relaunchLabel={tHelp("relaunchTour")}
+      />
 
       <h2>{t("modelsTitle")}</h2>
       {models.length === 0 ? <p>{t("noModels")}</p> : null}

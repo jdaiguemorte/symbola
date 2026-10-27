@@ -160,6 +160,42 @@
         "title": "Try without risk",
         "body": "The guided trial opens a complete fictional wedding to test everything; it is deleted when the trial ends. Relaunch this tour at any time with the “?” button."
       }
+    ],
+    "quotes": [
+      {
+        "title": "Your catalogue",
+        "body": "Save your reusable services here: label, unit, price excl. VAT, VAT rate and category. An archived item stays on the quotes that use it."
+      },
+      {
+        "title": "Composing a quote",
+        "body": "From an event page, “Create a quote” assigns its number; add items, free lines and discounts, and totals are recalculated."
+      },
+      {
+        "title": "Deposits and signature",
+        "body": "Plan the deposit schedule, then send the quote for signature: each signer receives their link by email, and the event becomes “Confirmed” once signed."
+      },
+      {
+        "title": "Invoices and payments",
+        "body": "From a signed quote, issue deposit and balance invoices; track upcoming payments and prepare e-reporting period by period."
+      }
+    ],
+    "budget": [
+      {
+        "title": "Your budget models",
+        "body": "A model splits a total budget across your vendor slots, in percentages adding up to 100%."
+      },
+      {
+        "title": "Simulating a budget",
+        "body": "On a prospect's page, “Budget” simulates the split from a total and the number of guests, adjustable slot by slot."
+      },
+      {
+        "title": "Planned, actual, variance",
+        "body": "Once the event is confirmed, the simulation becomes the planned budget; enter actual amounts, attach vendor quotes and follow the variance."
+      },
+      {
+        "title": "Sharing with the couple",
+        "body": "Invited couples see their budget read-only in their space."
+      }
     ]
   },
   "Help": {
@@ -512,7 +548,9 @@
     "budgetLink": "Budget",
     "confirmBudgetTitle": "Make the simulation the planned budget",
     "confirmBudgetBody": "The event is confirmed and a simulation already exists: you can use it as the starting point for the planned budget, vendor slot by vendor slot.",
-    "confirmAsPlanned": "Make it the planned budget"
+    "confirmAsPlanned": "Make it the planned budget",
+    "trialStepQuote": "Compose a fictional quote, have the fictional couple sign it on the trial signing page, then issue its invoices (DEMO series, watermarked).",
+    "trialStartQuote": "Try a fictional quote"
   },
   "Budget": {
     "title": "Budget",

@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "lines": [
+    { "label": { "fr": "Coordination du jour J", "en": "Wedding day coordination" }, "unit": { "fr": "forfait", "en": "package" }, "quantityMilli": 1000, "unitPriceCents": 180000, "vatRateBasisPoints": 2000 },
+    { "label": { "fr": "Recherche et réservation des prestataires", "en": "Vendor search and booking" }, "unit": { "fr": "forfait", "en": "package" }, "quantityMilli": 1000, "unitPriceCents": 90000, "vatRateBasisPoints": 2000 },
+    { "label": { "fr": "Décoration de table", "en": "Table decoration" }, "unit": { "fr": "table", "en": "table" }, "quantityMilli": 10000, "unitPriceCents": 4500, "vatRateBasisPoints": 2000 }
+  ],
+  "schedule": [
+    { "label": { "fr": "Acompte à la signature", "en": "Deposit on signature" }, "percentageBasisPoints": 3000, "dueOffsetDays": 7 },
+    { "label": { "fr": "Deuxième acompte", "en": "Second deposit" }, "percentageBasisPoints": 4000, "dueOffsetDays": 60 }
+  ]
+}

@@ -4,6 +4,7 @@
 // partir de zéro, ou importer un fichier ») ; rien n'est créé d'office.
 import { z } from "zod";
 import demoEventFile from "./demo-event.json";
+import demoQuoteFile from "./demo-quote.json";
 import invoiceMentionsFile from "./invoice-mentions.json";
 import paymentMethodsFile from "./payment-methods.json";
 import programFile from "./program.json";
@@ -160,5 +161,43 @@ export function starterDemoEvent(locale: StarterLocale): StarterDemoEvent {
     })),
     venueName: demoEvent.venueName[locale],
     venueCity: demoEvent.venueCity[locale],
+  };
+}
+
+// AIDE-02 / lot 4 : devis fictif de l'essai guidé (module Devis), lignes et
+// échéancier dans la langue demandée ; dates relatives au jour de l'essai.
+const demoQuoteSchema = z.object({
+  version: z.literal(1),
+  lines: z
+    .array(
+      z.object({
+        label: translatedLabelSchema,
+        unit: translatedLabelSchema,
+        quantityMilli: z.number().int().positive(),
+        unitPriceCents: z.number().int().nonnegative(),
+        vatRateBasisPoints: z.number().int().min(0).max(10000),
+      }),
+    )
+    .min(1),
+  schedule: z.array(
+    z.object({
+      label: translatedLabelSchema,
+      percentageBasisPoints: z.number().int().min(1).max(10000),
+      dueOffsetDays: z.number().int().nonnegative(),
+    }),
+  ),
+});
+
+const demoQuote = demoQuoteSchema.parse(demoQuoteFile);
+
+export type StarterDemoQuote = {
+  lines: { label: string; unit: string; quantityMilli: number; unitPriceCents: number; vatRateBasisPoints: number }[];
+  schedule: { label: string; percentageBasisPoints: number; dueOffsetDays: number }[];
+};
+
+export function starterDemoQuote(locale: StarterLocale): StarterDemoQuote {
+  return {
+    lines: demoQuote.lines.map((line) => ({ ...line, label: line.label[locale], unit: line.unit[locale] })),
+    schedule: demoQuote.schedule.map((item) => ({ ...item, label: item.label[locale] })),
   };
 }

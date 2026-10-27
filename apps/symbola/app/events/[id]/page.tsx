@@ -22,7 +22,7 @@ import {
 import { getEventBudget, listBudgetLines } from "@/modules/budget/service";
 import { confirmEventBudgetAction } from "@/app/budget/[eventId]/actions";
 import { listEventQuotes } from "@/modules/quotes/service";
-import { createQuoteAction } from "@/app/devis/actions";
+import { createQuoteAction, startQuotesTrialAction } from "@/app/devis/actions";
 import { isQuotesModuleEnabled } from "@/app/devis/module-access";
 import { QUOTE_STATUS_LABEL_KEYS } from "@/app/devis/quote-display";
 import { getPlannerAuthContext } from "@/lib/auth-context";
@@ -146,7 +146,14 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
             <li>{t("trialStepVendor")}</li>
             <li>{t("trialStepTask")}</li>
             <li>{t("trialStepProgram")}</li>
+            {quotesAvailable ? <li>{t("trialStepQuote")}</li> : null}
           </ol>
+          {quotesAvailable ? (
+            <form action={startQuotesTrialAction}>
+              <input type="hidden" name="eventId" value={event.id} />
+              <button type="submit">{t("trialStartQuote")}</button>
+            </form>
+          ) : null}
           <form action={endTrialAction}>
             <input type="hidden" name="eventId" value={event.id} />
             <button type="submit">{t("trialEnd")}</button>

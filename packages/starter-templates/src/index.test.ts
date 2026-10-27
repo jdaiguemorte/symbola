@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import retroplanningFile from "./retroplanning.json";
 import vendorSlotsFile from "./vendor-slots.json";
 import programFile from "./program.json";
-import { starterDemoEvent, starterInvoiceMentions, starterPaymentMethods, starterProgram, starterRetroplanning, starterVendorSlots } from "./index";
+import { starterDemoEvent, starterDemoQuote, starterInvoiceMentions, starterPaymentMethods, starterProgram, starterRetroplanning, starterVendorSlots } from "./index";
 
 describe("EVT-03 — Modèle de départ des postes prestataires", () => {
   it("existe en français et en anglais, avec le même nombre de postes", () => {
@@ -93,5 +93,16 @@ describe("DEV-04 — Mentions de facturation de départ", () => {
   it("existent en français et en anglais", () => {
     expect(starterInvoiceMentions("fr")).toContain("Conditions de paiement");
     expect(starterInvoiceMentions("en")).toContain("Payment terms");
+  });
+});
+
+describe("AIDE-02 — Devis fictif de l'essai guidé", () => {
+  it("existe en français et en anglais, avec des lignes et un échéancier qui ne dépasse pas le total", () => {
+    const fr = starterDemoQuote("fr");
+    const en = starterDemoQuote("en");
+    expect(fr.lines[0]?.label).toBe("Coordination du jour J");
+    expect(en.lines[0]?.label).toBe("Wedding day coordination");
+    expect(en.lines).toHaveLength(fr.lines.length);
+    expect(fr.schedule.reduce((sum, item) => sum + item.percentageBasisPoints, 0)).toBeLessThanOrEqual(10000);
   });
 });

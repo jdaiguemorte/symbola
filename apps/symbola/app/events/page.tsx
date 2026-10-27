@@ -12,7 +12,7 @@ import {
 import { hasSeenTour } from "@/modules/hub/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { purgeOrganizationsDemoData } from "@/lib/demo-purge";
-import { EventsTourAndHelp } from "./events-tour";
+import { ModuleTourAndHelp } from "../module-tour";
 import { isEventsModuleEnabled } from "./module-access";
 import { startTrialAction } from "./trial-actions";
 
@@ -91,7 +91,8 @@ export default async function EventsListPage({
   return (
     <main>
       <h1>{t("title")}</h1>
-      <EventsTourAndHelp
+      <ModuleTourAndHelp
+        moduleKey="events"
         tourInitiallyOpen={tourInitiallyOpen}
         tourSteps={tTour.raw("events") as TourStep[]}
         skipLabel={tTour("skip")}
