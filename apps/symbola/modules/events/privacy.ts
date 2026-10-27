@@ -4,11 +4,12 @@
 // EVT-03 : un prestataire indépendant est une personne), intervenants
 // libres et notes internes du programme du jour J (EVT-05 : un officiant,
 // un témoin y sont nommés), e-mail d'invitation des mariés (EVT-06).
-import { ilike, or } from "drizzle-orm";
+import { and, ilike, or, sql as raw, type SQL, type SQLWrapper } from "drizzle-orm";
 import { createAppConnection } from "@symbola/db/client";
 import {
   eventClientAccesses,
   eventClients,
+  events,
   eventVendorSlots,
   programItemParticipants,
   programItems,
@@ -21,24 +22,33 @@ function fullName(firstName: string, lastName: string | null): string {
   return lastName ? `${firstName} ${lastName}` : firstName;
 }
 
+// AIDE-02, ADR 0008 : les données d'un essai guidé (événement is_demo) sont
+// fictives et n'entrent jamais dans une recherche RGPD.
+function notDemo(eventId: SQLWrapper): SQL {
+  return raw`${eventId} not in (select ${events.id} from ${events} where ${events.isDemo})`;
+}
+
 function clientMatch(term: string) {
-  return or(ilike(eventClients.firstName, term), ilike(eventClients.lastName, term));
+  return and(or(ilike(eventClients.firstName, term), ilike(eventClients.lastName, term)), notDemo(eventClients.eventId));
 }
 
 function vendorMatch(term: string) {
-  return ilike(eventVendorSlots.vendorName, term);
+  return and(ilike(eventVendorSlots.vendorName, term), notDemo(eventVendorSlots.eventId));
 }
 
 function participantMatch(term: string) {
-  return ilike(programItemParticipants.freeLabel, term);
+  return and(
+    ilike(programItemParticipants.freeLabel, term),
+    raw`${programItemParticipants.programItemId} in (select ${programItems.id} from ${programItems} where ${notDemo(programItems.eventId)})`,
+  );
 }
 
 function accessMatch(term: string) {
-  return ilike(eventClientAccesses.email, term);
+  return and(ilike(eventClientAccesses.email, term), notDemo(eventClientAccesses.eventId));
 }
 
 function noteMatch(term: string) {
-  return ilike(programItems.internalNote, term);
+  return and(ilike(programItems.internalNote, term), notDemo(programItems.eventId));
 }
 
 async function find(query: PersonQuery) {
