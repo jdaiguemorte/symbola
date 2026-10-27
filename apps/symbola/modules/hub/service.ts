@@ -8,6 +8,7 @@ import { sendMail } from "@symbola/mail";
 import { parseEnv } from "@symbola/env";
 import {
   findInvitationByTokenHash,
+  findOrganizationById,
   findOrganizationModule,
   findOrganizationProfile,
   findPlatformSettings,
@@ -202,6 +203,18 @@ export async function completeOnboarding(
 
   await upsertOrganizationProfileFields(db, organizationId, { completedAt: new Date() });
   return { outcome: "success" };
+}
+
+// EVT-05 — en-tête des documents exportés (programme du jour J, plus tard
+// devis et factures) : nom de l'organisation et clé de son logo.
+export async function getDocumentHeader(
+  db: AppDatabase,
+  organizationId: string,
+): Promise<{ organizationName: string; logoKey: string | null } | null> {
+  const organization = await findOrganizationById(db, organizationId);
+  if (!organization) return null;
+  const profile = await getOrganizationProfile(db, organizationId);
+  return { organizationName: organization.name, logoKey: profile.logoKey };
 }
 
 // ONB-01 — mentions légales déduites du régime de TVA (exemple du PRD :

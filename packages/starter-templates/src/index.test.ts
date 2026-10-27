@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import retroplanningFile from "./retroplanning.json";
 import vendorSlotsFile from "./vendor-slots.json";
-import { starterRetroplanning, starterVendorSlots } from "./index";
+import programFile from "./program.json";
+import { starterProgram, starterRetroplanning, starterVendorSlots } from "./index";
 
 describe("EVT-03 — Modèle de départ des postes prestataires", () => {
   it("existe en français et en anglais, avec le même nombre de postes", () => {
@@ -38,5 +39,30 @@ describe("EVT-04 — Modèle de départ du rétroplanning", () => {
     expect(new Set(keys).size).toBe(keys.length);
     const offsets = retroplanningFile.items.map((item) => item.offsetDays);
     expect([...offsets].sort((a, b) => a - b)).toEqual(offsets);
+  });
+});
+
+describe("EVT-05 — Modèle de départ du programme du jour J", () => {
+  it("existe en français et en anglais, avec les mêmes lignes et heures", () => {
+    const fr = starterProgram("fr");
+    const en = starterProgram("en");
+    expect(fr.items.length).toBeGreaterThan(0);
+    expect(en.items.map((item) => [item.startTime, item.endTime])).toEqual(
+      fr.items.map((item) => [item.startTime, item.endTime]),
+    );
+    expect(fr.items.map((item) => item.label)).toContain("Cérémonie");
+    expect(en.items.map((item) => item.label)).toContain("Ceremony");
+  });
+
+  it("ses intervenants sont des postes du modèle de départ, dans la même langue", () => {
+    const fr = starterProgram("fr");
+    const slots = new Set(starterVendorSlots("fr"));
+    for (const item of fr.items) for (const label of item.participantLabels) expect(slots).toContain(label);
+    expect(fr.items.find((item) => item.label === "Cérémonie")?.participantLabels).toContain("Photographe");
+  });
+
+  it("n'a pas de clé en double", () => {
+    const keys = programFile.items.map((item) => item.key);
+    expect(new Set(keys).size).toBe(keys.length);
   });
 });

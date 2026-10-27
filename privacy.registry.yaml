@@ -65,3 +65,26 @@ fields:
       Remplacé par « [anonymisé] » lors d'une demande d'oubli (RGPD-03) ;
       mis à nul lors d'un effacement, le poste restant attaché à
       l'événement.
+  - schema: events
+    table: program_item_participants
+    field: free_label
+    category: identifiant
+    retention: >-
+      Tant que l'événement existe (intervenant libre du programme du jour J,
+      EVT-05 : officiant, témoin…). Après suppression ou demande d'oubli :
+      voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Remplacé par « [anonymisé] » lors d'une demande d'oubli (RGPD-03) ;
+      l'intervenant est supprimé lors d'un effacement, la ligne du programme
+      restant attachée à l'événement.
+  - schema: events
+    table: program_items
+    field: internal_note
+    category: contenu_libre
+    retention: >-
+      Tant que l'événement existe (note interne d'une ligne du programme,
+      EVT-05, jamais montrée aux mariés). Après suppression ou demande
+      d'oubli : voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Remplacée par « [anonymisé] » lors d'une demande d'oubli (RGPD-03) ;
+      mise à nul lors d'un effacement.

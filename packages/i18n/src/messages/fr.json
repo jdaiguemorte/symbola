@@ -183,7 +183,7 @@
     },
     "eventsDetail": {
       "title": "Fiche de l'événement",
-      "body": "Suivez ici l'avancement de l'événement (prospect, devis envoyé, confirmé, réalisé ou perdu) et de ses postes prestataires : la barre du haut compte les postes réservés sur les postes requis. Un poste réservé demande le nom du prestataire ; le montant est facultatif. Le rétroplanning liste les tâches par mois : appliquez un modèle, ajoutez, cochez ou réordonnez les tâches. Si la date de l'événement change, l'app propose de décaler les échéances des tâches non faites."
+      "body": "Suivez ici l'avancement de l'événement (prospect, devis envoyé, confirmé, réalisé ou perdu) et de ses postes prestataires : la barre du haut compte les postes réservés sur les postes requis. Un poste réservé demande le nom du prestataire ; le montant est facultatif. Le rétroplanning liste les tâches par mois : appliquez un modèle, ajoutez, cochez ou réordonnez les tâches. Si la date de l'événement change, l'app propose de décaler les échéances des tâches non faites. Le programme du jour J liste les lignes par heure ; l'app signale, sans bloquer, un intervenant prévu sur deux lignes qui se chevauchent. Exportez-le en PDF : version mariés (sans les notes internes) ou prestataires."
     },
     "eventsSettings": {
       "title": "Paramètres des événements",
@@ -192,6 +192,10 @@
     "eventsTemplates": {
       "title": "Modèles de rétroplanning",
       "body": "Créez vos modèles de rétroplanning, ou chargez le modèle de départ puis adaptez-le. Chaque tâche se place par rapport à la date de l'événement : J-365, J-30, jour J… Un modèle s'applique depuis la fiche d'un événement daté."
+    },
+    "eventsProgramTemplates": {
+      "title": "Modèles de programme",
+      "body": "Préparez vos déroulés types du jour J, ou chargez le modèle de départ puis adaptez-le. Un modèle s'applique depuis la fiche d'un événement : ses lignes s'ajoutent au programme, et les intervenants qui portent le nom d'un poste de l'événement y sont reliés."
     }
   },
   "FirstSteps": {
@@ -346,6 +350,57 @@
     "moveTaskUp": "Monter la tâche {label}",
     "moveTaskDown": "Descendre la tâche {label}",
     "removeTask": "Supprimer la tâche {label}",
-    "taskNotFound": "Tâche introuvable."
+    "taskNotFound": "Tâche introuvable.",
+    "programTitle": "Programme du jour J",
+    "programExports": "Exports du programme",
+    "programExportCouple": "Télécharger le PDF « mariés »",
+    "programExportVendors": "Télécharger le PDF « prestataires »",
+    "programOverlapsTitle": "Chevauchements à vérifier",
+    "programOverlap": "{participant} est prévu à la fois sur « {first} » et sur « {second} ».",
+    "noProgramItems": "Aucune ligne dans le programme.",
+    "newProgramItem": "Nouvelle ligne du programme",
+    "addProgramItem": "Ajouter la ligne",
+    "programItemAdded": "Ligne ajoutée.",
+    "editProgramItem": "Modifier la ligne {label}",
+    "saveProgramItem": "Enregistrer la ligne",
+    "programItemSaved": "Ligne enregistrée.",
+    "removeProgramItem": "Supprimer la ligne {label}",
+    "programItemNotFound": "Ligne du programme introuvable.",
+    "programParticipantNotFound": "Un intervenant choisi n'est pas un poste de cet événement.",
+    "programStartTime": "Heure de début",
+    "programEndTime": "Heure de fin (facultative)",
+    "programItemLabel": "Intitulé de la ligne",
+    "programLocation": "Lieu",
+    "programParticipants": "Intervenants",
+    "programVendorParticipants": "Intervenants parmi les postes de l'événement",
+    "programFreeParticipants": "Autres intervenants (séparés par des virgules)",
+    "programInternalNote": "Note interne",
+    "programTime": "Heure",
+    "invalidTime": "Heure invalide.",
+    "programTemplatesTitle": "Modèles de programme",
+    "programTemplatesLink": "Modèles de programme",
+    "programTemplatesIntro": "Un modèle de programme est une liste de lignes (heures, intitulé, lieu, intervenants). Appliqué à un événement, il ajoute ses lignes au programme ; un intervenant qui porte le nom d'un poste de l'événement est relié à ce poste.",
+    "noProgramTemplates": "Aucun modèle de programme pour l'instant.",
+    "noProgramTemplateItems": "Ce modèle ne contient encore aucune ligne.",
+    "newProgramTemplateTitle": "Nouveau modèle de programme",
+    "newProgramTemplateName": "Nom du modèle de programme",
+    "createProgramTemplate": "Créer le modèle de programme",
+    "programTemplateCreated": "Modèle de programme créé.",
+    "loadStarterProgram": "Charger le modèle de programme de départ",
+    "starterProgramLoaded": "Modèle de départ chargé : adaptez-le à votre façon de travailler.",
+    "removeProgramTemplate": "Supprimer le modèle de programme {name}",
+    "addProgramTemplateItemTo": "Ajouter une ligne au modèle {name}",
+    "addProgramTemplateItem": "Ajouter la ligne au modèle",
+    "programTemplateItemAdded": "Ligne ajoutée au modèle.",
+    "programTemplateParticipants": "Intervenants (séparés par des virgules)",
+    "programTemplateNotFound": "Modèle de programme introuvable.",
+    "programTemplateToApply": "Modèle de programme à appliquer",
+    "applyProgramTemplate": "Appliquer le modèle de programme",
+    "programTemplateApplied": "Modèle appliqué : les lignes ont été ajoutées au programme.",
+    "programPdfCouple": "Version mariés",
+    "programPdfVendors": "Version prestataires",
+    "programPdfVersion": "Version du {date}",
+    "programPdfFileCouple": "programme-maries",
+    "programPdfFileVendors": "programme-prestataires"
   }
 }

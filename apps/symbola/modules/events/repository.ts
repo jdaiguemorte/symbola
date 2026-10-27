@@ -10,6 +10,10 @@ import {
   eventTasks,
   eventVendorSlots,
   lossReasons,
+  programItemParticipants,
+  programItems,
+  programTemplateItems,
+  programTemplates,
   prospectSources,
   taskTemplateItems,
   taskTemplates,
@@ -41,6 +45,10 @@ export type LossReasonRow = typeof lossReasons.$inferSelect;
 export type TaskTemplateRow = typeof taskTemplates.$inferSelect;
 export type TaskTemplateItemRow = typeof taskTemplateItems.$inferSelect;
 export type EventTaskRow = typeof eventTasks.$inferSelect;
+export type ProgramItemRow = typeof programItems.$inferSelect;
+export type ProgramItemParticipantRow = typeof programItemParticipants.$inferSelect;
+export type ProgramTemplateRow = typeof programTemplates.$inferSelect;
+export type ProgramTemplateItemRow = typeof programTemplateItems.$inferSelect;
 
 export async function findEvents(
   organizationId: string,
@@ -878,6 +886,337 @@ export async function deleteEventTask(organizationId: string, taskId: string): P
   const { sql: pg, db } = createAppConnection();
   try {
     await withOrganization(db, organizationId, (tx) => tx.delete(eventTasks).where(eq(eventTasks.id, taskId)));
+  } finally {
+    await pg.end();
+  }
+}
+
+// EVT-05 — programme du jour J.
+export type ProgramItemData = {
+  startTime: string;
+  endTime: string | null;
+  label: string;
+  location: string | null;
+  internalNote: string | null;
+};
+
+export type ProgramItemWithParticipants = {
+  item: ProgramItemRow;
+  participants: { row: ProgramItemParticipantRow; vendorSlotLabel: string | null }[];
+};
+
+async function loadParticipants(tx: Tx, itemIds: string[]) {
+  if (itemIds.length === 0) return [];
+  return tx
+    .select({ row: programItemParticipants, vendorSlotLabel: eventVendorSlots.label })
+    .from(programItemParticipants)
+    .leftJoin(eventVendorSlots, eq(eventVendorSlots.id, programItemParticipants.vendorSlotId))
+    .where(inArray(programItemParticipants.programItemId, itemIds))
+    .orderBy(asc(programItemParticipants.position));
+}
+
+async function withParticipants(tx: Tx, items: ProgramItemRow[]): Promise<ProgramItemWithParticipants[]> {
+  const participants = await loadParticipants(
+    tx,
+    items.map((item) => item.id),
+  );
+  return items.map((item) => ({
+    item,
+    participants: participants.filter((participant) => participant.row.programItemId === item.id),
+  }));
+}
+
+// Les postes cités doivent appartenir à l'événement (et donc à
+// l'organisation : la clé étrangère est vérifiée sans RLS).
+async function vendorSlotsBelongToEvent(tx: Tx, eventId: string, vendorSlotIds: string[]): Promise<boolean> {
+  const unique = [...new Set(vendorSlotIds)];
+  if (unique.length === 0) return true;
+  const found = await tx
+    .select({ id: eventVendorSlots.id })
+    .from(eventVendorSlots)
+    .where(and(eq(eventVendorSlots.eventId, eventId), inArray(eventVendorSlots.id, unique)));
+  return found.length === unique.length;
+}
+
+async function insertParticipants(
+  tx: Tx,
+  organizationId: string,
+  programItemId: string,
+  vendorSlotIds: string[],
+  freeLabels: string[],
+): Promise<void> {
+  const rows = [
+    ...[...new Set(vendorSlotIds)].map((vendorSlotId) => ({ vendorSlotId, freeLabel: null })),
+    ...freeLabels.map((freeLabel) => ({ vendorSlotId: null, freeLabel })),
+  ].map((participant, position) => ({ organizationId, programItemId, ...participant, position }));
+  if (rows.length > 0) await tx.insert(programItemParticipants).values(rows);
+}
+
+async function touchProgram(tx: Tx, eventId: string): Promise<void> {
+  await tx.update(events).set({ programUpdatedAt: new Date() }).where(eq(events.id, eventId));
+}
+
+export async function findEventProgram(
+  organizationId: string,
+  eventId: string,
+): Promise<{ event: EventRow; items: ProgramItemWithParticipants[] } | null> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    return await withOrganization(db, organizationId, async (tx) => {
+      const [event] = await tx.select().from(events).where(eq(events.id, eventId));
+      if (!event) return null;
+      const items = await tx
+        .select()
+        .from(programItems)
+        .where(eq(programItems.eventId, eventId))
+        .orderBy(asc(programItems.startTime), asc(programItems.createdAt));
+      return { event, items: await withParticipants(tx, items) };
+    });
+  } finally {
+    await pg.end();
+  }
+}
+
+export type ProgramWriteResult =
+  | { status: "saved"; item: ProgramItemWithParticipants }
+  | { status: "event_not_found" | "item_not_found" | "participant_not_found" };
+
+export async function insertProgramItem(
+  organizationId: string,
+  eventId: string,
+  data: ProgramItemData,
+  vendorSlotIds: string[],
+  freeLabels: string[],
+): Promise<ProgramWriteResult> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    return await withOrganization(db, organizationId, async (tx) => {
+      const [event] = await tx.select({ id: events.id }).from(events).where(eq(events.id, eventId));
+      if (!event) return { status: "event_not_found" };
+      if (!(await vendorSlotsBelongToEvent(tx, eventId, vendorSlotIds))) return { status: "participant_not_found" };
+      const [item] = await tx.insert(programItems).values({ organizationId, eventId, ...data }).returning();
+      if (!item) throw new Error("ajout de la ligne du programme échoué");
+      await insertParticipants(tx, organizationId, item.id, vendorSlotIds, freeLabels);
+      await touchProgram(tx, eventId);
+      const [saved] = await withParticipants(tx, [item]);
+      return { status: "saved", item: saved! };
+    });
+  } finally {
+    await pg.end();
+  }
+}
+
+export async function updateProgramItemRow(
+  organizationId: string,
+  itemId: string,
+  data: ProgramItemData,
+  vendorSlotIds: string[],
+  freeLabels: string[],
+): Promise<ProgramWriteResult> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    return await withOrganization(db, organizationId, async (tx) => {
+      const [current] = await tx.select().from(programItems).where(eq(programItems.id, itemId));
+      if (!current) return { status: "item_not_found" };
+      if (!(await vendorSlotsBelongToEvent(tx, current.eventId, vendorSlotIds))) {
+        return { status: "participant_not_found" };
+      }
+      const [item] = await tx
+        .update(programItems)
+        .set({ ...data, updatedAt: new Date() })
+        .where(eq(programItems.id, itemId))
+        .returning();
+      if (!item) throw new Error("mise à jour de la ligne du programme échouée");
+      await tx.delete(programItemParticipants).where(eq(programItemParticipants.programItemId, itemId));
+      await insertParticipants(tx, organizationId, itemId, vendorSlotIds, freeLabels);
+      await touchProgram(tx, item.eventId);
+      const [saved] = await withParticipants(tx, [item]);
+      return { status: "saved", item: saved! };
+    });
+  } finally {
+    await pg.end();
+  }
+}
+
+export async function deleteProgramItem(organizationId: string, itemId: string): Promise<void> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    await withOrganization(db, organizationId, async (tx) => {
+      const [deleted] = await tx.delete(programItems).where(eq(programItems.id, itemId)).returning();
+      if (deleted) await touchProgram(tx, deleted.eventId);
+    });
+  } finally {
+    await pg.end();
+  }
+}
+
+// EVT-05 — modèles de programme.
+export async function findProgramTemplates(
+  organizationId: string,
+): Promise<{ template: ProgramTemplateRow; items: ProgramTemplateItemRow[] }[]> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    return await withOrganization(db, organizationId, async (tx) => {
+      const templates = await tx.select().from(programTemplates).orderBy(asc(programTemplates.createdAt));
+      const items =
+        templates.length > 0
+          ? await tx
+              .select()
+              .from(programTemplateItems)
+              .where(
+                inArray(
+                  programTemplateItems.templateId,
+                  templates.map((template) => template.id),
+                ),
+              )
+              .orderBy(asc(programTemplateItems.startTime), asc(programTemplateItems.position))
+          : [];
+      return templates.map((template) => ({
+        template,
+        items: items.filter((item) => item.templateId === template.id),
+      }));
+    });
+  } finally {
+    await pg.end();
+  }
+}
+
+export type ProgramTemplateItemData = Omit<ProgramItemData, "internalNote"> & { participantLabels: string[] };
+
+export async function insertProgramTemplate(
+  organizationId: string,
+  name: string,
+  items: ProgramTemplateItemData[],
+): Promise<{ template: ProgramTemplateRow; items: ProgramTemplateItemRow[] }> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    return await withOrganization(db, organizationId, async (tx) => {
+      const [template] = await tx.insert(programTemplates).values({ organizationId, name }).returning();
+      if (!template) throw new Error("création du modèle de programme échouée");
+      const rows =
+        items.length > 0
+          ? await tx
+              .insert(programTemplateItems)
+              .values(items.map((item, position) => ({ organizationId, templateId: template.id, ...item, position })))
+              .returning()
+          : [];
+      return { template, items: rows };
+    });
+  } finally {
+    await pg.end();
+  }
+}
+
+export async function insertProgramTemplateItem(
+  organizationId: string,
+  templateId: string,
+  item: ProgramTemplateItemData,
+): Promise<ProgramTemplateItemRow | null> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    return await withOrganization(db, organizationId, async (tx) => {
+      // Clé étrangère vérifiée sans RLS : on contrôle que le modèle est visible.
+      const [template] = await tx
+        .select({ id: programTemplates.id })
+        .from(programTemplates)
+        .where(eq(programTemplates.id, templateId));
+      if (!template) return null;
+      const existing = await tx
+        .select({ position: programTemplateItems.position })
+        .from(programTemplateItems)
+        .where(eq(programTemplateItems.templateId, templateId));
+      const position = existing.reduce((max, row) => Math.max(max, row.position + 1), 0);
+      const [row] = await tx
+        .insert(programTemplateItems)
+        .values({ organizationId, templateId, ...item, position })
+        .returning();
+      if (!row) throw new Error("ajout de la ligne au modèle échoué");
+      return row;
+    });
+  } finally {
+    await pg.end();
+  }
+}
+
+export async function deleteProgramTemplateItem(organizationId: string, itemId: string): Promise<void> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    await withOrganization(db, organizationId, (tx) =>
+      tx.delete(programTemplateItems).where(eq(programTemplateItems.id, itemId)),
+    );
+  } finally {
+    await pg.end();
+  }
+}
+
+// Les lignes déjà copiées dans les programmes restent : elles ne
+// référencent pas le modèle.
+export async function deleteProgramTemplate(organizationId: string, templateId: string): Promise<void> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    await withOrganization(db, organizationId, (tx) =>
+      tx.delete(programTemplates).where(eq(programTemplates.id, templateId)),
+    );
+  } finally {
+    await pg.end();
+  }
+}
+
+export type ApplyProgramTemplateResult =
+  | { status: "applied"; items: ProgramItemWithParticipants[] }
+  | { status: "event_not_found" | "template_not_found" };
+
+// Copie les lignes du modèle à la suite du programme. Un intervenant du
+// modèle devient le poste de l'événement de même libellé (sans tenir
+// compte de la casse), sinon un intervenant libre.
+export async function applyProgramTemplateRows(
+  organizationId: string,
+  eventId: string,
+  templateId: string,
+): Promise<ApplyProgramTemplateResult> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    return await withOrganization(db, organizationId, async (tx) => {
+      const [event] = await tx.select({ id: events.id }).from(events).where(eq(events.id, eventId));
+      if (!event) return { status: "event_not_found" };
+      const [template] = await tx.select().from(programTemplates).where(eq(programTemplates.id, templateId));
+      if (!template) return { status: "template_not_found" };
+
+      const templateItems = await tx
+        .select()
+        .from(programTemplateItems)
+        .where(eq(programTemplateItems.templateId, templateId))
+        .orderBy(asc(programTemplateItems.startTime), asc(programTemplateItems.position));
+      const slots = await tx.select().from(eventVendorSlots).where(eq(eventVendorSlots.eventId, eventId));
+      const slotByLabel = new Map(slots.map((slot) => [slot.label.trim().toLowerCase(), slot.id]));
+
+      const created: ProgramItemRow[] = [];
+      for (const templateItem of templateItems) {
+        const [item] = await tx
+          .insert(programItems)
+          .values({
+            organizationId,
+            eventId,
+            startTime: templateItem.startTime,
+            endTime: templateItem.endTime,
+            label: templateItem.label,
+            location: templateItem.location,
+          })
+          .returning();
+        if (!item) throw new Error("copie de la ligne du modèle échouée");
+        const vendorSlotIds: string[] = [];
+        const freeLabels: string[] = [];
+        for (const label of templateItem.participantLabels) {
+          const slotId = slotByLabel.get(label.trim().toLowerCase());
+          if (slotId) vendorSlotIds.push(slotId);
+          else freeLabels.push(label.trim());
+        }
+        await insertParticipants(tx, organizationId, item.id, vendorSlotIds, freeLabels);
+        created.push(item);
+      }
+      if (created.length > 0) await touchProgram(tx, eventId);
+      return { status: "applied", items: await withParticipants(tx, created) };
+    });
   } finally {
     await pg.end();
   }

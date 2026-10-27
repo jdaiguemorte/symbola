@@ -169,6 +169,20 @@
       "when": 1793093609569,
       "tag": "0023_grant_retroplanning",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1793094965409,
+      "tag": "0024_evt_programme",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1793094966479,
+      "tag": "0025_grant_programme",
+      "breakpoints": true
     }
   ]
 }

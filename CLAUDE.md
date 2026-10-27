@@ -66,6 +66,7 @@ du cahier des charges, à activer seulement si un second client ou une équipe l
 | Événements | **Table `domain_events`** (outbox interne), schémas versionnés dans `packages/contracts` | NATS JetStream |
 | Fichiers | Garage (S3, ADR 0015 — remplace MinIO, image retirée des registres publics), liens signés à durée limitée, antivirus ClamAV à l'envoi | — (inchangé) |
 | i18n | next-intl | — (inchangé) |
+| PDF | @react-pdf/renderer (ADR 0019), rendu côté serveur | — (inchangé) |
 | Tests | Vitest (unitaires et intégration), Playwright (bout en bout, mobile 375 px), axe-core (accessibilité) | — (inchangé) |
 | Proxy | Caddy partagé du VPS (ADR 0018, remplace Traefik), HTTPS Let's Encrypt, un seul sous-domaine ; Traefik reste utilisé en dev local uniquement (socle Docker Compose, SOC-03) | Un sous-domaine par app |
 | Déploiement | Docker Compose, un seul fichier pour le socle + l'app | Un fichier par app + un pour le socle |

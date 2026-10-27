@@ -5,11 +5,13 @@ import { formatAmount, formatCalendarDate, formatMonth, type Locale } from "@sym
 import { HelpButton } from "@symbola/ui";
 import {
   getEvent,
+  getEventProgram,
   getTaskRecalculation,
   listEventTasks,
   listEventVendorSlots,
   listTaskTemplates,
   listLossReasons,
+  listProgramTemplates,
   listProspectSources,
   monthKey,
   summarizeVendorSlots,
@@ -18,6 +20,8 @@ import {
 import { getAuthContext } from "@/lib/auth-context";
 import { isEventsModuleEnabled, isValidId } from "../module-access";
 import { ChangeStatusForm } from "./change-status-form";
+import { removeProgramItemAction } from "./program-actions";
+import { AddProgramItemForm, ApplyProgramTemplateForm, EditProgramItemForm } from "./program-forms";
 import {
   moveEventTaskAction,
   removeEventTaskAction,
@@ -58,14 +62,18 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
 
   const event = await getEvent(organizationId, id);
   if (!event) notFound();
-  const [reasons, sources, vendorSlots, tasks, templates, recalculation] = await Promise.all([
-    listLossReasons(organizationId),
-    listProspectSources(organizationId),
-    listEventVendorSlots(organizationId, id),
-    listEventTasks(organizationId, id),
-    listTaskTemplates(organizationId),
-    getTaskRecalculation(organizationId, id),
-  ]);
+  const [reasons, sources, vendorSlots, tasks, templates, recalculation, program, programTemplates] =
+    await Promise.all([
+      listLossReasons(organizationId),
+      listProspectSources(organizationId),
+      listEventVendorSlots(organizationId, id),
+      listEventTasks(organizationId, id),
+      listTaskTemplates(organizationId),
+      getTaskRecalculation(organizationId, id),
+      getEventProgram(organizationId, id),
+      listProgramTemplates(organizationId),
+    ]);
+  const programLabels = new Map(program.items.map((item) => [item.id, item.label]));
   const locale = (await getLocale()) as Locale;
   const progress = summarizeVendorSlots(vendorSlots);
   const sourceLabel = sources.find((candidate) => candidate.id === event.prospectSourceId)?.label;
@@ -220,6 +228,72 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
         </section>
       ))}
       <AddEventTaskForm eventId={event.id} />
+
+      {/* EVT-05 : programme du jour J. */}
+      <h2>{t("programTitle")}</h2>
+      <nav aria-label={t("programExports")}>
+        <a href={`/events/${event.id}/programme/pdf?variant=couple`} download>
+          {t("programExportCouple")}
+        </a>
+        {" · "}
+        <a href={`/events/${event.id}/programme/pdf?variant=vendors`} download>
+          {t("programExportVendors")}
+        </a>
+      </nav>
+      {program.overlaps.length > 0 ? (
+        <section aria-labelledby="program-overlaps-title">
+          <h3 id="program-overlaps-title">{t("programOverlapsTitle")}</h3>
+          <ul>
+            {program.overlaps.map((overlap) => (
+              <li key={`${overlap.participant}-${overlap.itemIds.join("-")}`}>
+                {t("programOverlap", {
+                  participant: overlap.participant,
+                  first: programLabels.get(overlap.itemIds[0]) ?? "",
+                  second: programLabels.get(overlap.itemIds[1]) ?? "",
+                })}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+      {programTemplates.length > 0 ? (
+        <ApplyProgramTemplateForm eventId={event.id} templates={programTemplates} />
+      ) : (
+        <p>
+          {t("noProgramTemplates")} <Link href="/events/modeles-programme">{t("programTemplatesLink")}</Link>
+        </p>
+      )}
+      {program.items.length === 0 ? <p>{t("noProgramItems")}</p> : null}
+      <ul aria-label={t("programTitle")}>
+        {program.items.map((item) => (
+          <li key={item.id}>
+            <strong>
+              {item.endTime ? `${item.startTime} – ${item.endTime}` : item.startTime} — {item.label}
+            </strong>
+            {item.location ? ` — ${item.location}` : ""}
+            {item.participants.length > 0
+              ? ` — ${t("programParticipants")} : ${item.participants.map((participant) => participant.label).join(", ")}`
+              : ""}
+            {item.internalNote ? (
+              <p>
+                {t("programInternalNote")} : {item.internalNote}
+              </p>
+            ) : null}
+            <EditProgramItemForm
+              key={JSON.stringify(item)}
+              eventId={event.id}
+              item={item}
+              vendorSlots={vendorSlots}
+            />
+            <form action={removeProgramItemAction}>
+              <input type="hidden" name="eventId" value={event.id} />
+              <input type="hidden" name="itemId" value={item.id} />
+              <button type="submit">{t("removeProgramItem", { label: item.label })}</button>
+            </form>
+          </li>
+        ))}
+      </ul>
+      <AddProgramItemForm eventId={event.id} vendorSlots={vendorSlots} />
     </main>
   );
 }

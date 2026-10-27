@@ -2,7 +2,22 @@
 // modules peuvent importer (ADR 0011). Pensé comme le futur contrat HTTP
 // /v1/events si ce module est extrait en app autonome.
 import {
+  applyProgramTemplateRows,
   applyTaskTemplateRows,
+  deleteProgramItem,
+  deleteProgramTemplate,
+  deleteProgramTemplateItem,
+  findEventProgram,
+  findProgramTemplates,
+  insertProgramItem,
+  insertProgramTemplate,
+  insertProgramTemplateItem,
+  updateProgramItemRow,
+  type ProgramItemData,
+  type ProgramItemWithParticipants,
+  type ProgramTemplateItemRow,
+  type ProgramTemplateRow,
+  type ProgramWriteResult,
   deleteDefaultVendorSlot,
   deleteEventTask,
   deleteEventVendorSlot,
@@ -40,8 +55,7 @@ import {
   type TaskTemplateRow,
 } from "./repository";
 import { addDays } from "./schedule";
-
-export { monthKey } from "./schedule";
+import { findProgramOverlaps, normalizeTime, sortProgramItems } from "./program";
 import type {
   ChangeEventStatusInput,
   CreateProspectInput,
@@ -51,10 +65,17 @@ import type {
   EventDetail,
   EventsServiceContract,
   EventSummary,
+  EventProgram,
   EventTask,
   EventTaskInput,
   EventVendorSlot,
   ListEventsInput,
+  ProgramItem,
+  ProgramItemInput,
+  ProgramParticipant,
+  ProgramTemplate,
+  ProgramTemplateItem,
+  ProgramTemplateItemInput,
   LossReason,
   ProspectSource,
   TaskRecalculation,
@@ -69,6 +90,8 @@ import type {
 } from "@symbola/contracts";
 
 export { eventsPrivacy } from "./privacy";
+export { monthKey } from "./schedule";
+export { programForVariant, type ProgramVariant } from "./program";
 
 export type {
   ChangeEventStatusInput,
@@ -95,6 +118,14 @@ export type {
   TaskTemplateItem,
   TaskTemplateItemInput,
   UpdateEventTaskInput,
+  EventProgram,
+  ProgramItem,
+  ProgramItemInput,
+  ProgramOverlap,
+  ProgramParticipant,
+  ProgramTemplate,
+  ProgramTemplateItem,
+  ProgramTemplateItemInput,
 } from "@symbola/contracts";
 
 function toEventClient(row: EventClientRow): EventClient {
@@ -458,6 +489,196 @@ export async function removeEventTask(organizationId: string, taskId: string): P
   await deleteEventTask(organizationId, taskId);
 }
 
+// EVT-05 — programme du jour J.
+
+export class ProgramItemNotFoundError extends Error {
+  constructor() {
+    super("ligne du programme introuvable");
+    this.name = "ProgramItemNotFoundError";
+  }
+}
+
+// Un intervenant cité n'est pas un poste de cet événement.
+export class ProgramParticipantNotFoundError extends Error {
+  constructor() {
+    super("intervenant introuvable pour cet événement");
+    this.name = "ProgramParticipantNotFoundError";
+  }
+}
+
+export class ProgramTemplateNotFoundError extends Error {
+  constructor() {
+    super("modèle de programme introuvable");
+    this.name = "ProgramTemplateNotFoundError";
+  }
+}
+
+function optionalText(value: string | null | undefined): string | null {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : null;
+}
+
+function cleanLabels(labels: string[]): string[] {
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const label of labels.map((value) => value.trim()).filter(Boolean)) {
+    const key = label.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.push(label);
+  }
+  return result;
+}
+
+function normalizeProgramItem(input: ProgramItemInput): ProgramItemData {
+  return {
+    startTime: normalizeTime(input.startTime),
+    endTime: optionalText(input.endTime) === null ? null : normalizeTime(input.endTime!.trim()),
+    label: normalizeLabel(input.label),
+    location: optionalText(input.location),
+    internalNote: optionalText(input.internalNote),
+  };
+}
+
+function toProgramItem({ item, participants }: ProgramItemWithParticipants): ProgramItem {
+  return {
+    id: item.id,
+    eventId: item.eventId,
+    startTime: normalizeTime(item.startTime),
+    endTime: item.endTime === null ? null : normalizeTime(item.endTime),
+    label: item.label,
+    location: item.location,
+    internalNote: item.internalNote,
+    participants: participants.map(
+      ({ row, vendorSlotLabel }): ProgramParticipant => ({
+        vendorSlotId: row.vendorSlotId,
+        label: row.vendorSlotId ? (vendorSlotLabel ?? "") : (row.freeLabel ?? ""),
+      }),
+    ),
+  };
+}
+
+function savedProgramItem(result: ProgramWriteResult): ProgramItem {
+  switch (result.status) {
+    case "saved":
+      return toProgramItem(result.item);
+    case "event_not_found":
+      throw new EventNotFoundError();
+    case "item_not_found":
+      throw new ProgramItemNotFoundError();
+    case "participant_not_found":
+      throw new ProgramParticipantNotFoundError();
+  }
+}
+
+export async function getEventProgram(organizationId: string, eventId: string): Promise<EventProgram> {
+  const result = await findEventProgram(organizationId, eventId);
+  if (!result) throw new EventNotFoundError();
+  const items = sortProgramItems(result.items.map(toProgramItem));
+  return {
+    items,
+    overlaps: findProgramOverlaps(items),
+    updatedAt: result.event.programUpdatedAt?.toISOString() ?? null,
+  };
+}
+
+export async function addProgramItem(organizationId: string, eventId: string, item: ProgramItemInput): Promise<ProgramItem> {
+  return savedProgramItem(
+    await insertProgramItem(
+      organizationId,
+      eventId,
+      normalizeProgramItem(item),
+      item.vendorSlotIds,
+      cleanLabels(item.freeParticipants),
+    ),
+  );
+}
+
+export async function updateProgramItem(organizationId: string, itemId: string, item: ProgramItemInput): Promise<ProgramItem> {
+  return savedProgramItem(
+    await updateProgramItemRow(
+      organizationId,
+      itemId,
+      normalizeProgramItem(item),
+      item.vendorSlotIds,
+      cleanLabels(item.freeParticipants),
+    ),
+  );
+}
+
+export async function removeProgramItem(organizationId: string, itemId: string): Promise<void> {
+  await deleteProgramItem(organizationId, itemId);
+}
+
+function toProgramTemplateItem(row: ProgramTemplateItemRow): ProgramTemplateItem {
+  return {
+    id: row.id,
+    startTime: normalizeTime(row.startTime),
+    endTime: row.endTime === null ? null : normalizeTime(row.endTime),
+    label: row.label,
+    location: row.location,
+    participantLabels: row.participantLabels,
+    position: row.position,
+  };
+}
+
+function toProgramTemplate(template: ProgramTemplateRow, items: ProgramTemplateItemRow[]): ProgramTemplate {
+  return { id: template.id, name: template.name, items: sortProgramItems(items.map(toProgramTemplateItem)) };
+}
+
+function normalizeProgramTemplateItem(item: ProgramTemplateItemInput) {
+  // Un modèle n'a pas de note interne : elle est propre à chaque événement.
+  const { startTime, endTime, label, location } = normalizeProgramItem({ ...item, vendorSlotIds: [], freeParticipants: [] });
+  return { startTime, endTime, label, location, participantLabels: cleanLabels(item.participantLabels) };
+}
+
+export async function listProgramTemplates(organizationId: string): Promise<ProgramTemplate[]> {
+  return (await findProgramTemplates(organizationId)).map(({ template, items }) => toProgramTemplate(template, items));
+}
+
+export async function createProgramTemplate(
+  organizationId: string,
+  name: string,
+  items: ProgramTemplateItemInput[],
+): Promise<ProgramTemplate> {
+  const result = await insertProgramTemplate(
+    organizationId,
+    normalizeLabel(name),
+    items.map(normalizeProgramTemplateItem),
+  );
+  return toProgramTemplate(result.template, result.items);
+}
+
+export async function addProgramTemplateItem(
+  organizationId: string,
+  templateId: string,
+  item: ProgramTemplateItemInput,
+): Promise<ProgramTemplateItem> {
+  const row = await insertProgramTemplateItem(organizationId, templateId, normalizeProgramTemplateItem(item));
+  if (!row) throw new ProgramTemplateNotFoundError();
+  return toProgramTemplateItem(row);
+}
+
+export async function removeProgramTemplateItem(organizationId: string, itemId: string): Promise<void> {
+  await deleteProgramTemplateItem(organizationId, itemId);
+}
+
+export async function removeProgramTemplate(organizationId: string, templateId: string): Promise<void> {
+  await deleteProgramTemplate(organizationId, templateId);
+}
+
+export async function applyProgramTemplate(
+  organizationId: string,
+  eventId: string,
+  templateId: string,
+): Promise<ProgramItem[]> {
+  const result = await applyProgramTemplateRows(organizationId, eventId, templateId);
+  if (result.status !== "applied") {
+    throw result.status === "event_not_found" ? new EventNotFoundError() : new ProgramTemplateNotFoundError();
+  }
+  return sortProgramItems(result.items.map(toProgramItem));
+}
+
 const _contractCheck: EventsServiceContract = {
   listEvents,
   getEvent,
@@ -488,5 +709,15 @@ const _contractCheck: EventsServiceContract = {
   updateEventTask,
   moveEventTask,
   removeEventTask,
+  getEventProgram,
+  addProgramItem,
+  updateProgramItem,
+  removeProgramItem,
+  listProgramTemplates,
+  createProgramTemplate,
+  addProgramTemplateItem,
+  removeProgramTemplateItem,
+  removeProgramTemplate,
+  applyProgramTemplate,
 };
 void _contractCheck;

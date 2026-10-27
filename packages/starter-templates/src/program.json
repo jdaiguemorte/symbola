@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "name": { "fr": "Programme du jour J (modèle de départ)", "en": "Wedding day schedule (starter template)" },
+  "items": [
+    { "key": "hair_makeup", "startTime": "09:00", "endTime": "12:00", "vendorSlotKeys": ["hair_makeup"], "label": { "fr": "Coiffure et maquillage", "en": "Hair and make-up" }, "location": { "fr": "Lieu des préparatifs", "en": "Getting-ready venue" } },
+    { "key": "getting_ready_photos", "startTime": "11:00", "endTime": "12:30", "vendorSlotKeys": ["photographer", "videographer"], "label": { "fr": "Photos des préparatifs", "en": "Getting-ready photos" }, "location": { "fr": "Lieu des préparatifs", "en": "Getting-ready venue" } },
+    { "key": "couple_photos", "startTime": "13:30", "endTime": "14:30", "vendorSlotKeys": ["photographer", "videographer"], "label": { "fr": "Séance photo du couple", "en": "Couple photo session" }, "location": { "fr": "", "en": "" } },
+    { "key": "guests_arrival", "startTime": "14:30", "endTime": "15:00", "vendorSlotKeys": ["transport"], "label": { "fr": "Arrivée des invités", "en": "Guest arrival" }, "location": { "fr": "Lieu de la cérémonie", "en": "Ceremony venue" } },
+    { "key": "ceremony", "startTime": "15:00", "endTime": "16:00", "vendorSlotKeys": ["officiant", "photographer", "videographer", "music"], "label": { "fr": "Cérémonie", "en": "Ceremony" }, "location": { "fr": "Lieu de la cérémonie", "en": "Ceremony venue" } },
+    { "key": "group_photos", "startTime": "16:00", "endTime": "16:30", "vendorSlotKeys": ["photographer"], "label": { "fr": "Photos de groupe", "en": "Group photos" }, "location": { "fr": "", "en": "" } },
+    { "key": "cocktail", "startTime": "16:30", "endTime": "19:00", "vendorSlotKeys": ["caterer", "music"], "label": { "fr": "Vin d'honneur", "en": "Cocktail reception" }, "location": { "fr": "Lieu de réception", "en": "Reception venue" } },
+    { "key": "dinner", "startTime": "19:30", "endTime": "22:30", "vendorSlotKeys": ["caterer"], "label": { "fr": "Dîner", "en": "Dinner" }, "location": { "fr": "Salle de réception", "en": "Reception hall" } },
+    { "key": "first_dance", "startTime": "22:30", "endTime": null, "vendorSlotKeys": ["music", "photographer"], "label": { "fr": "Ouverture du bal", "en": "First dance" }, "location": { "fr": "Salle de réception", "en": "Reception hall" } },
+    { "key": "cake", "startTime": "23:30", "endTime": null, "vendorSlotKeys": ["cake", "caterer"], "label": { "fr": "Pièce montée", "en": "Wedding cake" }, "location": { "fr": "Salle de réception", "en": "Reception hall" } },
+    { "key": "party", "startTime": "22:45", "endTime": "03:00", "vendorSlotKeys": ["music"], "label": { "fr": "Soirée dansante", "en": "Dance party" }, "location": { "fr": "Salle de réception", "en": "Reception hall" } }
+  ]
+}

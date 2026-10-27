@@ -51,4 +51,12 @@ export type {
   TaskTemplateItem,
   TaskTemplateItemInput,
   UpdateEventTaskInput,
+  EventProgram,
+  ProgramItem,
+  ProgramItemInput,
+  ProgramOverlap,
+  ProgramParticipant,
+  ProgramTemplate,
+  ProgramTemplateItem,
+  ProgramTemplateItemInput,
 } from "./events/service-contract";

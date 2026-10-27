@@ -44,6 +44,14 @@ export async function getSignedDownloadUrl(
   return getSignedUrl(storage.client, command, { expiresIn: expiresInSeconds });
 }
 
+// Lecture côté serveur d'un objet privé (EVT-05 : logo de l'organisation
+// intégré au PDF du programme), sans jamais l'exposer par une URL.
+export async function getPrivateObject(storage: ReturnType<typeof createStorageClient>, key: string): Promise<Buffer> {
+  const response = await storage.client.send(new GetObjectCommand({ Bucket: storage.bucket, Key: key }));
+  if (!response.Body) throw new Error("objet vide");
+  return Buffer.from(await response.Body.transformToByteArray());
+}
+
 // Vérification de disponibilité du stockage (SOC-11, page /health) : le
 // bucket existe et les clés de l'app y ont accès.
 export async function checkBucket(storage: ReturnType<typeof createStorageClient>): Promise<void> {

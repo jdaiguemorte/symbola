@@ -2,7 +2,7 @@
 // table a organization_id (CLAUDE.md §2.4), protégée par Row-Level
 // Security activée par une migration dédiée (même patron que hello,
 // packages/db/drizzle).
-import { boolean, date, integer, pgSchema, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { boolean, date, integer, pgSchema, text, time, timestamp, uuid } from "drizzle-orm/pg-core";
 
 export const eventsSchema = pgSchema("events");
 
@@ -56,6 +56,9 @@ export const events = eventsSchema.table("events", {
   // rétroplanning ont été calculées. Quand eventDate en diffère, l'app
   // propose de recalculer les échéances des tâches non faites.
   tasksScheduledFor: date("tasks_scheduled_for"),
+  // EVT-05 : dernière modification du programme du jour J (ajout,
+  // modification, suppression d'une ligne) — « date de version » du PDF.
+  programUpdatedAt: timestamp("program_updated_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
@@ -171,4 +174,60 @@ export const eventTasks = eventsSchema.table("event_tasks", {
   position: integer("position").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+// EVT-05 : programme du jour J d'un événement. Heures sans date (« HH:MM »),
+// le jour étant celui de l'événement ; une heure de fin antérieure au
+// début signifie que la ligne se termine après minuit.
+export const programItems = eventsSchema.table("program_items", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  eventId: uuid("event_id")
+    .notNull()
+    .references(() => events.id),
+  startTime: time("start_time").notNull(),
+  endTime: time("end_time"),
+  label: text("label").notNull(),
+  location: text("location"),
+  // Jamais dans la variante « mariés » du PDF (PRD EVT-05).
+  internalNote: text("internal_note"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+// EVT-05 : intervenants d'une ligne — un poste prestataire de l'événement
+// (EVT-03) ou un texte libre (officiant, témoin…), l'un ou l'autre.
+export const programItemParticipants = eventsSchema.table("program_item_participants", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  programItemId: uuid("program_item_id")
+    .notNull()
+    .references(() => programItems.id, { onDelete: "cascade" }),
+  vendorSlotId: uuid("vendor_slot_id").references(() => eventVendorSlots.id, { onDelete: "cascade" }),
+  freeLabel: text("free_label"),
+  position: integer("position").notNull().default(0),
+});
+
+// EVT-05 : modèles de programme de l'organisation (CLAUDE.md §2.5). Les
+// intervenants d'un modèle sont des libellés, rapprochés des postes de
+// l'événement quand le modèle est appliqué.
+export const programTemplates = eventsSchema.table("program_templates", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  name: text("name").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const programTemplateItems = eventsSchema.table("program_template_items", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  templateId: uuid("template_id")
+    .notNull()
+    .references(() => programTemplates.id, { onDelete: "cascade" }),
+  startTime: time("start_time").notNull(),
+  endTime: time("end_time"),
+  label: text("label").notNull(),
+  location: text("location"),
+  participantLabels: text("participant_labels").array().notNull().default([]),
+  position: integer("position").notNull().default(0),
 });

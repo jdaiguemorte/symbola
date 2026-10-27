@@ -16,6 +16,10 @@ import {
   events,
   eventTasks,
   eventVendorSlots,
+  programItemParticipants,
+  programItems,
+  programTemplateItems,
+  programTemplates,
   taskTemplateItems,
   taskTemplates,
 } from "./schema/events";
@@ -96,6 +100,33 @@ describe("HUB-03 — L'Admin ne lit jamais de donnée métier", () => {
     });
 
     for (const table of [taskTemplates, taskTemplateItems, eventTasks]) {
+      try {
+        const rows = await db.select().from(table);
+        expect(rows).toHaveLength(0);
+      } catch (error) {
+        expect(error).toBeTruthy();
+      }
+    }
+  });
+
+  it("vaut aussi pour le programme du jour J (EVT-05, PostgreSQL réel)", async () => {
+    const organizationId = randomUUID();
+    await withOrganization(db, organizationId, async (tx) => {
+      const [event] = await tx.insert(events).values({ organizationId }).returning();
+      const [template] = await tx.insert(programTemplates).values({ organizationId, name: "Mariage" }).returning();
+      if (!event || !template) throw new Error("insertions attendues");
+      const [item] = await tx
+        .insert(programItems)
+        .values({ organizationId, eventId: event.id, startTime: "15:00", label: "Cérémonie" })
+        .returning();
+      if (!item) throw new Error("insertion attendue");
+      await tx.insert(programItemParticipants).values({ organizationId, programItemId: item.id, freeLabel: "Officiant" });
+      await tx
+        .insert(programTemplateItems)
+        .values({ organizationId, templateId: template.id, startTime: "15:00", label: "Cérémonie" });
+    });
+
+    for (const table of [programItems, programItemParticipants, programTemplates, programTemplateItems]) {
       try {
         const rows = await db.select().from(table);
         expect(rows).toHaveLength(0);
