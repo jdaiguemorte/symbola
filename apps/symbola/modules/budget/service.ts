@@ -1,8 +1,9 @@
 // Porte d'entrée publique du module budget — seul fichier que les autres
 // modules peuvent importer (ADR 0011). Pensé comme le futur contrat HTTP
 // /v1/budget si ce module est extrait en app autonome.
-import { createStorageClient, getSignedDownloadUrl, uploadFile } from "@symbola/files";
+import { createStorageClient, deletePrivateObject, getSignedDownloadUrl, uploadFile } from "@symbola/files";
 import {
+  deleteEventBudgetRows,
   findBudgetLineAttachment,
   findBudgetLineAttachments,
   insertBudgetLineAttachment,
@@ -34,6 +35,7 @@ import {
 import { QUOTE_LINK_TTL_SECONDS, QUOTE_MAX_SIZE_BYTES, quoteUploadError } from "./attachments";
 import {
   getEvent,
+  hasActiveClientAccess,
   listDefaultVendorSlots,
   listEventVendorSlots,
   EventNotFoundError,
@@ -87,6 +89,15 @@ export class BudgetLineNotFoundError extends Error {
   constructor() {
     super("ligne de budget introuvable pour ce poste");
     this.name = "BudgetLineNotFoundError";
+  }
+}
+
+// BUD-04 : accès du marié absent, retiré, ou demande hors de son
+// événement — même réponse dans tous les cas.
+export class ClientBudgetAccessDeniedError extends Error {
+  constructor() {
+    super("accès refusé");
+    this.name = "ClientBudgetAccessDeniedError";
   }
 }
 
@@ -449,6 +460,30 @@ export async function getBudgetLineAttachmentUrl(organizationId: string, attachm
   return getSignedDownloadUrl(createStorageClient(), attachment.fileKey, QUOTE_LINK_TTL_SECONDS);
 }
 
+// BUD-04 — le budget vu par le marié, en lecture seule : l'accès à
+// l'événement est vérifié par le module events avant toute lecture. Seules
+// les colonnes publiques (poste, prévu, réel, écart, totaux) : les devis
+// joints restent des documents de travail de la planner.
+export async function getClientBudgetView(
+  organizationId: string,
+  userId: string,
+  eventId: string,
+): Promise<BudgetLinesView> {
+  if (!(await hasActiveClientAccess(organizationId, userId, eventId))) throw new ClientBudgetAccessDeniedError();
+  const view = await listBudgetLines(organizationId, eventId);
+  return { ...view, lines: view.lines.map((line) => ({ ...line, attachments: [] })) };
+}
+
+// AIDE-02 — appelé à la fin d'un essai guidé (et pour un essai expiré),
+// avant la suppression de l'événement fictif : aucune donnée budget ni
+// aucun devis stocké ne doit lui survivre.
+export async function removeEventBudgetData(organizationId: string, eventIds: string[]): Promise<void> {
+  const fileKeys = await deleteEventBudgetRows(organizationId, eventIds);
+  if (fileKeys.length === 0) return;
+  const storage = createStorageClient();
+  for (const key of fileKeys) await deletePrivateObject(storage, key);
+}
+
 const _contractCheck: BudgetServiceContract = {
   listAllocationModels,
   createAllocationModel,
@@ -462,5 +497,7 @@ const _contractCheck: BudgetServiceContract = {
   listBudgetLineHistory,
   attachBudgetLineQuote,
   getBudgetLineAttachmentUrl,
+  getClientBudgetView,
+  removeEventBudgetData,
 };
 void _contractCheck;
