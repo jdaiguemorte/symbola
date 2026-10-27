@@ -277,17 +277,25 @@ export async function setGlobalDiscountRow(
 }
 
 // Envoi : la version courante reçoit ses copies figées et devient immuable.
+// Les lignes sont relues et la version verrouillée dans la même transaction
+// que l'écriture : les totaux figés correspondent toujours aux lignes figées.
+export type FrozenFields = Pick<
+  QuoteVersionRow,
+  "validUntil" | "vatRegime" | "legalMention" | "sellerSnapshot" | "totalsSnapshot"
+> & { sentAt: Date };
+
 export async function freezeCurrentVersion(
   organizationId: string,
   quoteId: string,
-  frozen: Pick<QuoteVersionRow, "validUntil" | "vatRegime" | "legalMention" | "sellerSnapshot" | "totalsSnapshot"> & {
-    sentAt: Date;
-  },
-): Promise<WriteResult> {
+  freeze: (version: QuoteVersionRow, lines: QuoteLineRow[]) => FrozenFields,
+): Promise<WriteResult | { status: "empty" }> {
   return inOrganization(organizationId, async (tx) => {
     const draft = await currentDraft(tx, quoteId);
     if (draft.status !== "draft") return { status: draft.status };
-    await tx.update(quoteVersions).set(frozen).where(eq(quoteVersions.id, draft.version.id));
+    await tx.execute(raw`select 1 from ${quoteVersions} where ${quoteVersions.id} = ${draft.version.id} for update`);
+    const lines = await tx.select().from(quoteLines).where(eq(quoteLines.versionId, draft.version.id));
+    if (lines.length === 0) return { status: "empty" };
+    await tx.update(quoteVersions).set(freeze(draft.version, lines)).where(eq(quoteVersions.id, draft.version.id));
     await tx.update(quotes).set({ status: "sent", updatedAt: new Date() }).where(eq(quotes.id, quoteId));
     return { status: "ok", quoteId };
   });

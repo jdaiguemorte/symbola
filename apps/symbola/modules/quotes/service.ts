@@ -442,20 +442,12 @@ export async function setQuoteGlobalDiscount(organizationId: string, quoteId: st
 // émis ne change jamais quand le profil change).
 export async function sendQuote(input: SendQuoteInput): Promise<QuoteDetail> {
   const now = input.now ?? new Date();
-  const aggregate = await findQuoteAggregate(input.organizationId, input.quoteId);
-  if (!aggregate) throw new QuoteNotFoundError();
-  const version = aggregate.versions.find((row) => row.version === aggregate.quote.currentVersion);
-  if (!version) throw new QuoteNotFoundError();
-  if (version.sentAt) throw new QuoteVersionLockedError();
-  const lines = aggregate.lines.filter((line) => line.versionId === version.id);
-  if (lines.length === 0) throw new QuoteEmptyError();
-
   const { profile, header } = await withDb(async (db) => ({
     profile: await getOrganizationProfile(db, input.organizationId),
     header: await getDocumentHeader(db, input.organizationId),
   }));
-  if (!profile.vatRegime) throw new QuoteVatRegimeRequiredError();
   const settings = await getQuoteSettings(input.organizationId);
+  const vatRegime = profile.vatRegime;
   const seller: SellerSnapshot = {
     organizationName: header?.organizationName ?? "",
     address: profile.address,
@@ -464,16 +456,20 @@ export async function sendQuote(input: SendQuoteInput): Promise<QuoteDetail> {
   };
   const legalMention = computeLegalMention(profile);
 
-  unwrap(
-    await freezeCurrentVersion(input.organizationId, input.quoteId, {
+  const result = await freezeCurrentVersion(input.organizationId, input.quoteId, (version, lines) => {
+    // Vérifié ici, après « devis vide » : un devis vide est signalé d'abord.
+    if (!vatRegime) throw new QuoteVatRegimeRequiredError();
+    return {
       sentAt: now,
       validUntil: validUntil(parisDate(now), settings.validityDays),
-      vatRegime: profile.vatRegime,
+      vatRegime,
       legalMention: legalMention === "" ? null : legalMention,
       sellerSnapshot: seller,
-      totalsSnapshot: totalsFor(lines, version, profile.vatRegime !== "franchise"),
-    }),
-  );
+      totalsSnapshot: totalsFor(lines, version, vatRegime !== "franchise"),
+    };
+  });
+  if (result.status === "empty") throw new QuoteEmptyError();
+  unwrap(result);
   return loadDetail(input.organizationId, input.quoteId);
 }
 

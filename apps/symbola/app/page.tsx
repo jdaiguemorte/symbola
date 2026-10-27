@@ -35,6 +35,7 @@ export default async function HomePage() {
   let helloAvailable = true;
   let eventsAvailable = false;
   let budgetAvailable = false;
+  let quotesAvailable = false;
   if (auth.user.organizationId) {
     const organizationId = auth.user.organizationId;
     const { sql, db } = createAppConnection();
@@ -42,6 +43,7 @@ export default async function HomePage() {
       helloAvailable = await isModuleEnabled(db, organizationId, "hello");
       eventsAvailable = await isModuleEnabled(db, organizationId, "events");
       budgetAvailable = await isModuleEnabled(db, organizationId, "budget");
+      quotesAvailable = await isModuleEnabled(db, organizationId, "quotes");
     } finally {
       await sql.end();
     }
@@ -99,6 +101,8 @@ export default async function HomePage() {
         {auth.user.organizationId ? <Link href="/parametres">{t("settings")}</Link> : null}
         {eventsAvailable ? <Link href="/events">{t("events")}</Link> : null}
         {budgetAvailable ? <Link href="/budget/parametres">{t("budgetModels")}</Link> : null}
+        {quotesAvailable ? <Link href="/devis/catalogue">{t("quoteCatalog")}</Link> : null}
+        {quotesAvailable ? <Link href="/devis/parametres">{t("quoteSettings")}</Link> : null}
         {auth.user.role === "admin" ? <Link href="/admin">{t("administration")}</Link> : null}
         <Link href="/aide">{tAide("link")}</Link>
       </nav>
