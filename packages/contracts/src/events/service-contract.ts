@@ -23,6 +23,8 @@ export type EventSummary = {
   venueName: string | null;
   venueCity: string | null;
   clients: EventClient[];
+  // AIDE-02 : événement fictif d'un essai guidé.
+  isDemo: boolean;
 };
 
 export type EventDetail = EventSummary & {
@@ -275,6 +277,16 @@ export type EventActivity = {
   createdAt: string;
 };
 
+// AIDE-02 — essai guidé du module.
+export type EventsTrial = { eventId: string; expiresAt: string };
+
+export type StartEventsTrialInput = {
+  organizationId: string;
+  userId: string;
+  locale: "fr" | "en";
+  now?: Date | undefined;
+};
+
 export interface EventsServiceContract {
   listEvents(input: ListEventsInput): Promise<EventSummary[]>;
   getEvent(organizationId: string, eventId: string): Promise<EventDetail | null>;
@@ -327,4 +339,9 @@ export interface EventsServiceContract {
   getClientEventView(organizationId: string, userId: string, eventId: string): Promise<ClientEventView>;
   setClientTaskDone(organizationId: string, userId: string, taskId: string, done: boolean): Promise<EventTask>;
   listEventActivity(organizationId: string, eventId: string): Promise<EventActivity[]>;
+  startEventsTrial(input: StartEventsTrialInput): Promise<EventsTrial>;
+  getActiveEventsTrial(organizationId: string, now?: Date): Promise<EventsTrial | null>;
+  endEventsTrial(organizationId: string, eventId: string): Promise<void>;
+  purgeExpiredDemoEvents(organizationId: string, now?: Date): Promise<number>;
+  hasRealEvents(organizationId: string): Promise<boolean>;
 }

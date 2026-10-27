@@ -59,6 +59,12 @@ export const events = eventsSchema.table("events", {
   // EVT-05 : dernière modification du programme du jour J (ajout,
   // modification, suppression d'une ligne) — « date de version » du PDF.
   programUpdatedAt: timestamp("program_updated_at", { withTimezone: true }),
+  // AIDE-02, ADR 0008 : événement fictif d'un essai guidé. Ses lignes
+  // (clients, postes, tâches, programme) le suivent ; il est exclu de la
+  // recherche RGPD et des événements internes, et supprimé à la fin de
+  // l'essai ou à demoExpiresAt (essai abandonné).
+  isDemo: boolean("is_demo").notNull().default(false),
+  demoExpiresAt: timestamp("demo_expires_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
