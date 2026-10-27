@@ -9,7 +9,15 @@ import * as OTPAuth from "otpauth";
 import { afterAll, describe, expect, it } from "vitest";
 import { createAppConnection } from "@symbola/db/client";
 import { sessions } from "@symbola/db/schema/hub";
-import { confirmTotp, createOrganization, createUser, login, requireUser, setupTotp } from "./service";
+import {
+  confirmTotp,
+  createOrganization,
+  createUser,
+  findAccountByEmail,
+  login,
+  requireUser,
+  setupTotp,
+} from "./service";
 import { hashSessionToken } from "./session-token";
 
 const { sql, db } = createAppConnection();
@@ -78,6 +86,45 @@ describe("SOC-04 — Parcours de connexion (PostgreSQL réel)", () => {
 
     const result = await requireUser(db, loginResult.sessionToken);
     expect(result.status).toBe("authenticated");
+  });
+
+  it("EVT-06 — un marié qui active la double authentification la passe à chaque connexion suivante", async () => {
+    const organization = await createOrganization(db, `Org ${randomUUID()}`);
+    const email = `marie-mfa-${randomUUID()}@example.test`;
+    const user = await createUser(db, { organizationId: organization.id, email, password: "mot-de-passe-du-marie", role: "client" });
+
+    const first = await login(db, email, "mot-de-passe-du-marie");
+    if (first.outcome !== "success") throw new Error("connexion attendue");
+    const before = await requireUser(db, first.sessionToken);
+    expect(before.status === "authenticated" && before.user.mfaEnabled).toBe(false);
+
+    // Activation volontaire depuis son espace, sur une session déjà ouverte.
+    const { secret } = await setupTotp(db, user.id);
+    expect(await confirmTotp(db, { sessionToken: first.sessionToken, token: currentCodeFor(secret) })).toBe(true);
+    const enabled = await requireUser(db, first.sessionToken);
+    expect(enabled.status === "authenticated" && enabled.user.mfaEnabled).toBe(true);
+
+    const second = await login(db, email, "mot-de-passe-du-marie");
+    if (second.outcome !== "success") throw new Error("connexion attendue");
+    expect(second.requiresMfa).toBe(true);
+    const pending = await requireUser(db, second.sessionToken);
+    expect(pending).toMatchObject({ status: "mfa_required", hasTotpSecret: true });
+
+    expect(await confirmTotp(db, { sessionToken: second.sessionToken, token: currentCodeFor(secret) })).toBe(true);
+    expect((await requireUser(db, second.sessionToken)).status).toBe("authenticated");
+  });
+
+  it("EVT-06 — retrouve un compte par son e-mail, sans rien en exposer d'autre que rôle et organisation", async () => {
+    const organization = await createOrganization(db, `Org ${randomUUID()}`);
+    const email = `compte-${randomUUID()}@example.test`;
+    const user = await createUser(db, { organizationId: organization.id, email, password: "mot-de-passe", role: "client" });
+
+    expect(await findAccountByEmail(db, email.toUpperCase())).toEqual({
+      id: user.id,
+      role: "client",
+      organizationId: organization.id,
+    });
+    expect(await findAccountByEmail(db, `inconnu-${randomUUID()}@example.test`)).toBeNull();
   });
 
   it("refuse un mot de passe incorrect", async () => {

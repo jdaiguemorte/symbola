@@ -2,7 +2,7 @@
 // autre code ne doit appeler packages/db sur le schéma hub, ni la lib
 // d'argon2/otpauth directement : tout passe par les fonctions exportées
 // d'ici (createAppUser, login, setupTotp, confirmTotp, requireUser…).
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import type { AppDatabase } from "@symbola/db/client";
 import { sendMail } from "@symbola/mail";
 import { organizations, sessions, users } from "@symbola/db/schema/hub";
@@ -26,6 +26,9 @@ export type AuthenticatedUser = {
   language: "fr" | "en" | null;
   // AIDE-04 : liste « premiers pas » masquée par l'utilisateur.
   firstStepsHidden: boolean;
+  // EVT-06 : double authentification activée (obligatoire pour les rôles
+  // professionnels, facultative pour un marié).
+  mfaEnabled: boolean;
 };
 
 export type AuthResult =
@@ -94,7 +97,9 @@ export async function login(db: AppDatabase, email: string, password: string): P
     await db.update(users).set({ failedLoginAttempts: 0, lockedUntil: null }).where(eq(users.id, user.id));
   }
 
-  const requiresMfa = isProfessionalRole(user.role);
+  // Un marié n'y est pas obligé, mais une fois activée elle s'applique à
+  // chaque connexion (EVT-06).
+  const requiresMfa = isProfessionalRole(user.role) || user.mfaEnabled;
   const sessionToken = generateSessionToken();
 
   await db.insert(sessions).values({
@@ -170,6 +175,7 @@ export async function requireUser(
       language: users.language,
       firstStepsHidden: users.firstStepsHidden,
       totpSecret: users.totpSecret,
+      mfaEnabled: users.mfaEnabled,
       mfaVerified: sessions.mfaVerified,
       expiresAt: sessions.expiresAt,
     })
@@ -188,7 +194,7 @@ export async function requireUser(
     .set({ expiresAt: new Date(Date.now() + SESSION_DURATION_MS) })
     .where(eq(sessions.tokenHash, tokenHash));
 
-  if (isProfessionalRole(row.role) && !row.mfaVerified) {
+  if ((isProfessionalRole(row.role) || row.mfaEnabled) && !row.mfaVerified) {
     return { status: "mfa_required", userId: row.userId, hasTotpSecret: row.totpSecret !== null };
   }
 
@@ -201,8 +207,22 @@ export async function requireUser(
       organizationId: row.organizationId,
       language: row.language,
       firstStepsHidden: row.firstStepsHidden,
+      mfaEnabled: row.mfaEnabled,
     },
   };
+}
+
+// EVT-06 — invitation d'un marié : savoir si l'e-mail a déjà un compte, et
+// lequel (rôle, organisation), sans exposer le reste du compte.
+export async function findAccountByEmail(
+  db: AppDatabase,
+  email: string,
+): Promise<{ id: string; role: Role; organizationId: string | null } | null> {
+  const [user] = await db
+    .select({ id: users.id, role: users.role, organizationId: users.organizationId })
+    .from(users)
+    .where(sql`lower(${users.email}) = lower(${email.trim()})`);
+  return user ?? null;
 }
 
 export async function destroySession(db: AppDatabase, sessionToken: string): Promise<void> {

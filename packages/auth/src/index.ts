@@ -7,6 +7,7 @@ export {
   createOrganization,
   createUser,
   destroySession,
+  findAccountByEmail,
   login,
   requireUser,
   setUserLanguage,
@@ -15,4 +16,4 @@ export {
   type AuthResult,
   type LoginResult,
 } from "./service";
-export { isProfessionalRole, ROLES, type Role } from "./roles";
+export { isPlannerRole, isProfessionalRole, ROLES, type Role } from "./roles";
