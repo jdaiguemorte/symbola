@@ -52,7 +52,7 @@ test("EVT-07 — la planner paramètre ses sources et motifs de perte, puis la s
   await expect(page).toHaveURL(/\/events$/);
   await expectNoAxeViolation(page);
 
-  await page.getByRole("link", { name: "Sources et motifs de perte" }).first().click();
+  await page.getByRole("link", { name: "Paramètres des événements" }).first().click();
   await expect(page).toHaveURL(/\/events\/parametres$/);
   await page.getByLabel("Nouvelle source").fill("Instagram");
   await page.getByRole("button", { name: "Ajouter la source" }).click();

@@ -1,11 +1,13 @@
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { HelpButton } from "@symbola/ui";
-import { listLossReasons, listProspectSources } from "@/modules/events/service";
+import { listDefaultVendorSlots, listLossReasons, listProspectSources } from "@/modules/events/service";
 import { getAuthContext } from "@/lib/auth-context";
 import { isEventsModuleEnabled } from "../module-access";
 import { ProspectSourceForm } from "./prospect-source-form";
 import { LossReasonForm } from "./loss-reason-form";
+import { DefaultVendorSlotForm, LoadStarterVendorSlotsForm } from "./default-vendor-slot-forms";
+import { removeDefaultVendorSlotAction } from "./vendor-slot-actions";
 
 export default async function EventsSettingsPage() {
   const auth = await getAuthContext();
@@ -24,7 +26,11 @@ export default async function EventsSettingsPage() {
       </main>
     );
   }
-  const [sources, reasons] = await Promise.all([listProspectSources(organizationId), listLossReasons(organizationId)]);
+  const [sources, reasons, defaultVendorSlots] = await Promise.all([
+    listProspectSources(organizationId),
+    listLossReasons(organizationId),
+    listDefaultVendorSlots(organizationId),
+  ]);
 
   return (
     <main>
@@ -49,6 +55,24 @@ export default async function EventsSettingsPage() {
         ))}
       </ul>
       <LossReasonForm />
+
+      {/* EVT-03 : postes reçus par chaque nouvel événement. */}
+      <h2>{t("defaultVendorSlotsTitle")}</h2>
+      <p>{t("defaultVendorSlotsIntro")}</p>
+      {defaultVendorSlots.length === 0 ? <p>{t("noDefaultVendorSlots")}</p> : null}
+      <ul>
+        {defaultVendorSlots.map((slot) => (
+          <li key={slot.id}>
+            {slot.label}{" "}
+            <form action={removeDefaultVendorSlotAction} style={{ display: "inline" }}>
+              <input type="hidden" name="defaultVendorSlotId" value={slot.id} />
+              <button type="submit">{t("removeVendorSlot", { label: slot.label })}</button>
+            </form>
+          </li>
+        ))}
+      </ul>
+      <DefaultVendorSlotForm />
+      <LoadStarterVendorSlotsForm />
     </main>
   );
 }

@@ -183,11 +183,11 @@
     },
     "eventsDetail": {
       "title": "Fiche de l'événement",
-      "body": "Suivez ici l'avancement de l'événement : prospect, devis envoyé, confirmé, réalisé ou perdu. Pour un événement perdu, indiquez le motif ; certains motifs demandent une précision."
+      "body": "Suivez ici l'avancement de l'événement (prospect, devis envoyé, confirmé, réalisé ou perdu) et de ses postes prestataires : la barre du haut compte les postes réservés sur les postes requis. Un poste réservé demande le nom du prestataire ; le montant est facultatif."
     },
     "eventsSettings": {
-      "title": "Sources et motifs de perte",
-      "body": "Définissez vos propres sources de prospect (salon, Instagram, bouche-à-oreille…) et vos motifs de perte. Cochez « demander une précision » pour un motif comme « Autre »."
+      "title": "Paramètres des événements",
+      "body": "Définissez vos sources de prospect (salon, Instagram, bouche-à-oreille…), vos motifs de perte, et les postes prestataires que reçoit chaque nouvel événement. Le modèle de départ propose une liste de postes courants, que vous adaptez ensuite."
     }
   },
   "FirstSteps": {
@@ -206,7 +206,7 @@
     "moduleUnavailable": "Le module Événements n'est pas activé pour votre organisation.",
     "unauthenticated": "Votre session a expiré. Reconnectez-vous puis recommencez.",
     "newProspect": "Nouveau prospect",
-    "settingsLink": "Sources et motifs de perte",
+    "settingsLink": "Paramètres des événements",
     "tabsLabel": "Période",
     "tabUpcoming": "À venir",
     "tabPast": "Terminés",
@@ -245,7 +245,7 @@
     "missingLossReason": "Choisissez un motif de perte.",
     "missingLossReasonNote": "Ce motif demande une précision.",
     "suggestMarkDone": "La date de cet événement est passée : vous pouvez le passer en Réalisé.",
-    "settingsTitle": "Sources et motifs de perte",
+    "settingsTitle": "Paramètres des événements",
     "sourcesTitle": "Sources de prospect",
     "newSourceLabel": "Nouvelle source",
     "addSource": "Ajouter la source",
@@ -259,6 +259,35 @@
     "missingLabel": "Le libellé est obligatoire.",
     "sourceAll": "Toutes",
     "eventNotFound": "Cet événement est introuvable.",
-    "statusChanged": "Statut mis à jour."
+    "statusChanged": "Statut mis à jour.",
+    "vendorSlotsTitle": "Postes prestataires",
+    "vendorProgress": "{booked, plural, =0 {Aucun poste réservé} one {# poste réservé} other {# postes réservés}} sur {required}",
+    "vendorStatusToFind": "À trouver",
+    "vendorStatusQuoteRequested": "Devis demandé",
+    "vendorStatusQuoteReceived": "Devis reçu",
+    "vendorStatusBooked": "Réservé",
+    "vendorStatusNotRequired": "Non requis",
+    "vendorSlotStatus": "Statut du poste",
+    "vendorName": "Prestataire",
+    "vendorNameRequired": "Prestataire (obligatoire si Réservé)",
+    "vendorAmount": "Montant en euros (facultatif)",
+    "saveVendorSlot": "Enregistrer le poste",
+    "vendorSlotSaved": "Poste enregistré.",
+    "newVendorSlotLabel": "Nouveau poste pour cet événement",
+    "addVendorSlot": "Ajouter le poste",
+    "removeVendorSlot": "Retirer le poste « {label} »",
+    "noVendorSlots": "Aucun poste pour cet événement. Ajoutez-en un, ou définissez une liste par défaut dans les paramètres.",
+    "vendorSlotNotFound": "Ce poste est introuvable.",
+    "missingVendorName": "Indiquez le nom du prestataire pour un poste réservé.",
+    "invalidAmount": "Montant invalide. Exemple : 2 500,50",
+    "defaultVendorSlotsTitle": "Postes par défaut",
+    "defaultVendorSlotsIntro": "Chaque nouvel événement reçoit ces postes ; vous les modifiez ensuite événement par événement.",
+    "noDefaultVendorSlots": "Aucun poste par défaut pour l'instant.",
+    "newDefaultVendorSlotLabel": "Nouveau poste par défaut",
+    "addDefaultVendorSlot": "Ajouter le poste par défaut",
+    "defaultVendorSlotAdded": "Poste ajouté.",
+    "vendorSlotAlreadyExists": "Ce poste existe déjà.",
+    "loadStarterVendorSlots": "Charger le modèle de départ",
+    "starterVendorSlotsLoaded": "{count, plural, =0 {Le modèle de départ est déjà chargé.} one {# poste ajouté depuis le modèle de départ.} other {# postes ajoutés depuis le modèle de départ.}}"
   }
 }
