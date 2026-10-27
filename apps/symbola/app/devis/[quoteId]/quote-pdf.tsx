@@ -22,6 +22,10 @@ const styles = StyleSheet.create({
   totalRow: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 2 },
   strong: { fontFamily: "Helvetica-Bold" },
   mention: { marginTop: 16 },
+  signature: { marginTop: 24, flexDirection: "row", flexWrap: "wrap" },
+  signatureTitle: { fontFamily: "Helvetica-Bold", marginTop: 24 },
+  signatureSlot: { width: "48%", marginRight: "2%", marginTop: 8, height: 80, borderWidth: 0.5, borderColor: "#999999", padding: 6 },
+  signatureTag: { fontSize: 8, color: "#ffffff" },
   watermark: {
     position: "absolute",
     top: 380,
@@ -100,6 +104,20 @@ export function QuotePdfDocument({ model }: { model: QuotePdfModel }) {
           ))}
         </View>
         {model.legalMention ? <Text style={styles.mention}>{model.legalMention}</Text> : null}
+        {model.signature ? (
+          <View wrap={false}>
+            <Text style={styles.signatureTitle}>{model.signature.title}</Text>
+            <View style={styles.signature}>
+              {model.signature.slots.map((slot) => (
+                <View key={slot.role} style={styles.signatureSlot}>
+                  <Text>{slot.role}</Text>
+                  {/* Balise lue par le fournisseur de signature (zone de signature). */}
+                  <Text style={styles.signatureTag}>{slot.tag}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        ) : null}
       </Page>
     </Document>
   );

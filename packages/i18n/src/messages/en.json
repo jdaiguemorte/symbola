@@ -730,7 +730,30 @@
     "missingPaymentMethod": "The payment method name is required.",
     "loadStarterPaymentMethods": "Load starter methods",
     "starterPaymentMethodsLoaded": "Starter methods loaded.",
-    "archivePaymentMethod": "Archive “{label}”"
+    "archivePaymentMethod": "Archive “{label}”",
+    "signatureTitle": "Online signature",
+    "sendForSignature": "Send for signature",
+    "sendForSignatureHint": "The current version is frozen then sent to the signature service; each signer receives their personal link by email. Leave an unneeded row empty.",
+    "signerNumber": "Signer {number}",
+    "signerName": "Full name",
+    "signerEmail": "Email",
+    "signerAddress": "Billing address",
+    "signatureSent": "Quote sent for signature: the links have been emailed.",
+    "missingSigners": "Enter at least one signer.",
+    "invalidSigners": "Each signer needs a name, a valid email and a billing address (four at most).",
+    "signatureNotSendable": "This quote cannot be sent for signature in its current state.",
+    "signatureAlreadyRequested": "This version is already out for signature.",
+    "signatureUnavailable": "Online signature is not available yet: it will be enabled once the signature service is set up.",
+    "signaturePending": "Awaiting signature.",
+    "signatureCompleted": "Quote signed by all signers.",
+    "signatureDeclined": "A signer declined the quote.",
+    "signerPending": "to sign",
+    "signerSigned": "signed",
+    "signerDeclined": "declined",
+    "signingLinkFor": "signing link for {name}",
+    "downloadSignedDocument": "Download the signed quote",
+    "downloadAuditCertificate": "Download the audit certificate",
+    "pdfSignatureTitle": "Approved and accepted"
   },
   "ClientSpace": {
     "title": "My wedding",
@@ -768,11 +791,28 @@
     "mfaInvalidCode": "Incorrect code, try again.",
     "mfaEnabledNow": "Two-factor authentication enabled: it will be asked at every login.",
     "budgetTitle": "Budget",
-    "noBudgetYet": "Your planner has not shared a budget for this event yet."
+    "noBudgetYet": "Your planner has not shared a budget for this event yet.",
+    "quotesTitle": "Quotes",
+    "quoteNumber": "Quote {number} (version {version})",
+    "quoteToSign": "to sign",
+    "quoteSignedByYou": "signed by you, awaiting the other signers",
+    "quoteDeclinedByYou": "declined",
+    "quoteSigned": "signed",
+    "quoteLinkByEmail": "the signing link was emailed to each signer",
+    "signQuote": "Sign quote {number}"
   },
   "NotFound": {
     "title": "Page not found",
     "body": "This page does not exist or is no longer available.",
     "home": "Back to home"
+  },
+  "FakeSignature": {
+    "title": "Signing quote {number}",
+    "fictionalNotice": "Fictional signature: this page stands in for the signature service for trials and tests. No legal value.",
+    "signerLabel": "Signer: {name}",
+    "sign": "Sign the quote",
+    "decline": "Decline the quote",
+    "signed": "You have signed this quote.",
+    "declined": "You have declined this quote."
   }
 }

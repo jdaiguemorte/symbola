@@ -45,7 +45,7 @@ import {
   type OrganizationProfile,
 } from "@/modules/hub/service";
 import { fakeSignatureProvider, realSignatureProvider, signatureProviderFor } from "./signature";
-import type { SignatureProvider } from "./signature/provider";
+import { signatureTag, type SignatureProvider } from "./signature/provider";
 import { computeQuoteTotals, formatDocumentNumber, lineAmounts, validUntil, type GlobalDiscount } from "./amounts";
 import { addCalendarDays, groupByMonth, isOverdue, parisToday, resolveSchedule } from "./schedule";
 import {
@@ -846,6 +846,11 @@ function signerRole(index: number): string {
 // Rôles des signataires, dans l'ordre : le PDF doit porter une balise par rôle.
 export function signatureRoles(count: number): string[] {
   return Array.from({ length: count }, (_, index) => signerRole(index));
+}
+
+// Zones de signature du PDF envoyé : un rôle et sa balise par signataire.
+export function signatureSlots(count: number): { role: string; tag: string }[] {
+  return signatureRoles(count).map((role) => ({ role, tag: signatureTag(role) }));
 }
 
 function validSigners(signers: SignerInput[]): SignerInput[] {
