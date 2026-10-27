@@ -53,3 +53,15 @@ fields:
       voir RGPD-03/RGPD-05.
     anonymization: >-
       Mis à nul lors d'une demande d'oubli (RGPD-03).
+  - schema: events
+    table: event_vendor_slots
+    field: vendor_name
+    category: identifiant
+    retention: >-
+      Tant que l'événement existe (nom du prestataire réservé, EVT-03 ; un
+      prestataire indépendant est une personne). Après suppression ou
+      demande d'oubli : voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Remplacé par « [anonymisé] » lors d'une demande d'oubli (RGPD-03) ;
+      mis à nul lors d'un effacement, le poste restant attaché à
+      l'événement.

@@ -49,6 +49,9 @@ importers:
       '@symbola/privacy':
         specifier: workspace:*
         version: link:../../packages/privacy
+      '@symbola/starter-templates':
+        specifier: workspace:*
+        version: link:../../packages/starter-templates
       '@symbola/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -306,6 +309,22 @@ importers:
       tsx:
         specifier: ^4.19.2
         version: 4.23.15
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vitest:
+        specifier: ^4.1.12
+        version: 4.1.12(@types/node@22.20.5)(vite@7.3.7(@types/node@22.20.5)(tsx@4.23.15)(yaml@2.9.1))
+
+  packages/starter-templates:
+    dependencies:
+      zod:
+        specifier: ^4.6.7
+        version: 4.6.7
+    devDependencies:
+      '@symbola/config':
+        specifier: workspace:*
+        version: link:../config
       typescript:
         specifier: ^5.7.2
         version: 5.9.3

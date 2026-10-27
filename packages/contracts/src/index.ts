@@ -18,8 +18,12 @@ export {
   EVT_EVENT_STATUS_CHANGED_VERSION,
   eventCreatedPayloadSchema,
   eventStatusChangedPayloadSchema,
+  EVT_VENDOR_SLOT_BOOKED,
+  EVT_VENDOR_SLOT_BOOKED_VERSION,
+  vendorSlotBookedPayloadSchema,
   type EventCreatedPayload,
   type EventStatusChangedPayload,
+  type VendorSlotBookedPayload,
 } from "./events/events";
 export type {
   ChangeEventStatusInput,
@@ -34,4 +38,9 @@ export type {
   ListEventsInput,
   LossReason,
   ProspectSource,
+  DefaultVendorSlot,
+  EventVendorSlot,
+  UpdateEventVendorSlotInput,
+  VendorSlotProgress,
+  VendorSlotStatus,
 } from "./events/service-contract";

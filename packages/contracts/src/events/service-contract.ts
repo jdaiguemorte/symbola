@@ -74,6 +74,41 @@ export type LossReason = {
   isFreeText: boolean;
 };
 
+// EVT-03 — postes prestataires.
+export type VendorSlotStatus = "to_find" | "quote_requested" | "quote_received" | "booked" | "not_required";
+
+export type DefaultVendorSlot = {
+  id: string;
+  label: string;
+  position: number;
+};
+
+export type EventVendorSlot = {
+  id: string;
+  eventId: string;
+  label: string;
+  status: VendorSlotStatus;
+  vendorName: string | null;
+  amountCents: number | null;
+  currency: "EUR";
+  position: number;
+};
+
+export type UpdateEventVendorSlotInput = {
+  organizationId: string;
+  vendorSlotId: string;
+  changedByUserId: string;
+  status: VendorSlotStatus;
+  // Obligatoire quand le statut est « booked » (PRD EVT-03).
+  vendorName?: string | null | undefined;
+  amountCents?: number | null | undefined;
+};
+
+export type VendorSlotProgress = {
+  booked: number;
+  required: number;
+};
+
 export interface EventsServiceContract {
   listEvents(input: ListEventsInput): Promise<EventSummary[]>;
   getEvent(organizationId: string, eventId: string): Promise<EventDetail | null>;
@@ -83,4 +118,11 @@ export interface EventsServiceContract {
   createProspectSource(organizationId: string, label: string): Promise<ProspectSource>;
   listLossReasons(organizationId: string): Promise<LossReason[]>;
   createLossReason(organizationId: string, label: string, isFreeText: boolean): Promise<LossReason>;
+  listDefaultVendorSlots(organizationId: string): Promise<DefaultVendorSlot[]>;
+  addDefaultVendorSlots(organizationId: string, labels: string[]): Promise<DefaultVendorSlot[]>;
+  removeDefaultVendorSlot(organizationId: string, defaultVendorSlotId: string): Promise<void>;
+  listEventVendorSlots(organizationId: string, eventId: string): Promise<EventVendorSlot[]>;
+  addEventVendorSlot(organizationId: string, eventId: string, label: string): Promise<EventVendorSlot>;
+  updateEventVendorSlot(input: UpdateEventVendorSlotInput): Promise<EventVendorSlot>;
+  removeEventVendorSlot(organizationId: string, vendorSlotId: string): Promise<void>;
 }

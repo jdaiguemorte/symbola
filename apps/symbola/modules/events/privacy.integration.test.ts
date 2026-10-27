@@ -4,7 +4,7 @@
 import { randomUUID } from "node:crypto";
 import { afterAll, describe, expect, it } from "vitest";
 import { createAppConnection } from "@symbola/db/client";
-import { eventClients, events } from "@symbola/db/schema/events";
+import { eventClients, events, eventVendorSlots } from "@symbola/db/schema/events";
 import { withOrganization } from "@symbola/db/with-organization";
 import { eventsPrivacy } from "./privacy";
 
@@ -53,5 +53,36 @@ describe("SOC-07 — privacy/v1 du module events (PostgreSQL réel)", () => {
     await withOrganization(db, otherOrganizationId, (tx) => tx.delete(eventClients));
     await withOrganization(db, otherOrganizationId, (tx) => tx.delete(events));
     await withOrganization(db, organizationId, (tx) => tx.delete(events));
+  });
+
+  it("EVT-03 — couvre aussi le nom du prestataire d'un poste, sans toucher une autre organisation", async () => {
+    const organizationId = randomUUID();
+    const otherOrganizationId = randomUUID();
+    const term = `Prestataire-${randomUUID()}`;
+
+    for (const id of [organizationId, otherOrganizationId]) {
+      await withOrganization(db, id, async (tx) => {
+        const [event] = await tx.insert(events).values({ organizationId: id }).returning();
+        if (!event) throw new Error("insertion de l'événement attendue");
+        await tx
+          .insert(eventVendorSlots)
+          .values({ organizationId: id, eventId: event.id, label: "Photographe", status: "booked", vendorName: term });
+      });
+    }
+
+    const found = await eventsPrivacy.find({ organizationId, term });
+    expect(found).toHaveLength(1);
+    expect(found[0]?.summary).toContain(term);
+
+    expect((await eventsPrivacy.anonymize({ organizationId, term })).affected).toBe(1);
+    expect(await eventsPrivacy.find({ organizationId, term })).toHaveLength(0);
+
+    // L'effacement retire le nom ; le poste lui-même (une ligne de l'événement) reste.
+    expect((await eventsPrivacy.erase({ organizationId, term: "anonymisé" })).affected).toBe(1);
+    const remaining = await withOrganization(db, organizationId, (tx) => tx.select().from(eventVendorSlots));
+    expect(remaining).toHaveLength(1);
+    expect(remaining[0]?.vendorName).toBeNull();
+
+    expect(await eventsPrivacy.find({ organizationId: otherOrganizationId, term })).toHaveLength(1);
   });
 });

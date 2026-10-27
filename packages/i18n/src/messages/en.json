@@ -183,11 +183,11 @@
     },
     "eventsDetail": {
       "title": "Event details",
-      "body": "Track the event's progress here: prospect, quote sent, confirmed, done or lost. For a lost event, give the reason; some reasons require details."
+      "body": "Track the event's progress here (prospect, quote sent, confirmed, done or lost) and its vendor slots: the top bar counts booked slots out of required ones. A booked slot needs the vendor's name; the amount is optional."
     },
     "eventsSettings": {
-      "title": "Sources and loss reasons",
-      "body": "Define your own prospect sources (wedding fair, Instagram, word of mouth…) and loss reasons. Tick “ask for details” for a reason such as “Other”."
+      "title": "Event settings",
+      "body": "Define your prospect sources (wedding fair, Instagram, word of mouth…), your loss reasons, and the vendor slots every new event receives. The starter template offers a list of common slots that you then adapt."
     }
   },
   "FirstSteps": {
@@ -206,7 +206,7 @@
     "moduleUnavailable": "The Events module is not enabled for your organization.",
     "unauthenticated": "Your session has expired. Sign in again and retry.",
     "newProspect": "New prospect",
-    "settingsLink": "Sources and loss reasons",
+    "settingsLink": "Event settings",
     "tabsLabel": "Period",
     "tabUpcoming": "Upcoming",
     "tabPast": "Finished",
@@ -245,7 +245,7 @@
     "missingLossReason": "Choose a loss reason.",
     "missingLossReasonNote": "This reason requires details.",
     "suggestMarkDone": "This event's date has passed: you can mark it as Done.",
-    "settingsTitle": "Sources and loss reasons",
+    "settingsTitle": "Event settings",
     "sourcesTitle": "Prospect sources",
     "newSourceLabel": "New source",
     "addSource": "Add source",
@@ -259,6 +259,35 @@
     "missingLabel": "The label is required.",
     "sourceAll": "All",
     "eventNotFound": "This event cannot be found.",
-    "statusChanged": "Status updated."
+    "statusChanged": "Status updated.",
+    "vendorSlotsTitle": "Vendor slots",
+    "vendorProgress": "{booked, plural, =0 {No slot booked} one {# slot booked} other {# slots booked}} out of {required}",
+    "vendorStatusToFind": "To find",
+    "vendorStatusQuoteRequested": "Quote requested",
+    "vendorStatusQuoteReceived": "Quote received",
+    "vendorStatusBooked": "Booked",
+    "vendorStatusNotRequired": "Not required",
+    "vendorSlotStatus": "Slot status",
+    "vendorName": "Vendor",
+    "vendorNameRequired": "Vendor (required if Booked)",
+    "vendorAmount": "Amount in euros (optional)",
+    "saveVendorSlot": "Save slot",
+    "vendorSlotSaved": "Slot saved.",
+    "newVendorSlotLabel": "New slot for this event",
+    "addVendorSlot": "Add slot",
+    "removeVendorSlot": "Remove slot “{label}”",
+    "noVendorSlots": "No slot for this event. Add one, or define a default list in the settings.",
+    "vendorSlotNotFound": "This slot cannot be found.",
+    "missingVendorName": "Enter the vendor's name for a booked slot.",
+    "invalidAmount": "Invalid amount. Example: 2,500.50",
+    "defaultVendorSlotsTitle": "Default slots",
+    "defaultVendorSlotsIntro": "Every new event receives these slots; you then adjust them event by event.",
+    "noDefaultVendorSlots": "No default slot yet.",
+    "newDefaultVendorSlotLabel": "New default slot",
+    "addDefaultVendorSlot": "Add default slot",
+    "defaultVendorSlotAdded": "Slot added.",
+    "vendorSlotAlreadyExists": "This slot already exists.",
+    "loadStarterVendorSlots": "Load the starter template",
+    "starterVendorSlotsLoaded": "{count, plural, =0 {The starter template is already loaded.} one {# slot added from the starter template.} other {# slots added from the starter template.}}"
   }
 }
