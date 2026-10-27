@@ -1,10 +1,20 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { HelpButton } from "@symbola/ui";
-import { listEvents, listProspectSources, type EventStatus } from "@/modules/events/service";
+import type { TourStep } from "@symbola/ui";
+import { createAppConnection } from "@symbola/db/client";
+import {
+  getActiveEventsTrial,
+  listEvents,
+  listProspectSources,
+  purgeExpiredDemoEvents,
+  type EventStatus,
+} from "@/modules/events/service";
+import { hasSeenTour } from "@/modules/hub/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
+import { EventsTourAndHelp } from "./events-tour";
 import { isEventsModuleEnabled } from "./module-access";
+import { startTrialAction } from "./trial-actions";
 
 const UPCOMING_STATUSES: EventStatus[] = ["prospect", "quote_sent", "confirmed"];
 const PAST_STATUSES: EventStatus[] = ["done", "lost"];
@@ -20,7 +30,7 @@ const STATUS_LABEL_KEYS: Record<EventStatus, string> = {
 export default async function EventsListPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string; year?: string; search?: string; status?: string; source?: string }>;
+  searchParams: Promise<{ tab?: string; year?: string; search?: string; status?: string; source?: string; essai?: string }>;
 }) {
   const auth = await getPlannerAuthContext();
   if (auth.status === "unauthenticated") redirect("/login");
@@ -31,7 +41,7 @@ export default async function EventsListPage({
 
   const t = await getTranslations("Events");
   const tHelp = await getTranslations("Help");
-  const { tab, year, search, status, source } = await searchParams;
+  const { tab, year, search, status, source, essai } = await searchParams;
 
   if (!(await isEventsModuleEnabled(organizationId))) {
     return (
@@ -40,6 +50,19 @@ export default async function EventsListPage({
         <p>{t("moduleUnavailable")}</p>
       </main>
     );
+  }
+
+  // AIDE-02 : un essai abandonné depuis plus de 24 h disparaît aussi dès
+  // que la planner revient ici, sans attendre la purge horaire.
+  await purgeExpiredDemoEvents(organizationId);
+  const trial = await getActiveEventsTrial(organizationId);
+  const tTour = await getTranslations("Tour");
+  const { sql, db } = createAppConnection();
+  let tourInitiallyOpen: boolean;
+  try {
+    tourInitiallyOpen = !(await hasSeenTour(db, auth.user.id, "events"));
+  } finally {
+    await sql.end();
   }
 
   const isPastTab = tab === "termines";
@@ -68,7 +91,30 @@ export default async function EventsListPage({
   return (
     <main>
       <h1>{t("title")}</h1>
-      <HelpButton title={tHelp("eventsList.title")} body={tHelp("eventsList.body")} />
+      <EventsTourAndHelp
+        tourInitiallyOpen={tourInitiallyOpen}
+        tourSteps={tTour.raw("events") as TourStep[]}
+        skipLabel={tTour("skip")}
+        nextLabel={tTour("next")}
+        finishLabel={tTour("finish")}
+        helpTitle={tHelp("eventsList.title")}
+        helpBody={tHelp("eventsList.body")}
+        relaunchLabel={tHelp("relaunchTour")}
+      />
+
+      {/* AIDE-02 : essai guidé sur un événement fictif. */}
+      <section aria-labelledby="events-trial-title">
+        <h2 id="events-trial-title">{t("trialTitle")}</h2>
+        {essai === "termine" ? <p role="status">{t("trialEnded")}</p> : null}
+        <p>{t("trialIntro")}</p>
+        {trial ? (
+          <Link href={`/events/${trial.eventId}`}>{t("trialResume")}</Link>
+        ) : (
+          <form action={startTrialAction}>
+            <button type="submit">{t("trialStart")}</button>
+          </form>
+        )}
+      </section>
       <nav>
         <Link href="/events/new">{t("newProspect")}</Link>
         {" · "}
@@ -133,6 +179,7 @@ export default async function EventsListPage({
               {item.venueName ?? ""} {item.venueCity ? `(${item.venueCity})` : ""}
               {" — "}
               {t(STATUS_LABEL_KEYS[item.status])}
+              {item.isDemo ? ` — ${t("demoTag")}` : ""}
             </Link>
           </li>
         ))}

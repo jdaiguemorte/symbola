@@ -67,4 +67,6 @@ export type {
   EventClientAccess,
   InviteEventClientInput,
   InviteEventClientResult,
+  EventsTrial,
+  StartEventsTrialInput,
 } from "./events/service-contract";

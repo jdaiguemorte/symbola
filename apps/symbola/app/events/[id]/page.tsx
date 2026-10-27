@@ -22,6 +22,7 @@ import {
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isEventsModuleEnabled, isValidId } from "../module-access";
 import { ChangeStatusForm } from "./change-status-form";
+import { endTrialAction } from "../trial-actions";
 import { revokeClientAccessAction } from "./client-access-actions";
 import { InviteClientForm } from "./client-access-forms";
 import { removeProgramItemAction } from "./program-actions";
@@ -111,6 +112,23 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
   return (
     <main>
       <h1>{clientNames}</h1>
+      {/* AIDE-02 : bandeau de l'essai guidé, sur données fictives. */}
+      {event.isDemo ? (
+        <section aria-labelledby="trial-banner-title">
+          <h2 id="trial-banner-title">{t("trialBannerTitle")}</h2>
+          <p>{t("trialBannerBody")}</p>
+          <ol>
+            <li>{t("trialStepStatus")}</li>
+            <li>{t("trialStepVendor")}</li>
+            <li>{t("trialStepTask")}</li>
+            <li>{t("trialStepProgram")}</li>
+          </ol>
+          <form action={endTrialAction}>
+            <input type="hidden" name="eventId" value={event.id} />
+            <button type="submit">{t("trialEnd")}</button>
+          </form>
+        </section>
+      ) : null}
       <HelpButton title={tHelp("eventsDetail.title")} body={tHelp("eventsDetail.body")} />
 
       {/* EVT-03 : barre d'avancement en haut de la fiche. */}
@@ -327,7 +345,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
           </li>
         ))}
       </ul>
-      <InviteClientForm eventId={event.id} />
+      {event.isDemo ? <p>{t("trialNoInvite")}</p> : <InviteClientForm eventId={event.id} />}
 
       <h2>{t("activityTitle")}</h2>
       {activity.length === 0 ? <p>{t("noActivity")}</p> : null}

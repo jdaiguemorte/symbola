@@ -26,6 +26,16 @@ const styles = StyleSheet.create({
   participants: { width: "20%", paddingRight: 6 },
   note: { width: "20%" },
   empty: { marginTop: 12 },
+  watermark: {
+    position: "absolute",
+    top: 380,
+    left: 60,
+    fontSize: 64,
+    fontFamily: "Helvetica-Bold",
+    color: "#bbbbbb",
+    opacity: 0.4,
+    transform: "rotate(-35deg)",
+  },
 });
 
 const WIDE = { label: "32%", location: "26%", participants: "28%" };
@@ -39,6 +49,11 @@ export function ProgramPdfDocument({ model }: { model: ProgramPdfModel }) {
   return (
     <Document title={`${model.title} — ${model.heading}`} author={model.organizationName} language={model.language}>
       <Page size="A4" style={styles.page} wrap>
+        {model.watermark ? (
+          <Text style={styles.watermark} fixed>
+            {model.watermark}
+          </Text>
+        ) : null}
         <View style={styles.header} fixed>
           {model.logo ? (
             <Image style={styles.logo} src={{ data: model.logo.data, format: model.logo.format }} />

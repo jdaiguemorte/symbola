@@ -3,6 +3,7 @@
 // charge si elle le souhaite (ONB-01 : « partir d'un modèle de départ,
 // partir de zéro, ou importer un fichier ») ; rien n'est créé d'office.
 import { z } from "zod";
+import demoEventFile from "./demo-event.json";
 import programFile from "./program.json";
 import retroplanningFile from "./retroplanning.json";
 import vendorSlotsFile from "./vendor-slots.json";
@@ -109,5 +110,38 @@ export function starterProgram(locale: StarterLocale): StarterProgramTemplate {
         return label;
       }),
     })),
+  };
+}
+
+const demoEventSchema = z.object({
+  version: z.literal(1),
+  // Date de l'événement fictif : aujourd'hui + ce nombre de jours, pour que
+  // le rétroplanning de départ tombe dans le futur.
+  daysFromToday: z.number().int().positive(),
+  clients: z.array(z.object({ firstName: translatedLabelSchema, lastName: translatedLabelSchema })).min(1),
+  venueName: translatedLabelSchema,
+  venueCity: translatedLabelSchema,
+});
+
+const demoEvent = demoEventSchema.parse(demoEventFile);
+
+export type StarterDemoEvent = {
+  daysFromToday: number;
+  clients: { firstName: string; lastName: string }[];
+  venueName: string;
+  venueCity: string;
+};
+
+// AIDE-02 : couple et lieu fictifs de l'essai guidé du module événements,
+// dans la langue demandée.
+export function starterDemoEvent(locale: StarterLocale): StarterDemoEvent {
+  return {
+    daysFromToday: demoEvent.daysFromToday,
+    clients: demoEvent.clients.map((client) => ({
+      firstName: client.firstName[locale],
+      lastName: client.lastName[locale],
+    })),
+    venueName: demoEvent.venueName[locale],
+    venueCity: demoEvent.venueCity[locale],
   };
 }

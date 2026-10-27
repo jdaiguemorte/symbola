@@ -37,6 +37,8 @@ export type ProgramPdfModel = {
   rows: ProgramPdfRow[];
   showNotes: boolean;
   empty: string;
+  // AIDE-02 : « Document fictif » en filigrane sur un événement d'essai.
+  watermark: string | null;
 };
 
 export function buildProgramPdfModel(input: {
@@ -47,6 +49,7 @@ export function buildProgramPdfModel(input: {
   heading: string;
   organizationName: string;
   logo: ProgramPdfLogo | null;
+  watermark?: string | null;
   now?: Date;
 }): ProgramPdfModel {
   const { labels } = input;
@@ -71,5 +74,6 @@ export function buildProgramPdfModel(input: {
     rows,
     showNotes,
     empty: labels.empty,
+    watermark: input.watermark ?? null,
   };
 }

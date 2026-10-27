@@ -7,7 +7,13 @@ import { createUser, findAccountByEmail } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
 import { parseEnv } from "@symbola/env";
 import { sendMail } from "@symbola/mail";
+import { starterDemoEvent, starterProgram, starterRetroplanning, starterVendorSlots } from "@symbola/starter-templates";
 import {
+  countRealEvents,
+  deleteDemoEvent,
+  deleteExpiredDemoEvents,
+  findActiveDemoEvent,
+  insertDemoEvent,
   findClientAccessByTokenHash,
   findClientEventIds,
   findEventActivity,
@@ -88,6 +94,8 @@ import type {
   EventClientAccess,
   InviteEventClientInput,
   InviteEventClientResult,
+  EventsTrial,
+  StartEventsTrialInput,
   EventProgram,
   EventTask,
   EventTaskInput,
@@ -157,6 +165,8 @@ export type {
   EventClientAccess,
   InviteEventClientInput,
   InviteEventClientResult,
+  EventsTrial,
+  StartEventsTrialInput,
 } from "@symbola/contracts";
 
 function toEventClient(row: EventClientRow): EventClient {
@@ -171,6 +181,7 @@ function toEventSummary(event: EventRow, clients: EventClientRow[]): EventSummar
     venueName: event.venueName,
     venueCity: event.venueCity,
     clients: clients.map(toEventClient),
+    isDemo: event.isDemo,
   };
 }
 
@@ -824,9 +835,9 @@ export async function inviteEventClient(input: InviteEventClientInput): Promise<
     tokenHash: secret ? hashClientToken(secret) : null,
     userId: account?.id ?? null,
   });
-  if (result.status !== "saved") {
-    throw result.status === "event_not_found" ? new EventNotFoundError() : new ClientAlreadyInvitedError();
-  }
+  if (result.status === "event_not_found") throw new EventNotFoundError();
+  if (result.status === "demo_event") throw new DemoEventRestrictionError();
+  if (result.status !== "saved") throw new ClientAlreadyInvitedError();
 
   const invitationToken = secret ? `${input.organizationId}.${secret}` : null;
   const appUrl = parseEnv(process.env).APP_PUBLIC_URL;
@@ -916,6 +927,79 @@ export async function listEventActivity(organizationId: string, eventId: string)
   }));
 }
 
+// AIDE-02 — essai guidé (ADR 0008).
+
+const TRIAL_DURATION_MS = 24 * 60 * 60 * 1000; // essai abandonné supprimé après 24 h (PRD, proposé)
+
+// Action impossible sur un événement d'essai (ex. inviter un marié : jamais
+// d'e-mail à un tiers depuis un essai).
+export class DemoEventRestrictionError extends Error {
+  constructor() {
+    super("action indisponible pendant l'essai");
+    this.name = "DemoEventRestrictionError";
+  }
+}
+
+function toTrial(event: EventRow): EventsTrial {
+  return { eventId: event.id, expiresAt: event.demoExpiresAt!.toISOString() };
+}
+
+// Événement fictif complet, construit depuis les modèles de départ : la
+// planner y fait de vraies opérations (statut, postes, tâches, programme)
+// sans toucher à ses données.
+export async function startEventsTrial(input: StartEventsTrialInput): Promise<EventsTrial> {
+  const now = input.now ?? new Date();
+  const active = await findActiveDemoEvent(input.organizationId, now);
+  if (active) return toTrial(active);
+
+  const demo = starterDemoEvent(input.locale);
+  const eventDate = addDays(now.toISOString().slice(0, 10), demo.daysFromToday);
+  const retroplanning = starterRetroplanning(input.locale);
+  const program = starterProgram(input.locale);
+  const event = await insertDemoEvent(input.organizationId, {
+    createdByUserId: input.userId,
+    eventDate,
+    expiresAt: new Date(now.getTime() + TRIAL_DURATION_MS),
+    clients: demo.clients,
+    venueName: demo.venueName,
+    venueCity: demo.venueCity,
+    fallbackVendorSlotLabels: starterVendorSlots(input.locale),
+    tasks: retroplanning.items.map((item) => ({
+      label: item.label,
+      dueDate: addDays(eventDate, item.offsetDays),
+      responsible: item.responsible,
+    })),
+    programItems: program.items,
+  });
+  return toTrial(event);
+}
+
+export async function getActiveEventsTrial(organizationId: string, now: Date = new Date()): Promise<EventsTrial | null> {
+  const event = await findActiveDemoEvent(organizationId, now);
+  return event ? toTrial(event) : null;
+}
+
+export async function endEventsTrial(organizationId: string, eventId: string): Promise<void> {
+  await deleteDemoEvent(organizationId, eventId);
+}
+
+export async function purgeExpiredDemoEvents(organizationId: string, now: Date = new Date()): Promise<number> {
+  return deleteExpiredDemoEvents([organizationId], now);
+}
+
+// Purge planifiée : toutes les organisations en un passage.
+export async function purgeExpiredDemoEventsForOrganizations(
+  organizationIds: string[],
+  now: Date = new Date(),
+): Promise<number> {
+  return deleteExpiredDemoEvents(organizationIds, now);
+}
+
+// Tableau de bord (AIDE-04) : un événement d'essai ne compte pas.
+export async function hasRealEvents(organizationId: string): Promise<boolean> {
+  return (await countRealEvents(organizationId)) > 0;
+}
+
 const _contractCheck: EventsServiceContract = {
   listEvents,
   getEvent,
@@ -964,5 +1048,10 @@ const _contractCheck: EventsServiceContract = {
   getClientEventView,
   setClientTaskDone,
   listEventActivity,
+  startEventsTrial,
+  getActiveEventsTrial,
+  endEventsTrial,
+  purgeExpiredDemoEvents,
+  hasRealEvents,
 };
 void _contractCheck;

@@ -1,0 +1,48 @@
+"use client";
+
+import { useState } from "react";
+import { GuidedTour, HelpButton, type TourStep } from "@symbola/ui";
+import { markTourSeenAction } from "../actions";
+
+// AIDE-01 — visite guidée du module événements : ouverte d'office à la
+// première visite (décidé côté serveur), relançable depuis le bouton « ? ».
+export function EventsTourAndHelp({
+  tourInitiallyOpen,
+  tourSteps,
+  skipLabel,
+  nextLabel,
+  finishLabel,
+  helpTitle,
+  helpBody,
+  relaunchLabel,
+}: {
+  tourInitiallyOpen: boolean;
+  tourSteps: TourStep[];
+  skipLabel: string;
+  nextLabel: string;
+  finishLabel: string;
+  helpTitle: string;
+  helpBody: string;
+  relaunchLabel: string;
+}) {
+  const [open, setOpen] = useState(tourInitiallyOpen);
+
+  async function close() {
+    setOpen(false);
+    await markTourSeenAction("events");
+  }
+
+  return (
+    <>
+      <GuidedTour
+        open={open}
+        steps={tourSteps}
+        skipLabel={skipLabel}
+        nextLabel={nextLabel}
+        finishLabel={finishLabel}
+        onClose={close}
+      />
+      <HelpButton title={helpTitle} body={helpBody} relaunchLabel={relaunchLabel} onRelaunchTour={() => setOpen(true)} />
+    </>
+  );
+}

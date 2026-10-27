@@ -4,6 +4,7 @@ import { after } from "next/server";
 import { getTranslations } from "next-intl/server";
 import type { TourStep } from "@symbola/ui";
 import { createAppConnection } from "@symbola/db/client";
+import { hasRealEvents } from "@/modules/events/service";
 import { getGreeting } from "@/modules/hello/service";
 import { getOrganizationProfile, hasSeenTour, isModuleEnabled } from "@/modules/hub/service";
 import { getAuthContext } from "@/lib/auth-context";
@@ -43,6 +44,10 @@ export default async function HomePage() {
       await sql.end();
     }
   }
+  // AIDE-04 : « créer son premier événement » ; un événement d'essai
+  // (AIDE-02) ne compte jamais au tableau de bord.
+  const firstEventCreated =
+    eventsAvailable && auth.user.organizationId ? await hasRealEvents(auth.user.organizationId) : false;
   const greeting = helloAvailable ? getGreeting() : null;
   const t = await getTranslations("Home");
 
@@ -110,6 +115,9 @@ export default async function HomePage() {
         firstStepsTitle={tFirstSteps("title")}
         firstStepsItems={[
           { key: "completeProfile", label: tFirstSteps("completeProfile"), done: !onboardingIncomplete },
+          ...(eventsAvailable
+            ? [{ key: "createFirstEvent", label: tFirstSteps("createFirstEvent"), done: firstEventCreated }]
+            : []),
         ]}
         firstStepsHideLabel={tFirstSteps("hide")}
       />

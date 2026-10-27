@@ -1,6 +1,6 @@
 // Accès aux données du module events — jamais importé hors de
 // modules/events/ (ADR 0011).
-import { and, asc, desc, eq, ilike, inArray, isNotNull, isNull, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gt, ilike, inArray, isNotNull, isNull, lte, or, sql } from "drizzle-orm";
 import { createAppConnection } from "@symbola/db/client";
 import {
   defaultVendorSlots,
@@ -253,17 +253,21 @@ export async function updateEventStatus(input: {
         changedByUserId: input.changedByUserId,
       });
 
-      await emitDomainEvent(tx, {
-        organizationId: input.organizationId,
-        name: EVT_EVENT_STATUS_CHANGED,
-        version: EVT_EVENT_STATUS_CHANGED_VERSION,
-        payload: {
-          eventId: input.eventId,
-          fromStatus: current.status,
-          toStatus: input.toStatus,
-          changedByUserId: input.changedByUserId,
-        },
-      });
+      // AIDE-02 : un événement d'essai ne publie rien (aucun consommateur
+      // ne doit voir de donnée fictive).
+      if (!current.isDemo) {
+        await emitDomainEvent(tx, {
+          organizationId: input.organizationId,
+          name: EVT_EVENT_STATUS_CHANGED,
+          version: EVT_EVENT_STATUS_CHANGED_VERSION,
+          payload: {
+            eventId: input.eventId,
+            fromStatus: current.status,
+            toStatus: input.toStatus,
+            changedByUserId: input.changedByUserId,
+          },
+        });
+      }
 
       return updated;
     });
@@ -458,7 +462,8 @@ export async function updateEventVendorSlotRow(input: {
       const becomesBooked = current.status !== "booked" && updated.status === "booked";
       const bookedAmountChanged =
         current.status === "booked" && updated.status === "booked" && current.amountCents !== updated.amountCents;
-      if (becomesBooked || bookedAmountChanged) {
+      const [parent] = await tx.select({ isDemo: events.isDemo }).from(events).where(eq(events.id, updated.eventId));
+      if ((becomesBooked || bookedAmountChanged) && !parent?.isDemo) {
         await emitDomainEvent(tx, {
           organizationId: input.organizationId,
           name: EVT_VENDOR_SLOT_BOOKED,
@@ -1244,7 +1249,7 @@ export async function findEventClientAccesses(organizationId: string, eventId: s
 
 export type SaveClientAccessResult =
   | { status: "saved"; access: EventClientAccessRow }
-  | { status: "event_not_found" | "already_active" };
+  | { status: "event_not_found" | "already_active" | "demo_event" };
 
 // Une invitation encore en attente pour le même e-mail est renouvelée
 // (nouveau jeton, nouvelle échéance) plutôt que doublée.
@@ -1261,8 +1266,13 @@ export async function saveClientAccess(input: {
   try {
     return await withOrganization(db, input.organizationId, async (tx) => {
       // Clé étrangère vérifiée sans RLS : on contrôle que l'événement est visible.
-      const [event] = await tx.select({ id: events.id }).from(events).where(eq(events.id, input.eventId));
+      const [event] = await tx
+        .select({ id: events.id, isDemo: events.isDemo })
+        .from(events)
+        .where(eq(events.id, input.eventId));
       if (!event) return { status: "event_not_found" };
+      // AIDE-02 : jamais d'e-mail à un tiers depuis un essai.
+      if (event.isDemo) return { status: "demo_event" };
 
       const [current] = await tx
         .select()
@@ -1468,6 +1478,182 @@ export async function findEventActivity(
           : [];
       const emailByUser = new Map(accesses.map((access) => [access.userId, access.email]));
       return activity.map((row) => ({ activity: row, actorEmail: emailByUser.get(row.actorUserId) ?? null }));
+    });
+  } finally {
+    await pg.end();
+  }
+}
+
+// AIDE-02 — essai guidé : événement fictif complet, puis purge.
+export type DemoEventData = {
+  createdByUserId: string;
+  eventDate: string;
+  expiresAt: Date;
+  clients: { firstName: string; lastName: string }[];
+  venueName: string;
+  venueCity: string;
+  // Postes du modèle de départ, utilisés si l'organisation n'a pas encore
+  // de liste par défaut.
+  fallbackVendorSlotLabels: string[];
+  tasks: { label: string; dueDate: string; responsible: TaskResponsible }[];
+  programItems: (Omit<ProgramItemData, "internalNote"> & { participantLabels: string[] })[];
+};
+
+function activeDemo(now: Date) {
+  return and(eq(events.isDemo, true), gt(events.demoExpiresAt, now));
+}
+
+export async function findActiveDemoEvent(organizationId: string, now: Date): Promise<EventRow | null> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    return await withOrganization(db, organizationId, async (tx) => {
+      const [event] = await tx.select().from(events).where(activeDemo(now)).orderBy(desc(events.createdAt)).limit(1);
+      return event ?? null;
+    });
+  } finally {
+    await pg.end();
+  }
+}
+
+export async function insertDemoEvent(organizationId: string, data: DemoEventData): Promise<EventRow> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    return await withOrganization(db, organizationId, async (tx) => {
+      const now = new Date();
+      const [event] = await tx
+        .insert(events)
+        .values({
+          organizationId,
+          status: "prospect",
+          eventDate: data.eventDate,
+          venueName: data.venueName,
+          venueCity: data.venueCity,
+          tasksScheduledFor: data.eventDate,
+          programUpdatedAt: now,
+          isDemo: true,
+          demoExpiresAt: data.expiresAt,
+        })
+        .returning();
+      if (!event) throw new Error("création de l'événement d'essai échouée");
+
+      await tx.insert(eventClients).values(
+        data.clients.map((client, position) => ({ organizationId, eventId: event.id, ...client, position })),
+      );
+      await tx.insert(eventStatusHistory).values({
+        organizationId,
+        eventId: event.id,
+        fromStatus: null,
+        toStatus: "prospect",
+        changedByUserId: data.createdByUserId,
+      });
+
+      const defaults = await tx
+        .select()
+        .from(defaultVendorSlots)
+        .orderBy(asc(defaultVendorSlots.position), asc(defaultVendorSlots.createdAt));
+      const labels = defaults.length > 0 ? defaults.map((slot) => slot.label) : data.fallbackVendorSlotLabels;
+      const slots =
+        labels.length > 0
+          ? await tx
+              .insert(eventVendorSlots)
+              .values(labels.map((label, position) => ({ organizationId, eventId: event.id, label, position })))
+              .returning()
+          : [];
+      const slotByLabel = new Map(slots.map((slot) => [slot.label.trim().toLowerCase(), slot.id]));
+
+      if (data.tasks.length > 0) {
+        await tx
+          .insert(eventTasks)
+          .values(data.tasks.map((task, position) => ({ organizationId, eventId: event.id, ...task, position })));
+      }
+      for (const programItem of data.programItems) {
+        const { participantLabels, ...values } = programItem;
+        const [item] = await tx
+          .insert(programItems)
+          .values({ organizationId, eventId: event.id, ...values })
+          .returning();
+        if (!item) throw new Error("création de la ligne d'essai échouée");
+        const vendorSlotIds: string[] = [];
+        const freeLabels: string[] = [];
+        for (const label of participantLabels) {
+          const slotId = slotByLabel.get(label.trim().toLowerCase());
+          if (slotId) vendorSlotIds.push(slotId);
+          else freeLabels.push(label);
+        }
+        await insertParticipants(tx, organizationId, item.id, vendorSlotIds, freeLabels);
+      }
+      return event;
+    });
+  } finally {
+    await pg.end();
+  }
+}
+
+// Supprime des événements d'essai et toutes leurs lignes, enfants d'abord
+// (les clés étrangères ne cascadent pas toutes).
+async function deleteDemoEventRows(tx: Tx, eventIds: string[]): Promise<void> {
+  if (eventIds.length === 0) return;
+  await tx.delete(eventActivities).where(inArray(eventActivities.eventId, eventIds));
+  await tx.delete(eventClientAccesses).where(inArray(eventClientAccesses.eventId, eventIds));
+  await tx.delete(programItems).where(inArray(programItems.eventId, eventIds));
+  await tx.delete(eventTasks).where(inArray(eventTasks.eventId, eventIds));
+  await tx.delete(eventVendorSlots).where(inArray(eventVendorSlots.eventId, eventIds));
+  await tx.delete(eventStatusHistory).where(inArray(eventStatusHistory.eventId, eventIds));
+  await tx.delete(eventClients).where(inArray(eventClients.eventId, eventIds));
+  await tx.delete(events).where(and(inArray(events.id, eventIds), eq(events.isDemo, true)));
+}
+
+// Ne supprime qu'un événement d'essai : un identifiant de vrai événement
+// ne fait rien.
+export async function deleteDemoEvent(organizationId: string, eventId: string): Promise<void> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    await withOrganization(db, organizationId, async (tx) => {
+      const [event] = await tx
+        .select({ id: events.id })
+        .from(events)
+        .where(and(eq(events.id, eventId), eq(events.isDemo, true)));
+      if (event) await deleteDemoEventRows(tx, [event.id]);
+    });
+  } finally {
+    await pg.end();
+  }
+}
+
+// Une seule connexion pour toutes les organisations (purge planifiée), une
+// transaction par organisation (RLS).
+export async function deleteExpiredDemoEvents(organizationIds: string[], now: Date): Promise<number> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    let purged = 0;
+    for (const organizationId of organizationIds) {
+      purged += await withOrganization(db, organizationId, async (tx) => {
+        const expired = await tx
+          .select({ id: events.id })
+          .from(events)
+          .where(and(eq(events.isDemo, true), lte(events.demoExpiresAt, now)));
+        await deleteDemoEventRows(
+          tx,
+          expired.map((event) => event.id),
+        );
+        return expired.length;
+      });
+    }
+    return purged;
+  } finally {
+    await pg.end();
+  }
+}
+
+export async function countRealEvents(organizationId: string): Promise<number> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    return await withOrganization(db, organizationId, async (tx) => {
+      const [row] = await tx
+        .select({ count: sql<number>`count(*)::int` })
+        .from(events)
+        .where(eq(events.isDemo, false));
+      return row?.count ?? 0;
     });
   } finally {
     await pg.end();

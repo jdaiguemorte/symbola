@@ -65,5 +65,20 @@ describe("EVT-05 — Contenu du PDF du programme", () => {
     expect(model.version).toBe("Version du 1 juin 2027 à 10:30");
     expect(model.organizationName).toBe("Atelier");
     expect(model.logo).toBe(logo);
+    expect(model.watermark).toBeNull();
+  });
+
+  it("AIDE-02 — un événement d'essai porte le filigrane « Document fictif »", () => {
+    const model = buildProgramPdfModel({
+      program,
+      variant: "couple",
+      labels,
+      locale: "fr",
+      heading: "Camille & Sacha",
+      logo: null,
+      organizationName: "Atelier",
+      watermark: "Document fictif",
+    });
+    expect(model.watermark).toBe("Document fictif");
   });
 });

@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "daysFromToday": 270,
+  "clients": [
+    { "firstName": { "fr": "Camille", "en": "Camille" }, "lastName": { "fr": "Durand (démo)", "en": "Durand (demo)" } },
+    { "firstName": { "fr": "Sacha", "en": "Sacha" }, "lastName": { "fr": "Martin (démo)", "en": "Martin (demo)" } }
+  ],
+  "venueName": { "fr": "Domaine des Tilleuls (fictif)", "en": "Linden Estate (fictional)" },
+  "venueCity": { "fr": "Lyon", "en": "Lyon" }
+}

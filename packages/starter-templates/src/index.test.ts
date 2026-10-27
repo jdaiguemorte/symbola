@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import retroplanningFile from "./retroplanning.json";
 import vendorSlotsFile from "./vendor-slots.json";
 import programFile from "./program.json";
-import { starterProgram, starterRetroplanning, starterVendorSlots } from "./index";
+import { starterDemoEvent, starterProgram, starterRetroplanning, starterVendorSlots } from "./index";
 
 describe("EVT-03 — Modèle de départ des postes prestataires", () => {
   it("existe en français et en anglais, avec le même nombre de postes", () => {
@@ -64,5 +64,17 @@ describe("EVT-05 — Modèle de départ du programme du jour J", () => {
   it("n'a pas de clé en double", () => {
     const keys = programFile.items.map((item) => item.key);
     expect(new Set(keys).size).toBe(keys.length);
+  });
+});
+
+describe("AIDE-02 — Données fictives de l'essai guidé des événements", () => {
+  it("existent en français et en anglais, et se signalent comme fictives", () => {
+    const fr = starterDemoEvent("fr");
+    const en = starterDemoEvent("en");
+    expect(fr.clients).toHaveLength(en.clients.length);
+    expect(fr.daysFromToday).toBeGreaterThan(0);
+    expect(fr.clients.every((client) => client.lastName.includes("démo"))).toBe(true);
+    expect(en.clients.every((client) => client.lastName.includes("demo"))).toBe(true);
+    expect(fr.venueName).toContain("fictif");
   });
 });
