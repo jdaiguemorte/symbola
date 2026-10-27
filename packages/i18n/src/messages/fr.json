@@ -183,11 +183,15 @@
     },
     "eventsDetail": {
       "title": "Fiche de l'événement",
-      "body": "Suivez ici l'avancement de l'événement (prospect, devis envoyé, confirmé, réalisé ou perdu) et de ses postes prestataires : la barre du haut compte les postes réservés sur les postes requis. Un poste réservé demande le nom du prestataire ; le montant est facultatif."
+      "body": "Suivez ici l'avancement de l'événement (prospect, devis envoyé, confirmé, réalisé ou perdu) et de ses postes prestataires : la barre du haut compte les postes réservés sur les postes requis. Un poste réservé demande le nom du prestataire ; le montant est facultatif. Le rétroplanning liste les tâches par mois : appliquez un modèle, ajoutez, cochez ou réordonnez les tâches. Si la date de l'événement change, l'app propose de décaler les échéances des tâches non faites."
     },
     "eventsSettings": {
       "title": "Paramètres des événements",
       "body": "Définissez vos sources de prospect (salon, Instagram, bouche-à-oreille…), vos motifs de perte, et les postes prestataires que reçoit chaque nouvel événement. Le modèle de départ propose une liste de postes courants, que vous adaptez ensuite."
+    },
+    "eventsTemplates": {
+      "title": "Modèles de rétroplanning",
+      "body": "Créez vos modèles de rétroplanning, ou chargez le modèle de départ puis adaptez-le. Chaque tâche se place par rapport à la date de l'événement : J-365, J-30, jour J… Un modèle s'applique depuis la fiche d'un événement daté."
     }
   },
   "FirstSteps": {
@@ -288,6 +292,60 @@
     "defaultVendorSlotAdded": "Poste ajouté.",
     "vendorSlotAlreadyExists": "Ce poste existe déjà.",
     "loadStarterVendorSlots": "Charger le modèle de départ",
-    "starterVendorSlotsLoaded": "{count, plural, =0 {Le modèle de départ est déjà chargé.} one {# poste ajouté depuis le modèle de départ.} other {# postes ajoutés depuis le modèle de départ.}}"
+    "starterVendorSlotsLoaded": "{count, plural, =0 {Le modèle de départ est déjà chargé.} one {# poste ajouté depuis le modèle de départ.} other {# postes ajoutés depuis le modèle de départ.}}",
+    "tasksTitle": "Rétroplanning",
+    "taskTemplatesTitle": "Modèles de rétroplanning",
+    "taskTemplatesLink": "Modèles de rétroplanning",
+    "taskTemplatesIntro": "Chaque tâche d'un modèle a un intitulé, un décalage en jours par rapport à la date de l'événement (-365 pour J-365, 0 pour le jour J) et un responsable. Appliqué à un événement daté, le modèle crée les tâches avec leurs échéances.",
+    "noTaskTemplates": "Aucun modèle de rétroplanning pour l'instant.",
+    "noTaskTemplateItems": "Ce modèle ne contient encore aucune tâche.",
+    "newTaskTemplateTitle": "Nouveau modèle",
+    "newTaskTemplateName": "Nom du modèle",
+    "createTaskTemplate": "Créer le modèle",
+    "taskTemplateCreated": "Modèle créé.",
+    "loadStarterRetroplanning": "Charger le modèle de départ",
+    "starterRetroplanningLoaded": "Modèle de départ chargé : adaptez-le à votre façon de travailler.",
+    "removeTaskTemplate": "Supprimer le modèle {name}",
+    "addTaskTemplateItemTo": "Ajouter une tâche au modèle {name}",
+    "addTaskTemplateItem": "Ajouter la tâche au modèle",
+    "taskTemplateItemAdded": "Tâche ajoutée au modèle.",
+    "taskOffsetDays": "Décalage en jours (négatif avant l'événement, positif après)",
+    "offsetEventDay": "Jour J",
+    "offsetBefore": "J-{days}",
+    "offsetAfter": "J+{days}",
+    "invalidOffset": "Saisissez un nombre entier de jours, entre -1095 et 1095.",
+    "taskTemplateNotFound": "Modèle introuvable.",
+    "taskTemplateToApply": "Modèle à appliquer",
+    "applyTaskTemplate": "Appliquer le modèle",
+    "taskTemplateApplied": "Modèle appliqué : les tâches ont été créées.",
+    "taskTemplateNeedsDate": "Ajoutez une date à l'événement pour appliquer un modèle de rétroplanning.",
+    "recalculationPendingFirst": "Répondez d'abord à la proposition de recalcul des échéances.",
+    "recalculationTitle": "Recalcul des échéances",
+    "recalculationProposal": "La date de l'événement a été {direction, select, later {repoussée} other {avancée}} de {days, plural, one {# jour} other {# jours}}. Décaler d'autant {count, plural, one {la tâche non faite} other {les # tâches non faites}} ?",
+    "recalculationAccept": "Décaler les échéances",
+    "recalculationDecline": "Garder les échéances",
+    "changeEventDate": "Changer la date",
+    "eventDateChanged": "Date mise à jour.",
+    "invalidDate": "Date invalide.",
+    "noTasks": "Aucune tâche pour cet événement.",
+    "newTask": "Nouvelle tâche",
+    "taskLabel": "Intitulé de la tâche",
+    "taskDueDate": "Échéance",
+    "taskResponsible": "Responsable",
+    "responsiblePlanner": "Planner",
+    "responsibleClients": "Mariés",
+    "invalidResponsible": "Choisissez un responsable.",
+    "addTask": "Ajouter la tâche",
+    "taskAdded": "Tâche ajoutée.",
+    "editTask": "Modifier la tâche {label}",
+    "saveTask": "Enregistrer la tâche",
+    "taskSaved": "Tâche enregistrée.",
+    "taskDone": "faite",
+    "markTaskDone": "Cocher la tâche {label}",
+    "markTaskUndone": "Décocher la tâche {label}",
+    "moveTaskUp": "Monter la tâche {label}",
+    "moveTaskDown": "Descendre la tâche {label}",
+    "removeTask": "Supprimer la tâche {label}",
+    "taskNotFound": "Tâche introuvable."
   }
 }

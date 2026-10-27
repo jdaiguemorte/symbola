@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { formatAmount, formatDate, localeFromAcceptLanguage, parseAmountToCents } from "./index";
+import {
+  formatAmount,
+  formatCalendarDate,
+  formatDate,
+  formatMonth,
+  localeFromAcceptLanguage,
+  parseAmountToCents,
+} from "./index";
 
 describe("@symbola/i18n — formatAmount", () => {
   it("formate en français : 1 234,56 €", () => {
@@ -8,6 +15,18 @@ describe("@symbola/i18n — formatAmount", () => {
 
   it("formate en anglais : €1,234.56", () => {
     expect(formatAmount(123456, "en")).toBe("€1,234.56");
+  });
+});
+
+describe("@symbola/i18n — dates sans heure", () => {
+  it("formate un « AAAA-MM-JJ » sans décalage de fuseau, même le 1er du mois", () => {
+    expect(formatCalendarDate("2027-03-01", "fr")).toBe("1 mars 2027");
+    expect(formatCalendarDate("2027-03-01", "en")).toBe("March 1, 2027");
+  });
+
+  it("formate le mois d'un « AAAA-MM-JJ »", () => {
+    expect(formatMonth("2027-10-31", "fr")).toBe("octobre 2027");
+    expect(formatMonth("2027-10-31", "en")).toBe("October 2027");
   });
 });
 

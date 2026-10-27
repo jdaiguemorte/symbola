@@ -6,7 +6,15 @@ import { assertOrganizationIsolation } from "@symbola/testing";
 import { eq } from "drizzle-orm";
 import { afterAll, describe, it } from "vitest";
 import { createAppConnection } from "./client";
-import { defaultVendorSlots, eventClients, events, eventVendorSlots } from "./schema/events";
+import {
+  defaultVendorSlots,
+  eventClients,
+  events,
+  eventTasks,
+  eventVendorSlots,
+  taskTemplateItems,
+  taskTemplates,
+} from "./schema/events";
 import { withOrganization } from "./with-organization";
 
 const { sql, db } = createAppConnection();
@@ -118,6 +126,62 @@ describe("EVT-01/02 — Isolation entre organisations (module events, PostgreSQL
             .set({ vendorName: "falsifié" })
             .where(eq(eventVendorSlots.id, targetRow.id))
             .returning(),
+        );
+        return { affectedRows: updated.length };
+      },
+    });
+  });
+
+  it("EVT-04 — une organisation ne voit et ne modifie jamais les modèles de rétroplanning d'une autre", async () => {
+    await assertOrganizationIsolation({
+      seed: async (organizationId) =>
+        withOrganization(db, organizationId, async (tx) => {
+          const [template] = await tx.insert(taskTemplates).values({ organizationId, name: "Mariage" }).returning();
+          if (!template) throw new Error("insertion du modèle attendue");
+          const [row] = await tx
+            .insert(taskTemplateItems)
+            .values({ organizationId, templateId: template.id, label: "Réserver le lieu", offsetDays: -365 })
+            .returning();
+          if (!row) throw new Error("insertion attendue, aucune ligne renvoyée");
+          return row;
+        }),
+
+      listVisible: async (organizationId) =>
+        withOrganization(db, organizationId, (tx) => tx.select().from(taskTemplateItems)),
+
+      attemptCrossOrganizationUpdate: async (organizationId, targetRow) => {
+        const updated = await withOrganization(db, organizationId, (tx) =>
+          tx
+            .update(taskTemplateItems)
+            .set({ label: "falsifié" })
+            .where(eq(taskTemplateItems.id, targetRow.id))
+            .returning(),
+        );
+        return { affectedRows: updated.length };
+      },
+    });
+  });
+
+  it("EVT-04 — une organisation ne voit et ne modifie jamais les tâches du rétroplanning d'une autre", async () => {
+    await assertOrganizationIsolation({
+      seed: async (organizationId) =>
+        withOrganization(db, organizationId, async (tx) => {
+          const [event] = await tx.insert(events).values({ organizationId }).returning();
+          if (!event) throw new Error("insertion de l'événement attendue");
+          const [row] = await tx
+            .insert(eventTasks)
+            .values({ organizationId, eventId: event.id, label: "Envoyer les faire-part", dueDate: "2027-03-01" })
+            .returning();
+          if (!row) throw new Error("insertion attendue, aucune ligne renvoyée");
+          return row;
+        }),
+
+      listVisible: async (organizationId) =>
+        withOrganization(db, organizationId, (tx) => tx.select().from(eventTasks)),
+
+      attemptCrossOrganizationUpdate: async (organizationId, targetRow) => {
+        const updated = await withOrganization(db, organizationId, (tx) =>
+          tx.update(eventTasks).set({ label: "falsifié" }).where(eq(eventTasks.id, targetRow.id)).returning(),
         );
         return { affectedRows: updated.length };
       },

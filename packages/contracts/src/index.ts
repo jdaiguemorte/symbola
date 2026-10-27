@@ -43,4 +43,12 @@ export type {
   UpdateEventVendorSlotInput,
   VendorSlotProgress,
   VendorSlotStatus,
+  EventTask,
+  EventTaskInput,
+  TaskRecalculation,
+  TaskResponsible,
+  TaskTemplate,
+  TaskTemplateItem,
+  TaskTemplateItemInput,
+  UpdateEventTaskInput,
 } from "./events/service-contract";

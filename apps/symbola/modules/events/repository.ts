@@ -1,15 +1,18 @@
 // Accès aux données du module events — jamais importé hors de
 // modules/events/ (ADR 0011).
-import { and, asc, eq, ilike, inArray, or, sql } from "drizzle-orm";
+import { and, asc, eq, ilike, inArray, isNull, or, sql } from "drizzle-orm";
 import { createAppConnection } from "@symbola/db/client";
 import {
   defaultVendorSlots,
   eventClients,
   events,
   eventStatusHistory,
+  eventTasks,
   eventVendorSlots,
   lossReasons,
   prospectSources,
+  taskTemplateItems,
+  taskTemplates,
 } from "@symbola/db/schema/events";
 import { withOrganization } from "@symbola/db/with-organization";
 import { emitDomainEvent } from "@symbola/db/events/emit";
@@ -22,8 +25,12 @@ import {
   EVT_VENDOR_SLOT_BOOKED_VERSION,
   vendorSlotBookedPayloadSchema,
   type EventStatus,
+  type TaskRecalculation,
+  type TaskResponsible,
+  type TaskTemplateItemInput,
   type VendorSlotStatus,
 } from "@symbola/contracts";
+import { addDays, daysBetween, dueDateFor } from "./schedule";
 
 export type EventRow = typeof events.$inferSelect;
 export type EventClientRow = typeof eventClients.$inferSelect;
@@ -31,6 +38,9 @@ export type ProspectSourceRow = typeof prospectSources.$inferSelect;
 export type DefaultVendorSlotRow = typeof defaultVendorSlots.$inferSelect;
 export type EventVendorSlotRow = typeof eventVendorSlots.$inferSelect;
 export type LossReasonRow = typeof lossReasons.$inferSelect;
+export type TaskTemplateRow = typeof taskTemplates.$inferSelect;
+export type TaskTemplateItemRow = typeof taskTemplateItems.$inferSelect;
+export type EventTaskRow = typeof eventTasks.$inferSelect;
 
 export async function findEvents(
   organizationId: string,
@@ -465,6 +475,409 @@ export async function deleteEventVendorSlot(organizationId: string, vendorSlotId
     await withOrganization(db, organizationId, (tx) =>
       tx.delete(eventVendorSlots).where(eq(eventVendorSlots.id, vendorSlotId)),
     );
+  } finally {
+    await pg.end();
+  }
+}
+
+// EVT-04 — modèles de rétroplanning.
+export async function findTaskTemplates(
+  organizationId: string,
+): Promise<{ template: TaskTemplateRow; items: TaskTemplateItemRow[] }[]> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    return await withOrganization(db, organizationId, async (tx) => {
+      const templates = await tx.select().from(taskTemplates).orderBy(asc(taskTemplates.createdAt));
+      const items =
+        templates.length > 0
+          ? await tx
+              .select()
+              .from(taskTemplateItems)
+              .where(
+                inArray(
+                  taskTemplateItems.templateId,
+                  templates.map((template) => template.id),
+                ),
+              )
+              .orderBy(asc(taskTemplateItems.offsetDays), asc(taskTemplateItems.position))
+          : [];
+      return templates.map((template) => ({
+        template,
+        items: items.filter((item) => item.templateId === template.id),
+      }));
+    });
+  } finally {
+    await pg.end();
+  }
+}
+
+export async function insertTaskTemplate(
+  organizationId: string,
+  name: string,
+  items: TaskTemplateItemInput[],
+): Promise<{ template: TaskTemplateRow; items: TaskTemplateItemRow[] }> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    return await withOrganization(db, organizationId, async (tx) => {
+      const [template] = await tx.insert(taskTemplates).values({ organizationId, name }).returning();
+      if (!template) throw new Error("création du modèle échouée");
+      const rows =
+        items.length > 0
+          ? await tx
+              .insert(taskTemplateItems)
+              .values(items.map((item, index) => ({ organizationId, templateId: template.id, ...item, position: index })))
+              .returning()
+          : [];
+      return { template, items: rows };
+    });
+  } finally {
+    await pg.end();
+  }
+}
+
+export async function insertTaskTemplateItem(
+  organizationId: string,
+  templateId: string,
+  item: TaskTemplateItemInput,
+): Promise<TaskTemplateItemRow | null> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    return await withOrganization(db, organizationId, async (tx) => {
+      // Clé étrangère vérifiée sans RLS : on contrôle que le modèle est visible.
+      const [template] = await tx
+        .select({ id: taskTemplates.id })
+        .from(taskTemplates)
+        .where(eq(taskTemplates.id, templateId));
+      if (!template) return null;
+      const existing = await tx
+        .select({ position: taskTemplateItems.position })
+        .from(taskTemplateItems)
+        .where(eq(taskTemplateItems.templateId, templateId));
+      const position = existing.reduce((max, row) => Math.max(max, row.position + 1), 0);
+      const [row] = await tx
+        .insert(taskTemplateItems)
+        .values({ organizationId, templateId, ...item, position })
+        .returning();
+      if (!row) throw new Error("ajout de la tâche au modèle échoué");
+      return row;
+    });
+  } finally {
+    await pg.end();
+  }
+}
+
+export async function deleteTaskTemplateItem(organizationId: string, itemId: string): Promise<void> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    await withOrganization(db, organizationId, (tx) =>
+      tx.delete(taskTemplateItems).where(eq(taskTemplateItems.id, itemId)),
+    );
+  } finally {
+    await pg.end();
+  }
+}
+
+// Les tâches déjà créées sur les événements restent : elles ne référencent
+// pas le modèle.
+export async function deleteTaskTemplate(organizationId: string, templateId: string): Promise<void> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    await withOrganization(db, organizationId, async (tx) => {
+      await tx.delete(taskTemplateItems).where(eq(taskTemplateItems.templateId, templateId));
+      await tx.delete(taskTemplates).where(eq(taskTemplates.id, templateId));
+    });
+  } finally {
+    await pg.end();
+  }
+}
+
+// EVT-04 — recalcul des échéances après un changement de date.
+type Tx = Parameters<Parameters<typeof withOrganization>[2]>[0];
+
+async function countUndoneTasks(tx: Tx, eventId: string): Promise<number> {
+  const [row] = await tx
+    .select({ count: sql<number>`count(*)::int` })
+    .from(eventTasks)
+    .where(and(eq(eventTasks.eventId, eventId), isNull(eventTasks.doneAt)));
+  return row?.count ?? 0;
+}
+
+// Une proposition est en attente quand la date de l'événement diffère de
+// celle qui a servi au calcul des échéances et qu'il reste des tâches non
+// faites à décaler.
+function recalculationFor(event: EventRow, undoneTasks: number): TaskRecalculation {
+  if (!event.eventDate || !event.tasksScheduledFor || event.eventDate === event.tasksScheduledFor || undoneTasks === 0) {
+    return { pending: false, shiftDays: 0, undoneTasks };
+  }
+  return { pending: true, shiftDays: daysBetween(event.tasksScheduledFor, event.eventDate), undoneTasks };
+}
+
+export async function updateEventDateRow(
+  organizationId: string,
+  eventId: string,
+  eventDate: string | null,
+): Promise<TaskRecalculation | null> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    return await withOrganization(db, organizationId, async (tx) => {
+      const [current] = await tx.select().from(events).where(eq(events.id, eventId));
+      if (!current) return null;
+      const undoneTasks = await countUndoneTasks(tx, eventId);
+      // Sans tâche à décaler, les échéances suivent directement la nouvelle date.
+      const tasksScheduledFor = undoneTasks === 0 ? eventDate : current.tasksScheduledFor;
+      const [updated] = await tx
+        .update(events)
+        .set({ eventDate, tasksScheduledFor, updatedAt: new Date() })
+        .where(eq(events.id, eventId))
+        .returning();
+      if (!updated) throw new Error("mise à jour de la date échouée");
+      return recalculationFor(updated, undoneTasks);
+    });
+  } finally {
+    await pg.end();
+  }
+}
+
+export async function findTaskRecalculation(
+  organizationId: string,
+  eventId: string,
+): Promise<TaskRecalculation | null> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    return await withOrganization(db, organizationId, async (tx) => {
+      const [event] = await tx.select().from(events).where(eq(events.id, eventId));
+      if (!event) return null;
+      return recalculationFor(event, await countUndoneTasks(tx, eventId));
+    });
+  } finally {
+    await pg.end();
+  }
+}
+
+// Accepter décale les tâches non faites de l'écart entre les deux dates ;
+// refuser garde les échéances. Dans les deux cas la proposition est close.
+export async function resolveTaskRecalculationRow(
+  organizationId: string,
+  eventId: string,
+  accept: boolean,
+): Promise<boolean> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    return await withOrganization(db, organizationId, async (tx) => {
+      const [event] = await tx.select().from(events).where(eq(events.id, eventId));
+      if (!event) return false;
+      const recalculation = recalculationFor(event, await countUndoneTasks(tx, eventId));
+      if (!recalculation.pending) return true;
+      if (accept) {
+        const undone = await tx
+          .select()
+          .from(eventTasks)
+          .where(and(eq(eventTasks.eventId, eventId), isNull(eventTasks.doneAt)));
+        for (const task of undone) {
+          await tx
+            .update(eventTasks)
+            .set({ dueDate: addDays(task.dueDate, recalculation.shiftDays), updatedAt: new Date() })
+            .where(eq(eventTasks.id, task.id));
+        }
+      }
+      await tx
+        .update(events)
+        .set({ tasksScheduledFor: event.eventDate, updatedAt: new Date() })
+        .where(eq(events.id, eventId));
+      return true;
+    });
+  } finally {
+    await pg.end();
+  }
+}
+
+// EVT-04 — tâches d'un événement.
+export type ApplyTaskTemplateResult =
+  | { status: "applied"; tasks: EventTaskRow[] }
+  | { status: "event_not_found" | "template_not_found" | "date_required" | "recalculation_pending" };
+
+async function nextTaskPosition(tx: Tx, eventId: string): Promise<number> {
+  const [row] = await tx
+    .select({ max: sql<number | null>`max(${eventTasks.position})` })
+    .from(eventTasks)
+    .where(eq(eventTasks.eventId, eventId));
+  return row?.max === null || row?.max === undefined ? 0 : row.max + 1;
+}
+
+export async function applyTaskTemplateRows(
+  organizationId: string,
+  eventId: string,
+  templateId: string,
+): Promise<ApplyTaskTemplateResult> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    return await withOrganization(db, organizationId, async (tx) => {
+      const [event] = await tx.select().from(events).where(eq(events.id, eventId));
+      if (!event) return { status: "event_not_found" };
+      const [template] = await tx.select().from(taskTemplates).where(eq(taskTemplates.id, templateId));
+      if (!template) return { status: "template_not_found" };
+      if (!event.eventDate) return { status: "date_required" };
+      if (recalculationFor(event, await countUndoneTasks(tx, eventId)).pending) {
+        return { status: "recalculation_pending" };
+      }
+
+      const items = await tx
+        .select()
+        .from(taskTemplateItems)
+        .where(eq(taskTemplateItems.templateId, templateId))
+        .orderBy(asc(taskTemplateItems.offsetDays), asc(taskTemplateItems.position));
+      const eventDate = event.eventDate;
+      const start = await nextTaskPosition(tx, eventId);
+      const tasks =
+        items.length > 0
+          ? await tx
+              .insert(eventTasks)
+              .values(
+                items.map((item, index) => ({
+                  organizationId,
+                  eventId,
+                  label: item.label,
+                  dueDate: dueDateFor(eventDate, item.offsetDays),
+                  responsible: item.responsible,
+                  position: start + index,
+                })),
+              )
+              .returning()
+          : [];
+      if (!event.tasksScheduledFor) {
+        await tx.update(events).set({ tasksScheduledFor: eventDate }).where(eq(events.id, eventId));
+      }
+      return { status: "applied", tasks };
+    });
+  } finally {
+    await pg.end();
+  }
+}
+
+// Vue par mois : tri par mois d'échéance, puis par l'ordre choisi par la planner.
+const taskOrder = [sql`date_trunc('month', ${eventTasks.dueDate})`, asc(eventTasks.position), asc(eventTasks.createdAt)];
+
+export async function findEventTasks(organizationId: string, eventId: string): Promise<EventTaskRow[]> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    return await withOrganization(db, organizationId, (tx) =>
+      tx
+        .select()
+        .from(eventTasks)
+        .where(eq(eventTasks.eventId, eventId))
+        .orderBy(...taskOrder),
+    );
+  } finally {
+    await pg.end();
+  }
+}
+
+export async function insertEventTask(
+  organizationId: string,
+  eventId: string,
+  task: { label: string; dueDate: string; responsible: TaskResponsible },
+): Promise<EventTaskRow | null> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    return await withOrganization(db, organizationId, async (tx) => {
+      // Clé étrangère vérifiée sans RLS : on contrôle que l'événement est visible.
+      const [event] = await tx.select().from(events).where(eq(events.id, eventId));
+      if (!event) return null;
+      const position = await nextTaskPosition(tx, eventId);
+      const [row] = await tx
+        .insert(eventTasks)
+        .values({ organizationId, eventId, ...task, position })
+        .returning();
+      if (!row) throw new Error("ajout de la tâche échoué");
+      if (!event.tasksScheduledFor && event.eventDate) {
+        await tx.update(events).set({ tasksScheduledFor: event.eventDate }).where(eq(events.id, eventId));
+      }
+      return row;
+    });
+  } finally {
+    await pg.end();
+  }
+}
+
+export async function updateEventTaskRow(input: {
+  organizationId: string;
+  taskId: string;
+  label?: string | undefined;
+  dueDate?: string | undefined;
+  responsible?: TaskResponsible | undefined;
+  done?: boolean | undefined;
+}): Promise<EventTaskRow | null> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    return await withOrganization(db, input.organizationId, async (tx) => {
+      const [current] = await tx.select().from(eventTasks).where(eq(eventTasks.id, input.taskId));
+      if (!current) return null;
+      const doneAt = input.done === undefined ? current.doneAt : input.done ? (current.doneAt ?? new Date()) : null;
+      const [updated] = await tx
+        .update(eventTasks)
+        .set({
+          label: input.label ?? current.label,
+          dueDate: input.dueDate ?? current.dueDate,
+          responsible: input.responsible ?? current.responsible,
+          doneAt,
+          updatedAt: new Date(),
+        })
+        .where(eq(eventTasks.id, input.taskId))
+        .returning();
+      return updated ?? null;
+    });
+  } finally {
+    await pg.end();
+  }
+}
+
+// Échange la tâche avec sa voisine du même mois ; les positions du mois
+// sont renumérotées pour rester distinctes.
+export async function moveEventTaskRow(
+  organizationId: string,
+  taskId: string,
+  direction: "up" | "down",
+): Promise<boolean> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    return await withOrganization(db, organizationId, async (tx) => {
+      const [task] = await tx.select().from(eventTasks).where(eq(eventTasks.id, taskId));
+      if (!task) return false;
+      const sameMonth = await tx
+        .select()
+        .from(eventTasks)
+        .where(
+          and(
+            eq(eventTasks.eventId, task.eventId),
+            sql`date_trunc('month', ${eventTasks.dueDate}) = date_trunc('month', ${task.dueDate}::date)`,
+          ),
+        )
+        .orderBy(...taskOrder);
+      const index = sameMonth.findIndex((row) => row.id === taskId);
+      const target = direction === "up" ? index - 1 : index + 1;
+      if (index < 0 || target < 0 || target >= sameMonth.length) return true;
+      const ordered = [...sameMonth];
+      [ordered[index], ordered[target]] = [ordered[target]!, ordered[index]!];
+      const base = Math.min(...sameMonth.map((row) => row.position));
+      for (const [offset, row] of ordered.entries()) {
+        if (row.position !== base + offset) {
+          await tx
+            .update(eventTasks)
+            .set({ position: base + offset, updatedAt: new Date() })
+            .where(eq(eventTasks.id, row.id));
+        }
+      }
+      return true;
+    });
+  } finally {
+    await pg.end();
+  }
+}
+
+export async function deleteEventTask(organizationId: string, taskId: string): Promise<void> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    await withOrganization(db, organizationId, (tx) => tx.delete(eventTasks).where(eq(eventTasks.id, taskId)));
   } finally {
     await pg.end();
   }

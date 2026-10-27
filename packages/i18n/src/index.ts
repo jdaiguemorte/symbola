@@ -73,6 +73,27 @@ export function formatDate(date: Date, locale: Locale): string {
   }).format(date);
 }
 
+// Dates sans heure (« AAAA-MM-JJ », CLAUDE.md §5) : formatées en UTC,
+// faute de quoi un fuseau à l'ouest de Greenwich afficherait la veille.
+function calendarDateToUtc(date: string): Date {
+  return new Date(`${date}T00:00:00Z`);
+}
+
+export function formatCalendarDate(date: string, locale: Locale): string {
+  return new Intl.DateTimeFormat(INTL_LOCALE[locale], {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    timeZone: "UTC",
+  }).format(calendarDateToUtc(date));
+}
+
+export function formatMonth(date: string, locale: Locale): string {
+  return new Intl.DateTimeFormat(INTL_LOCALE[locale], { year: "numeric", month: "long", timeZone: "UTC" }).format(
+    calendarDateToUtc(date),
+  );
+}
+
 // Langue par défaut d'un nouvel utilisateur (HUB-04) : celle de son
 // navigateur, français si elle n'est ni FR ni EN.
 export function localeFromAcceptLanguage(header: string | null): Locale {

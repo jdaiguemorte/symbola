@@ -29,6 +29,8 @@ export type EventDetail = EventSummary & {
   prospectSourceId: string | null;
   lossReasonId: string | null;
   lossReasonNote: string | null;
+  // EVT-04 : date pour laquelle les échéances ont été calculées.
+  tasksScheduledFor: string | null;
 };
 
 export type ListEventsInput = {
@@ -109,6 +111,62 @@ export type VendorSlotProgress = {
   required: number;
 };
 
+// EVT-04 — rétroplanning.
+export type TaskResponsible = "planner" | "clients";
+
+export type TaskTemplateItem = {
+  id: string;
+  label: string;
+  // Décalage en jours par rapport à la date de l'événement (J-365 = -365).
+  offsetDays: number;
+  responsible: TaskResponsible;
+  position: number;
+};
+
+export type TaskTemplate = {
+  id: string;
+  name: string;
+  items: TaskTemplateItem[];
+};
+
+export type TaskTemplateItemInput = {
+  label: string;
+  offsetDays: number;
+  responsible: TaskResponsible;
+};
+
+export type EventTask = {
+  id: string;
+  eventId: string;
+  label: string;
+  dueDate: string;
+  responsible: TaskResponsible;
+  done: boolean;
+  position: number;
+};
+
+export type EventTaskInput = {
+  label: string;
+  dueDate: string;
+  responsible: TaskResponsible;
+};
+
+export type UpdateEventTaskInput = {
+  organizationId: string;
+  taskId: string;
+  label?: string | undefined;
+  dueDate?: string | undefined;
+  responsible?: TaskResponsible | undefined;
+  done?: boolean | undefined;
+};
+
+export type TaskRecalculation = {
+  pending: boolean;
+  // Écart en jours entre l'ancienne et la nouvelle date de l'événement.
+  shiftDays: number;
+  undoneTasks: number;
+};
+
 export interface EventsServiceContract {
   listEvents(input: ListEventsInput): Promise<EventSummary[]>;
   getEvent(organizationId: string, eventId: string): Promise<EventDetail | null>;
@@ -125,4 +183,18 @@ export interface EventsServiceContract {
   addEventVendorSlot(organizationId: string, eventId: string, label: string): Promise<EventVendorSlot>;
   updateEventVendorSlot(input: UpdateEventVendorSlotInput): Promise<EventVendorSlot>;
   removeEventVendorSlot(organizationId: string, vendorSlotId: string): Promise<void>;
+  listTaskTemplates(organizationId: string): Promise<TaskTemplate[]>;
+  createTaskTemplate(organizationId: string, name: string, items: TaskTemplateItemInput[]): Promise<TaskTemplate>;
+  addTaskTemplateItem(organizationId: string, templateId: string, item: TaskTemplateItemInput): Promise<TaskTemplateItem>;
+  removeTaskTemplateItem(organizationId: string, itemId: string): Promise<void>;
+  removeTaskTemplate(organizationId: string, templateId: string): Promise<void>;
+  changeEventDate(organizationId: string, eventId: string, eventDate: string | null): Promise<TaskRecalculation>;
+  getTaskRecalculation(organizationId: string, eventId: string): Promise<TaskRecalculation>;
+  resolveTaskRecalculation(organizationId: string, eventId: string, accept: boolean): Promise<void>;
+  applyTaskTemplate(organizationId: string, eventId: string, templateId: string): Promise<EventTask[]>;
+  listEventTasks(organizationId: string, eventId: string): Promise<EventTask[]>;
+  addEventTask(organizationId: string, eventId: string, task: EventTaskInput): Promise<EventTask>;
+  updateEventTask(input: UpdateEventTaskInput): Promise<EventTask>;
+  moveEventTask(organizationId: string, taskId: string, direction: "up" | "down"): Promise<void>;
+  removeEventTask(organizationId: string, taskId: string): Promise<void>;
 }

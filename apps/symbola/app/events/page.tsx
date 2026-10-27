@@ -72,6 +72,8 @@ export default async function EventsListPage({
         <Link href="/events/new">{t("newProspect")}</Link>
         {" · "}
         <Link href="/events/parametres">{t("settingsLink")}</Link>
+        {" · "}
+        <Link href="/events/modeles">{t("taskTemplatesLink")}</Link>
       </nav>
 
       <nav aria-label={t("tabsLabel")}>
