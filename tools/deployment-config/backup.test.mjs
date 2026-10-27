@@ -20,6 +20,9 @@ echo "docker $*" >>"$FAKE_LOG"
 args=" $* "
 case "$args" in
   *" cat config "*) exit "\${FAKE_REPO_STATUS:-0}" ;;
+  *"pg_database"*) echo "\${FAKE_DOCUSEAL_DB-}" ;;
+  *" volume inspect "*) [ -n "\${FAKE_DOCUSEAL_VOLUME:-}" ] || exit 1 ;;
+  *"docuseal.dump"*" dump "*|*" dump "*"docuseal.dump"*) [ -n "\${FAKE_DOCUSEAL_DUMP:-}" ] || exit 1; echo "PGDMP-fake" ;;
   *"pg_dump"*) [ -n "\${FAKE_PGDUMP_FAIL:-}" ] && exit 1; echo "PGDMP-fake" ;;
   *"pg_restore --list"*) cat >/dev/null ;;
   *"pg_restore --exit-on-error"*) cat >/dev/null ;;
@@ -186,6 +189,52 @@ describe("SOC-10 — Sauvegarde nocturne (backup.sh)", () => {
     expect(indexOf(run(backupScript, ["staging"], { FAKE_WEEKDAY: "3" }).calls, " check ")).toBe(-1);
     rmSync(env.FAKE_LOG);
     expect(indexOf(run(backupScript, ["staging"], { FAKE_WEEKDAY: "7" }).calls, "check --read-data-subset=10%")).toBeGreaterThanOrEqual(0);
+  });
+});
+
+describe("DEV-02 — Sauvegarde de la base et des fichiers de DocuSeal (ADR 0021)", () => {
+  it("sans DocuSeal déployé, la sauvegarde reste celle de Symbola seule", () => {
+    const { status, calls } = run(backupScript, ["production"]);
+    expect(status).toBe(0);
+    expect(indexOf(calls, "--dbname=docuseal")).toBe(-1);
+    expect(calls[indexOf(calls, "backup --tag env:production")]).not.toContain("/backup/docuseal");
+  });
+
+  it("étant donné DocuSeal déployé, sa base dédiée est vidée et vérifiée, et ses fichiers entrent dans le même instantané", () => {
+    const { status, calls } = run(backupScript, ["production"], { FAKE_DOCUSEAL_DB: "1", FAKE_DOCUSEAL_VOLUME: "1" });
+    expect(status).toBe(0);
+    const dump = indexOf(calls, "pg_dump --format=custom", "--dbname=docuseal");
+    const stopDocuseal = indexOf(calls, "-p symbola-production", "stop docuseal");
+    const backup = indexOf(calls, "backup --tag env:production");
+    const startDocuseal = indexOf(calls, "-p symbola-production", "start docuseal");
+    for (const step of [dump, stopDocuseal, backup, startDocuseal]) expect(step).toBeGreaterThanOrEqual(0);
+    expect(dump).toBeLessThan(backup);
+    expect(stopDocuseal).toBeLessThan(backup);
+    expect(backup).toBeLessThan(startDocuseal);
+    expect(calls.filter((call) => call.includes("pg_restore --list"))).toHaveLength(2);
+    expect(calls[backup]).toContain("-v symbola-production_docuseal_data:/backup/docuseal:ro");
+  });
+
+  it("restaure la base et les fichiers de DocuSeal quand l'instantané les contient, après ceux de Symbola", () => {
+    const { status, calls } = run(restoreScript, ["staging", "--confirm=staging"], { FAKE_DOCUSEAL_DUMP: "1" });
+    expect(status).toBe(0);
+    const symbolaRestore = indexOf(calls, "pg_restore --exit-on-error", "POSTGRES_DB");
+    const recreate = indexOf(calls, "dropdb --if-exists --force", "docuseal");
+    const docusealRestore = indexOf(calls, "pg_restore --exit-on-error", "--dbname=docuseal");
+    const files = indexOf(calls, `restore ${SNAPSHOT_ID} --target / --include /backup/docuseal`);
+    const restart = calls.findIndex((call) => / -p symbola-staging up -d --wait$/.test(call));
+    for (const step of [symbolaRestore, recreate, docusealRestore, files, restart]) expect(step).toBeGreaterThanOrEqual(0);
+    expect(symbolaRestore).toBeLessThan(recreate);
+    expect(recreate).toBeLessThan(docusealRestore);
+    expect(files).toBeLessThan(restart);
+    expect(calls[files]).toContain("symbola-staging_docuseal_data:/backup/docuseal");
+  });
+
+  it("sans base DocuSeal dans l'instantané, la restauration ne touche pas DocuSeal", () => {
+    const { status, calls } = run(restoreScript, ["staging", "--confirm=staging"]);
+    expect(status).toBe(0);
+    expect(indexOf(calls, "dropdb", "docuseal")).toBe(-1);
+    expect(indexOf(calls, "--include /backup/docuseal")).toBe(-1);
   });
 });
 

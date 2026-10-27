@@ -111,4 +111,16 @@ export type {
   SendQuoteInput,
   UnpaidPayment,
   UnpaidPaymentsView,
+  ClientQuoteToSign,
+  SendForSignatureInput,
+  SignatureView,
+  SignatureWebhookResult,
+  SignerInput,
+  SignerView,
 } from "./quotes/service-contract";
+export {
+  QUOTES_QUOTE_SIGNED,
+  QUOTES_QUOTE_SIGNED_VERSION,
+  quoteSignedPayloadSchema,
+  type QuoteSignedPayload,
+} from "./quotes/events";

@@ -5,7 +5,8 @@
 // dans "@symbola/env/validate-on-import" — importé uniquement par
 // apps/symbola/instrumentation.ts.
 import { parseEnv } from "./parse";
-import type { Env } from "./schema";
+import { signatureProviderOf, type Env } from "./schema";
 
 export type { Env };
+export { signatureProviderOf };
 export { parseEnv };

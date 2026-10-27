@@ -138,3 +138,44 @@ fields:
       L'adresse est remplacée par « [anonymisé] » lors d'une demande
       d'oubli de l'organisation (RGPD-03), sauf obligation légale de
       conservation (factures, lot 4).
+  - schema: quotes
+    table: quote_signers
+    field: name
+    category: identifiant
+    retention: >-
+      Tant que le devis existe (DEV-02 : signataire saisi sur le devis, copie
+      figée avec la version envoyée en signature). Voir RGPD-03/RGPD-05 ; un
+      devis signé lié à une facture suit la conservation légale de celle-ci.
+    anonymization: >-
+      Remplacé par « [anonymisé] » lors d'une demande d'oubli (RGPD-03).
+  - schema: quotes
+    table: quote_signers
+    field: email
+    category: contact
+    retention: >-
+      Tant que le devis existe (DEV-02 : adresse à laquelle Symbola envoie le
+      lien de signature). Voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Remplacé par une valeur générée non réversible lors d'une demande
+      d'oubli (RGPD-03).
+  - schema: quotes
+    table: quote_signers
+    field: billing_address
+    category: contact
+    retention: >-
+      Tant que le devis existe (DEV-02 : adresse de facturation reprise sur
+      les factures, DEV-04). Voir RGPD-03/RGPD-05 ; conservation légale des
+      factures émises.
+    anonymization: >-
+      Remplacée par « [anonymisé] » lors d'une demande d'oubli (RGPD-03),
+      sauf sur une facture émise (conservation légale).
+  - schema: quotes
+    table: quote_signers
+    field: signing_url
+    category: securite
+    retention: >-
+      Tant que le devis existe (DEV-02 : lien personnel de signature chez le
+      fournisseur, affiché à la planner et au marié concerné uniquement).
+    anonymization: >-
+      Supprimé (remplacé par une valeur vide) lors d'une demande d'oubli ;
+      le lien ne sert plus une fois la demande terminée.

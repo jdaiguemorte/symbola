@@ -20,6 +20,7 @@ const labels: QuotePdfLabels = {
   totalHt: "Total HT",
   vatAtRate: (rate) => `TVA ${rate} %`,
   totalTtc: "Total TTC",
+  signatureTitle: "Bon pour accord",
 };
 
 function version(overrides: Partial<QuoteVersionView> = {}): QuoteVersionView {
@@ -66,6 +67,7 @@ function quote(current: QuoteVersionView, isDemo = false): QuoteDetail {
     versions: [current],
     current,
     regimeChangedSinceSent: false,
+    signature: null,
   };
 }
 
@@ -131,6 +133,30 @@ describe("DEV-01 — PDF du devis", () => {
     const result = model(version(), true);
     expect(result.watermark).toBe("Document fictif");
     expect(result.title).toContain("DEMO-D-2027-0001");
+  });
+
+  it("DEV-02 — le PDF envoyé en signature porte un bloc « Bon pour accord » avec une balise par signataire", () => {
+    const result = buildQuotePdfModel({
+      quote: quote(version()),
+      version: version(),
+      draftSeller,
+      draftLegalMention: null,
+      clientNames: "Inès & Sacha",
+      logo: null,
+      labels,
+      locale: "fr",
+      watermark: null,
+      signatureSlots: [
+        { role: "Signataire 1", tag: "{{Signature;role=Signataire 1;type=signature}}" },
+        { role: "Signataire 2", tag: "{{Signature;role=Signataire 2;type=signature}}" },
+      ],
+    });
+    expect(result.signature?.title).toBe("Bon pour accord");
+    expect(result.signature?.slots.map((slot) => slot.tag)).toEqual([
+      "{{Signature;role=Signataire 1;type=signature}}",
+      "{{Signature;role=Signataire 2;type=signature}}",
+    ]);
+    expect(model(version()).signature).toBeNull();
   });
 
   it("produit un PDF A4, sur plusieurs pages quand le devis est long", async () => {

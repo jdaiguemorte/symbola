@@ -21,6 +21,7 @@ import {
 } from "./quote-forms";
 import { QuoteVersionTable } from "./quote-totals";
 import { ScheduleSection } from "./schedule-section";
+import { SignatureSection } from "./signature-section";
 
 export default async function QuotePage({ params }: { params: Promise<{ quoteId: string }> }) {
   const auth = await getPlannerAuthContext();
@@ -114,6 +115,7 @@ export default async function QuotePage({ params }: { params: Promise<{ quoteId:
       ) : null}
 
       <ScheduleSection quote={quote} methods={paymentMethods} locale={locale} today={parisTodayString()} />
+      <SignatureSection organizationId={organizationId} quote={quote} event={event} />
 
       {isDraft ? (
         <>
@@ -150,7 +152,8 @@ export default async function QuotePage({ params }: { params: Promise<{ quoteId:
           <h2>{t("sendTitle")}</h2>
           <SendQuoteForm quoteId={quote.id} />
         </>
-      ) : quote.status === "sent" && !quote.regimeChangedSinceSent ? (
+      ) : ((quote.status === "sent" && quote.signature?.status !== "pending") || quote.status === "declined") &&
+        !quote.regimeChangedSinceSent ? (
         <>
           <h2>{t("reviseTitle")}</h2>
           <p>{t("reviseHint")}</p>

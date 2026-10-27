@@ -730,7 +730,30 @@
     "missingPaymentMethod": "Le nom du mode de paiement est obligatoire.",
     "loadStarterPaymentMethods": "Charger les modes de départ",
     "starterPaymentMethodsLoaded": "Modes de départ chargés.",
-    "archivePaymentMethod": "Archiver « {label} »"
+    "archivePaymentMethod": "Archiver « {label} »",
+    "signatureTitle": "Signature en ligne",
+    "sendForSignature": "Envoyer en signature",
+    "sendForSignatureHint": "La version courante est figée puis envoyée au service de signature ; chaque signataire reçoit son lien personnel par e-mail. Laissez vide une ligne inutile.",
+    "signerNumber": "Signataire {number}",
+    "signerName": "Nom et prénom",
+    "signerEmail": "E-mail",
+    "signerAddress": "Adresse de facturation",
+    "signatureSent": "Devis envoyé en signature : les liens sont partis par e-mail.",
+    "missingSigners": "Indiquez au moins un signataire.",
+    "invalidSigners": "Chaque signataire doit avoir un nom, un e-mail valide et une adresse de facturation (quatre au plus).",
+    "signatureNotSendable": "Ce devis ne peut pas partir en signature dans son état actuel.",
+    "signatureAlreadyRequested": "Cette version est déjà en signature.",
+    "signatureUnavailable": "La signature en ligne n'est pas encore disponible : elle sera activée après la mise en service du service de signature.",
+    "signaturePending": "En attente de signature.",
+    "signatureCompleted": "Devis signé par tous les signataires.",
+    "signatureDeclined": "Un signataire a refusé le devis.",
+    "signerPending": "à signer",
+    "signerSigned": "signé",
+    "signerDeclined": "a refusé",
+    "signingLinkFor": "lien de signature de {name}",
+    "downloadSignedDocument": "Télécharger le devis signé",
+    "downloadAuditCertificate": "Télécharger le certificat de preuve",
+    "pdfSignatureTitle": "Bon pour accord"
   },
   "ClientSpace": {
     "title": "Mon mariage",
@@ -768,11 +791,28 @@
     "mfaInvalidCode": "Code incorrect, réessayez.",
     "mfaEnabledNow": "Double authentification activée : elle vous sera demandée à chaque connexion.",
     "budgetTitle": "Budget",
-    "noBudgetYet": "Votre planner n'a pas encore partagé de budget pour cet événement."
+    "noBudgetYet": "Votre planner n'a pas encore partagé de budget pour cet événement.",
+    "quotesTitle": "Devis",
+    "quoteNumber": "Devis {number} (version {version})",
+    "quoteToSign": "à signer",
+    "quoteSignedByYou": "signé de votre côté, en attente des autres signataires",
+    "quoteDeclinedByYou": "refusé",
+    "quoteSigned": "signé",
+    "quoteLinkByEmail": "le lien de signature a été envoyé par e-mail à chaque signataire",
+    "signQuote": "Signer le devis {number}"
   },
   "NotFound": {
     "title": "Page introuvable",
     "body": "Cette page n'existe pas ou n'est plus disponible.",
     "home": "Retour à l'accueil"
+  },
+  "FakeSignature": {
+    "title": "Signature du devis {number}",
+    "fictionalNotice": "Signature fictive : cette page remplace le service de signature pour l'essai et les tests. Aucune valeur légale.",
+    "signerLabel": "Signataire : {name}",
+    "sign": "Signer le devis",
+    "decline": "Refuser le devis",
+    "signed": "Vous avez signé ce devis.",
+    "declined": "Vous avez refusé ce devis."
   }
 }

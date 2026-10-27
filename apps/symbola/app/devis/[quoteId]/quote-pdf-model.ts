@@ -20,6 +20,7 @@ export type QuotePdfLabels = {
   totalHt: string;
   vatAtRate: (rate: string) => string;
   totalTtc: string;
+  signatureTitle: string;
 };
 
 export type QuotePdfModel = {
@@ -35,6 +36,9 @@ export type QuotePdfModel = {
   totals: { label: string; value: string; strong?: boolean }[];
   legalMention: string | null;
   watermark: string | null;
+  // DEV-02 : bloc « Bon pour accord » avec une balise de signature par
+  // signataire, seulement dans le PDF envoyé en signature.
+  signature: { title: string; slots: { role: string; tag: string }[] } | null;
 };
 
 function quantity(milli: number, unit: string, locale: Locale): string {
@@ -52,6 +56,7 @@ export function buildQuotePdfModel(input: {
   labels: QuotePdfLabels;
   locale: Locale;
   watermark: string | null;
+  signatureSlots?: { role: string; tag: string }[];
 }): QuotePdfModel {
   const { version, labels, locale } = input;
   const sent = version.sentAt !== null;
@@ -107,5 +112,6 @@ export function buildQuotePdfModel(input: {
     totals: totalRows,
     legalMention: sent ? version.legalMention : input.draftLegalMention,
     watermark: input.watermark,
+    signature: input.signatureSlots && input.signatureSlots.length > 0 ? { title: labels.signatureTitle, slots: input.signatureSlots } : null,
   };
 }

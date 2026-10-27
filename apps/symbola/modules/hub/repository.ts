@@ -142,3 +142,11 @@ export async function insertTourSeen(db: AppDatabase, userId: string, moduleKey:
 export async function updateFirstStepsHidden(db: AppDatabase, userId: string, hidden: boolean) {
   await db.update(users).set({ firstStepsHidden: hidden }).where(eq(users.id, userId));
 }
+
+export async function findUserContact(db: AppDatabase, organizationId: string, userId: string) {
+  const [row] = await db
+    .select({ email: users.email, language: users.language })
+    .from(users)
+    .where(and(eq(users.id, userId), eq(users.organizationId, organizationId)));
+  return row ?? null;
+}

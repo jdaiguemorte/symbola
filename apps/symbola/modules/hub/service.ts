@@ -13,6 +13,7 @@ import {
   findOrganizationProfile,
   findPlatformSettings,
   findTourSeen,
+  findUserContact,
   insertAuditLog,
   insertInvitation,
   insertOrganization,
@@ -299,4 +300,15 @@ export async function markTourSeen(db: AppDatabase, userId: string, moduleKey: s
 // AIDE-04 — « L'utilisateur peut masquer la liste [premiers pas]. »
 export async function hideFirstSteps(db: AppDatabase, userId: string): Promise<void> {
   await updateFirstStepsHidden(db, userId, true);
+}
+
+// DEV-02 — adresse et langue d'un compte de l'organisation, pour un e-mail
+// de notification (devis signé). Jamais un compte d'une autre organisation.
+export async function getUserContact(
+  db: AppDatabase,
+  organizationId: string,
+  userId: string,
+): Promise<{ email: string; language: "fr" | "en" } | null> {
+  const row = await findUserContact(db, organizationId, userId);
+  return row ? { email: row.email, language: row.language === "en" ? "en" : "fr" } : null;
 }

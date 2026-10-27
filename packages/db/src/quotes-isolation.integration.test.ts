@@ -13,6 +13,9 @@ import {
   paymentMethods,
   paymentScheduleItems,
   quoteLines,
+  quoteSigners,
+  signatureRequests,
+  signatureWebhookLog,
   quoteSettings,
   quotes,
   quoteVersions,
@@ -186,6 +189,72 @@ describe("DEV-01 — Isolation entre organisations (module quotes, PostgreSQL r�
       attemptCrossOrganizationUpdate: async (organizationId, targetRow) => {
         const updated = await withOrganization(db, organizationId, (tx) =>
           tx.update(paymentScheduleItems).set({ paidOn: "2027-06-01" }).where(eq(paymentScheduleItems.id, targetRow.id)).returning(),
+        );
+        return { affectedRows: updated.length };
+      },
+    });
+  });
+
+  it("demandes de signature, signataires et journal du webhook (DEV-02)", async () => {
+    const seedRequest = (tx: Tx, organizationId: string) =>
+      seedQuote(tx, organizationId).then(async ({ version }) => {
+        const [request] = await tx
+          .insert(signatureRequests)
+          .values({ organizationId, versionId: version.id, provider: "fake", externalId: randomUUID() })
+          .returning();
+        if (!request) throw new Error("insertion attendue");
+        return request;
+      });
+
+    await assertOrganizationIsolation({
+      seed: async (organizationId) => withOrganization(db, organizationId, (tx) => seedRequest(tx, organizationId)),
+      listVisible: async (organizationId) => withOrganization(db, organizationId, (tx) => tx.select().from(signatureRequests)),
+      attemptCrossOrganizationUpdate: async (organizationId, targetRow) => {
+        const updated = await withOrganization(db, organizationId, (tx) =>
+          tx.update(signatureRequests).set({ status: "completed" }).where(eq(signatureRequests.id, targetRow.id)).returning(),
+        );
+        return { affectedRows: updated.length };
+      },
+    });
+
+    await assertOrganizationIsolation({
+      seed: async (organizationId) =>
+        withOrganization(db, organizationId, async (tx) => {
+          const request = await seedRequest(tx, organizationId);
+          const [row] = await tx
+            .insert(quoteSigners)
+            .values({
+              organizationId,
+              requestId: request.id,
+              name: "Inès",
+              email: "ines@example.test",
+              billingAddress: "1 rue des Lilas",
+              signingUrl: "https://signature.example.test/s/abc",
+            })
+            .returning();
+          if (!row) throw new Error("insertion attendue");
+          return row;
+        }),
+      listVisible: async (organizationId) => withOrganization(db, organizationId, (tx) => tx.select().from(quoteSigners)),
+      attemptCrossOrganizationUpdate: async (organizationId, targetRow) => {
+        const updated = await withOrganization(db, organizationId, (tx) =>
+          tx.update(quoteSigners).set({ status: "signed" }).where(eq(quoteSigners.id, targetRow.id)).returning(),
+        );
+        return { affectedRows: updated.length };
+      },
+    });
+
+    await assertOrganizationIsolation({
+      seed: async (organizationId) =>
+        withOrganization(db, organizationId, async (tx) => {
+          const [row] = await tx.insert(signatureWebhookLog).values({ organizationId, eventType: "form.completed", outcome: "applied" }).returning();
+          if (!row) throw new Error("insertion attendue");
+          return row;
+        }),
+      listVisible: async (organizationId) => withOrganization(db, organizationId, (tx) => tx.select().from(signatureWebhookLog)),
+      attemptCrossOrganizationUpdate: async (organizationId, targetRow) => {
+        const updated = await withOrganization(db, organizationId, (tx) =>
+          tx.update(signatureWebhookLog).set({ outcome: "falsifié" }).where(eq(signatureWebhookLog.id, targetRow.id)).returning(),
         );
         return { affectedRows: updated.length };
       },

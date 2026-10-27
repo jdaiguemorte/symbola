@@ -44,6 +44,13 @@ load_config() {
   # Lues par backup.sh et restore.sh, qui sourcent ce fichier.
   # shellcheck disable=SC2034
   GARAGE_VOLUME="${PROJECT}_garage_data"
+  # DocuSeal (DEV-02, ADR 0021) : base dédiée et fichiers, sauvegardés
+  # seulement une fois DocuSeal déployé dans cet environnement.
+  # shellcheck disable=SC2034
+  DOCUSEAL_VOLUME="${PROJECT}_docuseal_data"
+  DOCUSEAL_DB=$(sed -n 's/^DOCUSEAL_DB_NAME=//p' "$ENV_FILE" | tail -n 1)
+  DOCUSEAL_DB=${DOCUSEAL_DB:-docuseal}
+  [[ $DOCUSEAL_DB =~ ^[a-z_][a-z0-9_]*$ ]] || die "DOCUSEAL_DB_NAME invalide dans $ENV_FILE"
   # shellcheck disable=SC2034
   WORK_DIR="${BACKUP_WORK_DIR:-/var/tmp/symbola-backup}/$ENVIRONMENT_NAME"
 }
@@ -56,6 +63,12 @@ take_lock() {
 
 env_compose() {
   docker compose -f "$COMPOSE_DIR/docker-compose.prod.yml" --env-file "$ENV_FILE" -p "$PROJECT" "$@"
+}
+
+# Base DocuSeal présente sur le serveur PostgreSQL de l'environnement ?
+docuseal_database_exists() {
+  [ "$(env_compose exec -T postgres sh -c \
+    "psql -tA --username=\"\$POSTGRES_USER\" --dbname=postgres -c \"select 1 from pg_database where datname = '$DOCUSEAL_DB'\"")" = 1 ]
 }
 
 socle_compose() {

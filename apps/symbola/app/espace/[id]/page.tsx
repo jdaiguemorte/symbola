@@ -7,13 +7,16 @@ import { ClientAccessDeniedError, getClientEventView, monthKey, type EventTask }
 import { ClientBudgetAccessDeniedError, getClientBudgetView } from "@/modules/budget/service";
 import { getClientAuthContext } from "@/lib/auth-context";
 import { isBudgetModuleEnabled } from "@/app/budget/module-access";
+import { isQuotesModuleEnabled } from "@/app/devis/module-access";
+import { listClientQuotesToSign } from "@/modules/quotes/service";
+import { ClientQuotes } from "./client-quotes";
 import { ClientBudget } from "./client-budget";
 import { isEventsModuleEnabled, isValidId } from "@/app/events/module-access";
 import { toggleClientTaskAction } from "./actions";
 
 // EVT-06 — l'événement vu par le marié : rétroplanning (il coche ses
 // tâches) et programme du jour J en variante « mariés », jamais de note
-// interne. Budget et devis viendront avec leurs modules (lots 3 et 4).
+// interne. Budget (BUD-04) et devis à signer (DEV-02) en lecture.
 export default async function ClientEventPage({ params }: { params: Promise<{ id: string }> }) {
   const auth = await getClientAuthContext();
   if (auth.status === "unauthenticated") redirect("/login");
@@ -53,6 +56,12 @@ export default async function ClientEventPage({ params }: { params: Promise<{ id
       if (!(error instanceof ClientBudgetAccessDeniedError)) throw error;
     }
   }
+
+  // DEV-02 : devis à signer, avec le seul lien de ce marié (reconnu par
+  // l'e-mail de son compte) ; l'accès à l'événement vient d'être vérifié.
+  const quotesToSign = (await isQuotesModuleEnabled(auth.user.organizationId))
+    ? await listClientQuotesToSign(auth.user.organizationId, id, auth.user.email)
+    : [];
 
   const t = await getTranslations("ClientSpace");
   const tEvents = await getTranslations("Events");
@@ -135,6 +144,8 @@ export default async function ClientEventPage({ params }: { params: Promise<{ id
           <ClientBudget view={budget} locale={locale} />
         </section>
       ) : null}
+
+      {quotesToSign.length > 0 ? <ClientQuotes quotes={quotesToSign} locale={locale} /> : null}
     </main>
   );
 }

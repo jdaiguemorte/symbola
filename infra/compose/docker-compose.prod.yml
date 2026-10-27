@@ -130,6 +130,14 @@ services:
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
       SMTP_FROM: ${SMTP_FROM}
+      # Signature en ligne (DEV-02, ADR 0021). SIGNATURE_PROVIDER vide =
+      # « indisponible » en production, tant que DocuSeal n'est pas configuré.
+      SIGNATURE_PROVIDER: ${SIGNATURE_PROVIDER:-}
+      SIGNATURE_WEBHOOK_HEADER: ${SIGNATURE_WEBHOOK_HEADER:-X-Symbola-Webhook-Secret}
+      SIGNATURE_WEBHOOK_SECRET: ${SIGNATURE_WEBHOOK_SECRET:-}
+      DOCUSEAL_API_URL: http://docuseal:3000/api
+      DOCUSEAL_API_KEY: ${DOCUSEAL_API_KEY:-}
+      DOCUSEAL_PUBLIC_URL: https://${DOCUSEAL_DOMAIN:-signature.invalid}
     depends_on:
       - postgres
       - garage
@@ -159,6 +167,37 @@ services:
     # (cache de rendu) au runtime — à vérifier et durcir plus tard si
     # confirmé sans risque (pas testable sans déploiement réel).
 
+  # Signature en ligne (DEV-02, ADR 0021) : DocuSeal auto-hébergé, AGPL,
+  # utilisé sans modification. Profil « signature » : ne démarre que si
+  # Julien l'active (COMPOSE_PROFILES=signature dans .env.<environnement>)
+  # après avoir créé sa base dédiée (bootstrap, DOCUSEAL_DB_PASSWORD) —
+  # jamais un schéma Symbola. Pas de port hôte : le Caddy partagé sert sa
+  # page publique de signature (DOCUSEAL_DOMAIN) par l'alias ci-dessous,
+  # comme pour l'app (runbook de déploiement).
+  docuseal:
+    image: docuseal/docuseal:3.3.2
+    profiles: ["signature"]
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://${DOCUSEAL_DB_USER:-docuseal}:${DOCUSEAL_DB_PASSWORD:-}@postgres:5432/${DOCUSEAL_DB_NAME:-docuseal}
+      HOST: ${DOCUSEAL_DOMAIN:-signature.invalid}
+      FORCE_SSL: "true"
+    volumes:
+      - docuseal_data:/data
+    depends_on:
+      - postgres
+    networks:
+      default:
+        aliases:
+          - symbola-docuseal-${ENVIRONMENT_NAME}
+    deploy:
+      resources:
+        limits:
+          memory: ${DOCUSEAL_MEM_LIMIT:-1g}
+          cpus: ${DOCUSEAL_CPUS:-1}
+    security_opt:
+      - no-new-privileges:true
+
 networks:
   default:
 
@@ -166,3 +205,4 @@ volumes:
   postgres_data:
   garage_data:
   clamav_data:
+  docuseal_data:

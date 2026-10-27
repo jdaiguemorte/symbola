@@ -274,6 +274,20 @@
       "when": 1793133262563,
       "tag": "0038_grant_echeancier",
       "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1793135215748,
+      "tag": "0039_dev02_signature",
+      "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1793135217162,
+      "tag": "0040_grant_signature",
+      "breakpoints": true
     }
   ]
 }

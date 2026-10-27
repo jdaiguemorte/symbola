@@ -39,6 +39,7 @@ const { addFreeLineAction, sendQuoteAction, updateLineAction } = await import(".
 const { saveCatalogItemAction } = await import("./catalogue/actions");
 const { addScheduleItemAction, markPaidAction } = await import("./[quoteId]/schedule-actions");
 const { addPaymentMethodAction } = await import("./parametres/actions");
+const { sendForSignatureAction } = await import("./[quoteId]/signature-actions");
 const { GET: getQuotePdf } = await import("./[quoteId]/pdf/route");
 
 const PASSWORD = "mot-de-passe-du-test";
@@ -214,5 +215,21 @@ describe("DEV-03 — Échéancier et paiements refusés hors de la planner de l'
 
     expect(await markPaidAction({}, form({ quoteId, scheduleItemId, paymentMethodId, paidOn: today }))).toEqual({ success: true });
     expect((await getQuote(organizationId, quoteId)).current.schedule.items[0]?.paidOn).toBe(today);
+  });
+});
+
+describe("DEV-02 — L'envoi en signature est refusé hors de la planner de l'organisation", () => {
+  it("un compte marié ni une planner d'une autre organisation n'envoient le devis en signature", async () => {
+    const context = await setup();
+    const signer = { signer_0_name: "Intrus", signer_0_email: "intrus@example.test", signer_0_address: "Lyon" };
+
+    sessionToken = context.clientToken;
+    expect(await sendForSignatureAction({}, form({ quoteId: context.quoteId, ...signer }))).toEqual({ error: "unauthenticated" });
+    sessionToken = context.otherPlannerToken;
+    expect(await sendForSignatureAction({}, form({ quoteId: context.quoteId, ...signer }))).toEqual({ error: "quoteNotFound" });
+
+    const quote = await getQuote(context.organizationId, context.quoteId);
+    expect(quote.status).toBe("draft");
+    expect(quote.signature).toBeNull();
   });
 });
