@@ -22,6 +22,7 @@ const model: ProgramPdfModel = {
   })),
   showNotes: true,
   empty: "Aucune ligne.",
+  watermark: null,
 };
 
 async function render(input: ProgramPdfModel): Promise<Buffer> {
@@ -38,8 +39,14 @@ describe("EVT-05 — Rendu PDF A4 du programme", () => {
     expect((text.match(/\/Type \/Page\b/g) ?? []).length).toBeGreaterThan(1);
   });
 
-  it("produit aussi la variante sans colonne de notes, et un programme vide", async () => {
-    const pdf = await render({ ...model, showNotes: false, columns: model.columns.slice(0, 4), rows: [] });
+  it("produit aussi la variante sans colonne de notes, un programme vide et le filigrane d'essai", async () => {
+    const pdf = await render({
+      ...model,
+      showNotes: false,
+      columns: model.columns.slice(0, 4),
+      rows: [],
+      watermark: "Document fictif",
+    });
     expect(pdf.subarray(0, 5).toString("latin1")).toBe("%PDF-");
   });
 });

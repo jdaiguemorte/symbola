@@ -133,6 +133,28 @@
         "title": "De l'aide à tout moment",
         "body": "Chaque écran a un bouton « ? » qui ouvre un article court sur ce que vous pouvez y faire. Vous pouvez aussi relancer cette visite depuis ce bouton."
       }
+    ],
+    "events": [
+      {
+        "title": "Vos événements",
+        "body": "Cette liste rassemble vos prospects et vos mariages à venir ; l'onglet « Terminés » garde les événements réalisés ou perdus. Filtrez par nom, année, statut ou source."
+      },
+      {
+        "title": "Créer un prospect",
+        "body": "« Nouveau prospect » demande seulement un prénom et la source du contact ; la date et le lieu se complètent plus tard."
+      },
+      {
+        "title": "La fiche d'un événement",
+        "body": "Sur la fiche, suivez le statut, les postes prestataires, le rétroplanning et le programme du jour J, puis invitez les mariés à suivre leur préparation."
+      },
+      {
+        "title": "Vos modèles",
+        "body": "Paramétrez vos sources, motifs de perte et postes par défaut, et préparez vos modèles de rétroplanning et de programme : partez des modèles de départ et adaptez-les."
+      },
+      {
+        "title": "Essayer sans risque",
+        "body": "L'essai guidé ouvre un mariage fictif complet pour tout tester ; il est supprimé à la fin de l'essai. Relancez cette visite à tout moment avec le bouton « ? »."
+      }
     ]
   },
   "Help": {
@@ -175,7 +197,7 @@
     },
     "eventsList": {
       "title": "Liste des événements",
-      "body": "Retrouvez ici vos prospects et vos mariages à venir, ou terminés dans l'onglet « Terminés ». Filtrez par nom, année ou statut, puis ouvrez un événement pour voir sa fiche."
+      "body": "Retrouvez ici vos prospects et vos mariages à venir, ou terminés dans l'onglet « Terminés ». Filtrez par nom, année ou statut, puis ouvrez un événement pour voir sa fiche. La visite guidée se relance avec le bouton « ? », et l'essai guidé ouvre un mariage fictif pour tout tester."
     },
     "eventsNew": {
       "title": "Nouveau prospect",
@@ -217,7 +239,8 @@
   "FirstSteps": {
     "title": "Premiers pas",
     "hide": "Masquer cette liste",
-    "completeProfile": "Compléter la fiche entreprise"
+    "completeProfile": "Compléter la fiche entreprise",
+    "createFirstEvent": "Créer son premier événement"
   },
   "Aide": {
     "title": "Aide",
@@ -437,7 +460,22 @@
     "noActivity": "Aucune activité des mariés pour l'instant.",
     "activityTaskDone": "{actor} a coché « {task} ».",
     "activityTaskUndone": "{actor} a décoché « {task} ».",
-    "activityFormerClient": "Un marié"
+    "activityFormerClient": "Un marié",
+    "trialTitle": "Essai guidé",
+    "trialIntro": "Découvrez le module sur un mariage fictif déjà préparé (postes, rétroplanning, programme du jour J) : changez son statut, réservez un prestataire, cochez des tâches, exportez le programme. Rien ne touche vos vrais événements, et tout est supprimé à la fin de l'essai (ou au bout de 24 h).",
+    "trialStart": "Démarrer l'essai",
+    "trialResume": "Reprendre l'essai en cours",
+    "trialEnded": "Essai terminé : ses données fictives ont été supprimées.",
+    "demoTag": "Essai (fictif)",
+    "trialBannerTitle": "Essai guidé — données fictives",
+    "trialBannerBody": "Cet événement est fictif : il n'apparaît ni au tableau de bord, ni dans les recherches RGPD, et il sera supprimé à la fin de l'essai ou au bout de 24 h. À essayer :",
+    "trialStepStatus": "passer le statut à « Confirmé » ;",
+    "trialStepVendor": "réserver un prestataire et saisir son montant ;",
+    "trialStepTask": "cocher une tâche du rétroplanning, puis changer la date pour voir le recalcul proposé ;",
+    "trialStepProgram": "ajouter une ligne au programme et télécharger le PDF (filigrane « Document fictif »).",
+    "trialEnd": "Terminer l'essai et supprimer ses données",
+    "trialNoInvite": "Pendant l'essai, aucune invitation n'est envoyée : les mariés ne sont invités que sur un vrai événement.",
+    "demoWatermark": "Document fictif"
   },
   "ClientSpace": {
     "title": "Mon mariage",
@@ -474,5 +512,10 @@
     "mfaConfirm": "Confirmer",
     "mfaInvalidCode": "Code incorrect, réessayez.",
     "mfaEnabledNow": "Double authentification activée : elle vous sera demandée à chaque connexion."
+  },
+  "NotFound": {
+    "title": "Page introuvable",
+    "body": "Cette page n'existe pas ou n'est plus disponible.",
+    "home": "Retour à l'accueil"
   }
 }

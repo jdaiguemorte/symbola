@@ -133,6 +133,28 @@
         "title": "Help is always nearby",
         "body": "Every screen has a \"?\" button that opens a short article on what you can do there. You can also relaunch this tour from that button."
       }
+    ],
+    "events": [
+      {
+        "title": "Your events",
+        "body": "This list gathers your leads and upcoming weddings; the “Past” tab keeps completed or lost events. Filter by name, year, status or source."
+      },
+      {
+        "title": "Creating a lead",
+        "body": "“New lead” only needs a first name and the contact source; the date and venue can be added later."
+      },
+      {
+        "title": "An event's page",
+        "body": "On the event page, follow the status, vendor slots, planning timeline and wedding day schedule, then invite the couple to follow their preparations."
+      },
+      {
+        "title": "Your templates",
+        "body": "Set up your sources, loss reasons and default vendor slots, and prepare your planning timeline and schedule templates: start from the starter templates and adapt them."
+      },
+      {
+        "title": "Try without risk",
+        "body": "The guided trial opens a complete fictional wedding to test everything; it is deleted when the trial ends. Relaunch this tour at any time with the “?” button."
+      }
     ]
   },
   "Help": {
@@ -175,7 +197,7 @@
     },
     "eventsList": {
       "title": "Event list",
-      "body": "Find your prospects and upcoming weddings here, and past ones in the “Finished” tab. Filter by name, year or status, then open an event to see its details."
+      "body": "Find your prospects and upcoming weddings here, and past ones in the “Finished” tab. Filter by name, year or status, then open an event to see its details. The guided tour can be relaunched with the “?” button, and the guided trial opens a fictional wedding to test everything."
     },
     "eventsNew": {
       "title": "New prospect",
@@ -217,7 +239,8 @@
   "FirstSteps": {
     "title": "First steps",
     "hide": "Hide this list",
-    "completeProfile": "Complete the company profile"
+    "completeProfile": "Complete the company profile",
+    "createFirstEvent": "Create your first event"
   },
   "Aide": {
     "title": "Help",
@@ -437,7 +460,22 @@
     "noActivity": "No activity from the couple yet.",
     "activityTaskDone": "{actor} checked “{task}”.",
     "activityTaskUndone": "{actor} unchecked “{task}”.",
-    "activityFormerClient": "A couple member"
+    "activityFormerClient": "A couple member",
+    "trialTitle": "Guided trial",
+    "trialIntro": "Discover the module on a ready-made fictional wedding (vendor slots, planning timeline, wedding day schedule): change its status, book a vendor, check tasks, export the schedule. Your real events are never touched, and everything is deleted when the trial ends (or after 24 hours).",
+    "trialStart": "Start the trial",
+    "trialResume": "Resume the current trial",
+    "trialEnded": "Trial ended: its fictional data has been deleted.",
+    "demoTag": "Trial (fictional)",
+    "trialBannerTitle": "Guided trial — fictional data",
+    "trialBannerBody": "This event is fictional: it never shows on the dashboard or in GDPR searches, and it will be deleted when the trial ends or after 24 hours. Things to try:",
+    "trialStepStatus": "set the status to “Confirmed”;",
+    "trialStepVendor": "book a vendor and enter its amount;",
+    "trialStepTask": "check a planning timeline task, then change the date to see the proposed recalculation;",
+    "trialStepProgram": "add a schedule line and download the PDF (“Fictional document” watermark).",
+    "trialEnd": "End the trial and delete its data",
+    "trialNoInvite": "During the trial, no invitation is sent: the couple is only invited on a real event.",
+    "demoWatermark": "Fictional document"
   },
   "ClientSpace": {
     "title": "My wedding",
@@ -474,5 +512,10 @@
     "mfaConfirm": "Confirm",
     "mfaInvalidCode": "Incorrect code, try again.",
     "mfaEnabledNow": "Two-factor authentication enabled: it will be asked at every login."
+  },
+  "NotFound": {
+    "title": "Page not found",
+    "body": "This page does not exist or is no longer available.",
+    "home": "Back to home"
   }
 }

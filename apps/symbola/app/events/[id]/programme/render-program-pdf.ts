@@ -54,6 +54,7 @@ export async function renderProgramPdfResponse(input: {
     heading,
     organizationName: header?.organizationName ?? "",
     logo: await loadLogo(input.organizationId, header?.logoKey ?? null),
+    watermark: input.event.isDemo ? t("demoWatermark") : null,
     labels: {
       title: t("programTitle"),
       variant: input.variant === "couple" ? t("programPdfCouple") : t("programPdfVendors"),
