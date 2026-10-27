@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "name": { "fr": "Rétroplanning mariage (modèle de départ)", "en": "Wedding timeline (starter template)" },
+  "items": [
+    { "key": "budget", "offsetDays": -365, "responsible": "clients", "label": { "fr": "Définir le budget global", "en": "Set the overall budget" } },
+    { "key": "guest_list_draft", "offsetDays": -365, "responsible": "clients", "label": { "fr": "Établir une première liste d'invités", "en": "Draft a first guest list" } },
+    { "key": "venue", "offsetDays": -330, "responsible": "planner", "label": { "fr": "Réserver le lieu de réception", "en": "Book the venue" } },
+    { "key": "caterer", "offsetDays": -300, "responsible": "planner", "label": { "fr": "Choisir et réserver le traiteur", "en": "Choose and book the caterer" } },
+    { "key": "photographer", "offsetDays": -300, "responsible": "planner", "label": { "fr": "Réserver le photographe", "en": "Book the photographer" } },
+    { "key": "save_the_date", "offsetDays": -240, "responsible": "clients", "label": { "fr": "Envoyer les save-the-date", "en": "Send the save-the-dates" } },
+    { "key": "music", "offsetDays": -240, "responsible": "planner", "label": { "fr": "Réserver le DJ ou les musiciens", "en": "Book the DJ or musicians" } },
+    { "key": "outfits", "offsetDays": -210, "responsible": "clients", "label": { "fr": "Choisir les tenues", "en": "Choose the outfits" } },
+    { "key": "florist", "offsetDays": -180, "responsible": "planner", "label": { "fr": "Réserver le fleuriste", "en": "Book the florist" } },
+    { "key": "invitations", "offsetDays": -120, "responsible": "clients", "label": { "fr": "Envoyer les faire-part", "en": "Send the invitations" } },
+    { "key": "civil_paperwork", "offsetDays": -90, "responsible": "clients", "label": { "fr": "Déposer le dossier de mariage en mairie", "en": "File the civil marriage paperwork" } },
+    { "key": "tasting", "offsetDays": -90, "responsible": "planner", "label": { "fr": "Organiser la dégustation du menu", "en": "Arrange the menu tasting" } },
+    { "key": "rsvp", "offsetDays": -45, "responsible": "clients", "label": { "fr": "Relancer les réponses des invités", "en": "Chase guest RSVPs" } },
+    { "key": "seating", "offsetDays": -30, "responsible": "clients", "label": { "fr": "Faire le plan de table", "en": "Prepare the seating plan" } },
+    { "key": "day_program", "offsetDays": -21, "responsible": "planner", "label": { "fr": "Finaliser le programme du jour J", "en": "Finalise the wedding-day programme" } },
+    { "key": "vendor_confirmations", "offsetDays": -14, "responsible": "planner", "label": { "fr": "Confirmer horaires et accès avec les prestataires", "en": "Confirm times and access with vendors" } },
+    { "key": "final_numbers", "offsetDays": -10, "responsible": "planner", "label": { "fr": "Transmettre le nombre final de couverts au traiteur", "en": "Send the final headcount to the caterer" } },
+    { "key": "thank_you", "offsetDays": 30, "responsible": "clients", "label": { "fr": "Envoyer les remerciements", "en": "Send thank-you notes" } }
+  ]
+}
