@@ -25,7 +25,8 @@
     "administration": "Administration",
     "onboardingIncomplete": "Your company profile is not complete yet.",
     "completeProfile": "Complete it",
-    "events": "Events"
+    "events": "Events",
+    "budgetModels": "Budget models"
   },
   "Admin": {
     "title": "Administration",
@@ -234,6 +235,14 @@
     "clientSecurity": {
       "title": "Two-factor authentication",
       "body": "Optional for your account. Once enabled, a code from your authenticator app is asked at every login."
+    },
+    "budgetSettings": {
+      "title": "Budget models",
+      "body": "Create allocation models (a percentage per vendor slot, total 100%) to quickly simulate a new prospect's budget."
+    },
+    "budgetDetail": {
+      "title": "Event budget",
+      "body": "Enter the total budget and the number of guests, choose an allocation model: you get an amount per vendor slot and the cost per guest. Adjust a vendor slot by hand if needed, the remaining amount to allocate recalculates right away."
     }
   },
   "FirstSteps": {
@@ -475,7 +484,46 @@
     "trialStepProgram": "add a schedule line and download the PDF (“Fictional document” watermark).",
     "trialEnd": "End the trial and delete its data",
     "trialNoInvite": "During the trial, no invitation is sent: the couple is only invited on a real event.",
-    "demoWatermark": "Fictional document"
+    "demoWatermark": "Fictional document",
+    "budgetLink": "Budget"
+  },
+  "Budget": {
+    "title": "Budget",
+    "settingsTitle": "Budget models",
+    "moduleUnavailable": "The Budget module is not enabled for your organization.",
+    "unauthenticated": "Your session has expired. Sign in again and try again.",
+    "noClient": "No name on file",
+    "modelsTitle": "Allocation models",
+    "noModels": "No allocation model yet.",
+    "noModelsYet": "Create an allocation model in the budget settings first, before simulating a budget.",
+    "noVendorSlotsYet": "Add default vendor slots in the events settings first.",
+    "removeModel": "Remove the “{name}” model",
+    "newModelTitle": "New model",
+    "modelName": "Model name",
+    "percentagePerSlot": "Percentage per vendor slot (total must be 100%)",
+    "createModel": "Create model",
+    "modelCreated": "Model created.",
+    "missingName": "The model name is required.",
+    "missingItems": "Enter at least one percentage.",
+    "totalNot100": "The total of all percentages must be exactly 100%.",
+    "unknownVendorSlot": "This vendor slot no longer exists.",
+    "simulationTitle": "Simulation",
+    "totalAmount": "Total budget (€)",
+    "guestCount": "Number of guests",
+    "allocationModel": "Allocation model",
+    "chooseModel": "Choose a model",
+    "simulate": "Simulate",
+    "eventNotFound": "This event no longer exists.",
+    "missingModel": "Choose an allocation model.",
+    "invalidTotalAmount": "The total budget must be a positive amount.",
+    "invalidGuestCount": "The number of guests must be a positive whole number, or zero.",
+    "itemsTitle": "Vendor slots",
+    "adjust": "Adjust",
+    "invalidAmount": "The amount must be zero or positive.",
+    "noSimulationYet": "Simulate a budget first, before adjusting a vendor slot.",
+    "allocated": "Already allocated",
+    "remaining": "Remaining to allocate",
+    "costPerGuest": "Cost per guest"
   },
   "ClientSpace": {
     "title": "My wedding",

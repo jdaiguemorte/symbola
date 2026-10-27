@@ -25,7 +25,8 @@
     "administration": "Administration",
     "onboardingIncomplete": "Votre fiche entreprise n'est pas encore complète.",
     "completeProfile": "La compléter",
-    "events": "Événements"
+    "events": "Événements",
+    "budgetModels": "Modèles de budget"
   },
   "Admin": {
     "title": "Administration",
@@ -234,6 +235,14 @@
     "clientSecurity": {
       "title": "Double authentification",
       "body": "Facultative pour votre compte. Une fois activée, un code de votre application d'authentification vous est demandé à chaque connexion."
+    },
+    "budgetSettings": {
+      "title": "Modèles de budget",
+      "body": "Créez des modèles de répartition (un pourcentage par poste prestataire, total 100 %) pour simuler rapidement le budget d'un nouveau prospect."
+    },
+    "budgetDetail": {
+      "title": "Budget de l'événement",
+      "body": "Saisissez le budget total et le nombre d'invités, choisissez un modèle de répartition : vous obtenez un montant par poste et le coût par invité. Ajustez un poste à la main si besoin, le reste à répartir se recalcule aussitôt."
     }
   },
   "FirstSteps": {
@@ -475,7 +484,46 @@
     "trialStepProgram": "ajouter une ligne au programme et télécharger le PDF (filigrane « Document fictif »).",
     "trialEnd": "Terminer l'essai et supprimer ses données",
     "trialNoInvite": "Pendant l'essai, aucune invitation n'est envoyée : les mariés ne sont invités que sur un vrai événement.",
-    "demoWatermark": "Document fictif"
+    "demoWatermark": "Document fictif",
+    "budgetLink": "Budget"
+  },
+  "Budget": {
+    "title": "Budget",
+    "settingsTitle": "Modèles de budget",
+    "moduleUnavailable": "Le module Budget n'est pas activé pour votre organisation.",
+    "unauthenticated": "Votre session a expiré. Reconnectez-vous puis recommencez.",
+    "noClient": "Sans nom renseigné",
+    "modelsTitle": "Modèles de répartition",
+    "noModels": "Aucun modèle de répartition pour l'instant.",
+    "noModelsYet": "Créez d'abord un modèle de répartition dans les paramètres du budget avant de simuler un budget.",
+    "noVendorSlotsYet": "Ajoutez d'abord des postes prestataires par défaut dans les paramètres des événements.",
+    "removeModel": "Supprimer le modèle « {name} »",
+    "newModelTitle": "Nouveau modèle",
+    "modelName": "Nom du modèle",
+    "percentagePerSlot": "Pourcentage par poste (le total doit faire 100 %)",
+    "createModel": "Créer le modèle",
+    "modelCreated": "Modèle créé.",
+    "missingName": "Le nom du modèle est obligatoire.",
+    "missingItems": "Renseignez au moins un pourcentage.",
+    "totalNot100": "Le total des pourcentages doit faire exactement 100 %.",
+    "unknownVendorSlot": "Ce poste prestataire n'existe pas ou plus.",
+    "simulationTitle": "Simulation",
+    "totalAmount": "Budget total (€)",
+    "guestCount": "Nombre d'invités",
+    "allocationModel": "Modèle de répartition",
+    "chooseModel": "Choisir un modèle",
+    "simulate": "Simuler",
+    "eventNotFound": "Cet événement n'existe pas ou plus.",
+    "missingModel": "Choisissez un modèle de répartition.",
+    "invalidTotalAmount": "Le budget total doit être un montant positif.",
+    "invalidGuestCount": "Le nombre d'invités doit être un nombre entier positif ou nul.",
+    "itemsTitle": "Postes",
+    "adjust": "Ajuster",
+    "invalidAmount": "Le montant doit être positif ou nul.",
+    "noSimulationYet": "Simulez d'abord un budget avant d'ajuster un poste.",
+    "allocated": "Déjà réparti",
+    "remaining": "Reste à répartir",
+    "costPerGuest": "Coût par invité"
   },
   "ClientSpace": {
     "title": "Mon mariage",

@@ -34,12 +34,14 @@ export default async function HomePage() {
   // d'organisation) n'a pas de module à vérifier.
   let helloAvailable = true;
   let eventsAvailable = false;
+  let budgetAvailable = false;
   if (auth.user.organizationId) {
     const organizationId = auth.user.organizationId;
     const { sql, db } = createAppConnection();
     try {
       helloAvailable = await isModuleEnabled(db, organizationId, "hello");
       eventsAvailable = await isModuleEnabled(db, organizationId, "events");
+      budgetAvailable = await isModuleEnabled(db, organizationId, "budget");
     } finally {
       await sql.end();
     }
@@ -96,6 +98,7 @@ export default async function HomePage() {
         <Link href="/profil">{t("myProfile")}</Link>
         {auth.user.organizationId ? <Link href="/parametres">{t("settings")}</Link> : null}
         {eventsAvailable ? <Link href="/events">{t("events")}</Link> : null}
+        {budgetAvailable ? <Link href="/budget/parametres">{t("budgetModels")}</Link> : null}
         {auth.user.role === "admin" ? <Link href="/admin">{t("administration")}</Link> : null}
         <Link href="/aide">{tAide("link")}</Link>
       </nav>
