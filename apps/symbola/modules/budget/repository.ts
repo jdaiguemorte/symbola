@@ -5,6 +5,8 @@ import { createAppConnection } from "@symbola/db/client";
 import {
   allocationModelItems,
   allocationModels,
+  budgetLineHistory,
+  budgetLines,
   eventBudgetItems,
   eventBudgets,
 } from "@symbola/db/schema/budget";
@@ -14,6 +16,8 @@ export type AllocationModelRow = typeof allocationModels.$inferSelect;
 export type AllocationModelItemRow = typeof allocationModelItems.$inferSelect;
 export type EventBudgetRow = typeof eventBudgets.$inferSelect;
 export type EventBudgetItemRow = typeof eventBudgetItems.$inferSelect;
+export type BudgetLineRow = typeof budgetLines.$inferSelect;
+export type BudgetLineHistoryRow = typeof budgetLineHistory.$inferSelect;
 
 export async function findAllocationModels(
   organizationId: string,
@@ -214,6 +218,116 @@ export async function updateEventBudgetItemAmount(input: {
       if (!inserted) throw new Error("création du poste échouée");
       return inserted;
     });
+  } finally {
+    await sql.end();
+  }
+}
+
+export async function findBudgetLines(organizationId: string, eventId: string): Promise<BudgetLineRow[]> {
+  const { sql, db } = createAppConnection();
+  try {
+    return await withOrganization(db, organizationId, (tx) =>
+      tx.select().from(budgetLines).where(eq(budgetLines.eventId, eventId)),
+    );
+  } finally {
+    await sql.end();
+  }
+}
+
+export async function findBudgetLineByEventVendorSlotId(
+  organizationId: string,
+  eventVendorSlotId: string,
+): Promise<BudgetLineRow | null> {
+  const { sql, db } = createAppConnection();
+  try {
+    return await withOrganization(db, organizationId, async (tx) => {
+      const [row] = await tx.select().from(budgetLines).where(eq(budgetLines.eventVendorSlotId, eventVendorSlotId));
+      return row ?? null;
+    });
+  } finally {
+    await sql.end();
+  }
+}
+
+// Pose planned_amount_cents ou actual_amount_cents selon `field`, crée la
+// ligne si elle n'existe pas encore (un événement peut recevoir un budget
+// réel sans être jamais passé par la simulation), et historise toujours
+// la modification — y compris la toute première valeur posée (BUD-02 :
+// « chaque modification est historisée »).
+export async function setBudgetLineAmount(input: {
+  organizationId: string;
+  eventId: string;
+  eventVendorSlotId: string;
+  field: "planned" | "actual";
+  amountCents: number;
+  changedByUserId: string;
+}): Promise<BudgetLineRow> {
+  const { sql, db } = createAppConnection();
+  try {
+    return await withOrganization(db, input.organizationId, async (tx) => {
+      const [existing] = await tx
+        .select()
+        .from(budgetLines)
+        .where(eq(budgetLines.eventVendorSlotId, input.eventVendorSlotId));
+
+      const oldValueCents =
+        existing === undefined
+          ? null
+          : input.field === "planned"
+            ? existing.plannedAmountCents
+            : existing.actualAmountCents;
+
+      let line: BudgetLineRow;
+      if (existing) {
+        const [updated] = await tx
+          .update(budgetLines)
+          .set({
+            ...(input.field === "planned"
+              ? { plannedAmountCents: input.amountCents }
+              : { actualAmountCents: input.amountCents }),
+            updatedAt: new Date(),
+          })
+          .where(eq(budgetLines.id, existing.id))
+          .returning();
+        if (!updated) throw new Error("mise à jour de la ligne de budget échouée");
+        line = updated;
+      } else {
+        const [inserted] = await tx
+          .insert(budgetLines)
+          .values({
+            organizationId: input.organizationId,
+            eventId: input.eventId,
+            eventVendorSlotId: input.eventVendorSlotId,
+            plannedAmountCents: input.field === "planned" ? input.amountCents : 0,
+            actualAmountCents: input.field === "actual" ? input.amountCents : null,
+          })
+          .returning();
+        if (!inserted) throw new Error("création de la ligne de budget échouée");
+        line = inserted;
+      }
+
+      await tx.insert(budgetLineHistory).values({
+        organizationId: input.organizationId,
+        lineId: line.id,
+        field: input.field,
+        oldValueCents,
+        newValueCents: input.amountCents,
+        changedByUserId: input.changedByUserId,
+      });
+
+      return line;
+    });
+  } finally {
+    await sql.end();
+  }
+}
+
+export async function findBudgetLineHistory(organizationId: string, lineId: string): Promise<BudgetLineHistoryRow[]> {
+  const { sql, db } = createAppConnection();
+  try {
+    return await withOrganization(db, organizationId, (tx) =>
+      tx.select().from(budgetLineHistory).where(eq(budgetLineHistory.lineId, lineId)),
+    );
   } finally {
     await sql.end();
   }

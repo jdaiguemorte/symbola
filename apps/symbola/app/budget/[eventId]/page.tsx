@@ -3,10 +3,11 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { formatAmount, type Locale } from "@symbola/i18n";
 import { HelpButton } from "@symbola/ui";
 import { getEvent, listDefaultVendorSlots } from "@/modules/events/service";
-import { getEventBudget, listAllocationModels } from "@/modules/budget/service";
+import { getEventBudget, listAllocationModels, listBudgetLines } from "@/modules/budget/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isBudgetModuleEnabled, isValidId } from "../module-access";
 import { BudgetSimulationForm } from "./budget-simulation-form";
+import { BudgetLinesTable } from "./budget-lines-table";
 
 export default async function EventBudgetPage({ params }: { params: Promise<{ eventId: string }> }) {
   const auth = await getPlannerAuthContext();
@@ -33,10 +34,11 @@ export default async function EventBudgetPage({ params }: { params: Promise<{ ev
   const event = await getEvent(organizationId, eventId);
   if (!event) notFound();
 
-  const [budget, models, vendorSlots] = await Promise.all([
+  const [budget, models, vendorSlots, linesView] = await Promise.all([
     getEventBudget(organizationId, eventId),
     listAllocationModels(organizationId),
     listDefaultVendorSlots(organizationId),
+    listBudgetLines(organizationId, eventId),
   ]);
   const locale = (await getLocale()) as Locale;
   const clientNames = event.clients.length ? event.clients.map((client) => client.firstName).join(" & ") : t("noClient");
@@ -71,6 +73,9 @@ export default async function EventBudgetPage({ params }: { params: Promise<{ ev
           </p>
         </>
       ) : null}
+
+      <h2>{t("linesTitle")}</h2>
+      <BudgetLinesTable eventId={eventId} view={linesView} canConfirm={budget !== null} locale={locale} />
     </main>
   );
 }

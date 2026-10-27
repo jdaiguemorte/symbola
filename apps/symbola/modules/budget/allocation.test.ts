@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   allocateFromModel,
+  computeVariance,
   costPerGuestCents,
   isModelTotalValid,
   remainingToAllocateCents,
@@ -61,6 +62,28 @@ describe("BUD-01 — Reste à répartir", () => {
   it("est négatif si les postes dépassent le total (sur-répartition signalée, pas bloquée)", () => {
     const items = [{ defaultVendorSlotId: "a", amountCents: 120000 }];
     expect(remainingToAllocateCents(100000, items)).toBe(-20000);
+  });
+});
+
+describe("BUD-02 — Écart (réel moins prévu)", () => {
+  it("vaut null tant qu'aucun montant réel n'est renseigné", () => {
+    expect(computeVariance(100000, null)).toEqual({ varianceCents: null, variancePercent: null });
+  });
+
+  it("un dépassement est positif, en centimes et en pourcentage du prévu", () => {
+    expect(computeVariance(100000, 120000)).toEqual({ varianceCents: 20000, variancePercent: 20 });
+  });
+
+  it("une économie est négative", () => {
+    expect(computeVariance(100000, 80000)).toEqual({ varianceCents: -20000, variancePercent: -20 });
+  });
+
+  it("vaut exactement 0 quand réel égale prévu", () => {
+    expect(computeVariance(100000, 100000)).toEqual({ varianceCents: 0, variancePercent: 0 });
+  });
+
+  it("le pourcentage vaut 0 si le prévu est à 0 (jamais de division par zéro affichée)", () => {
+    expect(computeVariance(0, 5000)).toEqual({ varianceCents: 5000, variancePercent: 0 });
   });
 });
 

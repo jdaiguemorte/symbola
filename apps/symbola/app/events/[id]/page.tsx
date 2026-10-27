@@ -19,6 +19,8 @@ import {
   summarizeVendorSlots,
   type EventTask,
 } from "@/modules/events/service";
+import { getEventBudget, listBudgetLines } from "@/modules/budget/service";
+import { confirmEventBudgetAction } from "@/app/budget/[eventId]/actions";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isEventsModuleEnabled, isValidId } from "../module-access";
 import { ChangeStatusForm } from "./change-status-form";
@@ -109,6 +111,18 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
   const isPastConfirmed =
     event.status === "confirmed" && event.eventDate !== null && event.eventDate < new Date().toISOString().slice(0, 10);
 
+  // BUD-01/02 : « quand l'événement passe en Confirmé, l'app propose
+  // d'en faire le budget prévu » — seulement si une simulation existe et
+  // qu'aucune ligne de budget (budget_lines) n'a encore été créée.
+  let suggestConfirmBudget = false;
+  if (event.status === "confirmed") {
+    const [eventBudget, linesView] = await Promise.all([
+      getEventBudget(organizationId, id),
+      listBudgetLines(organizationId, id),
+    ]);
+    suggestConfirmBudget = eventBudget !== null && linesView.lines.length === 0;
+  }
+
   return (
     <main>
       <h1>{clientNames}</h1>
@@ -154,10 +168,20 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
 
       {isPastConfirmed ? <p role="status">{t("suggestMarkDone")}</p> : null}
 
-      {/* Lot 3, BUD-01 : simulation/suivi budgétaire de cet événement. */}
+      {/* Lot 3, BUD-01/02 : simulation/suivi budgétaire de cet événement. */}
       <p>
         <Link href={`/budget/${event.id}`}>{t("budgetLink")}</Link>
       </p>
+      {suggestConfirmBudget ? (
+        <section aria-labelledby="confirm-budget-title">
+          <h2 id="confirm-budget-title">{t("confirmBudgetTitle")}</h2>
+          <p>{t("confirmBudgetBody")}</p>
+          <form action={confirmEventBudgetAction}>
+            <input type="hidden" name="eventId" value={event.id} />
+            <button type="submit">{t("confirmAsPlanned")}</button>
+          </form>
+        </section>
+      ) : null}
 
       <ChangeStatusForm eventId={event.id} currentStatus={event.status} reasons={reasons} />
 

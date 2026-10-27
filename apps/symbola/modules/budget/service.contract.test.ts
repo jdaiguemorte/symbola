@@ -14,5 +14,9 @@ describe("SOC-06 — Contrat du service.ts de budget", () => {
     expect(typeof budgetService.getEventBudget).toBe("function");
     expect(typeof budgetService.simulateEventBudget).toBe("function");
     expect(typeof budgetService.adjustEventBudgetItem).toBe("function");
+    expect(typeof budgetService.listBudgetLines).toBe("function");
+    expect(typeof budgetService.confirmEventBudget).toBe("function");
+    expect(typeof budgetService.updateBudgetLine).toBe("function");
+    expect(typeof budgetService.listBudgetLineHistory).toBe("function");
   });
 });

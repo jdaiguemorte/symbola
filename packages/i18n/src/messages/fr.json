@@ -485,7 +485,10 @@
     "trialEnd": "Terminer l'essai et supprimer ses données",
     "trialNoInvite": "Pendant l'essai, aucune invitation n'est envoyée : les mariés ne sont invités que sur un vrai événement.",
     "demoWatermark": "Document fictif",
-    "budgetLink": "Budget"
+    "budgetLink": "Budget",
+    "confirmBudgetTitle": "Faire de la simulation le budget prévu",
+    "confirmBudgetBody": "L'événement est confirmé et une simulation existe déjà : vous pouvez l'utiliser comme point de départ du budget prévu, poste par poste.",
+    "confirmAsPlanned": "En faire le budget prévu"
   },
   "Budget": {
     "title": "Budget",
@@ -523,7 +526,21 @@
     "noSimulationYet": "Simulez d'abord un budget avant d'ajuster un poste.",
     "allocated": "Déjà réparti",
     "remaining": "Reste à répartir",
-    "costPerGuest": "Coût par invité"
+    "costPerGuest": "Coût par invité",
+    "linesTitle": "Prévu, réel, écart",
+    "confirmAsPlanned": "En faire le budget prévu",
+    "vendorSlot": "Poste",
+    "planned": "Prévu",
+    "actual": "Réel",
+    "notSet": "Non renseigné",
+    "variance": "Écart",
+    "varianceUnset": "—",
+    "varianceOver": "Dépassement de {amount}",
+    "varianceUnder": "Économie de {amount}",
+    "varianceEqual": "Conforme au prévu",
+    "updatePlanned": "Mettre à jour le prévu",
+    "updateActual": "Mettre à jour le réel",
+    "total": "Total"
   },
   "ClientSpace": {
     "title": "Mon mariage",
