@@ -5,6 +5,8 @@ import { createAppConnection } from "@symbola/db/client";
 import {
   catalogItems,
   numberSeries,
+  paymentMethods,
+  paymentScheduleItems,
   quoteLines,
   quoteSettings,
   quotes,
@@ -17,6 +19,8 @@ export type QuoteSettingsRow = typeof quoteSettings.$inferSelect;
 export type QuoteRow = typeof quotes.$inferSelect;
 export type QuoteVersionRow = typeof quoteVersions.$inferSelect;
 export type QuoteLineRow = typeof quoteLines.$inferSelect;
+export type PaymentMethodRow = typeof paymentMethods.$inferSelect;
+export type ScheduleItemRow = typeof paymentScheduleItems.$inferSelect;
 
 type Tx = Parameters<Parameters<typeof withOrganization>[2]>[0];
 
@@ -87,7 +91,7 @@ export async function findQuoteSettings(organizationId: string): Promise<QuoteSe
 
 export async function upsertQuoteSettings(
   organizationId: string,
-  data: Pick<QuoteSettingsRow, "validityDays" | "quotePrefix" | "invoicePrefix" | "creditNotePrefix">,
+  data: Pick<QuoteSettingsRow, "validityDays" | "quotePrefix" | "invoicePrefix" | "creditNotePrefix" | "upcomingHorizonDays">,
 ): Promise<QuoteSettingsRow> {
   return inOrganization(organizationId, async (tx) => {
     const [row] = await tx
@@ -157,7 +161,13 @@ export async function findEventQuotes(organizationId: string, eventId: string): 
   );
 }
 
-export type QuoteAggregate = { quote: QuoteRow; versions: QuoteVersionRow[]; lines: QuoteLineRow[] };
+export type QuoteAggregate = {
+  quote: QuoteRow;
+  versions: QuoteVersionRow[];
+  lines: QuoteLineRow[];
+  scheduleItems: ScheduleItemRow[];
+  paymentMethods: PaymentMethodRow[];
+};
 
 async function loadAggregate(tx: Tx, quote: QuoteRow): Promise<QuoteAggregate> {
   const versions = await tx
@@ -173,7 +183,17 @@ async function loadAggregate(tx: Tx, quote: QuoteRow): Promise<QuoteAggregate> {
           .where(inArray(quoteLines.versionId, versions.map((version) => version.id)))
           .orderBy(asc(quoteLines.position))
       : [];
-  return { quote, versions, lines };
+  const scheduleItems =
+    versions.length > 0
+      ? await tx
+          .select()
+          .from(paymentScheduleItems)
+          .where(inArray(paymentScheduleItems.versionId, versions.map((version) => version.id)))
+          .orderBy(asc(paymentScheduleItems.dueDate), asc(paymentScheduleItems.position))
+      : [];
+  const methodIds = [...new Set(scheduleItems.flatMap((item) => (item.paymentMethodId ? [item.paymentMethodId] : [])))];
+  const methods = methodIds.length > 0 ? await tx.select().from(paymentMethods).where(inArray(paymentMethods.id, methodIds)) : [];
+  return { quote, versions, lines, scheduleItems, paymentMethods: methods };
 }
 
 export async function findQuoteAggregate(organizationId: string, quoteId: string): Promise<QuoteAggregate | null> {
@@ -287,7 +307,7 @@ export type FrozenFields = Pick<
 export async function freezeCurrentVersion(
   organizationId: string,
   quoteId: string,
-  freeze: (version: QuoteVersionRow, lines: QuoteLineRow[]) => FrozenFields,
+  freeze: (version: QuoteVersionRow, lines: QuoteLineRow[], scheduleItems: ScheduleItemRow[]) => FrozenFields,
 ): Promise<WriteResult | { status: "empty" }> {
   return inOrganization(organizationId, async (tx) => {
     const draft = await currentDraft(tx, quoteId);
@@ -295,7 +315,8 @@ export async function freezeCurrentVersion(
     await tx.execute(raw`select 1 from ${quoteVersions} where ${quoteVersions.id} = ${draft.version.id} for update`);
     const lines = await tx.select().from(quoteLines).where(eq(quoteLines.versionId, draft.version.id));
     if (lines.length === 0) return { status: "empty" };
-    await tx.update(quoteVersions).set(freeze(draft.version, lines)).where(eq(quoteVersions.id, draft.version.id));
+    const items = await tx.select().from(paymentScheduleItems).where(eq(paymentScheduleItems.versionId, draft.version.id));
+    await tx.update(quoteVersions).set(freeze(draft.version, lines, items)).where(eq(quoteVersions.id, draft.version.id));
     await tx.update(quotes).set({ status: "sent", updatedAt: new Date() }).where(eq(quotes.id, quoteId));
     return { status: "ok", quoteId };
   });
@@ -332,6 +353,13 @@ export async function insertNextVersion(organizationId: string, quoteId: string)
         lines.map(({ id: _id, versionId: _versionId, ...line }) => ({ ...line, versionId: next.id })),
       );
     }
+    // DEV-03 : l'échéancier suit, paiements déjà reçus compris.
+    const items = await tx.select().from(paymentScheduleItems).where(eq(paymentScheduleItems.versionId, current.id));
+    if (items.length > 0) {
+      await tx
+        .insert(paymentScheduleItems)
+        .values(items.map(({ id: _id, versionId: _versionId, ...item }) => ({ ...item, versionId: next.id })));
+    }
     await tx
       .update(quotes)
       .set({ currentVersion: next.version, status: "draft", updatedAt: new Date() })
@@ -354,9 +382,181 @@ export async function deleteEventQuotes(organizationId: string, eventIds: string
       .where(inArray(quoteVersions.quoteId, quoteIds));
     const versionIds = versions.map((version) => version.id);
     if (versionIds.length > 0) {
+      await tx.delete(paymentScheduleItems).where(inArray(paymentScheduleItems.versionId, versionIds));
       await tx.delete(quoteLines).where(inArray(quoteLines.versionId, versionIds));
       await tx.delete(quoteVersions).where(inArray(quoteVersions.id, versionIds));
     }
     await tx.delete(quotes).where(inArray(quotes.id, quoteIds));
   });
+}
+
+// --- DEV-03 : modes de paiement ---
+
+export async function findPaymentMethods(organizationId: string, includeArchived: boolean): Promise<PaymentMethodRow[]> {
+  return inOrganization(organizationId, (tx) =>
+    tx
+      .select()
+      .from(paymentMethods)
+      .where(includeArchived ? undefined : raw`${paymentMethods.archivedAt} is null`)
+      .orderBy(asc(paymentMethods.position), asc(paymentMethods.createdAt)),
+  );
+}
+
+export async function insertPaymentMethods(organizationId: string, labels: string[]): Promise<PaymentMethodRow[]> {
+  return inOrganization(organizationId, async (tx) => {
+    const [last] = await tx
+      .select({ max: raw<number | null>`max(${paymentMethods.position})` })
+      .from(paymentMethods);
+    const start = last?.max === null || last?.max === undefined ? 0 : last.max + 1;
+    return tx
+      .insert(paymentMethods)
+      .values(labels.map((label, index) => ({ organizationId, label, position: start + index })))
+      .returning();
+  });
+}
+
+export async function archivePaymentMethodRow(organizationId: string, paymentMethodId: string): Promise<void> {
+  await inOrganization(organizationId, (tx) =>
+    tx.update(paymentMethods).set({ archivedAt: new Date() }).where(eq(paymentMethods.id, paymentMethodId)),
+  );
+}
+
+// --- DEV-03 : échéancier ---
+
+export type ScheduleItemData = Pick<ScheduleItemRow, "label" | "dueDate" | "amountCents" | "percentageBasisPoints">;
+
+// Contrôle de l'échéancier complet (somme ≤ total), appelé dans la
+// transaction après l'écriture : s'il lève, rien n'est écrit.
+export type ScheduleCheck = (version: QuoteVersionRow, lines: QuoteLineRow[], items: ScheduleItemRow[]) => void;
+
+async function checkSchedule(tx: Tx, version: QuoteVersionRow, check: ScheduleCheck): Promise<void> {
+  const lines = await tx.select().from(quoteLines).where(eq(quoteLines.versionId, version.id));
+  const items = await tx.select().from(paymentScheduleItems).where(eq(paymentScheduleItems.versionId, version.id));
+  check(version, lines, items);
+}
+
+async function lockVersion(tx: Tx, versionId: string): Promise<void> {
+  await tx.execute(raw`select 1 from ${quoteVersions} where ${quoteVersions.id} = ${versionId} for update`);
+}
+
+export async function insertScheduleItem(
+  organizationId: string,
+  quoteId: string,
+  data: ScheduleItemData,
+  check: ScheduleCheck,
+): Promise<WriteResult> {
+  return inOrganization(organizationId, async (tx) => {
+    const draft = await currentDraft(tx, quoteId);
+    if (draft.status !== "draft") return { status: draft.status };
+    await lockVersion(tx, draft.version.id);
+    const [last] = await tx
+      .select({ max: raw<number | null>`max(${paymentScheduleItems.position})` })
+      .from(paymentScheduleItems)
+      .where(eq(paymentScheduleItems.versionId, draft.version.id));
+    const position = last?.max === null || last?.max === undefined ? 0 : last.max + 1;
+    await tx.insert(paymentScheduleItems).values({ organizationId, versionId: draft.version.id, ...data, position });
+    await checkSchedule(tx, draft.version, check);
+    return { status: "ok", quoteId };
+  });
+}
+
+// L'échéance, sa version et son devis ; « draft » seulement si la version
+// est la version courante, encore en brouillon.
+async function scheduleItemContext(
+  tx: Tx,
+  scheduleItemId: string,
+): Promise<{ item: ScheduleItemRow; version: QuoteVersionRow; quote: QuoteRow } | null> {
+  const [item] = await tx.select().from(paymentScheduleItems).where(eq(paymentScheduleItems.id, scheduleItemId));
+  if (!item) return null;
+  const [version] = await tx.select().from(quoteVersions).where(eq(quoteVersions.id, item.versionId));
+  if (!version) return null;
+  const [quote] = await tx.select().from(quotes).where(eq(quotes.id, version.quoteId));
+  if (!quote) return null;
+  return { item, version, quote };
+}
+
+export async function updateScheduleItemRow(
+  organizationId: string,
+  scheduleItemId: string,
+  data: ScheduleItemData,
+  check: ScheduleCheck,
+): Promise<WriteResult> {
+  return inOrganization(organizationId, async (tx) => {
+    const context = await scheduleItemContext(tx, scheduleItemId);
+    if (!context) return { status: "not_found" };
+    const { version, quote } = context;
+    if (version.sentAt || version.version !== quote.currentVersion) return { status: "locked" };
+    await lockVersion(tx, version.id);
+    await tx.update(paymentScheduleItems).set(data).where(eq(paymentScheduleItems.id, scheduleItemId));
+    await checkSchedule(tx, version, check);
+    return { status: "ok", quoteId: quote.id };
+  });
+}
+
+export async function deleteScheduleItemRow(organizationId: string, scheduleItemId: string): Promise<WriteResult> {
+  return inOrganization(organizationId, async (tx) => {
+    const context = await scheduleItemContext(tx, scheduleItemId);
+    if (!context) return { status: "not_found" };
+    const { version, quote } = context;
+    if (version.sentAt || version.version !== quote.currentVersion) return { status: "locked" };
+    await tx.delete(paymentScheduleItems).where(eq(paymentScheduleItems.id, scheduleItemId));
+    return { status: "ok", quoteId: quote.id };
+  });
+}
+
+export type PaymentResult = WriteResult | { status: "not_payable" | "method_not_found" };
+
+// Paiement (ou annulation) d'une échéance de la version courante d'un devis
+// envoyé ou signé ; le mode doit exister et ne pas être archivé.
+export async function setScheduleItemPayment(
+  organizationId: string,
+  scheduleItemId: string,
+  payment: { paidOn: string; paymentMethodId: string } | null,
+): Promise<PaymentResult> {
+  return inOrganization(organizationId, async (tx) => {
+    const context = await scheduleItemContext(tx, scheduleItemId);
+    if (!context) return { status: "not_found" };
+    const { version, quote } = context;
+    const payable = (quote.status === "sent" || quote.status === "signed") && version.sentAt !== null;
+    if (!payable || version.version !== quote.currentVersion) return { status: "not_payable" };
+    if (payment) {
+      const [method] = await tx.select().from(paymentMethods).where(eq(paymentMethods.id, payment.paymentMethodId));
+      if (!method || method.archivedAt) return { status: "method_not_found" };
+    }
+    await tx
+      .update(paymentScheduleItems)
+      .set(
+        payment
+          ? { paidOn: payment.paidOn, paymentMethodId: payment.paymentMethodId, paidRecordedAt: new Date() }
+          : { paidOn: null, paymentMethodId: null, paidRecordedAt: null },
+      )
+      .where(eq(paymentScheduleItems.id, scheduleItemId));
+    return { status: "ok", quoteId: quote.id };
+  });
+}
+
+export type UnpaidScheduleRow = {
+  item: ScheduleItemRow;
+  version: QuoteVersionRow;
+  quote: QuoteRow;
+};
+
+// Échéances non payées de la version courante des devis envoyés ou signés,
+// hors essais (ADR 0008 : jamais dans les encaissements ni le tableau de bord).
+export async function findUnpaidScheduleItems(organizationId: string): Promise<UnpaidScheduleRow[]> {
+  return inOrganization(organizationId, (tx) =>
+    tx
+      .select({ item: paymentScheduleItems, version: quoteVersions, quote: quotes })
+      .from(paymentScheduleItems)
+      .innerJoin(quoteVersions, eq(quoteVersions.id, paymentScheduleItems.versionId))
+      .innerJoin(quotes, and(eq(quotes.id, quoteVersions.quoteId), eq(quotes.currentVersion, quoteVersions.version)))
+      .where(
+        and(
+          raw`${paymentScheduleItems.paidOn} is null`,
+          eq(quotes.isDemo, false),
+          inArray(quotes.status, ["sent", "signed"]),
+        ),
+      )
+      .orderBy(asc(paymentScheduleItems.dueDate), asc(paymentScheduleItems.position)),
+  );
 }

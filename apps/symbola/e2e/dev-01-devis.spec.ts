@@ -101,7 +101,7 @@ test("DEV-01 — composer un devis depuis un événement, l'envoyer, le téléch
   await expect(freeLine.getByText("Ligne ajoutée.")).toBeVisible();
   const lines = page.getByRole("table", { name: "Lignes de la version 1" });
   await expect(lines.getByRole("row", { name: /Déplacement/ })).toBeVisible();
-  await expect(page.getByText(/2\s040,00\s€/)).toBeVisible();
+  await expect(page.getByText(/^2\s040,00\s€$/)).toBeVisible();
   await expectNoAxeViolation(page);
 
   // Envoi : la version 1 est figée, valable 45 jours.

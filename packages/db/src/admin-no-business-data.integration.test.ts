@@ -12,7 +12,16 @@ import { afterAll, describe, expect, it } from "vitest";
 import { createAppConnection } from "./client";
 import { budgetLineAttachments, budgetLines } from "./schema/budget";
 import { greetings } from "./schema/hello";
-import { catalogItems, numberSeries, quoteLines, quoteSettings, quotes, quoteVersions } from "./schema/quotes";
+import {
+  catalogItems,
+  numberSeries,
+  paymentMethods,
+  paymentScheduleItems,
+  quoteLines,
+  quoteSettings,
+  quotes,
+  quoteVersions,
+} from "./schema/quotes";
 import {
   defaultVendorSlots,
   eventActivities,
@@ -193,7 +202,7 @@ describe("HUB-03 — L'Admin ne lit jamais de donnée métier", () => {
     }
   });
 
-  it("vaut aussi pour le catalogue et les devis (DEV-01, PostgreSQL réel)", async () => {
+  it("vaut aussi pour le catalogue, les devis et les échéanciers (DEV-01/03, PostgreSQL réel)", async () => {
     const organizationId = randomUUID();
     await withOrganization(db, organizationId, async (tx) => {
       await tx.insert(quoteSettings).values({ organizationId });
@@ -217,9 +226,13 @@ describe("HUB-03 — L'Admin ne lit jamais de donnée métier", () => {
         unitPriceCents: 1,
         vatRateBasisPoints: 0,
       });
+      const [method] = await tx.insert(paymentMethods).values({ organizationId, label: "Virement" }).returning();
+      await tx
+        .insert(paymentScheduleItems)
+        .values({ organizationId, versionId: version.id, label: "Acompte", amountCents: 1, dueDate: "2027-06-01", paymentMethodId: method!.id });
     });
 
-    for (const table of [quoteSettings, numberSeries, catalogItems, quotes, quoteVersions, quoteLines]) {
+    for (const table of [quoteSettings, numberSeries, catalogItems, quotes, quoteVersions, quoteLines, paymentMethods, paymentScheduleItems]) {
       try {
         const rows = await db.select().from(table);
         expect(rows).toHaveLength(0);

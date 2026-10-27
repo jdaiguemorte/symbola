@@ -171,8 +171,15 @@ describe("DEV-01 — Composition d'un devis", () => {
       quotePrefix: "D",
       invoicePrefix: "F",
       creditNotePrefix: "A",
+      upcomingHorizonDays: 90,
     });
-    await updateQuoteSettings(organizationId, { validityDays: 45, quotePrefix: "DV", invoicePrefix: "F", creditNotePrefix: "A" });
+    await updateQuoteSettings(organizationId, {
+      validityDays: 45,
+      quotePrefix: "DV",
+      invoicePrefix: "F",
+      creditNotePrefix: "A",
+      upcomingHorizonDays: 90,
+    });
     const quote = await createQuote({ organizationId, eventId, createdByUserId: plannerId, now: NOW });
     expect(quote.number).toBe("DV-2027-0001");
     await addQuoteLine(organizationId, quote.id, { label: "Coordination", unit: "forfait", quantityMilli: 1000, unitPriceCents: 100000 });

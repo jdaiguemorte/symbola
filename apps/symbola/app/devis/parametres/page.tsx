@@ -2,9 +2,11 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { HelpButton } from "@symbola/ui";
-import { getQuoteSettings } from "@/modules/quotes/service";
+import { getQuoteSettings, listPaymentMethods } from "@/modules/quotes/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isQuotesModuleEnabled } from "../module-access";
+import { archivePaymentMethodAction } from "./actions";
+import { AddPaymentMethodForm, LoadStarterPaymentMethodsForm } from "./payment-method-forms";
 import { QuoteSettingsForm } from "./quote-settings-form";
 
 export default async function QuoteSettingsPage() {
@@ -27,12 +29,33 @@ export default async function QuoteSettingsPage() {
     );
   }
 
-  const settings = await getQuoteSettings(organizationId);
+  const [settings, methods] = await Promise.all([getQuoteSettings(organizationId), listPaymentMethods(organizationId)]);
   return (
     <main>
       <h1>{t("settingsTitle")}</h1>
       <HelpButton title={tHelp("quotesSettings.title")} body={tHelp("quotesSettings.body")} />
       <QuoteSettingsForm settings={settings} />
+
+      <h2>{t("paymentMethodsTitle")}</h2>
+      {methods.length === 0 ? (
+        <>
+          <p>{t("noPaymentMethods")}</p>
+          <LoadStarterPaymentMethodsForm />
+        </>
+      ) : null}
+      <ul>
+        {methods.map((method) => (
+          <li key={method.id}>
+            {method.label}
+            <form action={archivePaymentMethodAction}>
+              <input type="hidden" name="paymentMethodId" value={method.id} />
+              <button type="submit">{t("archivePaymentMethod", { label: method.label })}</button>
+            </form>
+          </li>
+        ))}
+      </ul>
+      <AddPaymentMethodForm />
+
       <p>
         {t("vatRegimeInProfile")} <Link href="/parametres">{t("organizationSettingsLink")}</Link>
       </p>

@@ -9,6 +9,7 @@ import { getGreeting } from "@/modules/hello/service";
 import { getOrganizationProfile, hasSeenTour, isModuleEnabled } from "@/modules/hub/service";
 import { getAuthContext } from "@/lib/auth-context";
 import { recordUsage } from "@/lib/usage";
+import { UpcomingPaymentsBlock } from "./devis/encaissements/dashboard-block";
 import { logoutAction } from "./logout-action";
 import { HomeInteractive } from "./home-interactive";
 
@@ -103,9 +104,12 @@ export default async function HomePage() {
         {budgetAvailable ? <Link href="/budget/parametres">{t("budgetModels")}</Link> : null}
         {quotesAvailable ? <Link href="/devis/catalogue">{t("quoteCatalog")}</Link> : null}
         {quotesAvailable ? <Link href="/devis/parametres">{t("quoteSettings")}</Link> : null}
+        {quotesAvailable ? <Link href="/devis/encaissements">{t("quotePayments")}</Link> : null}
         {auth.user.role === "admin" ? <Link href="/admin">{t("administration")}</Link> : null}
         <Link href="/aide">{tAide("link")}</Link>
       </nav>
+      {/* HUB-02 / DEV-03 : absent si le module Devis n'est pas souscrit. */}
+      {quotesAvailable && auth.user.organizationId ? <UpcomingPaymentsBlock organizationId={auth.user.organizationId} /> : null}
       <form action={logoutAction}>
         <button type="submit">{t("logout")}</button>
       </form>

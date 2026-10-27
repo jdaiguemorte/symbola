@@ -7,6 +7,9 @@ import type {
   CatalogItemInput,
   CreateQuoteInput,
   GlobalDiscountInput,
+  MarkScheduleItemPaidInput,
+  PaymentMethod,
+  PaymentScheduleView,
   QuoteDetail,
   QuoteLine,
   QuoteLineInput,
@@ -15,15 +18,33 @@ import type {
   QuotesServiceContract,
   QuoteTotalsView,
   QuoteVersionView,
+  ScheduleItemInput,
+  ScheduleItemView,
   SellerSnapshot,
   SendQuoteInput,
+  UnpaidPayment,
+  UnpaidPaymentsView,
 } from "@symbola/contracts";
 import { EventNotFoundError, getEvent } from "@/modules/events/service";
 import { computeLegalMention, getDocumentHeader, getOrganizationProfile, type OrganizationProfile } from "@/modules/hub/service";
 import { computeQuoteTotals, formatDocumentNumber, lineAmounts, validUntil, type GlobalDiscount } from "./amounts";
+import { addCalendarDays, groupByMonth, isOverdue, parisToday, resolveSchedule } from "./schedule";
 import {
   archiveCatalogItemRow,
+  archivePaymentMethodRow,
   deleteEventQuotes,
+  deleteScheduleItemRow,
+  findPaymentMethods,
+  findUnpaidScheduleItems,
+  insertPaymentMethods,
+  insertScheduleItem,
+  setScheduleItemPayment,
+  updateScheduleItemRow,
+  type PaymentMethodRow,
+  type PaymentResult,
+  type ScheduleCheck,
+  type ScheduleItemData,
+  type ScheduleItemRow,
   deleteQuoteLine,
   findCatalogItem,
   findCatalogItems,
@@ -46,7 +67,6 @@ import {
   type QuoteAggregate,
   type QuoteLineRow,
   type QuoteVersionRow,
-  type WriteResult,
 } from "./repository";
 
 export type {
@@ -54,6 +74,9 @@ export type {
   CatalogItemInput,
   CreateQuoteInput,
   GlobalDiscountInput,
+  MarkScheduleItemPaidInput,
+  PaymentMethod,
+  PaymentScheduleView,
   QuoteDetail,
   QuoteLine,
   QuoteLineInput,
@@ -63,8 +86,12 @@ export type {
   QuotesServiceContract,
   QuoteTotalsView,
   QuoteVersionView,
+  ScheduleItemInput,
+  ScheduleItemView,
   SellerSnapshot,
   SendQuoteInput,
+  UnpaidPayment,
+  UnpaidPaymentsView,
 } from "@symbola/contracts";
 export { EventNotFoundError };
 
@@ -107,7 +134,38 @@ export class QuoteVatRegimeRequiredError extends Error {
   }
 }
 
-const DEFAULT_SETTINGS: QuoteSettings = { validityDays: 30, quotePrefix: "D", invoicePrefix: "F", creditNotePrefix: "A" };
+// DEV-03 — « Étant donné des acomptes dont la somme dépasse le total, alors
+// l'app refuse. »
+export class QuoteScheduleExceedsTotalError extends Error {
+  constructor() {
+    super("échéancier supérieur au total du devis");
+    this.name = "QuoteScheduleExceedsTotalError";
+  }
+}
+
+export class PaymentMethodNotFoundError extends Error {
+  constructor() {
+    super("mode de paiement introuvable ou archivé");
+    this.name = "PaymentMethodNotFoundError";
+  }
+}
+
+// Une échéance ne se paie que sur la version envoyée courante d'un devis
+// envoyé ou signé (jamais sur un brouillon).
+export class ScheduleItemNotPayableError extends Error {
+  constructor() {
+    super("échéance non encaissable");
+    this.name = "ScheduleItemNotPayableError";
+  }
+}
+
+const DEFAULT_SETTINGS: QuoteSettings = {
+  validityDays: 30,
+  quotePrefix: "D",
+  invoicePrefix: "F",
+  creditNotePrefix: "A",
+  upcomingHorizonDays: 90,
+};
 const DEMO_PREFIX = "DEMO";
 const MAX_AMOUNT_CENTS = 100_000_000_00; // 100 M€ : garde-fou contre les débordements d'entier
 const MAX_QUANTITY_MILLI = 1_000_000_000;
@@ -198,6 +256,7 @@ export async function getQuoteSettings(organizationId: string): Promise<QuoteSet
     quotePrefix: row.quotePrefix,
     invoicePrefix: row.invoicePrefix,
     creditNotePrefix: row.creditNotePrefix,
+    upcomingHorizonDays: row.upcomingHorizonDays,
   };
 }
 
@@ -205,6 +264,7 @@ const PREFIX_PATTERN = /^[A-Z0-9]{1,8}$/;
 
 export async function updateQuoteSettings(organizationId: string, settings: QuoteSettings): Promise<QuoteSettings> {
   requireInteger(settings.validityDays, 1, 365, "validité");
+  requireInteger(settings.upcomingHorizonDays, 1, 730, "horizon");
   for (const prefix of [settings.quotePrefix, settings.invoicePrefix, settings.creditNotePrefix]) {
     // DEMO est réservé à la série d'essai (ADR 0008).
     if (!PREFIX_PATTERN.test(prefix) || prefix === DEMO_PREFIX) throw new RangeError("préfixe invalide");
@@ -215,6 +275,7 @@ export async function updateQuoteSettings(organizationId: string, settings: Quot
     quotePrefix: row.quotePrefix,
     invoicePrefix: row.invoicePrefix,
     creditNotePrefix: row.creditNotePrefix,
+    upcomingHorizonDays: row.upcomingHorizonDays,
   };
 }
 
@@ -246,29 +307,67 @@ function totalsFor(lines: QuoteLineRow[], version: QuoteVersionRow, vatApplicabl
   return computeQuoteTotals(lines, toGlobalDiscount(version), vatApplicable);
 }
 
-function toVersionView(version: QuoteVersionRow, lines: QuoteLineRow[], profile: OrganizationProfile): QuoteVersionView {
-  const ownLines = lines.filter((line) => line.versionId === version.id);
+function toScheduleView(
+  items: ScheduleItemRow[],
+  methods: PaymentMethodRow[],
+  totalTtcCents: number,
+  now: Date,
+): PaymentScheduleView {
+  const resolved = resolveSchedule(items, totalTtcCents);
+  const labels = new Map(methods.map((method) => [method.id, method.label]));
+  const views: ScheduleItemView[] = items.map((item, index) => ({
+    id: item.id,
+    label: item.label,
+    dueDate: item.dueDate,
+    fixedAmountCents: item.amountCents,
+    percentageBasisPoints: item.percentageBasisPoints,
+    amountCents: resolved.amounts[index] ?? 0,
+    paidOn: item.paidOn,
+    paymentMethodId: item.paymentMethodId,
+    paymentMethodLabel: item.paymentMethodId ? (labels.get(item.paymentMethodId) ?? null) : null,
+    overdue: item.paidOn === null && isOverdue(item.dueDate, now),
+    position: item.position,
+  }));
+  return {
+    items: views,
+    scheduledCents: totalTtcCents - resolved.balanceCents,
+    balanceCents: resolved.balanceCents,
+    exceedsTotal: resolved.exceedsTotal,
+  };
+}
+
+function toVersionView(
+  version: QuoteVersionRow,
+  aggregate: Pick<QuoteAggregate, "lines" | "scheduleItems" | "paymentMethods">,
+  profile: OrganizationProfile,
+  now: Date,
+): QuoteVersionView {
+  const ownLines = aggregate.lines.filter((line) => line.versionId === version.id);
   const sent = version.sentAt !== null;
   // Brouillon : régime courant de l'organisation ; envoyée : copie figée.
   const vatRegime = (sent ? version.vatRegime : profile.vatRegime) as QuoteVersionView["vatRegime"];
   const vatApplicable = vatRegime !== "franchise";
+  const totals =
+    sent && version.totalsSnapshot ? (version.totalsSnapshot as QuoteTotalsView) : totalsFor(ownLines, version, vatApplicable);
+  const ownItems = aggregate.scheduleItems.filter((item) => item.versionId === version.id);
   return {
     id: version.id,
     version: version.version,
     lines: ownLines.map(toLine),
     globalDiscount: toGlobalDiscount(version),
-    totals: sent && version.totalsSnapshot ? (version.totalsSnapshot as QuoteTotalsView) : totalsFor(ownLines, version, vatApplicable),
+    totals,
     vatApplicable,
     vatRegime: vatRegime ?? null,
     legalMention: version.legalMention,
     seller: (version.sellerSnapshot as SellerSnapshot | null) ?? null,
     validUntil: version.validUntil,
     sentAt: version.sentAt?.toISOString() ?? null,
+    schedule: toScheduleView(ownItems, aggregate.paymentMethods, totals.totalTtcCents, now),
   };
 }
 
-function toDetail(aggregate: QuoteAggregate, profile: OrganizationProfile): QuoteDetail {
-  const versions = aggregate.versions.map((version) => toVersionView(version, aggregate.lines, profile));
+function toDetail(aggregate: QuoteAggregate, profile: OrganizationProfile, now: Date = new Date()): QuoteDetail {
+  const versions = aggregate.versions.map((version) => toVersionView(version, aggregate, profile, now));
   const current = versions.find((version) => version.version === aggregate.quote.currentVersion);
   if (!current) throw new QuoteNotFoundError();
   return {
@@ -300,10 +399,12 @@ async function loadDetail(organizationId: string, quoteId: string): Promise<Quot
   return toDetail(aggregate, profile);
 }
 
-function unwrap(result: WriteResult | { status: "draft_exists" }): string {
+function unwrap(result: PaymentResult | { status: "draft_exists" }): string {
   if (result.status === "not_found") throw new QuoteNotFoundError();
   if (result.status === "locked") throw new QuoteVersionLockedError();
   if (result.status === "draft_exists") throw new QuoteVersionLockedError();
+  if (result.status === "not_payable") throw new ScheduleItemNotPayableError();
+  if (result.status === "method_not_found") throw new PaymentMethodNotFoundError();
   if (result.status !== "ok") throw new QuoteNotFoundError();
   return result.quoteId;
 }
@@ -456,16 +557,20 @@ export async function sendQuote(input: SendQuoteInput): Promise<QuoteDetail> {
   };
   const legalMention = computeLegalMention(profile);
 
-  const result = await freezeCurrentVersion(input.organizationId, input.quoteId, (version, lines) => {
+  const result = await freezeCurrentVersion(input.organizationId, input.quoteId, (version, lines, items) => {
     // Vérifié ici, après « devis vide » : un devis vide est signalé d'abord.
     if (!vatRegime) throw new QuoteVatRegimeRequiredError();
+    const totals = totalsFor(lines, version, vatRegime !== "franchise");
+    // DEV-03 : un échéancier qui dépasse le total (après une baisse du
+    // total) bloque l'envoi.
+    if (resolveSchedule(items, totals.totalTtcCents).exceedsTotal) throw new QuoteScheduleExceedsTotalError();
     return {
       sentAt: now,
       validUntil: validUntil(parisDate(now), settings.validityDays),
       vatRegime,
       legalMention: legalMention === "" ? null : legalMention,
       sellerSnapshot: seller,
-      totalsSnapshot: totalsFor(lines, version, vatRegime !== "franchise"),
+      totalsSnapshot: totals,
     };
   });
   if (result.status === "empty") throw new QuoteEmptyError();
@@ -477,6 +582,150 @@ export async function sendQuote(input: SendQuoteInput): Promise<QuoteDetail> {
 export async function reviseQuote(organizationId: string, quoteId: string): Promise<QuoteDetail> {
   unwrap(await insertNextVersion(organizationId, quoteId));
   return loadDetail(organizationId, quoteId);
+}
+
+// --- DEV-03 : modes de paiement ---
+
+function toPaymentMethod(row: PaymentMethodRow): PaymentMethod {
+  return { id: row.id, label: row.label, archived: row.archivedAt !== null };
+}
+
+export async function listPaymentMethods(organizationId: string, options: { includeArchived?: boolean } = {}): Promise<PaymentMethod[]> {
+  return (await findPaymentMethods(organizationId, options.includeArchived ?? false)).map(toPaymentMethod);
+}
+
+// Ajout d'un ou plusieurs modes (saisie libre ou modèle de départ), sans
+// doublon avec les modes actifs.
+export async function addPaymentMethods(organizationId: string, labels: string[]): Promise<PaymentMethod[]> {
+  const existing = new Set((await findPaymentMethods(organizationId, false)).map((method) => method.label.toLocaleLowerCase("fr")));
+  const fresh: string[] = [];
+  for (const label of labels.map((value) => requireText(value, "mode de paiement"))) {
+    const key = label.toLocaleLowerCase("fr");
+    if (existing.has(key)) continue;
+    existing.add(key);
+    fresh.push(label);
+  }
+  if (fresh.length === 0) return [];
+  return (await insertPaymentMethods(organizationId, fresh)).map(toPaymentMethod);
+}
+
+export async function archivePaymentMethod(organizationId: string, paymentMethodId: string): Promise<void> {
+  await archivePaymentMethodRow(organizationId, paymentMethodId);
+}
+
+// --- DEV-03 : échéancier ---
+
+const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
+function requireDate(value: string, field: string): string {
+  const parsed = new Date(`${value}T00:00:00Z`);
+  if (!DATE_PATTERN.test(value) || Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== value) {
+    throw new RangeError(`${field} invalide`);
+  }
+  return value;
+}
+
+function scheduleItemData(item: ScheduleItemInput): ScheduleItemData {
+  const hasAmount = item.amountCents !== null && item.amountCents !== undefined;
+  const hasPercentage = item.percentageBasisPoints !== null && item.percentageBasisPoints !== undefined;
+  if (hasAmount === hasPercentage) throw new RangeError("montant ou pourcentage, l'un des deux");
+  if (hasAmount) requireInteger(item.amountCents!, 1, MAX_AMOUNT_CENTS, "montant");
+  if (hasPercentage) requireInteger(item.percentageBasisPoints!, 1, 10000, "pourcentage");
+  return {
+    label: requireText(item.label, "intitulé"),
+    dueDate: requireDate(item.dueDate, "échéance"),
+    amountCents: hasAmount ? item.amountCents! : null,
+    percentageBasisPoints: hasPercentage ? item.percentageBasisPoints! : null,
+  };
+}
+
+// Contrôle dans la transaction d'écriture : sur le total du brouillon, au
+// régime courant de l'organisation.
+async function scheduleCheck(organizationId: string): Promise<ScheduleCheck> {
+  const profile = await withDb((db) => getOrganizationProfile(db, organizationId));
+  return (version, lines, items) => {
+    const totals = totalsFor(lines, version, profile.vatRegime !== "franchise");
+    if (resolveSchedule(items, totals.totalTtcCents).exceedsTotal) throw new QuoteScheduleExceedsTotalError();
+  };
+}
+
+export async function addScheduleItem(organizationId: string, quoteId: string, item: ScheduleItemInput): Promise<QuoteDetail> {
+  const data = scheduleItemData(item);
+  unwrap(await insertScheduleItem(organizationId, quoteId, data, await scheduleCheck(organizationId)));
+  return loadDetail(organizationId, quoteId);
+}
+
+export async function updateScheduleItem(organizationId: string, scheduleItemId: string, item: ScheduleItemInput): Promise<QuoteDetail> {
+  const data = scheduleItemData(item);
+  const quoteId = unwrap(await updateScheduleItemRow(organizationId, scheduleItemId, data, await scheduleCheck(organizationId)));
+  return loadDetail(organizationId, quoteId);
+}
+
+export async function removeScheduleItem(organizationId: string, scheduleItemId: string): Promise<QuoteDetail> {
+  const quoteId = unwrap(await deleteScheduleItemRow(organizationId, scheduleItemId));
+  return loadDetail(organizationId, quoteId);
+}
+
+// DEV-03 — « Quand elle marque une échéance payée, alors elle saisit la
+// date et le mode de paiement. » Pas de date future (heure de Paris).
+export async function markScheduleItemPaid(input: MarkScheduleItemPaidInput): Promise<QuoteDetail> {
+  const paidOn = requireDate(input.paidOn, "date de paiement");
+  if (paidOn > parisToday(input.now ?? new Date())) throw new RangeError("date de paiement future");
+  const quoteId = unwrap(
+    await setScheduleItemPayment(input.organizationId, input.scheduleItemId, { paidOn, paymentMethodId: input.paymentMethodId }),
+  );
+  return loadDetail(input.organizationId, quoteId);
+}
+
+// Correction d'une saisie : l'échéance redevient à payer.
+export async function markScheduleItemUnpaid(organizationId: string, scheduleItemId: string): Promise<QuoteDetail> {
+  const quoteId = unwrap(await setScheduleItemPayment(organizationId, scheduleItemId, null));
+  return loadDetail(organizationId, quoteId);
+}
+
+// DEV-03 — encaissements à venir. Sans horizon : toutes les échéances non
+// payées (écran « Encaissements ») ; avec horizon : celles des N prochains
+// jours (tableau de bord). Les retards sont toujours inclus, en tête.
+export async function listUnpaidPayments(
+  organizationId: string,
+  options: { now?: Date; horizonDays?: number } = {},
+): Promise<UnpaidPaymentsView> {
+  const now = options.now ?? new Date();
+  const rows = await findUnpaidScheduleItems(organizationId);
+  // Montants résolus sur l'échéancier complet de chaque version (même
+  // arrondi que la fiche du devis), à partir des totaux figés à l'envoi.
+  const byVersion = new Map<string, typeof rows>();
+  for (const row of rows) byVersion.set(row.version.id, [...(byVersion.get(row.version.id) ?? []), row]);
+
+  const payments: UnpaidPayment[] = [];
+  for (const versionRows of byVersion.values()) {
+    const { version, quote } = versionRows[0]!;
+    const totalTtcCents = (version.totalsSnapshot as QuoteTotalsView | null)?.totalTtcCents ?? 0;
+    const resolved = resolveSchedule(versionRows.map((row) => row.item), totalTtcCents);
+    versionRows.forEach((row, index) => {
+      payments.push({
+        scheduleItemId: row.item.id,
+        quoteId: quote.id,
+        quoteNumber: quote.number,
+        eventId: quote.eventId,
+        label: row.item.label,
+        dueDate: row.item.dueDate,
+        amountCents: resolved.amounts[index] ?? 0,
+        overdue: isOverdue(row.item.dueDate, now),
+      });
+    });
+  }
+  payments.sort((a, b) => a.dueDate.localeCompare(b.dueDate) || a.quoteNumber.localeCompare(b.quoteNumber));
+
+  const limit = options.horizonDays === undefined ? null : addCalendarDays(parisToday(now), options.horizonDays);
+  const overdue = payments.filter((payment) => payment.overdue);
+  const upcoming = payments.filter((payment) => !payment.overdue && (limit === null || payment.dueDate <= limit));
+  return {
+    overdue,
+    upcoming,
+    overdueTotalCents: overdue.reduce((sum, payment) => sum + payment.amountCents, 0),
+    months: groupByMonth(upcoming),
+  };
 }
 
 // AIDE-02 — appelé par l'orchestrateur de purge des essais (lib/demo-purge).
@@ -501,5 +750,14 @@ const _contractCheck: QuotesServiceContract = {
   sendQuote,
   reviseQuote,
   removeEventQuotesData,
+  listPaymentMethods,
+  addPaymentMethods,
+  archivePaymentMethod,
+  addScheduleItem,
+  updateScheduleItem,
+  removeScheduleItem,
+  markScheduleItemPaid,
+  markScheduleItemUnpaid,
+  listUnpaidPayments,
 };
 void _contractCheck;

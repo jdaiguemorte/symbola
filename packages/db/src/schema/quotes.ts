@@ -9,7 +9,8 @@
 //
 // Montants en centimes entiers EUR, taux et remises en points de base
 // (2000 = 20,00 %), quantités en millièmes (1500 = 1,5) : jamais de float.
-import { boolean, date, integer, jsonb, pgSchema, text, timestamp, unique, uuid } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+import { boolean, check, date, integer, jsonb, pgSchema, text, timestamp, unique, uuid } from "drizzle-orm/pg-core";
 
 export const quotesSchema = pgSchema("quotes");
 
@@ -22,6 +23,8 @@ export const quoteSettings = quotesSchema.table("quote_settings", {
   quotePrefix: text("quote_prefix").notNull().default("D"),
   invoicePrefix: text("invoice_prefix").notNull().default("F"),
   creditNotePrefix: text("credit_note_prefix").notNull().default("A"),
+  // DEV-03 : horizon des encaissements à venir au tableau de bord (90 jours proposés).
+  upcomingHorizonDays: integer("upcoming_horizon_days").notNull().default(90),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
@@ -126,3 +129,43 @@ export const quoteLines = quotesSchema.table("quote_lines", {
   discountBasisPoints: integer("discount_basis_points").notNull().default(0),
   position: integer("position").notNull().default(0),
 });
+
+// DEV-03 — modes de paiement, liste paramétrable par organisation (modèle
+// de départ facultatif dans packages/starter-templates). Archivés plutôt
+// que supprimés : une échéance payée garde son mode.
+export const paymentMethods = quotesSchema.table("payment_methods", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  label: text("label").notNull(),
+  position: integer("position").notNull().default(0),
+  archivedAt: timestamp("archived_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+// DEV-03 — échéancier d'une version de devis : chaque acompte a un montant
+// fixe OU un pourcentage du total TTC, et une date. Le solde est calculé,
+// jamais stocké. Le paiement (date, mode) s'enregistre après l'envoi.
+export const paymentScheduleItems = quotesSchema.table(
+  "payment_schedule_items",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    versionId: uuid("version_id")
+      .notNull()
+      .references(() => quoteVersions.id),
+    label: text("label").notNull(),
+    amountCents: integer("amount_cents"),
+    percentageBasisPoints: integer("percentage_basis_points"),
+    dueDate: date("due_date").notNull(),
+    paidOn: date("paid_on"),
+    paymentMethodId: uuid("payment_method_id").references(() => paymentMethods.id),
+    paidRecordedAt: timestamp("paid_recorded_at", { withTimezone: true }),
+    position: integer("position").notNull().default(0),
+  },
+  (table) => [
+    check(
+      "payment_schedule_items_amount_xor_percentage",
+      sql`(${table.amountCents} is null) <> (${table.percentageBasisPoints} is null)`,
+    ),
+  ],
+);

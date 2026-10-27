@@ -6,6 +6,7 @@ import {
   CatalogItemNotFoundError,
   QuoteEmptyError,
   QuoteNotFoundError,
+  QuoteScheduleExceedsTotalError,
   QuoteVatRegimeRequiredError,
   QuoteVersionLockedError,
   addQuoteLine,
@@ -30,6 +31,7 @@ function errorState(error: unknown, t: Translate): QuoteFormState {
   if (error instanceof QuoteVersionLockedError) return { error: t("versionLocked") };
   if (error instanceof CatalogItemNotFoundError) return { error: t("catalogItemNotFound") };
   if (error instanceof QuoteEmptyError) return { error: t("quoteEmpty") };
+  if (error instanceof QuoteScheduleExceedsTotalError) return { error: t("scheduleExceedsTotal") };
   if (error instanceof QuoteVatRegimeRequiredError) return { error: t("vatRegimeRequired"), vatRegimeRequired: true };
   if (error instanceof RangeError) return { error: t("invalidLine") };
   throw error;

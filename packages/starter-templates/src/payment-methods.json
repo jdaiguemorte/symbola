@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "items": [
+    { "key": "bank_transfer", "label": { "fr": "Virement bancaire", "en": "Bank transfer" } },
+    { "key": "card", "label": { "fr": "Carte bancaire", "en": "Card" } },
+    { "key": "cheque", "label": { "fr": "Chèque", "en": "Cheque" } },
+    { "key": "cash", "label": { "fr": "Espèces", "en": "Cash" } }
+  ]
+}

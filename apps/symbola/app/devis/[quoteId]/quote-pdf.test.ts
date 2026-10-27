@@ -49,6 +49,7 @@ function version(overrides: Partial<QuoteVersionView> = {}): QuoteVersionView {
     seller: { organizationName: "Atelier Lumière", address: "1 rue des Lilas, 69001 Lyon", siren: "123456789", logoKey: null },
     validUntil: "2027-04-14",
     sentAt: "2027-03-15T10:00:00.000Z",
+    schedule: { items: [], scheduledCents: 0, balanceCents: 150000, exceedsTotal: false },
     ...overrides,
   };
 }

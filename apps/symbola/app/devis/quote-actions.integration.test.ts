@@ -9,7 +9,16 @@ import { confirmTotp, createOrganization, createUser, login, setupTotp } from "@
 import { createAppConnection } from "@symbola/db/client";
 import { acceptEventClientInvitation, createProspect, createProspectSource, inviteEventClient } from "@/modules/events/service";
 import { saveOnboardingStep } from "@/modules/hub/service";
-import { addQuoteLine, createQuote, getQuote, listCatalogItems } from "@/modules/quotes/service";
+import {
+  addPaymentMethods,
+  addQuoteLine,
+  addScheduleItem,
+  createQuote,
+  getQuote,
+  listCatalogItems,
+  listPaymentMethods,
+  sendQuote,
+} from "@/modules/quotes/service";
 
 let sessionToken: string | undefined;
 
@@ -28,6 +37,8 @@ vi.mock("next-intl/server", () => ({
 
 const { addFreeLineAction, sendQuoteAction, updateLineAction } = await import("./[quoteId]/actions");
 const { saveCatalogItemAction } = await import("./catalogue/actions");
+const { addScheduleItemAction, markPaidAction } = await import("./[quoteId]/schedule-actions");
+const { addPaymentMethodAction } = await import("./parametres/actions");
 const { GET: getQuotePdf } = await import("./[quoteId]/pdf/route");
 
 const PASSWORD = "mot-de-passe-du-test";
@@ -155,5 +166,53 @@ describe("DEV-01 — Les écritures du devis sont refusées hors de la planner d
     const quote = await getQuote(organizationId, quoteId);
     expect(quote.status).toBe("sent");
     expect(quote.current.totals.totalHtCents).toBe(200000);
+  });
+});
+
+describe("DEV-03 — Échéancier et paiements refusés hors de la planner de l'organisation", () => {
+  async function withSentSchedule() {
+    const context = await setup();
+    const { organizationId, quoteId } = context;
+    await addScheduleItem(organizationId, quoteId, { label: "Acompte", dueDate: "2027-04-01", amountCents: 30000 });
+    const sent = await sendQuote({ organizationId, quoteId });
+    const [method] = await addPaymentMethods(organizationId, ["Virement bancaire"]);
+    return { ...context, scheduleItemId: sent.current.schedule.items[0]!.id, paymentMethodId: method!.id };
+  }
+
+  it("un compte marié ne marque pas une échéance payée, n'ajoute ni acompte ni mode de paiement", async () => {
+    const context = await withSentSchedule();
+    sessionToken = context.clientToken;
+    const { quoteId, scheduleItemId, paymentMethodId, organizationId } = context;
+    const today = new Date().toISOString().slice(0, 10);
+
+    expect(await markPaidAction({}, form({ quoteId, scheduleItemId, paymentMethodId, paidOn: today }))).toEqual({ error: "unauthenticated" });
+    expect(await addScheduleItemAction({}, form({ quoteId, label: "Intrus", dueDate: "2027-05-01", kind: "amount", value: "1" }))).toEqual({
+      error: "unauthenticated",
+    });
+    expect(await addPaymentMethodAction({}, form({ label: "Intrus" }))).toEqual({ error: "unauthenticated" });
+
+    const quote = await getQuote(organizationId, quoteId);
+    expect(quote.current.schedule.items.map((item) => [item.label, item.paidOn])).toEqual([["Acompte", null]]);
+    expect((await listPaymentMethods(organizationId)).map((method) => method.label)).toEqual(["Virement bancaire"]);
+  });
+
+  it("une planner d'une autre organisation ne marque pas l'échéance payée", async () => {
+    const context = await withSentSchedule();
+    sessionToken = context.otherPlannerToken;
+    const { quoteId, scheduleItemId, paymentMethodId, organizationId } = context;
+    const today = new Date().toISOString().slice(0, 10);
+
+    expect(await markPaidAction({}, form({ quoteId, scheduleItemId, paymentMethodId, paidOn: today }))).toEqual({ error: "quoteNotFound" });
+    expect((await getQuote(organizationId, quoteId)).current.schedule.items[0]?.paidOn).toBeNull();
+  });
+
+  it("la planner de l'organisation marque l'échéance payée (contrôle du test)", async () => {
+    const context = await withSentSchedule();
+    sessionToken = context.plannerToken;
+    const { quoteId, scheduleItemId, paymentMethodId, organizationId } = context;
+    const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Paris" }).format(new Date());
+
+    expect(await markPaidAction({}, form({ quoteId, scheduleItemId, paymentMethodId, paidOn: today }))).toEqual({ success: true });
+    expect((await getQuote(organizationId, quoteId)).current.schedule.items[0]?.paidOn).toBe(today);
   });
 });

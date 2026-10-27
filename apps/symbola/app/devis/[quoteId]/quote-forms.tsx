@@ -19,7 +19,7 @@ type Action = (state: QuoteFormState, formData: FormData) => Promise<QuoteFormSt
 
 // Formulaire d'une action du devis : identifiant caché, bouton, retour
 // d'erreur ou de confirmation annoncé aux lecteurs d'écran.
-function QuoteActionForm({
+export function QuoteActionForm({
   action,
   quoteId,
   label,
