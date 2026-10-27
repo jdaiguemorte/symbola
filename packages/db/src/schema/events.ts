@@ -231,3 +231,41 @@ export const programTemplateItems = eventsSchema.table("program_template_items",
   participantLabels: text("participant_labels").array().notNull().default([]),
   position: integer("position").notNull().default(0),
 });
+
+// EVT-06 : accès d'un marié à un événement. Une ligne par invitation ;
+// userId est posé à l'acceptation (compte hub.users au rôle « client »),
+// revokedAt quand la planner retire l'accès. Le jeton d'invitation n'est
+// stocké que haché (même patron que hub.invitations).
+export const eventClientAccesses = eventsSchema.table("event_client_accesses", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  eventId: uuid("event_id")
+    .notNull()
+    .references(() => events.id),
+  email: text("email").notNull(),
+  userId: uuid("user_id"),
+  tokenHash: text("token_hash").unique(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  invitedByUserId: uuid("invited_by_user_id").notNull(),
+  acceptedAt: timestamp("accepted_at", { withTimezone: true }),
+  revokedAt: timestamp("revoked_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+// EVT-06 : fil d'activité d'un événement (« quand un marié coche une
+// tâche, la planner le voit »). Le libellé de la tâche est copié pour
+// rester lisible si la tâche est supprimée ensuite.
+export const eventActivityKindEnum = eventsSchema.enum("event_activity_kind", ["task_done", "task_undone"]);
+
+export const eventActivities = eventsSchema.table("event_activities", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  eventId: uuid("event_id")
+    .notNull()
+    .references(() => events.id),
+  actorUserId: uuid("actor_user_id").notNull(),
+  kind: eventActivityKindEnum("kind").notNull(),
+  taskId: uuid("task_id").references(() => eventTasks.id, { onDelete: "set null" }),
+  taskLabel: text("task_label").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});

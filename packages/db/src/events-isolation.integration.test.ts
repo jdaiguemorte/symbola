@@ -8,6 +8,8 @@ import { afterAll, describe, it } from "vitest";
 import { createAppConnection } from "./client";
 import {
   defaultVendorSlots,
+  eventActivities,
+  eventClientAccesses,
   eventClients,
   events,
   eventTasks,
@@ -277,6 +279,68 @@ describe("EVT-01/02 — Isolation entre organisations (module events, PostgreSQL
             .set({ label: "falsifié" })
             .where(eq(programTemplateItems.id, targetRow.id))
             .returning(),
+        );
+        return { affectedRows: updated.length };
+      },
+    });
+  });
+
+  it("EVT-06 — une organisation ne voit et ne modifie jamais les accès des mariés d'une autre", async () => {
+    await assertOrganizationIsolation({
+      seed: async (organizationId) =>
+        withOrganization(db, organizationId, async (tx) => {
+          const [event] = await tx.insert(events).values({ organizationId }).returning();
+          if (!event) throw new Error("insertion de l'événement attendue");
+          const [row] = await tx
+            .insert(eventClientAccesses)
+            .values({
+              organizationId,
+              eventId: event.id,
+              email: "marie@example.test",
+              expiresAt: new Date(Date.now() + 86_400_000),
+              invitedByUserId: organizationId,
+            })
+            .returning();
+          if (!row) throw new Error("insertion attendue, aucune ligne renvoyée");
+          return row;
+        }),
+
+      listVisible: async (organizationId) =>
+        withOrganization(db, organizationId, (tx) => tx.select().from(eventClientAccesses)),
+
+      attemptCrossOrganizationUpdate: async (organizationId, targetRow) => {
+        const updated = await withOrganization(db, organizationId, (tx) =>
+          tx
+            .update(eventClientAccesses)
+            .set({ revokedAt: new Date() })
+            .where(eq(eventClientAccesses.id, targetRow.id))
+            .returning(),
+        );
+        return { affectedRows: updated.length };
+      },
+    });
+  });
+
+  it("EVT-06 — une organisation ne voit et ne modifie jamais le fil d'activité d'une autre", async () => {
+    await assertOrganizationIsolation({
+      seed: async (organizationId) =>
+        withOrganization(db, organizationId, async (tx) => {
+          const [event] = await tx.insert(events).values({ organizationId }).returning();
+          if (!event) throw new Error("insertion de l'événement attendue");
+          const [row] = await tx
+            .insert(eventActivities)
+            .values({ organizationId, eventId: event.id, actorUserId: organizationId, kind: "task_done", taskLabel: "Faire-part" })
+            .returning();
+          if (!row) throw new Error("insertion attendue, aucune ligne renvoyée");
+          return row;
+        }),
+
+      listVisible: async (organizationId) =>
+        withOrganization(db, organizationId, (tx) => tx.select().from(eventActivities)),
+
+      attemptCrossOrganizationUpdate: async (organizationId, targetRow) => {
+        const updated = await withOrganization(db, organizationId, (tx) =>
+          tx.update(eventActivities).set({ taskLabel: "falsifié" }).where(eq(eventActivities.id, targetRow.id)).returning(),
         );
         return { affectedRows: updated.length };
       },

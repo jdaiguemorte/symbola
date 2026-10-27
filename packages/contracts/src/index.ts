@@ -59,4 +59,12 @@ export type {
   ProgramTemplate,
   ProgramTemplateItem,
   ProgramTemplateItemInput,
+  AcceptClientInvitationResult,
+  ClientAccessStatus,
+  ClientEventView,
+  EventActivity,
+  EventActivityKind,
+  EventClientAccess,
+  InviteEventClientInput,
+  InviteEventClientResult,
 } from "./events/service-contract";
