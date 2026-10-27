@@ -27,7 +27,9 @@ const nextConfig: NextConfig = {
   poweredByHeader: false, // ne pas annoncer la techno via X-Powered-By
   // @node-rs/argon2 et postgres.js embarquent du binaire natif : Next ne
   // doit pas tenter de les passer dans le bundler webpack (SOC-04).
-  serverExternalPackages: ["@node-rs/argon2", "@node-rs/argon2-darwin-arm64", "postgres"],
+  // @react-pdf/renderer (EVT-05) charge ses polices et sa mise en page
+  // depuis node_modules à l'exécution : même traitement.
+  serverExternalPackages: ["@node-rs/argon2", "@node-rs/argon2-darwin-arm64", "postgres", "@react-pdf/renderer"],
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

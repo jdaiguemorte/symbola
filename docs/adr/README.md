@@ -20,3 +20,4 @@ Un fichier par décision structurante, numéroté. Pour changer une décision : 
 - [0016 — Isolation réseau staging ↔ production sur le VPS unique](0016-isolation-reseau-staging-production.md)
 - [0017 — Empreinte carbone numérique (brique transverse)](0017-empreinte-carbone-numerique.md)
 - [0018 — Caddy partagé remplace Traefik comme reverse-proxy](0018-caddy-remplace-traefik-proxy-partage.md)
+- [0019 — Génération des PDF avec @react-pdf/renderer](0019-generation-pdf-react-pdf.md)
