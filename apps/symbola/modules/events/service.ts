@@ -2,26 +2,46 @@
 // modules peuvent importer (ADR 0011). Pensé comme le futur contrat HTTP
 // /v1/events si ce module est extrait en app autonome.
 import {
+  applyTaskTemplateRows,
   deleteDefaultVendorSlot,
+  deleteEventTask,
   deleteEventVendorSlot,
+  deleteTaskTemplate,
+  deleteTaskTemplateItem,
   findDefaultVendorSlots,
   findEventById,
   findEvents,
+  findEventTasks,
   findEventVendorSlots,
   findLossReasons,
   findProspectSources,
+  findTaskRecalculation,
+  findTaskTemplates,
   insertDefaultVendorSlots,
+  insertEventTask,
   insertEventVendorSlot,
   insertLossReason,
   insertProspect,
   insertProspectSource,
+  insertTaskTemplate,
+  insertTaskTemplateItem,
+  moveEventTaskRow,
+  resolveTaskRecalculationRow,
+  updateEventDateRow,
   updateEventStatus,
+  updateEventTaskRow,
   updateEventVendorSlotRow,
   type DefaultVendorSlotRow,
   type EventClientRow,
   type EventRow,
+  type EventTaskRow,
   type EventVendorSlotRow,
+  type TaskTemplateItemRow,
+  type TaskTemplateRow,
 } from "./repository";
+import { addDays } from "./schedule";
+
+export { monthKey } from "./schedule";
 import type {
   ChangeEventStatusInput,
   CreateProspectInput,
@@ -31,10 +51,18 @@ import type {
   EventDetail,
   EventsServiceContract,
   EventSummary,
+  EventTask,
+  EventTaskInput,
   EventVendorSlot,
   ListEventsInput,
   LossReason,
   ProspectSource,
+  TaskRecalculation,
+  TaskResponsible,
+  TaskTemplate,
+  TaskTemplateItem,
+  TaskTemplateItemInput,
+  UpdateEventTaskInput,
   UpdateEventVendorSlotInput,
   VendorSlotProgress,
   VendorSlotStatus,
@@ -59,6 +87,14 @@ export type {
   UpdateEventVendorSlotInput,
   VendorSlotProgress,
   VendorSlotStatus,
+  EventTask,
+  EventTaskInput,
+  TaskRecalculation,
+  TaskResponsible,
+  TaskTemplate,
+  TaskTemplateItem,
+  TaskTemplateItemInput,
+  UpdateEventTaskInput,
 } from "@symbola/contracts";
 
 function toEventClient(row: EventClientRow): EventClient {
@@ -82,6 +118,7 @@ function toEventDetail(event: EventRow, clients: EventClientRow[]): EventDetail 
     prospectSourceId: event.prospectSourceId,
     lossReasonId: event.lossReasonId,
     lossReasonNote: event.lossReasonNote,
+    tasksScheduledFor: event.tasksScheduledFor,
   };
 }
 
@@ -238,6 +275,189 @@ export async function removeEventVendorSlot(organizationId: string, vendorSlotId
   await deleteEventVendorSlot(organizationId, vendorSlotId);
 }
 
+// EVT-04 — rétroplanning.
+
+export class EventDateRequiredError extends Error {
+  constructor() {
+    super("l'événement n'a pas de date : le modèle ne peut pas être appliqué");
+    this.name = "EventDateRequiredError";
+  }
+}
+
+export class TaskRecalculationPendingError extends Error {
+  constructor() {
+    super("un recalcul des échéances attend une réponse");
+    this.name = "TaskRecalculationPendingError";
+  }
+}
+
+export class TaskTemplateNotFoundError extends Error {
+  constructor() {
+    super("modèle introuvable");
+    this.name = "TaskTemplateNotFoundError";
+  }
+}
+
+export class EventTaskNotFoundError extends Error {
+  constructor() {
+    super("tâche introuvable");
+    this.name = "EventTaskNotFoundError";
+  }
+}
+
+export class TaskLabelRequiredError extends Error {
+  constructor() {
+    super("l'intitulé de la tâche est obligatoire");
+    this.name = "TaskLabelRequiredError";
+  }
+}
+
+export const TASK_RESPONSIBLES: TaskResponsible[] = ["planner", "clients"];
+
+// Lève une RangeError si la date n'est pas un « AAAA-MM-JJ » réel.
+function assertDate(date: string): void {
+  addDays(date, 0);
+}
+
+function normalizeLabel(label: string): string {
+  const trimmed = label.trim();
+  if (!trimmed) throw new TaskLabelRequiredError();
+  return trimmed;
+}
+
+function normalizeTemplateItem(item: TaskTemplateItemInput): TaskTemplateItemInput {
+  if (!Number.isInteger(item.offsetDays)) throw new RangeError("le décalage doit être un nombre entier de jours");
+  if (!TASK_RESPONSIBLES.includes(item.responsible)) throw new RangeError("responsable inconnu");
+  return { label: normalizeLabel(item.label), offsetDays: item.offsetDays, responsible: item.responsible };
+}
+
+function toTaskTemplateItem(row: TaskTemplateItemRow): TaskTemplateItem {
+  return {
+    id: row.id,
+    label: row.label,
+    offsetDays: row.offsetDays,
+    responsible: row.responsible,
+    position: row.position,
+  };
+}
+
+function toTaskTemplate(template: TaskTemplateRow, items: TaskTemplateItemRow[]): TaskTemplate {
+  return { id: template.id, name: template.name, items: items.map(toTaskTemplateItem) };
+}
+
+function toEventTask(row: EventTaskRow): EventTask {
+  return {
+    id: row.id,
+    eventId: row.eventId,
+    label: row.label,
+    dueDate: row.dueDate,
+    responsible: row.responsible,
+    done: row.doneAt !== null,
+    position: row.position,
+  };
+}
+
+export async function listTaskTemplates(organizationId: string): Promise<TaskTemplate[]> {
+  return (await findTaskTemplates(organizationId)).map(({ template, items }) => toTaskTemplate(template, items));
+}
+
+export async function createTaskTemplate(
+  organizationId: string,
+  name: string,
+  items: TaskTemplateItemInput[],
+): Promise<TaskTemplate> {
+  const result = await insertTaskTemplate(organizationId, normalizeLabel(name), items.map(normalizeTemplateItem));
+  return toTaskTemplate(result.template, result.items);
+}
+
+export async function addTaskTemplateItem(
+  organizationId: string,
+  templateId: string,
+  item: TaskTemplateItemInput,
+): Promise<TaskTemplateItem> {
+  const row = await insertTaskTemplateItem(organizationId, templateId, normalizeTemplateItem(item));
+  if (!row) throw new TaskTemplateNotFoundError();
+  return toTaskTemplateItem(row);
+}
+
+export async function removeTaskTemplateItem(organizationId: string, itemId: string): Promise<void> {
+  await deleteTaskTemplateItem(organizationId, itemId);
+}
+
+export async function removeTaskTemplate(organizationId: string, templateId: string): Promise<void> {
+  await deleteTaskTemplate(organizationId, templateId);
+}
+
+// Change la date de l'événement ; s'il reste des tâches non faites, le
+// recalcul de leurs échéances est proposé (et non appliqué d'office).
+export async function changeEventDate(
+  organizationId: string,
+  eventId: string,
+  eventDate: string | null,
+): Promise<TaskRecalculation> {
+  if (eventDate !== null) assertDate(eventDate);
+  const recalculation = await updateEventDateRow(organizationId, eventId, eventDate);
+  if (!recalculation) throw new EventNotFoundError();
+  return recalculation;
+}
+
+export async function getTaskRecalculation(organizationId: string, eventId: string): Promise<TaskRecalculation> {
+  const recalculation = await findTaskRecalculation(organizationId, eventId);
+  if (!recalculation) throw new EventNotFoundError();
+  return recalculation;
+}
+
+export async function resolveTaskRecalculation(organizationId: string, eventId: string, accept: boolean): Promise<void> {
+  if (!(await resolveTaskRecalculationRow(organizationId, eventId, accept))) throw new EventNotFoundError();
+}
+
+export async function applyTaskTemplate(organizationId: string, eventId: string, templateId: string): Promise<EventTask[]> {
+  const result = await applyTaskTemplateRows(organizationId, eventId, templateId);
+  switch (result.status) {
+    case "applied":
+      return result.tasks.map(toEventTask);
+    case "event_not_found":
+      throw new EventNotFoundError();
+    case "template_not_found":
+      throw new TaskTemplateNotFoundError();
+    case "date_required":
+      throw new EventDateRequiredError();
+    case "recalculation_pending":
+      throw new TaskRecalculationPendingError();
+  }
+}
+
+export async function listEventTasks(organizationId: string, eventId: string): Promise<EventTask[]> {
+  return (await findEventTasks(organizationId, eventId)).map(toEventTask);
+}
+
+export async function addEventTask(organizationId: string, eventId: string, task: EventTaskInput): Promise<EventTask> {
+  assertDate(task.dueDate);
+  if (!TASK_RESPONSIBLES.includes(task.responsible)) throw new RangeError("responsable inconnu");
+  const row = await insertEventTask(organizationId, eventId, { ...task, label: normalizeLabel(task.label) });
+  if (!row) throw new EventNotFoundError();
+  return toEventTask(row);
+}
+
+export async function updateEventTask(input: UpdateEventTaskInput): Promise<EventTask> {
+  if (input.dueDate !== undefined) assertDate(input.dueDate);
+  if (input.responsible !== undefined && !TASK_RESPONSIBLES.includes(input.responsible)) {
+    throw new RangeError("responsable inconnu");
+  }
+  const label = input.label === undefined ? undefined : normalizeLabel(input.label);
+  const row = await updateEventTaskRow({ ...input, label });
+  if (!row) throw new EventTaskNotFoundError();
+  return toEventTask(row);
+}
+
+export async function moveEventTask(organizationId: string, taskId: string, direction: "up" | "down"): Promise<void> {
+  if (!(await moveEventTaskRow(organizationId, taskId, direction))) throw new EventTaskNotFoundError();
+}
+
+export async function removeEventTask(organizationId: string, taskId: string): Promise<void> {
+  await deleteEventTask(organizationId, taskId);
+}
+
 const _contractCheck: EventsServiceContract = {
   listEvents,
   getEvent,
@@ -254,5 +474,19 @@ const _contractCheck: EventsServiceContract = {
   addEventVendorSlot,
   updateEventVendorSlot,
   removeEventVendorSlot,
+  listTaskTemplates,
+  createTaskTemplate,
+  addTaskTemplateItem,
+  removeTaskTemplateItem,
+  removeTaskTemplate,
+  changeEventDate,
+  getTaskRecalculation,
+  resolveTaskRecalculation,
+  applyTaskTemplate,
+  listEventTasks,
+  addEventTask,
+  updateEventTask,
+  moveEventTask,
+  removeEventTask,
 };
 void _contractCheck;
