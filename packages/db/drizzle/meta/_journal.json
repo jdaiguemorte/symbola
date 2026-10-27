@@ -246,6 +246,20 @@
       "when": 1793108634375,
       "tag": "0034_grant_budget_line_attachments",
       "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1793130776801,
+      "tag": "0035_dev01_devis",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1793130777812,
+      "tag": "0036_grant_devis",
+      "breakpoints": true
     }
   ]
 }

@@ -114,3 +114,27 @@ fields:
     anonymization: >-
       Le document est supprimé du stockage (pas d'anonymisation partielle
       d'un PDF ou d'une image) ; la ligne de budget reste.
+  - schema: quotes
+    table: quote_lines
+    field: description
+    category: contenu_libre
+    retention: >-
+      Tant que le devis existe (DEV-01 : précision libre d'une ligne, qui
+      peut nommer un marié ou un prestataire). Un devis envoyé est figé ;
+      après suppression ou demande d'oubli : voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Remplacé par « [anonymisé] » lors d'une demande d'oubli (RGPD-03) ;
+      les montants, l'intitulé et la numérotation restent.
+  - schema: quotes
+    table: quote_versions
+    field: seller_snapshot
+    category: contact
+    retention: >-
+      Copie figée à l'envoi de l'en-tête vendeur (DEV-01, ONB-02 : nom,
+      adresse et SIREN de l'organisation, l'adresse pouvant être celle
+      d'une entrepreneuse individuelle). Conservée avec la version envoyée
+      du devis ; voir RGPD-03/RGPD-05.
+    anonymization: >-
+      L'adresse est remplacée par « [anonymisé] » lors d'une demande
+      d'oubli de l'organisation (RGPD-03), sauf obligation légale de
+      conservation (factures, lot 4).

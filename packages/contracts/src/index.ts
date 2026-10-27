@@ -88,3 +88,20 @@ export type {
   SimulateEventBudgetInput,
   UpdateBudgetLineInput,
 } from "./budget/service-contract";
+export type {
+  CatalogItem,
+  CatalogItemInput,
+  CreateQuoteInput,
+  GlobalDiscountInput,
+  QuoteDetail,
+  QuoteLine,
+  QuoteLineInput,
+  QuoteSettings,
+  QuoteStatus,
+  QuoteSummary,
+  QuoteTotalsView,
+  QuotesServiceContract,
+  QuoteVersionView,
+  SellerSnapshot,
+  SendQuoteInput,
+} from "./quotes/service-contract";

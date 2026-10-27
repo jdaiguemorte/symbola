@@ -21,6 +21,10 @@ import {
 } from "@/modules/events/service";
 import { getEventBudget, listBudgetLines } from "@/modules/budget/service";
 import { confirmEventBudgetAction } from "@/app/budget/[eventId]/actions";
+import { listEventQuotes } from "@/modules/quotes/service";
+import { createQuoteAction } from "@/app/devis/actions";
+import { isQuotesModuleEnabled } from "@/app/devis/module-access";
+import { QUOTE_STATUS_LABEL_KEYS } from "@/app/devis/quote-display";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isEventsModuleEnabled, isValidId } from "../module-access";
 import { ChangeStatusForm } from "./change-status-form";
@@ -123,6 +127,12 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
     suggestConfirmBudget = eventBudget !== null && linesView.lines.length === 0;
   }
 
+  // DEV-01 : devis de l'événement, masqués si le module n'est pas souscrit
+  // (dégradation propre, CLAUDE.md §2.3).
+  const quotesAvailable = await isQuotesModuleEnabled(organizationId);
+  const quotes = quotesAvailable ? await listEventQuotes(organizationId, id) : [];
+  const tQuotes = await getTranslations("Quotes");
+
   return (
     <main>
       <h1>{clientNames}</h1>
@@ -179,6 +189,25 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
           <form action={confirmEventBudgetAction}>
             <input type="hidden" name="eventId" value={event.id} />
             <button type="submit">{t("confirmAsPlanned")}</button>
+          </form>
+        </section>
+      ) : null}
+
+      {quotesAvailable ? (
+        <section aria-labelledby="event-quotes-title">
+          <h2 id="event-quotes-title">{tQuotes("eventQuotesTitle")}</h2>
+          {quotes.length === 0 ? <p>{tQuotes("noEventQuotes")}</p> : null}
+          <ul>
+            {quotes.map((quote) => (
+              <li key={quote.id}>
+                <Link href={`/devis/${quote.id}`}>{quote.number}</Link> — {tQuotes(QUOTE_STATUS_LABEL_KEYS[quote.status])} —{" "}
+                {tQuotes("versionLabel", { version: quote.currentVersion })} — {formatAmount(quote.totalTtcCents, locale)}
+              </li>
+            ))}
+          </ul>
+          <form action={createQuoteAction}>
+            <input type="hidden" name="eventId" value={event.id} />
+            <button type="submit">{tQuotes("createQuote")}</button>
           </form>
         </section>
       ) : null}

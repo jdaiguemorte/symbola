@@ -5,28 +5,12 @@ import { createElement, type ReactElement } from "react";
 import { renderToBuffer, type DocumentProps } from "@react-pdf/renderer";
 import { getLocale, getTranslations } from "next-intl/server";
 import { createAppConnection } from "@symbola/db/client";
-import { createStorageClient, detectFileType, getPrivateObject } from "@symbola/files";
 import { formatCalendarDate, type Locale } from "@symbola/i18n";
 import type { EventProgram, EventSummary, ProgramVariant } from "@/modules/events/service";
 import { getDocumentHeader } from "@/modules/hub/service";
 import { ProgramPdfDocument } from "./program-pdf";
-import { buildProgramPdfModel, type ProgramPdfLogo } from "./program-pdf-model";
-
-// Le logo est facultatif : s'il manque ou ne se lit pas, le PDF porte le
-// nom de l'organisation à la place (jamais d'erreur pour la planner).
-async function loadLogo(organizationId: string, logoKey: string | null): Promise<ProgramPdfLogo | null> {
-  if (!logoKey) return null;
-  try {
-    const data = await getPrivateObject(createStorageClient(), logoKey);
-    const type = detectFileType(data);
-    if (type?.mime === "image/png") return { data, format: "png" };
-    if (type?.mime === "image/jpeg") return { data, format: "jpg" };
-    return null;
-  } catch {
-    console.warn(`logo illisible pour l'organisation ${organizationId}`);
-    return null;
-  }
-}
+import { loadDocumentLogo } from "@/lib/document-logo";
+import { buildProgramPdfModel } from "./program-pdf-model";
 
 export async function renderProgramPdfResponse(input: {
   organizationId: string;
@@ -53,7 +37,7 @@ export async function renderProgramPdfResponse(input: {
     locale,
     heading,
     organizationName: header?.organizationName ?? "",
-    logo: await loadLogo(input.organizationId, header?.logoKey ?? null),
+    logo: await loadDocumentLogo(input.organizationId, header?.logoKey ?? null),
     watermark: input.event.isDemo ? t("demoWatermark") : null,
     labels: {
       title: t("programTitle"),
