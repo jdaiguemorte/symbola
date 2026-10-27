@@ -52,6 +52,10 @@ export const events = eventsSchema.table("events", {
   prospectSourceId: uuid("prospect_source_id").references(() => prospectSources.id),
   lossReasonId: uuid("loss_reason_id").references(() => lossReasons.id),
   lossReasonNote: text("loss_reason_note"),
+  // EVT-04 : date de l'événement pour laquelle les échéances du
+  // rétroplanning ont été calculées. Quand eventDate en diffère, l'app
+  // propose de recalculer les échéances des tâches non faites.
+  tasksScheduledFor: date("tasks_scheduled_for"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
@@ -119,6 +123,51 @@ export const eventVendorSlots = eventsSchema.table("event_vendor_slots", {
   // Montant en centimes, devise explicite (CLAUDE.md §5) ; facultatif.
   amountCents: integer("amount_cents"),
   currency: text("currency").notNull().default("EUR"),
+  position: integer("position").notNull().default(0),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+// EVT-04 : responsable d'une tâche du rétroplanning (PRD). Une tâche des
+// « clients » apparaîtra dans l'espace des mariés (EVT-06).
+export const taskResponsibleEnum = eventsSchema.enum("task_responsible", ["planner", "clients"]);
+
+// EVT-04 : modèles de rétroplanning de l'organisation (CLAUDE.md §2.5 :
+// jamais codés en dur ; un modèle de départ peut être chargé depuis
+// packages/starter-templates).
+export const taskTemplates = eventsSchema.table("task_templates", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  name: text("name").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const taskTemplateItems = eventsSchema.table("task_template_items", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  templateId: uuid("template_id")
+    .notNull()
+    .references(() => taskTemplates.id),
+  label: text("label").notNull(),
+  // Décalage en jours par rapport à la date de l'événement : -365 pour
+  // J-365, 0 pour le jour J, positif après l'événement.
+  offsetDays: integer("offset_days").notNull(),
+  responsible: taskResponsibleEnum("responsible").notNull().default("planner"),
+  position: integer("position").notNull().default(0),
+});
+
+// EVT-04 : tâches du rétroplanning d'un événement.
+export const eventTasks = eventsSchema.table("event_tasks", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  eventId: uuid("event_id")
+    .notNull()
+    .references(() => events.id),
+  label: text("label").notNull(),
+  // Échéance, date sans heure (CLAUDE.md §5).
+  dueDate: date("due_date").notNull(),
+  responsible: taskResponsibleEnum("responsible").notNull().default("planner"),
+  doneAt: timestamp("done_at", { withTimezone: true }),
   position: integer("position").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),

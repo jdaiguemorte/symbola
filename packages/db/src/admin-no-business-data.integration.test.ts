@@ -11,7 +11,14 @@ import { randomUUID } from "node:crypto";
 import { afterAll, describe, expect, it } from "vitest";
 import { createAppConnection } from "./client";
 import { greetings } from "./schema/hello";
-import { defaultVendorSlots, events, eventVendorSlots } from "./schema/events";
+import {
+  defaultVendorSlots,
+  events,
+  eventTasks,
+  eventVendorSlots,
+  taskTemplateItems,
+  taskTemplates,
+} from "./schema/events";
 import { withOrganization } from "./with-organization";
 
 const { sql, db } = createAppConnection();
@@ -67,6 +74,28 @@ describe("HUB-03 — L'Admin ne lit jamais de donnée métier", () => {
     });
 
     for (const table of [defaultVendorSlots, eventVendorSlots]) {
+      try {
+        const rows = await db.select().from(table);
+        expect(rows).toHaveLength(0);
+      } catch (error) {
+        expect(error).toBeTruthy();
+      }
+    }
+  });
+
+  it("vaut aussi pour le rétroplanning (EVT-04, PostgreSQL réel)", async () => {
+    const organizationId = randomUUID();
+    await withOrganization(db, organizationId, async (tx) => {
+      const [event] = await tx.insert(events).values({ organizationId }).returning();
+      const [template] = await tx.insert(taskTemplates).values({ organizationId, name: "Mariage" }).returning();
+      if (!event || !template) throw new Error("insertions attendues");
+      await tx
+        .insert(taskTemplateItems)
+        .values({ organizationId, templateId: template.id, label: "Lieu", offsetDays: -365 });
+      await tx.insert(eventTasks).values({ organizationId, eventId: event.id, label: "Lieu", dueDate: "2027-01-01" });
+    });
+
+    for (const table of [taskTemplates, taskTemplateItems, eventTasks]) {
       try {
         const rows = await db.select().from(table);
         expect(rows).toHaveLength(0);
