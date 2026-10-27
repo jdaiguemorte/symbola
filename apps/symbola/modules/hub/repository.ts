@@ -50,6 +50,11 @@ export async function insertAuditLog(
   await db.insert(auditLog).values(input);
 }
 
+export async function findOrganizationById(db: AppDatabase, organizationId: string) {
+  const [organization] = await db.select().from(organizations).where(eq(organizations.id, organizationId));
+  return organization ?? null;
+}
+
 export async function listAllOrganizations(db: AppDatabase) {
   return db.select().from(organizations);
 }

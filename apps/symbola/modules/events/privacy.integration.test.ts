@@ -4,7 +4,13 @@
 import { randomUUID } from "node:crypto";
 import { afterAll, describe, expect, it } from "vitest";
 import { createAppConnection } from "@symbola/db/client";
-import { eventClients, events, eventVendorSlots } from "@symbola/db/schema/events";
+import {
+  eventClients,
+  events,
+  eventVendorSlots,
+  programItemParticipants,
+  programItems,
+} from "@symbola/db/schema/events";
 import { withOrganization } from "@symbola/db/with-organization";
 import { eventsPrivacy } from "./privacy";
 
@@ -84,5 +90,35 @@ describe("SOC-07 — privacy/v1 du module events (PostgreSQL réel)", () => {
     expect(remaining[0]?.vendorName).toBeNull();
 
     expect(await eventsPrivacy.find({ organizationId: otherOrganizationId, term })).toHaveLength(1);
+  });
+
+  it("EVT-05 — couvre les intervenants libres et les notes internes du programme, sans toucher une autre organisation", async () => {
+    const organizationId = randomUUID();
+    const otherOrganizationId = randomUUID();
+    const term = `Officiant-${randomUUID()}`;
+
+    for (const id of [organizationId, otherOrganizationId]) {
+      await withOrganization(db, id, async (tx) => {
+        const [event] = await tx.insert(events).values({ organizationId: id }).returning();
+        if (!event) throw new Error("insertion de l'événement attendue");
+        const [item] = await tx
+          .insert(programItems)
+          .values({ organizationId: id, eventId: event.id, startTime: "15:00", label: "Cérémonie", internalNote: `Appeler ${term}` })
+          .returning();
+        if (!item) throw new Error("insertion de la ligne attendue");
+        await tx.insert(programItemParticipants).values({ organizationId: id, programItemId: item.id, freeLabel: term });
+      });
+    }
+
+    expect(await eventsPrivacy.find({ organizationId, term })).toHaveLength(2);
+    expect((await eventsPrivacy.anonymize({ organizationId, term })).affected).toBe(2);
+    expect(await eventsPrivacy.find({ organizationId, term })).toHaveLength(0);
+
+    expect((await eventsPrivacy.erase({ organizationId, term: "anonymisé" })).affected).toBe(2);
+    const lines = await withOrganization(db, organizationId, (tx) => tx.select().from(programItems));
+    expect(lines).toMatchObject([{ label: "Cérémonie", internalNote: null }]);
+    expect(await withOrganization(db, organizationId, (tx) => tx.select().from(programItemParticipants))).toEqual([]);
+
+    expect(await eventsPrivacy.find({ organizationId: otherOrganizationId, term })).toHaveLength(2);
   });
 });
