@@ -10,6 +10,7 @@
     "./schema/hub": "./src/schema/hub.ts",
     "./schema/events": "./src/schema/events.ts",
     "./schema/budget": "./src/schema/budget.ts",
+    "./schema/quotes": "./src/schema/quotes.ts",
     "./schema/core": "./src/schema/core.ts",
     "./events/emit": "./src/events/emit.ts",
     "./events/worker": "./src/events/worker.ts",

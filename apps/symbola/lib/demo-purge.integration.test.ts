@@ -1,5 +1,5 @@
 // AIDE-02 — fin d'un essai guidé et purge des essais abandonnés : aucune
-// donnée « démo » ne subsiste, dans aucun module (événements et budget),
+// donnée « démo » ne subsiste, dans aucun module (événements, budget et devis),
 // ni dans le stockage de fichiers.
 import { randomUUID } from "node:crypto";
 import { eq, inArray } from "drizzle-orm";
@@ -28,6 +28,7 @@ import {
   simulateEventBudget,
   updateBudgetLine,
 } from "@/modules/budget/service";
+import { addQuoteLine, createQuote, getQuote, QuoteNotFoundError } from "@/modules/quotes/service";
 import { endTrial, purgeAllExpiredDemoData, purgeOrganizationsDemoData } from "./demo-purge";
 
 const HOUR = 60 * 60 * 1000;
@@ -76,7 +77,14 @@ async function trialWithBudget(organizationId: string, now: Date) {
     content: TINY_PDF,
     uploadedByUserId: plannerId,
   });
-  return { eventId: trial.eventId, attachmentUrl: await getBudgetLineAttachmentUrl(organizationId, attachment.id) };
+  // DEV-01 : un devis DEMO sur l'événement fictif.
+  const quote = await createQuote({ organizationId, eventId: trial.eventId, createdByUserId: plannerId, now });
+  await addQuoteLine(organizationId, quote.id, { label: "Coordination", unit: "forfait", quantityMilli: 1000, unitPriceCents: 100000 });
+  return {
+    eventId: trial.eventId,
+    quoteId: quote.id,
+    attachmentUrl: await getBudgetLineAttachmentUrl(organizationId, attachment.id),
+  };
 }
 
 async function remainingBudgetRows(organizationId: string, eventId: string): Promise<number> {
@@ -103,9 +111,9 @@ async function remainingBudgetRows(organizationId: string, eventId: string): Pro
 }
 
 describe("AIDE-02 — Fin de l'essai guidé, tous modules confondus", () => {
-  it("terminer l'essai supprime aussi son budget : simulation, lignes, historique et devis stockés", async () => {
+  it("terminer l'essai supprime aussi son budget (simulation, lignes, historique, devis stockés) et ses devis DEMO", async () => {
     const organizationId = await createOrganizationId();
-    const { eventId, attachmentUrl } = await trialWithBudget(organizationId, new Date());
+    const { eventId, quoteId, attachmentUrl } = await trialWithBudget(organizationId, new Date());
     expect(await remainingBudgetRows(organizationId, eventId)).toBeGreaterThan(0);
     expect((await fetch(attachmentUrl)).status).toBe(200);
 
@@ -114,6 +122,7 @@ describe("AIDE-02 — Fin de l'essai guidé, tous modules confondus", () => {
     expect(await getEvent(organizationId, eventId)).toBeNull();
     expect(await remainingBudgetRows(organizationId, eventId)).toBe(0);
     expect((await fetch(attachmentUrl)).status).toBe(404);
+    await expect(getQuote(organizationId, quoteId)).rejects.toBeInstanceOf(QuoteNotFoundError);
   });
 
   it("terminer « l'essai » d'un vrai événement ne touche ni l'événement ni son budget", async () => {
@@ -137,7 +146,9 @@ describe("AIDE-02 — Fin de l'essai guidé, tous modules confondus", () => {
     expect(await getEvent(organizationId, old.eventId)).toBeNull();
     expect(await remainingBudgetRows(organizationId, old.eventId)).toBe(0);
     expect((await fetch(old.attachmentUrl)).status).toBe(404);
+    await expect(getQuote(organizationId, old.quoteId)).rejects.toBeInstanceOf(QuoteNotFoundError);
     expect(await remainingBudgetRows(otherOrganizationId, recent.eventId)).toBeGreaterThan(0);
+    expect((await getQuote(otherOrganizationId, recent.quoteId)).isDemo).toBe(true);
   });
 });
 

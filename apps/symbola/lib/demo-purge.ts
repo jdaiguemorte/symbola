@@ -1,10 +1,11 @@
 // AIDE-02, ADR 0008 — fin d'un essai guidé et purge des essais abandonnés
 // (« supprimées après 24 h »), tous modules confondus : chaque module
-// supprime ses propres données de l'événement fictif (budget d'abord),
+// supprime ses propres données de l'événement fictif (budget et devis d'abord),
 // puis le module events supprime l'événement. Les modules ne se
 // connaissent que par leur service.ts (ADR 0011) ; l'orchestration vit ici.
 import { createAppConnection } from "@symbola/db/client";
 import { removeEventBudgetData } from "@/modules/budget/service";
+import { removeEventQuotesData } from "@/modules/quotes/service";
 import {
   endEventsTrial,
   getEvent,
@@ -20,6 +21,7 @@ export async function endTrial(organizationId: string, eventId: string): Promise
   const event = await getEvent(organizationId, eventId);
   if (!event?.isDemo) return;
   await removeEventBudgetData(organizationId, [eventId]);
+  await removeEventQuotesData(organizationId, [eventId]);
   await endEventsTrial(organizationId, eventId);
 }
 
@@ -29,7 +31,10 @@ export async function purgeOrganizationsDemoData(organizationIds: string[], now:
   for (const { organizationId, eventId } of expired) {
     byOrganization.set(organizationId, [...(byOrganization.get(organizationId) ?? []), eventId]);
   }
-  for (const [organizationId, eventIds] of byOrganization) await removeEventBudgetData(organizationId, eventIds);
+  for (const [organizationId, eventIds] of byOrganization) {
+    await removeEventBudgetData(organizationId, eventIds);
+    await removeEventQuotesData(organizationId, eventIds);
+  }
   return purgeExpiredDemoEventsForOrganizations(organizationIds, now);
 }
 

@@ -12,6 +12,7 @@ import { afterAll, describe, expect, it } from "vitest";
 import { createAppConnection } from "./client";
 import { budgetLineAttachments, budgetLines } from "./schema/budget";
 import { greetings } from "./schema/hello";
+import { catalogItems, numberSeries, quoteLines, quoteSettings, quotes, quoteVersions } from "./schema/quotes";
 import {
   defaultVendorSlots,
   eventActivities,
@@ -189,6 +190,42 @@ describe("HUB-03 — L'Admin ne lit jamais de donnée métier", () => {
       expect(rows).toHaveLength(0);
     } catch (error) {
       expect(error).toBeTruthy();
+    }
+  });
+
+  it("vaut aussi pour le catalogue et les devis (DEV-01, PostgreSQL réel)", async () => {
+    const organizationId = randomUUID();
+    await withOrganization(db, organizationId, async (tx) => {
+      await tx.insert(quoteSettings).values({ organizationId });
+      await tx.insert(numberSeries).values({ organizationId, kind: "quote", year: 2027, lastNumber: 1 });
+      await tx
+        .insert(catalogItems)
+        .values({ organizationId, label: "Coordination", unit: "forfait", unitPriceCents: 1, vatRateBasisPoints: 0 });
+      const [quote] = await tx
+        .insert(quotes)
+        .values({ organizationId, eventId: randomUUID(), number: "D-2027-0001", createdByUserId: randomUUID() })
+        .returning();
+      if (!quote) throw new Error("insertion attendue");
+      const [version] = await tx.insert(quoteVersions).values({ organizationId, quoteId: quote.id, version: 1 }).returning();
+      if (!version) throw new Error("insertion attendue");
+      await tx.insert(quoteLines).values({
+        organizationId,
+        versionId: version.id,
+        label: "Coordination",
+        unit: "forfait",
+        quantityMilli: 1000,
+        unitPriceCents: 1,
+        vatRateBasisPoints: 0,
+      });
+    });
+
+    for (const table of [quoteSettings, numberSeries, catalogItems, quotes, quoteVersions, quoteLines]) {
+      try {
+        const rows = await db.select().from(table);
+        expect(rows).toHaveLength(0);
+      } catch (error) {
+        expect(error).toBeTruthy();
+      }
     }
   });
 });
