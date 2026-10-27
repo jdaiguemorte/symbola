@@ -200,6 +200,13 @@ plus proche, demi vers le haut.
   tout est purgé avec l'essai (`lib/demo-purge.ts`) ; test : aucune donnée démo dans les
   exports, l'e-reporting ni le tableau de bord.
 
+*Réalisé (fin du lot 4)* : visites guidées Devis (`/devis/catalogue`) et Budget
+(`/budget/parametres`), composant commun `app/module-tour.tsx` ; bouton « Essayer un devis
+fictif » dans le bandeau de l'essai (`startQuotesTrial`, modèle de départ
+`packages/starter-templates/src/demo-quote.json`), signature sur `/signature-fictive/[jeton]`
+même en production pour les seuls devis d'essai, factures `DEMO-F-…` en filigrane, tout purgé
+avec l'essai. Le bloc « Encaissements à venir » du tableau de bord est livré avec DEV-03.
+
 ## RGPD
 
 Champs personnels nouveaux (à déclarer dans `privacy.registry.yaml` à la PR qui les crée) :

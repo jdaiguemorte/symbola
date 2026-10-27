@@ -58,6 +58,8 @@ test("DEV-01 — composer un devis depuis un événement, l'envoyer, le téléch
   // Catalogue : un article.
   await page.goto("/devis/catalogue");
   await page.waitForLoadState("networkidle");
+  // AIDE-01 : première ouverture du module, la visite guidée s'affiche.
+  await page.getByRole("dialog").getByRole("button", { name: "Passer" }).click();
   const newItem = page.getByRole("form", { name: "Nouvel article" });
   await newItem.getByLabel("Intitulé").fill("Coordination jour J");
   await newItem.getByLabel("Unité").fill("forfait");

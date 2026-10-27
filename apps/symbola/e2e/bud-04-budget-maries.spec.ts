@@ -67,6 +67,8 @@ test("BUD-04 — le marié consulte le budget de son événement en lecture seul
   await expect(page.getByText("Source ajoutée.")).toBeVisible();
   await page.goto("/budget/parametres");
   await page.waitForLoadState("networkidle");
+  // AIDE-01 : première ouverture du module, la visite guidée s'affiche.
+  await page.getByRole("dialog").getByRole("button", { name: "Passer" }).click();
   await page.getByLabel("Nom du modèle").fill("Classique");
   await page.getByLabel("Lieu de réception %").fill("60");
   await page.getByLabel("Traiteur %").fill("40");

@@ -50,6 +50,9 @@ test("BUD-01 — modèle de répartition, simulation et ajustement d'un poste", 
 
   // BUD-01 : un modèle dont le total ne fait pas 100 % est refusé.
   await page.goto("/budget/parametres");
+  await page.waitForLoadState("networkidle");
+  // AIDE-01 : première ouverture du module, la visite guidée s'affiche.
+  await page.getByRole("dialog").getByRole("button", { name: "Passer" }).click();
   await page.getByLabel("Nom du modèle").fill("Incomplet");
   await page.getByLabel("Lieu de réception %").fill("50");
   await page.getByRole("button", { name: "Créer le modèle" }).click();

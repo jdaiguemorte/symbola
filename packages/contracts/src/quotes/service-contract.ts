@@ -215,6 +215,15 @@ export type InvoiceView = {
   creditedCents: number;
 };
 
+// AIDE-02 — devis fictif sur l'événement d'essai guidé (ADR 0008).
+export type StartQuotesTrialInput = {
+  organizationId: string;
+  eventId: string;
+  createdByUserId: string;
+  locale: "fr" | "en";
+  now?: Date | undefined;
+};
+
 export type IssueDepositInvoiceInput = { organizationId: string; scheduleItemId: string; now?: Date | undefined };
 export type IssueBalanceInvoiceInput = { organizationId: string; quoteId: string; now?: Date | undefined };
 export type IssueCreditNoteInput = {
@@ -363,4 +372,5 @@ export interface QuotesServiceContract {
   getInvoice(organizationId: string, invoiceId: string): Promise<InvoiceView>;
   getCreditNote(organizationId: string, creditNoteId: string): Promise<CreditNoteView>;
   getEReporting(organizationId: string, period: { from: string; to: string }): Promise<EReportingView>;
+  startQuotesTrial(input: StartQuotesTrialInput): Promise<QuoteDetail>;
 }

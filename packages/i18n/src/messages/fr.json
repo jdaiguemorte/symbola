@@ -160,6 +160,42 @@
         "title": "Essayer sans risque",
         "body": "L'essai guidé ouvre un mariage fictif complet pour tout tester ; il est supprimé à la fin de l'essai. Relancez cette visite à tout moment avec le bouton « ? »."
       }
+    ],
+    "quotes": [
+      {
+        "title": "Votre catalogue",
+        "body": "Enregistrez ici vos prestations réutilisables : intitulé, unité, prix HT, taux de TVA et catégorie. Un article archivé reste sur les devis qui l'utilisent."
+      },
+      {
+        "title": "Composer un devis",
+        "body": "Depuis la fiche d'un événement, « Créer un devis » attribue son numéro ; ajoutez articles, lignes libres et remises, les totaux se recalculent."
+      },
+      {
+        "title": "Acomptes et signature",
+        "body": "Prévoyez l'échéancier des acomptes, puis envoyez le devis en signature : chaque marié reçoit son lien par e-mail, l'événement passe en « Confirmé » à la signature."
+      },
+      {
+        "title": "Factures et encaissements",
+        "body": "Depuis un devis signé, émettez les factures d'acompte et de solde ; suivez les encaissements à venir et préparez l'e-reporting période par période."
+      }
+    ],
+    "budget": [
+      {
+        "title": "Vos modèles de budget",
+        "body": "Un modèle répartit un budget total entre vos postes prestataires, en pourcentages qui font 100 %."
+      },
+      {
+        "title": "Simuler un budget",
+        "body": "Sur la fiche d'un prospect, « Budget » simule la répartition à partir d'un total et du nombre d'invités, ajustable poste par poste."
+      },
+      {
+        "title": "Prévu, réel, écart",
+        "body": "Une fois l'événement confirmé, la simulation devient le budget prévu ; saisissez le réel, joignez les devis des prestataires et suivez l'écart."
+      },
+      {
+        "title": "Partager avec les mariés",
+        "body": "Les mariés invités voient leur budget en lecture seule dans leur espace."
+      }
     ]
   },
   "Help": {
@@ -512,7 +548,9 @@
     "budgetLink": "Budget",
     "confirmBudgetTitle": "Faire de la simulation le budget prévu",
     "confirmBudgetBody": "L'événement est confirmé et une simulation existe déjà : vous pouvez l'utiliser comme point de départ du budget prévu, poste par poste.",
-    "confirmAsPlanned": "En faire le budget prévu"
+    "confirmAsPlanned": "En faire le budget prévu",
+    "trialStepQuote": "Composez un devis fictif, faites-le signer par le marié fictif sur la page de signature d'essai, puis émettez ses factures (série DEMO, en filigrane).",
+    "trialStartQuote": "Essayer un devis fictif"
   },
   "Budget": {
     "title": "Budget",

@@ -122,6 +122,7 @@ export type {
   IssueCreditNoteInput,
   IssueDepositInvoiceInput,
   SendForSignatureInput,
+  StartQuotesTrialInput,
   SignatureView,
   SignatureWebhookResult,
   SignerInput,

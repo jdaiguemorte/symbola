@@ -3,6 +3,7 @@
 // /v1/quotes si ce module est extrait en app autonome.
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
+import { starterDemoQuote } from "@symbola/starter-templates";
 import { createAppConnection } from "@symbola/db/client";
 import { parseEnv } from "@symbola/env";
 import { createStorageClient, deletePrivateObject, getSignedDownloadUrl, uploadFile } from "@symbola/files";
@@ -43,6 +44,7 @@ import type {
   SignatureView,
   SignatureWebhookResult,
   SignerInput,
+  StartQuotesTrialInput,
 } from "@symbola/contracts";
 import { QUOTES_QUOTE_SIGNED, QUOTES_QUOTE_SIGNED_VERSION, type QuoteSignedPayload } from "@symbola/contracts";
 import { changeEventStatus, EventNotFoundError, getEvent } from "@/modules/events/service";
@@ -153,6 +155,7 @@ export type {
   SignatureWebhookResult,
   SignerInput,
   SignerView,
+  StartQuotesTrialInput,
 } from "@symbola/contracts";
 export { EventNotFoundError };
 
@@ -1528,6 +1531,29 @@ export async function getEReporting(organizationId: string, period: { from: stri
   };
 }
 
+// --- AIDE-02 : essai guidé du module Devis ---
+
+// Devis fictif (série DEMO) sur l'événement d'essai, depuis le modèle de
+// départ traduisible : lignes et échéancier relatif au jour de l'essai.
+// Jamais sur un vrai événement.
+export async function startQuotesTrial(input: StartQuotesTrialInput): Promise<QuoteDetail> {
+  const now = input.now ?? new Date();
+  const event = await getEvent(input.organizationId, input.eventId);
+  if (!event?.isDemo) throw new EventNotFoundError();
+  const template = starterDemoQuote(input.locale);
+  const quote = await createQuote({ organizationId: input.organizationId, eventId: input.eventId, createdByUserId: input.createdByUserId, now });
+  for (const line of template.lines) await addQuoteLine(input.organizationId, quote.id, line);
+  const today = parisToday(now);
+  for (const item of template.schedule) {
+    await addScheduleItem(input.organizationId, quote.id, {
+      label: item.label,
+      dueDate: addCalendarDays(today, item.dueOffsetDays),
+      percentageBasisPoints: item.percentageBasisPoints,
+    });
+  }
+  return loadDetail(input.organizationId, quote.id);
+}
+
 const _contractCheck: QuotesServiceContract = {
   listCatalogItems,
   createCatalogItem,
@@ -1567,5 +1593,6 @@ const _contractCheck: QuotesServiceContract = {
   getInvoice,
   getCreditNote,
   getEReporting,
+  startQuotesTrial,
 };
 void _contractCheck;

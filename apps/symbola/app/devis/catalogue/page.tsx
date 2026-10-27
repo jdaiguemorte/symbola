@@ -2,10 +2,12 @@ import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatAmount, type Locale } from "@symbola/i18n";
 import { createAppConnection } from "@symbola/db/client";
-import { HelpButton } from "@symbola/ui";
+import type { TourStep } from "@symbola/ui";
 import { getOrganizationProfile } from "@/modules/hub/service";
 import { listCatalogItems } from "@/modules/quotes/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
+import { isTourInitiallyOpen } from "@/lib/module-tour";
+import { ModuleTourAndHelp } from "@/app/module-tour";
 import { isQuotesModuleEnabled } from "../module-access";
 import { formatRate } from "../quote-display";
 import { archiveCatalogItemAction } from "./actions";
@@ -21,6 +23,7 @@ export default async function QuoteCatalogPage() {
 
   const t = await getTranslations("Quotes");
   const tHelp = await getTranslations("Help");
+  const tTour = await getTranslations("Tour");
   const locale = (await getLocale()) as Locale;
 
   if (!(await isQuotesModuleEnabled(organizationId))) {
@@ -45,7 +48,17 @@ export default async function QuoteCatalogPage() {
   return (
     <main>
       <h1>{t("catalogTitle")}</h1>
-      <HelpButton title={tHelp("quotesCatalog.title")} body={tHelp("quotesCatalog.body")} />
+      <ModuleTourAndHelp
+        moduleKey="quotes"
+        tourInitiallyOpen={await isTourInitiallyOpen(auth.user.id, "quotes")}
+        tourSteps={tTour.raw("quotes") as TourStep[]}
+        skipLabel={tTour("skip")}
+        nextLabel={tTour("next")}
+        finishLabel={tTour("finish")}
+        helpTitle={tHelp("quotesCatalog.title")}
+        helpBody={tHelp("quotesCatalog.body")}
+        relaunchLabel={tHelp("relaunchTour")}
+      />
       {profile.vatRegime === "franchise" ? <p role="status">{t("franchiseRatesIgnored")}</p> : null}
 
       {items.length === 0 ? <p>{t("noCatalogItems")}</p> : null}

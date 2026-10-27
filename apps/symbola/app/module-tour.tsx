@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import { GuidedTour, HelpButton, type TourStep } from "@symbola/ui";
-import { markTourSeenAction } from "../actions";
+import { markTourSeenAction } from "./actions";
 
-// AIDE-01 — visite guidée du module événements : ouverte d'office à la
-// première visite (décidé côté serveur), relançable depuis le bouton « ? ».
-export function EventsTourAndHelp({
+// AIDE-01 — visite guidée d'un module (événements, budget, devis) : ouverte
+// d'office à la première visite (décidé côté serveur), relançable depuis le
+// bouton « ? ».
+export function ModuleTourAndHelp({
+  moduleKey,
   tourInitiallyOpen,
   tourSteps,
   skipLabel,
@@ -16,6 +18,7 @@ export function EventsTourAndHelp({
   helpBody,
   relaunchLabel,
 }: {
+  moduleKey: "events" | "budget" | "quotes";
   tourInitiallyOpen: boolean;
   tourSteps: TourStep[];
   skipLabel: string;
@@ -29,7 +32,7 @@ export function EventsTourAndHelp({
 
   async function close() {
     setOpen(false);
-    await markTourSeenAction("events");
+    await markTourSeenAction(moduleKey);
   }
 
   return (
