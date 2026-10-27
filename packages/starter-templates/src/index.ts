@@ -3,6 +3,7 @@
 // charge si elle le souhaite (ONB-01 : « partir d'un modèle de départ,
 // partir de zéro, ou importer un fichier ») ; rien n'est créé d'office.
 import { z } from "zod";
+import programFile from "./program.json";
 import retroplanningFile from "./retroplanning.json";
 import vendorSlotsFile from "./vendor-slots.json";
 
@@ -52,6 +53,61 @@ export function starterRetroplanning(locale: StarterLocale): StarterTaskTemplate
       label: item.label[locale],
       offsetDays: item.offsetDays,
       responsible: item.responsible,
+    })),
+  };
+}
+
+const programSchema = z.object({
+  version: z.literal(1),
+  name: translatedLabelSchema,
+  items: z
+    .array(
+      z.object({
+        key: z.string().min(1),
+        startTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
+        endTime: z
+          .string()
+          .regex(/^([01]\d|2[0-3]):[0-5]\d$/)
+          .nullable(),
+        // Intervenants : clés des postes du modèle de départ (vendor-slots.json).
+        vendorSlotKeys: z.array(z.string().min(1)),
+        label: translatedLabelSchema,
+        location: z.object({ fr: z.string(), en: z.string() }),
+      }),
+    )
+    .min(1),
+});
+
+const program = programSchema.parse(programFile);
+
+export type StarterProgramTemplate = {
+  name: string;
+  items: {
+    startTime: string;
+    endTime: string | null;
+    label: string;
+    location: string | null;
+    participantLabels: string[];
+  }[];
+};
+
+// EVT-05 : modèle de programme de départ, dans la langue demandée. Les
+// intervenants portent les libellés des postes du modèle de départ, pour
+// être rapprochés des postes de l'événement quand le modèle est appliqué.
+export function starterProgram(locale: StarterLocale): StarterProgramTemplate {
+  const slotLabels = new Map(vendorSlots.items.map((item) => [item.key, item.label[locale]]));
+  return {
+    name: program.name[locale],
+    items: program.items.map((item) => ({
+      startTime: item.startTime,
+      endTime: item.endTime,
+      label: item.label[locale],
+      location: item.location[locale] || null,
+      participantLabels: item.vendorSlotKeys.map((key) => {
+        const label = slotLabels.get(key);
+        if (!label) throw new Error(`poste inconnu dans le modèle de programme : ${key}`);
+        return label;
+      }),
     })),
   };
 }

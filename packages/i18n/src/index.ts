@@ -94,6 +94,20 @@ export function formatMonth(date: string, locale: Locale): string {
   );
 }
 
+// Horodatage affiché à l'heure de Paris (CLAUDE.md §5), par exemple la
+// date de version d'un document exporté. Les espaces insécables
+// d'Intl sont remplacées par des espaces simples : les polices standard
+// des PDF ne les ont pas toutes.
+export function formatDateTime(date: Date, locale: Locale): string {
+  return new Intl.DateTimeFormat(INTL_LOCALE[locale], {
+    dateStyle: "long",
+    timeStyle: "short",
+    timeZone: "Europe/Paris",
+  })
+    .format(date)
+    .replace(/[\u00a0\u202f]/g, " ");
+}
+
 // Langue par défaut d'un nouvel utilisateur (HUB-04) : celle de son
 // navigateur, français si elle n'est ni FR ni EN.
 export function localeFromAcceptLanguage(header: string | null): Locale {

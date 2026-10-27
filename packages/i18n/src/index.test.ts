@@ -3,6 +3,7 @@ import {
   formatAmount,
   formatCalendarDate,
   formatDate,
+  formatDateTime,
   formatMonth,
   localeFromAcceptLanguage,
   parseAmountToCents,
@@ -27,6 +28,17 @@ describe("@symbola/i18n — dates sans heure", () => {
   it("formate le mois d'un « AAAA-MM-JJ »", () => {
     expect(formatMonth("2027-10-31", "fr")).toBe("octobre 2027");
     expect(formatMonth("2027-10-31", "en")).toBe("October 2027");
+  });
+});
+
+describe("@symbola/i18n — formatDateTime", () => {
+  it("affiche l'heure de Paris, heure d'été comprise, sans espace insécable", () => {
+    const summer = formatDateTime(new Date("2027-06-12T13:05:00Z"), "fr");
+    expect(summer).toContain("12 juin 2027");
+    expect(summer).toContain("15:05");
+    expect(summer).not.toMatch(/[\u00a0\u202f]/);
+    expect(formatDateTime(new Date("2027-01-12T13:05:00Z"), "fr")).toContain("14:05");
+    expect(formatDateTime(new Date("2027-06-12T13:05:00Z"), "en")).toContain("June 12, 2027");
   });
 });
 
