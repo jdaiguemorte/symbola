@@ -190,6 +190,8 @@ export type InvoiceView = {
   quoteId: string;
   quoteNumber: string;
   kind: "deposit" | "balance";
+  // Échéance facturée (acompte), null pour le solde.
+  scheduleItemId: string | null;
   number: string;
   isDemo: boolean;
   issuedOn: string;

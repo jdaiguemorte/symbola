@@ -6,7 +6,14 @@ import { formatCalendarDate, formatDateTime, type Locale } from "@symbola/i18n";
 import { HelpButton } from "@symbola/ui";
 import { getEvent } from "@/modules/events/service";
 import { computeLegalMention, getOrganizationProfile } from "@/modules/hub/service";
-import { getQuote, listCatalogItems, listPaymentMethods, QuoteNotFoundError, type QuoteDetail } from "@/modules/quotes/service";
+import {
+  getQuote,
+  listCatalogItems,
+  listPaymentMethods,
+  listQuoteInvoices,
+  QuoteNotFoundError,
+  type QuoteDetail,
+} from "@/modules/quotes/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isQuotesModuleEnabled, isValidId } from "../module-access";
 import { parisTodayString, QUOTE_STATUS_LABEL_KEYS } from "../quote-display";
@@ -21,6 +28,7 @@ import {
 } from "./quote-forms";
 import { QuoteVersionTable } from "./quote-totals";
 import { ScheduleSection } from "./schedule-section";
+import { InvoicesSection } from "./invoices-section";
 import { SignatureSection } from "./signature-section";
 
 export default async function QuotePage({ params }: { params: Promise<{ quoteId: string }> }) {
@@ -61,10 +69,11 @@ export default async function QuotePage({ params }: { params: Promise<{ quoteId:
   } finally {
     await sql.end();
   }
-  const [event, catalog, paymentMethods] = await Promise.all([
+  const [event, catalog, paymentMethods, invoices] = await Promise.all([
     getEvent(organizationId, quote.eventId),
     listCatalogItems(organizationId),
     listPaymentMethods(organizationId),
+    listQuoteInvoices(organizationId, quote.id),
   ]);
   const clientNames = event?.clients.map((client) => client.firstName).join(" & ") || t("noClient");
 
@@ -116,6 +125,7 @@ export default async function QuotePage({ params }: { params: Promise<{ quoteId:
 
       <ScheduleSection quote={quote} methods={paymentMethods} locale={locale} today={parisTodayString()} />
       <SignatureSection organizationId={organizationId} quote={quote} event={event} />
+      <InvoicesSection quote={quote} invoices={invoices} locale={locale} />
 
       {isDraft ? (
         <>

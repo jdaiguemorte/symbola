@@ -102,6 +102,8 @@ test("DEV-03 — échéancier, encaissements à venir, retard et paiement", asyn
   await expect(page.getByText(/Solde : 1\s600,00\s€/)).toBeVisible();
   await expectNoAxeViolation(page);
 
+  // L'action refusée juste avant doit être entièrement traitée.
+  await page.waitForLoadState("networkidle");
   await page.getByRole("button", { name: "Marquer comme envoyé" }).click();
   await expect(page.getByText(/^Statut : Envoyé/)).toBeVisible();
 

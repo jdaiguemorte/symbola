@@ -40,6 +40,8 @@ const { saveCatalogItemAction } = await import("./catalogue/actions");
 const { addScheduleItemAction, markPaidAction } = await import("./[quoteId]/schedule-actions");
 const { addPaymentMethodAction } = await import("./parametres/actions");
 const { sendForSignatureAction } = await import("./[quoteId]/signature-actions");
+const { issueBalanceInvoiceAction, setClientKindAction } = await import("./[quoteId]/invoice-actions");
+const { GET: getEReportingExport } = await import("./e-reporting/export/route");
 const { GET: getQuotePdf } = await import("./[quoteId]/pdf/route");
 
 const PASSWORD = "mot-de-passe-du-test";
@@ -231,5 +233,34 @@ describe("DEV-02 — L'envoi en signature est refusé hors de la planner de l'or
     const quote = await getQuote(context.organizationId, context.quoteId);
     expect(quote.status).toBe("draft");
     expect(quote.signature).toBeNull();
+  });
+});
+
+describe("DEV-04 — Factures et e-reporting refusés hors de la planner de l'organisation", () => {
+  it("un compte marié ni une autre organisation n'émettent de facture ni ne téléchargent l'e-reporting", async () => {
+    const context = await setup();
+    const exportRequest = () => getEReportingExport(new Request("http://localhost/devis/e-reporting/export?from=2027-01-01&to=2027-12-31"));
+
+    sessionToken = context.clientToken;
+    expect(await issueBalanceInvoiceAction({}, form({ quoteId: context.quoteId }))).toEqual({ error: "unauthenticated" });
+    expect(await setClientKindAction({}, form({ quoteId: context.quoteId, clientKind: "professional" }))).toEqual({ error: "unauthenticated" });
+    expect((await exportRequest()).status).toBe(401);
+
+    sessionToken = context.otherPlannerToken;
+    expect(await issueBalanceInvoiceAction({}, form({ quoteId: context.quoteId }))).toEqual({ error: "invoiceNotFound" });
+    const otherExport = await exportRequest();
+    expect(otherExport.status).toBe(200);
+    // L'export de l'autre organisation ne contient que son en-tête et son total.
+    expect((await otherExport.text()).trim().split("\r\n")).toHaveLength(2);
+
+    expect((await getQuote(context.organizationId, context.quoteId)).clientKind).toBe("individual");
+  });
+
+  it("la planner exporte l'e-reporting de sa période (contrôle du test)", async () => {
+    const context = await setup();
+    sessionToken = context.plannerToken;
+    const response = await getEReportingExport(new Request("http://localhost/devis/e-reporting/export?from=2027-01-01&to=2027-12-31"));
+    expect(response.status).toBe(200);
+    expect(response.headers.get("Content-Type")).toBe("text/csv; charset=utf-8");
   });
 });

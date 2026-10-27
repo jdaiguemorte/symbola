@@ -1313,6 +1313,7 @@ function toInvoiceView(invoice: InvoiceRow, quoteNumber: string, notes: CreditNo
     quoteId: invoice.quoteId,
     quoteNumber,
     kind: invoice.kind,
+    scheduleItemId: invoice.scheduleItemId,
     number: invoice.number,
     isDemo: invoice.isDemo,
     issuedOn: invoice.issuedOn,

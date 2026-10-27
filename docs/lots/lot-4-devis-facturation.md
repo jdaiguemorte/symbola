@@ -110,11 +110,13 @@ plus proche, demi vers le haut.
   total → refus (fonction pure + contrôle serveur).
 - **`invoices`** (DEV-04) : `quote_id`, `schedule_item_id` (nullable), `kind` (`deposit`,
   `balance`), `number`, `issued_at`, copies figées vendeur/acheteur/lignes/totaux/mentions,
-  `pdf_key`, `is_demo`. **Immuable une fois émise** : aucune mise à jour ni suppression permise
-  par le rôle applicatif (trigger PostgreSQL qui refuse `UPDATE`/`DELETE`, testé), correction
-  par avoir uniquement.
-- **`credit_notes`** : `invoice_id`, `number` (série avoirs), `issued_at`, montants, motif,
-  `pdf_key` — eux aussi immuables.
+  `is_demo`. **Immuable une fois émise** : aucune mise à jour ni suppression permise
+  par le rôle applicatif (pas de droit `UPDATE`, trigger PostgreSQL qui refuse `UPDATE`/`DELETE`
+  sauf la suppression d'un document d'essai à la purge, testé), correction par avoir uniquement.
+  *Réalisé (DEV-04)* : pas de `pdf_key` — le PDF est rendu à la demande depuis la copie figée,
+  qui seule fait foi ; type de client (`client_kind`) porté par le devis.
+- **`credit_notes`** : `invoice_id`, `number` (série avoirs), `issued_at`, montants, motif —
+  eux aussi immuables (PDF rendu à la demande, comme les factures).
 
 ## Stories et critères d'acceptation (PRD §6, précisés)
 
