@@ -230,7 +230,7 @@
     },
     "clientEvent": {
       "title": "Suivre la préparation",
-      "body": "Les tâches « À faire par vous » se cochent quand elles sont faites : votre planner le voit aussitôt. Les autres sont suivies par votre planner. Le programme du jour J se télécharge en PDF."
+      "body": "Les tâches « À faire par vous » se cochent quand elles sont faites : votre planner le voit aussitôt. Les autres sont suivies par votre planner. Le programme du jour J se télécharge en PDF. Le budget (prévu, réel, écart par poste) s'affiche aussi, en lecture seule, dès que votre planner l'a préparé."
     },
     "clientSecurity": {
       "title": "Double authentification",
@@ -586,7 +586,9 @@
     "mfaCode": "Code à 6 chiffres",
     "mfaConfirm": "Confirmer",
     "mfaInvalidCode": "Code incorrect, réessayez.",
-    "mfaEnabledNow": "Double authentification activée : elle vous sera demandée à chaque connexion."
+    "mfaEnabledNow": "Double authentification activée : elle vous sera demandée à chaque connexion.",
+    "budgetTitle": "Budget",
+    "noBudgetYet": "Votre planner n'a pas encore partagé de budget pour cet événement."
   },
   "NotFound": {
     "title": "Page introuvable",

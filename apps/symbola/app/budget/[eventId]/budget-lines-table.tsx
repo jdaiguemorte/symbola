@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { formatAmount, formatFileSize, type Locale } from "@symbola/i18n";
 import { attachQuoteAction, confirmEventBudgetAction, updateBudgetLineAction, type BudgetFormState } from "./actions";
 import type { BudgetLinesView } from "@/modules/budget/service";
+import { varianceDisplay } from "../variance-display";
 
 function LineRow({
   eventId,
@@ -21,19 +22,11 @@ function LineRow({
   const [actualState, actualAction, actualPending] = useActionState(updateBudgetLineAction, initialState);
   const [quoteState, quoteAction, quotePending] = useActionState(attachQuoteAction, initialState);
 
-  // BUD-02 : dépassement en rouge, économie en vert — jamais seulement la
-  // couleur (le texte « dépassement »/« économie » porte l'information,
-  // la couleur est un renfort visuel, axe-core).
-  const varianceLabel =
-    line.varianceCents === null
-      ? t("varianceUnset")
-      : line.varianceCents > 0
-        ? t("varianceOver", { amount: formatAmount(line.varianceCents, locale) })
-        : line.varianceCents < 0
-          ? t("varianceUnder", { amount: formatAmount(Math.abs(line.varianceCents), locale) })
-          : t("varianceEqual");
-  const varianceColor =
-    line.varianceCents === null ? undefined : line.varianceCents > 0 ? "#b91c1c" : line.varianceCents < 0 ? "#15803d" : undefined;
+  const variance = varianceDisplay(line.varianceCents);
+  const varianceLabel = t(variance.labelKey, {
+    amount: variance.amountCents === null ? "" : formatAmount(variance.amountCents, locale),
+  });
+  const varianceColor = variance.color;
 
   return (
     <tr>
