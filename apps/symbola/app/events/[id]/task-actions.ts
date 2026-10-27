@@ -20,7 +20,7 @@ import {
   updateEventTask,
   type TaskResponsible,
 } from "@/modules/events/service";
-import { getAuthContext } from "@/lib/auth-context";
+import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isEventsModuleEnabled, isValidId } from "../module-access";
 
 export type TaskFormState = { error?: string; success?: boolean; recalculationProposed?: boolean };
@@ -28,7 +28,7 @@ export type TaskFormState = { error?: string; success?: boolean; recalculationPr
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 async function authorize(t: Awaited<ReturnType<typeof getTranslations>>) {
-  const auth = await getAuthContext();
+  const auth = await getPlannerAuthContext();
   if (auth.status !== "authenticated" || !auth.user.organizationId) return { error: t("unauthenticated") } as const;
   if (!(await isEventsModuleEnabled(auth.user.organizationId))) return { error: t("moduleUnavailable") } as const;
   return { organizationId: auth.user.organizationId } as const;

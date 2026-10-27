@@ -2,16 +2,17 @@ import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { HelpButton } from "@symbola/ui";
 import { listProgramTemplates } from "@/modules/events/service";
-import { getAuthContext } from "@/lib/auth-context";
+import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isEventsModuleEnabled } from "../module-access";
 import { AddProgramTemplateItemForm, CreateProgramTemplateForm, LoadStarterProgramForm } from "./template-forms";
 import { removeProgramTemplateAction, removeProgramTemplateItemAction } from "./template-actions";
 
 // EVT-05 — modèles de programme du jour J de l'organisation.
 export default async function ProgramTemplatesPage() {
-  const auth = await getAuthContext();
+  const auth = await getPlannerAuthContext();
   if (auth.status === "unauthenticated") redirect("/login");
   if (auth.status === "mfa_required") redirect("/mfa");
+  if (auth.status === "forbidden") redirect(auth.role === "client" ? "/espace" : "/");
   if (!auth.user.organizationId) redirect("/");
   const organizationId = auth.user.organizationId;
 

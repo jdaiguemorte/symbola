@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { createProspect, listProspectSources } from "@/modules/events/service";
-import { getAuthContext } from "@/lib/auth-context";
+import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isEventsModuleEnabled } from "../module-access";
 
 export type NewProspectFormState = { error?: string };
@@ -13,7 +13,7 @@ export async function createProspectAction(
   formData: FormData,
 ): Promise<NewProspectFormState> {
   const t = await getTranslations("Events");
-  const auth = await getAuthContext();
+  const auth = await getPlannerAuthContext();
   if (auth.status !== "authenticated" || !auth.user.organizationId) return { error: t("unauthenticated") };
   const organizationId = auth.user.organizationId;
   if (!(await isEventsModuleEnabled(organizationId))) return { error: t("moduleUnavailable") };

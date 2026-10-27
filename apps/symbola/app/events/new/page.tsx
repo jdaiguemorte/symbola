@@ -2,14 +2,15 @@ import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { HelpButton } from "@symbola/ui";
 import { listProspectSources } from "@/modules/events/service";
-import { getAuthContext } from "@/lib/auth-context";
+import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isEventsModuleEnabled } from "../module-access";
 import { NewProspectForm } from "./new-prospect-form";
 
 export default async function NewProspectPage() {
-  const auth = await getAuthContext();
+  const auth = await getPlannerAuthContext();
   if (auth.status === "unauthenticated") redirect("/login");
   if (auth.status === "mfa_required") redirect("/mfa");
+  if (auth.status === "forbidden") redirect(auth.role === "client" ? "/espace" : "/");
   if (!auth.user.organizationId) redirect("/");
 
   const t = await getTranslations("Events");

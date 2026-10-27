@@ -14,7 +14,7 @@ import {
   TaskTemplateNotFoundError,
   type TaskResponsible,
 } from "@/modules/events/service";
-import { getAuthContext } from "@/lib/auth-context";
+import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isEventsModuleEnabled, isValidId } from "../module-access";
 
 export type TaskTemplateFormState = { error?: string; success?: boolean };
@@ -23,7 +23,7 @@ export type TaskTemplateFormState = { error?: string; success?: boolean };
 const MAX_OFFSET_DAYS = 1095;
 
 async function authorizedOrganizationId(): Promise<string | null> {
-  const auth = await getAuthContext();
+  const auth = await getPlannerAuthContext();
   if (auth.status !== "authenticated" || !auth.user.organizationId) return null;
   if (!(await isEventsModuleEnabled(auth.user.organizationId))) return null;
   return auth.user.organizationId;

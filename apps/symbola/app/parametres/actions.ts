@@ -12,12 +12,13 @@ import {
   type Metier,
   type VatRegime,
 } from "@/modules/hub/service";
-import { getAuthContext } from "@/lib/auth-context";
+import { getPlannerAuthContext } from "@/lib/auth-context";
 
 async function requireOrganization() {
-  const auth = await getAuthContext();
+  const auth = await getPlannerAuthContext();
   if (auth.status === "unauthenticated") redirect("/login");
   if (auth.status === "mfa_required") redirect("/mfa");
+  if (auth.status === "forbidden") redirect(auth.role === "client" ? "/espace" : "/");
   if (!auth.user.organizationId) redirect("/");
   return { organizationId: auth.user.organizationId, userId: auth.user.id };
 }

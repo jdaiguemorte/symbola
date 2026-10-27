@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { changeEventStatus, listLossReasons, type EventStatus } from "@/modules/events/service";
-import { getAuthContext } from "@/lib/auth-context";
+import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isEventsModuleEnabled, isValidId } from "../module-access";
 
 export type ChangeStatusFormState = { error?: string; success?: boolean };
@@ -15,7 +15,7 @@ export async function changeEventStatusAction(
   formData: FormData,
 ): Promise<ChangeStatusFormState> {
   const t = await getTranslations("Events");
-  const auth = await getAuthContext();
+  const auth = await getPlannerAuthContext();
   if (auth.status !== "authenticated" || !auth.user.organizationId) return { error: t("unauthenticated") };
   const organizationId = auth.user.organizationId;
   if (!(await isEventsModuleEnabled(organizationId))) return { error: t("moduleUnavailable") };

@@ -16,6 +16,8 @@ export default async function HomePage() {
 
   if (auth.status === "unauthenticated") redirect("/login");
   if (auth.status === "mfa_required") redirect("/mfa");
+  // EVT-06 : un marié n'a pas de hub, seulement l'espace de son mariage.
+  if (auth.user.role === "client") redirect("/espace");
 
   // SOC-13, ADR 0016 : collecte brute des compteurs d'usage, au niveau de
   // cette page plutôt que dans lib/auth-context.ts (voir le commentaire
