@@ -15,9 +15,17 @@ export const LOCALE_COOKIE = "symbola_locale";
 // script-src à 'unsafe-inline'.
 export function middleware(request: NextRequest) {
   const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
+  // Le Fast Refresh du serveur de dev de Next.js a besoin d'eval() pour
+  // recharger les modules à chaud ; une CSP qui le bloque casse en
+  // silence toute interactivité purement cliente en dev (constaté sur
+  // AIDE-01 : les boutons de la visite guidée ne répondaient plus).
+  // 'unsafe-eval' n'est donc ajouté qu'hors production — jamais envoyé
+  // aux utilisateurs réels (pattern documenté par Next.js pour la CSP).
+  const scriptSrc = [`'self'`, `'nonce-${nonce}'`, `'strict-dynamic'`];
+  if (process.env.NODE_ENV !== "production") scriptSrc.push("'unsafe-eval'");
   const csp = [
     "default-src 'self'",
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
+    `script-src ${scriptSrc.join(" ")}`,
     `style-src 'self' 'nonce-${nonce}'`,
     "frame-ancestors 'none'",
     "base-uri 'self'",

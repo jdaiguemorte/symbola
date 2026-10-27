@@ -113,6 +113,20 @@
       "when": 1793084845555,
       "tag": "0015_grant_onb_tables",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1793085856332,
+      "tag": "0016_aide_premiers_pas_visite",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1793085856333,
+      "tag": "0017_grant_user_tour_seen",
+      "breakpoints": true
     }
   ]
 }

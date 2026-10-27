@@ -49,6 +49,9 @@ importers:
       '@symbola/privacy':
         specifier: workspace:*
         version: link:../../packages/privacy
+      '@symbola/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
       drizzle-orm:
         specifier: ^0.45.4
         version: 0.45.4(gel@2.2.1)(postgres@3.4.9)
@@ -322,6 +325,24 @@ importers:
       '@types/node':
         specifier: ^22.10.2
         version: 22.20.5
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+
+  packages/ui:
+    devDependencies:
+      '@symbola/config':
+        specifier: workspace:*
+        version: link:../config
+      '@types/node':
+        specifier: ^22.10.2
+        version: 22.20.5
+      '@types/react':
+        specifier: ^19.0.2
+        version: 19.3.0
+      react:
+        specifier: 19.0.0
+        version: 19.0.0
       typescript:
         specifier: ^5.7.2
         version: 5.9.3

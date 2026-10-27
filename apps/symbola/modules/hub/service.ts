@@ -11,12 +11,15 @@ import {
   findOrganizationModule,
   findOrganizationProfile,
   findPlatformSettings,
+  findTourSeen,
   insertAuditLog,
   insertInvitation,
   insertOrganization,
+  insertTourSeen,
   insertVatRegimeChange,
   listAllOrganizations,
   markInvitationAccepted,
+  updateFirstStepsHidden,
   upsertOrganizationModule,
   upsertOrganizationProfileFields,
   upsertPlatformSettings,
@@ -267,4 +270,20 @@ export async function setPlatformSettings(
     action: "hub.platform_settings.updated",
     targetOrganizationId: null,
   });
+}
+
+// AIDE-01 — « Une visite guidée s'affiche à la première ouverture d'un
+// module. Elle se relance à tout moment. » moduleKey distingue le hub
+// des futurs modules métier (events, budget, quotes…).
+export async function hasSeenTour(db: AppDatabase, userId: string, moduleKey: string): Promise<boolean> {
+  return (await findTourSeen(db, userId, moduleKey)) !== null;
+}
+
+export async function markTourSeen(db: AppDatabase, userId: string, moduleKey: string): Promise<void> {
+  await insertTourSeen(db, userId, moduleKey);
+}
+
+// AIDE-04 — « L'utilisateur peut masquer la liste [premiers pas]. »
+export async function hideFirstSteps(db: AppDatabase, userId: string): Promise<void> {
+  await updateFirstStepsHidden(db, userId, true);
 }

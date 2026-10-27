@@ -114,5 +114,74 @@
     "thresholdGoods": "Franchise threshold — goods (€)",
     "save": "Save",
     "saved": "Settings saved."
+  },
+  "Tour": {
+    "skip": "Skip",
+    "next": "Next",
+    "finish": "Finish",
+    "hub": [
+      {
+        "title": "Welcome to Symbola",
+        "body": "This dashboard is your starting point: find your profile, your settings, and administration if you have the rights for it."
+      },
+      {
+        "title": "Complete your company profile",
+        "body": "To use every feature (quotes, invoicing), first complete your company profile and VAT regime under \"Settings\"."
+      },
+      {
+        "title": "Help is always nearby",
+        "body": "Every screen has a \"?\" button that opens a short article on what you can do there. You can also relaunch this tour from that button."
+      }
+    ]
+  },
+  "Help": {
+    "relaunchTour": "Relaunch the guided tour",
+    "login": {
+      "title": "Log in",
+      "body": "Sign in with your email and password. After several failed attempts, the account is temporarily locked to protect it."
+    },
+    "mfa": {
+      "title": "Two-factor authentication",
+      "body": "The first time, scan the code with an authenticator app (Google Authenticator, Authy…). After that, just enter the 6-digit code each time you log in."
+    },
+    "home": {
+      "title": "Dashboard",
+      "body": "This is your home page. From here you reach your profile, your settings, and administration if you have the rights for it."
+    },
+    "settings": {
+      "title": "Settings",
+      "body": "Fill in your organization's company profile here (SIREN, address, legal form, business) and its VAT regime."
+    },
+    "admin": {
+      "title": "Administration",
+      "body": "Create organizations, invite their owner, and enable or disable their modules. This page shows none of the organizations' business data."
+    },
+    "adminSettings": {
+      "title": "Platform settings",
+      "body": "These VAT exemption thresholds apply to every organization and must be kept up to date with current regulation."
+    },
+    "adminHealth": {
+      "title": "Health",
+      "body": "This page shows whether the application is responding and its deployed version, for a quick status check."
+    },
+    "invitation": {
+      "title": "Create my account",
+      "body": "This invitation link is personal and single-use. Choose a password to activate your account."
+    },
+    "profile": {
+      "title": "My profile",
+      "body": "Choose the language Symbola displays for you."
+    }
+  },
+  "FirstSteps": {
+    "title": "First steps",
+    "hide": "Hide this list",
+    "completeProfile": "Complete the company profile"
+  },
+  "Aide": {
+    "title": "Help",
+    "search": "Search help articles",
+    "noResults": "No article matches your search.",
+    "link": "Help"
   }
 }

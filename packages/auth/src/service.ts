@@ -24,6 +24,8 @@ export type AuthenticatedUser = {
   organizationId: string | null;
   // Choix explicite dans le profil (HUB-04) ; nul = pas encore choisi.
   language: "fr" | "en" | null;
+  // AIDE-04 : liste « premiers pas » masquée par l'utilisateur.
+  firstStepsHidden: boolean;
 };
 
 export type AuthResult =
@@ -166,6 +168,7 @@ export async function requireUser(
       role: users.role,
       organizationId: users.organizationId,
       language: users.language,
+      firstStepsHidden: users.firstStepsHidden,
       totpSecret: users.totpSecret,
       mfaVerified: sessions.mfaVerified,
       expiresAt: sessions.expiresAt,
@@ -197,6 +200,7 @@ export async function requireUser(
       role: row.role,
       organizationId: row.organizationId,
       language: row.language,
+      firstStepsHidden: row.firstStepsHidden,
     },
   };
 }

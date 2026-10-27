@@ -67,8 +67,26 @@ export const users = hubSchema.table("users", {
   // zéro à chaque connexion réussie.
   failedLoginAttempts: integer("failed_login_attempts").notNull().default(0),
   lockedUntil: timestamp("locked_until", { withTimezone: true }),
+  // AIDE-04 : masque la liste « premiers pas » du tableau de bord,
+  // choix explicite de l'utilisateur.
+  firstStepsHidden: boolean("first_steps_hidden").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
+
+// AIDE-01 : une visite guidée se relance à volonté, mais ne s'affiche
+// automatiquement qu'à la première ouverture d'un module — une ligne ici
+// = déjà vue au moins une fois.
+export const userTourSeen = hubSchema.table(
+  "user_tour_seen",
+  {
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id),
+    moduleKey: text("module_key").notNull(),
+    seenAt: timestamp("seen_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.userId, table.moduleKey] })],
+);
 
 export const sessions = hubSchema.table("sessions", {
   id: uuid("id").defaultRandom().primaryKey(),
