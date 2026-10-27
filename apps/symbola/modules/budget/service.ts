@@ -1,7 +1,12 @@
 // Porte d'entrée publique du module budget — seul fichier que les autres
 // modules peuvent importer (ADR 0011). Pensé comme le futur contrat HTTP
 // /v1/budget si ce module est extrait en app autonome.
+import { createStorageClient, getSignedDownloadUrl, uploadFile } from "@symbola/files";
 import {
+  findBudgetLineAttachment,
+  findBudgetLineAttachments,
+  insertBudgetLineAttachment,
+  type BudgetLineAttachmentRow,
   deleteAllocationModel,
   findAllocationModels,
   findBudgetLineByEventVendorSlotId,
@@ -26,6 +31,7 @@ import {
   remainingToAllocateCents,
   sumAmountCents,
 } from "./allocation";
+import { QUOTE_LINK_TTL_SECONDS, QUOTE_MAX_SIZE_BYTES, quoteUploadError } from "./attachments";
 import {
   getEvent,
   listDefaultVendorSlots,
@@ -36,7 +42,9 @@ import {
 import type {
   AdjustEventBudgetItemInput,
   AllocationModel,
+  AttachBudgetLineQuoteInput,
   BudgetLine,
+  BudgetLineAttachment,
   BudgetLineHistoryEntry,
   BudgetLinesView,
   BudgetServiceContract,
@@ -53,7 +61,9 @@ export type {
   AllocationModel,
   AllocationModelItem,
   AllocationModelItemInput,
+  AttachBudgetLineQuoteInput,
   BudgetLine,
+  BudgetLineAttachment,
   BudgetLineHistoryEntry,
   BudgetLinesView,
   BudgetServiceContract,
@@ -65,6 +75,27 @@ export type {
   UpdateBudgetLineInput,
 } from "@symbola/contracts";
 export { EventNotFoundError };
+export {
+  QUOTE_MAX_SIZE_BYTES,
+  QuoteFileInfectedError,
+  QuoteFileTooLargeError,
+  QuoteFileUnsupportedTypeError,
+} from "./attachments";
+
+// BUD-03 : un devis se joint à une ligne existante du budget de cet événement.
+export class BudgetLineNotFoundError extends Error {
+  constructor() {
+    super("ligne de budget introuvable pour ce poste");
+    this.name = "BudgetLineNotFoundError";
+  }
+}
+
+export class BudgetLineAttachmentNotFoundError extends Error {
+  constructor() {
+    super("devis introuvable");
+    this.name = "BudgetLineAttachmentNotFoundError";
+  }
+}
 
 export class AllocationModelTotalInvalidError extends Error {
   constructor() {
@@ -225,7 +256,11 @@ export async function adjustEventBudgetItem(input: AdjustEventBudgetItemInput): 
   return toEventBudgetView(refreshed.budget, refreshed.items);
 }
 
-function toBudgetLine(line: BudgetLineRow, label: string): BudgetLine {
+function toBudgetLineAttachment(row: BudgetLineAttachmentRow): BudgetLineAttachment {
+  return { id: row.id, mime: row.mime, sizeBytes: row.sizeBytes, createdAt: row.createdAt.toISOString() };
+}
+
+function toBudgetLine(line: BudgetLineRow, label: string, attachments: BudgetLineAttachmentRow[]): BudgetLine {
   const { varianceCents, variancePercent } = computeVariance(line.plannedAmountCents, line.actualAmountCents);
   return {
     eventVendorSlotId: line.eventVendorSlotId,
@@ -234,6 +269,7 @@ function toBudgetLine(line: BudgetLineRow, label: string): BudgetLine {
     actualAmountCents: line.actualAmountCents,
     varianceCents,
     variancePercent,
+    attachments: attachments.filter((attachment) => attachment.lineId === line.id).map(toBudgetLineAttachment),
   };
 }
 
@@ -242,9 +278,17 @@ async function toBudgetLinesView(
   eventId: string,
   lines: BudgetLineRow[],
 ): Promise<BudgetLinesView> {
-  const vendorSlots: EventVendorSlot[] = await listEventVendorSlots(organizationId, eventId);
+  const [vendorSlots, attachments]: [EventVendorSlot[], BudgetLineAttachmentRow[]] = await Promise.all([
+    listEventVendorSlots(organizationId, eventId),
+    findBudgetLineAttachments(
+      organizationId,
+      lines.map((line) => line.id),
+    ),
+  ]);
   const labelOf = new Map(vendorSlots.map((slot) => [slot.id, slot.label]));
-  const mapped = lines.map((line) => toBudgetLine(line, labelOf.get(line.eventVendorSlotId) ?? line.eventVendorSlotId));
+  const mapped = lines.map((line) =>
+    toBudgetLine(line, labelOf.get(line.eventVendorSlotId) ?? line.eventVendorSlotId, attachments),
+  );
   return {
     eventId,
     lines: mapped,
@@ -370,6 +414,41 @@ export async function applyVendorSlotBookedToBudget(
   });
 }
 
+// BUD-03 — devis prestataire joint : mêmes règles que l'envoi de fichier
+// du socle (type vérifié par le contenu, antivirus, stockage privé), via
+// @symbola/files. Refus clair, sans rien enregistrer, à chaque étape.
+export async function attachBudgetLineQuote(input: AttachBudgetLineQuoteInput): Promise<BudgetLineAttachment> {
+  const event = await getEvent(input.organizationId, input.eventId);
+  if (!event) throw new EventNotFoundError();
+  const line = await findBudgetLineByEventVendorSlotId(input.organizationId, input.eventVendorSlotId);
+  if (!line || line.eventId !== input.eventId) throw new BudgetLineNotFoundError();
+
+  const upload = await uploadFile({
+    organizationId: input.organizationId,
+    buffer: Buffer.from(input.content),
+    maxSizeBytes: QUOTE_MAX_SIZE_BYTES,
+  });
+  if (upload.status === "rejected") throw quoteUploadError(upload);
+
+  const row = await insertBudgetLineAttachment({
+    organizationId: input.organizationId,
+    lineId: line.id,
+    fileKey: upload.key,
+    mime: upload.mime,
+    sizeBytes: upload.size,
+    uploadedByUserId: input.uploadedByUserId,
+  });
+  return toBudgetLineAttachment(row);
+}
+
+// Lien signé à durée limitée, demandé au moment de l'ouverture — jamais
+// stocké ni affiché d'avance.
+export async function getBudgetLineAttachmentUrl(organizationId: string, attachmentId: string): Promise<string> {
+  const attachment = await findBudgetLineAttachment(organizationId, attachmentId);
+  if (!attachment) throw new BudgetLineAttachmentNotFoundError();
+  return getSignedDownloadUrl(createStorageClient(), attachment.fileKey, QUOTE_LINK_TTL_SECONDS);
+}
+
 const _contractCheck: BudgetServiceContract = {
   listAllocationModels,
   createAllocationModel,
@@ -381,5 +460,7 @@ const _contractCheck: BudgetServiceContract = {
   confirmEventBudget,
   updateBudgetLine,
   listBudgetLineHistory,
+  attachBudgetLineQuote,
+  getBudgetLineAttachmentUrl,
 };
 void _contractCheck;

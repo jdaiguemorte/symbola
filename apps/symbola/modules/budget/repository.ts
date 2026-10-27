@@ -1,10 +1,11 @@
 // Accès aux données du module budget — jamais importé hors de
 // modules/budget/ (ADR 0011).
-import { and, eq } from "drizzle-orm";
+import { and, asc, eq, inArray } from "drizzle-orm";
 import { createAppConnection } from "@symbola/db/client";
 import {
   allocationModelItems,
   allocationModels,
+  budgetLineAttachments,
   budgetLineHistory,
   budgetLines,
   eventBudgetItems,
@@ -18,6 +19,7 @@ export type EventBudgetRow = typeof eventBudgets.$inferSelect;
 export type EventBudgetItemRow = typeof eventBudgetItems.$inferSelect;
 export type BudgetLineRow = typeof budgetLines.$inferSelect;
 export type BudgetLineHistoryRow = typeof budgetLineHistory.$inferSelect;
+export type BudgetLineAttachmentRow = typeof budgetLineAttachments.$inferSelect;
 
 export async function findAllocationModels(
   organizationId: string,
@@ -328,6 +330,64 @@ export async function findBudgetLineHistory(organizationId: string, lineId: stri
     return await withOrganization(db, organizationId, (tx) =>
       tx.select().from(budgetLineHistory).where(eq(budgetLineHistory.lineId, lineId)),
     );
+  } finally {
+    await sql.end();
+  }
+}
+
+// BUD-03 — devis prestataires joints aux lignes de budget.
+export async function insertBudgetLineAttachment(input: {
+  organizationId: string;
+  lineId: string;
+  fileKey: string;
+  mime: string;
+  sizeBytes: number;
+  uploadedByUserId: string;
+}): Promise<BudgetLineAttachmentRow> {
+  const { sql, db } = createAppConnection();
+  try {
+    return await withOrganization(db, input.organizationId, async (tx) => {
+      // Clé étrangère vérifiée sans RLS : on contrôle que la ligne est visible.
+      const [line] = await tx.select({ id: budgetLines.id }).from(budgetLines).where(eq(budgetLines.id, input.lineId));
+      if (!line) throw new Error("ligne de budget introuvable");
+      const [row] = await tx.insert(budgetLineAttachments).values(input).returning();
+      if (!row) throw new Error("enregistrement du devis échoué");
+      return row;
+    });
+  } finally {
+    await sql.end();
+  }
+}
+
+export async function findBudgetLineAttachments(
+  organizationId: string,
+  lineIds: string[],
+): Promise<BudgetLineAttachmentRow[]> {
+  if (lineIds.length === 0) return [];
+  const { sql, db } = createAppConnection();
+  try {
+    return await withOrganization(db, organizationId, (tx) =>
+      tx
+        .select()
+        .from(budgetLineAttachments)
+        .where(inArray(budgetLineAttachments.lineId, lineIds))
+        .orderBy(asc(budgetLineAttachments.createdAt)),
+    );
+  } finally {
+    await sql.end();
+  }
+}
+
+export async function findBudgetLineAttachment(
+  organizationId: string,
+  attachmentId: string,
+): Promise<BudgetLineAttachmentRow | null> {
+  const { sql, db } = createAppConnection();
+  try {
+    return await withOrganization(db, organizationId, async (tx) => {
+      const [row] = await tx.select().from(budgetLineAttachments).where(eq(budgetLineAttachments.id, attachmentId));
+      return row ?? null;
+    });
   } finally {
     await sql.end();
   }

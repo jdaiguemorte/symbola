@@ -108,6 +108,15 @@ export function formatDateTime(date: Date, locale: Locale): string {
     .replace(/[\u00a0\u202f]/g, " ");
 }
 
+// Taille d'un fichier joint (BUD-03), en Ko ou Mo selon la langue.
+export function formatFileSize(bytes: number, locale: Locale): string {
+  const megabytes = bytes >= 1024 * 1024;
+  const value = megabytes ? bytes / (1024 * 1024) : Math.max(bytes / 1024, 0.1);
+  const unit = locale === "fr" ? (megabytes ? "Mo" : "Ko") : megabytes ? "MB" : "KB";
+  const number = new Intl.NumberFormat(INTL_LOCALE[locale], { maximumFractionDigits: 1 }).format(value);
+  return `${number} ${unit}`;
+}
+
 // Langue par défaut d'un nouvel utilisateur (HUB-04) : celle de son
 // navigateur, français si elle n'est ni FR ni EN.
 export function localeFromAcceptLanguage(header: string | null): Locale {
