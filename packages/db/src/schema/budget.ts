@@ -56,3 +56,38 @@ export const eventBudgetItems = budgetSchema.table("event_budget_items", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
+
+// BUD-02 — budget réel (prévu/réel), une ligne par poste de l'événement.
+// eventVendorSlotId référence events.event_vendor_slots (pas
+// default_vendor_slots : voir docs/lots/lot-3-budget.md) — là encore un
+// uuid opaque, jamais de FK inter-schéma.
+export const budgetLines = budgetSchema.table("budget_lines", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  eventId: uuid("event_id").notNull(),
+  eventVendorSlotId: uuid("event_vendor_slot_id").notNull().unique(),
+  plannedAmountCents: integer("planned_amount_cents").notNull(),
+  actualAmountCents: integer("actual_amount_cents"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const budgetLineFieldEnum = budgetSchema.enum("budget_line_field", ["planned", "actual"]);
+
+// BUD-02 : « chaque modification est historisée : ancienne valeur,
+// nouvelle valeur, auteur, date. »
+export const budgetLineHistory = budgetSchema.table("budget_line_history", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  lineId: uuid("line_id")
+    .notNull()
+    .references(() => budgetLines.id),
+  field: budgetLineFieldEnum("field").notNull(),
+  oldValueCents: integer("old_value_cents"),
+  newValueCents: integer("new_value_cents").notNull(),
+  // Toujours renseigné : l'auteur direct pour un ajustement à la main, ou
+  // bookedByUserId (payload events.vendor_slot.booked) pour une mise à
+  // jour automatique.
+  changedByUserId: uuid("changed_by_user_id").notNull(),
+  changedAt: timestamp("changed_at", { withTimezone: true }).defaultNow().notNull(),
+});

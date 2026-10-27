@@ -60,6 +60,50 @@ export type AdjustEventBudgetItemInput = {
   amountCents: number;
 };
 
+// BUD-02 — budget réel (prévu/réel/écart), une ligne par poste de
+// l'événement (events.event_vendor_slots, pas default_vendor_slots : voir
+// docs/lots/lot-3-budget.md). Écart et pourcentage dérivés, jamais
+// stockés ; null tant qu'aucun montant réel n'est renseigné.
+export type BudgetLine = {
+  eventVendorSlotId: string;
+  label: string;
+  plannedAmountCents: number;
+  actualAmountCents: number | null;
+  varianceCents: number | null;
+  variancePercent: number | null;
+};
+
+export type BudgetLinesView = {
+  eventId: string;
+  lines: BudgetLine[];
+  totalPlannedCents: number;
+  totalActualCents: number;
+  totalVarianceCents: number;
+};
+
+export type ConfirmEventBudgetInput = {
+  organizationId: string;
+  eventId: string;
+  confirmedByUserId: string;
+};
+
+export type UpdateBudgetLineInput = {
+  organizationId: string;
+  eventId: string;
+  eventVendorSlotId: string;
+  field: "planned" | "actual";
+  amountCents: number;
+  changedByUserId: string;
+};
+
+export type BudgetLineHistoryEntry = {
+  field: "planned" | "actual";
+  oldValueCents: number | null;
+  newValueCents: number;
+  changedByUserId: string;
+  changedAt: string;
+};
+
 export interface BudgetServiceContract {
   listAllocationModels(organizationId: string): Promise<AllocationModel[]>;
   createAllocationModel(input: CreateAllocationModelInput): Promise<AllocationModel>;
@@ -67,4 +111,8 @@ export interface BudgetServiceContract {
   getEventBudget(organizationId: string, eventId: string): Promise<EventBudgetView | null>;
   simulateEventBudget(input: SimulateEventBudgetInput): Promise<EventBudgetView>;
   adjustEventBudgetItem(input: AdjustEventBudgetItemInput): Promise<EventBudgetView>;
+  listBudgetLines(organizationId: string, eventId: string): Promise<BudgetLinesView>;
+  confirmEventBudget(input: ConfirmEventBudgetInput): Promise<BudgetLinesView>;
+  updateBudgetLine(input: UpdateBudgetLineInput): Promise<BudgetLinesView>;
+  listBudgetLineHistory(organizationId: string, eventVendorSlotId: string): Promise<BudgetLineHistoryEntry[]>;
 }

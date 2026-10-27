@@ -60,13 +60,18 @@ module `hello`), migration « grant » dédiée. Montants toujours en centimes e
   simulation en cours — recalculé quand le modèle ou le total change, ajustable à la main poste
   par poste (le total et le reste à répartir se recalculent côté serveur à chaque changement,
   jamais seulement côté client).
-- **`budget_lines`** : `id`, `organization_id`, `event_id` (uuid opaque), `default_vendor_slot_id`
-  (uuid opaque), `planned_amount_cents`, `actual_amount_cents` (nullable), `created_at`,
-  `updated_at`. Le budget réel (BUD-02). Créées en copiant `event_budget_items` quand la planner
-  accepte la proposition « en faire le budget prévu » ; une ligne peut aussi être créée/éditée
-  directement sans simulation préalable (un événement peut être confirmé sans être jamais passé
-  par la simulation). L'écart (réel moins prévu, en euros et en pourcentage) est **calculé à la
-  lecture, jamais stocké**.
+- **`budget_lines`** : `id`, `organization_id`, `event_id` (uuid opaque), `event_vendor_slot_id`
+  (uuid opaque — **pas** `default_vendor_slot_id` : `events.event_vendor_slots` (EVT-03) n'a
+  aucune référence aux postes par défaut, seulement un `label` texte ; `events.vendor_slot.booked`
+  publie l'id du poste de l'événement, pas celui d'un poste par défaut), `planned_amount_cents`,
+  `actual_amount_cents` (nullable), `created_at`, `updated_at`. Le budget réel (BUD-02). Créées en
+  rapprochant par `label` chaque `event_budget_items` (simulation, clé sur `default_vendor_slot_id`)
+  avec le poste de l'événement correspondant (`eventsService.listEventVendorSlots`), quand la
+  planner accepte la proposition « en faire le budget prévu » ; refusé si un poste de la
+  simulation n'a plus de correspondance par label dans les postes de l'événement (renommé ou
+  supprimé entre-temps). Une ligne peut aussi être créée/éditée directement sans simulation
+  préalable. L'écart (réel moins prévu, en euros et en pourcentage) est **calculé à la lecture,
+  jamais stocké**.
 - **`budget_line_history`** : `id`, `organization_id`, `line_id`, `field` (`planned` ou
   `actual`), `old_value_cents` (nullable), `new_value_cents`, `changed_by_user_id`, `changed_at`.
   Chaque modification de `planned_amount_cents`/`actual_amount_cents` est historisée (BUD-02).
@@ -96,7 +101,8 @@ module `hello`), migration « grant » dédiée. Montants toujours en centimes e
   mémoire : elle survit à une navigation ou une reconnexion.
 - Sur `/events/[id]`, quand `status === "confirmed"` et qu'une simulation existe mais qu'aucune
   `budget_lines` n'existe encore pour cet événement, un bandeau propose d'« en faire le budget
-  prévu » ; accepter copie `event_budget_items` vers `budget_lines.planned_amount_cents`.
+  prévu » ; accepter rapproche par `label` chaque `event_budget_items` avec le poste de
+  l'événement correspondant, puis crée les `budget_lines` (voir BUD-02 ci-dessous).
 
 ### BUD-02 — Prévu, réel, écart
 

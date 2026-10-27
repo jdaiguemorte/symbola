@@ -45,6 +45,20 @@ export function remainingToAllocateCents(totalAmountCents: number, items: EventB
   return totalAmountCents - sumAmountCents(items);
 }
 
+// BUD-02 — écart = réel moins prévu, en centimes et en pourcentage du
+// prévu. Nul tant qu'aucun montant réel n'est renseigné (jamais 0 par
+// défaut, qui laisserait croire à un écart nul constaté). 0 % si le
+// prévu est à 0 (pas de division par zéro affichée).
+export function computeVariance(
+  plannedAmountCents: number,
+  actualAmountCents: number | null,
+): { varianceCents: number | null; variancePercent: number | null } {
+  if (actualAmountCents === null) return { varianceCents: null, variancePercent: null };
+  const varianceCents = actualAmountCents - plannedAmountCents;
+  const variancePercent = plannedAmountCents === 0 ? 0 : Math.round((varianceCents / plannedAmountCents) * 10000) / 100;
+  return { varianceCents, variancePercent };
+}
+
 // 0 si guestCount est 0 : jamais de division par zéro affichée à l'écran.
 export function costPerGuestCents(totalAmountCents: number, guestCount: number): number {
   if (guestCount <= 0) return 0;

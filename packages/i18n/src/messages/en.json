@@ -485,7 +485,10 @@
     "trialEnd": "End the trial and delete its data",
     "trialNoInvite": "During the trial, no invitation is sent: the couple is only invited on a real event.",
     "demoWatermark": "Fictional document",
-    "budgetLink": "Budget"
+    "budgetLink": "Budget",
+    "confirmBudgetTitle": "Make the simulation the planned budget",
+    "confirmBudgetBody": "The event is confirmed and a simulation already exists: you can use it as the starting point for the planned budget, vendor slot by vendor slot.",
+    "confirmAsPlanned": "Make it the planned budget"
   },
   "Budget": {
     "title": "Budget",
@@ -523,7 +526,21 @@
     "noSimulationYet": "Simulate a budget first, before adjusting a vendor slot.",
     "allocated": "Already allocated",
     "remaining": "Remaining to allocate",
-    "costPerGuest": "Cost per guest"
+    "costPerGuest": "Cost per guest",
+    "linesTitle": "Planned, actual, variance",
+    "confirmAsPlanned": "Make it the planned budget",
+    "vendorSlot": "Vendor slot",
+    "planned": "Planned",
+    "actual": "Actual",
+    "notSet": "Not set",
+    "variance": "Variance",
+    "varianceUnset": "—",
+    "varianceOver": "{amount} over",
+    "varianceUnder": "{amount} under",
+    "varianceEqual": "On budget",
+    "updatePlanned": "Update planned",
+    "updateActual": "Update actual",
+    "total": "Total"
   },
   "ClientSpace": {
     "title": "My wedding",
