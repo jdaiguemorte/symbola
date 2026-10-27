@@ -126,6 +126,47 @@ Exemple pour staging (remplacer `staging` par `production` pour l'autre) :
    curl -sI https://staging.symbola.fr/ | grep -Ei "content-security-policy|strict-transport-security|x-frame-options|referrer-policy"
    ```
 
+## Signature en ligne : mise en service de DocuSeal (DEV-02, ADR 0021)
+
+Tant que ces étapes ne sont pas faites, la signature en ligne s'affiche
+« indisponible » (sans erreur) et DocuSeal ne démarre pas (profil compose
+`signature` désactivé). L'essai guidé fonctionne déjà : il utilise le faux
+fournisseur. **Actions de Julien sur le VPS**, staging d'abord :
+
+1. **DNS** : un enregistrement pour la page publique de signature, par
+   exemple `signature.staging.symbola.fr` (et `signature.symbola.fr` en
+   production) vers le VPS ; reporter le nom dans `DOCUSEAL_DOMAIN`.
+2. **Base dédiée** : remplir `DOCUSEAL_DB_PASSWORD` (`openssl rand -hex 32`)
+   dans `.env.staging`, puis relancer le bootstrap par le tunnel SSH (étape 2
+   du premier déploiement) : il crée la base `docuseal` et son rôle, sans
+   aucun droit pour `symbola_app`.
+3. **Démarrer DocuSeal** : `COMPOSE_PROFILES=signature` dans `.env.staging`,
+   puis la commande `up -d` habituelle.
+4. **Caddy** : ajouter le bloc du sous-domaine de signature, qui
+   reverse-proxie vers `symbola-docuseal-staging:3000` (alias porté par le
+   conteneur DocuSeal, même principe que l'app).
+5. **Compte et clé d'API** : ouvrir `https://signature.staging.symbola.fr`,
+   créer le compte administrateur (mot de passe dans le gestionnaire de mots
+   de passe), puis *Settings → API* : copier la clé dans `DOCUSEAL_API_KEY`.
+6. **Webhook** : *Settings → Webhooks*, URL
+   `https://staging.symbola.fr/api/webhooks/signature`, événements
+   `form.completed`, `form.declined`, `submission.completed` ; dans
+   *Security → Secret*, ajouter l'en-tête `X-Symbola-Webhook-Secret` avec la
+   valeur de `SIGNATURE_WEBHOOK_SECRET` (`openssl rand -hex 32`). Si
+   l'édition déployée propose aussi la signature HMAC du corps, la noter
+   pour un durcissement ultérieur (ADR 0021).
+7. **Activer** : `SIGNATURE_PROVIDER=docuseal` dans `.env.staging`, puis
+   `up -d` (l'app refuse de démarrer si une valeur DocuSeal manque).
+8. **Vérifier** : envoyer un devis de test en signature à sa propre adresse,
+   signer, et vérifier que le devis passe « Signé » et l'événement
+   « Confirmé ». Un appel au webhook sans l'en-tête doit répondre 401 :
+   ```bash
+   curl -s -o /dev/null -w "%{http_code}\n" -X POST https://staging.symbola.fr/api/webhooks/signature -d '{}'
+   ```
+
+La base et les fichiers de DocuSeal entrent automatiquement dans la
+sauvegarde nocturne dès qu'ils existent (`docs/runbooks/restauration.md`).
+
 ## Mise à jour (nouvelle version)
 
 1. La CI a publié une nouvelle image taguée par le SHA du commit fusionné

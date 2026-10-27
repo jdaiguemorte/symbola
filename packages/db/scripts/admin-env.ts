@@ -13,6 +13,11 @@ const schema = z.object({
   POSTGRES_ADMIN_PASSWORD: z.string().min(1),
   POSTGRES_APP_USER: z.string().min(1).default("symbola_app"),
   POSTGRES_APP_PASSWORD: z.string().min(1),
+  // DEV-02, ADR 0021 : base et rôle de DocuSeal, créés seulement si un mot
+  // de passe est fourni (environnements où DocuSeal est déployé).
+  DOCUSEAL_DB_USER: z.string().min(1).default("docuseal"),
+  DOCUSEAL_DB_NAME: z.string().min(1).default("docuseal"),
+  DOCUSEAL_DB_PASSWORD: z.string().default(""),
 });
 
 export type AdminEnv = z.infer<typeof schema>;

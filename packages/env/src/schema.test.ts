@@ -51,6 +51,8 @@ describe("SOC-03 — Validation des variables d'environnement (Zod)", () => {
   it("DEV-02 — signature : faux fournisseur hors production, « indisponible » en production par défaut", () => {
     expect(signatureProviderOf(parseEnv({ ...validEnv }))).toBe("fake");
     expect(signatureProviderOf(parseEnv({ ...validEnv, NODE_ENV: "production" }))).toBe("none");
+    // Le compose transmet une valeur vide quand la variable n'est pas remplie.
+    expect(signatureProviderOf(parseEnv({ ...validEnv, NODE_ENV: "production", SIGNATURE_PROVIDER: "" }))).toBe("none");
   });
 
   it("DEV-02 — refuse le faux fournisseur en production, et DocuSeal sans clé, URL ou secret suffisant", () => {

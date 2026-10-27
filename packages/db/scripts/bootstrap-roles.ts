@@ -1,9 +1,11 @@
 // Crée (ou met à jour le mot de passe de) le rôle applicatif symbola_app
-// (SOC-05). Jamais dans une migration versionnée : le mot de passe ne doit
+// (SOC-05), et la base dédiée de DocuSeal si DOCUSEAL_DB_PASSWORD est
+// fourni (DEV-02, ADR 0021). Jamais dans une migration versionnée : le mot de passe ne doit
 // jamais être committé. Idempotent — peut être rejoué sans risque.
 // Exécuté avec le rôle admin, avant `pnpm --filter @symbola/db migrate`.
 import postgres from "postgres";
 import { parseAdminEnv } from "./admin-env";
+import { ensureDocusealDatabase } from "./docuseal-database";
 import { quoteIdentifier, quoteLiteral } from "./sql-quoting";
 
 async function main() {
@@ -36,6 +38,16 @@ async function main() {
         `CREATE ROLE ${role} LOGIN PASSWORD ${password} NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS`,
       );
       console.log(`Rôle ${env.POSTGRES_APP_USER} créé.`);
+    }
+
+    if (env.DOCUSEAL_DB_PASSWORD) {
+      await ensureDocusealDatabase(sql, {
+        role: env.DOCUSEAL_DB_USER,
+        password: env.DOCUSEAL_DB_PASSWORD,
+        database: env.DOCUSEAL_DB_NAME,
+        appRole: env.POSTGRES_APP_USER,
+      });
+      console.log(`Base ${env.DOCUSEAL_DB_NAME} et rôle ${env.DOCUSEAL_DB_USER} de DocuSeal prêts.`);
     }
   } finally {
     await sql.end();

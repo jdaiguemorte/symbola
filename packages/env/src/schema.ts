@@ -66,7 +66,8 @@ export const envSchema = z.object({
   // hors production, « indisponible » en production tant que DocuSeal n'est
   // pas configuré par Julien. Le faux fournisseur est interdit en production
   // (seuls les devis d'essai guidé l'utilisent, quel que soit ce réglage).
-  SIGNATURE_PROVIDER: z.enum(["none", "fake", "docuseal"]).optional(),
+  // Vide (compose sans valeur) = non renseigné.
+  SIGNATURE_PROVIDER: z.preprocess((value) => (value === "" ? undefined : value), z.enum(["none", "fake", "docuseal"]).optional()),
   SIGNATURE_WEBHOOK_HEADER: z.string().min(1).default("X-Symbola-Webhook-Secret"),
   SIGNATURE_WEBHOOK_SECRET: z.string().default(""),
   // API interne (ex. http://docuseal:3000/api) et URL publique des pages de

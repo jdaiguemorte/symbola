@@ -128,6 +128,46 @@ describe("SOC-09 — Isolation staging ↔ production sur le même VPS (ADR 0016
   });
 });
 
+describe("DEV-02 — DocuSeal dans le compose d'environnement (ADR 0021)", () => {
+  const block = () => serviceBlock(prodCompose, "docuseal");
+  const devCompose = readFileSync(resolve(repoRoot, "infra/compose/docker-compose.dev.yml"), "utf8");
+
+  it("épingle l'image docuseal/docuseal sur une version précise, en dev comme en environnement", () => {
+    expect(block()).toMatch(/image: docuseal\/docuseal:\d+\.\d+\.\d+\n/);
+    expect(serviceBlock(devCompose, "docuseal")).toMatch(/image: docuseal\/docuseal:\d+\.\d+\.\d+\n/);
+  });
+
+  it("ne démarre que dans le profil « signature », activé explicitement par Julien", () => {
+    expect(block()).toContain('profiles: ["signature"]');
+    for (const name of ["staging", "production"]) expect(envValue(envExample(name), "COMPOSE_PROFILES")).toBe("");
+  });
+
+  it("utilise sa propre base, jamais celle de Symbola, et n'expose aucun port hôte", () => {
+    expect(block()).toMatch(/DATABASE_URL: postgresql:\/\/\$\{DOCUSEAL_DB_USER:-docuseal\}:.*@postgres:5432\/\$\{DOCUSEAL_DB_NAME:-docuseal\}/);
+    expect(block()).not.toContain("POSTGRES_DB");
+    expect(block()).not.toMatch(/\n {4}ports:/);
+    expect(block()).toContain("no-new-privileges:true");
+    expect(prodCompose).toMatch(/\n {2}docuseal_data:/);
+  });
+
+  it("limite sa mémoire et son CPU, staging jamais au-dessus de la production", () => {
+    expect(block()).toMatch(/memory:\s*\$\{DOCUSEAL_MEM_LIMIT:-/);
+    expect(block()).toMatch(/cpus:\s*\$\{DOCUSEAL_CPUS:-/);
+    const [staging, production] = [envExample("staging"), envExample("production")];
+    expect(toBytes(envValue(staging, "DOCUSEAL_MEM_LIMIT"))).toBeLessThanOrEqual(toBytes(envValue(production, "DOCUSEAL_MEM_LIMIT")));
+    expect(Number(envValue(staging, "DOCUSEAL_CPUS"))).toBeLessThanOrEqual(Number(envValue(production, "DOCUSEAL_CPUS")));
+  });
+
+  it("laisse la signature « indisponible » tant qu'elle n'est pas configurée (aucun secret dans les modèles)", () => {
+    for (const name of ["staging", "production"]) {
+      const content = envExample(name);
+      for (const key of ["SIGNATURE_PROVIDER", "SIGNATURE_WEBHOOK_SECRET", "DOCUSEAL_API_KEY", "DOCUSEAL_DB_PASSWORD"]) {
+        expect(envValue(content, key)).toBe("");
+      }
+    }
+  });
+});
+
 describe("SOC-09 — Secrets de staging/production jamais commités", () => {
   it("ignore .env.staging, .env.production et les garage.toml d'environnement", () => {
     expect(gitignore).toMatch(/^\.env\.staging$/m);

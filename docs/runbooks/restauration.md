@@ -16,6 +16,7 @@ chaque commande, sur le VPS, en root (`sudo -i`). Prérequis : durcissement fait
 | PostgreSQL (base `symbola`, tous les schémas de modules) | `pg_dump --format=custom` dans le conteneur, vérifié par `pg_restore --list` avant envoi | Dump transactionnel, l'app reste en ligne |
 | Garage (fichiers et métadonnées, volume `symbola-<env>_garage_data`) | Copie du volume par restic, **Garage arrêté pendant la copie** (quelques secondes à minutes la nuit) | Fichiers figés, métadonnées SQLite cohérentes |
 | Uptime Kuma (volume `symbola-socle_uptime_kuma_data`) — production seulement | Copie du volume, Kuma arrêté pendant la copie | Base SQLite cohérente |
+| DocuSeal (DEV-02, ADR 0021) — une fois déployé : base dédiée `docuseal` et volume `symbola-<env>_docuseal_data` | Second `pg_dump` vérifié par `pg_restore --list`, volume copié avec DocuSeal arrêté | Ignoré tant que la base ou le volume n'existent pas ; restauré seulement si l'instantané le contient (rôle `docuseal` requis : bootstrap avec `DOCUSEAL_DB_PASSWORD` d'abord) |
 
 - **Un dépôt restic par environnement** (`/srv/backups/restic/production`,
   `/srv/backups/restic/staging`), chacun avec **son propre mot de passe**. Chaque

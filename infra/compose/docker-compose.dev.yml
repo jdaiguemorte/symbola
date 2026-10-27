@@ -85,6 +85,26 @@ services:
       timeout: 5s
       retries: 10
 
+  # Signature en ligne (DEV-02, ADR 0021), facultative en dev : le faux
+  # fournisseur suffit pour coder et tester. Pour essayer le vrai DocuSeal :
+  # DOCUSEAL_DB_PASSWORD dans .env, bootstrap (crée sa base dédiée), puis
+  # `--profile signature up -d` ; console sur http://localhost:3010.
+  docuseal:
+    image: docuseal/docuseal:3.3.2
+    profiles: ["signature"]
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://${DOCUSEAL_DB_USER:-docuseal}:${DOCUSEAL_DB_PASSWORD:-}@postgres:5432/${DOCUSEAL_DB_NAME:-docuseal}
+      HOST: localhost:3010
+    ports:
+      - "3010:3000"
+    volumes:
+      - symbola_docuseal_data:/data
+    depends_on:
+      - postgres
+    security_opt:
+      - no-new-privileges:true
+
   traefik:
     image: traefik:v3.2
     restart: unless-stopped
@@ -102,6 +122,7 @@ services:
       - no-new-privileges:true
 
 volumes:
+  symbola_docuseal_data:
   symbola_postgres_data:
   symbola_garage_data:
   symbola_clamav_data:
