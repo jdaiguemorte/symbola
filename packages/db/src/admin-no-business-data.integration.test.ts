@@ -10,6 +10,7 @@
 import { randomUUID } from "node:crypto";
 import { afterAll, describe, expect, it } from "vitest";
 import { createAppConnection } from "./client";
+import { budgetLineAttachments, budgetLines } from "./schema/budget";
 import { greetings } from "./schema/hello";
 import {
   defaultVendorSlots,
@@ -162,6 +163,32 @@ describe("HUB-03 — L'Admin ne lit jamais de donnée métier", () => {
       } catch (error) {
         expect(error).toBeTruthy();
       }
+    }
+  });
+
+  it("vaut aussi pour les devis joints au budget (BUD-03, PostgreSQL réel)", async () => {
+    const organizationId = randomUUID();
+    await withOrganization(db, organizationId, async (tx) => {
+      const [line] = await tx
+        .insert(budgetLines)
+        .values({ organizationId, eventId: randomUUID(), eventVendorSlotId: randomUUID(), plannedAmountCents: 0 })
+        .returning();
+      if (!line) throw new Error("insertion attendue");
+      await tx.insert(budgetLineAttachments).values({
+        organizationId,
+        lineId: line.id,
+        fileKey: `${organizationId}/devis.pdf`,
+        mime: "application/pdf",
+        sizeBytes: 1234,
+        uploadedByUserId: randomUUID(),
+      });
+    });
+
+    try {
+      const rows = await db.select().from(budgetLineAttachments);
+      expect(rows).toHaveLength(0);
+    } catch (error) {
+      expect(error).toBeTruthy();
     }
   });
 });

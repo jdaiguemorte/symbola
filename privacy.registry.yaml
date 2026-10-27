@@ -101,3 +101,16 @@ fields:
       Remplacé par « [anonymisé] » lors d'une demande d'oubli (RGPD-03),
       l'accès étant retiré en même temps ; la ligne d'accès est supprimée
       lors d'un effacement.
+  - schema: budget
+    table: budget_line_attachments
+    field: file_key
+    category: contenu_libre
+    retention: >-
+      Tant que la ligne de budget existe (BUD-03 : devis d'un prestataire,
+      stocké en privé ; le document peut nommer un prestataire indépendant,
+      donc une personne). Le contenu du fichier n'est pas indexé : il n'entre
+      pas dans la recherche RGPD par terme. Après suppression ou demande
+      d'oubli : voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Le document est supprimé du stockage (pas d'anonymisation partielle
+      d'un PDF ou d'une image) ; la ligne de budget reste.

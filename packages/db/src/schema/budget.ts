@@ -91,3 +91,19 @@ export const budgetLineHistory = budgetSchema.table("budget_line_history", {
   changedByUserId: uuid("changed_by_user_id").notNull(),
   changedAt: timestamp("changed_at", { withTimezone: true }).defaultNow().notNull(),
 });
+
+// BUD-03 — devis prestataire joint à une ligne de budget. Le fichier vit
+// dans le stockage privé (@symbola/files : type vérifié par le contenu,
+// antivirus, jamais d'URL publique) ; seule sa clé est stockée ici.
+export const budgetLineAttachments = budgetSchema.table("budget_line_attachments", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  lineId: uuid("line_id")
+    .notNull()
+    .references(() => budgetLines.id),
+  fileKey: text("file_key").notNull(),
+  mime: text("mime").notNull(),
+  sizeBytes: integer("size_bytes").notNull(),
+  uploadedByUserId: uuid("uploaded_by_user_id").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});

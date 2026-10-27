@@ -71,6 +71,25 @@ export type BudgetLine = {
   actualAmountCents: number | null;
   varianceCents: number | null;
   variancePercent: number | null;
+  // BUD-03 : devis prestataires joints à la ligne.
+  attachments: BudgetLineAttachment[];
+};
+
+// BUD-03 — devis prestataire joint. Jamais d'URL dans la vue : le fichier
+// s'ouvre par un lien signé temporaire demandé au moment de l'ouverture.
+export type BudgetLineAttachment = {
+  id: string;
+  mime: string;
+  sizeBytes: number;
+  createdAt: string;
+};
+
+export type AttachBudgetLineQuoteInput = {
+  organizationId: string;
+  eventId: string;
+  eventVendorSlotId: string;
+  content: Uint8Array;
+  uploadedByUserId: string;
 };
 
 export type BudgetLinesView = {
@@ -115,4 +134,6 @@ export interface BudgetServiceContract {
   confirmEventBudget(input: ConfirmEventBudgetInput): Promise<BudgetLinesView>;
   updateBudgetLine(input: UpdateBudgetLineInput): Promise<BudgetLinesView>;
   listBudgetLineHistory(organizationId: string, eventVendorSlotId: string): Promise<BudgetLineHistoryEntry[]>;
+  attachBudgetLineQuote(input: AttachBudgetLineQuoteInput): Promise<BudgetLineAttachment>;
+  getBudgetLineAttachmentUrl(organizationId: string, attachmentId: string): Promise<string>;
 }
