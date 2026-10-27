@@ -32,7 +32,7 @@ export type Metier = "wedding_planner" | "autre";
 
 // Un seul module « métier » existe pour l'instant (hello, SOC-01) — les
 // futurs modules (events, budget, quotes) ajouteront leur clé ici.
-export const MODULE_KEYS = ["hello"] as const;
+export const MODULE_KEYS = ["hello", "events"] as const;
 export type ModuleKey = (typeof MODULE_KEYS)[number];
 
 const INVITATION_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 jours (PRD HUB-03, proposé)

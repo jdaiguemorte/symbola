@@ -8,6 +8,7 @@
     "./with-organization": "./src/with-organization.ts",
     "./schema/hello": "./src/schema/hello.ts",
     "./schema/hub": "./src/schema/hub.ts",
+    "./schema/events": "./src/schema/events.ts",
     "./schema/core": "./src/schema/core.ts",
     "./events/emit": "./src/events/emit.ts",
     "./events/worker": "./src/events/worker.ts",
