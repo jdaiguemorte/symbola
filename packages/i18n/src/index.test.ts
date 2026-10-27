@@ -4,6 +4,7 @@ import {
   formatCalendarDate,
   formatDate,
   formatDateTime,
+  formatFileSize,
   formatMonth,
   localeFromAcceptLanguage,
   parseAmountToCents,
@@ -39,6 +40,15 @@ describe("@symbola/i18n — formatDateTime", () => {
     expect(summer).not.toMatch(/[\u00a0\u202f]/);
     expect(formatDateTime(new Date("2027-01-12T13:05:00Z"), "fr")).toContain("14:05");
     expect(formatDateTime(new Date("2027-06-12T13:05:00Z"), "en")).toContain("June 12, 2027");
+  });
+});
+
+describe("@symbola/i18n — formatFileSize", () => {
+  it("affiche des Ko ou des Mo selon la taille et la langue", () => {
+    expect(formatFileSize(1536, "fr")).toBe("1,5 Ko");
+    expect(formatFileSize(5 * 1024 * 1024, "fr")).toBe("5 Mo");
+    expect(formatFileSize(1536, "en")).toBe("1.5 KB");
+    expect(formatFileSize(12, "en")).toBe("0.1 KB");
   });
 });
 

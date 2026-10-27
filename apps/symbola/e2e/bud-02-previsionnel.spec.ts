@@ -39,12 +39,18 @@ test("BUD-02 — confirmer la simulation en budget prévu, puis suivre prévu/r�
   await loginAndSetupMfa(page, email, password);
 
   // Prérequis : postes par défaut, source, modèle de répartition.
+  // Attend l'hydratation et chaque confirmation : un clic trop tôt part
+  // sans effet (course déjà rencontrée au lot 2, EVT-03).
   await page.goto("/events/parametres");
+  await page.waitForLoadState("networkidle");
   await page.getByRole("button", { name: "Charger le modèle de départ" }).click();
+  await expect(page.getByRole("listitem").filter({ hasText: "Lieu de réception" })).toBeVisible();
   await page.getByLabel("Nouvelle source").fill("Instagram");
   await page.getByRole("button", { name: "Ajouter la source" }).click();
+  await expect(page.getByText("Source ajoutée.")).toBeVisible();
 
   await page.goto("/budget/parametres");
+  await page.waitForLoadState("networkidle");
   await page.getByLabel("Nom du modèle").fill("Classique");
   await page.getByLabel("Lieu de réception %").fill("60");
   await page.getByLabel("Traiteur %").fill("40");
@@ -68,6 +74,7 @@ test("BUD-02 — confirmer la simulation en budget prévu, puis suivre prévu/r�
 
   // Pas encore de bandeau avant confirmation (événement toujours prospect).
   await page.goto(eventUrl);
+  await page.waitForLoadState("networkidle");
   await expect(page.getByRole("heading", { name: "Faire de la simulation le budget prévu" })).toHaveCount(0);
 
   // Passage en Confirmé → le bandeau apparaît.

@@ -30,6 +30,9 @@ const nextConfig: NextConfig = {
   // @react-pdf/renderer (EVT-05) charge ses polices et sa mise en page
   // depuis node_modules à l'exécution : même traitement.
   serverExternalPackages: ["@node-rs/argon2", "@node-rs/argon2-darwin-arm64", "postgres", "@react-pdf/renderer"],
+  // BUD-03 : un devis prestataire peut peser jusqu'à 20 Mo (limite vérifiée
+  // ensuite par @symbola/files) ; 1 Mo par défaut pour une Server Action.
+  experimental: { serverActions: { bodySizeLimit: "21mb" } },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

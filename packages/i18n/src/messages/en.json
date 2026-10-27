@@ -242,7 +242,7 @@
     },
     "budgetDetail": {
       "title": "Event budget",
-      "body": "Enter the total budget and the number of guests, choose an allocation model: you get an amount per vendor slot and the cost per guest. Adjust a vendor slot by hand if needed, the remaining amount to allocate recalculates right away."
+      "body": "Enter the total budget and the number of guests, choose an allocation model: you get an amount per vendor slot and the cost per guest. Adjust a vendor slot by hand if needed, the remaining amount to allocate recalculates right away. Attach a vendor's quote to its line (PDF or image, 20 MB max): it is checked by the antivirus and opens through a temporary link."
     }
   },
   "FirstSteps": {
@@ -540,7 +540,17 @@
     "varianceEqual": "On budget",
     "updatePlanned": "Update planned",
     "updateActual": "Update actual",
-    "total": "Total"
+    "total": "Total",
+    "quoteFile": "Vendor quote — {label} (PDF or image, 20 MB max)",
+    "attachQuote": "Attach the quote",
+    "quoteAttached": "Quote attached.",
+    "quoteMissing": "Choose a file.",
+    "quoteTooLarge": "The file exceeds 20 MB.",
+    "quoteUnsupported": "Unsupported format: attach a PDF or an image.",
+    "quoteInfected": "File rejected by the antivirus.",
+    "quoteLineNotFound": "Budget line not found.",
+    "quotesOf": "Attached quotes — {label}",
+    "openQuote": "Open quote {number} — {label} ({size})"
   },
   "ClientSpace": {
     "title": "My wedding",

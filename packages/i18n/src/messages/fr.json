@@ -242,7 +242,7 @@
     },
     "budgetDetail": {
       "title": "Budget de l'événement",
-      "body": "Saisissez le budget total et le nombre d'invités, choisissez un modèle de répartition : vous obtenez un montant par poste et le coût par invité. Ajustez un poste à la main si besoin, le reste à répartir se recalcule aussitôt."
+      "body": "Saisissez le budget total et le nombre d'invités, choisissez un modèle de répartition : vous obtenez un montant par poste et le coût par invité. Ajustez un poste à la main si besoin, le reste à répartir se recalcule aussitôt. Joignez le devis d'un prestataire à sa ligne (PDF ou image, 20 Mo maximum) : il est vérifié par l'antivirus et s'ouvre par un lien temporaire."
     }
   },
   "FirstSteps": {
@@ -540,7 +540,17 @@
     "varianceEqual": "Conforme au prévu",
     "updatePlanned": "Mettre à jour le prévu",
     "updateActual": "Mettre à jour le réel",
-    "total": "Total"
+    "total": "Total",
+    "quoteFile": "Devis du prestataire — {label} (PDF ou image, 20 Mo maximum)",
+    "attachQuote": "Joindre le devis",
+    "quoteAttached": "Devis joint.",
+    "quoteMissing": "Choisissez un fichier.",
+    "quoteTooLarge": "Le fichier dépasse 20 Mo.",
+    "quoteUnsupported": "Format non supporté : joignez un PDF ou une image.",
+    "quoteInfected": "Fichier refusé par l'antivirus.",
+    "quoteLineNotFound": "Ligne de budget introuvable.",
+    "quotesOf": "Devis joints — {label}",
+    "openQuote": "Ouvrir le devis {number} — {label} ({size})"
   },
   "ClientSpace": {
     "title": "Mon mariage",

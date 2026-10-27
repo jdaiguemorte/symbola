@@ -9,15 +9,20 @@ import {
   EventBudgetNotFoundError,
   EventNotFoundError,
   EventVendorSlotNotFoundError,
+  BudgetLineNotFoundError,
+  QuoteFileInfectedError,
+  QuoteFileTooLargeError,
+  QuoteFileUnsupportedTypeError,
   adjustEventBudgetItem,
+  attachBudgetLineQuote,
   confirmEventBudget,
   simulateEventBudget,
   updateBudgetLine,
 } from "@/modules/budget/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
-import { isBudgetModuleEnabled } from "../module-access";
+import { isBudgetModuleEnabled, isValidId } from "../module-access";
 
-export type BudgetFormState = { error?: string };
+export type BudgetFormState = { error?: string; success?: boolean };
 
 async function authorizedOrganizationId(): Promise<string | null> {
   const auth = await getPlannerAuthContext();
@@ -149,4 +154,39 @@ export async function adjustEventBudgetItemAction(
 
   revalidatePath(`/budget/${eventId}`);
   return {};
+}
+
+// BUD-03 — devis prestataire joint à une ligne (PDF ou image, 20 Mo).
+export async function attachQuoteAction(_prevState: BudgetFormState, formData: FormData): Promise<BudgetFormState> {
+  const t = await getTranslations("Budget");
+  const organizationId = await authorizedOrganizationId();
+  if (!organizationId) return { error: t("unauthenticated") };
+  const auth = await getPlannerAuthContext();
+  if (auth.status !== "authenticated") return { error: t("unauthenticated") };
+
+  const eventId = String(formData.get("eventId") ?? "");
+  const eventVendorSlotId = String(formData.get("eventVendorSlotId") ?? "");
+  if (!isValidId(eventId) || !isValidId(eventVendorSlotId)) return { error: t("quoteLineNotFound") };
+  const file = formData.get("quote");
+  if (!(file instanceof File) || file.size === 0) return { error: t("quoteMissing") };
+
+  try {
+    await attachBudgetLineQuote({
+      organizationId,
+      eventId,
+      eventVendorSlotId,
+      content: new Uint8Array(await file.arrayBuffer()),
+      uploadedByUserId: auth.user.id,
+    });
+  } catch (error) {
+    if (error instanceof QuoteFileTooLargeError) return { error: t("quoteTooLarge") };
+    if (error instanceof QuoteFileUnsupportedTypeError) return { error: t("quoteUnsupported") };
+    if (error instanceof QuoteFileInfectedError) return { error: t("quoteInfected") };
+    if (error instanceof EventNotFoundError) return { error: t("eventNotFound") };
+    if (error instanceof BudgetLineNotFoundError) return { error: t("quoteLineNotFound") };
+    throw error;
+  }
+
+  revalidatePath(`/budget/${eventId}`);
+  return { success: true };
 }

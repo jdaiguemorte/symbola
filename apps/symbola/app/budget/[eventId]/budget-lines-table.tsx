@@ -2,8 +2,8 @@
 
 import { useActionState } from "react";
 import { useTranslations } from "next-intl";
-import { formatAmount, type Locale } from "@symbola/i18n";
-import { confirmEventBudgetAction, updateBudgetLineAction, type BudgetFormState } from "./actions";
+import { formatAmount, formatFileSize, type Locale } from "@symbola/i18n";
+import { attachQuoteAction, confirmEventBudgetAction, updateBudgetLineAction, type BudgetFormState } from "./actions";
 import type { BudgetLinesView } from "@/modules/budget/service";
 
 function LineRow({
@@ -19,6 +19,7 @@ function LineRow({
   const initialState: BudgetFormState = {};
   const [plannedState, plannedAction, plannedPending] = useActionState(updateBudgetLineAction, initialState);
   const [actualState, actualAction, actualPending] = useActionState(updateBudgetLineAction, initialState);
+  const [quoteState, quoteAction, quotePending] = useActionState(attachQuoteAction, initialState);
 
   // BUD-02 : dépassement en rouge, économie en vert — jamais seulement la
   // couleur (le texte « dépassement »/« économie » porte l'information,
@@ -75,6 +76,35 @@ function LineRow({
             {t("updateActual")}
           </button>
           {actualState.error ? <p role="alert">{actualState.error}</p> : null}
+        </form>
+        {/* BUD-03 : devis prestataires joints, ouverts par lien signé temporaire. */}
+        {line.attachments.length > 0 ? (
+          <ul aria-label={t("quotesOf", { label: line.label })}>
+            {line.attachments.map((attachment, index) => (
+              <li key={attachment.id}>
+                <a href={`/budget/${eventId}/devis/${attachment.id}`} target="_blank" rel="noopener noreferrer">
+                  {t("openQuote", {
+                    number: index + 1,
+                    label: line.label,
+                    size: formatFileSize(attachment.sizeBytes, locale),
+                  })}
+                </a>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+        <form action={quoteAction}>
+          <input type="hidden" name="eventId" value={eventId} />
+          <input type="hidden" name="eventVendorSlotId" value={line.eventVendorSlotId} />
+          <label>
+            {t("quoteFile", { label: line.label })}
+            <input type="file" name="quote" accept="application/pdf,image/*" required />
+          </label>
+          <button type="submit" disabled={quotePending}>
+            {t("attachQuote")}
+          </button>
+          {quoteState.error ? <p role="alert">{quoteState.error}</p> : null}
+          {quoteState.success ? <p role="status">{t("quoteAttached")}</p> : null}
         </form>
       </td>
     </tr>
