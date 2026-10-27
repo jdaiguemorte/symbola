@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import retroplanningFile from "./retroplanning.json";
 import vendorSlotsFile from "./vendor-slots.json";
 import programFile from "./program.json";
-import { starterDemoEvent, starterProgram, starterRetroplanning, starterVendorSlots } from "./index";
+import { starterDemoEvent, starterPaymentMethods, starterProgram, starterRetroplanning, starterVendorSlots } from "./index";
 
 describe("EVT-03 — Modèle de départ des postes prestataires", () => {
   it("existe en français et en anglais, avec le même nombre de postes", () => {
@@ -76,5 +76,15 @@ describe("AIDE-02 — Données fictives de l'essai guidé des événements", () 
     expect(fr.clients.every((client) => client.lastName.includes("démo"))).toBe(true);
     expect(en.clients.every((client) => client.lastName.includes("demo"))).toBe(true);
     expect(fr.venueName).toContain("fictif");
+  });
+});
+
+describe("DEV-03 — Modèle de départ des modes de paiement", () => {
+  it("existe en français et en anglais, avec le même nombre de modes", () => {
+    const fr = starterPaymentMethods("fr");
+    const en = starterPaymentMethods("en");
+    expect(fr).toContain("Virement bancaire");
+    expect(en).toContain("Bank transfer");
+    expect(en).toHaveLength(fr.length);
   });
 });

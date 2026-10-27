@@ -22,6 +22,70 @@ export type QuoteSettings = {
   quotePrefix: string;
   invoicePrefix: string;
   creditNotePrefix: string;
+  // DEV-03 : horizon des encaissements à venir au tableau de bord.
+  upcomingHorizonDays: number;
+};
+
+// DEV-03 — modes de paiement (liste paramétrable par organisation).
+export type PaymentMethod = { id: string; label: string; archived: boolean };
+
+// Un acompte : montant fixe OU pourcentage du total TTC, et une date.
+export type ScheduleItemInput = {
+  label: string;
+  dueDate: string;
+  amountCents?: number | null | undefined;
+  percentageBasisPoints?: number | null | undefined;
+};
+
+export type ScheduleItemView = {
+  id: string;
+  label: string;
+  dueDate: string;
+  fixedAmountCents: number | null;
+  percentageBasisPoints: number | null;
+  // Montant effectif, recalculé sur le total de la version.
+  amountCents: number;
+  paidOn: string | null;
+  paymentMethodId: string | null;
+  paymentMethodLabel: string | null;
+  overdue: boolean;
+  position: number;
+};
+
+export type PaymentScheduleView = {
+  items: ScheduleItemView[];
+  scheduledCents: number;
+  // Solde calculé, jamais stocké.
+  balanceCents: number;
+  exceedsTotal: boolean;
+};
+
+export type MarkScheduleItemPaidInput = {
+  organizationId: string;
+  scheduleItemId: string;
+  paidOn: string;
+  paymentMethodId: string;
+  now?: Date | undefined;
+};
+
+export type UnpaidPayment = {
+  scheduleItemId: string;
+  quoteId: string;
+  quoteNumber: string;
+  eventId: string;
+  label: string;
+  dueDate: string;
+  amountCents: number;
+  overdue: boolean;
+};
+
+// DEV-03 — encaissements à venir : échéances non payées des devis envoyés
+// ou signés (jamais d'essai), triées par date, total par mois.
+export type UnpaidPaymentsView = {
+  overdue: UnpaidPayment[];
+  upcoming: UnpaidPayment[];
+  overdueTotalCents: number;
+  months: { month: string; totalCents: number }[];
 };
 
 export type QuoteStatus = "draft" | "sent" | "signed" | "declined" | "expired";
@@ -87,6 +151,7 @@ export type QuoteVersionView = {
   seller: SellerSnapshot | null;
   validUntil: string | null;
   sentAt: string | null;
+  schedule: PaymentScheduleView;
 };
 
 export type QuoteSummary = {
@@ -137,4 +202,13 @@ export interface QuotesServiceContract {
   sendQuote(input: SendQuoteInput): Promise<QuoteDetail>;
   reviseQuote(organizationId: string, quoteId: string): Promise<QuoteDetail>;
   removeEventQuotesData(organizationId: string, eventIds: string[]): Promise<void>;
+  listPaymentMethods(organizationId: string, options?: { includeArchived?: boolean }): Promise<PaymentMethod[]>;
+  addPaymentMethods(organizationId: string, labels: string[]): Promise<PaymentMethod[]>;
+  archivePaymentMethod(organizationId: string, paymentMethodId: string): Promise<void>;
+  addScheduleItem(organizationId: string, quoteId: string, item: ScheduleItemInput): Promise<QuoteDetail>;
+  updateScheduleItem(organizationId: string, scheduleItemId: string, item: ScheduleItemInput): Promise<QuoteDetail>;
+  removeScheduleItem(organizationId: string, scheduleItemId: string): Promise<QuoteDetail>;
+  markScheduleItemPaid(input: MarkScheduleItemPaidInput): Promise<QuoteDetail>;
+  markScheduleItemUnpaid(organizationId: string, scheduleItemId: string): Promise<QuoteDetail>;
+  listUnpaidPayments(organizationId: string, options?: { now?: Date; horizonDays?: number }): Promise<UnpaidPaymentsView>;
 }

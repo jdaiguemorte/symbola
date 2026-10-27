@@ -7,7 +7,16 @@ import { assertOrganizationIsolation } from "@symbola/testing";
 import { eq } from "drizzle-orm";
 import { afterAll, describe, it } from "vitest";
 import { createAppConnection } from "./client";
-import { catalogItems, numberSeries, quoteLines, quoteSettings, quotes, quoteVersions } from "./schema/quotes";
+import {
+  catalogItems,
+  numberSeries,
+  paymentMethods,
+  paymentScheduleItems,
+  quoteLines,
+  quoteSettings,
+  quotes,
+  quoteVersions,
+} from "./schema/quotes";
 import { withOrganization } from "./with-organization";
 
 const { sql, db } = createAppConnection();
@@ -137,6 +146,46 @@ describe("DEV-01 — Isolation entre organisations (module quotes, PostgreSQL r�
       attemptCrossOrganizationUpdate: async (organizationId, targetRow) => {
         const updated = await withOrganization(db, organizationId, (tx) =>
           tx.update(quoteSettings).set({ validityDays: 1 }).where(eq(quoteSettings.id, targetRow.id)).returning(),
+        );
+        return { affectedRows: updated.length };
+      },
+    });
+  });
+
+  it("modes de paiement (DEV-03)", async () => {
+    await assertOrganizationIsolation({
+      seed: async (organizationId) =>
+        withOrganization(db, organizationId, async (tx) => {
+          const [row] = await tx.insert(paymentMethods).values({ organizationId, label: "Virement" }).returning();
+          if (!row) throw new Error("insertion attendue");
+          return row;
+        }),
+      listVisible: async (organizationId) => withOrganization(db, organizationId, (tx) => tx.select().from(paymentMethods)),
+      attemptCrossOrganizationUpdate: async (organizationId, targetRow) => {
+        const updated = await withOrganization(db, organizationId, (tx) =>
+          tx.update(paymentMethods).set({ label: "falsifié" }).where(eq(paymentMethods.id, targetRow.id)).returning(),
+        );
+        return { affectedRows: updated.length };
+      },
+    });
+  });
+
+  it("échéancier (DEV-03)", async () => {
+    await assertOrganizationIsolation({
+      seed: async (organizationId) =>
+        withOrganization(db, organizationId, async (tx) => {
+          const { version } = await seedQuote(tx, organizationId);
+          const [row] = await tx
+            .insert(paymentScheduleItems)
+            .values({ organizationId, versionId: version.id, label: "Acompte", amountCents: 50000, dueDate: "2027-06-01" })
+            .returning();
+          if (!row) throw new Error("insertion attendue");
+          return row;
+        }),
+      listVisible: async (organizationId) => withOrganization(db, organizationId, (tx) => tx.select().from(paymentScheduleItems)),
+      attemptCrossOrganizationUpdate: async (organizationId, targetRow) => {
+        const updated = await withOrganization(db, organizationId, (tx) =>
+          tx.update(paymentScheduleItems).set({ paidOn: "2027-06-01" }).where(eq(paymentScheduleItems.id, targetRow.id)).returning(),
         );
         return { affectedRows: updated.length };
       },

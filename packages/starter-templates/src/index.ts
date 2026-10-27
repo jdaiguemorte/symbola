@@ -4,6 +4,7 @@
 // partir de zéro, ou importer un fichier ») ; rien n'est créé d'office.
 import { z } from "zod";
 import demoEventFile from "./demo-event.json";
+import paymentMethodsFile from "./payment-methods.json";
 import programFile from "./program.json";
 import retroplanningFile from "./retroplanning.json";
 import vendorSlotsFile from "./vendor-slots.json";
@@ -22,6 +23,13 @@ const vendorSlots = vendorSlotsSchema.parse(vendorSlotsFile);
 // EVT-03 : postes prestataires par défaut, dans la langue demandée.
 export function starterVendorSlots(locale: StarterLocale): string[] {
   return vendorSlots.items.map((item) => item.label[locale]);
+}
+
+// DEV-03 : modes de paiement de départ, même format que les postes.
+const paymentMethods = vendorSlotsSchema.parse(paymentMethodsFile);
+
+export function starterPaymentMethods(locale: StarterLocale): string[] {
+  return paymentMethods.items.map((item) => item.label[locale]);
 }
 
 const retroplanningSchema = z.object({

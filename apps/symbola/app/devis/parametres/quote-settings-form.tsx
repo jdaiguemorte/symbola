@@ -14,6 +14,16 @@ export function QuoteSettingsForm({ settings }: { settings: QuoteSettings }) {
     <form action={formAction}>
       <label htmlFor="validityDays">{t("validityDays")}</label>
       <input id="validityDays" type="number" name="validityDays" min={1} max={365} required defaultValue={settings.validityDays} />
+      <label htmlFor="upcomingHorizonDays">{t("upcomingHorizonDays")}</label>
+      <input
+        id="upcomingHorizonDays"
+        type="number"
+        name="upcomingHorizonDays"
+        min={1}
+        max={730}
+        required
+        defaultValue={settings.upcomingHorizonDays}
+      />
       <p id="prefix-hint">{t("prefixHint")}</p>
       <label htmlFor="quotePrefix">{t("quotePrefix")}</label>
       <input id="quotePrefix" type="text" name="quotePrefix" required aria-describedby="prefix-hint" defaultValue={settings.quotePrefix} />
