@@ -183,7 +183,7 @@
     },
     "eventsDetail": {
       "title": "Event details",
-      "body": "Track the event's progress here (prospect, quote sent, confirmed, done or lost) and its vendor slots: the top bar counts booked slots out of required ones. A booked slot needs the vendor's name; the amount is optional. The planning timeline lists tasks by month: apply a template, add, check or reorder tasks. If the event date changes, the app offers to shift the due dates of unfinished tasks. The wedding day schedule lists lines by time; the app flags, without blocking, a participant scheduled on two overlapping lines. Export it as a PDF: couple version (without internal notes) or vendors version."
+      "body": "Track the event's progress here (prospect, quote sent, confirmed, done or lost) and its vendor slots: the top bar counts booked slots out of required ones. A booked slot needs the vendor's name; the amount is optional. The planning timeline lists tasks by month: apply a template, add, check or reorder tasks. If the event date changes, the app offers to shift the due dates of unfinished tasks. The wedding day schedule lists lines by time; the app flags, without blocking, a participant scheduled on two overlapping lines. Export it as a PDF: couple version (without internal notes) or vendors version. Invite the couple to follow their event from the “Couple access” section; when they check a task, it shows in the activity feed."
     },
     "eventsSettings": {
       "title": "Event settings",
@@ -196,6 +196,22 @@
     "eventsProgramTemplates": {
       "title": "Schedule templates",
       "body": "Prepare your typical wedding day schedules, or load the starter template and adapt it. Apply a template from an event's page: its lines are added to the schedule, and participants named like one of the event's vendor slots are linked to it."
+    },
+    "clientInvitation": {
+      "title": "Creating your account",
+      "body": "This account is personal: each member of the couple has their own. The invitation link is valid for 7 days; if it has expired, ask your planner for a new one."
+    },
+    "clientSpace": {
+      "title": "Your space",
+      "body": "Find here the weddings your planner shares with you. Open one to follow the planning timeline, check your tasks and see the wedding day schedule."
+    },
+    "clientEvent": {
+      "title": "Following the preparations",
+      "body": "Tasks “For you to do” are checked once done: your planner sees it right away. The others are handled by your planner. The wedding day schedule can be downloaded as a PDF."
+    },
+    "clientSecurity": {
+      "title": "Two-factor authentication",
+      "body": "Optional for your account. Once enabled, a code from your authenticator app is asked at every login."
     }
   },
   "FirstSteps": {
@@ -401,6 +417,62 @@
     "programPdfVendors": "Vendors version",
     "programPdfVersion": "Version of {date}",
     "programPdfFileCouple": "schedule-couple",
-    "programPdfFileVendors": "schedule-vendors"
+    "programPdfFileVendors": "schedule-vendors",
+    "clientAccessTitle": "Couple access",
+    "clientAccessIntro": "Invite each member of the couple by e-mail: they create their own account, follow the planning timeline, check their tasks and see the wedding day schedule (without your internal notes). You can remove an access at any time.",
+    "noClientAccess": "No one from the couple invited yet.",
+    "clientEmail": "E-mail of the couple member",
+    "inviteClient": "Invite",
+    "clientInvited": "Invitation sent.",
+    "clientLinked": "This person already has an account: access to this event is now open.",
+    "clientEmailUnavailable": "This e-mail is already used by another account.",
+    "clientAlreadyInvited": "This person already has access to the event.",
+    "invalidEmail": "Invalid e-mail.",
+    "clientAccessInvited": "invitation sent",
+    "clientAccessActive": "active access",
+    "clientAccessExpired": "invitation expired",
+    "clientAccessRevoked": "access removed",
+    "revokeClientAccess": "Remove access for {email}",
+    "activityTitle": "Activity feed",
+    "noActivity": "No activity from the couple yet.",
+    "activityTaskDone": "{actor} checked “{task}”.",
+    "activityTaskUndone": "{actor} unchecked “{task}”.",
+    "activityFormerClient": "A couple member"
+  },
+  "ClientSpace": {
+    "title": "My wedding",
+    "unavailable": "This space is temporarily unavailable.",
+    "unauthenticated": "Please log in again.",
+    "accountNav": "My account",
+    "securityLink": "Account security",
+    "profileLink": "Language and profile",
+    "eventsLabel": "My events",
+    "noEvents": "No event is shared with you yet.",
+    "dateUnset": "Date to be set",
+    "logout": "Log out",
+    "backToSpace": "Back to my space",
+    "responsibleYou": "For you to do",
+    "responsiblePlanner": "Handled by your planner",
+    "downloadProgram": "Download the schedule (PDF)",
+    "invitationTitle": "Welcome to Symbola",
+    "invitationIntro": "Your wedding planner invites you to follow your wedding preparations. Choose your password to create your personal account.",
+    "choosePassword": "Choose a password (at least 12 characters)",
+    "confirmPassword": "Confirm the password",
+    "createAccount": "Create my account",
+    "accountCreated": "Your account has been created.",
+    "goToLogin": "Log in",
+    "passwordMismatch": "The two passwords do not match.",
+    "passwordTooShort": "The password must contain at least 12 characters.",
+    "invitationInvalid": "This invitation link is no longer valid. Ask your planner for a new invitation.",
+    "invitationAlreadyAccepted": "This invitation has already been used: log in with your account.",
+    "securityTitle": "Account security",
+    "mfaIntro": "Two-factor authentication adds a one-time code, given by an app on your phone, to your password. It is optional but recommended.",
+    "mfaAlreadyEnabled": "Two-factor authentication is enabled on your account.",
+    "mfaStart": "Enable two-factor authentication",
+    "mfaScanInstructions": "Add this account to your authenticator app (by scanning or copying the link below), then enter the code shown.",
+    "mfaCode": "6-digit code",
+    "mfaConfirm": "Confirm",
+    "mfaInvalidCode": "Incorrect code, try again.",
+    "mfaEnabledNow": "Two-factor authentication enabled: it will be asked at every login."
   }
 }

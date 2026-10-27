@@ -183,7 +183,7 @@
     },
     "eventsDetail": {
       "title": "Fiche de l'événement",
-      "body": "Suivez ici l'avancement de l'événement (prospect, devis envoyé, confirmé, réalisé ou perdu) et de ses postes prestataires : la barre du haut compte les postes réservés sur les postes requis. Un poste réservé demande le nom du prestataire ; le montant est facultatif. Le rétroplanning liste les tâches par mois : appliquez un modèle, ajoutez, cochez ou réordonnez les tâches. Si la date de l'événement change, l'app propose de décaler les échéances des tâches non faites. Le programme du jour J liste les lignes par heure ; l'app signale, sans bloquer, un intervenant prévu sur deux lignes qui se chevauchent. Exportez-le en PDF : version mariés (sans les notes internes) ou prestataires."
+      "body": "Suivez ici l'avancement de l'événement (prospect, devis envoyé, confirmé, réalisé ou perdu) et de ses postes prestataires : la barre du haut compte les postes réservés sur les postes requis. Un poste réservé demande le nom du prestataire ; le montant est facultatif. Le rétroplanning liste les tâches par mois : appliquez un modèle, ajoutez, cochez ou réordonnez les tâches. Si la date de l'événement change, l'app propose de décaler les échéances des tâches non faites. Le programme du jour J liste les lignes par heure ; l'app signale, sans bloquer, un intervenant prévu sur deux lignes qui se chevauchent. Exportez-le en PDF : version mariés (sans les notes internes) ou prestataires. Invitez les mariés à suivre leur événement depuis la section « Accès des mariés » ; quand ils cochent une tâche, elle apparaît dans le fil d'activité."
     },
     "eventsSettings": {
       "title": "Paramètres des événements",
@@ -196,6 +196,22 @@
     "eventsProgramTemplates": {
       "title": "Modèles de programme",
       "body": "Préparez vos déroulés types du jour J, ou chargez le modèle de départ puis adaptez-le. Un modèle s'applique depuis la fiche d'un événement : ses lignes s'ajoutent au programme, et les intervenants qui portent le nom d'un poste de l'événement y sont reliés."
+    },
+    "clientInvitation": {
+      "title": "Création de votre compte",
+      "body": "Ce compte est personnel : chaque marié a le sien. Le lien d'invitation est valable 7 jours ; s'il a expiré, demandez-en un nouveau à votre planner."
+    },
+    "clientSpace": {
+      "title": "Votre espace",
+      "body": "Retrouvez ici les mariages que votre planner partage avec vous. Ouvrez-en un pour suivre le rétroplanning, cocher vos tâches et consulter le programme du jour J."
+    },
+    "clientEvent": {
+      "title": "Suivre la préparation",
+      "body": "Les tâches « À faire par vous » se cochent quand elles sont faites : votre planner le voit aussitôt. Les autres sont suivies par votre planner. Le programme du jour J se télécharge en PDF."
+    },
+    "clientSecurity": {
+      "title": "Double authentification",
+      "body": "Facultative pour votre compte. Une fois activée, un code de votre application d'authentification vous est demandé à chaque connexion."
     }
   },
   "FirstSteps": {
@@ -401,6 +417,62 @@
     "programPdfVendors": "Version prestataires",
     "programPdfVersion": "Version du {date}",
     "programPdfFileCouple": "programme-maries",
-    "programPdfFileVendors": "programme-prestataires"
+    "programPdfFileVendors": "programme-prestataires",
+    "clientAccessTitle": "Accès des mariés",
+    "clientAccessIntro": "Invitez chaque marié par e-mail : il crée son propre compte et suit le rétroplanning, coche ses tâches et consulte le programme du jour J (sans vos notes internes). Vous pouvez retirer un accès à tout moment.",
+    "noClientAccess": "Aucun marié invité pour l'instant.",
+    "clientEmail": "E-mail du marié",
+    "inviteClient": "Inviter le marié",
+    "clientInvited": "Invitation envoyée.",
+    "clientLinked": "Ce marié a déjà un compte : l'accès à cet événement lui est ouvert.",
+    "clientEmailUnavailable": "Cet e-mail est déjà utilisé par un autre compte.",
+    "clientAlreadyInvited": "Ce marié a déjà accès à l'événement.",
+    "invalidEmail": "E-mail invalide.",
+    "clientAccessInvited": "invitation envoyée",
+    "clientAccessActive": "accès actif",
+    "clientAccessExpired": "invitation expirée",
+    "clientAccessRevoked": "accès retiré",
+    "revokeClientAccess": "Retirer l'accès de {email}",
+    "activityTitle": "Fil d'activité",
+    "noActivity": "Aucune activité des mariés pour l'instant.",
+    "activityTaskDone": "{actor} a coché « {task} ».",
+    "activityTaskUndone": "{actor} a décoché « {task} ».",
+    "activityFormerClient": "Un marié"
+  },
+  "ClientSpace": {
+    "title": "Mon mariage",
+    "unavailable": "Cet espace est momentanément indisponible.",
+    "unauthenticated": "Veuillez vous reconnecter.",
+    "accountNav": "Mon compte",
+    "securityLink": "Sécurité du compte",
+    "profileLink": "Langue et profil",
+    "eventsLabel": "Mes événements",
+    "noEvents": "Aucun événement n'est partagé avec vous pour l'instant.",
+    "dateUnset": "Date à définir",
+    "logout": "Se déconnecter",
+    "backToSpace": "Retour à mon espace",
+    "responsibleYou": "À faire par vous",
+    "responsiblePlanner": "Suivi par votre planner",
+    "downloadProgram": "Télécharger le programme (PDF)",
+    "invitationTitle": "Bienvenue sur Symbola",
+    "invitationIntro": "Votre wedding planner vous invite à suivre la préparation de votre mariage. Choisissez votre mot de passe pour créer votre compte personnel.",
+    "choosePassword": "Choisissez un mot de passe (12 caractères minimum)",
+    "confirmPassword": "Confirmez le mot de passe",
+    "createAccount": "Créer mon compte",
+    "accountCreated": "Votre compte est créé.",
+    "goToLogin": "Se connecter",
+    "passwordMismatch": "Les deux mots de passe ne sont pas identiques.",
+    "passwordTooShort": "Le mot de passe doit contenir au moins 12 caractères.",
+    "invitationInvalid": "Ce lien d'invitation n'est plus valable. Demandez une nouvelle invitation à votre planner.",
+    "invitationAlreadyAccepted": "Cette invitation a déjà servi : connectez-vous avec votre compte.",
+    "securityTitle": "Sécurité du compte",
+    "mfaIntro": "La double authentification ajoute un code à usage unique, donné par une application sur votre téléphone, à votre mot de passe. Elle est facultative, mais recommandée.",
+    "mfaAlreadyEnabled": "La double authentification est activée sur votre compte.",
+    "mfaStart": "Activer la double authentification",
+    "mfaScanInstructions": "Ajoutez ce compte dans votre application d'authentification (en scannant ou en copiant le lien ci-dessous), puis saisissez le code affiché.",
+    "mfaCode": "Code à 6 chiffres",
+    "mfaConfirm": "Confirmer",
+    "mfaInvalidCode": "Code incorrect, réessayez.",
+    "mfaEnabledNow": "Double authentification activée : elle vous sera demandée à chaque connexion."
   }
 }
