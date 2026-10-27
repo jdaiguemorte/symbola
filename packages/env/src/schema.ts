@@ -61,6 +61,36 @@ export const envSchema = z.object({
   SMTP_USER: z.string().default(""),
   SMTP_PASSWORD: z.string().default(""),
   SMTP_FROM: z.string().min(1).default("Symbola <no-reply@symbola.test>"),
+
+  // Signature en ligne (DEV-02, ADR 0021). Sans valeur : faux fournisseur
+  // hors production, « indisponible » en production tant que DocuSeal n'est
+  // pas configuré par Julien. Le faux fournisseur est interdit en production
+  // (seuls les devis d'essai guidé l'utilisent, quel que soit ce réglage).
+  SIGNATURE_PROVIDER: z.enum(["none", "fake", "docuseal"]).optional(),
+  SIGNATURE_WEBHOOK_HEADER: z.string().min(1).default("X-Symbola-Webhook-Secret"),
+  SIGNATURE_WEBHOOK_SECRET: z.string().default(""),
+  // API interne (ex. http://docuseal:3000/api) et URL publique des pages de
+  // signature (sous-domaine servi par Caddy).
+  DOCUSEAL_API_URL: z.string().default(""),
+  DOCUSEAL_API_KEY: z.string().default(""),
+  DOCUSEAL_PUBLIC_URL: z.string().default(""),
+}).superRefine((env, context) => {
+  if (env.NODE_ENV === "production" && env.SIGNATURE_PROVIDER === "fake") {
+    context.addIssue({ code: "custom", path: ["SIGNATURE_PROVIDER"], message: "le faux fournisseur de signature est interdit en production" });
+  }
+  if (env.SIGNATURE_PROVIDER === "docuseal") {
+    for (const key of ["DOCUSEAL_API_URL", "DOCUSEAL_API_KEY", "DOCUSEAL_PUBLIC_URL", "SIGNATURE_WEBHOOK_SECRET"] as const) {
+      if (env[key].length === 0) context.addIssue({ code: "custom", path: [key], message: "requis avec SIGNATURE_PROVIDER=docuseal" });
+    }
+    if (env.SIGNATURE_WEBHOOK_SECRET.length > 0 && env.SIGNATURE_WEBHOOK_SECRET.length < 32) {
+      context.addIssue({ code: "custom", path: ["SIGNATURE_WEBHOOK_SECRET"], message: "32 caractères au moins (openssl rand -hex 32)" });
+    }
+  }
 });
 
 export type Env = z.infer<typeof envSchema>;
+
+// Fournisseur effectif des devis réels (ADR 0021).
+export function signatureProviderOf(env: Env): "none" | "fake" | "docuseal" {
+  return env.SIGNATURE_PROVIDER ?? (env.NODE_ENV === "production" ? "none" : "fake");
+}

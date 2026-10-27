@@ -8,10 +8,14 @@ import {
   paymentMethods,
   paymentScheduleItems,
   quoteLines,
+  quoteSigners,
+  signatureRequests,
+  signatureWebhookLog,
   quoteSettings,
   quotes,
   quoteVersions,
 } from "@symbola/db/schema/quotes";
+import { emitDomainEvent } from "@symbola/db/events/emit";
 import { withOrganization } from "@symbola/db/with-organization";
 
 export type CatalogItemRow = typeof catalogItems.$inferSelect;
@@ -21,6 +25,8 @@ export type QuoteVersionRow = typeof quoteVersions.$inferSelect;
 export type QuoteLineRow = typeof quoteLines.$inferSelect;
 export type PaymentMethodRow = typeof paymentMethods.$inferSelect;
 export type ScheduleItemRow = typeof paymentScheduleItems.$inferSelect;
+export type SignatureRequestRow = typeof signatureRequests.$inferSelect;
+export type QuoteSignerRow = typeof quoteSigners.$inferSelect;
 
 type Tx = Parameters<Parameters<typeof withOrganization>[2]>[0];
 
@@ -167,6 +173,8 @@ export type QuoteAggregate = {
   lines: QuoteLineRow[];
   scheduleItems: ScheduleItemRow[];
   paymentMethods: PaymentMethodRow[];
+  signatureRequests: SignatureRequestRow[];
+  signers: QuoteSignerRow[];
 };
 
 async function loadAggregate(tx: Tx, quote: QuoteRow): Promise<QuoteAggregate> {
@@ -193,7 +201,19 @@ async function loadAggregate(tx: Tx, quote: QuoteRow): Promise<QuoteAggregate> {
       : [];
   const methodIds = [...new Set(scheduleItems.flatMap((item) => (item.paymentMethodId ? [item.paymentMethodId] : [])))];
   const methods = methodIds.length > 0 ? await tx.select().from(paymentMethods).where(inArray(paymentMethods.id, methodIds)) : [];
-  return { quote, versions, lines, scheduleItems, paymentMethods: methods };
+  const requests =
+    versions.length > 0
+      ? await tx.select().from(signatureRequests).where(inArray(signatureRequests.versionId, versions.map((version) => version.id)))
+      : [];
+  const signers =
+    requests.length > 0
+      ? await tx
+          .select()
+          .from(quoteSigners)
+          .where(inArray(quoteSigners.requestId, requests.map((request) => request.id)))
+          .orderBy(asc(quoteSigners.position))
+      : [];
+  return { quote, versions, lines, scheduleItems, paymentMethods: methods, signatureRequests: requests, signers };
 }
 
 export async function findQuoteAggregate(organizationId: string, quoteId: string): Promise<QuoteAggregate | null> {
@@ -370,23 +390,37 @@ export async function insertNextVersion(organizationId: string, quoteId: string)
 
 // AIDE-02 — suppression des devis d'événements d'essai (lignes, versions,
 // devis). Les séries DEMO restent : elles ne servent qu'aux essais.
-export async function deleteEventQuotes(organizationId: string, eventIds: string[]): Promise<void> {
-  if (eventIds.length === 0) return;
-  await inOrganization(organizationId, async (tx) => {
+// Renvoie les clés des documents signés stockés, à supprimer du stockage.
+export async function deleteEventQuotes(organizationId: string, eventIds: string[]): Promise<string[]> {
+  if (eventIds.length === 0) return [];
+  return inOrganization(organizationId, async (tx) => {
     const rows = await tx.select({ id: quotes.id }).from(quotes).where(inArray(quotes.eventId, eventIds));
     const quoteIds = rows.map((row) => row.id);
-    if (quoteIds.length === 0) return;
+    if (quoteIds.length === 0) return [];
     const versions = await tx
       .select({ id: quoteVersions.id })
       .from(quoteVersions)
       .where(inArray(quoteVersions.quoteId, quoteIds));
     const versionIds = versions.map((version) => version.id);
+    const documentKeys: string[] = [];
     if (versionIds.length > 0) {
+      const requests = await tx.select().from(signatureRequests).where(inArray(signatureRequests.versionId, versionIds));
+      const requestIds = requests.map((request) => request.id);
+      for (const request of requests) {
+        if (request.signedDocumentKey) documentKeys.push(request.signedDocumentKey);
+        if (request.auditCertificateKey) documentKeys.push(request.auditCertificateKey);
+      }
+      if (requestIds.length > 0) {
+        await tx.delete(signatureWebhookLog).where(inArray(signatureWebhookLog.requestId, requestIds));
+        await tx.delete(quoteSigners).where(inArray(quoteSigners.requestId, requestIds));
+        await tx.delete(signatureRequests).where(inArray(signatureRequests.id, requestIds));
+      }
       await tx.delete(paymentScheduleItems).where(inArray(paymentScheduleItems.versionId, versionIds));
       await tx.delete(quoteLines).where(inArray(quoteLines.versionId, versionIds));
       await tx.delete(quoteVersions).where(inArray(quoteVersions.id, versionIds));
     }
     await tx.delete(quotes).where(inArray(quotes.id, quoteIds));
+    return documentKeys;
   });
 }
 
@@ -559,4 +593,156 @@ export async function findUnpaidScheduleItems(organizationId: string): Promise<U
       )
       .orderBy(asc(paymentScheduleItems.dueDate), asc(paymentScheduleItems.position)),
   );
+}
+
+// --- DEV-02 : signature en ligne ---
+
+export type NewSigner = Omit<QuoteSignerRow, "organizationId" | "requestId" | "status" | "signedAt">;
+
+// Enregistre la demande créée chez le fournisseur, pour la version courante
+// envoyée d'un devis « envoyé » ; « exists » si la version a déjà sa demande.
+export async function insertSignatureRequest(
+  organizationId: string,
+  quoteId: string,
+  request: { provider: string; externalId: string; signers: NewSigner[] },
+): Promise<WriteResult | { status: "exists" | "not_sent" }> {
+  return inOrganization(organizationId, async (tx) => {
+    const [quote] = await tx.select().from(quotes).where(eq(quotes.id, quoteId));
+    if (!quote) return { status: "not_found" };
+    const [version] = await tx
+      .select()
+      .from(quoteVersions)
+      .where(and(eq(quoteVersions.quoteId, quoteId), eq(quoteVersions.version, quote.currentVersion)));
+    if (!version) return { status: "not_found" };
+    if (quote.status !== "sent" || !version.sentAt) return { status: "not_sent" };
+    await lockVersion(tx, version.id);
+    const [existing] = await tx.select({ id: signatureRequests.id }).from(signatureRequests).where(eq(signatureRequests.versionId, version.id));
+    if (existing) return { status: "exists" };
+    const [row] = await tx
+      .insert(signatureRequests)
+      .values({ organizationId, versionId: version.id, provider: request.provider, externalId: request.externalId })
+      .returning();
+    if (!row) throw new Error("création de la demande de signature échouée");
+    await tx.insert(quoteSigners).values(request.signers.map((signer) => ({ ...signer, organizationId, requestId: row.id })));
+    return { status: "ok", quoteId };
+  });
+}
+
+export type SignatureContext = {
+  request: SignatureRequestRow;
+  signers: QuoteSignerRow[];
+  version: QuoteVersionRow;
+  quote: QuoteRow;
+};
+
+export async function findSignatureRequestByExternalId(
+  organizationId: string,
+  provider: string,
+  externalId: string,
+): Promise<SignatureContext | null> {
+  return inOrganization(organizationId, async (tx) => {
+    const [request] = await tx
+      .select()
+      .from(signatureRequests)
+      .where(and(eq(signatureRequests.provider, provider), eq(signatureRequests.externalId, externalId)));
+    if (!request) return null;
+    const signers = await tx.select().from(quoteSigners).where(eq(quoteSigners.requestId, request.id)).orderBy(asc(quoteSigners.position));
+    const [version] = await tx.select().from(quoteVersions).where(eq(quoteVersions.id, request.versionId));
+    const [quote] = version ? await tx.select().from(quotes).where(eq(quotes.id, version.quoteId)) : [];
+    if (!version || !quote) return null;
+    return { request, signers, version, quote };
+  });
+}
+
+export type SignatureStateUpdate = {
+  signers: { id: string; status: "pending" | "signed" | "declined"; signedAt: Date | null }[];
+  outcome:
+    | { kind: "pending" }
+    | { kind: "completed"; signedDocumentKey: string; auditCertificateKey: string; completedAt: Date; event: { name: string; version: number; payload: unknown } }
+    | { kind: "declined"; completedAt: Date };
+};
+
+// Applique l'état relu chez le fournisseur, par différence et sous verrou :
+// une demande déjà terminée ne change plus (idempotence, ADR 0021).
+// « transitioned » n'est vrai que pour l'appel qui a terminé la demande.
+export async function applySignatureStateRows(
+  organizationId: string,
+  requestId: string,
+  update: SignatureStateUpdate,
+  eventType: string,
+): Promise<{ status: "ok"; transitioned: boolean; changed: boolean } | { status: "not_found" }> {
+  return inOrganization(organizationId, async (tx) => {
+    await tx.execute(raw`select 1 from ${signatureRequests} where ${signatureRequests.id} = ${requestId} for update`);
+    const [request] = await tx.select().from(signatureRequests).where(eq(signatureRequests.id, requestId));
+    if (!request) return { status: "not_found" };
+    if (request.status !== "pending") {
+      await tx.insert(signatureWebhookLog).values({ organizationId, requestId, eventType, outcome: "duplicate" });
+      return { status: "ok", transitioned: false, changed: false };
+    }
+
+    const current = await tx.select().from(quoteSigners).where(eq(quoteSigners.requestId, requestId));
+    let changed = false;
+    for (const signer of update.signers) {
+      const row = current.find((candidate) => candidate.id === signer.id);
+      if (!row || row.status !== "pending" || signer.status === "pending") continue;
+      await tx.update(quoteSigners).set({ status: signer.status, signedAt: signer.signedAt }).where(eq(quoteSigners.id, signer.id));
+      changed = true;
+    }
+
+    const [version] = await tx.select().from(quoteVersions).where(eq(quoteVersions.id, request.versionId));
+    let transitioned = false;
+    if (version && update.outcome.kind === "completed") {
+      await tx
+        .update(signatureRequests)
+        .set({
+          status: "completed",
+          signedDocumentKey: update.outcome.signedDocumentKey,
+          auditCertificateKey: update.outcome.auditCertificateKey,
+          completedAt: update.outcome.completedAt,
+        })
+        .where(eq(signatureRequests.id, requestId));
+      await tx.update(quotes).set({ status: "signed", updatedAt: new Date() }).where(eq(quotes.id, version.quoteId));
+      // Outbox : publié dans la même transaction que le passage à « Signé ».
+      const [quote] = await tx.select().from(quotes).where(eq(quotes.id, version.quoteId));
+      if (quote && !quote.isDemo) {
+        await emitDomainEvent(tx, { organizationId, ...update.outcome.event });
+      }
+      transitioned = true;
+    } else if (version && update.outcome.kind === "declined") {
+      await tx.update(signatureRequests).set({ status: "declined", completedAt: update.outcome.completedAt }).where(eq(signatureRequests.id, requestId));
+      await tx.update(quotes).set({ status: "declined", updatedAt: new Date() }).where(eq(quotes.id, version.quoteId));
+      transitioned = true;
+    }
+    await tx
+      .insert(signatureWebhookLog)
+      .values({ organizationId, requestId, eventType, outcome: transitioned ? update.outcome.kind : changed ? "signer_updated" : "unchanged" });
+    return { status: "ok", transitioned, changed };
+  });
+}
+
+export async function insertWebhookLog(
+  organizationId: string,
+  entry: { requestId: string | null; eventType: string; outcome: string },
+): Promise<void> {
+  await inOrganization(organizationId, (tx) => tx.insert(signatureWebhookLog).values({ organizationId, ...entry }));
+}
+
+// Espace du marié : demandes des devis (version courante) d'un événement.
+export async function findEventSignatureContexts(organizationId: string, eventId: string): Promise<SignatureContext[]> {
+  return inOrganization(organizationId, async (tx) => {
+    const rows = await tx
+      .select({ request: signatureRequests, version: quoteVersions, quote: quotes })
+      .from(signatureRequests)
+      .innerJoin(quoteVersions, eq(quoteVersions.id, signatureRequests.versionId))
+      .innerJoin(quotes, and(eq(quotes.id, quoteVersions.quoteId), eq(quotes.currentVersion, quoteVersions.version)))
+      .where(eq(quotes.eventId, eventId))
+      .orderBy(asc(quotes.number));
+    if (rows.length === 0) return [];
+    const signers = await tx
+      .select()
+      .from(quoteSigners)
+      .where(inArray(quoteSigners.requestId, rows.map((row) => row.request.id)))
+      .orderBy(asc(quoteSigners.position));
+    return rows.map((row) => ({ ...row, signers: signers.filter((signer) => signer.requestId === row.request.id) }));
+  });
 }

@@ -169,3 +169,64 @@ export const paymentScheduleItems = quotesSchema.table(
     ),
   ],
 );
+
+// DEV-02 — demande de signature d'une version envoyée (une seule par
+// version). Le fournisseur (ADR 0006/0021) est derrière une interface ;
+// external_id est l'identifiant de la soumission chez lui. Les documents
+// signés et le certificat de preuve sont archivés en stockage privé.
+export const signatureRequestStatusEnum = quotesSchema.enum("signature_request_status", ["pending", "completed", "declined"]);
+
+export const signatureRequests = quotesSchema.table(
+  "signature_requests",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    versionId: uuid("version_id")
+      .notNull()
+      .references(() => quoteVersions.id),
+    provider: text("provider").notNull(),
+    externalId: text("external_id").notNull(),
+    status: signatureRequestStatusEnum("status").notNull().default("pending"),
+    signedDocumentKey: text("signed_document_key"),
+    auditCertificateKey: text("audit_certificate_key"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+  },
+  (table) => [unique().on(table.versionId), unique().on(table.provider, table.externalId)],
+);
+
+// DEV-02 — signataires d'une demande, saisis sur le devis (ADR 0021) :
+// copie figée du nom, de l'e-mail et de l'adresse de facturation.
+export const quoteSignerStatusEnum = quotesSchema.enum("quote_signer_status", ["pending", "signed", "declined"]);
+
+export const quoteSigners = quotesSchema.table("quote_signers", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  requestId: uuid("request_id")
+    .notNull()
+    .references(() => signatureRequests.id),
+  // Marié de l'événement (uuid opaque du module events, ADR 0011), facultatif.
+  eventClientId: uuid("event_client_id"),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  billingAddress: text("billing_address").notNull(),
+  // Lien personnel de signature chez le fournisseur (secret : ne s'affiche
+  // qu'à la planner et au marié concerné).
+  signingUrl: text("signing_url").notNull(),
+  externalId: text("external_id"),
+  status: quoteSignerStatusEnum("status").notNull().default("pending"),
+  signedAt: timestamp("signed_at", { withTimezone: true }),
+  position: integer("position").notNull().default(0),
+});
+
+// DEV-02 — trace de chaque appel webhook accepté (les appels rejetés,
+// sans organisation fiable, vont au journal applicatif) ; aucune donnée
+// personnelle ni corps de requête.
+export const signatureWebhookLog = quotesSchema.table("signature_webhook_log", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  requestId: uuid("request_id").references(() => signatureRequests.id),
+  eventType: text("event_type").notNull(),
+  outcome: text("outcome").notNull(),
+  receivedAt: timestamp("received_at", { withTimezone: true }).defaultNow().notNull(),
+});

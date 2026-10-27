@@ -1,7 +1,12 @@
 // Porte d'entrée publique du module quotes — seul fichier que les autres
 // modules peuvent importer (ADR 0011). Pensé comme le futur contrat HTTP
 // /v1/quotes si ce module est extrait en app autonome.
+import { randomUUID } from "node:crypto";
+import { z } from "zod";
 import { createAppConnection } from "@symbola/db/client";
+import { parseEnv } from "@symbola/env";
+import { createStorageClient, deletePrivateObject, getSignedDownloadUrl, uploadFile } from "@symbola/files";
+import { sendMail } from "@symbola/mail";
 import type {
   CatalogItem,
   CatalogItemInput,
@@ -24,14 +29,35 @@ import type {
   SendQuoteInput,
   UnpaidPayment,
   UnpaidPaymentsView,
+  ClientQuoteToSign,
+  SendForSignatureInput,
+  SignatureView,
+  SignatureWebhookResult,
+  SignerInput,
 } from "@symbola/contracts";
-import { EventNotFoundError, getEvent } from "@/modules/events/service";
-import { computeLegalMention, getDocumentHeader, getOrganizationProfile, type OrganizationProfile } from "@/modules/hub/service";
+import { QUOTES_QUOTE_SIGNED, QUOTES_QUOTE_SIGNED_VERSION, type QuoteSignedPayload } from "@symbola/contracts";
+import { changeEventStatus, EventNotFoundError, getEvent } from "@/modules/events/service";
+import {
+  computeLegalMention,
+  getDocumentHeader,
+  getOrganizationProfile,
+  getUserContact,
+  type OrganizationProfile,
+} from "@/modules/hub/service";
+import { fakeSignatureProvider, realSignatureProvider, signatureProviderFor } from "./signature";
+import type { SignatureProvider } from "./signature/provider";
 import { computeQuoteTotals, formatDocumentNumber, lineAmounts, validUntil, type GlobalDiscount } from "./amounts";
 import { addCalendarDays, groupByMonth, isOverdue, parisToday, resolveSchedule } from "./schedule";
 import {
+  applySignatureStateRows,
   archiveCatalogItemRow,
   archivePaymentMethodRow,
+  findEventSignatureContexts,
+  findSignatureRequestByExternalId,
+  insertSignatureRequest,
+  insertWebhookLog,
+  type QuoteSignerRow,
+  type SignatureRequestRow,
   deleteEventQuotes,
   deleteScheduleItemRow,
   findPaymentMethods,
@@ -92,6 +118,12 @@ export type {
   SendQuoteInput,
   UnpaidPayment,
   UnpaidPaymentsView,
+  ClientQuoteToSign,
+  SendForSignatureInput,
+  SignatureView,
+  SignatureWebhookResult,
+  SignerInput,
+  SignerView,
 } from "@symbola/contracts";
 export { EventNotFoundError };
 
@@ -156,6 +188,38 @@ export class ScheduleItemNotPayableError extends Error {
   constructor() {
     super("échéance non encaissable");
     this.name = "ScheduleItemNotPayableError";
+  }
+}
+
+// DEV-02 — seule la version courante envoyée d'un devis « envoyé » part en
+// signature.
+export class QuoteNotSentError extends Error {
+  constructor() {
+    super("devis non envoyé");
+    this.name = "QuoteNotSentError";
+  }
+}
+
+export class SignatureAlreadyRequestedError extends Error {
+  constructor() {
+    super("signature déjà demandée pour cette version");
+    this.name = "SignatureAlreadyRequestedError";
+  }
+}
+
+// Fournisseur non configuré (production sans DocuSeal) : l'écran affiche
+// « indisponible », jamais une erreur (CLAUDE.md §2.3).
+export class SignatureUnavailableError extends Error {
+  constructor() {
+    super("signature en ligne indisponible");
+    this.name = "SignatureUnavailableError";
+  }
+}
+
+export class SignatureDocumentNotFoundError extends Error {
+  constructor() {
+    super("document signé indisponible");
+    this.name = "SignatureDocumentNotFoundError";
   }
 }
 
@@ -366,14 +430,39 @@ function toVersionView(
   };
 }
 
+function toSignatureView(request: SignatureRequestRow, signers: QuoteSignerRow[]): SignatureView {
+  return {
+    id: request.id,
+    provider: request.provider,
+    status: request.status,
+    signers: signers
+      .filter((signer) => signer.requestId === request.id)
+      .map((signer) => ({
+        id: signer.id,
+        eventClientId: signer.eventClientId,
+        name: signer.name,
+        email: signer.email,
+        billingAddress: signer.billingAddress,
+        status: signer.status,
+        signedAt: signer.signedAt?.toISOString() ?? null,
+        signingUrl: signer.signingUrl,
+      })),
+    createdAt: request.createdAt.toISOString(),
+    completedAt: request.completedAt?.toISOString() ?? null,
+    hasSignedDocument: request.signedDocumentKey !== null,
+  };
+}
+
 function toDetail(aggregate: QuoteAggregate, profile: OrganizationProfile, now: Date = new Date()): QuoteDetail {
   const versions = aggregate.versions.map((version) => toVersionView(version, aggregate, profile, now));
   const current = versions.find((version) => version.version === aggregate.quote.currentVersion);
   if (!current) throw new QuoteNotFoundError();
+  const request = aggregate.signatureRequests.find((candidate) => candidate.versionId === current.id);
   return {
     ...toSummary(aggregate, current),
     versions,
     current,
+    signature: request ? toSignatureView(request, aggregate.signers) : null,
     regimeChangedSinceSent:
       aggregate.quote.status === "sent" && current.sentAt !== null && current.vatRegime !== profile.vatRegime,
   };
@@ -580,6 +669,10 @@ export async function sendQuote(input: SendQuoteInput): Promise<QuoteDetail> {
 
 // DEV-01 — « Modifier un devis envoyé crée une nouvelle version. »
 export async function reviseQuote(organizationId: string, quoteId: string): Promise<QuoteDetail> {
+  // DEV-02 : une version en cours de signature ne se remplace pas ; un devis
+  // refusé, lui, peut repartir dans une nouvelle version.
+  const before = await loadDetail(organizationId, quoteId);
+  if (before.signature?.status === "pending" || before.status === "signed") throw new QuoteVersionLockedError();
   unwrap(await insertNextVersion(organizationId, quoteId));
   return loadDetail(organizationId, quoteId);
 }
@@ -730,7 +823,311 @@ export async function listUnpaidPayments(
 
 // AIDE-02 — appelé par l'orchestrateur de purge des essais (lib/demo-purge).
 export async function removeEventQuotesData(organizationId: string, eventIds: string[]): Promise<void> {
-  await deleteEventQuotes(organizationId, eventIds);
+  const documentKeys = await deleteEventQuotes(organizationId, eventIds);
+  const storage = documentKeys.length > 0 ? createStorageClient() : null;
+  for (const key of documentKeys) await deletePrivateObject(storage!, key);
+}
+
+// --- DEV-02 : signature en ligne ---
+
+const SIGNATURE_LINK_TTL_SECONDS = 10 * 60;
+const SIGNED_DOCUMENT_MAX_BYTES = 30 * 1024 * 1024;
+const MAX_SIGNERS = 4;
+const emailSchema = z.email();
+
+export function isSignatureAvailable(isDemo: boolean): boolean {
+  return signatureProviderFor(isDemo) !== null;
+}
+
+function signerRole(index: number): string {
+  return `Signataire ${index + 1}`;
+}
+
+// Rôles des signataires, dans l'ordre : le PDF doit porter une balise par rôle.
+export function signatureRoles(count: number): string[] {
+  return Array.from({ length: count }, (_, index) => signerRole(index));
+}
+
+function validSigners(signers: SignerInput[]): SignerInput[] {
+  if (signers.length === 0 || signers.length > MAX_SIGNERS) throw new RangeError("un à quatre signataires");
+  return signers.map((signer) => {
+    const email = signer.email.trim().toLowerCase();
+    if (!emailSchema.safeParse(email).success) throw new RangeError("e-mail du signataire invalide");
+    return {
+      eventClientId: signer.eventClientId ?? null,
+      name: requireText(signer.name, "nom du signataire"),
+      email,
+      billingAddress: requireText(signer.billingAddress, "adresse de facturation"),
+    };
+  });
+}
+
+function signingMail(input: { locale: "fr" | "en"; organizationName: string; number: string; url: string }) {
+  if (input.locale === "en") {
+    return {
+      subject: `Quote ${input.number} to sign — ${input.organizationName}`,
+      text: `Hello,\n\n${input.organizationName} sends you quote ${input.number} to sign online. Your personal signing link:\n${input.url}\n\nThis link is personal: please do not forward it.\n\nThe Symbola team`,
+    };
+  }
+  return {
+    subject: `Devis ${input.number} à signer — ${input.organizationName}`,
+    text: `Bonjour,\n\n${input.organizationName} vous envoie le devis ${input.number} à signer en ligne. Votre lien personnel de signature :\n${input.url}\n\nCe lien vous est personnel : merci de ne pas le transférer.\n\nL'équipe Symbola`,
+  };
+}
+
+// DEV-02 — « Envoi du devis (version courante figée) au fournisseur de
+// signature ; chaque signataire reçoit son lien (e-mail envoyé par
+// Symbola). » Un devis d'essai passe par le faux fournisseur, sans e-mail.
+export async function sendQuoteForSignature(input: SendForSignatureInput): Promise<QuoteDetail> {
+  const people = validSigners(input.signers);
+  const quote = await loadDetail(input.organizationId, input.quoteId);
+  if (quote.status !== "sent" || quote.current.sentAt === null) throw new QuoteNotSentError();
+  if (quote.signature) throw new SignatureAlreadyRequestedError();
+  const provider = signatureProviderFor(quote.isDemo);
+  if (!provider) throw new SignatureUnavailableError();
+
+  const signerIds = people.map(() => randomUUID());
+  const created = await provider.createRequest({
+    title: `${quote.number} V${quote.current.version}`,
+    pdf: Buffer.from(input.documentPdf),
+    signers: people.map((signer, index) => ({
+      externalId: `${input.organizationId}.${signerIds[index]}`,
+      name: signer.name,
+      email: signer.email,
+      role: signerRole(index),
+    })),
+  });
+
+  const result = await insertSignatureRequest(input.organizationId, input.quoteId, {
+    provider: provider.name,
+    externalId: created.externalId,
+    signers: people.map((signer, index) => {
+      const externalId = `${input.organizationId}.${signerIds[index]}`;
+      const link = created.signers.find((candidate) => candidate.externalId === externalId);
+      if (!link) throw new Error("lien de signature manquant");
+      return {
+        id: signerIds[index]!,
+        eventClientId: signer.eventClientId ?? null,
+        name: signer.name,
+        email: signer.email,
+        billingAddress: signer.billingAddress,
+        signingUrl: link.signingUrl,
+        externalId,
+        position: index,
+      };
+    }),
+  });
+  if (result.status === "exists") throw new SignatureAlreadyRequestedError();
+  if (result.status === "not_sent") throw new QuoteNotSentError();
+  unwrap(result as PaymentResult);
+
+  const detail = await loadDetail(input.organizationId, input.quoteId);
+  if (!quote.isDemo) {
+    const organizationName = quote.current.seller?.organizationName ?? "";
+    for (const signer of detail.signature?.signers ?? []) {
+      const mail = signingMail({ locale: input.locale, organizationName, number: quote.number, url: signer.signingUrl });
+      await sendMail({ to: signer.email, ...mail });
+    }
+  }
+  return detail;
+}
+
+function rejected(reason: string): SignatureWebhookResult {
+  // Journal applicatif : motif seulement, jamais le corps ni d'en-tête
+  // (CLAUDE.md §5 : aucune donnée personnelle dans les journaux).
+  console.warn(`webhook de signature rejeté : ${reason}`);
+  return { httpStatus: 401, outcome: reason };
+}
+
+const ORGANIZATION_PREFIX = /^([0-9a-f-]{36})\.([0-9a-f-]{36})$/;
+
+// DEV-02, ADR 0021 — webhook du fournisseur : authentification par le
+// secret partagé, puis relecture de l'état réel chez le fournisseur avant
+// toute écriture ; idempotent.
+export async function handleSignatureWebhook(input: { headers: Headers; rawBody: string }): Promise<SignatureWebhookResult> {
+  const provider = realSignatureProvider();
+  if (!provider) return rejected("unavailable");
+  const authentication = provider.authenticateWebhook(input.headers, input.rawBody);
+  if (!authentication.ok) return rejected(authentication.reason);
+
+  // Organisation portée par l'identifiant externe du signataire.
+  const match = authentication.signerExternalIds.map((id) => ORGANIZATION_PREFIX.exec(id)).find((found) => found !== null);
+  if (!match) return { httpStatus: 200, outcome: "unknown_request" };
+  const organizationId = match[1]!;
+  const context = await findSignatureRequestByExternalId(organizationId, provider.name, authentication.requestExternalId);
+  const signerIds = new Set(context?.signers.map((signer) => signer.externalId));
+  if (!context || !authentication.signerExternalIds.every((id) => signerIds.has(id))) {
+    await insertWebhookLog(organizationId, { requestId: null, eventType: authentication.eventType, outcome: "unknown_request" });
+    return { httpStatus: 200, outcome: "unknown_request" };
+  }
+  const outcome = await applySignatureState(organizationId, context.request, provider, authentication.eventType);
+  return { httpStatus: 200, outcome };
+}
+
+// Relit l'état chez le fournisseur et l'applique (webhook, page de
+// signature fictive). Renvoie le résultat journalisé.
+async function applySignatureState(
+  organizationId: string,
+  request: SignatureRequestRow,
+  provider: SignatureProvider,
+  eventType: string,
+): Promise<string> {
+  if (request.status !== "pending") {
+    await insertWebhookLog(organizationId, { requestId: request.id, eventType, outcome: "duplicate" });
+    return "duplicate";
+  }
+  const state = await provider.getRequest(request.externalId);
+  const context = await findSignatureRequestByExternalId(organizationId, provider.name, request.externalId);
+  if (!context) return "unknown_request";
+  const byExternalId = new Map(state.signers.map((signer) => [signer.externalId, signer]));
+  const signers = context.signers.map((signer) => {
+    const remote = signer.externalId ? byExternalId.get(signer.externalId) : undefined;
+    return {
+      id: signer.id,
+      status: remote?.status ?? ("pending" as const),
+      signedAt: remote?.status === "signed" && remote.signedAt ? new Date(remote.signedAt) : null,
+    };
+  });
+
+  const now = new Date();
+  let outcome: Parameters<typeof applySignatureStateRows>[2]["outcome"] = { kind: "pending" };
+  let storedKeys: string[] = [];
+  if (state.status === "completed") {
+    const documents = await provider.downloadDocuments(request.externalId);
+    const store = async (buffer: Buffer) => {
+      const uploaded = await uploadFile({ organizationId, buffer, maxSizeBytes: SIGNED_DOCUMENT_MAX_BYTES });
+      if (uploaded.status !== "uploaded" || uploaded.mime !== "application/pdf") throw new Error(`document signé refusé (${uploaded.status})`);
+      return uploaded.key;
+    };
+    const signedDocumentKey = await store(documents.signedPdf);
+    const auditCertificateKey = await store(documents.auditCertificatePdf);
+    storedKeys = [signedDocumentKey, auditCertificateKey];
+    const totals = context.version.totalsSnapshot as QuoteTotalsView | null;
+    const payload: QuoteSignedPayload = {
+      quoteId: context.quote.id,
+      eventId: context.quote.eventId,
+      version: context.version.version,
+      totalTtcCents: totals?.totalTtcCents ?? 0,
+      currency: "EUR",
+      signedAt: now.toISOString(),
+    };
+    outcome = {
+      kind: "completed",
+      signedDocumentKey,
+      auditCertificateKey,
+      completedAt: now,
+      event: { name: QUOTES_QUOTE_SIGNED, version: QUOTES_QUOTE_SIGNED_VERSION, payload },
+    };
+  } else if (state.status === "declined") {
+    outcome = { kind: "declined", completedAt: now };
+  }
+
+  const applied = await applySignatureStateRows(organizationId, request.id, { signers, outcome }, eventType);
+  if (applied.status !== "ok") return "unknown_request";
+  if (!applied.transitioned) {
+    // Un appel concurrent a terminé la demande entre-temps : nos copies
+    // des documents ne servent pas.
+    const storage = storedKeys.length > 0 ? createStorageClient() : null;
+    for (const key of storedKeys) await deletePrivateObject(storage!, key);
+    return applied.changed ? "signer_updated" : outcome.kind === "pending" ? "unchanged" : "duplicate";
+  }
+  if (outcome.kind === "completed") await afterSigned(organizationId, context.quote.id);
+  return outcome.kind;
+}
+
+// Effets qui suivent la signature, une seule fois (appel qui a terminé la
+// demande) : événement Confirmé (EVT-02) et e-mail à la planner.
+async function afterSigned(organizationId: string, quoteId: string): Promise<void> {
+  const quote = await loadDetail(organizationId, quoteId);
+  const aggregate = await findQuoteAggregate(organizationId, quoteId);
+  const createdByUserId = aggregate?.quote.createdByUserId;
+  const event = await getEvent(organizationId, quote.eventId);
+  if (event && createdByUserId && event.status !== "confirmed" && event.status !== "done") {
+    await changeEventStatus({ organizationId, eventId: quote.eventId, changedByUserId: createdByUserId, toStatus: "confirmed" });
+  }
+  if (quote.isDemo || !createdByUserId) return;
+  const contact = await withDb((db) => getUserContact(db, organizationId, createdByUserId));
+  if (!contact) return;
+  const env = parseEnv(process.env);
+  const link = `${env.APP_PUBLIC_URL}/devis/${quoteId}`;
+  await sendMail(
+    contact.language === "en"
+      ? {
+          to: contact.email,
+          subject: `Quote ${quote.number} signed`,
+          text: `Hello,\n\nQuote ${quote.number} has been signed by all signers. The event is now confirmed. The signed document and its audit certificate are available on the quote:\n${link}\n\nThe Symbola team`,
+        }
+      : {
+          to: contact.email,
+          subject: `Devis ${quote.number} signé`,
+          text: `Bonjour,\n\nLe devis ${quote.number} a été signé par tous les signataires. L'événement passe en « Confirmé ». Le document signé et son certificat de preuve sont disponibles sur le devis :\n${link}\n\nL'équipe Symbola`,
+        },
+  );
+}
+
+// Lien signé temporaire vers le document signé ou le certificat de preuve
+// de la version courante.
+export async function getSignatureDocumentUrl(organizationId: string, quoteId: string, kind: "signed" | "certificate"): Promise<string> {
+  const aggregate = await findQuoteAggregate(organizationId, quoteId);
+  if (!aggregate) throw new QuoteNotFoundError();
+  const version = aggregate.versions.find((candidate) => candidate.version === aggregate.quote.currentVersion);
+  const request = aggregate.signatureRequests.find((candidate) => candidate.versionId === version?.id);
+  const key = kind === "signed" ? request?.signedDocumentKey : request?.auditCertificateKey;
+  if (!key) throw new SignatureDocumentNotFoundError();
+  return getSignedDownloadUrl(createStorageClient(), key, SIGNATURE_LINK_TTL_SECONDS);
+}
+
+// DEV-02 — espace du marié (accès à l'événement vérifié par l'appelant,
+// EVT-06) : les devis à signer et le seul lien de ce marié, reconnu par
+// l'e-mail de son compte.
+export async function listClientQuotesToSign(organizationId: string, eventId: string, clientEmail: string): Promise<ClientQuoteToSign[]> {
+  const email = clientEmail.trim().toLowerCase();
+  const contexts = await findEventSignatureContexts(organizationId, eventId);
+  return contexts
+    .filter((context) => context.request.status !== "declined")
+    .map((context) => {
+      const own = context.signers.find((signer) => signer.email === email) ?? null;
+      const totals = context.version.totalsSnapshot as QuoteTotalsView | null;
+      return {
+        quoteId: context.quote.id,
+        number: context.quote.number,
+        version: context.version.version,
+        totalTtcCents: totals?.totalTtcCents ?? 0,
+        status: context.request.status,
+        ownSigningUrl: own && context.request.status === "pending" && own.status === "pending" ? own.signingUrl : null,
+        ownStatus: own?.status ?? null,
+      };
+    });
+}
+
+// Page de signature du faux fournisseur (développement, essai guidé) : en
+// production, seuls les devis d'essai peuvent s'y signer (ADR 0021).
+export async function findFakeSignature(token: string): Promise<{ quoteNumber: string; signerName: string; status: string; isDemo: boolean } | null> {
+  const fake = fakeSignatureProvider();
+  const found = fake.findByToken(token);
+  const match = found ? ORGANIZATION_PREFIX.exec(found.signer.externalId) : null;
+  if (!found || !match) return null;
+  const context = await findSignatureRequestByExternalId(match[1]!, "fake", found.request.externalId);
+  if (!context || !fakeSigningAllowed(context.quote.isDemo)) return null;
+  const signer = context.signers.find((candidate) => candidate.externalId === found.signer.externalId);
+  return { quoteNumber: context.quote.number, signerName: signer?.name ?? "", status: found.signer.status, isDemo: context.quote.isDemo };
+}
+
+function fakeSigningAllowed(isDemo: boolean): boolean {
+  return isDemo || parseEnv(process.env).NODE_ENV !== "production";
+}
+
+export async function actOnFakeSignature(token: string, action: "sign" | "decline"): Promise<boolean> {
+  const fake = fakeSignatureProvider();
+  const found = fake.findByToken(token);
+  const match = found ? ORGANIZATION_PREFIX.exec(found.signer.externalId) : null;
+  if (!found || !match) return false;
+  const organizationId = match[1]!;
+  const context = await findSignatureRequestByExternalId(organizationId, "fake", found.request.externalId);
+  if (!context || !fakeSigningAllowed(context.quote.isDemo)) return false;
+  fake.act(found.request.externalId, found.signer.externalId, action);
+  await applySignatureState(organizationId, context.request, fake, action === "sign" ? "form.completed" : "form.declined");
+  return true;
 }
 
 const _contractCheck: QuotesServiceContract = {
@@ -759,5 +1156,10 @@ const _contractCheck: QuotesServiceContract = {
   markScheduleItemPaid,
   markScheduleItemUnpaid,
   listUnpaidPayments,
+  isSignatureAvailable,
+  sendQuoteForSignature,
+  handleSignatureWebhook,
+  getSignatureDocumentUrl,
+  listClientQuotesToSign,
 };
 void _contractCheck;

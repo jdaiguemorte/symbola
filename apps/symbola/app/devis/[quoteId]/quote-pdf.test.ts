@@ -66,6 +66,7 @@ function quote(current: QuoteVersionView, isDemo = false): QuoteDetail {
     versions: [current],
     current,
     regimeChangedSinceSent: false,
+    signature: null,
   };
 }
 

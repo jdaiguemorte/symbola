@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parseEnv } from "./parse";
+import { signatureProviderOf } from "./schema";
 
 const validEnv = {
   POSTGRES_APP_PASSWORD: "dev-password",
@@ -45,5 +46,35 @@ describe("SOC-03 — Validation des variables d'environnement (Zod)", () => {
     expect(parseEnv({ ...validEnv, S3_USE_SSL: "false" }).S3_USE_SSL).toBe(false);
     expect(parseEnv({ ...validEnv, S3_USE_SSL: "true" }).S3_USE_SSL).toBe(true);
     expect(parseEnv(validEnv).S3_USE_SSL).toBe(false); // valeur par défaut
+  });
+
+  it("DEV-02 — signature : faux fournisseur hors production, « indisponible » en production par défaut", () => {
+    expect(signatureProviderOf(parseEnv({ ...validEnv }))).toBe("fake");
+    expect(signatureProviderOf(parseEnv({ ...validEnv, NODE_ENV: "production" }))).toBe("none");
+  });
+
+  it("DEV-02 — refuse le faux fournisseur en production, et DocuSeal sans clé, URL ou secret suffisant", () => {
+    expect(() => parseEnv({ ...validEnv, NODE_ENV: "production", SIGNATURE_PROVIDER: "fake" })).toThrow(/SIGNATURE_PROVIDER/);
+    expect(() => parseEnv({ ...validEnv, SIGNATURE_PROVIDER: "docuseal" })).toThrow(/DOCUSEAL_API_KEY/);
+    expect(() =>
+      parseEnv({
+        ...validEnv,
+        SIGNATURE_PROVIDER: "docuseal",
+        DOCUSEAL_API_URL: "http://docuseal:3000/api",
+        DOCUSEAL_API_KEY: "cle",
+        DOCUSEAL_PUBLIC_URL: "https://signature.exemple.fr",
+        SIGNATURE_WEBHOOK_SECRET: "trop-court",
+      }),
+    ).toThrow(/32 caractères/);
+    const env = parseEnv({
+      ...validEnv,
+      NODE_ENV: "production",
+      SIGNATURE_PROVIDER: "docuseal",
+      DOCUSEAL_API_URL: "http://docuseal:3000/api",
+      DOCUSEAL_API_KEY: "cle",
+      DOCUSEAL_PUBLIC_URL: "https://signature.exemple.fr",
+      SIGNATURE_WEBHOOK_SECRET: "a".repeat(64),
+    });
+    expect(signatureProviderOf(env)).toBe("docuseal");
   });
 });

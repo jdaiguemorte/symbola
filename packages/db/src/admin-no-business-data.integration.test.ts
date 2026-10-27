@@ -18,6 +18,9 @@ import {
   paymentMethods,
   paymentScheduleItems,
   quoteLines,
+  quoteSigners,
+  signatureRequests,
+  signatureWebhookLog,
   quoteSettings,
   quotes,
   quoteVersions,
@@ -230,9 +233,22 @@ describe("HUB-03 — L'Admin ne lit jamais de donnée métier", () => {
       await tx
         .insert(paymentScheduleItems)
         .values({ organizationId, versionId: version.id, label: "Acompte", amountCents: 1, dueDate: "2027-06-01", paymentMethodId: method!.id });
+      const [request] = await tx
+        .insert(signatureRequests)
+        .values({ organizationId, versionId: version.id, provider: "fake", externalId: randomUUID() })
+        .returning();
+      await tx.insert(quoteSigners).values({
+        organizationId,
+        requestId: request!.id,
+        name: "Inès",
+        email: "ines@example.test",
+        billingAddress: "1 rue des Lilas",
+        signingUrl: "https://signature.example.test/s/abc",
+      });
+      await tx.insert(signatureWebhookLog).values({ organizationId, requestId: request!.id, eventType: "form.completed", outcome: "applied" });
     });
 
-    for (const table of [quoteSettings, numberSeries, catalogItems, quotes, quoteVersions, quoteLines, paymentMethods, paymentScheduleItems]) {
+    for (const table of [quoteSettings, numberSeries, catalogItems, quotes, quoteVersions, quoteLines, paymentMethods, paymentScheduleItems, signatureRequests, quoteSigners, signatureWebhookLog]) {
       try {
         const rows = await db.select().from(table);
         expect(rows).toHaveLength(0);

@@ -164,12 +164,68 @@ export type QuoteSummary = {
   totalTtcCents: number;
 };
 
+// DEV-02 — signataires saisis sur le devis (ADR 0021).
+export type SignerInput = {
+  eventClientId?: string | null | undefined;
+  name: string;
+  email: string;
+  billingAddress: string;
+};
+
+export type SignerView = {
+  id: string;
+  eventClientId: string | null;
+  name: string;
+  email: string;
+  billingAddress: string;
+  status: "pending" | "signed" | "declined";
+  signedAt: string | null;
+  signingUrl: string;
+};
+
+export type SignatureView = {
+  id: string;
+  provider: string;
+  status: "pending" | "completed" | "declined";
+  signers: SignerView[];
+  createdAt: string;
+  completedAt: string | null;
+  hasSignedDocument: boolean;
+};
+
+export type SendForSignatureInput = {
+  organizationId: string;
+  quoteId: string;
+  signers: SignerInput[];
+  // PDF de la version envoyée, avec une balise de signature par signataire.
+  documentPdf: Uint8Array;
+  locale: "fr" | "en";
+};
+
+// Réponse du webhook : 401 si l'appel n'est pas authentifié (journalisé,
+// sans effet), 200 sinon — y compris pour un appel rejoué (idempotent).
+export type SignatureWebhookResult = { httpStatus: 200 | 401; outcome: string };
+
+// DEV-02 — ce que le marié voit dans son espace : le devis à signer et son
+// propre lien, jamais celui d'un autre signataire.
+export type ClientQuoteToSign = {
+  quoteId: string;
+  number: string;
+  version: number;
+  totalTtcCents: number;
+  status: "pending" | "completed" | "declined";
+  ownSigningUrl: string | null;
+  ownStatus: "pending" | "signed" | "declined" | null;
+};
+
 export type QuoteDetail = QuoteSummary & {
   versions: QuoteVersionView[];
   current: QuoteVersionView;
   // ONB-02 : devis envoyé, non signé, dont le régime de TVA figé n'est plus
   // celui de l'organisation — l'app propose une nouvelle version.
   regimeChangedSinceSent: boolean;
+  // DEV-02 : demande de signature de la version courante.
+  signature: SignatureView | null;
 };
 
 export type CreateQuoteInput = {
@@ -211,4 +267,9 @@ export interface QuotesServiceContract {
   markScheduleItemPaid(input: MarkScheduleItemPaidInput): Promise<QuoteDetail>;
   markScheduleItemUnpaid(organizationId: string, scheduleItemId: string): Promise<QuoteDetail>;
   listUnpaidPayments(organizationId: string, options?: { now?: Date; horizonDays?: number }): Promise<UnpaidPaymentsView>;
+  isSignatureAvailable(isDemo: boolean): boolean;
+  sendQuoteForSignature(input: SendForSignatureInput): Promise<QuoteDetail>;
+  handleSignatureWebhook(input: { headers: Headers; rawBody: string }): Promise<SignatureWebhookResult>;
+  getSignatureDocumentUrl(organizationId: string, quoteId: string, kind: "signed" | "certificate"): Promise<string>;
+  listClientQuotesToSign(organizationId: string, eventId: string, clientEmail: string): Promise<ClientQuoteToSign[]>;
 }
