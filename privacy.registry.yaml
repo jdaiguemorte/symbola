@@ -179,3 +179,42 @@ fields:
     anonymization: >-
       Supprimé (remplacé par une valeur vide) lors d'une demande d'oubli ;
       le lien ne sert plus une fois la demande terminée.
+  - schema: quotes
+    table: invoices
+    field: buyer_snapshot
+    category: contact
+    retention: >-
+      Conservation légale des factures (DEV-04 : nom et adresse de
+      facturation des acheteurs, copiés et figés à l'émission ; 10 ans,
+      code de commerce — à confirmer avec le comptable). Une demande d'oubli
+      n'efface pas une facture émise : elle est signalée « conservation
+      légale » dans le suivi RGPD (RGPD-03).
+    anonymization: >-
+      Aucune avant la fin de la conservation légale (facture immuable) ;
+      suppression à son terme (RGPD-05).
+  - schema: quotes
+    table: invoices
+    field: seller_snapshot
+    category: contact
+    retention: >-
+      Conservation légale des factures (DEV-04 : en-tête vendeur figé à
+      l'émission, l'adresse pouvant être celle d'une entrepreneuse
+      individuelle). Voir invoices.buyer_snapshot.
+    anonymization: >-
+      Aucune avant la fin de la conservation légale (facture immuable).
+  - schema: quotes
+    table: credit_notes
+    field: buyer_snapshot
+    category: contact
+    retention: >-
+      Conservation légale, comme la facture corrigée (DEV-04).
+    anonymization: >-
+      Aucune avant la fin de la conservation légale (avoir immuable).
+  - schema: quotes
+    table: credit_notes
+    field: seller_snapshot
+    category: contact
+    retention: >-
+      Conservation légale, comme la facture corrigée (DEV-04).
+    anonymization: >-
+      Aucune avant la fin de la conservation légale (avoir immuable).

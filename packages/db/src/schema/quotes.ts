@@ -25,6 +25,11 @@ export const quoteSettings = quotesSchema.table("quote_settings", {
   creditNotePrefix: text("credit_note_prefix").notNull().default("A"),
   // DEV-03 : horizon des encaissements à venir au tableau de bord (90 jours proposés).
   upcomingHorizonDays: integer("upcoming_horizon_days").notNull().default(90),
+  // DEV-04 : délai de paiement d'une facture de solde (jours après émission)
+  // et mentions de facturation (conditions de paiement…), à relire par le
+  // comptable ; modèle de départ dans packages/starter-templates.
+  invoicePaymentTermDays: integer("invoice_payment_term_days").notNull().default(30),
+  invoiceMentions: text("invoice_mentions"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
@@ -64,6 +69,10 @@ export const catalogItems = quotesSchema.table("catalog_items", {
 
 export const quoteStatusEnum = quotesSchema.enum("quote_status", ["draft", "sent", "signed", "declined", "expired"]);
 
+// DEV-04 : un client professionnel exige une facture Factur-X (lot dédié,
+// décision 1 du lot 4) ; le choix est enregistré dès maintenant.
+export const clientKindEnum = quotesSchema.enum("client_kind", ["individual", "professional"]);
+
 // DEV-01 — un devis, rattaché à un événement (décision 4 du lot), numéroté
 // à sa création. Ses versions portent le contenu.
 export const quotes = quotesSchema.table(
@@ -76,6 +85,7 @@ export const quotes = quotesSchema.table(
     status: quoteStatusEnum("status").notNull().default("draft"),
     currentVersion: integer("current_version").notNull().default(1),
     isDemo: boolean("is_demo").notNull().default(false),
+    clientKind: clientKindEnum("client_kind").notNull().default("individual"),
     createdByUserId: uuid("created_by_user_id").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
@@ -230,3 +240,67 @@ export const signatureWebhookLog = quotesSchema.table("signature_webhook_log", {
   outcome: text("outcome").notNull(),
   receivedAt: timestamp("received_at", { withTimezone: true }).defaultNow().notNull(),
 });
+
+// DEV-04 — facture d'acompte (une échéance de l'échéancier) ou de solde,
+// émise depuis un devis signé. Tout ce qui figure sur la facture est copié
+// et figé à l'émission (vendeur, acheteur, lignes, totaux, mentions). Une
+// facture émise est immuable : un trigger PostgreSQL refuse UPDATE et
+// DELETE au rôle applicatif (seule la purge d'un essai supprime une
+// facture fictive) ; la correction passe par un avoir.
+export const invoiceKindEnum = quotesSchema.enum("invoice_kind", ["deposit", "balance"]);
+
+export const invoices = quotesSchema.table(
+  "invoices",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    quoteId: uuid("quote_id")
+      .notNull()
+      .references(() => quotes.id),
+    versionId: uuid("version_id")
+      .notNull()
+      .references(() => quoteVersions.id),
+    scheduleItemId: uuid("schedule_item_id").references(() => paymentScheduleItems.id),
+    kind: invoiceKindEnum("kind").notNull(),
+    number: text("number").notNull(),
+    isDemo: boolean("is_demo").notNull().default(false),
+    issuedAt: timestamp("issued_at", { withTimezone: true }).notNull(),
+    // Date d'émission et date de la prestation ou de l'acompte (Paris).
+    issuedOn: date("issued_on").notNull(),
+    serviceDate: date("service_date"),
+    paymentDueOn: date("payment_due_on").notNull(),
+    amountCents: integer("amount_cents").notNull(),
+    vatRegime: text("vat_regime").notNull(),
+    legalMention: text("legal_mention"),
+    mentions: text("mentions"),
+    sellerSnapshot: jsonb("seller_snapshot").notNull(),
+    buyerSnapshot: jsonb("buyer_snapshot").notNull(),
+    linesSnapshot: jsonb("lines_snapshot").notNull(),
+    totalsSnapshot: jsonb("totals_snapshot").notNull(),
+  },
+  (table) => [unique().on(table.organizationId, table.number)],
+);
+
+// DEV-04 — avoir (série à part), partiel ou total, sur une facture émise ;
+// immuable lui aussi.
+export const creditNotes = quotesSchema.table(
+  "credit_notes",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    invoiceId: uuid("invoice_id")
+      .notNull()
+      .references(() => invoices.id),
+    number: text("number").notNull(),
+    isDemo: boolean("is_demo").notNull().default(false),
+    issuedAt: timestamp("issued_at", { withTimezone: true }).notNull(),
+    issuedOn: date("issued_on").notNull(),
+    amountCents: integer("amount_cents").notNull(),
+    reason: text("reason").notNull(),
+    legalMention: text("legal_mention"),
+    sellerSnapshot: jsonb("seller_snapshot").notNull(),
+    buyerSnapshot: jsonb("buyer_snapshot").notNull(),
+    totalsSnapshot: jsonb("totals_snapshot").notNull(),
+  },
+  (table) => [unique().on(table.organizationId, table.number)],
+);

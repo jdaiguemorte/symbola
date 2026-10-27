@@ -4,6 +4,8 @@ import { and, asc, eq, inArray, sql as raw } from "drizzle-orm";
 import { createAppConnection } from "@symbola/db/client";
 import {
   catalogItems,
+  creditNotes,
+  invoices,
   numberSeries,
   paymentMethods,
   paymentScheduleItems,
@@ -26,6 +28,8 @@ export type QuoteLineRow = typeof quoteLines.$inferSelect;
 export type PaymentMethodRow = typeof paymentMethods.$inferSelect;
 export type ScheduleItemRow = typeof paymentScheduleItems.$inferSelect;
 export type SignatureRequestRow = typeof signatureRequests.$inferSelect;
+export type InvoiceRow = typeof invoices.$inferSelect;
+export type CreditNoteRow = typeof creditNotes.$inferSelect;
 export type QuoteSignerRow = typeof quoteSigners.$inferSelect;
 
 type Tx = Parameters<Parameters<typeof withOrganization>[2]>[0];
@@ -97,7 +101,10 @@ export async function findQuoteSettings(organizationId: string): Promise<QuoteSe
 
 export async function upsertQuoteSettings(
   organizationId: string,
-  data: Pick<QuoteSettingsRow, "validityDays" | "quotePrefix" | "invoicePrefix" | "creditNotePrefix" | "upcomingHorizonDays">,
+  data: Pick<
+    QuoteSettingsRow,
+    "validityDays" | "quotePrefix" | "invoicePrefix" | "creditNotePrefix" | "upcomingHorizonDays" | "invoicePaymentTermDays" | "invoiceMentions"
+  >,
 ): Promise<QuoteSettingsRow> {
   return inOrganization(organizationId, async (tx) => {
     const [row] = await tx
@@ -403,6 +410,13 @@ export async function deleteEventQuotes(organizationId: string, eventIds: string
       .where(inArray(quoteVersions.quoteId, quoteIds));
     const versionIds = versions.map((version) => version.id);
     const documentKeys: string[] = [];
+    // Factures et avoirs : seuls ceux d'un essai se suppriment (trigger
+    // d'immuabilité, DEV-04) ; un vrai devis facturé n'est jamais purgé.
+    const issued = await tx.select({ id: invoices.id }).from(invoices).where(inArray(invoices.quoteId, quoteIds));
+    if (issued.length > 0) {
+      await tx.delete(creditNotes).where(inArray(creditNotes.invoiceId, issued.map((row) => row.id)));
+      await tx.delete(invoices).where(inArray(invoices.id, issued.map((row) => row.id)));
+    }
     if (versionIds.length > 0) {
       const requests = await tx.select().from(signatureRequests).where(inArray(signatureRequests.versionId, versionIds));
       const requestIds = requests.map((request) => request.id);
@@ -744,5 +758,205 @@ export async function findEventSignatureContexts(organizationId: string, eventId
       .where(inArray(quoteSigners.requestId, rows.map((row) => row.request.id)))
       .orderBy(asc(quoteSigners.position));
     return rows.map((row) => ({ ...row, signers: signers.filter((signer) => signer.requestId === row.request.id) }));
+  });
+}
+
+// --- DEV-04 : factures et avoirs ---
+
+export type InvoicingContext = {
+  quote: QuoteRow;
+  version: QuoteVersionRow;
+  lines: QuoteLineRow[];
+  scheduleItems: ScheduleItemRow[];
+  invoices: InvoiceRow[];
+  creditNotes: CreditNoteRow[];
+  signers: QuoteSignerRow[];
+  settings: QuoteSettingsRow | null;
+};
+
+async function invoicingContext(tx: Tx, quoteId: string): Promise<InvoicingContext | null> {
+  // Verrou du devis : deux émissions simultanées sur le même devis se
+  // sérialisent (pas de double solde, pas de double acompte).
+  await tx.execute(raw`select 1 from ${quotes} where ${quotes.id} = ${quoteId} for update`);
+  const [quote] = await tx.select().from(quotes).where(eq(quotes.id, quoteId));
+  if (!quote) return null;
+  const [version] = await tx
+    .select()
+    .from(quoteVersions)
+    .where(and(eq(quoteVersions.quoteId, quoteId), eq(quoteVersions.version, quote.currentVersion)));
+  if (!version) return null;
+  const lines = await tx.select().from(quoteLines).where(eq(quoteLines.versionId, version.id)).orderBy(asc(quoteLines.position));
+  const scheduleItems = await tx
+    .select()
+    .from(paymentScheduleItems)
+    .where(eq(paymentScheduleItems.versionId, version.id))
+    .orderBy(asc(paymentScheduleItems.dueDate), asc(paymentScheduleItems.position));
+  const issued = await tx.select().from(invoices).where(eq(invoices.quoteId, quoteId)).orderBy(asc(invoices.issuedAt), asc(invoices.number));
+  const notes =
+    issued.length > 0 ? await tx.select().from(creditNotes).where(inArray(creditNotes.invoiceId, issued.map((invoice) => invoice.id))) : [];
+  const [request] = await tx.select().from(signatureRequests).where(eq(signatureRequests.versionId, version.id));
+  const signers = request
+    ? await tx.select().from(quoteSigners).where(eq(quoteSigners.requestId, request.id)).orderBy(asc(quoteSigners.position))
+    : [];
+  const [settings] = await tx.select().from(quoteSettings);
+  return { quote, version, lines, scheduleItems, invoices: issued, creditNotes: notes, signers, settings: settings ?? null };
+}
+
+export type PreparedDocument<T> = { isDemo: boolean; year: number; formatNumber: (rank: number) => string; values: T };
+
+type InvoiceValues = Omit<typeof invoices.$inferInsert, "id" | "organizationId" | "number" | "isDemo">;
+type CreditNoteValues = Omit<typeof creditNotes.$inferInsert, "id" | "organizationId" | "number" | "isDemo">;
+
+// Émission d'une facture : contexte relu sous verrou, contrôles (l'appelant
+// lève une erreur pour refuser), puis rang attribué dans la même
+// transaction — un refus ou un échec annule aussi le rang (aucun trou).
+export async function insertInvoice(
+  organizationId: string,
+  locate: { quoteId: string } | { scheduleItemId: string },
+  prepare: (context: InvoicingContext) => PreparedDocument<InvoiceValues>,
+): Promise<InvoiceRow | null> {
+  return inOrganization(organizationId, async (tx) => {
+    let quoteId: string | undefined;
+    if ("quoteId" in locate) {
+      quoteId = locate.quoteId;
+    } else {
+      const [found] = await tx
+        .select({ quoteId: quoteVersions.quoteId })
+        .from(paymentScheduleItems)
+        .innerJoin(quoteVersions, eq(quoteVersions.id, paymentScheduleItems.versionId))
+        .where(eq(paymentScheduleItems.id, locate.scheduleItemId));
+      quoteId = found?.quoteId;
+    }
+    if (!quoteId) return null;
+    const context = await invoicingContext(tx, quoteId);
+    if (!context) return null;
+    const prepared = prepare(context);
+    const rank = await nextSeriesRank(tx, organizationId, "invoice", prepared.isDemo, prepared.year);
+    const [row] = await tx
+      .insert(invoices)
+      .values({ ...prepared.values, organizationId, isDemo: prepared.isDemo, number: prepared.formatNumber(rank) })
+      .returning();
+    if (!row) throw new Error("émission de la facture échouée");
+    return row;
+  });
+}
+
+export async function insertCreditNote(
+  organizationId: string,
+  invoiceId: string,
+  prepare: (invoice: InvoiceRow, existing: CreditNoteRow[], settings: QuoteSettingsRow | null) => PreparedDocument<CreditNoteValues>,
+): Promise<CreditNoteRow | null> {
+  return inOrganization(organizationId, async (tx) => {
+    const [found] = await tx.select({ quoteId: invoices.quoteId }).from(invoices).where(eq(invoices.id, invoiceId));
+    if (!found) return null;
+    const context = await invoicingContext(tx, found.quoteId);
+    const invoice = context?.invoices.find((candidate) => candidate.id === invoiceId);
+    if (!context || !invoice) return null;
+    const prepared = prepare(
+      invoice,
+      context.creditNotes.filter((note) => note.invoiceId === invoiceId),
+      context.settings,
+    );
+    const rank = await nextSeriesRank(tx, organizationId, "credit_note", prepared.isDemo, prepared.year);
+    const [row] = await tx
+      .insert(creditNotes)
+      .values({ ...prepared.values, organizationId, isDemo: prepared.isDemo, number: prepared.formatNumber(rank) })
+      .returning();
+    if (!row) throw new Error("émission de l'avoir échouée");
+    return row;
+  });
+}
+
+export async function findQuoteInvoices(
+  organizationId: string,
+  quoteId: string,
+): Promise<{ quote: QuoteRow; invoices: InvoiceRow[]; creditNotes: CreditNoteRow[] } | null> {
+  return inOrganization(organizationId, async (tx) => {
+    const [quote] = await tx.select().from(quotes).where(eq(quotes.id, quoteId));
+    if (!quote) return null;
+    const rows = await tx.select().from(invoices).where(eq(invoices.quoteId, quoteId)).orderBy(asc(invoices.issuedAt), asc(invoices.number));
+    const notes = rows.length > 0 ? await tx.select().from(creditNotes).where(inArray(creditNotes.invoiceId, rows.map((row) => row.id))) : [];
+    return { quote, invoices: rows, creditNotes: notes };
+  });
+}
+
+export async function findInvoiceById(
+  organizationId: string,
+  invoiceId: string,
+): Promise<{ quote: QuoteRow; invoice: InvoiceRow; creditNotes: CreditNoteRow[] } | null> {
+  return inOrganization(organizationId, async (tx) => {
+    const [invoice] = await tx.select().from(invoices).where(eq(invoices.id, invoiceId));
+    if (!invoice) return null;
+    const [quote] = await tx.select().from(quotes).where(eq(quotes.id, invoice.quoteId));
+    if (!quote) return null;
+    const notes = await tx.select().from(creditNotes).where(eq(creditNotes.invoiceId, invoiceId)).orderBy(asc(creditNotes.issuedAt));
+    return { quote, invoice, creditNotes: notes };
+  });
+}
+
+export async function findCreditNoteById(
+  organizationId: string,
+  creditNoteId: string,
+): Promise<{ creditNote: CreditNoteRow; invoice: InvoiceRow } | null> {
+  return inOrganization(organizationId, async (tx) => {
+    const [creditNote] = await tx.select().from(creditNotes).where(eq(creditNotes.id, creditNoteId));
+    if (!creditNote) return null;
+    const [invoice] = await tx.select().from(invoices).where(eq(invoices.id, creditNote.invoiceId));
+    return invoice ? { creditNote, invoice } : null;
+  });
+}
+
+export type EReportingRows = {
+  invoices: InvoiceRow[];
+  creditNotes: (CreditNoteRow & { invoiceNumber: string })[];
+  payments: { item: ScheduleItemRow; versionItems: ScheduleItemRow[]; version: QuoteVersionRow; quote: QuoteRow; method: string | null }[];
+};
+
+// DEV-04 — e-reporting d'une période : jamais de donnée d'essai (ADR 0008).
+export async function findEReportingRows(organizationId: string, from: string, to: string): Promise<EReportingRows> {
+  return inOrganization(organizationId, async (tx) => {
+    const issued = await tx
+      .select()
+      .from(invoices)
+      .where(and(eq(invoices.isDemo, false), raw`${invoices.issuedOn} between ${from} and ${to}`))
+      .orderBy(asc(invoices.issuedOn), asc(invoices.number));
+    const notes = await tx
+      .select({ note: creditNotes, invoiceNumber: invoices.number })
+      .from(creditNotes)
+      .innerJoin(invoices, eq(invoices.id, creditNotes.invoiceId))
+      .where(and(eq(creditNotes.isDemo, false), raw`${creditNotes.issuedOn} between ${from} and ${to}`))
+      .orderBy(asc(creditNotes.issuedOn), asc(creditNotes.number));
+    const paid = await tx
+      .select({ item: paymentScheduleItems, version: quoteVersions, quote: quotes, method: paymentMethods.label })
+      .from(paymentScheduleItems)
+      .innerJoin(quoteVersions, eq(quoteVersions.id, paymentScheduleItems.versionId))
+      .innerJoin(quotes, and(eq(quotes.id, quoteVersions.quoteId), eq(quotes.currentVersion, quoteVersions.version)))
+      .leftJoin(paymentMethods, eq(paymentMethods.id, paymentScheduleItems.paymentMethodId))
+      .where(and(eq(quotes.isDemo, false), raw`${paymentScheduleItems.paidOn} between ${from} and ${to}`))
+      .orderBy(asc(paymentScheduleItems.paidOn));
+    const versionIds = [...new Set(paid.map((row) => row.version.id))];
+    const allItems =
+      versionIds.length > 0
+        ? await tx
+            .select()
+            .from(paymentScheduleItems)
+            .where(inArray(paymentScheduleItems.versionId, versionIds))
+            .orderBy(asc(paymentScheduleItems.dueDate), asc(paymentScheduleItems.position))
+        : [];
+    return {
+      invoices: issued,
+      creditNotes: notes.map((row) => ({ ...row.note, invoiceNumber: row.invoiceNumber })),
+      payments: paid.map((row) => ({
+        ...row,
+        versionItems: allItems.filter((item) => item.versionId === row.version.id),
+      })),
+    };
+  });
+}
+
+export async function updateQuoteClientKind(organizationId: string, quoteId: string, clientKind: "individual" | "professional"): Promise<boolean> {
+  return inOrganization(organizationId, async (tx) => {
+    const rows = await tx.update(quotes).set({ clientKind, updatedAt: new Date() }).where(eq(quotes.id, quoteId)).returning({ id: quotes.id });
+    return rows.length > 0;
   });
 }

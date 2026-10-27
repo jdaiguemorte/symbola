@@ -4,6 +4,7 @@
 // partir de zéro, ou importer un fichier ») ; rien n'est créé d'office.
 import { z } from "zod";
 import demoEventFile from "./demo-event.json";
+import invoiceMentionsFile from "./invoice-mentions.json";
 import paymentMethodsFile from "./payment-methods.json";
 import programFile from "./program.json";
 import retroplanningFile from "./retroplanning.json";
@@ -30,6 +31,14 @@ const paymentMethods = vendorSlotsSchema.parse(paymentMethodsFile);
 
 export function starterPaymentMethods(locale: StarterLocale): string[] {
   return paymentMethods.items.map((item) => item.label[locale]);
+}
+
+// DEV-04 : mentions de facturation de départ (conditions de paiement), à
+// relire par le comptable de la planner avant la mise en production.
+const invoiceMentions = z.object({ version: z.literal(1), text: translatedLabelSchema }).parse(invoiceMentionsFile);
+
+export function starterInvoiceMentions(locale: StarterLocale): string {
+  return invoiceMentions.text[locale];
 }
 
 const retroplanningSchema = z.object({

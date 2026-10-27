@@ -105,6 +105,7 @@ export default async function HomePage() {
         {quotesAvailable ? <Link href="/devis/catalogue">{t("quoteCatalog")}</Link> : null}
         {quotesAvailable ? <Link href="/devis/parametres">{t("quoteSettings")}</Link> : null}
         {quotesAvailable ? <Link href="/devis/encaissements">{t("quotePayments")}</Link> : null}
+        {quotesAvailable ? <Link href="/devis/e-reporting">{t("eReporting")}</Link> : null}
         {auth.user.role === "admin" ? <Link href="/admin">{t("administration")}</Link> : null}
         <Link href="/aide">{tAide("link")}</Link>
       </nav>

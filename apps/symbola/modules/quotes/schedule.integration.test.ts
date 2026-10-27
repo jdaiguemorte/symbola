@@ -234,6 +234,8 @@ describe("DEV-03 — Encaissements à venir", () => {
       invoicePrefix: "F",
       creditNotePrefix: "A",
       upcomingHorizonDays: 120,
+      invoicePaymentTermDays: 30,
+      invoiceMentions: null,
     });
     view = await listUnpaidPayments(organizationId, { now: NOW, horizonDays: 120 });
     expect(view.upcoming).toHaveLength(2);

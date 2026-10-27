@@ -306,7 +306,8 @@ describe("DEV-02 — Espace du marié", () => {
 });
 
 describe("DEV-02 — Essai guidé (ADR 0008)", () => {
-  it("un devis d'essai se signe avec le faux fournisseur, sans e-mail à un tiers, et disparaît avec l'essai", async () => {
+  // Attend volontairement l'absence d'e-mail (~3 s) : budget de temps explicite.
+  it("un devis d'essai se signe avec le faux fournisseur, sans e-mail à un tiers, et disparaît avec l'essai", { timeout: 30_000 }, async () => {
     const { organizationId } = await setup();
     setSignatureProviderForTests(null);
     const trial = await startEventsTrial({ organizationId, userId: randomUUID(), locale: "fr" });
