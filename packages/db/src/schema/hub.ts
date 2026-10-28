@@ -219,6 +219,26 @@ export type ImportColumnChoice = {
   confirmed: boolean;
 };
 
+// Élément existant rapproché d'une ligne (identifiant opaque d'un module) :
+// la ligne le mettra à jour au lieu d'en créer un doublon (IMP-05).
+export type ImportMatch = {
+  rowIndex: number;
+  candidateId: string;
+  score: number;
+  status: "proposed" | "accepted" | "refused";
+  // Ajouté à la main par la planner (pas une proposition de l'app).
+  manual: boolean;
+};
+
+// Tâche ou ligne de budget : événement existant auquel la ligne se rattache
+// (null : introuvable ou ambigu, la ligne sera rejetée).
+export type ImportRowEvent = { rowIndex: number; eventId: string | null; score: number };
+
+export type ImportMatching = {
+  matches: ImportMatch[];
+  rowEvents: ImportRowEvent[];
+};
+
 export const importStatusEnum = hubSchema.enum("import_status", ["draft", "applied", "undone", "cancelled"]);
 
 export const imports = hubSchema.table("imports", {
@@ -244,6 +264,9 @@ export const imports = hubSchema.table("imports", {
   // IMP-02 : choix validés pour chaque colonne (champ, « sans équivalent » ou
   // ignorée) ; null tant que l'étape « colonnes » n'est pas faite.
   mapping: jsonb("mapping").$type<ImportColumnChoice[] | null>(),
+  // IMP-03 : rapprochements proposés puis décidés ; null tant qu'ils n'ont
+  // pas été calculés, remis à null quand les colonnes changent.
+  matching: jsonb("matching").$type<ImportMatching | null>(),
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),

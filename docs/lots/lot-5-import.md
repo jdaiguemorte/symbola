@@ -122,6 +122,16 @@ rapprochements, écarts, confirmation. **Rien n'est écrit dans les modules avan
   ressemblance.
 - Elle valide les rapprochements un par un ou en lot, en refuse, et en ajoute à la main.
 - Une ligne rapprochée met à jour l'élément existant ; elle n'en crée pas de doublon.
+- *Réalisé (IMP-03)* : lignes converties selon les colonnes validées (`parseImportRows`), niveau
+  de ressemblance (Dice sur les paires de lettres, sans accents ni casse ; clients comparés sans
+  tenir compte de leur ordre ; une date différente écarte un événement), seuil de proposition
+  60. Orchestration dans `apps/symbola/lib/import/` (comme la purge des essais) : les éléments
+  existants sont lus par le `service.ts` de chaque module, jamais d'essai. Une tâche ou une ligne
+  de budget se rattache à un événement reconnu sans doute (ressemblance ≥ 80, nettement devant
+  le deuxième), sinon elle sera rejetée. Propositions et décisions dans `hub.imports.matching`
+  (migration 0046), recalculées quand les colonnes changent. Écran
+  `/import/<id>/rapprochements` : tout valider, sélection validée ou refusée, rapprochement à
+  la main parmi les éléments admissibles pour la ligne.
 
 ### IMP-04 — Rapport des écarts
 

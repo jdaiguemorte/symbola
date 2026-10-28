@@ -3,7 +3,7 @@
 // métier : chaque requête passe par withOrganization (RLS forcée).
 import { and, desc, eq, lt } from "drizzle-orm";
 import type { AppDatabase } from "@symbola/db/client";
-import { imports, type ImportColumnChoice } from "@symbola/db/schema/hub";
+import { imports, type ImportColumnChoice, type ImportMatching } from "@symbola/db/schema/hub";
 import { withOrganization } from "@symbola/db/with-organization";
 
 export type ImportRow = typeof imports.$inferSelect;
@@ -62,7 +62,25 @@ export async function updateDraftMapping(
   return withOrganization(db, organizationId, async (tx) => {
     const updated = await tx
       .update(imports)
-      .set({ mapping, updatedAt: now })
+      // Les rapprochements dépendent des colonnes : à recalculer.
+      .set({ mapping, matching: null, updatedAt: now })
+      .where(and(eq(imports.id, importId), eq(imports.status, "draft")))
+      .returning({ id: imports.id });
+    return updated.length > 0;
+  });
+}
+
+export async function updateDraftMatching(
+  db: AppDatabase,
+  organizationId: string,
+  importId: string,
+  matching: ImportMatching,
+  now: Date,
+): Promise<boolean> {
+  return withOrganization(db, organizationId, async (tx) => {
+    const updated = await tx
+      .update(imports)
+      .set({ matching, updatedAt: now })
       .where(and(eq(imports.id, importId), eq(imports.status, "draft")))
       .returning({ id: imports.id });
     return updated.length > 0;

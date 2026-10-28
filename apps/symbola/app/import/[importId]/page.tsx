@@ -40,7 +40,7 @@ export default async function ImportDraftPage({ params }: { params: Promise<{ im
     <main>
       <h1>{t("draftTitle", { fileName: draft.fileName })}</h1>
       <HelpButton title={tHelp("importFile.title")} body={tHelp("importFile.body")} />
-      <ImportSteps current={draft.mapping ? 2 : 1} />
+      <ImportSteps current={draft.matching ? 3 : draft.mapping ? 2 : 1} />
 
       <section aria-labelledby="import-detected">
         <h2 id="import-detected">{t("detectedTitle")}</h2>
@@ -112,7 +112,6 @@ export default async function ImportDraftPage({ params }: { params: Promise<{ im
             <p>
               <Link href={`/import/${draft.id}/colonnes`}>{t("editColumns")}</Link>
             </p>
-            <p>{t("nextStepsComing")}</p>
           </>
         ) : (
           <p>
@@ -120,6 +119,25 @@ export default async function ImportDraftPage({ params }: { params: Promise<{ im
           </p>
         )}
       </section>
+
+      {draft.mapping ? (
+        <section aria-labelledby="import-matches">
+          <h2 id="import-matches">{t("matchesStepTitle")}</h2>
+          {draft.matching ? (
+            <p>
+              {t("matchesSummary", {
+                accepted: draft.matching.matches.filter((match) => match.status === "accepted").length,
+                proposed: draft.matching.matches.filter((match) => match.status === "proposed").length,
+                refused: draft.matching.matches.filter((match) => match.status === "refused").length,
+              })}
+            </p>
+          ) : null}
+          <p>
+            <Link href={`/import/${draft.id}/rapprochements`}>{draft.matching ? t("editMatches") : t("continueToMatches")}</Link>
+          </p>
+        </section>
+      ) : null}
+
       <form action={cancelImportAction}>
         <input type="hidden" name="importId" value={draft.id} />
         <button type="submit">{t("cancelImport")}</button>
