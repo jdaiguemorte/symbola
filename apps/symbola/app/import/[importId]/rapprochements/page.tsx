@@ -132,7 +132,9 @@ export default async function ImportMatchesPage({ params }: { params: Promise<{ 
           </button>
         </p>
       ) : null}
-      <p>{t("nextStepsComing")}</p>
+      <p>
+        <Link href={`/import/${view.importId}/ecarts`}>{t("continueToGaps")}</Link>
+      </p>
       <p>
         <Link href={`/import/${view.importId}`}>{t("backToDraft")}</Link>
       </p>

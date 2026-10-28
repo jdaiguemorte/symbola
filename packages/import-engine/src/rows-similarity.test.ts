@@ -7,7 +7,7 @@ import { bestMatch, clientsSimilarity, eventSimilarity, labelSimilarity, textSim
 const synonyms = starterImportSynonyms();
 
 describe("IMP-03 — Lecture des lignes selon les colonnes validées", () => {
-  it("chaque valeur prend le type de son champ ; les colonnes sans équivalent deviennent des champs libres", () => {
+  it("chaque valeur prend le type de son champ ; les colonnes gardées en champ libre sont recopiées telles quelles", () => {
     const [row] = parseImportRows({
       headers: ["Tâche", "Échéance", "Qui", "Faite", "Remarque", "Ignorée"],
       rows: [["Réserver le traiteur", "15/01/2027", "Mariés", "oui", "appeler avant midi", "x"]],
@@ -17,7 +17,7 @@ describe("IMP-03 — Lecture des lignes selon les colonnes validées", () => {
         { columnIndex: 1, fieldKey: "dueDate", target: "field" },
         { columnIndex: 2, fieldKey: "responsible", target: "field" },
         { columnIndex: 3, fieldKey: "done", target: "field" },
-        { columnIndex: 4, fieldKey: null, target: "none" },
+        { columnIndex: 4, fieldKey: null, target: "free" },
         { columnIndex: 5, fieldKey: null, target: "ignore" },
       ],
       fields: IMPORT_FIELDS.tasks,

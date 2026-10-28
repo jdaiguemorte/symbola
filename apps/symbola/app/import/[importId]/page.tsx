@@ -33,6 +33,10 @@ export default async function ImportDraftPage({ params }: { params: Promise<{ im
   if (!draft) notFound();
 
   const t = await getTranslations("Import");
+  // IMP-04 : l'étape « écarts » est faite quand plus aucune colonne n'attend
+  // de décision (champ libre ou ignorée).
+  const undecidedColumns = draft.mapping?.filter((choice) => choice.target === "none").length ?? 0;
+  const gapsDone = draft.matching !== null && undecidedColumns === 0;
   const tHelp = await getTranslations("Help");
   const locale = (await getLocale()) as Locale;
 
@@ -40,7 +44,7 @@ export default async function ImportDraftPage({ params }: { params: Promise<{ im
     <main>
       <h1>{t("draftTitle", { fileName: draft.fileName })}</h1>
       <HelpButton title={tHelp("importFile.title")} body={tHelp("importFile.body")} />
-      <ImportSteps current={draft.matching ? 3 : draft.mapping ? 2 : 1} />
+      <ImportSteps current={gapsDone ? 4 : draft.matching ? 3 : draft.mapping ? 2 : 1} />
 
       <section aria-labelledby="import-detected">
         <h2 id="import-detected">{t("detectedTitle")}</h2>
@@ -105,8 +109,8 @@ export default async function ImportDraftPage({ params }: { params: Promise<{ im
             <p>
               {t("columnsSummary", {
                 mapped: draft.mapping.filter((choice) => choice.target === "field").length,
-                none: draft.mapping.filter((choice) => choice.target === "none").length,
-                ignored: draft.mapping.filter((choice) => choice.target === "ignore").length,
+                none: draft.mapping.filter((choice) => choice.target === "none" || choice.target === "free" || choice.decidedAtGaps).length,
+                ignored: draft.mapping.filter((choice) => choice.target === "ignore" && !choice.decidedAtGaps).length,
               })}
             </p>
             <p>
@@ -134,6 +138,23 @@ export default async function ImportDraftPage({ params }: { params: Promise<{ im
           ) : null}
           <p>
             <Link href={`/import/${draft.id}/rapprochements`}>{draft.matching ? t("editMatches") : t("continueToMatches")}</Link>
+          </p>
+        </section>
+      ) : null}
+
+      {draft.matching ? (
+        <section aria-labelledby="import-gaps">
+          <h2 id="import-gaps">{t("gapsStepTitle")}</h2>
+          <p>
+            {gapsDone
+              ? t("gapsSummary", {
+                  kept: draft.mapping?.filter((choice) => choice.target === "free").length ?? 0,
+                  ignored: draft.mapping?.filter((choice) => choice.target === "ignore" && choice.decidedAtGaps).length ?? 0,
+                })
+              : t("gapsPending", { count: undecidedColumns })}
+          </p>
+          <p>
+            <Link href={`/import/${draft.id}/ecarts`}>{t("continueToGaps")}</Link>
           </p>
         </section>
       ) : null}

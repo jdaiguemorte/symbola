@@ -320,6 +320,10 @@
     "importMatches": {
       "title": "Rapprocher des éléments existants",
       "body": "Pour chaque ligne qui ressemble à un élément déjà présent (mêmes clients et même date pour un événement, même intitulé pour un article ou une liste, même intitulé dans le même événement pour une tâche ou un poste), l'app propose un rapprochement avec son niveau de ressemblance. Une ligne rapprochée mettra à jour l'élément existant au lieu de créer un doublon. Validez ou refusez les propositions une par une ou en lot, ou choisissez vous-même l'élément à rapprocher. Les tâches et lignes de budget doivent correspondre à un de vos événements sans ambiguïté."
+    },
+    "importGaps": {
+      "title": "Rapport des écarts",
+      "body": "Le rapport liste d'abord les colonnes sans équivalent : gardez-les en champ libre (visible sur la fiche de chaque élément importé) ou ignorez-les. Il liste ensuite les lignes qui ne seront pas importées, avec leur motif : date ou montant invalide, champ obligatoire manquant, événement introuvable pour une tâche ou une ligne de budget. Téléchargez-les en CSV pour les corriger dans votre tableur, puis réimportez-les ; les autres lignes ne sont pas bloquées."
     }
   },
   "FirstSteps": {
@@ -1019,7 +1023,7 @@
     "previewTitle": "{count, plural, one {Aperçu de la première ligne} other {Aperçu des # premières lignes}}",
     "previewScrollLabel": "Tableau d'aperçu (défilement horizontal)",
     "unnamedColumn": "Colonne {number}",
-    "nextStepsComing": "L'étape suivante (rapport des écarts) arrive prochainement. Vous pouvez abandonner cet import à tout moment.",
+    "nextStepsComing": "L'étape suivante (aperçu et confirmation) arrive prochainement. Vous pouvez abandonner cet import à tout moment.",
     "cancelImport": "Abandonner l'import",
     "backToImports": "Retour aux imports",
     "journalTitle": "Journal des imports",
@@ -1112,6 +1116,34 @@
     "rowWillCreate": "À la confirmation, cette ligne créera un nouvel élément.",
     "rowWillBeRejected": "Cette ligne ne sera pas importée.",
     "manualMatchLabel": "Rapprocher « {title} » de",
-    "manualMatchSubmit": "Rapprocher"
+    "manualMatchSubmit": "Rapprocher",
+    "gapsStepTitle": "Écarts",
+    "continueToGaps": "Continuer : rapport des écarts",
+    "gapsPending": "{count, plural, =0 {Rapport des écarts à consulter.} one {# colonne sans équivalent attend votre décision.} other {# colonnes sans équivalent attendent votre décision.}}",
+    "gapsSummary": "{kept, plural, =0 {aucune colonne gardée en champ libre} one {# colonne gardée en champ libre} other {# colonnes gardées en champ libre}}, {ignored, plural, =0 {aucune ignorée} one {# ignorée} other {# ignorées}}.",
+    "gapsTitle": "Rapport des écarts de « {fileName} »",
+    "gapsColumnsTitle": "Colonnes sans équivalent",
+    "gapsColumnsIntro": "Ces colonnes ne correspondent à aucun champ. Gardez-les en champ libre, visible sur la fiche de chaque élément importé, ou ignorez-les.",
+    "gapsNoColumns": "Toutes les colonnes ont un équivalent ou sont ignorées.",
+    "gapsKeep": "Garder en champ libre sur la fiche",
+    "gapsIgnore": "Ignorer",
+    "gapsUndecided": "À décider.",
+    "gapsSaveColumns": "Enregistrer les choix",
+    "gapsRejectedTitle": "{count, plural, =0 {Lignes rejetées} one {Ligne rejetée (#)} other {Lignes rejetées (#)}}",
+    "gapsNoRejected": "Aucune ligne rejetée : toutes les lignes pourront être importées.",
+    "gapsRejectedIntro": "{count, plural, one {# ligne sur {total} ne sera pas importée} other {# lignes sur {total} ne seront pas importées}}. Téléchargez le rapport pour les corriger dans votre tableur, puis réimportez-les.",
+    "gapsRejectedRow": "Ligne {line} : {reasons}",
+    "gapsDownloadCsv": "Télécharger les lignes rejetées (CSV)",
+    "rejectedReasonHeader": "Motif du rejet",
+    "rejectedFileSuffix": "lignes-rejetees",
+    "rowError": {
+      "required_missing": "{field} : champ obligatoire manquant",
+      "invalid_date": "{field} : date invalide ({value})",
+      "invalid_amount": "{field} : montant invalide ({value})",
+      "invalid_percentage": "{field} : pourcentage invalide ({value})",
+      "invalid_boolean": "{field} : valeur non reconnue, attendu oui ou non ({value})",
+      "invalid_choice": "{field} : valeur non reconnue ({value})",
+      "event_not_found": "événement introuvable ou ambigu parmi vos événements"
+    }
   }
 }
