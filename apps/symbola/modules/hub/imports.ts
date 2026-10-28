@@ -4,7 +4,7 @@
 // la confirmation (IMP-05).
 import { IMPORT_FIELDS, type ImportEntityType, type ImportFieldDefinition } from "@symbola/contracts";
 import type { AppDatabase } from "@symbola/db/client";
-import type { ImportColumnChoice } from "@symbola/db/schema/hub";
+import type { ImportColumnChoice, ImportMatch, ImportMatching } from "@symbola/db/schema/hub";
 import { parseEnv } from "@symbola/env";
 import { scanBuffer } from "@symbola/files";
 import {
@@ -22,12 +22,13 @@ import {
   insertImport,
   markDraftCancelled,
   updateDraftMapping,
+  updateDraftMatching,
   type ImportRow,
 } from "./import-repository";
 import { findPlatformSettings, insertDefaultPlatformSettings } from "./repository";
 
 export { IMPORT_ENTITY_TYPES, type ImportEntityType } from "@symbola/contracts";
-export type { ImportColumnChoice } from "@symbola/db/schema/hub";
+export type { ImportColumnChoice, ImportMatch, ImportMatching, ImportRowEvent } from "@symbola/db/schema/hub";
 
 // Module qui reçoit chaque type d'éléments : un type dont le module n'est pas
 // souscrit n'est pas proposé (dégradation propre, CLAUDE.md §2.3).
@@ -146,6 +147,8 @@ export type ImportDraft = ImportSummary & {
   previewRows: string[][];
   // IMP-02 : choix de colonnes enregistrés, ou null avant l'étape « colonnes ».
   mapping: ImportColumnChoice[] | null;
+  // IMP-03 : rapprochements calculés et décidés, ou null.
+  matching: ImportMatching | null;
 };
 
 const PREVIEW_ROWS = 5;
@@ -179,7 +182,7 @@ export async function getImportDraft(
 ): Promise<ImportDraft | null> {
   const row = await findImport(db, organizationId, importId);
   if (!row || row.status !== "draft" || row.expiresAt <= now || !row.rows) return null;
-  return { ...toSummary(row), previewRows: row.rows.slice(0, PREVIEW_ROWS), mapping: row.mapping };
+  return { ...toSummary(row), previewRows: row.rows.slice(0, PREVIEW_ROWS), mapping: row.mapping, matching: row.matching };
 }
 
 async function findActiveDraft(db: AppDatabase, organizationId: string, importId: string, now: Date) {
@@ -323,4 +326,81 @@ export async function purgeExpiredImportDrafts(db: AppDatabase, organizationIds:
   let purged = 0;
   for (const organizationId of organizationIds) purged += await cancelExpiredDrafts(db, organizationId, now);
   return purged;
+}
+
+// IMP-03 — données de travail d'un import en cours dont les colonnes sont
+// validées, pour l'orchestrateur des rapprochements (lib/import), qui
+// interroge les modules par leur service.ts.
+export type ImportWorkingSet = {
+  importId: string;
+  entityType: ImportEntityType;
+  fileName: string;
+  headers: string[];
+  rows: string[][];
+  sourceLineNumbers: number[];
+  mapping: ImportColumnChoice[];
+  matching: ImportMatching | null;
+};
+
+export async function getImportWorkingSet(
+  db: AppDatabase,
+  organizationId: string,
+  importId: string,
+  now: Date = new Date(),
+): Promise<ImportWorkingSet | null> {
+  const row = await findActiveDraft(db, organizationId, importId, now);
+  if (!row || !row.mapping) return null;
+  return {
+    importId: row.id,
+    entityType: row.entityType,
+    fileName: row.fileName,
+    headers: row.headers,
+    rows: row.rows,
+    sourceLineNumbers: row.sourceLineNumbers ?? row.rows.map((_, index) => index + 2),
+    mapping: row.mapping,
+    matching: row.matching,
+  };
+}
+
+export async function saveImportMatching(
+  db: AppDatabase,
+  input: { organizationId: string; importId: string; matching: ImportMatching; now?: Date },
+): Promise<boolean> {
+  return updateDraftMatching(db, input.organizationId, input.importId, input.matching, input.now ?? new Date());
+}
+
+// Décision de la planner sur des rapprochements proposés : un par un ou en
+// lot (plusieurs lignes à la fois). Une ligne sans rapprochement est ignorée.
+export type MatchDecision = { rowIndex: number; decision: "accept" | "refuse" };
+
+export async function decideImportMatches(
+  db: AppDatabase,
+  input: { organizationId: string; importId: string; decisions: MatchDecision[]; now?: Date },
+): Promise<boolean> {
+  const now = input.now ?? new Date();
+  const set = await getImportWorkingSet(db, input.organizationId, input.importId, now);
+  if (!set?.matching) return false;
+  const decisions = new Map(input.decisions.map((decision) => [decision.rowIndex, decision.decision]));
+  const matches = set.matching.matches.map((match): ImportMatch => {
+    const decision = decisions.get(match.rowIndex);
+    if (!decision) return match;
+    return { ...match, status: decision === "accept" ? "accepted" : "refused" };
+  });
+  return updateDraftMatching(db, input.organizationId, input.importId, { ...set.matching, matches }, now);
+}
+
+// Rapprochement ajouté à la main : l'orchestrateur a vérifié que l'élément
+// existe et convient à la ligne. Il remplace une proposition éventuelle.
+export async function setManualImportMatch(
+  db: AppDatabase,
+  input: { organizationId: string; importId: string; rowIndex: number; candidateId: string; now?: Date },
+): Promise<boolean> {
+  const now = input.now ?? new Date();
+  const set = await getImportWorkingSet(db, input.organizationId, input.importId, now);
+  if (!set?.matching || input.rowIndex < 0 || input.rowIndex >= set.rows.length) return false;
+  const matches = [
+    ...set.matching.matches.filter((match) => match.rowIndex !== input.rowIndex),
+    { rowIndex: input.rowIndex, candidateId: input.candidateId, score: 100, status: "accepted" as const, manual: true },
+  ].sort((a, b) => a.rowIndex - b.rowIndex);
+  return updateDraftMatching(db, input.organizationId, input.importId, { ...set.matching, matches }, now);
 }

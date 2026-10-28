@@ -316,6 +316,10 @@
     "importColumns": {
       "title": "Recognising columns",
       "body": "Each column of your file gets a suggested field, based on its title (French or English) and its content (dates, amounts, e-mails). The confidence score tells how sure the suggestion is: below the threshold, tick the confirmation box or choose another field. A column “without equivalent” will be offered in the gaps report, to keep it as a free field on the record or ignore it. French dates (31/12/2026, 31.12.2026, 2026-12-31) and amounts (1 234,56 €) are recognised."
+    },
+    "importMatches": {
+      "title": "Matching existing records",
+      "body": "For each row that looks like a record you already have (same clients and same date for an event, same label for an item or a list, same label within the same event for a task or a budget item), the app suggests a match with its similarity score. A matched row will update the existing record instead of creating a duplicate. Accept or refuse suggestions one by one or in bulk, or choose the record to match yourself. Tasks and budget lines must match one of your events without ambiguity."
     }
   },
   "FirstSteps": {
@@ -1015,7 +1019,7 @@
     "previewTitle": "{count, plural, one {Preview of the first row} other {Preview of the first # rows}}",
     "previewScrollLabel": "Preview table (scrolls horizontally)",
     "unnamedColumn": "Column {number}",
-    "nextStepsComing": "The next step (matching existing records) is coming soon. You can discard this import at any time.",
+    "nextStepsComing": "The next step (gaps report) is coming soon. You can discard this import at any time.",
     "cancelImport": "Discard the import",
     "backToImports": "Back to imports",
     "journalTitle": "Import log",
@@ -1079,6 +1083,35 @@
     "mappingUnknownField": "column “{column}”: unknown field.",
     "mappingDuplicateField": "column “{column}”: field “{field}” is already chosen for another column.",
     "mappingLowConfidence": "column “{column}”: confirm the match with “{field}” (low confidence), or choose another field.",
-    "mappingMissingRequired": "required field “{field}” is not matched to any column."
+    "mappingMissingRequired": "required field “{field}” is not matched to any column.",
+    "matchesStepTitle": "Matches",
+    "continueToMatches": "Continue: match existing records",
+    "editMatches": "Review the matches",
+    "matchesSummary": "{accepted, plural, =0 {no match accepted} one {# match accepted} other {# matches accepted}}, {proposed, plural, =0 {none to decide} one {# to decide} other {# to decide}}, {refused, plural, =0 {none refused} one {# refused} other {# refused}}.",
+    "matchesTitle": "Matches for “{fileName}”",
+    "matchesIntro": "A row that looks like an existing record can update it instead of creating a duplicate. Accept the suggested matches one by one or in bulk, refuse them, or match a row by hand. Nothing is saved in your modules yet.",
+    "matchesRejectedNotice": "{count, plural, one {# row has} other {# rows have}} an invalid value or an empty required field: they will be listed in the gaps report.",
+    "acceptAllMatches": "{count, plural, one {Accept the suggested match} other {Accept the # suggested matches}}",
+    "acceptSelectedMatches": "Accept selected",
+    "refuseSelectedMatches": "Refuse selected",
+    "rowHeading": "Row {line}: {title}",
+    "rowWithoutLabel": "no label",
+    "eventWithoutClients": "clients not given",
+    "eventTitle": "{clients}, on {date}",
+    "rowEvent": "Event: {event} ({score}% similar)",
+    "rowEventNotFound": "Event not found or ambiguous among your events: this row will be rejected.",
+    "rowMatch": "Looks like: {element} ({score}% similar)",
+    "matchStatus": {
+      "proposed": "suggested",
+      "accepted": "accepted",
+      "refused": "refused"
+    },
+    "matchManual": "added by hand",
+    "selectMatch": "Select the match for “{title}”",
+    "rowWillUpdate": "On confirmation, this row will update the existing record.",
+    "rowWillCreate": "On confirmation, this row will create a new record.",
+    "rowWillBeRejected": "This row will not be imported.",
+    "manualMatchLabel": "Match “{title}” with",
+    "manualMatchSubmit": "Match"
   }
 }

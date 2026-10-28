@@ -316,6 +316,10 @@
     "importColumns": {
       "title": "Reconnaître les colonnes",
       "body": "Chaque colonne de votre fichier reçoit une proposition de champ, d'après son intitulé (en français ou en anglais) et son contenu (dates, montants, e-mails). L'indice de confiance dit à quel point la proposition est sûre : sous le seuil, cochez la case de confirmation ou choisissez un autre champ. Une colonne « sans équivalent » sera proposée au rapport des écarts, pour la garder en champ libre sur la fiche ou l'ignorer. Les dates (31/12/2026, 31.12.2026, 2026-12-31) et montants (1 234,56 €) au format français sont reconnus."
+    },
+    "importMatches": {
+      "title": "Rapprocher des éléments existants",
+      "body": "Pour chaque ligne qui ressemble à un élément déjà présent (mêmes clients et même date pour un événement, même intitulé pour un article ou une liste, même intitulé dans le même événement pour une tâche ou un poste), l'app propose un rapprochement avec son niveau de ressemblance. Une ligne rapprochée mettra à jour l'élément existant au lieu de créer un doublon. Validez ou refusez les propositions une par une ou en lot, ou choisissez vous-même l'élément à rapprocher. Les tâches et lignes de budget doivent correspondre à un de vos événements sans ambiguïté."
     }
   },
   "FirstSteps": {
@@ -1015,7 +1019,7 @@
     "previewTitle": "{count, plural, one {Aperçu de la première ligne} other {Aperçu des # premières lignes}}",
     "previewScrollLabel": "Tableau d'aperçu (défilement horizontal)",
     "unnamedColumn": "Colonne {number}",
-    "nextStepsComing": "L'étape suivante (rapprochements) arrive prochainement. Vous pouvez abandonner cet import à tout moment.",
+    "nextStepsComing": "L'étape suivante (rapport des écarts) arrive prochainement. Vous pouvez abandonner cet import à tout moment.",
     "cancelImport": "Abandonner l'import",
     "backToImports": "Retour aux imports",
     "journalTitle": "Journal des imports",
@@ -1079,6 +1083,35 @@
     "mappingUnknownField": "colonne « {column} » : champ inconnu.",
     "mappingDuplicateField": "colonne « {column} » : le champ « {field} » est déjà choisi pour une autre colonne.",
     "mappingLowConfidence": "colonne « {column} » : confirmez la correspondance avec « {field} » (confiance faible), ou choisissez un autre champ.",
-    "mappingMissingRequired": "le champ obligatoire « {field} » n'est associé à aucune colonne."
+    "mappingMissingRequired": "le champ obligatoire « {field} » n'est associé à aucune colonne.",
+    "matchesStepTitle": "Rapprochements",
+    "continueToMatches": "Continuer : rapprocher des éléments existants",
+    "editMatches": "Revoir les rapprochements",
+    "matchesSummary": "{accepted, plural, =0 {aucun rapprochement validé} one {# rapprochement validé} other {# rapprochements validés}}, {proposed, plural, =0 {aucun à décider} one {# à décider} other {# à décider}}, {refused, plural, =0 {aucun refusé} one {# refusé} other {# refusés}}.",
+    "matchesTitle": "Rapprochements de « {fileName} »",
+    "matchesIntro": "Une ligne qui ressemble à un élément existant peut le mettre à jour au lieu de créer un doublon. Validez les rapprochements proposés un par un ou en lot, refusez-les, ou rapprochez une ligne à la main. Rien n'est encore enregistré dans vos modules.",
+    "matchesRejectedNotice": "{count, plural, one {# ligne contient} other {# lignes contiennent}} une valeur invalide ou un champ obligatoire vide : elles seront listées au rapport des écarts.",
+    "acceptAllMatches": "{count, plural, one {Valider le rapprochement proposé} other {Valider les # rapprochements proposés}}",
+    "acceptSelectedMatches": "Valider la sélection",
+    "refuseSelectedMatches": "Refuser la sélection",
+    "rowHeading": "Ligne {line} : {title}",
+    "rowWithoutLabel": "sans intitulé",
+    "eventWithoutClients": "clients non renseignés",
+    "eventTitle": "{clients}, le {date}",
+    "rowEvent": "Événement : {event} (ressemblance {score} %)",
+    "rowEventNotFound": "Événement introuvable ou ambigu parmi vos événements : cette ligne sera rejetée.",
+    "rowMatch": "Ressemble à : {element} (ressemblance {score} %)",
+    "matchStatus": {
+      "proposed": "proposé",
+      "accepted": "validé",
+      "refused": "refusé"
+    },
+    "matchManual": "ajouté à la main",
+    "selectMatch": "Sélectionner le rapprochement de « {title} »",
+    "rowWillUpdate": "À la confirmation, cette ligne mettra à jour l'élément existant.",
+    "rowWillCreate": "À la confirmation, cette ligne créera un nouvel élément.",
+    "rowWillBeRejected": "Cette ligne ne sera pas importée.",
+    "manualMatchLabel": "Rapprocher « {title} » de",
+    "manualMatchSubmit": "Rapprocher"
   }
 }
