@@ -31,14 +31,14 @@ rapprochements, écarts, confirmation. **Rien n'est écrit dans les modules avan
    (`packages/testing/import-corpus/`) ; Julien y ajoutera l'export Wedding Plan anonymisé
    quand il l'aura, comme test supplémentaire (PRD §7, « Robustesse »).
 
-## Points à valider avec Julien (signalés, pas tranchés)
+## Valeurs validées par Julien (28/10/2026)
 
-- **Taille maximale** : 10 Mo (proposé par le PRD), réglage de la plateforme
-  (`hub.platform_settings`, Admin), jamais en dur ; nombre de lignes plafonné (5 000 proposé,
+- **Taille maximale** : 10 Mo, réglage de la plateforme
+  (`hub.platform_settings`, Admin), jamais en dur ; nombre de lignes plafonné (5 000,
   même réglage).
 - **Durée de vie d'un import en cours** (étapes 1 à 4 non confirmées) : 7 jours, puis purge
   automatique des lignes en attente (elles contiennent des données personnelles).
-- **Durée pendant laquelle un import confirmé reste annulable** : 90 jours proposés ; ensuite
+- **Durée pendant laquelle un import confirmé reste annulable** : 90 jours ; ensuite
   les valeurs précédentes conservées pour l'annulation sont effacées, le journal (fichier,
   auteur, date, résultat chiffré) reste.
 
