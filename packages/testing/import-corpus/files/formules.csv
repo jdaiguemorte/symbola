@@ -1,0 +1,4 @@
+"Intitulé","Montant","Téléphone","Commentaire"
+"=HYPERLINK(""http://example.invalid"",""clic"")","-12,50","+33 6 12 34 56 78","@SUM(A1:A2)"
+"Fleurs","+150","0612345678","-2+3"
+"  =1+1","1 234,56 €","","	=cmd"

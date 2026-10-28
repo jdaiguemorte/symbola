@@ -117,9 +117,19 @@ export async function findPlatformSettings(db: AppDatabase) {
   return row ?? null;
 }
 
+export async function insertDefaultPlatformSettings(db: AppDatabase) {
+  await db.insert(platformSettings).values({ id: 1 }).onConflictDoNothing();
+}
+
 export async function upsertPlatformSettings(
   db: AppDatabase,
-  fields: { franchiseThresholdServicesCents: number | null; franchiseThresholdGoodsCents: number | null },
+  fields: {
+    franchiseThresholdServicesCents: number | null;
+    franchiseThresholdGoodsCents: number | null;
+    importMaxBytes?: number;
+    importMaxRows?: number;
+    importDraftRetentionDays?: number;
+  },
 ) {
   await db
     .insert(platformSettings)

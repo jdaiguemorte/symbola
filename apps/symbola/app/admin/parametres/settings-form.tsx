@@ -7,9 +7,15 @@ import { savePlatformSettingsAction, type PlatformSettingsFormState } from "./ac
 export function PlatformSettingsForm({
   franchiseThresholdServicesCents,
   franchiseThresholdGoodsCents,
+  importMaxMegabytes,
+  importMaxRows,
+  importDraftRetentionDays,
 }: {
   franchiseThresholdServicesCents: number | null;
   franchiseThresholdGoodsCents: number | null;
+  importMaxMegabytes: number;
+  importMaxRows: number;
+  importDraftRetentionDays: number;
 }) {
   const t = useTranslations("AdminSettings");
   const initialState: PlatformSettingsFormState = {};
@@ -35,10 +41,26 @@ export function PlatformSettingsForm({
           defaultValue={franchiseThresholdGoodsCents !== null ? franchiseThresholdGoodsCents / 100 : ""}
         />
       </label>
+      <fieldset>
+        <legend>{t("importLegend")}</legend>
+        <label>
+          {t("importMaxMegabytes")}
+          <input type="number" min="1" max="20" step="1" name="importMaxMegabytes" defaultValue={importMaxMegabytes} required />
+        </label>
+        <label>
+          {t("importMaxRows")}
+          <input type="number" min="1" step="1" name="importMaxRows" defaultValue={importMaxRows} required />
+        </label>
+        <label>
+          {t("importDraftRetentionDays")}
+          <input type="number" min="1" step="1" name="importDraftRetentionDays" defaultValue={importDraftRetentionDays} required />
+        </label>
+      </fieldset>
       <button type="submit" disabled={pending}>
         {t("save")}
       </button>
       {state.success ? <p role="status">{t("saved")}</p> : null}
+      {state.error ? <p role="alert">{state.error}</p> : null}
     </form>
   );
 }

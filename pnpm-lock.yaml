@@ -46,6 +46,9 @@ importers:
       '@symbola/i18n':
         specifier: workspace:^
         version: link:../../packages/i18n
+      '@symbola/import-engine':
+        specifier: workspace:*
+        version: link:../../packages/import-engine
       '@symbola/mail':
         specifier: workspace:*
         version: link:../../packages/mail
@@ -89,6 +92,9 @@ importers:
       '@symbola/config':
         specifier: workspace:*
         version: link:../../packages/config
+      '@symbola/testing':
+        specifier: workspace:*
+        version: link:../../packages/testing
       '@types/node':
         specifier: ^22.10.2
         version: 22.20.5
@@ -265,6 +271,24 @@ importers:
       tsx:
         specifier: ^4.19.2
         version: 4.23.15
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vitest:
+        specifier: ^4.1.12
+        version: 4.1.12(@types/node@22.20.5)(vite@7.3.7(@types/node@22.20.5)(tsx@4.23.15)(yaml@2.9.1))
+
+  packages/import-engine:
+    devDependencies:
+      '@symbola/config':
+        specifier: workspace:*
+        version: link:../config
+      '@symbola/testing':
+        specifier: workspace:*
+        version: link:../testing
+      '@types/node':
+        specifier: ^22.10.2
+        version: 22.20.5
       typescript:
         specifier: ^5.7.2
         version: 5.9.3
