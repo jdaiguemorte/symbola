@@ -12,6 +12,8 @@
   },
   "devDependencies": {
     "@symbola/config": "workspace:*",
+    "@symbola/contracts": "workspace:*",
+    "@symbola/starter-templates": "workspace:*",
     "@symbola/testing": "workspace:*",
     "@types/node": "^22.10.2",
     "typescript": "^5.7.2",

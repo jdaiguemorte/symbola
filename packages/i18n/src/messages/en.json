@@ -312,6 +312,10 @@
     "importFile": {
       "title": "Importing data",
       "body": "Choose what your file contains (events, tasks, budget, catalogue or a list), then drop it in: CSV, Excel (.xlsx) or JSON. Encoding, separator and header row are detected automatically; spreadsheet formulas are neutralised. The file is scanned by the antivirus and then discarded: only its rows are kept until the import is finished. Nothing is saved in your modules before the last step."
+    },
+    "importColumns": {
+      "title": "Recognising columns",
+      "body": "Each column of your file gets a suggested field, based on its title (French or English) and its content (dates, amounts, e-mails). The confidence score tells how sure the suggestion is: below the threshold, tick the confirmation box or choose another field. A column “without equivalent” will be offered in the gaps report, to keep it as a free field on the record or ignore it. French dates (31/12/2026, 31.12.2026, 2026-12-31) and amounts (1 234,56 €) are recognised."
     }
   },
   "FirstSteps": {
@@ -1011,7 +1015,7 @@
     "previewTitle": "{count, plural, one {Preview of the first row} other {Preview of the first # rows}}",
     "previewScrollLabel": "Preview table (scrolls horizontally)",
     "unnamedColumn": "Column {number}",
-    "nextStepsComing": "The next step (column matching) is coming soon. You can discard this import at any time.",
+    "nextStepsComing": "The next step (matching existing records) is coming soon. You can discard this import at any time.",
     "cancelImport": "Discard the import",
     "backToImports": "Back to imports",
     "journalTitle": "Import log",
@@ -1026,6 +1030,55 @@
       "applied": "confirmed",
       "undone": "undone",
       "cancelled": "discarded"
-    }
+    },
+    "importNotFound": "This import no longer exists (discarded or expired).",
+    "field": {
+      "client1FirstName": "Client 1 — first name",
+      "client1LastName": "Client 1 — last name",
+      "client2FirstName": "Client 2 — first name",
+      "client2LastName": "Client 2 — last name",
+      "eventDate": "Event date",
+      "venueName": "Venue",
+      "venueCity": "Venue city",
+      "prospectSource": "Prospect source",
+      "status": "Event status",
+      "label": "Label",
+      "dueDate": "Due date",
+      "responsible": "Responsible",
+      "done": "Done",
+      "slotLabel": "Budget item",
+      "vendorName": "Vendor",
+      "plannedAmount": "Planned amount",
+      "actualAmount": "Actual amount",
+      "description": "Description",
+      "unit": "Unit",
+      "unitPrice": "Unit price excl. VAT",
+      "vatRate": "VAT rate",
+      "category": "Category"
+    },
+    "requiredField": "{field} (required)",
+    "columnsStepTitle": "Columns",
+    "continueToColumns": "Continue: recognise the columns",
+    "editColumns": "Change the column matches",
+    "columnsSummary": "{mapped, plural, =0 {no column matched} one {# column matched} other {# columns matched}}, {none, plural, =0 {none without equivalent} one {# without equivalent} other {# without equivalent}}, {ignored, plural, =0 {none ignored} one {# ignored} other {# ignored}}.",
+    "columnsTitle": "Columns of “{fileName}”",
+    "columnsIntro": "For each column we suggest a field with a confidence score. Accept, correct or ignore each suggestion. Below {threshold}% confidence, a suggestion must be explicitly confirmed.",
+    "columnSamples": "Examples: {samples}",
+    "columnEmpty": "Empty column.",
+    "columnProposal": "Suggestion: {field} ({confidence}% confidence)",
+    "columnLowConfidence": "low confidence, please confirm",
+    "columnNoProposal": "No suggestion: choose a field, or leave the column without equivalent.",
+    "columnTargetLabel": "Field for column “{column}”",
+    "columnTargetFields": "Fields",
+    "columnTargetNone": "No equivalent (decide in the gaps report)",
+    "columnTargetIgnore": "Ignore this column",
+    "columnConfirm": "I confirm: this column is “{field}”",
+    "saveColumns": "Save columns",
+    "backToDraft": "Back to the import",
+    "mappingErrorsTitle": "The columns were not saved:",
+    "mappingUnknownField": "column “{column}”: unknown field.",
+    "mappingDuplicateField": "column “{column}”: field “{field}” is already chosen for another column.",
+    "mappingLowConfidence": "column “{column}”: confirm the match with “{field}” (low confidence), or choose another field.",
+    "mappingMissingRequired": "required field “{field}” is not matched to any column."
   }
 }

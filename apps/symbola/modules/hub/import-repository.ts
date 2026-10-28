@@ -3,7 +3,7 @@
 // métier : chaque requête passe par withOrganization (RLS forcée).
 import { and, desc, eq, lt } from "drizzle-orm";
 import type { AppDatabase } from "@symbola/db/client";
-import { imports } from "@symbola/db/schema/hub";
+import { imports, type ImportColumnChoice } from "@symbola/db/schema/hub";
 import { withOrganization } from "@symbola/db/with-organization";
 
 export type ImportRow = typeof imports.$inferSelect;
@@ -49,5 +49,22 @@ export async function cancelExpiredDrafts(db: AppDatabase, organizationId: strin
       .where(and(eq(imports.status, "draft"), lt(imports.expiresAt, now)))
       .returning({ id: imports.id });
     return updated.length;
+  });
+}
+
+export async function updateDraftMapping(
+  db: AppDatabase,
+  organizationId: string,
+  importId: string,
+  mapping: ImportColumnChoice[],
+  now: Date,
+): Promise<boolean> {
+  return withOrganization(db, organizationId, async (tx) => {
+    const updated = await tx
+      .update(imports)
+      .set({ mapping, updatedAt: now })
+      .where(and(eq(imports.id, importId), eq(imports.status, "draft")))
+      .returning({ id: imports.id });
+    return updated.length > 0;
   });
 }
