@@ -19,6 +19,7 @@ COPY packages/db/package.json packages/db/package.json
 COPY packages/env/package.json packages/env/package.json
 COPY packages/files/package.json packages/files/package.json
 COPY packages/i18n/package.json packages/i18n/package.json
+COPY packages/import-engine/package.json packages/import-engine/package.json
 COPY packages/mail/package.json packages/mail/package.json
 COPY packages/privacy/package.json packages/privacy/package.json
 COPY packages/starter-templates/package.json packages/starter-templates/package.json
