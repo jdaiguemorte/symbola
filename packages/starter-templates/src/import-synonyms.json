@@ -1,0 +1,510 @@
+{
+  "version": 1,
+  "columns": {
+    "client1FirstName": {
+      "fr": [
+        "prénom client 1",
+        "prénom du client 1",
+        "prénom mariée",
+        "prénom de la mariée",
+        "prénom marié 1",
+        "prénom 1",
+        "prénom",
+        "prénom partenaire 1",
+        "prénom contact"
+      ],
+      "en": [
+        "client 1 first name",
+        "first name 1",
+        "bride first name",
+        "partner 1 first name",
+        "first name",
+        "given name",
+        "contact first name"
+      ]
+    },
+    "client1LastName": {
+      "fr": [
+        "nom client 1",
+        "nom du client 1",
+        "nom mariée",
+        "nom de la mariée",
+        "nom 1",
+        "nom",
+        "nom de famille",
+        "nom partenaire 1",
+        "nom contact"
+      ],
+      "en": [
+        "client 1 last name",
+        "last name 1",
+        "bride last name",
+        "partner 1 last name",
+        "last name",
+        "surname",
+        "family name",
+        "contact last name"
+      ]
+    },
+    "client2FirstName": {
+      "fr": [
+        "prénom client 2",
+        "prénom du client 2",
+        "prénom marié",
+        "prénom du marié",
+        "prénom 2",
+        "prénom partenaire 2",
+        "prénom conjoint"
+      ],
+      "en": [
+        "client 2 first name",
+        "first name 2",
+        "groom first name",
+        "partner 2 first name"
+      ]
+    },
+    "client2LastName": {
+      "fr": [
+        "nom client 2",
+        "nom du client 2",
+        "nom marié",
+        "nom du marié",
+        "nom 2",
+        "nom partenaire 2",
+        "nom conjoint"
+      ],
+      "en": [
+        "client 2 last name",
+        "last name 2",
+        "groom last name",
+        "partner 2 last name"
+      ]
+    },
+    "eventDate": {
+      "fr": [
+        "date du mariage",
+        "date de l'événement",
+        "date événement",
+        "date",
+        "date de la cérémonie",
+        "jour j"
+      ],
+      "en": [
+        "wedding date",
+        "event date",
+        "date",
+        "ceremony date"
+      ]
+    },
+    "venueName": {
+      "fr": [
+        "lieu",
+        "lieu de réception",
+        "nom du lieu",
+        "salle",
+        "domaine",
+        "lieu de l'événement"
+      ],
+      "en": [
+        "venue",
+        "venue name",
+        "location",
+        "reception venue"
+      ]
+    },
+    "venueCity": {
+      "fr": [
+        "ville",
+        "commune",
+        "ville du lieu",
+        "localité"
+      ],
+      "en": [
+        "city",
+        "town",
+        "venue city"
+      ]
+    },
+    "prospectSource": {
+      "fr": [
+        "source",
+        "origine",
+        "provenance",
+        "source du contact",
+        "canal"
+      ],
+      "en": [
+        "source",
+        "lead source",
+        "origin",
+        "referral",
+        "channel"
+      ]
+    },
+    "status": {
+      "fr": [
+        "statut",
+        "état",
+        "étape",
+        "statut du dossier"
+      ],
+      "en": [
+        "status",
+        "stage",
+        "state"
+      ]
+    },
+    "label": {
+      "fr": [
+        "intitulé",
+        "libellé",
+        "nom",
+        "désignation",
+        "tâche",
+        "article",
+        "prestation",
+        "poste",
+        "source",
+        "motif",
+        "mode de paiement"
+      ],
+      "en": [
+        "label",
+        "name",
+        "title",
+        "task",
+        "item",
+        "service",
+        "description"
+      ]
+    },
+    "dueDate": {
+      "fr": [
+        "échéance",
+        "date d'échéance",
+        "date limite",
+        "à faire avant",
+        "pour le"
+      ],
+      "en": [
+        "due date",
+        "deadline",
+        "due",
+        "due on"
+      ]
+    },
+    "responsible": {
+      "fr": [
+        "responsable",
+        "qui",
+        "attribuée à",
+        "attribué à",
+        "pour qui"
+      ],
+      "en": [
+        "responsible",
+        "owner",
+        "assigned to",
+        "assignee",
+        "who"
+      ]
+    },
+    "done": {
+      "fr": [
+        "faite",
+        "fait",
+        "terminée",
+        "terminé",
+        "réalisée",
+        "statut de la tâche"
+      ],
+      "en": [
+        "done",
+        "completed",
+        "complete",
+        "finished"
+      ]
+    },
+    "slotLabel": {
+      "fr": [
+        "poste",
+        "poste de dépense",
+        "catégorie de dépense",
+        "prestation",
+        "type de prestataire"
+      ],
+      "en": [
+        "budget item",
+        "category",
+        "vendor category",
+        "expense",
+        "item"
+      ]
+    },
+    "vendorName": {
+      "fr": [
+        "prestataire",
+        "fournisseur",
+        "nom du prestataire",
+        "société"
+      ],
+      "en": [
+        "vendor",
+        "supplier",
+        "vendor name",
+        "company"
+      ]
+    },
+    "plannedAmount": {
+      "fr": [
+        "prévu",
+        "montant prévu",
+        "budget prévu",
+        "budget",
+        "estimation",
+        "montant estimé"
+      ],
+      "en": [
+        "planned",
+        "planned amount",
+        "budget",
+        "estimate",
+        "estimated"
+      ]
+    },
+    "actualAmount": {
+      "fr": [
+        "réel",
+        "montant réel",
+        "dépensé",
+        "payé",
+        "montant payé",
+        "coût réel"
+      ],
+      "en": [
+        "actual",
+        "actual amount",
+        "spent",
+        "paid",
+        "actual cost"
+      ]
+    },
+    "description": {
+      "fr": [
+        "description",
+        "détail",
+        "commentaire"
+      ],
+      "en": [
+        "description",
+        "details",
+        "notes"
+      ]
+    },
+    "unit": {
+      "fr": [
+        "unité",
+        "unité de vente",
+        "par"
+      ],
+      "en": [
+        "unit",
+        "per"
+      ]
+    },
+    "unitPrice": {
+      "fr": [
+        "prix",
+        "prix ht",
+        "prix unitaire",
+        "prix unitaire ht",
+        "tarif",
+        "tarif ht",
+        "montant ht"
+      ],
+      "en": [
+        "price",
+        "unit price",
+        "price excl tax",
+        "rate",
+        "net price"
+      ]
+    },
+    "vatRate": {
+      "fr": [
+        "tva",
+        "taux de tva",
+        "taux tva"
+      ],
+      "en": [
+        "vat",
+        "vat rate",
+        "tax rate",
+        "tax"
+      ]
+    },
+    "category": {
+      "fr": [
+        "catégorie",
+        "famille",
+        "rubrique"
+      ],
+      "en": [
+        "category",
+        "group",
+        "family"
+      ]
+    }
+  },
+  "choices": {
+    "status": {
+      "prospect": {
+        "fr": [
+          "prospect",
+          "nouveau",
+          "contact",
+          "à rappeler",
+          "en cours"
+        ],
+        "en": [
+          "prospect",
+          "lead",
+          "new",
+          "in progress"
+        ]
+      },
+      "quote_sent": {
+        "fr": [
+          "devis envoyé",
+          "devis",
+          "proposition envoyée"
+        ],
+        "en": [
+          "quote sent",
+          "proposal sent",
+          "quoted"
+        ]
+      },
+      "confirmed": {
+        "fr": [
+          "confirmé",
+          "confirmée",
+          "signé",
+          "signée",
+          "réservé",
+          "réservée",
+          "validé"
+        ],
+        "en": [
+          "confirmed",
+          "booked",
+          "signed",
+          "won"
+        ]
+      },
+      "done": {
+        "fr": [
+          "terminé",
+          "terminée",
+          "passé",
+          "réalisé",
+          "fait"
+        ],
+        "en": [
+          "done",
+          "completed",
+          "past"
+        ]
+      },
+      "lost": {
+        "fr": [
+          "perdu",
+          "perdue",
+          "annulé",
+          "annulée",
+          "refusé",
+          "sans suite"
+        ],
+        "en": [
+          "lost",
+          "cancelled",
+          "canceled",
+          "declined"
+        ]
+      }
+    },
+    "responsible": {
+      "planner": {
+        "fr": [
+          "planner",
+          "wedding planner",
+          "moi",
+          "agence",
+          "organisatrice"
+        ],
+        "en": [
+          "planner",
+          "wedding planner",
+          "me",
+          "agency"
+        ]
+      },
+      "clients": {
+        "fr": [
+          "mariés",
+          "mariée",
+          "marié",
+          "clients",
+          "client",
+          "couple"
+        ],
+        "en": [
+          "couple",
+          "clients",
+          "client",
+          "bride",
+          "groom"
+        ]
+      }
+    }
+  },
+  "booleans": {
+    "true": {
+      "fr": [
+        "oui",
+        "o",
+        "x",
+        "vrai",
+        "fait",
+        "faite",
+        "terminé",
+        "1"
+      ],
+      "en": [
+        "yes",
+        "y",
+        "x",
+        "true",
+        "done",
+        "1"
+      ]
+    },
+    "false": {
+      "fr": [
+        "non",
+        "n",
+        "faux",
+        "à faire",
+        "0"
+      ],
+      "en": [
+        "no",
+        "n",
+        "false",
+        "to do",
+        "todo",
+        "0"
+      ]
+    }
+  }
+}

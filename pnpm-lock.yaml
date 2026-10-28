@@ -283,6 +283,12 @@ importers:
       '@symbola/config':
         specifier: workspace:*
         version: link:../config
+      '@symbola/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      '@symbola/starter-templates':
+        specifier: workspace:*
+        version: link:../starter-templates
       '@symbola/testing':
         specifier: workspace:*
         version: link:../testing

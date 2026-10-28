@@ -209,6 +209,16 @@ export const importEntityTypeEnum = hubSchema.enum("import_entity_type", [
   "payment_methods",
 ]);
 
+export type ImportColumnChoice = {
+  columnIndex: number;
+  // Clé d'un champ (packages/contracts, IMPORT_FIELDS), ou null.
+  fieldKey: string | null;
+  // `none` : sans équivalent, à traiter au rapport des écarts (IMP-04).
+  target: "field" | "none" | "ignore";
+  confidence: number;
+  confirmed: boolean;
+};
+
 export const importStatusEnum = hubSchema.enum("import_status", ["draft", "applied", "undone", "cancelled"]);
 
 export const imports = hubSchema.table("imports", {
@@ -231,6 +241,9 @@ export const imports = hubSchema.table("imports", {
   sourceLineNumbers: jsonb("source_line_numbers").$type<number[] | null>(),
   rowCount: integer("row_count").notNull(),
   neutralizedCells: integer("neutralized_cells").notNull().default(0),
+  // IMP-02 : choix validés pour chaque colonne (champ, « sans équivalent » ou
+  // ignorée) ; null tant que l'étape « colonnes » n'est pas faite.
+  mapping: jsonb("mapping").$type<ImportColumnChoice[] | null>(),
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),

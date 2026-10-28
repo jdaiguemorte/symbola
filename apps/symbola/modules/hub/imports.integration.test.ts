@@ -10,11 +10,13 @@ import { EICAR_TEST_STRING } from "@symbola/files";
 import { readImportCorpusFile } from "@symbola/testing/import-corpus";
 import {
   cancelImport,
+  getImportColumns,
   getImportDraft,
   getImportLimits,
   getPlatformSettings,
   listImports,
   purgeExpiredImportDrafts,
+  saveImportMapping,
   setPlatformSettings,
   startImport,
 } from "./service";
@@ -181,5 +183,110 @@ describe("IMP-01 — Isolation des imports entre organisations", () => {
     expect(await cancelImport(db, plannerA.organizationId, result.importId)).toBe(false);
     expect(await listImports(db, plannerA.organizationId)).toEqual([]);
     expect(await getImportDraft(db, plannerB.organizationId, result.importId)).not.toBeNull();
+  });
+});
+
+async function startedImport(planner: { organizationId: string; userId: string }, entityType: "events" | "catalog_items", bytes: Uint8Array) {
+  const result = await startImport(db, { ...planner, entityType, fileName: "fichier.csv", bytes });
+  if (result.status !== "started") throw new Error("import attendu");
+  return result.importId;
+}
+
+describe("IMP-02 — Reconnaissance des colonnes", () => {
+  it("Quand le fichier est lu, alors l'app propose une correspondance pour chaque colonne, avec un indice de confiance et des exemples", async () => {
+    const planner = await createPlanner();
+    const importId = await startedImport(planner, "events", readImportCorpusFile("excel-fr-windows1252.csv"));
+
+    const view = await getImportColumns(db, planner.organizationId, importId);
+    expect(view?.lowConfidenceThreshold).toBe(70);
+    const firstName = view?.columns.find((column) => column.header === "Prénom mariée");
+    expect(firstName).toMatchObject({ proposedFieldKey: "client1FirstName", confidence: 100, saved: null });
+    expect(firstName?.samples).toEqual(["Élodie", "Inès", "Chloé"]);
+    expect(view?.columns.find((column) => column.header === "E-mail")?.proposedFieldKey).toBeNull();
+  });
+
+  it("Elle valide, corrige ou ignore chaque correspondance ; le choix est enregistré", async () => {
+    const planner = await createPlanner();
+    const importId = await startedImport(planner, "events", readImportCorpusFile("excel-fr-windows1252.csv"));
+    const view = await getImportColumns(db, planner.organizationId, importId);
+    const index = (header: string) => view!.columns.find((column) => column.header === header)!.columnIndex;
+
+    const result = await saveImportMapping(db, {
+      organizationId: planner.organizationId,
+      importId,
+      choices: [
+        // Correction : la ville part en nom du lieu, le lieu est ignoré.
+        { columnIndex: index("Ville"), target: "venueName", confirmed: false },
+        { columnIndex: index("Lieu"), target: "ignore", confirmed: false },
+        { columnIndex: index("E-mail"), target: "none", confirmed: false },
+      ],
+    });
+    expect(result).toEqual({ status: "saved" });
+
+    const draft = await getImportDraft(db, planner.organizationId, importId);
+    const saved = (header: string) => draft?.mapping?.find((choice) => choice.columnIndex === index(header));
+    expect(saved("Ville")).toMatchObject({ target: "field", fieldKey: "venueName", confirmed: true });
+    expect(saved("Lieu")).toMatchObject({ target: "ignore", fieldKey: null });
+    expect(saved("E-mail")).toMatchObject({ target: "none", fieldKey: null });
+    // Les colonnes non touchées gardent la proposition (confiance suffisante).
+    expect(saved("Prénom mariée")).toMatchObject({ target: "field", fieldKey: "client1FirstName", confidence: 100 });
+    const reread = await getImportColumns(db, planner.organizationId, importId);
+    expect(reread?.columns.find((column) => column.header === "Ville")?.saved?.fieldKey).toBe("venueName");
+  });
+
+  it("Une colonne à faible confiance n'est jamais appliquée sans validation", async () => {
+    const planner = await createPlanner();
+    const importId = await startedImport(planner, "catalog_items", csv("Intitulé;Unité;Montant\nFleurs;forfait;150\nDJ;soirée;800\n"));
+    const view = await getImportColumns(db, planner.organizationId, importId);
+    const amount = view!.columns.find((column) => column.header === "Montant")!;
+    expect(amount.proposedFieldKey).toBe("unitPrice");
+    expect(amount.confidence).toBeLessThan(70);
+
+    const refused = await saveImportMapping(db, { organizationId: planner.organizationId, importId, choices: [] });
+    expect(refused).toEqual({
+      status: "invalid",
+      errors: [{ code: "low_confidence_not_confirmed", columnIndex: amount.columnIndex, fieldKey: "unitPrice" }],
+    });
+    expect((await getImportDraft(db, planner.organizationId, importId))?.mapping).toBeNull();
+
+    const accepted = await saveImportMapping(db, {
+      organizationId: planner.organizationId,
+      importId,
+      choices: [{ columnIndex: amount.columnIndex, target: "unitPrice", confirmed: true }],
+    });
+    expect(accepted).toEqual({ status: "saved" });
+  });
+
+  it("un même champ choisi pour deux colonnes, un champ inconnu ou un champ obligatoire manquant sont refusés", async () => {
+    const planner = await createPlanner();
+    const importId = await startedImport(planner, "catalog_items", readImportCorpusFile("excel-unicode-text.txt"));
+    const result = await saveImportMapping(db, {
+      organizationId: planner.organizationId,
+      importId,
+      choices: [
+        { columnIndex: 0, target: "label", confirmed: false },
+        { columnIndex: 1, target: "label", confirmed: false },
+        { columnIndex: 2, target: "pasUnChamp", confirmed: false },
+      ],
+    });
+    expect(result).toEqual({
+      status: "invalid",
+      errors: [
+        { code: "duplicate_field", columnIndex: 1, fieldKey: "label" },
+        { code: "unknown_field", columnIndex: 2 },
+        { code: "missing_required", fieldKey: "unit" },
+        { code: "missing_required", fieldKey: "unitPrice" },
+      ],
+    });
+  });
+
+  it("organisation A ne lit ni n'enregistre les colonnes d'un import de B", async () => {
+    const plannerA = await createPlanner();
+    const plannerB = await createPlanner();
+    const importId = await startedImport(plannerB, "events", readImportCorpusFile("google-sheets-en.csv"));
+
+    expect(await getImportColumns(db, plannerA.organizationId, importId)).toBeNull();
+    expect(await saveImportMapping(db, { organizationId: plannerA.organizationId, importId, choices: [] })).toEqual({ status: "not_found" });
+    expect((await getImportDraft(db, plannerB.organizationId, importId))?.mapping).toBeNull();
   });
 });

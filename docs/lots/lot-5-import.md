@@ -101,6 +101,18 @@ rapprochements, écarts, confirmation. **Rien n'est écrit dans les modules avan
 - Les dates et montants au format français (31/12/2026, 31.12.2026, 2026-12-31, 1 234,56 €,
   1234.56) sont reconnus ; une date ambiguë (05/06/2026) suit le format majoritaire de la
   colonne.
+- *Réalisé (IMP-02)* : contrat des champs importables par type d'éléments
+  (`packages/contracts/src/import/fields.ts`), synonymes d'intitulés et de valeurs FR/EN en
+  données traduisibles (`packages/starter-templates/src/import-synonyms.json`), proposition et
+  analyse des valeurs dans `packages/import-engine` (confiance d'après le nom puis ajustée par le
+  contenu ; un contenu contraire — e-mails dans « Nom », texte dans « Date » — la fait passer sous
+  le seuil). Choix enregistrés dans `hub.imports.mapping` (migration 0045) : champ, « sans
+  équivalent » (décidé au rapport des écarts, IMP-04) ou « ignorer ». Garder une proposition
+  sous le seuil exige de la confirmer ; choisir soi-même un autre champ vaut validation ; un champ
+  obligatoire non associé, un champ en double ou inconnu sont refusés. Écran
+  `/import/<id>/colonnes`. Les lignes sans source de prospect (obligatoire à la création d'un
+  événement, EVT-07) seront traitées à la confirmation (IMP-05) par une source par défaut choisie
+  par la planner, plutôt que de rendre la colonne obligatoire.
 
 ### IMP-03 — Rapprochements
 

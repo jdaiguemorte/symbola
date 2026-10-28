@@ -1,0 +1,1 @@
+ALTER TABLE "hub"."imports" ADD COLUMN "mapping" jsonb;

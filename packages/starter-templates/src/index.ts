@@ -5,6 +5,7 @@
 import { z } from "zod";
 import demoEventFile from "./demo-event.json";
 import demoQuoteFile from "./demo-quote.json";
+import importSynonymsFile from "./import-synonyms.json";
 import invoiceMentionsFile from "./invoice-mentions.json";
 import paymentMethodsFile from "./payment-methods.json";
 import programFile from "./program.json";
@@ -199,5 +200,44 @@ export function starterDemoQuote(locale: StarterLocale): StarterDemoQuote {
   return {
     lines: demoQuote.lines.map((line) => ({ ...line, label: line.label[locale], unit: line.unit[locale] })),
     schedule: demoQuote.schedule.map((item) => ({ ...item, label: item.label[locale] })),
+  };
+}
+
+// Lot 5 (IMP-02) : synonymes d'intitulés de colonnes et de valeurs pour la
+// reconnaissance des colonnes d'un fichier d'import. Les deux langues sont
+// fusionnées : la langue d'un fichier ne suit pas celle de l'interface.
+const translatedListSchema = z.object({ fr: z.array(z.string().min(1)), en: z.array(z.string().min(1)) });
+
+const importSynonymsSchema = z.object({
+  version: z.literal(1),
+  columns: z.record(z.string(), translatedListSchema),
+  choices: z.record(z.string(), z.record(z.string(), translatedListSchema)),
+  booleans: z.object({ true: translatedListSchema, false: translatedListSchema }),
+});
+
+export type StarterImportSynonyms = {
+  // Clé de champ (packages/contracts, IMPORT_FIELDS) → intitulés possibles.
+  columns: Record<string, string[]>;
+  // Clé de champ « choice » → valeur → libellés possibles.
+  choices: Record<string, Record<string, string[]>>;
+  booleans: { true: string[]; false: string[] };
+};
+
+const importSynonyms = importSynonymsSchema.parse(importSynonymsFile);
+
+function bothLanguages(list: { fr: string[]; en: string[] }): string[] {
+  return [...new Set([...list.fr, ...list.en])];
+}
+
+export function starterImportSynonyms(): StarterImportSynonyms {
+  return {
+    columns: Object.fromEntries(Object.entries(importSynonyms.columns).map(([key, list]) => [key, bothLanguages(list)])),
+    choices: Object.fromEntries(
+      Object.entries(importSynonyms.choices).map(([key, values]) => [
+        key,
+        Object.fromEntries(Object.entries(values).map(([value, list]) => [value, bothLanguages(list)])),
+      ]),
+    ),
+    booleans: { true: bothLanguages(importSynonyms.booleans.true), false: bothLanguages(importSynonyms.booleans.false) },
   };
 }

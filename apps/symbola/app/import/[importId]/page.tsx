@@ -40,7 +40,7 @@ export default async function ImportDraftPage({ params }: { params: Promise<{ im
     <main>
       <h1>{t("draftTitle", { fileName: draft.fileName })}</h1>
       <HelpButton title={tHelp("importFile.title")} body={tHelp("importFile.body")} />
-      <ImportSteps current={1} />
+      <ImportSteps current={draft.mapping ? 2 : 1} />
 
       <section aria-labelledby="import-detected">
         <h2 id="import-detected">{t("detectedTitle")}</h2>
@@ -98,7 +98,28 @@ export default async function ImportDraftPage({ params }: { params: Promise<{ im
         </div>
       </section>
 
-      <p>{t("nextStepsComing")}</p>
+      <section aria-labelledby="import-columns">
+        <h2 id="import-columns">{t("columnsStepTitle")}</h2>
+        {draft.mapping ? (
+          <>
+            <p>
+              {t("columnsSummary", {
+                mapped: draft.mapping.filter((choice) => choice.target === "field").length,
+                none: draft.mapping.filter((choice) => choice.target === "none").length,
+                ignored: draft.mapping.filter((choice) => choice.target === "ignore").length,
+              })}
+            </p>
+            <p>
+              <Link href={`/import/${draft.id}/colonnes`}>{t("editColumns")}</Link>
+            </p>
+            <p>{t("nextStepsComing")}</p>
+          </>
+        ) : (
+          <p>
+            <Link href={`/import/${draft.id}/colonnes`}>{t("continueToColumns")}</Link>
+          </p>
+        )}
+      </section>
       <form action={cancelImportAction}>
         <input type="hidden" name="importId" value={draft.id} />
         <button type="submit">{t("cancelImport")}</button>

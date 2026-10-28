@@ -312,6 +312,10 @@
     "importFile": {
       "title": "Importer des données",
       "body": "Choisissez ce que contient votre fichier (événements, tâches, budget, catalogue ou une liste), puis déposez-le : CSV, Excel (.xlsx) ou JSON. L'encodage, le séparateur et la ligne d'en-tête sont reconnus seuls ; les formules de tableur sont neutralisées. Le fichier est analysé par l'antivirus puis oublié : seules ses lignes sont gardées, le temps de finir l'import. Rien n'est enregistré dans vos modules avant la dernière étape."
+    },
+    "importColumns": {
+      "title": "Reconnaître les colonnes",
+      "body": "Chaque colonne de votre fichier reçoit une proposition de champ, d'après son intitulé (en français ou en anglais) et son contenu (dates, montants, e-mails). L'indice de confiance dit à quel point la proposition est sûre : sous le seuil, cochez la case de confirmation ou choisissez un autre champ. Une colonne « sans équivalent » sera proposée au rapport des écarts, pour la garder en champ libre sur la fiche ou l'ignorer. Les dates (31/12/2026, 31.12.2026, 2026-12-31) et montants (1 234,56 €) au format français sont reconnus."
     }
   },
   "FirstSteps": {
@@ -1011,7 +1015,7 @@
     "previewTitle": "{count, plural, one {Aperçu de la première ligne} other {Aperçu des # premières lignes}}",
     "previewScrollLabel": "Tableau d'aperçu (défilement horizontal)",
     "unnamedColumn": "Colonne {number}",
-    "nextStepsComing": "L'étape suivante (reconnaissance des colonnes) arrive prochainement. Vous pouvez abandonner cet import à tout moment.",
+    "nextStepsComing": "L'étape suivante (rapprochements) arrive prochainement. Vous pouvez abandonner cet import à tout moment.",
     "cancelImport": "Abandonner l'import",
     "backToImports": "Retour aux imports",
     "journalTitle": "Journal des imports",
@@ -1026,6 +1030,55 @@
       "applied": "confirmé",
       "undone": "annulé",
       "cancelled": "abandonné"
-    }
+    },
+    "importNotFound": "Cet import n'existe plus (abandonné ou expiré).",
+    "field": {
+      "client1FirstName": "Client 1 — prénom",
+      "client1LastName": "Client 1 — nom",
+      "client2FirstName": "Client 2 — prénom",
+      "client2LastName": "Client 2 — nom",
+      "eventDate": "Date de l'événement",
+      "venueName": "Lieu",
+      "venueCity": "Ville du lieu",
+      "prospectSource": "Source du prospect",
+      "status": "Statut de l'événement",
+      "label": "Intitulé",
+      "dueDate": "Échéance",
+      "responsible": "Responsable",
+      "done": "Faite",
+      "slotLabel": "Poste",
+      "vendorName": "Prestataire",
+      "plannedAmount": "Montant prévu",
+      "actualAmount": "Montant réel",
+      "description": "Description",
+      "unit": "Unité",
+      "unitPrice": "Prix unitaire HT",
+      "vatRate": "Taux de TVA",
+      "category": "Catégorie"
+    },
+    "requiredField": "{field} (obligatoire)",
+    "columnsStepTitle": "Colonnes",
+    "continueToColumns": "Continuer : reconnaître les colonnes",
+    "editColumns": "Modifier les correspondances des colonnes",
+    "columnsSummary": "{mapped, plural, =0 {aucune colonne associée} one {# colonne associée} other {# colonnes associées}}, {none, plural, =0 {aucune sans équivalent} one {# sans équivalent} other {# sans équivalent}}, {ignored, plural, =0 {aucune ignorée} one {# ignorée} other {# ignorées}}.",
+    "columnsTitle": "Colonnes de « {fileName} »",
+    "columnsIntro": "Pour chaque colonne, nous proposons un champ avec un indice de confiance. Validez, corrigez ou ignorez chaque proposition. Sous {threshold} % de confiance, une proposition doit être confirmée explicitement.",
+    "columnSamples": "Exemples : {samples}",
+    "columnEmpty": "Colonne vide.",
+    "columnProposal": "Proposition : {field} (confiance {confidence} %)",
+    "columnLowConfidence": "confiance faible, à confirmer",
+    "columnNoProposal": "Aucune proposition : choisissez un champ, ou laissez la colonne sans équivalent.",
+    "columnTargetLabel": "Champ pour la colonne « {column} »",
+    "columnTargetFields": "Champs",
+    "columnTargetNone": "Sans équivalent (à décider au rapport des écarts)",
+    "columnTargetIgnore": "Ignorer cette colonne",
+    "columnConfirm": "Je confirme : cette colonne correspond à « {field} »",
+    "saveColumns": "Enregistrer les colonnes",
+    "backToDraft": "Retour à l'import",
+    "mappingErrorsTitle": "Les colonnes n'ont pas été enregistrées :",
+    "mappingUnknownField": "colonne « {column} » : champ inconnu.",
+    "mappingDuplicateField": "colonne « {column} » : le champ « {field} » est déjà choisi pour une autre colonne.",
+    "mappingLowConfidence": "colonne « {column} » : confirmez la correspondance avec « {field} » (confiance faible), ou choisissez un autre champ.",
+    "mappingMissingRequired": "le champ obligatoire « {field} » n'est associé à aucune colonne."
   }
 }
