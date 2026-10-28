@@ -297,9 +297,12 @@ async function toBudgetLinesView(
     ),
   ]);
   const labelOf = new Map(vendorSlots.map((slot) => [slot.id, slot.label]));
-  const mapped = lines.map((line) =>
-    toBudgetLine(line, labelOf.get(line.eventVendorSlotId) ?? line.eventVendorSlotId, attachments),
-  );
+  // Lignes dans l'ordre des postes de l'événement (celui de sa fiche) : la
+  // requête n'en garantit aucun.
+  const slotOrder = new Map(vendorSlots.map((slot, index) => [slot.id, index]));
+  const mapped = [...lines]
+    .sort((a, b) => (slotOrder.get(a.eventVendorSlotId) ?? Infinity) - (slotOrder.get(b.eventVendorSlotId) ?? Infinity))
+    .map((line) => toBudgetLine(line, labelOf.get(line.eventVendorSlotId) ?? line.eventVendorSlotId, attachments));
   return {
     eventId,
     lines: mapped,
