@@ -1,0 +1,189 @@
+// Lot 5 — orchestration de l'import par le hub (PRD §7, ADR 0022). Exposé par
+// service.ts. IMP-01 : réception du fichier (taille, antivirus, lecture),
+// import en cours gardé en attente ; rien n'est écrit dans les modules avant
+// la confirmation (IMP-05).
+import type { AppDatabase } from "@symbola/db/client";
+import { parseEnv } from "@symbola/env";
+import { scanBuffer } from "@symbola/files";
+import { readImportFile, type ReadFailureReason, type UnsupportedHint } from "@symbola/import-engine";
+import { cancelExpiredDrafts, findImport, findImports, insertImport, markDraftCancelled, type ImportRow } from "./import-repository";
+import { findPlatformSettings, insertDefaultPlatformSettings } from "./repository";
+
+export const IMPORT_ENTITY_TYPES = [
+  "events",
+  "tasks",
+  "budget_lines",
+  "catalog_items",
+  "vendor_slots",
+  "prospect_sources",
+  "loss_reasons",
+  "payment_methods",
+] as const;
+export type ImportEntityType = (typeof IMPORT_ENTITY_TYPES)[number];
+
+// Module qui reçoit chaque type d'éléments : un type dont le module n'est pas
+// souscrit n'est pas proposé (dégradation propre, CLAUDE.md §2.3).
+export const IMPORT_ENTITY_MODULE: Record<ImportEntityType, "events" | "budget" | "quotes"> = {
+  events: "events",
+  tasks: "events",
+  vendor_slots: "events",
+  prospect_sources: "events",
+  loss_reasons: "events",
+  budget_lines: "budget",
+  catalog_items: "quotes",
+  payment_methods: "quotes",
+};
+
+export type ImportLimits = { maxBytes: number; maxRows: number; draftRetentionDays: number };
+
+export async function getImportLimits(db: AppDatabase): Promise<ImportLimits> {
+  let settings = await findPlatformSettings(db);
+  if (!settings) {
+    await insertDefaultPlatformSettings(db);
+    settings = await findPlatformSettings(db);
+  }
+  if (!settings) throw new Error("réglages de la plateforme introuvables");
+  return {
+    maxBytes: settings.importMaxBytes,
+    maxRows: settings.importMaxRows,
+    draftRetentionDays: settings.importDraftRetentionDays,
+  };
+}
+
+export type StartImportInput = {
+  organizationId: string;
+  userId: string;
+  entityType: ImportEntityType;
+  fileName: string;
+  bytes: Uint8Array;
+  now?: Date;
+};
+
+export type ImportRejectionReason = ReadFailureReason | "infected";
+
+export type StartImportResult =
+  | { status: "rejected"; reason: ImportRejectionReason; hint?: UnsupportedHint }
+  | { status: "started"; importId: string };
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+export async function startImport(db: AppDatabase, input: StartImportInput): Promise<StartImportResult> {
+  const now = input.now ?? new Date();
+  const limits = await getImportLimits(db);
+  // Taille d'abord : un fichier trop gros n'est ni analysé ni lu.
+  if (input.bytes.length > limits.maxBytes) return { status: "rejected", reason: "too_large" };
+  if (input.bytes.length === 0) return { status: "rejected", reason: "empty" };
+
+  const env = parseEnv(process.env);
+  const scan = await scanBuffer(Buffer.from(input.bytes), { host: env.CLAMAV_HOST, port: env.CLAMAV_PORT });
+  if (scan.infected) return { status: "rejected", reason: "infected" };
+
+  const result = readImportFile(input.bytes, { maxBytes: limits.maxBytes, maxRows: limits.maxRows });
+  if (!result.ok) {
+    return result.hint
+      ? { status: "rejected", reason: result.reason, hint: result.hint }
+      : { status: "rejected", reason: result.reason };
+  }
+
+  const { table } = result;
+  const row = await insertImport(db, {
+    organizationId: input.organizationId,
+    createdByUserId: input.userId,
+    entityType: input.entityType,
+    fileName: sanitizeFileName(input.fileName),
+    fileFormat: table.format,
+    fileSizeBytes: input.bytes.length,
+    encoding: table.encoding ?? null,
+    delimiter: table.delimiter ?? null,
+    headerRowIndex: table.headerRowIndex,
+    headers: table.headers,
+    rows: table.rows,
+    sourceLineNumbers: table.sourceLineNumbers,
+    rowCount: table.rows.length,
+    neutralizedCells: table.neutralizedCells,
+    expiresAt: new Date(now.getTime() + limits.draftRetentionDays * DAY_MS),
+    createdAt: now,
+    updatedAt: now,
+  });
+  return { status: "started", importId: row.id };
+}
+
+// Nom affiché au journal : sans chemin ni caractère de contrôle, borné.
+export function sanitizeFileName(fileName: string): string {
+  const base = fileName.split(/[\\/]/).pop() ?? "";
+  const cleaned = base.replace(/[\u0000-\u001f\u007f]/g, "").trim().slice(0, 200);
+  return cleaned === "" ? "fichier" : cleaned;
+}
+
+export type ImportSummary = {
+  id: string;
+  entityType: ImportEntityType;
+  status: ImportRow["status"];
+  fileName: string;
+  fileFormat: string;
+  fileSizeBytes: number;
+  encoding: string | null;
+  delimiter: string | null;
+  headerRowIndex: number;
+  headers: string[];
+  rowCount: number;
+  neutralizedCells: number;
+  createdByUserId: string;
+  createdAt: Date;
+  expiresAt: Date;
+};
+
+export type ImportDraft = ImportSummary & {
+  // Premières lignes, pour l'aperçu de l'étape « fichier ».
+  previewRows: string[][];
+};
+
+const PREVIEW_ROWS = 5;
+
+function toSummary(row: ImportRow): ImportSummary {
+  return {
+    id: row.id,
+    entityType: row.entityType,
+    status: row.status,
+    fileName: row.fileName,
+    fileFormat: row.fileFormat,
+    fileSizeBytes: row.fileSizeBytes,
+    encoding: row.encoding,
+    delimiter: row.delimiter,
+    headerRowIndex: row.headerRowIndex,
+    headers: row.headers,
+    rowCount: row.rowCount,
+    neutralizedCells: row.neutralizedCells,
+    createdByUserId: row.createdByUserId,
+    createdAt: row.createdAt,
+    expiresAt: row.expiresAt,
+  };
+}
+
+// Import en cours (non expiré) de l'organisation, ou null.
+export async function getImportDraft(
+  db: AppDatabase,
+  organizationId: string,
+  importId: string,
+  now: Date = new Date(),
+): Promise<ImportDraft | null> {
+  const row = await findImport(db, organizationId, importId);
+  if (!row || row.status !== "draft" || row.expiresAt <= now || !row.rows) return null;
+  return { ...toSummary(row), previewRows: row.rows.slice(0, PREVIEW_ROWS) };
+}
+
+export async function listImports(db: AppDatabase, organizationId: string): Promise<ImportSummary[]> {
+  return (await findImports(db, organizationId)).map(toSummary);
+}
+
+export async function cancelImport(db: AppDatabase, organizationId: string, importId: string, now: Date = new Date()): Promise<boolean> {
+  return markDraftCancelled(db, organizationId, importId, now);
+}
+
+// Purge horaire (lib/import-purge.ts) : les lignes en attente d'un import
+// abandonné sans être confirmé sont effacées à son expiration.
+export async function purgeExpiredImportDrafts(db: AppDatabase, organizationIds: string[], now: Date = new Date()): Promise<number> {
+  let purged = 0;
+  for (const organizationId of organizationIds) purged += await cancelExpiredDrafts(db, organizationId, now);
+  return purged;
+}

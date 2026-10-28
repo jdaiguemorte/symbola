@@ -4,7 +4,7 @@
 // (events, budget, quotes le seront). L'isolation entre organisations pour
 // ces tables est assurée exclusivement par packages/auth (seule porte
 // d'entrée, ADR 0013) : aucun autre code n'y accède directement.
-import { boolean, date, integer, pgSchema, primaryKey, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { boolean, date, integer, jsonb, pgSchema, primaryKey, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
 export const hubSchema = pgSchema("hub");
 
@@ -170,6 +170,13 @@ export const platformSettings = hubSchema.table("platform_settings", {
   id: integer("id").primaryKey().default(1),
   franchiseThresholdServicesCents: integer("franchise_threshold_services_cents"),
   franchiseThresholdGoodsCents: integer("franchise_threshold_goods_cents"),
+  // Lot 5 (IMP-01) : limites de l'import, réglées par l'Admin. Valeurs de
+  // départ (10 Mo et 5 000 lignes proposés par le PRD, import en cours gardé
+  // 7 jours) portées par la base ; le code applicatif les lit, il n'en
+  // suppose aucune.
+  importMaxBytes: integer("import_max_bytes").notNull().default(10 * 1024 * 1024),
+  importMaxRows: integer("import_max_rows").notNull().default(5000),
+  importDraftRetentionDays: integer("import_draft_retention_days").notNull().default(7),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
@@ -184,4 +191,47 @@ export const auditLog = hubSchema.table("audit_log", {
   action: text("action").notNull(),
   targetOrganizationId: uuid("target_organization_id").references(() => organizations.id),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+// Lot 5 — import de données (PRD §7, ADR 0022). Un import en cours garde les
+// lignes lues et neutralisées du fichier (le fichier lui-même n'est jamais
+// stocké) jusqu'à sa confirmation, son abandon ou sa date d'expiration ;
+// confirmé, il devient l'entrée du journal (fichier, auteur, date, résultat).
+// Données métier d'une organisation : RLS forcée, comme les tables des modules.
+export const importEntityTypeEnum = hubSchema.enum("import_entity_type", [
+  "events",
+  "tasks",
+  "budget_lines",
+  "catalog_items",
+  "vendor_slots",
+  "prospect_sources",
+  "loss_reasons",
+  "payment_methods",
+]);
+
+export const importStatusEnum = hubSchema.enum("import_status", ["draft", "applied", "undone", "cancelled"]);
+
+export const imports = hubSchema.table("imports", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  // Identifiants opaques, comme dans les tables des modules : pas de clé
+  // étrangère vers les tables d'identité.
+  organizationId: uuid("organization_id").notNull(),
+  createdByUserId: uuid("created_by_user_id").notNull(),
+  entityType: importEntityTypeEnum("entity_type").notNull(),
+  status: importStatusEnum("status").notNull().default("draft"),
+  fileName: text("file_name").notNull(),
+  fileFormat: text("file_format").notNull(),
+  fileSizeBytes: integer("file_size_bytes").notNull(),
+  encoding: text("encoding"),
+  delimiter: text("delimiter"),
+  headerRowIndex: integer("header_row_index").notNull(),
+  headers: jsonb("headers").$type<string[]>().notNull(),
+  // Lignes en attente ; effacées (null) dès que l'import est confirmé, abandonné ou expiré.
+  rows: jsonb("rows").$type<string[][] | null>(),
+  sourceLineNumbers: jsonb("source_line_numbers").$type<number[] | null>(),
+  rowCount: integer("row_count").notNull(),
+  neutralizedCells: integer("neutralized_cells").notNull().default(0),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });

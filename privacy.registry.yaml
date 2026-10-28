@@ -35,6 +35,40 @@ fields:
     anonymization: >-
       Remplacé par une valeur générée non réversible lors d'une demande
       d'oubli (RGPD-03) antérieure à l'expiration.
+  - schema: hub
+    table: imports
+    field: rows
+    category: identifiant
+    retention: >-
+      Lot 5 (IMP-01) : lignes lues du fichier d'import (noms, e-mails, dates
+      des clients…), gardées seulement le temps de finir l'import en cours —
+      effacées à la confirmation, à l'abandon ou à l'expiration (7 jours
+      proposés, réglage de la plateforme, purge horaire). Le fichier lui-même
+      n'est jamais stocké.
+    anonymization: >-
+      Effacées (null) lors d'une demande d'oubli (RGPD-03) visant une personne
+      présente dans un import en cours.
+  - schema: hub
+    table: imports
+    field: headers
+    category: identifiant
+    retention: >-
+      Lot 5 (IMP-01) : intitulés des colonnes du fichier (une colonne sans
+      en-tête peut porter une valeur à la place) ; conservés au journal des
+      imports tant que l'organisation existe. Voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Remplacés par des intitulés génériques lors d'une demande d'oubli
+      (RGPD-03).
+  - schema: hub
+    table: imports
+    field: file_name
+    category: identifiant
+    retention: >-
+      Lot 5 (IMP-01) : nom du fichier importé (peut contenir un nom de
+      client), au journal des imports tant que l'organisation existe. Voir
+      RGPD-03/RGPD-05.
+    anonymization: >-
+      Remplacé par « [anonymisé] » lors d'une demande d'oubli (RGPD-03).
   - schema: events
     table: event_clients
     field: first_name

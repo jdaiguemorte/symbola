@@ -13,6 +13,7 @@ import {
   findOrganizationProfile,
   findPlatformSettings,
   findTourSeen,
+  insertDefaultPlatformSettings,
   findUserContact,
   insertAuditLog,
   insertInvitation,
@@ -27,6 +28,24 @@ import {
   upsertPlatformSettings,
 } from "./repository";
 import type { Language } from "./types";
+
+export {
+  IMPORT_ENTITY_MODULE,
+  IMPORT_ENTITY_TYPES,
+  cancelImport,
+  getImportDraft,
+  getImportLimits,
+  listImports,
+  purgeExpiredImportDrafts,
+  startImport,
+  type ImportDraft,
+  type ImportEntityType,
+  type ImportLimits,
+  type ImportRejectionReason,
+  type ImportSummary,
+  type StartImportInput,
+  type StartImportResult,
+} from "./imports";
 
 export type VatRegime = "franchise" | "assujetti";
 export type LegalForm = "ei" | "eirl" | "eurl" | "sarl" | "sas" | "sasu" | "sa" | "auto_entrepreneur" | "autre";
@@ -259,6 +278,10 @@ export async function changeVatRegime(
 export type PlatformSettings = {
   franchiseThresholdServicesCents: number | null;
   franchiseThresholdGoodsCents: number | null;
+  // Lot 5 : limites de l'import (valeurs de départ portées par la base).
+  importMaxBytes: number;
+  importMaxRows: number;
+  importDraftRetentionDays: number;
 };
 
 // ONB-02 — « Le seuil de chiffre d'affaires de la franchise est un
@@ -267,17 +290,34 @@ export type PlatformSettings = {
 // réalité fiscale française distingue les deux, le MVP ne les confond
 // pas même si les wedding planners sont presque tous en services.
 export async function getPlatformSettings(db: AppDatabase): Promise<PlatformSettings> {
-  const row = await findPlatformSettings(db);
-  return row ?? { franchiseThresholdServicesCents: null, franchiseThresholdGoodsCents: null };
+  let row = await findPlatformSettings(db);
+  if (!row) {
+    await insertDefaultPlatformSettings(db);
+    row = await findPlatformSettings(db);
+  }
+  if (!row) throw new Error("réglages de la plateforme introuvables");
+  return {
+    franchiseThresholdServicesCents: row.franchiseThresholdServicesCents,
+    franchiseThresholdGoodsCents: row.franchiseThresholdGoodsCents,
+    importMaxBytes: row.importMaxBytes,
+    importMaxRows: row.importMaxRows,
+    importDraftRetentionDays: row.importDraftRetentionDays,
+  };
 }
 
+// Les limites de l'import sont facultatives : non fournies, elles gardent
+// leur valeur actuelle.
 export async function setPlatformSettings(
   db: AppDatabase,
-  input: { adminUserId: string } & PlatformSettings,
+  input: { adminUserId: string } & Pick<PlatformSettings, "franchiseThresholdServicesCents" | "franchiseThresholdGoodsCents"> &
+    Partial<Pick<PlatformSettings, "importMaxBytes" | "importMaxRows" | "importDraftRetentionDays">>,
 ): Promise<void> {
   await upsertPlatformSettings(db, {
     franchiseThresholdServicesCents: input.franchiseThresholdServicesCents,
     franchiseThresholdGoodsCents: input.franchiseThresholdGoodsCents,
+    ...(input.importMaxBytes !== undefined ? { importMaxBytes: input.importMaxBytes } : {}),
+    ...(input.importMaxRows !== undefined ? { importMaxRows: input.importMaxRows } : {}),
+    ...(input.importDraftRetentionDays !== undefined ? { importDraftRetentionDays: input.importDraftRetentionDays } : {}),
   });
   await insertAuditLog(db, {
     adminUserId: input.adminUserId,

@@ -119,7 +119,12 @@
     "thresholdServices": "Franchise threshold — services (€)",
     "thresholdGoods": "Franchise threshold — goods (€)",
     "save": "Save",
-    "saved": "Settings saved."
+    "saved": "Settings saved.",
+    "importLegend": "Data import",
+    "importMaxMegabytes": "Maximum file size (MB)",
+    "importMaxRows": "Maximum rows per file",
+    "importDraftRetentionDays": "How long an unconfirmed import is kept (days)",
+    "invalidImportLimits": "Import limits must be positive whole numbers (20 MB at most)."
   },
   "Tour": {
     "skip": "Skip",
@@ -303,6 +308,10 @@
     "quotesEReporting": {
       "title": "E-reporting",
       "body": "For individual clients, e-invoicing is not mandatory but some data must be reported on your approved platform (from 1 September 2027). Choose a period, check the totals, then download the export."
+    },
+    "importFile": {
+      "title": "Importing data",
+      "body": "Choose what your file contains (events, tasks, budget, catalogue or a list), then drop it in: CSV, Excel (.xlsx) or JSON. Encoding, separator and header row are detected automatically; spreadsheet formulas are neutralised. The file is scanned by the antivirus and then discarded: only its rows are kept until the import is finished. Nothing is saved in your modules before the last step."
     }
   },
   "FirstSteps": {
@@ -927,5 +936,96 @@
     "decline": "Decline the quote",
     "signed": "You have signed this quote.",
     "declined": "You have declined this quote."
+  },
+  "Import": {
+    "title": "Import data",
+    "intro": "Bring your data over from another tool or a spreadsheet, in 5 steps. Nothing is saved in your modules before you confirm, and a confirmed import can still be undone.",
+    "unauthenticated": "Session expired: please sign in again.",
+    "noModuleAvailable": "None of your subscribed modules accepts imports yet.",
+    "entityTypeLegend": "What does the file contain?",
+    "entityType": {
+      "events": "Events and their clients (one row per event)",
+      "tasks": "Event tasks",
+      "budget_lines": "Budget lines",
+      "catalog_items": "Catalogue items",
+      "vendor_slots": "Default vendor slots",
+      "prospect_sources": "Prospect sources",
+      "loss_reasons": "Loss reasons",
+      "payment_methods": "Payment methods"
+    },
+    "fileLabel": "File (CSV, Excel .xlsx or JSON)",
+    "fileHint": "Maximum size: {maxSize}. Encoding, separator and header row are detected automatically.",
+    "startImport": "Read the file",
+    "reading": "Reading…",
+    "missingEntityType": "Choose what the file contains.",
+    "missingFile": "Choose a file.",
+    "rejectedEmpty": "The file is empty: no data rows were found.",
+    "rejectedTooLarge": "The file is too large.",
+    "rejectedTooManyRows": "The file has too many rows: split it into several files.",
+    "rejectedTooManyColumns": "The file has too many columns.",
+    "rejectedUnsupported": "This file format is not accepted: use a CSV, Excel (.xlsx) or JSON file.",
+    "rejectedMalformed": "The file is damaged or unreadable.",
+    "rejectedInfected": "The file was blocked by the antivirus. It was not kept.",
+    "rejectedHintXls": "This is an old Excel file (.xls) or a password-protected workbook: save it as .xlsx or .csv, without a password.",
+    "rejectedHintOds": "This is an OpenDocument spreadsheet (.ods): save it as .xlsx or .csv.",
+    "rejectedHintXlsm": "This is a macro-enabled workbook (.xlsm): save it as .xlsx or .csv.",
+    "rejectedHintEncrypted": "The file is encrypted: save it without a password.",
+    "rejectedHintBinary": "The file is not a table (image, PDF…).",
+    "stepsLabel": "Import steps",
+    "stepNumber": "Step {number} of {total}:",
+    "step": {
+      "file": "file",
+      "columns": "columns",
+      "matches": "matches",
+      "gaps": "gaps",
+      "confirmation": "confirmation"
+    },
+    "stepDone": "done",
+    "draftTitle": "Import of “{fileName}”",
+    "detectedTitle": "What we detected",
+    "detectedEntityType": "Content",
+    "detectedFormat": "Format",
+    "format": {
+      "csv": "Delimited text (CSV)",
+      "xlsx": "Excel workbook (.xlsx)",
+      "json": "JSON"
+    },
+    "detectedEncoding": "Encoding",
+    "encoding": {
+      "utf-8": "UTF-8",
+      "windows-1252": "Windows-1252 (Excel on Windows)",
+      "utf-16le": "UTF-16 (Excel Unicode text)",
+      "utf-16be": "UTF-16"
+    },
+    "detectedDelimiter": "Separator",
+    "delimiterComma": "comma",
+    "delimiterSemicolon": "semicolon",
+    "delimiterTab": "tab",
+    "detectedHeader": "Header row",
+    "detectedHeaderLine": "row {line}",
+    "detectedNoHeader": "none: columns have no title",
+    "detectedRows": "Data rows",
+    "rowCount": "{count, plural, =0 {no rows} one {# row} other {# rows}}",
+    "neutralizedNotice": "{count, plural, one {# cell looked} other {# cells looked}} like a spreadsheet formula: neutralised (prefixed with an apostrophe), never executed.",
+    "draftExpiresOn": "This import in progress is kept until {date}, then erased if not confirmed.",
+    "previewTitle": "{count, plural, one {Preview of the first row} other {Preview of the first # rows}}",
+    "previewScrollLabel": "Preview table (scrolls horizontally)",
+    "unnamedColumn": "Column {number}",
+    "nextStepsComing": "The next step (column matching) is coming soon. You can discard this import at any time.",
+    "cancelImport": "Discard the import",
+    "backToImports": "Back to imports",
+    "journalTitle": "Import log",
+    "journalEmpty": "No imports yet.",
+    "journalDate": "Date",
+    "journalFile": "File",
+    "journalEntityType": "Content",
+    "journalRows": "Rows",
+    "journalStatus": "Status",
+    "status": {
+      "draft": "in progress",
+      "applied": "confirmed",
+      "undone": "undone",
+      "cancelled": "discarded"
+    }
   }
 }

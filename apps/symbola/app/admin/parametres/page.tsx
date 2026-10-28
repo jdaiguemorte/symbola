@@ -25,6 +25,9 @@ export default async function AdminSettingsPage() {
       <PlatformSettingsForm
         franchiseThresholdServicesCents={settings.franchiseThresholdServicesCents}
         franchiseThresholdGoodsCents={settings.franchiseThresholdGoodsCents}
+        importMaxMegabytes={Math.round(settings.importMaxBytes / (1024 * 1024))}
+        importMaxRows={settings.importMaxRows}
+        importDraftRetentionDays={settings.importDraftRetentionDays}
       />
     </main>
   );

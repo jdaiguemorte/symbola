@@ -1,0 +1,32 @@
+{
+  "exportedAt": "2026-10-12T08:00:00Z",
+  "events": [
+    {
+      "date": "2027-06-12",
+      "venue": {
+        "name": "Château de Vaux",
+        "city": "Maincy"
+      },
+      "clients": [
+        {
+          "firstName": "Élodie"
+        },
+        {
+          "firstName": "Mathéo"
+        }
+      ],
+      "budget": 25000
+    },
+    {
+      "date": null,
+      "venue": {
+        "name": "À définir"
+      },
+      "tags": [
+        "salon",
+        "2027"
+      ],
+      "budget": 18500.5
+    }
+  ]
+}

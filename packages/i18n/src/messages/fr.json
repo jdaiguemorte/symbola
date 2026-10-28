@@ -119,7 +119,12 @@
     "thresholdServices": "Seuil de franchise — prestations de services (€)",
     "thresholdGoods": "Seuil de franchise — vente de marchandises (€)",
     "save": "Enregistrer",
-    "saved": "Paramètres enregistrés."
+    "saved": "Paramètres enregistrés.",
+    "importLegend": "Import de données",
+    "importMaxMegabytes": "Taille maximale d'un fichier (Mo)",
+    "importMaxRows": "Nombre maximal de lignes par fichier",
+    "importDraftRetentionDays": "Durée de conservation d'un import non confirmé (jours)",
+    "invalidImportLimits": "Les limites de l'import doivent être des nombres entiers positifs (20 Mo au plus)."
   },
   "Tour": {
     "skip": "Passer",
@@ -303,6 +308,10 @@
     "quotesEReporting": {
       "title": "E-reporting",
       "body": "Pour vos clients particuliers, la facture électronique n'est pas obligatoire mais certaines données sont à déclarer sur votre plateforme agréée (à partir du 1er septembre 2027). Choisissez une période, vérifiez les totaux puis téléchargez l'export."
+    },
+    "importFile": {
+      "title": "Importer des données",
+      "body": "Choisissez ce que contient votre fichier (événements, tâches, budget, catalogue ou une liste), puis déposez-le : CSV, Excel (.xlsx) ou JSON. L'encodage, le séparateur et la ligne d'en-tête sont reconnus seuls ; les formules de tableur sont neutralisées. Le fichier est analysé par l'antivirus puis oublié : seules ses lignes sont gardées, le temps de finir l'import. Rien n'est enregistré dans vos modules avant la dernière étape."
     }
   },
   "FirstSteps": {
@@ -927,5 +936,96 @@
     "decline": "Refuser le devis",
     "signed": "Vous avez signé ce devis.",
     "declined": "Vous avez refusé ce devis."
+  },
+  "Import": {
+    "title": "Importer des données",
+    "intro": "Reprenez vos données depuis un autre outil ou un tableur, en 5 étapes. Rien n'est enregistré dans vos modules avant la confirmation, et un import confirmé reste annulable.",
+    "unauthenticated": "Session expirée : reconnectez-vous.",
+    "noModuleAvailable": "Aucun module de votre abonnement ne reçoit encore d'import.",
+    "entityTypeLegend": "Que contient le fichier ?",
+    "entityType": {
+      "events": "Événements et leurs clients (une ligne par événement)",
+      "tasks": "Tâches d'événements",
+      "budget_lines": "Lignes de budget",
+      "catalog_items": "Articles du catalogue",
+      "vendor_slots": "Postes prestataires par défaut",
+      "prospect_sources": "Sources de prospects",
+      "loss_reasons": "Motifs de perte",
+      "payment_methods": "Modes de paiement"
+    },
+    "fileLabel": "Fichier (CSV, Excel .xlsx ou JSON)",
+    "fileHint": "Taille maximale : {maxSize}. L'encodage, le séparateur et la ligne d'en-tête sont reconnus automatiquement.",
+    "startImport": "Lire le fichier",
+    "reading": "Lecture en cours…",
+    "missingEntityType": "Choisissez ce que contient le fichier.",
+    "missingFile": "Choisissez un fichier.",
+    "rejectedEmpty": "Le fichier est vide : aucune ligne de données n'a été trouvée.",
+    "rejectedTooLarge": "Le fichier est trop gros.",
+    "rejectedTooManyRows": "Le fichier contient trop de lignes : découpez-le en plusieurs fichiers.",
+    "rejectedTooManyColumns": "Le fichier contient trop de colonnes.",
+    "rejectedUnsupported": "Ce format de fichier n'est pas accepté : utilisez un fichier CSV, Excel (.xlsx) ou JSON.",
+    "rejectedMalformed": "Le fichier est endommagé ou illisible.",
+    "rejectedInfected": "Le fichier a été bloqué par l'antivirus. Il n'a pas été conservé.",
+    "rejectedHintXls": "Il s'agit d'un ancien fichier Excel (.xls) ou d'un classeur protégé par mot de passe : enregistrez-le au format .xlsx ou .csv, sans mot de passe.",
+    "rejectedHintOds": "Il s'agit d'un tableur OpenDocument (.ods) : enregistrez-le au format .xlsx ou .csv.",
+    "rejectedHintXlsm": "Il s'agit d'un classeur avec macros (.xlsm) : enregistrez-le au format .xlsx ou .csv.",
+    "rejectedHintEncrypted": "Le fichier est chiffré : enregistrez-le sans mot de passe.",
+    "rejectedHintBinary": "Le fichier n'est pas un tableau (image, PDF…).",
+    "stepsLabel": "Étapes de l'import",
+    "stepNumber": "Étape {number} sur {total} :",
+    "step": {
+      "file": "fichier",
+      "columns": "colonnes",
+      "matches": "rapprochements",
+      "gaps": "écarts",
+      "confirmation": "confirmation"
+    },
+    "stepDone": "terminée",
+    "draftTitle": "Import de « {fileName} »",
+    "detectedTitle": "Ce que nous avons reconnu",
+    "detectedEntityType": "Contenu",
+    "detectedFormat": "Format",
+    "format": {
+      "csv": "Texte délimité (CSV)",
+      "xlsx": "Classeur Excel (.xlsx)",
+      "json": "JSON"
+    },
+    "detectedEncoding": "Encodage",
+    "encoding": {
+      "utf-8": "UTF-8",
+      "windows-1252": "Windows-1252 (Excel sous Windows)",
+      "utf-16le": "UTF-16 (texte Unicode d'Excel)",
+      "utf-16be": "UTF-16"
+    },
+    "detectedDelimiter": "Séparateur",
+    "delimiterComma": "virgule",
+    "delimiterSemicolon": "point-virgule",
+    "delimiterTab": "tabulation",
+    "detectedHeader": "Ligne d'en-tête",
+    "detectedHeaderLine": "ligne {line}",
+    "detectedNoHeader": "aucune : les colonnes n'ont pas d'intitulé",
+    "detectedRows": "Lignes de données",
+    "rowCount": "{count, plural, =0 {aucune ligne} one {# ligne} other {# lignes}}",
+    "neutralizedNotice": "{count, plural, one {# cellule ressemblait} other {# cellules ressemblaient}} à une formule de tableur : elles ont été neutralisées (précédées d'une apostrophe) et ne seront jamais exécutées.",
+    "draftExpiresOn": "Cet import en cours est conservé jusqu'au {date}, puis effacé s'il n'est pas confirmé.",
+    "previewTitle": "{count, plural, one {Aperçu de la première ligne} other {Aperçu des # premières lignes}}",
+    "previewScrollLabel": "Tableau d'aperçu (défilement horizontal)",
+    "unnamedColumn": "Colonne {number}",
+    "nextStepsComing": "L'étape suivante (reconnaissance des colonnes) arrive prochainement. Vous pouvez abandonner cet import à tout moment.",
+    "cancelImport": "Abandonner l'import",
+    "backToImports": "Retour aux imports",
+    "journalTitle": "Journal des imports",
+    "journalEmpty": "Aucun import pour l'instant.",
+    "journalDate": "Date",
+    "journalFile": "Fichier",
+    "journalEntityType": "Contenu",
+    "journalRows": "Lignes",
+    "journalStatus": "État",
+    "status": {
+      "draft": "en cours",
+      "applied": "confirmé",
+      "undone": "annulé",
+      "cancelled": "abandonné"
+    }
   }
 }
