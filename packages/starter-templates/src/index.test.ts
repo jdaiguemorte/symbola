@@ -115,6 +115,7 @@ describe("RGPD-04/05 — Réglages RGPD de départ", () => {
       clientRetentionMonths: 36,
       accountingRetentionMonths: 120,
       inactiveAccountMonths: 24,
+      signedQuoteRetentionMonths: 60,
     });
   });
 });

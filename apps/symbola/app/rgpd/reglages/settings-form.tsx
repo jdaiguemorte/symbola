@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import type { PrivacySettings } from "@/modules/hub/service";
 import { savePrivacySettingsAction, type SettingsFormState } from "./actions";
 
-const FIELDS: (keyof PrivacySettings)[] = ["requestAlertDays", "prospectRetentionMonths", "clientRetentionMonths", "accountingRetentionMonths", "inactiveAccountMonths"];
+const FIELDS: (keyof PrivacySettings)[] = ["requestAlertDays", "prospectRetentionMonths", "clientRetentionMonths", "accountingRetentionMonths", "inactiveAccountMonths", "signedQuoteRetentionMonths"];
 
 export function PrivacySettingsForm({ settings }: { settings: PrivacySettings }) {
   const t = useTranslations("Privacy");

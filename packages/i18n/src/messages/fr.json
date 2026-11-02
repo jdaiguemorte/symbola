@@ -1362,7 +1362,8 @@
       "prospectRetentionMonths": "Prospect sans suite : conservation après sa dernière activité (mois)",
       "clientRetentionMonths": "Client (mariés) : conservation après la fin de la relation (mois)",
       "accountingRetentionMonths": "Factures, avoirs et devis signés : conservation (mois)",
-      "inactiveAccountMonths": "Compte d'un marié sans connexion : suppression après (mois)"
+      "inactiveAccountMonths": "Compte d'un marié sans connexion : suppression après (mois)",
+      "signedQuoteRetentionMonths": "Devis signé (preuve du contrat) : conservation (mois)"
     },
     "saveSettings": "Enregistrer les réglages",
     "settingsSaved": "Réglages enregistrés.",

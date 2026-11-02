@@ -59,6 +59,19 @@ export {
   type PrivacyExportFile,
   type PrivacyExportView,
 } from "./privacy-exports";
+// Lot 6 (RGPD-03) — exécutions des demandes d'oubli.
+export {
+  getPrivacyErasure,
+  listErasablePrivacyRequests,
+  listPrivacyErasures,
+  PrivacyErasureInvalidError,
+  PrivacyErasureNotFoundError,
+  recordPrivacyErasureAcks,
+  startPrivacyErasure,
+  type PrivacyErasureAck,
+  type PrivacyErasureItem,
+  type PrivacyErasureView,
+} from "./privacy-erasures";
 
 // Lot 6 — contrat privacy/v1 du module (ADR 0023).
 export { hubPrivacy } from "./privacy";

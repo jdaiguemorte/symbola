@@ -1362,7 +1362,8 @@
       "prospectRetentionMonths": "Prospect with no follow-up: kept after their last activity (months)",
       "clientRetentionMonths": "Client (couple): kept after the end of the relationship (months)",
       "accountingRetentionMonths": "Invoices, credit notes and signed quotes: kept for (months)",
-      "inactiveAccountMonths": "Couple account without login: deleted after (months)"
+      "inactiveAccountMonths": "Couple account without login: deleted after (months)",
+      "signedQuoteRetentionMonths": "Signed quote (proof of contract): retention (months)"
     },
     "saveSettings": "Save settings",
     "settingsSaved": "Settings saved.",

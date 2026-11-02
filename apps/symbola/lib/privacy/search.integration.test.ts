@@ -120,11 +120,15 @@ describe("RGPD-01 — Recherche transverse", () => {
       module: "quotes",
       find: () => Promise.reject(new Error("base indisponible")),
       related: () => Promise.resolve([]),
+      planErasure: () => Promise.resolve([]),
+      erase: () => Promise.resolve([]),
     };
     const slow: PrivacyContractV1 = {
       module: "budget",
       find: () => new Promise((resolve) => setTimeout(() => resolve([]), 500)),
       related: () => Promise.resolve([]),
+      planErasure: () => Promise.resolve([]),
+      erase: () => Promise.resolve([]),
     };
     const result = await searchPerson(
       { organizationId: planner.organizationId, terms: { name: "Personne Introuvable" } },

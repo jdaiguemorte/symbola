@@ -254,6 +254,9 @@ const privacySettingsSchema = z.object({
   clientRetentionMonths: z.number().int().positive(),
   accountingRetentionMonths: z.number().int().positive(),
   inactiveAccountMonths: z.number().int().positive(),
+  // RGPD-03 : devis signés gardés comme preuve du contrat (prescription
+  // civile de 5 ans, décision de Julien du 02/11/2026, à valider par un juriste).
+  signedQuoteRetentionMonths: z.number().int().positive(),
 });
 
 export type StarterPrivacySettings = Omit<z.infer<typeof privacySettingsSchema>, "version">;
@@ -266,5 +269,6 @@ export function starterPrivacySettings(): StarterPrivacySettings {
     clientRetentionMonths: parsed.clientRetentionMonths,
     accountingRetentionMonths: parsed.accountingRetentionMonths,
     inactiveAccountMonths: parsed.inactiveAccountMonths,
+    signedQuoteRetentionMonths: parsed.signedQuoteRetentionMonths,
   };
 }

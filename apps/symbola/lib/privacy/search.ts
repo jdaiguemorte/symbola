@@ -12,7 +12,9 @@ import { hubPrivacy, isModuleEnabled, type ModuleKey } from "@/modules/hub/servi
 import { quotesPrivacy } from "@/modules/quotes/service";
 
 // Modules interrogés, et la clé de souscription de chacun (le hub l'est toujours).
-const PARTICIPANTS: { contract: PrivacyContractV1; moduleKey: ModuleKey | null }[] = [
+export type Participant = { contract: PrivacyContractV1; moduleKey: ModuleKey | null };
+
+export const PARTICIPANTS: Participant[] = [
   { contract: hubPrivacy, moduleKey: null },
   { contract: eventsPrivacy, moduleKey: "events" },
   { contract: budgetPrivacy, moduleKey: "budget" },
@@ -36,7 +38,7 @@ export type PersonSearchResult = {
   complete: boolean;
 };
 
-async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
+export async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
     return await Promise.race([
@@ -50,7 +52,7 @@ async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T
   }
 }
 
-async function subscribedParticipants(organizationId: string, participants: typeof PARTICIPANTS) {
+export async function subscribedParticipants(organizationId: string, participants: typeof PARTICIPANTS) {
   const { sql, db } = createAppConnection();
   try {
     const result: PrivacyContractV1[] = [];

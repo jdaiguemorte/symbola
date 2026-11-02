@@ -352,6 +352,8 @@ export const privacySettings = hubSchema.table("privacy_settings", {
   clientRetentionMonths: integer("client_retention_months").notNull(),
   accountingRetentionMonths: integer("accounting_retention_months").notNull(),
   inactiveAccountMonths: integer("inactive_account_months").notNull(),
+  // RGPD-03 : durée de conservation d'un devis signé (preuve du contrat).
+  signedQuoteRetentionMonths: integer("signed_quote_retention_months").notNull().default(60),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
@@ -371,4 +373,36 @@ export const privacyExports = hubSchema.table("privacy_exports", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
   purgedAt: timestamp("purged_at", { withTimezone: true }),
+});
+
+// Lot 6 (RGPD-03, ADR 0023) — exécution d'une demande d'oubli : le sort de
+// chaque fiche (sans libellé : identifiants opaques, nature, sort, motif
+// légal et date de fin) et l'accusé de chaque module. La demande n'est close
+// que quand tous les modules ont répondu ; la preuve PDF est rendue depuis
+// cette ligne. Aucune donnée personnelle.
+export const privacyErasureStatusEnum = hubSchema.enum("privacy_erasure_status", ["pending", "partial", "completed"]);
+
+export type PrivacyErasureItem = {
+  module: string;
+  kind: string;
+  recordId: string;
+  fate: "deleted" | "anonymized" | "kept";
+  legalBasis: "accounting" | "contract_proof" | null;
+  keptUntil: string | null;
+};
+
+export type PrivacyErasureAck = { module: string; status: "ok" | "failed"; at: string; count: number };
+
+export const privacyErasures = hubSchema.table("privacy_erasures", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  requestId: uuid("request_id")
+    .notNull()
+    .references(() => privacyRequests.id),
+  status: privacyErasureStatusEnum("status").notNull().default("pending"),
+  items: jsonb("items").$type<PrivacyErasureItem[]>().notNull(),
+  acks: jsonb("acks").$type<PrivacyErasureAck[]>().notNull().default([]),
+  createdByUserId: uuid("created_by_user_id").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  completedAt: timestamp("completed_at", { withTimezone: true }),
 });
