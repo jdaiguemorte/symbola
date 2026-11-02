@@ -130,7 +130,8 @@ le parcours se déroule sans aide ; sinon noter l'écart.
 Tous doivent être remplis :
 
 - [ ] Aucun écart **bloquant** ouvert (section « Écarts constatés »).
-- [ ] CI verte sur le SHA à déployer, sans alerte critique (Semgrep, Gitleaks, Trivy, OSV) ;
+- [ ] CI verte sur le SHA à déployer, parcours bout en bout compris (job `e2e`), sans alerte
+      critique (Semgrep, Gitleaks, Trivy, OSV) ;
       scan ZAP du staging sans alerte haute.
 - [ ] Sauvegarde **et** restauration testées sur le staging ce mois-ci (`restauration.md` § 5).
 - [ ] Durcissement du serveur vérifié (`sudo bash infra/server/check-hardening.sh`).
@@ -139,7 +140,7 @@ Tous doivent être remplis :
 - [ ] Factures et e-reporting relus par le comptable ; valeurs « proposées » du PRD validées.
 - [ ] Limites connues acceptées par Julien : sauvegardes sur le même VPS (copie externe avant un
       second client), pas d'avertissement au marié avant suppression d'un compte inactif,
-      parcours e2e lancés en local (pas encore en CI).
+      page `/admin` sans pagination des organisations (à prévoir avant plusieurs clients).
 
 ## 4. Bascule en production (Julien)
 

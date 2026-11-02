@@ -197,6 +197,7 @@ l'équivalent Docker donné à droite.
 | Lint | `pnpm lint` | `docker run --rm -v "$PWD":/app -w /app node:22-slim pnpm lint` |
 | Vérification des types | `pnpm typecheck` | `docker run --rm -v "$PWD":/app -w /app node:22-slim pnpm typecheck` |
 | Tests | `pnpm test` | `docker run --rm -v "$PWD":/app -w /app node:22-slim pnpm test` |
+| Parcours bout en bout (Playwright, nécessite le socle démarré + bootstrap + migrate ; lancés aussi en CI, job `e2e`) | `pnpm --filter @symbola/app test:e2e` | — (navigateur requis : passer par la CI, ou Node et `pnpm --filter @symbola/app exec playwright install chromium`) |
 | Contrôle des frontières de modules (ADR 0011) | `pnpm check:boundaries` | `docker run --rm -v "$PWD":/app -w /app node:22-slim pnpm check:boundaries` |
 | Créer/mettre à jour le rôle applicatif PostgreSQL (une fois par base, SOC-05 ; crée aussi la base dédiée de DocuSeal si `DOCUSEAL_DB_PASSWORD` est rempli, DEV-02) | `pnpm --filter @symbola/db bootstrap` | `docker run --rm --network symbola-dev_default -v "$PWD":/app -w /app --env-file .env node:22-slim pnpm --filter @symbola/db bootstrap` |
 | Appliquer les migrations de base (après le bootstrap, SOC-05) | `pnpm --filter @symbola/db migrate` | `docker run --rm --network symbola-dev_default -v "$PWD":/app -w /app --env-file .env node:22-slim pnpm --filter @symbola/db migrate` |
