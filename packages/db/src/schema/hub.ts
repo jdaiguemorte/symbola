@@ -177,6 +177,10 @@ export const platformSettings = hubSchema.table("platform_settings", {
   importMaxBytes: integer("import_max_bytes").notNull().default(10 * 1024 * 1024),
   importMaxRows: integer("import_max_rows").notNull().default(5000),
   importDraftRetentionDays: integer("import_draft_retention_days").notNull().default(7),
+  // IMP-05 : délai pendant lequel un import confirmé reste annulable (90 jours
+  // validés par Julien) ; ensuite les valeurs gardées pour l'annulation sont
+  // effacées, le journal reste.
+  importUndoRetentionDays: integer("import_undo_retention_days").notNull().default(90),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
@@ -272,6 +276,35 @@ export const imports = hubSchema.table("imports", {
   // pas été calculés, remis à null quand les colonnes changent.
   matching: jsonb("matching").$type<ImportMatching | null>(),
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  // IMP-05 : confirmation (journal : résultat chiffré) et annulation.
+  appliedAt: timestamp("applied_at", { withTimezone: true }),
+  undoneAt: timestamp("undone_at", { withTimezone: true }),
+  result: jsonb("result").$type<ImportResult | null>(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export type ImportResult = { created: number; updated: number; unchanged: number; rejected: number };
+
+// IMP-05 — un élément écrit par un import confirmé : de quoi l'annuler
+// (valeurs précédentes) et détecter une modification à la main depuis
+// (valeurs écrites). Identifiant d'élément opaque, propre au module qui l'a
+// écrit. Valeurs effacées passé le délai d'annulation ; la ligne reste au
+// journal.
+export const importItems = hubSchema.table("import_items", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  importId: uuid("import_id")
+    .notNull()
+    .references(() => imports.id),
+  // Ordre d'écriture : l'annulation le parcourt à l'envers.
+  position: integer("position").notNull(),
+  module: text("module").notNull(),
+  kind: text("kind").notNull(),
+  elementId: uuid("element_id").notNull(),
+  action: text("action").$type<"created" | "updated">().notNull(),
+  previous: jsonb("previous").$type<Record<string, unknown> | null>(),
+  written: jsonb("written").$type<Record<string, unknown> | null>(),
+  undoOutcome: text("undo_outcome").$type<"undone" | "kept_modified" | "kept_in_use" | "missing" | null>(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });

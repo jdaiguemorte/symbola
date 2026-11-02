@@ -2,7 +2,7 @@
 // table a organization_id (CLAUDE.md §2.4), protégée par Row-Level
 // Security activée par une migration dédiée (même patron que hello,
 // packages/db/drizzle).
-import { boolean, date, integer, pgSchema, text, time, timestamp, uuid } from "drizzle-orm/pg-core";
+import { boolean, date, integer, pgSchema, text, time, timestamp, uuid, jsonb } from "drizzle-orm/pg-core";
 
 export const eventsSchema = pgSchema("events");
 
@@ -49,6 +49,9 @@ export const events = eventsSchema.table("events", {
   // V2, hors MVP (cahier des charges §5.5).
   venueName: text("venue_name"),
   venueCity: text("venue_city"),
+  // Lot 5 (IMP-04/IMP-05) : colonnes d'un fichier importé gardées en champ
+  // libre (intitulé → texte), affichées en lecture seule sur la fiche.
+  importedFields: jsonb("imported_fields").$type<Record<string, string> | null>(),
   prospectSourceId: uuid("prospect_source_id").references(() => prospectSources.id),
   lossReasonId: uuid("loss_reason_id").references(() => lossReasons.id),
   lossReasonNote: text("loss_reason_note"),
@@ -133,6 +136,9 @@ export const eventVendorSlots = eventsSchema.table("event_vendor_slots", {
   amountCents: integer("amount_cents"),
   currency: text("currency").notNull().default("EUR"),
   position: integer("position").notNull().default(0),
+  // Lot 5 (IMP-04/IMP-05) : colonnes d'un fichier importé gardées en champ
+  // libre (intitulé → texte), affichées en lecture seule sur la fiche.
+  importedFields: jsonb("imported_fields").$type<Record<string, string> | null>(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
@@ -178,6 +184,9 @@ export const eventTasks = eventsSchema.table("event_tasks", {
   responsible: taskResponsibleEnum("responsible").notNull().default("planner"),
   doneAt: timestamp("done_at", { withTimezone: true }),
   position: integer("position").notNull().default(0),
+  // Lot 5 (IMP-04/IMP-05) : colonnes d'un fichier importé gardées en champ
+  // libre (intitulé → texte), affichées en lecture seule sur la fiche.
+  importedFields: jsonb("imported_fields").$type<Record<string, string> | null>(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });

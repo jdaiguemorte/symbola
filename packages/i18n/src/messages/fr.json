@@ -30,7 +30,8 @@
     "quoteCatalog": "Catalogue des devis",
     "quoteSettings": "Paramètres des devis",
     "quotePayments": "Encaissements",
-    "eReporting": "E-reporting"
+    "eReporting": "E-reporting",
+    "importData": "Importer des données"
   },
   "Admin": {
     "title": "Administration",
@@ -124,6 +125,7 @@
     "importMaxMegabytes": "Taille maximale d'un fichier (Mo)",
     "importMaxRows": "Nombre maximal de lignes par fichier",
     "importDraftRetentionDays": "Durée de conservation d'un import non confirmé (jours)",
+    "importUndoRetentionDays": "Durée pendant laquelle un import confirmé reste annulable (jours)",
     "invalidImportLimits": "Les limites de l'import doivent être des nombres entiers positifs (20 Mo au plus)."
   },
   "Tour": {
@@ -324,6 +326,14 @@
     "importGaps": {
       "title": "Rapport des écarts",
       "body": "Le rapport liste d'abord les colonnes sans équivalent : gardez-les en champ libre (visible sur la fiche de chaque élément importé) ou ignorez-les. Il liste ensuite les lignes qui ne seront pas importées, avec leur motif : date ou montant invalide, champ obligatoire manquant, événement introuvable pour une tâche ou une ligne de budget. Téléchargez-les en CSV pour les corriger dans votre tableur, puis réimportez-les ; les autres lignes ne sont pas bloquées."
+    },
+    "importConfirm": {
+      "title": "Confirmer un import",
+      "body": "L'aperçu compte les créations, les mises à jour et les lignes rejetées, avec un échantillon de chacune. Une ligne rapprochée met à jour l'élément existant : seules ses cellules remplies remplacent les valeurs actuelles. Pour un import d'événements, choisissez la source donnée aux événements qui n'en ont pas ; une source inconnue de votre liste y est ajoutée. La confirmation écrit tout l'import d'un coup, ou rien en cas d'erreur."
+    },
+    "importUndo": {
+      "title": "Journal et annulation d'un import",
+      "body": "Chaque import confirmé est journalisé : fichier, auteur, date et résultat. Pendant le délai d'annulation, vous pouvez l'annuler : les éléments créés sont supprimés, les éléments mis à jour retrouvent leurs valeurs précédentes. Un élément modifié à la main depuis l'import est signalé et gardé, sauf si vous cochez « annuler quand même ». Un événement qui a reçu un devis n'est jamais supprimé."
     }
   },
   "FirstSteps": {
@@ -1023,7 +1033,6 @@
     "previewTitle": "{count, plural, one {Aperçu de la première ligne} other {Aperçu des # premières lignes}}",
     "previewScrollLabel": "Tableau d'aperçu (défilement horizontal)",
     "unnamedColumn": "Colonne {number}",
-    "nextStepsComing": "L'étape suivante (aperçu et confirmation) arrive prochainement. Vous pouvez abandonner cet import à tout moment.",
     "cancelImport": "Abandonner l'import",
     "backToImports": "Retour aux imports",
     "journalTitle": "Journal des imports",
@@ -1144,6 +1153,56 @@
       "invalid_boolean": "{field} : valeur non reconnue, attendu oui ou non ({value})",
       "invalid_choice": "{field} : valeur non reconnue ({value})",
       "event_not_found": "événement introuvable ou ambigu parmi vos événements"
-    }
+    },
+    "confirmStepTitle": "Confirmation",
+    "continueToConfirmation": "Continuer : aperçu et confirmation",
+    "confirmTitle": "Aperçu de l'import « {fileName} »",
+    "previewSummary": "{created, plural, =0 {Aucune création} one {# création} other {# créations}}, {updated, plural, =0 {aucune mise à jour} one {# mise à jour} other {# mises à jour}}, {rejected, plural, =0 {aucune ligne rejetée} one {# ligne rejetée} other {# lignes rejetées}}.",
+    "previewCreationsTitle": "{count, plural, one {Création (échantillon)} other {Créations (échantillon des # lignes)}}",
+    "previewUpdatesTitle": "{count, plural, one {Mise à jour (échantillon)} other {Mises à jour (échantillon des # lignes)}}",
+    "previewRejectedLink": "{count, plural, one {Voir la ligne rejetée} other {Voir les # lignes rejetées}}",
+    "confirmIntro": "La confirmation enregistre tout l'import d'un coup, ou rien en cas d'erreur. Vous pourrez l'annuler ensuite depuis le journal des imports.",
+    "defaultSourceLabel": "Source pour les événements sans source",
+    "defaultSourcePlaceholder": "Choisissez une source",
+    "defaultSourceRequired": "Choisissez la source des événements qui n'en ont pas.",
+    "confirmImport": "Confirmer l'import",
+    "confirming": "Import en cours…",
+    "confirmFailed": "L'import n'a pas pu être enregistré : rien n'a été écrit. Réessayez, ou vérifiez qu'aucun élément rapproché n'a été supprimé entre-temps.",
+    "confirmBlocked": "L'import ne peut pas encore être confirmé :",
+    "blocker": {
+      "columns_undecided": "des colonnes sans équivalent attendent votre décision (rapport des écarts).",
+      "matches_undecided": "des rapprochements proposés attendent votre décision.",
+      "nothing_to_import": "aucune ligne à importer.",
+      "vat_rate_unknown": "des articles n'ont pas de taux de TVA et votre taux par défaut n'est pas renseigné (Paramètres).",
+      "no_prospect_source": "des événements n'ont pas de source et votre liste de sources est vide (paramètres des événements)."
+    },
+    "journalEntryTitle": "Import de « {fileName} »",
+    "journalAuthor": "Auteur",
+    "journalAuthorUnknown": "compte supprimé",
+    "journalAppliedAt": "Confirmé le",
+    "journalUndoneAt": "Annulé le",
+    "journalResult": "Résultat",
+    "journalResultValue": "{created, plural, =0 {aucune création} one {# création} other {# créations}}, {updated, plural, =0 {aucune mise à jour} one {# mise à jour} other {# mises à jour}}, {unchanged, plural, =0 {aucune ligne inchangée} one {# ligne inchangée} other {# lignes inchangées}}, {rejected, plural, =0 {aucune ligne rejetée} one {# ligne rejetée} other {# lignes rejetées}}",
+    "undoTitle": "Annuler l'import",
+    "undoIntro": "Les éléments créés seront supprimés et les éléments mis à jour retrouveront leurs valeurs précédentes. Annulation possible jusqu'au {date}.",
+    "undoModifiedLegend": "{count, plural, one {Élément modifié à la main depuis l'import} other {# éléments modifiés à la main depuis l'import}}",
+    "undoModifiedIntro": "Sans confirmation, ils sont gardés tels quels. Cochez ceux que vous voulez annuler quand même : vos modifications seront perdues.",
+    "undoForce": "Annuler quand même : {title}",
+    "undoUsedElsewhereIntro": "Ces événements ont reçu un devis depuis l'import : ils sont toujours gardés.",
+    "undoSubmit": "Annuler l'import",
+    "undoExpired": "Le délai d'annulation de cet import est passé.",
+    "undoResult": "{undone, plural, =0 {Aucun élément annulé} one {# élément annulé} other {# éléments annulés}} ; {kept, plural, =0 {aucun gardé car modifié} one {# gardé car modifié à la main} other {# gardés car modifiés à la main}} ; {used, plural, =0 {aucun gardé car utilisé} one {# gardé car utilisé ailleurs} other {# gardés car utilisés ailleurs}}.",
+    "itemKind": {
+      "event": "Événement : {title}",
+      "task": "Tâche : {title}",
+      "event_vendor_slot": "Poste : {title}",
+      "budget_line": "Ligne de budget : {title}",
+      "catalog_item": "Article : {title}",
+      "payment_method": "Mode de paiement : {title}",
+      "prospect_source": "Source : {title}",
+      "loss_reason": "Motif de perte : {title}",
+      "default_vendor_slot": "Poste par défaut : {title}"
+    },
+    "importedFieldsTitle": "Champs importés"
   }
 }

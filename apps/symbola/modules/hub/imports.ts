@@ -4,7 +4,7 @@
 // la confirmation (IMP-05).
 import { IMPORT_FIELDS, type ImportEntityType, type ImportFieldDefinition } from "@symbola/contracts";
 import type { AppDatabase } from "@symbola/db/client";
-import type { ImportColumnChoice, ImportMatch, ImportMatching } from "@symbola/db/schema/hub";
+import type { ImportColumnChoice, ImportMatch, ImportMatching, ImportResult } from "@symbola/db/schema/hub";
 import { parseEnv } from "@symbola/env";
 import { scanBuffer } from "@symbola/files";
 import {
@@ -17,19 +17,25 @@ import {
 import { starterImportSynonyms } from "@symbola/starter-templates";
 import {
   cancelExpiredDrafts,
+  clearExpiredUndoValues,
   findImport,
+  findImportItems,
+  markImportApplied,
+  recordUndoOutcomes,
   findImports,
   insertImport,
   markDraftCancelled,
   updateDraftMapping,
   updateDraftMappingKeepingMatches,
   updateDraftMatching,
+  type ImportItemRow,
   type ImportRow,
+  type NewImportItem,
 } from "./import-repository";
 import { findPlatformSettings, insertDefaultPlatformSettings } from "./repository";
 
 export { IMPORT_ENTITY_TYPES, type ImportEntityType } from "@symbola/contracts";
-export type { ImportColumnChoice, ImportMatch, ImportMatching, ImportRowEvent } from "@symbola/db/schema/hub";
+export type { ImportColumnChoice, ImportMatch, ImportMatching, ImportResult, ImportRowEvent } from "@symbola/db/schema/hub";
 
 // Module qui reçoit chaque type d'éléments : un type dont le module n'est pas
 // souscrit n'est pas proposé (dégradation propre, CLAUDE.md §2.3).
@@ -44,7 +50,7 @@ export const IMPORT_ENTITY_MODULE: Record<ImportEntityType, "events" | "budget" 
   payment_methods: "quotes",
 };
 
-export type ImportLimits = { maxBytes: number; maxRows: number; draftRetentionDays: number };
+export type ImportLimits = { maxBytes: number; maxRows: number; draftRetentionDays: number; undoRetentionDays: number };
 
 export async function getImportLimits(db: AppDatabase): Promise<ImportLimits> {
   let settings = await findPlatformSettings(db);
@@ -57,6 +63,7 @@ export async function getImportLimits(db: AppDatabase): Promise<ImportLimits> {
     maxBytes: settings.importMaxBytes,
     maxRows: settings.importMaxRows,
     draftRetentionDays: settings.importDraftRetentionDays,
+    undoRetentionDays: settings.importUndoRetentionDays,
   };
 }
 
@@ -126,6 +133,9 @@ export function sanitizeFileName(fileName: string): string {
 }
 
 export type ImportSummary = {
+  appliedAt: Date | null;
+  undoneAt: Date | null;
+  result: ImportResult | null;
   id: string;
   entityType: ImportEntityType;
   status: ImportRow["status"];
@@ -169,6 +179,9 @@ function toSummary(row: ImportRow): ImportSummary {
     rowCount: row.rowCount,
     neutralizedCells: row.neutralizedCells,
     createdByUserId: row.createdByUserId,
+    appliedAt: row.appliedAt,
+    undoneAt: row.undoneAt,
+    result: row.result,
     createdAt: row.createdAt,
     expiresAt: row.expiresAt,
   };
@@ -430,4 +443,77 @@ export async function decideFreeColumns(
     return { ...choice, target: keep ? "free" : "ignore", decidedAtGaps: true };
   });
   return updateDraftMappingKeepingMatches(db, input.organizationId, input.importId, mapping, now);
+}
+
+// —— IMP-05 : confirmation, journal, annulation ——————————————————————————
+
+export type RecordedItem = NewImportItem;
+
+export async function recordAppliedImport(
+  db: AppDatabase,
+  input: { organizationId: string; importId: string; items: RecordedItem[]; result: ImportResult; now?: Date },
+): Promise<boolean> {
+  return markImportApplied(db, { ...input, now: input.now ?? new Date() });
+}
+
+export type AppliedImportItem = Pick<ImportItemRow, "id" | "module" | "kind" | "elementId" | "action" | "previous" | "written" | "undoOutcome">;
+
+export type AppliedImportView = ImportSummary & {
+  items: AppliedImportItem[];
+  // Encore annulable : confirmé, non annulé, dans le délai réglé par l'Admin.
+  undoable: boolean;
+  undoDeadline: Date | null;
+};
+
+export async function getAppliedImport(
+  db: AppDatabase,
+  organizationId: string,
+  importId: string,
+  now: Date = new Date(),
+): Promise<AppliedImportView | null> {
+  const row = await findImport(db, organizationId, importId);
+  if (!row || (row.status !== "applied" && row.status !== "undone") || !row.appliedAt) return null;
+  const { undoRetentionDays } = await getImportLimits(db);
+  const deadline = new Date(row.appliedAt.getTime() + undoRetentionDays * DAY_MS);
+  const items = (await findImportItems(db, organizationId, importId)).map(({ id, module, kind, elementId, action, previous, written, undoOutcome }) => ({
+    id,
+    module,
+    kind,
+    elementId,
+    action,
+    previous,
+    written,
+    undoOutcome,
+  }));
+  const pending = items.some((item) => item.undoOutcome !== "undone" && item.undoOutcome !== "missing");
+  return {
+    ...toSummary(row),
+    items,
+    undoable: row.status === "applied" && now < deadline && pending && items.every((item) => item.written !== null),
+    undoDeadline: row.status === "applied" ? deadline : null,
+  };
+}
+
+export async function recordImportUndo(
+  db: AppDatabase,
+  input: { organizationId: string; importId: string; outcomes: { itemId: string; outcome: "undone" | "kept_modified" | "kept_in_use" | "missing" }[]; now?: Date },
+): Promise<void> {
+  const view = await getAppliedImport(db, input.organizationId, input.importId);
+  if (!view) return;
+  const outcomes = new Map(input.outcomes.map((entry) => [entry.itemId, entry.outcome]));
+  // L'import est annulé quand chaque élément l'est (ou a disparu depuis) ;
+  // sinon il reste confirmé, et les éléments gardés restent annulables.
+  const complete = view.items.every((item) => {
+    const outcome = outcomes.get(item.id) ?? item.undoOutcome;
+    return outcome === "undone" || outcome === "missing";
+  });
+  await recordUndoOutcomes(db, { ...input, complete, now: input.now ?? new Date() });
+}
+
+export async function purgeExpiredImportUndoValues(db: AppDatabase, organizationIds: string[], now: Date = new Date()): Promise<number> {
+  const { undoRetentionDays } = await getImportLimits(db);
+  const appliedBefore = new Date(now.getTime() - undoRetentionDays * DAY_MS);
+  let cleared = 0;
+  for (const organizationId of organizationIds) cleared += await clearExpiredUndoValues(db, organizationId, appliedBefore);
+  return cleared;
 }

@@ -33,6 +33,8 @@ export type EventDetail = EventSummary & {
   lossReasonNote: string | null;
   // EVT-04 : date pour laquelle les échéances ont été calculées.
   tasksScheduledFor: string | null;
+  // Lot 5 (IMP-04) : colonnes d'un fichier importé gardées en champ libre.
+  importedFields?: Record<string, string>;
 };
 
 export type ListEventsInput = {
@@ -96,6 +98,8 @@ export type EventVendorSlot = {
   amountCents: number | null;
   currency: "EUR";
   position: number;
+  // Lot 5 (IMP-04) : champs libres d'un import.
+  importedFields?: Record<string, string>;
 };
 
 export type UpdateEventVendorSlotInput = {
@@ -145,6 +149,8 @@ export type EventTask = {
   responsible: TaskResponsible;
   done: boolean;
   position: number;
+  // Lot 5 (IMP-04) : champs libres d'un import.
+  importedFields?: Record<string, string>;
 };
 
 export type EventTaskInput = {

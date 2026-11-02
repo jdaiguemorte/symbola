@@ -193,6 +193,7 @@ function toEventDetail(event: EventRow, clients: EventClientRow[]): EventDetail 
     lossReasonId: event.lossReasonId,
     lossReasonNote: event.lossReasonNote,
     tasksScheduledFor: event.tasksScheduledFor,
+    ...(event.importedFields ? { importedFields: event.importedFields } : {}),
   };
 }
 
@@ -300,6 +301,7 @@ function toEventVendorSlot(row: EventVendorSlotRow): EventVendorSlot {
     amountCents: row.amountCents,
     currency: "EUR",
     position: row.position,
+    ...(row.importedFields ? { importedFields: row.importedFields } : {}),
   };
 }
 
@@ -428,6 +430,7 @@ function toEventTask(row: EventTaskRow): EventTask {
     responsible: row.responsible,
     done: row.doneAt !== null,
     position: row.position,
+    ...(row.importedFields ? { importedFields: row.importedFields } : {}),
   };
 }
 
@@ -1014,6 +1017,19 @@ export async function hasRealEvents(organizationId: string): Promise<boolean> {
 // interne par getClientEventView — le module budget en a besoin pour sa
 // propre vue en lecture seule du marié.
 export { hasActiveClientAccess };
+
+// IMP-05 — fonctions d'import (lot 5, ADR 0022) : écriture d'un lot de
+// lignes, détection des modifications à la main, annulation.
+export {
+  findModifiedImportedEventsElements,
+  importedEventIds,
+  importEventRows,
+  importListRows,
+  importTaskRows,
+  importVendorSlotsForBudget,
+  readImportedEventsElements,
+  undoImportedEventsElements,
+} from "./import";
 
 const _contractCheck: EventsServiceContract = {
   listEvents,

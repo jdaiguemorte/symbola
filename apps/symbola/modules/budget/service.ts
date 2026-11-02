@@ -487,6 +487,13 @@ export async function removeEventBudgetData(organizationId: string, eventIds: st
   for (const key of fileKeys) await deletePrivateObject(storage, key);
 }
 
+// IMP-05 — fonctions d'import (lot 5, ADR 0022).
+export {
+  findModifiedImportedBudgetElements,
+  importBudgetLineRows,
+  undoImportedBudgetElements,
+} from "./import";
+
 const _contractCheck: BudgetServiceContract = {
   listAllocationModels,
   createAllocationModel,

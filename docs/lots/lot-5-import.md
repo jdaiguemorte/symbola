@@ -31,7 +31,7 @@ rapprochements, écarts, confirmation. **Rien n'est écrit dans les modules avan
    (`packages/testing/import-corpus/`) ; Julien y ajoutera l'export Wedding Plan anonymisé
    quand il l'aura, comme test supplémentaire (PRD §7, « Robustesse »).
 
-## Valeurs validées par Julien (28/10/2026)
+## Valeurs validées par Julien (28/10/2026 et 02/11/2026)
 
 - **Taille maximale** : 10 Mo, réglage de la plateforme
   (`hub.platform_settings`, Admin), jamais en dur ; nombre de lignes plafonné (5 000,
@@ -156,6 +156,25 @@ rapprochements, écarts, confirmation. **Rien n'est écrit dans les modules avan
   éléments mis à jour retrouvent leurs valeurs précédentes. Étant donné un élément modifié à la
   main depuis l'import, alors l'app le signale et ne l'écrase pas sans confirmation.
 - Chaque import est journalisé : fichier (nom, type, taille), auteur, date, résultat chiffré.
+- *Réalisé (IMP-05)* : chaque module reçoit ses lignes par son `service.ts` (contrat
+  `packages/contracts/src/import/apply.ts`) et les écrit en **une transaction** ; les lignes de
+  budget touchent deux modules (poste de l'événement puis ligne de budget) : si la seconde
+  écriture échoue, les postes écrits sont annulés (compensation). Les éléments écrits sont
+  journalisés dans `hub.import_items` (RLS, migrations 0047-0049) : créés ou mis à jour, valeurs
+  précédentes et écrites ; si ce journal ne peut pas être écrit, les écritures des modules sont
+  annulées. Une cellule vide ne remplace jamais une valeur existante. Confirmation bloquée tant
+  que des colonnes ou des rapprochements attendent une décision. Événements : source inconnue
+  créée (retirée à l'annulation si inutilisée), source par défaut pour les lignes sans source,
+  « Perdu » accepté sans motif (décisions de Julien, 02/11/2026) ; postes par défaut copiés comme
+  pour une création à la main. Catalogue : taux de TVA par défaut de l'organisation (0 en
+  franchise). Annulation : créés supprimés, mis à jour restaurés ; un élément modifié à la main
+  depuis (valeurs actuelles ≠ valeurs écrites ; pour un événement créé : tâches, accès des mariés
+  ou programme ajoutés) est gardé sauf confirmation ; jamais supprimés : un événement qui a reçu
+  un devis (ADR 0010), une ligne de budget avec un devis joint, un article utilisé dans un devis,
+  un élément de liste utilisé. Délai d'annulation réglable par l'Admin (90 jours), puis valeurs
+  effacées par la purge horaire. Champs libres (`imported_fields`) affichés sur la fiche de
+  l'événement, ses tâches et postes, et dans le catalogue. Lien « Importer des données » au
+  tableau de bord.
 
 ## Hors périmètre du lot
 

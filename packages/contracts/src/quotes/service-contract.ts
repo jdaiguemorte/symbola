@@ -15,6 +15,8 @@ export type CatalogItemInput = {
 export type CatalogItem = Required<{ [K in keyof CatalogItemInput]: Exclude<CatalogItemInput[K], undefined> }> & {
   id: string;
   archived: boolean;
+  // Lot 5 (IMP-04) : champs libres d'un import.
+  importedFields?: Record<string, string>;
 };
 
 export type QuoteSettings = {

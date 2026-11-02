@@ -7,7 +7,7 @@ import { assertOrganizationIsolation } from "@symbola/testing";
 import { eq } from "drizzle-orm";
 import { afterAll, describe, it } from "vitest";
 import { createAppConnection } from "./client";
-import { imports } from "./schema/hub";
+import { importItems, imports } from "./schema/hub";
 import { withOrganization } from "./with-organization";
 
 const { sql, db } = createAppConnection();
@@ -46,6 +46,38 @@ describe("IMP-01 — Isolation entre organisations (imports du hub, PostgreSQL r
       attemptCrossOrganizationUpdate: async (organizationId, targetRow) => {
         const updated = await withOrganization(db, organizationId, (tx) =>
           tx.update(imports).set({ fileName: "falsifié" }).where(eq(imports.id, targetRow.id)).returning(),
+        );
+        return { affectedRows: updated.length };
+      },
+    });
+  });
+
+  it("éléments écrits par un import confirmé (IMP-05)", async () => {
+    await assertOrganizationIsolation({
+      seed: async (organizationId) =>
+        withOrganization(db, organizationId, async (tx) => {
+          const [parent] = await tx.insert(imports).values(importValues(organizationId)).returning();
+          const [row] = await tx
+            .insert(importItems)
+            .values({
+              organizationId,
+              importId: parent!.id,
+              position: 0,
+              module: "events",
+              kind: "event",
+              elementId: randomUUID(),
+              action: "created",
+              previous: null,
+              written: { clients: [{ firstName: "Élodie", lastName: "Durand" }] },
+            })
+            .returning();
+          if (!row) throw new Error("insertion attendue");
+          return row;
+        }),
+      listVisible: async (organizationId) => withOrganization(db, organizationId, (tx) => tx.select().from(importItems)),
+      attemptCrossOrganizationUpdate: async (organizationId, targetRow) => {
+        const updated = await withOrganization(db, organizationId, (tx) =>
+          tx.update(importItems).set({ undoOutcome: "undone" }).where(eq(importItems.id, targetRow.id)).returning(),
         );
         return { affectedRows: updated.length };
       },

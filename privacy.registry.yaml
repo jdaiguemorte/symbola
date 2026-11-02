@@ -69,6 +69,65 @@ fields:
       RGPD-03/RGPD-05.
     anonymization: >-
       Remplacé par « [anonymisé] » lors d'une demande d'oubli (RGPD-03).
+  - schema: hub
+    table: import_items
+    field: previous
+    category: identifiant
+    retention: >-
+      Lot 5 (IMP-05) : valeurs d'un élément avant qu'un import confirmé le
+      mette à jour (noms des clients, montants…), gardées pour pouvoir annuler
+      l'import pendant le délai réglé par l'Admin (90 jours), puis effacées par
+      la purge horaire ; la ligne du journal reste.
+    anonymization: >-
+      Effacées (null) lors d'une demande d'oubli (RGPD-03) ; l'import concerné
+      n'est alors plus annulable pour cet élément.
+  - schema: hub
+    table: import_items
+    field: written
+    category: identifiant
+    retention: >-
+      Lot 5 (IMP-05) : valeurs écrites par un import confirmé, gardées pour
+      détecter une modification à la main avant une annulation, pendant le
+      délai d'annulation (90 jours), puis effacées par la purge horaire.
+    anonymization: >-
+      Effacées (null) lors d'une demande d'oubli (RGPD-03).
+  - schema: events
+    table: events
+    field: imported_fields
+    category: contenu_libre
+    retention: >-
+      Lot 5 (IMP-04/IMP-05) : colonnes d'un fichier importé gardées en champ
+      libre sur la fiche (peuvent contenir un e-mail, un téléphone…). Tant que
+      l'événement existe. Voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Effacés (null) lors d'une demande d'oubli (RGPD-03).
+  - schema: events
+    table: event_tasks
+    field: imported_fields
+    category: contenu_libre
+    retention: >-
+      Lot 5 (IMP-04/IMP-05) : champs libres d'une tâche importée, tant que la
+      tâche existe. Voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Effacés (null) lors d'une demande d'oubli (RGPD-03).
+  - schema: events
+    table: event_vendor_slots
+    field: imported_fields
+    category: contenu_libre
+    retention: >-
+      Lot 5 (IMP-04/IMP-05) : champs libres d'un poste importé avec une ligne
+      de budget, tant que le poste existe. Voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Effacés (null) lors d'une demande d'oubli (RGPD-03).
+  - schema: quotes
+    table: catalog_items
+    field: imported_fields
+    category: contenu_libre
+    retention: >-
+      Lot 5 (IMP-04/IMP-05) : champs libres d'un article importé, tant que
+      l'article existe.
+    anonymization: >-
+      Effacés (null) lors d'une demande d'oubli (RGPD-03) qui les viserait.
   - schema: events
     table: event_clients
     field: first_name

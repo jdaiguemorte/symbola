@@ -30,7 +30,8 @@
     "quoteCatalog": "Quotes catalogue",
     "quoteSettings": "Quote settings",
     "quotePayments": "Payments",
-    "eReporting": "E-reporting"
+    "eReporting": "E-reporting",
+    "importData": "Import data"
   },
   "Admin": {
     "title": "Administration",
@@ -124,6 +125,7 @@
     "importMaxMegabytes": "Maximum file size (MB)",
     "importMaxRows": "Maximum rows per file",
     "importDraftRetentionDays": "How long an unconfirmed import is kept (days)",
+    "importUndoRetentionDays": "How long a confirmed import can be undone (days)",
     "invalidImportLimits": "Import limits must be positive whole numbers (20 MB at most)."
   },
   "Tour": {
@@ -324,6 +326,14 @@
     "importGaps": {
       "title": "Gaps report",
       "body": "The report first lists the columns without equivalent: keep them as a free field (shown on the record of each imported item) or ignore them. It then lists the rows that will not be imported, with their reason: invalid date or amount, missing required field, event not found for a task or a budget line. Download them as CSV to fix them in your spreadsheet, then import them again; the other rows are not blocked."
+    },
+    "importConfirm": {
+      "title": "Confirming an import",
+      "body": "The preview counts creations, updates and rejected rows, with a sample of each. A matched row updates the existing record: only its filled cells replace the current values. For an events import, choose the source given to events that have none; a source missing from your list is added to it. Confirming writes the whole import at once, or nothing if an error occurs."
+    },
+    "importUndo": {
+      "title": "Import log and undo",
+      "body": "Each confirmed import is logged: file, author, date and result. During the undo period you can undo it: created records are deleted, updated records get their previous values back. A record changed by hand since the import is flagged and kept, unless you tick “undo anyway”. An event that received a quote is never deleted."
     }
   },
   "FirstSteps": {
@@ -1023,7 +1033,6 @@
     "previewTitle": "{count, plural, one {Preview of the first row} other {Preview of the first # rows}}",
     "previewScrollLabel": "Preview table (scrolls horizontally)",
     "unnamedColumn": "Column {number}",
-    "nextStepsComing": "The next step (preview and confirmation) is coming soon. You can discard this import at any time.",
     "cancelImport": "Discard the import",
     "backToImports": "Back to imports",
     "journalTitle": "Import log",
@@ -1144,6 +1153,56 @@
       "invalid_boolean": "{field}: unrecognised value, expected yes or no ({value})",
       "invalid_choice": "{field}: unrecognised value ({value})",
       "event_not_found": "event not found or ambiguous among your events"
-    }
+    },
+    "confirmStepTitle": "Confirmation",
+    "continueToConfirmation": "Continue: preview and confirmation",
+    "confirmTitle": "Preview of import “{fileName}”",
+    "previewSummary": "{created, plural, =0 {No creation} one {# creation} other {# creations}}, {updated, plural, =0 {no update} one {# update} other {# updates}}, {rejected, plural, =0 {no rejected row} one {# rejected row} other {# rejected rows}}.",
+    "previewCreationsTitle": "{count, plural, one {Creation (sample)} other {Creations (sample of # rows)}}",
+    "previewUpdatesTitle": "{count, plural, one {Update (sample)} other {Updates (sample of # rows)}}",
+    "previewRejectedLink": "{count, plural, one {See the rejected row} other {See the # rejected rows}}",
+    "confirmIntro": "Confirming saves the whole import at once, or nothing if an error occurs. You can undo it afterwards from the import log.",
+    "defaultSourceLabel": "Source for events without a source",
+    "defaultSourcePlaceholder": "Choose a source",
+    "defaultSourceRequired": "Choose the source for events that have none.",
+    "confirmImport": "Confirm the import",
+    "confirming": "Importing…",
+    "confirmFailed": "The import could not be saved: nothing was written. Try again, or check that no matched record was deleted meanwhile.",
+    "confirmBlocked": "The import cannot be confirmed yet:",
+    "blocker": {
+      "columns_undecided": "some columns without equivalent await your decision (gaps report).",
+      "matches_undecided": "some suggested matches await your decision.",
+      "nothing_to_import": "no row to import.",
+      "vat_rate_unknown": "some items have no VAT rate and your default rate is not set (Settings).",
+      "no_prospect_source": "some events have no source and your source list is empty (event settings)."
+    },
+    "journalEntryTitle": "Import of “{fileName}”",
+    "journalAuthor": "Author",
+    "journalAuthorUnknown": "deleted account",
+    "journalAppliedAt": "Confirmed on",
+    "journalUndoneAt": "Undone on",
+    "journalResult": "Result",
+    "journalResultValue": "{created, plural, =0 {no creation} one {# creation} other {# creations}}, {updated, plural, =0 {no update} one {# update} other {# updates}}, {unchanged, plural, =0 {no unchanged row} one {# unchanged row} other {# unchanged rows}}, {rejected, plural, =0 {no rejected row} one {# rejected row} other {# rejected rows}}",
+    "undoTitle": "Undo the import",
+    "undoIntro": "Created records will be deleted and updated records will get their previous values back. Undo is possible until {date}.",
+    "undoModifiedLegend": "{count, plural, one {Record changed by hand since the import} other {# records changed by hand since the import}}",
+    "undoModifiedIntro": "Without confirmation they are kept as they are. Tick the ones you want to undo anyway: your changes will be lost.",
+    "undoForce": "Undo anyway: {title}",
+    "undoUsedElsewhereIntro": "These events received a quote since the import: they are always kept.",
+    "undoSubmit": "Undo the import",
+    "undoExpired": "The undo period for this import has passed.",
+    "undoResult": "{undone, plural, =0 {No record undone} one {# record undone} other {# records undone}}; {kept, plural, =0 {none kept as changed} one {# kept as changed by hand} other {# kept as changed by hand}}; {used, plural, =0 {none kept as in use} one {# kept as used elsewhere} other {# kept as used elsewhere}}.",
+    "itemKind": {
+      "event": "Event: {title}",
+      "task": "Task: {title}",
+      "event_vendor_slot": "Budget item: {title}",
+      "budget_line": "Budget line: {title}",
+      "catalog_item": "Item: {title}",
+      "payment_method": "Payment method: {title}",
+      "prospect_source": "Source: {title}",
+      "loss_reason": "Loss reason: {title}",
+      "default_vendor_slot": "Default budget item: {title}"
+    },
+    "importedFieldsTitle": "Imported fields"
   }
 }

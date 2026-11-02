@@ -1,7 +1,9 @@
-// Lot 5 (IMP-01) — purge horaire des imports en cours expirés : leurs lignes
-// en attente (données personnelles) sont effacées, l'entrée reste au journal.
+// Lot 5 — purge horaire : lignes en attente des imports en cours expirés
+// (IMP-01) et valeurs gardées pour l'annulation des imports confirmés passé
+// le délai d'annulation (IMP-05). Données personnelles effacées, le journal
+// reste.
 import { createAppConnection } from "@symbola/db/client";
-import { listOrganizations, purgeExpiredImportDrafts } from "@/modules/hub/service";
+import { listOrganizations, purgeExpiredImportDrafts, purgeExpiredImportUndoValues } from "@/modules/hub/service";
 
 const PURGE_INTERVAL_MS = 60 * 60 * 1000; // toutes les heures
 
@@ -9,11 +11,10 @@ export async function purgeAllExpiredImportDrafts(now: Date = new Date()): Promi
   const { sql, db } = createAppConnection();
   try {
     const organizations = await listOrganizations(db);
-    return await purgeExpiredImportDrafts(
-      db,
-      organizations.map((organization) => organization.id),
-      now,
-    );
+    const organizationIds = organizations.map((organization) => organization.id);
+    const drafts = await purgeExpiredImportDrafts(db, organizationIds, now);
+    await purgeExpiredImportUndoValues(db, organizationIds, now);
+    return drafts;
   } finally {
     await sql.end();
   }
