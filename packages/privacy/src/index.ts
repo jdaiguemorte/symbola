@@ -1,4 +1,5 @@
-export type { PersonQuery, PrivacyContractV1, PrivacyFindResult } from "./contract";
+export type { PersonTerms, PrivacyContractV1, PrivacyRecord, PrivacySearch } from "./contract";
+export { hasTerms, matchesTerms, normalizeText, phoneDigits, prepareTerms, recordMatches, type PreparedTerms } from "./match";
 export { checkMigrationAgainstRegistry, type RegistryViolation } from "./check-migrations";
 export { extractColumns, type ColumnReference } from "./migration-scanner";
 export { findRegistryEntry, loadRegistry, parseRegistry } from "./registry";

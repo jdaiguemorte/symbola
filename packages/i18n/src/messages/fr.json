@@ -31,7 +31,8 @@
     "quoteSettings": "Paramètres des devis",
     "quotePayments": "Encaissements",
     "eReporting": "E-reporting",
-    "importData": "Importer des données"
+    "importData": "Importer des données",
+    "privacy": "Données personnelles (RGPD)"
   },
   "Admin": {
     "title": "Administration",
@@ -334,6 +335,10 @@
     "importUndo": {
       "title": "Journal et annulation d'un import",
       "body": "Chaque import confirmé est journalisé : fichier, auteur, date et résultat. Pendant le délai d'annulation, vous pouvez l'annuler : les éléments créés sont supprimés, les éléments mis à jour retrouvent leurs valeurs précédentes. Un élément modifié à la main depuis l'import est signalé et gardé, sauf si vous cochez « annuler quand même ». Un événement qui a reçu un devis n'est jamais supprimé."
+    },
+    "privacySearch": {
+      "title": "Rechercher une personne",
+      "body": "Saisissez au moins un e-mail, un téléphone ou un nom : la recherche ignore les accents et la casse, et compare les téléphones sur leurs seuls chiffres (+33 ou 0). Elle interroge chaque module souscrit et rassemble les données de la personne, puis celles de ses événements (tâches, budget, devis, factures). Si un module ne répond pas, le résultat est signalé incomplet : relancez la recherche avant de répondre à la personne. Les données d'un essai guidé n'apparaissent jamais."
     }
   },
   "FirstSteps": {
@@ -1204,5 +1209,91 @@
       "default_vendor_slot": "Poste par défaut : {title}"
     },
     "importedFieldsTitle": "Champs importés"
+  },
+  "Privacy": {
+    "title": "Données personnelles",
+    "ownerOnly": "Ce module est réservé à la titulaire du compte.",
+    "searchIntro": "Cherchez une personne par son e-mail, son téléphone ou son nom (au moins un) : l'app interroge chaque module et rassemble toutes ses données, ainsi que celles de ses événements.",
+    "emailLabel": "E-mail",
+    "phoneLabel": "Téléphone",
+    "nameLabel": "Nom",
+    "search": "Rechercher",
+    "searching": "Recherche…",
+    "termsMissing": "Saisissez un e-mail, un téléphone (6 chiffres au moins) ou un nom.",
+    "termsInvalid": "Un des termes est trop long.",
+    "resultsTitle": "{count, plural, =0 {Aucune donnée trouvée} one {# donnée trouvée} other {# données trouvées}}",
+    "incomplete": "Résultat incomplet : ces modules n'ont pas répondu. Relancez la recherche avant toute réponse à la personne.",
+    "noData": "Aucune donnée ne correspond à cette personne.",
+    "noDataIncomplete": "Aucune donnée trouvée dans les modules qui ont répondu ; le résultat reste incomplet.",
+    "directMatch": "(trouvée par la recherche)",
+    "relatedMatch": "(liée à son événement)",
+    "importedField": "{name} (champ importé)",
+    "module": {
+      "events": "Événements",
+      "budget": "Budget",
+      "quotes": "Devis et factures",
+      "hub": "Comptes et imports",
+      "hello": "Module témoin"
+    },
+    "kind": {
+      "event": "Événement",
+      "event_client": "Client",
+      "client_access": "Accès d'un marié",
+      "event_vendor_slot": "Poste",
+      "task": "Tâche",
+      "program_item": "Programme",
+      "program_participant": "Intervenant",
+      "status_change": "Changement de statut",
+      "quote_signer": "Signataire",
+      "quote_line": "Ligne de devis",
+      "invoice": "Facture",
+      "credit_note": "Avoir",
+      "catalog_item": "Article du catalogue",
+      "quote": "Devis",
+      "event_budget": "Budget",
+      "budget_line": "Ligne de budget",
+      "budget_attachment": "Devis prestataire joint",
+      "client_account": "Compte d'un marié",
+      "import_row": "Ligne d'un import en cours",
+      "import_item": "Élément d'un import (annulation)",
+      "greeting": "Message"
+    },
+    "field": {
+      "firstName": "Prénom",
+      "lastName": "Nom",
+      "email": "E-mail",
+      "vendorName": "Prestataire",
+      "lossReasonNote": "Motif de perte (texte libre)",
+      "internalNote": "Note interne",
+      "freeLabel": "Intervenant",
+      "description": "Description",
+      "name": "Nom",
+      "billingAddress": "Adresse de facturation",
+      "buyer1Name": "Acheteur 1",
+      "buyer1BillingAddress": "Adresse de l'acheteur 1",
+      "buyer2Name": "Acheteur 2",
+      "buyer2BillingAddress": "Adresse de l'acheteur 2",
+      "status": "Statut",
+      "eventDate": "Date de l'événement",
+      "venueName": "Lieu",
+      "venueCity": "Ville",
+      "dueDate": "Échéance",
+      "responsible": "Responsable",
+      "done": "Faite",
+      "location": "Lieu",
+      "fromStatus": "Statut précédent",
+      "toStatus": "Nouveau statut",
+      "changedAt": "Date du changement",
+      "number": "Numéro",
+      "issuedOn": "Émis le",
+      "amountCents": "Montant (centimes)",
+      "reason": "Motif",
+      "plannedAmountCents": "Prévu (centimes)",
+      "actualAmountCents": "Réel (centimes)",
+      "totalAmountCents": "Budget total (centimes)",
+      "mime": "Type de fichier",
+      "sizeBytes": "Taille (octets)",
+      "message": "Message"
+    }
   }
 }

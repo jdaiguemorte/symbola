@@ -494,6 +494,9 @@ export {
   undoImportedBudgetElements,
 } from "./import";
 
+// Lot 6 — contrat privacy/v1 du module (ADR 0023).
+export { budgetPrivacy } from "./privacy";
+
 const _contractCheck: BudgetServiceContract = {
   listAllocationModels,
   createAllocationModel,
