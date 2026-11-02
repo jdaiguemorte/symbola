@@ -11,6 +11,7 @@ export function PlatformSettingsForm({
   importMaxRows,
   importDraftRetentionDays,
   importUndoRetentionDays,
+  privacyExportRetentionDays,
 }: {
   franchiseThresholdServicesCents: number | null;
   franchiseThresholdGoodsCents: number | null;
@@ -18,6 +19,7 @@ export function PlatformSettingsForm({
   importMaxRows: number;
   importDraftRetentionDays: number;
   importUndoRetentionDays: number;
+  privacyExportRetentionDays: number;
 }) {
   const t = useTranslations("AdminSettings");
   const initialState: PlatformSettingsFormState = {};
@@ -60,6 +62,13 @@ export function PlatformSettingsForm({
         <label>
           {t("importUndoRetentionDays")}
           <input type="number" min="1" step="1" name="importUndoRetentionDays" defaultValue={importUndoRetentionDays} required />
+        </label>
+      </fieldset>
+      <fieldset>
+        <legend>{t("privacyLegend")}</legend>
+        <label>
+          {t("privacyExportRetentionDays")}
+          <input type="number" min="1" step="1" name="privacyExportRetentionDays" defaultValue={privacyExportRetentionDays} required />
         </label>
       </fieldset>
       <button type="submit" disabled={pending}>

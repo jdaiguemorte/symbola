@@ -127,7 +127,9 @@
     "importMaxRows": "Maximum rows per file",
     "importDraftRetentionDays": "How long an unconfirmed import is kept (days)",
     "importUndoRetentionDays": "How long a confirmed import can be undone (days)",
-    "invalidImportLimits": "Import limits must be positive whole numbers (20 MB at most)."
+    "privacyLegend": "Personal data (GDPR)",
+    "privacyExportRetentionDays": "How long a GDPR export stays downloadable (days)",
+    "invalidImportLimits": "Import limits and the export duration must be positive whole numbers (20 MB at most)."
   },
   "Tour": {
     "skip": "Skip",
@@ -347,6 +349,10 @@
     "privacySettings": {
       "title": "GDPR settings",
       "body": "These durations come from the specification (CNIL guidelines) and should be validated by a lawyer. They drive the monthly list of people to purge, which you always validate line by line. The alert threshold sets when a request appears on the dashboard."
+    },
+    "privacyExport": {
+      "title": "GDPR exports",
+      "body": "An export answers an access or portability request: tick the person's records in the search result, then export. You get a readable PDF and a reusable ZIP archive, kept in private storage. Each download goes through a link valid for a few minutes; the files are deleted automatically on the date shown. Your internal notes are part of the export: read it before sending it."
     }
   },
   "FirstSteps": {
@@ -1360,6 +1366,37 @@
     },
     "saveSettings": "Save settings",
     "settingsSaved": "Settings saved.",
-    "settingsInvalid": "Each value must be a whole number between 1 and 1200."
+    "settingsInvalid": "Each value must be a whole number between 1 and 1200.",
+    "selectIntro": "Tick the records that really concern this person (watch out for namesakes):",
+    "selectAll": "Tick all",
+    "selectNone": "Untick all",
+    "exportTitle": "Export the ticked records (right of access or portability)",
+    "exportIntro": "{count, plural, =0 {No record ticked.} one {# record ticked.} other {# records ticked.}} The export produces a readable PDF and a reusable ZIP archive (JSON and one CSV per module).",
+    "exportRequestLabel": "Link to a request",
+    "exportNoRequest": "No request",
+    "exportWarning": "Warning: your internal notes (programme notes, loss reason, imported fields…) are part of the export. Read the PDF before sending it to the person.",
+    "exportConfirm": "I understand that my internal notes are part of the export",
+    "exportSubmit": "Export",
+    "exporting": "Exporting…",
+    "exportConfirmMissing": "Tick the internal notes warning before exporting.",
+    "exportInvalid": "The selection is invalid.",
+    "exportNoSelection": "Tick at least one record to export.",
+    "exportIncomplete": "A module did not respond: the export would be incomplete. Run the search again, then the export.",
+    "exportChanged": "The data has changed since the search. Run the search again, then the export.",
+    "exportRequestInvalid": "This request cannot receive an export (closed, or neither access nor portability).",
+    "exportDone": "{count, plural, one {# record exported.} other {# records exported.}} Each download link is valid for a few minutes; you will find it again under “Recent exports”.",
+    "downloadPdf": "Download the PDF",
+    "downloadArchive": "Download the archive (ZIP)",
+    "exportsTitle": "Recent exports",
+    "exportsEmpty": "No export to download.",
+    "exportSummary": "Export of {date} ({count, plural, one {# record} other {# records}})",
+    "exportForRequest": "request from {person}",
+    "exportExpires": "(deleted on {date})",
+    "pdfTitle": "Personal data",
+    "pdfIntro": "This document gathers the personal data about you held by {organization} on the date of the export, grouped by module. A ZIP archive also contains it in a reusable format (JSON and CSV).",
+    "pdfGeneratedAt": "Export of {date}",
+    "pdfPerson": "Data subject: {person}",
+    "pdfNoFields": "No details recorded.",
+    "pdfPage": "Page {current} of {total}"
   }
 }

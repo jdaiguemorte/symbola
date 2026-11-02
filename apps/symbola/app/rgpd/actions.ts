@@ -1,11 +1,15 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
 import { getTranslations } from "next-intl/server";
 import { z } from "zod";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { searchPerson, type PersonSearchResult } from "@/lib/privacy/search";
 
-export type SearchFormState = { error?: string; result?: PersonSearchResult; searched?: boolean };
+// Les termes reviennent au formulaire d'export (RGPD-02), qui relance la
+// recherche côté serveur ; searchId distingue deux recherches successives.
+export type SearchTerms = { email?: string | undefined; phone?: string | undefined; name?: string | undefined };
+export type SearchFormState = { error?: string; result?: PersonSearchResult; terms?: SearchTerms; searchId?: string; searched?: boolean };
 
 const termsSchema = z.object({
   email: z.string().trim().max(200).optional(),
@@ -29,5 +33,5 @@ export async function searchPersonAction(_prevState: SearchFormState, formData: 
   if (!parsed.success) return { error: t("termsInvalid") };
   const result = await searchPerson({ organizationId: auth.user.organizationId, terms: parsed.data });
   if (!result) return { error: t("termsMissing") };
-  return { result, searched: true };
+  return { result, terms: parsed.data, searchId: randomUUID(), searched: true };
 }
