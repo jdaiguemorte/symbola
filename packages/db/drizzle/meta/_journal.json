@@ -365,6 +365,20 @@
       "when": 1793645541333,
       "tag": "0051_grant_privacy_requests",
       "breakpoints": true
+    },
+    {
+      "idx": 52,
+      "version": "7",
+      "when": 1793647600589,
+      "tag": "0052_rgpd02_privacy_exports",
+      "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "7",
+      "when": 1793647601515,
+      "tag": "0053_grant_privacy_exports",
+      "breakpoints": true
     }
   ]
 }

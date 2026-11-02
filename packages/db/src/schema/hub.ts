@@ -181,6 +181,9 @@ export const platformSettings = hubSchema.table("platform_settings", {
   // validés par Julien) ; ensuite les valeurs gardées pour l'annulation sont
   // effacées, le journal reste.
   importUndoRetentionDays: integer("import_undo_retention_days").notNull().default(90),
+  // Lot 6 (RGPD-02) : durée pendant laquelle les fichiers d'un export RGPD
+  // restent téléchargeables (7 jours, comme un import en cours), puis effacés.
+  privacyExportRetentionDays: integer("privacy_export_retention_days").notNull().default(7),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
@@ -350,4 +353,22 @@ export const privacySettings = hubSchema.table("privacy_settings", {
   accountingRetentionMonths: integer("accounting_retention_months").notNull(),
   inactiveAccountMonths: integer("inactive_account_months").notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+// Lot 6 (RGPD-02, ADR 0023) — exports des données d'une personne (droits
+// d'accès et de portabilité). Les fichiers (PDF et archive ZIP) sont dans le
+// stockage privé, téléchargés par un lien signé de courte durée ; effacés à
+// l'expiration par la purge horaire, la ligne reste comme trace (sans donnée
+// personnelle : identifiants et compte de fiches seulement).
+export const privacyExports = hubSchema.table("privacy_exports", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  requestId: uuid("request_id").references(() => privacyRequests.id),
+  recordCount: integer("record_count").notNull(),
+  pdfKey: text("pdf_key").notNull(),
+  archiveKey: text("archive_key").notNull(),
+  createdByUserId: uuid("created_by_user_id").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  purgedAt: timestamp("purged_at", { withTimezone: true }),
 });

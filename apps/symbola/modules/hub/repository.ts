@@ -130,6 +130,7 @@ export async function upsertPlatformSettings(
     importMaxRows?: number;
     importDraftRetentionDays?: number;
     importUndoRetentionDays?: number;
+    privacyExportRetentionDays?: number;
   },
 ) {
   await db
