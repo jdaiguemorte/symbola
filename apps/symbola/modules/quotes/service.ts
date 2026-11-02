@@ -1608,3 +1608,6 @@ const _contractCheck: QuotesServiceContract = {
   startQuotesTrial,
 };
 void _contractCheck;
+
+// Lot 6 (RGPD-05) — données nécessaires aux règles de conservation.
+export { lastPaymentDates, listExpiredDocuments, type ExpiredDocument } from "./privacy-retention";

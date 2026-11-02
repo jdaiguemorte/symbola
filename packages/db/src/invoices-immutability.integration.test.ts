@@ -2,7 +2,7 @@
 // y compris par appel direct à la base avec le rôle applicatif (RLS et
 // trigger testés sur PostgreSQL réel). Isolation entre organisations.
 import { randomUUID } from "node:crypto";
-import { eq } from "drizzle-orm";
+import { eq, sql as rawSql } from "drizzle-orm";
 import { afterAll, describe, expect, it } from "vitest";
 import { createAppConnection } from "./client";
 import { creditNotes, invoices, quotes, quoteVersions } from "./schema/quotes";
@@ -100,6 +100,43 @@ describe("DEV-04 — Factures et avoirs immuables (PostgreSQL réel, rôle appli
     expect(await failure(withOrganization(db, organizationId, (tx) => tx.delete(creditNotes).where(eq(creditNotes.id, creditNote.id))))).toMatch(
       /immuable/,
     );
+  });
+
+  it("RGPD-05 : sans déclaration explicite, même la copie de l'acheteur reste immuable", async () => {
+    const organizationId = randomUUID();
+    const { invoice } = await withOrganization(db, organizationId, (tx) => seedInvoice(tx, organizationId));
+    expect(
+      await failure(withOrganization(db, organizationId, (tx) => tx.update(invoices).set({ buyerSnapshot: [{ name: "x" }] }).where(eq(invoices.id, invoice.id)))),
+    ).toMatch(/immuable/);
+  });
+
+  it("RGPD-05 : à la fin de la conservation, seule la copie de l'acheteur s'anonymise, dans une transaction qui le déclare", async () => {
+    const organizationId = randomUUID();
+    const { invoice, creditNote } = await withOrganization(db, organizationId, (tx) => seedInvoice(tx, organizationId));
+    await withOrganization(db, organizationId, async (tx) => {
+      await tx.execute(rawSql`SET LOCAL app.retention_anonymization = 'on'`);
+      await tx.update(invoices).set({ buyerSnapshot: [{ name: "[anonymisé]", billingAddress: "[anonymisé]" }] }).where(eq(invoices.id, invoice.id));
+      await tx.update(creditNotes).set({ buyerSnapshot: [{ name: "[anonymisé]", billingAddress: "[anonymisé]" }] }).where(eq(creditNotes.id, creditNote.id));
+    });
+    const [row] = await withOrganization(db, organizationId, (tx) => tx.select().from(invoices).where(eq(invoices.id, invoice.id)));
+    expect(row).toMatchObject({ amountCents: 90000, buyerSnapshot: [{ name: "[anonymisé]", billingAddress: "[anonymisé]" }] });
+    // Même déclarée, aucune autre colonne ne bouge, et la suppression reste interdite.
+    expect(
+      await failure(
+        withOrganization(db, organizationId, async (tx) => {
+          await tx.execute(rawSql`SET LOCAL app.retention_anonymization = 'on'`);
+          await tx.update(invoices).set({ amountCents: 1 }).where(eq(invoices.id, invoice.id));
+        }),
+      ),
+    ).toMatch(/permission denied/);
+    expect(
+      await failure(
+        withOrganization(db, organizationId, async (tx) => {
+          await tx.execute(rawSql`SET LOCAL app.retention_anonymization = 'on'`);
+          await tx.delete(invoices).where(eq(invoices.id, invoice.id));
+        }),
+      ),
+    ).toMatch(/immuable/);
   });
 
   it("seuls les documents d'un essai guidé se suppriment (purge de l'essai, ADR 0008)", async () => {

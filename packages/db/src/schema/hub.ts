@@ -70,6 +70,10 @@ export const users = hubSchema.table("users", {
   // AIDE-04 : masque la liste « premiers pas » du tableau de bord,
   // choix explicite de l'utilisateur.
   firstStepsHidden: boolean("first_steps_hidden").notNull().default(false),
+  // RGPD-05 : dernière connexion réussie (mot de passe validé) ; nulle pour
+  // un compte créé avant le lot 6 : sa date de création fait foi (décision
+  // de Julien du 02/11/2026).
+  lastLoginAt: timestamp("last_login_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
@@ -400,6 +404,32 @@ export const privacyErasures = hubSchema.table("privacy_erasures", {
     .notNull()
     .references(() => privacyRequests.id),
   status: privacyErasureStatusEnum("status").notNull().default("pending"),
+  items: jsonb("items").$type<PrivacyErasureItem[]>().notNull(),
+  acks: jsonb("acks").$type<PrivacyErasureAck[]>().notNull().default([]),
+  createdByUserId: uuid("created_by_user_id").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  completedAt: timestamp("completed_at", { withTimezone: true }),
+});
+
+// Lot 6 (RGPD-05, ADR 0024) — purges mensuelles validées par la titulaire :
+// chaque ligne (règle de conservation, référence opaque, échéance) est
+// purgée ou exclue avec un motif ; accusés des modules comme pour l'oubli.
+// Les libellés (noms) ne sont jamais copiés ici : recalculés à l'affichage.
+export type PrivacyPurgeLine = {
+  key: string;
+  rule: "prospect" | "client" | "inactive_account" | "accounting_document" | "signed_quote";
+  dueOn: string;
+  outcome: "purged" | "excluded";
+  exclusionReason: string | null;
+};
+
+export const privacyPurges = hubSchema.table("privacy_purges", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  // Mois de la purge (AAAA-MM, heure de Paris).
+  period: text("period").notNull(),
+  status: privacyErasureStatusEnum("status").notNull().default("pending"),
+  lines: jsonb("lines").$type<PrivacyPurgeLine[]>().notNull(),
   items: jsonb("items").$type<PrivacyErasureItem[]>().notNull(),
   acks: jsonb("acks").$type<PrivacyErasureAck[]>().notNull().default([]),
   createdByUserId: uuid("created_by_user_id").notNull(),

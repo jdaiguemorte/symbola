@@ -67,7 +67,9 @@ export type ErasureRules = {
   signedQuoteRetentionMonths: number;
 };
 
-export type ErasureInput = { organizationId: string; records: PrivacyRecordRef[]; rules: ErasureRules };
+// today (AAAA-MM-JJ, Paris) : une fiche conservée dont la date de fin est
+// atteinte n'est plus conservée mais anonymisée (RGPD-05).
+export type ErasureInput = { organizationId: string; records: PrivacyRecordRef[]; rules: ErasureRules; today: string };
 
 // Implémenté par chaque module qui détient des données personnelles. Une
 // fiche inconnue, d'une autre organisation ou d'un essai guidé est ignorée.
