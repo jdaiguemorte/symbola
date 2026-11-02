@@ -19,6 +19,7 @@ import {
 } from "@symbola/db/schema/events";
 import { withOrganization } from "@symbola/db/with-organization";
 import { hasTerms, prepareTerms, recordMatches, type PrivacyContractV1, type PrivacyRecord } from "@symbola/privacy";
+import { eraseEventsData, planEventsErasure } from "./privacy-erasure";
 
 const MODULE = "events";
 
@@ -52,6 +53,10 @@ async function inOrganization<T>(organizationId: string, fn: (tx: Parameters<Par
 // accents — ce que ILIKE ne sait pas faire sans extension.
 export const eventsPrivacy: PrivacyContractV1 = {
   module: MODULE,
+
+  // RGPD-03 — oubli (privacy-erasure.ts).
+  planErasure: planEventsErasure,
+  erase: eraseEventsData,
 
   async find({ organizationId, terms: rawTerms }) {
     const terms = prepareTerms(rawTerms);

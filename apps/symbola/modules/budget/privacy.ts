@@ -4,16 +4,73 @@
 // est trouvé par un nom ou un e-mail. Le budget d'un événement de la personne
 // reste une donnée sur elle : il est rendu par `related`.
 import { asc, inArray } from "drizzle-orm";
+import { createStorageClient, deletePrivateObject } from "@symbola/files";
 import { createAppConnection } from "@symbola/db/client";
 import { budgetLineAttachments, budgetLines, eventBudgets } from "@symbola/db/schema/budget";
 import { withOrganization } from "@symbola/db/with-organization";
-import type { PrivacyContractV1, PrivacyRecord } from "@symbola/privacy";
+import { idsOfKind, type ErasureInput, type ErasurePlanItem, type PrivacyContractV1, type PrivacyRecord } from "@symbola/privacy";
 import { listEventVendorSlots } from "@/modules/events/service";
 
 const MODULE = "budget";
 
+type Tx = Parameters<Parameters<typeof withOrganization>[2]>[0];
+
+// RGPD-03 — budgets et lignes : aucun champ personnel, montants gardés pour
+// les totaux (« anonymisés » avec l'événement) ; devis prestataire joint :
+// supprimé, fichier compris (pas d'anonymisation partielle d'un PDF).
+async function erasurePlan(tx: Tx, input: ErasureInput): Promise<{ plan: ErasurePlanItem[]; attachmentKeys: Map<string, string> }> {
+  const plan: ErasurePlanItem[] = [];
+  const budgetIds = idsOfKind(input.records, "event_budget");
+  const lineIds = idsOfKind(input.records, "budget_line");
+  const attachmentIds = idsOfKind(input.records, "budget_attachment");
+  if (budgetIds.length > 0) {
+    for (const row of await tx.select({ id: eventBudgets.id }).from(eventBudgets).where(inArray(eventBudgets.id, budgetIds))) {
+      plan.push({ kind: "event_budget", recordId: row.id, fate: "anonymized", legalBasis: null, keptUntil: null });
+    }
+  }
+  if (lineIds.length > 0) {
+    for (const row of await tx.select({ id: budgetLines.id }).from(budgetLines).where(inArray(budgetLines.id, lineIds))) {
+      plan.push({ kind: "budget_line", recordId: row.id, fate: "anonymized", legalBasis: null, keptUntil: null });
+    }
+  }
+  const attachmentKeys = new Map<string, string>();
+  if (attachmentIds.length > 0) {
+    for (const row of await tx.select({ id: budgetLineAttachments.id, fileKey: budgetLineAttachments.fileKey }).from(budgetLineAttachments).where(inArray(budgetLineAttachments.id, attachmentIds))) {
+      attachmentKeys.set(row.id, row.fileKey);
+      plan.push({ kind: "budget_attachment", recordId: row.id, fate: "deleted", legalBasis: null, keptUntil: null });
+    }
+  }
+  return { plan, attachmentKeys };
+}
+
+async function inOrganization<T>(organizationId: string, fn: (tx: Tx) => Promise<T>): Promise<T> {
+  const { sql, db } = createAppConnection();
+  try {
+    return await withOrganization(db, organizationId, fn);
+  } finally {
+    await sql.end();
+  }
+}
+
 export const budgetPrivacy: PrivacyContractV1 = {
   module: MODULE,
+
+  async planErasure(input) {
+    return inOrganization(input.organizationId, async (tx) => (await erasurePlan(tx, input)).plan);
+  },
+
+  async erase(input) {
+    const { plan, attachmentKeys } = await inOrganization(input.organizationId, (tx) => erasurePlan(tx, input));
+    if (attachmentKeys.size > 0) {
+      // Fichiers d'abord : en cas d'échec, la ligne reste et une nouvelle
+      // exécution recommence (supprimer un fichier déjà absent ne fait rien) ;
+      // jamais de fichier orphelin introuvable.
+      const storage = createStorageClient();
+      for (const key of attachmentKeys.values()) await deletePrivateObject(storage, key);
+      await inOrganization(input.organizationId, (tx) => tx.delete(budgetLineAttachments).where(inArray(budgetLineAttachments.id, [...attachmentKeys.keys()])));
+    }
+    return plan;
+  },
 
   async find() {
     return [];
