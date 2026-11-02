@@ -402,21 +402,26 @@ export async function listBudgetLineHistory(
   }));
 }
 
-// Lot 3 (BUD-02) : gestionnaire de events.vendor_slot.booked — pas encore
-// câblé à un worker continu dans l'app qui tourne (écart pré-existant,
-// voir docs/lots/lot-3-budget.md). Appelé directement par les tests
-// d'intégration ; prêt à être enregistré auprès de
-// packages/db/src/events/worker.ts le jour où ce worker sera invoqué en
-// continu. Ignore silencieusement si aucune ligne de budget n'existe
-// encore pour ce poste (suivi budgétaire pas commencé pour cet
-// événement) — ce n'est pas une erreur, juste rien à mettre à jour.
+// Lot 3 (BUD-02) : gestionnaire de events.vendor_slot.booked, appelé par le
+// worker continu des événements internes (lib/event-worker.ts). Ignore
+// silencieusement si aucune ligne de budget n'existe encore pour ce poste
+// (suivi budgétaire pas commencé) — rien à mettre à jour.
+// Sûr au rejeu : si le montant réel de la ligne a été modifié après
+// l'événement (à la main, ou par un événement plus récent), il n'est pas
+// écrasé. Indispensable au premier démarrage du worker, qui traite aussi les
+// événements publiés avant lui.
 export async function applyVendorSlotBookedToBudget(
   organizationId: string,
   payload: VendorSlotBookedPayload,
+  occurredAt?: Date,
 ): Promise<void> {
   if (payload.amountCents === null) return;
   const existing = await findBudgetLineByEventVendorSlotId(organizationId, payload.vendorSlotId);
   if (!existing) return;
+  if (occurredAt) {
+    const history = await findBudgetLineHistory(organizationId, existing.id);
+    if (history.some((row) => row.field === "actual" && row.changedAt.getTime() > occurredAt.getTime())) return;
+  }
 
   await setBudgetLineAmount({
     organizationId,

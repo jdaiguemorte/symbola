@@ -87,4 +87,21 @@ describe("SOC-06 — Worker d'événements internes (idempotence, PostgreSQL ré
     expect(calls).toBe(1);
     expect(eventId).toBeTruthy();
   });
+
+  it("un gestionnaire en échec rend l'événement, repris au passage suivant ; jamais perdu", async () => {
+    const organizationId = randomUUID();
+    const consumerName = `test-consumer-${randomUUID()}`;
+    const eventName = `test.demo.happened.${randomUUID()}`;
+    await withOrganization(db, organizationId, (tx) => emitDomainEvent(tx, { organizationId, name: eventName, version: 1, payload: {} }));
+
+    let attempts = 0;
+    const handler = async () => {
+      attempts += 1;
+      if (attempts === 1) throw new Error("indisponible");
+    };
+    expect(await processPendingEvents(db, consumerName, { [eventName]: handler })).toEqual({ processed: 0, failed: 1 });
+    expect(await processPendingEvents(db, consumerName, { [eventName]: handler })).toEqual({ processed: 1, failed: 0 });
+    expect(await processPendingEvents(db, consumerName, { [eventName]: handler })).toEqual({ processed: 0, failed: 0 });
+    expect(attempts).toBe(2);
+  });
 });

@@ -19,6 +19,14 @@ même schéma versionné dans `packages/contracts` que prévu par l'ADR 0005
 (`<app>.<entité>.<action>` au passé, ex. `quotes.quote.signed`). Seule change l'implémentation du
 transport : un appel de fonction en mémoire plutôt qu'une publication réseau.
 
+*Mise en œuvre (lot 6)* : le worker tourne en continu dans l'app (`apps/symbola/lib/event-worker.ts`,
+lancé par `instrumentation.ts`, un passage toutes les 15 s, jamais deux en même temps dans un
+processus). Un consommateur par module abonné (`budget` pour `events.vendor_slot.booked`) ; les
+événements sont traités dans l'ordre de publication ; un gestionnaire en échec rend sa
+réclamation et l'événement est repris au passage suivant. Au premier démarrage, le worker traite
+aussi les événements publiés depuis le lot 2 : chaque gestionnaire doit donc être sûr au rejeu
+(le budget n'écrase jamais un montant réel modifié après l'événement).
+
 ## Conséquences
 
 Pas de composant supplémentaire à exploiter, et le pattern est proche de pg-boss déjà retenu sur

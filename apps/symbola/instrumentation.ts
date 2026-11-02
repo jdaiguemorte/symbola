@@ -14,5 +14,8 @@ export async function register() {
     scheduleImportPurge();
     const { schedulePrivacyExportPurge } = await import("./lib/privacy/export-purge");
     schedulePrivacyExportPurge();
+    // Lot 6 : worker continu des événements internes (ADR 0014).
+    const { scheduleEventWorker } = await import("./lib/event-worker");
+    scheduleEventWorker();
   }
 }

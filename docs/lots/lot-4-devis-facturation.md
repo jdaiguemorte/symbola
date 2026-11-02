@@ -68,6 +68,8 @@ avant la mise en production**.
   et publie `quotes.quote.signed` dans `domain_events` (outbox, schéma versionné dans
   `packages/contracts`). Le worker continu n'étant toujours pas câblé (limite connue des lots 2
   et 3), l'appel direct au service est ce qui fait foi ; l'événement interne prépare la bascule.
+  *Le worker tourne en continu depuis le lot 6 (ADR 0014) ; aucun module ne consomme encore
+  `quotes.quote.signed`, l'appel direct reste ce qui fait foi.*
 - Essai guidé : `lib/demo-purge.ts` doit purger aussi les données du module Devis d'un
   événement fictif (ADR 0008), avant la suppression de l'événement.
 
