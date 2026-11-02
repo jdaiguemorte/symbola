@@ -158,6 +158,19 @@ en place depuis le lot 0.
   motif obligatoire. Rien n'est purgé sans validation.
 - Règles de calcul testées avec dates simulées (cas limites : la veille et le jour même de
   l'échéance).
+- *Décisions de Julien (02/11/2026)* : factures, avoirs et devis signés anonymisés à la fin de
+  leur conservation **dès le MVP** (ADR 0024) ; fin de la relation client = la plus tardive entre
+  la date de l'événement et le dernier encaissement ; une ligne exclue revient chaque mois.
+- *Réalisé (RGPD-05)* : règles pures (`packages/privacy/src/retention.ts`), dernière connexion
+  enregistrée (`hub.users.last_login_at`, registre), liste du jour calculée à la demande
+  (`apps/symbola/lib/privacy/purge.ts`) : prospects sans suite (prospect, devis envoyé, perdu),
+  clients (confirmé, réalisé), comptes de mariés inactifs, factures et avoirs, devis signés.
+  Écran `/rgpd/purge` (exclusion avec motif obligatoire, confirmation, motif précédent
+  rappelé), historique et détail avec accusés et relance, rappel au tableau de bord tant que
+  la liste du mois n'est pas validée. Trace `hub.privacy_purges` (RLS, migrations 0056/0057).
+  Exception au verrou des factures limitée à la copie de l'acheteur, dans une transaction qui
+  la déclare (ADR 0024). Limite connue : pas d'avertissement au marié avant la suppression de
+  son compte inactif.
 
 ## Recette (après RGPD-05)
 
