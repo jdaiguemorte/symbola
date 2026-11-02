@@ -4,7 +4,15 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { createAppConnection } from "@symbola/db/client";
 import { formatDateTime, type Locale } from "@symbola/i18n";
 import { HelpButton } from "@symbola/ui";
-import { listExportablePrivacyRequests, listPrivacyExports, type PrivacyExportView } from "@/modules/hub/service";
+import {
+  listErasablePrivacyRequests,
+  listExportablePrivacyRequests,
+  listPrivacyErasures,
+  listPrivacyExports,
+  type PrivacyErasureView,
+  type PrivacyExportView,
+} from "@/modules/hub/service";
+import type { ErasableRequest } from "./erasure-preview";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { SearchForm, type ExportableRequest } from "./search-form";
 
@@ -33,12 +41,16 @@ export default async function PrivacyPage() {
   const { sql, db } = createAppConnection();
   let exportRequests: ExportableRequest[];
   let exports: PrivacyExportView[];
+  let erasureRequests: ErasableRequest[];
+  let erasures: PrivacyErasureView[];
   try {
     exportRequests = (await listExportablePrivacyRequests(db, auth.user.organizationId)).map((request) => ({
       id: request.id,
       label: `${request.personLabel} — ${t(`requestType.${request.type}`)}`,
     }));
     exports = await listPrivacyExports(db, auth.user.organizationId);
+    erasureRequests = (await listErasablePrivacyRequests(db, auth.user.organizationId)).map((request) => ({ id: request.id, label: request.personLabel }));
+    erasures = await listPrivacyErasures(db, auth.user.organizationId);
   } finally {
     await sql.end();
   }
@@ -49,7 +61,7 @@ export default async function PrivacyPage() {
       <p>
         <Link href="/rgpd/demandes">{t("requestsLink")}</Link> · <Link href="/rgpd/reglages">{t("settingsLink")}</Link>
       </p>
-      <SearchForm exportRequests={exportRequests} />
+      <SearchForm exportRequests={exportRequests} erasureRequests={erasureRequests} />
       <section aria-labelledby="privacy-exports">
         <h2 id="privacy-exports">{t("exportsTitle")}</h2>
         <HelpButton title={tHelp("privacyExport.title")} body={tHelp("privacyExport.body")} />
@@ -61,6 +73,21 @@ export default async function PrivacyPage() {
               {item.requestPersonLabel ? ` — ${t("exportForRequest", { person: item.requestPersonLabel })}` : ""}{" "}
               <small>{t("exportExpires", { date: formatDateTime(item.expiresAt, locale) })}</small>{" "}
               <a href={`/rgpd/exports/${item.id}/pdf`}>{t("downloadPdf")}</a> · <a href={`/rgpd/exports/${item.id}/archive`}>{t("downloadArchive")}</a>
+            </li>
+          ))}
+        </ul>
+      </section>
+      <section aria-labelledby="privacy-erasures">
+        <h2 id="privacy-erasures">{t("erasuresTitle")}</h2>
+        <HelpButton title={tHelp("privacyErasure.title")} body={tHelp("privacyErasure.body")} />
+        {erasures.length === 0 ? <p>{t("erasuresEmpty")}</p> : null}
+        <ul>
+          {erasures.map((erasure) => (
+            <li key={erasure.id}>
+              <Link href={`/rgpd/oublis/${erasure.id}`}>
+                {t("erasureSummary", { person: erasure.request.personLabel, date: formatDateTime(erasure.createdAt, locale) })}
+              </Link>{" "}
+              <small>({t(`erasureStatus.${erasure.status}`)})</small>
             </li>
           ))}
         </ul>

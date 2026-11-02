@@ -46,6 +46,14 @@ titulaire sélectionne** parmi celles trouvées.
    cours), puis effacés par la purge horaire ; chaque téléchargement passe par un lien signé de
    5 minutes, demandé au moment du clic.
 
+5. **Oubli (RGPD-03)** : le contrat gagne `planErasure` (aperçu, sans rien modifier) et `erase`
+   (exécution idempotente, renvoie l'accusé) sur des fiches désignées. Chaque fiche reçoit un sort
+   : `deleted`, `anonymized`, ou `kept` avec un motif légal (`accounting`, `contract_proof`) et une
+   date de fin calculée depuis les réglages de l'organisation. Le hub trace sorts et accusés
+   (`hub.privacy_erasures`, sans libellé de fiche), clôt la demande quand tous les modules ont
+   répondu et rend la preuve PDF depuis cette trace. Valeur de remplacement d'un texte
+   obligatoire : `[anonymisé]` ; e-mail : adresse générée au domaine réservé `.invalid`.
+
 ## Conséquences
 
 - Le hub n'agit jamais « en aveugle » sur un terme : chaque suppression ou anonymisation vise une

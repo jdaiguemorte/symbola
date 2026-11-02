@@ -103,7 +103,9 @@ describe("RGPD-02 — Export des fiches sélectionnées", () => {
     await seedWedding(planner, "Léa", lastName, "Tâche");
     const terms = { name: `Léa ${lastName}` };
     const found = await searchPerson({ organizationId: planner.organizationId, terms });
-    const failing: PrivacyContractV1 = { module: "quotes", find: () => Promise.reject(new Error("indisponible")), related: () => Promise.resolve([]) };
+    const failing: PrivacyContractV1 = { module: "quotes", find: () => Promise.reject(new Error("indisponible")), related: () => Promise.resolve([]),
+      planErasure: () => Promise.resolve([]),
+      erase: () => Promise.resolve([]), };
     expect(
       await selectRecordsForExport(
         { organizationId: planner.organizationId, terms, selectedKeys: found!.records.map(recordKey) },

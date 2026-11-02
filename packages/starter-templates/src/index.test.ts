@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import retroplanningFile from "./retroplanning.json";
 import vendorSlotsFile from "./vendor-slots.json";
 import programFile from "./program.json";
-import { starterDemoEvent, starterDemoQuote, starterPrivacySettings, starterInvoiceMentions, starterPaymentMethods, starterProgram, starterRetroplanning, starterVendorSlots } from "./index";
+import { starterDemoEvent, starterDemoQuote, starterErasureResponse, starterPrivacySettings, starterInvoiceMentions, starterPaymentMethods, starterProgram, starterRetroplanning, starterVendorSlots } from "./index";
 
 describe("EVT-03 — Modèle de départ des postes prestataires", () => {
   it("existe en français et en anglais, avec le même nombre de postes", () => {
@@ -115,6 +115,17 @@ describe("RGPD-04/05 — Réglages RGPD de départ", () => {
       clientRetentionMonths: 36,
       accountingRetentionMonths: 120,
       inactiveAccountMonths: 24,
+      signedQuoteRetentionMonths: 60,
     });
+  });
+});
+
+describe("RGPD-03 — Modèle de réponse à une demande d'effacement", () => {
+  it("existe en français et en anglais, avec toutes les variables attendues", () => {
+    for (const locale of ["fr", "en"] as const) {
+      const { subject, body } = starterErasureResponse(locale);
+      expect(subject).not.toBe("");
+      for (const variable of ["{person}", "{receivedOn}", "{completedOn}", "{organization}", "{kept}"]) expect(body).toContain(variable);
+    }
   });
 });

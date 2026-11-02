@@ -124,6 +124,31 @@ en place depuis le lot 0.
 - Après anonymisation, les statistiques (source, statut, motif de refus, montants) restent
   justes ; nom, e-mail, téléphone et notes libres sont introuvables, y compris par la recherche
   transverse (test automatisé).
+- *Décisions de Julien (02/11/2026, avant de coder)* : devis signé conservé comme preuve du
+  contrat **5 ans** après la signature (nouveau réglage `signed_quote_retention_months`, modèle de
+  départ, à valider par un juriste) ; compte d'accès d'un marié **supprimé** (registre corrigé) ;
+  date du mariage **ramenée au 1er du mois**, lieu effacé.
+- *Réalisé (RGPD-03)* : contrat `privacy/v1` complété (`planErasure`, `erase`, idempotent) ;
+  chaque module classe les fiches désignées :
+  - events : client et événement anonymisés (source, statut, motif de perte en catégorie gardés ;
+    note libre, champs importés, lieu effacés ; fil d'activité des mariés supprimé), nom du
+    prestataire d'un poste anonymisé, tâches, lignes de programme, intervenants et accès des
+    mariés supprimés, historique des statuts gardé ;
+  - budget : montants gardés, devis prestataire joint supprimé (fichier compris) ;
+  - quotes : factures et avoirs **conservés** (obligation comptable, 10 ans réglables), devis
+    signé **conservé** (preuve du contrat), devis non signé : signataires et descriptions
+    anonymisés, champs importés du catalogue effacés ;
+  - hub : compte du marié supprimé (sessions comprises), import en cours abandonné et anonymisé,
+    valeurs d'annulation d'un import effacées.
+
+  Orchestration `apps/symbola/lib/privacy/erasure.ts` : aperçu recalculé côté serveur (recherche
+  relancée), rattaché à une demande d'oubli en cours, accusé de chaque module tracé dans
+  `hub.privacy_erasures` (RLS, migrations 0054/0055) ; la demande se clôt quand tous ont
+  répondu, sinon elle reste ouverte et les modules en échec se relancent depuis la trace.
+  Preuve horodatée en PDF rendue à la demande (`/rgpd/oublis/<id>/preuve`) et modèle de réponse
+  (`packages/starter-templates/src/privacy-erasure-response.json`, FR/EN). Une donnée conservée
+  par la loi reste trouvable par la recherche (droit d'accès) ; tout le reste est introuvable
+  (testé).
 
 ### RGPD-05 — Purge mensuelle
 

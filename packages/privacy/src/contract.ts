@@ -33,11 +33,47 @@ export type PrivacyRecord = {
   eventId: string | null;
 };
 
-export interface PrivacyContractV1 {
+export interface PrivacyContractV1 extends PrivacyErasureV1 {
   module: string;
   // RGPD-01 : fiches dont un champ personnel correspond à la personne.
   find(search: PrivacySearch): Promise<PrivacyRecord[]>;
   // RGPD-01 : fiches rattachées aux événements de la personne (tâches,
   // budget, devis…), qui sont aussi des données sur elle.
   related(input: { organizationId: string; eventIds: string[] }): Promise<PrivacyRecord[]>;
+}
+
+// —— RGPD-03 : oubli ——————————————————————————————————————————————————————
+
+// Fiche désignée à un module (le module est celui qui reçoit l'appel).
+export type PrivacyRecordRef = { kind: string; recordId: string };
+
+// Sort d'une fiche à l'oubli (PRD RGPD-03) : supprimée, anonymisée (les
+// statistiques restent justes) ou conservée pour un motif légal jusqu'à une
+// date de fin, puis anonymisée par la purge (RGPD-05).
+export type ErasureFate = "deleted" | "anonymized" | "kept";
+// Motifs légaux de conservation, traduits à l'écran et dans la preuve.
+export type ErasureLegalBasis = "accounting" | "contract_proof";
+
+export type ErasurePlanItem = PrivacyRecordRef & {
+  fate: ErasureFate;
+  legalBasis: ErasureLegalBasis | null;
+  // Date (AAAA-MM-JJ) de fin de conservation, pour une fiche conservée.
+  keptUntil: string | null;
+};
+
+// Durées de conservation de l'organisation qui décident d'une conservation.
+export type ErasureRules = {
+  accountingRetentionMonths: number;
+  signedQuoteRetentionMonths: number;
+};
+
+export type ErasureInput = { organizationId: string; records: PrivacyRecordRef[]; rules: ErasureRules };
+
+// Implémenté par chaque module qui détient des données personnelles. Une
+// fiche inconnue, d'une autre organisation ou d'un essai guidé est ignorée.
+export interface PrivacyErasureV1 {
+  // Aperçu : le sort de chaque fiche, sans rien modifier.
+  planErasure(input: ErasureInput): Promise<ErasurePlanItem[]>;
+  // Exécution, idempotente : renvoie l'accusé (ce qui a été fait).
+  erase(input: ErasureInput): Promise<ErasurePlanItem[]>;
 }

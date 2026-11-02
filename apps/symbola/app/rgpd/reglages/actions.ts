@@ -16,6 +16,7 @@ const settingsSchema = z.object({
   clientRetentionMonths: positive,
   accountingRetentionMonths: positive,
   inactiveAccountMonths: positive,
+  signedQuoteRetentionMonths: positive,
 });
 
 export async function savePrivacySettingsAction(_prevState: SettingsFormState, formData: FormData): Promise<SettingsFormState> {

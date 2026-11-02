@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "_source": "Modèle de réponse à une demande d'effacement (RGPD art. 17), à relire par la titulaire et à faire valider par un juriste avant l'ouverture SaaS. Variables : {person}, {receivedOn}, {completedOn}, {organization}, {kept}.",
+  "subject": {
+    "fr": "Votre demande d'effacement de données personnelles",
+    "en": "Your request to erase personal data"
+  },
+  "body": {
+    "fr": "Bonjour {person},\n\nNous avons bien reçu le {receivedOn} votre demande d'effacement de vos données personnelles. Elle a été traitée le {completedOn} : les données vous concernant ont été supprimées ou anonymisées dans nos outils.\n\n{kept}\n\nVous pouvez nous écrire pour toute question. Si vous estimez que vos droits ne sont pas respectés, vous pouvez adresser une réclamation à la CNIL (www.cnil.fr).\n\nBien cordialement,\n{organization}",
+    "en": "Hello {person},\n\nWe received your request to erase your personal data on {receivedOn}. It was processed on {completedOn}: the data about you has been deleted or anonymised in our tools.\n\n{kept}\n\nFeel free to write to us with any question. If you believe your rights have not been respected, you may lodge a complaint with the CNIL (www.cnil.fr).\n\nKind regards,\n{organization}"
+  }
+}

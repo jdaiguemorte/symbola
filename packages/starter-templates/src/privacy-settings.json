@@ -5,5 +5,6 @@
   "prospectRetentionMonths": 36,
   "clientRetentionMonths": 36,
   "accountingRetentionMonths": 120,
-  "inactiveAccountMonths": 24
+  "inactiveAccountMonths": 24,
+  "signedQuoteRetentionMonths": 60
 }

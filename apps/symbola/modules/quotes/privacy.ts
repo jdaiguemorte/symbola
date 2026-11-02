@@ -10,6 +10,7 @@ import { createAppConnection } from "@symbola/db/client";
 import { catalogItems, creditNotes, invoices, quoteLines, quotes, quoteSigners, quoteVersions, signatureRequests } from "@symbola/db/schema/quotes";
 import { withOrganization } from "@symbola/db/with-organization";
 import { hasTerms, prepareTerms, recordMatches, type PrivacyContractV1, type PrivacyRecord } from "@symbola/privacy";
+import { eraseQuotesData, planQuotesErasure } from "./privacy-erasure";
 
 const MODULE = "quotes";
 
@@ -45,6 +46,10 @@ async function realQuotes(tx: Tx, eventIds?: string[]) {
 
 export const quotesPrivacy: PrivacyContractV1 = {
   module: MODULE,
+
+  // RGPD-03 — oubli (privacy-erasure.ts).
+  planErasure: planQuotesErasure,
+  erase: eraseQuotesData,
 
   async find({ organizationId, terms: rawTerms }) {
     const terms = prepareTerms(rawTerms);

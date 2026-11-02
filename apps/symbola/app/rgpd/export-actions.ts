@@ -10,18 +10,10 @@ import { formatDateTime, type Locale } from "@symbola/i18n";
 import { getDocumentHeader, listExportablePrivacyRequests, PrivacyExportInvalidError, storePrivacyExport } from "@/modules/hub/service";
 import { buildExportArchive, buildExportPdfModel, selectRecordsForExport } from "@/lib/privacy/export";
 import { ExportPdfDocument } from "./export-pdf";
+import { parseSelection } from "./form-selection";
 import { ownerContext } from "./owner-access";
 
 export type ExportFormState = { error?: string; exportId?: string; recordCount?: number };
-
-const exportSchema = z.object({
-  email: z.string().trim().max(200).optional(),
-  phone: z.string().trim().max(50).optional(),
-  name: z.string().trim().max(200).optional(),
-  records: z.array(z.string().max(200)).max(5000),
-  requestId: z.union([z.literal(""), z.uuid()]),
-  notesAcknowledged: z.literal("on"),
-});
 
 function fieldLabel(t: Awaited<ReturnType<typeof getTranslations<"Privacy">>>, key: string): string {
   if (key.startsWith("imported:")) return t("importedField", { name: key.slice("imported:".length) });
@@ -38,19 +30,13 @@ export async function exportRecordsAction(_prevState: ExportFormState, formData:
   const owner = await ownerContext();
   if (!owner) return { error: t("ownerOnly") };
 
-  const raw = {
-    email: formData.get("email") ?? undefined,
-    phone: formData.get("phone") ?? undefined,
-    name: formData.get("name") ?? undefined,
-    records: formData.getAll("record"),
-    requestId: formData.get("requestId") ?? "",
-    notesAcknowledged: formData.get("notesAcknowledged") ?? undefined,
-  };
-  if (raw.notesAcknowledged !== "on") return { error: t("exportConfirmMissing") };
-  const parsed = exportSchema.safeParse(raw);
-  if (!parsed.success) return { error: t("exportInvalid") };
-  const { records: selectedKeys, requestId } = parsed.data;
-  const terms = { email: parsed.data.email, phone: parsed.data.phone, name: parsed.data.name };
+  if (formData.get("notesAcknowledged") !== "on") return { error: t("exportConfirmMissing") };
+  const parsedSelection = parseSelection(formData);
+  const requestIdRaw = String(formData.get("requestId") ?? "");
+  const requestIdCheck = z.union([z.literal(""), z.uuid()]).safeParse(requestIdRaw);
+  if (!parsedSelection || !requestIdCheck.success) return { error: t("exportInvalid") };
+  const requestId = requestIdCheck.data;
+  const { terms, selectedKeys } = parsedSelection;
 
   const selection = await selectRecordsForExport({ organizationId: owner.organizationId, terms, selectedKeys });
   if (selection.status === "empty") return { error: t("exportNoSelection") };

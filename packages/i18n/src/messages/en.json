@@ -353,6 +353,10 @@
     "privacyExport": {
       "title": "GDPR exports",
       "body": "An export answers an access or portability request: tick the person's records in the search result, then export. You get a readable PDF and a reusable ZIP archive, kept in private storage. Each download goes through a link valid for a few minutes; the files are deleted automatically on the date shown. Your internal notes are part of the export: read it before sending it."
+    },
+    "privacyErasure": {
+      "title": "Erasure request",
+      "body": "Record the request under “Requests from people”, search for the person, tick their records and ask for the preview: each record is deleted, anonymised or kept there (invoices 10 years, signed quotes 5 years, adjustable). Once confirmed, each module does its part and acknowledges; the request closes when all have responded. Statistics (source, status, amounts) stay accurate. Then download the timestamped proof and send the proposed reply."
     }
   },
   "FirstSteps": {
@@ -1362,7 +1366,8 @@
       "prospectRetentionMonths": "Prospect with no follow-up: kept after their last activity (months)",
       "clientRetentionMonths": "Client (couple): kept after the end of the relationship (months)",
       "accountingRetentionMonths": "Invoices, credit notes and signed quotes: kept for (months)",
-      "inactiveAccountMonths": "Couple account without login: deleted after (months)"
+      "inactiveAccountMonths": "Couple account without login: deleted after (months)",
+      "signedQuoteRetentionMonths": "Signed quote (proof of contract): retention (months)"
     },
     "saveSettings": "Save settings",
     "settingsSaved": "Settings saved.",
@@ -1397,6 +1402,67 @@
     "pdfGeneratedAt": "Export of {date}",
     "pdfPerson": "Data subject: {person}",
     "pdfNoFields": "No details recorded.",
-    "pdfPage": "Page {current} of {total}"
+    "pdfPage": "Page {current} of {total}",
+    "erasurePreviewTitle": "Erase the ticked records (right to erasure)",
+    "erasurePreviewIntro": "The preview shows, for each ticked record, whether it will be deleted, anonymised or kept (with its legal basis and end date). Nothing is changed at this step.",
+    "erasurePreviewButton": "Preview the erasure",
+    "erasurePreviewing": "Computing the preview…",
+    "erasureTitle": "Erasure preview",
+    "erasureIntro": "{count, plural, one {# record concerned.} other {# records concerned.}} If you change the selection, preview again.",
+    "keptReason": "{basis}, until {date}",
+    "erasureNoRequest": "First record the erasure request under “Requests from people”: the erasure is linked to it and closes it.",
+    "erasureRequestLabel": "Erasure request",
+    "erasureChooseRequest": "Choose the request",
+    "erasureConfirm": "I confirm the erasure: this cannot be undone.",
+    "erasureSubmit": "Confirm the erasure",
+    "erasing": "Erasing…",
+    "erasureConfirmMissing": "Tick the confirmation before confirming the erasure.",
+    "erasureRequestMissing": "Choose the erasure request to link the operation to.",
+    "erasureRequestInvalid": "This request cannot receive an erasure (closed, or of another type).",
+    "erasureInProgress": "An erasure is already in progress for this request: open it to retry the modules that failed.",
+    "fate": {
+      "deleted": "Deleted",
+      "anonymized": "Anonymised",
+      "kept": "Kept"
+    },
+    "legalBasis": {
+      "accounting": "accounting obligation (invoices and credit notes)",
+      "contract_proof": "proof of contract (signed quote)"
+    },
+    "erasureStatus": {
+      "pending": "In progress",
+      "partial": "Incomplete: a module did not respond, the request stays open",
+      "completed": "Done: every module responded, the request is closed"
+    },
+    "erasuresTitle": "Processed erasures",
+    "erasuresEmpty": "No erasure processed.",
+    "erasureSummary": "{person} — {date}",
+    "erasurePageTitle": "Erasure request: {person}",
+    "erasureRetry": "Retry the modules that did not respond",
+    "ackOk": "{module}: acknowledged on {date} ({count, plural, one {# record} other {# records}})",
+    "ackFailed": "{module}: did not respond",
+    "proofTitle": "Proof of processing of an erasure request",
+    "proofPerson": "Data subject: {person}",
+    "proofRequest": "Request received on {receivedOn}, legal deadline {dueOn}",
+    "proofValidatedAt": "Erasure confirmed on {date}",
+    "proofCompletedAt": "Completed on {date}",
+    "proofNotCompleted": "Not completed: at least one module did not respond.",
+    "proofAcksTitle": "Module acknowledgements",
+    "proofItemsTitle": "What happened to the data",
+    "proofKeptTitle": "Data kept",
+    "proofKeptNone": "No data kept.",
+    "keptLine": "{kind}: kept until {date} ({basis})",
+    "proofColumnModule": "Module",
+    "proofColumnKind": "Type",
+    "proofColumnFate": "Outcome",
+    "proofColumnCount": "Count",
+    "proofDownload": "Download the proof (PDF)",
+    "responseTitle": "Reply template to send to the person",
+    "responseIntro": "Read and adapt this text before sending it from your mailbox.",
+    "responseSubject": "Subject",
+    "responseBody": "Message",
+    "responseKeptIntro": "Some data must be kept to meet a legal obligation; it will be anonymised at the end of its retention period:",
+    "erasureColumnRecord": "Record",
+    "erasureColumnReason": "Reason"
   }
 }

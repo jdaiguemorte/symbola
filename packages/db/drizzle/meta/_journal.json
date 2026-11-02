@@ -379,6 +379,20 @@
       "when": 1793647601515,
       "tag": "0053_grant_privacy_exports",
       "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "7",
+      "when": 1793656487167,
+      "tag": "0054_rgpd03_privacy_erasures",
+      "breakpoints": true
+    },
+    {
+      "idx": 55,
+      "version": "7",
+      "when": 1793656488113,
+      "tag": "0055_grant_privacy_erasures",
+      "breakpoints": true
     }
   ]
 }

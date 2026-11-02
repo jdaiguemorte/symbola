@@ -1,4 +1,17 @@
-export type { PersonTerms, PrivacyContractV1, PrivacyRecord, PrivacySearch } from "./contract";
+export type {
+  ErasureFate,
+  ErasureInput,
+  ErasureLegalBasis,
+  ErasurePlanItem,
+  ErasureRules,
+  PersonTerms,
+  PrivacyContractV1,
+  PrivacyErasureV1,
+  PrivacyRecord,
+  PrivacyRecordRef,
+  PrivacySearch,
+} from "./contract";
+export { ANONYMIZED, anonymizedEmail, idsOfKind, monthStart } from "./erasure";
 export { hasTerms, matchesTerms, normalizeText, phoneDigits, prepareTerms, recordMatches, type PreparedTerms } from "./match";
 export { checkMigrationAgainstRegistry, type RegistryViolation } from "./check-migrations";
 export { extractColumns, type ColumnReference } from "./migration-scanner";
