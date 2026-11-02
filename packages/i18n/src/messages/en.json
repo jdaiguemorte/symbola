@@ -357,6 +357,10 @@
     "privacyErasure": {
       "title": "Erasure request",
       "body": "Record the request under “Requests from people”, search for the person, tick their records and ask for the preview: each record is deleted, anonymised or kept there (invoices 10 years, signed quotes 5 years, adjustable). Once confirmed, each module does its part and acknowledges; the request closes when all have responded. Statistics (source, status, amounts) stay accurate. Then download the timestamped proof and send the proposed reply."
+    },
+    "privacyPurge": {
+      "title": "Monthly purge",
+      "body": "Each month, the list gathers what has passed its retention period (GDPR settings): prospects with no follow-up, clients whose relationship has ended, inactive couple accounts, invoices and signed quotes at the end of their retention. Confirm it: each line is purged (anonymised or deleted, statistics kept), except the ones you exclude with a reason; they will come back the following month. Nothing is purged without your confirmation."
     }
   },
   "FirstSteps": {
@@ -1463,6 +1467,42 @@
     "responseBody": "Message",
     "responseKeptIntro": "Some data must be kept to meet a legal obligation; it will be anonymised at the end of its retention period:",
     "erasureColumnRecord": "Record",
-    "erasureColumnReason": "Reason"
+    "erasureColumnReason": "Reason",
+    "purgeLink": "Monthly purge",
+    "purgeTitle": "Monthly purge",
+    "purgeIntro": "These people and documents have passed their retention period, according to your GDPR settings. Nothing is purged without your confirmation: each line is purged unless you exclude it with a reason. An excluded line comes back the following month.",
+    "purgeNothing": "No data has passed its retention period.",
+    "purgeRule": {
+      "prospect": "Prospect with no follow-up",
+      "client": "Client (end of the relationship)",
+      "inactive_account": "Inactive couple account",
+      "accounting_document": "Invoice or credit note (end of accounting retention)",
+      "signed_quote": "Signed quote (end of proof of contract)"
+    },
+    "purgeNoLabel": "no name",
+    "purgeDueOn": "expired on {date}",
+    "purgePreviousReason": "previously excluded: {reason}",
+    "purgeExclude": "Exclude from the purge",
+    "purgeReasonLabel": "Exclusion reason (line {index})",
+    "purgeConfirm": "I confirm the purge of the lines not excluded: this cannot be undone.",
+    "purgeSubmit": "Confirm the purge",
+    "purging": "Purging…",
+    "purgeConfirmMissing": "Tick the confirmation before confirming the purge.",
+    "purgeReasonMissing": "Each excluded line needs a reason.",
+    "purgeEmpty": "The list changed since it was displayed. Reload the page.",
+    "purgeHistoryTitle": "Confirmed purges",
+    "purgeHistoryEmpty": "No purge confirmed.",
+    "purgeSummary": "Purge of {date}: {purged, plural, =0 {no line purged} one {# line purged} other {# lines purged}}, {excluded, plural, =0 {none excluded} one {# excluded} other {# excluded}}",
+    "purgeStatus": {
+      "pending": "In progress",
+      "partial": "Incomplete: a module did not respond",
+      "completed": "Completed"
+    },
+    "purgeBack": "Back to the monthly purge",
+    "purgeDetailTitle": "Purge of {date}",
+    "purgeLinesTitle": "Confirmed lines",
+    "purgeOutcomePurged": "purged",
+    "purgeOutcomeExcluded": "excluded: {reason}",
+    "purgeAlertTitle": "Monthly purge: {count, plural, one {# line to review} other {# lines to review}}"
   }
 }

@@ -59,7 +59,7 @@ export default async function PrivacyPage() {
       <h1>{t("title")}</h1>
       <HelpButton title={tHelp("privacySearch.title")} body={tHelp("privacySearch.body")} />
       <p>
-        <Link href="/rgpd/demandes">{t("requestsLink")}</Link> · <Link href="/rgpd/reglages">{t("settingsLink")}</Link>
+        <Link href="/rgpd/demandes">{t("requestsLink")}</Link> · <Link href="/rgpd/purge">{t("purgeLink")}</Link> · <Link href="/rgpd/reglages">{t("settingsLink")}</Link>
       </p>
       <SearchForm exportRequests={exportRequests} erasureRequests={erasureRequests} />
       <section aria-labelledby="privacy-exports">

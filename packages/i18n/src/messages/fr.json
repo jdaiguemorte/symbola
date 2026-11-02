@@ -357,6 +357,10 @@
     "privacyErasure": {
       "title": "Demande d'oubli",
       "body": "Enregistrez la demande dans « Demandes des personnes », cherchez la personne, cochez ses fiches puis demandez l'aperçu : chaque fiche y est supprimée, anonymisée ou conservée (factures 10 ans, devis signés 5 ans, durées réglables). Après validation, chaque module exécute sa part et accuse réception ; la demande se clôt quand tous ont répondu. Les statistiques (source, statut, montants) restent justes. Téléchargez ensuite la preuve horodatée et envoyez la réponse proposée."
+    },
+    "privacyPurge": {
+      "title": "Purge mensuelle",
+      "body": "Chaque mois, la liste rassemble ce qui a dépassé sa durée de conservation (réglages RGPD) : prospects sans suite, clients dont la relation est terminée, comptes de mariés inactifs, factures et devis signés en fin de conservation. Validez-la : chaque ligne est purgée (anonymisée ou supprimée, statistiques gardées), sauf celles que vous excluez avec un motif ; elles reviendront le mois suivant. Rien n'est purgé sans votre validation."
     }
   },
   "FirstSteps": {
@@ -1463,6 +1467,42 @@
     "responseBody": "Message",
     "responseKeptIntro": "Certaines données doivent être conservées pour une obligation légale ; elles seront anonymisées à la fin de leur durée de conservation :",
     "erasureColumnRecord": "Fiche",
-    "erasureColumnReason": "Motif"
+    "erasureColumnReason": "Motif",
+    "purgeLink": "Purge mensuelle",
+    "purgeTitle": "Purge mensuelle",
+    "purgeIntro": "Voici les personnes et documents dont la durée de conservation est échue, selon vos réglages RGPD. Rien n'est purgé sans votre validation : chaque ligne est purgée, sauf si vous l'excluez avec un motif. Une ligne exclue revient le mois suivant.",
+    "purgeNothing": "Aucune donnée n'a dépassé sa durée de conservation.",
+    "purgeRule": {
+      "prospect": "Prospect sans suite",
+      "client": "Client (fin de la relation)",
+      "inactive_account": "Compte d'un marié inactif",
+      "accounting_document": "Facture ou avoir (fin de la conservation comptable)",
+      "signed_quote": "Devis signé (fin de la preuve du contrat)"
+    },
+    "purgeNoLabel": "sans nom",
+    "purgeDueOn": "échue le {date}",
+    "purgePreviousReason": "exclue précédemment : {reason}",
+    "purgeExclude": "Exclure de la purge",
+    "purgeReasonLabel": "Motif d'exclusion (ligne {index})",
+    "purgeConfirm": "Je valide la purge des lignes non exclues : cette opération est irréversible.",
+    "purgeSubmit": "Valider la purge",
+    "purging": "Purge en cours…",
+    "purgeConfirmMissing": "Cochez la confirmation avant de valider la purge.",
+    "purgeReasonMissing": "Chaque ligne exclue doit avoir un motif.",
+    "purgeEmpty": "La liste a changé depuis son affichage. Rechargez la page.",
+    "purgeHistoryTitle": "Purges validées",
+    "purgeHistoryEmpty": "Aucune purge validée.",
+    "purgeSummary": "Purge du {date} : {purged, plural, =0 {aucune ligne purgée} one {# ligne purgée} other {# lignes purgées}}, {excluded, plural, =0 {aucune exclue} one {# exclue} other {# exclues}}",
+    "purgeStatus": {
+      "pending": "En cours",
+      "partial": "Incomplète : un module n'a pas répondu",
+      "completed": "Terminée"
+    },
+    "purgeBack": "Retour à la purge mensuelle",
+    "purgeDetailTitle": "Purge du {date}",
+    "purgeLinesTitle": "Lignes validées",
+    "purgeOutcomePurged": "purgée",
+    "purgeOutcomeExcluded": "exclue : {reason}",
+    "purgeAlertTitle": "Purge mensuelle : {count, plural, one {# ligne à examiner} other {# lignes à examiner}}"
   }
 }
