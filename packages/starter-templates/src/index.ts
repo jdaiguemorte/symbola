@@ -8,6 +8,7 @@ import demoQuoteFile from "./demo-quote.json";
 import importSynonymsFile from "./import-synonyms.json";
 import invoiceMentionsFile from "./invoice-mentions.json";
 import paymentMethodsFile from "./payment-methods.json";
+import privacyErasureResponseFile from "./privacy-erasure-response.json";
 import privacySettingsFile from "./privacy-settings.json";
 import programFile from "./program.json";
 import retroplanningFile from "./retroplanning.json";
@@ -271,4 +272,15 @@ export function starterPrivacySettings(): StarterPrivacySettings {
     inactiveAccountMonths: parsed.inactiveAccountMonths,
     signedQuoteRetentionMonths: parsed.signedQuoteRetentionMonths,
   };
+}
+
+// RGPD-03 : modèle de réponse à une demande d'effacement, dans la langue
+// demandée. Variables entre accolades, remplies par l'app : {person},
+// {receivedOn}, {completedOn}, {organization}, {kept}.
+const privacyErasureResponse = z
+  .object({ version: z.literal(1), subject: translatedLabelSchema, body: translatedLabelSchema })
+  .parse(privacyErasureResponseFile);
+
+export function starterErasureResponse(locale: StarterLocale): { subject: string; body: string } {
+  return { subject: privacyErasureResponse.subject[locale], body: privacyErasureResponse.body[locale] };
 }

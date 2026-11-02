@@ -4,6 +4,8 @@ import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
 import type { PersonSearchResult, SearchRecord } from "@/lib/privacy/search";
 import { searchPersonAction, type SearchFormState, type SearchTerms } from "./actions";
+import { previewErasureAction, type ErasurePreviewState } from "./erasure-actions";
+import { ErasurePreview, type ErasableRequest } from "./erasure-preview";
 import { exportRecordsAction, type ExportFormState } from "./export-actions";
 
 const MODULE_ORDER = ["events", "budget", "quotes", "hub", "hello"];
@@ -19,7 +21,7 @@ function recordKey(record: SearchRecord): string {
   return `${record.module}:${record.kind}:${record.recordId}`;
 }
 
-export function SearchForm({ exportRequests }: { exportRequests: ExportableRequest[] }) {
+export function SearchForm({ exportRequests, erasureRequests }: { exportRequests: ExportableRequest[]; erasureRequests: ErasableRequest[] }) {
   const t = useTranslations("Privacy");
   const initialState: SearchFormState = {};
   const [state, formAction, pending] = useActionState(searchPersonAction, initialState);
@@ -46,17 +48,29 @@ export function SearchForm({ exportRequests }: { exportRequests: ExportableReque
         {state.error ? <p role="alert">{state.error}</p> : null}
       </form>
 
-      {state.result ? <SearchResults key={state.searchId} result={state.result} terms={state.terms ?? {}} exportRequests={exportRequests} /> : null}
+      {state.result ? <SearchResults key={state.searchId} result={state.result} terms={state.terms ?? {}} exportRequests={exportRequests} erasureRequests={erasureRequests} /> : null}
     </>
   );
 }
 
 // RGPD-01 : résultat groupé par module. RGPD-02 : la titulaire coche les
 // fiches qui concernent bien la personne (homonymes), puis lance l'export.
-function SearchResults({ result, terms, exportRequests }: { result: PersonSearchResult; terms: SearchTerms; exportRequests: ExportableRequest[] }) {
+function SearchResults({
+  result,
+  terms,
+  exportRequests,
+  erasureRequests,
+}: {
+  result: PersonSearchResult;
+  terms: SearchTerms;
+  exportRequests: ExportableRequest[];
+  erasureRequests: ErasableRequest[];
+}) {
   const t = useTranslations("Privacy");
   const initialExport: ExportFormState = {};
   const [exportState, exportAction, exporting] = useActionState(exportRecordsAction, initialExport);
+  const initialPreview: ErasurePreviewState = {};
+  const [previewState, previewAction, previewing] = useActionState(previewErasureAction, initialPreview);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const byModule = new Map<string, SearchRecord[]>();
   for (const record of result.records) byModule.set(record.module, [...(byModule.get(record.module) ?? []), record]);
@@ -177,7 +191,20 @@ function SearchResults({ result, terms, exportRequests }: { result: PersonSearch
             ) : null}
           </fieldset>
         ) : null}
+
+        {result.records.length > 0 ? (
+          <fieldset>
+            <legend>{t("erasurePreviewTitle")}</legend>
+            <p>{t("erasurePreviewIntro")}</p>
+            {/* Aperçu seulement : rien n'est modifié, l'avertissement de l'export ne s'applique pas. */}
+            <button type="submit" formAction={previewAction} formNoValidate disabled={previewing || selected.size === 0 || !result.complete}>
+              {previewing ? t("erasurePreviewing") : t("erasurePreviewButton")}
+            </button>
+            {previewState.error ? <p role="alert">{previewState.error}</p> : null}
+          </fieldset>
+        ) : null}
       </form>
+      {previewState.items ? <ErasurePreview key={previewState.selectedKeys?.join(",")} preview={previewState} terms={terms} erasureRequests={erasureRequests} /> : null}
     </section>
   );
 }

@@ -12,7 +12,7 @@ import { eventClientAccesses, eventClients, events, eventVendorSlots, programIte
 import { users } from "@symbola/db/schema/hub";
 import { invoices, quotes, quoteSigners, quoteVersions, signatureRequests } from "@symbola/db/schema/quotes";
 import { withOrganization } from "@symbola/db/with-organization";
-import type { PrivacyContractV1 } from "@symbola/privacy";
+import type { PersonTerms, PrivacyContractV1 } from "@symbola/privacy";
 import { listBudgetLines, updateBudgetLine } from "@/modules/budget/service";
 import { addEventTask, addEventVendorSlot, createProspect, createProspectSource, eventsPrivacy } from "@/modules/events/service";
 import { budgetPrivacy } from "@/modules/budget/service";
@@ -106,7 +106,7 @@ async function erasureRequest(planner: Planner, person: string) {
   return createPrivacyRequest(db, { ...planner, type: "erasure", personLabel: person, receivedOn: "2026-11-02", now: new Date("2026-11-02T11:00:00Z") });
 }
 
-async function everything(planner: Planner, terms: { name: string }) {
+async function everything(planner: Planner, terms: PersonTerms) {
   const found = await searchPerson({ organizationId: planner.organizationId, terms });
   return found!.records.map(recordKey);
 }
