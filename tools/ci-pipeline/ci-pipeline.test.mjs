@@ -65,7 +65,15 @@ describe("SOC-02 — Pipeline CI de sécurité", () => {
   it("publie l'image sur GHCR seulement depuis main, après les contrôles de sécurité (SOC-09)", () => {
     expect(ciWorkflow).toMatch(/ghcr\.io/);
     expect(ciWorkflow).toMatch(/refs\/heads\/main/);
-    expect(ciWorkflow).toMatch(/needs:\s*\[lint-typecheck-test, db-isolation, semgrep, gitleaks, osv-scanner, build-and-scan-image\]/);
+    expect(ciWorkflow).toMatch(/needs:\s*\[lint-typecheck-test, db-isolation, e2e, semgrep, gitleaks, osv-scanner, build-and-scan-image\]/);
+  });
+
+  it("lance les parcours bout en bout Playwright sur la version compilée, avec les services réels (lot 6)", () => {
+    expect(ciWorkflow).toMatch(/\n  e2e:\n/);
+    expect(ciWorkflow).toMatch(/pnpm --filter @symbola\/app build/);
+    expect(ciWorkflow).toMatch(/pnpm --filter @symbola\/app test:e2e/);
+    // Faux fournisseur de signature seulement hors production (NODE_ENV=test).
+    expect(ciWorkflow).toMatch(/E2E_SERVER_COMMAND: NODE_ENV=test /);
   });
 
   it("prépare un scan ZAP baseline du staging qui bloque sur une alerte haute", () => {
