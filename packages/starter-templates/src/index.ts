@@ -8,6 +8,7 @@ import demoQuoteFile from "./demo-quote.json";
 import importSynonymsFile from "./import-synonyms.json";
 import invoiceMentionsFile from "./invoice-mentions.json";
 import paymentMethodsFile from "./payment-methods.json";
+import privacySettingsFile from "./privacy-settings.json";
 import programFile from "./program.json";
 import retroplanningFile from "./retroplanning.json";
 import vendorSlotsFile from "./vendor-slots.json";
@@ -239,5 +240,31 @@ export function starterImportSynonyms(): StarterImportSynonyms {
       ]),
     ),
     booleans: { true: bothLanguages(importSynonyms.booleans.true), false: bothLanguages(importSynonyms.booleans.false) },
+  };
+}
+
+// Lot 6 (RGPD-04/RGPD-05) : réglages RGPD de départ d'une organisation —
+// seuil d'alerte des demandes et durées de conservation du cahier des
+// charges (§ 6), modifiables par la titulaire, à faire valider par un juriste
+// avant l'ouverture SaaS.
+const privacySettingsSchema = z.object({
+  version: z.literal(1),
+  requestAlertDays: z.number().int().positive(),
+  prospectRetentionMonths: z.number().int().positive(),
+  clientRetentionMonths: z.number().int().positive(),
+  accountingRetentionMonths: z.number().int().positive(),
+  inactiveAccountMonths: z.number().int().positive(),
+});
+
+export type StarterPrivacySettings = Omit<z.infer<typeof privacySettingsSchema>, "version">;
+
+export function starterPrivacySettings(): StarterPrivacySettings {
+  const parsed = privacySettingsSchema.parse(privacySettingsFile);
+  return {
+    requestAlertDays: parsed.requestAlertDays,
+    prospectRetentionMonths: parsed.prospectRetentionMonths,
+    clientRetentionMonths: parsed.clientRetentionMonths,
+    accountingRetentionMonths: parsed.accountingRetentionMonths,
+    inactiveAccountMonths: parsed.inactiveAccountMonths,
   };
 }

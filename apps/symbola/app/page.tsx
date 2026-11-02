@@ -10,6 +10,7 @@ import { getOrganizationProfile, hasSeenTour, isModuleEnabled } from "@/modules/
 import { getAuthContext } from "@/lib/auth-context";
 import { recordUsage } from "@/lib/usage";
 import { UpcomingPaymentsBlock } from "./devis/encaissements/dashboard-block";
+import { PrivacyRequestsAlertBlock } from "./rgpd/dashboard-block";
 import { logoutAction } from "./logout-action";
 import { HomeInteractive } from "./home-interactive";
 
@@ -114,6 +115,8 @@ export default async function HomePage() {
         <Link href="/aide">{tAide("link")}</Link>
       </nav>
       {/* HUB-02 / DEV-03 : absent si le module Devis n'est pas souscrit. */}
+      {/* RGPD-04 : demandes dont l'échéance approche, titulaire seulement. */}
+      {auth.user.role === "owner" && auth.user.organizationId ? <PrivacyRequestsAlertBlock organizationId={auth.user.organizationId} /> : null}
       {quotesAvailable && auth.user.organizationId ? <UpcomingPaymentsBlock organizationId={auth.user.organizationId} /> : null}
       <form action={logoutAction}>
         <button type="submit">{t("logout")}</button>

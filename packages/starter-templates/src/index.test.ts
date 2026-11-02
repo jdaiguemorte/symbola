@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import retroplanningFile from "./retroplanning.json";
 import vendorSlotsFile from "./vendor-slots.json";
 import programFile from "./program.json";
-import { starterDemoEvent, starterDemoQuote, starterInvoiceMentions, starterPaymentMethods, starterProgram, starterRetroplanning, starterVendorSlots } from "./index";
+import { starterDemoEvent, starterDemoQuote, starterPrivacySettings, starterInvoiceMentions, starterPaymentMethods, starterProgram, starterRetroplanning, starterVendorSlots } from "./index";
 
 describe("EVT-03 — Modèle de départ des postes prestataires", () => {
   it("existe en français et en anglais, avec le même nombre de postes", () => {
@@ -104,5 +104,17 @@ describe("AIDE-02 — Devis fictif de l'essai guidé", () => {
     expect(en.lines[0]?.label).toBe("Wedding day coordination");
     expect(en.lines).toHaveLength(fr.lines.length);
     expect(fr.schedule.reduce((sum, item) => sum + item.percentageBasisPoints, 0)).toBeLessThanOrEqual(10000);
+  });
+});
+
+describe("RGPD-04/05 — Réglages RGPD de départ", () => {
+  it("valeurs du cahier des charges : alerte à 7 jours, prospect et client 3 ans, pièces comptables 10 ans, compte inactif 2 ans", () => {
+    expect(starterPrivacySettings()).toEqual({
+      requestAlertDays: 7,
+      prospectRetentionMonths: 36,
+      clientRetentionMonths: 36,
+      accountingRetentionMonths: 120,
+      inactiveAccountMonths: 24,
+    });
   });
 });

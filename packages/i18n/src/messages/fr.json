@@ -339,6 +339,14 @@
     "privacySearch": {
       "title": "Rechercher une personne",
       "body": "Saisissez au moins un e-mail, un téléphone ou un nom : la recherche ignore les accents et la casse, et compare les téléphones sur leurs seuls chiffres (+33 ou 0). Elle interroge chaque module souscrit et rassemble les données de la personne, puis celles de ses événements (tâches, budget, devis, factures). Si un module ne répond pas, le résultat est signalé incomplet : relancez la recherche avant de répondre à la personne. Les données d'un essai guidé n'apparaissent jamais."
+    },
+    "privacyRequests": {
+      "title": "Suivre les demandes des personnes",
+      "body": "Enregistrez chaque demande reçue (accès, rectification, oubli, portabilité, opposition) avec sa date de réception : l'échéance légale d'un mois s'affiche aussitôt. Une demande complexe se prolonge une fois, avec un motif obligatoire : trois mois au total depuis la réception. Les demandes dont l'échéance approche apparaissent en alerte au tableau de bord (seuil dans les réglages RGPD)."
+    },
+    "privacySettings": {
+      "title": "Réglages RGPD",
+      "body": "Ces durées viennent du cahier des charges (référentiel CNIL) et restent à faire valider par un juriste. Elles servent à la liste mensuelle des personnes à purger, que vous validez toujours, ligne par ligne. Le seuil d'alerte règle quand une demande apparaît au tableau de bord."
     }
   },
   "FirstSteps": {
@@ -1294,6 +1302,64 @@
       "mime": "Type de fichier",
       "sizeBytes": "Taille (octets)",
       "message": "Message"
-    }
+    },
+    "requestsLink": "Demandes des personnes",
+    "settingsLink": "Réglages RGPD",
+    "backToSearch": "Rechercher une personne",
+    "requestsTitle": "Demandes d'exercice de droits",
+    "newRequestTitle": "Enregistrer une demande",
+    "requestTypeLabel": "Type de demande",
+    "requestTypePlaceholder": "Choisissez un type",
+    "requestType": {
+      "access": "Accès",
+      "rectification": "Rectification",
+      "erasure": "Oubli (effacement)",
+      "portability": "Portabilité",
+      "objection": "Opposition"
+    },
+    "personLabel": "Personne concernée",
+    "receivedOnLabel": "Reçue le",
+    "createRequest": "Enregistrer la demande",
+    "requestCreated": "Demande enregistrée : l'échéance légale est d'un mois.",
+    "requestInvalid": "Vérifiez le type, la personne et la date de réception.",
+    "requestNotFound": "Cette demande n'existe pas ou est déjà close.",
+    "requestError": {
+      "person_missing": "Indiquez la personne concernée.",
+      "received_in_future": "La date de réception ne peut pas être dans le futur.",
+      "reason_missing": "Le motif de la prolongation est obligatoire.",
+      "already_extended": "Cette demande a déjà été prolongée : trois mois au total au plus.",
+      "closed": "Cette demande est close.",
+      "settings_invalid": "Réglages invalides."
+    },
+    "requestsListTitle": "Demandes",
+    "noRequests": "Aucune demande enregistrée.",
+    "requestDates": "Reçue le {received}, échéance le {due}",
+    "requestStatus": {
+      "open": "en cours",
+      "extended": "prolongée",
+      "closed": "close"
+    },
+    "requestDaysLeft": "{days, plural, =0 {échéance aujourd'hui} one {# jour restant} other {# jours restants}}",
+    "requestOverdue": "{days, plural, one {échéance dépassée d'# jour} other {échéance dépassée de # jours}}",
+    "requestClosed": "traitée",
+    "requestAlert": "À traiter en priorité : {deadline}",
+    "extensionReasonLabel": "Motif de la prolongation (demande de « {person} »)",
+    "extendRequest": "Prolonger (trois mois au total)",
+    "extensionReasonValue": "Prolongée : {reason}",
+    "closeRequest": "Clore la demande de « {person} »",
+    "alertTitle": "{count, plural, one {Demande RGPD à traiter rapidement} other {# demandes RGPD à traiter rapidement}}",
+    "requestDueOn": "échéance le {date} ({days, plural, =0 {aujourd'hui} one {dans # jour} other {dans # jours}})",
+    "settingsTitle": "Réglages RGPD",
+    "settingsIntro": "Valeurs de départ du cahier des charges (référentiel CNIL), à faire valider par un juriste. Les durées servent à la purge mensuelle, que vous validez toujours ligne par ligne.",
+    "setting": {
+      "requestAlertDays": "Alerte au tableau de bord quand l'échéance d'une demande est à moins de (jours)",
+      "prospectRetentionMonths": "Prospect sans suite : conservation après sa dernière activité (mois)",
+      "clientRetentionMonths": "Client (mariés) : conservation après la fin de la relation (mois)",
+      "accountingRetentionMonths": "Factures, avoirs et devis signés : conservation (mois)",
+      "inactiveAccountMonths": "Compte d'un marié sans connexion : suppression après (mois)"
+    },
+    "saveSettings": "Enregistrer les réglages",
+    "settingsSaved": "Réglages enregistrés.",
+    "settingsInvalid": "Chaque valeur doit être un nombre entier entre 1 et 1200."
   }
 }

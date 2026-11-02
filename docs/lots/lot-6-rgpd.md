@@ -84,6 +84,12 @@ en place depuis le lot 0.
   trois mois au total depuis la réception.
 - Dates testées avec une horloge simulée (fin de mois, 31 janvier → fin février, passage à
   l'heure d'été).
+- *Réalisé (RGPD-04)* : tables `hub.privacy_requests` et `hub.privacy_settings` (RLS, migrations
+  0050/0051) ; règles d'échéance pures dans `packages/privacy` (mois calendaires, jour manquant
+  ramené au dernier jour du mois, jour de Paris) ; une seule prolongation (trois mois au total
+  depuis la réception, motif obligatoire) ; date de réception jamais dans le futur. Réglages
+  chargés du modèle de départ `packages/starter-templates/src/privacy-settings.json` à la première
+  lecture. Écrans `/rgpd/demandes` et `/rgpd/reglages`, alerte au tableau de bord (titulaire).
 
 ### RGPD-02 — Export (droits d'accès et de portabilité)
 

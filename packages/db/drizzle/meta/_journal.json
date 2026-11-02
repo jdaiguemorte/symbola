@@ -351,6 +351,20 @@
       "when": 1793639604999,
       "tag": "0049_imp05_undo_retention",
       "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1793645540347,
+      "tag": "0050_rgpd04_privacy_requests",
+      "breakpoints": true
+    },
+    {
+      "idx": 51,
+      "version": "7",
+      "when": 1793645541333,
+      "tag": "0051_grant_privacy_requests",
+      "breakpoints": true
     }
   ]
 }

@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "_source": "Cahier des charges § 6 (référentiel CNIL gestion commerciale) — à faire valider par un juriste avant l'ouverture SaaS.",
+  "requestAlertDays": 7,
+  "prospectRetentionMonths": 36,
+  "clientRetentionMonths": 36,
+  "accountingRetentionMonths": 120,
+  "inactiveAccountMonths": 24
+}
