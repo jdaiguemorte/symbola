@@ -327,6 +327,9 @@ importers:
 
   packages/privacy:
     dependencies:
+      '@symbola/import-engine':
+        specifier: workspace:*
+        version: link:../import-engine
       yaml:
         specifier: ^2.7.0
         version: 2.9.1

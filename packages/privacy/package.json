@@ -10,6 +10,7 @@
     "check:registry": "tsx scripts/check-registry.ts"
   },
   "dependencies": {
+    "@symbola/import-engine": "workspace:*",
     "yaml": "^2.7.0",
     "zod": "^4.6.7"
   },
