@@ -114,7 +114,8 @@ module `hello`), migration « grant » dédiée. Montants toujours en centimes e
   `modules/events` publie `events.vendor_slot.booked` (déjà émis depuis le lot 2, payload en
   centimes — voir la passation précédente) pour le poste correspondant, le worker de
   `packages/db/src/events/worker.ts` (actuellement non câblé dans l'app qui tourne — écart
-  pré-existant signalé au lot 2) devra l'alimenter. **Tant que ce worker n'est pas réellement
+  pré-existant signalé au lot 2) devra l'alimenter. *Levé au lot 6 : worker démarré en continu
+  (`apps/symbola/lib/event-worker.ts`, ADR 0014).* **Tant que ce worker n'est pas réellement
   invoqué en continu**, cette partie automatique du critère n'est pas vérifiable en conditions
   réelles : à couvrir par un test d'intégration qui appelle directement le gestionnaire
   d'événement, et à signaler à Julien comme limite connue (même nature que le point 2 des limites
