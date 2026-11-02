@@ -98,6 +98,19 @@ en place depuis le lot 0.
 - Les notes internes de la planner font partie de l'export : un avertissement le rappelle avant
   l'envoi.
 - L'archive se télécharge par un lien temporaire (stockage privé, lien signé à durée limitée).
+- *Réalisé (RGPD-02)* : sur `/rgpd`, la titulaire coche les fiches de la personne dans le
+  résultat de la recherche (rien n'est coché d'office : homonymes), peut rattacher l'export à
+  une demande d'accès ou de portabilité en cours, et doit cocher l'avertissement sur les notes
+  internes. La recherche est relancée côté serveur (`apps/symbola/lib/privacy/export.ts`) :
+  une fiche cochée qui n'est plus trouvée, ou un module qui ne répond pas, bloque l'export.
+  Sortie : PDF lisible (`app/rgpd/export-pdf.tsx`, libellés dans la langue de la titulaire) et
+  archive ZIP écrite sans dépendance (`packages/privacy/src/archive.ts` : `donnees.json`, un CSV
+  par module, le PDF). Fichiers dans le stockage privé, table `hub.privacy_exports` (RLS,
+  migrations 0052/0053, aucune donnée personnelle : identifiants et nombre de fiches), lien
+  signé de 5 minutes demandé au clic, liste « Exports récents ». Durée de conservation des
+  fichiers réglée par l'Admin (`privacy_export_retention_days`, 7 jours par défaut), purge
+  horaire des fichiers expirés (la trace reste). Les pièces jointes du budget (devis
+  prestataires) n'y figurent que par leurs métadonnées.
 
 ### RGPD-03 — Demande d'oubli
 
