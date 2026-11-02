@@ -320,6 +320,10 @@
     "importMatches": {
       "title": "Matching existing records",
       "body": "For each row that looks like a record you already have (same clients and same date for an event, same label for an item or a list, same label within the same event for a task or a budget item), the app suggests a match with its similarity score. A matched row will update the existing record instead of creating a duplicate. Accept or refuse suggestions one by one or in bulk, or choose the record to match yourself. Tasks and budget lines must match one of your events without ambiguity."
+    },
+    "importGaps": {
+      "title": "Gaps report",
+      "body": "The report first lists the columns without equivalent: keep them as a free field (shown on the record of each imported item) or ignore them. It then lists the rows that will not be imported, with their reason: invalid date or amount, missing required field, event not found for a task or a budget line. Download them as CSV to fix them in your spreadsheet, then import them again; the other rows are not blocked."
     }
   },
   "FirstSteps": {
@@ -1019,7 +1023,7 @@
     "previewTitle": "{count, plural, one {Preview of the first row} other {Preview of the first # rows}}",
     "previewScrollLabel": "Preview table (scrolls horizontally)",
     "unnamedColumn": "Column {number}",
-    "nextStepsComing": "The next step (gaps report) is coming soon. You can discard this import at any time.",
+    "nextStepsComing": "The next step (preview and confirmation) is coming soon. You can discard this import at any time.",
     "cancelImport": "Discard the import",
     "backToImports": "Back to imports",
     "journalTitle": "Import log",
@@ -1112,6 +1116,34 @@
     "rowWillCreate": "On confirmation, this row will create a new record.",
     "rowWillBeRejected": "This row will not be imported.",
     "manualMatchLabel": "Match “{title}” with",
-    "manualMatchSubmit": "Match"
+    "manualMatchSubmit": "Match",
+    "gapsStepTitle": "Gaps",
+    "continueToGaps": "Continue: gaps report",
+    "gapsPending": "{count, plural, =0 {Gaps report to review.} one {# column without equivalent awaits your decision.} other {# columns without equivalent await your decision.}}",
+    "gapsSummary": "{kept, plural, =0 {no column kept as a free field} one {# column kept as a free field} other {# columns kept as free fields}}, {ignored, plural, =0 {none ignored} one {# ignored} other {# ignored}}.",
+    "gapsTitle": "Gaps report for “{fileName}”",
+    "gapsColumnsTitle": "Columns without equivalent",
+    "gapsColumnsIntro": "These columns match no field. Keep them as a free field, shown on the record of each imported item, or ignore them.",
+    "gapsNoColumns": "Every column has an equivalent or is ignored.",
+    "gapsKeep": "Keep as a free field on the record",
+    "gapsIgnore": "Ignore",
+    "gapsUndecided": "To decide.",
+    "gapsSaveColumns": "Save choices",
+    "gapsRejectedTitle": "{count, plural, =0 {Rejected rows} one {Rejected row (#)} other {Rejected rows (#)}}",
+    "gapsNoRejected": "No rejected rows: every row can be imported.",
+    "gapsRejectedIntro": "{count, plural, one {# row out of {total} will not be imported} other {# rows out of {total} will not be imported}}. Download the report to fix them in your spreadsheet, then import them again.",
+    "gapsRejectedRow": "Row {line}: {reasons}",
+    "gapsDownloadCsv": "Download rejected rows (CSV)",
+    "rejectedReasonHeader": "Rejection reason",
+    "rejectedFileSuffix": "rejected-rows",
+    "rowError": {
+      "required_missing": "{field}: required field missing",
+      "invalid_date": "{field}: invalid date ({value})",
+      "invalid_amount": "{field}: invalid amount ({value})",
+      "invalid_percentage": "{field}: invalid percentage ({value})",
+      "invalid_boolean": "{field}: unrecognised value, expected yes or no ({value})",
+      "invalid_choice": "{field}: unrecognised value ({value})",
+      "event_not_found": "event not found or ambiguous among your events"
+    }
   }
 }

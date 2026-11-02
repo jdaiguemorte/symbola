@@ -27,7 +27,15 @@ export function ColumnsForm({ view }: { view: ImportColumnsView }) {
       {view.columns.map((column) => {
         const name = column.header || t("unnamedColumn", { number: column.columnIndex + 1 });
         const saved = column.saved;
-        const initialTarget = saved ? (saved.target === "field" ? (saved.fieldKey ?? "none") : saved.target) : (column.proposedFieldKey ?? "none");
+        // Une colonne gardée en champ libre au rapport des écarts reste « sans
+        // équivalent » ici (IMP-04).
+        const initialTarget = saved
+          ? saved.target === "field"
+            ? (saved.fieldKey ?? "none")
+            : saved.target === "free" || saved.decidedAtGaps
+              ? "none"
+              : saved.target
+          : (column.proposedFieldKey ?? "none");
         const lowConfidence = column.proposedFieldKey !== null && column.confidence < view.lowConfidenceThreshold;
         const selectId = `target-${column.columnIndex}`;
         return (

@@ -213,10 +213,14 @@ export type ImportColumnChoice = {
   columnIndex: number;
   // Clé d'un champ (packages/contracts, IMPORT_FIELDS), ou null.
   fieldKey: string | null;
-  // `none` : sans équivalent, à traiter au rapport des écarts (IMP-04).
-  target: "field" | "none" | "ignore";
+  // `none` : sans équivalent, à traiter au rapport des écarts (IMP-04), qui
+  // le change en `free` (gardée en champ libre sur la fiche) ou `ignore`.
+  target: "field" | "none" | "free" | "ignore";
   confidence: number;
   confirmed: boolean;
+  // IMP-04 : `free` ou `ignore` décidé au rapport des écarts (la colonne
+  // reste modifiable à cette étape).
+  decidedAtGaps?: boolean;
 };
 
 // Élément existant rapproché d'une ligne (identifiant opaque d'un module) :

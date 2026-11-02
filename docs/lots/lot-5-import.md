@@ -139,6 +139,13 @@ rapprochements, écarts, confirmation. **Rien n'est écrit dans les modules avan
   libre » visible sur la fiche, ou ignorer.
 - Il liste les lignes rejetées avec leur motif (date invalide, champ obligatoire manquant…). Ce
   rapport se télécharge en CSV (cellules neutralisées) pour corriger et réimporter.
+- *Réalisé (IMP-04)* : une colonne « sans équivalent » devient `free` (gardée en champ libre,
+  recopiée à la confirmation dans la colonne `imported_fields` de l'élément, IMP-05) ou `ignore`,
+  décision modifiable à cette étape sans recalculer les rapprochements. Lignes rejetées : valeur
+  invalide, champ obligatoire manquant, ou tâche / ligne de budget sans événement reconnu. CSV
+  `/import/<id>/ecarts/csv` : motif en première colonne puis colonnes d'origine, point-virgule,
+  BOM UTF-8, cellules neutralisées, jamais mis en cache. L'étape est faite quand plus aucune
+  colonne n'attend de décision ; les lignes rejetées ne bloquent pas les autres.
 
 ### IMP-05 — Aperçu et annulation
 

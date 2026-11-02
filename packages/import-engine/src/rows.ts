@@ -23,14 +23,14 @@ export type ParsedImportRow = {
   lineNumber: number;
   // Valeur typée par clé de champ ; null pour une cellule vide.
   values: Record<string, ImportValue>;
-  // Colonnes « sans équivalent » : intitulé → texte brut (champs libres, IMP-04).
+  // Colonnes gardées en champ libre (IMP-04) : intitulé → texte brut.
   extra: Record<string, string>;
   errors: RowError[];
 };
 
 export type RowFieldDefinition = MappableField & { required?: true; choices?: readonly string[] };
 
-export type ColumnAssignment = { columnIndex: number; fieldKey: string | null; target: "field" | "none" | "ignore" };
+export type ColumnAssignment = { columnIndex: number; fieldKey: string | null; target: "field" | "none" | "free" | "ignore" };
 
 export type ValueSynonyms = {
   choices: Record<string, Record<string, string[]>>;
@@ -54,7 +54,7 @@ export function parseImportRows(input: {
     (assignment): assignment is ColumnAssignment & { fieldKey: string } =>
       assignment.target === "field" && assignment.fieldKey !== null && fieldsByKey.has(assignment.fieldKey),
   );
-  const freeColumns = input.assignments.filter((assignment) => assignment.target === "none");
+  const freeColumns = input.assignments.filter((assignment) => assignment.target === "free");
 
   // Format des dates et des montants déduit de la colonne entière (IMP-02).
   const profiles = new Map(

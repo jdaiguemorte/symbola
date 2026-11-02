@@ -22,6 +22,7 @@ import {
   insertImport,
   markDraftCancelled,
   updateDraftMapping,
+  updateDraftMappingKeepingMatches,
   updateDraftMatching,
   type ImportRow,
 } from "./import-repository";
@@ -403,4 +404,30 @@ export async function setManualImportMatch(
     { rowIndex: input.rowIndex, candidateId: input.candidateId, score: 100, status: "accepted" as const, manual: true },
   ].sort((a, b) => a.rowIndex - b.rowIndex);
   return updateDraftMatching(db, input.organizationId, input.importId, { ...set.matching, matches }, now);
+}
+
+// IMP-04 — une colonne sans équivalent est gardée en champ libre (visible sur
+// la fiche de l'élément importé) ou ignorée. Seules les colonnes laissées
+// « sans équivalent » à l'étape des colonnes, ou déjà décidées ici, peuvent
+// l'être.
+export function isGapColumn(choice: ImportColumnChoice): boolean {
+  return choice.target === "none" || choice.target === "free" || (choice.target === "ignore" && choice.decidedAtGaps === true);
+}
+
+export type FreeColumnDecision = { columnIndex: number; keep: boolean };
+
+export async function decideFreeColumns(
+  db: AppDatabase,
+  input: { organizationId: string; importId: string; decisions: FreeColumnDecision[]; now?: Date },
+): Promise<boolean> {
+  const now = input.now ?? new Date();
+  const set = await getImportWorkingSet(db, input.organizationId, input.importId, now);
+  if (!set) return false;
+  const decisions = new Map(input.decisions.map((decision) => [decision.columnIndex, decision.keep]));
+  const mapping = set.mapping.map((choice): ImportColumnChoice => {
+    const keep = decisions.get(choice.columnIndex);
+    if (keep === undefined || !isGapColumn(choice)) return choice;
+    return { ...choice, target: keep ? "free" : "ignore", decidedAtGaps: true };
+  });
+  return updateDraftMappingKeepingMatches(db, input.organizationId, input.importId, mapping, now);
 }

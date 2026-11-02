@@ -86,3 +86,22 @@ export async function updateDraftMatching(
     return updated.length > 0;
   });
 }
+
+// IMP-04 : décisions sur les colonnes sans équivalent — les rapprochements
+// ne dépendent pas des champs libres, ils sont gardés.
+export async function updateDraftMappingKeepingMatches(
+  db: AppDatabase,
+  organizationId: string,
+  importId: string,
+  mapping: ImportColumnChoice[],
+  now: Date,
+): Promise<boolean> {
+  return withOrganization(db, organizationId, async (tx) => {
+    const updated = await tx
+      .update(imports)
+      .set({ mapping, updatedAt: now })
+      .where(and(eq(imports.id, importId), eq(imports.status, "draft")))
+      .returning({ id: imports.id });
+    return updated.length > 0;
+  });
+}
