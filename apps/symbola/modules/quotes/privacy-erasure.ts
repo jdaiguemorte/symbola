@@ -5,14 +5,19 @@
 //   conservés comme preuve du contrat, le temps réglé par l'organisation
 //   (5 ans par défaut, décision de Julien du 02/11/2026, à valider par un
 //   juriste).
+// - RGPD-05 : à la date de fin, la conservation cesse : acheteurs des
+//   factures et avoirs anonymisés (seule exception au verrou d'immuabilité,
+//   ADR 0024), devis signé anonymisé et documents signés supprimés du stockage.
 // - Devis non signé : signataires et descriptions libres anonymisés ;
 //   numéros, intitulés et montants restent (statistiques).
 // - Catalogue : champs libres importés effacés.
-import { eq, inArray } from "drizzle-orm";
+import { eq, inArray, sql as rawSql } from "drizzle-orm";
 import { createAppConnection } from "@symbola/db/client";
 import { catalogItems, creditNotes, invoices, quoteLines, quotes, quoteSigners, quoteVersions, signatureRequests } from "@symbola/db/schema/quotes";
 import { withOrganization } from "@symbola/db/with-organization";
-import { addMonths, ANONYMIZED, anonymizedEmail, idsOfKind, parisDate, type ErasureInput, type ErasurePlanItem } from "@symbola/privacy";
+import type { InvoiceBuyer } from "@symbola/contracts";
+import { createStorageClient, deletePrivateObject } from "@symbola/files";
+import { addMonths, ANONYMIZED, anonymizedEmail, idsOfKind, isExpired, parisDate, type ErasureInput, type ErasurePlanItem } from "@symbola/privacy";
 
 type Tx = Parameters<Parameters<typeof withOrganization>[2]>[0];
 
@@ -22,6 +27,10 @@ type Plan = {
   signerIds: string[];
   lineIds: string[];
   catalogItemIds: string[];
+  // RGPD-05 : documents arrivés au terme de leur conservation.
+  invoiceIds: string[];
+  creditNoteIds: string[];
+  expiredRequestIds: string[];
 };
 
 async function inOrganization<T>(organizationId: string, fn: (tx: Tx) => Promise<T>): Promise<T> {
@@ -34,7 +43,7 @@ async function inOrganization<T>(organizationId: string, fn: (tx: Tx) => Promise
 }
 
 async function buildPlan(tx: Tx, input: ErasureInput): Promise<Plan> {
-  const plan: Plan = { items: [], signerIds: [], lineIds: [], catalogItemIds: [] };
+  const plan: Plan = { items: [], signerIds: [], lineIds: [], catalogItemIds: [], invoiceIds: [], creditNoteIds: [], expiredRequestIds: [] };
   const anonymized = (kind: string, recordId: string) => plan.items.push({ kind, recordId, fate: "anonymized", legalBasis: null, keptUntil: null });
 
   // Factures et avoirs réels : conservés dix ans (réglage) à compter de l'émission.
@@ -42,14 +51,22 @@ async function buildPlan(tx: Tx, input: ErasureInput): Promise<Plan> {
   if (invoiceIds.length > 0) {
     for (const invoice of await tx.select().from(invoices).where(inArray(invoices.id, invoiceIds))) {
       if (invoice.isDemo) continue;
-      plan.items.push({ kind: "invoice", recordId: invoice.id, fate: "kept", legalBasis: "accounting", keptUntil: addMonths(invoice.issuedOn, input.rules.accountingRetentionMonths) });
+      const until = addMonths(invoice.issuedOn, input.rules.accountingRetentionMonths);
+      if (isExpired(input.today, until)) {
+        plan.invoiceIds.push(invoice.id);
+        anonymized("invoice", invoice.id);
+      } else plan.items.push({ kind: "invoice", recordId: invoice.id, fate: "kept", legalBasis: "accounting", keptUntil: until });
     }
   }
   const creditNoteIds = idsOfKind(input.records, "credit_note");
   if (creditNoteIds.length > 0) {
     for (const note of await tx.select().from(creditNotes).where(inArray(creditNotes.id, creditNoteIds))) {
       if (note.isDemo) continue;
-      plan.items.push({ kind: "credit_note", recordId: note.id, fate: "kept", legalBasis: "accounting", keptUntil: addMonths(note.issuedOn, input.rules.accountingRetentionMonths) });
+      const until = addMonths(note.issuedOn, input.rules.accountingRetentionMonths);
+      if (isExpired(input.today, until)) {
+        plan.creditNoteIds.push(note.id);
+        anonymized("credit_note", note.id);
+      } else plan.items.push({ kind: "credit_note", recordId: note.id, fate: "kept", legalBasis: "accounting", keptUntil: until });
     }
   }
 
@@ -65,9 +82,13 @@ async function buildPlan(tx: Tx, input: ErasureInput): Promise<Plan> {
     const requests = versions.length > 0 ? await tx.select().from(signatureRequests).where(inArray(signatureRequests.versionId, [...versionQuote.keys()])) : [];
     // Fin de la preuve d'une version signée : signature + durée réglée.
     const proofUntil = new Map<string, string>();
+    const expiredRequests: (typeof requests)[number][] = [];
     for (const request of requests) {
       if (request.status !== "completed") continue;
-      proofUntil.set(request.versionId, addMonths(parisDate(request.completedAt ?? request.createdAt), input.rules.signedQuoteRetentionMonths));
+      const until = addMonths(parisDate(request.completedAt ?? request.createdAt), input.rules.signedQuoteRetentionMonths);
+      // Preuve échue : le devis signé est traité comme un devis non signé.
+      if (isExpired(input.today, until)) expiredRequests.push(request);
+      else proofUntil.set(request.versionId, until);
     }
     const requestVersion = new Map(requests.map((request) => [request.id, request.versionId]));
     const quoteProofUntil = (quoteId: string) =>
@@ -93,6 +114,11 @@ async function buildPlan(tx: Tx, input: ErasureInput): Promise<Plan> {
         ? await tx.select({ id: quoteLines.id, versionId: quoteLines.versionId, description: quoteLines.description }).from(quoteLines).where(inArray(quoteLines.versionId, [...versionQuote.keys()]))
         : [];
 
+    // Documents signés d'une preuve échue (PDF signé, certificat) : supprimés.
+    for (const request of expiredRequests) {
+      const concerned = quoteRequestIds.includes(request.id) || signers.some((signer) => signer.requestId === request.id && signerIds.includes(signer.id));
+      if (concerned && (request.signedDocumentKey || request.auditCertificateKey)) plan.expiredRequestIds.push(request.id);
+    }
     for (const quoteId of designatedQuotes) {
       const until = quoteProofUntil(quoteId);
       if (until) plan.items.push({ kind: "quote", recordId: quoteId, fate: "kept", legalBasis: "contract_proof", keptUntil: until });
@@ -135,7 +161,7 @@ export async function planQuotesErasure(input: ErasureInput): Promise<ErasurePla
 }
 
 export async function eraseQuotesData(input: ErasureInput): Promise<ErasurePlanItem[]> {
-  return inOrganization(input.organizationId, async (tx) => {
+  const result = await inOrganization(input.organizationId, async (tx) => {
     const plan = await buildPlan(tx, input);
     // E-mail de remplacement propre à chaque signataire (aucun lien entre eux).
     for (const signerId of plan.signerIds) {
@@ -143,6 +169,33 @@ export async function eraseQuotesData(input: ErasureInput): Promise<ErasurePlanI
     }
     if (plan.lineIds.length > 0) await tx.update(quoteLines).set({ description: ANONYMIZED }).where(inArray(quoteLines.id, plan.lineIds));
     if (plan.catalogItemIds.length > 0) await tx.update(catalogItems).set({ importedFields: null }).where(inArray(catalogItems.id, plan.catalogItemIds));
-    return plan.items;
+
+    // RGPD-05 : fin de la conservation comptable. Seule la copie de
+    // l'acheteur change, dans une transaction qui le déclare (ADR 0024).
+    if (plan.invoiceIds.length + plan.creditNoteIds.length > 0) {
+      await tx.execute(rawSql`SET LOCAL app.retention_anonymization = 'on'`);
+      const anonymizedBuyers = (snapshot: unknown) =>
+        (Array.isArray(snapshot) ? (snapshot as InvoiceBuyer[]) : []).map((buyer) => ({ ...buyer, name: ANONYMIZED, billingAddress: ANONYMIZED }));
+      for (const invoice of plan.invoiceIds.length > 0 ? await tx.select().from(invoices).where(inArray(invoices.id, plan.invoiceIds)) : []) {
+        await tx.update(invoices).set({ buyerSnapshot: anonymizedBuyers(invoice.buyerSnapshot) }).where(eq(invoices.id, invoice.id));
+      }
+      for (const note of plan.creditNoteIds.length > 0 ? await tx.select().from(creditNotes).where(inArray(creditNotes.id, plan.creditNoteIds)) : []) {
+        await tx.update(creditNotes).set({ buyerSnapshot: anonymizedBuyers(note.buyerSnapshot) }).where(eq(creditNotes.id, note.id));
+      }
+    }
+    return plan;
   });
+  // Documents signés d'une preuve échue : fichiers retirés du stockage, puis
+  // leurs clés effacées (une nouvelle exécution recommence sans risque).
+  if (result.expiredRequestIds.length > 0) {
+    const requests = await inOrganization(input.organizationId, (tx) => tx.select().from(signatureRequests).where(inArray(signatureRequests.id, result.expiredRequestIds)));
+    const storage = createStorageClient();
+    for (const request of requests) {
+      for (const key of [request.signedDocumentKey, request.auditCertificateKey]) if (key) await deletePrivateObject(storage, key);
+    }
+    await inOrganization(input.organizationId, (tx) =>
+      tx.update(signatureRequests).set({ signedDocumentKey: null, auditCertificateKey: null }).where(inArray(signatureRequests.id, result.expiredRequestIds)),
+    );
+  }
+  return result.items;
 }

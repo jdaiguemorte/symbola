@@ -16,6 +16,28 @@ fields:
       d'oubli (RGPD-03, décision de Julien du 02/11/2026). Les comptes de l'équipe
       de la planner ne relèvent pas de ce traitement.
   - schema: hub
+    table: users
+    field: last_login_at
+    category: securite
+    retention: >-
+      Lot 6 (RGPD-05) : date de la dernière connexion réussie, mise à jour à
+      chaque connexion. Sert à supprimer le compte d'un marié resté inactif
+      au-delà de la durée réglée (2 ans par défaut). Gardée tant que le compte
+      existe.
+    anonymization: >-
+      Supprimée avec le compte (oubli ou purge).
+  - schema: hub
+    table: privacy_purges
+    field: lines
+    category: contenu_libre
+    retention: >-
+      Lot 6 (RGPD-05) : trace d'une purge validée ; seul le motif d'exclusion
+      d'une ligne est un texte libre saisi par la titulaire (qui peut citer une
+      personne). Références opaques et dates sinon, jamais de nom. Gardée
+      comme preuve pendant la prescription applicable.
+    anonymization: >-
+      Motifs d'exclusion effacés à la fin de la conservation de la preuve.
+  - schema: hub
     table: organization_profiles
     field: address
     category: contact

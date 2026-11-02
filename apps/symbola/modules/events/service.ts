@@ -1088,3 +1088,6 @@ const _contractCheck: EventsServiceContract = {
   listExpiredDemoEvents,
 };
 void _contractCheck;
+
+// Lot 6 (RGPD-05) — données nécessaires aux règles de conservation.
+export { listRetentionEvents, type RetentionEvent } from "./privacy-retention";

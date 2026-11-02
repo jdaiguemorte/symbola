@@ -25,3 +25,4 @@ Un fichier par décision structurante, numéroté. Pour changer une décision : 
 - [0021 — Signature en ligne : adaptateur DocuSeal, webhook et base dédiée](0021-signature-docuseal-webhook-et-base.md)
 - [0022 — Import : lecteur `.xlsx` sans dépendance et orchestration par le hub](0022-import-lecteur-xlsx-et-orchestration.md)
 - [0023 — RGPD : contrat `privacy/v1` révisé (fiches désignées) et orchestration par le hub](0023-rgpd-contrat-par-fiches-et-orchestration.md)
+- [0024 — RGPD : purge mensuelle et fin de conservation des factures](0024-rgpd-purge-mensuelle-et-fin-de-conservation-des-factures.md)

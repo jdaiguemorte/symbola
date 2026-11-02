@@ -93,9 +93,9 @@ export async function login(db: AppDatabase, email: string, password: string): P
     return { outcome: "invalid_credentials" };
   }
 
-  if (user.failedLoginAttempts > 0 || user.lockedUntil) {
-    await db.update(users).set({ failedLoginAttempts: 0, lockedUntil: null }).where(eq(users.id, user.id));
-  }
+  // RGPD-05 : dernière connexion réussie, pour la suppression des comptes de
+  // mariés inactifs (registre de données).
+  await db.update(users).set({ failedLoginAttempts: 0, lockedUntil: null, lastLoginAt: new Date() }).where(eq(users.id, user.id));
 
   // Un marié n'y est pas obligé, mais une fois activée elle s'applique à
   // chaque connexion (EVT-06).

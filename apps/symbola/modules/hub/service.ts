@@ -72,6 +72,18 @@ export {
   type PrivacyErasureItem,
   type PrivacyErasureView,
 } from "./privacy-erasures";
+// Lot 6 (RGPD-05) — purges mensuelles.
+export {
+  getPrivacyPurge,
+  listInactiveClientAccounts,
+  listPrivacyPurges,
+  PrivacyPurgeInvalidError,
+  PrivacyPurgeNotFoundError,
+  recordPrivacyPurgeAcks,
+  startPrivacyPurge,
+  type PrivacyPurgeLine,
+  type PrivacyPurgeView,
+} from "./privacy-purges";
 
 // Lot 6 — contrat privacy/v1 du module (ADR 0023).
 export { hubPrivacy } from "./privacy";

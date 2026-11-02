@@ -5,7 +5,7 @@
 // exécute sa part et renvoie un accusé. La demande n'est close que quand tous
 // les modules ont répondu ; un module en échec se relance depuis la trace.
 import { createAppConnection } from "@symbola/db/client";
-import type { ErasurePlanItem, ErasureRules, PersonTerms, PrivacyRecordRef } from "@symbola/privacy";
+import { parisDate, type ErasurePlanItem, type ErasureRules, type PersonTerms, type PrivacyRecordRef } from "@symbola/privacy";
 import {
   getPrivacyErasure,
   getPrivacySettings,
@@ -17,7 +17,7 @@ import {
 import { selectRecordsForExport } from "./export";
 import { PARTICIPANTS, withTimeout, type Participant, type SearchRecord } from "./search";
 
-const MODULE_TIMEOUT_MS = 10_000;
+export const MODULE_TIMEOUT_MS = 10_000;
 
 export type ErasurePreviewItem = PrivacyErasureItem & { label: string };
 
@@ -25,9 +25,10 @@ export type ErasurePreview =
   | { status: "ok"; items: ErasurePreviewItem[] }
   | { status: "incomplete" | "changed" | "empty" };
 
-type Options = { participants?: Participant[]; timeoutMs?: number };
+// today : jour (Paris) des règles de conservation, simulable dans les tests.
+export type Options = { participants?: Participant[]; timeoutMs?: number; today?: string };
 
-async function rulesOf(organizationId: string): Promise<ErasureRules> {
+export async function rulesOf(organizationId: string): Promise<ErasureRules> {
   const { sql, db } = createAppConnection();
   try {
     const settings = await getPrivacySettings(db, organizationId);
@@ -37,13 +38,13 @@ async function rulesOf(organizationId: string): Promise<ErasureRules> {
   }
 }
 
-function byModule(records: { module: string; kind: string; recordId: string }[]): Map<string, PrivacyRecordRef[]> {
+export function byModule(records: { module: string; kind: string; recordId: string }[]): Map<string, PrivacyRecordRef[]> {
   const grouped = new Map<string, PrivacyRecordRef[]>();
   for (const record of records) grouped.set(record.module, [...(grouped.get(record.module) ?? []), { kind: record.kind, recordId: record.recordId }]);
   return grouped;
 }
 
-function contractOf(module: string, participants: Participant[]) {
+export function contractOf(module: string, participants: Participant[]) {
   const participant = participants.find((candidate) => candidate.contract.module === module);
   if (!participant) throw new Error(`module inconnu : ${module}`);
   return participant.contract;
@@ -63,7 +64,7 @@ export async function previewErasure(
   const items: ErasurePreviewItem[] = [];
   try {
     for (const [module, records] of byModule(selection.records)) {
-      const plan = await withTimeout(contractOf(module, participants).planErasure({ organizationId: input.organizationId, records, rules }), options.timeoutMs ?? MODULE_TIMEOUT_MS);
+      const plan = await withTimeout(contractOf(module, participants).planErasure({ organizationId: input.organizationId, records, rules, today: options.today ?? parisDate(new Date()) }), options.timeoutMs ?? MODULE_TIMEOUT_MS);
       for (const item of plan) items.push({ module, ...item, label: labels.get(`${module}:${item.kind}:${item.recordId}`) ?? "" });
     }
   } catch (error) {
@@ -74,13 +75,13 @@ export async function previewErasure(
   return { status: "ok", items };
 }
 
-async function runModules(organizationId: string, items: PrivacyErasureItem[], options: Options): Promise<PrivacyErasureAck[]> {
+export async function runModules(organizationId: string, items: PrivacyErasureItem[], options: Options): Promise<PrivacyErasureAck[]> {
   const participants = options.participants ?? PARTICIPANTS;
   const rules = await rulesOf(organizationId);
   const acks: PrivacyErasureAck[] = [];
   for (const [module, records] of byModule(items)) {
     try {
-      const done: ErasurePlanItem[] = await withTimeout(contractOf(module, participants).erase({ organizationId, records, rules }), options.timeoutMs ?? MODULE_TIMEOUT_MS);
+      const done: ErasurePlanItem[] = await withTimeout(contractOf(module, participants).erase({ organizationId, records, rules, today: options.today ?? parisDate(new Date()) }), options.timeoutMs ?? MODULE_TIMEOUT_MS);
       acks.push({ module, status: "ok", at: new Date().toISOString(), count: done.length });
     } catch (error) {
       // Journalisé sans donnée personnelle (CLAUDE.md §5).

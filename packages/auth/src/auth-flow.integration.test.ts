@@ -8,7 +8,7 @@ import { eq } from "drizzle-orm";
 import * as OTPAuth from "otpauth";
 import { afterAll, describe, expect, it } from "vitest";
 import { createAppConnection } from "@symbola/db/client";
-import { sessions } from "@symbola/db/schema/hub";
+import { sessions, users } from "@symbola/db/schema/hub";
 import {
   confirmTotp,
   createOrganization,
@@ -165,6 +165,19 @@ describe("SOC-04 — Parcours de connexion (PostgreSQL réel)", () => {
     const secondExpiry = await expiresAtFor(loginResult.sessionToken);
 
     expect(secondExpiry.getTime()).toBeGreaterThan(firstExpiry.getTime());
+  });
+
+  it("RGPD-05 : une connexion réussie enregistre la dernière connexion ; un mot de passe faux, non", async () => {
+    const organization = await createOrganization(db, `Org ${randomUUID()}`);
+    const email = `marie-${randomUUID()}@example.test`;
+    const user = await createUser(db, { organizationId: organization.id, email, password: "mot-de-passe-du-marie", role: "client" });
+    const lastLogin = async () => (await db.select({ at: users.lastLoginAt }).from(users).where(eq(users.id, user.id)))[0]?.at ?? null;
+    expect(await lastLogin()).toBeNull();
+    await login(db, email, "mauvais-mot-de-passe");
+    expect(await lastLogin()).toBeNull();
+    const before = Date.now();
+    expect((await login(db, email, "mot-de-passe-du-marie")).outcome).toBe("success");
+    expect((await lastLogin())!.getTime()).toBeGreaterThanOrEqual(before - 1000);
   });
 });
 

@@ -393,6 +393,20 @@
       "when": 1793656488113,
       "tag": "0055_grant_privacy_erasures",
       "breakpoints": true
+    },
+    {
+      "idx": 56,
+      "version": "7",
+      "when": 1793657859340,
+      "tag": "0056_rgpd05_purges",
+      "breakpoints": true
+    },
+    {
+      "idx": 57,
+      "version": "7",
+      "when": 1793657860831,
+      "tag": "0057_grant_purges_and_document_anonymization",
+      "breakpoints": true
     }
   ]
 }
