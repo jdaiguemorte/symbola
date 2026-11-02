@@ -1,6 +1,5 @@
-// SOC-07 — vérifie le contrat privacy/v1 du module hello contre un vrai
-// PostgreSQL (find, export, anonymize, erase), scopé par organisation
-// (RLS, ADR 0012).
+// SOC-07 / RGPD-01 — contrat privacy/v1 du module hello (révisé, ADR 0023)
+// contre un vrai PostgreSQL, scopé par organisation (RLS, ADR 0012).
 import { randomUUID } from "node:crypto";
 import { afterAll, describe, expect, it } from "vitest";
 import { createAppConnection } from "@symbola/db/client";
@@ -15,7 +14,7 @@ afterAll(async () => {
 });
 
 describe("SOC-07 — privacy/v1 du module hello (PostgreSQL réel)", () => {
-  it("trouve, exporte, anonymise puis permet de supprimer une ligne, sans toucher une autre organisation", async () => {
+  it("trouve une ligne par un nom qu'elle contient, sans toucher une autre organisation", async () => {
     const organizationId = randomUUID();
     const otherOrganizationId = randomUUID();
     const term = `personne-${randomUUID()}`;
@@ -27,26 +26,16 @@ describe("SOC-07 — privacy/v1 du module hello (PostgreSQL réel)", () => {
       tx.insert(greetings).values({ organizationId: otherOrganizationId, message: `bonjour ${term}` }),
     );
 
-    const found = await helloPrivacy.find({ organizationId, term });
+    const found = await helloPrivacy.find({ organizationId, terms: { name: term } });
     expect(found).toHaveLength(1);
-    expect(found[0]?.summary).toContain(term);
+    expect(found[0]?.label).toContain(term);
+    expect(found[0]).toMatchObject({ module: "hello", kind: "greeting", eventId: null });
 
-    const exported = await helloPrivacy.export({ organizationId, term });
-    expect(exported).toMatchObject({ module: "hello" });
+    // L'autre organisation garde sa propre ligne, invisible de la première.
+    expect(await helloPrivacy.find({ organizationId: otherOrganizationId, terms: { name: term } })).toHaveLength(1);
+    expect(await helloPrivacy.related({ organizationId, eventIds: [] })).toEqual([]);
 
-    const anonymized = await helloPrivacy.anonymize({ organizationId, term });
-    expect(anonymized.affected).toBe(1);
-
-    const afterAnonymize = await helloPrivacy.find({ organizationId, term });
-    expect(afterAnonymize).toHaveLength(0); // le message anonymisé ne contient plus le terme
-
-    const erased = await helloPrivacy.erase({ organizationId, term: "anonymisé" });
-    expect(erased.affected).toBe(1);
-
-    // L'autre organisation n'a jamais été affectée.
-    const otherStillThere = await helloPrivacy.find({ organizationId: otherOrganizationId, term });
-    expect(otherStillThere).toHaveLength(1);
-
+    await withOrganization(db, organizationId, (tx) => tx.delete(greetings));
     await withOrganization(db, otherOrganizationId, (tx) => tx.delete(greetings));
   });
 });

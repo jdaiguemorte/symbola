@@ -31,7 +31,8 @@
     "quoteSettings": "Quote settings",
     "quotePayments": "Payments",
     "eReporting": "E-reporting",
-    "importData": "Import data"
+    "importData": "Import data",
+    "privacy": "Personal data (GDPR)"
   },
   "Admin": {
     "title": "Administration",
@@ -334,6 +335,10 @@
     "importUndo": {
       "title": "Import log and undo",
       "body": "Each confirmed import is logged: file, author, date and result. During the undo period you can undo it: created records are deleted, updated records get their previous values back. A record changed by hand since the import is flagged and kept, unless you tick “undo anyway”. An event that received a quote is never deleted."
+    },
+    "privacySearch": {
+      "title": "Searching for a person",
+      "body": "Enter at least an e-mail, a phone number or a name: the search ignores accents and case, and compares phone numbers on their digits only (+33 or 0). It queries every subscribed module and gathers the person's data, then that of their events (tasks, budget, quotes, invoices). If a module does not answer, the result is flagged as incomplete: run the search again before answering the person. Data from a guided trial never appears."
     }
   },
   "FirstSteps": {
@@ -1204,5 +1209,91 @@
       "default_vendor_slot": "Default budget item: {title}"
     },
     "importedFieldsTitle": "Imported fields"
+  },
+  "Privacy": {
+    "title": "Personal data",
+    "ownerOnly": "This module is reserved for the account holder.",
+    "searchIntro": "Search for a person by e-mail, phone or name (at least one): the app queries every module and gathers all their data, along with that of their events.",
+    "emailLabel": "E-mail",
+    "phoneLabel": "Phone",
+    "nameLabel": "Name",
+    "search": "Search",
+    "searching": "Searching…",
+    "termsMissing": "Enter an e-mail, a phone number (at least 6 digits) or a name.",
+    "termsInvalid": "One of the terms is too long.",
+    "resultsTitle": "{count, plural, =0 {No data found} one {# record found} other {# records found}}",
+    "incomplete": "Incomplete result: these modules did not answer. Run the search again before answering the person.",
+    "noData": "No data matches this person.",
+    "noDataIncomplete": "No data found in the modules that answered; the result is still incomplete.",
+    "directMatch": "(found by the search)",
+    "relatedMatch": "(linked to their event)",
+    "importedField": "{name} (imported field)",
+    "module": {
+      "events": "Events",
+      "budget": "Budget",
+      "quotes": "Quotes and invoices",
+      "hub": "Accounts and imports",
+      "hello": "Sample module"
+    },
+    "kind": {
+      "event": "Event",
+      "event_client": "Client",
+      "client_access": "Couple access",
+      "event_vendor_slot": "Budget item",
+      "task": "Task",
+      "program_item": "Programme",
+      "program_participant": "Participant",
+      "status_change": "Status change",
+      "quote_signer": "Signer",
+      "quote_line": "Quote line",
+      "invoice": "Invoice",
+      "credit_note": "Credit note",
+      "catalog_item": "Catalogue item",
+      "quote": "Quote",
+      "event_budget": "Budget",
+      "budget_line": "Budget line",
+      "budget_attachment": "Attached vendor quote",
+      "client_account": "Couple account",
+      "import_row": "Row of an import in progress",
+      "import_item": "Import record (undo)",
+      "greeting": "Message"
+    },
+    "field": {
+      "firstName": "First name",
+      "lastName": "Last name",
+      "email": "E-mail",
+      "vendorName": "Vendor",
+      "lossReasonNote": "Loss reason (free text)",
+      "internalNote": "Internal note",
+      "freeLabel": "Participant",
+      "description": "Description",
+      "name": "Name",
+      "billingAddress": "Billing address",
+      "buyer1Name": "Buyer 1",
+      "buyer1BillingAddress": "Buyer 1 address",
+      "buyer2Name": "Buyer 2",
+      "buyer2BillingAddress": "Buyer 2 address",
+      "status": "Status",
+      "eventDate": "Event date",
+      "venueName": "Venue",
+      "venueCity": "City",
+      "dueDate": "Due date",
+      "responsible": "Responsible",
+      "done": "Done",
+      "location": "Location",
+      "fromStatus": "Previous status",
+      "toStatus": "New status",
+      "changedAt": "Changed on",
+      "number": "Number",
+      "issuedOn": "Issued on",
+      "amountCents": "Amount (cents)",
+      "reason": "Reason",
+      "plannedAmountCents": "Planned (cents)",
+      "actualAmountCents": "Actual (cents)",
+      "totalAmountCents": "Total budget (cents)",
+      "mime": "File type",
+      "sizeBytes": "Size (bytes)",
+      "message": "Message"
+    }
   }
 }

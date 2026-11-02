@@ -29,6 +29,9 @@ import {
 } from "./repository";
 import type { Language } from "./types";
 
+// Lot 6 — contrat privacy/v1 du module (ADR 0023).
+export { hubPrivacy } from "./privacy";
+
 export {
   IMPORT_ENTITY_MODULE,
   IMPORT_ENTITY_TYPES,

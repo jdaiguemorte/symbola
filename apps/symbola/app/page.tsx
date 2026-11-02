@@ -108,6 +108,8 @@ export default async function HomePage() {
         {quotesAvailable ? <Link href="/devis/e-reporting">{t("eReporting")}</Link> : null}
         {/* Lot 5 : reprise de données, dès qu'un module reçoit des imports. */}
         {auth.user.organizationId && (eventsAvailable || budgetAvailable || quotesAvailable) ? <Link href="/import">{t("importData")}</Link> : null}
+        {/* Lot 6 : module RGPD, titulaire du compte seulement. */}
+        {auth.user.role === "owner" && auth.user.organizationId ? <Link href="/rgpd">{t("privacy")}</Link> : null}
         {auth.user.role === "admin" ? <Link href="/admin">{t("administration")}</Link> : null}
         <Link href="/aide">{tAide("link")}</Link>
       </nav>

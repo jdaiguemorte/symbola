@@ -1563,6 +1563,9 @@ export {
   undoImportedQuotesElements,
 } from "./import";
 
+// Lot 6 — contrat privacy/v1 du module (ADR 0023).
+export { quotesPrivacy } from "./privacy";
+
 const _contractCheck: QuotesServiceContract = {
   listCatalogItems,
   createCatalogItem,

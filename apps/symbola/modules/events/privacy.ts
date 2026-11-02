@@ -1,156 +1,206 @@
-// Implémentation du contrat privacy/v1 pour le module events (SOC-07).
-// Champs personnels du module : prénom/nom des clients (event_clients,
-// EVT-01/02/07) et nom du prestataire d'un poste (event_vendor_slots,
-// EVT-03 : un prestataire indépendant est une personne), intervenants
-// libres et notes internes du programme du jour J (EVT-05 : un officiant,
-// un témoin y sont nommés), e-mail d'invitation des mariés (EVT-06).
-import { and, ilike, or, sql as raw, type SQL, type SQLWrapper } from "drizzle-orm";
+// Implémentation du contrat privacy/v1 du module events (SOC-07, révisé au
+// lot 6 : ADR 0023). Champs personnels du module (privacy.registry.yaml) :
+// prénom/nom des clients, e-mail d'accès des mariés, nom du prestataire d'un
+// poste (un indépendant est une personne), intervenants libres et notes
+// internes du programme, motif de perte en texte libre, champs libres
+// importés (événement, tâche, poste). Les données d'un essai guidé (ADR 0008)
+// ne sont jamais trouvées.
+import { asc, eq, inArray } from "drizzle-orm";
 import { createAppConnection } from "@symbola/db/client";
 import {
   eventClientAccesses,
   eventClients,
   events,
+  eventStatusHistory,
+  eventTasks,
   eventVendorSlots,
   programItemParticipants,
   programItems,
 } from "@symbola/db/schema/events";
 import { withOrganization } from "@symbola/db/with-organization";
-import type { PersonQuery, PrivacyContractV1 } from "@symbola/privacy";
+import { hasTerms, prepareTerms, recordMatches, type PrivacyContractV1, type PrivacyRecord } from "@symbola/privacy";
 
+const MODULE = "events";
 
 function fullName(firstName: string, lastName: string | null): string {
   return lastName ? `${firstName} ${lastName}` : firstName;
 }
 
-// AIDE-02, ADR 0008 : les données d'un essai guidé (événement is_demo) sont
-// fictives et n'entrent jamais dans une recherche RGPD.
-function notDemo(eventId: SQLWrapper): SQL {
-  return raw`${eventId} not in (select ${events.id} from ${events} where ${events.isDemo})`;
+function importedValues(fields: Record<string, string> | null): string[] {
+  return Object.entries(fields ?? {}).map(([name, value]) => `${name} ${value}`);
 }
 
-function clientMatch(term: string) {
-  return and(or(ilike(eventClients.firstName, term), ilike(eventClients.lastName, term)), notDemo(eventClients.eventId));
+function importedFieldsOf(fields: Record<string, string> | null): Record<string, string> {
+  return Object.fromEntries(Object.entries(fields ?? {}).map(([name, value]) => [`imported:${name}`, value]));
 }
 
-function vendorMatch(term: string) {
-  return and(ilike(eventVendorSlots.vendorName, term), notDemo(eventVendorSlots.eventId));
+function compact(fields: Record<string, string | null | undefined>): Record<string, string> {
+  return Object.fromEntries(Object.entries(fields).filter((entry): entry is [string, string] => typeof entry[1] === "string" && entry[1] !== ""));
 }
 
-function participantMatch(term: string) {
-  return and(
-    ilike(programItemParticipants.freeLabel, term),
-    raw`${programItemParticipants.programItemId} in (select ${programItems.id} from ${programItems} where ${notDemo(programItems.eventId)})`,
-  );
-}
-
-function accessMatch(term: string) {
-  return and(ilike(eventClientAccesses.email, term), notDemo(eventClientAccesses.eventId));
-}
-
-function noteMatch(term: string) {
-  return and(ilike(programItems.internalNote, term), notDemo(programItems.eventId));
-}
-
-async function find(query: PersonQuery) {
+async function inOrganization<T>(organizationId: string, fn: (tx: Parameters<Parameters<typeof withOrganization>[2]>[0]) => Promise<T>): Promise<T> {
   const { sql, db } = createAppConnection();
   try {
-    const term = `%${query.term}%`;
-    return await withOrganization(db, query.organizationId, async (tx) => {
-      const clients = await tx.select().from(eventClients).where(clientMatch(term));
-      const vendors = await tx.select().from(eventVendorSlots).where(vendorMatch(term));
-      const participants = await tx.select().from(programItemParticipants).where(participantMatch(term));
-      const notes = await tx.select().from(programItems).where(noteMatch(term));
-      const accesses = await tx.select().from(eventClientAccesses).where(accessMatch(term));
-      return [
-        ...clients.map((row) => ({ recordId: row.id, summary: fullName(row.firstName, row.lastName) })),
-        ...vendors.map((row) => ({ recordId: row.id, summary: `${row.vendorName ?? ""} (${row.label})` })),
-        ...participants.map((row) => ({ recordId: row.id, summary: row.freeLabel ?? "" })),
-        ...notes.map((row) => ({ recordId: row.id, summary: `${row.label} : ${row.internalNote ?? ""}` })),
-        ...accesses.map((row) => ({ recordId: row.id, summary: row.email })),
-      ];
-    });
+    return await withOrganization(db, organizationId, fn);
   } finally {
     await sql.end();
   }
 }
 
+// Volumes d'une organisation (une planner : quelques centaines d'événements)
+// : les champs personnels sont lus puis comparés ici, sans tenir compte des
+// accents — ce que ILIKE ne sait pas faire sans extension.
 export const eventsPrivacy: PrivacyContractV1 = {
-  find,
+  module: MODULE,
 
-  async export(query) {
-    return { module: "events", records: await find(query) };
+  async find({ organizationId, terms: rawTerms }) {
+    const terms = prepareTerms(rawTerms);
+    if (!hasTerms(terms)) return [];
+    return inOrganization(organizationId, async (tx) => {
+      const realEvents = await tx.select().from(events).where(eq(events.isDemo, false));
+      const eventIds = realEvents.map((event) => event.id);
+      if (eventIds.length === 0) return [];
+      const records: PrivacyRecord[] = [];
+
+      for (const event of realEvents) {
+        if (recordMatches([event.lossReasonNote, ...importedValues(event.importedFields)], terms)) {
+          records.push({
+            module: MODULE,
+            kind: "event",
+            recordId: event.id,
+            label: event.eventDate ?? "",
+            fields: compact({ lossReasonNote: event.lossReasonNote, ...importedFieldsOf(event.importedFields) }),
+            eventId: event.id,
+          });
+        }
+      }
+      for (const client of await tx.select().from(eventClients).where(inArray(eventClients.eventId, eventIds))) {
+        if (recordMatches([client.firstName, client.lastName], terms)) {
+          records.push({
+            module: MODULE,
+            kind: "event_client",
+            recordId: client.id,
+            label: fullName(client.firstName, client.lastName),
+            fields: compact({ firstName: client.firstName, lastName: client.lastName }),
+            eventId: client.eventId,
+          });
+        }
+      }
+      for (const access of await tx.select().from(eventClientAccesses).where(inArray(eventClientAccesses.eventId, eventIds))) {
+        if (recordMatches([access.email], terms)) {
+          records.push({ module: MODULE, kind: "client_access", recordId: access.id, label: access.email, fields: { email: access.email }, eventId: access.eventId });
+        }
+      }
+      for (const slot of await tx.select().from(eventVendorSlots).where(inArray(eventVendorSlots.eventId, eventIds))) {
+        if (recordMatches([slot.vendorName, ...importedValues(slot.importedFields)], terms)) {
+          records.push({
+            module: MODULE,
+            kind: "event_vendor_slot",
+            recordId: slot.id,
+            label: slot.vendorName ? `${slot.label} — ${slot.vendorName}` : slot.label,
+            fields: compact({ vendorName: slot.vendorName, ...importedFieldsOf(slot.importedFields) }),
+            eventId: slot.eventId,
+          });
+        }
+      }
+      for (const task of await tx.select().from(eventTasks).where(inArray(eventTasks.eventId, eventIds))) {
+        if (recordMatches(importedValues(task.importedFields), terms)) {
+          records.push({ module: MODULE, kind: "task", recordId: task.id, label: task.label, fields: importedFieldsOf(task.importedFields), eventId: task.eventId });
+        }
+      }
+      const items = await tx.select().from(programItems).where(inArray(programItems.eventId, eventIds));
+      for (const item of items) {
+        if (recordMatches([item.internalNote], terms)) {
+          records.push({ module: MODULE, kind: "program_item", recordId: item.id, label: item.label, fields: compact({ internalNote: item.internalNote }), eventId: item.eventId });
+        }
+      }
+      const itemEvent = new Map(items.map((item) => [item.id, item]));
+      if (items.length > 0) {
+        for (const participant of await tx.select().from(programItemParticipants).where(inArray(programItemParticipants.programItemId, [...itemEvent.keys()]))) {
+          if (recordMatches([participant.freeLabel], terms)) {
+            const item = itemEvent.get(participant.programItemId);
+            records.push({
+              module: MODULE,
+              kind: "program_participant",
+              recordId: participant.id,
+              label: `${item?.label ?? ""} — ${participant.freeLabel ?? ""}`,
+              fields: compact({ freeLabel: participant.freeLabel }),
+              eventId: item?.eventId ?? null,
+            });
+          }
+        }
+      }
+      return records;
+    });
   },
 
-  async anonymize(query) {
-    const { sql, db } = createAppConnection();
-    try {
-      const term = `%${query.term}%`;
-      const affected = await withOrganization(db, query.organizationId, async (tx) => {
-        const clients = await tx
-          .update(eventClients)
-          .set({ firstName: "[anonymisé]", lastName: null })
-          .where(clientMatch(term))
-          .returning({ id: eventClients.id });
-        const vendors = await tx
-          .update(eventVendorSlots)
-          .set({ vendorName: "[anonymisé]" })
-          .where(vendorMatch(term))
-          .returning({ id: eventVendorSlots.id });
-        const participants = await tx
-          .update(programItemParticipants)
-          .set({ freeLabel: "[anonymisé]" })
-          .where(participantMatch(term))
-          .returning({ id: programItemParticipants.id });
-        const notes = await tx
-          .update(programItems)
-          .set({ internalNote: "[anonymisé]" })
-          .where(noteMatch(term))
-          .returning({ id: programItems.id });
-        // Un accès anonymisé est aussi retiré : l'e-mail ne permet plus d'inviter ni d'entrer.
-        const accesses = await tx
-          .update(eventClientAccesses)
-          .set({ email: "[anonymisé]", tokenHash: null, revokedAt: new Date() })
-          .where(accessMatch(term))
-          .returning({ id: eventClientAccesses.id });
-        return clients.length + vendors.length + participants.length + notes.length + accesses.length;
-      });
-      return { affected };
-    } finally {
-      await sql.end();
-    }
-  },
-
-  async erase(query) {
-    const { sql, db } = createAppConnection();
-    try {
-      const term = `%${query.term}%`;
-      const affected = await withOrganization(db, query.organizationId, async (tx) => {
-        const clients = await tx.delete(eventClients).where(clientMatch(term)).returning({ id: eventClients.id });
-        // Le poste appartient à l'événement : seul le nom du prestataire est effacé.
-        const vendors = await tx
-          .update(eventVendorSlots)
-          .set({ vendorName: null })
-          .where(vendorMatch(term))
-          .returning({ id: eventVendorSlots.id });
-        // La ligne du programme reste : seuls l'intervenant libre et la note sont effacés.
-        const participants = await tx
-          .delete(programItemParticipants)
-          .where(participantMatch(term))
-          .returning({ id: programItemParticipants.id });
-        const notes = await tx
-          .update(programItems)
-          .set({ internalNote: null })
-          .where(noteMatch(term))
-          .returning({ id: programItems.id });
-        const accesses = await tx
-          .delete(eventClientAccesses)
-          .where(accessMatch(term))
-          .returning({ id: eventClientAccesses.id });
-        return clients.length + vendors.length + participants.length + notes.length + accesses.length;
-      });
-      return { affected };
-    } finally {
-      await sql.end();
-    }
+  // Données d'un événement de la personne : la fiche, ses tâches, postes,
+  // programme, accès et historique de statut.
+  async related({ organizationId, eventIds }) {
+    if (eventIds.length === 0) return [];
+    return inOrganization(organizationId, async (tx) => {
+      const realEvents = await tx.select().from(events).where(inArray(events.id, eventIds));
+      const ids = realEvents.filter((event) => !event.isDemo).map((event) => event.id);
+      if (ids.length === 0) return [];
+      const records: PrivacyRecord[] = [];
+      const clientsByEvent = new Map<string, string[]>();
+      for (const client of await tx.select().from(eventClients).where(inArray(eventClients.eventId, ids)).orderBy(asc(eventClients.position))) {
+        clientsByEvent.set(client.eventId, [...(clientsByEvent.get(client.eventId) ?? []), fullName(client.firstName, client.lastName)]);
+      }
+      for (const event of realEvents.filter((candidate) => ids.includes(candidate.id))) {
+        records.push({
+          module: MODULE,
+          kind: "event",
+          recordId: event.id,
+          label: [(clientsByEvent.get(event.id) ?? []).join(" & "), event.eventDate].filter(Boolean).join(", "),
+          fields: compact({
+            status: event.status,
+            eventDate: event.eventDate,
+            venueName: event.venueName,
+            venueCity: event.venueCity,
+            lossReasonNote: event.lossReasonNote,
+            ...importedFieldsOf(event.importedFields),
+          }),
+          eventId: event.id,
+        });
+      }
+      for (const task of await tx.select().from(eventTasks).where(inArray(eventTasks.eventId, ids)).orderBy(asc(eventTasks.dueDate))) {
+        records.push({
+          module: MODULE,
+          kind: "task",
+          recordId: task.id,
+          label: task.label,
+          fields: compact({ dueDate: task.dueDate, responsible: task.responsible, done: task.doneAt ? "true" : "false", ...importedFieldsOf(task.importedFields) }),
+          eventId: task.eventId,
+        });
+      }
+      for (const slot of await tx.select().from(eventVendorSlots).where(inArray(eventVendorSlots.eventId, ids)).orderBy(asc(eventVendorSlots.position))) {
+        records.push({
+          module: MODULE,
+          kind: "event_vendor_slot",
+          recordId: slot.id,
+          label: slot.label,
+          fields: compact({ status: slot.status, vendorName: slot.vendorName, ...importedFieldsOf(slot.importedFields) }),
+          eventId: slot.eventId,
+        });
+      }
+      for (const item of await tx.select().from(programItems).where(inArray(programItems.eventId, ids))) {
+        records.push({ module: MODULE, kind: "program_item", recordId: item.id, label: item.label, fields: compact({ location: item.location, internalNote: item.internalNote }), eventId: item.eventId });
+      }
+      for (const access of await tx.select().from(eventClientAccesses).where(inArray(eventClientAccesses.eventId, ids))) {
+        records.push({ module: MODULE, kind: "client_access", recordId: access.id, label: access.email, fields: { email: access.email }, eventId: access.eventId });
+      }
+      for (const change of await tx.select().from(eventStatusHistory).where(inArray(eventStatusHistory.eventId, ids)).orderBy(asc(eventStatusHistory.changedAt))) {
+        records.push({
+          module: MODULE,
+          kind: "status_change",
+          recordId: change.id,
+          label: change.toStatus,
+          fields: compact({ fromStatus: change.fromStatus, toStatus: change.toStatus, changedAt: change.changedAt.toISOString() }),
+          eventId: change.eventId,
+        });
+      }
+      return records;
+    });
   },
 };

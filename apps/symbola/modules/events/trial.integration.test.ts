@@ -107,8 +107,8 @@ describe("AIDE-02 — Essai guidé avec données de test (module événements)",
     });
 
     expect(await hasRealEvents(organizationId)).toBe(false);
-    expect(await eventsPrivacy.find({ organizationId, term: "Camille" })).toEqual([]);
-    expect(await eventsPrivacy.find({ organizationId, term: "Prestataire Démo" })).toEqual([]);
+    expect(await eventsPrivacy.find({ organizationId, terms: { name: "Camille" } })).toEqual([]);
+    expect(await eventsPrivacy.find({ organizationId, terms: { name: "Prestataire Démo" } })).toEqual([]);
     expect(await remainingRows(organizationId, trial.eventId)).toBeGreaterThan(0);
     const published = await withOrganization(db, organizationId, (tx) =>
       tx.select().from(domainEvents).where(eq(domainEvents.organizationId, organizationId)),
