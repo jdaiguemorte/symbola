@@ -177,3 +177,6 @@ en place depuis le lot 0.
 Parcours de recette sur le staging avec la planner (import réel de Wedding Plan, puis chaque
 module), checklist dans `docs/runbooks/recette-mvp.md`, puis bascule en production : **actions de
 Julien** (CLAUDE.md §8).
+
+*Checklist rédigée* : [`docs/runbooks/recette-mvp.md`](../runbooks/recette-mvp.md) — préparation du
+staging, parcours par module (ordinateur et téléphone), critères de bascule, bascule et suivi.
