@@ -12,8 +12,9 @@ fields:
       voir RGPD-03/RGPD-05 (purge selon les règles de conservation du
       cahier des charges).
     anonymization: >-
-      Remplacé par une valeur générée non réversible lors d'une demande
-      d'oubli (RGPD-03).
+      Compte d'accès d'un marié : supprimé, avec ses sessions, lors d'une demande
+      d'oubli (RGPD-03, décision de Julien du 02/11/2026). Les comptes de l'équipe
+      de la planner ne relèvent pas de ce traitement.
   - schema: hub
     table: organization_profiles
     field: address
@@ -187,9 +188,8 @@ fields:
       EVT-05 : officiant, témoin…). Après suppression ou demande d'oubli :
       voir RGPD-03/RGPD-05.
     anonymization: >-
-      Remplacé par « [anonymisé] » lors d'une demande d'oubli (RGPD-03) ;
-      l'intervenant est supprimé lors d'un effacement, la ligne du programme
-      restant attachée à l'événement.
+      L'intervenant est supprimé lors d'une demande d'oubli qui le vise (RGPD-03),
+      comme lors d'un effacement.
   - schema: events
     table: program_items
     field: internal_note
@@ -199,8 +199,8 @@ fields:
       EVT-05, jamais montrée aux mariés). Après suppression ou demande
       d'oubli : voir RGPD-03/RGPD-05.
     anonymization: >-
-      Remplacée par « [anonymisé] » lors d'une demande d'oubli (RGPD-03) ;
-      mise à nul lors d'un effacement.
+      La ligne du programme est supprimée lors d'une demande d'oubli qui la vise
+      (RGPD-03) ; texte libre, sans intérêt statistique.
   - schema: events
     table: event_client_accesses
     field: email
@@ -211,9 +211,8 @@ fields:
       compte du marié lui-même relève de hub.users. Après suppression ou
       demande d'oubli : voir RGPD-03/RGPD-05.
     anonymization: >-
-      Remplacé par « [anonymisé] » lors d'une demande d'oubli (RGPD-03),
-      l'accès étant retiré en même temps ; la ligne d'accès est supprimée
-      lors d'un effacement.
+      La ligne d'accès est supprimée lors d'une demande d'oubli (RGPD-03) ; le
+      compte du marié est supprimé par le hub.
   - schema: budget
     table: budget_line_attachments
     field: file_key
@@ -236,8 +235,9 @@ fields:
       peut nommer un marié ou un prestataire). Un devis envoyé est figé ;
       après suppression ou demande d'oubli : voir RGPD-03/RGPD-05.
     anonymization: >-
-      Remplacé par « [anonymisé] » lors d'une demande d'oubli (RGPD-03) ;
-      les montants, l'intitulé et la numérotation restent.
+      Remplacé par « [anonymisé] » lors d'une demande d'oubli (RGPD-03), sauf sur un
+      devis signé (preuve du contrat) ; les montants, l'intitulé et la numérotation
+      restent.
   - schema: quotes
     table: quote_versions
     field: seller_snapshot
@@ -260,7 +260,9 @@ fields:
       figée avec la version envoyée en signature). Voir RGPD-03/RGPD-05 ; un
       devis signé lié à une facture suit la conservation légale de celle-ci.
     anonymization: >-
-      Remplacé par « [anonymisé] » lors d'une demande d'oubli (RGPD-03).
+      Remplacé par « [anonymisé] » lors d'une demande d'oubli (RGPD-03), sauf sur un
+      devis signé, conservé comme preuve du contrat (5 ans par défaut, réglage de
+      l'organisation) puis anonymisé par la purge (RGPD-05).
   - schema: quotes
     table: quote_signers
     field: email
@@ -269,8 +271,8 @@ fields:
       Tant que le devis existe (DEV-02 : adresse à laquelle Symbola envoie le
       lien de signature). Voir RGPD-03/RGPD-05.
     anonymization: >-
-      Remplacé par une valeur générée non réversible lors d'une demande
-      d'oubli (RGPD-03).
+      Remplacé par une valeur générée non réversible lors d'une demande d'oubli
+      (RGPD-03), sauf sur un devis signé (preuve du contrat, même durée).
   - schema: quotes
     table: quote_signers
     field: billing_address
@@ -280,8 +282,9 @@ fields:
       les factures, DEV-04). Voir RGPD-03/RGPD-05 ; conservation légale des
       factures émises.
     anonymization: >-
-      Remplacée par « [anonymisé] » lors d'une demande d'oubli (RGPD-03),
-      sauf sur une facture émise (conservation légale).
+      Remplacée par « [anonymisé] » lors d'une demande d'oubli (RGPD-03), sauf sur
+      un devis signé (preuve du contrat) ; jamais modifiée sur une facture émise
+      (conservation légale).
   - schema: quotes
     table: quote_signers
     field: signing_url
