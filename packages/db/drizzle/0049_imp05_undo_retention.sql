@@ -1,0 +1,1 @@
+ALTER TABLE "hub"."platform_settings" ADD COLUMN "import_undo_retention_days" integer DEFAULT 90 NOT NULL;

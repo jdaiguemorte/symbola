@@ -143,3 +143,12 @@ export {
   type ImportFieldDefinition,
   type ImportFieldKind,
 } from "./import/fields";
+export type {
+  ImportApplyResult,
+  ImportApplyRow,
+  ImportCellValue,
+  ImportedItem,
+  ImportUndoItem,
+  ImportUndoOutcome,
+} from "./import/apply";
+export { sameImportValue } from "./import/compare";

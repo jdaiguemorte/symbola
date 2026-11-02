@@ -47,7 +47,16 @@ d'autres outils. Deux questions structurantes (tranchées avec Julien le 27/10/2
    d'import de chaque `service.ts` concerné ; à l'annulation, leurs fonctions de relecture et
    d'annulation. Le hub ne voit que des identifiants opaques et des valeurs renvoyées par les
    services.
-4. **Champs libres** : chaque module porte une colonne `imported_fields` (jsonb, clé → texte)
+4. **Écriture et annulation (IMP-05)** : chaque module écrit son lot en une transaction et
+   renvoie, par élément, ses valeurs précédentes et écrites (contrat
+   `packages/contracts/src/import/apply.ts`), journalisées par le hub dans `hub.import_items`.
+   Un import qui touche deux modules (lignes de budget : poste puis montants) s'écrit en deux
+   transactions, la seconde compensée par l'annulation de la première en cas d'échec ; de même,
+   si le journal ne peut pas être écrit, les écritures des modules sont annulées. Une annulation
+   compare les valeurs actuelles aux valeurs écrites pour signaler un élément modifié à la main
+   depuis. L'orchestration entre modules vit dans `apps/symbola/lib/import/`, comme la purge des
+   essais : le hub ne dépend d'aucun autre module.
+5. **Champs libres** : chaque module porte une colonne `imported_fields` (jsonb, clé → texte)
    sur ses éléments importables, affichée en lecture seule sur la fiche ; déclarée dans
    `privacy.registry.yaml`.
 

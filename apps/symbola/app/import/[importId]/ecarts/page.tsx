@@ -88,7 +88,9 @@ export default async function ImportGapsPage({ params }: { params: Promise<{ imp
         )}
       </section>
 
-      <p>{t("nextStepsComing")}</p>
+      <p>
+        <Link href={`/import/${view.importId}/confirmation`}>{t("continueToConfirmation")}</Link>
+      </p>
       <p>
         <Link href={`/import/${view.importId}`}>{t("backToDraft")}</Link>
       </p>

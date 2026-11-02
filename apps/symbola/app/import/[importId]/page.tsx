@@ -159,6 +159,15 @@ export default async function ImportDraftPage({ params }: { params: Promise<{ im
         </section>
       ) : null}
 
+      {gapsDone ? (
+        <section aria-labelledby="import-confirmation">
+          <h2 id="import-confirmation">{t("confirmStepTitle")}</h2>
+          <p>
+            <Link href={`/import/${draft.id}/confirmation`}>{t("continueToConfirmation")}</Link>
+          </p>
+        </section>
+      ) : null}
+
       <form action={cancelImportAction}>
         <input type="hidden" name="importId" value={draft.id} />
         <button type="submit">{t("cancelImport")}</button>

@@ -66,7 +66,13 @@ export default async function ImportPage() {
                 <tr key={entry.id}>
                   <td>{formatDateTime(entry.createdAt, locale)}</td>
                   <td>
-                    {entry.status === "draft" ? <Link href={`/import/${entry.id}`}>{entry.fileName}</Link> : entry.fileName}
+                    {entry.status === "draft" ? (
+                      <Link href={`/import/${entry.id}`}>{entry.fileName}</Link>
+                    ) : entry.status === "applied" || entry.status === "undone" ? (
+                      <Link href={`/import/${entry.id}/journal`}>{entry.fileName}</Link>
+                    ) : (
+                      entry.fileName
+                    )}
                   </td>
                   <td>{t(`entityType.${entry.entityType}`)}</td>
                   <td>{entry.rowCount}</td>

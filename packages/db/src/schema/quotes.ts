@@ -63,6 +63,9 @@ export const catalogItems = quotesSchema.table("catalog_items", {
   unitPriceCents: integer("unit_price_cents").notNull(),
   vatRateBasisPoints: integer("vat_rate_basis_points").notNull(),
   category: text("category"),
+  // Lot 5 (IMP-04/IMP-05) : colonnes d'un fichier importé gardées en champ
+  // libre (intitulé → texte), affichées en lecture seule sur la fiche.
+  importedFields: jsonb("imported_fields").$type<Record<string, string> | null>(),
   archivedAt: timestamp("archived_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });

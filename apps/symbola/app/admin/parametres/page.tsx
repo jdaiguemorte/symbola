@@ -28,6 +28,7 @@ export default async function AdminSettingsPage() {
         importMaxMegabytes={Math.round(settings.importMaxBytes / (1024 * 1024))}
         importMaxRows={settings.importMaxRows}
         importDraftRetentionDays={settings.importDraftRetentionDays}
+        importUndoRetentionDays={settings.importUndoRetentionDays}
       />
     </main>
   );

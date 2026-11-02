@@ -347,6 +347,7 @@ function toCatalogItem(row: CatalogItemRow): CatalogItem {
     vatRateBasisPoints: row.vatRateBasisPoints,
     category: row.category,
     archived: row.archivedAt !== null,
+    ...(row.importedFields ? { importedFields: row.importedFields } : {}),
   };
 }
 
@@ -1553,6 +1554,14 @@ export async function startQuotesTrial(input: StartQuotesTrialInput): Promise<Qu
   }
   return loadDetail(input.organizationId, quote.id);
 }
+
+// IMP-05 — fonctions d'import (lot 5, ADR 0022).
+export {
+  findModifiedImportedQuotesElements,
+  importCatalogItemRows,
+  importPaymentMethodRows,
+  undoImportedQuotesElements,
+} from "./import";
 
 const _contractCheck: QuotesServiceContract = {
   listCatalogItems,

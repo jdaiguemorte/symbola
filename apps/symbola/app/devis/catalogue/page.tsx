@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { ImportedFields } from "../../imported-fields";
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatAmount, type Locale } from "@symbola/i18n";
 import { createAppConnection } from "@symbola/db/client";
@@ -71,6 +72,7 @@ export default async function QuoteCatalogPage() {
               {t("vatRateValue", { rate: formatRate(item.vatRateBasisPoints, locale) })}
             </p>
             {item.description ? <p>{item.description}</p> : null}
+            <ImportedFields fields={item.importedFields} compact />
             <details>
               <summary>{t("editItemNamed", { label: item.label })}</summary>
               <CatalogItemForm item={item} defaultVatRateBasisPoints={defaultRate} />

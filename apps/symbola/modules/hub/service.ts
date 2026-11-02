@@ -34,6 +34,10 @@ export {
   IMPORT_ENTITY_TYPES,
   cancelImport,
   decideFreeColumns,
+  getAppliedImport,
+  purgeExpiredImportUndoValues,
+  recordAppliedImport,
+  recordImportUndo,
   decideImportMatches,
   getImportColumns,
   getImportDraft,
@@ -46,7 +50,11 @@ export {
   saveImportMatching,
   setManualImportMatch,
   startImport,
+  type AppliedImportItem,
+  type AppliedImportView,
   type ColumnChoiceInput,
+  type ImportResult,
+  type RecordedItem,
   type FreeColumnDecision,
   type ImportColumnChoice,
   type ImportColumnView,
@@ -302,6 +310,7 @@ export type PlatformSettings = {
   importMaxBytes: number;
   importMaxRows: number;
   importDraftRetentionDays: number;
+  importUndoRetentionDays: number;
 };
 
 // ONB-02 — « Le seuil de chiffre d'affaires de la franchise est un
@@ -322,6 +331,7 @@ export async function getPlatformSettings(db: AppDatabase): Promise<PlatformSett
     importMaxBytes: row.importMaxBytes,
     importMaxRows: row.importMaxRows,
     importDraftRetentionDays: row.importDraftRetentionDays,
+    importUndoRetentionDays: row.importUndoRetentionDays,
   };
 }
 
@@ -330,7 +340,7 @@ export async function getPlatformSettings(db: AppDatabase): Promise<PlatformSett
 export async function setPlatformSettings(
   db: AppDatabase,
   input: { adminUserId: string } & Pick<PlatformSettings, "franchiseThresholdServicesCents" | "franchiseThresholdGoodsCents"> &
-    Partial<Pick<PlatformSettings, "importMaxBytes" | "importMaxRows" | "importDraftRetentionDays">>,
+    Partial<Pick<PlatformSettings, "importMaxBytes" | "importMaxRows" | "importDraftRetentionDays" | "importUndoRetentionDays">>,
 ): Promise<void> {
   await upsertPlatformSettings(db, {
     franchiseThresholdServicesCents: input.franchiseThresholdServicesCents,
@@ -338,6 +348,7 @@ export async function setPlatformSettings(
     ...(input.importMaxBytes !== undefined ? { importMaxBytes: input.importMaxBytes } : {}),
     ...(input.importMaxRows !== undefined ? { importMaxRows: input.importMaxRows } : {}),
     ...(input.importDraftRetentionDays !== undefined ? { importDraftRetentionDays: input.importDraftRetentionDays } : {}),
+    ...(input.importUndoRetentionDays !== undefined ? { importUndoRetentionDays: input.importUndoRetentionDays } : {}),
   });
   await insertAuditLog(db, {
     adminUserId: input.adminUserId,

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ImportedFields } from "../../imported-fields";
 import { notFound, redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatAmount, formatCalendarDate, formatDateTime, formatMonth, type Locale } from "@symbola/i18n";
@@ -221,6 +222,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
 
       <ChangeStatusForm eventId={event.id} currentStatus={event.status} reasons={reasons} />
 
+      <ImportedFields fields={event.importedFields} />
       <h2>{t("vendorSlotsTitle")}</h2>
       {vendorSlots.length === 0 ? <p>{t("noVendorSlots")}</p> : null}
       <ul>
@@ -231,7 +233,8 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
               {t(VENDOR_STATUS_LABEL_KEYS[slot.status])}
             </span>
             {slot.status === "booked" && slot.vendorName ? ` — ${slot.vendorName}` : ""}
-            {slot.status === "booked" && slot.amountCents !== null ? ` — ${formatAmount(slot.amountCents, locale)}` : ""}
+            {slot.status === "booked" && slot.amountCents !== null ? ` — ${formatAmount(slot.amountCents, locale)}` : ""}{" "}
+            <ImportedFields fields={slot.importedFields} compact />
             <VendorSlotForm eventId={event.id} slot={slot} />
             <form action={removeVendorSlotAction}>
               <input type="hidden" name="eventId" value={event.id} />
@@ -289,7 +292,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
                 {formatCalendarDate(task.dueDate, locale)}
                 {" — "}
                 {t(RESPONSIBLE_LABEL_KEYS[task.responsible])}
-                {task.done ? ` — ${t("taskDone")}` : ""}
+                {task.done ? ` — ${t("taskDone")}` : ""} <ImportedFields fields={task.importedFields} compact />
                 <form action={toggleEventTaskAction}>
                   <input type="hidden" name="eventId" value={event.id} />
                   <input type="hidden" name="taskId" value={task.id} />

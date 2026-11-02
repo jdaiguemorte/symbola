@@ -12,7 +12,7 @@ import { afterAll, describe, expect, it } from "vitest";
 import { createAppConnection } from "./client";
 import { budgetLineAttachments, budgetLines } from "./schema/budget";
 import { greetings } from "./schema/hello";
-import { imports } from "./schema/hub";
+import { importItems, imports } from "./schema/hub";
 import {
   catalogItems,
   creditNotes,
@@ -292,28 +292,43 @@ describe("HUB-03 — L'Admin ne lit jamais de donnée métier", () => {
     }
   });
 
-  it("vaut aussi pour les imports en cours du hub (IMP-01, PostgreSQL réel)", async () => {
+  it("vaut aussi pour les imports du hub et leur journal (IMP-01, IMP-05, PostgreSQL réel)", async () => {
     const organizationId = randomUUID();
-    await withOrganization(db, organizationId, (tx) =>
-      tx.insert(imports).values({
+    await withOrganization(db, organizationId, async (tx) => {
+      const [parent] = await tx
+        .insert(imports)
+        .values({
+          organizationId,
+          createdByUserId: randomUUID(),
+          entityType: "events",
+          fileName: "mariages.csv",
+          fileFormat: "csv",
+          fileSizeBytes: 42,
+          headerRowIndex: 0,
+          headers: ["Prénom"],
+          rows: [["Élodie"]],
+          rowCount: 1,
+          expiresAt: new Date(Date.now() + 86_400_000),
+        })
+        .returning();
+      await tx.insert(importItems).values({
         organizationId,
-        createdByUserId: randomUUID(),
-        entityType: "events",
-        fileName: "mariages.csv",
-        fileFormat: "csv",
-        fileSizeBytes: 42,
-        headerRowIndex: 0,
-        headers: ["Prénom"],
-        rows: [["Élodie"]],
-        rowCount: 1,
-        expiresAt: new Date(Date.now() + 86_400_000),
-      }),
-    );
-    try {
-      const rows = await db.select().from(imports);
-      expect(rows).toHaveLength(0);
-    } catch (error) {
-      expect(error).toBeTruthy();
+        importId: parent!.id,
+        position: 0,
+        module: "events",
+        kind: "event",
+        elementId: randomUUID(),
+        action: "created",
+        written: { clients: [{ firstName: "Élodie", lastName: null }] },
+      });
+    });
+    for (const table of [imports, importItems]) {
+      try {
+        const rows = await db.select().from(table);
+        expect(rows).toHaveLength(0);
+      } catch (error) {
+        expect(error).toBeTruthy();
+      }
     }
   });
 });
