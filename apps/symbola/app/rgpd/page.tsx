@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { HelpButton } from "@symbola/ui";
@@ -27,6 +28,9 @@ export default async function PrivacyPage() {
     <main>
       <h1>{t("title")}</h1>
       <HelpButton title={tHelp("privacySearch.title")} body={tHelp("privacySearch.body")} />
+      <p>
+        <Link href="/rgpd/demandes">{t("requestsLink")}</Link> · <Link href="/rgpd/reglages">{t("settingsLink")}</Link>
+      </p>
       <SearchForm />
     </main>
   );

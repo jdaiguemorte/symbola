@@ -308,3 +308,46 @@ export const importItems = hubSchema.table("import_items", {
   undoOutcome: text("undo_outcome").$type<"undone" | "kept_modified" | "kept_in_use" | "missing" | null>(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
+
+// Lot 6 (RGPD-04) — demandes d'exercice de droits reçues par la titulaire :
+// type, personne concernée (libellé saisi), réception, échéance légale
+// (un mois, trois une fois prolongée avec un motif), statut. Données métier
+// d'une organisation : RLS forcée.
+export const privacyRequestTypeEnum = hubSchema.enum("privacy_request_type", [
+  "access",
+  "rectification",
+  "erasure",
+  "portability",
+  "objection",
+]);
+
+export const privacyRequestStatusEnum = hubSchema.enum("privacy_request_status", ["open", "extended", "closed"]);
+
+export const privacyRequests = hubSchema.table("privacy_requests", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  type: privacyRequestTypeEnum("type").notNull(),
+  personLabel: text("person_label").notNull(),
+  receivedOn: date("received_on").notNull(),
+  dueOn: date("due_on").notNull(),
+  status: privacyRequestStatusEnum("status").notNull().default("open"),
+  extensionReason: text("extension_reason"),
+  extendedAt: timestamp("extended_at", { withTimezone: true }),
+  closedAt: timestamp("closed_at", { withTimezone: true }),
+  createdByUserId: uuid("created_by_user_id").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+// Lot 6 (RGPD-04/05) — réglages RGPD d'une organisation, chargés depuis le
+// modèle de départ (packages/starter-templates) à la première lecture, puis
+// modifiables par la titulaire (CLAUDE.md §2.5).
+export const privacySettings = hubSchema.table("privacy_settings", {
+  organizationId: uuid("organization_id").primaryKey(),
+  requestAlertDays: integer("request_alert_days").notNull(),
+  prospectRetentionMonths: integer("prospect_retention_months").notNull(),
+  clientRetentionMonths: integer("client_retention_months").notNull(),
+  accountingRetentionMonths: integer("accounting_retention_months").notNull(),
+  inactiveAccountMonths: integer("inactive_account_months").notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});

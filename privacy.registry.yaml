@@ -128,6 +128,26 @@ fields:
       l'article existe.
     anonymization: >-
       Effacés (null) lors d'une demande d'oubli (RGPD-03) qui les viserait.
+  - schema: hub
+    table: privacy_requests
+    field: person_label
+    category: identifiant
+    retention: >-
+      Lot 6 (RGPD-04) : personne concernée par une demande d'exercice de droits
+      (libellé saisi par la titulaire). Gardé avec la demande, comme preuve de
+      son traitement, pendant la prescription applicable (cahier des charges
+      § 6, référentiel CNIL).
+    anonymization: >-
+      Remplacé par « [anonymisé] » à la fin de la conservation de la preuve.
+  - schema: hub
+    table: privacy_requests
+    field: extension_reason
+    category: contenu_libre
+    retention: >-
+      Lot 6 (RGPD-04) : motif de prolongation d'une demande complexe, gardé
+      avec la demande pendant la même durée.
+    anonymization: >-
+      Effacé (null) à la fin de la conservation de la preuve.
   - schema: events
     table: event_clients
     field: first_name

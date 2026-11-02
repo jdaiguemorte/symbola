@@ -29,6 +29,24 @@ import {
 } from "./repository";
 import type { Language } from "./types";
 
+// Lot 6 (RGPD-04) — demandes d'exercice de droits et réglages RGPD.
+export {
+  closePrivacyRequest,
+  createPrivacyRequest,
+  extendPrivacyRequest,
+  getPrivacySettings,
+  listDueSoonPrivacyRequests,
+  listPrivacyRequests,
+  PRIVACY_REQUEST_TYPES,
+  PrivacyRequestInvalidError,
+  PrivacyRequestNotFoundError,
+  updatePrivacySettings,
+  type PrivacyRequestStatus,
+  type PrivacyRequestType,
+  type PrivacyRequestView,
+  type PrivacySettings,
+} from "./privacy-requests";
+
 // Lot 6 — contrat privacy/v1 du module (ADR 0023).
 export { hubPrivacy } from "./privacy";
 

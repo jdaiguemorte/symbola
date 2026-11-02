@@ -12,7 +12,7 @@ import { afterAll, describe, expect, it } from "vitest";
 import { createAppConnection } from "./client";
 import { budgetLineAttachments, budgetLines } from "./schema/budget";
 import { greetings } from "./schema/hello";
-import { importItems, imports } from "./schema/hub";
+import { importItems, imports, privacyRequests } from "./schema/hub";
 import {
   catalogItems,
   creditNotes,
@@ -321,8 +321,11 @@ describe("HUB-03 — L'Admin ne lit jamais de donnée métier", () => {
         action: "created",
         written: { clients: [{ firstName: "Élodie", lastName: null }] },
       });
+      await tx
+        .insert(privacyRequests)
+        .values({ organizationId, type: "erasure", personLabel: "Élodie", receivedOn: "2026-11-02", dueOn: "2026-12-02", createdByUserId: randomUUID() });
     });
-    for (const table of [imports, importItems]) {
+    for (const table of [imports, importItems, privacyRequests]) {
       try {
         const rows = await db.select().from(table);
         expect(rows).toHaveLength(0);

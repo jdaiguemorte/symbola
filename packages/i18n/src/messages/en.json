@@ -339,6 +339,14 @@
     "privacySearch": {
       "title": "Searching for a person",
       "body": "Enter at least an e-mail, a phone number or a name: the search ignores accents and case, and compares phone numbers on their digits only (+33 or 0). It queries every subscribed module and gathers the person's data, then that of their events (tasks, budget, quotes, invoices). If a module does not answer, the result is flagged as incomplete: run the search again before answering the person. Data from a guided trial never appears."
+    },
+    "privacyRequests": {
+      "title": "Tracking requests from individuals",
+      "body": "Record each request you receive (access, rectification, erasure, portability, objection) with its date received: the one-month legal deadline appears at once. A complex request can be extended once, with a required reason: three months in total from receipt. Requests whose deadline is close appear as an alert on the dashboard (threshold in the GDPR settings)."
+    },
+    "privacySettings": {
+      "title": "GDPR settings",
+      "body": "These durations come from the specification (CNIL guidelines) and should be validated by a lawyer. They drive the monthly list of people to purge, which you always validate line by line. The alert threshold sets when a request appears on the dashboard."
     }
   },
   "FirstSteps": {
@@ -1294,6 +1302,64 @@
       "mime": "File type",
       "sizeBytes": "Size (bytes)",
       "message": "Message"
-    }
+    },
+    "requestsLink": "Requests from individuals",
+    "settingsLink": "GDPR settings",
+    "backToSearch": "Search for a person",
+    "requestsTitle": "Data subject requests",
+    "newRequestTitle": "Record a request",
+    "requestTypeLabel": "Request type",
+    "requestTypePlaceholder": "Choose a type",
+    "requestType": {
+      "access": "Access",
+      "rectification": "Rectification",
+      "erasure": "Erasure",
+      "portability": "Portability",
+      "objection": "Objection"
+    },
+    "personLabel": "Person concerned",
+    "receivedOnLabel": "Received on",
+    "createRequest": "Record the request",
+    "requestCreated": "Request recorded: the legal deadline is one month.",
+    "requestInvalid": "Check the type, the person and the date received.",
+    "requestNotFound": "This request does not exist or is already closed.",
+    "requestError": {
+      "person_missing": "Enter the person concerned.",
+      "received_in_future": "The date received cannot be in the future.",
+      "reason_missing": "The reason for the extension is required.",
+      "already_extended": "This request was already extended: three months in total at most.",
+      "closed": "This request is closed.",
+      "settings_invalid": "Invalid settings."
+    },
+    "requestsListTitle": "Requests",
+    "noRequests": "No request recorded.",
+    "requestDates": "Received on {received}, due on {due}",
+    "requestStatus": {
+      "open": "open",
+      "extended": "extended",
+      "closed": "closed"
+    },
+    "requestDaysLeft": "{days, plural, =0 {due today} one {# day left} other {# days left}}",
+    "requestOverdue": "{days, plural, one {overdue by # day} other {overdue by # days}}",
+    "requestClosed": "handled",
+    "requestAlert": "Handle first: {deadline}",
+    "extensionReasonLabel": "Reason for extending (request from “{person}”)",
+    "extendRequest": "Extend (three months in total)",
+    "extensionReasonValue": "Extended: {reason}",
+    "closeRequest": "Close the request from “{person}”",
+    "alertTitle": "{count, plural, one {GDPR request to handle soon} other {# GDPR requests to handle soon}}",
+    "requestDueOn": "due on {date} ({days, plural, =0 {today} one {in # day} other {in # days}})",
+    "settingsTitle": "GDPR settings",
+    "settingsIntro": "Starting values from the specification (CNIL guidelines), to be validated by a lawyer. The durations drive the monthly purge, which you always validate line by line.",
+    "setting": {
+      "requestAlertDays": "Dashboard alert when a request is due in less than (days)",
+      "prospectRetentionMonths": "Prospect with no follow-up: kept after their last activity (months)",
+      "clientRetentionMonths": "Client (couple): kept after the end of the relationship (months)",
+      "accountingRetentionMonths": "Invoices, credit notes and signed quotes: kept for (months)",
+      "inactiveAccountMonths": "Couple account without login: deleted after (months)"
+    },
+    "saveSettings": "Save settings",
+    "settingsSaved": "Settings saved.",
+    "settingsInvalid": "Each value must be a whole number between 1 and 1200."
   }
 }
