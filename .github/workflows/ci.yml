@@ -104,6 +104,89 @@ jobs:
       - run: pnpm --filter @symbola/files test:integration
       - run: pnpm --filter @symbola/app test:integration
 
+  e2e:
+    name: Parcours bout en bout (Playwright, ordinateur et 375 px, axe-core)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: symbola
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ci-admin-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d symbola"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      mailpit:
+        image: axllent/mailpit:v1.21
+        ports:
+          - 1025:1025
+          - 8025:8025
+    env:
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: symbola
+      POSTGRES_ADMIN_USER: postgres
+      POSTGRES_ADMIN_PASSWORD: ci-admin-password
+      POSTGRES_APP_USER: symbola_app
+      POSTGRES_APP_PASSWORD: ci-app-password
+      S3_ACCESS_KEY: ci-s3-access-key-000000
+      S3_SECRET_KEY: ci-s3-secret-key-0000000000000000000000
+      S3_BUCKET: symbola
+      CLAMAV_HOST: localhost
+      CLAMAV_PORT: 3310
+      SMTP_HOST: localhost
+      SMTP_PORT: 1025
+      SIGNATURE_PROVIDER: fake
+      # Version compilée, NODE_ENV=test : faux fournisseur de signature permis
+      # (jamais en production, packages/env).
+      E2E_SERVER_COMMAND: NODE_ENV=test pnpm exec next start -p 3000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+      - run: pnpm install --frozen-lockfile
+      - name: Démarrer Garage (stockage objet)
+        run: |
+          docker run -d --name garage --network host \
+            -v "$GITHUB_WORKSPACE/infra/compose/garage.toml:/etc/garage.toml:ro" \
+            -e GARAGE_DEFAULT_ACCESS_KEY="$S3_ACCESS_KEY" \
+            -e GARAGE_DEFAULT_SECRET_KEY="$S3_SECRET_KEY" \
+            -e GARAGE_DEFAULT_BUCKET="$S3_BUCKET" \
+            -e GARAGE_RPC_SECRET="$(openssl rand -hex 32)" \
+            -e GARAGE_ADMIN_TOKEN="$(openssl rand -base64 32)" \
+            -e GARAGE_METRICS_TOKEN="$(openssl rand -base64 32)" \
+            dxflrs/garage:v2.5.0 /garage server --single-node --default-bucket
+      - name: Démarrer ClamAV
+        run: docker run -d --name clamav --network host clamav/clamav:1.4
+      - name: Installer Chromium pour Playwright
+        run: pnpm --filter @symbola/app exec playwright install --with-deps chromium
+      - name: Construire l'app (next build)
+        run: pnpm --filter @symbola/app build
+      - name: Attendre que Garage et ClamAV soient prêts
+        run: |
+          timeout 120 bash -c 'until curl -sf http://localhost:3903/health; do sleep 2; done'
+          timeout 180 bash -c 'until docker exec clamav clamdcheck.sh; do sleep 5; done'
+      - run: pnpm --filter @symbola/db bootstrap
+      - run: pnpm --filter @symbola/db migrate
+      - name: Parcours Playwright
+        run: pnpm --filter @symbola/app test:e2e
+      - name: Traces des parcours en échec
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces
+          path: apps/symbola/test-results/
+          retention-days: 7
+
   semgrep:
     name: Semgrep (SAST)
     runs-on: ubuntu-latest
@@ -163,7 +246,7 @@ jobs:
     # verts : déployer par tag d'image (ADR 0009) suppose une image
     # publiée quelque part pour que staging/production puissent la tirer.
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [lint-typecheck-test, db-isolation, semgrep, gitleaks, osv-scanner, build-and-scan-image]
+    needs: [lint-typecheck-test, db-isolation, e2e, semgrep, gitleaks, osv-scanner, build-and-scan-image]
     runs-on: ubuntu-latest
     permissions:
       contents: read

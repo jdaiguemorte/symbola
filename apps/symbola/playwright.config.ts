@@ -8,6 +8,10 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
+  // En CI, un parcours à la fois : sous charge (hachage des mots de passe,
+  // délai de 2 s des vérifications de la page Santé), les parcours en
+  // parallèle se gênent sur un runner de 4 cœurs ; 7 min environ en série.
+  ...(process.env.CI ? { workers: 1 } : {}),
   reporter: "list",
   use: {
     baseURL: "http://localhost:3000",
@@ -27,8 +31,11 @@ export default defineConfig({
       use: { viewport: { width: 375, height: 812 } },
     },
   ],
+  // En CI : la version compilée (`next build`), démarrée par
+  // E2E_SERVER_COMMAND avec NODE_ENV=test, qui autorise le faux fournisseur
+  // de signature (interdit en production) ; en local : `pnpm dev`.
   webServer: {
-    command: "pnpm dev",
+    command: process.env.E2E_SERVER_COMMAND ?? "pnpm dev",
     url: "http://localhost:3000/login",
     reuseExistingServer: !process.env.CI,
     timeout: 60_000,
