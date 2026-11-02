@@ -46,6 +46,19 @@ export {
   type PrivacyRequestView,
   type PrivacySettings,
 } from "./privacy-requests";
+// Lot 6 (RGPD-02) — exports des données d'une personne.
+export {
+  getPrivacyExportDownloadUrl,
+  listExportablePrivacyRequests,
+  listPrivacyExports,
+  PRIVACY_EXPORT_LINK_TTL_SECONDS,
+  PrivacyExportInvalidError,
+  PrivacyExportNotFoundError,
+  purgeExpiredPrivacyExports,
+  storePrivacyExport,
+  type PrivacyExportFile,
+  type PrivacyExportView,
+} from "./privacy-exports";
 
 // Lot 6 — contrat privacy/v1 du module (ADR 0023).
 export { hubPrivacy } from "./privacy";
@@ -332,6 +345,8 @@ export type PlatformSettings = {
   importMaxRows: number;
   importDraftRetentionDays: number;
   importUndoRetentionDays: number;
+  // Lot 6 (RGPD-02) : durée de téléchargement d'un export RGPD.
+  privacyExportRetentionDays: number;
 };
 
 // ONB-02 — « Le seuil de chiffre d'affaires de la franchise est un
@@ -353,6 +368,7 @@ export async function getPlatformSettings(db: AppDatabase): Promise<PlatformSett
     importMaxRows: row.importMaxRows,
     importDraftRetentionDays: row.importDraftRetentionDays,
     importUndoRetentionDays: row.importUndoRetentionDays,
+    privacyExportRetentionDays: row.privacyExportRetentionDays,
   };
 }
 
@@ -361,7 +377,7 @@ export async function getPlatformSettings(db: AppDatabase): Promise<PlatformSett
 export async function setPlatformSettings(
   db: AppDatabase,
   input: { adminUserId: string } & Pick<PlatformSettings, "franchiseThresholdServicesCents" | "franchiseThresholdGoodsCents"> &
-    Partial<Pick<PlatformSettings, "importMaxBytes" | "importMaxRows" | "importDraftRetentionDays" | "importUndoRetentionDays">>,
+    Partial<Pick<PlatformSettings, "importMaxBytes" | "importMaxRows" | "importDraftRetentionDays" | "importUndoRetentionDays" | "privacyExportRetentionDays">>,
 ): Promise<void> {
   await upsertPlatformSettings(db, {
     franchiseThresholdServicesCents: input.franchiseThresholdServicesCents,
@@ -370,6 +386,7 @@ export async function setPlatformSettings(
     ...(input.importMaxRows !== undefined ? { importMaxRows: input.importMaxRows } : {}),
     ...(input.importDraftRetentionDays !== undefined ? { importDraftRetentionDays: input.importDraftRetentionDays } : {}),
     ...(input.importUndoRetentionDays !== undefined ? { importUndoRetentionDays: input.importUndoRetentionDays } : {}),
+    ...(input.privacyExportRetentionDays !== undefined ? { privacyExportRetentionDays: input.privacyExportRetentionDays } : {}),
   });
   await insertAuditLog(db, {
     adminUserId: input.adminUserId,

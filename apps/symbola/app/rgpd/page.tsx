@@ -1,12 +1,17 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
+import { createAppConnection } from "@symbola/db/client";
+import { formatDateTime, type Locale } from "@symbola/i18n";
 import { HelpButton } from "@symbola/ui";
+import { listExportablePrivacyRequests, listPrivacyExports, type PrivacyExportView } from "@/modules/hub/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
-import { SearchForm } from "./search-form";
+import { SearchForm, type ExportableRequest } from "./search-form";
 
 // RGPD-01 — module « Données personnelles » : recherche transverse d'une
-// personne dans tous les modules souscrits. Titulaire du compte seulement.
+// personne dans tous les modules souscrits ; RGPD-02 : export des fiches
+// sélectionnées, et exports encore téléchargeables. Titulaire du compte
+// seulement.
 export default async function PrivacyPage() {
   const auth = await getPlannerAuthContext();
   if (auth.status === "unauthenticated") redirect("/login");
@@ -24,6 +29,19 @@ export default async function PrivacyPage() {
       </main>
     );
   }
+  const locale = (await getLocale()) as Locale;
+  const { sql, db } = createAppConnection();
+  let exportRequests: ExportableRequest[];
+  let exports: PrivacyExportView[];
+  try {
+    exportRequests = (await listExportablePrivacyRequests(db, auth.user.organizationId)).map((request) => ({
+      id: request.id,
+      label: `${request.personLabel} — ${t(`requestType.${request.type}`)}`,
+    }));
+    exports = await listPrivacyExports(db, auth.user.organizationId);
+  } finally {
+    await sql.end();
+  }
   return (
     <main>
       <h1>{t("title")}</h1>
@@ -31,7 +49,22 @@ export default async function PrivacyPage() {
       <p>
         <Link href="/rgpd/demandes">{t("requestsLink")}</Link> · <Link href="/rgpd/reglages">{t("settingsLink")}</Link>
       </p>
-      <SearchForm />
+      <SearchForm exportRequests={exportRequests} />
+      <section aria-labelledby="privacy-exports">
+        <h2 id="privacy-exports">{t("exportsTitle")}</h2>
+        <HelpButton title={tHelp("privacyExport.title")} body={tHelp("privacyExport.body")} />
+        {exports.length === 0 ? <p>{t("exportsEmpty")}</p> : null}
+        <ul>
+          {exports.map((item) => (
+            <li key={item.id}>
+              {t("exportSummary", { date: formatDateTime(item.createdAt, locale), count: item.recordCount })}
+              {item.requestPersonLabel ? ` — ${t("exportForRequest", { person: item.requestPersonLabel })}` : ""}{" "}
+              <small>{t("exportExpires", { date: formatDateTime(item.expiresAt, locale) })}</small>{" "}
+              <a href={`/rgpd/exports/${item.id}/pdf`}>{t("downloadPdf")}</a> · <a href={`/rgpd/exports/${item.id}/archive`}>{t("downloadArchive")}</a>
+            </li>
+          ))}
+        </ul>
+      </section>
     </main>
   );
 }

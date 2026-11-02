@@ -34,6 +34,18 @@ titulaire sélectionne** parmi celles trouvées.
 4. **Archive d'export** : ZIP écrit sur `node:zlib` (aucune dépendance, même principe que le
    lecteur de l'ADR 0022), stocké en privé, téléchargé par lien signé temporaire.
 
+   *Précisé à la réalisation (RGPD-02)* : l'export **n'ajoute aucune opération au contrat**. Il
+   reprend les fiches renvoyées par `find` et `related` (champs personnels et données de
+   contexte ; une fiche trouvée directement est complétée des champs de sa vue « données
+   liées »), après avoir **relancé la recherche côté serveur** avec les mêmes termes : seules
+   des fiches réellement trouvées dans l'organisation peuvent être exportées, et un module qui
+   ne répond pas bloque l'export (jamais un export incomplet). L'archive contient
+   `donnees.json` (format `symbola.privacy-export/v1`), un CSV par module (une ligne par champ,
+   intitulés techniques stables, cellules neutralisées comme à l'import) et le PDF lisible.
+   Fichiers gardés le nombre de jours réglé par l'Admin (7 par défaut, comme un import en
+   cours), puis effacés par la purge horaire ; chaque téléchargement passe par un lien signé de
+   5 minutes, demandé au moment du clic.
+
 ## Conséquences
 
 - Le hub n'agit jamais « en aveugle » sur un terme : chaque suppression ou anonymisation vise une

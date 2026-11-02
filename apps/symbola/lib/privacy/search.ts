@@ -106,7 +106,12 @@ export async function searchPerson(
       }),
     );
     for (const record of related.flat()) {
-      if (!records.has(recordKey(record))) records.set(recordKey(record), { ...record, direct: false });
+      const existing = records.get(recordKey(record));
+      // Fiche déjà trouvée directement : on garde son libellé, et on la
+      // complète des champs que la vue « données liées » donne en plus
+      // (statut, date…), pour que l'export (RGPD-02) soit complet.
+      if (existing) records.set(recordKey(record), { ...existing, fields: { ...record.fields, ...existing.fields } });
+      else records.set(recordKey(record), { ...record, direct: false });
     }
   }
 

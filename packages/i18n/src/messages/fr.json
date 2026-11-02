@@ -127,7 +127,9 @@
     "importMaxRows": "Nombre maximal de lignes par fichier",
     "importDraftRetentionDays": "Durée de conservation d'un import non confirmé (jours)",
     "importUndoRetentionDays": "Durée pendant laquelle un import confirmé reste annulable (jours)",
-    "invalidImportLimits": "Les limites de l'import doivent être des nombres entiers positifs (20 Mo au plus)."
+    "invalidImportLimits": "Les limites de l'import et la durée des exports doivent être des nombres entiers positifs (20 Mo au plus).",
+    "privacyLegend": "Données personnelles (RGPD)",
+    "privacyExportRetentionDays": "Durée pendant laquelle un export RGPD reste téléchargeable (jours)"
   },
   "Tour": {
     "skip": "Passer",
@@ -347,6 +349,10 @@
     "privacySettings": {
       "title": "Réglages RGPD",
       "body": "Ces durées viennent du cahier des charges (référentiel CNIL) et restent à faire valider par un juriste. Elles servent à la liste mensuelle des personnes à purger, que vous validez toujours, ligne par ligne. Le seuil d'alerte règle quand une demande apparaît au tableau de bord."
+    },
+    "privacyExport": {
+      "title": "Exports RGPD",
+      "body": "Un export répond à une demande d'accès ou de portabilité : cochez dans le résultat de la recherche les fiches de la personne, puis exportez. Vous obtenez un PDF lisible et une archive ZIP réutilisable, rangés dans un stockage privé. Chaque téléchargement passe par un lien valable quelques minutes ; les fichiers sont effacés automatiquement à la date indiquée. Vos notes internes font partie de l'export : relisez-le avant de l'envoyer."
     }
   },
   "FirstSteps": {
@@ -1360,6 +1366,37 @@
     },
     "saveSettings": "Enregistrer les réglages",
     "settingsSaved": "Réglages enregistrés.",
-    "settingsInvalid": "Chaque valeur doit être un nombre entier entre 1 et 1200."
+    "settingsInvalid": "Chaque valeur doit être un nombre entier entre 1 et 1200.",
+    "selectIntro": "Cochez les fiches qui concernent bien cette personne (attention aux homonymes) :",
+    "selectAll": "Tout cocher",
+    "selectNone": "Tout décocher",
+    "exportTitle": "Exporter les fiches cochées (droit d'accès ou de portabilité)",
+    "exportIntro": "{count, plural, =0 {Aucune fiche cochée.} one {# fiche cochée.} other {# fiches cochées.}} L'export produit un PDF lisible et une archive ZIP (JSON et un CSV par module) réutilisable.",
+    "exportRequestLabel": "Rattacher à une demande",
+    "exportNoRequest": "Aucune demande",
+    "exportWarning": "Attention : vos notes internes (notes du programme, motif de perte, champs importés…) font partie de l'export. Relisez le PDF avant de l'envoyer à la personne.",
+    "exportConfirm": "J'ai compris que mes notes internes font partie de l'export",
+    "exportSubmit": "Exporter",
+    "exporting": "Export en cours…",
+    "exportConfirmMissing": "Cochez l'avertissement sur les notes internes avant d'exporter.",
+    "exportInvalid": "La sélection est invalide.",
+    "exportNoSelection": "Cochez au moins une fiche à exporter.",
+    "exportIncomplete": "Un module n'a pas répondu : l'export serait incomplet. Relancez la recherche puis l'export.",
+    "exportChanged": "Les données ont changé depuis la recherche. Relancez la recherche puis l'export.",
+    "exportRequestInvalid": "Cette demande ne peut pas recevoir d'export (close, ou ni d'accès ni de portabilité).",
+    "exportDone": "{count, plural, one {# fiche exportée.} other {# fiches exportées.}} Chaque lien de téléchargement est valable quelques minutes ; vous le retrouvez dans « Exports récents ».",
+    "downloadPdf": "Télécharger le PDF",
+    "downloadArchive": "Télécharger l'archive (ZIP)",
+    "exportsTitle": "Exports récents",
+    "exportsEmpty": "Aucun export téléchargeable.",
+    "exportSummary": "Export du {date} ({count, plural, one {# fiche} other {# fiches}})",
+    "exportForRequest": "demande de {person}",
+    "exportExpires": "(effacé le {date})",
+    "pdfTitle": "Données personnelles",
+    "pdfIntro": "Ce document rassemble les données personnelles vous concernant détenues par {organization} à la date de l'export, groupées par module. Une archive ZIP les contient aussi dans un format réutilisable (JSON et CSV).",
+    "pdfGeneratedAt": "Export du {date}",
+    "pdfPerson": "Personne concernée : {person}",
+    "pdfNoFields": "Aucun détail enregistré.",
+    "pdfPage": "Page {current} sur {total}"
   }
 }
