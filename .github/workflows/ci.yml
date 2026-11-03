@@ -234,6 +234,13 @@ jobs:
       # Image officielle de Trivy, figée par version et empreinte (Renovate
       # propose les montées) : l'action aquasecurity/trivy-action@0.29.0 a
       # disparu de GitHub et faisait échouer ce job avant tout scan.
+      # La sortie standalone ne contient que les fichiers tracés : vérifier
+      # dans l'image elle-même qu'un PDF se génère (polices standard de
+      # pdfkit oubliées au premier déploiement du staging, lot 6).
+      - name: Génération d'un PDF dans l'image
+        run: |
+          docker run --rm -v "$GITHUB_WORKSPACE/apps/symbola/scripts/pdf-smoke.mjs:/tmp/pdf-smoke.mjs:ro" \
+            -w /app/apps/symbola --entrypoint node symbola-app:ci /tmp/pdf-smoke.mjs
       - name: Scan Trivy (bloque sur CRITICAL)
         run: |
           docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \

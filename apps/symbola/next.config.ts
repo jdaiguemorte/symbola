@@ -30,6 +30,14 @@ const nextConfig: NextConfig = {
   // @react-pdf/renderer (EVT-05) charge ses polices et sa mise en page
   // depuis node_modules à l'exécution : même traitement.
   serverExternalPackages: ["@node-rs/argon2", "@node-rs/argon2-darwin-arm64", "postgres", "@react-pdf/renderer"],
+  // pdfkit (sous @react-pdf/renderer) charge ses polices standard
+  // (Helvetica…) par un alias interne (`#standard-fonts/…`) que le traçage
+  // de la sortie standalone ne suit pas : sans cette inclusion, l'image
+  // Docker ne sait générer aucun PDF (constaté au déploiement du staging,
+  // lot 6). Le CI vérifie leur présence dans l'image construite.
+  outputFileTracingIncludes: {
+    "/**": ["../../node_modules/.pnpm/pdfkit@*/node_modules/pdfkit/js/standard-fonts/**"],
+  },
   // BUD-03 : un devis prestataire peut peser jusqu'à 20 Mo (limite vérifiée
   // ensuite par @symbola/files) ; 1 Mo par défaut pour une Server Action.
   experimental: { serverActions: { bodySizeLimit: "21mb" } },
