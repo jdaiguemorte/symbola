@@ -86,7 +86,8 @@ test("IMP-05 — aperçu, confirmation, champ libre sur la fiche, journal et ann
   await page.getByRole("button", { name: "Confirmer l'import" }).click();
   await expect(page.getByRole("heading", { name: "Import de « mariages.csv »" })).toBeVisible();
   await expect(page.getByText("1 création, 1 mise à jour, aucune ligne inchangée, 1 ligne rejetée")).toBeVisible();
-  await expect(page.getByText(email)).toBeVisible();
+  // L'auteur de l'import, dans la page (le menu affiche aussi l'e-mail connecté).
+  await expect(page.getByRole("main").getByText(email)).toBeVisible();
   await expectNoAxeViolation(page);
 
   // La colonne gardée en champ libre est visible sur la fiche mise à jour.

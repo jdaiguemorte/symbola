@@ -262,7 +262,9 @@
 
   /* Visite guidée : une carte flottante en bas de l'écran. */
   [role="dialog"] {
-    @apply fixed right-4 bottom-4 left-4 z-50 mx-auto max-w-md rounded-[16px] border border-lin bg-card p-5 shadow-[0_12px_40px_rgba(43,38,35,0.18)] sm:left-auto;
+    /* Dans le flux de la page, pas épinglée : la visite guidée n'est pas
+       modale et ne doit jamais masquer un bouton de l'écran. */
+    @apply flex max-w-xl flex-col items-start gap-3 rounded-[16px] border border-sauge bg-sauge-tint p-5 shadow-[0_6px_20px_rgba(43,38,35,0.10)];
   }
 
   /* Zones défilantes (tableaux larges) : la région reste dans la page. */
