@@ -13,6 +13,7 @@ import type { QuoteDetail, QuoteVersionView } from "@/modules/quotes/service";
 import { loadDocumentLogo } from "@/lib/document-logo";
 import { QuotePdfDocument } from "./quote-pdf";
 import { buildQuotePdfModel } from "./quote-pdf-model";
+import { pdfSafe } from "@/lib/pdf-text";
 
 export async function renderQuotePdf(input: {
   organizationId: string;
@@ -74,6 +75,6 @@ export async function renderQuotePdf(input: {
     },
   });
 
-  const element = createElement(QuotePdfDocument, { model }) as unknown as ReactElement<DocumentProps>;
+  const element = createElement(QuotePdfDocument, { model: pdfSafe(model) }) as unknown as ReactElement<DocumentProps>;
   return renderToBuffer(element);
 }

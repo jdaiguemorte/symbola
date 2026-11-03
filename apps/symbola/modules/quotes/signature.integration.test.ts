@@ -18,6 +18,7 @@ import {
   findFakeSignature,
   SignatureAlreadyRequestedError,
   SignatureUnavailableError,
+  SignatureLinksNotMailedError,
   addQuoteLine,
   createQuote,
   getQuote,
@@ -184,6 +185,25 @@ describe("DEV-02 — Envoi en signature", () => {
     await expect(
       sendQuoteForSignature({ organizationId, quoteId, signers: signers(), documentPdf: PDF, locale: "fr" }),
     ).rejects.toBeInstanceOf(SignatureAlreadyRequestedError);
+  });
+
+  it("si l'e-mail ne part pas, la demande est quand même enregistrée et ses liens restent disponibles sur le devis", async () => {
+    const { organizationId, quoteId } = await setup();
+    setSignatureProviderForTests(fakeSignatureProvider());
+    const port = process.env.SMTP_PORT;
+    process.env.SMTP_PORT = "1"; // aucun serveur SMTP ici
+    let caught: unknown;
+    try {
+      await sendQuoteForSignature({ organizationId, quoteId, signers: signers(), documentPdf: PDF, locale: "fr" });
+    } catch (error) {
+      caught = error;
+    } finally {
+      process.env.SMTP_PORT = port;
+    }
+    expect(caught).toBeInstanceOf(SignatureLinksNotMailedError);
+    const current = await getQuote(organizationId, quoteId);
+    expect(current.signature?.status).toBe("pending");
+    expect(current.signature?.signers.every((signer) => signer.signingUrl.length > 0)).toBe(true);
   });
 
   it("sans fournisseur configuré, la signature est « indisponible », sans erreur pour le reste du devis", async () => {

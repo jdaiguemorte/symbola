@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import retroplanningFile from "./retroplanning.json";
 import vendorSlotsFile from "./vendor-slots.json";
 import programFile from "./program.json";
-import { starterDemoEvent, starterDemoQuote, starterErasureResponse, starterPrivacySettings, starterInvoiceMentions, starterPaymentMethods, starterProgram, starterRetroplanning, starterVendorSlots } from "./index";
+import { starterDemoEvent, starterDemoQuote, starterErasureResponse, starterPrivacySettings, starterInvoiceMentions, starterLossReasons, starterPaymentMethods, starterProgram, starterProspectSources, starterRetroplanning, starterVendorSlots } from "./index";
 
 describe("EVT-03 — Modèle de départ des postes prestataires", () => {
   it("existe en français et en anglais, avec le même nombre de postes", () => {
@@ -21,6 +21,23 @@ describe("EVT-03 — Modèle de départ des postes prestataires", () => {
       const labels = starterVendorSlots(locale);
       expect(new Set(labels).size).toBe(labels.length);
     }
+  });
+});
+
+describe("EVT-07 — Listes de départ des sources de prospect et des motifs de perte", () => {
+  it("existent en français et en anglais, avec le même nombre d'entrées, sans doublon", () => {
+    for (const list of [starterProspectSources, (locale: "fr" | "en") => starterLossReasons(locale).map((reason) => reason.label)]) {
+      const [fr, en] = [list("fr"), list("en")];
+      expect(fr.length).toBeGreaterThan(0);
+      expect(en).toHaveLength(fr.length);
+      expect(new Set(fr).size).toBe(fr.length);
+      expect(new Set(en).size).toBe(en.length);
+    }
+  });
+
+  it("un seul motif « Autre », qui demande une précision", () => {
+    const freeText = starterLossReasons("fr").filter((reason) => reason.isFreeText);
+    expect(freeText.map((reason) => reason.label)).toEqual(["Autre"]);
   });
 });
 

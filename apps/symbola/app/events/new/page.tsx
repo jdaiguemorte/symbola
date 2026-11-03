@@ -4,7 +4,9 @@ import { HelpButton } from "@symbola/ui";
 import { listProspectSources } from "@/modules/events/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isEventsModuleEnabled } from "../module-access";
+import Link from "next/link";
 import { NewProspectForm } from "./new-prospect-form";
+import { LoadStarterListsForm } from "../parametres/starter-lists-form";
 
 export default async function NewProspectPage() {
   const auth = await getPlannerAuthContext();
@@ -29,6 +31,18 @@ export default async function NewProspectPage() {
     <main>
       <h1>{t("newProspect")}</h1>
       <HelpButton title={tHelp("eventsNew.title")} body={tHelp("eventsNew.body")} />
+      {/* EVT-07 : sans source, la création est impossible ; on dit pourquoi et comment y remédier. */}
+      {sources.length === 0 ? (
+        <section aria-labelledby="no-sources-title" className="card">
+          <h2 id="no-sources-title">{t("noSourcesTitle")}</h2>
+          <p>
+            {t.rich("noSourcesYet", {
+              link: (chunks) => <Link href="/events/parametres">{chunks}</Link>,
+            })}
+          </p>
+          <LoadStarterListsForm />
+        </section>
+      ) : null}
       <NewProspectForm sources={sources} />
     </main>
   );

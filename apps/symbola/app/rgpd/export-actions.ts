@@ -12,6 +12,7 @@ import { buildExportArchive, buildExportPdfModel, selectRecordsForExport } from 
 import { ExportPdfDocument } from "./export-pdf";
 import { parseSelection } from "./form-selection";
 import { ownerContext } from "./owner-access";
+import { pdfSafe } from "@/lib/pdf-text";
 
 export type ExportFormState = { error?: string; exportId?: string; recordCount?: number };
 
@@ -72,7 +73,7 @@ export async function exportRecordsAction(_prevState: ExportFormState, formData:
       },
       locale,
     );
-    const pdf = await renderToBuffer(createElement(ExportPdfDocument, { model }) as unknown as ReactElement<DocumentProps>);
+    const pdf = await renderToBuffer(createElement(ExportPdfDocument, { model: pdfSafe(model) }) as unknown as ReactElement<DocumentProps>);
     const archive = buildExportArchive({ records: selection.records, pdf, generatedAt, organizationName });
     const stored = await storePrivacyExport(db, {
       organizationId: owner.organizationId,

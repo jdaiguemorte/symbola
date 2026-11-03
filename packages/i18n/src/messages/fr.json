@@ -410,7 +410,7 @@
     "client2LastName": "Nom du second marié (facultatif)",
     "source": "Source du prospect",
     "sourceChoose": "Choisir…",
-    "noSourcesYet": "Aucune source n'est encore définie. Ajoutez-en une dans « Sources et motifs de perte ».",
+    "noSourcesYet": "Chaque prospect est rattaché à sa source (Instagram, salon, bouche-à-oreille…). Ajoutez vos sources dans les <link>Paramètres des événements</link>, ou chargez la liste de départ en un clic, modifiable ensuite.",
     "eventDate": "Date de l'événement",
     "venueName": "Lieu",
     "venueCity": "Ville",
@@ -615,7 +615,14 @@
     "confirmBudgetBody": "L'événement est confirmé et une simulation existe déjà : vous pouvez l'utiliser comme point de départ du budget prévu, poste par poste.",
     "confirmAsPlanned": "En faire le budget prévu",
     "trialStepQuote": "Composez un devis fictif, faites-le signer par le marié fictif sur la page de signature d'essai, puis émettez ses factures (série DEMO, en filigrane).",
-    "trialStartQuote": "Essayer un devis fictif"
+    "trialStartQuote": "Essayer un devis fictif",
+    "noSourcesTitle": "Une source est nécessaire",
+    "loadStarterLists": "Charger les sources et motifs de perte courants",
+    "starterListsLoaded": "{sources, plural, =0 {Aucune source ajoutée} one {# source ajoutée} other {# sources ajoutées}}, {reasons, plural, =0 {aucun motif ajouté} one {# motif ajouté} other {# motifs ajoutés}}.",
+    "starterListsTitle": "Partir d'une liste courante",
+    "starterListsIntro": "Chargez les sources de prospect et motifs de perte les plus fréquents, puis ajoutez ou retirez ce que vous voulez. Ce qui existe déjà n'est pas dupliqué.",
+    "sourcesIntro": "D'où viennent vos couples. Demandée à la création d'un prospect, elle permet de savoir quels canaux vous rapportent le plus.",
+    "lossReasonsIntro": "Pourquoi un projet n'a pas abouti. Demandé quand un événement passe en « Perdu »."
   },
   "Budget": {
     "title": "Budget",
@@ -931,7 +938,10 @@
     "csvInvoice": "Facture",
     "csvCreditNote": "Avoir",
     "csvPayment": "Encaissement",
-    "csvTotal": "Total"
+    "csvTotal": "Total",
+    "signingLinksHint": "Un marié n'a pas reçu l'e-mail ? Envoyez-lui son lien ci-dessus (clic droit, « Copier le lien »). Chaque lien est personnel.",
+    "signatureLinksNotMailed": "Le devis est bien envoyé en signature, mais {count, plural, one {un e-mail n'a pas pu partir} other {# e-mails n'ont pas pu partir}}. Copiez les liens de signature affichés sur le devis et envoyez-les vous-même.",
+    "signatureServiceDown": "Le service de signature ne répond pas pour le moment. Rien n'a été envoyé : réessayez dans quelques minutes."
   },
   "ClientSpace": {
     "title": "Mon mariage",

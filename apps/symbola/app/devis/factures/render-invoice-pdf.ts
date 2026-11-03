@@ -8,6 +8,7 @@ import type { CreditNoteView, InvoiceView } from "@/modules/quotes/service";
 import { loadDocumentLogo } from "@/lib/document-logo";
 import { QuotePdfDocument } from "../[quoteId]/quote-pdf";
 import { buildCreditNotePdfModel, buildInvoicePdfModel, type InvoicePdfLabels } from "./invoice-pdf-model";
+import { pdfSafe } from "@/lib/pdf-text";
 
 async function labels(): Promise<{ locale: Locale; labels: InvoicePdfLabels; watermark: string }> {
   const locale = (await getLocale()) as Locale;
@@ -49,7 +50,7 @@ async function labels(): Promise<{ locale: Locale; labels: InvoicePdfLabels; wat
 }
 
 function toBuffer(model: Parameters<typeof QuotePdfDocument>[0]["model"]): Promise<Buffer> {
-  return renderToBuffer(createElement(QuotePdfDocument, { model }) as unknown as ReactElement<DocumentProps>);
+  return renderToBuffer(createElement(QuotePdfDocument, { model: pdfSafe(model) }) as unknown as ReactElement<DocumentProps>);
 }
 
 export async function renderInvoicePdf(organizationId: string, invoice: InvoiceView): Promise<Buffer> {

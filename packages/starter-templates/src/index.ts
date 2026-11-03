@@ -7,10 +7,12 @@ import demoEventFile from "./demo-event.json";
 import demoQuoteFile from "./demo-quote.json";
 import importSynonymsFile from "./import-synonyms.json";
 import invoiceMentionsFile from "./invoice-mentions.json";
+import lossReasonsFile from "./loss-reasons.json";
 import paymentMethodsFile from "./payment-methods.json";
 import privacyErasureResponseFile from "./privacy-erasure-response.json";
 import privacySettingsFile from "./privacy-settings.json";
 import programFile from "./program.json";
+import prospectSourcesFile from "./prospect-sources.json";
 import retroplanningFile from "./retroplanning.json";
 import vendorSlotsFile from "./vendor-slots.json";
 
@@ -28,6 +30,24 @@ const vendorSlots = vendorSlotsSchema.parse(vendorSlotsFile);
 // EVT-03 : postes prestataires par défaut, dans la langue demandée.
 export function starterVendorSlots(locale: StarterLocale): string[] {
   return vendorSlots.items.map((item) => item.label[locale]);
+}
+
+// EVT-07 : sources de prospect de départ, même format que les postes.
+const prospectSources = vendorSlotsSchema.parse(prospectSourcesFile);
+
+export function starterProspectSources(locale: StarterLocale): string[] {
+  return prospectSources.items.map((item) => item.label[locale]);
+}
+
+// EVT-07 : motifs de perte de départ ; « Autre » demande une précision.
+const lossReasonsSchema = z.object({
+  version: z.literal(1),
+  items: z.array(z.object({ key: z.string().min(1), label: translatedLabelSchema, freeText: z.boolean() })).min(1),
+});
+const lossReasons = lossReasonsSchema.parse(lossReasonsFile);
+
+export function starterLossReasons(locale: StarterLocale): { label: string; isFreeText: boolean }[] {
+  return lossReasons.items.map((item) => ({ label: item.label[locale], isFreeText: item.freeText }));
 }
 
 // DEV-03 : modes de paiement de départ, même format que les postes.

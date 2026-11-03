@@ -1,12 +1,13 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { getTranslations } from "next-intl/server";
-import { createLossReason, createProspectSource } from "@/modules/events/service";
+import { getLocale, getTranslations } from "next-intl/server";
+import { starterLossReasons, starterProspectSources, type StarterLocale } from "@symbola/starter-templates";
+import { addLossReasons, addProspectSources, createLossReason, createProspectSource } from "@/modules/events/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isEventsModuleEnabled } from "../module-access";
 
-export type EventsSettingsFormState = { error?: string; success?: boolean };
+export type EventsSettingsFormState = { error?: string; success?: boolean; sources?: number; reasons?: number };
 
 export async function createProspectSourceAction(
   _prevState: EventsSettingsFormState,
@@ -43,3 +44,23 @@ export async function createLossReasonAction(
   revalidatePath("/events/parametres");
   return { success: true };
 }
+
+// EVT-07 — listes de départ (packages/starter-templates), dans la langue de
+// la planner : sources de prospect et motifs de perte, sans doublon.
+export async function loadStarterListsAction(
+  _prevState: EventsSettingsFormState,
+  _formData: FormData,
+): Promise<EventsSettingsFormState> {
+  const t = await getTranslations("Events");
+  const auth = await getPlannerAuthContext();
+  if (auth.status !== "authenticated" || !auth.user.organizationId) return { error: t("unauthenticated") };
+  if (!(await isEventsModuleEnabled(auth.user.organizationId))) return { error: t("moduleUnavailable") };
+
+  const locale = (await getLocale()) as StarterLocale;
+  const sources = await addProspectSources(auth.user.organizationId, starterProspectSources(locale));
+  const reasons = await addLossReasons(auth.user.organizationId, starterLossReasons(locale));
+  revalidatePath("/events/parametres");
+  revalidatePath("/events/new");
+  return { success: true, sources, reasons };
+}
+

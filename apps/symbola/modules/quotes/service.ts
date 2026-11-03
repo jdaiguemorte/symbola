@@ -962,6 +962,15 @@ function signingMail(input: { locale: "fr" | "en"; organizationName: string; num
   };
 }
 
+// La demande de signature est enregistrée, mais un ou plusieurs e-mails
+// portant les liens n'ont pas pu partir (SMTP indisponible).
+export class SignatureLinksNotMailedError extends Error {
+  constructor(readonly count: number) {
+    super("liens de signature non envoyés par e-mail");
+    this.name = "SignatureLinksNotMailedError";
+  }
+}
+
 // DEV-02 — « Envoi du devis (version courante figée) au fournisseur de
 // signature ; chaque signataire reçoit son lien (e-mail envoyé par
 // Symbola). » Un devis d'essai passe par le faux fournisseur, sans e-mail.
@@ -1011,10 +1020,19 @@ export async function sendQuoteForSignature(input: SendForSignatureInput): Promi
   const detail = await loadDetail(input.organizationId, input.quoteId);
   if (!quote.isDemo) {
     const organizationName = quote.current.seller?.organizationName ?? "";
+    let notMailed = 0;
     for (const signer of detail.signature?.signers ?? []) {
       const mail = signingMail({ locale: input.locale, organizationName, number: quote.number, url: signer.signingUrl });
-      await sendMail({ to: signer.email, ...mail });
+      try {
+        await sendMail({ to: signer.email, ...mail });
+      } catch (error) {
+        // La demande existe chez le fournisseur : on n'annule rien, la
+        // planner copie les liens depuis le devis (jamais l'adresse au journal).
+        notMailed += 1;
+        console.error(`e-mail de signature non envoyé (signataire ${signer.id})`, error instanceof Error ? error.message : error);
+      }
     }
+    if (notMailed > 0) throw new SignatureLinksNotMailedError(notMailed);
   }
   return detail;
 }

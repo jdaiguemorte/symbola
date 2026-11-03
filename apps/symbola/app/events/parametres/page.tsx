@@ -8,6 +8,7 @@ import { ProspectSourceForm } from "./prospect-source-form";
 import { LossReasonForm } from "./loss-reason-form";
 import { DefaultVendorSlotForm, LoadStarterVendorSlotsForm } from "./default-vendor-slot-forms";
 import { removeDefaultVendorSlotAction } from "./vendor-slot-actions";
+import { LoadStarterListsForm } from "./starter-lists-form";
 
 export default async function EventsSettingsPage() {
   const auth = await getPlannerAuthContext();
@@ -38,7 +39,16 @@ export default async function EventsSettingsPage() {
       <h1>{t("settingsTitle")}</h1>
       <HelpButton title={tHelp("eventsSettings.title")} body={tHelp("eventsSettings.body")} />
 
+      {sources.length === 0 || reasons.length === 0 ? (
+        <section aria-labelledby="starter-lists-title" className="card">
+          <h2 id="starter-lists-title">{t("starterListsTitle")}</h2>
+          <p>{t("starterListsIntro")}</p>
+          <LoadStarterListsForm />
+        </section>
+      ) : null}
+
       <h2>{t("sourcesTitle")}</h2>
+      <p>{t("sourcesIntro")}</p>
       <ul>
         {sources.map((source) => (
           <li key={source.id}>{source.label}</li>
@@ -47,6 +57,7 @@ export default async function EventsSettingsPage() {
       <ProspectSourceForm />
 
       <h2>{t("lossReasonsTitle")}</h2>
+      <p>{t("lossReasonsIntro")}</p>
       <ul>
         {reasons.map((reason) => (
           <li key={reason.id}>

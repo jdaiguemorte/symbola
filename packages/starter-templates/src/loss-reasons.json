@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "items": [
+    { "key": "budget", "label": { "fr": "Budget insuffisant", "en": "Budget too low" }, "freeText": false },
+    { "key": "other_planner", "label": { "fr": "A choisi une autre wedding planner", "en": "Chose another planner" }, "freeText": false },
+    { "key": "date_unavailable", "label": { "fr": "Date indisponible", "en": "Date unavailable" }, "freeText": false },
+    { "key": "project_cancelled", "label": { "fr": "Projet annulé ou reporté", "en": "Project cancelled or postponed" }, "freeText": false },
+    { "key": "no_answer", "label": { "fr": "Plus de nouvelles", "en": "No longer responding" }, "freeText": false },
+    { "key": "other", "label": { "fr": "Autre", "en": "Other" }, "freeText": true }
+  ]
+}

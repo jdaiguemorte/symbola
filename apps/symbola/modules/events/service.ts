@@ -254,6 +254,38 @@ export async function createLossReason(
   return { id: row.id, label: row.label, isFreeText: row.isFreeText };
 }
 
+// EVT-07 — ajout en lot (listes de départ, ONB-01) : les libellés déjà
+// présents, à la casse et aux espaces près, ne sont pas dupliqués. Renvoie
+// le nombre d'entrées ajoutées.
+function normalizedLabel(label: string): string {
+  return label.trim().toLocaleLowerCase("fr");
+}
+
+export async function addProspectSources(organizationId: string, labels: string[]): Promise<number> {
+  const existing = new Set((await findProspectSources(organizationId)).map((row) => normalizedLabel(row.label)));
+  let added = 0;
+  for (const label of labels.map((value) => value.trim()).filter(Boolean)) {
+    if (existing.has(normalizedLabel(label))) continue;
+    await insertProspectSource(organizationId, label);
+    existing.add(normalizedLabel(label));
+    added += 1;
+  }
+  return added;
+}
+
+export async function addLossReasons(organizationId: string, reasons: { label: string; isFreeText: boolean }[]): Promise<number> {
+  const existing = new Set((await findLossReasons(organizationId)).map((row) => normalizedLabel(row.label)));
+  let added = 0;
+  for (const reason of reasons) {
+    const label = reason.label.trim();
+    if (!label || existing.has(normalizedLabel(label))) continue;
+    await insertLossReason(organizationId, label, reason.isFreeText);
+    existing.add(normalizedLabel(label));
+    added += 1;
+  }
+  return added;
+}
+
 // EVT-03 — postes prestataires.
 
 export class VendorNameRequiredError extends Error {
@@ -1043,6 +1075,8 @@ const _contractCheck: EventsServiceContract = {
   listDefaultVendorSlots,
   addDefaultVendorSlots,
   removeDefaultVendorSlot,
+  addProspectSources,
+  addLossReasons,
   listEventVendorSlots,
   addEventVendorSlot,
   updateEventVendorSlot,

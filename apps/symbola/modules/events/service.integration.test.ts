@@ -2,7 +2,17 @@
 // vrai PostgreSQL (RLS, ADR 0012), par la porte d'entrée du module.
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { createProspect, createProspectSource, getEvent, listEvents } from "./service";
+import { starterLossReasons, starterProspectSources } from "@symbola/starter-templates";
+import {
+  addLossReasons,
+  addProspectSources,
+  createProspect,
+  createProspectSource,
+  getEvent,
+  listEvents,
+  listLossReasons,
+  listProspectSources,
+} from "./service";
 
 // Auteur des créations, historisé dans event_status_history (EVT-02).
 const plannerId = randomUUID();
@@ -89,5 +99,32 @@ describe("EVT-07 — Source du prospect", () => {
 
     const filtered = await listEvents({ organizationId, prospectSourceId: instagram.id });
     expect(filtered.map((item) => item.id)).toEqual([viaInstagram.id]);
+  });
+});
+
+describe("EVT-07 — Listes de départ des sources et des motifs de perte", () => {
+  it("ajoute les sources et motifs de départ sans doublon, même relancé, en gardant ceux de la planner", async () => {
+    const { organizationId } = await seedOrganization();
+    const added = await addProspectSources(organizationId, starterProspectSources("fr"));
+    // « Instagram » existait déjà (seedOrganization) : pas de doublon.
+    expect(added).toBe(starterProspectSources("fr").length - 1);
+    expect(await addProspectSources(organizationId, starterProspectSources("fr"))).toBe(0);
+    const sources = (await listProspectSources(organizationId)).map((source) => source.label);
+    expect(sources).toContain("Salon");
+    expect(sources.filter((label) => label === "Instagram")).toHaveLength(1);
+
+    expect(await addLossReasons(organizationId, starterLossReasons("fr"))).toBe(starterLossReasons("fr").length);
+    expect(await addLossReasons(organizationId, [{ label: " budget INSUFFISANT ", isFreeText: false }])).toBe(0);
+    const other = (await listLossReasons(organizationId)).find((reason) => reason.label === "Autre");
+    expect(other?.isFreeText).toBe(true);
+  });
+
+  it("isolation : les listes chargées par une organisation n'apparaissent jamais chez une autre", async () => {
+    const own = await seedOrganization();
+    const other = await seedOrganization();
+    await addProspectSources(own.organizationId, ["Mariages.net"]);
+    await addLossReasons(own.organizationId, [{ label: "Trop loin", isFreeText: false }]);
+    expect((await listProspectSources(other.organizationId)).map((source) => source.label)).not.toContain("Mariages.net");
+    expect((await listLossReasons(other.organizationId)).map((reason) => reason.label)).not.toContain("Trop loin");
   });
 });

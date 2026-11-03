@@ -11,6 +11,7 @@ import { getDocumentHeader } from "@/modules/hub/service";
 import { ProgramPdfDocument } from "./program-pdf";
 import { loadDocumentLogo } from "@/lib/document-logo";
 import { buildProgramPdfModel } from "./program-pdf-model";
+import { pdfSafe } from "@/lib/pdf-text";
 
 export async function renderProgramPdfResponse(input: {
   organizationId: string;
@@ -52,7 +53,7 @@ export async function renderProgramPdfResponse(input: {
     },
   });
 
-  const element = createElement(ProgramPdfDocument, { model }) as unknown as ReactElement<DocumentProps>;
+  const element = createElement(ProgramPdfDocument, { model: pdfSafe(model) }) as unknown as ReactElement<DocumentProps>;
   const pdf = await renderToBuffer(element);
   const filename = input.variant === "couple" ? t("programPdfFileCouple") : t("programPdfFileVendors");
   return new Response(new Uint8Array(pdf), {

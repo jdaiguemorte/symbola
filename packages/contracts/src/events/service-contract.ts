@@ -302,6 +302,9 @@ export interface EventsServiceContract {
   createProspectSource(organizationId: string, label: string): Promise<ProspectSource>;
   listLossReasons(organizationId: string): Promise<LossReason[]>;
   createLossReason(organizationId: string, label: string, isFreeText: boolean): Promise<LossReason>;
+  // EVT-07 — listes de départ : ajout sans doublon, renvoie le nombre ajouté.
+  addProspectSources(organizationId: string, labels: string[]): Promise<number>;
+  addLossReasons(organizationId: string, reasons: { label: string; isFreeText: boolean }[]): Promise<number>;
   listDefaultVendorSlots(organizationId: string): Promise<DefaultVendorSlot[]>;
   addDefaultVendorSlots(organizationId: string, labels: string[]): Promise<DefaultVendorSlot[]>;
   removeDefaultVendorSlot(organizationId: string, defaultVendorSlotId: string): Promise<void>;
