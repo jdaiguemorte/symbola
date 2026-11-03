@@ -126,6 +126,25 @@ Exemple pour staging (remplacer `staging` par `production` pour l'autre) :
    curl -sI https://staging.symbola.fr/ | grep -Ei "content-security-policy|strict-transport-security|x-frame-options|referrer-policy"
    ```
 
+## Premiers comptes (Admin, puis titulaire)
+
+Un environnement neuf n'a aucun compte. Julien crée le compte **Admin** (opérateur de la suite)
+en ligne de commande, sur le VPS, depuis le dépôt à jour. Le mot de passe est généré et affiché
+une seule fois (jamais en argument, donc jamais dans l'historique du shell) ; la double
+authentification se configure à la première connexion :
+
+```bash
+cd /opt/symbola
+sudo docker run --rm --network symbola-staging_default -v "$PWD":/app -w /app \
+  --env-file infra/compose/.env.staging -e POSTGRES_HOST=postgres -e POSTGRES_PORT=5432 \
+  node:22-slim sh -c "corepack enable && pnpm install --frozen-lockfile && \
+    pnpm -s --filter @symbola/auth create-account -- --role admin --email <ton-e-mail>"
+```
+
+L'Admin crée ensuite les organisations depuis `/admin` (invitation de la titulaire par e-mail).
+Tant que les e-mails ne sont pas en service, la même commande crée directement une organisation
+et sa titulaire : `-- --role owner --email <e-mail> --organization "<nom>"`.
+
 ## Signature en ligne : mise en service de DocuSeal (DEV-02, ADR 0021)
 
 Tant que ces étapes ne sont pas faites, la signature en ligne s'affiche
