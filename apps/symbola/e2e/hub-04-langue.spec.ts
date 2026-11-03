@@ -44,6 +44,7 @@ test("HUB-04-02 — choisir une langue dans le profil s'applique à toute l'app"
   const secret = new URL(provisioningUri!.replace("otpauth://totp/", "https://x/")).searchParams.get("secret")!;
   await page.getByLabel("Code").fill(new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret) }).generate());
   await page.getByRole("button", { name: "Valider" }).click();
+  await expect(page).toHaveURL("/");
   await openMenu(page);
   await expect(page.getByRole("button", { name: "Se déconnecter" })).toBeVisible();
 
