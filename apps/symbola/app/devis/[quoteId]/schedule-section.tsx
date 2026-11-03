@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { formatAmount, formatCalendarDate, type Locale } from "@symbola/i18n";
 import type { PaymentMethod, QuoteDetail } from "@/modules/quotes/service";
-import { formatRate, OVERDUE_STYLE, PAID_STYLE } from "../quote-display";
+import { formatRate, OVERDUE_CLASS, PAID_CLASS } from "../quote-display";
 import { removeScheduleItemAction } from "./schedule-actions";
 import { AddScheduleItemForm, EditScheduleItemForm, MarkPaidForm, MarkUnpaidForm } from "./schedule-forms";
 
@@ -39,14 +39,14 @@ export async function ScheduleSection({
                 ? ` (${t("percentOfTotal", { rate: formatRate(item.percentageBasisPoints, locale) })})`
                 : ""}{" "}
               {item.paidOn ? (
-                <span style={PAID_STYLE}>
+                <span className={PAID_CLASS}>
                   {t("paidOnWith", {
                     date: formatCalendarDate(item.paidOn, locale),
                     method: item.paymentMethodLabel ?? "—",
                   })}
                 </span>
               ) : item.overdue ? (
-                <span style={OVERDUE_STYLE}>{t("overdue")}</span>
+                <span className={OVERDUE_CLASS}>{t("overdue")}</span>
               ) : null}
             </p>
             {isDraft ? (

@@ -1,0 +1,502 @@
+/*
+ * Charte graphique Symbola (lot 7, ADR 0025) — « élégant et chaleureux ».
+ * Les écrans sont écrits en HTML sémantique (titres, formulaires, tableaux,
+ * listes) : la couche de base habille ces éléments partout, sans classe ;
+ * la structure d'écran et les composants ajoutent quelques classes.
+ * Jamais d'attribut style dans le HTML rendu côté serveur : la CSP stricte
+ * (middleware.ts) le refuse. Contrastes vérifiés WCAG AA.
+ */
+@import "tailwindcss";
+@source "../../../packages/ui/src";
+
+@theme {
+  --color-ivory: #faf7f2;
+  --color-card: #ffffff;
+  --color-ink: #2b2623;
+  --color-ink-soft: #4a433e;
+  --color-muted: #6b625b;
+  --color-sauge: #4f6b5a;
+  --color-sauge-dark: #3d5446;
+  --color-sauge-tint: #e3ece5;
+  --color-sauge-ink: #2f4337;
+  --color-terracotta: #a8553a;
+  --color-terracotta-dark: #8a3f27;
+  --color-terracotta-tint: #f3e3dd;
+  --color-terracotta-ink: #6e321f;
+  --color-lin: #e6ded3;
+  --color-lin-dark: #cfc5b8;
+  --color-lin-soft: #f0eae2;
+  --color-ambre-tint: #f6ead9;
+  --color-ambre-ink: #7a4b12;
+  --color-bleu-tint: #e8eef5;
+  --color-bleu-ink: #2f4a66;
+  --color-gris-tint: #ece7e1;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-fraunces), Georgia, ui-serif, serif;
+
+  --radius-control: 10px;
+  --radius-card: 16px;
+}
+
+@layer base {
+  html {
+    background: var(--color-ivory);
+  }
+
+  body {
+    @apply bg-ivory font-sans text-base leading-normal text-ink antialiased;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-sauge);
+    outline-offset: 2px;
+  }
+
+  h1 {
+    @apply mb-4 font-display text-3xl leading-tight font-semibold sm:text-4xl;
+  }
+
+  h2 {
+    @apply mt-2 mb-3 font-display text-xl leading-snug font-semibold sm:text-2xl;
+  }
+
+  h3 {
+    @apply mt-2 mb-2 text-base font-semibold;
+  }
+
+  p {
+    @apply my-2;
+  }
+
+  a {
+    @apply text-sauge underline decoration-lin-dark underline-offset-4 hover:text-sauge-dark hover:decoration-sauge;
+  }
+
+  small {
+    @apply text-sm text-muted;
+  }
+
+  strong {
+    @apply font-semibold;
+  }
+
+  ul,
+  ol {
+    @apply my-2 space-y-1.5 pl-5;
+  }
+
+  ul {
+    @apply list-disc marker:text-lin-dark;
+  }
+
+  ol {
+    @apply list-decimal;
+  }
+
+  /* Formulaires : champs de 44 px de haut (zones tactiles), libellé au-dessus. */
+  form {
+    @apply my-3 flex flex-col items-start gap-3;
+  }
+
+  label {
+    @apply flex w-full max-w-xl flex-col gap-1.5 text-sm font-medium text-ink;
+  }
+
+  label:has(> input[type="checkbox"]),
+  label:has(> input[type="radio"]) {
+    @apply w-auto max-w-none flex-row items-center gap-2.5 text-base font-normal;
+  }
+
+  input:not([type="checkbox"], [type="radio"], [type="hidden"], [type="file"], [type="submit"], [type="button"]),
+  select,
+  textarea {
+    @apply min-h-11 w-full rounded-[10px] border border-lin-dark bg-card px-3.5 text-base font-normal text-ink shadow-none transition-colors placeholder:text-muted;
+  }
+
+  textarea {
+    @apply py-2.5 leading-relaxed;
+  }
+
+  input:not([type="checkbox"], [type="radio"]):focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    @apply border-sauge;
+    outline-offset: 0;
+  }
+
+  input[aria-invalid="true"],
+  select[aria-invalid="true"],
+  textarea[aria-invalid="true"] {
+    @apply border-2 border-terracotta;
+  }
+
+  input[readonly],
+  textarea[readonly] {
+    @apply bg-lin-soft;
+  }
+
+  input[type="checkbox"],
+  input[type="radio"] {
+    @apply size-5 shrink-0 accent-sauge;
+  }
+
+  input[type="file"] {
+    @apply w-full max-w-xl rounded-[10px] border border-dashed border-lin-dark bg-card p-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-sauge-tint file:px-3 file:py-2 file:font-medium file:text-sauge-ink;
+  }
+
+  /* Boutons : l'envoi d'un formulaire est l'action principale (sauge) ;
+     les autres boutons restent discrets. */
+  button,
+  [type="submit"],
+  [type="button"] {
+    @apply inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-[10px] border border-lin-dark bg-card px-4 text-[15px] font-medium text-ink transition-colors hover:border-ink-soft;
+  }
+
+  button[type="submit"],
+  button:not([type]),
+  input[type="submit"] {
+    @apply border-sauge bg-sauge font-semibold text-white hover:border-sauge-dark hover:bg-sauge-dark;
+  }
+
+  button:disabled,
+  input:disabled,
+  select:disabled,
+  textarea:disabled {
+    @apply cursor-not-allowed opacity-55;
+  }
+
+  fieldset {
+    @apply my-4 flex w-full max-w-3xl min-w-0 flex-col items-start gap-3 rounded-[16px] border border-lin bg-card p-5;
+  }
+
+  legend {
+    @apply px-1 font-display text-lg font-semibold;
+  }
+
+  /* Tableaux : en-têtes discrets, lignes séparées ; le défilement
+     horizontal se fait dans la région qui les contient. */
+  table {
+    @apply my-3 w-full border-collapse text-[15px];
+  }
+
+  caption {
+    @apply pb-2 text-left text-sm text-muted;
+  }
+
+  th {
+    @apply border-b border-lin-soft px-3 py-3 text-left align-top font-medium;
+  }
+
+  thead th {
+    @apply border-b border-lin py-2.5 align-bottom text-xs tracking-wide text-muted uppercase;
+  }
+
+  td {
+    @apply border-b border-lin-soft px-3 py-3 align-top;
+  }
+
+  tbody tr:last-child td {
+    @apply border-b-0;
+  }
+
+  dl {
+    @apply my-3 grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-[minmax(10rem,auto)_1fr];
+  }
+
+  dt {
+    @apply text-sm text-muted;
+  }
+
+  dd {
+    @apply m-0;
+  }
+
+  /* Un groupe dt/dd enveloppé (validité HTML) garde la grille. */
+  dl > div {
+    display: contents;
+  }
+
+  code {
+    @apply rounded bg-lin-soft px-1.5 py-0.5 font-mono text-sm break-all;
+  }
+
+  hr {
+    @apply my-6 border-lin;
+  }
+
+  /* Messages : la couleur aide, le texte porte toujours l'information. */
+  [role="alert"] {
+    @apply my-3 rounded-xl bg-terracotta-tint px-4 py-3 text-[15px] text-terracotta-ink;
+  }
+
+  [role="status"] {
+    @apply my-3 rounded-xl bg-sauge-tint px-4 py-3 text-[15px] text-sauge-ink;
+  }
+
+  [role="alert"]:empty,
+  [role="status"]:empty {
+    @apply hidden;
+  }
+
+  [role="note"] {
+    @apply my-3 rounded-xl border border-lin bg-ivory px-4 py-3 text-[15px];
+  }
+
+  /* Aide contextuelle (« ? ») : un bouton rond, l'article en carte. */
+  details > summary {
+    @apply inline-flex min-h-11 min-w-11 cursor-pointer list-none items-center justify-center rounded-full border border-lin-dark bg-card px-3 font-semibold text-sauge marker:hidden;
+  }
+
+  details > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  details[open] {
+    @apply my-3 max-w-2xl rounded-[16px] border border-lin bg-card p-5;
+  }
+
+  details[open] > summary {
+    @apply mb-2;
+  }
+
+  /* Visite guidée : une carte flottante en bas de l'écran. */
+  [role="dialog"] {
+    @apply fixed right-4 bottom-4 left-4 z-50 mx-auto max-w-md rounded-[16px] border border-lin bg-card p-5 shadow-[0_12px_40px_rgba(43,38,35,0.18)] sm:left-auto;
+  }
+
+  /* Zones défilantes (tableaux larges) : la région reste dans la page. */
+  [role="region"][tabindex="0"] {
+    @apply overflow-x-auto;
+  }
+}
+
+@layer components {
+  /* Structure d'écran (app-shell.tsx) */
+  .app-shell {
+    @apply flex min-h-screen flex-col md:flex-row;
+  }
+
+  .app-sidebar {
+    @apply flex shrink-0 flex-col gap-4 border-b border-lin bg-card px-4 py-4 md:sticky md:top-0 md:h-screen md:w-64 md:gap-6 md:overflow-y-auto md:border-r md:border-b-0 md:px-4 md:py-7;
+  }
+
+  .app-brand {
+    @apply flex items-center gap-3 px-2 font-display text-2xl font-semibold text-ink no-underline hover:text-ink;
+  }
+
+  .app-nav {
+    @apply m-0 flex list-none flex-col gap-1 p-0;
+  }
+
+  .app-nav li {
+    @apply m-0;
+  }
+
+  .app-nav a {
+    @apply flex min-h-11 items-center gap-3 rounded-[10px] px-3 text-[15px] text-ink no-underline transition-colors hover:bg-lin-soft hover:text-ink;
+  }
+
+  .app-nav a[aria-current="page"] {
+    @apply bg-sauge-tint font-semibold text-sauge-ink;
+  }
+
+  .app-menu-toggle {
+    @apply md:hidden;
+  }
+
+  .app-sidebar-header {
+    @apply flex items-center justify-between gap-3;
+  }
+
+  .app-sidebar:not(.is-open) > .app-collapsible {
+    @apply hidden md:flex;
+  }
+
+  .app-collapsible {
+    @apply flex flex-col gap-4 md:flex-1 md:gap-6;
+  }
+
+  .app-nav-group {
+    @apply px-3 pt-2 text-xs font-medium tracking-wider text-muted uppercase;
+  }
+
+  .app-user {
+    @apply mt-auto flex flex-col gap-2 border-t border-lin pt-4 text-sm text-muted;
+  }
+
+  .app-user form {
+    @apply m-0;
+  }
+
+  /* Se déconnecter n'est jamais l'action principale d'un écran. */
+  .app-user button[type="submit"] {
+    @apply border-lin-dark bg-card font-medium text-ink hover:border-ink-soft hover:bg-card;
+  }
+
+  .app-main {
+    @apply mx-auto w-full max-w-6xl min-w-0 flex-1 px-4 pt-6 pb-16 sm:px-8 md:pt-8;
+  }
+
+  /* Écrans sans menu : connexion, double authentification, invitation. */
+  .auth-shell {
+    @apply flex min-h-screen flex-col items-center justify-start gap-6 px-4 pt-16 pb-16;
+  }
+
+  .auth-shell main {
+    @apply w-full max-w-md rounded-[16px] border border-lin bg-card p-6 sm:p-8;
+  }
+
+  /* Une section de premier niveau, ou un formulaire de saisie, devient une carte. */
+  .app-main > main > section,
+  .app-main > main > form:has(label),
+  .app-main > main > form > section,
+  .card {
+    @apply my-6 rounded-[16px] border border-lin bg-card p-5 sm:p-6;
+  }
+
+  .app-main > main > form:has(label) {
+    @apply max-w-3xl;
+  }
+
+  .card-grid {
+    @apply my-6 grid grid-cols-1 gap-6 lg:grid-cols-2;
+  }
+
+  .card-grid > section {
+    @apply my-0 rounded-[16px] border border-lin bg-card p-5 sm:p-6;
+  }
+
+  .page-header {
+    @apply mb-6 flex flex-wrap items-start justify-between gap-4;
+  }
+
+  .eyebrow {
+    @apply text-sm text-muted;
+  }
+
+  .badge {
+    @apply inline-flex items-center rounded-full bg-gris-tint px-3 py-1 text-[13px] font-medium whitespace-nowrap text-ink;
+  }
+
+  .badge-sauge {
+    @apply bg-sauge-tint text-sauge-ink;
+  }
+
+  .badge-terracotta {
+    @apply bg-terracotta-tint text-terracotta-ink;
+  }
+
+  .badge-ambre {
+    @apply bg-ambre-tint text-ambre-ink;
+  }
+
+  .badge-bleu {
+    @apply bg-bleu-tint text-bleu-ink;
+  }
+
+  .text-overdue {
+    @apply font-medium text-terracotta-dark;
+  }
+
+  .text-paid {
+    @apply font-medium text-sauge-ink;
+  }
+
+  .inline-form {
+    @apply m-0 inline-flex;
+  }
+
+  /* Formulaire d'un seul bouton (cocher, déplacer, retirer…) : une action
+     secondaire, compacte, alignée avec ses voisines. */
+  form:not(:has(label, select, textarea, input:not([type="hidden"]))) {
+    @apply my-1 mr-1.5 inline-flex flex-row flex-wrap items-center gap-1.5 align-middle;
+  }
+
+  form:not(:has(label, select, textarea, input:not([type="hidden"]))) button[type="submit"],
+  form:not(:has(label, select, textarea, input:not([type="hidden"]))) button:not([type]) {
+    @apply min-h-10 border-lin-dark bg-card px-3 text-sm font-medium text-ink hover:border-ink-soft hover:bg-lin-soft;
+  }
+
+  /* Sauf l'action principale d'une carte, quand l'écran la désigne. */
+  form.primary-action button[type="submit"] {
+    @apply min-h-11 border-sauge bg-sauge px-4 text-[15px] font-semibold text-white hover:bg-sauge-dark;
+  }
+
+  /* Listes d'éléments (postes, tâches, lignes du programme) : une ligne
+     par élément, ses actions et son formulaire d'édition dessous. */
+  .item-list {
+    @apply my-3 list-none space-y-0 p-0;
+  }
+
+  .item-list > li {
+    @apply flex flex-col items-start gap-2 border-b border-lin-soft py-4 last:border-b-0;
+  }
+
+  .item-list > li > form:has(label) {
+    @apply my-1 grid w-full max-w-none grid-cols-1 items-end gap-3 rounded-xl border border-lin bg-ivory p-4 sm:grid-cols-2 lg:grid-cols-3;
+  }
+
+  .item-list > li > form:has(label) > fieldset {
+    @apply col-span-full my-0 max-w-none;
+  }
+
+  .item-list > li > form:has(label) > button {
+    @apply justify-self-start;
+  }
+
+  /* Liens présentés comme des boutons (barre d'outils d'un écran). */
+  .toolbar {
+    @apply my-4 flex flex-wrap gap-2;
+  }
+
+  .button-link {
+    @apply inline-flex min-h-11 items-center rounded-[10px] border border-lin-dark bg-card px-4 text-[15px] font-medium text-ink no-underline hover:border-ink-soft hover:text-ink;
+  }
+
+  .button-link-primary {
+    @apply border-sauge bg-sauge font-semibold text-white hover:bg-sauge-dark hover:text-white;
+  }
+
+  /* Onglets : liens avec aria-current sur l'onglet affiché. */
+  .tabs {
+    @apply my-4 flex gap-1 overflow-x-auto border-b border-lin;
+  }
+
+  .tabs a {
+    @apply -mb-px inline-flex min-h-11 items-center border-b-2 border-transparent px-4 text-[15px] whitespace-nowrap text-muted no-underline hover:text-ink;
+  }
+
+  .tabs a[aria-current="page"] {
+    @apply border-sauge font-semibold text-ink;
+  }
+
+  /* Filtres d'une liste : en ligne sur ordinateur. */
+  .app-main > main > form.filters {
+    @apply grid max-w-none grid-cols-1 items-end gap-3 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr_auto];
+  }
+
+  .event-list {
+    @apply my-4 list-none space-y-3 p-0;
+  }
+
+  .event-list a {
+    @apply flex flex-wrap items-center gap-x-4 gap-y-1 rounded-[16px] border border-lin bg-card px-5 py-4 text-ink no-underline transition-colors hover:border-sauge hover:text-ink;
+  }
+
+  .event-list-names {
+    @apply basis-full font-display text-lg font-semibold sm:basis-auto;
+  }
+
+  .event-list-meta {
+    @apply text-[15px] text-muted sm:order-last sm:basis-full;
+  }
+
+  .meta {
+    @apply mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[15px] text-muted;
+  }
+
+  progress {
+    @apply my-2 h-2 w-full max-w-md overflow-hidden rounded-full bg-lin-soft accent-sauge;
+  }
+}

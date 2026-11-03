@@ -62,7 +62,7 @@ test("BUD-03 — joindre le devis d'un prestataire à une ligne et l'ouvrir par 
   await page.getByRole("button", { name: "Créer le prospect" }).click();
   await expect(page.getByRole("heading", { name: "Camille" })).toBeVisible();
   const eventUrl = page.url();
-  await page.getByRole("link", { name: "Budget" }).click();
+  await page.getByRole("main").getByRole("link", { name: "Budget", exact: true }).click();
   await page.getByLabel("Budget total (€)").fill("10000");
   await page.getByLabel("Nombre d'invités").fill("40");
   await page.getByLabel("Modèle de répartition").selectOption({ label: "Classique" });

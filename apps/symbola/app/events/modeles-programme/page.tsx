@@ -45,7 +45,7 @@ export default async function ProgramTemplatesPage() {
                 <strong>{item.endTime ? `${item.startTime} – ${item.endTime}` : item.startTime}</strong> — {item.label}
                 {item.location ? ` — ${item.location}` : ""}
                 {item.participantLabels.length > 0 ? ` — ${item.participantLabels.join(", ")}` : ""}{" "}
-                <form action={removeProgramTemplateItemAction} style={{ display: "inline" }}>
+                <form action={removeProgramTemplateItemAction} className="inline-form">
                   <input type="hidden" name="itemId" value={item.id} />
                   <button type="submit">{t("removeProgramItem", { label: item.label })}</button>
                 </form>

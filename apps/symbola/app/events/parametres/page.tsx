@@ -65,7 +65,7 @@ export default async function EventsSettingsPage() {
         {defaultVendorSlots.map((slot) => (
           <li key={slot.id}>
             {slot.label}{" "}
-            <form action={removeDefaultVendorSlotAction} style={{ display: "inline" }}>
+            <form action={removeDefaultVendorSlotAction} className="inline-form">
               <input type="hidden" name="defaultVendorSlotId" value={slot.id} />
               <button type="submit">{t("removeVendorSlot", { label: slot.label })}</button>
             </form>

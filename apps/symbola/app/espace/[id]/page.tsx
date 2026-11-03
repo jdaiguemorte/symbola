@@ -93,7 +93,7 @@ export default async function ClientEventPage({ params }: { params: Promise<{ id
           <ul>
             {monthTasks.map((task) => (
               <li key={task.id}>
-                <strong style={task.done ? { textDecoration: "line-through" } : undefined}>{task.label}</strong>
+                <strong className={task.done ? "line-through" : undefined}>{task.label}</strong>
                 {" — "}
                 {formatCalendarDate(task.dueDate, locale)}
                 {" — "}

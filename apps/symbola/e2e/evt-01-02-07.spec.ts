@@ -7,6 +7,7 @@ import { createAppConnection } from "@symbola/db/client";
 import { createOrganization, createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import * as OTPAuth from "otpauth";
+import { clickMenuLink } from "./helpers";
 
 async function loginAndSetupMfa(page: Page, email: string, password: string) {
   await page.goto("/login");
@@ -48,7 +49,7 @@ test("EVT-07 — la planner paramètre ses sources et motifs de perte, puis la s
 }) => {
   await createPlanner(page);
 
-  await page.getByRole("link", { name: "Événements" }).click();
+  await clickMenuLink(page, "Événements");
   await expect(page).toHaveURL(/\/events$/);
   await expectNoAxeViolation(page);
 

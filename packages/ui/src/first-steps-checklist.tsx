@@ -21,7 +21,7 @@ export function FirstStepsChecklist({
   return (
     <section aria-label={title}>
       <h2>{title}</h2>
-      <ul>
+      <ul className="list-none pl-0">
         {items.map((item) => (
           <li key={item.key}>
             <span aria-hidden="true">{item.done ? "✓" : "○"}</span> {item.label}

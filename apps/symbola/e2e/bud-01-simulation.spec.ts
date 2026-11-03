@@ -75,7 +75,7 @@ test("BUD-01 — modèle de répartition, simulation et ajustement d'un poste", 
   await expect(page.getByRole("heading", { name: "Camille" })).toBeVisible();
 
   // BUD-01 : accès à la simulation depuis la fiche événement.
-  await page.getByRole("link", { name: "Budget" }).click();
+  await page.getByRole("main").getByRole("link", { name: "Budget", exact: true }).click();
   await expect(page).toHaveURL(/\/budget\//);
   await expectNoAxeViolation(page);
 

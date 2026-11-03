@@ -7,6 +7,7 @@ import { createAppConnection } from "@symbola/db/client";
 import { createOrganization, createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import * as OTPAuth from "otpauth";
+import { logout } from "./helpers";
 
 const MAILPIT_API = "http://localhost:8025/api/v1";
 
@@ -141,7 +142,7 @@ test("HUB-03-03 — désactiver un module l'affiche « indisponible » sans erre
   // Avant désactivation : le module s'affiche normalement.
   const titulaireSecret = await loginAndSetupMfa(page, email, password);
   await expect(page.getByText("Bonjour depuis Symbola")).toBeVisible();
-  await page.getByRole("button", { name: "Se déconnecter" }).click();
+  await logout(page);
 
   // L'Admin désactive le module hello pour cette organisation (la liste
   // contient toutes les organisations créées par les autres tests : on
@@ -158,7 +159,7 @@ test("HUB-03-03 — désactiver un module l'affiche « indisponible » sans erre
   await expect(page.getByText("en ligne")).toBeVisible();
 
   await page.goto("/");
-  await page.getByRole("button", { name: "Se déconnecter" }).click();
+  await logout(page);
   await expect(page).toHaveURL(/\/login$/);
 
   // Le titulaire voit « indisponible », sans erreur.

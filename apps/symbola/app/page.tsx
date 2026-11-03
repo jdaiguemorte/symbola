@@ -11,7 +11,6 @@ import { getAuthContext } from "@/lib/auth-context";
 import { recordUsage } from "@/lib/usage";
 import { UpcomingPaymentsBlock } from "./devis/encaissements/dashboard-block";
 import { PrivacyPurgeAlertBlock, PrivacyRequestsAlertBlock } from "./rgpd/dashboard-block";
-import { logoutAction } from "./logout-action";
 import { HomeInteractive } from "./home-interactive";
 
 export default async function HomePage() {
@@ -36,7 +35,6 @@ export default async function HomePage() {
   // d'organisation) n'a pas de module à vérifier.
   let helloAvailable = true;
   let eventsAvailable = false;
-  let budgetAvailable = false;
   let quotesAvailable = false;
   if (auth.user.organizationId) {
     const organizationId = auth.user.organizationId;
@@ -44,7 +42,6 @@ export default async function HomePage() {
     try {
       helloAvailable = await isModuleEnabled(db, organizationId, "hello");
       eventsAvailable = await isModuleEnabled(db, organizationId, "events");
-      budgetAvailable = await isModuleEnabled(db, organizationId, "budget");
       quotesAvailable = await isModuleEnabled(db, organizationId, "quotes");
     } finally {
       await sql.end();
@@ -85,43 +82,26 @@ export default async function HomePage() {
   const tTour = await getTranslations("Tour");
   const tHelp = await getTranslations("Help");
   const tFirstSteps = await getTranslations("FirstSteps");
-  const tAide = await getTranslations("Aide");
   const tourSteps = tTour.raw("hub") as TourStep[];
 
   return (
     <main>
-      <h1>{t("title")}</h1>
-      <p>{t("connectedAs", { email: auth.user.email })}</p>
-      <p>{greeting ? greeting.message : t("moduleUnavailable")}</p>
+      <div className="page-header">
+        <div>
+          <p className="eyebrow">{greeting ? greeting.message : t("moduleUnavailable")}</p>
+          <h1>{t("welcome")}</h1>
+        </div>
+      </div>
       {onboardingIncomplete ? (
         <p role="status">
           {t("onboardingIncomplete")} <Link href="/parametres">{t("completeProfile")}</Link>
         </p>
       ) : null}
-      <nav>
-        <Link href="/profil">{t("myProfile")}</Link>
-        {auth.user.organizationId ? <Link href="/parametres">{t("settings")}</Link> : null}
-        {eventsAvailable ? <Link href="/events">{t("events")}</Link> : null}
-        {budgetAvailable ? <Link href="/budget/parametres">{t("budgetModels")}</Link> : null}
-        {quotesAvailable ? <Link href="/devis/catalogue">{t("quoteCatalog")}</Link> : null}
-        {quotesAvailable ? <Link href="/devis/parametres">{t("quoteSettings")}</Link> : null}
-        {quotesAvailable ? <Link href="/devis/encaissements">{t("quotePayments")}</Link> : null}
-        {quotesAvailable ? <Link href="/devis/e-reporting">{t("eReporting")}</Link> : null}
-        {/* Lot 5 : reprise de données, dès qu'un module reçoit des imports. */}
-        {auth.user.organizationId && (eventsAvailable || budgetAvailable || quotesAvailable) ? <Link href="/import">{t("importData")}</Link> : null}
-        {/* Lot 6 : module RGPD, titulaire du compte seulement. */}
-        {auth.user.role === "owner" && auth.user.organizationId ? <Link href="/rgpd">{t("privacy")}</Link> : null}
-        {auth.user.role === "admin" ? <Link href="/admin">{t("administration")}</Link> : null}
-        <Link href="/aide">{tAide("link")}</Link>
-      </nav>
-      {/* HUB-02 / DEV-03 : absent si le module Devis n'est pas souscrit. */}
       {/* RGPD-04 : demandes dont l'échéance approche, titulaire seulement. */}
       {auth.user.role === "owner" && auth.user.organizationId ? <PrivacyRequestsAlertBlock organizationId={auth.user.organizationId} /> : null}
       {auth.user.role === "owner" && auth.user.organizationId ? <PrivacyPurgeAlertBlock organizationId={auth.user.organizationId} /> : null}
+      {/* HUB-02 / DEV-03 : absent si le module Devis n'est pas souscrit. */}
       {quotesAvailable && auth.user.organizationId ? <UpcomingPaymentsBlock organizationId={auth.user.organizationId} /> : null}
-      <form action={logoutAction}>
-        <button type="submit">{t("logout")}</button>
-      </form>
       <HomeInteractive
         tourInitiallyOpen={tourInitiallyOpen}
         tourSteps={tourSteps}

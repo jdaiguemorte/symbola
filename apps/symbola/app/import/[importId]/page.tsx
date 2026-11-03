@@ -78,7 +78,7 @@ export default async function ImportDraftPage({ params }: { params: Promise<{ im
 
       <section aria-labelledby="import-preview">
         <h2 id="import-preview">{t("previewTitle", { count: draft.previewRows.length })}</h2>
-        <div role="region" aria-label={t("previewScrollLabel")} tabIndex={0} style={{ overflowX: "auto" }}>
+        <div role="region" aria-label={t("previewScrollLabel")} tabIndex={0}>
           <table>
             <thead>
               <tr>

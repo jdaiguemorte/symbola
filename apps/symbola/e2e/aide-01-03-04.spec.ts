@@ -12,6 +12,7 @@ import { createAppConnection } from "@symbola/db/client";
 import { createOrganization, createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import * as OTPAuth from "otpauth";
+import { clickMenuLink } from "./helpers";
 
 async function loginAndSetupMfa(page: Page, email: string, password: string): Promise<void> {
   await page.goto("/login");
@@ -80,7 +81,7 @@ test("AIDE-01/03/04 — visite guidée, aide et liste premiers pas sur l'accueil
   await expect(page.getByRole("heading", { name: "Premiers pas" })).toBeHidden();
 
   // AIDE-03 : l'aide est consultable et cherchable depuis le hub.
-  await page.getByRole("link", { name: "Aide", exact: true }).click();
+  await clickMenuLink(page, "Aide");
   await expect(page.getByRole("heading", { name: "Aide", level: 1 })).toBeVisible();
   violations = await new AxeBuilder({ page }).analyze();
   expect(violations.violations, JSON.stringify(violations.violations, null, 2)).toEqual([]);

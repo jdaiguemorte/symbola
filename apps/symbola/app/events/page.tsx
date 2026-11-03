@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
+import { formatCalendarDate, type Locale } from "@symbola/i18n";
 import type { TourStep } from "@symbola/ui";
 import { createAppConnection } from "@symbola/db/client";
 import {
@@ -16,8 +17,21 @@ import { ModuleTourAndHelp } from "../module-tour";
 import { isEventsModuleEnabled } from "./module-access";
 import { startTrialAction } from "./trial-actions";
 
-const UPCOMING_STATUSES: EventStatus[] = ["prospect", "quote_sent", "confirmed"];
+const UPCOMING_STATUSES: EventStatus[] = [
+  "prospect",
+  "quote_sent",
+  "confirmed",
+];
 const PAST_STATUSES: EventStatus[] = ["done", "lost"];
+
+// Pastilles de statut de la charte (globals.css) : le libellé reste affiché.
+const EVENT_STATUS_CLASSES: Record<EventStatus, string> = {
+  prospect: "badge badge-bleu",
+  quote_sent: "badge badge-ambre",
+  confirmed: "badge badge-sauge",
+  done: "badge",
+  lost: "badge badge-terracotta",
+};
 
 const STATUS_LABEL_KEYS: Record<EventStatus, string> = {
   prospect: "statusProspect",
@@ -30,16 +44,25 @@ const STATUS_LABEL_KEYS: Record<EventStatus, string> = {
 export default async function EventsListPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string; year?: string; search?: string; status?: string; source?: string; essai?: string }>;
+  searchParams: Promise<{
+    tab?: string;
+    year?: string;
+    search?: string;
+    status?: string;
+    source?: string;
+    essai?: string;
+  }>;
 }) {
   const auth = await getPlannerAuthContext();
   if (auth.status === "unauthenticated") redirect("/login");
   if (auth.status === "mfa_required") redirect("/mfa");
-  if (auth.status === "forbidden") redirect(auth.role === "client" ? "/espace" : "/");
+  if (auth.status === "forbidden")
+    redirect(auth.role === "client" ? "/espace" : "/");
   if (!auth.user.organizationId) redirect("/");
   const organizationId = auth.user.organizationId;
 
   const t = await getTranslations("Events");
+  const locale = (await getLocale()) as Locale;
   const tHelp = await getTranslations("Help");
   const { tab, year, search, status, source, essai } = await searchParams;
 
@@ -68,12 +91,16 @@ export default async function EventsListPage({
   const isPastTab = tab === "termines";
   const tabStatuses = isPastTab ? PAST_STATUSES : UPCOMING_STATUSES;
   const statusFilter: EventStatus[] =
-    status && tabStatuses.includes(status as EventStatus) ? [status as EventStatus] : tabStatuses;
+    status && tabStatuses.includes(status as EventStatus)
+      ? [status as EventStatus]
+      : tabStatuses;
   const yearFilter = year ? Number(year) : undefined;
 
   const sources = await listProspectSources(organizationId);
   // EVT-07 : seule une source de l'organisation est retenue comme filtre.
-  const sourceFilter = sources.some((candidate) => candidate.id === source) ? source : undefined;
+  const sourceFilter = sources.some((candidate) => candidate.id === source)
+    ? source
+    : undefined;
 
   const items = await listEvents({
     organizationId,
@@ -83,7 +110,9 @@ export default async function EventsListPage({
     prospectSourceId: sourceFilter,
   });
 
-  function clientNames(clients: { firstName: string; lastName: string | null }[]): string {
+  function clientNames(
+    clients: { firstName: string; lastName: string | null }[],
+  ): string {
     if (clients.length === 0) return t("noClient");
     return clients.map((client) => client.firstName).join(" & ");
   }
@@ -116,27 +145,34 @@ export default async function EventsListPage({
           </form>
         )}
       </section>
-      <nav>
-        <Link href="/events/new">{t("newProspect")}</Link>
-        {" · "}
-        <Link href="/events/parametres">{t("settingsLink")}</Link>
-        {" · "}
-        <Link href="/events/modeles">{t("taskTemplatesLink")}</Link>
-        {" · "}
-        <Link href="/events/modeles-programme">{t("programTemplatesLink")}</Link>
+      <nav className="toolbar">
+        <Link href="/events/new" className="button-link button-link-primary">
+          {t("newProspect")}
+        </Link>
+        <Link href="/events/parametres" className="button-link">
+          {t("settingsLink")}
+        </Link>
+        <Link href="/events/modeles" className="button-link">
+          {t("taskTemplatesLink")}
+        </Link>
+        <Link href="/events/modeles-programme" className="button-link">
+          {t("programTemplatesLink")}
+        </Link>
       </nav>
 
-      <nav aria-label={t("tabsLabel")}>
+      <nav aria-label={t("tabsLabel")} className="tabs">
         <Link href="/events" aria-current={!isPastTab ? "page" : undefined}>
           {t("tabUpcoming")}
         </Link>
-        {" · "}
-        <Link href="/events?tab=termines" aria-current={isPastTab ? "page" : undefined}>
+        <Link
+          href="/events?tab=termines"
+          aria-current={isPastTab ? "page" : undefined}
+        >
           {t("tabPast")}
         </Link>
       </nav>
 
-      <form method="get">
+      <form method="get" className="filters">
         {isPastTab ? <input type="hidden" name="tab" value="termines" /> : null}
         <label>
           {t("searchLabel")}
@@ -171,16 +207,29 @@ export default async function EventsListPage({
         <button type="submit">{t("filter")}</button>
       </form>
 
-      <ul>
+      <ul className="event-list">
         {items.map((item) => (
           <li key={item.id}>
             <Link href={`/events/${item.id}`}>
-              <strong>{item.eventDate ?? t("dateUnset")}</strong> — {clientNames(item.clients)}
-              {" — "}
-              {item.venueName ?? ""} {item.venueCity ? `(${item.venueCity})` : ""}
-              {" — "}
-              {t(STATUS_LABEL_KEYS[item.status])}
-              {item.isDemo ? ` — ${t("demoTag")}` : ""}
+              <span className="event-list-names">
+                {clientNames(item.clients)}
+              </span>
+              <span className="event-list-meta">
+                <strong>
+                  {item.eventDate
+                    ? formatCalendarDate(item.eventDate, locale)
+                    : t("dateUnset")}
+                </strong>
+                {item.venueName || item.venueCity
+                  ? ` · ${item.venueName ?? ""} ${item.venueCity ? `(${item.venueCity})` : ""}`
+                  : ""}
+              </span>
+              <span className={EVENT_STATUS_CLASSES[item.status]}>
+                {t(STATUS_LABEL_KEYS[item.status])}
+              </span>
+              {item.isDemo ? (
+                <span className="badge">{t("demoTag")}</span>
+              ) : null}
             </Link>
           </li>
         ))}
