@@ -68,6 +68,11 @@ describe("SOC-02 — Pipeline CI de sécurité", () => {
     expect(ciWorkflow).toMatch(/needs:\s*\[lint-typecheck-test, db-isolation, e2e, semgrep, gitleaks, osv-scanner, build-and-scan-image\]/);
   });
 
+  it("vérifie dans l'image construite qu'un PDF se génère (polices de la sortie standalone)", () => {
+    expect(ciWorkflow).toMatch(/pdf-smoke\.mjs/);
+    expect(ciWorkflow).toMatch(/--entrypoint node symbola-app:ci/);
+  });
+
   it("lance les parcours bout en bout Playwright sur la version compilée, avec les services réels (lot 6)", () => {
     expect(ciWorkflow).toMatch(/\n  e2e:\n/);
     expect(ciWorkflow).toMatch(/pnpm --filter @symbola\/app build/);
