@@ -34,8 +34,12 @@ Inter pour le texte, logo provisoire de deux anneaux entrelacés.
    la planner et l'Admin, replié derrière un bouton « Menu » sur téléphone ; en-tête simple pour un
    marié ; écran centré pour la connexion. Le menu reprend les liens et les règles d'affichage de
    l'ancien accueil (modules souscrits, rôle), avec les mêmes libellés.
-4. **Polices** Fraunces et Inter servies par l'app (`next/font/google`, téléchargées au build) :
-   aucun appel du navigateur de la planner vers Google (RGPD, CSP).
+4. **Polices** Fraunces et Inter servies par l'app (`next/font/local`) : fichiers WOFF2
+   versionnés dans `apps/symbola/app/fonts/` (sous-ensemble latin, poids variables, licence
+   OFL jointe). Aucun appel à Google, ni par le navigateur de la planner (RGPD, CSP) ni au
+   build de l'image. `next/font/google` a d'abord été utilisé, mais il télécharge les polices
+   à chaque build : une réponse inattendue de Google a fait échouer la publication de l'image
+   après la fusion de la PR #44.
 5. **Aucun attribut `style` dans le HTML rendu côté serveur** : la CSP stricte (`style-src`
    avec nonce, `middleware.ts`) le refuse ; les quelques styles en ligne existants (pastilles de
    statut, écarts du budget) sont devenus des classes. Les contrastes de la palette respectent
