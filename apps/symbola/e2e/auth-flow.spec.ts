@@ -9,6 +9,7 @@ import { createAppConnection } from "@symbola/db/client";
 import { createOrganization, createUser } from "@symbola/auth";
 import { expect, test } from "@playwright/test";
 import * as OTPAuth from "otpauth";
+import { openMenu } from "./helpers";
 
 const email = `playwright-e2e-${randomUUID()}@symbola.test`;
 const password = "mot-de-passe-e2e-de-test";
@@ -46,6 +47,7 @@ test("EVT-E2E-01 — connexion, configuration MFA, puis accueil", async ({ page 
   await page.getByRole("button", { name: "Valider" }).click();
 
   await expect(page).toHaveURL("/");
+  await openMenu(page);
   await expect(page.getByText(`Connecté comme ${email}`)).toBeVisible();
   await expect(page.getByText("Bonjour depuis Symbola")).toBeVisible();
   violations = await new AxeBuilder({ page }).analyze();

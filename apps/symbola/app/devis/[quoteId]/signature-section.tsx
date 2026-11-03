@@ -2,7 +2,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { formatDateTime, type Locale } from "@symbola/i18n";
 import { listEventClientAccesses, type EventDetail } from "@/modules/events/service";
 import { isSignatureAvailable, type QuoteDetail } from "@/modules/quotes/service";
-import { PAID_STYLE, OVERDUE_STYLE } from "../quote-display";
+import { PAID_CLASS, OVERDUE_CLASS } from "../quote-display";
 import { SendForSignatureForm, type SignerDraft } from "./signature-forms";
 
 const SIGNER_STATUS_KEYS = { pending: "signerPending", signed: "signerSigned", declined: "signerDeclined" } as const;
@@ -32,7 +32,7 @@ export async function SignatureSection({
           {signature.signers.map((signer) => (
             <li key={signer.id}>
               <strong>{signer.name}</strong> ({signer.email}) —{" "}
-              <span style={signer.status === "signed" ? PAID_STYLE : signer.status === "declined" ? OVERDUE_STYLE : undefined}>
+              <span className={signer.status === "signed" ? PAID_CLASS : signer.status === "declined" ? OVERDUE_CLASS : "badge"}>
                 {t(SIGNER_STATUS_KEYS[signer.status])}
                 {signer.signedAt ? ` — ${formatDateTime(new Date(signer.signedAt), locale)}` : ""}
               </span>

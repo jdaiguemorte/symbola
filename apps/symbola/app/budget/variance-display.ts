@@ -5,12 +5,13 @@
 export type VarianceDisplay = {
   labelKey: "varianceUnset" | "varianceOver" | "varianceUnder" | "varianceEqual";
   amountCents: number | null;
-  color: string | undefined;
+  // Classe de la charte (globals.css) : renfort visuel du libellé.
+  className: string | undefined;
 };
 
 export function varianceDisplay(varianceCents: number | null): VarianceDisplay {
-  if (varianceCents === null) return { labelKey: "varianceUnset", amountCents: null, color: undefined };
-  if (varianceCents > 0) return { labelKey: "varianceOver", amountCents: varianceCents, color: "#b91c1c" };
-  if (varianceCents < 0) return { labelKey: "varianceUnder", amountCents: -varianceCents, color: "#15803d" };
-  return { labelKey: "varianceEqual", amountCents: null, color: undefined };
+  if (varianceCents === null) return { labelKey: "varianceUnset", amountCents: null, className: undefined };
+  if (varianceCents > 0) return { labelKey: "varianceOver", amountCents: varianceCents, className: "text-overdue" };
+  if (varianceCents < 0) return { labelKey: "varianceUnder", amountCents: -varianceCents, className: "text-paid" };
+  return { labelKey: "varianceEqual", amountCents: null, className: undefined };
 }

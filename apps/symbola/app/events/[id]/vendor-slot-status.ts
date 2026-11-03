@@ -1,6 +1,6 @@
 // EVT-03 : « chaque statut a sa couleur ». Présentation seulement (les
 // statuts sont fixés par le PRD) ; la couleur accompagne toujours le
-// libellé, jamais seule, avec un contraste supérieur à 7:1 (WCAG AA).
+// libellé, jamais seule, contrastes WCAG AA (charte, lot 7).
 import type { VendorSlotStatus } from "@/modules/events/service";
 
 export const VENDOR_STATUS_LABEL_KEYS: Record<VendorSlotStatus, string> = {
@@ -11,10 +11,11 @@ export const VENDOR_STATUS_LABEL_KEYS: Record<VendorSlotStatus, string> = {
   not_required: "vendorStatusNotRequired",
 };
 
-export const VENDOR_STATUS_COLORS: Record<VendorSlotStatus, { background: string; color: string }> = {
-  to_find: { background: "#fde2e2", color: "#7f1d1d" },
-  quote_requested: { background: "#fef3c7", color: "#78350f" },
-  quote_received: { background: "#dbeafe", color: "#1e3a8a" },
-  booked: { background: "#dcfce7", color: "#14532d" },
-  not_required: { background: "#e5e7eb", color: "#374151" },
+// Pastilles de la charte (globals.css), contrastes AA.
+export const VENDOR_STATUS_CLASSES: Record<VendorSlotStatus, string> = {
+  to_find: "badge badge-terracotta",
+  quote_requested: "badge badge-ambre",
+  quote_received: "badge badge-bleu",
+  booked: "badge badge-sauge",
+  not_required: "badge",
 };

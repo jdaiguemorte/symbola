@@ -67,7 +67,7 @@ test("BUD-02 — confirmer la simulation en budget prévu, puis suivre prévu/r�
   await expect(page.getByRole("heading", { name: "Camille" })).toBeVisible();
   const eventUrl = page.url();
 
-  await page.getByRole("link", { name: "Budget" }).click();
+  await page.getByRole("main").getByRole("link", { name: "Budget", exact: true }).click();
   await page.getByLabel("Budget total (€)").fill("10000");
   await page.getByLabel("Nombre d'invités").fill("40");
   await page.getByLabel("Modèle de répartition").selectOption({ label: "Classique" });

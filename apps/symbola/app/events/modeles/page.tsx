@@ -49,7 +49,7 @@ export default async function TaskTemplatesPage() {
               <li key={item.id}>
                 <strong>{offsetLabel(item.offsetDays)}</strong> — {item.label} —{" "}
                 {item.responsible === "clients" ? t("responsibleClients") : t("responsiblePlanner")}{" "}
-                <form action={removeTaskTemplateItemAction} style={{ display: "inline" }}>
+                <form action={removeTaskTemplateItemAction} className="inline-form">
                   <input type="hidden" name="itemId" value={item.id} />
                   <button type="submit">{t("removeTask", { label: item.label })}</button>
                 </form>

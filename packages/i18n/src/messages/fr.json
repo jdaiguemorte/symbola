@@ -32,7 +32,14 @@
     "quotePayments": "Encaissements",
     "eReporting": "E-reporting",
     "importData": "Importer des données",
-    "privacy": "Données personnelles (RGPD)"
+    "privacy": "Données personnelles (RGPD)",
+    "home": "Accueil",
+    "navLabel": "Menu principal",
+    "navQuotesGroup": "Devis et factures",
+    "navToolsGroup": "Outils",
+    "welcome": "Bonjour",
+    "menuOpen": "Menu",
+    "menuClose": "Fermer le menu"
   },
   "Admin": {
     "title": "Administration",

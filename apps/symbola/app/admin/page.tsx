@@ -59,7 +59,7 @@ export default async function AdminPage() {
               <td>{organization.name}</td>
               <td>
                 {organization.modules.map(({ moduleKey, enabled }) => (
-                  <form action={toggleModuleAction} key={moduleKey} style={{ display: "inline" }}>
+                  <form action={toggleModuleAction} key={moduleKey} className="inline-form">
                     <input type="hidden" name="organizationId" value={organization.id} />
                     <input type="hidden" name="moduleKey" value={moduleKey} />
                     <input type="hidden" name="enabled" value={(!enabled).toString()} />

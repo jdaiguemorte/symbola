@@ -26,14 +26,13 @@ function LineRow({
   const varianceLabel = t(variance.labelKey, {
     amount: variance.amountCents === null ? "" : formatAmount(variance.amountCents, locale),
   });
-  const varianceColor = variance.color;
 
   return (
     <tr>
       <th scope="row">{line.label}</th>
       <td>{formatAmount(line.plannedAmountCents, locale)}</td>
       <td>{line.actualAmountCents === null ? t("notSet") : formatAmount(line.actualAmountCents, locale)}</td>
-      <td style={varianceColor ? { color: varianceColor } : undefined}>
+      <td className={variance.className}>
         {varianceLabel}
         {line.variancePercent !== null ? ` (${line.variancePercent > 0 ? "+" : ""}${line.variancePercent} %)` : ""}
       </td>

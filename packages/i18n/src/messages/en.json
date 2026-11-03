@@ -32,7 +32,14 @@
     "quotePayments": "Payments",
     "eReporting": "E-reporting",
     "importData": "Import data",
-    "privacy": "Personal data (GDPR)"
+    "privacy": "Personal data (GDPR)",
+    "home": "Home",
+    "navLabel": "Main menu",
+    "navQuotesGroup": "Quotes and invoices",
+    "navToolsGroup": "Tools",
+    "welcome": "Hello",
+    "menuOpen": "Menu",
+    "menuClose": "Close menu"
   },
   "Admin": {
     "title": "Administration",

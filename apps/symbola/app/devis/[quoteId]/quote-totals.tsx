@@ -9,7 +9,7 @@ export async function QuoteVersionTable({ version, locale, caption }: { version:
   const t = await getTranslations("Quotes");
   const { totals } = version;
   return (
-    <div role="region" aria-label={caption} tabIndex={0} style={{ overflowX: "auto" }}>
+    <div role="region" aria-label={caption} tabIndex={0}>
       <table>
         <caption>{caption}</caption>
         <thead>

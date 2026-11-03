@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { formatAmount, formatCalendarDate, formatMonth, type Locale } from "@symbola/i18n";
 import { getEvent } from "@/modules/events/service";
 import type { UnpaidPayment, UnpaidPaymentsView } from "@/modules/quotes/service";
-import { OVERDUE_STYLE } from "../quote-display";
+import { OVERDUE_CLASS } from "../quote-display";
 
 // DEV-03 — liste des échéances non payées (retards en tête, puis à venir
 // groupées par mois avec leur total), partagée par l'écran
@@ -34,7 +34,7 @@ export async function UpcomingPayments({
       {payment.overdue ? (
         <>
           {" "}
-          <span style={OVERDUE_STYLE}>{t("overdue")}</span>
+          <span className={OVERDUE_CLASS}>{t("overdue")}</span>
         </>
       ) : null}
     </li>
