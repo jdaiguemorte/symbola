@@ -364,6 +364,8 @@ export interface QuotesServiceContract {
   isSignatureAvailable(isDemo: boolean): boolean;
   sendQuoteForSignature(input: SendForSignatureInput): Promise<QuoteDetail>;
   handleSignatureWebhook(input: { headers: Headers; rawBody: string }): Promise<SignatureWebhookResult>;
+  // ADR 0026 — relit chez le fournisseur les demandes en attente (webhook perdu).
+  reconcilePendingSignatures(organizationId: string): Promise<{ checked: number; completed: number }>;
   getSignatureDocumentUrl(organizationId: string, quoteId: string, kind: "signed" | "certificate"): Promise<string>;
   listClientQuotesToSign(organizationId: string, eventId: string, clientEmail: string): Promise<ClientQuoteToSign[]>;
   setQuoteClientKind(organizationId: string, quoteId: string, clientKind: ClientKind): Promise<QuoteDetail>;

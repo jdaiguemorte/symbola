@@ -476,7 +476,9 @@ Les deux sont open source (AGPL-3.0), auto-hébergeables et produisent une signa
 
 **Ce qui compte pour nous** : l'app Devis pilote la signature par API, puis envoie elle-même les e-mails et les rappels. Avec DocuSeal, on n'a donc besoin que de ce qui est gratuit : API, webhooks et modèles. Limite : la page de signature porte la marque DocuSeal, pas celle de la planner, tant qu'on ne prend pas Pro.
 
-**Décision proposée** : DocuSeal pour le MVP. Tu le connais, il est plus léger à exploiter, et ce dont on a besoin est gratuit. Il est branché derrière l'interface « fournisseur de signature » : passer à Documenso ou Yousign plus tard ne touchera pas l'app Devis. À vérifier avant la porte 3 : les conditions de la licence Pro quand un seul DocuSeal sert plusieurs organisations clientes.
+**Mise à jour (03/11/2026, ADR 0026)** : DocuSeal libre ne sait pas signer un PDF envoyé par API (seulement un modèle préparé à la main) ; **Documenso** le remplace, derrière la même interface.
+
+**Décision initiale** : DocuSeal pour le MVP. Tu le connais, il est plus léger à exploiter, et ce dont on a besoin est gratuit. Il est branché derrière l'interface « fournisseur de signature » : passer à Documenso ou Yousign plus tard ne touchera pas l'app Devis. À vérifier avant la porte 3 : les conditions de la licence Pro quand un seul DocuSeal sert plusieurs organisations clientes.
 
 Sources : [DocuSeal auto-hébergé](https://www.docuseal.com/on-premises) · [Comparatif WZ-IT](https://wz-it.com/en/blog/documenso-vs-docuseal-comparison/) · [Comparatif Verdocs (concurrent, biais déclaré)](https://verdocs.com/blog/docuseal-vs-documenso) · [Documenso Community Edition](https://docs.documenso.com/docs/policies/community-edition)
 

@@ -85,21 +85,36 @@ services:
       timeout: 5s
       retries: 10
 
-  # Signature en ligne (DEV-02, ADR 0021), facultative en dev : le faux
-  # fournisseur suffit pour coder et tester. Pour essayer le vrai DocuSeal :
-  # DOCUSEAL_DB_PASSWORD dans .env, bootstrap (crée sa base dédiée), puis
-  # `--profile signature up -d` ; console sur http://localhost:3010.
-  docuseal:
-    image: docuseal/docuseal:3.3.2
+  # Signature en ligne (DEV-02, ADR 0026), facultative en dev : le faux
+  # fournisseur suffit pour coder et tester. Pour essayer le vrai Documenso :
+  # secrets DOCUMENSO_* dans .env, bootstrap (crée sa base dédiée), puis
+  # `--profile signature up -d` ; console sur http://localhost:3010. Ses
+  # e-mails (compte administrateur) arrivent dans Mailpit.
+  documenso:
+    image: documenso/documenso:2.21.1
     profiles: ["signature"]
     restart: unless-stopped
     environment:
-      DATABASE_URL: postgresql://${DOCUSEAL_DB_USER:-docuseal}:${DOCUSEAL_DB_PASSWORD:-}@postgres:5432/${DOCUSEAL_DB_NAME:-docuseal}
-      HOST: localhost:3010
+      PORT: 3000
+      NEXTAUTH_SECRET: ${DOCUMENSO_NEXTAUTH_SECRET:-}
+      NEXT_PRIVATE_ENCRYPTION_KEY: ${DOCUMENSO_ENCRYPTION_KEY:-}
+      NEXT_PRIVATE_ENCRYPTION_SECONDARY_KEY: ${DOCUMENSO_ENCRYPTION_SECONDARY_KEY:-}
+      NEXT_PUBLIC_WEBAPP_URL: http://localhost:3010
+      NEXT_PRIVATE_INTERNAL_WEBAPP_URL: http://localhost:3000
+      NEXT_PRIVATE_DATABASE_URL: postgresql://${DOCUMENSO_DB_USER:-documenso}:${DOCUMENSO_DB_PASSWORD:-}@postgres:5432/${DOCUMENSO_DB_NAME:-documenso}
+      NEXT_PRIVATE_DIRECT_DATABASE_URL: postgresql://${DOCUMENSO_DB_USER:-documenso}:${DOCUMENSO_DB_PASSWORD:-}@postgres:5432/${DOCUMENSO_DB_NAME:-documenso}
+      NEXT_PUBLIC_UPLOAD_TRANSPORT: database
+      NEXT_PRIVATE_SIGNING_LOCAL_FILE_CONTENTS: ${DOCUMENSO_SIGNING_CERT_BASE64:-}
+      NEXT_PRIVATE_SIGNING_PASSPHRASE: ${DOCUMENSO_SIGNING_PASSPHRASE:-}
+      NEXT_PRIVATE_SMTP_TRANSPORT: smtp-auth
+      NEXT_PRIVATE_SMTP_HOST: mailpit
+      NEXT_PRIVATE_SMTP_PORT: 1025
+      NEXT_PRIVATE_SMTP_UNSAFE_IGNORE_TLS: "true"
+      NEXT_PRIVATE_SMTP_FROM_NAME: Symbola
+      NEXT_PRIVATE_SMTP_FROM_ADDRESS: no-reply@symbola.test
+      DOCUMENSO_DISABLE_TELEMETRY: "true"
     ports:
       - "3010:3000"
-    volumes:
-      - symbola_docuseal_data:/data
     depends_on:
       - postgres
     security_opt:
@@ -122,7 +137,6 @@ services:
       - no-new-privileges:true
 
 volumes:
-  symbola_docuseal_data:
   symbola_postgres_data:
   symbola_garage_data:
   symbola_clamav_data:

@@ -4,7 +4,7 @@ import { findFakeSignature } from "@/modules/quotes/service";
 import { fakeSignatureAction } from "./actions";
 
 // DEV-02, ADR 0021 — page publique du faux fournisseur de signature : elle
-// remplace la page DocuSeal en développement et pour l'essai guidé (« le
+// remplace la page Documenso en développement et pour l'essai guidé (« le
 // marié fictif signe sans e-mail à un tiers »). En production, seuls les
 // devis d'essai y sont reconnus.
 export default async function FakeSignaturePage({ params }: { params: Promise<{ token: string }> }) {

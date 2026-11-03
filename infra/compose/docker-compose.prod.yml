@@ -130,14 +130,13 @@ services:
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
       SMTP_FROM: ${SMTP_FROM}
-      # Signature en ligne (DEV-02, ADR 0021). SIGNATURE_PROVIDER vide =
-      # « indisponible » en production, tant que DocuSeal n'est pas configuré.
+      # Signature en ligne (DEV-02, ADR 0026). SIGNATURE_PROVIDER vide =
+      # « indisponible » en production, tant que Documenso n'est pas configuré.
       SIGNATURE_PROVIDER: ${SIGNATURE_PROVIDER:-}
-      SIGNATURE_WEBHOOK_HEADER: ${SIGNATURE_WEBHOOK_HEADER:-X-Symbola-Webhook-Secret}
+      SIGNATURE_WEBHOOK_HEADER: X-Documenso-Secret
       SIGNATURE_WEBHOOK_SECRET: ${SIGNATURE_WEBHOOK_SECRET:-}
-      DOCUSEAL_API_URL: http://docuseal:3000/api
-      DOCUSEAL_API_KEY: ${DOCUSEAL_API_KEY:-}
-      DOCUSEAL_PUBLIC_URL: https://${DOCUSEAL_DOMAIN:-signature.invalid}
+      DOCUMENSO_API_URL: http://documenso:3000/api/v2
+      DOCUMENSO_API_KEY: ${DOCUMENSO_API_KEY:-}
     depends_on:
       - postgres
       - garage
@@ -167,34 +166,57 @@ services:
     # (cache de rendu) au runtime — à vérifier et durcir plus tard si
     # confirmé sans risque (pas testable sans déploiement réel).
 
-  # Signature en ligne (DEV-02, ADR 0021) : DocuSeal auto-hébergé, AGPL,
+  # Signature en ligne (DEV-02, ADR 0026) : Documenso auto-hébergé, AGPL,
   # utilisé sans modification. Profil « signature » : ne démarre que si
   # Julien l'active (COMPOSE_PROFILES=signature dans .env.<environnement>)
-  # après avoir créé sa base dédiée (bootstrap, DOCUSEAL_DB_PASSWORD) —
-  # jamais un schéma Symbola. Pas de port hôte : le Caddy partagé sert sa
-  # page publique de signature (DOCUSEAL_DOMAIN) par l'alias ci-dessous,
-  # comme pour l'app (runbook de déploiement).
-  docuseal:
-    image: docuseal/docuseal:3.3.2
+  # après avoir créé sa base dédiée (bootstrap, DOCUMENSO_DB_PASSWORD) —
+  # jamais un schéma Symbola. Ses fichiers (PDF envoyés et signés) restent
+  # dans cette base (transport « database ») : rien dans Garage, pas de
+  # volume ; la sauvegarde nocturne dumpe la base. Pas de port hôte : le
+  # Caddy partagé sert sa page publique de signature (DOCUMENSO_DOMAIN) par
+  # l'alias ci-dessous, comme pour l'app (runbook de déploiement).
+  documenso:
+    image: documenso/documenso:2.21.1
     profiles: ["signature"]
     restart: unless-stopped
     environment:
-      DATABASE_URL: postgresql://${DOCUSEAL_DB_USER:-docuseal}:${DOCUSEAL_DB_PASSWORD:-}@postgres:5432/${DOCUSEAL_DB_NAME:-docuseal}
-      HOST: ${DOCUSEAL_DOMAIN:-signature.invalid}
-      FORCE_SSL: "true"
-    volumes:
-      - docuseal_data:/data
+      PORT: 3000
+      NEXTAUTH_SECRET: ${DOCUMENSO_NEXTAUTH_SECRET:-}
+      NEXT_PRIVATE_ENCRYPTION_KEY: ${DOCUMENSO_ENCRYPTION_KEY:-}
+      NEXT_PRIVATE_ENCRYPTION_SECONDARY_KEY: ${DOCUMENSO_ENCRYPTION_SECONDARY_KEY:-}
+      NEXT_PUBLIC_WEBAPP_URL: https://${DOCUMENSO_DOMAIN:-signature.invalid}
+      NEXT_PRIVATE_INTERNAL_WEBAPP_URL: http://localhost:3000
+      NEXT_PRIVATE_DATABASE_URL: postgresql://${DOCUMENSO_DB_USER:-documenso}:${DOCUMENSO_DB_PASSWORD:-}@postgres:5432/${DOCUMENSO_DB_NAME:-documenso}
+      NEXT_PRIVATE_DIRECT_DATABASE_URL: postgresql://${DOCUMENSO_DB_USER:-documenso}:${DOCUMENSO_DB_PASSWORD:-}@postgres:5432/${DOCUMENSO_DB_NAME:-documenso}
+      NEXT_PUBLIC_UPLOAD_TRANSPORT: database
+      # Certificat de scellement des PDF signés (PKCS#12 en base64, généré
+      # une fois par Julien, runbook de déploiement).
+      NEXT_PRIVATE_SIGNING_LOCAL_FILE_CONTENTS: ${DOCUMENSO_SIGNING_CERT_BASE64:-}
+      NEXT_PRIVATE_SIGNING_PASSPHRASE: ${DOCUMENSO_SIGNING_PASSPHRASE:-}
+      # Documenso n'envoie aucun e-mail aux mariés (Symbola envoie les liens) ;
+      # il lui faut tout de même un SMTP pour le compte administrateur.
+      NEXT_PRIVATE_SMTP_TRANSPORT: smtp-auth
+      NEXT_PRIVATE_SMTP_HOST: ${SMTP_HOST}
+      NEXT_PRIVATE_SMTP_PORT: ${SMTP_PORT:-587}
+      NEXT_PRIVATE_SMTP_SECURE: ${DOCUMENSO_SMTP_SECURE:-true}
+      NEXT_PRIVATE_SMTP_USERNAME: ${SMTP_USER:-}
+      NEXT_PRIVATE_SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      NEXT_PRIVATE_SMTP_FROM_NAME: Symbola
+      NEXT_PRIVATE_SMTP_FROM_ADDRESS: ${SMTP_USER:-notifications@symbola.invalid}
+      # Inscriptions publiques fermées une fois le compte administrateur créé.
+      NEXT_PUBLIC_DISABLE_SIGNUP: ${DOCUMENSO_DISABLE_SIGNUP:-true}
+      DOCUMENSO_DISABLE_TELEMETRY: "true"
     depends_on:
       - postgres
     networks:
       default:
         aliases:
-          - symbola-docuseal-${ENVIRONMENT_NAME}
+          - symbola-documenso-${ENVIRONMENT_NAME}
     deploy:
       resources:
         limits:
-          memory: ${DOCUSEAL_MEM_LIMIT:-1g}
-          cpus: ${DOCUSEAL_CPUS:-1}
+          memory: ${DOCUMENSO_MEM_LIMIT:-1g}
+          cpus: ${DOCUMENSO_CPUS:-1}
     security_opt:
       - no-new-privileges:true
 
@@ -205,4 +227,3 @@ volumes:
   postgres_data:
   garage_data:
   clamav_data:
-  docuseal_data:

@@ -1,14 +1,14 @@
-// DEV-02, ADR 0021 — la base de DocuSeal est dédiée : son propre rôle, et
+// DEV-02, ADR 0026 — la base de Documenso est dédiée : son propre rôle, et
 // le rôle applicatif symbola_app ne peut pas s'y connecter. PostgreSQL réel.
 import { randomUUID } from "node:crypto";
 import postgres from "postgres";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { parseAdminEnv } from "../scripts/admin-env";
-import { ensureDocusealDatabase } from "../scripts/docuseal-database";
+import { ensureDocumensoDatabase } from "../scripts/documenso-database";
 
 const env = parseAdminEnv(process.env);
 const suffix = randomUUID().slice(0, 8);
-const target = { role: `docuseal_test_${suffix}`, password: `mdp-${randomUUID()}`, database: `docuseal_test_${suffix}`, appRole: env.POSTGRES_APP_USER };
+const target = { role: `documenso_test_${suffix}`, password: `mdp-${randomUUID()}`, database: `documenso_test_${suffix}`, appRole: env.POSTGRES_APP_USER };
 let admin: postgres.Sql;
 
 function connect(database: string, username: string, password: string) {
@@ -25,10 +25,10 @@ afterAll(async () => {
   await admin.end();
 });
 
-describe("DEV-02 — Base dédiée de DocuSeal (bootstrap, PostgreSQL réel)", () => {
+describe("DEV-02 — Base dédiée de Documenso (bootstrap, PostgreSQL réel)", () => {
   it("crée la base et son rôle sans privilège, de façon rejouable", async () => {
-    await ensureDocusealDatabase(admin, target);
-    await ensureDocusealDatabase(admin, target);
+    await ensureDocumensoDatabase(admin, target);
+    await ensureDocumensoDatabase(admin, target);
     const [database] = await admin<[{ owner: string }]>`
       select pg_get_userbyid(datdba) as owner from pg_database where datname = ${target.database}
     `;
@@ -38,13 +38,13 @@ describe("DEV-02 — Base dédiée de DocuSeal (bootstrap, PostgreSQL réel)", (
     `;
     expect(role).toEqual({ rolsuper: false, rolbypassrls: false, rolcreatedb: false });
 
-    const docuseal = connect(target.database, target.role, target.password);
-    await docuseal`create table probe (id int)`;
-    await docuseal.end();
+    const documenso = connect(target.database, target.role, target.password);
+    await documenso`create table probe (id int)`;
+    await documenso.end();
   });
 
-  it("le rôle applicatif de Symbola ne peut pas se connecter à la base de DocuSeal", async () => {
-    await ensureDocusealDatabase(admin, target);
+  it("le rôle applicatif de Symbola ne peut pas se connecter à la base de Documenso", async () => {
+    await ensureDocumensoDatabase(admin, target);
     const app = connect(target.database, env.POSTGRES_APP_USER, env.POSTGRES_APP_PASSWORD);
     await expect(app`select 1`).rejects.toThrow(/permission denied/);
     await app.end().catch(() => undefined);

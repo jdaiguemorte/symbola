@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Sauvegarde nocturne d'un environnement (SOC-10) : PostgreSQL (dump) et Garage, plus
-# Uptime Kuma pour la production, et DocuSeal (base dédiée et fichiers, DEV-02) une
+# Uptime Kuma pour la production, et Documenso (base dédiée, DEV-02, ADR 0026) une
 # fois déployé, dans un dépôt restic chiffré propre à l'environnement.
 #
 # Usage (sur le VPS, root, lancé par le timer systemd symbola-backup@<env>) :
@@ -23,7 +23,7 @@ restic_run cat config >/dev/null 2>&1 ||
 
 install -d -m 700 "$WORK_DIR"
 dump="$WORK_DIR/postgres.dump"
-docuseal_dump="$WORK_DIR/docuseal.dump"
+documenso_dump="$WORK_DIR/documenso.dump"
 stopped=()
 
 restart_stopped() {
@@ -39,15 +39,9 @@ stop_service() { # stop_service <env|socle> <service>
   stopped+=("$1:$2")
 }
 
-# DocuSeal est dans le profil compose « signature » (désactivé tant qu'il
-# n'est pas mis en service) : on l'active explicitement pour l'arrêter.
-docuseal_compose() {
-  env_compose --profile signature "$@"
-}
-
 cleanup() {
   restart_stopped
-  rm -f "$dump" "$docuseal_dump"
+  rm -f "$dump" "$documenso_dump"
 }
 trap cleanup EXIT
 
@@ -58,19 +52,16 @@ env_compose exec -T postgres sh -c 'pg_dump --format=custom --username="$POSTGRE
 [ -s "$dump" ] || die "dump PostgreSQL vide"
 env_compose exec -T postgres pg_restore --list <"$dump" >/dev/null || die "dump PostgreSQL illisible par pg_restore"
 
-if docuseal_database_exists; then
-  log "$ENVIRONMENT_NAME : dump de la base DocuSeal ($DOCUSEAL_DB)"
-  env_compose exec -T postgres sh -c "pg_dump --format=custom --username=\"\$POSTGRES_USER\" --dbname=$DOCUSEAL_DB" >"$docuseal_dump"
-  [ -s "$docuseal_dump" ] || die "dump DocuSeal vide"
-  env_compose exec -T postgres pg_restore --list <"$docuseal_dump" >/dev/null || die "dump DocuSeal illisible par pg_restore"
+# Documenso garde ses fichiers (PDF envoyés et signés) dans sa base : le
+# dump suffit, aucun volume à copier (ADR 0026).
+if documenso_database_exists; then
+  log "$ENVIRONMENT_NAME : dump de la base Documenso ($DOCUMENSO_DB)"
+  env_compose exec -T postgres sh -c "pg_dump --format=custom --username=\"\$POSTGRES_USER\" --dbname=$DOCUMENSO_DB" >"$documenso_dump"
+  [ -s "$documenso_dump" ] || die "dump Documenso vide"
+  env_compose exec -T postgres pg_restore --list <"$documenso_dump" >/dev/null || die "dump Documenso illisible par pg_restore"
 fi
 
 RESTIC_MOUNTS=(-v "$WORK_DIR:/backup/postgres:ro" -v "$GARAGE_VOLUME:/backup/garage:ro")
-if docker volume inspect "$DOCUSEAL_VOLUME" >/dev/null 2>&1; then
-  RESTIC_MOUNTS+=(-v "$DOCUSEAL_VOLUME:/backup/docuseal:ro")
-  docuseal_compose stop docuseal
-  stopped+=("docuseal:docuseal")
-fi
 if [ "${INCLUDE_MONITORING:-false}" = true ]; then
   RESTIC_MOUNTS+=(-v "symbola-socle_uptime_kuma_data:/backup/uptime-kuma:ro")
   stop_service socle uptime-kuma

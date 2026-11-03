@@ -1,20 +1,20 @@
-// DEV-02, ADR 0006/0021 — interface du fournisseur de signature. Le module
-// Devis ne connaît que ce contrat : DocuSeal en production, un faux
+// DEV-02, ADR 0006/0026 — interface du fournisseur de signature. Le module
+// Devis ne connaît que ce contrat : Documenso en production, un faux
 // fournisseur en mémoire pour les tests, le développement et l'essai guidé.
 
 export type SignatureSignerInput = {
-  // `<organization_id>.<signer_id>` : retrouvé dans le webhook (ADR 0021).
+  // `<organization_id>.<signer_id>` : retrouvé dans le webhook (ADR 0026).
   externalId: string;
   name: string;
   email: string;
-  // Rôle du signataire, repris par la balise de signature du PDF.
+  // Rôle affiché sur le PDF (« Signataire 1 »…).
   role: string;
 };
 
 export type CreateSignatureRequestInput = {
   title: string;
-  // PDF du devis portant une balise de signature par rôle
-  // (`{{Signature;role=<rôle>;type=signature}}`).
+  // PDF du devis portant une balise de signature par signataire, dans
+  // l'ordre des signataires (`{{SIGNATURE, r1}}`, `{{SIGNATURE, r2}}`…).
   pdf: Buffer;
   signers: SignatureSignerInput[];
 };
@@ -46,15 +46,15 @@ export interface SignatureProvider {
   authenticateWebhook(headers: Headers, rawBody: string): WebhookAuthentication;
 }
 
-// Balise de signature reconnue par DocuSeal dans le texte du PDF (et par le
-// faux fournisseur) : une zone de signature par rôle.
-export function signatureTag(role: string): string {
-  return `{{Signature;role=${role};type=signature}}`;
+// Balise de signature reconnue par Documenso dans le texte du PDF : une zone
+// de signature par signataire, numérotée dans l'ordre (index 0 → r1).
+export function signatureTag(index: number): string {
+  return `{{SIGNATURE, r${index + 1}}}`;
 }
 
-// Lecture commune du corps des webhooks (format DocuSeal, repris par le
-// faux fournisseur) : `form.*` porte un signataire (`submission_id`,
-// `external_id`), `submission.*` une soumission (`id`, `submitters`).
+// Lecture du corps des webhooks du faux fournisseur : `form.*` porte un
+// signataire (`submission_id`, `external_id`), `submission.*` une
+// soumission (`id`, `submitters`).
 export function parseWebhookBody(rawBody: string): WebhookAuthentication {
   let body: unknown;
   try {

@@ -97,7 +97,7 @@ export class FakeSignatureProvider implements SignatureProvider {
   }
 
   // Le signataire signe (ou refuse) ; renvoie le corps du webhook que le
-  // fournisseur enverrait, au format DocuSeal.
+  // fournisseur enverrait (format propre au faux fournisseur).
   act(requestExternalId: string, signerExternalId: string, action: "sign" | "decline", now: Date = new Date()): string {
     const request = store().get(requestExternalId);
     const signer = request?.signers.find((candidate) => candidate.externalId === signerExternalId);

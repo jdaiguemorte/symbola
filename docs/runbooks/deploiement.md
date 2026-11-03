@@ -145,46 +145,93 @@ L'Admin crée ensuite les organisations depuis `/admin` (invitation de la titula
 Tant que les e-mails ne sont pas en service, la même commande crée directement une organisation
 et sa titulaire : `-- --role owner --email <e-mail> --organization "<nom>"`.
 
-## Signature en ligne : mise en service de DocuSeal (DEV-02, ADR 0021)
+## Signature en ligne : mise en service de Documenso (DEV-02, ADR 0026)
 
 Tant que ces étapes ne sont pas faites, la signature en ligne s'affiche
-« indisponible » (sans erreur) et DocuSeal ne démarre pas (profil compose
+« indisponible » (sans erreur) et Documenso ne démarre pas (profil compose
 `signature` désactivé). L'essai guidé fonctionne déjà : il utilise le faux
-fournisseur. **Actions de Julien sur le VPS**, staging d'abord :
+fournisseur. **Actions de Julien sur le VPS**, staging d'abord, depuis
+`/opt/symbola` à jour (`sudo git pull`), avec la nouvelle image de l'app.
+`$ENV` vaut `staging` (puis `production`) :
 
-1. **DNS** : un enregistrement pour la page publique de signature, par
-   exemple `signature.staging.symbola.fr` (et `signature.symbola.fr` en
-   production) vers le VPS ; reporter le nom dans `DOCUSEAL_DOMAIN`.
-2. **Base dédiée** : remplir `DOCUSEAL_DB_PASSWORD` (`openssl rand -hex 32`)
-   dans `.env.staging`, puis relancer le bootstrap par le tunnel SSH (étape 2
-   du premier déploiement) : il crée la base `docuseal` et son rôle, sans
-   aucun droit pour `symbola_app`.
-3. **Démarrer DocuSeal** : `COMPOSE_PROFILES=signature` dans `.env.staging`,
-   puis la commande `up -d` habituelle.
-4. **Caddy** : ajouter le bloc du sous-domaine de signature, qui
-   reverse-proxie vers `symbola-docuseal-staging:3000` (alias porté par le
-   conteneur DocuSeal, même principe que l'app).
-5. **Compte et clé d'API** : ouvrir `https://signature.staging.symbola.fr`,
-   créer le compte administrateur (mot de passe dans le gestionnaire de mots
-   de passe), puis *Settings → API* : copier la clé dans `DOCUSEAL_API_KEY`.
-6. **Webhook** : *Settings → Webhooks*, URL
-   `https://staging.symbola.fr/api/webhooks/signature`, événements
-   `form.completed`, `form.declined`, `submission.completed` ; dans
-   *Security → Secret*, ajouter l'en-tête `X-Symbola-Webhook-Secret` avec la
-   valeur de `SIGNATURE_WEBHOOK_SECRET` (`openssl rand -hex 32`). Si
-   l'édition déployée propose aussi la signature HMAC du corps, la noter
-   pour un durcissement ultérieur (ADR 0021).
-7. **Activer** : `SIGNATURE_PROVIDER=docuseal` dans `.env.staging`, puis
-   `up -d` (l'app refuse de démarrer si une valeur DocuSeal manque).
-8. **Vérifier** : envoyer un devis de test en signature à sa propre adresse,
-   signer, et vérifier que le devis passe « Signé » et l'événement
-   « Confirmé ». Un appel au webhook sans l'en-tête doit répondre 401 :
+```bash
+cd /opt/symbola && ENV=staging && F=infra/compose/.env.$ENV
+```
+
+1. **DNS** : un enregistrement pour la page publique de signature
+   (`signature.staging.symbola.fr`, `signature.symbola.fr` en production)
+   vers le VPS ; il est repris dans `DOCUMENSO_DOMAIN`.
+2. **Secrets** : ajouter à `$F` (`sudo nano $F`) les variables du modèle
+   `infra/compose/.env.$ENV.example`, section « Signature » :
+   `DOCUMENSO_DB_PASSWORD`, `DOCUMENSO_NEXTAUTH_SECRET`,
+   `DOCUMENSO_ENCRYPTION_KEY`, `DOCUMENSO_ENCRYPTION_SECONDARY_KEY` et
+   `SIGNATURE_WEBHOOK_SECRET`, chacune avec sa propre valeur
+   `openssl rand -hex 32`, rangées aussi dans le gestionnaire de mots de
+   passe. `DOCUMENSO_DISABLE_SIGNUP=false` le temps de l'étape 6.
+3. **Certificat de scellement** des PDF signés (une fois par
+   environnement), généré dans un dossier temporaire puis supprimé :
    ```bash
+   T=$(mktemp -d) && P=$(openssl rand -hex 24)
+   openssl req -x509 -newkey rsa:3072 -nodes -days 3650 -subj "/CN=Symbola signature $ENV" \
+     -keyout "$T/key.pem" -out "$T/cert.pem"
+   openssl pkcs12 -export -inkey "$T/key.pem" -in "$T/cert.pem" -out "$T/cert.p12" -passout "pass:$P"
+   printf 'DOCUMENSO_SIGNING_CERT_BASE64=%s\nDOCUMENSO_SIGNING_PASSPHRASE=%s\n' "$(base64 -w0 "$T/cert.p12")" "$P" | sudo tee -a $F >/dev/null
+   rm -rf "$T"; unset P
+   ```
+   Retirer de `$F` les éventuelles lignes vides `DOCUMENSO_SIGNING_*=`
+   copiées du modèle (une seule ligne par variable). Copier ces deux
+   valeurs dans le gestionnaire de mots de passe : sans elles, une
+   restauration sur un autre serveur ne pourrait plus sceller.
+4. **Base dédiée** : le bootstrap crée la base `documenso` et son rôle,
+   sans aucun droit pour `symbola_app` (sans danger s'il est relancé) :
+   ```bash
+   sudo docker run --rm --network symbola-${ENV}_default -v "$PWD":/app -w /app \
+     --env-file $F -e POSTGRES_HOST=postgres -e POSTGRES_PORT=5432 \
+     node:22-slim sh -c "corepack enable && pnpm install --frozen-lockfile && pnpm -s --filter @symbola/db bootstrap"
+   ```
+5. **Démarrer Documenso** : `COMPOSE_PROFILES=signature` dans `$F`, puis
+   ```bash
+   sudo docker compose -f infra/compose/docker-compose.prod.yml --env-file $F -p symbola-$ENV up -d
+   sudo docker compose -f infra/compose/docker-compose.prod.yml --env-file $F -p symbola-$ENV ps documenso
+   ```
+   et, dans le Caddyfile partagé, le bloc du sous-domaine de signature
+   (`reverse_proxy symbola-documenso-$ENV:3000`) ; recharger Caddy
+   (`caddy validate` puis `caddy reload`).
+6. **Compte et clé d'API** : ouvrir `https://signature.staging.symbola.fr`,
+   créer le compte administrateur (adresse `notifications@…`, mot de passe
+   dans le gestionnaire), confirmer l'e-mail reçu, puis :
+   - renommer l'équipe « Personal Team » en **Symbola** (*Paramètres de
+     l'équipe → Général*) : c'est le nom que voient les mariés ;
+   - *API Tokens → Create token*, expiration **jamais** : copier la clé dans
+     `DOCUMENSO_API_KEY` ;
+   - remettre `DOCUMENSO_DISABLE_SIGNUP=true` dans `$F`.
+7. **Webhook** : *Webhooks → Create webhook*, URL
+   `https://staging.symbola.fr/api/webhooks/signature`, événements
+   `document.signed`, `document.completed`, `document.rejected`, champ
+   *Secret* = la valeur de `SIGNATURE_WEBHOOK_SECRET`.
+8. **Activer** : `SIGNATURE_PROVIDER=documenso` dans `$F`, puis
+   ```bash
+   sudo docker compose -f infra/compose/docker-compose.prod.yml --env-file $F -p symbola-$ENV up -d
    curl -s -o /dev/null -w "%{http_code}\n" -X POST https://staging.symbola.fr/api/webhooks/signature -d '{}'
    ```
+   L'app refuse de démarrer si une valeur Documenso manque ; le `curl` doit
+   répondre `401` (appel sans secret).
+9. **Vérifier** : envoyer un devis de test en signature à sa propre adresse,
+   signer par le lien reçu, et vérifier que le devis passe « Signé » et
+   l'événement « Confirmé ». Si le webhook n'arrive pas, le rattrapage
+   automatique fait passer le devis à « Signé » en dix minutes au plus.
+10. **Retirer DocuSeal** (environnements où il avait été démarré), une fois
+    l'étape 9 réussie : retirer son bloc du Caddyfile et ses lignes
+    `DOCUSEAL_*` de `$F`, puis
+    ```bash
+    sudo docker rm -f symbola-$ENV-docuseal-1
+    sudo docker volume rm symbola-${ENV}_docuseal_data
+    sudo docker compose -f infra/compose/docker-compose.prod.yml --env-file $F -p symbola-$ENV exec postgres \
+      sh -c 'dropdb --if-exists --force --username="$POSTGRES_USER" docuseal && psql --username="$POSTGRES_USER" --dbname=postgres -c "DROP ROLE IF EXISTS docuseal"'
+    ```
 
-La base et les fichiers de DocuSeal entrent automatiquement dans la
-sauvegarde nocturne dès qu'ils existent (`docs/runbooks/restauration.md`).
+La base de Documenso (fichiers compris) entre automatiquement dans la
+sauvegarde nocturne dès qu'elle existe (`docs/runbooks/restauration.md`).
 
 ## Mise à jour (nouvelle version)
 

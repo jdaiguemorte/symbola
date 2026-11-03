@@ -13,7 +13,7 @@ Le MVP doit permettre à la planner de gérer tous ses événements en cours san
 | Hub                  | HUB-01 à HUB-04                   | Connexion, tableau de bord, administration, langue                                  |
 | Événements et Chrono | EVT-01 à EVT-07                   | Porte d'entrée, rétroplanning, jour J, accès mariés                                 |
 | Budget               | BUD-01 à BUD-04                   | Simulation, prévu / réel / écart                                                    |
-| Devis et Facturation | DEV-01 à DEV-04                   | Catalogue, signature DocuSeal, acomptes, factures conformes                         |
+| Devis et Facturation | DEV-01 à DEV-04                   | Catalogue, signature Documenso (ADR 0026), acomptes, factures conformes                         |
 | Import               | IMP-01 à IMP-05                   | Reprise de données depuis n'importe quel outil                                      |
 | RGPD                 | RGPD-01 à RGPD-06                 | Recherche, export, oubli, purge                                                     |
 | Onboarding et aide   | ONB-01, ONB-02, AIDE-01 à AIDE-04 | Questionnaire d'entrée, régime de TVA, visites guidées, essais avec données de test |
@@ -273,15 +273,15 @@ Cette app fait rentrer l'argent : devis issus du catalogue, signature en ligne, 
 
 ### DEV-02 — Signature en ligne
 
-- **Quand** elle envoie le devis, **alors** l'app le transmet à DocuSeal par API, et chaque marié signataire reçoit un lien de signature.
+- **Quand** elle envoie le devis, **alors** l'app le transmet au service de signature (Documenso, ADR 0026) par API, et chaque marié signataire reçoit un lien de signature.
 
-- **Quand** le dernier signataire a signé, **alors** DocuSeal prévient l'app (webhook), le devis passe à Signé, la planner reçoit un e-mail, et l'événement passe à Confirmé (EVT-02).
+- **Quand** le dernier signataire a signé, **alors** le service de signature prévient l'app (webhook), le devis passe à Signé, la planner reçoit un e-mail, et l'événement passe à Confirmé (EVT-02).
 
 - Le PDF signé et le certificat de preuve sont archivés avec le devis.
 
 - **Étant donné** un appel webhook dont la signature cryptographique est invalide, **alors** il est rejeté et journalisé.
 
-- L'app parle à DocuSeal via l'interface « fournisseur de signature » : un test vérifie qu'un faux fournisseur peut le remplacer.
+- L'app parle au service de signature via l'interface « fournisseur de signature » : un test vérifie qu'un faux fournisseur peut le remplacer.
 
 ### DEV-03 — Acomptes et encaissements à venir
 
@@ -488,7 +488,7 @@ On construit en 7 lots, chacun utilisable et testé avant le suivant. Le lot 0 e
 
 4.  **Lot 3 — Budget** : BUD-01 à 04, puis les blocs Tâches et calendrier du tableau de bord.
 
-5.  **Lot 4 — Devis et Facturation** : DEV-01, 03, 02 (DocuSeal), 04, puis le bloc Encaissements.
+5.  **Lot 4 — Devis et Facturation** : DEV-01, 03, 02 (signature en ligne), 04, puis le bloc Encaissements.
 
 6.  **Lot 5 — Import** : IMP-01 à 05, testé sur un vrai export Wedding Plan anonymisé.
 

@@ -668,6 +668,18 @@ export async function findSignatureRequestByExternalId(
   });
 }
 
+// ADR 0026 — demandes encore en attente chez un fournisseur, pour la
+// vérification régulière (rattrapage d'un webhook perdu).
+export async function listPendingSignatureRequests(organizationId: string, provider: string): Promise<SignatureRequestRow[]> {
+  return inOrganization(organizationId, (tx) =>
+    tx
+      .select()
+      .from(signatureRequests)
+      .where(and(eq(signatureRequests.provider, provider), eq(signatureRequests.status, "pending")))
+      .orderBy(asc(signatureRequests.createdAt)),
+  );
+}
+
 export type SignatureStateUpdate = {
   signers: { id: string; status: "pending" | "signed" | "declined"; signedAt: Date | null }[];
   outcome:
@@ -684,6 +696,8 @@ export async function applySignatureStateRows(
   requestId: string,
   update: SignatureStateUpdate,
   eventType: string,
+  // Vérification régulière : rien n'est journalisé quand rien ne change.
+  options: { logUnchanged?: boolean } = {},
 ): Promise<{ status: "ok"; transitioned: boolean; changed: boolean } | { status: "not_found" }> {
   return inOrganization(organizationId, async (tx) => {
     await tx.execute(raw`select 1 from ${signatureRequests} where ${signatureRequests.id} = ${requestId} for update`);
@@ -727,9 +741,11 @@ export async function applySignatureStateRows(
       await tx.update(quotes).set({ status: "declined", updatedAt: new Date() }).where(eq(quotes.id, version.quoteId));
       transitioned = true;
     }
-    await tx
-      .insert(signatureWebhookLog)
-      .values({ organizationId, requestId, eventType, outcome: transitioned ? update.outcome.kind : changed ? "signer_updated" : "unchanged" });
+    if (transitioned || changed || options.logUnchanged !== false) {
+      await tx
+        .insert(signatureWebhookLog)
+        .values({ organizationId, requestId, eventType, outcome: transitioned ? update.outcome.kind : changed ? "signer_updated" : "unchanged" });
+    }
     return { status: "ok", transitioned, changed };
   });
 }

@@ -76,6 +76,7 @@ import {
   archivePaymentMethodRow,
   findEventSignatureContexts,
   findSignatureRequestByExternalId,
+  listPendingSignatureRequests,
   insertSignatureRequest,
   insertWebhookLog,
   type QuoteSignerRow,
@@ -239,7 +240,7 @@ export class SignatureAlreadyRequestedError extends Error {
   }
 }
 
-// Fournisseur non configuré (production sans DocuSeal) : l'écran affiche
+// Fournisseur non configuré (production sans Documenso) : l'écran affiche
 // « indisponible », jamais une erreur (CLAUDE.md §2.3).
 export class SignatureUnavailableError extends Error {
   constructor() {
@@ -931,7 +932,7 @@ export function signatureRoles(count: number): string[] {
 
 // Zones de signature du PDF envoyé : un rôle et sa balise par signataire.
 export function signatureSlots(count: number): { role: string; tag: string }[] {
-  return signatureRoles(count).map((role) => ({ role, tag: signatureTag(role) }));
+  return signatureRoles(count).map((role, index) => ({ role, tag: signatureTag(index) }));
 }
 
 function validSigners(signers: SignerInput[]): SignerInput[] {
@@ -1057,6 +1058,7 @@ async function applySignatureState(
   request: SignatureRequestRow,
   provider: SignatureProvider,
   eventType: string,
+  options: { logUnchanged?: boolean } = {},
 ): Promise<string> {
   if (request.status !== "pending") {
     await insertWebhookLog(organizationId, { requestId: request.id, eventType, outcome: "duplicate" });
@@ -1108,7 +1110,7 @@ async function applySignatureState(
     outcome = { kind: "declined", completedAt: now };
   }
 
-  const applied = await applySignatureStateRows(organizationId, request.id, { signers, outcome }, eventType);
+  const applied = await applySignatureStateRows(organizationId, request.id, { signers, outcome }, eventType, options);
   if (applied.status !== "ok") return "unknown_request";
   if (!applied.transitioned) {
     // Un appel concurrent a terminé la demande entre-temps : nos copies
@@ -1119,6 +1121,27 @@ async function applySignatureState(
   }
   if (outcome.kind === "completed") await afterSigned(organizationId, context.quote.id);
   return outcome.kind;
+}
+
+// ADR 0026 — vérification régulière des demandes en attente : relit leur
+// état chez le fournisseur, comme le ferait un webhook, au cas où un appel
+// se serait perdu (réseau, Documenso redémarré). Une erreur sur une
+// demande n'empêche pas de vérifier les suivantes.
+export async function reconcilePendingSignatures(organizationId: string): Promise<{ checked: number; completed: number }> {
+  const provider = realSignatureProvider();
+  if (!provider) return { checked: 0, completed: 0 };
+  const pending = await listPendingSignatureRequests(organizationId, provider.name);
+  let completed = 0;
+  for (const request of pending) {
+    try {
+      const outcome = await applySignatureState(organizationId, request, provider, "reconciliation", { logUnchanged: false });
+      if (outcome === "completed" || outcome === "declined") completed += 1;
+    } catch (error) {
+      // Identifiants seulement, jamais de donnée personnelle (CLAUDE.md §5).
+      console.error(`vérification de la demande de signature ${request.id} échouée`, error instanceof Error ? error.message : error);
+    }
+  }
+  return { checked: pending.length, completed };
 }
 
 // Effets qui suivent la signature, une seule fois (appel qui a terminé la
@@ -1595,6 +1618,7 @@ const _contractCheck: QuotesServiceContract = {
   isSignatureAvailable,
   sendQuoteForSignature,
   handleSignatureWebhook,
+  reconcilePendingSignatures,
   getSignatureDocumentUrl,
   listClientQuotesToSign,
   setQuoteClientKind,
