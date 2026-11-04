@@ -87,6 +87,9 @@ export {
 // Lot 6 — contrat privacy/v1 du module (ADR 0023).
 export { hubPrivacy } from "./privacy";
 
+// Lot 10 (AIDE-08) — recherche globale.
+export { globalSearch, type GlobalSearchResults } from "./search";
+
 // Lot 9 (ADR 0029) — assistance de l'Admin et statistiques d'usage.
 export {
   ACTIVITY_MONTHS,

@@ -2,18 +2,16 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatCalendarDate, type Locale } from "@symbola/i18n";
-import type { TourStep } from "@symbola/ui";
-import { createAppConnection } from "@symbola/db/client";
 import {
   getActiveEventsTrial,
   listEvents,
   listProspectSources,
   type EventStatus,
 } from "@/modules/events/service";
-import { hasSeenTour } from "@/modules/hub/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { purgeOrganizationsDemoData } from "@/lib/demo-purge";
-import { ModuleTourAndHelp } from "../module-tour";
+import { PageTour } from "../page-tour";
+import { loadPageTour } from "@/lib/help/page-tour";
 import { isEventsModuleEnabled } from "./module-access";
 import { startTrialAction } from "./trial-actions";
 import { EVENT_STATUS_CLASSES, STATUS_LABEL_KEYS } from "./event-status";
@@ -35,6 +33,7 @@ export default async function EventsListPage({
     status?: string;
     source?: string;
     essai?: string;
+    visite?: string;
   }>;
 }) {
   const auth = await getPlannerAuthContext();
@@ -48,7 +47,7 @@ export default async function EventsListPage({
   const t = await getTranslations("Events");
   const locale = (await getLocale()) as Locale;
   const tHelp = await getTranslations("Help");
-  const { tab, year, search, status, source, essai } = await searchParams;
+  const { tab, year, search, status, source, essai, visite } = await searchParams;
 
   if (!(await isEventsModuleEnabled(organizationId))) {
     return (
@@ -63,14 +62,7 @@ export default async function EventsListPage({
   // que la planner revient ici, sans attendre la purge horaire.
   await purgeOrganizationsDemoData([organizationId]);
   const trial = await getActiveEventsTrial(organizationId);
-  const tTour = await getTranslations("Tour");
-  const { sql, db } = createAppConnection();
-  let tourInitiallyOpen: boolean;
-  try {
-    tourInitiallyOpen = !(await hasSeenTour(db, auth.user.id, "events"));
-  } finally {
-    await sql.end();
-  }
+  const tour = await loadPageTour(auth.user.id, "events", visite);
 
   const isPastTab = tab === "termines";
   const tabStatuses = isPastTab ? PAST_STATUSES : UPCOMING_STATUSES;
@@ -104,20 +96,10 @@ export default async function EventsListPage({
   return (
     <main>
       <h1>{t("title")}</h1>
-      <ModuleTourAndHelp
-        moduleKey="events"
-        tourInitiallyOpen={tourInitiallyOpen}
-        tourSteps={tTour.raw("events") as TourStep[]}
-        skipLabel={tTour("skip")}
-        nextLabel={tTour("next")}
-        finishLabel={tTour("finish")}
-        helpTitle={tHelp("eventsList.title")}
-        helpBody={tHelp("eventsList.body")}
-        relaunchLabel={tHelp("relaunchTour")}
-      />
+      <PageTour {...tour} helpTitle={tHelp("eventsList.title")} helpBody={tHelp("eventsList.body")} />
 
       {/* AIDE-02 : essai guidé sur un événement fictif. */}
-      <section aria-labelledby="events-trial-title">
+      <section aria-labelledby="events-trial-title" data-tour="events-trial">
         <h2 id="events-trial-title">{t("trialTitle")}</h2>
         {essai === "termine" ? <p role="status">{t("trialEnded")}</p> : null}
         <p>{t("trialIntro")}</p>
@@ -130,10 +112,10 @@ export default async function EventsListPage({
         )}
       </section>
       <nav className="toolbar">
-        <Link href="/events/new" className="button-link button-link-primary">
+        <Link href="/events/new" className="button-link button-link-primary" data-tour="new-prospect">
           {t("newProspect")}
         </Link>
-        <Link href="/events/parametres" className="button-link">
+        <Link href="/events/parametres" className="button-link" data-tour="events-settings">
           {t("settingsLink")}
         </Link>
         <Link href="/events/modeles" className="button-link">
@@ -191,7 +173,7 @@ export default async function EventsListPage({
         <button type="submit">{t("filter")}</button>
       </form>
 
-      <ul className="event-list">
+      <ul className="event-list" data-tour="events-list">
         {items.map((item) => (
           <li key={item.id}>
             <Link href={`/events/${item.id}`}>

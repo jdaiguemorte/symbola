@@ -3,6 +3,7 @@
 // app autonome (ADR 0011). Montants en centimes entiers EUR, taux et
 // remises en points de base, quantités en millièmes : jamais de float.
 import type { MonthlyCount } from "../usage";
+import type { QuotesSearchResults } from "../search";
 import type { FileDownload } from "../file-download";
 
 export type CatalogItemInput = {
@@ -375,6 +376,8 @@ export interface QuotesServiceContract {
     organizationIds: string[],
     since: Date,
   ): Promise<Record<string, { quotes: MonthlyCount[]; invoices: MonthlyCount[] }>>;
+  // Lot 10 (AIDE-08) — recherche globale, essais exclus.
+  searchQuotes(organizationId: string, words: string[], eventIds: string[], limit: number): Promise<QuotesSearchResults>;
   getSignatureDocument(organizationId: string, quoteId: string, kind: "signed" | "certificate"): Promise<FileDownload>;
   listClientQuotesToSign(organizationId: string, eventId: string, clientEmail: string): Promise<ClientQuoteToSign[]>;
   setQuoteClientKind(organizationId: string, quoteId: string, clientKind: ClientKind): Promise<QuoteDetail>;

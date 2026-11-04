@@ -9,6 +9,8 @@ import { parseEnv } from "@symbola/env";
 import { sendMail } from "@symbola/mail";
 import { starterDemoEvent, starterProgram, starterRetroplanning, starterVendorSlots } from "@symbola/starter-templates";
 import {
+  findEventNamesByIds,
+  searchEventRows,
   countEventsByCreationMonth,
   countRealEvents,
   findExpiredDemoEventIds,
@@ -82,6 +84,7 @@ import {
 import { addDays } from "./schedule";
 import { findProgramOverlaps, normalizeTime, programForVariant, sortProgramItems } from "./program";
 import type {
+  EventsSearchResults,
   MonthlyCount,
   ChangeEventStatusInput,
   CreateProspectInput,
@@ -1088,6 +1091,16 @@ export async function countEventsCreatedByMonth(organizationIds: string[], since
   return countEventsByCreationMonth(organizationIds, since);
 }
 
+// Lot 10 (AIDE-08) — recherche globale : événements, tâches et prestataires
+// réels de l'organisation dont le texte contient chacun des mots.
+export async function searchEvents(organizationId: string, words: string[], limit: number): Promise<EventsSearchResults> {
+  return searchEventRows(organizationId, words, limit);
+}
+
+export async function getEventNamesByIds(organizationId: string, eventIds: string[]): Promise<Record<string, string>> {
+  return findEventNamesByIds(organizationId, eventIds);
+}
+
 // Lot 3 (BUD-04) : exposition publique de la vérification déjà utilisée en
 // interne par getClientEventView — le module budget en a besoin pour sa
 // propre vue en lecture seule du marié.
@@ -1163,6 +1176,8 @@ const _contractCheck: EventsServiceContract = {
   purgeExpiredDemoEvents,
   hasRealEvents,
   countEventsCreatedByMonth,
+  searchEvents,
+  getEventNamesByIds,
   hasActiveClientAccess,
   listExpiredDemoEvents,
 };

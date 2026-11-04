@@ -9,7 +9,6 @@ import {
   parisToday,
   type Locale,
 } from "@symbola/i18n";
-import { HelpButton } from "@symbola/ui";
 import {
   getEvent,
   getEventProgram,
@@ -53,6 +52,8 @@ import {
   EditEventTaskForm,
   EventDateForm,
 } from "./task-forms";
+import { PageTour } from "../../page-tour";
+import { loadPageTour } from "@/lib/help/page-tour";
 import { GearLink } from "@/app/gear-link";
 import { TaskTable } from "@/app/taches/task-table";
 import { EVENT_STATUS_CLASSES, STATUS_LABEL_KEYS } from "../event-status";
@@ -75,7 +76,7 @@ const CLIENT_ACCESS_STATUS_KEYS = {
 const TABS = ["apercu", "prestataires", "retroplanning", "programme", "devis", "maries"] as const;
 type Tab = (typeof TABS)[number];
 
-type SearchParams = { onglet?: string; poste?: string; tache?: string; vue?: string; qui?: string; filtre?: string };
+type SearchParams = { onglet?: string; poste?: string; tache?: string; vue?: string; qui?: string; filtre?: string; visite?: string };
 
 export default async function EventDetailPage({
   params,
@@ -201,6 +202,8 @@ export default async function EventDetailPage({
     return tabHref("retroplanning", values);
   };
 
+  // AIDE-05 : visite focus de la fiche, à la première ouverture.
+  const tour = await loadPageTour(auth.user.id, "event", query.visite);
   const tabs: { key: Tab | "budget"; label: string; href: string; count?: string; alert?: boolean }[] = [
     { key: "apercu", label: t("tabOverview"), href: tabHref("apercu") },
     { key: "prestataires", label: t("vendorSlotsTitle"), href: tabHref("prestataires"), count: `${progress.booked}/${progress.required}` },
@@ -239,7 +242,7 @@ export default async function EventDetailPage({
             </span>
           </p>
         </div>
-        <HelpButton title={tHelp("eventsDetail.title")} body={tHelp("eventsDetail.body")} />
+        <PageTour {...tour} helpTitle={tHelp("eventsDetail.title")} helpBody={tHelp("eventsDetail.body")} />
       </div>
 
       {/* AIDE-02 : bandeau de l'essai guidé, sur données fictives. */}
@@ -267,9 +270,9 @@ export default async function EventDetailPage({
         </section>
       ) : null}
 
-      <nav aria-label={t("eventTabsLabel")} className="tabs">
+      <nav aria-label={t("eventTabsLabel")} className="tabs" data-tour="event-tabs">
         {tabs.map((item) => (
-          <Link key={item.key} href={item.href} aria-current={item.key === tab ? "page" : undefined}>
+          <Link key={item.key} href={item.href} aria-current={item.key === tab ? "page" : undefined} data-tour={`tab-${item.key}`}>
             {item.label}
             {item.count ? <span className={item.alert ? "tab-count tab-count-alert" : "tab-count"}>{item.count}</span> : null}
           </Link>
@@ -278,7 +281,7 @@ export default async function EventDetailPage({
 
       {tab === "apercu" ? (
         <>
-          <section className="card" aria-labelledby="overview-title">
+          <section className="card" aria-labelledby="overview-title" data-tour="event-overview">
             <h2 id="overview-title">{t("tabOverview")}</h2>
             {/* EVT-03 : barre d'avancement en haut de la fiche. */}
             <p id="vendor-progress-label">

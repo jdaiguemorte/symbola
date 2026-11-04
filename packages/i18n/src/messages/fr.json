@@ -181,7 +181,7 @@
   "Tour": {
     "skip": "Passer",
     "next": "Suivant",
-    "finish": "Terminer",
+    "finish": "Terminer la visite",
     "hub": [
       {
         "title": "Bienvenue sur Symbola",
@@ -199,7 +199,7 @@
     "events": [
       {
         "title": "Vos événements",
-        "body": "Cette liste rassemble vos prospects et vos mariages à venir ; l'onglet « Terminés » garde les événements réalisés ou perdus. Filtrez par nom, année, statut ou source."
+        "body": "Cette liste rassemble vos prospects et vos événements à venir ; l'onglet « Terminés » garde les événements réalisés ou perdus. Filtrez par nom, année, statut ou source."
       },
       {
         "title": "Créer un prospect",
@@ -207,7 +207,7 @@
       },
       {
         "title": "La fiche d'un événement",
-        "body": "Sur la fiche, suivez le statut, les postes prestataires, le rétroplanning et le programme du jour J, puis invitez les mariés à suivre leur préparation."
+        "body": "Sur la fiche, suivez le statut, les postes prestataires, le rétroplanning et le programme du jour J, puis invitez vos clients à suivre leur préparation."
       },
       {
         "title": "Vos modèles",
@@ -215,7 +215,7 @@
       },
       {
         "title": "Essayer sans risque",
-        "body": "L'essai guidé ouvre un mariage fictif complet pour tout tester ; il est supprimé à la fin de l'essai. Relancez cette visite à tout moment avec le bouton « ? »."
+        "body": "L'essai guidé ouvre un événement fictif complet pour tout tester ; il est supprimé à la fin de l'essai. Relancez cette visite à tout moment avec le bouton « ? »."
       }
     ],
     "quotes": [
@@ -250,8 +250,35 @@
         "body": "Une fois l'événement confirmé, la simulation devient le budget prévu ; saisissez le réel, joignez les devis des prestataires et suivez l'écart."
       },
       {
-        "title": "Partager avec les mariés",
+        "title": "Partager avec vos clients",
         "body": "Les mariés invités voient leur budget en lecture seule dans leur espace."
+      }
+    ],
+    "continue": "Continuer",
+    "back": "Retour",
+    "later": "Plus tard",
+    "stepOf": "Étape {step} sur {total}",
+    "laterHint": "« Plus tard » garde votre place : la visite reprend ici depuis la barre d'aide.",
+    "event": [
+      {
+        "title": "La fiche d'un événement",
+        "body": "Tout l'événement tient sur cette fiche, rangée en onglets : chacun regroupe une partie de la préparation."
+      },
+      {
+        "title": "Vue d'ensemble",
+        "body": "Le statut, la date, le lieu et le fil d'activité : l'essentiel en un coup d'œil. Changez le statut quand le client confirme."
+      },
+      {
+        "title": "Le rétroplanning",
+        "body": "Toutes les tâches de la préparation, mois par mois, avec qui les réalise. Partez d'un modèle : les échéances se calculent depuis la date de l'événement."
+      },
+      {
+        "title": "Les prestataires",
+        "body": "Les postes à pourvoir (lieu, traiteur, photographe…) et leur avancement : vous voyez d'un coup d'œil ce qui reste à réserver."
+      },
+      {
+        "title": "Tout retrouver en un instant",
+        "body": "Tapez un nom de client, un numéro de devis ou une question dans la recherche : elle fouille tout Symbola."
       }
     ]
   },
@@ -1702,5 +1729,53 @@
     "events": "Événements créés",
     "quotes": "Devis créés",
     "invoices": "Factures émises"
+  },
+  "HelpBar": {
+    "label": "Barre d'aide",
+    "progress": "Prise en main : {completed} sur {total}",
+    "progressShort": "Aide · {completed}/{total}",
+    "resumeTour": "Reprendre la visite (étape {step})",
+    "resumeTutorial": "Reprendre : {title}",
+    "collapse": "Replier la barre d'aide"
+  },
+  "HelpCenter": {
+    "items": {
+      "event-page": {
+        "title": "La fiche d'un événement",
+        "description": "Créez un événement d'exemple et parcourez ses onglets : statut, prestataires, rétroplanning, programme."
+      },
+      "retroplanning-template": {
+        "title": "À quoi sert un modèle de rétroplanning ?",
+        "description": "Créez un modèle d'exemple, appliquez-le à un événement fictif et regardez les échéances suivre la date."
+      },
+      "catalog": {
+        "title": "Saisir son catalogue de prestations",
+        "description": "Ajoutez une prestation d'exemple et retrouvez-la, prête à l'emploi, dans un devis."
+      },
+      "quote-signature": {
+        "title": "Composer un devis et le faire signer",
+        "description": "Composez un devis d'exemple, envoyez-le en signature et signez-le vous-même, sans e-mail à personne."
+      },
+      "deposit-invoice": {
+        "title": "Facturer un acompte puis le solde",
+        "description": "Sur un devis signé d'exemple, émettez la facture d'acompte puis celle du solde."
+      },
+      "budget-simulation": {
+        "title": "Simuler le budget d'un événement",
+        "description": "Répartissez un budget d'exemple par poste, puis comparez le prévu et le réel."
+      },
+      "day-program": {
+        "title": "Préparer le programme du jour J",
+        "description": "Partez d'un modèle de programme, ajustez les horaires et téléchargez la version pour les prestataires."
+      },
+      "client-space": {
+        "title": "Inviter ses clients dans leur espace",
+        "description": "Voyez ce que vos clients voient : leurs tâches, le programme et le budget, sans vos notes internes."
+      },
+      "import": {
+        "title": "Importer ses événements existants",
+        "description": "Importez un petit fichier d'exemple et vérifiez l'aperçu avant de confirmer."
+      }
+    }
   }
 }

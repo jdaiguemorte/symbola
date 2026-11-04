@@ -1,6 +1,6 @@
 // Accès aux données du module quotes — jamais importé hors de
 // modules/quotes/ (ADR 0011).
-import { and, asc, desc, eq, gte, inArray, sql as raw } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, or, sql as raw } from "drizzle-orm";
 import { createAppConnection } from "@symbola/db/client";
 import {
   catalogItems,
@@ -19,6 +19,7 @@ import {
 } from "@symbola/db/schema/quotes";
 import { emitDomainEvent } from "@symbola/db/events/emit";
 import { withOrganization } from "@symbola/db/with-organization";
+import { foldedContains } from "@symbola/db/search";
 
 export type CatalogItemRow = typeof catalogItems.$inferSelect;
 export type QuoteSettingsRow = typeof quoteSettings.$inferSelect;
@@ -1706,6 +1707,50 @@ export async function countQuotesAndInvoicesByMonth(
       );
     }
     return result;
+  } finally {
+    await pg.end();
+  }
+}
+
+// Lot 10 (AIDE-08) — recherche globale : devis et factures réels dont le
+// numéro contient le terme, ou qui appartiennent aux événements trouvés par
+// le module events (identifiants fournis par l'orchestrateur du hub).
+export type QuoteSearchRow = { id: string; number: string; eventId: string; status: string };
+export type InvoiceSearchRow = { id: string; number: string; quoteId: string; eventId: string; kind: string; issuedOn: string };
+
+export async function searchQuoteRows(
+  organizationId: string,
+  words: string[],
+  eventIds: string[],
+  limit: number,
+): Promise<{ quotes: QuoteSearchRow[]; invoices: InvoiceSearchRow[] }> {
+  if (words.length === 0 && eventIds.length === 0) return { quotes: [], invoices: [] };
+  const { sql: pg, db } = createAppConnection();
+  try {
+    return await withOrganization(db, organizationId, async (tx) => {
+      const quoteMatch = or(
+        words.length > 0 ? and(...words.map((word) => foldedContains(quotes.number, word))) : undefined,
+        eventIds.length > 0 ? inArray(quotes.eventId, eventIds) : undefined,
+      );
+      const quoteRows = await tx
+        .select({ id: quotes.id, number: quotes.number, eventId: quotes.eventId, status: quotes.status })
+        .from(quotes)
+        .where(and(eq(quotes.isDemo, false), quoteMatch))
+        .orderBy(desc(quotes.createdAt))
+        .limit(limit);
+      const invoiceMatch = or(
+        words.length > 0 ? and(...words.map((word) => foldedContains(invoices.number, word))) : undefined,
+        eventIds.length > 0 ? inArray(quotes.eventId, eventIds) : undefined,
+      );
+      const invoiceRows = await tx
+        .select({ id: invoices.id, number: invoices.number, quoteId: invoices.quoteId, eventId: quotes.eventId, kind: invoices.kind, issuedOn: invoices.issuedOn })
+        .from(invoices)
+        .innerJoin(quotes, eq(quotes.id, invoices.quoteId))
+        .where(and(eq(invoices.isDemo, false), invoiceMatch))
+        .orderBy(desc(invoices.issuedAt))
+        .limit(limit);
+      return { quotes: quoteRows, invoices: invoiceRows };
+    });
   } finally {
     await pg.end();
   }

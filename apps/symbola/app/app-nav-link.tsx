@@ -12,11 +12,11 @@ function under(pathname: string, href: string): boolean {
 // Lien du menu principal : marqué « page courante » (aria-current) quand
 // l'écran affiché est le sien ou l'un de ses sous-écrans. Les écrans de
 // réglage d'un module allument « Paramètres », pas le module.
-export function AppNavLink({ href, settings = false, children }: { href: string; settings?: boolean; children: ReactNode }) {
+export function AppNavLink({ href, settings = false, tour, children }: { href: string; settings?: boolean; tour?: string; children: ReactNode }) {
   const pathname = usePathname();
   const current = settings ? isSettingsPath(pathname) : under(pathname, href) && !isSettingsPath(pathname);
   return (
-    <Link href={href} aria-current={current ? "page" : undefined}>
+    <Link href={href} aria-current={current ? "page" : undefined} data-tour={tour}>
       {children}
     </Link>
   );

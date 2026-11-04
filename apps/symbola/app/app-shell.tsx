@@ -15,6 +15,10 @@ import { AppNavLink } from "./app-nav-link";
 import { AppSidebar } from "./app-sidebar";
 import { logoutAction } from "./logout-action";
 import { SettingsNav, type SettingsSection } from "./settings-nav";
+import { HelpBar } from "./help-bar";
+import { HelpProvider } from "./help-context";
+import { getHelpProgress } from "@/modules/hub/service";
+import { TUTORIALS, tutorialHref } from "@/lib/help/catalog";
 
 function Logo() {
   return (
@@ -92,6 +96,30 @@ export async function AppShell({ children }: { children: ReactNode }) {
     }
   }
   const isOwner = auth.user.role === "owner" && Boolean(organizationId);
+  // Lot 10 (AIDE-07) — barre d'aide de l'équipe : tutoriels des modules
+  // souscrits, terminés ou en cours.
+  const isTeam = Boolean(organizationId) && (auth.user.role === "owner" || auth.user.role === "member");
+  let helpBar: { completed: number; total: number; tutorial: { title: string; href: string } | null } | null = null;
+  if (isTeam) {
+    const available = TUTORIALS.filter((tutorial) => tutorial.module === "hub" || (tutorial.module === "events" ? events : tutorial.module === "budget" ? budget : quotes));
+    const { sql, db } = createAppConnection();
+    let progress;
+    try {
+      progress = await getHelpProgress(db, auth.user.id);
+    } finally {
+      await sql.end();
+    }
+    const tHelpCenter = await getTranslations("HelpCenter");
+    const inProgress = progress
+      .filter((entry) => entry.status !== "completed" && available.some((tutorial) => `tutorial:${tutorial.key}` === entry.itemKey))
+      .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())[0];
+    const inProgressKey = inProgress ? available.find((tutorial) => `tutorial:${tutorial.key}` === inProgress.itemKey)!.key : null;
+    helpBar = {
+      completed: available.filter((tutorial) => progress.some((entry) => entry.itemKey === `tutorial:${tutorial.key}` && entry.status === "completed")).length,
+      total: available.length,
+      tutorial: inProgressKey ? { title: tHelpCenter(`items.${inProgressKey}.title`), href: tutorialHref(inProgressKey) } : null,
+    };
+  }
   const isAdmin = auth.user.role === "admin";
   // Pastille « en retard » du menu Tâches (HUB-02).
   const overdue =
@@ -194,7 +222,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
           <ul className="app-nav app-nav-secondary">
             {organizationId ? (
               <li>
-                <AppNavLink href="/parametres" settings>
+                <AppNavLink href="/parametres" settings tour="nav-settings">
                   <Settings {...iconProps} />
                   {t("settings")}
                 </AppNavLink>
@@ -213,10 +241,13 @@ export async function AppShell({ children }: { children: ReactNode }) {
           {logout}
         </div>
       </AppSidebar>
-      <div className="app-main">
-        {settingsSections.length > 0 ? <SettingsNav sections={settingsSections} label={t("settingsSections")} subLabel={t("settingsSubSections")} /> : null}
-        {children}
-      </div>
+      <HelpProvider>
+        <div className="app-main">
+          {settingsSections.length > 0 ? <SettingsNav sections={settingsSections} label={t("settingsSections")} subLabel={t("settingsSubSections")} /> : null}
+          {children}
+        </div>
+        {helpBar ? <HelpBar {...helpBar} /> : null}
+      </HelpProvider>
     </div>
   );
 }

@@ -181,7 +181,7 @@
   "Tour": {
     "skip": "Skip",
     "next": "Next",
-    "finish": "Finish",
+    "finish": "Finish the tour",
     "hub": [
       {
         "title": "Welcome to Symbola",
@@ -199,7 +199,7 @@
     "events": [
       {
         "title": "Your events",
-        "body": "This list gathers your leads and upcoming weddings; the “Past” tab keeps completed or lost events. Filter by name, year, status or source."
+        "body": "This list gathers your leads and upcoming events; the “Past” tab keeps completed or lost events. Filter by name, year, status or source."
       },
       {
         "title": "Creating a lead",
@@ -207,7 +207,7 @@
       },
       {
         "title": "An event's page",
-        "body": "On the event page, follow the status, vendor slots, planning timeline and wedding day schedule, then invite the couple to follow their preparations."
+        "body": "On the event page, follow the status, vendor slots, planning timeline and wedding day schedule, then invite your clients to follow their preparations."
       },
       {
         "title": "Your templates",
@@ -250,8 +250,35 @@
         "body": "Once the event is confirmed, the simulation becomes the planned budget; enter actual amounts, attach vendor quotes and follow the variance."
       },
       {
-        "title": "Sharing with the couple",
+        "title": "Sharing with your clients",
         "body": "Invited couples see their budget read-only in their space."
+      }
+    ],
+    "continue": "Continue",
+    "back": "Back",
+    "later": "Later",
+    "stepOf": "Step {step} of {total}",
+    "laterHint": "\"Later\" keeps your place: the tour resumes here from the help bar.",
+    "event": [
+      {
+        "title": "An event's page",
+        "body": "The whole event fits on this page, organised in tabs: each one groups part of the preparation."
+      },
+      {
+        "title": "Overview",
+        "body": "Status, date, venue and activity feed: the essentials at a glance. Change the status when the client confirms."
+      },
+      {
+        "title": "The planning timeline",
+        "body": "All the preparation tasks, month by month, with who does them. Start from a template: due dates are computed from the event date."
+      },
+      {
+        "title": "Vendors",
+        "body": "The slots to fill (venue, caterer, photographer…) and their progress: you see at a glance what is left to book."
+      },
+      {
+        "title": "Find anything in a second",
+        "body": "Type a client name, a quote number or a question in the search: it looks through all of Symbola."
       }
     ]
   },
@@ -1702,5 +1729,53 @@
     "events": "Events created",
     "quotes": "Quotes created",
     "invoices": "Invoices issued"
+  },
+  "HelpBar": {
+    "label": "Help bar",
+    "progress": "Getting started: {completed} of {total}",
+    "progressShort": "Help · {completed}/{total}",
+    "resumeTour": "Resume the tour (step {step})",
+    "resumeTutorial": "Resume: {title}",
+    "collapse": "Collapse the help bar"
+  },
+  "HelpCenter": {
+    "items": {
+      "event-page": {
+        "title": "An event's page",
+        "description": "Create an example event and go through its tabs: status, vendors, planning timeline, programme."
+      },
+      "retroplanning-template": {
+        "title": "What is a planning template for?",
+        "description": "Create an example template, apply it to a fictional event and watch the due dates follow the date."
+      },
+      "catalog": {
+        "title": "Enter your service catalogue",
+        "description": "Add an example service and find it, ready to use, in a quote."
+      },
+      "quote-signature": {
+        "title": "Write a quote and get it signed",
+        "description": "Write an example quote, send it for signature and sign it yourself, without e-mailing anyone."
+      },
+      "deposit-invoice": {
+        "title": "Invoice a deposit then the balance",
+        "description": "On a signed example quote, issue the deposit invoice then the balance invoice."
+      },
+      "budget-simulation": {
+        "title": "Simulate an event budget",
+        "description": "Split an example budget by item, then compare planned and actual."
+      },
+      "day-program": {
+        "title": "Prepare the day's programme",
+        "description": "Start from a programme template, adjust the times and download the vendors' version."
+      },
+      "client-space": {
+        "title": "Invite your clients to their space",
+        "description": "See what your clients see: their tasks, the programme and the budget, without your internal notes."
+      },
+      "import": {
+        "title": "Import your existing events",
+        "description": "Import a small example file and check the preview before confirming."
+      }
+    }
   }
 }

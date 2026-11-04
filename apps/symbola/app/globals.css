@@ -739,3 +739,80 @@
     @apply block break-all text-sm;
   }
 }
+
+/* Lot 10 (AIDE-05) — visite focus : élément mis en lumière, bulle d'aide. */
+@layer components {
+  .focus-tour-spotlight {
+    @apply pointer-events-none fixed z-[60] hidden rounded-xl;
+    box-shadow:
+      0 0 0 4px var(--color-card),
+      0 0 0 8px var(--color-terracotta),
+      0 0 0 9999px rgb(20 20 19 / 0.55);
+  }
+  .focus-tour-spotlight[data-visible="true"] {
+    @apply block;
+  }
+  .focus-tour-backdrop {
+    @apply fixed inset-0 z-[61];
+  }
+  .focus-tour-spotlight[data-visible="false"] + .focus-tour-backdrop {
+    background: rgb(20 20 19 / 0.55);
+  }
+  .focus-tour-bubble {
+    @apply fixed z-[62] flex w-[380px] max-w-[calc(100vw-24px)] flex-col gap-3 rounded-2xl bg-card p-5 text-ink shadow-2xl;
+  }
+  .focus-tour-bubble[data-layout="center"] {
+    @apply top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2;
+  }
+  .focus-tour-bubble[data-layout="sheet"] {
+    @apply inset-x-0 top-auto bottom-0 w-auto max-w-none rounded-t-2xl rounded-b-none;
+  }
+  .focus-tour-bubble h2 {
+    @apply m-0 text-xl;
+  }
+  .focus-tour-bubble p {
+    @apply m-0;
+  }
+  .focus-tour-progress,
+  .focus-tour-hint {
+    @apply text-sm text-muted;
+  }
+  .focus-tour-actions {
+    @apply flex flex-wrap items-center justify-between gap-2;
+  }
+  .focus-tour-main-actions {
+    @apply flex gap-2;
+  }
+  .focus-tour-later {
+    @apply border-transparent bg-transparent text-muted underline underline-offset-4 shadow-none;
+  }
+  .focus-tour-continue {
+    @apply bg-sauge text-white;
+  }
+}
+
+/* Lot 10 (AIDE-07) — barre d'aide. */
+@layer components {
+  .help-bar {
+    @apply fixed right-4 bottom-4 z-40 flex max-w-[calc(100vw-32px)] flex-wrap items-center gap-2 rounded-full bg-ink py-2 pr-2 pl-4 text-sm text-white shadow-xl;
+  }
+  .help-bar[data-collapsed="true"] {
+    @apply p-1;
+  }
+  .help-bar a.help-bar-progress {
+    @apply text-white no-underline hover:underline;
+  }
+  .help-bar .help-bar-resume {
+    @apply min-h-11 rounded-full border-0 bg-card px-4 font-semibold text-ink no-underline;
+  }
+  .help-bar .help-bar-toggle {
+    @apply min-h-11 rounded-full border-0 bg-transparent px-3 text-white;
+  }
+}
+
+/* Lot 10 — place pour la barre d'aide sous le contenu. */
+@layer components {
+  .app-main {
+    @apply pb-28;
+  }
+}

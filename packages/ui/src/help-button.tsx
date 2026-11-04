@@ -19,7 +19,7 @@ export function HelpButton({
   onRelaunchTour?: () => void;
 }) {
   return (
-    <details>
+    <details data-tour="help-button">
       <summary aria-label={title}>?</summary>
       <h3>{title}</h3>
       <p>{body}</p>

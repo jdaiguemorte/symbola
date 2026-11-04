@@ -41,6 +41,10 @@ async function createTestUser(): Promise<{ email: string; password: string }> {
   return { email, password };
 }
 
+// Lot 10 : visites ouvertes d'office (sans la préférence posée par la
+// configuration des autres parcours).
+test.use({ storageState: { cookies: [], origins: [] } });
+
 test("AIDE-01/03/04 — visite guidée, aide et liste premiers pas sur l'accueil", async ({ page }) => {
   const { email, password } = await createTestUser();
   await loginAndSetupMfa(page, email, password);
@@ -51,11 +55,11 @@ test("AIDE-01/03/04 — visite guidée, aide et liste premiers pas sur l'accueil
   let violations = await new AxeBuilder({ page }).analyze();
   expect(violations.violations, JSON.stringify(violations.violations, null, 2)).toEqual([]);
 
-  await page.getByRole("button", { name: "Suivant" }).click();
+  await page.getByRole("button", { name: "Continuer" }).click();
   await expect(page.getByRole("dialog", { name: "Complétez votre fiche entreprise" })).toBeVisible();
-  await page.getByRole("button", { name: "Suivant" }).click();
+  await page.getByRole("button", { name: "Continuer" }).click();
   await expect(page.getByRole("dialog", { name: "De l'aide à tout moment" })).toBeVisible();
-  await page.getByRole("button", { name: "Terminer" }).click();
+  await page.getByRole("button", { name: "Terminer la visite" }).click();
   await expect(tour).toBeHidden();
 
   // La visite déjà vue ne se réaffiche pas automatiquement.
@@ -68,7 +72,7 @@ test("AIDE-01/03/04 — visite guidée, aide et liste premiers pas sur l'accueil
   await expect(page.getByRole("heading", { name: "Tableau de bord" })).toBeVisible();
   await page.getByRole("button", { name: "Relancer la visite guidée" }).click();
   await expect(page.getByRole("dialog", { name: "Bienvenue sur Symbola" })).toBeVisible();
-  await page.getByRole("button", { name: "Passer" }).click();
+  await page.getByRole("button", { name: "Plus tard" }).click();
   await expect(page.getByRole("dialog")).toBeHidden();
 
   // AIDE-04 : la liste « premiers pas » peut être masquée, et le reste.

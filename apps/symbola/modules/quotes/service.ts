@@ -12,6 +12,7 @@ import type {
   CatalogItem,
   FileDownload,
   MonthlyCount,
+  QuotesSearchResults,
   CatalogItemInput,
   CreateQuoteInput,
   GlobalDiscountInput,
@@ -99,6 +100,7 @@ import {
   deleteQuoteLine,
   findCatalogItem,
   countQuotesAndInvoicesByMonth as countQuotesAndInvoicesByMonthRows,
+  searchQuoteRows,
   findCatalogItems,
   findEventQuotes,
   findQuotes,
@@ -1635,6 +1637,12 @@ export async function countQuotesAndInvoicesByMonth(
   return countQuotesAndInvoicesByMonthRows(organizationIds, since);
 }
 
+// Lot 10 (AIDE-08) — recherche globale : devis et factures réels par numéro,
+// ou rattachés aux événements trouvés.
+export async function searchQuotes(organizationId: string, words: string[], eventIds: string[], limit: number): Promise<QuotesSearchResults> {
+  return searchQuoteRows(organizationId, words, eventIds, limit);
+}
+
 const _contractCheck: QuotesServiceContract = {
   listCatalogItems,
   createCatalogItem,
@@ -1667,6 +1675,7 @@ const _contractCheck: QuotesServiceContract = {
   handleSignatureWebhook,
   reconcilePendingSignatures,
   countQuotesAndInvoicesByMonth,
+  searchQuotes,
   getSignatureDocument,
   listClientQuotesToSign,
   setQuoteClientKind,

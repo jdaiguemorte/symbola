@@ -21,6 +21,7 @@ import {
   taskTemplates,
 } from "@symbola/db/schema/events";
 import { withOrganization } from "@symbola/db/with-organization";
+import { foldedColumn, foldedContains, likeWord } from "@symbola/db/search";
 import { emitDomainEvent } from "@symbola/db/events/emit";
 import {
   EVT_EVENT_CREATED,
@@ -1735,6 +1736,77 @@ export async function countEventsByCreationMonth(
       });
     }
     return result;
+  } finally {
+    await pg.end();
+  }
+}
+
+// Lot 10 (AIDE-08) — recherche globale : événements réels (jamais les essais)
+// dont les clients ou le lieu contiennent chacun des mots cherchés, puis
+// tâches et prestataires. Toujours dans le contexte RLS de l'organisation.
+export type EventSearchRow = { id: string; names: string; eventDate: string | null; venueName: string | null; status: string };
+export type TaskSearchRow = { id: string; eventId: string; label: string; dueDate: string; eventNames: string };
+export type VendorSearchRow = { id: string; eventId: string; label: string; vendorName: string | null; eventNames: string };
+
+const eventNamesSql = sql<string>`coalesce((select string_agg(${eventClients.firstName}, ' & ' order by ${eventClients.createdAt}) from ${eventClients} where ${eventClients.eventId} = ${events.id}), '')`;
+
+export async function searchEventRows(
+  organizationId: string,
+  words: string[],
+  limit: number,
+): Promise<{ events: EventSearchRow[]; tasks: TaskSearchRow[]; vendors: VendorSearchRow[] }> {
+  if (words.length === 0) return { events: [], tasks: [], vendors: [] };
+  const { sql: pg, db } = createAppConnection();
+  try {
+    return await withOrganization(db, organizationId, async (tx) => {
+      // Tout ce qui décrit un événement, en une chaîne : prénoms, noms, lieu, ville.
+      const haystack = foldedColumn(
+        sql`concat_ws(' ', ${events.venueName}, ${events.venueCity}, (select string_agg(concat_ws(' ', ${eventClients.firstName}, ${eventClients.lastName}), ' ') from ${eventClients} where ${eventClients.eventId} = ${events.id}))`,
+      );
+      const eventRows = await tx
+        .select({ id: events.id, names: eventNamesSql, eventDate: events.eventDate, venueName: events.venueName, status: events.status })
+        .from(events)
+        .where(and(eq(events.isDemo, false), ...words.map((word) => sql`${haystack} like ${likeWord(word)}`)))
+        .orderBy(sql`${events.eventDate} desc nulls last`)
+        .limit(limit);
+
+      const taskRows = await tx
+        .select({ id: eventTasks.id, eventId: eventTasks.eventId, label: eventTasks.label, dueDate: eventTasks.dueDate, eventNames: eventNamesSql })
+        .from(eventTasks)
+        .innerJoin(events, eq(events.id, eventTasks.eventId))
+        .where(and(eq(events.isDemo, false), ...words.map((word) => foldedContains(eventTasks.label, word))))
+        .orderBy(asc(eventTasks.dueDate))
+        .limit(limit);
+
+      const vendorRows = await tx
+        .select({ id: eventVendorSlots.id, eventId: eventVendorSlots.eventId, label: eventVendorSlots.label, vendorName: eventVendorSlots.vendorName, eventNames: eventNamesSql })
+        .from(eventVendorSlots)
+        .innerJoin(events, eq(events.id, eventVendorSlots.eventId))
+        .where(
+          and(
+            eq(events.isDemo, false),
+            ...words.map((word) => sql`${foldedColumn(sql`concat_ws(' ', ${eventVendorSlots.vendorName}, ${eventVendorSlots.label})`)} like ${likeWord(word)}`),
+          ),
+        )
+        .limit(limit);
+
+      return { events: eventRows, tasks: taskRows, vendors: vendorRows };
+    });
+  } finally {
+    await pg.end();
+  }
+}
+
+// Lot 10 (AIDE-08) — prénoms des clients de quelques événements (affichage
+// d'un devis trouvé par son numéro).
+export async function findEventNamesByIds(organizationId: string, eventIds: string[]): Promise<Record<string, string>> {
+  if (eventIds.length === 0) return {};
+  const { sql: pg, db } = createAppConnection();
+  try {
+    return await withOrganization(db, organizationId, async (tx) => {
+      const rows = await tx.select({ id: events.id, names: eventNamesSql }).from(events).where(inArray(events.id, eventIds));
+      return Object.fromEntries(rows.map((row) => [row.id, row.names]));
+    });
   } finally {
     await pg.end();
   }
