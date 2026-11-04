@@ -133,8 +133,8 @@ describe("DEV-02 — Documenso dans le compose d'environnement (ADR 0026)", () =
   const devCompose = readFileSync(resolve(repoRoot, "infra/compose/docker-compose.dev.yml"), "utf8");
 
   it("épingle l'image documenso/documenso sur une version précise, en dev comme en environnement", () => {
-    expect(block()).toMatch(/image: documenso\/documenso:\d+\.\d+\.\d+\n/);
-    expect(serviceBlock(devCompose, "documenso")).toMatch(/image: documenso\/documenso:\d+\.\d+\.\d+\n/);
+    expect(block()).toMatch(/image: documenso\/documenso:v\d+\.\d+\.\d+\n/);
+    expect(serviceBlock(devCompose, "documenso")).toMatch(/image: documenso\/documenso:v\d+\.\d+\.\d+\n/);
     expect(prodCompose).not.toMatch(/docuseal/i);
     expect(devCompose).not.toMatch(/docuseal/i);
   });

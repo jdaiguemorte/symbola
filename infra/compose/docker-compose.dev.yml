@@ -91,7 +91,7 @@ services:
   # `--profile signature up -d` ; console sur http://localhost:3010. Ses
   # e-mails (compte administrateur) arrivent dans Mailpit.
   documenso:
-    image: documenso/documenso:2.21.1
+    image: documenso/documenso:v2.21.1
     profiles: ["signature"]
     restart: unless-stopped
     environment:
