@@ -4,7 +4,7 @@
 // élément dont le module n'est pas souscrit n'est pas proposé (CLAUDE.md §2.3).
 import type { TourKey } from "./tours";
 
-export type HelpModule = "events" | "quotes" | "budget" | "hub";
+export type HelpModule = "events" | "quotes" | "budget" | "vendors" | "hub";
 
 export type TutorialKey =
   | "event-page"
@@ -15,7 +15,8 @@ export type TutorialKey =
   | "budget-simulation"
   | "catalog"
   | "day-program"
-  | "import";
+  | "import"
+  | "vendor-quotes";
 
 export type TutorialDefinition = {
   key: TutorialKey;
@@ -36,6 +37,8 @@ export const TUTORIALS: TutorialDefinition[] = [
   { key: "day-program", module: "events", minutes: 3, screen: "/events/modeles-programme" },
   { key: "client-space", module: "events", minutes: 3, screen: "/events" },
   { key: "import", module: "hub", minutes: 4, screen: "/import" },
+  // Lot 11 : comparer plusieurs devis pour un poste (sans carnet : saisie libre).
+  { key: "vendor-quotes", module: "events", minutes: 4, screen: "/prestataires" },
 ];
 
 export type TourDefinition = { key: TourKey; module: HelpModule; path: string | null };
@@ -47,6 +50,7 @@ export const TOURS: TourDefinition[] = [
   { key: "event", module: "events", path: null },
   { key: "quotes", module: "quotes", path: "/devis/catalogue" },
   { key: "budget", module: "budget", path: "/budget/parametres" },
+  { key: "vendors", module: "vendors", path: "/prestataires" },
 ];
 
 export function tutorialHref(key: TutorialKey): string {

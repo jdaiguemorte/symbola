@@ -1,0 +1,77 @@
+{
+  "version": 1,
+  "items": [
+    {
+      "key": "venue",
+      "label": { "fr": "Lieu de réception", "en": "Venue" },
+      "color": "#4f6b5a",
+      "fields": [
+        { "label": { "fr": "Capacité assise", "en": "Seated capacity" }, "kind": "number", "isFilter": true },
+        { "label": { "fr": "Capacité debout", "en": "Standing capacity" }, "kind": "number", "isFilter": false },
+        { "label": { "fr": "Couchages", "en": "Beds" }, "kind": "number", "isFilter": true },
+        { "label": { "fr": "Fin de soirée imposée", "en": "Imposed end time" }, "kind": "time", "isFilter": true },
+        { "label": { "fr": "Tarif de location", "en": "Rental price" }, "kind": "amount", "isFilter": true },
+        {
+          "label": { "fr": "Traiteur", "en": "Caterer" },
+          "kind": "choice",
+          "choices": { "fr": ["Libre", "Imposé"], "en": ["Free choice", "Imposed"] },
+          "isFilter": true
+        },
+        { "label": { "fr": "Repli en cas de pluie", "en": "Rain plan" }, "kind": "boolean", "isFilter": false },
+        { "label": { "fr": "Parking", "en": "Parking" }, "kind": "boolean", "isFilter": false },
+        { "label": { "fr": "Accessible PMR", "en": "Wheelchair accessible" }, "kind": "boolean", "isFilter": true }
+      ]
+    },
+    {
+      "key": "lodging",
+      "label": { "fr": "Hôtel / hébergement", "en": "Hotel / lodging" },
+      "color": "#2f5d7c",
+      "fields": [
+        { "label": { "fr": "Chambres", "en": "Rooms" }, "kind": "number", "isFilter": false },
+        { "label": { "fr": "Couchages", "en": "Beds" }, "kind": "number", "isFilter": true },
+        { "label": { "fr": "Tarif par nuit", "en": "Price per night" }, "kind": "amount", "isFilter": true },
+        { "label": { "fr": "Petit-déjeuner", "en": "Breakfast" }, "kind": "boolean", "isFilter": false },
+        { "label": { "fr": "Navette possible", "en": "Shuttle available" }, "kind": "boolean", "isFilter": true }
+      ]
+    },
+    {
+      "key": "caterer",
+      "label": { "fr": "Traiteur", "en": "Caterer" },
+      "color": "#a8553a",
+      "fields": [
+        { "label": { "fr": "Prix par couvert", "en": "Price per guest" }, "kind": "amount", "isFilter": true },
+        { "label": { "fr": "Type de cuisine", "en": "Cuisine" }, "kind": "text", "isFilter": false },
+        { "label": { "fr": "Régimes gérés", "en": "Diets handled" }, "kind": "text", "isFilter": false },
+        { "label": { "fr": "Service inclus", "en": "Service included" }, "kind": "boolean", "isFilter": true }
+      ]
+    },
+    {
+      "key": "photographer",
+      "label": { "fr": "Photographe", "en": "Photographer" },
+      "color": "#7a4b12",
+      "fields": [
+        { "label": { "fr": "Tarif de base", "en": "Base price" }, "kind": "amount", "isFilter": true },
+        { "label": { "fr": "Styles", "en": "Styles" }, "kind": "text", "isFilter": false },
+        { "label": { "fr": "Zone d'intervention (km)", "en": "Service area (km)" }, "kind": "number", "isFilter": true }
+      ]
+    },
+    {
+      "key": "music",
+      "label": { "fr": "DJ / musiciens", "en": "DJ / musicians" },
+      "color": "#5b4a8a",
+      "fields": [
+        { "label": { "fr": "Tarif de base", "en": "Base price" }, "kind": "amount", "isFilter": true },
+        { "label": { "fr": "Zone d'intervention (km)", "en": "Service area (km)" }, "kind": "number", "isFilter": true }
+      ]
+    },
+    {
+      "key": "florist",
+      "label": { "fr": "Fleuriste", "en": "Florist" },
+      "color": "#9a3f63",
+      "fields": [
+        { "label": { "fr": "Tarif de base", "en": "Base price" }, "kind": "amount", "isFilter": true },
+        { "label": { "fr": "Frais de déplacement", "en": "Travel fees" }, "kind": "amount", "isFilter": false }
+      ]
+    }
+  ]
+}

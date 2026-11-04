@@ -8,6 +8,8 @@ export const TOUR_TARGETS = {
   event: ["event-tabs", "event-overview", "tab-retroplanning", "tab-prestataires", "global-search"],
   quotes: ["quotes-catalog", undefined, undefined, undefined],
   budget: ["budget-models", undefined, undefined, undefined],
+  // Lot 11 : carnet de prestataires.
+  vendors: ["vendor-types", "vendor-filters", "vendor-results", "vendor-new"],
 } as const satisfies Record<string, readonly (string | undefined)[]>;
 
 export type TourKey = keyof typeof TOUR_TARGETS;

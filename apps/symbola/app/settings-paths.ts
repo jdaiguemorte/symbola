@@ -7,6 +7,7 @@ export const SETTINGS_PATHS = [
   "/events/modeles",
   "/events/modeles-programme",
   "/budget/parametres",
+  "/prestataires/parametres",
   "/devis/parametres",
   "/devis/catalogue",
   "/devis/e-reporting",

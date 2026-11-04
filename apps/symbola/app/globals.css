@@ -713,6 +713,10 @@
   .settings-nav .tabs {
     @apply my-0;
   }
+  /* HUB-06 : pastille de la solution choisie, pleine ; ses réglages en pastilles claires. */
+  .settings-pills a[aria-current="page"] {
+    @apply border-sauge-dark bg-sauge-dark text-white;
+  }
 }
 
 @layer components {
@@ -996,5 +1000,42 @@
   }
   .link-button {
     @apply min-h-9 border-0 bg-transparent px-2 text-sm text-sauge-ink underline hover:bg-transparent hover:text-ink;
+  }
+}
+
+@layer components {
+  /* Lot 11 (PRE-04) — carte du carnet. */
+  .vendor-map {
+    @apply relative overflow-hidden rounded-[16px] border border-lin;
+  }
+  .vendor-map-canvas {
+    @apply h-[420px] w-full md:h-[560px];
+  }
+  .vendor-map-notice {
+    @apply absolute right-3 bottom-3 left-3 m-0 rounded-[10px] bg-card px-3 py-2 text-sm text-muted;
+  }
+  .vendor-book {
+    @apply grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)];
+  }
+  .vendor-results {
+    @apply m-0 flex list-none flex-col p-0;
+  }
+  .vendor-results > li {
+    @apply flex flex-col gap-1 border-t border-lin-soft py-3;
+  }
+  .vendor-filters {
+    @apply grid grid-cols-1 items-end gap-3 sm:grid-cols-2 lg:grid-cols-4;
+  }
+}
+
+@layer components {
+  .range-filter {
+    @apply grid grid-cols-2 gap-2 sm:col-span-2;
+  }
+  .vendor-form fieldset {
+    @apply grid grid-cols-1 gap-3 sm:grid-cols-2;
+  }
+  .vendor-form fieldset > legend {
+    @apply sm:col-span-2;
   }
 }

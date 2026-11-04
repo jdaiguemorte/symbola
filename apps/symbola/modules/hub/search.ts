@@ -4,21 +4,22 @@
 // chaque module. Les résultats d'aide et d'écrans sont ajoutés par l'app
 // (textes traduits).
 import { searchWords } from "@symbola/db/search";
-import type { EventsSearchResults, QuotesSearchResults } from "@symbola/contracts";
+import type { EventsSearchResults, QuotesSearchResults, VendorBookSearchResult } from "@symbola/contracts";
 import { getEventNamesByIds, searchEvents } from "@/modules/events/service";
 import { searchQuotes } from "@/modules/quotes/service";
+import { searchVendorBook } from "@/modules/vendors/service";
 
 const LIMIT = 6;
 
-export type GlobalSearchResults = EventsSearchResults & QuotesSearchResults & { eventNames: Record<string, string> };
+export type GlobalSearchResults = EventsSearchResults & QuotesSearchResults & { book: VendorBookSearchResult[]; eventNames: Record<string, string> };
 
 export async function globalSearch(input: {
   organizationId: string;
   term: string;
-  modules: { events: boolean; quotes: boolean };
+  modules: { events: boolean; quotes: boolean; vendors?: boolean };
 }): Promise<GlobalSearchResults> {
   const words = searchWords(input.term);
-  const empty: GlobalSearchResults = { events: [], tasks: [], vendors: [], quotes: [], invoices: [], eventNames: {} };
+  const empty: GlobalSearchResults = { events: [], tasks: [], vendors: [], quotes: [], invoices: [], book: [], eventNames: {} };
   if (words.length === 0) return empty;
 
   const found = input.modules.events ? await searchEvents(input.organizationId, words, LIMIT) : { events: [], tasks: [], vendors: [] };
@@ -31,5 +32,8 @@ export async function globalSearch(input: {
   const missing = [...new Set([...documents.quotes, ...documents.invoices].map((row) => row.eventId))].filter((id) => !(id in known));
   const eventNames = input.modules.events && missing.length > 0 ? { ...known, ...(await getEventNamesByIds(input.organizationId, missing)) } : known;
 
-  return { ...found, ...documents, eventNames };
+  // Lot 11 : fiches du carnet de prestataires (jamais les exemples).
+  const book = input.modules.vendors ? await searchVendorBook(input.organizationId, words, LIMIT) : [];
+
+  return { ...found, ...documents, book, eventNames };
 }

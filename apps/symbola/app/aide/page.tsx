@@ -33,17 +33,18 @@ export default async function AidePage() {
 
   const organizationId = auth.user.organizationId;
   const isTeam = Boolean(organizationId) && (auth.user.role === "owner" || auth.user.role === "member");
-  let modules: Record<HelpModule, boolean> = { hub: true, events: false, budget: false, quotes: false };
+  let modules: Record<HelpModule, boolean> = { hub: true, events: false, budget: false, quotes: false, vendors: false };
   let progress: HelpProgressEntry[] = [];
   if (isTeam && organizationId) {
     const { sql, db } = createAppConnection();
     try {
-      const [events, budget, quotes] = await Promise.all([
+      const [events, budget, quotes, vendors] = await Promise.all([
         isModuleEnabled(db, organizationId, "events"),
         isModuleEnabled(db, organizationId, "budget"),
         isModuleEnabled(db, organizationId, "quotes"),
+        isModuleEnabled(db, organizationId, "vendors"),
       ]);
-      modules = { hub: true, events, budget, quotes };
+      modules = { hub: true, events, budget, quotes, vendors };
       progress = await getHelpProgress(db, auth.user.id);
     } finally {
       await sql.end();
@@ -71,7 +72,7 @@ export default async function AidePage() {
     return { label: tCenter("stateNew"), className: "badge", action: tCenter("actionStart"), href: path ? `${path}?visite=revoir` : null };
   }
 
-  const moduleOrder: HelpModule[] = ["events", "quotes", "budget", "hub"];
+  const moduleOrder: HelpModule[] = ["events", "vendors", "quotes", "budget", "hub"];
 
   return (
     <main>

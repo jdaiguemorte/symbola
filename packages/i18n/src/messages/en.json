@@ -76,7 +76,11 @@
     "settingsTaskTemplates": "Planning templates",
     "settingsProgramTemplates": "Programme templates",
     "settingsSections": "Settings by module",
-    "settingsSubSections": "Module settings"
+    "settingsSubSections": "Module settings",
+    "vendorBook": "Vendors",
+    "settingsVendorTypes": "Types and fields",
+    "settingsVendorTags": "Tags",
+    "settingsVendorTravel": "Estimated travel"
   },
   "Admin": {
     "title": "Administration",
@@ -281,6 +285,24 @@
         "title": "Find anything in a second",
         "body": "Type a client name, a quote number or a question in the search: it looks through all of Symbola."
       }
+    ],
+    "vendors": [
+      {
+        "title": "Your vendor types",
+        "body": "One pill per type: venue, hotel, caterer… You create them and choose their fields in the vendor book settings."
+      },
+      {
+        "title": "Filter and search around a place",
+        "body": "Combine features, tags and “already worked with”; give a place and a radius to sort by distance."
+      },
+      {
+        "title": "Nearest first",
+        "body": "The list follows the map, with an estimated travel time. From an event item, “Add to item” sends it to the vendors consulted."
+      },
+      {
+        "title": "One vendor, one record",
+        "body": "Create the record once: you will find it for every event, with the history of your prices."
+      }
     ]
   },
   "Help": {
@@ -460,6 +482,10 @@
     "adminOnboarding": {
       "title": "Organisations getting started",
       "body": "This table shows, for each team account, the tutorials finished and in progress and the last help activity. It helps spot who needs a hand; it shows no event data."
+    },
+    "vendorBook": {
+      "title": "The vendor book",
+      "body": "Each vendor has a single record, reused from one event to the next: contact details, features depending on its type, brochures, and the history of your work together. Filter by type, by features and around a place; add a vendor to an event item to compare quotes."
     }
   },
   "FirstSteps": {
@@ -1787,6 +1813,10 @@
       "import": {
         "title": "Import your existing events",
         "description": "Import a small example file and check the preview before confirming."
+      },
+      "vendor-quotes": {
+        "title": "Compare several quotes for one item",
+        "description": "Consult two example vendors for the same item, record their quotes, then select one."
       }
     },
     "intro": "Learn Symbola by doing, at your own pace. Each tutorial creates a fictional example, then offers to delete it.",
@@ -1799,7 +1829,8 @@
       "events": "Events",
       "quotes": "Quotes and invoices",
       "budget": "Budget",
-      "hub": "Settings and data"
+      "hub": "Settings and data",
+      "vendors": "Vendors"
     },
     "tourTitle": "Tour: {title}",
     "tourKind": "Tour · 1 min",
@@ -1842,7 +1873,8 @@
     "seeAll": "See all results",
     "hint": "↑ ↓ to choose · Enter to open · Esc to close",
     "globalLabel": "Search Symbola",
-    "refineLabel": "Refine the search"
+    "refineLabel": "Refine the search",
+    "vendorBookDetail": "Vendor book"
   },
   "AdminOnboarding": {
     "title": "Organisations getting started",
@@ -2116,6 +2148,38 @@
           "body": "You know how to bring in your existing data."
         }
       ]
+    },
+    "vendor-quotes": {
+      "steps": [
+        {
+          "title": "Understand",
+          "body": "For one item (the caterer of a gala, the venue of a retreat…), you often consult several vendors. Symbola keeps them side by side with their quote and your notes until you select one."
+        },
+        {
+          "title": "Prepare",
+          "body": "Symbola creates an example event (a charity gala) and, if you have the vendor book, two example caterers. Everything will be deleted at the end."
+        },
+        {
+          "title": "Consult two vendors",
+          "body": "In the example's “Caterer” item, add two consulted vendors: pick them from your vendor book or simply type their name."
+        },
+        {
+          "title": "Record a quote",
+          "body": "For one of them, enter the quote amount (or attach the file). You can also add a note, internal or shown to the clients."
+        },
+        {
+          "title": "Select",
+          "body": "Click “Select” on the vendor you choose: the item becomes Booked with its name and amount, and the other one stays visible as “not selected”."
+        },
+        {
+          "title": "What the clients see",
+          "body": "Tick “Show to clients” on a vendor: your clients find it in their space with the notes ticked “Clients”, never your internal notes."
+        },
+        {
+          "title": "Finish",
+          "body": "The example and its example vendors will be deleted."
+        }
+      ]
     }
   },
   "VendorCandidates": {
@@ -2180,5 +2244,181 @@
     "quoteInfected": "File rejected by the antivirus.",
     "noteRequired": "The note is empty.",
     "noteTooLong": "The note is too long (2,000 characters max)."
+  },
+  "VendorBook": {
+    "title": "Vendor book",
+    "subtitle": "{count, plural, =0 {No vendors} one {# vendor} other {# vendors}} · one record each, reused from one event to the next",
+    "moduleUnavailable": "The vendor book is not available for your organization.",
+    "settingsLink": "Vendor book settings",
+    "newVendor": "New vendor",
+    "newVendorHint": "One record per vendor: you will find it for every event, with the history of your work together.",
+    "backToBook": "Back to the vendor book",
+    "targetTitle": "Add to “{slot}” — {event}",
+    "targetHint": "Choose a vendor below: it will be added to the vendors consulted for this item.",
+    "targetBack": "Back to the event",
+    "typesFilter": "Vendor types",
+    "allTypes": "All",
+    "filtersLabel": "Vendor book filters",
+    "filterText": "Name or city",
+    "filterAround": "Around",
+    "filterAroundPlaceholder": "Address, city or place",
+    "filterRadius": "Within",
+    "radiusKm": "{km} km",
+    "filterTag": "Tag",
+    "allTags": "All",
+    "any": "Any",
+    "yes": "Yes",
+    "no": "No",
+    "fieldMin": "{label} at least",
+    "fieldMax": "{label} at most",
+    "filterWorkedWith": "Already worked with",
+    "filterApply": "Filter",
+    "centerNotFound": "This place was not found: the list is not filtered by distance.",
+    "mapLabel": "Map: {count, plural, =0 {no vendor placed} one {# vendor placed} other {# vendors placed}}. The list next to it gives the same results.",
+    "mapNoTiles": "Base map not installed: points and the circle are still shown, the list and distances work.",
+    "results": "{count, plural, =0 {No results} one {# result} other {# results}}",
+    "resultsByDistance": "{count, plural, =0 {No results} one {# result} other {# results}} around {place}, nearest first",
+    "exportCsv": "Export as CSV",
+    "exportPdf": "Export as PDF",
+    "empty": "No vendor matches these filters.",
+    "emptyNoTypes": "Your vendor book is empty. Start by adding a vendor, or create your types in the vendor book settings.",
+    "travel": "{km} km · ≈ {minutes} min (estimate)",
+    "travelHint": "Estimated travel: straight-line distance × detour factor, at average speed (adjustable in the settings).",
+    "demo": "Example",
+    "notPlaced": "Not placed on the map",
+    "addToSlot": "Add {vendor} to “{slot}”",
+    "identity": "Vendor",
+    "name": "Vendor name",
+    "type": "Type",
+    "typeNone": "— No type —",
+    "contact": "Contact",
+    "contactName": "Contact name",
+    "phone": "Phone",
+    "email": "Email",
+    "address": "Address",
+    "addressLine": "Street",
+    "postalCode": "Postal code",
+    "city": "City",
+    "country": "Country (2-letter code)",
+    "addressHint": "The address is placed on the map automatically; you can adjust the point.",
+    "typeFields": "Details ({type})",
+    "fieldAmountLabel": "{label} (€)",
+    "tags": "Tags",
+    "internalNote": "Internal note",
+    "internalNoteHint": "Visible to your team only.",
+    "save": "Save",
+    "create": "Create the record",
+    "saved": "Record saved.",
+    "geocodingPlaced": "Address placed on the map.",
+    "geocodingNotFound": "Address not found: the record is saved without a point. You can place the point by hand.",
+    "unauthorized": "Session expired or access denied.",
+    "nameRequired": "The vendor name is required.",
+    "invalidEmail": "Invalid email address.",
+    "invalidFieldValue": "A detail has the wrong format (number, time or amount).",
+    "notFound": "Vendor not found.",
+    "invalidPoint": "Invalid point: latitude between -90 and 90, longitude between -180 and 180.",
+    "fileMissing": "Choose a file.",
+    "fileTooLarge": "The file exceeds 20 MB.",
+    "fileUnsupported": "Unsupported format: PDF or image only.",
+    "fileInfected": "File rejected by the antivirus.",
+    "archived": "Archived",
+    "searchAround": "Search around {vendor}",
+    "historyTitle": "History with you",
+    "averagePrice": "Average price paid: {amount}",
+    "historyEmpty": "This vendor has not been consulted for any event yet.",
+    "historyEvent": "Event",
+    "historyDate": "Date",
+    "historySlot": "Item",
+    "historyOutcome": "Outcome",
+    "historyQuoted": "Quoted price",
+    "historyFinal": "Final price",
+    "historyUnnamed": "Event",
+    "outcomeSelected": "Selected",
+    "outcomeNotSelected": "Not selected",
+    "outcomePending": "In progress",
+    "detailsTitle": "Contact details and features",
+    "filesTitle": "Brochures and bank details",
+    "filesEmpty": "No files.",
+    "filesHint": "PDF or image, 20 MB max, checked by the antivirus and stored privately.",
+    "fileKind": "File type",
+    "fileBrochure": "Brochure",
+    "fileRib": "Bank details",
+    "fileChoose": "File",
+    "fileAttach": "Attach",
+    "fileAttached": "File attached.",
+    "fileRemove": "Delete {name}",
+    "pointTitle": "Point on the map",
+    "pointGeocoded": "Placed automatically from the address.",
+    "pointManual": "Placed by hand.",
+    "pointMissing": "Not placed yet: enter an address, or click on the map.",
+    "pointMapLabel": "{vendor}'s point on the map",
+    "pointHint": "Click on the map to move the point, or enter its coordinates, then save.",
+    "latitude": "Latitude",
+    "longitude": "Longitude",
+    "savePoint": "Save the point",
+    "pointSaved": "Point saved.",
+    "archive": "Archive {vendor}",
+    "settingsTitle": "Vendor book settings",
+    "settingsTypesTitle": "Vendor types and fields",
+    "settingsTypesIntro": "Create your vendor types and their fields; tick the ones used as filters in the vendor book.",
+    "starterTitle": "Start from the default types",
+    "starterBody": "Venue, hotel, caterer, photographer, DJ, florist… with their usual fields, all editable.",
+    "starterAdd": "Add the default types",
+    "typeRemove": "Delete the type {type}",
+    "fieldsEmpty": "No fields for this type.",
+    "fieldsOf": "Fields of the type {type}",
+    "fieldName": "Field",
+    "fieldKind": "Format",
+    "fieldIsFilter": "Used as a filter",
+    "fieldActions": "Actions",
+    "filterOnFor": "Use {field} as a filter",
+    "filterOffFor": "Stop filtering by {field}",
+    "fieldRemove": "Delete {field}",
+    "fieldLabel": "New field for “{type}”",
+    "fieldChoices": "Choices offered (one per line)",
+    "fieldAdd": "Add the field",
+    "fieldAdded": "Field added.",
+    "fieldInvalid": "Invalid field.",
+    "choicesRequired": "A choice list needs at least one choice.",
+    "kind": {
+      "number": "Number",
+      "text": "Text",
+      "time": "Time",
+      "amount": "Amount",
+      "choice": "Choice list",
+      "boolean": "Yes / no"
+    },
+    "typeNew": "New type",
+    "typeLabel": "Type name",
+    "typeColor": "Colour on the map",
+    "typeAdd": "Add the type",
+    "typeAdded": "Type added.",
+    "typeInvalid": "Invalid name or colour.",
+    "settingsTagsTitle": "Tags",
+    "settingsTagsIntro": "Free tags to find your vendors again (organic, shuttle, favourite…).",
+    "tagsEmpty": "No tags.",
+    "tagLabel": "New tag",
+    "tagAdd": "Add",
+    "tagAdded": "Tag added.",
+    "tagRequired": "Enter the tag name.",
+    "tagRemove": "Delete the tag {tag}",
+    "settingsTravelTitle": "Estimated travel",
+    "settingsTravelIntro": "The travel shown is an estimate: straight-line distance × detour factor, at an average speed.",
+    "travelDetour": "Detour factor (1 to 3)",
+    "travelSpeed": "Average speed (km/h)",
+    "travelSave": "Save",
+    "travelSaved": "Settings saved.",
+    "travelInvalid": "Factor between 1 and 3, speed between 5 and 130 km/h.",
+    "exportName": "Name",
+    "exportType": "Type",
+    "exportContact": "Contact",
+    "exportPhone": "Phone",
+    "exportEmail": "Email",
+    "exportAddress": "Address",
+    "exportCity": "City",
+    "exportTravel": "Estimated travel",
+    "exportTags": "Tags",
+    "exportPdfTitle": "Vendor selection",
+    "exportPdfAround": "{count, plural, one {# vendor} other {# vendors}} within {km} km of {place}"
   }
 }

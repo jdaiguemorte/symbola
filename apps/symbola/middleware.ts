@@ -27,6 +27,10 @@ export function middleware(request: NextRequest) {
     "default-src 'self'",
     `script-src ${scriptSrc.join(" ")}`,
     `style-src 'self' 'nonce-${nonce}'`,
+    // Lot 11 (ADR 0031) : la carte décode ses tuiles dans un worker servi
+    // par l'app, et dessine ses images en mémoire (blob:, data:).
+    "worker-src 'self' blob:",
+    "img-src 'self' data: blob:",
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "object-src 'none'",
