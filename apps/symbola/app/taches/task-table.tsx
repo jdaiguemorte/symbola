@@ -84,7 +84,7 @@ export async function TaskTable({
                   {showEvent ? (
                     <td>{task.event ? <Link href={`/events/${task.event.id}?onglet=retroplanning`}>{task.event.names}</Link> : null}</td>
                   ) : null}
-                  <td className={overdue ? "text-overdue" : undefined}>{formatCalendarDate(task.dueDate, locale)}</td>
+                  <td className={overdue ? "nowrap text-overdue" : "nowrap"}>{formatCalendarDate(task.dueDate, locale)}</td>
                   <td>
                     <span className={task.responsible === "clients" ? "badge badge-ambre" : "badge badge-bleu"}>
                       {t(RESPONSIBLE_LABEL_KEYS[task.responsible])}

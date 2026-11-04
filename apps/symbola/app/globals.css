@@ -556,8 +556,12 @@
   .data-table tr[aria-current="true"] {
     @apply bg-ivory;
   }
+  .data-table .num,
+  .data-table .nowrap {
+    @apply whitespace-nowrap;
+  }
   .data-table .num {
-    @apply text-right whitespace-nowrap;
+    @apply text-right;
   }
   .data-table .month-row th {
     @apply border-0 pt-5 pb-2 font-display text-[17px] font-semibold normal-case tracking-normal text-ink;
@@ -571,7 +575,7 @@
     @apply inline-flex h-11 w-11 items-center justify-center;
   }
   .task-check > button {
-    @apply m-0 inline-flex h-6 min-h-0 w-6 items-center justify-center rounded-md border-2 border-lin-dark bg-card p-0 text-white;
+    @apply m-0 inline-flex !h-6 !min-h-0 !w-6 !min-w-0 items-center justify-center rounded-md border-2 border-lin-dark bg-card !p-0 text-white;
   }
   .task-check > button[aria-pressed="true"] {
     @apply border-sauge bg-sauge;
