@@ -5,6 +5,9 @@ export {
   createStorageClient,
   deletePrivateObject,
   getPrivateObject,
+  PrivateObjectNotFoundError,
+  readPrivateObject,
+  type PrivateObject,
   getSignedDownloadUrl,
   uploadPrivateObject,
 } from "./storage";

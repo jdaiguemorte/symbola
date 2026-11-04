@@ -9,7 +9,7 @@ import { createAppConnection } from "@symbola/db/client";
 import { createStorageClient, getPrivateObject } from "@symbola/files";
 import {
   createPrivacyRequest,
-  getPrivacyExportDownloadUrl,
+  getPrivacyExportFile,
   getPlatformSettings,
   listExportablePrivacyRequests,
   listPrivacyExports,
@@ -43,14 +43,13 @@ describe("RGPD-02 — Export : stockage privé et lien temporaire", () => {
     expect(stored.expiresAt.getTime() - now.getTime()).toBe(privacyExportRetentionDays * DAY_MS);
     expect((await listPrivacyExports(db, owner.organizationId, now)).map((view) => view.id)).toEqual([stored.id]);
 
-    const url = new URL(await getPrivacyExportDownloadUrl(db, { organizationId: owner.organizationId, exportId: stored.id, file: "archive", now }));
-    expect(url.searchParams.get("X-Amz-Expires")).toBe("300");
-    expect(url.searchParams.get("X-Amz-Signature")).toBeTruthy();
-    const response = await fetch(url);
-    expect(Buffer.from(await response.arrayBuffer())).toEqual(files.archive);
+    // ADR 0027 : l'archive est lue par l'app, jamais exposée par une URL du stockage.
+    const archive = await getPrivacyExportFile(db, { organizationId: owner.organizationId, exportId: stored.id, file: "archive", now });
+    expect(archive).toMatchObject({ contentType: "application/zip", fileName: `export-rgpd-${stored.id}.zip` });
+    expect(Buffer.from(archive.data)).toEqual(files.archive);
 
     const afterExpiry = new Date(stored.expiresAt.getTime() + 1000);
-    await expect(getPrivacyExportDownloadUrl(db, { organizationId: owner.organizationId, exportId: stored.id, file: "pdf", now: afterExpiry })).rejects.toThrow(
+    await expect(getPrivacyExportFile(db, { organizationId: owner.organizationId, exportId: stored.id, file: "pdf", now: afterExpiry })).rejects.toThrow(
       PrivacyExportNotFoundError,
     );
     expect(await listPrivacyExports(db, owner.organizationId, afterExpiry)).toEqual([]);
@@ -93,7 +92,7 @@ describe("RGPD-02 — Isolation des exports", () => {
 
     expect(await listPrivacyExports(db, ownerA.organizationId)).toEqual([]);
     expect(await listExportablePrivacyRequests(db, ownerA.organizationId)).toEqual([]);
-    await expect(getPrivacyExportDownloadUrl(db, { organizationId: ownerA.organizationId, exportId: exportB.id, file: "archive" })).rejects.toThrow(
+    await expect(getPrivacyExportFile(db, { organizationId: ownerA.organizationId, exportId: exportB.id, file: "archive" })).rejects.toThrow(
       PrivacyExportNotFoundError,
     );
     await expect(storePrivacyExport(db, { ...ownerA, requestId: requestB.id, recordCount: 1, ...files })).rejects.toThrow(PrivacyExportInvalidError);

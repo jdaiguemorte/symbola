@@ -11,7 +11,7 @@ import {
   QuoteFileTooLargeError,
   QuoteFileUnsupportedTypeError,
   attachBudgetLineQuote,
-  getBudgetLineAttachmentUrl,
+  getBudgetLineAttachmentFile,
   listBudgetLines,
   updateBudgetLine,
 } from "./service";
@@ -65,11 +65,11 @@ describe("BUD-03 — Devis prestataire joint", () => {
     // La vue ne porte jamais d'URL ni de clé de stockage.
     expect(JSON.stringify(line)).not.toContain(organizationId);
 
-    const url = await getBudgetLineAttachmentUrl(organizationId, attachment.id);
-    expect(new URL(url).searchParams.get("X-Amz-Expires")).toBe("300");
-    const response = await fetch(url);
-    expect(response.status).toBe(200);
-    expect(Buffer.from(await response.arrayBuffer()).equals(TINY_PDF)).toBe(true);
+    // ADR 0027 : le fichier est lu par l'app, jamais exposé par une URL du stockage.
+    const file = await getBudgetLineAttachmentFile(organizationId, attachment.id);
+    expect(file.contentType).toBe("application/pdf");
+    expect(file.fileName).toMatch(/\.pdf$/);
+    expect(Buffer.from(file.data).equals(TINY_PDF)).toBe(true);
   });
 
   it("accepte aussi une image, et plusieurs devis sur la même ligne", async () => {
@@ -149,7 +149,7 @@ describe("BUD-03 — Isolation entre organisations", () => {
         uploadedByUserId: plannerId,
       }),
     ).rejects.toBeInstanceOf(EventNotFoundError);
-    await expect(getBudgetLineAttachmentUrl(otherOrganizationId, attachment.id)).rejects.toBeInstanceOf(
+    await expect(getBudgetLineAttachmentFile(otherOrganizationId, attachment.id)).rejects.toBeInstanceOf(
       BudgetLineAttachmentNotFoundError,
     );
     expect((await listBudgetLines(organizationId, own.eventId)).lines[0]?.attachments).toHaveLength(1);

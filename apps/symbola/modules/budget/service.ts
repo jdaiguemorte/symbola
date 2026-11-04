@@ -1,7 +1,7 @@
 // Porte d'entrée publique du module budget — seul fichier que les autres
 // modules peuvent importer (ADR 0011). Pensé comme le futur contrat HTTP
 // /v1/budget si ce module est extrait en app autonome.
-import { createStorageClient, deletePrivateObject, getSignedDownloadUrl, uploadFile } from "@symbola/files";
+import { createStorageClient, deletePrivateObject, PrivateObjectNotFoundError, readPrivateObject, uploadFile } from "@symbola/files";
 import {
   deleteEventBudgetRows,
   findBudgetLineAttachment,
@@ -32,7 +32,7 @@ import {
   remainingToAllocateCents,
   sumAmountCents,
 } from "./allocation";
-import { QUOTE_LINK_TTL_SECONDS, QUOTE_MAX_SIZE_BYTES, quoteUploadError } from "./attachments";
+import { QUOTE_MAX_SIZE_BYTES, quoteUploadError } from "./attachments";
 import {
   getEvent,
   hasActiveClientAccess,
@@ -53,6 +53,7 @@ import type {
   ConfirmEventBudgetInput,
   CreateAllocationModelInput,
   EventBudgetView,
+  FileDownload,
   SimulateEventBudgetInput,
   UpdateBudgetLineInput,
   VendorSlotBookedPayload,
@@ -462,10 +463,18 @@ export async function attachBudgetLineQuote(input: AttachBudgetLineQuoteInput): 
 
 // Lien signé à durée limitée, demandé au moment de l'ouverture — jamais
 // stocké ni affiché d'avance.
-export async function getBudgetLineAttachmentUrl(organizationId: string, attachmentId: string): Promise<string> {
+// Devis joint lu dans le stockage privé et servi par l'app (ADR 0027).
+export async function getBudgetLineAttachmentFile(organizationId: string, attachmentId: string): Promise<FileDownload> {
   const attachment = await findBudgetLineAttachment(organizationId, attachmentId);
   if (!attachment) throw new BudgetLineAttachmentNotFoundError();
-  return getSignedDownloadUrl(createStorageClient(), attachment.fileKey, QUOTE_LINK_TTL_SECONDS);
+  try {
+    const { data } = await readPrivateObject(createStorageClient(), attachment.fileKey);
+    const extension = attachment.fileKey.split(".").pop() ?? "bin";
+    return { data, contentType: attachment.mime, fileName: `devis-prestataire-${attachment.id}.${extension}` };
+  } catch (error) {
+    if (error instanceof PrivateObjectNotFoundError) throw new BudgetLineAttachmentNotFoundError();
+    throw error;
+  }
 }
 
 // BUD-04 — le budget vu par le marié, en lecture seule : l'accès à
@@ -514,7 +523,7 @@ const _contractCheck: BudgetServiceContract = {
   updateBudgetLine,
   listBudgetLineHistory,
   attachBudgetLineQuote,
-  getBudgetLineAttachmentUrl,
+  getBudgetLineAttachmentFile,
   getClientBudgetView,
   removeEventBudgetData,
 };

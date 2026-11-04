@@ -48,10 +48,9 @@ export {
 } from "./privacy-requests";
 // Lot 6 (RGPD-02) — exports des données d'une personne.
 export {
-  getPrivacyExportDownloadUrl,
+  getPrivacyExportFile,
   listExportablePrivacyRequests,
   listPrivacyExports,
-  PRIVACY_EXPORT_LINK_TTL_SECONDS,
   PrivacyExportInvalidError,
   PrivacyExportNotFoundError,
   purgeExpiredPrivacyExports,

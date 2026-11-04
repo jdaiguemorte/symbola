@@ -86,12 +86,12 @@ test("RGPD-02 — la titulaire exporte les fiches cochées de la personne et té
   await expect(page.getByText("2 fiches exportées.", { exact: false })).toBeVisible();
   expect(page.url()).not.toContain(lastName);
 
-  // Téléchargement par un lien signé temporaire.
+  // Téléchargement servi par l'app elle-même (ADR 0027), jamais de redirection vers le stockage.
   const archiveHref = await page.getByRole("status").getByRole("link", { name: "Télécharger l'archive (ZIP)" }).getAttribute("href");
   const archiveResponse = await page.request.get(archiveHref!, { maxRedirects: 0 });
-  expect(archiveResponse.status()).toBe(302);
-  expect(archiveResponse.headers()["location"]).toContain("X-Amz-Signature=");
-  const archive = new ZipArchive(await (await page.request.get(archiveHref!)).body(), 10_000_000);
+  expect(archiveResponse.status()).toBe(200);
+  expect(archiveResponse.headers()["content-type"]).toBe("application/zip");
+  const archive = new ZipArchive(await archiveResponse.body(), 10_000_000);
   const csv = archive.readText("csv/events.csv")!;
   expect(csv).toContain(lastName);
   expect(csv).toContain("Réserver le traiteur");

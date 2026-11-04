@@ -2,11 +2,12 @@
 // porte d'entrée du module, avec le faux fournisseur (la même suite de
 // contrat tourne contre l'adaptateur Documenso, signature/provider-contract).
 import { randomUUID } from "node:crypto";
-import { sql as raw } from "drizzle-orm";
+import { eq, sql as raw } from "drizzle-orm";
 import { afterEach, describe, expect, it } from "vitest";
 import { createOrganization, createUser } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
-import { signatureWebhookLog } from "@symbola/db/schema/quotes";
+import { quoteVersions, signatureRequests, signatureWebhookLog } from "@symbola/db/schema/quotes";
+import { createStorageClient, PrivateObjectNotFoundError, readPrivateObject } from "@symbola/files";
 import { withOrganization } from "@symbola/db/with-organization";
 import { saveOnboardingStep } from "@/modules/hub/service";
 import { createProspect, createProspectSource, getEvent, startEventsTrial } from "@/modules/events/service";
@@ -22,7 +23,7 @@ import {
   addQuoteLine,
   createQuote,
   getQuote,
-  getSignatureDocumentUrl,
+  getSignatureDocument,
   handleSignatureWebhook,
   isSignatureAvailable,
   listClientQuotesToSign,
@@ -39,6 +40,23 @@ const MAILPIT_API = "http://localhost:8025/api/v1";
 const PDF = Buffer.from("%PDF-1.4\n%%EOF\n", "latin1");
 
 afterEach(() => setSignatureProviderForTests(undefined));
+
+// Clés de stockage du document signé et du certificat d'un devis.
+async function signedDocumentKeys(organizationId: string, quoteId: string): Promise<string[]> {
+  const { sql, db } = createAppConnection();
+  try {
+    const rows = await withOrganization(db, organizationId, (tx) =>
+      tx
+        .select({ signed: signatureRequests.signedDocumentKey, certificate: signatureRequests.auditCertificateKey })
+        .from(signatureRequests)
+        .innerJoin(quoteVersions, eq(quoteVersions.id, signatureRequests.versionId))
+        .where(eq(quoteVersions.quoteId, quoteId)),
+    );
+    return rows.flatMap((row) => [row.signed, row.certificate]).filter((key): key is string => key !== null);
+  } finally {
+    await sql.end();
+  }
+}
 
 async function withDb<T>(fn: (db: ReturnType<typeof createAppConnection>["db"]) => Promise<T>): Promise<T> {
   const { sql, db } = createAppConnection();
@@ -257,11 +275,12 @@ describe("DEV-02 — Webhook du fournisseur", () => {
     const [mail] = await messagesTo(plannerEmail);
     expect(mail?.Subject).toContain(detail.number);
 
-    const url = await getSignatureDocumentUrl(organizationId, quoteId, "signed");
-    const document = await fetch(url);
-    expect(document.status).toBe(200);
-    expect(Buffer.from(await document.arrayBuffer()).subarray(0, 5).toString("latin1")).toBe("%PDF-");
-    expect((await fetch(await getSignatureDocumentUrl(organizationId, quoteId, "certificate"))).status).toBe(200);
+    const document = await getSignatureDocument(organizationId, quoteId, "signed");
+    expect(document).toMatchObject({ contentType: "application/pdf", fileName: `${detail.number}-signe.pdf` });
+    expect(Buffer.from(document.data).subarray(0, 5).toString("latin1")).toBe("%PDF-");
+    const certificate = await getSignatureDocument(organizationId, quoteId, "certificate");
+    expect(certificate.fileName).toBe(`${detail.number}-certificat.pdf`);
+    expect(Buffer.from(certificate.data).subarray(0, 5).toString("latin1")).toBe("%PDF-");
 
     // Rejouer le même appel ne change rien de plus.
     const replay = await handleSignatureWebhook({ headers: fakeSignatureProvider().webhookHeaders(), rawBody: last.rawBody });
@@ -311,7 +330,7 @@ describe("DEV-02 — Webhook du fournisseur", () => {
       outcome: "unknown_request",
     });
     expect((await getQuote(own.organizationId, own.quoteId)).signature!.signers[0]?.status).toBe("pending");
-    await expect(getSignatureDocumentUrl(other.organizationId, own.quoteId, "signed")).rejects.toBeInstanceOf(QuoteNotFoundError);
+    await expect(getSignatureDocument(other.organizationId, own.quoteId, "signed")).rejects.toBeInstanceOf(QuoteNotFoundError);
   });
 });
 
@@ -409,10 +428,12 @@ describe("DEV-02 — Essai guidé (ADR 0008)", () => {
     expect((await getQuote(organizationId, quote.id)).status).toBe("signed");
     expect(await countSignedEvents(quote.id)).toBe(0);
     expect(await messagesTo(people[0]!.email, 1)).toEqual([]);
-    const url = await getSignatureDocumentUrl(organizationId, quote.id, "signed");
+    expect((await getSignatureDocument(organizationId, quote.id, "signed")).data.byteLength).toBeGreaterThan(0);
+    const keys = await signedDocumentKeys(organizationId, quote.id);
+    expect(keys.length).toBeGreaterThan(0);
 
     await removeEventQuotesData(organizationId, [trial.eventId]);
     await expect(getQuote(organizationId, quote.id)).rejects.toBeInstanceOf(QuoteNotFoundError);
-    expect((await fetch(url)).status).toBe(404);
+    for (const key of keys) await expect(readPrivateObject(createStorageClient(), key)).rejects.toBeInstanceOf(PrivateObjectNotFoundError);
   });
 });

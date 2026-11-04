@@ -110,8 +110,12 @@ test("DEV-02 — envoyer un devis en signature, signer par le lien reçu, archiv
   await page.waitForLoadState("networkidle");
   await expect(page.getByText("Devis signé par tous les signataires.")).toBeVisible();
   await expect(page.getByText(/^Statut : Signé/)).toBeVisible();
-  const signed = await page.request.get(`${new URL(quoteUrl).pathname}/signature/signed`);
-  expect(signed.status()).toBe(200);
-  expect((await signed.body()).subarray(0, 5).toString("latin1")).toBe("%PDF-");
+  // ADR 0027 : servis par l'app elle-même, jamais de redirection vers le stockage.
+  for (const kind of ["signed", "certificate"]) {
+    const document = await page.request.get(`${new URL(quoteUrl).pathname}/signature/${kind}`, { maxRedirects: 0 });
+    expect(document.status()).toBe(200);
+    expect(document.headers()["content-disposition"]).toMatch(/^attachment; filename\*=UTF-8''D-\d{4}-\d{4}-(signe|certificat)\.pdf$/);
+    expect((await document.body()).subarray(0, 5).toString("latin1")).toBe("%PDF-");
+  }
   await expectNoAxeViolation(page);
 });

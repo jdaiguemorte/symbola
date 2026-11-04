@@ -9,11 +9,10 @@ import { and, desc, eq, gt, inArray, isNull, lte } from "drizzle-orm";
 import type { AppDatabase } from "@symbola/db/client";
 import { privacyExports, privacyRequests } from "@symbola/db/schema/hub";
 import { withOrganization } from "@symbola/db/with-organization";
-import { createStorageClient, deletePrivateObject, getSignedDownloadUrl, uploadPrivateObject } from "@symbola/files";
+import { createStorageClient, deletePrivateObject, PrivateObjectNotFoundError, readPrivateObject, uploadPrivateObject } from "@symbola/files";
+import type { FileDownload } from "@symbola/contracts";
 import { findPlatformSettings, insertDefaultPlatformSettings } from "./repository";
 
-// Durée de validité d'un lien de téléchargement, comme les devis joints au budget.
-export const PRIVACY_EXPORT_LINK_TTL_SECONDS = 300;
 const DAY_MS = 86_400_000;
 
 // Seules les demandes d'accès et de portabilité donnent lieu à un export.
@@ -146,11 +145,12 @@ export async function listPrivacyExports(db: AppDatabase, organizationId: string
   }));
 }
 
-// Lien signé de courte durée vers le PDF ou l'archive d'un export encore valide.
-export async function getPrivacyExportDownloadUrl(
+// PDF ou archive d'un export encore valide, lu dans le stockage privé et
+// servi par l'app (ADR 0027).
+export async function getPrivacyExportFile(
   db: AppDatabase,
   input: { organizationId: string; exportId: string; file: PrivacyExportFile; now?: Date },
-): Promise<string> {
+): Promise<FileDownload> {
   const now = input.now ?? new Date();
   const [row] = await withOrganization(db, input.organizationId, (tx) =>
     tx
@@ -159,7 +159,15 @@ export async function getPrivacyExportDownloadUrl(
       .where(and(eq(privacyExports.id, input.exportId), isNull(privacyExports.purgedAt), gt(privacyExports.expiresAt, now))),
   );
   if (!row) throw new PrivacyExportNotFoundError();
-  return getSignedDownloadUrl(createStorageClient(), input.file === "pdf" ? row.pdfKey : row.archiveKey, PRIVACY_EXPORT_LINK_TTL_SECONDS);
+  try {
+    const { data } = await readPrivateObject(createStorageClient(), input.file === "pdf" ? row.pdfKey : row.archiveKey);
+    return input.file === "pdf"
+      ? { data, contentType: "application/pdf", fileName: `export-rgpd-${row.id}.pdf` }
+      : { data, contentType: "application/zip", fileName: `export-rgpd-${row.id}.zip` };
+  } catch (error) {
+    if (error instanceof PrivateObjectNotFoundError) throw new PrivacyExportNotFoundError();
+    throw error;
+  }
 }
 
 // Purge horaire (lib/privacy/export-purge.ts) : fichiers des exports expirés
