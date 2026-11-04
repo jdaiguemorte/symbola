@@ -16,6 +16,7 @@ import { AppSidebar } from "./app-sidebar";
 import { logoutAction } from "./logout-action";
 import { SettingsNav, type SettingsSection } from "./settings-nav";
 import { HelpBar } from "./help-bar";
+import { SearchBox } from "./search-box";
 import { HelpProvider } from "./help-context";
 import { getHelpProgress } from "@/modules/hub/service";
 import { TUTORIALS, tutorialHref } from "@/lib/help/catalog";
@@ -243,6 +244,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
       </AppSidebar>
       <HelpProvider>
         <div className="app-main">
+          {isTeam ? <SearchBox /> : null}
           {settingsSections.length > 0 ? <SettingsNav sections={settingsSections} label={t("settingsSections")} subLabel={t("settingsSubSections")} /> : null}
           {children}
         </div>

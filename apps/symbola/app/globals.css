@@ -816,3 +816,41 @@
     @apply pb-28;
   }
 }
+
+/* Lot 10 (AIDE-08) — recherche globale. */
+@layer components {
+  .search-box {
+    @apply relative mb-4 flex w-full max-w-xl items-center;
+  }
+  .search-box input {
+    @apply w-full pr-14;
+  }
+  .search-box-shortcut {
+    @apply pointer-events-none absolute right-3 rounded-md border border-lin-dark px-1.5 text-xs text-muted;
+  }
+  .search-box-results {
+    @apply absolute top-full right-0 left-0 z-50 mt-2 max-h-[70vh] overflow-auto rounded-2xl border border-lin bg-card p-2 shadow-2xl;
+  }
+  .search-box-results ul {
+    @apply m-0 list-none p-0;
+  }
+  .search-box-group {
+    @apply mx-2 mt-2 mb-1 text-xs font-semibold tracking-wider text-muted uppercase;
+  }
+  .search-box-option {
+    @apply flex min-h-11 cursor-pointer flex-col gap-0.5 rounded-xl px-3 py-2;
+  }
+  .search-box-option[aria-selected="true"],
+  .search-box-option:hover {
+    @apply bg-sauge-tint;
+  }
+  .search-box-option span {
+    @apply text-sm text-muted;
+  }
+  .search-box-hint {
+    @apply mx-2 mt-2 text-xs text-muted;
+  }
+  .search-page-form {
+    @apply flex flex-wrap items-end gap-2;
+  }
+}

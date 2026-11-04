@@ -1777,5 +1777,35 @@
         "description": "Import a small example file and check the preview before confirming."
       }
     }
+  },
+  "Search": {
+    "label": "Search",
+    "placeholder": "Search for an event, a quote, a task, some help…",
+    "shortcut": "⌘K",
+    "submit": "Search",
+    "title": "Search",
+    "resultsFor": "Results for \"{term}\"",
+    "noResults": "No results for \"{term}\". Try a client name, a quote number or a word like \"VAT\".",
+    "tooShort": "Type at least 2 characters.",
+    "onlyYourOrganization": "Only your organisation's data is searched.",
+    "groupEvents": "Events",
+    "groupDocuments": "Quotes and invoices",
+    "groupTasks": "Tasks and vendors",
+    "groupHelp": "Help and screens",
+    "noClientName": "No name",
+    "noDate": "Date to be set",
+    "quoteTitle": "Quote {number} · {names}",
+    "invoiceTitle": "Invoice {number} · {names}",
+    "invoiceIssued": "Issued on {date}",
+    "taskTitle": "{label} · {names}",
+    "taskDue": "Due {date}",
+    "vendorTitle": "{vendor} · {slot}",
+    "tutorialDetail": "Tutorial · {minutes} min",
+    "screenDetail": "Application screen",
+    "close": "Close",
+    "seeAll": "See all results",
+    "hint": "↑ ↓ to choose · Enter to open · Esc to close",
+    "globalLabel": "Search Symbola",
+    "refineLabel": "Refine the search"
   }
 }

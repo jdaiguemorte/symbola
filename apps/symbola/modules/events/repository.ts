@@ -1748,7 +1748,9 @@ export type EventSearchRow = { id: string; names: string; eventDate: string | nu
 export type TaskSearchRow = { id: string; eventId: string; label: string; dueDate: string; eventNames: string };
 export type VendorSearchRow = { id: string; eventId: string; label: string; vendorName: string | null; eventNames: string };
 
-const eventNamesSql = sql<string>`coalesce((select string_agg(${eventClients.firstName}, ' & ' order by ${eventClients.createdAt}) from ${eventClients} where ${eventClients.eventId} = ${events.id}), '')`;
+// Sous-requêtes écrites avec un alias explicite : Drizzle n'y qualifie pas les
+// colonnes, et « id » désignerait alors la table des clients.
+const eventNamesSql = sql<string>`coalesce((select string_agg(ec.first_name, ' & ' order by ec.created_at) from "events"."event_clients" ec where ec.event_id = "events"."id"), '')`;
 
 export async function searchEventRows(
   organizationId: string,
@@ -1761,7 +1763,7 @@ export async function searchEventRows(
     return await withOrganization(db, organizationId, async (tx) => {
       // Tout ce qui décrit un événement, en une chaîne : prénoms, noms, lieu, ville.
       const haystack = foldedColumn(
-        sql`concat_ws(' ', ${events.venueName}, ${events.venueCity}, (select string_agg(concat_ws(' ', ${eventClients.firstName}, ${eventClients.lastName}), ' ') from ${eventClients} where ${eventClients.eventId} = ${events.id}))`,
+        sql`concat_ws(' ', "events"."venue_name", "events"."venue_city", (select string_agg(concat_ws(' ', ec.first_name, ec.last_name), ' ') from "events"."event_clients" ec where ec.event_id = "events"."id"))`,
       );
       const eventRows = await tx
         .select({ id: events.id, names: eventNamesSql, eventDate: events.eventDate, venueName: events.venueName, status: events.status })

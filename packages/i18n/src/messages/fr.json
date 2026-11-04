@@ -1777,5 +1777,35 @@
         "description": "Importez un petit fichier d'exemple et vérifiez l'aperçu avant de confirmer."
       }
     }
+  },
+  "Search": {
+    "label": "Rechercher",
+    "placeholder": "Rechercher un événement, un devis, une tâche, une aide…",
+    "shortcut": "⌘K",
+    "submit": "Rechercher",
+    "title": "Recherche",
+    "resultsFor": "Résultats pour « {term} »",
+    "noResults": "Aucun résultat pour « {term} ». Essayez un nom de client, un numéro de devis ou un mot comme « TVA ».",
+    "tooShort": "Tapez au moins 2 caractères.",
+    "onlyYourOrganization": "Seules les données de votre organisation sont cherchées.",
+    "groupEvents": "Événements",
+    "groupDocuments": "Devis et factures",
+    "groupTasks": "Tâches et prestataires",
+    "groupHelp": "Aide et écrans",
+    "noClientName": "Sans nom",
+    "noDate": "Date à fixer",
+    "quoteTitle": "Devis {number} · {names}",
+    "invoiceTitle": "Facture {number} · {names}",
+    "invoiceIssued": "Émise le {date}",
+    "taskTitle": "{label} · {names}",
+    "taskDue": "Échéance {date}",
+    "vendorTitle": "{vendor} · {slot}",
+    "tutorialDetail": "Tutoriel · {minutes} min",
+    "screenDetail": "Écran de l'application",
+    "close": "Fermer",
+    "seeAll": "Voir tous les résultats",
+    "hint": "↑ ↓ pour choisir · Entrée pour ouvrir · Échap pour fermer",
+    "globalLabel": "Recherche dans Symbola",
+    "refineLabel": "Modifier la recherche"
   }
 }
