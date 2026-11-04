@@ -148,6 +148,7 @@ test("EVT-06 — le marié invité suit son mariage, coche sa tâche, et perd l'
   await couple.goto("/espace/securite");
   await couple.waitForLoadState("networkidle");
   await couple.getByRole("button", { name: "Activer la double authentification" }).click();
+  await expect(couple.getByRole("img", { name: "QR code à scanner avec votre application d'authentification" })).toBeVisible();
   const provisioningUri = await couple.locator("code").textContent();
   const secret = new URL(provisioningUri!.replace("otpauth://totp/", "https://x/")).searchParams.get("secret")!;
   await couple.getByLabel("Code à 6 chiffres").fill(new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret) }).generate());

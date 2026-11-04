@@ -37,6 +37,9 @@ test("EVT-E2E-01 — connexion, configuration MFA, puis accueil", async ({ page 
   violations = await new AxeBuilder({ page }).analyze();
   expect(violations.violations, JSON.stringify(violations.violations, null, 2)).toEqual([]);
 
+  // ADR 0028 : QR code à scanner et clé lisible pour une saisie à la main.
+  await expect(page.getByRole("img", { name: "QR code à scanner avec votre application d'authentification" })).toBeVisible();
+  await expect(page.locator(".totp-secret")).toHaveText(/^([A-Z2-7]{4} )+[A-Z2-7]{1,4}$/);
   const provisioningUri = await page.locator("code").textContent();
   expect(provisioningUri).toBeTruthy();
   const secret = new URL(provisioningUri!.replace("otpauth://totp/", "https://x/")).searchParams.get("secret");

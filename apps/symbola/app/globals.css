@@ -723,3 +723,19 @@
     @apply m-0;
   }
 }
+
+/* Activation de la double authentification (ADR 0028). */
+@layer components {
+  .totp-setup {
+    @apply my-4 flex flex-col gap-3;
+  }
+  .totp-qr {
+    @apply h-48 w-48 rounded-md border border-lin-dark;
+  }
+  .totp-secret {
+    @apply font-mono tracking-wider break-all;
+  }
+  .totp-setup code {
+    @apply block break-all text-sm;
+  }
+}

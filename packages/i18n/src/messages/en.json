@@ -9,11 +9,14 @@
   },
   "Mfa": {
     "title": "Two-factor authentication",
-    "scanInstructions": "Scan this code in your authenticator app:",
+    "scanInstructions": "Scan this QR code with your authenticator app (for example Google Authenticator or 1Password), then enter the 6-digit code it shows.",
     "enterCodeInstructions": "Enter the code from your authenticator app.",
     "code": "Code",
     "submit": "Confirm",
-    "invalidCode": "Invalid code."
+    "invalidCode": "Invalid code.",
+    "qrLabel": "QR code to scan with your authenticator app",
+    "manualKey": "Can't scan? Enter this key in the app:",
+    "setupLink": "Full setup link"
   },
   "Home": {
     "title": "Symbola",
@@ -1063,7 +1066,7 @@
     "mfaIntro": "Two-factor authentication adds a one-time code, given by an app on your phone, to your password. It is optional but recommended.",
     "mfaAlreadyEnabled": "Two-factor authentication is enabled on your account.",
     "mfaStart": "Enable two-factor authentication",
-    "mfaScanInstructions": "Add this account to your authenticator app (by scanning or copying the link below), then enter the code shown.",
+    "mfaScanInstructions": "Scan this QR code with your authenticator app (for example Google Authenticator or 1Password), then enter the code it shows.",
     "mfaCode": "6-digit code",
     "mfaConfirm": "Confirm",
     "mfaInvalidCode": "Incorrect code, try again.",
