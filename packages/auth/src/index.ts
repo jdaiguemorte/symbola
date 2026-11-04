@@ -11,6 +11,7 @@ export {
   login,
   requireUser,
   setUserLanguage,
+  resumeTotpSetup,
   setupTotp,
   type AuthenticatedUser,
   type AuthResult,

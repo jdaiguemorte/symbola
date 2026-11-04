@@ -42,6 +42,9 @@ test("EVT-E2E-01 — connexion, configuration MFA, puis accueil", async ({ page 
   await expect(page.locator(".totp-secret")).toHaveText(/^([A-Z2-7]{4} )+[A-Z2-7]{1,4}$/);
   const provisioningUri = await page.locator("code").textContent();
   expect(provisioningUri).toBeTruthy();
+  // Partir sans valider de code ne bloque pas : l'écran réaffiche la même clé.
+  await page.reload();
+  await expect(page.locator("code")).toHaveText(provisioningUri!);
   const secret = new URL(provisioningUri!.replace("otpauth://totp/", "https://x/")).searchParams.get("secret");
   expect(secret).toBeTruthy();
   const totp = new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret!) });

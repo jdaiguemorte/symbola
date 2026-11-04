@@ -33,7 +33,9 @@ export type AuthenticatedUser = {
 
 export type AuthResult =
   | { status: "unauthenticated" }
-  | { status: "mfa_required"; userId: string; hasTotpSecret: boolean }
+  // totpConfirmed : un code a déjà été validé avec la clé enregistrée ; sinon
+  // la configuration est à (re)prendre, jamais seulement à vérifier.
+  | { status: "mfa_required"; userId: string; totpConfirmed: boolean }
   | { status: "authenticated"; user: AuthenticatedUser };
 
 export type LoginResult =
@@ -125,6 +127,26 @@ export async function setupTotp(db: AppDatabase, userId: string) {
 }
 
 /**
+ * Écran de configuration (rôles professionnels) : tant qu'aucun code n'a été
+ * validé, réaffiche la clé déjà enregistrée (même QR code d'une connexion ou
+ * d'un rechargement à l'autre) ou en crée une. Sans cette reprise, une clé
+ * enregistrée mais jamais confirmée laissait l'utilisateur devant une
+ * demande de code qu'il ne pouvait pas produire.
+ */
+export async function resumeTotpSetup(db: AppDatabase, userId: string) {
+  const [user] = await db
+    .select({ email: users.email, totpSecret: users.totpSecret, mfaEnabled: users.mfaEnabled })
+    .from(users)
+    .where(eq(users.id, userId));
+  if (!user) throw new Error("utilisateur introuvable");
+  if (user.mfaEnabled) throw new Error("double authentification déjà confirmée");
+  if (user.totpSecret) {
+    return { secret: user.totpSecret, provisioningUri: buildTotpProvisioningUri({ secret: user.totpSecret, email: user.email }) };
+  }
+  return setupTotp(db, userId);
+}
+
+/**
  * Vérifie un code TOTP pour la session en cours et, s'il est valide, marque
  * cette session comme pleinement authentifiée (mfaVerified = true). Sert à
  * la fois à la configuration initiale et aux connexions suivantes.
@@ -195,7 +217,7 @@ export async function requireUser(
     .where(eq(sessions.tokenHash, tokenHash));
 
   if ((isProfessionalRole(row.role) || row.mfaEnabled) && !row.mfaVerified) {
-    return { status: "mfa_required", userId: row.userId, hasTotpSecret: row.totpSecret !== null };
+    return { status: "mfa_required", userId: row.userId, totpConfirmed: row.mfaEnabled && row.totpSecret !== null };
   }
 
   return {
