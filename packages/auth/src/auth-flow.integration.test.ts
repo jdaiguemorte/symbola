@@ -16,6 +16,7 @@ import {
   findAccountByEmail,
   login,
   requireUser,
+  resumeTotpSetup,
   setupTotp,
 } from "./service";
 import { hashSessionToken } from "./session-token";
@@ -49,7 +50,7 @@ describe("SOC-04 — Parcours de connexion (PostgreSQL réel)", () => {
     const beforeMfa = await requireUser(db, loginResult.sessionToken);
     expect(beforeMfa.status).toBe("mfa_required");
     if (beforeMfa.status !== "mfa_required") return;
-    expect(beforeMfa.hasTotpSecret).toBe(false);
+    expect(beforeMfa.totpConfirmed).toBe(false);
 
     const { secret } = await setupTotp(db, beforeMfa.userId);
     const confirmed = await confirmTotp(db, {
@@ -67,6 +68,39 @@ describe("SOC-04 — Parcours de connexion (PostgreSQL réel)", () => {
     // session reste pleinement authentifiée à un second appel.
     const secondCall = await requireUser(db, loginResult.sessionToken);
     expect(secondCall.status).toBe("authenticated");
+  });
+
+  it("une configuration abandonnée avant le premier code reprend à la connexion suivante, avec la même clé", async () => {
+    const organization = await createOrganization(db, `Org ${randomUUID()}`);
+    const email = `planner-reprise-${randomUUID()}@symbola.test`;
+    await createUser(db, { organizationId: organization.id, email, password: "mot-de-passe-de-la-planner", role: "owner" });
+
+    // Première connexion : l'écran affiche la clé, la planner part sans valider de code.
+    const first = await login(db, email, "mot-de-passe-de-la-planner");
+    if (first.outcome !== "success") throw new Error("connexion attendue");
+    const pendingFirst = await requireUser(db, first.sessionToken);
+    if (pendingFirst.status !== "mfa_required") throw new Error("double authentification attendue");
+    const shown = await resumeTotpSetup(db, pendingFirst.userId);
+    // Un rechargement de l'écran réaffiche la même clé.
+    expect((await resumeTotpSetup(db, pendingFirst.userId)).secret).toBe(shown.secret);
+
+    // Connexion suivante : la configuration reste à faire, la même clé est réaffichée.
+    const second = await login(db, email, "mot-de-passe-de-la-planner");
+    if (second.outcome !== "success") throw new Error("connexion attendue");
+    const pendingSecond = await requireUser(db, second.sessionToken);
+    expect(pendingSecond).toMatchObject({ status: "mfa_required", totpConfirmed: false });
+    const again = await resumeTotpSetup(db, pendingFirst.userId);
+    expect(again.secret).toBe(shown.secret);
+    expect(again.provisioningUri).toContain(`secret=${shown.secret}`);
+
+    expect(await confirmTotp(db, { sessionToken: second.sessionToken, token: currentCodeFor(shown.secret) })).toBe(true);
+    expect((await requireUser(db, second.sessionToken)).status).toBe("authenticated");
+
+    // Une fois confirmée, la clé n'est plus jamais réaffichée : seule la vérification reste.
+    const third = await login(db, email, "mot-de-passe-de-la-planner");
+    if (third.outcome !== "success") throw new Error("connexion attendue");
+    expect(await requireUser(db, third.sessionToken)).toMatchObject({ status: "mfa_required", totpConfirmed: true });
+    await expect(resumeTotpSetup(db, pendingFirst.userId)).rejects.toThrow("déjà confirmée");
   });
 
   it("n'impose pas le TOTP à un rôle client (marié)", async () => {
@@ -108,7 +142,7 @@ describe("SOC-04 — Parcours de connexion (PostgreSQL réel)", () => {
     if (second.outcome !== "success") throw new Error("connexion attendue");
     expect(second.requiresMfa).toBe(true);
     const pending = await requireUser(db, second.sessionToken);
-    expect(pending).toMatchObject({ status: "mfa_required", hasTotpSecret: true });
+    expect(pending).toMatchObject({ status: "mfa_required", totpConfirmed: true });
 
     expect(await confirmTotp(db, { sessionToken: second.sessionToken, token: currentCodeFor(secret) })).toBe(true);
     expect((await requireUser(db, second.sessionToken)).status).toBe("authenticated");

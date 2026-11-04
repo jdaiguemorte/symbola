@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { confirmTotp, requireUser, setupTotp } from "@symbola/auth";
+import { confirmTotp, requireUser, resumeTotpSetup } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
 import { getSessionToken } from "@/lib/auth-context";
 import { totpSetupDisplay } from "@/lib/totp-qr";
@@ -14,8 +14,8 @@ export async function getMfaSetupState() {
     const result = await requireUser(db, token);
     if (result.status !== "mfa_required") return null;
 
-    if (!result.hasTotpSecret) {
-      const { provisioningUri } = await setupTotp(db, result.userId);
+    if (!result.totpConfirmed) {
+      const { provisioningUri } = await resumeTotpSetup(db, result.userId);
       return { setup: totpSetupDisplay(provisioningUri) };
     }
 
