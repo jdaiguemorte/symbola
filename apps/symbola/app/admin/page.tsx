@@ -40,6 +40,8 @@ export default async function AdminPage() {
         {" · "}
         <Link href="/admin/activite">{t("viewActivity")}</Link>
         {" · "}
+        <Link href="/admin/prise-en-main">{t("viewOnboarding")}</Link>
+        {" · "}
         <Link href="/admin/health">{t("viewHealth")}</Link>
         {" · "}
         <Link href="/admin/parametres">{t("viewSettings")}</Link>

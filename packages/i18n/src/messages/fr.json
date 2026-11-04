@@ -90,7 +90,8 @@
     "moduleEnabledLabel": "{module} : activé (désactiver)",
     "moduleDisabledLabel": "{module} : désactivé (activer)",
     "viewAccounts": "Comptes et assistance",
-    "viewActivity": "Activité des organisations"
+    "viewActivity": "Activité des organisations",
+    "viewOnboarding": "Prise en main"
   },
   "AdminOrganizationForm": {
     "name": "Nom de l'organisation",
@@ -455,6 +456,10 @@
     "forgotPassword": {
       "title": "Mot de passe oublié",
       "body": "Saisissez l'adresse de votre compte : un lien valable 30 minutes vous est envoyé pour choisir un nouveau mot de passe. Le message est le même que l'adresse ait un compte ou non. Votre double authentification ne change pas."
+    },
+    "adminOnboarding": {
+      "title": "Prise en main des organisations",
+      "body": "Ce tableau montre, pour chaque compte d'équipe, les tutoriels terminés et en cours et la dernière activité d'aide. Il sert à repérer qui a besoin d'un coup de main ; il ne montre aucune donnée d'événement."
     }
   },
   "FirstSteps": {
@@ -1831,5 +1836,27 @@
     "hint": "↑ ↓ pour choisir · Entrée pour ouvrir · Échap pour fermer",
     "globalLabel": "Recherche dans Symbola",
     "refineLabel": "Modifier la recherche"
+  },
+  "AdminOnboarding": {
+    "title": "Prise en main des organisations",
+    "backToAdmin": "Retour à l'administration",
+    "intro": "Visites et tutoriels suivis par chaque compte d'équipe. Aucune donnée d'événement : seulement la progression dans l'aide, pour savoir qui a besoin d'un coup de main.",
+    "summary": "Indicateurs de prise en main",
+    "averageProgress": "Progression moyenne",
+    "recentDone": "Tutoriels terminés sur 30 jours",
+    "postponedTours": "Visites mises de côté",
+    "empty": "Aucun compte d'équipe pour l'instant.",
+    "tableOf": "Prise en main des comptes de {organization}",
+    "account": "Compte",
+    "progress": "Progression",
+    "progressOf": "Progression de {email}",
+    "progressValue": "{completed} sur {total}",
+    "done": "Tutoriels terminés",
+    "inProgress": "En cours",
+    "lastActivity": "Dernière activité d'aide",
+    "never": "Jamais",
+    "step": "étape {step}",
+    "roleOwner": "Titulaire",
+    "roleMember": "Membre"
   }
 }

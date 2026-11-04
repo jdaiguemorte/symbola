@@ -10,6 +10,7 @@ import { expect, test, type Page } from "@playwright/test";
 import * as OTPAuth from "otpauth";
 import { createProspect, createProspectSource } from "../modules/events/service";
 import { clickMenuLink } from "./helpers";
+import { recordHelpProgress } from "../modules/hub/service";
 
 // Visites ouvertes d'office : sans la préférence posée par la configuration.
 test.use({ storageState: { cookies: [], origins: [] } });
@@ -83,4 +84,41 @@ test("AIDE-05/07 — visite focus mise de côté puis reprise, et centre d'aide"
   await page.goto("/events");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Événements");
   await expect(page.getByRole("dialog")).toHaveCount(0);
+});
+
+test("HUB-05 — l'Admin voit la prise en main de chaque compte d'équipe", async ({ page }) => {
+  const adminEmail = `admin-suivi-${randomUUID()}@symbola.test`;
+  const ownerEmail = `titulaire-suivi-${randomUUID()}@symbola.test`;
+  const organizationName = `Organisation suivi ${randomUUID().slice(0, 8)}`;
+  const { sql, db } = createAppConnection();
+  try {
+    await createUser(db, { organizationId: null, email: adminEmail, password: "mot-de-passe-admin-suivi", role: "admin" });
+    const organization = await createOrganization(db, organizationName);
+    const owner = await createUser(db, { organizationId: organization.id, email: ownerEmail, password: "mot-de-passe-titulaire", role: "owner" });
+    await recordHelpProgress(db, { userId: owner.id, itemKey: "tutorial:catalog", status: "completed", step: 3 });
+    await recordHelpProgress(db, { userId: owner.id, itemKey: "tutorial:retroplanning-template", status: "postponed", step: 1 });
+  } finally {
+    await sql.end();
+  }
+
+  await page.goto("/login");
+  await page.getByLabel("E-mail").fill(adminEmail);
+  await page.getByLabel("Mot de passe").fill("mot-de-passe-admin-suivi");
+  await page.getByRole("button", { name: "Se connecter" }).click();
+  await expect(page).toHaveURL(/\/mfa$/);
+  const uri = await page.locator("code").textContent();
+  const secret = new URL(uri!.replace("otpauth://totp/", "https://x/")).searchParams.get("secret")!;
+  await page.getByLabel("Code").fill(new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret) }).generate());
+  await page.getByRole("button", { name: "Valider" }).click();
+  await expect(page).toHaveURL("/");
+  await page.getByRole("dialog", { name: "Bienvenue sur Symbola" }).getByRole("button", { name: "Plus tard" }).click();
+
+  await page.goto("/admin");
+  await page.getByRole("link", { name: "Prise en main" }).click();
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Prise en main des organisations");
+  const row = page.getByRole("row", { name: new RegExp(ownerEmail) });
+  await expect(row).toContainText("1 sur 9");
+  await expect(row).toContainText("Saisir son catalogue de prestations");
+  await expect(row).toContainText("À quoi sert un modèle de rétroplanning ? · étape 2");
+  await expectNoAxeViolation(page);
 });

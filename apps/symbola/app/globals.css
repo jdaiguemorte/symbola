@@ -873,3 +873,19 @@
     @apply flex items-center gap-3;
   }
 }
+
+/* HUB-05 (lot 10) — indicateurs de la prise en main. */
+@layer components {
+  .kpi-list {
+    @apply my-4 grid list-none grid-cols-1 gap-3 p-0 sm:grid-cols-3;
+  }
+  .kpi-list li {
+    @apply flex flex-col rounded-2xl border border-lin bg-card p-4;
+  }
+  .kpi-list li span {
+    @apply text-sm text-muted;
+  }
+  .kpi-list li strong {
+    @apply font-display text-2xl;
+  }
+}

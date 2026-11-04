@@ -90,7 +90,8 @@
     "moduleEnabledLabel": "{module}: enabled (disable)",
     "moduleDisabledLabel": "{module}: disabled (enable)",
     "viewAccounts": "Accounts and support",
-    "viewActivity": "Organisation activity"
+    "viewActivity": "Organisation activity",
+    "viewOnboarding": "Getting started"
   },
   "AdminOrganizationForm": {
     "name": "Organization name",
@@ -455,6 +456,10 @@
     "forgotPassword": {
       "title": "Forgot password",
       "body": "Enter your account's address: a link valid for 30 minutes is sent to you to choose a new password. The message is the same whether or not the address has an account. Your two-factor authentication does not change."
+    },
+    "adminOnboarding": {
+      "title": "Organisations getting started",
+      "body": "This table shows, for each team account, the tutorials finished and in progress and the last help activity. It helps spot who needs a hand; it shows no event data."
     }
   },
   "FirstSteps": {
@@ -1831,5 +1836,27 @@
     "hint": "↑ ↓ to choose · Enter to open · Esc to close",
     "globalLabel": "Search Symbola",
     "refineLabel": "Refine the search"
+  },
+  "AdminOnboarding": {
+    "title": "Organisations getting started",
+    "backToAdmin": "Back to administration",
+    "intro": "Tours and tutorials followed by each team account. No event data: only progress in the help, to see who needs a hand.",
+    "summary": "Getting-started indicators",
+    "averageProgress": "Average progress",
+    "recentDone": "Tutorials finished over 30 days",
+    "postponedTours": "Tours set aside",
+    "empty": "No team account yet.",
+    "tableOf": "Getting started of {organization}'s accounts",
+    "account": "Account",
+    "progress": "Progress",
+    "progressOf": "Progress of {email}",
+    "progressValue": "{completed} of {total}",
+    "done": "Tutorials finished",
+    "inProgress": "In progress",
+    "lastActivity": "Last help activity",
+    "never": "Never",
+    "step": "step {step}",
+    "roleOwner": "Owner",
+    "roleMember": "Member"
   }
 }

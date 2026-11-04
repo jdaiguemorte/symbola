@@ -1,0 +1,114 @@
+// HUB-05 (lot 10) — prise en main des organisations : visites et tutoriels
+// suivis par chaque compte d'équipe. Aucune donnée d'événement, aucun mot
+// cherché : la progression dans l'aide seulement (ADR 0029).
+import Link from "next/link";
+import { getLocale, getTranslations } from "next-intl/server";
+import { HelpButton } from "@symbola/ui";
+import { formatDateTime, type Locale } from "@symbola/i18n";
+import { createAppConnection } from "@symbola/db/client";
+import { listTeamHelpProgress } from "@/modules/hub/service";
+import { requireAdmin } from "@/lib/require-admin";
+import { TUTORIALS } from "@/lib/help/catalog";
+import { uniqueLabels } from "../unique-labels";
+
+const DAY_MS = 86_400_000;
+
+export default async function AdminOnboardingPage() {
+  await requireAdmin();
+  const t = await getTranslations("AdminOnboarding");
+  const tHelp = await getTranslations("Help");
+  const tCenter = await getTranslations("HelpCenter");
+  const locale = (await getLocale()) as Locale;
+  const now = Date.now();
+
+  const { sql, db } = createAppConnection();
+  let organizations;
+  try {
+    organizations = await listTeamHelpProgress(db);
+  } finally {
+    await sql.end();
+  }
+
+  const rows = organizations.map((organization) => {
+    const available = TUTORIALS.filter((tutorial) => tutorial.module === "hub" || organization.modules[tutorial.module as "events" | "budget" | "quotes"]);
+    return {
+      ...organization,
+      total: available.length,
+      accounts: organization.accounts.map((account) => {
+        const tutorialEntries = account.help.filter((entry) => available.some((tutorial) => entry.itemKey === `tutorial:${tutorial.key}`));
+        const done = tutorialEntries.filter((entry) => entry.status === "completed");
+        const inProgress = tutorialEntries.filter((entry) => entry.status !== "completed");
+        const last = account.help.reduce<Date | null>((latest, entry) => (!latest || entry.updatedAt > latest ? entry.updatedAt : latest), null);
+        return {
+          ...account,
+          completed: done.length,
+          doneTitles: done.map((entry) => tCenter(`items.${entry.itemKey.slice("tutorial:".length)}.title`)),
+          inProgressTitles: inProgress.map((entry) => `${tCenter(`items.${entry.itemKey.slice("tutorial:".length)}.title`)} · ${t("step", { step: entry.step + 1 })}`),
+          last,
+        };
+      }),
+    };
+  });
+  const allAccounts = rows.flatMap((organization) => organization.accounts.map((account) => ({ ...account, total: organization.total })));
+  const average = allAccounts.length > 0 ? Math.round((allAccounts.reduce((sum, account) => sum + account.completed / Math.max(account.total, 1), 0) / allAccounts.length) * 100) : 0;
+  const recentDone = allAccounts.flatMap((account) => account.help).filter((entry) => entry.itemKey.startsWith("tutorial:") && entry.completedAt && now - entry.completedAt.getTime() <= 30 * DAY_MS).length;
+  const postponedTours = allAccounts.flatMap((account) => account.help).filter((entry) => entry.itemKey.startsWith("tour:") && entry.status === "postponed").length;
+  const labels = uniqueLabels(rows.map((organization) => organization.name));
+
+  return (
+    <main>
+      <h1>{t("title")}</h1>
+      <HelpButton title={tHelp("adminOnboarding.title")} body={tHelp("adminOnboarding.body")} />
+      <p>
+        <Link href="/admin">{t("backToAdmin")}</Link>
+      </p>
+      <p>{t("intro")}</p>
+      <ul className="kpi-list" aria-label={t("summary")}>
+        <li>
+          <span>{t("averageProgress")}</span> <strong>{average} %</strong>
+        </li>
+        <li>
+          <span>{t("recentDone")}</span> <strong>{recentDone}</strong>
+        </li>
+        <li>
+          <span>{t("postponedTours")}</span> <strong>{postponedTours}</strong>
+        </li>
+      </ul>
+      {rows.length === 0 ? <p>{t("empty")}</p> : null}
+      {rows.map((organization, position) => (
+        <div key={organization.id} className="card">
+          <h2>{organization.name}</h2>
+          <div role="region" aria-label={t("tableOf", { organization: labels[position]! })} tabIndex={0}>
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th scope="col">{t("account")}</th>
+                  <th scope="col">{t("progress")}</th>
+                  <th scope="col">{t("done")}</th>
+                  <th scope="col">{t("inProgress")}</th>
+                  <th scope="col">{t("lastActivity")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {organization.accounts.map((account) => (
+                  <tr key={account.userId}>
+                    <th scope="row">
+                      {account.email} · {t(account.role === "owner" ? "roleOwner" : "roleMember")}
+                    </th>
+                    <td>
+                      <progress value={account.completed} max={Math.max(organization.total, 1)} aria-label={t("progressOf", { email: account.email })} />{" "}
+                      {t("progressValue", { completed: account.completed, total: organization.total })}
+                    </td>
+                    <td>{account.doneTitles.length > 0 ? account.doneTitles.join(", ") : "—"}</td>
+                    <td>{account.inProgressTitles.length > 0 ? account.inProgressTitles.join(", ") : "—"}</td>
+                    <td>{account.last ? formatDateTime(account.last, locale) : t("never")}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ))}
+    </main>
+  );
+}

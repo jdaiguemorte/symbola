@@ -99,6 +99,8 @@ export {
   listOrganizationsSupport,
   resendInvitation,
   resetTeamAccountMfa,
+  listTeamHelpProgress,
+  type TeamHelpProgress,
   type OrganizationActivity,
   type OrganizationSupportView,
   type PendingInvitation,

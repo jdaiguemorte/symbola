@@ -200,3 +200,9 @@ export async function replaceInvitationToken(db: AppDatabase, invitationId: stri
     .set(input)
     .where(and(eq(invitations.id, invitationId), isNull(invitations.acceptedAt)));
 }
+
+// HUB-05 (lot 10) — activation des modules de toutes les organisations, en une
+// requête (une ligne seulement pour un module déjà basculé par l'Admin).
+export async function findAllOrganizationModules(db: AppDatabase) {
+  return db.select().from(organizationModules);
+}
