@@ -8,6 +8,7 @@ import { createAppConnection } from "@symbola/db/client";
 import { createOrganization, createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import * as OTPAuth from "otpauth";
+import { openEventTab } from "./helpers";
 
 async function loginAndSetupMfa(page: Page, email: string, password: string) {
   await page.goto("/login");
@@ -107,6 +108,7 @@ test("BUD-04 — le marié consulte le budget de son événement en lecture seul
   const couplePassword = "mot-de-passe-du-marie-bud04";
   await page.goto(eventUrl);
   await page.waitForLoadState("networkidle");
+  await openEventTab(page, "Mariés");
   await page.getByLabel("E-mail du marié").fill(coupleEmail);
   await page.getByRole("button", { name: "Inviter le marié" }).click();
   await expect(page.getByText("Invitation envoyée.")).toBeVisible();

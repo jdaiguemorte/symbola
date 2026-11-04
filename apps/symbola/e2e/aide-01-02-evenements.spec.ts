@@ -8,6 +8,7 @@ import { createAppConnection } from "@symbola/db/client";
 import { createOrganization, createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import * as OTPAuth from "otpauth";
+import { openEventTab } from "./helpers";
 
 async function loginAndSetupMfa(page: Page, email: string, password: string) {
   await page.goto("/login");
@@ -67,11 +68,13 @@ test("AIDE-01/02 — visite guidée du module événements, puis essai guidé su
   const trialId = trialUrl.split("/").pop()!;
   await expect(page.getByRole("heading", { name: "Essai guidé — données fictives" })).toBeVisible();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Camille & Sacha");
+  await openEventTab(page, "Mariés");
   await expect(page.getByText("Pendant l'essai, aucune invitation n'est envoyée")).toBeVisible();
   await expect(page.getByRole("button", { name: "Inviter le marié" })).toHaveCount(0);
   await expectNoAxeViolation(page);
 
   // Une vraie opération sur les données fictives.
+  await openEventTab(page, "Vue d'ensemble");
   await page.waitForLoadState("networkidle");
   await page.locator("select[name=toStatus]").selectOption("confirmed");
   await page.getByRole("button", { name: "Changer le statut" }).click();

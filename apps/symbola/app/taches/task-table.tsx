@@ -36,7 +36,7 @@ export async function TaskTable({
   const columns = showEvent ? 6 : 5;
 
   return (
-    <div role="region" aria-label={caption} tabIndex={0}>
+    <div role="region" aria-label={t("taskTableRegion", { caption })} tabIndex={0}>
       <table className="data-table">
         <caption className="sr-only">{caption}</caption>
         <thead>

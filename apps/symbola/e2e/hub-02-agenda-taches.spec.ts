@@ -81,7 +81,7 @@ test("HUB-02 — agenda des mariages, tâches de la quinzaine cochées depuis l'
   await expect(agenda.getByRole("link", { name: "12 mois" })).toHaveAttribute("aria-current", "true");
   const weekend = agenda.locator("summary", { hasText: firstName });
   await expect(agenda.getByText(new RegExp(`${firstName} & Sacha`)).first()).toBeAttached();
-  await expect(agenda.getByLabel("2 événements ce week-end").first()).toBeVisible();
+  await expect(agenda.getByText("2 événements ce week-end").first()).toBeAttached();
   await expectNoAxeViolation(page);
 
   // 3 mois : les noms s'affichent dans les cases ; le choix est retenu.

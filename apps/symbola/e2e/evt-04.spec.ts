@@ -8,6 +8,7 @@ import { createAppConnection } from "@symbola/db/client";
 import { createOrganization, createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import * as OTPAuth from "otpauth";
+import { openEventTab } from "./helpers";
 
 async function loginAndSetupMfa(page: Page, email: string, password: string) {
   await page.goto("/login");
@@ -72,46 +73,57 @@ test("EVT-04 — modèle de rétroplanning appliqué, recalcul des échéances e
   await page.getByLabel("Source du prospect").selectOption({ label: "Salon" });
   await page.getByRole("button", { name: "Créer le prospect" }).click();
   await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}$/);
+  await openEventTab(page, "Rétroplanning");
   await expect(page.getByText("Ajoutez une date à l'événement pour appliquer un modèle de rétroplanning.")).toBeVisible();
   await expect(page.getByRole("button", { name: "Appliquer le modèle" })).toHaveCount(0);
 
-  // Avec une date, le modèle crée les tâches, regroupées par mois.
+  // Avec une date (onglet Vue d'ensemble), le modèle crée les tâches, regroupées par mois.
+  await openEventTab(page, "Vue d'ensemble");
   await page.waitForLoadState("networkidle");
   await page.getByLabel("Date de l'événement").fill("2027-06-12");
   await page.getByRole("button", { name: "Changer la date" }).click();
   await expect(page.getByText("Date mise à jour.")).toBeVisible();
+  await openEventTab(page, "Rétroplanning");
   await page.getByLabel("Modèle à appliquer").selectOption({ label: "Mariage court" });
   await page.getByRole("button", { name: "Appliquer le modèle" }).click();
   await expect(page.getByText("Modèle appliqué : les tâches ont été créées.")).toBeVisible();
-  const june2026 = page.getByRole("region", { name: "juin 2026" });
-  await expect(june2026.getByRole("listitem")).toContainText("Réserver le lieu — 12 juin 2026 — Planner");
-  const february = page.getByRole("region", { name: "février 2027" });
-  await expect(february.getByRole("listitem")).toContainText("Envoyer les faire-part — 12 février 2027 — Mariés");
+  const row = (label: string) => page.getByRole("row", { name: new RegExp(label) });
+  await expect(page.getByRole("columnheader", { name: "juin 2026" })).toBeVisible();
+  await expect(row("Réserver le lieu")).toContainText("12 juin 2026");
+  await expect(row("Réserver le lieu")).toContainText("Planner");
+  await expect(page.getByRole("columnheader", { name: "février 2027" })).toBeVisible();
+  await expect(row("Envoyer les faire-part")).toContainText("12 février 2027");
+  await expect(row("Envoyer les faire-part")).toContainText("Mariés");
   await expectNoAxeViolation(page);
 
   // Une tâche faite n'est pas décalée ; les autres le sont si la planner accepte.
   await page.getByRole("button", { name: "Cocher la tâche Réserver le lieu" }).click();
   await expect(page.getByRole("button", { name: "Décocher la tâche Réserver le lieu" })).toBeVisible();
+  await openEventTab(page, "Vue d'ensemble");
   await page.getByLabel("Date de l'événement").fill("2027-06-19");
   await page.getByRole("button", { name: "Changer la date" }).click();
+  await expect(page.getByText("Date mise à jour.")).toBeVisible();
+  await openEventTab(page, "Rétroplanning");
   const proposal = page.getByRole("region", { name: "Recalcul des échéances" });
   await expect(proposal).toContainText("repoussée de 7 jours. Décaler d'autant la tâche non faite ?");
   await expectNoAxeViolation(page);
   await proposal.getByRole("button", { name: "Décaler les échéances" }).click();
   await expect(proposal).toHaveCount(0);
-  await expect(february.getByRole("listitem")).toContainText("Envoyer les faire-part — 19 février 2027");
-  await expect(june2026.getByRole("listitem")).toContainText("Réserver le lieu — 12 juin 2026");
+  await expect(row("Envoyer les faire-part")).toContainText("19 février 2027");
+  await expect(row("Réserver le lieu")).toContainText("12 juin 2026");
 
-  // Ajout d'une tâche des mariés, puis réordonnancement dans le mois.
+  // Ajout d'une tâche des mariés, puis réordonnancement dans le mois (panneau de la tâche).
   const newTask = page.getByRole("group", { name: "Nouvelle tâche" });
   await newTask.getByLabel("Intitulé de la tâche").fill("Essayage");
   await newTask.getByLabel("Échéance").fill("2027-02-25");
   await newTask.getByLabel("Responsable").selectOption("clients");
   await newTask.getByRole("button", { name: "Ajouter la tâche" }).click();
   await expect(page.getByText("Tâche ajoutée.")).toBeVisible();
-  await expect(february.getByRole("listitem")).toHaveCount(2);
-  await expect(february.getByRole("listitem").nth(1)).toContainText("Essayage");
+  const order = async () => (await page.getByRole("rowheader").allTextContents()).filter((text) => ["Essayage", "Envoyer les faire-part"].includes(text));
+  await expect.poll(order).toEqual(["Envoyer les faire-part", "Essayage"]);
+  await page.getByRole("link", { name: "Essayage", exact: true }).click();
   await page.getByRole("button", { name: "Monter la tâche Essayage" }).click();
-  await expect(february.getByRole("listitem").first()).toContainText("Essayage — 25 février 2027 — Mariés");
+  await expect.poll(order).toEqual(["Essayage", "Envoyer les faire-part"]);
+  await expect(row("Essayage")).toContainText("25 février 2027");
   await expectNoAxeViolation(page);
 });

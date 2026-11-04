@@ -8,7 +8,8 @@ import { getTranslations } from "next-intl/server";
 import { formatCalendarDate, formatMonth, type Locale } from "@symbola/i18n";
 import { eventNames, listEvents } from "@/modules/events/service";
 import { addMonths, buildCalendar, type CalendarCell } from "./calendar";
-import { AGENDA_SPAN_COOKIE, AgendaSpanLinks } from "./span-links";
+import { AGENDA_SPAN_COOKIE } from "./agenda-cookie";
+import { AgendaSpanLinks } from "./span-links";
 
 const SPANS = [3, 6, 12] as const;
 
@@ -106,12 +107,16 @@ export async function AgendaBlock({
               {month.cells.map((cell, index) => {
                 if (!cell) return <span key={`${month.key}-e${index}`} />;
                 const classes = `agenda-day tone-${cell.tone}${cell.weekend ? " is-weekend" : ""}${cell.date === today ? " is-today" : ""}`;
+                // Le chiffre et le badge restent visibles ; le détail se lit en texte masqué
+                // (pas d'aria-label qui remplacerait le texte visible, WCAG 2.5.3).
                 const badge =
                   cell.events.length > 0 && cell.weekendCount > 1 ? (
-                    <span className="agenda-badge" aria-label={t("agendaWeekendCount", { count: cell.weekendCount })}>
+                    <span className="agenda-badge">
                       {cell.weekendCount}
+                      <span className="sr-only"> {t("agendaWeekendCount", { count: cell.weekendCount })}</span>
                     </span>
                   ) : null;
+                const description = cell.events.length > 0 ? <span className="sr-only"> {describe(cell)}</span> : null;
                 const names = span === 3 && cell.events.length > 0 ? <span className="agenda-names">{cell.events.map((event) => event.names).join(", ")}</span> : null;
                 if (cell.events.length === 0) {
                   return (
@@ -122,19 +127,21 @@ export async function AgendaBlock({
                 }
                 if (cell.events.length === 1 && cell.weekendCount <= 1) {
                   return (
-                    <Link key={cell.date} href={`/events/${cell.events[0]!.id}`} className={classes} aria-label={describe(cell)} title={describe(cell)}>
+                    <Link key={cell.date} href={`/events/${cell.events[0]!.id}`} className={classes} title={describe(cell)}>
                       {cell.day}
                       {names}
+                      {description}
                     </Link>
                   );
                 }
                 // Plusieurs événements ce week-end : une petite liste propose chacun.
                 return (
                   <details key={cell.date} className={`${classes} agenda-multi`}>
-                    <summary aria-label={describe(cell)} title={describe(cell)}>
+                    <summary title={describe(cell)}>
                       {cell.day}
                       {names}
                       {badge}
+                      {description}
                     </summary>
                     <ul>
                       {cell.weekendEvents.map((event) => (

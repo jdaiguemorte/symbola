@@ -4,8 +4,7 @@
 // prochaine visite dans un cookie (préférence d'affichage, sans donnée
 // personnelle).
 import Link from "next/link";
-
-export const AGENDA_SPAN_COOKIE = "symbola_agenda_mois";
+import { AGENDA_SPAN_COOKIE } from "./agenda-cookie";
 
 export function AgendaSpanLinks({ links, label }: { links: { span: number; href: string; label: string; current: boolean }[]; label: string }) {
   return (

@@ -31,3 +31,18 @@ export async function logout(page: Page): Promise<void> {
   await openMenu(page);
   await page.getByRole("button", { name: "Se déconnecter" }).click();
 }
+
+// Fiche événement en onglets (lot 8) : ouvre l'onglet dont le nom commence
+// par `name` (« Postes prestataires 1/3 », « Rétroplanning 2 en retard »…).
+export async function openEventTab(page: Page, name: string): Promise<void> {
+  const tabs = page.getByRole("navigation", { name: "Sections de l'événement" });
+  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  await tabs.getByRole("link", { name: new RegExp(`^${escaped}`) }).click();
+  await expect(tabs.getByRole("link", { name: new RegExp(`^${escaped}`) })).toHaveAttribute("aria-current", "page");
+}
+
+// Réglages regroupés sous « Paramètres » (lot 8) : ouvre l'onglet du module.
+export async function openSettingsTab(page: Page, name: string): Promise<void> {
+  await clickMenuLink(page, "Paramètres");
+  await page.getByRole("navigation", { name: "Paramètres par module" }).getByRole("link", { name, exact: true }).click();
+}

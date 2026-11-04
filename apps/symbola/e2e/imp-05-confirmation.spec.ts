@@ -10,7 +10,7 @@ import { withOrganization } from "@symbola/db/with-organization";
 import { createOrganization, createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import * as OTPAuth from "otpauth";
-import { clickMenuLink } from "./helpers";
+import { openSettingsTab } from "./helpers";
 
 async function loginAndSetupMfa(page: Page, email: string, password: string) {
   await page.goto("/login");
@@ -53,7 +53,7 @@ test("IMP-05 — aperçu, confirmation, champ libre sur la fiche, journal et ann
   await loginAndSetupMfa(page, email, password);
 
   // Le menu mène à l'import.
-  await clickMenuLink(page, "Importer des données");
+  await openSettingsTab(page, "Importer des données");
   await page.getByLabel("Événements et leurs clients (une ligne par événement)").check();
   await page.getByLabel("Fichier (CSV, Excel .xlsx ou JSON)").setInputFiles({
     name: "mariages.csv",

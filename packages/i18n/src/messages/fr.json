@@ -482,6 +482,8 @@
     "sourceAll": "Toutes",
     "eventNotFound": "Cet événement est introuvable.",
     "statusChanged": "Statut mis à jour.",
+    "taskTableRegion": "Tableau : {caption}",
+    "vendorSlotsTable": "Tableau des postes prestataires",
     "vendorSlotsTitle": "Postes prestataires",
     "vendorProgress": "{booked, plural, =0 {Aucun poste réservé} one {# poste réservé} other {# postes réservés}} sur {required}",
     "vendorStatusToFind": "À trouver",

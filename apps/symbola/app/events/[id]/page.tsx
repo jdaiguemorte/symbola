@@ -223,9 +223,10 @@ export default async function EventDetailPage({
       </p>
       <div className="page-header">
         <div>
-          <h1>
-            {clientNames} <span className={EVENT_STATUS_CLASSES[event.status]}>{t(STATUS_LABEL_KEYS[event.status])}</span>
-          </h1>
+          <div className="title-with-badge">
+            <h1>{clientNames}</h1>
+            <span className={EVENT_STATUS_CLASSES[event.status]}>{t(STATUS_LABEL_KEYS[event.status])}</span>
+          </div>
           <p className="meta">
             <span>
               {t("eventDate")} : {event.eventDate ? formatCalendarDate(event.eventDate, locale) : t("dateUnset")}
@@ -336,7 +337,7 @@ export default async function EventDetailPage({
             </nav>
             {shownSlots.length === 0 ? <p>{vendorSlots.length === 0 ? t("noVendorSlots") : t("noVendorSlotsToFind")}</p> : null}
             {shownSlots.length > 0 ? (
-              <div role="region" aria-label={t("vendorSlotsTitle")} tabIndex={0}>
+              <div role="region" aria-label={t("vendorSlotsTable")} tabIndex={0}>
                 <table className="data-table">
                   <thead>
                     <tr>
@@ -373,7 +374,7 @@ export default async function EventDetailPage({
             {selectedSlot ? (
               <>
                 <h2 id="vendor-detail-title">{selectedSlot.label}</h2>
-                <VendorSlotForm key={JSON.stringify(selectedSlot)} eventId={event.id} slot={selectedSlot} />
+                <VendorSlotForm key={selectedSlot.id} eventId={event.id} slot={selectedSlot} />
                 <ImportedFields fields={selectedSlot.importedFields} compact />
                 <form action={removeVendorSlotAction}>
                   <input type="hidden" name="eventId" value={event.id} />

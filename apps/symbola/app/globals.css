@@ -714,3 +714,12 @@
     @apply my-0;
   }
 }
+
+@layer components {
+  .title-with-badge {
+    @apply flex flex-wrap items-center gap-3;
+  }
+  .title-with-badge > h1 {
+    @apply m-0;
+  }
+}

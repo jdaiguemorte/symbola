@@ -8,6 +8,7 @@ import { createAppConnection } from "@symbola/db/client";
 import { createOrganization, createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import * as OTPAuth from "otpauth";
+import { openEventTab } from "./helpers";
 
 async function loginAndSetupMfa(page: Page, email: string, password: string) {
   await page.goto("/login");
@@ -64,6 +65,11 @@ test("EVT-03 — postes par défaut, barre d'avancement et réservation d'un pre
   await expect(page.getByText("Aucun poste réservé sur 11")).toBeVisible();
   await expectNoAxeViolation(page);
 
+  // Onglet des postes : un clic sur un poste ouvre son détail dans le panneau.
+  await openEventTab(page, "Postes prestataires");
+  await expect(page.getByText("Aucun poste réservé sur 11")).toBeVisible();
+  await page.getByRole("link", { name: "Photographe", exact: true }).click();
+
   // Réservé exige le nom du prestataire ; le montant est facultatif.
   const photographer = page.getByRole("group", { name: "Photographe" });
   await photographer.getByLabel("Statut du poste").selectOption("booked");
@@ -74,11 +80,13 @@ test("EVT-03 — postes par défaut, barre d'avancement et réservation d'un pre
   await photographer.getByRole("button", { name: "Enregistrer le poste" }).click();
   await expect(photographer.getByText("Poste enregistré.")).toBeVisible();
   await expect(page.getByText("1 poste réservé sur 11")).toBeVisible();
-  const photographerItem = page.getByRole("listitem").filter({ has: photographer });
-  await expect(photographerItem).toContainText("Réservé — Studio Lumière");
-  await expect(photographerItem).toContainText(/2\s500,50\s€/);
+  const photographerRow = page.getByRole("row", { name: /^Photographe/ });
+  await expect(photographerRow).toContainText("Studio Lumière");
+  await expect(photographerRow).toContainText("Réservé");
+  await expect(photographerRow).toContainText(/2\s500,50\s€/);
 
   // Un poste « Non requis » sort du compte des postes requis.
+  await page.getByRole("link", { name: "Vidéaste", exact: true }).click();
   const videographer = page.getByRole("group", { name: "Vidéaste" });
   await videographer.getByLabel("Statut du poste").selectOption("not_required");
   await videographer.getByRole("button", { name: "Enregistrer le poste" }).click();
@@ -88,9 +96,10 @@ test("EVT-03 — postes par défaut, barre d'avancement et réservation d'un pre
   // Postes modifiables événement par événement.
   await page.getByLabel("Nouveau poste pour cet événement").fill("Wedding designer");
   await page.getByRole("button", { name: "Ajouter le poste", exact: true }).click();
-  await expect(page.getByRole("group", { name: "Wedding designer" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Wedding designer", exact: true })).toBeVisible();
+  await page.getByRole("link", { name: "Papeterie", exact: true }).click();
   await page.getByRole("button", { name: "Retirer le poste « Papeterie »" }).click();
-  await expect(page.getByRole("group", { name: "Papeterie" })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Papeterie", exact: true })).toHaveCount(0);
   await expect(page.getByText("1 poste réservé sur 10")).toBeVisible();
   await expectNoAxeViolation(page);
 });

@@ -482,6 +482,8 @@
     "sourceAll": "All",
     "eventNotFound": "This event cannot be found.",
     "statusChanged": "Status updated.",
+    "taskTableRegion": "Table: {caption}",
+    "vendorSlotsTable": "Vendor slots table",
     "vendorSlotsTitle": "Vendor slots",
     "vendorProgress": "{booked, plural, =0 {No slot booked} one {# slot booked} other {# slots booked}} out of {required}",
     "vendorStatusToFind": "To find",
