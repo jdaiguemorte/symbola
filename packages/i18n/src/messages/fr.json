@@ -1741,7 +1741,10 @@
     "progressShort": "Aide · {completed}/{total}",
     "resumeTour": "Reprendre la visite (étape {step})",
     "resumeTutorial": "Reprendre : {title}",
-    "collapse": "Replier la barre d'aide"
+    "collapse": "Replier la barre d'aide",
+    "inviteKicker": "Découvrir en {minutes} minutes",
+    "inviteStart": "Commencer le tutoriel",
+    "inviteLater": "Plus tard"
   },
   "HelpCenter": {
     "items": {
@@ -1787,7 +1790,7 @@
     "nextSuggestion": "Prochaine étape conseillée : {title} ({minutes} minutes).",
     "continue": "Continuer ma prise en main",
     "allDone": "Bravo, vous avez suivi tous les tutoriels. Ils restent disponibles ici pour les revoir.",
-    "autoTours": "Ouvrir les visites automatiquement à la première ouverture d'un écran",
+    "autoTours": "Proposer automatiquement les visites et les tutoriels à la première ouverture d'un écran",
     "modules": {
       "events": "Événements",
       "quotes": "Devis et factures",

@@ -5,13 +5,30 @@
 // écran, ou du tutoriel en cours. Repliable (préférence gardée dans le
 // navigateur, sans donnée personnelle).
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useHelpContext } from "./help-context";
+import { recordHelpProgressAction } from "./actions";
+
+export type TutorialInvite = { key: string; screen: string; title: string; minutes: number; href: string };
 
 const COLLAPSED_KEY = "symbola_aide_barre_repliee";
 
-export function HelpBar({ completed, total, tutorial }: { completed: number; total: number; tutorial: { title: string; href: string } | null }) {
+export function HelpBar({
+  completed,
+  total,
+  tutorial,
+  invites,
+}: {
+  completed: number;
+  total: number;
+  tutorial: { title: string; href: string } | null;
+  // AIDE-06 : tutoriels jamais ouverts, proposés à la première visite de leur écran.
+  invites: TutorialInvite[];
+}) {
+  const pathname = usePathname();
+  const [dismissed, setDismissed] = useState<string[]>([]);
   const t = useTranslations("HelpBar");
   const help = useHelpContext();
   const [collapsed, setCollapsed] = useState(false);
@@ -36,8 +53,31 @@ export function HelpBar({ completed, total, tutorial }: { completed: number; tot
 
   const tour = help?.tour;
   if (tour?.open) return null;
+  const invite = invites.find((candidate) => candidate.screen === pathname && !dismissed.includes(candidate.key));
 
   return (
+    <>
+      {invite ? (
+        <section className="tutorial-invite" aria-labelledby="tutorial-invite-title">
+          <p className="tutorial-invite-kicker">{t("inviteKicker", { minutes: invite.minutes })}</p>
+          <h2 id="tutorial-invite-title">{invite.title}</h2>
+          <div className="tutorial-invite-actions">
+            <Link href={invite.href} className="button-link button-link-primary">
+              {t("inviteStart")}
+            </Link>
+            <button
+              type="button"
+              className="tutorial-invite-later"
+              onClick={() => {
+                setDismissed((keys) => [...keys, invite.key]);
+                void recordHelpProgressAction(`tutorial:${invite.key}`, "postponed", 0);
+              }}
+            >
+              {t("inviteLater")}
+            </button>
+          </div>
+        </section>
+      ) : null}
     <aside className="help-bar" aria-label={t("label")} data-collapsed={collapsed ? "true" : "false"}>
       {collapsed ? (
         <button type="button" className="help-bar-toggle" onClick={toggle} aria-expanded="false">
@@ -63,5 +103,6 @@ export function HelpBar({ completed, total, tutorial }: { completed: number; tot
         </>
       )}
     </aside>
+    </>
   );
 }

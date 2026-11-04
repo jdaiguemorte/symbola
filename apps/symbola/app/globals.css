@@ -936,3 +936,22 @@
     @apply rounded-xl bg-sauge-tint p-3 text-sauge-ink;
   }
 }
+
+/* Lot 10 (AIDE-06) — invitation à un tutoriel à la première visite d'un écran. */
+@layer components {
+  .tutorial-invite {
+    @apply fixed right-4 bottom-20 z-40 flex w-[340px] max-w-[calc(100vw-32px)] flex-col gap-2 rounded-2xl border border-lin bg-card p-4 shadow-xl;
+  }
+  .tutorial-invite h2 {
+    @apply m-0 text-lg;
+  }
+  .tutorial-invite-kicker {
+    @apply m-0 text-sm font-semibold text-terracotta-ink;
+  }
+  .tutorial-invite-actions {
+    @apply flex flex-wrap items-center gap-2;
+  }
+  .tutorial-invite-later {
+    @apply border-transparent bg-transparent text-muted underline underline-offset-4;
+  }
+}

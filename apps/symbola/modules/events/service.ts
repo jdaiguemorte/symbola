@@ -1205,6 +1205,7 @@ const _contractCheck: EventsServiceContract = {
   countEventsCreatedByMonth,
   searchEvents,
   getEventNamesByIds,
+  startTutorialEvent,
   hasActiveClientAccess,
   listExpiredDemoEvents,
 };

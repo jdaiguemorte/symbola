@@ -4,7 +4,16 @@
 // du menu suivent les modules souscrits (dégradation propre, CLAUDE.md §2.3)
 // et le rôle ; ce sont ceux qu'affichait l'accueil jusqu'ici.
 import type { ReactNode } from "react";
-import { CalendarDays, CalendarHeart, FileText, LifeBuoy, ListChecks, Settings, Shield, Wallet } from "lucide-react";
+import {
+  CalendarDays,
+  CalendarHeart,
+  FileText,
+  LifeBuoy,
+  ListChecks,
+  Settings,
+  Shield,
+  Wallet,
+} from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { parisToday } from "@symbola/i18n";
 import { createAppConnection } from "@symbola/db/client";
@@ -15,7 +24,9 @@ import { AppNavLink } from "./app-nav-link";
 import { AppSidebar } from "./app-sidebar";
 import { logoutAction } from "./logout-action";
 import { SettingsNav, type SettingsSection } from "./settings-nav";
-import { HelpBar } from "./help-bar";
+import { cookies } from "next/headers";
+import { HelpBar, type TutorialInvite } from "./help-bar";
+import { AUTO_TOURS_COOKIE } from "@/lib/help/preferences";
 import { SearchBox } from "./search-box";
 import { HelpProvider } from "./help-context";
 import { getHelpProgress } from "@/modules/hub/service";
@@ -24,9 +35,30 @@ import { TUTORIALS, tutorialHref } from "@/lib/help/catalog";
 function Logo() {
   return (
     <svg width="32" height="32" viewBox="0 0 56 56" aria-hidden="true">
-      <circle cx="28" cy="28" r="26" fill="none" stroke="#4F6B5A" strokeWidth="3" />
-      <circle cx="22" cy="28" r="11" fill="none" stroke="#A8553A" strokeWidth="3" />
-      <circle cx="34" cy="28" r="11" fill="none" stroke="#4F6B5A" strokeWidth="3" />
+      <circle
+        cx="28"
+        cy="28"
+        r="26"
+        fill="none"
+        stroke="#4F6B5A"
+        strokeWidth="3"
+      />
+      <circle
+        cx="22"
+        cy="28"
+        r="11"
+        fill="none"
+        stroke="#A8553A"
+        strokeWidth="3"
+      />
+      <circle
+        cx="34"
+        cy="28"
+        r="11"
+        fill="none"
+        stroke="#4F6B5A"
+        strokeWidth="3"
+      />
     </svg>
   );
 }
@@ -99,10 +131,25 @@ export async function AppShell({ children }: { children: ReactNode }) {
   const isOwner = auth.user.role === "owner" && Boolean(organizationId);
   // Lot 10 (AIDE-07) — barre d'aide de l'équipe : tutoriels des modules
   // souscrits, terminés ou en cours.
-  const isTeam = Boolean(organizationId) && (auth.user.role === "owner" || auth.user.role === "member");
-  let helpBar: { completed: number; total: number; tutorial: { title: string; href: string } | null } | null = null;
+  const isTeam =
+    Boolean(organizationId) &&
+    (auth.user.role === "owner" || auth.user.role === "member");
+  let helpBar: {
+    completed: number;
+    total: number;
+    tutorial: { title: string; href: string } | null;
+    invites: TutorialInvite[];
+  } | null = null;
   if (isTeam) {
-    const available = TUTORIALS.filter((tutorial) => tutorial.module === "hub" || (tutorial.module === "events" ? events : tutorial.module === "budget" ? budget : quotes));
+    const available = TUTORIALS.filter(
+      (tutorial) =>
+        tutorial.module === "hub" ||
+        (tutorial.module === "events"
+          ? events
+          : tutorial.module === "budget"
+            ? budget
+            : quotes),
+    );
     const { sql, db } = createAppConnection();
     let progress;
     try {
@@ -112,47 +159,122 @@ export async function AppShell({ children }: { children: ReactNode }) {
     }
     const tHelpCenter = await getTranslations("HelpCenter");
     const inProgress = progress
-      .filter((entry) => entry.status !== "completed" && available.some((tutorial) => `tutorial:${tutorial.key}` === entry.itemKey))
+      .filter(
+        (entry) =>
+          entry.status !== "completed" &&
+          available.some(
+            (tutorial) => `tutorial:${tutorial.key}` === entry.itemKey,
+          ),
+      )
       .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())[0];
-    const inProgressKey = inProgress ? available.find((tutorial) => `tutorial:${tutorial.key}` === inProgress.itemKey)!.key : null;
+    const inProgressKey = inProgress
+      ? available.find(
+          (tutorial) => `tutorial:${tutorial.key}` === inProgress.itemKey,
+        )!.key
+      : null;
     helpBar = {
-      completed: available.filter((tutorial) => progress.some((entry) => entry.itemKey === `tutorial:${tutorial.key}` && entry.status === "completed")).length,
+      completed: available.filter((tutorial) =>
+        progress.some(
+          (entry) =>
+            entry.itemKey === `tutorial:${tutorial.key}` &&
+            entry.status === "completed",
+        ),
+      ).length,
       total: available.length,
-      tutorial: inProgressKey ? { title: tHelpCenter(`items.${inProgressKey}.title`), href: tutorialHref(inProgressKey) } : null,
+      tutorial: inProgressKey
+        ? {
+            title: tHelpCenter(`items.${inProgressKey}.title`),
+            href: tutorialHref(inProgressKey),
+          }
+        : null,
+      // Préférence « ouvrir automatiquement » (centre d'aide) : vaut aussi
+      // pour ces invitations.
+      invites:
+        (await cookies()).get(AUTO_TOURS_COOKIE)?.value === "0"
+          ? []
+          : available
+              .filter(
+                (candidate) =>
+                  !progress.some(
+                    (entry) => entry.itemKey === `tutorial:${candidate.key}`,
+                  ),
+              )
+              .map((candidate) => ({
+                key: candidate.key,
+                screen: candidate.screen,
+                title: tHelpCenter(`items.${candidate.key}.title`),
+                minutes: candidate.minutes,
+                href: tutorialHref(candidate.key),
+              })),
     };
   }
   const isAdmin = auth.user.role === "admin";
   // Pastille « en retard » du menu Tâches (HUB-02).
   const overdue =
     events && organizationId
-      ? (await listOrganizationTasks({ organizationId, today: parisToday(), horizonDays: 0 })).filter((task) => task.overdue).length
+      ? (
+          await listOrganizationTasks({
+            organizationId,
+            today: parisToday(),
+            horizonDays: 0,
+          })
+        ).filter((task) => task.overdue).length
       : 0;
 
   // Paramètres : un onglet par module souscrit (maquette validée).
   const settingsSections: SettingsSection[] = organizationId
     ? [
-        { href: "/parametres", label: t("settingsOrganization"), paths: ["/parametres"] },
+        {
+          href: "/parametres",
+          label: t("settingsOrganization"),
+          paths: ["/parametres"],
+        },
         ...(events
           ? [
               {
                 href: "/events/parametres",
                 label: t("events"),
-                paths: ["/events/parametres", "/events/modeles", "/events/modeles-programme"],
+                paths: [
+                  "/events/parametres",
+                  "/events/modeles",
+                  "/events/modeles-programme",
+                ],
                 children: [
-                  { href: "/events/parametres", label: t("settingsEventsLists") },
-                  { href: "/events/modeles", label: t("settingsTaskTemplates") },
-                  { href: "/events/modeles-programme", label: t("settingsProgramTemplates") },
+                  {
+                    href: "/events/parametres",
+                    label: t("settingsEventsLists"),
+                  },
+                  {
+                    href: "/events/modeles",
+                    label: t("settingsTaskTemplates"),
+                  },
+                  {
+                    href: "/events/modeles-programme",
+                    label: t("settingsProgramTemplates"),
+                  },
                 ],
               },
             ]
           : []),
-        ...(budget ? [{ href: "/budget/parametres", label: t("budgetModels"), paths: ["/budget/parametres"] }] : []),
+        ...(budget
+          ? [
+              {
+                href: "/budget/parametres",
+                label: t("budgetModels"),
+                paths: ["/budget/parametres"],
+              },
+            ]
+          : []),
         ...(quotes
           ? [
               {
                 href: "/devis/parametres",
                 label: t("navQuotesGroup"),
-                paths: ["/devis/parametres", "/devis/catalogue", "/devis/e-reporting"],
+                paths: [
+                  "/devis/parametres",
+                  "/devis/catalogue",
+                  "/devis/e-reporting",
+                ],
                 children: [
                   { href: "/devis/parametres", label: t("quoteSettings") },
                   { href: "/devis/catalogue", label: t("quoteCatalog") },
@@ -161,15 +283,23 @@ export async function AppShell({ children }: { children: ReactNode }) {
               },
             ]
           : []),
-        ...(events || budget || quotes ? [{ href: "/import", label: t("importData"), paths: ["/import"] }] : []),
-        ...(isOwner ? [{ href: "/rgpd", label: t("privacy"), paths: ["/rgpd"] }] : []),
+        ...(events || budget || quotes
+          ? [{ href: "/import", label: t("importData"), paths: ["/import"] }]
+          : []),
+        ...(isOwner
+          ? [{ href: "/rgpd", label: t("privacy"), paths: ["/rgpd"] }]
+          : []),
         { href: "/profil", label: t("myProfile"), paths: ["/profil"] },
       ]
     : [];
 
   return (
     <div className="app-shell">
-      <AppSidebar brand={<Brand href="/" />} menuLabel={t("menuOpen")} closeLabel={t("menuClose")}>
+      <AppSidebar
+        brand={<Brand href="/" />}
+        menuLabel={t("menuOpen")}
+        closeLabel={t("menuClose")}
+      >
         <nav aria-label={t("navLabel")}>
           <ul className="app-nav">
             <li>
@@ -190,7 +320,11 @@ export async function AppShell({ children }: { children: ReactNode }) {
                   <AppNavLink href="/taches">
                     <ListChecks {...iconProps} />
                     {t("tasks")}
-                    {overdue > 0 ? <span className="nav-count">{t("tasksOverdue", { count: overdue })}</span> : null}
+                    {overdue > 0 ? (
+                      <span className="nav-count">
+                        {t("tasksOverdue", { count: overdue })}
+                      </span>
+                    ) : null}
                   </AppNavLink>
                 </li>
               </>
@@ -245,7 +379,13 @@ export async function AppShell({ children }: { children: ReactNode }) {
       <HelpProvider>
         <div className="app-main">
           {isTeam ? <SearchBox /> : null}
-          {settingsSections.length > 0 ? <SettingsNav sections={settingsSections} label={t("settingsSections")} subLabel={t("settingsSubSections")} /> : null}
+          {settingsSections.length > 0 ? (
+            <SettingsNav
+              sections={settingsSections}
+              label={t("settingsSections")}
+              subLabel={t("settingsSubSections")}
+            />
+          ) : null}
           {children}
         </div>
         {helpBar ? <HelpBar {...helpBar} /> : null}

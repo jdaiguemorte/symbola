@@ -1741,7 +1741,10 @@
     "progressShort": "Help · {completed}/{total}",
     "resumeTour": "Resume the tour (step {step})",
     "resumeTutorial": "Resume: {title}",
-    "collapse": "Collapse the help bar"
+    "collapse": "Collapse the help bar",
+    "inviteKicker": "Discover in {minutes} minutes",
+    "inviteStart": "Start the tutorial",
+    "inviteLater": "Later"
   },
   "HelpCenter": {
     "items": {
@@ -1787,7 +1790,7 @@
     "nextSuggestion": "Suggested next step: {title} ({minutes} minutes).",
     "continue": "Continue getting started",
     "allDone": "Well done, you have followed every tutorial. They stay available here to review.",
-    "autoTours": "Open tours automatically the first time a screen is opened",
+    "autoTours": "Offer tours and tutorials automatically the first time a screen is opened",
     "modules": {
       "events": "Events",
       "quotes": "Quotes and invoices",
