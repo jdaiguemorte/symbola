@@ -5,7 +5,8 @@
     "password": "Password",
     "submit": "Log in",
     "invalidCredentials": "Invalid credentials.",
-    "locked": "Account temporarily locked after several failed attempts. Try again in a few minutes."
+    "locked": "Account temporarily locked after several failed attempts. Try again in a few minutes.",
+    "forgotPassword": "Forgot your password?"
   },
   "Mfa": {
     "title": "Two-factor authentication",
@@ -87,7 +88,9 @@
     "name": "Name",
     "modules": "Modules",
     "moduleEnabledLabel": "{module}: enabled (disable)",
-    "moduleDisabledLabel": "{module}: disabled (enable)"
+    "moduleDisabledLabel": "{module}: disabled (enable)",
+    "viewAccounts": "Accounts and support",
+    "viewActivity": "Organisation activity"
   },
   "AdminOrganizationForm": {
     "name": "Organization name",
@@ -110,12 +113,13 @@
   },
   "Invitation": {
     "welcome": "Welcome to Symbola",
-    "choosePassword": "Choose a password",
+    "choosePassword": "Choose a password (at least 12 characters)",
     "submit": "Create my account",
     "success": "Account created. You can now log in.",
     "invalidOrExpired": "This invitation link is invalid or has expired.",
     "alreadyAccepted": "This invitation has already been used.",
-    "missingPassword": "A password is required."
+    "missingPassword": "A password is required.",
+    "passwordTooShort": "The password must be at least 12 characters long."
   },
   "Profile": {
     "title": "My profile",
@@ -412,6 +416,18 @@
     "allQuotes": {
       "title": "Your quotes",
       "body": "Every quote you made. A quote is created from its event page; deposit and balance invoices are issued from the signed quote."
+    },
+    "adminAccounts": {
+      "title": "Accounts and support",
+      "body": "To unblock someone in an organisation's team: see whether their two-factor authentication is set up, whether their account is locked, and when they last signed in. \"Reset two-factor authentication\" is for a lost or replaced phone: the person is notified by e-mail and will scan a new QR code. \"Resend the invitation\" sends a new link and disables the old one. A forgotten password is handled without you, from the sign-in screen. Every action is logged."
+    },
+    "adminActivity": {
+      "title": "Organisation activity",
+      "body": "Usage statistics to gauge interest in the application: number of accounts, accounts signed in over 30 days, last sign-in, and the number of events, quotes and invoices created each month. Never a name, an amount or any content; guided trials do not count."
+    },
+    "forgotPassword": {
+      "title": "Forgot password",
+      "body": "Enter your account's address: a link valid for 30 minutes is sent to you to choose a new password. The message is the same whether or not the address has an account. Your two-factor authentication does not change."
     }
   },
   "FirstSteps": {
@@ -1614,5 +1630,77 @@
     "purgeOutcomePurged": "purged",
     "purgeOutcomeExcluded": "excluded: {reason}",
     "purgeAlertTitle": "Monthly purge: {count, plural, one {# line to review} other {# lines to review}}"
+  },
+  "PasswordReset": {
+    "forgotTitle": "Forgot password",
+    "forgotIntro": "Enter the e-mail address of your account: you will receive a link to choose a new password, valid for 30 minutes.",
+    "email": "E-mail",
+    "send": "Send me the link",
+    "invalidEmail": "Invalid e-mail address.",
+    "sent": "If an account exists for this address, an e-mail has just been sent to it. Remember to check your spam folder.",
+    "backToLogin": "Back to sign in",
+    "resetTitle": "New password",
+    "newPassword": "New password (at least 12 characters)",
+    "confirmPassword": "Confirm the password",
+    "save": "Save the password",
+    "mismatch": "The two passwords do not match.",
+    "tooShort": "The password must be at least 12 characters long.",
+    "invalidOrExpired": "This link is no longer valid: it has already been used or has expired.",
+    "askAgain": "Request a new link",
+    "done": "Password saved. You can sign in; two-factor authentication will be requested as usual.",
+    "mailSubject": "Choose a new Symbola password",
+    "mailBody": "Hello,\n\nA new password was requested for your Symbola account. This link is valid for 30 minutes and works only once:\n{link}\n\nIf you did not make this request, ignore this e-mail: your current password remains valid.\n\nThe Symbola team"
+  },
+  "AdminAccounts": {
+    "title": "Accounts and support",
+    "backToAdmin": "Back to administration",
+    "intro": "Team accounts of each organisation and pending invitations. Couples' accounts are not shown here.",
+    "noAccount": "No account or invitation.",
+    "accountsTable": "Accounts of {organization}",
+    "email": "E-mail",
+    "role": "Role",
+    "roleOwner": "Owner",
+    "roleMember": "Member",
+    "mfa": "Two-factor authentication",
+    "mfaConfigured": "Set up",
+    "mfaPending": "Not set up yet",
+    "mfaPendingHint": "The QR code will be offered at the next sign-in.",
+    "lockedUntil": "locked until {date}",
+    "lastLogin": "Last sign-in",
+    "never": "Never",
+    "actions": "Support",
+    "resetMfaConfirm": "I confirm: clear two-factor authentication for {email}",
+    "resetMfa": "Reset two-factor authentication",
+    "pendingInvitations": "Pending invitations",
+    "pendingInvitationsOf": "Pending invitations of {organization}",
+    "invitationValidUntil": "link valid until {date}",
+    "invitationExpired": "link expired on {date}",
+    "resendInvitation": "Resend the invitation to {email}",
+    "resultInvitationSent": "New invitation sent: the previous link no longer works.",
+    "resultMfaReset": "Two-factor authentication reset: the person was notified by e-mail and will scan a new QR code at the next sign-in.",
+    "resultMailFailed": "The action is done, but the e-mail could not be sent: let the person know directly.",
+    "resultConfirmationRequired": "Tick the confirmation box before resetting.",
+    "resultError": "Action not possible: the account or invitation is no longer in that state. Reload the page.",
+    "inviteMailSubject": "Your Symbola invitation",
+    "inviteMailBody": "Hello,\n\nYou have been invited to join \"{organization}\" on Symbola. Here is a new link, valid for 7 days (the previous one no longer works):\n{link}\n\nSee you soon,\nThe Symbola team",
+    "mfaResetMailSubject": "Your Symbola two-factor authentication was reset",
+    "mfaResetMailBody": "Hello,\n\nAt your request, the Symbola team reset the two-factor authentication of your account. At your next sign-in, enter your password then scan the new QR code with your app:\n{link}\n\nIf you did not ask for this, reply to this e-mail right away.\n\nThe Symbola team"
+  },
+  "AdminActivity": {
+    "title": "Organisation activity",
+    "backToAdmin": "Back to administration",
+    "intro": "Usage statistics, without any client data: numbers only, guided trials excluded, over the last 6 months.",
+    "empty": "No organisation.",
+    "summaryOf": "Summary of {organization}",
+    "teamAccounts": "{count, plural, =0 {No team account} one {# team account} other {# team accounts}}",
+    "clientAccounts": "{count, plural, =0 {No couple account} one {# couple account} other {# couple accounts}}",
+    "activeAccounts": "{count, plural, =0 {No account signed in over 30 days} one {# account signed in over 30 days} other {# accounts signed in over 30 days}}",
+    "lastLogin": "Last sign-in: {date}",
+    "neverLoggedIn": "No sign-in yet",
+    "monthlyTable": "Monthly activity of {organization}",
+    "month": "Month",
+    "events": "Events created",
+    "quotes": "Quotes created",
+    "invoices": "Invoices issued"
   }
 }

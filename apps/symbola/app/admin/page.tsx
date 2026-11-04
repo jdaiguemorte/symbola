@@ -36,6 +36,10 @@ export default async function AdminPage() {
       <h1>{t("title")}</h1>
       <HelpButton title={tHelp("admin.title")} body={tHelp("admin.body")} />
       <p>
+        <Link href="/admin/comptes">{t("viewAccounts")}</Link>
+        {" · "}
+        <Link href="/admin/activite">{t("viewActivity")}</Link>
+        {" · "}
         <Link href="/admin/health">{t("viewHealth")}</Link>
         {" · "}
         <Link href="/admin/parametres">{t("viewSettings")}</Link>

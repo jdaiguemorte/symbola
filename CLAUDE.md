@@ -126,7 +126,7 @@ son contrat HTTP `/v1/...` (trajectoire décrite dans chaque ADR 0011-0014).
 - Chaque requête base s'exécute dans une transaction qui fixe le contexte : `SET LOCAL app.organization_id = $1` (helper dans `packages/db`). Les policies RLS lisent ce paramètre.
 - Le rôle PostgreSQL de l'app n'est jamais propriétaire des tables et n'a pas `BYPASSRLS`.
 - Chaque route serveur vérifie : session valide, organisation, rôle, et pour un marié l'appartenance à l'événement. Jamais de contrôle uniquement côté client.
-- Le rôle Admin (opérateur de la suite) n'a **aucun** accès aux données métier des organisations.
+- Le rôle Admin (opérateur de la suite) n'a **aucun** accès aux données métier des organisations : il voit seulement les comptes de leur équipe (assistance) et des statistiques d'usage agrégées, sans nom, montant ni contenu (ADR 0029).
 
 ### Sécurité
 

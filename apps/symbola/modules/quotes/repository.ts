@@ -1,6 +1,6 @@
 // Accès aux données du module quotes — jamais importé hors de
 // modules/quotes/ (ADR 0011).
-import { and, asc, desc, eq, inArray, sql as raw } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, sql as raw } from "drizzle-orm";
 import { createAppConnection } from "@symbola/db/client";
 import {
   catalogItems,
@@ -980,4 +980,34 @@ export async function updateQuoteClientKind(organizationId: string, quoteId: str
     const rows = await tx.update(quotes).set({ clientKind, updatedAt: new Date() }).where(eq(quotes.id, quoteId)).returning({ id: quotes.id });
     return rows.length > 0;
   });
+}
+
+// Lot 9 (ADR 0029) — devis réels créés et factures réelles émises, par mois
+// (Europe/Paris) depuis une date : statistique d'usage pour l'Admin.
+export async function countQuotesAndInvoicesByMonth(
+  organizationId: string,
+  since: Date,
+): Promise<{ quotes: { month: string; count: number }[]; invoices: { month: string; count: number }[] }> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    return await withOrganization(db, organizationId, async (tx) => {
+      const quoteMonth = raw<string>`to_char(${quotes.createdAt} at time zone 'Europe/Paris', 'YYYY-MM')`;
+      const invoiceMonth = raw<string>`to_char(${invoices.issuedAt} at time zone 'Europe/Paris', 'YYYY-MM')`;
+      const quoteRows = await tx
+        .select({ month: quoteMonth, count: raw<number>`count(*)::int` })
+        .from(quotes)
+        .where(and(eq(quotes.isDemo, false), gte(quotes.createdAt, since)))
+        .groupBy(quoteMonth)
+        .orderBy(quoteMonth);
+      const invoiceRows = await tx
+        .select({ month: invoiceMonth, count: raw<number>`count(*)::int` })
+        .from(invoices)
+        .where(and(eq(invoices.isDemo, false), gte(invoices.issuedAt, since)))
+        .groupBy(invoiceMonth)
+        .orderBy(invoiceMonth);
+      return { quotes: quoteRows, invoices: invoiceRows };
+    });
+  } finally {
+    await pg.end();
+  }
 }

@@ -2,6 +2,7 @@
 // pensé comme le futur contrat HTTP /v1/quotes si le module est extrait en
 // app autonome (ADR 0011). Montants en centimes entiers EUR, taux et
 // remises en points de base, quantités en millièmes : jamais de float.
+import type { MonthlyCount } from "../usage";
 import type { FileDownload } from "../file-download";
 
 export type CatalogItemInput = {
@@ -369,6 +370,8 @@ export interface QuotesServiceContract {
   // ADR 0026 — relit chez le fournisseur les demandes en attente (webhook perdu).
   reconcilePendingSignatures(organizationId: string): Promise<{ checked: number; completed: number }>;
   // ADR 0027 — servi par l'app (jamais de lien direct vers le stockage).
+  // Lot 9 (ADR 0029) — statistiques d'usage pour l'Admin, essais exclus.
+  countQuotesAndInvoicesByMonth(organizationId: string, since: Date): Promise<{ quotes: MonthlyCount[]; invoices: MonthlyCount[] }>;
   getSignatureDocument(organizationId: string, quoteId: string, kind: "signed" | "certificate"): Promise<FileDownload>;
   listClientQuotesToSign(organizationId: string, eventId: string, clientEmail: string): Promise<ClientQuoteToSign[]>;
   setQuoteClientKind(organizationId: string, quoteId: string, clientKind: ClientKind): Promise<QuoteDetail>;
