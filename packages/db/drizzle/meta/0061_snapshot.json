@@ -1,6 +1,6 @@
 {
-  "id": "13dc601e-e5b6-4359-aa14-ee30d0f50dea",
-  "prevId": "49003da3-c425-4d86-b1f2-485a86eed242",
+  "id": "14c80f6e-70e8-4b0d-987e-3e182020ed88",
+  "prevId": "2770f79b-4898-48b7-93f3-45f5f9c85425",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -2040,6 +2040,12 @@
           "primaryKey": false,
           "notNull": true,
           "default": 0
+        },
+        "context": {
+          "name": "context",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
         },
         "started_at": {
           "name": "started_at",

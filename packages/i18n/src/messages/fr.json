@@ -1858,5 +1858,257 @@
     "step": "étape {step}",
     "roleOwner": "Titulaire",
     "roleMember": "Membre"
+  },
+  "Tutorials": {
+    "badge": "Tutoriel · {minutes} minutes",
+    "exampleNote": "Les exemples créés ici sont fictifs : marqués « Essai », ils sont supprimés à la fin du tutoriel (ou au bout de 24 h s'il est abandonné).",
+    "backToHelp": "Retour au centre d'aide",
+    "unavailable": "Ce tutoriel concerne un module que votre organisation n'a pas souscrit.",
+    "stepOf": "Étape {step} sur {total}",
+    "continue": "Continuer",
+    "createExample": "Créer l'exemple",
+    "openExample": "Ouvrir l'exemple",
+    "openScreen": "Voir à l'écran",
+    "check": "J'ai fait, vérifier",
+    "checkHint": "Ce n'est pas encore fait sur l'exemple : ouvrez-le, faites l'action décrite, puis revenez vérifier.",
+    "finishAndDelete": "Terminer et supprimer l'exemple",
+    "doneTitle": "Bravo, tutoriel terminé",
+    "doneBody": "L'exemple est réglé selon votre choix. Le tutoriel suivant vous attend dans le centre d'aide.",
+    "alreadyDoneTitle": "Tutoriel déjà terminé",
+    "alreadyDoneBody": "Vous pouvez le refaire à tout moment, avec un nouvel exemple.",
+    "restart": "Refaire ce tutoriel",
+    "catalogSuggestion": "Par exemple : « {label} », {price} / {unit}.",
+    "event-page": {
+      "steps": [
+        {
+          "title": "Comprendre",
+          "body": "Chaque événement a sa fiche : statut, prestataires, rétroplanning, programme, devis et clients, rangés en onglets. Créons un anniversaire fictif pour la parcourir."
+        },
+        {
+          "title": "Créer l'exemple",
+          "body": "Symbola crée « l'anniversaire des 40 ans de Camille », avec ses postes de prestataires et ses tâches de départ."
+        },
+        {
+          "title": "Confirmer l'événement",
+          "body": "Ouvrez l'exemple, onglet Vue d'ensemble, et passez son statut à « Confirmé », comme lorsqu'un client donne son accord."
+        },
+        {
+          "title": "Réserver un prestataire",
+          "body": "Dans l'onglet Prestataires, choisissez un poste (par exemple le traiteur), passez-le à « Réservé » et saisissez un nom de prestataire."
+        },
+        {
+          "title": "Cocher une tâche",
+          "body": "Dans l'onglet Rétroplanning, cochez une tâche faite : la progression de l'événement se met à jour."
+        },
+        {
+          "title": "Terminer",
+          "body": "Vous savez suivre un événement de bout en bout. L'exemple va être supprimé."
+        }
+      ]
+    },
+    "retroplanning-template": {
+      "keep": "Garder le modèle comme base",
+      "drop": "Tout supprimer",
+      "steps": [
+        {
+          "title": "Comprendre",
+          "body": "Un modèle de rétroplanning liste une fois pour toutes les tâches d'un type d'événement, avec leur délai avant le jour J. Appliqué à un événement, il crée toutes les tâches avec leur date."
+        },
+        {
+          "title": "Créer l'exemple",
+          "body": "Symbola crée un séminaire d'entreprise fictif et un modèle « Séminaire express », à partir duquel on va travailler."
+        },
+        {
+          "title": "Regarder le modèle",
+          "body": "Le modèle apparaît dans Paramètres › Événements › Modèles de rétroplanning : chaque tâche a son délai (par exemple 90 jours avant) et qui la réalise."
+        },
+        {
+          "title": "Appliquer le modèle",
+          "body": "Ouvrez l'exemple, onglet Rétroplanning, choisissez « Séminaire express » et cliquez « Appliquer le modèle » : les tâches arrivent avec leur échéance."
+        },
+        {
+          "title": "Déplacer la date",
+          "body": "Onglet Vue d'ensemble, changez la date de l'événement : Symbola propose de recalculer les échéances. Acceptez et regardez-les suivre."
+        },
+        {
+          "title": "Garder ou supprimer",
+          "body": "L'événement d'exemple va être supprimé. Voulez-vous garder « Séminaire express » comme base de vos propres modèles ?"
+        }
+      ]
+    },
+    "catalog": {
+      "keep": "Garder cette prestation",
+      "drop": "La supprimer",
+      "steps": [
+        {
+          "title": "Comprendre",
+          "body": "Le catalogue liste vos prestations avec leur prix, leur unité et leur TVA. Un devis se compose en quelques clics à partir du catalogue, sans rien ressaisir."
+        },
+        {
+          "title": "Préparer",
+          "body": "Symbola note l'état de votre catalogue pour reconnaître la prestation que vous allez ajouter."
+        },
+        {
+          "title": "Ajouter une prestation",
+          "body": "Ouvrez le catalogue et ajoutez une prestation : un intitulé, une unité et un prix suffisent."
+        },
+        {
+          "title": "À quoi elle sert",
+          "body": "Dans chaque devis, « Ajouter depuis le catalogue » reprend cette prestation avec son prix et sa TVA. Modifier le catalogue ne change jamais un devis déjà envoyé."
+        },
+        {
+          "title": "Garder ou supprimer",
+          "body": "Gardez-vous cette prestation dans votre catalogue ?"
+        }
+      ]
+    },
+    "quote-signature": {
+      "steps": [
+        {
+          "title": "Comprendre",
+          "body": "Un devis se compose depuis la fiche d'un événement, s'envoie, puis se signe en ligne par vos clients. Signé, il confirme l'événement."
+        },
+        {
+          "title": "Créer l'exemple",
+          "body": "Symbola crée un mariage fictif et un devis d'exemple, déjà rempli de lignes et d'un échéancier."
+        },
+        {
+          "title": "Envoyer en signature",
+          "body": "Ouvrez le devis d'exemple, cliquez « Envoyer le devis » puis « Envoyer en signature ». Pendant un exemple, aucun e-mail ne part : les liens de signature s'affichent sur le devis."
+        },
+        {
+          "title": "Signer",
+          "body": "Ouvrez un lien de signature affiché sur le devis et signez à la place de chaque client. Le devis passe à « Signé »."
+        },
+        {
+          "title": "Terminer",
+          "body": "Vous savez faire signer un devis en ligne. L'exemple va être supprimé."
+        }
+      ]
+    },
+    "deposit-invoice": {
+      "steps": [
+        {
+          "title": "Comprendre",
+          "body": "Une fois le devis signé, vous facturez chaque acompte de l'échéancier, puis le solde. La numérotation est continue et une facture émise ne se modifie plus (correction par avoir)."
+        },
+        {
+          "title": "Créer l'exemple",
+          "body": "Symbola crée un gala fictif et son devis d'exemple, avec un échéancier."
+        },
+        {
+          "title": "Faire signer le devis",
+          "body": "Ouvrez le devis d'exemple : envoyez-le, envoyez-le en signature, puis signez par les liens affichés."
+        },
+        {
+          "title": "Facturer l'acompte",
+          "body": "Sur le devis signé, dans l'échéancier, cliquez « Facturer » sur l'acompte. La facture d'exemple porte une numérotation à part : elle ne consomme jamais vos vrais numéros."
+        },
+        {
+          "title": "Facturer le solde",
+          "body": "Facturez maintenant le solde : il reprend le total du devis moins les acomptes déjà facturés."
+        },
+        {
+          "title": "Terminer",
+          "body": "Vous savez facturer un acompte puis le solde. L'exemple va être supprimé."
+        }
+      ]
+    },
+    "budget-simulation": {
+      "steps": [
+        {
+          "title": "Comprendre",
+          "body": "Le budget répartit une enveloppe par poste à partir d'un modèle de répartition, puis compare le prévu et le réel au fil des réservations."
+        },
+        {
+          "title": "Créer l'exemple",
+          "body": "Symbola crée un baptême fictif pour lequel simuler un budget."
+        },
+        {
+          "title": "Simuler le budget",
+          "body": "Ouvrez le budget de l'exemple, saisissez une enveloppe et un nombre d'invités, choisissez un modèle de répartition et lancez la simulation."
+        },
+        {
+          "title": "Saisir un réel",
+          "body": "Saisissez un montant réel sur un poste : l'écart avec le prévu s'affiche, en terracotta s'il y a dépassement."
+        },
+        {
+          "title": "Terminer",
+          "body": "Vous savez simuler et suivre un budget. L'exemple va être supprimé."
+        }
+      ]
+    },
+    "day-program": {
+      "steps": [
+        {
+          "title": "Comprendre",
+          "body": "Le programme du jour J liste les moments de l'événement, heure par heure, avec les prestataires concernés. Il se télécharge en deux versions : pour les clients et pour les prestataires."
+        },
+        {
+          "title": "Créer l'exemple",
+          "body": "Symbola crée un mariage fictif avec un programme vide."
+        },
+        {
+          "title": "Partir d'un modèle",
+          "body": "Ouvrez l'onglet Programme du jour J de l'exemple, choisissez un modèle de programme et appliquez-le (ou ajoutez une première ligne)."
+        },
+        {
+          "title": "Télécharger",
+          "body": "Toujours dans l'onglet Programme, téléchargez la version prestataires : les notes internes n'apparaissent que là, jamais dans la version des clients."
+        },
+        {
+          "title": "Terminer",
+          "body": "Vous savez préparer le programme du jour J. L'exemple va être supprimé."
+        }
+      ]
+    },
+    "client-space": {
+      "steps": [
+        {
+          "title": "Comprendre",
+          "body": "Vos clients peuvent suivre la préparation de leur événement dans leur propre espace : leurs tâches, le programme et le budget, jamais vos notes internes ni vos autres événements."
+        },
+        {
+          "title": "Créer l'exemple",
+          "body": "Symbola crée un anniversaire de mariage fictif, avec ses tâches."
+        },
+        {
+          "title": "L'onglet Clients",
+          "body": "Dans l'onglet Mariés de l'exemple, vous inviterez vos clients par e-mail (pendant un exemple, aucune invitation ne part). Vous pourrez retirer l'accès à tout moment."
+        },
+        {
+          "title": "Ce qu'ils voient",
+          "body": "Dans le rétroplanning, les tâches « Clients » sont celles qu'ils verront et pourront cocher ; leurs coches apparaissent dans votre fil d'activité."
+        },
+        {
+          "title": "Terminer",
+          "body": "Vous savez ouvrir l'espace de vos clients. L'exemple va être supprimé."
+        }
+      ]
+    },
+    "import": {
+      "steps": [
+        {
+          "title": "Comprendre",
+          "body": "L'import reprend vos données existantes depuis un fichier (Excel, CSV ou JSON) : vous associez les colonnes, vérifiez un aperçu, puis confirmez. Un import se défait pendant 30 jours."
+        },
+        {
+          "title": "Préparer",
+          "body": "Symbola note vos imports actuels pour reconnaître celui que vous allez commencer."
+        },
+        {
+          "title": "Commencer un import",
+          "body": "Ouvrez Importer des données et déposez un petit fichier de quelques lignes, par exemple un export de votre tableur. Allez jusqu'à l'aperçu."
+        },
+        {
+          "title": "Vérifier avant de confirmer",
+          "body": "L'aperçu montre ce qui sera créé et les écarts détectés. Rien n'est enregistré tant que vous ne confirmez pas : si c'était un essai, abandonnez l'import."
+        },
+        {
+          "title": "Terminer",
+          "body": "Vous savez reprendre vos données existantes."
+        }
+      ]
+    }
   }
 }

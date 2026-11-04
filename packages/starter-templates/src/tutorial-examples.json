@@ -1,0 +1,84 @@
+{
+  "version": 1,
+  "events": {
+    "event-page": {
+      "kind": { "fr": "Anniversaire des 40 ans", "en": "40th birthday party" },
+      "daysFromToday": 120,
+      "withPlanning": true,
+      "clients": [{ "firstName": { "fr": "Camille", "en": "Camille" }, "lastName": { "fr": "Roux (exemple)", "en": "Roux (example)" } }],
+      "venueName": { "fr": "Le Moulin de la Vallée (fictif)", "en": "Valley Mill (fictional)" },
+      "venueCity": { "fr": "Annecy", "en": "Annecy" }
+    },
+    "retroplanning-template": {
+      "kind": { "fr": "Séminaire d'entreprise", "en": "Company retreat" },
+      "daysFromToday": 200,
+      "withPlanning": false,
+      "clients": [{ "firstName": { "fr": "Nadia", "en": "Nadia" }, "lastName": { "fr": "Ardent (exemple)", "en": "Ardent (example)" } }],
+      "venueName": { "fr": "Château des Pins (fictif)", "en": "Pine Castle (fictional)" },
+      "venueCity": { "fr": "Bordeaux", "en": "Bordeaux" }
+    },
+    "quote-signature": {
+      "kind": { "fr": "Mariage", "en": "Wedding" },
+      "daysFromToday": 240,
+      "withPlanning": false,
+      "clients": [
+        { "firstName": { "fr": "Léa", "en": "Léa" }, "lastName": { "fr": "Morel (exemple)", "en": "Morel (example)" } },
+        { "firstName": { "fr": "Hugo", "en": "Hugo" }, "lastName": { "fr": "Blanc (exemple)", "en": "Blanc (example)" } }
+      ],
+      "venueName": { "fr": "Domaine des Tilleuls (fictif)", "en": "Linden Estate (fictional)" },
+      "venueCity": { "fr": "Lyon", "en": "Lyon" }
+    },
+    "deposit-invoice": {
+      "kind": { "fr": "Gala d'association", "en": "Charity gala" },
+      "daysFromToday": 150,
+      "withPlanning": false,
+      "clients": [{ "firstName": { "fr": "Sophie", "en": "Sophie" }, "lastName": { "fr": "Garnier (exemple)", "en": "Garnier (example)" } }],
+      "venueName": { "fr": "Salle des Fêtes du Port (fictive)", "en": "Harbour Hall (fictional)" },
+      "venueCity": { "fr": "La Rochelle", "en": "La Rochelle" }
+    },
+    "budget-simulation": {
+      "kind": { "fr": "Baptême", "en": "Christening" },
+      "daysFromToday": 90,
+      "withPlanning": false,
+      "clients": [{ "firstName": { "fr": "Jules", "en": "Jules" }, "lastName": { "fr": "Petit (exemple)", "en": "Petit (example)" } }],
+      "venueName": { "fr": "Auberge du Lac (fictive)", "en": "Lakeside Inn (fictional)" },
+      "venueCity": { "fr": "Gérardmer", "en": "Gérardmer" }
+    },
+    "day-program": {
+      "kind": { "fr": "Mariage", "en": "Wedding" },
+      "daysFromToday": 180,
+      "withPlanning": false,
+      "clients": [
+        { "firstName": { "fr": "Alix", "en": "Alix" }, "lastName": { "fr": "Faure (exemple)", "en": "Faure (example)" } },
+        { "firstName": { "fr": "Sam", "en": "Sam" }, "lastName": { "fr": "Henry (exemple)", "en": "Henry (example)" } }
+      ],
+      "venueName": { "fr": "Bastide des Oliviers (fictive)", "en": "Olive Grove Farmhouse (fictional)" },
+      "venueCity": { "fr": "Aix-en-Provence", "en": "Aix-en-Provence" }
+    },
+    "client-space": {
+      "kind": { "fr": "Anniversaire de mariage", "en": "Wedding anniversary" },
+      "daysFromToday": 100,
+      "withPlanning": true,
+      "clients": [
+        { "firstName": { "fr": "Inès", "en": "Inès" }, "lastName": { "fr": "Lambert (exemple)", "en": "Lambert (example)" } },
+        { "firstName": { "fr": "Malo", "en": "Malo" }, "lastName": { "fr": "Lambert (exemple)", "en": "Lambert (example)" } }
+      ],
+      "venueName": { "fr": "Villa des Embruns (fictive)", "en": "Sea Spray Villa (fictional)" },
+      "venueCity": { "fr": "Biarritz", "en": "Biarritz" }
+    }
+  },
+  "taskTemplate": {
+    "name": { "fr": "Séminaire express (exemple)", "en": "Express retreat (example)" },
+    "items": [
+      { "label": { "fr": "Réserver le lieu", "en": "Book the venue" }, "offsetDays": -150, "responsible": "planner" },
+      { "label": { "fr": "Choisir le traiteur", "en": "Choose the caterer" }, "offsetDays": -90, "responsible": "planner" },
+      { "label": { "fr": "Envoyer les invitations", "en": "Send the invitations" }, "offsetDays": -45, "responsible": "clients" },
+      { "label": { "fr": "Confirmer le nombre de participants", "en": "Confirm the number of guests" }, "offsetDays": -10, "responsible": "clients" }
+    ]
+  },
+  "catalogItem": {
+    "label": { "fr": "Coordination du jour J (exemple)", "en": "On-the-day coordination (example)" },
+    "unit": { "fr": "forfait", "en": "package" },
+    "unitPriceCents": 120000
+  }
+}

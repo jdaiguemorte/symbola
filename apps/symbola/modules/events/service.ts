@@ -7,7 +7,7 @@ import { createUser, findAccountByEmail } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
 import { parseEnv } from "@symbola/env";
 import { sendMail } from "@symbola/mail";
-import { starterDemoEvent, starterProgram, starterRetroplanning, starterVendorSlots } from "@symbola/starter-templates";
+import { starterDemoEvent, starterProgram, starterRetroplanning, starterTutorialEvent, starterVendorSlots } from "@symbola/starter-templates";
 import {
   findEventNamesByIds,
   searchEventRows,
@@ -1048,6 +1048,33 @@ export async function startEventsTrial(input: StartEventsTrialInput): Promise<Ev
     programItems: program.items,
   });
   return toTrial(event);
+}
+
+// Lot 10 (AIDE-06) — événement fictif d'un tutoriel « en faisant » : son type
+// (anniversaire, séminaire, mariage…) et ses données viennent des modèles de
+// départ ; marqué démo, supprimé avec le tutoriel ou au bout de 24 h comme
+// l'essai guidé. withPlanning : avec ou sans rétroplanning et programme de
+// départ (un tutoriel qui fait appliquer un modèle part d'un événement vide).
+export async function startTutorialEvent(input: StartEventsTrialInput & { tutorialKey: string }): Promise<EventsTrial & { kind: string }> {
+  const now = input.now ?? new Date();
+  const example = starterTutorialEvent(input.tutorialKey, input.locale);
+  if (!example) throw new Error(`aucun exemple pour le tutoriel ${input.tutorialKey}`);
+  const eventDate = addDays(now.toISOString().slice(0, 10), example.daysFromToday);
+  const retroplanning = starterRetroplanning(input.locale);
+  const event = await insertDemoEvent(input.organizationId, {
+    createdByUserId: input.userId,
+    eventDate,
+    expiresAt: new Date(now.getTime() + TRIAL_DURATION_MS),
+    clients: example.clients,
+    venueName: example.venueName,
+    venueCity: example.venueCity,
+    fallbackVendorSlotLabels: starterVendorSlots(input.locale),
+    tasks: example.withPlanning
+      ? retroplanning.items.map((item) => ({ label: item.label, dueDate: addDays(eventDate, item.offsetDays), responsible: item.responsible }))
+      : [],
+    programItems: example.withPlanning ? starterProgram(input.locale).items : [],
+  });
+  return { ...toTrial(event), kind: example.kind };
 }
 
 export async function getActiveEventsTrial(organizationId: string, now: Date = new Date()): Promise<EventsTrial | null> {

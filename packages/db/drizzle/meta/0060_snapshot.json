@@ -1,5 +1,5 @@
 {
-  "id": "49003da3-c425-4d86-b1f2-485a86eed242",
+  "id": "2770f79b-4898-48b7-93f3-45f5f9c85425",
   "prevId": "892a00db-e0ec-4975-b094-3ceb38e48c7e",
   "version": "7",
   "dialect": "postgresql",
@@ -2040,6 +2040,12 @@
           "primaryKey": false,
           "notNull": true,
           "default": 0
+        },
+        "context": {
+          "name": "context",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
         },
         "started_at": {
           "name": "started_at",

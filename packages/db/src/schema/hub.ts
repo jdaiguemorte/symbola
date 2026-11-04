@@ -124,6 +124,10 @@ export const helpProgress = hubSchema.table(
     itemKey: text("item_key").notNull(),
     status: helpProgressStatusEnum("status").notNull(),
     step: integer("step").notNull().default(0),
+    // Tutoriel (AIDE-06) : identifiants des données d'exemple qu'il a créées
+    // (événement fictif, modèle…), pour reprendre et nettoyer. Jamais de
+    // contenu.
+    context: jsonb("context").$type<Record<string, string>>(),
     startedAt: timestamp("started_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
     completedAt: timestamp("completed_at", { withTimezone: true }),

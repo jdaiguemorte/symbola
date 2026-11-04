@@ -14,6 +14,7 @@ import privacySettingsFile from "./privacy-settings.json";
 import programFile from "./program.json";
 import prospectSourcesFile from "./prospect-sources.json";
 import retroplanningFile from "./retroplanning.json";
+import tutorialExamplesFile from "./tutorial-examples.json";
 import vendorSlotsFile from "./vendor-slots.json";
 
 export type StarterLocale = "fr" | "en";
@@ -303,4 +304,56 @@ const privacyErasureResponse = z
 
 export function starterErasureResponse(locale: StarterLocale): { subject: string; body: string } {
   return { subject: privacyErasureResponse.subject[locale], body: privacyErasureResponse.body[locale] };
+}
+
+// Lot 10 (AIDE-06) — exemples fictifs des tutoriels « en faisant » : un type
+// d'événement par tutoriel (anniversaire, séminaire, mariage, baptême…),
+// pour que l'aide ne se limite pas aux mariages ; plus le modèle de
+// rétroplanning et la prestation d'exemple.
+const tutorialEventSchema = z.object({
+  kind: translatedLabelSchema,
+  daysFromToday: z.number().int().positive(),
+  withPlanning: z.boolean(),
+  clients: z.array(z.object({ firstName: translatedLabelSchema, lastName: translatedLabelSchema })).min(1),
+  venueName: translatedLabelSchema,
+  venueCity: translatedLabelSchema,
+});
+
+const tutorialExamples = z
+  .object({
+    version: z.literal(1),
+    events: z.record(z.string(), tutorialEventSchema),
+    taskTemplate: z.object({
+      name: translatedLabelSchema,
+      items: z.array(z.object({ label: translatedLabelSchema, offsetDays: z.number().int(), responsible: z.enum(["planner", "clients"]) })).min(1),
+    }),
+    catalogItem: z.object({ label: translatedLabelSchema, unit: translatedLabelSchema, unitPriceCents: z.number().int().nonnegative() }),
+  })
+  .parse(tutorialExamplesFile);
+
+export type StarterTutorialEvent = StarterDemoEvent & { kind: string; withPlanning: boolean };
+
+export function starterTutorialEvent(key: string, locale: StarterLocale): StarterTutorialEvent | null {
+  const example = tutorialExamples.events[key];
+  if (!example) return null;
+  return {
+    kind: example.kind[locale],
+    withPlanning: example.withPlanning,
+    daysFromToday: example.daysFromToday,
+    clients: example.clients.map((client) => ({ firstName: client.firstName[locale], lastName: client.lastName[locale] })),
+    venueName: example.venueName[locale],
+    venueCity: example.venueCity[locale],
+  };
+}
+
+export function starterTutorialTaskTemplate(locale: StarterLocale): StarterTaskTemplate {
+  return {
+    name: tutorialExamples.taskTemplate.name[locale],
+    items: tutorialExamples.taskTemplate.items.map((item) => ({ label: item.label[locale], offsetDays: item.offsetDays, responsible: item.responsible })),
+  };
+}
+
+export function starterTutorialCatalogItem(locale: StarterLocale): { label: string; unit: string; unitPriceCents: number } {
+  const item = tutorialExamples.catalogItem;
+  return { label: item.label[locale], unit: item.unit[locale], unitPriceCents: item.unitPriceCents };
 }

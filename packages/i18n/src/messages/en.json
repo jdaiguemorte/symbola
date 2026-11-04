@@ -1858,5 +1858,257 @@
     "step": "step {step}",
     "roleOwner": "Owner",
     "roleMember": "Member"
+  },
+  "Tutorials": {
+    "badge": "Tutorial · {minutes} minutes",
+    "exampleNote": "The examples created here are fictional: marked \"Trial\", they are deleted at the end of the tutorial (or after 24 hours if abandoned).",
+    "backToHelp": "Back to the help centre",
+    "unavailable": "This tutorial covers a module your organisation has not subscribed to.",
+    "stepOf": "Step {step} of {total}",
+    "continue": "Continue",
+    "createExample": "Create the example",
+    "openExample": "Open the example",
+    "openScreen": "See it on screen",
+    "check": "Done, check it",
+    "checkHint": "It is not done on the example yet: open it, do the action described, then come back to check.",
+    "finishAndDelete": "Finish and delete the example",
+    "doneTitle": "Well done, tutorial finished",
+    "doneBody": "The example is handled as you chose. The next tutorial is waiting in the help centre.",
+    "alreadyDoneTitle": "Tutorial already finished",
+    "alreadyDoneBody": "You can do it again at any time, with a new example.",
+    "restart": "Do this tutorial again",
+    "catalogSuggestion": "For example: \"{label}\", {price} / {unit}.",
+    "event-page": {
+      "steps": [
+        {
+          "title": "Understand",
+          "body": "Each event has its page: status, vendors, planning timeline, programme, quotes and clients, organised in tabs. Let's create a fictional birthday party to go through it."
+        },
+        {
+          "title": "Create the example",
+          "body": "Symbola creates \"Camille's 40th birthday party\", with its vendor slots and starter tasks."
+        },
+        {
+          "title": "Confirm the event",
+          "body": "Open the example, Overview tab, and set its status to \"Confirmed\", as when a client agrees."
+        },
+        {
+          "title": "Book a vendor",
+          "body": "In the Vendors tab, pick a slot (the caterer, for example), set it to \"Booked\" and enter a vendor name."
+        },
+        {
+          "title": "Tick a task",
+          "body": "In the Planning timeline tab, tick a task as done: the event's progress updates."
+        },
+        {
+          "title": "Finish",
+          "body": "You know how to follow an event from start to finish. The example will be deleted."
+        }
+      ]
+    },
+    "retroplanning-template": {
+      "keep": "Keep the template as a base",
+      "drop": "Delete everything",
+      "steps": [
+        {
+          "title": "Understand",
+          "body": "A planning template lists, once and for all, the tasks of a type of event with their lead time before the day. Applied to an event, it creates every task with its date."
+        },
+        {
+          "title": "Create the example",
+          "body": "Symbola creates a fictional company retreat and an \"Express retreat\" template to work from."
+        },
+        {
+          "title": "Look at the template",
+          "body": "The template appears in Settings › Events › Planning templates: each task has its lead time (90 days before, for example) and who does it."
+        },
+        {
+          "title": "Apply the template",
+          "body": "Open the example, Planning timeline tab, choose \"Express retreat\" and click \"Apply template\": the tasks arrive with their due dates."
+        },
+        {
+          "title": "Move the date",
+          "body": "In the Overview tab, change the event date: Symbola offers to recompute the due dates. Accept and watch them follow."
+        },
+        {
+          "title": "Keep or delete",
+          "body": "The example event will be deleted. Do you want to keep \"Express retreat\" as a base for your own templates?"
+        }
+      ]
+    },
+    "catalog": {
+      "keep": "Keep this service",
+      "drop": "Delete it",
+      "steps": [
+        {
+          "title": "Understand",
+          "body": "The catalogue lists your services with their price, unit and VAT. A quote is built in a few clicks from the catalogue, without retyping anything."
+        },
+        {
+          "title": "Prepare",
+          "body": "Symbola notes your catalogue's current state to recognise the service you are about to add."
+        },
+        {
+          "title": "Add a service",
+          "body": "Open the catalogue and add a service: a label, a unit and a price are enough."
+        },
+        {
+          "title": "What it is for",
+          "body": "In every quote, \"Add from catalogue\" picks up this service with its price and VAT. Changing the catalogue never changes a quote already sent."
+        },
+        {
+          "title": "Keep or delete",
+          "body": "Do you keep this service in your catalogue?"
+        }
+      ]
+    },
+    "quote-signature": {
+      "steps": [
+        {
+          "title": "Understand",
+          "body": "A quote is written from an event's page, sent, then signed online by your clients. Once signed, it confirms the event."
+        },
+        {
+          "title": "Create the example",
+          "body": "Symbola creates a fictional wedding and an example quote, already filled with lines and a payment schedule."
+        },
+        {
+          "title": "Send for signature",
+          "body": "Open the example quote, click \"Send the quote\" then \"Send for signature\". During an example no e-mail is sent: the signing links show on the quote."
+        },
+        {
+          "title": "Sign",
+          "body": "Open a signing link shown on the quote and sign on behalf of each client. The quote becomes \"Signed\"."
+        },
+        {
+          "title": "Finish",
+          "body": "You know how to get a quote signed online. The example will be deleted."
+        }
+      ]
+    },
+    "deposit-invoice": {
+      "steps": [
+        {
+          "title": "Understand",
+          "body": "Once the quote is signed, you invoice each deposit of the schedule, then the balance. Numbering is continuous and an issued invoice never changes (corrections go through a credit note)."
+        },
+        {
+          "title": "Create the example",
+          "body": "Symbola creates a fictional gala and its example quote, with a payment schedule."
+        },
+        {
+          "title": "Get the quote signed",
+          "body": "Open the example quote: send it, send it for signature, then sign through the links shown."
+        },
+        {
+          "title": "Invoice the deposit",
+          "body": "On the signed quote, in the schedule, click \"Invoice\" on the deposit. The example invoice uses a separate numbering: it never uses up your real numbers."
+        },
+        {
+          "title": "Invoice the balance",
+          "body": "Now invoice the balance: it takes the quote total minus the deposits already invoiced."
+        },
+        {
+          "title": "Finish",
+          "body": "You know how to invoice a deposit then the balance. The example will be deleted."
+        }
+      ]
+    },
+    "budget-simulation": {
+      "steps": [
+        {
+          "title": "Understand",
+          "body": "The budget splits an envelope by item from an allocation model, then compares planned and actual as bookings come in."
+        },
+        {
+          "title": "Create the example",
+          "body": "Symbola creates a fictional christening to simulate a budget for."
+        },
+        {
+          "title": "Simulate the budget",
+          "body": "Open the example's budget, enter an envelope and a number of guests, choose an allocation model and run the simulation."
+        },
+        {
+          "title": "Enter an actual",
+          "body": "Enter an actual amount on an item: the difference with the plan shows, in terracotta if over budget."
+        },
+        {
+          "title": "Finish",
+          "body": "You know how to simulate and follow a budget. The example will be deleted."
+        }
+      ]
+    },
+    "day-program": {
+      "steps": [
+        {
+          "title": "Understand",
+          "body": "The day's programme lists the moments of the event, hour by hour, with the vendors involved. It downloads in two versions: for clients and for vendors."
+        },
+        {
+          "title": "Create the example",
+          "body": "Symbola creates a fictional wedding with an empty programme."
+        },
+        {
+          "title": "Start from a template",
+          "body": "Open the example's Day programme tab, choose a programme template and apply it (or add a first line)."
+        },
+        {
+          "title": "Download",
+          "body": "Still in the Programme tab, download the vendors' version: internal notes only appear there, never in the clients' version."
+        },
+        {
+          "title": "Finish",
+          "body": "You know how to prepare the day's programme. The example will be deleted."
+        }
+      ]
+    },
+    "client-space": {
+      "steps": [
+        {
+          "title": "Understand",
+          "body": "Your clients can follow their event's preparation in their own space: their tasks, the programme and the budget, never your internal notes or your other events."
+        },
+        {
+          "title": "Create the example",
+          "body": "Symbola creates a fictional wedding anniversary, with its tasks."
+        },
+        {
+          "title": "The Clients tab",
+          "body": "In the example's Couple tab, you will invite your clients by e-mail (during an example no invitation is sent). You can remove their access at any time."
+        },
+        {
+          "title": "What they see",
+          "body": "In the planning timeline, \"Clients\" tasks are the ones they will see and can tick; their ticks appear in your activity feed."
+        },
+        {
+          "title": "Finish",
+          "body": "You know how to open your clients' space. The example will be deleted."
+        }
+      ]
+    },
+    "import": {
+      "steps": [
+        {
+          "title": "Understand",
+          "body": "Import brings in your existing data from a file (Excel, CSV or JSON): you match the columns, check a preview, then confirm. An import can be undone for 30 days."
+        },
+        {
+          "title": "Prepare",
+          "body": "Symbola notes your current imports to recognise the one you are about to start."
+        },
+        {
+          "title": "Start an import",
+          "body": "Open Import data and drop a small file of a few lines, for example an export from your spreadsheet. Go as far as the preview."
+        },
+        {
+          "title": "Check before confirming",
+          "body": "The preview shows what will be created and the gaps detected. Nothing is saved until you confirm: if it was a test, abandon the import."
+        },
+        {
+          "title": "Finish",
+          "body": "You know how to bring in your existing data."
+        }
+      ]
+    }
   }
 }

@@ -146,3 +146,15 @@ describe("RGPD-03 — Modèle de réponse à une demande d'effacement", () => {
     }
   });
 });
+
+describe("AIDE-06 — exemples des tutoriels", () => {
+  it("varient les types d'événements et existent en FR et EN", async () => {
+    const { starterTutorialEvent, starterTutorialTaskTemplate, starterTutorialCatalogItem } = await import("./index");
+    const kinds = ["event-page", "retroplanning-template", "budget-simulation"].map((key) => starterTutorialEvent(key, "fr")!.kind);
+    expect(new Set(kinds).size).toBe(3);
+    expect(starterTutorialEvent("event-page", "en")!.venueName).toContain("fictional");
+    expect(starterTutorialEvent("inconnu", "fr")).toBeNull();
+    expect(starterTutorialTaskTemplate("fr").items.length).toBeGreaterThan(2);
+    expect(starterTutorialCatalogItem("en").label).toContain("example");
+  });
+});

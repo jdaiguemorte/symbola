@@ -19,6 +19,7 @@ import {
   insertInvitation,
   insertOrganization,
   upsertHelpProgress,
+  resetHelpProgressItem,
   insertVatRegimeChange,
   listAllOrganizations,
   markInvitationAccepted,
@@ -442,13 +443,21 @@ export async function setPlatformSettings(
 // focus (« tour:<écran> ») et tutoriels (« tutorial:<clé> »). Un élément jamais
 // ouvert n'a pas de ligne ; « postponed » = mis de côté avec son étape.
 export type HelpProgressStatus = "started" | "postponed" | "completed";
-export type HelpProgressEntry = { itemKey: string; status: HelpProgressStatus; step: number; updatedAt: Date; completedAt: Date | null };
+export type HelpProgressEntry = {
+  itemKey: string;
+  status: HelpProgressStatus;
+  step: number;
+  context: Record<string, string> | null;
+  updatedAt: Date;
+  completedAt: Date | null;
+};
 
 export async function getHelpProgress(db: AppDatabase, userId: string): Promise<HelpProgressEntry[]> {
   return (await findHelpProgress(db, userId)).map((row) => ({
     itemKey: row.itemKey,
     status: row.status,
     step: row.step,
+    context: row.context ?? null,
     updatedAt: row.updatedAt,
     completedAt: row.completedAt,
   }));
@@ -465,7 +474,7 @@ export class InvalidHelpItemError extends Error {
 
 export async function recordHelpProgress(
   db: AppDatabase,
-  input: { userId: string; itemKey: string; status: HelpProgressStatus; step?: number; now?: Date },
+  input: { userId: string; itemKey: string; status: HelpProgressStatus; step?: number; context?: Record<string, string> | null; now?: Date },
 ): Promise<void> {
   if (!HELP_ITEM_KEY.test(input.itemKey)) throw new InvalidHelpItemError();
   await upsertHelpProgress(db, {
@@ -474,7 +483,14 @@ export async function recordHelpProgress(
     status: input.status,
     step: Math.max(0, Math.min(input.step ?? 0, 50)),
     now: input.now ?? new Date(),
+    ...(input.context === undefined ? {} : { context: input.context }),
   });
+}
+
+// AIDE-06 — recommencer un tutoriel (revoir) : étape 0, sans contexte.
+export async function restartHelpItem(db: AppDatabase, userId: string, itemKey: string): Promise<void> {
+  if (!HELP_ITEM_KEY.test(itemKey)) throw new InvalidHelpItemError();
+  await resetHelpProgressItem(db, userId, itemKey, new Date());
 }
 
 // AIDE-01, AIDE-05 — une visite s'ouvre d'elle-même tant que le compte ne l'a

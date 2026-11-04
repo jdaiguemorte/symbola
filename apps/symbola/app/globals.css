@@ -889,3 +889,50 @@
     @apply font-display text-2xl;
   }
 }
+
+/* Lot 10 (AIDE-06) — tutoriels en faisant. */
+@layer components {
+  .tutorial-layout {
+    @apply flex flex-wrap items-start gap-6;
+  }
+  .tutorial-steps {
+    @apply flex max-w-sm min-w-0 flex-[1_1_260px] flex-col gap-3;
+  }
+  .tutorial-steps h1 {
+    @apply m-0 text-2xl;
+  }
+  .tutorial-steps ol {
+    @apply m-0 flex list-none flex-col gap-2 p-0;
+  }
+  .tutorial-steps li {
+    @apply flex items-center gap-2;
+  }
+  .tutorial-steps li[data-state="current"] {
+    @apply font-semibold;
+  }
+  .tutorial-step-mark {
+    @apply flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-lin-soft text-sm font-semibold text-muted;
+  }
+  .tutorial-steps li[data-state="current"] .tutorial-step-mark {
+    @apply bg-terracotta text-white;
+  }
+  .tutorial-steps li[data-state="done"] .tutorial-step-mark {
+    @apply bg-sauge text-white;
+  }
+  .tutorial-note,
+  .tutorial-progress {
+    @apply text-sm text-muted;
+  }
+  .tutorial-step {
+    @apply flex min-w-0 flex-[999_1_480px] flex-col gap-3;
+  }
+  .tutorial-actions {
+    @apply flex flex-wrap items-center gap-3;
+  }
+  .tutorial-actions .button-secondary {
+    @apply border-lin-dark bg-card font-medium text-ink hover:bg-lin-soft;
+  }
+  .tutorial-suggestion {
+    @apply rounded-xl bg-sauge-tint p-3 text-sauge-ink;
+  }
+}
