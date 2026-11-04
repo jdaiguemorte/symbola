@@ -1629,10 +1629,10 @@ export { quotesPrivacy } from "./privacy";
 // Lot 9 (ADR 0029) — statistique d'usage pour l'Admin : devis créés et
 // factures émises par mois, essais exclus.
 export async function countQuotesAndInvoicesByMonth(
-  organizationId: string,
+  organizationIds: string[],
   since: Date,
-): Promise<{ quotes: MonthlyCount[]; invoices: MonthlyCount[] }> {
-  return countQuotesAndInvoicesByMonthRows(organizationId, since);
+): Promise<Record<string, { quotes: MonthlyCount[]; invoices: MonthlyCount[] }>> {
+  return countQuotesAndInvoicesByMonthRows(organizationIds, since);
 }
 
 const _contractCheck: QuotesServiceContract = {

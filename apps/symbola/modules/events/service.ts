@@ -1083,9 +1083,9 @@ export async function hasRealEvents(organizationId: string): Promise<boolean> {
 }
 
 // Lot 9 (ADR 0029) — statistique d'usage pour l'Admin : événements réels
-// créés par mois, essais exclus.
-export async function countEventsCreatedByMonth(organizationId: string, since: Date): Promise<MonthlyCount[]> {
-  return countEventsByCreationMonth(organizationId, since);
+// créés par mois, essais exclus, pour plusieurs organisations à la fois.
+export async function countEventsCreatedByMonth(organizationIds: string[], since: Date): Promise<Record<string, MonthlyCount[]>> {
+  return countEventsByCreationMonth(organizationIds, since);
 }
 
 // Lot 3 (BUD-04) : exposition publique de la vérification déjà utilisée en

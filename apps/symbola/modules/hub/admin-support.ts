@@ -7,16 +7,34 @@
 import { createHash, randomBytes } from "node:crypto";
 import type { MonthlyCount } from "@symbola/contracts";
 import type { AppDatabase } from "@symbola/db/client";
-import { countAccountsByOrganization, findTeamAccountOrganization, listTeamAccounts, resetUserMfa, type TeamAccountStatus } from "@symbola/auth";
+import {
+  countAccountsByOrganization,
+  findTeamAccountOrganization,
+  listTeamAccounts,
+  resetUserMfa,
+  type TeamAccountStatus,
+} from "@symbola/auth";
 import { countEventsCreatedByMonth } from "@/modules/events/service";
 import { countQuotesAndInvoicesByMonth } from "@/modules/quotes/service";
-import { findInvitationById, findPendingInvitations, insertAuditLog, listAllOrganizations, replaceInvitationToken } from "./repository";
+import {
+  findInvitationById,
+  findPendingInvitations,
+  insertAuditLog,
+  listAllOrganizations,
+  replaceInvitationToken,
+} from "./repository";
 
 export const INVITATION_RESEND_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
 export const ACTIVITY_MONTHS = 6;
 const ACTIVE_ACCOUNT_DAYS = 30;
 
-export type PendingInvitation = { id: string; email: string; createdAt: Date; expiresAt: Date; expired: boolean };
+export type PendingInvitation = {
+  id: string;
+  email: string;
+  createdAt: Date;
+  expiresAt: Date;
+  expired: boolean;
+};
 
 export type OrganizationSupportView = {
   id: string;
@@ -25,7 +43,10 @@ export type OrganizationSupportView = {
   pendingInvitations: PendingInvitation[];
 };
 
-export async function listOrganizationsSupport(db: AppDatabase, now: Date = new Date()): Promise<OrganizationSupportView[]> {
+export async function listOrganizationsSupport(
+  db: AppDatabase,
+  now: Date = new Date(),
+): Promise<OrganizationSupportView[]> {
   const [organizationRows, accounts, invitationRows] = await Promise.all([
     listAllOrganizations(db),
     listTeamAccounts(db),
@@ -35,11 +56,16 @@ export async function listOrganizationsSupport(db: AppDatabase, now: Date = new 
     .map((organization) => ({
       id: organization.id,
       name: organization.name,
-      accounts: accounts.filter((account) => account.organizationId === organization.id),
+      accounts: accounts.filter(
+        (account) => account.organizationId === organization.id,
+      ),
       pendingInvitations: invitationRows
         .filter((invitation) => invitation.organizationId === organization.id)
         // Une invitation devenue inutile (le compte existe déjà) n'est plus à relancer.
-        .filter((invitation) => !accounts.some((account) => account.email === invitation.email))
+        .filter(
+          (invitation) =>
+            !accounts.some((account) => account.email === invitation.email),
+        )
         .map((invitation) => ({
           id: invitation.id,
           email: invitation.email,
@@ -62,11 +88,20 @@ export class InvitationNotPendingError extends Error {
 export async function resendInvitation(
   db: AppDatabase,
   input: { adminUserId: string; invitationId: string; now?: Date },
-): Promise<{ email: string; organizationId: string; organizationName: string; language: "fr" | "en"; token: string }> {
+): Promise<{
+  email: string;
+  organizationId: string;
+  organizationName: string;
+  language: "fr" | "en";
+  token: string;
+}> {
   const now = input.now ?? new Date();
   const invitation = await findInvitationById(db, input.invitationId);
-  if (!invitation || invitation.acceptedAt) throw new InvitationNotPendingError();
-  const organization = (await listAllOrganizations(db)).find((candidate) => candidate.id === invitation.organizationId);
+  if (!invitation || invitation.acceptedAt)
+    throw new InvitationNotPendingError();
+  const organization = (await listAllOrganizations(db)).find(
+    (candidate) => candidate.id === invitation.organizationId,
+  );
   if (!organization) throw new InvitationNotPendingError();
 
   const token = randomBytes(32).toString("base64url");
@@ -74,7 +109,11 @@ export async function resendInvitation(
     tokenHash: createHash("sha256").update(token).digest("hex"),
     expiresAt: new Date(now.getTime() + INVITATION_RESEND_DURATION_MS),
   });
-  await insertAuditLog(db, { adminUserId: input.adminUserId, action: "hub.invitation.resent", targetOrganizationId: invitation.organizationId });
+  await insertAuditLog(db, {
+    adminUserId: input.adminUserId,
+    action: "hub.invitation.resent",
+    targetOrganizationId: invitation.organizationId,
+  });
   return {
     email: invitation.email,
     organizationId: organization.id,
@@ -118,7 +157,11 @@ export type OrganizationActivity = {
 
 // Les N derniers mois civils (Europe/Paris), du plus ancien au plus récent.
 export function lastMonths(now: Date, count: number): string[] {
-  const [year, month] = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Paris", year: "numeric", month: "2-digit" })
+  const [year, month] = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Paris",
+    year: "numeric",
+    month: "2-digit",
+  })
     .format(now)
     .split("-")
     .map(Number) as [number, number];
@@ -129,7 +172,10 @@ export function lastMonths(now: Date, count: number): string[] {
 }
 
 function fill(months: string[], rows: MonthlyCount[]): MonthlyCount[] {
-  return months.map((month) => ({ month, count: rows.find((row) => row.month === month)?.count ?? 0 }));
+  return months.map((month) => ({
+    month,
+    count: rows.find((row) => row.month === month)?.count ?? 0,
+  }));
 }
 
 /**
@@ -145,35 +191,51 @@ export async function getOrganizationsActivity(
   const months = lastMonths(now, ACTIVITY_MONTHS);
   // Un peu avant le 1er du plus ancien mois (Paris a au plus 2 h d'avance sur
   // UTC) : ce qui déborde sur le mois précédent est écarté par fill().
-  const [firstYear, firstMonth] = months[0]!.split("-").map(Number) as [number, number];
-  const since = new Date(Date.UTC(firstYear, firstMonth - 1, 1) - 2 * 3_600_000);
+  const [firstYear, firstMonth] = months[0]!.split("-").map(Number) as [
+    number,
+    number,
+  ];
+  const since = new Date(
+    Date.UTC(firstYear, firstMonth - 1, 1) - 2 * 3_600_000,
+  );
   const [organizationRows, counts] = await Promise.all([
     listAllOrganizations(db),
-    countAccountsByOrganization(db, new Date(now.getTime() - ACTIVE_ACCOUNT_DAYS * 86_400_000)),
+    countAccountsByOrganization(
+      db,
+      new Date(now.getTime() - ACTIVE_ACCOUNT_DAYS * 86_400_000),
+    ),
   ]);
   const selected = options.organizationIds
-    ? organizationRows.filter((organization) => options.organizationIds!.includes(organization.id))
+    ? organizationRows.filter((organization) =>
+        options.organizationIds!.includes(organization.id),
+      )
     : organizationRows;
-  const activity = await Promise.all(
-    selected.map(async (organization) => {
-      const accountCounts = counts.find((row) => row.organizationId === organization.id);
-      const [events, documents] = await Promise.all([
-        countEventsCreatedByMonth(organization.id, since),
-        countQuotesAndInvoicesByMonth(organization.id, since),
-      ]);
-      return {
-        id: organization.id,
-        name: organization.name,
-        teamAccounts: accountCounts?.teamAccounts ?? 0,
-        clientAccounts: accountCounts?.clientAccounts ?? 0,
-        activeAccounts: accountCounts?.activeAccounts ?? 0,
-        lastLoginAt: accountCounts?.lastLoginAt ?? null,
-        months,
-        events: fill(months, events),
-        quotes: fill(months, documents.quotes),
-        invoices: fill(months, documents.invoices),
-      };
-    }),
-  );
+  const ids = selected.map((organization) => organization.id);
+  const [eventsByOrganization, documentsByOrganization] = await Promise.all([
+    countEventsCreatedByMonth(ids, since),
+    countQuotesAndInvoicesByMonth(ids, since),
+  ]);
+  const activity = selected.map((organization) => {
+    const accountCounts = counts.find(
+      (row) => row.organizationId === organization.id,
+    );
+    const events = eventsByOrganization[organization.id] ?? [];
+    const documents = documentsByOrganization[organization.id] ?? {
+      quotes: [],
+      invoices: [],
+    };
+    return {
+      id: organization.id,
+      name: organization.name,
+      teamAccounts: accountCounts?.teamAccounts ?? 0,
+      clientAccounts: accountCounts?.clientAccounts ?? 0,
+      activeAccounts: accountCounts?.activeAccounts ?? 0,
+      lastLoginAt: accountCounts?.lastLoginAt ?? null,
+      months,
+      events: fill(months, events),
+      quotes: fill(months, documents.quotes),
+      invoices: fill(months, documents.invoices),
+    };
+  });
   return activity.sort((a, b) => a.name.localeCompare(b.name, "fr"));
 }

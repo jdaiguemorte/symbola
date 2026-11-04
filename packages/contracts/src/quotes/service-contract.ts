@@ -371,7 +371,10 @@ export interface QuotesServiceContract {
   reconcilePendingSignatures(organizationId: string): Promise<{ checked: number; completed: number }>;
   // ADR 0027 — servi par l'app (jamais de lien direct vers le stockage).
   // Lot 9 (ADR 0029) — statistiques d'usage pour l'Admin, essais exclus.
-  countQuotesAndInvoicesByMonth(organizationId: string, since: Date): Promise<{ quotes: MonthlyCount[]; invoices: MonthlyCount[] }>;
+  countQuotesAndInvoicesByMonth(
+    organizationIds: string[],
+    since: Date,
+  ): Promise<Record<string, { quotes: MonthlyCount[]; invoices: MonthlyCount[] }>>;
   getSignatureDocument(organizationId: string, quoteId: string, kind: "signed" | "certificate"): Promise<FileDownload>;
   listClientQuotesToSign(organizationId: string, eventId: string, clientEmail: string): Promise<ClientQuoteToSign[]>;
   setQuoteClientKind(organizationId: string, quoteId: string, clientKind: ClientKind): Promise<QuoteDetail>;

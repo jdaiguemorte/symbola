@@ -371,7 +371,7 @@ export interface EventsServiceContract {
   purgeExpiredDemoEvents(organizationId: string, now?: Date): Promise<number>;
   hasRealEvents(organizationId: string): Promise<boolean>;
   // Lot 9 (ADR 0029) — statistiques d'usage pour l'Admin, essais exclus.
-  countEventsCreatedByMonth(organizationId: string, since: Date): Promise<MonthlyCount[]>;
+  countEventsCreatedByMonth(organizationIds: string[], since: Date): Promise<Record<string, MonthlyCount[]>>;
   listExpiredDemoEvents(organizationIds: string[], now?: Date): Promise<{ organizationId: string; eventId: string }[]>;
   // Lot 3 (BUD-04) : vérifie qu'un compte marié a accès à l'événement avant
   // de lui montrer son budget en lecture seule. Extension additive du

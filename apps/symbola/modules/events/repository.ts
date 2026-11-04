@@ -1714,18 +1714,27 @@ export async function findExpiredDemoEventIds(
 
 // Lot 9 (ADR 0029) — nombre d'événements réels créés par mois (Europe/Paris)
 // depuis une date : statistique d'usage pour l'Admin, sans aucun contenu.
-export async function countEventsByCreationMonth(organizationId: string, since: Date): Promise<{ month: string; count: number }[]> {
+// Une seule connexion pour toutes les organisations, chacune dans son propre
+// contexte RLS (aucune requête ne lit plusieurs organisations à la fois).
+export async function countEventsByCreationMonth(
+  organizationIds: string[],
+  since: Date,
+): Promise<Record<string, { month: string; count: number }[]>> {
   const { sql: pg, db } = createAppConnection();
   try {
-    return await withOrganization(db, organizationId, async (tx) => {
-      const month = sql<string>`to_char(${events.createdAt} at time zone 'Europe/Paris', 'YYYY-MM')`;
-      return tx
-        .select({ month, count: sql<number>`count(*)::int` })
-        .from(events)
-        .where(and(eq(events.isDemo, false), gte(events.createdAt, since)))
-        .groupBy(month)
-        .orderBy(month);
-    });
+    const result: Record<string, { month: string; count: number }[]> = {};
+    for (const organizationId of organizationIds) {
+      result[organizationId] = await withOrganization(db, organizationId, async (tx) => {
+        const month = sql<string>`to_char(${events.createdAt} at time zone 'Europe/Paris', 'YYYY-MM')`;
+        return tx
+          .select({ month, count: sql<number>`count(*)::int` })
+          .from(events)
+          .where(and(eq(events.isDemo, false), gte(events.createdAt, since)))
+          .groupBy(month)
+          .orderBy(month);
+      });
+    }
+    return result;
   } finally {
     await pg.end();
   }
