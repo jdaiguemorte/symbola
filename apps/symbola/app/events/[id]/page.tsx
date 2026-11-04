@@ -393,7 +393,7 @@ export default async function EventDetailPage({
             {selectedSlot ? (
               <>
                 <h2 id="vendor-detail-title">{selectedSlot.label}</h2>
-                <VendorSlotForm key={`${selectedSlot.id}-${selectedSlot.status}-${selectedSlot.vendorName}-${selectedSlot.amountCents}`} eventId={event.id} slot={selectedSlot} />
+                <VendorSlotForm key={`${selectedSlot.id}-${selectedSlot.selectedCandidateId ?? ""}`} eventId={event.id} slot={selectedSlot} />
                 <ImportedFields fields={selectedSlot.importedFields} compact />
                 <form action={removeVendorSlotAction}>
                   <input type="hidden" name="eventId" value={event.id} />
