@@ -94,7 +94,8 @@ describe("EVT-08 — Plusieurs prestataires consultés par poste", () => {
     const first = await addVendorCandidate({ organizationId, eventId, vendorSlotId: caterer.id, vendorName: "Maison Verdier" });
     expect((await listEventVendorSlots(organizationId, eventId)).find((slot) => slot.id === caterer.id)?.status).toBe("quote_requested");
 
-    await updateVendorCandidate({ organizationId, candidateId: first.id, quoteAmountCents: 512000 });
+    // Le formulaire renvoie la réponse affichée (« contacté ») avec le montant.
+    await updateVendorCandidate({ organizationId, candidateId: first.id, response: "contacted", quoteAmountCents: 512000 });
     const [candidate] = await listVendorCandidates(organizationId, eventId);
     expect(candidate?.response).toBe("quote_received");
     expect((await listEventVendorSlots(organizationId, eventId)).find((slot) => slot.id === caterer.id)?.status).toBe("quote_received");

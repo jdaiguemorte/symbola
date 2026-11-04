@@ -137,6 +137,13 @@ services:
       SIGNATURE_WEBHOOK_SECRET: ${SIGNATURE_WEBHOOK_SECRET:-}
       DOCUMENSO_API_URL: http://documenso:3000/api/v2
       DOCUMENSO_API_KEY: ${DOCUMENSO_API_KEY:-}
+      # Carnet de prestataires (lot 11, ADR 0031) : géocodage IGN (vide =
+      # IGN en production) et fond de carte en lecture seule. Dossier vide
+      # = carte sans fond (liste, filtres et distances fonctionnent).
+      GEOCODER: ${GEOCODER:-}
+      MAP_TILES_DIR: /srv/carte
+    volumes:
+      - ${MAP_TILES_HOST_DIR:-/opt/symbola-carte}:/srv/carte:ro
     depends_on:
       - postgres
       - garage

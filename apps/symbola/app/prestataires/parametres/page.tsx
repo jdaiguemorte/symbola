@@ -64,7 +64,7 @@ export default async function VendorTypesPage() {
                         <form action={toggleVendorFieldFilterAction}>
                           <input type="hidden" name="fieldId" value={field.id} />
                           <input type="hidden" name="isFilter" value={field.isFilter ? "false" : "true"} />
-                          <button type="submit" aria-label={t(field.isFilter ? "filterOffFor" : "filterOnFor", { field: field.label })}>
+                          <button type="submit" aria-label={`${field.isFilter ? t("yes") : t("no")} — ${t(field.isFilter ? "filterOffFor" : "filterOnFor", { field: field.label })}`}>
                             {field.isFilter ? t("yes") : t("no")}
                           </button>
                         </form>

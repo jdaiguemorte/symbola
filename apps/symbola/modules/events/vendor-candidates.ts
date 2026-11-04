@@ -134,10 +134,10 @@ export async function updateCandidate(input: UpdateVendorCandidateInput): Promis
   await inOrganization(input.organizationId, async (tx) => {
     const [current] = await tx.select().from(eventVendorCandidates).where(eq(eventVendorCandidates.id, input.candidateId));
     if (!current) throw new VendorCandidateNotFoundError();
-    // Un montant saisi vaut réponse « devis reçu » (sauf écarté).
-    const response =
-      input.response ??
-      (input.quoteAmountCents != null && current.response === "contacted" ? "quote_received" : current.response);
+    // Un montant saisi vaut réponse « devis reçu », même si le formulaire
+    // renvoie encore « contacté » (jamais pour un prestataire écarté).
+    const asked = input.response ?? current.response;
+    const response = input.quoteAmountCents != null && asked === "contacted" ? "quote_received" : asked;
     await tx
       .update(eventVendorCandidates)
       .set({

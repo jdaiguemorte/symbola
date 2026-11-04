@@ -13,7 +13,11 @@ import {
   listEventVendorSlots,
   listTaskTemplates,
   updateEventVendorSlot,
+  addVendorCandidate,
+  selectVendorCandidate,
+  updateVendorCandidate,
 } from "@/modules/events/service";
+import { getVendor } from "@/modules/vendors/service";
 import { createCatalogItem, listCatalogItems } from "@/modules/quotes/service";
 import { TUTORIAL_SCRIPTS, type TutorialEnv } from "./tutorials";
 
@@ -81,5 +85,33 @@ describe("AIDE-06 — Tutoriels en faisant", { timeout: 30_000 }, () => {
 
     await script.cleanup(current, false);
     expect((await listCatalogItems(base.organizationId)).map((item) => item.id)).toEqual([before.id]);
+  });
+
+  it("lot 11 — comparer plusieurs devis : gala d'exemple, deux traiteurs d'exemple au carnet, étapes vérifiées, tout est supprimé à la fin", async () => {
+    const base = await env();
+    const script = TUTORIAL_SCRIPTS["vendor-quotes"];
+    const context = await script.setup!(base);
+    const current = { ...base, context };
+    const vendorIds = context.vendorIds!.split(",");
+    expect(vendorIds).toHaveLength(2);
+    expect((await getVendor(base.organizationId, vendorIds[0]!))?.isDemo).toBe(true);
+    const slot = (await listEventVendorSlots(base.organizationId, context.eventId!)).find((candidate) => candidate.id === context.slotId);
+    expect(slot?.label).toBe("Traiteur");
+
+    const [, , consult, quote, select] = script.steps;
+    expect(await consult!.check!(current)).toBe(false);
+    const first = await addVendorCandidate({ organizationId: base.organizationId, eventId: context.eventId!, vendorSlotId: context.slotId!, vendorName: "Maison Verdier (exemple)", vendorId: vendorIds[0]! });
+    await addVendorCandidate({ organizationId: base.organizationId, eventId: context.eventId!, vendorSlotId: context.slotId!, vendorName: "Autre traiteur" });
+    expect(await consult!.check!(current)).toBe(true);
+    expect(await quote!.check!(current)).toBe(false);
+    await updateVendorCandidate({ organizationId: base.organizationId, candidateId: first.id, quoteAmountCents: 420000 });
+    expect(await quote!.check!(current)).toBe(true);
+    expect(await select!.check!(current)).toBe(false);
+    await selectVendorCandidate({ organizationId: base.organizationId, candidateId: first.id, changedByUserId: base.userId });
+    expect(await select!.check!(current)).toBe(true);
+
+    await script.cleanup(current, false);
+    expect(await getEvent(base.organizationId, context.eventId!)).toBeNull();
+    expect(await getVendor(base.organizationId, vendorIds[0]!)).toBeNull();
   });
 });
