@@ -29,3 +29,4 @@ Un fichier par décision structurante, numéroté. Pour changer une décision : 
 - [0025 — Charte graphique et socle visuel (Tailwind CSS, structure d'écran)](0025-charte-graphique-et-socle-visuel.md)
 - [0026 — Signature en ligne : Documenso remplace DocuSeal](0026-signature-documenso.md)
 - [0027 — Téléchargements de fichiers privés servis par l'app](0027-telechargements-servis-par-l-app.md)
+- [0028 — QR code d'activation de la double authentification (`qrcode`)](0028-qr-code-double-authentification.md)

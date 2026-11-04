@@ -9,11 +9,14 @@
   },
   "Mfa": {
     "title": "Double authentification",
-    "scanInstructions": "Scannez ce code dans votre application d'authentification :",
+    "scanInstructions": "Scannez ce QR code avec votre application d'authentification (par exemple Google Authenticator ou 1Password), puis saisissez le code à 6 chiffres qu'elle affiche.",
     "enterCodeInstructions": "Saisissez le code de votre application d'authentification.",
     "code": "Code",
     "submit": "Valider",
-    "invalidCode": "Code invalide."
+    "invalidCode": "Code invalide.",
+    "qrLabel": "QR code à scanner avec votre application d'authentification",
+    "manualKey": "Impossible de scanner ? Saisissez cette clé dans l'application :",
+    "setupLink": "Lien de configuration complet"
   },
   "Home": {
     "title": "Symbola",
@@ -1063,7 +1066,7 @@
     "mfaIntro": "La double authentification ajoute un code à usage unique, donné par une application sur votre téléphone, à votre mot de passe. Elle est facultative, mais recommandée.",
     "mfaAlreadyEnabled": "La double authentification est activée sur votre compte.",
     "mfaStart": "Activer la double authentification",
-    "mfaScanInstructions": "Ajoutez ce compte dans votre application d'authentification (en scannant ou en copiant le lien ci-dessous), puis saisissez le code affiché.",
+    "mfaScanInstructions": "Scannez ce QR code avec votre application d'authentification (par exemple Google Authenticator ou 1Password), puis saisissez le code affiché.",
     "mfaCode": "Code à 6 chiffres",
     "mfaConfirm": "Confirmer",
     "mfaInvalidCode": "Code incorrect, réessayez.",

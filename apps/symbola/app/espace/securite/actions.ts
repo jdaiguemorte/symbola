@@ -5,8 +5,9 @@ import { getTranslations } from "next-intl/server";
 import { confirmTotp, setupTotp } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
 import { getClientAuthContext, getSessionToken } from "@/lib/auth-context";
+import { totpSetupDisplay, type TotpSetupDisplay } from "@/lib/totp-qr";
 
-export type ClientMfaFormState = { provisioningUri?: string; error?: string; enabled?: boolean };
+export type ClientMfaFormState = { setup?: TotpSetupDisplay; error?: string; enabled?: boolean };
 
 export async function startClientMfaAction(_prevState: ClientMfaFormState, _formData: FormData): Promise<ClientMfaFormState> {
   const t = await getTranslations("ClientSpace");
@@ -16,7 +17,7 @@ export async function startClientMfaAction(_prevState: ClientMfaFormState, _form
   const { sql, db } = createAppConnection();
   try {
     const { provisioningUri } = await setupTotp(db, auth.user.id);
-    return { provisioningUri };
+    return { setup: totpSetupDisplay(provisioningUri) };
   } finally {
     await sql.end();
   }

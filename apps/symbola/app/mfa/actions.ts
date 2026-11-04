@@ -5,6 +5,7 @@ import { getTranslations } from "next-intl/server";
 import { confirmTotp, requireUser, setupTotp } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
 import { getSessionToken } from "@/lib/auth-context";
+import { totpSetupDisplay } from "@/lib/totp-qr";
 
 export async function getMfaSetupState() {
   const token = await getSessionToken();
@@ -15,10 +16,10 @@ export async function getMfaSetupState() {
 
     if (!result.hasTotpSecret) {
       const { provisioningUri } = await setupTotp(db, result.userId);
-      return { provisioningUri };
+      return { setup: totpSetupDisplay(provisioningUri) };
     }
 
-    return { provisioningUri: null };
+    return { setup: null };
   } finally {
     await sql.end();
   }
