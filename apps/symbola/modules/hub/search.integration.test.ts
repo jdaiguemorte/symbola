@@ -31,7 +31,8 @@ async function setup() {
   return { organizationId: organization.id, userId: user.id, sourceId: source.id };
 }
 
-describe("AIDE-08 — Recherche globale", () => {
+// Plusieurs services par test (données, recherche, isolation) : 30 s.
+describe("AIDE-08 — Recherche globale", { timeout: 30_000 }, () => {
   it("trouve un événement par les noms de ses clients ou son lieu, et ses devis, tâches et prestataires", async () => {
     const { organizationId, userId, sourceId } = await setup();
     const event = await createProspect({
