@@ -98,6 +98,7 @@ import {
   findCatalogItem,
   findCatalogItems,
   findEventQuotes,
+  findQuotes,
   findQuoteAggregate,
   findQuoteAggregates,
   findQuoteSettings,
@@ -600,7 +601,16 @@ export async function createQuote(input: CreateQuoteInput): Promise<QuoteDetail>
 }
 
 export async function listEventQuotes(organizationId: string, eventId: string): Promise<QuoteSummary[]> {
-  const rows = await findEventQuotes(organizationId, eventId);
+  return summarize(organizationId, await findEventQuotes(organizationId, eventId));
+}
+
+// Écran « Devis et factures » : tous les devis, les plus récents d'abord.
+export async function listQuotes(organizationId: string): Promise<QuoteSummary[]> {
+  return summarize(organizationId, await findQuotes(organizationId));
+}
+
+async function summarize(organizationId: string, rows: Awaited<ReturnType<typeof findQuotes>>): Promise<QuoteSummary[]> {
+  if (rows.length === 0) return [];
   const aggregates = await findQuoteAggregates(organizationId, rows.map((row) => row.id));
   const profile = await withDb((db) => getOrganizationProfile(db, organizationId));
   const byId = new Map(aggregates.map((aggregate) => [aggregate.quote.id, aggregate]));
@@ -1616,6 +1626,7 @@ const _contractCheck: QuotesServiceContract = {
   updateQuoteSettings,
   createQuote,
   listEventQuotes,
+  listQuotes,
   getQuote,
   addQuoteLine,
   updateQuoteLine,

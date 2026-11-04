@@ -1,6 +1,6 @@
 // Accès aux données du module quotes — jamais importé hors de
 // modules/quotes/ (ADR 0011).
-import { and, asc, eq, inArray, sql as raw } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, sql as raw } from "drizzle-orm";
 import { createAppConnection } from "@symbola/db/client";
 import {
   catalogItems,
@@ -172,6 +172,11 @@ export async function findEventQuotes(organizationId: string, eventId: string): 
   return inOrganization(organizationId, (tx) =>
     tx.select().from(quotes).where(eq(quotes.eventId, eventId)).orderBy(asc(quotes.createdAt), asc(quotes.number)),
   );
+}
+
+// Tous les devis de l'organisation, les plus récents d'abord.
+export async function findQuotes(organizationId: string): Promise<QuoteRow[]> {
+  return inOrganization(organizationId, (tx) => tx.select().from(quotes).orderBy(desc(quotes.createdAt), desc(quotes.number)));
 }
 
 export type QuoteAggregate = {

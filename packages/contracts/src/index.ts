@@ -44,6 +44,8 @@ export type {
   VendorSlotProgress,
   VendorSlotStatus,
   EventTask,
+  ListOrganizationTasksInput,
+  OrganizationTask,
   EventTaskInput,
   TaskRecalculation,
   TaskResponsible,

@@ -344,6 +344,7 @@ export interface QuotesServiceContract {
   updateQuoteSettings(organizationId: string, settings: QuoteSettings): Promise<QuoteSettings>;
   createQuote(input: CreateQuoteInput): Promise<QuoteDetail>;
   listEventQuotes(organizationId: string, eventId: string): Promise<QuoteSummary[]>;
+  listQuotes(organizationId: string): Promise<QuoteSummary[]>;
   getQuote(organizationId: string, quoteId: string): Promise<QuoteDetail>;
   addQuoteLine(organizationId: string, quoteId: string, line: QuoteLineInput): Promise<QuoteDetail>;
   updateQuoteLine(organizationId: string, lineId: string, line: QuoteLineInput): Promise<QuoteDetail>;

@@ -50,6 +50,7 @@ import {
   findEventById,
   findEvents,
   findEventTasks,
+  findOrganizationTasks,
   findEventVendorSlots,
   findLossReasons,
   findProspectSources,
@@ -116,6 +117,8 @@ import type {
   TaskTemplateItem,
   TaskTemplateItemInput,
   UpdateEventTaskInput,
+  ListOrganizationTasksInput,
+  OrganizationTask,
   UpdateEventVendorSlotInput,
   VendorSlotProgress,
   VendorSlotStatus,
@@ -538,6 +541,38 @@ export async function applyTaskTemplate(organizationId: string, eventId: string,
 
 export async function listEventTasks(organizationId: string, eventId: string): Promise<EventTask[]> {
   return (await findEventTasks(organizationId, eventId)).map(toEventTask);
+}
+
+// Noms affichés d'un événement : prénoms des mariés (« Inès & Sacha »).
+export function eventNames(clients: { firstName: string }[]): string {
+  return clients.map((client) => client.firstName).join(" & ");
+}
+
+// HUB-02 — tâches de toute l'organisation (accueil, écran Tâches), triées
+// par échéance, avec le nom de leur événement.
+export async function listOrganizationTasks(input: ListOrganizationTasksInput): Promise<OrganizationTask[]> {
+  assertDate(input.today);
+  let until: string | null = null;
+  if (input.horizonDays !== null) {
+    const limit = new Date(`${input.today}T00:00:00Z`);
+    limit.setUTCDate(limit.getUTCDate() + input.horizonDays);
+    until = limit.toISOString().slice(0, 10);
+  }
+  const rows = await findOrganizationTasks(input.organizationId, { until, includeDone: input.includeDone ?? false });
+  if (rows.length === 0) return [];
+  const eventsById = new Map((await listEvents({ organizationId: input.organizationId })).map((event) => [event.id, event]));
+  return rows.flatMap((row) => {
+    const event = eventsById.get(row.eventId);
+    if (!event) return [];
+    const task = toEventTask(row);
+    return [
+      {
+        ...task,
+        overdue: !task.done && task.dueDate < input.today,
+        event: { id: event.id, names: eventNames(event.clients), eventDate: event.eventDate, status: event.status, isDemo: event.isDemo },
+      },
+    ];
+  });
 }
 
 export async function addEventTask(organizationId: string, eventId: string, task: EventTaskInput): Promise<EventTask> {
@@ -1077,6 +1112,7 @@ const _contractCheck: EventsServiceContract = {
   removeDefaultVendorSlot,
   addProspectSources,
   addLossReasons,
+  listOrganizationTasks,
   listEventVendorSlots,
   addEventVendorSlot,
   updateEventVendorSlot,

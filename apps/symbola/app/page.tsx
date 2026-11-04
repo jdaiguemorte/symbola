@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { after } from "next/server";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
+import { parisToday, type Locale } from "@symbola/i18n";
 import type { TourStep } from "@symbola/ui";
 import { createAppConnection } from "@symbola/db/client";
 import { hasRealEvents } from "@/modules/events/service";
@@ -12,8 +13,10 @@ import { recordUsage } from "@/lib/usage";
 import { UpcomingPaymentsBlock } from "./devis/encaissements/dashboard-block";
 import { PrivacyPurgeAlertBlock, PrivacyRequestsAlertBlock } from "./rgpd/dashboard-block";
 import { HomeInteractive } from "./home-interactive";
+import { AgendaBlock } from "./agenda/agenda-block";
+import { UpcomingTasksBlock } from "./taches/upcoming-tasks-block";
 
-export default async function HomePage() {
+export default async function HomePage({ searchParams }: { searchParams: Promise<{ agenda?: string; debut?: string }> }) {
   const auth = await getAuthContext();
 
   if (auth.status === "unauthenticated") redirect("/login");
@@ -83,6 +86,10 @@ export default async function HomePage() {
   const tHelp = await getTranslations("Help");
   const tFirstSteps = await getTranslations("FirstSteps");
   const tourSteps = tTour.raw("hub") as TourStep[];
+  const locale = (await getLocale()) as Locale;
+  const today = parisToday();
+  const query = await searchParams;
+  const organizationId = auth.user.organizationId;
 
   return (
     <main>
@@ -100,8 +107,13 @@ export default async function HomePage() {
       {/* RGPD-04 : demandes dont l'échéance approche, titulaire seulement. */}
       {auth.user.role === "owner" && auth.user.organizationId ? <PrivacyRequestsAlertBlock organizationId={auth.user.organizationId} /> : null}
       {auth.user.role === "owner" && auth.user.organizationId ? <PrivacyPurgeAlertBlock organizationId={auth.user.organizationId} /> : null}
-      {/* HUB-02 / DEV-03 : absent si le module Devis n'est pas souscrit. */}
-      {quotesAvailable && auth.user.organizationId ? <UpcomingPaymentsBlock organizationId={auth.user.organizationId} /> : null}
+      {/* HUB-02 : agenda des mois à venir et tâches de la quinzaine (module Événements). */}
+      {eventsAvailable && organizationId ? <AgendaBlock organizationId={organizationId} locale={locale} today={today} query={query} /> : null}
+      <div className="home-columns">
+        {eventsAvailable && organizationId ? <UpcomingTasksBlock organizationId={organizationId} locale={locale} today={today} /> : null}
+        {/* HUB-02 / DEV-03 : absent si le module Devis n'est pas souscrit. */}
+        {quotesAvailable && organizationId ? <UpcomingPaymentsBlock organizationId={organizationId} /> : null}
+      </div>
       <HomeInteractive
         tourInitiallyOpen={tourInitiallyOpen}
         tourSteps={tourSteps}

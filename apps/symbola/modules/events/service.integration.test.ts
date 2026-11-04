@@ -6,6 +6,11 @@ import { starterLossReasons, starterProspectSources } from "@symbola/starter-tem
 import {
   addLossReasons,
   addProspectSources,
+  addEventTask,
+  changeEventStatus,
+  createLossReason,
+  listOrganizationTasks,
+  updateEventTask,
   createProspect,
   createProspectSource,
   getEvent,
@@ -128,3 +133,62 @@ describe("EVT-07 — Listes de départ des sources et des motifs de perte", () =
     expect((await listLossReasons(other.organizationId)).map((reason) => reason.label)).not.toContain("Trop loin");
   });
 });
+
+describe("HUB-02 — Tâches de toute l'organisation (accueil, écran Tâches)", () => {
+  async function prospect(organizationId: string, sourceId: string, firstName: string, eventDate: string | null) {
+    return createProspect({
+      organizationId,
+      createdByUserId: plannerId,
+      prospectSourceId: sourceId,
+      clients: [{ firstName, lastName: null }, { firstName: "Sacha", lastName: null }],
+      eventDate,
+      venueName: null,
+      venueCity: null,
+    });
+  }
+
+  it("liste les tâches non faites en retard ou dues sous 14 jours, triées par échéance, avec le nom de l'événement", async () => {
+    const { organizationId, instagram } = await seedOrganization();
+    const ines = await prospect(organizationId, instagram.id, "Inès", "2027-06-12");
+    const lea = await prospect(organizationId, instagram.id, "Léa", "2027-05-15");
+    await addEventTask(organizationId, ines.id, { label: "En retard", dueDate: "2026-10-28", responsible: "planner" });
+    await addEventTask(organizationId, lea.id, { label: "Dans 14 jours", dueDate: "2026-11-17", responsible: "clients" });
+    await addEventTask(organizationId, ines.id, { label: "Dans 15 jours", dueDate: "2026-11-18", responsible: "planner" });
+    const done = await addEventTask(organizationId, lea.id, { label: "Faite", dueDate: "2026-11-05", responsible: "planner" });
+    await updateEventTask({ organizationId, taskId: done.id, done: true });
+
+    const tasks = await listOrganizationTasks({ organizationId, today: "2026-11-03", horizonDays: 14 });
+    expect(tasks.map((task) => [task.label, task.event.names, task.overdue])).toEqual([
+      ["En retard", "Inès & Sacha", true],
+      ["Dans 14 jours", "Léa & Sacha", false],
+    ]);
+    expect(tasks[1]?.responsible).toBe("clients");
+  });
+
+  it("sans horizon et faites comprises : toutes les tâches ; jamais celles d'un événement perdu ou réalisé", async () => {
+    const { organizationId, instagram } = await seedOrganization();
+    const reason = await createLossReason(organizationId, "Budget", false);
+    const kept = await prospect(organizationId, instagram.id, "Anna", "2027-07-03");
+    const lost = await prospect(organizationId, instagram.id, "Zoé", null);
+    await addEventTask(organizationId, kept.id, { label: "Lointaine", dueDate: "2027-05-01", responsible: "planner" });
+    const doneTask = await addEventTask(organizationId, kept.id, { label: "Faite", dueDate: "2026-09-01", responsible: "planner" });
+    await updateEventTask({ organizationId, taskId: doneTask.id, done: true });
+    await addEventTask(organizationId, lost.id, { label: "Événement perdu", dueDate: "2026-11-04", responsible: "planner" });
+    await changeEventStatus({ organizationId, eventId: lost.id, changedByUserId: plannerId, toStatus: "lost", lossReasonId: reason.id });
+
+    const tasks = await listOrganizationTasks({ organizationId, today: "2026-11-03", horizonDays: null, includeDone: true });
+    expect(tasks.map((task) => [task.label, task.done])).toEqual([
+      ["Faite", true],
+      ["Lointaine", false],
+    ]);
+  });
+
+  it("isolation : une organisation ne voit jamais les tâches d'une autre", async () => {
+    const own = await seedOrganization();
+    const other = await seedOrganization();
+    const event = await prospect(own.organizationId, own.instagram.id, "Inès", null);
+    await addEventTask(own.organizationId, event.id, { label: "Privée", dueDate: "2026-11-04", responsible: "planner" });
+    expect(await listOrganizationTasks({ organizationId: other.organizationId, today: "2026-11-03", horizonDays: 14 })).toEqual([]);
+  });
+});
+
