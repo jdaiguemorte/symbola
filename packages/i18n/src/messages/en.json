@@ -1776,7 +1776,31 @@
         "title": "Import your existing events",
         "description": "Import a small example file and check the preview before confirming."
       }
-    }
+    },
+    "intro": "Learn Symbola by doing, at your own pace. Each tutorial creates a fictional example, then offers to delete it.",
+    "progressTitle": "Getting started: {completed} of {total}",
+    "nextSuggestion": "Suggested next step: {title} ({minutes} minutes).",
+    "continue": "Continue getting started",
+    "allDone": "Well done, you have followed every tutorial. They stay available here to review.",
+    "autoTours": "Open tours automatically the first time a screen is opened",
+    "modules": {
+      "events": "Events",
+      "quotes": "Quotes and invoices",
+      "budget": "Budget",
+      "hub": "Settings and data"
+    },
+    "tourTitle": "Tour: {title}",
+    "tourKind": "Tour · 1 min",
+    "tourFromEvent": "Tour · from an event's page",
+    "tutorialKind": "Tutorial · {minutes} min",
+    "stateDone": "Done",
+    "stateInProgress": "In progress · step {step}",
+    "statePostponed": "Set aside · step {step}",
+    "stateNew": "To discover",
+    "actionReview": "Review",
+    "actionResume": "Resume",
+    "actionStart": "Start",
+    "articlesTitle": "Help articles"
   },
   "Search": {
     "label": "Search",

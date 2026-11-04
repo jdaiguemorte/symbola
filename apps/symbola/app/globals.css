@@ -854,3 +854,22 @@
     @apply flex flex-wrap items-end gap-2;
   }
 }
+
+/* Lot 10 (AIDE-07) — centre d'aide. */
+@layer components {
+  .help-progress progress {
+    @apply w-full max-w-md;
+  }
+  .help-items li {
+    @apply flex flex-wrap items-center justify-between gap-3;
+  }
+  .help-items li > span:first-child {
+    @apply flex flex-col gap-0.5;
+  }
+  .help-items li > span:first-child > span {
+    @apply text-sm text-muted;
+  }
+  .help-item-actions {
+    @apply flex items-center gap-3;
+  }
+}

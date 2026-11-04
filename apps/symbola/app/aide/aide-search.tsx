@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { foldSearchText } from "@symbola/db/search";
 
 export type HelpTopic = { title: string; body: string };
 
@@ -16,11 +17,10 @@ export function AideSearch({
   const [query, setQuery] = useState("");
 
   const filtered = useMemo(() => {
-    const needle = query.trim().toLowerCase();
+    // Lot 10 : accents et majuscules ignorés, comme la recherche globale.
+    const needle = foldSearchText(query.trim());
     if (!needle) return topics;
-    return topics.filter(
-      (topic) => topic.title.toLowerCase().includes(needle) || topic.body.toLowerCase().includes(needle),
-    );
+    return topics.filter((topic) => foldSearchText(`${topic.title} ${topic.body}`).includes(needle));
   }, [topics, query]);
 
   return (
@@ -35,7 +35,7 @@ export function AideSearch({
         <ul>
           {filtered.map((topic) => (
             <li key={topic.title}>
-              <h2>{topic.title}</h2>
+              <h3>{topic.title}</h3>
               <p>{topic.body}</p>
             </li>
           ))}

@@ -1776,7 +1776,31 @@
         "title": "Importer ses événements existants",
         "description": "Importez un petit fichier d'exemple et vérifiez l'aperçu avant de confirmer."
       }
-    }
+    },
+    "intro": "Apprenez Symbola en le faisant, à votre rythme. Chaque tutoriel crée un exemple fictif, puis vous propose de le supprimer.",
+    "progressTitle": "Votre prise en main : {completed} sur {total}",
+    "nextSuggestion": "Prochaine étape conseillée : {title} ({minutes} minutes).",
+    "continue": "Continuer ma prise en main",
+    "allDone": "Bravo, vous avez suivi tous les tutoriels. Ils restent disponibles ici pour les revoir.",
+    "autoTours": "Ouvrir les visites automatiquement à la première ouverture d'un écran",
+    "modules": {
+      "events": "Événements",
+      "quotes": "Devis et factures",
+      "budget": "Budget",
+      "hub": "Paramètres et données"
+    },
+    "tourTitle": "Visite : {title}",
+    "tourKind": "Visite · 1 min",
+    "tourFromEvent": "Visite · depuis la fiche d'un événement",
+    "tutorialKind": "Tutoriel · {minutes} min",
+    "stateDone": "Terminé",
+    "stateInProgress": "En cours · étape {step}",
+    "statePostponed": "Mise de côté · étape {step}",
+    "stateNew": "À découvrir",
+    "actionReview": "Revoir",
+    "actionResume": "Reprendre",
+    "actionStart": "Commencer",
+    "articlesTitle": "Articles d'aide"
   },
   "Search": {
     "label": "Rechercher",
