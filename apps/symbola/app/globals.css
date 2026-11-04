@@ -739,3 +739,219 @@
     @apply block break-all text-sm;
   }
 }
+
+/* Lot 10 (AIDE-05) — visite focus : élément mis en lumière, bulle d'aide. */
+@layer components {
+  .focus-tour-spotlight {
+    @apply pointer-events-none fixed z-[60] hidden rounded-xl;
+    box-shadow:
+      0 0 0 4px var(--color-card),
+      0 0 0 8px var(--color-terracotta),
+      0 0 0 9999px rgb(20 20 19 / 0.55);
+  }
+  .focus-tour-spotlight[data-visible="true"] {
+    @apply block;
+  }
+  .focus-tour-backdrop {
+    @apply fixed inset-0 z-[61];
+  }
+  .focus-tour-spotlight[data-visible="false"] + .focus-tour-backdrop {
+    background: rgb(20 20 19 / 0.55);
+  }
+  .focus-tour-bubble {
+    @apply fixed z-[62] flex w-[380px] max-w-[calc(100vw-24px)] flex-col gap-3 rounded-2xl bg-card p-5 text-ink shadow-2xl;
+  }
+  .focus-tour-bubble[data-layout="center"] {
+    @apply top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2;
+  }
+  .focus-tour-bubble[data-layout="sheet"] {
+    @apply inset-x-0 top-auto bottom-0 w-auto max-w-none rounded-t-2xl rounded-b-none;
+  }
+  .focus-tour-bubble h2 {
+    @apply m-0 text-xl;
+  }
+  .focus-tour-bubble p {
+    @apply m-0;
+  }
+  .focus-tour-progress,
+  .focus-tour-hint {
+    @apply text-sm text-muted;
+  }
+  .focus-tour-actions {
+    @apply flex flex-wrap items-center justify-between gap-2;
+  }
+  .focus-tour-main-actions {
+    @apply flex gap-2;
+  }
+  .focus-tour-later {
+    @apply border-transparent bg-transparent text-muted underline underline-offset-4 shadow-none;
+  }
+  .focus-tour-continue {
+    @apply bg-sauge text-white;
+  }
+}
+
+/* Lot 10 (AIDE-07) — barre d'aide. */
+@layer components {
+  .help-bar {
+    @apply fixed right-4 bottom-4 z-40 flex max-w-[calc(100vw-32px)] flex-wrap items-center gap-2 rounded-full bg-ink py-2 pr-2 pl-4 text-sm text-white shadow-xl;
+  }
+  .help-bar[data-collapsed="true"] {
+    @apply p-1;
+  }
+  .help-bar a.help-bar-progress {
+    @apply text-white no-underline hover:underline;
+  }
+  .help-bar .help-bar-resume {
+    @apply min-h-11 rounded-full border-0 bg-card px-4 font-semibold text-ink no-underline;
+  }
+  .help-bar .help-bar-toggle {
+    @apply min-h-11 rounded-full border-0 bg-transparent px-3 text-white;
+  }
+}
+
+/* Lot 10 — place pour la barre d'aide sous le contenu. */
+@layer components {
+  .app-main {
+    @apply pb-28;
+  }
+}
+
+/* Lot 10 (AIDE-08) — recherche globale. */
+@layer components {
+  .search-box {
+    @apply relative mb-4 flex w-full max-w-xl items-center;
+  }
+  .search-box input {
+    @apply w-full pr-14;
+  }
+  .search-box-shortcut {
+    @apply pointer-events-none absolute right-3 rounded-md border border-lin-dark px-1.5 text-xs text-muted;
+  }
+  .search-box-results {
+    @apply absolute top-full right-0 left-0 z-50 mt-2 max-h-[70vh] overflow-auto rounded-2xl border border-lin bg-card p-2 shadow-2xl;
+  }
+  .search-box-results ul {
+    @apply m-0 list-none p-0;
+  }
+  .search-box-group {
+    @apply mx-2 mt-2 mb-1 text-xs font-semibold tracking-wider text-muted uppercase;
+  }
+  .search-box-option {
+    @apply flex min-h-11 cursor-pointer flex-col gap-0.5 rounded-xl px-3 py-2;
+  }
+  .search-box-option[aria-selected="true"],
+  .search-box-option:hover {
+    @apply bg-sauge-tint;
+  }
+  .search-box-option span {
+    @apply text-sm text-muted;
+  }
+  .search-box-hint {
+    @apply mx-2 mt-2 text-xs text-muted;
+  }
+  .search-page-form {
+    @apply flex flex-wrap items-end gap-2;
+  }
+}
+
+/* Lot 10 (AIDE-07) — centre d'aide. */
+@layer components {
+  .help-progress progress {
+    @apply w-full max-w-md;
+  }
+  .help-items li {
+    @apply flex flex-wrap items-center justify-between gap-3;
+  }
+  .help-items li > span:first-child {
+    @apply flex flex-col gap-0.5;
+  }
+  .help-items li > span:first-child > span {
+    @apply text-sm text-muted;
+  }
+  .help-item-actions {
+    @apply flex items-center gap-3;
+  }
+}
+
+/* HUB-05 (lot 10) — indicateurs de la prise en main. */
+@layer components {
+  .kpi-list {
+    @apply my-4 grid list-none grid-cols-1 gap-3 p-0 sm:grid-cols-3;
+  }
+  .kpi-list li {
+    @apply flex flex-col rounded-2xl border border-lin bg-card p-4;
+  }
+  .kpi-list li span {
+    @apply text-sm text-muted;
+  }
+  .kpi-list li strong {
+    @apply font-display text-2xl;
+  }
+}
+
+/* Lot 10 (AIDE-06) — tutoriels en faisant. */
+@layer components {
+  .tutorial-layout {
+    @apply flex flex-wrap items-start gap-6;
+  }
+  .tutorial-steps {
+    @apply flex max-w-sm min-w-0 flex-[1_1_260px] flex-col gap-3;
+  }
+  .tutorial-steps h1 {
+    @apply m-0 text-2xl;
+  }
+  .tutorial-steps ol {
+    @apply m-0 flex list-none flex-col gap-2 p-0;
+  }
+  .tutorial-steps li {
+    @apply flex items-center gap-2;
+  }
+  .tutorial-steps li[data-state="current"] {
+    @apply font-semibold;
+  }
+  .tutorial-step-mark {
+    @apply flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-lin-soft text-sm font-semibold text-muted;
+  }
+  .tutorial-steps li[data-state="current"] .tutorial-step-mark {
+    @apply bg-terracotta text-white;
+  }
+  .tutorial-steps li[data-state="done"] .tutorial-step-mark {
+    @apply bg-sauge text-white;
+  }
+  .tutorial-note,
+  .tutorial-progress {
+    @apply text-sm text-muted;
+  }
+  .tutorial-step {
+    @apply flex min-w-0 flex-[999_1_480px] flex-col gap-3;
+  }
+  .tutorial-actions {
+    @apply flex flex-wrap items-center gap-3;
+  }
+  .tutorial-actions .button-secondary {
+    @apply border-lin-dark bg-card font-medium text-ink hover:bg-lin-soft;
+  }
+  .tutorial-suggestion {
+    @apply rounded-xl bg-sauge-tint p-3 text-sauge-ink;
+  }
+}
+
+/* Lot 10 (AIDE-06) — invitation à un tutoriel à la première visite d'un écran. */
+@layer components {
+  .tutorial-invite {
+    @apply fixed right-4 bottom-20 z-40 flex w-[340px] max-w-[calc(100vw-32px)] flex-col gap-2 rounded-2xl border border-lin bg-card p-4 shadow-xl;
+  }
+  .tutorial-invite h2 {
+    @apply m-0 text-lg;
+  }
+  .tutorial-invite-kicker {
+    @apply m-0 text-sm font-semibold text-terracotta-ink;
+  }
+  .tutorial-invite-actions {
+    @apply flex flex-wrap items-center gap-2;
+  }
+  .tutorial-invite-later {
+    @apply border-transparent bg-transparent text-muted underline underline-offset-4;
+  }
+}

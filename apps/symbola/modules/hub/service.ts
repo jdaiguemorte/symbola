@@ -12,13 +12,14 @@ import {
   findOrganizationModule,
   findOrganizationProfile,
   findPlatformSettings,
-  findTourSeen,
+  findHelpProgress,
   insertDefaultPlatformSettings,
   findUserContact,
   insertAuditLog,
   insertInvitation,
   insertOrganization,
-  insertTourSeen,
+  upsertHelpProgress,
+  resetHelpProgressItem,
   insertVatRegimeChange,
   listAllOrganizations,
   markInvitationAccepted,
@@ -87,6 +88,9 @@ export {
 // Lot 6 — contrat privacy/v1 du module (ADR 0023).
 export { hubPrivacy } from "./privacy";
 
+// Lot 10 (AIDE-08) — recherche globale.
+export { globalSearch, type GlobalSearchResults } from "./search";
+
 // Lot 9 (ADR 0029) — assistance de l'Admin et statistiques d'usage.
 export {
   ACTIVITY_MONTHS,
@@ -96,6 +100,8 @@ export {
   listOrganizationsSupport,
   resendInvitation,
   resetTeamAccountMfa,
+  listTeamHelpProgress,
+  type TeamHelpProgress,
   type OrganizationActivity,
   type OrganizationSupportView,
   type PendingInvitation,
@@ -433,15 +439,69 @@ export async function setPlatformSettings(
   });
 }
 
-// AIDE-01 — « Une visite guidée s'affiche à la première ouverture d'un
-// module. Elle se relance à tout moment. » moduleKey distingue le hub
-// des futurs modules métier (events, budget, quotes…).
+// Lot 10 (AIDE-05 à AIDE-07) — progression d'un compte dans l'aide : visites
+// focus (« tour:<écran> ») et tutoriels (« tutorial:<clé> »). Un élément jamais
+// ouvert n'a pas de ligne ; « postponed » = mis de côté avec son étape.
+export type HelpProgressStatus = "started" | "postponed" | "completed";
+export type HelpProgressEntry = {
+  itemKey: string;
+  status: HelpProgressStatus;
+  step: number;
+  context: Record<string, string> | null;
+  updatedAt: Date;
+  completedAt: Date | null;
+};
+
+export async function getHelpProgress(db: AppDatabase, userId: string): Promise<HelpProgressEntry[]> {
+  return (await findHelpProgress(db, userId)).map((row) => ({
+    itemKey: row.itemKey,
+    status: row.status,
+    step: row.step,
+    context: row.context ?? null,
+    updatedAt: row.updatedAt,
+    completedAt: row.completedAt,
+  }));
+}
+
+const HELP_ITEM_KEY = /^(tour|tutorial):[a-z0-9-]{1,60}$/;
+
+export class InvalidHelpItemError extends Error {
+  constructor() {
+    super("clé d'aide invalide");
+    this.name = "InvalidHelpItemError";
+  }
+}
+
+export async function recordHelpProgress(
+  db: AppDatabase,
+  input: { userId: string; itemKey: string; status: HelpProgressStatus; step?: number; context?: Record<string, string> | null; now?: Date },
+): Promise<void> {
+  if (!HELP_ITEM_KEY.test(input.itemKey)) throw new InvalidHelpItemError();
+  await upsertHelpProgress(db, {
+    userId: input.userId,
+    itemKey: input.itemKey,
+    status: input.status,
+    step: Math.max(0, Math.min(input.step ?? 0, 50)),
+    now: input.now ?? new Date(),
+    ...(input.context === undefined ? {} : { context: input.context }),
+  });
+}
+
+// AIDE-06 — recommencer un tutoriel (revoir) : étape 0, sans contexte.
+export async function restartHelpItem(db: AppDatabase, userId: string, itemKey: string): Promise<void> {
+  if (!HELP_ITEM_KEY.test(itemKey)) throw new InvalidHelpItemError();
+  await resetHelpProgressItem(db, userId, itemKey, new Date());
+}
+
+// AIDE-01, AIDE-05 — une visite s'ouvre d'elle-même tant que le compte ne l'a
+// jamais ouverte ; mise de côté ou terminée, elle ne s'impose plus (la barre
+// d'aide propose de la reprendre).
 export async function hasSeenTour(db: AppDatabase, userId: string, moduleKey: string): Promise<boolean> {
-  return (await findTourSeen(db, userId, moduleKey)) !== null;
+  return (await findHelpProgress(db, userId)).some((row) => row.itemKey === `tour:${moduleKey}`);
 }
 
 export async function markTourSeen(db: AppDatabase, userId: string, moduleKey: string): Promise<void> {
-  await insertTourSeen(db, userId, moduleKey);
+  await recordHelpProgress(db, { userId, itemKey: `tour:${moduleKey}`, status: "completed" });
 }
 
 // AIDE-04 — « L'utilisateur peut masquer la liste [premiers pas]. »

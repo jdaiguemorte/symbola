@@ -421,6 +421,20 @@
       "when": 1793795375339,
       "tag": "0059_grant_password_resets",
       "breakpoints": true
+    },
+    {
+      "idx": 60,
+      "version": "7",
+      "when": 1793805509162,
+      "tag": "0060_lot10_help_progress",
+      "breakpoints": true
+    },
+    {
+      "idx": 61,
+      "version": "7",
+      "when": 1793805510325,
+      "tag": "0061_grant_help_progress",
+      "breakpoints": true
     }
   ]
 }

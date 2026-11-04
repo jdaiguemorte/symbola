@@ -28,6 +28,10 @@ async function expectNoAxeViolation(page: Page) {
   expect(result.violations, JSON.stringify(result.violations, null, 2)).toEqual([]);
 }
 
+// Lot 10 : visites ouvertes d'office (sans la préférence posée par la
+// configuration des autres parcours).
+test.use({ storageState: { cookies: [], origins: [] } });
+
 test("AIDE-01/02 — visite guidée du module événements, puis essai guidé supprimé à la fin", async ({ page }) => {
   test.setTimeout(90_000);
   const email = `planner-aide-evt-${randomUUID()}@symbola.test`;
@@ -47,9 +51,9 @@ test("AIDE-01/02 — visite guidée du module événements, puis essai guidé su
   const tour = page.getByRole("dialog");
   await expect(tour).toHaveAccessibleName("Vos événements");
   await expectNoAxeViolation(page);
-  await tour.getByRole("button", { name: "Suivant" }).click();
+  await tour.getByRole("button", { name: "Continuer" }).click();
   await expect(tour).toHaveAccessibleName("Créer un prospect");
-  await tour.getByRole("button", { name: "Passer" }).click();
+  await tour.getByRole("button", { name: "Plus tard" }).click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
 
   // Déjà vue : elle ne se rouvre plus d'elle-même, mais se relance depuis « ? ».
@@ -59,11 +63,13 @@ test("AIDE-01/02 — visite guidée du module événements, puis essai guidé su
   await page.getByLabel("Liste des événements").first().click();
   await page.getByRole("button", { name: "Relancer la visite guidée" }).click();
   await expect(page.getByRole("dialog")).toHaveAccessibleName("Vos événements");
-  await page.getByRole("dialog").getByRole("button", { name: "Passer" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Plus tard" }).click();
 
   // AIDE-02 : l'essai ouvre un mariage fictif complet, marqué comme tel.
   await page.getByRole("button", { name: "Démarrer l'essai" }).click();
   await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}$/);
+  // Lot 10 : la visite focus de la fiche s'ouvre d'elle-même ; ce parcours la met de côté.
+  await page.getByRole("dialog", { name: "La fiche d'un événement" }).getByRole("button", { name: "Plus tard" }).click();
   const trialUrl = page.url();
   const trialId = trialUrl.split("/").pop()!;
   await expect(page.getByRole("heading", { name: "Essai guidé — données fictives" })).toBeVisible();

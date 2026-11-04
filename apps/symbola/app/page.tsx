@@ -3,20 +3,21 @@ import { redirect } from "next/navigation";
 import { after } from "next/server";
 import { getLocale, getTranslations } from "next-intl/server";
 import { parisToday, type Locale } from "@symbola/i18n";
-import type { TourStep } from "@symbola/ui";
 import { createAppConnection } from "@symbola/db/client";
 import { hasRealEvents } from "@/modules/events/service";
 import { getGreeting } from "@/modules/hello/service";
-import { getOrganizationProfile, hasSeenTour, isModuleEnabled } from "@/modules/hub/service";
+import { getOrganizationProfile, isModuleEnabled } from "@/modules/hub/service";
 import { getAuthContext } from "@/lib/auth-context";
 import { recordUsage } from "@/lib/usage";
 import { UpcomingPaymentsBlock } from "./devis/encaissements/dashboard-block";
 import { PrivacyPurgeAlertBlock, PrivacyRequestsAlertBlock } from "./rgpd/dashboard-block";
 import { HomeInteractive } from "./home-interactive";
+import { PageTour } from "./page-tour";
+import { loadPageTour } from "@/lib/help/page-tour";
 import { AgendaBlock } from "./agenda/agenda-block";
 import { UpcomingTasksBlock } from "./taches/upcoming-tasks-block";
 
-export default async function HomePage({ searchParams }: { searchParams: Promise<{ agenda?: string; debut?: string }> }) {
+export default async function HomePage({ searchParams }: { searchParams: Promise<{ agenda?: string; debut?: string; visite?: string }> }) {
   const auth = await getAuthContext();
 
   if (auth.status === "unauthenticated") redirect("/login");
@@ -75,20 +76,12 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   // AIDE-01 : la visite ne s'affiche automatiquement qu'à la première
   // ouverture du hub ; AIDE-04 : la liste « premiers pas » n'a de sens que
   // pour un utilisateur d'une organisation (l'Admin n'en a pas).
-  const { sql: tourSql, db: tourDb } = createAppConnection();
-  let tourInitiallyOpen: boolean;
-  try {
-    tourInitiallyOpen = !(await hasSeenTour(tourDb, auth.user.id, "hub"));
-  } finally {
-    await tourSql.end();
-  }
-  const tTour = await getTranslations("Tour");
   const tHelp = await getTranslations("Help");
   const tFirstSteps = await getTranslations("FirstSteps");
-  const tourSteps = tTour.raw("hub") as TourStep[];
   const locale = (await getLocale()) as Locale;
   const today = parisToday();
   const query = await searchParams;
+  const tour = await loadPageTour(auth.user.id, "hub", query.visite);
   const organizationId = auth.user.organizationId;
 
   return (
@@ -114,15 +107,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         {/* HUB-02 / DEV-03 : absent si le module Devis n'est pas souscrit. */}
         {quotesAvailable && organizationId ? <UpcomingPaymentsBlock organizationId={organizationId} /> : null}
       </div>
+      <PageTour {...tour} helpTitle={tHelp("home.title")} helpBody={tHelp("home.body")} />
       <HomeInteractive
-        tourInitiallyOpen={tourInitiallyOpen}
-        tourSteps={tourSteps}
-        tourSkipLabel={tTour("skip")}
-        tourNextLabel={tTour("next")}
-        tourFinishLabel={tTour("finish")}
-        helpTitle={tHelp("home.title")}
-        helpBody={tHelp("home.body")}
-        relaunchTourLabel={tHelp("relaunchTour")}
         firstStepsVisible={Boolean(auth.user.organizationId) && !auth.user.firstStepsHidden}
         firstStepsTitle={tFirstSteps("title")}
         firstStepsItems={[

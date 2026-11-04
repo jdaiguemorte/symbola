@@ -43,6 +43,10 @@ async function newPlanner(page: Page, tag: string) {
   await loginAndSetupMfa(page, email, password);
 }
 
+// Lot 10 : visites ouvertes d'office (sans la préférence posée par la
+// configuration des autres parcours).
+test.use({ storageState: { cookies: [], origins: [] } });
+
 test("AIDE-01 — visites guidées des modules Devis et Budget, relançables depuis « ? »", async ({ page }) => {
   test.setTimeout(90_000);
   await newPlanner(page, "tours");
@@ -52,9 +56,9 @@ test("AIDE-01 — visites guidées des modules Devis et Budget, relançables dep
   const tour = page.getByRole("dialog");
   await expect(tour).toHaveAccessibleName("Votre catalogue");
   await expectNoAxeViolation(page);
-  await tour.getByRole("button", { name: "Suivant" }).click();
+  await tour.getByRole("button", { name: "Continuer" }).click();
   await expect(tour).toHaveAccessibleName("Composer un devis");
-  await tour.getByRole("button", { name: "Passer" }).click();
+  await tour.getByRole("button", { name: "Plus tard" }).click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await page.reload();
   await page.waitForLoadState("networkidle");
@@ -62,13 +66,13 @@ test("AIDE-01 — visites guidées des modules Devis et Budget, relançables dep
   await page.locator('summary[aria-label="Catalogue des prestations"]').click();
   await page.getByRole("button", { name: "Relancer la visite guidée" }).click();
   await expect(page.getByRole("dialog")).toHaveAccessibleName("Votre catalogue");
-  await page.getByRole("dialog").getByRole("button", { name: "Passer" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Plus tard" }).click();
 
   await page.goto("/budget/parametres");
   await page.waitForLoadState("networkidle");
   await expect(page.getByRole("dialog")).toHaveAccessibleName("Vos modèles de budget");
   await expectNoAxeViolation(page);
-  await page.getByRole("dialog").getByRole("button", { name: "Passer" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Plus tard" }).click();
   await page.reload();
   await page.waitForLoadState("networkidle");
   await expect(page.getByRole("dialog")).toHaveCount(0);
@@ -80,9 +84,11 @@ test("AIDE-02 — essai guidé du module Devis : devis fictif signé et facturé
 
   await page.goto("/events");
   await page.waitForLoadState("networkidle");
-  await page.getByRole("dialog").getByRole("button", { name: "Passer" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Plus tard" }).click();
   await page.getByRole("button", { name: "Démarrer l'essai" }).click();
   await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}$/);
+  // Lot 10 : la visite focus de la fiche s'ouvre d'elle-même ; ce parcours la met de côté.
+  await page.getByRole("dialog", { name: "La fiche d'un événement" }).getByRole("button", { name: "Plus tard" }).click();
   const trialUrl = page.url();
   await expect(page.getByText(/Composez un devis fictif/)).toBeVisible();
   await page.waitForLoadState("networkidle");

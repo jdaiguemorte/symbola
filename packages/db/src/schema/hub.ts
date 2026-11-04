@@ -107,6 +107,34 @@ export const passwordResets = hubSchema.table("password_resets", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
+// Lot 10 (AIDE-05 à AIDE-07, HUB-05) — progression de chaque compte dans
+// l'aide : visites focus et tutoriels. itemKey = « tour:<écran> » ou
+// « tutorial:<clé> ». step = étape où reprendre (visite mise de côté,
+// tutoriel en cours). Aucune donnée d'événement ici : la clé d'un élément
+// d'aide, un état et des dates. Remplace hub.user_tour_seen (lot 1), dont les
+// lignes sont reprises comme visites terminées.
+export const helpProgressStatusEnum = hubSchema.enum("help_progress_status", ["started", "postponed", "completed"]);
+
+export const helpProgress = hubSchema.table(
+  "help_progress",
+  {
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    itemKey: text("item_key").notNull(),
+    status: helpProgressStatusEnum("status").notNull(),
+    step: integer("step").notNull().default(0),
+    // Tutoriel (AIDE-06) : identifiants des données d'exemple qu'il a créées
+    // (événement fictif, modèle…), pour reprendre et nettoyer. Jamais de
+    // contenu.
+    context: jsonb("context").$type<Record<string, string>>(),
+    startedAt: timestamp("started_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+  },
+  (table) => [primaryKey({ columns: [table.userId, table.itemKey] })],
+);
+
 export const sessions = hubSchema.table("sessions", {
   id: uuid("id").defaultRandom().primaryKey(),
   userId: uuid("user_id")

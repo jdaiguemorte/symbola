@@ -31,3 +31,4 @@ Un fichier par décision structurante, numéroté. Pour changer une décision : 
 - [0027 — Téléchargements de fichiers privés servis par l'app](0027-telechargements-servis-par-l-app.md)
 - [0028 — QR code d'activation de la double authentification (`qrcode`)](0028-qr-code-double-authentification.md)
 - [0029 — Assistance de l'Admin, mot de passe oublié et statistiques d'usage](0029-assistance-admin-et-statistiques-d-usage.md)
+- [0030 — Une aide qui forme et une recherche globale](0030-aide-qui-forme-et-recherche-globale.md)

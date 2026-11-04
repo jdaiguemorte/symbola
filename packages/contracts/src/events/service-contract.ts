@@ -3,6 +3,7 @@
 // 0011). apps/symbola vérifie que le vrai module satisfait ce type (test
 // de contrat, apps/symbola/modules/events/service.contract.test.ts).
 import type { MonthlyCount } from "../usage";
+import type { EventsSearchResults } from "../search";
 export type EventStatus = "prospect" | "quote_sent" | "confirmed" | "done" | "lost";
 
 export type EventClient = {
@@ -372,6 +373,11 @@ export interface EventsServiceContract {
   hasRealEvents(organizationId: string): Promise<boolean>;
   // Lot 9 (ADR 0029) — statistiques d'usage pour l'Admin, essais exclus.
   countEventsCreatedByMonth(organizationIds: string[], since: Date): Promise<Record<string, MonthlyCount[]>>;
+  // Lot 10 (AIDE-08) — recherche globale, essais exclus.
+  searchEvents(organizationId: string, words: string[], limit: number): Promise<EventsSearchResults>;
+  getEventNamesByIds(organizationId: string, eventIds: string[]): Promise<Record<string, string>>;
+  // Lot 10 (AIDE-06) — événement fictif d'un tutoriel.
+  startTutorialEvent(input: StartEventsTrialInput & { tutorialKey: string }): Promise<EventsTrial & { kind: string }>;
   listExpiredDemoEvents(organizationIds: string[], now?: Date): Promise<{ organizationId: string; eventId: string }[]>;
   // Lot 3 (BUD-04) : vérifie qu'un compte marié a accès à l'événement avant
   // de lui montrer son budget en lecture seule. Extension additive du

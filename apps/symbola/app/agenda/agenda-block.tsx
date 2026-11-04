@@ -50,7 +50,7 @@ export async function AgendaBlock({
       .join(", ")}`;
 
   return (
-    <section className="card" aria-labelledby="agenda-title">
+    <section className="card" aria-labelledby="agenda-title" data-tour="home-agenda">
       <div className="section-head">
         <div>
           <h2 id="agenda-title">{t("agendaTitle")}</h2>

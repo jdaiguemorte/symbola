@@ -1,6 +1,15 @@
 export { domainEventEnvelopeSchema, type DomainEventEnvelope } from "./domain-event";
 export type { FileDownload } from "./file-download";
 export type { MonthlyCount } from "./usage";
+export type {
+  EventSearchResult,
+  EventsSearchResults,
+  InvoiceSearchResult,
+  QuoteSearchResult,
+  QuotesSearchResults,
+  TaskSearchResult,
+  VendorSearchResult,
+} from "./search";
 export {
   HELLO_GREETING_CREATED,
   HELLO_GREETING_CREATED_VERSION,

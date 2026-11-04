@@ -20,6 +20,13 @@ export default defineConfig({
     // parcours existants attendent du français ; un test dédié vérifie
     // le changement de langue avec un contexte en anglais.
     locale: "fr-FR",
+    // Lot 10 : préférence « ne pas ouvrir les visites automatiquement »
+    // (centre d'aide), pour que les visites focus ne masquent pas les écrans
+    // des autres parcours ; les parcours de l'aide la retirent.
+    storageState: {
+      cookies: [{ name: "symbola_visites_auto", value: "0", domain: "localhost", path: "/", expires: -1, httpOnly: false, secure: false, sameSite: "Lax" }],
+      origins: [],
+    },
   },
   projects: [
     {

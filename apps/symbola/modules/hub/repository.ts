@@ -1,7 +1,7 @@
 // Accès aux données du module hub — jamais importé hors de modules/hub/
 // (ADR 0011). Pas de RLS sur ces tables (packages/db/src/schema/hub.ts) :
 // l'isolation est assurée par le code applicatif, pas par PostgreSQL.
-import { and, desc, eq, isNull } from "drizzle-orm";
+import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import type { AppDatabase } from "@symbola/db/client";
 import {
   auditLog,
@@ -10,7 +10,7 @@ import {
   organizationProfiles,
   organizations,
   platformSettings,
-  userTourSeen,
+  helpProgress,
   users,
   vatRegimeChanges,
 } from "@symbola/db/schema/hub";
@@ -139,16 +139,66 @@ export async function upsertPlatformSettings(
     .onConflictDoUpdate({ target: platformSettings.id, set: { ...fields, updatedAt: new Date() } });
 }
 
-export async function findTourSeen(db: AppDatabase, userId: string, moduleKey: string) {
-  const [row] = await db
-    .select()
-    .from(userTourSeen)
-    .where(and(eq(userTourSeen.userId, userId), eq(userTourSeen.moduleKey, moduleKey)));
-  return row ?? null;
+// Lot 10 — progression d'un compte dans l'aide (visites focus, tutoriels).
+export async function findHelpProgress(db: AppDatabase, userId: string) {
+  return db.select().from(helpProgress).where(eq(helpProgress.userId, userId));
 }
 
-export async function insertTourSeen(db: AppDatabase, userId: string, moduleKey: string) {
-  await db.insert(userTourSeen).values({ userId, moduleKey }).onConflictDoNothing();
+export async function upsertHelpProgress(
+  db: AppDatabase,
+  input: {
+    userId: string;
+    itemKey: string;
+    status: "started" | "postponed" | "completed";
+    step: number;
+    now: Date;
+    // Contexte d'un tutoriel : fusionné avec l'existant ; null = effacé.
+    context?: Record<string, string> | null;
+  },
+) {
+  const completedAt = input.status === "completed" ? input.now : null;
+  await db
+    .insert(helpProgress)
+    .values({
+      userId: input.userId,
+      itemKey: input.itemKey,
+      status: input.status,
+      step: input.step,
+      context: input.context ?? null,
+      startedAt: input.now,
+      updatedAt: input.now,
+      completedAt,
+    })
+    .onConflictDoUpdate({
+      target: [helpProgress.userId, helpProgress.itemKey],
+      // Un élément terminé le reste : le revoir ne le fait pas repasser « en cours ».
+      set: {
+        status: sql`case when ${helpProgress.status} = 'completed' then 'completed'::hub.help_progress_status else excluded.status end`,
+        // Une visite terminée garde son étape ; un tutoriel revu avance de nouveau.
+        step: sql`case when ${helpProgress.status} = 'completed' and ${helpProgress.itemKey} like 'tour:%' then ${helpProgress.step} else excluded.step end`,
+        updatedAt: input.now,
+        completedAt: sql`coalesce(${helpProgress.completedAt}, excluded.completed_at)`,
+        ...(input.context === undefined
+          ? {}
+          : input.context === null
+            ? { context: null }
+            : { context: sql`coalesce(${helpProgress.context}, '{}'::jsonb) || excluded.context` }),
+      },
+    });
+}
+
+// AIDE-06 — un tutoriel revu repart de zéro (étape et contexte), même terminé.
+export async function resetHelpProgressItem(db: AppDatabase, userId: string, itemKey: string, now: Date) {
+  await db
+    .update(helpProgress)
+    .set({ step: 0, context: null, updatedAt: now })
+    .where(and(eq(helpProgress.userId, userId), eq(helpProgress.itemKey, itemKey)));
+}
+
+// HUB-05 — progression de tous les comptes d'équipe (vue Admin) : clés
+// d'aide, états et dates seulement.
+export async function findAllHelpProgress(db: AppDatabase) {
+  return db.select().from(helpProgress);
 }
 
 export async function updateFirstStepsHidden(db: AppDatabase, userId: string, hidden: boolean) {
@@ -180,4 +230,10 @@ export async function replaceInvitationToken(db: AppDatabase, invitationId: stri
     .update(invitations)
     .set(input)
     .where(and(eq(invitations.id, invitationId), isNull(invitations.acceptedAt)));
+}
+
+// HUB-05 (lot 10) — activation des modules de toutes les organisations, en une
+// requête (une ligne seulement pour un module déjà basculé par l'Admin).
+export async function findAllOrganizationModules(db: AppDatabase) {
+  return db.select().from(organizationModules);
 }

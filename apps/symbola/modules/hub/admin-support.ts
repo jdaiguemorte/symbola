@@ -17,7 +17,9 @@ import {
 import { countEventsCreatedByMonth } from "@/modules/events/service";
 import { countQuotesAndInvoicesByMonth } from "@/modules/quotes/service";
 import {
+  findAllHelpProgress,
   findInvitationById,
+  findAllOrganizationModules,
   findPendingInvitations,
   insertAuditLog,
   listAllOrganizations,
@@ -238,4 +240,48 @@ export async function getOrganizationsActivity(
     };
   });
   return activity.sort((a, b) => a.name.localeCompare(b.name, "fr"));
+}
+
+// HUB-05 (lot 10) — prise en main par compte d'équipe : clés d'aide, états et
+// dates seulement (jamais une donnée d'événement), et les modules souscrits
+// par organisation pour savoir quels tutoriels lui sont proposés.
+export type TeamHelpEntry = { itemKey: string; status: "started" | "postponed" | "completed"; step: number; updatedAt: Date; completedAt: Date | null };
+
+export type TeamHelpProgress = {
+  id: string;
+  name: string;
+  modules: { events: boolean; budget: boolean; quotes: boolean };
+  accounts: (TeamAccountStatus & { help: TeamHelpEntry[] })[];
+};
+
+export async function listTeamHelpProgress(db: AppDatabase): Promise<TeamHelpProgress[]> {
+  const [organizationRows, accounts, progress, moduleRows] = await Promise.all([
+    listAllOrganizations(db),
+    listTeamAccounts(db),
+    findAllHelpProgress(db),
+    findAllOrganizationModules(db),
+  ]);
+  // Absence de ligne = activé (même règle que isModuleEnabled du hub).
+  const enabled = (organizationId: string, moduleKey: string) =>
+    moduleRows.find((row) => row.organizationId === organizationId && row.moduleKey === moduleKey)?.enabled ?? true;
+  const result: TeamHelpProgress[] = [];
+  for (const organization of organizationRows) {
+    const teamAccounts = accounts.filter((account) => account.organizationId === organization.id);
+    if (teamAccounts.length === 0) continue;
+    const events = enabled(organization.id, "events");
+    const budget = enabled(organization.id, "budget");
+    const quotes = enabled(organization.id, "quotes");
+    result.push({
+      id: organization.id,
+      name: organization.name,
+      modules: { events, budget, quotes },
+      accounts: teamAccounts.map((account) => ({
+        ...account,
+        help: progress
+          .filter((row) => row.userId === account.userId)
+          .map((row) => ({ itemKey: row.itemKey, status: row.status, step: row.step, updatedAt: row.updatedAt, completedAt: row.completedAt })),
+      })),
+    });
+  }
+  return result.sort((a, b) => a.name.localeCompare(b.name, "fr"));
 }
