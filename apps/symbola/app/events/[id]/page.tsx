@@ -17,6 +17,7 @@ import {
   listEventClientAccesses,
   listEventTasks,
   listEventVendorSlots,
+  listVendorCandidates,
   listTaskTemplates,
   listLossReasons,
   listProgramTemplates,
@@ -59,6 +60,9 @@ import { TaskTable } from "@/app/taches/task-table";
 import { EVENT_STATUS_CLASSES, STATUS_LABEL_KEYS } from "../event-status";
 import { removeVendorSlotAction } from "./vendor-slot-actions";
 import { AddVendorSlotForm, VendorSlotForm } from "./vendor-slot-forms";
+import { VendorCandidates } from "./vendor-candidates";
+import { findVendors } from "@/modules/vendors/service";
+import { isVendorsModuleEnabled } from "@/app/prestataires/module-access";
 import {
   VENDOR_STATUS_CLASSES,
   VENDOR_STATUS_LABEL_KEYS,
@@ -172,6 +176,7 @@ export default async function EventDetailPage({
     ? await listEventQuotes(organizationId, id)
     : [];
   const tQuotes = await getTranslations("Quotes");
+  const tCandidates = await getTranslations("VendorCandidates");
 
   const today = parisToday();
   const tab: Tab = TABS.includes(query.onglet as Tab) && (query.onglet !== "devis" || quotesAvailable) ? (query.onglet as Tab) : "apercu";
@@ -184,6 +189,14 @@ export default async function EventDetailPage({
   const slotFilter = query.filtre === "a-pourvoir" ? "a-pourvoir" : "tous";
   const shownSlots = slotFilter === "a-pourvoir" ? toFind : vendorSlots;
   const selectedSlot = vendorSlots.find((slot) => slot.id === query.poste) ?? null;
+  // Lot 11 (EVT-08) : prestataires consultés, et le carnet s'il est souscrit.
+  const candidates = tab === "prestataires" ? await listVendorCandidates(organizationId, id) : [];
+  const vendorsAvailable = tab === "prestataires" ? await isVendorsModuleEnabled(organizationId) : false;
+  const bookOptions =
+    selectedSlot && vendorsAvailable
+      ? (await findVendors({ organizationId })).map((vendor) => ({ id: vendor.id, label: vendor.city ? `${vendor.name} — ${vendor.city}` : vendor.name }))
+      : [];
+  const candidatesBySlot = (slotId: string) => candidates.filter((candidate) => candidate.vendorSlotId === slotId);
 
   // EVT-04 : filtres du rétroplanning (vue, responsable), tâche choisie.
   const taskView = query.vue === "a-faire" || query.vue === "en-retard" ? query.vue : "toutes";
@@ -360,7 +373,10 @@ export default async function EventDetailPage({
                             {slot.label}
                           </Link>
                         </th>
-                        <td>{slot.vendorName ?? "—"}</td>
+                        <td>
+                          {slot.vendorName ??
+                            (candidatesBySlot(slot.id).length > 0 ? tCandidates("consultedCount", { count: candidatesBySlot(slot.id).length }) : "—")}
+                        </td>
                         <td>
                           <span className={VENDOR_STATUS_CLASSES[slot.status]}>{t(VENDOR_STATUS_LABEL_KEYS[slot.status])}</span>
                         </td>
@@ -394,6 +410,16 @@ export default async function EventDetailPage({
             )}
           </aside>
         </div>
+      ) : null}
+      {tab === "prestataires" && selectedSlot ? (
+        <VendorCandidates
+          eventId={event.id}
+          slot={selectedSlot}
+          candidates={candidatesBySlot(selectedSlot.id)}
+          bookOptions={bookOptions}
+          vendorsAvailable={vendorsAvailable}
+          locale={locale}
+        />
       ) : null}
 
       {/* EVT-04 : rétroplanning en tableau. */}

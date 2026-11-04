@@ -955,3 +955,46 @@
     @apply border-transparent bg-transparent text-muted underline underline-offset-4;
   }
 }
+
+@layer components {
+  /* Lot 11 (EVT-08/09) — prestataires consultés : des cartes, lisibles en 375 px. */
+  .candidate-list,
+  .option-cards {
+    @apply m-0 grid list-none grid-cols-1 gap-4 p-0 xl:grid-cols-2;
+  }
+  .candidate-card,
+  .option-cards > .card {
+    @apply my-0 flex flex-col gap-3;
+  }
+  .candidate-card h3,
+  .option-cards h4 {
+    @apply m-0;
+  }
+  .candidate-form {
+    @apply grid grid-cols-1 items-end gap-3 sm:grid-cols-2;
+  }
+  .candidate-notes ul {
+    @apply m-0 flex list-none flex-col gap-2 p-0;
+  }
+  .candidate-notes h4 {
+    @apply m-0 text-base;
+  }
+  .candidate-actions {
+    @apply flex flex-wrap items-center gap-2 border-t border-lin-soft pt-3;
+  }
+  .stack {
+    @apply flex flex-col gap-2;
+  }
+  label.checkbox {
+    @apply flex flex-row items-center gap-2;
+  }
+  .strong {
+    @apply font-semibold;
+  }
+  .muted {
+    @apply text-muted;
+  }
+  .link-button {
+    @apply min-h-9 border-0 bg-transparent px-2 text-sm text-sauge-ink underline hover:bg-transparent hover:text-ink;
+  }
+}
