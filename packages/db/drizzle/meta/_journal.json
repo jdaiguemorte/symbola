@@ -407,6 +407,20 @@
       "when": 1793657860831,
       "tag": "0057_grant_purges_and_document_anonymization",
       "breakpoints": true
+    },
+    {
+      "idx": 58,
+      "version": "7",
+      "when": 1793795374203,
+      "tag": "0058_lot9_password_resets_audit_target",
+      "breakpoints": true
+    },
+    {
+      "idx": 59,
+      "version": "7",
+      "when": 1793795375339,
+      "tag": "0059_grant_password_resets",
+      "breakpoints": true
     }
   ]
 }

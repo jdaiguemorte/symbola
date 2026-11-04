@@ -5,7 +5,8 @@
     "password": "Mot de passe",
     "submit": "Se connecter",
     "invalidCredentials": "Identifiants invalides.",
-    "locked": "Compte temporairement verrouillé après plusieurs échecs. Réessayez dans quelques minutes."
+    "locked": "Compte temporairement verrouillé après plusieurs échecs. Réessayez dans quelques minutes.",
+    "forgotPassword": "Mot de passe oublié ?"
   },
   "Mfa": {
     "title": "Double authentification",
@@ -87,7 +88,9 @@
     "name": "Nom",
     "modules": "Modules",
     "moduleEnabledLabel": "{module} : activé (désactiver)",
-    "moduleDisabledLabel": "{module} : désactivé (activer)"
+    "moduleDisabledLabel": "{module} : désactivé (activer)",
+    "viewAccounts": "Comptes et assistance",
+    "viewActivity": "Activité des organisations"
   },
   "AdminOrganizationForm": {
     "name": "Nom de l'organisation",
@@ -110,12 +113,13 @@
   },
   "Invitation": {
     "welcome": "Bienvenue sur Symbola",
-    "choosePassword": "Choisissez un mot de passe",
+    "choosePassword": "Choisissez un mot de passe (12 caractères minimum)",
     "submit": "Créer mon compte",
     "success": "Compte créé. Vous pouvez maintenant vous connecter.",
     "invalidOrExpired": "Ce lien d'invitation est invalide ou a expiré.",
     "alreadyAccepted": "Cette invitation a déjà été utilisée.",
-    "missingPassword": "Le mot de passe est obligatoire."
+    "missingPassword": "Le mot de passe est obligatoire.",
+    "passwordTooShort": "Le mot de passe doit faire au moins 12 caractères."
   },
   "Profile": {
     "title": "Mon profil",
@@ -412,6 +416,18 @@
     "allQuotes": {
       "title": "Vos devis",
       "body": "La liste de tous vos devis. Un devis se crée depuis la fiche de son événement ; ses factures d'acompte et de solde se font depuis le devis signé."
+    },
+    "adminAccounts": {
+      "title": "Comptes et assistance",
+      "body": "Pour débloquer quelqu'un de l'équipe d'une organisation : voir si sa double authentification est configurée, si son compte est verrouillé, et quand il s'est connecté pour la dernière fois. « Réinitialiser la double authentification » sert en cas de téléphone perdu ou changé : la personne est prévenue par e-mail et scannera un nouveau QR code. « Renvoyer l'invitation » envoie un nouveau lien et désactive l'ancien. Un mot de passe oublié se règle sans vous, depuis l'écran de connexion. Chaque action est inscrite au journal."
+    },
+    "adminActivity": {
+      "title": "Activité des organisations",
+      "body": "Des statistiques d'usage pour juger de l'intérêt de l'application : nombre de comptes, comptes connectés sur 30 jours, dernière connexion, et nombre d'événements, de devis et de factures créés chaque mois. Jamais un nom, un montant ni un contenu ; les essais guidés ne comptent pas."
+    },
+    "forgotPassword": {
+      "title": "Mot de passe oublié",
+      "body": "Saisissez l'adresse de votre compte : un lien valable 30 minutes vous est envoyé pour choisir un nouveau mot de passe. Le message est le même que l'adresse ait un compte ou non. Votre double authentification ne change pas."
     }
   },
   "FirstSteps": {
@@ -1614,5 +1630,77 @@
     "purgeOutcomePurged": "purgée",
     "purgeOutcomeExcluded": "exclue : {reason}",
     "purgeAlertTitle": "Purge mensuelle : {count, plural, one {# ligne à examiner} other {# lignes à examiner}}"
+  },
+  "PasswordReset": {
+    "forgotTitle": "Mot de passe oublié",
+    "forgotIntro": "Saisissez l'adresse e-mail de votre compte : vous recevrez un lien pour choisir un nouveau mot de passe, valable 30 minutes.",
+    "email": "E-mail",
+    "send": "Recevoir le lien",
+    "invalidEmail": "Adresse e-mail invalide.",
+    "sent": "Si un compte existe pour cette adresse, un e-mail vient de lui être envoyé. Pensez à regarder dans les indésirables.",
+    "backToLogin": "Retour à la connexion",
+    "resetTitle": "Nouveau mot de passe",
+    "newPassword": "Nouveau mot de passe (12 caractères minimum)",
+    "confirmPassword": "Confirmez le mot de passe",
+    "save": "Enregistrer le mot de passe",
+    "mismatch": "Les deux mots de passe ne sont pas identiques.",
+    "tooShort": "Le mot de passe doit faire au moins 12 caractères.",
+    "invalidOrExpired": "Ce lien n'est plus valable : il a déjà servi ou a expiré.",
+    "askAgain": "Demander un nouveau lien",
+    "done": "Mot de passe enregistré. Vous pouvez vous connecter ; la double authentification vous sera demandée comme d'habitude.",
+    "mailSubject": "Choisir un nouveau mot de passe Symbola",
+    "mailBody": "Bonjour,\n\nUne demande de nouveau mot de passe a été faite pour votre compte Symbola. Ce lien est valable 30 minutes et ne sert qu'une fois :\n{link}\n\nSi vous n'êtes pas à l'origine de cette demande, ignorez cet e-mail : votre mot de passe actuel reste valable.\n\nL'équipe Symbola"
+  },
+  "AdminAccounts": {
+    "title": "Comptes et assistance",
+    "backToAdmin": "Retour à l'administration",
+    "intro": "Comptes de l'équipe de chaque organisation et invitations en attente. Les comptes des mariés n'apparaissent pas ici.",
+    "noAccount": "Aucun compte ni invitation.",
+    "accountsTable": "Comptes de {organization}",
+    "email": "E-mail",
+    "role": "Rôle",
+    "roleOwner": "Titulaire",
+    "roleMember": "Membre",
+    "mfa": "Double authentification",
+    "mfaConfigured": "Configurée",
+    "mfaPending": "Pas encore configurée",
+    "mfaPendingHint": "Le QR code lui sera proposé à sa prochaine connexion.",
+    "lockedUntil": "verrouillé jusqu'au {date}",
+    "lastLogin": "Dernière connexion",
+    "never": "Jamais",
+    "actions": "Assistance",
+    "resetMfaConfirm": "Je confirme : effacer la double authentification de {email}",
+    "resetMfa": "Réinitialiser la double authentification",
+    "pendingInvitations": "Invitations en attente",
+    "pendingInvitationsOf": "Invitations en attente de {organization}",
+    "invitationValidUntil": "lien valable jusqu'au {date}",
+    "invitationExpired": "lien expiré le {date}",
+    "resendInvitation": "Renvoyer l'invitation à {email}",
+    "resultInvitationSent": "Nouvelle invitation envoyée : l'ancien lien ne fonctionne plus.",
+    "resultMfaReset": "Double authentification réinitialisée : la personne a été prévenue par e-mail et choisira un nouveau QR code à sa prochaine connexion.",
+    "resultMailFailed": "L'action est faite, mais l'e-mail n'a pas pu partir : prévenez la personne directement.",
+    "resultConfirmationRequired": "Cochez la case de confirmation avant de réinitialiser.",
+    "resultError": "Action impossible : le compte ou l'invitation n'est plus dans cet état. Rechargez la page.",
+    "inviteMailSubject": "Votre invitation Symbola",
+    "inviteMailBody": "Bonjour,\n\nVous avez été invité·e à rejoindre « {organization} » sur Symbola. Voici un nouveau lien, valable 7 jours (le précédent ne fonctionne plus) :\n{link}\n\nÀ bientôt,\nL'équipe Symbola",
+    "mfaResetMailSubject": "Votre double authentification Symbola a été réinitialisée",
+    "mfaResetMailBody": "Bonjour,\n\nÀ votre demande, l'équipe Symbola a réinitialisé la double authentification de votre compte. À votre prochaine connexion, saisissez votre mot de passe puis scannez le nouveau QR code avec votre application :\n{link}\n\nSi vous n'avez rien demandé, répondez à cet e-mail sans attendre.\n\nL'équipe Symbola"
+  },
+  "AdminActivity": {
+    "title": "Activité des organisations",
+    "backToAdmin": "Retour à l'administration",
+    "intro": "Statistiques d'usage, sans aucune donnée des clients : des nombres seulement, essais guidés exclus, sur les 6 derniers mois.",
+    "empty": "Aucune organisation.",
+    "summaryOf": "Résumé de {organization}",
+    "teamAccounts": "{count, plural, =0 {Aucun compte d'équipe} one {# compte d'équipe} other {# comptes d'équipe}}",
+    "clientAccounts": "{count, plural, =0 {Aucun compte marié} one {# compte marié} other {# comptes mariés}}",
+    "activeAccounts": "{count, plural, =0 {Aucun compte connecté sur 30 jours} one {# compte connecté sur 30 jours} other {# comptes connectés sur 30 jours}}",
+    "lastLogin": "Dernière connexion : {date}",
+    "neverLoggedIn": "Aucune connexion pour l'instant",
+    "monthlyTable": "Activité mensuelle de {organization}",
+    "month": "Mois",
+    "events": "Événements créés",
+    "quotes": "Devis créés",
+    "invoices": "Factures émises"
   }
 }

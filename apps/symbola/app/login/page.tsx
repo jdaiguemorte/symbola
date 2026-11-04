@@ -29,6 +29,9 @@ export default function LoginPage() {
         </button>
       </form>
       {state.error ? <p role="alert">{state.error}</p> : null}
+      <p>
+        <a href="/mot-de-passe-oublie">{t("forgotPassword")}</a>
+      </p>
     </main>
   );
 }

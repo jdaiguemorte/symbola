@@ -9,6 +9,7 @@ import { parseEnv } from "@symbola/env";
 import { sendMail } from "@symbola/mail";
 import { starterDemoEvent, starterProgram, starterRetroplanning, starterVendorSlots } from "@symbola/starter-templates";
 import {
+  countEventsByCreationMonth,
   countRealEvents,
   findExpiredDemoEventIds,
   deleteDemoEvent,
@@ -81,6 +82,7 @@ import {
 import { addDays } from "./schedule";
 import { findProgramOverlaps, normalizeTime, programForVariant, sortProgramItems } from "./program";
 import type {
+  MonthlyCount,
   ChangeEventStatusInput,
   CreateProspectInput,
   CreateProspectResult,
@@ -1080,6 +1082,12 @@ export async function hasRealEvents(organizationId: string): Promise<boolean> {
   return (await countRealEvents(organizationId)) > 0;
 }
 
+// Lot 9 (ADR 0029) — statistique d'usage pour l'Admin : événements réels
+// créés par mois, essais exclus, pour plusieurs organisations à la fois.
+export async function countEventsCreatedByMonth(organizationIds: string[], since: Date): Promise<Record<string, MonthlyCount[]>> {
+  return countEventsByCreationMonth(organizationIds, since);
+}
+
 // Lot 3 (BUD-04) : exposition publique de la vérification déjà utilisée en
 // interne par getClientEventView — le module budget en a besoin pour sa
 // propre vue en lecture seule du marié.
@@ -1154,6 +1162,7 @@ const _contractCheck: EventsServiceContract = {
   endEventsTrial,
   purgeExpiredDemoEvents,
   hasRealEvents,
+  countEventsCreatedByMonth,
   hasActiveClientAccess,
   listExpiredDemoEvents,
 };

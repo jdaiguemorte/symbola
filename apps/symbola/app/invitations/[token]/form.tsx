@@ -18,7 +18,7 @@ export function AcceptInvitationForm({ token }: { token: string }) {
       <input type="hidden" name="token" value={token} />
       <label>
         {t("choosePassword")}
-        <input type="password" name="password" required />
+        <input type="password" name="password" autoComplete="new-password" minLength={12} required />
       </label>
       <button type="submit" disabled={pending}>
         {t("submit")}

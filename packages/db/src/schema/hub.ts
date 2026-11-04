@@ -92,6 +92,21 @@ export const userTourSeen = hubSchema.table(
   (table) => [primaryKey({ columns: [table.userId, table.moduleKey] })],
 );
 
+// Lot 9 — mot de passe oublié : lien à usage unique et de courte durée.
+// Seul le hachage du jeton est stocké (comme les sessions et invitations) ;
+// usedAt posé à la première utilisation. Table d'identité : pas de RLS,
+// isolation assurée par packages/auth (ADR 0013).
+export const passwordResets = hubSchema.table("password_resets", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  tokenHash: text("token_hash").notNull().unique(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  usedAt: timestamp("used_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
 export const sessions = hubSchema.table("sessions", {
   id: uuid("id").defaultRandom().primaryKey(),
   userId: uuid("user_id")
@@ -201,6 +216,10 @@ export const auditLog = hubSchema.table("audit_log", {
     .references(() => users.id),
   action: text("action").notNull(),
   targetOrganizationId: uuid("target_organization_id").references(() => organizations.id),
+  // Lot 9 : compte visé par une action d'assistance (réinitialisation de la
+  // double authentification). Nul pour les actions sur une organisation.
+  // SET NULL : supprimer un compte (RGPD) ne bute jamais sur le journal.
+  targetUserId: uuid("target_user_id").references(() => users.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 

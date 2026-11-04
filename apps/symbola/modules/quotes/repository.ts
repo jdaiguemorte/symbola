@@ -1,6 +1,6 @@
 // Accès aux données du module quotes — jamais importé hors de
 // modules/quotes/ (ADR 0011).
-import { and, asc, desc, eq, inArray, sql as raw } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, sql as raw } from "drizzle-orm";
 import { createAppConnection } from "@symbola/db/client";
 import {
   catalogItems,
@@ -34,7 +34,10 @@ export type QuoteSignerRow = typeof quoteSigners.$inferSelect;
 
 type Tx = Parameters<Parameters<typeof withOrganization>[2]>[0];
 
-async function inOrganization<T>(organizationId: string, fn: (tx: Tx) => Promise<T>): Promise<T> {
+async function inOrganization<T>(
+  organizationId: string,
+  fn: (tx: Tx) => Promise<T>,
+): Promise<T> {
   const { sql, db } = createAppConnection();
   try {
     return await withOrganization(db, organizationId, fn);
@@ -44,31 +47,53 @@ async function inOrganization<T>(organizationId: string, fn: (tx: Tx) => Promise
 }
 
 // DEV-01 — catalogue.
-export async function findCatalogItems(organizationId: string, includeArchived: boolean): Promise<CatalogItemRow[]> {
+export async function findCatalogItems(
+  organizationId: string,
+  includeArchived: boolean,
+): Promise<CatalogItemRow[]> {
   return inOrganization(organizationId, (tx) =>
     tx
       .select()
       .from(catalogItems)
-      .where(includeArchived ? undefined : raw`${catalogItems.archivedAt} is null`)
+      .where(
+        includeArchived ? undefined : raw`${catalogItems.archivedAt} is null`,
+      )
       .orderBy(asc(catalogItems.category), asc(catalogItems.label)),
   );
 }
 
-export async function findCatalogItem(organizationId: string, itemId: string): Promise<CatalogItemRow | null> {
+export async function findCatalogItem(
+  organizationId: string,
+  itemId: string,
+): Promise<CatalogItemRow | null> {
   return inOrganization(organizationId, async (tx) => {
-    const [row] = await tx.select().from(catalogItems).where(eq(catalogItems.id, itemId));
+    const [row] = await tx
+      .select()
+      .from(catalogItems)
+      .where(eq(catalogItems.id, itemId));
     return row ?? null;
   });
 }
 
 export type CatalogItemData = Pick<
   CatalogItemRow,
-  "label" | "description" | "unit" | "unitPriceCents" | "vatRateBasisPoints" | "category"
+  | "label"
+  | "description"
+  | "unit"
+  | "unitPriceCents"
+  | "vatRateBasisPoints"
+  | "category"
 >;
 
-export async function insertCatalogItem(organizationId: string, data: CatalogItemData): Promise<CatalogItemRow> {
+export async function insertCatalogItem(
+  organizationId: string,
+  data: CatalogItemData,
+): Promise<CatalogItemRow> {
   return inOrganization(organizationId, async (tx) => {
-    const [row] = await tx.insert(catalogItems).values({ organizationId, ...data }).returning();
+    const [row] = await tx
+      .insert(catalogItems)
+      .values({ organizationId, ...data })
+      .returning();
     if (!row) throw new Error("création de l'article échouée");
     return row;
   });
@@ -80,19 +105,31 @@ export async function updateCatalogItemRow(
   data: CatalogItemData,
 ): Promise<CatalogItemRow | null> {
   return inOrganization(organizationId, async (tx) => {
-    const [row] = await tx.update(catalogItems).set(data).where(eq(catalogItems.id, itemId)).returning();
+    const [row] = await tx
+      .update(catalogItems)
+      .set(data)
+      .where(eq(catalogItems.id, itemId))
+      .returning();
     return row ?? null;
   });
 }
 
-export async function archiveCatalogItemRow(organizationId: string, itemId: string): Promise<void> {
+export async function archiveCatalogItemRow(
+  organizationId: string,
+  itemId: string,
+): Promise<void> {
   await inOrganization(organizationId, (tx) =>
-    tx.update(catalogItems).set({ archivedAt: new Date() }).where(eq(catalogItems.id, itemId)),
+    tx
+      .update(catalogItems)
+      .set({ archivedAt: new Date() })
+      .where(eq(catalogItems.id, itemId)),
   );
 }
 
 // Réglages : valeurs par défaut tant que l'organisation n'a rien changé.
-export async function findQuoteSettings(organizationId: string): Promise<QuoteSettingsRow | null> {
+export async function findQuoteSettings(
+  organizationId: string,
+): Promise<QuoteSettingsRow | null> {
   return inOrganization(organizationId, async (tx) => {
     const [row] = await tx.select().from(quoteSettings);
     return row ?? null;
@@ -103,14 +140,23 @@ export async function upsertQuoteSettings(
   organizationId: string,
   data: Pick<
     QuoteSettingsRow,
-    "validityDays" | "quotePrefix" | "invoicePrefix" | "creditNotePrefix" | "upcomingHorizonDays" | "invoicePaymentTermDays" | "invoiceMentions"
+    | "validityDays"
+    | "quotePrefix"
+    | "invoicePrefix"
+    | "creditNotePrefix"
+    | "upcomingHorizonDays"
+    | "invoicePaymentTermDays"
+    | "invoiceMentions"
   >,
 ): Promise<QuoteSettingsRow> {
   return inOrganization(organizationId, async (tx) => {
     const [row] = await tx
       .insert(quoteSettings)
       .values({ organizationId, ...data })
-      .onConflictDoUpdate({ target: quoteSettings.organizationId, set: { ...data, updatedAt: new Date() } })
+      .onConflictDoUpdate({
+        target: quoteSettings.organizationId,
+        set: { ...data, updatedAt: new Date() },
+      })
       .returning();
     if (!row) throw new Error("enregistrement des réglages échoué");
     return row;
@@ -132,7 +178,12 @@ export async function nextSeriesRank(
     .insert(numberSeries)
     .values({ organizationId, kind, isDemo, year, lastNumber: 1 })
     .onConflictDoUpdate({
-      target: [numberSeries.organizationId, numberSeries.kind, numberSeries.isDemo, numberSeries.year],
+      target: [
+        numberSeries.organizationId,
+        numberSeries.kind,
+        numberSeries.isDemo,
+        numberSeries.year,
+      ],
       set: { lastNumber: raw`${numberSeries.lastNumber} + 1` },
     })
     .returning({ lastNumber: numberSeries.lastNumber });
@@ -151,7 +202,13 @@ export async function insertQuote(input: {
   formatNumber: (rank: number) => string;
 }): Promise<QuoteRow> {
   return inOrganization(input.organizationId, async (tx) => {
-    const rank = await nextSeriesRank(tx, input.organizationId, "quote", input.isDemo, input.year);
+    const rank = await nextSeriesRank(
+      tx,
+      input.organizationId,
+      "quote",
+      input.isDemo,
+      input.year,
+    );
     const [quote] = await tx
       .insert(quotes)
       .values({
@@ -163,20 +220,38 @@ export async function insertQuote(input: {
       })
       .returning();
     if (!quote) throw new Error("création du devis échouée");
-    await tx.insert(quoteVersions).values({ organizationId: input.organizationId, quoteId: quote.id, version: 1 });
+    await tx
+      .insert(quoteVersions)
+      .values({
+        organizationId: input.organizationId,
+        quoteId: quote.id,
+        version: 1,
+      });
     return quote;
   });
 }
 
-export async function findEventQuotes(organizationId: string, eventId: string): Promise<QuoteRow[]> {
+export async function findEventQuotes(
+  organizationId: string,
+  eventId: string,
+): Promise<QuoteRow[]> {
   return inOrganization(organizationId, (tx) =>
-    tx.select().from(quotes).where(eq(quotes.eventId, eventId)).orderBy(asc(quotes.createdAt), asc(quotes.number)),
+    tx
+      .select()
+      .from(quotes)
+      .where(eq(quotes.eventId, eventId))
+      .orderBy(asc(quotes.createdAt), asc(quotes.number)),
   );
 }
 
 // Tous les devis de l'organisation, les plus récents d'abord.
 export async function findQuotes(organizationId: string): Promise<QuoteRow[]> {
-  return inOrganization(organizationId, (tx) => tx.select().from(quotes).orderBy(desc(quotes.createdAt), desc(quotes.number)));
+  return inOrganization(organizationId, (tx) =>
+    tx
+      .select()
+      .from(quotes)
+      .orderBy(desc(quotes.createdAt), desc(quotes.number)),
+  );
 }
 
 export type QuoteAggregate = {
@@ -200,7 +275,12 @@ async function loadAggregate(tx: Tx, quote: QuoteRow): Promise<QuoteAggregate> {
       ? await tx
           .select()
           .from(quoteLines)
-          .where(inArray(quoteLines.versionId, versions.map((version) => version.id)))
+          .where(
+            inArray(
+              quoteLines.versionId,
+              versions.map((version) => version.id),
+            ),
+          )
           .orderBy(asc(quoteLines.position))
       : [];
   const scheduleItems =
@@ -208,44 +288,99 @@ async function loadAggregate(tx: Tx, quote: QuoteRow): Promise<QuoteAggregate> {
       ? await tx
           .select()
           .from(paymentScheduleItems)
-          .where(inArray(paymentScheduleItems.versionId, versions.map((version) => version.id)))
-          .orderBy(asc(paymentScheduleItems.dueDate), asc(paymentScheduleItems.position))
+          .where(
+            inArray(
+              paymentScheduleItems.versionId,
+              versions.map((version) => version.id),
+            ),
+          )
+          .orderBy(
+            asc(paymentScheduleItems.dueDate),
+            asc(paymentScheduleItems.position),
+          )
       : [];
-  const methodIds = [...new Set(scheduleItems.flatMap((item) => (item.paymentMethodId ? [item.paymentMethodId] : [])))];
-  const methods = methodIds.length > 0 ? await tx.select().from(paymentMethods).where(inArray(paymentMethods.id, methodIds)) : [];
+  const methodIds = [
+    ...new Set(
+      scheduleItems.flatMap((item) =>
+        item.paymentMethodId ? [item.paymentMethodId] : [],
+      ),
+    ),
+  ];
+  const methods =
+    methodIds.length > 0
+      ? await tx
+          .select()
+          .from(paymentMethods)
+          .where(inArray(paymentMethods.id, methodIds))
+      : [];
   const requests =
     versions.length > 0
-      ? await tx.select().from(signatureRequests).where(inArray(signatureRequests.versionId, versions.map((version) => version.id)))
+      ? await tx
+          .select()
+          .from(signatureRequests)
+          .where(
+            inArray(
+              signatureRequests.versionId,
+              versions.map((version) => version.id),
+            ),
+          )
       : [];
   const signers =
     requests.length > 0
       ? await tx
           .select()
           .from(quoteSigners)
-          .where(inArray(quoteSigners.requestId, requests.map((request) => request.id)))
+          .where(
+            inArray(
+              quoteSigners.requestId,
+              requests.map((request) => request.id),
+            ),
+          )
           .orderBy(asc(quoteSigners.position))
       : [];
-  return { quote, versions, lines, scheduleItems, paymentMethods: methods, signatureRequests: requests, signers };
+  return {
+    quote,
+    versions,
+    lines,
+    scheduleItems,
+    paymentMethods: methods,
+    signatureRequests: requests,
+    signers,
+  };
 }
 
-export async function findQuoteAggregate(organizationId: string, quoteId: string): Promise<QuoteAggregate | null> {
+export async function findQuoteAggregate(
+  organizationId: string,
+  quoteId: string,
+): Promise<QuoteAggregate | null> {
   return inOrganization(organizationId, async (tx) => {
-    const [quote] = await tx.select().from(quotes).where(eq(quotes.id, quoteId));
+    const [quote] = await tx
+      .select()
+      .from(quotes)
+      .where(eq(quotes.id, quoteId));
     return quote ? loadAggregate(tx, quote) : null;
   });
 }
 
-export async function findQuoteAggregates(organizationId: string, quoteIds: string[]): Promise<QuoteAggregate[]> {
+export async function findQuoteAggregates(
+  organizationId: string,
+  quoteIds: string[],
+): Promise<QuoteAggregate[]> {
   if (quoteIds.length === 0) return [];
   return inOrganization(organizationId, async (tx) => {
-    const rows = await tx.select().from(quotes).where(inArray(quotes.id, quoteIds));
+    const rows = await tx
+      .select()
+      .from(quotes)
+      .where(inArray(quotes.id, quoteIds));
     return Promise.all(rows.map((quote) => loadAggregate(tx, quote)));
   });
 }
 
 // Version courante d'un devis, à condition qu'elle soit encore un
 // brouillon : sinon « locked » (une version envoyée est immuable).
-type DraftLookup = { status: "draft"; quote: QuoteRow; version: QuoteVersionRow } | { status: "not_found" | "locked" };
+type DraftLookup =
+  | { status: "draft"; quote: QuoteRow; version: QuoteVersionRow }
+  | { status: "not_found" | "locked" };
 
 async function currentDraft(tx: Tx, quoteId: string): Promise<DraftLookup> {
   const [quote] = await tx.select().from(quotes).where(eq(quotes.id, quoteId));
@@ -253,17 +388,30 @@ async function currentDraft(tx: Tx, quoteId: string): Promise<DraftLookup> {
   const [version] = await tx
     .select()
     .from(quoteVersions)
-    .where(and(eq(quoteVersions.quoteId, quoteId), eq(quoteVersions.version, quote.currentVersion)));
+    .where(
+      and(
+        eq(quoteVersions.quoteId, quoteId),
+        eq(quoteVersions.version, quote.currentVersion),
+      ),
+    );
   if (!version) return { status: "not_found" };
   if (version.sentAt) return { status: "locked" };
   return { status: "draft", quote, version };
 }
 
-export type LineData = Omit<QuoteLineRow, "id" | "organizationId" | "versionId" | "position">;
+export type LineData = Omit<
+  QuoteLineRow,
+  "id" | "organizationId" | "versionId" | "position"
+>;
 
-export type WriteResult = { status: "ok"; quoteId: string } | { status: "not_found" | "locked" };
+export type WriteResult =
+  { status: "ok"; quoteId: string } | { status: "not_found" | "locked" };
 
-export async function insertQuoteLine(organizationId: string, quoteId: string, data: LineData): Promise<WriteResult> {
+export async function insertQuoteLine(
+  organizationId: string,
+  quoteId: string,
+  data: LineData,
+): Promise<WriteResult> {
   return inOrganization(organizationId, async (tx) => {
     const draft = await currentDraft(tx, quoteId);
     if (draft.status !== "draft") return { status: draft.status };
@@ -271,16 +419,36 @@ export async function insertQuoteLine(organizationId: string, quoteId: string, d
       .select({ max: raw<number | null>`max(${quoteLines.position})` })
       .from(quoteLines)
       .where(eq(quoteLines.versionId, draft.version.id));
-    const position = last?.max === null || last?.max === undefined ? 0 : last.max + 1;
-    await tx.insert(quoteLines).values({ organizationId, versionId: draft.version.id, ...data, position });
+    const position =
+      last?.max === null || last?.max === undefined ? 0 : last.max + 1;
+    await tx
+      .insert(quoteLines)
+      .values({
+        organizationId,
+        versionId: draft.version.id,
+        ...data,
+        position,
+      });
     return { status: "ok", quoteId };
   });
 }
 
-async function draftOfLine(tx: Tx, lineId: string): Promise<{ status: "draft"; line: QuoteLineRow; quoteId: string } | { status: "not_found" | "locked" }> {
-  const [line] = await tx.select().from(quoteLines).where(eq(quoteLines.id, lineId));
+async function draftOfLine(
+  tx: Tx,
+  lineId: string,
+): Promise<
+  | { status: "draft"; line: QuoteLineRow; quoteId: string }
+  | { status: "not_found" | "locked" }
+> {
+  const [line] = await tx
+    .select()
+    .from(quoteLines)
+    .where(eq(quoteLines.id, lineId));
   if (!line) return { status: "not_found" };
-  const [version] = await tx.select().from(quoteVersions).where(eq(quoteVersions.id, line.versionId));
+  const [version] = await tx
+    .select()
+    .from(quoteVersions)
+    .where(eq(quoteVersions.id, line.versionId));
   if (!version) return { status: "not_found" };
   const draft = await currentDraft(tx, version.quoteId);
   if (draft.status !== "draft") return { status: draft.status };
@@ -297,12 +465,18 @@ export async function updateQuoteLineRow(
   return inOrganization(organizationId, async (tx) => {
     const found = await draftOfLine(tx, lineId);
     if (found.status !== "draft") return { status: found.status };
-    await tx.update(quoteLines).set(data(found.line)).where(eq(quoteLines.id, lineId));
+    await tx
+      .update(quoteLines)
+      .set(data(found.line))
+      .where(eq(quoteLines.id, lineId));
     return { status: "ok", quoteId: found.quoteId };
   });
 }
 
-export async function deleteQuoteLine(organizationId: string, lineId: string): Promise<WriteResult> {
+export async function deleteQuoteLine(
+  organizationId: string,
+  lineId: string,
+): Promise<WriteResult> {
   return inOrganization(organizationId, async (tx) => {
     const found = await draftOfLine(tx, lineId);
     if (found.status !== "draft") return { status: found.status };
@@ -333,37 +507,70 @@ export async function setGlobalDiscountRow(
 // que l'écriture : les totaux figés correspondent toujours aux lignes figées.
 export type FrozenFields = Pick<
   QuoteVersionRow,
-  "validUntil" | "vatRegime" | "legalMention" | "sellerSnapshot" | "totalsSnapshot"
+  | "validUntil"
+  | "vatRegime"
+  | "legalMention"
+  | "sellerSnapshot"
+  | "totalsSnapshot"
 > & { sentAt: Date };
 
 export async function freezeCurrentVersion(
   organizationId: string,
   quoteId: string,
-  freeze: (version: QuoteVersionRow, lines: QuoteLineRow[], scheduleItems: ScheduleItemRow[]) => FrozenFields,
+  freeze: (
+    version: QuoteVersionRow,
+    lines: QuoteLineRow[],
+    scheduleItems: ScheduleItemRow[],
+  ) => FrozenFields,
 ): Promise<WriteResult | { status: "empty" }> {
   return inOrganization(organizationId, async (tx) => {
     const draft = await currentDraft(tx, quoteId);
     if (draft.status !== "draft") return { status: draft.status };
-    await tx.execute(raw`select 1 from ${quoteVersions} where ${quoteVersions.id} = ${draft.version.id} for update`);
-    const lines = await tx.select().from(quoteLines).where(eq(quoteLines.versionId, draft.version.id));
+    await tx.execute(
+      raw`select 1 from ${quoteVersions} where ${quoteVersions.id} = ${draft.version.id} for update`,
+    );
+    const lines = await tx
+      .select()
+      .from(quoteLines)
+      .where(eq(quoteLines.versionId, draft.version.id));
     if (lines.length === 0) return { status: "empty" };
-    const items = await tx.select().from(paymentScheduleItems).where(eq(paymentScheduleItems.versionId, draft.version.id));
-    await tx.update(quoteVersions).set(freeze(draft.version, lines, items)).where(eq(quoteVersions.id, draft.version.id));
-    await tx.update(quotes).set({ status: "sent", updatedAt: new Date() }).where(eq(quotes.id, quoteId));
+    const items = await tx
+      .select()
+      .from(paymentScheduleItems)
+      .where(eq(paymentScheduleItems.versionId, draft.version.id));
+    await tx
+      .update(quoteVersions)
+      .set(freeze(draft.version, lines, items))
+      .where(eq(quoteVersions.id, draft.version.id));
+    await tx
+      .update(quotes)
+      .set({ status: "sent", updatedAt: new Date() })
+      .where(eq(quotes.id, quoteId));
     return { status: "ok", quoteId };
   });
 }
 
 // Nouvelle version (V+1) en brouillon, copie des lignes et de la remise de
 // la version envoyée ; les précédentes restent intactes.
-export async function insertNextVersion(organizationId: string, quoteId: string): Promise<WriteResult | { status: "draft_exists" }> {
+export async function insertNextVersion(
+  organizationId: string,
+  quoteId: string,
+): Promise<WriteResult | { status: "draft_exists" }> {
   return inOrganization(organizationId, async (tx) => {
-    const [quote] = await tx.select().from(quotes).where(eq(quotes.id, quoteId));
+    const [quote] = await tx
+      .select()
+      .from(quotes)
+      .where(eq(quotes.id, quoteId));
     if (!quote) return { status: "not_found" };
     const [current] = await tx
       .select()
       .from(quoteVersions)
-      .where(and(eq(quoteVersions.quoteId, quoteId), eq(quoteVersions.version, quote.currentVersion)));
+      .where(
+        and(
+          eq(quoteVersions.quoteId, quoteId),
+          eq(quoteVersions.version, quote.currentVersion),
+        ),
+      );
     if (!current) return { status: "not_found" };
     if (!current.sentAt) return { status: "draft_exists" };
     if (quote.status === "signed") return { status: "locked" };
@@ -379,22 +586,42 @@ export async function insertNextVersion(organizationId: string, quoteId: string)
       })
       .returning();
     if (!next) throw new Error("création de la version échouée");
-    const lines = await tx.select().from(quoteLines).where(eq(quoteLines.versionId, current.id));
+    const lines = await tx
+      .select()
+      .from(quoteLines)
+      .where(eq(quoteLines.versionId, current.id));
     if (lines.length > 0) {
-      await tx.insert(quoteLines).values(
-        lines.map(({ id: _id, versionId: _versionId, ...line }) => ({ ...line, versionId: next.id })),
-      );
+      await tx
+        .insert(quoteLines)
+        .values(
+          lines.map(({ id: _id, versionId: _versionId, ...line }) => ({
+            ...line,
+            versionId: next.id,
+          })),
+        );
     }
     // DEV-03 : l'échéancier suit, paiements déjà reçus compris.
-    const items = await tx.select().from(paymentScheduleItems).where(eq(paymentScheduleItems.versionId, current.id));
+    const items = await tx
+      .select()
+      .from(paymentScheduleItems)
+      .where(eq(paymentScheduleItems.versionId, current.id));
     if (items.length > 0) {
       await tx
         .insert(paymentScheduleItems)
-        .values(items.map(({ id: _id, versionId: _versionId, ...item }) => ({ ...item, versionId: next.id })));
+        .values(
+          items.map(({ id: _id, versionId: _versionId, ...item }) => ({
+            ...item,
+            versionId: next.id,
+          })),
+        );
     }
     await tx
       .update(quotes)
-      .set({ currentVersion: next.version, status: "draft", updatedAt: new Date() })
+      .set({
+        currentVersion: next.version,
+        status: "draft",
+        updatedAt: new Date(),
+      })
       .where(eq(quotes.id, quoteId));
     return { status: "ok", quoteId };
   });
@@ -403,10 +630,16 @@ export async function insertNextVersion(organizationId: string, quoteId: string)
 // AIDE-02 — suppression des devis d'événements d'essai (lignes, versions,
 // devis). Les séries DEMO restent : elles ne servent qu'aux essais.
 // Renvoie les clés des documents signés stockés, à supprimer du stockage.
-export async function deleteEventQuotes(organizationId: string, eventIds: string[]): Promise<string[]> {
+export async function deleteEventQuotes(
+  organizationId: string,
+  eventIds: string[],
+): Promise<string[]> {
   if (eventIds.length === 0) return [];
   return inOrganization(organizationId, async (tx) => {
-    const rows = await tx.select({ id: quotes.id }).from(quotes).where(inArray(quotes.eventId, eventIds));
+    const rows = await tx
+      .select({ id: quotes.id })
+      .from(quotes)
+      .where(inArray(quotes.eventId, eventIds));
     const quoteIds = rows.map((row) => row.id);
     if (quoteIds.length === 0) return [];
     const versions = await tx
@@ -417,26 +650,56 @@ export async function deleteEventQuotes(organizationId: string, eventIds: string
     const documentKeys: string[] = [];
     // Factures et avoirs : seuls ceux d'un essai se suppriment (trigger
     // d'immuabilité, DEV-04) ; un vrai devis facturé n'est jamais purgé.
-    const issued = await tx.select({ id: invoices.id }).from(invoices).where(inArray(invoices.quoteId, quoteIds));
+    const issued = await tx
+      .select({ id: invoices.id })
+      .from(invoices)
+      .where(inArray(invoices.quoteId, quoteIds));
     if (issued.length > 0) {
-      await tx.delete(creditNotes).where(inArray(creditNotes.invoiceId, issued.map((row) => row.id)));
-      await tx.delete(invoices).where(inArray(invoices.id, issued.map((row) => row.id)));
+      await tx.delete(creditNotes).where(
+        inArray(
+          creditNotes.invoiceId,
+          issued.map((row) => row.id),
+        ),
+      );
+      await tx.delete(invoices).where(
+        inArray(
+          invoices.id,
+          issued.map((row) => row.id),
+        ),
+      );
     }
     if (versionIds.length > 0) {
-      const requests = await tx.select().from(signatureRequests).where(inArray(signatureRequests.versionId, versionIds));
+      const requests = await tx
+        .select()
+        .from(signatureRequests)
+        .where(inArray(signatureRequests.versionId, versionIds));
       const requestIds = requests.map((request) => request.id);
       for (const request of requests) {
-        if (request.signedDocumentKey) documentKeys.push(request.signedDocumentKey);
-        if (request.auditCertificateKey) documentKeys.push(request.auditCertificateKey);
+        if (request.signedDocumentKey)
+          documentKeys.push(request.signedDocumentKey);
+        if (request.auditCertificateKey)
+          documentKeys.push(request.auditCertificateKey);
       }
       if (requestIds.length > 0) {
-        await tx.delete(signatureWebhookLog).where(inArray(signatureWebhookLog.requestId, requestIds));
-        await tx.delete(quoteSigners).where(inArray(quoteSigners.requestId, requestIds));
-        await tx.delete(signatureRequests).where(inArray(signatureRequests.id, requestIds));
+        await tx
+          .delete(signatureWebhookLog)
+          .where(inArray(signatureWebhookLog.requestId, requestIds));
+        await tx
+          .delete(quoteSigners)
+          .where(inArray(quoteSigners.requestId, requestIds));
+        await tx
+          .delete(signatureRequests)
+          .where(inArray(signatureRequests.id, requestIds));
       }
-      await tx.delete(paymentScheduleItems).where(inArray(paymentScheduleItems.versionId, versionIds));
-      await tx.delete(quoteLines).where(inArray(quoteLines.versionId, versionIds));
-      await tx.delete(quoteVersions).where(inArray(quoteVersions.id, versionIds));
+      await tx
+        .delete(paymentScheduleItems)
+        .where(inArray(paymentScheduleItems.versionId, versionIds));
+      await tx
+        .delete(quoteLines)
+        .where(inArray(quoteLines.versionId, versionIds));
+      await tx
+        .delete(quoteVersions)
+        .where(inArray(quoteVersions.id, versionIds));
     }
     await tx.delete(quotes).where(inArray(quotes.id, quoteIds));
     return documentKeys;
@@ -445,51 +708,91 @@ export async function deleteEventQuotes(organizationId: string, eventIds: string
 
 // --- DEV-03 : modes de paiement ---
 
-export async function findPaymentMethods(organizationId: string, includeArchived: boolean): Promise<PaymentMethodRow[]> {
+export async function findPaymentMethods(
+  organizationId: string,
+  includeArchived: boolean,
+): Promise<PaymentMethodRow[]> {
   return inOrganization(organizationId, (tx) =>
     tx
       .select()
       .from(paymentMethods)
-      .where(includeArchived ? undefined : raw`${paymentMethods.archivedAt} is null`)
+      .where(
+        includeArchived ? undefined : raw`${paymentMethods.archivedAt} is null`,
+      )
       .orderBy(asc(paymentMethods.position), asc(paymentMethods.createdAt)),
   );
 }
 
-export async function insertPaymentMethods(organizationId: string, labels: string[]): Promise<PaymentMethodRow[]> {
+export async function insertPaymentMethods(
+  organizationId: string,
+  labels: string[],
+): Promise<PaymentMethodRow[]> {
   return inOrganization(organizationId, async (tx) => {
     const [last] = await tx
       .select({ max: raw<number | null>`max(${paymentMethods.position})` })
       .from(paymentMethods);
-    const start = last?.max === null || last?.max === undefined ? 0 : last.max + 1;
+    const start =
+      last?.max === null || last?.max === undefined ? 0 : last.max + 1;
     return tx
       .insert(paymentMethods)
-      .values(labels.map((label, index) => ({ organizationId, label, position: start + index })))
+      .values(
+        labels.map((label, index) => ({
+          organizationId,
+          label,
+          position: start + index,
+        })),
+      )
       .returning();
   });
 }
 
-export async function archivePaymentMethodRow(organizationId: string, paymentMethodId: string): Promise<void> {
+export async function archivePaymentMethodRow(
+  organizationId: string,
+  paymentMethodId: string,
+): Promise<void> {
   await inOrganization(organizationId, (tx) =>
-    tx.update(paymentMethods).set({ archivedAt: new Date() }).where(eq(paymentMethods.id, paymentMethodId)),
+    tx
+      .update(paymentMethods)
+      .set({ archivedAt: new Date() })
+      .where(eq(paymentMethods.id, paymentMethodId)),
   );
 }
 
 // --- DEV-03 : échéancier ---
 
-export type ScheduleItemData = Pick<ScheduleItemRow, "label" | "dueDate" | "amountCents" | "percentageBasisPoints">;
+export type ScheduleItemData = Pick<
+  ScheduleItemRow,
+  "label" | "dueDate" | "amountCents" | "percentageBasisPoints"
+>;
 
 // Contrôle de l'échéancier complet (somme ≤ total), appelé dans la
 // transaction après l'écriture : s'il lève, rien n'est écrit.
-export type ScheduleCheck = (version: QuoteVersionRow, lines: QuoteLineRow[], items: ScheduleItemRow[]) => void;
+export type ScheduleCheck = (
+  version: QuoteVersionRow,
+  lines: QuoteLineRow[],
+  items: ScheduleItemRow[],
+) => void;
 
-async function checkSchedule(tx: Tx, version: QuoteVersionRow, check: ScheduleCheck): Promise<void> {
-  const lines = await tx.select().from(quoteLines).where(eq(quoteLines.versionId, version.id));
-  const items = await tx.select().from(paymentScheduleItems).where(eq(paymentScheduleItems.versionId, version.id));
+async function checkSchedule(
+  tx: Tx,
+  version: QuoteVersionRow,
+  check: ScheduleCheck,
+): Promise<void> {
+  const lines = await tx
+    .select()
+    .from(quoteLines)
+    .where(eq(quoteLines.versionId, version.id));
+  const items = await tx
+    .select()
+    .from(paymentScheduleItems)
+    .where(eq(paymentScheduleItems.versionId, version.id));
   check(version, lines, items);
 }
 
 async function lockVersion(tx: Tx, versionId: string): Promise<void> {
-  await tx.execute(raw`select 1 from ${quoteVersions} where ${quoteVersions.id} = ${versionId} for update`);
+  await tx.execute(
+    raw`select 1 from ${quoteVersions} where ${quoteVersions.id} = ${versionId} for update`,
+  );
 }
 
 export async function insertScheduleItem(
@@ -503,11 +806,21 @@ export async function insertScheduleItem(
     if (draft.status !== "draft") return { status: draft.status };
     await lockVersion(tx, draft.version.id);
     const [last] = await tx
-      .select({ max: raw<number | null>`max(${paymentScheduleItems.position})` })
+      .select({
+        max: raw<number | null>`max(${paymentScheduleItems.position})`,
+      })
       .from(paymentScheduleItems)
       .where(eq(paymentScheduleItems.versionId, draft.version.id));
-    const position = last?.max === null || last?.max === undefined ? 0 : last.max + 1;
-    await tx.insert(paymentScheduleItems).values({ organizationId, versionId: draft.version.id, ...data, position });
+    const position =
+      last?.max === null || last?.max === undefined ? 0 : last.max + 1;
+    await tx
+      .insert(paymentScheduleItems)
+      .values({
+        organizationId,
+        versionId: draft.version.id,
+        ...data,
+        position,
+      });
     await checkSchedule(tx, draft.version, check);
     return { status: "ok", quoteId };
   });
@@ -518,12 +831,25 @@ export async function insertScheduleItem(
 async function scheduleItemContext(
   tx: Tx,
   scheduleItemId: string,
-): Promise<{ item: ScheduleItemRow; version: QuoteVersionRow; quote: QuoteRow } | null> {
-  const [item] = await tx.select().from(paymentScheduleItems).where(eq(paymentScheduleItems.id, scheduleItemId));
+): Promise<{
+  item: ScheduleItemRow;
+  version: QuoteVersionRow;
+  quote: QuoteRow;
+} | null> {
+  const [item] = await tx
+    .select()
+    .from(paymentScheduleItems)
+    .where(eq(paymentScheduleItems.id, scheduleItemId));
   if (!item) return null;
-  const [version] = await tx.select().from(quoteVersions).where(eq(quoteVersions.id, item.versionId));
+  const [version] = await tx
+    .select()
+    .from(quoteVersions)
+    .where(eq(quoteVersions.id, item.versionId));
   if (!version) return null;
-  const [quote] = await tx.select().from(quotes).where(eq(quotes.id, version.quoteId));
+  const [quote] = await tx
+    .select()
+    .from(quotes)
+    .where(eq(quotes.id, version.quoteId));
   if (!quote) return null;
   return { item, version, quote };
 }
@@ -538,26 +864,37 @@ export async function updateScheduleItemRow(
     const context = await scheduleItemContext(tx, scheduleItemId);
     if (!context) return { status: "not_found" };
     const { version, quote } = context;
-    if (version.sentAt || version.version !== quote.currentVersion) return { status: "locked" };
+    if (version.sentAt || version.version !== quote.currentVersion)
+      return { status: "locked" };
     await lockVersion(tx, version.id);
-    await tx.update(paymentScheduleItems).set(data).where(eq(paymentScheduleItems.id, scheduleItemId));
+    await tx
+      .update(paymentScheduleItems)
+      .set(data)
+      .where(eq(paymentScheduleItems.id, scheduleItemId));
     await checkSchedule(tx, version, check);
     return { status: "ok", quoteId: quote.id };
   });
 }
 
-export async function deleteScheduleItemRow(organizationId: string, scheduleItemId: string): Promise<WriteResult> {
+export async function deleteScheduleItemRow(
+  organizationId: string,
+  scheduleItemId: string,
+): Promise<WriteResult> {
   return inOrganization(organizationId, async (tx) => {
     const context = await scheduleItemContext(tx, scheduleItemId);
     if (!context) return { status: "not_found" };
     const { version, quote } = context;
-    if (version.sentAt || version.version !== quote.currentVersion) return { status: "locked" };
-    await tx.delete(paymentScheduleItems).where(eq(paymentScheduleItems.id, scheduleItemId));
+    if (version.sentAt || version.version !== quote.currentVersion)
+      return { status: "locked" };
+    await tx
+      .delete(paymentScheduleItems)
+      .where(eq(paymentScheduleItems.id, scheduleItemId));
     return { status: "ok", quoteId: quote.id };
   });
 }
 
-export type PaymentResult = WriteResult | { status: "not_payable" | "method_not_found" };
+export type PaymentResult =
+  WriteResult | { status: "not_payable" | "method_not_found" };
 
 // Paiement (ou annulation) d'une échéance de la version courante d'un devis
 // envoyé ou signé ; le mode doit exister et ne pas être archivé.
@@ -570,17 +907,27 @@ export async function setScheduleItemPayment(
     const context = await scheduleItemContext(tx, scheduleItemId);
     if (!context) return { status: "not_found" };
     const { version, quote } = context;
-    const payable = (quote.status === "sent" || quote.status === "signed") && version.sentAt !== null;
-    if (!payable || version.version !== quote.currentVersion) return { status: "not_payable" };
+    const payable =
+      (quote.status === "sent" || quote.status === "signed") &&
+      version.sentAt !== null;
+    if (!payable || version.version !== quote.currentVersion)
+      return { status: "not_payable" };
     if (payment) {
-      const [method] = await tx.select().from(paymentMethods).where(eq(paymentMethods.id, payment.paymentMethodId));
+      const [method] = await tx
+        .select()
+        .from(paymentMethods)
+        .where(eq(paymentMethods.id, payment.paymentMethodId));
       if (!method || method.archivedAt) return { status: "method_not_found" };
     }
     await tx
       .update(paymentScheduleItems)
       .set(
         payment
-          ? { paidOn: payment.paidOn, paymentMethodId: payment.paymentMethodId, paidRecordedAt: new Date() }
+          ? {
+              paidOn: payment.paidOn,
+              paymentMethodId: payment.paymentMethodId,
+              paidRecordedAt: new Date(),
+            }
           : { paidOn: null, paymentMethodId: null, paidRecordedAt: null },
       )
       .where(eq(paymentScheduleItems.id, scheduleItemId));
@@ -596,13 +943,28 @@ export type UnpaidScheduleRow = {
 
 // Échéances non payées de la version courante des devis envoyés ou signés,
 // hors essais (ADR 0008 : jamais dans les encaissements ni le tableau de bord).
-export async function findUnpaidScheduleItems(organizationId: string): Promise<UnpaidScheduleRow[]> {
+export async function findUnpaidScheduleItems(
+  organizationId: string,
+): Promise<UnpaidScheduleRow[]> {
   return inOrganization(organizationId, (tx) =>
     tx
-      .select({ item: paymentScheduleItems, version: quoteVersions, quote: quotes })
+      .select({
+        item: paymentScheduleItems,
+        version: quoteVersions,
+        quote: quotes,
+      })
       .from(paymentScheduleItems)
-      .innerJoin(quoteVersions, eq(quoteVersions.id, paymentScheduleItems.versionId))
-      .innerJoin(quotes, and(eq(quotes.id, quoteVersions.quoteId), eq(quotes.currentVersion, quoteVersions.version)))
+      .innerJoin(
+        quoteVersions,
+        eq(quoteVersions.id, paymentScheduleItems.versionId),
+      )
+      .innerJoin(
+        quotes,
+        and(
+          eq(quotes.id, quoteVersions.quoteId),
+          eq(quotes.currentVersion, quoteVersions.version),
+        ),
+      )
       .where(
         and(
           raw`${paymentScheduleItems.paidOn} is null`,
@@ -610,13 +972,19 @@ export async function findUnpaidScheduleItems(organizationId: string): Promise<U
           inArray(quotes.status, ["sent", "signed"]),
         ),
       )
-      .orderBy(asc(paymentScheduleItems.dueDate), asc(paymentScheduleItems.position)),
+      .orderBy(
+        asc(paymentScheduleItems.dueDate),
+        asc(paymentScheduleItems.position),
+      ),
   );
 }
 
 // --- DEV-02 : signature en ligne ---
 
-export type NewSigner = Omit<QuoteSignerRow, "organizationId" | "requestId" | "status" | "signedAt">;
+export type NewSigner = Omit<
+  QuoteSignerRow,
+  "organizationId" | "requestId" | "status" | "signedAt"
+>;
 
 // Enregistre la demande créée chez le fournisseur, pour la version courante
 // envoyée d'un devis « envoyé » ; « exists » si la version a déjà sa demande.
@@ -626,23 +994,48 @@ export async function insertSignatureRequest(
   request: { provider: string; externalId: string; signers: NewSigner[] },
 ): Promise<WriteResult | { status: "exists" | "not_sent" }> {
   return inOrganization(organizationId, async (tx) => {
-    const [quote] = await tx.select().from(quotes).where(eq(quotes.id, quoteId));
+    const [quote] = await tx
+      .select()
+      .from(quotes)
+      .where(eq(quotes.id, quoteId));
     if (!quote) return { status: "not_found" };
     const [version] = await tx
       .select()
       .from(quoteVersions)
-      .where(and(eq(quoteVersions.quoteId, quoteId), eq(quoteVersions.version, quote.currentVersion)));
+      .where(
+        and(
+          eq(quoteVersions.quoteId, quoteId),
+          eq(quoteVersions.version, quote.currentVersion),
+        ),
+      );
     if (!version) return { status: "not_found" };
-    if (quote.status !== "sent" || !version.sentAt) return { status: "not_sent" };
+    if (quote.status !== "sent" || !version.sentAt)
+      return { status: "not_sent" };
     await lockVersion(tx, version.id);
-    const [existing] = await tx.select({ id: signatureRequests.id }).from(signatureRequests).where(eq(signatureRequests.versionId, version.id));
+    const [existing] = await tx
+      .select({ id: signatureRequests.id })
+      .from(signatureRequests)
+      .where(eq(signatureRequests.versionId, version.id));
     if (existing) return { status: "exists" };
     const [row] = await tx
       .insert(signatureRequests)
-      .values({ organizationId, versionId: version.id, provider: request.provider, externalId: request.externalId })
+      .values({
+        organizationId,
+        versionId: version.id,
+        provider: request.provider,
+        externalId: request.externalId,
+      })
       .returning();
     if (!row) throw new Error("création de la demande de signature échouée");
-    await tx.insert(quoteSigners).values(request.signers.map((signer) => ({ ...signer, organizationId, requestId: row.id })));
+    await tx
+      .insert(quoteSigners)
+      .values(
+        request.signers.map((signer) => ({
+          ...signer,
+          organizationId,
+          requestId: row.id,
+        })),
+      );
     return { status: "ok", quoteId };
   });
 }
@@ -663,11 +1056,25 @@ export async function findSignatureRequestByExternalId(
     const [request] = await tx
       .select()
       .from(signatureRequests)
-      .where(and(eq(signatureRequests.provider, provider), eq(signatureRequests.externalId, externalId)));
+      .where(
+        and(
+          eq(signatureRequests.provider, provider),
+          eq(signatureRequests.externalId, externalId),
+        ),
+      );
     if (!request) return null;
-    const signers = await tx.select().from(quoteSigners).where(eq(quoteSigners.requestId, request.id)).orderBy(asc(quoteSigners.position));
-    const [version] = await tx.select().from(quoteVersions).where(eq(quoteVersions.id, request.versionId));
-    const [quote] = version ? await tx.select().from(quotes).where(eq(quotes.id, version.quoteId)) : [];
+    const signers = await tx
+      .select()
+      .from(quoteSigners)
+      .where(eq(quoteSigners.requestId, request.id))
+      .orderBy(asc(quoteSigners.position));
+    const [version] = await tx
+      .select()
+      .from(quoteVersions)
+      .where(eq(quoteVersions.id, request.versionId));
+    const [quote] = version
+      ? await tx.select().from(quotes).where(eq(quotes.id, version.quoteId))
+      : [];
     if (!version || !quote) return null;
     return { request, signers, version, quote };
   });
@@ -675,21 +1082,39 @@ export async function findSignatureRequestByExternalId(
 
 // ADR 0026 — demandes encore en attente chez un fournisseur, pour la
 // vérification régulière (rattrapage d'un webhook perdu).
-export async function listPendingSignatureRequests(organizationId: string, provider: string): Promise<SignatureRequestRow[]> {
+export async function listPendingSignatureRequests(
+  organizationId: string,
+  provider: string,
+): Promise<SignatureRequestRow[]> {
   return inOrganization(organizationId, (tx) =>
     tx
       .select()
       .from(signatureRequests)
-      .where(and(eq(signatureRequests.provider, provider), eq(signatureRequests.status, "pending")))
+      .where(
+        and(
+          eq(signatureRequests.provider, provider),
+          eq(signatureRequests.status, "pending"),
+        ),
+      )
       .orderBy(asc(signatureRequests.createdAt)),
   );
 }
 
 export type SignatureStateUpdate = {
-  signers: { id: string; status: "pending" | "signed" | "declined"; signedAt: Date | null }[];
+  signers: {
+    id: string;
+    status: "pending" | "signed" | "declined";
+    signedAt: Date | null;
+  }[];
   outcome:
     | { kind: "pending" }
-    | { kind: "completed"; signedDocumentKey: string; auditCertificateKey: string; completedAt: Date; event: { name: string; version: number; payload: unknown } }
+    | {
+        kind: "completed";
+        signedDocumentKey: string;
+        auditCertificateKey: string;
+        completedAt: Date;
+        event: { name: string; version: number; payload: unknown };
+      }
     | { kind: "declined"; completedAt: Date };
 };
 
@@ -703,26 +1128,46 @@ export async function applySignatureStateRows(
   eventType: string,
   // Vérification régulière : rien n'est journalisé quand rien ne change.
   options: { logUnchanged?: boolean } = {},
-): Promise<{ status: "ok"; transitioned: boolean; changed: boolean } | { status: "not_found" }> {
+): Promise<
+  | { status: "ok"; transitioned: boolean; changed: boolean }
+  | { status: "not_found" }
+> {
   return inOrganization(organizationId, async (tx) => {
-    await tx.execute(raw`select 1 from ${signatureRequests} where ${signatureRequests.id} = ${requestId} for update`);
-    const [request] = await tx.select().from(signatureRequests).where(eq(signatureRequests.id, requestId));
+    await tx.execute(
+      raw`select 1 from ${signatureRequests} where ${signatureRequests.id} = ${requestId} for update`,
+    );
+    const [request] = await tx
+      .select()
+      .from(signatureRequests)
+      .where(eq(signatureRequests.id, requestId));
     if (!request) return { status: "not_found" };
     if (request.status !== "pending") {
-      await tx.insert(signatureWebhookLog).values({ organizationId, requestId, eventType, outcome: "duplicate" });
+      await tx
+        .insert(signatureWebhookLog)
+        .values({ organizationId, requestId, eventType, outcome: "duplicate" });
       return { status: "ok", transitioned: false, changed: false };
     }
 
-    const current = await tx.select().from(quoteSigners).where(eq(quoteSigners.requestId, requestId));
+    const current = await tx
+      .select()
+      .from(quoteSigners)
+      .where(eq(quoteSigners.requestId, requestId));
     let changed = false;
     for (const signer of update.signers) {
       const row = current.find((candidate) => candidate.id === signer.id);
-      if (!row || row.status !== "pending" || signer.status === "pending") continue;
-      await tx.update(quoteSigners).set({ status: signer.status, signedAt: signer.signedAt }).where(eq(quoteSigners.id, signer.id));
+      if (!row || row.status !== "pending" || signer.status === "pending")
+        continue;
+      await tx
+        .update(quoteSigners)
+        .set({ status: signer.status, signedAt: signer.signedAt })
+        .where(eq(quoteSigners.id, signer.id));
       changed = true;
     }
 
-    const [version] = await tx.select().from(quoteVersions).where(eq(quoteVersions.id, request.versionId));
+    const [version] = await tx
+      .select()
+      .from(quoteVersions)
+      .where(eq(quoteVersions.id, request.versionId));
     let transitioned = false;
     if (version && update.outcome.kind === "completed") {
       await tx
@@ -734,22 +1179,43 @@ export async function applySignatureStateRows(
           completedAt: update.outcome.completedAt,
         })
         .where(eq(signatureRequests.id, requestId));
-      await tx.update(quotes).set({ status: "signed", updatedAt: new Date() }).where(eq(quotes.id, version.quoteId));
+      await tx
+        .update(quotes)
+        .set({ status: "signed", updatedAt: new Date() })
+        .where(eq(quotes.id, version.quoteId));
       // Outbox : publié dans la même transaction que le passage à « Signé ».
-      const [quote] = await tx.select().from(quotes).where(eq(quotes.id, version.quoteId));
+      const [quote] = await tx
+        .select()
+        .from(quotes)
+        .where(eq(quotes.id, version.quoteId));
       if (quote && !quote.isDemo) {
         await emitDomainEvent(tx, { organizationId, ...update.outcome.event });
       }
       transitioned = true;
     } else if (version && update.outcome.kind === "declined") {
-      await tx.update(signatureRequests).set({ status: "declined", completedAt: update.outcome.completedAt }).where(eq(signatureRequests.id, requestId));
-      await tx.update(quotes).set({ status: "declined", updatedAt: new Date() }).where(eq(quotes.id, version.quoteId));
+      await tx
+        .update(signatureRequests)
+        .set({ status: "declined", completedAt: update.outcome.completedAt })
+        .where(eq(signatureRequests.id, requestId));
+      await tx
+        .update(quotes)
+        .set({ status: "declined", updatedAt: new Date() })
+        .where(eq(quotes.id, version.quoteId));
       transitioned = true;
     }
     if (transitioned || changed || options.logUnchanged !== false) {
       await tx
         .insert(signatureWebhookLog)
-        .values({ organizationId, requestId, eventType, outcome: transitioned ? update.outcome.kind : changed ? "signer_updated" : "unchanged" });
+        .values({
+          organizationId,
+          requestId,
+          eventType,
+          outcome: transitioned
+            ? update.outcome.kind
+            : changed
+              ? "signer_updated"
+              : "unchanged",
+        });
     }
     return { status: "ok", transitioned, changed };
   });
@@ -759,26 +1225,52 @@ export async function insertWebhookLog(
   organizationId: string,
   entry: { requestId: string | null; eventType: string; outcome: string },
 ): Promise<void> {
-  await inOrganization(organizationId, (tx) => tx.insert(signatureWebhookLog).values({ organizationId, ...entry }));
+  await inOrganization(organizationId, (tx) =>
+    tx.insert(signatureWebhookLog).values({ organizationId, ...entry }),
+  );
 }
 
 // Espace du marié : demandes des devis (version courante) d'un événement.
-export async function findEventSignatureContexts(organizationId: string, eventId: string): Promise<SignatureContext[]> {
+export async function findEventSignatureContexts(
+  organizationId: string,
+  eventId: string,
+): Promise<SignatureContext[]> {
   return inOrganization(organizationId, async (tx) => {
     const rows = await tx
-      .select({ request: signatureRequests, version: quoteVersions, quote: quotes })
+      .select({
+        request: signatureRequests,
+        version: quoteVersions,
+        quote: quotes,
+      })
       .from(signatureRequests)
-      .innerJoin(quoteVersions, eq(quoteVersions.id, signatureRequests.versionId))
-      .innerJoin(quotes, and(eq(quotes.id, quoteVersions.quoteId), eq(quotes.currentVersion, quoteVersions.version)))
+      .innerJoin(
+        quoteVersions,
+        eq(quoteVersions.id, signatureRequests.versionId),
+      )
+      .innerJoin(
+        quotes,
+        and(
+          eq(quotes.id, quoteVersions.quoteId),
+          eq(quotes.currentVersion, quoteVersions.version),
+        ),
+      )
       .where(eq(quotes.eventId, eventId))
       .orderBy(asc(quotes.number));
     if (rows.length === 0) return [];
     const signers = await tx
       .select()
       .from(quoteSigners)
-      .where(inArray(quoteSigners.requestId, rows.map((row) => row.request.id)))
+      .where(
+        inArray(
+          quoteSigners.requestId,
+          rows.map((row) => row.request.id),
+        ),
+      )
       .orderBy(asc(quoteSigners.position));
-    return rows.map((row) => ({ ...row, signers: signers.filter((signer) => signer.requestId === row.request.id) }));
+    return rows.map((row) => ({
+      ...row,
+      signers: signers.filter((signer) => signer.requestId === row.request.id),
+    }));
   });
 }
 
@@ -795,38 +1287,96 @@ export type InvoicingContext = {
   settings: QuoteSettingsRow | null;
 };
 
-async function invoicingContext(tx: Tx, quoteId: string): Promise<InvoicingContext | null> {
+async function invoicingContext(
+  tx: Tx,
+  quoteId: string,
+): Promise<InvoicingContext | null> {
   // Verrou du devis : deux émissions simultanées sur le même devis se
   // sérialisent (pas de double solde, pas de double acompte).
-  await tx.execute(raw`select 1 from ${quotes} where ${quotes.id} = ${quoteId} for update`);
+  await tx.execute(
+    raw`select 1 from ${quotes} where ${quotes.id} = ${quoteId} for update`,
+  );
   const [quote] = await tx.select().from(quotes).where(eq(quotes.id, quoteId));
   if (!quote) return null;
   const [version] = await tx
     .select()
     .from(quoteVersions)
-    .where(and(eq(quoteVersions.quoteId, quoteId), eq(quoteVersions.version, quote.currentVersion)));
+    .where(
+      and(
+        eq(quoteVersions.quoteId, quoteId),
+        eq(quoteVersions.version, quote.currentVersion),
+      ),
+    );
   if (!version) return null;
-  const lines = await tx.select().from(quoteLines).where(eq(quoteLines.versionId, version.id)).orderBy(asc(quoteLines.position));
+  const lines = await tx
+    .select()
+    .from(quoteLines)
+    .where(eq(quoteLines.versionId, version.id))
+    .orderBy(asc(quoteLines.position));
   const scheduleItems = await tx
     .select()
     .from(paymentScheduleItems)
     .where(eq(paymentScheduleItems.versionId, version.id))
-    .orderBy(asc(paymentScheduleItems.dueDate), asc(paymentScheduleItems.position));
-  const issued = await tx.select().from(invoices).where(eq(invoices.quoteId, quoteId)).orderBy(asc(invoices.issuedAt), asc(invoices.number));
+    .orderBy(
+      asc(paymentScheduleItems.dueDate),
+      asc(paymentScheduleItems.position),
+    );
+  const issued = await tx
+    .select()
+    .from(invoices)
+    .where(eq(invoices.quoteId, quoteId))
+    .orderBy(asc(invoices.issuedAt), asc(invoices.number));
   const notes =
-    issued.length > 0 ? await tx.select().from(creditNotes).where(inArray(creditNotes.invoiceId, issued.map((invoice) => invoice.id))) : [];
-  const [request] = await tx.select().from(signatureRequests).where(eq(signatureRequests.versionId, version.id));
+    issued.length > 0
+      ? await tx
+          .select()
+          .from(creditNotes)
+          .where(
+            inArray(
+              creditNotes.invoiceId,
+              issued.map((invoice) => invoice.id),
+            ),
+          )
+      : [];
+  const [request] = await tx
+    .select()
+    .from(signatureRequests)
+    .where(eq(signatureRequests.versionId, version.id));
   const signers = request
-    ? await tx.select().from(quoteSigners).where(eq(quoteSigners.requestId, request.id)).orderBy(asc(quoteSigners.position))
+    ? await tx
+        .select()
+        .from(quoteSigners)
+        .where(eq(quoteSigners.requestId, request.id))
+        .orderBy(asc(quoteSigners.position))
     : [];
   const [settings] = await tx.select().from(quoteSettings);
-  return { quote, version, lines, scheduleItems, invoices: issued, creditNotes: notes, signers, settings: settings ?? null };
+  return {
+    quote,
+    version,
+    lines,
+    scheduleItems,
+    invoices: issued,
+    creditNotes: notes,
+    signers,
+    settings: settings ?? null,
+  };
 }
 
-export type PreparedDocument<T> = { isDemo: boolean; year: number; formatNumber: (rank: number) => string; values: T };
+export type PreparedDocument<T> = {
+  isDemo: boolean;
+  year: number;
+  formatNumber: (rank: number) => string;
+  values: T;
+};
 
-type InvoiceValues = Omit<typeof invoices.$inferInsert, "id" | "organizationId" | "number" | "isDemo">;
-type CreditNoteValues = Omit<typeof creditNotes.$inferInsert, "id" | "organizationId" | "number" | "isDemo">;
+type InvoiceValues = Omit<
+  typeof invoices.$inferInsert,
+  "id" | "organizationId" | "number" | "isDemo"
+>;
+type CreditNoteValues = Omit<
+  typeof creditNotes.$inferInsert,
+  "id" | "organizationId" | "number" | "isDemo"
+>;
 
 // Émission d'une facture : contexte relu sous verrou, contrôles (l'appelant
 // lève une erreur pour refuser), puis rang attribué dans la même
@@ -844,7 +1394,10 @@ export async function insertInvoice(
       const [found] = await tx
         .select({ quoteId: quoteVersions.quoteId })
         .from(paymentScheduleItems)
-        .innerJoin(quoteVersions, eq(quoteVersions.id, paymentScheduleItems.versionId))
+        .innerJoin(
+          quoteVersions,
+          eq(quoteVersions.id, paymentScheduleItems.versionId),
+        )
         .where(eq(paymentScheduleItems.id, locate.scheduleItemId));
       quoteId = found?.quoteId;
     }
@@ -852,10 +1405,21 @@ export async function insertInvoice(
     const context = await invoicingContext(tx, quoteId);
     if (!context) return null;
     const prepared = prepare(context);
-    const rank = await nextSeriesRank(tx, organizationId, "invoice", prepared.isDemo, prepared.year);
+    const rank = await nextSeriesRank(
+      tx,
+      organizationId,
+      "invoice",
+      prepared.isDemo,
+      prepared.year,
+    );
     const [row] = await tx
       .insert(invoices)
-      .values({ ...prepared.values, organizationId, isDemo: prepared.isDemo, number: prepared.formatNumber(rank) })
+      .values({
+        ...prepared.values,
+        organizationId,
+        isDemo: prepared.isDemo,
+        number: prepared.formatNumber(rank),
+      })
       .returning();
     if (!row) throw new Error("émission de la facture échouée");
     return row;
@@ -865,23 +1429,43 @@ export async function insertInvoice(
 export async function insertCreditNote(
   organizationId: string,
   invoiceId: string,
-  prepare: (invoice: InvoiceRow, existing: CreditNoteRow[], settings: QuoteSettingsRow | null) => PreparedDocument<CreditNoteValues>,
+  prepare: (
+    invoice: InvoiceRow,
+    existing: CreditNoteRow[],
+    settings: QuoteSettingsRow | null,
+  ) => PreparedDocument<CreditNoteValues>,
 ): Promise<CreditNoteRow | null> {
   return inOrganization(organizationId, async (tx) => {
-    const [found] = await tx.select({ quoteId: invoices.quoteId }).from(invoices).where(eq(invoices.id, invoiceId));
+    const [found] = await tx
+      .select({ quoteId: invoices.quoteId })
+      .from(invoices)
+      .where(eq(invoices.id, invoiceId));
     if (!found) return null;
     const context = await invoicingContext(tx, found.quoteId);
-    const invoice = context?.invoices.find((candidate) => candidate.id === invoiceId);
+    const invoice = context?.invoices.find(
+      (candidate) => candidate.id === invoiceId,
+    );
     if (!context || !invoice) return null;
     const prepared = prepare(
       invoice,
       context.creditNotes.filter((note) => note.invoiceId === invoiceId),
       context.settings,
     );
-    const rank = await nextSeriesRank(tx, organizationId, "credit_note", prepared.isDemo, prepared.year);
+    const rank = await nextSeriesRank(
+      tx,
+      organizationId,
+      "credit_note",
+      prepared.isDemo,
+      prepared.year,
+    );
     const [row] = await tx
       .insert(creditNotes)
-      .values({ ...prepared.values, organizationId, isDemo: prepared.isDemo, number: prepared.formatNumber(rank) })
+      .values({
+        ...prepared.values,
+        organizationId,
+        isDemo: prepared.isDemo,
+        number: prepared.formatNumber(rank),
+      })
       .returning();
     if (!row) throw new Error("émission de l'avoir échouée");
     return row;
@@ -891,12 +1475,34 @@ export async function insertCreditNote(
 export async function findQuoteInvoices(
   organizationId: string,
   quoteId: string,
-): Promise<{ quote: QuoteRow; invoices: InvoiceRow[]; creditNotes: CreditNoteRow[] } | null> {
+): Promise<{
+  quote: QuoteRow;
+  invoices: InvoiceRow[];
+  creditNotes: CreditNoteRow[];
+} | null> {
   return inOrganization(organizationId, async (tx) => {
-    const [quote] = await tx.select().from(quotes).where(eq(quotes.id, quoteId));
+    const [quote] = await tx
+      .select()
+      .from(quotes)
+      .where(eq(quotes.id, quoteId));
     if (!quote) return null;
-    const rows = await tx.select().from(invoices).where(eq(invoices.quoteId, quoteId)).orderBy(asc(invoices.issuedAt), asc(invoices.number));
-    const notes = rows.length > 0 ? await tx.select().from(creditNotes).where(inArray(creditNotes.invoiceId, rows.map((row) => row.id))) : [];
+    const rows = await tx
+      .select()
+      .from(invoices)
+      .where(eq(invoices.quoteId, quoteId))
+      .orderBy(asc(invoices.issuedAt), asc(invoices.number));
+    const notes =
+      rows.length > 0
+        ? await tx
+            .select()
+            .from(creditNotes)
+            .where(
+              inArray(
+                creditNotes.invoiceId,
+                rows.map((row) => row.id),
+              ),
+            )
+        : [];
     return { quote, invoices: rows, creditNotes: notes };
   });
 }
@@ -904,13 +1510,27 @@ export async function findQuoteInvoices(
 export async function findInvoiceById(
   organizationId: string,
   invoiceId: string,
-): Promise<{ quote: QuoteRow; invoice: InvoiceRow; creditNotes: CreditNoteRow[] } | null> {
+): Promise<{
+  quote: QuoteRow;
+  invoice: InvoiceRow;
+  creditNotes: CreditNoteRow[];
+} | null> {
   return inOrganization(organizationId, async (tx) => {
-    const [invoice] = await tx.select().from(invoices).where(eq(invoices.id, invoiceId));
+    const [invoice] = await tx
+      .select()
+      .from(invoices)
+      .where(eq(invoices.id, invoiceId));
     if (!invoice) return null;
-    const [quote] = await tx.select().from(quotes).where(eq(quotes.id, invoice.quoteId));
+    const [quote] = await tx
+      .select()
+      .from(quotes)
+      .where(eq(quotes.id, invoice.quoteId));
     if (!quote) return null;
-    const notes = await tx.select().from(creditNotes).where(eq(creditNotes.invoiceId, invoiceId)).orderBy(asc(creditNotes.issuedAt));
+    const notes = await tx
+      .select()
+      .from(creditNotes)
+      .where(eq(creditNotes.invoiceId, invoiceId))
+      .orderBy(asc(creditNotes.issuedAt));
     return { quote, invoice, creditNotes: notes };
   });
 }
@@ -920,9 +1540,15 @@ export async function findCreditNoteById(
   creditNoteId: string,
 ): Promise<{ creditNote: CreditNoteRow; invoice: InvoiceRow } | null> {
   return inOrganization(organizationId, async (tx) => {
-    const [creditNote] = await tx.select().from(creditNotes).where(eq(creditNotes.id, creditNoteId));
+    const [creditNote] = await tx
+      .select()
+      .from(creditNotes)
+      .where(eq(creditNotes.id, creditNoteId));
     if (!creditNote) return null;
-    const [invoice] = await tx.select().from(invoices).where(eq(invoices.id, creditNote.invoiceId));
+    const [invoice] = await tx
+      .select()
+      .from(invoices)
+      .where(eq(invoices.id, creditNote.invoiceId));
     return invoice ? { creditNote, invoice } : null;
   });
 }
@@ -930,30 +1556,72 @@ export async function findCreditNoteById(
 export type EReportingRows = {
   invoices: InvoiceRow[];
   creditNotes: (CreditNoteRow & { invoiceNumber: string })[];
-  payments: { item: ScheduleItemRow; versionItems: ScheduleItemRow[]; version: QuoteVersionRow; quote: QuoteRow; method: string | null }[];
+  payments: {
+    item: ScheduleItemRow;
+    versionItems: ScheduleItemRow[];
+    version: QuoteVersionRow;
+    quote: QuoteRow;
+    method: string | null;
+  }[];
 };
 
 // DEV-04 — e-reporting d'une période : jamais de donnée d'essai (ADR 0008).
-export async function findEReportingRows(organizationId: string, from: string, to: string): Promise<EReportingRows> {
+export async function findEReportingRows(
+  organizationId: string,
+  from: string,
+  to: string,
+): Promise<EReportingRows> {
   return inOrganization(organizationId, async (tx) => {
     const issued = await tx
       .select()
       .from(invoices)
-      .where(and(eq(invoices.isDemo, false), raw`${invoices.issuedOn} between ${from} and ${to}`))
+      .where(
+        and(
+          eq(invoices.isDemo, false),
+          raw`${invoices.issuedOn} between ${from} and ${to}`,
+        ),
+      )
       .orderBy(asc(invoices.issuedOn), asc(invoices.number));
     const notes = await tx
       .select({ note: creditNotes, invoiceNumber: invoices.number })
       .from(creditNotes)
       .innerJoin(invoices, eq(invoices.id, creditNotes.invoiceId))
-      .where(and(eq(creditNotes.isDemo, false), raw`${creditNotes.issuedOn} between ${from} and ${to}`))
+      .where(
+        and(
+          eq(creditNotes.isDemo, false),
+          raw`${creditNotes.issuedOn} between ${from} and ${to}`,
+        ),
+      )
       .orderBy(asc(creditNotes.issuedOn), asc(creditNotes.number));
     const paid = await tx
-      .select({ item: paymentScheduleItems, version: quoteVersions, quote: quotes, method: paymentMethods.label })
+      .select({
+        item: paymentScheduleItems,
+        version: quoteVersions,
+        quote: quotes,
+        method: paymentMethods.label,
+      })
       .from(paymentScheduleItems)
-      .innerJoin(quoteVersions, eq(quoteVersions.id, paymentScheduleItems.versionId))
-      .innerJoin(quotes, and(eq(quotes.id, quoteVersions.quoteId), eq(quotes.currentVersion, quoteVersions.version)))
-      .leftJoin(paymentMethods, eq(paymentMethods.id, paymentScheduleItems.paymentMethodId))
-      .where(and(eq(quotes.isDemo, false), raw`${paymentScheduleItems.paidOn} between ${from} and ${to}`))
+      .innerJoin(
+        quoteVersions,
+        eq(quoteVersions.id, paymentScheduleItems.versionId),
+      )
+      .innerJoin(
+        quotes,
+        and(
+          eq(quotes.id, quoteVersions.quoteId),
+          eq(quotes.currentVersion, quoteVersions.version),
+        ),
+      )
+      .leftJoin(
+        paymentMethods,
+        eq(paymentMethods.id, paymentScheduleItems.paymentMethodId),
+      )
+      .where(
+        and(
+          eq(quotes.isDemo, false),
+          raw`${paymentScheduleItems.paidOn} between ${from} and ${to}`,
+        ),
+      )
       .orderBy(asc(paymentScheduleItems.paidOn));
     const versionIds = [...new Set(paid.map((row) => row.version.id))];
     const allItems =
@@ -962,22 +1630,83 @@ export async function findEReportingRows(organizationId: string, from: string, t
             .select()
             .from(paymentScheduleItems)
             .where(inArray(paymentScheduleItems.versionId, versionIds))
-            .orderBy(asc(paymentScheduleItems.dueDate), asc(paymentScheduleItems.position))
+            .orderBy(
+              asc(paymentScheduleItems.dueDate),
+              asc(paymentScheduleItems.position),
+            )
         : [];
     return {
       invoices: issued,
-      creditNotes: notes.map((row) => ({ ...row.note, invoiceNumber: row.invoiceNumber })),
+      creditNotes: notes.map((row) => ({
+        ...row.note,
+        invoiceNumber: row.invoiceNumber,
+      })),
       payments: paid.map((row) => ({
         ...row,
-        versionItems: allItems.filter((item) => item.versionId === row.version.id),
+        versionItems: allItems.filter(
+          (item) => item.versionId === row.version.id,
+        ),
       })),
     };
   });
 }
 
-export async function updateQuoteClientKind(organizationId: string, quoteId: string, clientKind: "individual" | "professional"): Promise<boolean> {
+export async function updateQuoteClientKind(
+  organizationId: string,
+  quoteId: string,
+  clientKind: "individual" | "professional",
+): Promise<boolean> {
   return inOrganization(organizationId, async (tx) => {
-    const rows = await tx.update(quotes).set({ clientKind, updatedAt: new Date() }).where(eq(quotes.id, quoteId)).returning({ id: quotes.id });
+    const rows = await tx
+      .update(quotes)
+      .set({ clientKind, updatedAt: new Date() })
+      .where(eq(quotes.id, quoteId))
+      .returning({ id: quotes.id });
     return rows.length > 0;
   });
+}
+
+// Lot 9 (ADR 0029) — devis réels créés et factures réelles émises, par mois
+// (Europe/Paris) depuis une date : statistique d'usage pour l'Admin.
+type MonthRows = { month: string; count: number }[];
+
+// Une seule connexion pour toutes les organisations, chacune dans son propre
+// contexte RLS.
+export async function countQuotesAndInvoicesByMonth(
+  organizationIds: string[],
+  since: Date,
+): Promise<Record<string, { quotes: MonthRows; invoices: MonthRows }>> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    const result: Record<string, { quotes: MonthRows; invoices: MonthRows }> =
+      {};
+    for (const organizationId of organizationIds) {
+      result[organizationId] = await withOrganization(
+        db,
+        organizationId,
+        async (tx) => {
+          const quoteMonth = raw<string>`to_char(${quotes.createdAt} at time zone 'Europe/Paris', 'YYYY-MM')`;
+          const invoiceMonth = raw<string>`to_char(${invoices.issuedAt} at time zone 'Europe/Paris', 'YYYY-MM')`;
+          const quoteRows = await tx
+            .select({ month: quoteMonth, count: raw<number>`count(*)::int` })
+            .from(quotes)
+            .where(and(eq(quotes.isDemo, false), gte(quotes.createdAt, since)))
+            .groupBy(quoteMonth)
+            .orderBy(quoteMonth);
+          const invoiceRows = await tx
+            .select({ month: invoiceMonth, count: raw<number>`count(*)::int` })
+            .from(invoices)
+            .where(
+              and(eq(invoices.isDemo, false), gte(invoices.issuedAt, since)),
+            )
+            .groupBy(invoiceMonth)
+            .orderBy(invoiceMonth);
+          return { quotes: quoteRows, invoices: invoiceRows };
+        },
+      );
+    }
+    return result;
+  } finally {
+    await pg.end();
+  }
 }

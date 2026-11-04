@@ -17,4 +17,22 @@ export {
   type AuthResult,
   type LoginResult,
 } from "./service";
+export {
+  isPasswordResetTokenValid,
+  MfaResetNotAllowedError,
+  PASSWORD_MIN_LENGTH,
+  PASSWORD_RESET_DURATION_MS,
+  requestPasswordReset,
+  resetPassword,
+  resetUserMfa,
+  type PasswordResetOutcome,
+  type PasswordResetRequest,
+} from "./recovery";
+export {
+  countAccountsByOrganization,
+  findTeamAccountOrganization,
+  listTeamAccounts,
+  type OrganizationAccountCounts,
+  type TeamAccountStatus,
+} from "./support";
 export { isPlannerRole, isProfessionalRole, ROLES, type Role } from "./roles";

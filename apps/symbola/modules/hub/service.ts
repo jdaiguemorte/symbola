@@ -87,6 +87,20 @@ export {
 // Lot 6 — contrat privacy/v1 du module (ADR 0023).
 export { hubPrivacy } from "./privacy";
 
+// Lot 9 (ADR 0029) — assistance de l'Admin et statistiques d'usage.
+export {
+  ACTIVITY_MONTHS,
+  InvitationNotPendingError,
+  getOrganizationsActivity,
+  lastMonths,
+  listOrganizationsSupport,
+  resendInvitation,
+  resetTeamAccountMfa,
+  type OrganizationActivity,
+  type OrganizationSupportView,
+  type PendingInvitation,
+} from "./admin-support";
+
 export {
   IMPORT_ENTITY_MODULE,
   IMPORT_ENTITY_TYPES,

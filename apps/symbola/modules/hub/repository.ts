@@ -1,7 +1,7 @@
 // Accès aux données du module hub — jamais importé hors de modules/hub/
 // (ADR 0011). Pas de RLS sur ces tables (packages/db/src/schema/hub.ts) :
 // l'isolation est assurée par le code applicatif, pas par PostgreSQL.
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq, isNull } from "drizzle-orm";
 import type { AppDatabase } from "@symbola/db/client";
 import {
   auditLog,
@@ -45,7 +45,7 @@ export async function markInvitationAccepted(db: AppDatabase, invitationId: stri
 
 export async function insertAuditLog(
   db: AppDatabase,
-  input: { adminUserId: string; action: string; targetOrganizationId: string | null },
+  input: { adminUserId: string; action: string; targetOrganizationId: string | null; targetUserId?: string | null },
 ) {
   await db.insert(auditLog).values(input);
 }
@@ -161,4 +161,23 @@ export async function findUserContact(db: AppDatabase, organizationId: string, u
     .from(users)
     .where(and(eq(users.id, userId), eq(users.organizationId, organizationId)));
   return row ?? null;
+}
+
+// Lot 9 (ADR 0029) — invitations de titulaire pas encore acceptées (vue
+// d'assistance de l'Admin), la plus récente d'abord.
+export async function findPendingInvitations(db: AppDatabase) {
+  return db.select().from(invitations).where(isNull(invitations.acceptedAt)).orderBy(desc(invitations.createdAt));
+}
+
+export async function findInvitationById(db: AppDatabase, invitationId: string) {
+  const [invitation] = await db.select().from(invitations).where(eq(invitations.id, invitationId));
+  return invitation ?? null;
+}
+
+// Un nouveau jeton remplace l'ancien : le lien précédent cesse de marcher.
+export async function replaceInvitationToken(db: AppDatabase, invitationId: string, input: { tokenHash: string; expiresAt: Date }) {
+  await db
+    .update(invitations)
+    .set(input)
+    .where(and(eq(invitations.id, invitationId), isNull(invitations.acceptedAt)));
 }

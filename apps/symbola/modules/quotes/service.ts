@@ -11,6 +11,7 @@ import { sendMail } from "@symbola/mail";
 import type {
   CatalogItem,
   FileDownload,
+  MonthlyCount,
   CatalogItemInput,
   CreateQuoteInput,
   GlobalDiscountInput,
@@ -97,6 +98,7 @@ import {
   type ScheduleItemRow,
   deleteQuoteLine,
   findCatalogItem,
+  countQuotesAndInvoicesByMonth as countQuotesAndInvoicesByMonthRows,
   findCatalogItems,
   findEventQuotes,
   findQuotes,
@@ -1624,6 +1626,15 @@ export {
 // Lot 6 — contrat privacy/v1 du module (ADR 0023).
 export { quotesPrivacy } from "./privacy";
 
+// Lot 9 (ADR 0029) — statistique d'usage pour l'Admin : devis créés et
+// factures émises par mois, essais exclus.
+export async function countQuotesAndInvoicesByMonth(
+  organizationIds: string[],
+  since: Date,
+): Promise<Record<string, { quotes: MonthlyCount[]; invoices: MonthlyCount[] }>> {
+  return countQuotesAndInvoicesByMonthRows(organizationIds, since);
+}
+
 const _contractCheck: QuotesServiceContract = {
   listCatalogItems,
   createCatalogItem,
@@ -1655,6 +1666,7 @@ const _contractCheck: QuotesServiceContract = {
   sendQuoteForSignature,
   handleSignatureWebhook,
   reconcilePendingSignatures,
+  countQuotesAndInvoicesByMonth,
   getSignatureDocument,
   listClientQuotesToSign,
   setQuoteClientKind,

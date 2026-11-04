@@ -1,6 +1,7 @@
 "use server";
 
 import { getTranslations } from "next-intl/server";
+import { PASSWORD_MIN_LENGTH } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
 import { acceptInvitation } from "@/modules/hub/service";
 
@@ -16,6 +17,9 @@ export async function acceptInvitationAction(
 
   if (!password) {
     return { error: t("missingPassword") };
+  }
+  if (password.length < PASSWORD_MIN_LENGTH) {
+    return { error: t("passwordTooShort") };
   }
 
   const { sql, db } = createAppConnection();

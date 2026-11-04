@@ -1,6 +1,6 @@
 // Accès aux données du module events — jamais importé hors de
 // modules/events/ (ADR 0011).
-import { and, asc, desc, eq, gt, ilike, inArray, isNotNull, isNull, lte, notInArray, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gt, gte, ilike, inArray, isNotNull, isNull, lte, notInArray, or, sql } from "drizzle-orm";
 import { createAppConnection } from "@symbola/db/client";
 import {
   defaultVendorSlots,
@@ -1707,6 +1707,34 @@ export async function findExpiredDemoEventIds(
       found.push(...rows.map((row) => ({ organizationId, eventId: row.id })));
     }
     return found;
+  } finally {
+    await pg.end();
+  }
+}
+
+// Lot 9 (ADR 0029) — nombre d'événements réels créés par mois (Europe/Paris)
+// depuis une date : statistique d'usage pour l'Admin, sans aucun contenu.
+// Une seule connexion pour toutes les organisations, chacune dans son propre
+// contexte RLS (aucune requête ne lit plusieurs organisations à la fois).
+export async function countEventsByCreationMonth(
+  organizationIds: string[],
+  since: Date,
+): Promise<Record<string, { month: string; count: number }[]>> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    const result: Record<string, { month: string; count: number }[]> = {};
+    for (const organizationId of organizationIds) {
+      result[organizationId] = await withOrganization(db, organizationId, async (tx) => {
+        const month = sql<string>`to_char(${events.createdAt} at time zone 'Europe/Paris', 'YYYY-MM')`;
+        return tx
+          .select({ month, count: sql<number>`count(*)::int` })
+          .from(events)
+          .where(and(eq(events.isDemo, false), gte(events.createdAt, since)))
+          .groupBy(month)
+          .orderBy(month);
+      });
+    }
+    return result;
   } finally {
     await pg.end();
   }
