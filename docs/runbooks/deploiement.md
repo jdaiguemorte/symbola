@@ -236,6 +236,34 @@ cd /opt/symbola && ENV=staging && F=infra/compose/.env.$ENV
 La base de Documenso (fichiers compris) entre automatiquement dans la
 sauvegarde nocturne dès qu'elle existe (`docs/runbooks/restauration.md`).
 
+## Carnet de prestataires : fond de carte (lot 11, ADR 0031)
+
+Facultatif : sans fond de carte, le carnet fonctionne (liste, filtres,
+distances, points sur un fond uni). Le géocodage des adresses passe par
+l'API de l'IGN dès la production (`GEOCODER` vide), sans clé ni réglage.
+
+1. Choisir une construction récente de Protomaps (liste sur
+   <https://maps.protomaps.com/builds>, format `AAAAMMJJ`).
+2. Sur le VPS, depuis `/opt/symbola`, mesurer d'abord la taille (rien
+   n'est téléchargé) :
+   ```bash
+   sudo PROTOMAPS_BUILD=<AAAAMMJJ> bash infra/map/install-map.sh
+   ```
+   Si la taille est trop grande pour le disque, baisser le zoom
+   (`MAP_MAXZOOM=13`).
+3. Installer (un seul dossier, partagé par staging et production, monté
+   en lecture seule) :
+   ```bash
+   sudo PROTOMAPS_BUILD=<AAAAMMJJ> bash infra/map/install-map.sh --install
+   ```
+4. Redémarrer seulement le service `symbola` de chaque environnement
+   (`up -d symbola`, voir « Mise à jour »). Le dossier par défaut est
+   `/opt/symbola-carte` ; un autre se règle par `MAP_TILES_HOST_DIR` dans
+   le `.env.<environnement>`.
+
+Le fond de carte n'est pas sauvegardé (il se retélécharge) ; le mettre à
+jour une ou deux fois par an suffit.
+
 ## Mise à jour (nouvelle version)
 
 1. La CI a publié une nouvelle image taguée par le SHA du commit fusionné

@@ -16,6 +16,7 @@ import prospectSourcesFile from "./prospect-sources.json";
 import retroplanningFile from "./retroplanning.json";
 import tutorialExamplesFile from "./tutorial-examples.json";
 import vendorSlotsFile from "./vendor-slots.json";
+import vendorTypesFile from "./vendor-types.json";
 
 export type StarterLocale = "fr" | "en";
 
@@ -356,4 +357,58 @@ export function starterTutorialTaskTemplate(locale: StarterLocale): StarterTaskT
 export function starterTutorialCatalogItem(locale: StarterLocale): { label: string; unit: string; unitPriceCents: number } {
   const item = tutorialExamples.catalogItem;
   return { label: item.label[locale], unit: item.unit[locale], unitPriceCents: item.unitPriceCents };
+}
+
+// Lot 11 (PRE-02) : types de prestataires de départ et leurs champs,
+// modifiables ensuite par l'organisation.
+const vendorTypesSchema = z.object({
+  version: z.literal(1),
+  items: z
+    .array(
+      z.object({
+        key: z.string().min(1),
+        label: translatedLabelSchema,
+        color: z.string().regex(/^#[0-9a-f]{6}$/),
+        fields: z.array(
+          z.object({
+            label: translatedLabelSchema,
+            kind: z.enum(["number", "text", "time", "amount", "choice", "boolean"]),
+            choices: z.object({ fr: z.array(z.string().min(1)), en: z.array(z.string().min(1)) }).optional(),
+            isFilter: z.boolean(),
+          }),
+        ),
+      }),
+    )
+    .min(1),
+});
+
+const vendorTypes = vendorTypesSchema.parse(vendorTypesFile);
+
+export type StarterVendorType = {
+  label: string;
+  color: string;
+  fields: { label: string; kind: "number" | "text" | "time" | "amount" | "choice" | "boolean"; choices?: string[]; isFilter: boolean }[];
+};
+
+export function starterVendorTypes(locale: StarterLocale): StarterVendorType[] {
+  return vendorTypes.items.map((item) => ({
+    label: item.label[locale],
+    color: item.color,
+    fields: item.fields.map((field) => ({
+      label: field.label[locale],
+      kind: field.kind,
+      ...(field.choices ? { choices: field.choices[locale] } : {}),
+      isFilter: field.isFilter,
+    })),
+  }));
+}
+
+// Lot 11 : prestataires d'exemple du tutoriel « comparer plusieurs devis ».
+const tutorialVendorsSchema = z.array(
+  z.object({ name: translatedLabelSchema, city: z.string().min(1), note: translatedLabelSchema }),
+);
+
+export function starterTutorialVendors(locale: StarterLocale): { name: string; city: string; note: string }[] {
+  const raw = (tutorialExamplesFile as { vendors?: unknown }).vendors ?? [];
+  return tutorialVendorsSchema.parse(raw).map((vendor) => ({ name: vendor.name[locale], city: vendor.city, note: vendor.note[locale] }));
 }

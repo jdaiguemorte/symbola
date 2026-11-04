@@ -441,6 +441,8 @@ export async function updateEventVendorSlotRow(input: {
   status: VendorSlotStatus;
   vendorName?: string | null | undefined;
   amountCents?: number | null | undefined;
+  // Lot 11 (EVT-08) : consulté retenu ; effacé quand le poste n'est plus réservé.
+  selectedCandidateId?: string | null | undefined;
 }): Promise<EventVendorSlotRow | null> {
   const { sql: pg, db } = createAppConnection();
   try {
@@ -450,10 +452,12 @@ export async function updateEventVendorSlotRow(input: {
 
       const vendorName = input.vendorName === undefined ? current.vendorName : input.vendorName;
       const amountCents = input.amountCents === undefined ? current.amountCents : input.amountCents;
+      const selectedCandidateId =
+        input.selectedCandidateId !== undefined ? input.selectedCandidateId : input.status === "booked" ? current.selectedCandidateId : null;
 
       const [updated] = await tx
         .update(eventVendorSlots)
-        .set({ status: input.status, vendorName, amountCents, updatedAt: new Date() })
+        .set({ status: input.status, vendorName, amountCents, selectedCandidateId, updatedAt: new Date() })
         .where(eq(eventVendorSlots.id, input.vendorSlotId))
         .returning();
       if (!updated) throw new Error("mise à jour du poste échouée");

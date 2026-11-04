@@ -74,7 +74,17 @@ export const envSchema = z.object({
   // API v2 interne de Documenso (ex. http://documenso:3000/api/v2) et sa clé.
   DOCUMENSO_API_URL: z.string().default(""),
   DOCUMENSO_API_KEY: z.string().default(""),
+  // Lot 11 (ADR 0031) : géocodage des adresses du carnet de prestataires.
+  // « ign » = API Géocodage de la Géoplateforme (gratuite, sans clé),
+  // « fake » = points simulés (tests, développement hors ligne, interdit en
+  // production), « none » = pas de placement automatique.
+  GEOCODER: z.preprocess((value) => (value === "" ? undefined : value), z.enum(["ign", "fake", "none"]).optional()),
+  // Dossier du fond de carte (fichier PMTiles et polices), vide = pas de fond.
+  MAP_TILES_DIR: z.string().default(""),
 }).superRefine((env, context) => {
+  if (env.NODE_ENV === "production" && env.GEOCODER === "fake") {
+    context.addIssue({ code: "custom", path: ["GEOCODER"], message: "le faux géocodage est interdit en production" });
+  }
   if (env.NODE_ENV === "production" && env.SIGNATURE_PROVIDER === "fake") {
     context.addIssue({ code: "custom", path: ["SIGNATURE_PROVIDER"], message: "le faux fournisseur de signature est interdit en production" });
   }
@@ -93,4 +103,9 @@ export type Env = z.infer<typeof envSchema>;
 // Fournisseur effectif des devis réels (ADR 0026).
 export function signatureProviderOf(env: Env): "none" | "fake" | "documenso" {
   return env.SIGNATURE_PROVIDER ?? (env.NODE_ENV === "production" ? "none" : "fake");
+}
+
+// Géocodeur effectif (ADR 0031) : l'IGN en production, simulé ailleurs.
+export function geocoderOf(env: Env): "ign" | "fake" | "none" {
+  return env.GEOCODER ?? (env.NODE_ENV === "production" ? "ign" : "fake");
 }

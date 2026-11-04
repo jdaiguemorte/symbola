@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatCalendarDate, formatMonth, type Locale } from "@symbola/i18n";
 import { HelpButton } from "@symbola/ui";
-import { ClientAccessDeniedError, getClientEventView, monthKey, type EventTask } from "@/modules/events/service";
+import { ClientAccessDeniedError, getClientEventView, getClientVendorOptions, monthKey, type EventTask } from "@/modules/events/service";
 import { ClientBudgetAccessDeniedError, getClientBudgetView } from "@/modules/budget/service";
 import { getClientAuthContext } from "@/lib/auth-context";
 import { isBudgetModuleEnabled } from "@/app/budget/module-access";
@@ -11,6 +11,7 @@ import { isQuotesModuleEnabled } from "@/app/devis/module-access";
 import { listClientQuotesToSign } from "@/modules/quotes/service";
 import { ClientQuotes } from "./client-quotes";
 import { ClientBudget } from "./client-budget";
+import { ClientVendorOptions } from "./client-vendor-options";
 import { isEventsModuleEnabled, isValidId } from "@/app/events/module-access";
 import { toggleClientTaskAction } from "./actions";
 
@@ -62,6 +63,9 @@ export default async function ClientEventPage({ params }: { params: Promise<{ id
   const quotesToSign = (await isQuotesModuleEnabled(auth.user.organizationId))
     ? await listClientQuotesToSign(auth.user.organizationId, id, auth.user.email)
     : [];
+
+  // EVT-09 : options de prestataires montrées par la planner (accès revérifié).
+  const vendorOptions = await getClientVendorOptions(auth.user.organizationId, auth.user.id, id);
 
   const t = await getTranslations("ClientSpace");
   const tEvents = await getTranslations("Events");
@@ -137,6 +141,8 @@ export default async function ClientEventPage({ params }: { params: Promise<{ id
           </li>
         ))}
       </ul>
+
+      {vendorOptions.length > 0 ? <ClientVendorOptions eventId={view.event.id} groups={vendorOptions} locale={locale} /> : null}
 
       {budget ? (
         <section aria-labelledby="client-budget-title">

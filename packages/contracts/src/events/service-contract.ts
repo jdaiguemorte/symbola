@@ -2,6 +2,7 @@
 // contrat HTTP /v1/events si ce module est extrait en app autonome (ADR
 // 0011). apps/symbola vérifie que le vrai module satisfait ce type (test
 // de contrat, apps/symbola/modules/events/service.contract.test.ts).
+import type { FileDownload } from "../file-download";
 import type { MonthlyCount } from "../usage";
 import type { EventsSearchResults } from "../search";
 export type EventStatus = "prospect" | "quote_sent" | "confirmed" | "done" | "lost";
@@ -102,7 +103,59 @@ export type EventVendorSlot = {
   position: number;
   // Lot 5 (IMP-04) : champs libres d'un import.
   importedFields?: Record<string, string>;
+  // Lot 11 (EVT-08) : ce que veulent les clients, consulté retenu.
+  brief: string | null;
+  selectedCandidateId: string | null;
 };
+
+// Lot 11 (EVT-08 / EVT-09) — prestataires consultés pour un poste.
+export type VendorCandidateResponse = "contacted" | "quote_received" | "declined";
+export type VendorCandidateNote = { id: string; body: string; visibleToClients: boolean; createdAt: string };
+export type VendorCandidate = {
+  id: string;
+  eventId: string;
+  vendorSlotId: string;
+  // Fiche du carnet (module vendors), null en saisie libre.
+  vendorId: string | null;
+  vendorName: string;
+  response: VendorCandidateResponse;
+  contactedOn: string | null;
+  quoteAmountCents: number | null;
+  currency: "EUR";
+  hasQuoteFile: boolean;
+  shownToClients: boolean;
+  // Déduit du poste : retenu, non retenu (un autre l'est), ou null.
+  outcome: "selected" | "not_selected" | null;
+  notes: VendorCandidateNote[];
+};
+export type AddVendorCandidateInput = {
+  organizationId: string;
+  eventId: string;
+  vendorSlotId: string;
+  vendorName: string;
+  vendorId?: string | null;
+};
+export type UpdateVendorCandidateInput = {
+  organizationId: string;
+  candidateId: string;
+  response?: VendorCandidateResponse;
+  contactedOn?: string | null;
+  quoteAmountCents?: number | null;
+  shownToClients?: boolean;
+};
+// PRE-09 — consultations d'une fiche du carnet, pour son historique.
+export type VendorConsultation = {
+  eventId: string;
+  eventNames: string;
+  eventDate: string | null;
+  slotId: string;
+  slotLabel: string;
+  outcome: "selected" | "not_selected" | "pending";
+  quotedCents: number | null;
+};
+// EVT-09 — options montrées aux clients, par poste.
+export type ClientVendorOption = { candidateId: string; vendorName: string; quoteAmountCents: number | null; hasQuoteFile: boolean; notes: string[] };
+export type ClientVendorSlotOptions = { slotLabel: string; options: ClientVendorOption[] };
 
 export type UpdateEventVendorSlotInput = {
   organizationId: string;
@@ -330,6 +383,22 @@ export interface EventsServiceContract {
   addEventVendorSlot(organizationId: string, eventId: string, label: string): Promise<EventVendorSlot>;
   updateEventVendorSlot(input: UpdateEventVendorSlotInput): Promise<EventVendorSlot>;
   removeEventVendorSlot(organizationId: string, vendorSlotId: string): Promise<void>;
+  setVendorSlotBrief(organizationId: string, vendorSlotId: string, brief: string | null): Promise<void>;
+  listVendorCandidates(organizationId: string, eventId: string): Promise<VendorCandidate[]>;
+  addVendorCandidate(input: AddVendorCandidateInput): Promise<VendorCandidate>;
+  updateVendorCandidate(input: UpdateVendorCandidateInput): Promise<void>;
+  linkVendorCandidate(organizationId: string, candidateId: string, vendorId: string): Promise<void>;
+  removeVendorCandidate(organizationId: string, candidateId: string): Promise<void>;
+  attachVendorCandidateQuote(input: { organizationId: string; candidateId: string; content: Uint8Array }): Promise<void>;
+  getVendorCandidateQuoteFile(organizationId: string, candidateId: string): Promise<FileDownload>;
+  addVendorCandidateNote(input: { organizationId: string; candidateId: string; body: string; visibleToClients: boolean; createdByUserId: string }): Promise<void>;
+  setVendorCandidateNoteVisibility(organizationId: string, noteId: string, visibleToClients: boolean): Promise<void>;
+  removeVendorCandidateNote(organizationId: string, noteId: string): Promise<void>;
+  selectVendorCandidate(input: { organizationId: string; candidateId: string; changedByUserId: string }): Promise<void>;
+  listVendorConsultations(organizationId: string, vendorId: string): Promise<VendorConsultation[]>;
+  listSelectedVendorIds(organizationId: string): Promise<string[]>;
+  getClientVendorOptions(organizationId: string, userId: string, eventId: string): Promise<ClientVendorSlotOptions[]>;
+  getClientVendorQuoteFile(organizationId: string, userId: string, eventId: string, candidateId: string): Promise<FileDownload>;
   listTaskTemplates(organizationId: string): Promise<TaskTemplate[]>;
   createTaskTemplate(organizationId: string, name: string, items: TaskTemplateItemInput[]): Promise<TaskTemplate>;
   addTaskTemplateItem(organizationId: string, templateId: string, item: TaskTemplateItemInput): Promise<TaskTemplateItem>;

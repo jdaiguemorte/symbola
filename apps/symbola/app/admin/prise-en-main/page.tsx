@@ -30,7 +30,7 @@ export default async function AdminOnboardingPage() {
   }
 
   const rows = organizations.map((organization) => {
-    const available = TUTORIALS.filter((tutorial) => tutorial.module === "hub" || organization.modules[tutorial.module as "events" | "budget" | "quotes"]);
+    const available = TUTORIALS.filter((tutorial) => tutorial.module === "hub" || (organization.modules as Record<string, boolean | undefined>)[tutorial.module]);
     return {
       ...organization,
       total: available.length,

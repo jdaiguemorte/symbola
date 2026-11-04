@@ -12,6 +12,7 @@ import { afterAll, describe, expect, it } from "vitest";
 import { createAppConnection } from "./client";
 import { budgetLineAttachments, budgetLines } from "./schema/budget";
 import { greetings } from "./schema/hello";
+import { vendors, vendorTypes } from "./schema/vendors";
 import { importItems, imports, privacyRequests } from "./schema/hub";
 import {
   catalogItems,
@@ -34,6 +35,7 @@ import {
   eventClientAccesses,
   events,
   eventTasks,
+  eventVendorCandidates,
   eventVendorSlots,
   programItemParticipants,
   programItems,
@@ -326,6 +328,27 @@ describe("HUB-03 — L'Admin ne lit jamais de donnée métier", () => {
         .values({ organizationId, type: "erasure", personLabel: "Élodie", receivedOn: "2026-11-02", dueOn: "2026-12-02", createdByUserId: randomUUID() });
     });
     for (const table of [imports, importItems, privacyRequests]) {
+      try {
+        const rows = await db.select().from(table);
+        expect(rows).toHaveLength(0);
+      } catch (error) {
+        expect(error).toBeTruthy();
+      }
+    }
+  });
+  it("vaut aussi pour le carnet de prestataires et les consultés (lot 11, PostgreSQL réel)", async () => {
+    const organizationId = randomUUID();
+    await withOrganization(db, organizationId, async (tx) => {
+      await tx.insert(vendorTypes).values({ organizationId, label: "Traiteur", color: "#4f6b5a" });
+      await tx.insert(vendors).values({ organizationId, name: "Maison test", email: "contact@example.test" });
+      const [event] = await tx.insert(events).values({ organizationId }).returning();
+      if (!event) throw new Error("insertion attendue");
+      const [slot] = await tx.insert(eventVendorSlots).values({ organizationId, eventId: event.id, label: "Traiteur" }).returning();
+      if (!slot) throw new Error("insertion attendue");
+      await tx.insert(eventVendorCandidates).values({ organizationId, eventId: event.id, vendorSlotId: slot.id, vendorName: "Maison test" });
+    });
+
+    for (const table of [vendors, vendorTypes, eventVendorCandidates]) {
       try {
         const rows = await db.select().from(table);
         expect(rows).toHaveLength(0);

@@ -67,6 +67,7 @@ du cahier des charges, à activer seulement si un second client ou une équipe l
 | Fichiers | Garage (S3, ADR 0015 — remplace MinIO, image retirée des registres publics), fichiers privés servis par l'app après contrôle des droits (ADR 0027), antivirus ClamAV à l'envoi | — (inchangé) |
 | i18n | next-intl | — (inchangé) |
 | PDF | @react-pdf/renderer (ADR 0019), rendu côté serveur | — (inchangé) |
+| Carte | MapLibre GL + PMTiles (fond Protomaps servi par l'app), géocodage API IGN derrière une interface, distances calculées par la base sans PostGIS (ADR 0031) | PostGIS et moteur d'itinéraires auto-hébergé si les isochrones le justifient |
 | Tests | Vitest (unitaires et intégration), Playwright (bout en bout, mobile 375 px), axe-core (accessibilité) | — (inchangé) |
 | Proxy | Caddy partagé du VPS (ADR 0018, remplace Traefik), HTTPS Let's Encrypt, un seul sous-domaine ; Traefik reste utilisé en dev local uniquement (socle Docker Compose, SOC-03) | Un sous-domaine par app |
 | Déploiement | Docker Compose, un seul fichier pour le socle + l'app | Un fichier par app + un pour le socle |
@@ -204,7 +205,7 @@ l'équivalent Docker donné à droite.
 | Tests d'isolation RLS réels (SOC-05, nécessite le socle démarré + bootstrap + migrate) | `pnpm --filter @symbola/db test:integration` | `docker run --rm --network symbola-dev_default -v "$PWD":/app -w /app --env-file .env node:22-slim pnpm --filter @symbola/db test:integration` |
 | Créer un compte Admin, ou une organisation et sa titulaire (mot de passe généré, affiché une fois ; **Julien, sur le VPS**, voir `docs/runbooks/deploiement.md` § Premiers comptes) | `pnpm --filter @symbola/auth create-account -- --role admin --email <e-mail>` | voir le runbook (conteneur `node:22-slim` sur le réseau Docker de l'environnement) |
 | Lancer le socle en local seul | — | `docker compose -f infra/compose/docker-compose.dev.yml --env-file .env up` |
-| Vérifier les scripts serveur (SOC-10, SOC-12) | `shellcheck -x infra/server/*.sh infra/backup/*.sh` | `docker run --rm -v "$PWD/infra":/mnt:ro -w /mnt koalaman/shellcheck:stable -x server/check-hardening.sh backup/backup.sh backup/restore.sh backup/lib.sh` |
+| Vérifier les scripts serveur (SOC-10, SOC-12, lot 11) | `shellcheck -x infra/server/*.sh infra/backup/*.sh infra/map/*.sh` | `docker run --rm -v "$PWD/infra":/mnt:ro -w /mnt koalaman/shellcheck:stable -x server/check-hardening.sh backup/backup.sh backup/restore.sh backup/lib.sh` |
 | Tests des sauvegardes et des configurations de déploiement (SOC-09 à SOC-12) | `pnpm --filter @symbola/tools-deployment-config test` | `docker run --rm -v "$PWD":/app -w /app node:22-slim pnpm --filter @symbola/tools-deployment-config test` |
 | Sauvegarder un environnement à la main (SOC-10, **Julien, sur le VPS**) | — | `sudo systemctl start symbola-backup@staging.service` (voir `docs/runbooks/restauration.md`) |
 | Restaurer un environnement (SOC-10, **Julien, sur le VPS**, destructif) | — | `sudo /opt/symbola/infra/backup/restore.sh staging --confirm=staging` |

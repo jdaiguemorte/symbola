@@ -435,6 +435,20 @@
       "when": 1793805510325,
       "tag": "0061_grant_help_progress",
       "breakpoints": true
+    },
+    {
+      "idx": 62,
+      "version": "7",
+      "when": 1793820148500,
+      "tag": "0062_lot11_vendors",
+      "breakpoints": true
+    },
+    {
+      "idx": 63,
+      "version": "7",
+      "when": 1793820155832,
+      "tag": "0063_grant_lot11_vendors",
+      "breakpoints": true
     }
   ]
 }

@@ -5,6 +5,7 @@
 // et le rôle ; ce sont ceux qu'affichait l'accueil jusqu'ici.
 import type { ReactNode } from "react";
 import {
+  BookUser,
   CalendarDays,
   CalendarHeart,
   FileText,
@@ -30,7 +31,7 @@ import { AUTO_TOURS_COOKIE } from "@/lib/help/preferences";
 import { SearchBox } from "./search-box";
 import { HelpProvider } from "./help-context";
 import { getHelpProgress } from "@/modules/hub/service";
-import { TUTORIALS, tutorialHref } from "@/lib/help/catalog";
+import { type HelpModule, TUTORIALS, tutorialHref } from "@/lib/help/catalog";
 
 function Logo() {
   return (
@@ -118,12 +119,14 @@ export async function AppShell({ children }: { children: ReactNode }) {
   let events = false;
   let budget = false;
   let quotes = false;
+  let vendors = false;
   if (organizationId) {
     const { sql, db } = createAppConnection();
     try {
       events = await isModuleEnabled(db, organizationId, "events");
       budget = await isModuleEnabled(db, organizationId, "budget");
       quotes = await isModuleEnabled(db, organizationId, "quotes");
+      vendors = await isModuleEnabled(db, organizationId, "vendors");
     } finally {
       await sql.end();
     }
@@ -141,15 +144,8 @@ export async function AppShell({ children }: { children: ReactNode }) {
     invites: TutorialInvite[];
   } | null = null;
   if (isTeam) {
-    const available = TUTORIALS.filter(
-      (tutorial) =>
-        tutorial.module === "hub" ||
-        (tutorial.module === "events"
-          ? events
-          : tutorial.module === "budget"
-            ? budget
-            : quotes),
-    );
+    const subscribed: Record<HelpModule, boolean> = { hub: true, events, budget, quotes, vendors };
+    const available = TUTORIALS.filter((tutorial) => subscribed[tutorial.module]);
     const { sql, db } = createAppConnection();
     let progress;
     try {
@@ -221,7 +217,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
         ).filter((task) => task.overdue).length
       : 0;
 
-  // Paramètres : un onglet par module souscrit (maquette validée).
+  // Paramètres : une pastille par solution souscrite (HUB-06, lot 11).
   const settingsSections: SettingsSection[] = organizationId
     ? [
         {
@@ -252,6 +248,20 @@ export async function AppShell({ children }: { children: ReactNode }) {
                     href: "/events/modeles-programme",
                     label: t("settingsProgramTemplates"),
                   },
+                ],
+              },
+            ]
+          : []),
+        ...(vendors
+          ? [
+              {
+                href: "/prestataires/parametres",
+                label: t("vendorBook"),
+                paths: ["/prestataires/parametres"],
+                children: [
+                  { href: "/prestataires/parametres", label: t("settingsVendorTypes") },
+                  { href: "/prestataires/parametres/etiquettes", label: t("settingsVendorTags") },
+                  { href: "/prestataires/parametres/trajet", label: t("settingsVendorTravel") },
                 ],
               },
             ]
@@ -328,6 +338,14 @@ export async function AppShell({ children }: { children: ReactNode }) {
                   </AppNavLink>
                 </li>
               </>
+            ) : null}
+            {vendors ? (
+              <li>
+                <AppNavLink href="/prestataires" tour="nav-vendors">
+                  <BookUser {...iconProps} />
+                  {t("vendorBook")}
+                </AppNavLink>
+              </li>
             ) : null}
             {quotes ? (
               <>

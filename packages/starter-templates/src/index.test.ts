@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import retroplanningFile from "./retroplanning.json";
 import vendorSlotsFile from "./vendor-slots.json";
 import programFile from "./program.json";
-import { starterDemoEvent, starterDemoQuote, starterErasureResponse, starterPrivacySettings, starterInvoiceMentions, starterLossReasons, starterPaymentMethods, starterProgram, starterProspectSources, starterRetroplanning, starterVendorSlots } from "./index";
+import { starterDemoEvent, starterDemoQuote, starterErasureResponse, starterPrivacySettings, starterInvoiceMentions, starterLossReasons, starterPaymentMethods, starterProgram, starterProspectSources, starterRetroplanning, starterVendorSlots, starterVendorTypes } from "./index";
 
 describe("EVT-03 — Modèle de départ des postes prestataires", () => {
   it("existe en français et en anglais, avec le même nombre de postes", () => {
@@ -156,5 +156,16 @@ describe("AIDE-06 — exemples des tutoriels", () => {
     expect(starterTutorialEvent("inconnu", "fr")).toBeNull();
     expect(starterTutorialTaskTemplate("fr").items.length).toBeGreaterThan(2);
     expect(starterTutorialCatalogItem("en").label).toContain("example");
+  });
+
+  it("lot 11 — types de prestataires de départ, traduits, champs valides", () => {
+    const fr = starterVendorTypes("fr");
+    const en = starterVendorTypes("en");
+    expect(fr.map((type) => type.label)).toContain("Hôtel / hébergement");
+    expect(en.map((type) => type.label)).toContain("Hotel / lodging");
+    expect(fr).toHaveLength(en.length);
+    for (const type of fr) {
+      for (const field of type.fields) if (field.kind === "choice") expect(field.choices?.length).toBeGreaterThan(0);
+    }
   });
 });

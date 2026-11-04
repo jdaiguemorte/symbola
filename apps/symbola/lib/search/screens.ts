@@ -17,6 +17,8 @@ export const SCREENS: ScreenEntry[] = [
   { path: "/events/modeles", module: "events", label: "settingsTaskTemplates", help: "eventsTemplates" },
   { path: "/events/modeles-programme", module: "events", label: "settingsProgramTemplates", help: "eventsProgramTemplates" },
   { path: "/budget/parametres", module: "budget", label: "budgetModels", help: "budgetSettings" },
+  { path: "/prestataires", module: "vendors", label: "vendorBook", help: "vendorBook" },
+  { path: "/prestataires/parametres", module: "vendors", label: "settingsVendorTypes", help: "vendorBook" },
   { path: "/devis/parametres", module: "quotes", label: "quoteSettings", help: "quotesSettings" },
   { path: "/devis/catalogue", module: "quotes", label: "quoteCatalog", help: "quotesCatalog" },
   { path: "/devis/e-reporting", module: "quotes", label: "eReporting", help: "quotesEReporting" },

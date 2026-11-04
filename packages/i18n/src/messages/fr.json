@@ -76,7 +76,11 @@
     "settingsTaskTemplates": "Modèles de rétroplanning",
     "settingsProgramTemplates": "Modèles de programme",
     "settingsSections": "Paramètres par module",
-    "settingsSubSections": "Réglages du module"
+    "settingsSubSections": "Réglages du module",
+    "vendorBook": "Prestataires",
+    "settingsVendorTypes": "Types et champs",
+    "settingsVendorTags": "Étiquettes",
+    "settingsVendorTravel": "Trajet estimé"
   },
   "Admin": {
     "title": "Administration",
@@ -281,6 +285,24 @@
         "title": "Tout retrouver en un instant",
         "body": "Tapez un nom de client, un numéro de devis ou une question dans la recherche : elle fouille tout Symbola."
       }
+    ],
+    "vendors": [
+      {
+        "title": "Vos types de prestataires",
+        "body": "Une pastille par type : lieu, hôtel, traiteur… Vous les créez et choisissez leurs champs dans les paramètres du carnet."
+      },
+      {
+        "title": "Filtrer et chercher autour d'un lieu",
+        "body": "Combinez caractéristiques, étiquettes et « déjà travaillé avec » ; donnez un lieu et un rayon pour trier par distance."
+      },
+      {
+        "title": "Du plus proche au plus loin",
+        "body": "La liste suit la carte, avec un trajet estimé. Depuis un poste d'événement, « Ajouter au poste » l'envoie dans les prestataires consultés."
+      },
+      {
+        "title": "Un prestataire, une fiche",
+        "body": "Créez la fiche une seule fois : vous la retrouverez à chaque événement, avec l'historique de vos prix."
+      }
     ]
   },
   "Help": {
@@ -460,6 +482,10 @@
     "adminOnboarding": {
       "title": "Prise en main des organisations",
       "body": "Ce tableau montre, pour chaque compte d'équipe, les tutoriels terminés et en cours et la dernière activité d'aide. Il sert à repérer qui a besoin d'un coup de main ; il ne montre aucune donnée d'événement."
+    },
+    "vendorBook": {
+      "title": "Le carnet de prestataires",
+      "body": "Chaque prestataire a une seule fiche, réutilisée d'un événement à l'autre : coordonnées, caractéristiques selon son type, plaquettes, et l'historique de vos prestations avec lui. Filtrez par type, par caractéristiques et autour d'un lieu ; ajoutez un prestataire au poste d'un événement pour comparer les devis."
     }
   },
   "FirstSteps": {
@@ -1128,7 +1154,11 @@
     "quoteDeclinedByYou": "refusé",
     "quoteSigned": "signé",
     "quoteLinkByEmail": "le lien de signature a été envoyé par e-mail à chaque signataire",
-    "signQuote": "Signer le devis {number}"
+    "signQuote": "Signer le devis {number}",
+    "vendorOptionsTitle": "Prestataires proposés",
+    "vendorOptionsIntro": "Votre organisatrice a consulté plusieurs prestataires. Voici ceux qu'elle vous propose.",
+    "vendorOptionQuote": "Devis : {amount}",
+    "vendorOptionOpenQuote": "Voir le devis de {vendor}"
   },
   "NotFound": {
     "title": "Page introuvable",
@@ -1783,6 +1813,10 @@
       "import": {
         "title": "Importer ses événements existants",
         "description": "Importez un petit fichier d'exemple et vérifiez l'aperçu avant de confirmer."
+      },
+      "vendor-quotes": {
+        "title": "Comparer plusieurs devis pour un poste",
+        "description": "Consultez deux prestataires d'exemple pour un même poste, notez leurs devis, puis retenez-en un."
       }
     },
     "intro": "Apprenez Symbola en le faisant, à votre rythme. Chaque tutoriel crée un exemple fictif, puis vous propose de le supprimer.",
@@ -1795,7 +1829,8 @@
       "events": "Événements",
       "quotes": "Devis et factures",
       "budget": "Budget",
-      "hub": "Paramètres et données"
+      "hub": "Paramètres et données",
+      "vendors": "Prestataires"
     },
     "tourTitle": "Visite : {title}",
     "tourKind": "Visite · 1 min",
@@ -1838,7 +1873,8 @@
     "seeAll": "Voir tous les résultats",
     "hint": "↑ ↓ pour choisir · Entrée pour ouvrir · Échap pour fermer",
     "globalLabel": "Recherche dans Symbola",
-    "refineLabel": "Modifier la recherche"
+    "refineLabel": "Modifier la recherche",
+    "vendorBookDetail": "Carnet de prestataires"
   },
   "AdminOnboarding": {
     "title": "Prise en main des organisations",
@@ -2112,6 +2148,277 @@
           "body": "Vous savez reprendre vos données existantes."
         }
       ]
+    },
+    "vendor-quotes": {
+      "steps": [
+        {
+          "title": "Comprendre",
+          "body": "Pour un même poste (le traiteur d'un gala, le lieu d'un séminaire…), vous consultez souvent plusieurs prestataires. Symbola les garde côte à côte avec leur devis et vos notes, jusqu'à ce que vous en reteniez un."
+        },
+        {
+          "title": "Préparer",
+          "body": "Symbola crée un événement d'exemple (un gala d'association) et, si vous avez le carnet de prestataires, deux traiteurs d'exemple. Tout sera supprimé à la fin."
+        },
+        {
+          "title": "Consulter deux prestataires",
+          "body": "Dans le poste « Traiteur » de l'exemple, ajoutez deux prestataires consultés : choisissez-les dans votre carnet ou tapez simplement leur nom."
+        },
+        {
+          "title": "Noter un devis",
+          "body": "Pour l'un d'eux, saisissez le montant du devis (ou joignez le fichier). Vous pouvez aussi ajouter une note, interne ou montrée aux clients."
+        },
+        {
+          "title": "Retenir",
+          "body": "Cliquez « Retenir » sur le prestataire choisi : le poste passe à Réservé avec son nom et son montant, et l'autre reste visible, « non retenu »."
+        },
+        {
+          "title": "Ce que voient les clients",
+          "body": "Cochez « Montrer aux clients » sur un prestataire : vos clients le retrouvent dans leur espace avec les notes cochées « Clients », jamais vos notes internes."
+        },
+        {
+          "title": "Terminer",
+          "body": "L'exemple et ses prestataires d'exemple vont être supprimés."
+        }
+      ]
     }
+  },
+  "VendorCandidates": {
+    "title": "Prestataires consultés — {slot}",
+    "quotesReceived": "Devis reçus : {received} sur {total}",
+    "findOnMap": "Trouver dans mon carnet (carte)",
+    "briefLabel": "Ce que veulent les clients pour ce poste",
+    "briefSave": "Enregistrer le besoin",
+    "briefSaved": "Besoin enregistré.",
+    "empty": "Aucun prestataire consulté pour l'instant. Ajoutez ceux que vous contactez : vous comparerez leurs devis ici.",
+    "selectHint": "« Retenir » passe le poste à Réservé avec ce prestataire et le montant de son devis ; le budget se met à jour. Les autres restent visibles, « non retenu ».",
+    "addTitle": "Ajouter un prestataire consulté pour « {slot} »",
+    "fromBook": "Dans mon carnet",
+    "fromBookNone": "— Choisir un prestataire —",
+    "newVendorName": "Ou un nouveau prestataire (nom)",
+    "vendorName": "Nom du prestataire",
+    "addToBookToo": "L'ajouter aussi à mon carnet",
+    "add": "Ajouter",
+    "consultedCount": "{count, plural, one {# consulté} other {# consultés}}",
+    "outcomeSelected": "Retenu",
+    "outcomeNotSelected": "Non retenu",
+    "responseContacted": "Contacté",
+    "responseQuoteReceived": "Devis reçu",
+    "responseDeclined": "Écarté",
+    "quoteOf": "Devis : {amount}",
+    "response": "Réponse",
+    "contactedOn": "Contacté le",
+    "quoteAmount": "Montant du devis (€)",
+    "shownToClients": "Montrer aux clients",
+    "save": "Enregistrer",
+    "saveFor": "Enregistrer — {vendor}",
+    "saved": "Enregistré.",
+    "openQuote": "Ouvrir le devis de {vendor}",
+    "attachQuote": "Joindre le devis (PDF ou image, 20 Mo au plus)",
+    "replaceQuote": "Remplacer le devis",
+    "attach": "Joindre",
+    "attachFor": "Joindre le devis de {vendor}",
+    "notesOf": "Notes sur {vendor}",
+    "notesTitle": "Notes",
+    "noNotes": "Aucune note.",
+    "noteClients": "Clients",
+    "noteInternal": "Interne",
+    "noteMakeInternal": "Rendre interne",
+    "noteShowClients": "Montrer aux clients",
+    "noteRemove": "Supprimer",
+    "newNote": "Nouvelle note sur {vendor}",
+    "noteVisibleToClients": "Visible par les clients",
+    "addNote": "Ajouter la note",
+    "addNoteFor": "Ajouter la note sur {vendor}",
+    "select": "Retenir {vendor}",
+    "addToBook": "Ajouter {vendor} à mon carnet",
+    "remove": "Retirer {vendor}",
+    "unauthorized": "Session expirée ou accès refusé.",
+    "notFound": "Prestataire ou poste introuvable.",
+    "nameRequired": "Indiquez le nom du prestataire ou choisissez-le dans votre carnet.",
+    "invalidResponse": "Réponse invalide.",
+    "invalidAmount": "Montant invalide.",
+    "invalidDate": "Date invalide.",
+    "quoteMissing": "Choisissez un fichier.",
+    "quoteTooLarge": "Le devis dépasse 20 Mo.",
+    "quoteUnsupported": "Format non supporté : PDF ou image uniquement.",
+    "quoteInfected": "Fichier refusé par l'antivirus.",
+    "noteRequired": "La note est vide.",
+    "noteTooLong": "La note est trop longue (2 000 caractères au plus)."
+  },
+  "VendorBook": {
+    "title": "Carnet de prestataires",
+    "subtitle": "{count, plural, =0 {Aucun prestataire} one {# prestataire} other {# prestataires}} · un seul exemplaire de chacun, réutilisé d'un événement à l'autre",
+    "moduleUnavailable": "Le carnet de prestataires n'est pas disponible pour votre organisation.",
+    "settingsLink": "Paramètres du carnet",
+    "newVendor": "Nouveau prestataire",
+    "newVendorHint": "Une fiche par prestataire : vous la retrouverez pour chaque événement, avec l'historique de vos prestations.",
+    "backToBook": "Retour au carnet",
+    "targetTitle": "Ajouter au poste « {slot} » — {event}",
+    "targetHint": "Choisissez un prestataire ci-dessous : il sera ajouté aux prestataires consultés de ce poste.",
+    "targetBack": "Revenir à la fiche de l'événement",
+    "typesFilter": "Types de prestataires",
+    "allTypes": "Tous",
+    "filtersLabel": "Filtres du carnet",
+    "filterText": "Nom ou ville",
+    "filterAround": "Autour de",
+    "filterAroundPlaceholder": "Adresse, ville ou lieu",
+    "filterRadius": "Dans un rayon de",
+    "radiusKm": "{km} km",
+    "filterTag": "Étiquette",
+    "allTags": "Toutes",
+    "any": "Indifférent",
+    "yes": "Oui",
+    "no": "Non",
+    "fieldMin": "{label} au moins",
+    "fieldMax": "{label} au plus",
+    "filterWorkedWith": "Déjà travaillé avec",
+    "filterApply": "Filtrer",
+    "centerNotFound": "Ce lieu n'a pas été trouvé : la liste n'est pas filtrée par distance.",
+    "mapLabel": "Carte : {count, plural, =0 {aucun prestataire placé} one {# prestataire placé} other {# prestataires placés}}. La liste à côté donne les mêmes résultats.",
+    "mapNoTiles": "Fond de carte non installé : les points et le cercle restent affichés, la liste et les distances fonctionnent.",
+    "results": "{count, plural, =0 {Aucun résultat} one {# résultat} other {# résultats}}",
+    "resultsByDistance": "{count, plural, =0 {Aucun résultat} one {# résultat} other {# résultats}} autour de {place}, du plus proche au plus loin",
+    "exportCsv": "Exporter en CSV",
+    "exportPdf": "Exporter en PDF",
+    "empty": "Aucun prestataire ne correspond à ces filtres.",
+    "emptyNoTypes": "Votre carnet est vide. Commencez par ajouter un prestataire, ou créez vos types dans les paramètres du carnet.",
+    "travel": "{km} km · ≈ {minutes} min (estimation)",
+    "travelHint": "Trajets estimés : distance à vol d'oiseau × détour, à vitesse moyenne (réglable dans les paramètres).",
+    "demo": "Exemple",
+    "notPlaced": "Non placé sur la carte",
+    "addToSlot": "Ajouter {vendor} au poste « {slot} »",
+    "identity": "Prestataire",
+    "name": "Nom du prestataire",
+    "type": "Type",
+    "typeNone": "— Sans type —",
+    "contact": "Contact",
+    "contactName": "Nom du contact",
+    "phone": "Téléphone",
+    "email": "E-mail",
+    "address": "Adresse",
+    "addressLine": "Rue",
+    "postalCode": "Code postal",
+    "city": "Ville",
+    "country": "Pays (code à 2 lettres)",
+    "addressHint": "L'adresse est placée automatiquement sur la carte ; vous pourrez corriger le point.",
+    "typeFields": "Caractéristiques ({type})",
+    "fieldAmountLabel": "{label} (€)",
+    "tags": "Étiquettes",
+    "internalNote": "Note interne",
+    "internalNoteHint": "Visible seulement par votre équipe.",
+    "save": "Enregistrer",
+    "create": "Créer la fiche",
+    "saved": "Fiche enregistrée.",
+    "geocodingPlaced": "Adresse placée sur la carte.",
+    "geocodingNotFound": "Adresse introuvable : la fiche est enregistrée sans point. Vous pouvez placer le point à la main.",
+    "unauthorized": "Session expirée ou accès refusé.",
+    "nameRequired": "Le nom du prestataire est obligatoire.",
+    "invalidEmail": "Adresse e-mail invalide.",
+    "invalidFieldValue": "Une caractéristique n'a pas le bon format (nombre, heure ou montant).",
+    "notFound": "Prestataire introuvable.",
+    "invalidPoint": "Point invalide : latitude entre -90 et 90, longitude entre -180 et 180.",
+    "fileMissing": "Choisissez un fichier.",
+    "fileTooLarge": "Le fichier dépasse 20 Mo.",
+    "fileUnsupported": "Format non supporté : PDF ou image uniquement.",
+    "fileInfected": "Fichier refusé par l'antivirus.",
+    "archived": "Archivé",
+    "searchAround": "Chercher autour de {vendor}",
+    "historyTitle": "Historique avec vous",
+    "averagePrice": "Prix moyen pratiqué : {amount}",
+    "historyEmpty": "Ce prestataire n'a encore été consulté pour aucun événement.",
+    "historyEvent": "Événement",
+    "historyDate": "Date",
+    "historySlot": "Poste",
+    "historyOutcome": "Issue",
+    "historyQuoted": "Prix devisé",
+    "historyFinal": "Prix final",
+    "historyUnnamed": "Événement",
+    "outcomeSelected": "Retenu",
+    "outcomeNotSelected": "Non retenu",
+    "outcomePending": "En cours",
+    "detailsTitle": "Coordonnées et caractéristiques",
+    "filesTitle": "Plaquettes et RIB",
+    "filesEmpty": "Aucun fichier.",
+    "filesHint": "PDF ou image, 20 Mo au plus, vérifiés par l'antivirus et rangés dans un stockage privé.",
+    "fileKind": "Nature du fichier",
+    "fileBrochure": "Plaquette",
+    "fileRib": "RIB",
+    "fileChoose": "Fichier",
+    "fileAttach": "Joindre",
+    "fileAttached": "Fichier joint.",
+    "fileRemove": "Supprimer {name}",
+    "pointTitle": "Point sur la carte",
+    "pointGeocoded": "Placé automatiquement à partir de l'adresse.",
+    "pointManual": "Placé à la main.",
+    "pointMissing": "Pas encore placé : saisissez une adresse, ou cliquez sur la carte.",
+    "pointMapLabel": "Point de {vendor} sur la carte",
+    "pointHint": "Cliquez sur la carte pour déplacer le point, ou saisissez ses coordonnées, puis enregistrez.",
+    "latitude": "Latitude",
+    "longitude": "Longitude",
+    "savePoint": "Enregistrer le point",
+    "pointSaved": "Point enregistré.",
+    "archive": "Archiver {vendor}",
+    "settingsTitle": "Paramètres du carnet",
+    "settingsTypesTitle": "Types de prestataires et champs",
+    "settingsTypesIntro": "Créez vos types de prestataires et leurs champs ; cochez ceux qui servent de filtres dans le carnet.",
+    "starterTitle": "Partir des types de départ",
+    "starterBody": "Lieu de réception, hôtel, traiteur, photographe, DJ, fleuriste… avec leurs champs usuels, tous modifiables.",
+    "starterAdd": "Ajouter les types de départ",
+    "typeRemove": "Supprimer le type {type}",
+    "fieldsEmpty": "Aucun champ pour ce type.",
+    "fieldsOf": "Champs du type {type}",
+    "fieldName": "Champ",
+    "fieldKind": "Format",
+    "fieldIsFilter": "Sert de filtre",
+    "fieldActions": "Actions",
+    "filterOnFor": "Faire de {field} un filtre",
+    "filterOffFor": "Ne plus filtrer par {field}",
+    "fieldRemove": "Supprimer {field}",
+    "fieldLabel": "Nouveau champ pour « {type} »",
+    "fieldChoices": "Choix proposés (un par ligne)",
+    "fieldAdd": "Ajouter le champ",
+    "fieldAdded": "Champ ajouté.",
+    "fieldInvalid": "Champ invalide.",
+    "choicesRequired": "Une liste de choix demande au moins un choix.",
+    "kind": {
+      "number": "Nombre",
+      "text": "Texte",
+      "time": "Heure",
+      "amount": "Montant",
+      "choice": "Liste de choix",
+      "boolean": "Oui / non"
+    },
+    "typeNew": "Nouveau type",
+    "typeLabel": "Nom du type",
+    "typeColor": "Couleur sur la carte",
+    "typeAdd": "Ajouter le type",
+    "typeAdded": "Type ajouté.",
+    "typeInvalid": "Nom ou couleur invalide.",
+    "settingsTagsTitle": "Étiquettes",
+    "settingsTagsIntro": "Des étiquettes libres pour retrouver vos prestataires (bio, navette, coup de cœur…).",
+    "tagsEmpty": "Aucune étiquette.",
+    "tagLabel": "Nouvelle étiquette",
+    "tagAdd": "Ajouter",
+    "tagAdded": "Étiquette ajoutée.",
+    "tagRequired": "Indiquez le nom de l'étiquette.",
+    "tagRemove": "Supprimer l'étiquette {tag}",
+    "settingsTravelTitle": "Trajet estimé",
+    "settingsTravelIntro": "Le trajet affiché est une estimation : distance à vol d'oiseau × coefficient de détour, à une vitesse moyenne.",
+    "travelDetour": "Coefficient de détour (1 à 3)",
+    "travelSpeed": "Vitesse moyenne (km/h)",
+    "travelSave": "Enregistrer",
+    "travelSaved": "Paramètres enregistrés.",
+    "travelInvalid": "Coefficient entre 1 et 3, vitesse entre 5 et 130 km/h.",
+    "exportName": "Nom",
+    "exportType": "Type",
+    "exportContact": "Contact",
+    "exportPhone": "Téléphone",
+    "exportEmail": "E-mail",
+    "exportAddress": "Adresse",
+    "exportCity": "Ville",
+    "exportTravel": "Trajet estimé",
+    "exportTags": "Étiquettes",
+    "exportPdfTitle": "Sélection de prestataires",
+    "exportPdfAround": "{count, plural, one {# prestataire} other {# prestataires}} à moins de {km} km de {place}"
   }
 }

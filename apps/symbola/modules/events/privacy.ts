@@ -13,6 +13,8 @@ import {
   events,
   eventStatusHistory,
   eventTasks,
+  eventVendorCandidateNotes,
+  eventVendorCandidates,
   eventVendorSlots,
   programItemParticipants,
   programItems,
@@ -46,6 +48,28 @@ async function inOrganization<T>(organizationId: string, fn: (tx: Parameters<Par
   } finally {
     await sql.end();
   }
+}
+
+// Lot 11 (EVT-08/09) : prestataires consultés et leurs notes.
+type Tx = Parameters<Parameters<typeof withOrganization>[2]>[0];
+async function candidateRecords(tx: Tx, eventIds: string[], matches: ((values: (string | null)[]) => boolean) | null): Promise<PrivacyRecord[]> {
+  const candidates = await tx.select().from(eventVendorCandidates).where(inArray(eventVendorCandidates.eventId, eventIds)).orderBy(asc(eventVendorCandidates.position));
+  if (candidates.length === 0) return [];
+  const notes = await tx.select().from(eventVendorCandidateNotes).where(inArray(eventVendorCandidateNotes.candidateId, candidates.map((candidate) => candidate.id)));
+  const records: PrivacyRecord[] = [];
+  for (const candidate of candidates) {
+    const bodies = notes.filter((note) => note.candidateId === candidate.id).map((note) => note.body);
+    if (matches && !matches([candidate.vendorName, ...bodies])) continue;
+    records.push({
+      module: MODULE,
+      kind: "vendor_candidate",
+      recordId: candidate.id,
+      label: candidate.vendorName,
+      fields: compact({ vendorName: candidate.vendorName, notes: bodies.join(" · ") || null }),
+      eventId: candidate.eventId,
+    });
+  }
+  return records;
 }
 
 // Volumes d'une organisation (une planner : quelques centaines d'événements)
@@ -108,6 +132,7 @@ export const eventsPrivacy: PrivacyContractV1 = {
           });
         }
       }
+      records.push(...(await candidateRecords(tx, eventIds, (values) => recordMatches(values, terms))));
       for (const task of await tx.select().from(eventTasks).where(inArray(eventTasks.eventId, eventIds))) {
         if (recordMatches(importedValues(task.importedFields), terms)) {
           records.push({ module: MODULE, kind: "task", recordId: task.id, label: task.label, fields: importedFieldsOf(task.importedFields), eventId: task.eventId });
@@ -189,6 +214,7 @@ export const eventsPrivacy: PrivacyContractV1 = {
           eventId: slot.eventId,
         });
       }
+      records.push(...(await candidateRecords(tx, ids, null)));
       for (const item of await tx.select().from(programItems).where(inArray(programItems.eventId, ids))) {
         records.push({ module: MODULE, kind: "program_item", recordId: item.id, label: item.label, fields: compact({ location: item.location, internalNote: item.internalNote }), eventId: item.eventId });
       }

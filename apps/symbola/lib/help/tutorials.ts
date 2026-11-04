@@ -4,7 +4,7 @@
 // module, « explain » et « look » expliquent, « finish » propose de garder ou
 // de supprimer l'exemple. Les textes sont dans « Tutorials.<clé>.steps ».
 // Côté serveur seulement : les vérifications passent par les service.ts.
-import { starterTutorialTaskTemplate } from "@symbola/starter-templates";
+import { starterTutorialTaskTemplate, starterTutorialVendors, starterVendorSlots } from "@symbola/starter-templates";
 import { createAppConnection } from "@symbola/db/client";
 import { getEventBudget, listBudgetLines } from "@/modules/budget/service";
 import {
@@ -15,8 +15,11 @@ import {
   listEventVendorSlots,
   listTaskTemplates,
   removeTaskTemplate,
+  listVendorCandidates,
   startTutorialEvent,
 } from "@/modules/events/service";
+import { createVendor, removeDemoVendors } from "@/modules/vendors/service";
+import { isModuleEnabled } from "@/modules/hub/service";
 import { listImports } from "@/modules/hub/service";
 import { archiveCatalogItem, getQuote, listCatalogItems, listQuoteInvoices, startQuotesTrial } from "@/modules/quotes/service";
 import { endTrial } from "@/lib/demo-purge";
@@ -59,6 +62,20 @@ async function removeExampleEvent(env: TutorialEnv): Promise<void> {
 }
 
 const quoteSigned = async (env: TutorialEnv) => (await getQuote(env.organizationId, env.context.quoteId!)).status === "signed";
+
+// Lot 11 : poste « Traiteur » de l'exemple (sinon le premier poste).
+const slotTab = (context: TutorialContext) => `/events/${context.eventId}?onglet=prestataires&poste=${context.slotId}`;
+const slotCandidates = async (env: TutorialEnv) =>
+  (await listVendorCandidates(env.organizationId, env.context.eventId!)).filter((candidate) => candidate.vendorSlotId === env.context.slotId);
+
+async function vendorsEnabled(organizationId: string): Promise<boolean> {
+  const { sql, db } = createAppConnection();
+  try {
+    return await isModuleEnabled(db, organizationId, "vendors");
+  } finally {
+    await sql.end();
+  }
+}
 
 export const TUTORIAL_SCRIPTS: Record<TutorialKey, TutorialScript> = {
   "event-page": {
@@ -209,6 +226,36 @@ export const TUTORIAL_SCRIPTS: Record<TutorialKey, TutorialScript> = {
       { kind: "finish" },
     ],
     cleanup: async () => {},
+  },
+  "vendor-quotes": {
+    setup: async (env) => {
+      const context = await exampleEvent(env, "vendor-quotes");
+      const slots = await listEventVendorSlots(env.organizationId, context.eventId!);
+      const caterer = starterVendorSlots(env.locale)[1];
+      const slot = slots.find((candidate) => candidate.label === caterer) ?? slots[0];
+      // Avec le carnet : deux traiteurs d'exemple à choisir (supprimés à la fin).
+      const vendorIds: string[] = [];
+      if (await vendorsEnabled(env.organizationId)) {
+        for (const vendor of starterTutorialVendors(env.locale)) {
+          const created = await createVendor(env.organizationId, { name: vendor.name, typeId: null, city: vendor.city, internalNote: vendor.note }, { isDemo: true });
+          vendorIds.push(created.vendor.id);
+        }
+      }
+      return { ...context, slotId: slot?.id ?? "", vendorIds: vendorIds.join(",") };
+    },
+    steps: [
+      { kind: "explain" },
+      { kind: "setup" },
+      { kind: "do", href: slotTab, check: async (env) => (await slotCandidates(env)).length >= 2 },
+      { kind: "do", href: slotTab, check: async (env) => (await slotCandidates(env)).some((candidate) => candidate.quoteAmountCents !== null || candidate.hasQuoteFile) },
+      { kind: "do", href: slotTab, check: async (env) => (await slotCandidates(env)).some((candidate) => candidate.outcome === "selected") },
+      { kind: "look", href: slotTab },
+      { kind: "finish" },
+    ],
+    cleanup: async (env) => {
+      await removeExampleEvent(env);
+      await removeDemoVendors(env.organizationId, (env.context.vendorIds ?? "").split(",").filter(Boolean));
+    },
   },
 };
 

@@ -24,7 +24,8 @@ export function SettingsNav({ sections, label, subLabel }: { sections: SettingsS
 
   return (
     <div className="settings-nav">
-      <nav aria-label={label} className="tabs">
+      {/* HUB-06 : une pastille par solution accessible (demande de Julien). */}
+      <nav aria-label={label} className="pills settings-pills">
         {sections.map((section) => (
           <Link key={section.href} href={section.href} aria-current={section === active ? "page" : undefined}>
             {section.label}

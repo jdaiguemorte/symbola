@@ -12,6 +12,7 @@
     "./schema/budget": "./src/schema/budget.ts",
     "./schema/quotes": "./src/schema/quotes.ts",
     "./schema/core": "./src/schema/core.ts",
+    "./schema/vendors": "./src/schema/vendors.ts",
     "./events/emit": "./src/events/emit.ts",
     "./events/worker": "./src/events/worker.ts",
     "./usage/increment": "./src/usage/increment.ts",

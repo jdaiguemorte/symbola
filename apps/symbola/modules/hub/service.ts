@@ -157,9 +157,9 @@ export type VatRegime = "franchise" | "assujetti";
 export type LegalForm = "ei" | "eirl" | "eurl" | "sarl" | "sas" | "sasu" | "sa" | "auto_entrepreneur" | "autre";
 export type Metier = "wedding_planner" | "autre";
 
-// Un seul module « métier » existe pour l'instant (hello, SOC-01) — les
-// futurs modules (events, budget, quotes) ajouteront leur clé ici.
-export const MODULE_KEYS = ["hello", "events", "budget", "quotes"] as const;
+// Clés des modules qu'un Admin peut activer ou désactiver par organisation
+// (lot 11 : vendors, le carnet de prestataires, ADR 0031).
+export const MODULE_KEYS = ["hello", "events", "budget", "quotes", "vendors"] as const;
 export type ModuleKey = (typeof MODULE_KEYS)[number];
 
 const INVITATION_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 jours (PRD HUB-03, proposé)

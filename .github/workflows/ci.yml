@@ -30,7 +30,7 @@ jobs:
       - name: Traductions (HUB-04) — clés manquantes en FR ou EN
         run: pnpm --filter @symbola/i18n check:messages
       - name: Scripts serveur (SOC-10, SOC-12) — shellcheck
-        run: shellcheck -x infra/server/*.sh infra/backup/*.sh
+        run: shellcheck -x infra/server/*.sh infra/backup/*.sh infra/map/*.sh
 
   db-isolation:
     name: Isolation RLS, authentification, événements et fichiers (services réels, SOC-04/05/06/08)
@@ -143,6 +143,8 @@ jobs:
       SMTP_HOST: localhost
       SMTP_PORT: 1025
       SIGNATURE_PROVIDER: fake
+      # Lot 11 (ADR 0031) : géocodage simulé, aucun appel réseau à l'IGN.
+      GEOCODER: fake
       # Version compilée, NODE_ENV=test : faux fournisseur de signature permis
       # (jamais en production, packages/env).
       E2E_SERVER_COMMAND: NODE_ENV=test pnpm exec next start -p 3000

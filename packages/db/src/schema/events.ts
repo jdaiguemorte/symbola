@@ -139,8 +139,62 @@ export const eventVendorSlots = eventsSchema.table("event_vendor_slots", {
   // Lot 5 (IMP-04/IMP-05) : colonnes d'un fichier importé gardées en champ
   // libre (intitulé → texte), affichées en lecture seule sur la fiche.
   importedFields: jsonb("imported_fields").$type<Record<string, string> | null>(),
+  // Lot 11 (EVT-08) : ce que veulent les clients pour ce poste, et le
+  // prestataire consulté retenu (null tant qu'aucun ne l'est).
+  brief: text("brief"),
+  selectedCandidateId: uuid("selected_candidate_id"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+// Lot 11 (EVT-08) — réponse d'un prestataire consulté : statuts fixes,
+// comme ceux du poste (« Retenu » / « Non retenu » se déduisent du poste).
+export const vendorCandidateResponseEnum = eventsSchema.enum("vendor_candidate_response", [
+  "contacted",
+  "quote_received",
+  "declined",
+]);
+
+// Lot 11 (EVT-08) — prestataires consultés pour un poste. vendor_id
+// référence une fiche du carnet (module vendors, ADR 0031) sans clé
+// étrangère entre schémas ; le nom reste en clair pour fonctionner sans le
+// module Prestataires. Le devis joint suit les règles de l'ADR 0027.
+export const eventVendorCandidates = eventsSchema.table("event_vendor_candidates", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  eventId: uuid("event_id")
+    .notNull()
+    .references(() => events.id, { onDelete: "cascade" }),
+  vendorSlotId: uuid("vendor_slot_id")
+    .notNull()
+    .references(() => eventVendorSlots.id, { onDelete: "cascade" }),
+  vendorId: uuid("vendor_id"),
+  vendorName: text("vendor_name").notNull(),
+  response: vendorCandidateResponseEnum("response").notNull().default("contacted"),
+  contactedOn: date("contacted_on"),
+  quoteAmountCents: integer("quote_amount_cents"),
+  currency: text("currency").notNull().default("EUR"),
+  quoteFileKey: text("quote_file_key"),
+  quoteMime: text("quote_mime"),
+  quoteSizeBytes: integer("quote_size_bytes"),
+  shownToClients: boolean("shown_to_clients").notNull().default(false),
+  position: integer("position").notNull().default(0),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+// Lot 11 (EVT-09) — notes sur un prestataire consulté : internes par
+// défaut, visibles par les clients note par note.
+export const eventVendorCandidateNotes = eventsSchema.table("event_vendor_candidate_notes", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  candidateId: uuid("candidate_id")
+    .notNull()
+    .references(() => eventVendorCandidates.id, { onDelete: "cascade" }),
+  body: text("body").notNull(),
+  visibleToClients: boolean("visible_to_clients").notNull().default(false),
+  createdByUserId: uuid("created_by_user_id").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
 // EVT-04 : responsable d'une tâche du rétroplanning (PRD). Une tâche des

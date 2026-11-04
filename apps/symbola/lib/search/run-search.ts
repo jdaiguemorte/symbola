@@ -38,16 +38,17 @@ export async function runSearch(input: { organizationId: string; role: string; t
   const { sql, db } = createAppConnection();
   let modules;
   try {
-    const [events, budget, quotes] = await Promise.all([
+    const [events, budget, quotes, vendors] = await Promise.all([
       isModuleEnabled(db, input.organizationId, "events"),
       isModuleEnabled(db, input.organizationId, "budget"),
       isModuleEnabled(db, input.organizationId, "quotes"),
+      isModuleEnabled(db, input.organizationId, "vendors"),
     ]);
-    modules = { events, budget, quotes };
+    modules = { events, budget, quotes, vendors };
   } finally {
     await sql.end();
   }
-  const found = await globalSearch({ organizationId: input.organizationId, term: input.term, modules: { events: modules.events, quotes: modules.quotes } });
+  const found = await globalSearch({ organizationId: input.organizationId, term: input.term, modules: { events: modules.events, quotes: modules.quotes, vendors: modules.vendors } });
   const names = (eventId: string) => found.eventNames[eventId] || t("noClientName");
 
   const groups: SearchGroup[] = [
@@ -87,6 +88,11 @@ export async function runSearch(input: { organizationId: string; role: string; t
           title: vendor.vendorName ? t("vendorTitle", { vendor: vendor.vendorName, slot: vendor.label }) : vendor.label,
           detail: vendor.eventNames || t("noClientName"),
           href: `/events/${vendor.eventId}?onglet=prestataires&poste=${vendor.id}`,
+        })),
+        ...found.book.map((vendor) => ({
+          title: vendor.name,
+          detail: [t("vendorBookDetail"), vendor.typeLabel, vendor.city].filter(Boolean).join(" · "),
+          href: `/prestataires/${vendor.id}`,
         })),
       ],
     },
