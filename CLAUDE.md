@@ -64,7 +64,7 @@ du cahier des charges, à activer seulement si un second client ou une équipe l
 | Base | **Une seule base PostgreSQL, un schéma par module** | Une base et un rôle par app |
 | Identité | **Authentification maison** (argon2id, session opaque, MFA TOTP) derrière `packages/auth` | Zitadel (OIDC, organisations, rôles, MFA) |
 | Événements | **Table `domain_events`** (outbox interne), schémas versionnés dans `packages/contracts` | NATS JetStream |
-| Fichiers | Garage (S3, ADR 0015 — remplace MinIO, image retirée des registres publics), liens signés à durée limitée, antivirus ClamAV à l'envoi | — (inchangé) |
+| Fichiers | Garage (S3, ADR 0015 — remplace MinIO, image retirée des registres publics), fichiers privés servis par l'app après contrôle des droits (ADR 0027), antivirus ClamAV à l'envoi | — (inchangé) |
 | i18n | next-intl | — (inchangé) |
 | PDF | @react-pdf/renderer (ADR 0019), rendu côté serveur | — (inchangé) |
 | Tests | Vitest (unitaires et intégration), Playwright (bout en bout, mobile 375 px), axe-core (accessibilité) | — (inchangé) |
@@ -132,7 +132,7 @@ son contrat HTTP `/v1/...` (trajectoire décrite dans chaque ADR 0011-0014).
 
 - Toute entrée externe (API, formulaire, webhook, fichier importé) est validée par Zod.
 - Webhooks entrants : signature vérifiée, sinon rejet et journalisation.
-- Fichiers : type vérifié par le contenu, taille limitée, antivirus, stockage privé, lien signé temporaire.
+- Fichiers : type vérifié par le contenu, taille limitée, antivirus, stockage privé, téléchargement servi par l'app après contrôle des droits (jamais de lien direct vers le stockage, ADR 0027).
 - Import CSV/Excel : neutraliser les cellules commençant par `=`, `+`, `-`, `@`.
 - En-têtes : CSP stricte, HSTS, `X-Frame-Options: DENY`, `Referrer-Policy`.
 - Secrets : uniquement via variables d'environnement validées au démarrage ; `.env*` jamais commités (sauf `.env.example` sans valeur).

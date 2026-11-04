@@ -7,6 +7,7 @@
 // prospect. Les montants sont toujours des centimes entiers EUR, les
 // pourcentages des points de base entiers (0 à 10000 = 0,00 % à 100,00 %)
 // — jamais de float (CLAUDE.md §5).
+import type { FileDownload } from "../file-download";
 
 export type AllocationModelItemInput = {
   defaultVendorSlotId: string;
@@ -135,7 +136,8 @@ export interface BudgetServiceContract {
   updateBudgetLine(input: UpdateBudgetLineInput): Promise<BudgetLinesView>;
   listBudgetLineHistory(organizationId: string, eventVendorSlotId: string): Promise<BudgetLineHistoryEntry[]>;
   attachBudgetLineQuote(input: AttachBudgetLineQuoteInput): Promise<BudgetLineAttachment>;
-  getBudgetLineAttachmentUrl(organizationId: string, attachmentId: string): Promise<string>;
+  // ADR 0027 — servi par l'app (jamais de lien direct vers le stockage).
+  getBudgetLineAttachmentFile(organizationId: string, attachmentId: string): Promise<FileDownload>;
   // BUD-04 : lecture seule pour un compte marié ayant accès à l'événement.
   getClientBudgetView(organizationId: string, userId: string, eventId: string): Promise<BudgetLinesView>;
   // AIDE-02 : purge des données budget d'événements d'essai.

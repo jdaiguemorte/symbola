@@ -2,7 +2,7 @@
 // lien signé à durée limitée. Vérifié contre un vrai Garage.
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { createStorageClient, getSignedDownloadUrl, uploadPrivateObject } from "./storage";
+import { createStorageClient, getSignedDownloadUrl, PrivateObjectNotFoundError, readPrivateObject, uploadPrivateObject } from "./storage";
 
 describe("SOC-08 — Stockage objet (Garage réel)", () => {
   it("stocke un objet et le rend accessible par un lien signé à durée limitée", async () => {
@@ -18,6 +18,16 @@ describe("SOC-08 — Stockage objet (Garage réel)", () => {
     const response = await fetch(url);
     expect(response.status).toBe(200);
     expect(await response.text()).toBe("contenu de test SOC-08");
+  });
+
+  it("ADR 0027 — l'app relit un objet privé et son type ; un objet absent est signalé « introuvable »", async () => {
+    const storage = createStorageClient();
+    const key = `test/${randomUUID()}.pdf`;
+    const content = Buffer.from("%PDF-1.4 ADR 0027");
+    await uploadPrivateObject(storage, { key, body: content, contentType: "application/pdf" });
+
+    expect(await readPrivateObject(storage, key)).toEqual({ data: content, contentType: "application/pdf" });
+    await expect(readPrivateObject(storage, `test/${randomUUID()}.pdf`)).rejects.toBeInstanceOf(PrivateObjectNotFoundError);
   });
 
   it("refuse l'accès direct sans lien signé (bucket privé)", async () => {

@@ -2,6 +2,7 @@
 // pensé comme le futur contrat HTTP /v1/quotes si le module est extrait en
 // app autonome (ADR 0011). Montants en centimes entiers EUR, taux et
 // remises en points de base, quantités en millièmes : jamais de float.
+import type { FileDownload } from "../file-download";
 
 export type CatalogItemInput = {
   label: string;
@@ -367,7 +368,8 @@ export interface QuotesServiceContract {
   handleSignatureWebhook(input: { headers: Headers; rawBody: string }): Promise<SignatureWebhookResult>;
   // ADR 0026 — relit chez le fournisseur les demandes en attente (webhook perdu).
   reconcilePendingSignatures(organizationId: string): Promise<{ checked: number; completed: number }>;
-  getSignatureDocumentUrl(organizationId: string, quoteId: string, kind: "signed" | "certificate"): Promise<string>;
+  // ADR 0027 — servi par l'app (jamais de lien direct vers le stockage).
+  getSignatureDocument(organizationId: string, quoteId: string, kind: "signed" | "certificate"): Promise<FileDownload>;
   listClientQuotesToSign(organizationId: string, eventId: string, clientEmail: string): Promise<ClientQuoteToSign[]>;
   setQuoteClientKind(organizationId: string, quoteId: string, clientKind: ClientKind): Promise<QuoteDetail>;
   issueDepositInvoice(input: IssueDepositInvoiceInput): Promise<InvoiceView>;

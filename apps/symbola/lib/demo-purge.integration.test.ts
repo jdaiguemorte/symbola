@@ -14,6 +14,7 @@ import {
   eventBudgets,
 } from "@symbola/db/schema/budget";
 import { withOrganization } from "@symbola/db/with-organization";
+import { createStorageClient, readPrivateObject } from "@symbola/files";
 import {
   addDefaultVendorSlots,
   getEvent,
@@ -23,7 +24,6 @@ import {
 import {
   attachBudgetLineQuote,
   createAllocationModel,
-  getBudgetLineAttachmentUrl,
   listBudgetLines,
   simulateEventBudget,
   updateBudgetLine,
@@ -83,8 +83,28 @@ async function trialWithBudget(organizationId: string, now: Date) {
   return {
     eventId: trial.eventId,
     quoteId: quote.id,
-    attachmentUrl: await getBudgetLineAttachmentUrl(organizationId, attachment.id),
+    attachmentKey: await attachmentFileKey(organizationId, attachment.id),
   };
+}
+
+async function attachmentFileKey(organizationId: string, attachmentId: string): Promise<string> {
+  const { sql, db } = createAppConnection();
+  try {
+    const [row] = await withOrganization(db, organizationId, (tx) =>
+      tx.select({ fileKey: budgetLineAttachments.fileKey }).from(budgetLineAttachments).where(eq(budgetLineAttachments.id, attachmentId)),
+    );
+    return row!.fileKey;
+  } finally {
+    await sql.end();
+  }
+}
+
+// Le fichier est-il encore dans le stockage privé ?
+async function isStored(key: string): Promise<boolean> {
+  return readPrivateObject(createStorageClient(), key).then(
+    () => true,
+    () => false,
+  );
 }
 
 async function remainingBudgetRows(organizationId: string, eventId: string): Promise<number> {
@@ -113,15 +133,15 @@ async function remainingBudgetRows(organizationId: string, eventId: string): Pro
 describe("AIDE-02 — Fin de l'essai guidé, tous modules confondus", () => {
   it("terminer l'essai supprime aussi son budget (simulation, lignes, historique, devis stockés) et ses devis DEMO", async () => {
     const organizationId = await createOrganizationId();
-    const { eventId, quoteId, attachmentUrl } = await trialWithBudget(organizationId, new Date());
+    const { eventId, quoteId, attachmentKey } = await trialWithBudget(organizationId, new Date());
     expect(await remainingBudgetRows(organizationId, eventId)).toBeGreaterThan(0);
-    expect((await fetch(attachmentUrl)).status).toBe(200);
+    expect(await isStored(attachmentKey)).toBe(true);
 
     await endTrial(organizationId, eventId);
 
     expect(await getEvent(organizationId, eventId)).toBeNull();
     expect(await remainingBudgetRows(organizationId, eventId)).toBe(0);
-    expect((await fetch(attachmentUrl)).status).toBe(404);
+    expect(await isStored(attachmentKey)).toBe(false);
     await expect(getQuote(organizationId, quoteId)).rejects.toBeInstanceOf(QuoteNotFoundError);
   });
 
@@ -145,7 +165,7 @@ describe("AIDE-02 — Fin de l'essai guidé, tous modules confondus", () => {
 
     expect(await getEvent(organizationId, old.eventId)).toBeNull();
     expect(await remainingBudgetRows(organizationId, old.eventId)).toBe(0);
-    expect((await fetch(old.attachmentUrl)).status).toBe(404);
+    expect(await isStored(old.attachmentKey)).toBe(false);
     await expect(getQuote(organizationId, old.quoteId)).rejects.toBeInstanceOf(QuoteNotFoundError);
     expect(await remainingBudgetRows(otherOrganizationId, recent.eventId)).toBeGreaterThan(0);
     expect((await getQuote(otherOrganizationId, recent.quoteId)).isDemo).toBe(true);

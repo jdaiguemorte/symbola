@@ -6,10 +6,11 @@ import { z } from "zod";
 import { starterDemoQuote } from "@symbola/starter-templates";
 import { createAppConnection } from "@symbola/db/client";
 import { parseEnv } from "@symbola/env";
-import { createStorageClient, deletePrivateObject, getSignedDownloadUrl, uploadFile } from "@symbola/files";
+import { createStorageClient, deletePrivateObject, PrivateObjectNotFoundError, readPrivateObject, uploadFile } from "@symbola/files";
 import { sendMail } from "@symbola/mail";
 import type {
   CatalogItem,
+  FileDownload,
   CatalogItemInput,
   CreateQuoteInput,
   GlobalDiscountInput,
@@ -922,7 +923,6 @@ export async function removeEventQuotesData(organizationId: string, eventIds: st
 
 // --- DEV-02 : signature en ligne ---
 
-const SIGNATURE_LINK_TTL_SECONDS = 10 * 60;
 const SIGNED_DOCUMENT_MAX_BYTES = 30 * 1024 * 1024;
 const MAX_SIGNERS = 4;
 const emailSchema = z.email();
@@ -1202,16 +1202,23 @@ async function afterSigned(organizationId: string, quoteId: string): Promise<voi
   );
 }
 
-// Lien signé temporaire vers le document signé ou le certificat de preuve
-// de la version courante.
-export async function getSignatureDocumentUrl(organizationId: string, quoteId: string, kind: "signed" | "certificate"): Promise<string> {
+// Document signé ou certificat de preuve de la version courante, lu dans le
+// stockage privé et servi par l'app (ADR 0027).
+export async function getSignatureDocument(organizationId: string, quoteId: string, kind: "signed" | "certificate"): Promise<FileDownload> {
   const aggregate = await findQuoteAggregate(organizationId, quoteId);
   if (!aggregate) throw new QuoteNotFoundError();
   const version = aggregate.versions.find((candidate) => candidate.version === aggregate.quote.currentVersion);
   const request = aggregate.signatureRequests.find((candidate) => candidate.versionId === version?.id);
   const key = kind === "signed" ? request?.signedDocumentKey : request?.auditCertificateKey;
   if (!key) throw new SignatureDocumentNotFoundError();
-  return getSignedDownloadUrl(createStorageClient(), key, SIGNATURE_LINK_TTL_SECONDS);
+  try {
+    const { data } = await readPrivateObject(createStorageClient(), key);
+    const suffix = kind === "signed" ? "signe" : "certificat";
+    return { data, contentType: "application/pdf", fileName: `${aggregate.quote.number}-${suffix}.pdf` };
+  } catch (error) {
+    if (error instanceof PrivateObjectNotFoundError) throw new SignatureDocumentNotFoundError();
+    throw error;
+  }
 }
 
 // DEV-02 — espace du marié (accès à l'événement vérifié par l'appelant,
@@ -1648,7 +1655,7 @@ const _contractCheck: QuotesServiceContract = {
   sendQuoteForSignature,
   handleSignatureWebhook,
   reconcilePendingSignatures,
-  getSignatureDocumentUrl,
+  getSignatureDocument,
   listClientQuotesToSign,
   setQuoteClientKind,
   issueDepositInvoice,

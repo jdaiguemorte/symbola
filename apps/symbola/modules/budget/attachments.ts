@@ -7,9 +7,6 @@ import type { UploadFileResult } from "@symbola/files";
 // (docs/lots/lot-3-budget.md).
 export const QUOTE_MAX_SIZE_BYTES = 20 * 1024 * 1024;
 
-// Durée de validité du lien signé d'ouverture d'un devis.
-export const QUOTE_LINK_TTL_SECONDS = 300;
-
 export class QuoteFileTooLargeError extends Error {
   constructor() {
     super("le devis dépasse 20 Mo");

@@ -95,11 +95,11 @@ test("BUD-03 — joindre le devis d'un prestataire à une ligne et l'ouvrir par 
 
   const href = await link.getAttribute("href");
   expect(href).toMatch(/^\/budget\/[0-9a-f-]{36}\/devis\/[0-9a-f-]{36}$/);
-  const redirect = await page.request.get(href!, { maxRedirects: 0 });
-  expect(redirect.status()).toBe(302);
-  expect(new URL(redirect.headers()["location"]!).searchParams.get("X-Amz-Expires")).toBe("300");
-  const opened = await page.request.get(href!);
+  // ADR 0027 : servi par l'app elle-même, jamais de redirection vers le stockage.
+  const opened = await page.request.get(href!, { maxRedirects: 0 });
   expect(opened.status()).toBe(200);
+  expect(opened.headers()["content-type"]).toBe("application/pdf");
+  expect(opened.headers()["cache-control"]).toBe("private, no-store");
   expect((await opened.body()).subarray(0, 5).toString("latin1")).toBe("%PDF-");
 
   // Sans session, le devis ne s'ouvre pas.

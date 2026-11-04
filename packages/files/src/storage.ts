@@ -44,12 +44,32 @@ export async function getSignedDownloadUrl(
   return getSignedUrl(storage.client, command, { expiresIn: expiresInSeconds });
 }
 
-// Lecture côté serveur d'un objet privé (EVT-05 : logo de l'organisation
-// intégré au PDF du programme), sans jamais l'exposer par une URL.
+export class PrivateObjectNotFoundError extends Error {
+  constructor() {
+    super("objet absent du stockage");
+    this.name = "PrivateObjectNotFoundError";
+  }
+}
+
+export type PrivateObject = { data: Buffer; contentType: string | null };
+
+// Lecture côté serveur d'un objet privé, sans jamais l'exposer par une URL :
+// logo intégré au PDF du programme (EVT-05), et téléchargements servis par
+// l'app après contrôle des droits (ADR 0027) — Garage n'est joignable que
+// depuis le réseau Docker de l'environnement.
+export async function readPrivateObject(storage: ReturnType<typeof createStorageClient>, key: string): Promise<PrivateObject> {
+  try {
+    const response = await storage.client.send(new GetObjectCommand({ Bucket: storage.bucket, Key: key }));
+    if (!response.Body) throw new PrivateObjectNotFoundError();
+    return { data: Buffer.from(await response.Body.transformToByteArray()), contentType: response.ContentType ?? null };
+  } catch (error) {
+    if (error instanceof Error && (error.name === "NoSuchKey" || error.name === "NotFound")) throw new PrivateObjectNotFoundError();
+    throw error;
+  }
+}
+
 export async function getPrivateObject(storage: ReturnType<typeof createStorageClient>, key: string): Promise<Buffer> {
-  const response = await storage.client.send(new GetObjectCommand({ Bucket: storage.bucket, Key: key }));
-  if (!response.Body) throw new Error("objet vide");
-  return Buffer.from(await response.Body.transformToByteArray());
+  return (await readPrivateObject(storage, key)).data;
 }
 
 // Suppression d'un objet privé (AIDE-02 : devis joint à un événement
