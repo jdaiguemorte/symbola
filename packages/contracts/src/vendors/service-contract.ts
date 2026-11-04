@@ -1,0 +1,139 @@
+// Interface du service.ts de vendors (lot 11, ADR 0031) — le carnet de
+// prestataires de l'organisation, pensé comme le futur contrat HTTP
+// /v1/vendors si le module devient une app autonome (cahier des charges
+// § 5.5). Les montants restent des centimes entiers EUR (CLAUDE.md § 5).
+import type { FileDownload } from "../file-download";
+
+export type VendorFieldKind = "number" | "text" | "time" | "amount" | "choice" | "boolean";
+export type VendorFieldValue = string | number | boolean;
+
+export type VendorTypeField = {
+  id: string;
+  typeId: string;
+  label: string;
+  kind: VendorFieldKind;
+  choices: string[];
+  isFilter: boolean;
+  position: number;
+};
+
+export type VendorType = { id: string; label: string; color: string; position: number; fields: VendorTypeField[] };
+export type VendorTypeFieldInput = { label: string; kind: VendorFieldKind; choices?: string[]; isFilter?: boolean };
+export type VendorTag = { id: string; label: string };
+
+export type VendorLocation = { latitude: number; longitude: number; source: "geocoded" | "manual" };
+
+export type VendorFileKind = "brochure" | "rib";
+export type VendorFile = { id: string; kind: VendorFileKind; fileName: string; mime: string; sizeBytes: number; createdAt: string };
+
+export type VendorSummary = {
+  id: string;
+  name: string;
+  typeId: string | null;
+  postalCode: string | null;
+  city: string | null;
+  location: VendorLocation | null;
+  tagIds: string[];
+  archived: boolean;
+  isDemo: boolean;
+};
+
+export type Vendor = VendorSummary & {
+  contactName: string | null;
+  email: string | null;
+  phone: string | null;
+  addressLine: string | null;
+  country: string;
+  internalNote: string | null;
+  fieldValues: Record<string, VendorFieldValue>;
+  files: VendorFile[];
+};
+
+export type VendorInput = {
+  name: string;
+  typeId: string | null;
+  contactName?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  addressLine?: string | null;
+  postalCode?: string | null;
+  city?: string | null;
+  country?: string;
+  internalNote?: string | null;
+  fieldValues?: Record<string, VendorFieldValue>;
+  tagIds?: string[];
+};
+
+export type SaveVendorResult = { vendor: Vendor; geocoding: "placed" | "not_found" | "unchanged" | "no_address" };
+
+// PRE-07 — trajet estimé (toujours affiché « estimation »).
+export type TravelEstimate = { distanceKm: number; minutes: number };
+export type VendorSettings = { detourFactorPermille: number; averageSpeedKmh: number };
+
+export type VendorFieldFilter = { fieldId: string; op: "gte" | "lte" | "eq"; value: VendorFieldValue };
+export type VendorAround = { latitude: number; longitude: number; radiusKm: number };
+
+export type FindVendorsInput = {
+  organizationId: string;
+  text?: string;
+  typeIds?: string[];
+  tagIds?: string[];
+  fieldFilters?: VendorFieldFilter[];
+  // « Déjà travaillé avec » : au moins une fois retenu (module events).
+  workedWith?: boolean;
+  around?: VendorAround;
+  includeArchived?: boolean;
+  limit?: number;
+};
+
+export type VendorListItem = VendorSummary & { travel: TravelEstimate | null };
+
+// PRE-09 — historique d'un prestataire avec l'organisation.
+export type VendorHistoryOutcome = "selected" | "not_selected" | "pending";
+export type VendorHistoryEntry = {
+  eventId: string;
+  eventNames: string;
+  eventDate: string | null;
+  slotLabel: string;
+  outcome: VendorHistoryOutcome;
+  quotedCents: number | null;
+  finalCents: number | null;
+};
+export type VendorHistory = { entries: VendorHistoryEntry[]; averageFinalCents: number | null };
+
+export type VendorBookSearchResult = { id: string; name: string; city: string | null; typeLabel: string | null };
+
+export type VendorsServiceContract = {
+  listVendorTypes(organizationId: string): Promise<VendorType[]>;
+  createVendorType(organizationId: string, label: string, color: string): Promise<VendorType>;
+  renameVendorType(organizationId: string, typeId: string, label: string, color: string): Promise<void>;
+  removeVendorType(organizationId: string, typeId: string): Promise<void>;
+  addVendorTypeField(organizationId: string, typeId: string, input: VendorTypeFieldInput): Promise<VendorTypeField>;
+  setVendorTypeFieldFilter(organizationId: string, fieldId: string, isFilter: boolean): Promise<void>;
+  removeVendorTypeField(organizationId: string, fieldId: string): Promise<void>;
+  listVendorTags(organizationId: string): Promise<VendorTag[]>;
+  createVendorTag(organizationId: string, label: string): Promise<VendorTag>;
+  removeVendorTag(organizationId: string, tagId: string): Promise<void>;
+  createVendor(organizationId: string, input: VendorInput): Promise<SaveVendorResult>;
+  updateVendor(organizationId: string, vendorId: string, input: VendorInput): Promise<SaveVendorResult>;
+  setVendorLocation(organizationId: string, vendorId: string, latitude: number, longitude: number): Promise<void>;
+  archiveVendor(organizationId: string, vendorId: string): Promise<void>;
+  getVendor(organizationId: string, vendorId: string): Promise<Vendor | null>;
+  getVendorsByIds(organizationId: string, vendorIds: string[]): Promise<VendorSummary[]>;
+  findVendors(input: FindVendorsInput): Promise<VendorListItem[]>;
+  getVendorHistory(organizationId: string, vendorId: string): Promise<VendorHistory>;
+  getVendorSettings(organizationId: string): Promise<VendorSettings>;
+  saveVendorSettings(organizationId: string, settings: VendorSettings): Promise<void>;
+  attachVendorFile(input: {
+    organizationId: string;
+    vendorId: string;
+    kind: VendorFileKind;
+    fileName: string;
+    content: Uint8Array;
+    uploadedByUserId: string;
+  }): Promise<VendorFile>;
+  getVendorFile(organizationId: string, fileId: string): Promise<FileDownload>;
+  removeVendorFile(organizationId: string, fileId: string): Promise<void>;
+  searchVendorBook(organizationId: string, words: string[], limit: number): Promise<VendorBookSearchResult[]>;
+  geocodeAddress(address: string): Promise<{ latitude: number; longitude: number } | null>;
+};

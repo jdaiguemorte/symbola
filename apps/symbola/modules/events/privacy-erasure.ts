@@ -5,6 +5,7 @@
 // mois, lieu effacé (décision de Julien, 02/11/2026). Jamais un élément d'essai.
 import { and, eq, inArray, isNotNull } from "drizzle-orm";
 import { createAppConnection } from "@symbola/db/client";
+import { createStorageClient, deletePrivateObject } from "@symbola/files";
 import {
   eventActivities,
   eventClientAccesses,
@@ -12,6 +13,8 @@ import {
   events,
   eventStatusHistory,
   eventTasks,
+  eventVendorCandidateNotes,
+  eventVendorCandidates,
   eventVendorSlots,
   programItemParticipants,
   programItems,
@@ -26,6 +29,7 @@ const FATES: Record<string, ErasureFate> = {
   event: "anonymized",
   event_client: "anonymized",
   event_vendor_slot: "anonymized",
+  vendor_candidate: "anonymized",
   status_change: "anonymized",
   client_access: "deleted",
   task: "deleted",
@@ -57,6 +61,11 @@ async function existing(tx: Tx, input: ErasureInput): Promise<Found[]> {
     add(
       "event_vendor_slot",
       keep(await tx.select({ id: eventVendorSlots.id, eventId: eventVendorSlots.eventId }).from(eventVendorSlots).where(inArray(eventVendorSlots.id, ids("event_vendor_slot")))),
+    );
+  if (ids("vendor_candidate").length > 0)
+    add(
+      "vendor_candidate",
+      keep(await tx.select({ id: eventVendorCandidates.id, eventId: eventVendorCandidates.eventId }).from(eventVendorCandidates).where(inArray(eventVendorCandidates.id, ids("vendor_candidate")))),
     );
   if (ids("task").length > 0) add("task", keep(await tx.select({ id: eventTasks.id, eventId: eventTasks.eventId }).from(eventTasks).where(inArray(eventTasks.id, ids("task")))));
   if (ids("program_item").length > 0)
@@ -99,7 +108,8 @@ export async function planEventsErasure(input: ErasureInput): Promise<ErasurePla
 
 // Exécution dans une seule transaction : tout ou rien pour le module.
 export async function eraseEventsData(input: ErasureInput): Promise<ErasurePlanItem[]> {
-  return inOrganization(input.organizationId, async (tx) => {
+  const fileKeys: string[] = [];
+  const plan = await inOrganization(input.organizationId, async (tx) => {
     const found = await existing(tx, input);
     const idsFor = (kind: string) => found.find((entry) => entry.kind === kind)?.ids ?? [];
     const now = new Date();
@@ -127,12 +137,27 @@ export async function eraseEventsData(input: ErasureInput): Promise<ErasurePlanI
     }
     if (idsFor("event_vendor_slot").length > 0) {
       const slotIds = idsFor("event_vendor_slot");
-      await tx.update(eventVendorSlots).set({ importedFields: null }).where(inArray(eventVendorSlots.id, slotIds));
+      await tx.update(eventVendorSlots).set({ importedFields: null, brief: null }).where(inArray(eventVendorSlots.id, slotIds));
       // Le type de poste et son statut restent (statistiques) ; le nom du prestataire non.
       await tx
         .update(eventVendorSlots)
         .set({ vendorName: ANONYMIZED })
         .where(and(inArray(eventVendorSlots.id, slotIds), isNotNull(eventVendorSlots.vendorName)));
+    }
+    // Lot 11 : le consulté reste (statistiques, retenu ou non) sans nom ni
+    // notes ; son devis, qui le nomme, est supprimé (fichier compris).
+    if (idsFor("vendor_candidate").length > 0) {
+      const candidateIds = idsFor("vendor_candidate");
+      await tx.delete(eventVendorCandidateNotes).where(inArray(eventVendorCandidateNotes.candidateId, candidateIds));
+      const withFiles = await tx
+        .select({ key: eventVendorCandidates.quoteFileKey })
+        .from(eventVendorCandidates)
+        .where(and(inArray(eventVendorCandidates.id, candidateIds), isNotNull(eventVendorCandidates.quoteFileKey)));
+      fileKeys.push(...withFiles.map((row) => row.key).filter((key): key is string => key !== null));
+      await tx
+        .update(eventVendorCandidates)
+        .set({ vendorName: ANONYMIZED, vendorId: null, quoteFileKey: null, quoteMime: null, quoteSizeBytes: null, updatedAt: now })
+        .where(inArray(eventVendorCandidates.id, candidateIds));
     }
     if (idsFor("client_access").length > 0) await tx.delete(eventClientAccesses).where(inArray(eventClientAccesses.id, idsFor("client_access")));
     if (idsFor("task").length > 0) await tx.delete(eventTasks).where(inArray(eventTasks.id, idsFor("task")));
@@ -143,4 +168,7 @@ export async function eraseEventsData(input: ErasureInput): Promise<ErasurePlanI
     }
     return toPlan(found);
   });
+  const storage = fileKeys.length > 0 ? createStorageClient() : null;
+  for (const key of fileKeys) await deletePrivateObject(storage!, key).catch(() => undefined);
+  return plan;
 }

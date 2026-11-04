@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parseEnv } from "./parse";
-import { signatureProviderOf } from "./schema";
+import { geocoderOf, signatureProviderOf } from "./schema";
 
 const validEnv = {
   POSTGRES_APP_PASSWORD: "dev-password",
@@ -80,5 +80,13 @@ describe("SOC-03 — Validation des variables d'environnement (Zod)", () => {
     expect(signatureProviderOf(env)).toBe("documenso");
     // En-tête fixe envoyé par Documenso avec le secret du webhook.
     expect(env.SIGNATURE_WEBHOOK_HEADER).toBe("X-Documenso-Secret");
+  });
+
+  it("lot 11 — géocodeur : IGN par défaut en production, simulé ailleurs, simulé interdit en production (ADR 0031)", () => {
+    expect(geocoderOf(parseEnv({ ...validEnv, NODE_ENV: "production" }))).toBe("ign");
+    expect(geocoderOf(parseEnv({ ...validEnv, GEOCODER: "" }))).toBe("fake");
+    expect(geocoderOf(parseEnv({ ...validEnv, GEOCODER: "none" }))).toBe("none");
+    expect(() => parseEnv({ ...validEnv, NODE_ENV: "production", GEOCODER: "fake" })).toThrow(/GEOCODER/);
+    expect(parseEnv(validEnv).MAP_TILES_DIR).toBe("");
   });
 });

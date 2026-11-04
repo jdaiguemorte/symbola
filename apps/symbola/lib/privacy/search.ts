@@ -10,6 +10,7 @@ import { eventsPrivacy } from "@/modules/events/service";
 import { helloPrivacy } from "@/modules/hello/service";
 import { hubPrivacy, isModuleEnabled, type ModuleKey } from "@/modules/hub/service";
 import { quotesPrivacy } from "@/modules/quotes/service";
+import { vendorsPrivacy } from "@/modules/vendors/service";
 
 // Modules interrogés, et la clé de souscription de chacun (le hub l'est toujours).
 export type Participant = { contract: PrivacyContractV1; moduleKey: ModuleKey | null };
@@ -19,6 +20,7 @@ export const PARTICIPANTS: Participant[] = [
   { contract: eventsPrivacy, moduleKey: "events" },
   { contract: budgetPrivacy, moduleKey: "budget" },
   { contract: quotesPrivacy, moduleKey: "quotes" },
+  { contract: vendorsPrivacy, moduleKey: "vendors" },
   { contract: helloPrivacy, moduleKey: "hello" },
 ];
 

@@ -356,3 +356,99 @@ fields:
       Conservation légale, comme la facture corrigée (DEV-04).
     anonymization: >-
       Aucune avant la fin de la conservation légale (avoir immuable).
+  - schema: vendors
+    table: vendors
+    field: name
+    category: identifiant
+    retention: >-
+      Lot 11 (ADR 0031) : le nom d'un prestataire indépendant est une personne. Tant que la fiche ou l'événement existe ; voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Lors d'une demande d'oubli (RGPD-03) : nom remplacé par « [anonymisé] », contact, e-mail, téléphone, adresse, note et point effacés, fiche archivée (l'historique garde son identifiant).
+  - schema: vendors
+    table: vendors
+    field: contact_name
+    category: identifiant
+    retention: >-
+      Lot 11 (ADR 0031) : nom du contact chez le prestataire. Tant que la fiche ou l'événement existe ; voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Lors d'une demande d'oubli (RGPD-03) : nom remplacé par « [anonymisé] », contact, e-mail, téléphone, adresse, note et point effacés, fiche archivée (l'historique garde son identifiant).
+  - schema: vendors
+    table: vendors
+    field: email
+    category: contact
+    retention: >-
+      Lot 11 (ADR 0031) : e-mail du prestataire ou de son contact. Tant que la fiche ou l'événement existe ; voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Lors d'une demande d'oubli (RGPD-03) : nom remplacé par « [anonymisé] », contact, e-mail, téléphone, adresse, note et point effacés, fiche archivée (l'historique garde son identifiant).
+  - schema: vendors
+    table: vendors
+    field: phone
+    category: contact
+    retention: >-
+      Lot 11 (ADR 0031) : téléphone du prestataire ou de son contact. Tant que la fiche ou l'événement existe ; voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Lors d'une demande d'oubli (RGPD-03) : nom remplacé par « [anonymisé] », contact, e-mail, téléphone, adresse, note et point effacés, fiche archivée (l'historique garde son identifiant).
+  - schema: vendors
+    table: vendors
+    field: address_line
+    category: contact
+    retention: >-
+      Lot 11 (ADR 0031) : adresse (celle d'un indépendant peut être son domicile). Tant que la fiche ou l'événement existe ; voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Lors d'une demande d'oubli (RGPD-03) : nom remplacé par « [anonymisé] », contact, e-mail, téléphone, adresse, note et point effacés, fiche archivée (l'historique garde son identifiant).
+  - schema: vendors
+    table: vendors
+    field: postal_code
+    category: contact
+    retention: >-
+      Lot 11 (ADR 0031) : code postal de l'adresse. Tant que la fiche ou l'événement existe ; voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Lors d'une demande d'oubli (RGPD-03) : nom remplacé par « [anonymisé] », contact, e-mail, téléphone, adresse, note et point effacés, fiche archivée (l'historique garde son identifiant).
+  - schema: vendors
+    table: vendors
+    field: internal_note
+    category: contenu_libre
+    retention: >-
+      Lot 11 (ADR 0031) : note interne de l'équipe. Tant que la fiche ou l'événement existe ; voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Lors d'une demande d'oubli (RGPD-03) : nom remplacé par « [anonymisé] », contact, e-mail, téléphone, adresse, note et point effacés, fiche archivée (l'historique garde son identifiant).
+  - schema: vendors
+    table: vendors
+    field: field_values
+    category: contenu_libre
+    retention: >-
+      Lot 11 (ADR 0031) : champs propres au type, saisis par l'équipe. Tant que la fiche ou l'événement existe ; voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Lors d'une demande d'oubli (RGPD-03) : nom remplacé par « [anonymisé] », contact, e-mail, téléphone, adresse, note et point effacés, fiche archivée (l'historique garde son identifiant).
+  - schema: vendors
+    table: vendor_files
+    field: file_key
+    category: contenu_libre
+    retention: >-
+      Lot 11 (ADR 0031) : plaquette ou RIB (fichier privé). Tant que la fiche ou l'événement existe ; voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Supprimé, fichier compris, lors d'une demande d'oubli de la fiche (RGPD-03).
+  - schema: events
+    table: event_vendor_candidates
+    field: vendor_name
+    category: identifiant
+    retention: >-
+      Lot 11 (ADR 0031) : nom d'un prestataire consulté pour un poste. Tant que la fiche ou l'événement existe ; voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Remplacé par « [anonymisé] » lors d'une demande d'oubli (RGPD-03) ; le devis joint, qui nomme le prestataire, est supprimé.
+  - schema: events
+    table: event_vendor_candidate_notes
+    field: body
+    category: contenu_libre
+    retention: >-
+      Lot 11 (ADR 0031) : note sur un prestataire consulté, parfois montrée aux clients. Tant que la fiche ou l'événement existe ; voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Supprimée lors d'une demande d'oubli du consulté ou de l'événement (RGPD-03).
+  - schema: events
+    table: event_vendor_slots
+    field: brief
+    category: contenu_libre
+    retention: >-
+      Lot 11 (ADR 0031) : ce que veulent les clients pour un poste. Tant que la fiche ou l'événement existe ; voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Effacé (null) lors d'une demande d'oubli de l'événement (RGPD-03).

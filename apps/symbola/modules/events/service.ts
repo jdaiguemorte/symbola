@@ -82,8 +82,35 @@ import {
   type TaskTemplateRow,
 } from "./repository";
 import { addDays } from "./schedule";
+import { createStorageClient, deletePrivateObject } from "@symbola/files";
+import {
+  addCandidate,
+  addCandidateNote,
+  attachCandidateQuote,
+  candidateQuoteKeys,
+  candidateQuoteKeysOfSlot,
+  clientOptions,
+  clientQuoteFile,
+  getCandidateQuoteFile,
+  linkCandidate,
+  listCandidates,
+  listConsultations,
+  listSelectedVendors,
+  removeCandidate,
+  removeCandidateNote,
+  selectCandidate,
+  setCandidateNoteVisibility,
+  setSlotBrief,
+  updateCandidate,
+} from "./vendor-candidates";
 import { findProgramOverlaps, normalizeTime, programForVariant, sortProgramItems } from "./program";
 import type {
+  AddVendorCandidateInput,
+  ClientVendorSlotOptions,
+  FileDownload,
+  UpdateVendorCandidateInput,
+  VendorCandidate,
+  VendorConsultation,
   EventsSearchResults,
   MonthlyCount,
   ChangeEventStatusInput,
@@ -150,6 +177,14 @@ export type {
   UpdateEventVendorSlotInput,
   VendorSlotProgress,
   VendorSlotStatus,
+  AddVendorCandidateInput,
+  ClientVendorOption,
+  ClientVendorSlotOptions,
+  UpdateVendorCandidateInput,
+  VendorCandidate,
+  VendorCandidateNote,
+  VendorCandidateResponse,
+  VendorConsultation,
   EventTask,
   EventTaskInput,
   TaskRecalculation,
@@ -342,6 +377,8 @@ function toEventVendorSlot(row: EventVendorSlotRow): EventVendorSlot {
     currency: "EUR",
     position: row.position,
     ...(row.importedFields ? { importedFields: row.importedFields } : {}),
+    brief: row.brief,
+    selectedCandidateId: row.selectedCandidateId,
   };
 }
 
@@ -388,7 +425,99 @@ export async function updateEventVendorSlot(input: UpdateEventVendorSlotInput): 
 }
 
 export async function removeEventVendorSlot(organizationId: string, vendorSlotId: string): Promise<void> {
+  const keys = await candidateQuoteKeysOfSlot(organizationId, vendorSlotId);
   await deleteEventVendorSlot(organizationId, vendorSlotId);
+  await deleteStoredFiles(keys);
+}
+
+// Lot 11 (EVT-08 / EVT-09, ADR 0031) — prestataires consultés par poste.
+
+export { CandidateQuoteRejectedError, VendorCandidateNotFoundError, CANDIDATE_QUOTE_MAX_SIZE_BYTES } from "./vendor-candidates";
+
+export async function setVendorSlotBrief(organizationId: string, vendorSlotId: string, brief: string | null): Promise<void> {
+  await setSlotBrief(organizationId, vendorSlotId, brief);
+}
+
+export async function listVendorCandidates(organizationId: string, eventId: string): Promise<VendorCandidate[]> {
+  return listCandidates(organizationId, eventId);
+}
+
+export async function addVendorCandidate(input: AddVendorCandidateInput): Promise<VendorCandidate> {
+  return addCandidate(input);
+}
+
+export async function updateVendorCandidate(input: UpdateVendorCandidateInput): Promise<void> {
+  await updateCandidate(input);
+}
+
+export async function linkVendorCandidate(organizationId: string, candidateId: string, vendorId: string): Promise<void> {
+  await linkCandidate(organizationId, candidateId, vendorId);
+}
+
+export async function removeVendorCandidate(organizationId: string, candidateId: string): Promise<void> {
+  await removeCandidate(organizationId, candidateId);
+}
+
+export async function attachVendorCandidateQuote(input: { organizationId: string; candidateId: string; content: Uint8Array }): Promise<void> {
+  await attachCandidateQuote(input);
+}
+
+export async function getVendorCandidateQuoteFile(organizationId: string, candidateId: string): Promise<FileDownload> {
+  return getCandidateQuoteFile(organizationId, candidateId);
+}
+
+export async function addVendorCandidateNote(input: {
+  organizationId: string;
+  candidateId: string;
+  body: string;
+  visibleToClients: boolean;
+  createdByUserId: string;
+}): Promise<void> {
+  await addCandidateNote(input);
+}
+
+export async function setVendorCandidateNoteVisibility(organizationId: string, noteId: string, visibleToClients: boolean): Promise<void> {
+  await setCandidateNoteVisibility(organizationId, noteId, visibleToClients);
+}
+
+export async function removeVendorCandidateNote(organizationId: string, noteId: string): Promise<void> {
+  await removeCandidateNote(organizationId, noteId);
+}
+
+export async function selectVendorCandidate(input: { organizationId: string; candidateId: string; changedByUserId: string }): Promise<void> {
+  await selectCandidate(input);
+}
+
+export async function listVendorConsultations(organizationId: string, vendorId: string): Promise<VendorConsultation[]> {
+  return listConsultations(organizationId, vendorId, (eventIds) => findEventNamesByIds(organizationId, eventIds));
+}
+
+export async function listSelectedVendorIds(organizationId: string): Promise<string[]> {
+  return listSelectedVendors(organizationId);
+}
+
+export class ClientVendorOptionsAccessDeniedError extends Error {
+  constructor() {
+    super("accès refusé aux options de cet événement");
+    this.name = "ClientVendorOptionsAccessDeniedError";
+  }
+}
+
+// EVT-09 — l'accès du client à l'événement est vérifié avant toute lecture.
+export async function getClientVendorOptions(organizationId: string, userId: string, eventId: string): Promise<ClientVendorSlotOptions[]> {
+  if (!(await hasActiveClientAccess(organizationId, userId, eventId))) throw new ClientVendorOptionsAccessDeniedError();
+  return clientOptions(organizationId, eventId);
+}
+
+export async function getClientVendorQuoteFile(organizationId: string, userId: string, eventId: string, candidateId: string): Promise<FileDownload> {
+  if (!(await hasActiveClientAccess(organizationId, userId, eventId))) throw new ClientVendorOptionsAccessDeniedError();
+  return clientQuoteFile(organizationId, eventId, candidateId);
+}
+
+async function deleteStoredFiles(keys: string[]): Promise<void> {
+  if (keys.length === 0) return;
+  const storage = createStorageClient();
+  for (const key of keys) await deletePrivateObject(storage, key).catch(() => undefined);
 }
 
 // EVT-04 — rétroplanning.
@@ -1082,12 +1211,24 @@ export async function getActiveEventsTrial(organizationId: string, now: Date = n
   return event ? toTrial(event) : null;
 }
 
+// Les devis joints aux consultés d'un essai partent avec lui (lot 11).
+async function demoCandidateQuoteKeys(expired: { organizationId: string; eventId: string }[]): Promise<string[]> {
+  const keys: string[] = [];
+  for (const organizationId of new Set(expired.map((entry) => entry.organizationId))) {
+    const eventIds = expired.filter((entry) => entry.organizationId === organizationId).map((entry) => entry.eventId);
+    keys.push(...(await candidateQuoteKeys(organizationId, eventIds, { demoOnly: true })));
+  }
+  return keys;
+}
+
 export async function endEventsTrial(organizationId: string, eventId: string): Promise<void> {
+  const keys = await candidateQuoteKeys(organizationId, [eventId], { demoOnly: true });
   await deleteDemoEvent(organizationId, eventId);
+  await deleteStoredFiles(keys);
 }
 
 export async function purgeExpiredDemoEvents(organizationId: string, now: Date = new Date()): Promise<number> {
-  return deleteExpiredDemoEvents([organizationId], now);
+  return purgeExpiredDemoEventsForOrganizations([organizationId], now);
 }
 
 // Purge planifiée : toutes les organisations en un passage.
@@ -1095,7 +1236,10 @@ export async function purgeExpiredDemoEventsForOrganizations(
   organizationIds: string[],
   now: Date = new Date(),
 ): Promise<number> {
-  return deleteExpiredDemoEvents(organizationIds, now);
+  const keys = await demoCandidateQuoteKeys(await findExpiredDemoEventIds(organizationIds, now));
+  const purged = await deleteExpiredDemoEvents(organizationIds, now);
+  await deleteStoredFiles(keys);
+  return purged;
 }
 
 // Essais expirés (organisation, événement) : les autres modules y
@@ -1147,6 +1291,22 @@ export {
 } from "./import";
 
 const _contractCheck: EventsServiceContract = {
+  setVendorSlotBrief,
+  listVendorCandidates,
+  addVendorCandidate,
+  updateVendorCandidate,
+  linkVendorCandidate,
+  removeVendorCandidate,
+  attachVendorCandidateQuote,
+  getVendorCandidateQuoteFile,
+  addVendorCandidateNote,
+  setVendorCandidateNoteVisibility,
+  removeVendorCandidateNote,
+  selectVendorCandidate,
+  listVendorConsultations,
+  listSelectedVendorIds,
+  getClientVendorOptions,
+  getClientVendorQuoteFile,
   listEvents,
   getEvent,
   createProspect,

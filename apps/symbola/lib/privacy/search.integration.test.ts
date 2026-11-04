@@ -101,7 +101,7 @@ describe("RGPD-01 — Recherche transverse", () => {
       expect(related.has(kind), kind).toBe(true);
     }
     expect(result!.records.every((record) => record.eventId === null || record.eventId === eventId)).toBe(true);
-    expect(result!.outcomes.map((outcome) => outcome.module).sort()).toEqual(["budget", "events", "hello", "hub", "quotes"]);
+    expect(result!.outcomes.map((outcome) => outcome.module).sort()).toEqual(["budget", "events", "hello", "hub", "quotes", "vendors"]);
   });
 
   it("par e-mail : l'adresse du signataire mène au devis et à l'événement", async () => {
