@@ -41,7 +41,6 @@ export function NewProspectForm({ sources }: { sources: ProspectSource[] }) {
           ))}
         </select>
       </label>
-      {sources.length === 0 ? <p role="status">{t("noSourcesYet")}</p> : null}
       <label>
         {t("eventDate")}
         <input type="date" name="eventDate" />

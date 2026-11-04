@@ -1,6 +1,6 @@
 # ADR 0021 — Signature en ligne : adaptateur DocuSeal, webhook et base dédiée
 
-- Statut : accepté
+- Statut : remplacé par [0026](0026-signature-documenso.md) (l'appel `POST /api/submissions/pdf` n'existe pas dans l'édition libre de DocuSeal)
 - Date : 2026-10-27
 - Complète : [0006](0006-signature-docuseal-derriere-interface.md)
 

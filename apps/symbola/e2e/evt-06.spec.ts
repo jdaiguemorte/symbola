@@ -10,6 +10,7 @@ import { createAppConnection } from "@symbola/db/client";
 import { createOrganization, createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import * as OTPAuth from "otpauth";
+import { openEventTab } from "./helpers";
 
 const MAILPIT_API = "http://localhost:8025/api/v1";
 
@@ -78,6 +79,7 @@ test("EVT-06 — le marié invité suit son mariage, coche sa tâche, et perd l'
   const eventId = planner.url().split("/").pop()!;
   await planner.waitForLoadState("networkidle");
 
+  await openEventTab(planner, "Rétroplanning");
   const newTask = planner.getByRole("group", { name: "Nouvelle tâche" });
   await newTask.getByLabel("Intitulé de la tâche").fill("Choisir les alliances");
   await newTask.getByLabel("Échéance").fill("2027-03-10");
@@ -85,6 +87,7 @@ test("EVT-06 — le marié invité suit son mariage, coche sa tâche, et perd l'
   await newTask.getByRole("button", { name: "Ajouter la tâche" }).click();
   await expect(planner.getByText("Tâche ajoutée.")).toBeVisible();
 
+  await openEventTab(planner, "Programme du jour J");
   const newLine = planner.getByRole("group", { name: "Nouvelle ligne du programme" });
   await newLine.getByLabel("Heure de début").fill("15:00");
   await newLine.getByLabel("Intitulé de la ligne").fill("Cérémonie");
@@ -93,6 +96,7 @@ test("EVT-06 — le marié invité suit son mariage, coche sa tâche, et perd l'
   await expect(planner.getByText("Ligne ajoutée.")).toBeVisible();
 
   // Invitation du marié par e-mail.
+  await openEventTab(planner, "Mariés");
   await planner.getByLabel("E-mail du marié").fill(coupleEmail);
   await planner.getByRole("button", { name: "Inviter le marié" }).click();
   await expect(planner.getByText("Invitation envoyée.")).toBeVisible();
@@ -153,9 +157,11 @@ test("EVT-06 — le marié invité suit son mariage, coche sa tâche, et perd l'
 
   // La planner voit la tâche cochée dans le fil d'activité, puis retire l'accès.
   await planner.reload();
+  await openEventTab(planner, "Vue d'ensemble");
   await expect(planner.getByRole("list", { name: "Fil d'activité" })).toContainText(
     `${coupleEmail} a coché « Choisir les alliances ».`,
   );
+  await openEventTab(planner, "Mariés");
   await planner.getByRole("button", { name: `Retirer l'accès de ${coupleEmail}` }).click();
   await expect(planner.getByRole("list", { name: "Accès des mariés" })).toContainText(`${coupleEmail} — accès retiré`);
   await expectNoAxeViolation(planner);

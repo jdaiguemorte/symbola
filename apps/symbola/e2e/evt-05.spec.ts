@@ -8,6 +8,7 @@ import { createAppConnection } from "@symbola/db/client";
 import { createOrganization, createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import * as OTPAuth from "otpauth";
+import { openEventTab } from "./helpers";
 
 async function loginAndSetupMfa(page: Page, email: string, password: string) {
   await page.goto("/login");
@@ -65,6 +66,7 @@ test("EVT-05 — programme du jour J depuis un modèle, chevauchement signalé e
   const detailUrl = page.url();
 
   // Le programme part du modèle : lignes triées par heure, postes reliés.
+  await openEventTab(page, "Programme du jour J");
   await page.waitForLoadState("networkidle");
   await page.getByLabel("Modèle de programme à appliquer").selectOption({ label: "Programme du jour J (modèle de départ)" });
   await page.getByRole("button", { name: "Appliquer le modèle de programme" }).click();

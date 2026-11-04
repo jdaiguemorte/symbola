@@ -159,6 +159,9 @@ export async function toggleEventTaskAction(formData: FormData): Promise<void> {
     if (!(error instanceof EventTaskNotFoundError)) throw error;
   }
   revalidatePath(`/events/${eventId}`);
+  // HUB-02 : la même case se coche depuis l'accueil et l'écran Tâches.
+  revalidatePath("/");
+  revalidatePath("/taches");
 }
 
 export async function moveEventTaskAction(formData: FormData): Promise<void> {

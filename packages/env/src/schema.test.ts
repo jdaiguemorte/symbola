@@ -55,28 +55,30 @@ describe("SOC-03 — Validation des variables d'environnement (Zod)", () => {
     expect(signatureProviderOf(parseEnv({ ...validEnv, NODE_ENV: "production", SIGNATURE_PROVIDER: "" }))).toBe("none");
   });
 
-  it("DEV-02 — refuse le faux fournisseur en production, et DocuSeal sans clé, URL ou secret suffisant", () => {
+  it("DEV-02 — refuse le faux fournisseur en production, et Documenso sans URL, clé ou secret suffisant (ADR 0026)", () => {
     expect(() => parseEnv({ ...validEnv, NODE_ENV: "production", SIGNATURE_PROVIDER: "fake" })).toThrow(/SIGNATURE_PROVIDER/);
-    expect(() => parseEnv({ ...validEnv, SIGNATURE_PROVIDER: "docuseal" })).toThrow(/DOCUSEAL_API_KEY/);
+    expect(() => parseEnv({ ...validEnv, SIGNATURE_PROVIDER: "documenso" })).toThrow(/DOCUMENSO_API_KEY/);
     expect(() =>
       parseEnv({
         ...validEnv,
-        SIGNATURE_PROVIDER: "docuseal",
-        DOCUSEAL_API_URL: "http://docuseal:3000/api",
-        DOCUSEAL_API_KEY: "cle",
-        DOCUSEAL_PUBLIC_URL: "https://signature.exemple.fr",
+        SIGNATURE_PROVIDER: "documenso",
+        DOCUMENSO_API_URL: "http://documenso:3000/api/v2",
+        DOCUMENSO_API_KEY: "api_cle",
         SIGNATURE_WEBHOOK_SECRET: "trop-court",
       }),
     ).toThrow(/32 caractères/);
+    // DocuSeal n'est plus un fournisseur accepté (ADR 0026).
+    expect(() => parseEnv({ ...validEnv, SIGNATURE_PROVIDER: "docuseal" })).toThrow(/SIGNATURE_PROVIDER/);
     const env = parseEnv({
       ...validEnv,
       NODE_ENV: "production",
-      SIGNATURE_PROVIDER: "docuseal",
-      DOCUSEAL_API_URL: "http://docuseal:3000/api",
-      DOCUSEAL_API_KEY: "cle",
-      DOCUSEAL_PUBLIC_URL: "https://signature.exemple.fr",
+      SIGNATURE_PROVIDER: "documenso",
+      DOCUMENSO_API_URL: "http://documenso:3000/api/v2",
+      DOCUMENSO_API_KEY: "api_cle",
       SIGNATURE_WEBHOOK_SECRET: "a".repeat(64),
     });
-    expect(signatureProviderOf(env)).toBe("docuseal");
+    expect(signatureProviderOf(env)).toBe("documenso");
+    // En-tête fixe envoyé par Documenso avec le secret du webhook.
+    expect(env.SIGNATURE_WEBHOOK_HEADER).toBe("X-Documenso-Secret");
   });
 });

@@ -108,6 +108,12 @@ export function formatDateTime(date: Date, locale: Locale): string {
     .replace(/[\u00a0\u202f]/g, " ");
 }
 
+// Date du jour à Paris (« AAAA-MM-JJ ») : retards et échéances se jugent
+// à l'heure de la planner, pas à celle du serveur (UTC).
+export function parisToday(now: Date = new Date()): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Paris", year: "numeric", month: "2-digit", day: "2-digit" }).format(now);
+}
+
 // Taille d'un fichier joint (BUD-03), en Ko ou Mo selon la langue.
 export function formatFileSize(bytes: number, locale: Locale): string {
   const megabytes = bytes >= 1024 * 1024;

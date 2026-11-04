@@ -159,6 +159,21 @@ export type EventTaskInput = {
   responsible: TaskResponsible;
 };
 
+// HUB-02 — tâche vue depuis l'accueil ou l'écran Tâches, avec son événement.
+export type OrganizationTask = EventTask & {
+  overdue: boolean;
+  event: { id: string; names: string; eventDate: string | null; status: EventStatus; isDemo: boolean };
+};
+
+export type ListOrganizationTasksInput = {
+  organizationId: string;
+  // Date du jour (Europe/Paris), « AAAA-MM-JJ » : retards et horizon.
+  today: string;
+  // Échéance au plus tard dans N jours (retards compris) ; null = sans limite.
+  horizonDays: number | null;
+  includeDone?: boolean;
+};
+
 export type UpdateEventTaskInput = {
   organizationId: string;
   taskId: string;
@@ -302,6 +317,10 @@ export interface EventsServiceContract {
   createProspectSource(organizationId: string, label: string): Promise<ProspectSource>;
   listLossReasons(organizationId: string): Promise<LossReason[]>;
   createLossReason(organizationId: string, label: string, isFreeText: boolean): Promise<LossReason>;
+  // EVT-07 — listes de départ : ajout sans doublon, renvoie le nombre ajouté.
+  addProspectSources(organizationId: string, labels: string[]): Promise<number>;
+  addLossReasons(organizationId: string, reasons: { label: string; isFreeText: boolean }[]): Promise<number>;
+  listOrganizationTasks(input: ListOrganizationTasksInput): Promise<OrganizationTask[]>;
   listDefaultVendorSlots(organizationId: string): Promise<DefaultVendorSlot[]>;
   addDefaultVendorSlots(organizationId: string, labels: string[]): Promise<DefaultVendorSlot[]>;
   removeDefaultVendorSlot(organizationId: string, defaultVendorSlotId: string): Promise<void>;

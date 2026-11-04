@@ -1,6 +1,6 @@
 // Accès aux données du module events — jamais importé hors de
 // modules/events/ (ADR 0011).
-import { and, asc, desc, eq, gt, ilike, inArray, isNotNull, isNull, lte, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gt, ilike, inArray, isNotNull, isNull, lte, notInArray, or, sql } from "drizzle-orm";
 import { createAppConnection } from "@symbola/db/client";
 import {
   defaultVendorSlots,
@@ -783,6 +783,34 @@ export async function findEventTasks(organizationId: string, eventId: string): P
         .from(eventTasks)
         .where(eq(eventTasks.eventId, eventId))
         .orderBy(...taskOrder),
+    );
+  } finally {
+    await pg.end();
+  }
+}
+
+// HUB-02 — tâches de toute l'organisation, hors événements perdus ou
+// réalisés ; échéance au plus tard `until` (date sans heure) si fournie.
+export async function findOrganizationTasks(
+  organizationId: string,
+  options: { until: string | null; includeDone: boolean },
+): Promise<EventTaskRow[]> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    return await withOrganization(db, organizationId, (tx) =>
+      tx
+        .select({ task: eventTasks })
+        .from(eventTasks)
+        .innerJoin(events, eq(events.id, eventTasks.eventId))
+        .where(
+          and(
+            notInArray(events.status, ["lost", "done"]),
+            options.until ? lte(eventTasks.dueDate, options.until) : undefined,
+            options.includeDone ? undefined : isNull(eventTasks.doneAt),
+          ),
+        )
+        .orderBy(asc(eventTasks.dueDate), asc(eventTasks.position), asc(eventTasks.createdAt))
+        .then((rows) => rows.map((row) => row.task)),
     );
   } finally {
     await pg.end();

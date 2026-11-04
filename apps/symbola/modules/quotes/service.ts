@@ -76,6 +76,7 @@ import {
   archivePaymentMethodRow,
   findEventSignatureContexts,
   findSignatureRequestByExternalId,
+  listPendingSignatureRequests,
   insertSignatureRequest,
   insertWebhookLog,
   type QuoteSignerRow,
@@ -97,6 +98,7 @@ import {
   findCatalogItem,
   findCatalogItems,
   findEventQuotes,
+  findQuotes,
   findQuoteAggregate,
   findQuoteAggregates,
   findQuoteSettings,
@@ -239,7 +241,7 @@ export class SignatureAlreadyRequestedError extends Error {
   }
 }
 
-// Fournisseur non configuré (production sans DocuSeal) : l'écran affiche
+// Fournisseur non configuré (production sans Documenso) : l'écran affiche
 // « indisponible », jamais une erreur (CLAUDE.md §2.3).
 export class SignatureUnavailableError extends Error {
   constructor() {
@@ -599,7 +601,16 @@ export async function createQuote(input: CreateQuoteInput): Promise<QuoteDetail>
 }
 
 export async function listEventQuotes(organizationId: string, eventId: string): Promise<QuoteSummary[]> {
-  const rows = await findEventQuotes(organizationId, eventId);
+  return summarize(organizationId, await findEventQuotes(organizationId, eventId));
+}
+
+// Écran « Devis et factures » : tous les devis, les plus récents d'abord.
+export async function listQuotes(organizationId: string): Promise<QuoteSummary[]> {
+  return summarize(organizationId, await findQuotes(organizationId));
+}
+
+async function summarize(organizationId: string, rows: Awaited<ReturnType<typeof findQuotes>>): Promise<QuoteSummary[]> {
+  if (rows.length === 0) return [];
   const aggregates = await findQuoteAggregates(organizationId, rows.map((row) => row.id));
   const profile = await withDb((db) => getOrganizationProfile(db, organizationId));
   const byId = new Map(aggregates.map((aggregate) => [aggregate.quote.id, aggregate]));
@@ -931,7 +942,7 @@ export function signatureRoles(count: number): string[] {
 
 // Zones de signature du PDF envoyé : un rôle et sa balise par signataire.
 export function signatureSlots(count: number): { role: string; tag: string }[] {
-  return signatureRoles(count).map((role) => ({ role, tag: signatureTag(role) }));
+  return signatureRoles(count).map((role, index) => ({ role, tag: signatureTag(index) }));
 }
 
 function validSigners(signers: SignerInput[]): SignerInput[] {
@@ -959,6 +970,15 @@ function signingMail(input: { locale: "fr" | "en"; organizationName: string; num
     subject: `Devis ${input.number} à signer — ${input.organizationName}`,
     text: `Bonjour,\n\n${input.organizationName} vous envoie le devis ${input.number} à signer en ligne. Votre lien personnel de signature :\n${input.url}\n\nCe lien vous est personnel : merci de ne pas le transférer.\n\nL'équipe Symbola`,
   };
+}
+
+// La demande de signature est enregistrée, mais un ou plusieurs e-mails
+// portant les liens n'ont pas pu partir (SMTP indisponible).
+export class SignatureLinksNotMailedError extends Error {
+  constructor(readonly count: number) {
+    super("liens de signature non envoyés par e-mail");
+    this.name = "SignatureLinksNotMailedError";
+  }
 }
 
 // DEV-02 — « Envoi du devis (version courante figée) au fournisseur de
@@ -1010,10 +1030,19 @@ export async function sendQuoteForSignature(input: SendForSignatureInput): Promi
   const detail = await loadDetail(input.organizationId, input.quoteId);
   if (!quote.isDemo) {
     const organizationName = quote.current.seller?.organizationName ?? "";
+    let notMailed = 0;
     for (const signer of detail.signature?.signers ?? []) {
       const mail = signingMail({ locale: input.locale, organizationName, number: quote.number, url: signer.signingUrl });
-      await sendMail({ to: signer.email, ...mail });
+      try {
+        await sendMail({ to: signer.email, ...mail });
+      } catch (error) {
+        // La demande existe chez le fournisseur : on n'annule rien, la
+        // planner copie les liens depuis le devis (jamais l'adresse au journal).
+        notMailed += 1;
+        console.error(`e-mail de signature non envoyé (signataire ${signer.id})`, error instanceof Error ? error.message : error);
+      }
     }
+    if (notMailed > 0) throw new SignatureLinksNotMailedError(notMailed);
   }
   return detail;
 }
@@ -1057,6 +1086,7 @@ async function applySignatureState(
   request: SignatureRequestRow,
   provider: SignatureProvider,
   eventType: string,
+  options: { logUnchanged?: boolean } = {},
 ): Promise<string> {
   if (request.status !== "pending") {
     await insertWebhookLog(organizationId, { requestId: request.id, eventType, outcome: "duplicate" });
@@ -1108,7 +1138,7 @@ async function applySignatureState(
     outcome = { kind: "declined", completedAt: now };
   }
 
-  const applied = await applySignatureStateRows(organizationId, request.id, { signers, outcome }, eventType);
+  const applied = await applySignatureStateRows(organizationId, request.id, { signers, outcome }, eventType, options);
   if (applied.status !== "ok") return "unknown_request";
   if (!applied.transitioned) {
     // Un appel concurrent a terminé la demande entre-temps : nos copies
@@ -1119,6 +1149,27 @@ async function applySignatureState(
   }
   if (outcome.kind === "completed") await afterSigned(organizationId, context.quote.id);
   return outcome.kind;
+}
+
+// ADR 0026 — vérification régulière des demandes en attente : relit leur
+// état chez le fournisseur, comme le ferait un webhook, au cas où un appel
+// se serait perdu (réseau, Documenso redémarré). Une erreur sur une
+// demande n'empêche pas de vérifier les suivantes.
+export async function reconcilePendingSignatures(organizationId: string): Promise<{ checked: number; completed: number }> {
+  const provider = realSignatureProvider();
+  if (!provider) return { checked: 0, completed: 0 };
+  const pending = await listPendingSignatureRequests(organizationId, provider.name);
+  let completed = 0;
+  for (const request of pending) {
+    try {
+      const outcome = await applySignatureState(organizationId, request, provider, "reconciliation", { logUnchanged: false });
+      if (outcome === "completed" || outcome === "declined") completed += 1;
+    } catch (error) {
+      // Identifiants seulement, jamais de donnée personnelle (CLAUDE.md §5).
+      console.error(`vérification de la demande de signature ${request.id} échouée`, error instanceof Error ? error.message : error);
+    }
+  }
+  return { checked: pending.length, completed };
 }
 
 // Effets qui suivent la signature, une seule fois (appel qui a terminé la
@@ -1575,6 +1626,7 @@ const _contractCheck: QuotesServiceContract = {
   updateQuoteSettings,
   createQuote,
   listEventQuotes,
+  listQuotes,
   getQuote,
   addQuoteLine,
   updateQuoteLine,
@@ -1595,6 +1647,7 @@ const _contractCheck: QuotesServiceContract = {
   isSignatureAvailable,
   sendQuoteForSignature,
   handleSignatureWebhook,
+  reconcilePendingSignatures,
   getSignatureDocumentUrl,
   listClientQuotesToSign,
   setQuoteClientKind,

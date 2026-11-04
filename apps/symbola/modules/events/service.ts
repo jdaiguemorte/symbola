@@ -50,6 +50,7 @@ import {
   findEventById,
   findEvents,
   findEventTasks,
+  findOrganizationTasks,
   findEventVendorSlots,
   findLossReasons,
   findProspectSources,
@@ -116,6 +117,8 @@ import type {
   TaskTemplateItem,
   TaskTemplateItemInput,
   UpdateEventTaskInput,
+  ListOrganizationTasksInput,
+  OrganizationTask,
   UpdateEventVendorSlotInput,
   VendorSlotProgress,
   VendorSlotStatus,
@@ -252,6 +255,38 @@ export async function createLossReason(
 ): Promise<LossReason> {
   const row = await insertLossReason(organizationId, label, isFreeText);
   return { id: row.id, label: row.label, isFreeText: row.isFreeText };
+}
+
+// EVT-07 — ajout en lot (listes de départ, ONB-01) : les libellés déjà
+// présents, à la casse et aux espaces près, ne sont pas dupliqués. Renvoie
+// le nombre d'entrées ajoutées.
+function normalizedLabel(label: string): string {
+  return label.trim().toLocaleLowerCase("fr");
+}
+
+export async function addProspectSources(organizationId: string, labels: string[]): Promise<number> {
+  const existing = new Set((await findProspectSources(organizationId)).map((row) => normalizedLabel(row.label)));
+  let added = 0;
+  for (const label of labels.map((value) => value.trim()).filter(Boolean)) {
+    if (existing.has(normalizedLabel(label))) continue;
+    await insertProspectSource(organizationId, label);
+    existing.add(normalizedLabel(label));
+    added += 1;
+  }
+  return added;
+}
+
+export async function addLossReasons(organizationId: string, reasons: { label: string; isFreeText: boolean }[]): Promise<number> {
+  const existing = new Set((await findLossReasons(organizationId)).map((row) => normalizedLabel(row.label)));
+  let added = 0;
+  for (const reason of reasons) {
+    const label = reason.label.trim();
+    if (!label || existing.has(normalizedLabel(label))) continue;
+    await insertLossReason(organizationId, label, reason.isFreeText);
+    existing.add(normalizedLabel(label));
+    added += 1;
+  }
+  return added;
 }
 
 // EVT-03 — postes prestataires.
@@ -506,6 +541,38 @@ export async function applyTaskTemplate(organizationId: string, eventId: string,
 
 export async function listEventTasks(organizationId: string, eventId: string): Promise<EventTask[]> {
   return (await findEventTasks(organizationId, eventId)).map(toEventTask);
+}
+
+// Noms affichés d'un événement : prénoms des mariés (« Inès & Sacha »).
+export function eventNames(clients: { firstName: string }[]): string {
+  return clients.map((client) => client.firstName).join(" & ");
+}
+
+// HUB-02 — tâches de toute l'organisation (accueil, écran Tâches), triées
+// par échéance, avec le nom de leur événement.
+export async function listOrganizationTasks(input: ListOrganizationTasksInput): Promise<OrganizationTask[]> {
+  assertDate(input.today);
+  let until: string | null = null;
+  if (input.horizonDays !== null) {
+    const limit = new Date(`${input.today}T00:00:00Z`);
+    limit.setUTCDate(limit.getUTCDate() + input.horizonDays);
+    until = limit.toISOString().slice(0, 10);
+  }
+  const rows = await findOrganizationTasks(input.organizationId, { until, includeDone: input.includeDone ?? false });
+  if (rows.length === 0) return [];
+  const eventsById = new Map((await listEvents({ organizationId: input.organizationId })).map((event) => [event.id, event]));
+  return rows.flatMap((row) => {
+    const event = eventsById.get(row.eventId);
+    if (!event) return [];
+    const task = toEventTask(row);
+    return [
+      {
+        ...task,
+        overdue: !task.done && task.dueDate < input.today,
+        event: { id: event.id, names: eventNames(event.clients), eventDate: event.eventDate, status: event.status, isDemo: event.isDemo },
+      },
+    ];
+  });
 }
 
 export async function addEventTask(organizationId: string, eventId: string, task: EventTaskInput): Promise<EventTask> {
@@ -1043,6 +1110,9 @@ const _contractCheck: EventsServiceContract = {
   listDefaultVendorSlots,
   addDefaultVendorSlots,
   removeDefaultVendorSlot,
+  addProspectSources,
+  addLossReasons,
+  listOrganizationTasks,
   listEventVendorSlots,
   addEventVendorSlot,
   updateEventVendorSlot,

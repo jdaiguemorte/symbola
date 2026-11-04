@@ -1,9 +1,9 @@
-// DEV-02, ADR 0021 — choix du fournisseur de signature. Un devis d'essai
+// DEV-02, ADR 0026 — choix du fournisseur de signature. Un devis d'essai
 // (ADR 0008) utilise toujours le faux fournisseur : aucun e-mail ni aucune
 // soumission chez un tiers pour des données fictives.
 import { randomBytes } from "node:crypto";
 import { parseEnv, signatureProviderOf } from "@symbola/env";
-import { DocusealSignatureProvider } from "./docuseal";
+import { DocumensoSignatureProvider } from "./documenso";
 import { FakeSignatureProvider } from "./fake";
 import type { SignatureProvider } from "./provider";
 
@@ -28,7 +28,7 @@ export function fakeSignatureProvider(): FakeSignatureProvider {
 }
 
 // Fournisseur des devis réels : null quand la signature n'est pas
-// configurée (production sans DocuSeal) — l'écran l'affiche
+// configurée (production sans Documenso) — l'écran l'affiche
 // « indisponible », sans erreur (CLAUDE.md §2.3).
 export function realSignatureProvider(): SignatureProvider | null {
   const state = holder();
@@ -37,10 +37,9 @@ export function realSignatureProvider(): SignatureProvider | null {
   const kind = signatureProviderOf(env);
   if (kind === "none") return null;
   if (kind === "fake") return fakeSignatureProvider();
-  return new DocusealSignatureProvider({
-    apiUrl: env.DOCUSEAL_API_URL,
-    apiKey: env.DOCUSEAL_API_KEY,
-    publicUrl: env.DOCUSEAL_PUBLIC_URL,
+  return new DocumensoSignatureProvider({
+    apiUrl: env.DOCUMENSO_API_URL,
+    apiKey: env.DOCUMENSO_API_KEY,
     webhookHeader: env.SIGNATURE_WEBHOOK_HEADER,
     webhookSecret: env.SIGNATURE_WEBHOOK_SECRET,
   });

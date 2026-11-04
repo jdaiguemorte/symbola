@@ -23,8 +23,8 @@ la planner (un ordinateur **et** un téléphone), une heure de bascule.
       `pnpm --filter @symbola/db migrate` — elles vont jusqu'à **0057** (lots 5 et 6 : 0043 → 0057).
 - [ ] `https://staging.<domaine>/health` répond `ok` (base, stockage, antivirus).
 - [ ] En-têtes de sécurité présents (`deploiement.md`, commande `curl -sI`).
-- [ ] Signature : DocuSeal en service sur le staging (`deploiement.md` § DocuSeal),
-      `SIGNATURE_PROVIDER=docuseal`, webhook testé (un appel sans signature est rejeté).
+- [ ] Signature : Documenso en service sur le staging (`deploiement.md` § Signature),
+      `SIGNATURE_PROVIDER=documenso`, webhook testé (un appel sans secret est rejeté).
 - [ ] E-mails : `SMTP_*` renseignés ; un e-mail de test reçu (invitation d'un collaborateur).
       **Jamais d'adresse réelle de marié sur le staging** : utiliser des adresses de test.
 - [ ] Compte Admin : `/admin/parametres` renseigné — seuils de franchise de TVA (valeurs de
@@ -93,7 +93,7 @@ le parcours se déroule sans aide ; sinon noter l'écart.
 
 - [ ] Catalogue : articles, modes de paiement ; devis composé, remise, TVA selon le régime.
 - [ ] PDF du devis relu par la planner (mentions, logo, totaux).
-- [ ] Signature en ligne via DocuSeal par un « marié » de test ; événement confirmé
+- [ ] Signature en ligne via Documenso par un « marié » de test ; événement confirmé
       automatiquement ; e-mail de notification reçu.
 - [ ] Échéancier d'acomptes, paiement enregistré, encaissements à venir au tableau de bord.
 - [ ] Facture d'acompte puis de solde : numérotation continue, PDF conforme ; avoir sur une
@@ -147,7 +147,7 @@ Tous doivent être remplis :
 1. [ ] Sauvegarde manuelle de la production (si elle existe déjà).
 2. [ ] Déploiement de la production avec **le même SHA** que le staging recetté
        (`deploiement.md`), migrations appliquées avant le redémarrage.
-3. [ ] DocuSeal de production (`signature.<domaine>`), clé et webhook ; `SIGNATURE_PROVIDER=docuseal`.
+3. [ ] Documenso de production (`signature.<domaine>`), clé et webhook ; `SIGNATURE_PROVIDER=documenso`.
 4. [ ] `/health` OK ; en-têtes de sécurité ; isolation staging ↔ production vérifiée
        (`deploiement.md` § isolation).
 5. [ ] Compte Admin, paramètres de la plateforme (section 1), compte de la planner avec MFA.

@@ -8,6 +8,7 @@ import { createAppConnection } from "@symbola/db/client";
 import { createOrganization, createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import * as OTPAuth from "otpauth";
+import { openEventTab } from "./helpers";
 import { saveOnboardingStep } from "../modules/hub/service";
 
 async function loginAndSetupMfa(page: Page, email: string, password: string) {
@@ -69,6 +70,7 @@ test("DEV-03 — échéancier, encaissements à venir, retard et paiement", asyn
   await page.getByRole("button", { name: "Créer le prospect" }).click();
   await expect(page.getByRole("heading", { name: "Lou" })).toBeVisible();
   await page.waitForLoadState("networkidle");
+  await openEventTab(page, "Devis");
   await page.getByRole("button", { name: "Créer un devis" }).click();
   await expect(page).toHaveURL(/\/devis\/[0-9a-f-]{36}$/);
   const quoteUrl = page.url();

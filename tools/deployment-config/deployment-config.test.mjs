@@ -128,13 +128,15 @@ describe("SOC-09 — Isolation staging ↔ production sur le même VPS (ADR 0016
   });
 });
 
-describe("DEV-02 — DocuSeal dans le compose d'environnement (ADR 0021)", () => {
-  const block = () => serviceBlock(prodCompose, "docuseal");
+describe("DEV-02 — Documenso dans le compose d'environnement (ADR 0026)", () => {
+  const block = () => serviceBlock(prodCompose, "documenso");
   const devCompose = readFileSync(resolve(repoRoot, "infra/compose/docker-compose.dev.yml"), "utf8");
 
-  it("épingle l'image docuseal/docuseal sur une version précise, en dev comme en environnement", () => {
-    expect(block()).toMatch(/image: docuseal\/docuseal:\d+\.\d+\.\d+\n/);
-    expect(serviceBlock(devCompose, "docuseal")).toMatch(/image: docuseal\/docuseal:\d+\.\d+\.\d+\n/);
+  it("épingle l'image documenso/documenso sur une version précise, en dev comme en environnement", () => {
+    expect(block()).toMatch(/image: documenso\/documenso:\d+\.\d+\.\d+\n/);
+    expect(serviceBlock(devCompose, "documenso")).toMatch(/image: documenso\/documenso:\d+\.\d+\.\d+\n/);
+    expect(prodCompose).not.toMatch(/docuseal/i);
+    expect(devCompose).not.toMatch(/docuseal/i);
   });
 
   it("ne démarre que dans le profil « signature », activé explicitement par Julien", () => {
@@ -142,26 +144,50 @@ describe("DEV-02 — DocuSeal dans le compose d'environnement (ADR 0021)", () =>
     for (const name of ["staging", "production"]) expect(envValue(envExample(name), "COMPOSE_PROFILES")).toBe("");
   });
 
-  it("utilise sa propre base, jamais celle de Symbola, et n'expose aucun port hôte", () => {
-    expect(block()).toMatch(/DATABASE_URL: postgresql:\/\/\$\{DOCUSEAL_DB_USER:-docuseal\}:.*@postgres:5432\/\$\{DOCUSEAL_DB_NAME:-docuseal\}/);
+  it("utilise sa propre base (fichiers compris), jamais celle de Symbola ni Garage, et n'expose aucun port hôte", () => {
+    expect(block()).toMatch(/NEXT_PRIVATE_DATABASE_URL: postgresql:\/\/\$\{DOCUMENSO_DB_USER:-documenso\}:.*@postgres:5432\/\$\{DOCUMENSO_DB_NAME:-documenso\}/);
+    expect(block()).toContain("NEXT_PUBLIC_UPLOAD_TRANSPORT: database");
     expect(block()).not.toContain("POSTGRES_DB");
+    expect(block()).not.toMatch(/S3_|garage/);
     expect(block()).not.toMatch(/\n {4}ports:/);
+    expect(block()).not.toMatch(/\n {4}volumes:/);
     expect(block()).toContain("no-new-privileges:true");
-    expect(prodCompose).toMatch(/\n {2}docuseal_data:/);
+  });
+
+  it("ferme les inscriptions publiques par défaut et coupe la télémétrie", () => {
+    expect(block()).toContain("NEXT_PUBLIC_DISABLE_SIGNUP: ${DOCUMENSO_DISABLE_SIGNUP:-true}");
+    expect(block()).toContain('DOCUMENSO_DISABLE_TELEMETRY: "true"');
+    for (const name of ["staging", "production"]) expect(envValue(envExample(name), "DOCUMENSO_DISABLE_SIGNUP")).toBe("true");
+  });
+
+  it("l'app appelle l'API v2 interne et reçoit le secret du webhook dans l'en-tête de Documenso", () => {
+    const app = serviceBlock(prodCompose, "symbola");
+    expect(app).toContain("DOCUMENSO_API_URL: http://documenso:3000/api/v2");
+    expect(app).toContain("SIGNATURE_WEBHOOK_HEADER: X-Documenso-Secret");
   });
 
   it("limite sa mémoire et son CPU, staging jamais au-dessus de la production", () => {
-    expect(block()).toMatch(/memory:\s*\$\{DOCUSEAL_MEM_LIMIT:-/);
-    expect(block()).toMatch(/cpus:\s*\$\{DOCUSEAL_CPUS:-/);
+    expect(block()).toMatch(/memory:\s*\$\{DOCUMENSO_MEM_LIMIT:-/);
+    expect(block()).toMatch(/cpus:\s*\$\{DOCUMENSO_CPUS:-/);
     const [staging, production] = [envExample("staging"), envExample("production")];
-    expect(toBytes(envValue(staging, "DOCUSEAL_MEM_LIMIT"))).toBeLessThanOrEqual(toBytes(envValue(production, "DOCUSEAL_MEM_LIMIT")));
-    expect(Number(envValue(staging, "DOCUSEAL_CPUS"))).toBeLessThanOrEqual(Number(envValue(production, "DOCUSEAL_CPUS")));
+    expect(toBytes(envValue(staging, "DOCUMENSO_MEM_LIMIT"))).toBeLessThanOrEqual(toBytes(envValue(production, "DOCUMENSO_MEM_LIMIT")));
+    expect(Number(envValue(staging, "DOCUMENSO_CPUS"))).toBeLessThanOrEqual(Number(envValue(production, "DOCUMENSO_CPUS")));
   });
 
   it("laisse la signature « indisponible » tant qu'elle n'est pas configurée (aucun secret dans les modèles)", () => {
     for (const name of ["staging", "production"]) {
       const content = envExample(name);
-      for (const key of ["SIGNATURE_PROVIDER", "SIGNATURE_WEBHOOK_SECRET", "DOCUSEAL_API_KEY", "DOCUSEAL_DB_PASSWORD"]) {
+      for (const key of [
+        "SIGNATURE_PROVIDER",
+        "SIGNATURE_WEBHOOK_SECRET",
+        "DOCUMENSO_API_KEY",
+        "DOCUMENSO_DB_PASSWORD",
+        "DOCUMENSO_NEXTAUTH_SECRET",
+        "DOCUMENSO_ENCRYPTION_KEY",
+        "DOCUMENSO_ENCRYPTION_SECONDARY_KEY",
+        "DOCUMENSO_SIGNING_CERT_BASE64",
+        "DOCUMENSO_SIGNING_PASSPHRASE",
+      ]) {
         expect(envValue(content, key)).toBe("");
       }
     }

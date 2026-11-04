@@ -27,3 +27,4 @@ Un fichier par décision structurante, numéroté. Pour changer une décision : 
 - [0023 — RGPD : contrat `privacy/v1` révisé (fiches désignées) et orchestration par le hub](0023-rgpd-contrat-par-fiches-et-orchestration.md)
 - [0024 — RGPD : purge mensuelle et fin de conservation des factures](0024-rgpd-purge-mensuelle-et-fin-de-conservation-des-factures.md)
 - [0025 — Charte graphique et socle visuel (Tailwind CSS, structure d'écran)](0025-charte-graphique-et-socle-visuel.md)
+- [0026 — Signature en ligne : Documenso remplace DocuSeal](0026-signature-documenso.md)

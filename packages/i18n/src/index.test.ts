@@ -3,6 +3,7 @@ import {
   formatAmount,
   formatCalendarDate,
   formatDate,
+  parisToday,
   formatDateTime,
   formatFileSize,
   formatMonth,
@@ -100,5 +101,14 @@ describe("@symbola/i18n — parseAmountToCents (saisie en euros, CLAUDE.md §5)"
 
   it.each(["abc", "-50", "12,345,67", "1.2.3", "9999999999", "1,005"])("refuse « %s » (invalide, trop grand ou ambigu)", (input) => {
     expect(parseAmountToCents(input)).toBeUndefined();
+  });
+});
+
+describe("HUB-02 — Date du jour à Paris", () => {
+  it("suit l'heure de Paris, pas celle du serveur (UTC), y compris au passage à l'heure d'été", () => {
+    expect(parisToday(new Date("2026-11-03T22:59:00Z"))).toBe("2026-11-03");
+    expect(parisToday(new Date("2026-11-03T23:00:00Z"))).toBe("2026-11-04"); // minuit à Paris (UTC+1)
+    expect(parisToday(new Date("2027-03-27T22:30:00Z"))).toBe("2027-03-27"); // veille du passage à l'heure d'été
+    expect(parisToday(new Date("2027-03-28T22:00:00Z"))).toBe("2027-03-29"); // minuit à Paris (UTC+2)
   });
 });

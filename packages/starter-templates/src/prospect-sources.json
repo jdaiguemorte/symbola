@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "items": [
+    { "key": "instagram", "label": { "fr": "Instagram", "en": "Instagram" } },
+    { "key": "word_of_mouth", "label": { "fr": "Bouche-à-oreille", "en": "Word of mouth" } },
+    { "key": "wedding_fair", "label": { "fr": "Salon du mariage", "en": "Wedding fair" } },
+    { "key": "wedding_directory", "label": { "fr": "Site d'annonces de mariage", "en": "Wedding directory website" } },
+    { "key": "website", "label": { "fr": "Mon site internet", "en": "My website" } },
+    { "key": "vendor_referral", "label": { "fr": "Recommandation d'un prestataire", "en": "Vendor referral" } },
+    { "key": "former_client", "label": { "fr": "Ancien client", "en": "Former client" } }
+  ]
+}

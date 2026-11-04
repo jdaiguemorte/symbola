@@ -10,7 +10,7 @@ import { withOrganization } from "@symbola/db/with-organization";
 import { createOrganization, createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import * as OTPAuth from "otpauth";
-import { clickMenuLink } from "./helpers";
+import { openSettingsTab } from "./helpers";
 
 async function loginAndSetupMfa(page: Page, email: string, password: string) {
   await page.goto("/login");
@@ -58,7 +58,7 @@ test("RGPD-01 — la titulaire retrouve une personne et les données de son év�
   }
 
   await loginAndSetupMfa(page, ownerEmail, password);
-  await clickMenuLink(page, "Données personnelles (RGPD)");
+  await openSettingsTab(page, "Données personnelles (RGPD)");
   await expect(page.getByRole("heading", { name: "Données personnelles" })).toBeVisible();
   await expectNoAxeViolation(page);
 

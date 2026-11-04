@@ -4,27 +4,17 @@
 // du menu suivent les modules souscrits (dégradation propre, CLAUDE.md §2.3)
 // et le rôle ; ce sont ceux qu'affichait l'accueil jusqu'ici.
 import type { ReactNode } from "react";
-import {
-  CalendarHeart,
-  FileText,
-  House,
-  LifeBuoy,
-  PiggyBank,
-  Receipt,
-  Settings,
-  Shield,
-  ShieldCheck,
-  SlidersHorizontal,
-  Upload,
-  Wallet,
-} from "lucide-react";
+import { CalendarDays, CalendarHeart, FileText, LifeBuoy, ListChecks, Settings, Shield, Wallet } from "lucide-react";
 import { getTranslations } from "next-intl/server";
+import { parisToday } from "@symbola/i18n";
 import { createAppConnection } from "@symbola/db/client";
 import { isModuleEnabled } from "@/modules/hub/service";
+import { listOrganizationTasks } from "@/modules/events/service";
 import { getAuthContext } from "@/lib/auth-context";
 import { AppNavLink } from "./app-nav-link";
 import { AppSidebar } from "./app-sidebar";
 import { logoutAction } from "./logout-action";
+import { SettingsNav, type SettingsSection } from "./settings-nav";
 
 function Logo() {
   return (
@@ -103,6 +93,50 @@ export async function AppShell({ children }: { children: ReactNode }) {
   }
   const isOwner = auth.user.role === "owner" && Boolean(organizationId);
   const isAdmin = auth.user.role === "admin";
+  // Pastille « en retard » du menu Tâches (HUB-02).
+  const overdue =
+    events && organizationId
+      ? (await listOrganizationTasks({ organizationId, today: parisToday(), horizonDays: 0 })).filter((task) => task.overdue).length
+      : 0;
+
+  // Paramètres : un onglet par module souscrit (maquette validée).
+  const settingsSections: SettingsSection[] = organizationId
+    ? [
+        { href: "/parametres", label: t("settingsOrganization"), paths: ["/parametres"] },
+        ...(events
+          ? [
+              {
+                href: "/events/parametres",
+                label: t("events"),
+                paths: ["/events/parametres", "/events/modeles", "/events/modeles-programme"],
+                children: [
+                  { href: "/events/parametres", label: t("settingsEventsLists") },
+                  { href: "/events/modeles", label: t("settingsTaskTemplates") },
+                  { href: "/events/modeles-programme", label: t("settingsProgramTemplates") },
+                ],
+              },
+            ]
+          : []),
+        ...(budget ? [{ href: "/budget/parametres", label: t("budgetModels"), paths: ["/budget/parametres"] }] : []),
+        ...(quotes
+          ? [
+              {
+                href: "/devis/parametres",
+                label: t("navQuotesGroup"),
+                paths: ["/devis/parametres", "/devis/catalogue", "/devis/e-reporting"],
+                children: [
+                  { href: "/devis/parametres", label: t("quoteSettings") },
+                  { href: "/devis/catalogue", label: t("quoteCatalog") },
+                  { href: "/devis/e-reporting", label: t("eReporting") },
+                ],
+              },
+            ]
+          : []),
+        ...(events || budget || quotes ? [{ href: "/import", label: t("importData"), paths: ["/import"] }] : []),
+        ...(isOwner ? [{ href: "/rgpd", label: t("privacy"), paths: ["/rgpd"] }] : []),
+        { href: "/profil", label: t("myProfile"), paths: ["/profil"] },
+      ]
+    : [];
 
   return (
     <div className="app-shell">
@@ -111,35 +145,33 @@ export async function AppShell({ children }: { children: ReactNode }) {
           <ul className="app-nav">
             <li>
               <AppNavLink href="/">
-                <House {...iconProps} />
-                {t("home")}
+                <CalendarDays {...iconProps} />
+                {t("agenda")}
               </AppNavLink>
             </li>
             {events ? (
-              <li>
-                <AppNavLink href="/events">
-                  <CalendarHeart {...iconProps} />
-                  {t("events")}
-                </AppNavLink>
-              </li>
-            ) : null}
-            {budget ? (
-              <li>
-                <AppNavLink href="/budget/parametres">
-                  <PiggyBank {...iconProps} />
-                  {t("budgetModels")}
-                </AppNavLink>
-              </li>
+              <>
+                <li>
+                  <AppNavLink href="/events">
+                    <CalendarHeart {...iconProps} />
+                    {t("events")}
+                  </AppNavLink>
+                </li>
+                <li>
+                  <AppNavLink href="/taches">
+                    <ListChecks {...iconProps} />
+                    {t("tasks")}
+                    {overdue > 0 ? <span className="nav-count">{t("tasksOverdue", { count: overdue })}</span> : null}
+                  </AppNavLink>
+                </li>
+              </>
             ) : null}
             {quotes ? (
               <>
-                <li className="app-nav-group" aria-hidden="true">
-                  {t("navQuotesGroup")}
-                </li>
                 <li>
-                  <AppNavLink href="/devis/catalogue">
+                  <AppNavLink href="/devis">
                     <FileText {...iconProps} />
-                    {t("quoteCatalog")}
+                    {t("navQuotesGroup")}
                   </AppNavLink>
                 </li>
                 <li>
@@ -148,38 +180,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
                     {t("quotePayments")}
                   </AppNavLink>
                 </li>
-                <li>
-                  <AppNavLink href="/devis/e-reporting">
-                    <Receipt {...iconProps} />
-                    {t("eReporting")}
-                  </AppNavLink>
-                </li>
-                <li>
-                  <AppNavLink href="/devis/parametres">
-                    <SlidersHorizontal {...iconProps} />
-                    {t("quoteSettings")}
-                  </AppNavLink>
-                </li>
               </>
-            ) : null}
-            <li className="app-nav-group" aria-hidden="true">
-              {t("navToolsGroup")}
-            </li>
-            {organizationId && (events || budget || quotes) ? (
-              <li>
-                <AppNavLink href="/import">
-                  <Upload {...iconProps} />
-                  {t("importData")}
-                </AppNavLink>
-              </li>
-            ) : null}
-            {isOwner ? (
-              <li>
-                <AppNavLink href="/rgpd">
-                  <ShieldCheck {...iconProps} />
-                  {t("privacy")}
-                </AppNavLink>
-              </li>
             ) : null}
             {isAdmin ? (
               <li>
@@ -189,9 +190,11 @@ export async function AppShell({ children }: { children: ReactNode }) {
                 </AppNavLink>
               </li>
             ) : null}
+          </ul>
+          <ul className="app-nav app-nav-secondary">
             {organizationId ? (
               <li>
-                <AppNavLink href="/parametres">
+                <AppNavLink href="/parametres" settings>
                   <Settings {...iconProps} />
                   {t("settings")}
                 </AppNavLink>
@@ -207,11 +210,13 @@ export async function AppShell({ children }: { children: ReactNode }) {
         </nav>
         <div className="app-user">
           <span>{t("connectedAs", { email: auth.user.email })}</span>
-          <AppNavLink href="/profil">{t("myProfile")}</AppNavLink>
           {logout}
         </div>
       </AppSidebar>
-      <div className="app-main">{children}</div>
+      <div className="app-main">
+        {settingsSections.length > 0 ? <SettingsNav sections={settingsSections} label={t("settingsSections")} subLabel={t("settingsSubSections")} /> : null}
+        {children}
+      </div>
     </div>
   );
 }

@@ -21,6 +21,7 @@ import {
   getQuoteSettings,
   listCatalogItems,
   listEventQuotes,
+  listQuotes,
   removeEventQuotesData,
   removeQuoteLine,
   reviseQuote,
@@ -319,3 +320,19 @@ describe("DEV-01 — Isolation entre organisations", () => {
     expect((await getQuote(other.organizationId, otherQuote.id)).current.lines[0]?.quantityMilli).toBe(1000);
   });
 });
+
+describe("DEV-01 — Liste de tous les devis (écran « Devis et factures »)", () => {
+  it("liste les devis de tous les événements de l'organisation, les plus récents d'abord, jamais ceux d'une autre", async () => {
+    const own = await setup();
+    const other = await setup();
+    const first = await createQuote({ organizationId: own.organizationId, eventId: own.eventId, createdByUserId: plannerId, now: NOW });
+    const second = await createQuote({ organizationId: own.organizationId, eventId: own.eventId, createdByUserId: plannerId, now: NOW });
+    await createQuote({ organizationId: other.organizationId, eventId: other.eventId, createdByUserId: plannerId, now: NOW });
+
+    const listed = await listQuotes(own.organizationId);
+    expect(listed.map((quote) => quote.id)).toEqual([second.id, first.id]);
+    expect(listed.every((quote) => quote.eventId === own.eventId)).toBe(true);
+    expect(await listQuotes(randomUUID())).toEqual([]);
+  });
+});
+

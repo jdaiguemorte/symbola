@@ -1,11 +1,11 @@
-// DEV-02 — « le faux fournisseur remplace DocuSeal sans changer le module
+// DEV-02 — « le faux fournisseur remplace le vrai sans changer le module
 // Devis » : la même suite s'exécute contre les deux implémentations ;
-// l'adaptateur DocuSeal y parle à un serveur HTTP simulé qui reproduit les
-// réponses de l'API (ADR 0021).
+// l'adaptateur Documenso y parle à un serveur HTTP simulé qui reproduit les
+// réponses de l'API v2 observées sur un vrai Documenso (ADR 0026).
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
 import type { AddressInfo } from "node:net";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { DocusealSignatureProvider } from "./docuseal";
+import { DocumensoSignatureProvider } from "./documenso";
 import { FakeSignatureProvider } from "./fake";
 import type { SignatureProvider } from "./provider";
 
@@ -24,15 +24,25 @@ type Driver = {
   wrongHeaders(): Headers;
 };
 
-// --- Serveur DocuSeal simulé ---
+// --- Serveur Documenso (API v2) simulé ---
 
-type SimSubmitter = { id: number; external_id: string; slug: string; status: string; completed_at: string | null; name: string; email: string; role: string };
-type SimSubmission = { id: number; status: string; submitters: SimSubmitter[]; pdfBase64: string };
+type SimRecipient = { id: number; name: string; email: string; signingOrder: number; signingStatus: string; signedAt: string | null; token: string };
+type SimField = { id: number; recipientId: number; type: string; page: number; positionX: number; positionY: number; width: number; height: number };
+type SimEnvelope = {
+  id: string;
+  externalId: string;
+  status: string;
+  distributed: boolean;
+  distributionMethod: string | undefined;
+  recipients: SimRecipient[];
+  fields: SimField[];
+  pdf: Buffer;
+};
 
-const API_KEY = "cle-api-de-test";
+const API_KEY = "api_cle-de-test";
 let server: Server;
 let baseUrl = "";
-const submissions = new Map<number, SimSubmission>();
+const envelopes = new Map<string, SimEnvelope>();
 let nextId = 100;
 
 function json(res: ServerResponse, status: number, body: unknown) {
@@ -40,62 +50,118 @@ function json(res: ServerResponse, status: number, body: unknown) {
   res.end(JSON.stringify(body));
 }
 
-async function readBody(req: IncomingMessage): Promise<string> {
+async function readBody(req: IncomingMessage): Promise<Buffer> {
   const chunks: Buffer[] = [];
   for await (const chunk of req) chunks.push(chunk as Buffer);
-  return Buffer.concat(chunks).toString("utf8");
+  return Buffer.concat(chunks);
+}
+
+function publicEnvelope(envelope: SimEnvelope) {
+  return {
+    id: envelope.id,
+    externalId: envelope.externalId,
+    status: envelope.status,
+    recipients: envelope.recipients.map(({ token: _token, ...recipient }) => recipient),
+    // Comme le vrai Documenso : positions et tailles renvoyées en texte.
+    fields: envelope.fields.map((field) => ({ ...field, positionX: String(field.positionX), positionY: String(field.positionY), width: String(field.width), height: String(field.height) })),
+    envelopeItems: [{ id: `${envelope.id}_item`, title: "devis.pdf" }],
+  };
 }
 
 beforeAll(async () => {
   server = createServer(async (req, res) => {
     const url = new URL(req.url ?? "/", "http://localhost");
-    if (url.pathname.startsWith("/files/")) {
-      res.writeHead(200, { "content-type": "application/pdf" });
-      res.end(PDF);
-      return;
-    }
-    if (req.headers["x-auth-token"] !== API_KEY) return json(res, 401, { error: "Not authenticated" });
-    if (req.method === "POST" && url.pathname === "/api/submissions/pdf") {
-      const body = JSON.parse(await readBody(req)) as {
-        send_email: boolean;
-        documents: { file: string }[];
-        submitters: { role: string; name: string; email: string; external_id: string; send_email: boolean }[];
+    if (req.headers.authorization !== API_KEY) return json(res, 401, { message: "Unauthorized" });
+
+    if (req.method === "POST" && url.pathname === "/api/v2/envelope/create") {
+      // multipart/form-data : « payload » (JSON) et « files » (le PDF).
+      const request = new Request("http://localhost", { method: "POST", headers: { "content-type": req.headers["content-type"]! }, body: new Uint8Array(await readBody(req)) });
+      const form = await request.formData();
+      const payload = JSON.parse(String(form.get("payload"))) as {
+        title: string;
+        type: string;
+        externalId: string;
+        recipients: { name: string; email: string; role: string; signingOrder: number }[];
+        meta?: { distributionMethod?: string; language?: string };
       };
-      // L'adaptateur ne doit jamais laisser DocuSeal envoyer les e-mails.
-      if (body.send_email !== false || body.submitters.some((s) => s.send_email !== false)) return json(res, 422, { error: "send_email" });
-      const id = nextId++;
-      const submission: SimSubmission = {
+      const file = form.get("files") as File;
+      const id = `envelope_${nextId++}`;
+      const recipients = payload.recipients.map((recipient, index) => ({
+        id: nextId * 10 + index,
+        name: recipient.name,
+        email: recipient.email,
+        signingOrder: recipient.signingOrder,
+        signingStatus: "NOT_SIGNED",
+        signedAt: null,
+        token: `jeton-${id}-${index}`,
+      }));
+      // Documenso place une zone par balise {{SIGNATURE, rN}} : ici, une par
+      // signataire, à la taille du texte de la balise (petite).
+      const fields = recipients.map((recipient, index) => ({
+        id: nextId * 100 + index,
+        recipientId: recipient.id,
+        type: "SIGNATURE",
+        page: 1,
+        positionX: 10 + index * 45,
+        positionY: 80,
+        width: 18,
+        height: 1.5,
+      }));
+      envelopes.set(id, {
         id,
-        status: "pending",
-        pdfBase64: body.documents[0]!.file,
-        submitters: body.submitters.map((s, index) => ({
-          id: id * 10 + index,
-          external_id: s.external_id,
-          slug: `slug-${id}-${index}`,
-          status: "sent",
-          completed_at: null,
-          name: s.name,
-          email: s.email,
-          role: s.role,
-        })),
-      };
-      submissions.set(id, submission);
-      return json(res, 200, { id, name: "x", status: "pending", submitters: submission.submitters });
+        externalId: payload.externalId,
+        status: "DRAFT",
+        distributed: false,
+        distributionMethod: payload.meta?.distributionMethod,
+        recipients,
+        fields,
+        pdf: Buffer.from(await file.arrayBuffer()),
+      });
+      return json(res, 200, { id });
     }
-    const match = /^\/api\/submissions\/(\d+)$/.exec(url.pathname);
-    if (req.method === "GET" && match) {
-      const submission = submissions.get(Number(match[1]));
-      if (!submission) return json(res, 404, { error: "Not found" });
-      const completed = submission.status === "completed";
+
+    const get = /^\/api\/v2\/envelope\/(envelope_\d+)$/.exec(url.pathname);
+    if (req.method === "GET" && get) {
+      const envelope = envelopes.get(get[1]!);
+      return envelope ? json(res, 200, publicEnvelope(envelope)) : json(res, 404, { message: "Not found" });
+    }
+
+    if (req.method === "POST" && url.pathname === "/api/v2/envelope/field/update-many") {
+      const body = JSON.parse((await readBody(req)).toString("utf8")) as { envelopeId: string; data: (Partial<SimField> & { id: number })[] };
+      const envelope = envelopes.get(body.envelopeId)!;
+      for (const update of body.data) Object.assign(envelope.fields.find((field) => field.id === update.id)!, update);
+      return json(res, 200, { data: envelope.fields });
+    }
+
+    if (req.method === "POST" && url.pathname === "/api/v2/envelope/distribute") {
+      const body = JSON.parse((await readBody(req)).toString("utf8")) as { envelopeId: string; meta?: { distributionMethod?: string } };
+      const envelope = envelopes.get(body.envelopeId)!;
+      envelope.distributed = true;
+      envelope.status = "PENDING";
+      envelope.distributionMethod = body.meta?.distributionMethod ?? envelope.distributionMethod;
       return json(res, 200, {
-        id: submission.id,
-        status: submission.status,
-        submitters: submission.submitters,
-        documents: completed ? [{ name: "devis", url: `${baseUrl}/files/${submission.id}/signed.pdf` }] : [],
-        audit_log_url: completed ? `${baseUrl}/files/${submission.id}/audit.pdf` : null,
+        success: true,
+        id: envelope.id,
+        recipients: envelope.recipients.map((recipient) => ({ ...recipient, signingUrl: `https://signature.example.test/sign/${recipient.token}` })),
       });
     }
-    json(res, 404, { error: "Not found" });
+
+    const item = /^\/api\/v2\/envelope\/item\/(envelope_\d+)_item\/download$/.exec(url.pathname);
+    if (req.method === "GET" && item) {
+      const envelope = envelopes.get(item[1]!)!;
+      if (url.searchParams.get("version") !== "signed" || envelope.status !== "COMPLETED") return json(res, 400, { message: "not completed" });
+      res.writeHead(200, { "content-type": "application/pdf" });
+      return res.end(envelope.pdf);
+    }
+
+    const certificate = /^\/api\/v2\/envelope\/(envelope_\d+)\/certificate\/download$/.exec(url.pathname);
+    if (req.method === "GET" && certificate) {
+      const envelope = envelopes.get(certificate[1]!)!;
+      if (envelope.status !== "COMPLETED") return json(res, 400, { message: "not completed" });
+      res.writeHead(200, { "content-type": "application/pdf" });
+      return res.end(PDF);
+    }
+    json(res, 404, { message: "Not found" });
   });
   await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
   baseUrl = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
@@ -105,31 +171,37 @@ afterAll(async () => {
   await new Promise<void>((resolve) => server.close(() => resolve()));
 });
 
-function docusealDriver(): Driver {
-  const provider = new DocusealSignatureProvider({
-    apiUrl: `${baseUrl}/api`,
-    apiKey: API_KEY,
-    publicUrl: "https://signature.example.test",
-    webhookHeader: "X-Symbola-Webhook-Secret",
+function documensoProvider(apiKey = API_KEY) {
+  return new DocumensoSignatureProvider({
+    apiUrl: `${baseUrl}/api/v2`,
+    apiKey,
+    webhookHeader: "X-Documenso-Secret",
     webhookSecret: "secret-du-webhook",
   });
+}
+
+function documensoDriver(): Driver {
+  const provider = documensoProvider();
   return {
     provider,
     async act(requestId, signerExternalId, action) {
-      const submission = submissions.get(Number(requestId))!;
-      const submitter = submission.submitters.find((s) => s.external_id === signerExternalId)!;
-      submitter.status = action === "sign" ? "completed" : "declined";
-      submitter.completed_at = action === "sign" ? new Date().toISOString() : null;
-      if (action === "decline") submission.status = "declined";
-      else if (submission.submitters.every((s) => s.status === "completed")) submission.status = "completed";
+      const envelope = envelopes.get(requestId)!;
+      const index = SIGNERS.findIndex((signer) => signer.externalId === signerExternalId);
+      const recipient = envelope.recipients.find((candidate) => candidate.signingOrder === index + 1)!;
+      recipient.signingStatus = action === "sign" ? "SIGNED" : "REJECTED";
+      recipient.signedAt = action === "sign" ? new Date().toISOString() : null;
+      if (action === "decline") envelope.status = "REJECTED";
+      else if (envelope.recipients.every((candidate) => candidate.signingStatus === "SIGNED")) envelope.status = "COMPLETED";
+      // Corps réel d'un webhook Documenso (relevé sur un vrai serveur).
       return JSON.stringify({
-        event_type: action === "sign" ? "form.completed" : "form.declined",
-        timestamp: new Date().toISOString(),
-        data: { id: submitter.id, submission_id: submission.id, external_id: submitter.external_id, email: submitter.email },
+        event: action === "sign" ? (envelope.status === "COMPLETED" ? "DOCUMENT_COMPLETED" : "DOCUMENT_SIGNED") : "DOCUMENT_REJECTED",
+        payload: { id: 2, envelopeId: envelope.id, externalId: envelope.externalId, status: envelope.status, recipients: envelope.recipients },
+        createdAt: new Date().toISOString(),
+        webhookEndpoint: "https://symbola.example.test/api/webhooks/signature",
       });
     },
-    validHeaders: () => new Headers({ "X-Symbola-Webhook-Secret": "secret-du-webhook" }),
-    wrongHeaders: () => new Headers({ "X-Symbola-Webhook-Secret": "secret-du-webhooK" }),
+    validHeaders: () => new Headers({ "X-Documenso-Secret": "secret-du-webhook" }),
+    wrongHeaders: () => new Headers({ "X-Documenso-Secret": "secret-du-webhooK" }),
   };
 }
 
@@ -147,7 +219,7 @@ function fakeDriver(): Driver {
 
 describe.each([
   ["faux fournisseur", fakeDriver],
-  ["adaptateur DocuSeal (serveur HTTP simulé)", docusealDriver],
+  ["adaptateur Documenso (serveur HTTP simulé)", documensoDriver],
 ])("DEV-02 — Contrat SignatureProvider : %s", (_name, makeDriver) => {
   it("crée une demande avec un lien personnel par signataire", async () => {
     const { provider } = makeDriver();
@@ -163,7 +235,10 @@ describe.each([
     await driver.act(created.externalId, "org.signer-1", "sign");
     let state = await driver.provider.getRequest(created.externalId);
     expect(state.status).toBe("pending");
-    expect(state.signers.map((signer) => signer.status)).toEqual(["signed", "pending"]);
+    expect(state.signers.map((signer) => [signer.externalId, signer.status])).toEqual([
+      ["org.signer-1", "signed"],
+      ["org.signer-2", "pending"],
+    ]);
     await expect(driver.provider.downloadDocuments(created.externalId)).rejects.toThrow();
 
     await driver.act(created.externalId, "org.signer-2", "sign");
@@ -179,7 +254,9 @@ describe.each([
     const driver = makeDriver();
     const created = await driver.provider.createRequest({ title: "D-2027-0003 V1", pdf: PDF, signers: SIGNERS });
     await driver.act(created.externalId, "org.signer-2", "decline");
-    expect((await driver.provider.getRequest(created.externalId)).status).toBe("declined");
+    const state = await driver.provider.getRequest(created.externalId);
+    expect(state.status).toBe("declined");
+    expect(state.signers.find((signer) => signer.externalId === "org.signer-2")?.status).toBe("declined");
   });
 
   it("authentifie le webhook par son secret ; sans secret ou avec un secret faux, il est rejeté", async () => {
@@ -187,38 +264,58 @@ describe.each([
     const created = await driver.provider.createRequest({ title: "D-2027-0004 V1", pdf: PDF, signers: SIGNERS });
     const body = await driver.act(created.externalId, "org.signer-1", "sign");
 
-    expect(driver.provider.authenticateWebhook(driver.validHeaders(), body)).toEqual({
-      ok: true,
-      eventType: "form.completed",
-      requestExternalId: created.externalId,
-      signerExternalIds: ["org.signer-1"],
-    });
+    const authenticated = driver.provider.authenticateWebhook(driver.validHeaders(), body);
+    expect(authenticated).toMatchObject({ ok: true, requestExternalId: created.externalId });
+    expect(authenticated.ok && authenticated.signerExternalIds).toEqual(expect.arrayContaining(["org.signer-1"]));
     expect(driver.provider.authenticateWebhook(driver.wrongHeaders(), body)).toEqual({ ok: false, reason: "invalid_secret" });
     expect(driver.provider.authenticateWebhook(new Headers(), body)).toEqual({ ok: false, reason: "missing_secret" });
     expect(driver.provider.authenticateWebhook(driver.validHeaders(), "pas du json")).toEqual({ ok: false, reason: "invalid_payload" });
   });
 });
 
-describe("DEV-02 — Adaptateur DocuSeal : appels à l'API", () => {
-  it("envoie le PDF en base64, désactive les e-mails de DocuSeal et construit les liens publics", async () => {
-    const { provider } = docusealDriver();
+describe("DEV-02 — Adaptateur Documenso : appels à l'API (ADR 0026)", () => {
+  it("envoie le PDF tel quel, ne laisse jamais Documenso envoyer d'e-mail et renvoie ses liens de signature", async () => {
+    const provider = documensoProvider();
     const created = await provider.createRequest({ title: "D-2027-0005 V1", pdf: PDF, signers: SIGNERS });
-    const submission = submissions.get(Number(created.externalId))!;
-    expect(Buffer.from(submission.pdfBase64, "base64").equals(PDF)).toBe(true);
-    expect(created.signers[0]?.signingUrl).toMatch(/^https:\/\/signature\.example\.test\/s\/slug-\d+-0$/);
+    const envelope = envelopes.get(created.externalId)!;
+    expect(envelope.pdf.equals(PDF)).toBe(true);
+    expect(envelope.distributed).toBe(true);
+    expect(envelope.distributionMethod).toBe("NONE");
+    expect(envelope.recipients.map((recipient) => [recipient.email, recipient.signingOrder])).toEqual([
+      ["ines@example.test", 1],
+      ["sacha@example.test", 2],
+    ]);
+    expect(created.signers[0]?.signingUrl).toBe(`https://signature.example.test/sign/jeton-${created.externalId}-0`);
+  });
+
+  it("agrandit les zones de signature placées à la taille du texte des balises", async () => {
+    const provider = documensoProvider();
+    const created = await provider.createRequest({ title: "D-2027-0006 V1", pdf: PDF, signers: SIGNERS });
+    for (const field of envelopes.get(created.externalId)!.fields) {
+      expect(field.height).toBeGreaterThanOrEqual(5);
+      expect(field.width).toBeGreaterThanOrEqual(25);
+    }
+  });
+
+  it("refuse des signataires d'organisations différentes dans une même demande", async () => {
+    const provider = documensoProvider();
+    await expect(
+      provider.createRequest({ title: "x", pdf: PDF, signers: [SIGNERS[0]!, { ...SIGNERS[1]!, externalId: "autre.signer-2" }] }),
+    ).rejects.toThrow(/organisation/);
+  });
+
+  it("un webhook d'une enveloppe sans identifiant Symbola est refusé comme invalide", () => {
+    const provider = documensoProvider();
+    const body = JSON.stringify({ event: "DOCUMENT_COMPLETED", payload: { id: 9, envelopeId: "envelope_9", externalId: null } });
+    expect(provider.authenticateWebhook(new Headers({ "X-Documenso-Secret": "secret-du-webhook" }), body)).toEqual({ ok: false, reason: "invalid_payload" });
   });
 
   it("une clé d'API refusée remonte une erreur sans donnée personnelle", async () => {
-    const provider = new DocusealSignatureProvider({
-      apiUrl: `${baseUrl}/api`,
-      apiKey: "mauvaise-cle",
-      publicUrl: "https://signature.example.test",
-      webhookHeader: "X-Symbola-Webhook-Secret",
-      webhookSecret: "secret",
-    });
-    const error = await provider.createRequest({ title: "x", pdf: PDF, signers: SIGNERS }).catch((caught: Error) => caught);
+    const error = await documensoProvider("mauvaise-cle")
+      .createRequest({ title: "x", pdf: PDF, signers: SIGNERS })
+      .catch((caught: Error) => caught);
     expect(error).toBeInstanceOf(Error);
-    expect((error as Error).message).toBe("DocuSeal POST /submissions/pdf : HTTP 401");
+    expect((error as Error).message).toBe("Documenso POST /envelope/create : HTTP 401");
     expect((error as Error).message).not.toContain("ines@");
   });
 });

@@ -45,6 +45,8 @@ export async function SignatureSection({
             </li>
           ))}
         </ul>
+        {/* Filet de sécurité : un e-mail non reçu (spam, panne d'envoi) ne bloque pas la signature. */}
+        {signature.status === "pending" ? <p>{t("signingLinksHint")}</p> : null}
         {signature.hasSignedDocument ? (
           <p>
             <a href={`/devis/${quote.id}/signature/signed`}>{t("downloadSignedDocument")}</a> —{" "}

@@ -16,6 +16,7 @@ import { purgeOrganizationsDemoData } from "@/lib/demo-purge";
 import { ModuleTourAndHelp } from "../module-tour";
 import { isEventsModuleEnabled } from "./module-access";
 import { startTrialAction } from "./trial-actions";
+import { EVENT_STATUS_CLASSES, STATUS_LABEL_KEYS } from "./event-status";
 
 const UPCOMING_STATUSES: EventStatus[] = [
   "prospect",
@@ -23,23 +24,6 @@ const UPCOMING_STATUSES: EventStatus[] = [
   "confirmed",
 ];
 const PAST_STATUSES: EventStatus[] = ["done", "lost"];
-
-// Pastilles de statut de la charte (globals.css) : le libellé reste affiché.
-const EVENT_STATUS_CLASSES: Record<EventStatus, string> = {
-  prospect: "badge badge-bleu",
-  quote_sent: "badge badge-ambre",
-  confirmed: "badge badge-sauge",
-  done: "badge",
-  lost: "badge badge-terracotta",
-};
-
-const STATUS_LABEL_KEYS: Record<EventStatus, string> = {
-  prospect: "statusProspect",
-  quote_sent: "statusQuoteSent",
-  confirmed: "statusConfirmed",
-  done: "statusDone",
-  lost: "statusLost",
-};
 
 export default async function EventsListPage({
   searchParams,

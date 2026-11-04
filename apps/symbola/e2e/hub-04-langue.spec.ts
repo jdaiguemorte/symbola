@@ -8,7 +8,7 @@ import { createAppConnection } from "@symbola/db/client";
 import { createOrganization, createUser } from "@symbola/auth";
 import { expect, test } from "@playwright/test";
 import * as OTPAuth from "otpauth";
-import { clickMenuLink, openMenu } from "./helpers";
+import { openMenu, openSettingsTab } from "./helpers";
 
 test.describe("HUB-04 — Langue par défaut du navigateur", () => {
   test.use({ locale: "en-US" });
@@ -49,7 +49,7 @@ test("HUB-04-02 — choisir une langue dans le profil s'applique à toute l'app"
   await expect(page.getByRole("button", { name: "Se déconnecter" })).toBeVisible();
 
   // Passe en anglais depuis le profil.
-  await clickMenuLink(page, "Mon profil");
+  await openSettingsTab(page, "Mon profil");
   await expect(page.getByRole("heading", { name: "Mon profil" })).toBeVisible();
   const violations = await new AxeBuilder({ page }).analyze();
   expect(violations.violations, JSON.stringify(violations.violations, null, 2)).toEqual([]);

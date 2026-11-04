@@ -10,6 +10,7 @@ import {
   QuoteVatRegimeRequiredError,
   QuoteVersionLockedError,
   SignatureAlreadyRequestedError,
+  SignatureLinksNotMailedError,
   SignatureUnavailableError,
   getQuote,
   sendQuote,
@@ -70,7 +71,16 @@ export async function sendForSignatureAction(_prevState: QuoteFormState, formDat
     if (error instanceof QuoteScheduleExceedsTotalError) return { error: t("scheduleExceedsTotal") };
     if (error instanceof QuoteVatRegimeRequiredError) return { error: t("vatRegimeRequired"), vatRegimeRequired: true };
     if (error instanceof RangeError) return { error: t("invalidSigners") };
-    throw error;
+    // La demande est enregistrée ; ses liens sont sur le devis (signingLinksHint).
+    if (error instanceof SignatureLinksNotMailedError) {
+      revalidatePath(`/devis/${quoteId}`);
+      return { error: t("signatureLinksNotMailed", { count: error.count }) };
+    }
+    // Service de signature injoignable ou en erreur : message clair, jamais
+    // une page d'erreur (CLAUDE.md §2.3). Nom et message seulement au journal
+    // (l'adaptateur n'y met aucune donnée personnelle).
+    console.error("envoi en signature échoué", error instanceof Error ? `${error.name}: ${error.message}` : error);
+    return { error: t("signatureServiceDown") };
   }
   revalidatePath(`/devis/${quoteId}`);
   return { success: true };

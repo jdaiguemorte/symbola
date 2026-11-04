@@ -1,6 +1,6 @@
 # ADR 0006 — Signature électronique : DocuSeal derrière une interface
 
-- Statut : accepté
+- Statut : accepté — fournisseur remplacé par Documenso ([0026](0026-signature-documenso.md)), l'interface reste
 - Date : 2026-10-25
 
 ## Contexte

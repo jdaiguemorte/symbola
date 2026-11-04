@@ -8,6 +8,7 @@ import { getPrivacyErasure, PrivacyErasureNotFoundError, type PrivacyErasureView
 import { ownerContext } from "../../../owner-access";
 import { buildErasureProof } from "../../proof";
 import { ProofPdfDocument } from "../../proof-pdf";
+import { pdfSafe } from "@/lib/pdf-text";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }): Promise<Response> {
   const owner = await ownerContext();
@@ -25,7 +26,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     await sql.end();
   }
   const model = await buildErasureProof(owner.organizationId, erasure);
-  const pdf = await renderToBuffer(createElement(ProofPdfDocument, { model }) as unknown as ReactElement<DocumentProps>);
+  const pdf = await renderToBuffer(createElement(ProofPdfDocument, { model: pdfSafe(model) }) as unknown as ReactElement<DocumentProps>);
   return new Response(new Uint8Array(pdf), {
     headers: {
       "Content-Type": "application/pdf",

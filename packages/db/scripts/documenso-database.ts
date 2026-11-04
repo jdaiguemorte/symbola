@@ -1,11 +1,11 @@
-// DEV-02, ADR 0021 — base et rôle dédiés à DocuSeal sur le serveur
+// DEV-02, ADR 0026 — base et rôle dédiés à Documenso sur le serveur
 // PostgreSQL de l'environnement : jamais un schéma Symbola, aucun droit du
 // rôle applicatif symbola_app. Idempotent, exécuté par le bootstrap avec
 // le rôle admin (CREATE DATABASE ne peut pas s'exécuter en transaction).
 import type postgres from "postgres";
 import { quoteIdentifier, quoteLiteral } from "./sql-quoting";
 
-export async function ensureDocusealDatabase(
+export async function ensureDocumensoDatabase(
   sql: postgres.Sql,
   input: { role: string; password: string; database: string; appRole: string },
 ): Promise<void> {
@@ -25,7 +25,7 @@ export async function ensureDocusealDatabase(
   `;
   if (!databaseExists) await sql.unsafe(`CREATE DATABASE ${database} OWNER ${role}`);
 
-  // Personne d'autre que DocuSeal (et l'admin) ne s'y connecte.
+  // Personne d'autre que Documenso (et l'admin) ne s'y connecte.
   await sql.unsafe(`REVOKE ALL ON DATABASE ${database} FROM PUBLIC`);
   await sql.unsafe(`REVOKE ALL ON DATABASE ${database} FROM ${quoteIdentifier(input.appRole)}`);
 }
