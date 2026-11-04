@@ -29,7 +29,7 @@ Options examinées avec Julien :
 
 ## Décision
 
-**Documenso**, édition libre, image `documenso/documenso` épinglée (2.21.1), derrière l'interface
+**Documenso**, édition libre, image `documenso/documenso:v2.21.1` épinglée (les tags de Documenso portent le préfixe `v`), derrière l'interface
 `SignatureProvider` inchangée (`modules/quotes/signature/documenso.ts`). Vérifié avant d'écrire
 l'adaptateur sur un Documenso réel lancé en local, puis avec l'adaptateur lui-même et un vrai PDF
 de devis produit par Symbola :
