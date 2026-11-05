@@ -1114,3 +1114,9 @@
     @apply font-medium text-sauge-ink;
   }
 }
+
+@layer components {
+  .line-cell {
+    @apply inline-flex items-center gap-2;
+  }
+}

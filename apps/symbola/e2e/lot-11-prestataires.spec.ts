@@ -67,7 +67,7 @@ test("EVT-08 / EVT-09 — comparer deux devis pour un poste, retenir, et ce que 
   await acceptEventClientInvitation(invitation.invitationToken!, "mot-de-passe-du-client");
 
   await plannerLogin(page, planner.email, "mot-de-passe-presta");
-  await page.goto(`/events/${event.id}?onglet=prestataires&poste=${caterer.id}`);
+  await page.goto(`/events/${event.id}?onglet=budget&poste=${caterer.id}`);
   const candidates = page.getByRole("region", { name: "Prestataires consultés — Traiteur" });
   await expect(candidates.getByText("Aucun prestataire consulté pour l'instant.", { exact: false })).toBeVisible();
 

@@ -1,0 +1,1 @@
+ALTER TABLE "budget"."budget_lines" ALTER COLUMN "planned_amount_cents" DROP NOT NULL;

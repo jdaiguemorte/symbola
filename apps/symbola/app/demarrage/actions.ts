@@ -120,6 +120,7 @@ export async function updateBudgetLineAction(_prev: SetupFormState, formData: Fo
     throw error;
   }
   revalidatePath("/demarrage");
+  revalidatePath("/events/parametres");
   return { success: true };
 }
 

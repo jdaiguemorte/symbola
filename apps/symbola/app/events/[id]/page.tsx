@@ -61,6 +61,9 @@ import { EVENT_STATUS_CLASSES, STATUS_LABEL_KEYS } from "../event-status";
 import { removeVendorSlotAction } from "./vendor-slot-actions";
 import { AddVendorSlotForm, VendorSlotForm } from "./vendor-slot-forms";
 import { VendorCandidates } from "./vendor-candidates";
+import { BudgetLineIcon } from "@/app/budget-line-icon";
+import { isBudgetModuleEnabled } from "@/app/budget/module-access";
+import { PlannedAmountForm, SlotIconForm } from "./budget-line-forms";
 import { findVendors } from "@/modules/vendors/service";
 import { isVendorsModuleEnabled } from "@/app/prestataires/module-access";
 import {
@@ -77,7 +80,7 @@ const CLIENT_ACCESS_STATUS_KEYS = {
 
 // Onglets de la fiche (maquette validée) : un écran par sujet plutôt
 // qu'une longue page ; l'onglet actif est dans l'adresse (?onglet=).
-const TABS = ["apercu", "prestataires", "retroplanning", "programme", "devis", "maries"] as const;
+const TABS = ["apercu", "budget", "retroplanning", "programme", "devis", "maries"] as const;
 type Tab = (typeof TABS)[number];
 
 type SearchParams = { onglet?: string; poste?: string; tache?: string; vue?: string; qui?: string; filtre?: string; visite?: string };
@@ -177,9 +180,12 @@ export default async function EventDetailPage({
     : [];
   const tQuotes = await getTranslations("Quotes");
   const tCandidates = await getTranslations("VendorCandidates");
+  const tBudget = await getTranslations("Budget");
 
   const today = parisToday();
-  const tab: Tab = TABS.includes(query.onglet as Tab) && (query.onglet !== "devis" || quotesAvailable) ? (query.onglet as Tab) : "apercu";
+  // Lot 12 (EVT-17) : l'ancien onglet « prestataires » est devenu « budget ».
+  const asked = query.onglet === "prestataires" ? "budget" : query.onglet;
+  const tab: Tab = TABS.includes(asked as Tab) && (asked !== "devis" || quotesAvailable) ? (asked as Tab) : "apercu";
   const tabHref = (key: Tab, extra: Record<string, string> = {}) =>
     `/events/${event.id}?${new URLSearchParams({ onglet: key, ...extra }).toString()}`;
   const overdueCount = tasks.filter((task) => !task.done && task.dueDate < today).length;
@@ -189,9 +195,13 @@ export default async function EventDetailPage({
   const slotFilter = query.filtre === "a-pourvoir" ? "a-pourvoir" : "tous";
   const shownSlots = slotFilter === "a-pourvoir" ? toFind : vendorSlots;
   const selectedSlot = vendorSlots.find((slot) => slot.id === query.poste) ?? null;
+  // Lot 12 (EVT-17) : prévu et réel de chaque ligne, si le module Budget est souscrit.
+  const budgetAvailable = tab === "budget" ? await isBudgetModuleEnabled(organizationId) : false;
+  const budgetView = budgetAvailable ? await listBudgetLines(organizationId, id) : null;
+  const amountsOf = (slotId: string) => budgetView?.lines.find((line) => line.eventVendorSlotId === slotId) ?? null;
   // Lot 11 (EVT-08) : prestataires consultés, et le carnet s'il est souscrit.
-  const candidates = tab === "prestataires" ? await listVendorCandidates(organizationId, id) : [];
-  const vendorsAvailable = tab === "prestataires" ? await isVendorsModuleEnabled(organizationId) : false;
+  const candidates = tab === "budget" ? await listVendorCandidates(organizationId, id) : [];
+  const vendorsAvailable = tab === "budget" ? await isVendorsModuleEnabled(organizationId) : false;
   const bookOptions =
     selectedSlot && vendorsAvailable
       ? (await findVendors({ organizationId })).map((vendor) => ({ id: vendor.id, label: vendor.city ? `${vendor.name} — ${vendor.city}` : vendor.name }))
@@ -217,9 +227,9 @@ export default async function EventDetailPage({
 
   // AIDE-05 : visite focus de la fiche, à la première ouverture.
   const tour = await loadPageTour(auth.user.id, "event", query.visite);
-  const tabs: { key: Tab | "budget"; label: string; href: string; count?: string; alert?: boolean }[] = [
+  const tabs: { key: Tab; label: string; href: string; count?: string; alert?: boolean }[] = [
     { key: "apercu", label: t("tabOverview"), href: tabHref("apercu") },
-    { key: "prestataires", label: t("vendorSlotsTitle"), href: tabHref("prestataires"), count: `${progress.booked}/${progress.required}` },
+    { key: "budget", label: t("vendorSlotsTitle"), href: tabHref("budget"), count: `${progress.booked}/${progress.required}` },
     {
       key: "retroplanning",
       label: t("tasksTitle"),
@@ -227,7 +237,6 @@ export default async function EventDetailPage({
       ...(overdueCount > 0 ? { count: t("tasksOverdueCount", { count: overdueCount }), alert: true } : {}),
     },
     { key: "programme", label: t("programTitle"), href: tabHref("programme") },
-    { key: "budget", label: t("budgetLink"), href: `/budget/${event.id}` },
     ...(quotesAvailable ? [{ key: "devis" as const, label: tQuotes("eventQuotesTitle"), href: tabHref("devis"), count: String(quotes.length) }] : []),
     { key: "maries", label: t("tabClients"), href: tabHref("maries") },
   ];
@@ -334,7 +343,7 @@ export default async function EventDetailPage({
         </>
       ) : null}
 
-      {tab === "prestataires" ? (
+      {tab === "budget" ? (
         <div className="split">
           <section className="card split-main" aria-labelledby="vendor-slots-title">
             <div className="section-head">
@@ -342,12 +351,18 @@ export default async function EventDetailPage({
               <GearLink href="/events/parametres" label={t("vendorSlotsSettings")} />
             </div>
             <p id="vendor-progress-label">{t("vendorProgress", { booked: progress.booked, required: progress.required })}</p>
+            {budgetView ? (
+              <p className="meta">
+                <span>{t("budgetTotals", { planned: formatAmount(budgetView.totalPlannedCents, locale), actual: formatAmount(budgetView.totalActualCents, locale) })}</span>
+                <Link href={`/budget/${event.id}`}>{t("budgetSuggest")}</Link>
+              </p>
+            ) : null}
             <progress aria-labelledby="vendor-progress-label" value={progress.booked} max={Math.max(progress.required, 1)} />
             <nav aria-label={t("vendorSlotsFilter")} className="pills">
-              <Link href={tabHref("prestataires")} aria-current={slotFilter === "tous" ? "true" : undefined}>
+              <Link href={tabHref("budget")} aria-current={slotFilter === "tous" ? "true" : undefined}>
                 {t("vendorSlotsAll", { count: vendorSlots.length })}
               </Link>
-              <Link href={tabHref("prestataires", { filtre: "a-pourvoir" })} aria-current={slotFilter === "a-pourvoir" ? "true" : undefined}>
+              <Link href={tabHref("budget", { filtre: "a-pourvoir" })} aria-current={slotFilter === "a-pourvoir" ? "true" : undefined}>
                 {t("vendorSlotsToFind", { count: toFind.length })}
               </Link>
             </nav>
@@ -360,18 +375,29 @@ export default async function EventDetailPage({
                       <th scope="col">{t("vendorColumnSlot")}</th>
                       <th scope="col">{t("vendorName")}</th>
                       <th scope="col">{t("vendorSlotStatus")}</th>
-                      <th scope="col" className="num">
-                        {t("vendorAmount")}
-                      </th>
+                      {budgetView ? (
+                        <>
+                          <th scope="col" className="num">{tBudget("planned")}</th>
+                          <th scope="col" className="num">{tBudget("actual")}</th>
+                          <th scope="col" className="num">{tBudget("variance")}</th>
+                        </>
+                      ) : (
+                        <th scope="col" className="num">
+                          {t("vendorAmount")}
+                        </th>
+                      )}
                     </tr>
                   </thead>
                   <tbody>
                     {shownSlots.map((slot) => (
                       <tr key={slot.id} aria-current={slot.id === selectedSlot?.id ? "true" : undefined}>
                         <th scope="row">
-                          <Link href={tabHref("prestataires", { ...(slotFilter === "a-pourvoir" ? { filtre: "a-pourvoir" } : {}), poste: slot.id })}>
-                            {slot.label}
-                          </Link>
+                          <span className="line-cell">
+                            <BudgetLineIcon icon={slot.icon} label={slot.label} decorative />
+                            <Link href={tabHref("budget", { ...(slotFilter === "a-pourvoir" ? { filtre: "a-pourvoir" } : {}), poste: slot.id })}>
+                              {slot.label}
+                            </Link>
+                          </span>
                         </th>
                         <td>
                           {slot.vendorName ??
@@ -380,7 +406,25 @@ export default async function EventDetailPage({
                         <td>
                           <span className={VENDOR_STATUS_CLASSES[slot.status]}>{t(VENDOR_STATUS_LABEL_KEYS[slot.status])}</span>
                         </td>
-                        <td className="num">{slot.amountCents !== null ? formatAmount(slot.amountCents, locale) : "—"}</td>
+                        {budgetView ? (
+                          (() => {
+                            const amounts = amountsOf(slot.id);
+                            const planned = amounts?.plannedAmountCents ?? null;
+                            const actual = amounts?.actualAmountCents ?? null;
+                            const variance = amounts?.varianceCents ?? null;
+                            return (
+                              <>
+                                <td className="num">{planned !== null ? formatAmount(planned, locale) : "—"}</td>
+                                <td className="num">{actual !== null ? formatAmount(actual, locale) : "—"}</td>
+                                <td className={variance !== null && variance > 0 ? "num text-overdue" : "num"}>
+                                  {variance !== null ? `${variance > 0 ? "+" : ""}${formatAmount(variance, locale)}` : "—"}
+                                </td>
+                              </>
+                            );
+                          })()
+                        ) : (
+                          <td className="num">{slot.amountCents !== null ? formatAmount(slot.amountCents, locale) : "—"}</td>
+                        )}
                       </tr>
                     ))}
                   </tbody>
@@ -394,13 +438,15 @@ export default async function EventDetailPage({
               <>
                 <h2 id="vendor-detail-title">{selectedSlot.label}</h2>
                 <VendorSlotForm key={`${selectedSlot.id}-${selectedSlot.selectedCandidateId ?? ""}`} eventId={event.id} slot={selectedSlot} />
+                {budgetView ? <PlannedAmountForm key={`planned-${selectedSlot.id}`} eventId={event.id} slotId={selectedSlot.id} label={selectedSlot.label} plannedCents={amountsOf(selectedSlot.id)?.plannedAmountCents ?? null} /> : null}
+                <SlotIconForm key={`icon-${selectedSlot.id}-${selectedSlot.icon ?? ""}`} eventId={event.id} slotId={selectedSlot.id} label={selectedSlot.label} icon={selectedSlot.icon} />
                 <ImportedFields fields={selectedSlot.importedFields} compact />
                 <form action={removeVendorSlotAction}>
                   <input type="hidden" name="eventId" value={event.id} />
                   <input type="hidden" name="vendorSlotId" value={selectedSlot.id} />
                   <button type="submit">{t("removeVendorSlot", { label: selectedSlot.label })}</button>
                 </form>
-                <Link href={tabHref("prestataires", slotFilter === "a-pourvoir" ? { filtre: "a-pourvoir" } : {})}>{t("closePanel")}</Link>
+                <Link href={tabHref("budget", slotFilter === "a-pourvoir" ? { filtre: "a-pourvoir" } : {})}>{t("closePanel")}</Link>
               </>
             ) : (
               <>
@@ -411,7 +457,7 @@ export default async function EventDetailPage({
           </aside>
         </div>
       ) : null}
-      {tab === "prestataires" && selectedSlot ? (
+      {tab === "budget" && selectedSlot ? (
         <VendorCandidates
           eventId={event.id}
           slot={selectedSlot}

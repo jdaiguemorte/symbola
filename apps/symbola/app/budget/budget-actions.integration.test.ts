@@ -169,7 +169,7 @@ describe("BUD-04 — Un compte marié ne modifie jamais le budget, même par app
         {},
         form({ eventId: context.eventId, eventVendorSlotId: context.eventVendorSlotId, field: "actual", amount: "6500" }),
       ),
-    ).toEqual({});
+    ).toEqual({ success: true });
     const view = await listBudgetLines(context.organizationId, context.eventId);
     expect(view.lines[0]?.actualAmountCents).toBe(650000);
   });

@@ -106,7 +106,7 @@ export default async function VendorPage({ params, searchParams }: { params: Pro
                 {history.entries.map((entry) => (
                   <tr key={`${entry.eventId}-${entry.slotLabel}`}>
                     <th scope="row">
-                      <Link href={`/events/${entry.eventId}?onglet=prestataires`}>{entry.eventNames || t("historyUnnamed")}</Link>
+                      <Link href={`/events/${entry.eventId}?onglet=budget`}>{entry.eventNames || t("historyUnnamed")}</Link>
                     </th>
                     <td>{entry.eventDate ? formatCalendarDate(entry.eventDate, locale) : "—"}</td>
                     <td>{entry.slotLabel}</td>

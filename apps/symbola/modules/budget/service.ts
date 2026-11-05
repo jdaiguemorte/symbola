@@ -307,7 +307,7 @@ async function toBudgetLinesView(
   return {
     eventId,
     lines: mapped,
-    totalPlannedCents: mapped.reduce((sum, line) => sum + line.plannedAmountCents, 0),
+    totalPlannedCents: mapped.reduce((sum, line) => sum + (line.plannedAmountCents ?? 0), 0),
     totalActualCents: mapped.reduce((sum, line) => sum + (line.actualAmountCents ?? 0), 0),
     totalVarianceCents: mapped.reduce((sum, line) => sum + (line.varianceCents ?? 0), 0),
   };
@@ -404,9 +404,7 @@ export async function listBudgetLineHistory(
 }
 
 // Lot 3 (BUD-02) : gestionnaire de events.vendor_slot.booked, appelé par le
-// worker continu des événements internes (lib/event-worker.ts). Ignore
-// silencieusement si aucune ligne de budget n'existe encore pour ce poste
-// (suivi budgétaire pas commencé) — rien à mettre à jour.
+// worker continu des événements internes (lib/event-worker.ts).
 // Sûr au rejeu : si le montant réel de la ligne a été modifié après
 // l'événement (à la main, ou par un événement plus récent), il n'est pas
 // écrasé. Indispensable au premier démarrage du worker, qui traite aussi les
@@ -417,9 +415,10 @@ export async function applyVendorSlotBookedToBudget(
   occurredAt?: Date,
 ): Promise<void> {
   if (payload.amountCents === null) return;
+  // Lot 12 (EVT-17) : le budget existe dès la création de l'événement ; une
+  // réservation crée la ligne (réel connu, prévu encore vide) si besoin.
   const existing = await findBudgetLineByEventVendorSlotId(organizationId, payload.vendorSlotId);
-  if (!existing) return;
-  if (occurredAt) {
+  if (existing && occurredAt) {
     const history = await findBudgetLineHistory(organizationId, existing.id);
     if (history.some((row) => row.field === "actual" && row.changedAt.getTime() > occurredAt.getTime())) return;
   }

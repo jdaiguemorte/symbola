@@ -66,7 +66,9 @@ export const budgetLines = budgetSchema.table("budget_lines", {
   organizationId: uuid("organization_id").notNull(),
   eventId: uuid("event_id").notNull(),
   eventVendorSlotId: uuid("event_vendor_slot_id").notNull().unique(),
-  plannedAmountCents: integer("planned_amount_cents").notNull(),
+  // Lot 12 (EVT-17) : prévu facultatif — la ligne existe dès qu'un montant
+  // (prévu ou réel) est connu, sans répartition préalable.
+  plannedAmountCents: integer("planned_amount_cents"),
   actualAmountCents: integer("actual_amount_cents"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),

@@ -183,7 +183,7 @@ export async function addVendorToSlotAction(formData: FormData): Promise<void> {
     return;
   }
   revalidatePath(`/events/${eventId}`);
-  redirect(`/events/${eventId}?onglet=prestataires&poste=${slotId}`);
+  redirect(`/events/${eventId}?onglet=budget&poste=${slotId}`);
 }
 
 // PRE-02 — types, champs, étiquettes, trajet.

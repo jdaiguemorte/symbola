@@ -463,6 +463,13 @@
       "when": 1793909690709,
       "tag": "0065_grant_lot12",
       "breakpoints": true
+    },
+    {
+      "idx": 66,
+      "version": "7",
+      "when": 1793910307461,
+      "tag": "0066_lot12_budget_planned_optional",
+      "breakpoints": true
     }
   ]
 }

@@ -72,7 +72,7 @@
     "tasks": "Tâches",
     "tasksOverdue": "{count} en retard",
     "settingsOrganization": "Mon organisation",
-    "settingsEventsLists": "Sources, motifs et postes",
+    "settingsEventsLists": "Sources, motifs et budget",
     "settingsTaskTemplates": "Modèles de rétroplanning",
     "settingsProgramTemplates": "Modèles de programme",
     "settingsSections": "Paramètres par module",
@@ -214,11 +214,11 @@
       },
       {
         "title": "La fiche d'un événement",
-        "body": "Sur la fiche, suivez le statut, les postes prestataires, le rétroplanning et le programme du jour J, puis invitez vos clients à suivre leur préparation."
+        "body": "Sur la fiche, suivez le statut, le budget et ses prestataires, le rétroplanning et le programme du jour J, puis invitez vos clients à suivre leur préparation."
       },
       {
         "title": "Vos modèles",
-        "body": "Paramétrez vos sources, motifs de perte et postes par défaut, et préparez vos modèles de rétroplanning et de programme : partez des modèles de départ et adaptez-les."
+        "body": "Retrouvez vos sources, motifs de perte et lignes du budget par défaut, ainsi que vos modèles de rétroplanning et de programme : tout est prêt depuis le démarrage, modifiez à votre guise."
       },
       {
         "title": "Essayer sans risque",
@@ -246,11 +246,11 @@
     "budget": [
       {
         "title": "Vos modèles de budget",
-        "body": "Un modèle répartit un budget total entre vos postes prestataires, en pourcentages qui font 100 %."
+        "body": "Une répartition partage un budget total entre vos lignes du budget, en pourcentages qui font 100 %. Elle est facultative : elle sert à proposer des montants prévus."
       },
       {
         "title": "Simuler un budget",
-        "body": "Sur la fiche d'un prospect, « Budget » simule la répartition à partir d'un total et du nombre d'invités, ajustable poste par poste."
+        "body": "Sur la fiche d'un événement, « Proposer des montants prévus » part d'un total et du nombre d'invités, ajustable ligne par ligne."
       },
       {
         "title": "Prévu, réel, écart",
@@ -281,7 +281,7 @@
       },
       {
         "title": "Les prestataires",
-        "body": "Les postes à pourvoir (lieu, traiteur, photographe…) et leur avancement : vous voyez d'un coup d'œil ce qui reste à réserver."
+        "body": "Le budget de l'événement (lieu, traiteur, photographe…) : prestataire, statut, prévu et réel. Vous voyez d'un coup d'œil ce qui reste à réserver."
       },
       {
         "title": "Tout retrouver en un instant",
@@ -299,7 +299,7 @@
       },
       {
         "title": "Du plus proche au plus loin",
-        "body": "La liste suit la carte, avec un trajet estimé. Depuis un poste d'événement, « Ajouter au poste » l'envoie dans les prestataires consultés."
+        "body": "La liste suit la carte, avec un trajet estimé. Depuis une ligne du budget d'un événement, « Ajouter à la ligne » l'envoie dans les prestataires consultés."
       },
       {
         "title": "Un prestataire, une fiche",
@@ -355,11 +355,11 @@
     },
     "eventsDetail": {
       "title": "Fiche de l'événement",
-      "body": "Suivez ici l'avancement de l'événement (prospect, devis envoyé, confirmé, réalisé ou perdu) et de ses postes prestataires : la barre du haut compte les postes réservés sur les postes requis. Un poste réservé demande le nom du prestataire ; le montant est facultatif. Le rétroplanning liste les tâches par mois : appliquez un modèle, ajoutez, cochez ou réordonnez les tâches. Si la date de l'événement change, l'app propose de décaler les échéances des tâches non faites. Le programme du jour J liste les lignes par heure ; l'app signale, sans bloquer, un intervenant prévu sur deux lignes qui se chevauchent. Exportez-le en PDF : version mariés (sans les notes internes) ou prestataires. Invitez les mariés à suivre leur événement depuis la section « Accès des mariés » ; quand ils cochent une tâche, elle apparaît dans le fil d'activité."
+      "body": "Suivez ici l'avancement de l'événement (prospect, devis envoyé, confirmé, réalisé ou perdu) et son budget : chaque ligne (lieu, traiteur…) a son prestataire, son statut, son prévu et son réel ; la barre du haut compte les lignes réservées sur les lignes requises. Une ligne réservée demande le nom du prestataire ; le montant est facultatif. Le rétroplanning démarre quand l'événement est confirmé : appliquez un modèle, ajoutez, cochez ou réordonnez les tâches. Si la date de l'événement change, l'app propose de décaler les échéances des tâches non faites. Le programme du jour J liste les moments par heure, avec l'icône de chaque prestataire concerné ; l'app signale, sans bloquer, un intervenant prévu sur deux moments qui se chevauchent. Exportez-le en PDF : version clients (sans les notes internes) ou prestataires. Invitez vos clients à suivre leur événement depuis l'onglet « Clients »."
     },
     "eventsSettings": {
       "title": "Paramètres des événements",
-      "body": "Définissez vos sources de prospect (salon, Instagram, bouche-à-oreille…), vos motifs de perte, et les postes prestataires que reçoit chaque nouvel événement. Le modèle de départ propose une liste de postes courants, que vous adaptez ensuite."
+      "body": "Retrouvez vos sources de prospect (salon, Instagram, bouche-à-oreille…), vos motifs de perte, et les lignes du budget que reçoit chaque nouvel événement, avec leur icône. Elles ont été préparées au démarrage selon votre métier : adaptez-les librement."
     },
     "eventsTemplates": {
       "title": "Modèles de rétroplanning",
@@ -367,7 +367,7 @@
     },
     "eventsProgramTemplates": {
       "title": "Modèles de programme",
-      "body": "Préparez vos déroulés types du jour J, ou chargez le modèle de départ puis adaptez-le. Un modèle s'applique depuis la fiche d'un événement : ses lignes s'ajoutent au programme, et les intervenants qui portent le nom d'un poste de l'événement y sont reliés."
+      "body": "Préparez vos déroulés types du jour J, ou chargez le modèle de départ puis adaptez-le. Un modèle s'applique depuis la fiche d'un événement : ses moments s'ajoutent au programme, et les intervenants qui portent le nom d'une ligne du budget de l'événement y sont reliés."
     },
     "clientInvitation": {
       "title": "Création de votre compte",
@@ -379,7 +379,7 @@
     },
     "clientEvent": {
       "title": "Suivre la préparation",
-      "body": "Les tâches « À faire par vous » se cochent quand elles sont faites : votre planner le voit aussitôt. Les autres sont suivies par votre planner. Le programme du jour J se télécharge en PDF. Le budget (prévu, réel, écart par poste) s'affiche aussi, en lecture seule, dès que votre planner l'a préparé."
+      "body": "Les tâches « À faire par vous » se cochent quand elles sont faites : votre organisatrice le voit aussitôt. Les autres sont suivies par votre organisatrice. Le programme du jour J se télécharge en PDF. Le budget (prévu, réel, écart par ligne) s'affiche aussi, en lecture seule, dès qu'il a été préparé."
     },
     "clientSecurity": {
       "title": "Double authentification",
@@ -387,11 +387,11 @@
     },
     "budgetSettings": {
       "title": "Modèles de budget",
-      "body": "Créez des modèles de répartition (un pourcentage par poste prestataire, total 100 %) pour simuler rapidement le budget d'un nouveau prospect."
+      "body": "Une répartition (un pourcentage par ligne du budget, total 100 %) propose des montants prévus à partir d'un total. Elle est facultative : le budget d'un événement existe dès sa création."
     },
     "budgetDetail": {
       "title": "Budget de l'événement",
-      "body": "Saisissez le budget total et le nombre d'invités, choisissez un modèle de répartition : vous obtenez un montant par poste et le coût par invité. Ajustez un poste à la main si besoin, le reste à répartir se recalcule aussitôt. Joignez le devis d'un prestataire à sa ligne (PDF ou image, 20 Mo maximum) : il est vérifié par l'antivirus et s'ouvre par un lien temporaire."
+      "body": "Saisissez le budget total et le nombre d'invités, choisissez une répartition : vous obtenez un montant prévu par ligne et le coût par invité. Ajustez une ligne à la main si besoin, le reste à répartir se recalcule aussitôt. Joignez le devis d'un prestataire à sa ligne (PDF ou image, 20 Mo maximum) : il est vérifié par l'antivirus et s'ouvre par un lien temporaire."
     },
     "quotesCatalog": {
       "title": "Catalogue des prestations",
@@ -423,7 +423,7 @@
     },
     "importMatches": {
       "title": "Rapprocher des éléments existants",
-      "body": "Pour chaque ligne qui ressemble à un élément déjà présent (mêmes clients et même date pour un événement, même intitulé pour un article ou une liste, même intitulé dans le même événement pour une tâche ou un poste), l'app propose un rapprochement avec son niveau de ressemblance. Une ligne rapprochée mettra à jour l'élément existant au lieu de créer un doublon. Validez ou refusez les propositions une par une ou en lot, ou choisissez vous-même l'élément à rapprocher. Les tâches et lignes de budget doivent correspondre à un de vos événements sans ambiguïté."
+      "body": "Pour chaque ligne qui ressemble à un élément déjà présent (mêmes clients et même date pour un événement, même intitulé pour un article ou une liste, même intitulé dans le même événement pour une tâche ou une ligne du budget), l'app propose un rapprochement avec son niveau de ressemblance. Une ligne rapprochée mettra à jour l'élément existant au lieu de créer un doublon. Validez ou refusez les propositions une par une ou en lot, ou choisissez vous-même l'élément à rapprocher. Les tâches et lignes de budget doivent correspondre à un de vos événements sans ambiguïté."
     },
     "importGaps": {
       "title": "Rapport des écarts",
@@ -487,7 +487,7 @@
     },
     "vendorBook": {
       "title": "Le carnet de prestataires",
-      "body": "Chaque prestataire a une seule fiche, réutilisée d'un événement à l'autre : coordonnées, caractéristiques selon son type, plaquettes, et l'historique de vos prestations avec lui. Filtrez par type, par caractéristiques et autour d'un lieu ; ajoutez un prestataire au poste d'un événement pour comparer les devis."
+      "body": "Chaque prestataire a une seule fiche, réutilisée d'un événement à l'autre : coordonnées, caractéristiques selon son type, plaquettes, et l'historique de vos prestations avec lui. Filtrez par type, par caractéristiques et autour d'un lieu ; ajoutez un prestataire à une ligne du budget d'un événement pour comparer les devis."
     }
   },
   "FirstSteps": {
@@ -562,36 +562,36 @@
     "eventNotFound": "Cet événement est introuvable.",
     "statusChanged": "Statut mis à jour.",
     "taskTableRegion": "Tableau : {caption}",
-    "vendorSlotsTable": "Tableau des postes prestataires",
-    "vendorSlotsTitle": "Postes prestataires",
-    "vendorProgress": "{booked, plural, =0 {Aucun poste réservé} one {# poste réservé} other {# postes réservés}} sur {required}",
+    "vendorSlotsTable": "Lignes du budget",
+    "vendorSlotsTitle": "Budget",
+    "vendorProgress": "{booked, plural, =0 {Aucune ligne réservée} one {# ligne réservée} other {# lignes réservées}} sur {required}",
     "vendorStatusToFind": "À trouver",
     "vendorStatusQuoteRequested": "Devis demandé",
     "vendorStatusQuoteReceived": "Devis reçu",
     "vendorStatusBooked": "Réservé",
     "vendorStatusNotRequired": "Non requis",
-    "vendorSlotStatus": "Statut du poste",
+    "vendorSlotStatus": "Statut",
     "vendorName": "Prestataire",
     "vendorNameRequired": "Prestataire (obligatoire si Réservé)",
     "vendorAmount": "Montant en euros (facultatif)",
-    "saveVendorSlot": "Enregistrer le poste",
-    "vendorSlotSaved": "Poste enregistré.",
-    "newVendorSlotLabel": "Nouveau poste pour cet événement",
-    "addVendorSlot": "Ajouter le poste",
-    "removeVendorSlot": "Retirer le poste « {label} »",
-    "noVendorSlots": "Aucun poste pour cet événement. Ajoutez-en un, ou définissez une liste par défaut dans les paramètres.",
-    "vendorSlotNotFound": "Ce poste est introuvable.",
-    "missingVendorName": "Indiquez le nom du prestataire pour un poste réservé.",
+    "saveVendorSlot": "Enregistrer la ligne",
+    "vendorSlotSaved": "Ligne enregistrée.",
+    "newVendorSlotLabel": "Nouvelle ligne du budget pour cet événement",
+    "addVendorSlot": "Ajouter la ligne",
+    "removeVendorSlot": "Retirer la ligne « {label} »",
+    "noVendorSlots": "Aucune ligne de budget pour cet événement. Ajoutez-en une, ou définissez vos lignes par défaut dans les paramètres.",
+    "vendorSlotNotFound": "Cette ligne du budget est introuvable.",
+    "missingVendorName": "Indiquez le nom du prestataire pour une ligne réservée.",
     "invalidAmount": "Montant invalide. Exemple : 2 500,50",
-    "defaultVendorSlotsTitle": "Postes par défaut",
-    "defaultVendorSlotsIntro": "Chaque nouvel événement reçoit ces postes ; vous les modifiez ensuite événement par événement.",
-    "noDefaultVendorSlots": "Aucun poste par défaut pour l'instant.",
-    "newDefaultVendorSlotLabel": "Nouveau poste par défaut",
-    "addDefaultVendorSlot": "Ajouter le poste par défaut",
-    "defaultVendorSlotAdded": "Poste ajouté.",
-    "vendorSlotAlreadyExists": "Ce poste existe déjà.",
+    "defaultVendorSlotsTitle": "Lignes du budget par défaut",
+    "defaultVendorSlotsIntro": "Chaque nouvel événement reçoit ces lignes (lieu, traiteur, photographe…) ; vous y suivez prestataires, devis, prévu et réel, et vous les modifiez ensuite événement par événement.",
+    "noDefaultVendorSlots": "Aucune ligne par défaut pour l'instant.",
+    "newDefaultVendorSlotLabel": "Nouvelle ligne par défaut",
+    "addDefaultVendorSlot": "Ajouter la ligne",
+    "defaultVendorSlotAdded": "✓ Ligne ajoutée.",
+    "vendorSlotAlreadyExists": "Cette ligne existe déjà.",
     "loadStarterVendorSlots": "Charger le modèle de départ",
-    "starterVendorSlotsLoaded": "{count, plural, =0 {Le modèle de départ est déjà chargé.} one {# poste ajouté depuis le modèle de départ.} other {# postes ajoutés depuis le modèle de départ.}}",
+    "starterVendorSlotsLoaded": "{count, plural, =0 {Le modèle de départ est déjà chargé.} one {# ligne ajoutée depuis le modèle de départ.} other {# lignes ajoutées depuis le modèle de départ.}}",
     "tasksTitle": "Rétroplanning",
     "taskTemplatesTitle": "Modèles de rétroplanning",
     "taskTemplatesLink": "Modèles de rétroplanning",
@@ -661,20 +661,20 @@
     "programItemSaved": "Ligne enregistrée.",
     "removeProgramItem": "Supprimer la ligne {label}",
     "programItemNotFound": "Ligne du programme introuvable.",
-    "programParticipantNotFound": "Un intervenant choisi n'est pas un poste de cet événement.",
+    "programParticipantNotFound": "Un intervenant choisi n'est pas une ligne du budget de cet événement.",
     "programStartTime": "Heure de début",
     "programEndTime": "Heure de fin (facultative)",
     "programItemLabel": "Intitulé de la ligne",
     "programLocation": "Lieu",
     "programParticipants": "Intervenants",
-    "programVendorParticipants": "Intervenants parmi les postes de l'événement",
+    "programVendorParticipants": "Prestataires concernés (lignes du budget)",
     "programFreeParticipants": "Autres intervenants (séparés par des virgules)",
     "programInternalNote": "Note interne",
     "programTime": "Heure",
     "invalidTime": "Heure invalide.",
     "programTemplatesTitle": "Modèles de programme",
     "programTemplatesLink": "Modèles de programme",
-    "programTemplatesIntro": "Un modèle de programme est une liste de lignes (heures, intitulé, lieu, intervenants). Appliqué à un événement, il ajoute ses lignes au programme ; un intervenant qui porte le nom d'un poste de l'événement est relié à ce poste.",
+    "programTemplatesIntro": "Un modèle de programme est une liste de moments (heures, intitulé, lieu, intervenants). Appliqué à un événement, il ajoute ses moments au programme ; un intervenant qui porte le nom d'une ligne du budget de l'événement y est relié.",
     "noProgramTemplates": "Aucun modèle de programme pour l'instant.",
     "noProgramTemplateItems": "Ce modèle ne contient encore aucune ligne.",
     "newProgramTemplateTitle": "Nouveau modèle de programme",
@@ -718,7 +718,7 @@
     "activityTaskUndone": "{actor} a décoché « {task} ».",
     "activityFormerClient": "Un marié",
     "trialTitle": "Essai guidé",
-    "trialIntro": "Découvrez le module sur un mariage fictif déjà préparé (postes, rétroplanning, programme du jour J) : changez son statut, réservez un prestataire, cochez des tâches, exportez le programme. Rien ne touche vos vrais événements, et tout est supprimé à la fin de l'essai (ou au bout de 24 h).",
+    "trialIntro": "Découvrez le module sur un mariage fictif déjà préparé (budget, rétroplanning, programme du jour J) : changez son statut, réservez un prestataire, cochez des tâches, exportez le programme. Rien ne touche vos vrais événements, et tout est supprimé à la fin de l'essai (ou au bout de 24 h).",
     "trialStart": "Démarrer l'essai",
     "trialResume": "Reprendre l'essai en cours",
     "trialEnded": "Essai terminé : ses données fictives ont été supprimées.",
@@ -734,7 +734,7 @@
     "demoWatermark": "Document fictif",
     "budgetLink": "Budget",
     "confirmBudgetTitle": "Faire de la simulation le budget prévu",
-    "confirmBudgetBody": "L'événement est confirmé et une simulation existe déjà : vous pouvez l'utiliser comme point de départ du budget prévu, poste par poste.",
+    "confirmBudgetBody": "L'événement est confirmé et une simulation existe déjà : vous pouvez l'utiliser comme prévu, ligne par ligne.",
     "confirmAsPlanned": "En faire le budget prévu",
     "trialStepQuote": "Composez un devis fictif, faites-le signer par le marié fictif sur la page de signature d'essai, puis émettez ses factures (série DEMO, en filigrane).",
     "trialStartQuote": "Essayer un devis fictif",
@@ -749,15 +749,15 @@
     "tabClients": "Mariés",
     "backToEvents": "← Tous les événements",
     "tasksOverdueCount": "{count, plural, one {# en retard} other {# en retard}}",
-    "vendorSlotsSettings": "Paramètres des postes par défaut",
-    "vendorSlotsFilter": "Filtrer les postes",
-    "vendorSlotsAll": "Tous les postes ({count})",
+    "vendorSlotsSettings": "Paramètres des lignes du budget par défaut",
+    "vendorSlotsFilter": "Filtrer les lignes",
+    "vendorSlotsAll": "Toutes les lignes ({count})",
     "vendorSlotsToFind": "À pourvoir ({count})",
-    "noVendorSlotsToFind": "Tous les postes sont pourvus.",
-    "vendorColumnSlot": "Poste",
+    "noVendorSlotsToFind": "Toutes les lignes sont pourvues.",
+    "vendorColumnSlot": "Ligne",
     "closePanel": "Fermer le panneau",
-    "vendorDetailTitle": "Détail du poste",
-    "vendorDetailHint": "Choisissez un poste dans le tableau pour changer son statut, son prestataire ou son montant.",
+    "vendorDetailTitle": "Détail de la ligne",
+    "vendorDetailHint": "Choisissez une ligne dans le tableau pour changer son statut, son prestataire ou ses montants.",
     "taskTemplatesSettings": "Modèles de rétroplanning",
     "tasksSummary": "{done} {done, plural, one {tâche faite} other {tâches faites}} sur {total} · {overdue} en retard",
     "tasksViewFilter": "Afficher",
@@ -782,7 +782,15 @@
     "eventTabsLabel": "Sections de l'événement",
     "allTasksTitle": "Tâches",
     "allTasksSummary": "{count, plural, =0 {Aucune tâche à faire} one {# tâche à faire} other {# tâches à faire}} · {overdue} en retard",
-    "allTasksEmpty": "Aucune tâche à faire : tout est à jour."
+    "allTasksEmpty": "Aucune tâche à faire : tout est à jour.",
+    "budgetTotals": "Prévu : {planned} · Réel : {actual}",
+    "budgetSuggest": "Proposer des montants prévus, historique et devis joints",
+    "plannedAmountFor": "Prévu pour « {line} » (€)",
+    "savePlanned": "Enregistrer le prévu",
+    "plannedSaved": "✓ Prévu enregistré.",
+    "lineIconFor": "Icône de « {line} »",
+    "saveIcon": "Enregistrer l'icône",
+    "iconSaved": "✓ Icône enregistrée."
   },
   "Budget": {
     "title": "Budget",
@@ -793,17 +801,17 @@
     "modelsTitle": "Modèles de répartition",
     "noModels": "Aucun modèle de répartition pour l'instant.",
     "noModelsYet": "Créez d'abord un modèle de répartition dans les paramètres du budget avant de simuler un budget.",
-    "noVendorSlotsYet": "Ajoutez d'abord des postes prestataires par défaut dans les paramètres des événements.",
+    "noVendorSlotsYet": "Ajoutez d'abord des lignes du budget par défaut dans les paramètres des événements.",
     "removeModel": "Supprimer le modèle « {name} »",
     "newModelTitle": "Nouveau modèle",
     "modelName": "Nom du modèle",
-    "percentagePerSlot": "Pourcentage par poste (le total doit faire 100 %)",
+    "percentagePerSlot": "Pourcentage par ligne (le total doit faire 100 %)",
     "createModel": "Créer le modèle",
     "modelCreated": "Modèle créé.",
     "missingName": "Le nom du modèle est obligatoire.",
     "missingItems": "Renseignez au moins un pourcentage.",
     "totalNot100": "Le total des pourcentages doit faire exactement 100 %.",
-    "unknownVendorSlot": "Ce poste prestataire n'existe pas ou plus.",
+    "unknownVendorSlot": "Cette ligne du budget n'existe pas ou plus.",
     "simulationTitle": "Simulation",
     "totalAmount": "Budget total (€)",
     "guestCount": "Nombre d'invités",
@@ -814,16 +822,16 @@
     "missingModel": "Choisissez un modèle de répartition.",
     "invalidTotalAmount": "Le budget total doit être un montant positif.",
     "invalidGuestCount": "Le nombre d'invités doit être un nombre entier positif ou nul.",
-    "itemsTitle": "Postes",
+    "itemsTitle": "Lignes",
     "adjust": "Ajuster",
     "invalidAmount": "Le montant doit être positif ou nul.",
-    "noSimulationYet": "Simulez d'abord un budget avant d'ajuster un poste.",
+    "noSimulationYet": "Simulez d'abord un budget avant d'ajuster une ligne.",
     "allocated": "Déjà réparti",
     "remaining": "Reste à répartir",
     "costPerGuest": "Coût par invité",
     "linesTitle": "Prévu, réel, écart",
     "confirmAsPlanned": "En faire le budget prévu",
-    "vendorSlot": "Poste",
+    "vendorSlot": "Ligne",
     "planned": "Prévu",
     "actual": "Réel",
     "notSet": "Non renseigné",
@@ -1187,7 +1195,7 @@
       "tasks": "Tâches d'événements",
       "budget_lines": "Lignes de budget",
       "catalog_items": "Articles du catalogue",
-      "vendor_slots": "Postes prestataires par défaut",
+      "vendor_slots": "Lignes du budget par défaut",
       "prospect_sources": "Sources de prospects",
       "loss_reasons": "Motifs de perte",
       "payment_methods": "Modes de paiement"
@@ -1280,7 +1288,7 @@
       "dueDate": "Échéance",
       "responsible": "Responsable",
       "done": "Faite",
-      "slotLabel": "Poste",
+      "slotLabel": "Ligne du budget",
       "vendorName": "Prestataire",
       "plannedAmount": "Montant prévu",
       "actualAmount": "Montant réel",
@@ -1412,13 +1420,13 @@
     "itemKind": {
       "event": "Événement : {title}",
       "task": "Tâche : {title}",
-      "event_vendor_slot": "Poste : {title}",
+      "event_vendor_slot": "Ligne du budget : {title}",
       "budget_line": "Ligne de budget : {title}",
       "catalog_item": "Article : {title}",
       "payment_method": "Mode de paiement : {title}",
       "prospect_source": "Source : {title}",
       "loss_reason": "Motif de perte : {title}",
-      "default_vendor_slot": "Poste par défaut : {title}"
+      "default_vendor_slot": "Ligne du budget par défaut : {title}"
     },
     "importedFieldsTitle": "Champs importés"
   },
@@ -1451,7 +1459,7 @@
       "event": "Événement",
       "event_client": "Client",
       "client_access": "Accès d'un marié",
-      "event_vendor_slot": "Poste",
+      "event_vendor_slot": "Ligne du budget",
       "task": "Tâche",
       "program_item": "Programme",
       "program_participant": "Intervenant",
@@ -1802,7 +1810,7 @@
       },
       "budget-simulation": {
         "title": "Simuler le budget d'un événement",
-        "description": "Répartissez un budget d'exemple par poste, puis comparez le prévu et le réel."
+        "description": "Répartissez un budget d'exemple par ligne, puis comparez le prévu et le réel."
       },
       "day-program": {
         "title": "Préparer le programme du jour J",
@@ -1817,8 +1825,8 @@
         "description": "Importez un petit fichier d'exemple et vérifiez l'aperçu avant de confirmer."
       },
       "vendor-quotes": {
-        "title": "Comparer plusieurs devis pour un poste",
-        "description": "Consultez deux prestataires d'exemple pour un même poste, notez leurs devis, puis retenez-en un."
+        "title": "Comparer plusieurs devis pour une ligne du budget",
+        "description": "Consultez deux prestataires d'exemple pour une même ligne, notez leurs devis, puis retenez-en un."
       }
     },
     "intro": "Apprenez Symbola en le faisant, à votre rythme. Chaque tutoriel crée un exemple fictif, puis vous propose de le supprimer.",
@@ -1927,7 +1935,7 @@
         },
         {
           "title": "Créer l'exemple",
-          "body": "Symbola crée « l'anniversaire des 40 ans de Camille », avec ses postes de prestataires et ses tâches de départ."
+          "body": "Symbola crée « l'anniversaire des 40 ans de Camille », avec son budget et ses tâches de départ."
         },
         {
           "title": "Confirmer l'événement",
@@ -1935,7 +1943,7 @@
         },
         {
           "title": "Réserver un prestataire",
-          "body": "Dans l'onglet Prestataires, choisissez un poste (par exemple le traiteur), passez-le à « Réservé » et saisissez un nom de prestataire."
+          "body": "Dans l'onglet Budget, choisissez une ligne (par exemple le traiteur), passez-la à « Réservé » et saisissez un nom de prestataire."
         },
         {
           "title": "Cocher une tâche",
@@ -2059,7 +2067,7 @@
       "steps": [
         {
           "title": "Comprendre",
-          "body": "Le budget répartit une enveloppe par poste à partir d'un modèle de répartition, puis compare le prévu et le réel au fil des réservations."
+          "body": "La répartition propose un montant prévu par ligne à partir d'un total, puis le budget compare le prévu et le réel au fil des réservations."
         },
         {
           "title": "Créer l'exemple",
@@ -2071,7 +2079,7 @@
         },
         {
           "title": "Saisir un réel",
-          "body": "Saisissez un montant réel sur un poste : l'écart avec le prévu s'affiche, en terracotta s'il y a dépassement."
+          "body": "Saisissez un montant réel sur une ligne : l'écart avec le prévu s'affiche, en terracotta s'il y a dépassement."
         },
         {
           "title": "Terminer",
@@ -2155,7 +2163,7 @@
       "steps": [
         {
           "title": "Comprendre",
-          "body": "Pour un même poste (le traiteur d'un gala, le lieu d'un séminaire…), vous consultez souvent plusieurs prestataires. Symbola les garde côte à côte avec leur devis et vos notes, jusqu'à ce que vous en reteniez un."
+          "body": "Pour une même ligne du budget (le traiteur d'un gala, le lieu d'un séminaire…), vous consultez souvent plusieurs prestataires. Symbola les garde côte à côte avec leur devis et vos notes, jusqu'à ce que vous en reteniez un."
         },
         {
           "title": "Préparer",
@@ -2163,7 +2171,7 @@
         },
         {
           "title": "Consulter deux prestataires",
-          "body": "Dans le poste « Traiteur » de l'exemple, ajoutez deux prestataires consultés : choisissez-les dans votre carnet ou tapez simplement leur nom."
+          "body": "Dans la ligne « Traiteur » du budget de l'exemple, ajoutez deux prestataires consultés : choisissez-les dans votre carnet ou tapez simplement leur nom."
         },
         {
           "title": "Noter un devis",
@@ -2171,7 +2179,7 @@
         },
         {
           "title": "Retenir",
-          "body": "Cliquez « Retenir » sur le prestataire choisi : le poste passe à Réservé avec son nom et son montant, et l'autre reste visible, « non retenu »."
+          "body": "Cliquez « Retenir » sur le prestataire choisi : la ligne passe à Réservé avec son nom et son montant, et l'autre reste visible, « non retenu »."
         },
         {
           "title": "Ce que voient les clients",
@@ -2188,11 +2196,11 @@
     "title": "Prestataires consultés — {slot}",
     "quotesReceived": "Devis reçus : {received} sur {total}",
     "findOnMap": "Trouver dans mon carnet (carte)",
-    "briefLabel": "Ce que veulent les clients pour ce poste",
+    "briefLabel": "Ce que veulent les clients pour cette ligne",
     "briefSave": "Enregistrer le besoin",
     "briefSaved": "Besoin enregistré.",
     "empty": "Aucun prestataire consulté pour l'instant. Ajoutez ceux que vous contactez : vous comparerez leurs devis ici.",
-    "selectHint": "« Retenir » passe le poste à Réservé avec ce prestataire et le montant de son devis ; le budget se met à jour. Les autres restent visibles, « non retenu ».",
+    "selectHint": "« Retenir » passe la ligne à Réservé avec ce prestataire et le montant de son devis ; le réel du budget se met à jour. Les autres restent visibles, « non retenu ».",
     "addTitle": "Ajouter un prestataire consulté pour « {slot} »",
     "fromBook": "Dans mon carnet",
     "fromBookNone": "— Choisir un prestataire —",
@@ -2235,7 +2243,7 @@
     "addToBook": "Ajouter {vendor} à mon carnet",
     "remove": "Retirer {vendor}",
     "unauthorized": "Session expirée ou accès refusé.",
-    "notFound": "Prestataire ou poste introuvable.",
+    "notFound": "Prestataire ou ligne introuvable.",
     "nameRequired": "Indiquez le nom du prestataire ou choisissez-le dans votre carnet.",
     "invalidResponse": "Réponse invalide.",
     "invalidAmount": "Montant invalide.",
@@ -2255,8 +2263,8 @@
     "newVendor": "Nouveau prestataire",
     "newVendorHint": "Une fiche par prestataire : vous la retrouverez pour chaque événement, avec l'historique de vos prestations.",
     "backToBook": "Retour au carnet",
-    "targetTitle": "Ajouter au poste « {slot} » — {event}",
-    "targetHint": "Choisissez un prestataire ci-dessous : il sera ajouté aux prestataires consultés de ce poste.",
+    "targetTitle": "Ajouter à la ligne « {slot} » — {event}",
+    "targetHint": "Choisissez un prestataire ci-dessous : il sera ajouté aux prestataires consultés de cette ligne du budget.",
     "targetBack": "Revenir à la fiche de l'événement",
     "typesFilter": "Types de prestataires",
     "allTypes": "Tous",
@@ -2288,7 +2296,7 @@
     "travelHint": "Trajets estimés : distance à vol d'oiseau × détour, à vitesse moyenne (réglable dans les paramètres).",
     "demo": "Exemple",
     "notPlaced": "Non placé sur la carte",
-    "addToSlot": "Ajouter {vendor} au poste « {slot} »",
+    "addToSlot": "Ajouter {vendor} à la ligne « {slot} »",
     "identity": "Prestataire",
     "name": "Nom du prestataire",
     "type": "Type",
@@ -2330,7 +2338,7 @@
     "historyEmpty": "Ce prestataire n'a encore été consulté pour aucun événement.",
     "historyEvent": "Événement",
     "historyDate": "Date",
-    "historySlot": "Poste",
+    "historySlot": "Ligne du budget",
     "historyOutcome": "Issue",
     "historyQuoted": "Prix devisé",
     "historyFinal": "Prix final",

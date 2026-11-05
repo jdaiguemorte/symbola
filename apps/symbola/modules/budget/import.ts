@@ -87,7 +87,7 @@ export async function importBudgetLineRows(input: { organizationId: string; user
             organizationId: input.organizationId,
             eventId: row.eventId,
             eventVendorSlotId: slotId,
-            plannedAmountCents: planned ?? 0,
+            plannedAmountCents: planned,
             actualAmountCents: actual,
           })
           .returning();

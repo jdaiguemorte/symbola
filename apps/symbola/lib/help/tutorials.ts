@@ -64,7 +64,7 @@ async function removeExampleEvent(env: TutorialEnv): Promise<void> {
 const quoteSigned = async (env: TutorialEnv) => (await getQuote(env.organizationId, env.context.quoteId!)).status === "signed";
 
 // Lot 11 : poste « Traiteur » de l'exemple (sinon le premier poste).
-const slotTab = (context: TutorialContext) => `/events/${context.eventId}?onglet=prestataires&poste=${context.slotId}`;
+const slotTab = (context: TutorialContext) => `/events/${context.eventId}?onglet=budget&poste=${context.slotId}`;
 const slotCandidates = async (env: TutorialEnv) =>
   (await listVendorCandidates(env.organizationId, env.context.eventId!)).filter((candidate) => candidate.vendorSlotId === env.context.slotId);
 

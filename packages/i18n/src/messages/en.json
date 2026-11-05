@@ -72,7 +72,7 @@
     "tasks": "Tasks",
     "tasksOverdue": "{count} overdue",
     "settingsOrganization": "My organisation",
-    "settingsEventsLists": "Sources, reasons and slots",
+    "settingsEventsLists": "Sources, reasons and budget",
     "settingsTaskTemplates": "Planning templates",
     "settingsProgramTemplates": "Programme templates",
     "settingsSections": "Settings by module",
@@ -214,11 +214,11 @@
       },
       {
         "title": "An event's page",
-        "body": "On the event page, follow the status, vendor slots, planning timeline and wedding day schedule, then invite your clients to follow their preparations."
+        "body": "On the event page, follow the status, the budget and its vendors, the planning timeline and the day schedule, then invite your clients to follow their preparations."
       },
       {
         "title": "Your templates",
-        "body": "Set up your sources, loss reasons and default vendor slots, and prepare your planning timeline and schedule templates: start from the starter templates and adapt them."
+        "body": "Find your sources, loss reasons and default budget lines, and your timeline and schedule templates: everything is ready since set-up, change it as you like."
       },
       {
         "title": "Try without risk",
@@ -246,11 +246,11 @@
     "budget": [
       {
         "title": "Your budget models",
-        "body": "A model splits a total budget across your vendor slots, in percentages adding up to 100%."
+        "body": "A split shares a total budget across your budget lines, in percentages adding up to 100%. It is optional: it suggests planned amounts."
       },
       {
         "title": "Simulating a budget",
-        "body": "On a prospect's page, “Budget” simulates the split from a total and the number of guests, adjustable slot by slot."
+        "body": "On an event's page, “Suggest planned amounts” starts from a total and the number of guests, adjustable line by line."
       },
       {
         "title": "Planned, actual, variance",
@@ -281,7 +281,7 @@
       },
       {
         "title": "Vendors",
-        "body": "The slots to fill (venue, caterer, photographer…) and their progress: you see at a glance what is left to book."
+        "body": "The event's budget (venue, caterer, photographer…): vendor, status, planned and actual. You see at a glance what is left to book."
       },
       {
         "title": "Find anything in a second",
@@ -299,7 +299,7 @@
       },
       {
         "title": "Nearest first",
-        "body": "The list follows the map, with an estimated travel time. From an event item, “Add to item” sends it to the vendors consulted."
+        "body": "The list follows the map, with an estimated travel time. From an event's budget line, “Add to line” sends it to the vendors consulted."
       },
       {
         "title": "One vendor, one record",
@@ -355,11 +355,11 @@
     },
     "eventsDetail": {
       "title": "Event details",
-      "body": "Track the event's progress here (prospect, quote sent, confirmed, done or lost) and its vendor slots: the top bar counts booked slots out of required ones. A booked slot needs the vendor's name; the amount is optional. The planning timeline lists tasks by month: apply a template, add, check or reorder tasks. If the event date changes, the app offers to shift the due dates of unfinished tasks. The wedding day schedule lists lines by time; the app flags, without blocking, a participant scheduled on two overlapping lines. Export it as a PDF: couple version (without internal notes) or vendors version. Invite the couple to follow their event from the “Couple access” section; when they check a task, it shows in the activity feed."
+      "body": "Track the event's progress here (prospect, quote sent, confirmed, done or lost) and its budget: each line (venue, caterer…) has its vendor, status, planned and actual amounts; the top bar counts booked lines out of required ones. A booked line needs the vendor's name; the amount is optional. The planning timeline starts once the event is confirmed: apply a template, add, check or reorder tasks. If the event date changes, the app offers to shift the due dates of unfinished tasks. The day schedule lists moments by time, with the icon of each vendor involved; the app flags, without blocking, a participant scheduled on two overlapping moments. Export it as a PDF: clients version (without internal notes) or vendors version. Invite your clients to follow their event from the “Clients” tab."
     },
     "eventsSettings": {
       "title": "Event settings",
-      "body": "Define your prospect sources (wedding fair, Instagram, word of mouth…), your loss reasons, and the vendor slots every new event receives. The starter template offers a list of common slots that you then adapt."
+      "body": "Find your prospect sources (fair, Instagram, word of mouth…), your loss reasons, and the budget lines every new event receives, with their icon. They were prepared at set-up for your line of work: adapt them freely."
     },
     "eventsTemplates": {
       "title": "Planning timeline templates",
@@ -367,7 +367,7 @@
     },
     "eventsProgramTemplates": {
       "title": "Schedule templates",
-      "body": "Prepare your typical wedding day schedules, or load the starter template and adapt it. Apply a template from an event's page: its lines are added to the schedule, and participants named like one of the event's vendor slots are linked to it."
+      "body": "Prepare your typical day schedules, or load the starter template and adapt it. Apply a template from an event's page: its moments are added to the schedule, and participants named like one of the event's budget lines are linked to it."
     },
     "clientInvitation": {
       "title": "Creating your account",
@@ -379,7 +379,7 @@
     },
     "clientEvent": {
       "title": "Following the preparations",
-      "body": "Tasks “For you to do” are checked once done: your planner sees it right away. The others are handled by your planner. The wedding day schedule can be downloaded as a PDF. The budget (planned, actual, variance per vendor slot) also shows, read-only, as soon as your planner has prepared it."
+      "body": "Tasks “For you to do” are checked once done: your planner sees it right away. The others are handled by your planner. The day schedule can be downloaded as a PDF. The budget (planned, actual, variance per line) also shows, read-only, once it has been prepared."
     },
     "clientSecurity": {
       "title": "Two-factor authentication",
@@ -387,11 +387,11 @@
     },
     "budgetSettings": {
       "title": "Budget models",
-      "body": "Create allocation models (a percentage per vendor slot, total 100%) to quickly simulate a new prospect's budget."
+      "body": "A split (a percentage per budget line, total 100%) suggests planned amounts from a total. It is optional: an event's budget exists from its creation."
     },
     "budgetDetail": {
       "title": "Event budget",
-      "body": "Enter the total budget and the number of guests, choose an allocation model: you get an amount per vendor slot and the cost per guest. Adjust a vendor slot by hand if needed, the remaining amount to allocate recalculates right away. Attach a vendor's quote to its line (PDF or image, 20 MB max): it is checked by the antivirus and opens through a temporary link."
+      "body": "Enter the total budget and the number of guests, choose a split: you get a planned amount per line and the cost per guest. Adjust a line by hand if needed, the remaining amount to allocate recalculates right away. Attach a vendor's quote to its line (PDF or image, 20 MB max): it is checked by the antivirus and opens through a temporary link."
     },
     "quotesCatalog": {
       "title": "Services catalogue",
@@ -423,7 +423,7 @@
     },
     "importMatches": {
       "title": "Matching existing records",
-      "body": "For each row that looks like a record you already have (same clients and same date for an event, same label for an item or a list, same label within the same event for a task or a budget item), the app suggests a match with its similarity score. A matched row will update the existing record instead of creating a duplicate. Accept or refuse suggestions one by one or in bulk, or choose the record to match yourself. Tasks and budget lines must match one of your events without ambiguity."
+      "body": "For each row that looks like a record you already have (same clients and same date for an event, same label for an item or a list, same label within the same event for a task or a budget line), the app suggests a match with its similarity score. A matched row will update the existing record instead of creating a duplicate. Accept or refuse suggestions one by one or in bulk, or choose the record to match yourself. Tasks and budget lines must match one of your events without ambiguity."
     },
     "importGaps": {
       "title": "Gaps report",
@@ -487,7 +487,7 @@
     },
     "vendorBook": {
       "title": "The vendor book",
-      "body": "Each vendor has a single record, reused from one event to the next: contact details, features depending on its type, brochures, and the history of your work together. Filter by type, by features and around a place; add a vendor to an event item to compare quotes."
+      "body": "Each vendor has a single record, reused from one event to the next: contact details, features depending on its type, brochures, and the history of your work together. Filter by type, by features and around a place; add a vendor to an event's budget line to compare quotes."
     }
   },
   "FirstSteps": {
@@ -562,36 +562,36 @@
     "eventNotFound": "This event cannot be found.",
     "statusChanged": "Status updated.",
     "taskTableRegion": "Table: {caption}",
-    "vendorSlotsTable": "Vendor slots table",
-    "vendorSlotsTitle": "Vendor slots",
-    "vendorProgress": "{booked, plural, =0 {No slot booked} one {# slot booked} other {# slots booked}} out of {required}",
+    "vendorSlotsTable": "Budget lines",
+    "vendorSlotsTitle": "Budget",
+    "vendorProgress": "{booked, plural, =0 {No line booked} one {# line booked} other {# lines booked}} out of {required}",
     "vendorStatusToFind": "To find",
     "vendorStatusQuoteRequested": "Quote requested",
     "vendorStatusQuoteReceived": "Quote received",
     "vendorStatusBooked": "Booked",
     "vendorStatusNotRequired": "Not required",
-    "vendorSlotStatus": "Slot status",
+    "vendorSlotStatus": "Status",
     "vendorName": "Vendor",
     "vendorNameRequired": "Vendor (required if Booked)",
     "vendorAmount": "Amount in euros (optional)",
-    "saveVendorSlot": "Save slot",
-    "vendorSlotSaved": "Slot saved.",
-    "newVendorSlotLabel": "New slot for this event",
-    "addVendorSlot": "Add slot",
-    "removeVendorSlot": "Remove slot “{label}”",
-    "noVendorSlots": "No slot for this event. Add one, or define a default list in the settings.",
-    "vendorSlotNotFound": "This slot cannot be found.",
-    "missingVendorName": "Enter the vendor's name for a booked slot.",
+    "saveVendorSlot": "Save the line",
+    "vendorSlotSaved": "Line saved.",
+    "newVendorSlotLabel": "New budget line for this event",
+    "addVendorSlot": "Add the line",
+    "removeVendorSlot": "Remove the line “{label}”",
+    "noVendorSlots": "No budget line for this event. Add one, or set your default lines in the settings.",
+    "vendorSlotNotFound": "This budget line cannot be found.",
+    "missingVendorName": "Enter the vendor's name for a booked line.",
     "invalidAmount": "Invalid amount. Example: 2,500.50",
-    "defaultVendorSlotsTitle": "Default slots",
-    "defaultVendorSlotsIntro": "Every new event receives these slots; you then adjust them event by event.",
-    "noDefaultVendorSlots": "No default slot yet.",
-    "newDefaultVendorSlotLabel": "New default slot",
-    "addDefaultVendorSlot": "Add default slot",
-    "defaultVendorSlotAdded": "Slot added.",
-    "vendorSlotAlreadyExists": "This slot already exists.",
+    "defaultVendorSlotsTitle": "Default budget lines",
+    "defaultVendorSlotsIntro": "Every new event receives these lines (venue, caterer, photographer…); you track vendors, quotes, planned and actual amounts on them, then adjust them event by event.",
+    "noDefaultVendorSlots": "No default line yet.",
+    "newDefaultVendorSlotLabel": "New default line",
+    "addDefaultVendorSlot": "Add the line",
+    "defaultVendorSlotAdded": "✓ Line added.",
+    "vendorSlotAlreadyExists": "This line already exists.",
     "loadStarterVendorSlots": "Load the starter template",
-    "starterVendorSlotsLoaded": "{count, plural, =0 {The starter template is already loaded.} one {# slot added from the starter template.} other {# slots added from the starter template.}}",
+    "starterVendorSlotsLoaded": "{count, plural, =0 {The starter template is already loaded.} one {# line added from the starter template.} other {# lines added from the starter template.}}",
     "tasksTitle": "Planning timeline",
     "taskTemplatesTitle": "Planning timeline templates",
     "taskTemplatesLink": "Planning timeline templates",
@@ -661,20 +661,20 @@
     "programItemSaved": "Line saved.",
     "removeProgramItem": "Delete line {label}",
     "programItemNotFound": "Schedule line not found.",
-    "programParticipantNotFound": "A chosen participant is not a vendor slot of this event.",
+    "programParticipantNotFound": "A chosen participant is not a budget line of this event.",
     "programStartTime": "Start time",
     "programEndTime": "End time (optional)",
     "programItemLabel": "Line title",
     "programLocation": "Location",
     "programParticipants": "Participants",
-    "programVendorParticipants": "Participants among the event's vendor slots",
+    "programVendorParticipants": "Vendors involved (budget lines)",
     "programFreeParticipants": "Other participants (comma-separated)",
     "programInternalNote": "Internal note",
     "programTime": "Time",
     "invalidTime": "Invalid time.",
     "programTemplatesTitle": "Schedule templates",
     "programTemplatesLink": "Schedule templates",
-    "programTemplatesIntro": "A schedule template is a list of lines (times, title, location, participants). Applied to an event, it adds its lines to the schedule; a participant named like one of the event's vendor slots is linked to that slot.",
+    "programTemplatesIntro": "A schedule template is a list of moments (times, title, location, participants). Applied to an event, it adds its moments to the schedule; a participant named like one of the event's budget lines is linked to it.",
     "noProgramTemplates": "No schedule template yet.",
     "noProgramTemplateItems": "This template has no line yet.",
     "newProgramTemplateTitle": "New schedule template",
@@ -718,7 +718,7 @@
     "activityTaskUndone": "{actor} unchecked “{task}”.",
     "activityFormerClient": "A couple member",
     "trialTitle": "Guided trial",
-    "trialIntro": "Discover the module on a ready-made fictional wedding (vendor slots, planning timeline, wedding day schedule): change its status, book a vendor, check tasks, export the schedule. Your real events are never touched, and everything is deleted when the trial ends (or after 24 hours).",
+    "trialIntro": "Discover the module on a ready-made fictional wedding (budget, planning timeline, day schedule): change its status, book a vendor, check tasks, export the schedule. Your real events are never touched, and everything is deleted when the trial ends (or after 24 hours).",
     "trialStart": "Start the trial",
     "trialResume": "Resume the current trial",
     "trialEnded": "Trial ended: its fictional data has been deleted.",
@@ -734,7 +734,7 @@
     "demoWatermark": "Fictional document",
     "budgetLink": "Budget",
     "confirmBudgetTitle": "Make the simulation the planned budget",
-    "confirmBudgetBody": "The event is confirmed and a simulation already exists: you can use it as the starting point for the planned budget, vendor slot by vendor slot.",
+    "confirmBudgetBody": "The event is confirmed and a simulation already exists: you can use it as the planned amounts, line by line.",
     "confirmAsPlanned": "Make it the planned budget",
     "trialStepQuote": "Compose a fictional quote, have the fictional couple sign it on the trial signing page, then issue its invoices (DEMO series, watermarked).",
     "trialStartQuote": "Try a fictional quote",
@@ -749,15 +749,15 @@
     "tabClients": "Couple",
     "backToEvents": "← All events",
     "tasksOverdueCount": "{count, plural, one {# overdue} other {# overdue}}",
-    "vendorSlotsSettings": "Default vendor slot settings",
-    "vendorSlotsFilter": "Filter vendor slots",
-    "vendorSlotsAll": "All slots ({count})",
+    "vendorSlotsSettings": "Default budget line settings",
+    "vendorSlotsFilter": "Filter lines",
+    "vendorSlotsAll": "All lines ({count})",
     "vendorSlotsToFind": "To fill ({count})",
-    "noVendorSlotsToFind": "Every slot is filled.",
-    "vendorColumnSlot": "Slot",
+    "noVendorSlotsToFind": "Every line is filled.",
+    "vendorColumnSlot": "Line",
     "closePanel": "Close panel",
-    "vendorDetailTitle": "Slot details",
-    "vendorDetailHint": "Pick a slot in the table to change its status, vendor or amount.",
+    "vendorDetailTitle": "Line details",
+    "vendorDetailHint": "Pick a line in the table to change its status, vendor or amounts.",
     "taskTemplatesSettings": "Planning templates",
     "tasksSummary": "{done} of {total} {total, plural, one {task} other {tasks}} done · {overdue} overdue",
     "tasksViewFilter": "Show",
@@ -782,7 +782,15 @@
     "eventTabsLabel": "Event sections",
     "allTasksTitle": "Tasks",
     "allTasksSummary": "{count, plural, =0 {No task to do} one {# task to do} other {# tasks to do}} · {overdue} overdue",
-    "allTasksEmpty": "Nothing to do: everything is up to date."
+    "allTasksEmpty": "Nothing to do: everything is up to date.",
+    "budgetTotals": "Planned: {planned} · Actual: {actual}",
+    "budgetSuggest": "Suggest planned amounts, history and attached quotes",
+    "plannedAmountFor": "Planned for “{line}” (€)",
+    "savePlanned": "Save the planned amount",
+    "plannedSaved": "✓ Planned amount saved.",
+    "lineIconFor": "Icon of “{line}”",
+    "saveIcon": "Save the icon",
+    "iconSaved": "✓ Icon saved."
   },
   "Budget": {
     "title": "Budget",
@@ -793,17 +801,17 @@
     "modelsTitle": "Allocation models",
     "noModels": "No allocation model yet.",
     "noModelsYet": "Create an allocation model in the budget settings first, before simulating a budget.",
-    "noVendorSlotsYet": "Add default vendor slots in the events settings first.",
+    "noVendorSlotsYet": "Add default budget lines in the events settings first.",
     "removeModel": "Remove the “{name}” model",
     "newModelTitle": "New model",
     "modelName": "Model name",
-    "percentagePerSlot": "Percentage per vendor slot (total must be 100%)",
+    "percentagePerSlot": "Percentage per line (total must be 100%)",
     "createModel": "Create model",
     "modelCreated": "Model created.",
     "missingName": "The model name is required.",
     "missingItems": "Enter at least one percentage.",
     "totalNot100": "The total of all percentages must be exactly 100%.",
-    "unknownVendorSlot": "This vendor slot no longer exists.",
+    "unknownVendorSlot": "This budget line no longer exists.",
     "simulationTitle": "Simulation",
     "totalAmount": "Total budget (€)",
     "guestCount": "Number of guests",
@@ -814,16 +822,16 @@
     "missingModel": "Choose an allocation model.",
     "invalidTotalAmount": "The total budget must be a positive amount.",
     "invalidGuestCount": "The number of guests must be a positive whole number, or zero.",
-    "itemsTitle": "Vendor slots",
+    "itemsTitle": "Lines",
     "adjust": "Adjust",
     "invalidAmount": "The amount must be zero or positive.",
-    "noSimulationYet": "Simulate a budget first, before adjusting a vendor slot.",
+    "noSimulationYet": "Simulate a budget first, before adjusting a line.",
     "allocated": "Already allocated",
     "remaining": "Remaining to allocate",
     "costPerGuest": "Cost per guest",
     "linesTitle": "Planned, actual, variance",
     "confirmAsPlanned": "Make it the planned budget",
-    "vendorSlot": "Vendor slot",
+    "vendorSlot": "Line",
     "planned": "Planned",
     "actual": "Actual",
     "notSet": "Not set",
@@ -1187,7 +1195,7 @@
       "tasks": "Event tasks",
       "budget_lines": "Budget lines",
       "catalog_items": "Catalogue items",
-      "vendor_slots": "Default vendor slots",
+      "vendor_slots": "Default budget lines",
       "prospect_sources": "Prospect sources",
       "loss_reasons": "Loss reasons",
       "payment_methods": "Payment methods"
@@ -1280,7 +1288,7 @@
       "dueDate": "Due date",
       "responsible": "Responsible",
       "done": "Done",
-      "slotLabel": "Budget item",
+      "slotLabel": "Budget line",
       "vendorName": "Vendor",
       "plannedAmount": "Planned amount",
       "actualAmount": "Actual amount",
@@ -1412,13 +1420,13 @@
     "itemKind": {
       "event": "Event: {title}",
       "task": "Task: {title}",
-      "event_vendor_slot": "Budget item: {title}",
+      "event_vendor_slot": "Budget line: {title}",
       "budget_line": "Budget line: {title}",
       "catalog_item": "Item: {title}",
       "payment_method": "Payment method: {title}",
       "prospect_source": "Source: {title}",
       "loss_reason": "Loss reason: {title}",
-      "default_vendor_slot": "Default budget item: {title}"
+      "default_vendor_slot": "Default budget line: {title}"
     },
     "importedFieldsTitle": "Imported fields"
   },
@@ -1451,7 +1459,7 @@
       "event": "Event",
       "event_client": "Client",
       "client_access": "Couple access",
-      "event_vendor_slot": "Budget item",
+      "event_vendor_slot": "Budget line",
       "task": "Task",
       "program_item": "Programme",
       "program_participant": "Participant",
@@ -1802,7 +1810,7 @@
       },
       "budget-simulation": {
         "title": "Simulate an event budget",
-        "description": "Split an example budget by item, then compare planned and actual."
+        "description": "Split an example budget by line, then compare planned and actual."
       },
       "day-program": {
         "title": "Prepare the day's programme",
@@ -1817,8 +1825,8 @@
         "description": "Import a small example file and check the preview before confirming."
       },
       "vendor-quotes": {
-        "title": "Compare several quotes for one item",
-        "description": "Consult two example vendors for the same item, record their quotes, then select one."
+        "title": "Compare several quotes for one budget line",
+        "description": "Consult two example vendors for the same line, record their quotes, then select one."
       }
     },
     "intro": "Learn Symbola by doing, at your own pace. Each tutorial creates a fictional example, then offers to delete it.",
@@ -1927,7 +1935,7 @@
         },
         {
           "title": "Create the example",
-          "body": "Symbola creates \"Camille's 40th birthday party\", with its vendor slots and starter tasks."
+          "body": "Symbola creates \"Camille's 40th birthday party\", with its budget and starter tasks."
         },
         {
           "title": "Confirm the event",
@@ -1935,7 +1943,7 @@
         },
         {
           "title": "Book a vendor",
-          "body": "In the Vendors tab, pick a slot (the caterer, for example), set it to \"Booked\" and enter a vendor name."
+          "body": "In the Budget tab, pick a line (the caterer, for example), set it to \"Booked\" and enter a vendor name."
         },
         {
           "title": "Tick a task",
@@ -2059,7 +2067,7 @@
       "steps": [
         {
           "title": "Understand",
-          "body": "The budget splits an envelope by item from an allocation model, then compares planned and actual as bookings come in."
+          "body": "The split suggests a planned amount per line from a total, then the budget compares planned and actual as bookings come in."
         },
         {
           "title": "Create the example",
@@ -2071,7 +2079,7 @@
         },
         {
           "title": "Enter an actual",
-          "body": "Enter an actual amount on an item: the difference with the plan shows, in terracotta if over budget."
+          "body": "Enter an actual amount on a line: the difference with the plan shows, in terracotta if over budget."
         },
         {
           "title": "Finish",
@@ -2155,7 +2163,7 @@
       "steps": [
         {
           "title": "Understand",
-          "body": "For one item (the caterer of a gala, the venue of a retreat…), you often consult several vendors. Symbola keeps them side by side with their quote and your notes until you select one."
+          "body": "For one budget line (the caterer of a gala, the venue of a retreat…), you often consult several vendors. Symbola keeps them side by side with their quote and your notes until you select one."
         },
         {
           "title": "Prepare",
@@ -2163,7 +2171,7 @@
         },
         {
           "title": "Consult two vendors",
-          "body": "In the example's “Caterer” item, add two consulted vendors: pick them from your vendor book or simply type their name."
+          "body": "In the example's “Caterer” budget line, add two consulted vendors: pick them from your vendor book or simply type their name."
         },
         {
           "title": "Record a quote",
@@ -2171,7 +2179,7 @@
         },
         {
           "title": "Select",
-          "body": "Click “Select” on the vendor you choose: the item becomes Booked with its name and amount, and the other one stays visible as “not selected”."
+          "body": "Click “Select” on the vendor you choose: the line becomes Booked with its name and amount, and the other one stays visible as “not selected”."
         },
         {
           "title": "What the clients see",
@@ -2188,11 +2196,11 @@
     "title": "Vendors consulted — {slot}",
     "quotesReceived": "Quotes received: {received} of {total}",
     "findOnMap": "Find in my vendor book (map)",
-    "briefLabel": "What the clients want for this item",
+    "briefLabel": "What the clients want for this line",
     "briefSave": "Save the brief",
     "briefSaved": "Brief saved.",
     "empty": "No vendor consulted yet. Add the ones you contact: you will compare their quotes here.",
-    "selectHint": "“Select” books the item with this vendor and the amount of their quote; the budget is updated. The others stay visible as “not selected”.",
+    "selectHint": "“Select” books the line with this vendor and the amount of their quote; the budget's actual amount is updated. The others stay visible as “not selected”.",
     "addTitle": "Add a vendor consulted for “{slot}”",
     "fromBook": "From my vendor book",
     "fromBookNone": "— Choose a vendor —",
@@ -2235,7 +2243,7 @@
     "addToBook": "Add {vendor} to my vendor book",
     "remove": "Remove {vendor}",
     "unauthorized": "Session expired or access denied.",
-    "notFound": "Vendor or item not found.",
+    "notFound": "Vendor or line not found.",
     "nameRequired": "Enter the vendor's name or choose it from your vendor book.",
     "invalidResponse": "Invalid response.",
     "invalidAmount": "Invalid amount.",
@@ -2255,8 +2263,8 @@
     "newVendor": "New vendor",
     "newVendorHint": "One record per vendor: you will find it for every event, with the history of your work together.",
     "backToBook": "Back to the vendor book",
-    "targetTitle": "Add to “{slot}” — {event}",
-    "targetHint": "Choose a vendor below: it will be added to the vendors consulted for this item.",
+    "targetTitle": "Add to the line “{slot}” — {event}",
+    "targetHint": "Choose a vendor below: it will be added to the vendors consulted for this budget line.",
     "targetBack": "Back to the event",
     "typesFilter": "Vendor types",
     "allTypes": "All",
@@ -2288,7 +2296,7 @@
     "travelHint": "Estimated travel: straight-line distance × detour factor, at average speed (adjustable in the settings).",
     "demo": "Example",
     "notPlaced": "Not placed on the map",
-    "addToSlot": "Add {vendor} to “{slot}”",
+    "addToSlot": "Add {vendor} to the line “{slot}”",
     "identity": "Vendor",
     "name": "Vendor name",
     "type": "Type",
@@ -2330,7 +2338,7 @@
     "historyEmpty": "This vendor has not been consulted for any event yet.",
     "historyEvent": "Event",
     "historyDate": "Date",
-    "historySlot": "Item",
+    "historySlot": "Budget line",
     "historyOutcome": "Outcome",
     "historyQuoted": "Quoted price",
     "historyFinal": "Final price",
