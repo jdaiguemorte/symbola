@@ -1,5 +1,5 @@
-// Lot 11 — prestataires consultés (EVT-08/09) et carnet de prestataires
-// (PRE-01 à PRE-07, HUB-06), en taille ordinateur et en 375 px, axe-core.
+// Lot 11 — prestataires consultés (EVT-10/09) et carnet de prestataires
+// (PRE-01 à PRE-07, HUB-12), en taille ordinateur et en 375 px, axe-core.
 // Géocodeur simulé (hors production) ; pas de fond de carte installé : la
 // liste, les filtres et les distances fonctionnent quand même.
 import { randomUUID } from "node:crypto";
@@ -49,7 +49,7 @@ async function plannerOrganization() {
   }
 }
 
-test("EVT-08 / EVT-09 — comparer deux devis pour un poste, retenir, et ce que voient les clients", async ({ page, browser }) => {
+test("EVT-10 / EVT-11 — comparer deux devis pour un poste, retenir, et ce que voient les clients", async ({ page, browser }) => {
   const planner = await plannerOrganization();
   await addDefaultVendorSlots(planner.organizationId, ["Lieu de réception", "Traiteur"]);
   const source = await createProspectSource(planner.organizationId, "Salon");
@@ -125,7 +125,7 @@ test("EVT-08 / EVT-09 — comparer deux devis pour un poste, retenir, et ce que 
   await clientContext.close();
 });
 
-test("PRE-01 à PRE-07 / HUB-06 — créer ses fiches, filtrer autour d'un lieu, retrouver par la recherche", async ({ page }) => {
+test("PRE-01 à PRE-07 / HUB-12 — créer ses fiches, filtrer autour d'un lieu, retrouver par la recherche", async ({ page }) => {
   const planner = await plannerOrganization();
   await plannerLogin(page, planner.email, "mot-de-passe-presta");
 

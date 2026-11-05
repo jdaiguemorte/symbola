@@ -1,4 +1,4 @@
-// Lot 11 (EVT-08 / EVT-09) — prestataires consultés pour un poste, contre
+// Lot 11 (EVT-10 / EVT-11) — prestataires consultés pour un poste, contre
 // un vrai PostgreSQL (RLS) et le stockage privé, par la porte d'entrée du
 // module events.
 import { randomUUID } from "node:crypto";
@@ -72,7 +72,7 @@ async function invitedClient(organizationId: string, eventId: string) {
   return auth.user.id;
 }
 
-describe("EVT-08 — Plusieurs prestataires consultés par poste", () => {
+describe("EVT-10 — Plusieurs prestataires consultés par poste", () => {
   it("elle consulte plusieurs prestataires pour un même poste, avec ou sans fiche du carnet", async () => {
     const organizationId = await newOrganization();
     const { eventId, caterer } = await eventWithCaterer(organizationId);
@@ -189,7 +189,7 @@ describe("EVT-08 — Plusieurs prestataires consultés par poste", () => {
   });
 });
 
-describe("EVT-09 — Notes et options montrées aux clients", () => {
+describe("EVT-11 — Notes et options montrées aux clients", () => {
   it("les clients voient seulement les consultés montrés, avec les notes « Clients », et leur devis", async () => {
     const organizationId = await newOrganization();
     const { eventId, caterer } = await eventWithCaterer(organizationId);

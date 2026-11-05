@@ -1,4 +1,4 @@
-// Lot 11 (EVT-08 / EVT-09, ADR 0031) — prestataires consultés pour un
+// Lot 11 (EVT-10 / EVT-11, ADR 0031) — prestataires consultés pour un
 // poste : accès aux données et règles du module events. Exposé aux autres
 // modules seulement par service.ts (ADR 0011).
 import { and, asc, eq, inArray, isNotNull, sql } from "drizzle-orm";
@@ -313,7 +313,7 @@ export async function listSelectedVendors(organizationId: string): Promise<strin
   });
 }
 
-// EVT-09 — ce que voient les clients : consultés montrés, notes « Clients ».
+// EVT-11 — ce que voient les clients : consultés montrés, notes « Clients ».
 // L'accès du client à l'événement est vérifié par l'appelant (service).
 export async function clientOptions(organizationId: string, eventId: string): Promise<ClientVendorSlotOptions[]> {
   return inOrganization(organizationId, async (tx) => {

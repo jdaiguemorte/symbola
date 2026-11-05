@@ -40,7 +40,7 @@ async function seedVendor(tx: Tx, organizationId: string) {
   return first(await tx.insert(vendors).values({ organizationId, name: "Maison test" }).returning());
 }
 
-describe("EVT-08 / PRE-01 — Isolation entre organisations (prestataires, PostgreSQL réel)", () => {
+describe("EVT-10 / PRE-01 — Isolation entre organisations (prestataires, PostgreSQL réel)", () => {
   it("prestataires consultés", async () => {
     await assertOrganizationIsolation({
       seed: (organizationId) => withOrganization(db, organizationId, (tx) => seedCandidate(tx, organizationId)),

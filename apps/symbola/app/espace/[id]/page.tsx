@@ -64,7 +64,7 @@ export default async function ClientEventPage({ params }: { params: Promise<{ id
     ? await listClientQuotesToSign(auth.user.organizationId, id, auth.user.email)
     : [];
 
-  // EVT-09 : options de prestataires montrées par la planner (accès revérifié).
+  // EVT-11 : options de prestataires montrées par la planner (accès revérifié).
   const vendorOptions = await getClientVendorOptions(auth.user.organizationId, auth.user.id, id);
 
   const t = await getTranslations("ClientSpace");

@@ -105,7 +105,7 @@ export type EventVendorSlot = {
   position: number;
   // Lot 5 (IMP-04) : champs libres d'un import.
   importedFields?: Record<string, string>;
-  // Lot 11 (EVT-08) : ce que veulent les clients, consulté retenu.
+  // Lot 11 (EVT-10) : ce que veulent les clients, consulté retenu.
   brief: string | null;
   selectedCandidateId: string | null;
   icon: string | null;
@@ -114,7 +114,7 @@ export type EventVendorSlot = {
 // Lot 12 (EVT-15) — lieux d'un événement, saisis une fois.
 export type EventPlace = { id: string; eventId: string; label: string; address: string | null; vendorId: string | null };
 
-// Lot 11 (EVT-08 / EVT-09) — prestataires consultés pour un poste.
+// Lot 11 (EVT-10 / EVT-11) — prestataires consultés pour un poste.
 export type VendorCandidateResponse = "contacted" | "quote_received" | "declined";
 export type VendorCandidateNote = { id: string; body: string; visibleToClients: boolean; createdAt: string };
 export type VendorCandidate = {
@@ -162,7 +162,7 @@ export type VendorConsultation = {
   outcome: "selected" | "not_selected" | "pending";
   quotedCents: number | null;
 };
-// EVT-09 — options montrées aux clients, par poste.
+// EVT-11 — options montrées aux clients, par poste.
 export type ClientVendorOption = { candidateId: string; vendorName: string; quoteAmountCents: number | null; hasQuoteFile: boolean; notes: string[]; ribShared: boolean };
 export type ClientVendorSlotOptions = { slotLabel: string; options: ClientVendorOption[] };
 

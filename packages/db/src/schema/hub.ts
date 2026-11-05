@@ -107,7 +107,7 @@ export const passwordResets = hubSchema.table("password_resets", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
-// Lot 10 (AIDE-05 à AIDE-07, HUB-05) — progression de chaque compte dans
+// Lot 10 (AIDE-05 à AIDE-07, HUB-11) — progression de chaque compte dans
 // l'aide : visites focus et tutoriels. itemKey = « tour:<écran> » ou
 // « tutorial:<clé> ». step = étape où reprendre (visite mise de côté,
 // tutoriel en cours). Aucune donnée d'événement ici : la clé d'un élément

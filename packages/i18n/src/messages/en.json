@@ -82,7 +82,10 @@
     "settingsVendorTags": "Tags",
     "settingsVendorTravel": "Estimated travel",
     "setup": "Set-up",
-    "setupLocked": "Menus open once set-up is complete."
+    "setupLocked": "Menus open once set-up is complete.",
+    "agendaCreateOn": "Create on {date}",
+    "agendaCreateProspect": "Create a prospect on this date",
+    "agendaCreateEvent": "Create an event on this date"
   },
   "Admin": {
     "title": "Administration",
@@ -195,8 +198,8 @@
         "body": "This dashboard is your starting point: find your profile, your settings, and administration if you have the rights for it."
       },
       {
-        "title": "Complete your company profile",
-        "body": "To use every feature (quotes, invoicing), first complete your company profile and VAT regime under \"Settings\"."
+        "title": "Your settings",
+        "body": "Your company profile, VAT regime and lists (budget lines, sources, reasons) live here. The setup assistant pre-filled them; you can adjust them at any time."
       },
       {
         "title": "Help is always nearby",
@@ -285,7 +288,7 @@
       },
       {
         "title": "Find anything in a second",
-        "body": "Type a client name, a quote number or a question in the search: it looks through all of Symbola."
+        "body": "Type a client name, a quote number or a question in the search: it searches all your data."
       }
     ],
     "vendors": [
@@ -808,7 +811,9 @@
     "addPlace": "Add the place",
     "placeAdded": "✓ Place added.",
     "placeLabelRequired": "The place name is required.",
-    "addSuggestedPlace": "Add “{place}”"
+    "addSuggestedPlace": "Add “{place}”",
+    "newConfirmedEvent": "New event",
+    "createConfirmedEvent": "Create the event"
   },
   "Budget": {
     "title": "Budget",
@@ -1796,14 +1801,15 @@
   },
   "HelpBar": {
     "label": "Help bar",
-    "progress": "Getting started: {completed} of {total}",
-    "progressShort": "Help · {completed}/{total}",
+    "progress": "Tutorials done: {completed} of {total}",
+    "progressShort": "Tutorials {completed}/{total}",
     "resumeTour": "Resume the tour (step {step})",
     "resumeTutorial": "Resume: {title}",
     "collapse": "Collapse the help bar",
     "inviteKicker": "Discover in {minutes} minutes",
     "inviteStart": "Start the tutorial",
-    "inviteLater": "Later"
+    "inviteLater": "Later",
+    "tours": "Tours seen: {seen} of {total}"
   },
   "HelpCenter": {
     "items": {
@@ -1849,7 +1855,7 @@
       }
     },
     "intro": "Learn Symbola by doing, at your own pace. Each tutorial creates a fictional example, then offers to delete it.",
-    "progressTitle": "Getting started: {completed} of {total}",
+    "progressTitle": "Tutorials done: {completed} of {total}",
     "nextSuggestion": "Suggested next step: {title} ({minutes} minutes).",
     "continue": "Continue getting started",
     "allDone": "Well done, you have followed every tutorial. They stay available here to review.",

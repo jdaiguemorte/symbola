@@ -661,19 +661,24 @@
     @apply absolute -top-1.5 -right-1.5;
   }
   /* Le « ? » rond des aides ne s'applique pas aux dates de l'agenda. */
-  .agenda-multi > summary {
+  .agenda-multi > summary,
+  .agenda-create > summary {
     @apply m-0 flex h-full w-full min-h-0 cursor-pointer list-none flex-col items-center justify-center rounded-md border-0 bg-transparent p-0 text-inherit;
   }
-  .agenda-multi[open] {
+  .agenda-multi[open],
+  .agenda-create[open] {
     @apply m-0 max-w-none p-0;
   }
-  .agenda-multi[open] > summary {
+  .agenda-multi[open] > summary,
+  .agenda-create[open] > summary {
     @apply mb-0;
   }
-  .agenda-multi > summary::-webkit-details-marker {
+  .agenda-multi > summary::-webkit-details-marker,
+  .agenda-create > summary::-webkit-details-marker {
     display: none;
   }
-  .agenda-multi[open] > ul {
+  .agenda-multi[open] > ul,
+  .agenda-create[open] > ul {
     @apply absolute top-full left-0 z-20 m-0 mt-1 flex w-56 list-none flex-col gap-1 rounded-xl border border-lin bg-card p-3 text-left text-sm shadow-lg;
   }
 }

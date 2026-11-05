@@ -466,7 +466,7 @@ export async function removeEventPlace(organizationId: string, eventId: string, 
   await removePlace(organizationId, eventId, placeId);
 }
 
-// Lot 11 (EVT-08 / EVT-09, ADR 0031) — prestataires consultés par poste.
+// Lot 11 (EVT-10 / EVT-11, ADR 0031) — prestataires consultés par poste.
 
 export { CandidateQuoteRejectedError, VendorCandidateNotFoundError, CANDIDATE_QUOTE_MAX_SIZE_BYTES } from "./vendor-candidates";
 
@@ -539,7 +539,7 @@ export class ClientVendorOptionsAccessDeniedError extends Error {
   }
 }
 
-// EVT-09 — l'accès du client à l'événement est vérifié avant toute lecture.
+// EVT-11 — l'accès du client à l'événement est vérifié avant toute lecture.
 export async function getClientVendorOptions(organizationId: string, userId: string, eventId: string): Promise<ClientVendorSlotOptions[]> {
   if (!(await hasActiveClientAccess(organizationId, userId, eventId))) throw new ClientVendorOptionsAccessDeniedError();
   return clientOptions(organizationId, eventId);

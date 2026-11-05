@@ -215,7 +215,7 @@ export default async function EventDetailPage({
   const budgetAvailable = tab === "budget" ? await isBudgetModuleEnabled(organizationId) : false;
   const budgetView = budgetAvailable ? await listBudgetLines(organizationId, id) : null;
   const amountsOf = (slotId: string) => budgetView?.lines.find((line) => line.eventVendorSlotId === slotId) ?? null;
-  // Lot 11 (EVT-08) : prestataires consultés, et le carnet s'il est souscrit.
+  // Lot 11 (EVT-10) : prestataires consultés, et le carnet s'il est souscrit.
   const candidates = tab === "budget" ? await listVendorCandidates(organizationId, id) : [];
   const vendorsAvailable = tab === "budget" ? await isVendorsModuleEnabled(organizationId) : false;
   const bookOptions =

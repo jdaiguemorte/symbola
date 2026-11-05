@@ -111,6 +111,18 @@ font l'objet du lot 13.
   une visite déjà faite compte dans « prise en main ».
 - Textes revus (ex. « elle fouille tout Symbola » → « elle cherche dans toutes vos données »).
 
+## Renumérotation des identifiants
+
+Les lots 10 et 11 avaient réutilisé des identifiants déjà pris dans le cahier des charges (stories
+V2). Ils sont renumérotés partout (docs, ADR, code, tests) ; le cahier des charges est inchangé.
+
+| Avant | Après | Story |
+| --- | --- | --- |
+| HUB-05 (lot 10) | HUB-11 | Suivi de la prise en main dans l'Administration |
+| HUB-06 (lot 11) | HUB-12 | Paramètres en pastilles |
+| EVT-08 (lot 11) | EVT-10 | Plusieurs prestataires consultés |
+| EVT-09 (lot 11) | EVT-11 | Notes et options montrées aux clients |
+
 ## Tests
 
 - Intégration : chargement des modèles de départ par métier, verrouillage tant que l'assistant

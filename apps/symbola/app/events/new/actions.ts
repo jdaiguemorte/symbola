@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { createProspect, listProspectSources } from "@/modules/events/service";
+import { changeEventStatus, createProspect, listProspectSources } from "@/modules/events/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isEventsModuleEnabled } from "../module-access";
 
@@ -45,6 +45,12 @@ export async function createProspectAction(
     venueName: venueName || null,
     venueCity: venueCity || null,
   });
+
+  // HUB-13 : « Créer un événement » depuis l'agenda = confirmé d'emblée (la
+  // fiche propose alors le rétroplanning, EVT-13).
+  if (formData.get("confirmed") === "1") {
+    await changeEventStatus({ organizationId, eventId: result.id, changedByUserId: auth.user.id, toStatus: "confirmed" });
+  }
 
   redirect(`/events/${result.id}`);
 }

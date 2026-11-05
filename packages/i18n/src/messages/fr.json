@@ -82,7 +82,10 @@
     "settingsVendorTags": "Étiquettes",
     "settingsVendorTravel": "Trajet estimé",
     "setup": "Démarrage",
-    "setupLocked": "Les menus s'ouvrent quand le démarrage est terminé."
+    "setupLocked": "Les menus s'ouvrent quand le démarrage est terminé.",
+    "agendaCreateOn": "Créer le {date}",
+    "agendaCreateProspect": "Créer un prospect à cette date",
+    "agendaCreateEvent": "Créer un événement à cette date"
   },
   "Admin": {
     "title": "Administration",
@@ -195,8 +198,8 @@
         "body": "Ce tableau de bord est le point de départ : vous y retrouvez votre profil, vos paramètres et, selon vos droits, l'administration."
       },
       {
-        "title": "Complétez votre fiche entreprise",
-        "body": "Pour profiter de toutes les fonctions (devis, facturation), complétez d'abord votre fiche entreprise et votre régime de TVA dans « Paramètres »."
+        "title": "Vos paramètres",
+        "body": "Votre fiche entreprise, votre régime de TVA et vos listes (lignes du budget, sources, motifs) se retrouvent ici. L'assistant de démarrage les a pré-remplis ; vous pouvez les ajuster à tout moment."
       },
       {
         "title": "De l'aide à tout moment",
@@ -285,7 +288,7 @@
       },
       {
         "title": "Tout retrouver en un instant",
-        "body": "Tapez un nom de client, un numéro de devis ou une question dans la recherche : elle fouille tout Symbola."
+        "body": "Tapez un nom de client, un numéro de devis ou une question dans la recherche : elle cherche dans toutes vos données."
       }
     ],
     "vendors": [
@@ -808,7 +811,9 @@
     "addPlace": "Ajouter le lieu",
     "placeAdded": "✓ Lieu ajouté.",
     "placeLabelRequired": "Le nom du lieu est obligatoire.",
-    "addSuggestedPlace": "Ajouter « {place} »"
+    "addSuggestedPlace": "Ajouter « {place} »",
+    "newConfirmedEvent": "Nouvel événement",
+    "createConfirmedEvent": "Créer l'événement"
   },
   "Budget": {
     "title": "Budget",
@@ -1796,14 +1801,15 @@
   },
   "HelpBar": {
     "label": "Barre d'aide",
-    "progress": "Prise en main : {completed} sur {total}",
-    "progressShort": "Aide · {completed}/{total}",
+    "progress": "Tutoriels faits : {completed} sur {total}",
+    "progressShort": "Tutoriels {completed}/{total}",
     "resumeTour": "Reprendre la visite (étape {step})",
     "resumeTutorial": "Reprendre : {title}",
     "collapse": "Replier la barre d'aide",
     "inviteKicker": "Découvrir en {minutes} minutes",
     "inviteStart": "Commencer le tutoriel",
-    "inviteLater": "Plus tard"
+    "inviteLater": "Plus tard",
+    "tours": "Visites vues : {seen} sur {total}"
   },
   "HelpCenter": {
     "items": {
@@ -1849,7 +1855,7 @@
       }
     },
     "intro": "Apprenez Symbola en le faisant, à votre rythme. Chaque tutoriel crée un exemple fictif, puis vous propose de le supprimer.",
-    "progressTitle": "Votre prise en main : {completed} sur {total}",
+    "progressTitle": "Tutoriels faits : {completed} sur {total}",
     "nextSuggestion": "Prochaine étape conseillée : {title} ({minutes} minutes).",
     "continue": "Continuer ma prise en main",
     "allDone": "Bravo, vous avez suivi tous les tutoriels. Ils restent disponibles ici pour les revoir.",

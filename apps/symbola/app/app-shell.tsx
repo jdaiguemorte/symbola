@@ -34,6 +34,11 @@ import { SearchBox } from "./search-box";
 import { HelpProvider } from "./help-context";
 import { getHelpProgress } from "@/modules/hub/service";
 import { type HelpModule, TUTORIALS, tutorialHref } from "@/lib/help/catalog";
+import { TOUR_TARGETS, type TourKey } from "@/lib/help/tours";
+
+// Lot 12 (AIDE-09) : module de chaque visite, pour ne compter que celles
+// des modules souscrits.
+const TOUR_MODULES: Record<TourKey, HelpModule> = { hub: "hub", events: "events", event: "events", quotes: "quotes", budget: "budget", vendors: "vendors" };
 
 function Logo() {
   return (
@@ -157,6 +162,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
   let helpBar: {
     completed: number;
     total: number;
+    tours: { seen: number; total: number };
     tutorial: { title: string; href: string } | null;
     invites: TutorialInvite[];
   } | null = null;
@@ -194,6 +200,13 @@ export async function AppShell({ children }: { children: ReactNode }) {
         ),
       ).length,
       total: available.length,
+      tours: (() => {
+        const tours = (Object.keys(TOUR_TARGETS) as TourKey[]).filter((key) => subscribed[TOUR_MODULES[key]]);
+        return {
+          seen: tours.filter((key) => progress.some((entry) => entry.itemKey === `tour:${key}` && entry.status === "completed")).length,
+          total: tours.length,
+        };
+      })(),
       tutorial: inProgressKey
         ? {
             title: tHelpCenter(`items.${inProgressKey}.title`),
@@ -234,7 +247,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
         ).filter((task) => task.overdue).length
       : 0;
 
-  // Paramètres : une pastille par solution souscrite (HUB-06, lot 11).
+  // Paramètres : une pastille par solution souscrite (HUB-12, lot 11).
   const settingsSections: SettingsSection[] = organizationId
     ? [
         {

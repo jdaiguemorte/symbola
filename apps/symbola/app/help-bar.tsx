@@ -1,7 +1,7 @@
 "use client";
 
 // Lot 10 (AIDE-07) — barre d'aide, en bas de chaque écran de l'équipe :
-// progression de la prise en main, reprise de la visite mise de côté sur cet
+// tutoriels faits et visites vues (lot 12, AIDE-09 : chacun est un lien), reprise de la visite mise de côté sur cet
 // écran, ou du tutoriel en cours. Repliable (préférence gardée dans le
 // navigateur, sans donnée personnelle).
 import Link from "next/link";
@@ -18,11 +18,14 @@ const COLLAPSED_KEY = "symbola_aide_barre_repliee";
 export function HelpBar({
   completed,
   total,
+  tours,
   tutorial,
   invites,
 }: {
   completed: number;
   total: number;
+  // Lot 12 (AIDE-09) : visites focus déjà vues jusqu'au bout.
+  tours: { seen: number; total: number };
   tutorial: { title: string; href: string } | null;
   // AIDE-06 : tutoriels jamais ouverts, proposés à la première visite de leur écran.
   invites: TutorialInvite[];
@@ -85,8 +88,11 @@ export function HelpBar({
         </button>
       ) : (
         <>
-          <Link href="/aide" className="help-bar-progress">
+          <Link href="/aide#help-progress-title" className="help-bar-progress">
             {t("progress", { completed, total })}
+          </Link>
+          <Link href="/aide" className="help-bar-progress">
+            {t("tours", { seen: tours.seen, total: tours.total })}
           </Link>
           {tour && tour.postponedStep !== null ? (
             <button type="button" className="help-bar-resume" onClick={tour.resume}>

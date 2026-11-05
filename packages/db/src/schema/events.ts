@@ -141,7 +141,7 @@ export const eventVendorSlots = eventsSchema.table("event_vendor_slots", {
   // Lot 5 (IMP-04/IMP-05) : colonnes d'un fichier importé gardées en champ
   // libre (intitulé → texte), affichées en lecture seule sur la fiche.
   importedFields: jsonb("imported_fields").$type<Record<string, string> | null>(),
-  // Lot 11 (EVT-08) : ce que veulent les clients pour ce poste, et le
+  // Lot 11 (EVT-10) : ce que veulent les clients pour ce poste, et le
   // prestataire consulté retenu (null tant qu'aucun ne l'est).
   brief: text("brief"),
   selectedCandidateId: uuid("selected_candidate_id"),
@@ -150,7 +150,7 @@ export const eventVendorSlots = eventsSchema.table("event_vendor_slots", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
-// Lot 11 (EVT-08) — réponse d'un prestataire consulté : statuts fixes,
+// Lot 11 (EVT-10) — réponse d'un prestataire consulté : statuts fixes,
 // comme ceux du poste (« Retenu » / « Non retenu » se déduisent du poste).
 export const vendorCandidateResponseEnum = eventsSchema.enum("vendor_candidate_response", [
   "contacted",
@@ -158,7 +158,7 @@ export const vendorCandidateResponseEnum = eventsSchema.enum("vendor_candidate_r
   "declined",
 ]);
 
-// Lot 11 (EVT-08) — prestataires consultés pour un poste. vendor_id
+// Lot 11 (EVT-10) — prestataires consultés pour un poste. vendor_id
 // référence une fiche du carnet (module vendors, ADR 0031) sans clé
 // étrangère entre schémas ; le nom reste en clair pour fonctionner sans le
 // module Prestataires. Le devis joint suit les règles de l'ADR 0027.
@@ -188,7 +188,7 @@ export const eventVendorCandidates = eventsSchema.table("event_vendor_candidates
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
-// Lot 11 (EVT-09) — notes sur un prestataire consulté : internes par
+// Lot 11 (EVT-11) — notes sur un prestataire consulté : internes par
 // défaut, visibles par les clients note par note.
 export const eventVendorCandidateNotes = eventsSchema.table("event_vendor_candidate_notes", {
   id: uuid("id").defaultRandom().primaryKey(),

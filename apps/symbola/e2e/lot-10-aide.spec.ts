@@ -86,7 +86,7 @@ test("AIDE-05/07 — visite focus mise de côté puis reprise, et centre d'aide"
   await expect(page.getByRole("dialog")).toHaveCount(0);
 });
 
-test("HUB-05 — l'Admin voit la prise en main de chaque compte d'équipe", async ({ page }) => {
+test("HUB-11 — l'Admin voit la prise en main de chaque compte d'équipe", async ({ page }) => {
   const adminEmail = `admin-suivi-${randomUUID()}@symbola.test`;
   const ownerEmail = `titulaire-suivi-${randomUUID()}@symbola.test`;
   const organizationName = `Organisation suivi ${randomUUID().slice(0, 8)}`;

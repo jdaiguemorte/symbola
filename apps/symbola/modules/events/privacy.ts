@@ -50,7 +50,7 @@ async function inOrganization<T>(organizationId: string, fn: (tx: Parameters<Par
   }
 }
 
-// Lot 11 (EVT-08/09) : prestataires consultés et leurs notes.
+// Lot 11 (EVT-10/09) : prestataires consultés et leurs notes.
 type Tx = Parameters<Parameters<typeof withOrganization>[2]>[0];
 async function candidateRecords(tx: Tx, eventIds: string[], matches: ((values: (string | null)[]) => boolean) | null): Promise<PrivacyRecord[]> {
   const candidates = await tx.select().from(eventVendorCandidates).where(inArray(eventVendorCandidates.eventId, eventIds)).orderBy(asc(eventVendorCandidates.position));

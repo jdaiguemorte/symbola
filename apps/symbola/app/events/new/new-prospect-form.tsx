@@ -5,13 +5,14 @@ import { useTranslations } from "next-intl";
 import { createProspectAction, type NewProspectFormState } from "./actions";
 import type { ProspectSource } from "@/modules/events/service";
 
-export function NewProspectForm({ sources }: { sources: ProspectSource[] }) {
+export function NewProspectForm({ sources, initialDate = "", confirmed = false }: { sources: ProspectSource[]; initialDate?: string; confirmed?: boolean }) {
   const t = useTranslations("Events");
   const initialState: NewProspectFormState = {};
   const [state, formAction, pending] = useActionState(createProspectAction, initialState);
 
   return (
     <form action={formAction}>
+      {confirmed ? <input type="hidden" name="confirmed" value="1" /> : null}
       <label>
         {t("client1FirstName")}
         <input type="text" name="firstName1" required />
@@ -43,7 +44,7 @@ export function NewProspectForm({ sources }: { sources: ProspectSource[] }) {
       </label>
       <label>
         {t("eventDate")}
-        <input type="date" name="eventDate" />
+        <input type="date" name="eventDate" defaultValue={initialDate} />
       </label>
       <label>
         {t("venueName")}
@@ -54,7 +55,7 @@ export function NewProspectForm({ sources }: { sources: ProspectSource[] }) {
         <input type="text" name="venueCity" />
       </label>
       <button type="submit" disabled={pending}>
-        {t("createProspect")}
+        {t(confirmed ? "createConfirmedEvent" : "createProspect")}
       </button>
       {state.error ? <p role="alert">{state.error}</p> : null}
     </form>

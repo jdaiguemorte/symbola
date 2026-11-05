@@ -444,7 +444,7 @@ export async function updateEventVendorSlotRow(input: {
   status: VendorSlotStatus;
   vendorName?: string | null | undefined;
   amountCents?: number | null | undefined;
-  // Lot 11 (EVT-08) : consulté retenu ; effacé quand le poste n'est plus réservé.
+  // Lot 11 (EVT-10) : consulté retenu ; effacé quand le poste n'est plus réservé.
   selectedCandidateId?: string | null | undefined;
 }): Promise<EventVendorSlotRow | null> {
   const { sql: pg, db } = createAppConnection();
