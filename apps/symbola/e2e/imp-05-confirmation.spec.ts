@@ -7,10 +7,10 @@ import AxeBuilder from "@axe-core/playwright";
 import { createAppConnection } from "@symbola/db/client";
 import { eventClients, events, prospectSources } from "@symbola/db/schema/events";
 import { withOrganization } from "@symbola/db/with-organization";
-import { createOrganization, createUser } from "@symbola/auth";
+import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import * as OTPAuth from "otpauth";
-import { openSettingsTab } from "./helpers";
+import { openSettingsTab, readyOrganization } from "./helpers";
 
 async function loginAndSetupMfa(page: Page, email: string, password: string) {
   await page.goto("/login");
@@ -36,7 +36,7 @@ test("IMP-05 — aperçu, confirmation, champ libre sur la fiche, journal et ann
   let existingEventId = "";
   const { sql, db } = createAppConnection();
   try {
-    const organization = await createOrganization(db, `Org ${randomUUID()}`);
+    const organization = await readyOrganization(db, `Org ${randomUUID()}`);
     await createUser(db, { organizationId: organization.id, email, password, role: "owner" });
     existingEventId = await withOrganization(db, organization.id, async (tx) => {
       const [source] = await tx.insert(prospectSources).values({ organizationId: organization.id, label: "Instagram" }).returning();

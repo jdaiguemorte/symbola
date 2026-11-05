@@ -71,7 +71,7 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
         <section className="card" aria-labelledby="target-title">
           <h2 id="target-title">{t("targetTitle", { slot: target.slotLabel, event: target.eventLabel })}</h2>
           <p>{t("targetHint")}</p>
-          <Link href={`/events/${target.eventId}?onglet=prestataires&poste=${target.slotId}`}>{t("targetBack")}</Link>
+          <Link href={`/events/${target.eventId}?onglet=budget&poste=${target.slotId}`}>{t("targetBack")}</Link>
         </section>
       ) : null}
 

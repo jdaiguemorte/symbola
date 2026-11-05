@@ -1,7 +1,8 @@
 // HUB-02 — agenda de l'accueil : calendrier des mois à venir (12 par
 // défaut, 3 ou 6 au choix), mariages confirmés en plein, dates posées sur
 // un prospect en atténué, badge « 2 » quand deux événements tombent le même
-// week-end ; un clic ouvre la fiche de l'événement.
+// week-end ; un clic ouvre la fiche de l'événement. Lot 12 (HUB-13) : un
+// clic sur une date libre propose de créer un prospect ou un événement.
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { getTranslations } from "next-intl/server";
@@ -120,9 +121,20 @@ export async function AgendaBlock({
                 const names = span === 3 && cell.events.length > 0 ? <span className="agenda-names">{cell.events.map((event) => event.names).join(", ")}</span> : null;
                 if (cell.events.length === 0) {
                   return (
-                    <span key={cell.date} className={classes}>
-                      {cell.day}
-                    </span>
+                    <details key={cell.date} className={`${classes} agenda-create`}>
+                      <summary title={t("agendaCreateOn", { date: formatCalendarDate(cell.date, locale) })}>
+                        {cell.day}
+                        <span className="sr-only"> {t("agendaCreateOn", { date: formatCalendarDate(cell.date, locale) })}</span>
+                      </summary>
+                      <ul>
+                        <li>
+                          <Link href={`/events/new?date=${cell.date}`}>{t("agendaCreateProspect")}</Link>
+                        </li>
+                        <li>
+                          <Link href={`/events/new?date=${cell.date}&type=evenement`}>{t("agendaCreateEvent")}</Link>
+                        </li>
+                      </ul>
+                    </details>
                   );
                 }
                 if (cell.events.length === 1 && cell.weekendCount <= 1) {

@@ -116,6 +116,8 @@ export const defaultVendorSlots = eventsSchema.table("default_vendor_slots", {
   id: uuid("id").defaultRandom().primaryKey(),
   organizationId: uuid("organization_id").notNull(),
   label: text("label").notNull(),
+  // Lot 12 (EVT-14) : icône de la ligne du budget (clé connue de l'app).
+  icon: text("icon"),
   position: integer("position").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
@@ -139,15 +141,16 @@ export const eventVendorSlots = eventsSchema.table("event_vendor_slots", {
   // Lot 5 (IMP-04/IMP-05) : colonnes d'un fichier importé gardées en champ
   // libre (intitulé → texte), affichées en lecture seule sur la fiche.
   importedFields: jsonb("imported_fields").$type<Record<string, string> | null>(),
-  // Lot 11 (EVT-08) : ce que veulent les clients pour ce poste, et le
+  // Lot 11 (EVT-10) : ce que veulent les clients pour ce poste, et le
   // prestataire consulté retenu (null tant qu'aucun ne l'est).
   brief: text("brief"),
   selectedCandidateId: uuid("selected_candidate_id"),
+  icon: text("icon"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
-// Lot 11 (EVT-08) — réponse d'un prestataire consulté : statuts fixes,
+// Lot 11 (EVT-10) — réponse d'un prestataire consulté : statuts fixes,
 // comme ceux du poste (« Retenu » / « Non retenu » se déduisent du poste).
 export const vendorCandidateResponseEnum = eventsSchema.enum("vendor_candidate_response", [
   "contacted",
@@ -155,7 +158,7 @@ export const vendorCandidateResponseEnum = eventsSchema.enum("vendor_candidate_r
   "declined",
 ]);
 
-// Lot 11 (EVT-08) — prestataires consultés pour un poste. vendor_id
+// Lot 11 (EVT-10) — prestataires consultés pour un poste. vendor_id
 // référence une fiche du carnet (module vendors, ADR 0031) sans clé
 // étrangère entre schémas ; le nom reste en clair pour fonctionner sans le
 // module Prestataires. Le devis joint suit les règles de l'ADR 0027.
@@ -178,12 +181,14 @@ export const eventVendorCandidates = eventsSchema.table("event_vendor_candidates
   quoteMime: text("quote_mime"),
   quoteSizeBytes: integer("quote_size_bytes"),
   shownToClients: boolean("shown_to_clients").notNull().default(false),
+  // Lot 12 (EVT-16) : RIB de la fiche du carnet partagé aux clients de l'événement.
+  shareRibWithClients: boolean("share_rib_with_clients").notNull().default(false),
   position: integer("position").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
-// Lot 11 (EVT-09) — notes sur un prestataire consulté : internes par
+// Lot 11 (EVT-11) — notes sur un prestataire consulté : internes par
 // défaut, visibles par les clients note par note.
 export const eventVendorCandidateNotes = eventsSchema.table("event_vendor_candidate_notes", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -336,5 +341,21 @@ export const eventActivities = eventsSchema.table("event_activities", {
   kind: eventActivityKindEnum("kind").notNull(),
   taskId: uuid("task_id").references(() => eventTasks.id, { onDelete: "set null" }),
   taskLabel: text("task_label").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+// Lot 12 (EVT-15) — lieux d'un événement (réception, cérémonie,
+// préparatifs…), saisis une fois puis choisis dans le programme. vendor_id
+// : fiche du carnet (module vendors) d'où vient le lieu, sans clé étrangère.
+export const eventPlaces = eventsSchema.table("event_places", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  eventId: uuid("event_id")
+    .notNull()
+    .references(() => events.id, { onDelete: "cascade" }),
+  label: text("label").notNull(),
+  address: text("address"),
+  vendorId: uuid("vendor_id"),
+  position: integer("position").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });

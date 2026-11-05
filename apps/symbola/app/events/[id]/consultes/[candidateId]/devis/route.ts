@@ -1,4 +1,4 @@
-// Lot 11 (EVT-08) — devis d'un prestataire consulté, ouvert par l'équipe :
+// Lot 11 (EVT-10) — devis d'un prestataire consulté, ouvert par l'équipe :
 // session, organisation et module vérifiés, fichier servi par l'app depuis
 // le stockage privé (ADR 0027).
 import { getVendorCandidateQuoteFile, VendorCandidateNotFoundError } from "@/modules/events/service";

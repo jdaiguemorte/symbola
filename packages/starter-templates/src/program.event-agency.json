@@ -1,0 +1,146 @@
+{
+  "version": 1,
+  "name": {
+    "fr": "Déroulé d'un événement d'entreprise (modèle de départ)",
+    "en": "Corporate event run of show (starter template)"
+  },
+  "items": [
+    {
+      "key": "setup",
+      "startTime": "08:00",
+      "endTime": "11:00",
+      "vendorSlotKeys": [
+        "sound_light",
+        "furniture",
+        "decoration"
+      ],
+      "label": {
+        "fr": "Installation technique et décor",
+        "en": "Technical set-up and decoration"
+      },
+      "location": {
+        "fr": "Lieu",
+        "en": "Venue"
+      }
+    },
+    {
+      "key": "welcome",
+      "startTime": "13:30",
+      "endTime": "14:00",
+      "vendorSlotKeys": [
+        "staff",
+        "caterer"
+      ],
+      "label": {
+        "fr": "Accueil des participants",
+        "en": "Guest welcome"
+      },
+      "location": {
+        "fr": "Lieu",
+        "en": "Venue"
+      }
+    },
+    {
+      "key": "plenary",
+      "startTime": "14:00",
+      "endTime": "16:00",
+      "vendorSlotKeys": [
+        "sound_light",
+        "photographer",
+        "videographer"
+      ],
+      "label": {
+        "fr": "Plénière",
+        "en": "Plenary session"
+      },
+      "location": {
+        "fr": "Salle plénière",
+        "en": "Main room"
+      }
+    },
+    {
+      "key": "break",
+      "startTime": "16:00",
+      "endTime": "16:30",
+      "vendorSlotKeys": [
+        "caterer"
+      ],
+      "label": {
+        "fr": "Pause",
+        "en": "Break"
+      },
+      "location": {
+        "fr": "Lieu",
+        "en": "Venue"
+      }
+    },
+    {
+      "key": "workshops",
+      "startTime": "16:30",
+      "endTime": "18:00",
+      "vendorSlotKeys": [
+        "staff"
+      ],
+      "label": {
+        "fr": "Ateliers",
+        "en": "Workshops"
+      },
+      "location": {
+        "fr": "Salles d'ateliers",
+        "en": "Breakout rooms"
+      }
+    },
+    {
+      "key": "cocktail",
+      "startTime": "19:00",
+      "endTime": "20:30",
+      "vendorSlotKeys": [
+        "caterer",
+        "entertainment",
+        "photographer"
+      ],
+      "label": {
+        "fr": "Cocktail",
+        "en": "Cocktail reception"
+      },
+      "location": {
+        "fr": "Lieu",
+        "en": "Venue"
+      }
+    },
+    {
+      "key": "dinner",
+      "startTime": "20:30",
+      "endTime": "23:00",
+      "vendorSlotKeys": [
+        "caterer",
+        "entertainment",
+        "sound_light"
+      ],
+      "label": {
+        "fr": "Dîner et animation",
+        "en": "Dinner and entertainment"
+      },
+      "location": {
+        "fr": "Lieu",
+        "en": "Venue"
+      }
+    },
+    {
+      "key": "departure",
+      "startTime": "23:00",
+      "endTime": "23:30",
+      "vendorSlotKeys": [
+        "transport"
+      ],
+      "label": {
+        "fr": "Départ des navettes",
+        "en": "Shuttles depart"
+      },
+      "location": {
+        "fr": "Lieu",
+        "en": "Venue"
+      }
+    }
+  ]
+}

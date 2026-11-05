@@ -4,9 +4,10 @@
 import { randomUUID } from "node:crypto";
 import AxeBuilder from "@axe-core/playwright";
 import { createAppConnection } from "@symbola/db/client";
-import { createOrganization, createUser } from "@symbola/auth";
+import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import * as OTPAuth from "otpauth";
+import { openEventTab, readyOrganization } from "./helpers";
 
 async function loginAndSetupMfa(page: Page, email: string, password: string) {
   await page.goto("/login");
@@ -31,7 +32,7 @@ test("BUD-02 — confirmer la simulation en budget prévu, puis suivre prévu/r�
   const password = "mot-de-passe-bud02-e2e";
   const { sql, db } = createAppConnection();
   try {
-    const organization = await createOrganization(db, `Org ${randomUUID()}`);
+    const organization = await readyOrganization(db, `Org ${randomUUID()}`);
     await createUser(db, { organizationId: organization.id, email, password, role: "owner" });
   } finally {
     await sql.end();
@@ -65,7 +66,10 @@ test("BUD-02 — confirmer la simulation en budget prévu, puis suivre prévu/r�
   await expect(page.getByRole("heading", { name: "Camille" })).toBeVisible();
   const eventUrl = page.url();
 
-  await page.getByRole("main").getByRole("link", { name: "Budget", exact: true }).click();
+  // Lot 12 (EVT-17) : le budget est un onglet de la fiche ; le module
+  // Budget s'ouvre depuis son lien.
+  await openEventTab(page, "Budget");
+  await page.getByRole("link", { name: "Proposer des montants prévus, historique et devis joints" }).click();
   await page.getByLabel("Budget total (€)").fill("10000");
   await page.getByLabel("Nombre d'invités").fill("40");
   await page.getByLabel("Modèle de répartition").selectOption({ label: "Classique" });
@@ -78,8 +82,7 @@ test("BUD-02 — confirmer la simulation en budget prévu, puis suivre prévu/r�
   await expect(page.getByRole("heading", { name: "Faire de la simulation le budget prévu" })).toHaveCount(0);
 
   // Passage en Confirmé → le bandeau apparaît.
-  await page.locator('select[name="toStatus"]').selectOption("confirmed");
-  await page.getByRole("button", { name: "Changer le statut" }).click();
+  await page.getByRole("form", { name: "Statut de l'événement" }).getByRole("button", { name: "Confirmé" }).click();
   await expect(page.getByRole("heading", { name: "Faire de la simulation le budget prévu" })).toBeVisible();
   await expectNoAxeViolation(page);
 

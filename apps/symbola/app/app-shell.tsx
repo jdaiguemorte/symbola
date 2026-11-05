@@ -18,20 +18,27 @@ import {
 import { getTranslations } from "next-intl/server";
 import { parisToday } from "@symbola/i18n";
 import { createAppConnection } from "@symbola/db/client";
-import { isModuleEnabled } from "@/modules/hub/service";
+import { getSetupState, isModuleEnabled } from "@/modules/hub/service";
 import { listOrganizationTasks } from "@/modules/events/service";
 import { getAuthContext } from "@/lib/auth-context";
 import { AppNavLink } from "./app-nav-link";
 import { AppSidebar } from "./app-sidebar";
 import { logoutAction } from "./logout-action";
 import { SettingsNav, type SettingsSection } from "./settings-nav";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
+import { redirect } from "next/navigation";
+import { Lock, Rocket } from "lucide-react";
 import { HelpBar, type TutorialInvite } from "./help-bar";
 import { AUTO_TOURS_COOKIE } from "@/lib/help/preferences";
 import { SearchBox } from "./search-box";
 import { HelpProvider } from "./help-context";
 import { getHelpProgress } from "@/modules/hub/service";
 import { type HelpModule, TUTORIALS, tutorialHref } from "@/lib/help/catalog";
+import { TOUR_TARGETS, type TourKey } from "@/lib/help/tours";
+
+// Lot 12 (AIDE-09) : module de chaque visite, pour ne compter que celles
+// des modules souscrits.
+const TOUR_MODULES: Record<TourKey, HelpModule> = { hub: "hub", events: "events", event: "events", quotes: "quotes", budget: "budget", vendors: "vendors" };
 
 function Logo() {
   return (
@@ -132,6 +139,21 @@ export async function AppShell({ children }: { children: ReactNode }) {
     }
   }
   const isOwner = auth.user.role === "owner" && Boolean(organizationId);
+  // Lot 12 (ONB-03) — assistant de démarrage bloquant : tant qu'il n'est pas
+  // terminé, l'équipe n'a que l'assistant (et l'aide, le profil).
+  const teamMember = Boolean(organizationId) && (auth.user.role === "owner" || auth.user.role === "member");
+  let setupDone = true;
+  if (teamMember && organizationId) {
+    const { sql, db } = createAppConnection();
+    try {
+      setupDone = (await getSetupState(db, organizationId)).completed;
+    } finally {
+      await sql.end();
+    }
+    const pathname = (await headers()).get("x-pathname") ?? "/";
+    const allowed = ["/demarrage", "/aide", "/profil"].some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
+    if (!setupDone && !allowed) redirect("/demarrage");
+  }
   // Lot 10 (AIDE-07) — barre d'aide de l'équipe : tutoriels des modules
   // souscrits, terminés ou en cours.
   const isTeam =
@@ -140,6 +162,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
   let helpBar: {
     completed: number;
     total: number;
+    tours: { seen: number; total: number };
     tutorial: { title: string; href: string } | null;
     invites: TutorialInvite[];
   } | null = null;
@@ -177,6 +200,13 @@ export async function AppShell({ children }: { children: ReactNode }) {
         ),
       ).length,
       total: available.length,
+      tours: (() => {
+        const tours = (Object.keys(TOUR_TARGETS) as TourKey[]).filter((key) => subscribed[TOUR_MODULES[key]]);
+        return {
+          seen: tours.filter((key) => progress.some((entry) => entry.itemKey === `tour:${key}` && entry.status === "completed")).length,
+          total: tours.length,
+        };
+      })(),
       tutorial: inProgressKey
         ? {
             title: tHelpCenter(`items.${inProgressKey}.title`),
@@ -217,7 +247,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
         ).filter((task) => task.overdue).length
       : 0;
 
-  // Paramètres : une pastille par solution souscrite (HUB-06, lot 11).
+  // Paramètres : une pastille par solution souscrite (HUB-12, lot 11).
   const settingsSections: SettingsSection[] = organizationId
     ? [
         {
@@ -310,6 +340,27 @@ export async function AppShell({ children }: { children: ReactNode }) {
         menuLabel={t("menuOpen")}
         closeLabel={t("menuClose")}
       >
+        {!setupDone ? (
+          <nav aria-label={t("navLabel")}>
+            <ul className="app-nav">
+              <li>
+                <AppNavLink href="/demarrage">
+                  <Rocket {...iconProps} />
+                  {t("setup")}
+                </AppNavLink>
+              </li>
+              <li>
+                <AppNavLink href="/aide">
+                  <LifeBuoy {...iconProps} />
+                  {tAide("link")}
+                </AppNavLink>
+              </li>
+            </ul>
+            <p className="nav-locked">
+              <Lock size={16} aria-hidden="true" /> {t("setupLocked")}
+            </p>
+          </nav>
+        ) : (
         <nav aria-label={t("navLabel")}>
           <ul className="app-nav">
             <li>
@@ -389,6 +440,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
             </li>
           </ul>
         </nav>
+        )}
         <div className="app-user">
           <span>{t("connectedAs", { email: auth.user.email })}</span>
           {logout}
@@ -396,7 +448,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
       </AppSidebar>
       <HelpProvider>
         <div className="app-main">
-          {isTeam ? <SearchBox /> : null}
+          {isTeam && setupDone ? <SearchBox /> : null}
           {settingsSections.length > 0 ? (
             <SettingsNav
               sections={settingsSections}
@@ -406,7 +458,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
           ) : null}
           {children}
         </div>
-        {helpBar ? <HelpBar {...helpBar} /> : null}
+        {helpBar && setupDone ? <HelpBar {...helpBar} /> : null}
       </HelpProvider>
     </div>
   );

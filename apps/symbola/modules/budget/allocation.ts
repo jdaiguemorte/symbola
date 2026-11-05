@@ -50,10 +50,11 @@ export function remainingToAllocateCents(totalAmountCents: number, items: EventB
 // défaut, qui laisserait croire à un écart nul constaté). 0 % si le
 // prévu est à 0 (pas de division par zéro affichée).
 export function computeVariance(
-  plannedAmountCents: number,
+  plannedAmountCents: number | null,
   actualAmountCents: number | null,
 ): { varianceCents: number | null; variancePercent: number | null } {
-  if (actualAmountCents === null) return { varianceCents: null, variancePercent: null };
+  // Lot 12 : sans prévu (ligne suivie seulement en réel), pas d'écart.
+  if (actualAmountCents === null || plannedAmountCents === null) return { varianceCents: null, variancePercent: null };
   const varianceCents = actualAmountCents - plannedAmountCents;
   const variancePercent = plannedAmountCents === 0 ? 0 : Math.round((varianceCents / plannedAmountCents) * 10000) / 100;
   return { varianceCents, variancePercent };

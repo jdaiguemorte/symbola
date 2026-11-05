@@ -225,7 +225,7 @@ describe("BUD-02 — Prévu, réel, écart", () => {
     expect(history.at(-1)).toMatchObject({ newValueCents: 390000, changedByUserId: bookedByUserId });
   });
 
-  it("ignore l'événement vendor_slot.booked tant qu'aucune ligne de budget n'existe pour ce poste", async () => {
+  it("lot 12 (EVT-17) — une réservation crée la ligne du budget : réel connu, prévu encore vide, pas d'écart", async () => {
     const organizationId = randomUUID();
     await addDefaultVendorSlots(organizationId, ["Lieu"]);
     const event = await createEvent(organizationId);
@@ -243,7 +243,11 @@ describe("BUD-02 — Prévu, réel, écart", () => {
       }),
     ).resolves.not.toThrow();
 
-    expect(await listBudgetLines(organizationId, event.id)).toMatchObject({ lines: [] });
+    expect(await listBudgetLines(organizationId, event.id)).toMatchObject({
+      lines: [{ eventVendorSlotId: lieuSlot.id, plannedAmountCents: null, actualAmountCents: 100000, varianceCents: null }],
+      totalPlannedCents: 0,
+      totalActualCents: 100000,
+    });
   });
 });
 

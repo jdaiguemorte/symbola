@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
+import { Pencil } from "lucide-react";
 import type { EventVendorSlot, ProgramItem, ProgramTemplate } from "@/modules/events/service";
 import {
   addProgramItemAction,
@@ -76,7 +77,7 @@ function ProgramItemFields({
       </label>
       <label>
         {t("programLocation")}
-        <input type="text" name="location" value={draft.location} onChange={set("location")} />
+        <input type="text" name="location" list="event-place-options" value={draft.location} onChange={set("location")} />
       </label>
       {vendorSlots.length > 0 ? (
         <fieldset>
@@ -155,8 +156,11 @@ export function EditProgramItemForm({
   const [draft, setDraft] = useState<Draft>(() => draftOf(item));
 
   return (
-    <details>
-      <summary>{t("editProgramItem", { label: item.label })}</summary>
+    <details className="program-edit">
+      <summary className="icon-button" title={t("editProgramItem", { label: item.label })}>
+        <Pencil size={16} aria-hidden="true" />
+        <span className="sr-only">{t("editProgramItem", { label: item.label })}</span>
+      </summary>
       <form action={formAction}>
         <input type="hidden" name="eventId" value={eventId} />
         <input type="hidden" name="itemId" value={item.id} />

@@ -5,9 +5,10 @@
 import { randomUUID } from "node:crypto";
 import AxeBuilder from "@axe-core/playwright";
 import { createAppConnection } from "@symbola/db/client";
-import { createOrganization, createUser } from "@symbola/auth";
+import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import * as OTPAuth from "otpauth";
+import { openEventTab, readyOrganization } from "./helpers";
 
 async function loginAndSetupMfa(page: Page, email: string, password: string) {
   await page.goto("/login");
@@ -27,12 +28,12 @@ async function expectNoAxeViolation(page: Page) {
   expect(result.violations, JSON.stringify(result.violations, null, 2)).toEqual([]);
 }
 
-test("BUD-01 — modèle de répartition, simulation et ajustement d'un poste", async ({ page }) => {
+test("BUD-01 — modèle de répartition, simulation et ajustement d'une ligne", async ({ page }) => {
   const email = `planner-bud01-${randomUUID()}@symbola.test`;
   const password = "mot-de-passe-bud01-e2e";
   const { sql, db } = createAppConnection();
   try {
-    const organization = await createOrganization(db, `Org ${randomUUID()}`);
+    const organization = await readyOrganization(db, `Org ${randomUUID()}`);
     await createUser(db, { organizationId: organization.id, email, password, role: "owner" });
   } finally {
     await sql.end();
@@ -73,7 +74,10 @@ test("BUD-01 — modèle de répartition, simulation et ajustement d'un poste", 
   await expect(page.getByRole("heading", { name: "Camille" })).toBeVisible();
 
   // BUD-01 : accès à la simulation depuis la fiche événement.
-  await page.getByRole("main").getByRole("link", { name: "Budget", exact: true }).click();
+  // Lot 12 (EVT-17) : le budget est un onglet de la fiche ; le module
+  // Budget s'ouvre depuis son lien.
+  await openEventTab(page, "Budget");
+  await page.getByRole("link", { name: "Proposer des montants prévus, historique et devis joints" }).click();
   await expect(page).toHaveURL(/\/budget\//);
   await expectNoAxeViolation(page);
 

@@ -5,10 +5,10 @@
 import { randomUUID } from "node:crypto";
 import AxeBuilder from "@axe-core/playwright";
 import { createAppConnection } from "@symbola/db/client";
-import { createOrganization, createUser } from "@symbola/auth";
+import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import * as OTPAuth from "otpauth";
-import { openEventTab } from "./helpers";
+import { openEventTab, readyOrganization } from "./helpers";
 
 async function loginAndSetupMfa(page: Page, email: string, password: string) {
   await page.goto("/login");
@@ -33,7 +33,7 @@ test("EVT-05 — programme du jour J depuis un modèle, chevauchement signalé e
   const password = "mot-de-passe-evt05-e2e";
   const { sql, db } = createAppConnection();
   try {
-    const organization = await createOrganization(db, `Org ${randomUUID()}`);
+    const organization = await readyOrganization(db, `Org ${randomUUID()}`);
     await createUser(db, { organizationId: organization.id, email, password, role: "owner" });
   } finally {
     await sql.end();
@@ -45,9 +45,9 @@ test("EVT-05 — programme du jour J depuis un modèle, chevauchement signalé e
   await page.getByLabel("Nouvelle source").fill("Salon");
   await page.getByRole("button", { name: "Ajouter la source" }).click();
   await expect(page.getByText("Source ajoutée.")).toBeVisible();
-  await page.getByLabel("Nouveau poste par défaut").fill("Photographe");
-  await page.getByRole("button", { name: "Ajouter le poste par défaut" }).click();
-  await expect(page.getByText("Poste ajouté.")).toBeVisible();
+  await page.getByLabel("Nouvelle ligne par défaut").fill("Photographe");
+  await page.getByRole("button", { name: "Ajouter la ligne" }).click();
+  await expect(page.getByText("✓ Ligne ajoutée.")).toBeVisible();
 
   // Modèles de programme : le modèle de départ se charge.
   await page.goto("/events");
@@ -72,10 +72,13 @@ test("EVT-05 — programme du jour J depuis un modèle, chevauchement signalé e
   await page.getByRole("button", { name: "Appliquer le modèle de programme" }).click();
   await expect(page.getByText("Modèle appliqué : les lignes ont été ajoutées au programme.")).toBeVisible();
   const program = page.getByRole("list", { name: "Programme du jour J" });
-  await expect(program.getByRole("listitem").first()).toContainText("09:00 – 12:00 — Coiffure et maquillage");
-  await expect(program.getByRole("listitem").filter({ hasText: "15:00 – 16:00 — Cérémonie" })).toContainText(
-    "Intervenants : Photographe",
-  );
+  // Lot 12 (EVT-14) : heure | intitulé, lieu et icônes des prestataires.
+  const first = program.getByRole("listitem").first();
+  await expect(first.locator(".program-time")).toHaveText("09:00 – 12:00");
+  await expect(first.locator("strong")).toHaveText("Coiffure et maquillage");
+  const ceremony = program.getByRole("listitem").filter({ has: page.locator("strong", { hasText: /^Cérémonie$/ }) });
+  await expect(ceremony.locator(".program-time")).toHaveText("15:00 – 16:00");
+  await expect(ceremony.getByRole("img", { name: "Prestataires concernés : Photographe" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Chevauchements à vérifier" })).toHaveCount(0);
 
   // Une ligne qui chevauche les photos de groupe pour le photographe : signalée, pas bloquée.
@@ -84,13 +87,15 @@ test("EVT-05 — programme du jour J depuis un modèle, chevauchement signalé e
   await newLine.getByLabel("Heure de fin (facultative)").fill("17:00");
   await newLine.getByLabel("Intitulé de la ligne").fill("Photos des invités");
   await newLine.getByLabel("Lieu").fill("Parc du château");
-  await newLine.getByRole("group", { name: "Intervenants parmi les postes de l'événement" }).getByLabel("Photographe").check();
+  await newLine.getByRole("group", { name: "Prestataires concernés (lignes du budget)" }).getByLabel("Photographe").check();
   await newLine.getByLabel("Autres intervenants (séparés par des virgules)").fill("Témoin");
   await newLine.getByLabel("Note interne").fill("Prévoir les alliances");
   await newLine.getByRole("button", { name: "Ajouter la ligne" }).click();
   await expect(page.getByText("Ligne ajoutée.")).toBeVisible();
-  const added = program.getByRole("listitem").filter({ hasText: "16:15 – 17:00 — Photos des invités" });
-  await expect(added).toContainText("Parc du château — Intervenants : Photographe, Témoin");
+  const added = program.getByRole("listitem").filter({ has: page.locator("strong", { hasText: /^Photos des invités$/ }) });
+  await expect(added.locator(".program-time")).toHaveText("16:15 – 17:00");
+  await expect(added).toContainText("Parc du château");
+  await expect(added.getByRole("img", { name: "Prestataires concernés : Photographe, Témoin" })).toBeVisible();
   await expect(added).toContainText("Note interne : Prévoir les alliances");
   await expect(page.getByRole("region", { name: "Chevauchements à vérifier" })).toContainText(
     "Photographe est prévu à la fois sur « Photos de groupe » et sur « Photos des invités ».",

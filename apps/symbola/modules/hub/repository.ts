@@ -195,7 +195,7 @@ export async function resetHelpProgressItem(db: AppDatabase, userId: string, ite
     .where(and(eq(helpProgress.userId, userId), eq(helpProgress.itemKey, itemKey)));
 }
 
-// HUB-05 — progression de tous les comptes d'équipe (vue Admin) : clés
+// HUB-11 — progression de tous les comptes d'équipe (vue Admin) : clés
 // d'aide, états et dates seulement.
 export async function findAllHelpProgress(db: AppDatabase) {
   return db.select().from(helpProgress);
@@ -232,7 +232,7 @@ export async function replaceInvitationToken(db: AppDatabase, invitationId: stri
     .where(and(eq(invitations.id, invitationId), isNull(invitations.acceptedAt)));
 }
 
-// HUB-05 (lot 10) — activation des modules de toutes les organisations, en une
+// HUB-11 (lot 10) — activation des modules de toutes les organisations, en une
 // requête (une ligne seulement pour un module déjà basculé par l'Admin).
 export async function findAllOrganizationModules(db: AppDatabase) {
   return db.select().from(organizationModules);

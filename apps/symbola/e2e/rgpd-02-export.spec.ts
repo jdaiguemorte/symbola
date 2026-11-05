@@ -9,10 +9,11 @@ import { createAppConnection } from "@symbola/db/client";
 import { eventClients, events, eventTasks, prospectSources } from "@symbola/db/schema/events";
 import { privacyRequests } from "@symbola/db/schema/hub";
 import { withOrganization } from "@symbola/db/with-organization";
-import { createOrganization, createUser } from "@symbola/auth";
+import { createUser } from "@symbola/auth";
 import { ZipArchive } from "@symbola/import-engine";
 import { expect, test, type Page } from "@playwright/test";
 import * as OTPAuth from "otpauth";
+import { readyOrganization } from "./helpers";
 
 async function loginAndSetupMfa(page: Page, email: string, password: string) {
   await page.goto("/login");
@@ -47,7 +48,7 @@ test("RGPD-02 — la titulaire exporte les fiches cochées de la personne et té
   const lastName = `Durand${randomUUID().slice(0, 6)}`;
   const { sql, db } = createAppConnection();
   try {
-    const organization = await createOrganization(db, `Org ${randomUUID()}`);
+    const organization = await readyOrganization(db, `Org ${randomUUID()}`);
     const user = await createUser(db, { organizationId: organization.id, email: ownerEmail, password, role: "owner" });
     await seedWedding(db, organization.id, "Élodie", lastName, "Réserver le traiteur");
     await seedWedding(db, organization.id, "Élodie", `${lastName}-Homonyme`, "Tâche de l'homonyme");

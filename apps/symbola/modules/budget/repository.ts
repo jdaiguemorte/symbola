@@ -300,7 +300,7 @@ export async function setBudgetLineAmount(input: {
             organizationId: input.organizationId,
             eventId: input.eventId,
             eventVendorSlotId: input.eventVendorSlotId,
-            plannedAmountCents: input.field === "planned" ? input.amountCents : 0,
+            plannedAmountCents: input.field === "planned" ? input.amountCents : null,
             actualAmountCents: input.field === "actual" ? input.amountCents : null,
           })
           .returning();

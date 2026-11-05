@@ -4,10 +4,11 @@
 import { randomUUID } from "node:crypto";
 import AxeBuilder from "@axe-core/playwright";
 import { createAppConnection } from "@symbola/db/client";
-import { createOrganization, createUser } from "@symbola/auth";
+import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import * as OTPAuth from "otpauth";
 import { createProspect, createProspectSource } from "../modules/events/service";
+import { readyOrganization } from "./helpers";
 
 async function expectNoAxeViolation(page: Page) {
   const result = await new AxeBuilder({ page }).analyze();
@@ -20,7 +21,7 @@ test("AIDE-08 — rechercher un événement par le nom du client, et une aide pa
   const { sql, db } = createAppConnection();
   let eventId: string;
   try {
-    const organization = await createOrganization(db, `Org ${randomUUID()}`);
+    const organization = await readyOrganization(db, `Org ${randomUUID()}`);
     const user = await createUser(db, { organizationId: organization.id, email, password: "mot-de-passe-recherche", role: "owner" });
     const source = await createProspectSource(organization.id, "Salon");
     eventId = (

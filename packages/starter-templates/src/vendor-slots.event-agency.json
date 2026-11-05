@@ -1,0 +1,101 @@
+{
+  "version": 1,
+  "items": [
+    {
+      "key": "venue",
+      "icon": "venue",
+      "label": {
+        "fr": "Lieu",
+        "en": "Venue"
+      }
+    },
+    {
+      "key": "caterer",
+      "icon": "catering",
+      "label": {
+        "fr": "Traiteur",
+        "en": "Caterer"
+      }
+    },
+    {
+      "key": "sound_light",
+      "icon": "sound",
+      "label": {
+        "fr": "Technique son et lumière",
+        "en": "Sound and lighting"
+      }
+    },
+    {
+      "key": "entertainment",
+      "icon": "music",
+      "label": {
+        "fr": "Animation et artistes",
+        "en": "Entertainment and artists"
+      }
+    },
+    {
+      "key": "photographer",
+      "icon": "camera",
+      "label": {
+        "fr": "Photographe",
+        "en": "Photographer"
+      }
+    },
+    {
+      "key": "videographer",
+      "icon": "video",
+      "label": {
+        "fr": "Vidéaste",
+        "en": "Videographer"
+      }
+    },
+    {
+      "key": "decoration",
+      "icon": "decoration",
+      "label": {
+        "fr": "Décoration et scénographie",
+        "en": "Decoration and set design"
+      }
+    },
+    {
+      "key": "furniture",
+      "icon": "furniture",
+      "label": {
+        "fr": "Mobilier et location de matériel",
+        "en": "Furniture and equipment hire"
+      }
+    },
+    {
+      "key": "staff",
+      "icon": "staff",
+      "label": {
+        "fr": "Personnel d'accueil",
+        "en": "Hospitality staff"
+      }
+    },
+    {
+      "key": "transport",
+      "icon": "transport",
+      "label": {
+        "fr": "Transport",
+        "en": "Transport"
+      }
+    },
+    {
+      "key": "lodging",
+      "icon": "lodging",
+      "label": {
+        "fr": "Hébergement",
+        "en": "Accommodation"
+      }
+    },
+    {
+      "key": "print",
+      "icon": "stationery",
+      "label": {
+        "fr": "Signalétique et impressions",
+        "en": "Signage and printing"
+      }
+    }
+  ]
+}

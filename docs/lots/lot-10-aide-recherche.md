@@ -77,7 +77,7 @@ autonomie**, et ajoute une **recherche globale**.
 - Insensible aux accents et à la casse (« theo » trouve « Théo »).
 - Un compte client (marié) n'a pas cette recherche ; l'Admin non plus (aucune donnée métier).
 
-## HUB-05 — Suivi de la prise en main dans l'Administration
+## HUB-11 — Suivi de la prise en main dans l'Administration
 
 - Par organisation et par compte d'équipe : progression (N sur 9), tutoriels terminés, en cours
   (avec l'étape), dernière activité d'aide. Indicateurs globaux : progression moyenne, tutoriels

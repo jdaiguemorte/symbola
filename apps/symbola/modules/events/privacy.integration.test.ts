@@ -9,6 +9,7 @@ import { createAppConnection } from "@symbola/db/client";
 import {
   eventClientAccesses,
   eventClients,
+  eventPlaces,
   events,
   eventStatusHistory,
   eventTasks,
@@ -104,5 +105,23 @@ describe("RGPD-01 — Recherche dans le module events (PostgreSQL réel)", () =>
 
   it("sans terme exploitable, ne renvoie rien", async () => {
     expect(await eventsPrivacy.find({ organizationId: randomUUID(), terms: { name: "a", phone: "12" } })).toEqual([]);
+  });
+});
+
+describe("RGPD-01 / RGPD-03 — Lieux de l'événement (lot 12, EVT-15)", () => {
+  it("trouve un lieu par son adresse, puis le supprime à l'oubli", async () => {
+    const organizationId = randomUUID();
+    const { eventId } = await seedEvent(organizationId, { firstName: `Lea${randomUUID().slice(0, 6)}` });
+    const street = `${randomUUID().slice(0, 6)} rue des Lilas`;
+    await withOrganization(db, organizationId, (tx) =>
+      tx.insert(eventPlaces).values({ organizationId, eventId, label: "Préparatifs", address: `12 ${street}, Lyon` }),
+    );
+    const found = await eventsPrivacy.find({ organizationId, terms: { name: street } });
+    expect(found.map((record) => [record.kind, record.label])).toEqual([["event_place", "Préparatifs"]]);
+
+    const rules = { accountingRetentionMonths: 120, signedQuoteRetentionMonths: 60 };
+    const plan = await eventsPrivacy.erase({ organizationId, records: found.map(({ kind, recordId }) => ({ kind, recordId })), rules, today: "2026-11-05" });
+    expect(plan.map((item) => [item.kind, item.fate])).toEqual([["event_place", "deleted"]]);
+    expect(await withOrganization(db, organizationId, (tx) => tx.select().from(eventPlaces))).toEqual([]);
   });
 });

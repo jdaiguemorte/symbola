@@ -1,0 +1,54 @@
+{
+  "version": 1,
+  "items": [
+    {
+      "key": "word_of_mouth",
+      "label": {
+        "fr": "Bouche-à-oreille",
+        "en": "Word of mouth"
+      }
+    },
+    {
+      "key": "website",
+      "label": {
+        "fr": "Mon site internet",
+        "en": "My website"
+      }
+    },
+    {
+      "key": "linkedin",
+      "label": {
+        "fr": "LinkedIn",
+        "en": "LinkedIn"
+      }
+    },
+    {
+      "key": "tender",
+      "label": {
+        "fr": "Appel d'offres",
+        "en": "Call for tenders"
+      }
+    },
+    {
+      "key": "trade_fair",
+      "label": {
+        "fr": "Salon professionnel",
+        "en": "Trade fair"
+      }
+    },
+    {
+      "key": "partner_referral",
+      "label": {
+        "fr": "Recommandation d'un partenaire",
+        "en": "Partner referral"
+      }
+    },
+    {
+      "key": "former_client",
+      "label": {
+        "fr": "Ancien client",
+        "en": "Former client"
+      }
+    }
+  ]
+}

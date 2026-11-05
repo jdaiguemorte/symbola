@@ -4,10 +4,10 @@
 import { randomUUID } from "node:crypto";
 import AxeBuilder from "@axe-core/playwright";
 import { createAppConnection } from "@symbola/db/client";
-import { createOrganization, createUser } from "@symbola/auth";
+import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import * as OTPAuth from "otpauth";
-import { clickMenuLink } from "./helpers";
+import { clickMenuLink, readyOrganization } from "./helpers";
 
 async function loginAndSetupMfa(page: Page, email: string, password: string) {
   await page.goto("/login");
@@ -36,7 +36,7 @@ async function createPlanner(page: Page) {
   const password = "mot-de-passe-evt-e2e";
   const { sql, db } = createAppConnection();
   try {
-    const organization = await createOrganization(db, `Org ${randomUUID()}`);
+    const organization = await readyOrganization(db, `Org ${randomUUID()}`);
     await createUser(db, { organizationId: organization.id, email, password, role: "owner" });
   } finally {
     await sql.end();
@@ -129,8 +129,8 @@ test("EVT-01/02 — un prospect apparaît dans la liste, passe en Confirmé puis
   await page.goto(detailUrl);
   // Attend l'hydratation : un envoi avant elle partirait sans retour d'erreur.
   await page.waitForLoadState("networkidle");
-  await page.getByLabel("Statut").selectOption("confirmed");
-  await page.getByRole("button", { name: "Changer le statut" }).click();
+  // Lot 12 (EVT-12) : statut en boutons d'étapes, un clic suffit.
+  await page.getByRole("form", { name: "Statut de l'événement" }).getByRole("button", { name: "Confirmé" }).click();
   await expect(page.getByText("Statut mis à jour.")).toBeVisible();
   await page.goto("/events");
   await expect(item).toContainText("Confirmé");
@@ -139,17 +139,16 @@ test("EVT-01/02 — un prospect apparaît dans la liste, passe en Confirmé puis
   await page.goto(detailUrl);
   // Attend l'hydratation : un envoi avant elle partirait sans retour d'erreur.
   await page.waitForLoadState("networkidle");
-  await page.getByLabel("Statut").selectOption("lost");
-  await page.getByRole("button", { name: "Changer le statut" }).click();
-  await expect(page.locator("form p[role=alert]")).toHaveText("Choisissez un motif de perte.");
-
+  // « Perdu… » ouvre le choix du motif (obligatoire) ; le motif « Autre »
+  // demande une précision avant de confirmer.
+  await page.getByRole("button", { name: "Perdu…" }).click();
+  await expect(page.getByLabel("Motif de perte")).toHaveAttribute("required", "");
   await page.getByLabel("Motif de perte").selectOption({ label: "Autre" });
-  await page.getByRole("button", { name: "Changer le statut" }).click();
-  await expect(page.locator("form p[role=alert]")).toHaveText("Ce motif demande une précision.");
+  await expect(page.getByLabel("Précision sur le motif")).toHaveAttribute("required", "");
   await expectNoAxeViolation(page);
 
   await page.getByLabel("Précision sur le motif").fill("Le couple a choisi un autre lieu.");
-  await page.getByRole("button", { name: "Changer le statut" }).click();
+  await page.getByRole("button", { name: "Confirmer « Perdu »" }).click();
   await expect(page.getByText("Statut mis à jour.")).toBeVisible();
   await expect(page.locator("form p[role=alert]")).toHaveCount(0);
 

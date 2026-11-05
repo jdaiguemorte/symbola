@@ -33,3 +33,4 @@ Un fichier par décision structurante, numéroté. Pour changer une décision : 
 - [0029 — Assistance de l'Admin, mot de passe oublié et statistiques d'usage](0029-assistance-admin-et-statistiques-d-usage.md)
 - [0030 — Une aide qui forme et une recherche globale](0030-aide-qui-forme-et-recherche-globale.md)
 - [0031 — Prestataires consultés, carnet de prestataires et carte](0031-prestataires-carnet-et-carte.md)
+- [0032 — « Budget » remplace les postes prestataires](0032-budget-remplace-les-postes.md)

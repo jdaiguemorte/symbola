@@ -87,7 +87,7 @@ export async function runSearch(input: { organizationId: string; role: string; t
         ...found.vendors.map((vendor) => ({
           title: vendor.vendorName ? t("vendorTitle", { vendor: vendor.vendorName, slot: vendor.label }) : vendor.label,
           detail: vendor.eventNames || t("noClientName"),
-          href: `/events/${vendor.eventId}?onglet=prestataires&poste=${vendor.id}`,
+          href: `/events/${vendor.eventId}?onglet=budget&poste=${vendor.id}`,
         })),
         ...found.book.map((vendor) => ({
           title: vendor.name,

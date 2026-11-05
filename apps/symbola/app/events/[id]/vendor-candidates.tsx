@@ -1,6 +1,6 @@
 "use client";
 
-// Lot 11 (EVT-08 / EVT-09) — prestataires consultés pour le poste choisi :
+// Lot 11 (EVT-10 / EVT-11) — prestataires consultés pour le poste choisi :
 // réponse, devis, notes (internes ou montrées aux clients), « Retenir ».
 // Des cartes plutôt qu'un tableau : lisibles en 375 px.
 import Link from "next/link";
@@ -122,6 +122,7 @@ function CandidateCard({
   const [contactedOn, setContactedOn] = useState(candidate.contactedOn ?? "");
   const [amount, setAmount] = useState(amountInputValue(candidate.quoteAmountCents));
   const [shown, setShown] = useState(candidate.shownToClients);
+  const [shareRib, setShareRib] = useState(candidate.shareRibWithClients);
   const name = candidate.vendorName;
   const headingId = `candidate-${candidate.id}`;
 
@@ -162,6 +163,12 @@ function CandidateCard({
           <input type="checkbox" name="shownToClients" checked={shown} onChange={(event) => setShown(event.target.checked)} />
           {t("shownToClients")}
         </label>
+        {candidate.vendorId ? (
+          <label className="checkbox">
+            <input type="checkbox" name="shareRibWithClients" checked={shareRib} onChange={(event) => setShareRib(event.target.checked)} />
+            {t("shareRibWithClients")}
+          </label>
+        ) : null}
         <button type="submit" disabled={pending} aria-label={t("saveFor", { vendor: name })}>
           {t("save")}
         </button>
@@ -285,7 +292,7 @@ export function VendorCandidates({
       {candidates.length === 0 ? <p>{t("empty")}</p> : null}
       <ul className="candidate-list">
         {candidates.map((candidate) => (
-          <CandidateCard key={`${candidate.id}-${candidate.response}-${candidate.quoteAmountCents}-${candidate.shownToClients}`} eventId={eventId} candidate={candidate} vendorsAvailable={vendorsAvailable} locale={locale} />
+          <CandidateCard key={`${candidate.id}-${candidate.response}-${candidate.quoteAmountCents}-${candidate.shownToClients}-${candidate.shareRibWithClients}`} eventId={eventId} candidate={candidate} vendorsAvailable={vendorsAvailable} locale={locale} />
         ))}
       </ul>
       <p className="muted">{t("selectHint")}</p>

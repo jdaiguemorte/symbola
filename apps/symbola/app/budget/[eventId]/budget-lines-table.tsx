@@ -30,7 +30,7 @@ function LineRow({
   return (
     <tr>
       <th scope="row">{line.label}</th>
-      <td>{formatAmount(line.plannedAmountCents, locale)}</td>
+      <td>{line.plannedAmountCents === null ? t("notSet") : formatAmount(line.plannedAmountCents, locale)}</td>
       <td>{line.actualAmountCents === null ? t("notSet") : formatAmount(line.actualAmountCents, locale)}</td>
       <td className={variance.className}>
         {varianceLabel}
@@ -43,7 +43,7 @@ function LineRow({
           <input type="hidden" name="field" value="planned" />
           <label>
             {t("planned")} — {line.label}
-            <input type="number" name="amount" min={0} step={0.01} defaultValue={line.plannedAmountCents / 100} />
+            <input type="number" name="amount" min={0} step={0.01} defaultValue={line.plannedAmountCents === null ? "" : line.plannedAmountCents / 100} />
           </label>
           <button type="submit" disabled={plannedPending}>
             {t("updatePlanned")}

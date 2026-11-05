@@ -9,10 +9,10 @@
 import { randomUUID } from "node:crypto";
 import AxeBuilder from "@axe-core/playwright";
 import { createAppConnection } from "@symbola/db/client";
-import { createOrganization, createUser } from "@symbola/auth";
+import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import * as OTPAuth from "otpauth";
-import { clickMenuLink } from "./helpers";
+import { clickMenuLink, readyOrganization } from "./helpers";
 
 async function loginAndSetupMfa(page: Page, email: string, password: string): Promise<void> {
   await page.goto("/login");
@@ -33,7 +33,7 @@ async function createTestUser(): Promise<{ email: string; password: string }> {
   const password = "mot-de-passe-aide-e2e";
   const { sql, db } = createAppConnection();
   try {
-    const organization = await createOrganization(db, `Org Aide ${randomUUID()}`);
+    const organization = await readyOrganization(db, `Org Aide ${randomUUID()}`);
     await createUser(db, { organizationId: organization.id, email, password, role: "owner" });
   } finally {
     await sql.end();
@@ -56,7 +56,7 @@ test("AIDE-01/03/04 — visite guidée, aide et liste premiers pas sur l'accueil
   expect(violations.violations, JSON.stringify(violations.violations, null, 2)).toEqual([]);
 
   await page.getByRole("button", { name: "Continuer" }).click();
-  await expect(page.getByRole("dialog", { name: "Complétez votre fiche entreprise" })).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "Vos paramètres" })).toBeVisible();
   await page.getByRole("button", { name: "Continuer" }).click();
   await expect(page.getByRole("dialog", { name: "De l'aide à tout moment" })).toBeVisible();
   await page.getByRole("button", { name: "Terminer la visite" }).click();

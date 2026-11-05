@@ -5,7 +5,7 @@
 export const TOUR_TARGETS = {
   hub: ["home-agenda", "nav-settings", "help-button"],
   events: ["events-list", "new-prospect", "events-list", "events-settings", "events-trial"],
-  event: ["event-tabs", "event-overview", "tab-retroplanning", "tab-prestataires", "global-search"],
+  event: ["event-tabs", "event-overview", "tab-retroplanning", "tab-budget", "global-search"],
   quotes: ["quotes-catalog", undefined, undefined, undefined],
   budget: ["budget-models", undefined, undefined, undefined],
   // Lot 11 : carnet de prestataires.

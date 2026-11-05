@@ -68,7 +68,8 @@ export type AdjustEventBudgetItemInput = {
 export type BudgetLine = {
   eventVendorSlotId: string;
   label: string;
-  plannedAmountCents: number;
+  // Lot 12 (EVT-17) : null tant qu'aucun prévu n'est fixé.
+  plannedAmountCents: number | null;
   actualAmountCents: number | null;
   varianceCents: number | null;
   variancePercent: number | null;

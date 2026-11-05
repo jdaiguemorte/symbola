@@ -45,7 +45,7 @@ describe("AIDE-07 — Progression par compte", () => {
   });
 });
 
-describe("HUB-05 — Suivi de la prise en main par l'Admin", () => {
+describe("HUB-11 — Suivi de la prise en main par l'Admin", () => {
   it("donne la progression des comptes d'équipe seulement, sans aucune donnée d'événement", async () => {
     const organization = await createOrganization(db, `Org suivi ${randomUUID()}`);
     const owner = await createUser(db, { organizationId: organization.id, email: `titulaire-${randomUUID()}@symbola.test`, password: "mot-de-passe", role: "owner" });

@@ -8,6 +8,7 @@ import {
   addEventVendorSlot,
   EventNotFoundError,
   removeEventVendorSlot,
+  setEventVendorSlotIcon,
   updateEventVendorSlot,
   VENDOR_SLOT_STATUSES,
   VendorNameRequiredError,
@@ -16,6 +17,7 @@ import {
 } from "@/modules/events/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isEventsModuleEnabled, isValidId } from "../module-access";
+import { ICON_KEYS } from "@/app/budget-line-icon";
 
 export type VendorSlotFormState = { error?: string; success?: boolean };
 
@@ -98,4 +100,18 @@ export async function removeVendorSlotAction(formData: FormData): Promise<void> 
 
   await removeEventVendorSlot(access.organizationId, vendorSlotId);
   revalidatePath(`/events/${eventId}`);
+}
+
+// Lot 12 (EVT-14) : icône d'une ligne du budget de l'événement.
+export async function setVendorSlotIconAction(_prevState: VendorSlotFormState, formData: FormData): Promise<VendorSlotFormState> {
+  const t = await getTranslations("Events");
+  const access = await authorize(t);
+  if ("error" in access) return { error: access.error };
+  const eventId = String(formData.get("eventId") ?? "");
+  const vendorSlotId = String(formData.get("vendorSlotId") ?? "");
+  if (!isValidId(eventId) || !isValidId(vendorSlotId)) return { error: t("vendorSlotNotFound") };
+  const icon = String(formData.get("icon") ?? "");
+  await setEventVendorSlotIcon(access.organizationId, vendorSlotId, (ICON_KEYS as readonly string[]).includes(icon) ? icon : null);
+  revalidatePath(`/events/${eventId}`);
+  return { success: true };
 }

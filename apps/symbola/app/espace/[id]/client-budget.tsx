@@ -28,7 +28,7 @@ export async function ClientBudget({ view, locale }: { view: BudgetLinesView; lo
           return (
             <tr key={line.eventVendorSlotId}>
               <th scope="row">{line.label}</th>
-              <td>{formatAmount(line.plannedAmountCents, locale)}</td>
+              <td>{line.plannedAmountCents === null ? t("notSet") : formatAmount(line.plannedAmountCents, locale)}</td>
               <td>{line.actualAmountCents === null ? t("notSet") : formatAmount(line.actualAmountCents, locale)}</td>
               <td className={variance.className}>
                 {t(variance.labelKey, {

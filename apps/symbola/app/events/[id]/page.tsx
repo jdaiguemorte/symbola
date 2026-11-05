@@ -18,6 +18,7 @@ import {
   listEventTasks,
   listEventVendorSlots,
   listVendorCandidates,
+  listEventPlaces,
   listTaskTemplates,
   listLossReasons,
   listProgramTemplates,
@@ -61,6 +62,12 @@ import { EVENT_STATUS_CLASSES, STATUS_LABEL_KEYS } from "../event-status";
 import { removeVendorSlotAction } from "./vendor-slot-actions";
 import { AddVendorSlotForm, VendorSlotForm } from "./vendor-slot-forms";
 import { VendorCandidates } from "./vendor-candidates";
+import { BudgetLineIcon } from "@/app/budget-line-icon";
+import { isBudgetModuleEnabled } from "@/app/budget/module-access";
+import { PlannedAmountForm, SlotIconForm } from "./budget-line-forms";
+import { AddPlaceForm } from "./place-forms";
+import { removePlaceAction } from "./place-actions";
+import { Trash2 } from "lucide-react";
 import { findVendors } from "@/modules/vendors/service";
 import { isVendorsModuleEnabled } from "@/app/prestataires/module-access";
 import {
@@ -77,7 +84,7 @@ const CLIENT_ACCESS_STATUS_KEYS = {
 
 // Onglets de la fiche (maquette validée) : un écran par sujet plutôt
 // qu'une longue page ; l'onglet actif est dans l'adresse (?onglet=).
-const TABS = ["apercu", "prestataires", "retroplanning", "programme", "devis", "maries"] as const;
+const TABS = ["apercu", "budget", "retroplanning", "programme", "devis", "maries"] as const;
 type Tab = (typeof TABS)[number];
 
 type SearchParams = { onglet?: string; poste?: string; tache?: string; vue?: string; qui?: string; filtre?: string; visite?: string };
@@ -177,21 +184,40 @@ export default async function EventDetailPage({
     : [];
   const tQuotes = await getTranslations("Quotes");
   const tCandidates = await getTranslations("VendorCandidates");
+  const tBudget = await getTranslations("Budget");
 
   const today = parisToday();
-  const tab: Tab = TABS.includes(query.onglet as Tab) && (query.onglet !== "devis" || quotesAvailable) ? (query.onglet as Tab) : "apercu";
+  // Lot 12 (EVT-17) : l'ancien onglet « prestataires » est devenu « budget ».
+  const asked = query.onglet === "prestataires" ? "budget" : query.onglet;
+  const tab: Tab = TABS.includes(asked as Tab) && (asked !== "devis" || quotesAvailable) ? (asked as Tab) : "apercu";
   const tabHref = (key: Tab, extra: Record<string, string> = {}) =>
     `/events/${event.id}?${new URLSearchParams({ onglet: key, ...extra }).toString()}`;
   const overdueCount = tasks.filter((task) => !task.done && task.dueDate < today).length;
+  // Lot 12 (EVT-14 / EVT-15) : icônes des prestataires au programme, lieux saisis une fois.
+  const slotIconOf = new Map(vendorSlots.map((slot) => [slot.id, slot.icon]));
+  const places = tab === "programme" ? await listEventPlaces(organizationId, id) : [];
+  const venueCandidates = tab === "programme" ? (await listVendorCandidates(organizationId, id)).filter((candidate) => candidate.outcome === "selected" && vendorSlots.find((slot) => slot.id === candidate.vendorSlotId)?.icon === "venue") : [];
+  const placeSuggestions = [
+    ...venueCandidates.map((candidate) => ({ label: candidate.vendorName, vendorId: candidate.vendorId })),
+    ...(event.venueName ? [{ label: event.venueName, vendorId: null }] : []),
+  ].filter((suggestion, index, all) => !places.some((place) => place.label.toLocaleLowerCase("fr") === suggestion.label.toLocaleLowerCase("fr")) && all.findIndex((other) => other.label === suggestion.label) === index);
+  const placeOptions = [...new Set([...places.map((place) => place.label), ...placeSuggestions.map((suggestion) => suggestion.label)])];
+  // Lot 12 (EVT-13) : rétroplanning seulement pour un événement confirmé (ou réalisé).
+  const retroplanningOpen = event.isDemo || event.status === "confirmed" || event.status === "done";
+  const proposeRetroplanning = (event.status === "confirmed") && tasks.length === 0 && templates.length > 0 && !event.isDemo;
 
   // EVT-03 : postes en tableau, détail du poste choisi dans un panneau.
   const toFind = vendorSlots.filter((slot) => slot.status !== "booked" && slot.status !== "not_required");
   const slotFilter = query.filtre === "a-pourvoir" ? "a-pourvoir" : "tous";
   const shownSlots = slotFilter === "a-pourvoir" ? toFind : vendorSlots;
   const selectedSlot = vendorSlots.find((slot) => slot.id === query.poste) ?? null;
-  // Lot 11 (EVT-08) : prestataires consultés, et le carnet s'il est souscrit.
-  const candidates = tab === "prestataires" ? await listVendorCandidates(organizationId, id) : [];
-  const vendorsAvailable = tab === "prestataires" ? await isVendorsModuleEnabled(organizationId) : false;
+  // Lot 12 (EVT-17) : prévu et réel de chaque ligne, si le module Budget est souscrit.
+  const budgetAvailable = tab === "budget" ? await isBudgetModuleEnabled(organizationId) : false;
+  const budgetView = budgetAvailable ? await listBudgetLines(organizationId, id) : null;
+  const amountsOf = (slotId: string) => budgetView?.lines.find((line) => line.eventVendorSlotId === slotId) ?? null;
+  // Lot 11 (EVT-10) : prestataires consultés, et le carnet s'il est souscrit.
+  const candidates = tab === "budget" ? await listVendorCandidates(organizationId, id) : [];
+  const vendorsAvailable = tab === "budget" ? await isVendorsModuleEnabled(organizationId) : false;
   const bookOptions =
     selectedSlot && vendorsAvailable
       ? (await findVendors({ organizationId })).map((vendor) => ({ id: vendor.id, label: vendor.city ? `${vendor.name} — ${vendor.city}` : vendor.name }))
@@ -217,9 +243,9 @@ export default async function EventDetailPage({
 
   // AIDE-05 : visite focus de la fiche, à la première ouverture.
   const tour = await loadPageTour(auth.user.id, "event", query.visite);
-  const tabs: { key: Tab | "budget"; label: string; href: string; count?: string; alert?: boolean }[] = [
+  const tabs: { key: Tab; label: string; href: string; count?: string; alert?: boolean }[] = [
     { key: "apercu", label: t("tabOverview"), href: tabHref("apercu") },
-    { key: "prestataires", label: t("vendorSlotsTitle"), href: tabHref("prestataires"), count: `${progress.booked}/${progress.required}` },
+    { key: "budget", label: t("vendorSlotsTitle"), href: tabHref("budget"), count: `${progress.booked}/${progress.required}` },
     {
       key: "retroplanning",
       label: t("tasksTitle"),
@@ -227,7 +253,6 @@ export default async function EventDetailPage({
       ...(overdueCount > 0 ? { count: t("tasksOverdueCount", { count: overdueCount }), alert: true } : {}),
     },
     { key: "programme", label: t("programTitle"), href: tabHref("programme") },
-    { key: "budget", label: t("budgetLink"), href: `/budget/${event.id}` },
     ...(quotesAvailable ? [{ key: "devis" as const, label: tQuotes("eventQuotesTitle"), href: tabHref("devis"), count: String(quotes.length) }] : []),
     { key: "maries", label: t("tabClients"), href: tabHref("maries") },
   ];
@@ -283,6 +308,16 @@ export default async function EventDetailPage({
         </section>
       ) : null}
 
+      {/* Lot 12 (EVT-12) : statut en étapes cliquables, visible sur tous les onglets. */}
+      <ChangeStatusForm eventId={event.id} currentStatus={event.status} reasons={reasons} />
+      {proposeRetroplanning && tab !== "retroplanning" ? (
+        <section className="card" aria-labelledby="propose-retro-title">
+          <h2 id="propose-retro-title">{t("proposeRetroplanningTitle")}</h2>
+          <p>{event.eventDate ? t("proposeRetroplanningBody") : t("taskTemplateNeedsDate")}</p>
+          {event.eventDate ? <ApplyTaskTemplateForm eventId={event.id} templates={templates} /> : null}
+        </section>
+      ) : null}
+
       <nav aria-label={t("eventTabsLabel")} className="tabs" data-tour="event-tabs">
         {tabs.map((item) => (
           <Link key={item.key} href={item.href} aria-current={item.key === tab ? "page" : undefined} data-tour={`tab-${item.key}`}>
@@ -303,7 +338,6 @@ export default async function EventDetailPage({
             <progress aria-labelledby="vendor-progress-label" value={progress.booked} max={Math.max(progress.required, 1)} />
             <EventDateForm eventId={event.id} eventDate={event.eventDate} />
             {isPastConfirmed ? <p role="status">{t("suggestMarkDone")}</p> : null}
-            <ChangeStatusForm eventId={event.id} currentStatus={event.status} reasons={reasons} />
             <ImportedFields fields={event.importedFields} />
           </section>
           {suggestConfirmBudget ? (
@@ -334,7 +368,7 @@ export default async function EventDetailPage({
         </>
       ) : null}
 
-      {tab === "prestataires" ? (
+      {tab === "budget" ? (
         <div className="split">
           <section className="card split-main" aria-labelledby="vendor-slots-title">
             <div className="section-head">
@@ -342,12 +376,18 @@ export default async function EventDetailPage({
               <GearLink href="/events/parametres" label={t("vendorSlotsSettings")} />
             </div>
             <p id="vendor-progress-label">{t("vendorProgress", { booked: progress.booked, required: progress.required })}</p>
+            {budgetView ? (
+              <p className="meta">
+                <span>{t("budgetTotals", { planned: formatAmount(budgetView.totalPlannedCents, locale), actual: formatAmount(budgetView.totalActualCents, locale) })}</span>
+                <Link href={`/budget/${event.id}`}>{t("budgetSuggest")}</Link>
+              </p>
+            ) : null}
             <progress aria-labelledby="vendor-progress-label" value={progress.booked} max={Math.max(progress.required, 1)} />
             <nav aria-label={t("vendorSlotsFilter")} className="pills">
-              <Link href={tabHref("prestataires")} aria-current={slotFilter === "tous" ? "true" : undefined}>
+              <Link href={tabHref("budget")} aria-current={slotFilter === "tous" ? "true" : undefined}>
                 {t("vendorSlotsAll", { count: vendorSlots.length })}
               </Link>
-              <Link href={tabHref("prestataires", { filtre: "a-pourvoir" })} aria-current={slotFilter === "a-pourvoir" ? "true" : undefined}>
+              <Link href={tabHref("budget", { filtre: "a-pourvoir" })} aria-current={slotFilter === "a-pourvoir" ? "true" : undefined}>
                 {t("vendorSlotsToFind", { count: toFind.length })}
               </Link>
             </nav>
@@ -360,18 +400,29 @@ export default async function EventDetailPage({
                       <th scope="col">{t("vendorColumnSlot")}</th>
                       <th scope="col">{t("vendorName")}</th>
                       <th scope="col">{t("vendorSlotStatus")}</th>
-                      <th scope="col" className="num">
-                        {t("vendorAmount")}
-                      </th>
+                      {budgetView ? (
+                        <>
+                          <th scope="col" className="num">{tBudget("planned")}</th>
+                          <th scope="col" className="num">{tBudget("actual")}</th>
+                          <th scope="col" className="num">{tBudget("variance")}</th>
+                        </>
+                      ) : (
+                        <th scope="col" className="num">
+                          {t("vendorAmount")}
+                        </th>
+                      )}
                     </tr>
                   </thead>
                   <tbody>
                     {shownSlots.map((slot) => (
                       <tr key={slot.id} aria-current={slot.id === selectedSlot?.id ? "true" : undefined}>
                         <th scope="row">
-                          <Link href={tabHref("prestataires", { ...(slotFilter === "a-pourvoir" ? { filtre: "a-pourvoir" } : {}), poste: slot.id })}>
-                            {slot.label}
-                          </Link>
+                          <span className="line-cell">
+                            <BudgetLineIcon icon={slot.icon} label={slot.label} decorative />
+                            <Link href={tabHref("budget", { ...(slotFilter === "a-pourvoir" ? { filtre: "a-pourvoir" } : {}), poste: slot.id })}>
+                              {slot.label}
+                            </Link>
+                          </span>
                         </th>
                         <td>
                           {slot.vendorName ??
@@ -380,7 +431,27 @@ export default async function EventDetailPage({
                         <td>
                           <span className={VENDOR_STATUS_CLASSES[slot.status]}>{t(VENDOR_STATUS_LABEL_KEYS[slot.status])}</span>
                         </td>
-                        <td className="num">{slot.amountCents !== null ? formatAmount(slot.amountCents, locale) : "—"}</td>
+                        {budgetView ? (
+                          (() => {
+                            const amounts = amountsOf(slot.id);
+                            const planned = amounts?.plannedAmountCents ?? null;
+                            // Le montant réservé alimente le réel du budget (événement
+                            // interne traité en différé) : on l'affiche dès la réservation.
+                            const actual = amounts?.actualAmountCents ?? (slot.status === "booked" ? slot.amountCents : null);
+                            const variance = amounts?.actualAmountCents != null ? (amounts.varianceCents ?? null) : planned !== null && actual !== null ? actual - planned : null;
+                            return (
+                              <>
+                                <td className="num">{planned !== null ? formatAmount(planned, locale) : "—"}</td>
+                                <td className="num">{actual !== null ? formatAmount(actual, locale) : "—"}</td>
+                                <td className={variance !== null && variance > 0 ? "num text-overdue" : "num"}>
+                                  {variance !== null ? `${variance > 0 ? "+" : ""}${formatAmount(variance, locale)}` : "—"}
+                                </td>
+                              </>
+                            );
+                          })()
+                        ) : (
+                          <td className="num">{slot.amountCents !== null ? formatAmount(slot.amountCents, locale) : "—"}</td>
+                        )}
                       </tr>
                     ))}
                   </tbody>
@@ -394,13 +465,15 @@ export default async function EventDetailPage({
               <>
                 <h2 id="vendor-detail-title">{selectedSlot.label}</h2>
                 <VendorSlotForm key={`${selectedSlot.id}-${selectedSlot.selectedCandidateId ?? ""}`} eventId={event.id} slot={selectedSlot} />
+                {budgetView ? <PlannedAmountForm key={`planned-${selectedSlot.id}`} eventId={event.id} slotId={selectedSlot.id} label={selectedSlot.label} plannedCents={amountsOf(selectedSlot.id)?.plannedAmountCents ?? null} /> : null}
+                <SlotIconForm key={`icon-${selectedSlot.id}-${selectedSlot.icon ?? ""}`} eventId={event.id} slotId={selectedSlot.id} label={selectedSlot.label} icon={selectedSlot.icon} />
                 <ImportedFields fields={selectedSlot.importedFields} compact />
                 <form action={removeVendorSlotAction}>
                   <input type="hidden" name="eventId" value={event.id} />
                   <input type="hidden" name="vendorSlotId" value={selectedSlot.id} />
                   <button type="submit">{t("removeVendorSlot", { label: selectedSlot.label })}</button>
                 </form>
-                <Link href={tabHref("prestataires", slotFilter === "a-pourvoir" ? { filtre: "a-pourvoir" } : {})}>{t("closePanel")}</Link>
+                <Link href={tabHref("budget", slotFilter === "a-pourvoir" ? { filtre: "a-pourvoir" } : {})}>{t("closePanel")}</Link>
               </>
             ) : (
               <>
@@ -411,7 +484,7 @@ export default async function EventDetailPage({
           </aside>
         </div>
       ) : null}
-      {tab === "prestataires" && selectedSlot ? (
+      {tab === "budget" && selectedSlot ? (
         <VendorCandidates
           eventId={event.id}
           slot={selectedSlot}
@@ -454,7 +527,10 @@ export default async function EventDetailPage({
                 </form>
               </section>
             ) : null}
-            {!event.eventDate ? (
+            {/* Lot 12 (EVT-13) : pas de rétroplanning pour un prospect ; il démarre à la confirmation (sauf exemple d'essai ou de tutoriel). */}
+            {!retroplanningOpen ? (
+              <p className="notice">{t("retroplanningAfterConfirm")}</p>
+            ) : !event.eventDate ? (
               <p>{t("taskTemplateNeedsDate")}</p>
             ) : templates.length === 0 ? (
               <p>
@@ -570,31 +646,78 @@ export default async function EventDetailPage({
             </p>
           )}
           {program.items.length === 0 ? <p>{t("noProgramItems")}</p> : null}
-          <ul aria-label={t("programTitle")} className="item-list">
+          {/* Lot 12 (EVT-14) : une ligne par moment, une icône par prestataire concerné, actions discrètes à droite. */}
+          <ul aria-label={t("programTitle")} className="program-list">
             {program.items.map((item) => (
-              <li key={item.id}>
-                <strong>
-                  {item.endTime ? `${item.startTime} – ${item.endTime}` : item.startTime} — {item.label}
-                </strong>
-                {item.location ? ` — ${item.location}` : ""}
-                {item.participants.length > 0
-                  ? ` — ${t("programParticipants")} : ${item.participants.map((participant) => participant.label).join(", ")}`
-                  : ""}
-                {item.internalNote ? (
-                  <p>
-                    {t("programInternalNote")} : {item.internalNote}
-                  </p>
-                ) : null}
-                <EditProgramItemForm key={JSON.stringify(item)} eventId={event.id} item={item} vendorSlots={vendorSlots} />
-                <form action={removeProgramItemAction}>
-                  <input type="hidden" name="eventId" value={event.id} />
-                  <input type="hidden" name="itemId" value={item.id} />
-                  <button type="submit">{t("removeProgramItem", { label: item.label })}</button>
-                </form>
+              <li key={item.id} className="program-row">
+                <span className="program-time">{item.endTime ? `${item.startTime} – ${item.endTime}` : item.startTime}</span>
+                <span className="program-main">
+                  <strong>{item.label}</strong>
+                  <span className="program-meta">
+                    {item.location ? <span>{item.location}</span> : null}
+                    {item.participants.length > 0 ? (
+                      <span
+                        className="line-icons"
+                        role="img"
+                        aria-label={t("programParticipantsList", { names: item.participants.map((participant) => participant.label).join(", ") })}
+                        title={item.participants.map((participant) => participant.label).join(", ")}
+                      >
+                        {item.participants.map((participant) => (
+                          <BudgetLineIcon
+                            key={`${participant.vendorSlotId ?? "libre"}-${participant.label}`}
+                            icon={participant.vendorSlotId ? (slotIconOf.get(participant.vendorSlotId) ?? null) : null}
+                            label={participant.label}
+                            decorative
+                          />
+                        ))}
+                      </span>
+                    ) : null}
+                  </span>
+                  {item.internalNote ? (
+                    <span className="program-note">
+                      {t("programInternalNote")} : {item.internalNote}
+                    </span>
+                  ) : null}
+                </span>
+                <span className="program-actions">
+                  <EditProgramItemForm key={JSON.stringify(item)} eventId={event.id} item={item} vendorSlots={vendorSlots} />
+                  <form action={removeProgramItemAction}>
+                    <input type="hidden" name="eventId" value={event.id} />
+                    <input type="hidden" name="itemId" value={item.id} />
+                    <button type="submit" className="icon-button" aria-label={t("removeProgramItem", { label: item.label })} title={t("removeProgramItem", { label: item.label })}>
+                      <Trash2 size={16} aria-hidden="true" />
+                    </button>
+                  </form>
+                </span>
               </li>
             ))}
           </ul>
+          <datalist id="event-place-options">
+            {placeOptions.map((option) => (
+              <option key={option} value={option} />
+            ))}
+          </datalist>
           <AddProgramItemForm eventId={event.id} vendorSlots={vendorSlots} />
+          <section aria-labelledby="places-title" className="places">
+            <h3 id="places-title">{t("placesTitle")}</h3>
+            <p className="muted">{t("placesHint")}</p>
+            {places.length === 0 ? <p>{t("noPlaces")}</p> : null}
+            <ul className="item-list">
+              {places.map((place) => (
+                <li key={place.id}>
+                  <strong>{place.label}</strong>
+                  {place.address ? ` — ${place.address}` : ""}
+                  {place.vendorId ? <span className="badge badge-sauge">{t("placeFromBook")}</span> : null}
+                  <form action={removePlaceAction} className="inline-form">
+                    <input type="hidden" name="eventId" value={event.id} />
+                    <input type="hidden" name="placeId" value={place.id} />
+                    <button type="submit">{t("removePlace", { place: place.label })}</button>
+                  </form>
+                </li>
+              ))}
+            </ul>
+            <AddPlaceForm eventId={event.id} suggestions={placeSuggestions} />
+          </section>
         </section>
       ) : null}
 

@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "metiers": {
+    "wedding_planner": {
+      "name": {
+        "fr": "Répartition mariage (modèle de départ)",
+        "en": "Wedding split (starter template)"
+      },
+      "items": {
+        "venue": 2500,
+        "caterer": 3500,
+        "photographer": 800,
+        "videographer": 600,
+        "music": 600,
+        "florist": 500,
+        "decoration": 500,
+        "officiant": 200,
+        "cake": 300,
+        "hair_makeup": 200,
+        "stationery": 150,
+        "transport": 150
+      }
+    },
+    "event_agency": {
+      "name": {
+        "fr": "Répartition événement d'entreprise (modèle de départ)",
+        "en": "Corporate event split (starter template)"
+      },
+      "items": {
+        "venue": 2200,
+        "caterer": 3000,
+        "sound_light": 1200,
+        "entertainment": 700,
+        "photographer": 300,
+        "videographer": 300,
+        "decoration": 700,
+        "furniture": 500,
+        "staff": 400,
+        "transport": 400,
+        "lodging": 200,
+        "print": 100
+      }
+    }
+  }
+}

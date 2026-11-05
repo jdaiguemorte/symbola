@@ -5,10 +5,10 @@
 import { randomUUID } from "node:crypto";
 import AxeBuilder from "@axe-core/playwright";
 import { createAppConnection } from "@symbola/db/client";
-import { createOrganization, createUser } from "@symbola/auth";
+import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import * as OTPAuth from "otpauth";
-import { openEventTab } from "./helpers";
+import { openEventTab, readyOrganization } from "./helpers";
 
 async function loginAndSetupMfa(page: Page, email: string, password: string) {
   await page.goto("/login");
@@ -33,7 +33,7 @@ test("EVT-04 — modèle de rétroplanning appliqué, recalcul des échéances e
   const password = "mot-de-passe-evt04-e2e";
   const { sql, db } = createAppConnection();
   try {
-    const organization = await createOrganization(db, `Org ${randomUUID()}`);
+    const organization = await readyOrganization(db, `Org ${randomUUID()}`);
     await createUser(db, { organizationId: organization.id, email, password, role: "owner" });
   } finally {
     await sql.end();
@@ -73,6 +73,10 @@ test("EVT-04 — modèle de rétroplanning appliqué, recalcul des échéances e
   await page.getByLabel("Source du prospect").selectOption({ label: "Salon" });
   await page.getByRole("button", { name: "Créer le prospect" }).click();
   await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}$/);
+  // Lot 12 (EVT-13) : le rétroplanning s'ouvre une fois l'événement confirmé.
+  await page.waitForLoadState("networkidle");
+  await page.getByRole("form", { name: "Statut de l'événement" }).getByRole("button", { name: "Confirmé" }).click();
+  await expect(page.getByText("Statut mis à jour.")).toBeVisible();
   await openEventTab(page, "Rétroplanning");
   await expect(page.getByText("Ajoutez une date à l'événement pour appliquer un modèle de rétroplanning.")).toBeVisible();
   await expect(page.getByRole("button", { name: "Appliquer le modèle" })).toHaveCount(0);

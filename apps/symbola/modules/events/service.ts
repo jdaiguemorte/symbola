@@ -73,6 +73,8 @@ import {
   updateEventStatus,
   updateEventTaskRow,
   updateEventVendorSlotRow,
+  updateDefaultVendorSlotRow,
+  updateEventVendorSlotIcon,
   type DefaultVendorSlotRow,
   type EventClientRow,
   type EventRow,
@@ -82,6 +84,7 @@ import {
   type TaskTemplateRow,
 } from "./repository";
 import { addDays } from "./schedule";
+import { addPlace, listPlaces, removePlace } from "./places";
 import { createStorageClient, deletePrivateObject } from "@symbola/files";
 import {
   addCandidate,
@@ -99,12 +102,14 @@ import {
   removeCandidate,
   removeCandidateNote,
   selectCandidate,
+  sharedRibVendorId,
   setCandidateNoteVisibility,
   setSlotBrief,
   updateCandidate,
 } from "./vendor-candidates";
 import { findProgramOverlaps, normalizeTime, programForVariant, sortProgramItems } from "./program";
 import type {
+  EventPlace,
   AddVendorCandidateInput,
   ClientVendorSlotOptions,
   FileDownload,
@@ -178,6 +183,7 @@ export type {
   VendorSlotProgress,
   VendorSlotStatus,
   AddVendorCandidateInput,
+  EventPlace,
   ClientVendorOption,
   ClientVendorSlotOptions,
   UpdateVendorCandidateInput,
@@ -363,7 +369,7 @@ export const VENDOR_SLOT_STATUSES: VendorSlotStatus[] = [
 ];
 
 function toDefaultVendorSlot(row: DefaultVendorSlotRow): DefaultVendorSlot {
-  return { id: row.id, label: row.label, position: row.position };
+  return { id: row.id, label: row.label, icon: row.icon, position: row.position };
 }
 
 function toEventVendorSlot(row: EventVendorSlotRow): EventVendorSlot {
@@ -379,6 +385,7 @@ function toEventVendorSlot(row: EventVendorSlotRow): EventVendorSlot {
     ...(row.importedFields ? { importedFields: row.importedFields } : {}),
     brief: row.brief,
     selectedCandidateId: row.selectedCandidateId,
+    icon: row.icon,
   };
 }
 
@@ -393,8 +400,22 @@ export async function listDefaultVendorSlots(organizationId: string): Promise<De
   return (await findDefaultVendorSlots(organizationId)).map(toDefaultVendorSlot);
 }
 
-export async function addDefaultVendorSlots(organizationId: string, labels: string[]): Promise<DefaultVendorSlot[]> {
-  return (await insertDefaultVendorSlots(organizationId, labels)).map(toDefaultVendorSlot);
+export async function addDefaultVendorSlots(
+  organizationId: string,
+  entries: (string | { label: string; icon?: string | null })[],
+): Promise<DefaultVendorSlot[]> {
+  return (await insertDefaultVendorSlots(organizationId, entries)).map(toDefaultVendorSlot);
+}
+
+// Lot 12 (EVT-17) : renommer une ligne du budget par défaut, changer son icône.
+export async function updateDefaultVendorSlot(organizationId: string, id: string, label: string, icon: string | null): Promise<void> {
+  const clean = label.trim();
+  if (!clean) throw new RangeError("le nom de la ligne est obligatoire");
+  if (!(await updateDefaultVendorSlotRow(organizationId, id, clean, icon))) throw new VendorSlotNotFoundError();
+}
+
+export async function setEventVendorSlotIcon(organizationId: string, vendorSlotId: string, icon: string | null): Promise<void> {
+  await updateEventVendorSlotIcon(organizationId, vendorSlotId, icon);
 }
 
 export async function removeDefaultVendorSlot(organizationId: string, defaultVendorSlotId: string): Promise<void> {
@@ -430,7 +451,22 @@ export async function removeEventVendorSlot(organizationId: string, vendorSlotId
   await deleteStoredFiles(keys);
 }
 
-// Lot 11 (EVT-08 / EVT-09, ADR 0031) — prestataires consultés par poste.
+// Lot 12 (EVT-15) — lieux de l'événement.
+export { EventPlaceEventNotFoundError } from "./places";
+
+export async function listEventPlaces(organizationId: string, eventId: string): Promise<EventPlace[]> {
+  return listPlaces(organizationId, eventId);
+}
+
+export async function addEventPlace(organizationId: string, eventId: string, input: { label: string; address?: string | null; vendorId?: string | null }): Promise<EventPlace> {
+  return addPlace(organizationId, eventId, input);
+}
+
+export async function removeEventPlace(organizationId: string, eventId: string, placeId: string): Promise<void> {
+  await removePlace(organizationId, eventId, placeId);
+}
+
+// Lot 11 (EVT-10 / EVT-11, ADR 0031) — prestataires consultés par poste.
 
 export { CandidateQuoteRejectedError, VendorCandidateNotFoundError, CANDIDATE_QUOTE_MAX_SIZE_BYTES } from "./vendor-candidates";
 
@@ -503,7 +539,7 @@ export class ClientVendorOptionsAccessDeniedError extends Error {
   }
 }
 
-// EVT-09 — l'accès du client à l'événement est vérifié avant toute lecture.
+// EVT-11 — l'accès du client à l'événement est vérifié avant toute lecture.
 export async function getClientVendorOptions(organizationId: string, userId: string, eventId: string): Promise<ClientVendorSlotOptions[]> {
   if (!(await hasActiveClientAccess(organizationId, userId, eventId))) throw new ClientVendorOptionsAccessDeniedError();
   return clientOptions(organizationId, eventId);
@@ -512,6 +548,11 @@ export async function getClientVendorOptions(organizationId: string, userId: str
 export async function getClientVendorQuoteFile(organizationId: string, userId: string, eventId: string, candidateId: string): Promise<FileDownload> {
   if (!(await hasActiveClientAccess(organizationId, userId, eventId))) throw new ClientVendorOptionsAccessDeniedError();
   return clientQuoteFile(organizationId, eventId, candidateId);
+}
+
+export async function getClientSharedRibVendorId(organizationId: string, userId: string, eventId: string, candidateId: string): Promise<string> {
+  if (!(await hasActiveClientAccess(organizationId, userId, eventId))) throw new ClientVendorOptionsAccessDeniedError();
+  return sharedRibVendorId(organizationId, eventId, candidateId);
 }
 
 async function deleteStoredFiles(keys: string[]): Promise<void> {
@@ -1291,6 +1332,9 @@ export {
 } from "./import";
 
 const _contractCheck: EventsServiceContract = {
+  listEventPlaces,
+  addEventPlace,
+  removeEventPlace,
   setVendorSlotBrief,
   listVendorCandidates,
   addVendorCandidate,
@@ -1307,6 +1351,7 @@ const _contractCheck: EventsServiceContract = {
   listSelectedVendorIds,
   getClientVendorOptions,
   getClientVendorQuoteFile,
+  getClientSharedRibVendorId,
   listEvents,
   getEvent,
   createProspect,

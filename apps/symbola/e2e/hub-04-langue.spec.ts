@@ -5,10 +5,10 @@
 import { randomUUID } from "node:crypto";
 import AxeBuilder from "@axe-core/playwright";
 import { createAppConnection } from "@symbola/db/client";
-import { createOrganization, createUser } from "@symbola/auth";
+import { createUser } from "@symbola/auth";
 import { expect, test } from "@playwright/test";
 import * as OTPAuth from "otpauth";
-import { openMenu, openSettingsTab } from "./helpers";
+import { openMenu, openSettingsTab, readyOrganization } from "./helpers";
 
 test.describe("HUB-04 — Langue par défaut du navigateur", () => {
   test.use({ locale: "en-US" });
@@ -28,7 +28,7 @@ test("HUB-04-02 — choisir une langue dans le profil s'applique à toute l'app"
 
   const { sql, db } = createAppConnection();
   try {
-    const organization = await createOrganization(db, `Org ${randomUUID()}`);
+    const organization = await readyOrganization(db, `Org ${randomUUID()}`);
     await createUser(db, { organizationId: organization.id, email, password, role: "owner" });
   } finally {
     await sql.end();

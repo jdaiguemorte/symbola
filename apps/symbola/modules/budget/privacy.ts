@@ -116,7 +116,7 @@ export const budgetPrivacy: PrivacyContractV1 = {
         recordId: line.id,
         label: slotLabels.get(line.eventVendorSlotId) ?? "",
         fields: {
-          plannedAmountCents: String(line.plannedAmountCents),
+          plannedAmountCents: line.plannedAmountCents === null ? "" : String(line.plannedAmountCents),
           ...(line.actualAmountCents !== null ? { actualAmountCents: String(line.actualAmountCents) } : {}),
         },
         eventId: line.eventId,

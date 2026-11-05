@@ -193,6 +193,7 @@ export async function insertProspect(input: {
             organizationId: input.organizationId,
             eventId: event.id,
             label: slot.label,
+            icon: slot.icon,
             position: index,
           })),
         );
@@ -357,8 +358,10 @@ export async function findDefaultVendorSlots(organizationId: string): Promise<De
 // départ ne crée pas de doublon.
 export async function insertDefaultVendorSlots(
   organizationId: string,
-  labels: string[],
+  entries: (string | { label: string; icon?: string | null })[],
 ): Promise<DefaultVendorSlotRow[]> {
+  const labels = entries.map((entry) => (typeof entry === "string" ? entry : entry.label));
+  const icons = new Map(entries.map((entry) => (typeof entry === "string" ? [entry.trim().toLowerCase(), null] : [entry.label.trim().toLowerCase(), entry.icon ?? null])));
   const { sql: pg, db } = createAppConnection();
   try {
     return await withOrganization(db, organizationId, async (tx) => {
@@ -370,7 +373,7 @@ export async function insertDefaultVendorSlots(
         const key = label.toLowerCase();
         if (known.has(key)) continue;
         known.add(key);
-        toInsert.push({ organizationId, label, position: nextPosition++ });
+        toInsert.push({ organizationId, label, icon: icons.get(key) ?? null, position: nextPosition++ });
       }
       if (toInsert.length === 0) return [];
       return tx.insert(defaultVendorSlots).values(toInsert).returning();
@@ -441,7 +444,7 @@ export async function updateEventVendorSlotRow(input: {
   status: VendorSlotStatus;
   vendorName?: string | null | undefined;
   amountCents?: number | null | undefined;
-  // Lot 11 (EVT-08) : consulté retenu ; effacé quand le poste n'est plus réservé.
+  // Lot 11 (EVT-10) : consulté retenu ; effacé quand le poste n'est plus réservé.
   selectedCandidateId?: string | null | undefined;
 }): Promise<EventVendorSlotRow | null> {
   const { sql: pg, db } = createAppConnection();
@@ -1813,6 +1816,29 @@ export async function findEventNamesByIds(organizationId: string, eventIds: stri
       const rows = await tx.select({ id: events.id, names: eventNamesSql }).from(events).where(inArray(events.id, eventIds));
       return Object.fromEntries(rows.map((row) => [row.id, row.names]));
     });
+  } finally {
+    await pg.end();
+  }
+}
+
+// Lot 12 (EVT-17) — renommer une ligne du budget par défaut ou changer son icône.
+export async function updateDefaultVendorSlotRow(organizationId: string, id: string, label: string, icon: string | null): Promise<boolean> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    return await withOrganization(
+      db,
+      organizationId,
+      async (tx) => (await tx.update(defaultVendorSlots).set({ label, icon }).where(eq(defaultVendorSlots.id, id)).returning()).length > 0,
+    );
+  } finally {
+    await pg.end();
+  }
+}
+
+export async function updateEventVendorSlotIcon(organizationId: string, id: string, icon: string | null): Promise<void> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    await withOrganization(db, organizationId, (tx) => tx.update(eventVendorSlots).set({ icon }).where(eq(eventVendorSlots.id, id)));
   } finally {
     await pg.end();
   }

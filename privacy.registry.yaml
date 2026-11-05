@@ -213,6 +213,17 @@ fields:
       L'intervenant est supprimé lors d'une demande d'oubli qui le vise (RGPD-03),
       comme lors d'un effacement.
   - schema: events
+    table: event_places
+    field: address
+    category: contact
+    retention: >-
+      Lot 12 (EVT-15) : adresse d'un lieu de l'événement (celle des préparatifs
+      peut être le domicile des mariés). Tant que l'événement existe ; voir
+      RGPD-03/RGPD-05.
+    anonymization: >-
+      Le lieu est supprimé lors d'une demande d'oubli qui le vise ou qui vise
+      l'événement (RGPD-03), comme le lieu de réception de l'événement.
+  - schema: events
     table: program_items
     field: internal_note
     category: contenu_libre

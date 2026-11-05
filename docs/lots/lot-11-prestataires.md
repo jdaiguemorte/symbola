@@ -33,7 +33,7 @@ Décisions techniques : ADR 0031.
 - Les types, champs et étiquettes de départ viennent de `packages/starter-templates`
   (traduisibles, modifiables), jamais du code.
 
-## EVT-08 — Plusieurs prestataires consultés par poste
+## EVT-10 — Plusieurs prestataires consultés par poste
 
 - **Quand** la planner ouvre un poste de l'onglet Prestataires, **alors** elle voit les
   prestataires consultés : nom (lien vers la fiche du carnet s'il y en a une), réponse
@@ -52,7 +52,7 @@ Décisions techniques : ADR 0031.
   servi par l'app, ADR 0027).
 - Un poste déjà réservé en texte libre reste tel quel ; il peut être ajouté au carnet.
 
-## EVT-09 — Notes et options montrées aux clients
+## EVT-11 — Notes et options montrées aux clients
 
 - Chaque note d'un consulté est interne par défaut ; la case « Clients » la rend visible.
 - **Étant donné** un consulté « montré aux clients », **alors** l'espace clients liste, par
@@ -108,7 +108,7 @@ Décisions techniques : ADR 0031.
 
 - La sélection filtrée s'exporte en CSV (cellules neutralisées) ou en PDF.
 
-## HUB-06 — Paramètres en pastilles
+## HUB-12 — Paramètres en pastilles
 
 - Une pastille par solution accessible (Organisation, Événements, Prestataires, Budget, Devis
   et factures), puis des pastilles pour les réglages de la solution choisie. Une solution non

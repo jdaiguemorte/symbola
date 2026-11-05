@@ -8,7 +8,12 @@ import Link from "next/link";
 import { NewProspectForm } from "./new-prospect-form";
 import { LoadStarterListsForm } from "../parametres/starter-lists-form";
 
-export default async function NewProspectPage() {
+// HUB-13 (lot 12) : depuis un clic sur une date de l'agenda, la date est
+// pré-remplie et « Créer un événement » crée directement un événement confirmé.
+export default async function NewProspectPage({ searchParams }: { searchParams: Promise<{ date?: string; type?: string }> }) {
+  const query = await searchParams;
+  const initialDate = query.date && /^\d{4}-\d{2}-\d{2}$/.test(query.date) ? query.date : "";
+  const confirmed = query.type === "evenement";
   const auth = await getPlannerAuthContext();
   if (auth.status === "unauthenticated") redirect("/login");
   if (auth.status === "mfa_required") redirect("/mfa");
@@ -29,7 +34,7 @@ export default async function NewProspectPage() {
 
   return (
     <main>
-      <h1>{t("newProspect")}</h1>
+      <h1>{t(confirmed ? "newConfirmedEvent" : "newProspect")}</h1>
       <HelpButton title={tHelp("eventsNew.title")} body={tHelp("eventsNew.body")} />
       {/* EVT-07 : sans source, la création est impossible ; on dit pourquoi et comment y remédier. */}
       {sources.length === 0 ? (
@@ -43,7 +48,7 @@ export default async function NewProspectPage() {
           <LoadStarterListsForm />
         </section>
       ) : null}
-      <NewProspectForm sources={sources} />
+      <NewProspectForm sources={sources} initialDate={initialDate} confirmed={confirmed} />
     </main>
   );
 }

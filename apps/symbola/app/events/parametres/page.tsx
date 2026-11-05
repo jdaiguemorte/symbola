@@ -9,6 +9,8 @@ import { LossReasonForm } from "./loss-reason-form";
 import { DefaultVendorSlotForm, LoadStarterVendorSlotsForm } from "./default-vendor-slot-forms";
 import { removeDefaultVendorSlotAction } from "./vendor-slot-actions";
 import { LoadStarterListsForm } from "./starter-lists-form";
+import { BudgetLineForm } from "@/app/demarrage/setup-forms";
+import { BudgetLineIcon } from "@/app/budget-line-icon";
 
 export default async function EventsSettingsPage() {
   const auth = await getPlannerAuthContext();
@@ -68,14 +70,14 @@ export default async function EventsSettingsPage() {
       </ul>
       <LossReasonForm />
 
-      {/* EVT-03 : postes reçus par chaque nouvel événement. */}
+      {/* EVT-03 / EVT-17 : lignes du budget reçues par chaque nouvel événement. */}
       <h2>{t("defaultVendorSlotsTitle")}</h2>
       <p>{t("defaultVendorSlotsIntro")}</p>
       {defaultVendorSlots.length === 0 ? <p>{t("noDefaultVendorSlots")}</p> : null}
-      <ul>
+      <ul className="setup-lines" aria-label={t("defaultVendorSlotsTitle")}>
         {defaultVendorSlots.map((slot) => (
           <li key={slot.id}>
-            {slot.label}{" "}
+            {auth.user.role === "owner" ? <BudgetLineForm line={slot} /> : <><BudgetLineIcon icon={slot.icon} label={slot.label} decorative /> {slot.label}</>}{" "}
             <form action={removeDefaultVendorSlotAction} className="inline-form">
               <input type="hidden" name="defaultVendorSlotId" value={slot.id} />
               <button type="submit">{t("removeVendorSlot", { label: slot.label })}</button>

@@ -449,6 +449,27 @@
       "when": 1793820155832,
       "tag": "0063_grant_lot11_vendors",
       "breakpoints": true
+    },
+    {
+      "idx": 64,
+      "version": "7",
+      "when": 1793909689896,
+      "tag": "0064_lot12_demarrage",
+      "breakpoints": true
+    },
+    {
+      "idx": 65,
+      "version": "7",
+      "when": 1793909690709,
+      "tag": "0065_grant_lot12",
+      "breakpoints": true
+    },
+    {
+      "idx": 66,
+      "version": "7",
+      "when": 1793910307461,
+      "tag": "0066_lot12_budget_planned_optional",
+      "breakpoints": true
     }
   ]
 }

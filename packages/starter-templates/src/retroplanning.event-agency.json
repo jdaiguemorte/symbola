@@ -1,0 +1,126 @@
+{
+  "version": 1,
+  "name": {
+    "fr": "Rétroplanning événement d'entreprise (modèle de départ)",
+    "en": "Corporate event timeline (starter template)"
+  },
+  "items": [
+    {
+      "key": "brief",
+      "offsetDays": -180,
+      "responsible": "clients",
+      "label": {
+        "fr": "Valider le brief et les objectifs de l'événement",
+        "en": "Approve the event brief and goals"
+      }
+    },
+    {
+      "key": "budget",
+      "offsetDays": -170,
+      "responsible": "clients",
+      "label": {
+        "fr": "Valider l'enveloppe budgétaire",
+        "en": "Approve the budget envelope"
+      }
+    },
+    {
+      "key": "venue",
+      "offsetDays": -150,
+      "responsible": "planner",
+      "label": {
+        "fr": "Réserver le lieu",
+        "en": "Book the venue"
+      }
+    },
+    {
+      "key": "caterer",
+      "offsetDays": -120,
+      "responsible": "planner",
+      "label": {
+        "fr": "Choisir le traiteur",
+        "en": "Choose the caterer"
+      }
+    },
+    {
+      "key": "guest_list",
+      "offsetDays": -90,
+      "responsible": "clients",
+      "label": {
+        "fr": "Transmettre la liste des participants",
+        "en": "Send the attendee list"
+      }
+    },
+    {
+      "key": "invitations",
+      "offsetDays": -75,
+      "responsible": "planner",
+      "label": {
+        "fr": "Envoyer les invitations",
+        "en": "Send the invitations"
+      }
+    },
+    {
+      "key": "technical",
+      "offsetDays": -60,
+      "responsible": "planner",
+      "label": {
+        "fr": "Valider la fiche technique son et lumière",
+        "en": "Approve the sound and lighting rider"
+      }
+    },
+    {
+      "key": "program",
+      "offsetDays": -45,
+      "responsible": "planner",
+      "label": {
+        "fr": "Valider le déroulé avec le client",
+        "en": "Approve the run of show with the client"
+      }
+    },
+    {
+      "key": "transport",
+      "offsetDays": -30,
+      "responsible": "planner",
+      "label": {
+        "fr": "Organiser les transports et l'hébergement",
+        "en": "Arrange transport and accommodation"
+      }
+    },
+    {
+      "key": "rsvp",
+      "offsetDays": -21,
+      "responsible": "clients",
+      "label": {
+        "fr": "Confirmer le nombre de participants",
+        "en": "Confirm the attendee count"
+      }
+    },
+    {
+      "key": "briefing",
+      "offsetDays": -7,
+      "responsible": "planner",
+      "label": {
+        "fr": "Briefer les prestataires et le personnel",
+        "en": "Brief vendors and staff"
+      }
+    },
+    {
+      "key": "final_check",
+      "offsetDays": -2,
+      "responsible": "planner",
+      "label": {
+        "fr": "Vérifier la logistique sur place",
+        "en": "Check on-site logistics"
+      }
+    },
+    {
+      "key": "debrief",
+      "offsetDays": 7,
+      "responsible": "planner",
+      "label": {
+        "fr": "Faire le bilan avec le client",
+        "en": "Hold the debrief with the client"
+      }
+    }
+  ]
+}

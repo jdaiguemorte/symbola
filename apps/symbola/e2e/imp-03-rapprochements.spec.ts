@@ -7,9 +7,10 @@ import AxeBuilder from "@axe-core/playwright";
 import { createAppConnection } from "@symbola/db/client";
 import { catalogItems } from "@symbola/db/schema/quotes";
 import { withOrganization } from "@symbola/db/with-organization";
-import { createOrganization, createUser } from "@symbola/auth";
+import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import * as OTPAuth from "otpauth";
+import { readyOrganization } from "./helpers";
 
 async function loginAndSetupMfa(page: Page, email: string, password: string) {
   await page.goto("/login");
@@ -34,7 +35,7 @@ test("IMP-03 — rapprochements validés, refusés et ajoutés à la main", asyn
   const password = "mot-de-passe-imp03-e2e";
   const { sql, db } = createAppConnection();
   try {
-    const organization = await createOrganization(db, `Org ${randomUUID()}`);
+    const organization = await readyOrganization(db, `Org ${randomUUID()}`);
     await createUser(db, { organizationId: organization.id, email, password, role: "owner" });
     await withOrganization(db, organization.id, (tx) =>
       tx.insert(catalogItems).values(

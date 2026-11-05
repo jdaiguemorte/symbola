@@ -155,7 +155,7 @@ export {
 
 export type VatRegime = "franchise" | "assujetti";
 export type LegalForm = "ei" | "eirl" | "eurl" | "sarl" | "sas" | "sasu" | "sa" | "auto_entrepreneur" | "autre";
-export type Metier = "wedding_planner" | "autre";
+export type Metier = "wedding_planner" | "event_agency" | "autre";
 
 // Clés des modules qu'un Admin peut activer ou désactiver par organisation
 // (lot 11 : vendors, le carnet de prestataires, ADR 0031).
@@ -329,6 +329,25 @@ export async function completeOnboarding(
 
   await upsertOrganizationProfileFields(db, organizationId, { completedAt: new Date() });
   return { outcome: "success" };
+}
+
+// Lot 12 (ONB-03) — assistant de démarrage : étape en cours et fin. Tant
+// qu'il n'est pas terminé, les menus métier sont verrouillés (app-shell).
+export const SETUP_STEPS = 6;
+export type SetupState = { step: number; completed: boolean; metier: Metier | null };
+
+export async function getSetupState(db: AppDatabase, organizationId: string): Promise<SetupState> {
+  const row = await findOrganizationProfile(db, organizationId);
+  return { step: row?.setupStep ?? 1, completed: Boolean(row?.setupCompletedAt), metier: row?.metier ?? null };
+}
+
+export async function saveSetupStep(db: AppDatabase, organizationId: string, step: number): Promise<void> {
+  const clamped = Math.min(Math.max(Math.trunc(step), 1), SETUP_STEPS);
+  await upsertOrganizationProfileFields(db, organizationId, { setupStep: clamped });
+}
+
+export async function completeSetup(db: AppDatabase, organizationId: string): Promise<void> {
+  await upsertOrganizationProfileFields(db, organizationId, { setupStep: SETUP_STEPS, setupCompletedAt: new Date() });
 }
 
 // EVT-05 — en-tête des documents exportés (programme du jour J, plus tard

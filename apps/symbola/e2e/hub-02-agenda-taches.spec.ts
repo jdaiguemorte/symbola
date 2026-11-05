@@ -5,12 +5,12 @@
 import { randomUUID } from "node:crypto";
 import AxeBuilder from "@axe-core/playwright";
 import { createAppConnection } from "@symbola/db/client";
-import { createOrganization, createUser } from "@symbola/auth";
+import { createUser } from "@symbola/auth";
 import { parisToday } from "@symbola/i18n";
 import { expect, test, type Page } from "@playwright/test";
 import * as OTPAuth from "otpauth";
 import { addEventTask, changeEventStatus, createProspect, createProspectSource } from "../modules/events/service";
-import { clickMenuLink } from "./helpers";
+import { clickMenuLink, readyOrganization } from "./helpers";
 
 async function loginAndSetupMfa(page: Page, email: string, password: string) {
   await page.goto("/login");
@@ -49,7 +49,7 @@ test("HUB-02 — agenda des mariages, tâches de la quinzaine cochées depuis l'
   const { sql, db } = createAppConnection();
   let firstName = "";
   try {
-    const organization = await createOrganization(db, `Org ${randomUUID()}`);
+    const organization = await readyOrganization(db, `Org ${randomUUID()}`);
     const user = await createUser(db, { organizationId: organization.id, email, password, role: "owner" });
     const source = await createProspectSource(organization.id, "Salon");
     firstName = `Inès${randomUUID().slice(0, 4)}`;

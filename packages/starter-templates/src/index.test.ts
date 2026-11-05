@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import retroplanningFile from "./retroplanning.json";
 import vendorSlotsFile from "./vendor-slots.json";
 import programFile from "./program.json";
-import { starterDemoEvent, starterDemoQuote, starterErasureResponse, starterPrivacySettings, starterInvoiceMentions, starterLossReasons, starterPaymentMethods, starterProgram, starterProspectSources, starterRetroplanning, starterVendorSlots, starterVendorTypes } from "./index";
+import { starterDemoEvent, starterDemoQuote, starterErasureResponse, starterPrivacySettings, starterInvoiceMentions, starterLossReasons, starterPaymentMethods, starterProgram, starterProspectSources, starterRetroplanning, starterVendorSlots, starterVendorTypes, starterBudgetLines, starterAllocation } from "./index";
 
 describe("EVT-03 — Modèle de départ des postes prestataires", () => {
   it("existe en français et en anglais, avec le même nombre de postes", () => {
@@ -167,5 +167,25 @@ describe("AIDE-06 — exemples des tutoriels", () => {
     for (const type of fr) {
       for (const field of type.fields) if (field.kind === "choice") expect(field.choices?.length).toBeGreaterThan(0);
     }
+  });
+
+  it("lot 12 — modèles de départ par métier : lignes du budget avec icône, sources, rétroplanning, programme, répartition à 100 %", () => {
+    for (const metier of ["wedding_planner", "event_agency", "autre"] as const) {
+      for (const locale of ["fr", "en"] as const) {
+        const lines = starterBudgetLines(locale, metier);
+        expect(lines.length).toBeGreaterThan(5);
+        expect(lines.every((line) => line.icon.length > 0)).toBe(true);
+        expect(starterProspectSources(locale, metier).length).toBeGreaterThan(3);
+        expect(starterRetroplanning(locale, metier).items.length).toBeGreaterThan(5);
+        const labels = new Set(lines.map((line) => line.label));
+        for (const item of starterProgram(locale, metier).items) for (const participant of item.participantLabels) expect(labels.has(participant)).toBe(true);
+        const split = starterAllocation(locale, metier);
+        expect(split.items.reduce((sum, item) => sum + item.basisPoints, 0)).toBe(10000);
+        for (const item of split.items) expect(labels.has(item.label)).toBe(true);
+      }
+    }
+    expect(starterBudgetLines("fr", "wedding_planner").map((line) => line.label)).toContain("Photographe");
+    expect(starterBudgetLines("fr", "event_agency").map((line) => line.label)).toContain("Technique son et lumière");
+    expect(starterBudgetLines("fr", "autre")).toEqual(starterBudgetLines("fr", "event_agency"));
   });
 });
