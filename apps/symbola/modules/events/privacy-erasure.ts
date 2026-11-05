@@ -10,6 +10,7 @@ import {
   eventActivities,
   eventClientAccesses,
   eventClients,
+  eventPlaces,
   events,
   eventStatusHistory,
   eventTasks,
@@ -35,6 +36,7 @@ const FATES: Record<string, ErasureFate> = {
   task: "deleted",
   program_item: "deleted",
   program_participant: "deleted",
+  event_place: "deleted",
 };
 
 type Found = { kind: string; ids: string[] };
@@ -70,6 +72,8 @@ async function existing(tx: Tx, input: ErasureInput): Promise<Found[]> {
   if (ids("task").length > 0) add("task", keep(await tx.select({ id: eventTasks.id, eventId: eventTasks.eventId }).from(eventTasks).where(inArray(eventTasks.id, ids("task")))));
   if (ids("program_item").length > 0)
     add("program_item", keep(await tx.select({ id: programItems.id, eventId: programItems.eventId }).from(programItems).where(inArray(programItems.id, ids("program_item")))));
+  if (ids("event_place").length > 0)
+    add("event_place", keep(await tx.select({ id: eventPlaces.id, eventId: eventPlaces.eventId }).from(eventPlaces).where(inArray(eventPlaces.id, ids("event_place")))));
   if (ids("program_participant").length > 0)
     add(
       "program_participant",
@@ -131,6 +135,8 @@ export async function eraseEventsData(input: ErasureInput): Promise<ErasurePlanI
       }
       // Fil d'activité des mariés (qui a coché quelle tâche) : données sur eux.
       await tx.delete(eventActivities).where(inArray(eventActivities.eventId, eventIds));
+      // Lot 12 : lieux de l'événement (adresse possiblement privée), comme le lieu de réception.
+      await tx.delete(eventPlaces).where(inArray(eventPlaces.eventId, eventIds));
     }
     if (idsFor("event_client").length > 0) {
       await tx.update(eventClients).set({ firstName: ANONYMIZED, lastName: null }).where(inArray(eventClients.id, idsFor("event_client")));
@@ -162,6 +168,7 @@ export async function eraseEventsData(input: ErasureInput): Promise<ErasurePlanI
     if (idsFor("client_access").length > 0) await tx.delete(eventClientAccesses).where(inArray(eventClientAccesses.id, idsFor("client_access")));
     if (idsFor("task").length > 0) await tx.delete(eventTasks).where(inArray(eventTasks.id, idsFor("task")));
     if (idsFor("program_participant").length > 0) await tx.delete(programItemParticipants).where(inArray(programItemParticipants.id, idsFor("program_participant")));
+    if (idsFor("event_place").length > 0) await tx.delete(eventPlaces).where(inArray(eventPlaces.id, idsFor("event_place")));
     if (idsFor("program_item").length > 0) {
       await tx.delete(programItemParticipants).where(inArray(programItemParticipants.programItemId, idsFor("program_item")));
       await tx.delete(programItems).where(inArray(programItems.id, idsFor("program_item")));

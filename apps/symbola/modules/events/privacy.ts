@@ -2,7 +2,8 @@
 // lot 6 : ADR 0023). Champs personnels du module (privacy.registry.yaml) :
 // prénom/nom des clients, e-mail d'accès des mariés, nom du prestataire d'un
 // poste (un indépendant est une personne), intervenants libres et notes
-// internes du programme, motif de perte en texte libre, champs libres
+// internes du programme, adresse des lieux de l'événement (lot 12 :
+// celle des préparatifs peut être le domicile des mariés), motif de perte en texte libre, champs libres
 // importés (événement, tâche, poste). Les données d'un essai guidé (ADR 0008)
 // ne sont jamais trouvées.
 import { asc, eq, inArray } from "drizzle-orm";
@@ -10,6 +11,7 @@ import { createAppConnection } from "@symbola/db/client";
 import {
   eventClientAccesses,
   eventClients,
+  eventPlaces,
   events,
   eventStatusHistory,
   eventTasks,
@@ -144,6 +146,12 @@ export const eventsPrivacy: PrivacyContractV1 = {
           records.push({ module: MODULE, kind: "program_item", recordId: item.id, label: item.label, fields: compact({ internalNote: item.internalNote }), eventId: item.eventId });
         }
       }
+      // Lot 12 (EVT-15) : lieux de l'événement.
+      for (const place of await tx.select().from(eventPlaces).where(inArray(eventPlaces.eventId, eventIds))) {
+        if (recordMatches([place.label, place.address], terms)) {
+          records.push({ module: MODULE, kind: "event_place", recordId: place.id, label: place.label, fields: compact({ address: place.address }), eventId: place.eventId });
+        }
+      }
       const itemEvent = new Map(items.map((item) => [item.id, item]));
       if (items.length > 0) {
         for (const participant of await tx.select().from(programItemParticipants).where(inArray(programItemParticipants.programItemId, [...itemEvent.keys()]))) {
@@ -217,6 +225,9 @@ export const eventsPrivacy: PrivacyContractV1 = {
       records.push(...(await candidateRecords(tx, ids, null)));
       for (const item of await tx.select().from(programItems).where(inArray(programItems.eventId, ids))) {
         records.push({ module: MODULE, kind: "program_item", recordId: item.id, label: item.label, fields: compact({ location: item.location, internalNote: item.internalNote }), eventId: item.eventId });
+      }
+      for (const place of await tx.select().from(eventPlaces).where(inArray(eventPlaces.eventId, ids)).orderBy(asc(eventPlaces.position))) {
+        records.push({ module: MODULE, kind: "event_place", recordId: place.id, label: place.label, fields: compact({ address: place.address }), eventId: place.eventId });
       }
       for (const access of await tx.select().from(eventClientAccesses).where(inArray(eventClientAccesses.eventId, ids))) {
         records.push({ module: MODULE, kind: "client_access", recordId: access.id, label: access.email, fields: { email: access.email }, eventId: access.eventId });
