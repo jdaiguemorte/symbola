@@ -435,8 +435,10 @@ export default async function EventDetailPage({
                           (() => {
                             const amounts = amountsOf(slot.id);
                             const planned = amounts?.plannedAmountCents ?? null;
-                            const actual = amounts?.actualAmountCents ?? null;
-                            const variance = amounts?.varianceCents ?? null;
+                            // Le montant réservé alimente le réel du budget (événement
+                            // interne traité en différé) : on l'affiche dès la réservation.
+                            const actual = amounts?.actualAmountCents ?? (slot.status === "booked" ? slot.amountCents : null);
+                            const variance = amounts?.actualAmountCents != null ? (amounts.varianceCents ?? null) : planned !== null && actual !== null ? actual - planned : null;
                             return (
                               <>
                                 <td className="num">{planned !== null ? formatAmount(planned, locale) : "—"}</td>

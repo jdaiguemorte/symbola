@@ -73,7 +73,7 @@ test("AIDE-05/07 — visite focus mise de côté puis reprise, et centre d'aide"
 
   // Centre d'aide : progression, état de la visite, préférence.
   await clickMenuLink(page, "Aide");
-  await expect(page.getByRole("heading", { name: "Votre prise en main : 0 sur 10" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Tutoriels faits : 0 sur 10" })).toBeVisible();
   const events = page.getByRole("region", { name: "Événements" });
   await expect(events.getByRole("listitem").filter({ hasText: "Visite : La fiche d'un événement" })).toContainText("Mise de côté · étape 2");
   await expectNoAxeViolation(page);
@@ -191,5 +191,5 @@ test("AIDE-06 — tutoriel en faisant : modèle de rétroplanning proposé à la
   await expect(page.getByText("Séminaire express (exemple)").first()).toBeVisible();
   await expect(page.getByRole("region", { name: "À quoi sert un modèle de rétroplanning ?" })).toHaveCount(0);
   await page.goto("/aide");
-  await expect(page.getByRole("heading", { name: "Votre prise en main : 1 sur 10" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Tutoriels faits : 1 sur 10" })).toBeVisible();
 });

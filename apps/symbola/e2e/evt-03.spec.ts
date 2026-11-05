@@ -72,7 +72,7 @@ test("EVT-03 — lignes du budget par défaut, barre d'avancement et réservatio
 
   // Réservé exige le nom du prestataire ; le montant est facultatif.
   const photographer = page.getByRole("group", { name: "Photographe" });
-  await photographer.getByLabel("Statut", { exact: true }).selectOption("booked");
+  await photographer.getByLabel(/^Statut/).selectOption("booked");
   await photographer.getByRole("button", { name: "Enregistrer la ligne" }).click();
   await expect(photographer.getByText("Indiquez le nom du prestataire pour une ligne réservée.")).toBeVisible();
   await photographer.getByLabel("Prestataire (obligatoire si Réservé)").fill("Studio Lumière");
@@ -88,7 +88,7 @@ test("EVT-03 — lignes du budget par défaut, barre d'avancement et réservatio
   // Une ligne « Non requise » sort du compte des lignes requises.
   await page.getByRole("link", { name: "Vidéaste", exact: true }).click();
   const videographer = page.getByRole("group", { name: "Vidéaste" });
-  await videographer.getByLabel("Statut", { exact: true }).selectOption("not_required");
+  await videographer.getByLabel(/^Statut/).selectOption("not_required");
   await videographer.getByRole("button", { name: "Enregistrer la ligne" }).click();
   await expect(videographer.getByText("Ligne enregistrée.")).toBeVisible();
   await expect(page.getByText("1 ligne réservée sur 10")).toBeVisible();

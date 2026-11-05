@@ -45,9 +45,9 @@ test("EVT-05 — programme du jour J depuis un modèle, chevauchement signalé e
   await page.getByLabel("Nouvelle source").fill("Salon");
   await page.getByRole("button", { name: "Ajouter la source" }).click();
   await expect(page.getByText("Source ajoutée.")).toBeVisible();
-  await page.getByLabel("Nouveau poste par défaut").fill("Photographe");
-  await page.getByRole("button", { name: "Ajouter le poste par défaut" }).click();
-  await expect(page.getByText("Poste ajouté.")).toBeVisible();
+  await page.getByLabel("Nouvelle ligne par défaut").fill("Photographe");
+  await page.getByRole("button", { name: "Ajouter la ligne" }).click();
+  await expect(page.getByText("✓ Ligne ajoutée.")).toBeVisible();
 
   // Modèles de programme : le modèle de départ se charge.
   await page.goto("/events");
@@ -84,7 +84,7 @@ test("EVT-05 — programme du jour J depuis un modèle, chevauchement signalé e
   await newLine.getByLabel("Heure de fin (facultative)").fill("17:00");
   await newLine.getByLabel("Intitulé de la ligne").fill("Photos des invités");
   await newLine.getByLabel("Lieu").fill("Parc du château");
-  await newLine.getByRole("group", { name: "Intervenants parmi les postes de l'événement" }).getByLabel("Photographe").check();
+  await newLine.getByRole("group", { name: "Prestataires concernés (lignes du budget)" }).getByLabel("Photographe").check();
   await newLine.getByLabel("Autres intervenants (séparés par des virgules)").fill("Témoin");
   await newLine.getByLabel("Note interne").fill("Prévoir les alliances");
   await newLine.getByRole("button", { name: "Ajouter la ligne" }).click();

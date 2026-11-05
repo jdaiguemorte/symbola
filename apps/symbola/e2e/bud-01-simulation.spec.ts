@@ -8,7 +8,7 @@ import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import * as OTPAuth from "otpauth";
-import { readyOrganization } from "./helpers";
+import { openEventTab, readyOrganization } from "./helpers";
 
 async function loginAndSetupMfa(page: Page, email: string, password: string) {
   await page.goto("/login");
@@ -74,7 +74,10 @@ test("BUD-01 — modèle de répartition, simulation et ajustement d'une ligne",
   await expect(page.getByRole("heading", { name: "Camille" })).toBeVisible();
 
   // BUD-01 : accès à la simulation depuis la fiche événement.
-  await page.getByRole("main").getByRole("link", { name: "Budget", exact: true }).click();
+  // Lot 12 (EVT-17) : le budget est un onglet de la fiche ; le module
+  // Budget s'ouvre depuis son lien.
+  await openEventTab(page, "Budget");
+  await page.getByRole("link", { name: "Proposer des montants prévus, historique et devis joints" }).click();
   await expect(page).toHaveURL(/\/budget\//);
   await expectNoAxeViolation(page);
 

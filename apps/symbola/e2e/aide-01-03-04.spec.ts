@@ -56,7 +56,7 @@ test("AIDE-01/03/04 — visite guidée, aide et liste premiers pas sur l'accueil
   expect(violations.violations, JSON.stringify(violations.violations, null, 2)).toEqual([]);
 
   await page.getByRole("button", { name: "Continuer" }).click();
-  await expect(page.getByRole("dialog", { name: "Complétez votre fiche entreprise" })).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "Vos paramètres" })).toBeVisible();
   await page.getByRole("button", { name: "Continuer" }).click();
   await expect(page.getByRole("dialog", { name: "De l'aide à tout moment" })).toBeVisible();
   await page.getByRole("button", { name: "Terminer la visite" }).click();

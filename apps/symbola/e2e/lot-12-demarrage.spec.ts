@@ -101,7 +101,7 @@ test("EVT-12 / EVT-13 / EVT-15 — statut en boutons, rétroplanning à la confi
 
   // Prospect : pas de rétroplanning, on explique pourquoi.
   await page.goto(`/events/${event.id}?onglet=retroplanning`);
-  await expect(page.getByText("Le rétroplanning démarre quand l'événement est confirmé", { exact: false })).toBeVisible();
+  await expect(page.locator("p.notice", { hasText: "Le rétroplanning démarre quand l'événement est confirmé" })).toBeVisible();
 
   // Statut en étapes : un clic suffit, puis le rétroplanning est proposé.
   const steps = page.getByRole("form", { name: "Statut de l'événement" });

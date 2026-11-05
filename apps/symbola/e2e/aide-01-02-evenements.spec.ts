@@ -82,8 +82,7 @@ test("AIDE-01/02 — visite guidée du module événements, puis essai guidé su
   // Une vraie opération sur les données fictives.
   await openEventTab(page, "Vue d'ensemble");
   await page.waitForLoadState("networkidle");
-  await page.locator("select[name=toStatus]").selectOption("confirmed");
-  await page.getByRole("button", { name: "Changer le statut" }).click();
+  await page.getByRole("form", { name: "Statut de l'événement" }).getByRole("button", { name: "Confirmé" }).click();
   await expect(page.getByText("Statut mis à jour.")).toBeVisible();
   const pdf = await page.request.get(`/events/${trialId}/programme/pdf?variant=couple`);
   expect(pdf.status()).toBe(200);
