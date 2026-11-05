@@ -1,0 +1,95 @@
+# Lot 12 — Un démarrage sans page blanche, une fiche événement plus claire
+
+Retours de la recette du 05/11/2026 par la wedding planner pilote (avec captures). Constat
+principal : **elle n'a pas su par où commencer**. Les paramètres arrivent vides (« Aucun poste par
+défaut pour l'instant »), le vocabulaire (« postes ») n'est pas expliqué, la configuration est
+longue, et elle ne voit pas toujours que ce qu'elle saisit est enregistré. Les imports Wedding Plan
+font l'objet du lot 13.
+
+## Décisions de Julien (05/11/2026)
+
+- **Pré-paramétrer selon le métier, laisser tout modifiable.** Une wedding planner démarre avec
+  les postes d'un mariage, ses sources, ses motifs de perte, son rétroplanning, son programme du
+  jour J, sa répartition de budget et ses types de prestataires ; une agence événementielle avec
+  des valeurs adaptées (avec des éléments communs). Ces valeurs viennent de fichiers de modèles
+  de départ par métier (`packages/starter-templates`), jamais du code (CLAUDE.md § 2.5).
+- **Assistant de démarrage bloquant, pré-rempli** : tant qu'il n'est pas terminé, les menus
+  métier sont verrouillés.
+- Découpage : lot 12 (ce document), puis lot 13 (imports Wedding Plan : prestataires en Excel,
+  fiches événements en PDF avec `pdfjs-dist`, dépendance acceptée).
+
+## ONB-03 — Assistant de démarrage pré-rempli (refonte d'ONB-01)
+
+- **Quand** une titulaire se connecte pour la première fois, **alors** l'assistant s'ouvre et
+  les menus métier sont verrouillés (un message dit pourquoi et mène à l'étape en cours).
+- Étape 1 « Votre activité » : métier (wedding planner, agence événementielle, autre métier de
+  l'événementiel) et langue. **Quand** elle valide, **alors** les listes et modèles de départ
+  de ce métier sont chargés **d'office** (ils ne l'étaient qu'à la demande).
+- Étapes suivantes, chacune déjà remplie, à relire et ajuster puis « Valider et continuer » :
+  2 entreprise (nom, SIREN, adresse, logo, forme juridique) ; 3 TVA et mentions ;
+  4 postes d'un événement ; 5 sources de prospects et motifs de perte ; 6 modèles
+  (rétroplanning, programme, répartition du budget) — aperçu, modifiables plus tard.
+- Chaque étape affiche « Enregistré » après validation ; « Retour » ne perd rien ; on peut
+  quitter et reprendre à la même étape.
+- **Quand** l'assistant est terminé, **alors** les menus se déverrouillent et l'accueil propose
+  la suite (créer un premier événement, importer depuis Wedding Plan).
+- Une organisation existante qui n'a pas de postes par défaut reçoit l'assistant à sa prochaine
+  connexion, avec les listes déjà présentes gardées.
+
+## ONB-04 — Paramètres plus compréhensibles
+
+- Chaque liste explique à quoi elle sert, avec un exemple (« Postes : les grandes dépenses d'un
+  événement — lieu, traiteur, photographe… Chaque nouvel événement les reçoit »).
+- Toute saisie dans les paramètres donne un retour visible (« Ajouté », « Enregistré »).
+- Depuis un écran qui renvoie aux paramètres (ex. budget sans modèle de répartition), le lien
+  mène directement au bon réglage et le retour ramène à l'écran d'origine **sans perte** de ce
+  qui était saisi (saisie gardée ou proposition faite sur place : « Créer un modèle à partir
+  de la répartition de départ »).
+
+## EVT-12 — Statut de l'événement en boutons
+
+- Les statuts (prospect, devis envoyé, confirmé, réalisé, perdu) s'affichent comme des étapes
+  cliquables façon Kanban ; l'étape courante est mise en évidence ; « perdu » demande le motif.
+
+## EVT-13 — Rétroplanning seulement pour un événement confirmé
+
+- **Étant donné** un prospect, **alors** aucune tâche du rétroplanning n'est créée.
+- **Quand** il passe en « Confirmé » (devis validé), **alors** l'app propose d'appliquer le modèle
+  de rétroplanning (appliqué d'un clic, modèle choisi pré-sélectionné).
+
+## EVT-14 — Programme du jour J lisible
+
+- Une ligne par moment : heure, intitulé, lieu, intervenants sur une ligne compacte ; boutons
+  « Modifier » et « Supprimer » discrets à droite (icônes avec nom accessible).
+
+## EVT-15 — Lieux enregistrés une fois
+
+- Un carnet d'adresses des lieux de l'événement (lieu de réception, cérémonie, préparatifs…) :
+  saisie une fois, puis choisie dans le programme et sur la fiche.
+- Un lieu de réception du carnet de prestataires est proposé d'office (type « Lieu »).
+
+## HUB-13 — Agenda cliquable
+
+- **Quand** elle clique une date de l'agenda, **alors** une fenêtre propose « Créer un
+  prospect » ou « Créer un événement » à cette date.
+
+## EVT-16 — RIB d'un prestataire partagé aux clients
+
+- Sur un prestataire retenu ou montré aux clients, une case « Partager le RIB » rend le RIB de la
+  fiche téléchargeable dans l'espace clients de cet événement (seulement celui-ci).
+
+## AIDE-09 — Aide plus claire
+
+- La visite d'accueil ne mélange plus « à faire » et « à découvrir » : l'assistant porte les
+  tâches de paramétrage, la visite ne fait que montrer.
+- La barre d'aide dit ce qu'elle compte (« Tutoriels : 0 sur 10 ») et chaque élément est un lien ;
+  une visite déjà faite compte dans « prise en main ».
+- Textes revus (ex. « elle fouille tout Symbola » → « elle cherche dans toutes vos données »).
+
+## Tests
+
+- Intégration : chargement des modèles de départ par métier, verrouillage tant que l'assistant
+  n'est pas fini, reprise d'étape, aucune tâche pour un prospect puis application à la
+  confirmation, lieux de l'événement, RIB partagé seulement à l'événement concerné.
+- e2e (ordinateur et 375 px, axe-core) : premier démarrage complet d'une wedding planner et
+  d'une agence ; statut en boutons ; programme ; agenda cliquable.
