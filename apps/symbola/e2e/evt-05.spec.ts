@@ -72,10 +72,13 @@ test("EVT-05 — programme du jour J depuis un modèle, chevauchement signalé e
   await page.getByRole("button", { name: "Appliquer le modèle de programme" }).click();
   await expect(page.getByText("Modèle appliqué : les lignes ont été ajoutées au programme.")).toBeVisible();
   const program = page.getByRole("list", { name: "Programme du jour J" });
-  await expect(program.getByRole("listitem").first()).toContainText("09:00 – 12:00 — Coiffure et maquillage");
-  await expect(program.getByRole("listitem").filter({ hasText: "15:00 – 16:00 — Cérémonie" })).toContainText(
-    "Intervenants : Photographe",
-  );
+  // Lot 12 (EVT-14) : heure | intitulé, lieu et icônes des prestataires.
+  const first = program.getByRole("listitem").first();
+  await expect(first.locator(".program-time")).toHaveText("09:00 – 12:00");
+  await expect(first.locator("strong")).toHaveText("Coiffure et maquillage");
+  const ceremony = program.getByRole("listitem").filter({ has: page.locator("strong", { hasText: /^Cérémonie$/ }) });
+  await expect(ceremony.locator(".program-time")).toHaveText("15:00 – 16:00");
+  await expect(ceremony.getByRole("img", { name: "Prestataires concernés : Photographe" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Chevauchements à vérifier" })).toHaveCount(0);
 
   // Une ligne qui chevauche les photos de groupe pour le photographe : signalée, pas bloquée.
@@ -89,8 +92,10 @@ test("EVT-05 — programme du jour J depuis un modèle, chevauchement signalé e
   await newLine.getByLabel("Note interne").fill("Prévoir les alliances");
   await newLine.getByRole("button", { name: "Ajouter la ligne" }).click();
   await expect(page.getByText("Ligne ajoutée.")).toBeVisible();
-  const added = program.getByRole("listitem").filter({ hasText: "16:15 – 17:00 — Photos des invités" });
-  await expect(added).toContainText("Parc du château — Intervenants : Photographe, Témoin");
+  const added = program.getByRole("listitem").filter({ has: page.locator("strong", { hasText: /^Photos des invités$/ }) });
+  await expect(added.locator(".program-time")).toHaveText("16:15 – 17:00");
+  await expect(added).toContainText("Parc du château");
+  await expect(added.getByRole("img", { name: "Prestataires concernés : Photographe, Témoin" })).toBeVisible();
   await expect(added).toContainText("Note interne : Prévoir les alliances");
   await expect(page.getByRole("region", { name: "Chevauchements à vérifier" })).toContainText(
     "Photographe est prévu à la fois sur « Photos de groupe » et sur « Photos des invités ».",

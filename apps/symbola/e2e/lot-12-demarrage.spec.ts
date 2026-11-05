@@ -7,7 +7,7 @@ import { createAppConnection } from "@symbola/db/client";
 import { createOrganization, createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import * as OTPAuth from "otpauth";
-import { addDefaultVendorSlots, createProspect, createProspectSource } from "../modules/events/service";
+import { addDefaultVendorSlots, createProspect, createProspectSource, createTaskTemplate } from "../modules/events/service";
 import { clickMenuLink, readyOrganization } from "./helpers";
 
 async function expectNoAxeViolation(page: Page) {
@@ -89,6 +89,7 @@ test("ONB-03 / ONB-04 — premier démarrage d'une agence événementielle", asy
 test("EVT-12 / EVT-13 / EVT-15 — statut en boutons, rétroplanning à la confirmation, lieux du programme", async ({ page }) => {
   const account = await owner(true);
   await addDefaultVendorSlots(account.organizationId, [{ label: "Lieu de réception", icon: "venue" }]);
+  await createTaskTemplate(account.organizationId, "Mariage", []);
   const source = await createProspectSource(account.organizationId, "Salon");
   const event = await createProspect({
     organizationId: account.organizationId,
@@ -108,6 +109,10 @@ test("EVT-12 / EVT-13 / EVT-15 — statut en boutons, rétroplanning à la confi
   await expect(steps.getByRole("button", { name: "Prospect" })).toHaveAttribute("aria-current", "step");
   await steps.getByRole("button", { name: "Confirmé" }).click();
   await expect(steps.getByRole("button", { name: "Confirmé" })).toHaveAttribute("aria-current", "step");
+  // Sur l'onglet Rétroplanning, le modèle s'applique sur place ; ailleurs,
+  // une carte le propose.
+  await expect(page.getByRole("button", { name: "Appliquer le modèle" })).toBeVisible();
+  await page.goto(`/events/${event.id}`);
   await expect(page.getByText("L'événement est confirmé : appliquer le rétroplanning ?")).toBeVisible();
   await expectNoAxeViolation(page);
 

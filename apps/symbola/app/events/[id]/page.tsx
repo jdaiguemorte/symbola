@@ -309,8 +309,8 @@ export default async function EventDetailPage({
       ) : null}
 
       {/* Lot 12 (EVT-12) : statut en étapes cliquables, visible sur tous les onglets. */}
-      <ChangeStatusForm key={event.status} eventId={event.id} currentStatus={event.status} reasons={reasons} />
-      {proposeRetroplanning ? (
+      <ChangeStatusForm eventId={event.id} currentStatus={event.status} reasons={reasons} />
+      {proposeRetroplanning && tab !== "retroplanning" ? (
         <section className="card" aria-labelledby="propose-retro-title">
           <h2 id="propose-retro-title">{t("proposeRetroplanningTitle")}</h2>
           <p>{event.eventDate ? t("proposeRetroplanningBody") : t("taskTemplateNeedsDate")}</p>
@@ -656,12 +656,18 @@ export default async function EventDetailPage({
                   <span className="program-meta">
                     {item.location ? <span>{item.location}</span> : null}
                     {item.participants.length > 0 ? (
-                      <span className="line-icons" aria-label={t("programParticipantsList", { names: item.participants.map((participant) => participant.label).join(", ") })}>
+                      <span
+                        className="line-icons"
+                        role="img"
+                        aria-label={t("programParticipantsList", { names: item.participants.map((participant) => participant.label).join(", ") })}
+                        title={item.participants.map((participant) => participant.label).join(", ")}
+                      >
                         {item.participants.map((participant) => (
                           <BudgetLineIcon
                             key={`${participant.vendorSlotId ?? "libre"}-${participant.label}`}
                             icon={participant.vendorSlotId ? (slotIconOf.get(participant.vendorSlotId) ?? null) : null}
                             label={participant.label}
+                            decorative
                           />
                         ))}
                       </span>

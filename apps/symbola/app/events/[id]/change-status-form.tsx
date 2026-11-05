@@ -59,7 +59,7 @@ export function ChangeStatusForm({ eventId, currentStatus, reasons }: { eventId:
           {t("statusLostAsk")}
         </button>
       </form>
-      {askingLoss ? (
+      {askingLoss && currentStatus !== "lost" ? (
         <form action={formAction} className="stack loss-form">
           <input type="hidden" name="eventId" value={eventId} />
           <input type="hidden" name="toStatus" value="lost" />
