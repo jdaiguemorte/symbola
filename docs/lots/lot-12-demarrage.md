@@ -15,6 +15,14 @@ font l'objet du lot 13.
   de départ par métier (`packages/starter-templates`), jamais du code (CLAUDE.md § 2.5).
 - **Assistant de démarrage bloquant, pré-rempli** : tant qu'il n'est pas terminé, les menus
   métier sont verrouillés.
+- **On abandonne « postes » et on garde « Budget »** (05/11, après maquettes) : ni « postes » ni
+  « postes de dépenses » ne parlent à la planner, et elle ne les retrouvait que dans la
+  « répartition budgétaire », qu'elle ne fait pas avant le budget. Les lignes (lieu, traiteur,
+  photographe…) deviennent les **lignes du budget** de l'événement, présentes dès sa création,
+  sans simulation préalable ; la répartition devient une aide facultative pour proposer des
+  montants prévus. Voir EVT-17.
+- **Programme du jour J : une icône par prestataire concerné**, pour voir d'un coup d'œil qui
+  intervient.
 - Découpage : lot 12 (ce document), puis lot 13 (imports Wedding Plan : prestataires en Excel,
   fiches événements en PDF avec `pdfjs-dist`, dépendance acceptée).
 
@@ -27,7 +35,7 @@ font l'objet du lot 13.
   de ce métier sont chargés **d'office** (ils ne l'étaient qu'à la demande).
 - Étapes suivantes, chacune déjà remplie, à relire et ajuster puis « Valider et continuer » :
   2 entreprise (nom, SIREN, adresse, logo, forme juridique) ; 3 TVA et mentions ;
-  4 postes d'un événement ; 5 sources de prospects et motifs de perte ; 6 modèles
+  4 lignes du budget d'un événement ; 5 sources de prospects et motifs de perte ; 6 modèles
   (rétroplanning, programme, répartition du budget) — aperçu, modifiables plus tard.
 - Chaque étape affiche « Enregistré » après validation ; « Retour » ne perd rien ; on peut
   quitter et reprendre à la même étape.
@@ -38,13 +46,27 @@ font l'objet du lot 13.
 
 ## ONB-04 — Paramètres plus compréhensibles
 
-- Chaque liste explique à quoi elle sert, avec un exemple (« Postes : les grandes dépenses d'un
-  événement — lieu, traiteur, photographe… Chaque nouvel événement les reçoit »).
+- Chaque liste explique à quoi elle sert, avec un exemple (« Lignes du budget : lieu, traiteur,
+  photographe… Chaque nouvel événement les reçoit »).
 - Toute saisie dans les paramètres donne un retour visible (« Ajouté », « Enregistré »).
 - Depuis un écran qui renvoie aux paramètres (ex. budget sans modèle de répartition), le lien
   mène directement au bon réglage et le retour ramène à l'écran d'origine **sans perte** de ce
   qui était saisi (saisie gardée ou proposition faite sur place : « Créer un modèle à partir
   de la répartition de départ »).
+
+## EVT-17 — Un seul onglet « Budget » (les « postes » disparaissent)
+
+- La fiche événement n'a plus d'onglet « Postes prestataires » : l'onglet **Budget** liste les
+  lignes (lieu, traiteur…) avec, pour chacune, prestataire (retenu ou consultés), statut, prévu,
+  réel et écart. Les prestataires consultés, devis et notes (lot 11) s'ouvrent depuis la ligne.
+- **Quand** un événement est créé, **alors** il reçoit les lignes par défaut de l'organisation,
+  prévu vide : le budget existe sans simulation.
+- La répartition (modèle en pourcentages) reste disponible : « Proposer des montants prévus »
+  remplit les prévus vides à partir d'un total et d'un modèle (pré-rempli au démarrage).
+- Partout dans l'outil (paramètres, aide, tutoriels, espace clients, exports), « poste » devient
+  « ligne du budget » ou disparaît ; « Postes par défaut » devient « Lignes du budget par défaut ».
+- Les données et contrats existants ne changent pas de nature (une ligne du budget est l'ancien
+  poste, ADR 0032 à écrire) ; aucune donnée existante n'est perdue.
 
 ## EVT-12 — Statut de l'événement en boutons
 
@@ -59,8 +81,11 @@ font l'objet du lot 13.
 
 ## EVT-14 — Programme du jour J lisible
 
-- Une ligne par moment : heure, intitulé, lieu, intervenants sur une ligne compacte ; boutons
-  « Modifier » et « Supprimer » discrets à droite (icônes avec nom accessible).
+- Une ligne par moment : heure, intitulé, lieu, puis **une icône par prestataire concerné**
+  (appareil photo, caméra, musique, fleur, couverts…, avec son nom en infobulle et pour les
+  lecteurs d'écran) ; boutons « Modifier » et « Supprimer » discrets à droite.
+- L'icône d'une ligne du budget se choisit dans une liste d'icônes (pré-réglée par les modèles de
+  départ) ; une ligne sans icône garde ses initiales.
 
 ## EVT-15 — Lieux enregistrés une fois
 
