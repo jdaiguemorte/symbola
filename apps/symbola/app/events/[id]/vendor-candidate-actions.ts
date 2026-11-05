@@ -99,6 +99,7 @@ export async function updateCandidateAction(_prev: CandidateFormState, formData:
       quoteAmountCents,
       contactedOn,
       shownToClients: formData.get("shownToClients") === "on",
+      shareRibWithClients: formData.get("shareRibWithClients") === "on",
     });
   } catch (error) {
     if (error instanceof VendorCandidateNotFoundError) return { error: t("notFound") };

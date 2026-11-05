@@ -84,6 +84,7 @@ import {
   type TaskTemplateRow,
 } from "./repository";
 import { addDays } from "./schedule";
+import { addPlace, listPlaces, removePlace } from "./places";
 import { createStorageClient, deletePrivateObject } from "@symbola/files";
 import {
   addCandidate,
@@ -101,12 +102,14 @@ import {
   removeCandidate,
   removeCandidateNote,
   selectCandidate,
+  sharedRibVendorId,
   setCandidateNoteVisibility,
   setSlotBrief,
   updateCandidate,
 } from "./vendor-candidates";
 import { findProgramOverlaps, normalizeTime, programForVariant, sortProgramItems } from "./program";
 import type {
+  EventPlace,
   AddVendorCandidateInput,
   ClientVendorSlotOptions,
   FileDownload,
@@ -180,6 +183,7 @@ export type {
   VendorSlotProgress,
   VendorSlotStatus,
   AddVendorCandidateInput,
+  EventPlace,
   ClientVendorOption,
   ClientVendorSlotOptions,
   UpdateVendorCandidateInput,
@@ -447,6 +451,21 @@ export async function removeEventVendorSlot(organizationId: string, vendorSlotId
   await deleteStoredFiles(keys);
 }
 
+// Lot 12 (EVT-15) — lieux de l'événement.
+export { EventPlaceEventNotFoundError } from "./places";
+
+export async function listEventPlaces(organizationId: string, eventId: string): Promise<EventPlace[]> {
+  return listPlaces(organizationId, eventId);
+}
+
+export async function addEventPlace(organizationId: string, eventId: string, input: { label: string; address?: string | null; vendorId?: string | null }): Promise<EventPlace> {
+  return addPlace(organizationId, eventId, input);
+}
+
+export async function removeEventPlace(organizationId: string, eventId: string, placeId: string): Promise<void> {
+  await removePlace(organizationId, eventId, placeId);
+}
+
 // Lot 11 (EVT-08 / EVT-09, ADR 0031) — prestataires consultés par poste.
 
 export { CandidateQuoteRejectedError, VendorCandidateNotFoundError, CANDIDATE_QUOTE_MAX_SIZE_BYTES } from "./vendor-candidates";
@@ -529,6 +548,11 @@ export async function getClientVendorOptions(organizationId: string, userId: str
 export async function getClientVendorQuoteFile(organizationId: string, userId: string, eventId: string, candidateId: string): Promise<FileDownload> {
   if (!(await hasActiveClientAccess(organizationId, userId, eventId))) throw new ClientVendorOptionsAccessDeniedError();
   return clientQuoteFile(organizationId, eventId, candidateId);
+}
+
+export async function getClientSharedRibVendorId(organizationId: string, userId: string, eventId: string, candidateId: string): Promise<string> {
+  if (!(await hasActiveClientAccess(organizationId, userId, eventId))) throw new ClientVendorOptionsAccessDeniedError();
+  return sharedRibVendorId(organizationId, eventId, candidateId);
 }
 
 async function deleteStoredFiles(keys: string[]): Promise<void> {
@@ -1308,6 +1332,9 @@ export {
 } from "./import";
 
 const _contractCheck: EventsServiceContract = {
+  listEventPlaces,
+  addEventPlace,
+  removeEventPlace,
   setVendorSlotBrief,
   listVendorCandidates,
   addVendorCandidate,
@@ -1324,6 +1351,7 @@ const _contractCheck: EventsServiceContract = {
   listSelectedVendorIds,
   getClientVendorOptions,
   getClientVendorQuoteFile,
+  getClientSharedRibVendorId,
   listEvents,
   getEvent,
   createProspect,

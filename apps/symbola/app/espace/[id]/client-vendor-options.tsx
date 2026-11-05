@@ -24,6 +24,9 @@ export async function ClientVendorOptions({ eventId, groups, locale }: { eventId
                 {option.hasQuoteFile ? (
                   <a href={`/espace/${eventId}/options/${option.candidateId}/devis`}>{t("vendorOptionOpenQuote", { vendor: option.vendorName })}</a>
                 ) : null}
+                {option.ribShared ? (
+                  <a href={`/espace/${eventId}/options/${option.candidateId}/rib`}>{t("vendorOptionOpenRib", { vendor: option.vendorName })}</a>
+                ) : null}
               </li>
             ))}
           </ul>

@@ -790,7 +790,25 @@
     "plannedSaved": "✓ Prévu enregistré.",
     "lineIconFor": "Icône de « {line} »",
     "saveIcon": "Enregistrer l'icône",
-    "iconSaved": "✓ Icône enregistrée."
+    "iconSaved": "✓ Icône enregistrée.",
+    "statusStepsLabel": "Statut de l'événement",
+    "statusLostAsk": "Perdu…",
+    "confirmLost": "Confirmer « Perdu »",
+    "retroplanningAfterConfirm": "Le rétroplanning démarre quand l'événement est confirmé : passez-le en « Confirmé » pour appliquer votre modèle.",
+    "proposeRetroplanningTitle": "L'événement est confirmé : appliquer le rétroplanning ?",
+    "proposeRetroplanningBody": "Les tâches sont calculées depuis la date de l'événement. Choisissez le modèle (le vôtre est déjà sélectionné).",
+    "programParticipantsList": "Prestataires concernés : {names}",
+    "placesTitle": "Lieux de l'événement",
+    "placesHint": "Saisis une fois, ils se choisissent ensuite dans le programme.",
+    "noPlaces": "Aucun lieu pour l'instant.",
+    "placeFromBook": "du carnet de prestataires",
+    "removePlace": "Retirer {place}",
+    "placeLabel": "Nouveau lieu (ex. Lieu des préparatifs)",
+    "placeAddress": "Adresse (facultatif)",
+    "addPlace": "Ajouter le lieu",
+    "placeAdded": "✓ Lieu ajouté.",
+    "placeLabelRequired": "Le nom du lieu est obligatoire.",
+    "addSuggestedPlace": "Ajouter « {place} »"
   },
   "Budget": {
     "title": "Budget",
@@ -1168,7 +1186,8 @@
     "vendorOptionsTitle": "Prestataires proposés",
     "vendorOptionsIntro": "Votre organisatrice a consulté plusieurs prestataires. Voici ceux qu'elle vous propose.",
     "vendorOptionQuote": "Devis : {amount}",
-    "vendorOptionOpenQuote": "Voir le devis de {vendor}"
+    "vendorOptionOpenQuote": "Voir le devis de {vendor}",
+    "vendorOptionOpenRib": "RIB de {vendor}"
   },
   "NotFound": {
     "title": "Page introuvable",
@@ -2253,7 +2272,8 @@
     "quoteUnsupported": "Format non supporté : PDF ou image uniquement.",
     "quoteInfected": "Fichier refusé par l'antivirus.",
     "noteRequired": "La note est vide.",
-    "noteTooLong": "La note est trop longue (2 000 caractères au plus)."
+    "noteTooLong": "La note est trop longue (2 000 caractères au plus).",
+    "shareRibWithClients": "Partager le RIB de la fiche avec les clients"
   },
   "VendorBook": {
     "title": "Carnet de prestataires",

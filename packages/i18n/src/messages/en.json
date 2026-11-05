@@ -790,7 +790,25 @@
     "plannedSaved": "✓ Planned amount saved.",
     "lineIconFor": "Icon of “{line}”",
     "saveIcon": "Save the icon",
-    "iconSaved": "✓ Icon saved."
+    "iconSaved": "✓ Icon saved.",
+    "statusStepsLabel": "Event status",
+    "statusLostAsk": "Lost…",
+    "confirmLost": "Confirm “Lost”",
+    "retroplanningAfterConfirm": "The planning timeline starts once the event is confirmed: set it to “Confirmed” to apply your template.",
+    "proposeRetroplanningTitle": "The event is confirmed: apply the planning timeline?",
+    "proposeRetroplanningBody": "Tasks are calculated from the event date. Choose the template (yours is already selected).",
+    "programParticipantsList": "Vendors involved: {names}",
+    "placesTitle": "Event places",
+    "placesHint": "Entered once, then chosen in the schedule.",
+    "noPlaces": "No place yet.",
+    "placeFromBook": "from the vendor book",
+    "removePlace": "Remove {place}",
+    "placeLabel": "New place (e.g. Getting-ready venue)",
+    "placeAddress": "Address (optional)",
+    "addPlace": "Add the place",
+    "placeAdded": "✓ Place added.",
+    "placeLabelRequired": "The place name is required.",
+    "addSuggestedPlace": "Add “{place}”"
   },
   "Budget": {
     "title": "Budget",
@@ -1168,7 +1186,8 @@
     "vendorOptionsTitle": "Proposed vendors",
     "vendorOptionsIntro": "Your planner consulted several vendors. Here are the ones they suggest.",
     "vendorOptionQuote": "Quote: {amount}",
-    "vendorOptionOpenQuote": "View {vendor}'s quote"
+    "vendorOptionOpenQuote": "View {vendor}'s quote",
+    "vendorOptionOpenRib": "{vendor} bank details (RIB)"
   },
   "NotFound": {
     "title": "Page not found",
@@ -2253,7 +2272,8 @@
     "quoteUnsupported": "Unsupported format: PDF or image only.",
     "quoteInfected": "File rejected by the antivirus.",
     "noteRequired": "The note is empty.",
-    "noteTooLong": "The note is too long (2,000 characters max)."
+    "noteTooLong": "The note is too long (2,000 characters max).",
+    "shareRibWithClients": "Share the vendor bank details (RIB) with the clients"
   },
   "VendorBook": {
     "title": "Vendor book",

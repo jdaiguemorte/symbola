@@ -19,6 +19,7 @@ import {
   createProspect,
   createProspectSource,
   getClientVendorOptions,
+  getClientSharedRibVendorId,
   getClientVendorQuoteFile,
   getVendorCandidateQuoteFile,
   inviteEventClient,
@@ -33,6 +34,7 @@ import {
   updateVendorCandidate,
   VendorCandidateNotFoundError,
 } from "./service";
+import { attachVendorFile, createVendor, getVendorRibFile } from "../vendors/service";
 
 const plannerId = randomUUID();
 const PASSWORD = "mot-de-passe-du-client";
@@ -203,7 +205,7 @@ describe("EVT-09 — Notes et options montrées aux clients", () => {
     expect(await getClientVendorOptions(organizationId, clientId, eventId)).toEqual([
       {
         slotLabel: "Traiteur",
-        options: [{ candidateId: verdier.id, vendorName: "Maison Verdier", quoteAmountCents: 512000, hasQuoteFile: true, notes: ["Uniquement des produits frais"] }],
+        options: [{ candidateId: verdier.id, vendorName: "Maison Verdier", quoteAmountCents: 512000, hasQuoteFile: true, notes: ["Uniquement des produits frais"], ribShared: false }],
       },
     ]);
     expect((await getClientVendorQuoteFile(organizationId, clientId, eventId, verdier.id)).contentType).toBe("application/pdf");
@@ -222,6 +224,46 @@ describe("EVT-09 — Notes et options montrées aux clients", () => {
     await expect(getClientVendorOptions(organizationId, otherClientId, first.eventId)).rejects.toBeInstanceOf(ClientVendorOptionsAccessDeniedError);
     await expect(getClientVendorQuoteFile(organizationId, otherClientId, first.eventId, verdier.id)).rejects.toBeInstanceOf(ClientVendorOptionsAccessDeniedError);
     expect(await getClientVendorOptions(organizationId, otherClientId, other.id)).toEqual([]);
+  });
+});
+
+describe("EVT-16 — RIB d'un prestataire partagé aux clients", () => {
+  it("le RIB de la fiche n'est servi aux clients que si l'option est montrée et le RIB partagé", async () => {
+    const organizationId = await newOrganization();
+    const { eventId, caterer } = await eventWithCaterer(organizationId);
+    const { vendor } = await createVendor(organizationId, { name: "Maison Verdier", typeId: null });
+    await attachVendorFile({ organizationId, vendorId: vendor.id, kind: "rib", fileName: "rib.pdf", content: TINY_PDF, uploadedByUserId: plannerId });
+    const verdier = await addVendorCandidate({ organizationId, eventId, vendorSlotId: caterer.id, vendorName: "Maison Verdier", vendorId: vendor.id });
+    const clientId = await invitedClient(organizationId, eventId);
+
+    // Montré mais RIB non partagé : rien.
+    await updateVendorCandidate({ organizationId, candidateId: verdier.id, shownToClients: true });
+    expect((await getClientVendorOptions(organizationId, clientId, eventId))[0]!.options[0]!.ribShared).toBe(false);
+    await expect(getClientSharedRibVendorId(organizationId, clientId, eventId, verdier.id)).rejects.toBeInstanceOf(VendorCandidateNotFoundError);
+
+    // Partagé : le lien apparaît et le fichier est servi.
+    await updateVendorCandidate({ organizationId, candidateId: verdier.id, shareRibWithClients: true });
+    expect((await listVendorCandidates(organizationId, eventId)).find((c) => c.id === verdier.id)!.shareRibWithClients).toBe(true);
+    expect((await getClientVendorOptions(organizationId, clientId, eventId))[0]!.options[0]!.ribShared).toBe(true);
+    const vendorId = await getClientSharedRibVendorId(organizationId, clientId, eventId, verdier.id);
+    expect((await getVendorRibFile(organizationId, vendorId)).contentType).toBe("application/pdf");
+
+    // Plus montré : plus servi.
+    await updateVendorCandidate({ organizationId, candidateId: verdier.id, shownToClients: false });
+    await expect(getClientSharedRibVendorId(organizationId, clientId, eventId, verdier.id)).rejects.toBeInstanceOf(VendorCandidateNotFoundError);
+  });
+
+  it("un consulté sans fiche du carnet ne peut pas partager de RIB ; un client d'un autre événement n'y a pas accès", async () => {
+    const organizationId = await newOrganization();
+    const { eventId, caterer } = await eventWithCaterer(organizationId);
+    const free = await addVendorCandidate({ organizationId, eventId, vendorSlotId: caterer.id, vendorName: "Sans fiche" });
+    await updateVendorCandidate({ organizationId, candidateId: free.id, shownToClients: true, shareRibWithClients: true });
+    expect((await listVendorCandidates(organizationId, eventId)).find((c) => c.id === free.id)!.shareRibWithClients).toBe(false);
+
+    const source = await createProspectSource(organizationId, "Salon 2");
+    const other = await createProspect({ organizationId, createdByUserId: plannerId, prospectSourceId: source.id, clients: [{ firstName: "Paul", lastName: null }] });
+    const otherClientId = await invitedClient(organizationId, other.id);
+    await expect(getClientSharedRibVendorId(organizationId, otherClientId, eventId, free.id)).rejects.toBeInstanceOf(ClientVendorOptionsAccessDeniedError);
   });
 });
 

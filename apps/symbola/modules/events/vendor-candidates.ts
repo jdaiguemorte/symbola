@@ -60,6 +60,7 @@ function toCandidate(row: CandidateRow, notes: NoteRow[], selectedCandidateId: s
     currency: "EUR",
     hasQuoteFile: row.quoteFileKey !== null,
     shownToClients: row.shownToClients,
+    shareRibWithClients: row.shareRibWithClients,
     outcome: selectedCandidateId === null ? null : selectedCandidateId === row.id ? "selected" : "not_selected",
     notes: notes
       .filter((note) => note.candidateId === row.id)
@@ -145,6 +146,7 @@ export async function updateCandidate(input: UpdateVendorCandidateInput): Promis
         ...(input.contactedOn !== undefined ? { contactedOn: input.contactedOn } : {}),
         ...(input.quoteAmountCents !== undefined ? { quoteAmountCents: input.quoteAmountCents } : {}),
         ...(input.shownToClients !== undefined ? { shownToClients: input.shownToClients } : {}),
+        ...(input.shareRibWithClients !== undefined ? { shareRibWithClients: input.shareRibWithClients && current.vendorId !== null } : {}),
         updatedAt: new Date(),
       })
       .where(eq(eventVendorCandidates.id, current.id));
@@ -339,6 +341,7 @@ export async function clientOptions(organizationId: string, eventId: string): Pr
         quoteAmountCents: row.candidate.quoteAmountCents,
         hasQuoteFile: row.candidate.quoteFileKey !== null,
         notes: notes.filter((note) => note.candidateId === row.candidate.id).map((note) => note.body),
+        ribShared: row.candidate.shareRibWithClients && row.candidate.vendorId !== null,
       });
       bySlot.set(row.candidate.vendorSlotId, group);
     }
@@ -393,4 +396,28 @@ export async function candidateQuoteKeysOfSlot(organizationId: string, vendorSlo
       .map((row) => row.key)
       .filter((key): key is string => key !== null),
   );
+}
+
+// Lot 12 (EVT-16) — fiche du carnet dont le RIB est partagé aux clients de
+// cet événement : consulté montré aux clients, case « Partager le RIB »
+// cochée. L'accès du client est vérifié par l'appelant (service).
+export async function sharedRibVendorId(organizationId: string, eventId: string, candidateId: string): Promise<string> {
+  if (!UUID.test(candidateId)) throw new VendorCandidateNotFoundError();
+  const row = await inOrganization(organizationId, async (tx) =>
+    (
+      await tx
+        .select({ vendorId: eventVendorCandidates.vendorId })
+        .from(eventVendorCandidates)
+        .where(
+          and(
+            eq(eventVendorCandidates.id, candidateId),
+            eq(eventVendorCandidates.eventId, eventId),
+            eq(eventVendorCandidates.shownToClients, true),
+            eq(eventVendorCandidates.shareRibWithClients, true),
+          ),
+        )
+    )[0],
+  );
+  if (!row?.vendorId) throw new VendorCandidateNotFoundError();
+  return row.vendorId;
 }

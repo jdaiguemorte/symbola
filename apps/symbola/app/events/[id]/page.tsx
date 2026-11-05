@@ -18,6 +18,7 @@ import {
   listEventTasks,
   listEventVendorSlots,
   listVendorCandidates,
+  listEventPlaces,
   listTaskTemplates,
   listLossReasons,
   listProgramTemplates,
@@ -64,6 +65,9 @@ import { VendorCandidates } from "./vendor-candidates";
 import { BudgetLineIcon } from "@/app/budget-line-icon";
 import { isBudgetModuleEnabled } from "@/app/budget/module-access";
 import { PlannedAmountForm, SlotIconForm } from "./budget-line-forms";
+import { AddPlaceForm } from "./place-forms";
+import { removePlaceAction } from "./place-actions";
+import { Trash2 } from "lucide-react";
 import { findVendors } from "@/modules/vendors/service";
 import { isVendorsModuleEnabled } from "@/app/prestataires/module-access";
 import {
@@ -189,6 +193,18 @@ export default async function EventDetailPage({
   const tabHref = (key: Tab, extra: Record<string, string> = {}) =>
     `/events/${event.id}?${new URLSearchParams({ onglet: key, ...extra }).toString()}`;
   const overdueCount = tasks.filter((task) => !task.done && task.dueDate < today).length;
+  // Lot 12 (EVT-14 / EVT-15) : icônes des prestataires au programme, lieux saisis une fois.
+  const slotIconOf = new Map(vendorSlots.map((slot) => [slot.id, slot.icon]));
+  const places = tab === "programme" ? await listEventPlaces(organizationId, id) : [];
+  const venueCandidates = tab === "programme" ? (await listVendorCandidates(organizationId, id)).filter((candidate) => candidate.outcome === "selected" && vendorSlots.find((slot) => slot.id === candidate.vendorSlotId)?.icon === "venue") : [];
+  const placeSuggestions = [
+    ...venueCandidates.map((candidate) => ({ label: candidate.vendorName, vendorId: candidate.vendorId })),
+    ...(event.venueName ? [{ label: event.venueName, vendorId: null }] : []),
+  ].filter((suggestion, index, all) => !places.some((place) => place.label.toLocaleLowerCase("fr") === suggestion.label.toLocaleLowerCase("fr")) && all.findIndex((other) => other.label === suggestion.label) === index);
+  const placeOptions = [...new Set([...places.map((place) => place.label), ...placeSuggestions.map((suggestion) => suggestion.label)])];
+  // Lot 12 (EVT-13) : rétroplanning seulement pour un événement confirmé (ou réalisé).
+  const retroplanningOpen = event.isDemo || event.status === "confirmed" || event.status === "done";
+  const proposeRetroplanning = (event.status === "confirmed") && tasks.length === 0 && templates.length > 0 && !event.isDemo;
 
   // EVT-03 : postes en tableau, détail du poste choisi dans un panneau.
   const toFind = vendorSlots.filter((slot) => slot.status !== "booked" && slot.status !== "not_required");
@@ -292,6 +308,16 @@ export default async function EventDetailPage({
         </section>
       ) : null}
 
+      {/* Lot 12 (EVT-12) : statut en étapes cliquables, visible sur tous les onglets. */}
+      <ChangeStatusForm key={event.status} eventId={event.id} currentStatus={event.status} reasons={reasons} />
+      {proposeRetroplanning ? (
+        <section className="card" aria-labelledby="propose-retro-title">
+          <h2 id="propose-retro-title">{t("proposeRetroplanningTitle")}</h2>
+          <p>{event.eventDate ? t("proposeRetroplanningBody") : t("taskTemplateNeedsDate")}</p>
+          {event.eventDate ? <ApplyTaskTemplateForm eventId={event.id} templates={templates} /> : null}
+        </section>
+      ) : null}
+
       <nav aria-label={t("eventTabsLabel")} className="tabs" data-tour="event-tabs">
         {tabs.map((item) => (
           <Link key={item.key} href={item.href} aria-current={item.key === tab ? "page" : undefined} data-tour={`tab-${item.key}`}>
@@ -312,7 +338,6 @@ export default async function EventDetailPage({
             <progress aria-labelledby="vendor-progress-label" value={progress.booked} max={Math.max(progress.required, 1)} />
             <EventDateForm eventId={event.id} eventDate={event.eventDate} />
             {isPastConfirmed ? <p role="status">{t("suggestMarkDone")}</p> : null}
-            <ChangeStatusForm eventId={event.id} currentStatus={event.status} reasons={reasons} />
             <ImportedFields fields={event.importedFields} />
           </section>
           {suggestConfirmBudget ? (
@@ -500,7 +525,10 @@ export default async function EventDetailPage({
                 </form>
               </section>
             ) : null}
-            {!event.eventDate ? (
+            {/* Lot 12 (EVT-13) : pas de rétroplanning pour un prospect ; il démarre à la confirmation (sauf exemple d'essai ou de tutoriel). */}
+            {!retroplanningOpen ? (
+              <p className="notice">{t("retroplanningAfterConfirm")}</p>
+            ) : !event.eventDate ? (
               <p>{t("taskTemplateNeedsDate")}</p>
             ) : templates.length === 0 ? (
               <p>
@@ -616,31 +644,72 @@ export default async function EventDetailPage({
             </p>
           )}
           {program.items.length === 0 ? <p>{t("noProgramItems")}</p> : null}
-          <ul aria-label={t("programTitle")} className="item-list">
+          {/* Lot 12 (EVT-14) : une ligne par moment, une icône par prestataire concerné, actions discrètes à droite. */}
+          <ul aria-label={t("programTitle")} className="program-list">
             {program.items.map((item) => (
-              <li key={item.id}>
-                <strong>
-                  {item.endTime ? `${item.startTime} – ${item.endTime}` : item.startTime} — {item.label}
-                </strong>
-                {item.location ? ` — ${item.location}` : ""}
-                {item.participants.length > 0
-                  ? ` — ${t("programParticipants")} : ${item.participants.map((participant) => participant.label).join(", ")}`
-                  : ""}
-                {item.internalNote ? (
-                  <p>
-                    {t("programInternalNote")} : {item.internalNote}
-                  </p>
-                ) : null}
-                <EditProgramItemForm key={JSON.stringify(item)} eventId={event.id} item={item} vendorSlots={vendorSlots} />
-                <form action={removeProgramItemAction}>
-                  <input type="hidden" name="eventId" value={event.id} />
-                  <input type="hidden" name="itemId" value={item.id} />
-                  <button type="submit">{t("removeProgramItem", { label: item.label })}</button>
-                </form>
+              <li key={item.id} className="program-row">
+                <span className="program-time">{item.endTime ? `${item.startTime} – ${item.endTime}` : item.startTime}</span>
+                <span className="program-main">
+                  <strong>{item.label}</strong>
+                  <span className="program-meta">
+                    {item.location ? <span>{item.location}</span> : null}
+                    {item.participants.length > 0 ? (
+                      <span className="line-icons" aria-label={t("programParticipantsList", { names: item.participants.map((participant) => participant.label).join(", ") })}>
+                        {item.participants.map((participant) => (
+                          <BudgetLineIcon
+                            key={`${participant.vendorSlotId ?? "libre"}-${participant.label}`}
+                            icon={participant.vendorSlotId ? (slotIconOf.get(participant.vendorSlotId) ?? null) : null}
+                            label={participant.label}
+                          />
+                        ))}
+                      </span>
+                    ) : null}
+                  </span>
+                  {item.internalNote ? (
+                    <span className="program-note">
+                      {t("programInternalNote")} : {item.internalNote}
+                    </span>
+                  ) : null}
+                </span>
+                <span className="program-actions">
+                  <EditProgramItemForm key={JSON.stringify(item)} eventId={event.id} item={item} vendorSlots={vendorSlots} />
+                  <form action={removeProgramItemAction}>
+                    <input type="hidden" name="eventId" value={event.id} />
+                    <input type="hidden" name="itemId" value={item.id} />
+                    <button type="submit" className="icon-button" aria-label={t("removeProgramItem", { label: item.label })} title={t("removeProgramItem", { label: item.label })}>
+                      <Trash2 size={16} aria-hidden="true" />
+                    </button>
+                  </form>
+                </span>
               </li>
             ))}
           </ul>
+          <datalist id="event-place-options">
+            {placeOptions.map((option) => (
+              <option key={option} value={option} />
+            ))}
+          </datalist>
           <AddProgramItemForm eventId={event.id} vendorSlots={vendorSlots} />
+          <section aria-labelledby="places-title" className="places">
+            <h3 id="places-title">{t("placesTitle")}</h3>
+            <p className="muted">{t("placesHint")}</p>
+            {places.length === 0 ? <p>{t("noPlaces")}</p> : null}
+            <ul className="item-list">
+              {places.map((place) => (
+                <li key={place.id}>
+                  <strong>{place.label}</strong>
+                  {place.address ? ` — ${place.address}` : ""}
+                  {place.vendorId ? <span className="badge badge-sauge">{t("placeFromBook")}</span> : null}
+                  <form action={removePlaceAction} className="inline-form">
+                    <input type="hidden" name="eventId" value={event.id} />
+                    <input type="hidden" name="placeId" value={place.id} />
+                    <button type="submit">{t("removePlace", { place: place.label })}</button>
+                  </form>
+                </li>
+              ))}
+            </ul>
+            <AddPlaceForm eventId={event.id} suggestions={placeSuggestions} />
+          </section>
         </section>
       ) : null}
 

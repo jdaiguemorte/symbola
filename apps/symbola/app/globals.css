@@ -1120,3 +1120,92 @@
     @apply inline-flex items-center gap-2;
   }
 }
+
+@layer components {
+  /* Lot 12 (EVT-12) — statut de l'événement en étapes cliquables. */
+  .status-steps {
+    @apply my-0 grid grid-cols-2 gap-2 sm:grid-cols-5;
+  }
+  .status-steps .status-step {
+    @apply min-h-11 rounded-[10px] border border-lin-dark bg-card px-3 text-sm font-semibold text-ink hover:border-sauge hover:bg-sauge-tint;
+  }
+  .status-steps .status-step.passed {
+    @apply border-sauge-tint bg-sauge-tint text-sauge-ink;
+  }
+  .status-steps .status-step.current {
+    @apply border-sauge bg-sauge text-white opacity-100;
+  }
+  .status-steps .status-step.lost {
+    @apply text-terracotta-ink;
+  }
+  .status-steps .status-step.lost.current {
+    @apply border-terracotta bg-terracotta-tint;
+  }
+  .status-steps-wrap {
+    @apply my-4 flex flex-col gap-3;
+  }
+  .loss-form {
+    @apply max-w-xl rounded-[12px] border border-lin bg-card p-4;
+  }
+}
+
+@layer components {
+  .notice {
+    @apply rounded-[12px] bg-sauge-tint px-4 py-3 text-sauge-ink;
+  }
+}
+
+@layer components {
+  /* Lot 12 (EVT-14) — programme du jour J lisible. */
+  .program-list {
+    @apply m-0 flex list-none flex-col p-0;
+  }
+  .program-row {
+    @apply grid grid-cols-[6.5rem_1fr_auto] items-start gap-3 border-t border-lin-soft py-3;
+  }
+  .program-time {
+    @apply font-semibold tabular-nums;
+  }
+  .program-main {
+    @apply flex min-w-0 flex-col gap-1;
+  }
+  .program-meta {
+    @apply flex flex-wrap items-center gap-2 text-sm text-muted;
+  }
+  .program-note {
+    @apply text-sm text-muted italic;
+  }
+  .program-actions {
+    @apply flex items-start gap-1;
+  }
+  .program-actions form {
+    @apply m-0;
+  }
+  .program-edit[open] {
+    @apply basis-full;
+  }
+  .program-row:has(.program-edit[open]) .program-actions {
+    @apply col-span-3 flex-col;
+  }
+  .icon-button,
+  form:not(:has(label, select, textarea, input:not([type="hidden"]))) button.icon-button {
+    @apply inline-flex h-9 w-9 min-h-9 cursor-pointer list-none items-center justify-center rounded-[8px] border border-lin-dark bg-card p-0 text-muted hover:text-ink;
+  }
+  summary.icon-button::-webkit-details-marker {
+    display: none;
+  }
+  .row-wrap {
+    @apply flex flex-wrap gap-2;
+  }
+  .places {
+    @apply mt-6 border-t border-lin pt-4;
+  }
+  @media (max-width: 640px) {
+    .program-row {
+      @apply grid-cols-[5rem_1fr];
+    }
+    .program-actions {
+      @apply col-span-2;
+    }
+  }
+}

@@ -52,6 +52,7 @@ export type {
   DefaultVendorSlot,
   EventVendorSlot,
   AddVendorCandidateInput,
+  EventPlace,
   ClientVendorOption,
   ClientVendorSlotOptions,
   UpdateVendorCandidateInput,

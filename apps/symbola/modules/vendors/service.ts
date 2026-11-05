@@ -419,6 +419,15 @@ export async function getVendorFile(organizationId: string, fileId: string): Pro
   }
 }
 
+// Lot 12 (EVT-16) : dernier RIB déposé sur la fiche (pour l'espace clients,
+// après vérification de l'accès par l'appelant).
+export async function getVendorRibFile(organizationId: string, vendorId: string): Promise<FileDownload> {
+  const vendor = await findVendor(organizationId, vendorId);
+  const rib = vendor?.files.filter((file) => file.kind === "rib").at(-1);
+  if (!rib) throw new VendorFileNotFoundError();
+  return getVendorFile(organizationId, rib.id);
+}
+
 export async function removeVendorFile(organizationId: string, fileId: string): Promise<void> {
   const row = UUID.test(fileId) ? await deleteVendorFileRow(organizationId, fileId) : null;
   if (row) await deletePrivateObject(createStorageClient(), row.fileKey).catch(() => undefined);

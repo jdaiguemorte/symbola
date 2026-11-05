@@ -111,6 +111,9 @@ export type EventVendorSlot = {
   icon: string | null;
 };
 
+// Lot 12 (EVT-15) — lieux d'un événement, saisis une fois.
+export type EventPlace = { id: string; eventId: string; label: string; address: string | null; vendorId: string | null };
+
 // Lot 11 (EVT-08 / EVT-09) — prestataires consultés pour un poste.
 export type VendorCandidateResponse = "contacted" | "quote_received" | "declined";
 export type VendorCandidateNote = { id: string; body: string; visibleToClients: boolean; createdAt: string };
@@ -127,6 +130,8 @@ export type VendorCandidate = {
   currency: "EUR";
   hasQuoteFile: boolean;
   shownToClients: boolean;
+  // Lot 12 (EVT-16) : RIB de la fiche du carnet partagé aux clients.
+  shareRibWithClients: boolean;
   // Déduit du poste : retenu, non retenu (un autre l'est), ou null.
   outcome: "selected" | "not_selected" | null;
   notes: VendorCandidateNote[];
@@ -145,6 +150,7 @@ export type UpdateVendorCandidateInput = {
   contactedOn?: string | null;
   quoteAmountCents?: number | null;
   shownToClients?: boolean;
+  shareRibWithClients?: boolean;
 };
 // PRE-09 — consultations d'une fiche du carnet, pour son historique.
 export type VendorConsultation = {
@@ -157,7 +163,7 @@ export type VendorConsultation = {
   quotedCents: number | null;
 };
 // EVT-09 — options montrées aux clients, par poste.
-export type ClientVendorOption = { candidateId: string; vendorName: string; quoteAmountCents: number | null; hasQuoteFile: boolean; notes: string[] };
+export type ClientVendorOption = { candidateId: string; vendorName: string; quoteAmountCents: number | null; hasQuoteFile: boolean; notes: string[]; ribShared: boolean };
 export type ClientVendorSlotOptions = { slotLabel: string; options: ClientVendorOption[] };
 
 export type UpdateEventVendorSlotInput = {
@@ -387,6 +393,9 @@ export interface EventsServiceContract {
   updateEventVendorSlot(input: UpdateEventVendorSlotInput): Promise<EventVendorSlot>;
   removeEventVendorSlot(organizationId: string, vendorSlotId: string): Promise<void>;
   setVendorSlotBrief(organizationId: string, vendorSlotId: string, brief: string | null): Promise<void>;
+  listEventPlaces(organizationId: string, eventId: string): Promise<EventPlace[]>;
+  addEventPlace(organizationId: string, eventId: string, input: { label: string; address?: string | null; vendorId?: string | null }): Promise<EventPlace>;
+  removeEventPlace(organizationId: string, eventId: string, placeId: string): Promise<void>;
   listVendorCandidates(organizationId: string, eventId: string): Promise<VendorCandidate[]>;
   addVendorCandidate(input: AddVendorCandidateInput): Promise<VendorCandidate>;
   updateVendorCandidate(input: UpdateVendorCandidateInput): Promise<void>;
@@ -402,6 +411,7 @@ export interface EventsServiceContract {
   listSelectedVendorIds(organizationId: string): Promise<string[]>;
   getClientVendorOptions(organizationId: string, userId: string, eventId: string): Promise<ClientVendorSlotOptions[]>;
   getClientVendorQuoteFile(organizationId: string, userId: string, eventId: string, candidateId: string): Promise<FileDownload>;
+  getClientSharedRibVendorId(organizationId: string, userId: string, eventId: string, candidateId: string): Promise<string>;
   listTaskTemplates(organizationId: string): Promise<TaskTemplate[]>;
   createTaskTemplate(organizationId: string, name: string, items: TaskTemplateItemInput[]): Promise<TaskTemplate>;
   addTaskTemplateItem(organizationId: string, templateId: string, item: TaskTemplateItemInput): Promise<TaskTemplateItem>;
