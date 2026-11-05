@@ -28,7 +28,7 @@ async function expectNoAxeViolation(page: Page) {
   expect(result.violations, JSON.stringify(result.violations, null, 2)).toEqual([]);
 }
 
-test("BUD-01 — modèle de répartition, simulation et ajustement d'un poste", async ({ page }) => {
+test("BUD-01 — modèle de répartition, simulation et ajustement d'une ligne", async ({ page }) => {
   const email = `planner-bud01-${randomUUID()}@symbola.test`;
   const password = "mot-de-passe-bud01-e2e";
   const { sql, db } = createAppConnection();

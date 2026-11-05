@@ -1,4 +1,4 @@
-// Lot 11 — prestataires consultés (EVT-10/09) et carnet de prestataires
+// Lot 11 — prestataires consultés (EVT-10/11) et carnet de prestataires
 // (PRE-01 à PRE-07, HUB-12), en taille ordinateur et en 375 px, axe-core.
 // Géocodeur simulé (hors production) ; pas de fond de carte installé : la
 // liste, les filtres et les distances fonctionnent quand même.
@@ -49,7 +49,7 @@ async function plannerOrganization() {
   }
 }
 
-test("EVT-10 / EVT-11 — comparer deux devis pour un poste, retenir, et ce que voient les clients", async ({ page, browser }) => {
+test("EVT-10 / EVT-11 — comparer deux devis pour une ligne du budget, retenir, et ce que voient les clients", async ({ page, browser }) => {
   const planner = await plannerOrganization();
   await addDefaultVendorSlots(planner.organizationId, ["Lieu de réception", "Traiteur"]);
   const source = await createProspectSource(planner.organizationId, "Salon");
@@ -80,7 +80,7 @@ test("EVT-10 / EVT-11 — comparer deux devis pour un poste, retenir, et ce que 
   await candidates.getByRole("button", { name: "Ajouter", exact: true }).click();
   const tables = candidates.getByRole("listitem", { name: "Les Tables de Flandre" });
   await expect(tables).toBeVisible();
-  await expect(page.getByRole("region", { name: "Postes prestataires" }).getByRole("row", { name: /Traiteur/ })).toContainText("Devis demandé");
+  await expect(page.getByRole("region", { name: "Lignes du budget" }).getByRole("row", { name: /Traiteur/ })).toContainText("Devis demandé");
 
   // Devis, montré aux clients, notes « Clients » et interne.
   await tables.getByLabel("Montant du devis (€)").fill("4480");
@@ -94,12 +94,12 @@ test("EVT-10 / EVT-11 — comparer deux devis pour un poste, retenir, et ce que 
   await tables.getByLabel("Nouvelle note sur Les Tables de Flandre").fill("Négociable à 60 € par personne.");
   await tables.getByRole("button", { name: "Ajouter la note sur Les Tables de Flandre" }).click();
   await expect(tables.getByText("Négociable à 60 € par personne.")).toBeVisible();
-  await expect(page.getByRole("region", { name: "Postes prestataires" }).getByRole("row", { name: /Traiteur/ })).toContainText("Devis reçu");
+  await expect(page.getByRole("region", { name: "Lignes du budget" }).getByRole("row", { name: /Traiteur/ })).toContainText("Devis reçu");
   await expectNoAxeViolation(page);
 
   // Retenir : le poste est réservé avec ce prestataire et son montant.
   await tables.getByRole("button", { name: "Retenir Les Tables de Flandre" }).click();
-  const row = page.getByRole("region", { name: "Postes prestataires" }).getByRole("row", { name: /Traiteur/ });
+  const row = page.getByRole("region", { name: "Lignes du budget" }).getByRole("row", { name: /Traiteur/ });
   await expect(row).toContainText("Les Tables de Flandre");
   await expect(row).toContainText("Réservé");
   await expect(row).toContainText("4 480,00 €");
