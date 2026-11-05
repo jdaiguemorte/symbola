@@ -9,10 +9,10 @@
 import { randomUUID } from "node:crypto";
 import AxeBuilder from "@axe-core/playwright";
 import { createAppConnection } from "@symbola/db/client";
-import { createOrganization, createUser } from "@symbola/auth";
+import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import * as OTPAuth from "otpauth";
-import { clickMenuLink } from "./helpers";
+import { clickMenuLink, readyOrganization } from "./helpers";
 
 async function loginAndSetupMfa(page: Page, email: string, password: string): Promise<void> {
   await page.goto("/login");
@@ -33,7 +33,7 @@ async function createTestUser(): Promise<{ email: string; password: string }> {
   const password = "mot-de-passe-aide-e2e";
   const { sql, db } = createAppConnection();
   try {
-    const organization = await createOrganization(db, `Org Aide ${randomUUID()}`);
+    const organization = await readyOrganization(db, `Org Aide ${randomUUID()}`);
     await createUser(db, { organizationId: organization.id, email, password, role: "owner" });
   } finally {
     await sql.end();

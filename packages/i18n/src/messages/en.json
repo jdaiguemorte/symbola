@@ -80,7 +80,9 @@
     "vendorBook": "Vendors",
     "settingsVendorTypes": "Types and fields",
     "settingsVendorTags": "Tags",
-    "settingsVendorTravel": "Estimated travel"
+    "settingsVendorTravel": "Estimated travel",
+    "setup": "Set-up",
+    "setupLocked": "Menus open once set-up is complete."
   },
   "Admin": {
     "title": "Administration",
@@ -2420,5 +2422,138 @@
     "exportTags": "Tags",
     "exportPdfTitle": "Vendor selection",
     "exportPdfAround": "{count, plural, one {# vendor} other {# vendors}} within {km} km of {place}"
+  },
+  "Setup": {
+    "title": "Welcome: let's set up your space",
+    "titleDone": "Your starting settings",
+    "intro": "Everything is already filled in for your line of work: review, adjust if needed, then “Validate and continue”. You can change everything later in Settings.",
+    "progressLabel": "Set-up steps",
+    "stepItem": "{number} · {label}",
+    "stepDone": "(done)",
+    "steps": {
+      "1": "Activity",
+      "2": "Company",
+      "3": "VAT",
+      "4": "Budget",
+      "5": "Sources and reasons",
+      "6": "Templates"
+    },
+    "titles": {
+      "1": "Your activity",
+      "2": "Your company",
+      "3": "Your VAT regime",
+      "4": "An event's budget",
+      "5": "Where your clients come from, why a project falls through",
+      "6": "Your templates"
+    },
+    "explanations": {
+      "1": "Your line of work sets the starting settings: budget lines, timeline, day schedule, lead sources…",
+      "2": "This information appears on your quotes and invoices.",
+      "3": "It sets the legal notices on your quotes and invoices. A later change will have an effective date.",
+      "4": "The budget lines of every new event: you track consulted vendors, quotes, planned and actual amounts. We prepared those of your line of work, with their icon: rename, change the icon, remove or add.",
+      "5": "The source is asked for each new lead; the reason when a project is lost. They feed your statistics.",
+      "6": "We prepared a timeline, a day schedule and a budget split. You can change them whenever you like."
+    },
+    "metierQuestion": "What is your line of work?",
+    "metier": {
+      "wedding_planner": {
+        "title": "Wedding planner",
+        "body": "Wedding planning."
+      },
+      "event_agency": {
+        "title": "Event agency",
+        "body": "Seminars, corporate parties, launches…"
+      },
+      "autre": {
+        "title": "Other event profession",
+        "body": "We start from an agency's settings, to adapt."
+      }
+    },
+    "metierPrecision": "Describe your line of work",
+    "activityHint": "When you validate, Symbola prepares your starting lists and templates. Nothing you already entered is overwritten.",
+    "validateAndContinue": "Validate and continue",
+    "saved": "✓ Saved",
+    "save": "Save",
+    "add": "Add",
+    "back": "Back to the previous step",
+    "choose": "— Choose —",
+    "legalForm": "Legal form",
+    "siren": "SIREN or SIRET",
+    "address": "Address",
+    "companyHint": "The logo and the rest of the profile are completed in Settings.",
+    "legalForms": {
+      "ei": "Sole proprietorship",
+      "eirl": "EIRL",
+      "eurl": "EURL (single-member LLC)",
+      "sarl": "SARL (LLC)",
+      "sas": "SAS",
+      "sasu": "SASU",
+      "sa": "SA",
+      "auto_entrepreneur": "Micro-business",
+      "autre": "Other"
+    },
+    "vatQuestion": "Are you liable for VAT?",
+    "vat": {
+      "franchise": {
+        "title": "VAT exemption (franchise)",
+        "body": "“VAT not applicable, art. 293 B CGI” on your documents."
+      },
+      "assujetti": {
+        "title": "VAT registered",
+        "body": "Your quotes and invoices include VAT."
+      }
+    },
+    "linesLabel": "Budget lines",
+    "lineName": "Name of the line {line}",
+    "lineIcon": "Icon of the line {line}",
+    "saveLine": "Save the line {line}",
+    "removeLine": "Remove {line}",
+    "iconNone": "No icon (initials)",
+    "newLine": "Add a line (e.g. Shuttles)",
+    "icons": {
+      "venue": "Venue",
+      "catering": "Food",
+      "camera": "Photo",
+      "video": "Video",
+      "music": "Music",
+      "flower": "Flowers",
+      "decoration": "Decoration",
+      "officiant": "Ceremony",
+      "cake": "Cake",
+      "beauty": "Beauty",
+      "stationery": "Stationery",
+      "transport": "Transport",
+      "lodging": "Accommodation",
+      "sound": "Sound and lighting",
+      "staff": "Staff",
+      "furniture": "Furniture",
+      "attire": "Attire",
+      "rings": "Rings",
+      "other": "Other"
+    },
+    "sourcesTitle": "Lead sources",
+    "sourcesHint": "Instagram, fair, word of mouth…",
+    "newSource": "New source",
+    "reasonsTitle": "Loss reasons",
+    "reasonsHint": "Budget, date unavailable, other vendor chosen…",
+    "newLossReason": "New reason",
+    "modelRetroplanning": "Timeline:",
+    "modelProgram": "Day schedule:",
+    "modelSplit": "Budget split:",
+    "modelCount": "{name} ({count} lines)",
+    "modelNone": "none",
+    "modelEditLater": "View or edit",
+    "modelsHint": "The timeline applies when an event is confirmed; the split suggests planned amounts if you wish.",
+    "finish": "Finish and discover Symbola",
+    "alreadyDone": "Set-up is complete: your menus are open.",
+    "ownerOnly": "Only the account owner can complete the set-up.",
+    "ownerMustFinish": "The account owner is completing the set-up of your space. Your menus will open afterwards.",
+    "doneForMember": "Set-up is complete.",
+    "metierRequired": "Choose your line of work.",
+    "legalFormRequired": "Choose the legal form.",
+    "sirenInvalid": "A SIREN has 9 digits, a SIRET 14.",
+    "labelRequired": "The name is required.",
+    "alreadyExists": "This item already exists.",
+    "notFound": "Item not found."
   }
 }

@@ -38,6 +38,9 @@ export function middleware(request: NextRequest) {
 
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-nonce", nonce);
+  // Lot 12 (ONB-03) : le chemin demandé, pour que la structure d'écran
+  // renvoie vers l'assistant de démarrage tant qu'il n'est pas terminé.
+  requestHeaders.set("x-pathname", request.nextUrl.pathname);
 
   const response = NextResponse.next({ request: { headers: requestHeaders } });
   response.headers.set("Content-Security-Policy", csp);

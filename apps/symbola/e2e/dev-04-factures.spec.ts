@@ -5,10 +5,10 @@
 import { randomUUID } from "node:crypto";
 import AxeBuilder from "@axe-core/playwright";
 import { createAppConnection } from "@symbola/db/client";
-import { createOrganization, createUser } from "@symbola/auth";
+import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import * as OTPAuth from "otpauth";
-import { openEventTab } from "./helpers";
+import { openEventTab, readyOrganization } from "./helpers";
 import { saveOnboardingStep } from "../modules/hub/service";
 
 const MAILPIT_API = "http://localhost:8025/api/v1";
@@ -53,7 +53,7 @@ test("DEV-04 — facturer un devis signé (acompte, solde, avoir) puis exporter 
   const password = "mot-de-passe-dev04-e2e";
   const { sql, db } = createAppConnection();
   try {
-    const organization = await createOrganization(db, `Org ${randomUUID()}`);
+    const organization = await readyOrganization(db, `Org ${randomUUID()}`);
     await createUser(db, { organizationId: organization.id, email, password, role: "owner" });
     await saveOnboardingStep(db, organization.id, { vatRegime: "franchise", vatRateDefaultBasisPoints: null, address: "1 rue des Lilas", siren: "123456789" });
   } finally {

@@ -5,7 +5,7 @@
 import { randomUUID } from "node:crypto";
 import AxeBuilder from "@axe-core/playwright";
 import { createAppConnection } from "@symbola/db/client";
-import { createOrganization, createUser } from "@symbola/auth";
+import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import * as OTPAuth from "otpauth";
 import {
@@ -17,7 +17,7 @@ import {
   listEventVendorSlots,
 } from "../modules/events/service";
 import { createVendor } from "../modules/vendors/service";
-import { clickMenuLink, openMenu } from "./helpers";
+import { clickMenuLink, openMenu, readyOrganization } from "./helpers";
 
 async function expectNoAxeViolation(page: Page) {
   const result = await new AxeBuilder({ page }).exclude(".vendor-map-canvas").analyze();
@@ -41,7 +41,7 @@ async function plannerOrganization() {
   const email = `planner-presta-${randomUUID()}@symbola.test`;
   const { sql, db } = createAppConnection();
   try {
-    const organization = await createOrganization(db, `Org ${randomUUID()}`);
+    const organization = await readyOrganization(db, `Org ${randomUUID()}`);
     const user = await createUser(db, { organizationId: organization.id, email, password: "mot-de-passe-presta", role: "owner" });
     return { organizationId: organization.id, userId: user.id, email };
   } finally {

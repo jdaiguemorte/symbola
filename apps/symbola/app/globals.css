@@ -1039,3 +1039,78 @@
     @apply sm:col-span-2;
   }
 }
+
+@layer components {
+  /* Lot 12 (EVT-14/17) — icône d'une ligne du budget. */
+  .line-icon {
+    @apply inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-sauge-tint text-[11px] font-semibold text-sauge-ink;
+  }
+  .line-icons {
+    @apply inline-flex flex-wrap items-center gap-1;
+  }
+}
+
+@layer components {
+  /* Lot 12 (ONB-03) — assistant de démarrage. */
+  .nav-locked {
+    @apply mx-2 mt-3 flex items-start gap-2 rounded-[10px] bg-ambre-tint px-3 py-2 text-sm text-ambre-ink;
+  }
+  .setup-steps ol {
+    @apply m-0 flex list-none flex-wrap gap-2 p-0;
+  }
+  .setup-steps li {
+    @apply rounded-full border border-lin-dark bg-card px-3 py-1.5 text-sm;
+  }
+  .setup-steps li a {
+    @apply text-ink no-underline;
+  }
+  .setup-steps li.done {
+    @apply border-sauge-tint bg-sauge-tint;
+  }
+  .setup-steps li.current {
+    @apply border-sauge bg-sauge font-semibold;
+  }
+  .setup-steps li.current a,
+  .setup-steps li.current span {
+    @apply text-white;
+  }
+  .choice-cards {
+    @apply grid grid-cols-1 gap-3 border-0 p-0 sm:grid-cols-3;
+  }
+  .choice-cards > legend {
+    @apply mb-2 font-semibold;
+  }
+  .choice-card {
+    @apply flex cursor-pointer items-start gap-3 rounded-[12px] border border-lin-dark bg-white p-4;
+  }
+  .choice-card:has(input:checked) {
+    @apply border-sauge bg-sauge-tint;
+  }
+  .choice-card > span {
+    @apply flex flex-col gap-1;
+  }
+  .setup-lines {
+    @apply m-0 flex list-none flex-col gap-2 p-0;
+  }
+  .setup-lines > li {
+    @apply flex flex-wrap items-center gap-2 rounded-[12px] border border-lin bg-white px-3 py-2;
+  }
+  .line-form {
+    @apply flex flex-1 flex-wrap items-center gap-2;
+  }
+  .line-form input[type="text"] {
+    @apply min-w-[12rem] flex-1;
+  }
+  .inline-add {
+    @apply flex flex-wrap items-end gap-2;
+  }
+  .setup-two {
+    @apply grid grid-cols-1 gap-6 md:grid-cols-2;
+  }
+  .setup-two > form {
+    @apply md:col-span-2;
+  }
+  .saved {
+    @apply font-medium text-sauge-ink;
+  }
+}

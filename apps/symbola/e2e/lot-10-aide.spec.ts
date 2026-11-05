@@ -5,11 +5,11 @@
 import { randomUUID } from "node:crypto";
 import AxeBuilder from "@axe-core/playwright";
 import { createAppConnection } from "@symbola/db/client";
-import { createOrganization, createUser } from "@symbola/auth";
+import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import * as OTPAuth from "otpauth";
 import { createProspect, createProspectSource } from "../modules/events/service";
-import { clickMenuLink } from "./helpers";
+import { clickMenuLink, readyOrganization } from "./helpers";
 import { recordHelpProgress } from "../modules/hub/service";
 
 // Visites ouvertes d'office : sans la préférence posée par la configuration.
@@ -26,7 +26,7 @@ test("AIDE-05/07 — visite focus mise de côté puis reprise, et centre d'aide"
   const { sql, db } = createAppConnection();
   let eventId: string;
   try {
-    const organization = await createOrganization(db, `Org ${randomUUID()}`);
+    const organization = await readyOrganization(db, `Org ${randomUUID()}`);
     const user = await createUser(db, { organizationId: organization.id, email, password: "mot-de-passe-aide-lot10", role: "owner" });
     const source = await createProspectSource(organization.id, "Salon");
     eventId = (await createProspect({ organizationId: organization.id, createdByUserId: user.id, prospectSourceId: source.id, clients: [{ firstName: "Inès" }] })).id;
@@ -93,7 +93,7 @@ test("HUB-05 — l'Admin voit la prise en main de chaque compte d'équipe", asyn
   const { sql, db } = createAppConnection();
   try {
     await createUser(db, { organizationId: null, email: adminEmail, password: "mot-de-passe-admin-suivi", role: "admin" });
-    const organization = await createOrganization(db, organizationName);
+    const organization = await readyOrganization(db, organizationName);
     const owner = await createUser(db, { organizationId: organization.id, email: ownerEmail, password: "mot-de-passe-titulaire", role: "owner" });
     await recordHelpProgress(db, { userId: owner.id, itemKey: "tutorial:catalog", status: "completed", step: 3 });
     await recordHelpProgress(db, { userId: owner.id, itemKey: "tutorial:retroplanning-template", status: "postponed", step: 1 });
@@ -128,7 +128,7 @@ test("AIDE-06 — tutoriel en faisant : modèle de rétroplanning proposé à la
   const email = `planner-tutoriel-${randomUUID()}@symbola.test`;
   const { sql, db } = createAppConnection();
   try {
-    const organization = await createOrganization(db, `Org ${randomUUID()}`);
+    const organization = await readyOrganization(db, `Org ${randomUUID()}`);
     const user = await createUser(db, { organizationId: organization.id, email, password: "mot-de-passe-tutoriel", role: "owner" });
     // Visites déjà vues : ce parcours teste l'invitation et le tutoriel.
     for (const key of ["hub", "event"]) await recordHelpProgress(db, { userId: user.id, itemKey: `tour:${key}`, status: "completed" });

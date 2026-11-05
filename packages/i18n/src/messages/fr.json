@@ -80,7 +80,9 @@
     "vendorBook": "Prestataires",
     "settingsVendorTypes": "Types et champs",
     "settingsVendorTags": "Étiquettes",
-    "settingsVendorTravel": "Trajet estimé"
+    "settingsVendorTravel": "Trajet estimé",
+    "setup": "Démarrage",
+    "setupLocked": "Les menus s'ouvrent quand le démarrage est terminé."
   },
   "Admin": {
     "title": "Administration",
@@ -2420,5 +2422,138 @@
     "exportTags": "Étiquettes",
     "exportPdfTitle": "Sélection de prestataires",
     "exportPdfAround": "{count, plural, one {# prestataire} other {# prestataires}} à moins de {km} km de {place}"
+  },
+  "Setup": {
+    "title": "Bienvenue : préparons votre espace",
+    "titleDone": "Vos paramètres de départ",
+    "intro": "Tout est déjà rempli selon votre métier : relisez, ajustez si besoin, puis « Valider et continuer ». Vous pourrez tout modifier plus tard dans Paramètres.",
+    "progressLabel": "Étapes du démarrage",
+    "stepItem": "{number} · {label}",
+    "stepDone": "(fait)",
+    "steps": {
+      "1": "Activité",
+      "2": "Entreprise",
+      "3": "TVA",
+      "4": "Budget",
+      "5": "Sources et motifs",
+      "6": "Modèles"
+    },
+    "titles": {
+      "1": "Votre activité",
+      "2": "Votre entreprise",
+      "3": "Votre régime de TVA",
+      "4": "Le budget d'un événement",
+      "5": "D'où viennent vos clients, pourquoi un projet échoue",
+      "6": "Vos modèles"
+    },
+    "explanations": {
+      "1": "Votre métier détermine les paramètres de départ : lignes du budget, rétroplanning, programme du jour J, sources de prospects…",
+      "2": "Ces informations apparaissent sur vos devis et factures.",
+      "3": "Il fixe les mentions légales de vos devis et factures. Un changement plus tard se fera avec une date d'effet.",
+      "4": "Les lignes du budget de chaque nouvel événement : vous y suivez prestataires consultés, devis, prévu et réel. Nous avons préparé celles de votre métier, avec leur icône : renommez, changez l'icône, retirez ou ajoutez.",
+      "5": "La source est demandée à chaque nouveau prospect ; le motif quand un projet est perdu. Elles servent à vos statistiques.",
+      "6": "Nous avons préparé un rétroplanning, un programme du jour J et une répartition du budget. Vous les modifierez quand vous voudrez."
+    },
+    "metierQuestion": "Quel est votre métier ?",
+    "metier": {
+      "wedding_planner": {
+        "title": "Wedding planner",
+        "body": "Organisation de mariages."
+      },
+      "event_agency": {
+        "title": "Agence événementielle",
+        "body": "Séminaires, soirées d'entreprise, lancements…"
+      },
+      "autre": {
+        "title": "Autre métier de l'événementiel",
+        "body": "Nous partons des paramètres d'une agence, à adapter."
+      }
+    },
+    "metierPrecision": "Précisez votre métier",
+    "activityHint": "En validant, Symbola prépare vos listes et modèles de départ. Rien n'écrase ce que vous avez déjà saisi.",
+    "validateAndContinue": "Valider et continuer",
+    "saved": "✓ Enregistré",
+    "save": "Enregistrer",
+    "add": "Ajouter",
+    "back": "Revenir à l'étape précédente",
+    "choose": "— Choisir —",
+    "legalForm": "Forme juridique",
+    "siren": "SIREN ou SIRET",
+    "address": "Adresse",
+    "companyHint": "Le logo et le reste de la fiche se complètent dans Paramètres.",
+    "legalForms": {
+      "ei": "Entreprise individuelle",
+      "eirl": "EIRL",
+      "eurl": "EURL",
+      "sarl": "SARL",
+      "sas": "SAS",
+      "sasu": "SASU",
+      "sa": "SA",
+      "auto_entrepreneur": "Micro-entreprise",
+      "autre": "Autre"
+    },
+    "vatQuestion": "Êtes-vous assujettie à la TVA ?",
+    "vat": {
+      "franchise": {
+        "title": "Franchise en base",
+        "body": "« TVA non applicable, art. 293 B du CGI » sur vos documents."
+      },
+      "assujetti": {
+        "title": "Assujettie à la TVA",
+        "body": "Vos devis et factures portent la TVA."
+      }
+    },
+    "linesLabel": "Lignes du budget",
+    "lineName": "Nom de la ligne {line}",
+    "lineIcon": "Icône de la ligne {line}",
+    "saveLine": "Enregistrer la ligne {line}",
+    "removeLine": "Retirer {line}",
+    "iconNone": "Sans icône (initiales)",
+    "newLine": "Ajouter une ligne (ex. Navettes)",
+    "icons": {
+      "venue": "Lieu",
+      "catering": "Repas",
+      "camera": "Photo",
+      "video": "Vidéo",
+      "music": "Musique",
+      "flower": "Fleurs",
+      "decoration": "Décoration",
+      "officiant": "Cérémonie",
+      "cake": "Gâteau",
+      "beauty": "Beauté",
+      "stationery": "Papeterie",
+      "transport": "Transport",
+      "lodging": "Hébergement",
+      "sound": "Son et lumière",
+      "staff": "Personnel",
+      "furniture": "Mobilier",
+      "attire": "Tenue",
+      "rings": "Alliances",
+      "other": "Autre"
+    },
+    "sourcesTitle": "Sources de prospects",
+    "sourcesHint": "Instagram, salon, bouche-à-oreille…",
+    "newSource": "Nouvelle source",
+    "reasonsTitle": "Motifs de perte",
+    "reasonsHint": "Budget, date indisponible, autre prestataire choisi…",
+    "newLossReason": "Nouveau motif",
+    "modelRetroplanning": "Rétroplanning :",
+    "modelProgram": "Programme du jour J :",
+    "modelSplit": "Répartition du budget :",
+    "modelCount": "{name} ({count} lignes)",
+    "modelNone": "aucun",
+    "modelEditLater": "Voir ou modifier",
+    "modelsHint": "Le rétroplanning s'applique quand un événement est confirmé ; la répartition propose des montants prévus si vous le souhaitez.",
+    "finish": "Terminer et découvrir Symbola",
+    "alreadyDone": "Le démarrage est terminé : vos menus sont ouverts.",
+    "ownerOnly": "Seule la titulaire du compte peut faire le démarrage.",
+    "ownerMustFinish": "La titulaire du compte termine le démarrage de votre espace. Vos menus s'ouvriront ensuite.",
+    "doneForMember": "Le démarrage est terminé.",
+    "metierRequired": "Choisissez votre métier.",
+    "legalFormRequired": "Choisissez la forme juridique.",
+    "sirenInvalid": "Le SIREN a 9 chiffres, le SIRET 14.",
+    "labelRequired": "Le nom est obligatoire.",
+    "alreadyExists": "Cet élément existe déjà.",
+    "notFound": "Élément introuvable."
   }
 }

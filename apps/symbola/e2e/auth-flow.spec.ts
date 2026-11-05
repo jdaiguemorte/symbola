@@ -6,10 +6,10 @@
 import { randomUUID } from "node:crypto";
 import AxeBuilder from "@axe-core/playwright";
 import { createAppConnection } from "@symbola/db/client";
-import { createOrganization, createUser } from "@symbola/auth";
+import { createUser } from "@symbola/auth";
 import { expect, test } from "@playwright/test";
 import * as OTPAuth from "otpauth";
-import { openMenu } from "./helpers";
+import { openMenu, readyOrganization } from "./helpers";
 
 const email = `playwright-e2e-${randomUUID()}@symbola.test`;
 const password = "mot-de-passe-e2e-de-test";
@@ -17,7 +17,7 @@ const password = "mot-de-passe-e2e-de-test";
 test.beforeAll(async () => {
   const { sql, db } = createAppConnection();
   try {
-    const organization = await createOrganization(db, "Organisation E2E Playwright");
+    const organization = await readyOrganization(db, "Organisation E2E Playwright");
     await createUser(db, { organizationId: organization.id, email, password, role: "owner" });
   } finally {
     await sql.end();

@@ -4,10 +4,10 @@
 import { randomUUID } from "node:crypto";
 import AxeBuilder from "@axe-core/playwright";
 import { createAppConnection } from "@symbola/db/client";
-import { createOrganization, createUser } from "@symbola/auth";
+import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import * as OTPAuth from "otpauth";
-import { logout } from "./helpers";
+import { logout, readyOrganization } from "./helpers";
 
 const MAILPIT_API = "http://localhost:8025/api/v1";
 
@@ -106,7 +106,7 @@ test("HUB-03-02 — un utilisateur non-Admin n'accède pas à /admin", async ({ 
 
   const { sql, db } = createAppConnection();
   try {
-    const organization = await createOrganization(db, `Org ${randomUUID()}`);
+    const organization = await readyOrganization(db, `Org ${randomUUID()}`);
     await createUser(db, { organizationId: organization.id, email, password, role: "owner" });
   } finally {
     await sql.end();
@@ -132,7 +132,7 @@ test("HUB-03-03 — désactiver un module l'affiche « indisponible » sans erre
   let organizationId: string;
   try {
     await createUser(db, { organizationId: null, email: adminEmail, password: adminPassword, role: "admin" });
-    const organization = await createOrganization(db, organizationName);
+    const organization = await readyOrganization(db, organizationName);
     organizationId = organization.id;
     await createUser(db, { organizationId, email, password, role: "owner" });
   } finally {

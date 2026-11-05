@@ -1,5 +1,7 @@
 // Aides communes aux parcours e2e (ADR 0025).
 import { expect, type Page } from "@playwright/test";
+import { createOrganization } from "@symbola/auth";
+import { completeSetup } from "../modules/hub/service";
 
 // Sur téléphone, le menu latéral est replié derrière le bouton « Menu » :
 // l'ouvrir avant de cliquer un lien du menu ou « Se déconnecter ». Sur
@@ -45,4 +47,12 @@ export async function openEventTab(page: Page, name: string): Promise<void> {
 export async function openSettingsTab(page: Page, name: string): Promise<void> {
   await clickMenuLink(page, "Paramètres");
   await page.getByRole("navigation", { name: "Paramètres par module" }).getByRole("link", { name, exact: true }).click();
+}
+
+// Lot 12 (ONB-03) : une organisation dont l'assistant de démarrage est déjà
+// terminé, pour les parcours qui ne testent pas le démarrage lui-même.
+export async function readyOrganization(db: Parameters<typeof createOrganization>[0], name: string) {
+  const organization = await createOrganization(db, name);
+  await completeSetup(db, organization.id);
+  return organization;
 }

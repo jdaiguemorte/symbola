@@ -6,10 +6,10 @@
 import { randomUUID } from "node:crypto";
 import AxeBuilder from "@axe-core/playwright";
 import { createAppConnection } from "@symbola/db/client";
-import { createOrganization, createUser } from "@symbola/auth";
+import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import * as OTPAuth from "otpauth";
-import { logout } from "./helpers";
+import { logout, readyOrganization } from "./helpers";
 
 const MAILPIT_API = "http://localhost:8025/api/v1";
 
@@ -48,7 +48,8 @@ async function setUpMfa(page: Page): Promise<string> {
   const secret = new URL(uri!.replace("otpauth://totp/", "https://x/")).searchParams.get("secret")!;
   await page.getByLabel("Code").fill(new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret) }).generate());
   await page.getByRole("button", { name: "Valider" }).click();
-  await expect(page).toHaveURL("/");
+  // Accueil, ou assistant de démarrage pour une organisation toute neuve (lot 12).
+  await expect(page).toHaveURL(/\/(demarrage)?$/);
   return secret;
 }
 
@@ -56,7 +57,7 @@ test("Lot 9 — mot de passe oublié : lien par e-mail, nouveau mot de passe, do
   const email = `planner-lot9-${randomUUID()}@symbola.test`;
   const { sql, db } = createAppConnection();
   try {
-    const organization = await createOrganization(db, `Org ${randomUUID()}`);
+    const organization = await readyOrganization(db, `Org ${randomUUID()}`);
     await createUser(db, { organizationId: organization.id, email, password: "ancien-mot-de-passe", role: "owner" });
   } finally {
     await sql.end();
