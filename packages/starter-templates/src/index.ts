@@ -17,28 +17,73 @@ import retroplanningFile from "./retroplanning.json";
 import tutorialExamplesFile from "./tutorial-examples.json";
 import vendorSlotsFile from "./vendor-slots.json";
 import vendorTypesFile from "./vendor-types.json";
+import agencyVendorSlotsFile from "./vendor-slots.event-agency.json";
+import agencyProspectSourcesFile from "./prospect-sources.event-agency.json";
+import agencyRetroplanningFile from "./retroplanning.event-agency.json";
+import agencyProgramFile from "./program.event-agency.json";
+import allocationFile from "./allocation.json";
 
 export type StarterLocale = "fr" | "en";
+
+// Lot 12 (ONB-03) — métier de l'organisation : chaque métier a ses modèles
+// de départ ; « autre » prend ceux d'une agence événementielle.
+export type StarterMetier = "wedding_planner" | "event_agency" | "autre";
+const isWedding = (metier: StarterMetier) => metier === "wedding_planner";
+
+// Icônes des lignes du budget (présentation) : clés connues de l'app.
+export const BUDGET_LINE_ICONS = [
+  "venue", "catering", "camera", "video", "music", "flower", "decoration", "officiant", "cake", "beauty",
+  "stationery", "transport", "lodging", "sound", "staff", "furniture", "attire", "rings", "other",
+] as const;
+export type BudgetLineIcon = (typeof BUDGET_LINE_ICONS)[number];
 
 const translatedLabelSchema = z.object({ fr: z.string().min(1), en: z.string().min(1) });
 
 const vendorSlotsSchema = z.object({
   version: z.literal(1),
-  items: z.array(z.object({ key: z.string().min(1), label: translatedLabelSchema })).min(1),
+  items: z.array(z.object({ key: z.string().min(1), label: translatedLabelSchema, icon: z.enum(BUDGET_LINE_ICONS).optional() })).min(1),
 });
 
 const vendorSlots = vendorSlotsSchema.parse(vendorSlotsFile);
+const agencyVendorSlots = vendorSlotsSchema.parse(agencyVendorSlotsFile);
+const slotsFor = (metier: StarterMetier) => (isWedding(metier) ? vendorSlots : agencyVendorSlots);
 
-// EVT-03 : postes prestataires par défaut, dans la langue demandée.
-export function starterVendorSlots(locale: StarterLocale): string[] {
-  return vendorSlots.items.map((item) => item.label[locale]);
+// EVT-03 / EVT-17 : lignes du budget par défaut (anciens « postes »), dans
+// la langue demandée, pour le métier (mariage par défaut).
+export function starterVendorSlots(locale: StarterLocale, metier: StarterMetier = "wedding_planner"): string[] {
+  return slotsFor(metier).items.map((item) => item.label[locale]);
+}
+
+export function starterBudgetLines(locale: StarterLocale, metier: StarterMetier = "wedding_planner"): { key: string; label: string; icon: BudgetLineIcon }[] {
+  return slotsFor(metier).items.map((item) => ({ key: item.key, label: item.label[locale], icon: item.icon ?? "other" }));
+}
+
+// Lot 12 : répartition du budget de départ (points de base par ligne).
+const allocationSchema = z.object({
+  version: z.literal(1),
+  metiers: z.record(z.enum(["wedding_planner", "event_agency"]), z.object({ name: translatedLabelSchema, items: z.record(z.string(), z.number().int().min(0).max(10000)) })),
+});
+const allocation = allocationSchema.parse(allocationFile);
+
+export function starterAllocation(locale: StarterLocale, metier: StarterMetier = "wedding_planner"): { name: string; items: { label: string; basisPoints: number }[] } {
+  const model = allocation.metiers[isWedding(metier) ? "wedding_planner" : "event_agency"]!;
+  const labels = new Map(slotsFor(metier).items.map((item) => [item.key, item.label[locale]]));
+  return {
+    name: model.name[locale],
+    items: Object.entries(model.items).map(([key, basisPoints]) => {
+      const label = labels.get(key);
+      if (!label) throw new Error(`ligne inconnue dans la répartition de départ : ${key}`);
+      return { label, basisPoints };
+    }),
+  };
 }
 
 // EVT-07 : sources de prospect de départ, même format que les postes.
 const prospectSources = vendorSlotsSchema.parse(prospectSourcesFile);
+const agencyProspectSources = vendorSlotsSchema.parse(agencyProspectSourcesFile);
 
-export function starterProspectSources(locale: StarterLocale): string[] {
-  return prospectSources.items.map((item) => item.label[locale]);
+export function starterProspectSources(locale: StarterLocale, metier: StarterMetier = "wedding_planner"): string[] {
+  return (isWedding(metier) ? prospectSources : agencyProspectSources).items.map((item) => item.label[locale]);
 }
 
 // EVT-07 : motifs de perte de départ ; « Autre » demande une précision.
@@ -83,6 +128,7 @@ const retroplanningSchema = z.object({
 });
 
 const retroplanning = retroplanningSchema.parse(retroplanningFile);
+const agencyRetroplanning = retroplanningSchema.parse(agencyRetroplanningFile);
 
 export type StarterTaskTemplate = {
   name: string;
@@ -90,10 +136,11 @@ export type StarterTaskTemplate = {
 };
 
 // EVT-04 : modèle de rétroplanning de départ, dans la langue demandée.
-export function starterRetroplanning(locale: StarterLocale): StarterTaskTemplate {
+export function starterRetroplanning(locale: StarterLocale, metier: StarterMetier = "wedding_planner"): StarterTaskTemplate {
+  const source = isWedding(metier) ? retroplanning : agencyRetroplanning;
   return {
-    name: retroplanning.name[locale],
-    items: retroplanning.items.map((item) => ({
+    name: source.name[locale],
+    items: source.items.map((item) => ({
       label: item.label[locale],
       offsetDays: item.offsetDays,
       responsible: item.responsible,
@@ -123,6 +170,7 @@ const programSchema = z.object({
 });
 
 const program = programSchema.parse(programFile);
+const agencyProgram = programSchema.parse(agencyProgramFile);
 
 export type StarterProgramTemplate = {
   name: string;
@@ -138,11 +186,12 @@ export type StarterProgramTemplate = {
 // EVT-05 : modèle de programme de départ, dans la langue demandée. Les
 // intervenants portent les libellés des postes du modèle de départ, pour
 // être rapprochés des postes de l'événement quand le modèle est appliqué.
-export function starterProgram(locale: StarterLocale): StarterProgramTemplate {
-  const slotLabels = new Map(vendorSlots.items.map((item) => [item.key, item.label[locale]]));
+export function starterProgram(locale: StarterLocale, metier: StarterMetier = "wedding_planner"): StarterProgramTemplate {
+  const source = isWedding(metier) ? program : agencyProgram;
+  const slotLabels = new Map(slotsFor(metier).items.map((item) => [item.key, item.label[locale]]));
   return {
-    name: program.name[locale],
-    items: program.items.map((item) => ({
+    name: source.name[locale],
+    items: source.items.map((item) => ({
       startTime: item.startTime,
       endTime: item.endTime,
       label: item.label[locale],

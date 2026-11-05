@@ -116,6 +116,8 @@ export const defaultVendorSlots = eventsSchema.table("default_vendor_slots", {
   id: uuid("id").defaultRandom().primaryKey(),
   organizationId: uuid("organization_id").notNull(),
   label: text("label").notNull(),
+  // Lot 12 (EVT-14) : icône de la ligne du budget (clé connue de l'app).
+  icon: text("icon"),
   position: integer("position").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
@@ -143,6 +145,7 @@ export const eventVendorSlots = eventsSchema.table("event_vendor_slots", {
   // prestataire consulté retenu (null tant qu'aucun ne l'est).
   brief: text("brief"),
   selectedCandidateId: uuid("selected_candidate_id"),
+  icon: text("icon"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
@@ -178,6 +181,8 @@ export const eventVendorCandidates = eventsSchema.table("event_vendor_candidates
   quoteMime: text("quote_mime"),
   quoteSizeBytes: integer("quote_size_bytes"),
   shownToClients: boolean("shown_to_clients").notNull().default(false),
+  // Lot 12 (EVT-16) : RIB de la fiche du carnet partagé aux clients de l'événement.
+  shareRibWithClients: boolean("share_rib_with_clients").notNull().default(false),
   position: integer("position").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
@@ -336,5 +341,21 @@ export const eventActivities = eventsSchema.table("event_activities", {
   kind: eventActivityKindEnum("kind").notNull(),
   taskId: uuid("task_id").references(() => eventTasks.id, { onDelete: "set null" }),
   taskLabel: text("task_label").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+// Lot 12 (EVT-15) — lieux d'un événement (réception, cérémonie,
+// préparatifs…), saisis une fois puis choisis dans le programme. vendor_id
+// : fiche du carnet (module vendors) d'où vient le lieu, sans clé étrangère.
+export const eventPlaces = eventsSchema.table("event_places", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  eventId: uuid("event_id")
+    .notNull()
+    .references(() => events.id, { onDelete: "cascade" }),
+  label: text("label").notNull(),
+  address: text("address"),
+  vendorId: uuid("vendor_id"),
+  position: integer("position").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });

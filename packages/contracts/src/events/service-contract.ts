@@ -89,6 +89,8 @@ export type VendorSlotStatus = "to_find" | "quote_requested" | "quote_received" 
 export type DefaultVendorSlot = {
   id: string;
   label: string;
+  // Lot 12 (EVT-14/17) : icône de la ligne du budget, ou null (initiales).
+  icon: string | null;
   position: number;
 };
 
@@ -106,6 +108,7 @@ export type EventVendorSlot = {
   // Lot 11 (EVT-08) : ce que veulent les clients, consulté retenu.
   brief: string | null;
   selectedCandidateId: string | null;
+  icon: string | null;
 };
 
 // Lot 11 (EVT-08 / EVT-09) — prestataires consultés pour un poste.
@@ -377,7 +380,7 @@ export interface EventsServiceContract {
   addLossReasons(organizationId: string, reasons: { label: string; isFreeText: boolean }[]): Promise<number>;
   listOrganizationTasks(input: ListOrganizationTasksInput): Promise<OrganizationTask[]>;
   listDefaultVendorSlots(organizationId: string): Promise<DefaultVendorSlot[]>;
-  addDefaultVendorSlots(organizationId: string, labels: string[]): Promise<DefaultVendorSlot[]>;
+  addDefaultVendorSlots(organizationId: string, entries: (string | { label: string; icon?: string | null })[]): Promise<DefaultVendorSlot[]>;
   removeDefaultVendorSlot(organizationId: string, defaultVendorSlotId: string): Promise<void>;
   listEventVendorSlots(organizationId: string, eventId: string): Promise<EventVendorSlot[]>;
   addEventVendorSlot(organizationId: string, eventId: string, label: string): Promise<EventVendorSlot>;

@@ -7,7 +7,7 @@ import { assertOrganizationIsolation } from "@symbola/testing";
 import { eq } from "drizzle-orm";
 import { afterAll, describe, it } from "vitest";
 import { createAppConnection } from "./client";
-import { eventVendorCandidateNotes, eventVendorCandidates, events, eventVendorSlots } from "./schema/events";
+import { eventPlaces, eventVendorCandidateNotes, eventVendorCandidates, events, eventVendorSlots } from "./schema/events";
 import { vendorFiles, vendors, vendorSettings, vendorTags, vendorTypeFields, vendorTypes } from "./schema/vendors";
 import { withOrganization } from "./with-organization";
 
@@ -176,6 +176,22 @@ describe("EVT-08 / PRE-01 — Isolation entre organisations (prestataires, Postg
           await withOrganization(db, organizationId, (tx) =>
             tx.update(vendorSettings).set({ averageSpeedKmh: 1 }).where(eq(vendorSettings.organizationId, target.id)).returning(),
           )
+        ).length,
+      }),
+    });
+  });
+
+  it("lot 12 (EVT-15) — lieux d'un événement", async () => {
+    await assertOrganizationIsolation({
+      seed: (organizationId) =>
+        withOrganization(db, organizationId, async (tx) => {
+          const event = first(await tx.insert(events).values({ organizationId }).returning());
+          return first(await tx.insert(eventPlaces).values({ organizationId, eventId: event.id, label: "Clos de l'Orbrie" }).returning());
+        }),
+      listVisible: (organizationId) => withOrganization(db, organizationId, (tx) => tx.select().from(eventPlaces)),
+      attemptCrossOrganizationUpdate: async (organizationId, target) => ({
+        affectedRows: (
+          await withOrganization(db, organizationId, (tx) => tx.update(eventPlaces).set({ label: "falsifié" }).where(eq(eventPlaces.id, target.id)).returning())
         ).length,
       }),
     });

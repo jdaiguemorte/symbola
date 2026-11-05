@@ -73,6 +73,8 @@ import {
   updateEventStatus,
   updateEventTaskRow,
   updateEventVendorSlotRow,
+  updateDefaultVendorSlotRow,
+  updateEventVendorSlotIcon,
   type DefaultVendorSlotRow,
   type EventClientRow,
   type EventRow,
@@ -363,7 +365,7 @@ export const VENDOR_SLOT_STATUSES: VendorSlotStatus[] = [
 ];
 
 function toDefaultVendorSlot(row: DefaultVendorSlotRow): DefaultVendorSlot {
-  return { id: row.id, label: row.label, position: row.position };
+  return { id: row.id, label: row.label, icon: row.icon, position: row.position };
 }
 
 function toEventVendorSlot(row: EventVendorSlotRow): EventVendorSlot {
@@ -379,6 +381,7 @@ function toEventVendorSlot(row: EventVendorSlotRow): EventVendorSlot {
     ...(row.importedFields ? { importedFields: row.importedFields } : {}),
     brief: row.brief,
     selectedCandidateId: row.selectedCandidateId,
+    icon: row.icon,
   };
 }
 
@@ -393,8 +396,22 @@ export async function listDefaultVendorSlots(organizationId: string): Promise<De
   return (await findDefaultVendorSlots(organizationId)).map(toDefaultVendorSlot);
 }
 
-export async function addDefaultVendorSlots(organizationId: string, labels: string[]): Promise<DefaultVendorSlot[]> {
-  return (await insertDefaultVendorSlots(organizationId, labels)).map(toDefaultVendorSlot);
+export async function addDefaultVendorSlots(
+  organizationId: string,
+  entries: (string | { label: string; icon?: string | null })[],
+): Promise<DefaultVendorSlot[]> {
+  return (await insertDefaultVendorSlots(organizationId, entries)).map(toDefaultVendorSlot);
+}
+
+// Lot 12 (EVT-17) : renommer une ligne du budget par défaut, changer son icône.
+export async function updateDefaultVendorSlot(organizationId: string, id: string, label: string, icon: string | null): Promise<void> {
+  const clean = label.trim();
+  if (!clean) throw new RangeError("le nom de la ligne est obligatoire");
+  if (!(await updateDefaultVendorSlotRow(organizationId, id, clean, icon))) throw new VendorSlotNotFoundError();
+}
+
+export async function setEventVendorSlotIcon(organizationId: string, vendorSlotId: string, icon: string | null): Promise<void> {
+  await updateEventVendorSlotIcon(organizationId, vendorSlotId, icon);
 }
 
 export async function removeDefaultVendorSlot(organizationId: string, defaultVendorSlotId: string): Promise<void> {

@@ -23,7 +23,7 @@ export const legalFormEnum = hubSchema.enum("legal_form", [
   "auto_entrepreneur",
   "autre",
 ]);
-export const metierEnum = hubSchema.enum("metier", ["wedding_planner", "autre"]);
+export const metierEnum = hubSchema.enum("metier", ["wedding_planner", "event_agency", "autre"]);
 export const vatRegimeEnum = hubSchema.enum("vat_regime", ["franchise", "assujetti"]);
 
 export const organizations = hubSchema.table("organizations", {
@@ -188,6 +188,10 @@ export const organizationProfiles = hubSchema.table("organization_profiles", {
   // seulement si vatRegime = "assujetti".
   vatRateDefaultBasisPoints: integer("vat_rate_default_basis_points"),
   completedAt: timestamp("completed_at", { withTimezone: true }),
+  // Lot 12 (ONB-03) : assistant de démarrage — étape en cours (1 à 6) et
+  // fin ; tant qu'il n'est pas terminé, les menus métier sont verrouillés.
+  setupStep: integer("setup_step").notNull().default(1),
+  setupCompletedAt: timestamp("setup_completed_at", { withTimezone: true }),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
