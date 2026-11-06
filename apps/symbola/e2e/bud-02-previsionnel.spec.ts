@@ -45,7 +45,9 @@ test("BUD-02 — confirmer la simulation en budget prévu, puis suivre prévu/r�
   await page.goto("/events/parametres");
   await page.waitForLoadState("networkidle");
   await page.getByRole("button", { name: "Charger le modèle de départ" }).click();
-  await expect(page.getByRole("listitem").filter({ hasText: "Lieu de réception" })).toBeVisible();
+  await expect(page.getByRole("rowheader", { name: "Lieu de réception" })).toBeVisible();
+  // Lot 13 (HUB-16) : les sources ont leur rubrique.
+  await page.goto("/events/parametres/sources");
   await page.getByLabel("Nouvelle source").fill("Instagram");
   await page.getByRole("button", { name: "Ajouter la source" }).click();
   await expect(page.getByText("Source ajoutée.")).toBeVisible();

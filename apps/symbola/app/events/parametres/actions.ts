@@ -22,7 +22,7 @@ export async function createProspectSourceAction(
   if (!label) return { error: t("missingLabel") };
 
   await createProspectSource(auth.user.organizationId, label);
-  revalidatePath("/events/parametres");
+  revalidatePath("/events/parametres", "layout");
   revalidatePath("/events/new");
   return { success: true };
 }
@@ -41,7 +41,7 @@ export async function createLossReasonAction(
   if (!label) return { error: t("missingLabel") };
 
   await createLossReason(auth.user.organizationId, label, isFreeText);
-  revalidatePath("/events/parametres");
+  revalidatePath("/events/parametres", "layout");
   return { success: true };
 }
 
@@ -59,7 +59,7 @@ export async function loadStarterListsAction(
   const locale = (await getLocale()) as StarterLocale;
   const sources = await addProspectSources(auth.user.organizationId, starterProspectSources(locale));
   const reasons = await addLossReasons(auth.user.organizationId, starterLossReasons(locale));
-  revalidatePath("/events/parametres");
+  revalidatePath("/events/parametres", "layout");
   revalidatePath("/events/new");
   return { success: true, sources, reasons };
 }

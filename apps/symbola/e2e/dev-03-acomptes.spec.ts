@@ -59,7 +59,7 @@ test("DEV-03 — échéancier, encaissements à venir, retard et paiement", asyn
   await expectNoAxeViolation(page);
 
   // Un prospect et un devis de 3 000 €.
-  await page.goto("/events/parametres");
+  await page.goto("/events/parametres/sources");
   await page.waitForLoadState("networkidle");
   await page.getByLabel("Nouvelle source").fill("Salon");
   await page.getByRole("button", { name: "Ajouter la source" }).click();

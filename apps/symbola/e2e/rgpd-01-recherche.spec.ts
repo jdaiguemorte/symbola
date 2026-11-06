@@ -58,7 +58,7 @@ test("RGPD-01 — la titulaire retrouve une personne et les données de son év�
   }
 
   await loginAndSetupMfa(page, ownerEmail, password);
-  await openSettingsTab(page, "Données personnelles (RGPD)");
+  await openSettingsTab(page, "Données personnelles");
   await expect(page.getByRole("heading", { name: "Données personnelles" })).toBeVisible();
   await expectNoAxeViolation(page);
 

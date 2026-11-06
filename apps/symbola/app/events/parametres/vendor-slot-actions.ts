@@ -7,6 +7,7 @@ import { starterVendorSlots, type StarterLocale } from "@symbola/starter-templat
 import { addDefaultVendorSlots, removeDefaultVendorSlot } from "@/modules/events/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isEventsModuleEnabled, isValidId } from "../module-access";
+import { ICON_KEYS } from "@/app/budget-line-icon";
 
 export type DefaultVendorSlotFormState = { error?: string; success?: boolean; added?: number };
 
@@ -28,7 +29,10 @@ export async function addDefaultVendorSlotAction(
   const label = String(formData.get("label") ?? "").trim();
   if (!label) return { error: t("missingLabel") };
 
-  const added = await addDefaultVendorSlots(organizationId, [label]);
+  // Lot 13 (HUB-16) : l'icône se choisit dès l'ajout, depuis le panneau latéral.
+  const iconValue = String(formData.get("icon") ?? "");
+  const icon = (ICON_KEYS as readonly string[]).includes(iconValue) ? iconValue : null;
+  const added = await addDefaultVendorSlots(organizationId, [{ label, icon }]);
   revalidatePath("/events/parametres");
   return added.length > 0 ? { success: true, added: added.length } : { error: t("vendorSlotAlreadyExists") };
 }

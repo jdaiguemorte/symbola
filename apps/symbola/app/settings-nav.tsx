@@ -1,46 +1,43 @@
 "use client";
 
-// Onglets communs aux écrans de réglage (maquette validée) : un onglet par
-// module souscrit, et ses sous-écrans. Affichés seulement sur ces écrans.
+// Lot 13 (HUB-16) — menu latéral des Paramètres : quatre groupes, une
+// rubrique par sujet, chacune à sa propre adresse. Affiché seulement sur
+// les écrans de réglage ; sur téléphone, il passe au-dessus du contenu.
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { isSettingsPath } from "./settings-paths";
 
-export type SettingsSection = { href: string; label: string; paths: string[]; children?: { href: string; label: string }[] };
+export type SettingsGroup = { label: string; items: { href: string; label: string }[] };
 
 function under(pathname: string, path: string): boolean {
   return pathname === path || pathname.startsWith(`${path}/`);
 }
 
-export function SettingsNav({ sections, label, subLabel }: { sections: SettingsSection[]; label: string; subLabel: string }) {
+export function SettingsNav({ groups, label }: { groups: SettingsGroup[]; label: string }) {
   const pathname = usePathname();
   if (!isSettingsPath(pathname)) return null;
-  // Le chemin le plus précis gagne (/events/modeles-programme avant /events/modeles).
-  const matches = (section: SettingsSection) => Math.max(-1, ...section.paths.filter((path) => under(pathname, path)).map((path) => path.length));
-  const active = sections.reduce<SettingsSection | null>((best, section) => (matches(section) > (best ? matches(best) : -1) ? section : best), null);
-  const activeChild = active?.children
-    ?.filter((child) => under(pathname, child.href))
+  // L'adresse la plus précise gagne (/events/parametres/sources avant /events/parametres).
+  const active = groups
+    .flatMap((group) => group.items)
+    .filter((item) => under(pathname, item.href))
     .sort((a, b) => b.href.length - a.href.length)[0];
 
   return (
-    <div className="settings-nav">
-      {/* HUB-12 : une pastille par solution accessible (demande de Julien). */}
-      <nav aria-label={label} className="pills settings-pills">
-        {sections.map((section) => (
-          <Link key={section.href} href={section.href} aria-current={section === active ? "page" : undefined}>
-            {section.label}
-          </Link>
-        ))}
-      </nav>
-      {active?.children ? (
-        <nav aria-label={subLabel} className="pills">
-          {active.children.map((child) => (
-            <Link key={child.href} href={child.href} aria-current={child === activeChild ? "true" : undefined}>
-              {child.label}
-            </Link>
-          ))}
-        </nav>
-      ) : null}
-    </div>
+    <nav aria-label={label} className="settings-nav">
+      {groups.map((group) => (
+        <div key={group.label} className="settings-nav-group">
+          <p className="settings-nav-title">{group.label}</p>
+          <ul>
+            {group.items.map((item) => (
+              <li key={item.href}>
+                <Link href={item.href} aria-current={item === active ? "page" : undefined}>
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </nav>
   );
 }

@@ -129,11 +129,11 @@ test("PRE-01 à PRE-07 / HUB-12 — créer ses fiches, filtrer autour d'un lieu,
   const planner = await plannerOrganization();
   await plannerLogin(page, planner.email, "mot-de-passe-presta");
 
-  // Paramètres en pastilles : la solution « Prestataires » et ses réglages.
+  // Lot 13 (HUB-16) : rubrique « Types de prestataires » des Paramètres.
   await clickMenuLink(page, "Paramètres");
-  const solutions = page.getByRole("navigation", { name: "Paramètres par module" });
-  await solutions.getByRole("link", { name: "Prestataires", exact: true }).click();
-  await expect(solutions.getByRole("link", { name: "Prestataires", exact: true })).toHaveAttribute("aria-current", "page");
+  const sections = page.getByRole("navigation", { name: "Rubriques des paramètres" });
+  await sections.getByRole("link", { name: "Types de prestataires", exact: true }).click();
+  await expect(sections.getByRole("link", { name: "Types de prestataires", exact: true })).toHaveAttribute("aria-current", "page");
   await page.getByRole("button", { name: "Ajouter les types de départ" }).click();
   await expect(page.getByRole("heading", { name: "Hôtel / hébergement" })).toBeVisible();
   await expectNoAxeViolation(page);

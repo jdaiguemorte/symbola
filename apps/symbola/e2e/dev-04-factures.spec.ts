@@ -61,7 +61,7 @@ test("DEV-04 — facturer un devis signé (acompte, solde, avoir) puis exporter 
   }
   await loginAndSetupMfa(page, email, password);
 
-  await page.goto("/events/parametres");
+  await page.goto("/events/parametres/sources");
   await page.waitForLoadState("networkidle");
   await page.getByLabel("Nouvelle source").fill("Salon");
   await page.getByRole("button", { name: "Ajouter la source" }).click();

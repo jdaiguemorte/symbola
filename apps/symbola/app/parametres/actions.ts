@@ -99,6 +99,6 @@ export async function saveFollowUpDelaysAction(_prev: FollowUpFormState, formDat
     await sql.end();
   }
   revalidatePath("/");
-  revalidatePath("/parametres");
+  revalidatePath("/parametres/relances");
   return { success: true };
 }

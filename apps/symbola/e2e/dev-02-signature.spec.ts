@@ -61,7 +61,7 @@ test("DEV-02 — envoyer un devis en signature, signer par le lien reçu, archiv
   }
   await loginAndSetupMfa(page, email, password);
 
-  await page.goto("/events/parametres");
+  await page.goto("/events/parametres/sources");
   await page.waitForLoadState("networkidle");
   await page.getByLabel("Nouvelle source").fill("Salon");
   await page.getByRole("button", { name: "Ajouter la source" }).click();

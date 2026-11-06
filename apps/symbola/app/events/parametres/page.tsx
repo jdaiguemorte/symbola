@@ -1,18 +1,23 @@
+// EVT-03 / EVT-17, refait au lot 13 (HUB-16) — rubrique « Lignes du budget »
+// des Paramètres : tableau aligné (icône, ligne, actions) ; ajouter ou
+// modifier une ligne ouvre le panneau latéral (?ligne=nouvelle ou ?ligne=id).
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { HelpButton } from "@symbola/ui";
-import { listDefaultVendorSlots, listLossReasons, listProspectSources } from "@/modules/events/service";
+import { listDefaultVendorSlots } from "@/modules/events/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isEventsModuleEnabled } from "../module-access";
-import { ProspectSourceForm } from "./prospect-source-form";
-import { LossReasonForm } from "./loss-reason-form";
-import { DefaultVendorSlotForm, LoadStarterVendorSlotsForm } from "./default-vendor-slot-forms";
+import { LoadStarterVendorSlotsForm } from "./default-vendor-slot-forms";
 import { removeDefaultVendorSlotAction } from "./vendor-slot-actions";
-import { LoadStarterListsForm } from "./starter-lists-form";
-import { BudgetLineForm } from "@/app/demarrage/setup-forms";
+import { AddBudgetLineForm, EditBudgetLineForm } from "./budget-line-panel-forms";
 import { BudgetLineIcon } from "@/app/budget-line-icon";
+import { ListTable } from "@/app/ui/list-table";
+import { SidePanel } from "@/app/ui/side-panel";
 
-export default async function EventsSettingsPage() {
+const BASE = "/events/parametres";
+
+export default async function EventsSettingsPage({ searchParams }: { searchParams: Promise<{ ligne?: string }> }) {
   const auth = await getPlannerAuthContext();
   if (auth.status === "unauthenticated") redirect("/login");
   if (auth.status === "mfa_required") redirect("/mfa");
@@ -22,7 +27,8 @@ export default async function EventsSettingsPage() {
 
   const t = await getTranslations("Events");
   const tHelp = await getTranslations("Help");
-  if (!(await isEventsModuleEnabled(auth.user.organizationId))) {
+  const tCommon = await getTranslations("Common");
+  if (!(await isEventsModuleEnabled(organizationId))) {
     return (
       <main>
         <h1>{t("title")}</h1>
@@ -30,63 +36,76 @@ export default async function EventsSettingsPage() {
       </main>
     );
   }
-  const [sources, reasons, defaultVendorSlots] = await Promise.all([
-    listProspectSources(organizationId),
-    listLossReasons(organizationId),
-    listDefaultVendorSlots(organizationId),
-  ]);
+  const { ligne } = await searchParams;
+  const lines = await listDefaultVendorSlots(organizationId);
+  const isOwner = auth.user.role === "owner";
+  const editing = isOwner && ligne && ligne !== "nouvelle" ? lines.find((line) => line.id === ligne) : undefined;
+  const adding = ligne === "nouvelle";
 
   return (
     <main>
-      <h1>{t("settingsTitle")}</h1>
+      <div className="section-head">
+        <h1>{t("defaultVendorSlotsTitle")}</h1>
+        <Link href={`${BASE}?ligne=nouvelle`} scroll={false} className="button-link button-link-primary">
+          {t("addBudgetLineButton")}
+        </Link>
+      </div>
       <HelpButton title={tHelp("eventsSettings.title")} body={tHelp("eventsSettings.body")} />
-
-      {sources.length === 0 || reasons.length === 0 ? (
-        <section aria-labelledby="starter-lists-title" className="card">
-          <h2 id="starter-lists-title">{t("starterListsTitle")}</h2>
-          <p>{t("starterListsIntro")}</p>
-          <LoadStarterListsForm />
-        </section>
-      ) : null}
-
-      <h2>{t("sourcesTitle")}</h2>
-      <p>{t("sourcesIntro")}</p>
-      <ul>
-        {sources.map((source) => (
-          <li key={source.id}>{source.label}</li>
-        ))}
-      </ul>
-      <ProspectSourceForm />
-
-      <h2>{t("lossReasonsTitle")}</h2>
-      <p>{t("lossReasonsIntro")}</p>
-      <ul>
-        {reasons.map((reason) => (
-          <li key={reason.id}>
-            {reason.label}
-            {reason.isFreeText ? ` (${t("freeTextTag")})` : ""}
-          </li>
-        ))}
-      </ul>
-      <LossReasonForm />
-
-      {/* EVT-03 / EVT-17 : lignes du budget reçues par chaque nouvel événement. */}
-      <h2>{t("defaultVendorSlotsTitle")}</h2>
       <p>{t("defaultVendorSlotsIntro")}</p>
-      {defaultVendorSlots.length === 0 ? <p>{t("noDefaultVendorSlots")}</p> : null}
-      <ul className="setup-lines" aria-label={t("defaultVendorSlotsTitle")}>
-        {defaultVendorSlots.map((slot) => (
-          <li key={slot.id}>
-            {auth.user.role === "owner" ? <BudgetLineForm line={slot} /> : <><BudgetLineIcon icon={slot.icon} label={slot.label} decorative /> {slot.label}</>}{" "}
-            <form action={removeDefaultVendorSlotAction} className="inline-form">
-              <input type="hidden" name="defaultVendorSlotId" value={slot.id} />
-              <button type="submit">{t("removeVendorSlot", { label: slot.label })}</button>
-            </form>
-          </li>
-        ))}
-      </ul>
-      <DefaultVendorSlotForm />
-      <LoadStarterVendorSlotsForm />
+
+      {lines.length === 0 ? (
+        <>
+          <p>{t("noDefaultVendorSlots")}</p>
+          <LoadStarterVendorSlotsForm />
+        </>
+      ) : (
+        <ListTable
+          label={t("defaultVendorSlotsTitle")}
+          head={
+            <tr>
+              <th scope="col">{t("lineIconColumn")}</th>
+              <th scope="col">{t("vendorColumnSlot")}</th>
+              <th scope="col">
+                <span className="sr-only">{t("actionsColumn")}</span>
+              </th>
+            </tr>
+          }
+        >
+          {lines.map((line) => (
+            <tr key={line.id} aria-current={line.id === editing?.id ? "true" : undefined}>
+              <td className="icon-cell">
+                <BudgetLineIcon icon={line.icon} label={line.label} decorative />
+              </td>
+              <th scope="row">{line.label}</th>
+              <td className="actions">
+                {isOwner ? (
+                  <Link href={`${BASE}?ligne=${line.id}`} scroll={false} className="button-link" aria-label={t("editBudgetLine", { label: line.label })}>
+                    {t("edit")}
+                  </Link>
+                ) : null}{" "}
+                <form action={removeDefaultVendorSlotAction} className="inline-form">
+                  <input type="hidden" name="defaultVendorSlotId" value={line.id} />
+                  <button type="submit" className="button-ghost" aria-label={t("removeVendorSlot", { label: line.label })}>
+                    {t("remove")}
+                  </button>
+                </form>
+              </td>
+            </tr>
+          ))}
+        </ListTable>
+      )}
+      {lines.length > 0 ? <LoadStarterVendorSlotsForm /> : null}
+
+      {editing ? (
+        <SidePanel title={t("editBudgetLine", { label: editing.label })} closeHref={BASE} closeLabel={tCommon("closePanel")}>
+          <EditBudgetLineForm key={editing.id} line={editing} />
+        </SidePanel>
+      ) : null}
+      {adding ? (
+        <SidePanel title={t("addBudgetLineTitle")} closeHref={BASE} closeLabel={tCommon("closePanel")}>
+          <AddBudgetLineForm />
+        </SidePanel>
+      ) : null}
     </main>
   );
 }

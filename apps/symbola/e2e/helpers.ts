@@ -43,10 +43,10 @@ export async function openEventTab(page: Page, name: string): Promise<void> {
   await expect(tabs.getByRole("link", { name: new RegExp(`^${escaped}`) })).toHaveAttribute("aria-current", "page");
 }
 
-// Réglages regroupés sous « Paramètres » (lot 8) : ouvre l'onglet du module.
+// Réglages regroupés sous « Paramètres » (lot 13 : menu latéral par rubrique).
 export async function openSettingsTab(page: Page, name: string): Promise<void> {
   await clickMenuLink(page, "Paramètres");
-  await page.getByRole("navigation", { name: "Paramètres par module" }).getByRole("link", { name, exact: true }).click();
+  await page.getByRole("navigation", { name: "Rubriques des paramètres" }).getByRole("link", { name, exact: true }).click();
 }
 
 // Lot 12 (ONB-03) : une organisation dont l'assistant de démarrage est déjà

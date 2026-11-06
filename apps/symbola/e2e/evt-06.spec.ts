@@ -67,7 +67,7 @@ test("EVT-06 — le marié invité suit son mariage, coche sa tâche, et perd l'
   await loginAndSetupMfa(planner, plannerEmail, plannerPassword);
 
   // La planner prépare l'événement : une tâche des mariés, une note interne.
-  await planner.goto("/events/parametres");
+  await planner.goto("/events/parametres/sources");
   await planner.getByLabel("Nouvelle source").fill("Salon");
   await planner.getByRole("button", { name: "Ajouter la source" }).click();
   await expect(planner.getByText("Source ajoutée.")).toBeVisible();

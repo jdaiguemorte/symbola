@@ -41,10 +41,13 @@ test("EVT-05 — programme du jour J depuis un modèle, chevauchement signalé e
   await loginAndSetupMfa(page, email, password);
 
   // Paramètres : une source et un poste par défaut « Photographe ».
-  await page.goto("/events/parametres");
+  await page.goto("/events/parametres/sources");
   await page.getByLabel("Nouvelle source").fill("Salon");
   await page.getByRole("button", { name: "Ajouter la source" }).click();
   await expect(page.getByText("Source ajoutée.")).toBeVisible();
+  // Lot 13 (HUB-16) : ajout d'une ligne dans le panneau latéral.
+  await page.goto("/events/parametres");
+  await page.getByRole("link", { name: "+ Ajouter une ligne" }).click();
   await page.getByLabel("Nouvelle ligne par défaut").fill("Photographe");
   await page.getByRole("button", { name: "Ajouter la ligne" }).click();
   await expect(page.getByText("✓ Ligne ajoutée.")).toBeVisible();
