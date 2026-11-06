@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
-import { formatCalendarDate, type Locale } from "@symbola/i18n";
+import { formatCalendarDate, parisToday, type Locale } from "@symbola/i18n";
 import {
   getActiveEventsTrial,
   listEvents,
@@ -15,13 +15,9 @@ import { loadPageTour } from "@/lib/help/page-tour";
 import { isEventsModuleEnabled } from "./module-access";
 import { startTrialAction } from "./trial-actions";
 import { EVENT_STATUS_CLASSES, STATUS_LABEL_KEYS } from "./event-status";
-
-const UPCOMING_STATUSES: EventStatus[] = [
-  "prospect",
-  "quote_sent",
-  "confirmed",
-];
-const PAST_STATUSES: EventStatus[] = ["done", "lost"];
+import { PAST_STATUSES, UPCOMING_STATUSES, parseYear, tabCounts, yearOptions } from "./events-list-options";
+import { FilterBar } from "../ui/filter-bar";
+import { ListRow, ListTable } from "../ui/list-table";
 
 export default async function EventsListPage({
   searchParams,
@@ -70,7 +66,12 @@ export default async function EventsListPage({
     status && tabStatuses.includes(status as EventStatus)
       ? [status as EventStatus]
       : tabStatuses;
-  const yearFilter = year ? Number(year) : undefined;
+  // EVT-18 : années et effectifs des onglets depuis tous les événements
+  // (quelques centaines au plus pour une organisation).
+  const allEvents = await listEvents({ organizationId });
+  const years = yearOptions(allEvents.map((event) => event.eventDate), parisToday());
+  const yearFilter = parseYear(year, years);
+  const counts = tabCounts(allEvents.map((event) => event.status));
 
   const sources = await listProspectSources(organizationId);
   // EVT-07 : seule une source de l'organisation est retenue comme filtre.
@@ -81,7 +82,7 @@ export default async function EventsListPage({
   const items = await listEvents({
     organizationId,
     statusIn: statusFilter,
-    year: yearFilter && !Number.isNaN(yearFilter) ? yearFilter : undefined,
+    year: yearFilter,
     search: search || undefined,
     prospectSourceId: sourceFilter,
   });
@@ -126,27 +127,10 @@ export default async function EventsListPage({
         </Link>
       </nav>
 
-      <nav aria-label={t("tabsLabel")} className="tabs">
-        <Link href="/events" aria-current={!isPastTab ? "page" : undefined}>
-          {t("tabUpcoming")}
-        </Link>
-        <Link
-          href="/events?tab=termines"
-          aria-current={isPastTab ? "page" : undefined}
-        >
-          {t("tabPast")}
-        </Link>
-      </nav>
-
-      <form method="get" className="filters">
-        {isPastTab ? <input type="hidden" name="tab" value="termines" /> : null}
+      <FilterBar label={t("filtersLabel")} applyLabel={t("filter")} preserve={isPastTab ? { tab: "termines" } : {}}>
         <label>
           {t("searchLabel")}
           <input type="search" name="search" defaultValue={search ?? ""} />
-        </label>
-        <label>
-          {t("yearLabel")}
-          <input type="number" name="year" defaultValue={year ?? ""} />
         </label>
         <label>
           {t("statusLabel")}
@@ -170,36 +154,57 @@ export default async function EventsListPage({
             ))}
           </select>
         </label>
-        <button type="submit">{t("filter")}</button>
-      </form>
+        <label>
+          {t("yearLabel")}
+          <select name="year" defaultValue={yearFilter ? String(yearFilter) : ""}>
+            <option value="">{t("yearAll")}</option>
+            {years.map((value) => (
+              <option key={value} value={value}>
+                {value}
+              </option>
+            ))}
+          </select>
+        </label>
+      </FilterBar>
 
-      <ul className="event-list" data-tour="events-list">
-        {items.map((item) => (
-          <li key={item.id}>
-            <Link href={`/events/${item.id}`}>
-              <span className="event-list-names">
-                {clientNames(item.clients)}
-              </span>
-              <span className="event-list-meta">
-                <strong>
-                  {item.eventDate
-                    ? formatCalendarDate(item.eventDate, locale)
-                    : t("dateUnset")}
-                </strong>
-                {item.venueName || item.venueCity
-                  ? ` · ${item.venueName ?? ""} ${item.venueCity ? `(${item.venueCity})` : ""}`
-                  : ""}
-              </span>
-              <span className={EVENT_STATUS_CLASSES[item.status]}>
-                {t(STATUS_LABEL_KEYS[item.status])}
-              </span>
-              {item.isDemo ? (
-                <span className="badge">{t("demoTag")}</span>
-              ) : null}
-            </Link>
-          </li>
-        ))}
-      </ul>
+      <nav aria-label={t("tabsLabel")} className="segmented">
+        <Link href="/events" aria-current={!isPastTab ? "page" : undefined}>
+          {t("tabUpcomingCount", { count: counts.upcoming })}
+        </Link>
+        <Link href="/events?tab=termines" aria-current={isPastTab ? "page" : undefined}>
+          {t("tabPastCount", { count: counts.past })}
+        </Link>
+      </nav>
+
+      {items.length > 0 ? (
+        <div data-tour="events-list">
+          <ListTable
+            label={t("listLabel")}
+            head={
+              <tr>
+                <th scope="col">{t("columnClients")}</th>
+                <th scope="col">{t("columnDate")}</th>
+                <th scope="col">{t("statusLabel")}</th>
+                <th scope="col">{t("venueName")}</th>
+              </tr>
+            }
+          >
+            {items.map((item) => (
+              <ListRow key={item.id} href={`/events/${item.id}`}>
+                <th scope="row">
+                  <Link href={`/events/${item.id}`}>{clientNames(item.clients)}</Link>
+                  {item.isDemo ? <span className="badge">{t("demoTag")}</span> : null}
+                </th>
+                <td className="num">{item.eventDate ? formatCalendarDate(item.eventDate, locale) : t("dateUnset")}</td>
+                <td>
+                  <span className={EVENT_STATUS_CLASSES[item.status]}>{t(STATUS_LABEL_KEYS[item.status])}</span>
+                </td>
+                <td>{[item.venueName, item.venueCity].filter(Boolean).join(", ") || "—"}</td>
+              </ListRow>
+            ))}
+          </ListTable>
+        </div>
+      ) : null}
       {items.length === 0 ? <p>{t("noResults")}</p> : null}
     </main>
   );

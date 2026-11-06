@@ -14,9 +14,9 @@ validées par Julien, spécification : `docs/lots/lot-13-ux.md`.
 ## Décision
 
 1. **Panneau latéral comme seul motif d'édition et de détail.** Un composant commun
-   (`SidePanel`, dans `packages/ui`) remplace les formulaires dépliés dans la page. Son état vit
+   (`SidePanel`, dans `apps/symbola/app/ui/` : ces composants s'appuient sur le routeur de Next ; `packages/ui` reste indépendant du framework) remplace les formulaires dépliés dans la page. Son état vit
    dans l'adresse (`?panneau=…`), pour le lien partageable et le retour arrière.
-2. **Barre de filtres et tableau de liste communs** (`FilterBar`, `ListTable`, `packages/ui`),
+2. **Barre de filtres et tableau de liste communs** (`FilterBar`, `ListTable`, même dossier),
    avec filtrage à la saisie et état dans l'adresse.
 3. **Aide par repères.** Les visites focus (AIDE-05) et les textes d'aide en fenêtre (AIDE-01)
    sont remplacés par des repères numérotés posés sur les éléments réels, décrits par écran dans

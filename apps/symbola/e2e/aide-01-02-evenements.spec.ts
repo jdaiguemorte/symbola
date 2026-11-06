@@ -88,7 +88,7 @@ test("AIDE-01/02 — visite guidée du module événements, puis essai guidé su
   expect(pdf.status()).toBe(200);
 
   await page.goto("/events");
-  await expect(page.getByRole("link", { name: /Camille & Sacha/ })).toContainText("Essai (fictif)");
+  await expect(page.getByRole("row", { name: /Camille & Sacha/ })).toContainText("Essai (fictif)");
   await expect(page.getByRole("link", { name: "Reprendre l'essai en cours" })).toBeVisible();
 
   // Fin de l'essai : toutes ses données disparaissent.
@@ -96,7 +96,7 @@ test("AIDE-01/02 — visite guidée du module événements, puis essai guidé su
   await page.getByRole("button", { name: "Terminer l'essai et supprimer ses données" }).click();
   await expect(page).toHaveURL(/\/events\?essai=termine$/);
   await expect(page.getByText("Essai terminé : ses données fictives ont été supprimées.")).toBeVisible();
-  await expect(page.getByRole("link", { name: /Camille & Sacha/ })).toHaveCount(0);
+  await expect(page.getByRole("row", { name: /Camille & Sacha/ })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Démarrer l'essai" })).toBeVisible();
   await page.goto(trialUrl);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Page introuvable");

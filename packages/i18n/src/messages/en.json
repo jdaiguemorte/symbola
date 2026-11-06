@@ -813,7 +813,14 @@
     "placeLabelRequired": "The place name is required.",
     "addSuggestedPlace": "Add “{place}”",
     "newConfirmedEvent": "New event",
-    "createConfirmedEvent": "Create the event"
+    "createConfirmedEvent": "Create the event",
+    "filtersLabel": "Filter events",
+    "yearAll": "All",
+    "tabUpcomingCount": "Upcoming · {count}",
+    "tabPastCount": "Past · {count}",
+    "listLabel": "Event list",
+    "columnClients": "Couple",
+    "columnDate": "Date"
   },
   "Budget": {
     "title": "Budget",

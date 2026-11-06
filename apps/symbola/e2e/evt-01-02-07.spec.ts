@@ -114,15 +114,28 @@ test("EVT-01/02 — un prospect apparaît dans la liste, passe en Confirmé puis
 
   // EVT-01 : le prospect sans date est listé « Date à définir », avec son statut.
   await page.goto("/events");
-  const item = page.getByRole("link", { name: new RegExp(`${firstName} & Sacha`) });
+  // EVT-18 : une ligne du tableau par événement.
+  const item = page.getByRole("row", { name: new RegExp(`${firstName} & Sacha`) });
   await expect(item).toContainText("Date à définir");
   await expect(item).toContainText("Prospect");
+  // EVT-18 : l'année se choisit dans une liste (jamais 1 ni −1) et les
+  // filtres ont tous la même hauteur.
+  const years = await page.getByLabel("Année").locator("option").allTextContents();
+  expect(years).toContain(String(new Date().getFullYear()));
+  expect(years).not.toContain("1");
+  const heights = await Promise.all(
+    ["search", "status", "source", "year"].map(
+      async (name) => (await page.getByRole("search", { name: "Filtrer les événements" }).locator(`[name="${name}"]`).boundingBox())!.height,
+    ),
+  );
+  expect(new Set(heights.map((height) => Math.round(height))).size).toBe(1);
   // EVT-07 : filtrable par source.
+  // EVT-18 : les filtres s'appliquent à la saisie, sans bouton.
   await page.getByLabel("Source du prospect").selectOption({ label: "Salon" });
-  await page.getByRole("button", { name: "Filtrer" }).click();
+  await expect(page).toHaveURL(/source=/);
   await expect(item).toBeVisible();
   await page.getByLabel("Rechercher un nom").fill(firstName);
-  await page.getByRole("button", { name: "Filtrer" }).click();
+  await expect(page).toHaveURL(/search=/);
   await expect(item).toBeVisible();
 
   // EVT-02 : changement de statut à la main.
