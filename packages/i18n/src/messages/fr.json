@@ -813,7 +813,14 @@
     "placeLabelRequired": "Le nom du lieu est obligatoire.",
     "addSuggestedPlace": "Ajouter « {place} »",
     "newConfirmedEvent": "Nouvel événement",
-    "createConfirmedEvent": "Créer l'événement"
+    "createConfirmedEvent": "Créer l'événement",
+    "filtersLabel": "Filtrer les événements",
+    "yearAll": "Toutes",
+    "tabUpcomingCount": "À venir · {count}",
+    "tabPastCount": "Terminés · {count}",
+    "listLabel": "Liste des événements",
+    "columnClients": "Mariés",
+    "columnDate": "Date"
   },
   "Budget": {
     "title": "Budget",
