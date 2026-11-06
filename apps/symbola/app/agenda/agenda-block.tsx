@@ -11,6 +11,7 @@ import { eventNames, listEvents } from "@/modules/events/service";
 import { addMonths, buildCalendar, type CalendarCell } from "./calendar";
 import { AGENDA_SPAN_COOKIE } from "./agenda-cookie";
 import { AgendaSpanLinks } from "./span-links";
+import { AgendaPopovers } from "./agenda-popovers";
 
 const SPANS = [3, 6, 12] as const;
 
@@ -95,7 +96,8 @@ export async function AgendaBlock({
           {t("agendaLegendTwo")}
         </li>
       </ul>
-      <div className="agenda-grid" data-span={span}>
+      <AgendaPopovers containerId="agenda-grid" />
+      <div id="agenda-grid" className="agenda-grid" data-span={span}>
         {months.map((month) => (
           <section key={month.key} className="agenda-month" aria-label={formatMonth(`${month.key}-01`, locale)}>
             <h3>{formatMonth(`${month.key}-01`, locale)}</h3>

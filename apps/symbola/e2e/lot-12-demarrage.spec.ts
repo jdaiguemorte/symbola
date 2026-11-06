@@ -132,7 +132,19 @@ test("HUB-13 — un clic sur une date libre de l'agenda crée un événement à 
 
   await page.goto("/?agenda=3");
   const agenda = page.locator("[data-tour='home-agenda']");
+  // Un seul menu ouvert à la fois ; un clic ailleurs ou Échap le referme.
+  const other = agenda.locator("details.agenda-create").nth(25);
+  await other.locator("summary").click();
+  await expect(other).toHaveAttribute("open", "");
   const day = agenda.locator("details.agenda-create").nth(10);
+  await day.locator("summary").click();
+  await expect(day).toHaveAttribute("open", "");
+  await expect(other).not.toHaveAttribute("open");
+  await page.getByRole("heading", { name: "Agenda" }).click();
+  await expect(day).not.toHaveAttribute("open");
+  await day.locator("summary").click();
+  await page.keyboard.press("Escape");
+  await expect(day).not.toHaveAttribute("open");
   await day.locator("summary").click();
   await expectNoAxeViolation(page);
   await day.getByRole("link", { name: "Créer un événement à cette date" }).click();
