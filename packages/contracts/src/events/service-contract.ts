@@ -19,6 +19,9 @@ export type EventClientInput = {
   lastName?: string | null;
 };
 
+// Lot 13 (HUB-15) — prospect sans nouvelle, pour le bloc « À traiter ».
+export type StaleProspect = { eventId: string; names: string; lastUpdateAt: Date; daysSince: number };
+
 export type EventSummary = {
   id: string;
   status: EventStatus;
@@ -374,6 +377,7 @@ export type StartEventsTrialInput = {
 
 export interface EventsServiceContract {
   listEvents(input: ListEventsInput): Promise<EventSummary[]>;
+  listStaleProspects(organizationId: string, days: number, now?: Date): Promise<StaleProspect[]>;
   getEvent(organizationId: string, eventId: string): Promise<EventDetail | null>;
   createProspect(input: CreateProspectInput): Promise<CreateProspectResult>;
   changeEventStatus(input: ChangeEventStatusInput): Promise<void>;

@@ -2,10 +2,11 @@ import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { HelpButton } from "@symbola/ui";
 import { createAppConnection } from "@symbola/db/client";
-import { getOrganizationProfile } from "@/modules/hub/service";
+import { getFollowUpDelays, getOrganizationProfile } from "@/modules/hub/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { ProfileForm } from "./profile-form";
 import { VatRegimeForm } from "./vat-regime-form";
+import { FollowUpForm } from "./follow-up-form";
 
 export default async function SettingsPage() {
   const auth = await getPlannerAuthContext();
@@ -18,8 +19,10 @@ export default async function SettingsPage() {
   const tHelp = await getTranslations("Help");
   const { sql, db } = createAppConnection();
   let profile;
+  let delays;
   try {
     profile = await getOrganizationProfile(db, auth.user.organizationId);
+    delays = await getFollowUpDelays(db, auth.user.organizationId);
   } finally {
     await sql.end();
   }
@@ -33,6 +36,10 @@ export default async function SettingsPage() {
 
       <h2>{t("vatRegimeTitle")}</h2>
       <VatRegimeForm currentRegime={profile.vatRegime} />
+
+      <h2 id="relances">{t("followUpTitle")}</h2>
+      <p>{t("followUpIntro")}</p>
+      <FollowUpForm quoteDays={delays.quoteFollowUpDays} prospectDays={delays.prospectFollowUpDays} />
     </main>
   );
 }

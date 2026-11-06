@@ -34,11 +34,6 @@ import { SearchBox } from "./search-box";
 import { HelpProvider } from "./help-context";
 import { getHelpProgress } from "@/modules/hub/service";
 import { type HelpModule, TUTORIALS, tutorialHref } from "@/lib/help/catalog";
-import { TOUR_TARGETS, type TourKey } from "@/lib/help/tours";
-
-// Lot 12 (AIDE-09) : module de chaque visite, pour ne compter que celles
-// des modules souscrits.
-const TOUR_MODULES: Record<TourKey, HelpModule> = { hub: "hub", events: "events", event: "events", quotes: "quotes", budget: "budget", vendors: "vendors" };
 
 function Logo() {
   return (
@@ -162,7 +157,6 @@ export async function AppShell({ children }: { children: ReactNode }) {
   let helpBar: {
     completed: number;
     total: number;
-    tours: { seen: number; total: number };
     tutorial: { title: string; href: string } | null;
     invites: TutorialInvite[];
   } | null = null;
@@ -200,13 +194,6 @@ export async function AppShell({ children }: { children: ReactNode }) {
         ),
       ).length,
       total: available.length,
-      tours: (() => {
-        const tours = (Object.keys(TOUR_TARGETS) as TourKey[]).filter((key) => subscribed[TOUR_MODULES[key]]);
-        return {
-          seen: tours.filter((key) => progress.some((entry) => entry.itemKey === `tour:${key}` && entry.status === "completed")).length,
-          total: tours.length,
-        };
-      })(),
       tutorial: inProgressKey
         ? {
             title: tHelpCenter(`items.${inProgressKey}.title`),
@@ -436,6 +423,13 @@ export async function AppShell({ children }: { children: ReactNode }) {
               <AppNavLink href="/aide">
                 <LifeBuoy {...iconProps} />
                 {tAide("link")}
+                {/* Lot 13 (HUB-15) : le compteur des tutoriels quitte la barre d'aide pour le menu. */}
+                {helpBar ? (
+                  // Repère visuel : le nom du lien reste « Aide » ; le détail est au centre d'aide.
+                  <span className="nav-count" aria-hidden="true" title={tAide("tutorialsCount", { completed: helpBar.completed, total: helpBar.total })}>
+                    {helpBar.completed}/{helpBar.total}
+                  </span>
+                ) : null}
               </AppNavLink>
             </li>
           </ul>
@@ -458,7 +452,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
           ) : null}
           {children}
         </div>
-        {helpBar && setupDone ? <HelpBar {...helpBar} /> : null}
+        {helpBar && setupDone ? <HelpBar tutorial={helpBar.tutorial} invites={helpBar.invites} /> : null}
       </HelpProvider>
     </div>
   );

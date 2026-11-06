@@ -6,6 +6,7 @@ import type { AppDatabase } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { sendMail } from "@symbola/mail";
 import { parseEnv } from "@symbola/env";
+import { starterFollowUpDelays } from "@symbola/starter-templates";
 import {
   findInvitationByTokenHash,
   findOrganizationById,
@@ -348,6 +349,26 @@ export async function saveSetupStep(db: AppDatabase, organizationId: string, ste
 
 export async function completeSetup(db: AppDatabase, organizationId: string): Promise<void> {
   await upsertOrganizationProfileFields(db, organizationId, { setupStep: SETUP_STEPS, setupCompletedAt: new Date() });
+}
+
+// Lot 13 (HUB-15) — délais de relance du bloc « À traiter » de l'accueil :
+// réglage de l'organisation, sinon valeur de départ (décision G).
+export type FollowUpDelays = { quoteFollowUpDays: number; prospectFollowUpDays: number };
+
+export async function getFollowUpDelays(db: AppDatabase, organizationId: string): Promise<FollowUpDelays> {
+  const row = await findOrganizationProfile(db, organizationId);
+  const defaults = starterFollowUpDelays();
+  return {
+    quoteFollowUpDays: row?.quoteFollowUpDays ?? defaults.quoteFollowUpDays,
+    prospectFollowUpDays: row?.prospectFollowUpDays ?? defaults.prospectFollowUpDays,
+  };
+}
+
+export async function saveFollowUpDelays(db: AppDatabase, organizationId: string, delays: FollowUpDelays): Promise<void> {
+  for (const value of [delays.quoteFollowUpDays, delays.prospectFollowUpDays]) {
+    if (!Number.isInteger(value) || value < 1 || value > 365) throw new RangeError("délai de relance entre 1 et 365 jours");
+  }
+  await upsertOrganizationProfileFields(db, organizationId, delays);
 }
 
 // EVT-05 — en-tête des documents exportés (programme du jour J, plus tard

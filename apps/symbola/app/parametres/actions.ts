@@ -7,6 +7,7 @@ import { createAppConnection } from "@symbola/db/client";
 import {
   changeVatRegime,
   completeOnboarding,
+  saveFollowUpDelays,
   saveOnboardingStep,
   type LegalForm,
   type Metier,
@@ -76,6 +77,28 @@ export async function changeVatRegimeAction(
     await sql.end();
   }
 
+  revalidatePath("/parametres");
+  return { success: true };
+}
+
+// Lot 13 (HUB-15) — délais de relance (titulaire et membres de l'équipe).
+export type FollowUpFormState = { error?: string; success?: boolean };
+
+export async function saveFollowUpDelaysAction(_prev: FollowUpFormState, formData: FormData): Promise<FollowUpFormState> {
+  const t = await getTranslations("Settings");
+  const { organizationId } = await requireOrganization();
+  const quoteFollowUpDays = Number(formData.get("quoteFollowUpDays"));
+  const prospectFollowUpDays = Number(formData.get("prospectFollowUpDays"));
+  const { sql, db } = createAppConnection();
+  try {
+    await saveFollowUpDelays(db, organizationId, { quoteFollowUpDays, prospectFollowUpDays });
+  } catch (error) {
+    if (error instanceof RangeError) return { error: t("followUpDelaysInvalid") };
+    throw error;
+  } finally {
+    await sql.end();
+  }
+  revalidatePath("/");
   revalidatePath("/parametres");
   return { success: true };
 }

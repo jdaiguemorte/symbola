@@ -9,6 +9,7 @@ import {
   formatMonth,
   localeFromAcceptLanguage,
   parseAmountToCents,
+  parisDaysSince,
 } from "./index";
 
 describe("@symbola/i18n — formatAmount", () => {
@@ -110,5 +111,17 @@ describe("HUB-02 — Date du jour à Paris", () => {
     expect(parisToday(new Date("2026-11-03T23:00:00Z"))).toBe("2026-11-04"); // minuit à Paris (UTC+1)
     expect(parisToday(new Date("2027-03-27T22:30:00Z"))).toBe("2027-03-27"); // veille du passage à l'heure d'été
     expect(parisToday(new Date("2027-03-28T22:00:00Z"))).toBe("2027-03-29"); // minuit à Paris (UTC+2)
+  });
+});
+
+describe("HUB-15 — jours écoulés à Paris", () => {
+  it("compte en jours de calendrier parisiens : la veille à 23 h 30 = 1 jour", () => {
+    expect(parisDaysSince(new Date("2026-11-05T22:30:00Z"), new Date("2026-11-06T08:00:00Z"))).toBe(1);
+  });
+  it("le jour même = 0", () => {
+    expect(parisDaysSince(new Date("2026-11-06T06:00:00Z"), new Date("2026-11-06T21:00:00Z"))).toBe(0);
+  });
+  it("traverse le passage à l'heure d'hiver sans décalage", () => {
+    expect(parisDaysSince(new Date("2026-10-24T22:30:00Z"), new Date("2026-10-31T23:30:00Z"))).toBe(7);
   });
 });

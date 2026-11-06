@@ -85,7 +85,13 @@
     "setupLocked": "Les menus s'ouvrent quand le démarrage est terminé.",
     "agendaCreateOn": "Créer le {date}",
     "agendaCreateProspect": "Créer un prospect à cette date",
-    "agendaCreateEvent": "Créer un événement à cette date"
+    "agendaCreateEvent": "Créer un événement à cette date",
+    "followUpTitle": "À traiter",
+    "followUpEmpty": "Rien à relancer pour le moment.",
+    "followUpQuote": "Relancer le devis {number} · {names}",
+    "followUpProspect": "Prospect sans nouvelle · {names}",
+    "followUpDays": "{days, plural, one {# jour} other {# jours}}",
+    "followUpSettings": "Délais de relance"
   },
   "Admin": {
     "title": "Administration",
@@ -171,7 +177,14 @@
     "effectiveDate": "Date d'effet",
     "changeRegime": "Changer de régime",
     "regimeChanged": "Régime de TVA mis à jour.",
-    "missingEffectiveDate": "La date d'effet est obligatoire."
+    "missingEffectiveDate": "La date d'effet est obligatoire.",
+    "followUpTitle": "Délais de relance",
+    "followUpIntro": "L'accueil vous signale dans « À traiter » les devis envoyés et les prospects restés sans nouvelle au-delà de ces délais.",
+    "quoteFollowUpDays": "Relancer un devis envoyé après (jours)",
+    "prospectFollowUpDays": "Relancer un prospect sans nouvelle après (jours)",
+    "saveFollowUpDelays": "Enregistrer les délais",
+    "followUpDelaysSaved": "✓ Délais enregistrés.",
+    "followUpDelaysInvalid": "Indiquez un nombre de jours entre 1 et 365."
   },
   "AdminSettings": {
     "title": "Paramètres de la plateforme",
@@ -493,17 +506,12 @@
       "body": "Chaque prestataire a une seule fiche, réutilisée d'un événement à l'autre : coordonnées, caractéristiques selon son type, plaquettes, et l'historique de vos prestations avec lui. Filtrez par type, par caractéristiques et autour d'un lieu ; ajoutez un prestataire à une ligne du budget d'un événement pour comparer les devis."
     }
   },
-  "FirstSteps": {
-    "title": "Premiers pas",
-    "hide": "Masquer cette liste",
-    "completeProfile": "Compléter la fiche entreprise",
-    "createFirstEvent": "Créer son premier événement"
-  },
   "Aide": {
     "title": "Aide",
     "search": "Rechercher dans l'aide",
     "noResults": "Aucun article ne correspond à votre recherche.",
-    "link": "Aide"
+    "link": "Aide",
+    "tutorialsCount": "Tutoriels faits : {completed} sur {total}"
   },
   "Events": {
     "title": "Événements",

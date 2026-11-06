@@ -4,18 +4,17 @@ import { after } from "next/server";
 import { getLocale, getTranslations } from "next-intl/server";
 import { parisToday, type Locale } from "@symbola/i18n";
 import { createAppConnection } from "@symbola/db/client";
-import { hasRealEvents } from "@/modules/events/service";
 import { getGreeting } from "@/modules/hello/service";
 import { getOrganizationProfile, isModuleEnabled } from "@/modules/hub/service";
 import { getAuthContext } from "@/lib/auth-context";
 import { recordUsage } from "@/lib/usage";
 import { UpcomingPaymentsBlock } from "./devis/encaissements/dashboard-block";
 import { PrivacyPurgeAlertBlock, PrivacyRequestsAlertBlock } from "./rgpd/dashboard-block";
-import { HomeInteractive } from "./home-interactive";
 import { PageTour } from "./page-tour";
 import { loadPageTour } from "@/lib/help/page-tour";
 import { AgendaBlock } from "./agenda/agenda-block";
 import { UpcomingTasksBlock } from "./taches/upcoming-tasks-block";
+import { FollowUpBlock } from "./accueil/follow-up-block";
 
 export default async function HomePage({ searchParams }: { searchParams: Promise<{ agenda?: string; debut?: string; visite?: string }> }) {
   const auth = await getAuthContext();
@@ -51,10 +50,6 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       await sql.end();
     }
   }
-  // AIDE-04 : « créer son premier événement » ; un événement d'essai
-  // (AIDE-02) ne compte jamais au tableau de bord.
-  const firstEventCreated =
-    eventsAvailable && auth.user.organizationId ? await hasRealEvents(auth.user.organizationId) : false;
   const greeting = helloAvailable ? getGreeting() : null;
   const t = await getTranslations("Home");
 
@@ -74,10 +69,9 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   }
 
   // AIDE-01 : la visite ne s'affiche automatiquement qu'à la première
-  // ouverture du hub ; AIDE-04 : la liste « premiers pas » n'a de sens que
-  // pour un utilisateur d'une organisation (l'Admin n'en a pas).
+  // ouverture du hub. Lot 13 (HUB-15) : plus de liste « premiers pas »,
+  // l'assistant de démarrage (lot 12) s'en charge.
   const tHelp = await getTranslations("Help");
-  const tFirstSteps = await getTranslations("FirstSteps");
   const locale = (await getLocale()) as Locale;
   const today = parisToday();
   const query = await searchParams;
@@ -103,22 +97,13 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       {/* HUB-02 : agenda des mois à venir et tâches de la quinzaine (module Événements). */}
       {eventsAvailable && organizationId ? <AgendaBlock organizationId={organizationId} locale={locale} today={today} query={query} /> : null}
       <div className="home-columns">
+        {/* HUB-15 : devis à relancer et prospects sans nouvelle. */}
+        {(eventsAvailable || quotesAvailable) && organizationId ? <FollowUpBlock organizationId={organizationId} modules={{ events: eventsAvailable, quotes: quotesAvailable }} /> : null}
         {eventsAvailable && organizationId ? <UpcomingTasksBlock organizationId={organizationId} locale={locale} today={today} /> : null}
         {/* HUB-02 / DEV-03 : absent si le module Devis n'est pas souscrit. */}
         {quotesAvailable && organizationId ? <UpcomingPaymentsBlock organizationId={organizationId} /> : null}
       </div>
       <PageTour {...tour} helpTitle={tHelp("home.title")} helpBody={tHelp("home.body")} />
-      <HomeInteractive
-        firstStepsVisible={Boolean(auth.user.organizationId) && !auth.user.firstStepsHidden}
-        firstStepsTitle={tFirstSteps("title")}
-        firstStepsItems={[
-          { key: "completeProfile", label: tFirstSteps("completeProfile"), done: !onboardingIncomplete },
-          ...(eventsAvailable
-            ? [{ key: "createFirstEvent", label: tFirstSteps("createFirstEvent"), done: firstEventCreated }]
-            : []),
-        ]}
-        firstStepsHideLabel={tFirstSteps("hide")}
-      />
     </main>
   );
 }

@@ -59,9 +59,9 @@ test("AIDE-05/07 — visite focus mise de côté puis reprise, et centre d'aide"
   await tour.getByRole("button", { name: "Plus tard" }).click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
 
-  // La barre d'aide propose de reprendre à l'étape 2 ; Échap la remet de côté.
-  const bar = page.getByRole("complementary", { name: "Barre d'aide" });
-  await bar.getByRole("button", { name: "Reprendre la visite (étape 2)" }).click();
+  // Lot 13 (HUB-15) : une pastille propose de reprendre à l'étape 2 ;
+  // Échap la remet de côté.
+  await page.getByRole("button", { name: "Reprendre la visite (étape 2)" }).click();
   await expect(page.getByRole("dialog")).toHaveAccessibleName("Vue d'ensemble");
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toHaveCount(0);

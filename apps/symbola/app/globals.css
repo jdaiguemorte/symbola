@@ -819,20 +819,9 @@
 
 /* Lot 10 (AIDE-07) — barre d'aide. */
 @layer components {
-  .help-bar {
-    @apply fixed right-4 bottom-4 z-40 flex max-w-[calc(100vw-32px)] flex-wrap items-center gap-2 rounded-full bg-ink py-2 pr-2 pl-4 text-sm text-white shadow-xl;
-  }
-  .help-bar[data-collapsed="true"] {
-    @apply p-1;
-  }
-  .help-bar a.help-bar-progress {
-    @apply text-white no-underline hover:underline;
-  }
-  .help-bar .help-bar-resume {
-    @apply min-h-11 rounded-full border-0 bg-card px-4 font-semibold text-ink no-underline;
-  }
-  .help-bar .help-bar-toggle {
-    @apply min-h-11 rounded-full border-0 bg-transparent px-3 text-white;
+  /* Lot 13 (HUB-15) : pastille « Reprendre » à la place de la barre d'aide. */
+  .resume-chip {
+    @apply fixed right-4 bottom-4 z-40 inline-flex min-h-11 max-w-[calc(100vw-32px)] items-center rounded-full border-0 bg-ink px-5 text-sm font-semibold text-white no-underline shadow-xl;
   }
 }
 
@@ -1278,5 +1267,24 @@
   }
   .list-table .num {
     @apply whitespace-nowrap;
+  }
+}
+
+/* Lot 13 (HUB-15) — accueil : bloc « À traiter », compteur des tutoriels au menu. */
+@layer components {
+  .follow-up-list {
+    @apply m-0 flex list-none flex-col p-0;
+  }
+  .follow-up-list li {
+    @apply flex min-h-12 items-center justify-between gap-3 border-b border-lin-soft;
+  }
+  .follow-up-list li:last-child {
+    @apply border-b-0;
+  }
+  .follow-up-list a {
+    @apply text-[15px] text-ink;
+  }
+  .nav-count {
+    @apply ml-auto rounded-full bg-sauge-tint px-2 py-0.5 text-xs font-semibold text-sauge-ink;
   }
 }
