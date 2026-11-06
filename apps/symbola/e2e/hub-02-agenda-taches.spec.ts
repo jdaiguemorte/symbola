@@ -120,7 +120,7 @@ test("HUB-02 — agenda des mariages, tâches de la quinzaine cochées depuis l'
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "À traiter" })).toBeVisible();
   await page.getByRole("link", { name: "Délais de relance" }).click();
-  await expect(page).toHaveURL(/\/parametres#relances$/);
+  await expect(page).toHaveURL(/\/parametres\/relances$/);
   await page.getByLabel("Relancer un devis envoyé après (jours)").fill("5");
   await page.getByRole("button", { name: "Enregistrer les délais" }).click();
   await expect(page.getByText("✓ Délais enregistrés.")).toBeVisible();

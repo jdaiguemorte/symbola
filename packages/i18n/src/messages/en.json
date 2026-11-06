@@ -75,7 +75,7 @@
     "settingsEventsLists": "Sources, reasons and budget",
     "settingsTaskTemplates": "Planning templates",
     "settingsProgramTemplates": "Programme templates",
-    "settingsSections": "Settings by module",
+    "settingsSections": "Settings sections",
     "settingsSubSections": "Module settings",
     "vendorBook": "Vendors",
     "settingsVendorTypes": "Types and fields",
@@ -828,7 +828,15 @@
     "tabPastCount": "Past · {count}",
     "listLabel": "Event list",
     "columnClients": "Couple",
-    "columnDate": "Date"
+    "columnDate": "Date",
+    "addBudgetLineButton": "+ Add a line",
+    "addBudgetLineTitle": "New budget line",
+    "editBudgetLine": "Edit the line “{label}”",
+    "lineIconColumn": "Icon",
+    "actionsColumn": "Actions",
+    "edit": "Edit",
+    "remove": "Remove",
+    "sourcesReasonsTitle": "Sources and reasons"
   },
   "Budget": {
     "title": "Budget",
@@ -2603,6 +2611,34 @@
     "sirenInvalid": "A SIREN has 9 digits, a SIRET 14.",
     "labelRequired": "The name is required.",
     "alreadyExists": "This item already exists.",
-    "notFound": "Item not found."
+    "notFound": "Item not found.",
+    "iconLabel": "Icon",
+    "lineNameLabel": "Line name",
+    "panelAddHint": "The line will be offered on every new event; existing events do not change."
+  },
+  "SettingsMenu": {
+    "groupCompany": "My company",
+    "company": "Company and VAT",
+    "account": "My account",
+    "groupEvents": "Events",
+    "budgetLines": "Budget lines",
+    "sourcesReasons": "Sources and reasons",
+    "retroplanning": "Retroplanning",
+    "program": "Wedding-day schedule",
+    "allocation": "Budget allocation",
+    "followUp": "Follow-up delays",
+    "groupSales": "Sales",
+    "catalog": "Catalogue",
+    "quotes": "Quotes and invoices",
+    "eReporting": "E-reporting",
+    "groupData": "Vendors and data",
+    "vendorTypes": "Vendor types",
+    "vendorTags": "Tags",
+    "vendorTravel": "Travel",
+    "import": "Import",
+    "privacy": "Personal data"
+  },
+  "Common": {
+    "closePanel": "Close the panel"
   }
 }

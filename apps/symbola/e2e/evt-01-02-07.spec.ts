@@ -55,6 +55,9 @@ test("EVT-07 — la planner paramètre ses sources et motifs de perte, puis la s
 
   await page.getByRole("link", { name: "Paramètres des événements" }).first().click();
   await expect(page).toHaveURL(/\/events\/parametres$/);
+  // Lot 13 (HUB-16) : sources et motifs ont leur rubrique.
+  await page.getByRole("navigation", { name: "Rubriques des paramètres" }).getByRole("link", { name: "Sources et motifs", exact: true }).click();
+  await expect(page).toHaveURL(/\/events\/parametres\/sources$/);
   await page.getByLabel("Nouvelle source").fill("Instagram");
   await page.getByRole("button", { name: "Ajouter la source" }).click();
   await expect(page.getByText("Source ajoutée.")).toBeVisible();
@@ -95,7 +98,7 @@ test("EVT-01/02 — un prospect apparaît dans la liste, passe en Confirmé puis
   await createPlanner(page);
   const firstName = `Alix${randomUUID().slice(0, 8)}`;
 
-  await page.goto("/events/parametres");
+  await page.goto("/events/parametres/sources");
   await page.getByLabel("Nouvelle source").fill("Salon");
   await page.getByRole("button", { name: "Ajouter la source" }).click();
   await expect(page.getByText("Source ajoutée.")).toBeVisible();

@@ -64,7 +64,7 @@ test("EVT-04 — modèle de rétroplanning appliqué, recalcul des échéances e
   await expectNoAxeViolation(page);
 
   // Un prospect sans date : l'app indique qu'un modèle demande une date.
-  await page.goto("/events/parametres");
+  await page.goto("/events/parametres/sources");
   await page.getByLabel("Nouvelle source").fill("Salon");
   await page.getByRole("button", { name: "Ajouter la source" }).click();
   await expect(page.getByText("Source ajoutée.")).toBeVisible();

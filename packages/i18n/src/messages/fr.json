@@ -75,7 +75,7 @@
     "settingsEventsLists": "Sources, motifs et budget",
     "settingsTaskTemplates": "Modèles de rétroplanning",
     "settingsProgramTemplates": "Modèles de programme",
-    "settingsSections": "Paramètres par module",
+    "settingsSections": "Rubriques des paramètres",
     "settingsSubSections": "Réglages du module",
     "vendorBook": "Prestataires",
     "settingsVendorTypes": "Types et champs",
@@ -828,7 +828,15 @@
     "tabPastCount": "Terminés · {count}",
     "listLabel": "Liste des événements",
     "columnClients": "Mariés",
-    "columnDate": "Date"
+    "columnDate": "Date",
+    "addBudgetLineButton": "+ Ajouter une ligne",
+    "addBudgetLineTitle": "Nouvelle ligne du budget",
+    "editBudgetLine": "Modifier la ligne « {label} »",
+    "lineIconColumn": "Icône",
+    "actionsColumn": "Actions",
+    "edit": "Modifier",
+    "remove": "Retirer",
+    "sourcesReasonsTitle": "Sources et motifs"
   },
   "Budget": {
     "title": "Budget",
@@ -2603,6 +2611,34 @@
     "sirenInvalid": "Le SIREN a 9 chiffres, le SIRET 14.",
     "labelRequired": "Le nom est obligatoire.",
     "alreadyExists": "Cet élément existe déjà.",
-    "notFound": "Élément introuvable."
+    "notFound": "Élément introuvable.",
+    "iconLabel": "Icône",
+    "lineNameLabel": "Nom de la ligne",
+    "panelAddHint": "La ligne sera proposée à chaque nouvel événement ; les événements existants ne changent pas."
+  },
+  "SettingsMenu": {
+    "groupCompany": "Mon entreprise",
+    "company": "Entreprise et TVA",
+    "account": "Mon compte",
+    "groupEvents": "Événements",
+    "budgetLines": "Lignes du budget",
+    "sourcesReasons": "Sources et motifs",
+    "retroplanning": "Rétroplanning",
+    "program": "Programme du jour J",
+    "allocation": "Répartition du budget",
+    "followUp": "Délais de relance",
+    "groupSales": "Ventes",
+    "catalog": "Catalogue",
+    "quotes": "Devis et factures",
+    "eReporting": "E-reporting",
+    "groupData": "Prestataires et données",
+    "vendorTypes": "Types de prestataires",
+    "vendorTags": "Étiquettes",
+    "vendorTravel": "Trajets",
+    "import": "Importer",
+    "privacy": "Données personnelles"
+  },
+  "Common": {
+    "closePanel": "Fermer le panneau"
   }
 }

@@ -24,7 +24,7 @@ import { getAuthContext } from "@/lib/auth-context";
 import { AppNavLink } from "./app-nav-link";
 import { AppSidebar } from "./app-sidebar";
 import { logoutAction } from "./logout-action";
-import { SettingsNav, type SettingsSection } from "./settings-nav";
+import { SettingsNav, type SettingsGroup } from "./settings-nav";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { Lock, Rocket } from "lucide-react";
@@ -235,89 +235,64 @@ export async function AppShell({ children }: { children: ReactNode }) {
       : 0;
 
   // Paramètres : une pastille par solution souscrite (HUB-12, lot 11).
-  const settingsSections: SettingsSection[] = organizationId
+  // Lot 13 (HUB-16) : une rubrique par sujet, rangées en quatre groupes ;
+  // seules apparaissent celles des modules souscrits.
+  const tSettings = await getTranslations("SettingsMenu");
+  const settingsSections: SettingsGroup[] = organizationId
     ? [
         {
-          href: "/parametres",
-          label: t("settingsOrganization"),
-          paths: ["/parametres"],
+          label: tSettings("groupCompany"),
+          items: [
+            { href: "/parametres", label: tSettings("company") },
+            { href: "/profil", label: tSettings("account") },
+          ],
         },
-        ...(events
+        ...(events || budget
           ? [
               {
-                href: "/events/parametres",
-                label: t("events"),
-                paths: [
-                  "/events/parametres",
-                  "/events/modeles",
-                  "/events/modeles-programme",
+                label: tSettings("groupEvents"),
+                items: [
+                  ...(events
+                    ? [
+                        { href: "/events/parametres", label: tSettings("budgetLines") },
+                        { href: "/events/parametres/sources", label: tSettings("sourcesReasons") },
+                        { href: "/events/modeles", label: tSettings("retroplanning") },
+                        { href: "/events/modeles-programme", label: tSettings("program") },
+                      ]
+                    : []),
+                  ...(budget ? [{ href: "/budget/parametres", label: tSettings("allocation") }] : []),
+                  { href: "/parametres/relances", label: tSettings("followUp") },
                 ],
-                children: [
-                  {
-                    href: "/events/parametres",
-                    label: t("settingsEventsLists"),
-                  },
-                  {
-                    href: "/events/modeles",
-                    label: t("settingsTaskTemplates"),
-                  },
-                  {
-                    href: "/events/modeles-programme",
-                    label: t("settingsProgramTemplates"),
-                  },
-                ],
-              },
-            ]
-          : []),
-        ...(vendors
-          ? [
-              {
-                href: "/prestataires/parametres",
-                label: t("vendorBook"),
-                paths: ["/prestataires/parametres"],
-                children: [
-                  { href: "/prestataires/parametres", label: t("settingsVendorTypes") },
-                  { href: "/prestataires/parametres/etiquettes", label: t("settingsVendorTags") },
-                  { href: "/prestataires/parametres/trajet", label: t("settingsVendorTravel") },
-                ],
-              },
-            ]
-          : []),
-        ...(budget
-          ? [
-              {
-                href: "/budget/parametres",
-                label: t("budgetModels"),
-                paths: ["/budget/parametres"],
               },
             ]
           : []),
         ...(quotes
           ? [
               {
-                href: "/devis/parametres",
-                label: t("navQuotesGroup"),
-                paths: [
-                  "/devis/parametres",
-                  "/devis/catalogue",
-                  "/devis/e-reporting",
-                ],
-                children: [
-                  { href: "/devis/parametres", label: t("quoteSettings") },
-                  { href: "/devis/catalogue", label: t("quoteCatalog") },
-                  { href: "/devis/e-reporting", label: t("eReporting") },
+                label: tSettings("groupSales"),
+                items: [
+                  { href: "/devis/catalogue", label: tSettings("catalog") },
+                  { href: "/devis/parametres", label: tSettings("quotes") },
+                  { href: "/devis/e-reporting", label: tSettings("eReporting") },
                 ],
               },
             ]
           : []),
-        ...(events || budget || quotes
-          ? [{ href: "/import", label: t("importData"), paths: ["/import"] }]
-          : []),
-        ...(isOwner
-          ? [{ href: "/rgpd", label: t("privacy"), paths: ["/rgpd"] }]
-          : []),
-        { href: "/profil", label: t("myProfile"), paths: ["/profil"] },
-      ]
+        {
+          label: tSettings("groupData"),
+          items: [
+            ...(vendors
+              ? [
+                  { href: "/prestataires/parametres", label: tSettings("vendorTypes") },
+                  { href: "/prestataires/parametres/etiquettes", label: tSettings("vendorTags") },
+                  { href: "/prestataires/parametres/trajet", label: tSettings("vendorTravel") },
+                ]
+              : []),
+            ...(events || budget || quotes ? [{ href: "/import", label: tSettings("import") }] : []),
+            ...(isOwner ? [{ href: "/rgpd", label: tSettings("privacy") }] : []),
+          ],
+        },
+      ].filter((group) => group.items.length > 0)
     : [];
 
   return (
@@ -444,11 +419,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
         <div className="app-main">
           {isTeam && setupDone ? <SearchBox /> : null}
           {settingsSections.length > 0 ? (
-            <SettingsNav
-              sections={settingsSections}
-              label={t("settingsSections")}
-              subLabel={t("settingsSubSections")}
-            />
+            <SettingsNav groups={settingsSections} label={t("settingsSections")} />
           ) : null}
           {children}
         </div>

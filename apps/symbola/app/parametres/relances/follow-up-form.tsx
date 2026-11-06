@@ -3,7 +3,7 @@
 // Lot 13 (HUB-15) — délais de relance du bloc « À traiter » de l'accueil.
 import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
-import { saveFollowUpDelaysAction, type FollowUpFormState } from "./actions";
+import { saveFollowUpDelaysAction, type FollowUpFormState } from "../actions";
 
 export function FollowUpForm({ quoteDays, prospectDays }: { quoteDays: number; prospectDays: number }) {
   const t = useTranslations("Settings");

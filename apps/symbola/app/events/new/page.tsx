@@ -42,7 +42,7 @@ export default async function NewProspectPage({ searchParams }: { searchParams: 
           <h2 id="no-sources-title">{t("noSourcesTitle")}</h2>
           <p>
             {t.rich("noSourcesYet", {
-              link: (chunks) => <Link href="/events/parametres">{chunks}</Link>,
+              link: (chunks) => <Link href="/events/parametres/sources">{chunks}</Link>,
             })}
           </p>
           <LoadStarterListsForm />

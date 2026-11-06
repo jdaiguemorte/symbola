@@ -16,7 +16,7 @@ export async function FollowUpBlock({ organizationId, modules }: { organizationI
     <section className="card" aria-labelledby="follow-up-title">
       <div className="section-head">
         <h2 id="follow-up-title">{t("followUpTitle")}</h2>
-        <Link href="/parametres#relances">{t("followUpSettings")}</Link>
+        <Link href="/parametres/relances">{t("followUpSettings")}</Link>
       </div>
       {items.length === 0 ? (
         <p>{t("followUpEmpty")}</p>

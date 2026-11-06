@@ -50,6 +50,8 @@ test("EVT-03 — lignes du budget par défaut, barre d'avancement et réservatio
   await expect(page.getByText("1 ligne ajoutée depuis le modèle de départ.")).toBeVisible();
   await page.getByRole("button", { name: "Retirer la ligne « Transport des invités »" }).click();
   await expect(page.getByRole("button", { name: "Retirer la ligne « Transport des invités »" })).toHaveCount(0);
+  // Lot 13 (HUB-16) : les sources ont leur rubrique.
+  await page.goto("/events/parametres/sources");
   await page.getByLabel("Nouvelle source").fill("Salon");
   await page.getByRole("button", { name: "Ajouter la source" }).click();
   await expect(page.getByText("Source ajoutée.")).toBeVisible();

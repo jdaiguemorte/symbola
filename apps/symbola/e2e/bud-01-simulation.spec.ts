@@ -40,11 +40,13 @@ test("BUD-01 — modèle de répartition, simulation et ajustement d'une ligne",
   }
   await loginAndSetupMfa(page, email, password);
 
-  // Postes prestataires par défaut (EVT-03, prérequis du modèle de
+  // Lignes du budget par défaut (EVT-03, prérequis du modèle de
   // répartition) puis source (EVT-07, prérequis de la création d'un
   // prospect).
   await page.goto("/events/parametres");
   await page.getByRole("button", { name: "Charger le modèle de départ" }).click();
+  await expect(page.getByRole("rowheader", { name: "Lieu de réception" })).toBeVisible();
+  await page.goto("/events/parametres/sources");
   await page.getByLabel("Nouvelle source").fill("Instagram");
   await page.getByRole("button", { name: "Ajouter la source" }).click();
   await expect(page.getByRole("listitem").filter({ hasText: "Instagram" })).toBeVisible();

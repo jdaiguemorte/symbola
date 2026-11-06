@@ -71,7 +71,7 @@ test("DEV-01 — composer un devis depuis un événement, l'envoyer, le téléch
   await expectNoAxeViolation(page);
 
   // Un prospect, puis le devis depuis sa fiche.
-  await page.goto("/events/parametres");
+  await page.goto("/events/parametres/sources");
   await page.waitForLoadState("networkidle");
   await page.getByLabel("Nouvelle source").fill("Salon");
   await page.getByRole("button", { name: "Ajouter la source" }).click();
