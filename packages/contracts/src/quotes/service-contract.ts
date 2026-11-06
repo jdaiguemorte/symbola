@@ -250,6 +250,9 @@ export type EReportingView = {
   totals: { invoicedTtcCents: number; creditedTtcCents: number; netHtCents: number; netVatCents: number; netTtcCents: number; collectedCents: number };
 };
 
+// Lot 13 (HUB-15) — devis envoyé sans réponse, pour le bloc « À traiter ».
+export type QuoteAwaitingAnswer = { quoteId: string; number: string; eventId: string; sentAt: Date; daysSince: number };
+
 export type QuoteSummary = {
   id: string;
   eventId: string;
@@ -348,6 +351,7 @@ export interface QuotesServiceContract {
   createQuote(input: CreateQuoteInput): Promise<QuoteDetail>;
   listEventQuotes(organizationId: string, eventId: string): Promise<QuoteSummary[]>;
   listQuotes(organizationId: string): Promise<QuoteSummary[]>;
+  listQuotesAwaitingAnswer(organizationId: string, days: number, now?: Date): Promise<QuoteAwaitingAnswer[]>;
   getQuote(organizationId: string, quoteId: string): Promise<QuoteDetail>;
   addQuoteLine(organizationId: string, quoteId: string, line: QuoteLineInput): Promise<QuoteDetail>;
   updateQuoteLine(organizationId: string, lineId: string, line: QuoteLineInput): Promise<QuoteDetail>;

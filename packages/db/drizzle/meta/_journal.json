@@ -470,6 +470,13 @@
       "when": 1793910307461,
       "tag": "0066_lot12_budget_planned_optional",
       "breakpoints": true
+    },
+    {
+      "idx": 67,
+      "version": "7",
+      "when": 1794001152064,
+      "tag": "0067_lot13_follow_up_delays",
+      "breakpoints": true
     }
   ]
 }

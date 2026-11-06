@@ -85,7 +85,13 @@
     "setupLocked": "Menus open once set-up is complete.",
     "agendaCreateOn": "Create on {date}",
     "agendaCreateProspect": "Create a prospect on this date",
-    "agendaCreateEvent": "Create an event on this date"
+    "agendaCreateEvent": "Create an event on this date",
+    "followUpTitle": "To follow up",
+    "followUpEmpty": "Nothing to follow up for now.",
+    "followUpQuote": "Follow up quote {number} · {names}",
+    "followUpProspect": "Prospect with no news · {names}",
+    "followUpDays": "{days, plural, one {# day} other {# days}}",
+    "followUpSettings": "Follow-up delays"
   },
   "Admin": {
     "title": "Administration",
@@ -171,7 +177,14 @@
     "effectiveDate": "Effective date",
     "changeRegime": "Change regime",
     "regimeChanged": "VAT regime updated.",
-    "missingEffectiveDate": "The effective date is required."
+    "missingEffectiveDate": "The effective date is required.",
+    "followUpTitle": "Follow-up delays",
+    "followUpIntro": "The home page lists under “To follow up” the quotes sent and prospects with no news beyond these delays.",
+    "quoteFollowUpDays": "Follow up a sent quote after (days)",
+    "prospectFollowUpDays": "Follow up a prospect with no news after (days)",
+    "saveFollowUpDelays": "Save the delays",
+    "followUpDelaysSaved": "✓ Delays saved.",
+    "followUpDelaysInvalid": "Enter a number of days between 1 and 365."
   },
   "AdminSettings": {
     "title": "Platform settings",
@@ -493,17 +506,12 @@
       "body": "Each vendor has a single record, reused from one event to the next: contact details, features depending on its type, brochures, and the history of your work together. Filter by type, by features and around a place; add a vendor to an event's budget line to compare quotes."
     }
   },
-  "FirstSteps": {
-    "title": "First steps",
-    "hide": "Hide this list",
-    "completeProfile": "Complete the company profile",
-    "createFirstEvent": "Create your first event"
-  },
   "Aide": {
     "title": "Help",
     "search": "Search help articles",
     "noResults": "No article matches your search.",
-    "link": "Help"
+    "link": "Help",
+    "tutorialsCount": "Tutorials done: {completed} of {total}"
   },
   "Events": {
     "title": "Events",

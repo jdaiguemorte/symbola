@@ -192,6 +192,10 @@ export const organizationProfiles = hubSchema.table("organization_profiles", {
   // fin ; tant qu'il n'est pas terminé, les menus métier sont verrouillés.
   setupStep: integer("setup_step").notNull().default(1),
   setupCompletedAt: timestamp("setup_completed_at", { withTimezone: true }),
+  // Lot 13 (HUB-15) : délais de relance du bloc « À traiter » ; null =
+  // valeur de départ (packages/starter-templates/src/follow-up.json).
+  quoteFollowUpDays: integer("quote_follow_up_days"),
+  prospectFollowUpDays: integer("prospect_follow_up_days"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 

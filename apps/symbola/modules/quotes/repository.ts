@@ -255,6 +255,20 @@ export async function findQuotes(organizationId: string): Promise<QuoteRow[]> {
   );
 }
 
+// Lot 13 (HUB-15) — devis envoyés en attente de réponse (hors essais),
+// avec la date d'envoi de leur version courante.
+export async function findSentQuotesWithSendDate(organizationId: string): Promise<{ quote: QuoteRow; sentAt: Date }[]> {
+  const rows = await inOrganization(organizationId, (tx) =>
+    tx
+      .select({ quote: quotes, sentAt: quoteVersions.sentAt })
+      .from(quotes)
+      .innerJoin(quoteVersions, and(eq(quoteVersions.quoteId, quotes.id), eq(quoteVersions.version, quotes.currentVersion)))
+      .where(and(eq(quotes.status, "sent"), eq(quotes.isDemo, false)))
+      .orderBy(asc(quoteVersions.sentAt)),
+  );
+  return rows.filter((row): row is { quote: QuoteRow; sentAt: Date } => row.sentAt !== null);
+}
+
 export type QuoteAggregate = {
   quote: QuoteRow;
   versions: QuoteVersionRow[];

@@ -11,6 +11,7 @@ import lossReasonsFile from "./loss-reasons.json";
 import paymentMethodsFile from "./payment-methods.json";
 import privacyErasureResponseFile from "./privacy-erasure-response.json";
 import privacySettingsFile from "./privacy-settings.json";
+import followUpFile from "./follow-up.json";
 import programFile from "./program.json";
 import prospectSourcesFile from "./prospect-sources.json";
 import retroplanningFile from "./retroplanning.json";
@@ -460,4 +461,19 @@ const tutorialVendorsSchema = z.array(
 export function starterTutorialVendors(locale: StarterLocale): { name: string; city: string; note: string }[] {
   const raw = (tutorialExamplesFile as { vendors?: unknown }).vendors ?? [];
   return tutorialVendorsSchema.parse(raw).map((vendor) => ({ name: vendor.name[locale], city: vendor.city, note: vendor.note[locale] }));
+}
+
+// Lot 13 (HUB-15) — délais de relance du bloc « À traiter » de l'accueil :
+// valeurs de départ, chaque organisation les règle dans ses paramètres.
+export type StarterFollowUpDelays = { quoteFollowUpDays: number; prospectFollowUpDays: number };
+
+const followUpSchema = z.object({
+  version: z.literal(1),
+  quoteFollowUpDays: z.number().int().min(1).max(365),
+  prospectFollowUpDays: z.number().int().min(1).max(365),
+});
+
+export function starterFollowUpDelays(): StarterFollowUpDelays {
+  const parsed = followUpSchema.parse(followUpFile);
+  return { quoteFollowUpDays: parsed.quoteFollowUpDays, prospectFollowUpDays: parsed.prospectFollowUpDays };
 }

@@ -75,14 +75,11 @@ test("AIDE-01/03/04 — visite guidée, aide et liste premiers pas sur l'accueil
   await page.getByRole("button", { name: "Plus tard" }).click();
   await expect(page.getByRole("dialog")).toBeHidden();
 
-  // AIDE-04 : la liste « premiers pas » peut être masquée, et le reste.
-  await expect(page.getByRole("heading", { name: "Premiers pas" })).toBeVisible();
-  await expect(page.getByText("Compléter la fiche entreprise")).toBeVisible();
-  await page.getByRole("button", { name: "Masquer cette liste" }).click();
-  await expect(page.getByRole("heading", { name: "Premiers pas" })).toBeHidden();
-  await page.waitForLoadState("networkidle");
-  await page.reload();
-  await expect(page.getByRole("heading", { name: "Premiers pas" })).toBeHidden();
+  // Lot 13 (HUB-15) : plus de liste « premiers pas » ni de barre d'aide
+  // permanente ; l'accueil montre ce qui attend.
+  await expect(page.getByRole("heading", { name: "Premiers pas" })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "À traiter" })).toBeVisible();
+  await expect(page.getByRole("complementary", { name: "Barre d'aide" })).toHaveCount(0);
 
   // AIDE-03 : l'aide est consultable et cherchable depuis le hub.
   await clickMenuLink(page, "Aide");

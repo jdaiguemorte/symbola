@@ -3,6 +3,7 @@
 // /v1/events si ce module est extrait en app autonome.
 import { createHash, randomBytes } from "node:crypto";
 import { z } from "zod";
+import { parisDaysSince } from "@symbola/i18n";
 import { createUser, findAccountByEmail } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
 import { parseEnv } from "@symbola/env";
@@ -126,6 +127,7 @@ import type {
   EventDetail,
   EventsServiceContract,
   EventSummary,
+  StaleProspect,
   AcceptClientInvitationResult,
   ClientAccessStatus,
   ClientEventView,
@@ -174,6 +176,7 @@ export type {
   EventDetail,
   EventStatus,
   EventSummary,
+  StaleProspect,
   ListEventsInput,
   LossReason,
   ProspectSource,
@@ -254,6 +257,23 @@ export async function listEvents(input: ListEventsInput): Promise<EventSummary[]
     prospectSourceId: input.prospectSourceId,
   });
   return rows.map(({ event, clients }) => toEventSummary(event, clients));
+}
+
+// Lot 13 (HUB-15) — prospects sans nouvelle depuis au moins `days` jours
+// (aucune modification de la fiche, calendrier de Paris), hors essais,
+// pour le bloc « À traiter » de l'accueil.
+export async function listStaleProspects(organizationId: string, days: number, now: Date = new Date()): Promise<StaleProspect[]> {
+  const rows = await findEvents(organizationId, { statusIn: ["prospect"] });
+  return rows
+    .filter(({ event }) => !event.isDemo)
+    .map(({ event, clients }) => ({
+      eventId: event.id,
+      names: eventNames(clients),
+      lastUpdateAt: event.updatedAt,
+      daysSince: parisDaysSince(event.updatedAt, now),
+    }))
+    .filter((row) => row.daysSince >= days)
+    .sort((a, b) => b.daysSince - a.daysSince);
 }
 
 export async function getEvent(organizationId: string, eventId: string): Promise<EventDetail | null> {
@@ -1353,6 +1373,7 @@ const _contractCheck: EventsServiceContract = {
   getClientVendorQuoteFile,
   getClientSharedRibVendorId,
   listEvents,
+  listStaleProspects,
   getEvent,
   createProspect,
   changeEventStatus,

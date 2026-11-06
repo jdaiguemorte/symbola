@@ -8,6 +8,7 @@ import { createAppConnection } from "@symbola/db/client";
 import { parseEnv } from "@symbola/env";
 import { createStorageClient, deletePrivateObject, PrivateObjectNotFoundError, readPrivateObject, uploadFile } from "@symbola/files";
 import { sendMail } from "@symbola/mail";
+import { parisDaysSince } from "@symbola/i18n";
 import type {
   CatalogItem,
   FileDownload,
@@ -24,6 +25,7 @@ import type {
   QuoteLineInput,
   QuoteSettings,
   QuoteSummary,
+  QuoteAwaitingAnswer,
   QuotesServiceContract,
   QuoteTotalsView,
   QuoteVersionView,
@@ -104,6 +106,7 @@ import {
   findCatalogItems,
   findEventQuotes,
   findQuotes,
+  findSentQuotesWithSendDate,
   findQuoteAggregate,
   findQuoteAggregates,
   findQuoteSettings,
@@ -138,6 +141,7 @@ export type {
   QuoteSettings,
   QuoteStatus,
   QuoteSummary,
+  QuoteAwaitingAnswer,
   QuotesServiceContract,
   QuoteTotalsView,
   QuoteVersionView,
@@ -610,6 +614,18 @@ export async function listEventQuotes(organizationId: string, eventId: string): 
 }
 
 // Écran « Devis et factures » : tous les devis, les plus récents d'abord.
+// Lot 13 (HUB-15) — devis envoyés sans réponse depuis au moins `days`
+// jours (calendrier de Paris), pour le bloc « À traiter » de l'accueil.
+export async function listQuotesAwaitingAnswer(
+  organizationId: string,
+  days: number,
+  now: Date = new Date(),
+): Promise<QuoteAwaitingAnswer[]> {
+  return (await findSentQuotesWithSendDate(organizationId))
+    .map((row) => ({ quoteId: row.quote.id, number: row.quote.number, eventId: row.quote.eventId, sentAt: row.sentAt, daysSince: parisDaysSince(row.sentAt, now) }))
+    .filter((row) => row.daysSince >= days);
+}
+
 export async function listQuotes(organizationId: string): Promise<QuoteSummary[]> {
   return summarize(organizationId, await findQuotes(organizationId));
 }
@@ -1653,6 +1669,7 @@ const _contractCheck: QuotesServiceContract = {
   createQuote,
   listEventQuotes,
   listQuotes,
+  listQuotesAwaitingAnswer,
   getQuote,
   addQuoteLine,
   updateQuoteLine,
