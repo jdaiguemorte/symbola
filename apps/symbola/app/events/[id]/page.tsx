@@ -12,6 +12,7 @@ import {
 import {
   getEvent,
   getEventProgram,
+  getEventStatusDates,
   getTaskRecalculation,
   listEventActivity,
   listEventClientAccesses,
@@ -34,6 +35,8 @@ import { QUOTE_STATUS_LABEL_KEYS } from "@/app/devis/quote-display";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isEventsModuleEnabled, isValidId } from "../module-access";
 import { ChangeStatusForm } from "./change-status-form";
+import { NextStepBanner } from "./next-step-banner";
+import { nextStep } from "./next-step";
 import { endTrialAction } from "../trial-actions";
 import { revokeClientAccessAction } from "./client-access-actions";
 import { InviteClientForm } from "./client-access-forms";
@@ -204,7 +207,6 @@ export default async function EventDetailPage({
   const placeOptions = [...new Set([...places.map((place) => place.label), ...placeSuggestions.map((suggestion) => suggestion.label)])];
   // Lot 12 (EVT-13) : rétroplanning seulement pour un événement confirmé (ou réalisé).
   const retroplanningOpen = event.isDemo || event.status === "confirmed" || event.status === "done";
-  const proposeRetroplanning = (event.status === "confirmed") && tasks.length === 0 && templates.length > 0 && !event.isDemo;
 
   // EVT-03 : postes en tableau, détail du poste choisi dans un panneau.
   const toFind = vendorSlots.filter((slot) => slot.status !== "booked" && slot.status !== "not_required");
@@ -240,6 +242,23 @@ export default async function EventDetailPage({
     const values: Record<string, string> = { vue: taskView, qui: taskOwner, ...changes };
     return tabHref("retroplanning", values);
   };
+
+  // Lot 13 (EVT-19) : frise datée, prochaine étape, chiffres de la vue d'ensemble.
+  const statusDates = await getEventStatusDates(organizationId, id);
+  const step = nextStep({
+    status: event.status,
+    isDemo: event.isDemo,
+    quotesAvailable,
+    hasSentOrSignedQuote: quotes.some((quote) => quote.status !== "draft"),
+    taskCount: tasks.length,
+    templateCount: templates.length,
+    eventDate: event.eventDate,
+    programItemCount: program.items.length,
+    clientAccessCount: clientAccesses.length,
+    today,
+  });
+  const overviewBudget = tab === "apercu" && (await isBudgetModuleEnabled(organizationId)) ? await listBudgetLines(organizationId, id) : null;
+  const signedQuotesCents = quotes.filter((quote) => quote.status === "signed").reduce((sum, quote) => sum + quote.totalTtcCents, 0);
 
   // AIDE-05 : visite focus de la fiche, à la première ouverture.
   const tour = await loadPageTour(auth.user.id, "event", query.visite);
@@ -308,14 +327,27 @@ export default async function EventDetailPage({
         </section>
       ) : null}
 
-      {/* Lot 12 (EVT-12) : statut en étapes cliquables, visible sur tous les onglets. */}
-      <ChangeStatusForm eventId={event.id} currentStatus={event.status} reasons={reasons} />
-      {proposeRetroplanning && tab !== "retroplanning" ? (
-        <section className="card" aria-labelledby="propose-retro-title">
-          <h2 id="propose-retro-title">{t("proposeRetroplanningTitle")}</h2>
-          <p>{event.eventDate ? t("proposeRetroplanningBody") : t("taskTemplateNeedsDate")}</p>
-          {event.eventDate ? <ApplyTaskTemplateForm eventId={event.id} templates={templates} /> : null}
-        </section>
+      {/* Lot 13 (EVT-19) : frise datée du statut, visible sur tous les onglets. */}
+      <ChangeStatusForm eventId={event.id} currentStatus={event.status} reasons={reasons} dates={statusDates} eventDate={event.eventDate} locale={locale} />
+      {step && !(step === "apply_retroplanning" && tab === "retroplanning") ? (
+        <NextStepBanner storageKey={`symbola_prochaine_etape_${event.id}_${step}`} title={t(`nextStep.${step}.title`)} laterLabel={t("nextStepLater")}>
+          {step === "apply_retroplanning" ? (
+            <>
+              <p>{event.eventDate ? t("proposeRetroplanningBody") : t("taskTemplateNeedsDate")}</p>
+              {event.eventDate ? <ApplyTaskTemplateForm eventId={event.id} templates={templates} /> : null}
+            </>
+          ) : (
+            <>
+              <p>{t(`nextStep.${step}.body`)}</p>
+              <Link
+                href={tabHref(step === "send_quote" ? "devis" : step === "prepare_program" ? "programme" : "maries")}
+                className="button-link button-link-primary"
+              >
+                {t(`nextStep.${step}.action`)}
+              </Link>
+            </>
+          )}
+        </NextStepBanner>
       ) : null}
 
       <nav aria-label={t("eventTabsLabel")} className="tabs" data-tour="event-tabs">
@@ -331,6 +363,29 @@ export default async function EventDetailPage({
         <>
           <section className="card" aria-labelledby="overview-title" data-tour="event-overview">
             <h2 id="overview-title">{t("tabOverview")}</h2>
+            {/* Lot 13 (EVT-19) : l'essentiel en quatre chiffres, le détail dans les onglets. */}
+            <dl className="kpis">
+              {overviewBudget ? (
+                <div>
+                  <dt>{t("kpiPlanned")}</dt>
+                  <dd>{formatAmount(overviewBudget.totalPlannedCents, locale)}</dd>
+                </div>
+              ) : null}
+              <div>
+                <dt>{t("kpiBooked")}</dt>
+                <dd>{t("kpiBookedValue", { booked: progress.booked, required: progress.required })}</dd>
+              </div>
+              <div>
+                <dt>{t("kpiOverdue")}</dt>
+                <dd>{overdueCount}</dd>
+              </div>
+              {quotesAvailable ? (
+                <div>
+                  <dt>{t("kpiSigned")}</dt>
+                  <dd>{formatAmount(signedQuotesCents, locale)}</dd>
+                </div>
+              ) : null}
+            </dl>
             {/* EVT-03 : barre d'avancement en haut de la fiche. */}
             <p id="vendor-progress-label">
               {t("vendorProgress", { booked: progress.booked, required: progress.required })}

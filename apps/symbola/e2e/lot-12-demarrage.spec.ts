@@ -8,7 +8,7 @@ import { createOrganization, createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import * as OTPAuth from "otpauth";
 import { addDefaultVendorSlots, createProspect, createProspectSource, createTaskTemplate } from "../modules/events/service";
-import { clickMenuLink, readyOrganization } from "./helpers";
+import { clickMenuLink, readyOrganization, changeEventStatus } from "./helpers";
 
 async function expectNoAxeViolation(page: Page) {
   const result = await new AxeBuilder({ page }).analyze();
@@ -104,16 +104,16 @@ test("EVT-12 / EVT-13 / EVT-15 — statut en boutons, rétroplanning à la confi
   await page.goto(`/events/${event.id}?onglet=retroplanning`);
   await expect(page.locator("p.notice", { hasText: "Le rétroplanning démarre quand l'événement est confirmé" })).toBeVisible();
 
-  // Statut en étapes : un clic suffit, puis le rétroplanning est proposé.
-  const steps = page.getByRole("form", { name: "Statut de l'événement" });
-  await expect(steps.getByRole("button", { name: "Prospect" })).toHaveAttribute("aria-current", "step");
-  await steps.getByRole("button", { name: "Confirmé" }).click();
-  await expect(steps.getByRole("button", { name: "Confirmé" })).toHaveAttribute("aria-current", "step");
+  // Lot 13 (EVT-19) : frise du statut ; l'étape choisie se confirme, puis
+  // le rétroplanning est proposé.
+  const steps = page.getByRole("list", { name: "Statut de l'événement" });
+  await expect(steps.getByRole("listitem").filter({ hasText: "Prospect" })).toHaveAttribute("aria-current", "step");
+  await changeEventStatus(page, "Confirmé");
   // Sur l'onglet Rétroplanning, le modèle s'applique sur place ; ailleurs,
   // une carte le propose.
   await expect(page.getByRole("button", { name: "Appliquer le modèle" })).toBeVisible();
   await page.goto(`/events/${event.id}`);
-  await expect(page.getByText("L'événement est confirmé : appliquer le rétroplanning ?")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Prochaine étape : appliquer le rétroplanning" })).toBeVisible();
   await expectNoAxeViolation(page);
 
   // Lieux saisis une fois, proposés ensuite dans le programme.
@@ -160,5 +160,5 @@ test("HUB-13 — un clic sur une date libre de l'agenda crée un événement à 
   await page.getByLabel("Source du prospect").selectOption({ label: "Salon" });
   await page.getByRole("button", { name: "Créer l'événement" }).click();
   await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}$/);
-  await expect(page.getByRole("form", { name: "Statut de l'événement" }).getByRole("button", { name: "Confirmé" })).toHaveAttribute("aria-current", "step");
+  await expect(page.getByRole("list", { name: "Statut de l'événement" }).getByRole("listitem").filter({ hasText: "Confirmé" })).toHaveAttribute("aria-current", "step");
 });

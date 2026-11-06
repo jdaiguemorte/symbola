@@ -836,7 +836,42 @@
     "actionsColumn": "Actions",
     "edit": "Edit",
     "remove": "Remove",
-    "sourcesReasonsTitle": "Sources and reasons"
+    "sourcesReasonsTitle": "Sources and reasons",
+    "timelineAfter": "after {date}",
+    "timelineConfirmLabel": "Confirm the status change",
+    "timelineConfirm": "Move the event to “{status}”?",
+    "timelineConfirmButton": "Confirm",
+    "timelineCancel": "Cancel",
+    "markLost": "Mark as lost…",
+    "nextStepLater": "Later",
+    "nextStep": {
+      "send_quote": {
+        "title": "Next step: send the quote",
+        "body": "The prospect is waiting for your proposal. Draft the quote from this event and send it.",
+        "action": "Prepare the quote"
+      },
+      "apply_retroplanning": {
+        "title": "Next step: apply the retroplanning",
+        "body": "",
+        "action": ""
+      },
+      "prepare_program": {
+        "title": "Next step: prepare the wedding-day schedule",
+        "body": "The event is getting close and its schedule is empty. Start from a template or add the first moments.",
+        "action": "Open the schedule"
+      },
+      "invite_clients": {
+        "title": "Next step: invite the couple",
+        "body": "Give them access to their space: their tasks, the budget, the options you suggest.",
+        "action": "Invite the couple"
+      }
+    },
+    "kpiPlanned": "Planned budget",
+    "kpiBooked": "Lines booked",
+    "kpiBookedValue": "{booked} of {required}",
+    "kpiOverdue": "Overdue tasks",
+    "kpiSigned": "Signed quotes",
+    "timelineGoToPrefix": "Move to"
   },
   "Budget": {
     "title": "Budget",

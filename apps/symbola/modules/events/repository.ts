@@ -1492,6 +1492,23 @@ export async function toggleClientTask(
   }
 }
 
+// Lot 13 (EVT-19) — passages de statut d'un événement, du plus ancien au
+// plus récent, pour dater les étapes de la frise.
+export async function findEventStatusChanges(organizationId: string, eventId: string): Promise<{ toStatus: EventStatus; changedAt: Date }[]> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    return await withOrganization(db, organizationId, (tx) =>
+      tx
+        .select({ toStatus: eventStatusHistory.toStatus, changedAt: eventStatusHistory.changedAt })
+        .from(eventStatusHistory)
+        .where(eq(eventStatusHistory.eventId, eventId))
+        .orderBy(asc(eventStatusHistory.changedAt)),
+    );
+  } finally {
+    await pg.end();
+  }
+}
+
 export async function findEventActivity(
   organizationId: string,
   eventId: string,

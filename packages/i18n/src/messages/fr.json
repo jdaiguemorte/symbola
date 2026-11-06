@@ -836,7 +836,42 @@
     "actionsColumn": "Actions",
     "edit": "Modifier",
     "remove": "Retirer",
-    "sourcesReasonsTitle": "Sources et motifs"
+    "sourcesReasonsTitle": "Sources et motifs",
+    "timelineAfter": "après le {date}",
+    "timelineConfirmLabel": "Confirmer le changement de statut",
+    "timelineConfirm": "Passer l'événement en « {status} » ?",
+    "timelineConfirmButton": "Confirmer",
+    "timelineCancel": "Annuler",
+    "markLost": "Marquer perdu…",
+    "nextStepLater": "Plus tard",
+    "nextStep": {
+      "send_quote": {
+        "title": "Prochaine étape : envoyer le devis",
+        "body": "Le prospect attend votre proposition. Composez le devis depuis cet événement et envoyez-le.",
+        "action": "Préparer le devis"
+      },
+      "apply_retroplanning": {
+        "title": "Prochaine étape : appliquer le rétroplanning",
+        "body": "",
+        "action": ""
+      },
+      "prepare_program": {
+        "title": "Prochaine étape : préparer le programme du jour J",
+        "body": "L'événement approche et son programme est vide. Partez d'un modèle ou ajoutez les premiers moments.",
+        "action": "Ouvrir le programme"
+      },
+      "invite_clients": {
+        "title": "Prochaine étape : inviter les mariés",
+        "body": "Donnez-leur accès à leur espace : tâches à leur charge, budget, options proposées.",
+        "action": "Inviter les mariés"
+      }
+    },
+    "kpiPlanned": "Budget prévu",
+    "kpiBooked": "Lignes réservées",
+    "kpiBookedValue": "{booked} sur {required}",
+    "kpiOverdue": "Tâches en retard",
+    "kpiSigned": "Devis signés",
+    "timelineGoToPrefix": "Passer en"
   },
   "Budget": {
     "title": "Budget",

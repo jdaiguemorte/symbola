@@ -47,6 +47,7 @@ export type {
   EventStatus,
   EventSummary,
   StaleProspect,
+  EventStatusDates,
   ListEventsInput,
   LossReason,
   ProspectSource,

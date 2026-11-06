@@ -3,7 +3,7 @@
 // /v1/events si ce module est extrait en app autonome.
 import { createHash, randomBytes } from "node:crypto";
 import { z } from "zod";
-import { parisDaysSince } from "@symbola/i18n";
+import { parisDaysSince, parisToday } from "@symbola/i18n";
 import { createUser, findAccountByEmail } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
 import { parseEnv } from "@symbola/env";
@@ -22,6 +22,7 @@ import {
   findClientAccessByTokenHash,
   findClientEventIds,
   findEventActivity,
+  findEventStatusChanges,
   findEventClientAccesses,
   hasActiveClientAccess,
   markClientAccessAccepted,
@@ -128,6 +129,7 @@ import type {
   EventsServiceContract,
   EventSummary,
   StaleProspect,
+  EventStatusDates,
   AcceptClientInvitationResult,
   ClientAccessStatus,
   ClientEventView,
@@ -177,6 +179,7 @@ export type {
   EventStatus,
   EventSummary,
   StaleProspect,
+  EventStatusDates,
   ListEventsInput,
   LossReason,
   ProspectSource,
@@ -1183,6 +1186,14 @@ export async function setClientTaskDone(
   return toEventTask(result.task);
 }
 
+// Lot 13 (EVT-19) — date (calendrier de Paris) du dernier passage dans
+// chaque statut : la frise de la fiche affiche la date de chaque étape.
+export async function getEventStatusDates(organizationId: string, eventId: string): Promise<EventStatusDates> {
+  const dates: EventStatusDates = {};
+  for (const change of await findEventStatusChanges(organizationId, eventId)) dates[change.toStatus] = parisToday(change.changedAt);
+  return dates;
+}
+
 export async function listEventActivity(organizationId: string, eventId: string): Promise<EventActivity[]> {
   return (await findEventActivity(organizationId, eventId)).map(({ activity, actorEmail }) => ({
     id: activity.id,
@@ -1423,6 +1434,7 @@ const _contractCheck: EventsServiceContract = {
   getClientEventView,
   setClientTaskDone,
   listEventActivity,
+  getEventStatusDates,
   startEventsTrial,
   getActiveEventsTrial,
   endEventsTrial,

@@ -8,7 +8,7 @@ import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import * as OTPAuth from "otpauth";
-import { openEventTab, readyOrganization } from "./helpers";
+import { openEventTab, readyOrganization, changeEventStatus } from "./helpers";
 
 async function loginAndSetupMfa(page: Page, email: string, password: string) {
   await page.goto("/login");
@@ -75,7 +75,7 @@ test("EVT-04 — modèle de rétroplanning appliqué, recalcul des échéances e
   await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}$/);
   // Lot 12 (EVT-13) : le rétroplanning s'ouvre une fois l'événement confirmé.
   await page.waitForLoadState("networkidle");
-  await page.getByRole("form", { name: "Statut de l'événement" }).getByRole("button", { name: "Confirmé" }).click();
+  await changeEventStatus(page, "Confirmé");
   await expect(page.getByText("Statut mis à jour.")).toBeVisible();
   await openEventTab(page, "Rétroplanning");
   await expect(page.getByText("Ajoutez une date à l'événement pour appliquer un modèle de rétroplanning.")).toBeVisible();
