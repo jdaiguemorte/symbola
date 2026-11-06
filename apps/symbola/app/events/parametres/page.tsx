@@ -54,10 +54,7 @@ export default async function EventsSettingsPage({ searchParams }: { searchParam
       <p>{t("defaultVendorSlotsIntro")}</p>
 
       {lines.length === 0 ? (
-        <>
-          <p>{t("noDefaultVendorSlots")}</p>
-          <LoadStarterVendorSlotsForm />
-        </>
+        <p>{t("noDefaultVendorSlots")}</p>
       ) : (
         <ListTable
           label={t("defaultVendorSlotsTitle")}
@@ -94,7 +91,8 @@ export default async function EventsSettingsPage({ searchParams }: { searchParam
           ))}
         </ListTable>
       )}
-      {lines.length > 0 ? <LoadStarterVendorSlotsForm /> : null}
+      {/* Toujours au même endroit : son message de succès survit à l'apparition du tableau. */}
+      <LoadStarterVendorSlotsForm />
 
       {editing ? (
         <SidePanel title={t("editBudgetLine", { label: editing.label })} closeHref={BASE} closeLabel={tCommon("closePanel")}>
