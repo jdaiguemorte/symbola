@@ -15,6 +15,12 @@ import { AgendaPopovers } from "./agenda-popovers";
 
 const SPANS = [3, 6, 12] as const;
 
+// Vendredi, samedi, dimanche : menu aligné à droite de la date (lot 12).
+function alignEnd(date: string): boolean {
+  const weekday = new Date(`${date}T12:00:00Z`).getUTCDay();
+  return weekday === 0 || weekday >= 5;
+}
+
 function parseSpan(value: string | undefined): (typeof SPANS)[number] | null {
   const span = Number(value);
   return (SPANS as readonly number[]).includes(span) ? (span as (typeof SPANS)[number]) : null;
@@ -123,7 +129,7 @@ export async function AgendaBlock({
                 const names = span === 3 && cell.events.length > 0 ? <span className="agenda-names">{cell.events.map((event) => event.names).join(", ")}</span> : null;
                 if (cell.events.length === 0) {
                   return (
-                    <details key={cell.date} className={`${classes} agenda-create`}>
+                    <details key={cell.date} className={`${classes} agenda-create${alignEnd(cell.date) ? " align-end" : ""}`}>
                       <summary title={t("agendaCreateOn", { date: formatCalendarDate(cell.date, locale) })}>
                         {cell.day}
                         <span className="sr-only"> {t("agendaCreateOn", { date: formatCalendarDate(cell.date, locale) })}</span>
@@ -150,7 +156,7 @@ export async function AgendaBlock({
                 }
                 // Plusieurs événements ce week-end : une petite liste propose chacun.
                 return (
-                  <details key={cell.date} className={`${classes} agenda-multi`}>
+                  <details key={cell.date} className={`${classes} agenda-multi${alignEnd(cell.date) ? " align-end" : ""}`}>
                     <summary title={describe(cell)}>
                       {cell.day}
                       {names}

@@ -132,6 +132,8 @@ test("HUB-13 — un clic sur une date libre de l'agenda crée un événement à 
 
   await page.goto("/?agenda=3");
   const agenda = page.locator("[data-tour='home-agenda']");
+  // Aucun menu fermé ne reste affiché (image fantôme sous Safari, recette lot 12).
+  await expect(agenda.getByRole("link", { name: "Créer un prospect à cette date" }).first()).toBeHidden();
   // Un seul menu ouvert à la fois ; un clic ailleurs ou Échap le referme.
   const other = agenda.locator("details.agenda-create").nth(25);
   await other.locator("summary").click();
@@ -145,6 +147,7 @@ test("HUB-13 — un clic sur une date libre de l'agenda crée un événement à 
   await day.locator("summary").click();
   await page.keyboard.press("Escape");
   await expect(day).not.toHaveAttribute("open");
+  await expect(day.getByRole("link", { name: "Créer un prospect à cette date" })).toBeHidden();
   await day.locator("summary").click();
   await expectNoAxeViolation(page);
   await day.getByRole("link", { name: "Créer un événement à cette date" }).click();

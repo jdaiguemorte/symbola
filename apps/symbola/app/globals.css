@@ -681,6 +681,26 @@
   .agenda-create[open] > ul {
     @apply absolute top-full left-0 z-20 m-0 mt-1 flex w-56 list-none flex-col gap-1 rounded-xl border border-lin bg-card p-3 text-left text-sm shadow-lg;
   }
+  /* Fin de semaine : le menu s'ouvre vers la gauche, sans déborder sur le mois suivant. */
+  .agenda-multi.align-end[open] > ul,
+  .agenda-create.align-end[open] > ul {
+    @apply right-0 left-auto;
+  }
+  /* Menu fermé : retiré par display, que Safari redessine correctement.
+     Safari masque le contenu d'un <details> fermé par content-visibility et
+     laissait une image fantôme de la partie qui débordait de la case
+     (recette lot 12). */
+  .agenda-multi:not([open]) > ul,
+  .agenda-create:not([open]) > ul {
+    display: none;
+  }
+}
+
+/* Règle à part : un navigateur qui ne connaît pas ::details-content
+   l'ignore sans perdre les règles voisines. */
+.agenda-multi::details-content,
+.agenda-create::details-content {
+  content-visibility: visible;
 }
 
 @layer components {
