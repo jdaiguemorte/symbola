@@ -4,7 +4,7 @@ Retours de la recette du 05/11/2026 par la wedding planner pilote (avec captures
 principal : **elle n'a pas su par où commencer**. Les paramètres arrivent vides (« Aucun poste par
 défaut pour l'instant »), le vocabulaire (« postes ») n'est pas expliqué, la configuration est
 longue, et elle ne voit pas toujours que ce qu'elle saisit est enregistré. Les imports Wedding Plan
-font l'objet du lot 13.
+font l'objet du lot 14 (reporté après la refonte UX du lot 13).
 
 ## Décisions de Julien (05/11/2026)
 
@@ -23,7 +23,7 @@ font l'objet du lot 13.
   montants prévus. Voir EVT-17.
 - **Programme du jour J : une icône par prestataire concerné**, pour voir d'un coup d'œil qui
   intervient.
-- Découpage : lot 12 (ce document), puis lot 13 (imports Wedding Plan : prestataires en Excel,
+- Découpage : lot 12 (ce document), puis lot 14 (imports Wedding Plan, reporté après la refonte UX du lot 13 : prestataires en Excel,
   fiches événements en PDF avec `pdfjs-dist`, dépendance acceptée).
 
 ## ONB-03 — Assistant de démarrage pré-rempli (refonte d'ONB-01)
