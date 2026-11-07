@@ -100,7 +100,35 @@
     "modules": "Modules",
     "moduleEnabledLabel": "{module}: enabled (disable)",
     "moduleDisabledLabel": "{module}: disabled (enable)",
-    "listTitle": "All organisations"
+    "listTitle": "All organisations",
+    "newOrganization": "New organisation",
+    "filtersLabel": "Find an organisation",
+    "filter": "Filter",
+    "searchName": "Search by name",
+    "resultCount": "{count, plural, =0 {No organisation} one {# organisation} other {# organisations}}",
+    "noOrganization": "No organisation matches.",
+    "accounts": "Accounts",
+    "onboarding": "Getting started",
+    "lastLogin": "Last login",
+    "since": "since {month}",
+    "moduleNames": {
+      "hello": "Sample",
+      "events": "Events",
+      "budget": "Budget",
+      "quotes": "Quotes",
+      "vendors": "Vendors"
+    },
+    "onboardingDone": "{done} of {total} tutorials",
+    "notStarted": "Not started",
+    "roleOwner": "owner",
+    "roleMember": "member",
+    "mfaConfigured": "two-factor authentication set up",
+    "mfaPending": "two-factor authentication to set up",
+    "invitationPending": "Invitation sent, account not created yet.",
+    "noAccount": "No team account.",
+    "seeAccounts": "See accounts and invitations",
+    "lastLoginAt": "Last login: {date}",
+    "neverLoggedIn": "Nobody has logged in yet."
   },
   "AdminOrganizationForm": {
     "name": "Organization name",
@@ -714,7 +742,7 @@
     },
     "adminOrganizations": {
       "title": "Organisations",
-      "body": "Create an organisation and invite its owner, then enable or disable its modules. A disabled module is hidden or shown as \"unavailable\" to the organisation, never as an error.",
+      "body": "All organisations in a table: subscribed modules, team accounts, getting started and last login, 20 per page, with a search by name. A row opens its panel: enable or disable its modules (a disabled module is hidden or \"unavailable\" to the organisation, never an error), see its accounts and getting-started progress. \"New organisation\" creates it and invites its owner.",
       "faq": [
         {
           "q": "An organisation did not get its invitation?",
@@ -2025,7 +2053,6 @@
   },
   "AdminAccounts": {
     "title": "Accounts and support",
-    "backToAdmin": "Back to administration",
     "intro": "Team accounts of each organisation and pending invitations. Couples' accounts are not shown here.",
     "noAccount": "No account or invitation.",
     "accountsTable": "Accounts of {organization}",
@@ -2060,7 +2087,6 @@
   },
   "AdminActivity": {
     "title": "Organisation activity",
-    "backToAdmin": "Back to administration",
     "intro": "Usage statistics, without any client data: numbers only, guided trials excluded, over the last 6 months.",
     "empty": "No organisation.",
     "summaryOf": "Summary of {organization}",
@@ -2199,12 +2225,10 @@
   },
   "AdminOnboarding": {
     "title": "Organisations getting started",
-    "backToAdmin": "Back to administration",
     "intro": "Tours and tutorials followed by each team account. No event data: only progress in the help, to see who needs a hand.",
     "summary": "Getting-started indicators",
     "averageProgress": "Average progress",
     "recentDone": "Tutorials finished over 30 days",
-    "postponedTours": "Tours set aside",
     "empty": "No team account yet.",
     "tableOf": "Getting started of {organization}'s accounts",
     "account": "Account",
@@ -2994,5 +3018,11 @@
     "failed": "Failed on {date}",
     "stale": "None for over {hours} h",
     "none": "No backup reported"
+  },
+  "Pagination": {
+    "label": "Pagination",
+    "previous": "Previous page",
+    "next": "Next page",
+    "status": "Page {page} of {count}"
   }
 }

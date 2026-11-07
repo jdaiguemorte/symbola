@@ -1,7 +1,6 @@
 // Lot 9 (ADR 0029) — statistiques d'usage par organisation pour l'Admin :
 // des nombres seulement (comptes, connexions, événements, devis, factures par
 // mois), jamais un nom, un montant ni un contenu ; les essais sont exclus.
-import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import { ScreenHelp } from "@/app/screen-help";
 import { formatDateTime, formatMonth, type Locale } from "@symbola/i18n";
@@ -9,8 +8,10 @@ import { createAppConnection } from "@symbola/db/client";
 import { getOrganizationsActivity } from "@/modules/hub/service";
 import { requireAdmin } from "@/lib/require-admin";
 import { uniqueLabels } from "../unique-labels";
+import { AdminListPagination, AdminListSearch, filterByName } from "../admin-list";
+import { paginate } from "@/app/ui/pagination";
 
-export default async function AdminActivityPage() {
+export default async function AdminActivityPage({ searchParams }: { searchParams: Promise<{ q?: string; page?: string }> }) {
   await requireAdmin();
   const t = await getTranslations("AdminActivity");
   const tHelp = await getTranslations("Help");
@@ -24,18 +25,18 @@ export default async function AdminActivityPage() {
     await sql.end();
   }
 
-  const labels = uniqueLabels(organizations.map((organization) => organization.name));
+  const { q, page: pageParam } = await searchParams;
+  const page = paginate(filterByName(organizations, q), pageParam);
+  const labels = uniqueLabels(page.items.map((organization) => organization.name));
 
   return (
     <main>
       <h1>{t("title")}</h1>
       <ScreenHelp title={tHelp("adminActivity.title")} body={tHelp("adminActivity.body")} />
-      <p>
-        <Link href="/admin">{t("backToAdmin")}</Link>
-      </p>
       <p>{t("intro")}</p>
-      {organizations.length === 0 ? <p>{t("empty")}</p> : null}
-      {organizations.map((organization, position) => (
+      <AdminListSearch q={q} total={page.total} />
+      {page.items.length === 0 ? <p>{t("empty")}</p> : null}
+      {page.items.map((organization, position) => (
         <div key={organization.id} className="card">
           <h2>{organization.name}</h2>
           <ul aria-label={t("summaryOf", { organization: labels[position]! })}>
@@ -72,6 +73,7 @@ export default async function AdminActivityPage() {
           </div>
         </div>
       ))}
+      <AdminListPagination page={page} basePath="/admin/activite" q={q} />
     </main>
   );
 }

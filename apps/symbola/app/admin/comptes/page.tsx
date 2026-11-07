@@ -1,7 +1,6 @@
 // Lot 9 (ADR 0029) — état des comptes d'équipe et des invitations, par
 // organisation, avec les actions d'assistance. Aucune donnée métier, aucun
 // compte marié (seulement des nombres, sur l'écran Activité).
-import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import { ScreenHelp } from "@/app/screen-help";
 import { formatDateTime, type Locale } from "@symbola/i18n";
@@ -9,6 +8,8 @@ import { createAppConnection } from "@symbola/db/client";
 import { listOrganizationsSupport } from "@/modules/hub/service";
 import { requireAdmin } from "@/lib/require-admin";
 import { uniqueLabels } from "../unique-labels";
+import { AdminListPagination, AdminListSearch, filterByName } from "../admin-list";
+import { paginate } from "@/app/ui/pagination";
 import { resendInvitationAction, resetMfaAction } from "./actions";
 
 const RESULTS = ["invitation-envoyee", "double-authentification-reinitialisee", "e-mail-non-envoye", "confirmation-requise", "erreur"] as const;
@@ -20,12 +21,12 @@ const RESULT_KEYS = {
   erreur: "resultError",
 } as const;
 
-export default async function AdminAccountsPage({ searchParams }: { searchParams: Promise<{ resultat?: string }> }) {
+export default async function AdminAccountsPage({ searchParams }: { searchParams: Promise<{ resultat?: string; q?: string; page?: string }> }) {
   await requireAdmin();
   const t = await getTranslations("AdminAccounts");
   const tHelp = await getTranslations("Help");
   const locale = (await getLocale()) as Locale;
-  const { resultat } = await searchParams;
+  const { resultat, q, page: pageParam } = await searchParams;
   const result = RESULTS.find((candidate) => candidate === resultat);
   const now = new Date();
 
@@ -37,23 +38,22 @@ export default async function AdminAccountsPage({ searchParams }: { searchParams
     await sql.end();
   }
 
-  const labels = uniqueLabels(organizations.map((organization) => organization.name));
+  const page = paginate(filterByName(organizations, q), pageParam);
+  const labels = uniqueLabels(page.items.map((organization) => organization.name));
 
   return (
     <main>
       <h1>{t("title")}</h1>
       <ScreenHelp title={tHelp("adminAccounts.title")} body={tHelp("adminAccounts.body")} />
-      <p>
-        <Link href="/admin">{t("backToAdmin")}</Link>
-      </p>
       <p>{t("intro")}</p>
+      <AdminListSearch q={q} total={page.total} />
       {result ? (
         <p role={result === "erreur" || result === "e-mail-non-envoye" || result === "confirmation-requise" ? "alert" : "status"}>
           {t(RESULT_KEYS[result])}
         </p>
       ) : null}
 
-      {organizations.map((organization, position) => (
+      {page.items.map((organization, position) => (
         <div key={organization.id} className="card">
           <h2>{organization.name}</h2>
           {organization.accounts.length === 0 && organization.pendingInvitations.length === 0 ? <p>{t("noAccount")}</p> : null}
@@ -85,6 +85,8 @@ export default async function AdminAccountsPage({ searchParams }: { searchParams
                           {account.mfaConfigured ? (
                             <form action={resetMfaAction} className="inline-form">
                               <input type="hidden" name="userId" value={account.userId} />
+                              <input type="hidden" name="q" value={q ?? ""} />
+                              <input type="hidden" name="page" value={String(page.page)} />
                               <label>
                                 <input type="checkbox" name="confirm" required /> {t("resetMfaConfirm", { email: account.email })}
                               </label>
@@ -115,6 +117,8 @@ export default async function AdminAccountsPage({ searchParams }: { searchParams
                     </span>
                     <form action={resendInvitationAction} className="inline-form">
                       <input type="hidden" name="invitationId" value={invitation.id} />
+                      <input type="hidden" name="q" value={q ?? ""} />
+                      <input type="hidden" name="page" value={String(page.page)} />
                       <button type="submit">{t("resendInvitation", { email: invitation.email })}</button>
                     </form>
                   </li>
@@ -124,6 +128,7 @@ export default async function AdminAccountsPage({ searchParams }: { searchParams
           ) : null}
         </div>
       ))}
+      <AdminListPagination page={page} basePath="/admin/comptes" q={q} />
     </main>
   );
 }

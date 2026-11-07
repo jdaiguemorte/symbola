@@ -103,7 +103,7 @@ test("Lot 9 — l'Admin relance une invitation, réinitialise la double authenti
 
   await signIn(page, adminEmail, "mot-de-passe-admin-lot9");
   await setUpMfa(page);
-  await page.goto("/admin/organisations");
+  await page.goto("/admin/organisations?panneau=nouvelle");
   await page.getByLabel("Nom de l'organisation").fill(organizationName);
   await page.getByLabel("E-mail du titulaire").fill(ownerEmail);
   await page.getByRole("button", { name: "Créer et inviter" }).click();
@@ -111,9 +111,14 @@ test("Lot 9 — l'Admin relance une invitation, réinitialise la double authenti
   const firstLink = await waitForLink(ownerEmail, /https?:\/\/\S*\/invitations\/\S+/);
 
   // Comptes et assistance : l'invitation attend ; un nouvel envoi remplace le lien.
+  // Le panneau de création se ferme (plein écran sur téléphone) ; 20
+  // organisations par page : on la retrouve par son nom.
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("complementary", { name: "Créer une organisation" })).toHaveCount(0);
   await clickAdminMenuLink(page, "Comptes");
-  // L'écran liste toutes les organisations de la base de test (pagination : étape 7b).
-  await expect(page.getByRole("heading", { level: 1, name: "Comptes et assistance" })).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByRole("heading", { level: 1, name: "Comptes et assistance" })).toBeVisible();
+  await page.getByRole("search", { name: "Chercher une organisation" }).getByLabel("Rechercher par nom").fill(organizationName);
+  await expect(page).toHaveURL(/q=/);
   const section = page.locator(".card").filter({ has: page.getByRole("heading", { name: organizationName }) });
   await expect(section.getByRole("list", { name: `Invitations en attente de ${organizationName}` })).toContainText(ownerEmail);
   await expectNoAxeViolation(page);
@@ -154,7 +159,7 @@ test("Lot 9 — l'Admin relance une invitation, réinitialise la double authenti
   await ownerContext.close();
 
   // Activité : des nombres seulement.
-  await page.goto("/admin/activite");
+  await page.goto(`/admin/activite?q=${encodeURIComponent(organizationName)}`);
   const activity = page.locator(".card").filter({ has: page.getByRole("heading", { name: organizationName }) });
   await expect(activity.getByRole("list", { name: `Résumé de ${organizationName}` })).toContainText("1 compte d'équipe");
   await expect(activity.getByRole("list", { name: `Résumé de ${organizationName}` })).toContainText("1 compte connecté sur 30 jours");

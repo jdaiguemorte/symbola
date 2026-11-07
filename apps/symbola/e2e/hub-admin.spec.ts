@@ -75,6 +75,9 @@ test("HUB-03-01 — l'Admin crée une organisation, le titulaire accepte son inv
   await expect(page).toHaveURL("/admin");
 
   await page.goto("/admin/organisations");
+  // Lot 13 (HUB-17) : la création s'ouvre dans le panneau latéral.
+  await page.getByRole("link", { name: "Nouvelle organisation" }).click();
+  await expect(page.getByRole("complementary", { name: "Créer une organisation" })).toBeVisible();
   let violations = await new AxeBuilder({ page }).analyze();
   expect(violations.violations, JSON.stringify(violations.violations, null, 2)).toEqual([]);
 
@@ -148,10 +151,13 @@ test("HUB-03-03 — désactiver un module l'affiche « indisponible » sans erre
   // contient toutes les organisations créées par les autres tests : on
   // cible la ligne de celle-ci par son nom, pas un bouton générique).
   await loginAndSetupMfa(page, adminEmail, adminPassword);
-  await page.goto("/admin/organisations");
-  const row = page.getByRole("row", { name: organizationName });
-  await row.getByRole("button", { name: /hello : activé \(désactiver\)/ }).click();
-  await expect(row.getByRole("button", { name: /hello : désactivé \(activer\)/ })).toBeVisible();
+  // Lot 13 (HUB-17) : on retrouve l'organisation par son nom, ses modules
+  // s'activent dans son panneau.
+  await page.goto(`/admin/organisations?q=${encodeURIComponent(organizationName)}`);
+  await page.getByRole("link", { name: organizationName }).click();
+  const panel = page.getByRole("complementary", { name: organizationName });
+  await panel.getByRole("button", { name: /hello : activé \(désactiver\)/ }).click();
+  await expect(panel.getByRole("button", { name: /hello : désactivé \(activer\)/ })).toBeVisible();
 
   await page.goto("/admin/health");
   const violations = await new AxeBuilder({ page }).analyze();

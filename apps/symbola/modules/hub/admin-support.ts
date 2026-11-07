@@ -147,6 +147,7 @@ export async function resetTeamAccountMfa(
 export type OrganizationActivity = {
   id: string;
   name: string;
+  createdAt: Date;
   teamAccounts: number;
   clientAccounts: number;
   activeAccounts: number;
@@ -229,6 +230,7 @@ export async function getOrganizationsActivity(
     return {
       id: organization.id,
       name: organization.name,
+      createdAt: organization.createdAt,
       teamAccounts: accountCounts?.teamAccounts ?? 0,
       clientAccounts: accountCounts?.clientAccounts ?? 0,
       activeAccounts: accountCounts?.activeAccounts ?? 0,

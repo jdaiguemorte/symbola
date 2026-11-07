@@ -114,6 +114,7 @@ export {
   backupState,
   getAdminOverview,
   getBackupStatus,
+  listOrganizationModuleStates,
   type AdminOverview,
   type BackupRunView,
   type BackupState,

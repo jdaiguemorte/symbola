@@ -100,7 +100,35 @@
     "modules": "Modules",
     "moduleEnabledLabel": "{module} : activé (désactiver)",
     "moduleDisabledLabel": "{module} : désactivé (activer)",
-    "listTitle": "Toutes les organisations"
+    "listTitle": "Toutes les organisations",
+    "newOrganization": "Nouvelle organisation",
+    "filtersLabel": "Chercher une organisation",
+    "filter": "Filtrer",
+    "searchName": "Rechercher par nom",
+    "resultCount": "{count, plural, =0 {Aucune organisation} one {# organisation} other {# organisations}}",
+    "noOrganization": "Aucune organisation ne correspond.",
+    "accounts": "Comptes",
+    "onboarding": "Prise en main",
+    "lastLogin": "Dernière connexion",
+    "since": "depuis {month}",
+    "moduleNames": {
+      "hello": "Témoin",
+      "events": "Événements",
+      "budget": "Budget",
+      "quotes": "Devis",
+      "vendors": "Prestataires"
+    },
+    "onboardingDone": "{done} tutoriels sur {total}",
+    "notStarted": "Pas commencé",
+    "roleOwner": "titulaire",
+    "roleMember": "collaborateur",
+    "mfaConfigured": "double authentification configurée",
+    "mfaPending": "double authentification à configurer",
+    "invitationPending": "Invitation envoyée, compte pas encore créé.",
+    "noAccount": "Aucun compte d'équipe.",
+    "seeAccounts": "Voir les comptes et les invitations",
+    "lastLoginAt": "Dernière connexion : {date}",
+    "neverLoggedIn": "Personne ne s'est encore connecté."
   },
   "AdminOrganizationForm": {
     "name": "Nom de l'organisation",
@@ -714,7 +742,7 @@
     },
     "adminOrganizations": {
       "title": "Organisations",
-      "body": "Créez une organisation et invitez sa titulaire, puis activez ou désactivez ses modules. Un module désactivé est masqué ou affiché « indisponible » pour l'organisation, jamais en erreur.",
+      "body": "Toutes les organisations en tableau : modules souscrits, comptes d'équipe, prise en main et dernière connexion, 20 par page, avec une recherche par nom. Une ligne ouvre son panneau : activez ou désactivez ses modules (un module désactivé est masqué ou « indisponible » pour l'organisation, jamais en erreur), voyez ses comptes et sa prise en main. « Nouvelle organisation » la crée et invite sa titulaire.",
       "faq": [
         {
           "q": "Une organisation n'a pas reçu son invitation ?",
@@ -2025,7 +2053,6 @@
   },
   "AdminAccounts": {
     "title": "Comptes et assistance",
-    "backToAdmin": "Retour à l'administration",
     "intro": "Comptes de l'équipe de chaque organisation et invitations en attente. Les comptes des mariés n'apparaissent pas ici.",
     "noAccount": "Aucun compte ni invitation.",
     "accountsTable": "Comptes de {organization}",
@@ -2060,7 +2087,6 @@
   },
   "AdminActivity": {
     "title": "Activité des organisations",
-    "backToAdmin": "Retour à l'administration",
     "intro": "Statistiques d'usage, sans aucune donnée des clients : des nombres seulement, essais guidés exclus, sur les 6 derniers mois.",
     "empty": "Aucune organisation.",
     "summaryOf": "Résumé de {organization}",
@@ -2199,12 +2225,10 @@
   },
   "AdminOnboarding": {
     "title": "Prise en main des organisations",
-    "backToAdmin": "Retour à l'administration",
     "intro": "Visites et tutoriels suivis par chaque compte d'équipe. Aucune donnée d'événement : seulement la progression dans l'aide, pour savoir qui a besoin d'un coup de main.",
     "summary": "Indicateurs de prise en main",
     "averageProgress": "Progression moyenne",
     "recentDone": "Tutoriels terminés sur 30 jours",
-    "postponedTours": "Visites mises de côté",
     "empty": "Aucun compte d'équipe pour l'instant.",
     "tableOf": "Prise en main des comptes de {organization}",
     "account": "Compte",
@@ -2994,5 +3018,11 @@
     "failed": "Échec le {date}",
     "stale": "Aucune depuis plus de {hours} h",
     "none": "Aucune sauvegarde signalée"
+  },
+  "Pagination": {
+    "label": "Pagination",
+    "previous": "Page précédente",
+    "next": "Page suivante",
+    "status": "Page {page} sur {count}"
   }
 }

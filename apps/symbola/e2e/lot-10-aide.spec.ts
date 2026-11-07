@@ -113,6 +113,8 @@ test("HUB-11 — l'Admin voit la prise en main de chaque compte d'équipe", asyn
   await expect(page).toHaveURL("/admin");
   await clickAdminMenuLink(page, "Prise en main");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Prise en main des organisations");
+  // 20 organisations par page : on la retrouve par son nom.
+  await page.goto(`/admin/prise-en-main?q=${encodeURIComponent(organizationName)}`);
   const row = page.getByRole("row", { name: new RegExp(ownerEmail) });
   await expect(row).toContainText("1 sur 10");
   await expect(row).toContainText("Saisir son catalogue de prestations");
