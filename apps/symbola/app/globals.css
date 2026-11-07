@@ -720,6 +720,11 @@
     @apply grid gap-6;
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   }
+  /* Lot 14 (IMP-09) : les deux reprises côte à côte sur ordinateur. */
+  .takeover-cards {
+    @apply grid gap-4;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  }
 }
 
 @layer components {

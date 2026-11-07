@@ -216,7 +216,8 @@ export const TUTORIAL_SCRIPTS: Record<TutorialKey, TutorialScript> = {
           const baseline = new Set((env.context.baseline ?? "").split(",").filter(Boolean));
           const { sql, db } = createAppConnection();
           try {
-            return (await listImports(db, env.organizationId)).some((entry) => !baseline.has(entry.id));
+            // Lot 14 (IMP-09) : une fiche événement PDF déposée (la fiche d'exemple).
+            return (await listImports(db, env.organizationId)).some((entry) => !baseline.has(entry.id) && entry.entityType === "event_sheets");
           } finally {
             await sql.end();
           }

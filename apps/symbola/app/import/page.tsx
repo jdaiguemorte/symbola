@@ -12,7 +12,10 @@ import { NewImportForm } from "./new-import-form";
 
 // Lot 5 — import de données (PRD §7) : étape « fichier » et journal des
 // imports de l'organisation.
-export default async function ImportPage() {
+// Lot 14 (IMP-09) : les deux reprises depuis l'outil actuel, en premier.
+const TAKEOVER_TYPES = ["vendors", "event_sheets"] as const;
+
+export default async function ImportPage({ searchParams }: { searchParams: Promise<{ type?: string }> }) {
   const auth = await getPlannerAuthContext();
   if (auth.status === "unauthenticated") redirect("/login");
   if (auth.status === "mfa_required") redirect("/mfa");
@@ -24,7 +27,11 @@ export default async function ImportPage() {
   const tHelp = await getTranslations("Help");
   const locale = (await getLocale()) as Locale;
 
-  const entityTypes = await availableImportEntityTypes(organizationId);
+  const available = await availableImportEntityTypes(organizationId);
+  const takeovers = TAKEOVER_TYPES.filter((type) => available.includes(type));
+  const entityTypes = [...takeovers, ...available.filter((type) => !(TAKEOVER_TYPES as readonly string[]).includes(type))];
+  const requested = (await searchParams).type;
+  const preselected = entityTypes.find((type) => type === requested) ?? null;
   const { sql, db } = createAppConnection();
   let journal: ImportSummary[];
   let limits: ImportLimits;
@@ -39,11 +46,42 @@ export default async function ImportPage() {
       <h1>{t("title")}</h1>
       <ScreenHelp title={tHelp("importFile.title")} body={tHelp("importFile.body")} />
       <p>{t("intro")}</p>
+      {takeovers.length > 0 ? (
+        <section aria-labelledby="takeover-title" className="takeover">
+          <h2 id="takeover-title">{t("takeoverTitle")}</h2>
+          <p>{t("takeoverIntro")}</p>
+          <div className="takeover-cards">
+            {takeovers.map((type) => (
+              <article key={type} className="card" aria-labelledby={`takeover-${type}`}>
+                <h3 id={`takeover-${type}`}>{t(`takeover.${type}.title`)}</h3>
+                <p>{t(`takeover.${type}.how`)}</p>
+                <p className="muted">{t(`takeover.${type}.what`)}</p>
+                <p>
+                  <Link href={`/import?type=${type}#import-form`}>{t(`takeover.${type}.start`)}</Link>
+                </p>
+                {type === "event_sheets" ? (
+                  <p>
+                    <a href="/aide/exemples/fiche-evenement-exemple.pdf" download>
+                      {t("takeoverExampleSheet")}
+                    </a>
+                  </p>
+                ) : null}
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : null}
       <ImportSteps current={0} />
       {entityTypes.length === 0 ? (
         <p>{t("noModuleAvailable")}</p>
       ) : (
-        <NewImportForm entityTypes={entityTypes} maxSizeLabel={formatFileSize(limits.maxBytes, locale)} maxSheets={limits.maxSheets} />
+        <NewImportForm
+          key={preselected ?? "none"}
+          entityTypes={entityTypes}
+          defaultEntityType={preselected}
+          maxSizeLabel={formatFileSize(limits.maxBytes, locale)}
+          maxSheets={limits.maxSheets}
+        />
       )}
 
       <section aria-labelledby="import-journal">

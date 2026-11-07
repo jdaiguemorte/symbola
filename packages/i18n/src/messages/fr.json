@@ -619,7 +619,7 @@
     },
     "importFile": {
       "title": "Importer des données",
-      "body": "Choisissez ce que contient votre fichier (événements, tâches, budget, catalogue ou une liste), puis déposez-le : CSV, Excel (.xlsx) ou JSON. L'encodage, le séparateur et l'en-tête sont reconnus seuls ; les formules de tableur sont neutralisées. Rien n'est enregistré avant la dernière étape.",
+      "body": "Commencez par les reprises depuis votre outil actuel (prestataires en Excel, fiches événement en PDF), ou choisissez ce que contient votre tableau (événements, tâches, budget, catalogue ou une liste) : CSV, Excel (.xlsx) ou JSON. Encodage, séparateur et ligne d'en-tête sont détectés automatiquement ; les formules de tableur sont neutralisées. Rien n'est enregistré avant la dernière étape.",
       "faq": [
         {
           "q": "Que devient mon fichier ?",
@@ -1842,6 +1842,23 @@
       "timeout": "lecture trop longue",
       "not_event_sheet": "ce n'est pas une fiche événement de l'outil actuel",
       "infected": "fichier refusé par l'antivirus"
+    },
+    "takeoverTitle": "Reprendre vos données depuis votre outil actuel",
+    "takeoverIntro": "Vous utilisiez déjà un logiciel de planification ? Reprenez d'abord votre carnet de prestataires, puis vos événements : Symbola reconnaît ses exports et corrige leurs défauts courants (colonnes inversées, caractères mal codés, codes postaux tronqués).",
+    "takeoverExampleSheet": "Télécharger une fiche d'exemple (PDF fictif) pour essayer",
+    "takeover": {
+      "vendors": {
+        "title": "Reprendre mes prestataires",
+        "how": "Dans votre outil actuel, ouvrez la liste de vos prestataires et exportez-la au format Excel (.xlsx), sans retoucher le fichier.",
+        "what": "Chaque ligne devient une fiche du carnet : coordonnées, site et réseaux, SIRET ; les critères deviennent des étiquettes, les prestations vont dans la note. Les types sont rapprochés des vôtres ou créés.",
+        "start": "Importer mes prestataires"
+      },
+      "event_sheets": {
+        "title": "Reprendre mes événements",
+        "how": "Dans votre outil actuel, ouvrez chaque événement et téléchargez sa fiche en PDF. Déposez-les ensuite toutes en une fois.",
+        "what": "Chaque fiche devient un événement : mariés et leurs coordonnées, date, lieux et horaires, budget souhaité. Le statut est proposé d'après la date ; vous le changez dans l'aperçu.",
+        "start": "Importer mes fiches événement"
+      }
     }
   },
   "Privacy": {
@@ -2235,7 +2252,7 @@
       },
       "import": {
         "title": "Importer ses événements existants",
-        "description": "Importez un petit fichier d'exemple et vérifiez l'aperçu avant de confirmer."
+        "description": "Importez une fiche événement d'exemple (PDF fictif) et vérifiez l'aperçu avant de confirmer."
       },
       "vendor-quotes": {
         "title": "Comparer plusieurs devis pour une ligne du budget",
@@ -2560,7 +2577,7 @@
       "steps": [
         {
           "title": "Comprendre",
-          "body": "L'import reprend vos données existantes depuis un fichier (Excel, CSV ou JSON) : vous associez les colonnes, vérifiez un aperçu, puis confirmez. Un import se défait pendant 30 jours."
+          "body": "L'import reprend vos données existantes : les fiches événement en PDF de votre outil actuel, ou un tableau (Excel, CSV ou JSON). Vous vérifiez un aperçu, puis confirmez. Un import confirmé se défait pendant le délai d'annulation."
         },
         {
           "title": "Préparer",
@@ -2568,15 +2585,15 @@
         },
         {
           "title": "Commencer un import",
-          "body": "Ouvrez Importer des données et déposez un petit fichier de quelques lignes, par exemple un export de votre tableur. Allez jusqu'à l'aperçu."
+          "body": "Ouvrez Importer des données, téléchargez la fiche d'exemple (un PDF fictif) depuis « Reprendre mes événements », puis choisissez « Fiches événement (PDF) » et déposez-la. Allez jusqu'à l'aperçu."
         },
         {
           "title": "Vérifier avant de confirmer",
-          "body": "L'aperçu montre ce qui sera créé et les écarts détectés. Rien n'est enregistré tant que vous ne confirmez pas : si c'était un essai, abandonnez l'import."
+          "body": "L'aperçu montre l'événement qui sera créé, avec son statut proposé, et les fiches refusées avec leur motif. Rien n'est enregistré tant que vous ne confirmez pas : comme c'est un essai, abandonnez l'import."
         },
         {
           "title": "Terminer",
-          "body": "Vous savez reprendre vos données existantes."
+          "body": "Vous savez reprendre vos événements existants, une ou plusieurs fiches à la fois."
         }
       ]
     },
