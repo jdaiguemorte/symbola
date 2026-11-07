@@ -1015,8 +1015,42 @@
   .vendor-map-notice {
     @apply absolute right-3 bottom-3 left-3 m-0 rounded-[10px] bg-card px-3 py-2 text-sm text-muted;
   }
+  /* Lot 13 (PRE-12) : liste à gauche, carte à droite ; sur téléphone, l'un ou l'autre. */
   .vendor-book {
-    @apply grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)];
+    @apply mt-2 grid grid-cols-1 gap-0 overflow-hidden rounded-2xl border border-lin bg-card lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)];
+  }
+  .vendor-list {
+    @apply m-0 flex flex-col gap-2 rounded-none border-0 p-4 shadow-none lg:max-h-[640px] lg:overflow-y-auto lg:border-r lg:border-lin;
+  }
+  .vendor-map-pane {
+    @apply min-h-[420px] lg:sticky lg:top-0;
+  }
+  .vendor-book[data-view="liste"] .vendor-map-pane {
+    @apply max-lg:hidden;
+  }
+  .vendor-book[data-view="carte"] .vendor-list {
+    @apply max-lg:hidden;
+  }
+  .vendor-types {
+    @apply mb-4;
+  }
+  .vendor-view-switch {
+    @apply mt-3 lg:hidden;
+  }
+  .vendor-results > li[aria-current="true"] {
+    @apply rounded-xl bg-sauge-tint px-2;
+  }
+  .vendor-summary {
+    @apply m-0 grid gap-3;
+  }
+  .vendor-summary > div {
+    @apply grid gap-0.5;
+  }
+  .vendor-summary dt {
+    @apply text-xs text-muted;
+  }
+  .vendor-summary dd {
+    @apply m-0 text-[15px];
   }
   .vendor-results {
     @apply m-0 flex list-none flex-col p-0;

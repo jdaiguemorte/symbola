@@ -7,6 +7,7 @@
 // En mode « choisir un point » (fiche), un clic place le point et remplit
 // les champs latitude/longitude du formulaire.
 import { useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import type { GeoJSONSource, MapLayerMouseEvent, MapMouseEvent } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { circlePolygon, FONT, mapStyle, type MapAssets } from "@/lib/map/style";
@@ -29,8 +30,13 @@ const FRANCE: [[number, number], [number, number]] = [
   [9.6, 51.1],
 ];
 
+// Lot 13 (PRE-12) : la liste annonce la fiche survolée par cet événement ;
+// la carte met son repère en avant (et inversement).
+export const VENDOR_HOVER_EVENT = "symbola:vendor-hover";
+
 export function VendorMap({ points, assets, label, missingTilesNotice, around = null, pick = null }: Props) {
   const container = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   useEffect(() => {
     let disposed = false;
@@ -99,6 +105,24 @@ export function VendorMap({ points, assets, label, missingTilesNotice, around = 
           filter: ["!", ["has", "point_count"]],
           paint: { "circle-color": ["get", "color"], "circle-radius": 8, "circle-stroke-color": "#ffffff", "circle-stroke-width": 2 },
         });
+        // Lot 13 (PRE-12) : repère de la fiche survolée dans la liste.
+        map.addLayer({
+          id: "vendor-highlight",
+          type: "circle",
+          source: "vendors",
+          filter: ["==", ["get", "id"], ""],
+          paint: { "circle-color": ["get", "color"], "circle-radius": 13, "circle-stroke-color": "#2b2623", "circle-stroke-width": 3 },
+        });
+        const onHover = (event: Event) => {
+          const id = (event as CustomEvent<string | null>).detail ?? "";
+          if (map.getLayer("vendor-highlight")) map.setFilter("vendor-highlight", ["==", ["get", "id"], id]);
+        };
+        window.addEventListener(VENDOR_HOVER_EVENT, onHover);
+        const previousCleanup = cleanup;
+        cleanup = () => {
+          window.removeEventListener(VENDOR_HOVER_EVENT, onHover);
+          previousCleanup?.();
+        };
         map.on("click", "clusters", async (event: MapLayerMouseEvent) => {
           const feature = event.features?.[0];
           const source = map.getSource("vendors");
@@ -109,8 +133,14 @@ export function VendorMap({ points, assets, label, missingTilesNotice, around = 
         if (!pick) {
           map.on("click", "vendor-points", (event: MapLayerMouseEvent) => {
             const href = event.features?.[0]?.properties?.href;
-            if (typeof href === "string" && href.startsWith("/prestataires/")) window.location.assign(href);
+            // Lot 13 (PRE-12) : la fiche s'ouvre dans le panneau, la carte reste en place.
+            if (typeof href === "string" && href.startsWith("/prestataires")) router.push(href, { scroll: false });
           });
+          map.on("mouseenter", "vendor-points", (event: MapLayerMouseEvent) => {
+            const id = event.features?.[0]?.properties?.id;
+            if (typeof id === "string") window.dispatchEvent(new CustomEvent(VENDOR_HOVER_EVENT, { detail: id }));
+          });
+          map.on("mouseleave", "vendor-points", () => window.dispatchEvent(new CustomEvent(VENDOR_HOVER_EVENT, { detail: null })));
           for (const layer of ["clusters", "vendor-points"]) {
             map.on("mouseenter", layer, () => (map.getCanvas().style.cursor = "pointer"));
             map.on("mouseleave", layer, () => (map.getCanvas().style.cursor = ""));
