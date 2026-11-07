@@ -47,18 +47,18 @@ test("AIDE-11 / AIDE-03 — repères de l'accueil, aide consultable", async ({ p
 
   // Lot 13 (AIDE-11) : les repères de l'écran s'affichent d'office à la
   // première ouverture, sans bloquer l'écran.
-  const panel = landmarksPanel(page, "Tableau de bord");
+  const panel = landmarksPanel(page, "Accueil");
   await expect(panel).toBeVisible();
-  await expect(page.getByRole("button", { name: "Repère 1 : Bienvenue sur Symbola" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Repère 1 : L'agenda" })).toBeVisible();
   let violations = await new AxeBuilder({ page }).analyze();
   expect(violations.violations, JSON.stringify(violations.violations, null, 2)).toEqual([]);
 
   // Un clic dans la liste des repères l'explique (le repère du menu est
   // masqué sur téléphone, menu replié) ; « Repère suivant » les parcourt.
-  await panel.getByRole("button", { name: "Vos paramètres" }).click();
-  await expect(panel.getByRole("heading", { name: "Vos paramètres", level: 3 })).toBeVisible();
+  await panel.getByRole("button", { name: "Les paramètres" }).click();
+  await expect(panel.getByRole("heading", { name: "Les paramètres", level: 3 })).toBeVisible();
   await panel.getByRole("button", { name: "Repère suivant" }).click();
-  await expect(panel.getByRole("heading", { name: "De l'aide à tout moment", level: 3 })).toBeVisible();
+  await expect(panel.getByRole("heading", { name: "L'aide de l'écran", level: 3 })).toBeVisible();
   await expect(panel.getByRole("button", { name: "Repère suivant" })).toBeDisabled();
   await page.keyboard.press("Escape");
   await expect(panel).toHaveCount(0);
@@ -69,7 +69,7 @@ test("AIDE-11 / AIDE-03 — repères de l'accueil, aide consultable", async ({ p
   await expect(panel).toHaveCount(0);
   await page.getByRole("button", { name: "Aide sur cet écran" }).click();
   await expect(panel).toBeVisible();
-  await expect(panel.getByRole("heading", { name: "Bienvenue sur Symbola", level: 3 })).toBeVisible();
+  await expect(panel.getByRole("heading", { name: "L'agenda", level: 3 })).toBeVisible();
   await panel.getByRole("button", { name: "Fermer l'aide" }).click();
   await expect(panel).toHaveCount(0);
 
@@ -94,17 +94,20 @@ test("AIDE-11 / AIDE-03 — repères de l'accueil, aide consultable", async ({ p
   await expect(page.getByRole("heading", { name: "À traiter" })).toBeVisible();
   await expect(page.getByRole("complementary", { name: "Barre d'aide" })).toHaveCount(0);
 
-  // AIDE-03 : l'aide est consultable et cherchable depuis le hub.
+  // AIDE-03, AIDE-12 : le centre d'aide présente chaque écran en vignette,
+  // groupée par rubrique, et se cherche (l'aide, pas les données).
   await clickMenuLink(page, "Aide");
   await expect(page.getByRole("heading", { name: "Aide", level: 1 })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Événements" }).getByRole("link", { name: /Liste des événements/ })).toBeVisible();
   violations = await new AxeBuilder({ page }).analyze();
   expect(violations.violations, JSON.stringify(violations.violations, null, 2)).toEqual([]);
 
-  await expect(page.getByRole("heading", { name: "Administration" })).toBeVisible();
+  // L'aide de la console d'Administration n'est pas proposée à l'équipe.
+  await expect(page.getByRole("heading", { name: "Administration de la suite" })).toHaveCount(0);
   await page.getByLabel("Rechercher dans l'aide").fill("TVA");
-  await expect(page.getByRole("heading", { name: "Paramètres", exact: true })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Paramètres de la plateforme" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Administration" })).toBeHidden();
+  await expect(page.getByRole("link", { name: /Entreprise et TVA/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Liste des événements/ })).toHaveCount(0);
+  await expect(page.locator(".help-search").getByRole("status")).toContainText("Écrans trouvés");
 
   await page.getByLabel("Rechercher dans l'aide").fill("xyznotfound");
   await expect(page.getByText("Aucun article ne correspond à votre recherche.")).toBeVisible();

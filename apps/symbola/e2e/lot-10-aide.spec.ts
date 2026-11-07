@@ -46,7 +46,7 @@ test("AIDE-11 / AIDE-07 — repères de la fiche d'un événement, et centre d'a
   await page.getByRole("button", { name: "Valider" }).click();
   await expect(page).toHaveURL("/");
   // Les repères de l'accueil s'ouvrent d'eux-mêmes ; on les ferme.
-  await closeLandmarks(page, "Tableau de bord");
+  await closeLandmarks(page, "Accueil");
 
   // Fiche d'un événement : cinq repères, le premier choisi et son élément mis en avant.
   await page.goto(`/events/${eventId}`);
@@ -56,9 +56,9 @@ test("AIDE-11 / AIDE-07 — repères de la fiche d'un événement, et centre d'a
   await expect(page.locator("[data-tour='event-tabs']")).toHaveClass(/landmark-active/);
   await expectNoAxeViolation(page);
   // L'écran reste utilisable pendant que les repères sont affichés.
-  await expect(page.getByRole("button", { name: "Repère 1 : La fiche d'un événement" })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: "Repère 1 : Les onglets" })).toHaveAttribute("aria-pressed", "true");
   await panel.getByRole("button", { name: "Repère suivant" }).click();
-  await expect(panel.getByRole("heading", { name: "Vue d'ensemble", level: 3 })).toBeVisible();
+  await expect(panel.getByRole("heading", { name: "La vue d'ensemble", level: 3 })).toBeVisible();
   await expect(page.locator("[data-tour='event-overview']")).toHaveClass(/landmark-active/);
   await expect(page.locator("[data-tour='event-tabs']")).not.toHaveClass(/landmark-active/);
   await page.keyboard.press("Escape");
@@ -73,7 +73,8 @@ test("AIDE-11 / AIDE-07 — repères de la fiche d'un événement, et centre d'a
   // Centre d'aide : état des repères, préférence.
   await clickMenuLink(page, "Aide");
   const events = page.getByRole("region", { name: "Événements" });
-  await expect(events.getByRole("listitem").filter({ hasText: "Repères : La fiche d'un événement" })).toContainText("Repères vus");
+  await expect(events.getByRole("link", { name: /Fiche de l'événement/ })).toContainText("Repères vus");
+  await expect(events.getByRole("link", { name: /Liste des événements/ })).toContainText("À découvrir");
   await expectNoAxeViolation(page);
   await page.getByLabel("Afficher d'office les repères et proposer les tutoriels à la première ouverture d'un écran").uncheck();
   await expect

@@ -146,7 +146,12 @@ Chaque étape est livrée en une PR (tests, 375 px, axe-core), mise sur le stagi
 - Une vignette par écran, groupées par module, avec la capture réelle de l'écran et ses repères
   (décision D) ; chaque fiche : capture annotée, puis questions fréquentes.
 - Recherche dans l'aide (pas dans les données).
-- Les captures sont produites par un script Playwright sur des données fictives (ADR 0033).
+- Les captures sont produites par un script Playwright sur des données fictives (ADR 0033) :
+  `pnpm --filter @symbola/app help:captures` (socle démarré), 24 écrans de l'équipe ; les écrans
+  de l'Admin et des mariés n'ont pas de capture (ils montreraient une organisation).
+- Chaque public ne voit que ses écrans : l'équipe ceux de ses modules (données personnelles :
+  titulaire seulement), l'Admin la console, les mariés leur espace. Les écrans d'avant la
+  connexion n'ont leur aide que sur leur écran.
 
 ### AIDE-13 — Textes d'aide réécrits
 

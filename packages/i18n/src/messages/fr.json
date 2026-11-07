@@ -204,285 +204,469 @@
   "Tour": {
     "hub": [
       {
-        "title": "Bienvenue sur Symbola",
-        "body": "Ce tableau de bord est le point de départ : vous y retrouvez votre profil, vos paramètres et, selon vos droits, l'administration."
+        "title": "L'agenda",
+        "body": "Vos événements mois par mois. Cliquez une date libre pour y créer un prospect ou un événement."
       },
       {
-        "title": "Vos paramètres",
-        "body": "Votre fiche entreprise, votre régime de TVA et vos listes (lignes du budget, sources, motifs) se retrouvent ici. L'assistant de démarrage les a pré-remplis ; vous pouvez les ajuster à tout moment."
+        "title": "Les paramètres",
+        "body": "Votre entreprise, vos listes et vos modèles, rangés par rubrique."
       },
       {
-        "title": "De l'aide à tout moment",
-        "body": "Chaque écran a un bouton « ? » qui ouvre un article court sur ce que vous pouvez y faire. Vous pouvez aussi relancer cette visite depuis ce bouton."
+        "title": "L'aide de l'écran",
+        "body": "Ce bouton affiche les repères de l'écran où vous êtes. Le centre d'aide, dans le menu, présente tous les écrans."
       }
     ],
     "events": [
       {
-        "title": "Vos événements",
-        "body": "Cette liste rassemble vos prospects et vos événements à venir ; l'onglet « Terminés » garde les événements réalisés ou perdus. Filtrez par nom, année, statut ou source."
+        "title": "La liste",
+        "body": "Vos prospects et événements à venir ; cliquez une ligne pour ouvrir la fiche."
       },
       {
-        "title": "Créer un prospect",
-        "body": "« Nouveau prospect » demande seulement un prénom et la source du contact ; la date et le lieu se complètent plus tard."
+        "title": "Nouveau prospect",
+        "body": "Un prénom et la source du contact suffisent pour commencer."
       },
       {
-        "title": "La fiche d'un événement",
-        "body": "Sur la fiche, suivez le statut, le budget et ses prestataires, le rétroplanning et le programme du jour J, puis invitez vos clients à suivre leur préparation."
+        "title": "Les filtres",
+        "body": "Nom, statut, source, année : la liste se filtre à la saisie."
       },
       {
-        "title": "Vos modèles",
-        "body": "Retrouvez vos sources, motifs de perte et lignes du budget par défaut, ainsi que vos modèles de rétroplanning et de programme : tout est prêt depuis le démarrage, modifiez à votre guise."
+        "title": "Les réglages",
+        "body": "La roue crantée mène aux lignes du budget, sources et modèles."
       },
       {
-        "title": "Essayer sans risque",
-        "body": "L'essai guidé ouvre un événement fictif complet pour tout tester ; il est supprimé à la fin de l'essai. Relancez cette visite à tout moment avec le bouton « ? »."
+        "title": "L'essai guidé",
+        "body": "Un mariage fictif complet pour tout tester ; il est supprimé à la fin."
       }
     ],
     "quotes": [
       {
-        "title": "Votre catalogue",
-        "body": "Enregistrez ici vos prestations réutilisables : intitulé, unité, prix HT, taux de TVA et catégorie. Un article archivé reste sur les devis qui l'utilisent."
+        "title": "Le catalogue",
+        "body": "Vos prestations réutilisables, prêtes pour vos devis."
       },
       {
         "title": "Composer un devis",
-        "body": "Depuis la fiche d'un événement, « Créer un devis » attribue son numéro ; ajoutez articles, lignes libres et remises, les totaux se recalculent."
+        "body": "Depuis la fiche d'un événement : articles, lignes libres et remises."
       },
       {
         "title": "Acomptes et signature",
-        "body": "Prévoyez l'échéancier des acomptes, puis envoyez le devis en signature : chaque marié reçoit son lien par e-mail, l'événement passe en « Confirmé » à la signature."
+        "body": "Prévoyez les acomptes, puis envoyez le devis en signature."
       },
       {
         "title": "Factures et encaissements",
-        "body": "Depuis un devis signé, émettez les factures d'acompte et de solde ; suivez les encaissements à venir et préparez l'e-reporting période par période."
+        "body": "Depuis le devis signé : facture d'acompte, puis de solde."
       }
     ],
     "budget": [
       {
-        "title": "Vos modèles de budget",
-        "body": "Une répartition partage un budget total entre vos lignes du budget, en pourcentages qui font 100 %. Elle est facultative : elle sert à proposer des montants prévus."
+        "title": "Vos répartitions",
+        "body": "Des pourcentages par ligne pour proposer des montants prévus."
       },
       {
         "title": "Simuler un budget",
-        "body": "Sur la fiche d'un événement, « Proposer des montants prévus » part d'un total et du nombre d'invités, ajustable ligne par ligne."
+        "body": "Sur un événement : un total et un nombre d'invités, ajustables ligne par ligne."
       },
       {
         "title": "Prévu, réel, écart",
-        "body": "Une fois l'événement confirmé, la simulation devient le budget prévu ; saisissez le réel, joignez les devis des prestataires et suivez l'écart."
+        "body": "Saisissez le réel et joignez les devis pour suivre l'écart."
       },
       {
-        "title": "Partager avec vos clients",
-        "body": "Les mariés invités voient leur budget en lecture seule dans leur espace."
+        "title": "Avec les mariés",
+        "body": "Ils voient leur budget en lecture seule dans leur espace."
       }
     ],
     "event": [
       {
-        "title": "La fiche d'un événement",
-        "body": "Tout l'événement tient sur cette fiche, rangée en onglets : chacun regroupe une partie de la préparation."
+        "title": "Les onglets",
+        "body": "Vue d'ensemble, budget, rétroplanning, programme, mariés : chaque onglet regroupe une partie de la préparation."
       },
       {
-        "title": "Vue d'ensemble",
-        "body": "Le statut, la date, le lieu et le fil d'activité : l'essentiel en un coup d'œil. Changez le statut quand le client confirme."
+        "title": "La vue d'ensemble",
+        "body": "Le statut sur la frise, la prochaine étape et les quatre chiffres clés."
       },
       {
         "title": "Le rétroplanning",
-        "body": "Toutes les tâches de la préparation, mois par mois, avec qui les réalise. Partez d'un modèle : les échéances se calculent depuis la date de l'événement."
+        "body": "Les tâches mois par mois, à partir d'un modèle ; il démarre à la confirmation."
       },
       {
-        "title": "Les prestataires",
-        "body": "Le budget de l'événement (lieu, traiteur, photographe…) : prestataire, statut, prévu et réel. Vous voyez d'un coup d'œil ce qui reste à réserver."
+        "title": "Le budget",
+        "body": "Une ligne par prestation : prestataire, statut, prévu et réel."
       },
       {
-        "title": "Tout retrouver en un instant",
-        "body": "Tapez un nom de client, un numéro de devis ou une question dans la recherche : elle cherche dans toutes vos données."
+        "title": "La recherche",
+        "body": "Un nom de client, un numéro de devis ou un écran : elle cherche partout."
       }
     ],
     "vendors": [
       {
-        "title": "Vos types de prestataires",
-        "body": "Une pastille par type : lieu, hôtel, traiteur… Vous les créez et choisissez leurs champs dans les paramètres du carnet."
+        "title": "Les types",
+        "body": "Une pastille par type, avec le nombre de prestataires."
       },
       {
-        "title": "Filtrer et chercher autour d'un lieu",
-        "body": "Combinez caractéristiques, étiquettes et « déjà travaillé avec » ; donnez un lieu et un rayon pour trier par distance."
+        "title": "Les filtres",
+        "body": "Nom, lieu et distance, déjà retenus : la liste suit à la saisie."
       },
       {
-        "title": "Du plus proche au plus loin",
-        "body": "La liste suit la carte, avec un trajet estimé. Depuis une ligne du budget d'un événement, « Ajouter à la ligne » l'envoie dans les prestataires consultés."
+        "title": "La liste et la carte",
+        "body": "Survolez une fiche pour voir son repère sur la carte, et inversement."
       },
       {
-        "title": "Un prestataire, une fiche",
-        "body": "Créez la fiche une seule fois : vous la retrouverez à chaque événement, avec l'historique de vos prix."
+        "title": "Nouveau prestataire",
+        "body": "Une seule fiche par prestataire, retrouvée à chaque événement."
       }
     ]
   },
   "Help": {
     "login": {
-      "title": "Connexion",
-      "body": "Connectez-vous avec votre e-mail et votre mot de passe. Après plusieurs échecs, le compte est verrouillé temporairement pour le protéger."
+      "title": "Se connecter",
+      "body": "Saisissez l'e-mail et le mot de passe de votre compte, puis le code de votre application d'authentification. Après plusieurs essais manqués, le compte se bloque quelques minutes pour le protéger. Mot de passe oublié : utilisez le lien sous le formulaire."
     },
     "mfa": {
       "title": "Double authentification",
-      "body": "La première fois, scannez le code avec une application d'authentification (Google Authenticator, Authy…). Ensuite, saisissez simplement le code à 6 chiffres à chaque connexion."
+      "body": "La première fois, scannez le QR code avec une application d'authentification (Google Authenticator, Authy…). Ensuite, saisissez le code à 6 chiffres qu'elle affiche à chaque connexion."
     },
     "home": {
-      "title": "Tableau de bord",
-      "body": "C'est votre page d'accueil. Vous y accédez à votre profil, vos paramètres, et à l'administration si vous en avez les droits."
+      "title": "Accueil",
+      "body": "L'agenda de vos événements et le bloc « À traiter » : devis sans réponse, prospects sans nouvelle et acomptes attendus dans les 15 jours, chacun menant à sa fiche. Un clic sur une date libre de l'agenda crée un prospect ou un événement à cette date.",
+      "faq": [
+        {
+          "q": "Comment changer les délais de « À traiter » ?",
+          "a": "Dans Paramètres › Délais de relance : par défaut, un devis envoyé après 7 jours et un prospect sans nouvelle après 14 jours."
+        },
+        {
+          "q": "Où reprendre un tutoriel commencé ?",
+          "a": "La pastille « Reprendre » en bas à droite y mène ; la page Tutoriels montre tout le parcours."
+        }
+      ]
     },
     "settings": {
-      "title": "Paramètres",
-      "body": "Renseignez ici la fiche entreprise de votre organisation (SIREN, adresse, forme juridique, métier) et son régime de TVA."
+      "title": "Entreprise et TVA",
+      "body": "La fiche de votre entreprise (SIREN, adresse, forme juridique, métier) et votre régime de TVA. Ces informations figurent sur vos devis et factures. Les autres réglages sont rangés par rubrique dans le menu de gauche.",
+      "faq": [
+        {
+          "q": "Je passe de la franchise à la TVA : que faire ?",
+          "a": "Changez le régime ici : les nouveaux devis et factures appliquent le taux ; les documents déjà émis ne changent pas."
+        }
+      ]
     },
     "admin": {
       "title": "Administration",
-      "body": "Créez des organisations, invitez leur titulaire, et activez ou désactivez leurs modules. Cette page n'affiche aucune donnée métier des organisations."
+      "body": "Créez des organisations, invitez leur titulaire, et activez ou désactivez leurs modules. Cette console n'affiche aucune donnée métier des organisations.",
+      "faq": [
+        {
+          "q": "Une organisation n'a pas reçu son invitation ?",
+          "a": "Renvoyez-la depuis Comptes : un nouveau lien part et l'ancien est désactivé."
+        }
+      ]
     },
     "adminSettings": {
-      "title": "Paramètres de la plateforme",
-      "body": "Ces seuils de franchise en base de TVA s'appliquent à toutes les organisations et doivent être mis à jour selon la réglementation en vigueur."
+      "title": "Réglages de la suite",
+      "body": "Les valeurs réglementaires communes à toutes les organisations, comme les seuils de franchise en base de TVA. Mettez-les à jour quand la réglementation change."
     },
     "adminHealth": {
       "title": "Santé",
-      "body": "Cette page indique si l'application répond et sa version déployée, pour vérifier rapidement l'état du service."
+      "body": "Indique si l'application répond et sa version déployée, pour vérifier rapidement l'état du service."
     },
     "invitation": {
-      "title": "Créer mon compte",
-      "body": "Ce lien d'invitation est personnel et à usage unique. Choisissez un mot de passe pour activer votre compte."
+      "title": "Créer votre compte",
+      "body": "Ce lien d'invitation est personnel et ne sert qu'une fois. Choisissez votre mot de passe : vous configurerez ensuite la double authentification."
     },
     "profile": {
-      "title": "Mon profil",
-      "body": "Choisissez la langue dans laquelle Symbola s'affiche pour vous."
+      "title": "Mon compte et la sécurité",
+      "body": "Choisissez la langue dans laquelle Symbola s'affiche pour vous. Votre mot de passe et votre double authentification protègent votre compte.",
+      "faq": [
+        {
+          "q": "Comment changer mon mot de passe ?",
+          "a": "Déconnectez-vous, puis utilisez « Mot de passe oublié » sur l'écran de connexion : un lien vous permet d'en choisir un nouveau."
+        },
+        {
+          "q": "J'ai changé de téléphone : comment refaire la double authentification ?",
+          "a": "Demandez à l'opérateur de la suite de la réinitialiser : vous recevrez un e-mail et scannerez un nouveau QR code à la connexion suivante."
+        },
+        {
+          "q": "Comment ajouter quelqu'un à mon équipe ?",
+          "a": "Les comptes d'équipe sont créés par l'opérateur de la suite ; la personne reçoit une invitation personnelle par e-mail."
+        }
+      ]
     },
     "eventsList": {
       "title": "Liste des événements",
-      "body": "Retrouvez ici vos prospects et vos mariages à venir, ou terminés dans l'onglet « Terminés ». Filtrez par nom, année ou statut, puis ouvrez un événement pour voir sa fiche. La visite guidée se relance avec le bouton « ? », et l'essai guidé ouvre un mariage fictif pour tout tester."
+      "body": "Tous vos prospects et événements à venir, en tableau. Filtrez à la saisie par nom, statut, source ou année ; « Terminés » garde les événements réalisés ou perdus. Cliquez une ligne pour ouvrir la fiche, ou « Nouveau prospect » pour en créer un. L'essai guidé ouvre un mariage fictif pour tout tester sans risque.",
+      "faq": [
+        {
+          "q": "Où retrouver un événement passé ?",
+          "a": "Dans « Terminés », en haut de la liste : il garde les événements réalisés et perdus, avec les mêmes filtres."
+        },
+        {
+          "q": "Pourquoi une année manque-t-elle dans le filtre ?",
+          "a": "Le filtre ne propose que les années où vous avez des événements, plus l'année en cours et la suivante."
+        },
+        {
+          "q": "L'essai guidé laisse-t-il des traces ?",
+          "a": "Non : le mariage fictif est marqué « essai », exclu des statistiques et des exports, et supprimé à la fin de l'essai."
+        }
+      ]
     },
     "eventsNew": {
       "title": "Nouveau prospect",
-      "body": "Saisissez au moins le prénom d'un marié et la source du prospect (par où il vous a connu). La date et le lieu peuvent être complétés plus tard."
+      "body": "Un prénom de marié et la source du contact suffisent ; la date et le lieu se complètent plus tard. Depuis l'agenda, un clic sur une date libre ouvre ce formulaire avec la date déjà remplie.",
+      "faq": [
+        {
+          "q": "Quelle différence entre prospect et événement ?",
+          "a": "Un prospect n'a pas encore signé. Il devient un événement confirmé quand vous changez son statut sur la frise de sa fiche, ou à la signature du devis."
+        },
+        {
+          "q": "Une source manque dans la liste ?",
+          "a": "Ajoutez-la dans Paramètres › Sources et motifs ; elle sera proposée aussitôt."
+        }
+      ]
     },
     "eventsDetail": {
       "title": "Fiche de l'événement",
-      "body": "Suivez ici l'avancement de l'événement (prospect, devis envoyé, confirmé, réalisé ou perdu) et son budget : chaque ligne (lieu, traiteur…) a son prestataire, son statut, son prévu et son réel ; la barre du haut compte les lignes réservées sur les lignes requises. Une ligne réservée demande le nom du prestataire ; le montant est facultatif. Le rétroplanning démarre quand l'événement est confirmé : appliquez un modèle, ajoutez, cochez ou réordonnez les tâches. Si la date de l'événement change, l'app propose de décaler les échéances des tâches non faites. Le programme du jour J liste les moments par heure, avec l'icône de chaque prestataire concerné ; l'app signale, sans bloquer, un intervenant prévu sur deux moments qui se chevauchent. Exportez-le en PDF : version clients (sans les notes internes) ou prestataires. Invitez vos clients à suivre leur événement depuis l'onglet « Clients »."
+      "body": "Tout l'événement tient sur cette fiche, en onglets. La frise du haut montre le statut et la date de chaque étape : cliquez l'étape suivante pour avancer. Le bandeau « Prochaine étape » propose ce qui reste à faire (envoyer le devis, appliquer le rétroplanning, préparer le programme, inviter les mariés). La vue d'ensemble résume le budget, les lignes réservées, les tâches en retard et le devis signé ; le détail d'une ligne du budget s'ouvre dans le panneau de droite.",
+      "faq": [
+        {
+          "q": "Comment marquer un événement perdu ?",
+          "a": "Avec le lien « Marquer perdu… » sous la frise : il demande le motif, qui sert à vos statistiques."
+        },
+        {
+          "q": "Le rétroplanning est vide, pourquoi ?",
+          "a": "Il démarre quand l'événement est confirmé : appliquez alors un modèle depuis l'onglet Rétroplanning."
+        },
+        {
+          "q": "La date change : que deviennent les tâches ?",
+          "a": "L'app propose de décaler les échéances des tâches non faites ; rien ne bouge sans votre accord."
+        },
+        {
+          "q": "Que voient les mariés ?",
+          "a": "Leurs tâches, le programme et le budget en lecture seule, jamais vos notes internes. Invitez-les depuis l'onglet Mariés."
+        }
+      ]
     },
     "eventsSettings": {
-      "title": "Paramètres des événements",
-      "body": "Retrouvez vos sources de prospect (salon, Instagram, bouche-à-oreille…), vos motifs de perte, et les lignes du budget que reçoit chaque nouvel événement, avec leur icône. Elles ont été préparées au démarrage selon votre métier : adaptez-les librement."
+      "title": "Lignes du budget",
+      "body": "Les lignes que reçoit chaque nouvel événement (lieu, traiteur, photographe…), avec leur icône et leur ordre. Elles ont été préparées au démarrage selon votre métier : ajoutez, renommez ou réordonnez-les dans le tableau ; une ligne s'ouvre dans le panneau de droite.",
+      "faq": [
+        {
+          "q": "Changer une ligne modifie-t-il les événements existants ?",
+          "a": "Non : seuls les nouveaux événements reçoivent la liste modifiée ; ajoutez la ligne à la main sur un événement déjà créé."
+        },
+        {
+          "q": "Où sont les sources et les motifs de perte ?",
+          "a": "Dans Paramètres › Sources et motifs, juste en dessous dans le menu."
+        }
+      ]
     },
     "eventsTemplates": {
       "title": "Modèles de rétroplanning",
-      "body": "Créez vos modèles de rétroplanning, ou chargez le modèle de départ puis adaptez-le. Chaque tâche se place par rapport à la date de l'événement : J-365, J-30, jour J… Un modèle s'applique depuis la fiche d'un événement daté."
+      "body": "Vos listes de tâches types, placées par rapport à la date de l'événement (J-365, J-30, jour J…). Partez du modèle de départ ou créez le vôtre ; un modèle s'applique depuis la fiche d'un événement confirmé et daté.",
+      "faq": [
+        {
+          "q": "Modifier un modèle change-t-il les événements en cours ?",
+          "a": "Non : un modèle est copié dans l'événement au moment où vous l'appliquez ; les événements déjà préparés ne bougent pas."
+        }
+      ]
     },
     "eventsProgramTemplates": {
       "title": "Modèles de programme",
-      "body": "Préparez vos déroulés types du jour J, ou chargez le modèle de départ puis adaptez-le. Un modèle s'applique depuis la fiche d'un événement : ses moments s'ajoutent au programme, et les intervenants qui portent le nom d'une ligne du budget de l'événement y sont reliés."
+      "body": "Vos déroulés types du jour J, moment par moment. Un modèle s'applique depuis l'onglet Programme d'un événement : ses moments s'ajoutent, et les intervenants qui portent le nom d'une ligne du budget y sont reliés.",
+      "faq": [
+        {
+          "q": "Peut-on télécharger le programme ?",
+          "a": "Oui, depuis la fiche de l'événement : en PDF, version mariés (sans notes internes) ou version prestataires."
+        }
+      ]
     },
     "clientInvitation": {
-      "title": "Création de votre compte",
-      "body": "Ce compte est personnel : chaque marié a le sien. Le lien d'invitation est valable 7 jours ; s'il a expiré, demandez-en un nouveau à votre planner."
+      "title": "Créer votre compte",
+      "body": "Chaque marié a son propre compte. Le lien d'invitation est valable 7 jours ; s'il a expiré, demandez-en un nouveau à votre organisatrice."
     },
     "clientSpace": {
       "title": "Votre espace",
-      "body": "Retrouvez ici les mariages que votre planner partage avec vous. Ouvrez-en un pour suivre le rétroplanning, cocher vos tâches et consulter le programme du jour J."
+      "body": "Les mariages que votre organisatrice partage avec vous. Ouvrez-en un pour suivre la préparation."
     },
     "clientEvent": {
       "title": "Suivre la préparation",
-      "body": "Les tâches « À faire par vous » se cochent quand elles sont faites : votre organisatrice le voit aussitôt. Les autres sont suivies par votre organisatrice. Le programme du jour J se télécharge en PDF. Le budget (prévu, réel, écart par ligne) s'affiche aussi, en lecture seule, dès qu'il a été préparé."
+      "body": "Cochez les tâches « À faire par vous » une fois faites : votre organisatrice le voit aussitôt. Retrouvez aussi le programme du jour J, à télécharger en PDF, et le budget en lecture seule dès qu'il est préparé."
     },
     "clientSecurity": {
       "title": "Double authentification",
       "body": "Facultative pour votre compte. Une fois activée, un code de votre application d'authentification vous est demandé à chaque connexion."
     },
     "budgetSettings": {
-      "title": "Modèles de budget",
-      "body": "Une répartition (un pourcentage par ligne du budget, total 100 %) propose des montants prévus à partir d'un total. Elle est facultative : le budget d'un événement existe dès sa création."
+      "title": "Répartition du budget",
+      "body": "Une répartition partage un budget total entre vos lignes, en pourcentages qui font 100 %. Elle sert à proposer des montants prévus ; elle est facultative, le budget d'un événement existe dès sa création.",
+      "faq": [
+        {
+          "q": "Faut-il une répartition par type de mariage ?",
+          "a": "C'est utile si vos mariages se ressemblent par gamme : créez-en plusieurs et choisissez la bonne sur chaque budget."
+        }
+      ]
     },
     "budgetDetail": {
       "title": "Budget de l'événement",
-      "body": "Saisissez le budget total et le nombre d'invités, choisissez une répartition : vous obtenez un montant prévu par ligne et le coût par invité. Ajustez une ligne à la main si besoin, le reste à répartir se recalcule aussitôt. Joignez le devis d'un prestataire à sa ligne (PDF ou image, 20 Mo maximum) : il est vérifié par l'antivirus et s'ouvre par un lien temporaire."
+      "body": "Saisissez le budget total et le nombre d'invités, choisissez une répartition : vous obtenez un montant prévu par ligne et le coût par invité. Ajustez une ligne à la main, le reste à répartir se recalcule. Saisissez ensuite le réel et joignez le devis de chaque prestataire (PDF ou image, 20 Mo au plus) pour suivre l'écart.",
+      "faq": [
+        {
+          "q": "Les mariés voient-ils le budget ?",
+          "a": "Oui, en lecture seule dans leur espace, dès qu'il est préparé."
+        },
+        {
+          "q": "Où sont rangés les devis joints ?",
+          "a": "Dans un stockage privé, après vérification par l'antivirus ; ils s'ouvrent par un lien temporaire."
+        }
+      ]
     },
     "quotesCatalog": {
       "title": "Catalogue des prestations",
-      "body": "Vos articles réutilisables : intitulé, unité, prix HT, taux de TVA et catégorie. Un article archivé disparaît du choix mais reste sur les devis qui l'utilisent."
+      "body": "Vos prestations réutilisables : intitulé, unité, prix HT, taux de TVA et catégorie. Elles se retrouvent prêtes à l'emploi dans vos devis. Un article archivé disparaît du choix mais reste sur les devis qui l'utilisent.",
+      "faq": [
+        {
+          "q": "Changer un prix modifie-t-il les devis envoyés ?",
+          "a": "Non : le prix est copié dans le devis au moment où vous ajoutez l'article."
+        }
+      ]
     },
     "quotesSettings": {
-      "title": "Paramètres des devis",
-      "body": "Durée de validité par défaut et préfixes des séries de numérotation (devis, factures, avoirs). Les numéros sont attribués par année, sans trou."
+      "title": "Devis et factures",
+      "body": "La durée de validité par défaut de vos devis et les préfixes des séries de numérotation (devis, factures, avoirs). Les numéros sont attribués par année, sans trou.",
+      "faq": [
+        {
+          "q": "Puis-je reprendre ma numérotation actuelle ?",
+          "a": "Oui : choisissez le préfixe de vos séries ; les numéros suivent ensuite, année par année."
+        }
+      ]
     },
     "quotesDetail": {
       "title": "Composer un devis",
-      "body": "Ajoutez des articles du catalogue ou des lignes libres, ajustez quantités, descriptions et remises : les totaux se recalculent. Une fois envoyée, une version est figée ; pour la modifier, créez une nouvelle version."
+      "body": "Ajoutez des articles du catalogue ou des lignes libres, ajustez quantités et remises : les totaux se recalculent. Prévoyez l'échéancier des acomptes, puis envoyez le devis en signature : l'événement passe en « Confirmé » à la signature. Une version envoyée est figée ; pour la changer, créez une nouvelle version.",
+      "faq": [
+        {
+          "q": "Comment facturer un acompte ?",
+          "a": "Sur le devis signé, émettez la facture d'acompte de l'échéance, puis celle du solde à la fin."
+        },
+        {
+          "q": "Une facture émise peut-elle être modifiée ?",
+          "a": "Non, elle est définitive : corrigez-la par un avoir, qui garde la numérotation sans trou."
+        }
+      ]
     },
     "quotesPayments": {
       "title": "Encaissements à venir",
-      "body": "Les échéances non payées des devis envoyés ou signés, triées par date, avec un total par mois. Une échéance dépassée est signalée « En retard » et remonte au tableau de bord. Les essais n'y figurent jamais."
+      "body": "Les échéances non payées de vos devis envoyés ou signés, triées par date, avec un total par mois. Une échéance dépassée est signalée « En retard » et remonte dans « À traiter » sur l'accueil.",
+      "faq": [
+        {
+          "q": "Les essais guidés comptent-ils ?",
+          "a": "Non, leurs échéances n'apparaissent jamais ici."
+        }
+      ]
     },
     "quotesEReporting": {
       "title": "E-reporting",
-      "body": "Pour vos clients particuliers, la facture électronique n'est pas obligatoire mais certaines données sont à déclarer sur votre plateforme agréée (à partir du 1er septembre 2027). Choisissez une période, vérifiez les totaux puis téléchargez l'export."
+      "body": "Pour vos clients particuliers, certaines données de facturation sont à déclarer sur votre plateforme agréée (à partir du 1er septembre 2027). Choisissez une période, vérifiez les totaux puis téléchargez l'export à déposer.",
+      "faq": [
+        {
+          "q": "Dois-je envoyer des factures électroniques à mes mariés ?",
+          "a": "Non : pour des particuliers, seule la déclaration des données (e-reporting) est demandée."
+        }
+      ]
     },
     "importFile": {
       "title": "Importer des données",
-      "body": "Choisissez ce que contient votre fichier (événements, tâches, budget, catalogue ou une liste), puis déposez-le : CSV, Excel (.xlsx) ou JSON. L'encodage, le séparateur et la ligne d'en-tête sont reconnus seuls ; les formules de tableur sont neutralisées. Le fichier est analysé par l'antivirus puis oublié : seules ses lignes sont gardées, le temps de finir l'import. Rien n'est enregistré dans vos modules avant la dernière étape."
+      "body": "Choisissez ce que contient votre fichier (événements, tâches, budget, catalogue ou une liste), puis déposez-le : CSV, Excel (.xlsx) ou JSON. L'encodage, le séparateur et l'en-tête sont reconnus seuls ; les formules de tableur sont neutralisées. Rien n'est enregistré avant la dernière étape.",
+      "faq": [
+        {
+          "q": "Que devient mon fichier ?",
+          "a": "Il est vérifié par l'antivirus puis oublié : seules ses lignes sont gardées, le temps de finir l'import."
+        }
+      ]
     },
     "importColumns": {
       "title": "Reconnaître les colonnes",
-      "body": "Chaque colonne de votre fichier reçoit une proposition de champ, d'après son intitulé (en français ou en anglais) et son contenu (dates, montants, e-mails). L'indice de confiance dit à quel point la proposition est sûre : sous le seuil, cochez la case de confirmation ou choisissez un autre champ. Une colonne « sans équivalent » sera proposée au rapport des écarts, pour la garder en champ libre sur la fiche ou l'ignorer. Les dates (31/12/2026, 31.12.2026, 2026-12-31) et montants (1 234,56 €) au format français sont reconnus."
+      "body": "Chaque colonne reçoit une proposition de champ, d'après son intitulé et son contenu, avec un indice de confiance. Sous le seuil, confirmez ou choisissez un autre champ. Une colonne sans équivalent pourra être gardée en champ libre à l'étape des écarts. Les dates et montants au format français sont reconnus."
     },
     "importMatches": {
       "title": "Rapprocher des éléments existants",
-      "body": "Pour chaque ligne qui ressemble à un élément déjà présent (mêmes clients et même date pour un événement, même intitulé pour un article ou une liste, même intitulé dans le même événement pour une tâche ou une ligne du budget), l'app propose un rapprochement avec son niveau de ressemblance. Une ligne rapprochée mettra à jour l'élément existant au lieu de créer un doublon. Validez ou refusez les propositions une par une ou en lot, ou choisissez vous-même l'élément à rapprocher. Les tâches et lignes de budget doivent correspondre à un de vos événements sans ambiguïté."
+      "body": "Quand une ligne ressemble à un élément déjà présent (mêmes clients et même date pour un événement, même intitulé pour un article), l'app propose de les rapprocher : la ligne mettra alors à jour l'élément au lieu de créer un doublon. Validez ou refusez, une par une ou en lot."
     },
     "importGaps": {
       "title": "Rapport des écarts",
-      "body": "Le rapport liste d'abord les colonnes sans équivalent : gardez-les en champ libre (visible sur la fiche de chaque élément importé) ou ignorez-les. Il liste ensuite les lignes qui ne seront pas importées, avec leur motif : date ou montant invalide, champ obligatoire manquant, événement introuvable pour une tâche ou une ligne de budget. Téléchargez-les en CSV pour les corriger dans votre tableur, puis réimportez-les ; les autres lignes ne sont pas bloquées."
+      "body": "D'abord les colonnes sans équivalent : gardez-les en champ libre ou ignorez-les. Ensuite les lignes qui ne seront pas importées, avec leur motif. Téléchargez-les en CSV pour les corriger puis les réimporter ; les autres lignes ne sont pas bloquées."
     },
     "importConfirm": {
       "title": "Confirmer un import",
-      "body": "L'aperçu compte les créations, les mises à jour et les lignes rejetées, avec un échantillon de chacune. Une ligne rapprochée met à jour l'élément existant : seules ses cellules remplies remplacent les valeurs actuelles. Pour un import d'événements, choisissez la source donnée aux événements qui n'en ont pas ; une source inconnue de votre liste y est ajoutée. La confirmation écrit tout l'import d'un coup, ou rien en cas d'erreur."
+      "body": "L'aperçu compte les créations, les mises à jour et les lignes rejetées, avec un échantillon de chacune. La confirmation écrit tout l'import d'un coup, ou rien en cas d'erreur."
     },
     "importUndo": {
       "title": "Journal et annulation d'un import",
-      "body": "Chaque import confirmé est journalisé : fichier, auteur, date et résultat. Pendant le délai d'annulation, vous pouvez l'annuler : les éléments créés sont supprimés, les éléments mis à jour retrouvent leurs valeurs précédentes. Un élément modifié à la main depuis l'import est signalé et gardé, sauf si vous cochez « annuler quand même ». Un événement qui a reçu un devis n'est jamais supprimé."
+      "body": "Chaque import confirmé est journalisé : fichier, auteur, date et résultat. Pendant le délai d'annulation, vous pouvez l'annuler : les créations sont supprimées et les mises à jour reviennent à leurs valeurs d'avant. Un élément modifié depuis est signalé et gardé."
     },
     "privacySearch": {
-      "title": "Rechercher une personne",
-      "body": "Saisissez au moins un e-mail, un téléphone ou un nom : la recherche ignore les accents et la casse, et compare les téléphones sur leurs seuls chiffres (+33 ou 0). Elle interroge chaque module souscrit et rassemble les données de la personne, puis celles de ses événements (tâches, budget, devis, factures). Si un module ne répond pas, le résultat est signalé incomplet : relancez la recherche avant de répondre à la personne. Les données d'un essai guidé n'apparaissent jamais."
+      "title": "Données personnelles",
+      "body": "Retrouvez tout ce que vous détenez sur une personne : saisissez un e-mail, un téléphone ou un nom (accents et casse ignorés). La recherche interroge chaque module puis les événements de la personne. Si un module ne répond pas, le résultat est signalé incomplet : relancez-la avant de répondre. Les essais guidés n'apparaissent jamais.",
+      "faq": [
+        {
+          "q": "Une personne demande ses données : que faire ?",
+          "a": "Enregistrez la demande, cherchez la personne, cochez ses fiches puis exportez : vous obtenez un PDF lisible et une archive ZIP."
+        },
+        {
+          "q": "Une personne demande l'oubli ?",
+          "a": "Cochez ses fiches puis demandez l'aperçu de l'oubli : chaque fiche y est supprimée, anonymisée ou conservée selon la loi."
+        }
+      ]
     },
     "privacyRequests": {
-      "title": "Suivre les demandes des personnes",
-      "body": "Enregistrez chaque demande reçue (accès, rectification, oubli, portabilité, opposition) avec sa date de réception : l'échéance légale d'un mois s'affiche aussitôt. Une demande complexe se prolonge une fois, avec un motif obligatoire : trois mois au total depuis la réception. Les demandes dont l'échéance approche apparaissent en alerte au tableau de bord (seuil dans les réglages RGPD)."
+      "title": "Demandes des personnes",
+      "body": "Enregistrez chaque demande reçue (accès, rectification, oubli, portabilité, opposition) avec sa date : l'échéance légale d'un mois s'affiche aussitôt. Une demande complexe se prolonge une fois, avec un motif, jusqu'à trois mois. Une échéance proche remonte dans « À traiter »."
     },
     "privacySettings": {
       "title": "Réglages RGPD",
-      "body": "Ces durées viennent du cahier des charges (référentiel CNIL) et restent à faire valider par un juriste. Elles servent à la liste mensuelle des personnes à purger, que vous validez toujours, ligne par ligne. Le seuil d'alerte règle quand une demande apparaît au tableau de bord."
+      "body": "Les durées de conservation (issues du référentiel CNIL, à faire valider par un juriste) et le seuil d'alerte des demandes. Elles servent à la liste mensuelle de purge, que vous validez toujours."
     },
     "privacyExport": {
       "title": "Exports RGPD",
-      "body": "Un export répond à une demande d'accès ou de portabilité : cochez dans le résultat de la recherche les fiches de la personne, puis exportez. Vous obtenez un PDF lisible et une archive ZIP réutilisable, rangés dans un stockage privé. Chaque téléchargement passe par un lien valable quelques minutes ; les fichiers sont effacés automatiquement à la date indiquée. Vos notes internes font partie de l'export : relisez-le avant de l'envoyer."
+      "body": "Un export répond à une demande d'accès ou de portabilité : un PDF lisible et une archive ZIP, rangés dans un stockage privé et effacés automatiquement à la date indiquée. Vos notes internes en font partie : relisez l'export avant de l'envoyer."
     },
     "privacyErasure": {
       "title": "Demande d'oubli",
-      "body": "Enregistrez la demande dans « Demandes des personnes », cherchez la personne, cochez ses fiches puis demandez l'aperçu : chaque fiche y est supprimée, anonymisée ou conservée (factures 10 ans, devis signés 5 ans, durées réglables). Après validation, chaque module exécute sa part et accuse réception ; la demande se clôt quand tous ont répondu. Les statistiques (source, statut, montants) restent justes. Téléchargez ensuite la preuve horodatée et envoyez la réponse proposée."
+      "body": "L'aperçu montre, fiche par fiche, ce qui sera supprimé, anonymisé ou conservé (factures 10 ans, devis signés 5 ans). Après validation, chaque module fait sa part ; la demande se clôt quand tous ont répondu. Téléchargez ensuite la preuve horodatée et envoyez la réponse proposée."
     },
     "privacyPurge": {
       "title": "Purge mensuelle",
-      "body": "Chaque mois, la liste rassemble ce qui a dépassé sa durée de conservation (réglages RGPD) : prospects sans suite, clients dont la relation est terminée, comptes de mariés inactifs, factures et devis signés en fin de conservation. Validez-la : chaque ligne est purgée (anonymisée ou supprimée, statistiques gardées), sauf celles que vous excluez avec un motif ; elles reviendront le mois suivant. Rien n'est purgé sans votre validation."
+      "body": "Chaque mois, la liste rassemble ce qui a dépassé sa durée de conservation : prospects sans suite, relations terminées, comptes de mariés inactifs, documents en fin de conservation. Validez-la : chaque ligne est purgée, sauf celles que vous excluez avec un motif. Rien n'est purgé sans vous."
     },
     "allTasks": {
       "title": "Les tâches de tous vos mariages",
-      "body": "Toutes les tâches des événements en cours, triées par échéance. Cochez une tâche pour la marquer faite ; cliquez dessus pour la modifier sur la fiche de son mariage."
+      "body": "Les tâches de tous vos événements en cours, triées par échéance. Cochez une tâche faite ; cliquez-la pour la modifier sur la fiche de son mariage.",
+      "faq": [
+        {
+          "q": "Les tâches des mariés apparaissent-elles ?",
+          "a": "Oui : elles sont signalées « à faire par les mariés », et cochées dès qu'ils les ont faites dans leur espace."
+        }
+      ]
     },
     "allQuotes": {
       "title": "Vos devis",
-      "body": "La liste de tous vos devis. Un devis se crée depuis la fiche de son événement ; ses factures d'acompte et de solde se font depuis le devis signé."
+      "body": "Tous vos devis, avec leur statut. Un devis se crée depuis la fiche de son événement ; les factures d'acompte et de solde se font depuis le devis signé.",
+      "faq": [
+        {
+          "q": "Pourquoi ne puis-je pas créer un devis ici ?",
+          "a": "Un devis appartient toujours à un événement : créez-le depuis la fiche de l'événement, il y reste rattaché."
+        }
+      ]
     },
     "adminAccounts": {
       "title": "Comptes et assistance",
-      "body": "Pour débloquer quelqu'un de l'équipe d'une organisation : voir si sa double authentification est configurée, si son compte est verrouillé, et quand il s'est connecté pour la dernière fois. « Réinitialiser la double authentification » sert en cas de téléphone perdu ou changé : la personne est prévenue par e-mail et scannera un nouveau QR code. « Renvoyer l'invitation » envoie un nouveau lien et désactive l'ancien. Un mot de passe oublié se règle sans vous, depuis l'écran de connexion. Chaque action est inscrite au journal."
+      "body": "Pour débloquer quelqu'un d'une équipe : voyez si sa double authentification est configurée, si son compte est verrouillé et quand il s'est connecté. « Réinitialiser la double authentification » sert en cas de téléphone perdu ; « Renvoyer l'invitation » envoie un nouveau lien. Chaque action est inscrite au journal.",
+      "faq": [
+        {
+          "q": "Quelqu'un a oublié son mot de passe ?",
+          "a": "Il le change seul, avec « Mot de passe oublié » sur l'écran de connexion."
+        }
+      ]
     },
     "adminActivity": {
       "title": "Activité des organisations",
-      "body": "Des statistiques d'usage pour juger de l'intérêt de l'application : nombre de comptes, comptes connectés sur 30 jours, dernière connexion, et nombre d'événements, de devis et de factures créés chaque mois. Jamais un nom, un montant ni un contenu ; les essais guidés ne comptent pas."
+      "body": "Des statistiques d'usage : comptes, comptes connectés sur 30 jours, dernière connexion, et nombre d'événements, de devis et de factures créés chaque mois. Jamais un nom, un montant ni un contenu ; les essais guidés ne comptent pas."
     },
     "forgotPassword": {
       "title": "Mot de passe oublié",
@@ -490,11 +674,25 @@
     },
     "adminOnboarding": {
       "title": "Prise en main des organisations",
-      "body": "Ce tableau montre, pour chaque compte d'équipe, les tutoriels terminés et en cours et la dernière activité d'aide. Il sert à repérer qui a besoin d'un coup de main ; il ne montre aucune donnée d'événement."
+      "body": "Pour chaque compte d'équipe : les tutoriels terminés et en cours, et la dernière activité d'aide. De quoi repérer qui a besoin d'un coup de main, sans aucune donnée d'événement."
     },
     "vendorBook": {
       "title": "Le carnet de prestataires",
-      "body": "Chaque prestataire a une seule fiche, réutilisée d'un événement à l'autre : coordonnées, caractéristiques selon son type, plaquettes, et l'historique de vos prestations avec lui. Filtrez par type, par caractéristiques et autour d'un lieu ; ajoutez un prestataire à une ligne du budget d'un événement pour comparer les devis."
+      "body": "Chaque prestataire a une seule fiche, réutilisée d'un événement à l'autre. Les pastilles du haut filtrent par type ; la barre de filtres cherche par nom, autour d'un lieu ou parmi ceux déjà retenus. Sur ordinateur, la liste et la carte sont côte à côte ; sur téléphone, basculez de l'une à l'autre. Une fiche s'ouvre dans le panneau de droite.",
+      "faq": [
+        {
+          "q": "Comment comparer plusieurs devis pour une ligne ?",
+          "a": "Depuis la ligne du budget d'un événement, ajoutez les prestataires consultés, notez leurs devis, puis retenez-en un."
+        },
+        {
+          "q": "Un prestataire n'apparaît pas sur la carte ?",
+          "a": "Son adresse n'a pas été reconnue : complétez-la sur sa fiche."
+        },
+        {
+          "q": "Où créer un nouveau type de prestataire ?",
+          "a": "Dans Paramètres › Types de prestataires, avec les champs propres à ce type."
+        }
+      ]
     }
   },
   "Aide": {
@@ -1904,30 +2102,41 @@
         "description": "Consultez deux prestataires d'exemple pour une même ligne, notez leurs devis, puis retenez-en un."
       }
     },
-    "intro": "Apprenez Symbola en le faisant, à votre rythme. Chaque tutoriel crée un exemple fictif, puis vous propose de le supprimer.",
+    "intro": "Chaque écran a sa fiche : à quoi il sert, ses repères et les questions fréquentes. Sur l'écran lui-même, le bouton « ? » affiche ses repères.",
     "progressTitle": "Tutoriels faits : {completed} sur {total}",
     "nextSuggestion": "Prochaine étape conseillée : {title} ({minutes} minutes).",
     "continue": "Continuer ma prise en main",
     "allDone": "Bravo, vous avez suivi tous les tutoriels. Ils restent disponibles ici pour les revoir.",
     "autoTours": "Afficher d'office les repères et proposer les tutoriels à la première ouverture d'un écran",
-    "modules": {
-      "events": "Événements",
-      "quotes": "Devis et factures",
-      "budget": "Budget",
-      "hub": "Paramètres et données",
-      "vendors": "Prestataires"
-    },
-    "tourTitle": "Repères : {title}",
-    "tourKind": "Repères · 1 min",
-    "tourFromEvent": "Repères · depuis la fiche d'un événement",
     "tutorialKind": "Tutoriel · {minutes} min",
     "stateInProgress": "En cours · étape {step}",
     "stateNew": "À découvrir",
-    "articlesTitle": "Articles d'aide",
     "openTutorials": "Voir le parcours des tutoriels",
     "stateSeen": "Repères vus",
-    "actionShow": "Voir les repères",
-    "actionShowAgain": "Revoir les repères"
+    "results": "Écrans trouvés : {count}",
+    "groups": {
+      "events": "Événements",
+      "vendors": "Prestataires",
+      "quotes": "Devis et factures",
+      "budget": "Budget",
+      "company": "Mon entreprise et mon compte",
+      "data": "Import et données personnelles",
+      "admin": "Administration de la suite",
+      "clients": "Votre espace"
+    },
+    "screenTitle": "Aide : {title}",
+    "back": "Retour au centre d'aide",
+    "captureAlt": "Capture de l'écran « {title} », avec ses repères numérotés",
+    "captureAltPlain": "Capture de l'écran « {title} »",
+    "landmarksTitle": "Les repères de cet écran",
+    "faqTitle": "Questions fréquentes",
+    "openScreen": "Ouvrir cet écran",
+    "showLandmarks": "Voir les repères sur l'écran",
+    "fromEvent": "Cet écran s'ouvre depuis la fiche d'un événement.",
+    "fromQuote": "Cet écran s'ouvre depuis un devis, sur la fiche de son événement.",
+    "fromBudget": "Cet écran s'ouvre depuis l'onglet Budget de la fiche d'un événement.",
+    "fromImport": "Cette étape suit le dépôt d'un fichier dans « Importer ».",
+    "fromClientEvent": "Cet écran s'ouvre depuis votre espace, en choisissant un mariage."
   },
   "Search": {
     "label": "Rechercher",

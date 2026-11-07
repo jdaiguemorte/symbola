@@ -127,6 +127,7 @@ export default async function EventsListPage({
         </Link>
       </nav>
 
+      <div data-tour="events-filters">
       <FilterBar label={t("filtersLabel")} applyLabel={t("filter")} preserve={isPastTab ? { tab: "termines" } : {}}>
         <label>
           {t("searchLabel")}
@@ -166,6 +167,7 @@ export default async function EventsListPage({
           </select>
         </label>
       </FilterBar>
+      </div>
 
       <nav aria-label={t("tabsLabel")} className="segmented">
         <Link href="/events" aria-current={!isPastTab ? "page" : undefined}>

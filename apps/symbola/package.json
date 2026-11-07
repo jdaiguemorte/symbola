@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:integration": "vitest run --config vitest.integration.config.ts",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "help:captures": "playwright test --config playwright.captures.config.ts"
   },
   "dependencies": {
     "@node-rs/argon2": "^2.0.2",

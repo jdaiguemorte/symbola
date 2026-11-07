@@ -204,297 +204,495 @@
   "Tour": {
     "hub": [
       {
-        "title": "Welcome to Symbola",
-        "body": "This dashboard is your starting point: find your profile, your settings, and administration if you have the rights for it."
+        "title": "The calendar",
+        "body": "Your events month by month. Click a free date to create a prospect or an event on it."
       },
       {
-        "title": "Your settings",
-        "body": "Your company profile, VAT regime and lists (budget lines, sources, reasons) live here. The setup assistant pre-filled them; you can adjust them at any time."
+        "title": "Settings",
+        "body": "Your company, lists and templates, grouped by section."
       },
       {
-        "title": "Help is always nearby",
-        "body": "Every screen has a \"?\" button that opens a short article on what you can do there. You can also relaunch this tour from that button."
+        "title": "Screen help",
+        "body": "This button shows the markers of the screen you are on. The help centre, in the menu, covers every screen."
       }
     ],
     "events": [
       {
-        "title": "Your events",
-        "body": "This list gathers your leads and upcoming events; the “Past” tab keeps completed or lost events. Filter by name, year, status or source."
+        "title": "The list",
+        "body": "Your prospects and upcoming events; click a row to open its page."
       },
       {
-        "title": "Creating a lead",
-        "body": "“New lead” only needs a first name and the contact source; the date and venue can be added later."
+        "title": "New prospect",
+        "body": "A first name and the contact source are enough to start."
       },
       {
-        "title": "An event's page",
-        "body": "On the event page, follow the status, the budget and its vendors, the planning timeline and the day schedule, then invite your clients to follow their preparations."
+        "title": "Filters",
+        "body": "Name, status, source, year: the list filters as you type."
       },
       {
-        "title": "Your templates",
-        "body": "Find your sources, loss reasons and default budget lines, and your timeline and schedule templates: everything is ready since set-up, change it as you like."
+        "title": "Settings",
+        "body": "The gear icon leads to budget lines, sources and templates."
       },
       {
-        "title": "Try without risk",
-        "body": "The guided trial opens a complete fictional wedding to test everything; it is deleted when the trial ends. Relaunch this tour at any time with the “?” button."
+        "title": "Guided trial",
+        "body": "A complete sample wedding to try everything; it is deleted at the end."
       }
     ],
     "quotes": [
       {
-        "title": "Your catalogue",
-        "body": "Save your reusable services here: label, unit, price excl. VAT, VAT rate and category. An archived item stays on the quotes that use it."
+        "title": "The catalogue",
+        "body": "Your reusable services, ready for your quotes."
       },
       {
         "title": "Composing a quote",
-        "body": "From an event page, “Create a quote” assigns its number; add items, free lines and discounts, and totals are recalculated."
+        "body": "From an event page: items, free lines and discounts."
       },
       {
         "title": "Deposits and signature",
-        "body": "Plan the deposit schedule, then send the quote for signature: each signer receives their link by email, and the event becomes “Confirmed” once signed."
+        "body": "Plan the deposits, then send the quote for signature."
       },
       {
         "title": "Invoices and payments",
-        "body": "From a signed quote, issue deposit and balance invoices; track upcoming payments and prepare e-reporting period by period."
+        "body": "From the signed quote: deposit invoice, then balance invoice."
       }
     ],
     "budget": [
       {
-        "title": "Your budget models",
-        "body": "A split shares a total budget across your budget lines, in percentages adding up to 100%. It is optional: it suggests planned amounts."
+        "title": "Your allocations",
+        "body": "Percentages per line to suggest planned amounts."
       },
       {
         "title": "Simulating a budget",
-        "body": "On an event's page, “Suggest planned amounts” starts from a total and the number of guests, adjustable line by line."
+        "body": "On an event: a total and a number of guests, adjustable line by line."
       },
       {
-        "title": "Planned, actual, variance",
-        "body": "Once the event is confirmed, the simulation becomes the planned budget; enter actual amounts, attach vendor quotes and follow the variance."
+        "title": "Planned, actual, difference",
+        "body": "Enter actual costs and attach quotes to track the difference."
       },
       {
-        "title": "Sharing with your clients",
-        "body": "Invited couples see their budget read-only in their space."
+        "title": "With the couple",
+        "body": "They see their budget as read-only in their space."
       }
     ],
     "event": [
       {
-        "title": "An event's page",
-        "body": "The whole event fits on this page, organised in tabs: each one groups part of the preparation."
+        "title": "The tabs",
+        "body": "Overview, budget, planning timeline, schedule, couple: each tab groups part of the preparations."
       },
       {
         "title": "Overview",
-        "body": "Status, date, venue and activity feed: the essentials at a glance. Change the status when the client confirms."
+        "body": "The status on the timeline, the next step and the four key figures."
       },
       {
-        "title": "The planning timeline",
-        "body": "All the preparation tasks, month by month, with who does them. Start from a template: due dates are computed from the event date."
+        "title": "Planning timeline",
+        "body": "Tasks month by month, from a template; it starts once the event is confirmed."
       },
       {
-        "title": "Vendors",
-        "body": "The event's budget (venue, caterer, photographer…): vendor, status, planned and actual. You see at a glance what is left to book."
+        "title": "Budget",
+        "body": "One line per service: vendor, status, planned and actual."
       },
       {
-        "title": "Find anything in a second",
-        "body": "Type a client name, a quote number or a question in the search: it searches all your data."
+        "title": "Search",
+        "body": "A client name, a quote number or a screen: it searches everywhere."
       }
     ],
     "vendors": [
       {
-        "title": "Your vendor types",
-        "body": "One pill per type: venue, hotel, caterer… You create them and choose their fields in the vendor book settings."
+        "title": "Types",
+        "body": "One pill per type, with the number of vendors."
       },
       {
-        "title": "Filter and search around a place",
-        "body": "Combine features, tags and “already worked with”; give a place and a radius to sort by distance."
+        "title": "Filters",
+        "body": "Name, place and distance, already booked: the list follows as you type."
       },
       {
-        "title": "Nearest first",
-        "body": "The list follows the map, with an estimated travel time. From an event's budget line, “Add to line” sends it to the vendors consulted."
+        "title": "List and map",
+        "body": "Hover over a record to see its pin on the map, and vice versa."
       },
       {
-        "title": "One vendor, one record",
-        "body": "Create the record once: you will find it for every event, with the history of your prices."
+        "title": "New vendor",
+        "body": "One record per vendor, found again for every event."
       }
     ]
   },
   "Help": {
     "login": {
-      "title": "Log in",
-      "body": "Sign in with your email and password. After several failed attempts, the account is temporarily locked to protect it."
+      "title": "Logging in",
+      "body": "Enter your account email and password, then the code from your authenticator app. After several failed attempts the account locks for a few minutes to protect it. Forgotten password: use the link below the form."
     },
     "mfa": {
       "title": "Two-factor authentication",
-      "body": "The first time, scan the code with an authenticator app (Google Authenticator, Authy…). After that, just enter the 6-digit code each time you log in."
+      "body": "The first time, scan the QR code with an authenticator app (Google Authenticator, Authy…). After that, enter the 6-digit code it shows each time you log in."
     },
     "home": {
-      "title": "Dashboard",
-      "body": "This is your home page. From here you reach your profile, your settings, and administration if you have the rights for it."
+      "title": "Home",
+      "body": "Your events calendar and the \"To do\" block: unanswered quotes, prospects with no news and deposits due within 15 days, each leading to its page. Clicking a free date in the calendar creates a prospect or an event on that date.",
+      "faq": [
+        {
+          "q": "How do I change the \"To do\" delays?",
+          "a": "In Settings › Follow-up delays: by default, a sent quote after 7 days and a silent prospect after 14 days."
+        },
+        {
+          "q": "Where do I resume a tutorial I started?",
+          "a": "The \"Resume\" chip at the bottom right takes you there; the Tutorials page shows the whole path."
+        }
+      ]
     },
     "settings": {
-      "title": "Settings",
-      "body": "Fill in your organization's company profile here (SIREN, address, legal form, business) and its VAT regime."
+      "title": "Company and VAT",
+      "body": "Your company details (SIREN, address, legal form, trade) and your VAT regime. This information appears on your quotes and invoices. The other settings are grouped by section in the left-hand menu.",
+      "faq": [
+        {
+          "q": "I am moving from the VAT exemption to charging VAT: what do I do?",
+          "a": "Change the regime here: new quotes and invoices apply the rate; documents already issued do not change."
+        }
+      ]
     },
     "admin": {
       "title": "Administration",
-      "body": "Create organizations, invite their owner, and enable or disable their modules. This page shows none of the organizations' business data."
+      "body": "Create organisations, invite their owner, and enable or disable their modules. This console shows no business data from the organisations.",
+      "faq": [
+        {
+          "q": "An organisation did not get its invitation?",
+          "a": "Resend it from Accounts: a new link is sent and the old one is disabled."
+        }
+      ]
     },
     "adminSettings": {
-      "title": "Platform settings",
-      "body": "These VAT exemption thresholds apply to every organization and must be kept up to date with current regulation."
+      "title": "Suite settings",
+      "body": "Regulatory values shared by all organisations, such as the VAT exemption thresholds. Update them when the regulations change."
     },
     "adminHealth": {
       "title": "Health",
-      "body": "This page shows whether the application is responding and its deployed version, for a quick status check."
+      "body": "Shows whether the application responds and its deployed version, to check the service at a glance."
     },
     "invitation": {
-      "title": "Create my account",
-      "body": "This invitation link is personal and single-use. Choose a password to activate your account."
+      "title": "Creating your account",
+      "body": "This invitation link is personal and works only once. Choose your password: you will then set up two-factor authentication."
     },
     "profile": {
-      "title": "My profile",
-      "body": "Choose the language Symbola displays for you."
+      "title": "My account and security",
+      "body": "Choose the language Symbola uses for you. Your password and two-factor authentication protect your account.",
+      "faq": [
+        {
+          "q": "How do I change my password?",
+          "a": "Log out, then use \"Forgot password\" on the login screen: a link lets you choose a new one."
+        },
+        {
+          "q": "I have a new phone: how do I set up two-factor authentication again?",
+          "a": "Ask the suite operator to reset it: you will get an email and scan a new QR code at your next login."
+        },
+        {
+          "q": "How do I add someone to my team?",
+          "a": "Team accounts are created by the suite operator; the person receives a personal invitation by email."
+        }
+      ]
     },
     "eventsList": {
       "title": "Event list",
-      "body": "Find your prospects and upcoming weddings here, and past ones in the “Finished” tab. Filter by name, year or status, then open an event to see its details. The guided tour can be relaunched with the “?” button, and the guided trial opens a fictional wedding to test everything."
+      "body": "All your prospects and upcoming events, in a table. Filter as you type by name, status, source or year; \"Past\" keeps completed or lost events. Click a row to open its page, or \"New prospect\" to create one. The guided trial opens a sample wedding so you can try everything safely.",
+      "faq": [
+        {
+          "q": "Where do I find a past event?",
+          "a": "In \"Past\", at the top of the list: it keeps completed and lost events, with the same filters."
+        },
+        {
+          "q": "Why is a year missing from the filter?",
+          "a": "The filter only offers the years in which you have events, plus the current and next year."
+        },
+        {
+          "q": "Does the guided trial leave anything behind?",
+          "a": "No: the sample wedding is marked as a trial, excluded from statistics and exports, and deleted when the trial ends."
+        }
+      ]
     },
     "eventsNew": {
       "title": "New prospect",
-      "body": "Enter at least one partner's first name and the prospect source (how they found you). The date and venue can be filled in later."
+      "body": "A partner's first name and the contact source are enough; the date and venue can be added later. From the calendar, clicking a free date opens this form with the date already filled in.",
+      "faq": [
+        {
+          "q": "What is the difference between a prospect and an event?",
+          "a": "A prospect has not signed yet. It becomes a confirmed event when you change its status on the timeline of its page, or when the quote is signed."
+        },
+        {
+          "q": "A source is missing from the list?",
+          "a": "Add it in Settings › Sources and reasons; it is offered straight away."
+        }
+      ]
     },
     "eventsDetail": {
-      "title": "Event details",
-      "body": "Track the event's progress here (prospect, quote sent, confirmed, done or lost) and its budget: each line (venue, caterer…) has its vendor, status, planned and actual amounts; the top bar counts booked lines out of required ones. A booked line needs the vendor's name; the amount is optional. The planning timeline starts once the event is confirmed: apply a template, add, check or reorder tasks. If the event date changes, the app offers to shift the due dates of unfinished tasks. The day schedule lists moments by time, with the icon of each vendor involved; the app flags, without blocking, a participant scheduled on two overlapping moments. Export it as a PDF: clients version (without internal notes) or vendors version. Invite your clients to follow their event from the “Clients” tab."
+      "title": "Event page",
+      "body": "The whole event fits on this page, in tabs. The timeline at the top shows the status and the date of each step: click the next step to move forward. The \"Next step\" banner suggests what is left to do (send the quote, apply the planning timeline, prepare the schedule, invite the couple). The overview sums up the budget, booked lines, overdue tasks and the signed quote; a budget line's details open in the right-hand panel.",
+      "faq": [
+        {
+          "q": "How do I mark an event as lost?",
+          "a": "With the \"Mark as lost…\" link under the timeline: it asks for the reason, used in your statistics."
+        },
+        {
+          "q": "Why is the planning timeline empty?",
+          "a": "It starts once the event is confirmed: then apply a template from the Planning timeline tab."
+        },
+        {
+          "q": "The date changes: what happens to the tasks?",
+          "a": "The app offers to shift the due dates of unfinished tasks; nothing moves without your approval."
+        },
+        {
+          "q": "What does the couple see?",
+          "a": "Their tasks, the schedule and the budget as read-only, never your internal notes. Invite them from the Couple tab."
+        }
+      ]
     },
     "eventsSettings": {
-      "title": "Event settings",
-      "body": "Find your prospect sources (fair, Instagram, word of mouth…), your loss reasons, and the budget lines every new event receives, with their icon. They were prepared at set-up for your line of work: adapt them freely."
+      "title": "Budget lines",
+      "body": "The lines every new event receives (venue, caterer, photographer…), with their icon and order. They were prepared at setup for your trade: add, rename or reorder them in the table; a line opens in the right-hand panel.",
+      "faq": [
+        {
+          "q": "Does changing a line affect existing events?",
+          "a": "No: only new events get the updated list; add the line by hand to an event already created."
+        },
+        {
+          "q": "Where are sources and loss reasons?",
+          "a": "In Settings › Sources and reasons, just below in the menu."
+        }
+      ]
     },
     "eventsTemplates": {
       "title": "Planning timeline templates",
-      "body": "Create your planning timeline templates, or load the starter template and adapt it. Each task is placed relative to the event date: 365 days before, 30 days before, event day… Apply a template from the page of an event with a date."
+      "body": "Your standard task lists, placed relative to the event date (D-365, D-30, the day…). Start from the starter template or create your own; a template is applied from the page of a confirmed, dated event.",
+      "faq": [
+        {
+          "q": "Does editing a template change ongoing events?",
+          "a": "No: a template is copied into the event when you apply it; events already prepared do not change."
+        }
+      ]
     },
     "eventsProgramTemplates": {
       "title": "Schedule templates",
-      "body": "Prepare your typical day schedules, or load the starter template and adapt it. Apply a template from an event's page: its moments are added to the schedule, and participants named like one of the event's budget lines are linked to it."
+      "body": "Your standard running orders for the day, moment by moment. A template is applied from an event's Schedule tab: its moments are added, and participants named after a budget line are linked to it.",
+      "faq": [
+        {
+          "q": "Can I download the schedule?",
+          "a": "Yes, from the event page: as a PDF, couple version (without internal notes) or vendor version."
+        }
+      ]
     },
     "clientInvitation": {
       "title": "Creating your account",
-      "body": "This account is personal: each member of the couple has their own. The invitation link is valid for 7 days; if it has expired, ask your planner for a new one."
+      "body": "Each partner has their own account. The invitation link is valid for 7 days; if it has expired, ask your planner for a new one."
     },
     "clientSpace": {
       "title": "Your space",
-      "body": "Find here the weddings your planner shares with you. Open one to follow the planning timeline, check your tasks and see the wedding day schedule."
+      "body": "The weddings your planner shares with you. Open one to follow the preparations."
     },
     "clientEvent": {
       "title": "Following the preparations",
-      "body": "Tasks “For you to do” are checked once done: your planner sees it right away. The others are handled by your planner. The day schedule can be downloaded as a PDF. The budget (planned, actual, variance per line) also shows, read-only, once it has been prepared."
+      "body": "Tick the \"For you\" tasks once they are done: your planner sees it straight away. You will also find the schedule for the day, downloadable as a PDF, and the budget as read-only once it is ready."
     },
     "clientSecurity": {
       "title": "Two-factor authentication",
-      "body": "Optional for your account. Once enabled, a code from your authenticator app is asked at every login."
+      "body": "Optional for your account. Once enabled, a code from your authenticator app is requested each time you log in."
     },
     "budgetSettings": {
-      "title": "Budget models",
-      "body": "A split (a percentage per budget line, total 100%) suggests planned amounts from a total. It is optional: an event's budget exists from its creation."
+      "title": "Budget allocation",
+      "body": "An allocation splits a total budget across your lines, in percentages adding up to 100%. It is used to suggest planned amounts; it is optional, as an event's budget exists from the moment it is created.",
+      "faq": [
+        {
+          "q": "Do I need one allocation per type of wedding?",
+          "a": "It helps if your weddings fall into price ranges: create several and choose the right one on each budget."
+        }
+      ]
     },
     "budgetDetail": {
       "title": "Event budget",
-      "body": "Enter the total budget and the number of guests, choose a split: you get a planned amount per line and the cost per guest. Adjust a line by hand if needed, the remaining amount to allocate recalculates right away. Attach a vendor's quote to its line (PDF or image, 20 MB max): it is checked by the antivirus and opens through a temporary link."
+      "body": "Enter the total budget and the number of guests, choose an allocation: you get a planned amount per line and the cost per guest. Adjust a line by hand and the amount left to allocate updates. Then enter the actual cost and attach each vendor's quote (PDF or image, 20 MB at most) to track the difference.",
+      "faq": [
+        {
+          "q": "Does the couple see the budget?",
+          "a": "Yes, read-only in their space, once it has been prepared."
+        },
+        {
+          "q": "Where are attached quotes stored?",
+          "a": "In private storage, after an antivirus check; they open through a temporary link."
+        }
+      ]
     },
     "quotesCatalog": {
       "title": "Services catalogue",
-      "body": "Your reusable items: label, unit, price excl. VAT, VAT rate and category. An archived item disappears from the choice but stays on the quotes that use it."
+      "body": "Your reusable services: label, unit, price excluding VAT, VAT rate and category. They are ready to use in your quotes. An archived item disappears from the choices but stays on the quotes that use it.",
+      "faq": [
+        {
+          "q": "Does changing a price affect quotes already sent?",
+          "a": "No: the price is copied into the quote when you add the item."
+        }
+      ]
     },
     "quotesSettings": {
-      "title": "Quote settings",
-      "body": "Default validity and numbering series prefixes (quotes, invoices, credit notes). Numbers are assigned per year, without gaps."
+      "title": "Quotes and invoices",
+      "body": "Your quotes' default validity period and the prefixes of the numbering series (quotes, invoices, credit notes). Numbers are assigned per year, with no gaps.",
+      "faq": [
+        {
+          "q": "Can I keep my current numbering?",
+          "a": "Yes: choose your series prefix; numbers then follow on, year by year."
+        }
+      ]
     },
     "quotesDetail": {
       "title": "Composing a quote",
-      "body": "Add catalogue items or free lines, adjust quantities, descriptions and discounts: totals are recalculated. Once sent, a version is frozen; to change it, create a new version."
+      "body": "Add catalogue items or free lines, adjust quantities and discounts: totals update straight away. Plan the deposit schedule, then send the quote for signature: the event becomes \"Confirmed\" once it is signed. A sent version is locked; to change it, create a new version.",
+      "faq": [
+        {
+          "q": "How do I invoice a deposit?",
+          "a": "On the signed quote, issue the deposit invoice for that instalment, then the balance invoice at the end."
+        },
+        {
+          "q": "Can an issued invoice be edited?",
+          "a": "No, it is final: correct it with a credit note, which keeps numbering gap-free."
+        }
+      ]
     },
     "quotesPayments": {
       "title": "Upcoming payments",
-      "body": "Unpaid instalments of sent or signed quotes, sorted by date, with a total per month. A past instalment is flagged “Overdue” and shows on the dashboard. Trials never appear here."
+      "body": "Unpaid instalments from your sent or signed quotes, sorted by date, with a monthly total. An overdue instalment is flagged \"Late\" and shows up under \"To do\" on the home page.",
+      "faq": [
+        {
+          "q": "Do guided trials count?",
+          "a": "No, their instalments never appear here."
+        }
+      ]
     },
     "quotesEReporting": {
       "title": "E-reporting",
-      "body": "For individual clients, e-invoicing is not mandatory but some data must be reported on your approved platform (from 1 September 2027). Choose a period, check the totals, then download the export."
+      "body": "For your private clients, some invoicing data must be declared on your approved platform (from 1 September 2027). Choose a period, check the totals, then download the export to upload.",
+      "faq": [
+        {
+          "q": "Do I have to send e-invoices to my couples?",
+          "a": "No: for private individuals, only the data declaration (e-reporting) is required."
+        }
+      ]
     },
     "importFile": {
       "title": "Importing data",
-      "body": "Choose what your file contains (events, tasks, budget, catalogue or a list), then drop it in: CSV, Excel (.xlsx) or JSON. Encoding, separator and header row are detected automatically; spreadsheet formulas are neutralised. The file is scanned by the antivirus and then discarded: only its rows are kept until the import is finished. Nothing is saved in your modules before the last step."
+      "body": "Choose what your file contains (events, tasks, budget, catalogue or a list), then drop it in: CSV, Excel (.xlsx) or JSON. Encoding, separator and header row are detected automatically; spreadsheet formulas are neutralised. Nothing is saved before the last step.",
+      "faq": [
+        {
+          "q": "What happens to my file?",
+          "a": "It is checked by the antivirus and then discarded: only its rows are kept, until the import is finished."
+        }
+      ]
     },
     "importColumns": {
       "title": "Recognising columns",
-      "body": "Each column of your file gets a suggested field, based on its title (French or English) and its content (dates, amounts, e-mails). The confidence score tells how sure the suggestion is: below the threshold, tick the confirmation box or choose another field. A column “without equivalent” will be offered in the gaps report, to keep it as a free field on the record or ignore it. French dates (31/12/2026, 31.12.2026, 2026-12-31) and amounts (1 234,56 €) are recognised."
+      "body": "Each column gets a suggested field, based on its heading and content, with a confidence score. Below the threshold, confirm it or choose another field. A column with no match can be kept as a free field at the gaps step. French-format dates and amounts are recognised."
     },
     "importMatches": {
       "title": "Matching existing records",
-      "body": "For each row that looks like a record you already have (same clients and same date for an event, same label for an item or a list, same label within the same event for a task or a budget line), the app suggests a match with its similarity score. A matched row will update the existing record instead of creating a duplicate. Accept or refuse suggestions one by one or in bulk, or choose the record to match yourself. Tasks and budget lines must match one of your events without ambiguity."
+      "body": "When a row looks like an existing record (same clients and date for an event, same label for an item), the app suggests matching them: the row will then update the record instead of creating a duplicate. Accept or reject, one by one or in bulk."
     },
     "importGaps": {
       "title": "Gaps report",
-      "body": "The report first lists the columns without equivalent: keep them as a free field (shown on the record of each imported item) or ignore them. It then lists the rows that will not be imported, with their reason: invalid date or amount, missing required field, event not found for a task or a budget line. Download them as CSV to fix them in your spreadsheet, then import them again; the other rows are not blocked."
+      "body": "First the columns with no match: keep them as free fields or ignore them. Then the rows that will not be imported, with the reason. Download them as CSV to fix and re-import them; the other rows are not held up."
     },
     "importConfirm": {
       "title": "Confirming an import",
-      "body": "The preview counts creations, updates and rejected rows, with a sample of each. A matched row updates the existing record: only its filled cells replace the current values. For an events import, choose the source given to events that have none; a source missing from your list is added to it. Confirming writes the whole import at once, or nothing if an error occurs."
+      "body": "The preview counts creations, updates and rejected rows, with a sample of each. Confirming writes the whole import at once, or nothing if an error occurs."
     },
     "importUndo": {
       "title": "Import log and undo",
-      "body": "Each confirmed import is logged: file, author, date and result. During the undo period you can undo it: created records are deleted, updated records get their previous values back. A record changed by hand since the import is flagged and kept, unless you tick “undo anyway”. An event that received a quote is never deleted."
+      "body": "Every confirmed import is logged: file, author, date and result. During the undo period you can cancel it: created records are deleted and updated ones go back to their previous values. A record edited since then is flagged and kept."
     },
     "privacySearch": {
-      "title": "Searching for a person",
-      "body": "Enter at least an e-mail, a phone number or a name: the search ignores accents and case, and compares phone numbers on their digits only (+33 or 0). It queries every subscribed module and gathers the person's data, then that of their events (tasks, budget, quotes, invoices). If a module does not answer, the result is flagged as incomplete: run the search again before answering the person. Data from a guided trial never appears."
+      "title": "Personal data",
+      "body": "Find everything you hold about a person: enter an email, phone number or name (accents and case are ignored). The search queries each module, then the person's events. If a module does not respond, the result is flagged incomplete: run it again before replying. Guided trials never appear.",
+      "faq": [
+        {
+          "q": "Someone asks for their data: what do I do?",
+          "a": "Record the request, search for the person, tick their records, then export: you get a readable PDF and a ZIP archive."
+        },
+        {
+          "q": "Someone asks to be forgotten?",
+          "a": "Tick their records, then request the erasure preview: each record is deleted, anonymised or kept as the law requires."
+        }
+      ]
     },
     "privacyRequests": {
-      "title": "Tracking requests from individuals",
-      "body": "Record each request you receive (access, rectification, erasure, portability, objection) with its date received: the one-month legal deadline appears at once. A complex request can be extended once, with a required reason: three months in total from receipt. Requests whose deadline is close appear as an alert on the dashboard (threshold in the GDPR settings)."
+      "title": "Requests from individuals",
+      "body": "Record each request received (access, rectification, erasure, portability, objection) with its date: the one-month legal deadline appears straight away. A complex request can be extended once, with a reason, up to three months. An upcoming deadline shows up under \"To do\"."
     },
     "privacySettings": {
       "title": "GDPR settings",
-      "body": "These durations come from the specification (CNIL guidelines) and should be validated by a lawyer. They drive the monthly list of people to purge, which you always validate line by line. The alert threshold sets when a request appears on the dashboard."
+      "body": "Retention periods (based on the CNIL guidelines, to be checked by a lawyer) and the alert threshold for requests. They feed the monthly purge list, which you always approve."
     },
     "privacyExport": {
       "title": "GDPR exports",
-      "body": "An export answers an access or portability request: tick the person's records in the search result, then export. You get a readable PDF and a reusable ZIP archive, kept in private storage. Each download goes through a link valid for a few minutes; the files are deleted automatically on the date shown. Your internal notes are part of the export: read it before sending it."
+      "body": "An export answers an access or portability request: a readable PDF and a ZIP archive, kept in private storage and deleted automatically on the date shown. Your internal notes are included: read the export before sending it."
     },
     "privacyErasure": {
       "title": "Erasure request",
-      "body": "Record the request under “Requests from people”, search for the person, tick their records and ask for the preview: each record is deleted, anonymised or kept there (invoices 10 years, signed quotes 5 years, adjustable). Once confirmed, each module does its part and acknowledges; the request closes when all have responded. Statistics (source, status, amounts) stay accurate. Then download the timestamped proof and send the proposed reply."
+      "body": "The preview shows, record by record, what will be deleted, anonymised or kept (invoices 10 years, signed quotes 5 years). Once you confirm, each module does its part; the request closes when all have replied. Then download the time-stamped proof and send the suggested reply."
     },
     "privacyPurge": {
       "title": "Monthly purge",
-      "body": "Each month, the list gathers what has passed its retention period (GDPR settings): prospects with no follow-up, clients whose relationship has ended, inactive couple accounts, invoices and signed quotes at the end of their retention. Confirm it: each line is purged (anonymised or deleted, statistics kept), except the ones you exclude with a reason; they will come back the following month. Nothing is purged without your confirmation."
+      "body": "Each month the list gathers what has passed its retention period: prospects that went nowhere, finished relationships, inactive couple accounts, documents at the end of retention. Approve it: each row is purged, except those you exclude with a reason. Nothing is purged without you."
     },
     "allTasks": {
       "title": "Tasks across all your weddings",
-      "body": "Every task of your current events, sorted by due date. Tick a task to mark it done; click it to edit it on its wedding's page."
+      "body": "Tasks from all your ongoing events, sorted by due date. Tick a task once it is done; click it to edit it on its wedding's page.",
+      "faq": [
+        {
+          "q": "Do the couple's tasks appear here?",
+          "a": "Yes: they are marked \"for the couple\", and ticked as soon as the couple completes them in their space."
+        }
+      ]
     },
     "allQuotes": {
       "title": "Your quotes",
-      "body": "Every quote you made. A quote is created from its event page; deposit and balance invoices are issued from the signed quote."
+      "body": "All your quotes, with their status. A quote is created from its event's page; deposit and balance invoices are issued from the signed quote.",
+      "faq": [
+        {
+          "q": "Why can't I create a quote here?",
+          "a": "A quote always belongs to an event: create it from the event page, where it stays linked."
+        }
+      ]
     },
     "adminAccounts": {
       "title": "Accounts and support",
-      "body": "To unblock someone in an organisation's team: see whether their two-factor authentication is set up, whether their account is locked, and when they last signed in. \"Reset two-factor authentication\" is for a lost or replaced phone: the person is notified by e-mail and will scan a new QR code. \"Resend the invitation\" sends a new link and disables the old one. A forgotten password is handled without you, from the sign-in screen. Every action is logged."
+      "body": "To unblock someone in a team: see whether their two-factor authentication is set up, whether their account is locked and when they last logged in. \"Reset two-factor authentication\" is for a lost phone; \"Resend invitation\" sends a new link. Every action is logged.",
+      "faq": [
+        {
+          "q": "Someone forgot their password?",
+          "a": "They change it themselves, with \"Forgot password\" on the login screen."
+        }
+      ]
     },
     "adminActivity": {
       "title": "Organisation activity",
-      "body": "Usage statistics to gauge interest in the application: number of accounts, accounts signed in over 30 days, last sign-in, and the number of events, quotes and invoices created each month. Never a name, an amount or any content; guided trials do not count."
+      "body": "Usage statistics: accounts, accounts active over 30 days, last login, and the number of events, quotes and invoices created each month. Never a name, an amount or any content; guided trials are not counted."
     },
     "forgotPassword": {
       "title": "Forgot password",
-      "body": "Enter your account's address: a link valid for 30 minutes is sent to you to choose a new password. The message is the same whether or not the address has an account. Your two-factor authentication does not change."
+      "body": "Enter your account email: a link valid for 30 minutes is sent so you can choose a new password. The message is the same whether or not the address has an account. Your two-factor authentication stays as it is."
     },
     "adminOnboarding": {
       "title": "Organisations getting started",
-      "body": "This table shows, for each team account, the tutorials finished and in progress and the last help activity. It helps spot who needs a hand; it shows no event data."
+      "body": "For each team account: tutorials completed and in progress, and the latest help activity. Enough to spot who needs a hand, without any event data."
     },
     "vendorBook": {
       "title": "The vendor book",
-      "body": "Each vendor has a single record, reused from one event to the next: contact details, features depending on its type, brochures, and the history of your work together. Filter by type, by features and around a place; add a vendor to an event's budget line to compare quotes."
+      "body": "Each vendor has a single record, reused from one event to the next. The pills at the top filter by type; the filter bar searches by name, around a place or among vendors already booked. On a computer, the list and the map sit side by side; on a phone, switch between them. A record opens in the right-hand panel.",
+      "faq": [
+        {
+          "q": "How do I compare several quotes for a line?",
+          "a": "From an event's budget line, add the vendors you consulted, note their quotes, then pick one."
+        },
+        {
+          "q": "A vendor is missing from the map?",
+          "a": "Their address was not recognised: complete it on their record."
+        },
+        {
+          "q": "Where do I create a new vendor type?",
+          "a": "In Settings › Vendor types, with the fields specific to that type."
+        }
+      ]
     }
   },
   "Aide": {
@@ -1904,30 +2102,41 @@
         "description": "Consult two example vendors for the same line, record their quotes, then select one."
       }
     },
-    "intro": "Learn Symbola by doing, at your own pace. Each tutorial creates a fictional example, then offers to delete it.",
+    "intro": "Every screen has its own page: what it is for, its markers and frequently asked questions. On the screen itself, the “?” button shows its markers.",
     "progressTitle": "Tutorials done: {completed} of {total}",
     "nextSuggestion": "Suggested next step: {title} ({minutes} minutes).",
     "continue": "Continue getting started",
     "allDone": "Well done, you have followed every tutorial. They stay available here to review.",
     "autoTours": "Show the markers and suggest tutorials the first time a screen opens",
-    "modules": {
-      "events": "Events",
-      "quotes": "Quotes and invoices",
-      "budget": "Budget",
-      "hub": "Settings and data",
-      "vendors": "Vendors"
-    },
-    "tourTitle": "Markers: {title}",
-    "tourKind": "Markers · 1 min",
-    "tourFromEvent": "Markers · from an event page",
     "tutorialKind": "Tutorial · {minutes} min",
     "stateInProgress": "In progress · step {step}",
     "stateNew": "To discover",
-    "articlesTitle": "Help articles",
     "openTutorials": "See the tutorial path",
     "stateSeen": "Markers seen",
-    "actionShow": "Show the markers",
-    "actionShowAgain": "Show the markers again"
+    "results": "Screens found: {count}",
+    "groups": {
+      "events": "Events",
+      "vendors": "Vendors",
+      "quotes": "Quotes and invoices",
+      "budget": "Budget",
+      "company": "My company and account",
+      "data": "Import and personal data",
+      "admin": "Suite administration",
+      "clients": "Your space"
+    },
+    "screenTitle": "Help: {title}",
+    "back": "Back to the help centre",
+    "captureAlt": "Screenshot of the “{title}” screen, with its numbered markers",
+    "captureAltPlain": "Screenshot of the “{title}” screen",
+    "landmarksTitle": "Markers on this screen",
+    "faqTitle": "Frequently asked questions",
+    "openScreen": "Open this screen",
+    "showLandmarks": "Show the markers on the screen",
+    "fromEvent": "This screen opens from an event page.",
+    "fromQuote": "This screen opens from a quote, on its event page.",
+    "fromBudget": "This screen opens from the Budget tab of an event page.",
+    "fromImport": "This step follows dropping a file in “Import”.",
+    "fromClientEvent": "This screen opens from your space, by choosing a wedding."
   },
   "Search": {
     "label": "Search",
