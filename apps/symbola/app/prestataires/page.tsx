@@ -139,6 +139,13 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
               <option value="1">{t("filterWorkedWith")}</option>
             </select>
           </label>
+          <label>
+            {t("filterUnplacedLabel")}
+            <select name="aplacer" defaultValue={filters.unplaced ? "1" : ""}>
+              <option value="">{t("any")}</option>
+              <option value="1">{t("filterUnplaced")}</option>
+            </select>
+          </label>
           {tags.length > 0 ? (
             <label>
               {t("filterTag")}

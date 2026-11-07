@@ -4,10 +4,12 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { createAppConnection } from "@symbola/db/client";
 import { formatAmount, formatCalendarDate, formatDateTime, type Locale } from "@symbola/i18n";
 import { ScreenHelp } from "@/app/screen-help";
-import { getUserContact } from "@/modules/hub/service";
+import { getUserContact, listImportJobs } from "@/modules/hub/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { getUndoPreview, type UndoPreviewItem } from "@/lib/import/apply";
 import { isValidId } from "../../access";
+import { retryImportJobAction } from "../../actions";
+import { JobProgress } from "../../job-progress";
 import { undoImportAction } from "./actions";
 
 function count(value: string | undefined): number | null {
@@ -38,11 +40,15 @@ export default async function ImportJournalPage({
 
   const { sql, db } = createAppConnection();
   let author;
+  let jobs;
   try {
     author = await getUserContact(db, organizationId, view.createdByUserId);
+    jobs = await listImportJobs(db, organizationId, importId);
   } finally {
     await sql.end();
   }
+  // Lot 15 (GEO-01) : placement sur la carte des prestataires importés.
+  const placeJob = jobs.find((job) => job.kind === "place_vendors");
 
   const t = await getTranslations("Import");
   const tHelp = await getTranslations("Help");
@@ -103,6 +109,30 @@ export default async function ImportJournalPage({
           </>
         ) : null}
       </dl>
+
+      {placeJob ? (
+        <section aria-labelledby="import-placement" className="card">
+          <h2 id="import-placement">{t("jobPlaceVendorsTitle")}</h2>
+          {placeJob.status === "done" ? (
+            <p role="status">
+              {t("jobPlaceVendorsResult", { placed: placeJob.result.placed ?? 0, unplaced: placeJob.result.unplaced ?? 0 })}{" "}
+              {(placeJob.result.unplaced ?? 0) > 0 ? <Link href="/prestataires?aplacer=1">{t("jobPlaceVendorsUnplacedLink")}</Link> : null}
+            </p>
+          ) : placeJob.status === "cancelled" ? (
+            <p>{t("jobCancelled")}</p>
+          ) : (
+            <JobProgress label={t("jobPlaceVendors")} done={placeJob.done} total={placeJob.total} status={placeJob.status} />
+          )}
+          {placeJob.status === "failed" ? (
+            <form action={retryImportJobAction}>
+              <p role="alert">{t("jobFailed")}</p>
+              <input type="hidden" name="importId" value={view.id} />
+              <input type="hidden" name="jobId" value={placeJob.id} />
+              <button type="submit">{t("jobRetry")}</button>
+            </form>
+          ) : null}
+        </section>
+      ) : null}
 
       {view.undoable ? (
         <section aria-labelledby="undo-import">

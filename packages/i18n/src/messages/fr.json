@@ -1859,7 +1859,19 @@
         "what": "Chaque fiche devient un événement : mariés et leurs coordonnées, date, lieux et horaires, budget souhaité. Le statut est proposé d'après la date ; vous le changez dans l'aperçu.",
         "start": "Importer mes fiches événement"
       }
-    }
+    },
+    "jobReadSheetsTitle": "Lecture des fiches",
+    "jobReadSheets": "Lecture des fiches",
+    "jobPlaceVendorsTitle": "Placement sur la carte",
+    "jobPlaceVendors": "Placement sur la carte",
+    "jobProgressText": "{done} sur {total}",
+    "jobFinished": "{label} : terminé.",
+    "jobStopped": "{label} : arrêté.",
+    "jobFailed": "Le traitement s'est arrêté sur une erreur. Vous pouvez le relancer : il reprendra là où il s'était arrêté.",
+    "jobRetry": "Relancer",
+    "jobCancelled": "Placement arrêté (import annulé).",
+    "jobPlaceVendorsResult": "{placed, plural, =0 {Aucun prestataire placé} one {# prestataire placé} other {# prestataires placés}}, {unplaced, plural, =0 {aucun à placer à la main} one {# à placer à la main} other {# à placer à la main}}.",
+    "jobPlaceVendorsUnplacedLink": "Voir les prestataires à placer"
   },
   "Privacy": {
     "title": "Données personnelles",
@@ -2894,7 +2906,9 @@
       "x": "X"
     },
     "invalidWebsite": "Adresse web illisible : vérifiez le site et les réseaux.",
-    "invalidSiret": "Le SIRET doit compter 14 chiffres."
+    "invalidSiret": "Le SIRET doit compter 14 chiffres.",
+    "filterUnplacedLabel": "Sur la carte",
+    "filterUnplaced": "À placer (sans point)"
   },
   "Setup": {
     "title": "Bienvenue : préparons votre espace",

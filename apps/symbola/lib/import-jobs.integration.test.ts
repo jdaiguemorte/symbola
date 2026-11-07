@@ -10,7 +10,7 @@ import { createAppConnection } from "@symbola/db/client";
 import { createStorageClient, PrivateObjectNotFoundError, readPrivateObject } from "@symbola/files";
 import { readImportCorpusFile } from "@symbola/testing/import-corpus";
 import { cancelImport, createImportJob, getImportDraft, listActiveImportJobs, listImportJobs, startEventSheetsImport, startImport } from "@/modules/hub/service";
-import { createVendor, getVendor, setVendorLocation } from "@/modules/vendors/service";
+import { createVendor, findVendors, getVendor, setVendorLocation } from "@/modules/vendors/service";
 import { fakeGeocoderCalls } from "@/modules/vendors/geocoder";
 import { runImportJobsOnce, runImportJobsUntilIdle } from "./import-jobs";
 
@@ -71,6 +71,8 @@ describe("GEO-01 — Placement sur la carte en lot, sans attendre", () => {
     expect(kept!.location).toEqual({ latitude: 45.1, longitude: 4.1, source: "manual" });
     const [job] = await listImportJobs(db, organizationId, importId);
     expect(job).toMatchObject({ kind: "place_vendors", status: "done", total: 5, done: 5, result: { placed: 3, unplaced: 1 } });
+    // Le carnet filtre les fiches « à placer ».
+    expect((await findVendors({ organizationId, unplacedOnly: true })).map((entry) => entry.id)).toEqual([lost]);
   });
 
   it("jamais le point d'une autre organisation", async () => {

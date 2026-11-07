@@ -29,6 +29,17 @@ async function expectNoAxeViolation(page: Page) {
   expect(result.violations, JSON.stringify(result.violations, null, 2)).toEqual([]);
 }
 
+// Lot 15 (IMP-10) : les fiches sont lues en tâche de fond ; la page montre
+// l'avancement puis ouvre d'elle-même les rapprochements (ou, si la lecture
+// était déjà finie à l'affichage, propose le lien).
+async function waitForSheetsRead(page: Page) {
+  await expect(page.getByText("Lecture des fiches").first()).toBeVisible();
+  const next = page.getByRole("link", { name: "Continuer : rapprocher des éléments existants" });
+  await expect.poll(async () => page.url().endsWith("/rapprochements") || (await next.isVisible()), { timeout: 30_000 }).toBe(true);
+  if (!page.url().endsWith("/rapprochements")) await next.click();
+  await expect(page).toHaveURL(/\/rapprochements$/);
+}
+
 test("IMP-09 — les reprises depuis l'outil actuel en premier, avec une fiche d'exemple", async ({ page }) => {
   const email = `planner-imp09-${randomUUID()}@symbola.test`;
   const password = "mot-de-passe-imp09-e2e";
@@ -66,7 +77,7 @@ test("IMP-09 — les reprises depuis l'outil actuel en premier, avec une fiche d
   await expect(page.getByLabel("Fiches événement (PDF, une fiche par événement)")).toBeChecked();
   await page.getByLabel("Fiches événement (PDF, une ou plusieurs)").setInputFiles({ name: "fiche-evenement-exemple.pdf", mimeType: "application/pdf", buffer: await response.body() });
   await page.getByRole("button", { name: "Lire le fichier" }).click();
-  await page.getByRole("link", { name: "Continuer : rapprocher des éléments existants" }).click();
+  await waitForSheetsRead(page);
   await expect(page.getByRole("heading", { name: /Ligne 1 : Léa MARTIN & Hugo BERNARD/ })).toBeVisible();
   await expectNoAxeViolation(page);
 });

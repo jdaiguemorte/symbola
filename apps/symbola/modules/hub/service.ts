@@ -179,6 +179,7 @@ export {
   listActiveImportJobs,
   listImportJobs,
   readNextSheet,
+  retryImportJob,
   updateImportJob,
   type ImportJobPayload,
   type ImportJobResult,

@@ -34,7 +34,9 @@ format bien plus vaste qu'un zip de XML.
    - limites avant toute lecture : taille du fichier (réglage de la plateforme, comme le lot
      5), nombre de pages (3 au plus pour une fiche), temps de lecture borné ; un PDF chiffré est
      refusé ;
-   - le fichier passe par l'antivirus à l'envoi, puis n'est **jamais stocké** (seules les valeurs
+   - le fichier passe par l'antivirus, puis n'est **jamais gardé au-delà de sa lecture** : depuis
+     le lot 15 (ADR 0035), il attend sa lecture chiffré dans le stockage privé, puis il est
+     supprimé avec sa clé (seules les valeurs
      lues restent, dans l'import en cours, comme pour un tableau).
 3. **Profil de format en données** : les libellés repères (« Date de l'événement », « Lieu de
    l'événement », « Le budget de l'évènement »…) et la règle des colonnes vivent dans un profil

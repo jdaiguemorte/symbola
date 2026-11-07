@@ -397,6 +397,7 @@ export async function findVendors(input: FindVendorsInput): Promise<VendorListIt
     tagIds: input.tagIds?.filter((id) => UUID.test(id)),
     fieldFilters,
     onlyIds: input.workedWith ? await listSelectedVendorIds(input.organizationId) : undefined,
+    unplacedOnly: input.unplacedOnly ?? false,
     around,
     includeArchived: input.includeArchived ?? false,
     limit: Math.min(Math.max(input.limit ?? 200, 1), 500),

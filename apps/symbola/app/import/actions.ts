@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { createAppConnection } from "@symbola/db/client";
-import { cancelImport, startEventSheetsImport, startImport, type ImportRejectionReason } from "@/modules/hub/service";
+import { cancelImport, retryImportJob, startEventSheetsImport, startImport, type ImportRejectionReason } from "@/modules/hub/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { availableImportEntityTypes, isValidId, parseEntityType } from "./access";
 
@@ -100,4 +100,22 @@ export async function cancelImportAction(formData: FormData): Promise<void> {
   }
   revalidatePath("/import");
   redirect("/import");
+}
+
+// Lot 15 (IMP-10) — relancer un traitement de fond en échec (lecture des
+// fiches, placement sur la carte) : il reprend là où il s'était arrêté.
+export async function retryImportJobAction(formData: FormData): Promise<void> {
+  const auth = await getPlannerAuthContext();
+  if (auth.status !== "authenticated" || !auth.user.organizationId) return;
+  const importId = String(formData.get("importId") ?? "");
+  const jobId = String(formData.get("jobId") ?? "");
+  if (!isValidId(importId) || !isValidId(jobId)) return;
+  const { sql, db } = createAppConnection();
+  try {
+    await retryImportJob(db, auth.user.organizationId, jobId);
+  } finally {
+    await sql.end();
+  }
+  revalidatePath(`/import/${importId}`);
+  revalidatePath(`/import/${importId}/journal`);
 }

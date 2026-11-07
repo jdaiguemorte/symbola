@@ -95,6 +95,8 @@ export type FindVendorsInput = {
   fieldFilters?: VendorFieldFilter[];
   // « Déjà travaillé avec » : au moins une fois retenu (module events).
   workedWith?: boolean;
+  // Lot 15 (GEO-01) : seulement les fiches sans point sur la carte (« à placer »).
+  unplacedOnly?: boolean;
   around?: VendorAround;
   includeArchived?: boolean;
   limit?: number;

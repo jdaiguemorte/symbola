@@ -217,3 +217,15 @@ export async function readNextSheet(db: AppDatabase, organizationId: string, job
   job.payload = { ...job.payload, files };
   return done < job.total;
 }
+
+// Traitement en échec relancé par la planner : il reprend là où il s'était arrêté.
+export async function retryImportJob(db: AppDatabase, organizationId: string, jobId: string): Promise<boolean> {
+  return withOrganization(db, organizationId, async (tx) => {
+    const updated = await tx
+      .update(importJobs)
+      .set({ status: "pending", error: null, finishedAt: null, updatedAt: new Date() })
+      .where(and(eq(importJobs.id, jobId), eq(importJobs.status, "failed")))
+      .returning({ id: importJobs.id });
+    return updated.length > 0;
+  });
+}

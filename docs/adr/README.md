@@ -36,3 +36,4 @@ Un fichier par décision structurante, numéroté. Pour changer une décision : 
 - [0032 — « Budget » remplace les postes prestataires](0032-budget-remplace-les-postes.md)
 - [0033 — Refonte UX : panneaux latéraux, aide par repères, captures réelles](0033-refonte-ux-panneaux-et-aide-par-reperes.md)
 - [0034 — Import : lecture des fiches PDF avec `pdfjs-dist`](0034-lecture-des-pdf-pour-l-import.md)
+- [0035 — Traitements de fond suivis des imports](0035-traitements-de-fond-suivis-des-imports.md)

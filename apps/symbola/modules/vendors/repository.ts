@@ -216,6 +216,7 @@ export function findVendorRows(
     tagIds?: string[] | undefined;
     fieldFilters: (VendorFieldFilter & { kind: VendorFieldKind })[];
     onlyIds?: string[] | undefined;
+    unplacedOnly?: boolean | undefined;
     around?: VendorAround | undefined;
     includeArchived: boolean;
     limit: number;
@@ -224,6 +225,7 @@ export function findVendorRows(
   return inOrganization(organizationId, async (tx) => {
     const conditions: SQL[] = [];
     if (!input.includeArchived) conditions.push(isNull(vendors.archivedAt));
+    if (input.unplacedOnly) conditions.push(isNull(vendors.latitude));
     if (input.typeIds && input.typeIds.length > 0) conditions.push(inArray(vendors.typeId, input.typeIds));
     if (input.tagIds && input.tagIds.length > 0) conditions.push(sql`${vendors.tagIds} @> array[${sql.join(input.tagIds.map((id) => sql`${id}`), sql`, `)}]::uuid[]`);
     if (input.onlyIds) conditions.push(input.onlyIds.length > 0 ? inArray(vendors.id, input.onlyIds) : sql`false`);

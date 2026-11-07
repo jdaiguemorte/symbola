@@ -147,6 +147,15 @@ temporaire chiffré** des fiches PDF pendant leur lecture.
 
 1. **15a** — Traitements de fond suivis (table, worker, barre d'avancement) et géocodage en lot
    (GEO-01, IMP-10). Vérification préalable du service en lot depuis staging.
+   *Réalisé (15a)* : service en lot vérifié directement depuis l'environnement de Claude (accès
+   à `data.geopf.fr` ouvert pour la session) : la **marque UTF-8 en tête du fichier est
+   indispensable** (sans elle, « République » est lu en Latin-1 et l'adresse est introuvable).
+   ADR 0035 : table `hub.import_jobs` (migrations 0073 et 0074), worker du serveur, pas validés
+   avec l'avancement dans la même transaction. Fiches chiffrées par l'app en AES-256-GCM (Garage
+   ne chiffre pas au repos) ; clé en base, à part. Barre d'avancement accessible sur la page de
+   l'import (lecture des fiches, puis ouverture des rapprochements) et sur le journal (placement
+   sur la carte, puis « K placés, M à placer » avec un lien vers le carnet filtré « À placer »,
+   nouveau filtre). Un traitement en échec se relance.
 2. **15b** — Carte accessible (A11Y-01).
 3. **15c** — Migrations des types énumérés annulables (DB-01).
 4. **Déploiement sur staging** (Julien, runbook) : migrations 0069 à 0072 et celles du lot 15,
