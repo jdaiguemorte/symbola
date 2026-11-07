@@ -3,7 +3,8 @@
 // Lot 13 (HUB-14, ADR 0033) — barre de filtres commune : contrôles de même
 // hauteur, filtrage à la saisie (sans bouton « Filtrer »), état dans
 // l'adresse. Sans JavaScript, le formulaire GET reste utilisable (bouton
-// masqué « Appliquer »).
+// masqué « Appliquer »). Un champ marqué data-apply="blur" (adresse à
+// géocoder, par exemple) ne s'applique qu'en le quittant ou avec Entrée.
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, type ReactNode } from "react";
 
@@ -54,8 +55,13 @@ export function FilterBar({
         event.preventDefault();
         apply();
       }}
+      onBlur={(event) => {
+        const target = event.target as HTMLElement;
+        if (target.dataset.apply === "blur") apply();
+      }}
       onChange={(event) => {
         const target = event.target as unknown as HTMLInputElement;
+        if (target.dataset.apply === "blur") return;
         if (timer.current) clearTimeout(timer.current);
         if (target.type === "search" || target.type === "text") {
           timer.current = setTimeout(apply, SEARCH_DELAY_MS);

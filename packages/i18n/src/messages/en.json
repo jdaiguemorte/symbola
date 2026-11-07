@@ -2513,7 +2513,20 @@
     "exportTravel": "Estimated travel",
     "exportTags": "Tags",
     "exportPdfTitle": "Vendor selection",
-    "exportPdfAround": "{count, plural, one {# vendor} other {# vendors}} within {km} km of {place}"
+    "exportPdfAround": "{count, plural, one {# vendor} other {# vendors}} within {km} km of {place}",
+    "allTypesCount": "All · {count}",
+    "typeCount": "{label} · {count}",
+    "filterWorkedWithLabel": "Already booked",
+    "viewLabel": "Display",
+    "viewList": "List",
+    "viewMap": "Map",
+    "summaryType": "Type",
+    "summaryContact": "Contact",
+    "summaryPhone": "Phone",
+    "summaryEmail": "Email",
+    "summaryAddress": "Address",
+    "summaryTravel": "Estimated travel",
+    "openFullCard": "Open the full card"
   },
   "Setup": {
     "title": "Welcome: let's set up your space",

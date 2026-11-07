@@ -2513,7 +2513,20 @@
     "exportTravel": "Trajet estimé",
     "exportTags": "Étiquettes",
     "exportPdfTitle": "Sélection de prestataires",
-    "exportPdfAround": "{count, plural, one {# prestataire} other {# prestataires}} à moins de {km} km de {place}"
+    "exportPdfAround": "{count, plural, one {# prestataire} other {# prestataires}} à moins de {km} km de {place}",
+    "allTypesCount": "Tous · {count}",
+    "typeCount": "{label} · {count}",
+    "filterWorkedWithLabel": "Déjà retenus",
+    "viewLabel": "Affichage",
+    "viewList": "Liste",
+    "viewMap": "Carte",
+    "summaryType": "Type",
+    "summaryContact": "Contact",
+    "summaryPhone": "Téléphone",
+    "summaryEmail": "E-mail",
+    "summaryAddress": "Adresse",
+    "summaryTravel": "Trajet estimé",
+    "openFullCard": "Ouvrir la fiche complète"
   },
   "Setup": {
     "title": "Bienvenue : préparons votre espace",
