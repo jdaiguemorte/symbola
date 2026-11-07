@@ -86,3 +86,48 @@ describe("PRE-03 — Géocodage", () => {
     expect(await ignGeocoder(failing).geocode("x")).toBeNull();
   });
 });
+
+describe("GEO-01 — Géocodage en lot (lot 15)", () => {
+  const requests = [
+    { id: "a", text: "20 rue de la République Lille", postalCode: "59000" },
+    { id: "b", text: '12 rue des Lilas, "B"', postalCode: null },
+    { id: "c", text: "adresse introuvable", postalCode: "86000" },
+  ];
+
+  it("IGN : un seul envoi CSV pour tout le lot, code postal en filtre à part, seuil de score appliqué", async () => {
+    const sent: { url: string; csv: string; fields: [string, string][] }[] = [];
+    const service = (async (url: string | URL | Request, init?: RequestInit) => {
+      const form = init!.body as FormData;
+      const fields = [...form.entries()].filter(([, value]) => typeof value === "string") as [string, string][];
+      // Octets bruts : Blob.text() retirerait la marque UTF-8 envoyée en tête.
+      const bytes = await (form.get("data") as Blob).arrayBuffer();
+      sent.push({ url: String(url), csv: new TextDecoder("utf-8", { ignoreBOM: true }).decode(bytes), fields });
+      const body = 'id,q,postcode,latitude,longitude,result_score\na,x,59000,50.631,3.060,0.71\nb,"12 rue des Lilas, ""B""",,46.56,0.35,0.86\nc,x,86000,49.5,0.08,0.36\n';
+      return { ok: true, status: 200, text: async () => body } as Response;
+    }) as typeof fetch;
+    const result = await ignGeocoder(service).geocodeMany(requests);
+    expect(sent).toHaveLength(1);
+    expect(sent[0]!.url).toBe("https://data.geopf.fr/geocodage/search/csv");
+    expect(sent[0]!.csv).toBe('\uFEFFid,q,postcode\na,20 rue de la République Lille,59000\nb,"12 rue des Lilas, ""B""",\nc,adresse introuvable,86000');
+    expect(sent[0]!.fields).toEqual(expect.arrayContaining([["columns", "q"], ["postcode", "postcode"]]));
+    expect(result.get("a")).toEqual({ latitude: 50.631, longitude: 3.06 });
+    expect(result.get("b")).toEqual({ latitude: 46.56, longitude: 0.35 });
+    expect(result.get("c")).toBeNull();
+  });
+
+  it("IGN : si l'envoi en lot échoue, une adresse à la fois, avec une pause sur « trop de requêtes »", async () => {
+    const pauses: number[] = [];
+    let unit = 0;
+    const service = (async (url: string | URL | Request) => {
+      if (String(url).endsWith("/csv")) return { ok: false, status: 503 } as Response;
+      unit += 1;
+      if (unit === 1) return { ok: false, status: 429 } as Response;
+      const found = { features: [{ geometry: { coordinates: [3, 50] }, properties: { score: 0.9 } }] };
+      return { ok: true, status: 200, json: async () => found } as Response;
+    }) as typeof fetch;
+    const result = await ignGeocoder(service, async (ms) => pauses.push(ms)).geocodeMany(requests);
+    expect([...result.values()]).toEqual([{ latitude: 50, longitude: 3 }, { latitude: 50, longitude: 3 }, { latitude: 50, longitude: 3 }]);
+    expect(pauses[0]).toBe(5000);
+    expect(pauses.filter((ms) => ms === 25)).toHaveLength(3);
+  });
+});

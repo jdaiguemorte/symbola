@@ -6,7 +6,8 @@ import { formatDate, formatFileSize, type Locale } from "@symbola/i18n";
 import { ScreenHelp } from "@/app/screen-help";
 import { getImportDraft } from "@/modules/hub/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
-import { cancelImportAction } from "../actions";
+import { cancelImportAction, retryImportJobAction } from "../actions";
+import { JobProgress } from "../job-progress";
 import { isValidId } from "../access";
 import { ImportSteps } from "../import-steps";
 
@@ -39,12 +40,36 @@ export default async function ImportDraftPage({ params }: { params: Promise<{ im
   const gapsDone = draft.matching !== null && undecidedColumns === 0;
   const tHelp = await getTranslations("Help");
   const locale = (await getLocale()) as Locale;
+  // Lot 15 (IMP-10) : fiches PDF en cours de lecture, en tâche de fond.
+  const readJob = draft.jobs.find((job) => job.kind === "read_sheets");
+  const reading = readJob !== undefined && (readJob.status === "pending" || readJob.status === "running");
 
   return (
     <main>
       <h1>{t("draftTitle", { fileName: draft.fileName })}</h1>
       <ScreenHelp title={tHelp("importFile.title")} body={tHelp("importFile.body")} />
       <ImportSteps current={gapsDone ? 4 : draft.matching ? 3 : draft.mapping ? 2 : 1} />
+
+      {readJob ? (
+        <section aria-labelledby="import-reading" className="card">
+          <h2 id="import-reading">{t("jobReadSheetsTitle")}</h2>
+          <JobProgress
+            label={t("jobReadSheets")}
+            done={readJob.done}
+            total={readJob.total}
+            status={readJob.status}
+            nextHref={`/import/${draft.id}/rapprochements`}
+          />
+          {readJob.status === "failed" ? (
+            <form action={retryImportJobAction}>
+              <p role="alert">{t("jobFailed")}</p>
+              <input type="hidden" name="importId" value={draft.id} />
+              <input type="hidden" name="jobId" value={readJob.id} />
+              <button type="submit">{t("jobRetry")}</button>
+            </form>
+          ) : null}
+        </section>
+      ) : null}
 
       <section aria-labelledby="import-detected">
         <h2 id="import-detected">{t("detectedTitle")}</h2>
@@ -124,7 +149,7 @@ export default async function ImportDraftPage({ params }: { params: Promise<{ im
         )}
       </section>
 
-      {draft.mapping ? (
+      {draft.mapping && !reading ? (
         <section aria-labelledby="import-matches">
           <h2 id="import-matches">{t("matchesStepTitle")}</h2>
           {draft.matching ? (
@@ -142,7 +167,7 @@ export default async function ImportDraftPage({ params }: { params: Promise<{ im
         </section>
       ) : null}
 
-      {draft.matching ? (
+      {draft.matching && !reading ? (
         <section aria-labelledby="import-gaps">
           <h2 id="import-gaps">{t("gapsStepTitle")}</h2>
           <p>

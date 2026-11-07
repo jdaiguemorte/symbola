@@ -1859,7 +1859,19 @@
         "what": "Each sheet becomes an event: the couple and their contact details, date, places and times, wished budget. The status is suggested from the date; you can change it in the preview.",
         "start": "Import my event sheets"
       }
-    }
+    },
+    "jobReadSheetsTitle": "Reading the sheets",
+    "jobReadSheets": "Reading the sheets",
+    "jobPlaceVendorsTitle": "Placing on the map",
+    "jobPlaceVendors": "Placing on the map",
+    "jobProgressText": "{done} of {total}",
+    "jobFinished": "{label}: finished.",
+    "jobStopped": "{label}: stopped.",
+    "jobFailed": "The process stopped on an error. You can restart it: it will resume where it stopped.",
+    "jobRetry": "Restart",
+    "jobCancelled": "Placement stopped (import undone).",
+    "jobPlaceVendorsResult": "{placed, plural, =0 {No vendor placed} one {# vendor placed} other {# vendors placed}}, {unplaced, plural, =0 {none to place by hand} other {# to place by hand}}.",
+    "jobPlaceVendorsUnplacedLink": "See the vendors to place"
   },
   "Privacy": {
     "title": "Personal data",
@@ -2894,7 +2906,12 @@
       "x": "X"
     },
     "invalidWebsite": "Unreadable web address: check the website and social links.",
-    "invalidSiret": "The SIRET must have 14 digits."
+    "invalidSiret": "The SIRET must have 14 digits.",
+    "filterUnplacedLabel": "On the map",
+    "filterUnplaced": "To place (no point)",
+    "mapZoomIn": "Zoom in on the map",
+    "mapZoomOut": "Zoom out of the map",
+    "mapSummary": "{placed, plural, =0 {No vendor on the map} one {# vendor on the map} other {# vendors on the map}}, {unplaced, plural, =0 {none to place} other {# to place}}."
   },
   "Setup": {
     "title": "Welcome: let's set up your space",

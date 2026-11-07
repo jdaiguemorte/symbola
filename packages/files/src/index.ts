@@ -13,3 +13,4 @@ export {
 } from "./storage";
 export { uploadFile, type UploadFileInput, type UploadFileResult } from "./upload-service";
 export { EICAR_TEST_STRING } from "./eicar";
+export { openSealedFile, sealFile, type SealedFile } from "./sealed";

@@ -11,7 +11,7 @@ import { createVendor } from "../modules/vendors/service";
 import { readyOrganization } from "./helpers";
 
 async function expectNoAxeViolation(page: Page) {
-  const result = await new AxeBuilder({ page }).exclude(".vendor-map-canvas").analyze();
+  const result = await new AxeBuilder({ page }).analyze();
   expect(result.violations, JSON.stringify(result.violations, null, 2)).toEqual([]);
 }
 
@@ -45,11 +45,11 @@ test("PRE-12 — liste et carte côte à côte, fiche dans le panneau latéral",
 
   await page.goto("/prestataires");
   await expect(page.getByRole("navigation", { name: "Types de prestataires" }).getByRole("link", { name: "Tous · 2" })).toBeVisible();
-  const list = page.getByRole("region", { name: /résultat/ });
+  const list = page.getByRole("region", { name: /^\d+ résultats?/ });
   await expect(list.getByRole("link", { name: "Maison Verdier" })).toBeVisible();
 
   // Sur ordinateur, liste et carte ensemble ; sur téléphone, l'une ou l'autre.
-  const map = page.getByRole("img", { name: /Carte : 2 prestataires placés/ });
+  const map = page.getByRole("region", { name: /Carte : 2 prestataires placés/ });
   if (page.viewportSize()!.width >= 1024) {
     await expect(map).toBeVisible();
   } else {

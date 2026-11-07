@@ -25,7 +25,8 @@
     "bootstrap": "tsx scripts/bootstrap-roles.ts",
     "migrate": "tsx scripts/migrate.ts",
     "db:generate": "drizzle-kit generate",
-    "db:generate:custom": "drizzle-kit generate --custom"
+    "db:generate:custom": "drizzle-kit generate --custom",
+    "rollback": "tsx scripts/rollback.ts"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.4",

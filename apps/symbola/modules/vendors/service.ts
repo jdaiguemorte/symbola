@@ -65,7 +65,8 @@ import {
 import { DEFAULT_VENDOR_SETTINGS, estimateTravel, validateVendorSettings } from "./travel";
 
 export { InvalidVendorFieldValueError, parseFieldInput } from "./fields";
-export { findModifiedImportedVendorsElements, importVendorRows, listVendorImportCandidates, type VendorTypeChoiceInput } from "./import";
+export { findModifiedImportedVendorsElements, importedVendorsToPlace, importVendorRows, listVendorImportCandidates, type VendorTypeChoiceInput } from "./import";
+export { placeVendors, type PlacementResult } from "./placement";
 export { estimateTravel, haversineKm } from "./travel";
 export { vendorsPrivacy } from "./privacy";
 export type {
@@ -396,6 +397,7 @@ export async function findVendors(input: FindVendorsInput): Promise<VendorListIt
     tagIds: input.tagIds?.filter((id) => UUID.test(id)),
     fieldFilters,
     onlyIds: input.workedWith ? await listSelectedVendorIds(input.organizationId) : undefined,
+    unplacedOnly: input.unplacedOnly ?? false,
     around,
     includeArchived: input.includeArchived ?? false,
     limit: Math.min(Math.max(input.limit ?? 200, 1), 500),

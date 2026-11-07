@@ -10,6 +10,7 @@ import { createAppConnection } from "@symbola/db/client";
 import { readImportCorpusFile } from "@symbola/testing/import-corpus";
 import { decideFreeColumns, getImportColumns, saveImportMapping, startImport } from "@/modules/hub/service";
 import { createVendor, createVendorTag, createVendorType, findVendors, getVendor, listVendorTags, listVendorTypes, updateVendor } from "@/modules/vendors/service";
+import { runImportJobsUntilIdle } from "@/lib/import-jobs";
 import { confirmImport, getImportPreview, getUndoPreview, undoImport } from "./apply";
 import { decideMatches, decideVendorTypes, getImportMatchesView } from "./matching";
 
@@ -120,6 +121,8 @@ describe("IMP-07 — Importer ses prestataires depuis l'export Excel", () => {
     const importId = await preparedImport(planner);
     const result = await confirmImport({ ...planner, importId });
     expect(result).toEqual({ status: "applied", result: { created: 25, updated: 0, unchanged: 0, rejected: 0 } });
+    // Lot 15 : placement sur la carte en tâche de fond.
+    await runImportJobsUntilIdle([planner.organizationId]);
 
     const dj = (await vendorNamed(planner, "DJ Nova"))!;
     expect(dj.phone).toBe("06 39 98 00 07");

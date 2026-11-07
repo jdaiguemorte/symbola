@@ -391,6 +391,38 @@ export const importItems = hubSchema.table("import_items", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
+// Lot 15 (IMP-10, GEO-01) — traitement de fond suivi d'un import : lecture
+// des fiches PDF déposées (gardées chiffrées dans le stockage privé le temps de
+// la lecture, puis supprimées) ou placement sur la carte des prestataires
+// importés. Avancé pas à pas par le worker du serveur, reprend après un
+// redémarrage. Données d'une organisation : RLS forcée.
+export type ImportJobKind = "read_sheets" | "place_vendors";
+export type ImportJobStatus = "pending" | "running" | "done" | "failed" | "cancelled";
+export type ImportJobPayload =
+  // objectKey / secret : fiche chiffrée dans le stockage privé et sa clé, effacées
+  // une fois la fiche lue ; rejection : motif d'une fiche refusée dès le dépôt.
+  | { kind: "read_sheets"; files: { fileName: string; objectKey: string | null; secret: string | null; rejection?: string }[]; today: string }
+  | { kind: "place_vendors"; vendorIds: string[] };
+export type ImportJobResult = { placed?: number; unplaced?: number };
+
+export const importJobs = hubSchema.table("import_jobs", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  importId: uuid("import_id")
+    .notNull()
+    .references(() => imports.id),
+  kind: text("kind").$type<ImportJobKind>().notNull(),
+  status: text("status").$type<ImportJobStatus>().notNull().default("pending"),
+  total: integer("total").notNull(),
+  done: integer("done").notNull().default(0),
+  payload: jsonb("payload").$type<ImportJobPayload>().notNull(),
+  result: jsonb("result").$type<ImportJobResult>().notNull().default({}),
+  error: text("error"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  finishedAt: timestamp("finished_at", { withTimezone: true }),
+});
+
 // Lot 6 (RGPD-04) — demandes d'exercice de droits reçues par la titulaire :
 // type, personne concernée (libellé saisi), réception, échéance légale
 // (un mois, trois une fois prolongée avec un motif), statut. Données métier

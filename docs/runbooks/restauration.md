@@ -115,6 +115,27 @@ l'instantané. L'autre environnement n'est jamais touché.
    `symbola-socle_uptime_kuma_data`, puis `restore <id> --target / --include
    /backup/uptime-kuma` avec ce volume monté sur `/backup/uptime-kuma`, et relancer Kuma.
 
+## 4 bis. Annuler une migration (sans restaurer)
+
+Quand seul le schéma est en cause (une migration à retirer après un déploiement raté), on
+annule la migration au lieu de restaurer une sauvegarde entière (ADR 0036). **Toujours après
+une sauvegarde** (`sudo systemctl start symbola-backup@staging.service`) : un script qui
+supprime une colonne en perd les données.
+
+1. Revenir à l'image de l'app d'avant la migration (`APP_IMAGE_TAG`, runbook de déploiement),
+   pour qu'aucune requête ne vise ce qui va disparaître.
+2. Annuler les migrations **de la plus récente à la plus ancienne**, une par une, de la même
+   façon que `migrate` dans le runbook de déploiement (« Mettre à jour », étape 3 : même
+   tunnel SSH, mêmes variables admin) :
+   ```bash
+   pnpm --filter @symbola/db rollback -- 0074_lot15_grant_import_jobs
+   pnpm --filter @symbola/db rollback -- 0073_lot15_import_jobs
+   ```
+   La commande refuse une migration qui n'est pas la dernière appliquée, ou dont des données
+   dépendent encore (par exemple des imports de fiches PDF pour 0072) : elle l'écrit en clair
+   et ne modifie rien.
+3. Pour rejouer plus tard : `pnpm --filter @symbola/db migrate`, comme d'habitude.
+
 ## 5. Test de restauration chronométré (staging)
 
 À faire une fois avant la fin du lot 0, puis chaque mois (PRD, § 10). Toujours sur le

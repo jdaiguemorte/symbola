@@ -28,8 +28,7 @@ async function loginAndSetupMfa(page: Page, email: string, password: string) {
 }
 
 async function expectNoAxeViolation(page: Page) {
-  // Canevas de la carte exclu, comme dans les parcours du carnet (lot 11).
-  const result = await new AxeBuilder({ page }).exclude(".vendor-map-canvas").analyze();
+  const result = await new AxeBuilder({ page }).analyze();
   expect(result.violations, JSON.stringify(result.violations, null, 2)).toEqual([]);
 }
 
@@ -89,6 +88,10 @@ test("IMP-07 — reprendre ses prestataires depuis l'export Excel de l'outil act
   await expectNoAxeViolation(page);
   await page.getByRole("button", { name: "Confirmer l'import" }).click();
   await expect(page.getByText("24 créations, 1 mise à jour, aucune ligne inchangée, aucune ligne rejetée")).toBeVisible();
+  // Lot 15 (GEO-01) : le placement sur la carte se fait ensuite, avec son avancement.
+  const placement = page.getByRole("region", { name: "Placement sur la carte" });
+  await expect(placement).toContainText(/prestataires? placés?/, { timeout: 30_000 });
+  await expectNoAxeViolation(page);
 
   // La fiche existante est complétée : site, SIRET, champs importés, étiquettes.
   await page.goto(`/prestataires/${existingId}`);

@@ -19,6 +19,10 @@ type Props = {
   assets: MapAssets;
   label: string;
   missingTilesNotice: string;
+  // Lot 15 (A11Y-01) : libellés des boutons de zoom (traductions de l'app) et
+  // résumé textuel affiché sous la carte.
+  controls: { zoomIn: string; zoomOut: string };
+  summary?: string;
   around?: { latitude: number; longitude: number; radiusKm: number } | null;
   // Fiche : un clic déplace le point ; ids des champs à remplir.
   pick?: { latitudeInputId: string; longitudeInputId: string } | null;
@@ -34,7 +38,7 @@ const FRANCE: [[number, number], [number, number]] = [
 // la carte met son repère en avant (et inversement).
 export const VENDOR_HOVER_EVENT = "symbola:vendor-hover";
 
-export function VendorMap({ points, assets, label, missingTilesNotice, around = null, pick = null }: Props) {
+export function VendorMap({ points, assets, label, missingTilesNotice, controls, summary, around = null, pick = null }: Props) {
   const container = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
@@ -52,6 +56,8 @@ export function VendorMap({ points, assets, label, missingTilesNotice, around = 
         style: mapStyle(window.location.origin, assets),
         bounds: FRANCE,
         attributionControl: assets.tiles ? { compact: true } : false,
+        // MapLibre fait du canevas une région nommée ; les boutons restent à côté.
+        locale: { "Map.Title": label, "NavigationControl.ZoomIn": controls.zoomIn, "NavigationControl.ZoomOut": controls.zoomOut },
       });
       map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
       cleanup = () => {
@@ -175,11 +181,12 @@ export function VendorMap({ points, assets, label, missingTilesNotice, around = 
       disposed = true;
       cleanup?.();
     };
-  }, [points, assets, around, pick]);
+  }, [points, assets, around, pick, label, controls.zoomIn, controls.zoomOut]);
 
   return (
     <div className="vendor-map">
-      <div ref={container} className="vendor-map-canvas" role="img" aria-label={label} />
+      <div ref={container} className="vendor-map-canvas" />
+      {summary ? <p className="vendor-map-summary">{summary}</p> : null}
       {!assets.tiles ? <p className="vendor-map-notice">{missingTilesNotice}</p> : null}
     </div>
   );

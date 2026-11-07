@@ -176,6 +176,7 @@ export default async function VendorPage({ params, searchParams }: { params: Pro
           assets={assets}
           label={t("pointMapLabel", { vendor: vendor.name })}
           missingTilesNotice={t("mapNoTiles")}
+          controls={{ zoomIn: t("mapZoomIn"), zoomOut: t("mapZoomOut") }}
           pick={{ latitudeInputId: "vendor-latitude", longitudeInputId: "vendor-longitude" }}
         />
         <p className="muted">{t("pointHint")}</p>

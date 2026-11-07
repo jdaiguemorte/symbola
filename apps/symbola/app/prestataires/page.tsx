@@ -139,6 +139,13 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
               <option value="1">{t("filterWorkedWith")}</option>
             </select>
           </label>
+          <label>
+            {t("filterUnplacedLabel")}
+            <select name="aplacer" defaultValue={filters.unplaced ? "1" : ""}>
+              <option value="">{t("any")}</option>
+              <option value="1">{t("filterUnplaced")}</option>
+            </select>
+          </label>
           {tags.length > 0 ? (
             <label>
               {t("filterTag")}
@@ -244,6 +251,8 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
             around={center ? { latitude: center.latitude, longitude: center.longitude, radiusKm: filters.radiusKm } : null}
             label={t("mapLabel", { count: points.length })}
             missingTilesNotice={t("mapNoTiles")}
+            controls={{ zoomIn: t("mapZoomIn"), zoomOut: t("mapZoomOut") }}
+            summary={t("mapSummary", { placed: points.length, unplaced: Math.max(results.length - points.length, 0) })}
           />
         </div>
       </div>

@@ -37,6 +37,17 @@ async function expectNoAxeViolation(page: Page) {
 // Corpus de test (Playwright est lancé depuis apps/symbola).
 const corpus = (name: string) => path.resolve(process.cwd(), "../../packages/testing/import-corpus/files/logiciel-tiers", name);
 
+// Lot 15 (IMP-10) : les fiches sont lues en tâche de fond ; la page montre
+// l'avancement puis ouvre d'elle-même les rapprochements (ou, si la lecture
+// était déjà finie à l'affichage, propose le lien).
+async function waitForSheetsRead(page: Page) {
+  await expect(page.getByText("Lecture des fiches").first()).toBeVisible();
+  const next = page.getByRole("link", { name: "Continuer : rapprocher des éléments existants" });
+  await expect.poll(async () => page.url().endsWith("/rapprochements") || (await next.isVisible()), { timeout: 30_000 }).toBe(true);
+  if (!page.url().endsWith("/rapprochements")) await next.click();
+  await expect(page).toHaveURL(/\/rapprochements$/);
+}
+
 test("IMP-08 — reprendre ses événements depuis les fiches PDF de l'outil actuel", async ({ page }) => {
   const email = `planner-imp08-${randomUUID()}@symbola.test`;
   const password = "mot-de-passe-imp08-e2e";
@@ -60,10 +71,10 @@ test("IMP-08 — reprendre ses événements depuis les fiches PDF de l'outil act
   await expectNoAxeViolation(page);
   await page.getByRole("button", { name: "Lire le fichier" }).click();
 
-  // Colonnes déjà reconnues : on va directement aux rapprochements, puis aux écarts.
+  // Colonnes déjà reconnues ; lecture des fiches suivie, puis rapprochements.
   await expect(page.getByRole("link", { name: "Continuer : reconnaître les colonnes" })).toHaveCount(0);
   await expectNoAxeViolation(page);
-  await page.getByRole("link", { name: "Continuer : rapprocher des éléments existants" }).click();
+  await waitForSheetsRead(page);
   await expectNoAxeViolation(page);
   await page.getByRole("link", { name: "Continuer : rapport des écarts" }).click();
   await expect(page.getByText("Fiche « pas-une-fiche.pdf » : ce n'est pas un PDF")).toBeVisible();
