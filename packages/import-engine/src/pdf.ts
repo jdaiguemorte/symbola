@@ -6,6 +6,19 @@
 // et durée bornés ; le fichier n'est jamais gardé.
 import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
 
+// Côté serveur, pdfjs lit le PDF dans le même processus avec son module de
+// lecture (pdf.worker.mjs), qu'il importe sinon par un chemin relatif à son
+// propre fichier : un bundler (Next.js) qui le déplace casse ce chemin. Le
+// module est donc chargé ici et confié à pdfjs, qui l'utilise en priorité.
+let workerModule: Promise<void> | null = null;
+function ensureWorkerModule(): Promise<void> {
+  // @ts-expect-error -- pdfjs-dist ne publie pas de types pour ce module.
+  workerModule ??= import("pdfjs-dist/legacy/build/pdf.worker.mjs").then((worker: unknown) => {
+    (globalThis as { pdfjsWorker?: unknown }).pdfjsWorker = worker;
+  });
+  return workerModule;
+}
+
 export type PdfTextItem = {
   text: string;
   // Coin haut-gauche, en points, mesuré depuis le haut de la page.
@@ -55,6 +68,7 @@ export async function readPdfText(bytes: Uint8Array, limits: PdfLimits = DEFAULT
   if (bytes.length > limits.maxBytes) return { ok: false, reason: "too_large" };
   if (!looksLikePdf(bytes)) return { ok: false, reason: "not_pdf" };
 
+  await ensureWorkerModule();
   // pdfjs prend la main sur le tampon : on lui en donne une copie.
   const task = getDocument({
     data: new Uint8Array(bytes),

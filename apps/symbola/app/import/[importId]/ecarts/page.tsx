@@ -75,7 +75,9 @@ export default async function ImportGapsPage({ params }: { params: Promise<{ imp
             <ul>
               {view.rejected.map((row) => (
                 <li key={row.rowIndex}>
-                  {t("gapsRejectedRow", { line: row.lineNumber, reasons: row.reasons.map((reason) => reasonText(translate, reason)).join(" ; ") })}
+                  {row.source
+                    ? t("gapsRejectedSheet", { file: row.source, reasons: row.reasons.map((reason) => reasonText(translate, reason)).join(" ; ") })
+                    : t("gapsRejectedRow", { line: row.lineNumber, reasons: row.reasons.map((reason) => reasonText(translate, reason)).join(" ; ") })}
                 </li>
               ))}
             </ul>

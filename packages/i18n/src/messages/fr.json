@@ -1549,7 +1549,8 @@
       "prospect_sources": "Sources de prospects",
       "loss_reasons": "Motifs de perte",
       "payment_methods": "Modes de paiement",
-      "vendors": "Prestataires du carnet (une ligne par prestataire)"
+      "vendors": "Prestataires du carnet (une ligne par prestataire)",
+      "event_sheets": "Fiches événement (PDF, une fiche par événement)"
     },
     "fileLabel": "Fichier (CSV, Excel .xlsx ou JSON)",
     "fileHint": "Taille maximale : {maxSize}. L'encodage, le séparateur et la ligne d'en-tête sont reconnus automatiquement.",
@@ -1586,7 +1587,8 @@
     "format": {
       "csv": "Texte délimité (CSV)",
       "xlsx": "Classeur Excel (.xlsx)",
-      "json": "JSON"
+      "json": "JSON",
+      "pdf": "PDF"
     },
     "detectedEncoding": "Encodage",
     "encoding": {
@@ -1665,7 +1667,19 @@
       "x": "X",
       "siret": "N° SIRET",
       "criteria": "Critères (deviennent des étiquettes)",
-      "services": "Prestations (vont dans la note interne)"
+      "services": "Prestations (vont dans la note interne)",
+      "client1Email": "E-mail du client 1",
+      "client1Phone": "Téléphone du client 1",
+      "client1AddressLine": "Adresse du client 1",
+      "client1PostalCode": "Code postal du client 1",
+      "client1City": "Ville du client 1",
+      "client2Email": "E-mail du client 2",
+      "client2Phone": "Téléphone du client 2",
+      "client2AddressLine": "Adresse du client 2",
+      "client2PostalCode": "Code postal du client 2",
+      "client2City": "Ville du client 2",
+      "places": "Lieux et horaires",
+      "wantedBudget": "Budget souhaité"
     },
     "requiredField": "{field} (obligatoire)",
     "columnsStepTitle": "Colonnes",
@@ -1746,7 +1760,8 @@
       "invalid_percentage": "{field} : pourcentage invalide ({value})",
       "invalid_boolean": "{field} : valeur non reconnue, attendu oui ou non ({value})",
       "invalid_choice": "{field} : valeur non reconnue ({value})",
-      "event_not_found": "événement introuvable ou ambigu parmi vos événements"
+      "event_not_found": "événement introuvable ou ambigu parmi vos événements",
+      "sheet_rejected": "Fiche refusée : {value}"
     },
     "confirmStepTitle": "Confirmation",
     "continueToConfirmation": "Continuer : aperçu et confirmation",
@@ -1809,7 +1824,25 @@
     "vendorTypeCreate": "Créer le type « {label} »",
     "vendorTypeMatched": "Rapproché de « {type} » ({score} %)",
     "vendorTypeExisting": "Types de votre carnet",
-    "vendorTypesSave": "Enregistrer les types"
+    "vendorTypesSave": "Enregistrer les types",
+    "sheetsLabel": "Fiches événement (PDF, une ou plusieurs)",
+    "sheetsHint": "Jusqu'à {count} fiches à la fois, {maxSize} au plus chacune. Chaque fiche devient un événement.",
+    "rejectedTooManySheets": "Trop de fiches à la fois : déposez-les en plusieurs fois.",
+    "gapsRejectedSheet": "Fiche « {file} » : {reasons}",
+    "rowSameAs": "Cette fiche décrit le même événement que la ligne {line} : rapprochez-la de l'événement existant ou ne gardez que l'une des deux.",
+    "sheetStatusIntro": "Statut proposé pour chaque événement (confirmé si la date est à venir et un lieu connu, réalisé si elle est passée) : changez-le si besoin avant de confirmer.",
+    "sheetStatusSave": "Enregistrer les statuts",
+    "sheetRejection": {
+      "not_pdf": "ce n'est pas un PDF",
+      "too_large": "fichier trop volumineux",
+      "encrypted": "PDF protégé par mot de passe",
+      "too_many_pages": "trop de pages pour une fiche",
+      "no_text": "aucun texte lisible (fiche scannée en image ?)",
+      "unreadable": "PDF illisible",
+      "timeout": "lecture trop longue",
+      "not_event_sheet": "ce n'est pas une fiche événement de l'outil actuel",
+      "infected": "fichier refusé par l'antivirus"
+    }
   },
   "Privacy": {
     "title": "Données personnelles",

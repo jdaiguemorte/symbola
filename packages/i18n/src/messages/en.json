@@ -1549,7 +1549,8 @@
       "prospect_sources": "Prospect sources",
       "loss_reasons": "Loss reasons",
       "payment_methods": "Payment methods",
-      "vendors": "Vendor book entries (one row per vendor)"
+      "vendors": "Vendor book entries (one row per vendor)",
+      "event_sheets": "Event sheets (PDF, one sheet per event)"
     },
     "fileLabel": "File (CSV, Excel .xlsx or JSON)",
     "fileHint": "Maximum size: {maxSize}. Encoding, separator and header row are detected automatically.",
@@ -1586,7 +1587,8 @@
     "format": {
       "csv": "Delimited text (CSV)",
       "xlsx": "Excel workbook (.xlsx)",
-      "json": "JSON"
+      "json": "JSON",
+      "pdf": "PDF"
     },
     "detectedEncoding": "Encoding",
     "encoding": {
@@ -1665,7 +1667,19 @@
       "x": "X",
       "siret": "SIRET number",
       "criteria": "Criteria (become tags)",
-      "services": "Services (go to the internal note)"
+      "services": "Services (go to the internal note)",
+      "client1Email": "Client 1 email",
+      "client1Phone": "Client 1 phone",
+      "client1AddressLine": "Client 1 address",
+      "client1PostalCode": "Client 1 postal code",
+      "client1City": "Client 1 city",
+      "client2Email": "Client 2 email",
+      "client2Phone": "Client 2 phone",
+      "client2AddressLine": "Client 2 address",
+      "client2PostalCode": "Client 2 postal code",
+      "client2City": "Client 2 city",
+      "places": "Places and times",
+      "wantedBudget": "Wished budget"
     },
     "requiredField": "{field} (required)",
     "columnsStepTitle": "Columns",
@@ -1746,7 +1760,8 @@
       "invalid_percentage": "{field}: invalid percentage ({value})",
       "invalid_boolean": "{field}: unrecognised value, expected yes or no ({value})",
       "invalid_choice": "{field}: unrecognised value ({value})",
-      "event_not_found": "event not found or ambiguous among your events"
+      "event_not_found": "event not found or ambiguous among your events",
+      "sheet_rejected": "Sheet rejected: {value}"
     },
     "confirmStepTitle": "Confirmation",
     "continueToConfirmation": "Continue: preview and confirmation",
@@ -1809,7 +1824,25 @@
     "vendorTypeCreate": "Create the type “{label}”",
     "vendorTypeMatched": "Matched with “{type}” ({score}%)",
     "vendorTypeExisting": "Your vendor book types",
-    "vendorTypesSave": "Save the types"
+    "vendorTypesSave": "Save the types",
+    "sheetsLabel": "Event sheets (PDF, one or more)",
+    "sheetsHint": "Up to {count} sheets at once, {maxSize} at most each. Each sheet becomes an event.",
+    "rejectedTooManySheets": "Too many sheets at once: upload them in several goes.",
+    "gapsRejectedSheet": "Sheet “{file}”: {reasons}",
+    "rowSameAs": "This sheet describes the same event as row {line}: match it with the existing event or keep only one of them.",
+    "sheetStatusIntro": "Suggested status for each event (confirmed when the date is ahead and a venue is known, done when it has passed): change it if needed before confirming.",
+    "sheetStatusSave": "Save the statuses",
+    "sheetRejection": {
+      "not_pdf": "not a PDF",
+      "too_large": "file too large",
+      "encrypted": "password-protected PDF",
+      "too_many_pages": "too many pages for a sheet",
+      "no_text": "no readable text (scanned as an image?)",
+      "unreadable": "unreadable PDF",
+      "timeout": "reading took too long",
+      "not_event_sheet": "not an event sheet from the current tool",
+      "infected": "file rejected by the antivirus"
+    }
   },
   "Privacy": {
     "title": "Personal data",

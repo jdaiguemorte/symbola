@@ -811,7 +811,7 @@ export default async function EventDetailPage({
         <section className="card" aria-labelledby="client-contact-title">
           <h2 id="client-contact-title">{t("clientContactTitle")}</h2>
           {event.clients.map((client) => (
-            <ClientContactForm key={`${client.id}-${client.email ?? ""}-${client.phone ?? ""}-${client.city ?? ""}`} eventId={event.id} client={client} />
+            <ClientContactForm key={client.id} eventId={event.id} client={client} />
           ))}
         </section>
       ) : null}
