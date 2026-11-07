@@ -85,6 +85,8 @@ import {
   type EventVendorSlotRow,
   type TaskTemplateItemRow,
   type TaskTemplateRow,
+  updateEventClientContactRow,
+  updateWantedBudgetRow,
 } from "./repository";
 import { addDays } from "./schedule";
 import { addPlace, listPlaces, removePlace } from "./places";
@@ -227,7 +229,17 @@ export type {
 } from "@symbola/contracts";
 
 function toEventClient(row: EventClientRow): EventClient {
-  return { id: row.id, firstName: row.firstName, lastName: row.lastName, position: row.position };
+  return {
+    id: row.id,
+    firstName: row.firstName,
+    lastName: row.lastName,
+    position: row.position,
+    email: row.email,
+    phone: row.phone,
+    addressLine: row.addressLine,
+    postalCode: row.postalCode,
+    city: row.city,
+  };
 }
 
 function toEventSummary(event: EventRow, clients: EventClientRow[]): EventSummary {
@@ -249,6 +261,7 @@ function toEventDetail(event: EventRow, clients: EventClientRow[]): EventDetail 
     lossReasonId: event.lossReasonId,
     lossReasonNote: event.lossReasonNote,
     tasksScheduledFor: event.tasksScheduledFor,
+    wantedBudgetCents: event.wantedBudgetCents,
     ...(event.importedFields ? { importedFields: event.importedFields } : {}),
   };
 }
@@ -375,6 +388,41 @@ export class EventNotFoundError extends Error {
     super("événement introuvable");
     this.name = "EventNotFoundError";
   }
+}
+
+// Lot 14 (décision I) — coordonnées d'un client : e-mail vérifié, valeurs
+// vides enregistrées comme absentes.
+export class InvalidClientContactError extends Error {
+  constructor() {
+    super("coordonnées invalides");
+    this.name = "InvalidClientContactError";
+  }
+}
+
+const CONTACT_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export async function updateEventClientContact(input: {
+  organizationId: string;
+  eventId: string;
+  clientId: string;
+  contact: Partial<Record<"email" | "phone" | "addressLine" | "postalCode" | "city", string | null>>;
+}): Promise<void> {
+  const clean = (value: string | null | undefined) => (value?.trim() ? value.trim().slice(0, 300) : null);
+  const contact = {
+    email: clean(input.contact.email),
+    phone: clean(input.contact.phone),
+    addressLine: clean(input.contact.addressLine),
+    postalCode: clean(input.contact.postalCode),
+    city: clean(input.contact.city),
+  };
+  if (contact.email && !CONTACT_EMAIL.test(contact.email)) throw new InvalidClientContactError();
+  if (!(await updateEventClientContactRow(input.organizationId, input.eventId, input.clientId, contact))) throw new EventNotFoundError();
+}
+
+// Lot 14 (décision K) — budget souhaité, en centimes (null : effacé).
+export async function setEventWantedBudget(organizationId: string, eventId: string, wantedBudgetCents: number | null): Promise<void> {
+  if (wantedBudgetCents !== null && (!Number.isInteger(wantedBudgetCents) || wantedBudgetCents < 0)) throw new RangeError("montant invalide");
+  if (!(await updateWantedBudgetRow(organizationId, eventId, wantedBudgetCents))) throw new EventNotFoundError();
 }
 
 export class VendorSlotNotFoundError extends Error {

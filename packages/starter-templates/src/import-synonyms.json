@@ -571,6 +571,136 @@
         "description",
         "prices"
       ]
+    },
+    "client1Email": {
+      "fr": [
+        "e-mail client 1",
+        "e-mail 1",
+        "mail 1"
+      ],
+      "en": [
+        "partner 1 email",
+        "email 1"
+      ]
+    },
+    "client1Phone": {
+      "fr": [
+        "téléphone client 1",
+        "téléphone 1",
+        "tél 1"
+      ],
+      "en": [
+        "partner 1 phone",
+        "phone 1"
+      ]
+    },
+    "client1AddressLine": {
+      "fr": [
+        "adresse client 1",
+        "adresse 1"
+      ],
+      "en": [
+        "partner 1 address",
+        "address 1"
+      ]
+    },
+    "client1PostalCode": {
+      "fr": [
+        "code postal client 1",
+        "code postal 1",
+        "cp 1"
+      ],
+      "en": [
+        "partner 1 postal code",
+        "postal code 1"
+      ]
+    },
+    "client1City": {
+      "fr": [
+        "ville client 1",
+        "ville 1"
+      ],
+      "en": [
+        "partner 1 city",
+        "city 1"
+      ]
+    },
+    "client2Email": {
+      "fr": [
+        "e-mail client 2",
+        "e-mail 2",
+        "mail 2"
+      ],
+      "en": [
+        "partner 2 email",
+        "email 2"
+      ]
+    },
+    "client2Phone": {
+      "fr": [
+        "téléphone client 2",
+        "téléphone 2",
+        "tél 2"
+      ],
+      "en": [
+        "partner 2 phone",
+        "phone 2"
+      ]
+    },
+    "client2AddressLine": {
+      "fr": [
+        "adresse client 2",
+        "adresse 2"
+      ],
+      "en": [
+        "partner 2 address",
+        "address 2"
+      ]
+    },
+    "client2PostalCode": {
+      "fr": [
+        "code postal client 2",
+        "code postal 2",
+        "cp 2"
+      ],
+      "en": [
+        "partner 2 postal code",
+        "postal code 2"
+      ]
+    },
+    "client2City": {
+      "fr": [
+        "ville client 2",
+        "ville 2"
+      ],
+      "en": [
+        "partner 2 city",
+        "city 2"
+      ]
+    },
+    "places": {
+      "fr": [
+        "lieux et horaires",
+        "lieux",
+        "programme"
+      ],
+      "en": [
+        "places and times",
+        "places",
+        "schedule"
+      ]
+    },
+    "wantedBudget": {
+      "fr": [
+        "budget souhaité",
+        "budget",
+        "budget prévu"
+      ],
+      "en": [
+        "wished budget",
+        "budget",
+        "target budget"
+      ]
     }
   },
   "choices": {

@@ -13,12 +13,15 @@ export function BudgetSimulationForm({
   budget,
   locale,
   vendorSlots,
+  wantedBudgetCents = null,
 }: {
   eventId: string;
   models: AllocationModel[];
   budget: EventBudgetView | null;
   locale: Locale;
   vendorSlots: DefaultVendorSlot[];
+  // Lot 14 (décision K) : budget souhaité des clients, proposé comme total.
+  wantedBudgetCents?: number | null;
 }) {
   const t = useTranslations("Budget");
   const initialState: BudgetFormState = {};
@@ -37,7 +40,7 @@ export function BudgetSimulationForm({
             name="totalAmount"
             min={0}
             step={0.01}
-            defaultValue={budget ? budget.totalAmountCents / 100 : ""}
+            defaultValue={budget ? budget.totalAmountCents / 100 : wantedBudgetCents !== null ? wantedBudgetCents / 100 : ""}
             required
           />
         </label>

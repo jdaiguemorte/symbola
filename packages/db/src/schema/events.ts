@@ -52,6 +52,9 @@ export const events = eventsSchema.table("events", {
   // Lot 5 (IMP-04/IMP-05) : colonnes d'un fichier importé gardées en champ
   // libre (intitulé → texte), affichées en lecture seule sur la fiche.
   importedFields: jsonb("imported_fields").$type<Record<string, string> | null>(),
+  // Lot 14 (décision K) : budget souhaité par les clients, en centimes
+  // (proposé comme total de la simulation du budget).
+  wantedBudgetCents: integer("wanted_budget_cents"),
   prospectSourceId: uuid("prospect_source_id").references(() => prospectSources.id),
   lossReasonId: uuid("loss_reason_id").references(() => lossReasons.id),
   lossReasonNote: text("loss_reason_note"),
@@ -82,6 +85,12 @@ export const eventClients = eventsSchema.table("event_clients", {
     .references(() => events.id),
   firstName: text("first_name").notNull(),
   lastName: text("last_name"),
+  // Lot 14 (décision I) : coordonnées du client (registre RGPD).
+  email: text("email"),
+  phone: text("phone"),
+  addressLine: text("address_line"),
+  postalCode: text("postal_code"),
+  city: text("city"),
   position: integer("position").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });

@@ -41,6 +41,7 @@ export type {
   CreateProspectInput,
   CreateProspectResult,
   EventClient,
+  EventClientContact,
   EventClientInput,
   EventDetail,
   EventsServiceContract,

@@ -11,6 +11,7 @@ export function PlatformSettingsForm({
   importMaxRows,
   importDraftRetentionDays,
   importUndoRetentionDays,
+  importMaxSheets,
   privacyExportRetentionDays,
 }: {
   franchiseThresholdServicesCents: number | null;
@@ -19,6 +20,7 @@ export function PlatformSettingsForm({
   importMaxRows: number;
   importDraftRetentionDays: number;
   importUndoRetentionDays: number;
+  importMaxSheets: number;
   privacyExportRetentionDays: number;
 }) {
   const t = useTranslations("AdminSettings");
@@ -62,6 +64,10 @@ export function PlatformSettingsForm({
         <label>
           {t("importUndoRetentionDays")}
           <input type="number" min="1" step="1" name="importUndoRetentionDays" defaultValue={importUndoRetentionDays} required />
+        </label>
+        <label>
+          {t("importMaxSheets")}
+          <input type="number" min="1" step="1" name="importMaxSheets" defaultValue={importMaxSheets} required />
         </label>
       </fieldset>
       <fieldset>

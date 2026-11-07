@@ -340,6 +340,8 @@ const eventSheetProfileSchema = z.object({
   footerFromRatio: z.number().gt(0).lt(1),
   weekdays: z.array(z.string()).length(7),
   months: z.array(z.string()).length(12),
+  // Lot 14c : intitulés des colonnes de la ligne d'import tirée d'une fiche.
+  columnHeaders: z.record(z.string(), z.string().min(1)),
 });
 const importProfilesSchema = z.object({
   planningSoftware: z.object({ vendors: vendorsExportProfileSchema, eventSheet: eventSheetProfileSchema }),

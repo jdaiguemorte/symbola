@@ -1880,3 +1880,38 @@ export async function updateEventVendorSlotIcon(organizationId: string, id: stri
     await pg.end();
   }
 }
+
+// Lot 14 (décision I) — coordonnées d'un client de l'événement.
+export async function updateEventClientContactRow(
+  organizationId: string,
+  eventId: string,
+  clientId: string,
+  contact: { email: string | null; phone: string | null; addressLine: string | null; postalCode: string | null; city: string | null },
+): Promise<boolean> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    return await withOrganization(db, organizationId, async (tx) => {
+      const rows = await tx
+        .update(eventClients)
+        .set(contact)
+        .where(and(eq(eventClients.id, clientId), eq(eventClients.eventId, eventId)))
+        .returning({ id: eventClients.id });
+      return rows.length > 0;
+    });
+  } finally {
+    await pg.end();
+  }
+}
+
+// Lot 14 (décision K) — budget souhaité par les clients.
+export async function updateWantedBudgetRow(organizationId: string, eventId: string, wantedBudgetCents: number | null): Promise<boolean> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    return await withOrganization(db, organizationId, async (tx) => {
+      const rows = await tx.update(events).set({ wantedBudgetCents, updatedAt: new Date() }).where(eq(events.id, eventId)).returning({ id: events.id });
+      return rows.length > 0;
+    });
+  } finally {
+    await pg.end();
+  }
+}

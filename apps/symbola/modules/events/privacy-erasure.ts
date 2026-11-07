@@ -139,7 +139,7 @@ export async function eraseEventsData(input: ErasureInput): Promise<ErasurePlanI
       await tx.delete(eventPlaces).where(inArray(eventPlaces.eventId, eventIds));
     }
     if (idsFor("event_client").length > 0) {
-      await tx.update(eventClients).set({ firstName: ANONYMIZED, lastName: null }).where(inArray(eventClients.id, idsFor("event_client")));
+      await tx.update(eventClients).set({ firstName: ANONYMIZED, lastName: null, email: null, phone: null, addressLine: null, postalCode: null, city: null }).where(inArray(eventClients.id, idsFor("event_client")));
     }
     if (idsFor("event_vendor_slot").length > 0) {
       const slotIds = idsFor("event_vendor_slot");

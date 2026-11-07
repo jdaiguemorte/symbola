@@ -131,6 +131,7 @@ export async function upsertPlatformSettings(
     importMaxRows?: number;
     importDraftRetentionDays?: number;
     importUndoRetentionDays?: number;
+    importMaxSheets?: number;
     privacyExportRetentionDays?: number;
   },
 ) {

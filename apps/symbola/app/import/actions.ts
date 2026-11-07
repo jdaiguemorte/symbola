@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { createAppConnection } from "@symbola/db/client";
-import { cancelImport, startImport, type ImportRejectionReason } from "@/modules/hub/service";
+import { cancelImport, startEventSheetsImport, startImport, type ImportRejectionReason } from "@/modules/hub/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { availableImportEntityTypes, isValidId, parseEntityType } from "./access";
 
@@ -39,6 +39,25 @@ export async function startImportAction(_prevState: StartImportFormState, formDa
   const entityType = parseEntityType(String(formData.get("entityType") ?? ""));
   if (!entityType || !(await availableImportEntityTypes(organizationId)).includes(entityType)) {
     return { error: t("missingEntityType") };
+  }
+  // Lot 14c (IMP-08) : une ou plusieurs fiches événement PDF.
+  if (entityType === "event_sheets") {
+    const files = formData.getAll("file").filter((entry): entry is File => entry instanceof File && entry.size > 0);
+    if (files.length === 0) return { error: t("missingFile") };
+    const { sql, db } = createAppConnection();
+    let started;
+    try {
+      started = await startEventSheetsImport(db, {
+        organizationId,
+        userId: auth.user.id,
+        files: await Promise.all(files.map(async (entry) => ({ fileName: entry.name, bytes: new Uint8Array(await entry.arrayBuffer()) }))),
+      });
+    } finally {
+      await sql.end();
+    }
+    if (started.status === "rejected") return { error: t(started.reason === "too_many_files" ? "rejectedTooManySheets" : "missingFile") };
+    revalidatePath("/import");
+    redirect(`/import/${started.importId}`);
   }
   const file = formData.get("file");
   if (!(file instanceof File) || file.size === 0) return { error: t("missingFile") };

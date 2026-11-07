@@ -29,10 +29,12 @@ import {
   eventTasks,
   eventVendorSlots,
   lossReasons,
+  eventPlaces,
   programItems,
   prospectSources,
 } from "@symbola/db/schema/events";
 import { withOrganization } from "@symbola/db/with-organization";
+import { parsePlacesCell } from "@symbola/import-engine";
 
 type Tx = Parameters<Parameters<typeof withOrganization>[2]>[0];
 type Values = Record<string, unknown>;
@@ -78,7 +80,41 @@ function mergedImportedFields(current: Record<string, string> | null, added: Rec
 
 // —— Événements (avec leurs clients) ————————————————————————————————————
 
-type ImportedClient = { firstName: string; lastName: string | null };
+// Lot 14c (IMP-08) — valeurs propres à une fiche PDF : budget souhaité
+// (centimes) ; lieux (le premier est aussi le lieu de réception), et pour
+// ceux qui ont une heure, une ligne du programme à cette heure.
+function sheetValues(values: Values): { wantedBudgetCents: number | null; places: ImportedPlace[]; program: ImportedProgramItem[] } {
+  const budget = values.wantedBudget;
+  const entries = typeof values.places === "string" ? parsePlacesCell(values.places) : [];
+  const unique = [...new Map(entries.map((entry) => [normalized(entry.label), entry])).values()];
+  return {
+    wantedBudgetCents: typeof budget === "number" && budget > 0 ? budget : null,
+    places: unique.map((entry) => ({ label: entry.label })),
+    program: entries
+      .filter((entry): entry is { label: string; time: string } => entry.time !== null)
+      .map((entry) => ({ startTime: entry.time, label: entry.label, location: entry.label })),
+  };
+}
+
+// Lot 14 (décision I) : coordonnées gardées seulement quand elles sont
+// renseignées (l'état relu d'un import plus ancien reste comparable).
+const CONTACT_KEYS = ["email", "phone", "addressLine", "postalCode", "city"] as const;
+type ImportedClient = { firstName: string; lastName: string | null } & Partial<Record<(typeof CONTACT_KEYS)[number], string>>;
+type ImportedPlace = { label: string };
+type ImportedProgramItem = { startTime: string; label: string; location: string | null };
+
+function clientOf(row: { firstName: string; lastName: string | null } & Partial<Record<(typeof CONTACT_KEYS)[number], string | null>>): ImportedClient {
+  const client: ImportedClient = { firstName: row.firstName, lastName: row.lastName };
+  for (const key of CONTACT_KEYS) {
+    const value = row[key];
+    if (value) client[key] = value;
+  }
+  return client;
+}
+
+function clientColumns(client: ImportedClient) {
+  return Object.fromEntries(CONTACT_KEYS.map((key) => [key, client[key] ?? null])) as Record<(typeof CONTACT_KEYS)[number], string | null>;
+}
 
 async function eventState(tx: Tx, eventId: string): Promise<Values | null> {
   const [event] = await tx.select().from(events).where(and(eq(events.id, eventId), eq(events.isDemo, false)));
@@ -90,8 +126,13 @@ async function eventState(tx: Tx, eventId: string): Promise<Values | null> {
     venueCity: event.venueCity,
     prospectSourceId: event.prospectSourceId,
     status: event.status,
-    clients: clients.map((client) => ({ firstName: client.firstName, lastName: client.lastName })),
+    clients: clients.map(clientOf),
     importedFields: event.importedFields,
+    wantedBudgetCents: event.wantedBudgetCents,
+    places: (await tx.select().from(eventPlaces).where(eq(eventPlaces.eventId, eventId)).orderBy(asc(eventPlaces.position))).map((place) => ({ label: place.label })),
+    program: (await tx.select().from(programItems).where(eq(programItems.eventId, eventId)).orderBy(asc(programItems.startTime), asc(programItems.createdAt))).map(
+      (item) => ({ startTime: item.startTime.slice(0, 5), label: item.label, location: item.location }),
+    ),
   };
 }
 
@@ -104,10 +145,16 @@ function rowClients(values: Values, current: ImportedClient[]): ImportedClient[]
   ] as const) {
     const firstName = text(values[`client${index}FirstName`]);
     const lastName = text(values[`client${index}LastName`]);
-    if (!firstName && !lastName) continue;
+    const contact = Object.fromEntries(CONTACT_KEYS.map((key) => [key, text(values[`client${index}${key[0]!.toUpperCase()}${key.slice(1)}`])]));
+    if (!firstName && !lastName && Object.values(contact).every((value) => value === null)) continue;
     touched = true;
     const existing = result[position];
-    result[position] = { firstName: firstName ?? existing?.firstName ?? "", lastName: lastName ?? existing?.lastName ?? null };
+    // Une coordonnée vide dans le fichier ne remplace jamais celle de la fiche.
+    result[position] = clientOf({
+      firstName: firstName ?? existing?.firstName ?? "",
+      lastName: lastName ?? existing?.lastName ?? null,
+      ...Object.fromEntries(CONTACT_KEYS.map((key) => [key, (contact[key] as string | null) ?? existing?.[key] ?? null])),
+    });
   }
   // Un client 2 sans client 1 reste à sa place (le client 1 vide n'existe pas).
   return touched ? result.filter((client): client is ImportedClient => client !== undefined) : null;
@@ -121,14 +168,27 @@ async function writeEventFields(tx: Tx, organizationId: string, eventId: string,
   if ("prospectSourceId" in fields) set.prospectSourceId = (fields.prospectSourceId as string | null) ?? null;
   if ("importedFields" in fields) set.importedFields = (fields.importedFields as Record<string, string> | null) ?? null;
   if ("status" in fields) set.status = fields.status as EventStatus;
+  if ("wantedBudgetCents" in fields) set.wantedBudgetCents = (fields.wantedBudgetCents as number | null) ?? null;
   await tx.update(events).set(set).where(eq(events.id, eventId));
+
+  if ("places" in fields) {
+    const places = (fields.places as ImportedPlace[] | null) ?? [];
+    await tx.delete(eventPlaces).where(eq(eventPlaces.eventId, eventId));
+    if (places.length > 0) await tx.insert(eventPlaces).values(places.map((place, position) => ({ organizationId, eventId, label: place.label, position })));
+  }
+  if ("program" in fields) {
+    const program = (fields.program as ImportedProgramItem[] | null) ?? [];
+    await tx.delete(programItems).where(eq(programItems.eventId, eventId));
+    if (program.length > 0) await tx.insert(programItems).values(program.map((item) => ({ organizationId, eventId, ...item })));
+    await tx.update(events).set({ programUpdatedAt: new Date() }).where(eq(events.id, eventId));
+  }
 
   if ("clients" in fields) {
     const clients = (fields.clients as ImportedClient[] | null) ?? [];
     await tx.delete(eventClients).where(eq(eventClients.eventId, eventId));
     if (clients.length > 0) {
       await tx.insert(eventClients).values(
-        clients.map((client, position) => ({ organizationId, eventId, firstName: client.firstName, lastName: client.lastName, position })),
+        clients.map((client, position) => ({ organizationId, eventId, firstName: client.firstName, lastName: client.lastName, ...clientColumns(client), position })),
       );
     }
   }
@@ -178,6 +238,7 @@ export async function importEventRows(input: {
       const sourceId = await sourceFor(text(row.values.prospectSource));
       const status = (row.values.status as EventStatus | null) ?? null;
       const current = row.matchId ? await eventState(tx, row.matchId) : null;
+      const sheet = sheetValues(row.values);
 
       if (row.matchId && current) {
         const wanted: Values = {};
@@ -189,6 +250,11 @@ export async function importEventRows(input: {
         if (status) wanted.status = status;
         const clients = rowClients(row.values, current.clients as ImportedClient[]);
         if (clients) wanted.clients = clients;
+        // Fiche PDF (lot 14c) : budget souhaité ; lieux et programme
+        // seulement si l'événement n'en a pas encore (jamais de doublon).
+        if (sheet.wantedBudgetCents !== null) wanted.wantedBudgetCents = sheet.wantedBudgetCents;
+        if (sheet.places.length > 0 && (current.places as ImportedPlace[]).length === 0) wanted.places = sheet.places;
+        if (sheet.program.length > 0 && (current.program as ImportedProgramItem[]).length === 0) wanted.program = sheet.program;
         const importedFields = mergedImportedFields(current.importedFields as Record<string, string> | null, row.importedFields);
         if (!same(importedFields, current.importedFields)) wanted.importedFields = importedFields;
 
@@ -215,13 +281,28 @@ export async function importEventRows(input: {
           venueCity: text(row.values.venueCity),
           prospectSourceId: sourceId ?? input.defaultProspectSourceId,
           importedFields: Object.keys(row.importedFields).length > 0 ? row.importedFields : null,
+          wantedBudgetCents: sheet.wantedBudgetCents,
+          programUpdatedAt: sheet.program.length > 0 ? new Date() : null,
         })
         .returning();
       if (!event) throw new Error("création de l'événement échouée");
       if (clients.length > 0) {
         await tx.insert(eventClients).values(
-          clients.map((client, position) => ({ organizationId: input.organizationId, eventId: event.id, firstName: client.firstName, lastName: client.lastName, position })),
+          clients.map((client, position) => ({
+            organizationId: input.organizationId,
+            eventId: event.id,
+            firstName: client.firstName,
+            lastName: client.lastName,
+            ...clientColumns(client),
+            position,
+          })),
         );
+      }
+      if (sheet.places.length > 0) {
+        await tx.insert(eventPlaces).values(sheet.places.map((place, position) => ({ organizationId: input.organizationId, eventId: event.id, label: place.label, position })));
+      }
+      if (sheet.program.length > 0) {
+        await tx.insert(programItems).values(sheet.program.map((item) => ({ organizationId: input.organizationId, eventId: event.id, ...item })));
       }
       // EVT-03 : comme une création à la main, l'événement reçoit les postes par défaut.
       if (defaults.length > 0) {
@@ -459,10 +540,12 @@ function modifiedSince(current: Values, written: Values | null): boolean {
 
 // Un événement créé par l'import puis enrichi à la main (tâches, accès des
 // mariés, programme) est considéré comme modifié.
-async function eventHasHandWork(tx: Tx, eventId: string): Promise<boolean> {
+// Le programme écrit par l'import (fiche PDF, lot 14c) fait partie de l'état
+// relu : seul un programme d'avant le lot 14 est compté ici.
+async function eventHasHandWork(tx: Tx, eventId: string, written: Values | null): Promise<boolean> {
   const [tasks] = await tx.select({ n: sql<number>`count(*)::int` }).from(eventTasks).where(eq(eventTasks.eventId, eventId));
   const [accesses] = await tx.select({ n: sql<number>`count(*)::int` }).from(eventClientAccesses).where(eq(eventClientAccesses.eventId, eventId));
-  const [program] = await tx.select({ n: sql<number>`count(*)::int` }).from(programItems).where(eq(programItems.eventId, eventId));
+  const [program] = written && "program" in written ? [{ n: 0 }] : await tx.select({ n: sql<number>`count(*)::int` }).from(programItems).where(eq(programItems.eventId, eventId));
   return (tasks?.n ?? 0) + (accesses?.n ?? 0) + (program?.n ?? 0) > 0;
 }
 
@@ -546,7 +629,7 @@ export async function findModifiedImportedEventsElements(
         continue;
       }
       let modified = modifiedSince(current, item.written);
-      if (!modified && item.kind === "event" && item.action === "created") modified = await eventHasHandWork(tx, item.elementId);
+      if (!modified && item.kind === "event" && item.action === "created") modified = await eventHasHandWork(tx, item.elementId, item.written);
       result.push(modified);
     }
     return result;
@@ -572,7 +655,7 @@ export async function undoImportedEventsElements(
         continue;
       }
       let modified = modifiedSince(current, item.written);
-      if (!modified && item.kind === "event" && item.action === "created") modified = await eventHasHandWork(tx, item.elementId);
+      if (!modified && item.kind === "event" && item.action === "created") modified = await eventHasHandWork(tx, item.elementId, item.written);
       if (modified && !item.force) {
         outcomes.push("kept_modified");
         continue;

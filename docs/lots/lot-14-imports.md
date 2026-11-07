@@ -203,4 +203,23 @@ Les six propositions ci-dessous sont **validées telles quelles**.
    types créés retirés s'ils ne servent plus.
 3. **14c** — Événements (IMP-08) : coordonnées des mariés (décision I), dépôt de plusieurs
    fiches, import, rapprochements, annulation, écrans.
+   *Réalisé (14c)* : **coordonnées des clients** (e-mail, téléphone, adresse, code postal,
+   ville ; migration 0071) dans l'onglet Mariés, au registre RGPD, dans la recherche et l'oubli.
+   **Budget souhaité** en centimes sur l'événement (décision de Julien du 07/11/2026 : un champ
+   du module Événements plutôt qu'une simulation du budget, qui demande un nombre d'invités et un
+   modèle de répartition absents de la fiche) : affiché sur l'aperçu, modifiable, proposé comme
+   total de la simulation. La **note libre** de la fiche est gardée en champ importé « Note »
+   (même décision). Nouveau type d'import « Fiches événement (PDF) » (`event_sheets`, migration
+   0072) : jusqu'à 50 fiches à la fois (réglage Admin `import_max_sheets`), antivirus et lecture
+   par fiche ; chaque fiche devient une ligne aux colonnes déjà reconnues (intitulés dans le
+   profil), une fiche refusée une ligne rejetée avec son motif (« ce n'est pas un PDF », « PDF
+   protégé », « aucun texte lisible »…). Téléphones de la fiche répartis entre les mariés (par
+   prénom, sinon dans l'ordre). Statut proposé (décision J), modifiable ligne par ligne dans
+   l'aperçu, qui liste toutes les fiches. Rapprochement avec un événement existant (mêmes
+   mariés, même date) ; deux fiches du même lot pour le même événement signalées. À la
+   confirmation, par le module events : clients et coordonnées, date, premier lieu en lieu de
+   réception, tous les lieux dans les lieux de l'événement, une ligne de programme par lieu qui
+   a une heure, budget souhaité ; total payé, solde, total et note en champs importés. À la mise
+   à jour d'un événement existant, une valeur vide n'efface rien, lieux et programme ne sont
+   ajoutés que s'il n'en a pas. Annulation comme au lot 5 (lieux et programme compris).
 4. **14d** — Aide et parcours (IMP-09), captures.

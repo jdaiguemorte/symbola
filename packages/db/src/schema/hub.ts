@@ -236,6 +236,8 @@ export const platformSettings = hubSchema.table("platform_settings", {
   // validés par Julien) ; ensuite les valeurs gardées pour l'annulation sont
   // effacées, le journal reste.
   importUndoRetentionDays: integer("import_undo_retention_days").notNull().default(90),
+  // Lot 14c (IMP-08) : nombre de fiches événement PDF déposées à la fois.
+  importMaxSheets: integer("import_max_sheets").notNull().default(50),
   // Lot 6 (RGPD-02) : durée pendant laquelle les fichiers d'un export RGPD
   // restent téléchargeables (7 jours, comme un import en cours), puis effacés.
   privacyExportRetentionDays: integer("privacy_export_retention_days").notNull().default(7),
@@ -274,6 +276,7 @@ export const importEntityTypeEnum = hubSchema.enum("import_entity_type", [
   "loss_reasons",
   "payment_methods",
   "vendors",
+  "event_sheets",
 ]);
 
 export type ImportColumnChoice = {
@@ -320,6 +323,10 @@ export type ImportMatching = {
   matches: ImportMatch[];
   rowEvents: ImportRowEvent[];
   vendorTypes?: ImportVendorTypeChoice[];
+  // Lot 14c (IMP-08) : fiche du même lot qui décrit le même événement, et
+  // statut choisi par la planner dans l'aperçu (décision J).
+  duplicates?: { rowIndex: number; sameAsRowIndex: number }[];
+  rowStatuses?: { rowIndex: number; status: string }[];
 };
 
 export const importStatusEnum = hubSchema.enum("import_status", ["draft", "applied", "undone", "cancelled"]);

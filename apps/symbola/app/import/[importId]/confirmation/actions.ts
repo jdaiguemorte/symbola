@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { confirmImport } from "@/lib/import/apply";
+import { setEventSheetStatuses } from "@/lib/import/matching";
 import { isValidId } from "../../access";
 
 export type ConfirmFormState = { error?: string };
@@ -31,4 +32,20 @@ export async function confirmImportAction(_prevState: ConfirmFormState, formData
   if (result.status === "blocked") return { error: t("confirmBlocked") };
   revalidatePath("/import");
   redirect(`/import/${importId}/journal`);
+}
+
+// Lot 14c (décision J) — statut de chaque événement à créer depuis une fiche.
+export async function saveSheetStatusesAction(formData: FormData): Promise<void> {
+  const auth = await getPlannerAuthContext();
+  if (auth.status !== "authenticated" || !auth.user.organizationId) return;
+  const importId = String(formData.get("importId") ?? "");
+  if (!isValidId(importId)) return;
+  const statuses = formData
+    .getAll("rowIndex")
+    .map((value) => Number(value))
+    .filter((rowIndex) => Number.isInteger(rowIndex) && rowIndex >= 0)
+    .slice(0, 500)
+    .map((rowIndex) => ({ rowIndex, status: String(formData.get(`status-${rowIndex}`) ?? "") }));
+  if (statuses.length > 0) await setEventSheetStatuses(auth.user.organizationId, importId, statuses);
+  revalidatePath(`/import/${importId}/confirmation`);
 }

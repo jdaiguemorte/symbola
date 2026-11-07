@@ -15,6 +15,7 @@ export const IMPORT_ENTITY_TYPES = [
   "loss_reasons",
   "payment_methods",
   "vendors",
+  "event_sheets",
 ] as const;
 export type ImportEntityType = (typeof IMPORT_ENTITY_TYPES)[number];
 
@@ -105,5 +106,24 @@ export const IMPORT_FIELDS: Record<ImportEntityType, readonly ImportFieldDefinit
     { key: "siret", kind: "text" },
     { key: "criteria", kind: "text" },
     { key: "services", kind: "text" },
+  ],
+  // Lot 14c (IMP-08) : une fiche événement PDF par ligne (colonnes construites
+  // par l'app, déjà reconnues). Décision I : coordonnées des clients ;
+  // décision J : statut proposé ; décision K : budget souhaité seul.
+  event_sheets: [
+    ...([1, 2] as const).flatMap((index): ImportFieldDefinition[] => [
+      { key: `client${index}FirstName`, kind: "text", ...(index === 1 ? { required: true as const } : {}) },
+      { key: `client${index}LastName`, kind: "text" },
+      { key: `client${index}Email`, kind: "text" },
+      { key: `client${index}Phone`, kind: "text" },
+      { key: `client${index}AddressLine`, kind: "text" },
+      { key: `client${index}PostalCode`, kind: "text" },
+      { key: `client${index}City`, kind: "text" },
+    ]),
+    { key: "eventDate", kind: "date" },
+    { key: "venueName", kind: "text" },
+    { key: "places", kind: "text" },
+    { key: "status", kind: "choice", choices: EVENT_STATUS_CHOICES },
+    { key: "wantedBudget", kind: "amount" },
   ],
 };

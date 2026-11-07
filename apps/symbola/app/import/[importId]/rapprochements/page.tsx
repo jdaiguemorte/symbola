@@ -39,7 +39,7 @@ export default async function ImportMatchesPage({ params }: { params: Promise<{ 
     return event.eventDate ? t("eventTitle", { clients: who, date: formatCalendarDate(event.eventDate, locale) }) : who;
   };
   const rowTitle = (values: Record<string, ImportValue>) => {
-    if (view.entityType === "events") return eventTitle(rowEventReference(values));
+    if (view.entityType === "events" || view.entityType === "event_sheets") return eventTitle(rowEventReference(values));
     if (view.entityType === "vendors") {
       const name = typeof values.name === "string" ? values.name : t("rowWithoutLabel");
       return typeof values.city === "string" ? `${name} — ${values.city}` : name;
@@ -111,6 +111,7 @@ export default async function ImportMatchesPage({ params }: { params: Promise<{ 
           return (
             <li key={row.rowIndex}>
               <h2>{t("rowHeading", { line: row.lineNumber, title })}</h2>
+              {row.sameAsLine !== undefined ? <p className="notice">{t("rowSameAs", { line: row.sameAsLine })}</p> : null}
               {row.event ? (
                 <p>
                   {row.event.candidate

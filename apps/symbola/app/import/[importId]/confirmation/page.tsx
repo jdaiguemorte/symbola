@@ -9,7 +9,18 @@ import { getImportPreview, type PreviewRow } from "@/lib/import/apply";
 import { rowEventReference } from "@/lib/import/matching";
 import { isValidId } from "../../access";
 import { ImportSteps } from "../../import-steps";
+import { EVENT_STATUS_CHOICES } from "@symbola/contracts";
+import { saveSheetStatusesAction } from "./actions";
 import { ConfirmForm } from "./confirm-form";
+
+// Décision J : libellés des statuts (fiche événement, module events).
+const STATUS_KEYS: Record<string, string> = {
+  prospect: "statusProspect",
+  quote_sent: "statusQuoteSent",
+  confirmed: "statusConfirmed",
+  done: "statusDone",
+  lost: "statusLost",
+};
 
 // IMP-05 — « Avant confirmation, elle voit le résultat : X créations, Y mises
 // à jour, Z lignes rejetées, avec un échantillon. »
@@ -26,11 +37,12 @@ export default async function ImportConfirmationPage({ params }: { params: Promi
   if (!preview) notFound();
 
   const t = await getTranslations("Import");
+  const tEvents = await getTranslations("Events");
   const tHelp = await getTranslations("Help");
   const locale = (await getLocale()) as Locale;
 
   const describe = (values: Record<string, ImportValue>): string => {
-    if (preview.entityType === "events") {
+    if (preview.entityType === "events" || preview.entityType === "event_sheets") {
       const reference = rowEventReference(values);
       const clients = reference.clients.map((client) => `${client.firstName} ${client.lastName ?? ""}`.trim()).join(" & ");
       return reference.eventDate ? t("eventTitle", { clients, date: formatCalendarDate(reference.eventDate, locale) }) : clients;
@@ -61,7 +73,34 @@ export default async function ImportConfirmationPage({ params }: { params: Promi
         {t("previewSummary", { created: preview.counts.creations, updated: preview.counts.updates, rejected: preview.rejectedCount })}
       </p>
 
-      {preview.counts.creations > 0 ? (
+      {preview.counts.creations > 0 && preview.entityType === "event_sheets" ? (
+        <section aria-labelledby="preview-creations">
+          <h2 id="preview-creations">{t("previewCreationsTitle", { count: preview.counts.creations })}</h2>
+          <p>{t("sheetStatusIntro")}</p>
+          <form action={saveSheetStatusesAction} className="sheet-statuses">
+            <input type="hidden" name="importId" value={preview.importId} />
+            <ul>
+              {preview.creations.map((row) => {
+                const title = describe(row.values);
+                return (
+                  <li key={row.rowIndex}>
+                    <input type="hidden" name="rowIndex" value={row.rowIndex} />
+                    <label htmlFor={`status-${row.rowIndex}`}>{t("rowHeading", { line: row.lineNumber, title })}</label>
+                    <select id={`status-${row.rowIndex}`} name={`status-${row.rowIndex}`} defaultValue={typeof row.values.status === "string" ? row.values.status : "prospect"}>
+                      {EVENT_STATUS_CHOICES.map((status) => (
+                        <option key={status} value={status}>
+                          {tEvents(STATUS_KEYS[status] ?? "statusProspect")}
+                        </option>
+                      ))}
+                    </select>
+                  </li>
+                );
+              })}
+            </ul>
+            <button type="submit">{t("sheetStatusSave")}</button>
+          </form>
+        </section>
+      ) : preview.counts.creations > 0 ? (
         <section aria-labelledby="preview-creations">
           <h2 id="preview-creations">{t("previewCreationsTitle", { count: preview.counts.creations })}</h2>
           {sample(preview.creations)}
@@ -91,7 +130,7 @@ export default async function ImportConfirmationPage({ params }: { params: Promi
       ) : (
         <>
           <p>{t("confirmIntro")}</p>
-          <ConfirmForm importId={preview.importId} prospectSources={preview.entityType === "events" ? preview.prospectSources : null} />
+          <ConfirmForm importId={preview.importId} prospectSources={preview.entityType === "events" || preview.entityType === "event_sheets" ? preview.prospectSources : null} />
         </>
       )}
       <p>
