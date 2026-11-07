@@ -17,6 +17,10 @@ export async function register() {
     // Lot 6 : worker continu des événements internes (ADR 0014).
     const { scheduleEventWorker } = await import("./lib/event-worker");
     scheduleEventWorker();
+    // Lot 15 (ADR 0035) : traitements de fond des imports (lecture des fiches
+    // PDF, placement des prestataires sur la carte).
+    const { scheduleImportJobs } = await import("./lib/import-jobs");
+    scheduleImportJobs();
     // Lot 8 (ADR 0026) : rattrapage des signatures dont le webhook s'est perdu.
     const { scheduleSignatureReconciliation } = await import("./lib/signature-reconciliation");
     scheduleSignatureReconciliation();

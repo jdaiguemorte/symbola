@@ -172,6 +172,18 @@ export {
   type StartImportResult,
   type StartEventSheetsImportResult,
 } from "./imports";
+export {
+  cancelImportJobs,
+  advanceImportJob,
+  createImportJob,
+  listActiveImportJobs,
+  listImportJobs,
+  readNextSheet,
+  updateImportJob,
+  type ImportJobPayload,
+  type ImportJobResult,
+  type ImportJobView,
+} from "./import-jobs";
 
 export type VatRegime = "franchise" | "assujetti";
 export type LegalForm = "ei" | "eirl" | "eurl" | "sarl" | "sas" | "sasu" | "sa" | "auto_entrepreneur" | "autre";

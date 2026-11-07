@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 // Lot 5 — orchestration de l'import par le hub (PRD §7, ADR 0022). Exposé par
 // service.ts. IMP-01 : réception du fichier (taille, antivirus, lecture),
 // import en cours gardé en attente ; rien n'est écrit dans les modules avant
@@ -6,19 +7,14 @@ import { IMPORT_FIELDS, type ImportEntityType, type ImportFieldDefinition } from
 import type { AppDatabase } from "@symbola/db/client";
 import type { ImportColumnChoice, ImportMatch, ImportMatching, ImportResult } from "@symbola/db/schema/hub";
 import { parseEnv } from "@symbola/env";
-import { scanBuffer } from "@symbola/files";
+import { createStorageClient, scanBuffer, sealFile, uploadPrivateObject } from "@symbola/files";
 import {
   EVENT_SHEET_COLUMNS,
   EVENT_SHEET_FREE_COLUMNS,
   EVENT_SHEET_TECHNICAL_COLUMNS,
   LOW_CONFIDENCE_THRESHOLD,
-  eventSheetRejectionRow,
-  eventSheetRow,
-  neutralizeCell,
-  parseEventSheet,
+  looksLikePdf,
   proposeMapping,
-  readPdfText,
-  type EventSheetRejection,
   proposeVendorsExportMapping,
   readImportFile,
   type ReadFailureReason,
@@ -42,6 +38,7 @@ import {
   type ImportRow,
   type NewImportItem,
 } from "./import-repository";
+import { cancelImportJobs, createImportJob, isReadingSheets, listImportJobs, type ImportJobView } from "./import-jobs";
 import { findPlatformSettings, insertDefaultPlatformSettings } from "./repository";
 
 export { IMPORT_ENTITY_TYPES, type ImportEntityType } from "@symbola/contracts";
@@ -167,46 +164,30 @@ export async function startEventSheetsImport(db: AppDatabase, input: StartEventS
   if (files.length === 0) return { status: "rejected", reason: "empty" };
   if (files.length > limits.maxSheets) return { status: "rejected", reason: "too_many_files" };
 
-  const env = parseEnv(process.env);
-  const profile = planningSoftwareProfile().eventSheet;
-  const today = parisDay(now);
-  const rows: string[][] = [];
-  for (const file of files) {
+  // Lot 15 (IMP-10) : les fiches sont gardées chiffrées le temps de leur
+  // lecture, faite ensuite en tâche de fond (antivirus, lecture, ligne de
+  // l'import) ; la planner suit l'avancement. Une fiche trop grosse ou qui
+  // n'est pas un PDF est refusée tout de suite, sans être gardée.
+  const importId = randomUUID();
+  const storage = createStorageClient();
+  const stored: { fileName: string; objectKey: string | null; secret: string | null; rejection?: string }[] = [];
+  for (const [index, file] of files.entries()) {
     const fileName = sanitizeFileName(file.fileName);
-    const reject = (reason: EventSheetRejection) => rows.push(EVENT_SHEET_COLUMNS.map((column) => eventSheetRejectionRow(fileName, reason)[column]));
     if (file.bytes.length > limits.maxBytes) {
-      reject("too_large");
+      stored.push({ fileName, objectKey: null, secret: null, rejection: "too_large" });
       continue;
     }
-    const scan = await scanBuffer(Buffer.from(file.bytes), { host: env.CLAMAV_HOST, port: env.CLAMAV_PORT });
-    if (scan.infected) {
-      reject("infected");
+    if (!looksLikePdf(file.bytes)) {
+      stored.push({ fileName, objectKey: null, secret: null, rejection: "not_pdf" });
       continue;
     }
-    const read = await readPdfText(file.bytes, { maxBytes: limits.maxBytes, maxPages: 3, timeoutMs: 10_000 });
-    if (!read.ok) {
-      reject(read.reason);
-      continue;
-    }
-    const parsed = read.pages[0] ? parseEventSheet(read.pages[0], profile) : ({ ok: false, reason: "not_event_sheet" } as const);
-    if (!parsed.ok) {
-      reject("not_event_sheet");
-      continue;
-    }
-    const row = eventSheetRow(fileName, parsed.sheet, today);
-    rows.push(EVENT_SHEET_COLUMNS.map((column) => row[column]));
+    const sealed = sealFile(file.bytes);
+    const objectKey = `imports/${input.organizationId}/${importId}/${index}.bin`;
+    await uploadPrivateObject(storage, { key: objectKey, body: sealed.data, contentType: "application/octet-stream" });
+    stored.push({ fileName, objectKey, secret: sealed.key });
   }
 
-  // Comme pour un tableau : une valeur lue commençant par « = », « + »… est
-  // neutralisée (CLAUDE.md § 5).
-  let neutralizedCells = 0;
-  const safeRows = rows.map((cells) =>
-    cells.map((cell) => {
-      const result = neutralizeCell(cell);
-      if (result.neutralized) neutralizedCells += 1;
-      return result.value;
-    }),
-  );
+  const profile = planningSoftwareProfile().eventSheet;
   const fieldKeys = new Set(IMPORT_FIELDS.event_sheets.map((field) => field.key));
   const mapping: ImportColumnChoice[] = EVENT_SHEET_COLUMNS.map((column, columnIndex) => {
     if (fieldKeys.has(column)) return { columnIndex, fieldKey: column, target: "field", confidence: 100, confirmed: true };
@@ -214,29 +195,36 @@ export async function startEventSheetsImport(db: AppDatabase, input: StartEventS
     if (EVENT_SHEET_TECHNICAL_COLUMNS.includes(column)) return { columnIndex, fieldKey: null, target: "ignore", confidence: 0, confirmed: true };
     return { columnIndex, fieldKey: null, target: "ignore", confidence: 0, confirmed: true, decidedAtGaps: true };
   });
-  const totalBytes = files.reduce((sum, file) => sum + file.bytes.length, 0);
   const first = sanitizeFileName(files[0]!.fileName);
-  const row = await insertImport(db, {
+  await insertImport(db, {
+    id: importId,
     organizationId: input.organizationId,
     createdByUserId: input.userId,
     entityType: "event_sheets",
     fileName: files.length > 1 ? `${first} (+${files.length - 1})` : first,
     fileFormat: "pdf",
-    fileSizeBytes: totalBytes,
+    fileSizeBytes: files.reduce((sum, file) => sum + file.bytes.length, 0),
     encoding: null,
     delimiter: null,
     headerRowIndex: 0,
     headers: EVENT_SHEET_COLUMNS.map((column) => profile.columnHeaders[column] ?? column),
-    rows: safeRows,
-    sourceLineNumbers: rows.map((_, index) => index + 1),
-    rowCount: rows.length,
-    neutralizedCells,
+    rows: [],
+    sourceLineNumbers: [],
+    rowCount: 0,
+    neutralizedCells: 0,
     mapping,
     expiresAt: new Date(now.getTime() + limits.draftRetentionDays * DAY_MS),
     createdAt: now,
     updatedAt: now,
   });
-  return { status: "started", importId: row.id };
+  await createImportJob(db, {
+    organizationId: input.organizationId,
+    importId,
+    payload: { kind: "read_sheets", files: stored, today: parisDay(now) },
+    total: stored.length,
+    now,
+  });
+  return { status: "started", importId };
 }
 
 // Nom affiché au journal : sans chemin ni caractère de contrôle, borné.
@@ -274,6 +262,8 @@ export type ImportDraft = ImportSummary & {
   mapping: ImportColumnChoice[] | null;
   // IMP-03 : rapprochements calculés et décidés, ou null.
   matching: ImportMatching | null;
+  // Lot 15 (IMP-10) : traitements de fond de l'import (lecture des fiches…).
+  jobs: ImportJobView[];
 };
 
 const PREVIEW_ROWS = 5;
@@ -310,7 +300,13 @@ export async function getImportDraft(
 ): Promise<ImportDraft | null> {
   const row = await findImport(db, organizationId, importId);
   if (!row || row.status !== "draft" || row.expiresAt <= now || !row.rows) return null;
-  return { ...toSummary(row), previewRows: row.rows.slice(0, PREVIEW_ROWS), mapping: row.mapping, matching: row.matching };
+  return {
+    ...toSummary(row),
+    previewRows: row.rows.slice(0, PREVIEW_ROWS),
+    mapping: row.mapping,
+    matching: row.matching,
+    jobs: await listImportJobs(db, organizationId, importId),
+  };
 }
 
 async function findActiveDraft(db: AppDatabase, organizationId: string, importId: string, now: Date) {
@@ -458,7 +454,10 @@ export async function listImports(db: AppDatabase, organizationId: string): Prom
 }
 
 export async function cancelImport(db: AppDatabase, organizationId: string, importId: string, now: Date = new Date()): Promise<boolean> {
-  return markDraftCancelled(db, organizationId, importId, now);
+  const cancelled = await markDraftCancelled(db, organizationId, importId, now);
+  // Lot 15 : la lecture en cours s'arrête, les fiches encore gardées sont supprimées.
+  if (cancelled) await cancelImportJobs(db, organizationId, importId, now);
+  return cancelled;
 }
 
 // Purge horaire (lib/import-purge.ts) : les lignes en attente d'un import
@@ -491,6 +490,8 @@ export async function getImportWorkingSet(
 ): Promise<ImportWorkingSet | null> {
   const row = await findActiveDraft(db, organizationId, importId, now);
   if (!row || !row.mapping) return null;
+  // Fiches PDF encore en lecture : pas de rapprochements sur des lignes partielles.
+  if (row.entityType === "event_sheets" && (await isReadingSheets(db, organizationId, importId))) return null;
   return {
     importId: row.id,
     entityType: row.entityType,

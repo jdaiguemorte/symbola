@@ -11,6 +11,7 @@ import { createAppConnection } from "@symbola/db/client";
 import { readImportCorpusFile } from "@symbola/testing/import-corpus";
 import { createProspect, createProspectSource, getEvent, getEventProgram, listEventPlaces, listEvents } from "@/modules/events/service";
 import { getImportColumns, getPlatformSettings, setPlatformSettings, startEventSheetsImport } from "@/modules/hub/service";
+import { runImportJobsUntilIdle } from "@/lib/import-jobs";
 import { confirmImport, getImportPreview, undoImport } from "./apply";
 import { getImportGapsView } from "./gaps";
 import { decideMatches, getImportMatchesView, setEventSheetStatuses } from "./matching";
@@ -38,6 +39,8 @@ const sheet = (name: string) => ({ fileName: name, bytes: readImportCorpusFile(`
 async function startSheets(planner: Planner, files: { fileName: string; bytes: Uint8Array }[], now = NOW) {
   const started = await startEventSheetsImport(db, { organizationId: planner.organizationId, userId: planner.userId, files, now });
   if (started.status !== "started") throw new Error(`import refusé : ${JSON.stringify(started)}`);
+  // Lot 15 : les fiches sont lues en tâche de fond.
+  await runImportJobsUntilIdle([planner.organizationId]);
   return started.importId;
 }
 

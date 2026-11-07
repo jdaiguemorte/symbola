@@ -83,6 +83,17 @@ fields:
       Remplacés par des intitulés génériques lors d'une demande d'oubli
       (RGPD-03).
   - schema: hub
+    table: import_jobs
+    field: payload
+    category: identifiant
+    retention: >-
+      Lot 15 (IMP-10) : noms des fiches PDF en cours de lecture, avec l'adresse
+      et la clé de chaque fiche gardée chiffrée. Effacés dès la fin de la
+      lecture, l'abandon ou l'expiration de l'import (les fiches sont alors
+      supprimées du stockage).
+    anonymization: >-
+      Rien à anonymiser au-delà de la lecture : la liste des fiches est vidée.
+  - schema: hub
     table: imports
     field: file_name
     category: identifiant

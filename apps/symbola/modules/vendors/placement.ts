@@ -3,7 +3,7 @@
 // connu dans le carnet de l'organisation réutilisé sans appel, le reste en un
 // seul envoi au géocodeur. Un point placé à la main n'est jamais écrasé ; une
 // adresse introuvable laisse la fiche sans point (« à placer »).
-import { and, eq, inArray, isNotNull } from "drizzle-orm";
+import { and, eq, inArray, isNotNull, isNull, ne, or } from "drizzle-orm";
 import { createAppConnection } from "@symbola/db/client";
 import { vendors } from "@symbola/db/schema/vendors";
 import { withOrganization } from "@symbola/db/with-organization";
@@ -95,7 +95,7 @@ export async function placeVendors(organizationId: string, vendorIds: string[]):
       await tx
         .update(vendors)
         .set(point ? { latitude: point.latitude, longitude: point.longitude, locationSource: "geocoded" } : { latitude: null, longitude: null, locationSource: null })
-        .where(and(eq(vendors.id, vendor.id), eq(vendors.updatedAt, vendor.updatedAt)));
+        .where(and(eq(vendors.id, vendor.id), or(isNull(vendors.locationSource), ne(vendors.locationSource, "manual"))));
     }
   });
   return result;

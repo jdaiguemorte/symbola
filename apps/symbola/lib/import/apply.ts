@@ -22,6 +22,8 @@ import {
   undoImportedEventsElements,
 } from "@/modules/events/service";
 import {
+  cancelImportJobs,
+  createImportJob,
   getAppliedImport,
   getImportWorkingSet,
   getOrganizationProfile,
@@ -38,7 +40,13 @@ import {
   importPaymentMethodRows,
   undoImportedQuotesElements,
 } from "@/modules/quotes/service";
-import { findModifiedImportedVendorsElements, importVendorRows, undoImportedVendorsElements, type VendorTypeChoiceInput } from "@/modules/vendors/service";
+import {
+  findModifiedImportedVendorsElements,
+  importedVendorsToPlace,
+  importVendorRows,
+  undoImportedVendorsElements,
+  type VendorTypeChoiceInput,
+} from "@/modules/vendors/service";
 import { getImportGapsView } from "./gaps";
 import { getImportMatchesView, parseWorkingSetRows, type MatchesRowView } from "./matching";
 
@@ -215,6 +223,16 @@ export async function confirmImport(input: {
     if (!recorded) await undoItems(input.organizationId, input.userId, applied.items, () => true);
   }
   if (!recorded) return { status: "not_found" };
+  // Lot 15 (GEO-01) : les prestataires créés ou dont l'adresse a changé sont
+  // placés sur la carte ensuite, en tâche de fond (la planner n'attend pas).
+  if (preview.entityType === "vendors") {
+    const vendorIds = importedVendorsToPlace(applied.items);
+    if (vendorIds.length > 0) {
+      await withHubDb((db) =>
+        createImportJob(db, { organizationId: input.organizationId, importId: input.importId, payload: { kind: "place_vendors", vendorIds }, total: vendorIds.length }),
+      );
+    }
+  }
   return { status: "applied", result };
 }
 
@@ -324,6 +342,8 @@ export async function undoImport(input: {
   const preview = await getUndoPreview(input.organizationId, input.importId);
   if (!preview) return { status: "not_found" };
   if (!preview.undoable) return { status: "expired" };
+  // Lot 15 : un placement sur la carte en cours s'arrête avant l'annulation.
+  await withHubDb((db) => cancelImportJobs(db, input.organizationId, input.importId));
 
   const force = new Set(input.forceItemIds ?? []);
   const items = preview.pendingItems.filter((item) => !item.usedElsewhere);
