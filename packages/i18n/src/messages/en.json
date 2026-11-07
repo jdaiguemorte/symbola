@@ -619,7 +619,7 @@
     },
     "importFile": {
       "title": "Importing data",
-      "body": "Choose what your file contains (events, tasks, budget, catalogue or a list), then drop it in: CSV, Excel (.xlsx) or JSON. Encoding, separator and header row are detected automatically; spreadsheet formulas are neutralised. Nothing is saved before the last step.",
+      "body": "Start with the takeovers from your current tool (vendors in Excel, event sheets in PDF), or choose what your table contains (events, tasks, budget, catalogue or a list): CSV, Excel (.xlsx) or JSON. Encoding, separator and header row are detected automatically; spreadsheet formulas are neutralised. Nothing is saved before the last step.",
       "faq": [
         {
           "q": "What happens to my file?",
@@ -1842,6 +1842,23 @@
       "timeout": "reading took too long",
       "not_event_sheet": "not an event sheet from the current tool",
       "infected": "file rejected by the antivirus"
+    },
+    "takeoverTitle": "Bring your data over from your current tool",
+    "takeoverIntro": "Already using planning software? Bring over your vendor book first, then your events: Symbola recognises its exports and fixes their usual flaws (swapped columns, garbled characters, truncated postal codes).",
+    "takeoverExampleSheet": "Download an example sheet (fictitious PDF) to try it",
+    "takeover": {
+      "vendors": {
+        "title": "Bring over my vendors",
+        "how": "In your current tool, open your vendor list and export it as Excel (.xlsx), without editing the file.",
+        "what": "Each row becomes a vendor book entry: contact details, website and social links, SIRET; criteria become tags, services go to the note. Types are matched with yours or created.",
+        "start": "Import my vendors"
+      },
+      "event_sheets": {
+        "title": "Bring over my events",
+        "how": "In your current tool, open each event and download its sheet as a PDF. Then upload them all at once.",
+        "what": "Each sheet becomes an event: the couple and their contact details, date, places and times, wished budget. The status is suggested from the date; you can change it in the preview.",
+        "start": "Import my event sheets"
+      }
     }
   },
   "Privacy": {
@@ -2235,7 +2252,7 @@
       },
       "import": {
         "title": "Import your existing events",
-        "description": "Import a small example file and check the preview before confirming."
+        "description": "Import an example event sheet (fictitious PDF) and check the preview before confirming."
       },
       "vendor-quotes": {
         "title": "Compare several quotes for one budget line",
@@ -2560,7 +2577,7 @@
       "steps": [
         {
           "title": "Understand",
-          "body": "Import brings in your existing data from a file (Excel, CSV or JSON): you match the columns, check a preview, then confirm. An import can be undone for 30 days."
+          "body": "Import brings in your existing data: the PDF event sheets from your current tool, or a table (Excel, CSV or JSON). You check a preview, then confirm. A confirmed import can be undone during the undo period."
         },
         {
           "title": "Prepare",
@@ -2568,15 +2585,15 @@
         },
         {
           "title": "Start an import",
-          "body": "Open Import data and drop a small file of a few lines, for example an export from your spreadsheet. Go as far as the preview."
+          "body": "Open Import data, download the example sheet (a fictitious PDF) from “Bring over my events”, then choose “Event sheets (PDF)” and drop it in. Go as far as the preview."
         },
         {
           "title": "Check before confirming",
-          "body": "The preview shows what will be created and the gaps detected. Nothing is saved until you confirm: if it was a test, abandon the import."
+          "body": "The preview shows the event that will be created, with its suggested status, and any rejected sheets with their reason. Nothing is saved until you confirm: as this is a test, abandon the import."
         },
         {
           "title": "Finish",
-          "body": "You know how to bring in your existing data."
+          "body": "You know how to bring over your existing events, one or several sheets at a time."
         }
       ]
     },

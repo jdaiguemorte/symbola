@@ -223,3 +223,12 @@ Les six propositions ci-dessous sont **validées telles quelles**.
    à jour d'un événement existant, une valeur vide n'efface rien, lieux et programme ne sont
    ajoutés que s'il n'en a pas. Annulation comme au lot 5 (lieux et programme compris).
 4. **14d** — Aide et parcours (IMP-09), captures.
+   *Réalisé (14d)* : la page « Importer » commence par « Reprendre vos données depuis votre
+   outil actuel », deux cartes (« Reprendre mes prestataires », « Reprendre mes événements »)
+   qui disent comment obtenir le fichier dans l'outil actuel (texte des fichiers de traduction,
+   sans nommer l'outil) et présélectionnent leur type d'import ; ces deux types viennent en tête
+   de la liste. Une fiche d'exemple entièrement fictive (`public/aide/exemples/`, copie de la
+   fiche du corpus) se télécharge depuis la carte des événements. Le tutoriel « Importer ses
+   événements existants » s'appuie sur elle : son étape est faite quand une fiche PDF est
+   déposée (un tableau ne suffit plus). Aide de l'écran Importer réécrite, capture régénérée
+   (`CAPTURES_ONLY=importFile`, nouvelle option du script de captures).

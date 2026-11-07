@@ -4,6 +4,8 @@
 // prestataires et budget, puis une capture de chaque écran en 1280 × 800, les
 // repères ouverts sur les écrans qui en ont. Lancer :
 //   pnpm --filter @symbola/app help:captures
+// ou, pour quelques écrans seulement :
+//   CAPTURES_ONLY=importFile pnpm --filter @symbola/app help:captures
 import { randomUUID } from "node:crypto";
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
@@ -148,7 +150,9 @@ test("captures des écrans pour le centre d'aide", async ({ page }) => {
     budgetDetail: `/budget/${confirmed}`,
     quotesDetail: `/devis/${quoteId}`,
   };
-  for (const screen of HELP_SCREENS.filter((candidate) => candidate.capture)) {
+  // CAPTURES_ONLY=importFile,vendorBook : seulement ces écrans (lot qui n'en change que quelques-uns).
+  const only = (process.env.CAPTURES_ONLY ?? "").split(",").filter(Boolean);
+  for (const screen of HELP_SCREENS.filter((candidate) => candidate.capture && (only.length === 0 || only.includes(candidate.key)))) {
     const path = screen.path ?? dynamic[screen.key];
     if (!path) throw new Error(`pas d'adresse pour la capture ${screen.key}`);
     await page.goto(screen.tour ? `${path}${path.includes("?") ? "&" : "?"}visite=revoir` : path);

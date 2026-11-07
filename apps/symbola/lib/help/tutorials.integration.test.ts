@@ -3,6 +3,9 @@
 // l'action est vraiment faite (vérifiée par le service du module), et la fin
 // supprime l'exemple — ou garde ce que l'utilisateur choisit de garder.
 import { randomUUID } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { startEventSheetsImport, startImport } from "@/modules/hub/service";
 import { afterAll, describe, expect, it } from "vitest";
 import { createOrganization, createUser } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
@@ -34,6 +37,20 @@ async function env(): Promise<TutorialEnv> {
 
 // Plusieurs services par test (exemple, vérifications, nettoyage) : 30 s.
 describe("AIDE-06 — Tutoriels en faisant", { timeout: 30_000 }, () => {
+  it("lot 14 (IMP-09) — import : l'étape est faite quand la fiche d'exemple (PDF fictif) est déposée, pas pour un tableau", async () => {
+    const base = await env();
+    const script = TUTORIAL_SCRIPTS.import;
+    const context = await script.setup!(base);
+    const current = { ...base, context };
+    const start = script.steps.find((step) => step.kind === "do")!;
+    expect(await start.check!(current)).toBe(false);
+    await startImport(db, { organizationId: base.organizationId, userId: base.userId, entityType: "events", fileName: "a.csv", bytes: new TextEncoder().encode("Prénom;Date\nLéa;12/06/2027\n") });
+    expect(await start.check!(current)).toBe(false);
+    const example = new Uint8Array(readFileSync(fileURLToPath(new URL("../../public/aide/exemples/fiche-evenement-exemple.pdf", import.meta.url))));
+    expect(await startEventSheetsImport(db, { organizationId: base.organizationId, userId: base.userId, files: [{ fileName: "fiche-evenement-exemple.pdf", bytes: example }] })).toMatchObject({ status: "started" });
+    expect(await start.check!(current)).toBe(true);
+  });
+
   it("fiche d'un événement : exemple fictif d'un autre type que le mariage, étapes vérifiées, exemple supprimé à la fin", async () => {
     const base = await env();
     const script = TUTORIAL_SCRIPTS["event-page"];

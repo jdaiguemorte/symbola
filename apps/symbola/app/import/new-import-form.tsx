@@ -5,21 +5,32 @@ import { useTranslations } from "next-intl";
 import type { ImportEntityType } from "@/modules/hub/service";
 import { startImportAction, type StartImportFormState } from "./actions";
 
-export function NewImportForm({ entityTypes, maxSizeLabel, maxSheets }: { entityTypes: ImportEntityType[]; maxSizeLabel: string; maxSheets: number }) {
+export function NewImportForm({
+  entityTypes,
+  maxSizeLabel,
+  maxSheets,
+  defaultEntityType = null,
+}: {
+  entityTypes: ImportEntityType[];
+  maxSizeLabel: string;
+  maxSheets: number;
+  // Lot 14 (IMP-09) : type choisi depuis une carte de reprise.
+  defaultEntityType?: ImportEntityType | null;
+}) {
   const t = useTranslations("Import");
   const initialState: StartImportFormState = {};
   const [state, formAction, pending] = useActionState(startImportAction, initialState);
   // Lot 14c (IMP-08) : des fiches événement PDF, plusieurs à la fois.
-  const [entityType, setEntityType] = useState<ImportEntityType | "">("");
+  const [entityType, setEntityType] = useState<ImportEntityType | "">(defaultEntityType ?? "");
   const sheets = entityType === "event_sheets";
 
   return (
-    <form action={formAction}>
+    <form action={formAction} id="import-form">
       <fieldset>
         <legend>{t("entityTypeLegend")}</legend>
         {entityTypes.map((type) => (
           <label key={type}>
-            <input type="radio" name="entityType" value={type} required onChange={() => setEntityType(type)} />
+            <input type="radio" name="entityType" value={type} required defaultChecked={type === defaultEntityType} onChange={() => setEntityType(type)} />
             {t(`entityType.${type}`)}
           </label>
         ))}
