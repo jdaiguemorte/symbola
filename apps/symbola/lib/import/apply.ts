@@ -38,6 +38,7 @@ import {
   importPaymentMethodRows,
   undoImportedQuotesElements,
 } from "@/modules/quotes/service";
+import { findModifiedImportedVendorsElements, importVendorRows, undoImportedVendorsElements, type VendorTypeChoiceInput } from "@/modules/vendors/service";
 import { getImportGapsView } from "./gaps";
 import { getImportMatchesView, parseWorkingSetRows, type MatchesRowView } from "./matching";
 
@@ -129,7 +130,7 @@ async function applyToModules(
   userId: string,
   entityType: ImportEntityType,
   rows: ImportApplyRow[],
-  options: { defaultProspectSourceId: string | null; defaultVatRateBasisPoints: number },
+  options: { defaultProspectSourceId: string | null; defaultVatRateBasisPoints: number; vendorTypeChoices: VendorTypeChoiceInput[] },
 ): Promise<ImportApplyResult> {
   switch (entityType) {
     case "events":
@@ -146,6 +147,8 @@ async function applyToModules(
     case "loss_reasons":
     case "vendor_slots":
       return importListRows({ organizationId, entityType, rows });
+    case "vendors":
+      return importVendorRows({ organizationId, rows, typeChoices: options.vendorTypeChoices });
   }
 }
 
@@ -180,6 +183,7 @@ export async function confirmImport(input: {
   const applied = await applyToModules(input.organizationId, input.userId, preview.entityType, rows, {
     defaultProspectSourceId,
     defaultVatRateBasisPoints: (await defaultVatRate(input.organizationId)) ?? 0,
+    vendorTypeChoices: (matches.vendorTypes ?? []).map(({ label, typeId }) => ({ label, typeId })),
   });
 
   // Compté par ligne : une ligne de budget crée parfois deux éléments (poste
@@ -238,7 +242,9 @@ async function undoItems(
         ? await undoImportedEventsElements(organizationId, userId, undo)
         : module === "budget"
           ? await undoImportedBudgetElements(organizationId, userId, undo)
-          : await undoImportedQuotesElements(organizationId, undo);
+          : module === "vendors"
+            ? await undoImportedVendorsElements(organizationId, undo)
+            : await undoImportedQuotesElements(organizationId, undo);
     group.forEach((position, offset) => {
       outcomes[position] = groupOutcomes[offset] ?? "missing";
     });
@@ -252,7 +258,7 @@ export type UndoPreview = AppliedImportView & { pendingItems: UndoPreviewItem[] 
 
 async function modifiedFlags(organizationId: string, items: AppliedImportItem[]): Promise<boolean[]> {
   const flags = new Array<boolean>(items.length).fill(false);
-  for (const module of ["events", "budget", "quotes"] as const) {
+  for (const module of ["events", "budget", "quotes", "vendors"] as const) {
     const positions = items.map((item, position) => (item.module === module ? position : -1)).filter((position) => position >= 0);
     if (positions.length === 0) continue;
     const subset = positions.map((position) => {
@@ -264,7 +270,9 @@ async function modifiedFlags(organizationId: string, items: AppliedImportItem[])
         ? await findModifiedImportedEventsElements(organizationId, subset)
         : module === "budget"
           ? await findModifiedImportedBudgetElements(organizationId, subset)
-          : await findModifiedImportedQuotesElements(organizationId, subset);
+          : module === "vendors"
+            ? await findModifiedImportedVendorsElements(organizationId, subset)
+            : await findModifiedImportedQuotesElements(organizationId, subset);
     positions.forEach((position, offset) => {
       flags[position] = found[offset] ?? false;
     });

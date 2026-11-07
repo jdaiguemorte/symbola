@@ -1,6 +1,7 @@
 // Contrat privacy/v1 du module vendors (lot 11, ADR 0031). Champs personnels
 // (privacy.registry.yaml) : nom d'un prestataire indépendant, nom, e-mail
-// et téléphone du contact, adresse, note interne ; fichiers (plaquettes,
+// et téléphone du contact, adresse, note interne, et depuis le lot 14 site
+// web, réseaux sociaux, SIRET et champs importés ; fichiers (plaquettes,
 // RIB). Une fiche n'est rattachée à aucun événement : `related` ne renvoie
 // rien. Les fiches d'exemple (essais, tutoriels) ne sont jamais trouvées.
 import { and, eq, inArray } from "drizzle-orm";
@@ -42,7 +43,8 @@ export const vendorsPrivacy: PrivacyContractV1 = {
     return inOrganization(organizationId, async (tx) => {
       const records: PrivacyRecord[] = [];
       for (const vendor of await tx.select().from(vendors).where(eq(vendors.isDemo, false))) {
-        if (!recordMatches([vendor.name, vendor.contactName, vendor.email, vendor.phone, vendor.internalNote], terms)) continue;
+        const imported = Object.values(vendor.importedFields ?? {});
+        if (!recordMatches([vendor.name, vendor.contactName, vendor.email, vendor.phone, vendor.internalNote, vendor.siret, ...imported], terms)) continue;
         records.push({
           module: MODULE,
           kind: "vendor",
@@ -55,6 +57,10 @@ export const vendorsPrivacy: PrivacyContractV1 = {
             phone: vendor.phone,
             address: [vendor.addressLine, vendor.postalCode, vendor.city].filter(Boolean).join(" ") || null,
             internalNote: vendor.internalNote,
+            website: vendor.website,
+            socialLinks: vendor.socialLinks.map((link) => link.url).join(" ") || null,
+            siret: vendor.siret,
+            importedFields: Object.entries(vendor.importedFields ?? {}).map(([name, value]) => `${name} : ${value}`).join(" · ") || null,
           }),
           eventId: null,
         });
@@ -89,6 +95,10 @@ export const vendorsPrivacy: PrivacyContractV1 = {
           addressLine: null,
           postalCode: null,
           internalNote: null,
+          website: null,
+          socialLinks: [],
+          siret: null,
+          importedFields: null,
           latitude: null,
           longitude: null,
           locationSource: null,

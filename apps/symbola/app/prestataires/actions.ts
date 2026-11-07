@@ -5,6 +5,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
+import { VENDOR_SOCIAL_NETWORKS } from "@symbola/contracts";
 import { starterVendorTypes } from "@symbola/starter-templates";
 import { addVendorCandidate, VendorCandidateNotFoundError } from "@/modules/events/service";
 import {
@@ -17,6 +18,7 @@ import {
   createVendorType,
   getVendor,
   InvalidVendorFieldValueError,
+  InvalidVendorLinkError,
   listVendorTypes,
   parseFieldInput,
   removeVendorFile,
@@ -72,6 +74,9 @@ async function readVendorInput(organizationId: string, formData: FormData): Prom
     city: text(formData, "city"),
     country: text(formData, "country") || "FR",
     internalNote: text(formData, "internalNote"),
+    website: text(formData, "website"),
+    socialLinks: VENDOR_SOCIAL_NETWORKS.map((network) => ({ network, url: text(formData, `social_${network}`) })).filter((link) => link.url !== ""),
+    siret: text(formData, "siret"),
     fieldValues,
     tagIds: formData.getAll("tagIds").map(String).filter(isValidId),
   };
@@ -96,6 +101,7 @@ export async function saveVendorAction(_prev: VendorFormState, formData: FormDat
     result = isValidId(vendorId) ? await updateVendor(access.organizationId, vendorId, input) : await createVendor(access.organizationId, input);
   } catch (error) {
     if (error instanceof InvalidVendorFieldValueError) return { error: t("invalidFieldValue") };
+    if (error instanceof InvalidVendorLinkError) return { error: t(error.field === "siret" ? "invalidSiret" : "invalidWebsite") };
     if (error instanceof VendorNotFoundError || error instanceof VendorTypeNotFoundError) return { error: t("notFound") };
     throw error;
   }

@@ -44,13 +44,13 @@ export type VendorsExportDetection =
 const fold = (value: string) => value.normalize("NFC").replace(/\s+/g, " ").trim().toLocaleLowerCase("fr");
 
 // Part des valeurs non vides d'une colonne qui ressemblent à une adresse web.
-function urlShare(table: ImportTable, column: number): number {
+function urlShare(table: Pick<ImportTable, "rows">, column: number): number {
   const values = table.rows.map((row) => row[column] ?? "").filter((value) => value.trim() !== "");
   if (values.length === 0) return 0;
   return values.filter(looksLikeUrl).length / values.length;
 }
 
-export function detectVendorsExport(table: ImportTable, profile: VendorsExportProfile): VendorsExportDetection {
+export function detectVendorsExport(table: Pick<ImportTable, "headers" | "rows">, profile: VendorsExportProfile): VendorsExportDetection {
   const expected = profile.headers.map(fold);
   const matches = expected.filter((header, index) => fold(table.headers[index] ?? "") === header).length;
   if (matches < profile.minimumHeaderMatches) return { matched: false };
@@ -98,12 +98,36 @@ export type VendorsExportRow = {
 export function normalizeVendorsExportRow(
   row: string[],
   columns: Map<number, VendorsExportField>,
-  profile: VendorsExportProfile,
+  profile: Pick<VendorsExportProfile, "listSeparator">,
 ): VendorsExportRow | null {
-  const raw = (field: VendorsExportField): string => {
+  return normalizeVendorFields((field) => {
     for (const [index, candidate] of columns) if (candidate === field) return row[index] ?? "";
     return "";
-  };
+  }, profile.listSeparator);
+}
+
+// Valeurs d'une ligne déjà lue par champ (import du carnet, IMP-07) : même
+// remise en état, quelle que soit l'origine du fichier.
+export function normalizeVendorImportValues(
+  values: Record<string, string | number | boolean | null | undefined>,
+  listSeparator: string,
+): VendorsExportRow | null {
+  return normalizeVendorFields((field) => {
+    const value = values[field];
+    return value === null || value === undefined ? "" : String(value);
+  }, listSeparator);
+}
+
+// Texte d'une cellule remis en état (entités HTML, espaces) ; code postal
+// complété ; SIRET réduit à ses chiffres. Pour l'aperçu et les rapprochements.
+export function cleanVendorImportText(field: string, value: string): string {
+  const text = tidyText(decodeHtmlEntities(value));
+  if (field === "postalCode") return text === "" ? text : normalizePostalCode(text);
+  if (field === "siret") return text.replace(/[\s.]/g, "");
+  return text;
+}
+
+function normalizeVendorFields(raw: (field: VendorsExportField) => string, listSeparator: string): VendorsExportRow | null {
   const text = (field: VendorsExportField): string | null => {
     const value = tidyText(decodeHtmlEntities(raw(field)));
     return value === "" ? null : value;
@@ -134,7 +158,33 @@ export function normalizeVendorsExportRow(
     vatNumber: text("vatNumber"),
     apeCode: text("apeCode"),
     legalStatus: text("legalStatus"),
-    criteria: splitList(text("criteria") ?? "", profile.listSeparator),
+    criteria: splitList(text("criteria") ?? "", listSeparator),
     services: text("services"),
   };
+}
+
+// IMP-07 — correspondance des colonnes proposée pour un export reconnu :
+// chaque colonne reçoit son champ avec une confiance d'au moins 90 ; une
+// colonne remise en place d'après son contenu est signalée (`byContent`).
+// Les colonnes sans champ du carnet (TVA, APE…) restent sans équivalent.
+export const VENDORS_EXPORT_CONFIDENCE = 95;
+export const VENDORS_EXPORT_SWAPPED_CONFIDENCE = 90;
+
+export type VendorsExportProposal = { columnIndex: number; fieldKey: string | null; confidence: number; byContent: boolean };
+
+export function proposeVendorsExportMapping(
+  table: Pick<ImportTable, "headers" | "rows">,
+  profile: VendorsExportProfile,
+  fieldKeys: readonly string[],
+): VendorsExportProposal[] | null {
+  const detection = detectVendorsExport(table, profile);
+  if (!detection.matched) return null;
+  const swappedFields = new Set(detection.swapped.flat());
+  const known = new Set(fieldKeys);
+  return table.headers.map((_, columnIndex) => {
+    const field = detection.columns.get(columnIndex);
+    if (!field || !known.has(field)) return { columnIndex, fieldKey: null, confidence: 0, byContent: false };
+    const byContent = swappedFields.has(field);
+    return { columnIndex, fieldKey: field, confidence: byContent ? VENDORS_EXPORT_SWAPPED_CONFIDENCE : VENDORS_EXPORT_CONFIDENCE, byContent };
+  });
 }

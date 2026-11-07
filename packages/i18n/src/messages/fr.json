@@ -1532,7 +1532,8 @@
       "vendor_slots": "Lignes du budget par défaut",
       "prospect_sources": "Sources de prospects",
       "loss_reasons": "Motifs de perte",
-      "payment_methods": "Modes de paiement"
+      "payment_methods": "Modes de paiement",
+      "vendors": "Prestataires du carnet (une ligne par prestataire)"
     },
     "fileLabel": "Fichier (CSV, Excel .xlsx ou JSON)",
     "fileHint": "Taille maximale : {maxSize}. L'encodage, le séparateur et la ligne d'en-tête sont reconnus automatiquement.",
@@ -1630,7 +1631,25 @@
       "unit": "Unité",
       "unitPrice": "Prix unitaire HT",
       "vatRate": "Taux de TVA",
-      "category": "Catégorie"
+      "category": "Catégorie",
+      "name": "Nom du prestataire",
+      "type": "Type de prestataire",
+      "contactFirstName": "Prénom du contact",
+      "contactLastName": "Nom du contact",
+      "email": "E-mail",
+      "addressLine": "Adresse",
+      "postalCode": "Code postal",
+      "city": "Ville",
+      "phones": "Téléphone(s)",
+      "website": "Site web",
+      "instagram": "Instagram",
+      "facebook": "Facebook",
+      "pinterest": "Pinterest",
+      "linkedin": "LinkedIn",
+      "x": "X",
+      "siret": "N° SIRET",
+      "criteria": "Critères (deviennent des étiquettes)",
+      "services": "Prestations (vont dans la note interne)"
     },
     "requiredField": "{field} (obligatoire)",
     "columnsStepTitle": "Colonnes",
@@ -1760,9 +1779,21 @@
       "payment_method": "Mode de paiement : {title}",
       "prospect_source": "Source : {title}",
       "loss_reason": "Motif de perte : {title}",
-      "default_vendor_slot": "Ligne du budget par défaut : {title}"
+      "default_vendor_slot": "Ligne du budget par défaut : {title}",
+      "vendor": "Prestataire : {title}",
+      "vendor_type": "Type de prestataire : {title}",
+      "vendor_tag": "Étiquette : {title}"
     },
-    "importedFieldsTitle": "Champs importés"
+    "importedFieldsTitle": "Champs importés",
+    "columnByContent": "Proposé d'après le contenu de la colonne, pas son intitulé (colonnes inversées dans le fichier) : vérifiez.",
+    "vendorTypesTitle": "Types de prestataires du fichier",
+    "vendorTypesIntro": "Chaque type du fichier est rapproché d'un type de votre carnet quand il existe déjà ; sinon il est créé à la confirmation. Pour éviter les doublons, regroupez un type sur un type existant.",
+    "vendorTypeRows": "{label} ({count, plural, one {# prestataire} other {# prestataires}})",
+    "vendorTypeTargetLabel": "Type de carnet pour « {label} »",
+    "vendorTypeCreate": "Créer le type « {label} »",
+    "vendorTypeMatched": "Rapproché de « {type} » ({score} %)",
+    "vendorTypeExisting": "Types de votre carnet",
+    "vendorTypesSave": "Enregistrer les types"
   },
   "Privacy": {
     "title": "Données personnelles",
@@ -2785,7 +2816,19 @@
     "summaryEmail": "E-mail",
     "summaryAddress": "Adresse",
     "summaryTravel": "Trajet estimé",
-    "openFullCard": "Ouvrir la fiche complète"
+    "openFullCard": "Ouvrir la fiche complète",
+    "links": "Site et réseaux",
+    "website": "Site web",
+    "siret": "N° SIRET",
+    "social": {
+      "instagram": "Instagram",
+      "facebook": "Facebook",
+      "pinterest": "Pinterest",
+      "linkedin": "LinkedIn",
+      "x": "X"
+    },
+    "invalidWebsite": "Adresse web illisible : vérifiez le site et les réseaux.",
+    "invalidSiret": "Le SIRET doit compter 14 chiffres."
   },
   "Setup": {
     "title": "Bienvenue : préparons votre espace",

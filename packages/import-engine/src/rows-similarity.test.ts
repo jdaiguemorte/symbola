@@ -2,7 +2,7 @@ import { IMPORT_FIELDS } from "@symbola/contracts";
 import { starterImportSynonyms } from "@symbola/starter-templates";
 import { describe, expect, it } from "vitest";
 import { parseImportRows } from "./rows";
-import { bestMatch, clientsSimilarity, eventSimilarity, labelSimilarity, textSimilarity } from "./similarity";
+import { bestMatch, clientsSimilarity, eventSimilarity, labelSimilarity, MATCH_THRESHOLD, matchVendorType, textSimilarity, vendorSimilarity, VENDOR_TYPE_SYNONYM_SCORE } from "./similarity";
 
 const synonyms = starterImportSynonyms();
 
@@ -150,5 +150,27 @@ describe("IMP-03 — Niveau de ressemblance", () => {
     ];
     expect(bestMatch("traiteur", candidates, labelSimilarity)).toEqual({ id: "a", score: 100 });
     expect(bestMatch("Fleuriste", candidates, labelSimilarity)).toBeNull();
+  });
+});
+
+describe("IMP-07 — Rapprochements du carnet de prestataires (lot 14b)", () => {
+  it("même nom à la casse et aux accents près, même ville si renseignée", () => {
+    expect(vendorSimilarity({ name: "Domaine des Tilleuls", city: "Poitiers" }, { name: "domaine des tilleuls", city: "POITIERS" })).toBe(100);
+    expect(vendorSimilarity({ name: "Sono Événements", city: "Gap" }, { name: "Sono Evenements", city: "Lille" })).toBeLessThan(MATCH_THRESHOLD);
+    expect(vendorSimilarity({ name: "Sono Événements", city: null }, { name: "Sono Evenements", city: "Lille" })).toBeGreaterThanOrEqual(MATCH_THRESHOLD);
+  });
+
+  it("décision N : un type est rapproché par son nom, un synonyme ou un nom très proche ; sinon il est à créer", () => {
+    const types = [
+      { id: "t1", label: "Photographe" },
+      { id: "t2", label: "Coiffure" },
+      { id: "t3", label: "Traiteurs" },
+    ];
+    const groups = [["Coiffure", "Coiffeur(se)", "Maquillage"]];
+    expect(matchVendorType("photographe", types, groups)).toEqual({ typeId: "t1", score: 100 });
+    expect(matchVendorType("Coiffeur(se)", types, groups)).toEqual({ typeId: "t2", score: VENDOR_TYPE_SYNONYM_SCORE });
+    expect(matchVendorType("Traiteur", types, groups)?.typeId).toBe("t3");
+    expect(matchVendorType("Fleuriste", types, groups)).toBeNull();
+    expect(matchVendorType("", types, groups)).toBeNull();
   });
 });

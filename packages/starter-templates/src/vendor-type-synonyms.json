@@ -1,0 +1,183 @@
+{
+  "version": 1,
+  "items": [
+    {
+      "key": "venue",
+      "fr": [
+        "Lieu de réception",
+        "Lieu",
+        "Lieux",
+        "Domaine",
+        "Château",
+        "Salle de réception"
+      ],
+      "en": [
+        "Venue",
+        "Venues",
+        "Reception venue",
+        "Wedding venue"
+      ]
+    },
+    {
+      "key": "lodging",
+      "fr": [
+        "Hôtel / hébergement",
+        "Hébergement",
+        "Hôtel",
+        "Gîte",
+        "Chambres d'hôtes"
+      ],
+      "en": [
+        "Hotel / lodging",
+        "Lodging",
+        "Hotel",
+        "Accommodation"
+      ]
+    },
+    {
+      "key": "caterer",
+      "fr": [
+        "Traiteur",
+        "Traiteurs",
+        "Restauration"
+      ],
+      "en": [
+        "Caterer",
+        "Catering"
+      ]
+    },
+    {
+      "key": "photographer",
+      "fr": [
+        "Photographe",
+        "Photographes",
+        "Photographe & Vidéaste"
+      ],
+      "en": [
+        "Photographer",
+        "Photography"
+      ]
+    },
+    {
+      "key": "videographer",
+      "fr": [
+        "Vidéaste",
+        "Vidéo",
+        "Vidéographe"
+      ],
+      "en": [
+        "Videographer",
+        "Video"
+      ]
+    },
+    {
+      "key": "music",
+      "fr": [
+        "DJ / musiciens",
+        "DJ",
+        "Musicien",
+        "Musiciens",
+        "Groupe de musique",
+        "Orchestre"
+      ],
+      "en": [
+        "DJ / musicians",
+        "DJ",
+        "Musician",
+        "Musicians",
+        "Band"
+      ]
+    },
+    {
+      "key": "florist",
+      "fr": [
+        "Fleuriste",
+        "Fleuristes",
+        "Fleurs",
+        "Décoration florale"
+      ],
+      "en": [
+        "Florist",
+        "Flowers"
+      ]
+    },
+    {
+      "key": "hair_makeup",
+      "fr": [
+        "Coiffure et maquillage",
+        "Coiffure",
+        "Coiffeur(se)",
+        "Coiffeur",
+        "Coiffeuse",
+        "Coiffeur(se) - Maquilleur(se)",
+        "Maquillage",
+        "Maquilleur(se)",
+        "Maquilleuse"
+      ],
+      "en": [
+        "Hair and make-up",
+        "Hair",
+        "Hairdresser",
+        "Make-up",
+        "Make-up artist"
+      ]
+    },
+    {
+      "key": "cake",
+      "fr": [
+        "Pièce montée / gâteau",
+        "Cake Designer",
+        "Pâtissier",
+        "Pâtisserie",
+        "Gâteau"
+      ],
+      "en": [
+        "Wedding cake",
+        "Cake designer",
+        "Pastry chef"
+      ]
+    },
+    {
+      "key": "officiant",
+      "fr": [
+        "Officiant de cérémonie laïque",
+        "Officiant de cérémonie",
+        "Officiant",
+        "Officiante"
+      ],
+      "en": [
+        "Celebrant",
+        "Officiant"
+      ]
+    },
+    {
+      "key": "stationery",
+      "fr": [
+        "Papeterie",
+        "Faire-part",
+        "Faire-parts"
+      ],
+      "en": [
+        "Stationery",
+        "Invitations"
+      ]
+    },
+    {
+      "key": "transport",
+      "fr": [
+        "Transport des invités",
+        "Transport",
+        "Location de voitures",
+        "Voitures de mariage",
+        "Navette"
+      ],
+      "en": [
+        "Guest transport",
+        "Transport",
+        "Car hire",
+        "Wedding cars",
+        "Shuttle"
+      ]
+    }
+  ]
+}

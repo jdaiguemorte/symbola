@@ -23,10 +23,13 @@ import type {
   VendorTypeField,
   VendorTypeFieldInput,
 } from "@symbola/contracts";
+import { VENDOR_SOCIAL_NETWORKS, type VendorSocialLink } from "@symbola/contracts";
 import { searchWords } from "@symbola/db/search";
 import { listBudgetLines } from "@/modules/budget/service";
 import { listSelectedVendorIds, listVendorConsultations } from "@/modules/events/service";
+import type { ImportUndoItem, ImportUndoOutcome } from "@symbola/contracts";
 import { cleanFieldValues, isUsableFilter } from "./fields";
+import { undoImportedVendorsElements as undoImportRows } from "./import";
 import { configuredGeocoder } from "./geocoder";
 import {
   archiveVendorRow,
@@ -62,6 +65,7 @@ import {
 import { DEFAULT_VENDOR_SETTINGS, estimateTravel, validateVendorSettings } from "./travel";
 
 export { InvalidVendorFieldValueError, parseFieldInput } from "./fields";
+export { findModifiedImportedVendorsElements, importVendorRows, listVendorImportCandidates, type VendorTypeChoiceInput } from "./import";
 export { estimateTravel, haversineKm } from "./travel";
 export { vendorsPrivacy } from "./privacy";
 export type {
@@ -79,6 +83,8 @@ export type {
   VendorInput,
   VendorListItem,
   VendorSettings,
+  VendorSocialLink,
+  VendorSocialNetwork,
   VendorSummary,
   VendorTag,
   VendorType,
@@ -153,12 +159,59 @@ function toVendor(row: VendorRow, files: VendorFileRow[]): Vendor {
     addressLine: row.addressLine,
     country: row.country,
     internalNote: row.internalNote,
+    website: row.website,
+    socialLinks: cleanSocialLinks(row.socialLinks),
+    siret: row.siret,
+    importedFields: row.importedFields,
     fieldValues: row.fieldValues,
     files: files.map(toFile),
   };
 }
 
 const blankToNull = (value: string | null | undefined) => (value?.trim() ? value.trim() : null);
+
+// Lot 14 (décision M) — site web, réseaux sociaux, SIRET.
+export class InvalidVendorLinkError extends Error {
+  constructor(readonly field: "website" | "siret" | "socialLinks") {
+    super(`valeur invalide : ${field}`);
+    this.name = "InvalidVendorLinkError";
+  }
+}
+
+const WEB_ADDRESS = /^(https?:\/\/)?[\p{L}\p{N}-]+(\.[\p{L}\p{N}-]+)+([/?#][^\s]*)?$/iu;
+
+// Adresse web : « www.exemple.fr » devient « https://www.exemple.fr ».
+export function normalizeWebAddress(value: string | null | undefined): string | null {
+  const clean = blankToNull(value);
+  if (!clean) return null;
+  if (!WEB_ADDRESS.test(clean) || clean.length > 500) return null;
+  return /^https?:\/\//i.test(clean) ? clean : `https://${clean}`;
+}
+
+function cleanWebsite(value: string | null | undefined): string | null {
+  if (!blankToNull(value)) return null;
+  const url = normalizeWebAddress(value);
+  if (!url) throw new InvalidVendorLinkError("website");
+  return url;
+}
+
+// Un lien par réseau, dans l'ordre d'affichage ; un lien illisible est ignoré.
+function cleanSocialLinks(links: { network: string; url: string }[]): VendorSocialLink[] {
+  const byNetwork = new Map<string, string>();
+  for (const link of links) {
+    const url = normalizeWebAddress(link.url);
+    if (url && (VENDOR_SOCIAL_NETWORKS as readonly string[]).includes(link.network) && !byNetwork.has(link.network)) byNetwork.set(link.network, url);
+  }
+  return VENDOR_SOCIAL_NETWORKS.filter((network) => byNetwork.has(network)).map((network) => ({ network, url: byNetwork.get(network)! }));
+}
+
+// SIRET : 14 chiffres, espaces tolérés à la saisie.
+function cleanSiret(value: string | null | undefined): string | null {
+  const clean = blankToNull(value)?.replace(/[\s.]/g, "") ?? null;
+  if (!clean) return null;
+  if (!/^\d{14}$/.test(clean)) throw new InvalidVendorLinkError("siret");
+  return clean;
+}
 
 // PRE-02 — types et champs.
 
@@ -264,6 +317,9 @@ async function prepareWrite(organizationId: string, input: VendorInput): Promise
     city: blankToNull(input.city),
     country: (input.country ?? "FR").trim().toUpperCase() || "FR",
     internalNote: blankToNull(input.internalNote),
+    website: cleanWebsite(input.website),
+    socialLinks: cleanSocialLinks(input.socialLinks ?? []),
+    siret: cleanSiret(input.siret),
     fieldValues: type ? cleanFieldValues(type.fields, input.fieldValues ?? {}) : {},
     tagIds: [...new Set((input.tagIds ?? []).filter((id) => tags.has(id)))],
   };
@@ -431,6 +487,17 @@ export async function getVendorRibFile(organizationId: string, vendorId: string)
 export async function removeVendorFile(organizationId: string, fileId: string): Promise<void> {
   const row = UUID.test(fileId) ? await deleteVendorFileRow(organizationId, fileId) : null;
   if (row) await deletePrivateObject(createStorageClient(), row.fileKey).catch(() => undefined);
+}
+
+// Lot 14 (IMP-07) — annulation d'un import : une fiche citée depuis dans
+// un événement est gardée (kept_in_use).
+export async function undoImportedVendorsElements(organizationId: string, items: ImportUndoItem[]): Promise<ImportUndoOutcome[]> {
+  const created = items.filter((item) => item.kind === "vendor" && item.action === "created").map((item) => item.elementId);
+  const linked = new Set<string>();
+  for (const vendorId of created) {
+    if ((await listVendorConsultations(organizationId, vendorId)).length > 0) linked.add(vendorId);
+  }
+  return undoImportRows(organizationId, items, linked);
 }
 
 // AIDE-08 — recherche globale.

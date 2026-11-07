@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import retroplanningFile from "./retroplanning.json";
 import vendorSlotsFile from "./vendor-slots.json";
 import programFile from "./program.json";
-import { starterDemoEvent, starterDemoQuote, starterErasureResponse, starterPrivacySettings, starterInvoiceMentions, starterLossReasons, starterPaymentMethods, starterProgram, starterProspectSources, starterRetroplanning, starterVendorSlots, starterVendorTypes, starterBudgetLines, starterAllocation, starterFollowUpDelays } from "./index";
+import { starterDemoEvent, starterDemoQuote, starterErasureResponse, starterPrivacySettings, starterInvoiceMentions, starterLossReasons, starterPaymentMethods, starterProgram, starterProspectSources, starterRetroplanning, starterVendorSlots, starterVendorTypes, starterBudgetLines, starterAllocation, starterFollowUpDelays, starterVendorTypeSynonymGroups } from "./index";
 
 describe("EVT-03 — Modèle de départ des postes prestataires", () => {
   it("existe en français et en anglais, avec le même nombre de postes", () => {
@@ -193,5 +193,14 @@ describe("AIDE-06 — exemples des tutoriels", () => {
 describe("HUB-15 — délais de relance de départ", () => {
   it("lit les délais de départ du fichier de données", () => {
     expect(starterFollowUpDelays()).toEqual({ quoteFollowUpDays: 7, prospectFollowUpDays: 14 });
+  });
+});
+
+describe("IMP-07 — synonymes des types de prestataires (décision N)", () => {
+  it("chaque type de départ, en français et en anglais, appartient à un groupe de synonymes", () => {
+    const groups = starterVendorTypeSynonymGroups();
+    for (const locale of ["fr", "en"] as const) {
+      for (const type of starterVendorTypes(locale)) expect(groups.some((group) => group.includes(type.label))).toBe(true);
+    }
   });
 });

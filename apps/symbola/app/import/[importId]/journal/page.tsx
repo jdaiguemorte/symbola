@@ -63,7 +63,8 @@ export default async function ImportJournalPage({
       const planned = typeof values.plannedAmountCents === "number" ? formatAmount(values.plannedAmountCents, locale) : "";
       return t(`itemKind.${item.kind}`, { title: planned });
     }
-    return t(`itemKind.${item.kind}`, { title: typeof values.label === "string" ? values.label : t("rowWithoutLabel") });
+    const label = item.kind === "vendor" ? values.name : values.label;
+    return t(`itemKind.${item.kind}`, { title: typeof label === "string" ? label : t("rowWithoutLabel") });
   };
 
   const modified = view.pendingItems.filter((item) => item.modified && !item.usedElsewhere);

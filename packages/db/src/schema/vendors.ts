@@ -72,6 +72,12 @@ export const vendors = vendorsSchema.table("vendors", {
   longitude: doublePrecision("longitude"),
   locationSource: vendorLocationSourceEnum("location_source"),
   internalNote: text("internal_note"),
+  // Lot 14 (décision M) : site web, réseaux sociaux et SIRET, communs à tous
+  // les types ; colonnes d'un import gardées telles quelles (TVA, APE…).
+  website: text("website"),
+  socialLinks: jsonb("social_links").$type<{ network: string; url: string }[]>().notNull().default([]),
+  siret: text("siret"),
+  importedFields: jsonb("imported_fields").$type<Record<string, string> | null>(),
   fieldValues: jsonb("field_values").$type<Record<string, string | number | boolean>>().notNull().default({}),
   tagIds: uuid("tag_ids").array().notNull().default([]),
   isDemo: boolean("is_demo").notNull().default(false),

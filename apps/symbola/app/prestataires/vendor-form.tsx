@@ -4,6 +4,7 @@
 // ses champs, étiquettes, note interne. Les champs suivent le type choisi.
 import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
+import { VENDOR_SOCIAL_NETWORKS } from "@symbola/contracts";
 import type { Vendor, VendorFieldValue, VendorTag, VendorType, VendorTypeField } from "@/modules/vendors/service";
 import { saveVendorAction, type VendorFormState } from "./actions";
 
@@ -117,6 +118,23 @@ export function VendorForm({ types, tags, vendor = null, back = "" }: { types: V
           <input type="text" name="country" defaultValue={vendor?.country ?? "FR"} maxLength={2} autoComplete="country" />
         </label>
         <p className="muted">{t("addressHint")}</p>
+      </fieldset>
+      <fieldset>
+        <legend>{t("links")}</legend>
+        <label>
+          {t("website")}
+          <input type="url" name="website" defaultValue={vendor?.website ?? ""} autoComplete="url" placeholder="https://" />
+        </label>
+        {VENDOR_SOCIAL_NETWORKS.map((network) => (
+          <label key={network}>
+            {t(`social.${network}`)}
+            <input type="url" name={`social_${network}`} defaultValue={vendor?.socialLinks.find((link) => link.network === network)?.url ?? ""} placeholder="https://" />
+          </label>
+        ))}
+        <label>
+          {t("siret")}
+          <input type="text" name="siret" inputMode="numeric" defaultValue={vendor?.siret ?? ""} />
+        </label>
       </fieldset>
       {type && type.fields.length > 0 ? (
         <fieldset key={type.id}>

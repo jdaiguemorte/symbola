@@ -183,6 +183,24 @@ Les six propositions ci-dessous sont **validées telles quelles**.
    commiter. `pdfjs-dist` 6.4.299 (sans la bibliothèque de dessin native facultative).
 2. **14b** — Prestataires (IMP-07) : champs du carnet (décision M), étiquettes et types,
    import, rapprochements, annulation, écrans.
+   *Réalisé (14b)* : fiche du carnet avec **site web, réseaux sociaux (Instagram en premier) et
+   SIRET** (migration 0069, registre RGPD, recherche, export et effacement RGPD) et **champs
+   importés** en lecture seule ; type d'import `vendors` (migration 0070). L'export du logiciel
+   tiers est reconnu par ses intitulés : chaque colonne est proposée avec une confiance de 95
+   (90 pour les deux colonnes remises en place d'après leur contenu, signalées à l'écran des
+   colonnes) ; département, TVA, APE et statut juridique restent sans équivalent, à garder en
+   champ libre ou à ignorer. Un tableau de prestataires quelconque passe par les synonymes de
+   colonnes habituels. Les valeurs sont remises en état dès la lecture (entités HTML, code
+   postal, SIRET). Rapprochement d'une fiche par nom et ville (dix fiches les plus proches
+   proposées pour un rapprochement à la main). Types (décision N) : rapprochés par nom, par
+   groupe de synonymes (`vendor-type-synonyms.json`, FR/EN) ou par nom très proche, sinon créés
+   à la confirmation (couleurs des types de départ) ; la planner peut les regrouper sur un type
+   du carnet à l'étape des rapprochements. Critères en étiquettes (créées au besoin),
+   prestations puis autres numéros dans la note interne ; à la mise à jour, une cellule vide
+   n'efface rien, la note et les étiquettes s'ajoutent. Adresse géocodée après l'écriture.
+   Annulation : fiches créées supprimées (sauf citées dans un événement ou avec un fichier
+   joint), mises à jour remises à leurs valeurs (point sur la carte compris), étiquettes et
+   types créés retirés s'ils ne servent plus.
 3. **14c** — Événements (IMP-08) : coordonnées des mariés (décision I), dépôt de plusieurs
    fiches, import, rapprochements, annulation, écrans.
 4. **14d** — Aide et parcours (IMP-09), captures.

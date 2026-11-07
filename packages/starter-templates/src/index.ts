@@ -19,6 +19,7 @@ import retroplanningFile from "./retroplanning.json";
 import tutorialExamplesFile from "./tutorial-examples.json";
 import vendorSlotsFile from "./vendor-slots.json";
 import vendorTypesFile from "./vendor-types.json";
+import vendorTypeSynonymsFile from "./vendor-type-synonyms.json";
 import agencyVendorSlotsFile from "./vendor-slots.event-agency.json";
 import agencyProspectSourcesFile from "./prospect-sources.event-agency.json";
 import agencyRetroplanningFile from "./retroplanning.event-agency.json";
@@ -352,6 +353,19 @@ const importProfiles = importProfilesSchema.parse(importProfilesFile);
 // Export d'un logiciel de planification tiers (prestataires en Excel, fiches événement en PDF).
 export function planningSoftwareProfile(): { vendors: VendorsExportProfile; eventSheet: EventSheetProfile } {
   return importProfiles.planningSoftware;
+}
+
+// Lot 14 (décision N) — groupes de types de prestataires équivalents
+// (« Coiffeur(se) », « Coiffure »), en français et en anglais, pour
+// rapprocher les types d'un fichier importé de ceux du carnet.
+const vendorTypeSynonymsSchema = z.object({
+  version: z.literal(1),
+  items: z.array(z.object({ key: z.string().min(1), fr: z.array(z.string().min(1)).min(1), en: z.array(z.string().min(1)).min(1) })),
+});
+const vendorTypeSynonyms = vendorTypeSynonymsSchema.parse(vendorTypeSynonymsFile);
+
+export function starterVendorTypeSynonymGroups(): string[][] {
+  return vendorTypeSynonyms.items.map((item) => [...item.fr, ...item.en]);
 }
 
 // Lot 6 (RGPD-04/RGPD-05) : réglages RGPD de départ d'une organisation —

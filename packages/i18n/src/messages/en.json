@@ -1532,7 +1532,8 @@
       "vendor_slots": "Default budget lines",
       "prospect_sources": "Prospect sources",
       "loss_reasons": "Loss reasons",
-      "payment_methods": "Payment methods"
+      "payment_methods": "Payment methods",
+      "vendors": "Vendor book entries (one row per vendor)"
     },
     "fileLabel": "File (CSV, Excel .xlsx or JSON)",
     "fileHint": "Maximum size: {maxSize}. Encoding, separator and header row are detected automatically.",
@@ -1630,7 +1631,25 @@
       "unit": "Unit",
       "unitPrice": "Unit price excl. VAT",
       "vatRate": "VAT rate",
-      "category": "Category"
+      "category": "Category",
+      "name": "Vendor name",
+      "type": "Vendor type",
+      "contactFirstName": "Contact first name",
+      "contactLastName": "Contact last name",
+      "email": "Email",
+      "addressLine": "Address",
+      "postalCode": "Postal code",
+      "city": "City",
+      "phones": "Phone number(s)",
+      "website": "Website",
+      "instagram": "Instagram",
+      "facebook": "Facebook",
+      "pinterest": "Pinterest",
+      "linkedin": "LinkedIn",
+      "x": "X",
+      "siret": "SIRET number",
+      "criteria": "Criteria (become tags)",
+      "services": "Services (go to the internal note)"
     },
     "requiredField": "{field} (required)",
     "columnsStepTitle": "Columns",
@@ -1760,9 +1779,21 @@
       "payment_method": "Payment method: {title}",
       "prospect_source": "Source: {title}",
       "loss_reason": "Loss reason: {title}",
-      "default_vendor_slot": "Default budget line: {title}"
+      "default_vendor_slot": "Default budget line: {title}",
+      "vendor": "Vendor: {title}",
+      "vendor_type": "Vendor type: {title}",
+      "vendor_tag": "Tag: {title}"
     },
-    "importedFieldsTitle": "Imported fields"
+    "importedFieldsTitle": "Imported fields",
+    "columnByContent": "Suggested from the column's content, not its heading (columns swapped in the file): please check.",
+    "vendorTypesTitle": "Vendor types in the file",
+    "vendorTypesIntro": "Each type in the file is matched with a type of your vendor book when it already exists; otherwise it is created on confirmation. To avoid duplicates, group a type under an existing one.",
+    "vendorTypeRows": "{label} ({count, plural, one {# vendor} other {# vendors}})",
+    "vendorTypeTargetLabel": "Vendor book type for “{label}”",
+    "vendorTypeCreate": "Create the type “{label}”",
+    "vendorTypeMatched": "Matched with “{type}” ({score}%)",
+    "vendorTypeExisting": "Your vendor book types",
+    "vendorTypesSave": "Save the types"
   },
   "Privacy": {
     "title": "Personal data",
@@ -2785,7 +2816,19 @@
     "summaryEmail": "Email",
     "summaryAddress": "Address",
     "summaryTravel": "Estimated travel",
-    "openFullCard": "Open the full card"
+    "openFullCard": "Open the full card",
+    "links": "Website and social media",
+    "website": "Website",
+    "siret": "SIRET number",
+    "social": {
+      "instagram": "Instagram",
+      "facebook": "Facebook",
+      "pinterest": "Pinterest",
+      "linkedin": "LinkedIn",
+      "x": "X"
+    },
+    "invalidWebsite": "Unreadable web address: check the website and social links.",
+    "invalidSiret": "The SIRET must have 14 digits."
   },
   "Setup": {
     "title": "Welcome: let's set up your space",

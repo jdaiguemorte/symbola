@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getPlannerAuthContext } from "@/lib/auth-context";
-import { addManualMatch, decideMatches, getImportMatchesView } from "@/lib/import/matching";
+import { addManualMatch, decideMatches, decideVendorTypes, getImportMatchesView } from "@/lib/import/matching";
 import { isValidId } from "../../access";
 
 async function authorized(formData: FormData): Promise<{ organizationId: string; importId: string } | null> {
@@ -50,5 +50,23 @@ export async function manualMatchAction(formData: FormData): Promise<void> {
   const candidateId = String(formData.get("candidateId") ?? "");
   if (rowIndex === null || !isValidId(candidateId)) return;
   await addManualMatch(context.organizationId, context.importId, rowIndex, candidateId);
+  revalidatePath(`/import/${context.importId}/rapprochements`);
+}
+
+// Lot 14 (décision N) — types du fichier : rapprochés d'un type du carnet
+// (vérifié dans l'organisation par l'orchestrateur) ou créés.
+export async function decideVendorTypesAction(formData: FormData): Promise<void> {
+  const context = await authorized(formData);
+  if (!context) return;
+  const count = Math.min(Number(formData.get("count") ?? 0) || 0, 500);
+  const decisions: { label: string; typeId: string | null }[] = [];
+  for (let index = 0; index < count; index += 1) {
+    const label = String(formData.get(`label-${index}`) ?? "").slice(0, 200);
+    const typeId = String(formData.get(`type-${index}`) ?? "");
+    if (!label) continue;
+    if (typeId !== "" && !isValidId(typeId)) return;
+    decisions.push({ label, typeId: typeId === "" ? null : typeId });
+  }
+  if (decisions.length > 0) await decideVendorTypes(context.organizationId, context.importId, decisions);
   revalidatePath(`/import/${context.importId}/rapprochements`);
 }

@@ -35,6 +35,10 @@ export default async function ImportConfirmationPage({ params }: { params: Promi
       const clients = reference.clients.map((client) => `${client.firstName} ${client.lastName ?? ""}`.trim()).join(" & ");
       return reference.eventDate ? t("eventTitle", { clients, date: formatCalendarDate(reference.eventDate, locale) }) : clients;
     }
+    if (preview.entityType === "vendors") {
+      const name = typeof values.name === "string" ? values.name : t("rowWithoutLabel");
+      return typeof values.city === "string" ? `${name} — ${values.city}` : name;
+    }
     const label = preview.entityType === "budget_lines" ? values.slotLabel : values.label;
     const amount = preview.entityType === "budget_lines" ? values.plannedAmount : preview.entityType === "catalog_items" ? values.unitPrice : null;
     const text = typeof label === "string" ? label : t("rowWithoutLabel");

@@ -94,3 +94,40 @@ export function bestMatch<R, T>(
   }
   return best;
 }
+
+// Lot 14 (IMP-07) — prestataire du carnet : même nom (casse et accents près),
+// même ville si elle est renseignée des deux côtés.
+export function vendorSimilarity(row: { name: string; city: string | null }, candidate: { name: string; city: string | null }): number {
+  const name = textSimilarity(row.name, candidate.name);
+  let factor = 1;
+  if (row.city && candidate.city) factor = textSimilarity(row.city, candidate.city) >= 0.85 ? 1 : 0.3;
+  else if (row.city || candidate.city) factor = 0.9;
+  return Math.round(name * factor * 100);
+}
+
+// Lot 14 (décision N) — type de prestataire d'un fichier rapproché d'un type
+// du carnet : même nom (100), même groupe de synonymes (90, « Coiffeur(se) »
+// et « Coiffure »), ou nom très proche (au moins 90). Groupes : données de
+// @symbola/starter-templates.
+export const VENDOR_TYPE_SYNONYM_SCORE = 90;
+
+export function matchVendorType(
+  label: string,
+  types: { id: string; label: string }[],
+  synonymGroups: readonly (readonly string[])[],
+): { typeId: string; score: number } | null {
+  const key = normalizeLabel(label).join(" ");
+  if (key === "") return null;
+  const exact = types.find((type) => normalizeLabel(type.label).join(" ") === key);
+  if (exact) return { typeId: exact.id, score: 100 };
+  const groups = synonymGroups.map((group) => new Set(group.map((entry) => normalizeLabel(entry).join(" "))));
+  const own = groups.filter((group) => group.has(key));
+  const synonym = types.find((type) => own.some((group) => group.has(normalizeLabel(type.label).join(" "))));
+  if (synonym) return { typeId: synonym.id, score: VENDOR_TYPE_SYNONYM_SCORE };
+  let best: { typeId: string; score: number } | null = null;
+  for (const type of types) {
+    const score = labelSimilarity(label, type.label);
+    if (score >= VENDOR_TYPE_SYNONYM_SCORE && (!best || score > best.score)) best = { typeId: type.id, score };
+  }
+  return best;
+}

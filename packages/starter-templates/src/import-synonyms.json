@@ -354,6 +354,223 @@
         "group",
         "family"
       ]
+    },
+    "name": {
+      "fr": [
+        "nom du prestataire",
+        "prestataire",
+        "raison sociale",
+        "société",
+        "entreprise",
+        "nom commercial",
+        "enseigne",
+        "nom"
+      ],
+      "en": [
+        "vendor",
+        "vendor name",
+        "supplier",
+        "company",
+        "business name",
+        "name"
+      ]
+    },
+    "type": {
+      "fr": [
+        "type de prestataire",
+        "type",
+        "catégorie",
+        "métier",
+        "activité"
+      ],
+      "en": [
+        "vendor type",
+        "type",
+        "category",
+        "trade"
+      ]
+    },
+    "contactFirstName": {
+      "fr": [
+        "prénom du contact",
+        "prénom contact",
+        "prénom"
+      ],
+      "en": [
+        "contact first name",
+        "first name"
+      ]
+    },
+    "contactLastName": {
+      "fr": [
+        "nom du contact",
+        "nom contact"
+      ],
+      "en": [
+        "contact last name",
+        "last name"
+      ]
+    },
+    "email": {
+      "fr": [
+        "e-mail",
+        "email",
+        "mail",
+        "courriel",
+        "adresse e-mail"
+      ],
+      "en": [
+        "email",
+        "e-mail",
+        "email address"
+      ]
+    },
+    "addressLine": {
+      "fr": [
+        "adresse",
+        "rue",
+        "adresse postale"
+      ],
+      "en": [
+        "address",
+        "street",
+        "street address"
+      ]
+    },
+    "postalCode": {
+      "fr": [
+        "code postal",
+        "cp"
+      ],
+      "en": [
+        "postal code",
+        "zip",
+        "zip code",
+        "postcode"
+      ]
+    },
+    "city": {
+      "fr": [
+        "ville",
+        "commune",
+        "localité"
+      ],
+      "en": [
+        "city",
+        "town"
+      ]
+    },
+    "phones": {
+      "fr": [
+        "téléphones",
+        "téléphone",
+        "tél",
+        "portable",
+        "mobile"
+      ],
+      "en": [
+        "phone",
+        "phones",
+        "telephone",
+        "mobile"
+      ]
+    },
+    "website": {
+      "fr": [
+        "site internet",
+        "site web",
+        "site"
+      ],
+      "en": [
+        "website",
+        "web site",
+        "url"
+      ]
+    },
+    "instagram": {
+      "fr": [
+        "lien instagram",
+        "instagram"
+      ],
+      "en": [
+        "instagram",
+        "instagram link"
+      ]
+    },
+    "facebook": {
+      "fr": [
+        "page facebook",
+        "facebook"
+      ],
+      "en": [
+        "facebook",
+        "facebook page"
+      ]
+    },
+    "pinterest": {
+      "fr": [
+        "lien pinterest",
+        "pinterest"
+      ],
+      "en": [
+        "pinterest"
+      ]
+    },
+    "linkedin": {
+      "fr": [
+        "lien linkedin",
+        "linkedin"
+      ],
+      "en": [
+        "linkedin"
+      ]
+    },
+    "x": {
+      "fr": [
+        "lien x",
+        "twitter"
+      ],
+      "en": [
+        "x",
+        "twitter"
+      ]
+    },
+    "siret": {
+      "fr": [
+        "n° siret",
+        "siret",
+        "numéro siret"
+      ],
+      "en": [
+        "siret",
+        "siret number"
+      ]
+    },
+    "criteria": {
+      "fr": [
+        "critères",
+        "critères avancés",
+        "étiquettes",
+        "mots-clés"
+      ],
+      "en": [
+        "criteria",
+        "tags",
+        "keywords"
+      ]
+    },
+    "services": {
+      "fr": [
+        "prestations",
+        "description",
+        "tarifs",
+        "offre"
+      ],
+      "en": [
+        "services",
+        "description",
+        "prices"
+      ]
     }
   },
   "choices": {
