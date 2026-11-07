@@ -50,7 +50,7 @@ export function PageTour({
         className="help-button"
         data-tour="help-button"
         aria-expanded={open}
-        aria-label={t("toggle", { screen: helpTitle })}
+        aria-label={t("toggle")}
         onClick={() => {
           if (!open) void recordHelpProgressAction(itemKey, "completed", 0);
           setOpen((value) => !value);

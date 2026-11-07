@@ -65,9 +65,9 @@ test("AIDE-11 / AIDE-03 — repères de l'accueil, aide consultable", async ({ p
 
   // Déjà vus, ils ne se réaffichent pas d'eux-mêmes ; le bouton « ? » les rouvre.
   await page.reload();
-  await expect(page.getByRole("button", { name: "Aide sur cet écran : Tableau de bord" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Aide sur cet écran" })).toBeVisible();
   await expect(panel).toHaveCount(0);
-  await page.getByRole("button", { name: "Aide sur cet écran : Tableau de bord" }).click();
+  await page.getByRole("button", { name: "Aide sur cet écran" }).click();
   await expect(panel).toBeVisible();
   await expect(panel.getByRole("heading", { name: "Bienvenue sur Symbola", level: 3 })).toBeVisible();
   await panel.getByRole("button", { name: "Fermer l'aide" }).click();
@@ -76,7 +76,7 @@ test("AIDE-11 / AIDE-03 — repères de l'accueil, aide consultable", async ({ p
   // Un écran sans repères : le même « ? » ouvre le même panneau, avec le
   // seul texte d'aide de l'écran.
   await page.goto("/taches");
-  const help = page.getByRole("button", { name: "Aide sur cet écran : Les tâches de tous vos mariages" });
+  const help = page.getByRole("button", { name: "Aide sur cet écran" });
   await help.click();
   await expect(help).toHaveAttribute("aria-expanded", "true");
   const tasksPanel = landmarksPanel(page, "Les tâches de tous vos mariages");

@@ -61,9 +61,9 @@ test("AIDE-11 — repères des modules Devis et Budget, rouverts depuis « ? »"
   await expect(catalog.getByRole("heading", { name: "Composer un devis", level: 3 })).toBeVisible();
   await closeLandmarks(page, "Catalogue des prestations");
   await page.reload();
-  await expect(page.getByRole("button", { name: "Aide sur cet écran : Catalogue des prestations" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Aide sur cet écran" })).toBeVisible();
   await expect(catalog).toHaveCount(0);
-  await page.getByRole("button", { name: "Aide sur cet écran : Catalogue des prestations" }).click();
+  await page.getByRole("button", { name: "Aide sur cet écran" }).click();
   await expect(catalog.getByRole("heading", { name: "Votre catalogue", level: 3 })).toBeVisible();
   await closeLandmarks(page, "Catalogue des prestations");
 
@@ -73,7 +73,7 @@ test("AIDE-11 — repères des modules Devis et Budget, rouverts depuis « ? »"
   await expectNoAxeViolation(page);
   await closeLandmarks(page, "Modèles de budget");
   await page.reload();
-  await expect(page.getByRole("button", { name: "Aide sur cet écran : Modèles de budget" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Aide sur cet écran" })).toBeVisible();
   await expect(budget).toHaveCount(0);
 });
 

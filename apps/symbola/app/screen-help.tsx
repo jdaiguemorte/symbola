@@ -17,7 +17,7 @@ export function ScreenHelp({ title, body }: { title: string; body: string }) {
         className="help-button"
         data-tour="help-button"
         aria-expanded={open}
-        aria-label={t("toggle", { screen: title })}
+        aria-label={t("toggle")}
         onClick={() => setOpen((value) => !value)}
       >
         ?

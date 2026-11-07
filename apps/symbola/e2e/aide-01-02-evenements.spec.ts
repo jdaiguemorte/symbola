@@ -56,9 +56,9 @@ test("AIDE-11/02 — repères du module événements, puis essai guidé supprim�
 
   // Déjà vus : ils ne se rouvrent plus d'eux-mêmes, mais depuis « ? ».
   await page.reload();
-  await expect(page.getByRole("button", { name: "Aide sur cet écran : Liste des événements" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Aide sur cet écran" })).toBeVisible();
   await expect(panel).toHaveCount(0);
-  await page.getByRole("button", { name: "Aide sur cet écran : Liste des événements" }).click();
+  await page.getByRole("button", { name: "Aide sur cet écran" }).click();
   await closeLandmarks(page, "Liste des événements");
 
   // AIDE-02 : l'essai ouvre un mariage fictif complet, marqué comme tel.

@@ -2711,7 +2711,7 @@
     "conflictAbandon": "L’abandonner et commencer celui-ci"
   },
   "Landmarks": {
-    "toggle": "Aide sur cet écran : {screen}",
+    "toggle": "Aide sur cet écran",
     "panel": "Aide : {screen}",
     "close": "Fermer l'aide",
     "previous": "Repère précédent",

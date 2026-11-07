@@ -67,7 +67,7 @@ test("AIDE-11 / AIDE-07 — repères de la fiche d'un événement, et centre d'a
 
   // Rechargée, la fiche ne rouvre pas les repères d'elle-même.
   await page.reload();
-  await expect(page.getByRole("button", { name: "Aide sur cet écran : Fiche de l'événement" })).toHaveAttribute("aria-expanded", "false");
+  await expect(page.getByRole("button", { name: "Aide sur cet écran" })).toHaveAttribute("aria-expanded", "false");
   await expect(panel).toHaveCount(0);
 
   // Centre d'aide : état des repères, préférence.
@@ -81,7 +81,7 @@ test("AIDE-11 / AIDE-07 — repères de la fiche d'un événement, et centre d'a
     .toBe("0");
   await page.goto("/events");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Événements");
-  await expect(page.getByRole("button", { name: "Aide sur cet écran : Liste des événements" })).toHaveAttribute("aria-expanded", "false");
+  await expect(page.getByRole("button", { name: "Aide sur cet écran" })).toHaveAttribute("aria-expanded", "false");
   await expect(landmarksPanel(page, "Liste des événements")).toHaveCount(0);
 });
 

@@ -2711,7 +2711,7 @@
     "conflictAbandon": "Abandon it and start this one"
   },
   "Landmarks": {
-    "toggle": "Help on this screen: {screen}",
+    "toggle": "Help on this screen",
     "panel": "Help: {screen}",
     "close": "Close help",
     "previous": "Previous marker",
