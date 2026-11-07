@@ -25,11 +25,21 @@ imports volumineux :
   (jusqu'à 1 Go) ([documentation IGN](https://geoservices.ign.fr/node/1408)).
 - Limite d'usage : **50 requêtes par seconde et par adresse IP** ; au-delà, refus (HTTP 429)
   pendant 5 s ([limites d'usage](https://geoservices.ign.fr/node/1551)).
-- Les noms exacts des colonnes d'entrée et la taille maximale d'un fichier synchrone ne sont
-  décrits que dans le swagger du service : **à vérifier en tout début de lot**, par un essai
-  réel depuis staging (l'environnement de développement de Claude n'a pas accès au service).
+- **Essai réel (07/11/2026, depuis l'environnement de Claude, adresses fictives ou publiques)** :
+  `POST https://data.geopf.fr/geocodage/search/csv`, formulaire avec le fichier (`data`) et
+  les colonnes à lire (`columns`, répétable). La réponse est le même CSV augmenté de
+  `longitude`, `latitude`, `result_score`, `result_status`… **301 adresses en une requête,
+  en 1 seconde.** Une adresse introuvable revient avec un score bas (0,36), donc écartée par
+  le seuil actuel (0,5).
+- **Précision** : en texte libre, « 20 rue de la République Lille » est sorti aux Lilas (93)
+  avec un score de 0,80. Le code postal est donc envoyé comme **filtre** (colonne
+  `postcode`), jamais mêlé au texte de l'adresse ; sans code postal, la ville reste dans le
+  texte.
 
-## Décisions à valider par Julien
+## Décisions de Julien (07/11/2026)
+
+Les quatre propositions ci-dessous sont **validées**. Pour P, Julien choisit le **stockage
+temporaire chiffré** des fiches PDF pendant leur lecture.
 
 - **O. Géocodage en lot, dédoublonné, en tâche de fond.** À la confirmation d'un import de
   prestataires, l'import s'écrit tout de suite et l'écran rend la main. Les adresses à placer
@@ -125,9 +135,8 @@ imports volumineux :
   décrit ce patron (traitement de fond suivi), réutilisable par d'autres modules.
 - **Fiches PDF en attente** : pendant la lecture, les octets d'une fiche ne sont gardés que le
   temps du traitement (chiffrés au repos par le stockage privé, ADR 0027), puis supprimés ;
-  l'ADR 0034 (« fichier jamais stocké ») est mis à jour en conséquence. Alternative si Julien
-  la préfère : garder la lecture synchrone et n'afficher l'avancement que pour le placement
-  sur la carte (aucun stockage temporaire).
+  l'ADR 0034 (« fichier jamais stocké ») est mis à jour en conséquence (choix de Julien
+  plutôt qu'une lecture synchrone sans avancement).
 - **Carte** : `app/prestataires/vendor-map.tsx` ; traduction des contrôles MapLibre par les
   fichiers de traduction de l'app.
 - **Migrations** : scripts `packages/db/drizzle-rollback/<n>_*.sql`, commande
