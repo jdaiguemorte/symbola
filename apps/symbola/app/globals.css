@@ -814,17 +814,77 @@
   .help-progress progress {
     @apply w-full max-w-md;
   }
-  .help-items li {
-    @apply flex flex-wrap items-center justify-between gap-3;
+}
+
+/* Lot 13 (AIDE-12) — centre d'aide par écran : vignettes et fiches. */
+@layer components {
+  .help-search {
+    @apply my-4 max-w-xl;
   }
-  .help-items li > span:first-child {
-    @apply flex flex-col gap-0.5;
+  .help-search input {
+    @apply w-full;
   }
-  .help-items li > span:first-child > span {
-    @apply text-sm text-muted;
+  .help-group {
+    @apply mt-6;
   }
-  .help-item-actions {
-    @apply flex items-center gap-3;
+  .help-tiles {
+    @apply m-0 grid list-none grid-cols-1 gap-4 p-0 sm:grid-cols-2 lg:grid-cols-3;
+  }
+  .help-tile {
+    @apply flex h-full flex-col gap-2 overflow-hidden rounded-2xl border border-lin bg-card text-ink no-underline shadow-sm;
+  }
+  .help-tile:hover,
+  .help-tile:focus-visible {
+    @apply border-sauge;
+  }
+  .help-tile img,
+  .help-tile-placeholder {
+    @apply block aspect-[16/10] h-auto w-full border-b border-lin bg-ivory object-cover object-top;
+  }
+  .help-tile-placeholder {
+    @apply flex items-center justify-center text-3xl font-semibold text-sauge;
+  }
+  .help-tile-text {
+    @apply flex flex-col gap-1 px-4;
+  }
+  .help-tile-title {
+    @apply font-semibold;
+  }
+  .help-tile-body {
+    @apply line-clamp-3 text-sm text-muted;
+  }
+  .help-tile .badge {
+    @apply mx-4 mb-4 self-start;
+  }
+  .help-screen {
+    @apply max-w-4xl;
+  }
+  .help-capture {
+    @apply m-0 my-4 overflow-hidden rounded-2xl border border-lin;
+  }
+  .help-capture img {
+    @apply block h-auto w-full;
+  }
+  .help-screen-body {
+    @apply text-lg;
+  }
+  .help-landmarks {
+    @apply m-0 flex list-none flex-col gap-3 p-0;
+  }
+  .help-landmarks li {
+    @apply flex items-start gap-3;
+  }
+  .help-landmarks .landmark-number {
+    @apply mt-0.5 h-6 w-6 text-xs;
+  }
+  .help-faq {
+    @apply m-0 flex flex-col gap-4;
+  }
+  .help-faq dt {
+    @apply font-semibold;
+  }
+  .help-faq dd {
+    @apply m-0 mt-1;
   }
 }
 

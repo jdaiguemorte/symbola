@@ -4,7 +4,7 @@
 // cible affiche sa bulle seule, au centre.
 export const TOUR_TARGETS = {
   hub: ["home-agenda", "nav-settings", "help-button"],
-  events: ["events-list", "new-prospect", "events-list", "events-settings", "events-trial"],
+  events: ["events-list", "new-prospect", "events-filters", "events-settings", "events-trial"],
   event: ["event-tabs", "event-overview", "tab-retroplanning", "tab-budget", "global-search"],
   quotes: ["quotes-catalog", undefined, undefined, undefined],
   budget: ["budget-models", undefined, undefined, undefined],

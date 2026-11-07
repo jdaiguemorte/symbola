@@ -25,8 +25,9 @@ validées par Julien, spécification : `docs/lots/lot-13-ux.md`.
 4. **Un seul tutoriel en cours** par compte : lancer un tutoriel en interrompt explicitement un
    autre (choix de la personne), jamais en silence.
 5. **Captures réelles dans le centre d'aide**, produites par un script Playwright
-   (`pnpm --filter @symbola/app help:captures`) sur une organisation fictive, en 1280 px,
-   enregistrées dans `apps/symbola/public/aide/captures/` et versionnées. Elles sont régénérées
+   (`pnpm --filter @symbola/app help:captures`) sur une organisation fictive, en 1280 × 800,
+   au format JPEG (repères ouverts sur les écrans qui en ont), enregistrées dans
+   `apps/symbola/public/aide/captures/` et versionnées. Elles sont régénérées
    à chaque lot qui modifie un écran (étape de la définition de « terminé » du lot). Pas de
    génération à chaque build : une capture qui change sans raison ne doit pas passer inaperçue
    dans une PR.
@@ -43,7 +44,7 @@ validées par Julien, spécification : `docs/lots/lot-13-ux.md`.
 - Les visites focus et leurs tests disparaissent ; les repères ont leurs propres tests e2e.
 - Les écrans sont migrés étape par étape (sept PR) ; l'ancien et le nouveau motif cohabitent
   le temps du lot.
-- Les captures ajoutent des images au dépôt (environ 30 PNG, quelques centaines de ko au
-  total).
+- Les captures ajoutent des images au dépôt (24 JPEG à l'étape 6c, environ 2 Mo au total ;
+  JPEG plutôt que PNG pour diviser le poids par quatre environ).
 - Aucune nouvelle dépendance : glisser-déposer des listes en HTML natif avec alternative
   clavier.

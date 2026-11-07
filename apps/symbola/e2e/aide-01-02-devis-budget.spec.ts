@@ -55,7 +55,7 @@ test("AIDE-11 — repères des modules Devis et Budget, rouverts depuis « ? »"
   await page.goto("/devis/catalogue");
   const catalog = landmarksPanel(page, "Catalogue des prestations");
   await expect(catalog).toBeVisible();
-  await expect(catalog.getByRole("heading", { name: "Votre catalogue", level: 3 })).toBeVisible();
+  await expect(catalog.getByRole("heading", { name: "Le catalogue", level: 3 })).toBeVisible();
   await expectNoAxeViolation(page);
   await catalog.getByRole("button", { name: "Repère suivant" }).click();
   await expect(catalog.getByRole("heading", { name: "Composer un devis", level: 3 })).toBeVisible();
@@ -64,14 +64,14 @@ test("AIDE-11 — repères des modules Devis et Budget, rouverts depuis « ? »"
   await expect(page.getByRole("button", { name: "Aide sur cet écran" })).toBeVisible();
   await expect(catalog).toHaveCount(0);
   await page.getByRole("button", { name: "Aide sur cet écran" }).click();
-  await expect(catalog.getByRole("heading", { name: "Votre catalogue", level: 3 })).toBeVisible();
+  await expect(catalog.getByRole("heading", { name: "Le catalogue", level: 3 })).toBeVisible();
   await closeLandmarks(page, "Catalogue des prestations");
 
   await page.goto("/budget/parametres");
-  const budget = landmarksPanel(page, "Modèles de budget");
-  await expect(budget.getByRole("heading", { name: "Vos modèles de budget", level: 3 })).toBeVisible();
+  const budget = landmarksPanel(page, "Répartition du budget");
+  await expect(budget.getByRole("heading", { name: "Vos répartitions", level: 3 })).toBeVisible();
   await expectNoAxeViolation(page);
-  await closeLandmarks(page, "Modèles de budget");
+  await closeLandmarks(page, "Répartition du budget");
   await page.reload();
   await expect(page.getByRole("button", { name: "Aide sur cet écran" })).toBeVisible();
   await expect(budget).toHaveCount(0);

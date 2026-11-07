@@ -48,10 +48,10 @@ test("AIDE-11/02 — repères du module événements, puis essai guidé supprim�
   // AIDE-11 : les repères s'affichent d'office à la première ouverture.
   await page.goto("/events");
   const panel = landmarksPanel(page, "Liste des événements");
-  await expect(panel.getByRole("heading", { name: "Vos événements", level: 3 })).toBeVisible();
+  await expect(panel.getByRole("heading", { name: "La liste", level: 3 })).toBeVisible();
   await expectNoAxeViolation(page);
-  await panel.getByRole("button", { name: "Créer un prospect" }).click();
-  await expect(panel.getByRole("heading", { name: "Créer un prospect", level: 3 })).toBeVisible();
+  await panel.getByRole("button", { name: "Nouveau prospect" }).click();
+  await expect(panel.getByRole("heading", { name: "Nouveau prospect", level: 3 })).toBeVisible();
   await closeLandmarks(page, "Liste des événements");
 
   // Déjà vus : ils ne se rouvrent plus d'eux-mêmes, mais depuis « ? ».
