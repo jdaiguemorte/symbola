@@ -112,6 +112,8 @@ test("Lot 9 — l'Admin relance une invitation, réinitialise la double authenti
 
   // Comptes et assistance : l'invitation attend ; un nouvel envoi remplace le lien.
   await clickAdminMenuLink(page, "Comptes");
+  // L'écran liste toutes les organisations de la base de test (pagination : étape 7b).
+  await expect(page.getByRole("heading", { level: 1, name: "Comptes et assistance" })).toBeVisible({ timeout: 20_000 });
   const section = page.locator(".card").filter({ has: page.getByRole("heading", { name: organizationName }) });
   await expect(section.getByRole("list", { name: `Invitations en attente de ${organizationName}` })).toContainText(ownerEmail);
   await expectNoAxeViolation(page);
