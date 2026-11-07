@@ -5,9 +5,10 @@
 // niveau de ressemblance. Orchestration entre le hub (import en cours) et les
 // modules (éléments existants), qui ne se connaissent que par leur
 // service.ts — même patron que lib/demo-purge.ts.
-import { IMPORT_FIELDS, type ImportEntityType } from "@symbola/contracts";
+import { EVENT_STATUS_CHOICES, IMPORT_FIELDS, type ImportEntityType } from "@symbola/contracts";
 import { createAppConnection } from "@symbola/db/client";
 import {
+  EVENT_SHEET_COLUMNS,
   bestMatch,
   cleanVendorImportText,
   eventSimilarity,
@@ -25,6 +26,7 @@ import {
   decideImportMatches,
   decideImportVendorTypes,
   getImportWorkingSet,
+  setImportRowStatuses,
   saveImportMatching,
   setManualImportMatch,
   type ImportMatch,
@@ -68,6 +70,14 @@ export function parseWorkingSetRows(set: ImportWorkingSet): ParsedImportRow[] {
     fields: IMPORT_FIELDS[set.entityType],
     synonyms: starterImportSynonyms(),
   });
+  if (set.entityType === "event_sheets") {
+    // Lot 14c : une fiche refusée à la lecture porte son seul motif.
+    const rejectionColumn = EVENT_SHEET_COLUMNS.indexOf("rejection");
+    return rows.map((row) => {
+      const reason = set.rows[row.rowIndex]?.[rejectionColumn] ?? "";
+      return reason ? { ...row, errors: [{ fieldKey: "source", code: "sheet_rejected" as const, value: reason }] } : row;
+    });
+  }
   if (set.entityType !== "vendors") return rows;
   // Lot 14 (IMP-07) : valeurs du carnet remises en état dès la lecture
   // (entités HTML, code postal), pour l'aperçu comme pour l'écriture.
@@ -90,6 +100,20 @@ function vendorReference(values: Record<string, ImportValue>): { name: string; c
 
 export function vendorCandidateLabel(candidate: VendorCandidate): string {
   return candidate.city ? `${candidate.name} — ${candidate.city}` : candidate.name;
+}
+
+// Lot 14c (IMP-08) — fiches du lot aux mêmes mariés et à la même date :
+// signalées (la planner ne garde que l'une, en rapprochant ou en retirant).
+const DUPLICATE_SHEET_SCORE = 90;
+
+function findDuplicateSheets(rows: ParsedImportRow[]): { rowIndex: number; sameAsRowIndex: number }[] {
+  const duplicates: { rowIndex: number; sameAsRowIndex: number }[] = [];
+  rows.forEach((row, position) => {
+    const reference = rowEventReference(row.values);
+    const earlier = rows.slice(0, position).find((other) => eventSimilarity(reference, rowEventReference(other.values)) >= DUPLICATE_SHEET_SCORE);
+    if (earlier) duplicates.push({ rowIndex: row.rowIndex, sameAsRowIndex: earlier.rowIndex });
+  });
+  return duplicates;
 }
 
 // Rapprochement à la main d'une ligne du carnet : les fiches aux noms les
@@ -170,10 +194,12 @@ export async function computeImportMatching(organizationId: string, set: ImportW
     if (match) matches.push({ rowIndex, candidateId: match.id, score: match.score, status: "proposed", manual: false });
   };
 
-  if (set.entityType === "events") {
+  if (set.entityType === "events" || set.entityType === "event_sheets") {
     const events = await listEventCandidates(organizationId);
     const candidates = events.map((event) => ({ id: event.id, value: event }));
     for (const row of rows) proposed(row.rowIndex, bestMatch(rowEventReference(row.values), candidates, eventSimilarity));
+    // IMP-08 : deux fiches du même lot qui décrivent le même événement.
+    if (set.entityType === "event_sheets") return { matches, rowEvents, duplicates: findDuplicateSheets(rows) };
   } else if (set.entityType === "vendors") {
     const candidates = (await listVendorCandidates(organizationId)).map((vendor) => ({ id: vendor.id, value: vendor }));
     for (const row of rows) proposed(row.rowIndex, bestMatch(vendorReference(row.values), candidates, vendorSimilarity));
@@ -217,6 +243,8 @@ export type MatchesRowView = {
   match: (ImportMatch & { label: string | null; event: EventCandidate | null }) | null;
   // Éléments proposés pour un rapprochement ajouté à la main.
   options: { id: string; label: string | null; event: EventCandidate | null }[];
+  // Lot 14c : fiche du même lot qui décrit déjà cet événement (n° de ligne).
+  sameAsLine?: number;
 };
 
 export type MatchesView = {
@@ -240,7 +268,7 @@ export async function getImportMatchesView(organizationId: string, importId: str
   }
 
   const parsed = parseWorkingSetRows(set);
-  const isEventType = set.entityType === "events";
+  const isEventType = set.entityType === "events" || set.entityType === "event_sheets";
   const hasEventReference = set.entityType === "tasks" || set.entityType === "budget_lines";
   const events = isEventType || hasEventReference ? await listEventCandidates(organizationId) : [];
   const eventsById = new Map(events.map((event) => [event.id, event]));
@@ -257,8 +285,17 @@ export async function getImportMatchesView(organizationId: string, importId: str
     return items;
   };
 
+  const lineOf = new Map(parsed.map((row) => [row.rowIndex, row.lineNumber]));
+  const sameAs = (rowIndex: number) => {
+    const duplicate = matching.duplicates?.find((entry) => entry.rowIndex === rowIndex);
+    const line = duplicate ? lineOf.get(duplicate.sameAsRowIndex) : undefined;
+    return line !== undefined ? { sameAsLine: line } : {};
+  };
+  // Décision J : statut choisi par la planner dans l'aperçu.
+  const statusOverride = new Map((matching.rowStatuses ?? []).map((entry) => [entry.rowIndex, entry.status]));
   const rows: MatchesRowView[] = [];
   for (const row of parsed) {
+    if (set.entityType === "event_sheets" && statusOverride.has(row.rowIndex)) row.values = { ...row.values, status: statusOverride.get(row.rowIndex)! };
     const resolution = matching.rowEvents.find((rowEvent) => rowEvent.rowIndex === row.rowIndex);
     let options: MatchesRowView["options"] = [];
     if (row.errors.length === 0) {
@@ -285,6 +322,7 @@ export async function getImportMatchesView(organizationId: string, importId: str
         : {}),
       match: match ? { ...match, label: option?.label ?? null, event: option?.event ?? null } : null,
       options,
+      ...sameAs(row.rowIndex),
     });
   }
   if (!isVendorType) return { importId: set.importId, entityType: set.entityType, fileName: set.fileName, rows };
@@ -318,4 +356,14 @@ export async function addManualMatch(organizationId: string, importId: string, r
   const row = view?.rows.find((candidate) => candidate.rowIndex === rowIndex);
   if (!row || !row.options.some((option) => option.id === candidateId)) return false;
   return withHubDb((db) => setManualImportMatch(db, { organizationId, importId, rowIndex, candidateId }));
+}
+
+// Lot 14c (décision J) — statut d'événements à créer depuis des fiches PDF,
+// choisi dans l'aperçu : une valeur de la liste des statuts seulement.
+export async function setEventSheetStatuses(organizationId: string, importId: string, statuses: { rowIndex: number; status: string }[]): Promise<boolean> {
+  const allowed = new Set<string>(EVENT_STATUS_CHOICES);
+  if (statuses.some((entry) => !allowed.has(entry.status) || !Number.isInteger(entry.rowIndex))) return false;
+  const set = await withHubDb((db) => getImportWorkingSet(db, organizationId, importId));
+  if (set?.entityType !== "event_sheets") return false;
+  return withHubDb((db) => setImportRowStatuses(db, { organizationId, importId, statuses }));
 }

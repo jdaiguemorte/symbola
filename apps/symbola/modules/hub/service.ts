@@ -132,6 +132,7 @@ export {
   recordImportUndo,
   decideImportMatches,
   decideImportVendorTypes,
+  setImportRowStatuses,
   getImportColumns,
   getImportDraft,
   getImportWorkingSet,
@@ -142,6 +143,7 @@ export {
   saveImportMapping,
   saveImportMatching,
   setManualImportMatch,
+  startEventSheetsImport,
   startImport,
   type AppliedImportItem,
   type AppliedImportView,
@@ -168,6 +170,7 @@ export {
   type SaveImportMappingResult,
   type StartImportInput,
   type StartImportResult,
+  type StartEventSheetsImportResult,
 } from "./imports";
 
 export type VatRegime = "franchise" | "assujetti";
@@ -445,6 +448,8 @@ export type PlatformSettings = {
   importMaxRows: number;
   importDraftRetentionDays: number;
   importUndoRetentionDays: number;
+  // Lot 14c : fiches événement PDF déposées à la fois.
+  importMaxSheets: number;
   // Lot 6 (RGPD-02) : durée de téléchargement d'un export RGPD.
   privacyExportRetentionDays: number;
 };
@@ -468,6 +473,7 @@ export async function getPlatformSettings(db: AppDatabase): Promise<PlatformSett
     importMaxRows: row.importMaxRows,
     importDraftRetentionDays: row.importDraftRetentionDays,
     importUndoRetentionDays: row.importUndoRetentionDays,
+    importMaxSheets: row.importMaxSheets,
     privacyExportRetentionDays: row.privacyExportRetentionDays,
   };
 }
@@ -477,7 +483,7 @@ export async function getPlatformSettings(db: AppDatabase): Promise<PlatformSett
 export async function setPlatformSettings(
   db: AppDatabase,
   input: { adminUserId: string } & Pick<PlatformSettings, "franchiseThresholdServicesCents" | "franchiseThresholdGoodsCents"> &
-    Partial<Pick<PlatformSettings, "importMaxBytes" | "importMaxRows" | "importDraftRetentionDays" | "importUndoRetentionDays" | "privacyExportRetentionDays">>,
+    Partial<Pick<PlatformSettings, "importMaxBytes" | "importMaxRows" | "importDraftRetentionDays" | "importUndoRetentionDays" | "importMaxSheets" | "privacyExportRetentionDays">>,
 ): Promise<void> {
   await upsertPlatformSettings(db, {
     franchiseThresholdServicesCents: input.franchiseThresholdServicesCents,
@@ -486,6 +492,7 @@ export async function setPlatformSettings(
     ...(input.importMaxRows !== undefined ? { importMaxRows: input.importMaxRows } : {}),
     ...(input.importDraftRetentionDays !== undefined ? { importDraftRetentionDays: input.importDraftRetentionDays } : {}),
     ...(input.importUndoRetentionDays !== undefined ? { importUndoRetentionDays: input.importUndoRetentionDays } : {}),
+    ...(input.importMaxSheets !== undefined ? { importMaxSheets: input.importMaxSheets } : {}),
     ...(input.privacyExportRetentionDays !== undefined ? { privacyExportRetentionDays: input.privacyExportRetentionDays } : {}),
   });
   await insertAuditLog(db, {

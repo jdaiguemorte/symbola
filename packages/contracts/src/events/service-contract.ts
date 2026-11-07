@@ -12,12 +12,22 @@ export type EventClient = {
   firstName: string;
   lastName: string | null;
   position: number;
+} & EventClientContact;
+
+// Lot 14 (décision I) — coordonnées d'un client de l'événement (données
+// personnelles, registre RGPD).
+export type EventClientContact = {
+  email: string | null;
+  phone: string | null;
+  addressLine: string | null;
+  postalCode: string | null;
+  city: string | null;
 };
 
 export type EventClientInput = {
   firstName: string;
   lastName?: string | null;
-};
+} & Partial<EventClientContact>;
 
 // Lot 13 (EVT-19) — date (AAAA-MM-JJ, Paris) du dernier passage dans chaque statut.
 export type EventStatusDates = Partial<Record<EventStatus, string>>;
@@ -44,6 +54,8 @@ export type EventDetail = EventSummary & {
   tasksScheduledFor: string | null;
   // Lot 5 (IMP-04) : colonnes d'un fichier importé gardées en champ libre.
   importedFields?: Record<string, string>;
+  // Lot 14 (décision K) : budget souhaité par les clients, en centimes.
+  wantedBudgetCents: number | null;
 };
 
 export type ListEventsInput = {

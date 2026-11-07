@@ -241,7 +241,8 @@
     "importUndoRetentionDays": "Durée pendant laquelle un import confirmé reste annulable (jours)",
     "invalidImportLimits": "Les limites de l'import et la durée des exports doivent être des nombres entiers positifs (20 Mo au plus).",
     "privacyLegend": "Données personnelles (RGPD)",
-    "privacyExportRetentionDays": "Durée pendant laquelle un export RGPD reste téléchargeable (jours)"
+    "privacyExportRetentionDays": "Durée pendant laquelle un export RGPD reste téléchargeable (jours)",
+    "importMaxSheets": "Fiches événement PDF déposées à la fois"
   },
   "Tour": {
     "hub": [
@@ -1123,7 +1124,22 @@
     "moveLineDown": "Descendre la ligne « {label} »",
     "lineMoved": "« {label} » est maintenant en position {position} sur {total}.",
     "lineMoveFailed": "L'ordre n'a pas pu être enregistré : la liste a changé, rechargez la page.",
-    "defaultVendorSlotsReorderHint": "Glissez une ligne pour changer l'ordre, ou utilisez les flèches : les nouveaux événements reçoivent les lignes dans cet ordre."
+    "defaultVendorSlotsReorderHint": "Glissez une ligne pour changer l'ordre, ou utilisez les flèches : les nouveaux événements reçoivent les lignes dans cet ordre.",
+    "kpiWanted": "Budget souhaité",
+    "wantedBudget": "Budget souhaité par les clients (€)",
+    "wantedBudgetSave": "Enregistrer le budget souhaité",
+    "wantedBudgetSaved": "Budget souhaité enregistré.",
+    "wantedBudgetInvalid": "Montant illisible : saisissez par exemple 25 000 ou 25 000,50.",
+    "clientContactTitle": "Coordonnées des mariés",
+    "clientContactFormLabel": "Coordonnées de {name}",
+    "contactEmail": "E-mail",
+    "contactPhone": "Téléphone",
+    "contactAddressLine": "Adresse",
+    "contactPostalCode": "Code postal",
+    "contactCity": "Ville",
+    "clientContactSave": "Enregistrer les coordonnées de {name}",
+    "clientContactSaved": "Coordonnées enregistrées.",
+    "clientContactInvalidEmail": "Adresse e-mail illisible."
   },
   "Budget": {
     "title": "Budget",

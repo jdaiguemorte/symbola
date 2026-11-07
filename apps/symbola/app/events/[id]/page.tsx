@@ -39,6 +39,7 @@ import { NextStepBanner } from "./next-step-banner";
 import { nextStep } from "./next-step";
 import { endTrialAction } from "../trial-actions";
 import { revokeClientAccessAction } from "./client-access-actions";
+import { ClientContactForm, WantedBudgetForm } from "./client-contact-forms";
 import { InviteClientForm } from "./client-access-forms";
 import { removeProgramItemAction } from "./program-actions";
 import {
@@ -365,6 +366,12 @@ export default async function EventDetailPage({
             <h2 id="overview-title">{t("tabOverview")}</h2>
             {/* Lot 13 (EVT-19) : l'essentiel en quatre chiffres, le détail dans les onglets. */}
             <dl className="kpis">
+              {event.wantedBudgetCents !== null ? (
+                <div>
+                  <dt>{t("kpiWanted")}</dt>
+                  <dd>{formatAmount(event.wantedBudgetCents, locale)}</dd>
+                </div>
+              ) : null}
               {overviewBudget ? (
                 <div>
                   <dt>{t("kpiPlanned")}</dt>
@@ -392,6 +399,7 @@ export default async function EventDetailPage({
             </p>
             <progress aria-labelledby="vendor-progress-label" value={progress.booked} max={Math.max(progress.required, 1)} />
             <EventDateForm eventId={event.id} eventDate={event.eventDate} />
+            <WantedBudgetForm key={`wanted-${event.wantedBudgetCents ?? ""}`} eventId={event.id} wantedBudgetCents={event.wantedBudgetCents} />
             {isPastConfirmed ? <p role="status">{t("suggestMarkDone")}</p> : null}
             <ImportedFields fields={event.importedFields} />
           </section>
@@ -799,6 +807,14 @@ export default async function EventDetailPage({
       ) : null}
 
       {/* EVT-06 : accès des mariés. */}
+      {tab === "maries" && event.clients.length > 0 ? (
+        <section className="card" aria-labelledby="client-contact-title">
+          <h2 id="client-contact-title">{t("clientContactTitle")}</h2>
+          {event.clients.map((client) => (
+            <ClientContactForm key={`${client.id}-${client.email ?? ""}-${client.phone ?? ""}-${client.city ?? ""}`} eventId={event.id} client={client} />
+          ))}
+        </section>
+      ) : null}
       {tab === "maries" ? (
         <section className="card" aria-labelledby="client-access-title">
           <h2 id="client-access-title">{t("clientAccessTitle")}</h2>

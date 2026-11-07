@@ -14,7 +14,9 @@ export type RowErrorCode =
   | "invalid_amount"
   | "invalid_percentage"
   | "invalid_boolean"
-  | "invalid_choice";
+  | "invalid_choice"
+  // Lot 14c : fiche PDF refusée à la lecture (valeur : motif).
+  | "sheet_rejected";
 
 export type RowError = { fieldKey: string; code: RowErrorCode; value: string };
 

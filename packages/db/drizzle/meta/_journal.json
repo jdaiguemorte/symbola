@@ -498,6 +498,20 @@
       "when": 1794066797132,
       "tag": "0070_lot14_import_vendors",
       "breakpoints": true
+    },
+    {
+      "idx": 71,
+      "version": "7",
+      "when": 1794071643318,
+      "tag": "0071_lot14_event_clients_contact",
+      "breakpoints": true
+    },
+    {
+      "idx": 72,
+      "version": "7",
+      "when": 1794072197328,
+      "tag": "0072_lot14_import_event_sheets",
+      "breakpoints": true
     }
   ]
 }

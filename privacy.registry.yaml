@@ -190,6 +190,51 @@ fields:
     anonymization: >-
       Mis à nul lors d'une demande d'oubli (RGPD-03).
   - schema: events
+    table: event_clients
+    field: email
+    category: contact
+    retention: >-
+      Lot 14 (décision I) : e-mail du client. Tant que l'événement existe. Après
+      suppression ou demande d'oubli : voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Mis à nul lors d'une demande d'oubli (RGPD-03).
+  - schema: events
+    table: event_clients
+    field: phone
+    category: contact
+    retention: >-
+      Lot 14 (décision I) : téléphone du client. Tant que l'événement existe. Après
+      suppression ou demande d'oubli : voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Mis à nul lors d'une demande d'oubli (RGPD-03).
+  - schema: events
+    table: event_clients
+    field: address_line
+    category: contact
+    retention: >-
+      Lot 14 (décision I) : adresse du client. Tant que l'événement existe. Après
+      suppression ou demande d'oubli : voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Mis à nul lors d'une demande d'oubli (RGPD-03).
+  - schema: events
+    table: event_clients
+    field: postal_code
+    category: contact
+    retention: >-
+      Lot 14 (décision I) : code postal du client. Tant que l'événement existe. Après
+      suppression ou demande d'oubli : voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Mis à nul lors d'une demande d'oubli (RGPD-03).
+  - schema: events
+    table: event_clients
+    field: city
+    category: contact
+    retention: >-
+      Lot 14 (décision I) : ville du client. Tant que l'événement existe. Après
+      suppression ou demande d'oubli : voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Mis à nul lors d'une demande d'oubli (RGPD-03).
+  - schema: events
     table: event_vendor_slots
     field: vendor_name
     category: identifiant

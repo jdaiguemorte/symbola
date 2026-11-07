@@ -29,6 +29,7 @@ export default async function AdminSettingsPage() {
         importMaxRows={settings.importMaxRows}
         importDraftRetentionDays={settings.importDraftRetentionDays}
         importUndoRetentionDays={settings.importUndoRetentionDays}
+        importMaxSheets={settings.importMaxSheets}
         privacyExportRetentionDays={settings.privacyExportRetentionDays}
       />
     </main>

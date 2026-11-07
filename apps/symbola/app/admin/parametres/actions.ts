@@ -34,6 +34,7 @@ export async function savePlatformSettingsAction(
   const importMaxRows = positiveInteger(formData.get("importMaxRows"));
   const importDraftRetentionDays = positiveInteger(formData.get("importDraftRetentionDays"));
   const importUndoRetentionDays = positiveInteger(formData.get("importUndoRetentionDays"));
+  const importMaxSheets = positiveInteger(formData.get("importMaxSheets"));
   const privacyExportRetentionDays = positiveInteger(formData.get("privacyExportRetentionDays"));
   if (
     !importMaxMegabytes ||
@@ -41,6 +42,7 @@ export async function savePlatformSettingsAction(
     !importMaxRows ||
     !importDraftRetentionDays ||
     !importUndoRetentionDays ||
+    !importMaxSheets ||
     !privacyExportRetentionDays
   ) {
     return { error: t("invalidImportLimits") };
@@ -56,6 +58,7 @@ export async function savePlatformSettingsAction(
       importMaxRows,
       importDraftRetentionDays,
       importUndoRetentionDays,
+      importMaxSheets,
       privacyExportRetentionDays,
     });
   } finally {

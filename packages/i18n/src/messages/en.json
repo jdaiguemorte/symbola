@@ -241,7 +241,8 @@
     "importUndoRetentionDays": "How long a confirmed import can be undone (days)",
     "privacyLegend": "Personal data (GDPR)",
     "privacyExportRetentionDays": "How long a GDPR export stays downloadable (days)",
-    "invalidImportLimits": "Import limits and the export duration must be positive whole numbers (20 MB at most)."
+    "invalidImportLimits": "Import limits and the export duration must be positive whole numbers (20 MB at most).",
+    "importMaxSheets": "Event sheets (PDF) uploaded at once"
   },
   "Tour": {
     "hub": [
@@ -1123,7 +1124,22 @@
     "moveLineDown": "Move line “{label}” down",
     "lineMoved": "“{label}” is now in position {position} of {total}.",
     "lineMoveFailed": "The order could not be saved: the list has changed, reload the page.",
-    "defaultVendorSlotsReorderHint": "Drag a line to change the order, or use the arrows: new events receive the lines in this order."
+    "defaultVendorSlotsReorderHint": "Drag a line to change the order, or use the arrows: new events receive the lines in this order.",
+    "kpiWanted": "Wished budget",
+    "wantedBudget": "Budget wished by the clients (€)",
+    "wantedBudgetSave": "Save the wished budget",
+    "wantedBudgetSaved": "Wished budget saved.",
+    "wantedBudgetInvalid": "Unreadable amount: type for example 25,000 or 25,000.50.",
+    "clientContactTitle": "Couple's contact details",
+    "clientContactFormLabel": "Contact details of {name}",
+    "contactEmail": "Email",
+    "contactPhone": "Phone",
+    "contactAddressLine": "Address",
+    "contactPostalCode": "Postal code",
+    "contactCity": "City",
+    "clientContactSave": "Save the contact details of {name}",
+    "clientContactSaved": "Contact details saved.",
+    "clientContactInvalidEmail": "Unreadable email address."
   },
   "Budget": {
     "title": "Budget",

@@ -8,8 +8,17 @@ import type { ImportColumnChoice, ImportMatch, ImportMatching, ImportResult } fr
 import { parseEnv } from "@symbola/env";
 import { scanBuffer } from "@symbola/files";
 import {
+  EVENT_SHEET_COLUMNS,
+  EVENT_SHEET_FREE_COLUMNS,
+  EVENT_SHEET_TECHNICAL_COLUMNS,
   LOW_CONFIDENCE_THRESHOLD,
+  eventSheetRejectionRow,
+  eventSheetRow,
+  neutralizeCell,
+  parseEventSheet,
   proposeMapping,
+  readPdfText,
+  type EventSheetRejection,
   proposeVendorsExportMapping,
   readImportFile,
   type ReadFailureReason,
@@ -50,9 +59,10 @@ export const IMPORT_ENTITY_MODULE: Record<ImportEntityType, "events" | "budget" 
   catalog_items: "quotes",
   payment_methods: "quotes",
   vendors: "vendors",
+  event_sheets: "events",
 };
 
-export type ImportLimits = { maxBytes: number; maxRows: number; draftRetentionDays: number; undoRetentionDays: number };
+export type ImportLimits = { maxBytes: number; maxRows: number; maxSheets: number; draftRetentionDays: number; undoRetentionDays: number };
 
 export async function getImportLimits(db: AppDatabase): Promise<ImportLimits> {
   let settings = await findPlatformSettings(db);
@@ -64,6 +74,7 @@ export async function getImportLimits(db: AppDatabase): Promise<ImportLimits> {
   return {
     maxBytes: settings.importMaxBytes,
     maxRows: settings.importMaxRows,
+    maxSheets: settings.importMaxSheets,
     draftRetentionDays: settings.importDraftRetentionDays,
     undoRetentionDays: settings.importUndoRetentionDays,
   };
@@ -120,6 +131,107 @@ export async function startImport(db: AppDatabase, input: StartImportInput): Pro
     sourceLineNumbers: table.sourceLineNumbers,
     rowCount: table.rows.length,
     neutralizedCells: table.neutralizedCells,
+    expiresAt: new Date(now.getTime() + limits.draftRetentionDays * DAY_MS),
+    createdAt: now,
+    updatedAt: now,
+  });
+  return { status: "started", importId: row.id };
+}
+
+// Lot 14c (IMP-08) — une ou plusieurs fiches événement PDF : chaque fiche,
+// vérifiée par l'antivirus et lue sans exécuter aucun script (ADR 0034),
+// devient une ligne ; une fiche illisible devient une ligne avec son motif,
+// rejetée au rapport des écarts sans bloquer les autres. Les fichiers ne
+// sont jamais gardés, seulement les valeurs lues. Les colonnes, construites
+// par l'app, sont enregistrées comme déjà reconnues.
+export type StartEventSheetsImportInput = {
+  organizationId: string;
+  userId: string;
+  files: { fileName: string; bytes: Uint8Array }[];
+  now?: Date;
+};
+
+export type StartEventSheetsImportResult =
+  | { status: "rejected"; reason: "empty" | "too_many_files" }
+  | { status: "started"; importId: string };
+
+// Date du jour à Paris (AAAA-MM-JJ), pour le statut proposé (décision J).
+function parisDay(now: Date): string {
+  return new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Paris" }).format(now);
+}
+
+export async function startEventSheetsImport(db: AppDatabase, input: StartEventSheetsImportInput): Promise<StartEventSheetsImportResult> {
+  const now = input.now ?? new Date();
+  const limits = await getImportLimits(db);
+  const files = input.files.filter((file) => file.bytes.length > 0);
+  if (files.length === 0) return { status: "rejected", reason: "empty" };
+  if (files.length > limits.maxSheets) return { status: "rejected", reason: "too_many_files" };
+
+  const env = parseEnv(process.env);
+  const profile = planningSoftwareProfile().eventSheet;
+  const today = parisDay(now);
+  const rows: string[][] = [];
+  for (const file of files) {
+    const fileName = sanitizeFileName(file.fileName);
+    const reject = (reason: EventSheetRejection) => rows.push(EVENT_SHEET_COLUMNS.map((column) => eventSheetRejectionRow(fileName, reason)[column]));
+    if (file.bytes.length > limits.maxBytes) {
+      reject("too_large");
+      continue;
+    }
+    const scan = await scanBuffer(Buffer.from(file.bytes), { host: env.CLAMAV_HOST, port: env.CLAMAV_PORT });
+    if (scan.infected) {
+      reject("infected");
+      continue;
+    }
+    const read = await readPdfText(file.bytes, { maxBytes: limits.maxBytes, maxPages: 3, timeoutMs: 10_000 });
+    if (!read.ok) {
+      reject(read.reason);
+      continue;
+    }
+    const parsed = read.pages[0] ? parseEventSheet(read.pages[0], profile) : ({ ok: false, reason: "not_event_sheet" } as const);
+    if (!parsed.ok) {
+      reject("not_event_sheet");
+      continue;
+    }
+    const row = eventSheetRow(fileName, parsed.sheet, today);
+    rows.push(EVENT_SHEET_COLUMNS.map((column) => row[column]));
+  }
+
+  // Comme pour un tableau : une valeur lue commençant par « = », « + »… est
+  // neutralisée (CLAUDE.md § 5).
+  let neutralizedCells = 0;
+  const safeRows = rows.map((cells) =>
+    cells.map((cell) => {
+      const result = neutralizeCell(cell);
+      if (result.neutralized) neutralizedCells += 1;
+      return result.value;
+    }),
+  );
+  const fieldKeys = new Set(IMPORT_FIELDS.event_sheets.map((field) => field.key));
+  const mapping: ImportColumnChoice[] = EVENT_SHEET_COLUMNS.map((column, columnIndex) => {
+    if (fieldKeys.has(column)) return { columnIndex, fieldKey: column, target: "field", confidence: 100, confirmed: true };
+    if (EVENT_SHEET_FREE_COLUMNS.includes(column)) return { columnIndex, fieldKey: null, target: "free", confidence: 0, confirmed: true, decidedAtGaps: true };
+    if (EVENT_SHEET_TECHNICAL_COLUMNS.includes(column)) return { columnIndex, fieldKey: null, target: "ignore", confidence: 0, confirmed: true };
+    return { columnIndex, fieldKey: null, target: "ignore", confidence: 0, confirmed: true, decidedAtGaps: true };
+  });
+  const totalBytes = files.reduce((sum, file) => sum + file.bytes.length, 0);
+  const first = sanitizeFileName(files[0]!.fileName);
+  const row = await insertImport(db, {
+    organizationId: input.organizationId,
+    createdByUserId: input.userId,
+    entityType: "event_sheets",
+    fileName: files.length > 1 ? `${first} (+${files.length - 1})` : first,
+    fileFormat: "pdf",
+    fileSizeBytes: totalBytes,
+    encoding: null,
+    delimiter: null,
+    headerRowIndex: 0,
+    headers: EVENT_SHEET_COLUMNS.map((column) => profile.columnHeaders[column] ?? column),
+    rows: safeRows,
+    sourceLineNumbers: rows.map((_, index) => index + 1),
+    rowCount: rows.length,
+    neutralizedCells,
+    mapping,
     expiresAt: new Date(now.getTime() + limits.draftRetentionDays * DAY_MS),
     createdAt: now,
     updatedAt: now,
@@ -432,6 +544,20 @@ export async function setManualImportMatch(
     { rowIndex: input.rowIndex, candidateId: input.candidateId, score: 100, status: "accepted" as const, manual: true },
   ].sort((a, b) => a.rowIndex - b.rowIndex);
   return updateDraftMatching(db, input.organizationId, input.importId, { ...set.matching, matches }, now);
+}
+
+// Lot 14c (décision J) — statut d'un événement à créer, choisi dans l'aperçu.
+export async function setImportRowStatuses(
+  db: AppDatabase,
+  input: { organizationId: string; importId: string; statuses: { rowIndex: number; status: string }[]; now?: Date },
+): Promise<boolean> {
+  const now = input.now ?? new Date();
+  const set = await getImportWorkingSet(db, input.organizationId, input.importId, now);
+  if (!set?.matching) return false;
+  const byRow = new Map((set.matching.rowStatuses ?? []).map((entry) => [entry.rowIndex, entry.status]));
+  for (const entry of input.statuses) if (entry.rowIndex >= 0 && entry.rowIndex < set.rows.length) byRow.set(entry.rowIndex, entry.status);
+  const rowStatuses = [...byRow].map(([rowIndex, status]) => ({ rowIndex, status })).sort((a, b) => a.rowIndex - b.rowIndex);
+  return updateDraftMatching(db, input.organizationId, input.importId, { ...set.matching, rowStatuses }, now);
 }
 
 // Lot 14 (décision N) — type de prestataire du fichier rapproché d'un type
