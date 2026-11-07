@@ -490,7 +490,7 @@
     },
     "eventsSettings": {
       "title": "Budget lines",
-      "body": "The lines every new event receives (venue, caterer, photographer…), with their icon and order. They were prepared at setup for your trade: add, rename or reorder them in the table; a line opens in the right-hand panel.",
+      "body": "The lines every new event receives (venue, caterer, photographer…), with their icon and order. They were prepared at setup for your trade: add or rename them (a line opens in the right-hand panel) and change their order by dragging them, or with the arrows.",
       "faq": [
         {
           "q": "Does changing a line affect existing events?",
@@ -1117,7 +1117,13 @@
     "kpiBookedValue": "{booked} of {required}",
     "kpiOverdue": "Overdue tasks",
     "kpiSigned": "Signed quotes",
-    "timelineGoToPrefix": "Move to"
+    "timelineGoToPrefix": "Move to",
+    "orderColumn": "Order",
+    "moveLineUp": "Move line “{label}” up",
+    "moveLineDown": "Move line “{label}” down",
+    "lineMoved": "“{label}” is now in position {position} of {total}.",
+    "lineMoveFailed": "The order could not be saved: the list has changed, reload the page.",
+    "defaultVendorSlotsReorderHint": "Drag a line to change the order, or use the arrows: new events receive the lines in this order."
   },
   "Budget": {
     "title": "Budget",

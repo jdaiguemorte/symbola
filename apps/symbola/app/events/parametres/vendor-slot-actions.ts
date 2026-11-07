@@ -4,7 +4,8 @@
 import { revalidatePath } from "next/cache";
 import { getLocale, getTranslations } from "next-intl/server";
 import { starterVendorSlots, type StarterLocale } from "@symbola/starter-templates";
-import { addDefaultVendorSlots, removeDefaultVendorSlot } from "@/modules/events/service";
+import { z } from "zod";
+import { addDefaultVendorSlots, removeDefaultVendorSlot, reorderDefaultVendorSlots, VendorSlotNotFoundError } from "@/modules/events/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isEventsModuleEnabled, isValidId } from "../module-access";
 import { ICON_KEYS } from "@/app/budget-line-icon";
@@ -60,4 +61,24 @@ export async function removeDefaultVendorSlotAction(formData: FormData): Promise
   if (!isValidId(defaultVendorSlotId)) return;
   await removeDefaultVendorSlot(organizationId, defaultVendorSlotId);
   revalidatePath("/events/parametres");
+}
+
+// Lot 13 (HUB-16) — nouvel ordre des lignes du budget (glisser-déposer ou
+// boutons « Monter » / « Descendre »). Renvoie false si la liste ne
+// correspond plus aux lignes enregistrées (modifiées entre-temps).
+const orderSchema = z.array(z.uuid()).min(1).max(200);
+
+export async function reorderDefaultVendorSlotsAction(orderedIds: unknown): Promise<boolean> {
+  const organizationId = await authorizedOrganizationId();
+  if (!organizationId) return false;
+  const parsed = orderSchema.safeParse(orderedIds);
+  if (!parsed.success) return false;
+  try {
+    await reorderDefaultVendorSlots(organizationId, parsed.data);
+  } catch (error) {
+    if (error instanceof VendorSlotNotFoundError) return false;
+    throw error;
+  }
+  revalidatePath("/events/parametres");
+  return true;
 }

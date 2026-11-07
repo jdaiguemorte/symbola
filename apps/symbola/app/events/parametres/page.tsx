@@ -9,10 +9,8 @@ import { listDefaultVendorSlots } from "@/modules/events/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isEventsModuleEnabled } from "../module-access";
 import { LoadStarterVendorSlotsForm } from "./default-vendor-slot-forms";
-import { removeDefaultVendorSlotAction } from "./vendor-slot-actions";
 import { AddBudgetLineForm, EditBudgetLineForm } from "./budget-line-panel-forms";
-import { BudgetLineIcon } from "@/app/budget-line-icon";
-import { ListTable } from "@/app/ui/list-table";
+import { SortableBudgetLines } from "./sortable-budget-lines";
 import { SidePanel } from "@/app/ui/side-panel";
 
 const BASE = "/events/parametres";
@@ -52,44 +50,17 @@ export default async function EventsSettingsPage({ searchParams }: { searchParam
       </div>
       <ScreenHelp title={tHelp("eventsSettings.title")} body={tHelp("eventsSettings.body")} />
       <p>{t("defaultVendorSlotsIntro")}</p>
+      {lines.length > 1 ? <p className="muted">{t("defaultVendorSlotsReorderHint")}</p> : null}
 
       {lines.length === 0 ? (
         <p>{t("noDefaultVendorSlots")}</p>
       ) : (
-        <ListTable
-          label={t("defaultVendorSlotsTitle")}
-          head={
-            <tr>
-              <th scope="col">{t("lineIconColumn")}</th>
-              <th scope="col">{t("vendorColumnSlot")}</th>
-              <th scope="col">
-                <span className="sr-only">{t("actionsColumn")}</span>
-              </th>
-            </tr>
-          }
-        >
-          {lines.map((line) => (
-            <tr key={line.id} aria-current={line.id === editing?.id ? "true" : undefined}>
-              <td className="icon-cell">
-                <BudgetLineIcon icon={line.icon} label={line.label} decorative />
-              </td>
-              <th scope="row">{line.label}</th>
-              <td className="actions">
-                {isOwner ? (
-                  <Link href={`${BASE}?ligne=${line.id}`} scroll={false} className="button-link" aria-label={t("editBudgetLine", { label: line.label })}>
-                    {t("edit")}
-                  </Link>
-                ) : null}{" "}
-                <form action={removeDefaultVendorSlotAction} className="inline-form">
-                  <input type="hidden" name="defaultVendorSlotId" value={line.id} />
-                  <button type="submit" className="button-ghost" aria-label={t("removeVendorSlot", { label: line.label })}>
-                    {t("remove")}
-                  </button>
-                </form>
-              </td>
-            </tr>
-          ))}
-        </ListTable>
+        <SortableBudgetLines
+          lines={lines.map((line) => ({ id: line.id, label: line.label, icon: line.icon }))}
+          isOwner={isOwner}
+          base={BASE}
+          editingId={editing?.id ?? null}
+        />
       )}
       {/* Toujours au même endroit : son message de succès survit à l'apparition du tableau. */}
       <LoadStarterVendorSlotsForm />
