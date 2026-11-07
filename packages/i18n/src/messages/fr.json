@@ -1532,7 +1532,8 @@
       "vendor_slots": "Lignes du budget par défaut",
       "prospect_sources": "Sources de prospects",
       "loss_reasons": "Motifs de perte",
-      "payment_methods": "Modes de paiement"
+      "payment_methods": "Modes de paiement",
+      "vendors": "Prestataires du carnet (une ligne par prestataire)"
     },
     "fileLabel": "Fichier (CSV, Excel .xlsx ou JSON)",
     "fileHint": "Taille maximale : {maxSize}. L'encodage, le séparateur et la ligne d'en-tête sont reconnus automatiquement.",
@@ -1630,7 +1631,25 @@
       "unit": "Unité",
       "unitPrice": "Prix unitaire HT",
       "vatRate": "Taux de TVA",
-      "category": "Catégorie"
+      "category": "Catégorie",
+      "name": "Nom du prestataire",
+      "type": "Type de prestataire",
+      "contactFirstName": "Prénom du contact",
+      "contactLastName": "Nom du contact",
+      "email": "E-mail",
+      "addressLine": "Adresse",
+      "postalCode": "Code postal",
+      "city": "Ville",
+      "phones": "Téléphone(s)",
+      "website": "Site web",
+      "instagram": "Instagram",
+      "facebook": "Facebook",
+      "pinterest": "Pinterest",
+      "linkedin": "LinkedIn",
+      "x": "X",
+      "siret": "N° SIRET",
+      "criteria": "Critères (deviennent des étiquettes)",
+      "services": "Prestations (vont dans la note interne)"
     },
     "requiredField": "{field} (obligatoire)",
     "columnsStepTitle": "Colonnes",
@@ -1760,7 +1779,10 @@
       "payment_method": "Mode de paiement : {title}",
       "prospect_source": "Source : {title}",
       "loss_reason": "Motif de perte : {title}",
-      "default_vendor_slot": "Ligne du budget par défaut : {title}"
+      "default_vendor_slot": "Ligne du budget par défaut : {title}",
+      "vendor": "Prestataire",
+      "vendor_type": "Type de prestataire",
+      "vendor_tag": "Étiquette"
     },
     "importedFieldsTitle": "Champs importés"
   },

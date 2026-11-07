@@ -14,6 +14,7 @@ export const IMPORT_ENTITY_TYPES = [
   "prospect_sources",
   "loss_reasons",
   "payment_methods",
+  "vendors",
 ] as const;
 export type ImportEntityType = (typeof IMPORT_ENTITY_TYPES)[number];
 
@@ -82,4 +83,27 @@ export const IMPORT_FIELDS: Record<ImportEntityType, readonly ImportFieldDefinit
   prospect_sources: LIST_LABEL,
   loss_reasons: LIST_LABEL,
   payment_methods: LIST_LABEL,
+  // Lot 14 (IMP-07) : fiches du carnet de prestataires. Plusieurs numéros
+  // dans « phones » : le premier devient le téléphone, les autres vont dans
+  // la note ; « criteria » devient des étiquettes, « services » la note.
+  vendors: [
+    { key: "name", kind: "text", required: true },
+    { key: "type", kind: "text" },
+    { key: "contactFirstName", kind: "text" },
+    { key: "contactLastName", kind: "text" },
+    { key: "email", kind: "text" },
+    { key: "addressLine", kind: "text" },
+    { key: "postalCode", kind: "text" },
+    { key: "city", kind: "text" },
+    { key: "phones", kind: "text" },
+    { key: "website", kind: "text" },
+    { key: "instagram", kind: "text" },
+    { key: "facebook", kind: "text" },
+    { key: "pinterest", kind: "text" },
+    { key: "linkedin", kind: "text" },
+    { key: "x", kind: "text" },
+    { key: "siret", kind: "text" },
+    { key: "criteria", kind: "text" },
+    { key: "services", kind: "text" },
+  ],
 };

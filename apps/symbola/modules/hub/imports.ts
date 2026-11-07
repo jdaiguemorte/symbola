@@ -10,11 +10,12 @@ import { scanBuffer } from "@symbola/files";
 import {
   LOW_CONFIDENCE_THRESHOLD,
   proposeMapping,
+  proposeVendorsExportMapping,
   readImportFile,
   type ReadFailureReason,
   type UnsupportedHint,
 } from "@symbola/import-engine";
-import { starterImportSynonyms } from "@symbola/starter-templates";
+import { planningSoftwareProfile, starterImportSynonyms } from "@symbola/starter-templates";
 import {
   cancelExpiredDrafts,
   clearExpiredUndoValues,
@@ -35,11 +36,11 @@ import {
 import { findPlatformSettings, insertDefaultPlatformSettings } from "./repository";
 
 export { IMPORT_ENTITY_TYPES, type ImportEntityType } from "@symbola/contracts";
-export type { ImportColumnChoice, ImportMatch, ImportMatching, ImportResult, ImportRowEvent } from "@symbola/db/schema/hub";
+export type { ImportColumnChoice, ImportMatch, ImportMatching, ImportResult, ImportRowEvent, ImportVendorTypeChoice } from "@symbola/db/schema/hub";
 
 // Module qui reçoit chaque type d'éléments : un type dont le module n'est pas
 // souscrit n'est pas proposé (dégradation propre, CLAUDE.md §2.3).
-export const IMPORT_ENTITY_MODULE: Record<ImportEntityType, "events" | "budget" | "quotes"> = {
+export const IMPORT_ENTITY_MODULE: Record<ImportEntityType, "events" | "budget" | "quotes" | "vendors"> = {
   events: "events",
   tasks: "events",
   vendor_slots: "events",
@@ -48,6 +49,7 @@ export const IMPORT_ENTITY_MODULE: Record<ImportEntityType, "events" | "budget" 
   budget_lines: "budget",
   catalog_items: "quotes",
   payment_methods: "quotes",
+  vendors: "vendors",
 };
 
 export type ImportLimits = { maxBytes: number; maxRows: number; draftRetentionDays: number; undoRetentionDays: number };
@@ -214,6 +216,9 @@ export type ImportColumnView = {
   samples: string[];
   proposedFieldKey: string | null;
   confidence: number;
+  // Lot 14 (IMP-07) : correspondance proposée d'après le contenu de la
+  // colonne et non son intitulé (colonnes inversées par l'export).
+  byContent: boolean;
   saved: ImportColumnChoice | null;
 };
 
@@ -237,7 +242,16 @@ export async function getImportColumns(
   const row = await findActiveDraft(db, organizationId, importId, now);
   if (!row) return null;
   const fields = IMPORT_FIELDS[row.entityType];
-  const proposals = proposeMapping({ headers: row.headers, rows: row.rows, fields, synonyms: starterImportSynonyms().columns });
+  const generic = proposeMapping({ headers: row.headers, rows: row.rows, fields, synonyms: starterImportSynonyms().columns });
+  // Export du carnet d'un logiciel tiers reconnu : sa correspondance prime.
+  const known =
+    row.entityType === "vendors"
+      ? proposeVendorsExportMapping(row, planningSoftwareProfile().vendors, fields.map((field) => field.key))
+      : null;
+  const proposals = generic.map((proposal) => {
+    const override = known?.[proposal.columnIndex];
+    return override ? { ...proposal, fieldKey: override.fieldKey, confidence: override.confidence, byContent: override.byContent } : { ...proposal, byContent: false };
+  });
   return {
     importId: row.id,
     entityType: row.entityType,
@@ -253,6 +267,7 @@ export async function getImportColumns(
         .slice(0, SAMPLE_VALUES),
       proposedFieldKey: proposal.fieldKey,
       confidence: proposal.confidence,
+      byContent: proposal.byContent,
       saved: row.mapping?.find((choice) => choice.columnIndex === proposal.columnIndex) ?? null,
     })),
   };
@@ -417,6 +432,24 @@ export async function setManualImportMatch(
     { rowIndex: input.rowIndex, candidateId: input.candidateId, score: 100, status: "accepted" as const, manual: true },
   ].sort((a, b) => a.rowIndex - b.rowIndex);
   return updateDraftMatching(db, input.organizationId, input.importId, { ...set.matching, matches }, now);
+}
+
+// Lot 14 (décision N) — type de prestataire du fichier rapproché d'un type
+// du carnet (l'orchestrateur a vérifié qu'il existe) ou créé (null).
+export type VendorTypeDecision = { label: string; typeId: string | null };
+
+export async function decideImportVendorTypes(
+  db: AppDatabase,
+  input: { organizationId: string; importId: string; decisions: VendorTypeDecision[]; now?: Date },
+): Promise<boolean> {
+  const now = input.now ?? new Date();
+  const set = await getImportWorkingSet(db, input.organizationId, input.importId, now);
+  if (!set?.matching?.vendorTypes) return false;
+  const decisions = new Map(input.decisions.map((decision) => [decision.label, decision.typeId]));
+  const vendorTypes = set.matching.vendorTypes.map((choice) =>
+    decisions.has(choice.label) ? { ...choice, typeId: decisions.get(choice.label) ?? null, manual: true } : choice,
+  );
+  return updateDraftMatching(db, input.organizationId, input.importId, { ...set.matching, vendorTypes }, now);
 }
 
 // IMP-04 — une colonne sans équivalent est gardée en champ libre (visible sur

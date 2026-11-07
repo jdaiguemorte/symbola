@@ -48,7 +48,10 @@ export {
   clientsSimilarity,
   eventSimilarity,
   labelSimilarity,
+  matchVendorType,
   textSimilarity,
+  vendorSimilarity,
+  VENDOR_TYPE_SYNONYM_SCORE,
   type MatchCandidate,
   type PersonName,
 } from "./similarity";
@@ -65,9 +68,13 @@ export {
   type EventSheetResult,
 } from "./third-party/event-sheet";
 export {
+  cleanVendorImportText,
   detectVendorsExport,
+  normalizeVendorImportValues,
   normalizeVendorsExportRow,
+  proposeVendorsExportMapping,
   type VendorsExportDetection,
+  type VendorsExportProposal,
   type VendorsExportField,
   type VendorsExportRow,
 } from "./third-party/vendors-export";

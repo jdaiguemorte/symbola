@@ -273,6 +273,7 @@ export const importEntityTypeEnum = hubSchema.enum("import_entity_type", [
   "prospect_sources",
   "loss_reasons",
   "payment_methods",
+  "vendors",
 ]);
 
 export type ImportColumnChoice = {
@@ -304,9 +305,21 @@ export type ImportMatch = {
 // (null : introuvable ou ambigu, la ligne sera rejetée).
 export type ImportRowEvent = { rowIndex: number; eventId: string | null; score: number };
 
+// Lot 14 (décision N) — type de prestataire lu dans le fichier : rapproché
+// d'un type du carnet (`typeId`, proposé ou choisi) ou créé à la
+// confirmation (`typeId` null).
+export type ImportVendorTypeChoice = {
+  label: string;
+  rowCount: number;
+  typeId: string | null;
+  score: number;
+  manual: boolean;
+};
+
 export type ImportMatching = {
   matches: ImportMatch[];
   rowEvents: ImportRowEvent[];
+  vendorTypes?: ImportVendorTypeChoice[];
 };
 
 export const importStatusEnum = hubSchema.enum("import_status", ["draft", "applied", "undone", "cancelled"]);

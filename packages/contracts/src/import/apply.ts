@@ -21,7 +21,7 @@ export type ImportApplyRow = {
 
 export type ImportedItem = {
   rowIndex: number | null;
-  module: "events" | "budget" | "quotes";
+  module: "events" | "budget" | "quotes" | "vendors";
   // Nature de l'élément, propre au module (event, task, catalog_item…).
   kind: string;
   elementId: string;

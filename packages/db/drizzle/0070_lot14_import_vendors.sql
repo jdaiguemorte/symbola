@@ -1,0 +1,1 @@
+ALTER TYPE "hub"."import_entity_type" ADD VALUE 'vendors';

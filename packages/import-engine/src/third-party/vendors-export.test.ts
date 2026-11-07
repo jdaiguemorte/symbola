@@ -3,7 +3,7 @@ import { readImportCorpusFile } from "@symbola/testing/import-corpus";
 import { planningSoftwareProfile } from "@symbola/starter-templates";
 import { readImportFile } from "../read";
 import type { ImportTable } from "../types";
-import { detectVendorsExport, normalizeVendorsExportRow } from "./vendors-export";
+import { cleanVendorImportText, detectVendorsExport, normalizeVendorImportValues, normalizeVendorsExportRow, proposeVendorsExportMapping } from "./vendors-export";
 
 const profile = planningSoftwareProfile().vendors;
 const limits = { maxBytes: 10 * 1024 * 1024, maxRows: 5000 };
@@ -69,5 +69,41 @@ describe("IMP-07 — Importer ses prestataires depuis l'export Excel (lecture, l
     expect(domaine).toMatchObject({ siret: "12345678900011", vatNumber: "FR00123456789", apeCode: "5510Z", legalStatus: "SAS" });
     const brunch = rows().find((row) => row?.name === "Le Grand Brunch")!;
     expect(brunch).toMatchObject({ contactName: null, email: null, website: null, criteria: [], services: null });
+  });
+});
+
+describe("IMP-07 — Correspondance proposée et valeurs remises en état (lot 14b)", () => {
+  const fields = ["name", "type", "contactFirstName", "contactLastName", "email", "addressLine", "postalCode", "city", "phones", "website", "instagram", "facebook", "pinterest", "linkedin", "x", "siret", "criteria", "services"];
+
+  it("chaque colonne reconnue reçoit son champ avec une confiance d'au moins 90 ; les colonnes remises en place d'après leur contenu sont signalées", () => {
+    const proposals = proposeVendorsExportMapping(table(), profile, fields)!;
+    expect(proposals.filter((proposal) => proposal.fieldKey).every((proposal) => proposal.confidence >= 90)).toBe(true);
+    expect(proposals[10]).toMatchObject({ fieldKey: "criteria", byContent: true });
+    expect(proposals[11]).toMatchObject({ fieldKey: "website", byContent: true });
+    // Département, TVA, APE, statut juridique : sans champ du carnet.
+    expect([8, 18, 19, 20].map((index) => proposals[index]!.fieldKey)).toEqual([null, null, null, null]);
+  });
+
+  it("un fichier quelconque n'a pas de correspondance imposée", () => {
+    expect(proposeVendorsExportMapping({ headers: ["Nom", "Ville"], rows: [["A", "B"]] }, profile, fields)).toBeNull();
+  });
+
+  it("les valeurs déjà lues par champ sont remises en état comme l'export", () => {
+    const record = normalizeVendorImportValues(
+      { name: "Ch&acirc;teau X", postalCode: "5000", phones: "0612345678 ( Amélie),0698765432", criteria: "Pop, Rock", instagram: "https://www.instagram.com/x", siret: "123 456 789 00011" },
+      ",",
+    );
+    expect(record).toMatchObject({
+      name: "Château X",
+      postalCode: "05000",
+      phone: "06 12 34 56 78",
+      otherPhones: [{ number: "06 98 76 54 32", label: null }],
+      criteria: ["Pop", "Rock"],
+      socialLinks: [{ network: "instagram", url: "https://www.instagram.com/x" }],
+      siret: "12345678900011",
+    });
+    expect(normalizeVendorImportValues({ name: "  " }, ",")).toBeNull();
+    expect(cleanVendorImportText("postalCode", "5000")).toBe("05000");
+    expect(cleanVendorImportText("name", "Clic &amp; D&eacute;clic")).toBe("Clic & Déclic");
   });
 });

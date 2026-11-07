@@ -27,7 +27,9 @@ import { VENDOR_SOCIAL_NETWORKS, type VendorSocialLink } from "@symbola/contract
 import { searchWords } from "@symbola/db/search";
 import { listBudgetLines } from "@/modules/budget/service";
 import { listSelectedVendorIds, listVendorConsultations } from "@/modules/events/service";
+import type { ImportUndoItem, ImportUndoOutcome } from "@symbola/contracts";
 import { cleanFieldValues, isUsableFilter } from "./fields";
+import { undoImportedVendorsElements as undoImportRows } from "./import";
 import { configuredGeocoder } from "./geocoder";
 import {
   archiveVendorRow,
@@ -63,6 +65,7 @@ import {
 import { DEFAULT_VENDOR_SETTINGS, estimateTravel, validateVendorSettings } from "./travel";
 
 export { InvalidVendorFieldValueError, parseFieldInput } from "./fields";
+export { findModifiedImportedVendorsElements, importVendorRows, listVendorImportCandidates, type VendorTypeChoiceInput } from "./import";
 export { estimateTravel, haversineKm } from "./travel";
 export { vendorsPrivacy } from "./privacy";
 export type {
@@ -484,6 +487,17 @@ export async function getVendorRibFile(organizationId: string, vendorId: string)
 export async function removeVendorFile(organizationId: string, fileId: string): Promise<void> {
   const row = UUID.test(fileId) ? await deleteVendorFileRow(organizationId, fileId) : null;
   if (row) await deletePrivateObject(createStorageClient(), row.fileKey).catch(() => undefined);
+}
+
+// Lot 14 (IMP-07) — annulation d'un import : une fiche citée depuis dans
+// un événement est gardée (kept_in_use).
+export async function undoImportedVendorsElements(organizationId: string, items: ImportUndoItem[]): Promise<ImportUndoOutcome[]> {
+  const created = items.filter((item) => item.kind === "vendor" && item.action === "created").map((item) => item.elementId);
+  const linked = new Set<string>();
+  for (const vendorId of created) {
+    if ((await listVendorConsultations(organizationId, vendorId)).length > 0) linked.add(vendorId);
+  }
+  return undoImportRows(organizationId, items, linked);
 }
 
 // AIDE-08 — recherche globale.

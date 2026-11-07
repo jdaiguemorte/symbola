@@ -12,6 +12,7 @@ import {
   listProspectSources,
 } from "@/modules/events/service";
 import { listCatalogItems, listPaymentMethods } from "@/modules/quotes/service";
+import { listVendorImportCandidates, listVendorTypes } from "@/modules/vendors/service";
 
 export type EventCandidate = { id: string; eventDate: string | null; clients: PersonName[] };
 export type LabelCandidate = { id: string; label: string };
@@ -54,4 +55,15 @@ export async function listEventItemCandidates(
 ): Promise<LabelCandidate[]> {
   const items = entityType === "tasks" ? await listEventTasks(organizationId, eventId) : await listEventVendorSlots(organizationId, eventId);
   return items.map(({ id, label }) => ({ id, label }));
+}
+
+// Lot 14 (IMP-07) — fiches du carnet (hors exemples et archives) et types.
+export type VendorCandidate = { id: string; name: string; city: string | null };
+
+export async function listVendorCandidates(organizationId: string): Promise<VendorCandidate[]> {
+  return listVendorImportCandidates(organizationId);
+}
+
+export async function listVendorTypeCandidates(organizationId: string): Promise<LabelCandidate[]> {
+  return (await listVendorTypes(organizationId)).map(({ id, label }) => ({ id, label }));
 }
