@@ -2785,7 +2785,19 @@
     "summaryEmail": "Email",
     "summaryAddress": "Address",
     "summaryTravel": "Estimated travel",
-    "openFullCard": "Open the full card"
+    "openFullCard": "Open the full card",
+    "links": "Website and social media",
+    "website": "Website",
+    "siret": "SIRET number",
+    "social": {
+      "instagram": "Instagram",
+      "facebook": "Facebook",
+      "pinterest": "Pinterest",
+      "linkedin": "LinkedIn",
+      "x": "X"
+    },
+    "invalidWebsite": "Unreadable web address: check the website and social links.",
+    "invalidSiret": "The SIRET must have 14 digits."
   },
   "Setup": {
     "title": "Welcome: let's set up your space",

@@ -432,6 +432,38 @@ fields:
     anonymization: >-
       Lors d'une demande d'oubli (RGPD-03) : nom remplacé par « [anonymisé] », contact, e-mail, téléphone, adresse, note et point effacés, fiche archivée (l'historique garde son identifiant).
   - schema: vendors
+    table: vendors
+    field: website
+    category: contact
+    retention: >-
+      Lot 14 (décision M) : site web du prestataire (celui d'un indépendant peut porter son nom). Tant que la fiche ou l'événement existe ; voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Lors d'une demande d'oubli (RGPD-03) : nom remplacé par « [anonymisé] », contact, e-mail, téléphone, adresse, note, site, réseaux, SIRET, champs importés et point effacés, fiche archivée (l'historique garde son identifiant).
+  - schema: vendors
+    table: vendors
+    field: social_links
+    category: contact
+    retention: >-
+      Lot 14 (décision M) : liens vers les réseaux sociaux du prestataire. Tant que la fiche ou l'événement existe ; voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Lors d'une demande d'oubli (RGPD-03) : nom remplacé par « [anonymisé] », contact, e-mail, téléphone, adresse, note, site, réseaux, SIRET, champs importés et point effacés, fiche archivée (l'historique garde son identifiant).
+  - schema: vendors
+    table: vendors
+    field: siret
+    category: identifiant
+    retention: >-
+      Lot 14 (décision M) : SIRET (celui d'un entrepreneur individuel désigne une personne). Tant que la fiche ou l'événement existe ; voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Lors d'une demande d'oubli (RGPD-03) : nom remplacé par « [anonymisé] », contact, e-mail, téléphone, adresse, note, site, réseaux, SIRET, champs importés et point effacés, fiche archivée (l'historique garde son identifiant).
+  - schema: vendors
+    table: vendors
+    field: imported_fields
+    category: contenu_libre
+    retention: >-
+      Lot 14 (IMP-07) : colonnes d'un import gardées telles quelles (TVA intracommunautaire, code APE, statut juridique…). Tant que la fiche ou l'événement existe ; voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Lors d'une demande d'oubli (RGPD-03) : nom remplacé par « [anonymisé] », contact, e-mail, téléphone, adresse, note, site, réseaux, SIRET, champs importés et point effacés, fiche archivée (l'historique garde son identifiant).
+  - schema: vendors
     table: vendor_files
     field: file_key
     category: contenu_libre

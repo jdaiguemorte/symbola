@@ -6,7 +6,7 @@ import { createAppConnection } from "@symbola/db/client";
 import { foldedColumn, likeWord } from "@symbola/db/search";
 import { vendorFiles, vendors, vendorSettings, vendorTags, vendorTypeFields, vendorTypes } from "@symbola/db/schema/vendors";
 import { withOrganization } from "@symbola/db/with-organization";
-import type { VendorAround, VendorFieldFilter, VendorFieldKind, VendorFieldValue, VendorFileKind, VendorSettings } from "@symbola/contracts";
+import type { VendorAround, VendorFieldFilter, VendorFieldKind, VendorFieldValue, VendorFileKind, VendorSettings, VendorSocialLink } from "@symbola/contracts";
 import { EARTH_RADIUS_KM } from "./travel";
 
 export type VendorTypeRow = typeof vendorTypes.$inferSelect;
@@ -117,6 +117,9 @@ export type VendorWrite = {
   city: string | null;
   country: string;
   internalNote: string | null;
+  website: string | null;
+  socialLinks: VendorSocialLink[];
+  siret: string | null;
   fieldValues: Record<string, VendorFieldValue>;
   tagIds: string[];
   location?: { latitude: number; longitude: number; source: "geocoded" | "manual" } | null | undefined;

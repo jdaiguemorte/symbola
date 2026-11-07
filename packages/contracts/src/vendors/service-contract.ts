@@ -45,9 +45,20 @@ export type Vendor = VendorSummary & {
   addressLine: string | null;
   country: string;
   internalNote: string | null;
+  // Lot 14 (décision M) : liens et identité légale, communs à tous les types.
+  website: string | null;
+  socialLinks: VendorSocialLink[];
+  siret: string | null;
+  // Colonnes d'un import gardées telles quelles (intitulé → texte), ou null.
+  importedFields: Record<string, string> | null;
   fieldValues: Record<string, VendorFieldValue>;
   files: VendorFile[];
 };
+
+// Réseaux sociaux reconnus (ordre d'affichage : Instagram en premier).
+export const VENDOR_SOCIAL_NETWORKS = ["instagram", "facebook", "pinterest", "linkedin", "x"] as const;
+export type VendorSocialNetwork = (typeof VENDOR_SOCIAL_NETWORKS)[number];
+export type VendorSocialLink = { network: VendorSocialNetwork; url: string };
 
 export type VendorInput = {
   name: string;
@@ -60,6 +71,9 @@ export type VendorInput = {
   city?: string | null;
   country?: string;
   internalNote?: string | null;
+  website?: string | null;
+  socialLinks?: VendorSocialLink[];
+  siret?: string | null;
   fieldValues?: Record<string, VendorFieldValue>;
   tagIds?: string[];
 };

@@ -196,6 +196,8 @@ export type {
   VendorListItem,
   VendorLocation,
   VendorSettings,
+  VendorSocialLink,
+  VendorSocialNetwork,
   VendorsServiceContract,
   VendorSummary,
   VendorTag,
@@ -203,3 +205,4 @@ export type {
   VendorTypeField,
   VendorTypeFieldInput,
 } from "./vendors/service-contract";
+export { VENDOR_SOCIAL_NETWORKS } from "./vendors/service-contract";

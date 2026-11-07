@@ -2785,7 +2785,19 @@
     "summaryEmail": "E-mail",
     "summaryAddress": "Adresse",
     "summaryTravel": "Trajet estimé",
-    "openFullCard": "Ouvrir la fiche complète"
+    "openFullCard": "Ouvrir la fiche complète",
+    "links": "Site et réseaux",
+    "website": "Site web",
+    "siret": "N° SIRET",
+    "social": {
+      "instagram": "Instagram",
+      "facebook": "Facebook",
+      "pinterest": "Pinterest",
+      "linkedin": "LinkedIn",
+      "x": "X"
+    },
+    "invalidWebsite": "Adresse web illisible : vérifiez le site et les réseaux.",
+    "invalidSiret": "Le SIRET doit compter 14 chiffres."
   },
   "Setup": {
     "title": "Bienvenue : préparons votre espace",

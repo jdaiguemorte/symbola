@@ -12,6 +12,7 @@ import { isBudgetModuleEnabled } from "@/app/budget/module-access";
 import { isValidId } from "@/app/events/module-access";
 import { archiveVendorAction, removeVendorFileAction } from "../actions";
 import { isVendorsModuleEnabled } from "../module-access";
+import { ImportedFields } from "@/app/imported-fields";
 import { VendorForm } from "../vendor-form";
 import { VendorMap } from "../vendor-map";
 import { VendorFileForm, VendorLocationForm } from "./vendor-side-forms";
@@ -125,7 +126,26 @@ export default async function VendorPage({ params, searchParams }: { params: Pro
 
       <section className="card" aria-labelledby="details-title">
         <h2 id="details-title">{t("detailsTitle")}</h2>
+        {vendor.website || vendor.socialLinks.length > 0 ? (
+          <ul className="vendor-links" aria-label={t("links")}>
+            {vendor.website ? (
+              <li>
+                <a href={vendor.website} target="_blank" rel="noopener noreferrer nofollow">
+                  {t("website")}
+                </a>
+              </li>
+            ) : null}
+            {vendor.socialLinks.map((link) => (
+              <li key={link.network}>
+                <a href={link.url} target="_blank" rel="noopener noreferrer nofollow">
+                  {t(`social.${link.network}`)}
+                </a>
+              </li>
+            ))}
+          </ul>
+        ) : null}
         <VendorForm key={JSON.stringify(vendor)} types={types} tags={tags} vendor={vendor} />
+        <ImportedFields fields={vendor.importedFields ?? undefined} />
       </section>
 
       <section className="card" aria-labelledby="files-title">

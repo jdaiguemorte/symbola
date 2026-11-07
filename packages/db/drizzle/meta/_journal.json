@@ -484,6 +484,13 @@
       "when": 1794020262758,
       "tag": "0068_lot13_backup_runs",
       "breakpoints": true
+    },
+    {
+      "idx": 69,
+      "version": "7",
+      "when": 1794066625863,
+      "tag": "0069_lot14_vendor_links",
+      "breakpoints": true
     }
   ]
 }
