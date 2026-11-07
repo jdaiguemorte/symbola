@@ -28,8 +28,7 @@ async function loginAndSetupMfa(page: Page, email: string, password: string) {
 }
 
 async function expectNoAxeViolation(page: Page) {
-  // Canevas de la carte exclu, comme dans les parcours du carnet (lot 11).
-  const result = await new AxeBuilder({ page }).exclude(".vendor-map-canvas").analyze();
+  const result = await new AxeBuilder({ page }).analyze();
   expect(result.violations, JSON.stringify(result.violations, null, 2)).toEqual([]);
 }
 

@@ -20,7 +20,7 @@ import { createVendor } from "../modules/vendors/service";
 import { clickMenuLink, openMenu, readyOrganization } from "./helpers";
 
 async function expectNoAxeViolation(page: Page) {
-  const result = await new AxeBuilder({ page }).exclude(".vendor-map-canvas").analyze();
+  const result = await new AxeBuilder({ page }).analyze();
   expect(result.violations, JSON.stringify(result.violations, null, 2)).toEqual([]);
 }
 
@@ -165,14 +165,14 @@ test("PRE-01 à PRE-07 / HUB-12 — créer ses fiches, filtrer autour d'un lieu,
   await filters.getByLabel("Autour de").fill("Lille");
   await filters.getByLabel("Couchages au moins").fill("40");
   await filters.getByLabel("Couchages au moins").press("Enter");
-  const results = page.getByRole("region", { name: /résultat/ });
+  const results = page.getByRole("region", { name: /^\d+ résultats?/ });
   await expect(results.getByRole("heading", { level: 2 })).toHaveText("1 résultat autour de Lille, du plus proche au plus loin");
   await expect(results).toContainText("Hôtel du Beffroi");
   await expect(results).toContainText("(estimation)");
   await expect(results).not.toContainText("Gîte des Prés");
   // Sur téléphone, la carte s'affiche à la demande.
   if (page.viewportSize()!.width < 1024) await page.getByRole("navigation", { name: "Affichage" }).getByRole("link", { name: "Carte" }).click();
-  await expect(page.getByRole("img", { name: /Carte : 1 prestataire placé/ })).toBeVisible();
+  await expect(page.getByRole("region", { name: /Carte : 1 prestataire placé/ })).toBeVisible();
   await expect(page.getByText("Fond de carte non installé", { exact: false })).toBeVisible();
   await expectNoAxeViolation(page);
 

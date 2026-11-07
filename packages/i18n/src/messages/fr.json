@@ -2908,7 +2908,10 @@
     "invalidWebsite": "Adresse web illisible : vérifiez le site et les réseaux.",
     "invalidSiret": "Le SIRET doit compter 14 chiffres.",
     "filterUnplacedLabel": "Sur la carte",
-    "filterUnplaced": "À placer (sans point)"
+    "filterUnplaced": "À placer (sans point)",
+    "mapZoomIn": "Zoomer sur la carte",
+    "mapZoomOut": "Dézoomer la carte",
+    "mapSummary": "{placed, plural, =0 {Aucun prestataire sur la carte} one {# prestataire sur la carte} other {# prestataires sur la carte}}, {unplaced, plural, =0 {aucun à placer} one {# à placer} other {# à placer}}."
   },
   "Setup": {
     "title": "Bienvenue : préparons votre espace",

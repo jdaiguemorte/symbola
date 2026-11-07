@@ -157,6 +157,11 @@ temporaire chiffré** des fiches PDF pendant leur lecture.
    sur la carte, puis « K placés, M à placer » avec un lien vers le carnet filtré « À placer »,
    nouveau filtre). Un traitement en échec se relance.
 2. **15b** — Carte accessible (A11Y-01).
+   *Réalisé (15b)* : MapLibre fait déjà du canevas une **région nommée** ; c'est l'enveloppe
+   `role="img"` de l'app qui enfermait les boutons de zoom. Elle est retirée ; le titre de la
+   carte et les boutons de zoom prennent les textes de l'app (FR/EN) ; un résumé « N
+   prestataires sur la carte, M à placer » suit la carte du carnet. Les parcours des lots 11,
+   13 et 14 passent axe-core sans exclure la carte.
 3. **15c** — Migrations des types énumérés annulables (DB-01).
 4. **Déploiement sur staging** (Julien, runbook) : migrations 0069 à 0072 et celles du lot 15,
    nouvelle image, puis essai de la reprise avec les vrais exports.

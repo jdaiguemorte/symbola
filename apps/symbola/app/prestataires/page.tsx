@@ -251,6 +251,8 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
             around={center ? { latitude: center.latitude, longitude: center.longitude, radiusKm: filters.radiusKm } : null}
             label={t("mapLabel", { count: points.length })}
             missingTilesNotice={t("mapNoTiles")}
+            controls={{ zoomIn: t("mapZoomIn"), zoomOut: t("mapZoomOut") }}
+            summary={t("mapSummary", { placed: points.length, unplaced: Math.max(results.length - points.length, 0) })}
           />
         </div>
       </div>
