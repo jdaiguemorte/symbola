@@ -42,6 +42,13 @@ format bien plus vaste qu'un zip de XML.
    texte positionnés. Un autre logiciel aura son propre profil.
 4. **Neutralisation** : les valeurs lues dans un PDF passent par la même neutralisation que les
    cellules d'un tableau (`=`, `+`, `-`, `@`).
+5. **Module de lecture chargé explicitement** (constaté au lot 14c) : côté serveur, pdfjs lit le
+   PDF dans le même processus avec son module `pdf.worker.mjs`, qu'il importe par un chemin
+   relatif à son propre fichier. Next.js intègre `pdfjs-dist` à son bundle serveur et ce chemin
+   n'existe plus (« Setting up fake worker failed »). `packages/import-engine` charge donc ce
+   module lui-même et le confie à pdfjs (`globalThis.pdfjsWorker`), qui l'utilise en priorité :
+   la lecture fonctionne à l'identique en test, en dev et dans l'image Docker. Le parcours
+   Playwright IMP-08 le vérifie sur l'app compilée.
 
 ## Conséquences
 

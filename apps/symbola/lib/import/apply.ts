@@ -99,8 +99,9 @@ export async function getImportPreview(organizationId: string, importId: string)
   if (matches.entityType === "catalog_items" && creations.some((row) => row.values.vatRate === null || row.values.vatRate === undefined)) {
     if ((await defaultVatRate(organizationId)) === null) blockers.push("vat_rate_unknown");
   }
-  const prospectSources = matches.entityType === "events" ? await listProspectSources(organizationId) : [];
-  if (matches.entityType === "events" && prospectSources.length === 0 && creations.some((row) => !row.values.prospectSource)) {
+  const withSource = matches.entityType === "events" || matches.entityType === "event_sheets";
+  const prospectSources = withSource ? await listProspectSources(organizationId) : [];
+  if (withSource && prospectSources.length === 0 && creations.some((row) => !row.values.prospectSource)) {
     blockers.push("no_prospect_source");
   }
 
@@ -109,8 +110,9 @@ export async function getImportPreview(organizationId: string, importId: string)
     entityType: matches.entityType,
     fileName: matches.fileName,
     counts: { creations: creations.length, updates: updates.length },
-    creations: creations.slice(0, SAMPLE_SIZE),
-    updates: updates.slice(0, SAMPLE_SIZE),
+    // Fiches PDF (lot 14c) : toutes les lignes, pour choisir le statut de chacune.
+    creations: matches.entityType === "event_sheets" ? creations : creations.slice(0, SAMPLE_SIZE),
+    updates: matches.entityType === "event_sheets" ? updates : updates.slice(0, SAMPLE_SIZE),
     rejectedCount: gaps.rejected.length,
     blockers,
     prospectSources: prospectSources.map(({ id, label }) => ({ id, label })),
@@ -134,6 +136,7 @@ async function applyToModules(
 ): Promise<ImportApplyResult> {
   switch (entityType) {
     case "events":
+    case "event_sheets":
       return importEventRows({ organizationId, userId, rows, defaultProspectSourceId: options.defaultProspectSourceId ?? "" });
     case "tasks":
       return importTaskRows({ organizationId, rows });
@@ -163,7 +166,7 @@ export async function confirmImport(input: {
   if (preview.blockers.length > 0) return { status: "blocked", blockers: preview.blockers };
 
   const defaultProspectSourceId = input.defaultProspectSourceId ?? null;
-  if (preview.entityType === "events" && !preview.prospectSources.some((source) => source.id === defaultProspectSourceId)) {
+  if ((preview.entityType === "events" || preview.entityType === "event_sheets") && !preview.prospectSources.some((source) => source.id === defaultProspectSourceId)) {
     return { status: "invalid_default_source" };
   }
 

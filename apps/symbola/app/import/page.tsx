@@ -43,7 +43,7 @@ export default async function ImportPage() {
       {entityTypes.length === 0 ? (
         <p>{t("noModuleAvailable")}</p>
       ) : (
-        <NewImportForm entityTypes={entityTypes} maxSizeLabel={formatFileSize(limits.maxBytes, locale)} />
+        <NewImportForm entityTypes={entityTypes} maxSizeLabel={formatFileSize(limits.maxBytes, locale)} maxSheets={limits.maxSheets} />
       )}
 
       <section aria-labelledby="import-journal">

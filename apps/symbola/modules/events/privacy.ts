@@ -106,13 +106,19 @@ export const eventsPrivacy: PrivacyContractV1 = {
         }
       }
       for (const client of await tx.select().from(eventClients).where(inArray(eventClients.eventId, eventIds))) {
-        if (recordMatches([client.firstName, client.lastName], terms)) {
+        if (recordMatches([client.firstName, client.lastName, client.email, client.phone], terms)) {
           records.push({
             module: MODULE,
             kind: "event_client",
             recordId: client.id,
             label: fullName(client.firstName, client.lastName),
-            fields: compact({ firstName: client.firstName, lastName: client.lastName }),
+            fields: compact({
+              firstName: client.firstName,
+              lastName: client.lastName,
+              email: client.email,
+              phone: client.phone,
+              address: [client.addressLine, client.postalCode, client.city].filter(Boolean).join(" ") || null,
+            }),
             eventId: client.eventId,
           });
         }

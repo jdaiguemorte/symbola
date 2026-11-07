@@ -52,7 +52,7 @@ export default async function EventBudgetPage({ params }: { params: Promise<{ ev
 
       {models.length === 0 ? <p role="status">{t("noModelsYet")}</p> : null}
 
-      <BudgetSimulationForm eventId={eventId} models={models} budget={budget} locale={locale} vendorSlots={vendorSlots} />
+      <BudgetSimulationForm eventId={eventId} models={models} budget={budget} locale={locale} vendorSlots={vendorSlots} wantedBudgetCents={event.wantedBudgetCents} />
 
       {budget ? (
         <>

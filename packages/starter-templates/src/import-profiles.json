@@ -50,7 +50,12 @@
         "20": "legalStatus",
         "21": "services"
       },
-      "swapWhenContentDiffers": [["website", "criteria"]],
+      "swapWhenContentDiffers": [
+        [
+          "website",
+          "criteria"
+        ]
+      ],
       "listSeparator": ","
     },
     "eventSheet": {
@@ -68,8 +73,56 @@
       },
       "placeTimeSeparator": "à",
       "footerFromRatio": 0.88,
-      "weekdays": ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"],
-      "months": ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"]
+      "weekdays": [
+        "lundi",
+        "mardi",
+        "mercredi",
+        "jeudi",
+        "vendredi",
+        "samedi",
+        "dimanche"
+      ],
+      "months": [
+        "janvier",
+        "février",
+        "mars",
+        "avril",
+        "mai",
+        "juin",
+        "juillet",
+        "août",
+        "septembre",
+        "octobre",
+        "novembre",
+        "décembre"
+      ],
+      "columnHeaders": {
+        "source": "Fiche",
+        "rejection": "Motif de rejet",
+        "client1FirstName": "Prénom 1",
+        "client1LastName": "Nom 1",
+        "client1Email": "E-mail 1",
+        "client1Phone": "Téléphone 1",
+        "client1AddressLine": "Adresse 1",
+        "client1PostalCode": "Code postal 1",
+        "client1City": "Ville 1",
+        "client2FirstName": "Prénom 2",
+        "client2LastName": "Nom 2",
+        "client2Email": "E-mail 2",
+        "client2Phone": "Téléphone 2",
+        "client2AddressLine": "Adresse 2",
+        "client2PostalCode": "Code postal 2",
+        "client2City": "Ville 2",
+        "eventDate": "Date de l'événement",
+        "venueName": "Lieu de réception",
+        "places": "Lieux et horaires",
+        "status": "Statut",
+        "wantedBudget": "Budget Souhaité",
+        "note": "Note",
+        "paid": "Total Payé",
+        "balance": "Solde",
+        "total": "Total"
+      }
     }
   }
 }

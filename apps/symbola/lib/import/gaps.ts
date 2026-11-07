@@ -4,7 +4,7 @@
 // introuvable pour une tâche ou une ligne de budget).
 import type { ImportEntityType } from "@symbola/contracts";
 import { createAppConnection } from "@symbola/db/client";
-import type { RowError } from "@symbola/import-engine";
+import { EVENT_SHEET_COLUMNS, type RowError } from "@symbola/import-engine";
 import { getImportWorkingSet, isGapColumn, type ImportWorkingSet } from "@/modules/hub/service";
 import { getImportMatchesView } from "./matching";
 
@@ -17,7 +17,8 @@ export type GapColumnView = {
   decision: "undecided" | "keep" | "ignore";
 };
 
-export type RejectedRowView = { rowIndex: number; lineNumber: number; reasons: RejectionReason[] };
+// Lot 14c : `source` = nom de la fiche PDF de la ligne.
+export type RejectedRowView = { rowIndex: number; lineNumber: number; reasons: RejectionReason[]; source?: string };
 
 export type GapsView = {
   importId: string;
@@ -60,7 +61,8 @@ export async function getImportGapsView(organizationId: string, importId: string
     .map((row) => {
       const reasons: RejectionReason[] = [...row.errors];
       if (row.errors.length === 0 && row.event && !row.event.candidate) reasons.push({ code: "event_not_found", fieldKey: null, value: "" });
-      return { rowIndex: row.rowIndex, lineNumber: row.lineNumber, reasons };
+      const source = set.entityType === "event_sheets" ? set.rows[row.rowIndex]?.[EVENT_SHEET_COLUMNS.indexOf("source")] : undefined;
+      return { rowIndex: row.rowIndex, lineNumber: row.lineNumber, reasons, ...(source ? { source } : {}) };
     })
     .filter((row) => row.reasons.length > 0);
 
