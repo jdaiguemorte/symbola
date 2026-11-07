@@ -70,6 +70,7 @@ import {
   insertTaskTemplate,
   insertTaskTemplateItem,
   moveEventTaskRow,
+  reorderDefaultVendorSlotRows,
   resolveTaskRecalculationRow,
   updateEventDateRow,
   updateEventStatus,
@@ -443,6 +444,12 @@ export async function setEventVendorSlotIcon(organizationId: string, vendorSlotI
 
 export async function removeDefaultVendorSlot(organizationId: string, defaultVendorSlotId: string): Promise<void> {
   await deleteDefaultVendorSlot(organizationId, defaultVendorSlotId);
+}
+
+// Lot 13 (HUB-16) — ordre des lignes du budget, changé par glisser-déposer
+// ou au clavier ; les nouveaux événements les reçoivent dans cet ordre.
+export async function reorderDefaultVendorSlots(organizationId: string, orderedIds: string[]): Promise<void> {
+  if (!(await reorderDefaultVendorSlotRows(organizationId, orderedIds))) throw new VendorSlotNotFoundError();
 }
 
 export async function listEventVendorSlots(organizationId: string, eventId: string): Promise<EventVendorSlot[]> {
@@ -1395,6 +1402,7 @@ const _contractCheck: EventsServiceContract = {
   listDefaultVendorSlots,
   addDefaultVendorSlots,
   removeDefaultVendorSlot,
+  reorderDefaultVendorSlots,
   addProspectSources,
   addLossReasons,
   listOrganizationTasks,

@@ -8,7 +8,7 @@ import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import * as OTPAuth from "otpauth";
 import { addDefaultVendorSlots } from "../modules/events/service";
-import { clickMenuLink, readyOrganization } from "./helpers";
+import { clickMenuLink, openSettingsTab, readyOrganization } from "./helpers";
 
 async function expectNoAxeViolation(page: Page) {
   const result = await new AxeBuilder({ page }).analyze();
@@ -29,6 +29,7 @@ async function login(page: Page, email: string, password: string) {
 }
 
 test("HUB-16 — Paramètres en rubriques, lignes du budget modifiées dans le panneau latéral", async ({ page }) => {
+  test.setTimeout(90_000);
   const email = `planner-param-${randomUUID()}@symbola.test`;
   const password = "mot-de-passe-parametres";
   const { sql, db } = createAppConnection();
@@ -81,8 +82,30 @@ test("HUB-16 — Paramètres en rubriques, lignes du budget modifiées dans le p
   await addPanel.getByRole("link", { name: "Fermer le panneau" }).click();
   await expect(table.getByRole("rowheader", { name: "Fleuriste" })).toBeVisible();
 
+  // L'ordre se change avec les flèches (clavier, téléphone), enregistré aussitôt.
+  const order = () => table.getByRole("rowheader").allTextContents();
+  await expect.poll(order).toEqual(["Lieu de réception", "Photographe et vidéaste", "Fleuriste"]);
+  await expect(page.getByRole("button", { name: "Monter la ligne « Lieu de réception »" })).toBeDisabled();
+  const down = page.getByRole("button", { name: "Descendre la ligne « Lieu de réception »" });
+  await down.focus();
+  await page.keyboard.press("Enter");
+  await expect.poll(order).toEqual(["Photographe et vidéaste", "Lieu de réception", "Fleuriste"]);
+  await expect(page.getByRole("status").filter({ hasText: "« Lieu de réception » est maintenant en position 2 sur 3." })).toBeAttached();
+  await expect(down).toBeFocused();
+  // Au glisser-déposer à la souris (ordinateur) : Fleuriste en tête.
+  if (page.viewportSize()!.width >= 1024) {
+    await table.getByRole("row", { name: /Fleuriste/ }).dragTo(table.getByRole("row", { name: /Photographe et vidéaste/ }));
+    await expect.poll(order).toEqual(["Fleuriste", "Photographe et vidéaste", "Lieu de réception"]);
+  }
+  await page.reload();
+  await expect.poll(order).toEqual(
+    page.viewportSize()!.width >= 1024 ? ["Fleuriste", "Photographe et vidéaste", "Lieu de réception"] : ["Photographe et vidéaste", "Lieu de réception", "Fleuriste"],
+  );
+  await expectNoAxeViolation(page);
+
   // Sources et motifs : leur propre rubrique.
-  await sections.getByRole("link", { name: "Sources et motifs", exact: true }).click();
+  // Après le rechargement, sur téléphone, la rubrique s'affiche seule : on repasse par le menu.
+  await openSettingsTab(page, "Sources et motifs");
   await expect(page).toHaveURL(/\/events\/parametres\/sources$/);
   await page.getByLabel("Nouvelle source").fill("Salon");
   await page.getByRole("button", { name: "Ajouter la source" }).click();

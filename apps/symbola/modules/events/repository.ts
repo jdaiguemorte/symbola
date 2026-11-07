@@ -394,6 +394,26 @@ export async function deleteDefaultVendorSlot(organizationId: string, defaultVen
   }
 }
 
+// Lot 13 (HUB-16) — nouvel ordre des lignes du budget par défaut : la liste
+// doit contenir exactement les lignes de l'organisation (sinon rien ne
+// change, renvoie false) ; chaque position vaut son rang.
+export async function reorderDefaultVendorSlotRows(organizationId: string, orderedIds: string[]): Promise<boolean> {
+  const { sql: pg, db } = createAppConnection();
+  try {
+    return await withOrganization(db, organizationId, async (tx) => {
+      const existing = await tx.select({ id: defaultVendorSlots.id }).from(defaultVendorSlots);
+      const known = new Set(existing.map((slot) => slot.id));
+      if (orderedIds.length !== known.size || new Set(orderedIds).size !== orderedIds.length || !orderedIds.every((id) => known.has(id))) return false;
+      for (const [position, id] of orderedIds.entries()) {
+        await tx.update(defaultVendorSlots).set({ position }).where(eq(defaultVendorSlots.id, id));
+      }
+      return true;
+    });
+  } finally {
+    await pg.end();
+  }
+}
+
 // EVT-03 — postes d'un événement.
 export async function findEventVendorSlots(organizationId: string, eventId: string): Promise<EventVendorSlotRow[]> {
   const { sql: pg, db } = createAppConnection();

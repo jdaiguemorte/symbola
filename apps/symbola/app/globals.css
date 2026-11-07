@@ -1676,3 +1676,19 @@
     @apply justify-self-end;
   }
 }
+
+/* Lot 13 (HUB-16) — ordre des lignes du budget : glisser-déposer et flèches. */
+@layer components {
+  .drag-cell {
+    @apply w-8 text-muted;
+  }
+  tr[draggable="true"] .drag-handle {
+    @apply cursor-grab;
+  }
+  tr[data-dragging="true"] {
+    @apply opacity-50;
+  }
+  .icon-button {
+    @apply inline-flex !min-h-9 !min-w-9 items-center justify-center !px-2;
+  }
+}

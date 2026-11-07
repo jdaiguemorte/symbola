@@ -395,6 +395,8 @@ export interface EventsServiceContract {
   listDefaultVendorSlots(organizationId: string): Promise<DefaultVendorSlot[]>;
   addDefaultVendorSlots(organizationId: string, entries: (string | { label: string; icon?: string | null })[]): Promise<DefaultVendorSlot[]>;
   removeDefaultVendorSlot(organizationId: string, defaultVendorSlotId: string): Promise<void>;
+  // Lot 13 (HUB-16) — nouvel ordre : exactement les lignes de l'organisation.
+  reorderDefaultVendorSlots(organizationId: string, orderedIds: string[]): Promise<void>;
   listEventVendorSlots(organizationId: string, eventId: string): Promise<EventVendorSlot[]>;
   addEventVendorSlot(organizationId: string, eventId: string, label: string): Promise<EventVendorSlot>;
   updateEventVendorSlot(input: UpdateEventVendorSlotInput): Promise<EventVendorSlot>;

@@ -490,7 +490,7 @@
     },
     "eventsSettings": {
       "title": "Lignes du budget",
-      "body": "Les lignes que reçoit chaque nouvel événement (lieu, traiteur, photographe…), avec leur icône et leur ordre. Elles ont été préparées au démarrage selon votre métier : ajoutez, renommez ou réordonnez-les dans le tableau ; une ligne s'ouvre dans le panneau de droite.",
+      "body": "Les lignes que reçoit chaque nouvel événement (lieu, traiteur, photographe…), avec leur icône et leur ordre. Elles ont été préparées au démarrage selon votre métier : ajoutez ou renommez-les (une ligne s'ouvre dans le panneau de droite) et changez leur ordre en les glissant, ou avec les flèches.",
       "faq": [
         {
           "q": "Changer une ligne modifie-t-il les événements existants ?",
@@ -1117,7 +1117,13 @@
     "kpiBookedValue": "{booked} sur {required}",
     "kpiOverdue": "Tâches en retard",
     "kpiSigned": "Devis signés",
-    "timelineGoToPrefix": "Passer en"
+    "timelineGoToPrefix": "Passer en",
+    "orderColumn": "Ordre",
+    "moveLineUp": "Monter la ligne « {label} »",
+    "moveLineDown": "Descendre la ligne « {label} »",
+    "lineMoved": "« {label} » est maintenant en position {position} sur {total}.",
+    "lineMoveFailed": "L'ordre n'a pas pu être enregistré : la liste a changé, rechargez la page.",
+    "defaultVendorSlotsReorderHint": "Glissez une ligne pour changer l'ordre, ou utilisez les flèches : les nouveaux événements reçoivent les lignes dans cet ordre."
   },
   "Budget": {
     "title": "Budget",
