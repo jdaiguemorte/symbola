@@ -65,7 +65,8 @@ import {
 import { DEFAULT_VENDOR_SETTINGS, estimateTravel, validateVendorSettings } from "./travel";
 
 export { InvalidVendorFieldValueError, parseFieldInput } from "./fields";
-export { findModifiedImportedVendorsElements, importVendorRows, listVendorImportCandidates, type VendorTypeChoiceInput } from "./import";
+export { findModifiedImportedVendorsElements, importedVendorsToPlace, importVendorRows, listVendorImportCandidates, type VendorTypeChoiceInput } from "./import";
+export { placeVendors, type PlacementResult } from "./placement";
 export { estimateTravel, haversineKm } from "./travel";
 export { vendorsPrivacy } from "./privacy";
 export type {

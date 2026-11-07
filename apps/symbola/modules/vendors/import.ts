@@ -12,7 +12,6 @@ import { vendorFiles, vendors, vendorTags, vendorTypes } from "@symbola/db/schem
 import { withOrganization } from "@symbola/db/with-organization";
 import { normalizeVendorImportValues, type VendorsExportRow } from "@symbola/import-engine";
 import { planningSoftwareProfile, starterVendorTypes } from "@symbola/starter-templates";
-import { configuredGeocoder } from "./geocoder";
 
 type Tx = Parameters<Parameters<typeof withOrganization>[2]>[0];
 type Values = Record<string, unknown>;
@@ -213,29 +212,15 @@ export async function importVendorRows(input: {
     return { items, unchanged };
   });
 
-  await placeOnMap(input.organizationId, result.items);
+  // Lot 15 (GEO-01) : le placement sur la carte se fait ensuite, en tâche de
+  // fond (placeVendors), pour ne pas faire attendre la planner.
   return result;
 }
 
-// Adresse nouvelle ou changée : placée sur la carte après l'écriture (appel
-// réseau hors transaction) ; une adresse introuvable laisse la fiche sans point.
-async function placeOnMap(organizationId: string, items: ImportedItem[]): Promise<void> {
-  const geocoder = configuredGeocoder();
-  if (!geocoder) return;
-  const targets = items.filter((item) => item.kind === "vendor" && ADDRESS_KEYS.some((key) => key in item.written));
-  if (targets.length === 0) return;
-  for (const item of targets) {
-    const state = await inTransaction(organizationId, (tx) => vendorState(tx, item.elementId));
-    const address = state ? [state.addressLine, state.postalCode, state.city].filter(Boolean).join(" ") : "";
-    if (!address) continue;
-    const point = await geocoder.geocode(address).catch(() => null);
-    await inTransaction(organizationId, (tx) =>
-      tx
-        .update(vendors)
-        .set(point ? { latitude: point.latitude, longitude: point.longitude, locationSource: "geocoded" } : { latitude: null, longitude: null, locationSource: null })
-        .where(eq(vendors.id, item.elementId)),
-    );
-  }
+// Fiches à placer sur la carte après l'import : créées avec une adresse, ou
+// dont l'adresse a changé (lot 15, GEO-01).
+export function importedVendorsToPlace(items: Pick<ImportedItem, "kind" | "elementId" | "written">[]): string[] {
+  return items.filter((item) => item.kind === "vendor" && ADDRESS_KEYS.some((key) => key in item.written && item.written[key])).map((item) => item.elementId);
 }
 
 async function stateOf(tx: Tx, kind: string, id: string): Promise<Values | null> {
