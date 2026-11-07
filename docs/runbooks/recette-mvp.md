@@ -31,7 +31,7 @@ la planner (un ordinateur **et** un téléphone), une heure de bascule.
       l'année en cours), limites de l'import (10 Mo, 5 000 lignes, 7 j, 90 j), durée des exports
       RGPD (7 j).
 - [ ] Compte de la planner créé sur le staging (organisation dédiée à la recette), MFA activée.
-- [ ] Fichier d'export Wedding Plan **anonymisé** prêt (noms, e-mails et téléphones remplacés),
+- [ ] Fichier d'export de l'outil actuel **anonymisé** prêt (noms, e-mails et téléphones remplacés),
       à défaut un export réel uniquement si la planner l'accepte et que le staging est purgé
       ensuite (section 5).
 
@@ -52,7 +52,7 @@ le parcours se déroule sans aide ; sinon noter l'écart.
 - [ ] Essai guidé (données de test marquées) : démarré, parcouru, terminé ; plus aucune trace
       ensuite dans les listes, statistiques et recherches.
 
-### Import (IMP-01 à 05) — avec l'export Wedding Plan
+### Import (IMP-01 à 05) — avec l'export de l'outil actuel
 
 - [ ] Envoi du fichier (`/import`) : format, encodage et séparateur reconnus ; cellules à risque
       neutralisées signalées.
@@ -151,7 +151,7 @@ Tous doivent être remplis :
 4. [ ] `/health` OK ; en-têtes de sécurité ; isolation staging ↔ production vérifiée
        (`deploiement.md` § isolation).
 5. [ ] Compte Admin, paramètres de la plateforme (section 1), compte de la planner avec MFA.
-6. [ ] Import réel de Wedding Plan en production (le vrai fichier), vérification de 5 fiches.
+6. [ ] Import réel depuis l'outil actuel en production (le vrai fichier), vérification de 5 fiches.
 7. [ ] Première sauvegarde de production réussie le soir même ; restauration testée sur le
        staging dans le mois.
 8. [ ] Le staging est purgé des données réelles éventuellement utilisées pour la recette

@@ -6,7 +6,7 @@ chaque route. Commits en français (Conventional Commits), confirmation de Julie
 `git push`. Ordre de construction : **IMP-01, IMP-02, IMP-03, IMP-04, IMP-05**, puis la visite
 guidée et l'aide de l'import.
 
-L'import fait entrer dans Symbola les données d'un autre outil (Wedding Plan pour le pilote,
+L'import fait entrer dans Symbola les données d'un autre outil (l'outil de planification actuel pour le pilote,
 n'importe quel tableur demain). Il se déroule en **5 étapes visibles** : fichier, colonnes,
 rapprochements, écarts, confirmation. **Rien n'est écrit dans les modules avant la dernière
 étape**, et un import confirmé reste annulable (PRD §7).
@@ -28,7 +28,7 @@ rapprochements, écarts, confirmation. **Rien n'est écrit dans les modules avan
    affichées en lecture seule dans un bloc « Champs importés » de la fiche. Déclarées dans
    `privacy.registry.yaml`.
 4. **Corpus d'abord** : la reconnaissance est développée et testée sur un corpus varié
-   (`packages/testing/import-corpus/`) ; Julien y ajoutera l'export Wedding Plan anonymisé
+   (`packages/testing/import-corpus/`) ; Julien y ajoutera l'export anonymisé de l'outil actuel
    quand il l'aura, comme test supplémentaire (PRD §7, « Robustesse »).
 
 ## Valeurs validées par Julien (28/10/2026 et 02/11/2026)

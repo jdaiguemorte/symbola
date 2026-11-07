@@ -7,7 +7,7 @@ des tutoriels qu'on peut lancer tous en même temps et sans ordre, une Administr
 
 Maquettes validées : artefact « Refonte UX Symbola »
 (<https://claude.ai/artifact/KXrZ7gDgsSr13T7DCzwzeg>). Décision structurante : ADR 0033.
-Les imports Wedding Plan, prévus en lot 13, passent au **lot 14** (décision de Julien : pas de
+Les imports depuis l'outil actuel, prévus en lot 13, passent au **lot 14** (décision de Julien : pas de
 petits travaux d'UX avant la refonte globale, imports après).
 
 ## Décisions de Julien (06/11/2026)
