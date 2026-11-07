@@ -163,5 +163,10 @@ temporaire chiffré** des fiches PDF pendant leur lecture.
    prestataires sur la carte, M à placer » suit la carte du carnet. Les parcours des lots 11,
    13 et 14 passent axe-core sans exclure la carte.
 3. **15c** — Migrations des types énumérés annulables (DB-01).
+   *Réalisé (15c)* : ADR 0036 ; scripts `packages/db/drizzle-rollback/` pour 0069 à 0074
+   (les annulations se font de la plus récente à la plus ancienne) ; commande `rollback`
+   (dernière migration seulement, script et journal de Drizzle dans la même transaction) ;
+   test aller, retour, aller sur une base temporaire ; runbook de restauration (§ 4 bis) et
+   CLAUDE.md à jour.
 4. **Déploiement sur staging** (Julien, runbook) : migrations 0069 à 0072 et celles du lot 15,
    nouvelle image, puis essai de la reprise avec les vrais exports.
