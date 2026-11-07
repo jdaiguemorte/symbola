@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatAmount, type Locale } from "@symbola/i18n";
-import { HelpButton } from "@symbola/ui";
+import { ScreenHelp } from "@/app/screen-help";
 import { getEvent, listDefaultVendorSlots } from "@/modules/events/service";
 import { getEventBudget, listAllocationModels, listBudgetLines } from "@/modules/budget/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
@@ -48,7 +48,7 @@ export default async function EventBudgetPage({ params }: { params: Promise<{ ev
       <h1>
         {t("title")} — {clientNames}
       </h1>
-      <HelpButton title={tHelp("budgetDetail.title")} body={tHelp("budgetDetail.body")} />
+      <ScreenHelp title={tHelp("budgetDetail.title")} body={tHelp("budgetDetail.body")} />
 
       {models.length === 0 ? <p role="status">{t("noModelsYet")}</p> : null}
 

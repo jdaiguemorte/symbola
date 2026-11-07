@@ -69,7 +69,7 @@ test("RGPD-02 — la titulaire exporte les fiches cochées de la personne et té
   await loginAndSetupMfa(page, ownerEmail, password);
   await page.goto("/rgpd");
   await page.getByLabel("Nom").fill(`Élodie ${lastName}`);
-  await page.getByRole("button", { name: "Rechercher" }).click();
+  await page.getByRole("button", { name: "Rechercher", exact: true }).click();
   await expect(page.getByRole("heading", { name: /données trouvées/ })).toBeVisible();
 
   // Les deux clients sont trouvés (le nom de l'homonyme contient le terme) ;

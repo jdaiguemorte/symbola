@@ -1,5 +1,5 @@
-// AIDE-01/02 — module événements : visite guidée à la première ouverture,
-// relançable depuis « ? », puis essai guidé sur un mariage fictif,
+// AIDE-11/02 — module événements : repères affichés à la première ouverture,
+// rouverts depuis « ? », puis essai guidé sur un mariage fictif,
 // supprimé à la fin de l'essai. En taille ordinateur et en 375 px,
 // axe-core sur chaque écran.
 import { randomUUID } from "node:crypto";
@@ -8,7 +8,7 @@ import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import * as OTPAuth from "otpauth";
-import { openEventTab, readyOrganization, changeEventStatus } from "./helpers";
+import { changeEventStatus, closeLandmarks, landmarksPanel, openEventTab, readyOrganization } from "./helpers";
 
 async function loginAndSetupMfa(page: Page, email: string, password: string) {
   await page.goto("/login");
@@ -28,11 +28,11 @@ async function expectNoAxeViolation(page: Page) {
   expect(result.violations, JSON.stringify(result.violations, null, 2)).toEqual([]);
 }
 
-// Lot 10 : visites ouvertes d'office (sans la préférence posée par la
+// Repères ouverts d'office (sans la préférence posée par la
 // configuration des autres parcours).
 test.use({ storageState: { cookies: [], origins: [] } });
 
-test("AIDE-01/02 — visite guidée du module événements, puis essai guidé supprimé à la fin", async ({ page }) => {
+test("AIDE-11/02 — repères du module événements, puis essai guidé supprimé à la fin", async ({ page }) => {
   test.setTimeout(90_000);
   const email = `planner-aide-evt-${randomUUID()}@symbola.test`;
   const password = "mot-de-passe-aide-evt-e2e";
@@ -45,31 +45,27 @@ test("AIDE-01/02 — visite guidée du module événements, puis essai guidé su
   }
   await loginAndSetupMfa(page, email, password);
 
-  // AIDE-01 : la visite s'ouvre à la première ouverture du module.
+  // AIDE-11 : les repères s'affichent d'office à la première ouverture.
   await page.goto("/events");
-  await page.waitForLoadState("networkidle");
-  const tour = page.getByRole("dialog");
-  await expect(tour).toHaveAccessibleName("Vos événements");
+  const panel = landmarksPanel(page, "Liste des événements");
+  await expect(panel.getByRole("heading", { name: "Vos événements", level: 3 })).toBeVisible();
   await expectNoAxeViolation(page);
-  await tour.getByRole("button", { name: "Continuer" }).click();
-  await expect(tour).toHaveAccessibleName("Créer un prospect");
-  await tour.getByRole("button", { name: "Plus tard" }).click();
-  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await panel.getByRole("button", { name: "Créer un prospect" }).click();
+  await expect(panel.getByRole("heading", { name: "Créer un prospect", level: 3 })).toBeVisible();
+  await closeLandmarks(page, "Liste des événements");
 
-  // Déjà vue : elle ne se rouvre plus d'elle-même, mais se relance depuis « ? ».
+  // Déjà vus : ils ne se rouvrent plus d'eux-mêmes, mais depuis « ? ».
   await page.reload();
-  await page.waitForLoadState("networkidle");
-  await expect(page.getByRole("dialog")).toHaveCount(0);
-  await page.getByLabel("Liste des événements").first().click();
-  await page.getByRole("button", { name: "Relancer la visite guidée" }).click();
-  await expect(page.getByRole("dialog")).toHaveAccessibleName("Vos événements");
-  await page.getByRole("dialog").getByRole("button", { name: "Plus tard" }).click();
+  await expect(page.getByRole("button", { name: "Aide sur cet écran" })).toBeVisible();
+  await expect(panel).toHaveCount(0);
+  await page.getByRole("button", { name: "Aide sur cet écran" }).click();
+  await closeLandmarks(page, "Liste des événements");
 
   // AIDE-02 : l'essai ouvre un mariage fictif complet, marqué comme tel.
   await page.getByRole("button", { name: "Démarrer l'essai" }).click();
   await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}$/);
-  // Lot 10 : la visite focus de la fiche s'ouvre d'elle-même ; ce parcours la met de côté.
-  await page.getByRole("dialog", { name: "La fiche d'un événement" }).getByRole("button", { name: "Plus tard" }).click();
+  // Les repères de la fiche s'affichent d'eux-mêmes ; ce parcours les ferme.
+  await closeLandmarks(page, "Fiche de l'événement");
   const trialUrl = page.url();
   const trialId = trialUrl.split("/").pop()!;
   await expect(page.getByRole("heading", { name: "Essai guidé — données fictives" })).toBeVisible();

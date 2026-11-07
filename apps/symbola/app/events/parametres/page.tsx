@@ -4,7 +4,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { HelpButton } from "@symbola/ui";
+import { ScreenHelp } from "@/app/screen-help";
 import { listDefaultVendorSlots } from "@/modules/events/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isEventsModuleEnabled } from "../module-access";
@@ -50,7 +50,7 @@ export default async function EventsSettingsPage({ searchParams }: { searchParam
           {t("addBudgetLineButton")}
         </Link>
       </div>
-      <HelpButton title={tHelp("eventsSettings.title")} body={tHelp("eventsSettings.body")} />
+      <ScreenHelp title={tHelp("eventsSettings.title")} body={tHelp("eventsSettings.body")} />
       <p>{t("defaultVendorSlotsIntro")}</p>
 
       {lines.length === 0 ? (

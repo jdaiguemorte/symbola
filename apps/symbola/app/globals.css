@@ -756,57 +756,6 @@
   }
 }
 
-/* Lot 10 (AIDE-05) — visite focus : élément mis en lumière, bulle d'aide. */
-@layer components {
-  .focus-tour-spotlight {
-    @apply pointer-events-none fixed z-[60] hidden rounded-xl;
-    box-shadow:
-      0 0 0 4px var(--color-card),
-      0 0 0 8px var(--color-terracotta),
-      0 0 0 9999px rgb(20 20 19 / 0.55);
-  }
-  .focus-tour-spotlight[data-visible="true"] {
-    @apply block;
-  }
-  .focus-tour-backdrop {
-    @apply fixed inset-0 z-[61];
-  }
-  .focus-tour-spotlight[data-visible="false"] + .focus-tour-backdrop {
-    background: rgb(20 20 19 / 0.55);
-  }
-  .focus-tour-bubble {
-    @apply fixed z-[62] flex w-[380px] max-w-[calc(100vw-24px)] flex-col gap-3 rounded-2xl bg-card p-5 text-ink shadow-2xl;
-  }
-  .focus-tour-bubble[data-layout="center"] {
-    @apply top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2;
-  }
-  .focus-tour-bubble[data-layout="sheet"] {
-    @apply inset-x-0 top-auto bottom-0 w-auto max-w-none rounded-t-2xl rounded-b-none;
-  }
-  .focus-tour-bubble h2 {
-    @apply m-0 text-xl;
-  }
-  .focus-tour-bubble p {
-    @apply m-0;
-  }
-  .focus-tour-progress,
-  .focus-tour-hint {
-    @apply text-sm text-muted;
-  }
-  .focus-tour-actions {
-    @apply flex flex-wrap items-center justify-between gap-2;
-  }
-  .focus-tour-main-actions {
-    @apply flex gap-2;
-  }
-  .focus-tour-later {
-    @apply border-transparent bg-transparent text-muted underline underline-offset-4 shadow-none;
-  }
-  .focus-tour-continue {
-    @apply bg-sauge text-white;
-  }
-}
-
 /* Lot 10 (AIDE-07) — barre d'aide. */
 @layer components {
   /* Lot 13 (HUB-15) : pastille « Reprendre » à la place de la barre d'aide. */
@@ -1491,5 +1440,70 @@
   }
   .tutorial-conflict {
     @apply mx-auto mt-8 max-w-xl;
+  }
+}
+
+/* Lot 13 (AIDE-11, ADR 0033) — aide sur l'écran par repères. */
+@layer components {
+  .help-button {
+    @apply inline-flex !h-11 !min-h-0 !w-11 !min-w-0 items-center justify-center rounded-full border border-lin-dark !bg-card !p-0 font-semibold !text-sauge;
+  }
+  .help-button[aria-expanded="true"] {
+    @apply border-sauge !bg-sauge !text-white;
+  }
+  .landmark-marker {
+    @apply fixed z-[55] inline-flex !h-7 !min-h-0 !w-7 !min-w-0 items-center justify-center rounded-full border-0 !bg-terracotta !p-0 text-[13px] font-semibold !text-white;
+    box-shadow: 0 0 0 4px rgb(168 85 58 / 0.25);
+  }
+  .landmark-marker[aria-pressed="true"] {
+    @apply !bg-sauge-dark;
+    box-shadow: 0 0 0 5px rgb(79 107 90 / 0.3);
+  }
+  .landmark-marker[data-hidden="true"] {
+    @apply hidden;
+  }
+  .landmark-active {
+    outline: 3px solid var(--color-sauge);
+    outline-offset: 4px;
+    border-radius: 12px;
+  }
+  .landmark-panel {
+    @apply fixed right-4 bottom-4 z-[56] flex max-h-[min(70vh,560px)] w-[360px] max-w-[calc(100vw-32px)] flex-col gap-3 overflow-y-auto rounded-2xl border border-lin bg-card p-4 shadow-2xl;
+  }
+  .landmark-panel-head {
+    @apply flex items-start justify-between gap-2;
+  }
+  .landmark-panel-head h2 {
+    @apply m-0 text-lg outline-none;
+  }
+  .landmark-close {
+    @apply inline-flex !h-9 !min-h-0 !w-9 !min-w-0 items-center justify-center rounded-full border-0 !bg-transparent !p-0 text-xl !text-ink;
+  }
+  .landmark-intro {
+    @apply m-0 text-sm text-muted;
+  }
+  .landmark-list {
+    @apply m-0 flex list-none flex-col gap-1 p-0;
+  }
+  .landmark-list button {
+    @apply flex w-full !min-h-9 items-center gap-2 rounded-lg border-0 !bg-transparent px-2 text-left text-sm !text-ink;
+  }
+  .landmark-list button[aria-current="step"] {
+    @apply !bg-sauge-tint font-semibold;
+  }
+  .landmark-number {
+    @apply inline-flex h-5 w-5 flex-none items-center justify-center rounded-full bg-terracotta text-[11px] font-semibold text-white;
+  }
+  .landmark-detail {
+    @apply rounded-xl bg-ivory p-3;
+  }
+  .landmark-detail h3 {
+    @apply m-0 mb-1 text-[15px];
+  }
+  .landmark-detail p {
+    @apply m-0 text-sm;
+  }
+  .landmark-nav {
+    @apply flex justify-between gap-2;
   }
 }

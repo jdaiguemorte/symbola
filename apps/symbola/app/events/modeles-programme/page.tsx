@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { HelpButton } from "@symbola/ui";
+import { ScreenHelp } from "@/app/screen-help";
 import { listProgramTemplates } from "@/modules/events/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isEventsModuleEnabled } from "../module-access";
@@ -31,7 +31,7 @@ export default async function ProgramTemplatesPage() {
   return (
     <main>
       <h1>{t("programTemplatesTitle")}</h1>
-      <HelpButton title={tHelp("eventsProgramTemplates.title")} body={tHelp("eventsProgramTemplates.body")} />
+      <ScreenHelp title={tHelp("eventsProgramTemplates.title")} body={tHelp("eventsProgramTemplates.body")} />
       <p>{t("programTemplatesIntro")}</p>
 
       {templates.length === 0 ? <p>{t("noProgramTemplates")}</p> : null}

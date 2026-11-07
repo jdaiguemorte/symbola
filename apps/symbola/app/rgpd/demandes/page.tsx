@@ -4,7 +4,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { createAppConnection } from "@symbola/db/client";
 import { formatCalendarDate, type Locale } from "@symbola/i18n";
 import { parisDate } from "@symbola/privacy";
-import { HelpButton } from "@symbola/ui";
+import { ScreenHelp } from "@/app/screen-help";
 import { listPrivacyRequests, PRIVACY_REQUEST_TYPES, type PrivacyRequestView } from "@/modules/hub/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { closeRequestAction } from "./actions";
@@ -45,7 +45,7 @@ export default async function PrivacyRequestsPage() {
   return (
     <main>
       <h1>{t("requestsTitle")}</h1>
-      <HelpButton title={tHelp("privacyRequests.title")} body={tHelp("privacyRequests.body")} />
+      <ScreenHelp title={tHelp("privacyRequests.title")} body={tHelp("privacyRequests.body")} />
       <p>
         <Link href="/rgpd">{t("backToSearch")}</Link> · <Link href="/rgpd/reglages">{t("settingsLink")}</Link>
       </p>

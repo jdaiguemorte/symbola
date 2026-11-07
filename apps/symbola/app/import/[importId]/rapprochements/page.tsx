@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatCalendarDate, type Locale } from "@symbola/i18n";
-import { HelpButton } from "@symbola/ui";
+import { ScreenHelp } from "@/app/screen-help";
 import type { ImportValue, PersonName } from "@symbola/import-engine";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { getImportMatchesView, rowEventReference, type MatchesRowView } from "@/lib/import/matching";
@@ -52,7 +52,7 @@ export default async function ImportMatchesPage({ params }: { params: Promise<{ 
   return (
     <main>
       <h1>{t("matchesTitle", { fileName: view.fileName })}</h1>
-      <HelpButton title={tHelp("importMatches.title")} body={tHelp("importMatches.body")} />
+      <ScreenHelp title={tHelp("importMatches.title")} body={tHelp("importMatches.body")} />
       <ImportSteps current={2} />
       <p>{t("matchesIntro")}</p>
       {rejectedCount > 0 ? <p>{t("matchesRejectedNotice", { count: rejectedCount })}</p> : null}

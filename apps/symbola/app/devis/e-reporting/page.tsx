@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatAmount, formatCalendarDate, type Locale } from "@symbola/i18n";
-import { HelpButton } from "@symbola/ui";
+import { ScreenHelp } from "@/app/screen-help";
 import { getEReporting, type EReportingView } from "@/modules/quotes/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isQuotesModuleEnabled } from "../module-access";
@@ -46,7 +46,7 @@ export default async function EReportingPage({ searchParams }: { searchParams: P
   return (
     <main>
       <h1>{t("eReportingTitle")}</h1>
-      <HelpButton title={tHelp("quotesEReporting.title")} body={tHelp("quotesEReporting.body")} />
+      <ScreenHelp title={tHelp("quotesEReporting.title")} body={tHelp("quotesEReporting.body")} />
       <p>{t("eReportingIntro")}</p>
       <nav aria-label={t("eReportingPeriods", { year })}>
         <ul>

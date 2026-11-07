@@ -67,7 +67,7 @@ test("RGPD-03 — la titulaire prévisualise puis valide l'oubli ; la demande se
   await loginAndSetupMfa(page, ownerEmail, password);
   await page.goto("/rgpd");
   await page.getByLabel("Nom").fill(`Élodie ${lastName}`);
-  await page.getByRole("button", { name: "Rechercher" }).click();
+  await page.getByRole("button", { name: "Rechercher", exact: true }).click();
   await expect(page.getByRole("heading", { name: /données trouvées/ })).toBeVisible();
   await page.getByRole("button", { name: "Tout cocher" }).click();
 
@@ -93,7 +93,7 @@ test("RGPD-03 — la titulaire prévisualise puis valide l'oubli ; la demande se
   // La personne est introuvable ; la demande est close.
   await page.goto("/rgpd");
   await page.getByLabel("Nom").fill(`Élodie ${lastName}`);
-  await page.getByRole("button", { name: "Rechercher" }).click();
+  await page.getByRole("button", { name: "Rechercher", exact: true }).click();
   await expect(page.getByText("Aucune donnée ne correspond à cette personne.")).toBeVisible();
   await page.goto("/rgpd/demandes");
   await expect(page.getByRole("listitem").filter({ hasText: `Élodie ${lastName}` })).toContainText("close");

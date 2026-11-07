@@ -136,6 +136,10 @@ Chaque étape est livrée en une PR (tests, 375 px, axe-core), mise sur le stagi
 - Les repères remplacent les visites focus et les textes d'aide en fenêtre (AIDE-05, AIDE-01) ;
   « parcourir les repères dans l'ordre » remplace la visite.
 - Accessibles au clavier ; le texte des repères est dans les fichiers de traduction.
+- Les écrans sans repères gardent un bouton « ? » identique, qui ouvre le même panneau avec le
+  seul texte d'aide de l'écran (plus de bulle qui se déplie dans la page).
+- Le centre d'aide affiche « Repères vus » ou « À découvrir » par écran ; plus d'étape « mise de
+  côté » ni de pastille « Reprendre la visite ».
 
 ### AIDE-12 — Centre d'aide par écran, avec captures réelles
 
@@ -160,6 +164,9 @@ Chaque étape est livrée en une PR (tests, 375 px, axe-core), mise sur le stagi
 - Vue d'ensemble : état des services, organisations actives, comptes d'équipe, comptes
   connectés sur 30 jours, événements créés ce mois, bloc « À faire » (invitations expirées,
   double authentification non configurée, dernière sauvegarde), tendance sur 6 mois.
+- « Prise en main » et « Organisations » paginées (constat de l'étape 6b : avec plusieurs
+  milliers d'organisations, l'écran actuel qui les affiche toutes se fige dans le navigateur) ;
+  l'indicateur « visites mises de côté » disparaît (les repères n'ont plus d'étape).
 - Organisations en tableau ; une ligne ouvre un panneau : modules souscrits, comptes, prise en
   main. Toujours aucune donnée métier (ADR 0029) ; test : l'Admin n'accède à aucune donnée
   métier par ces écrans.

@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { createAppConnection } from "@symbola/db/client";
 import { formatDate, formatFileSize, type Locale } from "@symbola/i18n";
-import { HelpButton } from "@symbola/ui";
+import { ScreenHelp } from "@/app/screen-help";
 import { getImportDraft } from "@/modules/hub/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { cancelImportAction } from "../actions";
@@ -43,7 +43,7 @@ export default async function ImportDraftPage({ params }: { params: Promise<{ im
   return (
     <main>
       <h1>{t("draftTitle", { fileName: draft.fileName })}</h1>
-      <HelpButton title={tHelp("importFile.title")} body={tHelp("importFile.body")} />
+      <ScreenHelp title={tHelp("importFile.title")} body={tHelp("importFile.body")} />
       <ImportSteps current={gapsDone ? 4 : draft.matching ? 3 : draft.mapping ? 2 : 1} />
 
       <section aria-labelledby="import-detected">

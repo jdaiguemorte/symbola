@@ -3,7 +3,7 @@
 // compte marié (seulement des nombres, sur l'écran Activité).
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
-import { HelpButton } from "@symbola/ui";
+import { ScreenHelp } from "@/app/screen-help";
 import { formatDateTime, type Locale } from "@symbola/i18n";
 import { createAppConnection } from "@symbola/db/client";
 import { listOrganizationsSupport } from "@/modules/hub/service";
@@ -42,7 +42,7 @@ export default async function AdminAccountsPage({ searchParams }: { searchParams
   return (
     <main>
       <h1>{t("title")}</h1>
-      <HelpButton title={tHelp("adminAccounts.title")} body={tHelp("adminAccounts.body")} />
+      <ScreenHelp title={tHelp("adminAccounts.title")} body={tHelp("adminAccounts.body")} />
       <p>
         <Link href="/admin">{t("backToAdmin")}</Link>
       </p>

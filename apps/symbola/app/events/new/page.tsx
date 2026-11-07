@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { HelpButton } from "@symbola/ui";
+import { ScreenHelp } from "@/app/screen-help";
 import { listProspectSources } from "@/modules/events/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isEventsModuleEnabled } from "../module-access";
@@ -35,7 +35,7 @@ export default async function NewProspectPage({ searchParams }: { searchParams: 
   return (
     <main>
       <h1>{t(confirmed ? "newConfirmedEvent" : "newProspect")}</h1>
-      <HelpButton title={tHelp("eventsNew.title")} body={tHelp("eventsNew.body")} />
+      <ScreenHelp title={tHelp("eventsNew.title")} body={tHelp("eventsNew.body")} />
       {/* EVT-07 : sans source, la création est impossible ; on dit pourquoi et comment y remédier. */}
       {sources.length === 0 ? (
         <section aria-labelledby="no-sources-title" className="card">

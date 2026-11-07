@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { createAppConnection } from "@symbola/db/client";
 import { formatCalendarDate, formatDateTime, type Locale } from "@symbola/i18n";
-import { HelpButton } from "@symbola/ui";
+import { ScreenHelp } from "@/app/screen-help";
 import { getEvent } from "@/modules/events/service";
 import { computeLegalMention, getOrganizationProfile } from "@/modules/hub/service";
 import {
@@ -89,7 +89,7 @@ export default async function QuotePage({ params }: { params: Promise<{ quoteId:
     <main>
       <h1>{t("quoteTitle", { number: quote.number })}</h1>
       {quote.isDemo ? <p role="status">{t("demoQuote")}</p> : null}
-      <HelpButton title={tHelp("quotesDetail.title")} body={tHelp("quotesDetail.body")} />
+      <ScreenHelp title={tHelp("quotesDetail.title")} body={tHelp("quotesDetail.body")} />
       <p>
         {t("forEvent")} <Link href={`/events/${quote.eventId}`}>{clientNames}</Link>
         {event?.eventDate ? ` — ${formatCalendarDate(event.eventDate, locale)}` : ""}

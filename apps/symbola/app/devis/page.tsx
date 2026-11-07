@@ -5,7 +5,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatAmount, type Locale } from "@symbola/i18n";
-import { HelpButton } from "@symbola/ui";
+import { ScreenHelp } from "@/app/screen-help";
 import { eventNames, listEvents } from "@/modules/events/service";
 import { listQuotes, type QuoteStatus } from "@/modules/quotes/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
@@ -59,7 +59,7 @@ export default async function QuotesListPage({ searchParams }: { searchParams: P
           </p>
         </div>
         <div className="toolbar">
-          <HelpButton title={tHelp("allQuotes.title")} body={tHelp("allQuotes.body")} />
+          <ScreenHelp title={tHelp("allQuotes.title")} body={tHelp("allQuotes.body")} />
           <GearLink href="/devis/parametres" label={t("settingsTitle")} />
         </div>
       </div>

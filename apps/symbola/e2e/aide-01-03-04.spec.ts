@@ -1,18 +1,14 @@
-// AIDE-01 — « Une visite guidée courte montre les fonctions principales,
-// écran par écran. Il peut la passer. Elle se relance à tout moment depuis
-// le bouton « ? » du module. »
-// AIDE-03 — « Chaque écran a un bouton « ? » qui ouvre un article court sur
-// ce que l'on peut y faire. L'aide est consultable et cherchable depuis le
-// hub. »
-// AIDE-04 — « Le tableau de bord affiche une liste des premiers pas. Il
-// peut la masquer. »
+// AIDE-11 (lot 13, remplace la visite guidée d'AIDE-01) — les repères de
+// l'écran s'affichent d'office à la première ouverture, puis seulement au
+// clic sur « ? ». AIDE-03 — l'aide est consultable et cherchable depuis le
+// hub. (AIDE-04, liste des premiers pas : retirée au lot 13, HUB-15.)
 import { randomUUID } from "node:crypto";
 import AxeBuilder from "@axe-core/playwright";
 import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import * as OTPAuth from "otpauth";
-import { clickMenuLink, readyOrganization } from "./helpers";
+import { clickMenuLink, landmarksPanel, readyOrganization } from "./helpers";
 
 async function loginAndSetupMfa(page: Page, email: string, password: string): Promise<void> {
   await page.goto("/login");
@@ -41,39 +37,56 @@ async function createTestUser(): Promise<{ email: string; password: string }> {
   return { email, password };
 }
 
-// Lot 10 : visites ouvertes d'office (sans la préférence posée par la
-// configuration des autres parcours).
+// Repères ouverts d'office (sans la préférence posée par la configuration
+// des autres parcours).
 test.use({ storageState: { cookies: [], origins: [] } });
 
-test("AIDE-01/03/04 — visite guidée, aide et liste premiers pas sur l'accueil", async ({ page }) => {
+test("AIDE-11 / AIDE-03 — repères de l'accueil, aide consultable", async ({ page }) => {
   const { email, password } = await createTestUser();
   await loginAndSetupMfa(page, email, password);
 
-  // AIDE-01 : la visite s'affiche automatiquement à la première ouverture.
-  const tour = page.getByRole("dialog", { name: "Bienvenue sur Symbola" });
-  await expect(tour).toBeVisible();
+  // Lot 13 (AIDE-11) : les repères de l'écran s'affichent d'office à la
+  // première ouverture, sans bloquer l'écran.
+  const panel = landmarksPanel(page, "Tableau de bord");
+  await expect(panel).toBeVisible();
+  await expect(page.getByRole("button", { name: "Repère 1 : Bienvenue sur Symbola" })).toBeVisible();
   let violations = await new AxeBuilder({ page }).analyze();
   expect(violations.violations, JSON.stringify(violations.violations, null, 2)).toEqual([]);
 
-  await page.getByRole("button", { name: "Continuer" }).click();
-  await expect(page.getByRole("dialog", { name: "Vos paramètres" })).toBeVisible();
-  await page.getByRole("button", { name: "Continuer" }).click();
-  await expect(page.getByRole("dialog", { name: "De l'aide à tout moment" })).toBeVisible();
-  await page.getByRole("button", { name: "Terminer la visite" }).click();
-  await expect(tour).toBeHidden();
+  // Un clic dans la liste des repères l'explique (le repère du menu est
+  // masqué sur téléphone, menu replié) ; « Repère suivant » les parcourt.
+  await panel.getByRole("button", { name: "Vos paramètres" }).click();
+  await expect(panel.getByRole("heading", { name: "Vos paramètres", level: 3 })).toBeVisible();
+  await panel.getByRole("button", { name: "Repère suivant" }).click();
+  await expect(panel.getByRole("heading", { name: "De l'aide à tout moment", level: 3 })).toBeVisible();
+  await expect(panel.getByRole("button", { name: "Repère suivant" })).toBeDisabled();
+  await page.keyboard.press("Escape");
+  await expect(panel).toHaveCount(0);
 
-  // La visite déjà vue ne se réaffiche pas automatiquement.
+  // Déjà vus, ils ne se réaffichent pas d'eux-mêmes ; le bouton « ? » les rouvre.
   await page.reload();
-  await expect(page.getByRole("dialog")).toBeHidden();
+  await expect(page.getByRole("button", { name: "Aide sur cet écran" })).toBeVisible();
+  await expect(panel).toHaveCount(0);
+  await page.getByRole("button", { name: "Aide sur cet écran" }).click();
+  await expect(panel).toBeVisible();
+  await expect(panel.getByRole("heading", { name: "Bienvenue sur Symbola", level: 3 })).toBeVisible();
+  await panel.getByRole("button", { name: "Fermer l'aide" }).click();
+  await expect(panel).toHaveCount(0);
 
-  // AIDE-03 : le bouton « ? » ouvre un article, avec un lien pour relancer
-  // la visite.
-  await page.locator('summary[aria-label="Tableau de bord"]').click();
-  await expect(page.getByRole("heading", { name: "Tableau de bord" })).toBeVisible();
-  await page.getByRole("button", { name: "Relancer la visite guidée" }).click();
-  await expect(page.getByRole("dialog", { name: "Bienvenue sur Symbola" })).toBeVisible();
-  await page.getByRole("button", { name: "Plus tard" }).click();
-  await expect(page.getByRole("dialog")).toBeHidden();
+  // Un écran sans repères : le même « ? » ouvre le même panneau, avec le
+  // seul texte d'aide de l'écran.
+  await page.goto("/taches");
+  const help = page.getByRole("button", { name: "Aide sur cet écran" });
+  await help.click();
+  await expect(help).toHaveAttribute("aria-expanded", "true");
+  const tasksPanel = landmarksPanel(page, "Les tâches de tous vos mariages");
+  await expect(tasksPanel).toContainText("triées par échéance");
+  await expect(tasksPanel.getByRole("list")).toHaveCount(0);
+  violations = await new AxeBuilder({ page }).analyze();
+  expect(violations.violations, JSON.stringify(violations.violations, null, 2)).toEqual([]);
+  await help.click();
+  await expect(tasksPanel).toHaveCount(0);
+  await page.goto("/");
 
   // Lot 13 (HUB-15) : plus de liste « premiers pas » ni de barre d'aide
   // permanente ; l'accueil montre ce qui attend.

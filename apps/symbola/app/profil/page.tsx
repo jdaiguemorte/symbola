@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { HelpButton } from "@symbola/ui";
+import { ScreenHelp } from "@/app/screen-help";
 import { getAuthContext } from "@/lib/auth-context";
 import { LanguageForm } from "./language-form";
 
@@ -15,7 +15,7 @@ export default async function ProfilePage() {
   return (
     <main>
       <h1>{t("title")}</h1>
-      <HelpButton title={tHelp("profile.title")} body={tHelp("profile.body")} />
+      <ScreenHelp title={tHelp("profile.title")} body={tHelp("profile.body")} />
       <LanguageForm currentLanguage={auth.user.language ?? "fr"} />
     </main>
   );

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatCalendarDate, formatMonth, type Locale } from "@symbola/i18n";
-import { HelpButton } from "@symbola/ui";
+import { ScreenHelp } from "@/app/screen-help";
 import { ClientAccessDeniedError, getClientEventView, getClientVendorOptions, monthKey, type EventTask } from "@/modules/events/service";
 import { ClientBudgetAccessDeniedError, getClientBudgetView } from "@/modules/budget/service";
 import { getClientAuthContext } from "@/lib/auth-context";
@@ -84,7 +84,7 @@ export default async function ClientEventPage({ params }: { params: Promise<{ id
         <Link href="/espace">{t("backToSpace")}</Link>
       </p>
       <h1>{view.event.clients.map((client) => client.firstName).join(" & ")}</h1>
-      <HelpButton title={tHelp("clientEvent.title")} body={tHelp("clientEvent.body")} />
+      <ScreenHelp title={tHelp("clientEvent.title")} body={tHelp("clientEvent.body")} />
       <p>
         {tEvents("eventDate")} : {view.event.eventDate ? formatCalendarDate(view.event.eventDate, locale) : t("dateUnset")}
       </p>

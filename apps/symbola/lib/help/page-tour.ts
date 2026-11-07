@@ -1,9 +1,9 @@
-// Lot 10 (AIDE-05) — état d'une visite focus pour une page : ouverte d'office
-// à la première visite, ou à la demande (« ?visite=reprendre » depuis la barre
-// ou le centre d'aide), à l'étape où elle avait été mise de côté.
+// Lot 10 (AIDE-05), revu au lot 13 (AIDE-11) — repères d'un écran : affichés
+// d'office à la première ouverture (décision C), ou à la demande
+// (« ?visite=revoir » depuis le centre d'aide).
 import { cookies } from "next/headers";
 import { getTranslations } from "next-intl/server";
-import type { FocusTourStep } from "@symbola/ui";
+import type { LandmarkStep } from "@symbola/ui";
 import { createAppConnection } from "@symbola/db/client";
 import { getHelpProgress } from "@/modules/hub/service";
 import { AUTO_TOURS_COOKIE } from "./preferences";
@@ -11,11 +11,8 @@ import { TOUR_TARGETS, type TourKey } from "./tours";
 
 export type PageTourState = {
   tourKey: TourKey;
-  steps: FocusTourStep[];
+  steps: LandmarkStep[];
   initialOpen: boolean;
-  initialStep: number;
-  // Étape où la visite a été mise de côté (barre d'aide : « Reprendre »).
-  postponedStep: number | null;
 };
 
 export async function loadPageTour(userId: string, tourKey: TourKey, resume?: string): Promise<PageTourState> {
@@ -38,7 +35,5 @@ export async function loadPageTour(userId: string, tourKey: TourKey, resume?: st
     tourKey,
     steps,
     initialOpen: (!entry && autoTours) || asked,
-    initialStep: resume === "reprendre" && entry && entry.status !== "completed" ? entry.step : 0,
-    postponedStep: entry?.status === "postponed" && !asked ? entry.step : null,
   };
 }

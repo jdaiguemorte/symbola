@@ -202,9 +202,6 @@
     "privacyExportRetentionDays": "Durée pendant laquelle un export RGPD reste téléchargeable (jours)"
   },
   "Tour": {
-    "skip": "Passer",
-    "next": "Suivant",
-    "finish": "Terminer la visite",
     "hub": [
       {
         "title": "Bienvenue sur Symbola",
@@ -277,11 +274,6 @@
         "body": "Les mariés invités voient leur budget en lecture seule dans leur espace."
       }
     ],
-    "continue": "Continuer",
-    "back": "Retour",
-    "later": "Plus tard",
-    "stepOf": "Étape {step} sur {total}",
-    "laterHint": "« Plus tard » garde votre place : la visite reprend ici depuis la barre d'aide.",
     "event": [
       {
         "title": "La fiche d'un événement",
@@ -324,7 +316,6 @@
     ]
   },
   "Help": {
-    "relaunchTour": "Relancer la visite guidée",
     "login": {
       "title": "Connexion",
       "body": "Connectez-vous avec votre e-mail et votre mot de passe. Après plusieurs échecs, le compte est verrouillé temporairement pour le protéger."
@@ -1862,7 +1853,6 @@
     "label": "Barre d'aide",
     "progress": "Tutoriels faits : {completed} sur {total}",
     "progressShort": "Tutoriels {completed}/{total}",
-    "resumeTour": "Reprendre la visite (étape {step})",
     "resumeTutorial": "Reprendre : {title}",
     "collapse": "Replier la barre d'aide",
     "inviteKicker": "Découvrir en {minutes} minutes",
@@ -1919,7 +1909,7 @@
     "nextSuggestion": "Prochaine étape conseillée : {title} ({minutes} minutes).",
     "continue": "Continuer ma prise en main",
     "allDone": "Bravo, vous avez suivi tous les tutoriels. Ils restent disponibles ici pour les revoir.",
-    "autoTours": "Proposer automatiquement les visites et les tutoriels à la première ouverture d'un écran",
+    "autoTours": "Afficher d'office les repères et proposer les tutoriels à la première ouverture d'un écran",
     "modules": {
       "events": "Événements",
       "quotes": "Devis et factures",
@@ -1927,19 +1917,17 @@
       "hub": "Paramètres et données",
       "vendors": "Prestataires"
     },
-    "tourTitle": "Visite : {title}",
-    "tourKind": "Visite · 1 min",
-    "tourFromEvent": "Visite · depuis la fiche d'un événement",
+    "tourTitle": "Repères : {title}",
+    "tourKind": "Repères · 1 min",
+    "tourFromEvent": "Repères · depuis la fiche d'un événement",
     "tutorialKind": "Tutoriel · {minutes} min",
-    "stateDone": "Terminé",
     "stateInProgress": "En cours · étape {step}",
-    "statePostponed": "Mise de côté · étape {step}",
     "stateNew": "À découvrir",
-    "actionReview": "Revoir",
-    "actionResume": "Reprendre",
-    "actionStart": "Commencer",
     "articlesTitle": "Articles d'aide",
-    "openTutorials": "Voir le parcours des tutoriels"
+    "openTutorials": "Voir le parcours des tutoriels",
+    "stateSeen": "Repères vus",
+    "actionShow": "Voir les repères",
+    "actionShowAgain": "Revoir les repères"
   },
   "Search": {
     "label": "Rechercher",
@@ -2721,5 +2709,13 @@
     "conflictBody": "Vous en êtes à l’étape {step} de « {title} ». Un seul tutoriel à la fois : terminez-le d’abord, ou abandonnez-le (son exemple fictif sera supprimé) pour commencer « {next} ».",
     "conflictFinish": "Le terminer d’abord",
     "conflictAbandon": "L’abandonner et commencer celui-ci"
+  },
+  "Landmarks": {
+    "toggle": "Aide sur cet écran",
+    "panel": "Aide : {screen}",
+    "close": "Fermer l'aide",
+    "previous": "Repère précédent",
+    "next": "Repère suivant",
+    "marker": "Repère {number} : {title}"
   }
 }

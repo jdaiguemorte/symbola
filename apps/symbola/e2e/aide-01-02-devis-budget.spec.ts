@@ -1,5 +1,5 @@
-// AIDE-01/02, lot 4 — visites guidées des modules Devis et Budget (première
-// ouverture, relance par « ? »), puis essai guidé du module Devis : devis
+// AIDE-11/02 — repères des modules Devis et Budget (affichés d’office à la
+// première ouverture, rouverts par « ? »), puis essai guidé du module Devis : devis
 // fictif signé sur la page de signature d'essai (aucun e-mail à un tiers),
 // facture DEMO, tout supprimé à la fin de l'essai. Ordinateur et 375 px,
 // axe-core sur chaque écran.
@@ -10,7 +10,7 @@ import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import * as OTPAuth from "otpauth";
 import { saveOnboardingStep } from "../modules/hub/service";
-import { readyOrganization } from "./helpers";
+import { closeLandmarks, landmarksPanel, readyOrganization } from "./helpers";
 
 async function loginAndSetupMfa(page: Page, email: string, password: string) {
   await page.goto("/login");
@@ -44,39 +44,37 @@ async function newPlanner(page: Page, tag: string) {
   await loginAndSetupMfa(page, email, password);
 }
 
-// Lot 10 : visites ouvertes d'office (sans la préférence posée par la
+// Repères ouverts d'office (sans la préférence posée par la
 // configuration des autres parcours).
 test.use({ storageState: { cookies: [], origins: [] } });
 
-test("AIDE-01 — visites guidées des modules Devis et Budget, relançables depuis « ? »", async ({ page }) => {
+test("AIDE-11 — repères des modules Devis et Budget, rouverts depuis « ? »", async ({ page }) => {
   test.setTimeout(90_000);
   await newPlanner(page, "tours");
 
   await page.goto("/devis/catalogue");
-  await page.waitForLoadState("networkidle");
-  const tour = page.getByRole("dialog");
-  await expect(tour).toHaveAccessibleName("Votre catalogue");
+  const catalog = landmarksPanel(page, "Catalogue des prestations");
+  await expect(catalog).toBeVisible();
+  await expect(catalog.getByRole("heading", { name: "Votre catalogue", level: 3 })).toBeVisible();
   await expectNoAxeViolation(page);
-  await tour.getByRole("button", { name: "Continuer" }).click();
-  await expect(tour).toHaveAccessibleName("Composer un devis");
-  await tour.getByRole("button", { name: "Plus tard" }).click();
-  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await catalog.getByRole("button", { name: "Repère suivant" }).click();
+  await expect(catalog.getByRole("heading", { name: "Composer un devis", level: 3 })).toBeVisible();
+  await closeLandmarks(page, "Catalogue des prestations");
   await page.reload();
-  await page.waitForLoadState("networkidle");
-  await expect(page.getByRole("dialog")).toHaveCount(0);
-  await page.locator('summary[aria-label="Catalogue des prestations"]').click();
-  await page.getByRole("button", { name: "Relancer la visite guidée" }).click();
-  await expect(page.getByRole("dialog")).toHaveAccessibleName("Votre catalogue");
-  await page.getByRole("dialog").getByRole("button", { name: "Plus tard" }).click();
+  await expect(page.getByRole("button", { name: "Aide sur cet écran" })).toBeVisible();
+  await expect(catalog).toHaveCount(0);
+  await page.getByRole("button", { name: "Aide sur cet écran" }).click();
+  await expect(catalog.getByRole("heading", { name: "Votre catalogue", level: 3 })).toBeVisible();
+  await closeLandmarks(page, "Catalogue des prestations");
 
   await page.goto("/budget/parametres");
-  await page.waitForLoadState("networkidle");
-  await expect(page.getByRole("dialog")).toHaveAccessibleName("Vos modèles de budget");
+  const budget = landmarksPanel(page, "Modèles de budget");
+  await expect(budget.getByRole("heading", { name: "Vos modèles de budget", level: 3 })).toBeVisible();
   await expectNoAxeViolation(page);
-  await page.getByRole("dialog").getByRole("button", { name: "Plus tard" }).click();
+  await closeLandmarks(page, "Modèles de budget");
   await page.reload();
-  await page.waitForLoadState("networkidle");
-  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Aide sur cet écran" })).toBeVisible();
+  await expect(budget).toHaveCount(0);
 });
 
 test("AIDE-02 — essai guidé du module Devis : devis fictif signé et facturé, supprimé avec l'essai", async ({ page }) => {
@@ -84,12 +82,11 @@ test("AIDE-02 — essai guidé du module Devis : devis fictif signé et facturé
   await newPlanner(page, "essai-devis");
 
   await page.goto("/events");
-  await page.waitForLoadState("networkidle");
-  await page.getByRole("dialog").getByRole("button", { name: "Plus tard" }).click();
+  await closeLandmarks(page, "Liste des événements");
   await page.getByRole("button", { name: "Démarrer l'essai" }).click();
   await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}$/);
-  // Lot 10 : la visite focus de la fiche s'ouvre d'elle-même ; ce parcours la met de côté.
-  await page.getByRole("dialog", { name: "La fiche d'un événement" }).getByRole("button", { name: "Plus tard" }).click();
+  // Les repères de la fiche s'affichent d'eux-mêmes ; ce parcours les ferme.
+  await closeLandmarks(page, "Fiche de l'événement");
   const trialUrl = page.url();
   await expect(page.getByText(/Composez un devis fictif/)).toBeVisible();
   await page.waitForLoadState("networkidle");

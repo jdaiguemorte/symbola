@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { HelpButton } from "@symbola/ui";
+import { ScreenHelp } from "@/app/screen-help";
 import { TotpSetup } from "../totp-setup";
 import { MfaForm } from "./mfa-form";
 import { getMfaSetupState } from "./actions";
@@ -14,7 +14,7 @@ export default async function MfaPage() {
   return (
     <main>
       <h1>{t("title")}</h1>
-      <HelpButton title={tHelp("mfa.title")} body={tHelp("mfa.body")} />
+      <ScreenHelp title={tHelp("mfa.title")} body={tHelp("mfa.body")} />
       {state.setup ? (
         <>
           <p>{t("scanInstructions")}</p>

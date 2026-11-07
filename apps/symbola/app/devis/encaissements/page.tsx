@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import type { Locale } from "@symbola/i18n";
-import { HelpButton } from "@symbola/ui";
+import { ScreenHelp } from "@/app/screen-help";
 import { listUnpaidPayments } from "@/modules/quotes/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isQuotesModuleEnabled } from "../module-access";
@@ -34,7 +34,7 @@ export default async function UpcomingPaymentsPage() {
   return (
     <main>
       <h1>{t("paymentsTitle")}</h1>
-      <HelpButton title={tHelp("quotesPayments.title")} body={tHelp("quotesPayments.body")} />
+      <ScreenHelp title={tHelp("quotesPayments.title")} body={tHelp("quotesPayments.body")} />
       <UpcomingPayments organizationId={organizationId} view={view} locale={locale} headingLevel={2} />
     </main>
   );

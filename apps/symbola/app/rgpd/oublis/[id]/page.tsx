@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { z } from "zod";
 import { createAppConnection } from "@symbola/db/client";
-import { HelpButton } from "@symbola/ui";
+import { ScreenHelp } from "@/app/screen-help";
 import { getPrivacyErasure, PrivacyErasureNotFoundError, type PrivacyErasureView } from "@/modules/hub/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { retryErasureAction } from "../../erasure-actions";
@@ -48,7 +48,7 @@ export default async function ErasurePage({ params }: { params: Promise<{ id: st
         <Link href="/rgpd">{t("backToSearch")}</Link>
       </p>
       <h1>{t("erasurePageTitle", { person: erasure.request.personLabel })}</h1>
-      <HelpButton title={tHelp("privacyErasure.title")} body={tHelp("privacyErasure.body")} />
+      <ScreenHelp title={tHelp("privacyErasure.title")} body={tHelp("privacyErasure.body")} />
       <p role="status">{t(`erasureStatus.${erasure.status}`)}</p>
       {proof.lines.map((line) => (
         <p key={line}>{line}</p>

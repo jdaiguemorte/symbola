@@ -1,11 +1,11 @@
 "use client";
 
-// Lot 10 (AIDE-05, AIDE-07) — lien entre la visite focus de l'écran affiché
-// et la barre d'aide : la visite s'y déclare (mise de côté ou non), la barre
-// propose de la reprendre.
+// Lot 10 (AIDE-05, AIDE-07), revu au lot 13 (AIDE-11) — lien entre les
+// repères de l'écran affiché et la pastille « Reprendre » : ouverts, ils la
+// masquent.
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
 
-export type ActiveTour = { key: string; postponedStep: number | null; open: boolean; resume: () => void };
+export type ActiveTour = { key: string; open: boolean };
 
 const HelpContext = createContext<{ tour: ActiveTour | null; setTour: (tour: ActiveTour | null) => void } | null>(null);
 

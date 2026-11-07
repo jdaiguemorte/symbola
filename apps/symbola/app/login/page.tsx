@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import { useTranslations } from "next-intl";
-import { HelpButton } from "@symbola/ui";
+import { ScreenHelp } from "@/app/screen-help";
 import { loginAction, type LoginFormState } from "./actions";
 
 export default function LoginPage() {
@@ -14,7 +14,7 @@ export default function LoginPage() {
   return (
     <main>
       <h1>{t("title")}</h1>
-      <HelpButton title={tHelp("login.title")} body={tHelp("login.body")} />
+      <ScreenHelp title={tHelp("login.title")} body={tHelp("login.body")} />
       <form action={formAction}>
         <label>
           {t("email")}

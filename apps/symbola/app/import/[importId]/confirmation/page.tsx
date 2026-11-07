@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatAmount, formatCalendarDate, type Locale } from "@symbola/i18n";
-import { HelpButton } from "@symbola/ui";
+import { ScreenHelp } from "@/app/screen-help";
 import type { ImportValue } from "@symbola/import-engine";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { getImportPreview, type PreviewRow } from "@/lib/import/apply";
@@ -51,7 +51,7 @@ export default async function ImportConfirmationPage({ params }: { params: Promi
   return (
     <main>
       <h1>{t("confirmTitle", { fileName: preview.fileName })}</h1>
-      <HelpButton title={tHelp("importConfirm.title")} body={tHelp("importConfirm.body")} />
+      <ScreenHelp title={tHelp("importConfirm.title")} body={tHelp("importConfirm.body")} />
       <ImportSteps current={4} />
       <p role="status">
         {t("previewSummary", { created: preview.counts.creations, updated: preview.counts.updates, rejected: preview.rejectedCount })}

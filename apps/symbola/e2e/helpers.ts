@@ -63,3 +63,16 @@ export async function changeEventStatus(page: Page, status: string): Promise<voi
   await page.getByRole("form", { name: "Confirmer le changement de statut" }).getByRole("button", { name: "Confirmer" }).click();
   await expect(page.getByRole("list", { name: "Statut de l'événement" }).getByRole("listitem").filter({ hasText: status })).toHaveAttribute("aria-current", "step");
 }
+
+// Lot 13 (AIDE-11) — panneau des repères d'un écran (« Aide : <écran> »).
+export function landmarksPanel(page: Page, screen: string) {
+  return page.getByRole("complementary", { name: `Aide : ${screen}` });
+}
+
+// Ferme le panneau des repères s'il est ouvert (affiché d'office une fois).
+export async function closeLandmarks(page: Page, screen: string): Promise<void> {
+  const panel = landmarksPanel(page, screen);
+  await expect(panel).toBeVisible();
+  await panel.getByRole("button", { name: "Fermer l'aide" }).click();
+  await expect(panel).toHaveCount(0);
+}

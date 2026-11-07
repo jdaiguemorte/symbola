@@ -63,7 +63,7 @@ test("RGPD-01 — la titulaire retrouve une personne et les données de son év�
   await expectNoAxeViolation(page);
 
   await page.getByLabel("Nom").fill(`elodie ${lastName.toUpperCase()}`);
-  await page.getByRole("button", { name: "Rechercher" }).click();
+  await page.getByRole("button", { name: "Rechercher", exact: true }).click();
   await expect(page.getByRole("heading", { name: /données trouvées/ })).toBeVisible();
   const eventsGroup = page.getByRole("region", { name: "Événements" });
   await expect(eventsGroup).toContainText(`Client : Élodie ${lastName}`);
@@ -82,5 +82,5 @@ test("RGPD-01 — la titulaire retrouve une personne et les données de son év�
   await expect(page.getByRole("link", { name: "Données personnelles (RGPD)" })).toHaveCount(0);
   await page.goto("/rgpd");
   await expect(page.getByText("Ce module est réservé à la titulaire du compte.")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Rechercher" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Rechercher", exact: true })).toHaveCount(0);
 });

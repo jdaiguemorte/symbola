@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { createAppConnection } from "@symbola/db/client";
 import { formatDateTime, formatFileSize, type Locale } from "@symbola/i18n";
-import { HelpButton } from "@symbola/ui";
+import { ScreenHelp } from "@/app/screen-help";
 import { getImportLimits, listImports, type ImportLimits, type ImportSummary } from "@/modules/hub/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { availableImportEntityTypes } from "./access";
@@ -37,7 +37,7 @@ export default async function ImportPage() {
   return (
     <main>
       <h1>{t("title")}</h1>
-      <HelpButton title={tHelp("importFile.title")} body={tHelp("importFile.body")} />
+      <ScreenHelp title={tHelp("importFile.title")} body={tHelp("importFile.body")} />
       <p>{t("intro")}</p>
       <ImportSteps current={0} />
       {entityTypes.length === 0 ? (

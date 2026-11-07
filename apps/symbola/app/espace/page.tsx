@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatCalendarDate, type Locale } from "@symbola/i18n";
-import { HelpButton } from "@symbola/ui";
+import { ScreenHelp } from "@/app/screen-help";
 import { listClientEvents } from "@/modules/events/service";
 import { getClientAuthContext } from "@/lib/auth-context";
 import { isEventsModuleEnabled } from "@/app/events/module-access";
@@ -34,7 +34,7 @@ export default async function ClientSpacePage() {
   return (
     <main>
       <h1>{t("title")}</h1>
-      <HelpButton title={tHelp("clientSpace.title")} body={tHelp("clientSpace.body")} />
+      <ScreenHelp title={tHelp("clientSpace.title")} body={tHelp("clientSpace.body")} />
       <nav aria-label={t("accountNav")}>
         <Link href="/espace/securite">{t("securityLink")}</Link>
         {" · "}
