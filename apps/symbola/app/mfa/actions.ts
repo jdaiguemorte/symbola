@@ -2,9 +2,10 @@
 
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { confirmTotp, requireUser, resumeTotpSetup } from "@symbola/auth";
+import { confirmTotp, requireUser, resumeTotpSetup, type ConfirmTotpResult } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
-import { getSessionToken } from "@/lib/auth-context";
+import { getSessionToken, setSessionCookie } from "@/lib/auth-context";
+import { sendMfaLockMail } from "@/lib/mfa-lock-mail";
 import { totpSetupDisplay } from "@/lib/totp-qr";
 
 export async function getMfaSetupState() {
@@ -36,17 +37,24 @@ export async function confirmMfaAction(
 
   const code = String(formData.get("code") ?? "");
   const { sql, db } = createAppConnection();
-  let confirmed: boolean;
+  let result: ConfirmTotpResult;
   try {
-    confirmed = await confirmTotp(db, { sessionToken: token, token: code });
+    result = await confirmTotp(db, { sessionToken: token, token: code });
   } finally {
     await sql.end();
   }
 
-  if (!confirmed) {
+  if (result.outcome === "locked") {
+    if (result.notify) await sendMfaLockMail(result.notify);
+    const t = await getTranslations("Mfa");
+    return { error: t("locked") };
+  }
+  if (result.outcome === "invalid") {
     const t = await getTranslations("Mfa");
     return { error: t("invalidCode") };
   }
 
+  // SEC-01 : nouveau jeton de session après la double authentification.
+  await setSessionCookie(result.sessionToken);
   redirect("/");
 }

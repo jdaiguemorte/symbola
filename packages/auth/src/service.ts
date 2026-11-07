@@ -2,20 +2,26 @@
 // autre code ne doit appeler packages/db sur le schéma hub, ni la lib
 // d'argon2/otpauth directement : tout passe par les fonctions exportées
 // d'ici (createAppUser, login, setupTotp, confirmTotp, requireUser…).
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, gte, isNotNull, isNull, like, lt, lte, not, or, sql, inArray } from "drizzle-orm";
 import type { AppDatabase } from "@symbola/db/client";
 import { sendMail } from "@symbola/mail";
 import { organizations, sessions, users } from "@symbola/db/schema/hub";
 import { hashPassword, verifyPassword } from "./password";
 import { isProfessionalRole, type Role } from "./roles";
 import { generateSessionToken, hashSessionToken } from "./session-token";
-import { buildTotpProvisioningUri, generateTotpSecret, verifyTotpToken } from "./totp";
+import { isSealedTotpSecret, openTotpSecret, readMfaEncryptionKey, sealTotpSecret } from "./secret-box";
+import { buildTotpProvisioningUri, generateTotpSecret, matchTotpStep } from "./totp";
 
 const SESSION_DURATION_MS = 8 * 60 * 60 * 1000; // 8h sans activité (PRD HUB-01, proposé)
 // Verrouillage de compte (PRD HUB-01) : 5 mots de passe faux d'affilée
 // bloquent la connexion 15 min, un e-mail part au titulaire.
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCKOUT_DURATION_MS = 15 * 60 * 1000;
+// SEC-01 (lot 16, ADR 0037) : même règle pour le code de double
+// authentification, comptée par compte (une nouvelle connexion ne la remet
+// pas à zéro).
+const MFA_MAX_FAILED_ATTEMPTS = 5;
+const MFA_LOCKOUT_DURATION_MS = 15 * 60 * 1000;
 
 export type AuthenticatedUser = {
   id: string;
@@ -116,9 +122,10 @@ export async function login(db: AppDatabase, email: string, password: string): P
 
 export async function setupTotp(db: AppDatabase, userId: string) {
   const secret = generateTotpSecret();
+  // SEC-01 : jamais en clair en base.
   const [user] = await db
     .update(users)
-    .set({ totpSecret: secret })
+    .set({ totpSecret: sealTotpSecret(secret, userId, readMfaEncryptionKey()), totpLastUsedStep: null, mfaFailedAttempts: 0, mfaLockedUntil: null })
     .where(eq(users.id, userId))
     .returning();
   if (!user) throw new Error("utilisateur introuvable");
@@ -141,37 +148,163 @@ export async function resumeTotpSetup(db: AppDatabase, userId: string) {
   if (!user) throw new Error("utilisateur introuvable");
   if (user.mfaEnabled) throw new Error("double authentification déjà confirmée");
   if (user.totpSecret) {
-    return { secret: user.totpSecret, provisioningUri: buildTotpProvisioningUri({ secret: user.totpSecret, email: user.email }) };
+    const secret = openTotpSecret(user.totpSecret, userId, readMfaEncryptionKey());
+    return { secret, provisioningUri: buildTotpProvisioningUri({ secret, email: user.email }) };
   }
   return setupTotp(db, userId);
 }
 
+export type ConfirmTotpResult =
+  // Nouveau jeton de session : l'ancien est révoqué (SEC-01), l'appelant
+  // remplace le cookie.
+  | { outcome: "confirmed"; sessionToken: string }
+  | { outcome: "invalid" }
+  // notify : le verrouillage vient d'être posé, l'app prévient le titulaire
+  // (e-mail traduit) ; nul pour les essais suivants pendant le verrouillage.
+  | { outcome: "locked"; notify: { email: string; language: "fr" | "en" | null } | null };
+
+type MfaAccount = { userId: string; email: string; language: "fr" | "en" | null };
+
 /**
- * Vérifie un code TOTP pour la session en cours et, s'il est valide, marque
- * cette session comme pleinement authentifiée (mfaVerified = true). Sert à
- * la fois à la configuration initiale et aux connexions suivantes.
+ * Vérifie un code TOTP pour la session en cours. Sert à la configuration
+ * initiale comme aux connexions suivantes. SEC-01 (lot 16, ADR 0037) :
+ * - 5 codes faux d'affilée verrouillent la validation 15 min pour le compte,
+ *   même un code juste est alors refusé ;
+ * - un code ne sert qu'une fois (pas de temps du dernier code accepté) ;
+ * - une validation émet un nouveau jeton de session et révoque l'ancien.
+ * `now` simule l'horloge dans les tests.
  */
 export async function confirmTotp(
   db: AppDatabase,
-  params: { sessionToken: string; token: string },
-): Promise<boolean> {
+  params: { sessionToken: string; token: string; now?: Date },
+): Promise<ConfirmTotpResult> {
+  const now = params.now ?? new Date();
   const tokenHash = hashSessionToken(params.sessionToken);
   const [row] = await db
-    .select({ userId: sessions.userId, totpSecret: users.totpSecret })
+    .select({
+      userId: sessions.userId,
+      email: users.email,
+      language: users.language,
+      totpSecret: users.totpSecret,
+      mfaLockedUntil: users.mfaLockedUntil,
+      expiresAt: sessions.expiresAt,
+    })
     .from(sessions)
     .innerJoin(users, eq(users.id, sessions.userId))
     .where(eq(sessions.tokenHash, tokenHash));
 
-  if (!row || !row.totpSecret) return false;
-  if (!verifyTotpToken({ secret: row.totpSecret, token: params.token })) return false;
+  if (!row || !row.totpSecret || row.expiresAt.getTime() < Date.now()) return { outcome: "invalid" };
+  if (row.mfaLockedUntil && row.mfaLockedUntil.getTime() > now.getTime()) return { outcome: "locked", notify: null };
 
-  await db
-    .update(sessions)
-    .set({ mfaVerified: true })
-    .where(eq(sessions.tokenHash, tokenHash));
-  await db.update(users).set({ mfaEnabled: true }).where(eq(users.id, row.userId));
+  const key = readMfaEncryptionKey();
+  const secret = openTotpSecret(row.totpSecret, row.userId, key);
+  const step = matchTotpStep({ secret, token: params.token.trim(), timestamp: now.getTime() });
+  const account: MfaAccount = { userId: row.userId, email: row.email, language: row.language };
+  if (step === null) return recordMfaFailure(db, account, now);
 
-  return true;
+  const newToken = generateSessionToken();
+  const confirmed = await db.transaction(async (tx) => {
+    // Consomme le code sous condition : deux envois simultanés du même code,
+    // ou un code rejoué, ne passent pas tous les deux.
+    const claimed = await tx
+      .update(users)
+      .set({
+        totpLastUsedStep: step,
+        mfaFailedAttempts: 0,
+        mfaLockedUntil: null,
+        mfaEnabled: true,
+        // Secret enregistré en clair avant le lot 16 : chiffré au passage.
+        ...(isSealedTotpSecret(row.totpSecret ?? "") ? {} : { totpSecret: sealTotpSecret(secret, row.userId, key) }),
+      })
+      .where(
+        and(
+          eq(users.id, row.userId),
+          or(isNull(users.totpLastUsedStep), lt(users.totpLastUsedStep, step)),
+          or(isNull(users.mfaLockedUntil), lte(users.mfaLockedUntil, now)),
+        ),
+      )
+      .returning({ id: users.id });
+    if (claimed.length === 0) return false;
+    const revoked = await tx.delete(sessions).where(eq(sessions.tokenHash, tokenHash)).returning({ id: sessions.id });
+    if (revoked.length === 0) throw new Error("session disparue pendant la validation");
+    await tx.insert(sessions).values({
+      userId: row.userId,
+      tokenHash: hashSessionToken(newToken),
+      mfaVerified: true,
+      expiresAt: new Date(Date.now() + SESSION_DURATION_MS),
+    });
+    return true;
+  });
+
+  return confirmed ? { outcome: "confirmed", sessionToken: newToken } : recordMfaFailure(db, account, now);
+}
+
+async function recordMfaFailure(db: AppDatabase, account: MfaAccount, now: Date): Promise<ConfirmTotpResult> {
+  const [counted] = await db
+    .update(users)
+    .set({ mfaFailedAttempts: sql`${users.mfaFailedAttempts} + 1` })
+    .where(eq(users.id, account.userId))
+    .returning({ attempts: users.mfaFailedAttempts });
+  if (!counted || counted.attempts < MFA_MAX_FAILED_ATTEMPTS) return { outcome: "invalid" };
+
+  // Un seul envoi concurrent pose le verrouillage (et prévient le titulaire).
+  const locked = await db
+    .update(users)
+    .set({ mfaFailedAttempts: 0, mfaLockedUntil: new Date(now.getTime() + MFA_LOCKOUT_DURATION_MS) })
+    .where(and(eq(users.id, account.userId), gte(users.mfaFailedAttempts, MFA_MAX_FAILED_ATTEMPTS)))
+    .returning({ id: users.id });
+  if (locked.length === 0) return { outcome: "locked", notify: null };
+  // Journal sans donnée personnelle : l'identifiant du compte seulement.
+  console.warn(`double authentification verrouillée après ${MFA_MAX_FAILED_ATTEMPTS} codes faux (compte ${account.userId})`);
+  return { outcome: "locked", notify: { email: account.email, language: account.language } };
+}
+
+/**
+ * SEC-01 (ADR 0037) — chiffre les secrets encore en clair (comptes créés avant
+ * le lot 16). Lancé au démarrage de l'app ; sans effet s'il n'y en a plus.
+ * `userIds` limite aux comptes donnés (tests). Renvoie le nombre chiffré.
+ */
+export async function sealLegacyTotpSecrets(db: AppDatabase, options: { userIds?: string[] } = {}): Promise<number> {
+  const key = readMfaEncryptionKey();
+  const rows = await db
+    .select({ id: users.id, totpSecret: users.totpSecret })
+    .from(users)
+    .where(and(isNotNull(users.totpSecret), not(like(users.totpSecret, "v1:%")), options.userIds ? inArray(users.id, options.userIds) : undefined));
+  let sealed = 0;
+  for (const row of rows) {
+    if (!row.totpSecret) continue;
+    const updated = await db
+      .update(users)
+      .set({ totpSecret: sealTotpSecret(row.totpSecret, row.id, key) })
+      .where(and(eq(users.id, row.id), eq(users.totpSecret, row.totpSecret)))
+      .returning({ id: users.id });
+    sealed += updated.length;
+  }
+  return sealed;
+}
+
+/**
+ * Retour arrière seulement (runbook de déploiement) : remet les secrets en
+ * clair avant de relancer une image antérieure au lot 16, qui ne sait pas les
+ * déchiffrer. Renvoie le nombre déchiffré.
+ */
+export async function unsealTotpSecrets(db: AppDatabase, options: { userIds?: string[] } = {}): Promise<number> {
+  const key = readMfaEncryptionKey();
+  const rows = await db
+    .select({ id: users.id, totpSecret: users.totpSecret })
+    .from(users)
+    .where(and(like(users.totpSecret, "v1:%"), options.userIds ? inArray(users.id, options.userIds) : undefined));
+  let opened = 0;
+  for (const row of rows) {
+    if (!row.totpSecret) continue;
+    const updated = await db
+      .update(users)
+      .set({ totpSecret: openTotpSecret(row.totpSecret, row.id, key) })
+      .where(and(eq(users.id, row.id), eq(users.totpSecret, row.totpSecret)))
+      .returning({ id: users.id });
+    opened += updated.length;
+  }
+  return opened;
 }
 
 /**

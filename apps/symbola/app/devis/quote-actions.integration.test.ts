@@ -68,8 +68,10 @@ async function plannerSession(organizationId: string): Promise<{ userId: string;
   if (result.outcome !== "success") throw new Error("connexion planner attendue");
   const { secret } = await withDb((db) => setupTotp(db, user.id));
   const code = new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret) }).generate();
-  await withDb((db) => confirmTotp(db, { sessionToken: result.sessionToken, token: code }));
-  return { userId: user.id, token: result.sessionToken };
+  // SEC-01 : la validation remplace le jeton de session.
+  const confirmed = await withDb((db) => confirmTotp(db, { sessionToken: result.sessionToken, token: code }));
+  if (confirmed.outcome !== "confirmed") throw new Error("double authentification attendue");
+  return { userId: user.id, token: confirmed.sessionToken };
 }
 
 // Une organisation, sa planner, un événement avec un devis d'une ligne et

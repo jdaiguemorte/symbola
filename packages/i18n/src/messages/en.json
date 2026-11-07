@@ -17,7 +17,10 @@
     "invalidCode": "Invalid code.",
     "qrLabel": "QR code to scan with your authenticator app",
     "manualKey": "Can't scan? Enter this key in the app:",
-    "setupLink": "Full setup link"
+    "setupLink": "Full setup link",
+    "locked": "Too many incorrect codes: two-factor authentication is blocked for 15 minutes. An e-mail has been sent to you.",
+    "lockedMailSubject": "Your Symbola two-factor authentication has been blocked",
+    "lockedMailBody": "Five incorrect two-factor authentication codes in a row were entered on your account, after a correct password. Two-factor authentication is blocked for 15 minutes as a security measure.\n\nIf this wasn't you, someone knows your password: change it now with \"Forgot your password?\" on the login screen."
   },
   "Home": {
     "title": "Symbola",
@@ -1518,7 +1521,8 @@
     "vendorOptionsIntro": "Your planner consulted several vendors. Here are the ones they suggest.",
     "vendorOptionQuote": "Quote: {amount}",
     "vendorOptionOpenQuote": "View {vendor}'s quote",
-    "vendorOptionOpenRib": "{vendor} bank details (RIB)"
+    "vendorOptionOpenRib": "{vendor} bank details (RIB)",
+    "mfaLocked": "Too many incorrect codes: try again in 15 minutes. An e-mail has been sent to you."
   },
   "NotFound": {
     "title": "Page not found",

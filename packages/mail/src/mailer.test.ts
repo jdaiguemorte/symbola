@@ -7,6 +7,7 @@ function envWith(overrides: Record<string, string>) {
     POSTGRES_APP_PASSWORD: "x",
     S3_ACCESS_KEY: "x",
     S3_SECRET_KEY: "x",
+    MFA_ENCRYPTION_KEY: Buffer.alloc(32, 7).toString("base64"),
     ...overrides,
   });
 }

@@ -17,7 +17,10 @@
     "invalidCode": "Code invalide.",
     "qrLabel": "QR code à scanner avec votre application d'authentification",
     "manualKey": "Impossible de scanner ? Saisissez cette clé dans l'application :",
-    "setupLink": "Lien de configuration complet"
+    "setupLink": "Lien de configuration complet",
+    "locked": "Trop de codes incorrects : la double authentification est bloquée pendant 15 minutes. Un e-mail vous a été envoyé.",
+    "lockedMailSubject": "Votre double authentification Symbola a été bloquée",
+    "lockedMailBody": "Cinq codes de double authentification incorrects d'affilée ont été saisis sur votre compte, après un mot de passe correct. La double authentification est bloquée pendant 15 minutes par mesure de sécurité.\n\nSi ce n'était pas vous, quelqu'un connaît votre mot de passe : changez-le dès maintenant avec « Mot de passe oublié ? » sur l'écran de connexion."
   },
   "Home": {
     "title": "Symbola",
@@ -1518,7 +1521,8 @@
     "vendorOptionsIntro": "Votre organisatrice a consulté plusieurs prestataires. Voici ceux qu'elle vous propose.",
     "vendorOptionQuote": "Devis : {amount}",
     "vendorOptionOpenQuote": "Voir le devis de {vendor}",
-    "vendorOptionOpenRib": "RIB de {vendor}"
+    "vendorOptionOpenRib": "RIB de {vendor}",
+    "mfaLocked": "Trop de codes incorrects : réessayez dans 15 minutes. Un e-mail vous a été envoyé."
   },
   "NotFound": {
     "title": "Page introuvable",

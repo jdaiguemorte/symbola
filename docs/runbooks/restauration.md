@@ -128,9 +128,13 @@ supprime une colonne en perd les données.
    façon que `migrate` dans le runbook de déploiement (« Mettre à jour », étape 3 : même
    tunnel SSH, mêmes variables admin) :
    ```bash
+   pnpm --filter @symbola/db rollback -- 0075_lot16_mfa_protection
    pnpm --filter @symbola/db rollback -- 0074_lot15_grant_import_jobs
    pnpm --filter @symbola/db rollback -- 0073_lot15_import_jobs
    ```
+   Avant d'annuler 0075 et de revenir à une image antérieure au lot 16, remettre en clair les
+   secrets de double authentification (`mfa-secrets -- --unseal`, runbook de déploiement,
+   « Retour arrière », ADR 0037).
    La commande refuse une migration qui n'est pas la dernière appliquée, ou dont des données
    dépendent encore (par exemple des imports de fiches PDF pour 0072) : elle l'écrit en clair
    et ne modifie rien.

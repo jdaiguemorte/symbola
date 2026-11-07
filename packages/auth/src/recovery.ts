@@ -109,7 +109,10 @@ export class MfaResetNotAllowedError extends Error {
 export async function resetUserMfa(db: AppDatabase, userId: string): Promise<{ email: string; language: "fr" | "en" | null }> {
   const [user] = await db.select({ role: users.role, email: users.email, language: users.language }).from(users).where(eq(users.id, userId));
   if (!user || !isPlannerRole(user.role as Role)) throw new MfaResetNotAllowedError();
-  await db.update(users).set({ totpSecret: null, mfaEnabled: false }).where(eq(users.id, userId));
+  await db
+    .update(users)
+    .set({ totpSecret: null, mfaEnabled: false, mfaFailedAttempts: 0, mfaLockedUntil: null, totpLastUsedStep: null })
+    .where(eq(users.id, userId));
   await db.delete(sessions).where(eq(sessions.userId, userId));
   return { email: user.email, language: user.language };
 }

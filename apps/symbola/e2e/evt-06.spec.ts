@@ -153,7 +153,9 @@ test("EVT-06 — le marié invité suit son mariage, coche sa tâche, et perd l'
   const secret = new URL(provisioningUri!.replace("otpauth://totp/", "https://x/")).searchParams.get("secret")!;
   await couple.getByLabel("Code à 6 chiffres").fill(new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret) }).generate());
   await couple.getByRole("button", { name: "Confirmer" }).click();
-  await expect(couple.getByText("Double authentification activée")).toBeVisible();
+  // SEC-01 : la validation remplace le jeton de session ; la page se rafraîchit
+  // et affiche l'état enregistré, double authentification activée.
+  await expect(couple.getByRole("status").filter({ hasText: /double authentification (est )?activée/i })).toBeVisible();
   await expectNoAxeViolation(couple);
 
   // La planner voit la tâche cochée dans le fil d'activité, puis retire l'accès.

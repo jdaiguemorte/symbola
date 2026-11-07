@@ -12,8 +12,11 @@ export {
   requireUser,
   setUserLanguage,
   resumeTotpSetup,
+  sealLegacyTotpSecrets,
   setupTotp,
+  unsealTotpSecrets,
   type AuthenticatedUser,
+  type ConfirmTotpResult,
   type AuthResult,
   type LoginResult,
 } from "./service";
@@ -35,4 +38,5 @@ export {
   type OrganizationAccountCounts,
   type TeamAccountStatus,
 } from "./support";
+export { MfaKeyError, readMfaEncryptionKey } from "./secret-box";
 export { isPlannerRole, isProfessionalRole, ROLES, type Role } from "./roles";

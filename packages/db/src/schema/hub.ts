@@ -60,8 +60,18 @@ export const users = hubSchema.table("users", {
   // Choix explicite dans le profil (HUB-04) ; nul = pas encore choisi,
   // suit le cookie de langue du navigateur (apps/symbola/middleware.ts).
   language: languageEnum("language"),
+  // Chiffré au repos depuis le lot 16 (SEC-01, ADR 0037) : « v1: » + base64,
+  // lu et écrit seulement par packages/auth.
   totpSecret: text("totp_secret"),
   mfaEnabled: boolean("mfa_enabled").notNull().default(false),
+  // SEC-01 (lot 16, ADR 0037) : 5 codes de double authentification faux
+  // d'affilée bloquent la validation 15 min (par compte, quelle que soit la
+  // session) ; un code juste remet le compteur à zéro.
+  mfaFailedAttempts: integer("mfa_failed_attempts").notNull().default(0),
+  mfaLockedUntil: timestamp("mfa_locked_until", { withTimezone: true }),
+  // Pas de temps (période de 30 s) du dernier code accepté : un code ne sert
+  // qu'une fois (anti-rejeu).
+  totpLastUsedStep: bigint("totp_last_used_step", { mode: "number" }),
   // Verrouillage de compte (PRD HUB-01) : 5 mots de passe faux d'affilée
   // bloquent la connexion 15 min, un e-mail part au titulaire. Remis à
   // zéro à chaque connexion réussie.
