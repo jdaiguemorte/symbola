@@ -9,6 +9,7 @@ import {
   CalendarDays,
   CalendarHeart,
   FileText,
+  GraduationCap,
   LifeBuoy,
   ListChecks,
   Settings,
@@ -394,17 +395,23 @@ export async function AppShell({ children }: { children: ReactNode }) {
                 </AppNavLink>
               </li>
             ) : null}
+            {/* Lot 13 (AIDE-10) : les tutoriels ont leur page, avec leur compteur. */}
+            {helpBar ? (
+              <li>
+                <AppNavLink href="/tutoriels">
+                  <GraduationCap {...iconProps} />
+                  {tAide("tutorialsLink")}
+                  {/* Repère visuel : le nom du lien reste « Tutoriels ». */}
+                  <span className="nav-count" aria-hidden="true" title={tAide("tutorialsCount", { completed: helpBar.completed, total: helpBar.total })}>
+                    {helpBar.completed}/{helpBar.total}
+                  </span>
+                </AppNavLink>
+              </li>
+            ) : null}
             <li>
               <AppNavLink href="/aide">
                 <LifeBuoy {...iconProps} />
                 {tAide("link")}
-                {/* Lot 13 (HUB-15) : le compteur des tutoriels quitte la barre d'aide pour le menu. */}
-                {helpBar ? (
-                  // Repère visuel : le nom du lien reste « Aide » ; le détail est au centre d'aide.
-                  <span className="nav-count" aria-hidden="true" title={tAide("tutorialsCount", { completed: helpBar.completed, total: helpBar.total })}>
-                    {helpBar.completed}/{helpBar.total}
-                  </span>
-                ) : null}
               </AppNavLink>
             </li>
           </ul>

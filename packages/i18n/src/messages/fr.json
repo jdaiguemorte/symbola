@@ -511,7 +511,8 @@
     "search": "Rechercher dans l'aide",
     "noResults": "Aucun article ne correspond à votre recherche.",
     "link": "Aide",
-    "tutorialsCount": "Tutoriels faits : {completed} sur {total}"
+    "tutorialsCount": "Tutoriels faits : {completed} sur {total}",
+    "tutorialsLink": "Tutoriels"
   },
   "Events": {
     "title": "Événements",
@@ -1867,7 +1868,8 @@
     "inviteKicker": "Découvrir en {minutes} minutes",
     "inviteStart": "Commencer le tutoriel",
     "inviteLater": "Plus tard",
-    "tours": "Visites vues : {seen} sur {total}"
+    "tours": "Visites vues : {seen} sur {total}",
+    "resumeLabel": "Reprendre où vous en étiez"
   },
   "HelpCenter": {
     "items": {
@@ -1936,7 +1938,8 @@
     "actionReview": "Revoir",
     "actionResume": "Reprendre",
     "actionStart": "Commencer",
-    "articlesTitle": "Articles d'aide"
+    "articlesTitle": "Articles d'aide",
+    "openTutorials": "Voir le parcours des tutoriels"
   },
   "Search": {
     "label": "Rechercher",
@@ -2273,7 +2276,8 @@
           "body": "L'exemple et ses prestataires d'exemple vont être supprimés."
         }
       ]
-    }
+    },
+    "backToTutorials": "Retour aux tutoriels"
   },
   "VendorCandidates": {
     "title": "Prestataires consultés — {slot}",
@@ -2688,5 +2692,34 @@
   },
   "Common": {
     "closePanel": "Fermer le panneau"
+  },
+  "TutorialsPage": {
+    "title": "Tutoriels",
+    "intro": "Apprenez Symbola en le faisant, dans l'ordre conseillé. Chaque tutoriel crée un exemple fictif, puis vous propose de le supprimer.",
+    "progress": "Tutoriels faits : {done} sur {total}",
+    "remaining": "environ {minutes} min restantes",
+    "inProgress": "En cours : {title} (étape {step})",
+    "resume": "Reprendre",
+    "stageNumber": "Étape {number}",
+    "stageCount": "{done}/{total}",
+    "minutes": "{minutes} min",
+    "stages": {
+      "activity": "Préparer votre activité",
+      "templates": "Préparer vos modèles",
+      "first_event": "Votre premier événement",
+      "sales": "Vendre et facturer",
+      "clients": "Avec les mariés",
+      "other": "Autres tutoriels"
+    },
+    "states": {
+      "done": "Fait",
+      "current": "En cours",
+      "next": "Conseillé ensuite",
+      "todo": "À faire"
+    },
+    "conflictTitle": "Un tutoriel est déjà en cours",
+    "conflictBody": "Vous en êtes à l’étape {step} de « {title} ». Un seul tutoriel à la fois : terminez-le d’abord, ou abandonnez-le (son exemple fictif sera supprimé) pour commencer « {next} ».",
+    "conflictFinish": "Le terminer d’abord",
+    "conflictAbandon": "L’abandonner et commencer celui-ci"
   }
 }

@@ -12,7 +12,8 @@ import { getPlannerAuthContext } from "@/lib/auth-context";
 import { TUTORIALS } from "@/lib/help/catalog";
 import { TUTORIAL_SCRIPTS } from "@/lib/help/tutorials";
 import { CheckForm } from "./check-form";
-import { continueTutorialAction, finishTutorialAction, restartTutorialAction, setupTutorialAction } from "./actions";
+import { abandonTutorialAction, continueTutorialAction, finishTutorialAction, restartTutorialAction, setupTutorialAction } from "./actions";
+import { isInProgress, tutorialInProgress } from "@/lib/help/journey";
 
 export default async function TutorialPage({ params, searchParams }: { params: Promise<{ key: string }>; searchParams: Promise<{ termine?: string }> }) {
   const auth = await getPlannerAuthContext();
@@ -30,9 +31,11 @@ export default async function TutorialPage({ params, searchParams }: { params: P
   const { sql, db } = createAppConnection();
   let available = true;
   let entry;
+  let progress;
   try {
     if (tutorial.module !== "hub") available = await isModuleEnabled(db, auth.user.organizationId, tutorial.module);
-    entry = (await getHelpProgress(db, auth.user.id)).find((candidate) => candidate.itemKey === `tutorial:${tutorial.key}`);
+    progress = await getHelpProgress(db, auth.user.id);
+    entry = progress.find((candidate) => candidate.itemKey === `tutorial:${tutorial.key}`);
   } finally {
     await sql.end();
   }
@@ -42,6 +45,32 @@ export default async function TutorialPage({ params, searchParams }: { params: P
       <main>
         <h1>{title}</h1>
         <p>{t("unavailable")}</p>
+      </main>
+    );
+  }
+
+  // Lot 13 (AIDE-10) : un autre tutoriel est en cours ? On le dit, et on
+  // laisse choisir : le terminer d'abord, ou l'abandonner pour celui-ci.
+  const other = tutorialInProgress(TUTORIALS, progress);
+  if (other && other !== tutorial.key && !isInProgress(entry) && entry?.status !== "completed") {
+    const tPage = await getTranslations("TutorialsPage");
+    const otherEntry = progress.find((candidate) => candidate.itemKey === `tutorial:${other}`);
+    return (
+      <main>
+        <section className="card tutorial-conflict" role="alertdialog" aria-labelledby="tutorial-conflict-title" aria-describedby="tutorial-conflict-body">
+          <h1 id="tutorial-conflict-title">{tPage("conflictTitle")}</h1>
+          <p id="tutorial-conflict-body">{tPage("conflictBody", { title: tCenter(`items.${other}.title`), step: (otherEntry?.step ?? 0) + 1, next: title })}</p>
+          <div className="tutorial-actions">
+            <Link href={`/aide/tutoriels/${other}`} className="button-link button-link-primary">
+              {tPage("conflictFinish")}
+            </Link>
+            <form action={abandonTutorialAction.bind(null, other, tutorial.key)}>
+              <button type="submit" className="button-secondary">
+                {tPage("conflictAbandon")}
+              </button>
+            </form>
+          </div>
+        </section>
       </main>
     );
   }
@@ -80,7 +109,7 @@ export default async function TutorialPage({ params, searchParams }: { params: P
             })}
           </ol>
           <p className="tutorial-note">{t("exampleNote")}</p>
-          <Link href="/aide">{t("backToHelp")}</Link>
+          <Link href="/tutoriels">{t("backToTutorials")}</Link>
         </aside>
 
         <section className="card tutorial-step" aria-labelledby="tutorial-step-title">

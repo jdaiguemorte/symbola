@@ -511,7 +511,8 @@
     "search": "Search help articles",
     "noResults": "No article matches your search.",
     "link": "Help",
-    "tutorialsCount": "Tutorials done: {completed} of {total}"
+    "tutorialsCount": "Tutorials done: {completed} of {total}",
+    "tutorialsLink": "Tutorials"
   },
   "Events": {
     "title": "Events",
@@ -1867,7 +1868,8 @@
     "inviteKicker": "Discover in {minutes} minutes",
     "inviteStart": "Start the tutorial",
     "inviteLater": "Later",
-    "tours": "Tours seen: {seen} of {total}"
+    "tours": "Tours seen: {seen} of {total}",
+    "resumeLabel": "Pick up where you left off"
   },
   "HelpCenter": {
     "items": {
@@ -1936,7 +1938,8 @@
     "actionReview": "Review",
     "actionResume": "Resume",
     "actionStart": "Start",
-    "articlesTitle": "Help articles"
+    "articlesTitle": "Help articles",
+    "openTutorials": "See the tutorial path"
   },
   "Search": {
     "label": "Search",
@@ -2273,7 +2276,8 @@
           "body": "The example and its example vendors will be deleted."
         }
       ]
-    }
+    },
+    "backToTutorials": "Back to tutorials"
   },
   "VendorCandidates": {
     "title": "Vendors consulted — {slot}",
@@ -2688,5 +2692,34 @@
   },
   "Common": {
     "closePanel": "Close the panel"
+  },
+  "TutorialsPage": {
+    "title": "Tutorials",
+    "intro": "Learn Symbola by doing, in the suggested order. Each tutorial creates a sample, then offers to delete it.",
+    "progress": "Tutorials done: {done} of {total}",
+    "remaining": "about {minutes} min left",
+    "inProgress": "In progress: {title} (step {step})",
+    "resume": "Resume",
+    "stageNumber": "Step {number}",
+    "stageCount": "{done}/{total}",
+    "minutes": "{minutes} min",
+    "stages": {
+      "activity": "Set up your business",
+      "templates": "Prepare your templates",
+      "first_event": "Your first event",
+      "sales": "Sell and invoice",
+      "clients": "With the couple",
+      "other": "Other tutorials"
+    },
+    "states": {
+      "done": "Done",
+      "current": "In progress",
+      "next": "Suggested next",
+      "todo": "To do"
+    },
+    "conflictTitle": "A tutorial is already in progress",
+    "conflictBody": "You are at step {step} of “{title}”. One tutorial at a time: finish it first, or abandon it (its sample will be deleted) to start “{next}”.",
+    "conflictFinish": "Finish it first",
+    "conflictAbandon": "Abandon it and start this one"
   }
 }

@@ -1,6 +1,6 @@
 // AIDE-03 — « L'aide est consultable et cherchable depuis le hub. »
 // Lot 10 (AIDE-07) — centre d'aide de l'équipe : progression de la prise en
-// main (les 9 tutoriels), visites et tutoriels par module avec leur état,
+// main (lien vers la page Tutoriels, lot 13), visites par module avec leur état,
 // préférence d'ouverture des visites, puis les articles (Help.*). Un marié
 // ou l'Admin n'y voit que les articles.
 import Link from "next/link";
@@ -10,7 +10,7 @@ import { getMessages, getTranslations } from "next-intl/server";
 import { createAppConnection } from "@symbola/db/client";
 import { getHelpProgress, isModuleEnabled, type HelpProgressEntry } from "@/modules/hub/service";
 import { getAuthContext } from "@/lib/auth-context";
-import { TOURS, TUTORIALS, tutorialHref, type HelpModule } from "@/lib/help/catalog";
+import { TOURS, TUTORIALS, type HelpModule } from "@/lib/help/catalog";
 import { AUTO_TOURS_COOKIE } from "@/lib/help/preferences";
 import { AideSearch, type HelpTopic } from "./aide-search";
 import { AutoToursToggle } from "./auto-tours-toggle";
@@ -54,16 +54,7 @@ export default async function AidePage() {
   const tutorials = TUTORIALS.filter((tutorial) => modules[tutorial.module]);
   const tours = TOURS.filter((tour) => modules[tour.module]);
   const completed = tutorials.filter((tutorial) => entry(`tutorial:${tutorial.key}`)?.status === "completed").length;
-  const next = tutorials.find((tutorial) => entry(`tutorial:${tutorial.key}`)?.status !== "completed");
   const autoTours = (await cookies()).get(AUTO_TOURS_COOKIE)?.value !== "0";
-
-  function tutorialState(key: string): ItemState {
-    const current = entry(`tutorial:${key}`);
-    const href = tutorialHref(key as (typeof TUTORIALS)[number]["key"]);
-    if (current?.status === "completed") return { label: tCenter("stateDone"), className: "badge badge-sauge", action: tCenter("actionReview"), href };
-    if (current) return { label: tCenter("stateInProgress", { step: current.step + 1 }), className: "badge badge-terracotta", action: tCenter("actionResume"), href };
-    return { label: tCenter("stateNew"), className: "badge", action: tCenter("actionStart"), href };
-  }
 
   function tourState(key: string, path: string | null): ItemState {
     const current = entry(`tour:${key}`);
@@ -83,16 +74,10 @@ export default async function AidePage() {
           <section className="card help-progress" aria-labelledby="help-progress-title">
             <h2 id="help-progress-title">{tCenter("progressTitle", { completed, total: tutorials.length })}</h2>
             <progress aria-labelledby="help-progress-title" value={completed} max={Math.max(tutorials.length, 1)} />
-            {next ? (
-              <>
-                <p>{tCenter("nextSuggestion", { title: tCenter(`items.${next.key}.title`), minutes: next.minutes })}</p>
-                <Link href={tutorialHref(next.key)} className="button-link button-link-primary">
-                  {tCenter("continue")}
-                </Link>
-              </>
-            ) : (
-              <p role="status">{tCenter("allDone")}</p>
-            )}
+            {/* Lot 13 (AIDE-10) : les tutoriels ont leur page, en parcours. */}
+            <Link href="/tutoriels" className="button-link button-link-primary">
+              {tCenter("openTutorials")}
+            </Link>
             <AutoToursToggle initial={autoTours} label={tCenter("autoTours")} />
           </section>
 
@@ -100,8 +85,7 @@ export default async function AidePage() {
             .filter((module) => modules[module])
             .map((module) => {
               const moduleTours = tours.filter((tour) => tour.module === module);
-              const moduleTutorials = tutorials.filter((tutorial) => tutorial.module === module);
-              if (moduleTours.length === 0 && moduleTutorials.length === 0) return null;
+              if (moduleTours.length === 0) return null;
               return (
                 <section key={module} className="card" aria-labelledby={`help-module-${module}`}>
                   <h2 id={`help-module-${module}`}>{tCenter(`modules.${module}`)}</h2>
@@ -114,21 +98,6 @@ export default async function AidePage() {
                           <span>
                             <strong>{tCenter("tourTitle", { title })}</strong>
                             <span>{tour.path ? tCenter("tourKind") : tCenter("tourFromEvent")}</span>
-                          </span>
-                          <span className="help-item-actions">
-                            <span className={state.className}>{state.label}</span>
-                            {state.href ? <Link href={state.href}>{state.action}</Link> : null}
-                          </span>
-                        </li>
-                      );
-                    })}
-                    {moduleTutorials.map((tutorial) => {
-                      const state = tutorialState(tutorial.key);
-                      return (
-                        <li key={`tutorial-${tutorial.key}`}>
-                          <span>
-                            <strong>{tCenter(`items.${tutorial.key}.title`)}</strong>
-                            <span>{tCenter("tutorialKind", { minutes: tutorial.minutes })}</span>
                           </span>
                           <span className="help-item-actions">
                             <span className={state.className}>{state.label}</span>

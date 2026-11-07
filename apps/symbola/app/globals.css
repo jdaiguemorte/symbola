@@ -1452,3 +1452,44 @@
     @apply m-0 font-display text-xl font-semibold;
   }
 }
+
+/* Lot 13 (AIDE-10) — page Tutoriels : parcours en tuiles. */
+@layer components {
+  .tutorials-progress progress {
+    @apply w-full;
+  }
+  .tutorials-stage {
+    @apply mt-6 flex flex-col gap-3;
+  }
+  .tutorials-stage-head {
+    @apply flex flex-wrap items-baseline gap-3;
+  }
+  .tutorials-stage-head h2 {
+    @apply m-0 text-lg;
+  }
+  .tutorial-tiles {
+    @apply m-0 grid list-none grid-cols-1 gap-3 p-0 sm:grid-cols-2 lg:grid-cols-3;
+  }
+  .tutorial-tile {
+    @apply relative flex min-h-32 flex-col items-start gap-2 rounded-2xl border border-lin bg-card p-4 text-ink no-underline hover:border-ink-soft;
+  }
+  .tutorial-tile strong {
+    @apply pr-8 text-[15px] leading-snug;
+  }
+  .tutorial-tile-done {
+    @apply border-sauge bg-sauge-tint;
+  }
+  .tutorial-tile-current {
+    @apply border-2 border-terracotta;
+    box-shadow: 0 0 0 4px var(--color-terracotta-tint);
+  }
+  .tutorial-tile-next {
+    @apply border-dashed border-sauge;
+  }
+  .tutorial-tile-check {
+    @apply absolute top-3 right-3 inline-flex h-7 w-7 items-center justify-center rounded-full bg-sauge font-bold text-white;
+  }
+  .tutorial-conflict {
+    @apply mx-auto mt-8 max-w-xl;
+  }
+}

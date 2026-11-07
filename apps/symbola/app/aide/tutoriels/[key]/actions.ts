@@ -18,11 +18,11 @@ async function load(rawKey: string): Promise<Loaded> {
   const auth = await getPlannerAuthContext();
   if (auth.status !== "authenticated" || !auth.user.organizationId) redirect("/login");
   const tutorial = TUTORIALS.find((candidate) => candidate.key === rawKey);
-  if (!tutorial) redirect("/aide");
+  if (!tutorial) redirect("/tutoriels");
   const organizationId = auth.user.organizationId;
   const { sql, db } = createAppConnection();
   try {
-    if (tutorial.module !== "hub" && !(await isModuleEnabled(db, organizationId, tutorial.module))) redirect("/aide");
+    if (tutorial.module !== "hub" && !(await isModuleEnabled(db, organizationId, tutorial.module))) redirect("/tutoriels");
     const entry = (await getHelpProgress(db, auth.user.id)).find((candidate) => candidate.itemKey === `tutorial:${tutorial.key}`);
     const locale = (await getLocale()) === "en" ? "en" : "fr";
     return {
@@ -90,4 +90,21 @@ export async function finishTutorialAction(key: string, keep: boolean): Promise<
   await script.cleanup(loaded.env, keep && Boolean(script.keepable));
   await save(loaded, loaded.step, null, "completed");
   redirect(`/aide/tutoriels/${loaded.key}?termine=1`);
+}
+
+// Lot 13 (AIDE-10) — un seul tutoriel en cours : abandonner celui en cours
+// (son exemple fictif est supprimé, sa progression remise à zéro) pour
+// commencer un autre. Jamais en silence : l'utilisateur l'a choisi.
+export async function abandonTutorialAction(currentKey: string, nextKey: string): Promise<void> {
+  const loaded = await load(currentKey);
+  await TUTORIAL_SCRIPTS[loaded.key].cleanup(loaded.env, false);
+  const { sql, db } = createAppConnection();
+  try {
+    await restartHelpItem(db, loaded.env.userId, `tutorial:${loaded.key}`);
+  } finally {
+    await sql.end();
+  }
+  const next = TUTORIALS.find((candidate) => candidate.key === nextKey);
+  revalidatePath("/tutoriels");
+  redirect(next ? `/aide/tutoriels/${next.key}` : "/tutoriels");
 }
