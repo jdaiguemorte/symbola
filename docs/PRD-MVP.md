@@ -4,7 +4,7 @@
 
 ## 1. Périmètre
 
-Le MVP doit permettre à la planner de gérer tous ses événements en cours sans ouvrir Wedding Plan. Il comprend 4 apps, l'import, le module RGPD, l'onboarding et l'aide intégrée : 36 user stories, chacune avec des critères d'acceptation au format **Étant donné / Quand / Alors**, que Claude Code transforme directement en tests automatisés.
+Le MVP doit permettre à la planner de gérer tous ses événements en cours sans ouvrir son outil actuel. Il comprend 4 apps, l'import, le module RGPD, l'onboarding et l'aide intégrée : 36 user stories, chacune avec des critères d'acceptation au format **Étant donné / Quand / Alors**, que Claude Code transforme directement en tests automatisés.
 
 **Dans le MVP**
 
@@ -327,7 +327,7 @@ L'import se déroule en 5 étapes visibles : fichier, colonnes, rapprochements, 
 
 **Portée de l'import au MVP** : événements, clients, tâches, lignes de budget, articles du catalogue, et toute liste paramétrable (postes, sources…). Les prestataires s'importent dans l'app Prestataires quand elle arrive (V2) ; d'ici là, leurs noms importés restent du texte sur les postes.
 
-**Robustesse** : la reconnaissance des colonnes ne dépend d'aucun outil source précis. Elle est testée en CI sur un corpus de fichiers variés : exports d'outils du marché reconstitués, tableaux Excel « maison », CSV Google Sheets, en-têtes en français et en anglais, encodages différents, colonnes dans le désordre. Un vrai export Wedding Plan servira de test supplémentaire, pas de base de développement.
+**Robustesse** : la reconnaissance des colonnes ne dépend d'aucun outil source précis. Elle est testée en CI sur un corpus de fichiers variés : exports d'outils du marché reconstitués, tableaux Excel « maison », CSV Google Sheets, en-têtes en français et en anglais, encodages différents, colonnes dans le désordre. Un vrai export de l'outil actuel de la planner servira de test supplémentaire, pas de base de développement.
 
 ### IMP-03 — Rapprochements
 
@@ -490,7 +490,7 @@ On construit en 7 lots, chacun utilisable et testé avant le suivant. Le lot 0 e
 
 5.  **Lot 4 — Devis et Facturation** : DEV-01, 03, 02 (signature en ligne), 04, puis le bloc Encaissements.
 
-6.  **Lot 5 — Import** : IMP-01 à 05, testé sur un vrai export Wedding Plan anonymisé.
+6.  **Lot 5 — Import** : IMP-01 à 05, testé sur un vrai export anonymisé de l'outil actuel de la planner.
 
 7.  **Lot 6 — RGPD et recette** : RGPD-01 à 05, puis recette avec ta femme sur le staging, import réel, et bascule en production.
 

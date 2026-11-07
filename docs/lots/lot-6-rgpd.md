@@ -174,7 +174,7 @@ en place depuis le lot 0.
 
 ## Recette (après RGPD-05)
 
-Parcours de recette sur le staging avec la planner (import réel de Wedding Plan, puis chaque
+Parcours de recette sur le staging avec la planner (import réel depuis l'outil actuel, puis chaque
 module), checklist dans `docs/runbooks/recette-mvp.md`, puis bascule en production : **actions de
 Julien** (CLAUDE.md §8).
 

@@ -4,7 +4,7 @@
 
 ## 1. Vision et principes
 
-Symbola est une suite d'applications SaaS : un hub central donne accès à des apps métier qui fonctionnent seules ou ensemble. Le premier client est l'activité de wedding planning, qui remplace aujourd'hui Wedding Plan.
+Symbola est une suite d'applications SaaS : un hub central donne accès à des apps métier qui fonctionnent seules ou ensemble. Le premier client est l'activité de wedding planning, qui remplace aujourd'hui un logiciel de planification du marché.
 
 **Cibles, par ordre d'arrivée**
 
@@ -137,7 +137,7 @@ On ne copie pas ces outils. On garde ce qui est vraiment utilisé, on corrige ce
 
 | Solution | Ce qu'on reprend | Ce qu'on fait mieux ou qu'on évite | App concernée |
 | --- | --- | --- | --- |
-| Wedding Plan (outil actuel) | Liste des événements comme porte d'entrée, chronologie, budget, catalogue de tarifs, signature des devis avec alerte e-mail, simulation de répartition du budget d'un prospect | On retire les menus inutilisés (Agence, e-mail interne, Documents). On ajoute un vrai tableau de bord, le statut par poste prestataire et la trésorerie à venir | Événements, Budget, Devis |
+| Outil de planification actuel | Liste des événements comme porte d'entrée, chronologie, budget, catalogue de tarifs, signature des devis avec alerte e-mail, simulation de répartition du budget d'un prospect | On retire les menus inutilisés (Agence, e-mail interne, Documents). On ajoute un vrai tableau de bord, le statut par poste prestataire et la trésorerie à venir | Événements, Budget, Devis |
 | [Aisle Planner](https://us.fitgap.com/products/aisle-planner) | Timeline visuelle, budget visible par les mariés, portail client, coordination des prestataires, mood boards | Plans de salle et plans de table : plus tard. Interface anglophone et coûteuse : on vise FR/EN et simple | Événements, Prestataires, Quiz |
 | HoneyBook / Dubsado (CRM créatifs) | Pipeline de prospects, propositions avec signature et paiement, automatisations (« devis signé → facture d'acompte ») | Ces outils sont génériques et pas faits pour le jour J. Chez nous, l'automatisation passe par le bus d'événements | Devis, Hub |
 | [TidyCal](https://www.jotform.com/blog/tidycal-vs-calendly/) | Types de RDV, RDV payants (Stripe/PayPal), rappels e-mail, sync Google/Apple/Office 365, Zoom/Meet | Pas d'automatisation avancée chez TidyCal. Chez nous, un RDV pris peut créer directement un prospect | Booking |
@@ -152,7 +152,7 @@ HoneyBook, Dubsado, Zola et Paperless Post sont décrits de mémoire. Les autres
 
 ## 5. Catalogue des apps et user stories
 
-Voici 9 apps, la brique d'import (5.9) et 76 user stories, chacune avec une priorité : **MVP** (remplace Wedding Plan), **V2** (avant l'ouverture à d'autres planners) ou **Plus tard**. Les critères d'acceptation seront rédigés app par app, au moment de la développer.
+Voici 9 apps, la brique d'import (5.9) et 76 user stories, chacune avec une priorité : **MVP** (remplace l'outil actuel), **V2** (avant l'ouverture à d'autres planners) ou **Plus tard**. Les critères d'acceptation seront rédigés app par app, au moment de la développer.
 
 **Personas** : **Planner** (professionnelle abonnée), **Marié** (invité par le planner, 1 compte par personne), **Couple B2C** (sans planner), **Pro** (autre métier, utilise une app générique), **Admin** (Julien, opérateur de la suite).
 
@@ -279,7 +279,7 @@ L'app Prestataires est le référentiel de la planner. Elle a trois volets : des
 
 ### 5.9 Import de données (brique du socle)
 
-L'import est une brique commune : le hub fournit l'écran, et chaque app reçoit ses lignes par son API. Il sert pour Wedding Plan aujourd'hui, et demain pour tout client qui arrive d'un autre outil.
+L'import est une brique commune : le hub fournit l'écran, et chaque app reçoit ses lignes par son API. Il sert pour l'outil actuel de la planner aujourd'hui, et demain pour tout client qui arrive d'un autre outil.
 
 | ID | User story | Priorité |
 | --- | --- | --- |
@@ -288,7 +288,7 @@ L'import est une brique commune : le hub fournit l'écran, et chaque app reçoit
 | IMP-03 | En tant que Planner, l'outil me propose les rapprochements avec mes données existantes (même couple, même prestataire) ; je les valide un par un ou en lot, et j'en ajoute à la main | MVP |
 | IMP-04 | En tant que Planner, je vois un rapport des écarts : colonnes sans équivalent (gardées en « champs libres » ou ignorées, à mon choix) et lignes rejetées avec leur motif | MVP |
 | IMP-05 | En tant que Planner, je vois un aperçu avant d'importer et je peux annuler un import entier après coup | MVP |
-| IMP-06 | En tant que Planner, je réutilise un modèle de correspondance enregistré (« Export Wedding Plan », « Export Excel maison ») | V2 |
+| IMP-06 | En tant que Planner, je réutilise un modèle de correspondance enregistré (« Export de l'outil actuel », « Export Excel maison ») | V2 |
 | IMP-07 | En tant que Pro, j'importe aussi mes contacts, prestataires et catalogue de tarifs | V2 |
 
 Sécurité de l'import : fichiers analysés par l'antivirus, taille limitée, et neutralisation des formules dans les cellules (injection CSV).
@@ -415,7 +415,7 @@ L'empreinte carbone numérique de la plateforme est gérée par le socle, pas ap
 
 ## 8. MVP, roadmap et questions ouvertes
 
-Le MVP remplace Wedding Plan avec l'import assisté, le module RGPD et quatre briques : Hub, Événements et Chrono, Budget, Devis et Facturation. Il passe d'abord par une phase de fondations, qui installe le socle et la chaîne de sécurité une fois pour toutes.
+Le MVP remplace l'outil actuel avec l'import assisté, le module RGPD et quatre briques : Hub, Événements et Chrono, Budget, Devis et Facturation. Il passe d'abord par une phase de fondations, qui installe le socle et la chaîne de sécurité une fois pour toutes.
 
 ```mermaid
 flowchart TB
@@ -445,14 +445,14 @@ Les phases ne sont pas datées : la durée dépendra du temps que tu peux y cons
 
 - [ ] « Chronologie », très utilisée : est-ce le rétroplanning des tâches, le déroulé du jour J, ou les deux ? Réponse : les deux.
 - [ ] Les mariés peuvent-ils modifier le budget, ou seulement le consulter ? Consulter.
-- [ ] Reprise des données : Wedding Plan permet-il un export (CSV, PDF) ? Combien d'événements en cours faut-il reprendre ? à vérifier, mais ce type de reprise doit être anticipée avec la prise en charge de multiples formats classiques et reconnaissance automatique des colonnes et rapprochement automatique proposé avec validation humaine des rapprochements et rapprochements complémentaires possibles comme l'écart de certaines données en cas d'absence dans notre app.
+- [ ] Reprise des données : L'outil actuel permet-il un export (CSV, PDF) ? Combien d'événements en cours faut-il reprendre ? à vérifier, mais ce type de reprise doit être anticipée avec la prise en charge de multiples formats classiques et reconnaissance automatique des colonnes et rapprochement automatique proposé avec validation humaine des rapprochements et rapprochements complémentaires possibles comme l'écart de certaines données en cas d'absence dans notre app.
 - [ ] Signature : Yousign (payant, valeur légale eIDAS, français) ou Documenso (gratuit, auto-hébergé) ? Documenso gratuit auto hébergé quel est l'impact majeur ?
 - [ ] Facturation électronique : quelle plateforme agréée (celle de la banque ?) et propose-t-elle une API ? Si ma banque le propose oui, on partira la dessus : Crédit Mutuel -> mais pars sur une connexion API à n'importe quelle plateforme PA pour d'autres clients demain.
 - [ ] Mobile : un site responsive installable (PWA) suffit-il, ou faut-il une app dans les stores ? On démarre par du PWA (avec une cible selon le nombre de client vers une app dans les stores)
 - [ ] Jour J : faut-il un accès au programme hors connexion (lieux sans réseau) ? pourquoi pas mais non prioritaire : le programme sera souvent voir toujours imprimé... donc si c'est lourd à prévoir ou que ça génère des difficultés en terme de sécurité etc... on évite.
 - [ ] Commercialisation : quelle structure facture les abonnements SaaS, et avec quelles CGV ? Je n'y ai pas réfléchi : je n'ai rien monté pour le moment, mais si l'app plait à ma femme et que je lui vois un potentiel commercial, je monterai une société pour l'occasion : certainement quelque chose de simple au départ : SAS SASU pour éviter les charges trop importantes.
 - [ ] Nom de la suite et nom de domaine. Aide moi à trouver un nom qui ne soit pas déjà utilisé, qui soit simple à retenir et qui permette de souscrire un nom de domaine associé. Il y a déjà Indy pour tous les entrepreneurs, on va se spécialiser dans l'organisation d'évènements dans l'idée, même si les briques sont utilisables par d'autres métiers : on sera plutôt spécialisés sur ce type de métier au départ.
-- [ ] Budget mensuel acceptable pour les services externes (e-mail, signature, stockage, sauvegardes). Il faut imaginer qu'un Wedding plan coute 700€ l'année, je ne sais pas combien coute Indy dès qu'on ajoute des solutions en cascade, mais dans l'idée, je veux être moins cher que ces plateformes historiques avec de nombreux collaborateurs... c'est malheureux à dire, mais j'ai l'avantage d'arriver après : donc je veux me positionner moins cher sans être totalement hors course -> donc plutôt 20% moins cher que ces plateformes dans l'idée.
+- [ ] Budget mensuel acceptable pour les services externes (e-mail, signature, stockage, sauvegardes). Il faut imaginer qu'un logiciel de planification du marché coûte 700€ l'année, je ne sais pas combien coute Indy dès qu'on ajoute des solutions en cascade, mais dans l'idée, je veux être moins cher que ces plateformes historiques avec de nombreux collaborateurs... c'est malheureux à dire, mais j'ai l'avantage d'arriver après : donc je veux me positionner moins cher sans être totalement hors course -> donc plutôt 20% moins cher que ces plateformes dans l'idée.
 
 ### Réponses aux points soulevés
 
@@ -484,7 +484,7 @@ Sources : [DocuSeal auto-hébergé](https://www.docuseal.com/on-premises) · [Co
 
 **Facturation électronique** : le Crédit Mutuel et le CIC sont plateformes agréées via Euro-Information, avec l'offre HBS e-factures, proposée depuis le 12 février 2026 et intégrée à la banque en ligne ([communiqué](https://www.creditmutuel.fr/fr/alliancefederale/presse/communiques-de-presse/facturation-electronique-des-entreprises.html)). Le communiqué ne mentionne pas d'API. L'app Devis aura donc un connecteur générique, avec un adaptateur par plateforme agréée. Elle produira aussi un fichier Factur-X à déposer à la main dans HBS e-factures, en attendant une API.
 
-**Prix cible** : tu estimes Wedding Plan à environ 700 € par an. Avec 20 % de moins, la suite complète équivalente (Hub, Événements, Budget, Devis, Prestataires) vise environ 560 € par an, soit environ 47 € par mois. Les apps à la carte doivent rester sous ce total une fois cumulées. Les coûts externes par client (e-mail, stockage) doivent rester marginaux, d'où le choix de l'auto-hébergement.
+**Prix cible** : tu estimes l'outil actuel à environ 700 € par an. Avec 20 % de moins, la suite complète équivalente (Hub, Événements, Budget, Devis, Prestataires) vise environ 560 € par an, soit environ 47 € par mois. Les apps à la carte doivent rester sous ce total une fois cumulées. Les coûts externes par client (e-mail, stockage) doivent rester marginaux, d'où le choix de l'auto-hébergement.
 
 **Commercialisation** : la question est reportée à la porte 3. Une SASU sera créée si le potentiel se confirme. Il faudra alors des CGV et un accord de sous-traitance RGPD (DPA) pour chaque client.
 
