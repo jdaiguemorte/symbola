@@ -56,13 +56,17 @@ export function HelpBar({
       {/* Lot 13 (HUB-15) : plus de barre permanente ; une pastille seulement
           quand un tutoriel ou une visite est à reprendre. */}
       {tour && tour.postponedStep !== null ? (
-        <button type="button" className="resume-chip" onClick={tour.resume}>
-          {t("resumeTour", { step: tour.postponedStep + 1 })}
-        </button>
+        <aside className="resume-zone" aria-label={t("resumeLabel")}>
+          <button type="button" className="resume-chip" onClick={tour.resume}>
+            {t("resumeTour", { step: tour.postponedStep + 1 })}
+          </button>
+        </aside>
       ) : tutorial ? (
-        <Link href={tutorial.href} className="resume-chip">
-          {t("resumeTutorial", { title: tutorial.title })}
-        </Link>
+        <aside className="resume-zone" aria-label={t("resumeLabel")}>
+          <Link href={tutorial.href} className="resume-chip">
+            {t("resumeTutorial", { title: tutorial.title })}
+          </Link>
+        </aside>
       ) : null}
     </>
   );
