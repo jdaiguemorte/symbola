@@ -57,7 +57,8 @@ function lastFilled(cells: string[]): number {
 
 // L'en-tête est la première ligne (parmi les premières) assez remplie, aux
 // intitulés distincts, dont aucune cellule n'a l'allure d'une valeur (nombre,
-// date, e-mail). Une ligne de titre (« Export du 12/10/2026 ») au-dessus est
+// date, e-mail). Lot 14 : quelques intitulés répétés sont tolérés (au plus un
+// sur dix), comme les deux colonnes « Nom » (entreprise, contact) d'un export. Une ligne de titre (« Export du 12/10/2026 ») au-dessus est
 // ainsi ignorée. Sans ligne qui convienne : -1, colonnes sans intitulé.
 function findHeaderLine(lines: { cells: string[] }[]): number {
   const sample = lines.slice(0, HEADER_SEARCH_LINES);
@@ -67,7 +68,7 @@ function findHeaderLine(lines: { cells: string[] }[]): number {
     const filled = line.cells.filter((cell) => cell !== "");
     if (filled.length < minimum) return false;
     const distinct = new Set(filled.map((cell) => cell.toLowerCase()));
-    if (distinct.size !== filled.length) return false;
+    if (filled.length - distinct.size > Math.floor(filled.length / 10)) return false;
     return filled.every((cell) => !looksLikeValue(cell));
   });
 }

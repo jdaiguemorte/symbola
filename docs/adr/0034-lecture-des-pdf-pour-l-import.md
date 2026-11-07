@@ -23,10 +23,14 @@ format bien plus vaste qu'un zip de XML.
    côté serveur uniquement. Seule l'API texte est utilisée (`getTextContent` : chaînes avec
    leurs coordonnées et leur taille) ; aucun rendu, aucun canvas.
 2. **Durcissement** :
-   - `isEvalSupported: false` (la faille CVE-2024-4367 des versions anciennes passait par
-     l'évaluation de code lors du chargement des polices ; version figée au-delà du correctif) ;
-   - pas de worker séparé, pas de police ni de ressource chargée depuis le réseau
-     (`disableFontFace`, `useSystemFonts: false`), scripts et formulaires du PDF ignorés ;
+   - version 6 figée (6.4.299) : la faille CVE-2024-4367 des versions anciennes passait par
+     l'évaluation de code lors du chargement des polices ; ce chemin n'existe plus dans la
+     bibliothèque (aucun `eval` ni `new Function`), l'option `isEvalSupported` a disparu ;
+   - la bibliothèque de dessin native facultative (`@napi-rs/canvas`) est exclue de
+     l'installation (`pnpm.overrides`) : elle ne sert qu'au rendu ;
+   - pas de police ni de ressource chargée depuis le réseau (`disableFontFace`,
+     `useSystemFonts: false`, `useWorkerFetch: false`), formulaires XFA ignorés
+     (`enableXfa: false`), scripts du PDF jamais exécutés (pas de rendu) ;
    - limites avant toute lecture : taille du fichier (réglage de la plateforme, comme le lot
      5), nombre de pages (3 au plus pour une fiche), temps de lecture borné ; un PDF chiffré est
      refusé ;

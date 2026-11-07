@@ -173,6 +173,14 @@ Les six propositions ci-dessous sont **validées telles quelles**.
 
 1. **14a** — Lecture : PDF (`pdfjs-dist`, ADR 0034) et profil « logiciel tiers » (prestataires
    et fiches), testés sur le corpus fictif. Aucun écran.
+   *Réalisé (14a)* : `readPdfText` (texte et position, limites de taille, de pages et de
+   durée), `parseEventSheet` (mariés par colonne, lieux recollés, note, budget, pied de page
+   ignoré), `detectVendorsExport` / `normalizeVendorsExportRow` (reconnaissance par les
+   intitulés, colonnes inversées remises en place d'après leur contenu, entités HTML, code
+   postal, téléphones, critères), profil `planningSoftware` dans `import-profiles.json`. Le
+   lecteur de tableaux tolère désormais quelques intitulés répétés (deux colonnes « Nom »).
+   Vérifié en local sur les vrais exports de Julien (201 prestataires, une fiche) sans les
+   commiter. `pdfjs-dist` 6.4.299 (sans la bibliothèque de dessin native facultative).
 2. **14b** — Prestataires (IMP-07) : champs du carnet (décision M), étiquettes et types,
    import, rapprochements, annulation, écrans.
 3. **14c** — Événements (IMP-08) : coordonnées des mariés (décision I), dépôt de plusieurs
