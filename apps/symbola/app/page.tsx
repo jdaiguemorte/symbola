@@ -23,6 +23,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   if (auth.status === "mfa_required") redirect("/mfa");
   // EVT-06 : un marié n'a pas de hub, seulement l'espace de son mariage.
   if (auth.user.role === "client") redirect("/espace");
+  // Lot 13 (HUB-17) : l'Admin arrive sur la console, pas sur un agenda vide.
+  if (auth.user.role === "admin") redirect("/admin");
 
   // SOC-13, ADR 0016 : collecte brute des compteurs d'usage, au niveau de
   // cette page plutôt que dans lib/auth-context.ts (voir le commentaire

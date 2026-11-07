@@ -1567,3 +1567,80 @@
     @apply flex justify-between gap-2;
   }
 }
+
+/* Lot 13 (HUB-17) — console d'Administration : menu sombre. */
+@layer components {
+  .app-sidebar-admin {
+    @apply border-ink bg-ink text-ivory;
+  }
+  .app-sidebar-admin .app-brand,
+  .app-sidebar-admin .app-brand:hover {
+    @apply text-white;
+  }
+  .app-brand-suffix {
+    @apply rounded-full bg-white/15 px-2 py-0.5 font-sans text-xs font-semibold tracking-wide uppercase;
+  }
+  .app-sidebar-admin .app-nav a {
+    @apply text-lin-soft hover:bg-white/10 hover:text-white;
+  }
+  .app-sidebar-admin .app-nav a[aria-current="page"] {
+    @apply bg-white/15 font-semibold text-white;
+  }
+  .app-sidebar-admin .app-nav-secondary {
+    @apply border-white/15;
+  }
+  .app-sidebar-admin .app-user {
+    @apply border-white/15 text-lin-soft;
+  }
+  .app-sidebar-admin .app-menu-toggle {
+    @apply border-white/30 bg-transparent text-white;
+  }
+}
+
+/* Lot 13 (HUB-17, HUB-18) — vue d'ensemble et Santé de la console. */
+@layer components {
+  .kpi-list-4 {
+    @apply sm:grid-cols-2 lg:grid-cols-4;
+  }
+  .status-pill {
+    @apply m-0 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm font-semibold;
+  }
+  .status-pill-ok {
+    @apply border-sauge bg-sauge-tint text-sauge-ink;
+  }
+  .status-pill-alert {
+    @apply border-terracotta bg-terracotta-tint text-terracotta-ink;
+  }
+  .status-led {
+    @apply inline-block h-2.5 w-2.5 rounded-full bg-current;
+  }
+  .admin-todo {
+    @apply m-0 flex list-none flex-col p-0;
+  }
+  .admin-todo li {
+    @apply flex flex-wrap items-center justify-between gap-3 border-b border-lin py-3 last:border-b-0;
+  }
+  .admin-trend {
+    @apply block h-20 w-full;
+  }
+  .admin-trend-area {
+    fill: var(--color-sauge-tint);
+  }
+  .admin-trend-line {
+    fill: none;
+    stroke: var(--color-sauge);
+    stroke-width: 2;
+  }
+  .admin-trend-dot {
+    fill: var(--color-sauge);
+  }
+  .definition-grid {
+    @apply m-0 grid grid-cols-[auto_1fr] gap-x-6 gap-y-2;
+  }
+  .definition-grid dt {
+    @apply text-muted;
+  }
+  .definition-grid dd {
+    @apply m-0;
+  }
+}

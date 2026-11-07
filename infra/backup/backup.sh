@@ -8,7 +8,9 @@
 #
 # Étapes : dump PostgreSQL vérifié → arrêt bref de Garage (fichiers cohérents) →
 # instantané restic unique → redémarrage → rétention → contrôle hebdomadaire du dépôt →
-# signal « push » à Uptime Kuma, envoyé seulement si tout a réussi.
+# signal « push » à Uptime Kuma, envoyé seulement si tout a réussi. Chaque exécution est
+# aussi signalée à l'app (table hub.backup_runs : début, fin, résultat, taille ; HUB-18,
+# ADR 0033), pour la console d'Administration.
 set -euo pipefail
 
 here=$(cd "$(dirname "$0")" && pwd)
@@ -18,8 +20,18 @@ here=$(cd "$(dirname "$0")" && pwd)
 load_config "${1:-}"
 take_lock
 
-restic_run cat config >/dev/null 2>&1 ||
-  die "dépôt restic non initialisé ou mot de passe incorrect : $RESTIC_REPOSITORY (voir docs/runbooks/restauration.md, § 2)"
+# HUB-18 — requête dans la base de l'environnement, avec le rôle d'administration du
+# conteneur postgres (ses variables : aucun identifiant ne transite par ce script).
+# shellcheck disable=SC2016
+app_sql() {
+  env_compose exec -T postgres sh -c 'psql -tA -v ON_ERROR_STOP=1 --username="$POSTGRES_USER" --dbname="$POSTGRES_DB" -c "$1"' sh "$1"
+}
+
+# Le signal ne fait jamais échouer la sauvegarde (base arrêtée, migration pas encore
+# appliquée…) : sans identifiant d'exécution, la fin n'est simplement pas signalée.
+run_id=$(app_sql "insert into hub.backup_runs default values returning id" 2>/dev/null | head -n 1) || run_id=""
+[[ $run_id =~ ^[0-9a-f-]{36}$ ]] || run_id=""
+size_bytes=""
 
 install -d -m 700 "$WORK_DIR"
 dump="$WORK_DIR/postgres.dump"
@@ -43,7 +55,24 @@ cleanup() {
   restart_stopped
   rm -f "$dump" "$documenso_dump"
 }
-trap cleanup EXIT
+
+# Fin de l'exécution, réussie ou non : services relancés, puis résultat signalé à l'app.
+finish() {
+  local status=$?
+  cleanup
+  if [ -n "$run_id" ]; then
+    local result=succeeded
+    [ "$status" -eq 0 ] || result=failed
+    [[ $size_bytes =~ ^[0-9]+$ ]] || size_bytes=null
+    app_sql "update hub.backup_runs set finished_at = now(), status = '$result', size_bytes = $size_bytes where id = '$run_id'" >/dev/null 2>&1 ||
+      log "signal de fin de sauvegarde non enregistré dans l'app"
+  fi
+  exit "$status"
+}
+trap finish EXIT
+
+restic_run cat config >/dev/null 2>&1 ||
+  die "dépôt restic non initialisé ou mot de passe incorrect : $RESTIC_REPOSITORY (voir docs/runbooks/restauration.md, § 2)"
 
 log "$ENVIRONMENT_NAME : dump PostgreSQL"
 # Les variables sont celles du conteneur postgres : aucun identifiant ne transite par ce script.
@@ -69,7 +98,9 @@ fi
 
 log "$ENVIRONMENT_NAME : arrêt de Garage le temps de la copie"
 stop_service env garage
-restic_run backup --tag "env:$ENVIRONMENT_NAME" --tag nightly /backup
+summary=$(restic_run backup --json --tag "env:$ENVIRONMENT_NAME" --tag nightly /backup)
+# Taille ajoutée au dépôt par cet instantané (résumé JSON de restic), pour la console Admin.
+size_bytes=$(grep -o '"data_added":[0-9]*' <<<"$summary" | tail -n 1 | cut -d: -f2) || size_bytes=""
 restart_stopped
 RESTIC_MOUNTS=()
 

@@ -5,6 +5,7 @@ import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import type { AppDatabase } from "@symbola/db/client";
 import {
   auditLog,
+  backupRuns,
   invitations,
   organizationModules,
   organizationProfiles,
@@ -236,4 +237,20 @@ export async function replaceInvitationToken(db: AppDatabase, invitationId: stri
 // requête (une ligne seulement pour un module déjà basculé par l'Admin).
 export async function findAllOrganizationModules(db: AppDatabase) {
   return db.select().from(organizationModules);
+}
+
+// Lot 13 (HUB-18) — dernières exécutions du script de sauvegarde (lecture seule).
+export async function findLatestBackupRun(db: AppDatabase) {
+  const [row] = await db.select().from(backupRuns).orderBy(desc(backupRuns.startedAt)).limit(1);
+  return row ?? null;
+}
+
+export async function findLatestSucceededBackupRun(db: AppDatabase) {
+  const [row] = await db
+    .select()
+    .from(backupRuns)
+    .where(eq(backupRuns.status, "succeeded"))
+    .orderBy(desc(backupRuns.finishedAt))
+    .limit(1);
+  return row ?? null;
 }

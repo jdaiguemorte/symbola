@@ -1,84 +1,113 @@
+// Lot 13 (HUB-17, HUB-18, ADR 0033) — vue d'ensemble de la console
+// d'Administration : état des services, chiffres agrégés, ce qui demande une
+// action (invitations expirées, double authentification non configurée,
+// dernière sauvegarde) et tendance sur 6 mois. Jamais un nom, un montant ni un
+// contenu d'organisation dans les chiffres (ADR 0029).
 import Link from "next/link";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { ScreenHelp } from "@/app/screen-help";
+import { formatMonth, type Locale } from "@symbola/i18n";
 import { createAppConnection } from "@symbola/db/client";
-import { isModuleEnabled, listOrganizations, MODULE_KEYS } from "@/modules/hub/service";
+import { getAdminOverview, type AdminOverview } from "@/modules/hub/service";
 import { requireAdmin } from "@/lib/require-admin";
-import { AdminOrganizationForm } from "./organization-form";
-import { toggleModuleAction } from "./actions";
+import { runAdminHealthChecks } from "@/lib/admin-health";
+import { BackupBadge } from "./backup-badge";
 
-export default async function AdminPage() {
+// Courbe des 6 derniers mois, tracée en SVG (attributs, pas de style en ligne : CSP).
+function Trend({ trend, label }: { trend: AdminOverview["trend"]; label: string }) {
+  const width = 300;
+  const height = 64;
+  const max = Math.max(1, ...trend.map((point) => point.count));
+  const step = trend.length > 1 ? width / (trend.length - 1) : 0;
+  const points = trend.map((point, index) => [index * step, height - 6 - (point.count / max) * (height - 12)] as const);
+  const line = points.map(([x, y], index) => `${index === 0 ? "M" : "L"}${x.toFixed(1)} ${y.toFixed(1)}`).join(" ");
+  const last = points.at(-1);
+  return (
+    <svg className="admin-trend" viewBox={`0 0 ${width} ${height}`} role="img" aria-label={label}>
+      {points.length > 0 ? <path d={`${line} L${width} ${height} L0 ${height} Z`} className="admin-trend-area" /> : null}
+      {points.length > 0 ? <path d={line} className="admin-trend-line" /> : null}
+      {last ? <circle cx={last[0]} cy={last[1]} r="4" className="admin-trend-dot" /> : null}
+    </svg>
+  );
+}
+
+export default async function AdminOverviewPage() {
   await requireAdmin();
-  const t = await getTranslations("Admin");
+  const t = await getTranslations("AdminOverview");
   const tHelp = await getTranslations("Help");
+  const locale = (await getLocale()) as Locale;
+  const now = new Date();
 
   const { sql, db } = createAppConnection();
-  let organizationsWithModules;
+  let overview: AdminOverview;
   try {
-    const organizations = await listOrganizations(db);
-    organizationsWithModules = await Promise.all(
-      organizations.map(async (organization) => ({
-        ...organization,
-        modules: await Promise.all(
-          MODULE_KEYS.map(async (moduleKey) => ({
-            moduleKey,
-            enabled: await isModuleEnabled(db, organization.id, moduleKey),
-          })),
-        ),
-      })),
-    );
+    overview = await getAdminOverview(db, now);
   } finally {
     await sql.end();
   }
+  const health = await runAdminHealthChecks();
+  const trendLabel = t("trendLabel", {
+    values: overview.trend.map((point) => `${formatMonth(`${point.month}-01`, locale)} : ${point.count}`).join(", "),
+  });
 
   return (
     <main>
-      <h1>{t("title")}</h1>
+      <div className="page-header">
+        <h1>{t("title")}</h1>
+        <p className={health.status === "ok" ? "status-pill status-pill-ok" : "status-pill status-pill-alert"} role="status">
+          <span className="status-led" aria-hidden="true" />
+          {health.status === "ok" ? t("servicesOk") : t("servicesDegraded")}
+        </p>
+      </div>
       <ScreenHelp title={tHelp("admin.title")} body={tHelp("admin.body")} />
-      <p>
-        <Link href="/admin/comptes">{t("viewAccounts")}</Link>
-        {" · "}
-        <Link href="/admin/activite">{t("viewActivity")}</Link>
-        {" · "}
-        <Link href="/admin/prise-en-main">{t("viewOnboarding")}</Link>
-        {" · "}
-        <Link href="/admin/health">{t("viewHealth")}</Link>
-        {" · "}
-        <Link href="/admin/parametres">{t("viewSettings")}</Link>
-        {" · "}
-        <Link href="/profil">{t("viewProfile")}</Link>
-      </p>
-      <h2>{t("createOrganizationTitle")}</h2>
-      <AdminOrganizationForm />
 
-      <h2>{t("organizationsTitle")}</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>{t("name")}</th>
-            <th>{t("modules")}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {organizationsWithModules.map((organization) => (
-            <tr key={organization.id}>
-              <td>{organization.name}</td>
-              <td>
-                {organization.modules.map(({ moduleKey, enabled }) => (
-                  <form action={toggleModuleAction} key={moduleKey} className="inline-form">
-                    <input type="hidden" name="organizationId" value={organization.id} />
-                    <input type="hidden" name="moduleKey" value={moduleKey} />
-                    <input type="hidden" name="enabled" value={(!enabled).toString()} />
-                    <button type="submit">
-                      {t(enabled ? "moduleEnabledLabel" : "moduleDisabledLabel", { module: moduleKey })}
-                    </button>
-                  </form>
-                ))}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <ul className="kpi-list kpi-list-4" aria-label={t("figures")}>
+        <li>
+          <span>{t("activeOrganizations")}</span> <strong>{t("outOf", { count: overview.activeOrganizations, total: overview.organizations })}</strong>
+        </li>
+        <li>
+          <span>{t("teamAccounts")}</span> <strong>{overview.teamAccounts}</strong>
+        </li>
+        <li>
+          <span>{t("activeAccounts")}</span> <strong>{t("outOf", { count: overview.activeAccounts, total: overview.teamAccounts })}</strong>
+        </li>
+        <li>
+          <span>{t("eventsThisMonth")}</span> <strong>{overview.eventsThisMonth}</strong>
+        </li>
+      </ul>
+
+      <div className="card-grid">
+        <section aria-labelledby="admin-todo-title">
+          <h2 id="admin-todo-title">{t("todoTitle")}</h2>
+          <ul className="admin-todo">
+            <li>
+              <span>{t("expiredInvitations", { count: overview.expiredInvitations })}</span>
+              {overview.expiredInvitations > 0 ? <Link href="/admin/comptes">{t("seeAccounts")}</Link> : <span className="badge badge-sauge">{t("nothingToDo")}</span>}
+            </li>
+            <li>
+              <span>{t("mfaPending", { count: overview.mfaPending })}</span>
+              {overview.mfaPending > 0 ? <Link href="/admin/comptes">{t("seeAccounts")}</Link> : <span className="badge badge-sauge">{t("nothingToDo")}</span>}
+            </li>
+            <li>
+              <span>{t("lastBackup")}</span>
+              <BackupBadge status={overview.backup} locale={locale} />
+            </li>
+          </ul>
+        </section>
+        <section aria-labelledby="admin-trend-title">
+          <h2 id="admin-trend-title">{t("trendTitle")}</h2>
+          <Trend trend={overview.trend} label={trendLabel} />
+          <p className="muted">{t("trendNote")}</p>
+        </section>
+      </div>
+      <p>
+        <Link href="/admin/organisations" className="button-link">
+          {t("seeOrganizations")}
+        </Link>{" "}
+        <Link href="/admin/health" className="button-link">
+          {t("seeHealth")}
+        </Link>
+      </p>
     </main>
   );
 }

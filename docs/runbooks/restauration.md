@@ -145,6 +145,12 @@ l'instantané. L'autre environnement n'est jamais touché.
   l'URL de chaque sonde dans `BACKUP_PUSH_URL` de la configuration correspondante. Le script
   ne l'appelle qu'après une sauvegarde **entièrement** réussie : une nuit en échec déclenche
   l'alerte. L'URL est un secret (elle permettrait de simuler une sauvegarde réussie).
+- **Console d'Administration** (lot 13, HUB-18, ADR 0033) : chaque exécution est aussi
+  enregistrée dans la table `hub.backup_runs` de l'environnement (début, fin, résultat, taille
+  ajoutée au dépôt), par `psql` dans le conteneur `postgres` avec son rôle d'administration.
+  La vue d'ensemble et la page Santé affichent « Faite le … », ou en alerte « Échec » /
+  « Aucune depuis plus de 26 h ». Ce signal ne fait jamais échouer la sauvegarde : si la base
+  ne répond pas (ou si la migration 0068 n'est pas encore appliquée), seul le journal le note.
 - Après un échec : `journalctl -u symbola-backup@<env>.service -n 100 --no-pager`.
 - Place disque : `du -sh /srv/backups/restic/*` chaque mois ; le dépôt partage le disque du
   VPS avec les données.

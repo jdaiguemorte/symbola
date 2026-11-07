@@ -10,7 +10,7 @@ import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import * as OTPAuth from "otpauth";
 import { createProspect, createProspectSource } from "../modules/events/service";
-import { clickMenuLink, closeLandmarks, landmarksPanel, readyOrganization } from "./helpers";
+import { clickAdminMenuLink, clickMenuLink, closeLandmarks, landmarksPanel, readyOrganization } from "./helpers";
 import { recordHelpProgress } from "../modules/hub/service";
 
 // Repères ouverts d'office : sans la préférence posée par la configuration.
@@ -110,10 +110,8 @@ test("HUB-11 — l'Admin voit la prise en main de chaque compte d'équipe", asyn
   const secret = new URL(uri!.replace("otpauth://totp/", "https://x/")).searchParams.get("secret")!;
   await page.getByLabel("Code").fill(new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret) }).generate());
   await page.getByRole("button", { name: "Valider" }).click();
-  await expect(page).toHaveURL("/");
-
-  await page.goto("/admin");
-  await page.getByRole("link", { name: "Prise en main" }).click();
+  await expect(page).toHaveURL("/admin");
+  await clickAdminMenuLink(page, "Prise en main");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Prise en main des organisations");
   const row = page.getByRole("row", { name: new RegExp(ownerEmail) });
   await expect(row).toContainText("1 sur 10");
