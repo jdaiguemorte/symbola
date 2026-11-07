@@ -21,7 +21,7 @@ async function loginAndSetupMfa(page: Page, email: string, password: string) {
   // Attend l'atterrissage sur l'accueil avant de rendre la main : sinon un
   // page.goto() immédiat de l'appelant peut courir plus vite que la
   // redirection post-MFA et partir sans le cookie de session.
-  await expect(page).toHaveURL("/");
+  await expect(page).toHaveURL(/\/(admin)?$/);
 }
 
 test("ONB-01-01 — le bandeau guide vers la fiche entreprise incomplète, sans bloquer l'accès", async ({ page }) => {

@@ -94,19 +94,13 @@
     "followUpSettings": "Follow-up delays"
   },
   "Admin": {
-    "title": "Administration",
-    "viewHealth": "View health page",
-    "viewSettings": "Platform settings",
-    "viewProfile": "My profile",
     "createOrganizationTitle": "Create an organization",
     "organizationsTitle": "Organizations",
     "name": "Name",
     "modules": "Modules",
     "moduleEnabledLabel": "{module}: enabled (disable)",
     "moduleDisabledLabel": "{module}: disabled (enable)",
-    "viewAccounts": "Accounts and support",
-    "viewActivity": "Organisation activity",
-    "viewOnboarding": "Getting started"
+    "listTitle": "All organisations"
   },
   "AdminOrganizationForm": {
     "name": "Organization name",
@@ -121,11 +115,31 @@
   },
   "AdminHealth": {
     "title": "Health",
-    "app": "App",
+    "app": "Application",
     "status": "Status",
     "version": "Version",
     "online": "online",
-    "offline": "offline"
+    "offline": "offline",
+    "servicesTitle": "Services",
+    "versionLine": "Deployed version: {version}",
+    "service": "Service",
+    "services": {
+      "database": "Database",
+      "storage": "File storage",
+      "antivirus": "Antivirus"
+    },
+    "backupTitle": "Last backup",
+    "backupStarted": "Started",
+    "backupFinished": "Finished",
+    "backupRunning": "in progress",
+    "backupResult": "Result",
+    "backupStatus": {
+      "running": "In progress",
+      "succeeded": "Succeeded",
+      "failed": "Failed"
+    },
+    "backupSize": "Added to the repository",
+    "backupNever": "The backup script has not reported anything in this environment yet."
   },
   "Invitation": {
     "welcome": "Welcome to Symbola",
@@ -349,12 +363,16 @@
       ]
     },
     "admin": {
-      "title": "Administration",
-      "body": "Create organisations, invite their owner, and enable or disable their modules. This console shows no business data from the organisations.",
+      "title": "Console overview",
+      "body": "At a glance: service status, figures across all organisations, what needs action (expired invitations, two-factor authentication not set up, last backup) and activity over the last 6 months. Never an organisation name, amount or content in these figures.",
       "faq": [
         {
-          "q": "An organisation did not get its invitation?",
-          "a": "Resend it from Accounts: a new link is sent and the old one is disabled."
+          "q": "Where does the last backup status come from?",
+          "a": "The nightly backup script reports each run: start, end, result and size. With no success for over 26 hours, the status turns into an alert."
+        },
+        {
+          "q": "What does \"active organisation\" mean?",
+          "a": "An organisation where at least one team account has logged in within the last 30 days."
         }
       ]
     },
@@ -691,6 +709,16 @@
         {
           "q": "Where do I create a new vendor type?",
           "a": "In Settings › Vendor types, with the fields specific to that type."
+        }
+      ]
+    },
+    "adminOrganizations": {
+      "title": "Organisations",
+      "body": "Create an organisation and invite its owner, then enable or disable its modules. A disabled module is hidden or shown as \"unavailable\" to the organisation, never as an error.",
+      "faq": [
+        {
+          "q": "An organisation did not get its invitation?",
+          "a": "Resend it from Accounts: a new link is sent and the old one is disabled."
         }
       ]
     }
@@ -2926,5 +2954,45 @@
     "previous": "Previous marker",
     "next": "Next marker",
     "marker": "Marker {number}: {title}"
+  },
+  "AdminMenu": {
+    "brand": "Admin",
+    "label": "Administration menu",
+    "overview": "Overview",
+    "organizations": "Organisations",
+    "accounts": "Accounts",
+    "onboarding": "Getting started",
+    "activity": "Activity",
+    "health": "Health",
+    "settings": "Suite settings",
+    "account": "My account"
+  },
+  "AdminOverview": {
+    "title": "Overview",
+    "servicesOk": "All services are responding",
+    "servicesDegraded": "A service is not responding: see the Health page",
+    "figures": "Figures across all organisations",
+    "activeOrganizations": "Active organisations (30 days)",
+    "teamAccounts": "Team accounts",
+    "activeAccounts": "Active over 30 days",
+    "eventsThisMonth": "Events created this month",
+    "outOf": "{count} of {total}",
+    "todoTitle": "To do",
+    "expiredInvitations": "{count, plural, =0 {No expired invitation} one {# expired invitation} other {# expired invitations}}",
+    "mfaPending": "{count, plural, =0 {Two-factor authentication set up everywhere} one {Two-factor authentication not set up: # account} other {Two-factor authentication not set up: # accounts}}",
+    "seeAccounts": "See accounts",
+    "nothingToDo": "Nothing to do",
+    "lastBackup": "Last backup",
+    "trendTitle": "Activity over the last 6 months",
+    "trendLabel": "Events created per month: {values}",
+    "trendNote": "Events created per month, all organisations, with no names or amounts; trials are not counted.",
+    "seeOrganizations": "See organisations",
+    "seeHealth": "See service health"
+  },
+  "AdminBackup": {
+    "ok": "Done on {date}",
+    "failed": "Failed on {date}",
+    "stale": "None for over {hours} h",
+    "none": "No backup reported"
   }
 }

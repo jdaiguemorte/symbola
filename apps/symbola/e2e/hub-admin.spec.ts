@@ -28,7 +28,7 @@ async function loginAndSetupMfa(page: Page, email: string, password: string): Pr
   // Attend l'atterrissage sur l'accueil avant de rendre la main : sinon un
   // page.goto() immédiat de l'appelant peut courir plus vite que la
   // redirection post-MFA et partir sans le cookie de session.
-  await expect(page).toHaveURL("/");
+  await expect(page).toHaveURL(/\/(admin)?$/);
   return secret;
 }
 
@@ -72,9 +72,9 @@ test("HUB-03-01 — l'Admin crée une organisation, le titulaire accepte son inv
   }
 
   await loginAndSetupMfa(page, adminEmail, adminPassword);
-  await expect(page).toHaveURL("/");
+  await expect(page).toHaveURL("/admin");
 
-  await page.goto("/admin");
+  await page.goto("/admin/organisations");
   let violations = await new AxeBuilder({ page }).analyze();
   expect(violations.violations, JSON.stringify(violations.violations, null, 2)).toEqual([]);
 
@@ -148,7 +148,7 @@ test("HUB-03-03 — désactiver un module l'affiche « indisponible » sans erre
   // contient toutes les organisations créées par les autres tests : on
   // cible la ligne de celle-ci par son nom, pas un bouton générique).
   await loginAndSetupMfa(page, adminEmail, adminPassword);
-  await page.goto("/admin");
+  await page.goto("/admin/organisations");
   const row = page.getByRole("row", { name: organizationName });
   await row.getByRole("button", { name: /hello : activé \(désactiver\)/ }).click();
   await expect(row.getByRole("button", { name: /hello : désactivé \(activer\)/ })).toBeVisible();
@@ -156,7 +156,7 @@ test("HUB-03-03 — désactiver un module l'affiche « indisponible » sans erre
   await page.goto("/admin/health");
   const violations = await new AxeBuilder({ page }).analyze();
   expect(violations.violations, JSON.stringify(violations.violations, null, 2)).toEqual([]);
-  await expect(page.getByText("en ligne")).toBeVisible();
+  await expect(page.getByRole("row", { name: /Base de données/ })).toContainText("en ligne");
 
   await page.goto("/");
   await logout(page);

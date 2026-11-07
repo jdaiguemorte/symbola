@@ -66,6 +66,7 @@ export const HELP_SCREENS: HelpScreen[] = [
   { key: "privacySettings", group: "data", audience: "team", ownerOnly: true, path: "/rgpd/reglages", capture: true },
   // Administration de la suite (aucune capture : elle montrerait des organisations)
   { key: "admin", group: "admin", audience: "admin", path: "/admin", capture: false },
+  { key: "adminOrganizations", group: "admin", audience: "admin", path: "/admin/organisations", capture: false },
   { key: "adminAccounts", group: "admin", audience: "admin", path: "/admin/comptes", capture: false },
   { key: "adminActivity", group: "admin", audience: "admin", path: "/admin/activite", capture: false },
   { key: "adminOnboarding", group: "admin", audience: "admin", path: "/admin/prise-en-main", capture: false },

@@ -25,7 +25,8 @@ case "$args" in
   *"pg_dump"*) [ -n "\${FAKE_PGDUMP_FAIL:-}" ] && exit 1; echo "PGDMP-fake" ;;
   *"pg_restore --list"*) cat >/dev/null ;;
   *"pg_restore --exit-on-error"*) cat >/dev/null ;;
-  *" backup --tag "*) exit "\${FAKE_BACKUP_STATUS:-0}" ;;
+  *"returning id"*) echo "\${FAKE_RUN_ID-11111111-2222-3333-4444-555555555555}" ;;
+  *" backup --json --tag "*) printf '{"message_type":"summary","data_added":%s}\\n' "\${FAKE_DATA_ADDED:-4096}"; exit "\${FAKE_BACKUP_STATUS:-0}" ;;
   *" snapshots "*) printf '%s' "\${FAKE_SNAPSHOTS_JSON-[{\\"tree\\":\\"aaaa\\",\\"id\\":\\"${SNAPSHOT_ID}\\"}]}" ;;
   *" dump "*) echo "PGDMP-fake" ;;
   *"pg_roles"*) echo "\${FAKE_ROLE_EXISTS-1}" ;;
@@ -129,7 +130,7 @@ describe("SOC-10 — Sauvegarde nocturne (backup.sh)", () => {
     const dump = indexOf(calls, "-p symbola-production", "pg_dump --format=custom");
     const verify = indexOf(calls, "pg_restore --list");
     const stopGarage = indexOf(calls, "-p symbola-production", "stop garage");
-    const backup = indexOf(calls, "restic/restic", "backup --tag env:production");
+    const backup = indexOf(calls, "restic/restic", "backup --json --tag env:production");
     const startGarage = indexOf(calls, "-p symbola-production", "start garage");
     const forget = indexOf(calls, "forget --tag env:production");
     const push = indexOf(calls, "curl", "/api/push/jeton?status=up");
@@ -157,7 +158,7 @@ describe("SOC-10 — Sauvegarde nocturne (backup.sh)", () => {
   it("étant donné un pg_dump en échec, alors aucun instantané, aucun arrêt de Garage, aucun signal de succès", () => {
     const { status, calls } = run(backupScript, ["production"], { FAKE_PGDUMP_FAIL: "1" });
     expect(status).not.toBe(0);
-    expect(indexOf(calls, "backup --tag")).toBe(-1);
+    expect(indexOf(calls, "backup --json --tag")).toBe(-1);
     expect(indexOf(calls, "stop garage")).toBe(-1);
     expect(indexOf(calls, "curl")).toBe(-1);
   });
@@ -165,14 +166,14 @@ describe("SOC-10 — Sauvegarde nocturne (backup.sh)", () => {
   it("étant donné restic en échec, alors Garage et Uptime Kuma redémarrent quand même et aucun signal de succès n'est envoyé", () => {
     const { status, calls } = run(backupScript, ["production"], { FAKE_BACKUP_STATUS: "1" });
     expect(status).not.toBe(0);
-    expect(indexOf(calls, "-p symbola-production", "start garage")).toBeGreaterThan(indexOf(calls, "backup --tag"));
-    expect(indexOf(calls, "-p symbola-socle", "start uptime-kuma")).toBeGreaterThan(indexOf(calls, "backup --tag"));
+    expect(indexOf(calls, "-p symbola-production", "start garage")).toBeGreaterThan(indexOf(calls, "backup --json --tag"));
+    expect(indexOf(calls, "-p symbola-socle", "start uptime-kuma")).toBeGreaterThan(indexOf(calls, "backup --json --tag"));
     expect(indexOf(calls, "curl")).toBe(-1);
   });
 
   it("inclut les données d'Uptime Kuma en production, jamais en staging", () => {
     const production = run(backupScript, ["production"]);
-    expect(production.calls[indexOf(production.calls, "backup --tag")]).toContain("symbola-socle_uptime_kuma_data:/backup/uptime-kuma:ro");
+    expect(production.calls[indexOf(production.calls, "backup --json --tag")]).toContain("symbola-socle_uptime_kuma_data:/backup/uptime-kuma:ro");
     expect(indexOf(production.calls, "-p symbola-socle", "stop uptime-kuma")).toBeGreaterThanOrEqual(0);
 
     rmSync(env.FAKE_LOG);
@@ -180,7 +181,7 @@ describe("SOC-10 — Sauvegarde nocturne (backup.sh)", () => {
     expect(staging.status).toBe(0);
     expect(staging.calls.join("\n")).not.toContain("uptime");
     expect(staging.calls.join("\n")).not.toContain("symbola-production");
-    expect(indexOf(staging.calls, "backup --tag env:staging")).toBeGreaterThanOrEqual(0);
+    expect(indexOf(staging.calls, "backup --json --tag env:staging")).toBeGreaterThanOrEqual(0);
     expect(indexOf(staging.calls, "curl")).toBe(-1); // pas d'URL push configurée
   });
 
@@ -188,6 +189,42 @@ describe("SOC-10 — Sauvegarde nocturne (backup.sh)", () => {
     expect(indexOf(run(backupScript, ["staging"], { FAKE_WEEKDAY: "3" }).calls, " check ")).toBe(-1);
     rmSync(env.FAKE_LOG);
     expect(indexOf(run(backupScript, ["staging"], { FAKE_WEEKDAY: "7" }).calls, "check --read-data-subset=10%")).toBeGreaterThanOrEqual(0);
+  });
+});
+
+describe("HUB-18 — Dernière sauvegarde signalée à l'app (lot 13, ADR 0033)", () => {
+  const RUN = "11111111-2222-3333-4444-555555555555";
+
+  it("étant donné une sauvegarde réussie, son début puis sa fin, son résultat et sa taille sont enregistrés dans hub.backup_runs", () => {
+    const { status, calls } = run(backupScript, ["production"], { FAKE_DATA_ADDED: "73400320" });
+    expect(status).toBe(0);
+    const start = indexOf(calls, "-p symbola-production", "psql", "insert into hub.backup_runs default values returning id");
+    const dump = indexOf(calls, "pg_dump --format=custom");
+    const end = indexOf(calls, "psql", "update hub.backup_runs", "status = 'succeeded'", "size_bytes = 73400320", `where id = '${RUN}'`);
+    expect(start).toBeGreaterThanOrEqual(0);
+    expect(start).toBeLessThan(dump);
+    expect(end).toBeGreaterThan(indexOf(calls, "forget --tag env:production"));
+    // Avec le rôle d'administration du conteneur : aucun identifiant dans les arguments.
+    expect(calls[start]).toContain('--username="$POSTGRES_USER"');
+  });
+
+  it("étant donné restic en échec, la fin est signalée « failed » après le redémarrage de Garage", () => {
+    const { status, calls } = run(backupScript, ["production"], { FAKE_BACKUP_STATUS: "1" });
+    expect(status).not.toBe(0);
+    const end = indexOf(calls, "update hub.backup_runs", "status = 'failed'");
+    expect(end).toBeGreaterThan(indexOf(calls, "-p symbola-production", "start garage"));
+  });
+
+  it("étant donné un pg_dump en échec, la fin est signalée « failed », sans taille", () => {
+    const { calls } = run(backupScript, ["staging"], { FAKE_PGDUMP_FAIL: "1" });
+    expect(indexOf(calls, "update hub.backup_runs", "status = 'failed'", "size_bytes = null")).toBeGreaterThanOrEqual(0);
+  });
+
+  it("étant donné le signal impossible (base arrêtée, migration absente), la sauvegarde se fait quand même, sans signal de fin", () => {
+    const { status, calls } = run(backupScript, ["staging"], { FAKE_RUN_ID: "" });
+    expect(status).toBe(0);
+    expect(indexOf(calls, "backup --json --tag env:staging")).toBeGreaterThanOrEqual(0);
+    expect(indexOf(calls, "update hub.backup_runs")).toBe(-1);
   });
 });
 
@@ -202,7 +239,7 @@ describe("DEV-02 — Sauvegarde de la base de Documenso (ADR 0026)", () => {
     const { status, calls } = run(backupScript, ["production"], { FAKE_DOCUMENSO_DB: "1" });
     expect(status).toBe(0);
     const dump = indexOf(calls, "pg_dump --format=custom", "--dbname=documenso");
-    const backup = indexOf(calls, "backup --tag env:production");
+    const backup = indexOf(calls, "backup --json --tag env:production");
     for (const step of [dump, backup]) expect(step).toBeGreaterThanOrEqual(0);
     expect(dump).toBeLessThan(backup);
     expect(calls.filter((call) => call.includes("pg_restore --list"))).toHaveLength(2);

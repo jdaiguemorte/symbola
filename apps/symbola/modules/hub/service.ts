@@ -108,6 +108,18 @@ export {
   type PendingInvitation,
 } from "./admin-support";
 
+// Lot 13 (HUB-17, HUB-18) — vue d'ensemble de la console et dernière sauvegarde.
+export {
+  BACKUP_STALE_HOURS,
+  backupState,
+  getAdminOverview,
+  getBackupStatus,
+  type AdminOverview,
+  type BackupRunView,
+  type BackupState,
+  type BackupStatus,
+} from "./admin-overview";
+
 export {
   IMPORT_ENTITY_MODULE,
   IMPORT_ENTITY_TYPES,

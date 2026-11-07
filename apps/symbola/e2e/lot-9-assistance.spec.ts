@@ -9,7 +9,7 @@ import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import * as OTPAuth from "otpauth";
-import { logout, readyOrganization } from "./helpers";
+import { clickAdminMenuLink, logout, readyOrganization } from "./helpers";
 
 const MAILPIT_API = "http://localhost:8025/api/v1";
 
@@ -49,7 +49,7 @@ async function setUpMfa(page: Page): Promise<string> {
   await page.getByLabel("Code").fill(new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret) }).generate());
   await page.getByRole("button", { name: "Valider" }).click();
   // Accueil, ou assistant de démarrage pour une organisation toute neuve (lot 12).
-  await expect(page).toHaveURL(/\/(demarrage)?$/);
+  await expect(page).toHaveURL(/\/(demarrage|admin)?$/);
   return secret;
 }
 
@@ -103,7 +103,7 @@ test("Lot 9 — l'Admin relance une invitation, réinitialise la double authenti
 
   await signIn(page, adminEmail, "mot-de-passe-admin-lot9");
   await setUpMfa(page);
-  await page.goto("/admin");
+  await page.goto("/admin/organisations");
   await page.getByLabel("Nom de l'organisation").fill(organizationName);
   await page.getByLabel("E-mail du titulaire").fill(ownerEmail);
   await page.getByRole("button", { name: "Créer et inviter" }).click();
@@ -111,7 +111,9 @@ test("Lot 9 — l'Admin relance une invitation, réinitialise la double authenti
   const firstLink = await waitForLink(ownerEmail, /https?:\/\/\S*\/invitations\/\S+/);
 
   // Comptes et assistance : l'invitation attend ; un nouvel envoi remplace le lien.
-  await page.getByRole("link", { name: "Comptes et assistance" }).click();
+  await clickAdminMenuLink(page, "Comptes");
+  // L'écran liste toutes les organisations de la base de test (pagination : étape 7b).
+  await expect(page.getByRole("heading", { level: 1, name: "Comptes et assistance" })).toBeVisible({ timeout: 20_000 });
   const section = page.locator(".card").filter({ has: page.getByRole("heading", { name: organizationName }) });
   await expect(section.getByRole("list", { name: `Invitations en attente de ${organizationName}` })).toContainText(ownerEmail);
   await expectNoAxeViolation(page);

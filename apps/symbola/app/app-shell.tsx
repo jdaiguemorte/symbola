@@ -5,6 +5,13 @@
 // et le rôle ; ce sont ceux qu'affichait l'accueil jusqu'ici.
 import type { ReactNode } from "react";
 import {
+  Activity,
+  Building2,
+  HeartPulse,
+  LayoutDashboard,
+  SlidersHorizontal,
+  UserCog,
+  Users,
   BookUser,
   CalendarDays,
   CalendarHeart,
@@ -13,7 +20,6 @@ import {
   LifeBuoy,
   ListChecks,
   Settings,
-  Shield,
   Wallet,
 } from "lucide-react";
 import { getTranslations } from "next-intl/server";
@@ -67,11 +73,12 @@ function Logo() {
   );
 }
 
-function Brand({ href }: { href: string }) {
+function Brand({ href, suffix }: { href: string; suffix?: string }) {
   return (
     <a href={href} className="app-brand">
       <Logo />
       <span>Symbola</span>
+      {suffix ? <span className="app-brand-suffix">{suffix}</span> : null}
     </a>
   );
 }
@@ -296,6 +303,83 @@ export async function AppShell({ children }: { children: ReactNode }) {
       ].filter((group) => group.items.length > 0)
     : [];
 
+  if (isAdmin) {
+    // Lot 13 (HUB-17, ADR 0033) — console d'Administration : son propre menu,
+    // sombre ; aucune donnée métier des organisations (ADR 0029).
+    const tAdmin = await getTranslations("AdminMenu");
+    return (
+      <div className="app-shell">
+        <AppSidebar brand={<Brand href="/admin" suffix={tAdmin("brand")} />} menuLabel={t("menuOpen")} closeLabel={t("menuClose")} admin>
+          <nav aria-label={tAdmin("label")}>
+            <ul className="app-nav">
+              <li>
+                <AppNavLink href="/admin" exact>
+                  <LayoutDashboard {...iconProps} />
+                  {tAdmin("overview")}
+                </AppNavLink>
+              </li>
+              <li>
+                <AppNavLink href="/admin/organisations">
+                  <Building2 {...iconProps} />
+                  {tAdmin("organizations")}
+                </AppNavLink>
+              </li>
+              <li>
+                <AppNavLink href="/admin/comptes">
+                  <Users {...iconProps} />
+                  {tAdmin("accounts")}
+                </AppNavLink>
+              </li>
+              <li>
+                <AppNavLink href="/admin/prise-en-main">
+                  <GraduationCap {...iconProps} />
+                  {tAdmin("onboarding")}
+                </AppNavLink>
+              </li>
+              <li>
+                <AppNavLink href="/admin/activite">
+                  <Activity {...iconProps} />
+                  {tAdmin("activity")}
+                </AppNavLink>
+              </li>
+              <li>
+                <AppNavLink href="/admin/health">
+                  <HeartPulse {...iconProps} />
+                  {tAdmin("health")}
+                </AppNavLink>
+              </li>
+            </ul>
+            <ul className="app-nav app-nav-secondary">
+              <li>
+                <AppNavLink href="/admin/parametres">
+                  <SlidersHorizontal {...iconProps} />
+                  {tAdmin("settings")}
+                </AppNavLink>
+              </li>
+              <li>
+                <AppNavLink href="/profil">
+                  <UserCog {...iconProps} />
+                  {tAdmin("account")}
+                </AppNavLink>
+              </li>
+              <li>
+                <AppNavLink href="/aide">
+                  <LifeBuoy {...iconProps} />
+                  {tAide("link")}
+                </AppNavLink>
+              </li>
+            </ul>
+          </nav>
+          <div className="app-user">
+            <span>{t("connectedAs", { email: auth.user.email })}</span>
+            {logout}
+          </div>
+        </AppSidebar>
+        <div className="app-main">{children}</div>
+      </div>
+    );
+  }
+
   return (
     <div className="app-shell">
       <AppSidebar
@@ -376,14 +460,6 @@ export async function AppShell({ children }: { children: ReactNode }) {
                   </AppNavLink>
                 </li>
               </>
-            ) : null}
-            {isAdmin ? (
-              <li>
-                <AppNavLink href="/admin">
-                  <Shield {...iconProps} />
-                  {t("administration")}
-                </AppNavLink>
-              </li>
             ) : null}
           </ul>
           <ul className="app-nav app-nav-secondary">

@@ -94,19 +94,13 @@
     "followUpSettings": "Délais de relance"
   },
   "Admin": {
-    "title": "Administration",
-    "viewHealth": "Voir la page Santé",
-    "viewSettings": "Paramètres de la plateforme",
-    "viewProfile": "Mon profil",
     "createOrganizationTitle": "Créer une organisation",
     "organizationsTitle": "Organisations",
     "name": "Nom",
     "modules": "Modules",
     "moduleEnabledLabel": "{module} : activé (désactiver)",
     "moduleDisabledLabel": "{module} : désactivé (activer)",
-    "viewAccounts": "Comptes et assistance",
-    "viewActivity": "Activité des organisations",
-    "viewOnboarding": "Prise en main"
+    "listTitle": "Toutes les organisations"
   },
   "AdminOrganizationForm": {
     "name": "Nom de l'organisation",
@@ -121,11 +115,31 @@
   },
   "AdminHealth": {
     "title": "Santé",
-    "app": "App",
+    "app": "Application",
     "status": "État",
     "version": "Version",
     "online": "en ligne",
-    "offline": "hors ligne"
+    "offline": "hors ligne",
+    "servicesTitle": "Services",
+    "versionLine": "Version déployée : {version}",
+    "service": "Service",
+    "services": {
+      "database": "Base de données",
+      "storage": "Stockage des fichiers",
+      "antivirus": "Antivirus"
+    },
+    "backupTitle": "Dernière sauvegarde",
+    "backupStarted": "Début",
+    "backupFinished": "Fin",
+    "backupRunning": "en cours",
+    "backupResult": "Résultat",
+    "backupStatus": {
+      "running": "En cours",
+      "succeeded": "Réussie",
+      "failed": "Échec"
+    },
+    "backupSize": "Ajouté au dépôt",
+    "backupNever": "Le script de sauvegarde n'a encore rien signalé dans cet environnement."
   },
   "Invitation": {
     "welcome": "Bienvenue sur Symbola",
@@ -349,12 +363,16 @@
       ]
     },
     "admin": {
-      "title": "Administration",
-      "body": "Créez des organisations, invitez leur titulaire, et activez ou désactivez leurs modules. Cette console n'affiche aucune donnée métier des organisations.",
+      "title": "Vue d'ensemble de la console",
+      "body": "D'un coup d'œil : l'état des services, les chiffres de toutes les organisations, ce qui demande une action (invitations expirées, double authentification non configurée, dernière sauvegarde) et l'activité des 6 derniers mois. Jamais un nom, un montant ni un contenu d'organisation dans ces chiffres.",
       "faq": [
         {
-          "q": "Une organisation n'a pas reçu son invitation ?",
-          "a": "Renvoyez-la depuis Comptes : un nouveau lien part et l'ancien est désactivé."
+          "q": "D'où vient l'état de la dernière sauvegarde ?",
+          "a": "Le script de sauvegarde nocturne signale chaque exécution : début, fin, résultat et taille. Sans réussite depuis plus de 26 h, l'état passe en alerte."
+        },
+        {
+          "q": "Que veut dire « organisation active » ?",
+          "a": "Une organisation dont au moins un compte d'équipe s'est connecté dans les 30 derniers jours."
         }
       ]
     },
@@ -691,6 +709,16 @@
         {
           "q": "Où créer un nouveau type de prestataire ?",
           "a": "Dans Paramètres › Types de prestataires, avec les champs propres à ce type."
+        }
+      ]
+    },
+    "adminOrganizations": {
+      "title": "Organisations",
+      "body": "Créez une organisation et invitez sa titulaire, puis activez ou désactivez ses modules. Un module désactivé est masqué ou affiché « indisponible » pour l'organisation, jamais en erreur.",
+      "faq": [
+        {
+          "q": "Une organisation n'a pas reçu son invitation ?",
+          "a": "Renvoyez-la depuis Comptes : un nouveau lien part et l'ancien est désactivé."
         }
       ]
     }
@@ -2926,5 +2954,45 @@
     "previous": "Repère précédent",
     "next": "Repère suivant",
     "marker": "Repère {number} : {title}"
+  },
+  "AdminMenu": {
+    "brand": "Admin",
+    "label": "Menu de l'Administration",
+    "overview": "Vue d'ensemble",
+    "organizations": "Organisations",
+    "accounts": "Comptes",
+    "onboarding": "Prise en main",
+    "activity": "Activité",
+    "health": "Santé",
+    "settings": "Réglages de la suite",
+    "account": "Mon compte"
+  },
+  "AdminOverview": {
+    "title": "Vue d'ensemble",
+    "servicesOk": "Tous les services répondent",
+    "servicesDegraded": "Un service ne répond pas : voir la page Santé",
+    "figures": "Chiffres de toutes les organisations",
+    "activeOrganizations": "Organisations actives (30 jours)",
+    "teamAccounts": "Comptes d'équipe",
+    "activeAccounts": "Connectés sur 30 jours",
+    "eventsThisMonth": "Événements créés ce mois",
+    "outOf": "{count} sur {total}",
+    "todoTitle": "À faire",
+    "expiredInvitations": "{count, plural, =0 {Aucune invitation expirée} one {# invitation expirée} other {# invitations expirées}}",
+    "mfaPending": "{count, plural, =0 {Double authentification configurée partout} one {Double authentification non configurée : # compte} other {Double authentification non configurée : # comptes}}",
+    "seeAccounts": "Voir les comptes",
+    "nothingToDo": "Rien à faire",
+    "lastBackup": "Dernière sauvegarde",
+    "trendTitle": "Activité des 6 derniers mois",
+    "trendLabel": "Événements créés par mois : {values}",
+    "trendNote": "Événements créés par mois, toutes organisations, sans nom ni montant ; les essais ne comptent pas.",
+    "seeOrganizations": "Voir les organisations",
+    "seeHealth": "Voir la santé des services"
+  },
+  "AdminBackup": {
+    "ok": "Faite le {date}",
+    "failed": "Échec le {date}",
+    "stale": "Aucune depuis plus de {hours} h",
+    "none": "Aucune sauvegarde signalée"
   }
 }

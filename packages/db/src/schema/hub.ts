@@ -4,7 +4,7 @@
 // (events, budget, quotes le seront). L'isolation entre organisations pour
 // ces tables est assurée exclusivement par packages/auth (seule porte
 // d'entrée, ADR 0013) : aucun autre code n'y accède directement.
-import { boolean, date, integer, jsonb, pgSchema, primaryKey, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { bigint, boolean, date, integer, jsonb, pgSchema, primaryKey, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
 export const hubSchema = pgSchema("hub");
 
@@ -490,4 +490,20 @@ export const privacyPurges = hubSchema.table("privacy_purges", {
   createdByUserId: uuid("created_by_user_id").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   completedAt: timestamp("completed_at", { withTimezone: true }),
+});
+
+// Lot 13 (HUB-18, ADR 0033) — exécutions du script de sauvegarde
+// (infra/backup/backup.sh), signalées par une requête SQL dans le conteneur
+// PostgreSQL de l'environnement, avec le rôle d'administration du script.
+// Aucune donnée d'organisation : seul l'Admin la lit (console, Santé) ; le
+// rôle applicatif n'a que la lecture.
+export const backupRunStatusEnum = hubSchema.enum("backup_run_status", ["running", "succeeded", "failed"]);
+
+export const backupRuns = hubSchema.table("backup_runs", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  startedAt: timestamp("started_at", { withTimezone: true }).defaultNow().notNull(),
+  finishedAt: timestamp("finished_at", { withTimezone: true }),
+  status: backupRunStatusEnum("status").notNull().default("running"),
+  // Taille ajoutée au dépôt restic par cette sauvegarde, en octets.
+  sizeBytes: bigint("size_bytes", { mode: "number" }),
 });

@@ -76,3 +76,9 @@ export async function closeLandmarks(page: Page, screen: string): Promise<void> 
   await panel.getByRole("button", { name: "Fermer l'aide" }).click();
   await expect(panel).toHaveCount(0);
 }
+
+// Lot 13 (HUB-17) — lien du menu de la console d'Administration (replié sur téléphone).
+export async function clickAdminMenuLink(page: Page, name: string): Promise<void> {
+  await openMenu(page);
+  await page.getByRole("navigation", { name: "Menu de l'Administration" }).getByRole("link", { name, exact: true }).click();
+}

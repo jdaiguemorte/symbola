@@ -54,5 +54,5 @@ export async function toggleModuleAction(formData: FormData): Promise<void> {
     await sql.end();
   }
 
-  revalidatePath("/admin");
+  revalidatePath("/admin/organisations");
 }

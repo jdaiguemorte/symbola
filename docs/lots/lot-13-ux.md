@@ -162,6 +162,10 @@ Chaque étape est livrée en une PR (tests, 375 px, axe-core), mise sur le stagi
 
 ## Étape 7 — Administration
 
+Livrée en deux PR : **7a** (sauvegarde signalée, menu de la console, vue d'ensemble, Santé
+détaillée, écran Organisations séparé) et **7b** (organisations en tableau avec panneau,
+pagination des écrans Organisations, Comptes, Prise en main et Activité).
+
 ### HUB-17 — Console d'Administration
 
 - Menu latéral distinct (sombre) : Vue d'ensemble, Organisations, Comptes, Prise en main,
@@ -182,6 +186,9 @@ Chaque étape est livrée en une PR (tests, 375 px, axe-core), mise sur le stagi
   résultat, taille) dans la table `hub.backup_runs` (ADR 0033).
 - La console affiche la dernière sauvegarde (« Faite à 03:12 », ou « Échec » / « Aucune depuis
   plus de 26 h » en alerte).
+- Le signal ne fait jamais échouer la sauvegarde (base arrêtée, migration absente) ; seul le
+  script écrit dans la table (rôle d'administration), le rôle applicatif ne fait que lire.
+- L'Admin arrive directement sur la console après sa connexion.
 
 ## Tests
 
