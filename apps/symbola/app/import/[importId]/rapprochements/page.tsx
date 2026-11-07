@@ -9,7 +9,7 @@ import { getImportMatchesView, rowEventReference, type MatchesRowView } from "@/
 import type { EventCandidate } from "@/lib/import/candidates";
 import { isValidId } from "../../access";
 import { ImportSteps } from "../../import-steps";
-import { decideMatchesAction, manualMatchAction } from "./actions";
+import { decideMatchesAction, decideVendorTypesAction, manualMatchAction } from "./actions";
 
 function names(clients: PersonName[]): string {
   return clients.map((client) => `${client.firstName} ${client.lastName ?? ""}`.trim()).join(" & ");
@@ -40,6 +40,10 @@ export default async function ImportMatchesPage({ params }: { params: Promise<{ 
   };
   const rowTitle = (values: Record<string, ImportValue>) => {
     if (view.entityType === "events") return eventTitle(rowEventReference(values));
+    if (view.entityType === "vendors") {
+      const name = typeof values.name === "string" ? values.name : t("rowWithoutLabel");
+      return typeof values.city === "string" ? `${name} — ${values.city}` : name;
+    }
     const label = view.entityType === "budget_lines" ? values.slotLabel : values.label;
     return typeof label === "string" ? label : t("rowWithoutLabel");
   };
@@ -56,6 +60,38 @@ export default async function ImportMatchesPage({ params }: { params: Promise<{ 
       <ImportSteps current={2} />
       <p>{t("matchesIntro")}</p>
       {rejectedCount > 0 ? <p>{t("matchesRejectedNotice", { count: rejectedCount })}</p> : null}
+
+      {view.vendorTypes && view.vendorTypes.length > 0 ? (
+        <section className="card" aria-labelledby="vendor-types-title">
+          <h2 id="vendor-types-title">{t("vendorTypesTitle")}</h2>
+          <p>{t("vendorTypesIntro")}</p>
+          <form action={decideVendorTypesAction} className="vendor-types-form">
+            <input type="hidden" name="importId" value={view.importId} />
+            {view.vendorTypes.map((choice, index) => (
+              <div key={choice.label}>
+                <input type="hidden" name={`label-${index}`} value={choice.label} />
+                <p>{t("vendorTypeRows", { label: choice.label, count: choice.rowCount })}</p>
+                <label htmlFor={`vendor-type-${index}`}>{t("vendorTypeTargetLabel", { label: choice.label })}</label>
+                <select id={`vendor-type-${index}`} name={`type-${index}`} defaultValue={choice.typeId ?? ""} aria-describedby={choice.typeId && !choice.manual ? `vendor-type-note-${index}` : undefined}>
+                  <option value="">{t("vendorTypeCreate", { label: choice.label })}</option>
+                  <optgroup label={t("vendorTypeExisting")}>
+                    {(view.typeOptions ?? []).map((type) => (
+                      <option key={type.id} value={type.id}>
+                        {type.label}
+                      </option>
+                    ))}
+                  </optgroup>
+                </select>
+                {choice.typeId && !choice.manual ? (
+                  <small id={`vendor-type-note-${index}`}>{t("vendorTypeMatched", { type: choice.typeLabel ?? "", score: choice.score })}</small>
+                ) : null}
+              </div>
+            ))}
+            <input type="hidden" name="count" value={view.vendorTypes.length} />
+            <button type="submit">{t("vendorTypesSave")}</button>
+          </form>
+        </section>
+      ) : null}
 
       {proposedCount > 0 ? (
         <form action={decideMatchesAction}>

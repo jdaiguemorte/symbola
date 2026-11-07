@@ -27,6 +27,7 @@ import {
   getVendorFile,
   getVendorHistory,
   InvalidVendorFieldValueError,
+  InvalidVendorLinkError,
   listVendorTypes,
   removeDemoVendors,
   removeVendorTag,
@@ -243,17 +244,38 @@ describe("AIDE-08 et RGPD — recherche globale, contrat privacy/v1, exemples", 
 
   it("trouve la personne par son e-mail ou son nom, et l'oubli efface tout ce qui la désigne", async () => {
     const organizationId = await newOrganization();
-    const { vendor } = await createVendor(organizationId, { name: "Studio Lumière", typeId: null, contactName: "Jeanne Martin", email: "jeanne@studio.example", city: "Lille" });
+    const { vendor } = await createVendor(organizationId, {
+      name: "Studio Lumière",
+      typeId: null,
+      contactName: "Jeanne Martin",
+      email: "jeanne@studio.example",
+      city: "Lille",
+      website: "www.jeanne-martin.example",
+      socialLinks: [{ network: "instagram", url: "https://www.instagram.com/jeanne.martin" }],
+      siret: "123 456 789 00011",
+    });
+    // Lot 14 (décision M) : adresse web complétée, SIRET réduit à ses chiffres.
+    expect(vendor).toMatchObject({ website: "https://www.jeanne-martin.example", siret: "12345678900011" });
     await attachVendorFile({ organizationId, vendorId: vendor.id, kind: "rib", fileName: "rib.pdf", content: TINY_PDF, uploadedByUserId: plannerId });
 
     const records = await vendorsPrivacy.find({ organizationId, terms: { email: "JEANNE@studio.example" } });
     expect(records.map((record) => record.recordId)).toEqual([vendor.id]);
+    expect(records[0]!.fields).toMatchObject({ website: "https://www.jeanne-martin.example", siret: "12345678900011" });
+    expect((await vendorsPrivacy.find({ organizationId, terms: { name: "12345678900011" } })).length).toBe(1);
     expect(await vendorsPrivacy.find({ organizationId: await newOrganization(), terms: { name: "Jeanne Martin" } })).toEqual([]);
 
     const input = { organizationId, records: [{ kind: "vendor", recordId: vendor.id }], rules: { accountingRetentionMonths: 120, signedQuoteRetentionMonths: 60 }, today: "2026-11-04" };
     expect(await vendorsPrivacy.planErasure(input)).toEqual([{ kind: "vendor", recordId: vendor.id, fate: "anonymized", legalBasis: null, keptUntil: null }]);
     await vendorsPrivacy.erase(input);
     const erased = await getVendor(organizationId, vendor.id);
-    expect(erased).toMatchObject({ name: "[anonymisé]", contactName: null, email: null, location: null, archived: true, files: [] });
+    expect(erased).toMatchObject({ name: "[anonymisé]", contactName: null, email: null, location: null, archived: true, files: [], website: null, socialLinks: [], siret: null, importedFields: null });
+  });
+
+  it("lot 14 (décision M) : une adresse web ou un SIRET illisibles sont refusés", async () => {
+    const organizationId = await newOrganization();
+    await expect(createVendor(organizationId, { name: "X", typeId: null, website: "pas un site" })).rejects.toThrow(InvalidVendorLinkError);
+    await expect(createVendor(organizationId, { name: "X", typeId: null, siret: "1234" })).rejects.toThrow(InvalidVendorLinkError);
+    const { vendor } = await createVendor(organizationId, { name: "X", typeId: null, socialLinks: [{ network: "facebook", url: "illisible" }] });
+    expect(vendor.socialLinks).toEqual([]);
   });
 });

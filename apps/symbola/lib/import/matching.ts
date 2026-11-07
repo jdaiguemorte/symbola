@@ -92,6 +92,20 @@ export function vendorCandidateLabel(candidate: VendorCandidate): string {
   return candidate.city ? `${candidate.name} — ${candidate.city}` : candidate.name;
 }
 
+// Rapprochement à la main d'une ligne du carnet : les fiches aux noms les
+// plus proches seulement (un carnet compte des centaines de fiches).
+const VENDOR_OPTIONS = 10;
+
+function closestVendors(values: Record<string, ImportValue>, candidates: VendorCandidate[]): MatchesRowView["options"] {
+  const reference = vendorReference(values);
+  return candidates
+    .map((candidate) => ({ candidate, score: vendorSimilarity(reference, candidate) }))
+    .filter((entry) => entry.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, VENDOR_OPTIONS)
+    .map(({ candidate }) => ({ id: candidate.id, label: vendorCandidateLabel(candidate), event: null }));
+}
+
 // Décision N : types du fichier (sans doublon, casse et accents près),
 // rapprochés d'un type du carnet ou à créer.
 async function computeVendorTypeChoices(organizationId: string, rows: ParsedImportRow[]): Promise<ImportVendorTypeChoice[]> {
@@ -231,11 +245,8 @@ export async function getImportMatchesView(organizationId: string, importId: str
   const events = isEventType || hasEventReference ? await listEventCandidates(organizationId) : [];
   const eventsById = new Map(events.map((event) => [event.id, event]));
   const isVendorType = set.entityType === "vendors";
-  const labelCandidates = isVendorType
-    ? (await listVendorCandidates(organizationId)).map((vendor) => ({ id: vendor.id, label: vendorCandidateLabel(vendor) }))
-    : !isEventType && !hasEventReference
-      ? await listLabelCandidates(organizationId, set.entityType)
-      : [];
+  const vendorCandidates = isVendorType ? await listVendorCandidates(organizationId) : [];
+  const labelCandidates = !isEventType && !hasEventReference && !isVendorType ? await listLabelCandidates(organizationId, set.entityType) : [];
   const itemsByEvent = new Map<string, LabelCandidate[]>();
   const itemsOf = async (eventId: string) => {
     let items = itemsByEvent.get(eventId);
@@ -253,6 +264,7 @@ export async function getImportMatchesView(organizationId: string, importId: str
     if (row.errors.length === 0) {
       if (isEventType) options = events.map((event) => ({ id: event.id, label: null, event }));
       else if (hasEventReference) options = resolution?.eventId ? (await itemsOf(resolution.eventId)).map((item) => ({ ...item, event: null })) : [];
+      else if (isVendorType) options = closestVendors(row.values, vendorCandidates);
       else options = labelCandidates.map((item) => ({ ...item, event: null }));
     }
     const match = matching.matches.find((candidate) => candidate.rowIndex === row.rowIndex);

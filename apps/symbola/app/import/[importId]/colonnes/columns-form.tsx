@@ -46,10 +46,13 @@ export function ColumnsForm({ view }: { view: ImportColumnsView }) {
               {column.samples.length > 0 ? t("columnSamples", { samples: column.samples.join(" · ") }) : t("columnEmpty")}
             </p>
             {column.proposedFieldKey ? (
-              <p>
-                {t("columnProposal", { field: t(`field.${column.proposedFieldKey}`), confidence: column.confidence })}
-                {lowConfidence ? ` — ${t("columnLowConfidence")}` : null}
-              </p>
+              <>
+                <p>
+                  {t("columnProposal", { field: t(`field.${column.proposedFieldKey}`), confidence: column.confidence })}
+                  {lowConfidence ? ` — ${t("columnLowConfidence")}` : null}
+                </p>
+                {column.byContent ? <p className="notice">{t("columnByContent")}</p> : null}
+              </>
             ) : (
               <p>{t("columnNoProposal")}</p>
             )}

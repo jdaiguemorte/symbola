@@ -1780,11 +1780,20 @@
       "prospect_source": "Source: {title}",
       "loss_reason": "Loss reason: {title}",
       "default_vendor_slot": "Default budget line: {title}",
-      "vendor": "Vendor",
-      "vendor_type": "Vendor type",
-      "vendor_tag": "Tag"
+      "vendor": "Vendor: {title}",
+      "vendor_type": "Vendor type: {title}",
+      "vendor_tag": "Tag: {title}"
     },
-    "importedFieldsTitle": "Imported fields"
+    "importedFieldsTitle": "Imported fields",
+    "columnByContent": "Suggested from the column's content, not its heading (columns swapped in the file): please check.",
+    "vendorTypesTitle": "Vendor types in the file",
+    "vendorTypesIntro": "Each type in the file is matched with a type of your vendor book when it already exists; otherwise it is created on confirmation. To avoid duplicates, group a type under an existing one.",
+    "vendorTypeRows": "{label} ({count, plural, one {# vendor} other {# vendors}})",
+    "vendorTypeTargetLabel": "Vendor book type for “{label}”",
+    "vendorTypeCreate": "Create the type “{label}”",
+    "vendorTypeMatched": "Matched with “{type}” ({score}%)",
+    "vendorTypeExisting": "Your vendor book types",
+    "vendorTypesSave": "Save the types"
   },
   "Privacy": {
     "title": "Personal data",

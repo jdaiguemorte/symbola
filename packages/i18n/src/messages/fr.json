@@ -1780,11 +1780,20 @@
       "prospect_source": "Source : {title}",
       "loss_reason": "Motif de perte : {title}",
       "default_vendor_slot": "Ligne du budget par défaut : {title}",
-      "vendor": "Prestataire",
-      "vendor_type": "Type de prestataire",
-      "vendor_tag": "Étiquette"
+      "vendor": "Prestataire : {title}",
+      "vendor_type": "Type de prestataire : {title}",
+      "vendor_tag": "Étiquette : {title}"
     },
-    "importedFieldsTitle": "Champs importés"
+    "importedFieldsTitle": "Champs importés",
+    "columnByContent": "Proposé d'après le contenu de la colonne, pas son intitulé (colonnes inversées dans le fichier) : vérifiez.",
+    "vendorTypesTitle": "Types de prestataires du fichier",
+    "vendorTypesIntro": "Chaque type du fichier est rapproché d'un type de votre carnet quand il existe déjà ; sinon il est créé à la confirmation. Pour éviter les doublons, regroupez un type sur un type existant.",
+    "vendorTypeRows": "{label} ({count, plural, one {# prestataire} other {# prestataires}})",
+    "vendorTypeTargetLabel": "Type de carnet pour « {label} »",
+    "vendorTypeCreate": "Créer le type « {label} »",
+    "vendorTypeMatched": "Rapproché de « {type} » ({score} %)",
+    "vendorTypeExisting": "Types de votre carnet",
+    "vendorTypesSave": "Enregistrer les types"
   },
   "Privacy": {
     "title": "Données personnelles",
