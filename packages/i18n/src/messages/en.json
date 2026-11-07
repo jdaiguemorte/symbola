@@ -202,9 +202,6 @@
     "invalidImportLimits": "Import limits and the export duration must be positive whole numbers (20 MB at most)."
   },
   "Tour": {
-    "skip": "Skip",
-    "next": "Next",
-    "finish": "Finish the tour",
     "hub": [
       {
         "title": "Welcome to Symbola",
@@ -277,11 +274,6 @@
         "body": "Invited couples see their budget read-only in their space."
       }
     ],
-    "continue": "Continue",
-    "back": "Back",
-    "later": "Later",
-    "stepOf": "Step {step} of {total}",
-    "laterHint": "\"Later\" keeps your place: the tour resumes here from the help bar.",
     "event": [
       {
         "title": "An event's page",
@@ -324,7 +316,6 @@
     ]
   },
   "Help": {
-    "relaunchTour": "Relaunch the guided tour",
     "login": {
       "title": "Log in",
       "body": "Sign in with your email and password. After several failed attempts, the account is temporarily locked to protect it."
@@ -1862,7 +1853,6 @@
     "label": "Help bar",
     "progress": "Tutorials done: {completed} of {total}",
     "progressShort": "Tutorials {completed}/{total}",
-    "resumeTour": "Resume the tour (step {step})",
     "resumeTutorial": "Resume: {title}",
     "collapse": "Collapse the help bar",
     "inviteKicker": "Discover in {minutes} minutes",
@@ -1919,7 +1909,7 @@
     "nextSuggestion": "Suggested next step: {title} ({minutes} minutes).",
     "continue": "Continue getting started",
     "allDone": "Well done, you have followed every tutorial. They stay available here to review.",
-    "autoTours": "Offer tours and tutorials automatically the first time a screen is opened",
+    "autoTours": "Show the markers and suggest tutorials the first time a screen opens",
     "modules": {
       "events": "Events",
       "quotes": "Quotes and invoices",
@@ -1927,19 +1917,17 @@
       "hub": "Settings and data",
       "vendors": "Vendors"
     },
-    "tourTitle": "Tour: {title}",
-    "tourKind": "Tour · 1 min",
-    "tourFromEvent": "Tour · from an event's page",
+    "tourTitle": "Markers: {title}",
+    "tourKind": "Markers · 1 min",
+    "tourFromEvent": "Markers · from an event page",
     "tutorialKind": "Tutorial · {minutes} min",
-    "stateDone": "Done",
     "stateInProgress": "In progress · step {step}",
-    "statePostponed": "Set aside · step {step}",
     "stateNew": "To discover",
-    "actionReview": "Review",
-    "actionResume": "Resume",
-    "actionStart": "Start",
     "articlesTitle": "Help articles",
-    "openTutorials": "See the tutorial path"
+    "openTutorials": "See the tutorial path",
+    "stateSeen": "Markers seen",
+    "actionShow": "Show the markers",
+    "actionShowAgain": "Show the markers again"
   },
   "Search": {
     "label": "Search",
@@ -2721,5 +2709,13 @@
     "conflictBody": "You are at step {step} of “{title}”. One tutorial at a time: finish it first, or abandon it (its sample will be deleted) to start “{next}”.",
     "conflictFinish": "Finish it first",
     "conflictAbandon": "Abandon it and start this one"
+  },
+  "Landmarks": {
+    "toggle": "Help on this screen: {screen}",
+    "panel": "Help: {screen}",
+    "close": "Close help",
+    "previous": "Previous marker",
+    "next": "Next marker",
+    "marker": "Marker {number}: {title}"
   }
 }

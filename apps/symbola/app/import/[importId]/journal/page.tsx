@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { createAppConnection } from "@symbola/db/client";
 import { formatAmount, formatCalendarDate, formatDateTime, type Locale } from "@symbola/i18n";
-import { HelpButton } from "@symbola/ui";
+import { ScreenHelp } from "@/app/screen-help";
 import { getUserContact } from "@/modules/hub/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { getUndoPreview, type UndoPreviewItem } from "@/lib/import/apply";
@@ -72,7 +72,7 @@ export default async function ImportJournalPage({
   return (
     <main>
       <h1>{t("journalEntryTitle", { fileName: view.fileName })}</h1>
-      <HelpButton title={tHelp("importUndo.title")} body={tHelp("importUndo.body")} />
+      <ScreenHelp title={tHelp("importUndo.title")} body={tHelp("importUndo.body")} />
       {undone !== null ? (
         <p role="status">
           {t("undoResult", { undone, kept: count(query.gardes) ?? 0, used: count(query.utilises) ?? 0 })}

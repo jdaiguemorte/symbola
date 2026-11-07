@@ -1,8 +1,7 @@
 "use client";
 
 // Lot 10 (AIDE-07), revu au lot 13 (HUB-15) — plus de barre permanente :
-// une pastille « Reprendre » quand une visite est mise de côté sur cet
-// écran ou qu'un tutoriel est en cours, et l'invitation à un tutoriel à la
+// une pastille « Reprendre » quand un tutoriel est en cours, et l'invitation à un tutoriel à la
 // première visite de son écran (AIDE-06). Le compteur des tutoriels est
 // dans le menu.
 import Link from "next/link";
@@ -54,14 +53,8 @@ export function HelpBar({
         </section>
       ) : null}
       {/* Lot 13 (HUB-15) : plus de barre permanente ; une pastille seulement
-          quand un tutoriel ou une visite est à reprendre. */}
-      {tour && tour.postponedStep !== null ? (
-        <aside className="resume-zone" aria-label={t("resumeLabel")}>
-          <button type="button" className="resume-chip" onClick={tour.resume}>
-            {t("resumeTour", { step: tour.postponedStep + 1 })}
-          </button>
-        </aside>
-      ) : tutorial ? (
+          quand un tutoriel est à reprendre. */}
+      {tutorial ? (
         <aside className="resume-zone" aria-label={t("resumeLabel")}>
           <Link href={tutorial.href} className="resume-chip">
             {t("resumeTutorial", { title: tutorial.title })}

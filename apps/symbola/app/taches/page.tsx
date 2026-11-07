@@ -5,7 +5,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { parisToday, type Locale } from "@symbola/i18n";
-import { HelpButton } from "@symbola/ui";
+import { ScreenHelp } from "@/app/screen-help";
 import { listOrganizationTasks } from "@/modules/events/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isEventsModuleEnabled } from "@/app/events/module-access";
@@ -53,7 +53,7 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
           </p>
         </div>
         <div className="toolbar">
-          <HelpButton title={tHelp("allTasks.title")} body={tHelp("allTasks.body")} />
+          <ScreenHelp title={tHelp("allTasks.title")} body={tHelp("allTasks.body")} />
           <GearLink href="/events/modeles" label={t("taskTemplatesSettings")} />
         </div>
       </div>

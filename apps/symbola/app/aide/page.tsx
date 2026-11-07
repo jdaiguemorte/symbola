@@ -57,10 +57,9 @@ export default async function AidePage() {
   const autoTours = (await cookies()).get(AUTO_TOURS_COOKIE)?.value !== "0";
 
   function tourState(key: string, path: string | null): ItemState {
-    const current = entry(`tour:${key}`);
-    if (current?.status === "completed") return { label: tCenter("stateDone"), className: "badge badge-sauge", action: tCenter("actionReview"), href: path ? `${path}?visite=revoir` : null };
-    if (current) return { label: tCenter("statePostponed", { step: current.step + 1 }), className: "badge badge-terracotta", action: tCenter("actionResume"), href: path ? `${path}?visite=reprendre` : null };
-    return { label: tCenter("stateNew"), className: "badge", action: tCenter("actionStart"), href: path ? `${path}?visite=revoir` : null };
+    // Lot 13 (AIDE-11) : des repères, vus ou non (plus d'étape mise de côté).
+    if (entry(`tour:${key}`)) return { label: tCenter("stateSeen"), className: "badge badge-sauge", action: tCenter("actionShowAgain"), href: path ? `${path}?visite=revoir` : null };
+    return { label: tCenter("stateNew"), className: "badge", action: tCenter("actionShow"), href: path ? `${path}?visite=revoir` : null };
   }
 
   const moduleOrder: HelpModule[] = ["events", "vendors", "quotes", "budget", "hub"];

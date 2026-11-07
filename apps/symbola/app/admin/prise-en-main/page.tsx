@@ -3,7 +3,7 @@
 // cherché : la progression dans l'aide seulement (ADR 0029).
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
-import { HelpButton } from "@symbola/ui";
+import { ScreenHelp } from "@/app/screen-help";
 import { formatDateTime, type Locale } from "@symbola/i18n";
 import { createAppConnection } from "@symbola/db/client";
 import { listTeamHelpProgress } from "@/modules/hub/service";
@@ -58,7 +58,7 @@ export default async function AdminOnboardingPage() {
   return (
     <main>
       <h1>{t("title")}</h1>
-      <HelpButton title={tHelp("adminOnboarding.title")} body={tHelp("adminOnboarding.body")} />
+      <ScreenHelp title={tHelp("adminOnboarding.title")} body={tHelp("adminOnboarding.body")} />
       <p>
         <Link href="/admin">{t("backToAdmin")}</Link>
       </p>

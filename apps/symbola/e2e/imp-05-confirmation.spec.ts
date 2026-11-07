@@ -92,9 +92,6 @@ test("IMP-05 — aperçu, confirmation, champ libre sur la fiche, journal et ann
 
   // La colonne gardée en champ libre est visible sur la fiche mise à jour.
   await page.goto(`/events/${existingEventId}`);
-  await page.waitForLoadState("networkidle");
-  const tour = page.getByRole("dialog");
-  if (await tour.isVisible()) await tour.getByRole("button", { name: "Passer" }).click();
   const imported = page.getByRole("region", { name: "Champs importés" });
   await expect(imported).toContainText("E-mail");
   await expect(imported).toContainText("elodie@example.org");

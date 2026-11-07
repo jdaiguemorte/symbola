@@ -4,7 +4,7 @@
 // /health plutôt que de les dupliquer.
 import { sql as rawSql } from "drizzle-orm";
 import { getTranslations } from "next-intl/server";
-import { HelpButton } from "@symbola/ui";
+import { ScreenHelp } from "@/app/screen-help";
 import { createAppConnection } from "@symbola/db/client";
 import { parseEnv } from "@symbola/env";
 import { checkBucket, createStorageClient, pingClamav } from "@symbola/files";
@@ -36,7 +36,7 @@ export default async function AdminHealthPage() {
   return (
     <main>
       <h1>{t("title")}</h1>
-      <HelpButton title={tHelp("adminHealth.title")} body={tHelp("adminHealth.body")} />
+      <ScreenHelp title={tHelp("adminHealth.title")} body={tHelp("adminHealth.body")} />
       <table>
         <thead>
           <tr>

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { HelpButton } from "@symbola/ui";
+import { ScreenHelp } from "@/app/screen-help";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { getImportGapsView } from "@/lib/import/gaps";
 import { isValidId } from "../../access";
@@ -31,7 +31,7 @@ export default async function ImportGapsPage({ params }: { params: Promise<{ imp
   return (
     <main>
       <h1>{t("gapsTitle", { fileName: view.fileName })}</h1>
-      <HelpButton title={tHelp("importGaps.title")} body={tHelp("importGaps.body")} />
+      <ScreenHelp title={tHelp("importGaps.title")} body={tHelp("importGaps.body")} />
       <ImportSteps current={3} />
 
       <section aria-labelledby="gaps-columns">

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { createAppConnection } from "@symbola/db/client";
-import { HelpButton } from "@symbola/ui";
+import { ScreenHelp } from "@/app/screen-help";
 import { getPrivacySettings, type PrivacySettings } from "@/modules/hub/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { PrivacySettingsForm } from "./settings-form";
@@ -36,7 +36,7 @@ export default async function PrivacySettingsPage() {
   return (
     <main>
       <h1>{t("settingsTitle")}</h1>
-      <HelpButton title={tHelp("privacySettings.title")} body={tHelp("privacySettings.body")} />
+      <ScreenHelp title={tHelp("privacySettings.title")} body={tHelp("privacySettings.body")} />
       <p>{t("settingsIntro")}</p>
       <PrivacySettingsForm settings={settings} />
       <p>

@@ -3,7 +3,7 @@
 // mois), jamais un nom, un montant ni un contenu ; les essais sont exclus.
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
-import { HelpButton } from "@symbola/ui";
+import { ScreenHelp } from "@/app/screen-help";
 import { formatDateTime, formatMonth, type Locale } from "@symbola/i18n";
 import { createAppConnection } from "@symbola/db/client";
 import { getOrganizationsActivity } from "@/modules/hub/service";
@@ -29,7 +29,7 @@ export default async function AdminActivityPage() {
   return (
     <main>
       <h1>{t("title")}</h1>
-      <HelpButton title={tHelp("adminActivity.title")} body={tHelp("adminActivity.body")} />
+      <ScreenHelp title={tHelp("adminActivity.title")} body={tHelp("adminActivity.body")} />
       <p>
         <Link href="/admin">{t("backToAdmin")}</Link>
       </p>

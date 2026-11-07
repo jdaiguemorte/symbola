@@ -1,7 +1,8 @@
-// Lot 10 (AIDE-05, AIDE-07) — visite focus de la fiche d'un événement :
-// « Continuer », « Plus tard » qui garde l'étape, reprise depuis la barre
-// d'aide, Échap ; centre d'aide (progression, état des visites, préférence
-// d'ouverture automatique). En taille ordinateur et en 375 px, axe-core.
+// Lot 13 (AIDE-11, remplace la visite focus d'AIDE-05) — repères de la fiche
+// d'un événement : non bloquants, choisis dans la liste ou parcourus dans
+// l'ordre, l'élément choisi mis en avant, Échap ; centre d'aide (état des
+// repères, préférence d'ouverture automatique, AIDE-07). En taille
+// ordinateur et en 375 px, axe-core.
 import { randomUUID } from "node:crypto";
 import AxeBuilder from "@axe-core/playwright";
 import { createAppConnection } from "@symbola/db/client";
@@ -9,10 +10,10 @@ import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import * as OTPAuth from "otpauth";
 import { createProspect, createProspectSource } from "../modules/events/service";
-import { clickMenuLink, readyOrganization } from "./helpers";
+import { clickMenuLink, closeLandmarks, landmarksPanel, readyOrganization } from "./helpers";
 import { recordHelpProgress } from "../modules/hub/service";
 
-// Visites ouvertes d'office : sans la préférence posée par la configuration.
+// Repères ouverts d'office : sans la préférence posée par la configuration.
 test.use({ storageState: { cookies: [], origins: [] } });
 
 async function expectNoAxeViolation(page: Page) {
@@ -20,7 +21,7 @@ async function expectNoAxeViolation(page: Page) {
   expect(result.violations, JSON.stringify(result.violations, null, 2)).toEqual([]);
 }
 
-test("AIDE-05/07 — visite focus mise de côté puis reprise, et centre d'aide", async ({ page }) => {
+test("AIDE-11 / AIDE-07 — repères de la fiche d'un événement, et centre d'aide", async ({ page }) => {
   test.setTimeout(90_000);
   const email = `planner-aide-${randomUUID()}@symbola.test`;
   const { sql, db } = createAppConnection();
@@ -44,46 +45,44 @@ test("AIDE-05/07 — visite focus mise de côté puis reprise, et centre d'aide"
   await page.getByLabel("Code").fill(new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret) }).generate());
   await page.getByRole("button", { name: "Valider" }).click();
   await expect(page).toHaveURL("/");
-  // La visite de l'accueil s'ouvre d'elle-même ; on la met de côté.
-  await page.getByRole("dialog", { name: "Bienvenue sur Symbola" }).getByRole("button", { name: "Plus tard" }).click();
+  // Les repères de l'accueil s'ouvrent d'eux-mêmes ; on les ferme.
+  await closeLandmarks(page, "Tableau de bord");
 
-  // Fiche d'un événement : visite focus, étape 1 sur 5, « Continuer » mis en avant.
+  // Fiche d'un événement : cinq repères, le premier choisi et son élément mis en avant.
   await page.goto(`/events/${eventId}`);
-  const tour = page.getByRole("dialog");
-  await expect(tour).toHaveAccessibleName("La fiche d'un événement");
-  await expect(tour).toContainText("Étape 1 sur 5");
-  await expect(tour.getByRole("button", { name: "Continuer" })).toBeFocused();
+  const panel = landmarksPanel(page, "Fiche de l'événement");
+  await expect(panel.getByRole("list").getByRole("button")).toHaveCount(5);
+  await expect(panel.getByRole("heading", { name: "Fiche de l'événement", level: 2 })).toBeFocused();
+  await expect(page.locator("[data-tour='event-tabs']")).toHaveClass(/landmark-active/);
   await expectNoAxeViolation(page);
-  await tour.getByRole("button", { name: "Continuer" }).click();
-  await expect(tour).toHaveAccessibleName("Vue d'ensemble");
-  await tour.getByRole("button", { name: "Plus tard" }).click();
-  await expect(page.getByRole("dialog")).toHaveCount(0);
-
-  // Lot 13 (HUB-15) : une pastille propose de reprendre à l'étape 2 ;
-  // Échap la remet de côté.
-  await page.getByRole("button", { name: "Reprendre la visite (étape 2)" }).click();
-  await expect(page.getByRole("dialog")).toHaveAccessibleName("Vue d'ensemble");
+  // L'écran reste utilisable pendant que les repères sont affichés.
+  await expect(page.getByRole("button", { name: "Repère 1 : La fiche d'un événement" })).toHaveAttribute("aria-pressed", "true");
+  await panel.getByRole("button", { name: "Repère suivant" }).click();
+  await expect(panel.getByRole("heading", { name: "Vue d'ensemble", level: 3 })).toBeVisible();
+  await expect(page.locator("[data-tour='event-overview']")).toHaveClass(/landmark-active/);
+  await expect(page.locator("[data-tour='event-tabs']")).not.toHaveClass(/landmark-active/);
   await page.keyboard.press("Escape");
-  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(panel).toHaveCount(0);
+  await expect(page.locator(".landmark-active")).toHaveCount(0);
 
-  // Rechargée, la fiche ne rouvre pas la visite d'elle-même.
+  // Rechargée, la fiche ne rouvre pas les repères d'elle-même.
   await page.reload();
-  await expect(page.getByRole("button", { name: "Reprendre la visite (étape 2)" })).toBeVisible();
-  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Aide sur cet écran : Fiche de l'événement" })).toHaveAttribute("aria-expanded", "false");
+  await expect(panel).toHaveCount(0);
 
-  // Centre d'aide : progression, état de la visite, préférence.
+  // Centre d'aide : état des repères, préférence.
   await clickMenuLink(page, "Aide");
-  await expect(page.getByRole("heading", { name: "Tutoriels faits : 0 sur 10" })).toBeVisible();
   const events = page.getByRole("region", { name: "Événements" });
-  await expect(events.getByRole("listitem").filter({ hasText: "Visite : La fiche d'un événement" })).toContainText("Mise de côté · étape 2");
+  await expect(events.getByRole("listitem").filter({ hasText: "Repères : La fiche d'un événement" })).toContainText("Repères vus");
   await expectNoAxeViolation(page);
-  await page.getByLabel("Proposer automatiquement les visites et les tutoriels à la première ouverture d'un écran").uncheck();
+  await page.getByLabel("Afficher d'office les repères et proposer les tutoriels à la première ouverture d'un écran").uncheck();
   await expect
     .poll(async () => (await page.context().cookies()).find((cookie) => cookie.name === "symbola_visites_auto")?.value)
     .toBe("0");
   await page.goto("/events");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Événements");
-  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Aide sur cet écran : Liste des événements" })).toHaveAttribute("aria-expanded", "false");
+  await expect(landmarksPanel(page, "Liste des événements")).toHaveCount(0);
 });
 
 test("HUB-11 — l'Admin voit la prise en main de chaque compte d'équipe", async ({ page }) => {
@@ -111,7 +110,6 @@ test("HUB-11 — l'Admin voit la prise en main de chaque compte d'équipe", asyn
   await page.getByLabel("Code").fill(new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret) }).generate());
   await page.getByRole("button", { name: "Valider" }).click();
   await expect(page).toHaveURL("/");
-  await page.getByRole("dialog", { name: "Bienvenue sur Symbola" }).getByRole("button", { name: "Plus tard" }).click();
 
   await page.goto("/admin");
   await page.getByRole("link", { name: "Prise en main" }).click();

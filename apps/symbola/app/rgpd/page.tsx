@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { createAppConnection } from "@symbola/db/client";
 import { formatDateTime, type Locale } from "@symbola/i18n";
-import { HelpButton } from "@symbola/ui";
+import { ScreenHelp } from "@/app/screen-help";
 import {
   listErasablePrivacyRequests,
   listExportablePrivacyRequests,
@@ -57,14 +57,14 @@ export default async function PrivacyPage() {
   return (
     <main>
       <h1>{t("title")}</h1>
-      <HelpButton title={tHelp("privacySearch.title")} body={tHelp("privacySearch.body")} />
+      <ScreenHelp title={tHelp("privacySearch.title")} body={tHelp("privacySearch.body")} />
       <p>
         <Link href="/rgpd/demandes">{t("requestsLink")}</Link> · <Link href="/rgpd/purge">{t("purgeLink")}</Link> · <Link href="/rgpd/reglages">{t("settingsLink")}</Link>
       </p>
       <SearchForm exportRequests={exportRequests} erasureRequests={erasureRequests} />
       <section aria-labelledby="privacy-exports">
         <h2 id="privacy-exports">{t("exportsTitle")}</h2>
-        <HelpButton title={tHelp("privacyExport.title")} body={tHelp("privacyExport.body")} />
+        <ScreenHelp title={tHelp("privacyExport.title")} body={tHelp("privacyExport.body")} />
         {exports.length === 0 ? <p>{t("exportsEmpty")}</p> : null}
         <ul>
           {exports.map((item) => (
@@ -79,7 +79,7 @@ export default async function PrivacyPage() {
       </section>
       <section aria-labelledby="privacy-erasures">
         <h2 id="privacy-erasures">{t("erasuresTitle")}</h2>
-        <HelpButton title={tHelp("privacyErasure.title")} body={tHelp("privacyErasure.body")} />
+        <ScreenHelp title={tHelp("privacyErasure.title")} body={tHelp("privacyErasure.body")} />
         {erasures.length === 0 ? <p>{t("erasuresEmpty")}</p> : null}
         <ul>
           {erasures.map((erasure) => (

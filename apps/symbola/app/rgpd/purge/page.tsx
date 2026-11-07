@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { createAppConnection } from "@symbola/db/client";
 import { formatCalendarDate, formatDateTime, type Locale } from "@symbola/i18n";
-import { HelpButton } from "@symbola/ui";
+import { ScreenHelp } from "@/app/screen-help";
 import { listPrivacyPurges, type PrivacyPurgeView } from "@/modules/hub/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { listPurgeCandidates, type PurgeCandidate } from "@/lib/privacy/purge";
@@ -51,7 +51,7 @@ export default async function PurgePage() {
         <Link href="/rgpd">{t("backToSearch")}</Link> · <Link href="/rgpd/reglages">{t("settingsLink")}</Link>
       </p>
       <h1>{t("purgeTitle")}</h1>
-      <HelpButton title={tHelp("privacyPurge.title")} body={tHelp("privacyPurge.body")} />
+      <ScreenHelp title={tHelp("privacyPurge.title")} body={tHelp("privacyPurge.body")} />
       <p>{t("purgeIntro")}</p>
       {candidates.length === 0 ? (
         <p>{t("purgeNothing")}</p>

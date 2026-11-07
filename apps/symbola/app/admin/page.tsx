@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { HelpButton } from "@symbola/ui";
+import { ScreenHelp } from "@/app/screen-help";
 import { createAppConnection } from "@symbola/db/client";
 import { isModuleEnabled, listOrganizations, MODULE_KEYS } from "@/modules/hub/service";
 import { requireAdmin } from "@/lib/require-admin";
@@ -34,7 +34,7 @@ export default async function AdminPage() {
   return (
     <main>
       <h1>{t("title")}</h1>
-      <HelpButton title={tHelp("admin.title")} body={tHelp("admin.body")} />
+      <ScreenHelp title={tHelp("admin.title")} body={tHelp("admin.body")} />
       <p>
         <Link href="/admin/comptes">{t("viewAccounts")}</Link>
         {" · "}

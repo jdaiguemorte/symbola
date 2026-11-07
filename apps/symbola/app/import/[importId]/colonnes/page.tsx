@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { createAppConnection } from "@symbola/db/client";
-import { HelpButton } from "@symbola/ui";
+import { ScreenHelp } from "@/app/screen-help";
 import { getImportColumns } from "@/modules/hub/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isValidId } from "../../access";
@@ -35,7 +35,7 @@ export default async function ImportColumnsPage({ params }: { params: Promise<{ 
   return (
     <main>
       <h1>{t("columnsTitle", { fileName: view.fileName })}</h1>
-      <HelpButton title={tHelp("importColumns.title")} body={tHelp("importColumns.body")} />
+      <ScreenHelp title={tHelp("importColumns.title")} body={tHelp("importColumns.body")} />
       <ImportSteps current={1} />
       <p>{t("columnsIntro", { threshold: view.lowConfidenceThreshold })}</p>
       <ColumnsForm view={view} />

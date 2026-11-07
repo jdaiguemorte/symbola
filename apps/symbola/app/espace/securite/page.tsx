@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { HelpButton } from "@symbola/ui";
+import { ScreenHelp } from "@/app/screen-help";
 import { getClientAuthContext } from "@/lib/auth-context";
 import { ClientMfaSetup } from "./mfa-forms";
 
@@ -21,7 +21,7 @@ export default async function ClientSecurityPage() {
         <Link href="/espace">{t("backToSpace")}</Link>
       </p>
       <h1>{t("securityTitle")}</h1>
-      <HelpButton title={tHelp("clientSecurity.title")} body={tHelp("clientSecurity.body")} />
+      <ScreenHelp title={tHelp("clientSecurity.title")} body={tHelp("clientSecurity.body")} />
       <p>{t("mfaIntro")}</p>
       {auth.user.mfaEnabled ? <p role="status">{t("mfaAlreadyEnabled")}</p> : <ClientMfaSetup />}
     </main>

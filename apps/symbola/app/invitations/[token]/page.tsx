@@ -1,5 +1,5 @@
 import { getTranslations } from "next-intl/server";
-import { HelpButton } from "@symbola/ui";
+import { ScreenHelp } from "@/app/screen-help";
 import { AcceptInvitationForm } from "./form";
 
 export default async function AcceptInvitationPage({ params }: { params: Promise<{ token: string }> }) {
@@ -10,7 +10,7 @@ export default async function AcceptInvitationPage({ params }: { params: Promise
   return (
     <main>
       <h1>{t("welcome")}</h1>
-      <HelpButton title={tHelp("invitation.title")} body={tHelp("invitation.body")} />
+      <ScreenHelp title={tHelp("invitation.title")} body={tHelp("invitation.body")} />
       <AcceptInvitationForm token={token} />
     </main>
   );

@@ -1,5 +1,5 @@
 import { getTranslations } from "next-intl/server";
-import { HelpButton } from "@symbola/ui";
+import { ScreenHelp } from "@/app/screen-help";
 import { ClientInvitationForm } from "./form";
 
 // EVT-06 — page publique du lien d'invitation : le jeton est vérifié à
@@ -12,7 +12,7 @@ export default async function ClientInvitationPage({ params }: { params: Promise
   return (
     <main>
       <h1>{t("invitationTitle")}</h1>
-      <HelpButton title={tHelp("clientInvitation.title")} body={tHelp("clientInvitation.body")} />
+      <ScreenHelp title={tHelp("clientInvitation.title")} body={tHelp("clientInvitation.body")} />
       <p>{t("invitationIntro")}</p>
       <ClientInvitationForm token={decodeURIComponent(token)} />
     </main>

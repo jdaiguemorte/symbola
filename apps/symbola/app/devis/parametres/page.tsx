@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { starterInvoiceMentions } from "@symbola/starter-templates";
-import { HelpButton } from "@symbola/ui";
+import { ScreenHelp } from "@/app/screen-help";
 import { getQuoteSettings, listPaymentMethods } from "@/modules/quotes/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isQuotesModuleEnabled } from "../module-access";
@@ -34,7 +34,7 @@ export default async function QuoteSettingsPage() {
   return (
     <main>
       <h1>{t("settingsTitle")}</h1>
-      <HelpButton title={tHelp("quotesSettings.title")} body={tHelp("quotesSettings.body")} />
+      <ScreenHelp title={tHelp("quotesSettings.title")} body={tHelp("quotesSettings.body")} />
       <QuoteSettingsForm settings={settings} defaultMentions={starterInvoiceMentions((await getLocale()) === "en" ? "en" : "fr")} />
 
       <h2>{t("paymentMethodsTitle")}</h2>
