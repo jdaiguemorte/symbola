@@ -1,6 +1,6 @@
 # ADR 0034 — Import : lecture des fiches PDF avec `pdfjs-dist`
 
-- Statut : proposé (à valider avec la spécification du lot 14)
+- Statut : accepté (07/11/2026, avec la spécification du lot 14)
 - Date : 2026-11-07
 - Complète : [0022](0022-import-lecteur-xlsx-et-orchestration.md)
 

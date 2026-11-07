@@ -60,7 +60,9 @@ entièrement fictives (`packages/testing/import-corpus/files/logiciel-tiers/`, s
 - Les deux colonnes imposent de lire le texte **avec sa position sur la page** (une extraction
   ligne à ligne mélange les deux mariés).
 
-## Décisions à prendre avec Julien avant de coder
+## Décisions de Julien (07/11/2026)
+
+Les six propositions ci-dessous sont **validées telles quelles**.
 
 - **I. Coordonnées des mariés.** Une fiche événement ne garde aujourd'hui que le prénom et le
   nom de chaque client. Proposition : ajouter **e-mail, téléphone et adresse** à chaque client
