@@ -14,7 +14,7 @@ export type SealedFile = { data: Buffer; key: string };
 export function sealFile(content: Uint8Array): SealedFile {
   const key = randomBytes(32);
   const iv = randomBytes(IV_BYTES);
-  const cipher = createCipheriv(ALGORITHM, key, iv);
+  const cipher = createCipheriv(ALGORITHM, key, iv, { authTagLength: TAG_BYTES });
   const encrypted = Buffer.concat([cipher.update(content), cipher.final()]);
   // iv | données chiffrées | étiquette d'authenticité
   return { data: Buffer.concat([iv, encrypted, cipher.getAuthTag()]), key: key.toString("base64") };
@@ -25,7 +25,8 @@ export function openSealedFile(sealed: Uint8Array, key: string): Buffer {
   const buffer = Buffer.from(sealed);
   const iv = buffer.subarray(0, IV_BYTES);
   const tag = buffer.subarray(buffer.length - TAG_BYTES);
-  const decipher = createDecipheriv(ALGORITHM, Buffer.from(key, "base64"), iv);
+  // Longueur d'étiquette imposée : refuse une étiquette tronquée (contrefaçon).
+  const decipher = createDecipheriv(ALGORITHM, Buffer.from(key, "base64"), iv, { authTagLength: TAG_BYTES });
   decipher.setAuthTag(tag);
   return Buffer.concat([decipher.update(buffer.subarray(IV_BYTES, buffer.length - TAG_BYTES)), decipher.final()]);
 }
