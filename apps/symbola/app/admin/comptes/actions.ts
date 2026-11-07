@@ -14,6 +14,18 @@ import { InvitationNotPendingError, resendInvitation, resetTeamAccountMfa } from
 import { requireAdmin } from "@/lib/require-admin";
 
 const idSchema = z.uuid();
+// Lot 13 (HUB-17) : retour sur la même recherche et la même page de la liste.
+const listSchema = z.object({ q: z.string().max(200).optional(), page: z.string().regex(/^\d{1,5}$/).optional() });
+
+function back(outcome: string, formData: FormData): string {
+  const list = listSchema.safeParse({ q: formData.get("q") || undefined, page: formData.get("page") || undefined });
+  const params = new URLSearchParams({ resultat: outcome });
+  if (list.success) {
+    if (list.data.q) params.set("q", list.data.q);
+    if (list.data.page) params.set("page", list.data.page);
+  }
+  return `/admin/comptes?${params.toString()}`;
+}
 
 async function notify(to: string, language: "fr" | "en", subject: string, text: string): Promise<boolean> {
   try {
@@ -28,7 +40,7 @@ async function notify(to: string, language: "fr" | "en", subject: string, text: 
 export async function resendInvitationAction(formData: FormData): Promise<void> {
   const admin = await requireAdmin();
   const invitationId = idSchema.safeParse(formData.get("invitationId"));
-  if (!invitationId.success) redirect("/admin/comptes?resultat=erreur");
+  if (!invitationId.success) redirect(back("erreur", formData));
 
   const { sql, db } = createAppConnection();
   let outcome = "invitation-envoyee";
@@ -44,13 +56,13 @@ export async function resendInvitationAction(formData: FormData): Promise<void> 
   } finally {
     await sql.end();
   }
-  redirect(`/admin/comptes?resultat=${outcome}`);
+  redirect(back(outcome, formData));
 }
 
 export async function resetMfaAction(formData: FormData): Promise<void> {
   const admin = await requireAdmin();
   const userId = idSchema.safeParse(formData.get("userId"));
-  if (!userId.success || formData.get("confirm") !== "on") redirect("/admin/comptes?resultat=confirmation-requise");
+  if (!userId.success || formData.get("confirm") !== "on") redirect(back("confirmation-requise", formData));
 
   const { sql, db } = createAppConnection();
   let outcome = "double-authentification-reinitialisee";
@@ -66,5 +78,5 @@ export async function resetMfaAction(formData: FormData): Promise<void> {
   } finally {
     await sql.end();
   }
-  redirect(`/admin/comptes?resultat=${outcome}`);
+  redirect(back(outcome, formData));
 }

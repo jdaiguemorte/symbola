@@ -45,10 +45,11 @@ async function login(page: Page, email: string, password: string) {
 test("HUB-17 / HUB-18 — console d'Administration : vue d'ensemble, dernière sauvegarde, Santé", async ({ page }) => {
   const adminEmail = `admin-console-${randomUUID()}@symbola.test`;
   const secretName = `Mariage secret ${randomUUID()}`;
+  const organizationName = `Org console ${randomUUID()}`;
   const { sql, db } = createAppConnection();
   try {
     await createUser(db, { organizationId: null, email: adminEmail, password: "mot-de-passe-admin-console", role: "admin" });
-    const organization = await readyOrganization(db, `Org console ${randomUUID()}`);
+    const organization = await readyOrganization(db, organizationName);
     const owner = await createUser(db, { organizationId: organization.id, email: `titulaire-console-${randomUUID()}@symbola.test`, password: "mot-de-passe-titulaire-console", role: "owner" });
     const source = await createProspectSource(organization.id, "Salon");
     await createProspect({ organizationId: organization.id, createdByUserId: owner.id, prospectSourceId: source.id, clients: [{ firstName: secretName }] });
@@ -100,10 +101,26 @@ test("HUB-17 / HUB-18 — console d'Administration : vue d'ensemble, dernière s
     await expect(backup).toContainText("Échec");
     await expectNoAxeViolation(page);
 
-    // Organisations : création et modules, déplacés sur leur écran.
+    // Organisations en tableau : recherche par nom, une ligne ouvre son panneau
+    // (modules, comptes, prise en main), toujours sans donnée métier.
     await page.goto("/admin/organisations");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Organisations");
-    await expect(page.getByRole("button", { name: "Créer et inviter" })).toBeVisible();
+    await page.getByRole("search", { name: "Chercher une organisation" }).getByLabel("Rechercher par nom").fill(organizationName);
+    await expect(page).toHaveURL(/q=/);
+    const table = page.getByRole("region", { name: "Toutes les organisations" });
+    await expect(table.getByRole("row")).toHaveCount(2);
+    const row = table.getByRole("row", { name: new RegExp(organizationName) });
+    await expect(row).toContainText("Événements");
+    await row.getByRole("link", { name: organizationName }).click();
+    const panel = page.getByRole("complementary", { name: organizationName });
+    await expect(panel.getByRole("button", { name: /events : activé/ })).toBeVisible();
+    await expect(panel).toContainText("titulaire");
+    await expect(page.getByText(secretName)).toHaveCount(0);
+    await expectNoAxeViolation(page);
+    await page.keyboard.press("Escape");
+    await expect(panel).toHaveCount(0);
+    await page.getByRole("link", { name: "Nouvelle organisation" }).click();
+    await expect(page.getByRole("complementary", { name: "Créer une organisation" }).getByRole("button", { name: "Créer et inviter" })).toBeVisible();
   } finally {
     if (runs.length > 0) await admin`delete from hub.backup_runs where id in ${admin(runs)}`;
     await admin.end();

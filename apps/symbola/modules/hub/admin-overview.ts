@@ -5,7 +5,7 @@
 // contenu dans les chiffres (ADR 0029).
 import type { AppDatabase } from "@symbola/db/client";
 import { getOrganizationsActivity, listOrganizationsSupport } from "./admin-support";
-import { findLatestBackupRun, findLatestSucceededBackupRun } from "./repository";
+import { findAllOrganizationModules, findLatestBackupRun, findLatestSucceededBackupRun, listAllOrganizations } from "./repository";
 
 // Au-delà, la sauvegarde nocturne a manqué au moins une nuit.
 export const BACKUP_STALE_HOURS = 26;
@@ -75,4 +75,24 @@ export async function getAdminOverview(db: AppDatabase, now: Date = new Date()):
     mfaPending: accounts.filter((account) => !account.mfaConfigured).length,
     backup,
   };
+}
+
+// Lot 13 (HUB-17) — modules souscrits de chaque organisation, pour le tableau
+// des organisations (absence de ligne = activé, comme isModuleEnabled).
+export async function listOrganizationModuleStates(
+  db: AppDatabase,
+  moduleKeys: readonly string[],
+): Promise<Record<string, Record<string, boolean>>> {
+  const [organizationRows, moduleRows] = await Promise.all([listAllOrganizations(db), findAllOrganizationModules(db)]);
+  return Object.fromEntries(
+    organizationRows.map((organization) => [
+      organization.id,
+      Object.fromEntries(
+        moduleKeys.map((moduleKey) => [
+          moduleKey,
+          moduleRows.find((row) => row.organizationId === organization.id && row.moduleKey === moduleKey)?.enabled ?? true,
+        ]),
+      ),
+    ]),
+  );
 }

@@ -176,7 +176,10 @@ pagination des écrans Organisations, Comptes, Prise en main et Activité).
 - « Prise en main » et « Organisations » paginées (constat de l'étape 6b : avec plusieurs
   milliers d'organisations, l'écran actuel qui les affiche toutes se fige dans le navigateur) ;
   l'indicateur « visites mises de côté » disparaît (les repères n'ont plus d'étape).
-- Organisations en tableau ; une ligne ouvre un panneau : modules souscrits, comptes, prise en
+- Comptes, Prise en main et Activité : recherche par nom de l'organisation et 20 organisations
+  par page (les indicateurs restent calculés sur toutes) ; une action d'assistance ramène à la
+  même recherche et à la même page.
+- Organisations en tableau, avec recherche par nom et 20 par page ; une ligne ouvre un panneau : modules souscrits, comptes, prise en
   main. Toujours aucune donnée métier (ADR 0029) ; test : l'Admin n'accède à aucune donnée
   métier par ces écrans.
 

@@ -1644,3 +1644,35 @@
     @apply m-0;
   }
 }
+
+/* Lot 13 (HUB-17) — tableau des organisations, panneau et pagination. */
+@layer components {
+  .cell-note {
+    @apply block text-sm font-normal text-muted;
+  }
+  .pill-list {
+    @apply flex flex-wrap gap-1;
+  }
+  .panel-section {
+    @apply border-b border-lin py-4 last:border-b-0;
+  }
+  .panel-section h3 {
+    @apply m-0 mb-2 text-base;
+  }
+  .toggle-list,
+  .plain-list {
+    @apply m-0 flex list-none flex-col gap-2 p-0;
+  }
+  .toggle-list li {
+    @apply flex flex-wrap items-center justify-between gap-2;
+  }
+  .plain-list li {
+    @apply text-sm break-words;
+  }
+  .pagination {
+    @apply my-4 grid grid-cols-[1fr_auto_1fr] items-center gap-3;
+  }
+  .pagination > :last-child {
+    @apply justify-self-end;
+  }
+}
