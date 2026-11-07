@@ -5,8 +5,7 @@
 // pour le clavier et le téléphone (le glisser-déposer HTML ne fonctionne pas
 // au doigt). Chaque déplacement est enregistré aussitôt et annoncé.
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useRef, useState, useTransition } from "react";
+import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { ArrowDown, ArrowUp, GripVertical } from "lucide-react";
 import { BudgetLineIcon } from "@/app/budget-line-icon";
@@ -17,17 +16,22 @@ export type SortableLine = { id: string; label: string; icon: string | null };
 
 export function SortableBudgetLines({ lines, isOwner, base, editingId }: { lines: SortableLine[]; isOwner: boolean; base: string; editingId: string | null }) {
   const t = useTranslations("Events");
-  const router = useRouter();
   const [order, setOrder] = useState(lines);
   const [announcement, setAnnouncement] = useState("");
   const [dragged, setDragged] = useState<string | null>(null);
-  const [, startTransition] = useTransition();
+  // Enregistrements à la suite les uns des autres : deux déplacements rapides
+  // ne se doublent jamais, et le dernier ordre demandé est celui qui reste.
+  const saving = useRef<Promise<void>>(Promise.resolve());
+  const pending = useRef(0);
   const buttons = useRef(new Map<string, HTMLButtonElement | null>());
+  const serverLines = useRef(lines);
+  serverLines.current = lines;
   // Les données du serveur font foi : une ligne ajoutée, renommée ou retirée
   // remplace l'ordre local (comparaison du contenu, pas de la référence).
   const signature = lines.map((line) => `${line.id}:${line.label}:${line.icon ?? ""}`).join("|");
   const [source, setSource] = useState(signature);
-  if (source !== signature) {
+  // Pendant un enregistrement, l'ordre local fait foi (la page se rafraîchit ensuite).
+  if (source !== signature && pending.current === 0) {
     setSource(signature);
     setOrder(lines);
   }
@@ -39,11 +43,14 @@ export function SortableBudgetLines({ lines, isOwner, base, editingId }: { lines
     const [line] = next.splice(from, 1);
     next.splice(to, 0, line!);
     setOrder(next);
-    startTransition(async () => {
-      const saved = await reorderDefaultVendorSlotsAction(next.map((item) => item.id));
+    pending.current += 1;
+    const ids = next.map((item) => item.id);
+    saving.current = saving.current.then(async () => {
+      const saved = await reorderDefaultVendorSlotsAction(ids).catch(() => false);
+      pending.current -= 1;
+      // Refusé (liste changée entre-temps) : on revient à l'ordre enregistré.
+      if (!saved) setOrder(serverLines.current);
       setAnnouncement(saved ? t("lineMoved", { label: line!.label, position: to + 1, total: next.length }) : t("lineMoveFailed"));
-      if (!saved) setOrder(order);
-      router.refresh();
     });
     // Le bouton utilisé peut devenir inactif en haut ou en bas : le focus passe à l'autre.
     if (focusKey) {

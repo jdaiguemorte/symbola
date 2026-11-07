@@ -80,6 +80,9 @@ test("HUB-16 — Paramètres en rubriques, lignes du budget modifiées dans le p
   await addPanel.getByRole("button", { name: "Ajouter la ligne" }).click();
   await expect(addPanel.getByText("✓ Ligne ajoutée.")).toBeVisible();
   await addPanel.getByRole("link", { name: "Fermer le panneau" }).click();
+  // Panneau fermé (plein écran sur téléphone) avant de toucher au tableau.
+  await expect(addPanel).toHaveCount(0);
+  await expect(page).toHaveURL(/\/events\/parametres$/);
   await expect(table.getByRole("rowheader", { name: "Fleuriste" })).toBeVisible();
 
   // L'ordre se change avec les flèches (clavier, téléphone), enregistré aussitôt.
