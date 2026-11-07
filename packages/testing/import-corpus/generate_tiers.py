@@ -111,12 +111,20 @@ def top(c, x, y, text, size=9.5, bold=False):
     c.setFont("Helvetica-Bold" if bold else "Helvetica", size)
     c.drawString(x, PAGE_H - y - size * 0.8, text)
 
+def top_split(c, x, y, label, rest, size=9.5):
+    """Libellé puis suite en deux morceaux de texte distincts, comme l'export réel
+    (« Date de l'événement » puis « : samedi… », « Lieu » puis « - samedi… »)."""
+    c.setFont("Helvetica", size)
+    top(c, x, y, label, size)
+    top(c, x + c.stringWidth(label + " ", "Helvetica", size), y, rest, size)
+
 def fiche(path, couple_title, date_line, people, phones, places, note, budget):
     c = canvas.Canvas(path, pagesize=A4)
     c.setTitle("Fiche événement")
     c.setCreator("Html2Pdf - TCPDF")
     top(c, 58.4, 97.7, couple_title, size=13, bold=True)
-    top(c, 44.8, 135.0, date_line)
+    label, rest = date_line.split(" : ", 1)
+    top_split(c, 44.8, 135.0, label, ": " + rest)
     columns = (47.0, 248.3)
     for index, person in enumerate(people):
         x = columns[index]
@@ -133,14 +141,15 @@ def fiche(path, couple_title, date_line, people, phones, places, note, budget):
     for index, (label, when) in enumerate(places):
         x = place_columns[index % 2]
         y = 264.6 + (index // 2) * 28.4
-        line = f"{label} - {when}"
-        # Le second lieu passe à la ligne comme dans l'export réel (colonne étroite).
-        if index % 2 == 1 and len(line) > 48:
-            cut = line.rfind(" à ")
-            top(c, x, y, line[: cut + 2])
-            top(c, x, y + 14.2, line[cut + 3 :])
+        rest = f"- {when}"
+        # Le second lieu passe à la ligne comme dans l'export réel (colonne étroite) :
+        # l'heure part seule sur la ligne suivante.
+        if index % 2 == 1 and len(label + rest) > 46:
+            cut = rest.rfind(" à ")
+            top_split(c, x, y, label, rest[: cut + 2])
+            top(c, x, y + 14.2, rest[cut + 3 :])
         else:
-            top(c, x, y, line)
+            top_split(c, x, y, label, rest)
     if note:
         top(c, 44.8, 292.9 + ((len(places) - 1) // 2) * 28.4, note)
     top(c, 44.8, 375.7, "Le budget de l'évènement", bold=True)

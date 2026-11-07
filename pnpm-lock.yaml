@@ -9,6 +9,7 @@ overrides:
   vite: ^7.3.7
   '@esbuild-kit/core-utils>esbuild': ^0.25.12
   minimatch: ^11.0.4
+  pdfjs-dist>@napi-rs/canvas: '-'
 
 importers:
 
@@ -307,6 +308,10 @@ importers:
         version: 4.1.12(@types/node@22.20.5)(vite@7.3.7(@types/node@22.20.5)(jiti@2.7.0)(lightningcss@1.33.0)(tsx@4.23.15)(yaml@2.9.1))
 
   packages/import-engine:
+    dependencies:
+      pdfjs-dist:
+        specifier: 6.4.299
+        version: 6.4.299
     devDependencies:
       '@symbola/config':
         specifier: workspace:*
@@ -2667,6 +2672,10 @@ packages:
   pbf@5.1.2:
     resolution: {integrity: sha512-mnvGdvOrIvJOBGUEdGkrVXjN8E/VkIJCkf2eS1DH2yv82ORUlLttmDt0rWY38yYZmVwciZwBUvHM20qxBZf40w==}
     hasBin: true
+
+  pdfjs-dist@6.4.299:
+    resolution: {integrity: sha512-AVl138zALtfaAPvADulE0PZThbYzCBS79nL4pOSL/6Sm/4AH5A21BD9VHt97OlCuzJuCpmeZtAtkinisF4Vb1g==}
+    engines: {node: '>=22.13.0 || >=24'}
 
   pdfkit@0.20.1:
     resolution: {integrity: sha512-1rRXK6x5o8I/3dBrBzXfxibpHpkfCnIA7EBAES7pEpGFc/65inMLlA8SalGWpJfal7BGekxeLf6A30IOpQpc5Q==}
@@ -5047,6 +5056,8 @@ snapshots:
   pbf@5.1.2:
     dependencies:
       resolve-protobuf-schema: 2.1.0
+
+  pdfjs-dist@6.4.299: {}
 
   pdfkit@0.20.1:
     dependencies:

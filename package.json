@@ -22,7 +22,8 @@
       "postcss": "^8.5.23",
       "vite": "^7.3.7",
       "@esbuild-kit/core-utils>esbuild": "^0.25.12",
-      "minimatch": "^11.0.4"
+      "minimatch": "^11.0.4",
+      "pdfjs-dist>@napi-rs/canvas": "-"
     }
   }
 }

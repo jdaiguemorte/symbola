@@ -1,0 +1,75 @@
+{
+  "_comment": "Lot 14 (ADR 0034) — profils d'export de logiciels tiers : repères pour reconnaître un export et en lire les valeurs. Données, jamais en dur dans le code ; un autre logiciel ajoute son profil ici.",
+  "planningSoftware": {
+    "vendors": {
+      "headers": [
+        "Nom",
+        "Type de Prestataire",
+        "Prénom",
+        "Nom",
+        "E-mail",
+        "Adresse",
+        "Code Postal",
+        "Ville",
+        "Département",
+        "Téléphones",
+        "Site Internet",
+        "Critères avancés",
+        "Page Facebook",
+        "Lien X",
+        "Lien Linkedin",
+        "Lien Pinterest",
+        "Lien Instagram",
+        "N° Siret",
+        "Tva Intracommunautaire",
+        "Code APE",
+        "Statut Juridique"
+      ],
+      "minimumHeaderMatches": 15,
+      "columns": {
+        "0": "name",
+        "1": "type",
+        "2": "contactFirstName",
+        "3": "contactLastName",
+        "4": "email",
+        "5": "addressLine",
+        "6": "postalCode",
+        "7": "city",
+        "8": "department",
+        "9": "phones",
+        "10": "website",
+        "11": "criteria",
+        "12": "facebook",
+        "13": "x",
+        "14": "linkedin",
+        "15": "pinterest",
+        "16": "instagram",
+        "17": "siret",
+        "18": "vatNumber",
+        "19": "apeCode",
+        "20": "legalStatus",
+        "21": "services"
+      },
+      "swapWhenContentDiffers": [["website", "criteria"]],
+      "listSeparator": ","
+    },
+    "eventSheet": {
+      "dateLabel": "Date de l'événement",
+      "placesHeading": "Lieu de l'événement",
+      "budgetHeading": "Le budget de l'évènement",
+      "emailPrefix": "E-mail:",
+      "addressPrefix": "Adresse :",
+      "phonesPrefix": "Téléphones:",
+      "budgetLabels": {
+        "wanted": "Budget Souhaité",
+        "paid": "Total Payé",
+        "balance": "Solde",
+        "total": "Total"
+      },
+      "placeTimeSeparator": "à",
+      "footerFromRatio": 0.88,
+      "weekdays": ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"],
+      "months": ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"]
+    }
+  }
+}

@@ -6,6 +6,7 @@ import { z } from "zod";
 import demoEventFile from "./demo-event.json";
 import demoQuoteFile from "./demo-quote.json";
 import importSynonymsFile from "./import-synonyms.json";
+import importProfilesFile from "./import-profiles.json";
 import invoiceMentionsFile from "./invoice-mentions.json";
 import lossReasonsFile from "./loss-reasons.json";
 import paymentMethodsFile from "./payment-methods.json";
@@ -314,6 +315,43 @@ export function starterImportSynonyms(): StarterImportSynonyms {
     ),
     booleans: { true: bothLanguages(importSynonyms.booleans.true), false: bothLanguages(importSynonyms.booleans.false) },
   };
+}
+
+// Lot 14 (ADR 0034) — profils d'export de logiciels tiers : repères de
+// reconnaissance et de lecture (intitulés de colonnes, libellés de la fiche
+// événement PDF, mois et jours), en données.
+const vendorsExportProfileSchema = z.object({
+  headers: z.array(z.string().min(1)).min(1),
+  minimumHeaderMatches: z.number().int().positive(),
+  columns: z.record(z.string(), z.string().min(1)),
+  swapWhenContentDiffers: z.array(z.tuple([z.string(), z.string()])),
+  listSeparator: z.string().min(1),
+});
+const eventSheetProfileSchema = z.object({
+  dateLabel: z.string().min(1),
+  placesHeading: z.string().min(1),
+  budgetHeading: z.string().min(1),
+  emailPrefix: z.string().min(1),
+  addressPrefix: z.string().min(1),
+  phonesPrefix: z.string().min(1),
+  budgetLabels: z.object({ wanted: z.string(), paid: z.string(), balance: z.string(), total: z.string() }),
+  placeTimeSeparator: z.string().min(1),
+  footerFromRatio: z.number().gt(0).lt(1),
+  weekdays: z.array(z.string()).length(7),
+  months: z.array(z.string()).length(12),
+});
+const importProfilesSchema = z.object({
+  planningSoftware: z.object({ vendors: vendorsExportProfileSchema, eventSheet: eventSheetProfileSchema }),
+});
+
+export type VendorsExportProfile = z.infer<typeof vendorsExportProfileSchema>;
+export type EventSheetProfile = z.infer<typeof eventSheetProfileSchema>;
+
+const importProfiles = importProfilesSchema.parse(importProfilesFile);
+
+// Export d'un logiciel de planification tiers (prestataires en Excel, fiches événement en PDF).
+export function planningSoftwareProfile(): { vendors: VendorsExportProfile; eventSheet: EventSheetProfile } {
+  return importProfiles.planningSoftware;
 }
 
 // Lot 6 (RGPD-04/RGPD-05) : réglages RGPD de départ d'une organisation —

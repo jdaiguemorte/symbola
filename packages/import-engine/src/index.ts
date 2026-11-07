@@ -52,3 +52,22 @@ export {
   type MatchCandidate,
   type PersonName,
 } from "./similarity";
+
+// Lot 14 (ADR 0034) — lecture des PDF et exports d'un logiciel de planification tiers.
+export { DEFAULT_PDF_LIMITS, looksLikePdf, readPdfText, type PdfFailureReason, type PdfLimits, type PdfPage, type PdfReadResult, type PdfTextItem } from "./pdf";
+export { decodeHtmlEntities, looksLikeUrl, normalizePostalCode, splitList, splitPhones, tidyText, type PhoneEntry } from "./cleanup";
+export {
+  parseEventSheet,
+  splitPersonName,
+  type EventSheet,
+  type EventSheetPerson,
+  type EventSheetPlace,
+  type EventSheetResult,
+} from "./third-party/event-sheet";
+export {
+  detectVendorsExport,
+  normalizeVendorsExportRow,
+  type VendorsExportDetection,
+  type VendorsExportField,
+  type VendorsExportRow,
+} from "./third-party/vendors-export";
