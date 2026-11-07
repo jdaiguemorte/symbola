@@ -99,6 +99,8 @@ test("HUB-16 — Paramètres en rubriques, lignes du budget modifiées dans le p
   if (page.viewportSize()!.width >= 1024) {
     await table.getByRole("row", { name: /Fleuriste/ }).dragTo(table.getByRole("row", { name: /Photographe et vidéaste/ }));
     await expect.poll(order).toEqual(["Fleuriste", "Photographe et vidéaste", "Lieu de réception"]);
+    // L'annonce ne vient qu'une fois l'ordre enregistré : recharger avant perdrait le déplacement.
+    await expect(page.getByRole("status").filter({ hasText: "« Fleuriste » est maintenant en position 1 sur 3." })).toBeAttached();
   }
   await page.reload();
   await expect.poll(order).toEqual(
