@@ -56,3 +56,10 @@ export async function readyOrganization(db: Parameters<typeof createOrganization
   await completeSetup(db, organization.id);
   return organization;
 }
+
+// Lot 13 (EVT-19) : frise du statut ; un clic sur l'étape, puis « Confirmer ».
+export async function changeEventStatus(page: Page, status: string): Promise<void> {
+  await page.getByRole("button", { name: `Passer en ${status}` }).click();
+  await page.getByRole("form", { name: "Confirmer le changement de statut" }).getByRole("button", { name: "Confirmer" }).click();
+  await expect(page.getByRole("list", { name: "Statut de l'événement" }).getByRole("listitem").filter({ hasText: status })).toHaveAttribute("aria-current", "step");
+}

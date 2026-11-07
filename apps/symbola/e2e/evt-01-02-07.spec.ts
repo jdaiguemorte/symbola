@@ -7,7 +7,7 @@ import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import * as OTPAuth from "otpauth";
-import { clickMenuLink, readyOrganization } from "./helpers";
+import { clickMenuLink, readyOrganization, changeEventStatus } from "./helpers";
 
 async function loginAndSetupMfa(page: Page, email: string, password: string) {
   await page.goto("/login");
@@ -146,7 +146,7 @@ test("EVT-01/02 — un prospect apparaît dans la liste, passe en Confirmé puis
   // Attend l'hydratation : un envoi avant elle partirait sans retour d'erreur.
   await page.waitForLoadState("networkidle");
   // Lot 12 (EVT-12) : statut en boutons d'étapes, un clic suffit.
-  await page.getByRole("form", { name: "Statut de l'événement" }).getByRole("button", { name: "Confirmé" }).click();
+  await changeEventStatus(page, "Confirmé");
   await expect(page.getByText("Statut mis à jour.")).toBeVisible();
   await page.goto("/events");
   await expect(item).toContainText("Confirmé");
@@ -157,7 +157,7 @@ test("EVT-01/02 — un prospect apparaît dans la liste, passe en Confirmé puis
   await page.waitForLoadState("networkidle");
   // « Perdu… » ouvre le choix du motif (obligatoire) ; le motif « Autre »
   // demande une précision avant de confirmer.
-  await page.getByRole("button", { name: "Perdu…" }).click();
+  await page.getByRole("button", { name: "Marquer perdu…" }).click();
   await expect(page.getByLabel("Motif de perte")).toHaveAttribute("required", "");
   await page.getByLabel("Motif de perte").selectOption({ label: "Autre" });
   await expect(page.getByLabel("Précision sur le motif")).toHaveAttribute("required", "");

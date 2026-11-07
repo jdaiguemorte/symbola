@@ -19,6 +19,9 @@ export type EventClientInput = {
   lastName?: string | null;
 };
 
+// Lot 13 (EVT-19) — date (AAAA-MM-JJ, Paris) du dernier passage dans chaque statut.
+export type EventStatusDates = Partial<Record<EventStatus, string>>;
+
 // Lot 13 (HUB-15) — prospect sans nouvelle, pour le bloc « À traiter ».
 export type StaleProspect = { eventId: string; names: string; lastUpdateAt: Date; daysSince: number };
 
@@ -452,6 +455,7 @@ export interface EventsServiceContract {
   getClientEventView(organizationId: string, userId: string, eventId: string): Promise<ClientEventView>;
   setClientTaskDone(organizationId: string, userId: string, taskId: string, done: boolean): Promise<EventTask>;
   listEventActivity(organizationId: string, eventId: string): Promise<EventActivity[]>;
+  getEventStatusDates(organizationId: string, eventId: string): Promise<EventStatusDates>;
   startEventsTrial(input: StartEventsTrialInput): Promise<EventsTrial>;
   getActiveEventsTrial(organizationId: string, now?: Date): Promise<EventsTrial | null>;
   endEventsTrial(organizationId: string, eventId: string): Promise<void>;

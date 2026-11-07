@@ -8,7 +8,7 @@ import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import * as OTPAuth from "otpauth";
-import { openEventTab, readyOrganization } from "./helpers";
+import { openEventTab, readyOrganization, changeEventStatus } from "./helpers";
 
 async function loginAndSetupMfa(page: Page, email: string, password: string) {
   await page.goto("/login");
@@ -92,7 +92,7 @@ test("BUD-04 — le marié consulte le budget de son événement en lecture seul
   await expect(page.getByText("250,00 €", { exact: false })).toBeVisible();
   await page.goto(eventUrl);
   await page.waitForLoadState("networkidle");
-  await page.getByRole("form", { name: "Statut de l'événement" }).getByRole("button", { name: "Confirmé" }).click();
+  await changeEventStatus(page, "Confirmé");
   await page.getByRole("button", { name: "En faire le budget prévu" }).click();
   await expect(page.getByRole("heading", { name: "Faire de la simulation le budget prévu" })).toHaveCount(0);
 

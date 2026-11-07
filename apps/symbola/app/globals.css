@@ -1336,3 +1336,85 @@
     @apply inline-flex min-h-9 items-center rounded-full border border-lin-dark bg-card px-3.5 text-sm;
   }
 }
+
+/* Lot 13 (EVT-19) — frise du statut, prochaine étape, chiffres clés. */
+@layer components {
+  .status-timeline-wrap {
+    @apply my-4 flex flex-col gap-3;
+  }
+  .status-timeline {
+    @apply m-0 grid list-none grid-cols-4 p-0;
+  }
+  .timeline-step {
+    @apply relative flex flex-col items-center gap-1 px-1 text-center;
+  }
+  .timeline-step::before {
+    content: "";
+    @apply absolute top-[17px] right-1/2 left-[-50%] h-[3px] bg-lin;
+  }
+  .timeline-step:first-child::before {
+    @apply hidden;
+  }
+  .timeline-step.passed::before,
+  .timeline-step.current::before {
+    @apply bg-sauge;
+  }
+  .timeline-button {
+    @apply flex !min-h-0 flex-col items-center gap-1 border-0 !bg-transparent !p-0 !text-ink disabled:cursor-default disabled:opacity-100;
+  }
+  .timeline-dot {
+    @apply relative z-10 inline-flex h-9 w-9 items-center justify-center rounded-full border-2 border-lin-dark bg-card text-sm font-semibold text-muted;
+  }
+  .timeline-dot::before {
+    content: attr(data-mark);
+  }
+  .timeline-step.passed .timeline-dot {
+    @apply border-sauge bg-sauge text-white;
+  }
+  .timeline-step.current .timeline-dot {
+    @apply border-[3px] border-sauge text-sauge-dark opacity-100;
+    box-shadow: 0 0 0 5px var(--color-sauge-tint);
+  }
+  .timeline-label {
+    @apply text-[13px] font-semibold text-ink;
+  }
+  .timeline-step:not(.passed):not(.current) .timeline-label {
+    @apply text-muted;
+  }
+  .timeline-date {
+    @apply text-xs text-muted;
+  }
+  .timeline-lost {
+    @apply self-end !min-h-0 border-0 !bg-transparent !p-0 text-[13px] !text-terracotta-ink underline;
+  }
+  .timeline-confirm {
+    @apply flex flex-wrap items-center gap-3 rounded-xl border border-lin bg-ivory p-3;
+  }
+  .timeline-confirm p {
+    @apply m-0 flex-1 font-medium;
+  }
+  .next-step {
+    @apply my-4 flex flex-wrap items-start justify-between gap-3 rounded-2xl !border-0 !bg-sauge-tint p-4;
+  }
+  .next-step-body {
+    @apply flex min-w-0 flex-1 flex-col gap-2;
+  }
+  .next-step h2 {
+    @apply m-0 text-lg text-sauge-ink;
+  }
+  .next-step p {
+    @apply m-0 text-[15px] text-sauge-ink;
+  }
+  .kpis {
+    @apply m-0 grid grid-cols-2 gap-3 md:grid-cols-4;
+  }
+  .kpis > div {
+    @apply flex flex-col gap-0.5 rounded-xl border border-lin p-3;
+  }
+  .kpis dt {
+    @apply text-xs text-muted;
+  }
+  .kpis dd {
+    @apply m-0 font-display text-xl font-semibold;
+  }
+}
