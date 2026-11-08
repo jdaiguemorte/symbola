@@ -109,14 +109,17 @@ async function seed(organizationId: string, userId: string) {
     await simulateEventBudget({ organizationId, eventId: confirmed, totalAmountCents: 3500000, guestCount: 120, allocationModelId: model.id });
   }
 
-  const type = (await listVendorTypes(organizationId))[0]?.id ?? null;
-  for (const [name, city] of [
-    ["Domaine des Tilleuls", "Lille"],
-    ["Maison Verdier Traiteur", "Arras"],
-    ["Studio Lumière", "Amiens"],
-    ["Fleurs de Saison", "Lens"],
+  // Lot 16 (PRE-14) : chaque fiche a son type de départ, pour que le carnet
+  // montre plusieurs familles.
+  const types = await listVendorTypes(organizationId);
+  const typeOf = (starterKey: string) => types.find((type) => type.starterKey === starterKey)?.id ?? types[0]?.id ?? null;
+  for (const [name, city, starterKey] of [
+    ["Domaine des Tilleuls", "Lille", "venue"],
+    ["Maison Verdier Traiteur", "Arras", "caterer"],
+    ["Studio Lumière", "Amiens", "photographer"],
+    ["Fleurs de Saison", "Lens", "florist"],
   ] as const) {
-    await createVendor(organizationId, { name, typeId: type, city });
+    await createVendor(organizationId, { name, typeId: typeOf(starterKey), city });
   }
   return { confirmed, quoteId: quote.id };
 }
