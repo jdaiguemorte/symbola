@@ -54,6 +54,8 @@ test("IMP-05 — aperçu, confirmation, champ libre sur la fiche, journal et ann
 
   // Le menu mène à l'import.
   await openSettingsTab(page, "Importer");
+  // Lot 16 (IMP-11) : « Un autre fichier », puis le contenu.
+  await page.getByRole("navigation", { name: "Que voulez-vous reprendre ?" }).getByRole("link", { name: /Un autre fichier/ }).click();
   await page.getByLabel("Événements et leurs clients (une ligne par événement)").check();
   await page.getByLabel("Fichier (CSV, Excel .xlsx ou JSON)").setInputFiles({
     name: "mariages.csv",
@@ -67,24 +69,30 @@ test("IMP-05 — aperçu, confirmation, champ libre sur la fiche, journal et ann
     ),
   });
   await page.getByRole("button", { name: "Lire le fichier" }).click();
-  await page.getByRole("link", { name: "Continuer : reconnaître les colonnes" }).click();
-  await page.getByRole("button", { name: "Enregistrer les colonnes" }).click();
-  await page.getByRole("link", { name: "Continuer : rapprocher des éléments existants" }).click();
-  await page.getByRole("button", { name: "Valider le rapprochement proposé" }).click();
-  await page.getByRole("link", { name: "Continuer : rapport des écarts" }).click();
-  await page.getByRole("group", { name: "E-mail" }).getByLabel("Garder en champ libre sur la fiche").check();
-  await page.getByRole("button", { name: "Enregistrer les choix" }).click();
-  await page.getByRole("link", { name: "Continuer : aperçu et confirmation" }).click();
+  const continueButton = page.getByRole("group", { name: "Actions de l'étape" }).getByRole("button", { name: "Continuer" });
 
-  await expect(page.getByRole("heading", { name: "Aperçu de l'import « mariages.csv »" })).toBeVisible();
-  await expect(page.getByText("1 création, 1 mise à jour, 1 ligne rejetée.")).toBeVisible();
+  // Lot 16 (IMP-11) : la colonne « E-mail » se garde en champ libre dès l'étape « Colonnes ».
+  await expect(page).toHaveURL(/\/colonnes$/);
+  await page.getByLabel("Champ pour la colonne « E-mail »").selectOption({ label: "Garder en champ libre sur la fiche" });
+  await continueButton.click();
+  // Doublons : l'événement existant est mis à jour.
+  await expect(page).toHaveURL(/\/rapprochements/);
+  await page.getByRole("button", { name: /Mettre à jour l'existant pour Élodie Durand/ }).click();
+  await continueButton.click();
+
+  await expect(page).toHaveURL(/\/confirmation$/);
+  await expect(page.getByRole("heading", { name: "Import de « mariages.csv »" })).toBeVisible();
+  const effects = page.getByRole("region", { name: "Ce que va faire l'import" });
+  await expect(effects.getByRole("definition")).toHaveText(["1", "1", "E-mail", "1"]);
   await expect(page.getByText("Ligne 3 : Inès Moreau, le 3 septembre 2027")).toBeVisible();
   await expect(page.getByText("Ligne 2 : Élodie Durand, le 12 juin 2027")).toBeVisible();
   await expectNoAxeViolation(page);
 
   await page.getByLabel("Source pour les événements sans source").selectOption({ label: "Instagram" });
-  await page.getByRole("button", { name: "Confirmer l'import" }).click();
+  await page.getByRole("button", { name: "Importer 2 événements" }).click();
+  await expect(page).toHaveURL(/\/journal$/);
   await expect(page.getByRole("heading", { name: "Import de « mariages.csv »" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Voir les 2 événements" })).toBeVisible();
   await expect(page.getByText("1 création, 1 mise à jour, aucune ligne inchangée, 1 ligne rejetée")).toBeVisible();
   // L'auteur de l'import, dans la page (le menu affiche aussi l'e-mail connecté).
   await expect(page.getByRole("main").getByText(email)).toBeVisible();

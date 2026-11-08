@@ -170,7 +170,9 @@ function normalizeVendorFields(raw: (field: VendorsExportField) => string, listS
 export const VENDORS_EXPORT_CONFIDENCE = 95;
 export const VENDORS_EXPORT_SWAPPED_CONFIDENCE = 90;
 
-export type VendorsExportProposal = { columnIndex: number; fieldKey: string | null; confidence: number; byContent: boolean };
+// profileField : clé du profil pour la colonne (même hors des champs importables :
+// département, TVA…), pour que le profil décide aussi des colonnes annexes (IMP-11).
+export type VendorsExportProposal = { columnIndex: number; fieldKey: string | null; confidence: number; byContent: boolean; profileField: string | null };
 
 export function proposeVendorsExportMapping(
   table: Pick<ImportTable, "headers" | "rows">,
@@ -183,8 +185,8 @@ export function proposeVendorsExportMapping(
   const known = new Set(fieldKeys);
   return table.headers.map((_, columnIndex) => {
     const field = detection.columns.get(columnIndex);
-    if (!field || !known.has(field)) return { columnIndex, fieldKey: null, confidence: 0, byContent: false };
+    if (!field || !known.has(field)) return { columnIndex, fieldKey: null, confidence: 0, byContent: false, profileField: field ?? null };
     const byContent = swappedFields.has(field);
-    return { columnIndex, fieldKey: field, confidence: byContent ? VENDORS_EXPORT_SWAPPED_CONFIDENCE : VENDORS_EXPORT_CONFIDENCE, byContent };
+    return { columnIndex, fieldKey: field, confidence: byContent ? VENDORS_EXPORT_SWAPPED_CONFIDENCE : VENDORS_EXPORT_CONFIDENCE, byContent, profileField: field };
   });
 }

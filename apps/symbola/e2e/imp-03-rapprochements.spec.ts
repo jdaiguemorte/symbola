@@ -58,6 +58,8 @@ test("IMP-03 — rapprochements validés, refusés et ajoutés à la main", asyn
   await loginAndSetupMfa(page, email, password);
 
   await page.goto("/import");
+  // Lot 16 (IMP-11) : « Un autre fichier », puis le contenu.
+  await page.getByRole("navigation", { name: "Que voulez-vous reprendre ?" }).getByRole("link", { name: /Un autre fichier/ }).click();
   await page.getByLabel("Articles du catalogue").check();
   await page.getByLabel("Fichier (CSV, Excel .xlsx ou JSON)").setInputFiles({
     name: "tarifs-2027.csv",
@@ -65,36 +67,41 @@ test("IMP-03 — rapprochements validés, refusés et ajoutés à la main", asyn
     buffer: Buffer.from("Intitulé;Unité;Prix HT\nFleurs;bouquet;85\nAnimation DJ;soirée;950\nBorne photo;jour;400\n", "utf-8"),
   });
   await page.getByRole("button", { name: "Lire le fichier" }).click();
-  await page.getByRole("link", { name: "Continuer : reconnaître les colonnes" }).click();
-  await page.getByRole("button", { name: "Enregistrer les colonnes" }).click();
-  await page.getByRole("link", { name: "Continuer : rapprocher des éléments existants" }).click();
+  const continueButton = page.getByRole("group", { name: "Actions de l'étape" }).getByRole("button", { name: "Continuer" });
+  // Colonnes : une colonne douteuse se choisit, sinon l'étape est faite d'office.
+  if (page.url().endsWith("/colonnes")) {
+    const price = page.getByLabel("Champ pour la colonne « Prix HT »");
+    if ((await price.inputValue()) === "") await price.selectOption({ label: "Prix unitaire HT (obligatoire)" });
+    await continueButton.click();
+  }
 
-  await expect(page.getByRole("heading", { name: "Rapprochements de « tarifs-2027.csv »" })).toBeVisible();
-  const flowers = page.getByRole("listitem").filter({ hasText: "Ligne 2 : Fleurs" });
-  const dj = page.getByRole("listitem").filter({ hasText: "Ligne 3 : Animation DJ" });
-  const booth = page.getByRole("listitem").filter({ hasText: "Ligne 4 : Borne photo" });
-  await expect(flowers).toContainText("Ressemble à : Fleurs (ressemblance 100 %) — proposé");
-  await expect(dj).toContainText("Ressemble à : Animation DJ (ressemblance 100 %) — proposé");
-  await expect(booth).toContainText("À la confirmation, cette ligne créera un nouvel élément.");
+  // Lot 16 (IMP-11) : étape « Doublons », tableau filtrable.
+  await expect(page).toHaveURL(/\/rapprochements/);
+  const filters = page.getByRole("navigation", { name: "Filtrer les lignes" });
+  await expect(filters.getByRole("link", { name: "À vérifier · 2" })).toHaveAttribute("aria-current", "true");
+  const table = page.getByRole("region", { name: "Lignes du fichier" });
+  const row = (title: string) => table.getByRole("row").filter({ has: page.getByRole("rowheader", { name: title, exact: true }) });
+  await expect(row("Fleurs")).toContainText("Fleurs (100 %)");
+  await expect(row("Animation DJ")).toContainText("Animation DJ (100 %)");
   await expectNoAxeViolation(page);
 
   // Valider un rapprochement, en refuser un autre.
-  await flowers.getByLabel("Sélectionner le rapprochement de « Fleurs »").check();
-  await page.getByRole("button", { name: "Valider la sélection" }).click();
-  await expect(flowers).toContainText("— validé");
-  await dj.getByLabel("Sélectionner le rapprochement de « Animation DJ »").check();
-  await page.getByRole("button", { name: "Refuser la sélection" }).click();
-  await expect(dj).toContainText("— refusé");
-  await expect(dj).toContainText("À la confirmation, cette ligne créera un nouvel élément.");
+  await page.getByRole("button", { name: "Mettre à jour l'existant pour Fleurs" }).click();
+  await expect(filters.getByRole("link", { name: "Mises à jour · 1" })).toBeVisible();
+  await page.getByRole("button", { name: "Créer une nouvelle fiche pour Animation DJ" }).click();
+  await expect(filters.getByRole("link", { name: "Nouveaux · 2" })).toBeVisible();
 
   // Rapprochement ajouté à la main : la borne photo est le Photobooth.
+  await filters.getByRole("link", { name: "Nouveaux · 2" }).click();
+  const booth = row("Borne photo");
   await booth.getByLabel("Rapprocher « Borne photo » de").selectOption({ label: "Photobooth" });
   await booth.getByRole("button", { name: "Rapprocher" }).click();
-  await expect(booth).toContainText("Ressemble à : Photobooth (ressemblance 100 %) — validé (ajouté à la main)");
-  await expect(booth).toContainText("À la confirmation, cette ligne mettra à jour l'élément existant.");
+  await expect(filters.getByRole("link", { name: "Mises à jour · 2" })).toBeVisible();
   await expectNoAxeViolation(page);
 
-  await page.getByRole("link", { name: "Retour à l'import" }).click();
-  await expect(page.getByText("2 rapprochements validés, aucun à décider, 1 refusé.")).toBeVisible();
+  // « Continuer » : l'étape est faite, son résumé reste dans la frise.
+  await continueButton.click();
+  await expect(page).toHaveURL(/\/confirmation$/);
+  await expect(page.getByRole("navigation", { name: "Étapes de l'import" }).getByRole("listitem").filter({ hasText: "Doublons" })).toContainText("1 nouveau, 2 mises à jour");
   await expectNoAxeViolation(page);
 });

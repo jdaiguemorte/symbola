@@ -56,7 +56,18 @@
           "criteria"
         ]
       ],
-      "listSeparator": ","
+      "listSeparator": ",",
+      "annexColumns": {
+        "_comment": "Lot 16 (IMP-11) : colonnes sans champ du carnet, décidées d'office pour cet export. Le département se déduit du code postal ; TVA, APE et statut sont gardés en champs libres sur la fiche.",
+        "ignore": [
+          "department"
+        ],
+        "keep": [
+          "vatNumber",
+          "apeCode",
+          "legalStatus"
+        ]
+      }
     },
     "eventSheet": {
       "dateLabel": "Date de l'événement",

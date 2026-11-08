@@ -5,7 +5,7 @@ import { randomUUID } from "node:crypto";
 // la confirmation (IMP-05).
 import { IMPORT_FIELDS, type ImportEntityType, type ImportFieldDefinition } from "@symbola/contracts";
 import type { AppDatabase } from "@symbola/db/client";
-import type { ImportColumnChoice, ImportMatch, ImportMatching, ImportResult } from "@symbola/db/schema/hub";
+import type { ImportColumnChoice, ImportMatch, ImportMatching, ImportResult, ImportVendorTypeTarget } from "@symbola/db/schema/hub";
 import { parseEnv } from "@symbola/env";
 import { createStorageClient, scanBuffer, sealFile, uploadPrivateObject } from "@symbola/files";
 import {
@@ -42,7 +42,7 @@ import { cancelImportJobs, createImportJob, isReadingSheets, listImportJobs, typ
 import { findPlatformSettings, insertDefaultPlatformSettings } from "./repository";
 
 export { IMPORT_ENTITY_TYPES, type ImportEntityType } from "@symbola/contracts";
-export type { ImportColumnChoice, ImportMatch, ImportMatching, ImportResult, ImportRowEvent, ImportVendorTypeChoice } from "@symbola/db/schema/hub";
+export type { ImportColumnChoice, ImportMatch, ImportMatching, ImportResult, ImportRowEvent, ImportVendorTypeChoice, ImportVendorTypeTarget } from "@symbola/db/schema/hub";
 
 // Module qui reçoit chaque type d'éléments : un type dont le module n'est pas
 // souscrit n'est pas proposé (dégradation propre, CLAUDE.md §2.3).
@@ -328,6 +328,8 @@ export type ImportColumnView = {
   // colonne et non son intitulé (colonnes inversées par l'export).
   byContent: boolean;
   saved: ImportColumnChoice | null;
+  // Lot 16 (IMP-11) : colonne annexe d'un export reconnu, décidée d'office.
+  profileDecision: "ignore" | "free" | null;
 };
 
 export type ImportColumnsView = {
@@ -352,10 +354,15 @@ export async function getImportColumns(
   const fields = IMPORT_FIELDS[row.entityType];
   const generic = proposeMapping({ headers: row.headers, rows: row.rows, fields, synonyms: starterImportSynonyms().columns });
   // Export du carnet d'un logiciel tiers reconnu : sa correspondance prime.
-  const known =
-    row.entityType === "vendors"
-      ? proposeVendorsExportMapping(row, planningSoftwareProfile().vendors, fields.map((field) => field.key))
-      : null;
+  const profile = planningSoftwareProfile().vendors;
+  const known = row.entityType === "vendors" ? proposeVendorsExportMapping(row, profile, fields.map((field) => field.key)) : null;
+  const annexDecision = (columnIndex: number): "ignore" | "free" | null => {
+    const field = known?.[columnIndex]?.profileField;
+    if (!field || known?.[columnIndex]?.fieldKey) return null;
+    if (profile.annexColumns?.ignore.includes(field)) return "ignore";
+    if (profile.annexColumns?.keep.includes(field)) return "free";
+    return null;
+  };
   const proposals = generic.map((proposal) => {
     const override = known?.[proposal.columnIndex];
     return override ? { ...proposal, fieldKey: override.fieldKey, confidence: override.confidence, byContent: override.byContent } : { ...proposal, byContent: false };
@@ -377,6 +384,7 @@ export async function getImportColumns(
       confidence: proposal.confidence,
       byContent: proposal.byContent,
       saved: row.mapping?.find((choice) => choice.columnIndex === proposal.columnIndex) ?? null,
+      profileDecision: annexDecision(proposal.columnIndex),
     })),
   };
 }
@@ -563,7 +571,22 @@ export async function setImportRowStatuses(
 
 // Lot 14 (décision N) — type de prestataire du fichier rapproché d'un type
 // du carnet (l'orchestrateur a vérifié qu'il existe) ou créé (null).
-export type VendorTypeDecision = { label: string; typeId: string | null };
+// Lot 16 (IMP-12) : `target` dit ce que devient le libellé ; `typeId` reste
+// rempli pour un type du carnet (compatibilité des imports en cours).
+// Lot 16 (IMP-11) — étapes « Types » et « Doublons » vérifiées par la planner
+// (« Continuer ») : l'assistant passe ensuite à la suivante.
+export async function markImportStepReviewed(
+  db: AppDatabase,
+  input: { organizationId: string; importId: string; step: "types" | "matches"; now?: Date },
+): Promise<boolean> {
+  const now = input.now ?? new Date();
+  const set = await getImportWorkingSet(db, input.organizationId, input.importId, now);
+  if (!set?.matching) return false;
+  const reviewed = { ...(set.matching.reviewed ?? {}), [input.step]: true };
+  return updateDraftMatching(db, input.organizationId, input.importId, { ...set.matching, reviewed }, now);
+}
+
+export type VendorTypeDecision = { label: string; typeId: string | null; target?: ImportVendorTypeTarget };
 
 export async function decideImportVendorTypes(
   db: AppDatabase,
@@ -572,10 +595,12 @@ export async function decideImportVendorTypes(
   const now = input.now ?? new Date();
   const set = await getImportWorkingSet(db, input.organizationId, input.importId, now);
   if (!set?.matching?.vendorTypes) return false;
-  const decisions = new Map(input.decisions.map((decision) => [decision.label, decision.typeId]));
-  const vendorTypes = set.matching.vendorTypes.map((choice) =>
-    decisions.has(choice.label) ? { ...choice, typeId: decisions.get(choice.label) ?? null, manual: true } : choice,
-  );
+  const decisions = new Map(input.decisions.map((decision) => [decision.label, decision]));
+  const vendorTypes = set.matching.vendorTypes.map((choice) => {
+    const decision = decisions.get(choice.label);
+    if (!decision) return choice;
+    return { ...choice, typeId: decision.typeId, manual: true, ...(decision.target ? { target: decision.target } : {}) };
+  });
   return updateDraftMatching(db, input.organizationId, input.importId, { ...set.matching, vendorTypes }, now);
 }
 

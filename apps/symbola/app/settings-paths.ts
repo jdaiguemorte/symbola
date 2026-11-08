@@ -16,6 +16,13 @@ export const SETTINGS_PATHS = [
   "/profil",
 ] as const;
 
+// Lot 16 (IMP-11, décision E) : l'assistant d'import s'ouvre en plein écran,
+// sans le menu des rubriques ; son point d'entrée reste Paramètres › Importer.
+export function isImportAssistantPath(pathname: string): boolean {
+  return pathname.startsWith("/import/");
+}
+
 export function isSettingsPath(pathname: string): boolean {
+  if (isImportAssistantPath(pathname)) return false;
   return SETTINGS_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
 }

@@ -38,14 +38,10 @@ async function expectNoAxeViolation(page: Page) {
 const corpus = (name: string) => path.resolve(process.cwd(), "../../packages/testing/import-corpus/files/logiciel-tiers", name);
 
 // Lot 15 (IMP-10) : les fiches sont lues en tâche de fond ; la page montre
-// l'avancement puis ouvre d'elle-même les rapprochements (ou, si la lecture
-// était déjà finie à l'affichage, propose le lien).
+// l'avancement. Lot 16 (IMP-11) : à la fin, l'assistant passe de lui-même à
+// l'étape suivante (ici « Vérifier et confirmer » : aucun doublon à vérifier).
 async function waitForSheetsRead(page: Page) {
-  await expect(page.getByText("Lecture des fiches").first()).toBeVisible();
-  const next = page.getByRole("link", { name: "Continuer : rapprocher des éléments existants" });
-  await expect.poll(async () => page.url().endsWith("/rapprochements") || (await next.isVisible()), { timeout: 30_000 }).toBe(true);
-  if (!page.url().endsWith("/rapprochements")) await next.click();
-  await expect(page).toHaveURL(/\/rapprochements$/);
+  await expect.poll(() => page.url().endsWith("/confirmation"), { timeout: 30_000 }).toBe(true);
 }
 
 test("IMP-08 — reprendre ses événements depuis les fiches PDF de l'outil actuel", async ({ page }) => {
@@ -62,7 +58,8 @@ test("IMP-08 — reprendre ses événements depuis les fiches PDF de l'outil act
   await loginAndSetupMfa(page, email, password);
 
   await openSettingsTab(page, "Importer");
-  await page.getByLabel("Fiches événement (PDF, une fiche par événement)").check();
+  // Lot 16 (IMP-11) : la tuile « Reprendre mes événements » ouvre le dépôt des fiches.
+  await page.getByRole("navigation", { name: "Que voulez-vous reprendre ?" }).getByRole("link", { name: /Reprendre mes événements/ }).click();
   await page.getByLabel("Fiches événement (PDF, une ou plusieurs)").setInputFiles([
     { name: "fiche-evenement-complete.pdf", mimeType: "application/pdf", buffer: readFileSync(corpus("fiche-evenement-complete.pdf")) },
     { name: "fiche-evenement-trois-lieux.pdf", mimeType: "application/pdf", buffer: readFileSync(corpus("fiche-evenement-trois-lieux.pdf")) },
@@ -71,17 +68,12 @@ test("IMP-08 — reprendre ses événements depuis les fiches PDF de l'outil act
   await expectNoAxeViolation(page);
   await page.getByRole("button", { name: "Lire le fichier" }).click();
 
-  // Colonnes déjà reconnues ; lecture des fiches suivie, puis rapprochements.
-  await expect(page.getByRole("link", { name: "Continuer : reconnaître les colonnes" })).toHaveCount(0);
-  await expectNoAxeViolation(page);
+  // Colonnes déjà reconnues ; lecture des fiches suivie, puis « Vérifier et confirmer ».
   await waitForSheetsRead(page);
-  await expectNoAxeViolation(page);
-  await page.getByRole("link", { name: "Continuer : rapport des écarts" }).click();
   await expect(page.getByText("Fiche « pas-une-fiche.pdf » : ce n'est pas un PDF")).toBeVisible();
+  await expect(page.getByRole("region", { name: "Ce que va faire l'import" }).getByRole("definition")).toHaveText(["2", "0", "0", "1"]);
   await expectNoAxeViolation(page);
-  await page.getByRole("link", { name: "Continuer : aperçu et confirmation" }).click();
 
-  await expect(page.getByText("2 créations, aucune mise à jour, 1 ligne rejetée.")).toBeVisible();
   const second = page.getByLabel(/Ligne 2 : Chloé PETIT & Antoine ROUX/);
   await expect(second).toHaveValue("confirmed");
   await second.selectOption({ label: "Prospect" });
@@ -90,7 +82,7 @@ test("IMP-08 — reprendre ses événements depuis les fiches PDF de l'outil act
   await expectNoAxeViolation(page);
 
   await page.getByLabel("Source pour les événements sans source").selectOption({ label: "Outil actuel" });
-  await page.getByRole("button", { name: "Confirmer l'import" }).click();
+  await page.getByRole("button", { name: "Importer 2 événements" }).click();
   await expect(page.getByText("2 créations, aucune mise à jour, aucune ligne inchangée, 1 ligne rejetée")).toBeVisible();
 
   // La fiche de Léa et Hugo : budget souhaité, lieux, coordonnées des mariés.

@@ -625,7 +625,7 @@
     },
     "importFile": {
       "title": "Importing data",
-      "body": "Start with the takeovers from your current tool (vendors in Excel, event sheets in PDF), or choose what your table contains (events, tasks, budget, catalogue or a list): CSV, Excel (.xlsx) or JSON. Encoding, separator and header row are detected automatically; spreadsheet formulas are neutralised. Nothing is saved before the last step.",
+      "body": "Choose what you are bringing in: your vendors or your event sheets from your current tool, or another file. The assistant then takes you through the steps, shown in a timeline; a step with nothing to decide is done for you. An import you started can be resumed from the log.",
       "faq": [
         {
           "q": "What happens to my file?",
@@ -635,19 +635,19 @@
     },
     "importColumns": {
       "title": "Recognising columns",
-      "body": "Each column gets a suggested field, based on its heading and content, with a confidence score. Below the threshold, confirm it or choose another field. A column with no match can be kept as a free field at the gaps step. French-format dates and amounts are recognised."
+      "body": "Only the columns that need a choice are shown: say what each one becomes, a record field, a free field kept as is, or nothing. A doubtful proposal is never chosen for you. Recognised columns are summed up in one line; “See the detail” opens them."
     },
     "importMatches": {
       "title": "Matching existing records",
-      "body": "When a row looks like an existing record (same clients and date for an event, same label for an item), the app suggests matching them: the row will then update the record instead of creating a duplicate. Accept or reject, one by one or in bulk."
+      "body": "When a row looks like something already there, the app offers to update it rather than create a duplicate. Filter “To check”, “New”, “Updates”; “Accept all” confirms the safe proposals. You can also match a row by hand."
     },
     "importGaps": {
       "title": "Gaps report",
-      "body": "First the columns with no match: keep them as free fields or ignore them. Then the rows that will not be imported, with the reason. Download them as CSV to fix and re-import them; the other rows are not held up."
+      "body": "Columns with no match are decided at the “Columns” step. Rows that will not be imported are shown at the “Review and confirm” step, with their reason, and can be downloaded as CSV to be corrected."
     },
     "importConfirm": {
       "title": "Confirming an import",
-      "body": "The preview counts creations, updates and rejected rows, with a sample of each. Confirming writes the whole import at once, or nothing if an error occurs."
+      "body": "Before importing, the assistant sums up the effects: records created and updated, types and tags created, columns kept as free fields, rows rejected, with a preview of the corrected values. The button says what will be imported."
     },
     "importUndo": {
       "title": "Import log and undo",
@@ -760,6 +760,10 @@
           "a": "Resend it from Accounts: a new link is sent and the old one is disabled."
         }
       ]
+    },
+    "importTypes": {
+      "title": "The file's types",
+      "body": "Each type in the file is sorted into a family: linked to a type in your vendor book, to a starter type created once for all its synonyms, or left “to sort”. Change what a label becomes, or create it in the family of your choice."
     }
   },
   "Aide": {
@@ -1882,7 +1886,113 @@
     "jobRetry": "Restart",
     "jobCancelled": "Placement stopped (import undone).",
     "jobPlaceVendorsResult": "{placed, plural, =0 {No vendor placed} one {# vendor placed} other {# vendors placed}}, {unplaced, plural, =0 {none to place by hand} other {# to place by hand}}.",
-    "jobPlaceVendorsUnplacedLink": "See the vendors to place"
+    "jobPlaceVendorsUnplacedLink": "See the vendors to place",
+    "wizardStep": {
+      "file": "File",
+      "columns": "Columns",
+      "types": "Types",
+      "matches": "Duplicates",
+      "confirm": "Review and confirm"
+    },
+    "summary": {
+      "file": "{rows, plural, one {# row} other {# rows}}",
+      "columns": "{recognized, plural, one {# column recognised} other {# columns recognised}}{kept, plural, =0 {} other {, # kept as free fields}}{ignored, plural, =0 {} other {, # ignored}}",
+      "types": "{labels, plural, one {# label} other {# labels}}, {created, plural, =0 {no type created} one {# type created} other {# types created}}{unclassified, plural, =0 {} other {, # to sort}}",
+      "matches": "{creations, plural, other {# new}}, {updates, plural, =0 {no update} one {# update} other {# updates}}"
+    },
+    "stepCurrent": "in progress",
+    "wizardTitle": "Importing “{fileName}”",
+    "abandonLink": "Abandon the import",
+    "abandonTitle": "Abandon this import?",
+    "abandonBody": "The file and your choices are deleted; nothing has been imported yet.",
+    "abandonYes": "Yes, abandon",
+    "abandonNo": "No, carry on",
+    "actionBarLabel": "Step actions",
+    "back": "Back",
+    "continue": "Continue",
+    "fileRead": "File read: {format}, {size}, {rows, plural, one {# row} other {# rows}}.",
+    "columnHeaderFile": "File column",
+    "columnHeaderSamples": "Examples",
+    "columnHeaderBecomes": "Becomes",
+    "columnHeaderConfidence": "Confidence",
+    "columnChoose": "Choose…",
+    "columnTargetFree": "Keep as a free field on the record",
+    "confidencePercent": "{value}%",
+    "confidenceProfile": "Recognised export",
+    "columnsToDecideTitle": "{count, plural, one {# column to decide} other {# columns to decide}}",
+    "columnsToDecideIntro": "Say what each one becomes: a record field, a free field kept as is, or nothing.",
+    "columnsToDecideTable": "Columns to decide",
+    "columnsRecognized": "{count, plural, one {# column recognised} other {# columns recognised}}",
+    "columnsShowDetail": "See the detail",
+    "columnsRecognizedTable": "Recognised columns",
+    "typesIntro": "{count, plural, one {# type found in the file, sorted} other {# types found in the file, sorted}} by family. Check what each one becomes.",
+    "typesUnclassifiedGroup": "To sort",
+    "typesGroupCount": "{labels, plural, one {# label} other {# labels}}, {rows, plural, one {# vendor} other {# vendors}}",
+    "typesGroupTable": "File types — {family}",
+    "typesHeaderLabel": "Label in the file",
+    "typesHeaderRows": "Vendors",
+    "typesHeaderBecomes": "Becomes",
+    "typesBecomesLabel": "What “{label}” becomes",
+    "typeTargetNone": "No type (to sort)",
+    "typeTargetStarter": "{type} (created)",
+    "typeTargetNewGroup": "Create “{label}”",
+    "typeTargetNewIn": "Create “{label}” in {family}",
+    "typeTargetNewUnclassified": "Create “{label}”, to sort",
+    "matchesFilterLabel": "Filter the rows",
+    "matchesFilter": {
+      "a-verifier": "To check · {count}",
+      "nouveaux": "New · {count}",
+      "mises-a-jour": "Updates · {count}"
+    },
+    "acceptSafeMatches": "Accept all ({count, plural, one {# safe proposal} other {# safe proposals}})",
+    "matchesEmptyFilter": "No row here.",
+    "matchesTable": "File rows",
+    "matchesHeaderLine": "Row",
+    "matchesHeaderElement": "In the file",
+    "matchesHeaderProposal": "Already in Symbola",
+    "matchesHeaderDecision": "Decision",
+    "matchProposal": "{element} ({score}%)",
+    "decisionUpdate": "Update",
+    "decisionCreate": "Create",
+    "decisionUpdateFor": "Update the existing one for {title}",
+    "decisionCreateFor": "Create a new record for {title}",
+    "pagination": "Pages",
+    "previousPage": "Previous page",
+    "nextPage": "Next page",
+    "pageOf": "Page {page} of {pages}",
+    "effectsTitle": "What the import will do",
+    "effectsCreations": "Records created",
+    "effectsUpdates": "Records updated",
+    "effectsTypes": "Types created",
+    "effectsTags": "Tags created",
+    "effectsFreeColumns": "Columns kept as free fields",
+    "effectsRejected": "Rows rejected",
+    "startQuestion": "What do you want to bring in?",
+    "otherFileTitle": "Another file",
+    "otherFileBody": "Events, tasks, budget lines, catalogue, lists… from a spreadsheet (CSV, Excel) or a JSON file.",
+    "resumeImport": "Resume",
+    "resumeImportFor": "Resume the import of {file}",
+    "importButton": {
+      "events": "Import {count, plural, one {# event} other {# events}}",
+      "event_sheets": "Import {count, plural, one {# event} other {# events}}",
+      "tasks": "Import {count, plural, one {# task} other {# tasks}}",
+      "budget_lines": "Import {count, plural, one {# budget line} other {# budget lines}}",
+      "catalog_items": "Import {count, plural, one {# item} other {# items}}",
+      "vendor_slots": "Import {count, plural, one {# budget line} other {# budget lines}}",
+      "prospect_sources": "Import {count, plural, one {# source} other {# sources}}",
+      "loss_reasons": "Import {count, plural, one {# reason} other {# reasons}}",
+      "payment_methods": "Import {count, plural, one {# payment method} other {# payment methods}}",
+      "vendors": "Import {count, plural, one {# vendor} other {# vendors}}"
+    },
+    "finishLink": {
+      "vendors": "{count, plural, one {See the vendor} other {See the # vendors}}",
+      "events": "{count, plural, one {See the event} other {See the # events}}",
+      "event_sheets": "{count, plural, one {See the event} other {See the # events}}",
+      "tasks": "{count, plural, one {See the task} other {See the # tasks}}",
+      "catalog_items": "{count, plural, one {See the item} other {See the # items}}"
+    },
+    "confidenceProposal": "{field}? ({value}%, to confirm)",
+    "journalTable": "Import log table"
   },
   "Privacy": {
     "title": "Personal data",

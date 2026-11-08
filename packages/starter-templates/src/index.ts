@@ -331,6 +331,8 @@ const vendorsExportProfileSchema = z.object({
   columns: z.record(z.string(), z.string().min(1)),
   swapWhenContentDiffers: z.array(z.tuple([z.string(), z.string()])),
   listSeparator: z.string().min(1),
+  // Lot 16 (IMP-11) : colonnes annexes ignorées ou gardées en champ libre d'office.
+  annexColumns: z.object({ ignore: z.array(z.string().min(1)), keep: z.array(z.string().min(1)) }).optional(),
 });
 const eventSheetProfileSchema = z.object({
   dateLabel: z.string().min(1),

@@ -9,10 +9,11 @@ import { createOrganization, createUser } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
 import { readImportCorpusFile } from "@symbola/testing/import-corpus";
 import { decideFreeColumns, getImportColumns, saveImportMapping, startImport } from "@/modules/hub/service";
-import { createVendor, createVendorTag, createVendorType, findVendors, getVendor, listVendorTags, listVendorTypes, updateVendor } from "@/modules/vendors/service";
+import { createVendor, createVendorFamily, createVendorTag, createVendorType, findVendors, getVendor, listVendorFamilies, listVendorTags, listVendorTypes, seedStarterVendorCatalog, updateVendor } from "@/modules/vendors/service";
+import { vendorCatalogInput } from "@/lib/vendors/catalog";
 import { runImportJobsUntilIdle } from "@/lib/import-jobs";
 import { confirmImport, getImportPreview, getUndoPreview, undoImport } from "./apply";
-import { decideMatches, decideVendorTypes, getImportMatchesView } from "./matching";
+import { decideMatches, decideVendorTypes, getImportMatchesView, getImportTypesView } from "./matching";
 
 const { sql, db } = createAppConnection();
 // Placement sur la carte par le géocodeur simulé (ADR 0031), lu à chaque appel.
@@ -159,13 +160,15 @@ describe("IMP-07 — Importer ses prestataires depuis l'export Excel", () => {
     expect(choice("Lieu").rowCount).toBe(2);
 
     // La planner regroupe « Fleuriste » sur un type existant.
-    expect(await decideVendorTypes(planner.organizationId, importId, [{ label: "Fleuriste", typeId: fleurs.id }])).toBe(true);
+    expect(await decideVendorTypes(planner.organizationId, importId, [{ label: "Fleuriste", target: { kind: "existing", typeId: fleurs.id } }])).toBe(true);
     await confirmImport({ ...planner, importId });
 
     const types = await listVendorTypes(planner.organizationId);
     expect(types.filter((type) => type.label.toLowerCase() === "photographe")).toHaveLength(1);
     expect(types.map((type) => type.label)).not.toContain("Fleuriste");
-    expect(types.map((type) => type.label)).toContain("Lieu");
+    // Lot 16 (IMP-12) : « Lieu » rejoint le type de départ « Lieu de réception ».
+    expect(types.map((type) => type.label)).toContain("Lieu de réception");
+    expect(types.map((type) => type.label)).not.toContain("Lieu");
     expect((await vendorNamed(planner, "Atelier Pétales"))!.typeId).toBe(fleurs.id);
     expect((await vendorNamed(planner, "Coiff' Mariée"))!.typeId).toBe(coiffure.id);
   });
@@ -175,7 +178,7 @@ describe("IMP-07 — Importer ses prestataires depuis l'export Excel", () => {
     const other = await createPlanner();
     const foreign = await createVendorType(other.organizationId, "Fleuriste", "#4f6b5a");
     const importId = await preparedImport(planner);
-    expect(await decideVendorTypes(planner.organizationId, importId, [{ label: "Fleuriste", typeId: foreign.id }])).toBe(false);
+    expect(await decideVendorTypes(planner.organizationId, importId, [{ label: "Fleuriste", target: { kind: "existing", typeId: foreign.id } }])).toBe(false);
   });
 
   it("rapprochements : un prestataire déjà au carnet (même nom à la casse et aux accents près, même ville) est proposé en mise à jour ; une cellule vide n'efface rien", async () => {
@@ -257,5 +260,80 @@ describe("IMP-07 — Importer ses prestataires depuis l'export Excel", () => {
     expect((await listVendorTags(b.organizationId)).map((tag) => tag.label)).toEqual(["Pop"]);
     expect(await getImportMatchesView(b.organizationId, importId)).toBeNull();
     expect(await undoImport({ ...b, importId })).toEqual({ status: "not_found" });
+  });
+});
+
+describe("IMP-12 — Types à l'import par familles", () => {
+  it("avec les types de départ d'une wedding planner, les 22 libellés du corpus créent au plus 12 types ; « Coiffeur(se) » et « Maquillage » sont réunis", async () => {
+    const planner = await createPlanner();
+    await seedStarterVendorCatalog(planner.organizationId, vendorCatalogInput("fr", "wedding_planner"), { withTypes: true });
+    const before = (await listVendorTypes(planner.organizationId)).length;
+    const importId = await preparedImport(planner);
+    const view = await getImportTypesView(planner.organizationId, importId);
+    expect(view!.choices).toHaveLength(22);
+    await acceptAllMatches(planner, importId);
+    await confirmImport({ ...planner, importId });
+
+    const types = await listVendorTypes(planner.organizationId);
+    expect(types.length - before).toBeLessThanOrEqual(12);
+    const hair = types.find((type) => type.label === "Coiffure et maquillage")!;
+    expect((await vendorNamed(planner, "Coiff' Mariée"))!.typeId).toBe(hair.id);
+    const makeup = view!.choices.find((choice) => choice.label === "Maquillage")!;
+    expect(makeup.target).toEqual({ kind: "existing", typeId: hair.id });
+  });
+
+  it("sans les types de départ, chaque famille de synonymes crée un seul type de départ, rangé dans sa famille ; jamais un type par libellé", async () => {
+    const planner = await createPlanner();
+    await createVendorType(planner.organizationId, "Photographe", "#123456");
+    const importId = await preparedImport(planner);
+    const view = (await getImportTypesView(planner.organizationId, importId))!;
+    const target = (label: string) => view.choices.find((choice) => choice.label === label)!.target;
+    expect(target("Coiffeur(se)")).toEqual({ kind: "starter", starterKey: "hair_makeup" });
+    expect(target("Maquillage")).toEqual({ kind: "starter", starterKey: "hair_makeup" });
+    expect(target("Vins & Boissons")).toEqual({ kind: "starter", starterKey: "drinks" });
+    expect(target("Photographe")).toMatchObject({ kind: "existing" });
+    expect(view.choices.every((choice) => choice.target.kind !== "new")).toBe(true);
+    // Rangés par famille dès l'étape « Types ».
+    const beauty = view.families.find((family) => family.label === "Beauté et tenues")!;
+    expect(view.choices.find((choice) => choice.label === "Coiffeur(se)")!.familyId).toBe(beauty.id);
+
+    await acceptAllMatches(planner, importId);
+    await confirmImport({ ...planner, importId });
+    const types = await listVendorTypes(planner.organizationId);
+    const created = types.filter((type) => type.label !== "Photographe");
+    expect(created.every((type) => type.starterKey !== null && type.familyId !== null)).toBe(true);
+    expect(types.filter((type) => type.label === "Coiffure et maquillage")).toHaveLength(1);
+    expect(types.map((type) => type.label)).not.toContain("Coiffeur(se)");
+  });
+
+  it("elle choisit un autre type, en crée un dans une famille, ou laisse « à classer » : la fiche garde alors le libellé du fichier", async () => {
+    const planner = await createPlanner();
+    await seedStarterVendorCatalog(planner.organizationId, vendorCatalogInput("fr", "wedding_planner"), { withTypes: true });
+    const attire = await createVendorFamily(planner.organizationId, { label: "Tenues", color: "#7a2e5c", icon: "attire" });
+    const importId = await preparedImport(planner);
+    expect(
+      await decideVendorTypes(planner.organizationId, importId, [
+        { label: "Photobooth", target: { kind: "new", familyId: attire.id } },
+        { label: "Baby-Sitter", target: { kind: "none" } },
+      ]),
+    ).toBe(true);
+    const sitterName = (await getImportMatchesView(planner.organizationId, importId))!.rows.find((row) => row.values.type === "Baby-Sitter")!.values.name as string;
+    await acceptAllMatches(planner, importId);
+    await confirmImport({ ...planner, importId });
+
+    const types = await listVendorTypes(planner.organizationId);
+    expect(types.find((type) => type.label === "Photobooth" && type.familyId === attire.id)).toBeDefined();
+    const sitter = (await getVendor(planner.organizationId, (await vendorNamed(planner, sitterName))!.id))!;
+    expect(sitter.typeId).toBeNull();
+    expect(Object.values(sitter.importedFields ?? {})).toContain("Baby-Sitter");
+    expect((await listVendorFamilies(planner.organizationId)).some((family) => family.id === attire.id)).toBe(true);
+  });
+
+  it("une famille d'une autre organisation ne peut pas être choisie", async () => {
+    const planner = await createPlanner();
+    const other = await createPlanner();
+    const foreign = await createVendorFamily(other.organizationId, { label: "Étrangère", color: "#123456", icon: "other" });
+    const importId = await preparedImport(planner);
+    expect(await decideVendorTypes(planner.organizationId, importId, [{ label: "Photobooth", target: { kind: "new", familyId: foreign.id } }])).toBe(false);
   });
 });

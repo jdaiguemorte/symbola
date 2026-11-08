@@ -54,6 +54,8 @@ export const HELP_SCREENS: HelpScreen[] = [
   // Données : import et données personnelles
   { key: "importFile", group: "data", audience: "team", path: "/import", capture: true },
   { key: "importColumns", group: "data", audience: "team", path: null, capture: false },
+  // Lot 16 (IMP-12) : étape « Types » de l'assistant (prestataires).
+  { key: "importTypes", group: "data", audience: "team", path: null, capture: false },
   { key: "importMatches", group: "data", audience: "team", path: null, capture: false },
   { key: "importGaps", group: "data", audience: "team", path: null, capture: false },
   { key: "importConfirm", group: "data", audience: "team", path: null, capture: false },

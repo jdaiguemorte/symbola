@@ -56,6 +56,8 @@ test("IMP-01 — un CSV Excel est lu, un .xls refusé, l'import en cours abandon
   await expectNoAxeViolation(page);
 
   // Un ancien fichier Excel est refusé avec un message qui dit quoi faire.
+  // Lot 16 (IMP-11) : « Un autre fichier » propose le choix détaillé des contenus.
+  await page.getByRole("navigation", { name: "Que voulez-vous reprendre ?" }).getByRole("link", { name: /Un autre fichier/ }).click();
   await page.getByLabel("Événements et leurs clients (une ligne par événement)").check();
   await page.getByLabel("Fichier (CSV, Excel .xlsx ou JSON)").setInputFiles(corpusFile("libreoffice.xls", "application/vnd.ms-excel"));
   await page.getByRole("button", { name: "Lire le fichier" }).click();
@@ -67,16 +69,19 @@ test("IMP-01 — un CSV Excel est lu, un .xls refusé, l'import en cours abandon
   await page.getByLabel("Fichier (CSV, Excel .xlsx ou JSON)").setInputFiles(corpusFile("excel-fr-windows1252.csv", "text/csv"));
   await page.getByRole("button", { name: "Lire le fichier" }).click();
   await expect(page.getByRole("heading", { name: "Import de « excel-fr-windows1252.csv »" })).toBeVisible();
+  // Lot 16 (IMP-11) : ce qui a été reconnu du fichier se déplie à l'étape « Colonnes ».
+  await page.getByText(/^Fichier lu :/).click();
   await expect(page.getByText("Windows-1252 (Excel sous Windows)")).toBeVisible();
   await expect(page.getByText("point-virgule")).toBeVisible();
   await expect(page.getByText("ligne 1", { exact: true })).toBeVisible();
-  await expect(page.getByText("3 lignes")).toBeVisible();
+  await expect(page.getByRole("definition").filter({ hasText: "3 lignes" })).toBeVisible();
   await expect(page.getByRole("columnheader", { name: "Prénom mariée" })).toBeVisible();
   await expect(page.getByRole("cell", { name: "Domaine des Œillets" })).toBeVisible();
   await expectNoAxeViolation(page);
 
-  // Abandon : retour au journal, l'import y figure comme abandonné.
-  await page.getByRole("button", { name: "Abandonner l'import" }).click();
+  // Abandon : lien discret, confirmé ; retour au journal, l'import y figure comme abandonné.
+  await page.getByRole("link", { name: "Abandonner l'import" }).click();
+  await page.getByRole("button", { name: "Oui, abandonner" }).click();
   await expect(page).toHaveURL(/\/import$/);
   const entry = page.getByRole("row").filter({ hasText: "excel-fr-windows1252.csv" });
   await expect(entry).toContainText("abandonné");

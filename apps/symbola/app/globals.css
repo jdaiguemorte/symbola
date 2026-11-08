@@ -1816,3 +1816,106 @@
     @apply justify-self-start;
   }
 }
+
+@layer components {
+  /* Lot 16 (IMP-11, ADR 0041) — assistant d'import en plein écran. */
+  .import-assistant {
+    @apply pb-4;
+  }
+  .import-head {
+    @apply flex flex-wrap items-baseline justify-between gap-3;
+  }
+  .import-head > h1 {
+    @apply m-0;
+  }
+  .import-abandon {
+    @apply text-sm text-muted;
+  }
+  .import-abandon-confirm {
+    @apply my-4 flex flex-col gap-2 rounded-[12px] border border-terracotta bg-card px-4 py-3;
+  }
+  .import-abandon-confirm h2 {
+    @apply m-0 text-base;
+  }
+  /* Frise des étapes : faite (coche), en cours, à venir. */
+  .stepper {
+    @apply my-5;
+  }
+  .stepper ol {
+    @apply m-0 flex list-none flex-col gap-3 p-0 md:flex-row md:gap-2;
+  }
+  .stepper li {
+    @apply flex flex-1 items-start gap-2 rounded-[12px] border border-lin bg-card px-3 py-2 text-sm;
+  }
+  .stepper li[data-state="current"] {
+    @apply border-sauge bg-sauge-tint;
+  }
+  .stepper li[data-state="todo"] {
+    @apply text-muted;
+  }
+  .stepper-marker {
+    @apply inline-flex h-6 w-6 flex-none items-center justify-center rounded-full border border-lin-dark text-xs font-semibold;
+  }
+  .stepper li[data-state="done"] .stepper-marker,
+  .stepper li[data-state="current"] .stepper-marker {
+    @apply border-sauge bg-sauge text-white;
+  }
+  .stepper-text {
+    @apply flex flex-col gap-0.5;
+  }
+  .stepper-text > a,
+  .stepper-label {
+    @apply font-semibold;
+  }
+  .stepper-summary {
+    @apply text-xs text-muted;
+  }
+  /* Barre d'action fixe en bas de l'étape. */
+  .action-bar {
+    @apply sticky bottom-0 z-20 mt-6 flex items-center justify-between gap-3 border-t border-lin bg-ivory/95 py-3 backdrop-blur;
+  }
+  .action-bar-main {
+    @apply flex items-center gap-2;
+  }
+  /* Départ : trois tuiles. */
+  .import-tiles {
+    @apply mt-3 grid grid-cols-1 gap-3 md:grid-cols-3;
+  }
+  .import-tile {
+    @apply flex flex-col gap-1 rounded-2xl border border-lin bg-card p-4 text-ink no-underline hover:border-sauge;
+  }
+  .import-tile[aria-current="true"] {
+    @apply border-sauge bg-sauge-tint;
+  }
+  .import-tile-title {
+    @apply font-semibold;
+  }
+  .import-tile-body {
+    @apply text-sm text-muted;
+  }
+  .types-group {
+    @apply my-5;
+  }
+  .types-group h2 .meta {
+    @apply ml-2 text-sm font-normal;
+  }
+  .matches-accept-safe {
+    @apply my-3;
+  }
+  .matches-manual {
+    @apply mt-2 flex flex-wrap items-end gap-2 text-sm;
+  }
+  /* Vérifier et confirmer : bilan des effets. */
+  .effects {
+    @apply m-0 grid grid-cols-2 gap-3 md:grid-cols-3;
+  }
+  .effects > div {
+    @apply grid gap-0.5;
+  }
+  .effects dt {
+    @apply text-xs text-muted;
+  }
+  .effects dd {
+    @apply m-0 text-lg font-semibold;
+  }
+}

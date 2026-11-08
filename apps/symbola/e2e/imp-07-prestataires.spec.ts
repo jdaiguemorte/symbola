@@ -3,6 +3,7 @@
 // colonnes reconnues d'après leur contenu, types rapprochés ou regroupés,
 // rapprochement d'une fiche existante, champs libres, confirmation, fiche
 // complétée, annulation. En taille ordinateur et en 375 px, axe-core.
+// Lot 16 (IMP-11, IMP-12) : le même parcours dans l'assistant linéaire.
 import { randomUUID } from "node:crypto";
 import path from "node:path";
 import AxeBuilder from "@axe-core/playwright";
@@ -51,43 +52,50 @@ test("IMP-07 — reprendre ses prestataires depuis l'export Excel de l'outil act
   await loginAndSetupMfa(page, email, password);
 
   await openSettingsTab(page, "Importer");
-  await page.getByLabel("Prestataires du carnet (une ligne par prestataire)").check();
+  // Lot 16 (IMP-11) : « Que voulez-vous reprendre ? » en trois tuiles.
+  await page.getByRole("navigation", { name: "Que voulez-vous reprendre ?" }).getByRole("link", { name: /Reprendre mes prestataires/ }).click();
   // Corpus de test (Playwright est lancé depuis apps/symbola).
   await page
     .getByLabel("Fichier (CSV, Excel .xlsx ou JSON)")
     .setInputFiles(path.resolve(process.cwd(), "../../packages/testing/import-corpus/files/logiciel-tiers/prestataires.xlsx"));
   await page.getByRole("button", { name: "Lire le fichier" }).click();
-  await page.getByRole("link", { name: "Continuer : reconnaître les colonnes" }).click();
 
-  // Colonnes : « Site Internet » et « Critères avancés » suivent leur contenu.
-  await expect(page.getByText("Proposé d'après le contenu de la colonne, pas son intitulé (colonnes inversées dans le fichier) : vérifiez.")).toHaveCount(2);
-  await expectNoAxeViolation(page);
-  await page.getByRole("button", { name: "Enregistrer les colonnes" }).click();
-  await page.getByRole("link", { name: "Continuer : rapprocher des éléments existants" }).click();
-
-  // Types : « Photographe » est rapproché du type du carnet ; « Photographe &
-  // Vidéaste » y est regroupé à la main.
-  const typesSection = page.getByRole("region", { name: "Types de prestataires du fichier" });
-  await expect(typesSection.getByLabel("Type de carnet pour « Photographe »")).toHaveValue(/.+/);
-  await typesSection.getByLabel("Type de carnet pour « Photographe & Vidéaste »").selectOption({ label: "Photographe" });
-  await typesSection.getByRole("button", { name: "Enregistrer les types" }).click();
-  await expect(typesSection.getByLabel("Type de carnet pour « Photographe & Vidéaste »")).toHaveValue(/.+/);
+  // Colonnes : export reconnu, rien à décider (« Site Internet » et « Critères
+  // avancés » suivent leur contenu ; département ignoré, TVA, APE et statut en
+  // champ libre) : l'étape est faite d'office, l'assistant ouvre « Types ».
+  await expect(page).toHaveURL(/\/types$/);
+  const steps = page.getByRole("navigation", { name: "Étapes de l'import" });
+  await expect(steps.getByRole("listitem").filter({ hasText: "Colonnes" })).toContainText(/colonnes reconnues, 3 en champ libre, 1 ignorée/);
+  await expect(steps.getByRole("listitem").filter({ hasText: "Types" })).toHaveAttribute("aria-current", "step");
   await expectNoAxeViolation(page);
 
-  await page.getByRole("button", { name: "Valider le rapprochement proposé" }).click();
-  await page.getByRole("link", { name: "Continuer : rapport des écarts" }).click();
-  for (const column of ["Tva Intracommunautaire", "Code APE", "Statut Juridique"]) {
-    await page.getByRole("group", { name: column }).getByLabel("Garder en champ libre sur la fiche").check();
-  }
-  await page.getByRole("group", { name: "Département" }).getByLabel("Ignorer").check();
-  await page.getByRole("button", { name: "Enregistrer les choix" }).click();
-  await page.getByRole("link", { name: "Continuer : aperçu et confirmation" }).click();
+  // IMP-12 — types par famille : « Photographe » rejoint le type du carnet ;
+  // « Coiffeur(se) » et « Maquillage », le type de départ « Coiffure et maquillage ».
+  const beauty = page.getByRole("region", { name: "Types du fichier — Beauté et tenues" });
+  await expect(beauty.getByLabel("Ce que devient « Coiffeur(se) »")).toHaveValue("starter:hair_makeup");
+  await expect(beauty.getByLabel("Ce que devient « Maquillage »")).toHaveValue("starter:hair_makeup");
+  const photo = page.getByRole("region", { name: "Types du fichier — Photo et vidéo" });
+  await expect(photo.getByLabel("Ce que devient « Photographe »")).toHaveValue(/^existing:/);
+  await photo.getByLabel("Ce que devient « Photographe & Vidéaste »").selectOption({ label: "Photographe" });
+  await page.getByRole("group", { name: "Actions de l'étape" }).getByRole("button", { name: "Continuer" }).click();
 
-  await expect(page.getByText("24 créations, 1 mise à jour, aucune ligne rejetée.")).toBeVisible();
-  await expect(page.getByText(/Ligne \d+ : Château de la Roche Fictive — Niort/)).toBeVisible();
+  // Doublons : la fiche existante est proposée en mise à jour.
+  await expect(page).toHaveURL(/\/rapprochements/);
+  await expect(page.getByRole("navigation", { name: "Filtrer les lignes" }).getByRole("link", { name: "À vérifier · 1" })).toHaveAttribute("aria-current", "true");
+  await page.getByRole("button", { name: /Mettre à jour l'existant pour Domaine des Tilleuls/ }).click();
+  await expect(page.getByRole("navigation", { name: "Filtrer les lignes" }).getByRole("link", { name: "Mises à jour · 1" })).toBeVisible();
   await expectNoAxeViolation(page);
-  await page.getByRole("button", { name: "Confirmer l'import" }).click();
+  await page.getByRole("group", { name: "Actions de l'étape" }).getByRole("button", { name: "Continuer" }).click();
+
+  // Vérifier et confirmer : bilan des effets, valeurs après correction.
+  await expect(page).toHaveURL(/\/confirmation$/);
+  const effects = page.getByRole("region", { name: "Ce que va faire l'import" });
+  await expect(effects.getByRole("definition").first()).toHaveText("24");
+  await expect(page.getByText(/Ligne \d+ : Château de la Roche Fictive — \d{5} Niort/)).toBeVisible();
+  await expectNoAxeViolation(page);
+  await page.getByRole("button", { name: "Importer 25 prestataires" }).click();
   await expect(page.getByText("24 créations, 1 mise à jour, aucune ligne inchangée, aucune ligne rejetée")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Voir les 25 prestataires" })).toBeVisible();
   // Lot 15 (GEO-01) : le placement sur la carte se fait ensuite, avec son avancement.
   const placement = page.getByRole("region", { name: "Placement sur la carte" });
   await expect(placement).toContainText(/prestataires? placés?/, { timeout: 30_000 });

@@ -1,34 +1,46 @@
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatCalendarDate, type Locale } from "@symbola/i18n";
 import { ScreenHelp } from "@/app/screen-help";
+import { ActionBar } from "@/app/ui/action-bar";
 import type { ImportValue, PersonName } from "@symbola/import-engine";
-import { getPlannerAuthContext } from "@/lib/auth-context";
-import { getImportMatchesView, rowEventReference, type MatchesRowView } from "@/lib/import/matching";
+import { rowEventReference, type MatchesRowView } from "@/lib/import/matching";
+import { importStepHref, SAFE_MATCH_SCORE } from "@/lib/import/wizard";
 import type { EventCandidate } from "@/lib/import/candidates";
-import { isValidId } from "../../access";
-import { ImportSteps } from "../../import-steps";
-import { decideMatchesAction, decideVendorTypesAction, manualMatchAction } from "./actions";
+import { ImportHeader } from "../../import-header";
+import { importStepContext, wantsAbandon } from "../../step-context";
+import { decideMatchesAction, manualMatchAction, reviewMatchesAction } from "./actions";
+
+const FILTERS = ["a-verifier", "nouveaux", "mises-a-jour"] as const;
+type Filter = (typeof FILTERS)[number];
+const PAGE_SIZE = 20;
 
 function names(clients: PersonName[]): string {
   return clients.map((client) => `${client.firstName} ${client.lastName ?? ""}`.trim()).join(" & ");
 }
 
-// IMP-03 — étape « rapprochements » : chaque ligne qui ressemble à un
-// élément existant est proposée au rapprochement (mise à jour au lieu d'un
-// doublon), avec le niveau de ressemblance.
-export default async function ImportMatchesPage({ params }: { params: Promise<{ importId: string }> }) {
-  const auth = await getPlannerAuthContext();
-  if (auth.status === "unauthenticated") redirect("/login");
-  if (auth.status === "mfa_required") redirect("/mfa");
-  if (auth.status === "forbidden") redirect(auth.role === "client" ? "/espace" : "/");
-  if (!auth.user.organizationId) redirect("/");
+// Une ligne à vérifier : une proposition en attente, une fiche du même lot
+// qui décrit le même événement, ou un événement de rattachement introuvable.
+function toCheck(row: MatchesRowView): boolean {
+  return row.match?.status === "proposed" || row.sameAsLine !== undefined || (row.event !== undefined && !row.event.candidate);
+}
 
+// IMP-03 — étape « Doublons ». Lot 16 (IMP-11, ADR 0041) : tableau filtrable
+// (« À vérifier », « Nouveaux », « Mises à jour »), 20 lignes par page, et
+// « Tout accepter » pour les propositions sûres.
+export default async function ImportMatchesPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ importId: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const { importId } = await params;
-  if (!isValidId(importId)) notFound();
-  const view = await getImportMatchesView(auth.user.organizationId, importId);
-  if (!view) notFound();
+  const { wizard } = await importStepContext(importId);
+  const view = wizard.matches;
+  if (!view) redirect(importStepHref(importId, wizard.next));
+  const query = await searchParams;
 
   const t = await getTranslations("Import");
   const tHelp = await getTranslations("Help");
@@ -49,132 +61,153 @@ export default async function ImportMatchesPage({ params }: { params: Promise<{ 
   };
   const optionTitle = (option: MatchesRowView["options"][number]) => (option.event ? eventTitle(option.event) : (option.label ?? ""));
 
-  const proposedCount = view.rows.filter((row) => row.match?.status === "proposed").length;
   const valid = view.rows.filter((row) => row.errors.length === 0);
   const rejectedCount = view.rows.length - valid.length;
+  const lists: Record<Filter, MatchesRowView[]> = {
+    "a-verifier": valid.filter(toCheck),
+    nouveaux: valid.filter((row) => !toCheck(row) && row.match?.status !== "accepted"),
+    "mises-a-jour": valid.filter((row) => !toCheck(row) && row.match?.status === "accepted"),
+  };
+  const requested = FILTERS.find((filter) => filter === query.filtre);
+  const filter: Filter = requested ?? (lists["a-verifier"].length > 0 ? "a-verifier" : "nouveaux");
+  const pages = Math.max(1, Math.ceil(lists[filter].length / PAGE_SIZE));
+  const page = Math.min(Math.max(Number(query.page) || 1, 1), pages);
+  const shown = lists[filter].slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const safeCount = valid.filter((row) => row.match?.status === "proposed" && row.match.score >= SAFE_MATCH_SCORE).length;
+  const base = importStepHref(importId, "matches");
+  const href = (values: { filtre?: Filter; page?: number }) => `${base}?filtre=${values.filtre ?? filter}${values.page && values.page > 1 ? `&page=${values.page}` : ""}`;
+  const previousStep = wizard.steps.some((step) => step.key === "types") ? "types" : "columns";
 
   return (
-    <main>
-      <h1>{t("matchesTitle", { fileName: view.fileName })}</h1>
+    <main className="import-assistant">
+      <ImportHeader wizard={wizard} current="matches" abandon={wantsAbandon(query)} />
       <ScreenHelp title={tHelp("importMatches.title")} body={tHelp("importMatches.body")} />
-      <ImportSteps current={2} />
       <p>{t("matchesIntro")}</p>
-      {rejectedCount > 0 ? <p>{t("matchesRejectedNotice", { count: rejectedCount })}</p> : null}
+      {rejectedCount > 0 ? <p className="muted">{t("matchesRejectedNotice", { count: rejectedCount })}</p> : null}
 
-      {view.vendorTypes && view.vendorTypes.length > 0 ? (
-        <section className="card" aria-labelledby="vendor-types-title">
-          <h2 id="vendor-types-title">{t("vendorTypesTitle")}</h2>
-          <p>{t("vendorTypesIntro")}</p>
-          <form action={decideVendorTypesAction} className="vendor-types-form">
-            <input type="hidden" name="importId" value={view.importId} />
-            {view.vendorTypes.map((choice, index) => (
-              <div key={choice.label}>
-                <input type="hidden" name={`label-${index}`} value={choice.label} />
-                <p>{t("vendorTypeRows", { label: choice.label, count: choice.rowCount })}</p>
-                <label htmlFor={`vendor-type-${index}`}>{t("vendorTypeTargetLabel", { label: choice.label })}</label>
-                <select id={`vendor-type-${index}`} name={`type-${index}`} defaultValue={choice.typeId ?? ""} aria-describedby={choice.typeId && !choice.manual ? `vendor-type-note-${index}` : undefined}>
-                  <option value="">{t("vendorTypeCreate", { label: choice.label })}</option>
-                  <optgroup label={t("vendorTypeExisting")}>
-                    {(view.typeOptions ?? []).map((type) => (
-                      <option key={type.id} value={type.id}>
-                        {type.label}
-                      </option>
-                    ))}
-                  </optgroup>
-                </select>
-                {choice.typeId && !choice.manual ? (
-                  <small id={`vendor-type-note-${index}`}>{t("vendorTypeMatched", { type: choice.typeLabel ?? "", score: choice.score })}</small>
-                ) : null}
-              </div>
-            ))}
-            <input type="hidden" name="count" value={view.vendorTypes.length} />
-            <button type="submit">{t("vendorTypesSave")}</button>
-          </form>
-        </section>
-      ) : null}
+      <nav aria-label={t("matchesFilterLabel")} className="pills">
+        {FILTERS.map((key) => (
+          <Link key={key} href={href({ filtre: key })} aria-current={key === filter ? "true" : undefined} scroll={false}>
+            {t(`matchesFilter.${key}`, { count: lists[key].length })}
+          </Link>
+        ))}
+      </nav>
 
-      {proposedCount > 0 ? (
-        <form action={decideMatchesAction}>
-          <input type="hidden" name="importId" value={view.importId} />
-          <input type="hidden" name="decision" value="accept_all" />
-          <button type="submit">{t("acceptAllMatches", { count: proposedCount })}</button>
+      {safeCount > 0 ? (
+        <form action={decideMatchesAction} className="primary-action matches-accept-safe">
+          <input type="hidden" name="importId" value={importId} />
+          <input type="hidden" name="decision" value="accept_safe" />
+          <button type="submit">{t("acceptSafeMatches", { count: safeCount })}</button>
         </form>
       ) : null}
 
-      <form action={decideMatchesAction} id="bulk-matches">
-        <input type="hidden" name="importId" value={view.importId} />
-      </form>
-      <ul>
-        {valid.map((row) => {
-          const title = rowTitle(row.values);
-          const checkboxId = `match-${row.rowIndex}`;
-          return (
-            <li key={row.rowIndex}>
-              <h2>{t("rowHeading", { line: row.lineNumber, title })}</h2>
-              {row.sameAsLine !== undefined ? <p className="notice">{t("rowSameAs", { line: row.sameAsLine })}</p> : null}
-              {row.event ? (
-                <p>
-                  {row.event.candidate
-                    ? t("rowEvent", { event: eventTitle(row.event.candidate), score: row.event.score })
-                    : t("rowEventNotFound")}
-                </p>
-              ) : null}
-              {row.match ? (
-                <>
-                  <p>
-                    {t("rowMatch", {
-                      element: row.match.event ? eventTitle(row.match.event) : (row.match.label ?? ""),
-                      score: row.match.score,
-                    })}{" "}
-                    — {t(`matchStatus.${row.match.status}`)}
-                    {row.match.manual ? ` (${t("matchManual")})` : null}
-                  </p>
-                  {row.match.status === "proposed" ? (
-                    <label htmlFor={checkboxId}>
-                      <input type="checkbox" id={checkboxId} name="rowIndex" value={row.rowIndex} form="bulk-matches" />
-                      {t("selectMatch", { title })}
-                    </label>
-                  ) : null}
-                  <p>{row.match.status === "refused" ? t("rowWillCreate") : t("rowWillUpdate")}</p>
-                </>
-              ) : (
-                <p>{row.event && !row.event.candidate ? t("rowWillBeRejected") : t("rowWillCreate")}</p>
-              )}
-              {row.options.length > 0 ? (
-                <form action={manualMatchAction}>
-                  <input type="hidden" name="importId" value={view.importId} />
-                  <input type="hidden" name="rowIndex" value={row.rowIndex} />
-                  <label htmlFor={`manual-${row.rowIndex}`}>{t("manualMatchLabel", { title })}</label>
-                  <select id={`manual-${row.rowIndex}`} name="candidateId" defaultValue={row.match?.candidateId ?? row.options[0]?.id}>
-                    {row.options.map((option) => (
-                      <option key={option.id} value={option.id}>
-                        {optionTitle(option)}
-                      </option>
-                    ))}
-                  </select>
-                  <button type="submit">{t("manualMatchSubmit")}</button>
-                </form>
-              ) : null}
-            </li>
-          );
-        })}
-      </ul>
-      {proposedCount > 0 ? (
-        <p>
-          <button type="submit" form="bulk-matches" name="decision" value="accept">
-            {t("acceptSelectedMatches")}
-          </button>{" "}
-          <button type="submit" form="bulk-matches" name="decision" value="refuse">
-            {t("refuseSelectedMatches")}
-          </button>
-        </p>
+      {shown.length === 0 ? (
+        <p>{t("matchesEmptyFilter")}</p>
+      ) : (
+        <div className="list-table-wrap" role="region" aria-label={t("matchesTable")} tabIndex={0}>
+          <table className="list-table matches-table">
+            <thead>
+              <tr>
+                <th scope="col">{t("matchesHeaderLine")}</th>
+                <th scope="col">{t("matchesHeaderElement")}</th>
+                <th scope="col">{t("matchesHeaderProposal")}</th>
+                <th scope="col">{t("matchesHeaderDecision")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {shown.map((row) => {
+                const title = rowTitle(row.values);
+                return (
+                  <tr key={row.rowIndex}>
+                    <td>{row.lineNumber}</td>
+                    <th scope="row">
+                      {title}
+                      {row.sameAsLine !== undefined ? <span className="meta"> {t("rowSameAs", { line: row.sameAsLine })}</span> : null}
+                      {row.event ? (
+                        <span className="meta"> {row.event.candidate ? t("rowEvent", { event: eventTitle(row.event.candidate), score: row.event.score }) : t("rowEventNotFound")}</span>
+                      ) : null}
+                    </th>
+                    <td>
+                      {row.match
+                        ? t("matchProposal", { element: row.match.event ? eventTitle(row.match.event) : (row.match.label ?? ""), score: row.match.score })
+                        : row.event && !row.event.candidate
+                          ? t("rowWillBeRejected")
+                          : t("rowWillCreate")}
+                    </td>
+                    <td>
+                      {row.match ? (
+                        <div className="row-actions">
+                          <span className="meta">{row.match.status === "refused" ? t("rowWillCreate") : row.match.status === "accepted" ? t("rowWillUpdate") : t("matchStatus.proposed")}</span>
+                          {row.match.status !== "accepted" ? (
+                            <form action={decideMatchesAction}>
+                              <input type="hidden" name="importId" value={importId} />
+                              <input type="hidden" name="rowIndex" value={row.rowIndex} />
+                              <input type="hidden" name="decision" value="accept" />
+                              <button type="submit" aria-label={t("decisionUpdateFor", { title })}>
+                                {t("decisionUpdate")}
+                              </button>
+                            </form>
+                          ) : null}
+                          {row.match.status !== "refused" ? (
+                            <form action={decideMatchesAction}>
+                              <input type="hidden" name="importId" value={importId} />
+                              <input type="hidden" name="rowIndex" value={row.rowIndex} />
+                              <input type="hidden" name="decision" value="refuse" />
+                              <button type="submit" aria-label={t("decisionCreateFor", { title })}>
+                                {t("decisionCreate")}
+                              </button>
+                            </form>
+                          ) : null}
+                        </div>
+                      ) : null}
+                      {row.options.length > 0 ? (
+                        <form action={manualMatchAction} className="matches-manual">
+                          <input type="hidden" name="importId" value={importId} />
+                          <input type="hidden" name="rowIndex" value={row.rowIndex} />
+                          <label htmlFor={`manual-${row.rowIndex}`}>{t("manualMatchLabel", { title })}</label>
+                          <select id={`manual-${row.rowIndex}`} name="candidateId" defaultValue={row.match?.candidateId ?? row.options[0]?.id}>
+                            {row.options.map((option) => (
+                              <option key={option.id} value={option.id}>
+                                {optionTitle(option)}
+                              </option>
+                            ))}
+                          </select>
+                          <button type="submit">{t("manualMatchSubmit")}</button>
+                        </form>
+                      ) : null}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {pages > 1 ? (
+        <nav aria-label={t("pagination")} className="row-actions">
+          {page > 1 ? (
+            <Link href={href({ page: page - 1 })} scroll={false}>
+              {t("previousPage")}
+            </Link>
+          ) : null}
+          <span>{t("pageOf", { page, pages })}</span>
+          {page < pages ? (
+            <Link href={href({ page: page + 1 })} scroll={false}>
+              {t("nextPage")}
+            </Link>
+          ) : null}
+        </nav>
       ) : null}
-      <p>
-        <Link href={`/import/${view.importId}/ecarts`}>{t("continueToGaps")}</Link>
-      </p>
-      <p>
-        <Link href={`/import/${view.importId}`}>{t("backToDraft")}</Link>
-      </p>
+
+      <form action={reviewMatchesAction} id="matches-review">
+        <input type="hidden" name="importId" value={importId} />
+      </form>
+      <ActionBar label={t("actionBarLabel")} backHref={importStepHref(importId, previousStep)} backLabel={t("back")}>
+        <button type="submit" form="matches-review">
+          {t("continue")}
+        </button>
+      </ActionBar>
     </main>
   );
 }
