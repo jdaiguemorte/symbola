@@ -81,7 +81,7 @@ import {
 } from "./families";
 
 export { InvalidVendorFieldValueError, parseFieldInput } from "./fields";
-export { findModifiedImportedVendorsElements, importedVendorsToPlace, importVendorRows, listVendorImportCandidates, type VendorTypeChoiceInput } from "./import";
+export { findModifiedImportedVendorsElements, importedVendorsToPlace, importVendorRows, listVendorImportCandidates, type VendorTypeChoiceInput, type VendorTypeTarget } from "./import";
 export { placeVendors, type PlacementResult } from "./placement";
 export { estimateTravel, haversineKm } from "./travel";
 export { vendorsPrivacy } from "./privacy";
@@ -166,11 +166,11 @@ function toField(row: VendorTypeFieldRow): VendorTypeField {
 }
 
 function toType({ type, fields }: { type: VendorTypeRow; fields: VendorTypeFieldRow[] }): VendorType {
-  return { id: type.id, label: type.label, color: type.color, position: type.position, familyId: type.familyId, fields: fields.map(toField) };
+  return { id: type.id, label: type.label, color: type.color, position: type.position, familyId: type.familyId, starterKey: type.starterKey, fields: fields.map(toField) };
 }
 
 function toFamily(row: VendorFamilyRow): VendorFamily {
-  return { id: row.id, label: row.label, color: row.color, icon: row.icon, position: row.position };
+  return { id: row.id, label: row.label, color: row.color, icon: row.icon, position: row.position, starterKey: row.starterKey };
 }
 
 function toSummary(row: VendorRow): VendorSummary {

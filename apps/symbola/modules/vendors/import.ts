@@ -81,40 +81,71 @@ async function vendorState(tx: Tx, id: string): Promise<Values | null> {
 
 const ADDRESS_KEYS = ["addressLine", "postalCode", "city"] as const;
 
-export type VendorTypeChoiceInput = { label: string; typeId: string | null };
+// Lot 16 (IMP-12, ADR 0040) — ce que devient un libellé du fichier : un type du
+// carnet ; un type de départ de sa famille, créé une seule fois pour tous ses
+// synonymes (libellé, famille et couleur fournis par l'appelant) ; un type créé
+// sous le libellé du fichier ; ou aucun type (fiche « à classer »).
+export type VendorTypeTarget =
+  | { kind: "existing"; typeId: string }
+  | { kind: "starter"; starterKey: string; typeLabel: string; familyId: string | null; color: string }
+  | { kind: "new"; familyId: string | null; color: string }
+  | { kind: "none" };
+
+// Sans `target` (imports d'avant le lot 16) : `typeId`, ou un type créé sous le libellé.
+export type VendorTypeChoiceInput = { label: string; typeId: string | null; target?: VendorTypeTarget };
 
 export async function importVendorRows(input: {
   organizationId: string;
   rows: ImportApplyRow[];
   // Décision N : type du fichier → type du carnet, ou null pour le créer.
   typeChoices: VendorTypeChoiceInput[];
+  // Lot 16 (IMP-12) : intitulé de la colonne des types ; une fiche sans type y
+  // garde le libellé du fichier, en champ importé.
+  typeColumnHeader?: string | null;
 }): Promise<ImportApplyResult> {
   const result = await inTransaction(input.organizationId, async (tx) => {
     const items: ImportedItem[] = [];
     let unchanged = 0;
     const records = input.rows.map((row) => ({ row, record: vendorImportRecord(row.values) }));
 
-    // Types : un type choisi doit exister dans l'organisation ; sinon il est créé.
-    const existingTypes = await tx.select({ id: vendorTypes.id, label: vendorTypes.label, position: vendorTypes.position }).from(vendorTypes);
-    const choices = new Map(input.typeChoices.map((choice) => [folded(choice.label), choice.typeId]));
-    const typeByLabel = new Map<string, string>();
+    // Types : un type choisi doit exister dans l'organisation ; sinon il est
+    // créé, une seule fois (un type de départ sert à tous ses synonymes).
+    const existingTypes = await tx
+      .select({ id: vendorTypes.id, label: vendorTypes.label, position: vendorTypes.position, starterKey: vendorTypes.starterKey })
+      .from(vendorTypes);
+    const choices = new Map(input.typeChoices.map((choice) => [folded(choice.label), choice]));
+    const typeByLabel = new Map<string, string | null>();
+    const typeByStarterKey = new Map(existingTypes.filter((type) => type.starterKey).map((type) => [type.starterKey!, type.id]));
     let position = existingTypes.reduce((max, type) => Math.max(max, type.position + 1), 0);
+    const createType = async (values: { label: string; color: string; familyId: string | null; starterKey: string | null }) => {
+      const [created] = await tx.insert(vendorTypes).values({ organizationId: input.organizationId, ...values, position: position++ }).returning();
+      if (!created) throw new Error("création du type échouée");
+      items.push({ rowIndex: null, module: "vendors", kind: "vendor_type", elementId: created.id, action: "created", previous: null, written: { label: created.label } });
+      return created.id;
+    };
     for (const { record } of records) {
       if (!record?.type) continue;
       const key = folded(record.type);
       if (typeByLabel.has(key)) continue;
-      const chosen = choices.get(key);
-      const target = chosen ? existingTypes.find((type) => type.id === chosen) : undefined;
-      if (target) {
-        typeByLabel.set(key, target.id);
-        continue;
+      const choice = choices.get(key);
+      const target: VendorTypeTarget = choice?.target ?? (choice?.typeId ? { kind: "existing", typeId: choice.typeId } : { kind: "new", familyId: null, color: UNCLASSIFIED_COLOR });
+      if (target.kind === "existing" && existingTypes.some((type) => type.id === target.typeId)) {
+        typeByLabel.set(key, target.typeId);
+      } else if (target.kind === "starter") {
+        let typeId = typeByStarterKey.get(target.starterKey);
+        if (!typeId) {
+          typeId = await createType({ label: target.typeLabel, color: target.color, familyId: target.familyId, starterKey: target.starterKey });
+          typeByStarterKey.set(target.starterKey, typeId);
+        }
+        typeByLabel.set(key, typeId);
+      } else if (target.kind === "none") {
+        typeByLabel.set(key, null);
+      } else {
+        // Lot 16 (PRE-14) : sans famille choisie, le type part « à classer ».
+        const familyId = target.kind === "new" ? target.familyId : null;
+        const color = target.kind === "new" ? target.color : UNCLASSIFIED_COLOR;
+        typeByLabel.set(key, await createType({ label: record.type, color, familyId, starterKey: null }));
       }
-      // Lot 16 (PRE-14) : créé « à classer », sans famille ; IMP-12 le rangera
-      // par famille dès l'étape « Types ».
-      const [created] = await tx.insert(vendorTypes).values({ organizationId: input.organizationId, label: record.type, color: UNCLASSIFIED_COLOR, position: position++ }).returning();
-      if (!created) throw new Error("création du type échouée");
-      typeByLabel.set(key, created.id);
-      items.push({ rowIndex: null, module: "vendors", kind: "vendor_type", elementId: created.id, action: "created", previous: null, written: { label: created.label } });
     }
 
     // Étiquettes (décision L) : un critère devient une étiquette, créée si besoin.
@@ -150,7 +181,10 @@ export async function importVendorRows(input: {
         siret: record.siret,
         internalNote: noteOf(record),
       };
-      const importedFields = Object.keys(row.importedFields).length > 0 ? row.importedFields : null;
+      // Lot 16 (IMP-12) : sans type, le libellé du fichier reste lisible sur la fiche.
+      const keptType = record.type && wanted.typeId === null && input.typeColumnHeader ? { [input.typeColumnHeader]: record.type } : {};
+      const extra = { ...row.importedFields, ...keptType };
+      const importedFields = Object.keys(extra).length > 0 ? extra : null;
       const current = row.matchId ? await vendorState(tx, row.matchId) : null;
 
       if (row.matchId && current) {

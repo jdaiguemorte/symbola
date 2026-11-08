@@ -19,11 +19,21 @@ export type VendorTypeField = {
 
 // Lot 16 (PRE-14, ADR 0040) — familles de types, propres à l'organisation.
 // icon : clé d'icône connue de l'app (BUDGET_LINE_ICONS, starter-templates).
-export type VendorFamily = { id: string; label: string; color: string; icon: string; position: number };
+// starterKey : famille de départ dont elle vient (nulle si créée par l'organisation).
+export type VendorFamily = { id: string; label: string; color: string; icon: string; position: number; starterKey: string | null };
 export type VendorFamilyInput = { label: string; color: string; icon: string };
 
 // familyId nul : type « à classer » (aucune famille).
-export type VendorType = { id: string; label: string; color: string; position: number; familyId: string | null; fields: VendorTypeField[] };
+// starterKey : type de départ reconnu (synonymes), nul sinon.
+export type VendorType = {
+  id: string;
+  label: string;
+  color: string;
+  position: number;
+  familyId: string | null;
+  starterKey: string | null;
+  fields: VendorTypeField[];
+};
 
 // Données de départ d'un métier (packages/starter-templates), déjà traduites.
 export type StarterVendorCatalogInput = {

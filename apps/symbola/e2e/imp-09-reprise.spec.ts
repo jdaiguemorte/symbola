@@ -29,15 +29,10 @@ async function expectNoAxeViolation(page: Page) {
   expect(result.violations, JSON.stringify(result.violations, null, 2)).toEqual([]);
 }
 
-// Lot 15 (IMP-10) : les fiches sont lues en tâche de fond ; la page montre
-// l'avancement puis ouvre d'elle-même les rapprochements (ou, si la lecture
-// était déjà finie à l'affichage, propose le lien).
+// Lot 15 (IMP-10) : les fiches sont lues en tâche de fond. Lot 16 (IMP-11) :
+// à la fin, l'assistant passe de lui-même à l'étape suivante.
 async function waitForSheetsRead(page: Page) {
-  await expect(page.getByText("Lecture des fiches").first()).toBeVisible();
-  const next = page.getByRole("link", { name: "Continuer : rapprocher des éléments existants" });
-  await expect.poll(async () => page.url().endsWith("/rapprochements") || (await next.isVisible()), { timeout: 30_000 }).toBe(true);
-  if (!page.url().endsWith("/rapprochements")) await next.click();
-  await expect(page).toHaveURL(/\/rapprochements$/);
+  await expect.poll(() => page.url().endsWith("/confirmation"), { timeout: 30_000 }).toBe(true);
 }
 
 test("IMP-09 — les reprises depuis l'outil actuel en premier, avec une fiche d'exemple", async ({ page }) => {
@@ -53,31 +48,37 @@ test("IMP-09 — les reprises depuis l'outil actuel en premier, avec une fiche d
   await loginAndSetupMfa(page, email, password);
 
   await openSettingsTab(page, "Importer");
-  const takeover = page.getByRole("region", { name: "Reprendre vos données depuis votre outil actuel" });
-  await expect(takeover.getByRole("heading", { level: 3 })).toHaveText(["Reprendre mes prestataires", "Reprendre mes événements"]);
-  await expect(takeover).toContainText("exportez-la au format Excel");
-  await expect(takeover).toContainText("téléchargez sa fiche en PDF");
-  // Dans la liste des types, les deux reprises viennent en premier.
-  const types = page.getByRole("group", { name: "Que contient le fichier ?" }).getByRole("radio");
-  await expect(types.nth(0)).toHaveAccessibleName("Prestataires du carnet (une ligne par prestataire)");
-  await expect(types.nth(1)).toHaveAccessibleName("Fiches événement (PDF, une fiche par événement)");
+  // Lot 16 (IMP-11) : « Que voulez-vous reprendre ? » en trois tuiles, les deux reprises en premier.
+  const tiles = page.getByRole("navigation", { name: "Que voulez-vous reprendre ?" });
+  await expect(tiles.getByRole("link")).toHaveCount(3);
+  await expect(tiles.getByRole("link").nth(0)).toContainText("Reprendre mes prestataires");
+  await expect(tiles.getByRole("link").nth(1)).toContainText("Reprendre mes événements");
+  await expect(tiles.getByRole("link").nth(2)).toContainText("Un autre fichier");
   await expectNoAxeViolation(page);
 
-  // La carte des prestataires présélectionne son type.
-  await takeover.getByRole("link", { name: "Importer mes prestataires" }).click();
-  await expect(page.getByLabel("Prestataires du carnet (une ligne par prestataire)")).toBeChecked();
+  // La tuile des prestataires ouvre directement le dépôt du fichier, sans choix à faire.
+  await tiles.getByRole("link", { name: /Reprendre mes prestataires/ }).click();
+  await expect(page.getByRole("region", { name: "Reprendre mes prestataires" })).toContainText("exportez-la au format Excel");
   await expect(page.getByLabel("Fichier (CSV, Excel .xlsx ou JSON)")).toBeVisible();
+  await expect(page.getByRole("radio")).toHaveCount(0);
+
+  // « Un autre fichier » : le choix détaillé, sans les deux reprises.
+  await tiles.getByRole("link", { name: /Un autre fichier/ }).click();
+  await expect(page.getByLabel("Prestataires du carnet (une ligne par prestataire)")).toHaveCount(0);
+  await expect(page.getByLabel("Articles du catalogue")).toBeVisible();
+  await expectNoAxeViolation(page);
 
   // La fiche d'exemple : un PDF fictif, téléchargé puis importé.
-  const link = takeover.getByRole("link", { name: "Télécharger une fiche d'exemple (PDF fictif) pour essayer" });
+  await tiles.getByRole("link", { name: /Reprendre mes événements/ }).click();
+  const sheets = page.getByRole("region", { name: "Reprendre mes événements" });
+  await expect(sheets).toContainText("téléchargez sa fiche en PDF");
+  const link = sheets.getByRole("link", { name: "Télécharger une fiche d'exemple (PDF fictif) pour essayer" });
   const response = await page.request.get((await link.getAttribute("href"))!);
   expect(response.status()).toBe(200);
   expect(response.headers()["content-type"]).toContain("application/pdf");
-  await takeover.getByRole("link", { name: "Importer mes fiches événement" }).click();
-  await expect(page.getByLabel("Fiches événement (PDF, une fiche par événement)")).toBeChecked();
   await page.getByLabel("Fiches événement (PDF, une ou plusieurs)").setInputFiles({ name: "fiche-evenement-exemple.pdf", mimeType: "application/pdf", buffer: await response.body() });
   await page.getByRole("button", { name: "Lire le fichier" }).click();
   await waitForSheetsRead(page);
-  await expect(page.getByRole("heading", { name: /Ligne 1 : Léa MARTIN & Hugo BERNARD/ })).toBeVisible();
+  await expect(page.getByLabel(/Ligne 1 : Léa MARTIN & Hugo BERNARD/)).toBeVisible();
   await expectNoAxeViolation(page);
 });

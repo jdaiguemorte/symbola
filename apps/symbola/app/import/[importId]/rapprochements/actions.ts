@@ -2,8 +2,13 @@
 
 import { revalidatePath } from "next/cache";
 import { getPlannerAuthContext } from "@/lib/auth-context";
-import { addManualMatch, decideMatches, decideVendorTypes, getImportMatchesView } from "@/lib/import/matching";
+import { addManualMatch, decideMatches, getImportMatchesView } from "@/lib/import/matching";
+import { redirect } from "next/navigation";
+import { createAppConnection } from "@symbola/db/client";
+import { markImportStepReviewed } from "@/modules/hub/service";
+import { getImportWizard, importStepHref, SAFE_MATCH_SCORE } from "@/lib/import/wizard";
 import { isValidId } from "../../access";
+
 
 async function authorized(formData: FormData): Promise<{ organizationId: string; importId: string } | null> {
   const auth = await getPlannerAuthContext();
@@ -27,9 +32,12 @@ export async function decideMatchesAction(formData: FormData): Promise<void> {
     .getAll("rowIndex")
     .map(rowIndexOf)
     .filter((index): index is number => index !== null);
-  if (decision === "accept_all") {
+  if (decision === "accept_all" || decision === "accept_safe") {
     const view = await getImportMatchesView(context.organizationId, context.importId);
-    rowIndexes = view?.rows.filter((row) => row.match?.status === "proposed").map((row) => row.rowIndex) ?? [];
+    rowIndexes =
+      view?.rows
+        .filter((row) => row.match?.status === "proposed" && (decision === "accept_all" || row.match.score >= SAFE_MATCH_SCORE))
+        .map((row) => row.rowIndex) ?? [];
   }
   const kind = decision === "refuse" ? "refuse" : "accept";
   if (rowIndexes.length > 0) {
@@ -53,20 +61,17 @@ export async function manualMatchAction(formData: FormData): Promise<void> {
   revalidatePath(`/import/${context.importId}/rapprochements`);
 }
 
-// Lot 14 (décision N) — types du fichier : rapprochés d'un type du carnet
-// (vérifié dans l'organisation par l'orchestrateur) ou créés.
-export async function decideVendorTypesAction(formData: FormData): Promise<void> {
+// Lot 16 (IMP-11) — « Continuer » de l'étape « Doublons » : étape vérifiée,
+// l'assistant passe à « Vérifier et confirmer ».
+export async function reviewMatchesAction(formData: FormData): Promise<void> {
   const context = await authorized(formData);
   if (!context) return;
-  const count = Math.min(Number(formData.get("count") ?? 0) || 0, 500);
-  const decisions: { label: string; typeId: string | null }[] = [];
-  for (let index = 0; index < count; index += 1) {
-    const label = String(formData.get(`label-${index}`) ?? "").slice(0, 200);
-    const typeId = String(formData.get(`type-${index}`) ?? "");
-    if (!label) continue;
-    if (typeId !== "" && !isValidId(typeId)) return;
-    decisions.push({ label, typeId: typeId === "" ? null : typeId });
+  const { sql, db } = createAppConnection();
+  try {
+    await markImportStepReviewed(db, { organizationId: context.organizationId, importId: context.importId, step: "matches" });
+  } finally {
+    await sql.end();
   }
-  if (decisions.length > 0) await decideVendorTypes(context.organizationId, context.importId, decisions);
-  revalidatePath(`/import/${context.importId}/rapprochements`);
+  const wizard = await getImportWizard(context.organizationId, context.importId);
+  redirect(wizard ? importStepHref(context.importId, wizard.next) : "/import");
 }

@@ -21,20 +21,25 @@ export function NewImportForm({
   const initialState: StartImportFormState = {};
   const [state, formAction, pending] = useActionState(startImportAction, initialState);
   // Lot 14c (IMP-08) : des fiches événement PDF, plusieurs à la fois.
-  const [entityType, setEntityType] = useState<ImportEntityType | "">(defaultEntityType ?? "");
+  const [entityType, setEntityType] = useState<ImportEntityType | "">(defaultEntityType ?? (entityTypes.length === 1 ? entityTypes[0]! : ""));
   const sheets = entityType === "event_sheets";
 
   return (
     <form action={formAction} id="import-form">
-      <fieldset>
-        <legend>{t("entityTypeLegend")}</legend>
-        {entityTypes.map((type) => (
-          <label key={type}>
-            <input type="radio" name="entityType" value={type} required defaultChecked={type === defaultEntityType} onChange={() => setEntityType(type)} />
-            {t(`entityType.${type}`)}
-          </label>
-        ))}
-      </fieldset>
+      {/* Lot 16 (IMP-11) : une reprise choisie par sa tuile n'a plus de choix à faire. */}
+      {entityTypes.length === 1 ? (
+        <input type="hidden" name="entityType" value={entityTypes[0]} />
+      ) : (
+        <fieldset>
+          <legend>{t("entityTypeLegend")}</legend>
+          {entityTypes.map((type) => (
+            <label key={type}>
+              <input type="radio" name="entityType" value={type} required defaultChecked={type === defaultEntityType} onChange={() => setEntityType(type)} />
+              {t(`entityType.${type}`)}
+            </label>
+          ))}
+        </fieldset>
+      )}
       {sheets ? (
         <>
           <label>

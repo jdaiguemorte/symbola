@@ -41,6 +41,8 @@ test("IMP-02 — propositions de colonnes, confirmation d'une colonne à faible 
   await loginAndSetupMfa(page, email, password);
 
   await page.goto("/import");
+  // Lot 16 (IMP-11) : « Un autre fichier », puis le contenu.
+  await page.getByRole("navigation", { name: "Que voulez-vous reprendre ?" }).getByRole("link", { name: /Un autre fichier/ }).click();
   await page.getByLabel("Articles du catalogue").check();
   await page.getByLabel("Fichier (CSV, Excel .xlsx ou JSON)").setInputFiles({
     name: "tarifs.csv",
@@ -48,24 +50,27 @@ test("IMP-02 — propositions de colonnes, confirmation d'une colonne à faible 
     buffer: Buffer.from("Intitulé;Unité;Montant\nCoordination jour J;forfait;1 500,00\nHeure supplémentaire;heure;75,00\n", "utf-8"),
   });
   await page.getByRole("button", { name: "Lire le fichier" }).click();
-  await page.getByRole("link", { name: "Continuer : reconnaître les colonnes" }).click();
 
-  await expect(page.getByRole("heading", { name: "Colonnes de « tarifs.csv »" })).toBeVisible();
-  const amount = page.getByRole("group", { name: "Montant" });
-  await expect(amount).toContainText("Exemples : 1 500,00 · 75,00");
-  await expect(amount).toContainText("confiance faible, à confirmer");
-  await expect(page.getByRole("group", { name: "Intitulé" })).toContainText("Proposition : Intitulé (confiance 100 %)");
+  // Seule la colonne à faible confiance est à décider ; les autres se résument.
+  await expect(page).toHaveURL(/\/colonnes$/);
+  await expect(page.getByRole("heading", { name: "Import de « tarifs.csv »" })).toBeVisible();
+  const toDecide = page.getByRole("region", { name: "Colonnes à décider" });
+  const amount = toDecide.getByRole("row").filter({ hasText: "Montant" });
+  await expect(amount).toContainText("1 500,00 · 75,00");
+  await expect(amount).toContainText("Prix unitaire HT ? (");
+  await expect(amount).toContainText("à confirmer");
+  await expect(page.getByRole("heading", { name: "2 colonnes reconnues" })).toBeVisible();
   await expectNoAxeViolation(page);
 
-  // Sans confirmation, la colonne à faible confiance n'est pas appliquée.
-  await page.getByRole("button", { name: "Enregistrer les colonnes" }).click();
-  await expect(page.getByText("Les colonnes n'ont pas été enregistrées :")).toBeVisible();
-  await expect(page.getByText("colonne « Montant » : confirmez la correspondance avec « Prix unitaire HT »")).toBeVisible();
-  await expectNoAxeViolation(page);
+  // Sans confirmation, la colonne à faible confiance n'est pas appliquée : rien n'est choisi d'office.
+  const continueButton = page.getByRole("group", { name: "Actions de l'étape" }).getByRole("button", { name: "Continuer" });
+  await continueButton.click();
+  await expect(page).toHaveURL(/\/colonnes$/);
+  await expect(toDecide.getByLabel("Champ pour la colonne « Montant »")).toHaveValue("");
 
-  await amount.getByLabel("Je confirme : cette colonne correspond à « Prix unitaire HT »").check();
-  await page.getByRole("button", { name: "Enregistrer les colonnes" }).click();
-  await expect(page.getByText("3 colonnes associées, aucune sans équivalent, aucune ignorée.")).toBeVisible();
-  await expect(page.getByRole("link", { name: "Modifier les correspondances des colonnes" })).toBeVisible();
+  await toDecide.getByLabel("Champ pour la colonne « Montant »").selectOption({ label: "Prix unitaire HT (obligatoire)" });
+  await continueButton.click();
+  await expect(page).not.toHaveURL(/\/colonnes$/);
+  await expect(page.getByRole("navigation", { name: "Étapes de l'import" }).getByRole("listitem").filter({ hasText: "Colonnes" })).toContainText("3 colonnes reconnues");
   await expectNoAxeViolation(page);
 });

@@ -625,7 +625,7 @@
     },
     "importFile": {
       "title": "Importer des données",
-      "body": "Commencez par les reprises depuis votre outil actuel (prestataires en Excel, fiches événement en PDF), ou choisissez ce que contient votre tableau (événements, tâches, budget, catalogue ou une liste) : CSV, Excel (.xlsx) ou JSON. Encodage, séparateur et ligne d'en-tête sont détectés automatiquement ; les formules de tableur sont neutralisées. Rien n'est enregistré avant la dernière étape.",
+      "body": "Choisissez ce que vous reprenez : vos prestataires ou vos fiches événement depuis votre outil actuel, ou un autre fichier. L'assistant enchaîne ensuite les étapes, dans une frise ; une étape sans rien à décider est faite d'office. Un import commencé se reprend depuis le journal.",
       "faq": [
         {
           "q": "Que devient mon fichier ?",
@@ -635,19 +635,19 @@
     },
     "importColumns": {
       "title": "Reconnaître les colonnes",
-      "body": "Chaque colonne reçoit une proposition de champ, d'après son intitulé et son contenu, avec un indice de confiance. Sous le seuil, confirmez ou choisissez un autre champ. Une colonne sans équivalent pourra être gardée en champ libre à l'étape des écarts. Les dates et montants au format français sont reconnus."
+      "body": "Seules les colonnes qui demandent un choix sont présentées : dites ce que devient chacune, un champ de la fiche, un champ libre gardé tel quel, ou rien. Une proposition peu sûre n'est jamais choisie d'office. Les colonnes reconnues se résument en une ligne ; « Voir le détail » les déplie."
     },
     "importMatches": {
       "title": "Rapprocher des éléments existants",
-      "body": "Quand une ligne ressemble à un élément déjà présent (mêmes clients et même date pour un événement, même intitulé pour un article), l'app propose de les rapprocher : la ligne mettra alors à jour l'élément au lieu de créer un doublon. Validez ou refusez, une par une ou en lot."
+      "body": "Quand une ligne ressemble à un élément déjà présent, l'app propose de le mettre à jour plutôt que de créer un doublon. Filtrez « À vérifier », « Nouveaux », « Mises à jour » ; « Tout accepter » valide les propositions sûres. Vous pouvez aussi rapprocher une ligne à la main."
     },
     "importGaps": {
       "title": "Rapport des écarts",
-      "body": "D'abord les colonnes sans équivalent : gardez-les en champ libre ou ignorez-les. Ensuite les lignes qui ne seront pas importées, avec leur motif. Téléchargez-les en CSV pour les corriger puis les réimporter ; les autres lignes ne sont pas bloquées."
+      "body": "Les colonnes sans équivalent se décident à l'étape « Colonnes ». Les lignes qui ne seront pas importées s'affichent à l'étape « Vérifier et confirmer », avec leur motif, et se téléchargent en CSV pour être corrigées."
     },
     "importConfirm": {
       "title": "Confirmer un import",
-      "body": "L'aperçu compte les créations, les mises à jour et les lignes rejetées, avec un échantillon de chacune. La confirmation écrit tout l'import d'un coup, ou rien en cas d'erreur."
+      "body": "Avant d'importer, l'assistant fait le bilan : fiches créées et mises à jour, types et étiquettes créés, colonnes gardées en champ libre, lignes rejetées, avec un aperçu des valeurs corrigées. Le bouton dit ce qui sera importé."
     },
     "importUndo": {
       "title": "Journal et annulation d'un import",
@@ -760,6 +760,10 @@
           "a": "Renvoyez-la depuis Comptes : un nouveau lien part et l'ancien est désactivé."
         }
       ]
+    },
+    "importTypes": {
+      "title": "Les types du fichier",
+      "body": "Chaque type du fichier est rangé dans une famille : rattaché à un type de votre carnet, à un type de départ créé une seule fois pour tous ses synonymes, ou laissé « à classer ». Changez ce que devient un libellé, ou créez-le dans la famille de votre choix."
     }
   },
   "Aide": {
@@ -1882,7 +1886,113 @@
     "jobRetry": "Relancer",
     "jobCancelled": "Placement arrêté (import annulé).",
     "jobPlaceVendorsResult": "{placed, plural, =0 {Aucun prestataire placé} one {# prestataire placé} other {# prestataires placés}}, {unplaced, plural, =0 {aucun à placer à la main} one {# à placer à la main} other {# à placer à la main}}.",
-    "jobPlaceVendorsUnplacedLink": "Voir les prestataires à placer"
+    "jobPlaceVendorsUnplacedLink": "Voir les prestataires à placer",
+    "wizardStep": {
+      "file": "Fichier",
+      "columns": "Colonnes",
+      "types": "Types",
+      "matches": "Doublons",
+      "confirm": "Vérifier et confirmer"
+    },
+    "summary": {
+      "file": "{rows, plural, one {# ligne} other {# lignes}}",
+      "columns": "{recognized, plural, one {# colonne reconnue} other {# colonnes reconnues}}{kept, plural, =0 {} other {, # en champ libre}}{ignored, plural, =0 {} one {, # ignorée} other {, # ignorées}}",
+      "types": "{labels, plural, one {# libellé} other {# libellés}}, {created, plural, =0 {aucun type créé} one {# type créé} other {# types créés}}{unclassified, plural, =0 {} other {, # à classer}}",
+      "matches": "{creations, plural, one {# nouveau} other {# nouveaux}}, {updates, plural, =0 {aucune mise à jour} one {# mise à jour} other {# mises à jour}}"
+    },
+    "stepCurrent": "en cours",
+    "wizardTitle": "Import de « {fileName} »",
+    "abandonLink": "Abandonner l'import",
+    "abandonTitle": "Abandonner cet import ?",
+    "abandonBody": "Le fichier et vos choix sont effacés ; rien n'a encore été importé.",
+    "abandonYes": "Oui, abandonner",
+    "abandonNo": "Non, continuer",
+    "actionBarLabel": "Actions de l'étape",
+    "back": "Retour",
+    "continue": "Continuer",
+    "fileRead": "Fichier lu : {format}, {size}, {rows, plural, one {# ligne} other {# lignes}}.",
+    "columnHeaderFile": "Colonne du fichier",
+    "columnHeaderSamples": "Exemples",
+    "columnHeaderBecomes": "Devient",
+    "columnHeaderConfidence": "Confiance",
+    "columnChoose": "Choisir…",
+    "columnTargetFree": "Garder en champ libre sur la fiche",
+    "confidencePercent": "{value} %",
+    "confidenceProfile": "Export reconnu",
+    "columnsToDecideTitle": "{count, plural, one {# colonne à décider} other {# colonnes à décider}}",
+    "columnsToDecideIntro": "Dites ce que devient chacune : un champ de la fiche, un champ libre gardé tel quel, ou rien.",
+    "columnsToDecideTable": "Colonnes à décider",
+    "columnsRecognized": "{count, plural, one {# colonne reconnue} other {# colonnes reconnues}}",
+    "columnsShowDetail": "Voir le détail",
+    "columnsRecognizedTable": "Colonnes reconnues",
+    "typesIntro": "{count, plural, one {# type trouvé dans le fichier, rangé} other {# types trouvés dans le fichier, rangés}} par famille. Vérifiez ce que chacun devient.",
+    "typesUnclassifiedGroup": "À classer",
+    "typesGroupCount": "{labels, plural, one {# libellé} other {# libellés}}, {rows, plural, one {# fiche} other {# fiches}}",
+    "typesGroupTable": "Types du fichier — {family}",
+    "typesHeaderLabel": "Libellé du fichier",
+    "typesHeaderRows": "Fiches",
+    "typesHeaderBecomes": "Devient",
+    "typesBecomesLabel": "Ce que devient « {label} »",
+    "typeTargetNone": "Aucun type (à classer)",
+    "typeTargetStarter": "{type} (créé)",
+    "typeTargetNewGroup": "Créer « {label} »",
+    "typeTargetNewIn": "Créer « {label} » dans {family}",
+    "typeTargetNewUnclassified": "Créer « {label} », à classer",
+    "matchesFilterLabel": "Filtrer les lignes",
+    "matchesFilter": {
+      "a-verifier": "À vérifier · {count}",
+      "nouveaux": "Nouveaux · {count}",
+      "mises-a-jour": "Mises à jour · {count}"
+    },
+    "acceptSafeMatches": "Tout accepter ({count, plural, one {# proposition sûre} other {# propositions sûres}})",
+    "matchesEmptyFilter": "Aucune ligne ici.",
+    "matchesTable": "Lignes du fichier",
+    "matchesHeaderLine": "Ligne",
+    "matchesHeaderElement": "Dans le fichier",
+    "matchesHeaderProposal": "Déjà dans Symbola",
+    "matchesHeaderDecision": "Décision",
+    "matchProposal": "{element} ({score} %)",
+    "decisionUpdate": "Mettre à jour",
+    "decisionCreate": "Créer",
+    "decisionUpdateFor": "Mettre à jour l'existant pour {title}",
+    "decisionCreateFor": "Créer une nouvelle fiche pour {title}",
+    "pagination": "Pages",
+    "previousPage": "Page précédente",
+    "nextPage": "Page suivante",
+    "pageOf": "Page {page} sur {pages}",
+    "effectsTitle": "Ce que va faire l'import",
+    "effectsCreations": "Fiches créées",
+    "effectsUpdates": "Fiches mises à jour",
+    "effectsTypes": "Types créés",
+    "effectsTags": "Étiquettes créées",
+    "effectsFreeColumns": "Colonnes gardées en champ libre",
+    "effectsRejected": "Lignes rejetées",
+    "startQuestion": "Que voulez-vous reprendre ?",
+    "otherFileTitle": "Un autre fichier",
+    "otherFileBody": "Événements, tâches, lignes de budget, catalogue, listes… depuis un tableur (CSV, Excel) ou un fichier JSON.",
+    "resumeImport": "Reprendre",
+    "resumeImportFor": "Reprendre l'import de {file}",
+    "importButton": {
+      "events": "Importer {count, plural, one {# événement} other {# événements}}",
+      "event_sheets": "Importer {count, plural, one {# événement} other {# événements}}",
+      "tasks": "Importer {count, plural, one {# tâche} other {# tâches}}",
+      "budget_lines": "Importer {count, plural, one {# ligne de budget} other {# lignes de budget}}",
+      "catalog_items": "Importer {count, plural, one {# article} other {# articles}}",
+      "vendor_slots": "Importer {count, plural, one {# ligne du budget} other {# lignes du budget}}",
+      "prospect_sources": "Importer {count, plural, one {# source} other {# sources}}",
+      "loss_reasons": "Importer {count, plural, one {# motif} other {# motifs}}",
+      "payment_methods": "Importer {count, plural, one {# moyen de paiement} other {# moyens de paiement}}",
+      "vendors": "Importer {count, plural, one {# prestataire} other {# prestataires}}"
+    },
+    "finishLink": {
+      "vendors": "{count, plural, one {Voir le prestataire} other {Voir les # prestataires}}",
+      "events": "{count, plural, one {Voir l'événement} other {Voir les # événements}}",
+      "event_sheets": "{count, plural, one {Voir l'événement} other {Voir les # événements}}",
+      "tasks": "{count, plural, one {Voir la tâche} other {Voir les # tâches}}",
+      "catalog_items": "{count, plural, one {Voir l'article} other {Voir les # articles}}"
+    },
+    "confidenceProposal": "{field} ? ({value} %, à confirmer)",
+    "journalTable": "Tableau du journal des imports"
   },
   "Privacy": {
     "title": "Données personnelles",

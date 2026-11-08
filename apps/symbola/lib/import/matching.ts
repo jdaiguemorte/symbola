@@ -14,6 +14,7 @@ import {
   eventSimilarity,
   labelSimilarity,
   matchVendorType,
+  normalizeLabel,
   parseImportRows,
   vendorSimilarity,
   type ImportValue,
@@ -33,9 +34,12 @@ import {
   type ImportMatching,
   type ImportRowEvent,
   type ImportVendorTypeChoice,
+  type ImportVendorTypeTarget,
   type ImportWorkingSet,
   type MatchDecision,
 } from "@/modules/hub/service";
+import { listVendorFamilies, listVendorTypes, type VendorFamily, type VendorType } from "@/modules/vendors/service";
+import { ensureVendorFamilies, organizationMetier, vendorCatalogInput } from "@/lib/vendors/catalog";
 import {
   listEventCandidates,
   listEventItemCandidates,
@@ -130,11 +134,60 @@ function closestVendors(values: Record<string, ImportValue>, candidates: VendorC
     .map(({ candidate }) => ({ id: candidate.id, label: vendorCandidateLabel(candidate), event: null }));
 }
 
+// Lot 16 (IMP-12, ADR 0040) — libellé normalisé pour reconnaître un type de
+// départ : « & » vaut « et » (« Vins & Boissons » = « Vins et boissons »).
+const starterLabelKey = (label: string) =>
+  normalizeLabel(label)
+    .filter((token) => token !== "et" && token !== "and")
+    .join(" ");
+
+export type VendorTypeCatalog = {
+  types: VendorType[];
+  families: VendorFamily[];
+  // Types de départ du métier de l'organisation, avec la clé de leur famille de départ.
+  starters: { key: string; label: string; familyKey: string; familyColor: string; synonyms: string[] }[];
+};
+
+export async function loadVendorTypeCatalog(organizationId: string, locale: "fr" | "en" = "fr"): Promise<VendorTypeCatalog> {
+  // Organisation d'avant le lot 16 : ses familles sont posées avant de ranger les types du fichier.
+  await ensureVendorFamilies(organizationId, locale);
+  const [types, families, metier] = await Promise.all([listVendorTypes(organizationId), listVendorFamilies(organizationId), organizationMetier(organizationId)]);
+  const starters = vendorCatalogInput(locale, metier).flatMap((family) =>
+    family.types.map((type) => ({ key: type.key, label: type.label, familyKey: family.key, familyColor: family.color, synonyms: type.synonyms })),
+  );
+  return { types, families, starters };
+}
+
+// Famille où s'affiche un libellé du fichier (null : « à classer »).
+export function targetFamilyId(target: ImportVendorTypeTarget, catalog: VendorTypeCatalog): string | null {
+  if (target.kind === "existing") return catalog.types.find((type) => type.id === target.typeId)?.familyId ?? null;
+  if (target.kind === "new") return target.familyId;
+  if (target.kind === "starter") {
+    const starter = catalog.starters.find((candidate) => candidate.key === target.starterKey);
+    return catalog.families.find((family) => family.starterKey === starter?.familyKey)?.id ?? null;
+  }
+  return null;
+}
+
+// IMP-12 — chaque libellé est rattaché, dans l'ordre : à un type du carnet
+// (synonyme ou ressemblance) ; à un type de départ de sa famille, créé une
+// seule fois pour tous ses synonymes ; sinon à « à classer ». Jamais un type
+// par libellé par défaut.
+export function proposeVendorTypeTarget(label: string, catalog: VendorTypeCatalog): { target: ImportVendorTypeTarget; score: number } {
+  const match = matchVendorType(label, catalog.types, starterVendorTypeSynonymGroups());
+  if (match) return { target: { kind: "existing", typeId: match.typeId }, score: match.score };
+  const key = starterLabelKey(label);
+  const starter = catalog.starters.find((candidate) => candidate.synonyms.some((synonym) => starterLabelKey(synonym) === key));
+  if (!starter) return { target: { kind: "none" }, score: 0 };
+  const renamed = catalog.types.find((type) => type.starterKey === starter.key);
+  if (renamed) return { target: { kind: "existing", typeId: renamed.id }, score: 100 };
+  return { target: { kind: "starter", starterKey: starter.key }, score: 100 };
+}
+
 // Décision N : types du fichier (sans doublon, casse et accents près),
-// rapprochés d'un type du carnet ou à créer.
+// rapprochés d'un type du carnet, d'un type de départ ou laissés « à classer ».
 async function computeVendorTypeChoices(organizationId: string, rows: ParsedImportRow[]): Promise<ImportVendorTypeChoice[]> {
-  const types = await listVendorTypeCandidates(organizationId);
-  const groups = starterVendorTypeSynonymGroups();
+  const catalog = await loadVendorTypeCatalog(organizationId);
   const byKey = new Map<string, ImportVendorTypeChoice>();
   for (const row of rows) {
     const label = text(row.values.type);
@@ -145,10 +198,16 @@ async function computeVendorTypeChoices(organizationId: string, rows: ParsedImpo
       existing.rowCount += 1;
       continue;
     }
-    const match = matchVendorType(label, types, groups);
-    byKey.set(key, { label, rowCount: 1, typeId: match?.typeId ?? null, score: match?.score ?? 0, manual: false });
+    const { target, score } = proposeVendorTypeTarget(label, catalog);
+    byKey.set(key, { label, rowCount: 1, typeId: target.kind === "existing" ? target.typeId : null, score, manual: false, target });
   }
   return [...byKey.values()].sort((a, b) => b.rowCount - a.rowCount || a.label.localeCompare(b.label, "fr"));
+}
+
+// Cible d'un choix enregistré : celle d'IMP-12, sinon celle des imports d'avant
+// le lot 16 (type du carnet, ou type créé sous le libellé du fichier).
+export function choiceTarget(choice: ImportVendorTypeChoice): ImportVendorTypeTarget {
+  return choice.target ?? (choice.typeId ? { kind: "existing", typeId: choice.typeId } : { kind: "new", familyId: null });
 }
 
 function text(value: ImportValue | undefined): string | null {
@@ -253,7 +312,7 @@ export type MatchesView = {
   fileName: string;
   rows: MatchesRowView[];
   // Lot 14 (décision N) : types du fichier et types du carnet proposés.
-  vendorTypes?: (ImportVendorTypeChoice & { typeLabel: string | null })[];
+  vendorTypes?: (ImportVendorTypeChoice & { typeLabel: string | null; target: ImportVendorTypeTarget })[];
   typeOptions?: LabelCandidate[];
 };
 
@@ -328,21 +387,63 @@ export async function getImportMatchesView(organizationId: string, importId: str
   if (!isVendorType) return { importId: set.importId, entityType: set.entityType, fileName: set.fileName, rows };
   const typeOptions = await listVendorTypeCandidates(organizationId);
   const typeLabels = new Map(typeOptions.map((type) => [type.id, type.label]));
-  const vendorTypes = (matching.vendorTypes ?? []).map((choice) => ({
-    ...choice,
-    // Un type du carnet supprimé depuis : le type du fichier sera créé.
-    typeId: choice.typeId && typeLabels.has(choice.typeId) ? choice.typeId : null,
-    typeLabel: choice.typeId ? (typeLabels.get(choice.typeId) ?? null) : null,
-  }));
+  const vendorTypes = (matching.vendorTypes ?? []).map((choice) => {
+    const target = choiceTarget(choice);
+    // Un type du carnet supprimé depuis : la fiche part « à classer » (IMP-12).
+    const gone = target.kind === "existing" && !typeLabels.has(target.typeId);
+    return {
+      ...choice,
+      target: gone ? ({ kind: "none" } as const) : target,
+      typeId: target.kind === "existing" && !gone ? target.typeId : null,
+      typeLabel: target.kind === "existing" ? (typeLabels.get(target.typeId) ?? null) : null,
+    };
+  });
   return { importId: set.importId, entityType: set.entityType, fileName: set.fileName, rows, vendorTypes, typeOptions };
 }
 
-// Décision N : la planner rapproche un type du fichier d'un type du carnet
-// (de son organisation) ou choisit de le créer (typeId null).
-export async function decideVendorTypes(organizationId: string, importId: string, decisions: { label: string; typeId: string | null }[]): Promise<boolean> {
-  const types = new Set((await listVendorTypeCandidates(organizationId)).map((type) => type.id));
-  if (decisions.some((decision) => decision.typeId !== null && !types.has(decision.typeId))) return false;
-  return withHubDb((db) => decideImportVendorTypes(db, { organizationId, importId, decisions }));
+// Décision N, lot 16 (IMP-12) : pour chaque libellé, un type du carnet, un type
+// de départ du métier, un type créé (dans une famille de l'organisation ou
+// « à classer ») ou aucun type. Tout est vérifié contre l'organisation.
+export async function decideVendorTypes(organizationId: string, importId: string, decisions: { label: string; target: ImportVendorTypeTarget }[]): Promise<boolean> {
+  const catalog = await loadVendorTypeCatalog(organizationId);
+  const valid = decisions.every(({ target }) => {
+    if (target.kind === "existing") return catalog.types.some((type) => type.id === target.typeId);
+    if (target.kind === "starter") return catalog.starters.some((starter) => starter.key === target.starterKey);
+    if (target.kind === "new") return target.familyId === null || catalog.families.some((family) => family.id === target.familyId);
+    return true;
+  });
+  if (!valid) return false;
+  // Rapprochements calculés à la première ouverture : s'ils manquent encore, maintenant.
+  if (!(await getImportMatchesView(organizationId, importId))) return false;
+  return withHubDb((db) =>
+    decideImportVendorTypes(db, {
+      organizationId,
+      importId,
+      decisions: decisions.map(({ label, target }) => ({ label, typeId: target.kind === "existing" ? target.typeId : null, target })),
+    }),
+  );
+}
+
+// IMP-12 — étape « Types » : les libellés du fichier regroupés par famille, avec
+// ce qu'ils deviennent ; les types de départ pas encore au carnet sont proposés.
+export type ImportTypesView = {
+  importId: string;
+  fileName: string;
+  families: VendorFamily[];
+  types: VendorType[];
+  starters: { key: string; label: string; familyId: string | null }[];
+  choices: { label: string; rowCount: number; target: ImportVendorTypeTarget; familyId: string | null }[];
+};
+
+export async function getImportTypesView(organizationId: string, importId: string): Promise<ImportTypesView | null> {
+  const matches = await getImportMatchesView(organizationId, importId);
+  if (!matches || matches.entityType !== "vendors") return null;
+  const catalog = await loadVendorTypeCatalog(organizationId);
+  const starters = catalog.starters
+    .filter((starter) => !catalog.types.some((type) => type.starterKey === starter.key))
+    .map((starter) => ({ key: starter.key, label: starter.label, familyId: catalog.families.find((family) => family.starterKey === starter.familyKey)?.id ?? null }));
+  const choices = (matches.vendorTypes ?? []).map((choice) => ({ label: choice.label, rowCount: choice.rowCount, target: choice.target, familyId: targetFamilyId(choice.target, catalog) }));
+  return { importId, fileName: matches.fileName, families: catalog.families, types: catalog.types, starters, choices };
 }
 
 export async function decideMatches(organizationId: string, importId: string, decisions: MatchDecision[]): Promise<boolean> {

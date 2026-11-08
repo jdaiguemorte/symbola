@@ -344,7 +344,20 @@ export type ImportVendorTypeChoice = {
   typeId: string | null;
   score: number;
   manual: boolean;
+  // Lot 16 (IMP-12) : ce que devient le libellé. Absent (imports d'avant le
+  // lot 16) : `typeId`, ou un type créé sous le libellé du fichier.
+  target?: ImportVendorTypeTarget;
 };
+
+// Lot 16 (IMP-12, ADR 0040) — un type du carnet ; un type de départ de la
+// famille, créé une seule fois pour tous ses synonymes ; un type créé sous le
+// libellé du fichier, dans une famille ou « à classer » ; ou aucun type (la
+// fiche est « à classer », le libellé gardé en champ importé).
+export type ImportVendorTypeTarget =
+  | { kind: "existing"; typeId: string }
+  | { kind: "starter"; starterKey: string }
+  | { kind: "new"; familyId: string | null }
+  | { kind: "none" };
 
 export type ImportMatching = {
   matches: ImportMatch[];
@@ -354,6 +367,8 @@ export type ImportMatching = {
   // statut choisi par la planner dans l'aperçu (décision J).
   duplicates?: { rowIndex: number; sameAsRowIndex: number }[];
   rowStatuses?: { rowIndex: number; status: string }[];
+  // Lot 16 (IMP-11) : étapes vérifiées par la planner (« Continuer »).
+  reviewed?: { types?: boolean; matches?: boolean };
 };
 
 export const importStatusEnum = hubSchema.enum("import_status", ["draft", "applied", "undone", "cancelled"]);

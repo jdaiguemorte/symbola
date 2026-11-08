@@ -46,9 +46,30 @@ import {
   importVendorRows,
   undoImportedVendorsElements,
   type VendorTypeChoiceInput,
+  type VendorTypeTarget,
 } from "@/modules/vendors/service";
 import { getImportGapsView } from "./gaps";
-import { getImportMatchesView, parseWorkingSetRows, type MatchesRowView } from "./matching";
+import { getImportMatchesView, loadVendorTypeCatalog, parseWorkingSetRows, type MatchesRowView, type VendorTypeCatalog } from "./matching";
+import type { ImportVendorTypeTarget } from "@/modules/hub/service";
+
+// Couleur d'un type « à classer » (sans famille) sur la carte.
+const UNCLASSIFIED_COLOR = "#78716c";
+
+// Lot 16 (IMP-12) — cible enregistrée → ce que le module vendors écrit : libellé,
+// famille et couleur d'un type de départ, couleur d'un type créé.
+function vendorTypeTarget(target: ImportVendorTypeTarget, catalog: VendorTypeCatalog): VendorTypeTarget {
+  if (target.kind === "starter") {
+    const starter = catalog.starters.find((candidate) => candidate.key === target.starterKey);
+    const family = catalog.families.find((candidate) => candidate.starterKey === starter?.familyKey);
+    if (!starter) return { kind: "none" };
+    return { kind: "starter", starterKey: starter.key, typeLabel: starter.label, familyId: family?.id ?? null, color: family?.color ?? starter.familyColor };
+  }
+  if (target.kind === "new") {
+    const family = catalog.families.find((candidate) => candidate.id === target.familyId);
+    return { kind: "new", familyId: family?.id ?? null, color: family?.color ?? UNCLASSIFIED_COLOR };
+  }
+  return target;
+}
 
 async function withHubDb<T>(fn: (db: ReturnType<typeof createAppConnection>["db"]) => Promise<T>): Promise<T> {
   const { sql, db } = createAppConnection();
@@ -140,7 +161,12 @@ async function applyToModules(
   userId: string,
   entityType: ImportEntityType,
   rows: ImportApplyRow[],
-  options: { defaultProspectSourceId: string | null; defaultVatRateBasisPoints: number; vendorTypeChoices: VendorTypeChoiceInput[] },
+  options: {
+    defaultProspectSourceId: string | null;
+    defaultVatRateBasisPoints: number;
+    vendorTypeChoices: VendorTypeChoiceInput[];
+    typeColumnHeader?: string | null;
+  },
 ): Promise<ImportApplyResult> {
   switch (entityType) {
     case "events":
@@ -159,7 +185,7 @@ async function applyToModules(
     case "vendor_slots":
       return importListRows({ organizationId, entityType, rows });
     case "vendors":
-      return importVendorRows({ organizationId, rows, typeChoices: options.vendorTypeChoices });
+      return importVendorRows({ organizationId, rows, typeChoices: options.vendorTypeChoices, typeColumnHeader: options.typeColumnHeader ?? null });
   }
 }
 
@@ -182,6 +208,8 @@ export async function confirmImport(input: {
   const matches = await getImportMatchesView(input.organizationId, input.importId);
   if (!set || !matches) return { status: "not_found" };
   const extraByRow = new Map(parseWorkingSetRows(set).map((row) => [row.rowIndex, row.extra]));
+  const catalog = preview.entityType === "vendors" ? await loadVendorTypeCatalog(input.organizationId) : null;
+  const typeColumn = set.mapping.find((choice) => choice.target === "field" && choice.fieldKey === "type");
 
   const rows: ImportApplyRow[] = matches.rows.filter(isImportable).map((row) => ({
     rowIndex: row.rowIndex,
@@ -194,7 +222,8 @@ export async function confirmImport(input: {
   const applied = await applyToModules(input.organizationId, input.userId, preview.entityType, rows, {
     defaultProspectSourceId,
     defaultVatRateBasisPoints: (await defaultVatRate(input.organizationId)) ?? 0,
-    vendorTypeChoices: (matches.vendorTypes ?? []).map(({ label, typeId }) => ({ label, typeId })),
+    vendorTypeChoices: catalog ? (matches.vendorTypes ?? []).map(({ label, typeId, target }) => ({ label, typeId, target: vendorTypeTarget(target, catalog) })) : [],
+    typeColumnHeader: typeColumn ? set.headers[typeColumn.columnIndex] || null : null,
   });
 
   // Compté par ligne : une ligne de budget crée parfois deux éléments (poste

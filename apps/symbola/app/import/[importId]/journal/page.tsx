@@ -19,6 +19,15 @@ function count(value: string | undefined): number | null {
 
 // IMP-05 — « Chaque import est journalisé : fichier, auteur, date, résultat »,
 // et un import confirmé reste annulable pendant le délai réglé par l'Admin.
+// Lot 16 (IMP-11) — fin de l'assistant : la prochaine action, selon ce qui a été importé.
+const FINISH_LINKS: Partial<Record<string, string>> = {
+  vendors: "/prestataires",
+  events: "/events",
+  event_sheets: "/events",
+  tasks: "/taches",
+  catalog_items: "/devis/catalogue",
+};
+
 export default async function ImportJournalPage({
   params,
   searchParams,
@@ -80,6 +89,13 @@ export default async function ImportJournalPage({
     <main>
       <h1>{t("journalEntryTitle", { fileName: view.fileName })}</h1>
       <ScreenHelp title={tHelp("importUndo.title")} body={tHelp("importUndo.body")} />
+      {view.status === "applied" && view.result && FINISH_LINKS[view.entityType] ? (
+        <p className="primary-action">
+          <Link href={FINISH_LINKS[view.entityType]!} className="button-link button-link-primary">
+            {t(`finishLink.${view.entityType}`, { count: view.result.created + view.result.updated })}
+          </Link>
+        </p>
+      ) : null}
       {undone !== null ? (
         <p role="status">
           {t("undoResult", { undone, kept: count(query.gardes) ?? 0, used: count(query.utilises) ?? 0 })}

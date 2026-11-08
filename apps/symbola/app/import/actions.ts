@@ -6,6 +6,7 @@ import { getTranslations } from "next-intl/server";
 import { createAppConnection } from "@symbola/db/client";
 import { cancelImport, retryImportJob, startEventSheetsImport, startImport, type ImportRejectionReason } from "@/modules/hub/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
+import { saveColumnsIfNothingToDecide } from "@/lib/import/columns";
 import { availableImportEntityTypes, isValidId, parseEntityType } from "./access";
 
 export type StartImportFormState = { error?: string };
@@ -82,6 +83,8 @@ export async function startImportAction(_prevState: StartImportFormState, formDa
     const reason = t(REJECTION_MESSAGES[result.reason]);
     return { error: result.hint ? `${reason} ${t(HINT_MESSAGES[result.hint])}` : reason };
   }
+  // Lot 16 (IMP-11) : rien à décider sur les colonnes, l'étape est faite d'office.
+  await saveColumnsIfNothingToDecide(organizationId, result.importId);
   revalidatePath("/import");
   redirect(`/import/${result.importId}`);
 }
