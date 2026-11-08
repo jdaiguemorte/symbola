@@ -2,10 +2,23 @@
 // commune à l'écran et à l'export : filtres de l'URL, centre du cercle
 // (une fiche du carnet ou une adresse géocodée), résultats triés.
 import { getEvent, listEventVendorSlots } from "@/modules/events/service";
-import { findVendors, geocodeAddress, getVendor, listVendorTags, listVendorTypes, type VendorListItem, type VendorTag, type VendorType } from "@/modules/vendors/service";
+import {
+  findVendors,
+  geocodeAddress,
+  getVendor,
+  listVendorFamilies,
+  listVendorTags,
+  listVendorTypes,
+  type VendorFamily,
+  type VendorListItem,
+  type VendorTag,
+  type VendorType,
+} from "@/modules/vendors/service";
 import { parseBookFilters, toFindInput, type BookFilters, type BookQuery } from "./filters";
 
 export type BookSelection = {
+  // Lot 16 (PRE-14) : familles de l'organisation, dans leur ordre.
+  families: VendorFamily[];
   types: VendorType[];
   tags: VendorTag[];
   filters: BookFilters;
@@ -19,7 +32,7 @@ export type BookSelection = {
 const VENDOR_REFERENCE = /^fiche:([0-9a-f-]{36})$/i;
 
 export async function loadBookSelection(organizationId: string, query: BookQuery): Promise<BookSelection> {
-  const [types, tags] = await Promise.all([listVendorTypes(organizationId), listVendorTags(organizationId)]);
+  const [families, types, tags] = await Promise.all([listVendorFamilies(organizationId), listVendorTypes(organizationId), listVendorTags(organizationId)]);
   const filters = parseBookFilters(query, types);
 
   let target: BookSelection["target"] = null;
@@ -54,5 +67,5 @@ export async function loadBookSelection(organizationId: string, query: BookQuery
   }
 
   const results = await findVendors(toFindInput(organizationId, { ...filters, aroundText }, center));
-  return { types, tags, filters: { ...filters, aroundText }, center, centerNotFound, results, target };
+  return { families, types, tags, filters: { ...filters, aroundText }, center, centerNotFound, results, target };
 }

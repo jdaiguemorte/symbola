@@ -13,12 +13,16 @@ import {
   Gem,
   Landmark,
   Mail,
+  Megaphone,
   Mic,
   Music,
+  PartyPopper,
   Scissors,
   Shirt,
   Sparkles,
   Speaker,
+  Spotlight,
+  Truck,
   Users,
   UtensilsCrossed,
   Video,
@@ -45,8 +49,18 @@ const ICONS: Record<IconKey, LucideIcon> = {
   furniture: Armchair,
   attire: Shirt,
   rings: Gem,
+  games: PartyPopper,
+  stage: Spotlight,
+  truck: Truck,
+  megaphone: Megaphone,
   other: CircleDot,
 };
+
+// Lot 16 (PRE-14) : même jeu d'icônes pour les familles de prestataires
+// (pastilles du carnet, pictogrammes de la carte).
+export function iconComponent(icon: string | null): LucideIcon {
+  return icon && icon in ICONS ? ICONS[icon as IconKey] : CircleDot;
+}
 
 export const ICON_KEYS = BUDGET_LINE_ICONS;
 

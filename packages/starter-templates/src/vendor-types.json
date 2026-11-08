@@ -3,75 +3,507 @@
   "items": [
     {
       "key": "venue",
-      "label": { "fr": "Lieu de réception", "en": "Venue" },
-      "color": "#4f6b5a",
+      "label": {
+        "fr": "Lieu de réception",
+        "en": "Venue"
+      },
       "fields": [
-        { "label": { "fr": "Capacité assise", "en": "Seated capacity" }, "kind": "number", "isFilter": true },
-        { "label": { "fr": "Capacité debout", "en": "Standing capacity" }, "kind": "number", "isFilter": false },
-        { "label": { "fr": "Couchages", "en": "Beds" }, "kind": "number", "isFilter": true },
-        { "label": { "fr": "Fin de soirée imposée", "en": "Imposed end time" }, "kind": "time", "isFilter": true },
-        { "label": { "fr": "Tarif de location", "en": "Rental price" }, "kind": "amount", "isFilter": true },
         {
-          "label": { "fr": "Traiteur", "en": "Caterer" },
-          "kind": "choice",
-          "choices": { "fr": ["Libre", "Imposé"], "en": ["Free choice", "Imposed"] },
+          "label": {
+            "fr": "Capacité assise",
+            "en": "Seated capacity"
+          },
+          "kind": "number",
           "isFilter": true
         },
-        { "label": { "fr": "Repli en cas de pluie", "en": "Rain plan" }, "kind": "boolean", "isFilter": false },
-        { "label": { "fr": "Parking", "en": "Parking" }, "kind": "boolean", "isFilter": false },
-        { "label": { "fr": "Accessible PMR", "en": "Wheelchair accessible" }, "kind": "boolean", "isFilter": true }
+        {
+          "label": {
+            "fr": "Capacité debout",
+            "en": "Standing capacity"
+          },
+          "kind": "number",
+          "isFilter": false
+        },
+        {
+          "label": {
+            "fr": "Couchages",
+            "en": "Beds"
+          },
+          "kind": "number",
+          "isFilter": true
+        },
+        {
+          "label": {
+            "fr": "Fin de soirée imposée",
+            "en": "Imposed end time"
+          },
+          "kind": "time",
+          "isFilter": true
+        },
+        {
+          "label": {
+            "fr": "Tarif de location",
+            "en": "Rental price"
+          },
+          "kind": "amount",
+          "isFilter": true
+        },
+        {
+          "label": {
+            "fr": "Traiteur",
+            "en": "Caterer"
+          },
+          "kind": "choice",
+          "choices": {
+            "fr": [
+              "Libre",
+              "Imposé"
+            ],
+            "en": [
+              "Free choice",
+              "Imposed"
+            ]
+          },
+          "isFilter": true
+        },
+        {
+          "label": {
+            "fr": "Repli en cas de pluie",
+            "en": "Rain plan"
+          },
+          "kind": "boolean",
+          "isFilter": false
+        },
+        {
+          "label": {
+            "fr": "Parking",
+            "en": "Parking"
+          },
+          "kind": "boolean",
+          "isFilter": false
+        },
+        {
+          "label": {
+            "fr": "Accessible PMR",
+            "en": "Wheelchair accessible"
+          },
+          "kind": "boolean",
+          "isFilter": true
+        }
       ]
     },
     {
       "key": "lodging",
-      "label": { "fr": "Hôtel / hébergement", "en": "Hotel / lodging" },
-      "color": "#2f5d7c",
+      "label": {
+        "fr": "Hôtel / hébergement",
+        "en": "Hotel / lodging"
+      },
       "fields": [
-        { "label": { "fr": "Chambres", "en": "Rooms" }, "kind": "number", "isFilter": false },
-        { "label": { "fr": "Couchages", "en": "Beds" }, "kind": "number", "isFilter": true },
-        { "label": { "fr": "Tarif par nuit", "en": "Price per night" }, "kind": "amount", "isFilter": true },
-        { "label": { "fr": "Petit-déjeuner", "en": "Breakfast" }, "kind": "boolean", "isFilter": false },
-        { "label": { "fr": "Navette possible", "en": "Shuttle available" }, "kind": "boolean", "isFilter": true }
+        {
+          "label": {
+            "fr": "Chambres",
+            "en": "Rooms"
+          },
+          "kind": "number",
+          "isFilter": false
+        },
+        {
+          "label": {
+            "fr": "Couchages",
+            "en": "Beds"
+          },
+          "kind": "number",
+          "isFilter": true
+        },
+        {
+          "label": {
+            "fr": "Tarif par nuit",
+            "en": "Price per night"
+          },
+          "kind": "amount",
+          "isFilter": true
+        },
+        {
+          "label": {
+            "fr": "Petit-déjeuner",
+            "en": "Breakfast"
+          },
+          "kind": "boolean",
+          "isFilter": false
+        },
+        {
+          "label": {
+            "fr": "Navette possible",
+            "en": "Shuttle available"
+          },
+          "kind": "boolean",
+          "isFilter": true
+        }
       ]
     },
     {
       "key": "caterer",
-      "label": { "fr": "Traiteur", "en": "Caterer" },
-      "color": "#a8553a",
+      "label": {
+        "fr": "Traiteur",
+        "en": "Caterer"
+      },
       "fields": [
-        { "label": { "fr": "Prix par couvert", "en": "Price per guest" }, "kind": "amount", "isFilter": true },
-        { "label": { "fr": "Type de cuisine", "en": "Cuisine" }, "kind": "text", "isFilter": false },
-        { "label": { "fr": "Régimes gérés", "en": "Diets handled" }, "kind": "text", "isFilter": false },
-        { "label": { "fr": "Service inclus", "en": "Service included" }, "kind": "boolean", "isFilter": true }
+        {
+          "label": {
+            "fr": "Prix par couvert",
+            "en": "Price per guest"
+          },
+          "kind": "amount",
+          "isFilter": true
+        },
+        {
+          "label": {
+            "fr": "Type de cuisine",
+            "en": "Cuisine"
+          },
+          "kind": "text",
+          "isFilter": false
+        },
+        {
+          "label": {
+            "fr": "Régimes gérés",
+            "en": "Diets handled"
+          },
+          "kind": "text",
+          "isFilter": false
+        },
+        {
+          "label": {
+            "fr": "Service inclus",
+            "en": "Service included"
+          },
+          "kind": "boolean",
+          "isFilter": true
+        }
       ]
     },
     {
       "key": "photographer",
-      "label": { "fr": "Photographe", "en": "Photographer" },
-      "color": "#7a4b12",
+      "label": {
+        "fr": "Photographe",
+        "en": "Photographer"
+      },
       "fields": [
-        { "label": { "fr": "Tarif de base", "en": "Base price" }, "kind": "amount", "isFilter": true },
-        { "label": { "fr": "Styles", "en": "Styles" }, "kind": "text", "isFilter": false },
-        { "label": { "fr": "Zone d'intervention (km)", "en": "Service area (km)" }, "kind": "number", "isFilter": true }
+        {
+          "label": {
+            "fr": "Tarif de base",
+            "en": "Base price"
+          },
+          "kind": "amount",
+          "isFilter": true
+        },
+        {
+          "label": {
+            "fr": "Styles",
+            "en": "Styles"
+          },
+          "kind": "text",
+          "isFilter": false
+        },
+        {
+          "label": {
+            "fr": "Zone d'intervention (km)",
+            "en": "Service area (km)"
+          },
+          "kind": "number",
+          "isFilter": true
+        }
       ]
     },
     {
       "key": "music",
-      "label": { "fr": "DJ / musiciens", "en": "DJ / musicians" },
-      "color": "#5b4a8a",
+      "label": {
+        "fr": "DJ / musiciens",
+        "en": "DJ / musicians"
+      },
       "fields": [
-        { "label": { "fr": "Tarif de base", "en": "Base price" }, "kind": "amount", "isFilter": true },
-        { "label": { "fr": "Zone d'intervention (km)", "en": "Service area (km)" }, "kind": "number", "isFilter": true }
+        {
+          "label": {
+            "fr": "Tarif de base",
+            "en": "Base price"
+          },
+          "kind": "amount",
+          "isFilter": true
+        },
+        {
+          "label": {
+            "fr": "Zone d'intervention (km)",
+            "en": "Service area (km)"
+          },
+          "kind": "number",
+          "isFilter": true
+        }
       ]
     },
     {
       "key": "florist",
-      "label": { "fr": "Fleuriste", "en": "Florist" },
-      "color": "#9a3f63",
+      "label": {
+        "fr": "Fleuriste",
+        "en": "Florist"
+      },
       "fields": [
-        { "label": { "fr": "Tarif de base", "en": "Base price" }, "kind": "amount", "isFilter": true },
-        { "label": { "fr": "Frais de déplacement", "en": "Travel fees" }, "kind": "amount", "isFilter": false }
+        {
+          "label": {
+            "fr": "Tarif de base",
+            "en": "Base price"
+          },
+          "kind": "amount",
+          "isFilter": true
+        },
+        {
+          "label": {
+            "fr": "Frais de déplacement",
+            "en": "Travel fees"
+          },
+          "kind": "amount",
+          "isFilter": false
+        }
       ]
+    },
+    {
+      "key": "videographer",
+      "label": {
+        "fr": "Vidéaste",
+        "en": "Videographer"
+      },
+      "fields": []
+    },
+    {
+      "key": "hair_makeup",
+      "label": {
+        "fr": "Coiffure et maquillage",
+        "en": "Hair and make-up"
+      },
+      "fields": []
+    },
+    {
+      "key": "cake",
+      "label": {
+        "fr": "Pièce montée / gâteau",
+        "en": "Wedding cake"
+      },
+      "fields": []
+    },
+    {
+      "key": "officiant",
+      "label": {
+        "fr": "Officiant de cérémonie",
+        "en": "Celebrant"
+      },
+      "fields": []
+    },
+    {
+      "key": "stationery",
+      "label": {
+        "fr": "Faire-part et papeterie",
+        "en": "Stationery"
+      },
+      "fields": []
+    },
+    {
+      "key": "transport",
+      "label": {
+        "fr": "Transport des invités",
+        "en": "Guest transport"
+      },
+      "fields": []
+    },
+    {
+      "key": "worship_place",
+      "label": {
+        "fr": "Lieu de culte",
+        "en": "Place of worship"
+      },
+      "fields": []
+    },
+    {
+      "key": "tent_rental",
+      "label": {
+        "fr": "Tentes et chapiteaux",
+        "en": "Tents and marquees"
+      },
+      "fields": []
+    },
+    {
+      "key": "food_truck",
+      "label": {
+        "fr": "Food truck",
+        "en": "Food truck"
+      },
+      "fields": []
+    },
+    {
+      "key": "drinks",
+      "label": {
+        "fr": "Vins et boissons",
+        "en": "Wine and drinks"
+      },
+      "fields": []
+    },
+    {
+      "key": "photobooth",
+      "label": {
+        "fr": "Photobooth",
+        "en": "Photo booth"
+      },
+      "fields": []
+    },
+    {
+      "key": "sound_light",
+      "label": {
+        "fr": "Sonorisation et lumière",
+        "en": "Sound and lighting"
+      },
+      "fields": []
+    },
+    {
+      "key": "decorator",
+      "label": {
+        "fr": "Décoration",
+        "en": "Decoration"
+      },
+      "fields": []
+    },
+    {
+      "key": "furniture_rental",
+      "label": {
+        "fr": "Mobilier et vaisselle",
+        "en": "Furniture and tableware"
+      },
+      "fields": []
+    },
+    {
+      "key": "bridal_wear",
+      "label": {
+        "fr": "Robe de mariée",
+        "en": "Bridal wear"
+      },
+      "fields": []
+    },
+    {
+      "key": "groom_wear",
+      "label": {
+        "fr": "Tenue du marié",
+        "en": "Groom's attire"
+      },
+      "fields": []
+    },
+    {
+      "key": "jewelry",
+      "label": {
+        "fr": "Bijoux",
+        "en": "Jewellery"
+      },
+      "fields": []
+    },
+    {
+      "key": "wellness",
+      "label": {
+        "fr": "Bien-être",
+        "en": "Wellness"
+      },
+      "fields": []
+    },
+    {
+      "key": "planner",
+      "label": {
+        "fr": "Organisation d'événements",
+        "en": "Event planning"
+      },
+      "fields": []
+    },
+    {
+      "key": "entertainment",
+      "label": {
+        "fr": "Animation",
+        "en": "Entertainment"
+      },
+      "fields": []
+    },
+    {
+      "key": "childcare",
+      "label": {
+        "fr": "Garde d'enfants",
+        "en": "Childcare"
+      },
+      "fields": []
+    },
+    {
+      "key": "wedding_car",
+      "label": {
+        "fr": "Voiture des mariés",
+        "en": "Wedding car"
+      },
+      "fields": []
+    },
+    {
+      "key": "stage_rental",
+      "label": {
+        "fr": "Scène et structures",
+        "en": "Stage and structures"
+      },
+      "fields": []
+    },
+    {
+      "key": "video_projection",
+      "label": {
+        "fr": "Vidéo et écrans",
+        "en": "Video and screens"
+      },
+      "fields": []
+    },
+    {
+      "key": "speaker",
+      "label": {
+        "fr": "Intervenants et conférenciers",
+        "en": "Speakers"
+      },
+      "fields": []
+    },
+    {
+      "key": "hostess",
+      "label": {
+        "fr": "Accueil et hôtesses",
+        "en": "Hosts and reception staff"
+      },
+      "fields": []
+    },
+    {
+      "key": "security",
+      "label": {
+        "fr": "Sécurité",
+        "en": "Security"
+      },
+      "fields": []
+    },
+    {
+      "key": "logistics",
+      "label": {
+        "fr": "Logistique et montage",
+        "en": "Logistics and set-up"
+      },
+      "fields": []
+    },
+    {
+      "key": "printing",
+      "label": {
+        "fr": "Impression et signalétique",
+        "en": "Printing and signage"
+      },
+      "fields": []
+    },
+    {
+      "key": "goodies",
+      "label": {
+        "fr": "Objets publicitaires",
+        "en": "Promotional items"
+      },
+      "fields": []
     }
   ]
 }

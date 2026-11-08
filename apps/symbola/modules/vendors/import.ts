@@ -11,7 +11,7 @@ import { createAppConnection } from "@symbola/db/client";
 import { vendorFiles, vendors, vendorTags, vendorTypes } from "@symbola/db/schema/vendors";
 import { withOrganization } from "@symbola/db/with-organization";
 import { normalizeVendorImportValues, type VendorsExportRow } from "@symbola/import-engine";
-import { planningSoftwareProfile, starterVendorTypes } from "@symbola/starter-templates";
+import { planningSoftwareProfile } from "@symbola/starter-templates";
 
 type Tx = Parameters<Parameters<typeof withOrganization>[2]>[0];
 type Values = Record<string, unknown>;
@@ -26,6 +26,8 @@ async function inTransaction<T>(organizationId: string, fn: (tx: Tx) => Promise<
 }
 
 const same = sameImportValue;
+// Couleur d'un type « à classer » (sans famille) sur la carte.
+const UNCLASSIFIED_COLOR = "#78716c";
 const folded = (value: string) => value.normalize("NFD").replace(/[̀-ͯ]/g, "").toLocaleLowerCase("fr").replace(/\s+/g, " ").trim();
 
 // Fiches rapprochables : celles du carnet, hors exemples et archives.
@@ -96,7 +98,6 @@ export async function importVendorRows(input: {
     const existingTypes = await tx.select({ id: vendorTypes.id, label: vendorTypes.label, position: vendorTypes.position }).from(vendorTypes);
     const choices = new Map(input.typeChoices.map((choice) => [folded(choice.label), choice.typeId]));
     const typeByLabel = new Map<string, string>();
-    const colors = starterVendorTypes("fr").map((type) => type.color);
     let position = existingTypes.reduce((max, type) => Math.max(max, type.position + 1), 0);
     for (const { record } of records) {
       if (!record?.type) continue;
@@ -108,8 +109,9 @@ export async function importVendorRows(input: {
         typeByLabel.set(key, target.id);
         continue;
       }
-      const color = colors[typeByLabel.size % colors.length] ?? "#4f6b5a";
-      const [created] = await tx.insert(vendorTypes).values({ organizationId: input.organizationId, label: record.type, color, position: position++ }).returning();
+      // Lot 16 (PRE-14) : créé « à classer », sans famille ; IMP-12 le rangera
+      // par famille dès l'étape « Types ».
+      const [created] = await tx.insert(vendorTypes).values({ organizationId: input.organizationId, label: record.type, color: UNCLASSIFIED_COLOR, position: position++ }).returning();
       if (!created) throw new Error("création du type échouée");
       typeByLabel.set(key, created.id);
       items.push({ rowIndex: null, module: "vendors", kind: "vendor_type", elementId: created.id, action: "created", previous: null, written: { label: created.label } });
@@ -233,8 +235,19 @@ async function stateOf(tx: Tx, kind: string, id: string): Promise<Values | null>
   return tag ? { label: tag.label } : null;
 }
 
-function modifiedSince(current: Values, written: Values | null): boolean {
-  return Object.keys(written ?? {}).some((key) => !same(current[key], (written ?? {})[key]));
+// Lot 16 (PRE-15) : le type d'une fiche importée, disparu depuis par une fusion
+// ou une suppression (ses fiches déplacées), n'est pas une modification à la
+// main ; l'import reste annulable.
+function modifiedSince(current: Values, written: Values | null, existingTypeIds: Set<string>): boolean {
+  return Object.keys(written ?? {}).some((key) => {
+    const value = (written ?? {})[key];
+    if (key === "typeId" && typeof value === "string" && !existingTypeIds.has(value)) return false;
+    return !same(current[key], value);
+  });
+}
+
+async function typeIdsOf(tx: Tx): Promise<Set<string>> {
+  return new Set((await tx.select({ id: vendorTypes.id }).from(vendorTypes)).map((type) => type.id));
 }
 
 export async function findModifiedImportedVendorsElements(
@@ -243,9 +256,10 @@ export async function findModifiedImportedVendorsElements(
 ): Promise<boolean[]> {
   return inTransaction(organizationId, async (tx) => {
     const result: boolean[] = [];
+    const existingTypeIds = await typeIdsOf(tx);
     for (const item of items) {
       const current = await stateOf(tx, item.kind, item.elementId);
-      result.push(current ? modifiedSince(current, item.written) : false);
+      result.push(current ? modifiedSince(current, item.written, existingTypeIds) : false);
     }
     return result;
   });
@@ -269,13 +283,14 @@ async function inUse(tx: Tx, kind: string, id: string, linkedVendorIds: Set<stri
 export async function undoImportedVendorsElements(organizationId: string, items: ImportUndoItem[], linkedVendorIds: Set<string>): Promise<ImportUndoOutcome[]> {
   return inTransaction(organizationId, async (tx) => {
     const outcomes: ImportUndoOutcome[] = [];
+    const existingTypeIds = await typeIdsOf(tx);
     for (const item of items) {
       const current = await stateOf(tx, item.kind, item.elementId);
       if (!current) {
         outcomes.push("missing");
         continue;
       }
-      if (modifiedSince(current, item.written) && !item.force) {
+      if (modifiedSince(current, item.written, existingTypeIds) && !item.force) {
         outcomes.push("kept_modified");
         continue;
       }

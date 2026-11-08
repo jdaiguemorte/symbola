@@ -11,7 +11,6 @@ import {
   starterProgram,
   starterProspectSources,
   starterRetroplanning,
-  starterVendorTypes,
   type StarterLocale,
   type StarterMetier,
 } from "@symbola/starter-templates";
@@ -29,7 +28,8 @@ import {
   listTaskTemplates,
 } from "@/modules/events/service";
 import { createAllocationModel, listAllocationModels } from "@/modules/budget/service";
-import { addStarterVendorTypes } from "@/modules/vendors/service";
+import { seedStarterVendorCatalog } from "@/modules/vendors/service";
+import { vendorCatalogInput } from "@/lib/vendors/catalog";
 import { isModuleEnabled, type ModuleKey } from "@/modules/hub/service";
 
 export type StarterKitResult = { budgetLines: number; sources: number; lossReasons: number; taskTemplate: boolean; programTemplate: boolean; allocation: boolean; vendorTypes: number };
@@ -82,6 +82,7 @@ export async function loadStarterKit(organizationId: string, metier: StarterMeti
       result.allocation = true;
     }
   }
-  if (modules.vendors) result.vendorTypes = await addStarterVendorTypes(organizationId, starterVendorTypes(locale));
+  // Lot 16 (PRE-14) : familles et types de départ du métier, une seule fois.
+  if (modules.vendors) result.vendorTypes = (await seedStarterVendorCatalog(organizationId, vendorCatalogInput(locale, metier), { withTypes: true })).types;
   return result;
 }

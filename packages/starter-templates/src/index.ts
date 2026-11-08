@@ -20,6 +20,8 @@ import tutorialExamplesFile from "./tutorial-examples.json";
 import vendorSlotsFile from "./vendor-slots.json";
 import vendorTypesFile from "./vendor-types.json";
 import vendorTypeSynonymsFile from "./vendor-type-synonyms.json";
+import vendorFamiliesFile from "./vendor-families.json";
+import agencyVendorFamiliesFile from "./vendor-families.event-agency.json";
 import agencyVendorSlotsFile from "./vendor-slots.event-agency.json";
 import agencyProspectSourcesFile from "./prospect-sources.event-agency.json";
 import agencyRetroplanningFile from "./retroplanning.event-agency.json";
@@ -33,10 +35,12 @@ export type StarterLocale = "fr" | "en";
 export type StarterMetier = "wedding_planner" | "event_agency" | "autre";
 const isWedding = (metier: StarterMetier) => metier === "wedding_planner";
 
-// Icônes des lignes du budget (présentation) : clés connues de l'app.
+// Icônes des lignes du budget et des familles de prestataires (présentation) :
+// clés connues de l'app. Lot 16 (PRE-14) : games, stage, truck, megaphone.
 export const BUDGET_LINE_ICONS = [
   "venue", "catering", "camera", "video", "music", "flower", "decoration", "officiant", "cake", "beauty",
-  "stationery", "transport", "lodging", "sound", "staff", "furniture", "attire", "rings", "other",
+  "stationery", "transport", "lodging", "sound", "staff", "furniture", "attire", "rings", "games", "stage",
+  "truck", "megaphone", "other",
 ] as const;
 export type BudgetLineIcon = (typeof BUDGET_LINE_ICONS)[number];
 
@@ -463,8 +467,9 @@ export function starterTutorialCatalogItem(locale: StarterLocale): { label: stri
   return { label: item.label[locale], unit: item.unit[locale], unitPriceCents: item.unitPriceCents };
 }
 
-// Lot 11 (PRE-02) : types de prestataires de départ et leurs champs,
-// modifiables ensuite par l'organisation.
+// Lot 11 (PRE-02) : catalogue des types de prestataires de départ et de leurs
+// champs, modifiables ensuite par l'organisation. Lot 16 (PRE-14) : la couleur
+// est celle de la famille (vendor-families*.json), plus celle du type.
 const vendorTypesSchema = z.object({
   version: z.literal(1),
   items: z
@@ -472,7 +477,6 @@ const vendorTypesSchema = z.object({
       z.object({
         key: z.string().min(1),
         label: translatedLabelSchema,
-        color: z.string().regex(/^#[0-9a-f]{6}$/),
         fields: z.array(
           z.object({
             label: translatedLabelSchema,
@@ -488,22 +492,62 @@ const vendorTypesSchema = z.object({
 
 const vendorTypes = vendorTypesSchema.parse(vendorTypesFile);
 
-export type StarterVendorType = {
-  label: string;
-  color: string;
-  fields: { label: string; kind: "number" | "text" | "time" | "amount" | "choice" | "boolean"; choices?: string[]; isFilter: boolean }[];
-};
+export type StarterVendorTypeField = { label: string; kind: "number" | "text" | "time" | "amount" | "choice" | "boolean"; choices?: string[]; isFilter: boolean };
+
+export type StarterVendorType = { key: string; label: string; fields: StarterVendorTypeField[] };
 
 export function starterVendorTypes(locale: StarterLocale): StarterVendorType[] {
   return vendorTypes.items.map((item) => ({
+    key: item.key,
     label: item.label[locale],
-    color: item.color,
     fields: item.fields.map((field) => ({
       label: field.label[locale],
       kind: field.kind,
       ...(field.choices ? { choices: field.choices[locale] } : {}),
       isFilter: field.isFilter,
     })),
+  }));
+}
+
+// Lot 16 (PRE-14) — familles de types de prestataires de départ, par métier :
+// une dizaine de familles, chacune avec ses types du catalogue. Une
+// organisation les renomme, les scinde ou en crée d'autres (PRE-15) ; ces
+// données ne sont qu'un point de départ, jamais rétablies d'office.
+const vendorFamiliesSchema = z.object({
+  version: z.literal(1),
+  items: z
+    .array(
+      z.object({
+        key: z.string().min(1),
+        label: translatedLabelSchema,
+        color: z.string().regex(/^#[0-9a-f]{6}$/),
+        icon: z.enum(BUDGET_LINE_ICONS),
+        types: z.array(z.string().min(1)).min(1),
+      }),
+    )
+    .min(1),
+});
+
+const weddingFamilies = vendorFamiliesSchema.parse(vendorFamiliesFile);
+const agencyFamilies = vendorFamiliesSchema.parse(agencyVendorFamiliesFile);
+
+export type StarterVendorCatalogType = StarterVendorType & { synonyms: string[] };
+
+export type StarterVendorFamily = { key: string; label: string; color: string; icon: BudgetLineIcon; types: StarterVendorCatalogType[] };
+
+export function starterVendorCatalog(locale: StarterLocale, metier: StarterMetier = "wedding_planner"): StarterVendorFamily[] {
+  const types = new Map(starterVendorTypes(locale).map((type) => [type.key, type]));
+  const synonyms = new Map(vendorTypeSynonyms.items.map((item) => [item.key, [...item.fr, ...item.en]]));
+  return (isWedding(metier) ? weddingFamilies : agencyFamilies).items.map((family) => ({
+    key: family.key,
+    label: family.label[locale],
+    color: family.color,
+    icon: family.icon,
+    types: family.types.map((key) => {
+      const type = types.get(key);
+      if (!type) throw new Error(`type de départ inconnu : ${key}`);
+      return { ...type, synonyms: synonyms.get(key) ?? [type.label] };
+    }),
   }));
 }
 

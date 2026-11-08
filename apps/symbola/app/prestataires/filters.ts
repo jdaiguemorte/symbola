@@ -1,6 +1,7 @@
 // Lot 11 (PRE-04 à PRE-06) — filtres du carnet lus dans l'URL (liens
 // partageables, retour arrière) : type, étiquette, champs-filtres du type,
-// « déjà travaillé avec », texte, centre et rayon.
+// « déjà travaillé avec », texte, centre et rayon. Lot 16 (PRE-14) : famille
+// (« famille=<id> », ou « famille=a-classer »), puis type en second rang.
 import { parseAmountToCents } from "@symbola/i18n";
 import type { FindVendorsInput, VendorFieldFilter, VendorType } from "@/modules/vendors/service";
 
@@ -8,6 +9,8 @@ export type BookQuery = Record<string, string | string[] | undefined>;
 
 export type BookFilters = {
   text: string;
+  familyId: string | null;
+  unclassified: boolean;
   typeId: string | null;
   tagId: string | null;
   workedWith: boolean;
@@ -23,6 +26,8 @@ export type BookFilters = {
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const RADIUS_CHOICES = [5, 10, 15, 25, 50, 100] as const;
+// Valeur du paramètre « famille » pour les types sans famille et les fiches sans type.
+export const UNCLASSIFIED_FAMILY = "a-classer";
 
 function one(query: BookQuery, key: string): string {
   const value = query[key];
@@ -49,8 +54,11 @@ export function parseBookFilters(query: BookQuery, types: VendorType[]): BookFil
       fieldFilters.push({ fieldId: field.id, op: filterOp, value });
     }
   }
+  const family = one(query, "famille");
   return {
     text: one(query, "q"),
+    familyId: UUID.test(family) ? family : null,
+    unclassified: family === UNCLASSIFIED_FAMILY,
     typeId,
     tagId: UUID.test(one(query, "etiquette")) ? one(query, "etiquette") : null,
     workedWith: one(query, "deja") === "1",
@@ -72,6 +80,8 @@ export function toFindInput(
   return {
     organizationId,
     ...(filters.text ? { text: filters.text } : {}),
+    ...(filters.familyId ? { familyId: filters.familyId } : {}),
+    ...(filters.unclassified ? { unclassified: true } : {}),
     ...(filters.typeId ? { typeIds: [filters.typeId] } : {}),
     ...(filters.tagId ? { tagIds: [filters.tagId] } : {}),
     fieldFilters: filters.fieldFilters,

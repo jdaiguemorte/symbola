@@ -2,22 +2,30 @@
 // carte et liste du plus proche au plus loin, « Ajouter au poste », export.
 // Lot 13 (PRE-12) : liste et carte côte à côte (bascule sur téléphone),
 // filtres en barre alignée appliqués à la saisie, fiche en panneau latéral.
+// Lot 16 (PRE-14, ADR 0040) : pastilles par famille (non vides), types de la
+// famille choisie en second rang, « à classer » signalé ; couleur et
+// pictogramme de la famille sur la carte.
 import { PageHeader } from "@/app/ui/page-header";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { loadPageTour } from "@/lib/help/page-tour";
 import { mapAssets } from "@/lib/map/tiles";
 import { PageTour } from "@/app/page-tour";
 import { GearLink } from "@/app/gear-link";
 import { addVendorToSlotAction } from "./actions";
-import { queryString, RADIUS_CHOICES, type BookQuery } from "./filters";
+import { queryString, RADIUS_CHOICES, UNCLASSIFIED_FAMILY, type BookQuery } from "./filters";
 import { isVendorsModuleEnabled } from "./module-access";
 import { loadBookSelection } from "./selection";
 import { VendorMap, type MapPoint } from "./vendor-map";
 import { HoverSync } from "./hover-sync";
-import { findVendors, getVendor } from "@/modules/vendors/service";
+import { countVendorsByType, getVendor } from "@/modules/vendors/service";
+import { ensureVendorFamilies } from "@/lib/vendors/catalog";
+import { FamilyIcon } from "./family-icon";
+
+// Types « à classer » (sans famille) et fiches sans type, sur la carte.
+const UNCLASSIFIED_COLOR = "#78716c";
 import { FilterBar } from "@/app/ui/filter-bar";
 import { SidePanel } from "@/app/ui/side-panel";
 
@@ -40,31 +48,55 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
     );
   }
 
+  await ensureVendorFamilies(organizationId, (await getLocale()) === "en" ? "en" : "fr");
   const query = await searchParams;
-  const [selection, assets] = await Promise.all([loadBookSelection(organizationId, query), mapAssets()]);
-  const { types, tags, filters, center, centerNotFound, results, target } = selection;
+  const [selection, assets, counts] = await Promise.all([loadBookSelection(organizationId, query), mapAssets(), countVendorsByType(organizationId)]);
+  const { families, types, tags, filters, center, centerNotFound, results, target } = selection;
   const typeById = new Map(types.map((type) => [type.id, type]));
+  const familyById = new Map(families.map((family) => [family.id, family]));
+  const familyOf = (typeId: string | null) => {
+    const type = typeId ? typeById.get(typeId) : undefined;
+    return type?.familyId ? (familyById.get(type.familyId) ?? null) : null;
+  };
   const selectedType = filters.typeId ? (typeById.get(filters.typeId) ?? null) : null;
   const points: MapPoint[] = results
     .filter((vendor) => vendor.location)
-    .map((vendor) => ({
-      id: vendor.id,
-      name: vendor.name,
-      latitude: vendor.location!.latitude,
-      longitude: vendor.location!.longitude,
-      color: (vendor.typeId && typeById.get(vendor.typeId)?.color) || "#5e5a52",
-      href: `/prestataires${queryString(query, { fiche: vendor.id })}`,
-    }));
-  // Lot 13 (PRE-12) : nombre de fiches par type (pastilles), fiche ouverte, vue sur téléphone.
-  const allVendors = await findVendors({ organizationId });
-  const countByType = new Map<string | null, number>();
-  for (const vendor of allVendors) countByType.set(vendor.typeId, (countByType.get(vendor.typeId) ?? 0) + 1);
+    .map((vendor) => {
+      const family = familyOf(vendor.typeId);
+      return {
+        id: vendor.id,
+        name: vendor.name,
+        latitude: vendor.location!.latitude,
+        longitude: vendor.location!.longitude,
+        color: family?.color ?? UNCLASSIFIED_COLOR,
+        icon: family?.icon ?? "other",
+        href: `/prestataires${queryString(query, { fiche: vendor.id })}`,
+      };
+    });
+  // Nombre de fiches (hors archives) par type, par famille et « à classer ».
+  const countOf = new Map(counts.map((entry) => [entry.typeId, entry.count]));
+  const total = counts.reduce((sum, entry) => sum + entry.count, 0);
+  const countOfTypes = (list: typeof types) => list.reduce((sum, type) => sum + (countOf.get(type.id) ?? 0), 0);
+  const familyCount = (familyId: string) => countOfTypes(types.filter((type) => type.familyId === familyId));
+  const unclassifiedTypes = types.filter((type) => type.familyId === null);
+  const unclassifiedCount = countOfTypes(unclassifiedTypes) + (countOf.get(null) ?? 0);
+  const visibleFamilies = families.filter((family) => familyCount(family.id) > 0 || family.id === filters.familyId);
+  const chosenFamily = filters.familyId ? (familyById.get(filters.familyId) ?? null) : null;
+  const rowTypes = filters.unclassified ? unclassifiedTypes : chosenFamily ? types.filter((type) => type.familyId === chosenFamily.id) : [];
+  const shownTypes = rowTypes.filter((type) => (countOf.get(type.id) ?? 0) > 0 || type.id === filters.typeId);
+  const legend = [
+    ...families.filter((family) => results.some((vendor) => vendor.location && familyOf(vendor.typeId)?.id === family.id)),
+  ];
+  const legendUnclassified = results.some((vendor) => vendor.location && !familyOf(vendor.typeId));
   const opened = typeof query.fiche === "string" ? await getVendor(organizationId, query.fiche) : null;
   const openedType = opened?.typeId ? typeById.get(opened.typeId) : undefined;
+  const openedFamily = opened ? familyOf(opened.typeId) : null;
   const openedTravel = opened ? results.find((vendor) => vendor.id === opened.id)?.travel ?? null : null;
   const view = query.vue === "carte" ? "carte" : "liste";
   const tCommon = await getTranslations("Common");
-  const typeHref = (typeId: string | null) => `/prestataires${queryString(query, { type: typeId ?? "", ...Object.fromEntries(Object.keys(filters.fieldInputs).map((key) => [key, ""])) })}`;
+  const clearFields = Object.fromEntries(Object.keys(filters.fieldInputs).map((key) => [key, ""]));
+  const familyHref = (family: string | null) => `/prestataires${queryString(query, { famille: family ?? "", type: "", ...clearFields })}`;
+  const typeHref = (typeId: string | null) => `/prestataires${queryString(query, { type: typeId ?? "", ...clearFields })}`;
   const tour = await loadPageTour(auth.user.id, "vendors", typeof query.visite === "string" ? query.visite : undefined);
 
   return (
@@ -91,16 +123,42 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
         </section>
       ) : null}
 
-      <nav aria-label={t("typesFilter")} className="pills vendor-types" data-tour="vendor-types">
-        <Link href={typeHref(null)} aria-current={filters.typeId === null ? "true" : undefined}>
-          {t("allTypesCount", { count: allVendors.length })}
+      <nav aria-label={t("familiesFilter")} className="pills vendor-types" data-tour="vendor-types">
+        <Link href={familyHref(null)} aria-current={!filters.familyId && !filters.unclassified ? "true" : undefined}>
+          {t("allTypesCount", { count: total })}
         </Link>
-        {types.map((type) => (
-          <Link key={type.id} href={typeHref(type.id)} aria-current={filters.typeId === type.id ? "true" : undefined}>
-            {t("typeCount", { label: type.label, count: countByType.get(type.id) ?? 0 })}
+        {visibleFamilies.map((family) => (
+          <Link key={family.id} href={familyHref(family.id)} aria-current={filters.familyId === family.id ? "true" : undefined}>
+            <FamilyIcon color={family.color} icon={family.icon} />
+            {t("typeCount", { label: family.label, count: familyCount(family.id) })}
           </Link>
         ))}
+        {unclassifiedCount > 0 || filters.unclassified ? (
+          <Link href={familyHref(UNCLASSIFIED_FAMILY)} aria-current={filters.unclassified ? "true" : undefined}>
+            <FamilyIcon color={UNCLASSIFIED_COLOR} icon="other" />
+            {t("unclassifiedCount", { count: unclassifiedCount })}
+          </Link>
+        ) : null}
       </nav>
+      {(chosenFamily || filters.unclassified) && shownTypes.length > 0 ? (
+        <nav aria-label={t("familyTypesFilter", { family: chosenFamily?.label ?? t("unclassified") })} className="pills pills-secondary vendor-family-types">
+          <Link href={typeHref(null)} aria-current={filters.typeId === null ? "true" : undefined}>
+            {t("allFamilyCount", { count: chosenFamily ? familyCount(chosenFamily.id) : unclassifiedCount })}
+          </Link>
+          {shownTypes.map((type) => (
+            <Link key={type.id} href={typeHref(type.id)} aria-current={filters.typeId === type.id ? "true" : undefined}>
+              {t("typeCount", { label: type.label, count: countOf.get(type.id) ?? 0 })}
+            </Link>
+          ))}
+        </nav>
+      ) : null}
+      {unclassifiedCount > 0 && !filters.unclassified ? (
+        <p className="vendor-unclassified">
+          {t("unclassifiedBanner", { count: unclassifiedCount })} <Link href={familyHref(UNCLASSIFIED_FAMILY)}>{t("unclassifiedShow")}</Link>
+          {" · "}
+          <Link href="/prestataires/parametres">{t("unclassifiedSort")}</Link>
+        </p>
+      ) : null}
 
       <div data-tour="vendor-filters">
         <FilterBar
@@ -108,6 +166,7 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
           applyLabel={t("filterApply")}
           preserve={Object.fromEntries(
             [
+              ["famille", filters.familyId ?? (filters.unclassified ? UNCLASSIFIED_FAMILY : null)],
               ["type", filters.typeId],
               ["evenement", filters.eventId],
               ["poste", filters.slotId],
@@ -225,7 +284,12 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
                     {vendor.name}
                   </Link>
                   <span className="meta">
-                    {type ? <span className="badge">{type.label}</span> : null}
+                    {type ? (
+                      <span className="badge badge-family">
+                        <FamilyIcon color={familyOf(type.id)?.color ?? UNCLASSIFIED_COLOR} icon={familyOf(type.id)?.icon ?? "other"} />
+                        {type.label}
+                      </span>
+                    ) : null}
                     {vendor.city ? <span>{vendor.city}</span> : null}
                     {vendor.travel ? <span>{t("travel", { km: vendor.travel.distanceKm, minutes: vendor.travel.minutes })}</span> : null}
                     {vendor.isDemo ? <span className="badge badge-ambre">{t("demo")}</span> : null}
@@ -255,6 +319,22 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
             controls={{ zoomIn: t("mapZoomIn"), zoomOut: t("mapZoomOut") }}
             summary={t("mapSummary", { placed: points.length, unplaced: Math.max(results.length - points.length, 0) })}
           />
+          {legend.length > 0 || legendUnclassified ? (
+            <ul className="vendor-map-legend" aria-label={t("mapLegend")}>
+              {legend.map((family) => (
+                <li key={family.id}>
+                  <FamilyIcon color={family.color} icon={family.icon} />
+                  {family.label}
+                </li>
+              ))}
+              {legendUnclassified ? (
+                <li>
+                  <FamilyIcon color={UNCLASSIFIED_COLOR} icon="other" />
+                  {t("unclassified")}
+                </li>
+              ) : null}
+            </ul>
+          ) : null}
         </div>
       </div>
 
@@ -264,7 +344,7 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
             {openedType ? (
               <div>
                 <dt>{t("summaryType")}</dt>
-                <dd>{openedType.label}</dd>
+                <dd>{openedFamily ? t("typeInFamily", { family: openedFamily.label, type: openedType.label }) : openedType.label}</dd>
               </div>
             ) : null}
             {opened.contactName ? (

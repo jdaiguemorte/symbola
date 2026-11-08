@@ -205,5 +205,14 @@ export type {
   VendorType,
   VendorTypeField,
   VendorTypeFieldInput,
+  VendorFamily,
+  VendorFamilyInput,
+  StarterVendorCatalogInput,
 } from "./vendors/service-contract";
+export {
+  VENDORS_VENDOR_TYPE_MERGED,
+  VENDORS_VENDOR_TYPE_MERGED_VERSION,
+  vendorTypeMergedPayloadSchema,
+  type VendorTypeMergedPayload,
+} from "./vendors/events";
 export { VENDOR_SOCIAL_NETWORKS } from "./vendors/service-contract";

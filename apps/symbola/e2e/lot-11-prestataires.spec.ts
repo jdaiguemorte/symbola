@@ -135,7 +135,8 @@ test("PRE-01 à PRE-07 / HUB-12 — créer ses fiches, filtrer autour d'un lieu,
   await sections.getByRole("link", { name: "Types de prestataires", exact: true }).click();
   await expect(sections.getByRole("link", { name: "Types de prestataires", exact: true })).toHaveAttribute("aria-current", "page");
   await page.getByRole("button", { name: "Ajouter les types de départ" }).click();
-  await expect(page.getByRole("heading", { name: "Hôtel / hébergement" })).toBeVisible();
+  // Lot 16 (PRE-15) : types en tableau, rangés par famille.
+  await expect(page.getByRole("region", { name: "Tableau des types" }).getByRole("link", { name: "Hôtel / hébergement" })).toBeVisible();
   await expectNoAxeViolation(page);
 
   // Deux fiches, placées sur la carte depuis leur ville.
@@ -158,7 +159,9 @@ test("PRE-01 à PRE-07 / HUB-12 — créer ses fiches, filtrer autour d'un lieu,
   await openMenu(page);
   await page.locator("#app-menu").getByRole("link", { name: "Prestataires", exact: true }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Carnet de prestataires" })).toBeVisible();
-  await page.getByRole("navigation", { name: "Types de prestataires" }).getByRole("link", { name: "Hôtel / hébergement" }).click();
+  // Lot 16 (PRE-14) : la famille, puis le type en second rang.
+  await page.getByRole("navigation", { name: "Familles de prestataires" }).getByRole("link", { name: /^Lieux et hébergement/ }).click();
+  await page.getByRole("navigation", { name: "Types de la famille Lieux et hébergement" }).getByRole("link", { name: /^Hôtel \/ hébergement/ }).click();
   // Lot 13 (PRE-12) : barre de filtres ; l'adresse et les nombres
   // s'appliquent en quittant le champ ou avec Entrée.
   const filters = page.getByRole("search", { name: "Filtres du carnet" });

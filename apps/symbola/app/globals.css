@@ -1730,3 +1730,89 @@
     @apply inline-flex !min-h-9 !min-w-9 items-center justify-center !px-2;
   }
 }
+
+@layer components {
+  /* Lot 16 (PRE-14, ADR 0040) — familles de prestataires : pastille de couleur
+     et pictogramme (la couleur vient de l'attribut SVG fill, CSP stricte). */
+  .family-icon {
+    @apply relative inline-flex h-6 w-6 flex-none items-center justify-center;
+  }
+  .family-icon > .family-icon-bg {
+    @apply absolute inset-0 h-full w-full;
+  }
+  .family-icon > svg:not(.family-icon-bg) {
+    @apply relative;
+  }
+  .pills a .family-icon {
+    @apply mr-2 -ml-1.5;
+  }
+  .badge-family {
+    @apply inline-flex items-center gap-1;
+  }
+  .badge-family .family-icon {
+    @apply h-4 w-4;
+  }
+  .badge-family .family-icon > svg:not(.family-icon-bg) {
+    @apply h-2.5 w-2.5;
+  }
+  /* Types de la famille choisie, en second rang. */
+  .pills-secondary {
+    @apply mt-2;
+  }
+  .pills-secondary a {
+    @apply min-h-9 border-lin bg-ivory text-[13px];
+  }
+  /* Sur téléphone, familles et types tiennent sur une ligne défilante. */
+  .vendor-types,
+  .vendor-family-types {
+    @apply max-sm:flex-nowrap max-sm:overflow-x-auto max-sm:pb-1;
+  }
+  .vendor-types a,
+  .vendor-family-types a {
+    @apply max-sm:flex-none max-sm:whitespace-nowrap;
+  }
+  .vendor-unclassified {
+    @apply my-3 rounded-[12px] border border-lin bg-ivory px-4 py-2.5 text-sm;
+  }
+  .vendor-map-legend {
+    @apply m-0 flex list-none flex-wrap gap-x-4 gap-y-2 border-t border-lin px-4 py-3 text-sm;
+  }
+  .vendor-map-legend li {
+    @apply inline-flex items-center gap-2;
+  }
+  /* Réglages des types (PRE-15) : tableaux alignés, détail dans le panneau. */
+  .settings-block {
+    @apply my-6;
+  }
+  .family-cell {
+    @apply inline-flex items-center gap-2;
+  }
+  .list-table tbody tr[aria-current="true"] {
+    @apply bg-sauge-tint;
+  }
+  .row-actions {
+    @apply flex flex-wrap items-center gap-2;
+  }
+  .panel-form {
+    @apply flex flex-col gap-3;
+  }
+  .panel-form > button {
+    @apply self-start;
+  }
+  .panel-fields {
+    @apply m-0 mb-3 flex list-none flex-col gap-2 p-0;
+  }
+  .panel-fields > li {
+    @apply flex flex-wrap items-center justify-between gap-2 border-b border-lin-soft pb-2;
+  }
+  .family-preview {
+    @apply m-0 inline-flex items-center gap-2 text-sm text-muted;
+  }
+  /* Dans le panneau latéral (400 px), les formulaires du carnet s'empilent. */
+  .side-panel .vendor-filters {
+    @apply grid-cols-1 sm:grid-cols-1 lg:grid-cols-1;
+  }
+  .side-panel .vendor-filters > button {
+    @apply justify-self-start;
+  }
+}

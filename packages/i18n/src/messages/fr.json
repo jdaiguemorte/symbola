@@ -347,8 +347,8 @@
     ],
     "vendors": [
       {
-        "title": "Les types",
-        "body": "Une pastille par type, avec le nombre de prestataires."
+        "title": "Familles",
+        "body": "Une pastille par famille, avec le nombre de prestataires ; choisissez-en une pour voir ses types. « À classer » réunit ceux qui n'ont pas encore de famille."
       },
       {
         "title": "Les filtres",
@@ -731,7 +731,7 @@
     },
     "vendorBook": {
       "title": "Le carnet de prestataires",
-      "body": "Chaque prestataire a une seule fiche, réutilisée d'un événement à l'autre. Les pastilles du haut filtrent par type ; la barre de filtres cherche par nom, autour d'un lieu ou parmi ceux déjà retenus. Sur ordinateur, la liste et la carte sont côte à côte ; sur téléphone, basculez de l'une à l'autre. Une fiche s'ouvre dans le panneau de droite.",
+      "body": "Chaque prestataire a une seule fiche, réutilisée d'un événement à l'autre. Les pastilles du haut filtrent par famille, puis par type ; la barre de filtres cherche par nom, autour d'un lieu ou parmi ceux déjà retenus. Sur ordinateur, la liste et la carte sont côte à côte, chaque famille avec sa couleur et son pictogramme ; sur téléphone, basculez de l'une à l'autre. Une fiche s'ouvre dans le panneau de droite.",
       "faq": [
         {
           "q": "Comment comparer plusieurs devis pour une ligne ?",
@@ -742,8 +742,12 @@
           "a": "Son adresse n'a pas été reconnue : complétez-la sur sa fiche."
         },
         {
-          "q": "Où créer un nouveau type de prestataire ?",
-          "a": "Dans Paramètres › Types de prestataires, avec les champs propres à ce type."
+          "q": "Où créer un type ou une famille de prestataires ?",
+          "a": "Dans Paramètres › Types de prestataires : créez vos familles et vos types, renommez-les, rangez chaque type dans sa famille, avec les champs qui lui sont propres."
+        },
+        {
+          "q": "Deux types désignent la même chose, comment les réunir ?",
+          "a": "Ouvrez l'un des deux dans Paramètres › Types de prestataires, puis « Fusionner avec un autre type » : ses fiches et ses champs propres rejoignent le type gardé."
         }
       ]
     },
@@ -2725,7 +2729,6 @@
     "targetTitle": "Ajouter à la ligne « {slot} » — {event}",
     "targetHint": "Choisissez un prestataire ci-dessous : il sera ajouté aux prestataires consultés de cette ligne du budget.",
     "targetBack": "Revenir à la fiche de l'événement",
-    "typesFilter": "Types de prestataires",
     "allTypes": "Tous",
     "filtersLabel": "Filtres du carnet",
     "filterText": "Nom ou ville",
@@ -2828,18 +2831,15 @@
     "pointSaved": "Point enregistré.",
     "archive": "Archiver {vendor}",
     "settingsTitle": "Paramètres du carnet",
-    "settingsTypesTitle": "Types de prestataires et champs",
-    "settingsTypesIntro": "Créez vos types de prestataires et leurs champs ; cochez ceux qui servent de filtres dans le carnet.",
+    "settingsTypesTitle": "Familles et types de prestataires",
+    "settingsTypesIntro": "Rangez vos types dans des familles, renommez-les, fusionnez les doublons ; ouvrez un type pour régler ses champs.",
     "starterTitle": "Partir des types de départ",
-    "starterBody": "Lieu de réception, hôtel, traiteur, photographe, DJ, fleuriste… avec leurs champs usuels, tous modifiables.",
+    "starterBody": "Une dizaine de familles et leurs types usuels pour votre métier (lieux, traiteur, photo…), avec leurs champs, tous modifiables.",
     "starterAdd": "Ajouter les types de départ",
     "typeRemove": "Supprimer le type {type}",
     "fieldsEmpty": "Aucun champ pour ce type.",
-    "fieldsOf": "Champs du type {type}",
-    "fieldName": "Champ",
     "fieldKind": "Format",
     "fieldIsFilter": "Sert de filtre",
-    "fieldActions": "Actions",
     "filterOnFor": "Faire de {field} un filtre",
     "filterOffFor": "Ne plus filtrer par {field}",
     "fieldRemove": "Supprimer {field}",
@@ -2859,7 +2859,6 @@
     },
     "typeNew": "Nouveau type",
     "typeLabel": "Nom du type",
-    "typeColor": "Couleur sur la carte",
     "typeAdd": "Ajouter le type",
     "typeAdded": "Type ajouté.",
     "typeInvalid": "Nom ou couleur invalide.",
@@ -2918,7 +2917,77 @@
     "filterUnplaced": "À placer (sans point)",
     "mapZoomIn": "Zoomer sur la carte",
     "mapZoomOut": "Dézoomer la carte",
-    "mapSummary": "{placed, plural, =0 {Aucun prestataire sur la carte} one {# prestataire sur la carte} other {# prestataires sur la carte}}, {unplaced, plural, =0 {aucun à placer} one {# à placer} other {# à placer}}."
+    "mapSummary": "{placed, plural, =0 {Aucun prestataire sur la carte} one {# prestataire sur la carte} other {# prestataires sur la carte}}, {unplaced, plural, =0 {aucun à placer} one {# à placer} other {# à placer}}.",
+    "familiesFilter": "Familles de prestataires",
+    "unclassified": "À classer",
+    "unclassifiedCount": "À classer · {count}",
+    "familyTypesFilter": "Types de la famille {family}",
+    "allFamilyCount": "Toute la famille · {count}",
+    "unclassifiedBanner": "{count, plural, one {# prestataire à classer :} other {# prestataires à classer :}}",
+    "unclassifiedShow": "les voir",
+    "unclassifiedSort": "ranger les types",
+    "mapLegend": "Légende de la carte",
+    "typeInFamily": "{family} › {type}",
+    "settingsDone": {
+      "fusion": "Types fusionnés : les fiches et les champs propres ont rejoint le type gardé.",
+      "type-supprime": "Type supprimé ; ses fiches sont là où vous l'avez choisi.",
+      "famille-supprimee": "Famille supprimée."
+    },
+    "settingsError": {
+      "type-utilise": "Ce type a des fiches : choisissez vers quel type les déplacer.",
+      "type-introuvable": "Type introuvable.",
+      "famille-non-vide": "Cette famille contient encore des types : rangez-les d'abord ailleurs."
+    },
+    "familiesTitle": "Familles",
+    "familiesIntro": "Les familles regroupent vos types dans le carnet et donnent leur couleur et leur pictogramme à la carte. Renommez-les, scindez-les ou créez les vôtres.",
+    "familyNew": "Nouvelle famille",
+    "columnFamily": "Famille",
+    "columnTypes": "Types",
+    "columnVendors": "Fiches",
+    "columnOrder": "Ordre",
+    "columnType": "Type",
+    "columnFields": "Champs",
+    "familyUp": "Monter la famille {family}",
+    "familyDown": "Descendre la famille {family}",
+    "typesTitle": "Types",
+    "fieldsTitle": "Champs du type",
+    "fieldFilterOn": "Filtre : oui",
+    "fieldFilterOff": "Filtre : non",
+    "mergeTitle": "Fusionner avec un autre type",
+    "mergeInto": "Fusionner « {type} » dans",
+    "chooseType": "Choisir un type",
+    "mergeHint": "Les fiches passent au type choisi, les champs propres sont repris, et ce type disparaît.",
+    "mergeContinue": "Continuer",
+    "mergeConfirm": "{count, plural, =0 {Aucune fiche ne change.} one {# fiche passera de « {source} » à « {target} ».} other {# fiches passeront de « {source} » à « {target} ».}} Les champs propres à « {source} » seront repris, puis « {source} » disparaîtra.",
+    "mergeSubmit": "Fusionner « {source} » dans « {target} »",
+    "mergeCancel": "Choisir un autre type",
+    "mergeNone": "Aucun autre type avec lequel fusionner.",
+    "typeRemoveTitle": "Supprimer le type",
+    "typeRemoveMoveTo": "{count, plural, one {Déplacer sa fiche vers} other {Déplacer ses # fiches vers}}",
+    "typeRemoveNoType": "Aucun type (à classer)",
+    "typeRemoveFieldsHint": "Les champs propres à ce type sont supprimés avec lui. Pour les garder, fusionnez plutôt.",
+    "typeRemoveAndMove": "Supprimer « {type} » et déplacer ses fiches",
+    "familyTypesTitle": "Types de la famille",
+    "vendorCount": "{count, plural, =0 {aucune fiche} one {# fiche} other {# fiches}}",
+    "familyEmpty": "Cette famille n'a pas encore de type.",
+    "typeNewInFamily": "Nouveau type dans {family}",
+    "familyRemove": "Supprimer la famille {family}",
+    "familyRemoveHint": "Pour supprimer cette famille, rangez d'abord ses types dans une autre famille.",
+    "familyPreview": "Aperçu sur la carte",
+    "familyLabel": "Nom de la famille",
+    "familyColor": "Couleur sur la carte",
+    "familyIcon": "Pictogramme",
+    "familySave": "Enregistrer la famille",
+    "familyCreate": "Créer la famille",
+    "familySaved": "Famille enregistrée.",
+    "familyInvalid": "Nom, couleur ou pictogramme invalide.",
+    "typeFamily": "Famille",
+    "typeRenameHint": "Les fiches de ce type le suivent : elles changent de nom ou de famille avec lui.",
+    "typeSave": "Enregistrer le type",
+    "typeSaved": "Type enregistré.",
+    "typeUnclassified": "À classer",
+    "familiesTable": "Tableau des familles",
+    "typesTable": "Tableau des types"
   },
   "Setup": {
     "title": "Bienvenue : préparons votre espace",
@@ -3026,7 +3095,11 @@
       "furniture": "Mobilier",
       "attire": "Tenue",
       "rings": "Alliances",
-      "other": "Autre"
+      "other": "Autre",
+      "games": "Animation",
+      "stage": "Scène",
+      "truck": "Logistique",
+      "megaphone": "Communication"
     },
     "sourcesTitle": "Sources de prospects",
     "sourcesHint": "Instagram, salon, bouche-à-oreille…",
