@@ -1,0 +1,132 @@
+{
+  "Tour": {
+    "budget": {
+      "3": {
+        "title": "With the client"
+      }
+    },
+    "event": {
+      "0": {
+        "body": "Overview, budget, planning timeline, schedule, client: each tab groups part of the preparations."
+      }
+    }
+  },
+  "Help": {
+    "eventsNew": {
+      "body": "A contact's first name and the contact source are enough; the date and venue can be added later. From the calendar, clicking a free date opens this form with the date already filled in."
+    },
+    "eventsDetail": {
+      "body": "The whole event fits on this page, in tabs. The timeline at the top shows the status and the date of each step: click the next step to move forward. The \"Next step\" banner suggests what is left to do (send the quote, apply the planning timeline, prepare the schedule, invite the client). The overview sums up the budget, booked lines, overdue tasks and the signed quote; a budget line's details open in the right-hand panel.",
+      "faq": {
+        "3": {
+          "q": "What does the client see?",
+          "a": "Their tasks, the schedule and the budget as read-only, never your internal notes. Invite them from the Client tab."
+        }
+      }
+    },
+    "eventsProgramTemplates": {
+      "faq": {
+        "0": {
+          "a": "Yes, from the event page: as a PDF, client version (without internal notes) or vendor version."
+        }
+      }
+    },
+    "clientInvitation": {
+      "body": "Each client contact has their own account. The invitation link is valid for 7 days; if it has expired, ask your planner for a new one."
+    },
+    "budgetDetail": {
+      "faq": {
+        "0": {
+          "q": "Does the client see the budget?"
+        }
+      }
+    },
+    "quotesEReporting": {
+      "faq": {
+        "0": {
+          "q": "Do I have to send e-invoices to my clients?"
+        }
+      }
+    },
+    "privacyPurge": {
+      "body": "Each month the list gathers what has passed its retention period: prospects that went nowhere, finished relationships, inactive client accounts, documents at the end of retention. Approve it: each row is purged, except those you exclude with a reason. Nothing is purged without you."
+    },
+    "allTasks": {
+      "faq": {
+        "0": {
+          "q": "Do the client's tasks appear here?",
+          "a": "Yes: they are marked \"for the client\", and ticked as soon as the client completes them in their space."
+        }
+      }
+    }
+  },
+  "Events": {
+    "noClient": "Client not specified",
+    "client1FirstName": "First contact's first name",
+    "client1LastName": "First contact's last name",
+    "client2FirstName": "Second contact's first name (optional)",
+    "client2LastName": "Second contact's last name (optional)",
+    "missingFirstName": "The first contact's first name is required.",
+    "responsibleClients": "Clients",
+    "programExportCouple": "Download the “client” PDF",
+    "programPdfCouple": "Client version",
+    "clientAccessTitle": "Client access",
+    "clientAccessIntro": "Invite each client contact by e-mail: they create their own account, follow the planning timeline, check their tasks and see the event day schedule (without your internal notes). You can remove an access at any time.",
+    "noClientAccess": "No client invited yet.",
+    "clientEmail": "E-mail of the client contact",
+    "inviteClient": "Invite",
+    "clientLinked": "This person already has an account: access to this event is now open.",
+    "clientAlreadyInvited": "This person already has access to the event.",
+    "noActivity": "No activity from the client yet.",
+    "activityFormerClient": "A client contact",
+    "trialNoInvite": "During the trial, no invitation is sent: the client is only invited on a real event.",
+    "trialStepQuote": "Compose a fictional quote, have the fictional client sign it on the trial signing page, then issue its invoices (DEMO series, watermarked).",
+    "tabClients": "Clients",
+    "columnClients": "Clients",
+    "nextStep": {
+      "invite_clients": {
+        "title": "Next step: invite the client",
+        "action": "Invite the client"
+      }
+    },
+    "clientContactTitle": "Client's contact details"
+  },
+  "Quotes": {
+    "clientIndividual": "Individual (the client)",
+    "signingLinksHint": "A signer did not receive the e-mail? Send them their link above (right-click, “Copy link”). Each link is personal."
+  },
+  "Import": {
+    "takeover": {
+      "event_sheets": {
+        "what": "Each sheet becomes an event: the client and their contact details, date, places and times, wished budget. The status is suggested from the date; you can change it in the preview."
+      }
+    }
+  },
+  "Privacy": {
+    "kind": {
+      "client_access": "Client access",
+      "client_account": "Client account"
+    },
+    "setting": {
+      "clientRetentionMonths": "Client: kept after the end of the relationship (months)",
+      "inactiveAccountMonths": "Client account without login: deleted after (months)"
+    },
+    "purgeRule": {
+      "inactive_account": "Inactive client account"
+    }
+  },
+  "Tutorials": {
+    "client-space": {
+      "steps": {
+        "2": {
+          "body": "In the example's Client tab, you will invite your clients by e-mail (during an example no invitation is sent). You can remove their access at any time."
+        }
+      }
+    }
+  },
+  "TutorialsPage": {
+    "stages": {
+      "clients": "With the client"
+    }
+  }
+}

@@ -139,3 +139,4 @@ export function localeFromAcceptLanguage(header: string | null): Locale {
   const preferred = header.split(",")[0]?.trim().slice(0, 2).toLowerCase();
   return preferred === "en" ? "en" : DEFAULT_LOCALE;
 }
+export { withMetierMessages } from "./metier-messages";
