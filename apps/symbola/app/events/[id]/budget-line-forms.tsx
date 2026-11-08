@@ -3,7 +3,8 @@
 // Lot 12 (EVT-17 / EVT-14) — dans l'onglet Budget de la fiche : prévu d'une
 // ligne (sans passer par une répartition) et son icône.
 import { useActionState, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+import { formatAmountInput, type Locale } from "@symbola/i18n";
 import { updateBudgetLineAction, type BudgetFormState } from "@/app/budget/[eventId]/actions";
 import { BudgetLineIcon, ICON_KEYS } from "@/app/budget-line-icon";
 import { setVendorSlotIconAction, type VendorSlotFormState } from "./vendor-slot-actions";
@@ -12,7 +13,8 @@ export function PlannedAmountForm({ eventId, slotId, label, plannedCents }: { ev
   const t = useTranslations("Events");
   const initial: BudgetFormState = {};
   const [state, action, pending] = useActionState(updateBudgetLineAction, initial);
-  const [amount, setAmount] = useState(plannedCents === null ? "" : String(plannedCents / 100));
+  const locale = useLocale() as Locale;
+  const [amount, setAmount] = useState(formatAmountInput(plannedCents, locale));
   return (
     <form action={action} className="stack">
       <input type="hidden" name="eventId" value={eventId} />
@@ -20,7 +22,7 @@ export function PlannedAmountForm({ eventId, slotId, label, plannedCents }: { ev
       <input type="hidden" name="field" value="planned" />
       <label>
         {t("plannedAmountFor", { line: label })}
-        <input type="number" name="amount" min={0} step={0.01} value={amount} onChange={(event) => setAmount(event.target.value)} />
+        <input type="text" inputMode="decimal" name="amount" value={amount} onChange={(event) => setAmount(event.target.value)} />
       </label>
       <button type="submit" disabled={pending}>
         {t("savePlanned")}

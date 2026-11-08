@@ -8,6 +8,7 @@ import {
   formatFileSize,
   formatMonth,
   localeFromAcceptLanguage,
+  formatAmountInput,
   parseAmountToCents,
   parisDaysSince,
 } from "./index";
@@ -123,5 +124,25 @@ describe("HUB-15 — jours écoulés à Paris", () => {
   });
   it("traverse le passage à l'heure d'hiver sans décalage", () => {
     expect(parisDaysSince(new Date("2026-10-24T22:30:00Z"), new Date("2026-10-31T23:30:00Z"))).toBe(7);
+  });
+});
+
+describe("@symbola/i18n — formatAmountInput (montant pré-rempli dans un champ)", () => {
+  it("écrit la virgule décimale de la langue, sans symbole ni séparateur de milliers", () => {
+    expect(formatAmountInput(292950, "fr")).toBe("2929,50");
+    expect(formatAmountInput(292950, "en")).toBe("2929.50");
+    expect(formatAmountInput(292905, "fr")).toBe("2929,05");
+  });
+
+  it("n'écrit les centimes que s'il y en a ; un montant absent laisse le champ vide", () => {
+    expect(formatAmountInput(293000, "fr")).toBe("2930");
+    expect(formatAmountInput(0, "en")).toBe("0");
+    expect(formatAmountInput(null, "fr")).toBe("");
+  });
+
+  it("parseAmountToCents relit exactement ce qu'il écrit, dans les deux langues", () => {
+    for (const cents of [0, 1, 99, 100, 150050, 292950, 100500, 2_147_483_647]) {
+      for (const locale of ["fr", "en"] as const) expect(parseAmountToCents(formatAmountInput(cents, locale))).toBe(cents);
+    }
   });
 });

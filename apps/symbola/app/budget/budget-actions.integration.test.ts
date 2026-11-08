@@ -180,3 +180,25 @@ describe("BUD-04 — Un compte marié ne modifie jamais le budget, même par app
     expect(view.lines[0]?.actualAmountCents).toBe(650000);
   });
 });
+
+// Lot 16 (suite de la recette des captures) : les montants du budget se
+// saisissent comme ailleurs dans l'app, en texte, et sont lus sans calcul à
+// virgule flottante (CLAUDE.md §5).
+describe("BUD-02 — Prévu et réel saisis en euros, au centime près", () => {
+  it("« 2 929,50 » et « 2929.50 » valent 292 950 centimes ; une saisie illisible est refusée ; un champ vide vaut 0 €", async () => {
+    const context = await setup();
+    sessionToken = context.plannerToken;
+    const update = (amount: string) =>
+      updateBudgetLineAction({}, form({ eventId: context.eventId, eventVendorSlotId: context.eventVendorSlotId, field: "actual", amount }));
+    const actual = async () => (await listBudgetLines(context.organizationId, context.eventId)).lines[0]?.actualAmountCents;
+
+    expect(await update("2 929,50")).toEqual({ success: true });
+    expect(await actual()).toBe(292950);
+    expect(await update("2929.50")).toEqual({ success: true });
+    expect(await actual()).toBe(292950);
+    expect(await update("deux mille")).toEqual({ error: "invalidAmount" });
+    expect(await actual()).toBe(292950);
+    expect(await update("")).toEqual({ success: true });
+    expect(await actual()).toBe(0);
+  });
+});

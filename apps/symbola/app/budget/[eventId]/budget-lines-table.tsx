@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import { useTranslations } from "next-intl";
-import { formatAmount, formatFileSize, type Locale } from "@symbola/i18n";
+import { formatAmount, formatAmountInput, formatFileSize, type Locale } from "@symbola/i18n";
 import { confirmEventBudgetAction, updateBudgetLineAction, type BudgetFormState } from "./actions";
 import { useUploadAction } from "@/app/ui/use-upload";
 import type { BudgetLinesView } from "@/modules/budget/service";
@@ -44,7 +44,7 @@ function LineRow({
           <input type="hidden" name="field" value="planned" />
           <label>
             {t("planned")} — {line.label}
-            <input type="number" name="amount" min={0} step={0.01} defaultValue={line.plannedAmountCents === null ? "" : line.plannedAmountCents / 100} />
+            <input type="text" inputMode="decimal" name="amount" defaultValue={formatAmountInput(line.plannedAmountCents, locale)} />
           </label>
           <button type="submit" disabled={plannedPending}>
             {t("updatePlanned")}
@@ -57,13 +57,7 @@ function LineRow({
           <input type="hidden" name="field" value="actual" />
           <label>
             {t("actual")} — {line.label}
-            <input
-              type="number"
-              name="amount"
-              min={0}
-              step={0.01}
-              defaultValue={line.actualAmountCents === null ? "" : line.actualAmountCents / 100}
-            />
+            <input type="text" inputMode="decimal" name="amount" defaultValue={formatAmountInput(line.actualAmountCents, locale)} />
           </label>
           <button type="submit" disabled={actualPending}>
             {t("updateActual")}

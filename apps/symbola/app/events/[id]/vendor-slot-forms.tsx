@@ -1,18 +1,12 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+import { formatAmountInput, type Locale } from "@symbola/i18n";
 import type { EventVendorSlot, VendorSlotStatus } from "@/modules/events/service";
 import { addVendorSlotAction, updateVendorSlotAction, type VendorSlotFormState } from "./vendor-slot-actions";
 import { VENDOR_STATUS_LABEL_KEYS } from "./vendor-slot-status";
 
-// Montant affiché dans le champ de saisie, en euros (« 2500,50 »).
-function amountInputValue(cents: number | null): string {
-  if (cents === null) return "";
-  const euros = Math.trunc(cents / 100);
-  const rest = cents % 100;
-  return rest === 0 ? String(euros) : `${euros},${String(rest).padStart(2, "0")}`;
-}
 
 export function VendorSlotForm({ eventId, slot }: { eventId: string; slot: EventVendorSlot }) {
   const t = useTranslations("Events");
@@ -22,7 +16,8 @@ export function VendorSlotForm({ eventId, slot }: { eventId: string; slot: Event
   // action, une erreur ferait sinon perdre la saisie.
   const [status, setStatus] = useState<VendorSlotStatus>(slot.status);
   const [vendorName, setVendorName] = useState(slot.vendorName ?? "");
-  const [amount, setAmount] = useState(amountInputValue(slot.amountCents));
+  const locale = useLocale() as Locale;
+  const [amount, setAmount] = useState(formatAmountInput(slot.amountCents, locale));
 
   return (
     <form action={formAction}>
