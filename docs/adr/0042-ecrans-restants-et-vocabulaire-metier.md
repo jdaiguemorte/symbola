@@ -1,6 +1,7 @@
 # ADR 0042 — Écrans restés à l'ancien motif ; vocabulaire selon le métier
 
-- Statut : accepté
+- Statut : accepté ; le vocabulaire est précisé par [0045](0045-types-d-evenement-et-vocabulaire.md)
+  (sur la page d'un événement, il suit le type de cet événement)
 - Date : 2026-11-08
 - Précise : [0039](0039-aide-un-seul-bouton-et-tiroir.md) (structure d'écran commune)
 - Stories : HUB-20 et HUB-21 (lot 16, spécification `docs/lots/lot-16-reprise-ux.md`)
