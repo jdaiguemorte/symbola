@@ -71,7 +71,8 @@ test("IMP-08 — reprendre ses événements depuis les fiches PDF de l'outil act
   // Colonnes déjà reconnues ; lecture des fiches suivie, puis « Vérifier et confirmer ».
   await waitForSheetsRead(page);
   await expect(page.getByText("Fiche « pas-une-fiche.pdf » : ce n'est pas un PDF")).toBeVisible();
-  await expect(page.getByRole("region", { name: "Ce que va faire l'import" }).getByRole("definition")).toHaveText(["2", "0", "0", "1"]);
+  // Bilan : 2 créations, aucune mise à jour, les colonnes de la fiche gardées en champ libre, 1 fiche rejetée.
+  await expect(page.getByRole("region", { name: "Ce que va faire l'import" }).getByRole("definition")).toHaveText(["2", "0", "Note, Total Payé, Solde, Total", "1"]);
   await expectNoAxeViolation(page);
 
   const second = page.getByLabel(/Ligne 2 : Chloé PETIT & Antoine ROUX/);
