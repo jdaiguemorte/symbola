@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import retroplanningFile from "./retroplanning.json";
 import vendorSlotsFile from "./vendor-slots.json";
 import programFile from "./program.json";
-import { starterDemoEvent, starterDemoQuote, starterErasureResponse, starterPrivacySettings, starterInvoiceMentions, starterLossReasons, starterPaymentMethods, starterProgram, starterProspectSources, starterRetroplanning, starterVendorSlots, starterVendorTypes, starterBudgetLines, starterAllocation, starterFollowUpDelays, starterVendorTypeSynonymGroups } from "./index";
+import { starterDemoEvent, starterDemoQuote, starterErasureResponse, starterPrivacySettings, starterInvoiceMentions, starterLossReasons, starterPaymentMethods, starterProgram, starterProspectSources, starterRetroplanning, starterVendorSlots, starterVendorTypes, starterBudgetLines, starterAllocation, starterFollowUpDelays, starterVendorTypeSynonymGroups, starterVendorCatalog, BUDGET_LINE_ICONS } from "./index";
 
 describe("EVT-03 — Modèle de départ des postes prestataires", () => {
   it("existe en français et en anglais, avec le même nombre de postes", () => {
@@ -201,6 +201,62 @@ describe("IMP-07 — synonymes des types de prestataires (décision N)", () => {
     const groups = starterVendorTypeSynonymGroups();
     for (const locale of ["fr", "en"] as const) {
       for (const type of starterVendorTypes(locale)) expect(groups.some((group) => group.includes(type.label))).toBe(true);
+    }
+  });
+});
+
+describe("PRE-14 — Familles et types de départ, par métier", () => {
+  it("une wedding planner démarre avec une dizaine de familles et environ 25 types, en FR et en EN", () => {
+    const fr = starterVendorCatalog("fr", "wedding_planner");
+    const en = starterVendorCatalog("en", "wedding_planner");
+    expect(fr.length).toBeGreaterThanOrEqual(8);
+    expect(fr.length).toBeLessThanOrEqual(12);
+    const types = fr.flatMap((family) => family.types);
+    expect(types.length).toBeGreaterThanOrEqual(22);
+    expect(types.length).toBeLessThanOrEqual(32);
+    expect(en.map((family) => family.key)).toEqual(fr.map((family) => family.key));
+    expect(fr.find((family) => family.label === "Beauté et tenues")!.types.map((type) => type.label)).toEqual(
+      expect.arrayContaining(["Coiffure et maquillage", "Robe de mariée", "Tenue du marié", "Bijoux"]),
+    );
+  });
+
+  it("une agence événementielle a ses propres familles ; « autre » prend celles de l'agence", () => {
+    const agency = starterVendorCatalog("fr", "event_agency");
+    expect(agency.map((family) => family.label)).toContain("Accueil et sécurité");
+    expect(agency.map((family) => family.label)).not.toContain("Beauté et tenues");
+    expect(starterVendorCatalog("fr", "autre")).toEqual(agency);
+  });
+
+  it("chaque type n'appartient qu'à une famille, ses synonymes contiennent son libellé, et un libellé ne désigne qu'un type", () => {
+    for (const metier of ["wedding_planner", "event_agency"] as const) {
+      for (const locale of ["fr", "en"] as const) {
+        const families = starterVendorCatalog(locale, metier);
+        const keys = families.flatMap((family) => family.types.map((type) => type.key));
+        expect(new Set(keys).size).toBe(keys.length);
+        for (const type of families.flatMap((family) => family.types)) expect(type.synonyms).toContain(type.label);
+      }
+    }
+    const owner = new Map<string, number>();
+    starterVendorTypeSynonymGroups().forEach((group, index) => {
+      for (const label of group) {
+        const folded = label.toLocaleLowerCase("fr");
+        expect(owner.get(folded) ?? index, label).toBe(index);
+        owner.set(folded, index);
+      }
+    });
+  });
+
+  it("« Coiffeur(se) » et « Maquillage » désignent le même type, « Coiffure et maquillage »", () => {
+    const group = starterVendorTypeSynonymGroups().find((labels) => labels.includes("Coiffure et maquillage"))!;
+    expect(group).toEqual(expect.arrayContaining(["Coiffeur(se)", "Maquillage"]));
+  });
+
+  it("icônes connues de l'app et couleurs distinctes au sein d'un métier", () => {
+    for (const metier of ["wedding_planner", "event_agency"] as const) {
+      const families = starterVendorCatalog("fr", metier);
+      for (const family of families) expect(BUDGET_LINE_ICONS).toContain(family.icon);
+      expect(new Set(families.map((family) => family.color)).size).toBe(families.length);
+      expect(new Set(families.map((family) => family.icon)).size).toBe(families.length);
     }
   });
 });

@@ -22,7 +22,7 @@ describe("PRE-11 — Exporter une sélection", () => {
     const rows = exportRows(
       [{ id: "v1", name: "=HYPERLINK(\"x\")", typeId: "t1", postalCode: "59000", city: "Lille", location: null, tagIds: ["g1"], archived: false, isDemo: false, travel: { distanceKm: 5.2, minutes: 6 } }],
       [{ id: "v1", name: "", typeId: "t1", postalCode: "59000", city: "Lille", location: null, tagIds: ["g1"], archived: false, isDemo: false, contactName: "Claire", email: "c@example.test", phone: "+33 3 20 00 00 00", addressLine: "1 rue X", country: "FR", internalNote: null, website: null, socialLinks: [], siret: null, importedFields: null, fieldValues: {}, files: [] }],
-      [{ id: "t1", label: "Traiteur", color: "#000000", position: 0, fields: [] }],
+      [{ id: "t1", label: "Traiteur", color: "#000000", position: 0, familyId: null, fields: [] }],
       [{ id: "g1", label: "bio" }],
       labels,
     );

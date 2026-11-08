@@ -1,9 +1,10 @@
 "use client";
 
 // Lot 11 (PRE-04 / PRE-06, ADR 0031 § 7) — carte du carnet : MapLibre et
-// PMTiles chargés seulement ici, fond de carte servi par l'app. Une couleur
-// par type, regroupement quand les points sont nombreux, cercle du rayon
-// choisi. La liste à côté reste l'équivalent accessible de la carte.
+// PMTiles chargés seulement ici, fond de carte servi par l'app. Regroupement
+// quand les points sont nombreux, cercle du rayon choisi. La liste à côté
+// reste l'équivalent accessible de la carte. Lot 16 (PRE-14) : la couleur et
+// le pictogramme du point sont ceux de la famille (critère 1.4.1).
 // En mode « choisir un point » (fiche), un clic place le point et remplit
 // les champs latitude/longitude du formulaire.
 import { useEffect, useRef } from "react";
@@ -11,8 +12,25 @@ import { useRouter } from "next/navigation";
 import type { GeoJSONSource, MapLayerMouseEvent, MapMouseEvent } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { circlePolygon, FONT, mapStyle, type MapAssets } from "@/lib/map/style";
+import { iconComponent } from "@/app/budget-line-icon";
 
-export type MapPoint = { id: string; name: string; latitude: number; longitude: number; color: string; href: string };
+export type MapPoint = { id: string; name: string; latitude: number; longitude: number; color: string; href: string; icon?: string | undefined };
+
+// Pictogrammes rendus par React (cachés), puis passés à la carte en images.
+async function addIconImages(map: import("maplibre-gl").Map, holder: HTMLElement | null): Promise<void> {
+  for (const element of Array.from(holder?.querySelectorAll<HTMLElement>("[data-icon]") ?? [])) {
+    const name = `vendor-icon-${element.dataset.icon}`;
+    if (map.hasImage(name)) continue;
+    const image = new Image(24, 24);
+    image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(element.innerHTML)}`;
+    try {
+      await image.decode();
+      if (!map.hasImage(name)) map.addImage(name, image, { pixelRatio: 2 });
+    } catch {
+      // Sans pictogramme, le point garde sa couleur ; la liste reste complète.
+    }
+  }
+}
 
 type Props = {
   points: MapPoint[];
@@ -40,7 +58,9 @@ export const VENDOR_HOVER_EVENT = "symbola:vendor-hover";
 
 export function VendorMap({ points, assets, label, missingTilesNotice, controls, summary, around = null, pick = null }: Props) {
   const container = useRef<HTMLDivElement>(null);
+  const iconHolder = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  const icons = [...new Set(points.map((point) => point.icon).filter((icon): icon is string => Boolean(icon)))];
 
   useEffect(() => {
     let disposed = false;
@@ -65,7 +85,9 @@ export function VendorMap({ points, assets, label, missingTilesNotice, controls,
         maplibregl.removeProtocol("pmtiles");
       };
 
-      map.on("load", () => {
+      map.on("load", async () => {
+        await addIconImages(map, iconHolder.current);
+        if (disposed) return;
         if (around) {
           map.addSource("around", {
             type: "geojson",
@@ -82,7 +104,7 @@ export function VendorMap({ points, assets, label, missingTilesNotice, controls,
             type: "FeatureCollection",
             features: points.map((point) => ({
               type: "Feature",
-              properties: { id: point.id, name: point.name, color: point.color, href: point.href },
+              properties: { id: point.id, name: point.name, color: point.color, href: point.href, icon: point.icon ?? "" },
               geometry: { type: "Point", coordinates: [point.longitude, point.latitude] },
             })),
           },
@@ -109,7 +131,7 @@ export function VendorMap({ points, assets, label, missingTilesNotice, controls,
           type: "circle",
           source: "vendors",
           filter: ["!", ["has", "point_count"]],
-          paint: { "circle-color": ["get", "color"], "circle-radius": 8, "circle-stroke-color": "#ffffff", "circle-stroke-width": 2 },
+          paint: { "circle-color": ["get", "color"], "circle-radius": 10, "circle-stroke-color": "#ffffff", "circle-stroke-width": 2 },
         });
         // Lot 13 (PRE-12) : repère de la fiche survolée dans la liste.
         map.addLayer({
@@ -117,7 +139,15 @@ export function VendorMap({ points, assets, label, missingTilesNotice, controls,
           type: "circle",
           source: "vendors",
           filter: ["==", ["get", "id"], ""],
-          paint: { "circle-color": ["get", "color"], "circle-radius": 13, "circle-stroke-color": "#2b2623", "circle-stroke-width": 3 },
+          paint: { "circle-color": ["get", "color"], "circle-radius": 14, "circle-stroke-color": "#2b2623", "circle-stroke-width": 3 },
+        });
+        // Pictogramme au-dessus du point, même survolé.
+        map.addLayer({
+          id: "vendor-icons",
+          type: "symbol",
+          source: "vendors",
+          filter: ["all", ["!", ["has", "point_count"]], ["!=", ["get", "icon"], ""]],
+          layout: { "icon-image": ["concat", "vendor-icon-", ["get", "icon"]], "icon-allow-overlap": true, "icon-ignore-placement": true },
         });
         const onHover = (event: Event) => {
           const id = (event as CustomEvent<string | null>).detail ?? "";
@@ -185,6 +215,16 @@ export function VendorMap({ points, assets, label, missingTilesNotice, controls,
 
   return (
     <div className="vendor-map">
+      <div ref={iconHolder} hidden aria-hidden="true">
+        {icons.map((icon) => {
+          const Icon = iconComponent(icon);
+          return (
+            <span key={icon} data-icon={icon}>
+              <Icon size={24} strokeWidth={2.25} color="#ffffff" />
+            </span>
+          );
+        })}
+      </div>
       <div ref={container} className="vendor-map-canvas" />
       {summary ? <p className="vendor-map-summary">{summary}</p> : null}
       {!assets.tiles ? <p className="vendor-map-notice">{missingTilesNotice}</p> : null}

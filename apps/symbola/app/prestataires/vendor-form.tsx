@@ -5,7 +5,7 @@
 import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
 import { VENDOR_SOCIAL_NETWORKS } from "@symbola/contracts";
-import type { Vendor, VendorFieldValue, VendorTag, VendorType, VendorTypeField } from "@/modules/vendors/service";
+import type { Vendor, VendorFamily, VendorFieldValue, VendorTag, VendorType, VendorTypeField } from "@/modules/vendors/service";
 import { saveVendorAction, type VendorFormState } from "./actions";
 
 function initialFieldValue(field: VendorTypeField, value: VendorFieldValue | undefined): string {
@@ -56,7 +56,20 @@ function FieldInput({ field, value }: { field: VendorTypeField; value: VendorFie
   );
 }
 
-export function VendorForm({ types, tags, vendor = null, back = "" }: { types: VendorType[]; tags: VendorTag[]; vendor?: Vendor | null; back?: string }) {
+export function VendorForm({
+  types,
+  tags,
+  families = [],
+  vendor = null,
+  back = "",
+}: {
+  types: VendorType[];
+  tags: VendorTag[];
+  // Lot 16 (PRE-14) : types rangés par famille dans la liste.
+  families?: VendorFamily[];
+  vendor?: Vendor | null;
+  back?: string;
+}) {
   const t = useTranslations("VendorBook");
   const [state, action, pending] = useActionState<VendorFormState, FormData>(saveVendorAction, {});
   const [typeId, setTypeId] = useState(vendor?.typeId ?? "");
@@ -76,11 +89,25 @@ export function VendorForm({ types, tags, vendor = null, back = "" }: { types: V
           {t("type")}
           <select name="typeId" value={typeId} onChange={(event) => setTypeId(event.target.value)}>
             <option value="">{t("typeNone")}</option>
-            {types.map((candidate) => (
-              <option key={candidate.id} value={candidate.id}>
-                {candidate.label}
-              </option>
-            ))}
+            {[...families.map((family) => ({ key: family.id, label: family.label, items: types.filter((candidate) => candidate.familyId === family.id) })), { key: "", label: t("typeUnclassified"), items: types.filter((candidate) => !families.some((family) => family.id === candidate.familyId)) }]
+              .filter((group) => group.items.length > 0)
+              .map((group) =>
+                families.length === 0 ? (
+                  group.items.map((candidate) => (
+                    <option key={candidate.id} value={candidate.id}>
+                      {candidate.label}
+                    </option>
+                  ))
+                ) : (
+                  <optgroup key={group.key || "none"} label={group.label}>
+                    {group.items.map((candidate) => (
+                      <option key={candidate.id} value={candidate.id}>
+                        {candidate.label}
+                      </option>
+                    ))}
+                  </optgroup>
+                ),
+              )}
           </select>
         </label>
       </fieldset>

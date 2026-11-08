@@ -4,7 +4,7 @@
 import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
 import type { VendorFieldKind } from "@/modules/vendors/service";
-import { addVendorFieldAction, createVendorTagAction, createVendorTypeAction, saveTravelSettingsAction } from "../actions";
+import { addVendorFieldAction, createVendorTagAction, saveTravelSettingsAction } from "../actions";
 
 const KINDS: VendorFieldKind[] = ["number", "text", "time", "amount", "choice", "boolean"];
 
@@ -12,27 +12,6 @@ function Feedback({ state, success }: { state: { error?: string; success?: boole
   if (state.error) return <p role="alert">{state.error}</p>;
   if (state.success) return <p role="status">{success}</p>;
   return null;
-}
-
-export function CreateTypeForm() {
-  const t = useTranslations("VendorBook");
-  const [state, action, pending] = useActionState(createVendorTypeAction, {});
-  return (
-    <form action={action} className="vendor-filters">
-      <label>
-        {t("typeLabel")}
-        <input type="text" name="label" required />
-      </label>
-      <label>
-        {t("typeColor")}
-        <input type="color" name="color" defaultValue="#4f6b5a" />
-      </label>
-      <button type="submit" disabled={pending}>
-        {t("typeAdd")}
-      </button>
-      <Feedback state={state} success={t("typeAdded")} />
-    </form>
-  );
 }
 
 export function AddFieldForm({ typeId, typeLabel }: { typeId: string; typeLabel: string }) {

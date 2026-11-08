@@ -1,7 +1,7 @@
 // Accès aux données du module vendors — jamais importé hors de
 // modules/vendors/ (ADR 0011). Chaque requête passe par withOrganization
 // (RLS, CLAUDE.md § 5).
-import { and, asc, eq, inArray, isNull, sql, type SQL } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull, or, sql, type SQL } from "drizzle-orm";
 import { createAppConnection } from "@symbola/db/client";
 import { foldedColumn, likeWord } from "@symbola/db/search";
 import { vendorFiles, vendors, vendorSettings, vendorTags, vendorTypeFields, vendorTypes } from "@symbola/db/schema/vendors";
@@ -35,10 +35,10 @@ export function findVendorTypes(organizationId: string): Promise<{ type: VendorT
   });
 }
 
-export function insertVendorType(organizationId: string, label: string, color: string): Promise<VendorTypeRow> {
+export function insertVendorType(organizationId: string, label: string, color: string, familyId: string | null = null): Promise<VendorTypeRow> {
   return inOrganization(organizationId, async (tx) => {
     const [{ next } = { next: 0 }] = await tx.select({ next: sql<number>`coalesce(max(${vendorTypes.position}) + 1, 0)::int` }).from(vendorTypes);
-    const [row] = await tx.insert(vendorTypes).values({ organizationId, label, color, position: next }).returning();
+    const [row] = await tx.insert(vendorTypes).values({ organizationId, label, color, familyId, position: next }).returning();
     if (!row) throw new Error("insertion du type échouée");
     return row;
   });
@@ -46,12 +46,6 @@ export function insertVendorType(organizationId: string, label: string, color: s
 
 export function updateVendorTypeRow(organizationId: string, typeId: string, label: string, color: string): Promise<boolean> {
   return inOrganization(organizationId, async (tx) => (await tx.update(vendorTypes).set({ label, color }).where(eq(vendorTypes.id, typeId)).returning()).length > 0);
-}
-
-export function deleteVendorType(organizationId: string, typeId: string): Promise<void> {
-  return inOrganization(organizationId, async (tx) => {
-    await tx.delete(vendorTypes).where(eq(vendorTypes.id, typeId));
-  });
 }
 
 export function insertVendorTypeField(
@@ -213,6 +207,8 @@ export function findVendorRows(
   input: {
     words: string[];
     typeIds?: string[] | undefined;
+    // Lot 16 (PRE-14) : types d'une famille, ou « à classer » (avec les fiches sans type).
+    typeScope?: { typeIds: string[]; includeUntyped: boolean } | undefined;
     tagIds?: string[] | undefined;
     fieldFilters: (VendorFieldFilter & { kind: VendorFieldKind })[];
     onlyIds?: string[] | undefined;
@@ -227,6 +223,13 @@ export function findVendorRows(
     if (!input.includeArchived) conditions.push(isNull(vendors.archivedAt));
     if (input.unplacedOnly) conditions.push(isNull(vendors.latitude));
     if (input.typeIds && input.typeIds.length > 0) conditions.push(inArray(vendors.typeId, input.typeIds));
+    if (input.typeScope) {
+      const scope = [
+        ...(input.typeScope.typeIds.length > 0 ? [inArray(vendors.typeId, input.typeScope.typeIds)] : []),
+        ...(input.typeScope.includeUntyped ? [isNull(vendors.typeId)] : []),
+      ];
+      conditions.push(scope.length > 0 ? or(...scope)! : sql`false`);
+    }
     if (input.tagIds && input.tagIds.length > 0) conditions.push(sql`${vendors.tagIds} @> array[${sql.join(input.tagIds.map((id) => sql`${id}`), sql`, `)}]::uuid[]`);
     if (input.onlyIds) conditions.push(input.onlyIds.length > 0 ? inArray(vendors.id, input.onlyIds) : sql`false`);
     const haystack = foldedColumn(sql`concat_ws(' ', ${vendors.name}, ${vendors.city}, ${vendors.postalCode})`);

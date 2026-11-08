@@ -128,11 +128,14 @@ supprime une colonne en perd les données.
    façon que `migrate` dans le runbook de déploiement (« Mettre à jour », étape 3 : même
    tunnel SSH, mêmes variables admin) :
    ```bash
+   pnpm --filter @symbola/db rollback -- 0077_lot16_vendor_families
    pnpm --filter @symbola/db rollback -- 0076_lot16_trusted_devices
    pnpm --filter @symbola/db rollback -- 0075_lot16_mfa_protection
    pnpm --filter @symbola/db rollback -- 0074_lot15_grant_import_jobs
    pnpm --filter @symbola/db rollback -- 0073_lot15_import_jobs
    ```
+   Annuler 0077 retire les familles de types : chaque fiche garde son type, le carnet revient à
+   une pastille par type (ADR 0040).
    Avant d'annuler 0075 et de revenir à une image antérieure au lot 16, remettre en clair les
    secrets de double authentification (`mfa-secrets -- --unseal`, runbook de déploiement,
    « Retour arrière », ADR 0037).

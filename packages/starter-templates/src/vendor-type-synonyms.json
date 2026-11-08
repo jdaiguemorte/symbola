@@ -9,7 +9,10 @@
         "Lieux",
         "Domaine",
         "Château",
-        "Salle de réception"
+        "Salle de réception",
+        "Salle de mariage",
+        "Salles de mariage",
+        "Lieu de mariage"
       ],
       "en": [
         "Venue",
@@ -39,11 +42,13 @@
       "fr": [
         "Traiteur",
         "Traiteurs",
-        "Restauration"
+        "Restauration",
+        "Brunch"
       ],
       "en": [
         "Caterer",
-        "Catering"
+        "Catering",
+        "Brunch"
       ]
     },
     {
@@ -78,14 +83,20 @@
         "Musicien",
         "Musiciens",
         "Groupe de musique",
-        "Orchestre"
+        "Orchestre",
+        "Live band",
+        "Groupe live",
+        "Chanteur",
+        "Chanteuse"
       ],
       "en": [
         "DJ / musicians",
         "DJ",
         "Musician",
         "Musicians",
-        "Band"
+        "Band",
+        "Live band",
+        "Singer"
       ]
     },
     {
@@ -129,12 +140,18 @@
         "Cake Designer",
         "Pâtissier",
         "Pâtisserie",
-        "Gâteau"
+        "Gâteau",
+        "Dessert de mariage",
+        "Desserts",
+        "Boulangerie",
+        "Boulanger"
       ],
       "en": [
         "Wedding cake",
         "Cake designer",
-        "Pastry chef"
+        "Pastry chef",
+        "Desserts",
+        "Bakery"
       ]
     },
     {
@@ -155,11 +172,17 @@
       "fr": [
         "Papeterie",
         "Faire-part",
-        "Faire-parts"
+        "Faire-parts",
+        "Faire-part et papeterie",
+        "Tampons et gravures",
+        "Gravure",
+        "Calligraphie"
       ],
       "en": [
         "Stationery",
-        "Invitations"
+        "Invitations",
+        "Engraving",
+        "Calligraphy"
       ]
     },
     {
@@ -167,16 +190,384 @@
       "fr": [
         "Transport des invités",
         "Transport",
-        "Location de voitures",
-        "Voitures de mariage",
         "Navette"
       ],
       "en": [
         "Guest transport",
         "Transport",
-        "Car hire",
-        "Wedding cars",
         "Shuttle"
+      ]
+    },
+    {
+      "key": "worship_place",
+      "fr": [
+        "Lieu de culte",
+        "Église",
+        "Eglise",
+        "Temple",
+        "Synagogue",
+        "Mosquée"
+      ],
+      "en": [
+        "Place of worship",
+        "Church"
+      ]
+    },
+    {
+      "key": "tent_rental",
+      "fr": [
+        "Tentes et chapiteaux",
+        "Location de tentes",
+        "Tente",
+        "Tentes",
+        "Chapiteau",
+        "Chapiteaux"
+      ],
+      "en": [
+        "Tents and marquees",
+        "Tent rental",
+        "Marquee"
+      ]
+    },
+    {
+      "key": "food_truck",
+      "fr": [
+        "Food truck",
+        "Food trucks",
+        "Camion restaurant"
+      ],
+      "en": [
+        "Food truck",
+        "Food trucks"
+      ]
+    },
+    {
+      "key": "drinks",
+      "fr": [
+        "Vins et boissons",
+        "Vins",
+        "Boissons",
+        "Bar",
+        "Cocktails",
+        "Caviste"
+      ],
+      "en": [
+        "Wine and drinks",
+        "Drinks",
+        "Bar",
+        "Wine"
+      ]
+    },
+    {
+      "key": "photobooth",
+      "fr": [
+        "Photobooth",
+        "Photo booth",
+        "Borne photo",
+        "Borne à selfie"
+      ],
+      "en": [
+        "Photo booth",
+        "Photobooth",
+        "Selfie booth"
+      ]
+    },
+    {
+      "key": "sound_light",
+      "fr": [
+        "Sonorisation et lumière",
+        "Sonorisation",
+        "Sono",
+        "Éclairage",
+        "Lumière",
+        "Son et lumière"
+      ],
+      "en": [
+        "Sound and lighting",
+        "Sound",
+        "Lighting"
+      ]
+    },
+    {
+      "key": "decorator",
+      "fr": [
+        "Décoration",
+        "Décorateur",
+        "Décoratrice",
+        "Décorateurs",
+        "Décorateur de mariage",
+        "Décorateurs de mariage",
+        "Scénographie"
+      ],
+      "en": [
+        "Decoration",
+        "Decorator",
+        "Event styling"
+      ]
+    },
+    {
+      "key": "furniture_rental",
+      "fr": [
+        "Mobilier et vaisselle",
+        "Location de mobilier",
+        "Location de vaisselle",
+        "Location de nappes",
+        "Nappage",
+        "Vaisselle",
+        "Mobilier"
+      ],
+      "en": [
+        "Furniture and tableware",
+        "Furniture rental",
+        "Tableware rental",
+        "Linen rental"
+      ]
+    },
+    {
+      "key": "bridal_wear",
+      "fr": [
+        "Robe de mariée",
+        "Robes de mariée",
+        "Créatrice de robes"
+      ],
+      "en": [
+        "Bridal wear",
+        "Wedding dress",
+        "Bridal gown"
+      ]
+    },
+    {
+      "key": "groom_wear",
+      "fr": [
+        "Tenue du marié",
+        "Tenues du marié",
+        "Tenues de mariés",
+        "Tenue de marié",
+        "Costume du marié",
+        "Costumes"
+      ],
+      "en": [
+        "Groom's attire",
+        "Groom suit",
+        "Suits"
+      ]
+    },
+    {
+      "key": "jewelry",
+      "fr": [
+        "Bijoux",
+        "Bijoutier",
+        "Joaillier",
+        "Alliances"
+      ],
+      "en": [
+        "Jewellery",
+        "Jewelry",
+        "Jeweller",
+        "Wedding rings"
+      ]
+    },
+    {
+      "key": "wellness",
+      "fr": [
+        "Bien-être",
+        "Spa",
+        "Massage",
+        "Esthéticienne"
+      ],
+      "en": [
+        "Wellness",
+        "Beauty treatments"
+      ]
+    },
+    {
+      "key": "planner",
+      "fr": [
+        "Organisation d'événements",
+        "Wedding planner",
+        "Event planner",
+        "Coordinatrice",
+        "Coordinateur"
+      ],
+      "en": [
+        "Event planning",
+        "Wedding planner",
+        "Event planner",
+        "Coordinator"
+      ]
+    },
+    {
+      "key": "entertainment",
+      "fr": [
+        "Animation",
+        "Animations",
+        "Animateur",
+        "Animatrice",
+        "Magicien",
+        "Escape game",
+        "Location de jeux",
+        "Jeux",
+        "Team building"
+      ],
+      "en": [
+        "Entertainment",
+        "Entertainer",
+        "Magician",
+        "Games",
+        "Team building"
+      ]
+    },
+    {
+      "key": "childcare",
+      "fr": [
+        "Garde d'enfants",
+        "Baby-sitter",
+        "Baby-sitting",
+        "Babysitter",
+        "Animation enfants",
+        "Nounou"
+      ],
+      "en": [
+        "Childcare",
+        "Babysitter",
+        "Kids entertainment"
+      ]
+    },
+    {
+      "key": "wedding_car",
+      "fr": [
+        "Voiture des mariés",
+        "Voitures de mariage",
+        "Voiture de mariage",
+        "Location de voitures",
+        "Voiture de collection",
+        "Voiture ancienne"
+      ],
+      "en": [
+        "Wedding car",
+        "Wedding cars",
+        "Car hire",
+        "Vintage car"
+      ]
+    },
+    {
+      "key": "stage_rental",
+      "fr": [
+        "Scène et structures",
+        "Scène",
+        "Podium",
+        "Structures"
+      ],
+      "en": [
+        "Stage and structures",
+        "Stage",
+        "Staging"
+      ]
+    },
+    {
+      "key": "video_projection",
+      "fr": [
+        "Vidéo et écrans",
+        "Écrans",
+        "Écran LED",
+        "Vidéoprojection",
+        "Vidéoprojecteur"
+      ],
+      "en": [
+        "Video and screens",
+        "Screens",
+        "LED screen",
+        "Projection"
+      ]
+    },
+    {
+      "key": "speaker",
+      "fr": [
+        "Intervenants et conférenciers",
+        "Intervenant",
+        "Intervenante",
+        "Conférencier",
+        "Conférencière",
+        "Maître de cérémonie"
+      ],
+      "en": [
+        "Speakers",
+        "Speaker",
+        "Keynote speaker",
+        "Master of ceremonies"
+      ]
+    },
+    {
+      "key": "hostess",
+      "fr": [
+        "Accueil et hôtesses",
+        "Hôtesse",
+        "Hôtesses",
+        "Hôtes et hôtesses",
+        "Hôtesses d'accueil",
+        "Accueil"
+      ],
+      "en": [
+        "Hosts and reception staff",
+        "Hostess",
+        "Reception staff"
+      ]
+    },
+    {
+      "key": "security",
+      "fr": [
+        "Sécurité",
+        "Agent de sécurité",
+        "Gardiennage",
+        "Sûreté",
+        "Secourisme"
+      ],
+      "en": [
+        "Security",
+        "Security staff",
+        "First aid"
+      ]
+    },
+    {
+      "key": "logistics",
+      "fr": [
+        "Logistique et montage",
+        "Logistique",
+        "Montage",
+        "Manutention"
+      ],
+      "en": [
+        "Logistics and set-up",
+        "Logistics",
+        "Set-up crew"
+      ]
+    },
+    {
+      "key": "printing",
+      "fr": [
+        "Impression et signalétique",
+        "Imprimeur",
+        "Impression",
+        "Signalétique",
+        "Kakémonos"
+      ],
+      "en": [
+        "Printing and signage",
+        "Printer",
+        "Signage"
+      ]
+    },
+    {
+      "key": "goodies",
+      "fr": [
+        "Objets publicitaires",
+        "Goodies",
+        "Cadeaux d'affaires"
+      ],
+      "en": [
+        "Promotional items",
+        "Goodies",
+        "Corporate gifts"
       ]
     }
   ]

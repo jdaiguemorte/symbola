@@ -1,0 +1,128 @@
+{
+  "version": 1,
+  "items": [
+    {
+      "key": "venues",
+      "label": {
+        "fr": "Lieux et hébergement",
+        "en": "Venues and lodging"
+      },
+      "color": "#3f6e4f",
+      "icon": "venue",
+      "types": [
+        "venue",
+        "lodging"
+      ]
+    },
+    {
+      "key": "food",
+      "label": {
+        "fr": "Restauration",
+        "en": "Food and drinks"
+      },
+      "color": "#9c3d24",
+      "icon": "catering",
+      "types": [
+        "caterer",
+        "food_truck",
+        "drinks"
+      ]
+    },
+    {
+      "key": "technical",
+      "label": {
+        "fr": "Technique et scène",
+        "en": "Technical and staging"
+      },
+      "color": "#5b4a8a",
+      "icon": "stage",
+      "types": [
+        "sound_light",
+        "stage_rental",
+        "video_projection",
+        "tent_rental"
+      ]
+    },
+    {
+      "key": "photo_video",
+      "label": {
+        "fr": "Photo et vidéo",
+        "en": "Photo and video"
+      },
+      "color": "#6b4423",
+      "icon": "camera",
+      "types": [
+        "photographer",
+        "videographer",
+        "photobooth"
+      ]
+    },
+    {
+      "key": "entertainment",
+      "label": {
+        "fr": "Animation et intervenants",
+        "en": "Entertainment and speakers"
+      },
+      "color": "#c2410c",
+      "icon": "games",
+      "types": [
+        "music",
+        "entertainment",
+        "speaker"
+      ]
+    },
+    {
+      "key": "decor",
+      "label": {
+        "fr": "Décoration et mobilier",
+        "en": "Decoration and furniture"
+      },
+      "color": "#a23b72",
+      "icon": "flower",
+      "types": [
+        "florist",
+        "decorator",
+        "furniture_rental"
+      ]
+    },
+    {
+      "key": "staff",
+      "label": {
+        "fr": "Accueil et sécurité",
+        "en": "Reception and security"
+      },
+      "color": "#0f766e",
+      "icon": "staff",
+      "types": [
+        "hostess",
+        "security"
+      ]
+    },
+    {
+      "key": "logistics",
+      "label": {
+        "fr": "Transport et logistique",
+        "en": "Transport and logistics"
+      },
+      "color": "#3b4a5c",
+      "icon": "truck",
+      "types": [
+        "transport",
+        "logistics"
+      ]
+    },
+    {
+      "key": "communication",
+      "label": {
+        "fr": "Communication et impression",
+        "en": "Communication and printing"
+      },
+      "color": "#1e4f8a",
+      "icon": "megaphone",
+      "types": [
+        "printing",
+        "goodies"
+      ]
+    }
+  ]
+}

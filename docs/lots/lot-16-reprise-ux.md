@@ -4,6 +4,11 @@
 sur D : une organisation doit pouvoir renommer « Beauté et tenues » ou la scinder en deux
 familles (par exemple « Beauté » et « Tenues ») ; voir PRE-15.
 
+**Avancement (08/11/2026)** : SEC-01 et SEC-03 fusionnés (PR n° 75, ADR 0037 et 0038) ; HUB-19
+fusionné (PR n° 76, ADR 0039, écarts notés dans l'ADR) ; PRE-14 et PRE-15 sur la branche
+`lot-16c-familles-prestataires` (ADR 0040). Familles de l'agence événementielle proposées dans
+`vendor-families.event-agency.json`, à corriger par Julien.
+
 ## Contexte
 
 Retours de Julien du 08/11/2026, après la reprise de ses vrais exports en staging :

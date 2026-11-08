@@ -22,7 +22,11 @@ import type {
   VendorType,
   VendorTypeField,
   VendorTypeFieldInput,
+  VendorFamily,
+  VendorFamilyInput,
+  StarterVendorCatalogInput,
 } from "@symbola/contracts";
+import { BUDGET_LINE_ICONS } from "@symbola/starter-templates";
 import { VENDOR_SOCIAL_NETWORKS, type VendorSocialLink } from "@symbola/contracts";
 import { searchWords } from "@symbola/db/search";
 import { listBudgetLines } from "@/modules/budget/service";
@@ -36,7 +40,6 @@ import {
   deleteDemoVendors,
   deleteVendorFileRow,
   deleteVendorTag,
-  deleteVendorType,
   deleteVendorTypeField,
   findVendor,
   findVendorFile,
@@ -63,6 +66,19 @@ import {
   type VendorWrite,
 } from "./repository";
 import { DEFAULT_VENDOR_SETTINGS, estimateTravel, validateVendorSettings } from "./travel";
+import {
+  countVendorsByTypeRows,
+  deleteVendorFamilyRow,
+  deleteVendorTypeMovingRows,
+  findVendorFamilies,
+  insertVendorFamily,
+  mergeVendorTypeRows,
+  moveVendorFamilyRow,
+  seedStarterCatalogRows,
+  updateVendorFamilyRow,
+  updateVendorTypeFamilyRow,
+  type VendorFamilyRow,
+} from "./families";
 
 export { InvalidVendorFieldValueError, parseFieldInput } from "./fields";
 export { findModifiedImportedVendorsElements, importedVendorsToPlace, importVendorRows, listVendorImportCandidates, type VendorTypeChoiceInput } from "./import";
@@ -90,7 +106,11 @@ export type {
   VendorTag,
   VendorType,
   VendorTypeField,
+  VendorFamily,
+  VendorFamilyInput,
+  StarterVendorCatalogInput,
 } from "@symbola/contracts";
+export type { VendorTypeMergedPayload } from "@symbola/contracts";
 
 // Mêmes règles que les devis joints au budget (ADR 0031 § 8).
 export const VENDOR_FILE_MAX_SIZE_BYTES = 20 * 1024 * 1024;
@@ -107,6 +127,25 @@ export class VendorTypeNotFoundError extends Error {
   constructor() {
     super("type de prestataire introuvable");
     this.name = "VendorTypeNotFoundError";
+  }
+}
+// Lot 16 (PRE-15) : type qui a encore des fiches, supprimé sans dire où elles vont.
+export class VendorTypeInUseError extends Error {
+  constructor() {
+    super("type de prestataire encore utilisé");
+    this.name = "VendorTypeInUseError";
+  }
+}
+export class VendorFamilyNotFoundError extends Error {
+  constructor() {
+    super("famille de types introuvable");
+    this.name = "VendorFamilyNotFoundError";
+  }
+}
+export class VendorFamilyNotEmptyError extends Error {
+  constructor() {
+    super("famille de types non vide");
+    this.name = "VendorFamilyNotEmptyError";
   }
 }
 export class VendorFileNotFoundError extends Error {
@@ -127,7 +166,11 @@ function toField(row: VendorTypeFieldRow): VendorTypeField {
 }
 
 function toType({ type, fields }: { type: VendorTypeRow; fields: VendorTypeFieldRow[] }): VendorType {
-  return { id: type.id, label: type.label, color: type.color, position: type.position, fields: fields.map(toField) };
+  return { id: type.id, label: type.label, color: type.color, position: type.position, familyId: type.familyId, fields: fields.map(toField) };
+}
+
+function toFamily(row: VendorFamilyRow): VendorFamily {
+  return { id: row.id, label: row.label, color: row.color, icon: row.icon, position: row.position };
 }
 
 function toSummary(row: VendorRow): VendorSummary {
@@ -220,10 +263,12 @@ export async function listVendorTypes(organizationId: string): Promise<VendorTyp
   return (await findVendorTypes(organizationId)).map(toType);
 }
 
-export async function createVendorType(organizationId: string, label: string, color: string): Promise<VendorType> {
+export async function createVendorType(organizationId: string, label: string, color: string, options: { familyId?: string | null } = {}): Promise<VendorType> {
   if (!label.trim()) throw new RangeError("le nom du type est obligatoire");
   if (!COLOR.test(color)) throw new RangeError("couleur invalide");
-  return toType({ type: await insertVendorType(organizationId, label.trim(), color.toLowerCase()), fields: [] });
+  const familyId = options.familyId ?? null;
+  if (familyId && !(await findVendorFamilies(organizationId)).some((family) => family.id === familyId)) throw new VendorFamilyNotFoundError();
+  return toType({ type: await insertVendorType(organizationId, label.trim(), color.toLowerCase(), familyId), fields: [] });
 }
 
 export async function renameVendorType(organizationId: string, typeId: string, label: string, color: string): Promise<void> {
@@ -231,9 +276,83 @@ export async function renameVendorType(organizationId: string, typeId: string, l
   if (!(await updateVendorTypeRow(organizationId, typeId, label.trim(), color.toLowerCase()))) throw new VendorTypeNotFoundError();
 }
 
-// Les fiches de ce type gardent leurs coordonnées ; elles perdent le type.
-export async function removeVendorType(organizationId: string, typeId: string): Promise<void> {
-  await deleteVendorType(organizationId, typeId);
+// Lot 16 (PRE-15) : un type qui a des fiches n'est supprimé qu'en disant où
+// elles vont — un autre type, ou null pour « à classer ». Jamais en silence.
+export async function removeVendorType(organizationId: string, typeId: string, options: { moveVendorsTo?: string | null } = {}): Promise<void> {
+  if (!UUID.test(typeId) || (options.moveVendorsTo && !UUID.test(options.moveVendorsTo))) throw new VendorTypeNotFoundError();
+  const outcome = await deleteVendorTypeMovingRows(organizationId, typeId, options.moveVendorsTo);
+  if (outcome === "in_use") throw new VendorTypeInUseError();
+  if (outcome !== "deleted") throw new VendorTypeNotFoundError();
+}
+
+export async function setVendorTypeFamily(organizationId: string, typeId: string, familyId: string | null): Promise<void> {
+  if (!UUID.test(typeId)) throw new VendorTypeNotFoundError();
+  if (familyId !== null && !UUID.test(familyId)) throw new VendorFamilyNotFoundError();
+  const outcome = await updateVendorTypeFamilyRow(organizationId, typeId, familyId);
+  if (outcome === "type_not_found") throw new VendorTypeNotFoundError();
+  if (outcome === "family_not_found") throw new VendorFamilyNotFoundError();
+}
+
+// PRE-15 — fusion d'un type dans un autre (fiches et champs propres repris,
+// opération journalisée).
+export async function mergeVendorTypes(organizationId: string, input: { sourceTypeId: string; targetTypeId: string }): Promise<{ movedVendors: number; movedFields: number }> {
+  if (!UUID.test(input.sourceTypeId) || !UUID.test(input.targetTypeId)) throw new VendorTypeNotFoundError();
+  if (input.sourceTypeId === input.targetTypeId) throw new RangeError("un type ne se fusionne pas avec lui-même");
+  const result = await mergeVendorTypeRows(organizationId, input.sourceTypeId, input.targetTypeId);
+  if (!result) throw new VendorTypeNotFoundError();
+  return result;
+}
+
+export function countVendorsByType(organizationId: string): Promise<{ typeId: string | null; count: number }[]> {
+  return countVendorsByTypeRows(organizationId);
+}
+
+// PRE-14 / PRE-15 — familles, propres à l'organisation.
+
+const ICONS: readonly string[] = BUDGET_LINE_ICONS;
+
+function cleanFamily(input: VendorFamilyInput): VendorFamilyInput {
+  const label = input.label.trim();
+  if (!label) throw new RangeError("le nom de la famille est obligatoire");
+  if (!COLOR.test(input.color)) throw new RangeError("couleur invalide");
+  if (!ICONS.includes(input.icon)) throw new RangeError("icône inconnue");
+  return { label, color: input.color.toLowerCase(), icon: input.icon };
+}
+
+export async function listVendorFamilies(organizationId: string): Promise<VendorFamily[]> {
+  return (await findVendorFamilies(organizationId)).map(toFamily);
+}
+
+export async function createVendorFamily(organizationId: string, input: VendorFamilyInput): Promise<VendorFamily> {
+  return toFamily(await insertVendorFamily(organizationId, cleanFamily(input)));
+}
+
+export async function updateVendorFamily(organizationId: string, familyId: string, input: VendorFamilyInput): Promise<void> {
+  const clean = cleanFamily(input);
+  if (!UUID.test(familyId) || !(await updateVendorFamilyRow(organizationId, familyId, clean))) throw new VendorFamilyNotFoundError();
+}
+
+export async function moveVendorFamily(organizationId: string, familyId: string, direction: "up" | "down"): Promise<void> {
+  if (!UUID.test(familyId) || !(await moveVendorFamilyRow(organizationId, familyId, direction))) throw new VendorFamilyNotFoundError();
+}
+
+// Seule une famille vide se supprime : ses types sont d'abord rangés ailleurs.
+export async function removeVendorFamily(organizationId: string, familyId: string): Promise<void> {
+  const outcome = UUID.test(familyId) ? await deleteVendorFamilyRow(organizationId, familyId) : "not_found";
+  if (outcome === "not_found") throw new VendorFamilyNotFoundError();
+  if (outcome === "not_empty") throw new VendorFamilyNotEmptyError();
+}
+
+// Modèles de départ (ONB, packages/starter-templates) : familles du métier,
+// types et champs si l'organisation n'a encore aucun type, rangement des
+// types existants par les synonymes. Une seule fois par organisation.
+export async function seedStarterVendorCatalog(
+  organizationId: string,
+  catalog: StarterVendorCatalogInput,
+  options: { withTypes: boolean; explicit?: boolean },
+): Promise<{ families: number; types: number; classified: number }> {
+  const clean = catalog.map((family) => ({ ...family, ...cleanFamily(family) }));
+  return seedStarterCatalogRows(organizationId, clean, options);
 }
 
 export async function addVendorTypeField(organizationId: string, typeId: string, input: VendorTypeFieldInput): Promise<VendorTypeField> {
@@ -258,20 +377,6 @@ export async function setVendorTypeFieldFilter(organizationId: string, fieldId: 
 
 export async function removeVendorTypeField(organizationId: string, fieldId: string): Promise<void> {
   await deleteVendorTypeField(organizationId, fieldId);
-}
-
-// Modèles de départ (ONB, packages/starter-templates) : ajoutés seulement
-// si l'organisation n'a encore aucun type.
-export async function addStarterVendorTypes(
-  organizationId: string,
-  types: { label: string; color: string; fields: VendorTypeFieldInput[] }[],
-): Promise<number> {
-  if ((await findVendorTypes(organizationId)).length > 0) return 0;
-  for (const type of types) {
-    const created = await createVendorType(organizationId, type.label, type.color);
-    for (const field of type.fields) await addVendorTypeField(organizationId, created.id, field);
-  }
-  return types.length;
 }
 
 // Étiquettes.
@@ -391,9 +496,17 @@ export async function findVendors(input: FindVendorsInput): Promise<VendorListIt
     input.around && Number.isFinite(input.around.latitude) && Number.isFinite(input.around.longitude) && input.around.radiusKm > 0
       ? input.around
       : undefined;
+  // Lot 16 (PRE-14) : une famille, ou « à classer » (types sans famille et
+  // fiches sans type).
+  const typeScope = input.unclassified
+    ? { typeIds: types.filter((type) => type.familyId === null).map((type) => type.id), includeUntyped: true }
+    : input.familyId
+      ? { typeIds: types.filter((type) => type.familyId === input.familyId).map((type) => type.id), includeUntyped: false }
+      : undefined;
   const rows = await findVendorRows(input.organizationId, {
     words: searchWords(input.text ?? ""),
     typeIds: input.typeIds?.filter((id) => UUID.test(id)),
+    typeScope,
     tagIds: input.tagIds?.filter((id) => UUID.test(id)),
     fieldFilters,
     onlyIds: input.workedWith ? await listSelectedVendorIds(input.organizationId) : undefined,
@@ -527,6 +640,15 @@ const _contractCheck: VendorsServiceContract = {
   createVendorType,
   renameVendorType,
   removeVendorType,
+  setVendorTypeFamily,
+  mergeVendorTypes,
+  countVendorsByType,
+  listVendorFamilies,
+  createVendorFamily,
+  updateVendorFamily,
+  moveVendorFamily,
+  removeVendorFamily,
+  seedStarterVendorCatalog,
   addVendorTypeField,
   setVendorTypeFieldFilter,
   removeVendorTypeField,

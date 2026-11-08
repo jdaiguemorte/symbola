@@ -41,3 +41,4 @@ Un fichier par décision structurante, numéroté. Pour changer une décision : 
 - [0037 — Double authentification protégée : limite d'essais, anti-rejeu, secret chiffré](0037-double-authentification-protegee.md)
 - [0038 — Appareil de confiance : le code de double authentification redemandé tous les 90 jours](0038-appareil-de-confiance.md)
 - [0039 — Aide : un seul « ? » dans la barre du haut, un tiroir qui pousse le contenu](0039-aide-un-seul-bouton-et-tiroir.md)
+- [0040 — Familles de types de prestataires, propres à l'organisation ; fusion et suppression sans perte](0040-familles-de-types-de-prestataires.md)

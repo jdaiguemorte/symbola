@@ -6,16 +6,13 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { VENDOR_SOCIAL_NETWORKS } from "@symbola/contracts";
-import { starterVendorTypes } from "@symbola/starter-templates";
 import { addVendorCandidate, VendorCandidateNotFoundError } from "@/modules/events/service";
 import {
-  addStarterVendorTypes,
   addVendorTypeField,
   archiveVendor,
   attachVendorFile,
   createVendor,
   createVendorTag,
-  createVendorType,
   getVendor,
   InvalidVendorFieldValueError,
   InvalidVendorLinkError,
@@ -23,7 +20,6 @@ import {
   parseFieldInput,
   removeVendorFile,
   removeVendorTag,
-  removeVendorType,
   removeVendorTypeField,
   saveVendorSettings,
   setVendorLocation,
@@ -38,6 +34,7 @@ import {
   type VendorInput,
 } from "@/modules/vendors/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
+import { addStarterVendorCatalog } from "@/lib/vendors/catalog";
 import { isValidId } from "@/app/events/module-access";
 import { isVendorsModuleEnabled } from "./module-access";
 
@@ -197,29 +194,7 @@ export async function addVendorToSlotAction(formData: FormData): Promise<void> {
 export async function addStarterVendorTypesAction(): Promise<void> {
   const access = await authorize();
   if (!access) return;
-  await addStarterVendorTypes(access.organizationId, starterVendorTypes((await getLocale()) === "en" ? "en" : "fr"));
-  revalidatePath("/prestataires/parametres");
-}
-
-export async function createVendorTypeAction(_prev: VendorFormState, formData: FormData): Promise<VendorFormState> {
-  const t = await getTranslations("VendorBook");
-  const access = await authorize();
-  if (!access) return { error: t("unauthorized") };
-  try {
-    await createVendorType(access.organizationId, text(formData, "label"), text(formData, "color") || "#4f6b5a");
-  } catch (error) {
-    if (error instanceof RangeError) return { error: t("typeInvalid") };
-    throw error;
-  }
-  revalidatePath("/prestataires/parametres");
-  return { success: true };
-}
-
-export async function removeVendorTypeAction(formData: FormData): Promise<void> {
-  const access = await authorize();
-  const typeId = text(formData, "typeId");
-  if (!access || !isValidId(typeId)) return;
-  await removeVendorType(access.organizationId, typeId);
+  await addStarterVendorCatalog(access.organizationId, (await getLocale()) === "en" ? "en" : "fr");
   revalidatePath("/prestataires/parametres");
 }
 

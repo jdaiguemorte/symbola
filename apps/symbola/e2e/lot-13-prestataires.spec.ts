@@ -44,7 +44,8 @@ test("PRE-12 — liste et carte côte à côte, fiche dans le panneau latéral",
   await login(page, email, password);
 
   await page.goto("/prestataires");
-  await expect(page.getByRole("navigation", { name: "Types de prestataires" }).getByRole("link", { name: "Tous · 2" })).toBeVisible();
+  // Lot 16 (PRE-14) : pastilles par famille ; ces fiches sans type sont « à classer ».
+  await expect(page.getByRole("navigation", { name: "Familles de prestataires" }).getByRole("link", { name: "Tous · 2" })).toBeVisible();
   const list = page.getByRole("region", { name: /^\d+ résultats?/ });
   await expect(list.getByRole("link", { name: "Maison Verdier" })).toBeVisible();
 

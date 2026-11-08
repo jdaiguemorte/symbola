@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { listVendorTags, listVendorTypes } from "@/modules/vendors/service";
+import { listVendorFamilies, listVendorTags, listVendorTypes } from "@/modules/vendors/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { queryString, type BookQuery } from "../filters";
 import { isVendorsModuleEnabled } from "../module-access";
@@ -27,7 +27,7 @@ export default async function NewVendorPage({ searchParams }: { searchParams: Pr
   }
   const query = await searchParams;
   const back = query.evenement && query.poste ? `/prestataires${queryString(query)}` : "";
-  const [types, tags] = await Promise.all([listVendorTypes(organizationId), listVendorTags(organizationId)]);
+  const [types, tags, families] = await Promise.all([listVendorTypes(organizationId), listVendorTags(organizationId), listVendorFamilies(organizationId)]);
   return (
     <main>
       <p>
@@ -35,7 +35,7 @@ export default async function NewVendorPage({ searchParams }: { searchParams: Pr
       </p>
       <h1>{t("newVendor")}</h1>
       <p>{t("newVendorHint")}</p>
-      <VendorForm types={types} tags={tags} back={back} />
+      <VendorForm types={types} tags={tags} families={families} back={back} />
     </main>
   );
 }
