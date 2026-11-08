@@ -82,5 +82,5 @@ Ces trois points comptent davantage dès que la solution est proposée à d'autr
   - le verrouillage par compte permet à quelqu'un qui connaît le mot de passe de bloquer la
     double authentification de la titulaire pendant 15 minutes. C'est voulu : l'e-mail
     l'invite à changer son mot de passe.
-- **À trancher à part** (question de Julien du 08/11/2026) : retenir un appareil de confiance
-  quelque temps, plutôt que demander le code à chaque connexion.
+- Appareil de confiance (code redemandé tous les 90 jours plutôt qu'à chaque connexion) :
+  ADR [0038](0038-appareil-de-confiance.md).

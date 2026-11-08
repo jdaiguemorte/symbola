@@ -4,10 +4,12 @@
 // directement — tout passe par ici.
 export {
   confirmTotp,
+  countTrustedDevices,
   createOrganization,
   createUser,
   destroySession,
   findAccountByEmail,
+  forgetTrustedDevices,
   login,
   requireUser,
   setUserLanguage,
@@ -18,6 +20,7 @@ export {
   type AuthenticatedUser,
   type ConfirmTotpResult,
   type AuthResult,
+  type LoginOptions,
   type LoginResult,
 } from "./service";
 export {

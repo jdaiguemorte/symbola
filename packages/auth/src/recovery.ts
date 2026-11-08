@@ -5,7 +5,7 @@
 // traduits).
 import { and, eq, gt, isNull } from "drizzle-orm";
 import type { AppDatabase } from "@symbola/db/client";
-import { passwordResets, sessions, users } from "@symbola/db/schema/hub";
+import { passwordResets, sessions, trustedDevices, users } from "@symbola/db/schema/hub";
 import { hashPassword } from "./password";
 import { isPlannerRole, type Role } from "./roles";
 import { generateSessionToken, hashSessionToken } from "./session-token";
@@ -81,6 +81,8 @@ export async function resetPassword(
     .set({ passwordHash: await hashPassword(input.password), failedLoginAttempts: 0, lockedUntil: null })
     .where(eq(users.id, reset.userId));
   await db.delete(sessions).where(eq(sessions.userId, reset.userId));
+  // SEC-03 : un nouveau mot de passe révoque aussi les appareils de confiance.
+  await db.delete(trustedDevices).where(eq(trustedDevices.userId, reset.userId));
   return "success";
 }
 
@@ -114,5 +116,6 @@ export async function resetUserMfa(db: AppDatabase, userId: string): Promise<{ e
     .set({ totpSecret: null, mfaEnabled: false, mfaFailedAttempts: 0, mfaLockedUntil: null, totpLastUsedStep: null })
     .where(eq(users.id, userId));
   await db.delete(sessions).where(eq(sessions.userId, userId));
+  await db.delete(trustedDevices).where(eq(trustedDevices.userId, userId));
   return { email: user.email, language: user.language };
 }

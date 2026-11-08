@@ -39,3 +39,4 @@ Un fichier par décision structurante, numéroté. Pour changer une décision : 
 - [0035 — Traitements de fond suivis des imports](0035-traitements-de-fond-suivis-des-imports.md)
 - [0036 — Migrations annulables par script, types énumérés compris](0036-migrations-annulables.md)
 - [0037 — Double authentification protégée : limite d'essais, anti-rejeu, secret chiffré](0037-double-authentification-protegee.md)
+- [0038 — Appareil de confiance : le code de double authentification redemandé tous les 90 jours](0038-appareil-de-confiance.md)

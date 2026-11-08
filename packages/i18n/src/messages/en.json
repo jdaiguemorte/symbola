@@ -20,7 +20,9 @@
     "setupLink": "Full setup link",
     "locked": "Too many incorrect codes: two-factor authentication is blocked for 15 minutes. An e-mail has been sent to you.",
     "lockedMailSubject": "Your Symbola two-factor authentication has been blocked",
-    "lockedMailBody": "Five incorrect two-factor authentication codes in a row were entered on your account, after a correct password. Two-factor authentication is blocked for 15 minutes as a security measure.\n\nIf this wasn't you, someone knows your password: change it now with \"Forgot your password?\" on the login screen."
+    "lockedMailBody": "Five incorrect two-factor authentication codes in a row were entered on your account, after a correct password. Two-factor authentication is blocked for 15 minutes as a security measure.\n\nIf this wasn't you, someone knows your password: change it now with \"Forgot your password?\" on the login screen.",
+    "rememberDevice": "Remember this device for 90 days",
+    "rememberDeviceHint": "You won't be asked for the code on this device for 90 days. Don't tick this on a shared computer."
   },
   "Home": {
     "title": "Symbola",
@@ -368,7 +370,7 @@
     },
     "mfa": {
       "title": "Two-factor authentication",
-      "body": "The first time, scan the QR code with an authenticator app (Google Authenticator, Authy…). After that, enter the 6-digit code it shows each time you log in."
+      "body": "The first time, scan the QR code with an authenticator app (Google Authenticator, Authy…). After that, enter the 6-digit code it shows each time you log in, or tick \"Remember this device\": you won't be asked for it on this device for 90 days. After 5 wrong codes, two-factor authentication is blocked for 15 minutes."
     },
     "home": {
       "title": "Home",
@@ -422,7 +424,7 @@
     },
     "profile": {
       "title": "My account and security",
-      "body": "Choose the language Symbola uses for you. Your password and two-factor authentication protect your account.",
+      "body": "Choose the language Symbola uses for you. Your password and two-factor authentication protect your account; \"Forget all my devices\" asks for the code again on trusted devices.",
       "faq": [
         {
           "q": "How do I change my password?",
@@ -3160,5 +3162,11 @@
     "previous": "Previous page",
     "next": "Next page",
     "status": "Page {page} of {count}"
+  },
+  "TrustedDevices": {
+    "title": "Trusted devices",
+    "count": "{count, plural, =0 {No trusted device: the two-factor authentication code is asked at every login.} one {# trusted device: the two-factor authentication code isn't asked there for 90 days.} other {# trusted devices: the two-factor authentication code isn't asked there for 90 days.}}",
+    "forget": "Forget all my devices",
+    "forgotten": "Your trusted devices have been forgotten: the code will be asked at the next login, on each of them."
   }
 }

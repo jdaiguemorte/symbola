@@ -160,6 +160,23 @@ export const sessions = hubSchema.table("sessions", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
+// Lot 16 (SEC-03, ADR 0038) — appareil de confiance : après un code de double
+// authentification validé avec « se souvenir de cet appareil », ce navigateur
+// en est dispensé pendant 90 jours. Seul le hachage du jeton est stocké (comme
+// les sessions). Révoqué par une réinitialisation du mot de passe ou de la
+// double authentification, ou par « oublier mes appareils ». Table d'identité :
+// pas de RLS, isolation assurée par packages/auth (ADR 0013).
+export const trustedDevices = hubSchema.table("trusted_devices", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  tokenHash: text("token_hash").notNull().unique(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
 // Activation d'un module par organisation (PRD HUB-03). Pas de ligne =
 // activé par défaut (absence = « jamais désactivé »), pour qu'un nouveau
 // module n'ait besoin d'aucune migration de données pour être actif

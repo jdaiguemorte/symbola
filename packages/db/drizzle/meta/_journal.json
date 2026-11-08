@@ -533,6 +533,13 @@
       "when": 1794095091356,
       "tag": "0075_lot16_mfa_protection",
       "breakpoints": true
+    },
+    {
+      "idx": 76,
+      "version": "7",
+      "when": 1794096830929,
+      "tag": "0076_lot16_trusted_devices",
+      "breakpoints": true
     }
   ]
 }

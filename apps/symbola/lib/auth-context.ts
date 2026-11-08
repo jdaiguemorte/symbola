@@ -13,6 +13,10 @@ import { createAppConnection } from "@symbola/db/client";
 import { isPlannerRole, requireUser, type AuthResult } from "@symbola/auth";
 
 export const SESSION_COOKIE_NAME = "symbola_session";
+// SEC-03 (lot 16, ADR 0038) : appareil de confiance, dispensé du code de double
+// authentification pendant 90 jours ; seul son hachage est en base.
+export const TRUSTED_DEVICE_COOKIE_NAME = "symbola_appareil";
+const TRUSTED_DEVICE_MAX_AGE_S = 90 * 24 * 60 * 60;
 
 export async function getAuthContext(): Promise<AuthResult> {
   const cookieStore = await cookies();
@@ -72,4 +76,25 @@ export async function clearSessionCookie(): Promise<void> {
 export async function getSessionToken(): Promise<string | undefined> {
   const cookieStore = await cookies();
   return cookieStore.get(SESSION_COOKIE_NAME)?.value;
+}
+
+export async function setTrustedDeviceCookie(token: string): Promise<void> {
+  const cookieStore = await cookies();
+  cookieStore.set(TRUSTED_DEVICE_COOKIE_NAME, token, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: TRUSTED_DEVICE_MAX_AGE_S,
+  });
+}
+
+export async function getTrustedDeviceToken(): Promise<string | undefined> {
+  const cookieStore = await cookies();
+  return cookieStore.get(TRUSTED_DEVICE_COOKIE_NAME)?.value;
+}
+
+export async function clearTrustedDeviceCookie(): Promise<void> {
+  const cookieStore = await cookies();
+  cookieStore.delete(TRUSTED_DEVICE_COOKIE_NAME);
 }

@@ -63,6 +63,24 @@ Les règles du lot 13 restent valables. S'y ajoutent :
 - Tests d'intégration : verrouillage avec horloge simulée (veille, fin du verrouillage), rejeu,
   rotation du jeton, lecture d'un secret chiffré.
 
+### SEC-03 — Appareil de confiance (90 jours)
+
+Question de Julien du 08/11/2026 : la double authentification n'est pas une obligation légale
+(choix de l'ADR 0013, maintenu), et il n'est pas utile de la demander à chaque connexion sur un
+appareil connu. Durée retenue : **90 jours** (ADR 0038).
+
+- **Étant donné** l'écran du code, **alors** une case « Se souvenir de cet appareil pendant
+  90 jours » est proposée, décochée, avec un rappel de ne pas la cocher sur un ordinateur
+  partagé ; jamais à l'Admin.
+- **Quand** elle valide son code en la cochant, **alors** les connexions suivantes sur ce
+  navigateur ne demandent que le mot de passe, pendant 90 jours (échéance fixe : dispensée la
+  veille, code redemandé le lendemain).
+- Un appareil retenu par un compte ne dispense jamais un autre compte.
+- **Quand** elle réinitialise son mot de passe, que l'Admin réinitialise sa double
+  authentification, ou qu'elle clique « Oublier tous mes appareils » (profil ; sécurité de
+  l'espace pour un marié), **alors** le code est redemandé partout.
+- Le profil indique le nombre d'appareils de confiance.
+
 ## Étape 2 — Structure d'écran commune
 
 ### HUB-19 — En-tête d'écran et aide au même endroit

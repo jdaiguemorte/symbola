@@ -2,10 +2,10 @@
 // autre code ne doit appeler packages/db sur le schéma hub, ni la lib
 // d'argon2/otpauth directement : tout passe par les fonctions exportées
 // d'ici (createAppUser, login, setupTotp, confirmTotp, requireUser…).
-import { and, eq, gte, isNotNull, isNull, like, lt, lte, not, or, sql, inArray } from "drizzle-orm";
+import { and, eq, gt, gte, isNotNull, isNull, like, lt, lte, not, or, sql, inArray } from "drizzle-orm";
 import type { AppDatabase } from "@symbola/db/client";
 import { sendMail } from "@symbola/mail";
-import { organizations, sessions, users } from "@symbola/db/schema/hub";
+import { organizations, sessions, trustedDevices, users } from "@symbola/db/schema/hub";
 import { hashPassword, verifyPassword } from "./password";
 import { isProfessionalRole, type Role } from "./roles";
 import { generateSessionToken, hashSessionToken } from "./session-token";
@@ -22,6 +22,9 @@ const LOCKOUT_DURATION_MS = 15 * 60 * 1000;
 // pas à zéro).
 const MFA_MAX_FAILED_ATTEMPTS = 5;
 const MFA_LOCKOUT_DURATION_MS = 15 * 60 * 1000;
+// SEC-03 (lot 16, ADR 0038) : un appareil de confiance est dispensé du code
+// pendant 90 jours (décision de Julien du 08/11/2026), jamais pour l'Admin.
+const TRUSTED_DEVICE_DURATION_MS = 90 * 24 * 60 * 60 * 1000;
 
 export type AuthenticatedUser = {
   id: string;
@@ -41,7 +44,7 @@ export type AuthResult =
   | { status: "unauthenticated" }
   // totpConfirmed : un code a déjà été validé avec la clé enregistrée ; sinon
   // la configuration est à (re)prendre, jamais seulement à vérifier.
-  | { status: "mfa_required"; userId: string; totpConfirmed: boolean }
+  | { status: "mfa_required"; userId: string; role: Role; totpConfirmed: boolean }
   | { status: "authenticated"; user: AuthenticatedUser };
 
 export type LoginResult =
@@ -73,7 +76,14 @@ export async function createUser(
   return user;
 }
 
-export async function login(db: AppDatabase, email: string, password: string): Promise<LoginResult> {
+export type LoginOptions = {
+  // SEC-03 : jeton du cookie d'appareil de confiance de ce navigateur, s'il y en a un.
+  trustedDeviceToken?: string | undefined;
+  // Horloge simulée (tests) pour l'échéance de l'appareil de confiance.
+  now?: Date | undefined;
+};
+
+export async function login(db: AppDatabase, email: string, password: string, options: LoginOptions = {}): Promise<LoginResult> {
   const [user] = await db.select().from(users).where(eq(users.email, email));
   if (!user) return { outcome: "invalid_credentials" };
 
@@ -107,7 +117,10 @@ export async function login(db: AppDatabase, email: string, password: string): P
 
   // Un marié n'y est pas obligé, mais une fois activée elle s'applique à
   // chaque connexion (EVT-06).
-  const requiresMfa = isProfessionalRole(user.role) || user.mfaEnabled;
+  // SEC-03 : un appareil de confiance encore valide de ce compte dispense du code.
+  const mfaExpected = isProfessionalRole(user.role) || user.mfaEnabled;
+  const trusted = mfaExpected && (await useTrustedDevice(db, user, options));
+  const requiresMfa = mfaExpected && !trusted;
   const sessionToken = generateSessionToken();
 
   await db.insert(sessions).values({
@@ -120,6 +133,44 @@ export async function login(db: AppDatabase, email: string, password: string): P
   return { outcome: "success", sessionToken, requiresMfa };
 }
 
+async function useTrustedDevice(
+  db: AppDatabase,
+  user: { id: string; role: Role; mfaEnabled: boolean; totpSecret: string | null },
+  options: LoginOptions,
+): Promise<boolean> {
+  if (!options.trustedDeviceToken || user.role === "admin" || !user.mfaEnabled || !user.totpSecret) return false;
+  const now = options.now ?? new Date();
+  // Les appareils échus de ce compte n'ont plus d'usage : effacés au passage.
+  await db.delete(trustedDevices).where(and(eq(trustedDevices.userId, user.id), lte(trustedDevices.expiresAt, now)));
+  const used = await db
+    .update(trustedDevices)
+    .set({ lastUsedAt: now })
+    .where(
+      and(
+        eq(trustedDevices.tokenHash, hashSessionToken(options.trustedDeviceToken)),
+        eq(trustedDevices.userId, user.id),
+        gt(trustedDevices.expiresAt, now),
+      ),
+    )
+    .returning({ id: trustedDevices.id });
+  return used.length > 0;
+}
+
+/** SEC-03 : appareils de confiance encore valides du compte (écran du profil). */
+export async function countTrustedDevices(db: AppDatabase, userId: string, now: Date = new Date()): Promise<number> {
+  const [row] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(trustedDevices)
+    .where(and(eq(trustedDevices.userId, userId), gt(trustedDevices.expiresAt, now)));
+  return row?.count ?? 0;
+}
+
+/** SEC-03 : « oublier mes appareils » ; renvoie le nombre d'appareils oubliés. */
+export async function forgetTrustedDevices(db: AppDatabase, userId: string): Promise<number> {
+  const forgotten = await db.delete(trustedDevices).where(eq(trustedDevices.userId, userId)).returning({ id: trustedDevices.id });
+  return forgotten.length;
+}
+
 export async function setupTotp(db: AppDatabase, userId: string) {
   const secret = generateTotpSecret();
   // SEC-01 : jamais en clair en base.
@@ -129,6 +180,8 @@ export async function setupTotp(db: AppDatabase, userId: string) {
     .where(eq(users.id, userId))
     .returning();
   if (!user) throw new Error("utilisateur introuvable");
+  // Nouvelle clé : aucun appareil retenu avec l'ancienne ne reste dispensé.
+  await db.delete(trustedDevices).where(eq(trustedDevices.userId, userId));
 
   return { secret, provisioningUri: buildTotpProvisioningUri({ secret, email: user.email }) };
 }
@@ -157,7 +210,9 @@ export async function resumeTotpSetup(db: AppDatabase, userId: string) {
 export type ConfirmTotpResult =
   // Nouveau jeton de session : l'ancien est révoqué (SEC-01), l'appelant
   // remplace le cookie.
-  | { outcome: "confirmed"; sessionToken: string }
+  // deviceToken (SEC-03) : à poser dans le cookie d'appareil de confiance quand
+  // « se souvenir de cet appareil » était coché (jamais pour l'Admin).
+  | { outcome: "confirmed"; sessionToken: string; deviceToken?: string }
   | { outcome: "invalid" }
   // notify : le verrouillage vient d'être posé, l'app prévient le titulaire
   // (e-mail traduit) ; nul pour les essais suivants pendant le verrouillage.
@@ -176,7 +231,7 @@ type MfaAccount = { userId: string; email: string; language: "fr" | "en" | null 
  */
 export async function confirmTotp(
   db: AppDatabase,
-  params: { sessionToken: string; token: string; now?: Date },
+  params: { sessionToken: string; token: string; now?: Date; rememberDevice?: boolean },
 ): Promise<ConfirmTotpResult> {
   const now = params.now ?? new Date();
   const tokenHash = hashSessionToken(params.sessionToken);
@@ -185,6 +240,7 @@ export async function confirmTotp(
       userId: sessions.userId,
       email: users.email,
       language: users.language,
+      role: users.role,
       totpSecret: users.totpSecret,
       mfaLockedUntil: users.mfaLockedUntil,
       expiresAt: sessions.expiresAt,
@@ -203,6 +259,7 @@ export async function confirmTotp(
   if (step === null) return recordMfaFailure(db, account, now);
 
   const newToken = generateSessionToken();
+  const deviceToken = params.rememberDevice && row.role !== "admin" ? generateSessionToken() : undefined;
   const confirmed = await db.transaction(async (tx) => {
     // Consomme le code sous condition : deux envois simultanés du même code,
     // ou un code rejoué, ne passent pas tous les deux.
@@ -233,10 +290,18 @@ export async function confirmTotp(
       mfaVerified: true,
       expiresAt: new Date(Date.now() + SESSION_DURATION_MS),
     });
+    if (deviceToken) {
+      await tx.insert(trustedDevices).values({
+        userId: row.userId,
+        tokenHash: hashSessionToken(deviceToken),
+        expiresAt: new Date(now.getTime() + TRUSTED_DEVICE_DURATION_MS),
+      });
+    }
     return true;
   });
 
-  return confirmed ? { outcome: "confirmed", sessionToken: newToken } : recordMfaFailure(db, account, now);
+  if (!confirmed) return recordMfaFailure(db, account, now);
+  return deviceToken ? { outcome: "confirmed", sessionToken: newToken, deviceToken } : { outcome: "confirmed", sessionToken: newToken };
 }
 
 async function recordMfaFailure(db: AppDatabase, account: MfaAccount, now: Date): Promise<ConfirmTotpResult> {
@@ -350,7 +415,7 @@ export async function requireUser(
     .where(eq(sessions.tokenHash, tokenHash));
 
   if ((isProfessionalRole(row.role) || row.mfaEnabled) && !row.mfaVerified) {
-    return { status: "mfa_required", userId: row.userId, totpConfirmed: row.mfaEnabled && row.totpSecret !== null };
+    return { status: "mfa_required", userId: row.userId, role: row.role, totpConfirmed: row.mfaEnabled && row.totpSecret !== null };
   }
 
   return {
