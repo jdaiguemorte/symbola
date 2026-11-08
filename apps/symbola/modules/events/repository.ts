@@ -1,7 +1,7 @@
 // Accès aux données du module events — jamais importé hors de
 // modules/events/ (ADR 0011).
 import { and, asc, desc, eq, gt, gte, ilike, inArray, isNotNull, isNull, lte, notInArray, or, sql } from "drizzle-orm";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import {
   defaultVendorSlots,
   eventActivities,
@@ -64,87 +64,79 @@ export async function findEvents(
     prospectSourceId?: string | undefined;
   },
 ): Promise<{ event: EventRow; clients: EventClientRow[] }[]> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, async (tx) => {
-      let matchingIds: string[] | undefined;
-      if (filters.search) {
-        const term = `%${filters.search}%`;
-        const matches = await tx
-          .selectDistinct({ id: events.id })
-          .from(events)
-          .leftJoin(eventClients, eq(eventClients.eventId, events.id))
-          .where(
-            or(
-              ilike(events.venueName, term),
-              ilike(events.venueCity, term),
-              ilike(eventClients.firstName, term),
-              ilike(eventClients.lastName, term),
-            ),
-          );
-        matchingIds = matches.map((row) => row.id);
-        if (matchingIds.length === 0) return [];
-      }
-
-      const conditions = [];
-      if (filters.statusIn && filters.statusIn.length > 0) {
-        conditions.push(inArray(events.status, filters.statusIn));
-      }
-      if (filters.year !== undefined) {
-        conditions.push(sql`extract(year from ${events.eventDate}) = ${filters.year}`);
-      }
-      if (filters.prospectSourceId) {
-        conditions.push(eq(events.prospectSourceId, filters.prospectSourceId));
-      }
-      if (matchingIds) {
-        conditions.push(inArray(events.id, matchingIds));
-      }
-
-      const eventRows = await tx
-        .select()
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    let matchingIds: string[] | undefined;
+    if (filters.search) {
+      const term = `%${filters.search}%`;
+      const matches = await tx
+        .selectDistinct({ id: events.id })
         .from(events)
-        .where(conditions.length > 0 ? and(...conditions) : undefined)
-        .orderBy(sql`${events.eventDate} asc nulls first`);
+        .leftJoin(eventClients, eq(eventClients.eventId, events.id))
+        .where(
+          or(
+            ilike(events.venueName, term),
+            ilike(events.venueCity, term),
+            ilike(eventClients.firstName, term),
+            ilike(eventClients.lastName, term),
+          ),
+        );
+      matchingIds = matches.map((row) => row.id);
+      if (matchingIds.length === 0) return [];
+    }
 
-      const eventIds = eventRows.map((row) => row.id);
-      const clientRows =
-        eventIds.length > 0
-          ? await tx
-              .select()
-              .from(eventClients)
-              .where(inArray(eventClients.eventId, eventIds))
-              .orderBy(asc(eventClients.position))
-          : [];
+    const conditions = [];
+    if (filters.statusIn && filters.statusIn.length > 0) {
+      conditions.push(inArray(events.status, filters.statusIn));
+    }
+    if (filters.year !== undefined) {
+      conditions.push(sql`extract(year from ${events.eventDate}) = ${filters.year}`);
+    }
+    if (filters.prospectSourceId) {
+      conditions.push(eq(events.prospectSourceId, filters.prospectSourceId));
+    }
+    if (matchingIds) {
+      conditions.push(inArray(events.id, matchingIds));
+    }
 
-      return eventRows.map((event) => ({
-        event,
-        clients: clientRows.filter((client) => client.eventId === event.id),
-      }));
-    });
-  } finally {
-    await pg.end();
-  }
+    const eventRows = await tx
+      .select()
+      .from(events)
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .orderBy(sql`${events.eventDate} asc nulls first`);
+
+    const eventIds = eventRows.map((row) => row.id);
+    const clientRows =
+      eventIds.length > 0
+        ? await tx
+            .select()
+            .from(eventClients)
+            .where(inArray(eventClients.eventId, eventIds))
+            .orderBy(asc(eventClients.position))
+        : [];
+
+    return eventRows.map((event) => ({
+      event,
+      clients: clientRows.filter((client) => client.eventId === event.id),
+    }));
+  });
 }
 
 export async function findEventById(
   organizationId: string,
   eventId: string,
 ): Promise<{ event: EventRow; clients: EventClientRow[] } | null> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, async (tx) => {
-      const [event] = await tx.select().from(events).where(eq(events.id, eventId));
-      if (!event) return null;
-      const clients = await tx
-        .select()
-        .from(eventClients)
-        .where(eq(eventClients.eventId, eventId))
-        .orderBy(asc(eventClients.position));
-      return { event, clients };
-    });
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const [event] = await tx.select().from(events).where(eq(events.id, eventId));
+    if (!event) return null;
+    const clients = await tx
+      .select()
+      .from(eventClients)
+      .where(eq(eventClients.eventId, eventId))
+      .orderBy(asc(eventClients.position));
+    return { event, clients };
+  });
 }
 
 export async function insertProspect(input: {
@@ -156,69 +148,65 @@ export async function insertProspect(input: {
   venueName?: string | null | undefined;
   venueCity?: string | null | undefined;
 }): Promise<EventRow> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, input.organizationId, async (tx) => {
-      const [event] = await tx
-        .insert(events)
-        .values({
-          organizationId: input.organizationId,
-          status: "prospect",
-          eventDate: input.eventDate ?? null,
-          venueName: input.venueName ?? null,
-          venueCity: input.venueCity ?? null,
-          prospectSourceId: input.prospectSourceId,
-        })
-        .returning();
-      if (!event) throw new Error("création de l'événement échouée");
+  const db = appDatabase();
+  return await withOrganization(db, input.organizationId, async (tx) => {
+    const [event] = await tx
+      .insert(events)
+      .values({
+        organizationId: input.organizationId,
+        status: "prospect",
+        eventDate: input.eventDate ?? null,
+        venueName: input.venueName ?? null,
+        venueCity: input.venueCity ?? null,
+        prospectSourceId: input.prospectSourceId,
+      })
+      .returning();
+    if (!event) throw new Error("création de l'événement échouée");
 
-      for (const [index, client] of input.clients.entries()) {
-        await tx.insert(eventClients).values({
-          organizationId: input.organizationId,
-          eventId: event.id,
-          firstName: client.firstName,
-          lastName: client.lastName ?? null,
-          position: index,
-        });
-      }
-
-      // EVT-03 : l'événement reçoit la liste de postes par défaut de la planner.
-      const defaults = await tx
-        .select()
-        .from(defaultVendorSlots)
-        .orderBy(asc(defaultVendorSlots.position), asc(defaultVendorSlots.createdAt));
-      if (defaults.length > 0) {
-        await tx.insert(eventVendorSlots).values(
-          defaults.map((slot, index) => ({
-            organizationId: input.organizationId,
-            eventId: event.id,
-            label: slot.label,
-            icon: slot.icon,
-            position: index,
-          })),
-        );
-      }
-
-      await tx.insert(eventStatusHistory).values({
+    for (const [index, client] of input.clients.entries()) {
+      await tx.insert(eventClients).values({
         organizationId: input.organizationId,
         eventId: event.id,
-        fromStatus: null,
-        toStatus: "prospect",
-        changedByUserId: input.createdByUserId,
+        firstName: client.firstName,
+        lastName: client.lastName ?? null,
+        position: index,
       });
+    }
 
-      await emitDomainEvent(tx, {
-        organizationId: input.organizationId,
-        name: EVT_EVENT_CREATED,
-        version: EVT_EVENT_CREATED_VERSION,
-        payload: { eventId: event.id, status: event.status },
-      });
+    // EVT-03 : l'événement reçoit la liste de postes par défaut de la planner.
+    const defaults = await tx
+      .select()
+      .from(defaultVendorSlots)
+      .orderBy(asc(defaultVendorSlots.position), asc(defaultVendorSlots.createdAt));
+    if (defaults.length > 0) {
+      await tx.insert(eventVendorSlots).values(
+        defaults.map((slot, index) => ({
+          organizationId: input.organizationId,
+          eventId: event.id,
+          label: slot.label,
+          icon: slot.icon,
+          position: index,
+        })),
+      );
+    }
 
-      return event;
+    await tx.insert(eventStatusHistory).values({
+      organizationId: input.organizationId,
+      eventId: event.id,
+      fromStatus: null,
+      toStatus: "prospect",
+      changedByUserId: input.createdByUserId,
     });
-  } finally {
-    await pg.end();
-  }
+
+    await emitDomainEvent(tx, {
+      organizationId: input.organizationId,
+      name: EVT_EVENT_CREATED,
+      version: EVT_EVENT_CREATED_VERSION,
+      payload: { eventId: event.id, status: event.status },
+    });
+
+    return event;
+  });
 }
 
 export async function updateEventStatus(input: {
@@ -229,96 +217,80 @@ export async function updateEventStatus(input: {
   lossReasonId?: string | null;
   lossReasonNote?: string | null;
 }): Promise<EventRow> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, input.organizationId, async (tx) => {
-      const [current] = await tx.select().from(events).where(eq(events.id, input.eventId));
-      if (!current) throw new Error("événement introuvable");
+  const db = appDatabase();
+  return await withOrganization(db, input.organizationId, async (tx) => {
+    const [current] = await tx.select().from(events).where(eq(events.id, input.eventId));
+    if (!current) throw new Error("événement introuvable");
 
-      const [updated] = await tx
-        .update(events)
-        .set({
-          status: input.toStatus,
-          lossReasonId: input.toStatus === "lost" ? (input.lossReasonId ?? null) : null,
-          lossReasonNote: input.toStatus === "lost" ? (input.lossReasonNote ?? null) : null,
-          updatedAt: new Date(),
-        })
-        .where(eq(events.id, input.eventId))
-        .returning();
-      if (!updated) throw new Error("mise à jour de l'événement échouée");
+    const [updated] = await tx
+      .update(events)
+      .set({
+        status: input.toStatus,
+        lossReasonId: input.toStatus === "lost" ? (input.lossReasonId ?? null) : null,
+        lossReasonNote: input.toStatus === "lost" ? (input.lossReasonNote ?? null) : null,
+        updatedAt: new Date(),
+      })
+      .where(eq(events.id, input.eventId))
+      .returning();
+    if (!updated) throw new Error("mise à jour de l'événement échouée");
 
-      await tx.insert(eventStatusHistory).values({
-        organizationId: input.organizationId,
-        eventId: input.eventId,
-        fromStatus: current.status,
-        toStatus: input.toStatus,
-        changedByUserId: input.changedByUserId,
-      });
-
-      // AIDE-02 : un événement d'essai ne publie rien (aucun consommateur
-      // ne doit voir de donnée fictive).
-      if (!current.isDemo) {
-        await emitDomainEvent(tx, {
-          organizationId: input.organizationId,
-          name: EVT_EVENT_STATUS_CHANGED,
-          version: EVT_EVENT_STATUS_CHANGED_VERSION,
-          payload: {
-            eventId: input.eventId,
-            fromStatus: current.status,
-            toStatus: input.toStatus,
-            changedByUserId: input.changedByUserId,
-          },
-        });
-      }
-
-      return updated;
+    await tx.insert(eventStatusHistory).values({
+      organizationId: input.organizationId,
+      eventId: input.eventId,
+      fromStatus: current.status,
+      toStatus: input.toStatus,
+      changedByUserId: input.changedByUserId,
     });
-  } finally {
-    await pg.end();
-  }
+
+    // AIDE-02 : un événement d'essai ne publie rien (aucun consommateur
+    // ne doit voir de donnée fictive).
+    if (!current.isDemo) {
+      await emitDomainEvent(tx, {
+        organizationId: input.organizationId,
+        name: EVT_EVENT_STATUS_CHANGED,
+        version: EVT_EVENT_STATUS_CHANGED_VERSION,
+        payload: {
+          eventId: input.eventId,
+          fromStatus: current.status,
+          toStatus: input.toStatus,
+          changedByUserId: input.changedByUserId,
+        },
+      });
+    }
+
+    return updated;
+  });
 }
 
 export async function findProspectSources(organizationId: string): Promise<ProspectSourceRow[]> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, (tx) =>
-      tx
-        .select()
-        .from(prospectSources)
-        .where(eq(prospectSources.organizationId, organizationId))
-        .orderBy(asc(prospectSources.createdAt)),
-    );
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, (tx) =>
+    tx
+      .select()
+      .from(prospectSources)
+      .where(eq(prospectSources.organizationId, organizationId))
+      .orderBy(asc(prospectSources.createdAt)),
+  );
 }
 
 export async function insertProspectSource(organizationId: string, label: string): Promise<ProspectSourceRow> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, async (tx) => {
-      const [row] = await tx.insert(prospectSources).values({ organizationId, label }).returning();
-      if (!row) throw new Error("création de la source échouée");
-      return row;
-    });
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const [row] = await tx.insert(prospectSources).values({ organizationId, label }).returning();
+    if (!row) throw new Error("création de la source échouée");
+    return row;
+  });
 }
 
 export async function findLossReasons(organizationId: string): Promise<LossReasonRow[]> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, (tx) =>
-      tx
-        .select()
-        .from(lossReasons)
-        .where(eq(lossReasons.organizationId, organizationId))
-        .orderBy(asc(lossReasons.createdAt)),
-    );
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, (tx) =>
+    tx
+      .select()
+      .from(lossReasons)
+      .where(eq(lossReasons.organizationId, organizationId))
+      .orderBy(asc(lossReasons.createdAt)),
+  );
 }
 
 export async function insertLossReason(
@@ -326,31 +298,23 @@ export async function insertLossReason(
   label: string,
   isFreeText: boolean,
 ): Promise<LossReasonRow> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, async (tx) => {
-      const [row] = await tx.insert(lossReasons).values({ organizationId, label, isFreeText }).returning();
-      if (!row) throw new Error("création du motif échouée");
-      return row;
-    });
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const [row] = await tx.insert(lossReasons).values({ organizationId, label, isFreeText }).returning();
+    if (!row) throw new Error("création du motif échouée");
+    return row;
+  });
 }
 
 // EVT-03 — liste de postes par défaut de l'organisation.
 export async function findDefaultVendorSlots(organizationId: string): Promise<DefaultVendorSlotRow[]> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, (tx) =>
-      tx
-        .select()
-        .from(defaultVendorSlots)
-        .orderBy(asc(defaultVendorSlots.position), asc(defaultVendorSlots.createdAt)),
-    );
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, (tx) =>
+    tx
+      .select()
+      .from(defaultVendorSlots)
+      .orderBy(asc(defaultVendorSlots.position), asc(defaultVendorSlots.createdAt)),
+  );
 }
 
 // Ajoute les libellés absents de la liste (comparaison sans tenir compte
@@ -362,72 +326,56 @@ export async function insertDefaultVendorSlots(
 ): Promise<DefaultVendorSlotRow[]> {
   const labels = entries.map((entry) => (typeof entry === "string" ? entry : entry.label));
   const icons = new Map(entries.map((entry) => (typeof entry === "string" ? [entry.trim().toLowerCase(), null] : [entry.label.trim().toLowerCase(), entry.icon ?? null])));
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, async (tx) => {
-      const existing = await tx.select().from(defaultVendorSlots);
-      const known = new Set(existing.map((slot) => slot.label.trim().toLowerCase()));
-      let nextPosition = existing.reduce((max, slot) => Math.max(max, slot.position + 1), 0);
-      const toInsert = [];
-      for (const label of labels.map((value) => value.trim()).filter(Boolean)) {
-        const key = label.toLowerCase();
-        if (known.has(key)) continue;
-        known.add(key);
-        toInsert.push({ organizationId, label, icon: icons.get(key) ?? null, position: nextPosition++ });
-      }
-      if (toInsert.length === 0) return [];
-      return tx.insert(defaultVendorSlots).values(toInsert).returning();
-    });
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const existing = await tx.select().from(defaultVendorSlots);
+    const known = new Set(existing.map((slot) => slot.label.trim().toLowerCase()));
+    let nextPosition = existing.reduce((max, slot) => Math.max(max, slot.position + 1), 0);
+    const toInsert = [];
+    for (const label of labels.map((value) => value.trim()).filter(Boolean)) {
+      const key = label.toLowerCase();
+      if (known.has(key)) continue;
+      known.add(key);
+      toInsert.push({ organizationId, label, icon: icons.get(key) ?? null, position: nextPosition++ });
+    }
+    if (toInsert.length === 0) return [];
+    return tx.insert(defaultVendorSlots).values(toInsert).returning();
+  });
 }
 
 export async function deleteDefaultVendorSlot(organizationId: string, defaultVendorSlotId: string): Promise<void> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    await withOrganization(db, organizationId, (tx) =>
-      tx.delete(defaultVendorSlots).where(eq(defaultVendorSlots.id, defaultVendorSlotId)),
-    );
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  await withOrganization(db, organizationId, (tx) =>
+    tx.delete(defaultVendorSlots).where(eq(defaultVendorSlots.id, defaultVendorSlotId)),
+  );
 }
 
 // Lot 13 (HUB-16) — nouvel ordre des lignes du budget par défaut : la liste
 // doit contenir exactement les lignes de l'organisation (sinon rien ne
 // change, renvoie false) ; chaque position vaut son rang.
 export async function reorderDefaultVendorSlotRows(organizationId: string, orderedIds: string[]): Promise<boolean> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, async (tx) => {
-      const existing = await tx.select({ id: defaultVendorSlots.id }).from(defaultVendorSlots);
-      const known = new Set(existing.map((slot) => slot.id));
-      if (orderedIds.length !== known.size || new Set(orderedIds).size !== orderedIds.length || !orderedIds.every((id) => known.has(id))) return false;
-      for (const [position, id] of orderedIds.entries()) {
-        await tx.update(defaultVendorSlots).set({ position }).where(eq(defaultVendorSlots.id, id));
-      }
-      return true;
-    });
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const existing = await tx.select({ id: defaultVendorSlots.id }).from(defaultVendorSlots);
+    const known = new Set(existing.map((slot) => slot.id));
+    if (orderedIds.length !== known.size || new Set(orderedIds).size !== orderedIds.length || !orderedIds.every((id) => known.has(id))) return false;
+    for (const [position, id] of orderedIds.entries()) {
+      await tx.update(defaultVendorSlots).set({ position }).where(eq(defaultVendorSlots.id, id));
+    }
+    return true;
+  });
 }
 
 // EVT-03 — postes d'un événement.
 export async function findEventVendorSlots(organizationId: string, eventId: string): Promise<EventVendorSlotRow[]> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, (tx) =>
-      tx
-        .select()
-        .from(eventVendorSlots)
-        .where(eq(eventVendorSlots.eventId, eventId))
-        .orderBy(asc(eventVendorSlots.position), asc(eventVendorSlots.createdAt)),
-    );
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, (tx) =>
+    tx
+      .select()
+      .from(eventVendorSlots)
+      .where(eq(eventVendorSlots.eventId, eventId))
+      .orderBy(asc(eventVendorSlots.position), asc(eventVendorSlots.createdAt)),
+  );
 }
 
 export async function insertEventVendorSlot(
@@ -435,26 +383,22 @@ export async function insertEventVendorSlot(
   eventId: string,
   label: string,
 ): Promise<EventVendorSlotRow | null> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, async (tx) => {
-      // La clé étrangère est vérifiée sans RLS : sans ce contrôle, un
-      // identifiant d'événement d'une autre organisation serait accepté.
-      const [event] = await tx.select({ id: events.id }).from(events).where(eq(events.id, eventId));
-      if (!event) return null;
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    // La clé étrangère est vérifiée sans RLS : sans ce contrôle, un
+    // identifiant d'événement d'une autre organisation serait accepté.
+    const [event] = await tx.select({ id: events.id }).from(events).where(eq(events.id, eventId));
+    if (!event) return null;
 
-      const existing = await tx
-        .select({ position: eventVendorSlots.position })
-        .from(eventVendorSlots)
-        .where(eq(eventVendorSlots.eventId, eventId));
-      const position = existing.reduce((max, slot) => Math.max(max, slot.position + 1), 0);
-      const [row] = await tx.insert(eventVendorSlots).values({ organizationId, eventId, label, position }).returning();
-      if (!row) throw new Error("ajout du poste échoué");
-      return row;
-    });
-  } finally {
-    await pg.end();
-  }
+    const existing = await tx
+      .select({ position: eventVendorSlots.position })
+      .from(eventVendorSlots)
+      .where(eq(eventVendorSlots.eventId, eventId));
+    const position = existing.reduce((max, slot) => Math.max(max, slot.position + 1), 0);
+    const [row] = await tx.insert(eventVendorSlots).values({ organizationId, eventId, label, position }).returning();
+    if (!row) throw new Error("ajout du poste échoué");
+    return row;
+  });
 }
 
 export async function updateEventVendorSlotRow(input: {
@@ -467,93 +411,81 @@ export async function updateEventVendorSlotRow(input: {
   // Lot 11 (EVT-10) : consulté retenu ; effacé quand le poste n'est plus réservé.
   selectedCandidateId?: string | null | undefined;
 }): Promise<EventVendorSlotRow | null> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, input.organizationId, async (tx) => {
-      const [current] = await tx.select().from(eventVendorSlots).where(eq(eventVendorSlots.id, input.vendorSlotId));
-      if (!current) return null;
+  const db = appDatabase();
+  return await withOrganization(db, input.organizationId, async (tx) => {
+    const [current] = await tx.select().from(eventVendorSlots).where(eq(eventVendorSlots.id, input.vendorSlotId));
+    if (!current) return null;
 
-      const vendorName = input.vendorName === undefined ? current.vendorName : input.vendorName;
-      const amountCents = input.amountCents === undefined ? current.amountCents : input.amountCents;
-      const selectedCandidateId =
-        input.selectedCandidateId !== undefined ? input.selectedCandidateId : input.status === "booked" ? current.selectedCandidateId : null;
+    const vendorName = input.vendorName === undefined ? current.vendorName : input.vendorName;
+    const amountCents = input.amountCents === undefined ? current.amountCents : input.amountCents;
+    const selectedCandidateId =
+      input.selectedCandidateId !== undefined ? input.selectedCandidateId : input.status === "booked" ? current.selectedCandidateId : null;
 
-      const [updated] = await tx
-        .update(eventVendorSlots)
-        .set({ status: input.status, vendorName, amountCents, selectedCandidateId, updatedAt: new Date() })
-        .where(eq(eventVendorSlots.id, input.vendorSlotId))
-        .returning();
-      if (!updated) throw new Error("mise à jour du poste échouée");
+    const [updated] = await tx
+      .update(eventVendorSlots)
+      .set({ status: input.status, vendorName, amountCents, selectedCandidateId, updatedAt: new Date() })
+      .where(eq(eventVendorSlots.id, input.vendorSlotId))
+      .returning();
+    if (!updated) throw new Error("mise à jour du poste échouée");
 
-      // Publié à la réservation, puis à chaque changement de montant d'un
-      // poste réservé (le futur module Budget garde la dernière valeur).
-      const becomesBooked = current.status !== "booked" && updated.status === "booked";
-      const bookedAmountChanged =
-        current.status === "booked" && updated.status === "booked" && current.amountCents !== updated.amountCents;
-      const [parent] = await tx.select({ isDemo: events.isDemo }).from(events).where(eq(events.id, updated.eventId));
-      if ((becomesBooked || bookedAmountChanged) && !parent?.isDemo) {
-        await emitDomainEvent(tx, {
-          organizationId: input.organizationId,
-          name: EVT_VENDOR_SLOT_BOOKED,
-          version: EVT_VENDOR_SLOT_BOOKED_VERSION,
-          payload: vendorSlotBookedPayloadSchema.parse({
-            eventId: updated.eventId,
-            vendorSlotId: updated.id,
-            label: updated.label,
-            amountCents: updated.amountCents,
-            currency: "EUR",
-            bookedByUserId: input.changedByUserId,
-          }),
-        });
-      }
+    // Publié à la réservation, puis à chaque changement de montant d'un
+    // poste réservé (le futur module Budget garde la dernière valeur).
+    const becomesBooked = current.status !== "booked" && updated.status === "booked";
+    const bookedAmountChanged =
+      current.status === "booked" && updated.status === "booked" && current.amountCents !== updated.amountCents;
+    const [parent] = await tx.select({ isDemo: events.isDemo }).from(events).where(eq(events.id, updated.eventId));
+    if ((becomesBooked || bookedAmountChanged) && !parent?.isDemo) {
+      await emitDomainEvent(tx, {
+        organizationId: input.organizationId,
+        name: EVT_VENDOR_SLOT_BOOKED,
+        version: EVT_VENDOR_SLOT_BOOKED_VERSION,
+        payload: vendorSlotBookedPayloadSchema.parse({
+          eventId: updated.eventId,
+          vendorSlotId: updated.id,
+          label: updated.label,
+          amountCents: updated.amountCents,
+          currency: "EUR",
+          bookedByUserId: input.changedByUserId,
+        }),
+      });
+    }
 
-      return updated;
-    });
-  } finally {
-    await pg.end();
-  }
+    return updated;
+  });
 }
 
 export async function deleteEventVendorSlot(organizationId: string, vendorSlotId: string): Promise<void> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    await withOrganization(db, organizationId, (tx) =>
-      tx.delete(eventVendorSlots).where(eq(eventVendorSlots.id, vendorSlotId)),
-    );
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  await withOrganization(db, organizationId, (tx) =>
+    tx.delete(eventVendorSlots).where(eq(eventVendorSlots.id, vendorSlotId)),
+  );
 }
 
 // EVT-04 — modèles de rétroplanning.
 export async function findTaskTemplates(
   organizationId: string,
 ): Promise<{ template: TaskTemplateRow; items: TaskTemplateItemRow[] }[]> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, async (tx) => {
-      const templates = await tx.select().from(taskTemplates).orderBy(asc(taskTemplates.createdAt));
-      const items =
-        templates.length > 0
-          ? await tx
-              .select()
-              .from(taskTemplateItems)
-              .where(
-                inArray(
-                  taskTemplateItems.templateId,
-                  templates.map((template) => template.id),
-                ),
-              )
-              .orderBy(asc(taskTemplateItems.offsetDays), asc(taskTemplateItems.position))
-          : [];
-      return templates.map((template) => ({
-        template,
-        items: items.filter((item) => item.templateId === template.id),
-      }));
-    });
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const templates = await tx.select().from(taskTemplates).orderBy(asc(taskTemplates.createdAt));
+    const items =
+      templates.length > 0
+        ? await tx
+            .select()
+            .from(taskTemplateItems)
+            .where(
+              inArray(
+                taskTemplateItems.templateId,
+                templates.map((template) => template.id),
+              ),
+            )
+            .orderBy(asc(taskTemplateItems.offsetDays), asc(taskTemplateItems.position))
+        : [];
+    return templates.map((template) => ({
+      template,
+      items: items.filter((item) => item.templateId === template.id),
+    }));
+  });
 }
 
 export async function insertTaskTemplate(
@@ -561,23 +493,19 @@ export async function insertTaskTemplate(
   name: string,
   items: TaskTemplateItemInput[],
 ): Promise<{ template: TaskTemplateRow; items: TaskTemplateItemRow[] }> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, async (tx) => {
-      const [template] = await tx.insert(taskTemplates).values({ organizationId, name }).returning();
-      if (!template) throw new Error("création du modèle échouée");
-      const rows =
-        items.length > 0
-          ? await tx
-              .insert(taskTemplateItems)
-              .values(items.map((item, index) => ({ organizationId, templateId: template.id, ...item, position: index })))
-              .returning()
-          : [];
-      return { template, items: rows };
-    });
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const [template] = await tx.insert(taskTemplates).values({ organizationId, name }).returning();
+    if (!template) throw new Error("création du modèle échouée");
+    const rows =
+      items.length > 0
+        ? await tx
+            .insert(taskTemplateItems)
+            .values(items.map((item, index) => ({ organizationId, templateId: template.id, ...item, position: index })))
+            .returning()
+        : [];
+    return { template, items: rows };
+  });
 }
 
 export async function insertTaskTemplateItem(
@@ -585,55 +513,43 @@ export async function insertTaskTemplateItem(
   templateId: string,
   item: TaskTemplateItemInput,
 ): Promise<TaskTemplateItemRow | null> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, async (tx) => {
-      // Clé étrangère vérifiée sans RLS : on contrôle que le modèle est visible.
-      const [template] = await tx
-        .select({ id: taskTemplates.id })
-        .from(taskTemplates)
-        .where(eq(taskTemplates.id, templateId));
-      if (!template) return null;
-      const existing = await tx
-        .select({ position: taskTemplateItems.position })
-        .from(taskTemplateItems)
-        .where(eq(taskTemplateItems.templateId, templateId));
-      const position = existing.reduce((max, row) => Math.max(max, row.position + 1), 0);
-      const [row] = await tx
-        .insert(taskTemplateItems)
-        .values({ organizationId, templateId, ...item, position })
-        .returning();
-      if (!row) throw new Error("ajout de la tâche au modèle échoué");
-      return row;
-    });
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    // Clé étrangère vérifiée sans RLS : on contrôle que le modèle est visible.
+    const [template] = await tx
+      .select({ id: taskTemplates.id })
+      .from(taskTemplates)
+      .where(eq(taskTemplates.id, templateId));
+    if (!template) return null;
+    const existing = await tx
+      .select({ position: taskTemplateItems.position })
+      .from(taskTemplateItems)
+      .where(eq(taskTemplateItems.templateId, templateId));
+    const position = existing.reduce((max, row) => Math.max(max, row.position + 1), 0);
+    const [row] = await tx
+      .insert(taskTemplateItems)
+      .values({ organizationId, templateId, ...item, position })
+      .returning();
+    if (!row) throw new Error("ajout de la tâche au modèle échoué");
+    return row;
+  });
 }
 
 export async function deleteTaskTemplateItem(organizationId: string, itemId: string): Promise<void> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    await withOrganization(db, organizationId, (tx) =>
-      tx.delete(taskTemplateItems).where(eq(taskTemplateItems.id, itemId)),
-    );
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  await withOrganization(db, organizationId, (tx) =>
+    tx.delete(taskTemplateItems).where(eq(taskTemplateItems.id, itemId)),
+  );
 }
 
 // Les tâches déjà créées sur les événements restent : elles ne référencent
 // pas le modèle.
 export async function deleteTaskTemplate(organizationId: string, templateId: string): Promise<void> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    await withOrganization(db, organizationId, async (tx) => {
-      await tx.delete(taskTemplateItems).where(eq(taskTemplateItems.templateId, templateId));
-      await tx.delete(taskTemplates).where(eq(taskTemplates.id, templateId));
-    });
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  await withOrganization(db, organizationId, async (tx) => {
+    await tx.delete(taskTemplateItems).where(eq(taskTemplateItems.templateId, templateId));
+    await tx.delete(taskTemplates).where(eq(taskTemplates.id, templateId));
+  });
 }
 
 // EVT-04 — recalcul des échéances après un changement de date.
@@ -662,41 +578,33 @@ export async function updateEventDateRow(
   eventId: string,
   eventDate: string | null,
 ): Promise<TaskRecalculation | null> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, async (tx) => {
-      const [current] = await tx.select().from(events).where(eq(events.id, eventId));
-      if (!current) return null;
-      const undoneTasks = await countUndoneTasks(tx, eventId);
-      // Sans tâche à décaler, les échéances suivent directement la nouvelle date.
-      const tasksScheduledFor = undoneTasks === 0 ? eventDate : current.tasksScheduledFor;
-      const [updated] = await tx
-        .update(events)
-        .set({ eventDate, tasksScheduledFor, updatedAt: new Date() })
-        .where(eq(events.id, eventId))
-        .returning();
-      if (!updated) throw new Error("mise à jour de la date échouée");
-      return recalculationFor(updated, undoneTasks);
-    });
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const [current] = await tx.select().from(events).where(eq(events.id, eventId));
+    if (!current) return null;
+    const undoneTasks = await countUndoneTasks(tx, eventId);
+    // Sans tâche à décaler, les échéances suivent directement la nouvelle date.
+    const tasksScheduledFor = undoneTasks === 0 ? eventDate : current.tasksScheduledFor;
+    const [updated] = await tx
+      .update(events)
+      .set({ eventDate, tasksScheduledFor, updatedAt: new Date() })
+      .where(eq(events.id, eventId))
+      .returning();
+    if (!updated) throw new Error("mise à jour de la date échouée");
+    return recalculationFor(updated, undoneTasks);
+  });
 }
 
 export async function findTaskRecalculation(
   organizationId: string,
   eventId: string,
 ): Promise<TaskRecalculation | null> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, async (tx) => {
-      const [event] = await tx.select().from(events).where(eq(events.id, eventId));
-      if (!event) return null;
-      return recalculationFor(event, await countUndoneTasks(tx, eventId));
-    });
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const [event] = await tx.select().from(events).where(eq(events.id, eventId));
+    if (!event) return null;
+    return recalculationFor(event, await countUndoneTasks(tx, eventId));
+  });
 }
 
 // Accepter décale les tâches non faites de l'écart entre les deux dates ;
@@ -706,34 +614,30 @@ export async function resolveTaskRecalculationRow(
   eventId: string,
   accept: boolean,
 ): Promise<boolean> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, async (tx) => {
-      const [event] = await tx.select().from(events).where(eq(events.id, eventId));
-      if (!event) return false;
-      const recalculation = recalculationFor(event, await countUndoneTasks(tx, eventId));
-      if (!recalculation.pending) return true;
-      if (accept) {
-        const undone = await tx
-          .select()
-          .from(eventTasks)
-          .where(and(eq(eventTasks.eventId, eventId), isNull(eventTasks.doneAt)));
-        for (const task of undone) {
-          await tx
-            .update(eventTasks)
-            .set({ dueDate: addDays(task.dueDate, recalculation.shiftDays), updatedAt: new Date() })
-            .where(eq(eventTasks.id, task.id));
-        }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const [event] = await tx.select().from(events).where(eq(events.id, eventId));
+    if (!event) return false;
+    const recalculation = recalculationFor(event, await countUndoneTasks(tx, eventId));
+    if (!recalculation.pending) return true;
+    if (accept) {
+      const undone = await tx
+        .select()
+        .from(eventTasks)
+        .where(and(eq(eventTasks.eventId, eventId), isNull(eventTasks.doneAt)));
+      for (const task of undone) {
+        await tx
+          .update(eventTasks)
+          .set({ dueDate: addDays(task.dueDate, recalculation.shiftDays), updatedAt: new Date() })
+          .where(eq(eventTasks.id, task.id));
       }
-      await tx
-        .update(events)
-        .set({ tasksScheduledFor: event.eventDate, updatedAt: new Date() })
-        .where(eq(events.id, eventId));
-      return true;
-    });
-  } finally {
-    await pg.end();
-  }
+    }
+    await tx
+      .update(events)
+      .set({ tasksScheduledFor: event.eventDate, updatedAt: new Date() })
+      .where(eq(events.id, eventId));
+    return true;
+  });
 }
 
 // EVT-04 — tâches d'un événement.
@@ -754,67 +658,59 @@ export async function applyTaskTemplateRows(
   eventId: string,
   templateId: string,
 ): Promise<ApplyTaskTemplateResult> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, async (tx) => {
-      const [event] = await tx.select().from(events).where(eq(events.id, eventId));
-      if (!event) return { status: "event_not_found" };
-      const [template] = await tx.select().from(taskTemplates).where(eq(taskTemplates.id, templateId));
-      if (!template) return { status: "template_not_found" };
-      if (!event.eventDate) return { status: "date_required" };
-      if (recalculationFor(event, await countUndoneTasks(tx, eventId)).pending) {
-        return { status: "recalculation_pending" };
-      }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const [event] = await tx.select().from(events).where(eq(events.id, eventId));
+    if (!event) return { status: "event_not_found" };
+    const [template] = await tx.select().from(taskTemplates).where(eq(taskTemplates.id, templateId));
+    if (!template) return { status: "template_not_found" };
+    if (!event.eventDate) return { status: "date_required" };
+    if (recalculationFor(event, await countUndoneTasks(tx, eventId)).pending) {
+      return { status: "recalculation_pending" };
+    }
 
-      const items = await tx
-        .select()
-        .from(taskTemplateItems)
-        .where(eq(taskTemplateItems.templateId, templateId))
-        .orderBy(asc(taskTemplateItems.offsetDays), asc(taskTemplateItems.position));
-      const eventDate = event.eventDate;
-      const start = await nextTaskPosition(tx, eventId);
-      const tasks =
-        items.length > 0
-          ? await tx
-              .insert(eventTasks)
-              .values(
-                items.map((item, index) => ({
-                  organizationId,
-                  eventId,
-                  label: item.label,
-                  dueDate: dueDateFor(eventDate, item.offsetDays),
-                  responsible: item.responsible,
-                  position: start + index,
-                })),
-              )
-              .returning()
-          : [];
-      if (!event.tasksScheduledFor) {
-        await tx.update(events).set({ tasksScheduledFor: eventDate }).where(eq(events.id, eventId));
-      }
-      return { status: "applied", tasks };
-    });
-  } finally {
-    await pg.end();
-  }
+    const items = await tx
+      .select()
+      .from(taskTemplateItems)
+      .where(eq(taskTemplateItems.templateId, templateId))
+      .orderBy(asc(taskTemplateItems.offsetDays), asc(taskTemplateItems.position));
+    const eventDate = event.eventDate;
+    const start = await nextTaskPosition(tx, eventId);
+    const tasks =
+      items.length > 0
+        ? await tx
+            .insert(eventTasks)
+            .values(
+              items.map((item, index) => ({
+                organizationId,
+                eventId,
+                label: item.label,
+                dueDate: dueDateFor(eventDate, item.offsetDays),
+                responsible: item.responsible,
+                position: start + index,
+              })),
+            )
+            .returning()
+        : [];
+    if (!event.tasksScheduledFor) {
+      await tx.update(events).set({ tasksScheduledFor: eventDate }).where(eq(events.id, eventId));
+    }
+    return { status: "applied", tasks };
+  });
 }
 
 // Vue par mois : tri par mois d'échéance, puis par l'ordre choisi par la planner.
 const taskOrder = [sql`date_trunc('month', ${eventTasks.dueDate})`, asc(eventTasks.position), asc(eventTasks.createdAt)];
 
 export async function findEventTasks(organizationId: string, eventId: string): Promise<EventTaskRow[]> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, (tx) =>
-      tx
-        .select()
-        .from(eventTasks)
-        .where(eq(eventTasks.eventId, eventId))
-        .orderBy(...taskOrder),
-    );
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, (tx) =>
+    tx
+      .select()
+      .from(eventTasks)
+      .where(eq(eventTasks.eventId, eventId))
+      .orderBy(...taskOrder),
+  );
 }
 
 // HUB-02 — tâches de toute l'organisation, hors événements perdus ou
@@ -823,26 +719,22 @@ export async function findOrganizationTasks(
   organizationId: string,
   options: { until: string | null; includeDone: boolean },
 ): Promise<EventTaskRow[]> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, (tx) =>
-      tx
-        .select({ task: eventTasks })
-        .from(eventTasks)
-        .innerJoin(events, eq(events.id, eventTasks.eventId))
-        .where(
-          and(
-            notInArray(events.status, ["lost", "done"]),
-            options.until ? lte(eventTasks.dueDate, options.until) : undefined,
-            options.includeDone ? undefined : isNull(eventTasks.doneAt),
-          ),
-        )
-        .orderBy(asc(eventTasks.dueDate), asc(eventTasks.position), asc(eventTasks.createdAt))
-        .then((rows) => rows.map((row) => row.task)),
-    );
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, (tx) =>
+    tx
+      .select({ task: eventTasks })
+      .from(eventTasks)
+      .innerJoin(events, eq(events.id, eventTasks.eventId))
+      .where(
+        and(
+          notInArray(events.status, ["lost", "done"]),
+          options.until ? lte(eventTasks.dueDate, options.until) : undefined,
+          options.includeDone ? undefined : isNull(eventTasks.doneAt),
+        ),
+      )
+      .orderBy(asc(eventTasks.dueDate), asc(eventTasks.position), asc(eventTasks.createdAt))
+      .then((rows) => rows.map((row) => row.task)),
+  );
 }
 
 export async function insertEventTask(
@@ -850,26 +742,22 @@ export async function insertEventTask(
   eventId: string,
   task: { label: string; dueDate: string; responsible: TaskResponsible },
 ): Promise<EventTaskRow | null> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, async (tx) => {
-      // Clé étrangère vérifiée sans RLS : on contrôle que l'événement est visible.
-      const [event] = await tx.select().from(events).where(eq(events.id, eventId));
-      if (!event) return null;
-      const position = await nextTaskPosition(tx, eventId);
-      const [row] = await tx
-        .insert(eventTasks)
-        .values({ organizationId, eventId, ...task, position })
-        .returning();
-      if (!row) throw new Error("ajout de la tâche échoué");
-      if (!event.tasksScheduledFor && event.eventDate) {
-        await tx.update(events).set({ tasksScheduledFor: event.eventDate }).where(eq(events.id, eventId));
-      }
-      return row;
-    });
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    // Clé étrangère vérifiée sans RLS : on contrôle que l'événement est visible.
+    const [event] = await tx.select().from(events).where(eq(events.id, eventId));
+    if (!event) return null;
+    const position = await nextTaskPosition(tx, eventId);
+    const [row] = await tx
+      .insert(eventTasks)
+      .values({ organizationId, eventId, ...task, position })
+      .returning();
+    if (!row) throw new Error("ajout de la tâche échoué");
+    if (!event.tasksScheduledFor && event.eventDate) {
+      await tx.update(events).set({ tasksScheduledFor: event.eventDate }).where(eq(events.id, eventId));
+    }
+    return row;
+  });
 }
 
 export async function updateEventTaskRow(input: {
@@ -880,28 +768,24 @@ export async function updateEventTaskRow(input: {
   responsible?: TaskResponsible | undefined;
   done?: boolean | undefined;
 }): Promise<EventTaskRow | null> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, input.organizationId, async (tx) => {
-      const [current] = await tx.select().from(eventTasks).where(eq(eventTasks.id, input.taskId));
-      if (!current) return null;
-      const doneAt = input.done === undefined ? current.doneAt : input.done ? (current.doneAt ?? new Date()) : null;
-      const [updated] = await tx
-        .update(eventTasks)
-        .set({
-          label: input.label ?? current.label,
-          dueDate: input.dueDate ?? current.dueDate,
-          responsible: input.responsible ?? current.responsible,
-          doneAt,
-          updatedAt: new Date(),
-        })
-        .where(eq(eventTasks.id, input.taskId))
-        .returning();
-      return updated ?? null;
-    });
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, input.organizationId, async (tx) => {
+    const [current] = await tx.select().from(eventTasks).where(eq(eventTasks.id, input.taskId));
+    if (!current) return null;
+    const doneAt = input.done === undefined ? current.doneAt : input.done ? (current.doneAt ?? new Date()) : null;
+    const [updated] = await tx
+      .update(eventTasks)
+      .set({
+        label: input.label ?? current.label,
+        dueDate: input.dueDate ?? current.dueDate,
+        responsible: input.responsible ?? current.responsible,
+        doneAt,
+        updatedAt: new Date(),
+      })
+      .where(eq(eventTasks.id, input.taskId))
+      .returning();
+    return updated ?? null;
+  });
 }
 
 // Échange la tâche avec sa voisine du même mois ; les positions du mois
@@ -911,49 +795,41 @@ export async function moveEventTaskRow(
   taskId: string,
   direction: "up" | "down",
 ): Promise<boolean> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, async (tx) => {
-      const [task] = await tx.select().from(eventTasks).where(eq(eventTasks.id, taskId));
-      if (!task) return false;
-      const sameMonth = await tx
-        .select()
-        .from(eventTasks)
-        .where(
-          and(
-            eq(eventTasks.eventId, task.eventId),
-            sql`date_trunc('month', ${eventTasks.dueDate}) = date_trunc('month', ${task.dueDate}::date)`,
-          ),
-        )
-        .orderBy(...taskOrder);
-      const index = sameMonth.findIndex((row) => row.id === taskId);
-      const target = direction === "up" ? index - 1 : index + 1;
-      if (index < 0 || target < 0 || target >= sameMonth.length) return true;
-      const ordered = [...sameMonth];
-      [ordered[index], ordered[target]] = [ordered[target]!, ordered[index]!];
-      const base = Math.min(...sameMonth.map((row) => row.position));
-      for (const [offset, row] of ordered.entries()) {
-        if (row.position !== base + offset) {
-          await tx
-            .update(eventTasks)
-            .set({ position: base + offset, updatedAt: new Date() })
-            .where(eq(eventTasks.id, row.id));
-        }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const [task] = await tx.select().from(eventTasks).where(eq(eventTasks.id, taskId));
+    if (!task) return false;
+    const sameMonth = await tx
+      .select()
+      .from(eventTasks)
+      .where(
+        and(
+          eq(eventTasks.eventId, task.eventId),
+          sql`date_trunc('month', ${eventTasks.dueDate}) = date_trunc('month', ${task.dueDate}::date)`,
+        ),
+      )
+      .orderBy(...taskOrder);
+    const index = sameMonth.findIndex((row) => row.id === taskId);
+    const target = direction === "up" ? index - 1 : index + 1;
+    if (index < 0 || target < 0 || target >= sameMonth.length) return true;
+    const ordered = [...sameMonth];
+    [ordered[index], ordered[target]] = [ordered[target]!, ordered[index]!];
+    const base = Math.min(...sameMonth.map((row) => row.position));
+    for (const [offset, row] of ordered.entries()) {
+      if (row.position !== base + offset) {
+        await tx
+          .update(eventTasks)
+          .set({ position: base + offset, updatedAt: new Date() })
+          .where(eq(eventTasks.id, row.id));
       }
-      return true;
-    });
-  } finally {
-    await pg.end();
-  }
+    }
+    return true;
+  });
 }
 
 export async function deleteEventTask(organizationId: string, taskId: string): Promise<void> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    await withOrganization(db, organizationId, (tx) => tx.delete(eventTasks).where(eq(eventTasks.id, taskId)));
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  await withOrganization(db, organizationId, (tx) => tx.delete(eventTasks).where(eq(eventTasks.id, taskId)));
 }
 
 // EVT-05 — programme du jour J.
@@ -1025,21 +901,17 @@ export async function findEventProgram(
   organizationId: string,
   eventId: string,
 ): Promise<{ event: EventRow; items: ProgramItemWithParticipants[] } | null> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, async (tx) => {
-      const [event] = await tx.select().from(events).where(eq(events.id, eventId));
-      if (!event) return null;
-      const items = await tx
-        .select()
-        .from(programItems)
-        .where(eq(programItems.eventId, eventId))
-        .orderBy(asc(programItems.startTime), asc(programItems.createdAt));
-      return { event, items: await withParticipants(tx, items) };
-    });
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const [event] = await tx.select().from(events).where(eq(events.id, eventId));
+    if (!event) return null;
+    const items = await tx
+      .select()
+      .from(programItems)
+      .where(eq(programItems.eventId, eventId))
+      .orderBy(asc(programItems.startTime), asc(programItems.createdAt));
+    return { event, items: await withParticipants(tx, items) };
+  });
 }
 
 export type ProgramWriteResult =
@@ -1053,22 +925,18 @@ export async function insertProgramItem(
   vendorSlotIds: string[],
   freeLabels: string[],
 ): Promise<ProgramWriteResult> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, async (tx) => {
-      const [event] = await tx.select({ id: events.id }).from(events).where(eq(events.id, eventId));
-      if (!event) return { status: "event_not_found" };
-      if (!(await vendorSlotsBelongToEvent(tx, eventId, vendorSlotIds))) return { status: "participant_not_found" };
-      const [item] = await tx.insert(programItems).values({ organizationId, eventId, ...data }).returning();
-      if (!item) throw new Error("ajout de la ligne du programme échoué");
-      await insertParticipants(tx, organizationId, item.id, vendorSlotIds, freeLabels);
-      await touchProgram(tx, eventId);
-      const [saved] = await withParticipants(tx, [item]);
-      return { status: "saved", item: saved! };
-    });
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const [event] = await tx.select({ id: events.id }).from(events).where(eq(events.id, eventId));
+    if (!event) return { status: "event_not_found" };
+    if (!(await vendorSlotsBelongToEvent(tx, eventId, vendorSlotIds))) return { status: "participant_not_found" };
+    const [item] = await tx.insert(programItems).values({ organizationId, eventId, ...data }).returning();
+    if (!item) throw new Error("ajout de la ligne du programme échoué");
+    await insertParticipants(tx, organizationId, item.id, vendorSlotIds, freeLabels);
+    await touchProgram(tx, eventId);
+    const [saved] = await withParticipants(tx, [item]);
+    return { status: "saved", item: saved! };
+  });
 }
 
 export async function updateProgramItemRow(
@@ -1078,72 +946,60 @@ export async function updateProgramItemRow(
   vendorSlotIds: string[],
   freeLabels: string[],
 ): Promise<ProgramWriteResult> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, async (tx) => {
-      const [current] = await tx.select().from(programItems).where(eq(programItems.id, itemId));
-      if (!current) return { status: "item_not_found" };
-      if (!(await vendorSlotsBelongToEvent(tx, current.eventId, vendorSlotIds))) {
-        return { status: "participant_not_found" };
-      }
-      const [item] = await tx
-        .update(programItems)
-        .set({ ...data, updatedAt: new Date() })
-        .where(eq(programItems.id, itemId))
-        .returning();
-      if (!item) throw new Error("mise à jour de la ligne du programme échouée");
-      await tx.delete(programItemParticipants).where(eq(programItemParticipants.programItemId, itemId));
-      await insertParticipants(tx, organizationId, itemId, vendorSlotIds, freeLabels);
-      await touchProgram(tx, item.eventId);
-      const [saved] = await withParticipants(tx, [item]);
-      return { status: "saved", item: saved! };
-    });
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const [current] = await tx.select().from(programItems).where(eq(programItems.id, itemId));
+    if (!current) return { status: "item_not_found" };
+    if (!(await vendorSlotsBelongToEvent(tx, current.eventId, vendorSlotIds))) {
+      return { status: "participant_not_found" };
+    }
+    const [item] = await tx
+      .update(programItems)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(programItems.id, itemId))
+      .returning();
+    if (!item) throw new Error("mise à jour de la ligne du programme échouée");
+    await tx.delete(programItemParticipants).where(eq(programItemParticipants.programItemId, itemId));
+    await insertParticipants(tx, organizationId, itemId, vendorSlotIds, freeLabels);
+    await touchProgram(tx, item.eventId);
+    const [saved] = await withParticipants(tx, [item]);
+    return { status: "saved", item: saved! };
+  });
 }
 
 export async function deleteProgramItem(organizationId: string, itemId: string): Promise<void> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    await withOrganization(db, organizationId, async (tx) => {
-      const [deleted] = await tx.delete(programItems).where(eq(programItems.id, itemId)).returning();
-      if (deleted) await touchProgram(tx, deleted.eventId);
-    });
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  await withOrganization(db, organizationId, async (tx) => {
+    const [deleted] = await tx.delete(programItems).where(eq(programItems.id, itemId)).returning();
+    if (deleted) await touchProgram(tx, deleted.eventId);
+  });
 }
 
 // EVT-05 — modèles de programme.
 export async function findProgramTemplates(
   organizationId: string,
 ): Promise<{ template: ProgramTemplateRow; items: ProgramTemplateItemRow[] }[]> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, async (tx) => {
-      const templates = await tx.select().from(programTemplates).orderBy(asc(programTemplates.createdAt));
-      const items =
-        templates.length > 0
-          ? await tx
-              .select()
-              .from(programTemplateItems)
-              .where(
-                inArray(
-                  programTemplateItems.templateId,
-                  templates.map((template) => template.id),
-                ),
-              )
-              .orderBy(asc(programTemplateItems.startTime), asc(programTemplateItems.position))
-          : [];
-      return templates.map((template) => ({
-        template,
-        items: items.filter((item) => item.templateId === template.id),
-      }));
-    });
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const templates = await tx.select().from(programTemplates).orderBy(asc(programTemplates.createdAt));
+    const items =
+      templates.length > 0
+        ? await tx
+            .select()
+            .from(programTemplateItems)
+            .where(
+              inArray(
+                programTemplateItems.templateId,
+                templates.map((template) => template.id),
+              ),
+            )
+            .orderBy(asc(programTemplateItems.startTime), asc(programTemplateItems.position))
+        : [];
+    return templates.map((template) => ({
+      template,
+      items: items.filter((item) => item.templateId === template.id),
+    }));
+  });
 }
 
 export type ProgramTemplateItemData = Omit<ProgramItemData, "internalNote"> & { participantLabels: string[] };
@@ -1153,23 +1009,19 @@ export async function insertProgramTemplate(
   name: string,
   items: ProgramTemplateItemData[],
 ): Promise<{ template: ProgramTemplateRow; items: ProgramTemplateItemRow[] }> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, async (tx) => {
-      const [template] = await tx.insert(programTemplates).values({ organizationId, name }).returning();
-      if (!template) throw new Error("création du modèle de programme échouée");
-      const rows =
-        items.length > 0
-          ? await tx
-              .insert(programTemplateItems)
-              .values(items.map((item, position) => ({ organizationId, templateId: template.id, ...item, position })))
-              .returning()
-          : [];
-      return { template, items: rows };
-    });
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const [template] = await tx.insert(programTemplates).values({ organizationId, name }).returning();
+    if (!template) throw new Error("création du modèle de programme échouée");
+    const rows =
+      items.length > 0
+        ? await tx
+            .insert(programTemplateItems)
+            .values(items.map((item, position) => ({ organizationId, templateId: template.id, ...item, position })))
+            .returning()
+        : [];
+    return { template, items: rows };
+  });
 }
 
 export async function insertProgramTemplateItem(
@@ -1177,54 +1029,42 @@ export async function insertProgramTemplateItem(
   templateId: string,
   item: ProgramTemplateItemData,
 ): Promise<ProgramTemplateItemRow | null> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, async (tx) => {
-      // Clé étrangère vérifiée sans RLS : on contrôle que le modèle est visible.
-      const [template] = await tx
-        .select({ id: programTemplates.id })
-        .from(programTemplates)
-        .where(eq(programTemplates.id, templateId));
-      if (!template) return null;
-      const existing = await tx
-        .select({ position: programTemplateItems.position })
-        .from(programTemplateItems)
-        .where(eq(programTemplateItems.templateId, templateId));
-      const position = existing.reduce((max, row) => Math.max(max, row.position + 1), 0);
-      const [row] = await tx
-        .insert(programTemplateItems)
-        .values({ organizationId, templateId, ...item, position })
-        .returning();
-      if (!row) throw new Error("ajout de la ligne au modèle échoué");
-      return row;
-    });
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    // Clé étrangère vérifiée sans RLS : on contrôle que le modèle est visible.
+    const [template] = await tx
+      .select({ id: programTemplates.id })
+      .from(programTemplates)
+      .where(eq(programTemplates.id, templateId));
+    if (!template) return null;
+    const existing = await tx
+      .select({ position: programTemplateItems.position })
+      .from(programTemplateItems)
+      .where(eq(programTemplateItems.templateId, templateId));
+    const position = existing.reduce((max, row) => Math.max(max, row.position + 1), 0);
+    const [row] = await tx
+      .insert(programTemplateItems)
+      .values({ organizationId, templateId, ...item, position })
+      .returning();
+    if (!row) throw new Error("ajout de la ligne au modèle échoué");
+    return row;
+  });
 }
 
 export async function deleteProgramTemplateItem(organizationId: string, itemId: string): Promise<void> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    await withOrganization(db, organizationId, (tx) =>
-      tx.delete(programTemplateItems).where(eq(programTemplateItems.id, itemId)),
-    );
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  await withOrganization(db, organizationId, (tx) =>
+    tx.delete(programTemplateItems).where(eq(programTemplateItems.id, itemId)),
+  );
 }
 
 // Les lignes déjà copiées dans les programmes restent : elles ne
 // référencent pas le modèle.
 export async function deleteProgramTemplate(organizationId: string, templateId: string): Promise<void> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    await withOrganization(db, organizationId, (tx) =>
-      tx.delete(programTemplates).where(eq(programTemplates.id, templateId)),
-    );
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  await withOrganization(db, organizationId, (tx) =>
+    tx.delete(programTemplates).where(eq(programTemplates.id, templateId)),
+  );
 }
 
 export type ApplyProgramTemplateResult =
@@ -1239,68 +1079,60 @@ export async function applyProgramTemplateRows(
   eventId: string,
   templateId: string,
 ): Promise<ApplyProgramTemplateResult> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, async (tx) => {
-      const [event] = await tx.select({ id: events.id }).from(events).where(eq(events.id, eventId));
-      if (!event) return { status: "event_not_found" };
-      const [template] = await tx.select().from(programTemplates).where(eq(programTemplates.id, templateId));
-      if (!template) return { status: "template_not_found" };
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const [event] = await tx.select({ id: events.id }).from(events).where(eq(events.id, eventId));
+    if (!event) return { status: "event_not_found" };
+    const [template] = await tx.select().from(programTemplates).where(eq(programTemplates.id, templateId));
+    if (!template) return { status: "template_not_found" };
 
-      const templateItems = await tx
-        .select()
-        .from(programTemplateItems)
-        .where(eq(programTemplateItems.templateId, templateId))
-        .orderBy(asc(programTemplateItems.startTime), asc(programTemplateItems.position));
-      const slots = await tx.select().from(eventVendorSlots).where(eq(eventVendorSlots.eventId, eventId));
-      const slotByLabel = new Map(slots.map((slot) => [slot.label.trim().toLowerCase(), slot.id]));
+    const templateItems = await tx
+      .select()
+      .from(programTemplateItems)
+      .where(eq(programTemplateItems.templateId, templateId))
+      .orderBy(asc(programTemplateItems.startTime), asc(programTemplateItems.position));
+    const slots = await tx.select().from(eventVendorSlots).where(eq(eventVendorSlots.eventId, eventId));
+    const slotByLabel = new Map(slots.map((slot) => [slot.label.trim().toLowerCase(), slot.id]));
 
-      const created: ProgramItemRow[] = [];
-      for (const templateItem of templateItems) {
-        const [item] = await tx
-          .insert(programItems)
-          .values({
-            organizationId,
-            eventId,
-            startTime: templateItem.startTime,
-            endTime: templateItem.endTime,
-            label: templateItem.label,
-            location: templateItem.location,
-          })
-          .returning();
-        if (!item) throw new Error("copie de la ligne du modèle échouée");
-        const vendorSlotIds: string[] = [];
-        const freeLabels: string[] = [];
-        for (const label of templateItem.participantLabels) {
-          const slotId = slotByLabel.get(label.trim().toLowerCase());
-          if (slotId) vendorSlotIds.push(slotId);
-          else freeLabels.push(label.trim());
-        }
-        await insertParticipants(tx, organizationId, item.id, vendorSlotIds, freeLabels);
-        created.push(item);
+    const created: ProgramItemRow[] = [];
+    for (const templateItem of templateItems) {
+      const [item] = await tx
+        .insert(programItems)
+        .values({
+          organizationId,
+          eventId,
+          startTime: templateItem.startTime,
+          endTime: templateItem.endTime,
+          label: templateItem.label,
+          location: templateItem.location,
+        })
+        .returning();
+      if (!item) throw new Error("copie de la ligne du modèle échouée");
+      const vendorSlotIds: string[] = [];
+      const freeLabels: string[] = [];
+      for (const label of templateItem.participantLabels) {
+        const slotId = slotByLabel.get(label.trim().toLowerCase());
+        if (slotId) vendorSlotIds.push(slotId);
+        else freeLabels.push(label.trim());
       }
-      if (created.length > 0) await touchProgram(tx, eventId);
-      return { status: "applied", items: await withParticipants(tx, created) };
-    });
-  } finally {
-    await pg.end();
-  }
+      await insertParticipants(tx, organizationId, item.id, vendorSlotIds, freeLabels);
+      created.push(item);
+    }
+    if (created.length > 0) await touchProgram(tx, eventId);
+    return { status: "applied", items: await withParticipants(tx, created) };
+  });
 }
 
 // EVT-06 — accès des mariés.
 export async function findEventClientAccesses(organizationId: string, eventId: string): Promise<EventClientAccessRow[]> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, (tx) =>
-      tx
-        .select()
-        .from(eventClientAccesses)
-        .where(eq(eventClientAccesses.eventId, eventId))
-        .orderBy(asc(eventClientAccesses.createdAt)),
-    );
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, (tx) =>
+    tx
+      .select()
+      .from(eventClientAccesses)
+      .where(eq(eventClientAccesses.eventId, eventId))
+      .orderBy(asc(eventClientAccesses.createdAt)),
+  );
 }
 
 export type SaveClientAccessResult =
@@ -1318,117 +1150,101 @@ export async function saveClientAccess(input: {
   tokenHash: string | null;
   userId: string | null;
 }): Promise<SaveClientAccessResult> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, input.organizationId, async (tx) => {
-      // Clé étrangère vérifiée sans RLS : on contrôle que l'événement est visible.
-      const [event] = await tx
-        .select({ id: events.id, isDemo: events.isDemo })
-        .from(events)
-        .where(eq(events.id, input.eventId));
-      if (!event) return { status: "event_not_found" };
-      // AIDE-02 : jamais d'e-mail à un tiers depuis un essai.
-      if (event.isDemo) return { status: "demo_event" };
+  const db = appDatabase();
+  return await withOrganization(db, input.organizationId, async (tx) => {
+    // Clé étrangère vérifiée sans RLS : on contrôle que l'événement est visible.
+    const [event] = await tx
+      .select({ id: events.id, isDemo: events.isDemo })
+      .from(events)
+      .where(eq(events.id, input.eventId));
+    if (!event) return { status: "event_not_found" };
+    // AIDE-02 : jamais d'e-mail à un tiers depuis un essai.
+    if (event.isDemo) return { status: "demo_event" };
 
-      const [current] = await tx
-        .select()
-        .from(eventClientAccesses)
-        .where(
-          and(
-            eq(eventClientAccesses.eventId, input.eventId),
-            sql`lower(${eventClientAccesses.email}) = lower(${input.email})`,
-            isNull(eventClientAccesses.revokedAt),
-          ),
-        );
-      const acceptedAt = input.userId ? new Date() : null;
-      if (current?.acceptedAt) return { status: "already_active" };
-      if (current) {
-        const [access] = await tx
-          .update(eventClientAccesses)
-          .set({
-            tokenHash: input.tokenHash,
-            userId: input.userId,
-            acceptedAt,
-            expiresAt: input.expiresAt,
-            invitedByUserId: input.invitedByUserId,
-          })
-          .where(eq(eventClientAccesses.id, current.id))
-          .returning();
-        return { status: "saved", access: access! };
-      }
+    const [current] = await tx
+      .select()
+      .from(eventClientAccesses)
+      .where(
+        and(
+          eq(eventClientAccesses.eventId, input.eventId),
+          sql`lower(${eventClientAccesses.email}) = lower(${input.email})`,
+          isNull(eventClientAccesses.revokedAt),
+        ),
+      );
+    const acceptedAt = input.userId ? new Date() : null;
+    if (current?.acceptedAt) return { status: "already_active" };
+    if (current) {
       const [access] = await tx
-        .insert(eventClientAccesses)
-        .values({
-          organizationId: input.organizationId,
-          eventId: input.eventId,
-          email: input.email,
+        .update(eventClientAccesses)
+        .set({
           tokenHash: input.tokenHash,
           userId: input.userId,
           acceptedAt,
           expiresAt: input.expiresAt,
           invitedByUserId: input.invitedByUserId,
         })
+        .where(eq(eventClientAccesses.id, current.id))
         .returning();
-      if (!access) throw new Error("création de l'accès échouée");
-      return { status: "saved", access };
-    });
-  } finally {
-    await pg.end();
-  }
+      return { status: "saved", access: access! };
+    }
+    const [access] = await tx
+      .insert(eventClientAccesses)
+      .values({
+        organizationId: input.organizationId,
+        eventId: input.eventId,
+        email: input.email,
+        tokenHash: input.tokenHash,
+        userId: input.userId,
+        acceptedAt,
+        expiresAt: input.expiresAt,
+        invitedByUserId: input.invitedByUserId,
+      })
+      .returning();
+    if (!access) throw new Error("création de l'accès échouée");
+    return { status: "saved", access };
+  });
 }
 
 // Retirer un accès invalide aussi le jeton d'une invitation en attente.
 export async function revokeClientAccessRow(organizationId: string, accessId: string): Promise<void> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    await withOrganization(db, organizationId, (tx) =>
-      tx
-        .update(eventClientAccesses)
-        .set({ revokedAt: new Date(), tokenHash: null })
-        .where(and(eq(eventClientAccesses.id, accessId), isNull(eventClientAccesses.revokedAt))),
-    );
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  await withOrganization(db, organizationId, (tx) =>
+    tx
+      .update(eventClientAccesses)
+      .set({ revokedAt: new Date(), tokenHash: null })
+      .where(and(eq(eventClientAccesses.id, accessId), isNull(eventClientAccesses.revokedAt))),
+  );
 }
 
 export async function findClientAccessByTokenHash(
   organizationId: string,
   tokenHash: string,
 ): Promise<EventClientAccessRow | null> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, async (tx) => {
-      const [access] = await tx.select().from(eventClientAccesses).where(eq(eventClientAccesses.tokenHash, tokenHash));
-      return access ?? null;
-    });
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const [access] = await tx.select().from(eventClientAccesses).where(eq(eventClientAccesses.tokenHash, tokenHash));
+    return access ?? null;
+  });
 }
 
 // Le jeton ne sert qu'une fois (acceptedAt) ; son haché reste pour pouvoir
 // répondre « invitation déjà acceptée » à un second clic sur le lien.
 export async function markClientAccessAccepted(organizationId: string, accessId: string, userId: string): Promise<boolean> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, async (tx) => {
-      const updated = await tx
-        .update(eventClientAccesses)
-        .set({ userId, acceptedAt: new Date() })
-        .where(
-          and(
-            eq(eventClientAccesses.id, accessId),
-            isNull(eventClientAccesses.acceptedAt),
-            isNull(eventClientAccesses.revokedAt),
-          ),
-        )
-        .returning({ id: eventClientAccesses.id });
-      return updated.length === 1;
-    });
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const updated = await tx
+      .update(eventClientAccesses)
+      .set({ userId, acceptedAt: new Date() })
+      .where(
+        and(
+          eq(eventClientAccesses.id, accessId),
+          isNull(eventClientAccesses.acceptedAt),
+          isNull(eventClientAccesses.revokedAt),
+        ),
+      )
+      .returning({ id: eventClientAccesses.id });
+    return updated.length === 1;
+  });
 }
 
 function activeAccessFor(userId: string) {
@@ -1440,33 +1256,25 @@ function activeAccessFor(userId: string) {
 }
 
 export async function findClientEventIds(organizationId: string, userId: string): Promise<string[]> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, async (tx) => {
-      const rows = await tx
-        .selectDistinct({ eventId: eventClientAccesses.eventId })
-        .from(eventClientAccesses)
-        .where(activeAccessFor(userId));
-      return rows.map((row) => row.eventId);
-    });
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const rows = await tx
+      .selectDistinct({ eventId: eventClientAccesses.eventId })
+      .from(eventClientAccesses)
+      .where(activeAccessFor(userId));
+    return rows.map((row) => row.eventId);
+  });
 }
 
 export async function hasActiveClientAccess(organizationId: string, userId: string, eventId: string): Promise<boolean> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, async (tx) => {
-      const [row] = await tx
-        .select({ id: eventClientAccesses.id })
-        .from(eventClientAccesses)
-        .where(and(activeAccessFor(userId), eq(eventClientAccesses.eventId, eventId)));
-      return row !== undefined;
-    });
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const [row] = await tx
+      .select({ id: eventClientAccesses.id })
+      .from(eventClientAccesses)
+      .where(and(activeAccessFor(userId), eq(eventClientAccesses.eventId, eventId)));
+    return row !== undefined;
+  });
 }
 
 export type ClientTaskToggleResult = { status: "saved"; task: EventTaskRow } | { status: "denied" };
@@ -1480,81 +1288,69 @@ export async function toggleClientTask(
   taskId: string,
   done: boolean,
 ): Promise<ClientTaskToggleResult> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, async (tx) => {
-      const [task] = await tx.select().from(eventTasks).where(eq(eventTasks.id, taskId));
-      if (!task || task.responsible !== "clients") return { status: "denied" };
-      const [access] = await tx
-        .select({ id: eventClientAccesses.id })
-        .from(eventClientAccesses)
-        .where(and(activeAccessFor(userId), eq(eventClientAccesses.eventId, task.eventId)));
-      if (!access) return { status: "denied" };
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const [task] = await tx.select().from(eventTasks).where(eq(eventTasks.id, taskId));
+    if (!task || task.responsible !== "clients") return { status: "denied" };
+    const [access] = await tx
+      .select({ id: eventClientAccesses.id })
+      .from(eventClientAccesses)
+      .where(and(activeAccessFor(userId), eq(eventClientAccesses.eventId, task.eventId)));
+    if (!access) return { status: "denied" };
 
-      if ((task.doneAt !== null) === done) return { status: "saved", task };
-      const [updated] = await tx
-        .update(eventTasks)
-        .set({ doneAt: done ? new Date() : null, updatedAt: new Date() })
-        .where(eq(eventTasks.id, taskId))
-        .returning();
-      await tx.insert(eventActivities).values({
-        organizationId,
-        eventId: task.eventId,
-        actorUserId: userId,
-        kind: done ? "task_done" : "task_undone",
-        taskId,
-        taskLabel: task.label,
-      });
-      return { status: "saved", task: updated! };
+    if ((task.doneAt !== null) === done) return { status: "saved", task };
+    const [updated] = await tx
+      .update(eventTasks)
+      .set({ doneAt: done ? new Date() : null, updatedAt: new Date() })
+      .where(eq(eventTasks.id, taskId))
+      .returning();
+    await tx.insert(eventActivities).values({
+      organizationId,
+      eventId: task.eventId,
+      actorUserId: userId,
+      kind: done ? "task_done" : "task_undone",
+      taskId,
+      taskLabel: task.label,
     });
-  } finally {
-    await pg.end();
-  }
+    return { status: "saved", task: updated! };
+  });
 }
 
 // Lot 13 (EVT-19) — passages de statut d'un événement, du plus ancien au
 // plus récent, pour dater les étapes de la frise.
 export async function findEventStatusChanges(organizationId: string, eventId: string): Promise<{ toStatus: EventStatus; changedAt: Date }[]> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, (tx) =>
-      tx
-        .select({ toStatus: eventStatusHistory.toStatus, changedAt: eventStatusHistory.changedAt })
-        .from(eventStatusHistory)
-        .where(eq(eventStatusHistory.eventId, eventId))
-        .orderBy(asc(eventStatusHistory.changedAt)),
-    );
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, (tx) =>
+    tx
+      .select({ toStatus: eventStatusHistory.toStatus, changedAt: eventStatusHistory.changedAt })
+      .from(eventStatusHistory)
+      .where(eq(eventStatusHistory.eventId, eventId))
+      .orderBy(asc(eventStatusHistory.changedAt)),
+  );
 }
 
 export async function findEventActivity(
   organizationId: string,
   eventId: string,
 ): Promise<{ activity: EventActivityRow; actorEmail: string | null }[]> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, async (tx) => {
-      const activity = await tx
-        .select()
-        .from(eventActivities)
-        .where(eq(eventActivities.eventId, eventId))
-        .orderBy(desc(eventActivities.createdAt));
-      const actorIds = [...new Set(activity.map((row) => row.actorUserId))];
-      const accesses =
-        actorIds.length > 0
-          ? await tx
-              .select({ userId: eventClientAccesses.userId, email: eventClientAccesses.email })
-              .from(eventClientAccesses)
-              .where(and(eq(eventClientAccesses.eventId, eventId), inArray(eventClientAccesses.userId, actorIds)))
-          : [];
-      const emailByUser = new Map(accesses.map((access) => [access.userId, access.email]));
-      return activity.map((row) => ({ activity: row, actorEmail: emailByUser.get(row.actorUserId) ?? null }));
-    });
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const activity = await tx
+      .select()
+      .from(eventActivities)
+      .where(eq(eventActivities.eventId, eventId))
+      .orderBy(desc(eventActivities.createdAt));
+    const actorIds = [...new Set(activity.map((row) => row.actorUserId))];
+    const accesses =
+      actorIds.length > 0
+        ? await tx
+            .select({ userId: eventClientAccesses.userId, email: eventClientAccesses.email })
+            .from(eventClientAccesses)
+            .where(and(eq(eventClientAccesses.eventId, eventId), inArray(eventClientAccesses.userId, actorIds)))
+        : [];
+    const emailByUser = new Map(accesses.map((access) => [access.userId, access.email]));
+    return activity.map((row) => ({ activity: row, actorEmail: emailByUser.get(row.actorUserId) ?? null }));
+  });
 }
 
 // AIDE-02 — essai guidé : événement fictif complet, puis purge.
@@ -1577,89 +1373,81 @@ function activeDemo(now: Date) {
 }
 
 export async function findActiveDemoEvent(organizationId: string, now: Date): Promise<EventRow | null> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, async (tx) => {
-      const [event] = await tx.select().from(events).where(activeDemo(now)).orderBy(desc(events.createdAt)).limit(1);
-      return event ?? null;
-    });
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const [event] = await tx.select().from(events).where(activeDemo(now)).orderBy(desc(events.createdAt)).limit(1);
+    return event ?? null;
+  });
 }
 
 export async function insertDemoEvent(organizationId: string, data: DemoEventData): Promise<EventRow> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, async (tx) => {
-      const now = new Date();
-      const [event] = await tx
-        .insert(events)
-        .values({
-          organizationId,
-          status: "prospect",
-          eventDate: data.eventDate,
-          venueName: data.venueName,
-          venueCity: data.venueCity,
-          tasksScheduledFor: data.eventDate,
-          programUpdatedAt: now,
-          isDemo: true,
-          demoExpiresAt: data.expiresAt,
-        })
-        .returning();
-      if (!event) throw new Error("création de l'événement d'essai échouée");
-
-      await tx.insert(eventClients).values(
-        data.clients.map((client, position) => ({ organizationId, eventId: event.id, ...client, position })),
-      );
-      await tx.insert(eventStatusHistory).values({
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const now = new Date();
+    const [event] = await tx
+      .insert(events)
+      .values({
         organizationId,
-        eventId: event.id,
-        fromStatus: null,
-        toStatus: "prospect",
-        changedByUserId: data.createdByUserId,
-      });
+        status: "prospect",
+        eventDate: data.eventDate,
+        venueName: data.venueName,
+        venueCity: data.venueCity,
+        tasksScheduledFor: data.eventDate,
+        programUpdatedAt: now,
+        isDemo: true,
+        demoExpiresAt: data.expiresAt,
+      })
+      .returning();
+    if (!event) throw new Error("création de l'événement d'essai échouée");
 
-      const defaults = await tx
-        .select()
-        .from(defaultVendorSlots)
-        .orderBy(asc(defaultVendorSlots.position), asc(defaultVendorSlots.createdAt));
-      const labels = defaults.length > 0 ? defaults.map((slot) => slot.label) : data.fallbackVendorSlotLabels;
-      const slots =
-        labels.length > 0
-          ? await tx
-              .insert(eventVendorSlots)
-              .values(labels.map((label, position) => ({ organizationId, eventId: event.id, label, position })))
-              .returning()
-          : [];
-      const slotByLabel = new Map(slots.map((slot) => [slot.label.trim().toLowerCase(), slot.id]));
-
-      if (data.tasks.length > 0) {
-        await tx
-          .insert(eventTasks)
-          .values(data.tasks.map((task, position) => ({ organizationId, eventId: event.id, ...task, position })));
-      }
-      for (const programItem of data.programItems) {
-        const { participantLabels, ...values } = programItem;
-        const [item] = await tx
-          .insert(programItems)
-          .values({ organizationId, eventId: event.id, ...values })
-          .returning();
-        if (!item) throw new Error("création de la ligne d'essai échouée");
-        const vendorSlotIds: string[] = [];
-        const freeLabels: string[] = [];
-        for (const label of participantLabels) {
-          const slotId = slotByLabel.get(label.trim().toLowerCase());
-          if (slotId) vendorSlotIds.push(slotId);
-          else freeLabels.push(label);
-        }
-        await insertParticipants(tx, organizationId, item.id, vendorSlotIds, freeLabels);
-      }
-      return event;
+    await tx.insert(eventClients).values(
+      data.clients.map((client, position) => ({ organizationId, eventId: event.id, ...client, position })),
+    );
+    await tx.insert(eventStatusHistory).values({
+      organizationId,
+      eventId: event.id,
+      fromStatus: null,
+      toStatus: "prospect",
+      changedByUserId: data.createdByUserId,
     });
-  } finally {
-    await pg.end();
-  }
+
+    const defaults = await tx
+      .select()
+      .from(defaultVendorSlots)
+      .orderBy(asc(defaultVendorSlots.position), asc(defaultVendorSlots.createdAt));
+    const labels = defaults.length > 0 ? defaults.map((slot) => slot.label) : data.fallbackVendorSlotLabels;
+    const slots =
+      labels.length > 0
+        ? await tx
+            .insert(eventVendorSlots)
+            .values(labels.map((label, position) => ({ organizationId, eventId: event.id, label, position })))
+            .returning()
+        : [];
+    const slotByLabel = new Map(slots.map((slot) => [slot.label.trim().toLowerCase(), slot.id]));
+
+    if (data.tasks.length > 0) {
+      await tx
+        .insert(eventTasks)
+        .values(data.tasks.map((task, position) => ({ organizationId, eventId: event.id, ...task, position })));
+    }
+    for (const programItem of data.programItems) {
+      const { participantLabels, ...values } = programItem;
+      const [item] = await tx
+        .insert(programItems)
+        .values({ organizationId, eventId: event.id, ...values })
+        .returning();
+      if (!item) throw new Error("création de la ligne d'essai échouée");
+      const vendorSlotIds: string[] = [];
+      const freeLabels: string[] = [];
+      for (const label of participantLabels) {
+        const slotId = slotByLabel.get(label.trim().toLowerCase());
+        if (slotId) vendorSlotIds.push(slotId);
+        else freeLabels.push(label);
+      }
+      await insertParticipants(tx, organizationId, item.id, vendorSlotIds, freeLabels);
+    }
+    return event;
+  });
 }
 
 // Supprime des événements d'essai et toutes leurs lignes, enfants d'abord
@@ -1679,58 +1467,46 @@ async function deleteDemoEventRows(tx: Tx, eventIds: string[]): Promise<void> {
 // Ne supprime qu'un événement d'essai : un identifiant de vrai événement
 // ne fait rien.
 export async function deleteDemoEvent(organizationId: string, eventId: string): Promise<void> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    await withOrganization(db, organizationId, async (tx) => {
-      const [event] = await tx
-        .select({ id: events.id })
-        .from(events)
-        .where(and(eq(events.id, eventId), eq(events.isDemo, true)));
-      if (event) await deleteDemoEventRows(tx, [event.id]);
-    });
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  await withOrganization(db, organizationId, async (tx) => {
+    const [event] = await tx
+      .select({ id: events.id })
+      .from(events)
+      .where(and(eq(events.id, eventId), eq(events.isDemo, true)));
+    if (event) await deleteDemoEventRows(tx, [event.id]);
+  });
 }
 
 // Une seule connexion pour toutes les organisations (purge planifiée), une
 // transaction par organisation (RLS).
 export async function deleteExpiredDemoEvents(organizationIds: string[], now: Date): Promise<number> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    let purged = 0;
-    for (const organizationId of organizationIds) {
-      purged += await withOrganization(db, organizationId, async (tx) => {
-        const expired = await tx
-          .select({ id: events.id })
-          .from(events)
-          .where(and(eq(events.isDemo, true), lte(events.demoExpiresAt, now)));
-        await deleteDemoEventRows(
-          tx,
-          expired.map((event) => event.id),
-        );
-        return expired.length;
-      });
-    }
-    return purged;
-  } finally {
-    await pg.end();
+  const db = appDatabase();
+  let purged = 0;
+  for (const organizationId of organizationIds) {
+    purged += await withOrganization(db, organizationId, async (tx) => {
+      const expired = await tx
+        .select({ id: events.id })
+        .from(events)
+        .where(and(eq(events.isDemo, true), lte(events.demoExpiresAt, now)));
+      await deleteDemoEventRows(
+        tx,
+        expired.map((event) => event.id),
+      );
+      return expired.length;
+    });
   }
+  return purged;
 }
 
 export async function countRealEvents(organizationId: string): Promise<number> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, async (tx) => {
-      const [row] = await tx
-        .select({ count: sql<number>`count(*)::int` })
-        .from(events)
-        .where(eq(events.isDemo, false));
-      return row?.count ?? 0;
-    });
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const [row] = await tx
+      .select({ count: sql<number>`count(*)::int` })
+      .from(events)
+      .where(eq(events.isDemo, false));
+    return row?.count ?? 0;
+  });
 }
 
 // AIDE-02 : essais expirés, pour que les autres modules (budget) purgent
@@ -1739,22 +1515,18 @@ export async function findExpiredDemoEventIds(
   organizationIds: string[],
   now: Date,
 ): Promise<{ organizationId: string; eventId: string }[]> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    const found: { organizationId: string; eventId: string }[] = [];
-    for (const organizationId of organizationIds) {
-      const rows = await withOrganization(db, organizationId, (tx) =>
-        tx
-          .select({ id: events.id })
-          .from(events)
-          .where(and(eq(events.isDemo, true), lte(events.demoExpiresAt, now))),
-      );
-      found.push(...rows.map((row) => ({ organizationId, eventId: row.id })));
-    }
-    return found;
-  } finally {
-    await pg.end();
+  const db = appDatabase();
+  const found: { organizationId: string; eventId: string }[] = [];
+  for (const organizationId of organizationIds) {
+    const rows = await withOrganization(db, organizationId, (tx) =>
+      tx
+        .select({ id: events.id })
+        .from(events)
+        .where(and(eq(events.isDemo, true), lte(events.demoExpiresAt, now))),
+    );
+    found.push(...rows.map((row) => ({ organizationId, eventId: row.id })));
   }
+  return found;
 }
 
 // Lot 9 (ADR 0029) — nombre d'événements réels créés par mois (Europe/Paris)
@@ -1765,24 +1537,20 @@ export async function countEventsByCreationMonth(
   organizationIds: string[],
   since: Date,
 ): Promise<Record<string, { month: string; count: number }[]>> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    const result: Record<string, { month: string; count: number }[]> = {};
-    for (const organizationId of organizationIds) {
-      result[organizationId] = await withOrganization(db, organizationId, async (tx) => {
-        const month = sql<string>`to_char(${events.createdAt} at time zone 'Europe/Paris', 'YYYY-MM')`;
-        return tx
-          .select({ month, count: sql<number>`count(*)::int` })
-          .from(events)
-          .where(and(eq(events.isDemo, false), gte(events.createdAt, since)))
-          .groupBy(month)
-          .orderBy(month);
-      });
-    }
-    return result;
-  } finally {
-    await pg.end();
+  const db = appDatabase();
+  const result: Record<string, { month: string; count: number }[]> = {};
+  for (const organizationId of organizationIds) {
+    result[organizationId] = await withOrganization(db, organizationId, async (tx) => {
+      const month = sql<string>`to_char(${events.createdAt} at time zone 'Europe/Paris', 'YYYY-MM')`;
+      return tx
+        .select({ month, count: sql<number>`count(*)::int` })
+        .from(events)
+        .where(and(eq(events.isDemo, false), gte(events.createdAt, since)))
+        .groupBy(month)
+        .orderBy(month);
+    });
   }
+  return result;
 }
 
 // Lot 10 (AIDE-08) — recherche globale : événements réels (jamais les essais)
@@ -1802,83 +1570,67 @@ export async function searchEventRows(
   limit: number,
 ): Promise<{ events: EventSearchRow[]; tasks: TaskSearchRow[]; vendors: VendorSearchRow[] }> {
   if (words.length === 0) return { events: [], tasks: [], vendors: [] };
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, async (tx) => {
-      // Tout ce qui décrit un événement, en une chaîne : prénoms, noms, lieu, ville.
-      const haystack = foldedColumn(
-        sql`concat_ws(' ', "events"."venue_name", "events"."venue_city", (select string_agg(concat_ws(' ', ec.first_name, ec.last_name), ' ') from "events"."event_clients" ec where ec.event_id = "events"."id"))`,
-      );
-      const eventRows = await tx
-        .select({ id: events.id, names: eventNamesSql, eventDate: events.eventDate, venueName: events.venueName, status: events.status })
-        .from(events)
-        .where(and(eq(events.isDemo, false), ...words.map((word) => sql`${haystack} like ${likeWord(word)}`)))
-        .orderBy(sql`${events.eventDate} desc nulls last`)
-        .limit(limit);
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    // Tout ce qui décrit un événement, en une chaîne : prénoms, noms, lieu, ville.
+    const haystack = foldedColumn(
+      sql`concat_ws(' ', "events"."venue_name", "events"."venue_city", (select string_agg(concat_ws(' ', ec.first_name, ec.last_name), ' ') from "events"."event_clients" ec where ec.event_id = "events"."id"))`,
+    );
+    const eventRows = await tx
+      .select({ id: events.id, names: eventNamesSql, eventDate: events.eventDate, venueName: events.venueName, status: events.status })
+      .from(events)
+      .where(and(eq(events.isDemo, false), ...words.map((word) => sql`${haystack} like ${likeWord(word)}`)))
+      .orderBy(sql`${events.eventDate} desc nulls last`)
+      .limit(limit);
 
-      const taskRows = await tx
-        .select({ id: eventTasks.id, eventId: eventTasks.eventId, label: eventTasks.label, dueDate: eventTasks.dueDate, eventNames: eventNamesSql })
-        .from(eventTasks)
-        .innerJoin(events, eq(events.id, eventTasks.eventId))
-        .where(and(eq(events.isDemo, false), ...words.map((word) => foldedContains(eventTasks.label, word))))
-        .orderBy(asc(eventTasks.dueDate))
-        .limit(limit);
+    const taskRows = await tx
+      .select({ id: eventTasks.id, eventId: eventTasks.eventId, label: eventTasks.label, dueDate: eventTasks.dueDate, eventNames: eventNamesSql })
+      .from(eventTasks)
+      .innerJoin(events, eq(events.id, eventTasks.eventId))
+      .where(and(eq(events.isDemo, false), ...words.map((word) => foldedContains(eventTasks.label, word))))
+      .orderBy(asc(eventTasks.dueDate))
+      .limit(limit);
 
-      const vendorRows = await tx
-        .select({ id: eventVendorSlots.id, eventId: eventVendorSlots.eventId, label: eventVendorSlots.label, vendorName: eventVendorSlots.vendorName, eventNames: eventNamesSql })
-        .from(eventVendorSlots)
-        .innerJoin(events, eq(events.id, eventVendorSlots.eventId))
-        .where(
-          and(
-            eq(events.isDemo, false),
-            ...words.map((word) => sql`${foldedColumn(sql`concat_ws(' ', ${eventVendorSlots.vendorName}, ${eventVendorSlots.label})`)} like ${likeWord(word)}`),
-          ),
-        )
-        .limit(limit);
+    const vendorRows = await tx
+      .select({ id: eventVendorSlots.id, eventId: eventVendorSlots.eventId, label: eventVendorSlots.label, vendorName: eventVendorSlots.vendorName, eventNames: eventNamesSql })
+      .from(eventVendorSlots)
+      .innerJoin(events, eq(events.id, eventVendorSlots.eventId))
+      .where(
+        and(
+          eq(events.isDemo, false),
+          ...words.map((word) => sql`${foldedColumn(sql`concat_ws(' ', ${eventVendorSlots.vendorName}, ${eventVendorSlots.label})`)} like ${likeWord(word)}`),
+        ),
+      )
+      .limit(limit);
 
-      return { events: eventRows, tasks: taskRows, vendors: vendorRows };
-    });
-  } finally {
-    await pg.end();
-  }
+    return { events: eventRows, tasks: taskRows, vendors: vendorRows };
+  });
 }
 
 // Lot 10 (AIDE-08) — prénoms des clients de quelques événements (affichage
 // d'un devis trouvé par son numéro).
 export async function findEventNamesByIds(organizationId: string, eventIds: string[]): Promise<Record<string, string>> {
   if (eventIds.length === 0) return {};
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, async (tx) => {
-      const rows = await tx.select({ id: events.id, names: eventNamesSql }).from(events).where(inArray(events.id, eventIds));
-      return Object.fromEntries(rows.map((row) => [row.id, row.names]));
-    });
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const rows = await tx.select({ id: events.id, names: eventNamesSql }).from(events).where(inArray(events.id, eventIds));
+    return Object.fromEntries(rows.map((row) => [row.id, row.names]));
+  });
 }
 
 // Lot 12 (EVT-17) — renommer une ligne du budget par défaut ou changer son icône.
 export async function updateDefaultVendorSlotRow(organizationId: string, id: string, label: string, icon: string | null): Promise<boolean> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(
-      db,
-      organizationId,
-      async (tx) => (await tx.update(defaultVendorSlots).set({ label, icon }).where(eq(defaultVendorSlots.id, id)).returning()).length > 0,
-    );
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(
+    db,
+    organizationId,
+    async (tx) => (await tx.update(defaultVendorSlots).set({ label, icon }).where(eq(defaultVendorSlots.id, id)).returning()).length > 0,
+  );
 }
 
 export async function updateEventVendorSlotIcon(organizationId: string, id: string, icon: string | null): Promise<void> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    await withOrganization(db, organizationId, (tx) => tx.update(eventVendorSlots).set({ icon }).where(eq(eventVendorSlots.id, id)));
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  await withOrganization(db, organizationId, (tx) => tx.update(eventVendorSlots).set({ icon }).where(eq(eventVendorSlots.id, id)));
 }
 
 // Lot 14 (décision I) — coordonnées d'un client de l'événement.
@@ -1888,30 +1640,22 @@ export async function updateEventClientContactRow(
   clientId: string,
   contact: { email: string | null; phone: string | null; addressLine: string | null; postalCode: string | null; city: string | null },
 ): Promise<boolean> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, async (tx) => {
-      const rows = await tx
-        .update(eventClients)
-        .set(contact)
-        .where(and(eq(eventClients.id, clientId), eq(eventClients.eventId, eventId)))
-        .returning({ id: eventClients.id });
-      return rows.length > 0;
-    });
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const rows = await tx
+      .update(eventClients)
+      .set(contact)
+      .where(and(eq(eventClients.id, clientId), eq(eventClients.eventId, eventId)))
+      .returning({ id: eventClients.id });
+    return rows.length > 0;
+  });
 }
 
 // Lot 14 (décision K) — budget souhaité par les clients.
 export async function updateWantedBudgetRow(organizationId: string, eventId: string, wantedBudgetCents: number | null): Promise<boolean> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, async (tx) => {
-      const rows = await tx.update(events).set({ wantedBudgetCents, updatedAt: new Date() }).where(eq(events.id, eventId)).returning({ id: events.id });
-      return rows.length > 0;
-    });
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const rows = await tx.update(events).set({ wantedBudgetCents, updatedAt: new Date() }).where(eq(events.id, eventId)).returning({ id: events.id });
+    return rows.length > 0;
+  });
 }

@@ -1,7 +1,7 @@
 // Accès aux données du module quotes — jamais importé hors de
 // modules/quotes/ (ADR 0011).
 import { and, asc, desc, eq, gte, inArray, or, sql as raw } from "drizzle-orm";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import {
   catalogItems,
   creditNotes,
@@ -39,12 +39,8 @@ async function inOrganization<T>(
   organizationId: string,
   fn: (tx: Tx) => Promise<T>,
 ): Promise<T> {
-  const { sql, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, fn);
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, fn);
 }
 
 // DEV-01 — catalogue.
@@ -1691,39 +1687,35 @@ export async function countQuotesAndInvoicesByMonth(
   organizationIds: string[],
   since: Date,
 ): Promise<Record<string, { quotes: MonthRows; invoices: MonthRows }>> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    const result: Record<string, { quotes: MonthRows; invoices: MonthRows }> =
-      {};
-    for (const organizationId of organizationIds) {
-      result[organizationId] = await withOrganization(
-        db,
-        organizationId,
-        async (tx) => {
-          const quoteMonth = raw<string>`to_char(${quotes.createdAt} at time zone 'Europe/Paris', 'YYYY-MM')`;
-          const invoiceMonth = raw<string>`to_char(${invoices.issuedAt} at time zone 'Europe/Paris', 'YYYY-MM')`;
-          const quoteRows = await tx
-            .select({ month: quoteMonth, count: raw<number>`count(*)::int` })
-            .from(quotes)
-            .where(and(eq(quotes.isDemo, false), gte(quotes.createdAt, since)))
-            .groupBy(quoteMonth)
-            .orderBy(quoteMonth);
-          const invoiceRows = await tx
-            .select({ month: invoiceMonth, count: raw<number>`count(*)::int` })
-            .from(invoices)
-            .where(
-              and(eq(invoices.isDemo, false), gte(invoices.issuedAt, since)),
-            )
-            .groupBy(invoiceMonth)
-            .orderBy(invoiceMonth);
-          return { quotes: quoteRows, invoices: invoiceRows };
-        },
-      );
-    }
-    return result;
-  } finally {
-    await pg.end();
+  const db = appDatabase();
+  const result: Record<string, { quotes: MonthRows; invoices: MonthRows }> =
+    {};
+  for (const organizationId of organizationIds) {
+    result[organizationId] = await withOrganization(
+      db,
+      organizationId,
+      async (tx) => {
+        const quoteMonth = raw<string>`to_char(${quotes.createdAt} at time zone 'Europe/Paris', 'YYYY-MM')`;
+        const invoiceMonth = raw<string>`to_char(${invoices.issuedAt} at time zone 'Europe/Paris', 'YYYY-MM')`;
+        const quoteRows = await tx
+          .select({ month: quoteMonth, count: raw<number>`count(*)::int` })
+          .from(quotes)
+          .where(and(eq(quotes.isDemo, false), gte(quotes.createdAt, since)))
+          .groupBy(quoteMonth)
+          .orderBy(quoteMonth);
+        const invoiceRows = await tx
+          .select({ month: invoiceMonth, count: raw<number>`count(*)::int` })
+          .from(invoices)
+          .where(
+            and(eq(invoices.isDemo, false), gte(invoices.issuedAt, since)),
+          )
+          .groupBy(invoiceMonth)
+          .orderBy(invoiceMonth);
+        return { quotes: quoteRows, invoices: invoiceRows };
+      },
+    );
   }
+  return result;
 }
 
 // Lot 10 (AIDE-08) — recherche globale : devis et factures réels dont le
@@ -1739,33 +1731,29 @@ export async function searchQuoteRows(
   limit: number,
 ): Promise<{ quotes: QuoteSearchRow[]; invoices: InvoiceSearchRow[] }> {
   if (words.length === 0 && eventIds.length === 0) return { quotes: [], invoices: [] };
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, async (tx) => {
-      const quoteMatch = or(
-        words.length > 0 ? and(...words.map((word) => foldedContains(quotes.number, word))) : undefined,
-        eventIds.length > 0 ? inArray(quotes.eventId, eventIds) : undefined,
-      );
-      const quoteRows = await tx
-        .select({ id: quotes.id, number: quotes.number, eventId: quotes.eventId, status: quotes.status })
-        .from(quotes)
-        .where(and(eq(quotes.isDemo, false), quoteMatch))
-        .orderBy(desc(quotes.createdAt))
-        .limit(limit);
-      const invoiceMatch = or(
-        words.length > 0 ? and(...words.map((word) => foldedContains(invoices.number, word))) : undefined,
-        eventIds.length > 0 ? inArray(quotes.eventId, eventIds) : undefined,
-      );
-      const invoiceRows = await tx
-        .select({ id: invoices.id, number: invoices.number, quoteId: invoices.quoteId, eventId: quotes.eventId, kind: invoices.kind, issuedOn: invoices.issuedOn })
-        .from(invoices)
-        .innerJoin(quotes, eq(quotes.id, invoices.quoteId))
-        .where(and(eq(invoices.isDemo, false), invoiceMatch))
-        .orderBy(desc(invoices.issuedAt))
-        .limit(limit);
-      return { quotes: quoteRows, invoices: invoiceRows };
-    });
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const quoteMatch = or(
+      words.length > 0 ? and(...words.map((word) => foldedContains(quotes.number, word))) : undefined,
+      eventIds.length > 0 ? inArray(quotes.eventId, eventIds) : undefined,
+    );
+    const quoteRows = await tx
+      .select({ id: quotes.id, number: quotes.number, eventId: quotes.eventId, status: quotes.status })
+      .from(quotes)
+      .where(and(eq(quotes.isDemo, false), quoteMatch))
+      .orderBy(desc(quotes.createdAt))
+      .limit(limit);
+    const invoiceMatch = or(
+      words.length > 0 ? and(...words.map((word) => foldedContains(invoices.number, word))) : undefined,
+      eventIds.length > 0 ? inArray(quotes.eventId, eventIds) : undefined,
+    );
+    const invoiceRows = await tx
+      .select({ id: invoices.id, number: invoices.number, quoteId: invoices.quoteId, eventId: quotes.eventId, kind: invoices.kind, issuedOn: invoices.issuedOn })
+      .from(invoices)
+      .innerJoin(quotes, eq(quotes.id, invoices.quoteId))
+      .where(and(eq(invoices.isDemo, false), invoiceMatch))
+      .orderBy(desc(invoices.issuedAt))
+      .limit(limit);
+    return { quotes: quoteRows, invoices: invoiceRows };
+  });
 }

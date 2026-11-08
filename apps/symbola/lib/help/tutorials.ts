@@ -5,7 +5,7 @@
 // de supprimer l'exemple. Les textes sont dans « Tutorials.<clé>.steps ».
 // Côté serveur seulement : les vérifications passent par les service.ts.
 import { starterTutorialTaskTemplate, starterTutorialVendors, starterVendorSlots } from "@symbola/starter-templates";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { getEventBudget, listBudgetLines } from "@/modules/budget/service";
 import {
   createTaskTemplate,
@@ -69,12 +69,8 @@ const slotCandidates = async (env: TutorialEnv) =>
   (await listVendorCandidates(env.organizationId, env.context.eventId!)).filter((candidate) => candidate.vendorSlotId === env.context.slotId);
 
 async function vendorsEnabled(organizationId: string): Promise<boolean> {
-  const { sql, db } = createAppConnection();
-  try {
-    return await isModuleEnabled(db, organizationId, "vendors");
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  return await isModuleEnabled(db, organizationId, "vendors");
 }
 
 export const TUTORIAL_SCRIPTS: Record<TutorialKey, TutorialScript> = {
@@ -199,12 +195,8 @@ export const TUTORIAL_SCRIPTS: Record<TutorialKey, TutorialScript> = {
   },
   import: {
     setup: async (env) => {
-      const { sql, db } = createAppConnection();
-      try {
-        return { baseline: (await listImports(db, env.organizationId)).map((entry) => entry.id).join(",") };
-      } finally {
-        await sql.end();
-      }
+      const db = appDatabase();
+      return { baseline: (await listImports(db, env.organizationId)).map((entry) => entry.id).join(",") };
     },
     steps: [
       { kind: "explain" },
@@ -214,13 +206,9 @@ export const TUTORIAL_SCRIPTS: Record<TutorialKey, TutorialScript> = {
         href: () => "/import",
         check: async (env) => {
           const baseline = new Set((env.context.baseline ?? "").split(",").filter(Boolean));
-          const { sql, db } = createAppConnection();
-          try {
-            // Lot 14 (IMP-09) : une fiche événement PDF déposée (la fiche d'exemple).
-            return (await listImports(db, env.organizationId)).some((entry) => !baseline.has(entry.id) && entry.entityType === "event_sheets");
-          } finally {
-            await sql.end();
-          }
+          const db = appDatabase();
+          // Lot 14 (IMP-09) : une fiche événement PDF déposée (la fiche d'exemple).
+          return (await listImports(db, env.organizationId)).some((entry) => !baseline.has(entry.id) && entry.entityType === "event_sheets");
         },
       },
       { kind: "look" },

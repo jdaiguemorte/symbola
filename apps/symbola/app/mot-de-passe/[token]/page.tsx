@@ -2,19 +2,15 @@
 // usage unique). Un lien périmé propose d'en demander un autre.
 import { getTranslations } from "next-intl/server";
 import { isPasswordResetTokenValid } from "@symbola/auth";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { ResetPasswordForm } from "./form";
 
 export default async function ResetPasswordPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
   const t = await getTranslations("PasswordReset");
-  const { sql, db } = createAppConnection();
+  const db = appDatabase();
   let valid = false;
-  try {
-    valid = await isPasswordResetTokenValid(db, token);
-  } finally {
-    await sql.end();
-  }
+  valid = await isPasswordResetTokenValid(db, token);
 
   return (
     <main>

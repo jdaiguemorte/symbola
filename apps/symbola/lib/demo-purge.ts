@@ -3,7 +3,7 @@
 // supprime ses propres données de l'événement fictif (budget et devis d'abord),
 // puis le module events supprime l'événement. Les modules ne se
 // connaissent que par leur service.ts (ADR 0011) ; l'orchestration vit ici.
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { removeEventBudgetData } from "@/modules/budget/service";
 import { removeEventQuotesData } from "@/modules/quotes/service";
 import {
@@ -39,13 +39,8 @@ export async function purgeOrganizationsDemoData(organizationIds: string[], now:
 }
 
 export async function purgeAllExpiredDemoData(now: Date = new Date()): Promise<number> {
-  const { sql, db } = createAppConnection();
-  let organizations;
-  try {
-    organizations = await listOrganizations(db);
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  const organizations = await listOrganizations(db);
   return purgeOrganizationsDemoData(
     organizations.map((organization) => organization.id),
     now,

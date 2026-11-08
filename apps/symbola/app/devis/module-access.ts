@@ -3,16 +3,12 @@
 // identifiants venus de l'URL avant toute requête. Même patron que
 // app/budget/module-access.ts.
 import { z } from "zod";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { isModuleEnabled } from "@/modules/hub/service";
 
 export async function isQuotesModuleEnabled(organizationId: string): Promise<boolean> {
-  const { sql, db } = createAppConnection();
-  try {
-    return await isModuleEnabled(db, organizationId, "quotes");
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  return await isModuleEnabled(db, organizationId, "quotes");
 }
 
 const idSchema = z.uuid();

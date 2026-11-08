@@ -3,17 +3,15 @@
 // une fois fait ; n'empêche jamais le démarrage (un secret en clair se relit,
 // et se chiffre à la prochaine validation de code).
 import { sealLegacyTotpSecrets } from "@symbola/auth";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 
 export async function sealLegacyMfaSecretsAtStartup(): Promise<void> {
-  const { sql, db } = createAppConnection();
+  const db = appDatabase();
   try {
     const sealed = await sealLegacyTotpSecrets(db);
     if (sealed > 0) console.info(`double authentification : ${sealed} secret(s) chiffré(s) au repos (SEC-01)`);
   } catch (error) {
     // Journal sans donnée personnelle.
     console.error("double authentification : chiffrement des secrets au démarrage impossible", error instanceof Error ? error.name : "erreur");
-  } finally {
-    await sql.end();
   }
 }

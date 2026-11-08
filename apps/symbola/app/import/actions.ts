@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { cancelImport, retryImportJob, startEventSheetsImport, startImport, type ImportRejectionReason } from "@/modules/hub/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { saveColumnsIfNothingToDecide } from "@/lib/import/columns";
@@ -45,17 +45,12 @@ export async function startImportAction(_prevState: StartImportFormState, formDa
   if (entityType === "event_sheets") {
     const files = formData.getAll("file").filter((entry): entry is File => entry instanceof File && entry.size > 0);
     if (files.length === 0) return { error: t("missingFile") };
-    const { sql, db } = createAppConnection();
-    let started;
-    try {
-      started = await startEventSheetsImport(db, {
-        organizationId,
-        userId: auth.user.id,
-        files: await Promise.all(files.map(async (entry) => ({ fileName: entry.name, bytes: new Uint8Array(await entry.arrayBuffer()) }))),
-      });
-    } finally {
-      await sql.end();
-    }
+    const db = appDatabase();
+    const started = await startEventSheetsImport(db, {
+      organizationId,
+      userId: auth.user.id,
+      files: await Promise.all(files.map(async (entry) => ({ fileName: entry.name, bytes: new Uint8Array(await entry.arrayBuffer()) }))),
+    });
     if (started.status === "rejected") return { error: t(started.reason === "too_many_files" ? "rejectedTooManySheets" : "missingFile") };
     revalidatePath("/import");
     redirect(`/import/${started.importId}`);
@@ -63,19 +58,14 @@ export async function startImportAction(_prevState: StartImportFormState, formDa
   const file = formData.get("file");
   if (!(file instanceof File) || file.size === 0) return { error: t("missingFile") };
 
-  const { sql, db } = createAppConnection();
-  let result;
-  try {
-    result = await startImport(db, {
-      organizationId,
-      userId: auth.user.id,
-      entityType,
-      fileName: file.name,
-      bytes: new Uint8Array(await file.arrayBuffer()),
-    });
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  const result = await startImport(db, {
+    organizationId,
+    userId: auth.user.id,
+    entityType,
+    fileName: file.name,
+    bytes: new Uint8Array(await file.arrayBuffer()),
+  });
 
   if (result.status === "rejected") {
     // Journalisé sans le nom du fichier ni son contenu (CLAUDE.md §5).
@@ -95,12 +85,8 @@ export async function cancelImportAction(formData: FormData): Promise<void> {
   const importId = String(formData.get("importId") ?? "");
   if (!isValidId(importId)) return;
 
-  const { sql, db } = createAppConnection();
-  try {
-    await cancelImport(db, auth.user.organizationId, importId);
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  await cancelImport(db, auth.user.organizationId, importId);
   revalidatePath("/import");
   redirect("/import");
 }
@@ -113,12 +99,8 @@ export async function retryImportJobAction(formData: FormData): Promise<void> {
   const importId = String(formData.get("importId") ?? "");
   const jobId = String(formData.get("jobId") ?? "");
   if (!isValidId(importId) || !isValidId(jobId)) return;
-  const { sql, db } = createAppConnection();
-  try {
-    await retryImportJob(db, auth.user.organizationId, jobId);
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  await retryImportJob(db, auth.user.organizationId, jobId);
   revalidatePath(`/import/${importId}`);
   revalidatePath(`/import/${importId}/journal`);
 }

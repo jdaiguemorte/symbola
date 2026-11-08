@@ -5,7 +5,7 @@
 // requête passe par withOrganization (RLS, CLAUDE.md § 5).
 import { and, asc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { VENDORS_VENDOR_TYPE_MERGED, VENDORS_VENDOR_TYPE_MERGED_VERSION, type StarterVendorCatalogInput, type VendorTypeMergedPayload } from "@symbola/contracts";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { emitDomainEvent } from "@symbola/db/events/emit";
 import { foldSearchText } from "@symbola/db/search";
 import { vendorFamilies, vendors, vendorSettings, vendorTypeFields, vendorTypes } from "@symbola/db/schema/vendors";
@@ -15,12 +15,8 @@ type Tx = Parameters<Parameters<typeof withOrganization>[2]>[0];
 export type VendorFamilyRow = typeof vendorFamilies.$inferSelect;
 
 async function inOrganization<T>(organizationId: string, fn: (tx: Tx) => Promise<T>): Promise<T> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, fn);
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, fn);
 }
 
 const folded = (label: string) => foldSearchText(label).replace(/\s+/g, " ").trim();

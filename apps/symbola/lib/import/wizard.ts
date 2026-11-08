@@ -3,7 +3,7 @@
 // Étapes : Fichier, Colonnes, Types (prestataires seulement), Doublons,
 // Vérifier et confirmer. Une étape sans rien à décider est faite d'office et
 // franchie, avec son résumé ; un brouillon reprend là où il s'était arrêté.
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { getImportDraft, type ImportDraft, type ImportEntityType } from "@/modules/hub/service";
 import { getImportMatchesView, type MatchesView } from "./matching";
 
@@ -115,13 +115,8 @@ export function importWizardSteps(input: StepInput): ImportWizardStep[] {
 }
 
 export async function getImportWizard(organizationId: string, importId: string): Promise<ImportWizard | null> {
-  const { sql, db } = createAppConnection();
-  let draft: ImportDraft | null;
-  try {
-    draft = await getImportDraft(db, organizationId, importId);
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  const draft: ImportDraft | null = await getImportDraft(db, organizationId, importId);
   if (!draft) return null;
   const readJob = draft.jobs.find((job) => job.kind === "read_sheets");
   const readingDone = !readJob || readJob.status === "done";

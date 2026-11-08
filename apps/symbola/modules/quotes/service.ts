@@ -4,7 +4,7 @@
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { starterDemoQuote } from "@symbola/starter-templates";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase, type AppDatabase } from "@symbola/db/client";
 import { parseEnv } from "@symbola/env";
 import { createStorageClient, deletePrivateObject, PrivateObjectNotFoundError, readPrivateObject, uploadFile } from "@symbola/files";
 import { sendMail } from "@symbola/mail";
@@ -317,13 +317,9 @@ const DEMO_PREFIX = "DEMO";
 const MAX_AMOUNT_CENTS = 100_000_000_00; // 100 M€ : garde-fou contre les débordements d'entier
 const MAX_QUANTITY_MILLI = 1_000_000_000;
 
-async function withDb<T>(fn: (db: ReturnType<typeof createAppConnection>["db"]) => Promise<T>): Promise<T> {
-  const { sql, db } = createAppConnection();
-  try {
-    return await fn(db);
-  } finally {
-    await sql.end();
-  }
+async function withDb<T>(fn: (db: AppDatabase) => Promise<T>): Promise<T> {
+  const db = appDatabase();
+  return await fn(db);
 }
 
 // Dates du devis (année de numérotation, date d'envoi) en heure de Paris.

@@ -4,7 +4,7 @@
 import { randomUUID } from "node:crypto";
 import { afterEach, describe, expect, it } from "vitest";
 import { createOrganization, createUser } from "@symbola/auth";
-import { createAppConnection } from "@symbola/db/client";
+import { createAppConnection, type AppDatabase } from "@symbola/db/client";
 import { saveOnboardingStep } from "@/modules/hub/service";
 import { createProspect, createProspectSource, startEventsTrial } from "@/modules/events/service";
 import { fakeSignatureProvider, setSignatureProviderForTests } from "./signature";
@@ -39,7 +39,7 @@ const NOW = new Date("2027-04-10T10:00:00Z");
 
 afterEach(() => setSignatureProviderForTests(undefined));
 
-async function withDb<T>(fn: (db: ReturnType<typeof createAppConnection>["db"]) => Promise<T>): Promise<T> {
+async function withDb<T>(fn: (db: AppDatabase) => Promise<T>): Promise<T> {
   const { sql, db } = createAppConnection();
   try {
     return await fn(db);

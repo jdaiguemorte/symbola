@@ -6,7 +6,7 @@ import { randomUUID } from "node:crypto";
 import * as OTPAuth from "otpauth";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { confirmTotp, createOrganization, createUser, login, setupTotp } from "@symbola/auth";
-import { createAppConnection } from "@symbola/db/client";
+import { createAppConnection, type AppDatabase } from "@symbola/db/client";
 import { acceptEventClientInvitation, createProspect, createProspectSource, inviteEventClient } from "@/modules/events/service";
 import { saveOnboardingStep } from "@/modules/hub/service";
 import {
@@ -46,7 +46,7 @@ const { GET: getQuotePdf } = await import("./[quoteId]/pdf/route");
 
 const PASSWORD = "mot-de-passe-du-test";
 
-async function withDb<T>(fn: (db: ReturnType<typeof createAppConnection>["db"]) => Promise<T>): Promise<T> {
+async function withDb<T>(fn: (db: AppDatabase) => Promise<T>): Promise<T> {
   const { sql, db } = createAppConnection();
   try {
     return await fn(db);

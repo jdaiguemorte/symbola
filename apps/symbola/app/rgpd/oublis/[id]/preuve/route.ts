@@ -3,7 +3,7 @@
 import { createElement, type ReactElement } from "react";
 import { renderToBuffer, type DocumentProps } from "@react-pdf/renderer";
 import { z } from "zod";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { getPrivacyErasure, PrivacyErasureNotFoundError, type PrivacyErasureView } from "@/modules/hub/service";
 import { ownerContext } from "../../../owner-access";
 import { buildErasureProof } from "../../proof";
@@ -15,15 +15,13 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   if (!owner) return new Response(null, { status: 403 });
   const parsed = z.uuid().safeParse((await params).id);
   if (!parsed.success) return new Response(null, { status: 404 });
-  const { sql, db } = createAppConnection();
+  const db = appDatabase();
   let erasure: PrivacyErasureView;
   try {
     erasure = await getPrivacyErasure(db, owner.organizationId, parsed.data);
   } catch (error) {
     if (error instanceof PrivacyErasureNotFoundError) return new Response(null, { status: 404 });
     throw error;
-  } finally {
-    await sql.end();
   }
   const model = await buildErasureProof(owner.organizationId, erasure);
   const pdf = await renderToBuffer(createElement(ProofPdfDocument, { model: pdfSafe(model) }) as unknown as ReactElement<DocumentProps>);

@@ -4,7 +4,7 @@
 // utilisé dans un échéancier, ne sont jamais supprimés par une annulation.
 import { eq, sql } from "drizzle-orm";
 import { sameImportValue, type ImportApplyResult, type ImportApplyRow, type ImportedItem, type ImportUndoItem, type ImportUndoOutcome } from "@symbola/contracts";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { catalogItems, paymentMethods, paymentScheduleItems, quoteLines } from "@symbola/db/schema/quotes";
 import { withOrganization } from "@symbola/db/with-organization";
 
@@ -12,12 +12,8 @@ type Tx = Parameters<Parameters<typeof withOrganization>[2]>[0];
 type Values = Record<string, unknown>;
 
 async function inTransaction<T>(organizationId: string, fn: (tx: Tx) => Promise<T>): Promise<T> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, fn);
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, fn);
 }
 
 function text(value: unknown): string | null {

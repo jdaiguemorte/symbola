@@ -4,7 +4,7 @@
 // libres et champs importés disparaissent. Date du mariage ramenée au 1er du
 // mois, lieu effacé (décision de Julien, 02/11/2026). Jamais un élément d'essai.
 import { and, eq, inArray, isNotNull } from "drizzle-orm";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { createStorageClient, deletePrivateObject } from "@symbola/files";
 import {
   eventActivities,
@@ -98,12 +98,8 @@ function toPlan(found: Found[]): ErasurePlanItem[] {
 }
 
 async function inOrganization<T>(organizationId: string, fn: (tx: Tx) => Promise<T>): Promise<T> {
-  const { sql, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, fn);
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, fn);
 }
 
 export async function planEventsErasure(input: ErasureInput): Promise<ErasurePlanItem[]> {

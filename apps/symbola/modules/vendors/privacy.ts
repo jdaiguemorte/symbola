@@ -5,7 +5,7 @@
 // RIB). Une fiche n'est rattachée à aucun événement : `related` ne renvoie
 // rien. Les fiches d'exemple (essais, tutoriels) ne sont jamais trouvées.
 import { and, eq, inArray } from "drizzle-orm";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { vendorFiles, vendors } from "@symbola/db/schema/vendors";
 import { withOrganization } from "@symbola/db/with-organization";
 import { createStorageClient, deletePrivateObject } from "@symbola/files";
@@ -15,12 +15,8 @@ const MODULE = "vendors";
 type Tx = Parameters<Parameters<typeof withOrganization>[2]>[0];
 
 async function inOrganization<T>(organizationId: string, fn: (tx: Tx) => Promise<T>): Promise<T> {
-  const { sql, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, fn);
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, fn);
 }
 
 function compact(fields: Record<string, string | null | undefined>): Record<string, string> {

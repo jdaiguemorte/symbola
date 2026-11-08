@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { z } from "zod";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase, type AppDatabase } from "@symbola/db/client";
 import {
   closePrivacyRequest,
   createPrivacyRequest,
@@ -22,13 +22,9 @@ const createSchema = z.object({
   receivedOn: z.iso.date(),
 });
 
-async function withDb<T>(fn: (db: ReturnType<typeof createAppConnection>["db"]) => Promise<T>): Promise<T> {
-  const { sql, db } = createAppConnection();
-  try {
-    return await fn(db);
-  } finally {
-    await sql.end();
-  }
+async function withDb<T>(fn: (db: AppDatabase) => Promise<T>): Promise<T> {
+  const db = appDatabase();
+  return await fn(db);
 }
 
 export async function createRequestAction(_prevState: RequestFormState, formData: FormData): Promise<RequestFormState> {

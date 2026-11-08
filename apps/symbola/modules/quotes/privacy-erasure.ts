@@ -12,7 +12,7 @@
 //   numéros, intitulés et montants restent (statistiques).
 // - Catalogue : champs libres importés effacés.
 import { eq, inArray, sql as rawSql } from "drizzle-orm";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { catalogItems, creditNotes, invoices, quoteLines, quotes, quoteSigners, quoteVersions, signatureRequests } from "@symbola/db/schema/quotes";
 import { withOrganization } from "@symbola/db/with-organization";
 import type { InvoiceBuyer } from "@symbola/contracts";
@@ -34,12 +34,8 @@ type Plan = {
 };
 
 async function inOrganization<T>(organizationId: string, fn: (tx: Tx) => Promise<T>): Promise<T> {
-  const { sql, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, fn);
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, fn);
 }
 
 async function buildPlan(tx: Tx, input: ErasureInput): Promise<Plan> {

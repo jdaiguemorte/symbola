@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { z } from "zod";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { PrivacyRequestInvalidError, updatePrivacySettings } from "@/modules/hub/service";
 import { ownerContext } from "../owner-access";
 
@@ -25,14 +25,12 @@ export async function savePrivacySettingsAction(_prevState: SettingsFormState, f
   if (!owner) return { error: t("ownerOnly") };
   const parsed = settingsSchema.safeParse(Object.fromEntries(Object.keys(settingsSchema.shape).map((key) => [key, formData.get(key)])));
   if (!parsed.success) return { error: t("settingsInvalid") };
-  const { sql, db } = createAppConnection();
+  const db = appDatabase();
   try {
     await updatePrivacySettings(db, owner.organizationId, parsed.data);
   } catch (error) {
     if (error instanceof PrivacyRequestInvalidError) return { error: t("settingsInvalid") };
     throw error;
-  } finally {
-    await sql.end();
   }
   revalidatePath("/rgpd/reglages");
   return { success: true };

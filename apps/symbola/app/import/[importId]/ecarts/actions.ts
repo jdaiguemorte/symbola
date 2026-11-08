@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { decideFreeColumns, type FreeColumnDecision } from "@/modules/hub/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isValidId } from "../../access";
@@ -19,12 +19,8 @@ export async function decideFreeColumnsAction(formData: FormData): Promise<void>
     if (!match || (value !== "keep" && value !== "ignore")) continue;
     decisions.push({ columnIndex: Number(match[1]), keep: value === "keep" });
   }
-  const { sql, db } = createAppConnection();
-  try {
-    await decideFreeColumns(db, { organizationId: auth.user.organizationId, importId, decisions });
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  await decideFreeColumns(db, { organizationId: auth.user.organizationId, importId, decisions });
   revalidatePath(`/import/${importId}/ecarts`);
   revalidatePath(`/import/${importId}`);
 }

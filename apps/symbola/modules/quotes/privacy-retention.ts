@@ -5,7 +5,7 @@
 // document d'essai (ADR 0008).
 import { and, eq, inArray, isNotNull, max } from "drizzle-orm";
 import type { InvoiceBuyer } from "@symbola/contracts";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { creditNotes, invoices, paymentScheduleItems, quotes, quoteSigners, quoteVersions, signatureRequests } from "@symbola/db/schema/quotes";
 import { withOrganization } from "@symbola/db/with-organization";
 import { addMonths, ANONYMIZED, isExpired, parisDate } from "@symbola/privacy";
@@ -13,12 +13,8 @@ import { addMonths, ANONYMIZED, isExpired, parisDate } from "@symbola/privacy";
 type Tx = Parameters<Parameters<typeof withOrganization>[2]>[0];
 
 async function inOrganization<T>(organizationId: string, fn: (tx: Tx) => Promise<T>): Promise<T> {
-  const { sql, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, fn);
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, fn);
 }
 
 // Dernier paiement enregistré sur les devis de chaque événement.
