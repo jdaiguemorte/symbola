@@ -49,7 +49,8 @@ test("HUB-21 — une agence événementielle lit « contact » et « clients »,
   expect(result.violations, JSON.stringify(result.violations, null, 2)).toEqual([]);
 
   const wedding = await plannerOf("wedding_planner");
-  const other = await browser.newContext({ viewport: page.viewportSize() ?? undefined });
+  const viewport = page.viewportSize();
+  const other = await browser.newContext(viewport ? { viewport } : {});
   const weddingPage = await other.newPage();
   await login(weddingPage, wedding.email, wedding.password);
   await weddingPage.goto("/events/new");
