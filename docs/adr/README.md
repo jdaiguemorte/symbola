@@ -44,3 +44,4 @@ Un fichier par décision structurante, numéroté. Pour changer une décision : 
 - [0040 — Familles de types de prestataires, propres à l'organisation ; fusion et suppression sans perte](0040-familles-de-types-de-prestataires.md)
 - [0041 — Import en assistant linéaire ; types de l'import rangés par famille](0041-import-en-assistant.md)
 - [0042 — Écrans restés à l'ancien motif ; vocabulaire selon le métier](0042-ecrans-restants-et-vocabulaire-metier.md)
+- [0043 — Une réserve de connexions par processus ; une garde d'accès par écran](0043-connexion-partagee-et-gardes-d-acces.md)

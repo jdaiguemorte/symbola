@@ -291,11 +291,21 @@ sans cette clé, l'app refuse de démarrer.
 2. Sur le VPS, modifier `APP_IMAGE_TAG` dans le `.env.<environnement>`
    concerné (SHA précis recommandé plutôt que `latest`, pour un retour
    arrière fiable).
-3. Si la version ajoute une migration de base : lancer
-   `pnpm --filter @symbola/db migrate` comme ci-dessus (tunnel SSH)
-   **avant** de redémarrer l'app, les migrations étant conçues pour
-   rester compatibles avec la version précédente le temps du
-   déploiement.
+3. Si la version ajoute une migration de base : la lancer **avant** de
+   redémarrer l'app, les migrations étant conçues pour rester compatibles
+   avec la version précédente le temps du déploiement. Julien n'a pas Node
+   sur son poste : la commande tourne sur le VPS, dans un conteneur
+   `node:22-slim` branché sur le réseau Docker de l'environnement (comme
+   « Premiers comptes »), depuis le dépôt à jour :
+   ```bash
+   cd /opt/symbola && sudo git pull
+   sudo docker run --rm --network symbola-staging_default -v "$PWD":/app -w /app \
+     --env-file infra/compose/.env.staging -e POSTGRES_HOST=postgres -e POSTGRES_PORT=5432 \
+     node:22-slim sh -c "corepack enable && pnpm install --frozen-lockfile && \
+       pnpm -s --filter @symbola/db migrate"
+   ```
+   En production : `symbola-production_default` et `.env.production`.
+   Depuis un poste qui a Node, le tunnel SSH ci-dessus reste possible.
 4. Redémarrer seulement le service `symbola` :
    ```bash
    docker compose -f infra/compose/docker-compose.prod.yml \
