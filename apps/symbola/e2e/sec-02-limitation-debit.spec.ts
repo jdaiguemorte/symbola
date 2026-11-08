@@ -22,7 +22,8 @@ test("SEC-02 — au-delà de 5 demandes de lien par adresse en une heure, un mes
   }
 
   await askForLink();
-  await expect(page.getByRole("alert")).toHaveText("Trop de tentatives. Réessayez dans 60 minutes.");
+  // Le message de l'écran (Next ajoute son propre role="alert", l'annonceur de route).
+  await expect(page.locator("main").getByRole("alert")).toHaveText("Trop de tentatives. Réessayez dans 60 minutes.");
   const result = await new AxeBuilder({ page }).analyze();
   expect(result.violations, JSON.stringify(result.violations, null, 2)).toEqual([]);
 });

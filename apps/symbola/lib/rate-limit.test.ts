@@ -13,6 +13,8 @@ describe("SEC-02 — Limitation de débit : règles et adresse du client", () =>
 
   it("sans proxy devant l'app, pas d'adresse : seule la limite par compte s'applique", () => {
     expect(clientIpFrom(new Headers())).toBeNull();
+    // Next.js pose l'adresse de la connexion quand l'en-tête manque : une adresse de bouclage.
+    for (const loopback of ["127.0.0.1", "::1", "::ffff:127.0.0.1"]) expect(clientIpFrom(new Headers({ "x-forwarded-for": loopback }))).toBeNull();
     expect(rateLimitRules("login", { ip: null, account: "planner@symbola.test" })).toEqual([
       { bucket: "login.account", key: "planner@symbola.test", ...RATE_LIMITS.login.account },
     ]);

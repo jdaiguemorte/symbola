@@ -56,7 +56,10 @@ sécurité, pas des données métier.
   remplace l'en-tête envoyé par le client (sans `trusted_proxies`), qui ne peut donc pas
   choisir son adresse.
 - **Sans proxy devant l'app** (tests de bout en bout, poste local), il n'y a pas d'adresse :
-  seule la limite par compte s'applique. En production, l'app n'est joignable que par Caddy.
+  seule la limite par compte s'applique. Next.js pose alors l'adresse de la connexion dans
+  `X-Forwarded-For` (il ne le fait que si l'en-tête manque) : une adresse de bouclage
+  (`127.0.0.1`, `::1`), traitée comme « pas d'adresse ». En production, l'app n'est joignable
+  que par Caddy, qui pose l'adresse du client.
 - **Réponse** : le message traduit dit combien de minutes attendre (« Trop de tentatives.
   Réessayez dans 15 minutes. »).
   - Une route (recherche instantanée, envois de fichiers) répond **429** avec `Retry-After`.

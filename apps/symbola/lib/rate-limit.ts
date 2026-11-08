@@ -32,16 +32,21 @@ const PURGE_INTERVAL_MS = 60 * MINUTE;
 // Adresse du client : la dernière de X-Forwarded-For, celle qu'a vue le
 // proxy (Caddy en production, Traefik en développement) ; Caddy remplace
 // l'en-tête envoyé par le client, qui ne peut donc pas choisir son adresse.
-// Sans proxy devant l'app (tests de bout en bout, poste local), pas
-// d'adresse : seule la limite par compte s'applique.
+// Next.js ne pose l'en-tête que s'il manque, avec l'adresse de la connexion :
+// sans proxy devant l'app (tests de bout en bout, poste local), c'est une
+// adresse de bouclage, qui ne désigne personne. Pas d'adresse alors : seule
+// la limite par compte s'applique.
+const LOOPBACK = /^(127\.|::1$|::ffff:127\.)/;
+
 export function clientIpFrom(headers: Headers): string | null {
   const forwarded = headers.get("x-forwarded-for");
   if (!forwarded) return null;
-  const addresses = forwarded
+  const address = forwarded
     .split(",")
-    .map((address) => address.trim())
-    .filter(Boolean);
-  return addresses.at(-1) ?? null;
+    .map((entry) => entry.trim())
+    .filter(Boolean)
+    .at(-1);
+  return address && !LOOPBACK.test(address) ? address : null;
 }
 
 export function rateLimitRules(action: RateLimitedAction, subject: { ip: string | null; account: string | null }): RateLimitRule[] {
