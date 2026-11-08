@@ -9,8 +9,6 @@ import { parseAmountToCents } from "@symbola/i18n";
 import {
   addVendorCandidate,
   addVendorCandidateNote,
-  attachVendorCandidateQuote,
-  CandidateQuoteRejectedError,
   linkVendorCandidate,
   removeVendorCandidate,
   removeVendorCandidateNote,
@@ -104,28 +102,6 @@ export async function updateCandidateAction(_prev: CandidateFormState, formData:
   } catch (error) {
     if (error instanceof VendorCandidateNotFoundError) return { error: t("notFound") };
     if (error instanceof RangeError) return { error: t("invalidDate") };
-    throw error;
-  }
-  refresh(eventId);
-  return { success: true };
-}
-
-export async function attachCandidateQuoteAction(_prev: CandidateFormState, formData: FormData): Promise<CandidateFormState> {
-  const t = await getTranslations("VendorCandidates");
-  const access = await authorize();
-  if (!access) return { error: t("unauthorized") };
-  const found = ids(formData, "eventId", "candidateId");
-  if (!found) return { error: t("notFound") };
-  const [eventId, candidateId] = found as [string, string];
-  const file = formData.get("quote");
-  if (!(file instanceof File) || file.size === 0) return { error: t("quoteMissing") };
-  try {
-    await attachVendorCandidateQuote({ organizationId: access.organizationId, candidateId, content: new Uint8Array(await file.arrayBuffer()) });
-  } catch (error) {
-    if (error instanceof CandidateQuoteRejectedError) {
-      return { error: t(error.reason === "too_large" ? "quoteTooLarge" : error.reason === "infected" ? "quoteInfected" : "quoteUnsupported") };
-    }
-    if (error instanceof VendorCandidateNotFoundError) return { error: t("notFound") };
     throw error;
   }
   refresh(eventId);

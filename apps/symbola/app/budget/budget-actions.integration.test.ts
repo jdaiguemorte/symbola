@@ -36,12 +36,17 @@ vi.mock("next-intl/server", () => ({
 
 const {
   adjustEventBudgetItemAction,
-  attachQuoteAction,
   confirmEventBudgetAction,
   simulateEventBudgetAction,
   updateBudgetLineAction,
 } = await import("./[eventId]/actions");
 const { createAllocationModelAction } = await import("./parametres/actions");
+// Lot 16 (SEC-02) : le devis joint passe par sa route dédiée.
+const { POST: attachQuote } = await import("./[eventId]/devis/route");
+
+function attachQuoteRequest(eventId: string, values: Record<string, string | Blob>): Request {
+  return new Request(`http://localhost:3000/budget/${eventId}/devis`, { method: "POST", body: form(values), headers: { origin: "http://localhost:3000", host: "localhost:3000" } });
+}
 
 const PASSWORD = "mot-de-passe-du-marie";
 const TINY_PDF = Buffer.from("%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n", "latin1");
@@ -134,12 +139,11 @@ describe("BUD-04 — Un compte marié ne modifie jamais le budget, même par app
     expect(
       await updateBudgetLineAction({}, form({ eventId, eventVendorSlotId, field: "planned", amount: "1" })),
     ).toEqual({ error: "unauthenticated" });
-    expect(
-      await attachQuoteAction(
-        {},
-        form({ eventId, eventVendorSlotId, quote: new File([TINY_PDF], "devis.pdf", { type: "application/pdf" }) }),
-      ),
-    ).toEqual({ error: "unauthenticated" });
+    const quoteResponse = await attachQuote(attachQuoteRequest(eventId, { eventVendorSlotId, quote: new File([TINY_PDF], "devis.pdf", { type: "application/pdf" }) }), {
+      params: Promise.resolve({ eventId }),
+    });
+    expect(quoteResponse.status).toBe(401);
+    expect(await quoteResponse.json()).toEqual({ error: "unauthenticated" });
     expect(
       await simulateEventBudgetAction(
         {},

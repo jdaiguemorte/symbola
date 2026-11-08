@@ -14,6 +14,12 @@ const securityHeaders = [
   { key: "X-Frame-Options", value: "DENY" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "X-Content-Type-Options", value: "nosniff" },
+  // Lot 16 (SEC-02, ADR 0044) : ni caméra, ni micro, ni géolocalisation (la
+  // carte cherche autour d'une adresse saisie, jamais de la position de
+  // l'appareil) ; la fenêtre de l'app ne partage rien avec une page d'une
+  // autre origine qu'elle ouvrirait ou qui l'ouvrirait.
+  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+  { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
   // HSTS n'a de sens qu'en HTTPS : en dev (HTTP), l'envoyer ferait courir
   // le risque qu'un navigateur retienne une exigence HTTPS locale.
   ...(process.env.NODE_ENV === "production"
@@ -38,9 +44,10 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     "/**": ["../../node_modules/.pnpm/pdfkit@*/node_modules/pdfkit/js/standard-fonts/**"],
   },
-  // BUD-03 : un devis prestataire peut peser jusqu'à 20 Mo (limite vérifiée
-  // ensuite par @symbola/files) ; 1 Mo par défaut pour une Server Action.
-  experimental: { serverActions: { bodySizeLimit: "21mb" } },
+  // Lot 16 (SEC-02, ADR 0044) : les actions serveur gardent la limite par
+  // défaut de Next.js (1 Mo). Les fichiers (devis, plaquettes, imports, 20 Mo)
+  // passent par des routes dédiées qui contrôlent la session et la limite de
+  // débit avant de lire le corps (lib/uploads/receive.ts).
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

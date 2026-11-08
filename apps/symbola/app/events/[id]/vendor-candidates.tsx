@@ -6,13 +6,13 @@
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
+import { useUploadAction } from "@/app/ui/use-upload";
 import { formatAmount, type Locale } from "@symbola/i18n";
 import type { EventVendorSlot, VendorCandidate, VendorCandidateResponse } from "@/modules/events/service";
 import {
   addCandidateAction,
   addCandidateNoteAction,
   addCandidateToBookAction,
-  attachCandidateQuoteAction,
   removeCandidateAction,
   removeCandidateNoteAction,
   saveSlotBriefAction,
@@ -116,7 +116,7 @@ function CandidateCard({
 }) {
   const t = useTranslations("VendorCandidates");
   const [state, action, pending] = useActionState(updateCandidateAction, {});
-  const [quoteState, quoteAction, quotePending] = useActionState(attachCandidateQuoteAction, {});
+  const [quoteState, quoteAction, quotePending] = useUploadAction<CandidateFormState>(`/events/${eventId}/consultes/${candidate.id}/devis`);
   const [noteState, noteAction, notePending] = useActionState(addCandidateNoteAction, {});
   const [response, setResponse] = useState<VendorCandidateResponse>(candidate.response);
   const [contactedOn, setContactedOn] = useState(candidate.contactedOn ?? "");

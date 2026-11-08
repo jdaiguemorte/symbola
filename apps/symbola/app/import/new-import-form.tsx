@@ -1,9 +1,10 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import type { ImportEntityType } from "@/modules/hub/service";
-import { startImportAction, type StartImportFormState } from "./actions";
+import { useUploadAction } from "@/app/ui/use-upload";
+import type { StartImportFormState } from "./actions";
 
 export function NewImportForm({
   entityTypes,
@@ -18,8 +19,8 @@ export function NewImportForm({
   defaultEntityType?: ImportEntityType | null;
 }) {
   const t = useTranslations("Import");
-  const initialState: StartImportFormState = {};
-  const [state, formAction, pending] = useActionState(startImportAction, initialState);
+  // Lot 16 (SEC-02) : le fichier part par sa route dédiée, pas par une action serveur.
+  const [state, formAction, pending] = useUploadAction<StartImportFormState>("/import/envoi");
   // Lot 14c (IMP-08) : des fiches événement PDF, plusieurs à la fois.
   const [entityType, setEntityType] = useState<ImportEntityType | "">(defaultEntityType ?? (entityTypes.length === 1 ? entityTypes[0]! : ""));
   const sheets = entityType === "event_sheets";
