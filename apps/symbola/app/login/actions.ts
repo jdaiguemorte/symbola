@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { login } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
-import { setSessionCookie } from "@/lib/auth-context";
+import { getTrustedDeviceToken, setSessionCookie } from "@/lib/auth-context";
 
 export type LoginFormState = { error?: string };
 
@@ -15,10 +15,12 @@ export async function loginAction(
   const email = String(formData.get("email") ?? "");
   const password = String(formData.get("password") ?? "");
 
+  // SEC-03 : un appareil de confiance de ce compte dispense du code.
+  const trustedDeviceToken = await getTrustedDeviceToken();
   const { sql, db } = createAppConnection();
   let result;
   try {
-    result = await login(db, email, password);
+    result = await login(db, email, password, { trustedDeviceToken });
   } finally {
     await sql.end();
   }

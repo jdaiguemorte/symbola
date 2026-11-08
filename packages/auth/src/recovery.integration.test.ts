@@ -90,11 +90,12 @@ describe("Lot 9 — Réinitialisation de la double authentification par l'Admin"
     if (first.outcome !== "success") throw new Error("connexion attendue");
     const { secret } = await resumeTotpSetup(db, user.id);
     const code = new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret) }).generate();
-    expect(await confirmTotp(db, { sessionToken: first.sessionToken, token: code })).toBe(true);
+    const confirmed = await confirmTotp(db, { sessionToken: first.sessionToken, token: code });
+    if (confirmed.outcome !== "confirmed") throw new Error("validation attendue");
 
     expect(await resetUserMfa(db, user.id)).toMatchObject({ email });
     expect(await sessionCount(user.id)).toBe(0);
-    expect((await requireUser(db, first.sessionToken)).status).toBe("unauthenticated");
+    expect((await requireUser(db, confirmed.sessionToken)).status).toBe("unauthenticated");
 
     const second = await login(db, email, "ancien-mot-de-passe");
     if (second.outcome !== "success") throw new Error("connexion attendue");

@@ -5,7 +5,7 @@
 // la planner ne relèvent pas de ce traitement.
 import { and, eq, inArray, isNotNull } from "drizzle-orm";
 import { createAppConnection } from "@symbola/db/client";
-import { helpProgress, importItems, imports, sessions, users, userTourSeen } from "@symbola/db/schema/hub";
+import { helpProgress, importItems, imports, sessions, trustedDevices, users, userTourSeen } from "@symbola/db/schema/hub";
 import { withOrganization } from "@symbola/db/with-organization";
 import {
   ANONYMIZED,
@@ -57,6 +57,8 @@ async function hubErasure(input: ErasureInput, execute: boolean): Promise<Erasur
       if (execute && ids.length > 0) {
         await db.transaction(async (tx) => {
           await tx.delete(sessions).where(inArray(sessions.userId, ids));
+          // SEC-03 : appareils de confiance (aussi effacés en cascade).
+          await tx.delete(trustedDevices).where(inArray(trustedDevices.userId, ids));
           await tx.delete(userTourSeen).where(inArray(userTourSeen.userId, ids));
           await tx.delete(helpProgress).where(inArray(helpProgress.userId, ids));
           await tx.delete(users).where(inArray(users.id, ids));

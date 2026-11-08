@@ -81,6 +81,17 @@ export const envSchema = z.object({
   GEOCODER: z.preprocess((value) => (value === "" ? undefined : value), z.enum(["ign", "fake", "none"]).optional()),
   // Dossier du fond de carte (fichier PMTiles et polices), vide = pas de fond.
   MAP_TILES_DIR: z.string().default(""),
+  // Lot 16 (SEC-01, ADR 0037) : clé de chiffrement des secrets de double
+  // authentification, 32 octets en base64 (openssl rand -base64 32). Requise
+  // partout : sans elle, aucun compte ne pourrait configurer ni valider son
+  // code. Une clé perdue oblige chaque compte à reconfigurer sa double
+  // authentification : la garder dans le gestionnaire de mots de passe.
+  MFA_ENCRYPTION_KEY: z
+    .string()
+    .trim()
+    .refine((value) => /^[A-Za-z0-9+/]+={0,2}$/.test(value) && Buffer.from(value, "base64").length === 32, {
+      message: "32 octets encodés en base64 (openssl rand -base64 32)",
+    }),
 }).superRefine((env, context) => {
   if (env.NODE_ENV === "production" && env.GEOCODER === "fake") {
     context.addIssue({ code: "custom", path: ["GEOCODER"], message: "le faux géocodage est interdit en production" });

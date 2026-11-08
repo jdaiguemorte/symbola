@@ -30,9 +30,10 @@ describe("EVT-06 — Écrans de la planner fermés aux comptes marié", () => {
 
   it("ne change pas une session absente ou en attente de double authentification", () => {
     expect(toPlannerAuth({ status: "unauthenticated" })).toEqual({ status: "unauthenticated" });
-    expect(toPlannerAuth({ status: "mfa_required", userId: "u", totpConfirmed: true })).toEqual({
+    expect(toPlannerAuth({ status: "mfa_required", userId: "u", role: "owner", totpConfirmed: true })).toEqual({
       status: "mfa_required",
       userId: "u",
+      role: "owner",
       totpConfirmed: true,
     });
   });

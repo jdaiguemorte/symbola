@@ -264,6 +264,26 @@ l'API de l'IGN dès la production (`GEOCODER` vide), sans clé ni réglage.
 Le fond de carte n'est pas sauvegardé (il se retélécharge) ; le mettre à
 jour une ou deux fois par an suffit.
 
+## Lot 16 : clé de la double authentification (SEC-01, ADR 0037)
+
+À faire **une fois par environnement, avant** de passer `APP_IMAGE_TAG` à une image du lot 16 :
+sans cette clé, l'app refuse de démarrer.
+
+1. Générer une clé propre à l'environnement (jamais la même pour le staging et la production) :
+   ```bash
+   openssl rand -base64 32
+   ```
+2. La ranger dans le gestionnaire de mots de passe (« Symbola — clé double authentification —
+   staging »). **Perdue, elle oblige chaque compte à reconfigurer sa double authentification.**
+3. L'ajouter dans `infra/compose/.env.staging` (puis `.env.production`) :
+   `MFA_ENCRYPTION_KEY=<la clé>`, et vérifier :
+   ```bash
+   sudo grep -c '^MFA_ENCRYPTION_KEY=.\+' infra/compose/.env.staging   # attendu : 1
+   ```
+4. Suivre ensuite « Mise à jour » comme d'habitude (migration 0075 comprise). Au démarrage, le
+   journal de l'app indique `double authentification : n secret(s) chiffré(s) au repos (SEC-01)`
+   (aucune ligne si tout était déjà chiffré).
+
 ## Mise à jour (nouvelle version)
 
 1. La CI a publié une nouvelle image taguée par le SHA du commit fusionné
@@ -289,7 +309,19 @@ jour une ou deux fois par an suffit.
 
 ## Retour arrière
 
-Remettre l'ancien tag d'image dans `.env.<environnement>`
+**Vers une image antérieure au lot 16** (ADR 0037) : elle ne sait pas lire les secrets de double
+authentification chiffrés. Avant de changer le tag, les remettre en clair, avec l'image et la
+clé encore en place :
+
+```bash
+cd /opt/symbola
+sudo docker run --rm --network symbola-staging_default -v "$PWD":/app -w /app \
+  --env-file infra/compose/.env.staging -e POSTGRES_HOST=postgres -e POSTGRES_PORT=5432 \
+  node:22-slim sh -c "corepack enable && pnpm install --frozen-lockfile && \
+    pnpm -s --filter @symbola/auth mfa-secrets -- --unseal"
+```
+
+Puis remettre l'ancien tag d'image dans `.env.<environnement>`
 (`APP_IMAGE_TAG=<sha précédent>`), puis répéter les étapes 4 et 5
 ci-dessus (`pull` puis `up -d symbola`) — en moins d'une minute
 (cahier des charges §3). Si la version déployée avait une migration de

@@ -57,7 +57,24 @@ afterAll(async () => {
 describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)", () => {
   it("seule la dernière migration appliquée s'annule", async () => {
     await expect(rollback("0070_lot14_import_vendors")).rejects.toBeInstanceOf(RollbackRefusedError);
+    await expect(rollback("0074_lot15_grant_import_jobs")).rejects.toBeInstanceOf(RollbackRefusedError);
     await expect(rollback("0099_inconnue")).rejects.toBeInstanceOf(RollbackRefusedError);
+  });
+
+  it("SEC-03 (lot 16) — l'annulation de 0076 retire les appareils de confiance", async () => {
+    await expect(rollback("0075_lot16_mfa_protection")).rejects.toBeInstanceOf(RollbackRefusedError);
+    expect(await hasColumn("hub", "trusted_devices", "token_hash")).toBe(true);
+    await rollback("0076_lot16_trusted_devices");
+    expect(await hasColumn("hub", "trusted_devices", "token_hash")).toBe(false);
+  });
+
+  it("SEC-01 (lot 16) — l'annulation de 0075 retire le compteur, le verrouillage et l'anti-rejeu de la double authentification", async () => {
+    expect(await hasColumn("hub", "users", "mfa_failed_attempts")).toBe(true);
+    await rollback("0075_lot16_mfa_protection");
+    for (const column of ["mfa_failed_attempts", "mfa_locked_until", "totp_last_used_step"]) {
+      expect(await hasColumn("hub", "users", column)).toBe(false);
+    }
+    expect(await hasColumn("hub", "users", "totp_secret")).toBe(true);
   });
 
   it("un import qui utilise la valeur bloque l'annulation, sans rien modifier ; sinon le type est recréé sans elle", async () => {
@@ -88,6 +105,8 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     expect(await entityTypes()).toEqual(expect.arrayContaining(["vendors", "event_sheets"]));
     expect(await hasColumn("hub", "import_jobs", "payload")).toBe(true);
     expect(await hasColumn("events", "event_clients", "email")).toBe(true);
+    expect(await hasColumn("hub", "users", "totp_last_used_step")).toBe(true);
+    expect(await hasColumn("hub", "trusted_devices", "expires_at")).toBe(true);
     const [rls] = await target<{ relforcerowsecurity: boolean }[]>`select relforcerowsecurity from pg_class where oid = 'hub.import_jobs'::regclass`;
     expect(rls?.relforcerowsecurity).toBe(true);
   });

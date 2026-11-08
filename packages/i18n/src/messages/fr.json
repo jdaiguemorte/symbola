@@ -17,7 +17,12 @@
     "invalidCode": "Code invalide.",
     "qrLabel": "QR code à scanner avec votre application d'authentification",
     "manualKey": "Impossible de scanner ? Saisissez cette clé dans l'application :",
-    "setupLink": "Lien de configuration complet"
+    "setupLink": "Lien de configuration complet",
+    "locked": "Trop de codes incorrects : la double authentification est bloquée pendant 15 minutes. Un e-mail vous a été envoyé.",
+    "lockedMailSubject": "Votre double authentification Symbola a été bloquée",
+    "lockedMailBody": "Cinq codes de double authentification incorrects d'affilée ont été saisis sur votre compte, après un mot de passe correct. La double authentification est bloquée pendant 15 minutes par mesure de sécurité.\n\nSi ce n'était pas vous, quelqu'un connaît votre mot de passe : changez-le dès maintenant avec « Mot de passe oublié ? » sur l'écran de connexion.",
+    "rememberDevice": "Se souvenir de cet appareil pendant 90 jours",
+    "rememberDeviceHint": "Le code ne vous sera plus demandé sur cet appareil pendant 90 jours. Ne cochez pas sur un ordinateur partagé."
   },
   "Home": {
     "title": "Symbola",
@@ -366,7 +371,7 @@
     },
     "mfa": {
       "title": "Double authentification",
-      "body": "La première fois, scannez le QR code avec une application d'authentification (Google Authenticator, Authy…). Ensuite, saisissez le code à 6 chiffres qu'elle affiche à chaque connexion."
+      "body": "La première fois, scannez le QR code avec une application d'authentification (Google Authenticator, Authy…). Ensuite, saisissez le code à 6 chiffres qu'elle affiche à chaque connexion, ou cochez « Se souvenir de cet appareil » : il ne vous sera plus demandé sur cet appareil pendant 90 jours. Après 5 codes faux, la double authentification est bloquée 15 minutes."
     },
     "home": {
       "title": "Accueil",
@@ -420,7 +425,7 @@
     },
     "profile": {
       "title": "Mon compte et la sécurité",
-      "body": "Choisissez la langue dans laquelle Symbola s'affiche pour vous. Votre mot de passe et votre double authentification protègent votre compte.",
+      "body": "Choisissez la langue dans laquelle Symbola s'affiche pour vous. Votre mot de passe et votre double authentification protègent votre compte ; « Oublier tous mes appareils » redemande le code sur les appareils de confiance.",
       "faq": [
         {
           "q": "Comment changer mon mot de passe ?",
@@ -1519,7 +1524,8 @@
     "vendorOptionsIntro": "Votre organisatrice a consulté plusieurs prestataires. Voici ceux qu'elle vous propose.",
     "vendorOptionQuote": "Devis : {amount}",
     "vendorOptionOpenQuote": "Voir le devis de {vendor}",
-    "vendorOptionOpenRib": "RIB de {vendor}"
+    "vendorOptionOpenRib": "RIB de {vendor}",
+    "mfaLocked": "Trop de codes incorrects : réessayez dans 15 minutes. Un e-mail vous a été envoyé."
   },
   "NotFound": {
     "title": "Page introuvable",
@@ -3158,5 +3164,11 @@
     "previous": "Page précédente",
     "next": "Page suivante",
     "status": "Page {page} sur {count}"
+  },
+  "TrustedDevices": {
+    "title": "Appareils de confiance",
+    "count": "{count, plural, =0 {Aucun appareil de confiance : le code de double authentification est demandé à chaque connexion.} one {# appareil de confiance : le code de double authentification n'y est pas redemandé pendant 90 jours.} other {# appareils de confiance : le code de double authentification n'y est pas redemandé pendant 90 jours.}}",
+    "forget": "Oublier tous mes appareils",
+    "forgotten": "Vos appareils de confiance sont oubliés : le code sera demandé à la prochaine connexion, sur chacun d'eux."
   }
 }
