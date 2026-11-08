@@ -113,7 +113,8 @@ test("HUB-17 / HUB-18 — console d'Administration : vue d'ensemble, dernière s
     await expect(row).toContainText("Événements");
     await row.getByRole("link", { name: organizationName }).click();
     const panel = page.getByRole("complementary", { name: organizationName });
-    await expect(panel.getByRole("button", { name: /events : activé/ })).toBeVisible();
+    // Lot 16 (ARC-01) : le bouton nomme le module dans la langue de l'écran.
+    await expect(panel.getByRole("button", { name: /Événements : activé/ })).toBeVisible();
     await expect(panel).toContainText("titulaire");
     await expect(page.getByText(secretName)).toHaveCount(0);
     await expectNoAxeViolation(page);
