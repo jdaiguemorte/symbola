@@ -6,6 +6,7 @@ import { confirmTotp, setupTotp, type ConfirmTotpResult } from "@symbola/auth";
 import { appDatabase } from "@symbola/db/client";
 import { getClientAuthContext, getSessionToken, setSessionCookie } from "@/lib/auth-context";
 import { sendMfaLockMail } from "@/lib/mfa-lock-mail";
+import { checkRateLimit, rateLimitMessage } from "@/lib/rate-limit";
 import { totpSetupDisplay, type TotpSetupDisplay } from "@/lib/totp-qr";
 
 export type ClientMfaFormState = { setup?: TotpSetupDisplay; error?: string; enabled?: boolean };
@@ -25,6 +26,9 @@ export async function confirmClientMfaAction(prevState: ClientMfaFormState, form
   const auth = await getClientAuthContext();
   const sessionToken = await getSessionToken();
   if (auth.status !== "authenticated" || !sessionToken) return { error: t("unauthenticated") };
+  // SEC-02 (ADR 0044) : même limite que la double authentification de la connexion.
+  const limited = await checkRateLimit("mfa", { account: auth.user.id });
+  if (!limited.allowed) return { ...prevState, error: await rateLimitMessage(limited.retryAfterSeconds) };
   const db = appDatabase();
   const result: ConfirmTotpResult = await confirmTotp(db, { sessionToken, token: String(formData.get("code") ?? "") });
   if (result.outcome === "locked") {

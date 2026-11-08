@@ -3354,5 +3354,14 @@
     "count": "{count, plural, =0 {Aucun appareil de confiance : le code de double authentification est demandé à chaque connexion.} one {# appareil de confiance : le code de double authentification n'y est pas redemandé pendant 90 jours.} other {# appareils de confiance : le code de double authentification n'y est pas redemandé pendant 90 jours.}}",
     "forget": "Oublier tous mes appareils",
     "forgotten": "Vos appareils de confiance sont oubliés : le code sera demandé à la prochaine connexion, sur chacun d'eux."
+  },
+  "RateLimit": {
+    "tooMany": "Trop de tentatives. Réessayez dans {minutes, plural, one {# minute} other {# minutes}}."
+  },
+  "Upload": {
+    "tooLarge": "Le fichier est trop lourd : {max} au plus.",
+    "refused": "Envoi refusé : rechargez la page, puis réessayez.",
+    "unauthenticated": "Votre session a expiré : reconnectez-vous, puis réessayez.",
+    "failed": "L'envoi a échoué. Vérifiez votre connexion, puis réessayez."
   }
 }

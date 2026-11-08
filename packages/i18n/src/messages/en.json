@@ -3354,5 +3354,14 @@
     "count": "{count, plural, =0 {No trusted device: the two-factor authentication code is asked at every login.} one {# trusted device: the two-factor authentication code isn't asked there for 90 days.} other {# trusted devices: the two-factor authentication code isn't asked there for 90 days.}}",
     "forget": "Forget all my devices",
     "forgotten": "Your trusted devices have been forgotten: the code will be asked at the next login, on each of them."
+  },
+  "RateLimit": {
+    "tooMany": "Too many attempts. Try again in {minutes, plural, one {# minute} other {# minutes}}."
+  },
+  "Upload": {
+    "tooLarge": "The file is too large: {max} at most.",
+    "refused": "Upload refused: reload the page, then try again.",
+    "unauthenticated": "Your session has expired: sign in again, then try again.",
+    "failed": "The upload failed. Check your connection, then try again."
   }
 }
