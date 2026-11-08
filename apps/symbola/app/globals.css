@@ -372,6 +372,10 @@
   .page-header {
     @apply mb-6 flex flex-wrap items-start justify-between gap-4;
   }
+  /* Lot 16 (HUB-19) : actions de l'en-tête commun (PageHeader), à droite. */
+  .page-actions {
+    @apply flex flex-wrap items-center gap-2;
+  }
 
   .eyebrow {
     @apply text-sm text-muted;
@@ -779,7 +783,7 @@
 /* Lot 10 (AIDE-08) — recherche globale. */
 @layer components {
   .search-box {
-    @apply relative mb-4 flex w-full max-w-xl items-center;
+    @apply relative flex w-full max-w-xl items-center;
   }
   .search-box input {
     @apply w-full pr-14;
@@ -958,8 +962,9 @@
 
 /* Lot 10 (AIDE-06) — invitation à un tutoriel à la première visite d'un écran. */
 @layer components {
+  /* Lot 16 (HUB-19) : dans la page, sous la barre du haut, plus en surimpression. */
   .tutorial-invite {
-    @apply fixed right-4 bottom-20 z-40 flex w-[340px] max-w-[calc(100vw-32px)] flex-col gap-2 rounded-2xl border border-lin bg-card p-4 shadow-xl;
+    @apply mb-6 flex max-w-3xl flex-col gap-2 rounded-2xl border border-lin bg-card p-4;
   }
   .tutorial-invite h2 {
     @apply m-0 text-lg;
@@ -1516,6 +1521,17 @@
   .help-button[aria-expanded="true"] {
     @apply border-sauge !bg-sauge !text-white;
   }
+  a.help-button {
+    @apply no-underline;
+  }
+  /* Lot 16 (HUB-19, ADR 0039) : barre du haut de chaque écran de l'app ;
+     la recherche à gauche, le seul « ? » à droite, au même endroit partout. */
+  .app-topbar {
+    @apply mb-4 flex items-center gap-3;
+  }
+  .app-topbar > .help-button {
+    @apply ml-auto flex-none;
+  }
   .landmark-marker {
     @apply fixed z-[55] inline-flex !h-7 !min-h-0 !w-7 !min-w-0 items-center justify-center rounded-full border-0 !bg-terracotta !p-0 text-[13px] font-semibold !text-white;
     box-shadow: 0 0 0 4px rgb(168 85 58 / 0.25);
@@ -1532,8 +1548,25 @@
     outline-offset: 4px;
     border-radius: 12px;
   }
+  /* Lot 16 (HUB-19, ADR 0039) : un tiroir qui pousse le contenu au lieu de le
+     recouvrir. Ordinateur : à droite, toute la hauteur ; téléphone et tablette :
+     en bas de l'écran, le contenu défile au-dessus. */
   .landmark-panel {
-    @apply fixed right-4 bottom-4 z-[56] flex max-h-[min(70vh,560px)] w-[360px] max-w-[calc(100vw-32px)] flex-col gap-3 overflow-y-auto rounded-2xl border border-lin bg-card p-4 shadow-2xl;
+    @apply fixed inset-x-0 bottom-0 z-[56] flex max-h-[60vh] flex-col gap-3 overflow-y-auto rounded-t-2xl border-t border-lin bg-card p-4 shadow-2xl lg:inset-y-0 lg:right-0 lg:left-auto lg:max-h-none lg:w-[380px] lg:rounded-none lg:border-t-0 lg:border-l lg:p-5;
+  }
+  body[data-help-open="true"] .app-main {
+    @apply pb-[64vh] lg:pb-28;
+  }
+  body[data-help-open="true"] .app-shell {
+    @apply lg:pr-[380px];
+  }
+  body[data-help-open="true"] .landmark-active {
+    scroll-margin-bottom: 64vh;
+  }
+  @media (min-width: 1024px) {
+    body[data-help-open="true"] .landmark-active {
+      scroll-margin-bottom: 0;
+    }
   }
   .landmark-panel-head {
     @apply flex items-start justify-between gap-2;

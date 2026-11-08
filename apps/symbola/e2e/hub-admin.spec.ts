@@ -40,7 +40,12 @@ async function loginWithKnownMfa(page: Page, email: string, password: string, se
   await page.getByLabel("Mot de passe").fill(password);
   await page.getByRole("button", { name: "Se connecter" }).click();
   await expect(page).toHaveURL(/\/mfa$/);
-  await page.getByLabel("Code").fill(new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret) }).generate());
+  // SEC-01 (ADR 0037) : le code déjà accepté au premier login, quelques
+  // secondes plus tôt, est refusé (anti-rejeu). Comme un téléphone qui affiche
+  // déjà le code suivant, on envoie celui de la période suivante, accepté par
+  // la tolérance d'une période : toujours plus récent que le code déjà utilisé.
+  const nextCode = new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret) }).generate({ timestamp: Date.now() + 30_000 });
+  await page.getByLabel("Code").fill(nextCode);
   await page.getByRole("button", { name: "Valider" }).click();
 }
 

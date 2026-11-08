@@ -96,7 +96,8 @@
     "followUpQuote": "Relancer le devis {number} · {names}",
     "followUpProspect": "Prospect sans nouvelle · {names}",
     "followUpDays": "{days, plural, one {# jour} other {# jours}}",
-    "followUpSettings": "Délais de relance"
+    "followUpSettings": "Délais de relance",
+    "topBar": "Recherche et aide de l'écran"
   },
   "Admin": {
     "createOrganizationTitle": "Créer une organisation",
@@ -3115,7 +3116,8 @@
     "close": "Fermer l'aide",
     "previous": "Repère précédent",
     "next": "Repère suivant",
-    "marker": "Repère {number} : {title}"
+    "marker": "Repère {number} : {title}",
+    "center": "Centre d'aide"
   },
   "AdminMenu": {
     "brand": "Admin",

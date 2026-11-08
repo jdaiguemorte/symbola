@@ -1,15 +1,12 @@
 "use client";
 
-// Lot 10 (AIDE-05), refait au lot 13 (AIDE-11, ADR 0033) — aide sur
-// l'écran par repères. Le bouton « ? » pose des repères numérotés sur les
-// éléments réels de l'écran, et un panneau les explique (le texte d'aide de
-// l'écran en introduction). À la première ouverture d'un écran, les repères
-// s'affichent d'eux-mêmes une fois (décision C), ensuite seulement au clic.
-// Fermer les repères les marque « vus ».
-import { useEffect, useState } from "react";
-import { Landmarks, type LandmarkStep } from "@symbola/ui";
-import { useTranslations } from "next-intl";
-import { recordHelpProgressAction } from "./actions";
+// Lot 10 (AIDE-05), refait au lot 13 (AIDE-11, ADR 0033) puis au lot 16
+// (HUB-19, ADR 0039) — aide sur l'écran par repères. L'écran DÉCLARE ses
+// repères et son texte d'aide ; le « ? » de la barre du haut les affiche. À
+// la première ouverture d'un écran, ils s'affichent d'eux-mêmes une fois
+// (décision C du lot 13), et comptent alors comme vus.
+import { useEffect, useId } from "react";
+import type { LandmarkStep } from "@symbola/ui";
 import { useHelpContext } from "./help-context";
 
 export function PageTour({
@@ -25,52 +22,18 @@ export function PageTour({
   helpTitle: string;
   helpBody: string;
 }) {
-  const t = useTranslations("Landmarks");
-  const [open, setOpen] = useState(initialOpen);
-  const itemKey = `tour:${tourKey}`;
   const help = useHelpContext();
-  const setTour = help?.setTour;
+  const declare = help?.declare;
+  const withdraw = help?.withdraw;
+  const id = useId();
+  // Les repères viennent du serveur : comparés par leur contenu, pas par référence.
+  const stepsKey = JSON.stringify(steps);
 
-  // Ouverts d'office : comptés comme vus dès l'ouverture (ils ne s'imposent qu'une fois).
   useEffect(() => {
-    if (initialOpen) void recordHelpProgressAction(itemKey, "completed", 0);
-  }, [initialOpen, itemKey]);
+    if (!declare || !withdraw) return;
+    declare(id, { title: helpTitle, body: helpBody, steps: JSON.parse(stepsKey) as LandmarkStep[], tourKey, initialOpen });
+    return () => withdraw(id);
+  }, [declare, withdraw, id, helpTitle, helpBody, stepsKey, tourKey, initialOpen]);
 
-  // La pastille « Reprendre » s'efface tant que les repères sont ouverts.
-  useEffect(() => {
-    if (!setTour) return;
-    setTour({ key: tourKey, open });
-    return () => setTour(null);
-  }, [setTour, tourKey, open]);
-
-  return (
-    <>
-      <button
-        type="button"
-        className="help-button"
-        data-tour="help-button"
-        aria-expanded={open}
-        aria-label={t("toggle")}
-        onClick={() => {
-          if (!open) void recordHelpProgressAction(itemKey, "completed", 0);
-          setOpen((value) => !value);
-        }}
-      >
-        ?
-      </button>
-      <Landmarks
-        open={open}
-        intro={helpBody}
-        steps={steps}
-        labels={{
-          panel: t("panel", { screen: helpTitle }),
-          close: t("close"),
-          previous: t("previous"),
-          next: t("next"),
-          marker: (number, title) => t("marker", { number, title }),
-        }}
-        onClose={() => setOpen(false)}
-      />
-    </>
-  );
+  return null;
 }

@@ -4,6 +4,7 @@
 // désactiver, comptes, prise en main ; « Nouvelle organisation » ouvre le
 // formulaire de création (?panneau=nouvelle). Recherche par nom, 20 par page.
 // Aucune donnée métier (ADR 0029) : des comptes, des dates et des nombres.
+import { PageHeader } from "@/app/ui/page-header";
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import { ScreenHelp } from "@/app/screen-help";
@@ -81,12 +82,14 @@ export default async function AdminOrganizationsPage({ searchParams }: { searchP
 
   return (
     <main>
-      <div className="page-header">
-        <h1>{t("organizationsTitle")}</h1>
-        <Link href={href(query, { panneau: "nouvelle", organisation: undefined })} scroll={false} className="button-link button-link-primary">
-          {t("newOrganization")}
-        </Link>
-      </div>
+      <PageHeader
+        title={t("organizationsTitle")}
+        actions={
+          <Link href={href(query, { panneau: "nouvelle", organisation: undefined })} scroll={false} className="button-link button-link-primary">
+            {t("newOrganization")}
+          </Link>
+        }
+      />
       <ScreenHelp title={tHelp("adminOrganizations.title")} body={tHelp("adminOrganizations.body")} />
 
       <FilterBar label={t("filtersLabel")} applyLabel={t("filter")}>

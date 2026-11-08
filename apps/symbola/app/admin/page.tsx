@@ -3,6 +3,7 @@
 // action (invitations expirées, double authentification non configurée,
 // dernière sauvegarde) et tendance sur 6 mois. Jamais un nom, un montant ni un
 // contenu d'organisation dans les chiffres (ADR 0029).
+import { PageHeader } from "@/app/ui/page-header";
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import { ScreenHelp } from "@/app/screen-help";
@@ -52,13 +53,15 @@ export default async function AdminOverviewPage() {
 
   return (
     <main>
-      <div className="page-header">
-        <h1>{t("title")}</h1>
-        <p className={health.status === "ok" ? "status-pill status-pill-ok" : "status-pill status-pill-alert"} role="status">
-          <span className="status-led" aria-hidden="true" />
-          {health.status === "ok" ? t("servicesOk") : t("servicesDegraded")}
-        </p>
-      </div>
+      <PageHeader
+        title={t("title")}
+        actions={
+          <p className={health.status === "ok" ? "status-pill status-pill-ok" : "status-pill status-pill-alert"} role="status">
+            <span className="status-led" aria-hidden="true" />
+            {health.status === "ok" ? t("servicesOk") : t("servicesDegraded")}
+          </p>
+        }
+      />
       <ScreenHelp title={tHelp("admin.title")} body={tHelp("admin.body")} />
 
       <ul className="kpi-list kpi-list-4" aria-label={t("figures")}>

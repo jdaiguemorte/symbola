@@ -1,6 +1,7 @@
 // DEV-01 — écran « Devis et factures » : tous les devis de l'organisation,
 // les plus récents d'abord, filtrables par statut, avec leur mariage. On en
 // crée un depuis la fiche de l'événement (onglet Devis).
+import { PageHeader } from "@/app/ui/page-header";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -51,18 +52,12 @@ export default async function QuotesListPage({ searchParams }: { searchParams: P
 
   return (
     <main>
-      <div className="page-header">
-        <div>
-          <h1>{t("allQuotesTitle")}</h1>
-          <p className="meta">
-            <span>{t("allQuotesIntro")}</span>
-          </p>
-        </div>
-        <div className="toolbar">
-          <ScreenHelp title={tHelp("allQuotes.title")} body={tHelp("allQuotes.body")} />
-          <GearLink href="/devis/parametres" label={t("settingsTitle")} />
-        </div>
-      </div>
+      <PageHeader
+        title={t("allQuotesTitle")}
+        subtitle={<span>{t("allQuotesIntro")}</span>}
+        actions={<GearLink href="/devis/parametres" label={t("settingsTitle")} />}
+      />
+      <ScreenHelp title={tHelp("allQuotes.title")} body={tHelp("allQuotes.body")} />
       <section className="card" aria-labelledby="all-quotes-title">
         <h2 id="all-quotes-title" className="sr-only">
           {t("allQuotesTitle")}

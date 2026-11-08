@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PageHeader } from "@/app/ui/page-header";
 import { ImportedFields } from "../../imported-fields";
 import { notFound, redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -282,13 +283,11 @@ export default async function EventDetailPage({
       <p>
         <Link href="/events">{t("backToEvents")}</Link>
       </p>
-      <div className="page-header">
-        <div>
-          <div className="title-with-badge">
-            <h1>{clientNames}</h1>
-            <span className={EVENT_STATUS_CLASSES[event.status]}>{t(STATUS_LABEL_KEYS[event.status])}</span>
-          </div>
-          <p className="meta">
+      <PageHeader
+        title={clientNames}
+        badge={<span className={EVENT_STATUS_CLASSES[event.status]}>{t(STATUS_LABEL_KEYS[event.status])}</span>}
+        subtitle={
+          <>
             <span>
               {t("eventDate")} : {event.eventDate ? formatCalendarDate(event.eventDate, locale) : t("dateUnset")}
             </span>
@@ -298,10 +297,10 @@ export default async function EventDetailPage({
             <span>
               {t("source")} : {sourceLabel ?? "—"}
             </span>
-          </p>
-        </div>
-        <PageTour {...tour} helpTitle={tHelp("eventsDetail.title")} helpBody={tHelp("eventsDetail.body")} />
-      </div>
+          </>
+        }
+      />
+      <PageTour {...tour} helpTitle={tHelp("eventsDetail.title")} helpBody={tHelp("eventsDetail.body")} />
 
       {/* AIDE-02 : bandeau de l'essai guidé, sur données fictives. */}
       {event.isDemo ? (

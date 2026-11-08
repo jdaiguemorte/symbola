@@ -2,6 +2,7 @@
 // carte et liste du plus proche au plus loin, « Ajouter au poste », export.
 // Lot 13 (PRE-12) : liste et carte côte à côte (bascule sur téléphone),
 // filtres en barre alignée appliqués à la saisie, fiche en panneau latéral.
+import { PageHeader } from "@/app/ui/page-header";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
@@ -68,19 +69,19 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
 
   return (
     <main>
-      <div className="page-header">
-        <div>
-          <h1>{t("title")}</h1>
-          <p className="meta">{t("subtitle", { count: results.length })}</p>
-        </div>
-        <div className="section-head">
-          <PageTour {...tour} helpTitle={tHelp("vendorBook.title")} helpBody={tHelp("vendorBook.body")} />
-          <GearLink href="/prestataires/parametres" label={t("settingsLink")} />
-          <Link className="button-link" href={`/prestataires/nouveau${target ? queryString(query) : ""}`} data-tour="vendor-new">
-            {t("newVendor")}
-          </Link>
-        </div>
-      </div>
+      <PageHeader
+        title={t("title")}
+        subtitle={t("subtitle", { count: results.length })}
+        actions={
+          <>
+            <GearLink href="/prestataires/parametres" label={t("settingsLink")} />
+            <Link className="button-link button-link-primary" href={`/prestataires/nouveau${target ? queryString(query) : ""}`} data-tour="vendor-new">
+              {t("newVendor")}
+            </Link>
+          </>
+        }
+      />
+      <PageTour {...tour} helpTitle={tHelp("vendorBook.title")} helpBody={tHelp("vendorBook.body")} />
 
       {target ? (
         <section className="card" aria-labelledby="target-title">
