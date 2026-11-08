@@ -5,9 +5,9 @@
 import { getLocale, getTranslations } from "next-intl/server";
 import { ScreenHelp } from "@/app/screen-help";
 import { formatDateTime, formatFileSize, type Locale } from "@symbola/i18n";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { getBackupStatus, type BackupStatus } from "@/modules/hub/service";
-import { requireAdmin } from "@/lib/require-admin";
+import { requireAdmin } from "@/lib/guards";
 import { ADMIN_HEALTH_SERVICES, runAdminHealthChecks } from "@/lib/admin-health";
 import { BackupBadge } from "../backup-badge";
 
@@ -18,13 +18,8 @@ export default async function AdminHealthPage() {
   const locale = (await getLocale()) as Locale;
 
   const report = await runAdminHealthChecks();
-  const { sql, db } = createAppConnection();
-  let backup: BackupStatus;
-  try {
-    backup = await getBackupStatus(db);
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  const backup: BackupStatus = await getBackupStatus(db);
   const latest = backup.latest;
 
   return (

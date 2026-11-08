@@ -1,20 +1,15 @@
 // Lot 13 (HUB-16) — rubrique « Sources et motifs » des Paramètres :
 // sources de prospects (EVT-07) et motifs de perte (EVT-02).
-import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { listLossReasons, listProspectSources } from "@/modules/events/service";
-import { getPlannerAuthContext } from "@/lib/auth-context";
+import { requirePlanner } from "@/lib/guards";
 import { isEventsModuleEnabled } from "../../module-access";
 import { ProspectSourceForm } from "../prospect-source-form";
 import { LossReasonForm } from "../loss-reason-form";
 import { LoadStarterListsForm } from "../starter-lists-form";
 
 export default async function SourcesSettingsPage() {
-  const auth = await getPlannerAuthContext();
-  if (auth.status === "unauthenticated") redirect("/login");
-  if (auth.status === "mfa_required") redirect("/mfa");
-  if (auth.status === "forbidden") redirect(auth.role === "client" ? "/espace" : "/");
-  if (!auth.user.organizationId) redirect("/");
+  const auth = await requirePlanner();
   const organizationId = auth.user.organizationId;
 
   const t = await getTranslations("Events");

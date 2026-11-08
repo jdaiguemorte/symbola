@@ -8,9 +8,9 @@ import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import { ScreenHelp } from "@/app/screen-help";
 import { formatMonth, type Locale } from "@symbola/i18n";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { getAdminOverview, type AdminOverview } from "@/modules/hub/service";
-import { requireAdmin } from "@/lib/require-admin";
+import { requireAdmin } from "@/lib/guards";
 import { runAdminHealthChecks } from "@/lib/admin-health";
 import { BackupBadge } from "./backup-badge";
 
@@ -39,13 +39,8 @@ export default async function AdminOverviewPage() {
   const locale = (await getLocale()) as Locale;
   const now = new Date();
 
-  const { sql, db } = createAppConnection();
-  let overview: AdminOverview;
-  try {
-    overview = await getAdminOverview(db, now);
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  const overview: AdminOverview = await getAdminOverview(db, now);
   const health = await runAdminHealthChecks();
   const trendLabel = t("trendLabel", {
     values: overview.trend.map((point) => `${formatMonth(`${point.month}-01`, locale)} : ${point.count}`).join(", "),

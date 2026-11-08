@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatCalendarDate, parisToday, type Locale } from "@symbola/i18n";
 import {
@@ -8,7 +7,7 @@ import {
   listProspectSources,
   type EventStatus,
 } from "@/modules/events/service";
-import { getPlannerAuthContext } from "@/lib/auth-context";
+import { requirePlanner } from "@/lib/guards";
 import { purgeOrganizationsDemoData } from "@/lib/demo-purge";
 import { PageTour } from "../page-tour";
 import { loadPageTour } from "@/lib/help/page-tour";
@@ -32,12 +31,7 @@ export default async function EventsListPage({
     visite?: string;
   }>;
 }) {
-  const auth = await getPlannerAuthContext();
-  if (auth.status === "unauthenticated") redirect("/login");
-  if (auth.status === "mfa_required") redirect("/mfa");
-  if (auth.status === "forbidden")
-    redirect(auth.role === "client" ? "/espace" : "/");
-  if (!auth.user.organizationId) redirect("/");
+  const auth = await requirePlanner();
   const organizationId = auth.user.organizationId;
 
   const t = await getTranslations("Events");

@@ -2,11 +2,11 @@
 // caractéristiques (modifiables), fichiers, point sur la carte, historique
 // avec l'organisation (consultations, issue, prix devisé et final).
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatAmount, formatCalendarDate, type Locale } from "@symbola/i18n";
 import { getVendor, getVendorHistory, listVendorFamilies, listVendorTags, listVendorTypes } from "@/modules/vendors/service";
-import { getPlannerAuthContext } from "@/lib/auth-context";
+import { requirePlanner } from "@/lib/guards";
 import { mapAssets } from "@/lib/map/tiles";
 import { isBudgetModuleEnabled } from "@/app/budget/module-access";
 import { isValidId } from "@/app/events/module-access";
@@ -21,11 +21,7 @@ const OUTCOME_KEYS = { selected: "outcomeSelected", not_selected: "outcomeNotSel
 const OUTCOME_CLASSES = { selected: "badge badge-sauge", not_selected: "badge", pending: "badge badge-ambre" } as const;
 
 export default async function VendorPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ placement?: string }> }) {
-  const auth = await getPlannerAuthContext();
-  if (auth.status === "unauthenticated") redirect("/login");
-  if (auth.status === "mfa_required") redirect("/mfa");
-  if (auth.status === "forbidden") redirect(auth.role === "client" ? "/espace" : "/");
-  if (!auth.user.organizationId) redirect("/");
+  const auth = await requirePlanner();
   const organizationId = auth.user.organizationId;
   const t = await getTranslations("VendorBook");
   if (!(await isVendorsModuleEnabled(organizationId))) {

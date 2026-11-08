@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { formatCalendarDate, formatDateTime, type Locale } from "@symbola/i18n";
 import { ScreenHelp } from "@/app/screen-help";
 import { getEvent } from "@/modules/events/service";
@@ -14,7 +14,7 @@ import {
   QuoteNotFoundError,
   type QuoteDetail,
 } from "@/modules/quotes/service";
-import { getPlannerAuthContext } from "@/lib/auth-context";
+import { requirePlanner } from "@/lib/guards";
 import { isQuotesModuleEnabled, isValidId } from "../module-access";
 import { parisTodayString, QUOTE_STATUS_LABEL_KEYS } from "../quote-display";
 import { removeLineAction } from "./actions";
@@ -33,11 +33,7 @@ import { InvoicesSection } from "./invoices-section";
 import { SignatureSection } from "./signature-section";
 
 export default async function QuotePage({ params }: { params: Promise<{ quoteId: string }> }) {
-  const auth = await getPlannerAuthContext();
-  if (auth.status === "unauthenticated") redirect("/login");
-  if (auth.status === "mfa_required") redirect("/mfa");
-  if (auth.status === "forbidden") redirect(auth.role === "client" ? "/espace" : "/");
-  if (!auth.user.organizationId) redirect("/");
+  const auth = await requirePlanner();
   const organizationId = auth.user.organizationId;
 
   const t = await getTranslations("Quotes");
@@ -63,13 +59,8 @@ export default async function QuotePage({ params }: { params: Promise<{ quoteId:
     throw error;
   }
 
-  const { sql, db } = createAppConnection();
-  let profile;
-  try {
-    profile = await getOrganizationProfile(db, organizationId);
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  const profile = await getOrganizationProfile(db, organizationId);
   const [event, catalog, paymentMethods, invoices] = await Promise.all([
     getEvent(organizationId, quote.eventId),
     listCatalogItems(organizationId),

@@ -1,9 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import {
   changeVatRegime,
   completeOnboarding,
@@ -13,14 +12,10 @@ import {
   type Metier,
   type VatRegime,
 } from "@/modules/hub/service";
-import { getPlannerAuthContext } from "@/lib/auth-context";
+import { requirePlanner } from "@/lib/guards";
 
 async function requireOrganization() {
-  const auth = await getPlannerAuthContext();
-  if (auth.status === "unauthenticated") redirect("/login");
-  if (auth.status === "mfa_required") redirect("/mfa");
-  if (auth.status === "forbidden") redirect(auth.role === "client" ? "/espace" : "/");
-  if (!auth.user.organizationId) redirect("/");
+  const auth = await requirePlanner();
   return { organizationId: auth.user.organizationId, userId: auth.user.id };
 }
 
@@ -38,16 +33,12 @@ export async function saveProfileAction(
   const metier = (String(formData.get("metier") ?? "").trim() || null) as Metier | null;
   const metierPrecision = String(formData.get("metierPrecision") ?? "").trim() || null;
 
-  const { sql, db } = createAppConnection();
-  try {
-    await saveOnboardingStep(db, organizationId, { siren, address, legalForm, metier, metierPrecision });
-    // ONB-01 : se termine tout seul dès que les champs requis sont
-    // réunis — pas de bouton « terminer » à part, cohérent avec un
-    // questionnaire qu'on peut interrompre et reprendre par morceaux.
-    await completeOnboarding(db, organizationId);
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  await saveOnboardingStep(db, organizationId, { siren, address, legalForm, metier, metierPrecision });
+  // ONB-01 : se termine tout seul dès que les champs requis sont
+  // réunis — pas de bouton « terminer » à part, cohérent avec un
+  // questionnaire qu'on peut interrompre et reprendre par morceaux.
+  await completeOnboarding(db, organizationId);
 
   revalidatePath("/parametres");
   return { success: true };
@@ -69,13 +60,9 @@ export async function changeVatRegimeAction(
     return { error: t("missingEffectiveDate") };
   }
 
-  const { sql, db } = createAppConnection();
-  try {
-    await changeVatRegime(db, { organizationId, userId, newRegime, effectiveDate });
-    await completeOnboarding(db, organizationId);
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  await changeVatRegime(db, { organizationId, userId, newRegime, effectiveDate });
+  await completeOnboarding(db, organizationId);
 
   revalidatePath("/parametres");
   return { success: true };
@@ -89,14 +76,12 @@ export async function saveFollowUpDelaysAction(_prev: FollowUpFormState, formDat
   const { organizationId } = await requireOrganization();
   const quoteFollowUpDays = Number(formData.get("quoteFollowUpDays"));
   const prospectFollowUpDays = Number(formData.get("prospectFollowUpDays"));
-  const { sql, db } = createAppConnection();
+  const db = appDatabase();
   try {
     await saveFollowUpDelays(db, organizationId, { quoteFollowUpDays, prospectFollowUpDays });
   } catch (error) {
     if (error instanceof RangeError) return { error: t("followUpDelaysInvalid") };
     throw error;
-  } finally {
-    await sql.end();
   }
   revalidatePath("/");
   revalidatePath("/parametres/relances");

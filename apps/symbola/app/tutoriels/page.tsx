@@ -3,36 +3,25 @@
 // mis en avant, le suivant conseillé en pointillés ; jamais bloquant
 // (décision A). Un tutoriel dont le module n'est pas souscrit n'apparaît pas.
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { getHelpProgress, isModuleEnabled } from "@/modules/hub/service";
-import { getPlannerAuthContext } from "@/lib/auth-context";
+import { requirePlanner } from "@/lib/guards";
 import { TUTORIALS, tutorialHref, type HelpModule } from "@/lib/help/catalog";
 import { JOURNEY, journeyStates, tutorialInProgress } from "@/lib/help/journey";
 
 export default async function TutorialsPage() {
-  const auth = await getPlannerAuthContext();
-  if (auth.status === "unauthenticated") redirect("/login");
-  if (auth.status === "mfa_required") redirect("/mfa");
-  if (auth.status === "forbidden") redirect(auth.role === "client" ? "/espace" : "/");
-  if (!auth.user.organizationId) redirect("/");
+  const auth = await requirePlanner();
   const organizationId = auth.user.organizationId;
 
   const t = await getTranslations("TutorialsPage");
   const tCenter = await getTranslations("HelpCenter");
-  const { sql, db } = createAppConnection();
-  let modules: Record<HelpModule, boolean>;
-  let progress;
-  try {
-    const [events, budget, quotes, vendors] = await Promise.all(
-      (["events", "budget", "quotes", "vendors"] as const).map((module) => isModuleEnabled(db, organizationId, module)),
-    );
-    modules = { hub: true, events: events!, budget: budget!, quotes: quotes!, vendors: vendors! };
-    progress = await getHelpProgress(db, auth.user.id);
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  const [events, budget, quotes, vendors] = await Promise.all(
+    (["events", "budget", "quotes", "vendors"] as const).map((module) => isModuleEnabled(db, organizationId, module)),
+  );
+  const modules: Record<HelpModule, boolean> = { hub: true, events: events!, budget: budget!, quotes: quotes!, vendors: vendors! };
+  const progress = await getHelpProgress(db, auth.user.id);
   const available = TUTORIALS.filter((tutorial) => modules[tutorial.module]);
   const states = journeyStates(available, progress);
   const done = [...states.values()].filter((state) => state === "done").length;

@@ -1,22 +1,18 @@
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { PageHeader } from "@/app/ui/page-header";
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatAmount, type Locale } from "@symbola/i18n";
 import { ScreenHelp } from "@/app/screen-help";
 import { getEvent, listDefaultVendorSlots } from "@/modules/events/service";
 import { getEventBudget, listAllocationModels, listBudgetLines } from "@/modules/budget/service";
-import { getPlannerAuthContext } from "@/lib/auth-context";
+import { requirePlanner } from "@/lib/guards";
 import { isBudgetModuleEnabled, isValidId } from "../module-access";
 import { BudgetSimulationForm } from "./budget-simulation-form";
 import { BudgetLinesTable } from "./budget-lines-table";
 
 export default async function EventBudgetPage({ params }: { params: Promise<{ eventId: string }> }) {
-  const auth = await getPlannerAuthContext();
-  if (auth.status === "unauthenticated") redirect("/login");
-  if (auth.status === "mfa_required") redirect("/mfa");
-  if (auth.status === "forbidden") redirect(auth.role === "client" ? "/espace" : "/");
-  if (!auth.user.organizationId) redirect("/");
+  const auth = await requirePlanner();
   const organizationId = auth.user.organizationId;
 
   const { eventId } = await params;

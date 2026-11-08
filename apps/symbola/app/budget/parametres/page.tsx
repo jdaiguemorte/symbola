@@ -1,8 +1,7 @@
-import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { listDefaultVendorSlots } from "@/modules/events/service";
 import { listAllocationModels } from "@/modules/budget/service";
-import { getPlannerAuthContext } from "@/lib/auth-context";
+import { requirePlanner } from "@/lib/guards";
 import { PageTour } from "@/app/page-tour";
 import { loadPageTour } from "@/lib/help/page-tour";
 import { isBudgetModuleEnabled } from "../module-access";
@@ -10,11 +9,7 @@ import { AllocationModelForm } from "./allocation-model-form";
 import { removeAllocationModelAction } from "./actions";
 
 export default async function BudgetSettingsPage({ searchParams }: { searchParams: Promise<{ visite?: string }> }) {
-  const auth = await getPlannerAuthContext();
-  if (auth.status === "unauthenticated") redirect("/login");
-  if (auth.status === "mfa_required") redirect("/mfa");
-  if (auth.status === "forbidden") redirect(auth.role === "client" ? "/espace" : "/");
-  if (!auth.user.organizationId) redirect("/");
+  const auth = await requirePlanner();
   const organizationId = auth.user.organizationId;
 
   const t = await getTranslations("Budget");

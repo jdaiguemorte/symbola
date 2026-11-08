@@ -2,13 +2,13 @@
 // cours à droite. L'exemple est fictif (marqué démo, supprimé à la fin ou au
 // bout de 24 h) ; l'utilisateur agit dans les vrais écrans.
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { starterTutorialCatalogItem } from "@symbola/starter-templates";
 import { formatAmount, type Locale } from "@symbola/i18n";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { getHelpProgress, isModuleEnabled } from "@/modules/hub/service";
-import { getPlannerAuthContext } from "@/lib/auth-context";
+import { requirePlanner } from "@/lib/guards";
 import { TUTORIALS } from "@/lib/help/catalog";
 import { TUTORIAL_SCRIPTS } from "@/lib/help/tutorials";
 import { CheckForm } from "./check-form";
@@ -16,11 +16,7 @@ import { abandonTutorialAction, continueTutorialAction, finishTutorialAction, re
 import { isInProgress, tutorialInProgress } from "@/lib/help/journey";
 
 export default async function TutorialPage({ params, searchParams }: { params: Promise<{ key: string }>; searchParams: Promise<{ termine?: string }> }) {
-  const auth = await getPlannerAuthContext();
-  if (auth.status === "unauthenticated") redirect("/login");
-  if (auth.status === "mfa_required") redirect("/mfa");
-  if (auth.status === "forbidden") redirect(auth.role === "client" ? "/espace" : "/");
-  if (!auth.user.organizationId) redirect("/");
+  const auth = await requirePlanner();
   const { key } = await params;
   const tutorial = TUTORIALS.find((candidate) => candidate.key === key);
   if (!tutorial) notFound();
@@ -28,17 +24,11 @@ export default async function TutorialPage({ params, searchParams }: { params: P
   const t = await getTranslations("Tutorials");
   const tCenter = await getTranslations("HelpCenter");
   const locale = (await getLocale()) as Locale;
-  const { sql, db } = createAppConnection();
+  const db = appDatabase();
   let available = true;
-  let entry;
-  let progress;
-  try {
-    if (tutorial.module !== "hub") available = await isModuleEnabled(db, auth.user.organizationId, tutorial.module);
-    progress = await getHelpProgress(db, auth.user.id);
-    entry = progress.find((candidate) => candidate.itemKey === `tutorial:${tutorial.key}`);
-  } finally {
-    await sql.end();
-  }
+  if (tutorial.module !== "hub") available = await isModuleEnabled(db, auth.user.organizationId, tutorial.module);
+  const progress = await getHelpProgress(db, auth.user.id);
+  const entry = progress.find((candidate) => candidate.itemKey === `tutorial:${tutorial.key}`);
   const title = tCenter(`items.${tutorial.key}.title`);
   if (!available) {
     return (

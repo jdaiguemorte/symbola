@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { z } from "zod";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { ScreenHelp } from "@/app/screen-help";
 import { getPrivacyErasure, PrivacyErasureNotFoundError, type PrivacyErasureView } from "@/modules/hub/service";
-import { getPlannerAuthContext } from "@/lib/auth-context";
+import { requireOwner } from "@/lib/guards";
 import { retryErasureAction } from "../../erasure-actions";
 import { buildErasureProof } from "../proof";
 
@@ -13,14 +13,10 @@ import { buildErasureProof } from "../proof";
 // demande n'est close que quand tous ont répondu), relance des modules en
 // échec, preuve horodatée (PDF) et modèle de réponse à la personne.
 export default async function ErasurePage({ params }: { params: Promise<{ id: string }> }) {
-  const auth = await getPlannerAuthContext();
-  if (auth.status === "unauthenticated") redirect("/login");
-  if (auth.status === "mfa_required") redirect("/mfa");
-  if (auth.status === "forbidden") redirect(auth.role === "client" ? "/espace" : "/");
-  if (!auth.user.organizationId) redirect("/");
+  const auth = await requireOwner();
   const t = await getTranslations("Privacy");
   const tHelp = await getTranslations("Help");
-  if (auth.user.role !== "owner") {
+  if (!auth) {
     return (
       <main>
         <h1>{t("erasuresTitle")}</h1>
@@ -30,15 +26,13 @@ export default async function ErasurePage({ params }: { params: Promise<{ id: st
   }
   const id = z.uuid().safeParse((await params).id);
   if (!id.success) notFound();
-  const { sql, db } = createAppConnection();
+  const db = appDatabase();
   let erasure: PrivacyErasureView;
   try {
     erasure = await getPrivacyErasure(db, auth.user.organizationId, id.data);
   } catch (error) {
     if (error instanceof PrivacyErasureNotFoundError) notFound();
     throw error;
-  } finally {
-    await sql.end();
   }
   const proof = await buildErasureProof(auth.user.organizationId, erasure);
 

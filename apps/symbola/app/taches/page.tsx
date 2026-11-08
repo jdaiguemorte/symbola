@@ -3,12 +3,11 @@
 // responsable. Cocher une tâche ici la marque faite sur sa fiche.
 import { PageHeader } from "@/app/ui/page-header";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { parisToday, type Locale } from "@symbola/i18n";
 import { ScreenHelp } from "@/app/screen-help";
 import { listOrganizationTasks } from "@/modules/events/service";
-import { getPlannerAuthContext } from "@/lib/auth-context";
+import { requirePlanner } from "@/lib/guards";
 import { isEventsModuleEnabled } from "@/app/events/module-access";
 import { GearLink } from "@/app/gear-link";
 import { TaskTable } from "./task-table";
@@ -16,11 +15,7 @@ import { TaskTable } from "./task-table";
 type SearchParams = { vue?: string; qui?: string };
 
 export default async function TasksPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
-  const auth = await getPlannerAuthContext();
-  if (auth.status === "unauthenticated") redirect("/login");
-  if (auth.status === "mfa_required") redirect("/mfa");
-  if (auth.status === "forbidden") redirect(auth.role === "client" ? "/espace" : "/");
-  if (!auth.user.organizationId) redirect("/");
+  const auth = await requirePlanner();
   const organizationId = auth.user.organizationId;
 
   const t = await getTranslations("Events");

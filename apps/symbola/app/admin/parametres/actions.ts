@@ -2,9 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { setPlatformSettings } from "@/modules/hub/service";
-import { requireAdmin } from "@/lib/require-admin";
+import { requireAdmin } from "@/lib/guards";
 
 export type PlatformSettingsFormState = { success?: boolean; error?: string };
 
@@ -48,22 +48,18 @@ export async function savePlatformSettingsAction(
     return { error: t("invalidImportLimits") };
   }
 
-  const { sql, db } = createAppConnection();
-  try {
-    await setPlatformSettings(db, {
-      adminUserId: admin.userId,
-      franchiseThresholdServicesCents,
-      franchiseThresholdGoodsCents,
-      importMaxBytes: importMaxMegabytes * 1024 * 1024,
-      importMaxRows,
-      importDraftRetentionDays,
-      importUndoRetentionDays,
-      importMaxSheets,
-      privacyExportRetentionDays,
-    });
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  await setPlatformSettings(db, {
+    adminUserId: admin.userId,
+    franchiseThresholdServicesCents,
+    franchiseThresholdGoodsCents,
+    importMaxBytes: importMaxMegabytes * 1024 * 1024,
+    importMaxRows,
+    importDraftRetentionDays,
+    importUndoRetentionDays,
+    importMaxSheets,
+    privacyExportRetentionDays,
+  });
 
   revalidatePath("/admin/parametres");
   return { success: true };

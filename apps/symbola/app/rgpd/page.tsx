@@ -1,7 +1,6 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { formatDateTime, type Locale } from "@symbola/i18n";
 import { ScreenHelp } from "@/app/screen-help";
 import {
@@ -13,7 +12,7 @@ import {
   type PrivacyExportView,
 } from "@/modules/hub/service";
 import type { ErasableRequest } from "./erasure-preview";
-import { getPlannerAuthContext } from "@/lib/auth-context";
+import { requireOwner } from "@/lib/guards";
 import { SearchForm, type ExportableRequest } from "./search-form";
 
 // RGPD-01 — module « Données personnelles » : recherche transverse d'une
@@ -21,15 +20,11 @@ import { SearchForm, type ExportableRequest } from "./search-form";
 // sélectionnées, et exports encore téléchargeables. Titulaire du compte
 // seulement.
 export default async function PrivacyPage() {
-  const auth = await getPlannerAuthContext();
-  if (auth.status === "unauthenticated") redirect("/login");
-  if (auth.status === "mfa_required") redirect("/mfa");
-  if (auth.status === "forbidden") redirect(auth.role === "client" ? "/espace" : "/");
-  if (!auth.user.organizationId) redirect("/");
+  const auth = await requireOwner();
 
   const t = await getTranslations("Privacy");
   const tHelp = await getTranslations("Help");
-  if (auth.user.role !== "owner") {
+  if (!auth) {
     return (
       <main>
         <h1>{t("title")}</h1>
@@ -38,22 +33,14 @@ export default async function PrivacyPage() {
     );
   }
   const locale = (await getLocale()) as Locale;
-  const { sql, db } = createAppConnection();
-  let exportRequests: ExportableRequest[];
-  let exports: PrivacyExportView[];
-  let erasureRequests: ErasableRequest[];
-  let erasures: PrivacyErasureView[];
-  try {
-    exportRequests = (await listExportablePrivacyRequests(db, auth.user.organizationId)).map((request) => ({
-      id: request.id,
-      label: `${request.personLabel} — ${t(`requestType.${request.type}`)}`,
-    }));
-    exports = await listPrivacyExports(db, auth.user.organizationId);
-    erasureRequests = (await listErasablePrivacyRequests(db, auth.user.organizationId)).map((request) => ({ id: request.id, label: request.personLabel }));
-    erasures = await listPrivacyErasures(db, auth.user.organizationId);
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  const exportRequests: ExportableRequest[] = (await listExportablePrivacyRequests(db, auth.user.organizationId)).map((request) => ({
+    id: request.id,
+    label: `${request.personLabel} — ${t(`requestType.${request.type}`)}`,
+  }));
+  const exports: PrivacyExportView[] = await listPrivacyExports(db, auth.user.organizationId);
+  const erasureRequests: ErasableRequest[] = (await listErasablePrivacyRequests(db, auth.user.organizationId)).map((request) => ({ id: request.id, label: request.personLabel }));
+  const erasures: PrivacyErasureView[] = await listPrivacyErasures(db, auth.user.organizationId);
   return (
     <main>
       <h1>{t("title")}</h1>

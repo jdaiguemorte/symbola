@@ -1,19 +1,14 @@
-import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { ScreenHelp } from "@/app/screen-help";
 import { listTaskTemplates } from "@/modules/events/service";
-import { getPlannerAuthContext } from "@/lib/auth-context";
+import { requirePlanner } from "@/lib/guards";
 import { isEventsModuleEnabled } from "../module-access";
 import { AddTaskTemplateItemForm, CreateTaskTemplateForm, LoadStarterRetroplanningForm } from "./template-forms";
 import { removeTaskTemplateAction, removeTaskTemplateItemAction } from "./template-actions";
 
 // EVT-04 — modèles de rétroplanning de l'organisation.
 export default async function TaskTemplatesPage() {
-  const auth = await getPlannerAuthContext();
-  if (auth.status === "unauthenticated") redirect("/login");
-  if (auth.status === "mfa_required") redirect("/mfa");
-  if (auth.status === "forbidden") redirect(auth.role === "client" ? "/espace" : "/");
-  if (!auth.user.organizationId) redirect("/");
+  const auth = await requirePlanner();
   const organizationId = auth.user.organizationId;
 
   const t = await getTranslations("Events");
