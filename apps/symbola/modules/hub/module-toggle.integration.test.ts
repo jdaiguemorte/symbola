@@ -33,7 +33,7 @@ describe("HUB-03 — Activation/désactivation de module", () => {
       .values({ name: `Org ${randomUUID()}` })
       .returning();
 
-    expect(await isModuleEnabled(db, organization!.id, "hello")).toBe(true);
+    expect(await isModuleEnabled(db, organization!.id, "budget")).toBe(true);
   });
 
   it("l'Admin peut désactiver puis réactiver un module, consigné dans le journal d'audit", async () => {
@@ -46,10 +46,10 @@ describe("HUB-03 — Activation/désactivation de module", () => {
     await setModuleEnabled(db, {
       adminUserId,
       organizationId: organization!.id,
-      moduleKey: "hello",
+      moduleKey: "budget",
       enabled: false,
     });
-    expect(await isModuleEnabled(db, organization!.id, "hello")).toBe(false);
+    expect(await isModuleEnabled(db, organization!.id, "budget")).toBe(false);
 
     const [disableLog] = await db
       .select()
@@ -60,10 +60,10 @@ describe("HUB-03 — Activation/désactivation de module", () => {
     await setModuleEnabled(db, {
       adminUserId,
       organizationId: organization!.id,
-      moduleKey: "hello",
+      moduleKey: "budget",
       enabled: true,
     });
-    expect(await isModuleEnabled(db, organization!.id, "hello")).toBe(true);
+    expect(await isModuleEnabled(db, organization!.id, "budget")).toBe(true);
   });
 
   it("désactiver un module ne supprime aucune donnée de l'organisation", async () => {
@@ -77,7 +77,7 @@ describe("HUB-03 — Activation/désactivation de module", () => {
       titulaireEmail,
     });
 
-    await setModuleEnabled(db, { adminUserId, organizationId, moduleKey: "hello", enabled: false });
+    await setModuleEnabled(db, { adminUserId, organizationId, moduleKey: "budget", enabled: false });
 
     const [stillThere] = await db.select().from(organizations).where(eq(organizations.id, organizationId));
     expect(stillThere).toBeTruthy();

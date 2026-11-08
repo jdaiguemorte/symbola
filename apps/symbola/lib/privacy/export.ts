@@ -9,7 +9,7 @@
 import { createZip, toCsv, type PersonTerms } from "@symbola/privacy";
 import { searchPerson, type SearchRecord } from "./search";
 
-export const MODULE_ORDER = ["events", "budget", "quotes", "hub", "hello"];
+export const MODULE_ORDER = ["events", "budget", "quotes", "hub"];
 export const EXPORT_FORMAT = "symbola.privacy-export/v1";
 
 // Identifiant d'une fiche dans le formulaire : « module:nature:identifiant ».

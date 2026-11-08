@@ -47,6 +47,9 @@ async function loginWithKnownMfa(page: Page, email: string, password: string, se
   const nextCode = new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret) }).generate({ timestamp: Date.now() + 30_000 });
   await page.getByLabel("Code").fill(nextCode);
   await page.getByRole("button", { name: "Valider" }).click();
+  // Comme loginAndSetupMfa : attendre l'accueil, sinon un page.goto() immédiat
+  // part avant que la session ne soit validée.
+  await expect(page).toHaveURL(/\/(admin)?$/);
 }
 
 async function waitForInvitationLink(to: string, attempts = 30): Promise<string> {
@@ -147,12 +150,15 @@ test("HUB-03-03 — désactiver un module l'affiche « indisponible » sans erre
     await sql.end();
   }
 
-  // Avant désactivation : le module s'affiche normalement.
+  // Avant désactivation : le module Événements s'affiche normalement. Lot 16
+  // (ARC-01) : ce test passait par le module témoin hello, retiré.
   const titulaireSecret = await loginAndSetupMfa(page, email, password);
-  await expect(page.getByText("Bonjour depuis Symbola")).toBeVisible();
+  await page.goto("/events");
+  await expect(page.getByRole("heading", { level: 1, name: "Événements" })).toBeVisible();
+  await expect(page.getByText("Le module Événements n'est pas activé pour votre organisation.")).toHaveCount(0);
   await logout(page);
 
-  // L'Admin désactive le module hello pour cette organisation (la liste
+  // L'Admin désactive le module Événements pour cette organisation (la liste
   // contient toutes les organisations créées par les autres tests : on
   // cible la ligne de celle-ci par son nom, pas un bouton générique).
   await loginAndSetupMfa(page, adminEmail, adminPassword);
@@ -161,8 +167,8 @@ test("HUB-03-03 — désactiver un module l'affiche « indisponible » sans erre
   await page.goto(`/admin/organisations?q=${encodeURIComponent(organizationName)}`);
   await page.getByRole("link", { name: organizationName }).click();
   const panel = page.getByRole("complementary", { name: organizationName });
-  await panel.getByRole("button", { name: /hello : activé \(désactiver\)/ }).click();
-  await expect(panel.getByRole("button", { name: /hello : désactivé \(activer\)/ })).toBeVisible();
+  await panel.getByRole("button", { name: "Événements : activé (désactiver)" }).click();
+  await expect(panel.getByRole("button", { name: "Événements : désactivé (activer)" })).toBeVisible();
 
   await page.goto("/admin/health");
   const violations = await new AxeBuilder({ page }).analyze();
@@ -175,5 +181,6 @@ test("HUB-03-03 — désactiver un module l'affiche « indisponible » sans erre
 
   // Le titulaire voit « indisponible », sans erreur.
   await loginWithKnownMfa(page, email, password, titulaireSecret);
-  await expect(page.getByText("Module indisponible")).toBeVisible();
+  await page.goto("/events");
+  await expect(page.getByText("Le module Événements n'est pas activé pour votre organisation.")).toBeVisible();
 });

@@ -205,7 +205,7 @@ export const organizationProfiles = hubSchema.table("organization_profiles", {
   siren: text("siren"),
   address: text("address"),
   // Clé de l'objet dans le stockage privé (@symbola/files), jamais l'URL
-  // directement — même patron que les pièces jointes du module hello.
+  // directement (patron du lot 0, SOC-08).
   logoKey: text("logo_key"),
   legalForm: legalFormEnum("legal_form"),
   metier: metierEnum("metier"),

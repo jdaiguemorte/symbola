@@ -1,7 +1,7 @@
-// SOC-13 — « une requête du module hello incrémente bien le compteur de
-// la bonne organisation. » Exercé via la fonction appelée depuis
-// getAuthContext() (point de passage de toute page protégée, dont celle
-// du module hello) ; contre un vrai PostgreSQL.
+// SOC-13 — « une requête d'un module incrémente bien le compteur de la bonne
+// organisation. » Exercé via la fonction appelée depuis l'accueil (app/page.tsx,
+// ADR 0016) ; contre un vrai PostgreSQL. (Le critère d'origine citait le module
+// témoin hello, retiré au lot 16, ARC-01.)
 import { randomUUID } from "node:crypto";
 import { and, eq } from "drizzle-orm";
 import { afterAll, describe, expect, it } from "vitest";

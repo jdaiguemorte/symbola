@@ -27,7 +27,6 @@
   "Home": {
     "title": "Symbola",
     "connectedAs": "Signed in as {email}",
-    "moduleUnavailable": "Module unavailable",
     "logout": "Log out",
     "myProfile": "My profile",
     "settings": "Settings",
@@ -119,7 +118,6 @@
     "lastLogin": "Last login",
     "since": "since {month}",
     "moduleNames": {
-      "hello": "Sample",
       "events": "Events",
       "budget": "Budget",
       "quotes": "Quotes",
@@ -2020,8 +2018,7 @@
       "events": "Events",
       "budget": "Budget",
       "quotes": "Quotes and invoices",
-      "hub": "Accounts and imports",
-      "hello": "Sample module"
+      "hub": "Accounts and imports"
     },
     "kind": {
       "event": "Event",

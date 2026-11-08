@@ -27,7 +27,6 @@
   "Home": {
     "title": "Symbola",
     "connectedAs": "Connecté comme {email}",
-    "moduleUnavailable": "Module indisponible",
     "logout": "Se déconnecter",
     "myProfile": "Mon profil",
     "settings": "Paramètres",
@@ -119,7 +118,6 @@
     "lastLogin": "Dernière connexion",
     "since": "depuis {month}",
     "moduleNames": {
-      "hello": "Témoin",
       "events": "Événements",
       "budget": "Budget",
       "quotes": "Devis",
@@ -2020,8 +2018,7 @@
       "events": "Événements",
       "budget": "Budget",
       "quotes": "Devis et factures",
-      "hub": "Comptes et imports",
-      "hello": "Module témoin"
+      "hub": "Comptes et imports"
     },
     "kind": {
       "event": "Événement",
