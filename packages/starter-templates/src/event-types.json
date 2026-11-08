@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "items": [
+    { "key": "wedding", "label": { "fr": "Mariage", "en": "Wedding" }, "audience": "couple" },
+    { "key": "birthday", "label": { "fr": "Anniversaire", "en": "Birthday" }, "audience": "clients" },
+    { "key": "christening", "label": { "fr": "Baptême", "en": "Christening" }, "audience": "clients" },
+    { "key": "seminar", "label": { "fr": "Séminaire", "en": "Seminar" }, "audience": "clients" },
+    { "key": "corporate_party", "label": { "fr": "Soirée d'entreprise", "en": "Corporate party" }, "audience": "clients" },
+    { "key": "product_launch", "label": { "fr": "Lancement de produit", "en": "Product launch" }, "audience": "clients" },
+    { "key": "other", "label": { "fr": "Autre", "en": "Other" }, "audience": "clients" }
+  ],
+  "orders": {
+    "wedding_planner": ["wedding", "birthday", "christening", "seminar", "corporate_party", "product_launch", "other"],
+    "event_agency": ["seminar", "corporate_party", "product_launch", "wedding", "birthday", "christening", "other"]
+  }
+}

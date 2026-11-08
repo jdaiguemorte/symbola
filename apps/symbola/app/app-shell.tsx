@@ -260,6 +260,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
                     ? [
                         { href: "/events/parametres", label: tSettings("budgetLines") },
                         { href: "/events/parametres/sources", label: tSettings("sourcesReasons") },
+                        { href: "/events/parametres/types", label: tSettings("eventTypes") },
                         { href: "/events/modeles", label: tSettings("retroplanning") },
                         { href: "/events/modeles-programme", label: tSettings("program") },
                       ]

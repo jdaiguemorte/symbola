@@ -2,7 +2,9 @@ import type { ReactNode } from "react";
 import localFont from "next/font/local";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale } from "next-intl/server";
+import type { Locale } from "@symbola/i18n";
 import { AppShell } from "./app-shell";
+import { organizationMessages } from "@/lib/vocabulary";
 import "./globals.css";
 
 // Charte graphique (lot 7, ADR 0025) : polices servies par l'app elle-même,
@@ -33,7 +35,10 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   return (
     <html lang={locale} className={`${fraunces.variable} ${inter.variable}`}>
       <body>
-        <NextIntlClientProvider>
+        {/* Lot 16 (ADR 0045) : le cadre reste en place d'une page à l'autre ; il
+            garde le vocabulaire du métier. Une page d'événement dont le type en
+            change reçoit le sien (app/event-vocabulary.tsx). */}
+        <NextIntlClientProvider messages={await organizationMessages(locale as Locale)}>
           <AppShell>{children}</AppShell>
         </NextIntlClientProvider>
       </body>

@@ -57,6 +57,19 @@
           "q": "Les tâches des clients apparaissent-elles ?",
           "a": "Oui : elles sont signalées « à faire par les clients », et cochées dès qu'ils les ont faites dans leur espace."
         }
+      },
+      "title": "Les tâches de tous vos événements",
+      "body": "Les tâches de tous vos événements en cours, triées par échéance. Cochez une tâche faite ; cliquez-la pour la modifier sur la fiche de son événement."
+    },
+    "clientSpace": {
+      "body": "Les événements que votre organisateur partage avec vous. Ouvrez-en un pour suivre la préparation."
+    },
+    "budgetSettings": {
+      "faq": {
+        "0": {
+          "q": "Faut-il une répartition par type d'événement ?",
+          "a": "C'est utile si vos événements se ressemblent par gamme : créez-en plusieurs et choisissez la bonne sur chaque budget."
+        }
       }
     }
   },
@@ -89,11 +102,14 @@
         "action": "Inviter les clients"
       }
     },
-    "clientContactTitle": "Coordonnées des clients"
+    "clientContactTitle": "Coordonnées des clients",
+    "programPdfFileCouple": "programme-clients",
+    "taskColumnEvent": "Événement"
   },
   "Quotes": {
     "clientIndividual": "Particulier (le client)",
-    "signingLinksHint": "Un client n'a pas reçu l'e-mail ? Envoyez-lui son lien ci-dessus (clic droit, « Copier le lien »). Chaque lien est personnel."
+    "signingLinksHint": "Un client n'a pas reçu l'e-mail ? Envoyez-lui son lien ci-dessus (clic droit, « Copier le lien »). Chaque lien est personnel.",
+    "quoteEventColumn": "Événement"
   },
   "Import": {
     "takeover": {
@@ -128,5 +144,15 @@
     "stages": {
       "clients": "Avec les clients"
     }
+  },
+  "Home": {
+    "agendaLegendConfirmed": "Événement confirmé"
+  },
+  "ClientSpace": {
+    "title": "Mon événement",
+    "invitationIntro": "Votre organisateur vous invite à suivre la préparation de votre événement. Choisissez votre mot de passe pour créer votre compte personnel."
+  },
+  "HelpCenter": {
+    "fromClientEvent": "Cet écran s'ouvre depuis votre espace, en choisissant un événement."
   }
 }

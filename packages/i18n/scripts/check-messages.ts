@@ -28,19 +28,19 @@ if (missingInEn.length > 0 || missingInFr.length > 0) {
   process.exit(1);
 }
 
-// Lot 16 (HUB-21) : textes propres à un métier (messages/metier/<métier>.<langue>.json),
-// fusionnés sur les catalogues : mêmes clés en FR et en EN, toutes présentes au catalogue.
-const metierDir = resolve(root, "metier");
-for (const metier of ["event_agency"]) {
-  const overrideFr = new Set(flattenKeys(JSON.parse(readFileSync(resolve(metierDir, `${metier}.fr.json`), "utf8"))));
-  const overrideEn = new Set(flattenKeys(JSON.parse(readFileSync(resolve(metierDir, `${metier}.en.json`), "utf8"))));
+// Lot 16 (HUB-21, ADR 0045) : vocabulaire « le client » (messages/vocabulary/<vocabulaire>.<langue>.json),
+// fusionné sur les catalogues : mêmes clés en FR et en EN, toutes présentes au catalogue.
+const vocabularyDir = resolve(root, "vocabulary");
+for (const metier of ["clients"]) {
+  const overrideFr = new Set(flattenKeys(JSON.parse(readFileSync(resolve(vocabularyDir, `${metier}.fr.json`), "utf8"))));
+  const overrideEn = new Set(flattenKeys(JSON.parse(readFileSync(resolve(vocabularyDir, `${metier}.en.json`), "utf8"))));
   const problems = [
     ...[...overrideFr].filter((key) => !overrideEn.has(key)).map((key) => `absente de ${metier}.en.json : ${key}`),
     ...[...overrideEn].filter((key) => !overrideFr.has(key)).map((key) => `absente de ${metier}.fr.json : ${key}`),
     ...[...overrideFr].filter((key) => !frKeys.has(key)).map((key) => `inconnue du catalogue : ${key}`),
   ];
   if (problems.length > 0) {
-    console.error(`Textes du métier ${metier} :\n` + problems.map((p) => `  - ${p}`).join("\n"));
+    console.error(`Textes du vocabulaire ${metier} :\n` + problems.map((p) => `  - ${p}`).join("\n"));
     process.exit(1);
   }
 }

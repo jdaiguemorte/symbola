@@ -7,6 +7,7 @@
 import {
   starterAllocation,
   starterBudgetLines,
+  starterEventTypes,
   starterLossReasons,
   starterProgram,
   starterProspectSources,
@@ -18,10 +19,12 @@ import { appDatabase } from "@symbola/db/client";
 import {
   addDefaultVendorSlots,
   addLossReasons,
+  addStarterEventTypes,
   addProspectSources,
   createProgramTemplate,
   createTaskTemplate,
   listDefaultVendorSlots,
+  listEventTypes,
   listLossReasons,
   listProgramTemplates,
   listProspectSources,
@@ -29,7 +32,7 @@ import {
 } from "@/modules/events/service";
 import { createAllocationModel, listAllocationModels } from "@/modules/budget/service";
 import { seedStarterVendorCatalog } from "@/modules/vendors/service";
-import { vendorCatalogInput } from "@/lib/vendors/catalog";
+import { organizesWeddings, vendorCatalogInput } from "@/lib/vendors/catalog";
 import { isModuleEnabled, type ModuleKey } from "@/modules/hub/service";
 
 export type StarterKitResult = { budgetLines: number; sources: number; lossReasons: number; taskTemplate: boolean; programTemplate: boolean; allocation: boolean; vendorTypes: number };
@@ -45,6 +48,10 @@ export async function loadStarterKit(organizationId: string, metier: StarterMeti
   const modules = await enabled(organizationId);
   const result: StarterKitResult = { budgetLines: 0, sources: 0, lossReasons: 0, taskTemplate: false, programTemplate: false, allocation: false, vendorTypes: 0 };
   if (!modules.events) return result;
+
+  // Lot 16 (ADR 0045) : types d'événement de départ du métier, si l'organisation
+  // n'en a encore aucun (l'assistant de démarrage installe ceux qu'elle a cochés).
+  if ((await listEventTypes(organizationId)).length === 0) await addStarterEventTypes(organizationId, starterEventTypes(locale, metier));
 
   if ((await listDefaultVendorSlots(organizationId)).length === 0) {
     result.budgetLines = (await addDefaultVendorSlots(organizationId, starterBudgetLines(locale, metier))).length;
@@ -79,6 +86,11 @@ export async function loadStarterKit(organizationId: string, metier: StarterMeti
     }
   }
   // Lot 16 (PRE-14) : familles et types de départ du métier, une seule fois.
-  if (modules.vendors) result.vendorTypes = (await seedStarterVendorCatalog(organizationId, vendorCatalogInput(locale, metier), { withTypes: true })).types;
+  // Lot 16 (ADR 0045) : catalogue commun, sans les types propres au mariage si
+  // l'organisation n'en organise pas.
+  if (modules.vendors) {
+    const weddings = await organizesWeddings(organizationId);
+    result.vendorTypes = (await seedStarterVendorCatalog(organizationId, vendorCatalogInput(locale, { weddings }), { withTypes: true })).types;
+  }
   return result;
 }

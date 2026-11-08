@@ -57,6 +57,19 @@
           "q": "Do the client's tasks appear here?",
           "a": "Yes: they are marked \"for the client\", and ticked as soon as the client completes them in their space."
         }
+      },
+      "title": "Tasks across all your events",
+      "body": "Tasks from all your ongoing events, sorted by due date. Tick a task once it is done; click it to edit it on its event's page."
+    },
+    "clientSpace": {
+      "body": "The events your organiser shares with you. Open one to follow the preparations."
+    },
+    "budgetSettings": {
+      "faq": {
+        "0": {
+          "q": "Do I need one allocation per type of event?",
+          "a": "It helps if your events fall into price ranges: create several and choose the right one on each budget."
+        }
       }
     }
   },
@@ -89,11 +102,14 @@
         "action": "Invite the client"
       }
     },
-    "clientContactTitle": "Client's contact details"
+    "clientContactTitle": "Client's contact details",
+    "programPdfFileCouple": "schedule-client",
+    "taskColumnEvent": "Event"
   },
   "Quotes": {
     "clientIndividual": "Individual (the client)",
-    "signingLinksHint": "A signer did not receive the e-mail? Send them their link above (right-click, “Copy link”). Each link is personal."
+    "signingLinksHint": "A signer did not receive the e-mail? Send them their link above (right-click, “Copy link”). Each link is personal.",
+    "quoteEventColumn": "Event"
   },
   "Import": {
     "takeover": {
@@ -128,5 +144,15 @@
     "stages": {
       "clients": "With the client"
     }
+  },
+  "Home": {
+    "agendaLegendConfirmed": "Confirmed event"
+  },
+  "ClientSpace": {
+    "title": "My event",
+    "invitationIntro": "Your organiser invites you to follow your event preparations. Choose your password to create your personal account."
+  },
+  "HelpCenter": {
+    "fromClientEvent": "This screen opens from your space, by choosing an event."
   }
 }

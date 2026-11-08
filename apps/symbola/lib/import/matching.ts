@@ -39,7 +39,7 @@ import {
   type MatchDecision,
 } from "@/modules/hub/service";
 import { listVendorFamilies, listVendorTypes, type VendorFamily, type VendorType } from "@/modules/vendors/service";
-import { ensureVendorFamilies, organizationMetier, vendorCatalogInput } from "@/lib/vendors/catalog";
+import { ensureVendorFamilies, vendorCatalogInput } from "@/lib/vendors/catalog";
 import {
   listEventCandidates,
   listEventItemCandidates,
@@ -147,8 +147,9 @@ export type VendorTypeCatalog = {
 export async function loadVendorTypeCatalog(organizationId: string, locale: "fr" | "en" = "fr"): Promise<VendorTypeCatalog> {
   // Organisation d'avant le lot 16 : ses familles sont posées avant de ranger les types du fichier.
   await ensureVendorFamilies(organizationId, locale);
-  const [types, families, metier] = await Promise.all([listVendorTypes(organizationId), listVendorFamilies(organizationId), organizationMetier(organizationId)]);
-  const starters = vendorCatalogInput(locale, metier).flatMap((family) =>
+  const [types, families] = await Promise.all([listVendorTypes(organizationId), listVendorFamilies(organizationId)]);
+  // Lot 16 (ADR 0045) : tout le catalogue commun, un fichier pouvant citer une robe de mariée.
+  const starters = vendorCatalogInput(locale).flatMap((family) =>
     family.types.map((type) => ({ key: type.key, label: type.label, familyKey: family.key, familyColor: family.color, synonyms: type.synonyms })),
   );
   return { types, families, starters };

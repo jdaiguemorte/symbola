@@ -1,9 +1,11 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { getTranslations } from "next-intl/server";
-import { changeEventStatus, createProspect, listProspectSources } from "@/modules/events/service";
+import { getLocale, getTranslations } from "next-intl/server";
+import type { Locale } from "@symbola/i18n";
+import { changeEventStatus, createProspect, listEventTypes, listProspectSources } from "@/modules/events/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
+import { eventsMessageFor } from "@/lib/vocabulary";
 import { isEventsModuleEnabled } from "../module-access";
 
 export type NewProspectFormState = { error?: string };
@@ -26,8 +28,12 @@ export async function createProspectAction(
   const eventDate = String(formData.get("eventDate") ?? "").trim();
   const venueName = String(formData.get("venueName") ?? "").trim();
   const venueCity = String(formData.get("venueCity") ?? "").trim();
+  // Lot 16 (ADR 0045) : un type de l'organisation ; il dit aussi comment parler des clients.
+  const eventTypeId = String(formData.get("eventTypeId") ?? "").trim();
+  const eventType = (await listEventTypes(organizationId)).find((type) => type.id === eventTypeId);
+  if (!eventType) return { error: t("missingEventType") };
 
-  if (!firstName1) return { error: t("missingFirstName") };
+  if (!firstName1) return { error: eventsMessageFor((await getLocale()) as Locale, eventType.audience, "missingFirstName") };
   if (!prospectSourceId) return { error: t("missingSource") };
 
   const sources = await listProspectSources(organizationId);
@@ -41,6 +47,7 @@ export async function createProspectAction(
     createdByUserId: auth.user.id,
     clients,
     prospectSourceId,
+    eventTypeId: eventType.id,
     eventDate: eventDate || null,
     venueName: venueName || null,
     venueCity: venueCity || null,

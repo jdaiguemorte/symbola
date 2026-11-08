@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import retroplanningFile from "./retroplanning.json";
 import vendorSlotsFile from "./vendor-slots.json";
 import programFile from "./program.json";
-import { starterDemoEvent, starterDemoQuote, starterErasureResponse, starterPrivacySettings, starterInvoiceMentions, starterLossReasons, starterPaymentMethods, starterProgram, starterProspectSources, starterRetroplanning, starterVendorSlots, starterVendorTypes, starterBudgetLines, starterAllocation, starterFollowUpDelays, starterVendorTypeSynonymGroups, starterVendorCatalog, BUDGET_LINE_ICONS } from "./index";
+import { starterDemoEvent, starterDemoQuote, starterErasureResponse, starterPrivacySettings, starterInvoiceMentions, starterLossReasons, starterPaymentMethods, starterProgram, starterProspectSources, starterRetroplanning, starterVendorSlots, starterVendorTypes, starterBudgetLines, starterAllocation, starterFollowUpDelays, starterVendorTypeSynonymGroups, starterVendorCatalog, starterEventTypes, BUDGET_LINE_ICONS } from "./index";
 
 describe("EVT-03 — Modèle de départ des postes prestataires", () => {
   it("existe en français et en anglais, avec le même nombre de postes", () => {
@@ -205,36 +205,36 @@ describe("IMP-07 — synonymes des types de prestataires (décision N)", () => {
   });
 });
 
-describe("PRE-14 — Familles et types de départ, par métier", () => {
-  it("une wedding planner démarre avec une dizaine de familles et environ 25 types, en FR et en EN", () => {
-    const fr = starterVendorCatalog("fr", "wedding_planner");
-    const en = starterVendorCatalog("en", "wedding_planner");
-    expect(fr.length).toBeGreaterThanOrEqual(8);
+describe("PRE-14 — Familles et types de départ, communs à tous les métiers (lot 16, ADR 0045)", () => {
+  it("un seul catalogue, d'une dizaine de familles, en FR et en EN", () => {
+    const fr = starterVendorCatalog("fr");
+    const en = starterVendorCatalog("en");
+    expect(fr.length).toBeGreaterThanOrEqual(9);
     expect(fr.length).toBeLessThanOrEqual(12);
     const types = fr.flatMap((family) => family.types);
-    expect(types.length).toBeGreaterThanOrEqual(22);
-    expect(types.length).toBeLessThanOrEqual(32);
+    expect(types.length).toBeGreaterThanOrEqual(30);
+    expect(types.length).toBeLessThanOrEqual(40);
     expect(en.map((family) => family.key)).toEqual(fr.map((family) => family.key));
+    // Mariages et autres événements : les deux mondes dans le même catalogue.
+    expect(fr.map((family) => family.label)).toEqual(expect.arrayContaining(["Beauté et tenues", "Accueil et sécurité", "Technique et scène"]));
     expect(fr.find((family) => family.label === "Beauté et tenues")!.types.map((type) => type.label)).toEqual(
       expect.arrayContaining(["Coiffure et maquillage", "Robe de mariée", "Tenue du marié", "Bijoux"]),
     );
   });
 
-  it("une agence événementielle a ses propres familles ; « autre » prend celles de l'agence", () => {
-    const agency = starterVendorCatalog("fr", "event_agency");
-    expect(agency.map((family) => family.label)).toContain("Accueil et sécurité");
-    expect(agency.map((family) => family.label)).not.toContain("Beauté et tenues");
-    expect(starterVendorCatalog("fr", "autre")).toEqual(agency);
+  it("sans mariage, les types propres au mariage disparaissent, et seulement eux", () => {
+    const all = starterVendorCatalog("fr").flatMap((family) => family.types.map((type) => type.key));
+    const without = starterVendorCatalog("fr", { weddings: false }).flatMap((family) => family.types.map((type) => type.key));
+    expect(all.filter((key) => !without.includes(key)).sort()).toEqual(["bridal_wear", "groom_wear", "officiant", "wedding_car", "worship_place"]);
+    expect(starterVendorCatalog("fr", { weddings: false }).map((family) => family.label)).toContain("Beauté et tenues");
   });
 
   it("chaque type n'appartient qu'à une famille, ses synonymes contiennent son libellé, et un libellé ne désigne qu'un type", () => {
-    for (const metier of ["wedding_planner", "event_agency"] as const) {
-      for (const locale of ["fr", "en"] as const) {
-        const families = starterVendorCatalog(locale, metier);
-        const keys = families.flatMap((family) => family.types.map((type) => type.key));
-        expect(new Set(keys).size).toBe(keys.length);
-        for (const type of families.flatMap((family) => family.types)) expect(type.synonyms).toContain(type.label);
-      }
+    for (const locale of ["fr", "en"] as const) {
+      const families = starterVendorCatalog(locale);
+      const keys = families.flatMap((family) => family.types.map((type) => type.key));
+      expect(new Set(keys).size).toBe(keys.length);
+      for (const type of families.flatMap((family) => family.types)) expect(type.synonyms).toContain(type.label);
     }
     const owner = new Map<string, number>();
     starterVendorTypeSynonymGroups().forEach((group, index) => {
@@ -251,12 +251,28 @@ describe("PRE-14 — Familles et types de départ, par métier", () => {
     expect(group).toEqual(expect.arrayContaining(["Coiffeur(se)", "Maquillage"]));
   });
 
-  it("icônes connues de l'app et couleurs distinctes au sein d'un métier", () => {
-    for (const metier of ["wedding_planner", "event_agency"] as const) {
-      const families = starterVendorCatalog("fr", metier);
-      for (const family of families) expect(BUDGET_LINE_ICONS).toContain(family.icon);
-      expect(new Set(families.map((family) => family.color)).size).toBe(families.length);
-      expect(new Set(families.map((family) => family.icon)).size).toBe(families.length);
-    }
+  it("icônes connues de l'app, couleurs et icônes distinctes", () => {
+    const families = starterVendorCatalog("fr");
+    for (const family of families) expect(BUDGET_LINE_ICONS).toContain(family.icon);
+    expect(new Set(families.map((family) => family.color)).size).toBe(families.length);
+    expect(new Set(families.map((family) => family.icon)).size).toBe(families.length);
+  });
+});
+
+describe("lot 16 (ADR 0045) — Types d'événement de départ", () => {
+  it("la même liste pour tous les métiers, dans l'ordre du métier, traduite", () => {
+    const wedding = starterEventTypes("fr", "wedding_planner");
+    const agency = starterEventTypes("fr", "event_agency");
+    expect(wedding.map((type) => type.label)).toEqual(["Mariage", "Anniversaire", "Baptême", "Séminaire", "Soirée d'entreprise", "Lancement de produit", "Autre"]);
+    expect(agency[0]?.label).toBe("Séminaire");
+    expect(new Set(agency.map((type) => type.key))).toEqual(new Set(wedding.map((type) => type.key)));
+    expect(starterEventTypes("en", "autre").map((type) => type.key)).toEqual(agency.map((type) => type.key));
+    expect(starterEventTypes("en")[0]?.label).toBe("Wedding");
+  });
+
+  it("seul le mariage parle des mariés ; les autres types parlent du client", () => {
+    const audiences = Object.fromEntries(starterEventTypes("fr").map((type) => [type.key, type.audience]));
+    expect(audiences).toMatchObject({ wedding: "couple", birthday: "clients", seminar: "clients", other: "clients" });
+    expect(Object.values(audiences).filter((audience) => audience === "couple")).toHaveLength(1);
   });
 });

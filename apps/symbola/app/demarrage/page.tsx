@@ -3,9 +3,10 @@
 // métier sont verrouillés (app-shell). Réservé à la titulaire ; un membre de
 // l'équipe voit qu'elle doit le terminer.
 import Link from "next/link";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
+import { starterEventTypes } from "@symbola/starter-templates";
 import { appDatabase } from "@symbola/db/client";
-import { listDefaultVendorSlots, listLossReasons, listProgramTemplates, listProspectSources, listTaskTemplates } from "@/modules/events/service";
+import { listDefaultVendorSlots, listEventTypes, listLossReasons, listProgramTemplates, listProspectSources, listTaskTemplates } from "@/modules/events/service";
 import { listAllocationModels } from "@/modules/budget/service";
 import { getOrganizationProfile, getSetupState, SETUP_STEPS } from "@/modules/hub/service";
 import { requirePlanner } from "@/lib/guards";
@@ -21,6 +22,14 @@ export default async function SetupPage({ searchParams }: { searchParams: Promis
   const db = appDatabase();
   const state = await getSetupState(db, organizationId);
   const profile = await getOrganizationProfile(db, organizationId);
+  // Lot 16 (ADR 0045) : types d'événement proposés à l'étape 1, dans l'ordre de chaque métier.
+  const starterLocale = (await getLocale()) === "en" ? "en" : "fr";
+  const eventTypeOptions = {
+    wedding_planner: starterEventTypes(starterLocale, "wedding_planner").map(({ key, label }) => ({ key, label })),
+    event_agency: starterEventTypes(starterLocale, "event_agency").map(({ key, label }) => ({ key, label })),
+  };
+  const installedTypes = await listEventTypes(organizationId);
+  const chosenEventTypes = installedTypes.length > 0 ? installedTypes.flatMap((type) => (type.starterKey ? [type.starterKey] : [])) : null;
 
   if (auth.user.role !== "owner") {
     return (
@@ -59,7 +68,9 @@ export default async function SetupPage({ searchParams }: { searchParams: Promis
       <section className="card" aria-labelledby="setup-step-title">
         <h2 id="setup-step-title">{t(`titles.${step}`)}</h2>
         <p>{t(`explanations.${step}`)}</p>
-        {step === 1 ? <ActivityForm metier={profile.metier} precision={profile.metierPrecision} /> : null}
+        {step === 1 ? (
+          <ActivityForm metier={profile.metier} precision={profile.metierPrecision} eventTypeOptions={eventTypeOptions} chosenEventTypes={chosenEventTypes} />
+        ) : null}
         {step === 2 ? <CompanyForm profile={profile} /> : null}
         {step === 3 ? <VatForm regime={profile.vatRegime} /> : null}
         {step === 4 ? <BudgetLinesStep /> : null}

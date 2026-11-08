@@ -21,12 +21,12 @@ import vendorSlotsFile from "./vendor-slots.json";
 import vendorTypesFile from "./vendor-types.json";
 import vendorTypeSynonymsFile from "./vendor-type-synonyms.json";
 import vendorFamiliesFile from "./vendor-families.json";
-import agencyVendorFamiliesFile from "./vendor-families.event-agency.json";
 import agencyVendorSlotsFile from "./vendor-slots.event-agency.json";
 import agencyProspectSourcesFile from "./prospect-sources.event-agency.json";
 import agencyRetroplanningFile from "./retroplanning.event-agency.json";
 import agencyProgramFile from "./program.event-agency.json";
 import allocationFile from "./allocation.json";
+import eventTypesFile from "./event-types.json";
 
 export type StarterLocale = "fr" | "en";
 
@@ -528,29 +528,41 @@ const vendorFamiliesSchema = z.object({
       }),
     )
     .min(1),
+  // Lot 16 (ADR 0045) : types propres au mariage, installés seulement pour une
+  // organisation qui organise des mariages.
+  weddingOnlyTypes: z.array(z.string().min(1)),
 });
 
-const weddingFamilies = vendorFamiliesSchema.parse(vendorFamiliesFile);
-const agencyFamilies = vendorFamiliesSchema.parse(agencyVendorFamiliesFile);
+const vendorFamilies = vendorFamiliesSchema.parse(vendorFamiliesFile);
 
 export type StarterVendorCatalogType = StarterVendorType & { synonyms: string[] };
 
 export type StarterVendorFamily = { key: string; label: string; color: string; icon: BudgetLineIcon; types: StarterVendorCatalogType[] };
 
-export function starterVendorCatalog(locale: StarterLocale, metier: StarterMetier = "wedding_planner"): StarterVendorFamily[] {
+// Lot 16 (ADR 0045) : un seul catalogue pour tous les métiers (une agence fait
+// aussi des mariages, une wedding planner d'autres événements). Les types
+// propres au mariage (robe de mariée, officiant…) n'y sont que si
+// l'organisation organise des mariages.
+export function starterVendorCatalog(locale: StarterLocale, options: { weddings?: boolean } = {}): StarterVendorFamily[] {
+  const weddings = options.weddings ?? true;
+  const weddingOnly = new Set(vendorFamilies.weddingOnlyTypes);
   const types = new Map(starterVendorTypes(locale).map((type) => [type.key, type]));
   const synonyms = new Map(vendorTypeSynonyms.items.map((item) => [item.key, [...item.fr, ...item.en]]));
-  return (isWedding(metier) ? weddingFamilies : agencyFamilies).items.map((family) => ({
-    key: family.key,
-    label: family.label[locale],
-    color: family.color,
-    icon: family.icon,
-    types: family.types.map((key) => {
-      const type = types.get(key);
-      if (!type) throw new Error(`type de départ inconnu : ${key}`);
-      return { ...type, synonyms: synonyms.get(key) ?? [type.label] };
-    }),
-  }));
+  return vendorFamilies.items
+    .map((family) => ({
+      key: family.key,
+      label: family.label[locale],
+      color: family.color,
+      icon: family.icon,
+      types: family.types
+        .filter((key) => weddings || !weddingOnly.has(key))
+        .map((key) => {
+          const type = types.get(key);
+          if (!type) throw new Error(`type de départ inconnu : ${key}`);
+          return { ...type, synonyms: synonyms.get(key) ?? [type.label] };
+        }),
+    }))
+    .filter((family) => family.types.length > 0);
 }
 
 // Lot 11 : prestataires d'exemple du tutoriel « comparer plusieurs devis ».
@@ -576,4 +588,29 @@ const followUpSchema = z.object({
 export function starterFollowUpDelays(): StarterFollowUpDelays {
   const parsed = followUpSchema.parse(followUpFile);
   return { quoteFollowUpDays: parsed.quoteFollowUpDays, prospectFollowUpDays: parsed.prospectFollowUpDays };
+}
+
+// Lot 16 (ADR 0045) — types d'événement de départ. Chaque type dit qui sont
+// les clients : « les mariés » (couple) ou « le client » (clients), et donc le
+// vocabulaire de l'événement. Même liste pour tous les métiers (une agence fait
+// aussi des mariages, une wedding planner d'autres événements), dans l'ordre
+// du métier ; « autre » prend celui d'une agence.
+export type StarterEventTypeAudience = "couple" | "clients";
+export type StarterEventType = { key: string; label: string; audience: StarterEventTypeAudience };
+
+const eventTypeKeys = z.array(z.string().min(1)).min(1);
+const eventTypesSchema = z.object({
+  version: z.literal(1),
+  items: z.array(z.object({ key: z.string().min(1), label: translatedLabelSchema, audience: z.enum(["couple", "clients"]) })).min(1),
+  orders: z.object({ wedding_planner: eventTypeKeys, event_agency: eventTypeKeys }),
+});
+const eventTypes = eventTypesSchema.parse(eventTypesFile);
+
+export function starterEventTypes(locale: StarterLocale, metier: StarterMetier = "wedding_planner"): StarterEventType[] {
+  const byKey = new Map(eventTypes.items.map((item) => [item.key, item]));
+  return eventTypes.orders[isWedding(metier) ? "wedding_planner" : "event_agency"].map((key) => {
+    const item = byKey.get(key);
+    if (!item) throw new Error(`type d'événement de départ inconnu : ${key}`);
+    return { key: item.key, label: item.label[locale], audience: item.audience };
+  });
 }

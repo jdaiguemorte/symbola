@@ -7,7 +7,8 @@ import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { parisToday } from "@symbola/i18n";
 import { appDatabase, type AppDatabase } from "@symbola/db/client";
-import type { StarterLocale, StarterMetier } from "@symbola/starter-templates";
+import { starterEventTypes, type StarterLocale, type StarterMetier } from "@symbola/starter-templates";
+import { addStarterEventTypes } from "@/modules/events/service";
 import {
   addDefaultVendorSlots,
   addLossReasons,
@@ -61,8 +62,15 @@ export async function saveActivityAction(_prev: SetupFormState, formData: FormDa
   const metier = text(formData, "metier") as Metier;
   if (!METIERS.includes(metier)) return { error: t("metierRequired") };
   const metierPrecision = text(formData, "metierPrecision") || null;
+  const locale = ((await getLocale()) === "en" ? "en" : "fr") as StarterLocale;
+  // Lot 16 (ADR 0045) : les types d'événement cochés, avant le reste du kit (le
+  // mariage décide des types de prestataires propres au mariage).
+  const chosen = new Set(formData.getAll("eventTypes").map(String));
+  const eventTypes = starterEventTypes(locale, metier as StarterMetier).filter((type) => chosen.has(type.key));
+  if (eventTypes.length === 0) return { error: t("eventTypesRequired") };
   await withDb((db) => saveOnboardingStep(db, access.organizationId, { metier, metierPrecision }));
-  await loadStarterKit(access.organizationId, metier as StarterMetier, ((await getLocale()) === "en" ? "en" : "fr") as StarterLocale);
+  await addStarterEventTypes(access.organizationId, eventTypes);
+  await loadStarterKit(access.organizationId, metier as StarterMetier, locale);
   await withDb((db) => saveSetupStep(db, access.organizationId, 2));
   goTo(2);
 }

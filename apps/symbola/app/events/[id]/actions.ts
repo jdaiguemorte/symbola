@@ -2,11 +2,30 @@
 
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
-import { changeEventStatus, listLossReasons, type EventStatus } from "@/modules/events/service";
+import { changeEventStatus, EventNotFoundError, EventTypeNotFoundError, listLossReasons, setEventType, type EventStatus } from "@/modules/events/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isEventsModuleEnabled, isValidId } from "../module-access";
 
 export type ChangeStatusFormState = { error?: string; success?: boolean };
+
+// Lot 16 (ADR 0045) — le type de l'événement, et avec lui le vocabulaire de ses
+// écrans (« les mariés » ou « le client »).
+export async function setEventTypeAction(formData: FormData): Promise<void> {
+  const auth = await getPlannerAuthContext();
+  if (auth.status !== "authenticated" || !auth.user.organizationId) return;
+  const organizationId = auth.user.organizationId;
+  if (!(await isEventsModuleEnabled(organizationId))) return;
+  const eventId = String(formData.get("eventId") ?? "");
+  const eventTypeId = String(formData.get("eventTypeId") ?? "");
+  if (!isValidId(eventId) || !isValidId(eventTypeId)) return;
+  try {
+    await setEventType(organizationId, eventId, eventTypeId);
+  } catch (error) {
+    if (error instanceof EventTypeNotFoundError || error instanceof EventNotFoundError) return;
+    throw error;
+  }
+  revalidatePath(`/events/${eventId}`);
+}
 
 const VALID_STATUSES: EventStatus[] = ["prospect", "quote_sent", "confirmed", "done", "lost"];
 

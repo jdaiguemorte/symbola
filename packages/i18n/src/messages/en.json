@@ -763,6 +763,10 @@
     "importTypes": {
       "title": "The file's types",
       "body": "Each type in the file is sorted into a family: linked to a type in your vendor book, to a starter type created once for all its synonyms, or left “to sort”. Change what a label becomes, or create it in the family of your choice."
+    },
+    "eventTypes": {
+      "title": "Event types",
+      "body": "Each event has a type: wedding, seminar, birthday… The type says who your clients are, the couple or a client, and the event page, the schedule and the client space follow its wording. Rename a type, choose who its clients are, add more; a type that has events can only be deleted by handing them to another type."
     }
   },
   "Aide": {
@@ -1153,7 +1157,13 @@
     "clientContactSave": "Save the contact details of {name}",
     "clientContactSaved": "Contact details saved.",
     "clientContactInvalidEmail": "Unreadable email address.",
-    "moreActions": "⋯ More options"
+    "moreActions": "⋯ More options",
+    "eventType": "Event type",
+    "eventTypeNone": "Type not set",
+    "missingEventType": "Choose the event type.",
+    "changeEventType": "Change type",
+    "eventTypeSaved": "Event type saved.",
+    "eventTypeOf": "Event type of {names}"
   },
   "Budget": {
     "title": "Budget",
@@ -3238,7 +3248,10 @@
     "notFound": "Item not found.",
     "iconLabel": "Icon",
     "lineNameLabel": "Line name",
-    "panelAddHint": "The line will be offered on every new event; existing events do not change."
+    "panelAddHint": "The line will be offered on every new event; existing events do not change.",
+    "eventTypesQuestion": "Which events do you organise?",
+    "eventTypesHint": "You can add or remove some in Settings › Event types. Without weddings, the vendor book does not offer wedding-only types (wedding dress, officiant…).",
+    "eventTypesRequired": "Tick at least one event type."
   },
   "SettingsMenu": {
     "groupCompany": "My company",
@@ -3260,7 +3273,8 @@
     "vendorTags": "Tags",
     "vendorTravel": "Travel",
     "import": "Import",
-    "privacy": "Personal data"
+    "privacy": "Personal data",
+    "eventTypes": "Event types"
   },
   "Common": {
     "closePanel": "Close the panel"
@@ -3363,5 +3377,34 @@
     "refused": "Upload refused: reload the page, then try again.",
     "unauthenticated": "Your session has expired: sign in again, then try again.",
     "failed": "The upload failed. Check your connection, then try again."
+  },
+  "EventTypes": {
+    "title": "Event types",
+    "intro": "An event's type says who your clients are: the couple, or a client (a person or a company). The event's screens, its programme and the client space follow its wording.",
+    "tableLabel": "Event types table",
+    "columnLabel": "Type",
+    "columnEvents": "Events",
+    "columnActions": "Actions",
+    "label": "Type name",
+    "labelFor": "Name of type {label}",
+    "audience": "Your clients are",
+    "audienceFor": "Your clients for type {label}",
+    "audienceCouple": "the couple",
+    "audienceClients": "a client",
+    "eventsCount": "{count, plural, =0 {none} one {# event} other {# events}}",
+    "add": "Add type",
+    "added": "Type added.",
+    "save": "Save",
+    "saveFor": "Save type {label}",
+    "saved": "Type saved.",
+    "remove": "Delete",
+    "removeFor": "Delete type {label}",
+    "removed": "Type deleted.",
+    "moveTo": "Its events move to type",
+    "moveToFor": "Events of type {label} move to type",
+    "invalid": "Type name required (80 characters at most).",
+    "inUse": "This type has events: choose the type that takes them over.",
+    "last": "Keep at least one event type.",
+    "notFound": "This type no longer exists."
   }
 }

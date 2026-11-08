@@ -12,6 +12,7 @@ import {
 } from "@/modules/events/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isEventsModuleEnabled, isValidId } from "../module-access";
+import { requestAudience } from "@/lib/vocabulary";
 
 export type ClientAccessFormState = { error?: string; success?: boolean; linked?: boolean };
 
@@ -36,6 +37,8 @@ export async function inviteClientAction(_prevState: ClientAccessFormState, form
       email: String(formData.get("email") ?? ""),
       invitedByUserId: access.userId,
       locale: (await getLocale()) === "en" ? "en" : "fr",
+      // Lot 16 (ADR 0045) : l'e-mail parle comme la fiche (type de l'événement, sinon métier).
+      audience: await requestAudience(access.organizationId),
     });
     revalidatePath(`/events/${eventId}`);
     return { success: true, linked: result.invitationToken === null };

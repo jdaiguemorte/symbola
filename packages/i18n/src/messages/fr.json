@@ -763,6 +763,10 @@
     "importTypes": {
       "title": "Les types du fichier",
       "body": "Chaque type du fichier est rangé dans une famille : rattaché à un type de votre carnet, à un type de départ créé une seule fois pour tous ses synonymes, ou laissé « à classer ». Changez ce que devient un libellé, ou créez-le dans la famille de votre choix."
+    },
+    "eventTypes": {
+      "title": "Types d'événements",
+      "body": "Chaque événement a un type : mariage, séminaire, anniversaire… Le type dit qui sont vos clients, les mariés ou un client, et la fiche, le programme et l'espace client en suivent le vocabulaire. Renommez un type, choisissez qui sont ses clients, ajoutez-en ; un type qui a des événements ne se supprime qu'en les confiant à un autre."
     }
   },
   "Aide": {
@@ -1153,7 +1157,13 @@
     "clientContactSave": "Enregistrer les coordonnées de {name}",
     "clientContactSaved": "Coordonnées enregistrées.",
     "clientContactInvalidEmail": "Adresse e-mail illisible.",
-    "moreActions": "⋯ Plus d'options"
+    "moreActions": "⋯ Plus d'options",
+    "eventType": "Type d'événement",
+    "eventTypeNone": "Type à préciser",
+    "missingEventType": "Choisissez le type de l'événement.",
+    "changeEventType": "Changer le type",
+    "eventTypeSaved": "Type de l'événement enregistré.",
+    "eventTypeOf": "Type de l'événement {names}"
   },
   "Budget": {
     "title": "Budget",
@@ -3238,7 +3248,10 @@
     "notFound": "Élément introuvable.",
     "iconLabel": "Icône",
     "lineNameLabel": "Nom de la ligne",
-    "panelAddHint": "La ligne sera proposée à chaque nouvel événement ; les événements existants ne changent pas."
+    "panelAddHint": "La ligne sera proposée à chaque nouvel événement ; les événements existants ne changent pas.",
+    "eventTypesQuestion": "Quels événements organisez-vous ?",
+    "eventTypesHint": "Vous pourrez en ajouter ou en retirer dans Paramètres › Types d'événements. Sans mariage, le carnet de prestataires ne propose pas les types propres au mariage (robe de mariée, officiant…).",
+    "eventTypesRequired": "Cochez au moins un type d'événement."
   },
   "SettingsMenu": {
     "groupCompany": "Mon entreprise",
@@ -3260,7 +3273,8 @@
     "vendorTags": "Étiquettes",
     "vendorTravel": "Trajets",
     "import": "Importer",
-    "privacy": "Données personnelles"
+    "privacy": "Données personnelles",
+    "eventTypes": "Types d'événements"
   },
   "Common": {
     "closePanel": "Fermer le panneau"
@@ -3363,5 +3377,34 @@
     "refused": "Envoi refusé : rechargez la page, puis réessayez.",
     "unauthenticated": "Votre session a expiré : reconnectez-vous, puis réessayez.",
     "failed": "L'envoi a échoué. Vérifiez votre connexion, puis réessayez."
+  },
+  "EventTypes": {
+    "title": "Types d'événements",
+    "intro": "Le type d'un événement dit qui sont vos clients : les mariés, ou un client (particulier ou entreprise). Les écrans de l'événement, son programme et l'espace client en suivent le vocabulaire.",
+    "tableLabel": "Tableau des types d'événements",
+    "columnLabel": "Type",
+    "columnEvents": "Événements",
+    "columnActions": "Actions",
+    "label": "Nom du type",
+    "labelFor": "Nom du type {label}",
+    "audience": "Vos clients sont",
+    "audienceFor": "Vos clients pour le type {label}",
+    "audienceCouple": "les mariés",
+    "audienceClients": "un client",
+    "eventsCount": "{count, plural, =0 {aucun} one {# événement} other {# événements}}",
+    "add": "Ajouter le type",
+    "added": "Type ajouté.",
+    "save": "Enregistrer",
+    "saveFor": "Enregistrer le type {label}",
+    "saved": "Type enregistré.",
+    "remove": "Supprimer",
+    "removeFor": "Supprimer le type {label}",
+    "removed": "Type supprimé.",
+    "moveTo": "Ses événements passent au type",
+    "moveToFor": "Les événements du type {label} passent au type",
+    "invalid": "Nom du type obligatoire (80 caractères au plus).",
+    "inUse": "Ce type a des événements : choisissez le type qui les reprend.",
+    "last": "Gardez au moins un type d'événement.",
+    "notFound": "Ce type n'existe plus."
   }
 }

@@ -7,8 +7,8 @@
     ".": "./src/index.ts",
     "./messages/fr.json": "./src/messages/fr.json",
     "./messages/en.json": "./src/messages/en.json",
-    "./messages/metier/event_agency.fr.json": "./src/messages/metier/event_agency.fr.json",
-    "./messages/metier/event_agency.en.json": "./src/messages/metier/event_agency.en.json"
+    "./messages/vocabulary/clients.fr.json": "./src/messages/vocabulary/clients.fr.json",
+    "./messages/vocabulary/clients.en.json": "./src/messages/vocabulary/clients.en.json"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",

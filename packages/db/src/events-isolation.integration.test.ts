@@ -13,6 +13,7 @@ import {
   eventClients,
   events,
   eventTasks,
+  eventTypes,
   eventVendorSlots,
   programItemParticipants,
   programItems,
@@ -77,6 +78,27 @@ describe("EVT-01/02 — Isolation entre organisations (module events, PostgreSQL
             .set({ firstName: "falsifié" })
             .where(eq(eventClients.id, targetRow.id))
             .returning(),
+        );
+        return { affectedRows: updated.length };
+      },
+    });
+  });
+
+  it("lot 16 (ADR 0045) — une organisation ne voit et ne modifie jamais les types d'événement d'une autre", async () => {
+    await assertOrganizationIsolation({
+      seed: async (organizationId) =>
+        withOrganization(db, organizationId, async (tx) => {
+          const [row] = await tx.insert(eventTypes).values({ organizationId, label: "Séminaire", audience: "clients" }).returning();
+          if (!row) throw new Error("insertion attendue, aucune ligne renvoyée");
+          return row;
+        }),
+
+      listVisible: async (organizationId) =>
+        withOrganization(db, organizationId, (tx) => tx.select().from(eventTypes)),
+
+      attemptCrossOrganizationUpdate: async (organizationId, targetRow) => {
+        const updated = await withOrganization(db, organizationId, (tx) =>
+          tx.update(eventTypes).set({ label: "falsifié", audience: "couple" }).where(eq(eventTypes.id, targetRow.id)).returning(),
         );
         return { affectedRows: updated.length };
       },

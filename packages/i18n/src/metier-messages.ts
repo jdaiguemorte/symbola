@@ -1,6 +1,7 @@
-// Lot 16 (HUB-21) — vocabulaire selon le métier de l'organisation : les textes
-// propres à un métier (messages/metier/<métier>.<langue>.json) remplacent ceux
-// du catalogue, clé par clé ; une wedding planner garde le catalogue tel quel.
+// Lot 16 (HUB-21, ADR 0045) — vocabulaire des clients : les textes « le client »
+// (messages/vocabulary/clients.<langue>.json) remplacent ceux du catalogue, qui
+// parle des mariés, clé par clé. L'app les choisit selon le type de l'événement
+// affiché, sinon selon le métier de l'organisation (apps/symbola/lib/vocabulary.ts).
 type Messages = { [key: string]: Messages | string | Messages[] | string[] };
 
 export function withMetierMessages<T extends object>(base: T, overrides: object | null): T {
