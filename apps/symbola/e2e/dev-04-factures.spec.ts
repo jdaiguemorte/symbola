@@ -106,7 +106,7 @@ test("DEV-04 — facturer un devis signé (acompte, solde, avoir) puis exporter 
   // Facture d'acompte, puis de solde : numéros continus de la série factures.
   await page.goto(quoteUrl);
   await page.waitForLoadState("networkidle");
-  await expect(page.getByText(/^Statut : Signé/)).toBeVisible();
+  await expect(page.getByText(/^Signé — version/)).toBeVisible();
   await page.getByRole("button", { name: "Émettre la facture d'acompte « Acompte à la signature »" }).click();
   await expect(page.getByText(/^F-\d{4}-0001 — Facture d'acompte/)).toBeVisible();
   await page.waitForLoadState("networkidle");

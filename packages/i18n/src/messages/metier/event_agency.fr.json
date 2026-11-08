@@ -1,0 +1,132 @@
+{
+  "Tour": {
+    "budget": {
+      "3": {
+        "title": "Avec les clients"
+      }
+    },
+    "event": {
+      "0": {
+        "body": "Vue d'ensemble, budget, rétroplanning, programme, clients : chaque onglet regroupe une partie de la préparation."
+      }
+    }
+  },
+  "Help": {
+    "eventsNew": {
+      "body": "Un prénom de contact et la source du contact suffisent ; la date et le lieu se complètent plus tard. Depuis l'agenda, un clic sur une date libre ouvre ce formulaire avec la date déjà remplie."
+    },
+    "eventsDetail": {
+      "body": "Tout l'événement tient sur cette fiche, en onglets. La frise du haut montre le statut et la date de chaque étape : cliquez l'étape suivante pour avancer. Le bandeau « Prochaine étape » propose ce qui reste à faire (envoyer le devis, appliquer le rétroplanning, préparer le programme, inviter les clients). La vue d'ensemble résume le budget, les lignes réservées, les tâches en retard et le devis signé ; le détail d'une ligne du budget s'ouvre dans le panneau de droite.",
+      "faq": {
+        "3": {
+          "q": "Que voient les clients ?",
+          "a": "Leurs tâches, le programme et le budget en lecture seule, jamais vos notes internes. Invitez-les depuis l'onglet Clients."
+        }
+      }
+    },
+    "eventsProgramTemplates": {
+      "faq": {
+        "0": {
+          "a": "Oui, depuis la fiche de l'événement : en PDF, version clients (sans notes internes) ou version prestataires."
+        }
+      }
+    },
+    "clientInvitation": {
+      "body": "Chaque contact du client a son propre compte. Le lien d'invitation est valable 7 jours ; s'il a expiré, demandez-en un nouveau à votre organisatrice."
+    },
+    "budgetDetail": {
+      "faq": {
+        "0": {
+          "q": "Les clients voient-ils le budget ?"
+        }
+      }
+    },
+    "quotesEReporting": {
+      "faq": {
+        "0": {
+          "q": "Dois-je envoyer des factures électroniques à mes clients ?"
+        }
+      }
+    },
+    "privacyPurge": {
+      "body": "Chaque mois, la liste rassemble ce qui a dépassé sa durée de conservation : prospects sans suite, relations terminées, comptes de clients inactifs, documents en fin de conservation. Validez-la : chaque ligne est purgée, sauf celles que vous excluez avec un motif. Rien n'est purgé sans vous."
+    },
+    "allTasks": {
+      "faq": {
+        "0": {
+          "q": "Les tâches des clients apparaissent-elles ?",
+          "a": "Oui : elles sont signalées « à faire par les clients », et cochées dès qu'ils les ont faites dans leur espace."
+        }
+      }
+    }
+  },
+  "Events": {
+    "noClient": "Clients non renseignés",
+    "client1FirstName": "Prénom du premier contact",
+    "client1LastName": "Nom du premier contact",
+    "client2FirstName": "Prénom du second contact (facultatif)",
+    "client2LastName": "Nom du second contact (facultatif)",
+    "missingFirstName": "Le prénom du premier contact est obligatoire.",
+    "responsibleClients": "Clients",
+    "programExportCouple": "Télécharger le PDF « clients »",
+    "programPdfCouple": "Version clients",
+    "clientAccessTitle": "Accès des clients",
+    "clientAccessIntro": "Invitez chaque contact du client par e-mail : il crée son propre compte et suit le rétroplanning, coche ses tâches et consulte le programme du jour J (sans vos notes internes). Vous pouvez retirer un accès à tout moment.",
+    "noClientAccess": "Aucun client invité pour l'instant.",
+    "clientEmail": "E-mail du contact",
+    "inviteClient": "Inviter le client",
+    "clientLinked": "Ce contact a déjà un compte : l'accès à cet événement lui est ouvert.",
+    "clientAlreadyInvited": "Ce contact a déjà accès à l'événement.",
+    "noActivity": "Aucune activité des clients pour l'instant.",
+    "activityFormerClient": "Un client",
+    "trialNoInvite": "Pendant l'essai, aucune invitation n'est envoyée : les clients ne sont invités que sur un vrai événement.",
+    "trialStepQuote": "Composez un devis fictif, faites-le signer par le client fictif sur la page de signature d'essai, puis émettez ses factures (série DEMO, en filigrane).",
+    "tabClients": "Clients",
+    "columnClients": "Clients",
+    "nextStep": {
+      "invite_clients": {
+        "title": "Prochaine étape : inviter les clients",
+        "action": "Inviter les clients"
+      }
+    },
+    "clientContactTitle": "Coordonnées des clients"
+  },
+  "Quotes": {
+    "clientIndividual": "Particulier (le client)",
+    "signingLinksHint": "Un client n'a pas reçu l'e-mail ? Envoyez-lui son lien ci-dessus (clic droit, « Copier le lien »). Chaque lien est personnel."
+  },
+  "Import": {
+    "takeover": {
+      "event_sheets": {
+        "what": "Chaque fiche devient un événement : clients et leurs coordonnées, date, lieux et horaires, budget souhaité. Le statut est proposé d'après la date ; vous le changez dans l'aperçu."
+      }
+    }
+  },
+  "Privacy": {
+    "kind": {
+      "client_access": "Accès d'un client",
+      "client_account": "Compte d'un client"
+    },
+    "setting": {
+      "clientRetentionMonths": "Client : conservation après la fin de la relation (mois)",
+      "inactiveAccountMonths": "Compte d'un client sans connexion : suppression après (mois)"
+    },
+    "purgeRule": {
+      "inactive_account": "Compte d'un client inactif"
+    }
+  },
+  "Tutorials": {
+    "client-space": {
+      "steps": {
+        "2": {
+          "body": "Dans l'onglet Clients de l'exemple, vous inviterez vos clients par e-mail (pendant un exemple, aucune invitation ne part). Vous pourrez retirer l'accès à tout moment."
+        }
+      }
+    }
+  },
+  "TutorialsPage": {
+    "stages": {
+      "clients": "Avec les clients"
+    }
+  }
+}

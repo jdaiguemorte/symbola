@@ -40,7 +40,8 @@ export async function AgendaBlock({
   const t = await getTranslations("Home");
   const tEvents = await getTranslations("Events");
   const remembered = (await cookies()).get(AGENDA_SPAN_COOKIE)?.value;
-  const span = parseSpan(query.agenda) ?? parseSpan(remembered) ?? 12;
+  // Lot 16 (HUB-20) : 3 mois par défaut ; l'année entière à la demande (« Voir l'année »).
+  const span = parseSpan(query.agenda) ?? parseSpan(remembered) ?? 3;
   const current = today.slice(0, 7);
   const start = query.debut && /^\d{4}-(0[1-9]|1[0-2])$/.test(query.debut) ? query.debut : current;
 
@@ -82,7 +83,7 @@ export async function AgendaBlock({
           </nav>
           <AgendaSpanLinks
             label={t("agendaSpan")}
-            links={SPANS.map((value) => ({ span: value, href: href({ agenda: value }), label: t("agendaMonths", { count: value }), current: value === span }))}
+            links={SPANS.map((value) => ({ span: value, href: href({ agenda: value }), label: value === 12 ? t("agendaYear") : t("agendaMonths", { count: value }), current: value === span }))}
           />
         </div>
       </div>

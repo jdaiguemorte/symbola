@@ -6,7 +6,9 @@
   "exports": {
     ".": "./src/index.ts",
     "./messages/fr.json": "./src/messages/fr.json",
-    "./messages/en.json": "./src/messages/en.json"
+    "./messages/en.json": "./src/messages/en.json",
+    "./messages/metier/event_agency.fr.json": "./src/messages/metier/event_agency.fr.json",
+    "./messages/metier/event_agency.en.json": "./src/messages/metier/event_agency.en.json"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",

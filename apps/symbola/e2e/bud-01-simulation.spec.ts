@@ -96,6 +96,7 @@ test("BUD-01 — modèle de répartition, simulation et ajustement d'une ligne",
   const lieuItem = page.getByRole("listitem").filter({ has: page.getByLabel("Lieu de réception", { exact: true }) });
   await lieuItem.getByLabel("Lieu de réception", { exact: true }).fill("7000");
   await lieuItem.getByRole("button", { name: "Ajuster" }).click();
-  await expect(page.getByText(/^Reste à répartir : /)).toBeVisible();
+  // Lot 16 (HUB-20) : chiffres clés en grille (terme, valeur).
+  await expect(page.getByRole("term").filter({ hasText: "Reste à répartir" })).toBeVisible();
   await expectNoAxeViolation(page);
 });

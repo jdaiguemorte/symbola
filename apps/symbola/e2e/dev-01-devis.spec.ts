@@ -109,7 +109,7 @@ test("DEV-01 — composer un devis depuis un événement, l'envoyer, le téléch
   // Envoi : la version 1 est figée, valable 45 jours.
   await page.getByRole("button", { name: "Marquer comme envoyé" }).click();
   await expect(page.getByRole("status").filter({ hasText: "Devis envoyé : cette version est figée." })).toBeVisible();
-  await expect(page.getByText(/^Statut : Envoyé/)).toBeVisible();
+  await expect(page.getByText(/^Envoyé — version/)).toBeVisible();
   await expect(page.getByText(/^Valable jusqu'au/)).toBeVisible();
   await expect(page.getByRole("form", { name: "Ajouter une ligne libre" })).toHaveCount(0);
   const pdf = await page.request.get(`${new URL(quoteUrl).pathname}/pdf?version=1`);
@@ -119,7 +119,7 @@ test("DEV-01 — composer un devis depuis un événement, l'envoyer, le téléch
   // Modifier un devis envoyé crée la version 2 ; la version 1 reste consultable.
   await page.waitForLoadState("networkidle");
   await page.getByRole("button", { name: "Créer une nouvelle version" }).click();
-  await expect(page.getByText(/^Statut : Brouillon — Version 2/)).toBeVisible();
+  await expect(page.getByText(/^Brouillon — version 2/)).toBeVisible();
   await expect(page.getByRole("form", { name: "Ajouter une ligne libre" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Versions précédentes" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Télécharger le PDF (version 1)" })).toBeVisible();

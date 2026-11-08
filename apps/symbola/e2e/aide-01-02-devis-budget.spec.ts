@@ -83,6 +83,8 @@ test("AIDE-02 — essai guidé du module Devis : devis fictif signé et facturé
 
   await page.goto("/events");
   await closeLandmarks(page, "Liste des événements");
+  // Lot 16 (HUB-20) : l'essai est dans « ⋯ Plus d'options ».
+  await page.getByText("⋯ Plus d'options").click();
   await page.getByRole("button", { name: "Démarrer l'essai" }).click();
   await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}$/);
   // Les repères de la fiche s'affichent d'eux-mêmes ; ce parcours les ferme.
