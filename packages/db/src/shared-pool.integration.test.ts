@@ -1,12 +1,12 @@
 // Lot 16 (ARC-01, ADR 0043) — la réserve de connexions partagée : une seule par
 // processus, et le contexte RLS d'une transaction ne reste jamais sur la
 // connexion qu'une autre requête emprunte ensuite. PostgreSQL réel, rôle
-// applicatif ; table témoin hello.greetings (SOC-05).
+// applicatif ; sources de prospects (une table sous RLS).
 import { randomUUID } from "node:crypto";
 import { sql } from "drizzle-orm";
 import { afterAll, describe, expect, it } from "vitest";
 import { appDatabase, closeAppDatabase } from "./client";
-import { greetings } from "./schema/hello";
+import { prospectSources } from "./schema/events";
 import { withOrganization } from "./with-organization";
 
 afterAll(async () => {
@@ -34,9 +34,9 @@ describe("ARC-01 — Une connexion partagée", () => {
     // Plus d'organisations que de connexions : certaines transactions attendent leur tour.
     const organizations = Array.from({ length: 15 }, () => randomUUID());
     await Promise.all(
-      organizations.map((organizationId) => withOrganization(db, organizationId, (tx) => tx.insert(greetings).values({ organizationId, message: `réserve ${organizationId}` }))),
+      organizations.map((organizationId) => withOrganization(db, organizationId, (tx) => tx.insert(prospectSources).values({ organizationId, label: `réserve ${organizationId}` }))),
     );
-    const seen = await Promise.all(organizations.map((organizationId) => withOrganization(db, organizationId, (tx) => tx.select().from(greetings))));
+    const seen = await Promise.all(organizations.map((organizationId) => withOrganization(db, organizationId, (tx) => tx.select().from(prospectSources))));
     seen.forEach((rows, index) => {
       expect(rows).toHaveLength(1);
       expect(rows[0]?.organizationId).toBe(organizations[index]);

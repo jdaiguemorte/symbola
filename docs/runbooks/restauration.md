@@ -128,6 +128,7 @@ supprime une colonne en perd les données.
    façon que `migrate` dans le runbook de déploiement (« Mettre à jour », étape 3 : même
    tunnel SSH, mêmes variables admin) :
    ```bash
+   pnpm --filter @symbola/db rollback -- 0079_lot16_drop_hello
    pnpm --filter @symbola/db rollback -- 0078_lot16_rate_limit
    pnpm --filter @symbola/db rollback -- 0077_lot16_vendor_families
    pnpm --filter @symbola/db rollback -- 0076_lot16_trusted_devices
@@ -135,6 +136,7 @@ supprime une colonne en perd les données.
    pnpm --filter @symbola/db rollback -- 0074_lot15_grant_import_jobs
    pnpm --filter @symbola/db rollback -- 0073_lot15_import_jobs
    ```
+   Annuler 0079 recrée la table témoin `hello.greetings`, vide (ADR 0045).
    Annuler 0078 retire la limitation de débit et oublie les tentatives du jour (ADR 0044).
    Annuler 0077 retire les familles de types : chaque fiche garde son type, le carnet revient à
    une pastille par type (ADR 0040).
@@ -151,8 +153,10 @@ supprime une colonne en perd les données.
 À faire une fois avant la fin du lot 0, puis chaque mois (PRD, § 10). Toujours sur le
 **staging**, avec ses données fictives.
 
-1. Préparer un repère : sur le staging, créer une donnée de test dans le module `hello` et
-   envoyer un fichier ; noter leur identifiant.
+1. Préparer un repère : sur le staging, créer une source de prospect « Repère restauration
+   <date> » (Paramètres › Sources et motifs) et joindre un fichier à une fiche du carnet de
+   prestataires ; noter leur nom. (Le module témoin `hello`, utilisé jusqu'au lot 15, est
+   retiré depuis le lot 16.)
 2. Lancer la sauvegarde du staging : `systemctl start symbola-backup@staging.service`.
 3. Modifier le repère après la sauvegarde (supprimer la donnée et le fichier).
 4. Démarrer le chronomètre et restaurer :

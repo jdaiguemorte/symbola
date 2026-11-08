@@ -6,7 +6,6 @@
   "exports": {
     "./client": "./src/client.ts",
     "./with-organization": "./src/with-organization.ts",
-    "./schema/hello": "./src/schema/hello.ts",
     "./schema/hub": "./src/schema/hub.ts",
     "./schema/events": "./src/schema/events.ts",
     "./schema/budget": "./src/schema/budget.ts",

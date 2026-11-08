@@ -554,6 +554,13 @@
       "when": 1794159727804,
       "tag": "0078_lot16_rate_limit",
       "breakpoints": true
+    },
+    {
+      "idx": 79,
+      "version": "7",
+      "when": 1794167913373,
+      "tag": "0079_lot16_drop_hello",
+      "breakpoints": true
     }
   ]
 }

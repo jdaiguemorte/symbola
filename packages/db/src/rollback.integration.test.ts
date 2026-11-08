@@ -61,6 +61,13 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     await expect(rollback("0099_inconnue")).rejects.toBeInstanceOf(RollbackRefusedError);
   });
 
+  it("lot 16 (ADR 0045) — l'annulation de 0079 recrée la table témoin hello.greetings, vide", async () => {
+    await expect(rollback("0078_lot16_rate_limit")).rejects.toBeInstanceOf(RollbackRefusedError);
+    expect(await hasColumn("hello", "greetings", "message")).toBe(false);
+    await rollback("0079_lot16_drop_hello");
+    expect(await hasColumn("hello", "greetings", "message")).toBe(true);
+  });
+
   it("SEC-02 (lot 16) — l'annulation de 0078 retire la limitation de débit", async () => {
     await expect(rollback("0077_lot16_vendor_families")).rejects.toBeInstanceOf(RollbackRefusedError);
     expect(await hasColumn("core", "rate_limit_events", "key_hash")).toBe(true);
