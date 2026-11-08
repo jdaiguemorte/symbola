@@ -41,7 +41,8 @@ function form(values: Record<string, string>): FormData {
   return data;
 }
 
-describe("SEC-02 — Limitation de débit de la connexion, du mot de passe oublié et de la recherche", () => {
+// Jusqu'à 121 vraies tentatives de suite par test : plus que le délai par défaut.
+describe("SEC-02 — Limitation de débit de la connexion, du mot de passe oublié et de la recherche", { timeout: 60_000 }, () => {
   beforeEach(() => {
     request.ip = freshIp();
   });
