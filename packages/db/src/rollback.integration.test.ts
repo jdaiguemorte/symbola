@@ -61,6 +61,13 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     await expect(rollback("0099_inconnue")).rejects.toBeInstanceOf(RollbackRefusedError);
   });
 
+  it("SEC-02 (lot 16) — l'annulation de 0078 retire la limitation de débit", async () => {
+    await expect(rollback("0077_lot16_vendor_families")).rejects.toBeInstanceOf(RollbackRefusedError);
+    expect(await hasColumn("core", "rate_limit_events", "key_hash")).toBe(true);
+    await rollback("0078_lot16_rate_limit");
+    expect(await hasColumn("core", "rate_limit_events", "key_hash")).toBe(false);
+  });
+
   it("PRE-14 (lot 16) — l'annulation de 0077 retire les familles de types ; les types restent", async () => {
     await expect(rollback("0076_lot16_trusted_devices")).rejects.toBeInstanceOf(RollbackRefusedError);
     expect(await hasColumn("vendors", "vendor_families", "label")).toBe(true);

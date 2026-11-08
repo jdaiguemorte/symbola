@@ -16,7 +16,8 @@
     "./events/emit": "./src/events/emit.ts",
     "./events/worker": "./src/events/worker.ts",
     "./usage/increment": "./src/usage/increment.ts",
-    "./search": "./src/search.ts"
+    "./search": "./src/search.ts",
+    "./rate-limit": "./src/rate-limit.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",

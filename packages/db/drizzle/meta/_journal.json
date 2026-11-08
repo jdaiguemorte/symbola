@@ -547,6 +547,13 @@
       "when": 1794136516212,
       "tag": "0077_lot16_vendor_families",
       "breakpoints": true
+    },
+    {
+      "idx": 78,
+      "version": "7",
+      "when": 1794159727804,
+      "tag": "0078_lot16_rate_limit",
+      "breakpoints": true
     }
   ]
 }
