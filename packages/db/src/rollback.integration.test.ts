@@ -61,6 +61,17 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     await expect(rollback("0099_inconnue")).rejects.toBeInstanceOf(RollbackRefusedError);
   });
 
+  it("PRE-14 (lot 16) — l'annulation de 0077 retire les familles de types ; les types restent", async () => {
+    await expect(rollback("0076_lot16_trusted_devices")).rejects.toBeInstanceOf(RollbackRefusedError);
+    expect(await hasColumn("vendors", "vendor_families", "label")).toBe(true);
+    expect(await hasColumn("vendors", "vendor_types", "family_id")).toBe(true);
+    await rollback("0077_lot16_vendor_families");
+    expect(await hasColumn("vendors", "vendor_families", "label")).toBe(false);
+    for (const column of ["family_id", "starter_key"]) expect(await hasColumn("vendors", "vendor_types", column)).toBe(false);
+    expect(await hasColumn("vendors", "vendor_settings", "families_seeded_at")).toBe(false);
+    expect(await hasColumn("vendors", "vendor_types", "label")).toBe(true);
+  });
+
   it("SEC-03 (lot 16) — l'annulation de 0076 retire les appareils de confiance", async () => {
     await expect(rollback("0075_lot16_mfa_protection")).rejects.toBeInstanceOf(RollbackRefusedError);
     expect(await hasColumn("hub", "trusted_devices", "token_hash")).toBe(true);
