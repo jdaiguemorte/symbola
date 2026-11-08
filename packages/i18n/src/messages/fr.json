@@ -1153,7 +1153,8 @@
     "contactCity": "Ville",
     "clientContactSave": "Enregistrer les coordonnées de {name}",
     "clientContactSaved": "Coordonnées enregistrées.",
-    "clientContactInvalidEmail": "Adresse e-mail illisible."
+    "clientContactInvalidEmail": "Adresse e-mail illisible.",
+    "moreActions": "⋯ Plus d'options"
   },
   "Budget": {
     "title": "Budget",

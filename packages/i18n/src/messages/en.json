@@ -1153,7 +1153,8 @@
     "contactCity": "City",
     "clientContactSave": "Save the contact details of {name}",
     "clientContactSaved": "Contact details saved.",
-    "clientContactInvalidEmail": "Unreadable email address."
+    "clientContactInvalidEmail": "Unreadable email address.",
+    "moreActions": "⋯ More options"
   },
   "Budget": {
     "title": "Budget",

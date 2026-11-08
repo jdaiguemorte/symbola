@@ -99,19 +99,7 @@ export default async function EventsListPage({
       <h1>{t("title")}</h1>
       <PageTour {...tour} helpTitle={tHelp("eventsList.title")} helpBody={tHelp("eventsList.body")} />
 
-      {/* AIDE-02 : essai guidé sur un événement fictif. */}
-      <section aria-labelledby="events-trial-title" data-tour="events-trial">
-        <h2 id="events-trial-title">{t("trialTitle")}</h2>
-        {essai === "termine" ? <p role="status">{t("trialEnded")}</p> : null}
-        <p>{t("trialIntro")}</p>
-        {trial ? (
-          <Link href={`/events/${trial.eventId}`}>{t("trialResume")}</Link>
-        ) : (
-          <form action={startTrialAction}>
-            <button type="submit">{t("trialStart")}</button>
-          </form>
-        )}
-      </section>
+      {essai === "termine" ? <p role="status">{t("trialEnded")}</p> : null}
       <nav className="toolbar">
         <Link href="/events/new" className="button-link button-link-primary" data-tour="new-prospect">
           {t("newProspect")}
@@ -125,6 +113,22 @@ export default async function EventsListPage({
         <Link href="/events/modeles-programme" className="button-link">
           {t("programTemplatesLink")}
         </Link>
+        {/* AIDE-02 : essai guidé sur un événement fictif. Lot 16 (HUB-20) : hors
+            du haut de la liste, dans « ⋯ » (et dans le centre d'aide). */}
+        <details className="more-actions" data-tour="events-trial" open={trial ? true : undefined}>
+          <summary>{t("moreActions")}</summary>
+          <div className="more-actions-panel">
+            <p className="strong">{t("trialTitle")}</p>
+            <p>{t("trialIntro")}</p>
+            {trial ? (
+              <Link href={`/events/${trial.eventId}`}>{t("trialResume")}</Link>
+            ) : (
+              <form action={startTrialAction}>
+                <button type="submit">{t("trialStart")}</button>
+              </form>
+            )}
+          </div>
+        </details>
       </nav>
 
       <div data-tour="events-filters">
