@@ -64,7 +64,8 @@ export default async function PrivacyPage() {
       <SearchForm exportRequests={exportRequests} erasureRequests={erasureRequests} />
       <section aria-labelledby="privacy-exports">
         <h2 id="privacy-exports">{t("exportsTitle")}</h2>
-        <ScreenHelp title={tHelp("privacyExport.title")} body={tHelp("privacyExport.body")} />
+        {/* Lot 16 (HUB-19) : un seul « ? » par écran ; l'aide des exports reste lisible ici. */}
+        <p className="muted">{tHelp("privacyExport.body")}</p>
         {exports.length === 0 ? <p>{t("exportsEmpty")}</p> : null}
         <ul>
           {exports.map((item) => (

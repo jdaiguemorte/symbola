@@ -39,6 +39,7 @@ import { HelpBar, type TutorialInvite } from "./help-bar";
 import { AUTO_TOURS_COOKIE } from "@/lib/help/preferences";
 import { SearchBox } from "./search-box";
 import { HelpProvider } from "./help-context";
+import { HelpButton } from "./help-button";
 import { getHelpProgress } from "@/modules/hub/service";
 import { type HelpModule, TUTORIALS, tutorialHref } from "@/lib/help/catalog";
 
@@ -120,7 +121,15 @@ export async function AppShell({ children }: { children: ReactNode }) {
             {logout}
           </div>
         </header>
-        <div className="app-main">{children}</div>
+        {/* Lot 16 (HUB-19, ADR 0039) : le « ? » au même endroit sur tous les écrans. */}
+        <HelpProvider>
+          <div className="app-main">
+            <section className="app-topbar" aria-label={t("topBar")}>
+              <HelpButton />
+            </section>
+            {children}
+          </div>
+        </HelpProvider>
       </div>
     );
   }
@@ -375,7 +384,14 @@ export async function AppShell({ children }: { children: ReactNode }) {
             {logout}
           </div>
         </AppSidebar>
-        <div className="app-main">{children}</div>
+        <HelpProvider>
+          <div className="app-main">
+            <section className="app-topbar" aria-label={t("topBar")}>
+              <HelpButton />
+            </section>
+            {children}
+          </div>
+        </HelpProvider>
       </div>
     );
   }
@@ -500,13 +516,18 @@ export async function AppShell({ children }: { children: ReactNode }) {
       </AppSidebar>
       <HelpProvider>
         <div className="app-main">
-          {isTeam && setupDone ? <SearchBox /> : null}
+          {/* Lot 16 (HUB-19, ADR 0039) : recherche à gauche, le seul « ? » à droite. */}
+          <section className="app-topbar" aria-label={t("topBar")}>
+            {isTeam && setupDone ? <SearchBox /> : null}
+            <HelpButton />
+          </section>
           {settingsSections.length > 0 ? (
             <SettingsNav groups={settingsSections} label={t("settingsSections")} />
           ) : null}
+          {/* L'invitation à un tutoriel s'affiche dans la page, plus en surimpression. */}
+          {helpBar && setupDone ? <HelpBar tutorial={helpBar.tutorial} invites={helpBar.invites} /> : null}
           {children}
         </div>
-        {helpBar && setupDone ? <HelpBar tutorial={helpBar.tutorial} invites={helpBar.invites} /> : null}
       </HelpProvider>
     </div>
   );

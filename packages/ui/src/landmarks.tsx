@@ -58,8 +58,26 @@ export function Landmarks({
       const marker = markers.current[index];
       if (!element || !marker) return Boolean(element);
       const rect = element.getBoundingClientRect();
-      marker.style.setProperty("top", `${Math.max(rect.top - 10, 4)}px`);
-      marker.style.setProperty("left", `${Math.max(rect.left - 10, 4)}px`);
+      // Lot 16 (HUB-19, ADR 0039) : jamais sur le libellé de l'élément.
+      // - Élément étroit (onglet, bouton) : centré au-dessus de lui, dans
+      //   l'espace qui sépare les rangées ; sinon juste en dessous.
+      // - Bloc large : dans la marge à gauche ; sans marge (téléphone), dans
+      //   son coin haut droit, à l'écart du libellé posé à gauche.
+      const MARKER = 28;
+      let top: number;
+      let left: number;
+      if (rect.width < 260) {
+        top = rect.top - MARKER - 2 >= 4 ? rect.top - MARKER - 2 : rect.bottom + 2;
+        left = rect.left + rect.width / 2 - MARKER / 2;
+      } else if (rect.left >= MARKER + 10) {
+        top = rect.top;
+        left = rect.left - MARKER - 6;
+      } else {
+        top = rect.top - 10;
+        left = Math.min(rect.right, window.innerWidth - 4) - MARKER - 4;
+      }
+      marker.style.setProperty("top", `${Math.max(top, 4)}px`);
+      marker.style.setProperty("left", `${Math.max(Math.min(left, window.innerWidth - MARKER - 4), 4)}px`);
       return true;
     });
     setPresent((previous) =>
@@ -84,6 +102,11 @@ export function Landmarks({
       frame = requestAnimationFrame(place);
     };
     schedule();
+    // Lot 16 (HUB-19) : le tiroir pousse le contenu sans redimensionner la
+    // fenêtre ; les repères se replacent une fois la mise en page refaite.
+    const settle = window.setTimeout(schedule, 150);
+    const resized = new ResizeObserver(schedule);
+    resized.observe(document.body);
     window.addEventListener("resize", schedule);
     window.addEventListener("scroll", schedule, true);
     const onKeyDown = (event: KeyboardEvent) => {
@@ -92,6 +115,8 @@ export function Landmarks({
     document.addEventListener("keydown", onKeyDown);
     return () => {
       cancelAnimationFrame(frame);
+      window.clearTimeout(settle);
+      resized.disconnect();
       window.removeEventListener("resize", schedule);
       window.removeEventListener("scroll", schedule, true);
       document.removeEventListener("keydown", onKeyDown);

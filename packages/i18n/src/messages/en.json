@@ -91,7 +91,8 @@
     "followUpQuote": "Follow up quote {number} · {names}",
     "followUpProspect": "Prospect with no news · {names}",
     "followUpDays": "{days, plural, one {# day} other {# days}}",
-    "followUpSettings": "Follow-up delays"
+    "followUpSettings": "Follow-up delays",
+    "topBar": "Search and screen help"
   },
   "Admin": {
     "createOrganizationTitle": "Create an organization",
@@ -3109,7 +3110,8 @@
     "close": "Close help",
     "previous": "Previous marker",
     "next": "Next marker",
-    "marker": "Marker {number}: {title}"
+    "marker": "Marker {number}: {title}",
+    "center": "Help center"
   },
   "AdminMenu": {
     "brand": "Admin",

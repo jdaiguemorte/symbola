@@ -38,3 +38,4 @@ Un fichier par décision structurante, numéroté. Pour changer une décision : 
 - [0034 — Import : lecture des fiches PDF avec `pdfjs-dist`](0034-lecture-des-pdf-pour-l-import.md)
 - [0035 — Traitements de fond suivis des imports](0035-traitements-de-fond-suivis-des-imports.md)
 - [0036 — Migrations annulables par script, types énumérés compris](0036-migrations-annulables.md)
+- [0039 — Aide : un seul « ? » dans la barre du haut, un tiroir qui pousse le contenu](0039-aide-un-seul-bouton-et-tiroir.md)

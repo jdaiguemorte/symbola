@@ -1,6 +1,7 @@
 // HUB-02 / EVT-04 — écran « Tâches » : les tâches de tous les événements en
 // cours (hors perdus et réalisés), en tableau, filtrables par état et par
 // responsable. Cocher une tâche ici la marque faite sur sa fiche.
+import { PageHeader } from "@/app/ui/page-header";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -45,18 +46,12 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
 
   return (
     <main>
-      <div className="page-header">
-        <div>
-          <h1>{t("allTasksTitle")}</h1>
-          <p className="meta">
-            <span>{t("allTasksSummary", { count: all.filter((task) => !task.done).length, overdue })}</span>
-          </p>
-        </div>
-        <div className="toolbar">
-          <ScreenHelp title={tHelp("allTasks.title")} body={tHelp("allTasks.body")} />
-          <GearLink href="/events/modeles" label={t("taskTemplatesSettings")} />
-        </div>
-      </div>
+      <PageHeader
+        title={t("allTasksTitle")}
+        subtitle={<span>{t("allTasksSummary", { count: all.filter((task) => !task.done).length, overdue })}</span>}
+        actions={<GearLink href="/events/modeles" label={t("taskTemplatesSettings")} />}
+      />
+      <ScreenHelp title={tHelp("allTasks.title")} body={tHelp("allTasks.body")} />
       <section className="card" aria-labelledby="all-tasks-title">
         <h2 id="all-tasks-title" className="sr-only">
           {t("allTasksTitle")}
