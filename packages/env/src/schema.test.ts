@@ -6,6 +6,7 @@ const validEnv = {
   POSTGRES_APP_PASSWORD: "dev-password",
   S3_ACCESS_KEY: "dev-access-key",
   S3_SECRET_KEY: "dev-secret-key",
+  MFA_ENCRYPTION_KEY: Buffer.alloc(32, 7).toString("base64"),
 };
 
 describe("SOC-03 — Validation des variables d'environnement (Zod)", () => {
@@ -88,5 +89,15 @@ describe("SOC-03 — Validation des variables d'environnement (Zod)", () => {
     expect(geocoderOf(parseEnv({ ...validEnv, GEOCODER: "none" }))).toBe("none");
     expect(() => parseEnv({ ...validEnv, NODE_ENV: "production", GEOCODER: "fake" })).toThrow(/GEOCODER/);
     expect(parseEnv(validEnv).MAP_TILES_DIR).toBe("");
+  });
+});
+
+describe("SEC-01 — Clé de chiffrement de la double authentification", () => {
+  it("refuse un démarrage sans clé, ou avec une clé qui ne fait pas 32 octets en base64", () => {
+    const { MFA_ENCRYPTION_KEY, ...rest } = validEnv;
+    expect(MFA_ENCRYPTION_KEY).toBeTruthy();
+    expect(() => parseEnv(rest)).toThrow(/MFA_ENCRYPTION_KEY/);
+    expect(() => parseEnv({ ...validEnv, MFA_ENCRYPTION_KEY: Buffer.alloc(16, 7).toString("base64") })).toThrow(/MFA_ENCRYPTION_KEY/);
+    expect(() => parseEnv({ ...validEnv, MFA_ENCRYPTION_KEY: "pas-une-clé" })).toThrow(/MFA_ENCRYPTION_KEY/);
   });
 });

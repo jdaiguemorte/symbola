@@ -31,6 +31,10 @@ function currentCodeFor(secret: string): string {
   return new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret) }).generate();
 }
 
+function codeAt(secret: string, timestamp: number): string {
+  return new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret) }).generate({ timestamp });
+}
+
 describe("SOC-04 — Parcours de connexion (PostgreSQL réel)", () => {
   it("impose la configuration TOTP à un rôle professionnel avant d'accéder au hub", async () => {
     const organization = await createOrganization(db, `Org ${randomUUID()}`);
@@ -57,16 +61,18 @@ describe("SOC-04 — Parcours de connexion (PostgreSQL réel)", () => {
       sessionToken: loginResult.sessionToken,
       token: currentCodeFor(secret),
     });
-    expect(confirmed).toBe(true);
+    if (confirmed.outcome !== "confirmed") throw new Error("validation attendue");
+    // SEC-01 : la validation remplace le jeton de session.
+    const sessionToken = confirmed.sessionToken;
 
-    const afterMfa = await requireUser(db, loginResult.sessionToken);
+    const afterMfa = await requireUser(db, sessionToken);
     expect(afterMfa.status).toBe("authenticated");
     if (afterMfa.status !== "authenticated") return;
     expect(afterMfa.user.email).toBe(email);
 
     // Navigue entre plusieurs « modules » sans se reconnecter : la même
     // session reste pleinement authentifiée à un second appel.
-    const secondCall = await requireUser(db, loginResult.sessionToken);
+    const secondCall = await requireUser(db, sessionToken);
     expect(secondCall.status).toBe("authenticated");
   });
 
@@ -93,8 +99,9 @@ describe("SOC-04 — Parcours de connexion (PostgreSQL réel)", () => {
     expect(again.secret).toBe(shown.secret);
     expect(again.provisioningUri).toContain(`secret=${shown.secret}`);
 
-    expect(await confirmTotp(db, { sessionToken: second.sessionToken, token: currentCodeFor(shown.secret) })).toBe(true);
-    expect((await requireUser(db, second.sessionToken)).status).toBe("authenticated");
+    const confirmed = await confirmTotp(db, { sessionToken: second.sessionToken, token: currentCodeFor(shown.secret) });
+    if (confirmed.outcome !== "confirmed") throw new Error("validation attendue");
+    expect((await requireUser(db, confirmed.sessionToken)).status).toBe("authenticated");
 
     // Une fois confirmée, la clé n'est plus jamais réaffichée : seule la vérification reste.
     const third = await login(db, email, "mot-de-passe-de-la-planner");
@@ -134,8 +141,9 @@ describe("SOC-04 — Parcours de connexion (PostgreSQL réel)", () => {
 
     // Activation volontaire depuis son espace, sur une session déjà ouverte.
     const { secret } = await setupTotp(db, user.id);
-    expect(await confirmTotp(db, { sessionToken: first.sessionToken, token: currentCodeFor(secret) })).toBe(true);
-    const enabled = await requireUser(db, first.sessionToken);
+    const activated = await confirmTotp(db, { sessionToken: first.sessionToken, token: currentCodeFor(secret) });
+    if (activated.outcome !== "confirmed") throw new Error("activation attendue");
+    const enabled = await requireUser(db, activated.sessionToken);
     expect(enabled.status === "authenticated" && enabled.user.mfaEnabled).toBe(true);
 
     const second = await login(db, email, "mot-de-passe-du-marie");
@@ -144,8 +152,11 @@ describe("SOC-04 — Parcours de connexion (PostgreSQL réel)", () => {
     const pending = await requireUser(db, second.sessionToken);
     expect(pending).toMatchObject({ status: "mfa_required", totpConfirmed: true });
 
-    expect(await confirmTotp(db, { sessionToken: second.sessionToken, token: currentCodeFor(secret) })).toBe(true);
-    expect((await requireUser(db, second.sessionToken)).status).toBe("authenticated");
+    // Le code de l'activation ne resert pas (SEC-01) : celui de la période suivante.
+    const next = Date.now() + 30_000;
+    const reconfirmed = await confirmTotp(db, { sessionToken: second.sessionToken, token: codeAt(secret, next), now: new Date(next) });
+    if (reconfirmed.outcome !== "confirmed") throw new Error("validation attendue");
+    expect((await requireUser(db, reconfirmed.sessionToken)).status).toBe("authenticated");
   });
 
   it("EVT-06 — retrouve un compte par son e-mail, sans rien en exposer d'autre que rôle et organisation", async () => {

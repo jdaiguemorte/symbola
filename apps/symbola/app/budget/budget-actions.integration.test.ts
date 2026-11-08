@@ -73,7 +73,9 @@ async function setup() {
   if (plannerLogin.outcome !== "success") throw new Error("connexion planner attendue");
   const { secret } = await withDb((db) => setupTotp(db, planner.id));
   const code = new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret) }).generate();
-  await withDb((db) => confirmTotp(db, { sessionToken: plannerLogin.sessionToken, token: code }));
+  // SEC-01 : la validation remplace le jeton de session.
+  const confirmed = await withDb((db) => confirmTotp(db, { sessionToken: plannerLogin.sessionToken, token: code }));
+  if (confirmed.outcome !== "confirmed") throw new Error("double authentification attendue");
 
   await addDefaultVendorSlots(organizationId, ["Lieu"]);
   const source = await createProspectSource(organizationId, "Salon");
@@ -111,7 +113,7 @@ async function setup() {
     eventId: event.id,
     eventVendorSlotId: slot!.id,
     defaultVendorSlotId: defaultSlot!.id,
-    plannerToken: plannerLogin.sessionToken,
+    plannerToken: confirmed.sessionToken,
     clientToken: clientLogin.sessionToken,
   };
 }

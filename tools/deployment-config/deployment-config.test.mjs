@@ -194,6 +194,18 @@ describe("DEV-02 — Documenso dans le compose d'environnement (ADR 0026)", () =
   });
 });
 
+describe("SEC-01 — Clé de chiffrement de la double authentification (lot 16, ADR 0037)", () => {
+  it("l'app reçoit la clé de son environnement, sans valeur par défaut (refus de démarrer si elle manque)", () => {
+    expect(serviceBlock(prodCompose, "symbola")).toContain("MFA_ENCRYPTION_KEY: ${MFA_ENCRYPTION_KEY}");
+  });
+
+  it("les modèles staging et production prévoient la clé, sans aucune valeur commitée", () => {
+    for (const name of ["staging", "production"]) {
+      expect(envExample(name)).toMatch(/^MFA_ENCRYPTION_KEY=$/m);
+    }
+  });
+});
+
 describe("SOC-09 — Secrets de staging/production jamais commités", () => {
   it("ignore .env.staging, .env.production et les garage.toml d'environnement", () => {
     expect(gitignore).toMatch(/^\.env\.staging$/m);

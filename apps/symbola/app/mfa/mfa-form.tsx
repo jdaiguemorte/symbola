@@ -4,7 +4,7 @@ import { useActionState } from "react";
 import { useTranslations } from "next-intl";
 import { confirmMfaAction, type MfaFormState } from "./actions";
 
-export function MfaForm() {
+export function MfaForm({ allowRememberDevice }: { allowRememberDevice: boolean }) {
   const t = useTranslations("Mfa");
   const initialState: MfaFormState = {};
   const [state, formAction, pending] = useActionState(confirmMfaAction, initialState);
@@ -15,6 +15,17 @@ export function MfaForm() {
         {t("code")}
         <input type="text" name="code" inputMode="numeric" pattern="[0-9]{6}" required />
       </label>
+      {allowRememberDevice ? (
+        <>
+          <label className="checkbox">
+            <input type="checkbox" name="rememberDevice" aria-describedby="remember-device-hint" />
+            {t("rememberDevice")}
+          </label>
+          <p id="remember-device-hint" className="muted">
+            {t("rememberDeviceHint")}
+          </p>
+        </>
+      ) : null}
       <button type="submit" disabled={pending}>
         {t("submit")}
       </button>

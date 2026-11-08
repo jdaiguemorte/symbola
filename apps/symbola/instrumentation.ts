@@ -24,5 +24,9 @@ export async function register() {
     // Lot 8 (ADR 0026) : rattrapage des signatures dont le webhook s'est perdu.
     const { scheduleSignatureReconciliation } = await import("./lib/signature-reconciliation");
     scheduleSignatureReconciliation();
+    // Lot 16 (SEC-01, ADR 0037) : secrets de double authentification chiffrés
+    // au repos ; ceux d'avant le lot 16 le sont une fois, au démarrage.
+    const { sealLegacyMfaSecretsAtStartup } = await import("./lib/mfa-secrets");
+    void sealLegacyMfaSecretsAtStartup();
   }
 }

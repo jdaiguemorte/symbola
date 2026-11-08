@@ -71,6 +71,10 @@ jobs:
       SMTP_PORT: 1025
     steps:
       - uses: actions/checkout@v4
+      # Lot 16 (SEC-01, ADR 0037) : clé de chiffrement de la double
+      # authentification, générée pour ce job (aucune valeur commitée).
+      - name: Clé de chiffrement de la double authentification
+        run: echo "MFA_ENCRYPTION_KEY=$(openssl rand -base64 32)" >> "$GITHUB_ENV"
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
@@ -150,6 +154,10 @@ jobs:
       E2E_SERVER_COMMAND: NODE_ENV=test pnpm exec next start -p 3000
     steps:
       - uses: actions/checkout@v4
+      # Lot 16 (SEC-01, ADR 0037) : clé de chiffrement de la double
+      # authentification, générée pour ce job (aucune valeur commitée).
+      - name: Clé de chiffrement de la double authentification
+        run: echo "MFA_ENCRYPTION_KEY=$(openssl rand -base64 32)" >> "$GITHUB_ENV"
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:

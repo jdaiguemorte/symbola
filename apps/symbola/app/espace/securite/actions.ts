@@ -2,9 +2,10 @@
 
 // EVT-06 — double authentification proposée au marié, jamais imposée.
 import { getTranslations } from "next-intl/server";
-import { confirmTotp, setupTotp } from "@symbola/auth";
+import { confirmTotp, setupTotp, type ConfirmTotpResult } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
-import { getClientAuthContext, getSessionToken } from "@/lib/auth-context";
+import { getClientAuthContext, getSessionToken, setSessionCookie } from "@/lib/auth-context";
+import { sendMfaLockMail } from "@/lib/mfa-lock-mail";
 import { totpSetupDisplay, type TotpSetupDisplay } from "@/lib/totp-qr";
 
 export type ClientMfaFormState = { setup?: TotpSetupDisplay; error?: string; enabled?: boolean };
@@ -29,10 +30,18 @@ export async function confirmClientMfaAction(prevState: ClientMfaFormState, form
   const sessionToken = await getSessionToken();
   if (auth.status !== "authenticated" || !sessionToken) return { error: t("unauthenticated") };
   const { sql, db } = createAppConnection();
+  let result: ConfirmTotpResult;
   try {
-    const confirmed = await confirmTotp(db, { sessionToken, token: String(formData.get("code") ?? "") });
-    return confirmed ? { enabled: true } : { ...prevState, error: t("mfaInvalidCode") };
+    result = await confirmTotp(db, { sessionToken, token: String(formData.get("code") ?? "") });
   } finally {
     await sql.end();
   }
+  if (result.outcome === "locked") {
+    if (result.notify) await sendMfaLockMail(result.notify);
+    return { ...prevState, error: t("mfaLocked") };
+  }
+  if (result.outcome === "invalid") return { ...prevState, error: t("mfaInvalidCode") };
+  // SEC-01 : nouveau jeton de session après la double authentification.
+  await setSessionCookie(result.sessionToken);
+  return { enabled: true };
 }

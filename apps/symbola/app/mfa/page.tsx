@@ -23,7 +23,7 @@ export default async function MfaPage() {
       ) : (
         <p>{t("enterCodeInstructions")}</p>
       )}
-      <MfaForm />
+      <MfaForm allowRememberDevice={state.allowRememberDevice} />
     </main>
   );
 }
