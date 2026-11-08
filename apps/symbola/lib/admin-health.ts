@@ -2,7 +2,7 @@
 // d'Administration (vue d'ensemble et page Santé), les mêmes que la page
 // publique /health (SOC-11), sans jamais exposer un message d'erreur.
 import { sql as rawSql } from "drizzle-orm";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { parseEnv } from "@symbola/env";
 import { checkBucket, createStorageClient, pingClamav } from "@symbola/files";
 import { runHealthChecks, type HealthReport } from "./health";
@@ -14,12 +14,8 @@ export async function runAdminHealthChecks(): Promise<HealthReport> {
   return runHealthChecks(
     {
       database: async () => {
-        const { sql, db } = createAppConnection();
-        try {
-          await db.execute(rawSql`select 1`);
-        } finally {
-          await sql.end();
-        }
+        const db = appDatabase();
+        await db.execute(rawSql`select 1`);
       },
       storage: () => checkBucket(createStorageClient()),
       antivirus: () => pingClamav({ host: env.CLAMAV_HOST, port: env.CLAMAV_PORT }),

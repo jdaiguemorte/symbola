@@ -1,7 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { setUserLanguage } from "@symbola/auth";
 import { getAuthContext } from "@/lib/auth-context";
 import { LOCALE_COOKIE } from "../../middleware";
@@ -17,12 +17,8 @@ export async function setLanguageAction(
 
   const language = formData.get("language") === "en" ? "en" : "fr";
 
-  const { sql, db } = createAppConnection();
-  try {
-    await setUserLanguage(db, auth.user.id, language);
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  await setUserLanguage(db, auth.user.id, language);
 
   (await cookies()).set(LOCALE_COOKIE, language, { path: "/", maxAge: 60 * 60 * 24 * 365, sameSite: "lax" });
 

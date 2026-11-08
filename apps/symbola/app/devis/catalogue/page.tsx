@@ -1,11 +1,10 @@
-import { redirect } from "next/navigation";
 import { ImportedFields } from "../../imported-fields";
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatAmount, type Locale } from "@symbola/i18n";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { getOrganizationProfile } from "@/modules/hub/service";
 import { listCatalogItems } from "@/modules/quotes/service";
-import { getPlannerAuthContext } from "@/lib/auth-context";
+import { requirePlanner } from "@/lib/guards";
 import { PageTour } from "@/app/page-tour";
 import { loadPageTour } from "@/lib/help/page-tour";
 import { isQuotesModuleEnabled } from "../module-access";
@@ -14,11 +13,7 @@ import { archiveCatalogItemAction } from "./actions";
 import { CatalogItemForm } from "./catalog-item-form";
 
 export default async function QuoteCatalogPage({ searchParams }: { searchParams: Promise<{ visite?: string }> }) {
-  const auth = await getPlannerAuthContext();
-  if (auth.status === "unauthenticated") redirect("/login");
-  if (auth.status === "mfa_required") redirect("/mfa");
-  if (auth.status === "forbidden") redirect(auth.role === "client" ? "/espace" : "/");
-  if (!auth.user.organizationId) redirect("/");
+  const auth = await requirePlanner();
   const organizationId = auth.user.organizationId;
 
   const t = await getTranslations("Quotes");
@@ -34,13 +29,8 @@ export default async function QuoteCatalogPage({ searchParams }: { searchParams:
     );
   }
 
-  const { sql, db } = createAppConnection();
-  let profile;
-  try {
-    profile = await getOrganizationProfile(db, organizationId);
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  const profile = await getOrganizationProfile(db, organizationId);
   const items = await listCatalogItems(organizationId);
   const defaultRate = profile.vatRegime === "franchise" ? 0 : (profile.vatRateDefaultBasisPoints ?? 0);
 

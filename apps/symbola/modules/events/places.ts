@@ -2,7 +2,7 @@
 // préparatifs…), saisis une fois puis choisis dans le programme. Exposé aux
 // autres modules seulement par service.ts (ADR 0011).
 import { and, asc, eq, sql } from "drizzle-orm";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { eventPlaces, events } from "@symbola/db/schema/events";
 import { withOrganization } from "@symbola/db/with-organization";
 import type { EventPlace } from "@symbola/contracts";
@@ -11,12 +11,8 @@ type Tx = Parameters<Parameters<typeof withOrganization>[2]>[0];
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 async function inOrganization<T>(organizationId: string, fn: (tx: Tx) => Promise<T>): Promise<T> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, fn);
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, fn);
 }
 
 const toPlace = (row: typeof eventPlaces.$inferSelect): EventPlace => ({ id: row.id, eventId: row.eventId, label: row.label, address: row.address, vendorId: row.vendorId });

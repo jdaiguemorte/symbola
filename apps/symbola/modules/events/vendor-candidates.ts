@@ -2,7 +2,7 @@
 // poste : accès aux données et règles du module events. Exposé aux autres
 // modules seulement par service.ts (ADR 0011).
 import { and, asc, eq, inArray, isNotNull, sql } from "drizzle-orm";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { eventVendorCandidateNotes, eventVendorCandidates, events, eventVendorSlots } from "@symbola/db/schema/events";
 import { withOrganization } from "@symbola/db/with-organization";
 import { createStorageClient, deletePrivateObject, PrivateObjectNotFoundError, readPrivateObject, uploadFile } from "@symbola/files";
@@ -39,12 +39,8 @@ export class CandidateQuoteRejectedError extends Error {
 }
 
 async function inOrganization<T>(organizationId: string, fn: (tx: Tx) => Promise<T>): Promise<T> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, fn);
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, fn);
 }
 
 function toCandidate(row: CandidateRow, notes: NoteRow[], selectedCandidateId: string | null): VendorCandidate {

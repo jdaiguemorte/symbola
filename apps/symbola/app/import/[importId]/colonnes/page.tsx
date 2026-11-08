@@ -1,5 +1,5 @@
 import { getLocale, getTranslations } from "next-intl/server";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { formatFileSize, type Locale } from "@symbola/i18n";
 import { notFound } from "next/navigation";
 import { ScreenHelp } from "@/app/screen-help";
@@ -25,13 +25,8 @@ export default async function ImportColumnsPage({
 }) {
   const { importId } = await params;
   const { organizationId, wizard } = await importStepContext(importId);
-  const { sql, db } = createAppConnection();
-  let view;
-  try {
-    view = await getImportColumns(db, organizationId, importId);
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  const view = await getImportColumns(db, organizationId, importId);
   if (!view) notFound();
 
   const t = await getTranslations("Import");

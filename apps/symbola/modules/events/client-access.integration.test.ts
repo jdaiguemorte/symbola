@@ -5,7 +5,7 @@
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { createOrganization, createUser, login, requireUser } from "@symbola/auth";
-import { createAppConnection } from "@symbola/db/client";
+import { createAppConnection, type AppDatabase } from "@symbola/db/client";
 import {
   acceptEventClientInvitation,
   addEventTask,
@@ -29,7 +29,7 @@ import {
 const plannerId = randomUUID();
 const PASSWORD = "mot-de-passe-du-marie";
 
-async function withDb<T>(fn: (db: ReturnType<typeof createAppConnection>["db"]) => Promise<T>): Promise<T> {
+async function withDb<T>(fn: (db: AppDatabase) => Promise<T>): Promise<T> {
   const { sql, db } = createAppConnection();
   try {
     return await fn(db);

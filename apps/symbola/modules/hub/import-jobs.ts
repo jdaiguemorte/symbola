@@ -38,6 +38,32 @@ export type ImportJobView = {
 
 type JobRow = typeof importJobs.$inferSelect;
 
+// Lot 16 (ARC-01, ADR 0043) — organisations qui ont un traitement à faire
+// avancer, signalées au traitement de fond du même processus dès que leur
+// transaction est validée : il ne visite plus toutes les organisations à
+// chaque passage. Rangées sur globalThis, comme la réserve de connexions, pour
+// qu'un seul ensemble existe par processus.
+const AWAKENED_KEY = Symbol.for("symbola.hub.awakenedImportOrganizations");
+type GlobalWithAwakened = typeof globalThis & { [AWAKENED_KEY]?: Set<string> };
+
+function awakened(): Set<string> {
+  const store = globalThis as GlobalWithAwakened;
+  store[AWAKENED_KEY] ??= new Set();
+  return store[AWAKENED_KEY];
+}
+
+export function wakeImportJobs(organizationId: string): void {
+  awakened().add(organizationId);
+}
+
+// Les organisations signalées depuis le passage précédent ; l'ensemble est vidé.
+export function takeAwakenedImportOrganizations(): string[] {
+  const set = awakened();
+  const organizationIds = [...set];
+  set.clear();
+  return organizationIds;
+}
+
 const ACTIVE: ImportJobStatus[] = ["pending", "running"];
 
 function toView(row: JobRow): ImportJobView {
@@ -48,7 +74,7 @@ export async function createImportJob(
   db: AppDatabase,
   input: { organizationId: string; importId: string; payload: ImportJobPayload; total: number; now?: Date },
 ): Promise<ImportJobView> {
-  return withOrganization(db, input.organizationId, async (tx) => {
+  const view = await withOrganization(db, input.organizationId, async (tx) => {
     const [row] = await tx
       .insert(importJobs)
       .values({ organizationId: input.organizationId, importId: input.importId, kind: input.payload.kind, payload: input.payload, total: input.total, ...(input.now ? { createdAt: input.now, updatedAt: input.now } : {}) })
@@ -56,6 +82,8 @@ export async function createImportJob(
     if (!row) throw new Error("création du traitement échouée");
     return toView(row);
   });
+  wakeImportJobs(input.organizationId);
+  return view;
 }
 
 export async function listImportJobs(db: AppDatabase, organizationId: string, importId: string): Promise<ImportJobView[]> {
@@ -220,7 +248,7 @@ export async function readNextSheet(db: AppDatabase, organizationId: string, job
 
 // Traitement en échec relancé par la planner : il reprend là où il s'était arrêté.
 export async function retryImportJob(db: AppDatabase, organizationId: string, jobId: string): Promise<boolean> {
-  return withOrganization(db, organizationId, async (tx) => {
+  const retried = await withOrganization(db, organizationId, async (tx) => {
     const updated = await tx
       .update(importJobs)
       .set({ status: "pending", error: null, finishedAt: null, updatedAt: new Date() })
@@ -228,4 +256,6 @@ export async function retryImportJob(db: AppDatabase, organizationId: string, jo
       .returning({ id: importJobs.id });
     return updated.length > 0;
   });
+  if (retried) wakeImportJobs(organizationId);
+  return retried;
 }

@@ -3,29 +3,25 @@
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { confirmTotp, requireUser, resumeTotpSetup, type ConfirmTotpResult } from "@symbola/auth";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { getSessionToken, setSessionCookie, setTrustedDeviceCookie } from "@/lib/auth-context";
 import { sendMfaLockMail } from "@/lib/mfa-lock-mail";
 import { totpSetupDisplay } from "@/lib/totp-qr";
 
 export async function getMfaSetupState() {
   const token = await getSessionToken();
-  const { sql, db } = createAppConnection();
-  try {
-    const result = await requireUser(db, token);
-    if (result.status !== "mfa_required") return null;
+  const db = appDatabase();
+  const result = await requireUser(db, token);
+  if (result.status !== "mfa_required") return null;
 
-    // SEC-03 : jamais d'appareil de confiance pour l'Admin.
-    const allowRememberDevice = result.role !== "admin";
-    if (!result.totpConfirmed) {
-      const { provisioningUri } = await resumeTotpSetup(db, result.userId);
-      return { setup: totpSetupDisplay(provisioningUri), allowRememberDevice };
-    }
-
-    return { setup: null, allowRememberDevice };
-  } finally {
-    await sql.end();
+  // SEC-03 : jamais d'appareil de confiance pour l'Admin.
+  const allowRememberDevice = result.role !== "admin";
+  if (!result.totpConfirmed) {
+    const { provisioningUri } = await resumeTotpSetup(db, result.userId);
+    return { setup: totpSetupDisplay(provisioningUri), allowRememberDevice };
   }
+
+  return { setup: null, allowRememberDevice };
 }
 
 export type MfaFormState = { error?: string };
@@ -38,13 +34,8 @@ export async function confirmMfaAction(
   if (!token) redirect("/login");
 
   const code = String(formData.get("code") ?? "");
-  const { sql, db } = createAppConnection();
-  let result: ConfirmTotpResult;
-  try {
-    result = await confirmTotp(db, { sessionToken: token, token: code, rememberDevice: formData.get("rememberDevice") === "on" });
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  const result: ConfirmTotpResult = await confirmTotp(db, { sessionToken: token, token: code, rememberDevice: formData.get("rememberDevice") === "on" });
 
   if (result.outcome === "locked") {
     if (result.notify) await sendMfaLockMail(result.notify);

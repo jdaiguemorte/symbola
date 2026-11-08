@@ -4,9 +4,9 @@
 import { getLocale, getTranslations } from "next-intl/server";
 import { ScreenHelp } from "@/app/screen-help";
 import { formatDateTime, type Locale } from "@symbola/i18n";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { listTeamHelpProgress } from "@/modules/hub/service";
-import { requireAdmin } from "@/lib/require-admin";
+import { requireAdmin } from "@/lib/guards";
 import { TUTORIALS } from "@/lib/help/catalog";
 import { uniqueLabels } from "../unique-labels";
 import { AdminListPagination, AdminListSearch, filterByName } from "../admin-list";
@@ -22,13 +22,8 @@ export default async function AdminOnboardingPage({ searchParams }: { searchPara
   const locale = (await getLocale()) as Locale;
   const now = Date.now();
 
-  const { sql, db } = createAppConnection();
-  let organizations;
-  try {
-    organizations = await listTeamHelpProgress(db);
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  const organizations = await listTeamHelpProgress(db);
 
   const rows = organizations.map((organization) => {
     const available = TUTORIALS.filter((tutorial) => tutorial.module === "hub" || (organization.modules as Record<string, boolean | undefined>)[tutorial.module]);

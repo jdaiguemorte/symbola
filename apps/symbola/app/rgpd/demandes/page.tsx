@@ -1,26 +1,21 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { formatCalendarDate, type Locale } from "@symbola/i18n";
 import { parisDate } from "@symbola/privacy";
 import { ScreenHelp } from "@/app/screen-help";
 import { listPrivacyRequests, PRIVACY_REQUEST_TYPES, type PrivacyRequestView } from "@/modules/hub/service";
-import { getPlannerAuthContext } from "@/lib/auth-context";
+import { requireOwner } from "@/lib/guards";
 import { closeRequestAction } from "./actions";
 import { ExtendRequestForm, NewRequestForm } from "./request-forms";
 
 // RGPD-04 — suivi des demandes d'exercice de droits : type, réception,
 // échéance légale, statut ; prolongation motivée, clôture.
 export default async function PrivacyRequestsPage() {
-  const auth = await getPlannerAuthContext();
-  if (auth.status === "unauthenticated") redirect("/login");
-  if (auth.status === "mfa_required") redirect("/mfa");
-  if (auth.status === "forbidden") redirect(auth.role === "client" ? "/espace" : "/");
-  if (!auth.user.organizationId) redirect("/");
+  const auth = await requireOwner();
   const t = await getTranslations("Privacy");
   const tHelp = await getTranslations("Help");
-  if (auth.user.role !== "owner") {
+  if (!auth) {
     return (
       <main>
         <h1>{t("requestsTitle")}</h1>
@@ -29,13 +24,8 @@ export default async function PrivacyRequestsPage() {
     );
   }
   const locale = (await getLocale()) as Locale;
-  const { sql, db } = createAppConnection();
-  let requests: PrivacyRequestView[];
-  try {
-    requests = await listPrivacyRequests(db, auth.user.organizationId);
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  const requests: PrivacyRequestView[] = await listPrivacyRequests(db, auth.user.organizationId);
   const deadline = (request: PrivacyRequestView) => {
     if (request.daysLeft === null) return t("requestClosed");
     if (request.daysLeft < 0) return t("requestOverdue", { days: -request.daysLeft });

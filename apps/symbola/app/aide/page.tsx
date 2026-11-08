@@ -6,11 +6,10 @@
 // écrans.
 import Link from "next/link";
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { getHelpProgress, isModuleEnabled, type HelpProgressEntry } from "@/modules/hub/service";
-import { getAuthContext } from "@/lib/auth-context";
+import { requireSignedIn } from "@/lib/guards";
 import { TUTORIALS, type HelpModule } from "@/lib/help/catalog";
 import { AUTO_TOURS_COOKIE } from "@/lib/help/preferences";
 import { captureSrc, HELP_GROUP_ORDER, helpScreenHref, screensFor, type HelpAudience } from "@/lib/help/screens";
@@ -20,9 +19,7 @@ import { AutoToursToggle } from "./auto-tours-toggle";
 type Faq = { q: string; a: string }[];
 
 export default async function AidePage() {
-  const auth = await getAuthContext();
-  if (auth.status === "unauthenticated") redirect("/login");
-  if (auth.status === "mfa_required") redirect("/mfa");
+  const auth = await requireSignedIn();
 
   const t = await getTranslations("Aide");
   const tCenter = await getTranslations("HelpCenter");
@@ -34,19 +31,15 @@ export default async function AidePage() {
   let modules: Record<HelpModule, boolean> = { hub: true, events: false, budget: false, quotes: false, vendors: false };
   let progress: HelpProgressEntry[] = [];
   if (isTeam && organizationId) {
-    const { sql, db } = createAppConnection();
-    try {
-      const [events, budget, quotes, vendors] = await Promise.all([
-        isModuleEnabled(db, organizationId, "events"),
-        isModuleEnabled(db, organizationId, "budget"),
-        isModuleEnabled(db, organizationId, "quotes"),
-        isModuleEnabled(db, organizationId, "vendors"),
-      ]);
-      modules = { hub: true, events, budget, quotes, vendors };
-      progress = await getHelpProgress(db, auth.user.id);
-    } finally {
-      await sql.end();
-    }
+    const db = appDatabase();
+    const [events, budget, quotes, vendors] = await Promise.all([
+      isModuleEnabled(db, organizationId, "events"),
+      isModuleEnabled(db, organizationId, "budget"),
+      isModuleEnabled(db, organizationId, "quotes"),
+      isModuleEnabled(db, organizationId, "vendors"),
+    ]);
+    modules = { hub: true, events, budget, quotes, vendors };
+    progress = await getHelpProgress(db, auth.user.id);
   }
   const seen = (tour: string) => progress.some((entry) => entry.itemKey === `tour:${tour}`);
   const tutorials = TUTORIALS.filter((tutorial) => modules[tutorial.module]);

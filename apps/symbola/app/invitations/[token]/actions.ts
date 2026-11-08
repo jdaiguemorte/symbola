@@ -2,7 +2,7 @@
 
 import { getTranslations } from "next-intl/server";
 import { PASSWORD_MIN_LENGTH } from "@symbola/auth";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { acceptInvitation } from "@/modules/hub/service";
 
 export type AcceptInvitationFormState = { error?: string; success?: boolean };
@@ -22,13 +22,8 @@ export async function acceptInvitationAction(
     return { error: t("passwordTooShort") };
   }
 
-  const { sql, db } = createAppConnection();
-  let result;
-  try {
-    result = await acceptInvitation(db, { token, password });
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  const result = await acceptInvitation(db, { token, password });
 
   if (result.outcome === "invalid_or_expired") {
     return { error: t("invalidOrExpired") };

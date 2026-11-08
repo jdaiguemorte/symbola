@@ -7,7 +7,7 @@ import { randomUUID } from "node:crypto";
 import * as OTPAuth from "otpauth";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { confirmTotp, createOrganization, createUser, login, setupTotp } from "@symbola/auth";
-import { createAppConnection } from "@symbola/db/client";
+import { createAppConnection, type AppDatabase } from "@symbola/db/client";
 import {
   acceptEventClientInvitation,
   addDefaultVendorSlots,
@@ -46,7 +46,7 @@ const { createAllocationModelAction } = await import("./parametres/actions");
 const PASSWORD = "mot-de-passe-du-marie";
 const TINY_PDF = Buffer.from("%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n", "latin1");
 
-async function withDb<T>(fn: (db: ReturnType<typeof createAppConnection>["db"]) => Promise<T>): Promise<T> {
+async function withDb<T>(fn: (db: AppDatabase) => Promise<T>): Promise<T> {
   const { sql, db } = createAppConnection();
   try {
     return await fn(db);

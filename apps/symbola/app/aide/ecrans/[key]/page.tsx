@@ -3,11 +3,11 @@
 // questions fréquentes. Un écran que la personne ne peut pas ouvrir (autre
 // public, module non souscrit) n'a pas de fiche pour elle.
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { isModuleEnabled } from "@/modules/hub/service";
-import { getAuthContext } from "@/lib/auth-context";
+import { requireSignedIn } from "@/lib/guards";
 import type { HelpModule } from "@/lib/help/catalog";
 import { captureSrc, screensFor, type HelpAudience, type HelpScreen } from "@/lib/help/screens";
 
@@ -25,9 +25,7 @@ function originKey(screen: HelpScreen): string | null {
 }
 
 export default async function HelpScreenPage({ params }: { params: Promise<{ key: string }> }) {
-  const auth = await getAuthContext();
-  if (auth.status === "unauthenticated") redirect("/login");
-  if (auth.status === "mfa_required") redirect("/mfa");
+  const auth = await requireSignedIn();
   const { key } = await params;
 
   const organizationId = auth.user.organizationId;
@@ -35,18 +33,14 @@ export default async function HelpScreenPage({ params }: { params: Promise<{ key
   const audience: HelpAudience = isTeam ? "team" : auth.user.role === "admin" ? "admin" : "client";
   let modules: Record<HelpModule, boolean> = { hub: true, events: false, budget: false, quotes: false, vendors: false };
   if (isTeam && organizationId) {
-    const { sql, db } = createAppConnection();
-    try {
-      const [events, budget, quotes, vendors] = await Promise.all([
-        isModuleEnabled(db, organizationId, "events"),
-        isModuleEnabled(db, organizationId, "budget"),
-        isModuleEnabled(db, organizationId, "quotes"),
-        isModuleEnabled(db, organizationId, "vendors"),
-      ]);
-      modules = { hub: true, events, budget, quotes, vendors };
-    } finally {
-      await sql.end();
-    }
+    const db = appDatabase();
+    const [events, budget, quotes, vendors] = await Promise.all([
+      isModuleEnabled(db, organizationId, "events"),
+      isModuleEnabled(db, organizationId, "budget"),
+      isModuleEnabled(db, organizationId, "quotes"),
+      isModuleEnabled(db, organizationId, "vendors"),
+    ]);
+    modules = { hub: true, events, budget, quotes, vendors };
   }
   const screen = screensFor({ audience, isOwner: auth.user.role === "owner", modules }).find((candidate) => candidate.key === key);
   if (!screen) notFound();

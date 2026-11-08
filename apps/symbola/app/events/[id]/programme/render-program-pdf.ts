@@ -4,7 +4,7 @@
 import { createElement, type ReactElement } from "react";
 import { renderToBuffer, type DocumentProps } from "@react-pdf/renderer";
 import { getLocale, getTranslations } from "next-intl/server";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { formatCalendarDate, type Locale } from "@symbola/i18n";
 import type { EventProgram, EventSummary, ProgramVariant } from "@/modules/events/service";
 import { getDocumentHeader } from "@/modules/hub/service";
@@ -19,13 +19,8 @@ export async function renderProgramPdfResponse(input: {
   program: EventProgram;
   variant: ProgramVariant;
 }): Promise<Response> {
-  const { sql, db } = createAppConnection();
-  let header;
-  try {
-    header = await getDocumentHeader(db, input.organizationId);
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  const header = await getDocumentHeader(db, input.organizationId);
 
   const locale = (await getLocale()) as Locale;
   const t = await getTranslations("Events");

@@ -5,7 +5,7 @@
 // reste une donnée sur elle : il est rendu par `related`.
 import { asc, inArray } from "drizzle-orm";
 import { createStorageClient, deletePrivateObject } from "@symbola/files";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { budgetLineAttachments, budgetLines, eventBudgets } from "@symbola/db/schema/budget";
 import { withOrganization } from "@symbola/db/with-organization";
 import { idsOfKind, type ErasureInput, type ErasurePlanItem, type PrivacyContractV1, type PrivacyRecord } from "@symbola/privacy";
@@ -44,12 +44,8 @@ async function erasurePlan(tx: Tx, input: ErasureInput): Promise<{ plan: Erasure
 }
 
 async function inOrganization<T>(organizationId: string, fn: (tx: Tx) => Promise<T>): Promise<T> {
-  const { sql, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, fn);
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, fn);
 }
 
 export const budgetPrivacy: PrivacyContractV1 = {
@@ -78,19 +74,14 @@ export const budgetPrivacy: PrivacyContractV1 = {
 
   async related({ organizationId, eventIds }) {
     if (eventIds.length === 0) return [];
-    const { sql, db } = createAppConnection();
-    let rows;
-    try {
-      rows = await withOrganization(db, organizationId, async (tx) => {
-        const budgets = await tx.select().from(eventBudgets).where(inArray(eventBudgets.eventId, eventIds));
-        const lines = await tx.select().from(budgetLines).where(inArray(budgetLines.eventId, eventIds)).orderBy(asc(budgetLines.createdAt));
-        const attachments =
-          lines.length > 0 ? await tx.select().from(budgetLineAttachments).where(inArray(budgetLineAttachments.lineId, lines.map((line) => line.id))) : [];
-        return { budgets, lines, attachments };
-      });
-    } finally {
-      await sql.end();
-    }
+    const db = appDatabase();
+    const rows = await withOrganization(db, organizationId, async (tx) => {
+      const budgets = await tx.select().from(eventBudgets).where(inArray(eventBudgets.eventId, eventIds));
+      const lines = await tx.select().from(budgetLines).where(inArray(budgetLines.eventId, eventIds)).orderBy(asc(budgetLines.createdAt));
+      const attachments =
+        lines.length > 0 ? await tx.select().from(budgetLineAttachments).where(inArray(budgetLineAttachments.lineId, lines.map((line) => line.id))) : [];
+      return { budgets, lines, attachments };
+    });
 
     // Intitulés des postes, lus par le service du module events (ADR 0011).
     const slotLabels = new Map<string, string>();

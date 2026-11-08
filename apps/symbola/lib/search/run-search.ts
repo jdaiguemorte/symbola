@@ -4,7 +4,7 @@
 // de la recherche instantanée.
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatCalendarDate, type Locale } from "@symbola/i18n";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { foldSearchText, searchWords } from "@symbola/db/search";
 import { globalSearch, isModuleEnabled } from "@/modules/hub/service";
 import { TUTORIALS, tutorialHref } from "@/lib/help/catalog";
@@ -35,19 +35,14 @@ export async function runSearch(input: { organizationId: string; role: string; t
   const tQuotes = await getTranslations("Quotes");
   const locale = (await getLocale()) as Locale;
 
-  const { sql, db } = createAppConnection();
-  let modules;
-  try {
-    const [events, budget, quotes, vendors] = await Promise.all([
-      isModuleEnabled(db, input.organizationId, "events"),
-      isModuleEnabled(db, input.organizationId, "budget"),
-      isModuleEnabled(db, input.organizationId, "quotes"),
-      isModuleEnabled(db, input.organizationId, "vendors"),
-    ]);
-    modules = { events, budget, quotes, vendors };
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  const [events, budget, quotes, vendors] = await Promise.all([
+    isModuleEnabled(db, input.organizationId, "events"),
+    isModuleEnabled(db, input.organizationId, "budget"),
+    isModuleEnabled(db, input.organizationId, "quotes"),
+    isModuleEnabled(db, input.organizationId, "vendors"),
+  ]);
+  const modules = { events, budget, quotes, vendors };
   const found = await globalSearch({ organizationId: input.organizationId, term: input.term, modules: { events: modules.events, quotes: modules.quotes, vendors: modules.vendors } });
   const names = (eventId: string) => found.eventNames[eventId] || t("noClientName");
 

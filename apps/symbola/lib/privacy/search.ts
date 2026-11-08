@@ -3,11 +3,10 @@
 // les données rattachées aux événements de la personne (tâches, budget,
 // devis…). Un module en erreur ou trop lent rend le résultat incomplet,
 // jamais « aucune donnée ». Orchestration entre modules, comme lib/import.
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { hasTerms, prepareTerms, type PersonTerms, type PrivacyContractV1, type PrivacyRecord } from "@symbola/privacy";
 import { budgetPrivacy } from "@/modules/budget/service";
 import { eventsPrivacy } from "@/modules/events/service";
-import { helloPrivacy } from "@/modules/hello/service";
 import { hubPrivacy, isModuleEnabled, type ModuleKey } from "@/modules/hub/service";
 import { quotesPrivacy } from "@/modules/quotes/service";
 import { vendorsPrivacy } from "@/modules/vendors/service";
@@ -21,7 +20,6 @@ export const PARTICIPANTS: Participant[] = [
   { contract: budgetPrivacy, moduleKey: "budget" },
   { contract: quotesPrivacy, moduleKey: "quotes" },
   { contract: vendorsPrivacy, moduleKey: "vendors" },
-  { contract: helloPrivacy, moduleKey: "hello" },
 ];
 
 // Délai de réponse d'un module, au-delà duquel le résultat est déclaré incomplet.
@@ -55,16 +53,12 @@ export async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Pr
 }
 
 export async function subscribedParticipants(organizationId: string, participants: typeof PARTICIPANTS) {
-  const { sql, db } = createAppConnection();
-  try {
-    const result: PrivacyContractV1[] = [];
-    for (const participant of participants) {
-      if (participant.moduleKey === null || (await isModuleEnabled(db, organizationId, participant.moduleKey))) result.push(participant.contract);
-    }
-    return result;
-  } finally {
-    await sql.end();
+  const db = appDatabase();
+  const result: PrivacyContractV1[] = [];
+  for (const participant of participants) {
+    if (participant.moduleKey === null || (await isModuleEnabled(db, organizationId, participant.moduleKey))) result.push(participant.contract);
   }
+  return result;
 }
 
 function recordKey(record: PrivacyRecord): string {

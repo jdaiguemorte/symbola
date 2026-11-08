@@ -1,31 +1,23 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { ScreenHelp } from "@/app/screen-help";
 import { countTrustedDevices } from "@symbola/auth";
-import { createAppConnection } from "@symbola/db/client";
-import { getClientAuthContext } from "@/lib/auth-context";
+import { appDatabase } from "@symbola/db/client";
+import { requireClient } from "@/lib/guards";
 import { TrustedDevicesForm } from "../../trusted-devices-form";
 import { ClientMfaSetup } from "./mfa-forms";
 
 // EVT-06 — sécurité du compte marié : double authentification facultative.
 export default async function ClientSecurityPage() {
-  const auth = await getClientAuthContext();
-  if (auth.status === "unauthenticated") redirect("/login");
-  if (auth.status === "mfa_required") redirect("/mfa");
-  if (auth.status === "forbidden") redirect("/");
+  const auth = await requireClient();
 
   const t = await getTranslations("ClientSpace");
   const tHelp = await getTranslations("Help");
   // SEC-03 : appareils de confiance, une fois la double authentification activée.
   let trustedDevices: number | null = null;
   if (auth.user.mfaEnabled) {
-    const { sql, db } = createAppConnection();
-    try {
-      trustedDevices = await countTrustedDevices(db, auth.user.id);
-    } finally {
-      await sql.end();
-    }
+    const db = appDatabase();
+    trustedDevices = await countTrustedDevices(db, auth.user.id);
   }
 
   return (

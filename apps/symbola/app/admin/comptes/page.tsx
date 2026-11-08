@@ -4,9 +4,9 @@
 import { getLocale, getTranslations } from "next-intl/server";
 import { ScreenHelp } from "@/app/screen-help";
 import { formatDateTime, type Locale } from "@symbola/i18n";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { listOrganizationsSupport } from "@/modules/hub/service";
-import { requireAdmin } from "@/lib/require-admin";
+import { requireAdmin } from "@/lib/guards";
 import { uniqueLabels } from "../unique-labels";
 import { AdminListPagination, AdminListSearch, filterByName } from "../admin-list";
 import { paginate } from "@/app/ui/pagination";
@@ -30,13 +30,8 @@ export default async function AdminAccountsPage({ searchParams }: { searchParams
   const result = RESULTS.find((candidate) => candidate === resultat);
   const now = new Date();
 
-  const { sql, db } = createAppConnection();
-  let organizations;
-  try {
-    organizations = await listOrganizationsSupport(db, now);
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  const organizations = await listOrganizationsSupport(db, now);
 
   const page = paginate(filterByName(organizations, q), pageParam);
   const labels = uniqueLabels(page.items.map((organization) => organization.name));

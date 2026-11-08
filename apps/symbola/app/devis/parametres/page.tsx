@@ -1,21 +1,16 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { starterInvoiceMentions } from "@symbola/starter-templates";
 import { ScreenHelp } from "@/app/screen-help";
 import { getQuoteSettings, listPaymentMethods } from "@/modules/quotes/service";
-import { getPlannerAuthContext } from "@/lib/auth-context";
+import { requirePlanner } from "@/lib/guards";
 import { isQuotesModuleEnabled } from "../module-access";
 import { archivePaymentMethodAction } from "./actions";
 import { AddPaymentMethodForm, LoadStarterPaymentMethodsForm } from "./payment-method-forms";
 import { QuoteSettingsForm } from "./quote-settings-form";
 
 export default async function QuoteSettingsPage() {
-  const auth = await getPlannerAuthContext();
-  if (auth.status === "unauthenticated") redirect("/login");
-  if (auth.status === "mfa_required") redirect("/mfa");
-  if (auth.status === "forbidden") redirect(auth.role === "client" ? "/espace" : "/");
-  if (!auth.user.organizationId) redirect("/");
+  const auth = await requirePlanner();
   const organizationId = auth.user.organizationId;
 
   const t = await getTranslations("Quotes");

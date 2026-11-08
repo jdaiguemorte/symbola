@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { markImportStepReviewed, type ImportVendorTypeTarget } from "@/modules/hub/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { decideVendorTypes } from "@/lib/import/matching";
@@ -26,12 +26,8 @@ export async function saveTypesAction(formData: FormData): Promise<void> {
     decisions.push({ label, target });
   }
   if (decisions.length > 0 && !(await decideVendorTypes(organizationId, importId, decisions))) redirect(importStepHref(importId, "types"));
-  const { sql, db } = createAppConnection();
-  try {
-    await markImportStepReviewed(db, { organizationId, importId, step: "types" });
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  await markImportStepReviewed(db, { organizationId, importId, step: "types" });
   const wizard = await getImportWizard(organizationId, importId);
   redirect(wizard ? importStepHref(importId, wizard.next) : "/import");
 }

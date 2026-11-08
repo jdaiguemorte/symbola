@@ -5,7 +5,7 @@ import { renderToBuffer, type DocumentProps } from "@react-pdf/renderer";
 import { revalidatePath } from "next/cache";
 import { getLocale, getTranslations } from "next-intl/server";
 import { z } from "zod";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { formatDateTime, type Locale } from "@symbola/i18n";
 import { getDocumentHeader, listExportablePrivacyRequests, PrivacyExportInvalidError, storePrivacyExport } from "@/modules/hub/service";
 import { buildExportArchive, buildExportPdfModel, selectRecordsForExport } from "@/lib/privacy/export";
@@ -46,7 +46,7 @@ export async function exportRecordsAction(_prevState: ExportFormState, formData:
 
   const locale = (await getLocale()) as Locale;
   const generatedAt = new Date();
-  const { sql, db } = createAppConnection();
+  const db = appDatabase();
   try {
     // Demande rattachée : d'accès ou de portabilité, en cours, de l'organisation.
     let person: string | null = null;
@@ -89,7 +89,5 @@ export async function exportRecordsAction(_prevState: ExportFormState, formData:
   } catch (error) {
     if (error instanceof PrivacyExportInvalidError) return { error: t("exportRequestInvalid") };
     throw error;
-  } finally {
-    await sql.end();
   }
 }

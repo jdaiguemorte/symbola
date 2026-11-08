@@ -1,11 +1,10 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { formatDateTime, formatFileSize, type Locale } from "@symbola/i18n";
 import { ScreenHelp } from "@/app/screen-help";
 import { getImportLimits, listImports, type ImportEntityType, type ImportLimits, type ImportSummary } from "@/modules/hub/service";
-import { getPlannerAuthContext } from "@/lib/auth-context";
+import { requirePlanner } from "@/lib/guards";
 import { availableImportEntityTypes } from "./access";
 import { NewImportForm } from "./new-import-form";
 
@@ -17,11 +16,7 @@ const TAKEOVER_TYPES = ["vendors", "event_sheets"] as const;
 const OTHER = "autre";
 
 export default async function ImportPage({ searchParams }: { searchParams: Promise<{ type?: string }> }) {
-  const auth = await getPlannerAuthContext();
-  if (auth.status === "unauthenticated") redirect("/login");
-  if (auth.status === "mfa_required") redirect("/mfa");
-  if (auth.status === "forbidden") redirect(auth.role === "client" ? "/espace" : "/");
-  if (!auth.user.organizationId) redirect("/");
+  const auth = await requirePlanner();
   const organizationId = auth.user.organizationId;
 
   const t = await getTranslations("Import");
@@ -34,14 +29,8 @@ export default async function ImportPage({ searchParams }: { searchParams: Promi
   const requested = (await searchParams).type;
   const chosen: ImportEntityType | typeof OTHER | null = requested === OTHER && others.length > 0 ? OTHER : (takeovers.find((type) => type === requested) ?? null);
   const formTypes: ImportEntityType[] = chosen === OTHER ? others : chosen ? [chosen] : [];
-  const { sql, db } = createAppConnection();
-  let journal: ImportSummary[];
-  let limits: ImportLimits;
-  try {
-    [journal, limits] = await Promise.all([listImports(db, organizationId), getImportLimits(db)]);
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  const [journal, limits]: [ImportSummary[], ImportLimits] = await Promise.all([listImports(db, organizationId), getImportLimits(db)]);
   const tiles = [
     ...takeovers.map((type) => ({ key: type as string, title: t(`takeover.${type}.title`), body: t(`takeover.${type}.what`) })),
     ...(others.length > 0 ? [{ key: OTHER, title: t("otherFileTitle"), body: t("otherFileBody") }] : []),

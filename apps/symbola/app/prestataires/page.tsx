@@ -7,9 +7,8 @@
 // pictogramme de la famille sur la carte.
 import { PageHeader } from "@/app/ui/page-header";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
-import { getPlannerAuthContext } from "@/lib/auth-context";
+import { requirePlanner } from "@/lib/guards";
 import { loadPageTour } from "@/lib/help/page-tour";
 import { mapAssets } from "@/lib/map/tiles";
 import { PageTour } from "@/app/page-tour";
@@ -30,11 +29,7 @@ import { FilterBar } from "@/app/ui/filter-bar";
 import { SidePanel } from "@/app/ui/side-panel";
 
 export default async function VendorBookPage({ searchParams }: { searchParams: Promise<BookQuery> }) {
-  const auth = await getPlannerAuthContext();
-  if (auth.status === "unauthenticated") redirect("/login");
-  if (auth.status === "mfa_required") redirect("/mfa");
-  if (auth.status === "forbidden") redirect(auth.role === "client" ? "/espace" : "/");
-  if (!auth.user.organizationId) redirect("/");
+  const auth = await requirePlanner();
   const organizationId = auth.user.organizationId;
   const t = await getTranslations("VendorBook");
   const tHelp = await getTranslations("Help");

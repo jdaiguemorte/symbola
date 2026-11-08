@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatCalendarDate, formatMonth, type Locale } from "@symbola/i18n";
 import { ScreenHelp } from "@/app/screen-help";
 import { ClientAccessDeniedError, getClientEventView, getClientVendorOptions, monthKey, type EventTask } from "@/modules/events/service";
 import { ClientBudgetAccessDeniedError, getClientBudgetView } from "@/modules/budget/service";
-import { getClientAuthContext } from "@/lib/auth-context";
+import { requireClient } from "@/lib/guards";
 import { isBudgetModuleEnabled } from "@/app/budget/module-access";
 import { isQuotesModuleEnabled } from "@/app/devis/module-access";
 import { listClientQuotesToSign } from "@/modules/quotes/service";
@@ -19,11 +19,7 @@ import { toggleClientTaskAction } from "./actions";
 // tâches) et programme du jour J en variante « mariés », jamais de note
 // interne. Budget (BUD-04) et devis à signer (DEV-02) en lecture.
 export default async function ClientEventPage({ params }: { params: Promise<{ id: string }> }) {
-  const auth = await getClientAuthContext();
-  if (auth.status === "unauthenticated") redirect("/login");
-  if (auth.status === "mfa_required") redirect("/mfa");
-  if (auth.status === "forbidden") redirect("/");
-  if (!auth.user.organizationId) redirect("/login");
+  const auth = await requireClient();
   // Dégradation propre (CLAUDE.md §2.3) : module désactivé = « indisponible ».
   if (!(await isEventsModuleEnabled(auth.user.organizationId))) {
     const tUnavailable = await getTranslations("ClientSpace");

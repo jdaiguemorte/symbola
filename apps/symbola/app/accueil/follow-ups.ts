@@ -1,7 +1,7 @@
 // Lot 13 (HUB-15) — éléments du bloc « À traiter » : devis envoyés sans
 // réponse et prospects sans nouvelle au-delà des délais de relance de
 // l'organisation, les plus anciens d'abord.
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { eventNames, listEvents, listStaleProspects } from "@/modules/events/service";
 import { listQuotesAwaitingAnswer } from "@/modules/quotes/service";
 import { getFollowUpDelays } from "@/modules/hub/service";
@@ -14,13 +14,8 @@ export async function loadFollowUps(
   labels: { quote: (number: string, names: string) => string; prospect: (names: string) => string },
   now: Date = new Date(),
 ): Promise<FollowUpItem[]> {
-  const { sql, db } = createAppConnection();
-  let delays;
-  try {
-    delays = await getFollowUpDelays(db, organizationId);
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  const delays = await getFollowUpDelays(db, organizationId);
   const items: FollowUpItem[] = [];
   if (modules.quotes && modules.events) {
     const quotes = await listQuotesAwaitingAnswer(organizationId, delays.quoteFollowUpDays, now);

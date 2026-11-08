@@ -9,7 +9,7 @@ import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import { ScreenHelp } from "@/app/screen-help";
 import { formatDateTime, formatMonth, type Locale } from "@symbola/i18n";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { foldSearchText } from "@symbola/db/search";
 import {
   getOrganizationsActivity,
@@ -18,7 +18,7 @@ import {
   listTeamHelpProgress,
   MODULE_KEYS,
 } from "@/modules/hub/service";
-import { requireAdmin } from "@/lib/require-admin";
+import { requireAdmin } from "@/lib/guards";
 import { TUTORIALS } from "@/lib/help/catalog";
 import { FilterBar } from "@/app/ui/filter-bar";
 import { ListRow, ListTable } from "@/app/ui/list-table";
@@ -48,18 +48,13 @@ export default async function AdminOrganizationsPage({ searchParams }: { searchP
   const query = await searchParams;
   const now = new Date();
 
-  const { sql, db } = createAppConnection();
-  let activity, support, help, modules;
-  try {
-    [activity, support, help, modules] = await Promise.all([
-      getOrganizationsActivity(db, { now }),
-      listOrganizationsSupport(db, now),
-      listTeamHelpProgress(db),
-      listOrganizationModuleStates(db, MODULE_KEYS),
-    ]);
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  const [activity, support, help, modules] = await Promise.all([
+    getOrganizationsActivity(db, { now }),
+    listOrganizationsSupport(db, now),
+    listTeamHelpProgress(db),
+    listOrganizationModuleStates(db, MODULE_KEYS),
+  ]);
 
   // Prise en main : part des tutoriels proposés à l'organisation que l'équipe a terminés.
   const onboarding = (organizationId: string) => {
@@ -182,7 +177,7 @@ export default async function AdminOrganizationsPage({ searchParams }: { searchP
                       <input type="hidden" name="moduleKey" value={moduleKey} />
                       <input type="hidden" name="enabled" value={(!enabled).toString()} />
                       <button type="submit" className={enabled ? "button-ghost" : undefined}>
-                        {t(enabled ? "moduleEnabledLabel" : "moduleDisabledLabel", { module: moduleKey })}
+                        {t(enabled ? "moduleEnabledLabel" : "moduleDisabledLabel", { module: t(`moduleNames.${moduleKey}`) })}
                       </button>
                     </form>
                   </li>

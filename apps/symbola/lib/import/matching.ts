@@ -6,7 +6,7 @@
 // modules (éléments existants), qui ne se connaissent que par leur
 // service.ts — même patron que lib/demo-purge.ts.
 import { EVENT_STATUS_CHOICES, IMPORT_FIELDS, type ImportEntityType } from "@symbola/contracts";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase, type AppDatabase } from "@symbola/db/client";
 import {
   EVENT_SHEET_COLUMNS,
   bestMatch,
@@ -56,13 +56,9 @@ import {
 const EVENT_REFERENCE_THRESHOLD = 80;
 const EVENT_REFERENCE_MARGIN = 5;
 
-async function withHubDb<T>(fn: (db: ReturnType<typeof createAppConnection>["db"]) => Promise<T>): Promise<T> {
-  const { sql, db } = createAppConnection();
-  try {
-    return await fn(db);
-  } finally {
-    await sql.end();
-  }
+async function withHubDb<T>(fn: (db: AppDatabase) => Promise<T>): Promise<T> {
+  const db = appDatabase();
+  return await fn(db);
 }
 
 export function parseWorkingSetRows(set: ImportWorkingSet): ParsedImportRow[] {

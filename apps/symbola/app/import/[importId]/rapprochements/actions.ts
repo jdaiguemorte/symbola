@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { addManualMatch, decideMatches, getImportMatchesView } from "@/lib/import/matching";
 import { redirect } from "next/navigation";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { markImportStepReviewed } from "@/modules/hub/service";
 import { getImportWizard, importStepHref, SAFE_MATCH_SCORE } from "@/lib/import/wizard";
 import { isValidId } from "../../access";
@@ -66,12 +66,8 @@ export async function manualMatchAction(formData: FormData): Promise<void> {
 export async function reviewMatchesAction(formData: FormData): Promise<void> {
   const context = await authorized(formData);
   if (!context) return;
-  const { sql, db } = createAppConnection();
-  try {
-    await markImportStepReviewed(db, { organizationId: context.organizationId, importId: context.importId, step: "matches" });
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  await markImportStepReviewed(db, { organizationId: context.organizationId, importId: context.importId, step: "matches" });
   const wizard = await getImportWizard(context.organizationId, context.importId);
   redirect(wizard ? importStepHref(context.importId, wizard.next) : "/import");
 }

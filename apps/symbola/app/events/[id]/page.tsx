@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { PageHeader } from "@/app/ui/page-header";
 import { ImportedFields } from "../../imported-fields";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import {
   formatAmount,
@@ -33,7 +33,7 @@ import { listEventQuotes } from "@/modules/quotes/service";
 import { createQuoteAction, startQuotesTrialAction } from "@/app/devis/actions";
 import { isQuotesModuleEnabled } from "@/app/devis/module-access";
 import { QUOTE_STATUS_LABEL_KEYS } from "@/app/devis/quote-display";
-import { getPlannerAuthContext } from "@/lib/auth-context";
+import { requirePlanner } from "@/lib/guards";
 import { isEventsModuleEnabled, isValidId } from "../module-access";
 import { ChangeStatusForm } from "./change-status-form";
 import { NextStepBanner } from "./next-step-banner";
@@ -101,12 +101,7 @@ export default async function EventDetailPage({
   params: Promise<{ id: string }>;
   searchParams: Promise<SearchParams>;
 }) {
-  const auth = await getPlannerAuthContext();
-  if (auth.status === "unauthenticated") redirect("/login");
-  if (auth.status === "mfa_required") redirect("/mfa");
-  if (auth.status === "forbidden")
-    redirect(auth.role === "client" ? "/espace" : "/");
-  if (!auth.user.organizationId) redirect("/");
+  const auth = await requirePlanner();
   const organizationId = auth.user.organizationId;
 
   const { id } = await params;

@@ -2,9 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { createOrganizationWithInvitation, setModuleEnabled, type ModuleKey } from "@/modules/hub/service";
-import { requireAdmin } from "@/lib/require-admin";
+import { requireAdmin } from "@/lib/guards";
 
 export type CreateOrganizationFormState = { error?: string; success?: boolean };
 
@@ -24,18 +24,14 @@ export async function createOrganizationAction(
     return { error: t("missingFields") };
   }
 
-  const { sql, db } = createAppConnection();
-  try {
-    await createOrganizationWithInvitation(db, {
-      adminUserId: admin.userId,
-      name,
-      language,
-      siret,
-      titulaireEmail,
-    });
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  await createOrganizationWithInvitation(db, {
+    adminUserId: admin.userId,
+    name,
+    language,
+    siret,
+    titulaireEmail,
+  });
 
   return { success: true };
 }
@@ -47,12 +43,8 @@ export async function toggleModuleAction(formData: FormData): Promise<void> {
   const moduleKey = String(formData.get("moduleKey") ?? "") as ModuleKey;
   const enabled = formData.get("enabled") === "true";
 
-  const { sql, db } = createAppConnection();
-  try {
-    await setModuleEnabled(db, { adminUserId: admin.userId, organizationId, moduleKey, enabled });
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  await setModuleEnabled(db, { adminUserId: admin.userId, organizationId, moduleKey, enabled });
 
   revalidatePath("/admin/organisations");
 }

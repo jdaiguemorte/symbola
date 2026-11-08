@@ -1,7 +1,7 @@
 // Accès aux données du module budget — jamais importé hors de
 // modules/budget/ (ADR 0011).
 import { and, asc, eq, inArray } from "drizzle-orm";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import {
   allocationModelItems,
   allocationModels,
@@ -24,22 +24,18 @@ export type BudgetLineAttachmentRow = typeof budgetLineAttachments.$inferSelect;
 export async function findAllocationModels(
   organizationId: string,
 ): Promise<{ model: AllocationModelRow; items: AllocationModelItemRow[] }[]> {
-  const { sql, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, async (tx) => {
-      const models = await tx.select().from(allocationModels).where(eq(allocationModels.organizationId, organizationId));
-      const items = await tx
-        .select()
-        .from(allocationModelItems)
-        .where(eq(allocationModelItems.organizationId, organizationId));
-      return models.map((model) => ({
-        model,
-        items: items.filter((item) => item.modelId === model.id),
-      }));
-    });
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const models = await tx.select().from(allocationModels).where(eq(allocationModels.organizationId, organizationId));
+    const items = await tx
+      .select()
+      .from(allocationModelItems)
+      .where(eq(allocationModelItems.organizationId, organizationId));
+    return models.map((model) => ({
+      model,
+      items: items.filter((item) => item.modelId === model.id),
+    }));
+  });
 }
 
 export async function insertAllocationModel(
@@ -47,64 +43,52 @@ export async function insertAllocationModel(
   name: string,
   items: { defaultVendorSlotId: string; percentageBasisPoints: number }[],
 ): Promise<{ model: AllocationModelRow; items: AllocationModelItemRow[] }> {
-  const { sql, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, async (tx) => {
-      const [model] = await tx.insert(allocationModels).values({ organizationId, name }).returning();
-      if (!model) throw new Error("création du modèle échouée");
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const [model] = await tx.insert(allocationModels).values({ organizationId, name }).returning();
+    if (!model) throw new Error("création du modèle échouée");
 
-      const insertedItems: AllocationModelItemRow[] = [];
-      for (const item of items) {
-        const [row] = await tx
-          .insert(allocationModelItems)
-          .values({
-            organizationId,
-            modelId: model.id,
-            defaultVendorSlotId: item.defaultVendorSlotId,
-            percentageBasisPoints: item.percentageBasisPoints,
-          })
-          .returning();
-        if (!row) throw new Error("création d'un poste du modèle échouée");
-        insertedItems.push(row);
-      }
+    const insertedItems: AllocationModelItemRow[] = [];
+    for (const item of items) {
+      const [row] = await tx
+        .insert(allocationModelItems)
+        .values({
+          organizationId,
+          modelId: model.id,
+          defaultVendorSlotId: item.defaultVendorSlotId,
+          percentageBasisPoints: item.percentageBasisPoints,
+        })
+        .returning();
+      if (!row) throw new Error("création d'un poste du modèle échouée");
+      insertedItems.push(row);
+    }
 
-      return { model, items: insertedItems };
-    });
-  } finally {
-    await sql.end();
-  }
+    return { model, items: insertedItems };
+  });
 }
 
 export async function deleteAllocationModel(organizationId: string, modelId: string): Promise<void> {
-  const { sql, db } = createAppConnection();
-  try {
-    await withOrganization(db, organizationId, async (tx) => {
-      await tx.delete(allocationModelItems).where(eq(allocationModelItems.modelId, modelId));
-      await tx.delete(allocationModels).where(eq(allocationModels.id, modelId));
-    });
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  await withOrganization(db, organizationId, async (tx) => {
+    await tx.delete(allocationModelItems).where(eq(allocationModelItems.modelId, modelId));
+    await tx.delete(allocationModels).where(eq(allocationModels.id, modelId));
+  });
 }
 
 export async function findEventBudget(
   organizationId: string,
   eventId: string,
 ): Promise<{ budget: EventBudgetRow; items: EventBudgetItemRow[] } | null> {
-  const { sql, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, async (tx) => {
-      const [budget] = await tx.select().from(eventBudgets).where(eq(eventBudgets.eventId, eventId));
-      if (!budget) return null;
-      const items = await tx
-        .select()
-        .from(eventBudgetItems)
-        .where(eq(eventBudgetItems.eventBudgetId, budget.id));
-      return { budget, items };
-    });
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const [budget] = await tx.select().from(eventBudgets).where(eq(eventBudgets.eventId, eventId));
+    if (!budget) return null;
+    const items = await tx
+      .select()
+      .from(eventBudgetItems)
+      .where(eq(eventBudgetItems.eventBudgetId, budget.id));
+    return { budget, items };
+  });
 }
 
 // Remplace entièrement la simulation d'un événement (BUD-01 : une
@@ -118,61 +102,57 @@ export async function upsertEventBudget(input: {
   allocationModelId: string;
   items: { defaultVendorSlotId: string; amountCents: number }[];
 }): Promise<{ budget: EventBudgetRow; items: EventBudgetItemRow[] }> {
-  const { sql, db } = createAppConnection();
-  try {
-    return await withOrganization(db, input.organizationId, async (tx) => {
-      const [existing] = await tx.select().from(eventBudgets).where(eq(eventBudgets.eventId, input.eventId));
+  const db = appDatabase();
+  return await withOrganization(db, input.organizationId, async (tx) => {
+    const [existing] = await tx.select().from(eventBudgets).where(eq(eventBudgets.eventId, input.eventId));
 
-      let budget: EventBudgetRow;
-      if (existing) {
-        await tx.delete(eventBudgetItems).where(eq(eventBudgetItems.eventBudgetId, existing.id));
-        const [updated] = await tx
-          .update(eventBudgets)
-          .set({
-            totalAmountCents: input.totalAmountCents,
-            guestCount: input.guestCount,
-            allocationModelId: input.allocationModelId,
-            updatedAt: new Date(),
-          })
-          .where(eq(eventBudgets.id, existing.id))
-          .returning();
-        if (!updated) throw new Error("mise à jour de la simulation échouée");
-        budget = updated;
-      } else {
-        const [inserted] = await tx
-          .insert(eventBudgets)
-          .values({
-            organizationId: input.organizationId,
-            eventId: input.eventId,
-            totalAmountCents: input.totalAmountCents,
-            guestCount: input.guestCount,
-            allocationModelId: input.allocationModelId,
-          })
-          .returning();
-        if (!inserted) throw new Error("création de la simulation échouée");
-        budget = inserted;
-      }
+    let budget: EventBudgetRow;
+    if (existing) {
+      await tx.delete(eventBudgetItems).where(eq(eventBudgetItems.eventBudgetId, existing.id));
+      const [updated] = await tx
+        .update(eventBudgets)
+        .set({
+          totalAmountCents: input.totalAmountCents,
+          guestCount: input.guestCount,
+          allocationModelId: input.allocationModelId,
+          updatedAt: new Date(),
+        })
+        .where(eq(eventBudgets.id, existing.id))
+        .returning();
+      if (!updated) throw new Error("mise à jour de la simulation échouée");
+      budget = updated;
+    } else {
+      const [inserted] = await tx
+        .insert(eventBudgets)
+        .values({
+          organizationId: input.organizationId,
+          eventId: input.eventId,
+          totalAmountCents: input.totalAmountCents,
+          guestCount: input.guestCount,
+          allocationModelId: input.allocationModelId,
+        })
+        .returning();
+      if (!inserted) throw new Error("création de la simulation échouée");
+      budget = inserted;
+    }
 
-      const insertedItems: EventBudgetItemRow[] = [];
-      for (const item of input.items) {
-        const [row] = await tx
-          .insert(eventBudgetItems)
-          .values({
-            organizationId: input.organizationId,
-            eventBudgetId: budget.id,
-            defaultVendorSlotId: item.defaultVendorSlotId,
-            amountCents: item.amountCents,
-          })
-          .returning();
-        if (!row) throw new Error("création d'un poste de la simulation échouée");
-        insertedItems.push(row);
-      }
+    const insertedItems: EventBudgetItemRow[] = [];
+    for (const item of input.items) {
+      const [row] = await tx
+        .insert(eventBudgetItems)
+        .values({
+          organizationId: input.organizationId,
+          eventBudgetId: budget.id,
+          defaultVendorSlotId: item.defaultVendorSlotId,
+          amountCents: item.amountCents,
+        })
+        .returning();
+      if (!row) throw new Error("création d'un poste de la simulation échouée");
+      insertedItems.push(row);
+    }
 
-      return { budget, items: insertedItems };
-    });
-  } finally {
-    await sql.end();
-  }
+    return { budget, items: insertedItems };
+  });
 }
 
 // Ajuste à la main le montant d'un poste de la simulation en cours
@@ -185,70 +165,58 @@ export async function updateEventBudgetItemAmount(input: {
   defaultVendorSlotId: string;
   amountCents: number;
 }): Promise<EventBudgetItemRow> {
-  const { sql, db } = createAppConnection();
-  try {
-    return await withOrganization(db, input.organizationId, async (tx) => {
-      const [existing] = await tx
-        .select()
-        .from(eventBudgetItems)
-        .where(
-          and(
-            eq(eventBudgetItems.eventBudgetId, input.eventBudgetId),
-            eq(eventBudgetItems.defaultVendorSlotId, input.defaultVendorSlotId),
-          ),
-        );
+  const db = appDatabase();
+  return await withOrganization(db, input.organizationId, async (tx) => {
+    const [existing] = await tx
+      .select()
+      .from(eventBudgetItems)
+      .where(
+        and(
+          eq(eventBudgetItems.eventBudgetId, input.eventBudgetId),
+          eq(eventBudgetItems.defaultVendorSlotId, input.defaultVendorSlotId),
+        ),
+      );
 
-      if (existing) {
-        const [updated] = await tx
-          .update(eventBudgetItems)
-          .set({ amountCents: input.amountCents, updatedAt: new Date() })
-          .where(eq(eventBudgetItems.id, existing.id))
-          .returning();
-        if (!updated) throw new Error("mise à jour du poste échouée");
-        return updated;
-      }
-
-      const [inserted] = await tx
-        .insert(eventBudgetItems)
-        .values({
-          organizationId: input.organizationId,
-          eventBudgetId: input.eventBudgetId,
-          defaultVendorSlotId: input.defaultVendorSlotId,
-          amountCents: input.amountCents,
-        })
+    if (existing) {
+      const [updated] = await tx
+        .update(eventBudgetItems)
+        .set({ amountCents: input.amountCents, updatedAt: new Date() })
+        .where(eq(eventBudgetItems.id, existing.id))
         .returning();
-      if (!inserted) throw new Error("création du poste échouée");
-      return inserted;
-    });
-  } finally {
-    await sql.end();
-  }
+      if (!updated) throw new Error("mise à jour du poste échouée");
+      return updated;
+    }
+
+    const [inserted] = await tx
+      .insert(eventBudgetItems)
+      .values({
+        organizationId: input.organizationId,
+        eventBudgetId: input.eventBudgetId,
+        defaultVendorSlotId: input.defaultVendorSlotId,
+        amountCents: input.amountCents,
+      })
+      .returning();
+    if (!inserted) throw new Error("création du poste échouée");
+    return inserted;
+  });
 }
 
 export async function findBudgetLines(organizationId: string, eventId: string): Promise<BudgetLineRow[]> {
-  const { sql, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, (tx) =>
-      tx.select().from(budgetLines).where(eq(budgetLines.eventId, eventId)),
-    );
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, (tx) =>
+    tx.select().from(budgetLines).where(eq(budgetLines.eventId, eventId)),
+  );
 }
 
 export async function findBudgetLineByEventVendorSlotId(
   organizationId: string,
   eventVendorSlotId: string,
 ): Promise<BudgetLineRow | null> {
-  const { sql, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, async (tx) => {
-      const [row] = await tx.select().from(budgetLines).where(eq(budgetLines.eventVendorSlotId, eventVendorSlotId));
-      return row ?? null;
-    });
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const [row] = await tx.select().from(budgetLines).where(eq(budgetLines.eventVendorSlotId, eventVendorSlotId));
+    return row ?? null;
+  });
 }
 
 // Pose planned_amount_cents ou actual_amount_cents selon `field`, crée la
@@ -264,75 +232,67 @@ export async function setBudgetLineAmount(input: {
   amountCents: number;
   changedByUserId: string;
 }): Promise<BudgetLineRow> {
-  const { sql, db } = createAppConnection();
-  try {
-    return await withOrganization(db, input.organizationId, async (tx) => {
-      const [existing] = await tx
-        .select()
-        .from(budgetLines)
-        .where(eq(budgetLines.eventVendorSlotId, input.eventVendorSlotId));
+  const db = appDatabase();
+  return await withOrganization(db, input.organizationId, async (tx) => {
+    const [existing] = await tx
+      .select()
+      .from(budgetLines)
+      .where(eq(budgetLines.eventVendorSlotId, input.eventVendorSlotId));
 
-      const oldValueCents =
-        existing === undefined
-          ? null
-          : input.field === "planned"
-            ? existing.plannedAmountCents
-            : existing.actualAmountCents;
+    const oldValueCents =
+      existing === undefined
+        ? null
+        : input.field === "planned"
+          ? existing.plannedAmountCents
+          : existing.actualAmountCents;
 
-      let line: BudgetLineRow;
-      if (existing) {
-        const [updated] = await tx
-          .update(budgetLines)
-          .set({
-            ...(input.field === "planned"
-              ? { plannedAmountCents: input.amountCents }
-              : { actualAmountCents: input.amountCents }),
-            updatedAt: new Date(),
-          })
-          .where(eq(budgetLines.id, existing.id))
-          .returning();
-        if (!updated) throw new Error("mise à jour de la ligne de budget échouée");
-        line = updated;
-      } else {
-        const [inserted] = await tx
-          .insert(budgetLines)
-          .values({
-            organizationId: input.organizationId,
-            eventId: input.eventId,
-            eventVendorSlotId: input.eventVendorSlotId,
-            plannedAmountCents: input.field === "planned" ? input.amountCents : null,
-            actualAmountCents: input.field === "actual" ? input.amountCents : null,
-          })
-          .returning();
-        if (!inserted) throw new Error("création de la ligne de budget échouée");
-        line = inserted;
-      }
+    let line: BudgetLineRow;
+    if (existing) {
+      const [updated] = await tx
+        .update(budgetLines)
+        .set({
+          ...(input.field === "planned"
+            ? { plannedAmountCents: input.amountCents }
+            : { actualAmountCents: input.amountCents }),
+          updatedAt: new Date(),
+        })
+        .where(eq(budgetLines.id, existing.id))
+        .returning();
+      if (!updated) throw new Error("mise à jour de la ligne de budget échouée");
+      line = updated;
+    } else {
+      const [inserted] = await tx
+        .insert(budgetLines)
+        .values({
+          organizationId: input.organizationId,
+          eventId: input.eventId,
+          eventVendorSlotId: input.eventVendorSlotId,
+          plannedAmountCents: input.field === "planned" ? input.amountCents : null,
+          actualAmountCents: input.field === "actual" ? input.amountCents : null,
+        })
+        .returning();
+      if (!inserted) throw new Error("création de la ligne de budget échouée");
+      line = inserted;
+    }
 
-      await tx.insert(budgetLineHistory).values({
-        organizationId: input.organizationId,
-        lineId: line.id,
-        field: input.field,
-        oldValueCents,
-        newValueCents: input.amountCents,
-        changedByUserId: input.changedByUserId,
-      });
-
-      return line;
+    await tx.insert(budgetLineHistory).values({
+      organizationId: input.organizationId,
+      lineId: line.id,
+      field: input.field,
+      oldValueCents,
+      newValueCents: input.amountCents,
+      changedByUserId: input.changedByUserId,
     });
-  } finally {
-    await sql.end();
-  }
+
+    return line;
+  });
 }
 
 export async function findBudgetLineHistory(organizationId: string, lineId: string): Promise<BudgetLineHistoryRow[]> {
-  const { sql, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, (tx) =>
-      tx.select().from(budgetLineHistory).where(eq(budgetLineHistory.lineId, lineId)),
-    );
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, (tx) =>
+    tx.select().from(budgetLineHistory).where(eq(budgetLineHistory.lineId, lineId)),
+  );
 }
 
 // BUD-03 — devis prestataires joints aux lignes de budget.
@@ -344,19 +304,15 @@ export async function insertBudgetLineAttachment(input: {
   sizeBytes: number;
   uploadedByUserId: string;
 }): Promise<BudgetLineAttachmentRow> {
-  const { sql, db } = createAppConnection();
-  try {
-    return await withOrganization(db, input.organizationId, async (tx) => {
-      // Clé étrangère vérifiée sans RLS : on contrôle que la ligne est visible.
-      const [line] = await tx.select({ id: budgetLines.id }).from(budgetLines).where(eq(budgetLines.id, input.lineId));
-      if (!line) throw new Error("ligne de budget introuvable");
-      const [row] = await tx.insert(budgetLineAttachments).values(input).returning();
-      if (!row) throw new Error("enregistrement du devis échoué");
-      return row;
-    });
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, input.organizationId, async (tx) => {
+    // Clé étrangère vérifiée sans RLS : on contrôle que la ligne est visible.
+    const [line] = await tx.select({ id: budgetLines.id }).from(budgetLines).where(eq(budgetLines.id, input.lineId));
+    if (!line) throw new Error("ligne de budget introuvable");
+    const [row] = await tx.insert(budgetLineAttachments).values(input).returning();
+    if (!row) throw new Error("enregistrement du devis échoué");
+    return row;
+  });
 }
 
 export async function findBudgetLineAttachments(
@@ -364,33 +320,25 @@ export async function findBudgetLineAttachments(
   lineIds: string[],
 ): Promise<BudgetLineAttachmentRow[]> {
   if (lineIds.length === 0) return [];
-  const { sql, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, (tx) =>
-      tx
-        .select()
-        .from(budgetLineAttachments)
-        .where(inArray(budgetLineAttachments.lineId, lineIds))
-        .orderBy(asc(budgetLineAttachments.createdAt)),
-    );
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, (tx) =>
+    tx
+      .select()
+      .from(budgetLineAttachments)
+      .where(inArray(budgetLineAttachments.lineId, lineIds))
+      .orderBy(asc(budgetLineAttachments.createdAt)),
+  );
 }
 
 export async function findBudgetLineAttachment(
   organizationId: string,
   attachmentId: string,
 ): Promise<BudgetLineAttachmentRow | null> {
-  const { sql, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, async (tx) => {
-      const [row] = await tx.select().from(budgetLineAttachments).where(eq(budgetLineAttachments.id, attachmentId));
-      return row ?? null;
-    });
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const [row] = await tx.select().from(budgetLineAttachments).where(eq(budgetLineAttachments.id, attachmentId));
+    return row ?? null;
+  });
 }
 
 // AIDE-02 — suppression de toutes les données budget d'événements
@@ -398,33 +346,29 @@ export async function findBudgetLineAttachment(
 // des devis stockés, à supprimer ensuite du stockage.
 export async function deleteEventBudgetRows(organizationId: string, eventIds: string[]): Promise<string[]> {
   if (eventIds.length === 0) return [];
-  const { sql, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, async (tx) => {
-      const lines = await tx.select({ id: budgetLines.id }).from(budgetLines).where(inArray(budgetLines.eventId, eventIds));
-      const lineIds = lines.map((line) => line.id);
-      let fileKeys: string[] = [];
-      if (lineIds.length > 0) {
-        const attachments = await tx
-          .delete(budgetLineAttachments)
-          .where(inArray(budgetLineAttachments.lineId, lineIds))
-          .returning({ fileKey: budgetLineAttachments.fileKey });
-        fileKeys = attachments.map((attachment) => attachment.fileKey);
-        await tx.delete(budgetLineHistory).where(inArray(budgetLineHistory.lineId, lineIds));
-        await tx.delete(budgetLines).where(inArray(budgetLines.id, lineIds));
-      }
-      const budgets = await tx
-        .select({ id: eventBudgets.id })
-        .from(eventBudgets)
-        .where(inArray(eventBudgets.eventId, eventIds));
-      const budgetIds = budgets.map((budget) => budget.id);
-      if (budgetIds.length > 0) {
-        await tx.delete(eventBudgetItems).where(inArray(eventBudgetItems.eventBudgetId, budgetIds));
-        await tx.delete(eventBudgets).where(inArray(eventBudgets.id, budgetIds));
-      }
-      return fileKeys;
-    });
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const lines = await tx.select({ id: budgetLines.id }).from(budgetLines).where(inArray(budgetLines.eventId, eventIds));
+    const lineIds = lines.map((line) => line.id);
+    let fileKeys: string[] = [];
+    if (lineIds.length > 0) {
+      const attachments = await tx
+        .delete(budgetLineAttachments)
+        .where(inArray(budgetLineAttachments.lineId, lineIds))
+        .returning({ fileKey: budgetLineAttachments.fileKey });
+      fileKeys = attachments.map((attachment) => attachment.fileKey);
+      await tx.delete(budgetLineHistory).where(inArray(budgetLineHistory.lineId, lineIds));
+      await tx.delete(budgetLines).where(inArray(budgetLines.id, lineIds));
+    }
+    const budgets = await tx
+      .select({ id: eventBudgets.id })
+      .from(eventBudgets)
+      .where(inArray(eventBudgets.eventId, eventIds));
+    const budgetIds = budgets.map((budget) => budget.id);
+    if (budgetIds.length > 0) {
+      await tx.delete(eventBudgetItems).where(inArray(eventBudgetItems.eventBudgetId, budgetIds));
+      await tx.delete(eventBudgets).where(inArray(eventBudgets.id, budgetIds));
+    }
+    return fileKeys;
+  });
 }

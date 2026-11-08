@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { formatCalendarDate, type Locale } from "@symbola/i18n";
 import { parisDate } from "@symbola/privacy";
 import { listDueSoonPrivacyRequests, listPrivacyPurges, type PrivacyRequestView } from "@/modules/hub/service";
@@ -10,13 +10,8 @@ import { listPurgeCandidates, purgePeriod } from "@/lib/privacy/purge";
 // demande apparaît en alerte dans le tableau de bord du hub. » Titulaire
 // seulement ; rien n'est affiché sans demande en alerte.
 export async function PrivacyRequestsAlertBlock({ organizationId }: { organizationId: string }) {
-  const { sql, db } = createAppConnection();
-  let requests: PrivacyRequestView[];
-  try {
-    requests = await listDueSoonPrivacyRequests(db, organizationId);
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  const requests: PrivacyRequestView[] = await listDueSoonPrivacyRequests(db, organizationId);
   if (requests.length === 0) return null;
   const t = await getTranslations("Privacy");
   const locale = (await getLocale()) as Locale;
@@ -45,13 +40,8 @@ export async function PrivacyRequestsAlertBlock({ organizationId }: { organizati
 // mois n'a pas été validée. Rien n'est purgé sans validation.
 export async function PrivacyPurgeAlertBlock({ organizationId }: { organizationId: string }) {
   const today = parisDate(new Date());
-  const { sql, db } = createAppConnection();
-  let validatedThisMonth: boolean;
-  try {
-    validatedThisMonth = (await listPrivacyPurges(db, organizationId)).some((purge) => purge.period === purgePeriod(today));
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  const validatedThisMonth: boolean = (await listPrivacyPurges(db, organizationId)).some((purge) => purge.period === purgePeriod(today));
   if (validatedThisMonth) return null;
   const candidates = await listPurgeCandidates(organizationId, today);
   if (candidates.length === 0) return null;

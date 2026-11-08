@@ -55,7 +55,7 @@ test("EVT-E2E-01 — connexion, configuration MFA, puis accueil", async ({ page 
   await expect(page).toHaveURL("/");
   await openMenu(page);
   await expect(page.getByText(`Connecté comme ${email}`)).toBeVisible();
-  await expect(page.getByText("Bonjour depuis Symbola")).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Bonjour" })).toBeVisible();
   violations = await new AxeBuilder({ page }).analyze();
   expect(violations.violations, JSON.stringify(violations.violations, null, 2)).toEqual([]);
 

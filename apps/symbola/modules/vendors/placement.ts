@@ -4,7 +4,7 @@
 // seul envoi au géocodeur. Un point placé à la main n'est jamais écrasé ; une
 // adresse introuvable laisse la fiche sans point (« à placer »).
 import { and, eq, inArray, isNotNull, isNull, ne, or } from "drizzle-orm";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { vendors } from "@symbola/db/schema/vendors";
 import { withOrganization } from "@symbola/db/with-organization";
 import { configuredGeocoder, type GeoPoint, type GeocodeRequest } from "./geocoder";
@@ -12,12 +12,8 @@ import { configuredGeocoder, type GeoPoint, type GeocodeRequest } from "./geocod
 type Tx = Parameters<Parameters<typeof withOrganization>[2]>[0];
 
 async function inOrganization<T>(organizationId: string, fn: (tx: Tx) => Promise<T>): Promise<T> {
-  const { sql, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, fn);
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, fn);
 }
 
 export type PlacementResult = { placed: number; unplaced: number; skipped: number };

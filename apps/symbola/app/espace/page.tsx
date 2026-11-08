@@ -1,20 +1,15 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatCalendarDate, type Locale } from "@symbola/i18n";
 import { ScreenHelp } from "@/app/screen-help";
 import { listClientEvents } from "@/modules/events/service";
-import { getClientAuthContext } from "@/lib/auth-context";
+import { requireClient } from "@/lib/guards";
 import { isEventsModuleEnabled } from "@/app/events/module-access";
 import { logoutAction } from "../logout-action";
 
 // EVT-06 — accueil de l'espace du marié : ses événements.
 export default async function ClientSpacePage() {
-  const auth = await getClientAuthContext();
-  if (auth.status === "unauthenticated") redirect("/login");
-  if (auth.status === "mfa_required") redirect("/mfa");
-  if (auth.status === "forbidden") redirect("/");
-  if (!auth.user.organizationId) redirect("/login");
+  const auth = await requireClient();
   // Dégradation propre (CLAUDE.md §2.3) : module désactivé = « indisponible ».
   if (!(await isEventsModuleEnabled(auth.user.organizationId))) {
     const tUnavailable = await getTranslations("ClientSpace");

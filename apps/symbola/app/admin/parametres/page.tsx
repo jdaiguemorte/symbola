@@ -1,8 +1,8 @@
 import { getTranslations } from "next-intl/server";
 import { ScreenHelp } from "@/app/screen-help";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { getPlatformSettings } from "@/modules/hub/service";
-import { requireAdmin } from "@/lib/require-admin";
+import { requireAdmin } from "@/lib/guards";
 import { PlatformSettingsForm } from "./settings-form";
 
 export default async function AdminSettingsPage() {
@@ -10,13 +10,8 @@ export default async function AdminSettingsPage() {
   const t = await getTranslations("AdminSettings");
   const tHelp = await getTranslations("Help");
 
-  const { sql, db } = createAppConnection();
-  let settings;
-  try {
-    settings = await getPlatformSettings(db);
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  const settings = await getPlatformSettings(db);
 
   return (
     <main>

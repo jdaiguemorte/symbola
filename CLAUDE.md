@@ -93,7 +93,7 @@ apps/
       events/         # Événements et Chrono
       budget/         # Budget
       quotes/         # Devis et Facturation
-      hello/          # module témoin du lot 0 (supprimable ensuite)
+      vendors/        # Carnet de prestataires (lot 11) ; le module témoin hello du lot 0 a été retiré au lot 16 (ARC-01)
       <module>/
         service.ts    # porte d'entrée publique du module — seul point d'accès pour les autres modules
         repository.ts # accès DB du module, jamais importé hors du module

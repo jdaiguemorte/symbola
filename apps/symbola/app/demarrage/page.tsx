@@ -3,35 +3,24 @@
 // métier sont verrouillés (app-shell). Réservé à la titulaire ; un membre de
 // l'équipe voit qu'elle doit le terminer.
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { listDefaultVendorSlots, listLossReasons, listProgramTemplates, listProspectSources, listTaskTemplates } from "@/modules/events/service";
 import { listAllocationModels } from "@/modules/budget/service";
 import { getOrganizationProfile, getSetupState, SETUP_STEPS } from "@/modules/hub/service";
-import { getPlannerAuthContext } from "@/lib/auth-context";
+import { requirePlanner } from "@/lib/guards";
 import { BudgetLineIcon } from "@/app/budget-line-icon";
 import { finishSetupAction, nextStepAction, removeBudgetLineAction } from "./actions";
 import { ActivityForm, AddBudgetLineForm, AddLossReasonForm, AddSourceForm, BudgetLineForm, CompanyForm, VatForm } from "./setup-forms";
 
 export default async function SetupPage({ searchParams }: { searchParams: Promise<{ etape?: string }> }) {
-  const auth = await getPlannerAuthContext();
-  if (auth.status === "unauthenticated") redirect("/login");
-  if (auth.status === "mfa_required") redirect("/mfa");
-  if (auth.status === "forbidden") redirect(auth.role === "client" ? "/espace" : "/");
-  if (!auth.user.organizationId) redirect("/");
+  const auth = await requirePlanner();
   const organizationId = auth.user.organizationId;
   const t = await getTranslations("Setup");
 
-  const { sql, db } = createAppConnection();
-  let state;
-  let profile;
-  try {
-    state = await getSetupState(db, organizationId);
-    profile = await getOrganizationProfile(db, organizationId);
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  const state = await getSetupState(db, organizationId);
+  const profile = await getOrganizationProfile(db, organizationId);
 
   if (auth.user.role !== "owner") {
     return (

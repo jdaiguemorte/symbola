@@ -4,7 +4,7 @@
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { createOrganization, createUser } from "@symbola/auth";
-import { createAppConnection } from "@symbola/db/client";
+import { createAppConnection, type AppDatabase } from "@symbola/db/client";
 import { getFollowUpDelays, saveFollowUpDelays, saveOnboardingStep } from "@/modules/hub/service";
 import { createProspect, createProspectSource } from "@/modules/events/service";
 import { addQuoteLine, createQuote, sendQuote } from "@/modules/quotes/service";
@@ -14,7 +14,7 @@ const DAY = 86_400_000;
 const LABELS = { quote: (number: string, names: string) => `devis ${number} ${names}`, prospect: (names: string) => `prospect ${names}` };
 const ALL = { events: true, quotes: true };
 
-async function withDb<T>(fn: (db: ReturnType<typeof createAppConnection>["db"]) => Promise<T>): Promise<T> {
+async function withDb<T>(fn: (db: AppDatabase) => Promise<T>): Promise<T> {
   const { sql, db } = createAppConnection();
   try {
     return await fn(db);

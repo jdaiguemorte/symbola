@@ -4,7 +4,7 @@
 // supprimée, anonymisée, conservée avec motif légal et date de fin), puis
 // exécute sa part et renvoie un accusé. La demande n'est close que quand tous
 // les modules ont répondu ; un module en échec se relance depuis la trace.
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { parisDate, type ErasurePlanItem, type ErasureRules, type PersonTerms, type PrivacyRecordRef } from "@symbola/privacy";
 import {
   getPrivacyErasure,
@@ -29,13 +29,9 @@ export type ErasurePreview =
 export type Options = { participants?: Participant[]; timeoutMs?: number; today?: string };
 
 export async function rulesOf(organizationId: string): Promise<ErasureRules> {
-  const { sql, db } = createAppConnection();
-  try {
-    const settings = await getPrivacySettings(db, organizationId);
-    return { accountingRetentionMonths: settings.accountingRetentionMonths, signedQuoteRetentionMonths: settings.signedQuoteRetentionMonths };
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  const settings = await getPrivacySettings(db, organizationId);
+  return { accountingRetentionMonths: settings.accountingRetentionMonths, signedQuoteRetentionMonths: settings.signedQuoteRetentionMonths };
 }
 
 export function byModule(records: { module: string; kind: string; recordId: string }[]): Map<string, PrivacyRecordRef[]> {
@@ -108,32 +104,24 @@ export async function executeErasure(
     legalBasis: item.legalBasis,
     keptUntil: item.keptUntil,
   }));
-  const { sql, db } = createAppConnection();
-  try {
-    const erasureId = await startPrivacyErasure(db, { organizationId: input.organizationId, userId: input.userId, requestId: input.requestId, items });
-    const acks = await runModules(input.organizationId, items, options);
-    const erasureStatus = await recordPrivacyErasureAcks(db, { organizationId: input.organizationId, erasureId, acks });
-    return { status: "ok", erasureId, erasureStatus };
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  const erasureId = await startPrivacyErasure(db, { organizationId: input.organizationId, userId: input.userId, requestId: input.requestId, items });
+  const acks = await runModules(input.organizationId, items, options);
+  const erasureStatus = await recordPrivacyErasureAcks(db, { organizationId: input.organizationId, erasureId, acks });
+  return { status: "ok", erasureId, erasureStatus };
 }
 
 // Relance des seuls modules en échec, depuis la trace (les fiches ne sont
 // plus forcément trouvables par la recherche, déjà en partie effacées).
 export async function retryErasure(input: { organizationId: string; erasureId: string }, options: Options = {}) {
-  const { sql, db } = createAppConnection();
-  try {
-    const erasure = await getPrivacyErasure(db, input.organizationId, input.erasureId);
-    if (erasure.status === "completed") return "completed";
-    const ok = new Set(erasure.acks.filter((ack) => ack.status === "ok").map((ack) => ack.module));
-    const acks = await runModules(
-      input.organizationId,
-      erasure.items.filter((item) => !ok.has(item.module)),
-      options,
-    );
-    return await recordPrivacyErasureAcks(db, { organizationId: input.organizationId, erasureId: input.erasureId, acks });
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  const erasure = await getPrivacyErasure(db, input.organizationId, input.erasureId);
+  if (erasure.status === "completed") return "completed";
+  const ok = new Set(erasure.acks.filter((ack) => ack.status === "ok").map((ack) => ack.module));
+  const acks = await runModules(
+    input.organizationId,
+    erasure.items.filter((item) => !ok.has(item.module)),
+    options,
+  );
+  return await recordPrivacyErasureAcks(db, { organizationId: input.organizationId, erasureId: input.erasureId, acks });
 }

@@ -3,7 +3,7 @@
 // EVT-06 — double authentification proposée au marié, jamais imposée.
 import { getTranslations } from "next-intl/server";
 import { confirmTotp, setupTotp, type ConfirmTotpResult } from "@symbola/auth";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { getClientAuthContext, getSessionToken, setSessionCookie } from "@/lib/auth-context";
 import { sendMfaLockMail } from "@/lib/mfa-lock-mail";
 import { totpSetupDisplay, type TotpSetupDisplay } from "@/lib/totp-qr";
@@ -15,13 +15,9 @@ export async function startClientMfaAction(_prevState: ClientMfaFormState, _form
   const auth = await getClientAuthContext();
   if (auth.status !== "authenticated") return { error: t("unauthenticated") };
   if (auth.user.mfaEnabled) return { enabled: true };
-  const { sql, db } = createAppConnection();
-  try {
-    const { provisioningUri } = await setupTotp(db, auth.user.id);
-    return { setup: totpSetupDisplay(provisioningUri) };
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  const { provisioningUri } = await setupTotp(db, auth.user.id);
+  return { setup: totpSetupDisplay(provisioningUri) };
 }
 
 export async function confirmClientMfaAction(prevState: ClientMfaFormState, formData: FormData): Promise<ClientMfaFormState> {
@@ -29,13 +25,8 @@ export async function confirmClientMfaAction(prevState: ClientMfaFormState, form
   const auth = await getClientAuthContext();
   const sessionToken = await getSessionToken();
   if (auth.status !== "authenticated" || !sessionToken) return { error: t("unauthenticated") };
-  const { sql, db } = createAppConnection();
-  let result: ConfirmTotpResult;
-  try {
-    result = await confirmTotp(db, { sessionToken, token: String(formData.get("code") ?? "") });
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  const result: ConfirmTotpResult = await confirmTotp(db, { sessionToken, token: String(formData.get("code") ?? "") });
   if (result.outcome === "locked") {
     if (result.notify) await sendMfaLockMail(result.notify);
     return { ...prevState, error: t("mfaLocked") };

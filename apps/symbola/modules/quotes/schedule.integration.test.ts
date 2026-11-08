@@ -3,7 +3,7 @@
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { createOrganization } from "@symbola/auth";
-import { createAppConnection } from "@symbola/db/client";
+import { createAppConnection, type AppDatabase } from "@symbola/db/client";
 import { saveOnboardingStep } from "@/modules/hub/service";
 import { createProspect, createProspectSource, startEventsTrial } from "@/modules/events/service";
 import {
@@ -34,7 +34,7 @@ import {
 const plannerId = randomUUID();
 const NOW = new Date("2027-03-15T10:00:00Z");
 
-async function withDb<T>(fn: (db: ReturnType<typeof createAppConnection>["db"]) => Promise<T>): Promise<T> {
+async function withDb<T>(fn: (db: AppDatabase) => Promise<T>): Promise<T> {
   const { sql, db } = createAppConnection();
   try {
     return await fn(db);

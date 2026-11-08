@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { parisToday } from "@symbola/i18n";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { getSetupState, isModuleEnabled } from "@/modules/hub/service";
 import { listOrganizationTasks } from "@/modules/events/service";
 import { getAuthContext } from "@/lib/auth-context";
@@ -140,15 +140,11 @@ export async function AppShell({ children }: { children: ReactNode }) {
   let quotes = false;
   let vendors = false;
   if (organizationId) {
-    const { sql, db } = createAppConnection();
-    try {
-      events = await isModuleEnabled(db, organizationId, "events");
-      budget = await isModuleEnabled(db, organizationId, "budget");
-      quotes = await isModuleEnabled(db, organizationId, "quotes");
-      vendors = await isModuleEnabled(db, organizationId, "vendors");
-    } finally {
-      await sql.end();
-    }
+    const db = appDatabase();
+    events = await isModuleEnabled(db, organizationId, "events");
+    budget = await isModuleEnabled(db, organizationId, "budget");
+    quotes = await isModuleEnabled(db, organizationId, "quotes");
+    vendors = await isModuleEnabled(db, organizationId, "vendors");
   }
   const isOwner = auth.user.role === "owner" && Boolean(organizationId);
   // Lot 12 (ONB-03) — assistant de démarrage bloquant : tant qu'il n'est pas
@@ -156,12 +152,8 @@ export async function AppShell({ children }: { children: ReactNode }) {
   const teamMember = Boolean(organizationId) && (auth.user.role === "owner" || auth.user.role === "member");
   let setupDone = true;
   if (teamMember && organizationId) {
-    const { sql, db } = createAppConnection();
-    try {
-      setupDone = (await getSetupState(db, organizationId)).completed;
-    } finally {
-      await sql.end();
-    }
+    const db = appDatabase();
+    setupDone = (await getSetupState(db, organizationId)).completed;
     const pathname = (await headers()).get("x-pathname") ?? "/";
     const allowed = ["/demarrage", "/aide", "/profil"].some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
     if (!setupDone && !allowed) redirect("/demarrage");
@@ -180,13 +172,8 @@ export async function AppShell({ children }: { children: ReactNode }) {
   if (isTeam) {
     const subscribed: Record<HelpModule, boolean> = { hub: true, events, budget, quotes, vendors };
     const available = TUTORIALS.filter((tutorial) => subscribed[tutorial.module]);
-    const { sql, db } = createAppConnection();
-    let progress;
-    try {
-      progress = await getHelpProgress(db, auth.user.id);
-    } finally {
-      await sql.end();
-    }
+    const db = appDatabase();
+    const progress = await getHelpProgress(db, auth.user.id);
     const tHelpCenter = await getTranslations("HelpCenter");
     const inProgress = progress
       .filter(

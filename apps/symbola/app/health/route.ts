@@ -1,7 +1,7 @@
 // GET /health (SOC-11) : état et version, lu par Uptime Kuma. Publique et
 // sans session : ne renvoie aucune donnée métier ni détail d'erreur.
 import { sql as rawSql } from "drizzle-orm";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { parseEnv } from "@symbola/env";
 import { checkBucket, createStorageClient, pingClamav } from "@symbola/files";
 import { httpStatusFor, runHealthChecks } from "../../lib/health";
@@ -14,12 +14,8 @@ export async function GET(): Promise<Response> {
   const report = await runHealthChecks(
     {
       database: async () => {
-        const { sql, db } = createAppConnection();
-        try {
-          await db.execute(rawSql`select 1`);
-        } finally {
-          await sql.end();
-        }
+        const db = appDatabase();
+        await db.execute(rawSql`select 1`);
       },
       storage: () => checkBucket(createStorageClient()),
       antivirus: () => pingClamav({ host: env.CLAMAV_HOST, port: env.CLAMAV_PORT }),

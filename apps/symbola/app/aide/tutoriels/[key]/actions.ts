@@ -6,7 +6,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getLocale } from "next-intl/server";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { getHelpProgress, isModuleEnabled, recordHelpProgress, restartHelpItem } from "@/modules/hub/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { TUTORIALS, type TutorialKey } from "@/lib/help/catalog";
@@ -20,40 +20,28 @@ async function load(rawKey: string): Promise<Loaded> {
   const tutorial = TUTORIALS.find((candidate) => candidate.key === rawKey);
   if (!tutorial) redirect("/tutoriels");
   const organizationId = auth.user.organizationId;
-  const { sql, db } = createAppConnection();
-  try {
-    if (tutorial.module !== "hub" && !(await isModuleEnabled(db, organizationId, tutorial.module))) redirect("/tutoriels");
-    const entry = (await getHelpProgress(db, auth.user.id)).find((candidate) => candidate.itemKey === `tutorial:${tutorial.key}`);
-    const locale = (await getLocale()) === "en" ? "en" : "fr";
-    return {
-      env: { organizationId, userId: auth.user.id, locale, context: entry?.context ?? {} },
-      key: tutorial.key,
-      step: entry?.step ?? 0,
-      completed: entry?.status === "completed",
-    };
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  if (tutorial.module !== "hub" && !(await isModuleEnabled(db, organizationId, tutorial.module))) redirect("/tutoriels");
+  const entry = (await getHelpProgress(db, auth.user.id)).find((candidate) => candidate.itemKey === `tutorial:${tutorial.key}`);
+  const locale = (await getLocale()) === "en" ? "en" : "fr";
+  return {
+    env: { organizationId, userId: auth.user.id, locale, context: entry?.context ?? {} },
+    key: tutorial.key,
+    step: entry?.step ?? 0,
+    completed: entry?.status === "completed",
+  };
 }
 
 async function save(loaded: Loaded, step: number, context?: Record<string, string> | null, status: "started" | "completed" = "started") {
-  const { sql, db } = createAppConnection();
-  try {
-    await recordHelpProgress(db, { userId: loaded.env.userId, itemKey: `tutorial:${loaded.key}`, status, step, ...(context === undefined ? {} : { context }) });
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  await recordHelpProgress(db, { userId: loaded.env.userId, itemKey: `tutorial:${loaded.key}`, status, step, ...(context === undefined ? {} : { context }) });
   revalidatePath(`/aide/tutoriels/${loaded.key}`);
 }
 
 export async function restartTutorialAction(key: string): Promise<void> {
   const loaded = await load(key);
-  const { sql, db } = createAppConnection();
-  try {
-    await restartHelpItem(db, loaded.env.userId, `tutorial:${loaded.key}`);
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  await restartHelpItem(db, loaded.env.userId, `tutorial:${loaded.key}`);
   revalidatePath(`/aide/tutoriels/${loaded.key}`);
 }
 
@@ -98,12 +86,8 @@ export async function finishTutorialAction(key: string, keep: boolean): Promise<
 export async function abandonTutorialAction(currentKey: string, nextKey: string): Promise<void> {
   const loaded = await load(currentKey);
   await TUTORIAL_SCRIPTS[loaded.key].cleanup(loaded.env, false);
-  const { sql, db } = createAppConnection();
-  try {
-    await restartHelpItem(db, loaded.env.userId, `tutorial:${loaded.key}`);
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  await restartHelpItem(db, loaded.env.userId, `tutorial:${loaded.key}`);
   const next = TUTORIALS.find((candidate) => candidate.key === nextKey);
   revalidatePath("/tutoriels");
   redirect(next ? `/aide/tutoriels/${next.key}` : "/tutoriels");

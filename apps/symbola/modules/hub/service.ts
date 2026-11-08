@@ -182,7 +182,9 @@ export {
   listImportJobs,
   readNextSheet,
   retryImportJob,
+  takeAwakenedImportOrganizations,
   updateImportJob,
+  wakeImportJobs,
   type ImportJobPayload,
   type ImportJobResult,
   type ImportJobView,
@@ -194,7 +196,7 @@ export type Metier = "wedding_planner" | "event_agency" | "autre";
 
 // Clés des modules qu'un Admin peut activer ou désactiver par organisation
 // (lot 11 : vendors, le carnet de prestataires, ADR 0031).
-export const MODULE_KEYS = ["hello", "events", "budget", "quotes", "vendors"] as const;
+export const MODULE_KEYS = ["events", "budget", "quotes", "vendors"] as const;
 export type ModuleKey = (typeof MODULE_KEYS)[number];
 
 const INVITATION_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 jours (PRD HUB-03, proposé)

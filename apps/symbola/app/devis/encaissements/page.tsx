@@ -1,20 +1,15 @@
-import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import type { Locale } from "@symbola/i18n";
 import { ScreenHelp } from "@/app/screen-help";
 import { listUnpaidPayments } from "@/modules/quotes/service";
-import { getPlannerAuthContext } from "@/lib/auth-context";
+import { requirePlanner } from "@/lib/guards";
 import { isQuotesModuleEnabled } from "../module-access";
 import { UpcomingPayments } from "./upcoming-payments";
 
 // DEV-03 — « Quand elle ouvre Encaissements, alors elle voit les échéances
 // non payées triées par date, avec un total par mois. »
 export default async function UpcomingPaymentsPage() {
-  const auth = await getPlannerAuthContext();
-  if (auth.status === "unauthenticated") redirect("/login");
-  if (auth.status === "mfa_required") redirect("/mfa");
-  if (auth.status === "forbidden") redirect(auth.role === "client" ? "/espace" : "/");
-  if (!auth.user.organizationId) redirect("/");
+  const auth = await requirePlanner();
   const organizationId = auth.user.organizationId;
 
   const t = await getTranslations("Quotes");

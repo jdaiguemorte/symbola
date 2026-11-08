@@ -5,7 +5,7 @@
 import { getLocale, getTranslations } from "next-intl/server";
 import { z } from "zod";
 import { requestPasswordReset } from "@symbola/auth";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { parseEnv } from "@symbola/env";
 import { sendMail } from "@symbola/mail";
 
@@ -20,13 +20,8 @@ export async function forgotPasswordAction(_prevState: ForgotPasswordFormState, 
     return { error: t("invalidEmail") };
   }
 
-  const { sql, db } = createAppConnection();
-  let request;
-  try {
-    request = await requestPasswordReset(db, parsed.data);
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  const request = await requestPasswordReset(db, parsed.data);
 
   if (request) {
     const locale = request.language ?? ((await getLocale()) === "en" ? "en" : "fr");

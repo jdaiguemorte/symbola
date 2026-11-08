@@ -2,7 +2,7 @@
 // modules/vendors/ (ADR 0011). Chaque requête passe par withOrganization
 // (RLS, CLAUDE.md § 5).
 import { and, asc, eq, inArray, isNull, or, sql, type SQL } from "drizzle-orm";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { foldedColumn, likeWord } from "@symbola/db/search";
 import { vendorFiles, vendors, vendorSettings, vendorTags, vendorTypeFields, vendorTypes } from "@symbola/db/schema/vendors";
 import { withOrganization } from "@symbola/db/with-organization";
@@ -17,12 +17,8 @@ export type VendorFileRow = typeof vendorFiles.$inferSelect;
 type Tx = Parameters<Parameters<typeof withOrganization>[2]>[0];
 
 async function inOrganization<T>(organizationId: string, fn: (tx: Tx) => Promise<T>): Promise<T> {
-  const { sql: pg, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, fn);
-  } finally {
-    await pg.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, fn);
 }
 
 // PRE-02 — types et champs.

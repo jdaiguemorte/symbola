@@ -1,11 +1,11 @@
 // Collecte des compteurs d'usage (SOC-13, ADR 0017) — séparé de
 // auth-context.ts pour rester testable sans runtime Next.js (ce fichier
 // n'importe pas next/headers).
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { incrementUsageCounters } from "@symbola/db/usage/increment";
 
 export async function recordUsage(organizationId: string): Promise<void> {
-  const { sql, db } = createAppConnection();
+  const db = appDatabase();
   try {
     await incrementUsageCounters(db, {
       organizationId,
@@ -16,7 +16,5 @@ export async function recordUsage(organizationId: string): Promise<void> {
     });
   } catch {
     // La collecte d'usage ne doit jamais faire échouer la requête.
-  } finally {
-    await sql.end();
   }
 }

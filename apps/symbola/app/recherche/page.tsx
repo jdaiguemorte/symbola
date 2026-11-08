@@ -1,17 +1,12 @@
 // Lot 10 (AIDE-08) — page de résultats de la recherche globale ; fonctionne
 // sans JavaScript (la boîte de recherche y envoie son formulaire).
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { getPlannerAuthContext } from "@/lib/auth-context";
+import { requirePlanner } from "@/lib/guards";
 import { runSearch } from "@/lib/search/run-search";
 
 export default async function SearchPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
-  const auth = await getPlannerAuthContext();
-  if (auth.status === "unauthenticated") redirect("/login");
-  if (auth.status === "mfa_required") redirect("/mfa");
-  if (auth.status === "forbidden") redirect(auth.role === "client" ? "/espace" : "/");
-  if (!auth.user.organizationId) redirect("/");
+  const auth = await requirePlanner();
   const t = await getTranslations("Search");
   const term = ((await searchParams).q ?? "").trim().slice(0, 100);
   const groups = term.length >= 2 ? await runSearch({ organizationId: auth.user.organizationId, role: auth.user.role, term }) : [];

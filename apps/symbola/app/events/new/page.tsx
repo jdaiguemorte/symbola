@@ -1,8 +1,7 @@
-import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { ScreenHelp } from "@/app/screen-help";
 import { listProspectSources } from "@/modules/events/service";
-import { getPlannerAuthContext } from "@/lib/auth-context";
+import { requirePlanner } from "@/lib/guards";
 import { isEventsModuleEnabled } from "../module-access";
 import Link from "next/link";
 import { NewProspectForm } from "./new-prospect-form";
@@ -14,11 +13,7 @@ export default async function NewProspectPage({ searchParams }: { searchParams: 
   const query = await searchParams;
   const initialDate = query.date && /^\d{4}-\d{2}-\d{2}$/.test(query.date) ? query.date : "";
   const confirmed = query.type === "evenement";
-  const auth = await getPlannerAuthContext();
-  if (auth.status === "unauthenticated") redirect("/login");
-  if (auth.status === "mfa_required") redirect("/mfa");
-  if (auth.status === "forbidden") redirect(auth.role === "client" ? "/espace" : "/");
-  if (!auth.user.organizationId) redirect("/");
+  const auth = await requirePlanner();
 
   const t = await getTranslations("Events");
   const tHelp = await getTranslations("Help");

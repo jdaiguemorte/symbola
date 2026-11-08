@@ -6,7 +6,7 @@
 // sont celles de l'organisation. Jamais de document d'essai (ADR 0008).
 import { and, asc, eq, inArray } from "drizzle-orm";
 import type { InvoiceBuyer } from "@symbola/contracts";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { catalogItems, creditNotes, invoices, quoteLines, quotes, quoteSigners, quoteVersions, signatureRequests } from "@symbola/db/schema/quotes";
 import { withOrganization } from "@symbola/db/with-organization";
 import { hasTerms, prepareTerms, recordMatches, type PrivacyContractV1, type PrivacyRecord } from "@symbola/privacy";
@@ -17,12 +17,8 @@ const MODULE = "quotes";
 type Tx = Parameters<Parameters<typeof withOrganization>[2]>[0];
 
 async function inOrganization<T>(organizationId: string, fn: (tx: Tx) => Promise<T>): Promise<T> {
-  const { sql, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, fn);
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, fn);
 }
 
 function buyersOf(snapshot: unknown): InvoiceBuyer[] {

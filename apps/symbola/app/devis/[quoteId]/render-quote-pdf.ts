@@ -5,7 +5,7 @@
 import { createElement, type ReactElement } from "react";
 import { renderToBuffer, type DocumentProps } from "@react-pdf/renderer";
 import { getLocale, getTranslations } from "next-intl/server";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import type { Locale } from "@symbola/i18n";
 import { getEvent } from "@/modules/events/service";
 import { computeLegalMention, getDocumentHeader, getOrganizationProfile } from "@/modules/hub/service";
@@ -22,15 +22,9 @@ export async function renderQuotePdf(input: {
   signatureSlots?: { role: string; tag: string }[];
 }): Promise<Buffer> {
   const { organizationId, quote, version } = input;
-  const { sql, db } = createAppConnection();
-  let header;
-  let profile;
-  try {
-    header = await getDocumentHeader(db, organizationId);
-    profile = await getOrganizationProfile(db, organizationId);
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  const header = await getDocumentHeader(db, organizationId);
+  const profile = await getOrganizationProfile(db, organizationId);
   const event = await getEvent(organizationId, quote.eventId);
   const locale = (await getLocale()) as Locale;
   const t = await getTranslations("Quotes");

@@ -4,7 +4,7 @@
 import { cookies } from "next/headers";
 import { getTranslations } from "next-intl/server";
 import type { LandmarkStep } from "@symbola/ui";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { getHelpProgress } from "@/modules/hub/service";
 import { AUTO_TOURS_COOKIE } from "./preferences";
 import { TOUR_TARGETS, type TourKey } from "./tours";
@@ -21,13 +21,8 @@ export async function loadPageTour(userId: string, tourKey: TourKey, resume?: st
   const targets: readonly (string | undefined)[] = TOUR_TARGETS[tourKey];
   const steps = texts.map((text, index) => ({ ...text, target: targets[index] }));
 
-  const { sql, db } = createAppConnection();
-  let entry;
-  try {
-    entry = (await getHelpProgress(db, userId)).find((candidate) => candidate.itemKey === `tour:${tourKey}`);
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  const entry = (await getHelpProgress(db, userId)).find((candidate) => candidate.itemKey === `tour:${tourKey}`);
   const asked = resume === "reprendre" || resume === "revoir";
   // Préférence « Ouvrir les visites automatiquement » (centre d'aide).
   const autoTours = (await cookies()).get(AUTO_TOURS_COOKIE)?.value !== "0";

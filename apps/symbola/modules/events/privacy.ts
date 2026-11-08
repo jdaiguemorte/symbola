@@ -7,7 +7,7 @@
 // importés (événement, tâche, poste). Les données d'un essai guidé (ADR 0008)
 // ne sont jamais trouvées.
 import { asc, eq, inArray } from "drizzle-orm";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import {
   eventClientAccesses,
   eventClients,
@@ -44,12 +44,8 @@ function compact(fields: Record<string, string | null | undefined>): Record<stri
 }
 
 async function inOrganization<T>(organizationId: string, fn: (tx: Parameters<Parameters<typeof withOrganization>[2]>[0]) => Promise<T>): Promise<T> {
-  const { sql, db } = createAppConnection();
-  try {
-    return await withOrganization(db, organizationId, fn);
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, fn);
 }
 
 // Lot 11 (EVT-10/11) : prestataires consultés et leurs notes.

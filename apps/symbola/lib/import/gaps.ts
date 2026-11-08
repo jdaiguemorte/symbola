@@ -3,7 +3,7 @@
 // leur motif (valeur invalide, champ obligatoire manquant, événement
 // introuvable pour une tâche ou une ligne de budget).
 import type { ImportEntityType } from "@symbola/contracts";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { EVENT_SHEET_COLUMNS, type RowError } from "@symbola/import-engine";
 import { getImportWorkingSet, isGapColumn, type ImportWorkingSet } from "@/modules/hub/service";
 import { getImportMatchesView } from "./matching";
@@ -32,12 +32,8 @@ export type GapsView = {
 const SAMPLE_VALUES = 3;
 
 async function workingSet(organizationId: string, importId: string): Promise<ImportWorkingSet | null> {
-  const { sql, db } = createAppConnection();
-  try {
-    return await getImportWorkingSet(db, organizationId, importId);
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  return await getImportWorkingSet(db, organizationId, importId);
 }
 
 export async function getImportGapsView(organizationId: string, importId: string): Promise<GapsView | null> {

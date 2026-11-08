@@ -8,7 +8,7 @@ import { previewErasureAction, type ErasurePreviewState } from "./erasure-action
 import { ErasurePreview, type ErasableRequest } from "./erasure-preview";
 import { exportRecordsAction, type ExportFormState } from "./export-actions";
 
-const MODULE_ORDER = ["events", "budget", "quotes", "hub", "hello"];
+const MODULE_ORDER = ["events", "budget", "quotes", "hub"];
 
 export type ExportableRequest = { id: string; label: string };
 

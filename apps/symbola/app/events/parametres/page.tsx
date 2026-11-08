@@ -2,11 +2,10 @@
 // des Paramètres : tableau aligné (icône, ligne, actions) ; ajouter ou
 // modifier une ligne ouvre le panneau latéral (?ligne=nouvelle ou ?ligne=id).
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { ScreenHelp } from "@/app/screen-help";
 import { listDefaultVendorSlots } from "@/modules/events/service";
-import { getPlannerAuthContext } from "@/lib/auth-context";
+import { requirePlanner } from "@/lib/guards";
 import { isEventsModuleEnabled } from "../module-access";
 import { LoadStarterVendorSlotsForm } from "./default-vendor-slot-forms";
 import { AddBudgetLineForm, EditBudgetLineForm } from "./budget-line-panel-forms";
@@ -16,11 +15,7 @@ import { SidePanel } from "@/app/ui/side-panel";
 const BASE = "/events/parametres";
 
 export default async function EventsSettingsPage({ searchParams }: { searchParams: Promise<{ ligne?: string }> }) {
-  const auth = await getPlannerAuthContext();
-  if (auth.status === "unauthenticated") redirect("/login");
-  if (auth.status === "mfa_required") redirect("/mfa");
-  if (auth.status === "forbidden") redirect(auth.role === "client" ? "/espace" : "/");
-  if (!auth.user.organizationId) redirect("/");
+  const auth = await requirePlanner();
   const organizationId = auth.user.organizationId;
 
   const t = await getTranslations("Events");

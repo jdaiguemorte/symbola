@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { formatAmount, formatCalendarDate, formatDateTime, type Locale } from "@symbola/i18n";
 import { ScreenHelp } from "@/app/screen-help";
 import { getUserContact, listImportJobs } from "@/modules/hub/service";
-import { getPlannerAuthContext } from "@/lib/auth-context";
+import { requirePlanner } from "@/lib/guards";
 import { getUndoPreview, type UndoPreviewItem } from "@/lib/import/apply";
 import { isValidId } from "../../access";
 import { retryImportJobAction } from "../../actions";
@@ -35,11 +35,7 @@ export default async function ImportJournalPage({
   params: Promise<{ importId: string }>;
   searchParams: Promise<{ annule?: string; gardes?: string; utilises?: string }>;
 }) {
-  const auth = await getPlannerAuthContext();
-  if (auth.status === "unauthenticated") redirect("/login");
-  if (auth.status === "mfa_required") redirect("/mfa");
-  if (auth.status === "forbidden") redirect(auth.role === "client" ? "/espace" : "/");
-  if (!auth.user.organizationId) redirect("/");
+  const auth = await requirePlanner();
   const organizationId = auth.user.organizationId;
 
   const { importId } = await params;
@@ -47,15 +43,9 @@ export default async function ImportJournalPage({
   const view = await getUndoPreview(organizationId, importId);
   if (!view) notFound();
 
-  const { sql, db } = createAppConnection();
-  let author;
-  let jobs;
-  try {
-    author = await getUserContact(db, organizationId, view.createdByUserId);
-    jobs = await listImportJobs(db, organizationId, importId);
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  const author = await getUserContact(db, organizationId, view.createdByUserId);
+  const jobs = await listImportJobs(db, organizationId, importId);
   // Lot 15 (GEO-01) : placement sur la carte des prestataires importés.
   const placeJob = jobs.find((job) => job.kind === "place_vendors");
 

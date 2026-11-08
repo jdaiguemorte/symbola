@@ -5,7 +5,7 @@ import { randomUUID } from "node:crypto";
 import { eq, sql as raw } from "drizzle-orm";
 import { afterEach, describe, expect, it } from "vitest";
 import { createOrganization, createUser } from "@symbola/auth";
-import { createAppConnection } from "@symbola/db/client";
+import { createAppConnection, type AppDatabase } from "@symbola/db/client";
 import { quoteVersions, signatureRequests, signatureWebhookLog } from "@symbola/db/schema/quotes";
 import { createStorageClient, PrivateObjectNotFoundError, readPrivateObject } from "@symbola/files";
 import { withOrganization } from "@symbola/db/with-organization";
@@ -58,7 +58,7 @@ async function signedDocumentKeys(organizationId: string, quoteId: string): Prom
   }
 }
 
-async function withDb<T>(fn: (db: ReturnType<typeof createAppConnection>["db"]) => Promise<T>): Promise<T> {
+async function withDb<T>(fn: (db: AppDatabase) => Promise<T>): Promise<T> {
   const { sql, db } = createAppConnection();
   try {
     return await fn(db);

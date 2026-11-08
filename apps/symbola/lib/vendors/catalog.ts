@@ -3,7 +3,7 @@
 // Orchestration entre modules par leurs service.ts (ADR 0011) : le métier
 // vient du hub, les familles vivent dans vendors.
 import type { StarterVendorCatalogInput } from "@symbola/contracts";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { starterVendorCatalog, type StarterLocale, type StarterMetier } from "@symbola/starter-templates";
 import { getOrganizationProfile } from "@/modules/hub/service";
 import { listVendorTypes, seedStarterVendorCatalog } from "@/modules/vendors/service";
@@ -19,12 +19,8 @@ export function vendorCatalogInput(locale: StarterLocale, metier: StarterMetier)
 }
 
 export async function organizationMetier(organizationId: string): Promise<StarterMetier> {
-  const { sql, db } = createAppConnection();
-  try {
-    return (await getOrganizationProfile(db, organizationId)).metier ?? "wedding_planner";
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  return (await getOrganizationProfile(db, organizationId)).metier ?? "wedding_planner";
 }
 
 // Organisation antérieure au lot 16 : à la première visite du carnet ou de

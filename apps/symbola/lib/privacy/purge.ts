@@ -5,7 +5,7 @@
 // mois suivant (décision de Julien du 02/11/2026). Rien n'est purgé sans
 // validation. Chaque module exécute sa part par son contrat privacy/v1, comme
 // pour l'oubli (RGPD-03).
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { clientDueOn, isExpired, parisDate, prospectDueOn, type PrivacyRecord } from "@symbola/privacy";
 import { lastPaymentDates as quotesLastPaymentDates, listExpiredDocuments } from "@/modules/quotes/service";
 import { listRetentionEvents } from "@/modules/events/service";
@@ -41,15 +41,9 @@ export function purgePeriod(today: string): string {
 
 // Liste du jour : tout ce qui est échu à `today` (jour de Paris).
 export async function listPurgeCandidates(organizationId: string, today: string = parisDate(new Date())): Promise<PurgeCandidate[]> {
-  const { sql, db } = createAppConnection();
-  let settings;
-  let accounts;
-  try {
-    settings = await getPrivacySettings(db, organizationId);
-    accounts = await listInactiveClientAccounts(db, { organizationId, months: settings, today });
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  const settings = await getPrivacySettings(db, organizationId);
+  const accounts = await listInactiveClientAccounts(db, { organizationId, months: settings, today });
   const candidates: PurgeCandidate[] = [];
 
   const events = await listRetentionEvents(organizationId);
@@ -146,31 +140,23 @@ export async function executePurge(
     }
   }
 
-  const { sql, db } = createAppConnection();
-  try {
-    const purgeId = await startPrivacyPurge(db, { organizationId: input.organizationId, userId: input.userId, period: purgePeriod(today), lines, items });
-    if (items.length === 0) return { status: "ok", purgeId, purgeStatus: "completed" };
-    const acks = await runModules(input.organizationId, items, { ...options, today });
-    const purgeStatus = await recordPrivacyPurgeAcks(db, { organizationId: input.organizationId, purgeId, acks });
-    return { status: "ok", purgeId, purgeStatus };
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  const purgeId = await startPrivacyPurge(db, { organizationId: input.organizationId, userId: input.userId, period: purgePeriod(today), lines, items });
+  if (items.length === 0) return { status: "ok", purgeId, purgeStatus: "completed" };
+  const acks = await runModules(input.organizationId, items, { ...options, today });
+  const purgeStatus = await recordPrivacyPurgeAcks(db, { organizationId: input.organizationId, purgeId, acks });
+  return { status: "ok", purgeId, purgeStatus };
 }
 
 export async function retryPurge(input: { organizationId: string; purgeId: string; today?: string }, options: Options = {}) {
-  const { sql, db } = createAppConnection();
-  try {
-    const purge = await getPrivacyPurge(db, input.organizationId, input.purgeId);
-    if (purge.status === "completed") return "completed";
-    const ok = new Set(purge.acks.filter((ack) => ack.status === "ok").map((ack) => ack.module));
-    const acks = await runModules(
-      input.organizationId,
-      purge.items.filter((item) => !ok.has(item.module)),
-      { ...options, ...(input.today ? { today: input.today } : {}) },
-    );
-    return await recordPrivacyPurgeAcks(db, { organizationId: input.organizationId, purgeId: input.purgeId, acks });
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  const purge = await getPrivacyPurge(db, input.organizationId, input.purgeId);
+  if (purge.status === "completed") return "completed";
+  const ok = new Set(purge.acks.filter((ack) => ack.status === "ok").map((ack) => ack.module));
+  const acks = await runModules(
+    input.organizationId,
+    purge.items.filter((item) => !ok.has(item.module)),
+    { ...options, ...(input.today ? { today: input.today } : {}) },
+  );
+  return await recordPrivacyPurgeAcks(db, { organizationId: input.organizationId, purgeId: input.purgeId, acks });
 }

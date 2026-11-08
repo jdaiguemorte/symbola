@@ -14,7 +14,7 @@ import {
   type StarterLocale,
   type StarterMetier,
 } from "@symbola/starter-templates";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import {
   addDefaultVendorSlots,
   addLossReasons,
@@ -35,14 +35,10 @@ import { isModuleEnabled, type ModuleKey } from "@/modules/hub/service";
 export type StarterKitResult = { budgetLines: number; sources: number; lossReasons: number; taskTemplate: boolean; programTemplate: boolean; allocation: boolean; vendorTypes: number };
 
 async function enabled(organizationId: string): Promise<Record<ModuleKey, boolean>> {
-  const { sql, db } = createAppConnection();
-  try {
-    const keys: ModuleKey[] = ["hello", "events", "budget", "quotes", "vendors"];
-    const values = await Promise.all(keys.map((key) => isModuleEnabled(db, organizationId, key)));
-    return Object.fromEntries(keys.map((key, index) => [key, values[index]!])) as Record<ModuleKey, boolean>;
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  const keys: ModuleKey[] = ["events", "budget", "quotes", "vendors"];
+  const values = await Promise.all(keys.map((key) => isModuleEnabled(db, organizationId, key)));
+  return Object.fromEntries(keys.map((key, index) => [key, values[index]!])) as Record<ModuleKey, boolean>;
 }
 
 export async function loadStarterKit(organizationId: string, metier: StarterMetier, locale: StarterLocale): Promise<StarterKitResult> {

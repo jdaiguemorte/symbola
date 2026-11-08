@@ -5,7 +5,7 @@ import { randomUUID } from "node:crypto";
 import { and, eq } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
 import { createOrganization, login, requireUser } from "@symbola/auth";
-import { createAppConnection } from "@symbola/db/client";
+import { createAppConnection, type AppDatabase } from "@symbola/db/client";
 import { domainEvents } from "@symbola/db/schema/core";
 import { withOrganization } from "@symbola/db/with-organization";
 import { EVT_VENDOR_SLOT_BOOKED } from "@symbola/contracts";
@@ -40,7 +40,7 @@ const plannerId = randomUUID();
 const PASSWORD = "mot-de-passe-du-client";
 const TINY_PDF = Buffer.from("%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n", "latin1");
 
-async function withDb<T>(fn: (db: ReturnType<typeof createAppConnection>["db"]) => Promise<T>): Promise<T> {
+async function withDb<T>(fn: (db: AppDatabase) => Promise<T>): Promise<T> {
   const { sql, db } = createAppConnection();
   try {
     return await fn(db);

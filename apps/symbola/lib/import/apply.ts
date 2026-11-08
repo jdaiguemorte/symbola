@@ -5,7 +5,7 @@
 // modules, leurs écritures sont annulées : rien d'un import n'est gardé sans
 // pouvoir être annulé.
 import type { ImportApplyResult, ImportApplyRow, ImportedItem, ImportEntityType, ImportUndoItem, ImportUndoOutcome } from "@symbola/contracts";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase, type AppDatabase } from "@symbola/db/client";
 import {
   findModifiedImportedBudgetElements,
   importBudgetLineRows,
@@ -71,13 +71,9 @@ function vendorTypeTarget(target: ImportVendorTypeTarget, catalog: VendorTypeCat
   return target;
 }
 
-async function withHubDb<T>(fn: (db: ReturnType<typeof createAppConnection>["db"]) => Promise<T>): Promise<T> {
-  const { sql, db } = createAppConnection();
-  try {
-    return await fn(db);
-  } finally {
-    await sql.end();
-  }
+async function withHubDb<T>(fn: (db: AppDatabase) => Promise<T>): Promise<T> {
+  const db = appDatabase();
+  return await fn(db);
 }
 
 // —— Aperçu ————————————————————————————————————————————————————————————

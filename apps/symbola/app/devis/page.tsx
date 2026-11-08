@@ -3,13 +3,12 @@
 // crée un depuis la fiche de l'événement (onglet Devis).
 import { PageHeader } from "@/app/ui/page-header";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatAmount, type Locale } from "@symbola/i18n";
 import { ScreenHelp } from "@/app/screen-help";
 import { eventNames, listEvents } from "@/modules/events/service";
 import { listQuotes, type QuoteStatus } from "@/modules/quotes/service";
-import { getPlannerAuthContext } from "@/lib/auth-context";
+import { requirePlanner } from "@/lib/guards";
 import { GearLink } from "@/app/gear-link";
 import { isQuotesModuleEnabled } from "./module-access";
 import { QUOTE_STATUS_LABEL_KEYS } from "./quote-display";
@@ -24,11 +23,7 @@ const STATUS_CLASSES: Record<QuoteStatus, string> = {
 const FILTERS = ["tous", "draft", "sent", "signed", "declined", "expired"] as const;
 
 export default async function QuotesListPage({ searchParams }: { searchParams: Promise<{ statut?: string }> }) {
-  const auth = await getPlannerAuthContext();
-  if (auth.status === "unauthenticated") redirect("/login");
-  if (auth.status === "mfa_required") redirect("/mfa");
-  if (auth.status === "forbidden") redirect(auth.role === "client" ? "/espace" : "/");
-  if (!auth.user.organizationId) redirect("/");
+  const auth = await requirePlanner();
   const organizationId = auth.user.organizationId;
 
   const t = await getTranslations("Quotes");

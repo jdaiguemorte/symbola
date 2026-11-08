@@ -6,7 +6,7 @@ familles (par exemple « Beauté » et « Tenues ») ; voir PRE-15.
 
 **Avancement (08/11/2026)** : SEC-01 et SEC-03 fusionnés (PR n° 75, ADR 0037 et 0038) ; HUB-19
 fusionné (PR n° 76, ADR 0039, écarts notés dans l'ADR) ; PRE-14 et PRE-15 fusionnés (PR n° 77,
-ADR 0040) ; IMP-11 et IMP-12 sur la branche `lot-16d-import-assistant` (ADR 0041). Familles de l'agence événementielle proposées dans
+ADR 0040) ; IMP-11 et IMP-12 fusionnés (PR n° 78, ADR 0041) ; HUB-20 et HUB-21 fusionnés (PR n° 79, ADR 0042) ; ARC-01 sur la branche `lot-16f-architecture` (ADR 0043). Familles de l'agence événementielle proposées dans
 `vendor-families.event-agency.json`, à corriger par Julien.
 
 ## Contexte

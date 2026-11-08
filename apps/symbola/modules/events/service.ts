@@ -5,7 +5,7 @@ import { createHash, randomBytes } from "node:crypto";
 import { z } from "zod";
 import { parisDaysSince, parisToday } from "@symbola/i18n";
 import { createUser, findAccountByEmail } from "@symbola/auth";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase, type AppDatabase } from "@symbola/db/client";
 import { parseEnv } from "@symbola/env";
 import { sendMail } from "@symbola/mail";
 import { starterDemoEvent, starterProgram, starterRetroplanning, starterTutorialEvent, starterVendorSlots } from "@symbola/starter-templates";
@@ -1131,13 +1131,9 @@ async function sendClientMail(email: string, locale: "fr" | "en", invitationUrl:
   });
 }
 
-async function withAuthDb<T>(fn: (db: ReturnType<typeof createAppConnection>["db"]) => Promise<T>): Promise<T> {
-  const { sql, db } = createAppConnection();
-  try {
-    return await fn(db);
-  } finally {
-    await sql.end();
-  }
+async function withAuthDb<T>(fn: (db: AppDatabase) => Promise<T>): Promise<T> {
+  const db = appDatabase();
+  return await fn(db);
 }
 
 export async function inviteEventClient(input: InviteEventClientInput): Promise<InviteEventClientResult> {

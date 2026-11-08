@@ -6,10 +6,10 @@ describe("SOC-06 — Enveloppe commune des événements internes", () => {
     const envelope = {
       id: "6b1f7e2a-7e3a-4c9a-9a3a-6b1f7e2a7e3a",
       organizationId: "6b1f7e2a-7e3a-4c9a-9a3a-6b1f7e2a7e3b",
-      name: "hello.greeting.created",
+      name: "events.event.created",
       version: 1,
       occurredAt: new Date().toISOString(),
-      payload: { greetingId: "x", message: "y" },
+      payload: { eventId: "x" },
     };
     expect(() => domainEventEnvelopeSchema.parse(envelope)).not.toThrow();
   });
@@ -32,7 +32,7 @@ describe("SOC-06 — Enveloppe commune des événements internes", () => {
       domainEventEnvelopeSchema.parse({
         id: "6b1f7e2a-7e3a-4c9a-9a3a-6b1f7e2a7e3a",
         organizationId: "6b1f7e2a-7e3a-4c9a-9a3a-6b1f7e2a7e3b",
-        name: "hello.greeting.created",
+        name: "events.event.created",
         version: 0,
         occurredAt: new Date().toISOString(),
         payload: {},

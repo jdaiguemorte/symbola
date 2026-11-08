@@ -9,7 +9,7 @@
 // ADR 0017) est câblée séparément, au niveau de chaque page protégée
 // (voir app/page.tsx), pas ici.
 import { cookies } from "next/headers";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { isPlannerRole, requireUser, type AuthResult } from "@symbola/auth";
 
 export const SESSION_COOKIE_NAME = "symbola_session";
@@ -22,12 +22,8 @@ export async function getAuthContext(): Promise<AuthResult> {
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
 
-  const { sql, db } = createAppConnection();
-  try {
-    return await requireUser(db, token);
-  } finally {
-    await sql.end();
-  }
+  const db = appDatabase();
+  return await requireUser(db, token);
 }
 
 // EVT-06 : écrans et actions de la planner. Un compte marié (ou l'Admin)

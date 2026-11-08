@@ -7,11 +7,11 @@ import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { z } from "zod";
 import { MfaResetNotAllowedError } from "@symbola/auth";
-import { createAppConnection } from "@symbola/db/client";
+import { appDatabase } from "@symbola/db/client";
 import { parseEnv } from "@symbola/env";
 import { sendMail } from "@symbola/mail";
 import { InvitationNotPendingError, resendInvitation, resetTeamAccountMfa } from "@/modules/hub/service";
-import { requireAdmin } from "@/lib/require-admin";
+import { requireAdmin } from "@/lib/guards";
 
 const idSchema = z.uuid();
 // Lot 13 (HUB-17) : retour sur la même recherche et la même page de la liste.
@@ -42,7 +42,7 @@ export async function resendInvitationAction(formData: FormData): Promise<void> 
   const invitationId = idSchema.safeParse(formData.get("invitationId"));
   if (!invitationId.success) redirect(back("erreur", formData));
 
-  const { sql, db } = createAppConnection();
+  const db = appDatabase();
   let outcome = "invitation-envoyee";
   try {
     const resent = await resendInvitation(db, { adminUserId: admin.userId, invitationId: invitationId.data });
@@ -53,8 +53,6 @@ export async function resendInvitationAction(formData: FormData): Promise<void> 
   } catch (error) {
     if (!(error instanceof InvitationNotPendingError)) throw error;
     outcome = "erreur";
-  } finally {
-    await sql.end();
   }
   redirect(back(outcome, formData));
 }
@@ -64,7 +62,7 @@ export async function resetMfaAction(formData: FormData): Promise<void> {
   const userId = idSchema.safeParse(formData.get("userId"));
   if (!userId.success || formData.get("confirm") !== "on") redirect(back("confirmation-requise", formData));
 
-  const { sql, db } = createAppConnection();
+  const db = appDatabase();
   let outcome = "double-authentification-reinitialisee";
   try {
     const account = await resetTeamAccountMfa(db, { adminUserId: admin.userId, userId: userId.data });
@@ -75,8 +73,6 @@ export async function resetMfaAction(formData: FormData): Promise<void> {
   } catch (error) {
     if (!(error instanceof MfaResetNotAllowedError)) throw error;
     outcome = "erreur";
-  } finally {
-    await sql.end();
   }
   redirect(back(outcome, formData));
 }
