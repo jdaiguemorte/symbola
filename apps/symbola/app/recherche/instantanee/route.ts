@@ -3,6 +3,7 @@
 // rôle d'équipe, organisation ; le terme est validé par Zod.
 import { z } from "zod";
 import { getPlannerAuthContext } from "@/lib/auth-context";
+import { checkRateLimit, rateLimitedResponse } from "@/lib/rate-limit";
 import { runSearch } from "@/lib/search/run-search";
 
 const querySchema = z.string().trim().min(2).max(100);
@@ -10,6 +11,9 @@ const querySchema = z.string().trim().min(2).max(100);
 export async function GET(request: Request): Promise<Response> {
   const auth = await getPlannerAuthContext();
   if (auth.status !== "authenticated" || !auth.user.organizationId) return new Response(null, { status: 401 });
+  // SEC-02 (ADR 0044) : une recherche par frappe, limitée par compte et par adresse.
+  const limited = await checkRateLimit("search", { account: auth.user.id, headers: request.headers });
+  if (!limited.allowed) return rateLimitedResponse(limited);
   const parsed = querySchema.safeParse(new URL(request.url).searchParams.get("q") ?? "");
   if (!parsed.success) return Response.json({ groups: [] }, { headers: { "Cache-Control": "private, no-store" } });
   const groups = await runSearch({ organizationId: auth.user.organizationId, role: auth.user.role, term: parsed.data });

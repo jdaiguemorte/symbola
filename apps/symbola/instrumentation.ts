@@ -28,5 +28,8 @@ export async function register() {
     // au repos ; ceux d'avant le lot 16 le sont une fois, au démarrage.
     const { sealLegacyMfaSecretsAtStartup } = await import("./lib/mfa-secrets");
     void sealLegacyMfaSecretsAtStartup();
+    // Lot 16 (SEC-02, ADR 0044) : tentatives limitées oubliées au bout d'un jour.
+    const { scheduleRateLimitPurge } = await import("./lib/rate-limit");
+    scheduleRateLimitPurge();
   }
 }

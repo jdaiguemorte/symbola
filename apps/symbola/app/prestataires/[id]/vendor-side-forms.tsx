@@ -3,11 +3,12 @@
 // Lot 11 (PRE-01 / PRE-03) — fichiers de la fiche et correction du point.
 import { useActionState } from "react";
 import { useTranslations } from "next-intl";
-import { attachVendorFileAction, setVendorLocationAction } from "../actions";
+import { useUploadAction } from "@/app/ui/use-upload";
+import { setVendorLocationAction, type VendorFormState } from "../actions";
 
 export function VendorFileForm({ vendorId }: { vendorId: string }) {
   const t = useTranslations("VendorBook");
-  const [state, action, pending] = useActionState(attachVendorFileAction, {});
+  const [state, action, pending] = useUploadAction<VendorFormState>(`/prestataires/${vendorId}/fichiers`);
   return (
     <form action={action} className="stack">
       <input type="hidden" name="vendorId" value={vendorId} />

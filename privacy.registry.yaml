@@ -551,3 +551,15 @@ fields:
       Lot 11 (ADR 0031) : ce que veulent les clients pour un poste. Tant que la fiche ou l'événement existe ; voir RGPD-03/RGPD-05.
     anonymization: >-
       Effacé (null) lors d'une demande d'oubli de l'événement (RGPD-03).
+  - schema: core
+    table: rate_limit_events
+    field: key_hash
+    category: securite
+    retention: >-
+      Lot 16 (SEC-02, ADR 0044) : empreinte SHA-256 de l'adresse IP, de l'e-mail
+      saisi ou de l'identifiant du compte, pour une tentative de connexion, de
+      double authentification, de mot de passe oublié, de recherche ou d'envoi
+      de fichier. Jamais la valeur en clair. Gardée un jour au plus (purge
+      horaire), au titre de la sécurité du service.
+    anonymization: >-
+      Supprimée par la purge horaire ; rien à anonymiser au-delà.

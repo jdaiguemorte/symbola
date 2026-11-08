@@ -3,7 +3,8 @@
 import { useActionState } from "react";
 import { useTranslations } from "next-intl";
 import { formatAmount, formatFileSize, type Locale } from "@symbola/i18n";
-import { attachQuoteAction, confirmEventBudgetAction, updateBudgetLineAction, type BudgetFormState } from "./actions";
+import { confirmEventBudgetAction, updateBudgetLineAction, type BudgetFormState } from "./actions";
+import { useUploadAction } from "@/app/ui/use-upload";
 import type { BudgetLinesView } from "@/modules/budget/service";
 import { varianceDisplay } from "../variance-display";
 
@@ -20,7 +21,7 @@ function LineRow({
   const initialState: BudgetFormState = {};
   const [plannedState, plannedAction, plannedPending] = useActionState(updateBudgetLineAction, initialState);
   const [actualState, actualAction, actualPending] = useActionState(updateBudgetLineAction, initialState);
-  const [quoteState, quoteAction, quotePending] = useActionState(attachQuoteAction, initialState);
+  const [quoteState, quoteAction, quotePending] = useUploadAction<BudgetFormState>(`/budget/${eventId}/devis`);
 
   const variance = varianceDisplay(line.varianceCents);
   const varianceLabel = t(variance.labelKey, {

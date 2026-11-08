@@ -10,7 +10,6 @@ import { addVendorCandidate, VendorCandidateNotFoundError } from "@/modules/even
 import {
   addVendorTypeField,
   archiveVendor,
-  attachVendorFile,
   createVendor,
   createVendorTag,
   getVendor,
@@ -25,7 +24,6 @@ import {
   setVendorLocation,
   setVendorTypeFieldFilter,
   updateVendor,
-  VendorFileRejectedError,
   VendorNotFoundError,
   VendorTypeNotFoundError,
   type SaveVendorResult,
@@ -139,26 +137,6 @@ export async function archiveVendorAction(formData: FormData): Promise<void> {
   await archiveVendor(access.organizationId, vendorId);
   revalidatePath("/prestataires");
   redirect("/prestataires");
-}
-
-export async function attachVendorFileAction(_prev: VendorFormState, formData: FormData): Promise<VendorFormState> {
-  const t = await getTranslations("VendorBook");
-  const access = await authorize();
-  if (!access) return { error: t("unauthorized") };
-  const vendorId = text(formData, "vendorId");
-  const kind = text(formData, "kind") === "rib" ? "rib" : "brochure";
-  const file = formData.get("file");
-  if (!isValidId(vendorId)) return { error: t("notFound") };
-  if (!(file instanceof File) || file.size === 0) return { error: t("fileMissing") };
-  try {
-    await attachVendorFile({ organizationId: access.organizationId, vendorId, kind, fileName: file.name, content: new Uint8Array(await file.arrayBuffer()), uploadedByUserId: access.userId });
-  } catch (error) {
-    if (error instanceof VendorFileRejectedError) return { error: t(error.reason === "too_large" ? "fileTooLarge" : error.reason === "infected" ? "fileInfected" : "fileUnsupported") };
-    if (error instanceof VendorNotFoundError) return { error: t("notFound") };
-    throw error;
-  }
-  revalidatePath(`/prestataires/${vendorId}`);
-  return { success: true };
 }
 
 export async function removeVendorFileAction(formData: FormData): Promise<void> {

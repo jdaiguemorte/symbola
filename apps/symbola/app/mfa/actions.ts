@@ -6,6 +6,7 @@ import { confirmTotp, requireUser, resumeTotpSetup, type ConfirmTotpResult } fro
 import { appDatabase } from "@symbola/db/client";
 import { getSessionToken, setSessionCookie, setTrustedDeviceCookie } from "@/lib/auth-context";
 import { sendMfaLockMail } from "@/lib/mfa-lock-mail";
+import { checkRateLimit, rateLimitMessage } from "@/lib/rate-limit";
 import { totpSetupDisplay } from "@/lib/totp-qr";
 
 export async function getMfaSetupState() {
@@ -35,6 +36,10 @@ export async function confirmMfaAction(
 
   const code = String(formData.get("code") ?? "");
   const db = appDatabase();
+  // SEC-02 (ADR 0044) : par adresse et par compte, en plus du verrouillage après 5 échecs.
+  const session = await requireUser(db, token);
+  const limited = await checkRateLimit("mfa", { account: session.status === "mfa_required" ? session.userId : null });
+  if (!limited.allowed) return { error: await rateLimitMessage(limited.retryAfterSeconds) };
   const result: ConfirmTotpResult = await confirmTotp(db, { sessionToken: token, token: code, rememberDevice: formData.get("rememberDevice") === "on" });
 
   if (result.outcome === "locked") {

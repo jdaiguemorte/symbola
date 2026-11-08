@@ -18,6 +18,8 @@ export function SearchBox() {
   const [groups, setGroups] = useState<SearchGroup[]>([]);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
+  // SEC-02 (ADR 0044) : message traduit d'une recherche refusée (trop de requêtes).
+  const [notice, setNotice] = useState<string | null>(null);
 
   const flat = groups.flatMap((group) => group.items.map((item) => ({ ...item, group: group.key })));
 
@@ -43,8 +45,14 @@ export function SearchBox() {
     const timer = setTimeout(async () => {
       try {
         const response = await fetch(`/recherche/instantanee?q=${encodeURIComponent(query)}`, { signal: controller.signal });
+        if (response.status === 429) {
+          setNotice(((await response.json()) as { error: string }).error);
+          setOpen(true);
+          return;
+        }
         if (!response.ok) return;
         const body = (await response.json()) as { groups: SearchGroup[] };
+        setNotice(null);
         setGroups(body.groups);
         setActive(-1);
         setOpen(true);
@@ -108,7 +116,9 @@ export function SearchBox() {
       </kbd>
       {expanded ? (
         <div className="search-box-results">
-          {groups.length === 0 ? (
+          {notice ? (
+            <p role="status">{notice}</p>
+          ) : groups.length === 0 ? (
             <p role="status">{t("noResults", { term: term.trim() })}</p>
           ) : (
             <ul id={`${listId}-list`} role="listbox" aria-label={t("label")}>

@@ -8,6 +8,7 @@ import { requestPasswordReset } from "@symbola/auth";
 import { appDatabase } from "@symbola/db/client";
 import { parseEnv } from "@symbola/env";
 import { sendMail } from "@symbola/mail";
+import { checkRateLimit, rateLimitMessage } from "@/lib/rate-limit";
 
 export type ForgotPasswordFormState = { sent?: boolean; error?: string };
 
@@ -19,6 +20,11 @@ export async function forgotPasswordAction(_prevState: ForgotPasswordFormState, 
     const t = await getTranslations("PasswordReset");
     return { error: t("invalidEmail") };
   }
+
+  // SEC-02 (ADR 0044) : un formulaire public qui envoie des e-mails, limité par
+  // adresse et par compte visé (en plus d'un e-mail par compte toutes les 5 minutes).
+  const limited = await checkRateLimit("passwordReset", { account: parsed.data });
+  if (!limited.allowed) return { error: await rateLimitMessage(limited.retryAfterSeconds) };
 
   const db = appDatabase();
   const request = await requestPasswordReset(db, parsed.data);
