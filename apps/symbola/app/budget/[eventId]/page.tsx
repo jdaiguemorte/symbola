@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { PageHeader } from "@/app/ui/page-header";
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatAmount, type Locale } from "@symbola/i18n";
 import { ScreenHelp } from "@/app/screen-help";
@@ -45,33 +47,38 @@ export default async function EventBudgetPage({ params }: { params: Promise<{ ev
 
   return (
     <main>
-      <h1>
-        {t("title")} — {clientNames}
-      </h1>
+      <PageHeader
+        title={`${t("title")} — ${clientNames}`}
+        actions={
+          <Link href={`/events/${eventId}?onglet=budget`} className="button-link">
+            {t("backToEvent")}
+          </Link>
+        }
+      />
       <ScreenHelp title={tHelp("budgetDetail.title")} body={tHelp("budgetDetail.body")} />
 
       {models.length === 0 ? <p role="status">{t("noModelsYet")}</p> : null}
 
       <BudgetSimulationForm eventId={eventId} models={models} budget={budget} locale={locale} vendorSlots={vendorSlots} wantedBudgetCents={event.wantedBudgetCents} />
 
+      {/* Lot 16 (HUB-20) : chiffres clés alignés, au format de la langue. */}
       {budget ? (
-        <>
-          <p>
-            {t("totalAmount")} : {formatAmount(budget.totalAmountCents, locale)}
-          </p>
-          <p>
-            {t("guestCount")} : {budget.guestCount}
-          </p>
-          <p>
-            {t("costPerGuest")} : {formatAmount(budget.costPerGuestCents, locale)}
-          </p>
-          <p>
-            {t("allocated")} : {formatAmount(budget.allocatedCents, locale)}
-          </p>
-          <p>
-            {t("remaining")} : {formatAmount(budget.remainingCents, locale)}
-          </p>
-        </>
+        <dl className="effects budget-figures">
+          {(
+            [
+              ["totalAmount", formatAmount(budget.totalAmountCents, locale)],
+              ["guestCount", String(budget.guestCount)],
+              ["costPerGuest", formatAmount(budget.costPerGuestCents, locale)],
+              ["allocated", formatAmount(budget.allocatedCents, locale)],
+              ["remaining", formatAmount(budget.remainingCents, locale)],
+            ] as const
+          ).map(([key, value]) => (
+            <div key={key}>
+              <dt>{t(key)}</dt>
+              <dd>{value}</dd>
+            </div>
+          ))}
+        </dl>
       ) : null}
 
       <h2>{t("linesTitle")}</h2>

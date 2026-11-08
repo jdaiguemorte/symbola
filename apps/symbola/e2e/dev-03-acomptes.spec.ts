@@ -107,7 +107,7 @@ test("DEV-03 — échéancier, encaissements à venir, retard et paiement", asyn
   // L'action refusée juste avant doit être entièrement traitée.
   await page.waitForLoadState("networkidle");
   await page.getByRole("button", { name: "Marquer comme envoyé" }).click();
-  await expect(page.getByText(/^Statut : Envoyé/)).toBeVisible();
+  await expect(page.getByText(/^Envoyé — version/)).toBeVisible();
 
   // Encaissements : l'échéance dépassée est « En retard », en tête.
   await page.goto("/devis/encaissements");

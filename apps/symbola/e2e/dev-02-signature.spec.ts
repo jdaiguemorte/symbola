@@ -94,7 +94,7 @@ test("DEV-02 — envoyer un devis en signature, signer par le lien reçu, archiv
   await expectNoAxeViolation(page);
   await send.getByRole("button", { name: "Envoyer en signature" }).click();
   await expect(page.getByText("En attente de signature.")).toBeVisible();
-  await expect(page.getByText(/^Statut : Envoyé/)).toBeVisible();
+  await expect(page.getByText(/^Envoyé — version/)).toBeVisible();
   await expectNoAxeViolation(page);
 
   // Le signataire reçoit son lien par un e-mail de Symbola, et signe.
@@ -109,7 +109,7 @@ test("DEV-02 — envoyer un devis en signature, signer par le lien reçu, archiv
   await page.goto(quoteUrl);
   await page.waitForLoadState("networkidle");
   await expect(page.getByText("Devis signé par tous les signataires.")).toBeVisible();
-  await expect(page.getByText(/^Statut : Signé/)).toBeVisible();
+  await expect(page.getByText(/^Signé — version/)).toBeVisible();
   // ADR 0027 : servis par l'app elle-même, jamais de redirection vers le stockage.
   for (const kind of ["signed", "certificate"]) {
     const document = await page.request.get(`${new URL(quoteUrl).pathname}/signature/${kind}`, { maxRedirects: 0 });

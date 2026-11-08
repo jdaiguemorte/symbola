@@ -97,7 +97,8 @@
     "followUpProspect": "Prospect sans nouvelle · {names}",
     "followUpDays": "{days, plural, one {# jour} other {# jours}}",
     "followUpSettings": "Délais de relance",
-    "topBar": "Recherche et aide de l'écran"
+    "topBar": "Recherche et aide de l'écran",
+    "agendaYear": "Voir l'année"
   },
   "Admin": {
     "createOrganizationTitle": "Créer une organisation",
@@ -1216,7 +1217,8 @@
     "quoteInfected": "Fichier refusé par l'antivirus.",
     "quoteLineNotFound": "Ligne de budget introuvable.",
     "quotesOf": "Devis joints — {label}",
-    "openQuote": "Ouvrir le devis {number} — {label} ({size})"
+    "openQuote": "Ouvrir le devis {number} — {label} ({size})",
+    "backToEvent": "Retour à la fiche de l'événement"
   },
   "Quotes": {
     "title": "Devis",
@@ -1482,7 +1484,8 @@
     "allQuotesNoneForFilter": "Aucun devis avec ce statut.",
     "quoteNumberColumn": "Numéro",
     "quoteEventColumn": "Mariage",
-    "quoteStatusColumn": "Statut"
+    "quoteStatusColumn": "Statut",
+    "statusBadge": "{status} — version {version}"
   },
   "ClientSpace": {
     "title": "Mon mariage",

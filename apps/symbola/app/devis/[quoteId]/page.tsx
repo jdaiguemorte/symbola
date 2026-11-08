@@ -28,6 +28,7 @@ import {
 } from "./quote-forms";
 import { QuoteVersionTable } from "./quote-totals";
 import { ScheduleSection } from "./schedule-section";
+import { PageHeader } from "@/app/ui/page-header";
 import { InvoicesSection } from "./invoices-section";
 import { SignatureSection } from "./signature-section";
 
@@ -87,16 +88,26 @@ export default async function QuotePage({ params }: { params: Promise<{ quoteId:
 
   return (
     <main>
-      <h1>{t("quoteTitle", { number: quote.number })}</h1>
+      {/* Lot 16 (HUB-20) : en-tête commun — statut en badge, événement en sous-titre, PDF en action. */}
+      <PageHeader
+        title={t("quoteTitle", { number: quote.number })}
+        badge={<span className="badge">{t("statusBadge", { status: t(QUOTE_STATUS_LABEL_KEYS[quote.status]), version: current.version })}</span>}
+        subtitle={
+          <>
+            {t("forEvent")} <Link href={`/events/${quote.eventId}`}>{clientNames}</Link>
+            {event?.eventDate ? ` — ${formatCalendarDate(event.eventDate, locale)}` : ""}
+          </>
+        }
+        actions={
+          !isDraft || current.lines.length > 0 ? (
+            <a href={`/devis/${quote.id}/pdf?version=${current.version}`} className="button-link">
+              {t("downloadPdf", { version: current.version })}
+            </a>
+          ) : null
+        }
+      />
       {quote.isDemo ? <p role="status">{t("demoQuote")}</p> : null}
       <ScreenHelp title={tHelp("quotesDetail.title")} body={tHelp("quotesDetail.body")} />
-      <p>
-        {t("forEvent")} <Link href={`/events/${quote.eventId}`}>{clientNames}</Link>
-        {event?.eventDate ? ` — ${formatCalendarDate(event.eventDate, locale)}` : ""}
-      </p>
-      <p>
-        {t("statusLabel")} : {t(QUOTE_STATUS_LABEL_KEYS[quote.status])} — {t("versionLabel", { version: current.version })}
-      </p>
       {/* Après l'envoi, le formulaire disparaît : l'état figé est annoncé ici. */}
       {current.sentAt ? (
         <p role="status">
@@ -117,11 +128,6 @@ export default async function QuotePage({ params }: { params: Promise<{ quoteId:
       <QuoteVersionTable version={current} locale={locale} caption={t("linesCaption", { version: current.version })} />
       {current.lines.length === 0 ? <p>{t("noLines")}</p> : null}
       {legalMention ? <p>{legalMention}</p> : null}
-      {!isDraft || current.lines.length > 0 ? (
-        <p>
-          <a href={`/devis/${quote.id}/pdf?version=${current.version}`}>{t("downloadPdf", { version: current.version })}</a>
-        </p>
-      ) : null}
 
       <ScheduleSection quote={quote} methods={paymentMethods} locale={locale} today={parisTodayString()} />
       <SignatureSection organizationId={organizationId} quote={quote} event={event} />

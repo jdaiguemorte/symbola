@@ -97,7 +97,8 @@
     "followUpProspect": "Prospect with no news · {names}",
     "followUpDays": "{days, plural, one {# day} other {# days}}",
     "followUpSettings": "Follow-up delays",
-    "topBar": "Search and screen help"
+    "topBar": "Search and screen help",
+    "agendaYear": "See the year"
   },
   "Admin": {
     "createOrganizationTitle": "Create an organization",
@@ -1216,7 +1217,8 @@
     "quoteInfected": "File rejected by the antivirus.",
     "quoteLineNotFound": "Budget line not found.",
     "quotesOf": "Attached quotes — {label}",
-    "openQuote": "Open quote {number} — {label} ({size})"
+    "openQuote": "Open quote {number} — {label} ({size})",
+    "backToEvent": "Back to the event page"
   },
   "Quotes": {
     "title": "Quotes",
@@ -1482,7 +1484,8 @@
     "allQuotesNoneForFilter": "No quote with this status.",
     "quoteNumberColumn": "Number",
     "quoteEventColumn": "Wedding",
-    "quoteStatusColumn": "Status"
+    "quoteStatusColumn": "Status",
+    "statusBadge": "{status} — version {version}"
   },
   "ClientSpace": {
     "title": "My wedding",

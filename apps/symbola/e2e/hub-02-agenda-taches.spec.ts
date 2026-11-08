@@ -76,20 +76,22 @@ test("HUB-02 — agenda des mariages, tâches de la quinzaine cochées depuis l'
   }
   await loginAndSetupMfa(page, email, password);
 
-  // Agenda : 12 mois par défaut, les deux dates du week-end, badge « 2 ».
+  // Agenda : 3 mois par défaut (lot 16, HUB-20), noms dans les cases, badge « 2 ».
   const agenda = page.getByRole("region", { name: "Agenda" });
-  await expect(agenda.getByRole("link", { name: "12 mois" })).toHaveAttribute("aria-current", "true");
+  await expect(agenda.getByRole("link", { name: "3 mois" })).toHaveAttribute("aria-current", "true");
   const weekend = agenda.locator("summary", { hasText: firstName });
-  await expect(agenda.getByText(new RegExp(`${firstName} & Sacha`)).first()).toBeAttached();
+  await expect(agenda.getByText(`${firstName} & Sacha`).first()).toBeVisible();
   await expect(agenda.getByText("2 événements ce week-end").first()).toBeAttached();
   await expectNoAxeViolation(page);
 
-  // 3 mois : les noms s'affichent dans les cases ; le choix est retenu.
+  // « Voir l'année » : 12 mois ; le choix est retenu.
+  await agenda.getByRole("link", { name: "Voir l'année" }).click();
+  await expect(page).toHaveURL(/agenda=12/);
+  await expect(agenda.getByText(new RegExp(`${firstName} & Sacha`)).first()).toBeAttached();
+  await page.goto("/");
+  await expect(agenda.getByRole("link", { name: "Voir l'année" })).toHaveAttribute("aria-current", "true");
   await agenda.getByRole("link", { name: "3 mois" }).click();
   await expect(page).toHaveURL(/agenda=3/);
-  await expect(agenda.getByText(`${firstName} & Sacha`).first()).toBeVisible();
-  await page.goto("/");
-  await expect(agenda.getByRole("link", { name: "3 mois" })).toHaveAttribute("aria-current", "true");
   // Un clic sur le week-end propose les deux mariages, et ouvre la fiche.
   await weekend.first().click();
   await agenda.getByRole("link", { name: new RegExp(`${firstName} & Sacha`) }).first().click();
