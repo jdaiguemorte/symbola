@@ -18,6 +18,21 @@ export function formatAmount(cents: number, locale: Locale): string {
   }).format(cents / 100);
 }
 
+// Montant pré-rempli dans un champ de saisie, relu tel quel par
+// parseAmountToCents : sans symbole ni séparateur de milliers, la virgule
+// décimale de la langue, les centimes seulement s'il y en a (« 2929,50 » en
+// fr, « 2929.50 » en en, « 2930 »). Par manipulation de texte, sans calcul à
+// virgule flottante (CLAUDE.md §5).
+export function formatAmountInput(cents: number | null, locale: Locale): string {
+  if (cents === null) return "";
+  const sign = cents < 0 ? "-" : "";
+  const absolute = Math.abs(cents);
+  const euros = Math.trunc(absolute / 100);
+  const rest = absolute % 100;
+  if (rest === 0) return `${sign}${euros}`;
+  return `${sign}${euros}${locale === "en" ? "." : ","}${String(rest).padStart(2, "0")}`;
+}
+
 // Montant maximal stockable en centimes (colonne integer PostgreSQL).
 const MAX_CENTS = 2_147_483_647;
 

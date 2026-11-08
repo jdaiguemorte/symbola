@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useUploadAction } from "@/app/ui/use-upload";
-import { formatAmount, type Locale } from "@symbola/i18n";
+import { formatAmount, formatAmountInput, type Locale } from "@symbola/i18n";
 import type { EventVendorSlot, VendorCandidate, VendorCandidateResponse } from "@/modules/events/service";
 import {
   addCandidateAction,
@@ -28,11 +28,6 @@ const RESPONSE_KEYS: Record<VendorCandidateResponse, string> = {
   declined: "responseDeclined",
 };
 
-function amountInputValue(cents: number | null): string {
-  if (cents === null) return "";
-  const rest = cents % 100;
-  return rest === 0 ? String(Math.trunc(cents / 100)) : `${Math.trunc(cents / 100)},${String(rest).padStart(2, "0")}`;
-}
 
 function Feedback({ state, success }: { state: CandidateFormState; success?: string }) {
   if (state.error) return <p role="alert">{state.error}</p>;
@@ -120,7 +115,7 @@ function CandidateCard({
   const [noteState, noteAction, notePending] = useActionState(addCandidateNoteAction, {});
   const [response, setResponse] = useState<VendorCandidateResponse>(candidate.response);
   const [contactedOn, setContactedOn] = useState(candidate.contactedOn ?? "");
-  const [amount, setAmount] = useState(amountInputValue(candidate.quoteAmountCents));
+  const [amount, setAmount] = useState(formatAmountInput(candidate.quoteAmountCents, locale));
   const [shown, setShown] = useState(candidate.shownToClients);
   const [shareRib, setShareRib] = useState(candidate.shareRibWithClients);
   const name = candidate.vendorName;

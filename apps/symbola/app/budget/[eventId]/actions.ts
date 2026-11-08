@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
+import { parseAmountToCents } from "@symbola/i18n";
 import {
   AllocationModelNotFoundError,
   BudgetSimulationMismatchError,
@@ -26,6 +27,14 @@ async function authorizedOrganizationId(): Promise<string | null> {
   return auth.user.organizationId;
 }
 
+// Montant saisi en euros (« 2 929,50 », « 2929.50 ») vers des centimes, sans
+// calcul à virgule flottante (CLAUDE.md §5). Un champ vide vaut 0 €, comme
+// avant ; une saisie illisible rend undefined.
+function amountCentsFrom(formData: FormData): number | undefined {
+  const cents = parseAmountToCents(String(formData.get("amount") ?? ""));
+  return cents === null ? 0 : cents;
+}
+
 export async function simulateEventBudgetAction(
   _prevState: BudgetFormState,
   formData: FormData,
@@ -35,11 +44,11 @@ export async function simulateEventBudgetAction(
   if (!organizationId) return { error: t("unauthenticated") };
 
   const eventId = String(formData.get("eventId") ?? "");
-  const totalAmount = Number(String(formData.get("totalAmount") ?? "").trim());
+  const totalAmountCents = parseAmountToCents(String(formData.get("totalAmount") ?? ""));
   const guestCount = Number(String(formData.get("guestCount") ?? "").trim());
   const allocationModelId = String(formData.get("allocationModelId") ?? "").trim();
 
-  if (!Number.isFinite(totalAmount) || totalAmount <= 0) return { error: t("invalidTotalAmount") };
+  if (!totalAmountCents) return { error: t("invalidTotalAmount") };
   if (!Number.isInteger(guestCount) || guestCount < 0) return { error: t("invalidGuestCount") };
   if (!allocationModelId) return { error: t("missingModel") };
 
@@ -47,7 +56,7 @@ export async function simulateEventBudgetAction(
     await simulateEventBudget({
       organizationId,
       eventId,
-      totalAmountCents: Math.round(totalAmount * 100),
+      totalAmountCents,
       guestCount,
       allocationModelId,
     });
@@ -95,10 +104,10 @@ export async function updateBudgetLineAction(
   const eventId = String(formData.get("eventId") ?? "");
   const eventVendorSlotId = String(formData.get("eventVendorSlotId") ?? "");
   const field = String(formData.get("field") ?? "");
-  const amount = Number(String(formData.get("amount") ?? "").trim());
+  const amountCents = amountCentsFrom(formData);
 
   if (field !== "planned" && field !== "actual") return { error: t("invalidAmount") };
-  if (!Number.isFinite(amount) || amount < 0) return { error: t("invalidAmount") };
+  if (amountCents === undefined) return { error: t("invalidAmount") };
 
   try {
     await updateBudgetLine({
@@ -106,7 +115,7 @@ export async function updateBudgetLineAction(
       eventId,
       eventVendorSlotId,
       field,
-      amountCents: Math.round(amount * 100),
+      amountCents,
       changedByUserId: auth.user.id,
     });
   } catch (error) {
@@ -131,16 +140,16 @@ export async function adjustEventBudgetItemAction(
 
   const eventId = String(formData.get("eventId") ?? "");
   const defaultVendorSlotId = String(formData.get("defaultVendorSlotId") ?? "");
-  const amount = Number(String(formData.get("amount") ?? "").trim());
+  const amountCents = amountCentsFrom(formData);
 
-  if (!Number.isFinite(amount) || amount < 0) return { error: t("invalidAmount") };
+  if (amountCents === undefined) return { error: t("invalidAmount") };
 
   try {
     await adjustEventBudgetItem({
       organizationId,
       eventId,
       defaultVendorSlotId,
-      amountCents: Math.round(amount * 100),
+      amountCents,
     });
   } catch (error) {
     if (error instanceof EventNotFoundError) return { error: t("eventNotFound") };

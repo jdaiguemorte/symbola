@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import { useTranslations } from "next-intl";
-import { formatAmount, type Locale } from "@symbola/i18n";
+import { formatAmount, formatAmountInput, type Locale } from "@symbola/i18n";
 import { adjustEventBudgetItemAction, simulateEventBudgetAction, type BudgetFormState } from "./actions";
 import type { AllocationModel, EventBudgetView } from "@/modules/budget/service";
 import type { DefaultVendorSlot } from "@/modules/events/service";
@@ -35,14 +35,7 @@ export function BudgetSimulationForm({
         <h2>{t("simulationTitle")}</h2>
         <label>
           {t("totalAmount")}
-          <input
-            type="number"
-            name="totalAmount"
-            min={0}
-            step={0.01}
-            defaultValue={budget ? budget.totalAmountCents / 100 : wantedBudgetCents !== null ? wantedBudgetCents / 100 : ""}
-            required
-          />
+          <input type="text" inputMode="decimal" name="totalAmount" defaultValue={formatAmountInput(budget ? budget.totalAmountCents : wantedBudgetCents, locale)} required />
         </label>
         <label>
           {t("guestCount")}
@@ -80,7 +73,7 @@ export function BudgetSimulationForm({
                     <input type="hidden" name="defaultVendorSlotId" value={item.defaultVendorSlotId} />
                     <label>
                       {slot?.label ?? item.defaultVendorSlotId}
-                      <input type="number" name="amount" min={0} step={0.01} defaultValue={item.amountCents / 100} />
+                      <input type="text" inputMode="decimal" name="amount" defaultValue={formatAmountInput(item.amountCents, locale)} />
                     </label>
                     <span>{formatAmount(item.amountCents, locale)}</span>
                     <button type="submit" disabled={adjustPending}>
