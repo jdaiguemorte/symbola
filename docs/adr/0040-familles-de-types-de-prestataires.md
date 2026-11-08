@@ -1,6 +1,7 @@
 # ADR 0040 — Familles de types de prestataires, propres à l'organisation ; fusion et suppression sans perte
 
-- Statut : accepté
+- Statut : accepté ; les familles de départ sont précisées par [0045](0045-types-d-evenement-et-vocabulaire.md)
+  (un seul catalogue pour tous les métiers)
 - Date : 2026-11-08
 - Précise : [0031](0031-prestataires-carnet-et-carte.md) (carnet de prestataires et carte)
 - Stories : PRE-14 et PRE-15 (lot 16, spécification `docs/lots/lot-16-reprise-ux.md`,

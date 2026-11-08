@@ -46,3 +46,4 @@ Un fichier par décision structurante, numéroté. Pour changer une décision : 
 - [0042 — Écrans restés à l'ancien motif ; vocabulaire selon le métier](0042-ecrans-restants-et-vocabulaire-metier.md)
 - [0043 — Une réserve de connexions par processus ; une garde d'accès par écran](0043-connexion-partagee-et-gardes-d-acces.md)
 - [0044 — Limitation de débit en base ; envois de fichiers par des routes dédiées](0044-limitation-de-debit.md)
+- [0045 — Types d'événement ; vocabulaire selon l'événement ; catalogue de prestataires commun](0045-types-d-evenement-et-vocabulaire.md)

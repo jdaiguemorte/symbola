@@ -10,6 +10,7 @@ import {
   events,
   eventStatusHistory,
   eventTasks,
+  eventTypes,
   eventVendorSlots,
   lossReasons,
   programItemParticipants,
@@ -144,6 +145,7 @@ export async function insertProspect(input: {
   createdByUserId: string;
   clients: { firstName: string; lastName?: string | null }[];
   prospectSourceId: string;
+  eventTypeId?: string | null | undefined;
   eventDate?: string | null | undefined;
   venueName?: string | null | undefined;
   venueCity?: string | null | undefined;
@@ -159,6 +161,7 @@ export async function insertProspect(input: {
         venueName: input.venueName ?? null,
         venueCity: input.venueCity ?? null,
         prospectSourceId: input.prospectSourceId,
+        eventTypeId: input.eventTypeId ?? null,
       })
       .returning();
     if (!event) throw new Error("création de l'événement échouée");
@@ -1384,11 +1387,15 @@ export async function insertDemoEvent(organizationId: string, data: DemoEventDat
   const db = appDatabase();
   return await withOrganization(db, organizationId, async (tx) => {
     const now = new Date();
+    // Lot 16 (ADR 0045) : l'événement fictif est un mariage ; il prend le premier
+    // type « les mariés » de l'organisation, s'il y en a un.
+    const [weddingType] = await tx.select({ id: eventTypes.id }).from(eventTypes).where(eq(eventTypes.audience, "couple")).orderBy(asc(eventTypes.position)).limit(1);
     const [event] = await tx
       .insert(events)
       .values({
         organizationId,
         status: "prospect",
+        eventTypeId: weddingType?.id ?? null,
         eventDate: data.eventDate,
         venueName: data.venueName,
         venueCity: data.venueCity,

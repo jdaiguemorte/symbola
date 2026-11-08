@@ -32,10 +32,25 @@ function Feedback({ state }: { state: SetupFormState }) {
   return null;
 }
 
-export function ActivityForm({ metier, precision }: { metier: Metier | null; precision: string | null }) {
+// Lot 16 (ADR 0045) : types d'événement proposés, dans l'ordre de chaque métier.
+export type EventTypeOption = { key: string; label: string };
+
+export function ActivityForm({
+  metier,
+  precision,
+  eventTypeOptions,
+  chosenEventTypes,
+}: {
+  metier: Metier | null;
+  precision: string | null;
+  eventTypeOptions: Record<"wedding_planner" | "event_agency", EventTypeOption[]>;
+  // Types déjà installés (retour sur l'étape) ; nul : tous cochés.
+  chosenEventTypes: string[] | null;
+}) {
   const t = useTranslations("Setup");
   const [state, action, pending] = useActionState(saveActivityAction, {});
   const [choice, setChoice] = useState<Metier | "">(metier ?? "");
+  const options = eventTypeOptions[choice === "wedding_planner" || choice === "" ? "wedding_planner" : "event_agency"];
   return (
     <form action={action} className="stack">
       <fieldset className="choice-cards">
@@ -56,6 +71,18 @@ export function ActivityForm({ metier, precision }: { metier: Metier | null; pre
           <input type="text" name="metierPrecision" defaultValue={precision ?? ""} />
         </label>
       ) : null}
+      {/* Lot 16 (ADR 0045) : les types cochés sont installés ; le mariage décide
+          aussi des types de prestataires propres au mariage. */}
+      <fieldset>
+        <legend>{t("eventTypesQuestion")}</legend>
+        {options.map((option) => (
+          <label key={option.key}>
+            <input type="checkbox" name="eventTypes" value={option.key} defaultChecked={chosenEventTypes === null || chosenEventTypes.includes(option.key)} />
+            {option.label}
+          </label>
+        ))}
+        <p className="muted">{t("eventTypesHint")}</p>
+      </fieldset>
       <p className="muted">{t("activityHint")}</p>
       <button type="submit" className="primary-button" disabled={pending}>
         {t("validateAndContinue")}

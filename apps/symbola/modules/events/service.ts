@@ -88,6 +88,20 @@ import {
   updateEventClientContactRow,
   updateWantedBudgetRow,
 } from "./repository";
+import {
+  addStarterEventTypes,
+  assertEventTypeOf,
+  countEventsByType,
+  createEventType,
+  EventTypeInUseError,
+  EventTypeNotFoundError,
+  findEventAudience,
+  LastEventTypeError,
+  listEventTypes,
+  removeEventType,
+  setEventTypeOfEvent,
+  updateEventType,
+} from "./event-types";
 import { addDays } from "./schedule";
 import { addPlace, listPlaces, removePlace } from "./places";
 import { createStorageClient, deletePrivateObject } from "@symbola/files";
@@ -115,6 +129,7 @@ import {
 import { findProgramOverlaps, normalizeTime, programForVariant, sortProgramItems } from "./program";
 import type {
   EventPlace,
+  EventTypeAudience,
   AddVendorCandidateInput,
   ClientVendorSlotOptions,
   FileDownload,
@@ -173,6 +188,10 @@ export { monthKey } from "./schedule";
 export { programForVariant, type ProgramVariant } from "./program";
 
 export type {
+  EventType,
+  EventTypeAudience,
+  EventTypeInput,
+  StarterEventTypeInput,
   ChangeEventStatusInput,
   CreateProspectInput,
   CreateProspectResult,
@@ -258,6 +277,7 @@ function toEventDetail(event: EventRow, clients: EventClientRow[]): EventDetail 
   return {
     ...toEventSummary(event, clients),
     prospectSourceId: event.prospectSourceId,
+    eventTypeId: event.eventTypeId,
     lossReasonId: event.lossReasonId,
     lossReasonNote: event.lossReasonNote,
     tasksScheduledFor: event.tasksScheduledFor,
@@ -300,11 +320,13 @@ export async function getEvent(organizationId: string, eventId: string): Promise
 }
 
 export async function createProspect(input: CreateProspectInput): Promise<CreateProspectResult> {
+  if (input.eventTypeId) await assertEventTypeOf(input.organizationId, input.eventTypeId);
   const event = await insertProspect({
     organizationId: input.organizationId,
     createdByUserId: input.createdByUserId,
     clients: input.clients,
     prospectSourceId: input.prospectSourceId,
+    eventTypeId: input.eventTypeId ?? null,
     eventDate: input.eventDate,
     venueName: input.venueName,
     venueCity: input.venueCity,
@@ -314,6 +336,29 @@ export async function createProspect(input: CreateProspectInput): Promise<Create
 
 export async function changeEventStatus(input: ChangeEventStatusInput): Promise<void> {
   await updateEventStatus(input);
+}
+
+// Lot 16 (ADR 0045) — types d'événement (modules/events/event-types.ts).
+export {
+  addStarterEventTypes,
+  countEventsByType,
+  createEventType,
+  EventTypeInUseError,
+  EventTypeNotFoundError,
+  LastEventTypeError,
+  listEventTypes,
+  removeEventType,
+  updateEventType,
+};
+
+export async function setEventType(organizationId: string, eventId: string, eventTypeId: string): Promise<void> {
+  if (!(await setEventTypeOfEvent(organizationId, eventId, eventTypeId))) throw new EventNotFoundError();
+}
+
+// Qui sont les clients de l'événement (« les mariés » ou « le client ») ; nul
+// s'il n'a pas de type : le vocabulaire suit alors le métier.
+export async function getEventAudience(organizationId: string, eventId: string): Promise<EventTypeAudience | null> {
+  return findEventAudience(organizationId, eventId);
 }
 
 export async function listProspectSources(organizationId: string): Promise<ProspectSource[]> {
@@ -1115,18 +1160,23 @@ function toEventClientAccess(row: EventClientAccessRow): EventClientAccess {
   };
 }
 
-async function sendClientMail(email: string, locale: "fr" | "en", invitationUrl: string | null): Promise<void> {
+async function sendClientMail(email: string, locale: "fr" | "en", audience: EventTypeAudience, invitationUrl: string | null): Promise<void> {
   const appUrl = parseEnv(process.env).APP_PUBLIC_URL;
-  // Service sans next-intl : deux variantes inline, comme l'invitation HUB-03.
+  // Service sans next-intl : variantes inline, comme l'invitation HUB-03. Lot 16
+  // (ADR 0045) : un mariage parle de « votre mariage », les autres événements
+  // de « votre événement ».
+  const couple = audience === "couple";
+  const frWho = couple ? "Votre wedding planner" : "Votre organisateur";
+  const enWho = couple ? "Your wedding planner" : "Your event organiser";
   const fr = invitationUrl
-    ? `Bonjour,\n\nVotre wedding planner vous invite à suivre la préparation de votre mariage sur Symbola. Créez votre compte avec ce lien, valable 7 jours :\n${invitationUrl}\n\nÀ bientôt,\nL'équipe Symbola`
-    : `Bonjour,\n\nVotre wedding planner vous a ouvert l'accès à un nouvel événement sur Symbola. Connectez-vous pour le retrouver :\n${appUrl}/login\n\nÀ bientôt,\nL'équipe Symbola`;
+    ? `Bonjour,\n\n${frWho} vous invite à suivre la préparation de ${couple ? "votre mariage" : "votre événement"} sur Symbola. Créez votre compte avec ce lien, valable 7 jours :\n${invitationUrl}\n\nÀ bientôt,\nL'équipe Symbola`
+    : `Bonjour,\n\n${frWho} vous a ouvert l'accès à un nouvel événement sur Symbola. Connectez-vous pour le retrouver :\n${appUrl}/login\n\nÀ bientôt,\nL'équipe Symbola`;
   const en = invitationUrl
-    ? `Hello,\n\nYour wedding planner invites you to follow your wedding preparations on Symbola. Create your account with this link, valid for 7 days:\n${invitationUrl}\n\nSee you soon,\nThe Symbola team`
-    : `Hello,\n\nYour wedding planner has given you access to a new event on Symbola. Log in to find it:\n${appUrl}/login\n\nSee you soon,\nThe Symbola team`;
+    ? `Hello,\n\n${enWho} invites you to follow ${couple ? "your wedding" : "your event"} preparations on Symbola. Create your account with this link, valid for 7 days:\n${invitationUrl}\n\nSee you soon,\nThe Symbola team`
+    : `Hello,\n\n${enWho} has given you access to a new event on Symbola. Log in to find it:\n${appUrl}/login\n\nSee you soon,\nThe Symbola team`;
   await sendMail({
     to: email,
-    subject: locale === "en" ? "Your wedding on Symbola" : "Votre mariage sur Symbola",
+    subject: locale === "en" ? (couple ? "Your wedding on Symbola" : "Your event on Symbola") : couple ? "Votre mariage sur Symbola" : "Votre événement sur Symbola",
     text: locale === "en" ? en : fr,
   });
 }
@@ -1161,7 +1211,8 @@ export async function inviteEventClient(input: InviteEventClientInput): Promise<
 
   const invitationToken = secret ? `${input.organizationId}.${secret}` : null;
   const appUrl = parseEnv(process.env).APP_PUBLIC_URL;
-  await sendClientMail(email, input.locale, invitationToken ? `${appUrl}/espace/invitation/${invitationToken}` : null);
+  const audience = input.audience ?? (await findEventAudience(input.organizationId, input.eventId)) ?? "couple";
+  await sendClientMail(email, input.locale, audience, invitationToken ? `${appUrl}/espace/invitation/${invitationToken}` : null);
   return { access: toEventClientAccess(result.access), invitationToken };
 }
 
@@ -1171,6 +1222,16 @@ export async function listEventClientAccesses(organizationId: string, eventId: s
 
 export async function revokeEventClientAccess(organizationId: string, accessId: string): Promise<void> {
   await revokeClientAccessRow(organizationId, accessId);
+}
+
+// Lot 16 (ADR 0045) — page publique d'une invitation : seulement le
+// vocabulaire de son événement (« votre mariage » ou « votre événement »), nul
+// si le jeton ne mène à rien. Rien d'autre de l'invitation n'est révélé.
+export async function getClientInvitationAudience(token: string): Promise<EventTypeAudience | null> {
+  const parsed = parseClientToken(token);
+  if (!parsed) return null;
+  const access = await findClientAccessByTokenHash(parsed.organizationId, hashClientToken(parsed.secret));
+  return access ? findEventAudience(parsed.organizationId, access.eventId) : null;
 }
 
 export async function acceptEventClientInvitation(token: string, password: string): Promise<AcceptClientInvitationResult> {
@@ -1414,6 +1475,14 @@ export {
 } from "./import";
 
 const _contractCheck: EventsServiceContract = {
+  listEventTypes,
+  addStarterEventTypes,
+  createEventType,
+  updateEventType,
+  removeEventType,
+  countEventsByType,
+  setEventType,
+  getEventAudience,
   listEventPlaces,
   addEventPlace,
   removeEventPlace,

@@ -4,14 +4,12 @@
 // (organizationId nul, packages/db/src/schema/hub.ts) et ne fixe donc
 // jamais app.organization_id : la policy RLS (ADR 0012) refuse par
 // construction toute lecture, même avec une base contenant de vraies
-// données. Démontré ici sur le module hello (seul module métier existant
-// pour l'instant) ; vaudra pour events/budget/quotes dès leur création,
-// même mécanisme.
+// données. Démontré sur les sources de prospects, puis sur chaque table des
+// modules (même mécanisme).
 import { randomUUID } from "node:crypto";
 import { afterAll, describe, expect, it } from "vitest";
 import { createAppConnection } from "./client";
 import { budgetLineAttachments, budgetLines } from "./schema/budget";
-import { greetings } from "./schema/hello";
 import { vendors, vendorTypes } from "./schema/vendors";
 import { importItems, imports, privacyRequests } from "./schema/hub";
 import {
@@ -31,6 +29,7 @@ import {
 } from "./schema/quotes";
 import {
   defaultVendorSlots,
+  prospectSources,
   eventActivities,
   eventClientAccesses,
   events,
@@ -56,7 +55,7 @@ describe("HUB-03 — L'Admin ne lit jamais de donnée métier", () => {
   it("une lecture sans app.organization_id (session Admin) ne renvoie jamais de donnée métier, même si des données existent", async () => {
     const organizationId = randomUUID();
     await withOrganization(db, organizationId, (tx) =>
-      tx.insert(greetings).values({ organizationId, message: "donnée métier réelle" }),
+      tx.insert(prospectSources).values({ organizationId, label: "donnée métier réelle" }),
     );
 
     // Pas d'appel à withOrganization() : exactement ce qu'une session
@@ -67,7 +66,7 @@ describe("HUB-03 — L'Admin ne lit jamais de donnée métier", () => {
     // touchée) — les deux traduisent la même garantie : aucune donnée
     // métier accessible sans organisation explicitement fixée.
     try {
-      const rows = await db.select().from(greetings);
+      const rows = await db.select().from(prospectSources);
       expect(rows).toHaveLength(0);
     } catch (error) {
       // N'importe quelle erreur ici confirme l'absence d'accès : la

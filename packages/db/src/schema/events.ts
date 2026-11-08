@@ -2,7 +2,7 @@
 // table a organization_id (CLAUDE.md §2.4), protégée par Row-Level
 // Security activée par une migration dédiée (même patron que hello,
 // packages/db/drizzle).
-import { boolean, date, integer, pgSchema, text, time, timestamp, uuid, jsonb } from "drizzle-orm/pg-core";
+import { boolean, date, integer, pgSchema, text, time, timestamp, unique, uuid, jsonb } from "drizzle-orm/pg-core";
 
 export const eventsSchema = pgSchema("events");
 
@@ -38,6 +38,28 @@ export const lossReasons = eventsSchema.table("loss_reasons", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
+// Lot 16 (ADR 0045) : type d'un événement (mariage, séminaire…), liste propre
+// à l'organisation (CLAUDE.md §2.5), installée depuis les données de départ.
+// Il dit qui sont les clients, et donc le vocabulaire des écrans de
+// l'événement : « les mariés » (couple) ou « le client » (clients).
+export const eventTypeAudienceEnum = eventsSchema.enum("event_type_audience", ["couple", "clients"]);
+
+export const eventTypes = eventsSchema.table(
+  "event_types",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    label: text("label").notNull(),
+    audience: eventTypeAudienceEnum("audience").notNull().default("clients"),
+    position: integer("position").notNull().default(0),
+    // Clé du type de départ (packages/starter-templates/src/event-types.json),
+    // nulle pour un type créé par l'organisation.
+    starterKey: text("starter_key"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [unique("event_types_organization_starter_key_unique").on(table.organizationId, table.starterKey)],
+);
+
 export const events = eventsSchema.table("events", {
   id: uuid("id").defaultRandom().primaryKey(),
   organizationId: uuid("organization_id").notNull(),
@@ -56,6 +78,9 @@ export const events = eventsSchema.table("events", {
   // (proposé comme total de la simulation du budget).
   wantedBudgetCents: integer("wanted_budget_cents"),
   prospectSourceId: uuid("prospect_source_id").references(() => prospectSources.id),
+  // Lot 16 (ADR 0045) : nul pour un événement d'avant le lot 16 ou dont le type
+  // a été supprimé ; le vocabulaire suit alors le métier de l'organisation.
+  eventTypeId: uuid("event_type_id").references(() => eventTypes.id, { onDelete: "set null" }),
   lossReasonId: uuid("loss_reason_id").references(() => lossReasons.id),
   lossReasonNote: text("loss_reason_note"),
   // EVT-04 : date de l'événement pour laquelle les échéances du

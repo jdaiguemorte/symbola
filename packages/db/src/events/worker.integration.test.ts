@@ -1,8 +1,7 @@
-// SOC-06 — « hello publie l'événement via domain_events ; un consommateur
-// de test le reçoit une seule fois même en cas de rejeu (idempotence). »
-// Test générique au niveau du worker (packages/db), avec un événement de
-// démonstration — le module hello l'exerce réellement dans
-// apps/symbola/modules/hello/events.integration.test.ts.
+// SOC-06 — « un événement publié dans domain_events est reçu une seule fois
+// par un consommateur, même en cas de rejeu (idempotence). » Test générique
+// au niveau du worker (packages/db), avec un événement de démonstration ; les
+// modules l'exercent réellement dans leurs propres tests d'intégration.
 //
 // Chaque test utilise un nom d'événement unique (généré) en plus d'un
 // consommateur unique : le worker filtre déjà par nom (voir worker.ts),

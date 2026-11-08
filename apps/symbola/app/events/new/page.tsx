@@ -1,7 +1,10 @@
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
+import type { Locale } from "@symbola/i18n";
 import { ScreenHelp } from "@/app/screen-help";
 import { listProspectSources } from "@/modules/events/service";
 import { requirePlanner } from "@/lib/guards";
+import { ensureEventTypes } from "@/lib/events/event-types";
+import { clientFieldLabelsByAudience } from "@/lib/vocabulary";
 import { isEventsModuleEnabled } from "../module-access";
 import Link from "next/link";
 import { NewProspectForm } from "./new-prospect-form";
@@ -25,7 +28,9 @@ export default async function NewProspectPage({ searchParams }: { searchParams: 
       </main>
     );
   }
-  const sources = await listProspectSources(auth.user.organizationId);
+  const locale = (await getLocale()) as Locale;
+  // Lot 16 (ADR 0045) : le type de l'événement, et les libellés des clients qui le suivent.
+  const [sources, eventTypes] = await Promise.all([listProspectSources(auth.user.organizationId), ensureEventTypes(auth.user.organizationId, locale)]);
 
   return (
     <main>
@@ -43,7 +48,7 @@ export default async function NewProspectPage({ searchParams }: { searchParams: 
           <LoadStarterListsForm />
         </section>
       ) : null}
-      <NewProspectForm sources={sources} initialDate={initialDate} confirmed={confirmed} />
+      <NewProspectForm sources={sources} eventTypes={eventTypes} clientLabels={clientFieldLabelsByAudience(locale)} initialDate={initialDate} confirmed={confirmed} />
     </main>
   );
 }

@@ -85,6 +85,7 @@ Audit du 08/11/2026 (`docs/audits/2026-11-08-audit-complet.md`, R1, R2 et R6).
 - **Gardée** : la table `hello.greetings`, témoin des tests d'isolation RLS de `packages/db`
   (inchangés). La supprimer demanderait une migration qui efface des données, et la réécriture
   de ces tests sur une table métier : décision laissée à Julien.
+  - Mise à jour du 08/11/2026 : Julien a décidé de la supprimer (migration 0079, ADR 0045).
 - Les boutons d'activation de la console Admin nomment désormais le module dans la langue de
   l'écran (« Événements : activé (désactiver) ») au lieu de sa clé technique.
 

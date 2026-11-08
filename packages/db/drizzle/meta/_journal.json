@@ -554,6 +554,20 @@
       "when": 1794159727804,
       "tag": "0078_lot16_rate_limit",
       "breakpoints": true
+    },
+    {
+      "idx": 79,
+      "version": "7",
+      "when": 1794167913373,
+      "tag": "0079_lot16_drop_hello",
+      "breakpoints": true
+    },
+    {
+      "idx": 80,
+      "version": "7",
+      "when": 1794168105246,
+      "tag": "0080_lot16_event_types",
+      "breakpoints": true
     }
   ]
 }

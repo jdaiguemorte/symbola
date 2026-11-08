@@ -266,7 +266,7 @@ describe("IMP-07 — Importer ses prestataires depuis l'export Excel", () => {
 describe("IMP-12 — Types à l'import par familles", () => {
   it("avec les types de départ d'une wedding planner, les 22 libellés du corpus créent au plus 12 types ; « Coiffeur(se) » et « Maquillage » sont réunis", async () => {
     const planner = await createPlanner();
-    await seedStarterVendorCatalog(planner.organizationId, vendorCatalogInput("fr", "wedding_planner"), { withTypes: true });
+    await seedStarterVendorCatalog(planner.organizationId, vendorCatalogInput("fr"), { withTypes: true });
     const before = (await listVendorTypes(planner.organizationId)).length;
     const importId = await preparedImport(planner);
     const view = await getImportTypesView(planner.organizationId, importId);
@@ -308,7 +308,7 @@ describe("IMP-12 — Types à l'import par familles", () => {
 
   it("elle choisit un autre type, en crée un dans une famille, ou laisse « à classer » : la fiche garde alors le libellé du fichier", async () => {
     const planner = await createPlanner();
-    await seedStarterVendorCatalog(planner.organizationId, vendorCatalogInput("fr", "wedding_planner"), { withTypes: true });
+    await seedStarterVendorCatalog(planner.organizationId, vendorCatalogInput("fr"), { withTypes: true });
     const attire = await createVendorFamily(planner.organizationId, { label: "Tenues", color: "#7a2e5c", icon: "attire" });
     const importId = await preparedImport(planner);
     expect(

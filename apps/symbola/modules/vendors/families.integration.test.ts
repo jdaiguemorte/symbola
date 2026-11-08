@@ -36,7 +36,7 @@ import {
 } from "./service";
 
 const catalog = (locale: "fr" | "en" = "fr") =>
-  starterVendorCatalog(locale, "wedding_planner").map((family) => ({
+  starterVendorCatalog(locale).map((family) => ({
     ...family,
     types: family.types.map((type) => ({ key: type.key, label: type.label, synonyms: type.synonyms, fields: type.fields })),
   }));
@@ -101,7 +101,7 @@ describe("PRE-14 — Familles et types", () => {
     const organizationId = await newOrganization();
     await seedStarterVendorCatalog(organizationId, catalog(), { withTypes: false });
     const count = (await listVendorFamilies(organizationId)).length;
-    const stationery = await familyNamed(organizationId, "Papeterie");
+    const stationery = await familyNamed(organizationId, "Papeterie et impression");
     await removeVendorFamily(organizationId, stationery.id);
 
     expect(await seedStarterVendorCatalog(organizationId, catalog(), { withTypes: true })).toEqual({ families: 0, types: 0, classified: 0 });

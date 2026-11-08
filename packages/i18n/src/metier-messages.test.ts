@@ -2,7 +2,7 @@
 // remplacent ceux du catalogue, clé par clé, sans rien perdre d'autre.
 import { describe, expect, it } from "vitest";
 import frMessages from "./messages/fr.json";
-import agencyFr from "./messages/metier/event_agency.fr.json";
+import agencyFr from "./messages/vocabulary/clients.fr.json";
 import { withMetierMessages } from "./metier-messages";
 
 describe("HUB-21 — Vocabulaire selon le métier", () => {

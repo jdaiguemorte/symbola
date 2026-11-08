@@ -48,6 +48,9 @@ export type EventSummary = {
 
 export type EventDetail = EventSummary & {
   prospectSourceId: string | null;
+  // Lot 16 (ADR 0045) : type de l'événement ; nul pour un événement d'avant le
+  // lot 16 (le vocabulaire suit alors le métier de l'organisation).
+  eventTypeId: string | null;
   lossReasonId: string | null;
   lossReasonNote: string | null;
   // EVT-04 : date pour laquelle les échéances ont été calculées.
@@ -72,6 +75,8 @@ export type CreateProspectInput = {
   createdByUserId: string;
   clients: EventClientInput[];
   prospectSourceId: string;
+  // Lot 16 (ADR 0045) : un type de l'organisation.
+  eventTypeId?: string | null | undefined;
   eventDate?: string | null;
   venueName?: string | null;
   venueCity?: string | null;
@@ -89,6 +94,24 @@ export type ChangeEventStatusInput = {
   lossReasonId?: string | null;
   lossReasonNote?: string | null;
 };
+
+// Lot 16 (ADR 0045) — type d'un événement (mariage, séminaire…), liste propre
+// à l'organisation. Il dit qui sont les clients, et donc le vocabulaire des
+// écrans de l'événement : « les mariés » (couple) ou « le client » (clients).
+export type EventTypeAudience = "couple" | "clients";
+
+export type EventType = {
+  id: string;
+  label: string;
+  audience: EventTypeAudience;
+  position: number;
+  starterKey: string | null;
+};
+
+export type EventTypeInput = { label: string; audience: EventTypeAudience };
+
+// Types de départ (packages/starter-templates), déjà traduits.
+export type StarterEventTypeInput = { key: string; label: string; audience: EventTypeAudience };
 
 export type ProspectSource = {
   id: string;
@@ -348,6 +371,9 @@ export type InviteEventClientInput = {
   invitedByUserId: string;
   // Langue de l'e-mail d'invitation.
   locale: "fr" | "en";
+  // Lot 16 (ADR 0045) : vocabulaire de l'e-mail (« votre mariage » ou « votre
+  // événement ») ; à défaut, celui du type de l'événement, sinon les mariés.
+  audience?: EventTypeAudience | undefined;
 };
 
 export type InviteEventClientResult = {
@@ -397,6 +423,18 @@ export interface EventsServiceContract {
   createProspect(input: CreateProspectInput): Promise<CreateProspectResult>;
   changeEventStatus(input: ChangeEventStatusInput): Promise<void>;
   listProspectSources(organizationId: string): Promise<ProspectSource[]>;
+  // Lot 16 (ADR 0045) — types d'événement.
+  listEventTypes(organizationId: string): Promise<EventType[]>;
+  // Installe les types de départ qui manquent (par leur clé) ; renvoie le nombre ajouté.
+  addStarterEventTypes(organizationId: string, types: StarterEventTypeInput[]): Promise<number>;
+  createEventType(organizationId: string, input: EventTypeInput): Promise<EventType>;
+  updateEventType(organizationId: string, eventTypeId: string, input: EventTypeInput): Promise<void>;
+  // Un type utilisé demande un type de remplacement ; le dernier type ne se supprime pas.
+  removeEventType(organizationId: string, eventTypeId: string, moveEventsTo: string | null): Promise<void>;
+  countEventsByType(organizationId: string): Promise<Record<string, number>>;
+  setEventType(organizationId: string, eventId: string, eventTypeId: string): Promise<void>;
+  // Qui sont les clients de cet événement ; nul s'il n'a pas de type.
+  getEventAudience(organizationId: string, eventId: string): Promise<EventTypeAudience | null>;
   createProspectSource(organizationId: string, label: string): Promise<ProspectSource>;
   listLossReasons(organizationId: string): Promise<LossReason[]>;
   createLossReason(organizationId: string, label: string, isFreeText: boolean): Promise<LossReason>;

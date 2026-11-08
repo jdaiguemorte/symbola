@@ -34,6 +34,8 @@ import { createQuoteAction, startQuotesTrialAction } from "@/app/devis/actions";
 import { isQuotesModuleEnabled } from "@/app/devis/module-access";
 import { QUOTE_STATUS_LABEL_KEYS } from "@/app/devis/quote-display";
 import { requirePlanner } from "@/lib/guards";
+import { ensureEventTypes } from "@/lib/events/event-types";
+import { setEventTypeAction } from "./actions";
 import { isEventsModuleEnabled, isValidId } from "../module-access";
 import { ChangeStatusForm } from "./change-status-form";
 import { NextStepBanner } from "./next-step-banner";
@@ -148,6 +150,7 @@ export default async function EventDetailPage({
     program.items.map((item) => [item.id, item.label]),
   );
   const locale = (await getLocale()) as Locale;
+  const eventTypes = await ensureEventTypes(organizationId, locale);
   const progress = summarizeVendorSlots(vendorSlots);
   const sourceLabel = sources.find(
     (candidate) => candidate.id === event.prospectSourceId,
@@ -292,6 +295,28 @@ export default async function EventDetailPage({
             <span>
               {t("source")} : {sourceLabel ?? "—"}
             </span>
+            {/* Lot 16 (ADR 0045) : le type dit comment parler des clients sur toute la fiche. */}
+            <form action={setEventTypeAction} className="inline-form">
+              <input type="hidden" name="eventId" value={event.id} />
+              <label>
+                {t("eventType")} :{" "}
+                <select name="eventTypeId" defaultValue={event.eventTypeId ?? ""} aria-label={t("eventTypeOf", { names: clientNames })}>
+                  {event.eventTypeId ? null : (
+                    <option value="" disabled>
+                      {t("eventTypeNone")}
+                    </option>
+                  )}
+                  {eventTypes.map((type) => (
+                    <option key={type.id} value={type.id}>
+                      {type.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <button type="submit" className="button-ghost">
+                {t("changeEventType")}
+              </button>
+            </form>
           </>
         }
       />
