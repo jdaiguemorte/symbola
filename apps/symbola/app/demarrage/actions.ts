@@ -22,10 +22,13 @@ import {
   completeSetup,
   getOrganizationProfile,
   saveOnboardingStep,
+  isModuleEnabled,
   saveSetupStep,
+  SETUP_STEPS,
   type LegalForm,
   type Metier,
 } from "@/modules/hub/service";
+import { InvalidDocumentSettingsError, updateDocumentColor } from "@/modules/quotes/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { loadStarterKit } from "@/lib/setup/starter-kit";
 import { isValidId } from "@/app/events/module-access";
@@ -170,17 +173,37 @@ export async function addLossReasonAction(_prev: SetupFormState, formData: FormD
   return added > 0 ? { success: true } : { error: t("alreadyExists") };
 }
 
-// « Valider et continuer » des étapes de listes (4, 5).
+// Lot 18 (AIDE-13, décision E) — étape 4 facultative « Vos documents » : la
+// couleur des devis et factures (le logo s'envoie par sa route, /logo).
+// « Plus tard » passe à l'étape suivante sans rien enregistrer.
+export async function saveDocumentsStepAction(_prev: SetupFormState, formData: FormData): Promise<SetupFormState> {
+  const access = await owner();
+  const t = await getTranslations("Setup");
+  if (!access) return { error: t("ownerOnly") };
+  const color = text(formData, "color");
+  if (color !== "" && (await withDb((db) => isModuleEnabled(db, access.organizationId, "quotes")))) {
+    try {
+      await updateDocumentColor(access.organizationId, color);
+    } catch (error) {
+      if (error instanceof InvalidDocumentSettingsError) return { error: t("documentsColorInvalid") };
+      throw error;
+    }
+  }
+  await withDb((db) => saveSetupStep(db, access.organizationId, 5));
+  goTo(5);
+}
+
+// « Valider et continuer » des étapes de listes (5, 6) et « Plus tard » (4).
 export async function nextStepAction(formData: FormData): Promise<void> {
   const access = await owner();
   if (!access) return;
   const next = Number(text(formData, "next"));
-  if (!Number.isInteger(next) || next < 2 || next > 6) return;
+  if (!Number.isInteger(next) || next < 2 || next > SETUP_STEPS) return;
   await withDb((db) => saveSetupStep(db, access.organizationId, next));
   goTo(next);
 }
 
-// Étape 6 — fin : les menus se déverrouillent.
+// Étape 7 — fin : les menus se déverrouillent.
 export async function finishSetupAction(): Promise<void> {
   const access = await owner();
   if (!access) return;

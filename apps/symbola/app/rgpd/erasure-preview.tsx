@@ -6,11 +6,10 @@ import { formatCalendarDate, type Locale } from "@symbola/i18n";
 import type { SearchTerms } from "./actions";
 import { executeErasureAction, type ErasureExecuteState, type ErasurePreviewState } from "./erasure-actions";
 
-export type ErasableRequest = { id: string; label: string };
-
 // RGPD-03 — aperçu de l'oubli (supprimée, anonymisée, conservée avec motif
 // légal et date de fin), puis validation rattachée à la demande d'oubli.
-export function ErasurePreview({ preview, terms, erasureRequests }: { preview: ErasurePreviewState; terms: SearchTerms; erasureRequests: ErasableRequest[] }) {
+// Lot 18 (RGPD-07) : l'effacement est celui de la demande du dossier.
+export function ErasurePreview({ preview, terms, requestId }: { preview: ErasurePreviewState; terms: SearchTerms; requestId: string }) {
   const t = useTranslations("Privacy");
   const locale = useLocale() as Locale;
   const initialState: ErasureExecuteState = {};
@@ -43,31 +42,13 @@ export function ErasurePreview({ preview, terms, erasureRequests }: { preview: E
         {(preview.selectedKeys ?? []).map((key) => (
           <input key={key} type="hidden" name="record" value={key} />
         ))}
-        {erasureRequests.length === 0 ? (
-          <p role="note">{t("erasureNoRequest")}</p>
-        ) : (
-          <>
-            <label>
-              {t("erasureRequestLabel")}
-              <select name="requestId" required defaultValue="">
-                <option value="" disabled>
-                  {t("erasureChooseRequest")}
-                </option>
-                {erasureRequests.map((request) => (
-                  <option key={request.id} value={request.id}>
-                    {request.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              <input type="checkbox" name="irreversibleAcknowledged" required /> {t("erasureConfirm")}
-            </label>
-            <button type="submit" disabled={executing}>
-              {executing ? t("erasing") : t("erasureSubmit")}
-            </button>
-          </>
-        )}
+        <input type="hidden" name="requestId" value={requestId} />
+        <label>
+          <input type="checkbox" name="irreversibleAcknowledged" required /> {t("erasureConfirm")}
+        </label>
+        <button type="submit" disabled={executing}>
+          {executing ? t("erasing") : t("erasureSubmit")}
+        </button>
         {state.error ? <p role="alert">{state.error}</p> : null}
       </form>
     </section>

@@ -53,8 +53,9 @@ export function HelpBar({
         </section>
       ) : null}
       {/* Lot 13 (HUB-15) : plus de barre permanente ; une pastille seulement
-          quand un tutoriel est à reprendre. */}
-      {tutorial ? (
+          quand un tutoriel est à reprendre. Lot 18 (HUB-23) : sur l'onglet
+          Tutoriels seulement, pour ne pas gêner la navigation ailleurs. */}
+      {tutorial && (pathname === "/tutoriels" || pathname.startsWith("/tutoriels/")) ? (
         <aside className="resume-zone" aria-label={t("resumeLabel")}>
           <Link href={tutorial.href} className="resume-chip">
             {t("resumeTutorial", { title: tutorial.title })}

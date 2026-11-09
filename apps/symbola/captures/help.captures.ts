@@ -24,6 +24,7 @@ import {
 import { addQuoteLine, addScheduleItem, createCatalogItem, createQuote, sendQuote } from "../modules/quotes/service";
 import { createAllocationModel, simulateEventBudget } from "../modules/budget/service";
 import { createVendor, listVendorTypes } from "../modules/vendors/service";
+import { createPrivacyRequest } from "../modules/hub/service";
 import { HELP_SCREENS } from "../lib/help/screens";
 
 const OUT = join(__dirname, "..", "public", "aide", "captures") + "/";
@@ -47,7 +48,8 @@ async function runSetup(page: Page) {
   await page.goto("/events");
   await expect(page).toHaveURL(/\/demarrage/);
   await page.getByRole("radio", { name: /Wedding planner/ }).check();
-  for (const step of [2, 3, 4, 5, 6]) {
+  // Lot 18 (AIDE-13) : 7 étapes, la 4ᵉ « Vos documents » (facultative) validée telle quelle.
+  for (const step of [2, 3, 4, 5, 6, 7]) {
     if (step === 3) await page.getByLabel("Forme juridique").selectOption("sas");
     if (step === 4) await page.getByRole("radio", { name: /Franchise en base/ }).check();
     await page.getByRole("button", { name: "Valider et continuer" }).click();
@@ -147,6 +149,16 @@ test("captures des écrans pour le centre d'aide", async ({ page }) => {
   await login(page, email, password);
   await runSetup(page);
   const { confirmed, quoteId } = await seed(organizationId, userId);
+  // Lot 18 (RGPD-07) : deux demandes fictives, dont une en alerte, pour que la
+  // liste des demandes et le compteur du menu aient quelque chose à montrer.
+  const daysAgo = (days: number) => new Date(Date.now() - days * 86_400_000).toISOString().slice(0, 10);
+  const privacy = createAppConnection();
+  try {
+    await createPrivacyRequest(privacy.db, { organizationId, userId, type: "access", personLabel: "Léa Martin", receivedOn: daysAgo(26) });
+    await createPrivacyRequest(privacy.db, { organizationId, userId, type: "rectification", personLabel: "Antoine", receivedOn: daysAgo(3) });
+  } finally {
+    await privacy.sql.end();
+  }
 
   const dynamic: Record<string, string> = {
     eventsDetail: `/events/${confirmed}`,

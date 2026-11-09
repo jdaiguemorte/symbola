@@ -1,18 +1,20 @@
-// Lot 12 (ONB-03) — assistant de démarrage : six étapes déjà remplies selon
-// le métier, à relire et ajuster. Tant qu'il n'est pas terminé, les menus
+// Lot 12 (ONB-03) — assistant de démarrage : sept étapes (lot 18 : « Vos
+// documents », facultative) déjà remplies selon le métier, à relire et ajuster. Tant qu'il n'est pas terminé, les menus
 // métier sont verrouillés (app-shell). Réservé à la titulaire ; un membre de
 // l'équipe voit qu'elle doit le terminer.
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
-import { starterEventTypes } from "@symbola/starter-templates";
+import { starterDocumentStyle, starterEventTypes } from "@symbola/starter-templates";
 import { appDatabase } from "@symbola/db/client";
 import { listDefaultVendorSlots, listEventTypes, listLossReasons, listProgramTemplates, listProspectSources, listTaskTemplates } from "@/modules/events/service";
 import { listAllocationModels } from "@/modules/budget/service";
-import { getOrganizationProfile, getSetupState, SETUP_STEPS } from "@/modules/hub/service";
+import { getOrganizationProfile, getSetupState, isModuleEnabled, SETUP_STEPS } from "@/modules/hub/service";
+import { getDocumentSettings } from "@/modules/quotes/service";
+import { LogoForm } from "@/app/logo/logo-form";
 import { requirePlanner } from "@/lib/guards";
 import { BudgetLineIcon } from "@/app/budget-line-icon";
 import { finishSetupAction, nextStepAction, removeBudgetLineAction } from "./actions";
-import { ActivityForm, AddBudgetLineForm, AddLossReasonForm, AddSourceForm, BudgetLineForm, CompanyForm, VatForm } from "./setup-forms";
+import { ActivityForm, AddBudgetLineForm, AddLossReasonForm, AddSourceForm, BudgetLineForm, CompanyForm, DocumentsColorForm, VatForm } from "./setup-forms";
 
 export default async function SetupPage({ searchParams }: { searchParams: Promise<{ etape?: string }> }) {
   const auth = await requirePlanner();
@@ -73,9 +75,10 @@ export default async function SetupPage({ searchParams }: { searchParams: Promis
         ) : null}
         {step === 2 ? <CompanyForm profile={profile} /> : null}
         {step === 3 ? <VatForm regime={profile.vatRegime} /> : null}
-        {step === 4 ? <BudgetLinesStep /> : null}
-        {step === 5 ? <ListsStep /> : null}
-        {step === 6 ? <ModelsStep /> : null}
+        {step === 4 ? <DocumentsStep /> : null}
+        {step === 5 ? <BudgetLinesStep /> : null}
+        {step === 6 ? <ListsStep /> : null}
+        {step === 7 ? <ModelsStep /> : null}
       </section>
       {step > 1 ? (
         <p>
@@ -84,6 +87,26 @@ export default async function SetupPage({ searchParams }: { searchParams: Promis
       ) : null}
     </main>
   );
+
+  // Lot 18 (AIDE-13, décision E) : logo et couleur, facultatifs.
+  async function DocumentsStep() {
+    const quotes = await isModuleEnabled(db, organizationId, "quotes");
+    const style = starterDocumentStyle(starterLocale);
+    const settings = quotes ? await getDocumentSettings(organizationId) : null;
+    const logoVersion = profile.logoKey?.split("/").pop() ?? null;
+    return (
+      <div className="stack">
+        <LogoForm version={logoVersion} />
+        {quotes ? <DocumentsColorForm swatches={style.swatches} current={settings?.color ?? style.defaultColor} /> : <NextButton next={5} />}
+        <form action={nextStepAction}>
+          <input type="hidden" name="next" value={5} />
+          <button type="submit" className="button-ghost">
+            {t("documentsLater")}
+          </button>
+        </form>
+      </div>
+    );
+  }
 
   async function BudgetLinesStep() {
     const lines = await listDefaultVendorSlots(organizationId);
@@ -101,7 +124,7 @@ export default async function SetupPage({ searchParams }: { searchParams: Promis
           ))}
         </ul>
         <AddBudgetLineForm />
-        <NextButton next={5} />
+        <NextButton next={6} />
       </div>
     );
   }
@@ -130,7 +153,7 @@ export default async function SetupPage({ searchParams }: { searchParams: Promis
           </ul>
           <AddLossReasonForm />
         </section>
-        <NextButton next={6} />
+        <NextButton next={7} />
       </div>
     );
   }

@@ -67,8 +67,11 @@ test("RGPD-02 — la titulaire exporte les fiches cochées de la personne et té
   }
 
   await loginAndSetupMfa(page, ownerEmail, password);
+  // Lot 18 (RGPD-07, décision B) : l'export part du dossier de la demande d'accès.
   await page.goto("/rgpd");
-  await page.getByLabel("Nom").fill(`Élodie ${lastName}`);
+  await page.getByRole("link", { name: `Élodie ${lastName}`, exact: true }).click();
+  await expect(page.getByRole("heading", { level: 2, name: "Données retrouvées" })).toBeVisible();
+  await expect(page.getByLabel("Nom")).toHaveValue(`Élodie ${lastName}`);
   await page.getByRole("button", { name: "Rechercher", exact: true }).click();
   await expect(page.getByRole("heading", { name: /données trouvées/ })).toBeVisible();
 
@@ -80,7 +83,6 @@ test("RGPD-02 — la titulaire exporte les fiches cochées de la personne et té
   await page.getByLabel("Tâche : Réserver le traiteur").check();
   await expect(page.getByText("2 fiches cochées.")).toBeVisible();
   await expect(page.getByText(/vos notes internes .* font partie de l'export/)).toBeVisible();
-  await page.getByLabel("Rattacher à une demande").selectOption({ label: `Élodie ${lastName} — Accès` });
   await page.getByLabel("J'ai compris que mes notes internes font partie de l'export").check();
   await expectNoAxeViolation(page);
   await exportButton.click();
@@ -101,10 +103,13 @@ test("RGPD-02 — la titulaire exporte les fiches cochées de la personne et té
   const pdfHref = await page.getByRole("status").getByRole("link", { name: "Télécharger le PDF" }).getAttribute("href");
   expect((await (await page.request.get(pdfHref!)).body()).subarray(0, 5).toString("latin1")).toBe("%PDF-");
 
-  // Retrouvé dans « Exports récents », rattaché à la demande.
-  await page.reload();
-  const recent = page.getByRole("region", { name: "Exports récents" });
-  await expect(recent).toContainText(`demande de Élodie ${lastName}`);
-  await expect(recent.getByRole("link", { name: "Télécharger le PDF" })).toBeVisible();
+  // Lot 18 (RGPD-07) : l'export est rangé dans le dossier (étape 3), et le
+  // dossier passe à la réponse.
+  await page.getByRole("link", { name: "Étape suivante : répondre à la personne" }).click();
+  await expect(page.getByText(new RegExp(`Bonjour Élodie ${lastName}`))).toBeVisible();
+  await page.getByRole("navigation", { name: "Étapes du dossier" }).getByRole("link", { name: /3 · Action/ }).click();
+  const panel = page.getByRole("region", { name: "Action" });
+  await expect(panel).toContainText("(2 fiches)");
+  await expect(panel.getByRole("link", { name: "Télécharger le PDF" })).toBeVisible();
   await expectNoAxeViolation(page);
 });

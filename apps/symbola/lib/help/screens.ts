@@ -62,10 +62,13 @@ export const HELP_SCREENS: HelpScreen[] = [
   { key: "importGaps", group: "data", audience: "team", path: null, capture: false },
   { key: "importConfirm", group: "data", audience: "team", path: null, capture: false },
   { key: "importUndo", group: "data", audience: "team", path: null, capture: false },
-  { key: "privacySearch", group: "data", audience: "team", ownerOnly: true, path: "/rgpd", capture: true },
-  { key: "privacyRequests", group: "data", audience: "team", ownerOnly: true, path: "/rgpd/demandes", capture: true },
-  { key: "privacyExport", group: "data", audience: "team", ownerOnly: true, path: "/rgpd", capture: false },
-  { key: "privacyErasure", group: "data", audience: "team", ownerOnly: true, path: "/rgpd", capture: false },
+  // Lot 18 (RGPD-07) : les demandes sont l'accueil ; la recherche a son onglet ;
+  // export et effacement se font dans le dossier d'une demande.
+  { key: "privacyRequests", group: "data", audience: "team", ownerOnly: true, path: "/rgpd", capture: true },
+  { key: "privacySearch", group: "data", audience: "team", ownerOnly: true, path: "/rgpd/recherche", capture: true },
+  { key: "privacyCase", group: "data", audience: "team", ownerOnly: true, path: null, capture: false },
+  { key: "privacyExport", group: "data", audience: "team", ownerOnly: true, path: null, capture: false },
+  { key: "privacyErasure", group: "data", audience: "team", ownerOnly: true, path: null, capture: false },
   { key: "privacyPurge", group: "data", audience: "team", ownerOnly: true, path: "/rgpd/purge", capture: true },
   { key: "privacySettings", group: "data", audience: "team", ownerOnly: true, path: "/rgpd/reglages", capture: true },
   // Administration de la suite (aucune capture : elle montrerait des organisations)

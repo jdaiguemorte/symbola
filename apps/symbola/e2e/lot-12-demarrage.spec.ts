@@ -58,14 +58,21 @@ async function runSetup(page: Page, metier: RegExp, expectedLine: string) {
   await page.getByRole("radio", { name: /Franchise en base/ }).check();
   await validate(page, 4);
 
+  // Lot 18 (AIDE-13) : « Vos documents », facultative — logo et couleur.
+  await expect(page.getByRole("heading", { name: "Vos devis et factures" })).toBeVisible();
+  await expect(page.getByLabel("Choisir une image (PNG ou JPEG, 2 Mo au plus)")).toBeVisible();
+  await page.getByRole("radio", { name: "Terracotta" }).check();
+  await expectNoAxeViolation(page);
+  await validate(page, 5);
+
   // Les lignes du budget du métier sont pré-remplies, avec leur icône.
   await expect(page.getByRole("textbox", { name: `Nom de la ligne ${expectedLine}` })).toHaveValue(expectedLine);
   await expectNoAxeViolation(page);
   await page.getByLabel("Ajouter une ligne (ex. Navettes)").fill("Navettes");
   await page.getByRole("button", { name: "Ajouter" }).click();
   await expect(page.getByRole("textbox", { name: "Nom de la ligne Navettes" })).toHaveValue("Navettes");
-  await validate(page, 5);
   await validate(page, 6);
+  await validate(page, 7);
   await page.getByRole("button", { name: "Terminer et découvrir Symbola" }).click();
   await expect(page).toHaveURL(/\/\?demarrage=termine$/);
 

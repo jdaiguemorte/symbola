@@ -9,6 +9,8 @@ import { createOrganization, createUser } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
 import {
   closePrivacyRequest,
+  markPrivacyActionDone,
+  markPrivacyResponseSent,
   createPrivacyRequest,
   extendPrivacyRequest,
   getPrivacySettings,
@@ -71,14 +73,16 @@ describe("RGPD-04 — Suivi des demandes", () => {
 
   it("Étant donné une échéance à moins de 7 jours, alors la demande apparaît en alerte dans le tableau de bord (pas la veille du seuil)", async () => {
     const owner = await createOwner();
-    const request = await createPrivacyRequest(db, { ...owner, type: "access", personLabel: "Chloé", receivedOn: "2026-11-02", now: at("2026-11-02") });
+    const request = await createPrivacyRequest(db, { ...owner, type: "rectification", personLabel: "Chloé", receivedOn: "2026-11-02", now: at("2026-11-02") });
     // Échéance le 2 décembre : 7 jours restants le 25 novembre, 6 le 26.
     expect(await listDueSoonPrivacyRequests(db, owner.organizationId, at("2026-11-25"))).toEqual([]);
     expect((await listDueSoonPrivacyRequests(db, owner.organizationId, at("2026-11-26"))).map((view) => [view.id, view.daysLeft])).toEqual([[request.id, 6]]);
     // Le jour même, puis dépassée : toujours en alerte.
     expect((await listDueSoonPrivacyRequests(db, owner.organizationId, at("2026-12-02")))[0]?.daysLeft).toBe(0);
     expect((await listDueSoonPrivacyRequests(db, owner.organizationId, at("2026-12-04")))[0]?.daysLeft).toBe(-2);
-    // Close : plus jamais en alerte.
+    // Close (lot 18 : action faite et réponse envoyée) : plus jamais en alerte.
+    await markPrivacyActionDone(db, { organizationId: owner.organizationId, requestId: request.id });
+    await markPrivacyResponseSent(db, { organizationId: owner.organizationId, requestId: request.id });
     await closePrivacyRequest(db, { organizationId: owner.organizationId, requestId: request.id, now: at("2026-12-04") });
     expect(await listDueSoonPrivacyRequests(db, owner.organizationId, at("2026-12-04"))).toEqual([]);
     expect((await listPrivacyRequests(db, owner.organizationId, at("2026-12-04")))[0]).toMatchObject({ status: "closed", daysLeft: null, dueSoon: false });

@@ -30,7 +30,7 @@ import { sampleDocumentModel, type SampleContext } from "./sample";
 type Swatch = { color: string; label: string };
 
 // Pastille de couleur : posée en CSSOM (la CSP refuse les attributs style).
-function SwatchDot({ color }: { color: string }) {
+export function SwatchDot({ color }: { color: string }) {
   const dot = useRef<HTMLSpanElement>(null);
   useLayoutEffect(() => {
     dot.current?.style.setProperty("background-color", color);

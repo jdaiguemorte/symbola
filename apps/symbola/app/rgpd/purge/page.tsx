@@ -7,6 +7,7 @@ import { listPrivacyPurges, type PrivacyPurgeView } from "@/modules/hub/service"
 import { requireOwner } from "@/lib/guards";
 import { listPurgeCandidates, type PurgeCandidate } from "@/lib/privacy/purge";
 import { PurgeForm } from "./purge-form";
+import { PrivacyTabs } from "../privacy-tabs";
 
 // RGPD-05 — purge mensuelle : liste des personnes et documents dont la durée
 // de conservation est échue (réglages RGPD de l'organisation), à valider ;
@@ -37,10 +38,9 @@ export default async function PurgePage() {
 
   return (
     <main>
-      <p>
-        <Link href="/rgpd">{t("backToSearch")}</Link> · <Link href="/rgpd/reglages">{t("settingsLink")}</Link>
-      </p>
       <h1>{t("purgeTitle")}</h1>
+      {/* Lot 18 (RGPD-07, décision A) : onglets de Données personnelles. */}
+      <PrivacyTabs />
       <ScreenHelp title={tHelp("privacyPurge.title")} body={tHelp("privacyPurge.body")} />
       <p>{t("purgeIntro")}</p>
       {candidates.length === 0 ? (

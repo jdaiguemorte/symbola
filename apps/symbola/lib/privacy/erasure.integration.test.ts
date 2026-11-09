@@ -16,7 +16,17 @@ import type { PersonTerms, PrivacyContractV1 } from "@symbola/privacy";
 import { listBudgetLines, updateBudgetLine } from "@/modules/budget/service";
 import { addEventTask, addEventVendorSlot, createProspect, createProspectSource, eventsPrivacy } from "@/modules/events/service";
 import { budgetPrivacy } from "@/modules/budget/service";
-import { createPrivacyRequest, getPrivacyErasure, hubPrivacy, listPrivacyRequests, PrivacyErasureInvalidError, PrivacyErasureNotFoundError } from "@/modules/hub/service";
+import {
+  closePrivacyRequest,
+  createPrivacyRequest,
+  getPrivacyCase,
+  getPrivacyErasure,
+  hubPrivacy,
+  listPrivacyRequests,
+  markPrivacyResponseSent,
+  PrivacyErasureInvalidError,
+  PrivacyErasureNotFoundError,
+} from "@/modules/hub/service";
 import { quotesPrivacy } from "@/modules/quotes/service";
 import { executeErasure, previewErasure, retryErasure } from "./erasure";
 import { recordKey } from "./export";
@@ -133,7 +143,7 @@ describe("RGPD-03 — Demande d'oubli", { timeout: 30_000 }, () => {
     expect(preview.items.find((item) => item.kind === "event_client")?.label).toBe(`Élodie ${lastName}`);
   });
 
-  it("Quand elle valide, chaque module exécute sa part ; les statistiques restent justes ; nom, e-mail et notes sont introuvables, y compris par la recherche ; la demande est close", async () => {
+  it("Quand elle valide, chaque module exécute sa part ; les statistiques restent justes ; nom, e-mail et notes sont introuvables, y compris par la recherche ; la demande se clôt après la réponse", async () => {
     const planner = await createPlanner();
     const lastName = `Martin${randomUUID().slice(0, 6)}`;
     const eventId = await seedWedding(planner, "Chloé", lastName, false);
@@ -145,7 +155,8 @@ describe("RGPD-03 — Demande d'oubli", { timeout: 30_000 }, () => {
     expect(result).toMatchObject({ status: "ok", erasureStatus: "completed" });
     if (result.status !== "ok") return;
 
-    // Accusés de chaque module concerné, demande close.
+    // Accusés de chaque module concerné. Lot 18 (RGPD-07, décision C) : la
+    // demande reste ouverte jusqu'à la réponse à la personne.
     const erasure = await getPrivacyErasure(db, planner.organizationId, result.erasureId);
     expect(erasure.acks.map((ack) => [ack.module, ack.status]).sort()).toEqual([
       ["budget", "ok"],
@@ -153,6 +164,10 @@ describe("RGPD-03 — Demande d'oubli", { timeout: 30_000 }, () => {
       ["quotes", "ok"],
     ]);
     expect(erasure.completedAt).not.toBeNull();
+    expect((await listPrivacyRequests(db, planner.organizationId)).find((candidate) => candidate.id === request.id)?.status).toBe("open");
+    expect((await getPrivacyCase(db, planner.organizationId, request.id)).actionDone).toBe(true);
+    await markPrivacyResponseSent(db, { organizationId: planner.organizationId, requestId: request.id });
+    await closePrivacyRequest(db, { organizationId: planner.organizationId, requestId: request.id });
     expect((await listPrivacyRequests(db, planner.organizationId)).find((candidate) => candidate.id === request.id)?.status).toBe("closed");
 
     // Introuvable, par le nom comme par l'e-mail.
@@ -227,7 +242,9 @@ describe("RGPD-03 — Demande d'oubli", { timeout: 30_000 }, () => {
     ).rejects.toThrow(PrivacyErasureInvalidError);
 
     expect(await retryErasure({ organizationId: planner.organizationId, erasureId: result.erasureId })).toBe("completed");
-    expect((await listPrivacyRequests(db, planner.organizationId)).find((candidate) => candidate.id === request.id)?.status).toBe("closed");
+    // Effacement terminé ; la demande attend la réponse à la personne (lot 18).
+    expect((await getPrivacyCase(db, planner.organizationId, request.id)).actionDone).toBe(true);
+    expect((await listPrivacyRequests(db, planner.organizationId)).find((candidate) => candidate.id === request.id)?.status).toBe("open");
     expect((await searchPerson({ organizationId: planner.organizationId, terms }))!.records).toEqual([]);
   });
 });

@@ -21,7 +21,11 @@ export async function PrivacyRequestsAlertBlock({ organizationId }: { organizati
       <ul>
         {requests.map((request) => (
           <li key={request.id}>
-            {t(`requestType.${request.type}`)} — {request.personLabel} —{" "}
+            {/* Lot 18 (RGPD-07) : chaque alerte ouvre le dossier de sa demande. */}
+            <Link href={`/rgpd/demandes/${request.id}`}>
+              {t(`requestType.${request.type}`)} — {request.personLabel}
+            </Link>{" "}
+            —{" "}
             {request.daysLeft !== null && request.daysLeft < 0
               ? t("requestOverdue", { days: -request.daysLeft })
               : t("requestDueOn", { date: formatCalendarDate(request.dueOn, locale), days: request.daysLeft ?? 0 })}
@@ -29,7 +33,7 @@ export async function PrivacyRequestsAlertBlock({ organizationId }: { organizati
         ))}
       </ul>
       <p>
-        <Link href="/rgpd/demandes">{t("requestsLink")}</Link>
+        <Link href="/rgpd">{t("requestsLink")}</Link>
       </p>
     </section>
   );

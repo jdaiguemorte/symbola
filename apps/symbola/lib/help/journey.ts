@@ -8,7 +8,9 @@ import type { TutorialDefinition, TutorialKey } from "./catalog";
 export type JourneyStageKey = "activity" | "templates" | "first_event" | "sales" | "clients" | "other";
 
 export const JOURNEY: { key: JourneyStageKey; tutorials: TutorialKey[] }[] = [
-  { key: "activity", tutorials: ["catalog"] },
+  // Lot 18 (AIDE-13, décision G) : les documents d'abord, conseillés juste
+  // après le démarrage, y compris aux organisations déjà démarrées.
+  { key: "activity", tutorials: ["documents", "catalog"] },
   { key: "templates", tutorials: ["retroplanning-template", "day-program", "budget-simulation"] },
   { key: "first_event", tutorials: ["event-page", "vendor-quotes"] },
   { key: "sales", tutorials: ["quote-signature", "deposit-invoice"] },

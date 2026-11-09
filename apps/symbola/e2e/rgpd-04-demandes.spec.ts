@@ -46,38 +46,44 @@ test("RGPD-04 — demande en alerte au tableau de bord, prolongée avec motif, p
   }
   await loginAndSetupMfa(page, email, password);
 
+  // Lot 18 (RGPD-07) : les demandes sont l'onglet d'accueil ; l'ancienne adresse y renvoie.
   await page.goto("/rgpd/demandes");
-  await expect(page.getByRole("heading", { name: "Demandes d'exercice de droits" })).toBeVisible();
+  await expect(page).toHaveURL(/\/rgpd$/);
+  await expect(page.getByRole("heading", { level: 1, name: "Données personnelles" })).toBeVisible();
   await expectNoAxeViolation(page);
   // Reçue il y a 28 jours : l'échéance d'un mois est à moins de 7 jours.
   await page.getByLabel("Type de demande").selectOption({ label: "Oubli (effacement)" });
   await page.getByLabel("Personne concernée").fill(person);
   await page.getByLabel("Reçue le").fill(parisDaysAgo(28));
   await page.getByRole("button", { name: "Enregistrer la demande" }).click();
-  await expect(page.getByText("Demande enregistrée : l'échéance légale est d'un mois.")).toBeVisible();
-  const request = page.getByRole("listitem").filter({ hasText: person });
-  await expect(request).toContainText("en cours");
-  await expect(request).toContainText("À traiter en priorité");
+  // La demande ouvre son dossier, sur l'étape « Données retrouvées ».
+  await expect(page).toHaveURL(/\/rgpd\/demandes\/[0-9a-f-]{36}\?etape=/);
+  const caseUrl = page.url().split("?")[0]!;
+  await expect(page.getByRole("heading", { level: 1, name: `Oubli (effacement) — ${person}` })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "Données retrouvées" })).toBeVisible();
   await expectNoAxeViolation(page);
+  await page.goto("/rgpd");
+  const row = page.getByRole("row").filter({ hasText: person });
+  await expect(row).toContainText("Données à retrouver");
+  await expect(row).toContainText(/jours? restants?/);
 
   await page.goto("/");
   const alert = page.getByRole("region", { name: "Demande RGPD à traiter rapidement" });
   await expect(alert).toContainText(`Oubli (effacement) — ${person}`);
   await expectNoAxeViolation(page);
 
-  // Prolongation : motif obligatoire, échéance à trois mois.
-  await alert.getByRole("link", { name: "Demandes des personnes" }).click();
-  await request.getByLabel(`Motif de la prolongation (demande de « ${person} »)`).fill("Données dans plusieurs modules");
-  await request.getByRole("button", { name: "Prolonger (trois mois au total)" }).click();
-  await expect(request).toContainText("prolongée");
-  await expect(request).toContainText("Prolongée : Données dans plusieurs modules");
-  await expect(request).not.toContainText("À traiter en priorité");
+  // Prolongation (étape 1 du dossier) : motif obligatoire, échéance à trois mois.
+  await alert.getByRole("link", { name: `Oubli (effacement) — ${person}` }).click();
+  await page.goto(`${caseUrl}?etape=registered`);
+  await page.getByLabel(`Motif de la prolongation (demande de « ${person} »)`).fill("Données dans plusieurs modules");
+  await page.getByRole("button", { name: "Prolonger (trois mois au total)" }).click();
+  await expect(page.getByText("Prolongée : Données dans plusieurs modules")).toBeVisible();
   await page.goto("/");
   await expect(page.getByRole("region", { name: /RGPD à traiter rapidement/ })).toHaveCount(0);
 
-  await page.goto("/rgpd/demandes");
-  await request.getByRole("button", { name: `Clore la demande de « ${person} »` }).click();
-  await expect(request).toContainText("close");
-  await expect(request).toContainText("traitée");
+  // Décision C : pas de clôture tant que l'effacement et la réponse ne sont pas faits.
+  await page.goto(`${caseUrl}?etape=closed`);
+  await expect(page.getByText("La demande ne peut pas encore être close :")).toBeVisible();
+  await expect(page.getByRole("button", { name: `Clore la demande de « ${person} »` })).toHaveCount(0);
   await expectNoAxeViolation(page);
 });

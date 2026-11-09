@@ -7,7 +7,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { isSettingsPath } from "./settings-paths";
 
-export type SettingsGroup = { label: string; items: { href: string; label: string }[] };
+// count : repère visuel (lot 18, demandes RGPD en alerte), le nom du lien ne change pas.
+export type SettingsGroup = { label: string; items: { href: string; label: string; count?: number }[] };
 
 function under(pathname: string, path: string): boolean {
   return pathname === path || pathname.startsWith(`${path}/`);
@@ -32,6 +33,11 @@ export function SettingsNav({ groups, label }: { groups: SettingsGroup[]; label:
               <li key={item.href}>
                 <Link href={item.href} aria-current={item === active ? "page" : undefined}>
                   {item.label}
+                  {item.count ? (
+                    <span className="nav-count nav-count-alert" aria-hidden="true">
+                      {item.count}
+                    </span>
+                  ) : null}
                 </Link>
               </li>
             ))}

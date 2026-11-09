@@ -7,12 +7,14 @@ import { useTranslations } from "next-intl";
 import type { DefaultVendorSlot } from "@/modules/events/service";
 import type { LegalForm, Metier, OrganizationProfile } from "@/modules/hub/service";
 import { BudgetLineIcon, ICON_KEYS } from "@/app/budget-line-icon";
+import { SwatchDot } from "@/app/devis/parametres/documents/document-settings-form";
 import {
   addBudgetLineAction,
   addLossReasonAction,
   addSourceAction,
   saveActivityAction,
   saveCompanyAction,
+  saveDocumentsStepAction,
   saveVatAction,
   updateBudgetLineAction,
   type SetupFormState,
@@ -212,4 +214,33 @@ export function AddSourceForm() {
 export function AddLossReasonForm() {
   const t = useTranslations("Setup");
   return <AddForm action={addLossReasonAction} label={t("newLossReason")} button={t("add")} />;
+}
+
+// Lot 18 (AIDE-13, décision E) — étape 4 « Vos documents » : la couleur des
+// devis et factures parmi les nuances de départ (la couleur libre et le reste
+// se règlent dans Paramètres › Ventes › Documents).
+export function DocumentsColorForm({ swatches, current }: { swatches: { color: string; label: string }[]; current: string }) {
+  const t = useTranslations("Setup");
+  const [state, formAction, pending] = useActionState<SetupFormState, FormData>(saveDocumentsStepAction, {});
+  const [color, setColor] = useState(current);
+  return (
+    <form action={formAction} className="primary-action">
+      <fieldset>
+        <legend>{t("documentsColorLegend")}</legend>
+        <div className="swatch-list">
+          {swatches.map((swatch) => (
+            <label key={swatch.color} className="swatch-option">
+              <input type="radio" name="color" value={swatch.color} checked={color === swatch.color} onChange={() => setColor(swatch.color)} />
+              <SwatchDot color={swatch.color} />
+              {swatch.label}
+            </label>
+          ))}
+        </div>
+      </fieldset>
+      <button type="submit" disabled={pending}>
+        {t("validateAndContinue")}
+      </button>
+      {state.error ? <p role="alert">{state.error}</p> : null}
+    </form>
+  );
 }

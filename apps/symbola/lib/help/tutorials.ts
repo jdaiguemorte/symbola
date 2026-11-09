@@ -19,9 +19,9 @@ import {
   startTutorialEvent,
 } from "@/modules/events/service";
 import { createVendor, removeDemoVendors } from "@/modules/vendors/service";
-import { isModuleEnabled } from "@/modules/hub/service";
+import { getSellerDetails, isModuleEnabled } from "@/modules/hub/service";
 import { listImports } from "@/modules/hub/service";
-import { archiveCatalogItem, getQuote, listCatalogItems, listQuoteInvoices, startQuotesTrial } from "@/modules/quotes/service";
+import { archiveCatalogItem, getDocumentSettings, getQuote, listCatalogItems, listQuoteInvoices, startQuotesTrial } from "@/modules/quotes/service";
 import { endTrial } from "@/lib/demo-purge";
 import type { TutorialKey } from "./catalog";
 
@@ -138,6 +138,34 @@ export const TUTORIAL_SCRIPTS: Record<TutorialKey, TutorialScript> = {
         if (!baseline.has(item.id)) await archiveCatalogItem(env.organizationId, item.id);
       }
     },
+  },
+  // Lot 18 (AIDE-13, décision F) : sans exemple fictif ; chaque étape se
+  // vérifie sur les vrais réglages (coordonnées, couleur, textes ou IBAN).
+  documents: {
+    steps: [
+      { kind: "explain" },
+      {
+        kind: "do",
+        href: () => "/parametres",
+        check: async (env) => {
+          const details = await getSellerDetails(appDatabase(), env.organizationId);
+          return Boolean(details.siret || details.contactEmail || details.contactPhone || details.vatNumber);
+        },
+      },
+      { kind: "look", href: () => "/devis/parametres/documents" },
+      { kind: "do", href: () => "/devis/parametres/documents", check: async (env) => (await getDocumentSettings(env.organizationId)).color !== null },
+      {
+        kind: "do",
+        href: () => "/devis/parametres/documents",
+        check: async (env) => {
+          const settings = await getDocumentSettings(env.organizationId);
+          return settings.iban !== null || settings.quoteTerms !== null || settings.invoiceTerms !== null;
+        },
+      },
+      { kind: "look", href: () => "/devis/parametres/documents" },
+      { kind: "finish" },
+    ],
+    cleanup: async () => {},
   },
   "quote-signature": {
     setup: (env) => exampleQuote(env, "quote-signature"),

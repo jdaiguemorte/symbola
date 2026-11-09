@@ -61,6 +61,9 @@ test("RGPD-01 — la titulaire retrouve une personne et les données de son év�
   await openSettingsTab(page, "Données personnelles");
   await expect(page.getByRole("heading", { name: "Données personnelles" })).toBeVisible();
   await expectNoAxeViolation(page);
+  // Lot 18 (RGPD-07) : la recherche a son onglet.
+  await page.getByRole("navigation", { name: "Rubriques des données personnelles" }).getByRole("link", { name: "Rechercher une personne" }).click();
+  await expect(page).toHaveURL(/\/rgpd\/recherche$/);
 
   await page.getByLabel("Nom").fill(`elodie ${lastName.toUpperCase()}`);
   await page.getByRole("button", { name: "Rechercher", exact: true }).click();

@@ -1,0 +1,82 @@
+// Lot 18 — retours de la recette du lot 17 (Julien, 09/11/2026) : un seul lien
+// du menu allumé (HUB-22), pastille « Reprendre » sur Tutoriels seulement
+// (HUB-23), « Plus d'options » sans déformer la barre (HUB-24), estimation des
+// trajets expliquée (PRE-16). En taille ordinateur et en 375 px, axe-core.
+import { randomUUID } from "node:crypto";
+import AxeBuilder from "@axe-core/playwright";
+import { createAppConnection } from "@symbola/db/client";
+import { createUser } from "@symbola/auth";
+import { expect, test, type Page } from "@playwright/test";
+import * as OTPAuth from "otpauth";
+import { recordHelpProgress } from "../modules/hub/service";
+import { mainMenu, openMenu, readyOrganization } from "./helpers";
+
+async function loginAndSetupMfa(page: Page, email: string, password: string) {
+  await page.goto("/login");
+  await page.getByLabel("E-mail").fill(email);
+  await page.getByLabel("Mot de passe").fill(password);
+  await page.getByRole("button", { name: "Se connecter" }).click();
+  await expect(page).toHaveURL(/\/mfa$/);
+  const provisioningUri = await page.locator("code").textContent();
+  const secret = new URL(provisioningUri!.replace("otpauth://totp/", "https://x/")).searchParams.get("secret")!;
+  await page.getByLabel("Code").fill(new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret) }).generate());
+  await page.getByRole("button", { name: "Valider" }).click();
+  await expect(page).toHaveURL("/");
+}
+
+async function expectNoAxeViolation(page: Page) {
+  const result = await new AxeBuilder({ page }).analyze();
+  expect(result.violations, JSON.stringify(result.violations, null, 2)).toEqual([]);
+}
+
+test("Lot 18 — menu, « Plus d'options », pastille des tutoriels et estimation des trajets", async ({ page }) => {
+  test.setTimeout(120_000);
+  const email = `planner-lot18-${randomUUID()}@symbola.test`;
+  const password = "mot-de-passe-lot18-e2e";
+  const { sql, db } = createAppConnection();
+  let userId: string;
+  try {
+    const organization = await readyOrganization(db, `Org ${randomUUID()}`);
+    userId = (await createUser(db, { organizationId: organization.id, email, password, role: "owner" })).id;
+  } finally {
+    await sql.end();
+  }
+  await loginAndSetupMfa(page, email, password);
+
+  // HUB-22 : sur Encaissements, seul « Encaissements » est allumé.
+  await page.goto("/devis/encaissements");
+  await openMenu(page);
+  await expect(mainMenu(page).getByRole("link", { name: "Encaissements", exact: true })).toHaveAttribute("aria-current", "page");
+  await expect(mainMenu(page).getByRole("link", { name: "Devis et factures", exact: true })).not.toHaveAttribute("aria-current", "page");
+
+  // HUB-24 : ouvrir « Plus d'options » ne grandit pas les boutons voisins.
+  await page.goto("/events");
+  const newProspect = page.getByRole("link", { name: "Nouveau prospect" });
+  const before = (await newProspect.boundingBox())!.height;
+  await page.getByText("Plus d'options").click();
+  await expect(page.getByText("Essai guidé")).toBeVisible();
+  expect((await newProspect.boundingBox())!.height).toBe(before);
+
+  // HUB-23 : un tutoriel en cours ; la pastille « Reprendre » n'apparaît que sur Tutoriels.
+  const { sql: sql2, db: db2 } = createAppConnection();
+  try {
+    await recordHelpProgress(db2, { userId, itemKey: "tutorial:day-program", status: "started", step: 1 });
+  } finally {
+    await sql2.end();
+  }
+  const resume = page.getByRole("link", { name: /^Reprendre : / });
+  await page.goto("/events");
+  await expect(page.getByRole("heading", { level: 1, name: "Événements" })).toBeVisible();
+  await expect(resume).toHaveCount(0);
+  await page.goto("/tutoriels");
+  await expect(resume).toBeVisible();
+
+  // PRE-16 : l'écran dit où sert l'estimation et en montre un exemple, recalculé à la saisie.
+  await page.goto("/prestataires/parametres/trajet");
+  await expect(page.getByRole("heading", { level: 1, name: "Estimation des trajets" })).toBeVisible();
+  await expect(page.getByText(/autour d'un lieu/)).toBeVisible();
+  await expect(page.getByText(/40 km à vol d'oiseau → environ 52 km de route, ≈ 52 min/)).toBeVisible();
+  await page.getByLabel(/Coefficient de détour/).fill("2");
+  await expect(page.getByText(/40 km à vol d'oiseau → environ 80 km de route, ≈ 80 min/)).toBeVisible();
+  await expectNoAxeViolation(page);
+});

@@ -70,19 +70,39 @@ export function CreateTagForm() {
   );
 }
 
+// Lot 18 (PRE-16) : exemple recalculé à la saisie, même formule que
+// modules/vendors/travel.ts (distance × détour, minute supérieure).
+const EXAMPLE_CROW_FLIES_KM = 40;
+
+function travelExample(detourText: string, speedText: string): { km: string; minutes: number } | null {
+  const detour = Number(detourText.replace(",", "."));
+  const speed = Number(speedText);
+  if (!(detour >= 1 && detour <= 3) || !(speed >= 5 && speed <= 130)) return null;
+  const roadKm = EXAMPLE_CROW_FLIES_KM * detour;
+  return { km: String(Math.round(roadKm)), minutes: Math.max(1, Math.ceil((roadKm / speed) * 60)) };
+}
+
 export function TravelForm({ detour, speed }: { detour: string; speed: number }) {
   const t = useTranslations("VendorBook");
   const [state, action, pending] = useActionState(saveTravelSettingsAction, {});
+  const [detourText, setDetourText] = useState(detour);
+  const [speedText, setSpeedText] = useState(String(speed));
+  const example = travelExample(detourText, speedText);
   return (
     <form action={action} className="vendor-filters">
       <label>
         {t("travelDetour")}
-        <input type="text" inputMode="decimal" name="detour" defaultValue={detour} />
+        <input type="text" inputMode="decimal" name="detour" value={detourText} onChange={(event) => setDetourText(event.target.value)} />
       </label>
       <label>
         {t("travelSpeed")}
-        <input type="number" name="speed" min={5} max={130} defaultValue={speed} />
+        <input type="number" name="speed" min={5} max={130} value={speedText} onChange={(event) => setSpeedText(event.target.value)} />
       </label>
+      {example ? (
+        <p className="meta" aria-live="polite">
+          {t("settingsTravelExample", { crow: EXAMPLE_CROW_FLIES_KM, km: example.km, minutes: example.minutes })}
+        </p>
+      ) : null}
       <button type="submit" disabled={pending}>
         {t("travelSave")}
       </button>

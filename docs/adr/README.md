@@ -48,3 +48,4 @@ Un fichier par décision structurante, numéroté. Pour changer une décision : 
 - [0044 — Limitation de débit en base ; envois de fichiers par des routes dédiées](0044-limitation-de-debit.md)
 - [0045 — Types d'événement ; vocabulaire selon l'événement ; catalogue de prestataires commun](0045-types-d-evenement-et-vocabulaire.md)
 - [0046 — Devis et factures à son image : apparence figée dans l'instantané vendeur](0046-documents-a-son-image.md)
+- [0047 — Une demande RGPD, un dossier ; les documents dans l'accompagnement](0047-dossier-rgpd-et-documents-dans-l-accompagnement.md)

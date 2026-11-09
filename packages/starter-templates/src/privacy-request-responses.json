@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "_source": "Modèles de réponse aux demandes d'accès (art. 15), de portabilité (art. 20), de rectification (art. 16) et d'opposition (art. 21), à relire par la titulaire et à faire valider par un juriste avant l'ouverture SaaS. Variables : {person}, {receivedOn}, {completedOn}, {organization}. L'effacement a son propre modèle (privacy-erasure-response.json).",
+  "responses": {
+    "access": {
+      "subject": { "fr": "Votre demande d'accès à vos données personnelles", "en": "Your request to access your personal data" },
+      "body": {
+        "fr": "Bonjour {person},\n\nNous avons bien reçu le {receivedOn} votre demande d'accès à vos données personnelles. Vous trouverez ci-joint l'ensemble des données vous concernant que nous détenons au {completedOn} : un document lisible (PDF) et une archive réutilisable.\n\nVous pouvez nous écrire pour toute question. Si vous estimez que vos droits ne sont pas respectés, vous pouvez adresser une réclamation à la CNIL (www.cnil.fr).\n\nBien cordialement,\n{organization}",
+        "en": "Hello {person},\n\nWe received your request to access your personal data on {receivedOn}. Please find attached all the data about you that we hold as of {completedOn}: a readable document (PDF) and a reusable archive.\n\nFeel free to write to us with any question. If you believe your rights have not been respected, you may lodge a complaint with the CNIL (www.cnil.fr).\n\nKind regards,\n{organization}"
+      }
+    },
+    "portability": {
+      "subject": { "fr": "Votre demande de portabilité de vos données personnelles", "en": "Your data portability request" },
+      "body": {
+        "fr": "Bonjour {person},\n\nNous avons bien reçu le {receivedOn} votre demande de portabilité. Vous trouverez ci-joint vos données au {completedOn}, dans une archive au format structuré et couramment utilisé (JSON et CSV), que vous pouvez transmettre à un autre prestataire.\n\nVous pouvez nous écrire pour toute question. Si vous estimez que vos droits ne sont pas respectés, vous pouvez adresser une réclamation à la CNIL (www.cnil.fr).\n\nBien cordialement,\n{organization}",
+        "en": "Hello {person},\n\nWe received your data portability request on {receivedOn}. Please find attached your data as of {completedOn}, in a structured and commonly used format (JSON and CSV) that you can pass on to another provider.\n\nFeel free to write to us with any question. If you believe your rights have not been respected, you may lodge a complaint with the CNIL (www.cnil.fr).\n\nKind regards,\n{organization}"
+      }
+    },
+    "rectification": {
+      "subject": { "fr": "Votre demande de rectification de vos données personnelles", "en": "Your request to correct your personal data" },
+      "body": {
+        "fr": "Bonjour {person},\n\nNous avons bien reçu le {receivedOn} votre demande de rectification. Les données concernées ont été corrigées dans nos outils le {completedOn}.\n\nVous pouvez nous écrire pour toute question. Si vous estimez que vos droits ne sont pas respectés, vous pouvez adresser une réclamation à la CNIL (www.cnil.fr).\n\nBien cordialement,\n{organization}",
+        "en": "Hello {person},\n\nWe received your request to correct your personal data on {receivedOn}. The data concerned was corrected in our tools on {completedOn}.\n\nFeel free to write to us with any question. If you believe your rights have not been respected, you may lodge a complaint with the CNIL (www.cnil.fr).\n\nKind regards,\n{organization}"
+      }
+    },
+    "objection": {
+      "subject": { "fr": "Votre opposition au traitement de vos données personnelles", "en": "Your objection to the processing of your personal data" },
+      "body": {
+        "fr": "Bonjour {person},\n\nNous avons bien reçu le {receivedOn} votre opposition au traitement de vos données personnelles. Depuis le {completedOn}, elles ne sont plus utilisées pour le traitement concerné, sauf obligation légale.\n\nVous pouvez nous écrire pour toute question. Si vous estimez que vos droits ne sont pas respectés, vous pouvez adresser une réclamation à la CNIL (www.cnil.fr).\n\nBien cordialement,\n{organization}",
+        "en": "Hello {person},\n\nWe received your objection to the processing of your personal data on {receivedOn}. Since {completedOn}, it is no longer used for the processing concerned, unless required by law.\n\nFeel free to write to us with any question. If you believe your rights have not been respected, you may lodge a complaint with the CNIL (www.cnil.fr).\n\nKind regards,\n{organization}"
+      }
+    }
+  }
+}
