@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { appDatabase } from "@symbola/db/client";
 import { formatCalendarDate, formatDateTime, type Locale } from "@symbola/i18n";
+import { ANONYMIZED, parisDate, requestProofDueOn } from "@symbola/privacy";
 import { starterRequestResponse } from "@symbola/starter-templates";
 import { ScreenHelp } from "@/app/screen-help";
 import { PageHeader } from "@/app/ui/page-header";
@@ -11,6 +12,7 @@ import {
   getDocumentHeader,
   getPrivacyCase,
   getPrivacyErasure,
+  getPrivacySettings,
   PRIVACY_CASE_STEPS,
   PrivacyRequestNotFoundError,
   type PrivacyCaseStep,
@@ -20,6 +22,7 @@ import { CopyButton } from "../../copy-button";
 import { deadlineBadge } from "../../deadline";
 import { buildErasureProof } from "../../oublis/proof";
 import { fillTemplate } from "../../oublis/proof-model";
+import { displayPerson } from "../../person";
 import { PrivacyTabs } from "../../privacy-tabs";
 import { SearchForm } from "../../search-form";
 import { closeRequestAction, markActionDoneAction, markResponseSentAction } from "../actions";
@@ -72,6 +75,13 @@ export default async function PrivacyCasePage({
   const { request } = view;
   const closed = request.status === "closed";
   const badge = deadlineBadge(request, t, locale);
+  // RGPD-09 : nom affiché traduit une fois anonymisé par la purge.
+  const person = displayPerson(request.personLabel, t("personAnonymized"));
+  // RGPD-09 (ADR 0048) : jusqu'à quand le nom est gardé comme preuve.
+  const proofUntil =
+    closed && request.closedAt && request.personLabel !== ANONYMIZED
+      ? requestProofDueOn({ closedOn: parisDate(request.closedAt) }, await getPrivacySettings(db, organizationId))
+      : null;
 
   // Modèle de réponse : celui de l'oubli (avec les données conservées et
   // leur motif légal), sinon celui du type de demande.
@@ -85,7 +95,7 @@ export default async function PrivacyCasePage({
       response = {
         subject: template.subject,
         body: fillTemplate(template.body, {
-          person: request.personLabel,
+          person,
           receivedOn: date(request.receivedOn),
           completedOn: completedAt ? formatCalendarDate(completedAt.toISOString().slice(0, 10), locale) : "—",
           organization: (await getDocumentHeader(db, organizationId))?.organizationName ?? "",
@@ -110,7 +120,7 @@ export default async function PrivacyCasePage({
   return (
     <main>
       <PageHeader
-        title={t("caseTitle", { type: t(`requestType.${request.type}`), person: request.personLabel })}
+        title={t("caseTitle", { type: t(`requestType.${request.type}`), person })}
         badge={<span className={badge.className}>{badge.label}</span>}
         subtitle={t("caseFacts", { received: date(request.receivedOn), due: date(request.dueOn) })}
       />
@@ -143,7 +153,7 @@ export default async function PrivacyCasePage({
                 <dt>{t("requestTypeLabel")}</dt>
                 <dd>{t(`requestType.${request.type}`)}</dd>
                 <dt>{t("personLabel")}</dt>
-                <dd>{request.personLabel}</dd>
+                <dd>{person}</dd>
                 <dt>{t("receivedOnLabel")}</dt>
                 <dd>{date(request.receivedOn)}</dd>
                 <dt>{t("dueOnLabel")}</dt>
@@ -260,7 +270,10 @@ export default async function PrivacyCasePage({
 
           {step === "closed" ? (
             closed ? (
-              <p>{t("caseClosedOn", { date: request.closedAt ? when(request.closedAt) : "—" })}</p>
+              <>
+                <p>{t("caseClosedOn", { date: request.closedAt ? when(request.closedAt) : "—" })}</p>
+                {request.personLabel === ANONYMIZED ? <p>{t("caseProofAnonymized")}</p> : proofUntil ? <p>{t("caseProofUntil", { date: date(proofUntil) })}</p> : null}
+              </>
             ) : view.canClose ? (
               <>
                 <p>{t("caseReadyToClose")}</p>

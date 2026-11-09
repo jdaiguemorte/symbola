@@ -582,6 +582,13 @@
       "when": 1794254558141,
       "tag": "0082_lot18_privacy_cases",
       "breakpoints": true
+    },
+    {
+      "idx": 83,
+      "version": "7",
+      "when": 1794258753061,
+      "tag": "0083_lot19_request_proof",
+      "breakpoints": true
     }
   ]
 }

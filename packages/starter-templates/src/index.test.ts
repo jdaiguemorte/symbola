@@ -162,6 +162,8 @@ describe("RGPD-04/05 — Réglages RGPD de départ", () => {
       accountingRetentionMonths: 120,
       inactiveAccountMonths: 24,
       signedQuoteRetentionMonths: 60,
+      // RGPD-09 : preuve d'une demande close gardée 5 ans (décision de Julien du 09/11/2026).
+      requestProofRetentionMonths: 60,
     });
   });
 });

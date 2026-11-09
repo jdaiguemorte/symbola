@@ -92,6 +92,7 @@ export {
 // Lot 6 (RGPD-05) — purges mensuelles.
 export {
   getPrivacyPurge,
+  listExpiredPrivacyRequests,
   listInactiveClientAccounts,
   listPrivacyPurges,
   PrivacyPurgeInvalidError,

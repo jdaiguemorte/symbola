@@ -1,11 +1,12 @@
 // RGPD-05 — purges mensuelles (lot 6, ADR 0024) : comptes de mariés inactifs
-// (table d'identité du hub) et trace des purges validées par la titulaire :
-// lignes purgées ou exclues avec motif, sort des fiches, accusés des modules.
-import { and, desc, eq } from "drizzle-orm";
+// (table d'identité du hub), preuves des demandes closes arrivées à leur terme
+// (RGPD-09, ADR 0048) et trace des purges validées par la titulaire : lignes
+// purgées ou exclues avec motif, sort des fiches, accusés des modules.
+import { and, desc, eq, ne } from "drizzle-orm";
 import type { AppDatabase } from "@symbola/db/client";
-import { privacyPurges, users, type PrivacyErasureAck, type PrivacyErasureItem, type PrivacyPurgeLine } from "@symbola/db/schema/hub";
+import { privacyPurges, privacyRequests, users, type PrivacyErasureAck, type PrivacyErasureItem, type PrivacyPurgeLine } from "@symbola/db/schema/hub";
 import { withOrganization } from "@symbola/db/with-organization";
-import { inactiveAccountDueOn, isExpired, parisDate, type RetentionMonths } from "@symbola/privacy";
+import { ANONYMIZED, inactiveAccountDueOn, isExpired, parisDate, requestProofDueOn, type RetentionMonths } from "@symbola/privacy";
 
 export type { PrivacyPurgeLine };
 
@@ -35,6 +36,28 @@ export async function listInactiveClientAccounts(
       dueOn: inactiveAccountDueOn({ lastLoginOn: account.lastLoginAt ? parisDate(account.lastLoginAt) : null, createdOn: parisDate(account.createdAt) }, input.months),
     }))
     .filter((account) => isExpired(input.today, account.dueOn));
+}
+
+// RGPD-09 — demandes closes dont la preuve (nom de la personne) a dépassé la
+// durée réglée après la clôture (jour de Paris). Celles déjà anonymisées ne
+// reviennent jamais.
+export async function listExpiredPrivacyRequests(
+  db: AppDatabase,
+  input: { organizationId: string; months: { requestProofRetentionMonths: number }; today: string },
+): Promise<{ id: string; personLabel: string; dueOn: string }[]> {
+  const rows = await withOrganization(db, input.organizationId, (tx) =>
+    tx
+      .select({ id: privacyRequests.id, personLabel: privacyRequests.personLabel, closedAt: privacyRequests.closedAt, updatedAt: privacyRequests.updatedAt })
+      .from(privacyRequests)
+      .where(and(eq(privacyRequests.status, "closed"), ne(privacyRequests.personLabel, ANONYMIZED))),
+  );
+  const expired: { id: string; personLabel: string; dueOn: string }[] = [];
+  for (const row of rows) {
+    // Toute clôture date la demande ; à défaut, sa dernière modification.
+    const dueOn = requestProofDueOn({ closedOn: parisDate(row.closedAt ?? row.updatedAt) }, input.months);
+    if (dueOn && isExpired(input.today, dueOn)) expired.push({ id: row.id, personLabel: row.personLabel, dueOn });
+  }
+  return expired;
 }
 
 export type PrivacyPurgeView = {

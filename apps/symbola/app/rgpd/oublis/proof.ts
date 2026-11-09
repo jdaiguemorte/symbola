@@ -5,6 +5,7 @@ import { appDatabase } from "@symbola/db/client";
 import { formatCalendarDate, formatDateTime, type Locale } from "@symbola/i18n";
 import { starterErasureResponse } from "@symbola/starter-templates";
 import { getDocumentHeader, type PrivacyErasureView } from "@/modules/hub/service";
+import { displayPerson } from "../person";
 import { buildErasureProofModel, fillTemplate, keptSummary, type ProofLabels, type ProofModel } from "./proof-model";
 
 export async function buildErasureProof(organizationId: string, erasure: PrivacyErasureView): Promise<ProofModel> {
@@ -14,9 +15,10 @@ export async function buildErasureProof(organizationId: string, erasure: Privacy
   let organizationName = "";
   organizationName = (await getDocumentHeader(db, organizationId))?.organizationName ?? "";
   const date = (value: string) => formatCalendarDate(value, locale);
+  const person = displayPerson(erasure.request.personLabel, t("personAnonymized"));
   const labels: ProofLabels = {
     title: t("proofTitle"),
-    person: t("proofPerson", { person: erasure.request.personLabel }),
+    person: t("proofPerson", { person }),
     request: t("proofRequest", { receivedOn: date(erasure.request.receivedOn), dueOn: date(erasure.request.dueOn) }),
     validatedAt: t("proofValidatedAt", { date: formatDateTime(erasure.createdAt, locale) }),
     completion: erasure.completedAt ? t("proofCompletedAt", { date: formatDateTime(erasure.completedAt, locale) }) : t("proofNotCompleted"),
@@ -42,7 +44,7 @@ export async function buildErasureProof(organizationId: string, erasure: Privacy
   const response = {
     subject: template.subject,
     body: fillTemplate(template.body, {
-      person: erasure.request.personLabel,
+      person,
       receivedOn: date(erasure.request.receivedOn),
       completedOn: erasure.completedAt ? formatDateTime(erasure.completedAt, locale) : "—",
       organization: organizationName,

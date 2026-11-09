@@ -9,6 +9,7 @@ import { requireOwner } from "@/lib/guards";
 import { getPrivacyCase, listPrivacyRequests, PRIVACY_REQUEST_TYPES, type PrivacyCaseView } from "@/modules/hub/service";
 import { NewRequestForm } from "./demandes/request-forms";
 import { deadlineBadge } from "./deadline";
+import { displayPerson } from "./person";
 import { PrivacyTabs } from "./privacy-tabs";
 
 // RGPD-04, lot 18 (RGPD-07, ADR 0047) — Données personnelles : les demandes
@@ -60,7 +61,7 @@ export default async function PrivacyPage() {
                   return (
                     <tr key={view.request.id}>
                       <td>
-                        <Link href={`/rgpd/demandes/${view.request.id}`}>{view.request.personLabel}</Link>
+                        <Link href={`/rgpd/demandes/${view.request.id}`}>{displayPerson(view.request.personLabel, t("personAnonymized"))}</Link>
                         <br />
                         <small>{t("receivedOn", { date: formatCalendarDate(view.request.receivedOn, locale) })}</small>
                       </td>

@@ -5,7 +5,7 @@
 // la planner ne relèvent pas de ce traitement.
 import { and, eq, inArray, isNotNull } from "drizzle-orm";
 import { appDatabase } from "@symbola/db/client";
-import { helpProgress, importItems, imports, sessions, trustedDevices, users, userTourSeen } from "@symbola/db/schema/hub";
+import { helpProgress, importItems, imports, privacyRequests, sessions, trustedDevices, users, userTourSeen } from "@symbola/db/schema/hub";
 import { withOrganization } from "@symbola/db/with-organization";
 import {
   ANONYMIZED,
@@ -39,11 +39,16 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 //   est abandonné, ses lignes effacées, nom de fichier et intitulés de
 //   colonnes anonymisés ;
 // - élément d'un import confirmé : valeurs gardées pour l'annulation
-//   effacées (l'élément n'est plus annulable).
+//   effacées (l'élément n'est plus annulable) ;
+// - preuve d'une demande close (RGPD-09, ADR 0048), seulement par la purge
+//   mensuelle validée : nom de la personne remplacé par « [anonymisé] » et
+//   motif de prolongation effacé ; le type, les dates et le journal restent.
+//   Une demande en cours n'est jamais touchée.
 async function hubErasure(input: ErasureInput, execute: boolean): Promise<ErasurePlanItem[]> {
   const accountIds = idsOfKind(input.records, "client_account");
   const rowRefs = input.records.filter((record) => record.kind === "import_row" && UUID.test(record.recordId.split(":")[0] ?? ""));
   const itemIds = idsOfKind(input.records, "import_item");
+  const requestIds = idsOfKind(input.records, "privacy_request");
   const items: ErasurePlanItem[] = [];
   const db = appDatabase();
   if (accountIds.length > 0) {
@@ -94,6 +99,20 @@ async function hubErasure(input: ErasureInput, execute: boolean): Promise<Erasur
       const rows = await tx.select({ id: importItems.id }).from(importItems).where(inArray(importItems.id, itemIds));
       if (execute && rows.length > 0) await tx.update(importItems).set({ previous: null, written: null }).where(inArray(importItems.id, rows.map((row) => row.id)));
       for (const row of rows) items.push({ kind: "import_item", recordId: row.id, fate: "anonymized", legalBasis: null, keptUntil: null });
+    }
+    if (requestIds.length > 0) {
+      const closed = await tx
+        .select({ id: privacyRequests.id })
+        .from(privacyRequests)
+        .where(and(inArray(privacyRequests.id, requestIds), eq(privacyRequests.status, "closed")));
+      const ids = closed.map((row) => row.id);
+      if (execute && ids.length > 0) {
+        await tx
+          .update(privacyRequests)
+          .set({ personLabel: ANONYMIZED, extensionReason: null })
+          .where(and(inArray(privacyRequests.id, ids), eq(privacyRequests.status, "closed")));
+      }
+      for (const id of ids) items.push({ kind: "privacy_request", recordId: id, fate: "anonymized", legalBasis: null, keptUntil: null });
     }
   });
   return items;

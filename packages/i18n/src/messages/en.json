@@ -709,7 +709,7 @@
     },
     "privacyPurge": {
       "title": "Monthly purge",
-      "body": "Each month the list gathers what has passed its retention period: prospects that went nowhere, finished relationships, inactive couple accounts, documents at the end of retention. Approve it: each row is purged, except those you exclude with a reason. Nothing is purged without you."
+      "body": "Each month the list gathers what has passed its retention period: prospects that went nowhere, finished relationships, inactive couple accounts, documents at the end of retention, names of people in requests closed for longer than the set proof period. Approve it: each row is purged, except those you exclude with a reason. Nothing is purged without you."
     },
     "allTasks": {
       "title": "Tasks across all your weddings",
@@ -810,6 +810,10 @@
         {
           "q": "Why can't I close the request?",
           "a": "A request closes once the action is done and the reply is marked as sent: the case lists what is missing."
+        },
+        {
+          "q": "Does the name of the person stay after closing?",
+          "a": "Yes, as proof of handling, for the set period (5 years by default, Settings tab). The monthly purge then offers to replace it with “[anonymised]”; the type, dates and log of the request stay."
         }
       ]
     }
@@ -2181,7 +2185,7 @@
       "events": "Events",
       "budget": "Budget",
       "quotes": "Quotes and invoices",
-      "hub": "Accounts and imports"
+      "hub": "Accounts, imports and GDPR requests"
     },
     "kind": {
       "event": "Event",
@@ -2204,6 +2208,7 @@
       "client_account": "Couple account",
       "import_row": "Row of an import in progress",
       "import_item": "Import record (undo)",
+      "privacy_request": "Closed GDPR request (name of the person)",
       "greeting": "Message"
     },
     "field": {
@@ -2300,7 +2305,8 @@
       "clientRetentionMonths": "Client (couple): kept after the end of the relationship (months)",
       "accountingRetentionMonths": "Invoices, credit notes and signed quotes: kept for (months)",
       "inactiveAccountMonths": "Couple account without login: deleted after (months)",
-      "signedQuoteRetentionMonths": "Signed quote (proof of contract): retention (months)"
+      "signedQuoteRetentionMonths": "Signed quote (proof of contract): retention (months)",
+      "requestProofRetentionMonths": "Closed request: name of the person kept as proof after closing (months)"
     },
     "saveSettings": "Save settings",
     "settingsSaved": "Settings saved.",
@@ -2406,9 +2412,11 @@
       "client": "Client (end of the relationship)",
       "inactive_account": "Inactive couple account",
       "accounting_document": "Invoice or credit note (end of accounting retention)",
-      "signed_quote": "Signed quote (end of proof of contract)"
+      "signed_quote": "Signed quote (end of proof of contract)",
+      "privacy_request": "Closed GDPR request (end of proof of its handling)"
     },
     "purgeNoLabel": "no name",
+    "personAnonymized": "[anonymised]",
     "purgeDueOn": "expired on {date}",
     "purgePreviousReason": "previously excluded: {reason}",
     "purgeExclude": "Exclude from the purge",
@@ -2508,6 +2516,8 @@
     "caseResponseAfterAction": "The reply is prepared once the action is done.",
     "caseGoToAction": "Go to step 3",
     "caseClosedOn": "Request closed on {date}. It stays in the list, with its proof, for any audit.",
+    "caseProofUntil": "The name of the person is kept as proof until {date}. The monthly purge will then offer to replace it with “[anonymised]”; the dates and the log stay.",
+    "caseProofAnonymized": "The proof retention period is over: the name of the person has been anonymised. The dates and the log stay.",
     "caseReadyToClose": "Everything is done: the action and the reply. You can close the request.",
     "caseNotReady": "The request cannot be closed yet:",
     "caseMissingAction": {

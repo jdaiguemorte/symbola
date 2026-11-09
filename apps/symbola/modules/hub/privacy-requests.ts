@@ -49,6 +49,7 @@ export async function getPrivacySettings(db: AppDatabase, organizationId: string
         accountingRetentionMonths: row.accountingRetentionMonths,
         inactiveAccountMonths: row.inactiveAccountMonths,
         signedQuoteRetentionMonths: row.signedQuoteRetentionMonths,
+        requestProofRetentionMonths: row.requestProofRetentionMonths,
       };
     }
     // Première lecture : le modèle de départ devient le réglage de l'organisation.

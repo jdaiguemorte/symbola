@@ -3,6 +3,10 @@
 // facture et devis signé à la fin de leur conservation ; échu le jour même,
 // jamais la veille. Rien n'est purgé sans validation ; une exclusion exige un
 // motif ; isolation entre organisations.
+// RGPD-09 (lot 19) — preuve d'une demande d'exercice de droits close : le nom
+// de la personne est remplacé par « [anonymisé] » quand la durée réglée après
+// la clôture est échue, par la même purge validée ; les dates et le journal
+// restent.
 import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { afterAll, describe, expect, it } from "vitest";
@@ -14,7 +18,19 @@ import { invoices, paymentScheduleItems, quotes, quoteSigners, quoteVersions, si
 import { withOrganization } from "@symbola/db/with-organization";
 import { addMonths, parisDate } from "@symbola/privacy";
 import { createProspect, createProspectSource } from "@/modules/events/service";
-import { getPrivacyPurge } from "@/modules/hub/service";
+import {
+  closePrivacyRequest,
+  createPrivacyRequest,
+  extendPrivacyRequest,
+  getPrivacyCase,
+  getPrivacyPurge,
+  getPrivacyRequest,
+  getPrivacySettings,
+  hubPrivacy,
+  markPrivacyActionDone,
+  markPrivacyResponseSent,
+  updatePrivacySettings,
+} from "@/modules/hub/service";
 import { executePurge, listPurgeCandidates } from "./purge";
 import { searchPerson } from "./search";
 
@@ -238,5 +254,127 @@ describe("RGPD-05 — Isolation de la purge", { timeout: 30_000 }, () => {
     ).toEqual({ status: "empty" });
     const clients = await withOrganization(db, plannerB.organizationId, (tx) => tx.select().from(eventClients).where(eq(eventClients.eventId, eventB)));
     expect(clients[0]?.firstName).toBe("Élodie");
+  });
+});
+
+// RGPD-09 — demande de rectification traitée puis close à `closedAt`
+// (horodatage réel : le jour de clôture est celui de Paris).
+async function closedRequest(planner: Planner, personLabel: string, closedAt: Date, options: { extended?: boolean } = {}) {
+  const receivedOn = parisDate(new Date(closedAt.getTime() - 10 * 86_400_000));
+  const scope = { organizationId: planner.organizationId, userId: planner.userId };
+  const request = await createPrivacyRequest(db, { ...scope, type: "rectification", personLabel, receivedOn, now: closedAt });
+  const ref = { organizationId: planner.organizationId, requestId: request.id, now: closedAt };
+  if (options.extended) await extendPrivacyRequest(db, { ...ref, reason: `Données de ${personLabel} dans plusieurs fichiers` });
+  await markPrivacyActionDone(db, ref);
+  await markPrivacyResponseSent(db, ref);
+  await closePrivacyRequest(db, ref);
+  return request.id;
+}
+
+describe("RGPD-09 — Fin de la preuve d'une demande close : liste de la purge (dates simulées)", { timeout: 30_000 }, () => {
+  it("Étant donné une demande close, quand 5 ans ont passé depuis sa clôture (jour de Paris), alors elle est listée avec le nom de la personne : le jour même, pas la veille", async () => {
+    const planner = await createPlanner();
+    const person = `Garnier${randomUUID().slice(0, 4)}`;
+    // 9 novembre à 23 h 30 UTC = 10 novembre à 0 h 30 à Paris.
+    const requestId = await closedRequest(planner, person, new Date("2026-11-09T23:30:00Z"));
+    expect(await keys(planner, "2031-11-09")).toEqual([]);
+    expect(await keys(planner, "2031-11-10")).toEqual([`privacy_request:request:${requestId}`]);
+    const [candidate] = await listPurgeCandidates(planner.organizationId, "2031-11-10");
+    expect(candidate).toMatchObject({ rule: "privacy_request", dueOn: "2031-11-10", label: person, eventDate: null });
+  });
+
+  it("passage à l'heure d'été : une clôture le 28 mars 2027 à 22 h 30 UTC (29 mars à 0 h 30 à Paris) échoit le 29 mars 2032", async () => {
+    const planner = await createPlanner();
+    const requestId = await closedRequest(planner, `Lemoine${randomUUID().slice(0, 4)}`, new Date("2027-03-28T22:30:00Z"));
+    expect(await keys(planner, "2032-03-28")).toEqual([]);
+    expect(await keys(planner, "2032-03-29")).toEqual([`privacy_request:request:${requestId}`]);
+  });
+
+  it("Étant donné une demande en cours (ouverte ou prolongée), alors elle n'est jamais listée, même reçue il y a plus de 5 ans", async () => {
+    const planner = await createPlanner();
+    const scope = { organizationId: planner.organizationId, userId: planner.userId };
+    const longAgo = new Date("2020-01-10T10:00:00Z");
+    await createPrivacyRequest(db, { ...scope, type: "access", personLabel: "Personne en attente", receivedOn: "2020-01-10", now: longAgo });
+    const extended = await createPrivacyRequest(db, { ...scope, type: "objection", personLabel: "Personne prolongée", receivedOn: "2020-01-10", now: longAgo });
+    await extendPrivacyRequest(db, { organizationId: planner.organizationId, requestId: extended.id, reason: "Demande complexe", now: longAgo });
+    expect(await keys(planner, today)).toEqual([]);
+  });
+
+  it("la durée suit le réglage « preuve des demandes » de l'organisation", async () => {
+    const planner = await createPlanner();
+    const requestId = await closedRequest(planner, `Perrin${randomUUID().slice(0, 4)}`, new Date("2026-11-09T10:00:00Z"));
+    await updatePrivacySettings(db, planner.organizationId, { ...(await getPrivacySettings(db, planner.organizationId)), requestProofRetentionMonths: 36 });
+    expect(await keys(planner, "2029-11-08")).toEqual([]);
+    expect(await keys(planner, "2029-11-09")).toEqual([`privacy_request:request:${requestId}`]);
+  });
+});
+
+describe("RGPD-09 — Fin de la preuve d'une demande close : validation", { timeout: 30_000 }, () => {
+  it("Quand la titulaire valide la ligne, alors le nom devient « [anonymisé] » et le motif de prolongation est effacé ; le type, les dates et le journal restent ; la demande ne revient plus", async () => {
+    const planner = await createPlanner();
+    const requestId = await closedRequest(planner, `Robin${randomUUID().slice(0, 4)}`, new Date("2026-11-09T10:00:00Z"), { extended: true });
+    const before = await getPrivacyRequest(db, planner.organizationId, requestId);
+    expect(before.extensionReason).not.toBeNull();
+    const day = "2031-11-09";
+
+    // Rien ne change sans validation.
+    expect(await keys(planner, day)).toEqual([`privacy_request:request:${requestId}`]);
+    expect((await getPrivacyRequest(db, planner.organizationId, requestId)).personLabel).toBe(before.personLabel);
+
+    const result = await executePurge({ organizationId: planner.organizationId, userId: planner.userId, today: day, decisions: [{ key: `request:${requestId}`, excluded: false, reason: "" }] });
+    expect(result).toMatchObject({ status: "ok", purgeStatus: "completed" });
+    if (result.status !== "ok") return;
+    const purge = await getPrivacyPurge(db, planner.organizationId, result.purgeId);
+    expect(purge.lines).toEqual([{ key: `request:${requestId}`, rule: "privacy_request", dueOn: day, outcome: "purged", exclusionReason: null }]);
+    expect(purge.items).toEqual([{ module: "hub", kind: "privacy_request", recordId: requestId, fate: "anonymized", legalBasis: null, keptUntil: null }]);
+
+    const after = await getPrivacyRequest(db, planner.organizationId, requestId);
+    expect(after).toEqual({ ...before, personLabel: "[anonymisé]", extensionReason: null });
+    // Le dossier reste complet : toutes les étapes sont faites.
+    const view = await getPrivacyCase(db, planner.organizationId, requestId);
+    expect(Object.values(view.steps).every((state) => state === "done")).toBe(true);
+    expect(await keys(planner, "2031-12-09")).toEqual([]);
+  });
+
+  it("Quand elle exclut la ligne avec un motif, alors le nom reste et la ligne revient le mois suivant", async () => {
+    const planner = await createPlanner();
+    const person = `Faure${randomUUID().slice(0, 4)}`;
+    const requestId = await closedRequest(planner, person, new Date("2026-11-09T10:00:00Z"));
+    const result = await executePurge({
+      organizationId: planner.organizationId,
+      userId: planner.userId,
+      today: "2031-11-09",
+      decisions: [{ key: `request:${requestId}`, excluded: true, reason: "Litige en cours avec la personne" }],
+    });
+    expect(result).toMatchObject({ status: "ok", purgeStatus: "completed" });
+    expect((await getPrivacyRequest(db, planner.organizationId, requestId)).personLabel).toBe(person);
+    expect(await keys(planner, "2031-12-09")).toEqual([`privacy_request:request:${requestId}`]);
+  });
+
+  it("le contrat du hub n'anonymise jamais une demande en cours", async () => {
+    const planner = await createPlanner();
+    const request = await createPrivacyRequest(db, { organizationId: planner.organizationId, userId: planner.userId, type: "erasure", personLabel: "Personne en cours", receivedOn: today });
+    const input = { organizationId: planner.organizationId, records: [{ kind: "privacy_request", recordId: request.id }], rules: { accountingRetentionMonths: 120, signedQuoteRetentionMonths: 60 }, today };
+    expect(await hubPrivacy.planErasure(input)).toEqual([]);
+    expect(await hubPrivacy.erase(input)).toEqual([]);
+    expect((await getPrivacyRequest(db, planner.organizationId, request.id)).personLabel).toBe("Personne en cours");
+  });
+});
+
+describe("RGPD-09 — Isolation de la preuve des demandes", { timeout: 30_000 }, () => {
+  it("organisation A ne voit ni n'anonymise la preuve d'une demande close de B", async () => {
+    const plannerA = await createPlanner();
+    const plannerB = await createPlanner();
+    const person = `Mercier${randomUUID().slice(0, 4)}`;
+    const requestB = await closedRequest(plannerB, person, new Date("2026-11-09T10:00:00Z"));
+    const day = "2031-11-09";
+    expect(await keys(plannerA, day)).toEqual([]);
+    expect(
+      await executePurge({ organizationId: plannerA.organizationId, userId: plannerA.userId, today: day, decisions: [{ key: `request:${requestB}`, excluded: false, reason: "" }] }),
+    ).toEqual({ status: "empty" });
+    // Même en appelant le contrat du hub au nom de A avec l'identifiant de B.
+    const input = { organizationId: plannerA.organizationId, records: [{ kind: "privacy_request", recordId: requestB }], rules: { accountingRetentionMonths: 120, signedQuoteRetentionMonths: 60 }, today: day };
+    expect(await hubPrivacy.erase(input)).toEqual([]);
+    expect((await getPrivacyRequest(db, plannerB.organizationId, requestB)).personLabel).toBe(person);
   });
 });

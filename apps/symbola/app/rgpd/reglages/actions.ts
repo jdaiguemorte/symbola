@@ -17,6 +17,8 @@ const settingsSchema = z.object({
   accountingRetentionMonths: positive,
   inactiveAccountMonths: positive,
   signedQuoteRetentionMonths: positive,
+  // RGPD-09 : preuve d'une demande close (nom de la personne).
+  requestProofRetentionMonths: positive,
 });
 
 export async function savePrivacySettingsAction(_prevState: SettingsFormState, formData: FormData): Promise<SettingsFormState> {

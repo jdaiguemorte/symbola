@@ -206,18 +206,26 @@ fields:
       Lot 6 (RGPD-04) : personne concernée par une demande d'exercice de droits
       (libellé saisi par la titulaire). Gardé avec la demande, comme preuve de
       son traitement, pendant la prescription applicable (cahier des charges
-      § 6, référentiel CNIL).
+      § 6, référentiel CNIL) : durée réglée par l'organisation après le jour
+      de clôture (hub.privacy_settings.request_proof_retention_months, 5 ans
+      par défaut, prescription civile, décision de Julien du 09/11/2026, à
+      valider par un juriste ; lot 19, RGPD-09, ADR 0048). Une demande en
+      cours est gardée telle quelle.
     anonymization: >-
-      Remplacé par « [anonymisé] » à la fin de la conservation de la preuve.
+      Remplacé par « [anonymisé] » à la fin de la conservation de la preuve,
+      par la purge mensuelle validée par la titulaire (RGPD-05, RGPD-09) ; le
+      type, les dates et le journal de la demande restent. Affiché traduit à
+      l'écran.
   - schema: hub
     table: privacy_requests
     field: extension_reason
     category: contenu_libre
     retention: >-
       Lot 6 (RGPD-04) : motif de prolongation d'une demande complexe, gardé
-      avec la demande pendant la même durée.
+      avec la demande pendant la même durée (preuve, RGPD-09).
     anonymization: >-
-      Effacé (null) à la fin de la conservation de la preuve.
+      Effacé (null) à la fin de la conservation de la preuve, par la même
+      ligne de la purge mensuelle que le nom de la personne (RGPD-09).
   - schema: events
     table: event_clients
     field: first_name
