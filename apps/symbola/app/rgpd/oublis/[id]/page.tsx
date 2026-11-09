@@ -8,6 +8,7 @@ import { getPrivacyErasure, PrivacyErasureNotFoundError, type PrivacyErasureView
 import { requireOwner } from "@/lib/guards";
 import { retryErasureAction } from "../../erasure-actions";
 import { buildErasureProof } from "../proof";
+import { displayPerson } from "../../person";
 import { PrivacyTabs } from "../../privacy-tabs";
 
 // RGPD-03 — une demande d'oubli traitée : accusé de chaque module (la
@@ -39,7 +40,7 @@ export default async function ErasurePage({ params }: { params: Promise<{ id: st
 
   return (
     <main>
-      <h1>{t("erasurePageTitle", { person: erasure.request.personLabel })}</h1>
+      <h1>{t("erasurePageTitle", { person: displayPerson(erasure.request.personLabel, t("personAnonymized")) })}</h1>
       {/* Lot 18 (RGPD-07) : retour au dossier de la demande. */}
       <PrivacyTabs />
       <p>

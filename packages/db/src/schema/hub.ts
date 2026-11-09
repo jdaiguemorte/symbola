@@ -521,6 +521,9 @@ export const privacySettings = hubSchema.table("privacy_settings", {
   inactiveAccountMonths: integer("inactive_account_months").notNull(),
   // RGPD-03 : durée de conservation d'un devis signé (preuve du contrat).
   signedQuoteRetentionMonths: integer("signed_quote_retention_months").notNull().default(60),
+  // RGPD-09 (lot 19, ADR 0048) : durée de la preuve d'une demande close, après
+  // laquelle la purge mensuelle propose d'anonymiser le nom de la personne.
+  requestProofRetentionMonths: integer("request_proof_retention_months").notNull().default(60),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
@@ -580,7 +583,8 @@ export const privacyErasures = hubSchema.table("privacy_erasures", {
 // Les libellés (noms) ne sont jamais copiés ici : recalculés à l'affichage.
 export type PrivacyPurgeLine = {
   key: string;
-  rule: "prospect" | "client" | "inactive_account" | "accounting_document" | "signed_quote";
+  // RGPD-09 : « privacy_request », preuve d'une demande close arrivée à son terme.
+  rule: "prospect" | "client" | "inactive_account" | "accounting_document" | "signed_quote" | "privacy_request";
   dueOn: string;
   outcome: "purged" | "excluded";
   exclusionReason: string | null;

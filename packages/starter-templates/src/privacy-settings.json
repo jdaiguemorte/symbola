@@ -6,5 +6,6 @@
   "clientRetentionMonths": 36,
   "accountingRetentionMonths": 120,
   "inactiveAccountMonths": 24,
-  "signedQuoteRetentionMonths": 60
+  "signedQuoteRetentionMonths": 60,
+  "requestProofRetentionMonths": 60
 }

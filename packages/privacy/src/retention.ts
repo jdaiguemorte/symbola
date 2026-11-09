@@ -39,3 +39,11 @@ export function clientDueOn(input: { eventDate: string | null; lastPaymentOn: st
 export function inactiveAccountDueOn(input: { lastLoginOn: string | null; createdOn: string }, months: RetentionMonths): string {
   return addMonths(input.lastLoginOn ?? input.createdOn, months.inactiveAccountMonths);
 }
+
+// RGPD-09 — preuve d'une demande d'exercice de droits close : gardée la durée
+// réglée après le jour de sa clôture (5 ans par défaut, prescription civile,
+// décision de Julien du 09/11/2026), puis anonymisée par la purge mensuelle
+// validée. Une demande en cours n'est jamais échue.
+export function requestProofDueOn(input: { closedOn: string | null }, months: { requestProofRetentionMonths: number }): string | null {
+  return input.closedOn ? addMonths(input.closedOn, months.requestProofRetentionMonths) : null;
+}

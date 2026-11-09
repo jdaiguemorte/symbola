@@ -116,6 +116,7 @@ describe("RGPD-04 — Suivi des demandes", () => {
       accountingRetentionMonths: 120,
       inactiveAccountMonths: 24,
       signedQuoteRetentionMonths: 60,
+      requestProofRetentionMonths: 60,
     });
     await createPrivacyRequest(db, { ...owner, type: "objection", personLabel: "Manon", receivedOn: "2026-11-02", now: at("2026-11-02") });
     await updatePrivacySettings(db, owner.organizationId, { ...(await getPrivacySettings(db, owner.organizationId)), requestAlertDays: 10 });

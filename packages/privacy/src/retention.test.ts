@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clientDueOn, inactiveAccountDueOn, isExpired, prospectDueOn } from "./retention";
+import { clientDueOn, inactiveAccountDueOn, isExpired, prospectDueOn, requestProofDueOn } from "./retention";
 
 const months = { prospectRetentionMonths: 36, clientRetentionMonths: 36, inactiveAccountMonths: 24 };
 
@@ -24,5 +24,25 @@ describe("RGPD-05 — Règles de conservation (dates simulées)", () => {
     expect(inactiveAccountDueOn({ lastLoginOn: "2024-11-03", createdOn: "2024-01-01" }, months)).toBe("2026-11-03");
     expect(inactiveAccountDueOn({ lastLoginOn: null, createdOn: "2024-11-02" }, months)).toBe("2026-11-02");
     expect(isExpired("2026-11-02", "2026-11-03")).toBe(false);
+  });
+});
+
+describe("RGPD-09 — Fin de la preuve d'une demande d'exercice de droits close (dates simulées)", () => {
+  const proof = { requestProofRetentionMonths: 60 };
+
+  it("Étant donné une demande close, alors sa preuve est échue 5 ans après la clôture : le jour même, pas la veille", () => {
+    const due = requestProofDueOn({ closedOn: "2026-11-09" }, proof);
+    expect(due).toBe("2031-11-09");
+    expect(isExpired("2031-11-08", due!)).toBe(false);
+    expect(isExpired("2031-11-09", due!)).toBe(true);
+  });
+
+  it("Étant donné une demande en cours (pas de date de clôture), alors rien n'est échu", () => {
+    expect(requestProofDueOn({ closedOn: null }, proof)).toBeNull();
+  });
+
+  it("la durée suit le réglage de l'organisation ; un 29 février est ramené au dernier jour du mois", () => {
+    expect(requestProofDueOn({ closedOn: "2026-11-09" }, { requestProofRetentionMonths: 36 })).toBe("2029-11-09");
+    expect(requestProofDueOn({ closedOn: "2028-02-29" }, proof)).toBe("2033-02-28");
   });
 });

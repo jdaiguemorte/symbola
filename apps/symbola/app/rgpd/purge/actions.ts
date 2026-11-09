@@ -9,7 +9,8 @@ import { ownerContext } from "../owner-access";
 
 export type PurgeFormState = { error?: string };
 
-const keySchema = z.string().regex(/^(event|account|invoice|credit_note|quote):[0-9a-f-]{36}$/i);
+// RGPD-09 (lot 19) : « request » pour la preuve d'une demande close.
+const keySchema = z.string().regex(/^(event|account|invoice|credit_note|quote|request):[0-9a-f-]{36}$/i);
 
 // RGPD-05 — « Quand elle valide la liste, alors la purge s'exécute ; elle
 // peut exclure une ligne, avec un motif obligatoire. » Seules les lignes

@@ -709,7 +709,7 @@
     },
     "privacyPurge": {
       "title": "Purge mensuelle",
-      "body": "Chaque mois, la liste rassemble ce qui a dépassé sa durée de conservation : prospects sans suite, relations terminées, comptes de mariés inactifs, documents en fin de conservation. Validez-la : chaque ligne est purgée, sauf celles que vous excluez avec un motif. Rien n'est purgé sans vous."
+      "body": "Chaque mois, la liste rassemble ce qui a dépassé sa durée de conservation : prospects sans suite, relations terminées, comptes de mariés inactifs, documents en fin de conservation, noms des personnes dans les demandes closes depuis la durée de preuve réglée. Validez-la : chaque ligne est purgée, sauf celles que vous excluez avec un motif. Rien n'est purgé sans vous."
     },
     "allTasks": {
       "title": "Les tâches de tous vos mariages",
@@ -810,6 +810,10 @@
         {
           "q": "Pourquoi ne puis-je pas clore la demande ?",
           "a": "Une demande se clôt une fois l'action faite et la réponse marquée envoyée : le dossier liste ce qui manque."
+        },
+        {
+          "q": "Le nom de la personne reste-t-il après la clôture ?",
+          "a": "Oui, comme preuve du traitement, pendant la durée réglée (5 ans par défaut, onglet Réglages). Ensuite, la purge mensuelle propose de le remplacer par « [anonymisé] » ; le type, les dates et le journal de la demande restent."
         }
       ]
     }
@@ -2181,7 +2185,7 @@
       "events": "Événements",
       "budget": "Budget",
       "quotes": "Devis et factures",
-      "hub": "Comptes et imports"
+      "hub": "Comptes, imports et demandes RGPD"
     },
     "kind": {
       "event": "Événement",
@@ -2204,6 +2208,7 @@
       "client_account": "Compte d'un marié",
       "import_row": "Ligne d'un import en cours",
       "import_item": "Élément d'un import (annulation)",
+      "privacy_request": "Demande RGPD close (nom de la personne)",
       "greeting": "Message"
     },
     "field": {
@@ -2300,7 +2305,8 @@
       "clientRetentionMonths": "Client (mariés) : conservation après la fin de la relation (mois)",
       "accountingRetentionMonths": "Factures, avoirs et devis signés : conservation (mois)",
       "inactiveAccountMonths": "Compte d'un marié sans connexion : suppression après (mois)",
-      "signedQuoteRetentionMonths": "Devis signé (preuve du contrat) : conservation (mois)"
+      "signedQuoteRetentionMonths": "Devis signé (preuve du contrat) : conservation (mois)",
+      "requestProofRetentionMonths": "Demande close : nom de la personne gardé comme preuve après la clôture (mois)"
     },
     "saveSettings": "Enregistrer les réglages",
     "settingsSaved": "Réglages enregistrés.",
@@ -2406,9 +2412,11 @@
       "client": "Client (fin de la relation)",
       "inactive_account": "Compte d'un marié inactif",
       "accounting_document": "Facture ou avoir (fin de la conservation comptable)",
-      "signed_quote": "Devis signé (fin de la preuve du contrat)"
+      "signed_quote": "Devis signé (fin de la preuve du contrat)",
+      "privacy_request": "Demande RGPD close (fin de la preuve de son traitement)"
     },
     "purgeNoLabel": "sans nom",
+    "personAnonymized": "[anonymisé]",
     "purgeDueOn": "échue le {date}",
     "purgePreviousReason": "exclue précédemment : {reason}",
     "purgeExclude": "Exclure de la purge",
@@ -2508,6 +2516,8 @@
     "caseResponseAfterAction": "La réponse se prépare une fois l'action faite.",
     "caseGoToAction": "Aller à l'étape 3",
     "caseClosedOn": "Demande close le {date}. Elle reste dans la liste, avec sa preuve, pour un contrôle éventuel.",
+    "caseProofUntil": "Le nom de la personne est gardé comme preuve jusqu'au {date}. La purge mensuelle proposera ensuite de le remplacer par « [anonymisé] » ; les dates et le journal restent.",
+    "caseProofAnonymized": "La conservation de la preuve est terminée : le nom de la personne a été anonymisé. Les dates et le journal restent.",
     "caseReadyToClose": "Tout est fait : l'action et la réponse. Vous pouvez clore la demande.",
     "caseNotReady": "La demande ne peut pas encore être close :",
     "caseMissingAction": {

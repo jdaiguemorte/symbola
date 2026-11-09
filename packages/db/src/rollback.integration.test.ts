@@ -61,6 +61,14 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     await expect(rollback("0099_inconnue")).rejects.toBeInstanceOf(RollbackRefusedError);
   });
 
+  it("lot 19 (ADR 0048) — l'annulation de 0083 retire le réglage de la preuve des demandes RGPD", async () => {
+    await expect(rollback("0082_lot18_privacy_cases")).rejects.toBeInstanceOf(RollbackRefusedError);
+    expect(await hasColumn("hub", "privacy_settings", "request_proof_retention_months")).toBe(true);
+    await rollback("0083_lot19_request_proof");
+    expect(await hasColumn("hub", "privacy_settings", "request_proof_retention_months")).toBe(false);
+    expect(await hasColumn("hub", "privacy_settings", "signed_quote_retention_months")).toBe(true);
+  });
+
   it("lot 18 (ADR 0047) — l'annulation de 0082 retire le suivi des dossiers RGPD", async () => {
     await expect(rollback("0081_lot17_documents")).rejects.toBeInstanceOf(RollbackRefusedError);
     expect(await hasColumn("hub", "privacy_requests", "response_sent_at")).toBe(true);

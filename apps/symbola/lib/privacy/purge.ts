@@ -4,7 +4,8 @@
 // titulaire ; une ligne exclue l'est avec un motif obligatoire et revient le
 // mois suivant (décision de Julien du 02/11/2026). Rien n'est purgé sans
 // validation. Chaque module exécute sa part par son contrat privacy/v1, comme
-// pour l'oubli (RGPD-03).
+// pour l'oubli (RGPD-03). RGPD-09 (lot 19, ADR 0048) : la preuve d'une demande
+// close (nom de la personne) arrive aussi dans cette liste à son terme.
 import { appDatabase } from "@symbola/db/client";
 import { clientDueOn, isExpired, parisDate, prospectDueOn, type PrivacyRecord } from "@symbola/privacy";
 import { lastPaymentDates as quotesLastPaymentDates, listExpiredDocuments } from "@/modules/quotes/service";
@@ -12,6 +13,7 @@ import { listRetentionEvents } from "@/modules/events/service";
 import {
   getPrivacyPurge,
   getPrivacySettings,
+  listExpiredPrivacyRequests,
   listInactiveClientAccounts,
   recordPrivacyPurgeAcks,
   startPrivacyPurge,
@@ -76,6 +78,10 @@ export async function listPurgeCandidates(organizationId: string, today: string 
       eventDate: null,
     });
   }
+
+  for (const request of await listExpiredPrivacyRequests(db, { organizationId, months: settings, today })) {
+    candidates.push({ key: `request:${request.id}`, rule: "privacy_request", dueOn: request.dueOn, label: request.personLabel, eventDate: null });
+  }
   return candidates.sort((a, b) => a.dueOn.localeCompare(b.dueOn) || a.key.localeCompare(b.key));
 }
 
@@ -99,6 +105,7 @@ async function recordsOf(organizationId: string, keys: string[], options: Option
     const [prefix, id] = key.split(":");
     if (prefix === "account") refs.push({ module: "hub", kind: "client_account", recordId: id! });
     if (prefix === "invoice" || prefix === "credit_note" || prefix === "quote") refs.push({ module: "quotes", kind: prefix, recordId: id! });
+    if (prefix === "request") refs.push({ module: "hub", kind: "privacy_request", recordId: id! });
   }
   return refs;
 }
