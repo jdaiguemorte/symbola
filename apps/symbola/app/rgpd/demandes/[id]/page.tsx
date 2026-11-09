@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { appDatabase } from "@symbola/db/client";
 import { formatCalendarDate, formatDateTime, type Locale } from "@symbola/i18n";
@@ -64,8 +64,11 @@ export default async function PrivacyCasePage({
   const locale = (await getLocale()) as Locale;
   const date = (value: string) => formatCalendarDate(value, locale);
   const when = (value: Date) => formatDateTime(value, locale);
+  // L'étape affichée est toujours dans l'adresse : une action qui recharge la
+  // page (export, prolongation) ne fait pas sauter le dossier à une autre étape.
   const asked = (await searchParams).etape;
-  const step: PrivacyCaseStep = PRIVACY_CASE_STEPS.includes(asked as PrivacyCaseStep) ? (asked as PrivacyCaseStep) : view.current;
+  if (!PRIVACY_CASE_STEPS.includes(asked as PrivacyCaseStep)) redirect(`/rgpd/demandes/${id}?etape=${view.current}`);
+  const step = asked as PrivacyCaseStep;
   const { request } = view;
   const closed = request.status === "closed";
   const badge = deadlineBadge(request, t, locale);

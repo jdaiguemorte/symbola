@@ -98,7 +98,8 @@
     "followUpSettings": "Follow-up delays",
     "topBar": "Search and screen help",
     "agendaYear": "See the year",
-    "documentsSettings": "Documents: logo, colour, IBAN"
+    "documentsSettings": "Documents: logo, colour, IBAN",
+    "privacySearch": "Find a person (GDPR)"
   },
   "Admin": {
     "createOrganizationTitle": "Create an organization",
@@ -678,7 +679,7 @@
     },
     "privacySearch": {
       "title": "Personal data",
-      "body": "Find everything you hold about a person: enter an email, phone number or name (accents and case are ignored). The search queries each module, then the person's events. If a module does not respond, the result is flagged incomplete: run it again before replying. Guided trials never appear.",
+      "body": "Look up everything you hold about a person: enter an email, a phone number or a name (accents and case ignored). The search queries each module then the person's events; a module that does not answer is flagged. To export or erase, record the request: its case guides you.",
       "faq": [
         {
           "q": "Someone asks for their data: what do I do?",
@@ -692,7 +693,7 @@
     },
     "privacyRequests": {
       "title": "Requests from individuals",
-      "body": "Record each request received (access, rectification, erasure, portability, objection) with its date: the one-month legal deadline appears straight away. A complex request can be extended once, with a reason, up to three months. An upcoming deadline shows up under \"To do\"."
+      "body": "Record each request received (access, rectification, erasure, portability, objection) with its date: its case opens, with the one-month legal deadline. It guides you to the reply: find the data, erase or export, reply, close. A complex request can be extended once, with a reason, up to three months; a close deadline is flagged in the menu and on the home page."
     },
     "privacySettings": {
       "title": "GDPR settings",
@@ -2364,7 +2365,7 @@
     "erasureStatus": {
       "pending": "In progress",
       "partial": "Incomplete: a module did not respond, the request stays open",
-      "completed": "Done: every module responded, the request is closed"
+      "completed": "Done: every module responded. Reply to the person from the case, then close the request."
     },
     "erasuresTitle": "Processed erasures",
     "erasuresEmpty": "No erasure processed.",
@@ -2526,7 +2527,8 @@
     "journalClosed": "Request closed",
     "copyResponse": "Copy the reply",
     "responseCopied": "Reply copied.",
-    "responseCopyFailed": "Copy failed: select the text by hand."
+    "responseCopyFailed": "Copy failed: select the text by hand.",
+    "caseNextAfterExport": "Next step: reply to the person"
   },
   "PasswordReset": {
     "forgotTitle": "Forgot password",

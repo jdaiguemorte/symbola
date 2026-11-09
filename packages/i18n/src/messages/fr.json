@@ -98,7 +98,8 @@
     "followUpSettings": "Délais de relance",
     "topBar": "Recherche et aide de l'écran",
     "agendaYear": "Voir l'année",
-    "documentsSettings": "Documents : logo, couleur, IBAN"
+    "documentsSettings": "Documents : logo, couleur, IBAN",
+    "privacySearch": "Rechercher une personne (RGPD)"
   },
   "Admin": {
     "createOrganizationTitle": "Créer une organisation",
@@ -678,7 +679,7 @@
     },
     "privacySearch": {
       "title": "Données personnelles",
-      "body": "Retrouvez tout ce que vous détenez sur une personne : saisissez un e-mail, un téléphone ou un nom (accents et casse ignorés). La recherche interroge chaque module puis les événements de la personne. Si un module ne répond pas, le résultat est signalé incomplet : relancez-la avant de répondre. Les essais guidés n'apparaissent jamais.",
+      "body": "Consultez tout ce que vous détenez sur une personne : saisissez un e-mail, un téléphone ou un nom (accents et casse ignorés). La recherche interroge chaque module puis les événements de la personne ; un module qui ne répond pas est signalé. Pour exporter ou effacer, enregistrez la demande : son dossier vous guide.",
       "faq": [
         {
           "q": "Une personne demande ses données : que faire ?",
@@ -692,7 +693,7 @@
     },
     "privacyRequests": {
       "title": "Demandes des personnes",
-      "body": "Enregistrez chaque demande reçue (accès, rectification, oubli, portabilité, opposition) avec sa date : l'échéance légale d'un mois s'affiche aussitôt. Une demande complexe se prolonge une fois, avec un motif, jusqu'à trois mois. Une échéance proche remonte dans « À traiter »."
+      "body": "Enregistrez chaque demande reçue (accès, rectification, oubli, portabilité, opposition) avec sa date : son dossier s'ouvre, avec l'échéance légale d'un mois. Il vous guide jusqu'à la réponse : retrouver les données, effacer ou exporter, répondre, clore. Une demande complexe se prolonge une fois, avec un motif, jusqu'à trois mois ; une échéance proche est signalée au menu et à l'accueil."
     },
     "privacySettings": {
       "title": "Réglages RGPD",
@@ -2364,7 +2365,7 @@
     "erasureStatus": {
       "pending": "En cours",
       "partial": "Incomplet : un module n'a pas répondu, la demande reste ouverte",
-      "completed": "Terminé : tous les modules ont répondu, la demande est close"
+      "completed": "Terminé : tous les modules ont répondu. Répondez à la personne depuis le dossier, puis close la demande."
     },
     "erasuresTitle": "Oublis traités",
     "erasuresEmpty": "Aucun oubli traité.",
@@ -2526,7 +2527,8 @@
     "journalClosed": "Demande close",
     "copyResponse": "Copier la réponse",
     "responseCopied": "Réponse copiée.",
-    "responseCopyFailed": "Copie impossible : sélectionnez le texte à la main."
+    "responseCopyFailed": "Copie impossible : sélectionnez le texte à la main.",
+    "caseNextAfterExport": "Étape suivante : répondre à la personne"
   },
   "PasswordReset": {
     "forgotTitle": "Mot de passe oublié",

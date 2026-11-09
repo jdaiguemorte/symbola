@@ -82,8 +82,9 @@ export async function exportRecordsAction(_prevState: ExportFormState, formData:
       archive,
       now: generatedAt,
     });
+    // Le dossier n'est pas rechargé ici : les liens de téléchargement restent
+    // à l'écran, avec le lien vers l'étape suivante (search-form.tsx).
     revalidatePath("/rgpd");
-    revalidatePath(`/rgpd/demandes/${requestId}`);
     return { exportId: stored.id, recordCount: stored.recordCount };
   } catch (error) {
     if (error instanceof PrivacyExportInvalidError) return { error: t("exportRequestInvalid") };

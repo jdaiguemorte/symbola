@@ -190,6 +190,10 @@ function SearchResults({
                   <a href={`/rgpd/exports/${exportState.exportId}/pdf`}>{t("downloadPdf")}</a> ·{" "}
                   <a href={`/rgpd/exports/${exportState.exportId}/archive`}>{t("downloadArchive")}</a>
                 </p>
+                {/* Lot 18 (RGPD-07) : l'export fait, le dossier passe à la réponse. */}
+                <p>
+                  <a href={`/rgpd/demandes/${request.id}?etape=response`}>{t("caseNextAfterExport")}</a>
+                </p>
               </div>
             ) : null}
           </fieldset>

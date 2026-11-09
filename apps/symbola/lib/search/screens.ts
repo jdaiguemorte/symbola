@@ -24,6 +24,7 @@ export const SCREENS: ScreenEntry[] = [
   { path: "/devis/catalogue", module: "quotes", label: "quoteCatalog", help: "quotesCatalog" },
   { path: "/devis/e-reporting", module: "quotes", label: "eReporting", help: "quotesEReporting" },
   { path: "/import", module: "hub", label: "importData", help: "importFile" },
-  { path: "/rgpd", module: "hub", label: "privacy", help: "privacySearch", ownerOnly: true },
+  { path: "/rgpd", module: "hub", label: "privacy", help: "privacyRequests", ownerOnly: true },
+  { path: "/rgpd/recherche", module: "hub", label: "privacySearch", help: "privacySearch", ownerOnly: true },
   { path: "/profil", module: "hub", label: "myProfile", help: "profile" },
 ];
