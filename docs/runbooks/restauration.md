@@ -128,6 +128,7 @@ supprime une colonne en perd les données.
    façon que `migrate` dans le runbook de déploiement (« Mettre à jour », étape 3 : même
    tunnel SSH, mêmes variables admin) :
    ```bash
+   pnpm --filter @symbola/db rollback -- 0083_lot19_request_proof
    pnpm --filter @symbola/db rollback -- 0082_lot18_privacy_cases
    pnpm --filter @symbola/db rollback -- 0081_lot17_documents
    pnpm --filter @symbola/db rollback -- 0080_lot16_event_types
@@ -139,6 +140,8 @@ supprime une colonne en perd les données.
    pnpm --filter @symbola/db rollback -- 0074_lot15_grant_import_jobs
    pnpm --filter @symbola/db rollback -- 0073_lot15_import_jobs
    ```
+   Annuler 0083 retire le réglage « preuve des demandes » (une durée modifiée est perdue) ; les
+   noms déjà remplacés par « [anonymisé] » le restent (ADR 0048).
    Annuler 0082 oublie les dates d'action et de réponse des dossiers RGPD et rend son rang
    d'avant à la progression de l'assistant de démarrage (ADR 0047).
    Annuler 0081 retire la fiche entreprise complète et les réglages des documents ; les

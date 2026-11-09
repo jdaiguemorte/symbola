@@ -397,6 +397,8 @@ Au MVP, c'est le titulaire du compte qui exerce les droits du module ; le rôle 
 
 - Les règles de calcul sont couvertes par des tests avec dates simulées (cas limites : la veille et le jour même de l'échéance).
 
+- Lot 19 (RGPD-09, ADR 0048) : la preuve d'une demande close (nom de la personne) arrive aussi dans cette liste à la fin de sa conservation (5 ans après la clôture par défaut, réglable) ; critères dans `docs/lots/lot-19-preuve-rgpd.md`.
+
 ### RGPD-06 — Registre de données vérifié en CI
 
 - Chaque app déclare dans un fichier ses champs personnels, avec leur catégorie, leur règle de conservation et leur règle d'anonymisation.

@@ -86,7 +86,8 @@ rattachés à la demande. Les dossiers vivent dans le module hub
   données des modules, elles, sont effacées ou anonymisées. **Manque connu** : le remplacement
   de `person_label` par « [anonymisé] » en fin de conservation, prévu au registre, n'est pas
   encore fait par la purge mensuelle. À traiter en suite du lot 18. D'ici là, mieux vaut ne
-  saisir que le nom de la personne, sans e-mail ni téléphone.
+  saisir que le nom de la personne, sans e-mail ni téléphone. *Comblé au lot 19 par
+  l'[ADR 0048](0048-preuve-des-demandes-rgpd-anonymisee.md) (RGPD-09).*
 - Les captures d'aide des écrans RGPD et du démarrage sont à régénérer
   (`pnpm --filter @symbola/app help:captures`).
 - Hors périmètre : envoi de la réponse par Symbola, pièces jointes reçues de la personne,
