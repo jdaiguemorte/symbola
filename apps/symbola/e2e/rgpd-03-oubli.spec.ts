@@ -65,8 +65,12 @@ test("RGPD-03 — la titulaire prévisualise puis valide l'oubli ; la demande se
   }
 
   await loginAndSetupMfa(page, ownerEmail, password);
+  // Lot 18 (RGPD-07) : l'oubli se traite depuis le dossier de la demande.
   await page.goto("/rgpd");
-  await page.getByLabel("Nom").fill(`Élodie ${lastName}`);
+  await page.getByRole("link", { name: `Élodie ${lastName}`, exact: true }).click();
+  await expect(page).toHaveURL(/\/rgpd\/demandes\/[0-9a-f-]{36}\?etape=/);
+  const caseUrl = page.url().split("?")[0]!;
+  await expect(page.getByLabel("Nom")).toHaveValue(`Élodie ${lastName}`);
   await page.getByRole("button", { name: "Rechercher", exact: true }).click();
   await expect(page.getByRole("heading", { name: /données trouvées/ })).toBeVisible();
   await page.getByRole("button", { name: "Tout cocher" }).click();
@@ -78,23 +82,33 @@ test("RGPD-03 — la titulaire prévisualise puis valide l'oubli ; la demande se
   await expect(preview).toContainText("Supprimée — Événements · Tâche : Réserver le traiteur");
   await expectNoAxeViolation(page);
 
-  await preview.getByLabel("Demande d'oubli").selectOption({ label: `Élodie ${lastName}` });
   await preview.getByLabel("Je confirme l'oubli : cette opération est irréversible.").check();
   await preview.getByRole("button", { name: "Valider l'oubli" }).click();
 
+  // Retour au dossier, étape « Action » : effacement confirmé, détail et preuve à un clic.
+  await expect(page.getByText(/Effacement fait le .* tous les modules ont confirmé/)).toBeVisible();
+  await page.getByRole("link", { name: "Voir le détail de l'effacement et la preuve" }).click();
   await expect(page.getByRole("heading", { name: `Demande d'oubli : Élodie ${lastName}` })).toBeVisible();
-  await expect(page.getByRole("status")).toContainText("Terminé : tous les modules ont répondu, la demande est close");
+  await expect(page.getByRole("status")).toContainText("Terminé : tous les modules ont répondu");
   await expect(page.getByText(/Événements : accusé le/)).toBeVisible();
   await expect(page.getByLabel("Message")).toHaveValue(new RegExp(`Bonjour Élodie ${lastName}`));
   const proofHref = await page.getByRole("link", { name: "Télécharger la preuve (PDF)" }).getAttribute("href");
   expect((await (await page.request.get(proofHref!)).body()).subarray(0, 5).toString("latin1")).toBe("%PDF-");
   await expectNoAxeViolation(page);
 
+  // Réponse à la personne (modèle prêt), puis clôture (décision C).
+  await page.goto(`${caseUrl}?etape=response`);
+  await expect(page.getByText(new RegExp(`Bonjour Élodie ${lastName}`))).toBeVisible();
+  await expectNoAxeViolation(page);
+  await page.getByRole("button", { name: "J'ai envoyé la réponse" }).click();
+  await page.getByRole("button", { name: `Clore la demande de « Élodie ${lastName} »` }).click();
+  await expect(page.getByText(/Demande close le/)).toBeVisible();
+
   // La personne est introuvable ; la demande est close.
-  await page.goto("/rgpd");
+  await page.goto("/rgpd/recherche");
   await page.getByLabel("Nom").fill(`Élodie ${lastName}`);
   await page.getByRole("button", { name: "Rechercher", exact: true }).click();
   await expect(page.getByText("Aucune donnée ne correspond à cette personne.")).toBeVisible();
-  await page.goto("/rgpd/demandes");
-  await expect(page.getByRole("listitem").filter({ hasText: `Élodie ${lastName}` })).toContainText("close");
+  await page.goto("/rgpd");
+  await expect(page.getByRole("row").filter({ hasText: `Élodie ${lastName}` })).toContainText("Close");
 });

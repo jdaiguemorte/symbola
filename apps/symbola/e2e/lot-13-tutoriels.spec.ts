@@ -44,9 +44,10 @@ test("AIDE-10 — parcours des tutoriels, un seul en cours à la fois", async ({
   // Une page à part, au menu, avec le parcours en étapes.
   await clickMenuLink(page, "Tutoriels");
   await expect(page).toHaveURL(/\/tutoriels$/);
-  await expect(page.getByRole("heading", { name: "Tutoriels faits : 0 sur 10" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Tutoriels faits : 0 sur 11" })).toBeVisible();
   const activity = page.getByRole("region", { name: "Préparer votre activité" });
-  await expect(activity.getByRole("link", { name: /Saisir son catalogue de prestations/ })).toContainText("Conseillé ensuite");
+  // Lot 18 (AIDE-13) : personnaliser ses documents est conseillé en premier.
+  await expect(activity.getByRole("link", { name: /Personnaliser vos devis et factures/ })).toContainText("Conseillé ensuite");
   await expect(page.getByRole("region", { name: "Autres tutoriels" })).toContainText("Importer ses événements existants");
   await expectNoAxeViolation(page);
 
