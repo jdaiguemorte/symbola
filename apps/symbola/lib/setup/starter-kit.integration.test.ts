@@ -75,7 +75,8 @@ describe("ONB-03 — Assistant de démarrage pré-rempli", { timeout: 30_000 }, 
     await saveSetupStep(db, organization.id, 4);
     expect((await getSetupState(db, organization.id)).step).toBe(4);
     await saveSetupStep(db, organization.id, 99);
-    expect((await getSetupState(db, organization.id)).step).toBe(6);
+    // Lot 18 (AIDE-13) : 7 étapes, avec « Vos documents » en 4ᵉ.
+    expect((await getSetupState(db, organization.id)).step).toBe(7);
     await completeSetup(db, organization.id);
     expect((await getSetupState(db, organization.id)).completed).toBe(true);
   });
