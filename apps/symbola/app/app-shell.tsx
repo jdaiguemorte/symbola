@@ -25,7 +25,7 @@ import {
 import { getTranslations } from "next-intl/server";
 import { parisToday } from "@symbola/i18n";
 import { appDatabase } from "@symbola/db/client";
-import { getSetupState, isModuleEnabled } from "@/modules/hub/service";
+import { getDocumentHeader, getSetupState, isModuleEnabled } from "@/modules/hub/service";
 import { listOrganizationTasks } from "@/modules/events/service";
 import { getAuthContext } from "@/lib/auth-context";
 import { AppNavLink } from "./app-nav-link";
@@ -112,10 +112,23 @@ export async function AppShell({ children }: { children: ReactNode }) {
 
   // Un marié n'a que l'espace de son mariage (EVT-06).
   if (auth.user.role === "client") {
+    // Lot 17 (DEV-08, décision G) : le logo de l'organisation, sinon son nom ;
+    // l'image est servie par /logo après contrôle de la session.
+    const organization = auth.user.organizationId ? await getDocumentHeader(appDatabase(), auth.user.organizationId) : null;
+    const logoVersion = organization?.logoKey?.split("/").pop() ?? null;
     return (
       <div className="app-shell">
         <header className="app-sidebar">
           <Brand href="/espace" />
+          {organization ? (
+            <div className="client-organization">
+              {logoVersion ? (
+                <img className="client-organization-logo" src={`/logo?v=${encodeURIComponent(logoVersion)}`} alt={organization.organizationName} />
+              ) : (
+                <p className="client-organization-name">{organization.organizationName}</p>
+              )}
+            </div>
+          ) : null}
           <div className="app-user">
             <span>{t("connectedAs", { email: auth.user.email })}</span>
             {logout}
@@ -278,6 +291,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
                 items: [
                   { href: "/devis/catalogue", label: tSettings("catalog") },
                   { href: "/devis/parametres", label: tSettings("quotes") },
+                  { href: "/devis/parametres/documents", label: tSettings("documents") },
                   { href: "/devis/e-reporting", label: tSettings("eReporting") },
                 ],
               },
