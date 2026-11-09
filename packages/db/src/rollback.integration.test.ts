@@ -61,6 +61,21 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     await expect(rollback("0099_inconnue")).rejects.toBeInstanceOf(RollbackRefusedError);
   });
 
+  it("lot 17 (ADR 0046) — l'annulation de 0081 retire la fiche et l'apparence des documents", async () => {
+    await expect(rollback("0080_lot16_event_types")).rejects.toBeInstanceOf(RollbackRefusedError);
+    expect(await hasColumn("quotes", "quote_settings", "document_font")).toBe(true);
+    await rollback("0081_lot17_documents");
+    for (const column of ["document_color", "document_font", "iban", "bic", "quote_intro", "quote_terms", "invoice_intro", "document_footer"]) {
+      expect(await hasColumn("quotes", "quote_settings", column), column).toBe(false);
+    }
+    for (const column of ["contact_email", "contact_phone", "website", "vat_number", "registration", "share_capital_cents"]) {
+      expect(await hasColumn("hub", "organization_profiles", column), column).toBe(false);
+    }
+    expect(await hasColumn("quotes", "quote_settings", "invoice_mentions")).toBe(true);
+    const fontType = await target`select 1 from pg_type t join pg_namespace n on n.oid = t.typnamespace where n.nspname = 'quotes' and t.typname = 'document_font'`;
+    expect(fontType).toHaveLength(0);
+  });
+
   it("lot 16 (ADR 0045) — l'annulation de 0080 retire les types d'événement", async () => {
     await expect(rollback("0079_lot16_drop_hello")).rejects.toBeInstanceOf(RollbackRefusedError);
     expect(await hasColumn("events", "events", "event_type_id")).toBe(true);
