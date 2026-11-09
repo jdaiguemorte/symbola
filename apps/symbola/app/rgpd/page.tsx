@@ -1,27 +1,21 @@
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import { appDatabase } from "@symbola/db/client";
-import { formatDateTime, type Locale } from "@symbola/i18n";
+import { formatCalendarDate, type Locale } from "@symbola/i18n";
+import { parisDate } from "@symbola/privacy";
 import { ScreenHelp } from "@/app/screen-help";
-import {
-  listErasablePrivacyRequests,
-  listExportablePrivacyRequests,
-  listPrivacyErasures,
-  listPrivacyExports,
-  type PrivacyErasureView,
-  type PrivacyExportView,
-} from "@/modules/hub/service";
-import type { ErasableRequest } from "./erasure-preview";
+import { PageHeader } from "@/app/ui/page-header";
 import { requireOwner } from "@/lib/guards";
-import { SearchForm, type ExportableRequest } from "./search-form";
+import { getPrivacyCase, listPrivacyRequests, PRIVACY_REQUEST_TYPES, type PrivacyCaseView } from "@/modules/hub/service";
+import { NewRequestForm } from "./demandes/request-forms";
+import { deadlineBadge } from "./deadline";
+import { PrivacyTabs } from "./privacy-tabs";
 
-// RGPD-01 — module « Données personnelles » : recherche transverse d'une
-// personne dans tous les modules souscrits ; RGPD-02 : export des fiches
-// sélectionnées, et exports encore téléchargeables. Titulaire du compte
-// seulement.
+// RGPD-04, lot 18 (RGPD-07, ADR 0047) — Données personnelles : les demandes
+// d'exercice de droits, chacune ouvrant son dossier, l'échéance et
+// l'avancement d'un coup d'œil. Titulaire du compte seulement.
 export default async function PrivacyPage() {
   const auth = await requireOwner();
-
   const t = await getTranslations("Privacy");
   const tHelp = await getTranslations("Help");
   if (!auth) {
@@ -34,51 +28,59 @@ export default async function PrivacyPage() {
   }
   const locale = (await getLocale()) as Locale;
   const db = appDatabase();
-  const exportRequests: ExportableRequest[] = (await listExportablePrivacyRequests(db, auth.user.organizationId)).map((request) => ({
-    id: request.id,
-    label: `${request.personLabel} — ${t(`requestType.${request.type}`)}`,
-  }));
-  const exports: PrivacyExportView[] = await listPrivacyExports(db, auth.user.organizationId);
-  const erasureRequests: ErasableRequest[] = (await listErasablePrivacyRequests(db, auth.user.organizationId)).map((request) => ({ id: request.id, label: request.personLabel }));
-  const erasures: PrivacyErasureView[] = await listPrivacyErasures(db, auth.user.organizationId);
+  const organizationId = auth.user.organizationId;
+  const requests = await listPrivacyRequests(db, organizationId);
+  const cases: PrivacyCaseView[] = await Promise.all(requests.map((request) => getPrivacyCase(db, organizationId, request.id)));
+  const alerts = requests.filter((request) => request.dueSoon).length;
+
   return (
     <main>
-      <h1>{t("title")}</h1>
-      <ScreenHelp title={tHelp("privacySearch.title")} body={tHelp("privacySearch.body")} />
-      <p>
-        <Link href="/rgpd/demandes">{t("requestsLink")}</Link> · <Link href="/rgpd/purge">{t("purgeLink")}</Link> · <Link href="/rgpd/reglages">{t("settingsLink")}</Link>
-      </p>
-      <SearchForm exportRequests={exportRequests} erasureRequests={erasureRequests} />
-      <section aria-labelledby="privacy-exports">
-        <h2 id="privacy-exports">{t("exportsTitle")}</h2>
-        {/* Lot 16 (HUB-19) : un seul « ? » par écran ; l'aide des exports reste lisible ici. */}
-        <p className="muted">{tHelp("privacyExport.body")}</p>
-        {exports.length === 0 ? <p>{t("exportsEmpty")}</p> : null}
-        <ul>
-          {exports.map((item) => (
-            <li key={item.id}>
-              {t("exportSummary", { date: formatDateTime(item.createdAt, locale), count: item.recordCount })}
-              {item.requestPersonLabel ? ` — ${t("exportForRequest", { person: item.requestPersonLabel })}` : ""}{" "}
-              <small>{t("exportExpires", { date: formatDateTime(item.expiresAt, locale) })}</small>{" "}
-              <a href={`/rgpd/exports/${item.id}/pdf`}>{t("downloadPdf")}</a> · <a href={`/rgpd/exports/${item.id}/archive`}>{t("downloadArchive")}</a>
-            </li>
-          ))}
-        </ul>
+      <PageHeader title={t("title")} subtitle={t("requestsSubtitle")} />
+      <ScreenHelp title={tHelp("privacyRequests.title")} body={tHelp("privacyRequests.body")} />
+      <PrivacyTabs alerts={alerts} />
+
+      <section aria-labelledby="requests-list" className="settings-block">
+        <h2 id="requests-list">{t("requestsListTitle")}</h2>
+        {cases.length === 0 ? (
+          <p>{t("noRequests")}</p>
+        ) : (
+          <div className="list-table-wrap" role="region" aria-labelledby="requests-list" tabIndex={0}>
+            <table className="list-table">
+              <thead>
+                <tr>
+                  <th scope="col">{t("columnPerson")}</th>
+                  <th scope="col">{t("columnRequest")}</th>
+                  <th scope="col">{t("columnDeadline")}</th>
+                  <th scope="col">{t("columnProgress")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {cases.map((view) => {
+                  const badge = deadlineBadge(view.request, t, locale);
+                  return (
+                    <tr key={view.request.id}>
+                      <td>
+                        <Link href={`/rgpd/demandes/${view.request.id}`}>{view.request.personLabel}</Link>
+                        <br />
+                        <small>{t("receivedOn", { date: formatCalendarDate(view.request.receivedOn, locale) })}</small>
+                      </td>
+                      <td>{t(`requestType.${view.request.type}`)}</td>
+                      <td>
+                        <span className={badge.className}>{badge.label}</span>
+                      </td>
+                      <td>{t(`caseProgress.${view.request.status === "closed" ? "closed" : view.current}`)}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
-      <section aria-labelledby="privacy-erasures">
-        <h2 id="privacy-erasures">{t("erasuresTitle")}</h2>
-        <ScreenHelp title={tHelp("privacyErasure.title")} body={tHelp("privacyErasure.body")} />
-        {erasures.length === 0 ? <p>{t("erasuresEmpty")}</p> : null}
-        <ul>
-          {erasures.map((erasure) => (
-            <li key={erasure.id}>
-              <Link href={`/rgpd/oublis/${erasure.id}`}>
-                {t("erasureSummary", { person: erasure.request.personLabel, date: formatDateTime(erasure.createdAt, locale) })}
-              </Link>{" "}
-              <small>({t(`erasureStatus.${erasure.status}`)})</small>
-            </li>
-          ))}
-        </ul>
+
+      <section aria-labelledby="new-request" className="settings-block">
+        <h2 id="new-request">{t("newRequestTitle")}</h2>
+        <NewRequestForm types={PRIVACY_REQUEST_TYPES} today={parisDate(new Date())} />
       </section>
     </main>
   );

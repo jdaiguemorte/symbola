@@ -575,6 +575,13 @@
       "when": 1794176780518,
       "tag": "0081_lot17_documents",
       "breakpoints": true
+    },
+    {
+      "idx": 82,
+      "version": "7",
+      "when": 1794254558141,
+      "tag": "0082_lot18_privacy_cases",
+      "breakpoints": true
     }
   ]
 }

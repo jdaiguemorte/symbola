@@ -34,7 +34,8 @@ export async function exportRecordsAction(_prevState: ExportFormState, formData:
   if (formData.get("notesAcknowledged") !== "on") return { error: t("exportConfirmMissing") };
   const parsedSelection = parseSelection(formData);
   const requestIdRaw = String(formData.get("requestId") ?? "");
-  const requestIdCheck = z.union([z.literal(""), z.uuid()]).safeParse(requestIdRaw);
+  // Lot 18 (RGPD-07, décision B) : un export part toujours d'une demande.
+  const requestIdCheck = z.uuid().safeParse(requestIdRaw);
   if (!parsedSelection || !requestIdCheck.success) return { error: t("exportInvalid") };
   const requestId = requestIdCheck.data;
   const { terms, selectedKeys } = parsedSelection;
@@ -49,12 +50,9 @@ export async function exportRecordsAction(_prevState: ExportFormState, formData:
   const db = appDatabase();
   try {
     // Demande rattachée : d'accès ou de portabilité, en cours, de l'organisation.
-    let person: string | null = null;
-    if (requestId !== "") {
-      const request = (await listExportablePrivacyRequests(db, owner.organizationId)).find((candidate) => candidate.id === requestId);
-      if (!request) return { error: t("exportRequestInvalid") };
-      person = t("pdfPerson", { person: request.personLabel });
-    }
+    const request = (await listExportablePrivacyRequests(db, owner.organizationId)).find((candidate) => candidate.id === requestId);
+    if (!request) return { error: t("exportRequestInvalid") };
+    const person = t("pdfPerson", { person: request.personLabel });
     const header = await getDocumentHeader(db, owner.organizationId);
     const organizationName = header?.organizationName ?? "";
     const model = buildExportPdfModel(
@@ -78,13 +76,14 @@ export async function exportRecordsAction(_prevState: ExportFormState, formData:
     const stored = await storePrivacyExport(db, {
       organizationId: owner.organizationId,
       userId: owner.userId,
-      requestId: requestId === "" ? null : requestId,
+      requestId,
       recordCount: selection.records.length,
       pdf,
       archive,
       now: generatedAt,
     });
     revalidatePath("/rgpd");
+    revalidatePath(`/rgpd/demandes/${requestId}`);
     return { exportId: stored.id, recordCount: stored.recordCount };
   } catch (error) {
     if (error instanceof PrivacyExportInvalidError) return { error: t("exportRequestInvalid") };

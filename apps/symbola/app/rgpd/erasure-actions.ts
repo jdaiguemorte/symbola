@@ -38,17 +38,17 @@ export async function executeErasureAction(_prevState: ErasureExecuteState, form
   if (!requestId.success) return { error: t("erasureRequestMissing") };
   const selection = parseSelection(formData);
   if (!selection) return { error: t("exportInvalid") };
-  let erasureId: string;
   try {
     const result = await executeErasure({ organizationId: owner.organizationId, userId: owner.userId, requestId: requestId.data, ...selection });
     if (result.status !== "ok") return { error: t(ERRORS[result.status]) };
-    erasureId = result.erasureId;
   } catch (error) {
     if (error instanceof PrivacyErasureInvalidError) return { error: t(error.code === "in_progress" ? "erasureInProgress" : "erasureRequestInvalid") };
     throw error;
   }
   revalidatePath("/rgpd");
-  redirect(`/rgpd/oublis/${erasureId}`);
+  // Lot 18 (RGPD-07) : retour au dossier, sur l'étape de l'effacement.
+  revalidatePath(`/rgpd/demandes/${requestId.data}`);
+  redirect(`/rgpd/demandes/${requestId.data}?etape=action`);
 }
 
 // Relance des modules qui n'ont pas accusé réception.

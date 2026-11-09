@@ -5,12 +5,17 @@ import { useTranslations } from "next-intl";
 import type { PersonSearchResult, SearchRecord } from "@/lib/privacy/search";
 import { searchPersonAction, type SearchFormState, type SearchTerms } from "./actions";
 import { previewErasureAction, type ErasurePreviewState } from "./erasure-actions";
-import { ErasurePreview, type ErasableRequest } from "./erasure-preview";
+import { ErasurePreview } from "./erasure-preview";
 import { exportRecordsAction, type ExportFormState } from "./export-actions";
+import { NewRequestForm } from "./demandes/request-forms";
 
 const MODULE_ORDER = ["events", "budget", "quotes", "hub"];
 
-export type ExportableRequest = { id: string; label: string };
+// Lot 18 (RGPD-07, décision B) : un export ou un effacement part toujours
+// d'une demande. Dans le dossier, la recherche porte sur sa demande ; seule,
+// elle sert à consulter et propose de créer la demande.
+export type CaseRequest = { id: string; type: "access" | "rectification" | "erasure" | "portability" | "objection"; personLabel: string };
+export type CreateRequest = { types: readonly string[]; today: string };
 
 function fieldLabel(t: ReturnType<typeof useTranslations>, key: string): string {
   if (key.startsWith("imported:")) return t("importedField", { name: key.slice("imported:".length) });
@@ -21,7 +26,7 @@ function recordKey(record: SearchRecord): string {
   return `${record.module}:${record.kind}:${record.recordId}`;
 }
 
-export function SearchForm({ exportRequests, erasureRequests }: { exportRequests: ExportableRequest[]; erasureRequests: ErasableRequest[] }) {
+export function SearchForm({ request, createRequest }: { request?: CaseRequest; createRequest?: CreateRequest }) {
   const t = useTranslations("Privacy");
   const initialState: SearchFormState = {};
   const [state, formAction, pending] = useActionState(searchPersonAction, initialState);
@@ -40,7 +45,7 @@ export function SearchForm({ exportRequests, erasureRequests }: { exportRequests
         </label>
         <label>
           {t("nameLabel")}
-          <input type="text" name="name" autoComplete="off" />
+          <input type="text" name="name" autoComplete="off" defaultValue={request?.personLabel ?? ""} />
         </label>
         <button type="submit" disabled={pending}>
           {pending ? t("searching") : t("search")}
@@ -48,7 +53,7 @@ export function SearchForm({ exportRequests, erasureRequests }: { exportRequests
         {state.error ? <p role="alert">{state.error}</p> : null}
       </form>
 
-      {state.result ? <SearchResults key={state.searchId} result={state.result} terms={state.terms ?? {}} exportRequests={exportRequests} erasureRequests={erasureRequests} /> : null}
+      {state.result ? <SearchResults key={state.searchId} result={state.result} terms={state.terms ?? {}} request={request} createRequest={createRequest} /> : null}
     </>
   );
 }
@@ -58,13 +63,13 @@ export function SearchForm({ exportRequests, erasureRequests }: { exportRequests
 function SearchResults({
   result,
   terms,
-  exportRequests,
-  erasureRequests,
+  request,
+  createRequest,
 }: {
   result: PersonSearchResult;
   terms: SearchTerms;
-  exportRequests: ExportableRequest[];
-  erasureRequests: ErasableRequest[];
+  request: CaseRequest | undefined;
+  createRequest: CreateRequest | undefined;
 }) {
   const t = useTranslations("Privacy");
   const initialExport: ExportFormState = {};
@@ -75,6 +80,9 @@ function SearchResults({
   const byModule = new Map<string, SearchRecord[]>();
   for (const record of result.records) byModule.set(record.module, [...(byModule.get(record.module) ?? []), record]);
   const modules = [...byModule.keys()].sort((a, b) => MODULE_ORDER.indexOf(a) - MODULE_ORDER.indexOf(b));
+  const canExport = request?.type === "access" || request?.type === "portability";
+  const canErase = request?.type === "erasure";
+  const selectable = canExport || canErase;
 
   const toggle = (key: string, checked: boolean) => {
     setSelected((current) => {
@@ -108,7 +116,7 @@ function SearchResults({
         {terms.phone ? <input type="hidden" name="phone" value={terms.phone} /> : null}
         {terms.name ? <input type="hidden" name="name" value={terms.name} /> : null}
 
-        {result.records.length > 0 ? (
+        {selectable && result.records.length > 0 ? (
           <p>
             {t("selectIntro")}{" "}
             <button type="button" onClick={() => setSelected(new Set(result.records.map(recordKey)))}>
@@ -128,13 +136,20 @@ function SearchResults({
                 const key = recordKey(record);
                 return (
                   <li key={key}>
-                    <label>
-                      <input type="checkbox" name="record" value={key} checked={selected.has(key)} onChange={(event) => toggle(key, event.target.checked)} />{" "}
+                    {selectable ? (
+                      <label>
+                        <input type="checkbox" name="record" value={key} checked={selected.has(key)} onChange={(event) => toggle(key, event.target.checked)} />{" "}
+                        <strong>
+                          {t(`kind.${record.kind}`)}
+                          {record.label ? ` : ${record.label}` : ""}
+                        </strong>
+                      </label>
+                    ) : (
                       <strong>
                         {t(`kind.${record.kind}`)}
                         {record.label ? ` : ${record.label}` : ""}
                       </strong>
-                    </label>{" "}
+                    )}{" "}
                     <small>{record.direct ? t("directMatch") : t("relatedMatch")}</small>
                     {Object.keys(record.fields).length > 0 ? (
                       <dl>
@@ -153,23 +168,11 @@ function SearchResults({
           </section>
         ))}
 
-        {result.records.length > 0 ? (
+        {canExport && request && result.records.length > 0 ? (
           <fieldset>
             <legend>{t("exportTitle")}</legend>
             <p>{t("exportIntro", { count: selected.size })}</p>
-            {exportRequests.length > 0 ? (
-              <label>
-                {t("exportRequestLabel")}
-                <select name="requestId" defaultValue="">
-                  <option value="">{t("exportNoRequest")}</option>
-                  {exportRequests.map((request) => (
-                    <option key={request.id} value={request.id}>
-                      {request.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            ) : null}
+            <input type="hidden" name="requestId" value={request.id} />
             <p role="note">
               <strong>{t("exportWarning")}</strong>
             </p>
@@ -192,7 +195,7 @@ function SearchResults({
           </fieldset>
         ) : null}
 
-        {result.records.length > 0 ? (
+        {canErase && result.records.length > 0 ? (
           <fieldset>
             <legend>{t("erasurePreviewTitle")}</legend>
             <p>{t("erasurePreviewIntro")}</p>
@@ -204,7 +207,15 @@ function SearchResults({
           </fieldset>
         ) : null}
       </form>
-      {previewState.items ? <ErasurePreview key={previewState.selectedKeys?.join(",")} preview={previewState} terms={terms} erasureRequests={erasureRequests} /> : null}
+      {canErase && request && previewState.items ? <ErasurePreview key={previewState.selectedKeys?.join(",")} preview={previewState} terms={terms} requestId={request.id} /> : null}
+      {request && !selectable ? <p className="meta">{t("caseManualHint")}</p> : null}
+      {createRequest ? (
+        <section aria-labelledby="privacy-create-request">
+          <h2 id="privacy-create-request">{t("createFromSearchTitle")}</h2>
+          <p className="meta">{t("createFromSearchHint")}</p>
+          <NewRequestForm types={createRequest.types} today={createRequest.today} defaultPerson={terms.name ?? ""} />
+        </section>
+      ) : null}
     </section>
   );
 }

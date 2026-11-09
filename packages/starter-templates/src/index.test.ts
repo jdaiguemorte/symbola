@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import retroplanningFile from "./retroplanning.json";
 import vendorSlotsFile from "./vendor-slots.json";
 import programFile from "./program.json";
-import { starterDemoEvent, starterDemoQuote, starterErasureResponse, starterPrivacySettings, starterInvoiceMentions, starterDocumentStyle, starterQuoteTerms, starterLossReasons, starterPaymentMethods, starterProgram, starterProspectSources, starterRetroplanning, starterVendorSlots, starterVendorTypes, starterBudgetLines, starterAllocation, starterFollowUpDelays, starterVendorTypeSynonymGroups, starterVendorCatalog, starterEventTypes, BUDGET_LINE_ICONS } from "./index";
+import { starterDemoEvent, starterDemoQuote, starterErasureResponse, starterPrivacySettings, starterInvoiceMentions, starterDocumentStyle, starterQuoteTerms, starterRequestResponse, starterLossReasons, starterPaymentMethods, starterProgram, starterProspectSources, starterRetroplanning, starterVendorSlots, starterVendorTypes, starterBudgetLines, starterAllocation, starterFollowUpDelays, starterVendorTypeSynonymGroups, starterVendorCatalog, starterEventTypes, BUDGET_LINE_ICONS } from "./index";
 
 describe("EVT-03 — Modèle de départ des postes prestataires", () => {
   it("existe en français et en anglais, avec le même nombre de postes", () => {
@@ -127,6 +127,18 @@ describe("DEV-10 — Conditions particulières du devis de départ", () => {
   it("existent en français et en anglais", () => {
     expect(starterQuoteTerms("fr")).toContain("devis");
     expect(starterQuoteTerms("en")).toContain("quote");
+  });
+});
+
+describe("RGPD-07 — Réponses de départ aux demandes", () => {
+  it("existent pour l'accès, la portabilité, la rectification et l'opposition, en français et en anglais, avec les variables du dossier", () => {
+    for (const type of ["access", "portability", "rectification", "objection"] as const) {
+      for (const locale of ["fr", "en"] as const) {
+        const response = starterRequestResponse(type, locale);
+        expect(response.subject.length).toBeGreaterThan(0);
+        for (const variable of ["{person}", "{receivedOn}", "{completedOn}", "{organization}"]) expect(response.body).toContain(variable);
+      }
+    }
   });
 });
 

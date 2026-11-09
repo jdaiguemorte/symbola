@@ -1,10 +1,10 @@
-import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { appDatabase } from "@symbola/db/client";
 import { ScreenHelp } from "@/app/screen-help";
 import { getPrivacySettings, type PrivacySettings } from "@/modules/hub/service";
 import { requireOwner } from "@/lib/guards";
 import { PrivacySettingsForm } from "./settings-form";
+import { PrivacyTabs } from "../privacy-tabs";
 
 // RGPD-04/05 — réglages RGPD de l'organisation : seuil d'alerte des demandes
 // et durées de conservation (modèle de départ du cahier des charges, à faire
@@ -27,11 +27,10 @@ export default async function PrivacySettingsPage() {
     <main>
       <h1>{t("settingsTitle")}</h1>
       <ScreenHelp title={tHelp("privacySettings.title")} body={tHelp("privacySettings.body")} />
+      {/* Lot 18 (RGPD-07, décision A) : onglets de Données personnelles. */}
+      <PrivacyTabs />
       <p>{t("settingsIntro")}</p>
       <PrivacySettingsForm settings={settings} />
-      <p>
-        <Link href="/rgpd/demandes">{t("requestsLink")}</Link>
-      </p>
     </main>
   );
 }

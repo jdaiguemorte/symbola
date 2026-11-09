@@ -35,9 +35,9 @@ import type { Language } from "./types";
 
 // Lot 6 (RGPD-04) — demandes d'exercice de droits et réglages RGPD.
 export {
-  closePrivacyRequest,
   createPrivacyRequest,
   extendPrivacyRequest,
+  getPrivacyRequest,
   getPrivacySettings,
   listDueSoonPrivacyRequests,
   listPrivacyRequests,
@@ -50,6 +50,20 @@ export {
   type PrivacyRequestView,
   type PrivacySettings,
 } from "./privacy-requests";
+// Lot 18 (RGPD-07, ADR 0047) — dossier d'une demande, clôture contrôlée.
+export {
+  actionKindOf,
+  caseSteps,
+  closePrivacyRequest,
+  getPrivacyCase,
+  markPrivacyActionDone,
+  markPrivacyResponseSent,
+  PRIVACY_CASE_STEPS,
+  type PrivacyCaseActionKind,
+  type PrivacyCaseStep,
+  type PrivacyCaseStepState,
+  type PrivacyCaseView,
+} from "./privacy-cases";
 // Lot 6 (RGPD-02) — exports des données d'une personne.
 export {
   getPrivacyExportFile,
@@ -385,7 +399,8 @@ export async function completeOnboarding(
 
 // Lot 12 (ONB-03) — assistant de démarrage : étape en cours et fin. Tant
 // qu'il n'est pas terminé, les menus métier sont verrouillés (app-shell).
-export const SETUP_STEPS = 6;
+// Lot 18 (AIDE-13, ADR 0047) : 7 étapes, dont « Vos documents » (4e, facultative).
+export const SETUP_STEPS = 7;
 export type SetupState = { step: number; completed: boolean; metier: Metier | null };
 
 export async function getSetupState(db: AppDatabase, organizationId: string): Promise<SetupState> {

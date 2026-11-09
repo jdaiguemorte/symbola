@@ -16,7 +16,19 @@ export type PrivacySettings = StarterPrivacySettings;
 
 export class PrivacyRequestNotFoundError extends Error {}
 export class PrivacyRequestInvalidError extends Error {
-  constructor(readonly code: "person_missing" | "received_in_future" | "reason_missing" | "already_extended" | "closed" | "settings_invalid") {
+  constructor(
+    readonly code:
+      | "person_missing"
+      | "received_in_future"
+      | "reason_missing"
+      | "already_extended"
+      | "closed"
+      | "settings_invalid"
+      // Lot 18 (RGPD-07) : clôture ou étape demandée trop tôt.
+      | "action_missing"
+      | "response_missing"
+      | "not_manual",
+  ) {
     super(code);
   }
 }
@@ -69,6 +81,12 @@ export type PrivacyRequestView = {
   // Jours restants avant l'échéance (négatif : dépassée) ; null une fois close.
   daysLeft: number | null;
   dueSoon: boolean;
+  // Lot 18 (RGPD-07) : jalons du dossier.
+  createdAt: Date;
+  extendedAt: Date | null;
+  actionDoneAt: Date | null;
+  responseSentAt: Date | null;
+  closedAt: Date | null;
 };
 
 function toView(row: typeof privacyRequests.$inferSelect, today: string, alertDays: number): PrivacyRequestView {
@@ -83,7 +101,20 @@ function toView(row: typeof privacyRequests.$inferSelect, today: string, alertDa
     extensionReason: row.extensionReason,
     daysLeft: pending ? daysBetween(today, row.dueOn) : null,
     dueSoon: pending && isDueSoon(today, row.dueOn, alertDays),
+    createdAt: row.createdAt,
+    extendedAt: row.extendedAt,
+    actionDoneAt: row.actionDoneAt,
+    responseSentAt: row.responseSentAt,
+    closedAt: row.closedAt,
   };
+}
+
+// Lot 18 (RGPD-07) : une demande de l'organisation, pour son dossier.
+export async function getPrivacyRequest(db: AppDatabase, organizationId: string, requestId: string, now: Date = new Date()): Promise<PrivacyRequestView> {
+  const settings = await getPrivacySettings(db, organizationId);
+  const [row] = await withOrganization(db, organizationId, (tx) => tx.select().from(privacyRequests).where(eq(privacyRequests.id, requestId)));
+  if (!row) throw new PrivacyRequestNotFoundError();
+  return toView(row, parisDate(now), settings.requestAlertDays);
 }
 
 export async function createPrivacyRequest(
@@ -159,16 +190,4 @@ export async function extendPrivacyRequest(
     if (!row) throw new PrivacyRequestNotFoundError();
     return toView(row, parisDate(now), settings.requestAlertDays);
   });
-}
-
-export async function closePrivacyRequest(db: AppDatabase, input: { organizationId: string; requestId: string; now?: Date }): Promise<void> {
-  const now = input.now ?? new Date();
-  const updated = await withOrganization(db, input.organizationId, (tx) =>
-    tx
-      .update(privacyRequests)
-      .set({ status: "closed", closedAt: now, updatedAt: now })
-      .where(and(eq(privacyRequests.id, input.requestId), inArray(privacyRequests.status, ["open", "extended"])))
-      .returning({ id: privacyRequests.id }),
-  );
-  if (updated.length === 0) throw new PrivacyRequestNotFoundError();
 }

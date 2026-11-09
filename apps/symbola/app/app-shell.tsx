@@ -25,7 +25,7 @@ import {
 import { getTranslations } from "next-intl/server";
 import { parisToday } from "@symbola/i18n";
 import { appDatabase } from "@symbola/db/client";
-import { getDocumentHeader, getSetupState, isModuleEnabled } from "@/modules/hub/service";
+import { getDocumentHeader, getSetupState, isModuleEnabled, listDueSoonPrivacyRequests } from "@/modules/hub/service";
 import { listOrganizationTasks } from "@/modules/events/service";
 import { getAuthContext } from "@/lib/auth-context";
 import { AppNavLink } from "./app-nav-link";
@@ -160,6 +160,9 @@ export async function AppShell({ children }: { children: ReactNode }) {
     vendors = await isModuleEnabled(db, organizationId, "vendors");
   }
   const isOwner = auth.user.role === "owner" && Boolean(organizationId);
+  // Lot 18 (RGPD-07, décision D) : demandes RGPD en alerte (échéance proche ou
+  // dépassée), signalées au menu ; la titulaire seule les traite.
+  const privacyAlerts = isOwner && organizationId ? (await listDueSoonPrivacyRequests(appDatabase(), organizationId)).length : 0;
   // Lot 12 (ONB-03) — assistant de démarrage bloquant : tant qu'il n'est pas
   // terminé, l'équipe n'a que l'assistant (et l'aide, le profil).
   const teamMember = Boolean(organizationId) && (auth.user.role === "owner" || auth.user.role === "member");
@@ -308,7 +311,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
                 ]
               : []),
             ...(events || budget || quotes ? [{ href: "/import", label: tSettings("import") }] : []),
-            ...(isOwner ? [{ href: "/rgpd", label: tSettings("privacy") }] : []),
+            ...(isOwner ? [{ href: "/rgpd", label: tSettings("privacy"), ...(privacyAlerts > 0 ? { count: privacyAlerts } : {}) }] : []),
           ],
         },
       ].filter((group) => group.items.length > 0)
@@ -486,6 +489,12 @@ export async function AppShell({ children }: { children: ReactNode }) {
                 <AppNavLink href="/parametres" settings tour="nav-settings">
                   <Settings {...iconProps} />
                   {t("settings")}
+                  {/* Repère visuel : le nom du lien reste « Paramètres » ; le détail est dans Données personnelles. */}
+                  {privacyAlerts > 0 ? (
+                    <span className="nav-count nav-count-alert" aria-hidden="true" title={tSettings("privacyAlerts", { count: privacyAlerts })}>
+                      {privacyAlerts}
+                    </span>
+                  ) : null}
                 </AppNavLink>
               </li>
             ) : null}

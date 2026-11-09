@@ -91,12 +91,8 @@ export async function recordPrivacyErasureAcks(
       .update(privacyErasures)
       .set({ acks, status, completedAt: done ? now : null })
       .where(eq(privacyErasures.id, row.id));
-    if (done) {
-      await tx
-        .update(privacyRequests)
-        .set({ status: "closed", closedAt: now, updatedAt: now })
-        .where(and(eq(privacyRequests.id, row.requestId), inArray(privacyRequests.status, ["open", "extended"])));
-    }
+    // Lot 18 (RGPD-07, décision C) : l'effacement terminé ne clôt plus la
+    // demande ; la titulaire répond à la personne, puis clôt le dossier.
     return status;
   });
 }

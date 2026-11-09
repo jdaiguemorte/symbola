@@ -499,6 +499,11 @@ export const privacyRequests = hubSchema.table("privacy_requests", {
   extensionReason: text("extension_reason"),
   extendedAt: timestamp("extended_at", { withTimezone: true }),
   closedAt: timestamp("closed_at", { withTimezone: true }),
+  // Lot 18 (RGPD-07, ADR 0047) : dossier de la demande. Rectification ou
+  // opposition menée à la main (l'oubli et l'export ont leurs propres traces),
+  // puis réponse envoyée à la personne : la clôture exige les deux.
+  actionDoneAt: timestamp("action_done_at", { withTimezone: true }),
+  responseSentAt: timestamp("response_sent_at", { withTimezone: true }),
   createdByUserId: uuid("created_by_user_id").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),

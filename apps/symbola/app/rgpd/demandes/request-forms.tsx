@@ -4,7 +4,9 @@ import { useActionState } from "react";
 import { useTranslations } from "next-intl";
 import { createRequestAction, extendRequestAction, type RequestFormState } from "./actions";
 
-export function NewRequestForm({ types, today }: { types: readonly string[]; today: string }) {
+// Lot 18 (RGPD-07) : la création ouvre le dossier ; depuis la recherche, la
+// personne cherchée est pré-remplie.
+export function NewRequestForm({ types, today, defaultPerson = "" }: { types: readonly string[]; today: string; defaultPerson?: string }) {
   const t = useTranslations("Privacy");
   const initialState: RequestFormState = {};
   const [state, formAction, pending] = useActionState(createRequestAction, initialState);
@@ -25,7 +27,7 @@ export function NewRequestForm({ types, today }: { types: readonly string[]; tod
       </label>
       <label>
         {t("personLabel")}
-        <input type="text" name="personLabel" required maxLength={200} autoComplete="off" />
+        <input type="text" name="personLabel" required maxLength={200} autoComplete="off" defaultValue={defaultPerson} />
       </label>
       <label>
         {t("receivedOnLabel")}
@@ -35,7 +37,6 @@ export function NewRequestForm({ types, today }: { types: readonly string[]; tod
         {t("createRequest")}
       </button>
       {state.error ? <p role="alert">{state.error}</p> : null}
-      {state.success ? <p role="status">{t("requestCreated")}</p> : null}
     </form>
   );
 }

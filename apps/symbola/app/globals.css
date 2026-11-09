@@ -2133,3 +2133,59 @@
     @apply m-0 font-display text-lg font-semibold text-ink;
   }
 }
+
+/* Lot 18 (RGPD-07, ADR 0047) — dossier d'une demande RGPD : étapes à gauche,
+   panneau de l'étape à droite (empilés sur téléphone) ; pastille d'alerte. */
+@layer components {
+  .nav-count-alert {
+    @apply bg-terracotta-tint text-terracotta-ink;
+  }
+  .tabs a .nav-count {
+    @apply ml-2;
+  }
+  .case-layout {
+    @apply grid grid-cols-1 items-start gap-6 md:grid-cols-[240px_minmax(0,1fr)];
+  }
+  .case-steps {
+    @apply m-0 grid list-none gap-2 p-0;
+  }
+  .case-steps li {
+    @apply m-0;
+  }
+  .case-steps a {
+    @apply grid gap-0.5 rounded-[12px] border border-lin bg-card px-3.5 py-2.5 text-[15px] text-ink no-underline hover:border-ink-soft;
+  }
+  .case-steps a[aria-current="step"] {
+    @apply border-sauge bg-sauge-tint font-semibold;
+  }
+  .case-steps small {
+    @apply text-[13px] font-normal text-muted;
+  }
+  .case-step-done small {
+    @apply font-semibold text-sauge-ink;
+  }
+  .case-step-waiting small {
+    @apply font-semibold text-ambre-ink;
+  }
+  .case-panel {
+    @apply grid gap-3;
+  }
+  .case-panel > h2 {
+    @apply mt-0;
+  }
+  .case-facts {
+    @apply m-0 grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1.5;
+  }
+  .case-facts dt {
+    @apply text-sm text-muted;
+  }
+  .case-facts dd {
+    @apply m-0;
+  }
+  .case-reply {
+    @apply rounded-[10px] border border-lin bg-ivory p-4 text-[15px] whitespace-pre-line;
+  }
+  .case-journal {
+    @apply m-0 grid list-none gap-1 p-0 text-sm text-ink-soft;
+  }
+}

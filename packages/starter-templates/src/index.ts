@@ -12,6 +12,7 @@ import documentStyleFile from "./document-style.json";
 import lossReasonsFile from "./loss-reasons.json";
 import paymentMethodsFile from "./payment-methods.json";
 import privacyErasureResponseFile from "./privacy-erasure-response.json";
+import privacyRequestResponsesFile from "./privacy-request-responses.json";
 import privacySettingsFile from "./privacy-settings.json";
 import followUpFile from "./follow-up.json";
 import programFile from "./program.json";
@@ -442,6 +443,22 @@ const privacyErasureResponse = z
 
 export function starterErasureResponse(locale: StarterLocale): { subject: string; body: string } {
   return { subject: privacyErasureResponse.subject[locale], body: privacyErasureResponse.body[locale] };
+}
+
+// Lot 18 (RGPD-07) : réponses aux autres demandes (accès, portabilité,
+// rectification, opposition), à relire par la titulaire.
+export type StarterRequestResponseType = "access" | "portability" | "rectification" | "objection";
+const responseSchema = z.object({ subject: translatedLabelSchema, body: translatedLabelSchema });
+const privacyRequestResponses = z
+  .object({
+    version: z.literal(1),
+    responses: z.object({ access: responseSchema, portability: responseSchema, rectification: responseSchema, objection: responseSchema }),
+  })
+  .parse(privacyRequestResponsesFile);
+
+export function starterRequestResponse(type: StarterRequestResponseType, locale: StarterLocale): { subject: string; body: string } {
+  const response = privacyRequestResponses.responses[type];
+  return { subject: response.subject[locale], body: response.body[locale] };
 }
 
 // Lot 10 (AIDE-06) — exemples fictifs des tutoriels « en faisant » : un type
