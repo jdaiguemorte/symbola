@@ -453,7 +453,7 @@
 
   /* Liens présentés comme des boutons (barre d'outils d'un écran). */
   .toolbar {
-    @apply my-4 flex flex-wrap gap-2;
+    @apply my-4 flex flex-wrap items-start gap-2;
   }
 
   .button-link {
@@ -1924,6 +1924,15 @@
   /* Lot 16 (HUB-20) — actions secondaires d'un écran, dans « ⋯ ». */
   .more-actions {
     @apply relative;
+  }
+  /* Lot 18 (HUB-24) : ouvert, le bloc ne prend pas l'habit de carte des autres
+     blocs dépliants (details[open]) ; seul le panneau apparaît, sans
+     grandir ni étirer les boutons voisins. */
+  .more-actions[open] {
+    @apply m-0 max-w-none rounded-none border-0 bg-transparent p-0;
+  }
+  .more-actions[open] > summary {
+    @apply mb-0;
   }
   .more-actions > summary {
     @apply inline-flex min-h-11 cursor-pointer list-none items-center rounded-[10px] border border-lin-dark bg-card px-4 text-[15px] font-medium text-ink;

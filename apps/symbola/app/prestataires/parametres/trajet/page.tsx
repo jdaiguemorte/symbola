@@ -19,7 +19,9 @@ export default async function VendorTravelPage() {
   return (
     <main>
       <h1>{t("settingsTravelTitle")}</h1>
+      {/* Lot 18 (PRE-16) : où l'estimation apparaît, et comment elle se calcule. */}
       <p>{t("settingsTravelIntro")}</p>
+      <p className="meta">{t("settingsTravelHow")}</p>
       <TravelForm detour={(settings.detourFactorPermille / 1000).toLocaleString("fr-FR")} speed={settings.averageSpeedKmh} />
     </main>
   );

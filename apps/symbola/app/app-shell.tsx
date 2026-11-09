@@ -466,7 +466,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
             {quotes ? (
               <>
                 <li>
-                  <AppNavLink href="/devis">
+                  <AppNavLink href="/devis" except={["/devis/encaissements"]}>
                     <FileText {...iconProps} />
                     {t("navQuotesGroup")}
                   </AppNavLink>
