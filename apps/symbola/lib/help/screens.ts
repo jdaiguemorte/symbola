@@ -44,6 +44,8 @@ export const HELP_SCREENS: HelpScreen[] = [
   { key: "quotesPayments", group: "quotes", audience: "team", module: "quotes", path: "/devis/encaissements", capture: true },
   { key: "quotesEReporting", group: "quotes", audience: "team", module: "quotes", path: "/devis/e-reporting", capture: true },
   { key: "quotesSettings", group: "quotes", audience: "team", module: "quotes", path: "/devis/parametres", capture: true },
+  // Lot 17 (DEV-08 à DEV-11) : logo, apparence, textes et IBAN des documents.
+  { key: "quotesDocuments", group: "quotes", audience: "team", module: "quotes", path: "/devis/parametres/documents", capture: true },
   // Budget
   { key: "budgetDetail", group: "budget", audience: "team", module: "budget", path: null, capture: true },
   { key: "budgetSettings", group: "budget", audience: "team", module: "budget", path: "/budget/parametres", tour: "budget", capture: true },

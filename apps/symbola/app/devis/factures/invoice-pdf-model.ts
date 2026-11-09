@@ -1,33 +1,41 @@
-// DEV-04 — contenu du PDF d'une facture ou d'un avoir, construit à partir
-// de la copie figée à l'émission (jamais des données courantes) ; même mise
-// en page que le devis (QuotePdfDocument). Mentions de départ d'une facture
-// à un particulier : numéro, dates d'émission, de prestation ou d'acompte et
-// d'échéance, vendeur, acheteurs, désignation, quantités, prix HT, TVA ou
-// mention de franchise, totaux, acomptes déjà versés.
+// DEV-04, lot 17 (DEV-07 à DEV-12, ADR 0046) — contenu du PDF d'une facture
+// ou d'un avoir, construit à partir de la copie figée à l'émission (jamais
+// des données courantes) ; même mise en page que le devis (QuotePdfDocument).
+// Mentions de départ d'une facture à un particulier : numéro, dates
+// d'émission, de prestation ou d'acompte et d'échéance, vendeur, acheteurs,
+// désignation, quantités, prix HT, TVA ou mention de franchise, totaux,
+// acomptes déjà versés ; encadré de règlement avec l'IBAN s'il est renseigné.
 import { formatAmount, formatCalendarDate, type Locale } from "@symbola/i18n";
-import type { CreditNoteView, InvoiceTotalsView, InvoiceView } from "@/modules/quotes/service";
-import type { QuotePdfLogo, QuotePdfModel } from "../[quoteId]/quote-pdf-model";
+import type { CreditNoteView, InvoiceBuyer, InvoiceTotalsView, InvoiceView } from "@/modules/quotes/service";
+import {
+  appearanceOf,
+  bankLines,
+  columnsFor,
+  documentFooter,
+  lineCells,
+  sellerBlock,
+  type DocumentCommonLabels,
+  type QuotePdfLogo,
+  type QuotePdfModel,
+} from "../[quoteId]/quote-pdf-model";
 import { formatRate } from "../quote-display";
 
-export type InvoicePdfLabels = {
+export type InvoicePdfLabels = DocumentCommonLabels & {
   invoiceTitle: (number: string) => string;
+  invoiceKind: string;
+  creditNoteKind: string;
   depositInvoice: string;
   balanceInvoice: string;
   creditNoteTitle: (number: string) => string;
   creditNoteFor: (invoiceNumber: string) => string;
   reason: (reason: string) => string;
-  issuedOn: (date: string) => string;
-  serviceDate: (date: string) => string;
-  depositDate: (date: string) => string;
-  dueOn: (date: string) => string;
-  siren: (siren: string) => string;
-  buyers: (lines: string) => string;
+  dates: { issuedOn: string; serviceDate: string; depositDate: string; dueOn: string };
+  paymentTitle: string;
+  payBefore: (date: string) => string;
+  payBeforeByTransfer: (date: string) => string;
+  reference: (number: string) => string;
   depositLine: (label: string, quoteNumber: string) => string;
   creditNoteLine: (invoiceNumber: string) => string;
-  columns: { label: string; quantity: string; unitPrice: string; discount: string; vatRate: string; total: string };
-  totalHt: string;
-  vatAtRate: (rate: string) => string;
-  totalTtc: string;
   quoteTotalTtc: string;
   deduction: (number: string) => string;
   amountDue: string;
@@ -42,22 +50,24 @@ function totalRows(totals: InvoiceTotalsView, vat: boolean, labels: InvoicePdfLa
   return rows;
 }
 
-function sellerOf(seller: InvoiceView["seller"], labels: InvoicePdfLabels) {
+function buyersBlock(buyers: InvoiceBuyer[], labels: InvoicePdfLabels): QuotePdfModel["client"] {
+  return { heading: labels.clientHeading, lines: buyers.flatMap((buyer) => [buyer.name, buyer.billingAddress]).filter(Boolean) };
+}
+
+// Une seule ligne au total des acomptes et des avoirs : le taux de TVA, ou
+// les taux s'il y en a plusieurs.
+function singleLine(label: string, totals: InvoiceTotalsView, vat: boolean, locale: Locale): QuotePdfModel["rows"][number] {
   return {
-    name: seller.organizationName,
-    lines: [seller.address, seller.siren ? labels.siren(seller.siren) : null].filter((line): line is string => Boolean(line)),
+    cells: [
+      label,
+      "1",
+      formatAmount(totals.totalHtCents, locale),
+      "—",
+      ...(vat ? [totals.vatByRate.map((line) => `${formatRate(line.rateBasisPoints, locale)} %`).join(", ")] : []),
+      formatAmount(totals.totalHtCents, locale),
+    ],
+    description: null,
   };
-}
-
-function columnsFor(vat: boolean, labels: InvoicePdfLabels): string[] {
-  const columns = [labels.columns.label, labels.columns.quantity, labels.columns.unitPrice, labels.columns.discount];
-  if (vat) columns.push(labels.columns.vatRate);
-  columns.push(labels.columns.total);
-  return columns;
-}
-
-function quantity(milli: number, unit: string, locale: Locale): string {
-  return `${new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-GB", { maximumFractionDigits: 3 }).format(milli / 1000)} ${unit}`;
 }
 
 export function buildInvoicePdfModel(input: {
@@ -66,42 +76,25 @@ export function buildInvoicePdfModel(input: {
   locale: Locale;
   logo: QuotePdfLogo | null;
   watermark: string | null;
+  defaultColor: string;
 }): QuotePdfModel {
   const { invoice, labels, locale } = input;
   const vat = invoice.vatApplicable;
-  const dates = [labels.issuedOn(formatCalendarDate(invoice.issuedOn, locale))];
+  const document = invoice.seller.document;
+  const dueOn = formatCalendarDate(invoice.paymentDueOn, locale);
+  const dates: QuotePdfModel["dates"] = [{ label: labels.dates.issuedOn, value: formatCalendarDate(invoice.issuedOn, locale) }];
   if (invoice.serviceDate) {
-    const date = formatCalendarDate(invoice.serviceDate, locale);
-    dates.push(invoice.kind === "deposit" ? labels.depositDate(date) : labels.serviceDate(date));
+    dates.push({
+      label: invoice.kind === "deposit" ? labels.dates.depositDate : labels.dates.serviceDate,
+      value: formatCalendarDate(invoice.serviceDate, locale),
+    });
   }
-  dates.push(labels.dueOn(formatCalendarDate(invoice.paymentDueOn, locale)));
+  dates.push({ label: labels.dates.dueOn, value: dueOn });
 
   const rows =
     invoice.kind === "balance"
-      ? invoice.lines.map((line) => {
-          const cells = [
-            line.label,
-            quantity(line.quantityMilli, line.unit, locale),
-            formatAmount(line.unitPriceCents, locale),
-            line.discountBasisPoints > 0 ? `${formatRate(line.discountBasisPoints, locale)} %` : "—",
-          ];
-          if (vat) cells.push(`${formatRate(line.vatRateBasisPoints, locale)} %`);
-          cells.push(formatAmount(line.netCents, locale));
-          return { cells, description: line.description };
-        })
-      : [
-          {
-            cells: [
-              labels.depositLine(invoice.depositLabel ?? "", invoice.quoteNumber),
-              "1",
-              formatAmount(invoice.totals.totalHtCents, locale),
-              "—",
-              ...(vat ? [invoice.totals.vatByRate.map((line) => `${formatRate(line.rateBasisPoints, locale)} %`).join(", ")] : []),
-              formatAmount(invoice.totals.totalHtCents, locale),
-            ],
-            description: null,
-          },
-        ];
+      ? invoice.lines.map((line) => ({ cells: lineCells(line, vat, locale), description: line.description }))
+      : [singleLine(labels.depositLine(invoice.depositLabel ?? "", invoice.quoteNumber), invoice.totals, vat, locale)];
 
   const totals =
     invoice.kind === "balance"
@@ -116,18 +109,37 @@ export function buildInvoicePdfModel(input: {
         ]
       : totalRows(invoice.totals, vat, labels, locale);
 
+  // DEV-11 : échéance, IBAN et BIC s'ils sont renseignés, référence du virement.
+  const bank = bankLines(document, labels);
+  const payment = {
+    title: labels.paymentTitle,
+    lines: [
+      { label: bank.length > 0 ? labels.payBeforeByTransfer(dueOn) : labels.payBefore(dueOn), amount: null },
+      ...bank,
+      { label: labels.reference(invoice.number), amount: null },
+    ],
+  };
+
   return {
     language: locale,
     title: labels.invoiceTitle(invoice.number),
+    kind: labels.invoiceKind,
+    number: invoice.number,
+    subtitle: invoice.kind === "deposit" ? labels.depositInvoice : labels.balanceInvoice,
     status: invoice.kind === "deposit" ? labels.depositInvoice : labels.balanceInvoice,
-    seller: sellerOf(invoice.seller, labels),
+    appearance: appearanceOf(invoice.seller, input.defaultColor),
     logo: input.logo,
-    client: labels.buyers(invoice.buyers.map((buyer) => `${buyer.name}, ${buyer.billingAddress}`).join("\n")),
+    seller: sellerBlock(invoice.seller, labels),
+    client: buyersBlock(invoice.buyers, labels),
     dates,
+    intro: document?.intro ?? null,
     columns: columnsFor(vat, labels),
     rows,
     totals,
-    legalMention: [invoice.legalMention, invoice.mentions].filter(Boolean).join("\n") || null,
+    payment,
+    legalMention: invoice.legalMention,
+    terms: invoice.mentions,
+    footer: documentFooter(invoice.seller, labels, locale),
     watermark: input.watermark,
     signature: null,
   };
@@ -140,32 +152,30 @@ export function buildCreditNotePdfModel(input: {
   locale: Locale;
   logo: QuotePdfLogo | null;
   watermark: string | null;
+  defaultColor: string;
 }): QuotePdfModel {
   const { creditNote, labels, locale, vatApplicable } = input;
   return {
     language: locale,
     title: labels.creditNoteTitle(creditNote.number),
+    kind: labels.creditNoteKind,
+    number: creditNote.number,
+    subtitle: labels.creditNoteFor(creditNote.invoiceNumber),
     status: labels.creditNoteFor(creditNote.invoiceNumber),
-    seller: sellerOf(creditNote.seller, labels),
+    // L'avoir reprend l'instantané de sa facture, donc son apparence.
+    appearance: appearanceOf(creditNote.seller, input.defaultColor),
     logo: input.logo,
-    client: labels.buyers(creditNote.buyers.map((buyer) => `${buyer.name}, ${buyer.billingAddress}`).join("\n")),
-    dates: [labels.issuedOn(formatCalendarDate(creditNote.issuedOn, locale)), labels.reason(creditNote.reason)],
+    seller: sellerBlock(creditNote.seller, labels),
+    client: buyersBlock(creditNote.buyers, labels),
+    dates: [{ label: labels.dates.issuedOn, value: formatCalendarDate(creditNote.issuedOn, locale) }],
+    intro: labels.reason(creditNote.reason),
     columns: columnsFor(vatApplicable, labels),
-    rows: [
-      {
-        cells: [
-          labels.creditNoteLine(creditNote.invoiceNumber),
-          "1",
-          formatAmount(creditNote.totals.totalHtCents, locale),
-          "—",
-          ...(vatApplicable ? [creditNote.totals.vatByRate.map((line) => `${formatRate(line.rateBasisPoints, locale)} %`).join(", ")] : []),
-          formatAmount(creditNote.totals.totalHtCents, locale),
-        ],
-        description: null,
-      },
-    ],
+    rows: [singleLine(labels.creditNoteLine(creditNote.invoiceNumber), creditNote.totals, vatApplicable, locale)],
     totals: totalRows(creditNote.totals, vatApplicable, labels, locale),
+    payment: null,
     legalMention: creditNote.legalMention,
+    terms: null,
+    footer: documentFooter(creditNote.seller, labels, locale),
     watermark: input.watermark,
     signature: null,
   };

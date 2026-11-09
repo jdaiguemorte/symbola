@@ -160,6 +160,25 @@ export async function upsertQuoteSettings(
   });
 }
 
+// Lot 17 (DEV-09 à DEV-11) : apparence, textes et paiement des documents.
+export async function upsertDocumentSettings(
+  organizationId: string,
+  data: Pick<
+    QuoteSettingsRow,
+    "documentColor" | "documentFont" | "iban" | "bic" | "quoteIntro" | "quoteTerms" | "invoiceIntro" | "invoiceMentions" | "documentFooter"
+  >,
+): Promise<QuoteSettingsRow> {
+  return inOrganization(organizationId, async (tx) => {
+    const [row] = await tx
+      .insert(quoteSettings)
+      .values({ organizationId, ...data })
+      .onConflictDoUpdate({ target: quoteSettings.organizationId, set: { ...data, updatedAt: new Date() } })
+      .returning();
+    if (!row) throw new Error("enregistrement des réglages de documents échoué");
+    return row;
+  });
+}
+
 // Rang suivant d'une série, dans la transaction appelante : l'insertion ou
 // l'incrément verrouille la ligne de la série jusqu'à la fin de la
 // transaction, donc deux émissions simultanées ne reçoivent jamais le même

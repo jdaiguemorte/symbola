@@ -14,6 +14,10 @@ import { boolean, check, date, integer, jsonb, pgSchema, text, timestamp, unique
 
 export const quotesSchema = pgSchema("quotes");
 
+// Lot 17 (DEV-09) : Moderne (Helvetica) ou Classique (Times), polices
+// incluses dans le moteur PDF.
+export const documentFontEnum = quotesSchema.enum("document_font", ["modern", "classic"]);
+
 // Réglages du module par organisation (CLAUDE.md §2.5 : rien en dur) :
 // validité par défaut d'un devis, préfixes des séries de numérotation.
 export const quoteSettings = quotesSchema.table("quote_settings", {
@@ -30,6 +34,17 @@ export const quoteSettings = quotesSchema.table("quote_settings", {
   // comptable ; modèle de départ dans packages/starter-templates.
   invoicePaymentTermDays: integer("invoice_payment_term_days").notNull().default(30),
   invoiceMentions: text("invoice_mentions"),
+  // Lot 17 (DEV-09 à DEV-11) : apparence et textes des devis, factures et
+  // avoirs, copiés dans l'instantané vendeur à l'émission (ADR 0046).
+  // Couleur #RRGGBB (null : gris ardoise de départ).
+  documentColor: text("document_color"),
+  documentFont: documentFontEnum("document_font").notNull().default("modern"),
+  iban: text("iban"),
+  bic: text("bic"),
+  quoteIntro: text("quote_intro"),
+  quoteTerms: text("quote_terms"),
+  invoiceIntro: text("invoice_intro"),
+  documentFooter: text("document_footer"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 

@@ -223,6 +223,15 @@ export const organizationProfiles = hubSchema.table("organization_profiles", {
   // valeur de départ (packages/starter-templates/src/follow-up.json).
   quoteFollowUpDays: integer("quote_follow_up_days"),
   prospectFollowUpDays: integer("prospect_follow_up_days"),
+  // Lot 17 (DEV-07) : coordonnées et mentions imprimées sur les devis et les
+  // factures. Le SIRET reste dans organizations.siret (saisi à la création).
+  contactEmail: text("contact_email"),
+  contactPhone: text("contact_phone"),
+  website: text("website"),
+  vatNumber: text("vat_number"),
+  // RCS ou RM, en texte libre (« RCS Lyon 123 456 789 »).
+  registration: text("registration"),
+  shareCapitalCents: bigint("share_capital_cents", { mode: "number" }),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 

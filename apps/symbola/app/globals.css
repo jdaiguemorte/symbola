@@ -1932,3 +1932,195 @@
     @apply mt-2 flex max-w-sm flex-col gap-2 rounded-[12px] border border-lin bg-card p-4 text-sm md:absolute md:right-0 md:z-30 md:w-80 md:shadow-lg;
   }
 }
+
+/* Lot 17 (DEV-08 à DEV-11, ADR 0046) — Paramètres › Ventes › Documents :
+   formulaire à gauche, aperçu du document à droite (empilés sur téléphone).
+   L'aperçu reproduit le PDF : couleurs passées par variables CSS (--doc,
+   --doc-ink, --doc-tint) posées en CSSOM, jamais par un attribut style. */
+@layer components {
+  .logo-form {
+    @apply flex flex-col items-start gap-2;
+  }
+  .logo-form form {
+    @apply my-1;
+  }
+  .logo-preview {
+    @apply max-h-20 max-w-60 rounded-[10px] border border-lin bg-card object-contain p-2;
+  }
+  /* Deux colonnes seulement si la zone de contenu (pas l'écran) a la place :
+     menu principal et menu des réglages en prennent déjà une bonne part. */
+  .documents-container {
+    container-type: inline-size;
+  }
+  .documents-layout {
+    @apply grid grid-cols-1 items-start gap-8;
+  }
+  @container (min-width: 1100px) {
+    .documents-layout {
+      grid-template-columns: minmax(0, 1fr) 640px;
+    }
+    .documents-preview {
+      position: sticky;
+      top: 1rem;
+    }
+  }
+  .documents-form {
+    @apply my-0;
+  }
+  .documents-form h2 {
+    @apply mt-4 mb-0;
+  }
+  .documents-form input[type="color"] {
+    @apply h-11 w-20 cursor-pointer p-1;
+  }
+  .documents-preview {
+    @apply min-w-0;
+  }
+  .swatch-list {
+    @apply flex flex-wrap gap-x-4 gap-y-2;
+  }
+  .swatch-option {
+    @apply text-[15px];
+  }
+  .swatch-dot {
+    @apply inline-block size-6 rounded-full border-2 border-card shadow-[0_0_0_1px_var(--color-lin-dark)];
+    background-color: #3b3b3b;
+  }
+  .radio-option {
+    @apply text-[15px];
+  }
+  .segmented button {
+    @apply min-h-10 border-0 bg-transparent px-3.5 text-sm font-medium text-ink transition-none;
+  }
+  .segmented button[aria-pressed="true"] {
+    @apply bg-sauge text-white;
+  }
+
+  /* Le document lui-même : toujours clair, comme le PDF (A4, 595 px). */
+  .doc-frame {
+    @apply overflow-x-auto rounded-2xl bg-lin-soft p-4;
+  }
+  .doc-sheet {
+    --doc: #3b3b3b;
+    --doc-ink: #ffffff;
+    --doc-tint: #ececec;
+    @apply mx-auto flex min-h-[842px] w-[595px] flex-col gap-3.5 bg-white text-[#1f1c1a] shadow-[0_6px_24px_rgba(0,0,0,0.12)];
+    padding: 34px 38px 28px;
+    font: 9.5px/1.45 Helvetica, Arial, sans-serif;
+    font-variant-numeric: tabular-nums;
+  }
+  .doc-sheet.doc-classic {
+    font-family: "Times New Roman", Times, Georgia, serif;
+    font-size: 10.5px;
+  }
+  .doc-sheet p {
+    @apply m-0;
+  }
+  .doc-head {
+    @apply flex items-start justify-between gap-4 pb-3;
+    border-bottom: 2px solid var(--doc);
+  }
+  .doc-logo {
+    @apply block max-h-[54px] max-w-[170px] object-contain;
+  }
+  .doc-name {
+    @apply text-[14px] font-bold;
+  }
+  .doc-title {
+    @apply text-right;
+  }
+  .doc-kind {
+    @apply text-[20px] font-bold tracking-[0.06em] uppercase;
+    color: var(--doc);
+  }
+  .doc-number {
+    @apply text-[11px] font-bold;
+  }
+  .doc-sub,
+  .doc-desc,
+  .doc-foot {
+    color: #6b625b;
+  }
+  .doc-parties {
+    @apply grid grid-cols-2 gap-3;
+  }
+  .doc-party {
+    @apply rounded-md px-[11px] py-[9px];
+    background: var(--doc-tint);
+  }
+  .doc-label {
+    @apply mb-[3px] text-[8px] font-bold tracking-[0.08em] uppercase;
+    color: var(--doc);
+  }
+  .doc-strong {
+    @apply font-bold;
+  }
+  .doc-dates {
+    @apply flex flex-wrap gap-[18px];
+  }
+  .doc-dates span {
+    @apply block text-[8px] font-semibold tracking-[0.06em] text-[#6b625b] uppercase;
+  }
+  .doc-intro {
+    color: #3a3430;
+  }
+  .doc-sheet table.doc-table {
+    @apply m-0 w-full border-collapse text-[1em];
+  }
+  .doc-sheet .doc-table th {
+    @apply px-1 py-[5px] text-left text-[8px] font-bold tracking-[0.06em] uppercase;
+    color: var(--doc);
+    border-bottom: 1px solid var(--doc);
+  }
+  .doc-sheet .doc-table td {
+    @apply border-b border-[#ece6de] px-1 py-1.5 align-top;
+  }
+  .doc-sheet .doc-table tbody tr:nth-child(even) td {
+    background: #fbf9f6;
+  }
+  .doc-sheet .doc-table .num {
+    @apply text-right whitespace-nowrap;
+  }
+  .doc-desc {
+    @apply block text-[8.5px];
+  }
+  .doc-bottom {
+    @apply grid grid-cols-[1fr_210px] items-start gap-3.5;
+  }
+  .doc-pay {
+    @apply grid gap-0.5 rounded-md border border-[#e6ded3] px-[11px] py-[9px];
+  }
+  .doc-pay-row {
+    @apply flex justify-between gap-2;
+  }
+  .doc-totals {
+    @apply grid gap-[3px];
+  }
+  .doc-total {
+    @apply flex justify-between gap-2;
+  }
+  .doc-due {
+    @apply mt-1 rounded-md px-[9px] py-[7px] text-[11px] font-bold;
+    background: var(--doc);
+    color: var(--doc-ink);
+  }
+  .doc-mentions {
+    @apply whitespace-pre-line text-[#4a433e];
+  }
+  .doc-foot {
+    @apply mt-auto flex justify-between gap-3 border-t border-[#e6ded3] pt-2 text-[7.5px] whitespace-pre-line;
+  }
+}
+
+/* Lot 17 (DEV-08, décision G) — l'organisation dans l'en-tête de l'espace client. */
+@layer components {
+  .client-organization {
+    @apply my-2 rounded-[12px] bg-card p-3;
+  }
+  .client-organization-logo {
+    @apply block max-h-14 max-w-full object-contain;
+  }
+  .client-organization-name {
+    @apply m-0 font-display text-lg font-semibold text-ink;
+  }
+}

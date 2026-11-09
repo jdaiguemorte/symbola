@@ -3,9 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { appDatabase } from "@symbola/db/client";
+import { parseAmountToCents } from "@symbola/i18n";
 import {
   changeVatRegime,
   completeOnboarding,
+  InvalidDocumentDetailsError,
+  saveDocumentDetails,
   saveFollowUpDelays,
   saveOnboardingStep,
   type LegalForm,
@@ -85,5 +88,45 @@ export async function saveFollowUpDelaysAction(_prev: FollowUpFormState, formDat
   }
   revalidatePath("/");
   revalidatePath("/parametres/relances");
+  return { success: true };
+}
+
+// Lot 17 (DEV-07) — coordonnées imprimées sur les devis et factures. La
+// validation est faite par le module hub (InvalidDocumentDetailsError) ;
+// rien n'est enregistré si un champ est refusé.
+export type DocumentDetailsFormState = { error?: string; success?: boolean };
+
+const DETAIL_ERROR_KEYS = {
+  siret: "errorSiret",
+  contactEmail: "errorContactEmail",
+  contactPhone: "errorContactPhone",
+  website: "errorWebsite",
+  vatNumber: "errorVatNumber",
+  registration: "errorRegistration",
+  shareCapitalCents: "errorShareCapital",
+} as const;
+
+export async function saveDocumentDetailsAction(_prev: DocumentDetailsFormState, formData: FormData): Promise<DocumentDetailsFormState> {
+  const t = await getTranslations("Settings");
+  const { organizationId } = await requireOrganization();
+  const text = (name: string) => String(formData.get(name) ?? "").trim() || null;
+  const capital = parseAmountToCents(String(formData.get("shareCapital") ?? ""));
+  if (capital === undefined) return { error: t("errorShareCapital") };
+  try {
+    await saveDocumentDetails(appDatabase(), organizationId, {
+      siret: text("siret"),
+      contactEmail: text("contactEmail"),
+      contactPhone: text("contactPhone"),
+      website: text("website"),
+      vatNumber: text("vatNumber"),
+      registration: text("registration"),
+      shareCapitalCents: capital,
+    });
+  } catch (error) {
+    if (error instanceof InvalidDocumentDetailsError) return { error: t(DETAIL_ERROR_KEYS[error.field]) };
+    throw error;
+  }
+  revalidatePath("/parametres");
+  revalidatePath("/devis/parametres/documents");
   return { success: true };
 }

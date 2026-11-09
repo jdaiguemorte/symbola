@@ -48,6 +48,42 @@ fields:
       Remplacé par une valeur générée non réversible lors d'une demande
       d'oubli (RGPD-03).
   - schema: hub
+    table: organization_profiles
+    field: contact_email
+    category: contact
+    retention: >-
+      Lot 17 (DEV-07) : e-mail de contact imprimé sur les devis et les
+      factures, celui d'une entrepreneuse individuelle pouvant être
+      personnel. Tant que l'organisation existe ; modifiable et effaçable
+      par elle dans Entreprise et TVA. Les documents émis en gardent la
+      copie figée (seller_snapshot).
+    anonymization: >-
+      Effacé avec la fiche de l'organisation ; les copies figées suivent la
+      conservation de leur document.
+  - schema: hub
+    table: organization_profiles
+    field: contact_phone
+    category: contact
+    retention: >-
+      Lot 17 (DEV-07) : téléphone de contact imprimé sur les devis et les
+      factures. Même conservation que contact_email.
+    anonymization: >-
+      Effacé avec la fiche de l'organisation ; les copies figées suivent la
+      conservation de leur document.
+  - schema: quotes
+    table: quote_settings
+    field: iban
+    category: identifiant
+    retention: >-
+      Lot 17 (DEV-11) : IBAN imprimé sur les devis et les factures pour le
+      virement des clients ; celui d'une entrepreneuse individuelle est une
+      donnée personnelle. Tant que l'organisation le garde dans ses
+      réglages ; jamais écrit dans les journaux. Les documents émis en
+      gardent la copie figée (seller_snapshot).
+    anonymization: >-
+      Effacé avec les réglages de l'organisation ; les copies figées
+      suivent la conservation de leur document.
+  - schema: hub
     table: invitations
     field: email
     category: identifiant
@@ -334,8 +370,10 @@ fields:
     retention: >-
       Copie figée à l'envoi de l'en-tête vendeur (DEV-01, ONB-02 : nom,
       adresse et SIREN de l'organisation, l'adresse pouvant être celle
-      d'une entrepreneuse individuelle). Conservée avec la version envoyée
-      du devis ; voir RGPD-03/RGPD-05.
+      d'une entrepreneuse individuelle ; depuis le lot 17, DEV-07 et
+      DEV-11 : aussi e-mail et téléphone de contact, IBAN et apparence du
+      document). Conservée avec la version envoyée du devis ; voir
+      RGPD-03/RGPD-05.
     anonymization: >-
       L'adresse est remplacée par « [anonymisé] » lors d'une demande
       d'oubli de l'organisation (RGPD-03), sauf obligation légale de
@@ -404,7 +442,8 @@ fields:
     retention: >-
       Conservation légale des factures (DEV-04 : en-tête vendeur figé à
       l'émission, l'adresse pouvant être celle d'une entrepreneuse
-      individuelle). Voir invoices.buyer_snapshot.
+      individuelle ; depuis le lot 17 : aussi e-mail et téléphone de
+      contact, IBAN et apparence du document). Voir invoices.buyer_snapshot.
     anonymization: >-
       Aucune avant la fin de la conservation légale (facture immuable).
   - schema: quotes

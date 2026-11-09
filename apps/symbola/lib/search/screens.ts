@@ -20,6 +20,7 @@ export const SCREENS: ScreenEntry[] = [
   { path: "/prestataires", module: "vendors", label: "vendorBook", help: "vendorBook" },
   { path: "/prestataires/parametres", module: "vendors", label: "settingsVendorTypes", help: "vendorBook" },
   { path: "/devis/parametres", module: "quotes", label: "quoteSettings", help: "quotesSettings" },
+  { path: "/devis/parametres/documents", module: "quotes", label: "documentsSettings", help: "quotesDocuments" },
   { path: "/devis/catalogue", module: "quotes", label: "quoteCatalog", help: "quotesCatalog" },
   { path: "/devis/e-reporting", module: "quotes", label: "eReporting", help: "quotesEReporting" },
   { path: "/import", module: "hub", label: "importData", help: "importFile" },
