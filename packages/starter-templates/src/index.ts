@@ -8,6 +8,7 @@ import demoQuoteFile from "./demo-quote.json";
 import importSynonymsFile from "./import-synonyms.json";
 import importProfilesFile from "./import-profiles.json";
 import invoiceMentionsFile from "./invoice-mentions.json";
+import documentStyleFile from "./document-style.json";
 import lossReasonsFile from "./loss-reasons.json";
 import paymentMethodsFile from "./payment-methods.json";
 import privacyErasureResponseFile from "./privacy-erasure-response.json";
@@ -117,6 +118,32 @@ const invoiceMentions = z.object({ version: z.literal(1), text: translatedLabelS
 
 export function starterInvoiceMentions(locale: StarterLocale): string {
   return invoiceMentions.text[locale];
+}
+
+// Lot 17 (DEV-09, DEV-10) — apparence des documents : couleur neutre (celle
+// d'une organisation qui n'a rien choisi et des documents antérieurs au
+// lot 17), nuances proposées, conditions particulières du devis de départ.
+const hexColor = z.string().regex(/^#[0-9a-f]{6}$/);
+const documentStyle = z
+  .object({
+    version: z.literal(1),
+    defaultColor: hexColor,
+    swatches: z.array(z.object({ color: hexColor, label: translatedLabelSchema })).min(1),
+    quoteTerms: translatedLabelSchema,
+  })
+  .parse(documentStyleFile);
+
+export type StarterDocumentStyle = { defaultColor: string; swatches: { color: string; label: string }[] };
+
+export function starterDocumentStyle(locale: StarterLocale): StarterDocumentStyle {
+  return {
+    defaultColor: documentStyle.defaultColor,
+    swatches: documentStyle.swatches.map((swatch) => ({ color: swatch.color, label: swatch.label[locale] })),
+  };
+}
+
+export function starterQuoteTerms(locale: StarterLocale): string {
+  return documentStyle.quoteTerms[locale];
 }
 
 const retroplanningSchema = z.object({

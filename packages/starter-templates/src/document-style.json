@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "defaultColor": "#3b3b3b",
+  "swatches": [
+    { "color": "#4f6b5a", "label": { "fr": "Sauge", "en": "Sage" } },
+    { "color": "#a8553a", "label": { "fr": "Terracotta", "en": "Terracotta" } },
+    { "color": "#2f4a66", "label": { "fr": "Nuit", "en": "Midnight" } },
+    { "color": "#6d3b5a", "label": { "fr": "Prune", "en": "Plum" } },
+    { "color": "#b08a2e", "label": { "fr": "Or", "en": "Gold" } },
+    { "color": "#3b3b3b", "label": { "fr": "Graphite", "en": "Graphite" } }
+  ],
+  "quoteTerms": {
+    "fr": "Le présent devis devient définitif après sa signature et le versement du premier acompte prévu à l'échéancier. Toute prestation supplémentaire fera l'objet d'un nouveau devis.",
+    "en": "This quote becomes binding once signed and once the first deposit in the payment schedule has been paid. Any additional service will be covered by a new quote."
+  }
+}

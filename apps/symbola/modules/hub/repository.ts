@@ -56,6 +56,12 @@ export async function findOrganizationById(db: AppDatabase, organizationId: stri
   return organization ?? null;
 }
 
+// Lot 17 (DEV-07) : la titulaire ou une planner corrige le SIRET saisi à la
+// création de l'organisation (HUB-03), imprimé sur ses documents.
+export async function updateOrganizationSiret(db: AppDatabase, organizationId: string, siret: string | null) {
+  await db.update(organizations).set({ siret }).where(eq(organizations.id, organizationId));
+}
+
 export async function listAllOrganizations(db: AppDatabase) {
   return db.select().from(organizations);
 }

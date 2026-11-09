@@ -138,12 +138,58 @@ export type QuoteTotalsView = {
   totalTtcCents: number;
 };
 
+// Lot 17 (DEV-09 à DEV-11, ADR 0046) — apparence et textes des documents.
+export type DocumentFont = "modern" | "classic";
+
+export type DocumentSettings = {
+  // #RRGGBB ; null : gris ardoise de départ.
+  color: string | null;
+  font: DocumentFont;
+  iban: string | null;
+  bic: string | null;
+  quoteIntro: string | null;
+  // Conditions particulières du devis.
+  quoteTerms: string | null;
+  invoiceIntro: string | null;
+  // Conditions de paiement de la facture (même colonne que
+  // QuoteSettings.invoiceMentions).
+  invoiceTerms: string | null;
+  footer: string | null;
+};
+
+// Copie figée dans l'instantané vendeur : seulement les textes du document
+// concerné (devis : introduction et conditions ; facture : introduction,
+// ses conditions de paiement étant figées à part, InvoiceView.mentions).
+export type DocumentSnapshot = {
+  color: string | null;
+  font: DocumentFont;
+  iban: string | null;
+  bic: string | null;
+  intro: string | null;
+  terms: string | null;
+  footer: string | null;
+};
+
+// Formes juridiques (valeurs réglementaires, hub.legal_form).
+export type LegalFormCode = "ei" | "eirl" | "eurl" | "sarl" | "sas" | "sasu" | "sa" | "auto_entrepreneur" | "autre";
+
 // En-tête vendeur figé à l'envoi (PDF : logo, coordonnées, SIREN).
 export type SellerSnapshot = {
   organizationName: string;
   address: string | null;
   siren: string | null;
   logoKey: string | null;
+  // Lot 17 (DEV-07, DEV-12) : absents des copies antérieures au lot 17,
+  // qui s'impriment avec l'apparence neutre.
+  legalForm?: LegalFormCode | null;
+  siret?: string | null;
+  vatNumber?: string | null;
+  registration?: string | null;
+  shareCapitalCents?: number | null;
+  contactEmail?: string | null;
+  contactPhone?: string | null;
+  website?: string | null;
+  document?: DocumentSnapshot;
 };
 
 export type QuoteVersionView = {

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import retroplanningFile from "./retroplanning.json";
 import vendorSlotsFile from "./vendor-slots.json";
 import programFile from "./program.json";
-import { starterDemoEvent, starterDemoQuote, starterErasureResponse, starterPrivacySettings, starterInvoiceMentions, starterLossReasons, starterPaymentMethods, starterProgram, starterProspectSources, starterRetroplanning, starterVendorSlots, starterVendorTypes, starterBudgetLines, starterAllocation, starterFollowUpDelays, starterVendorTypeSynonymGroups, starterVendorCatalog, starterEventTypes, BUDGET_LINE_ICONS } from "./index";
+import { starterDemoEvent, starterDemoQuote, starterErasureResponse, starterPrivacySettings, starterInvoiceMentions, starterDocumentStyle, starterQuoteTerms, starterLossReasons, starterPaymentMethods, starterProgram, starterProspectSources, starterRetroplanning, starterVendorSlots, starterVendorTypes, starterBudgetLines, starterAllocation, starterFollowUpDelays, starterVendorTypeSynonymGroups, starterVendorCatalog, starterEventTypes, BUDGET_LINE_ICONS } from "./index";
 
 describe("EVT-03 — Modèle de départ des postes prestataires", () => {
   it("existe en français et en anglais, avec le même nombre de postes", () => {
@@ -110,6 +110,23 @@ describe("DEV-04 — Mentions de facturation de départ", () => {
   it("existent en français et en anglais", () => {
     expect(starterInvoiceMentions("fr")).toContain("Conditions de paiement");
     expect(starterInvoiceMentions("en")).toContain("Payment terms");
+  });
+});
+
+describe("DEV-09 — Nuances de départ des documents", () => {
+  it("existent en français et en anglais, avec une couleur neutre parmi elles", () => {
+    const fr = starterDocumentStyle("fr");
+    const en = starterDocumentStyle("en");
+    expect(fr.swatches.length).toBe(6);
+    expect(en.swatches.map((swatch) => swatch.color)).toEqual(fr.swatches.map((swatch) => swatch.color));
+    expect(fr.swatches.map((swatch) => swatch.color)).toContain(fr.defaultColor);
+  });
+});
+
+describe("DEV-10 — Conditions particulières du devis de départ", () => {
+  it("existent en français et en anglais", () => {
+    expect(starterQuoteTerms("fr")).toContain("devis");
+    expect(starterQuoteTerms("en")).toContain("quote");
   });
 });
 

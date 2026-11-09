@@ -4,6 +4,7 @@
 import { createHash, randomBytes } from "node:crypto";
 import type { AppDatabase } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
+import { detectFileType, uploadFile } from "@symbola/files";
 import { sendMail } from "@symbola/mail";
 import { parseEnv } from "@symbola/env";
 import { starterFollowUpDelays } from "@symbola/starter-templates";
@@ -25,6 +26,7 @@ import {
   listAllOrganizations,
   markInvitationAccepted,
   updateFirstStepsHidden,
+  updateOrganizationSiret,
   upsertOrganizationModule,
   upsertOrganizationProfileFields,
   upsertPlatformSettings,
@@ -319,6 +321,13 @@ export type OrganizationProfile = {
   vatRegime: VatRegime | null;
   vatRateDefaultBasisPoints: number | null;
   completedAt: Date | null;
+  // Lot 17 (DEV-07) : coordonnées et mentions des devis et factures.
+  contactEmail: string | null;
+  contactPhone: string | null;
+  website: string | null;
+  vatNumber: string | null;
+  registration: string | null;
+  shareCapitalCents: number | null;
 };
 
 const EMPTY_PROFILE: OrganizationProfile = {
@@ -331,6 +340,12 @@ const EMPTY_PROFILE: OrganizationProfile = {
   vatRegime: null,
   vatRateDefaultBasisPoints: null,
   completedAt: null,
+  contactEmail: null,
+  contactPhone: null,
+  website: null,
+  vatNumber: null,
+  registration: null,
+  shareCapitalCents: null,
 };
 
 // ONB-01 — Pas encore de ligne = questionnaire jamais commencé : toutes
@@ -417,6 +432,136 @@ export async function getDocumentHeader(
   if (!organization) return null;
   const profile = await getOrganizationProfile(db, organizationId);
   return { organizationName: organization.name, logoKey: profile.logoKey };
+}
+
+// Lot 17 (DEV-07) — identité du vendeur imprimée sur les devis et les
+// factures, copiée dans leur instantané à l'émission (ADR 0046).
+export type SellerDetails = {
+  organizationName: string;
+  address: string | null;
+  siren: string | null;
+  siret: string | null;
+  logoKey: string | null;
+  legalForm: LegalForm | null;
+  vatNumber: string | null;
+  registration: string | null;
+  shareCapitalCents: number | null;
+  contactEmail: string | null;
+  contactPhone: string | null;
+  website: string | null;
+};
+
+export async function getSellerDetails(db: AppDatabase, organizationId: string): Promise<SellerDetails> {
+  const organization = await findOrganizationById(db, organizationId);
+  const profile = await getOrganizationProfile(db, organizationId);
+  return {
+    organizationName: organization?.name ?? "",
+    address: profile.address,
+    siren: profile.siren,
+    siret: organization?.siret ?? null,
+    logoKey: profile.logoKey,
+    legalForm: profile.legalForm,
+    vatNumber: profile.vatNumber,
+    registration: profile.registration,
+    shareCapitalCents: profile.shareCapitalCents,
+    contactEmail: profile.contactEmail,
+    contactPhone: profile.contactPhone,
+    website: profile.website,
+  };
+}
+
+export type DocumentDetailsInput = {
+  siret: string | null;
+  contactEmail: string | null;
+  contactPhone: string | null;
+  website: string | null;
+  vatNumber: string | null;
+  registration: string | null;
+  shareCapitalCents: number | null;
+};
+
+export class InvalidDocumentDetailsError extends Error {
+  constructor(readonly field: keyof DocumentDetailsInput) {
+    super(`coordonnée invalide : ${field}`);
+    this.name = "InvalidDocumentDetailsError";
+  }
+}
+
+const MAX_SHARE_CAPITAL_CENTS = 1_000_000_000_000_00;
+
+function cleanDetail(value: string | null, field: keyof DocumentDetailsInput, test: (text: string) => boolean, normalize = (text: string) => text): string | null {
+  const text = normalize(value?.trim() ?? "");
+  if (text === "") return null;
+  if (!test(text)) throw new InvalidDocumentDetailsError(field);
+  return text;
+}
+
+// Coordonnées nettoyées, ou une erreur qui nomme le champ à corriger.
+export function cleanDocumentDetails(input: DocumentDetailsInput): DocumentDetailsInput {
+  const compact = (text: string) => text.replace(/\s/g, "").toUpperCase();
+  const website = cleanDetail(input.website, "website", (text) => {
+    if (text.length > 200) return false;
+    try {
+      const url = new URL(/^https?:\/\//i.test(text) ? text : `https://${text}`);
+      return url.hostname.includes(".") && !/\s/.test(text);
+    } catch {
+      return false;
+    }
+  });
+  const capital = input.shareCapitalCents;
+  if (capital !== null && (!Number.isInteger(capital) || capital < 0 || capital > MAX_SHARE_CAPITAL_CENTS)) {
+    throw new InvalidDocumentDetailsError("shareCapitalCents");
+  }
+  return {
+    siret: cleanDetail(input.siret, "siret", (text) => /^\d{14}$/.test(text), compact),
+    contactEmail: cleanDetail(input.contactEmail, "contactEmail", (text) => text.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text)),
+    contactPhone: cleanDetail(input.contactPhone, "contactPhone", (text) => /^\+?[0-9 .()-]{6,20}$/.test(text)),
+    website,
+    // Numéro de TVA intracommunautaire : code pays et 2 à 13 caractères ;
+    // en France, clé de 2 caractères et SIREN.
+    vatNumber: cleanDetail(
+      input.vatNumber,
+      "vatNumber",
+      (text) => /^[A-Z]{2}[0-9A-Z]{2,13}$/.test(text) && (!text.startsWith("FR") || /^FR[0-9A-Z]{2}\d{9}$/.test(text)),
+      compact,
+    ),
+    registration: cleanDetail(input.registration, "registration", (text) => text.length <= 120),
+    shareCapitalCents: capital,
+  };
+}
+
+export async function saveDocumentDetails(db: AppDatabase, organizationId: string, input: DocumentDetailsInput): Promise<void> {
+  const clean = cleanDocumentDetails(input);
+  const { siret, ...profileFields } = clean;
+  await updateOrganizationSiret(db, organizationId, siret);
+  await upsertOrganizationProfileFields(db, organizationId, profileFields);
+}
+
+// Lot 17 (DEV-08) — logo des documents : PNG ou JPEG de 2 Mo au plus, type
+// vérifié par le contenu avant tout stockage, antivirus (uploadFile). Le
+// fichier remplacé reste dans le stockage : les documents déjà émis le
+// citent dans leur instantané (règle 2 du lot 17).
+export const LOGO_MAX_SIZE_BYTES = 2 * 1024 * 1024;
+
+export class LogoUploadError extends Error {
+  constructor(readonly reason: "too_large" | "unsupported_type" | "infected") {
+    super(`logo refusé : ${reason}`);
+    this.name = "LogoUploadError";
+  }
+}
+
+export async function uploadOrganizationLogo(db: AppDatabase, organizationId: string, content: Uint8Array): Promise<string> {
+  if (content.byteLength > LOGO_MAX_SIZE_BYTES) throw new LogoUploadError("too_large");
+  const type = detectFileType(content);
+  if (type?.mime !== "image/png" && type?.mime !== "image/jpeg") throw new LogoUploadError("unsupported_type");
+  const upload = await uploadFile({ organizationId, buffer: Buffer.from(content), maxSizeBytes: LOGO_MAX_SIZE_BYTES });
+  if (upload.status === "rejected") throw new LogoUploadError(upload.reason);
+  await upsertOrganizationProfileFields(db, organizationId, { logoKey: upload.key });
+  return upload.key;
+}
+
+export async function removeOrganizationLogo(db: AppDatabase, organizationId: string): Promise<void> {
+  await upsertOrganizationProfileFields(db, organizationId, { logoKey: null });
 }
 
 // ONB-01 — mentions légales déduites du régime de TVA (exemple du PRD :

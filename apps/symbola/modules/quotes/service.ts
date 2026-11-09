@@ -38,6 +38,7 @@ import type {
   ClientQuoteToSign,
   ClientKind,
   CreditNoteView,
+  DocumentSettings,
   EReportingView,
   InvoiceBuyer,
   InvoiceTotalsView,
@@ -55,8 +56,8 @@ import { QUOTES_QUOTE_SIGNED, QUOTES_QUOTE_SIGNED_VERSION, type QuoteSignedPaylo
 import { changeEventStatus, EventNotFoundError, getEvent } from "@/modules/events/service";
 import {
   computeLegalMention,
-  getDocumentHeader,
   getOrganizationProfile,
+  getSellerDetails,
   getUserContact,
   type OrganizationProfile,
 } from "@/modules/hub/service";
@@ -65,6 +66,7 @@ import { signatureTag, type SignatureProvider } from "./signature/provider";
 import { computeQuoteTotals, formatDocumentNumber, lineAmounts, validUntil, type GlobalDiscount } from "./amounts";
 import { addCalendarDays, groupByMonth, isOverdue, parisToday, resolveSchedule } from "./schedule";
 import { addDays, prorateTotals } from "./invoicing";
+import { cleanDocumentSettings, documentSnapshot, EMPTY_DOCUMENT_SETTINGS } from "./document-settings";
 import {
   findCreditNoteById,
   findEReportingRows,
@@ -118,7 +120,9 @@ import {
   setGlobalDiscountRow,
   updateCatalogItemRow,
   updateQuoteLineRow,
+  upsertDocumentSettings,
   upsertQuoteSettings,
+  type QuoteSettingsRow,
   type CatalogItemData,
   type CatalogItemRow,
   type LineData,
@@ -154,6 +158,9 @@ export type {
   ClientQuoteToSign,
   ClientKind,
   CreditNoteView,
+  DocumentFont,
+  DocumentSettings,
+  DocumentSnapshot,
   EReportingView,
   InvoiceBuyer,
   InvoiceTotalsView,
@@ -169,6 +176,15 @@ export type {
   StartQuotesTrialInput,
 } from "@symbola/contracts";
 export { EventNotFoundError };
+// Lot 17 : numéros des documents d'exemple de l'écran Documents (aucun rang consommé).
+export { formatDocumentNumber } from "./amounts";
+export {
+  DOCUMENT_INTRO_MAX_LENGTH,
+  DOCUMENT_TERMS_MAX_LENGTH,
+  formatIban,
+  InvalidDocumentSettingsError,
+  type DocumentSettingsField,
+} from "./document-settings";
 
 export class CatalogItemNotFoundError extends Error {
   constructor() {
@@ -428,6 +444,63 @@ export async function updateQuoteSettings(organizationId: string, settings: Quot
     invoicePaymentTermDays: row.invoicePaymentTermDays,
     invoiceMentions: row.invoiceMentions,
   };
+}
+
+// --- Lot 17 (DEV-09 à DEV-11, ADR 0046) : apparence et textes des documents ---
+
+function toDocumentSettings(row: QuoteSettingsRow | null): DocumentSettings {
+  if (!row) return { ...EMPTY_DOCUMENT_SETTINGS };
+  return {
+    color: row.documentColor,
+    font: row.documentFont,
+    iban: row.iban,
+    bic: row.bic,
+    quoteIntro: row.quoteIntro,
+    quoteTerms: row.quoteTerms,
+    invoiceIntro: row.invoiceIntro,
+    invoiceTerms: row.invoiceMentions,
+    footer: row.documentFooter,
+  };
+}
+
+export async function getDocumentSettings(organizationId: string): Promise<DocumentSettings> {
+  return toDocumentSettings(await findQuoteSettings(organizationId));
+}
+
+// Réglages validés (InvalidDocumentSettingsError sinon) ; les documents
+// déjà émis gardent leur copie figée.
+export async function updateDocumentSettings(organizationId: string, input: DocumentSettings): Promise<DocumentSettings> {
+  const clean = cleanDocumentSettings(input);
+  const row = await upsertDocumentSettings(organizationId, {
+    documentColor: clean.color,
+    documentFont: clean.font,
+    iban: clean.iban,
+    bic: clean.bic,
+    quoteIntro: clean.quoteIntro,
+    quoteTerms: clean.quoteTerms,
+    invoiceIntro: clean.invoiceIntro,
+    invoiceMentions: clean.invoiceTerms,
+    documentFooter: clean.footer,
+  });
+  return toDocumentSettings(row);
+}
+
+// Identité du vendeur à jour et apparence du document, copiées dans
+// l'instantané (règles 2 et 3 du lot 17).
+async function currentSeller(organizationId: string, settings: QuoteSettingsRow | null, kind: "quote" | "invoice"): Promise<SellerSnapshot> {
+  const details = await withDb((db) => getSellerDetails(db, organizationId));
+  return { ...details, document: documentSnapshot(toDocumentSettings(settings), kind) };
+}
+
+// En-tête et apparence courants d'un devis en brouillon (PDF, aperçu) : ce
+// que figera son envoi.
+export async function currentQuoteSeller(organizationId: string): Promise<SellerSnapshot> {
+  return currentSeller(organizationId, await findQuoteSettings(organizationId), "quote");
+}
+
+// Exemple de facture de l'écran Documents : vendeur et apparence courants.
+export async function currentInvoiceSeller(organizationId: string): Promise<SellerSnapshot> {
+  return currentSeller(organizationId, await findQuoteSettings(organizationId), "invoice");
 }
 
 // --- Devis ---
@@ -741,18 +814,10 @@ export async function setQuoteGlobalDiscount(organizationId: string, quoteId: st
 // émis ne change jamais quand le profil change).
 export async function sendQuote(input: SendQuoteInput): Promise<QuoteDetail> {
   const now = input.now ?? new Date();
-  const { profile, header } = await withDb(async (db) => ({
-    profile: await getOrganizationProfile(db, input.organizationId),
-    header: await getDocumentHeader(db, input.organizationId),
-  }));
+  const profile = await withDb((db) => getOrganizationProfile(db, input.organizationId));
   const settings = await getQuoteSettings(input.organizationId);
   const vatRegime = profile.vatRegime;
-  const seller: SellerSnapshot = {
-    organizationName: header?.organizationName ?? "",
-    address: profile.address,
-    siren: profile.siren,
-    logoKey: profile.logoKey,
-  };
+  const seller = await currentSeller(input.organizationId, await findQuoteSettings(input.organizationId), "quote");
   const legalMention = computeLegalMention(profile);
 
   const result = await freezeCurrentVersion(input.organizationId, input.quoteId, (version, lines, items) => {
@@ -1315,9 +1380,10 @@ function documentNumbering(settingsPrefix: string, isDemo: boolean, now: Date) {
   return { year, formatNumber: (rank: number) => formatDocumentNumber(prefix, year, rank) };
 }
 
-// Contrôles communs puis copies figées : vendeur et mention (figés à
-// l'envoi du devis), acheteurs (signataires), réglages de facturation.
-function invoiceBase(context: InvoicingContext, now: Date) {
+// Contrôles communs puis copies figées : mention de TVA (figée à l'envoi du
+// devis), vendeur à jour et apparence de la facture (lot 17, ADR 0046),
+// acheteurs (signataires), réglages de facturation.
+function invoiceBase(context: InvoicingContext, now: Date, seller: Omit<SellerSnapshot, "document">) {
   if (context.quote.status !== "signed" || !context.version.sentAt) throw new QuoteNotSignedError();
   if (context.quote.clientKind === "professional") throw new ProfessionalInvoiceNotSupportedError();
   const buyers: InvoiceBuyer[] = context.signers.map((signer) => ({ name: signer.name, billingAddress: signer.billingAddress }));
@@ -1340,7 +1406,7 @@ function invoiceBase(context: InvoicingContext, now: Date) {
       vatRegime: context.version.vatRegime ?? "franchise",
       legalMention: context.version.legalMention,
       mentions: settings?.invoiceMentions ?? null,
-      sellerSnapshot: context.version.sellerSnapshot ?? {},
+      sellerSnapshot: { ...seller, document: documentSnapshot(toDocumentSettings(settings), "invoice") } satisfies SellerSnapshot,
       buyerSnapshot: buyers,
     },
   };
@@ -1420,8 +1486,9 @@ function toInvoiceView(invoice: InvoiceRow, quoteNumber: string, notes: CreditNo
 // après la facture de solde.
 export async function issueDepositInvoice(input: IssueDepositInvoiceInput): Promise<InvoiceView> {
   const now = input.now ?? new Date();
+  const seller = await withDb((db) => getSellerDetails(db, input.organizationId));
   const row = await insertInvoice(input.organizationId, { scheduleItemId: input.scheduleItemId }, (context) => {
-    const base = invoiceBase(context, now);
+    const base = invoiceBase(context, now, seller);
     const index = context.scheduleItems.findIndex((item) => item.id === input.scheduleItemId);
     const item = context.scheduleItems[index];
     if (!item) throw new QuoteVersionLockedError();
@@ -1462,8 +1529,9 @@ export async function issueBalanceInvoice(input: IssueBalanceInvoiceInput): Prom
   const quote = await findQuoteAggregate(input.organizationId, input.quoteId);
   if (!quote) throw new QuoteNotFoundError();
   const event = await getEvent(input.organizationId, quote.quote.eventId);
+  const seller = await withDb((db) => getSellerDetails(db, input.organizationId));
   const row = await insertInvoice(input.organizationId, { quoteId: input.quoteId }, (context) => {
-    const base = invoiceBase(context, now);
+    const base = invoiceBase(context, now, seller);
     const active = context.invoices.filter((invoice) => isActive(invoice, context.creditNotes));
     if (active.some((invoice) => invoice.kind === "balance")) throw new InvoiceAlreadyIssuedError();
     const deductions = active
