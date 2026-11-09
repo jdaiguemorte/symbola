@@ -32,7 +32,7 @@ socle.
 Uptime Kuma démarre avec le socle :
 
 ```bash
-docker compose -f infra/compose/docker-compose.socle.yml \
+sudo docker compose -f infra/compose/docker-compose.socle.yml \
   --env-file infra/compose/.env.socle -p symbola-socle up -d
 ```
 
@@ -77,5 +77,5 @@ puis `http://localhost:3001` dans le navigateur.
 
 - [ ] `curl -s https://<domaine>/health` renvoie `"status":"ok"` et le SHA attendu, pour chaque environnement.
 - [ ] Le port 3001 n'est pas joignable depuis Internet : `nc -vz <ip-du-vps> 3001` échoue depuis ton poste.
-- [ ] Arrêter ClamAV de staging (`docker compose ... -p symbola-staging stop clamav`) : `/health` passe en 503 et l'alerte e-mail arrive après deux tentatives. Relancer ClamAV, l'alerte de rétablissement arrive.
+- [ ] Arrêter ClamAV de staging (`sudo docker compose ... -p symbola-staging stop clamav`) : `/health` passe en 503 et l'alerte e-mail arrive après deux tentatives. Relancer ClamAV, l'alerte de rétablissement arrive.
 - [ ] Les données d'Uptime Kuma (volume `uptime_kuma_data`) sont incluses dans la sauvegarde (SOC-10).

@@ -59,6 +59,10 @@ faut au moins :
 
 Sur le VPS (Julien) :
 
+Toutes les commandes `docker` de ce runbook passent par `sudo` : l'utilisateur `julien` n'est
+volontairement pas dans le groupe `docker`, qui donne en pratique les droits root sur le serveur.
+Sans `sudo`, Docker répond « permission denied while trying to connect to the docker API ».
+
 1. Docker et Docker Compose installés, durcissement serveur déjà fait
    (`docs/runbooks/durcissement-serveur.md`, SOC-12).
 2. Cloner le dépôt (ou n'y copier que `infra/compose/`) à un emplacement
@@ -77,7 +81,7 @@ Sur le VPS (Julien) :
    jamais les valeurs de dev du dépôt).
 4. Démarrer le socle partagé (une fois, ou après modification) :
    ```bash
-   docker compose -f infra/compose/docker-compose.socle.yml \
+   sudo docker compose -f infra/compose/docker-compose.socle.yml \
      --env-file infra/compose/.env.socle -p symbola-socle up -d
    ```
 
@@ -87,7 +91,7 @@ Exemple pour staging (remplacer `staging` par `production` pour l'autre) :
 
 1. Démarrer l'environnement :
    ```bash
-   docker compose -f infra/compose/docker-compose.prod.yml \
+   sudo docker compose -f infra/compose/docker-compose.prod.yml \
      --env-file infra/compose/.env.staging -p symbola-staging up -d
    ```
    **Note (ADR 0018)** : ce runbook date du choix initial (Traefik,
@@ -99,7 +103,7 @@ Exemple pour staging (remplacer `staging` par `production` pour l'autre) :
    lui-même, voir `docker-compose.prod.yml`) et ajouter le bloc
    correspondant dans son Caddyfile :
    ```bash
-   docker network connect symbola-staging_default <conteneur-caddy>
+   sudo docker network connect symbola-staging_default <conteneur-caddy>
    ```
    Le reste de ce runbook (sections suivantes) décrit encore l'ancienne
    architecture Traefik/socle partagé — à réviser entièrement pour
@@ -308,10 +312,10 @@ sans cette clé, l'app refuse de démarrer.
    Depuis un poste qui a Node, le tunnel SSH ci-dessus reste possible.
 4. Redémarrer seulement le service `symbola` :
    ```bash
-   docker compose -f infra/compose/docker-compose.prod.yml \
+   sudo docker compose -f infra/compose/docker-compose.prod.yml \
      --env-file infra/compose/.env.staging -p symbola-staging \
      pull symbola
-   docker compose -f infra/compose/docker-compose.prod.yml \
+   sudo docker compose -f infra/compose/docker-compose.prod.yml \
      --env-file infra/compose/.env.staging -p symbola-staging \
      up -d symbola
    ```
@@ -353,15 +357,15 @@ Sur le VPS (Julien), une fois les deux environnements démarrés :
 
 ```bash
 # Chaque nom interne ne résout qu'une seule adresse, celle de son environnement
-docker run --rm --network symbola-staging_default alpine:3.20 nslookup postgres
-docker run --rm --network symbola-production_default alpine:3.20 nslookup postgres
+sudo docker run --rm --network symbola-staging_default alpine:3.20 nslookup postgres
+sudo docker run --rm --network symbola-production_default alpine:3.20 nslookup postgres
 # Le réseau frontal ne voit aucune base : « can't find postgres » attendu
-docker run --rm --network symbola-edge-staging alpine:3.20 nslookup postgres
+sudo docker run --rm --network symbola-edge-staging alpine:3.20 nslookup postgres
 # Seuls Traefik et l'app de l'environnement sont sur chaque réseau frontal
-docker network inspect symbola-edge-staging -f '{{range .Containers}}{{.Name}} {{end}}'
-docker network inspect symbola-edge-production -f '{{range .Containers}}{{.Name}} {{end}}'
+sudo docker network inspect symbola-edge-staging -f '{{range .Containers}}{{.Name}} {{end}}'
+sudo docker network inspect symbola-edge-production -f '{{range .Containers}}{{.Name}} {{end}}'
 # Limites appliquées
-docker stats --no-stream --format 'table {{.Name}}\t{{.MemUsage}}\t{{.CPUPerc}}'
+sudo docker stats --no-stream --format 'table {{.Name}}\t{{.MemUsage}}\t{{.CPUPerc}}'
 ```
 
 ### Migration depuis la première version de SOC-09 (réseau `symbola-edge` unique)
@@ -369,13 +373,13 @@ docker stats --no-stream --format 'table {{.Name}}\t{{.MemUsage}}\t{{.CPUPerc}}'
 Seulement si un environnement a déjà tourné avec l'ancien compose :
 
 ```bash
-docker compose -f infra/compose/docker-compose.socle.yml \
+sudo docker compose -f infra/compose/docker-compose.socle.yml \
   --env-file infra/compose/.env.socle -p symbola-socle up -d   # crée les deux réseaux frontaux
-docker compose -f infra/compose/docker-compose.prod.yml \
+sudo docker compose -f infra/compose/docker-compose.prod.yml \
   --env-file infra/compose/.env.staging -p symbola-staging up -d --force-recreate
-docker compose -f infra/compose/docker-compose.prod.yml \
+sudo docker compose -f infra/compose/docker-compose.prod.yml \
   --env-file infra/compose/.env.production -p symbola-production up -d --force-recreate
-docker network rm symbola-edge   # une fois plus aucun conteneur dessus
+sudo docker network rm symbola-edge   # une fois plus aucun conteneur dessus
 ```
 
 Ajouter d'abord les variables `*_MEM_LIMIT` et `*_CPUS` dans chaque
