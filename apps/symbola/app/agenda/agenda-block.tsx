@@ -69,7 +69,7 @@ export async function AgendaBlock({
             </span>
           </p>
         </div>
-        <div className="toolbar">
+        <div className="toolbar agenda-controls">
           <nav aria-label={t("agendaNavigate")} className="toolbar">
             <Link href={href({ debut: addMonths(start, -span) })} className="button-link" aria-label={t("agendaPrevious")}>
               ‹

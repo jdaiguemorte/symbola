@@ -40,6 +40,14 @@ Retours de Julien du 09/11/2026, en recette du lot 17 sur le staging :
   boutons voisins gardent leur taille. Cause : le style de carte des blocs dépliants ouverts
   s'appliquait aussi à ce bloc.
 
+## HUB-25 — En-tête de l'agenda aligné (recette du 10/11/2026)
+
+- **Étant donné** l'accueil en taille ordinateur, **alors** « ‹ Aujourd'hui › » est centré sur
+  le sélecteur de durée (3 mois, 6 mois, Voir l'année). Cause : depuis HUB-24, une barre
+  d'outils aligne ses éléments en haut, et la navigation de l'agenda, barre imbriquée, gardait
+  sa propre marge : elle descendait d'environ 14 px.
+- **En 375 px**, la navigation passe au-dessus du sélecteur, sans chevauchement.
+
 ## PRE-16 — Estimation des trajets expliquée
 
 - **Quand** elle ouvre Paramètres › Prestataires et données › Estimation des trajets (ancien

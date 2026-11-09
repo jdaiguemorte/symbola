@@ -594,6 +594,16 @@
   .segmented a[aria-current="true"] {
     @apply bg-sauge text-white;
   }
+  /* Recette du lot 18 (HUB-25) : depuis HUB-24, une barre d'outils aligne ses
+     éléments en haut. Dans l'en-tête de l'agenda, la navigation (barre
+     imbriquée, donc avec sa propre marge) descendait sous le sélecteur de
+     durée : sans marge et centrées, les deux commandes s'alignent. */
+  .agenda-controls {
+    @apply items-center;
+  }
+  .agenda-controls > .toolbar {
+    @apply my-0;
+  }
 
   .agenda-legend {
     @apply m-0 flex list-none flex-wrap gap-4 p-0 text-[13px] text-muted;
