@@ -13,11 +13,11 @@ const entry = (key: string, status: HelpProgressEntry["status"], step: number, c
 });
 
 describe("AIDE-10 — Page Tutoriels en parcours", () => {
-  it("le parcours couvre chaque tutoriel une seule fois, catalogue d'abord, import à part", () => {
+  it("le parcours couvre chaque tutoriel une seule fois, documents puis catalogue d'abord, import à part", () => {
     const keys = JOURNEY.flatMap((stage) => stage.tutorials);
     expect(new Set(keys).size).toBe(keys.length);
     expect(keys.sort()).toEqual(TUTORIALS.map((tutorial) => tutorial.key).sort());
-    expect(JOURNEY[0]!.tutorials[0]).toBe("catalog");
+    expect(JOURNEY[0]!.tutorials.slice(0, 2)).toEqual(["documents", "catalog"]);
     expect(JOURNEY.at(-1)!.tutorials).toEqual(["import"]);
   });
 
@@ -29,7 +29,7 @@ describe("AIDE-10 — Page Tutoriels en parcours", () => {
   });
 
   it("faits en vert, le tutoriel en cours, puis le suivant conseillé quand aucun n'est en cours", () => {
-    const done = journeyStates(TUTORIALS, [entry("catalog", "completed", 4)]);
+    const done = journeyStates(TUTORIALS, [entry("documents", "completed", 6), entry("catalog", "completed", 4)]);
     expect(done.get("catalog")).toBe("done");
     expect(done.get("retroplanning-template")).toBe("next");
     expect(done.get("import")).toBe("todo");
@@ -41,5 +41,17 @@ describe("AIDE-10 — Page Tutoriels en parcours", () => {
 
   it("deux tutoriels commencés : le plus récent est celui en cours", () => {
     expect(tutorialInProgress(TUTORIALS, [entry("catalog", "started", 1, null, 1), entry("day-program", "started", 1, null, 5)])).toBe("day-program");
+  });
+});
+
+describe("AIDE-13 — Personnaliser ses devis et factures dans l'accompagnement", () => {
+  it("le tutoriel des documents est conseillé ensuite, y compris à une organisation déjà démarrée qui a fait d'autres tutoriels", () => {
+    expect(journeyStates(TUTORIALS, []).get("documents")).toBe("next");
+    const started = journeyStates(TUTORIALS, [entry("catalog", "completed", 4), entry("event-page", "completed", 3)]);
+    expect(started.get("documents")).toBe("next");
+  });
+
+  it("il est proposé à la première visite de l'écran Documents, pour le module Devis et factures", () => {
+    expect(TUTORIALS.find((tutorial) => tutorial.key === "documents")).toMatchObject({ module: "quotes", screen: "/devis/parametres/documents" });
   });
 });

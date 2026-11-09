@@ -801,6 +801,16 @@
           "a": "Une couleur trop claire serait illisible sur fond blanc : les titres en utilisent une version plus foncée."
         }
       ]
+    },
+    "privacyCase": {
+      "title": "Dossier d'une demande",
+      "body": "Le dossier vous guide jusqu'à la réponse : 1 enregistrer, 2 retrouver les données (recherche déjà remplie), 3 effacer, exporter ou corriger, 4 répondre à la personne avec le modèle prêt à copier, 5 clore. L'échéance légale reste en tête du dossier.",
+      "faq": [
+        {
+          "q": "Pourquoi ne puis-je pas clore la demande ?",
+          "a": "Une demande se clôt une fois l'action faite et la réponse marquée envoyée : le dossier liste ce qui manque."
+        }
+      ]
     }
   },
   "Aide": {
@@ -2258,7 +2268,10 @@
       "reason_missing": "Le motif de la prolongation est obligatoire.",
       "already_extended": "Cette demande a déjà été prolongée : trois mois au total au plus.",
       "closed": "Cette demande est close.",
-      "settings_invalid": "Réglages invalides."
+      "settings_invalid": "Réglages invalides.",
+      "action_missing": "L'action n'est pas encore faite.",
+      "response_missing": "La réponse n'est pas encore marquée envoyée.",
+      "not_manual": "Cette demande se traite par un effacement ou un export."
     },
     "requestsListTitle": "Demandes",
     "noRequests": "Aucune demande enregistrée.",
@@ -2418,7 +2431,102 @@
     "purgeLinesTitle": "Lignes validées",
     "purgeOutcomePurged": "purgée",
     "purgeOutcomeExcluded": "exclue : {reason}",
-    "purgeAlertTitle": "Purge mensuelle : {count, plural, one {# ligne à examiner} other {# lignes à examiner}}"
+    "purgeAlertTitle": "Purge mensuelle : {count, plural, one {# ligne à examiner} other {# lignes à examiner}}",
+    "tabsLabel": "Rubriques des données personnelles",
+    "tabRequests": "Demandes",
+    "tabSearch": "Rechercher une personne",
+    "tabPurge": "Purge mensuelle",
+    "tabSettings": "Réglages",
+    "alertsCount": "{count, plural, one {# demande en alerte} other {# demandes en alerte}}",
+    "requestsSubtitle": "Chaque demande a son dossier : vous le suivez étape par étape jusqu'à la réponse, avant l'échéance légale.",
+    "columnPerson": "Personne",
+    "columnRequest": "Demande",
+    "columnDeadline": "Échéance",
+    "columnProgress": "Avancement",
+    "receivedOn": "reçue le {date}",
+    "caseProgress": {
+      "registered": "Enregistrée",
+      "found": "Données à retrouver",
+      "action": "Action à faire",
+      "response": "Réponse à envoyer",
+      "closed": "Close"
+    },
+    "deadlineClosedOn": "close le {date}",
+    "searchSubtitle": "Consultez les données d'une personne. Pour les exporter ou les effacer, enregistrez la demande : son dossier vous guide.",
+    "createFromSearchTitle": "Enregistrer une demande pour cette personne",
+    "createFromSearchHint": "Un export ou un effacement part toujours d'une demande enregistrée : c'est sa trace, avec l'échéance légale.",
+    "caseManualHint": "Corrigez les données dans l'écran concerné (fiche de l'événement, du client…), puis marquez l'action faite à l'étape suivante.",
+    "caseTitle": "{type} — {person}",
+    "caseFacts": "Reçue le {received} · échéance le {due}",
+    "backToRequests": "Toutes les demandes",
+    "backToCase": "Revenir au dossier de la demande",
+    "caseStepsLabel": "Étapes du dossier",
+    "caseStepItem": "{number} · {label}",
+    "caseStep": {
+      "registered": "Demande enregistrée",
+      "found": "Données retrouvées",
+      "action": "Action",
+      "response": "Réponse à la personne",
+      "closed": "Clôture"
+    },
+    "caseState": {
+      "done": "Fait",
+      "current": "À faire",
+      "waiting": "En attente des modules",
+      "todo": "Plus tard"
+    },
+    "dueOnLabel": "Échéance",
+    "extendTitle": "Prolonger la demande",
+    "extendHint": "Pour une demande complexe : le motif est obligatoire, et l'échéance passe à trois mois après la réception.",
+    "caseNext": "Étape suivante : retrouver les données",
+    "caseClosedNoAction": "La demande est close : plus rien à rechercher dans ce dossier.",
+    "caseFoundIntro": {
+      "erasure": "La recherche est déjà remplie avec le nom de la demande ; ajoutez l'e-mail ou le téléphone si vous les avez. Cochez ce qui concerne bien la personne, puis voyez ce qui sera effacé.",
+      "export": "La recherche est déjà remplie avec le nom de la demande ; ajoutez l'e-mail ou le téléphone si vous les avez. Cochez ce qui concerne bien la personne, puis lancez l'export.",
+      "manual": "La recherche est déjà remplie avec le nom de la demande : retrouvez les données concernées."
+    },
+    "caseErasureStatus": {
+      "pending": "Effacement lancé le {date}, en attente des modules.",
+      "partial": "Effacement lancé : certains modules n'ont pas encore répondu ({date}).",
+      "completed": "Effacement fait le {date} : tous les modules ont confirmé."
+    },
+    "caseErasureDetail": "Voir le détail de l'effacement et la preuve",
+    "caseActionNeedsSearch": "Retrouvez d'abord les données de la personne.",
+    "caseGoToSearch": "Aller à l'étape 2",
+    "caseExportsIntro": "Joignez ces fichiers à votre réponse ; ils restent téléchargeables quelques jours.",
+    "exportExpired": "(expiré)",
+    "caseActionDoneOn": "Action faite le {date}.",
+    "caseManualIntro": {
+      "rectification": "Corrigez les données dans l'écran concerné (fiche de l'événement, du client, du prestataire), puis confirmez ici.",
+      "objection": "Cessez d'utiliser les données pour le traitement concerné (relances, prospection…), puis confirmez ici."
+    },
+    "caseMarkActionDone": "J'ai fait la modification",
+    "downloadProof": "Preuve de l'effacement (PDF)",
+    "caseResponseSentOn": "Réponse marquée envoyée le {date}.",
+    "caseMarkResponseSent": "J'ai envoyé la réponse",
+    "caseResponseAfterAction": "La réponse se prépare une fois l'action faite.",
+    "caseGoToAction": "Aller à l'étape 3",
+    "caseClosedOn": "Demande close le {date}. Elle reste dans la liste, avec sa preuve, pour un contrôle éventuel.",
+    "caseReadyToClose": "Tout est fait : l'action et la réponse. Vous pouvez clore la demande.",
+    "caseNotReady": "La demande ne peut pas encore être close :",
+    "caseMissingAction": {
+      "erasure": "l'effacement n'est pas encore confirmé par tous les modules ;",
+      "export": "aucun export n'a encore été fait ;",
+      "manual": "l'action n'est pas encore marquée faite ;"
+    },
+    "caseMissingResponse": "la réponse à la personne n'est pas encore marquée envoyée.",
+    "journalTitle": "Journal du dossier",
+    "journalCreated": "Demande enregistrée",
+    "journalExtended": "Demande prolongée",
+    "journalErasureStarted": "Effacement lancé",
+    "journalErasureCompleted": "Effacement confirmé par tous les modules",
+    "journalExport": "{count, plural, one {Export de # élément} other {Export de # éléments}}",
+    "journalActionDone": "Action marquée faite",
+    "journalResponseSent": "Réponse marquée envoyée",
+    "journalClosed": "Demande close",
+    "copyResponse": "Copier la réponse",
+    "responseCopied": "Réponse copiée.",
+    "responseCopyFailed": "Copie impossible : sélectionnez le texte à la main."
   },
   "PasswordReset": {
     "forgotTitle": "Mot de passe oublié",
@@ -2543,6 +2651,10 @@
       "vendor-quotes": {
         "title": "Comparer plusieurs devis pour une ligne du budget",
         "description": "Consultez deux prestataires d'exemple pour une même ligne, notez leurs devis, puis retenez-en un."
+      },
+      "documents": {
+        "title": "Personnaliser vos devis et factures",
+        "description": "Coordonnées, logo, couleur, textes et IBAN : vos documents à votre image, avec un exemple en PDF."
       }
     },
     "intro": "Chaque écran a sa fiche : à quoi il sert, ses repères et les questions fréquentes. Sur l'écran lui-même, le bouton « ? » affiche ses repères.",
@@ -2915,7 +3027,39 @@
         }
       ]
     },
-    "backToTutorials": "Retour aux tutoriels"
+    "backToTutorials": "Retour aux tutoriels",
+    "documents": {
+      "steps": [
+        {
+          "title": "Comprendre",
+          "body": "Vos devis et factures portent votre logo, votre couleur, vos coordonnées et vos conditions. Un document déjà émis garde son apparence : vos réglages valent pour les suivants."
+        },
+        {
+          "title": "Compléter vos coordonnées",
+          "body": "Dans Entreprise et TVA, renseignez au moins votre SIRET ou votre e-mail de contact, et votre numéro de TVA si vous en avez un. Ils s'impriment en tête et en pied de page."
+        },
+        {
+          "title": "Déposer votre logo",
+          "body": "Dans Paramètres › Ventes › Documents, déposez votre logo (PNG ou JPEG, 2 Mo au plus). Sans logo, vos documents portent le nom de votre entreprise."
+        },
+        {
+          "title": "Choisir la couleur et la police",
+          "body": "Choisissez une des nuances ou votre propre couleur, et la police Moderne ou Classique, puis enregistrez. Une couleur trop claire est assombrie pour rester lisible."
+        },
+        {
+          "title": "Relire les textes et saisir votre IBAN",
+          "body": "Relisez les conditions particulières du devis et les conditions de paiement, saisissez votre IBAN, puis enregistrez. L'IBAN s'imprime sur vos factures et sous l'échéancier de vos devis."
+        },
+        {
+          "title": "Télécharger un exemple",
+          "body": "Téléchargez un devis ou une facture d'exemple en PDF : c'est le rendu que recevront vos clients. Aucun numéro n'est consommé."
+        },
+        {
+          "title": "Terminer",
+          "body": "Vos devis et factures sont à votre image. Vous retrouverez ces réglages dans Paramètres › Ventes › Documents."
+        }
+      ]
+    }
   },
   "VendorCandidates": {
     "title": "Prestataires consultés — {slot}",
@@ -3265,25 +3409,28 @@
       "1": "Activité",
       "2": "Entreprise",
       "3": "TVA",
-      "4": "Budget",
-      "5": "Sources et motifs",
-      "6": "Modèles"
+      "4": "Vos documents",
+      "5": "Budget",
+      "6": "Sources et motifs",
+      "7": "Modèles"
     },
     "titles": {
       "1": "Votre activité",
       "2": "Votre entreprise",
       "3": "Votre régime de TVA",
-      "4": "Le budget d'un événement",
-      "5": "D'où viennent vos clients, pourquoi un projet échoue",
-      "6": "Vos modèles"
+      "4": "Vos devis et factures",
+      "5": "Le budget d'un événement",
+      "6": "D'où viennent vos clients, pourquoi un projet échoue",
+      "7": "Vos modèles"
     },
     "explanations": {
       "1": "Votre métier détermine les paramètres de départ : lignes du budget, rétroplanning, programme du jour J, sources de prospects…",
       "2": "Ces informations apparaissent sur vos devis et factures.",
       "3": "Il fixe les mentions légales de vos devis et factures. Un changement plus tard se fera avec une date d'effet.",
-      "4": "Les lignes du budget de chaque nouvel événement : vous y suivez prestataires consultés, devis, prévu et réel. Nous avons préparé celles de votre métier, avec leur icône : renommez, changez l'icône, retirez ou ajoutez.",
-      "5": "La source est demandée à chaque nouveau prospect ; le motif quand un projet est perdu. Elles servent à vos statistiques.",
-      "6": "Nous avons préparé un rétroplanning, un programme du jour J et une répartition du budget. Vous les modifierez quand vous voudrez."
+      "4": "Votre logo et votre couleur sur chaque devis, facture et programme du jour J. Facultatif : tout se modifie plus tard dans Paramètres › Ventes › Documents.",
+      "5": "Les lignes du budget de chaque nouvel événement : vous y suivez prestataires consultés, devis, prévu et réel. Nous avons préparé celles de votre métier, avec leur icône : renommez, changez l'icône, retirez ou ajoutez.",
+      "6": "La source est demandée à chaque nouveau prospect ; le motif quand un projet est perdu. Elles servent à vos statistiques.",
+      "7": "Nous avons préparé un rétroplanning, un programme du jour J et une répartition du budget. Vous les modifierez quand vous voudrez."
     },
     "metierQuestion": "Quel est votre métier ?",
     "metier": {
@@ -3395,7 +3542,11 @@
     "panelAddHint": "La ligne sera proposée à chaque nouvel événement ; les événements existants ne changent pas.",
     "eventTypesQuestion": "Quels événements organisez-vous ?",
     "eventTypesHint": "Vous pourrez en ajouter ou en retirer dans Paramètres › Types d'événements. Sans mariage, le carnet de prestataires ne propose pas les types propres au mariage (robe de mariée, officiant…).",
-    "eventTypesRequired": "Cochez au moins un type d'événement."
+    "eventTypesRequired": "Cochez au moins un type d'événement.",
+    "documentsColorLegend": "Couleur des documents",
+    "documentsLater": "Plus tard",
+    "documentsSaved": "Couleur enregistrée.",
+    "documentsColorInvalid": "Cette couleur n'est pas valide."
   },
   "SettingsMenu": {
     "groupCompany": "Mon entreprise",
@@ -3419,7 +3570,8 @@
     "import": "Importer",
     "privacy": "Données personnelles",
     "eventTypes": "Types d'événements",
-    "documents": "Documents"
+    "documents": "Documents",
+    "privacyAlerts": "{count, plural, one {# demande RGPD en alerte} other {# demandes RGPD en alerte}}"
   },
   "Common": {
     "closePanel": "Fermer le panneau"

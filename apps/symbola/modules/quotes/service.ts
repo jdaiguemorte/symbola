@@ -485,6 +485,12 @@ export async function updateDocumentSettings(organizationId: string, input: Docu
   return toDocumentSettings(row);
 }
 
+// Lot 18 (AIDE-13) : la couleur seule, choisie à l'assistant de démarrage ;
+// les autres réglages des documents ne changent pas.
+export async function updateDocumentColor(organizationId: string, color: string | null): Promise<DocumentSettings> {
+  return updateDocumentSettings(organizationId, { ...(await getDocumentSettings(organizationId)), color });
+}
+
 // Identité du vendeur à jour et apparence du document, copiées dans
 // l'instantané (règles 2 et 3 du lot 17).
 async function currentSeller(organizationId: string, settings: QuoteSettingsRow | null, kind: "quote" | "invoice"): Promise<SellerSnapshot> {

@@ -801,6 +801,16 @@
           "a": "A colour that is too light would be unreadable on white: headings use a darker shade of it."
         }
       ]
+    },
+    "privacyCase": {
+      "title": "Request case",
+      "body": "The case guides you to the reply: 1 record, 2 find the data (pre-filled search), 3 erase, export or correct, 4 reply to the person with the ready-to-copy template, 5 close. The legal deadline stays at the top of the case.",
+      "faq": [
+        {
+          "q": "Why can't I close the request?",
+          "a": "A request closes once the action is done and the reply is marked as sent: the case lists what is missing."
+        }
+      ]
     }
   },
   "Aide": {
@@ -2258,7 +2268,10 @@
       "reason_missing": "The reason for the extension is required.",
       "already_extended": "This request was already extended: three months in total at most.",
       "closed": "This request is closed.",
-      "settings_invalid": "Invalid settings."
+      "settings_invalid": "Invalid settings.",
+      "action_missing": "The action is not done yet.",
+      "response_missing": "The reply is not marked as sent yet.",
+      "not_manual": "This request is handled by an erasure or an export."
     },
     "requestsListTitle": "Requests",
     "noRequests": "No request recorded.",
@@ -2418,7 +2431,102 @@
     "purgeLinesTitle": "Confirmed lines",
     "purgeOutcomePurged": "purged",
     "purgeOutcomeExcluded": "excluded: {reason}",
-    "purgeAlertTitle": "Monthly purge: {count, plural, one {# line to review} other {# lines to review}}"
+    "purgeAlertTitle": "Monthly purge: {count, plural, one {# line to review} other {# lines to review}}",
+    "tabsLabel": "Personal data sections",
+    "tabRequests": "Requests",
+    "tabSearch": "Find a person",
+    "tabPurge": "Monthly purge",
+    "tabSettings": "Settings",
+    "alertsCount": "{count, plural, one {# request needs attention} other {# requests need attention}}",
+    "requestsSubtitle": "Each request has its case: you follow it step by step up to the reply, before the legal deadline.",
+    "columnPerson": "Person",
+    "columnRequest": "Request",
+    "columnDeadline": "Deadline",
+    "columnProgress": "Progress",
+    "receivedOn": "received on {date}",
+    "caseProgress": {
+      "registered": "Recorded",
+      "found": "Data to find",
+      "action": "Action to take",
+      "response": "Reply to send",
+      "closed": "Closed"
+    },
+    "deadlineClosedOn": "closed on {date}",
+    "searchSubtitle": "Look up a person's data. To export or erase it, record the request: its case guides you.",
+    "createFromSearchTitle": "Record a request for this person",
+    "createFromSearchHint": "An export or an erasure always starts from a recorded request: it is the record, with the legal deadline.",
+    "caseManualHint": "Correct the data in the relevant screen (event, client…), then mark the action as done in the next step.",
+    "caseTitle": "{type} — {person}",
+    "caseFacts": "Received on {received} · due on {due}",
+    "backToRequests": "All requests",
+    "backToCase": "Back to the request's case",
+    "caseStepsLabel": "Case steps",
+    "caseStepItem": "{number} · {label}",
+    "caseStep": {
+      "registered": "Request recorded",
+      "found": "Data found",
+      "action": "Action",
+      "response": "Reply to the person",
+      "closed": "Closing"
+    },
+    "caseState": {
+      "done": "Done",
+      "current": "To do",
+      "waiting": "Waiting for modules",
+      "todo": "Later"
+    },
+    "dueOnLabel": "Deadline",
+    "extendTitle": "Extend the request",
+    "extendHint": "For a complex request: a reason is required, and the deadline moves to three months after receipt.",
+    "caseNext": "Next step: find the data",
+    "caseClosedNoAction": "The request is closed: nothing more to look up in this case.",
+    "caseFoundIntro": {
+      "erasure": "The search is pre-filled with the request's name; add the email or phone if you have them. Tick what really concerns the person, then see what will be erased.",
+      "export": "The search is pre-filled with the request's name; add the email or phone if you have them. Tick what really concerns the person, then start the export.",
+      "manual": "The search is pre-filled with the request's name: find the data concerned."
+    },
+    "caseErasureStatus": {
+      "pending": "Erasure started on {date}, waiting for modules.",
+      "partial": "Erasure started: some modules have not answered yet ({date}).",
+      "completed": "Erasure done on {date}: all modules confirmed."
+    },
+    "caseErasureDetail": "See the erasure details and proof",
+    "caseActionNeedsSearch": "First find the person's data.",
+    "caseGoToSearch": "Go to step 2",
+    "caseExportsIntro": "Attach these files to your reply; they stay available for a few days.",
+    "exportExpired": "(expired)",
+    "caseActionDoneOn": "Action done on {date}.",
+    "caseManualIntro": {
+      "rectification": "Correct the data in the relevant screen (event, client, vendor), then confirm here.",
+      "objection": "Stop using the data for the processing concerned (follow-ups, prospecting…), then confirm here."
+    },
+    "caseMarkActionDone": "I made the change",
+    "downloadProof": "Erasure proof (PDF)",
+    "caseResponseSentOn": "Reply marked as sent on {date}.",
+    "caseMarkResponseSent": "I sent the reply",
+    "caseResponseAfterAction": "The reply is prepared once the action is done.",
+    "caseGoToAction": "Go to step 3",
+    "caseClosedOn": "Request closed on {date}. It stays in the list, with its proof, for any audit.",
+    "caseReadyToClose": "Everything is done: the action and the reply. You can close the request.",
+    "caseNotReady": "The request cannot be closed yet:",
+    "caseMissingAction": {
+      "erasure": "the erasure is not yet confirmed by all modules;",
+      "export": "no export has been made yet;",
+      "manual": "the action is not marked as done yet;"
+    },
+    "caseMissingResponse": "the reply to the person is not marked as sent yet.",
+    "journalTitle": "Case log",
+    "journalCreated": "Request recorded",
+    "journalExtended": "Request extended",
+    "journalErasureStarted": "Erasure started",
+    "journalErasureCompleted": "Erasure confirmed by all modules",
+    "journalExport": "{count, plural, one {Export of # item} other {Export of # items}}",
+    "journalActionDone": "Action marked as done",
+    "journalResponseSent": "Reply marked as sent",
+    "journalClosed": "Request closed",
+    "copyResponse": "Copy the reply",
+    "responseCopied": "Reply copied.",
+    "responseCopyFailed": "Copy failed: select the text by hand."
   },
   "PasswordReset": {
     "forgotTitle": "Forgot password",
@@ -2543,6 +2651,10 @@
       "vendor-quotes": {
         "title": "Compare several quotes for one budget line",
         "description": "Consult two example vendors for the same line, record their quotes, then select one."
+      },
+      "documents": {
+        "title": "Personalise your quotes and invoices",
+        "description": "Details, logo, colour, texts and IBAN: documents that look like you, with a sample PDF."
       }
     },
     "intro": "Every screen has its own page: what it is for, its markers and frequently asked questions. On the screen itself, the “?” button shows its markers.",
@@ -2915,7 +3027,39 @@
         }
       ]
     },
-    "backToTutorials": "Back to tutorials"
+    "backToTutorials": "Back to tutorials",
+    "documents": {
+      "steps": [
+        {
+          "title": "Understand",
+          "body": "Your quotes and invoices carry your logo, colour, details and terms. A document already issued keeps its appearance: your settings apply to the next ones."
+        },
+        {
+          "title": "Complete your details",
+          "body": "In Business and VAT, enter at least your SIRET or contact email, and your VAT number if you have one. They are printed in the header and footer."
+        },
+        {
+          "title": "Upload your logo",
+          "body": "In Settings › Sales › Documents, upload your logo (PNG or JPEG, 2 MB max). Without a logo, your documents show your business name."
+        },
+        {
+          "title": "Choose the colour and font",
+          "body": "Pick one of the shades or your own colour, and the Modern or Classic font, then save. A colour that is too light is darkened to stay readable."
+        },
+        {
+          "title": "Review the texts and enter your IBAN",
+          "body": "Review the quote terms and the payment terms, enter your IBAN, then save. The IBAN is printed on your invoices and under your quotes' payment schedule."
+        },
+        {
+          "title": "Download a sample",
+          "body": "Download a sample quote or invoice as a PDF: it is what your clients will receive. No number is used up."
+        },
+        {
+          "title": "Finish",
+          "body": "Your quotes and invoices now look like you. You will find these settings in Settings › Sales › Documents."
+        }
+      ]
+    }
   },
   "VendorCandidates": {
     "title": "Vendors consulted — {slot}",
@@ -3265,25 +3409,28 @@
       "1": "Activity",
       "2": "Company",
       "3": "VAT",
-      "4": "Budget",
-      "5": "Sources and reasons",
-      "6": "Templates"
+      "4": "Your documents",
+      "5": "Budget",
+      "6": "Sources and reasons",
+      "7": "Templates"
     },
     "titles": {
       "1": "Your activity",
       "2": "Your company",
       "3": "Your VAT regime",
-      "4": "An event's budget",
-      "5": "Where your clients come from, why a project falls through",
-      "6": "Your templates"
+      "4": "Your quotes and invoices",
+      "5": "An event's budget",
+      "6": "Where your clients come from, why a project falls through",
+      "7": "Your templates"
     },
     "explanations": {
       "1": "Your line of work sets the starting settings: budget lines, timeline, day schedule, lead sources…",
       "2": "This information appears on your quotes and invoices.",
       "3": "It sets the legal notices on your quotes and invoices. A later change will have an effective date.",
-      "4": "The budget lines of every new event: you track consulted vendors, quotes, planned and actual amounts. We prepared those of your line of work, with their icon: rename, change the icon, remove or add.",
-      "5": "The source is asked for each new lead; the reason when a project is lost. They feed your statistics.",
-      "6": "We prepared a timeline, a day schedule and a budget split. You can change them whenever you like."
+      "4": "Your logo and colour on every quote, invoice and day programme. Optional: everything can be changed later in Settings › Sales › Documents.",
+      "5": "The budget lines of every new event: you track consulted vendors, quotes, planned and actual amounts. We prepared those of your line of work, with their icon: rename, change the icon, remove or add.",
+      "6": "The source is asked for each new lead; the reason when a project is lost. They feed your statistics.",
+      "7": "We prepared a timeline, a day schedule and a budget split. You can change them whenever you like."
     },
     "metierQuestion": "What is your line of work?",
     "metier": {
@@ -3395,7 +3542,11 @@
     "panelAddHint": "The line will be offered on every new event; existing events do not change.",
     "eventTypesQuestion": "Which events do you organise?",
     "eventTypesHint": "You can add or remove some in Settings › Event types. Without weddings, the vendor book does not offer wedding-only types (wedding dress, officiant…).",
-    "eventTypesRequired": "Tick at least one event type."
+    "eventTypesRequired": "Tick at least one event type.",
+    "documentsColorLegend": "Document colour",
+    "documentsLater": "Later",
+    "documentsSaved": "Colour saved.",
+    "documentsColorInvalid": "This colour is not valid."
   },
   "SettingsMenu": {
     "groupCompany": "My company",
@@ -3419,7 +3570,8 @@
     "import": "Import",
     "privacy": "Personal data",
     "eventTypes": "Event types",
-    "documents": "Documents"
+    "documents": "Documents",
+    "privacyAlerts": "{count, plural, one {# privacy request needs attention} other {# privacy requests need attention}}"
   },
   "Common": {
     "closePanel": "Close the panel"

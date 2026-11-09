@@ -1,5 +1,5 @@
-// Lot 10 (AIDE-06, AIDE-07) — catalogue de l'aide : les 9 tutoriels (la
-// progression « N sur 9 » les compte) et les visites focus des écrans. Les
+// Lot 10 (AIDE-06, AIDE-07) — catalogue de l'aide : les tutoriels (la
+// progression « N sur M » les compte ; 11 depuis le lot 18) et les visites focus des écrans. Les
 // titres et textes sont dans les messages (« HelpCenter.items.<clé> ») ; un
 // élément dont le module n'est pas souscrit n'est pas proposé (CLAUDE.md §2.3).
 import type { TourKey } from "./tours";
@@ -16,7 +16,9 @@ export type TutorialKey =
   | "catalog"
   | "day-program"
   | "import"
-  | "vendor-quotes";
+  | "vendor-quotes"
+  // Lot 18 (AIDE-13) : personnaliser ses devis et factures.
+  | "documents";
 
 export type TutorialDefinition = {
   key: TutorialKey;
@@ -30,6 +32,7 @@ export type TutorialDefinition = {
 export const TUTORIALS: TutorialDefinition[] = [
   { key: "event-page", module: "events", minutes: 2, screen: "/events" },
   { key: "retroplanning-template", module: "events", minutes: 3, screen: "/events/modeles" },
+  { key: "documents", module: "quotes", minutes: 4, screen: "/devis/parametres/documents" },
   { key: "catalog", module: "quotes", minutes: 3, screen: "/devis/catalogue" },
   { key: "quote-signature", module: "quotes", minutes: 5, screen: "/devis" },
   { key: "deposit-invoice", module: "quotes", minutes: 4, screen: "/devis/encaissements" },
