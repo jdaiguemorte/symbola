@@ -13,7 +13,7 @@ Le MVP doit permettre à la planner de gérer tous ses événements en cours san
 | Hub                  | HUB-01 à HUB-04                   | Connexion, tableau de bord, administration, langue                                  |
 | Événements et Chrono | EVT-01 à EVT-07                   | Porte d'entrée, rétroplanning, jour J, accès mariés                                 |
 | Budget               | BUD-01 à BUD-04                   | Simulation, prévu / réel / écart                                                    |
-| Devis et Facturation | DEV-01 à DEV-04                   | Catalogue, signature Documenso (ADR 0026), acomptes, factures conformes                         |
+| Devis et Facturation | DEV-01 à DEV-04, DEV-07 à DEV-12  | Catalogue, signature Documenso (ADR 0026), acomptes, factures conformes ; devis et factures à son image (lot 17, ADR 0046) |
 | Import               | IMP-01 à IMP-05                   | Reprise de données depuis n'importe quel outil                                      |
 | RGPD                 | RGPD-01 à RGPD-06                 | Recherche, export, oubli, purge                                                     |
 | Onboarding et aide   | ONB-01, ONB-02, AIDE-01 à AIDE-04 | Questionnaire d'entrée, régime de TVA, visites guidées, essais avec données de test |

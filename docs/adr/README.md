@@ -47,3 +47,4 @@ Un fichier par décision structurante, numéroté. Pour changer une décision : 
 - [0043 — Une réserve de connexions par processus ; une garde d'accès par écran](0043-connexion-partagee-et-gardes-d-acces.md)
 - [0044 — Limitation de débit en base ; envois de fichiers par des routes dédiées](0044-limitation-de-debit.md)
 - [0045 — Types d'événement ; vocabulaire selon l'événement ; catalogue de prestataires commun](0045-types-d-evenement-et-vocabulaire.md)
+- [0046 — Devis et factures à son image : apparence figée dans l'instantané vendeur](0046-documents-a-son-image.md)
