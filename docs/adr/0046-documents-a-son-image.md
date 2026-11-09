@@ -87,7 +87,8 @@ L'ajout de champs facultatifs garde le contrat interne compatible : `QuoteSettin
   identifiant dans l'adresse ; `v` ne sert qu'à rafraîchir le cache), jamais par un lien vers le
   stockage (ADR 0027). Refus sans session.
 - Un logo remplacé ou retiré reste dans le stockage : les documents émis le citent par leur
-  instantané. Sa suppression suit celle de l'organisation.
+  instantané. Aucun traitement ne les supprime encore (le MVP ne supprime pas d'organisation) :
+  à prévoir avec la purge des documents en fin de conservation légale.
 - Affiché sur les PDF, sur le programme du jour J (déjà le cas) et dans l'en-tête de l'espace
   client (décision G).
 
