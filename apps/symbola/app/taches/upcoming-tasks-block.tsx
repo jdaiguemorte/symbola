@@ -16,7 +16,7 @@ export async function UpcomingTasksBlock({ organizationId, locale, today }: { or
   const tasks = await listOrganizationTasks({ organizationId, today, horizonDays: HORIZON_DAYS });
 
   return (
-    <section className="card" aria-labelledby="upcoming-tasks-title">
+    <section className="card" aria-labelledby="upcoming-tasks-title" data-tour="home-tasks">
       <div className="section-head">
         <h2 id="upcoming-tasks-title">{t("upcomingTasksTitle")}</h2>
         <Link href="/taches">{t("allTasksLink")}</Link>

@@ -15,11 +15,13 @@ import { requirePlanner } from "@/lib/guards";
 import { BudgetLineIcon } from "@/app/budget-line-icon";
 import { finishSetupAction, nextStepAction, removeBudgetLineAction } from "./actions";
 import { ActivityForm, AddBudgetLineForm, AddLossReasonForm, AddSourceForm, BudgetLineForm, CompanyForm, DocumentsColorForm, VatForm } from "./setup-forms";
+import { ScreenHelp } from "@/app/screen-help";
 
 export default async function SetupPage({ searchParams }: { searchParams: Promise<{ etape?: string }> }) {
   const auth = await requirePlanner();
   const organizationId = auth.user.organizationId;
   const t = await getTranslations("Setup");
+  const tHelp = await getTranslations("Help");
 
   const db = appDatabase();
   const state = await getSetupState(db, organizationId);
@@ -50,6 +52,7 @@ export default async function SetupPage({ searchParams }: { searchParams: Promis
   return (
     <main className="setup">
       <h1>{state.completed ? t("titleDone") : t("title")}</h1>
+      <ScreenHelp title={tHelp("setup.title")} body={tHelp("setup.body")} />
       <p className="muted">{t("intro")}</p>
       <nav aria-label={t("progressLabel")} className="setup-steps">
         <ol>

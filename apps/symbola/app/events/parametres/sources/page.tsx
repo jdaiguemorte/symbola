@@ -7,12 +7,15 @@ import { isEventsModuleEnabled } from "../../module-access";
 import { ProspectSourceForm } from "../prospect-source-form";
 import { LossReasonForm } from "../loss-reason-form";
 import { LoadStarterListsForm } from "../starter-lists-form";
+import { ScreenHelp } from "@/app/screen-help";
 
 export default async function SourcesSettingsPage() {
   const auth = await requirePlanner();
   const organizationId = auth.user.organizationId;
 
   const t = await getTranslations("Events");
+
+  const tHelp = await getTranslations("Help");
   if (!(await isEventsModuleEnabled(organizationId))) {
     return (
       <main>
@@ -26,6 +29,7 @@ export default async function SourcesSettingsPage() {
   return (
     <main>
       <h1>{t("sourcesReasonsTitle")}</h1>
+      <ScreenHelp title={tHelp("eventsSources.title")} body={tHelp("eventsSources.body")} />
       {sources.length === 0 || reasons.length === 0 ? (
         <section aria-labelledby="starter-lists-title" className="card">
           <h2 id="starter-lists-title">{t("starterListsTitle")}</h2>

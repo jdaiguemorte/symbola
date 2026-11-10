@@ -59,8 +59,12 @@ export default async function TaskTemplatesPage() {
         </section>
       ))}
 
-      <h2>{t("newTaskTemplateTitle")}</h2>
-      <CreateTaskTemplateForm />
+      {/* Lot 20 (EVT-20) : titre et formulaire dans une même carte, de la largeur
+          des cartes des modèles (un formulaire seul est limité en largeur). */}
+      <section aria-labelledby="new-task-template">
+        <h2 id="new-task-template">{t("newTaskTemplateTitle")}</h2>
+        <CreateTaskTemplateForm />
+      </section>
       <LoadStarterRetroplanningForm />
     </main>
   );

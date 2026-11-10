@@ -823,13 +823,18 @@
   .search-box-hint {
     @apply mx-2 mt-2 text-xs text-muted;
   }
-  .search-page-form {
-    @apply flex flex-wrap items-end gap-2;
-  }
 }
 
 /* Lot 10 (AIDE-07) — centre d'aide. */
 @layer components {
+  /* Lot 20 (HUB-26) : titre, barre, bouton et case l'un sous l'autre ; le
+     bouton se collait au bout de la barre de progression. */
+  .help-progress {
+    @apply grid justify-items-start gap-4;
+  }
+  .help-progress > h2 {
+    @apply m-0;
+  }
   .help-progress progress {
     @apply w-full max-w-md;
   }
@@ -856,12 +861,8 @@
   .help-tile:focus-visible {
     @apply border-sauge;
   }
-  .help-tile img,
-  .help-tile-placeholder {
+  .help-tile img {
     @apply block aspect-[16/10] h-auto w-full border-b border-lin bg-ivory object-cover object-top;
-  }
-  .help-tile-placeholder {
-    @apply flex items-center justify-center text-3xl font-semibold text-sauge;
   }
   .help-tile-text {
     @apply flex flex-col gap-1 px-4;
@@ -2197,5 +2198,30 @@
   }
   .case-journal {
     @apply m-0 grid list-none gap-1 p-0 text-sm text-ink-soft;
+  }
+}
+
+/* Lot 20 (PRE-17) — fenêtre de confirmation (dialog natif, modal). */
+@layer components {
+  .confirm-dialog {
+    @apply m-auto w-[min(28rem,calc(100vw-2rem))] rounded-[16px] border border-lin bg-card p-6 text-ink shadow-[0_12px_40px_rgba(43,38,35,0.18)];
+  }
+  .confirm-dialog::backdrop {
+    background: rgb(43 38 35 / 0.35);
+  }
+  .confirm-dialog > h2 {
+    @apply m-0 mb-2 text-xl;
+  }
+  .confirm-dialog > p {
+    @apply m-0 mb-5;
+  }
+  .confirm-dialog .confirm-dialog-actions {
+    @apply m-0 flex w-full flex-wrap justify-end gap-2;
+  }
+  .confirm-dialog .confirm-dialog-actions button.confirm-dialog-confirm {
+    @apply min-h-11 border-terracotta-dark bg-terracotta-dark px-4 text-[15px] font-semibold text-white hover:border-terracotta-dark hover:bg-terracotta;
+  }
+  .vendor-row-archive {
+    @apply self-start;
   }
 }

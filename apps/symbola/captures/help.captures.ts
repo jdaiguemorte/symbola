@@ -115,15 +115,16 @@ async function seed(organizationId: string, userId: string) {
   // montre plusieurs familles.
   const types = await listVendorTypes(organizationId);
   const typeOf = (starterKey: string) => types.find((type) => type.starterKey === starterKey)?.id ?? types[0]?.id ?? null;
+  const vendorIds: string[] = [];
   for (const [name, city, starterKey] of [
     ["Domaine des Tilleuls", "Lille", "venue"],
     ["Maison Verdier Traiteur", "Arras", "caterer"],
     ["Studio Lumière", "Amiens", "photographer"],
     ["Fleurs de Saison", "Lens", "florist"],
   ] as const) {
-    await createVendor(organizationId, { name, typeId: typeOf(starterKey), city });
+    vendorIds.push((await createVendor(organizationId, { name, typeId: typeOf(starterKey), city })).vendor.id);
   }
-  return { confirmed, quoteId: quote.id };
+  return { confirmed, quoteId: quote.id, vendorId: vendorIds[0]! };
 }
 
 test("captures des écrans pour le centre d'aide", async ({ page }) => {
@@ -148,13 +149,14 @@ test("captures des écrans pour le centre d'aide", async ({ page }) => {
   }
   await login(page, email, password);
   await runSetup(page);
-  const { confirmed, quoteId } = await seed(organizationId, userId);
+  const { confirmed, quoteId, vendorId } = await seed(organizationId, userId);
   // Lot 18 (RGPD-07) : deux demandes fictives, dont une en alerte, pour que la
   // liste des demandes et le compteur du menu aient quelque chose à montrer.
   const daysAgo = (days: number) => new Date(Date.now() - days * 86_400_000).toISOString().slice(0, 10);
   const privacy = createAppConnection();
+  let privacyRequestId = "";
   try {
-    await createPrivacyRequest(privacy.db, { organizationId, userId, type: "access", personLabel: "Léa Martin", receivedOn: daysAgo(26) });
+    privacyRequestId = (await createPrivacyRequest(privacy.db, { organizationId, userId, type: "access", personLabel: "Léa Martin", receivedOn: daysAgo(26) })).id;
     await createPrivacyRequest(privacy.db, { organizationId, userId, type: "rectification", personLabel: "Antoine", receivedOn: daysAgo(3) });
   } finally {
     await privacy.sql.end();
@@ -164,11 +166,16 @@ test("captures des écrans pour le centre d'aide", async ({ page }) => {
     eventsDetail: `/events/${confirmed}`,
     budgetDetail: `/budget/${confirmed}`,
     quotesDetail: `/devis/${quoteId}`,
+    // Lot 20 (AIDE-14, AIDE-16) : fiche d'un prestataire, recherche avec un
+    // terme, dossier d'une demande RGPD à son étape « Données retrouvées ».
+    vendorDetail: `/prestataires/${vendorId}`,
+    search: "/recherche?q=Martin",
+    privacyCase: `/rgpd/demandes/${privacyRequestId}?etape=found`,
   };
   // CAPTURES_ONLY=importFile,vendorBook : seulement ces écrans (lot qui n'en change que quelques-uns).
   const only = (process.env.CAPTURES_ONLY ?? "").split(",").filter(Boolean);
   for (const screen of HELP_SCREENS.filter((candidate) => candidate.capture && (only.length === 0 || only.includes(candidate.key)))) {
-    const path = screen.path ?? dynamic[screen.key];
+    const path = dynamic[screen.key] ?? screen.path;
     if (!path) throw new Error(`pas d'adresse pour la capture ${screen.key}`);
     await page.goto(screen.tour ? `${path}${path.includes("?") ? "&" : "?"}visite=revoir` : path);
     await page.waitForLoadState("networkidle");

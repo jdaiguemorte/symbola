@@ -9,12 +9,15 @@ import { getHelpProgress, isModuleEnabled } from "@/modules/hub/service";
 import { requirePlanner } from "@/lib/guards";
 import { TUTORIALS, tutorialHref, type HelpModule } from "@/lib/help/catalog";
 import { JOURNEY, journeyStates, tutorialInProgress } from "@/lib/help/journey";
+import { ScreenHelp } from "@/app/screen-help";
 
 export default async function TutorialsPage() {
   const auth = await requirePlanner();
   const organizationId = auth.user.organizationId;
 
   const t = await getTranslations("TutorialsPage");
+
+  const tHelp = await getTranslations("Help");
   const tCenter = await getTranslations("HelpCenter");
   const db = appDatabase();
   const [events, budget, quotes, vendors] = await Promise.all(
@@ -33,6 +36,7 @@ export default async function TutorialsPage() {
   return (
     <main>
       <h1>{t("title")}</h1>
+      <ScreenHelp title={tHelp("tutorials.title")} body={tHelp("tutorials.body")} />
       <p>{t("intro")}</p>
 
       <section className="card tutorials-progress" aria-labelledby="tutorials-progress-title">

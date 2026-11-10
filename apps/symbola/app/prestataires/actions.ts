@@ -136,7 +136,10 @@ export async function archiveVendorAction(formData: FormData): Promise<void> {
   if (!access || !isValidId(vendorId)) return;
   await archiveVendor(access.organizationId, vendorId);
   revalidatePath("/prestataires");
-  redirect("/prestataires");
+  // Lot 20 (PRE-17) : depuis le carnet, on y revient avec ses filtres ; seule
+  // une adresse du carnet est acceptée (jamais une autre origine).
+  const back = text(formData, "back");
+  redirect(/^\/prestataires(\?[^\s]*)?$/.test(back) ? back : "/prestataires");
 }
 
 export async function removeVendorFileAction(formData: FormData): Promise<void> {

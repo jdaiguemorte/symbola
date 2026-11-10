@@ -37,7 +37,7 @@ export async function UpcomingPaymentsBlock({ organizationId }: { organizationId
   const locale = (await getLocale()) as Locale;
   const view = await loadDashboardPayments(organizationId);
   return (
-    <section className="card" aria-labelledby="dashboard-payments-title">
+    <section className="card" aria-labelledby="dashboard-payments-title" data-tour="home-payments">
       <h2 id="dashboard-payments-title">{t("dashboardPaymentsTitle")}</h2>
       {view ? (
         <UpcomingPayments organizationId={organizationId} view={view} locale={locale} headingLevel={3} />

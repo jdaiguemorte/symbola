@@ -278,15 +278,23 @@
     "hub": [
       {
         "title": "L'agenda",
-        "body": "Vos événements mois par mois. Cliquez une date libre pour y créer un prospect ou un événement."
+        "body": "Vos week-ends mois par mois : en plein, les événements confirmés ; en pointillé, les dates posées sur un prospect ; une pastille signale deux événements le même week-end. Cliquez une date libre pour y créer un prospect."
       },
       {
-        "title": "Les paramètres",
-        "body": "Votre entreprise, vos listes et vos modèles, rangés par rubrique."
+        "title": "Naviguer dans l'agenda",
+        "body": "‹ et › changent de période, « Aujourd'hui » revient au mois en cours. Affichez 3 mois, 6 mois ou toute l'année."
       },
       {
-        "title": "L'aide de l'écran",
-        "body": "Ce bouton affiche les repères de l'écran où vous êtes. Le centre d'aide, dans le menu, présente tous les écrans."
+        "title": "À traiter",
+        "body": "Les devis envoyés et les prospects restés sans nouvelle au-delà de vos délais de relance."
+      },
+      {
+        "title": "À faire cette quinzaine",
+        "body": "Les tâches en retard ou dues dans les 14 jours, tous événements confondus. Cochez une tâche pour la marquer faite."
+      },
+      {
+        "title": "Encaissements à venir",
+        "body": "Les acomptes et soldes attendus, par date d'échéance."
       }
     ],
     "events": [
@@ -314,37 +322,21 @@
     "quotes": [
       {
         "title": "Le catalogue",
-        "body": "Vos prestations réutilisables, prêtes pour vos devis."
+        "body": "Vos prestations réutilisables : intitulé, unité, prix HT, TVA et catégorie. Dépliez un article pour le modifier ; archivé, il n'est plus proposé mais reste sur les devis qui l'utilisent."
       },
       {
-        "title": "Composer un devis",
-        "body": "Depuis la fiche d'un événement : articles, lignes libres et remises."
-      },
-      {
-        "title": "Acomptes et signature",
-        "body": "Prévoyez les acomptes, puis envoyez le devis en signature."
-      },
-      {
-        "title": "Factures et encaissements",
-        "body": "Depuis le devis signé : facture d'acompte, puis de solde."
+        "title": "Nouvel article",
+        "body": "Intitulé, unité et prix suffisent : l'article est aussitôt proposé quand vous composez un devis."
       }
     ],
     "budget": [
       {
         "title": "Vos répartitions",
-        "body": "Des pourcentages par ligne pour proposer des montants prévus."
+        "body": "Chaque modèle partage un budget total entre vos lignes, en pourcentages. Il propose les montants prévus quand vous simulez le budget d'un événement."
       },
       {
-        "title": "Simuler un budget",
-        "body": "Sur un événement : un total et un nombre d'invités, ajustables ligne par ligne."
-      },
-      {
-        "title": "Prévu, réel, écart",
-        "body": "Saisissez le réel et joignez les devis pour suivre l'écart."
-      },
-      {
-        "title": "Avec les mariés",
-        "body": "Ils voient leur budget en lecture seule dans leur espace."
+        "title": "Nouveau modèle",
+        "body": "Un nom, puis un pourcentage par ligne ; le total doit faire 100 %. Les lignes sont celles de Paramètres › Lignes du budget."
       }
     ],
     "event": [
@@ -399,7 +391,7 @@
     },
     "home": {
       "title": "Accueil",
-      "body": "L'agenda de vos événements et le bloc « À traiter » : devis sans réponse, prospects sans nouvelle et acomptes attendus dans les 15 jours, chacun menant à sa fiche. Un clic sur une date libre de l'agenda crée un prospect ou un événement à cette date.",
+      "body": "Votre tableau de bord. L'agenda montre vos week-ends pris mois par mois ; un clic sur une date libre y crée un prospect. Dessous : « À traiter » (devis et prospects à relancer), les tâches de la quinzaine et les encaissements à venir, chacun menant à sa fiche.",
       "faq": [
         {
           "q": "Comment changer les délais de « À traiter » ?",
@@ -407,7 +399,7 @@
         },
         {
           "q": "Où reprendre un tutoriel commencé ?",
-          "a": "La pastille « Reprendre » en bas à droite y mène ; la page Tutoriels montre tout le parcours."
+          "a": "Dans Tutoriels, au menu : le tutoriel en cours y est proposé en premier, avec tout le parcours."
         }
       ]
     },
@@ -816,6 +808,64 @@
           "a": "Oui, comme preuve du traitement, pendant la durée réglée (5 ans par défaut, onglet Réglages). Ensuite, la purge mensuelle propose de le remplacer par « [anonymisé] » ; le type, les dates et le journal de la demande restent."
         }
       ]
+    },
+    "eventsSources": {
+      "title": "Sources et motifs",
+      "body": "Deux listes qui servent à suivre votre activité. Les sources disent d'où vient un prospect (Instagram, bouche-à-oreille, salon…) : on la choisit à sa création. Les motifs de perte expliquent pourquoi un prospect n'a pas signé : on le choisit en le passant à « Perdu ». Ajoutez, renommez ou retirez les lignes selon votre façon de travailler.",
+      "faq": [
+        {
+          "q": "Retirer une source change-t-il mes prospects ?",
+          "a": "Non : les prospects déjà créés gardent leur source ; elle n'est simplement plus proposée pour les nouveaux."
+        }
+      ]
+    },
+    "followUps": {
+      "title": "Délais de relance",
+      "body": "Au-delà de ces délais, l'accueil vous signale dans « À traiter » les devis envoyés restés sans signature et les prospects sans nouvelle. Raccourcissez-les si vous relancez vite, allongez-les si vos clients prennent leur temps."
+    },
+    "vendorTypes": {
+      "title": "Familles et types de prestataires",
+      "body": "Chaque prestataire a un type (traiteur, fleuriste, domaine…), rangé dans une famille qui donne sa couleur sur la carte. Renommez un type, fusionnez deux doublons, déplacez-le dans une autre famille. Ouvrez un type pour régler ses champs (capacité, tarif, horaires…) et choisir ceux qui servent de filtres dans le carnet.",
+      "faq": [
+        {
+          "q": "Que deviennent les fiches d'un type supprimé ?",
+          "a": "Avant la suppression, vous choisissez le type où les déplacer, ou « à classer ». Pour garder les champs du type, fusionnez-le plutôt."
+        }
+      ]
+    },
+    "vendorTags": {
+      "title": "Étiquettes",
+      "body": "Des étiquettes pour retrouver vos prestataires en un clic dans le carnet : un style, un équipement, une langue parlée. Elles se choisissent sur la fiche de chaque prestataire et servent de filtre dans le carnet."
+    },
+    "vendorTravel": {
+      "title": "Estimation des trajets",
+      "body": "Quand vous cherchez des prestataires autour d'un lieu, le carnet estime la distance et la durée de chaque trajet : distance à vol d'oiseau multipliée par un coefficient de détour, puis divisée par une vitesse moyenne. C'est volontairement approximatif, mais instantané et gratuit. L'exemple se recalcule quand vous changez une valeur."
+    },
+    "vendorDetail": {
+      "title": "Fiche d'un prestataire",
+      "body": "Tout ce que vous savez d'un prestataire : coordonnées, caractéristiques de son type, étiquettes, documents et note interne. « Historique avec vous » liste les événements où il est intervenu, avec le prix devisé et le prix final. Le formulaire du bas met la fiche à jour ; « Chercher autour » ouvre le carnet centré sur son adresse.",
+      "faq": [
+        {
+          "q": "Archiver efface-t-il son historique ?",
+          "a": "Non : la fiche quitte le carnet, mais ses prestations restent sur vos événements et budgets."
+        }
+      ]
+    },
+    "vendorNew": {
+      "title": "Nouveau prestataire",
+      "body": "Un nom et un type suffisent pour créer la fiche ; le reste se complète plus tard. L'adresse saisie place le prestataire sur la carte, et vous pouvez corriger le point à la main."
+    },
+    "search": {
+      "title": "Recherche",
+      "body": "La barre du haut cherche dans toute votre organisation : événements et clients, devis et factures, tâches et fiches d'aide. Tapez un nom, un numéro de devis ou un mot comme « TVA ». Le raccourci ⌘K (Ctrl K sur PC) y place le curseur depuis n'importe quel écran."
+    },
+    "tutorials": {
+      "title": "Tutoriels",
+      "body": "Des tutoriels à faire dans l'ordre conseillé : chacun vous guide sur l'écran réel, avec un exemple fictif que vous pouvez supprimer à la fin. Le compteur du menu montre où vous en êtes ; un tutoriel commencé se reprend d'ici."
+    },
+    "setup": {
+      "title": "Démarrage",
+      "body": "Sept étapes pour préparer votre espace : métier, entreprise, TVA, vos documents, lignes du budget, sources et motifs, modèles. Tout est déjà rempli selon votre métier ; relisez, ajustez, puis « Valider et continuer ». Les étapes facultatives ont un bouton « Plus tard ». Tout se modifie ensuite dans Paramètres."
     }
   },
   "Aide": {
@@ -2733,7 +2783,6 @@
     "seeAll": "Voir tous les résultats",
     "hint": "↑ ↓ pour choisir · Entrée pour ouvrir · Échap pour fermer",
     "globalLabel": "Recherche dans Symbola",
-    "refineLabel": "Modifier la recherche",
     "vendorBookDetail": "Carnet de prestataires"
   },
   "AdminOnboarding": {
@@ -3408,7 +3457,12 @@
     "familiesTable": "Tableau des familles",
     "typesTable": "Tableau des types",
     "settingsTravelHow": "C'est une estimation, pas un itinéraire : la distance à vol d'oiseau est multipliée par un coefficient de détour (les routes ne vont pas en ligne droite), puis convertie en durée à une vitesse moyenne. Réglez ces deux nombres selon votre région : plus de détour et une vitesse plus basse en montagne ou en ville.",
-    "settingsTravelExample": "Exemple avec ces réglages : un prestataire à {crow} km à vol d'oiseau → environ {km} km de route, ≈ {minutes} min."
+    "settingsTravelExample": "Exemple avec ces réglages : un prestataire à {crow} km à vol d'oiseau → environ {km} km de route, ≈ {minutes} min.",
+    "archiveShort": "Archiver",
+    "archiveConfirmTitle": "Archiver {vendor} ?",
+    "archiveConfirmBody": "La fiche quitte le carnet et n'est plus proposée pour vos événements. Ses prestations restent sur vos événements et budgets.",
+    "archiveConfirm": "Archiver la fiche",
+    "archiveCancel": "Annuler"
   },
   "Setup": {
     "title": "Bienvenue : préparons votre espace",

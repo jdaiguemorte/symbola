@@ -57,8 +57,10 @@ test("AIDE-11 — repères des modules Devis et Budget, rouverts depuis « ? »"
   await expect(catalog).toBeVisible();
   await expect(catalog.getByRole("heading", { name: "Le catalogue", level: 3 })).toBeVisible();
   await expectNoAxeViolation(page);
+  // Lot 20 (AIDE-15) : deux repères, chacun sur un élément de l'écran.
   await catalog.getByRole("button", { name: "Repère suivant" }).click();
-  await expect(catalog.getByRole("heading", { name: "Composer un devis", level: 3 })).toBeVisible();
+  await expect(catalog.getByRole("heading", { name: "Nouvel article", level: 3 })).toBeVisible();
+  await expect(catalog.getByRole("button", { name: "Repère suivant" })).toBeDisabled();
   await closeLandmarks(page, "Catalogue des prestations");
   await page.reload();
   await expect(page.getByRole("button", { name: "Aide sur cet écran" })).toBeVisible();
@@ -70,6 +72,8 @@ test("AIDE-11 — repères des modules Devis et Budget, rouverts depuis « ? »"
   await page.goto("/budget/parametres");
   const budget = landmarksPanel(page, "Répartition du budget");
   await expect(budget.getByRole("heading", { name: "Vos répartitions", level: 3 })).toBeVisible();
+  await budget.getByRole("button", { name: "Repère suivant" }).click();
+  await expect(budget.getByRole("heading", { name: "Nouveau modèle", level: 3 })).toBeVisible();
   await expectNoAxeViolation(page);
   await closeLandmarks(page, "Répartition du budget");
   await page.reload();

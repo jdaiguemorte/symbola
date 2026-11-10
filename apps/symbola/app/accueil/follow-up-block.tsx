@@ -13,7 +13,7 @@ export async function FollowUpBlock({ organizationId, modules }: { organizationI
     prospect: (names) => t("followUpProspect", { names }),
   });
   return (
-    <section className="card" aria-labelledby="follow-up-title">
+    <section className="card" aria-labelledby="follow-up-title" data-tour="home-follow-up">
       <div className="section-head">
         <h2 id="follow-up-title">{t("followUpTitle")}</h2>
         <Link href="/parametres/relances">{t("followUpSettings")}</Link>

@@ -278,15 +278,23 @@
     "hub": [
       {
         "title": "The calendar",
-        "body": "Your events month by month. Click a free date to create a prospect or an event on it."
+        "body": "Your weekends month by month: solid, confirmed events; dotted, dates held for a prospect; a badge flags two events on the same weekend. Click a free date to create a prospect on it."
       },
       {
-        "title": "Settings",
-        "body": "Your company, lists and templates, grouped by section."
+        "title": "Moving through the calendar",
+        "body": "‹ and › change period, « Today » goes back to the current month. Show 3 months, 6 months or the whole year."
       },
       {
-        "title": "Screen help",
-        "body": "This button shows the markers of the screen you are on. The help centre, in the menu, covers every screen."
+        "title": "To handle",
+        "body": "Quotes sent and prospects you have not heard from beyond your follow-up delays."
+      },
+      {
+        "title": "To do this fortnight",
+        "body": "Tasks overdue or due within 14 days, across all events. Tick a task to mark it done."
+      },
+      {
+        "title": "Upcoming payments",
+        "body": "Deposits and balances expected, by due date."
       }
     ],
     "events": [
@@ -314,37 +322,21 @@
     "quotes": [
       {
         "title": "The catalogue",
-        "body": "Your reusable services, ready for your quotes."
+        "body": "Your reusable services: label, unit, price excl. VAT, VAT rate and category. Expand an item to edit it; once archived it is no longer offered but stays on the quotes that use it."
       },
       {
-        "title": "Composing a quote",
-        "body": "From an event page: items, free lines and discounts."
-      },
-      {
-        "title": "Deposits and signature",
-        "body": "Plan the deposits, then send the quote for signature."
-      },
-      {
-        "title": "Invoices and payments",
-        "body": "From the signed quote: deposit invoice, then balance invoice."
+        "title": "New item",
+        "body": "Label, unit and price are enough: the item is offered right away when you compose a quote."
       }
     ],
     "budget": [
       {
         "title": "Your allocations",
-        "body": "Percentages per line to suggest planned amounts."
+        "body": "Each template splits a total budget across your lines, in percentages. It suggests planned amounts when you simulate an event's budget."
       },
       {
-        "title": "Simulating a budget",
-        "body": "On an event: a total and a number of guests, adjustable line by line."
-      },
-      {
-        "title": "Planned, actual, difference",
-        "body": "Enter actual costs and attach quotes to track the difference."
-      },
-      {
-        "title": "With the couple",
-        "body": "They see their budget as read-only in their space."
+        "title": "New template",
+        "body": "A name, then a percentage per line; the total must be 100 %. The lines are those of Settings › Budget lines."
       }
     ],
     "event": [
@@ -399,7 +391,7 @@
     },
     "home": {
       "title": "Home",
-      "body": "Your events calendar and the \"To do\" block: unanswered quotes, prospects with no news and deposits due within 15 days, each leading to its page. Clicking a free date in the calendar creates a prospect or an event on that date.",
+      "body": "Your dashboard. The calendar shows your booked weekends month by month; click a free date to create a prospect on it. Below: « To handle » (quotes and prospects to follow up), the tasks of the fortnight and upcoming payments, each leading to its page.",
       "faq": [
         {
           "q": "How do I change the \"To do\" delays?",
@@ -407,7 +399,7 @@
         },
         {
           "q": "Where do I resume a tutorial I started?",
-          "a": "The \"Resume\" chip at the bottom right takes you there; the Tutorials page shows the whole path."
+          "a": "In Tutorials, in the menu: the tutorial in progress comes first, with the whole path."
         }
       ]
     },
@@ -816,6 +808,64 @@
           "a": "Yes, as proof of handling, for the set period (5 years by default, Settings tab). The monthly purge then offers to replace it with “[anonymised]”; the type, dates and log of the request stay."
         }
       ]
+    },
+    "eventsSources": {
+      "title": "Sources and reasons",
+      "body": "Two lists that help you follow your business. Sources tell where a prospect comes from (Instagram, word of mouth, a fair…): you pick one when creating it. Loss reasons explain why a prospect did not sign: you pick one when marking it « Lost ». Add, rename or remove lines to match the way you work.",
+      "faq": [
+        {
+          "q": "Does removing a source change my prospects?",
+          "a": "No: existing prospects keep their source; it is simply no longer offered for new ones."
+        }
+      ]
+    },
+    "followUps": {
+      "title": "Follow-up delays",
+      "body": "Past these delays, the home screen lists under « To handle » the quotes sent and still unsigned, and the prospects you have not heard from. Shorten them if you follow up quickly, lengthen them if your clients take their time."
+    },
+    "vendorTypes": {
+      "title": "Supplier families and types",
+      "body": "Each supplier has a type (caterer, florist, venue…), filed in a family that gives its colour on the map. Rename a type, merge two duplicates, move it to another family. Open a type to set its fields (capacity, price, hours…) and choose which ones serve as filters in the book.",
+      "faq": [
+        {
+          "q": "What happens to the records of a deleted type?",
+          "a": "Before deleting, you choose the type to move them to, or « to sort ». To keep the type's fields, merge it instead."
+        }
+      ]
+    },
+    "vendorTags": {
+      "title": "Tags",
+      "body": "Tags help you find your suppliers in one click in the book: a style, a facility, a spoken language. You pick them on each supplier's record and they serve as filters in the book."
+    },
+    "vendorTravel": {
+      "title": "Travel estimate",
+      "body": "When you look for suppliers around a place, the book estimates each trip's distance and duration: straight-line distance times a detour factor, divided by an average speed. It is deliberately approximate, but instant and free. The example updates as you change a value."
+    },
+    "vendorDetail": {
+      "title": "Supplier record",
+      "body": "Everything you know about a supplier: contact details, its type's characteristics, tags, documents and an internal note. « History with you » lists the events it worked on, with the quoted and final price. The form at the bottom updates the record; « Search around » opens the book centred on its address.",
+      "faq": [
+        {
+          "q": "Does archiving erase its history?",
+          "a": "No: the record leaves the book, but its services stay on your events and budgets."
+        }
+      ]
+    },
+    "vendorNew": {
+      "title": "New supplier",
+      "body": "A name and a type are enough to create the record; the rest can be filled in later. The address you enter places the supplier on the map, and you can move the point by hand."
+    },
+    "search": {
+      "title": "Search",
+      "body": "The top bar searches your whole organisation: events and clients, quotes and invoices, tasks and help pages. Type a name, a quote number or a word like « VAT ». The ⌘K shortcut (Ctrl K on PC) puts the cursor in it from any screen."
+    },
+    "tutorials": {
+      "title": "Tutorials",
+      "body": "Tutorials to follow in the suggested order: each one guides you on the real screen, with a fictitious example you can delete at the end. The menu counter shows your progress; a started tutorial can be resumed from here."
+    },
+    "setup": {
+      "title": "Getting started",
+      "body": "Seven steps to prepare your space: trade, company, VAT, your documents, budget lines, sources and reasons, templates. Everything is pre-filled for your trade; review, adjust, then « Confirm and continue ». Optional steps have a « Later » button. Everything can be changed later in Settings."
     }
   },
   "Aide": {
@@ -2733,7 +2783,6 @@
     "seeAll": "See all results",
     "hint": "↑ ↓ to choose · Enter to open · Esc to close",
     "globalLabel": "Search Symbola",
-    "refineLabel": "Refine the search",
     "vendorBookDetail": "Vendor book"
   },
   "AdminOnboarding": {
@@ -3408,7 +3457,12 @@
     "familiesTable": "Families table",
     "typesTable": "Types table",
     "settingsTravelHow": "It is an estimate, not a route: the straight-line distance is multiplied by a detour factor (roads are not straight), then turned into a duration at an average speed. Adjust both numbers to your area: more detour and a lower speed in mountains or cities.",
-    "settingsTravelExample": "Example with these settings: a vendor {crow} km away in a straight line → about {km} km by road, ≈ {minutes} min."
+    "settingsTravelExample": "Example with these settings: a vendor {crow} km away in a straight line → about {km} km by road, ≈ {minutes} min.",
+    "archiveShort": "Archive",
+    "archiveConfirmTitle": "Archive {vendor}?",
+    "archiveConfirmBody": "The record leaves the book and is no longer offered for your events. Its services stay on your events and budgets.",
+    "archiveConfirm": "Archive the record",
+    "archiveCancel": "Cancel"
   },
   "Setup": {
     "title": "Welcome: let's set up your space",

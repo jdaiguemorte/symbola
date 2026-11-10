@@ -1,10 +1,5 @@
 {
   "Tour": {
-    "budget": {
-      "3": {
-        "title": "Avec les clients"
-      }
-    },
     "event": {
       "0": {
         "body": "Vue d'ensemble, budget, rétroplanning, programme, clients : chaque onglet regroupe une partie de la préparation."

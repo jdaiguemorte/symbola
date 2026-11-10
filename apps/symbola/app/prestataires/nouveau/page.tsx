@@ -7,11 +7,13 @@ import { requirePlanner } from "@/lib/guards";
 import { queryString, type BookQuery } from "../filters";
 import { isVendorsModuleEnabled } from "../module-access";
 import { VendorForm } from "../vendor-form";
+import { ScreenHelp } from "@/app/screen-help";
 
 export default async function NewVendorPage({ searchParams }: { searchParams: Promise<BookQuery> }) {
   const auth = await requirePlanner();
   const organizationId = auth.user.organizationId;
   const t = await getTranslations("VendorBook");
+  const tHelp = await getTranslations("Help");
   if (!(await isVendorsModuleEnabled(organizationId))) {
     return (
       <main>
@@ -29,6 +31,7 @@ export default async function NewVendorPage({ searchParams }: { searchParams: Pr
         <Link href={back || "/prestataires"}>{t("backToBook")}</Link>
       </p>
       <h1>{t("newVendor")}</h1>
+      <ScreenHelp title={tHelp("vendorNew.title")} body={tHelp("vendorNew.body")} />
       <p>{t("newVendorHint")}</p>
       <VendorForm types={types} tags={tags} families={families} back={back} />
     </main>

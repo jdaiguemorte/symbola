@@ -7,12 +7,14 @@ import { formatCalendarDate, formatDateTime, type Locale } from "@symbola/i18n";
 import { getPrivacyPurge, PrivacyPurgeNotFoundError, type PrivacyPurgeView } from "@/modules/hub/service";
 import { requireOwner } from "@/lib/guards";
 import { retryPurgeAction } from "../actions";
+import { ScreenHelp } from "@/app/screen-help";
 
 // RGPD-05 — une purge validée : lignes purgées ou exclues (avec motif), sort
 // des fiches et accusé de chaque module ; relance des modules en échec.
 export default async function PurgeDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const auth = await requireOwner();
   const t = await getTranslations("Privacy");
+  const tHelp = await getTranslations("Help");
   if (!auth) {
     return (
       <main>
@@ -42,6 +44,7 @@ export default async function PurgeDetailPage({ params }: { params: Promise<{ id
         <Link href="/rgpd/purge">{t("purgeBack")}</Link>
       </p>
       <h1>{t("purgeDetailTitle", { date: formatDateTime(purge.createdAt, locale) })}</h1>
+      <ScreenHelp title={tHelp("privacyPurge.title")} body={tHelp("privacyPurge.body")} />
       <p role="status">{t(`purgeStatus.${purge.status}`)}</p>
 
       <section aria-labelledby="purge-lines">

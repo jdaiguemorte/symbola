@@ -1,10 +1,5 @@
 {
   "Tour": {
-    "budget": {
-      "3": {
-        "title": "With the client"
-      }
-    },
     "event": {
       "0": {
         "body": "Overview, budget, planning timeline, schedule, client: each tab groups part of the preparations."

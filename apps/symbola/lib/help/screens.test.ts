@@ -1,9 +1,9 @@
-import { existsSync } from "node:fs";
-import { join } from "node:path";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
 import fr from "@symbola/i18n/messages/fr.json";
 import en from "@symbola/i18n/messages/en.json";
-import { HELP_SCREENS, screensFor } from "./screens";
+import { GENERIC_ILLUSTRATION, HELP_SCREENS, screensFor, tileImage } from "./screens";
 import { TOUR_TARGETS } from "./tours";
 
 type HelpEntry = { title: string; body: string; faq?: { q: string; a: string }[] };
@@ -62,5 +62,47 @@ describe("AIDE-13 — Textes d'aide réécrits", () => {
   it("aucun texte d'aide ne renvoie encore à la visite guidée ni à la bulle d'aide", () => {
     const texts = JSON.stringify([fr.Help, fr.Tour]);
     expect(texts).not.toMatch(/visite guidée|relancer cette visite|Relancer la visite/i);
+  });
+});
+
+// Lot 20 (AIDE-14) : un écran sans aide déclarée faisait mener le « ? » au
+// centre d'aide, pris pour un renvoi vers les tutoriels.
+function pages(directory: string): string[] {
+  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    const path = join(directory, entry.name);
+    if (entry.isDirectory()) return pages(path);
+    return entry.name === "page.tsx" ? [path] : [];
+  });
+}
+
+describe("AIDE-14 — Chaque écran a son aide", () => {
+  it("chaque écran déclare son aide (fiche ou repères), sauf le centre d'aide lui-même et les pages hors session ou de simple redirection", () => {
+    const appDirectory = join(__dirname, "..", "..", "app");
+    // Le centre d'aide (son « ? » y mène déjà), les liens reçus par e-mail
+    // (nouveau mot de passe, signature d'essai) et les adresses qui redirigent.
+    const exempt = [/^aide\//, /^mot-de-passe\/\[token\]\//, /^signature-fictive\//];
+    const missing = pages(appDirectory)
+      .map((path) => ({ path: relative(appDirectory, path), source: readFileSync(path, "utf-8") }))
+      .filter(({ path }) => !exempt.some((pattern) => pattern.test(path)))
+      .filter(({ source }) => source.includes("<main") || source.includes("<PageHeader"))
+      .filter(({ source }) => !/<ScreenHelp|<PageTour/.test(source))
+      .map(({ path }) => path);
+    expect(missing).toEqual([]);
+  });
+
+  it("les écrans de réglage ajoutés au lot 20 sont dans le centre d'aide", () => {
+    const keys = HELP_SCREENS.map((screen) => screen.key);
+    for (const key of ["eventsSources", "eventTypes", "followUps", "vendorTypes", "vendorTags", "vendorTravel", "vendorDetail", "vendorNew", "search", "tutorials"]) {
+      expect(keys, key).toContain(key);
+    }
+  });
+});
+
+describe("AIDE-16 — Une image pour chaque écran du centre d'aide", () => {
+  it("un écran sans capture montre l'illustration générique, qui existe ; un écran avec capture montre la sienne", () => {
+    expect(existsSync(join(__dirname, "..", "..", "public", GENERIC_ILLUSTRATION))).toBe(true);
+    for (const screen of HELP_SCREENS) {
+      expect(tileImage(screen), screen.key).toBe(screen.capture ? `/aide/captures/${screen.key}.jpg` : GENERIC_ILLUSTRATION);
+    }
   });
 });

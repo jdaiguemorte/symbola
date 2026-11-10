@@ -12,7 +12,7 @@ export function AllocationModelForm({ vendorSlots }: { vendorSlots: DefaultVendo
 
   return (
     <form action={formAction}>
-      <h3>{t("newModelTitle")}</h3>
+      <h3 data-tour="budget-new-model">{t("newModelTitle")}</h3>
       <label>
         {t("modelName")}
         <input type="text" name="name" required />

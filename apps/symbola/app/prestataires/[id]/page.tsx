@@ -16,6 +16,8 @@ import { ImportedFields } from "@/app/imported-fields";
 import { VendorForm } from "../vendor-form";
 import { VendorMap } from "../vendor-map";
 import { VendorFileForm, VendorLocationForm } from "./vendor-side-forms";
+import { ScreenHelp } from "@/app/screen-help";
+import { ConfirmDialog } from "@/app/ui/confirm-dialog";
 
 const OUTCOME_KEYS = { selected: "outcomeSelected", not_selected: "outcomeNotSelected", pending: "outcomePending" } as const;
 const OUTCOME_CLASSES = { selected: "badge badge-sauge", not_selected: "badge", pending: "badge badge-ambre" } as const;
@@ -24,6 +26,7 @@ export default async function VendorPage({ params, searchParams }: { params: Pro
   const auth = await requirePlanner();
   const organizationId = auth.user.organizationId;
   const t = await getTranslations("VendorBook");
+  const tHelp = await getTranslations("Help");
   if (!(await isVendorsModuleEnabled(organizationId))) {
     return (
       <main>
@@ -57,6 +60,7 @@ export default async function VendorPage({ params, searchParams }: { params: Pro
       </p>
       <div className="title-with-badge">
         <h1>{vendor.name}</h1>
+        <ScreenHelp title={tHelp("vendorDetail.title")} body={tHelp("vendorDetail.body")} />
         {type ? <span className="badge badge-sauge">{type.label}</span> : null}
         {vendorTags.map((tag) => (
           <span key={tag.id} className="badge">
@@ -181,10 +185,17 @@ export default async function VendorPage({ params, searchParams }: { params: Pro
       </section>
 
       {!vendor.archived ? (
-        <form action={archiveVendorAction}>
-          <input type="hidden" name="vendorId" value={vendor.id} />
-          <button type="submit">{t("archive", { vendor: vendor.name })}</button>
-        </form>
+        // Lot 20 (PRE-17) : même confirmation que depuis le carnet.
+        <ConfirmDialog
+          trigger={t("archive", { vendor: vendor.name })}
+          triggerLabel={t("archive", { vendor: vendor.name })}
+          title={t("archiveConfirmTitle", { vendor: vendor.name })}
+          body={t("archiveConfirmBody")}
+          confirmLabel={t("archiveConfirm")}
+          cancelLabel={t("archiveCancel")}
+          action={archiveVendorAction}
+          fields={{ vendorId: vendor.id }}
+        />
       ) : null}
     </main>
   );

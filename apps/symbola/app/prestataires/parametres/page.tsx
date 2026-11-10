@@ -15,6 +15,7 @@ import { vendorSettingsAccess } from "./guard";
 import { AddFieldForm } from "./settings-forms";
 import { mergeVendorTypesAction, moveVendorFamilyAction, removeVendorFamilyAction, removeVendorTypeMovingAction } from "./type-actions";
 import { FamilyForm, NewTypeForm, TypeForm } from "./type-forms";
+import { ScreenHelp } from "@/app/screen-help";
 
 const BASE = "/prestataires/parametres";
 const UNCLASSIFIED_COLOR = "#78716c";
@@ -52,6 +53,7 @@ function TypeOptions({ types, families, except, unclassifiedLabel }: { types: Ve
 export default async function VendorTypesPage({ searchParams }: { searchParams: Promise<Query> }) {
   const { organizationId, enabled } = await vendorSettingsAccess();
   const t = await getTranslations("VendorBook");
+  const tHelp = await getTranslations("Help");
   const tCommon = await getTranslations("Common");
   if (!enabled) {
     return (
@@ -82,6 +84,7 @@ export default async function VendorTypesPage({ searchParams }: { searchParams: 
   return (
     <main>
       <h1>{t("settingsTypesTitle")}</h1>
+      <ScreenHelp title={tHelp("vendorTypes.title")} body={tHelp("vendorTypes.body")} />
       <p>{t("settingsTypesIntro")}</p>
       {done ? (
         <p role="status" className="notice">

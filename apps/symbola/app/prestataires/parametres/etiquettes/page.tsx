@@ -4,10 +4,12 @@ import { listVendorTags } from "@/modules/vendors/service";
 import { removeVendorTagAction } from "../../actions";
 import { vendorSettingsAccess } from "../guard";
 import { CreateTagForm } from "../settings-forms";
+import { ScreenHelp } from "@/app/screen-help";
 
 export default async function VendorTagsPage() {
   const { organizationId, enabled } = await vendorSettingsAccess();
   const t = await getTranslations("VendorBook");
+  const tHelp = await getTranslations("Help");
   if (!enabled) {
     return (
       <main>
@@ -20,6 +22,7 @@ export default async function VendorTagsPage() {
   return (
     <main>
       <h1>{t("settingsTagsTitle")}</h1>
+      <ScreenHelp title={tHelp("vendorTags.title")} body={tHelp("vendorTags.body")} />
       <p>{t("settingsTagsIntro")}</p>
       {tags.length === 0 ? <p>{t("tagsEmpty")}</p> : null}
       <ul>

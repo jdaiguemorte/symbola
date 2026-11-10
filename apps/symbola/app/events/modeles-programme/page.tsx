@@ -55,8 +55,12 @@ export default async function ProgramTemplatesPage() {
         </section>
       ))}
 
-      <h2>{t("newProgramTemplateTitle")}</h2>
-      <CreateProgramTemplateForm />
+      {/* Lot 20 (EVT-20) : titre et formulaire dans une même carte, de la largeur
+          des cartes des modèles (un formulaire seul est limité en largeur). */}
+      <section aria-labelledby="new-program-template">
+        <h2 id="new-program-template">{t("newProgramTemplateTitle")}</h2>
+        <CreateProgramTemplateForm />
+      </section>
       <LoadStarterProgramForm />
     </main>
   );
