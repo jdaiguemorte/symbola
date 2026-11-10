@@ -1,9 +1,9 @@
 # Lot 20 — Retours de la recette des lots 18 et 19
 
-**Statut** : en cours sur la branche `lot-20-retours-recette`. Julien veut un lot complet avant
-de pousser. Les corrections sans choix à faire (partie A) partent directement. Les sujets qui
-changent l'organisation des écrans ou les données (partie B) passent d'abord par une maquette à
-valider.
+**Statut** : fait sur la branche `lot-20-retours-recette`. Maquette et décisions 1 à 6 validées
+par Julien le 10/11/2026 (https://claude.ai/artifact/9yxipdUcZZpvdXsqoHYzz6) ; choix
+d'architecture dans l'[ADR 0049](../adr/0049-etiquettes-reglages-et-ecrans-mixtes.md). Une
+migration au déploiement : 0084. Reste la recette sur le staging.
 
 ## Contexte
 
@@ -85,22 +85,54 @@ l'appui). Causes relevées dans le code :
   sert l'écran, quoi faire en premier, ce qui se passe ensuite. Phrases courtes, sans
   redite.
 
-## B. À valider sur maquette
+## B. Décisions de la maquette (validées le 10/11/2026)
 
-1. **Accès aux réglages d'un module** : une seule forme partout (Événements, Devis et
-   factures, Tâches, Prestataires, Budget). Aujourd'hui, c'est une roue crantée sur trois
-   écrans et un bouton sur Événements.
-2. **« Plus d'options » des Événements** : il ne contient que l'essai guidé. Il est retiré et
-   l'essai guidé se lance depuis sa section de l'aide.
-3. **Longues listes de réglages** (Étiquettes, Types de prestataires, Modèles de programme,
-   Sources et motifs) : l'ajout en tête, toujours accessible, et une liste qui se filtre.
-4. **Blocs de l'accueil** : empilés sur toute la largeur, même en-tête (titre à gauche, lien
-   « Tout voir » à droite), les trois prochaines lignes, chaque ligne mène à son écran.
-5. **Étiquettes des prestataires** : rattachées à une ou plusieurs familles de prestataires
-   (pas de « couchage » pour une fleuriste). Elles sont présentées en pastilles cliquables,
-   colorées quand elles sont choisies. Les paliers forment un groupe à choix unique (par
-   exemple « 50 à 100 », « 100 à 150 » ou « 150 à 200 personnes »). Changement de données :
-   ADR et migration.
-6. **Vocabulaire des écrans qui mêlent les événements** (Tâches, Devis et factures) :
-   « Événement » et « Clients » dès que l'organisation a des événements de plusieurs types,
-   sinon le vocabulaire du métier.
+### Décision 1 — Un seul accès aux réglages
+
+- **Étant donné** Événements, Tâches, Devis et factures, Encaissements ou Prestataires, **alors**
+  un bouton « Réglages » (roue et libellé) est à droite du titre et ouvre la rubrique du module
+  dans Paramètres. Les onglets de la fiche d'un événement ont le même lien. Plus de roue seule.
+- La barre des Événements ne garde que « Nouveau prospect ».
+
+### Décision 2 — L'essai guidé dans l'aide
+
+- **Quand** elle ouvre l'aide des Événements, **alors** la section « Essai guidé » propose
+  « Démarrer l'essai » (ou « Reprendre l'essai en cours »). « Plus d'options » n'existe plus.
+- **Étant donné** une liste d'événements vide, **alors** l'essai est aussi proposé dans la page.
+
+### Décision 3 — Ajouter sans faire défiler
+
+- Étiquettes, Modèles de rétroplanning, Modèles de programme, Sources et motifs : l'ajout est
+  en tête ; dans un modèle, l'ajout d'une ligne précède la liste.
+- **Étant donné** plus de 10 étiquettes ou types de prestataires, **alors** un filtre de liste
+  apparaît et dit combien restent affichés.
+
+### Décision 4 — Blocs de l'accueil empilés
+
+- **Alors** « À traiter », « À faire cette quinzaine » et « Encaissements à venir » s'empilent
+  sur toute la largeur, chacun avec son titre à gauche et son lien à droite.
+- Trois lignes au plus, puis « Et N autres » ; chaque ligne mène à sa fiche. Un bloc qui a
+  des éléments en retard passe en premier.
+
+### Décision 5 — Étiquettes par groupe et par famille, avec des paliers
+
+- **Étant donné** des étiquettes importées comme « 100 à 150 personnes » et « 150 à 200
+  personnes », **alors** l'écran Étiquettes les propose comme palier ; **quand** elle valide,
+  **alors** elles forment un groupe « palier », dans l'ordre.
+- **Quand** elle ouvre la fiche d'un lieu, **alors** les étiquettes sont des pastilles rangées
+  par groupe ; un palier ne se choisit qu'une fois. Le service refuse aussi deux paliers du
+  même groupe.
+- **Étant donné** une étiquette réservée aux lieux, **alors** elle n'apparaît pas sur la fiche
+  d'une fleuriste.
+- Isolation : une organisation ne voit, ne modifie ni n'utilise les groupes d'une autre.
+
+### Décision 6 — Vocabulaire des écrans qui mêlent les événements
+
+- **Étant donné** des mariages et un séminaire, **alors** l'accueil, la liste des événements,
+  Tâches, Devis et factures et Encaissements disent « Événement » et « Clients ». Sur Tâches,
+  chaque ligne garde « Mariés » ou « Clients » selon son événement.
+- **Étant donné** des mariages seulement, **alors** le vocabulaire du métier reste.
+
+Tests : `modules/vendors/tag-tiers.test.ts`, `tag-groups.integration.test.ts`,
+`modules/events/event-types.integration.test.ts`, `lib/vocabulary.test.ts`,
+`lib/help/screens.test.ts`, parcours `lot-20-retours-recette`.
