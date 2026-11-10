@@ -1,8 +1,10 @@
 # Lot 21 — Étiquettes prêtes à l'emploi et écrans de réglage simplifiés
 
-**Statut** : spécification et maquette en attente de validation par Julien. Branche
-`lot-21-etiquettes-et-reglages`, depuis `main` 348d079 (lot 20 déployé sur le staging le
-10/11/2026).
+**Statut** : fait sur la branche `lot-21-etiquettes-et-reglages` (depuis `main` 348d079, lot 20
+déployé sur le staging le 10/11/2026). Maquette et décisions 1 à 6 validées par Julien le
+10/11/2026 (« Je valide les 6 », https://claude.ai/artifact/JkfiLeTAiPNqcyEMw6cQT1) ; choix
+d'architecture dans l'[ADR 0050](../adr/0050-etiquettes-de-depart-et-modeles-en-liste.md).
+Aucune migration au déploiement. Reste la recette sur le staging.
 
 ## Contexte
 
@@ -59,9 +61,15 @@ petites capitales grises se distinguent mal des rubriques cliquables.
   jusqu'à sa dernière rubrique, sans faire défiler l'écran.
 - Le menu reste visible en haut de la fenêtre pendant que l'écran défile.
 
-## B. Décisions à valider (maquette)
+## B. Décisions validées (maquette)
 
-Chaque décision donne la proposition retenue par défaut ; Julien valide ou ajuste.
+Propositions validées telles quelles le 10/11/2026. Précisions de mise en œuvre :
+
+- Décision 2 : à l'import, seules les étiquettes créées par cet import sont rangées ; une
+  tranche qui n'est pas dans les étiquettes de départ rejoint le palier de son unité
+  (« 250 à 300 personnes » rejoint « Capacité »).
+- Décision 3 : le panneau d'ajout reste ouvert pour enchaîner les lignes ; celui de
+  modification se ferme à l'enregistrement.
 
 ### Décision 1 — PRE-18 : des étiquettes de départ, rangées par famille
 
