@@ -23,7 +23,7 @@ import {
 } from "../modules/events/service";
 import { addQuoteLine, addScheduleItem, createCatalogItem, createQuote, sendQuote } from "../modules/quotes/service";
 import { createAllocationModel, simulateEventBudget } from "../modules/budget/service";
-import { createVendor, listVendorTypes } from "../modules/vendors/service";
+import { createVendor, createVendorTag, listVendorTypes } from "../modules/vendors/service";
 import { createPrivacyRequest } from "../modules/hub/service";
 import { HELP_SCREENS } from "../lib/help/screens";
 
@@ -124,6 +124,9 @@ async function seed(organizationId: string, userId: string) {
   ] as const) {
     vendorIds.push((await createVendor(organizationId, { name, typeId: typeOf(starterKey), city })).vendor.id);
   }
+  // Lot 20 (décision 5) : quelques étiquettes, dont deux tranches de capacité
+  // que l'écran Étiquettes propose de ranger en palier.
+  for (const label of ["100 à 150 personnes", "150 à 200 personnes", "Champêtre", "Accès PMR"]) await createVendorTag(organizationId, label);
   return { confirmed, quoteId: quote.id, vendorId: vendorIds[0]! };
 }
 
