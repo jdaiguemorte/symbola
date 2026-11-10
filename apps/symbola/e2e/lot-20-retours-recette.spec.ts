@@ -77,17 +77,8 @@ test("Lot 20 — centre d'aide, aide des écrans de réglage, rétroplanning", a
     await expect(page).toHaveURL(path);
   }
 
-  // EVT-20 : la carte « Nouveau modèle » a les mêmes bords que celles des modèles.
-  await page.goto("/events/modeles");
-  await page.getByLabel("Nom du modèle").fill("Modèle de recette");
-  await page.getByRole("button", { name: "Créer le modèle" }).click();
-  const templateCard = page.locator("main > section", { has: page.getByRole("heading", { name: "Modèle de recette", level: 2 }) });
-  await expect(templateCard).toBeVisible();
-  const template = (await templateCard.boundingBox())!;
-  const creation = (await page.locator("main > section", { has: page.getByRole("heading", { name: "Nouveau modèle", level: 2 }) }).boundingBox())!;
-  expect(Math.abs(template.x - creation.x)).toBeLessThanOrEqual(1);
-  expect(Math.abs(template.width - creation.width)).toBeLessThanOrEqual(1);
-  await expectNoAxeViolation(page);
+  // EVT-20 (alignement de la carte « Nouveau modèle ») : remplacé au lot 21
+  // par la liste des modèles puis leur détail (EVT-21, EVT-22).
 });
 
 test("PRE-17 — archiver un prestataire depuis le carnet, après confirmation", async ({ page }) => {
@@ -138,14 +129,14 @@ test("Décision 5 — étiquettes : paliers repérés puis rangés, choix unique
   }
   await loginAndSetupMfa(page, email, password);
 
-  // Les deux tranches de « personnes » sont proposées ; rangées, elles forment un palier.
+  // Les deux tranches de « personnes » se rangent en palier. Lot 21 (PRE-19) :
+  // d'un clic, « Ranger mes étiquettes importées ».
   await page.goto("/prestataires/parametres/etiquettes");
-  const proposals = page.getByRole("region", { name: "Paliers repérés" });
-  await expect(proposals).toContainText("100 à 150 personnes, 150 à 200 personnes");
+  const setup = page.getByRole("region", { name: "Vos étiquettes importées peuvent se ranger toutes seules" });
+  await expect(setup).toBeVisible();
   await expectNoAxeViolation(page);
-  await proposals.getByLabel("Nom du groupe").fill("Capacité");
-  await proposals.getByRole("button", { name: "Ranger en palier" }).click();
-  await expect(page.getByRole("region", { name: "Paliers repérés" })).toHaveCount(0);
+  await setup.getByRole("button", { name: "Ranger mes étiquettes importées" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "C'est rangé" })).toContainText("Palier « Capacité » : 2 tranches.");
   await expect(page.getByRole("heading", { name: /^Capacité/, level: 3 })).toContainText("Palier");
 
   // Sur la fiche d'un lieu : un seul palier à la fois, et l'étiquette des lieux.

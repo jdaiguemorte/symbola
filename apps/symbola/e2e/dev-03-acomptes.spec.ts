@@ -55,7 +55,7 @@ test("DEV-03 — échéancier, encaissements à venir, retard et paiement", asyn
   await page.goto("/devis/parametres");
   await page.waitForLoadState("networkidle");
   await page.getByRole("button", { name: "Charger les modes de départ" }).click();
-  await expect(page.getByRole("button", { name: "Archiver « Virement bancaire »" })).toBeVisible();
+  await expect(page.getByRole("switch", { name: "Virement bancaire accepté" })).toBeChecked();
   await expectNoAxeViolation(page);
 
   // Un prospect et un devis de 3 000 €.

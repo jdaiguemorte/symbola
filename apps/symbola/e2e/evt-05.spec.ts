@@ -60,7 +60,8 @@ test("EVT-05 — programme du jour J depuis un modèle, chevauchement signalé e
   await expect(page).toHaveURL(/\/events\/modeles-programme$/);
   await page.waitForLoadState("networkidle");
   await page.getByRole("button", { name: "Charger le modèle de programme de départ" }).click();
-  await expect(page.getByRole("heading", { name: "Programme du jour J (modèle de départ)" })).toBeVisible();
+  // Lot 21 (EVT-21) : une ligne de la liste des modèles, qui ouvre son détail.
+  await expect(page.getByRole("link", { name: /^Programme du jour J \(modèle de départ\)/ })).toBeVisible();
   await expectNoAxeViolation(page);
 
   await page.goto("/events/new");
