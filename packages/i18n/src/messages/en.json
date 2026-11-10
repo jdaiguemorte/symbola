@@ -525,7 +525,7 @@
     },
     "eventsTemplates": {
       "title": "Planning timeline templates",
-      "body": "Your standard task lists, placed before or after the event date (D-365, D-30, the day…). Create a template at the top of the page, or load the starter template, then add its tasks. It is applied from the Planning tab of a dated event.",
+      "body": "Your typical task lists, placed before or after the event date (D-365, D-30, the day…). “New template” asks for its name then opens it; you can also load the starter template. Click a template to see its tasks: a task is added or edited in the right-hand panel. A template is applied from a dated event's Planning tab.",
       "faq": [
         {
           "q": "Does editing a template change ongoing events?",
@@ -535,7 +535,7 @@
     },
     "eventsProgramTemplates": {
       "title": "Schedule templates",
-      "body": "Your standard schedules for the day, moment by moment. Create a template at the top of the page, then add its moments. It is applied from an event's Schedule tab; contributors named after a budget line are linked to it.",
+      "body": "Your typical wedding-day schedules, moment by moment. “New template” asks for its name then opens it; click a template to see its lines. A line is added or edited in the right-hand panel, without recreating it. A template is applied from an event's Programme tab; participants named after a budget line are linked to it.",
       "faq": [
         {
           "q": "Can I download the schedule?",
@@ -595,7 +595,7 @@
     },
     "quotesSettings": {
       "title": "Quotes and invoices",
-      "body": "Your quotes' default validity period and the prefixes of the numbering series (quotes, invoices, credit notes). Numbers are assigned per year, with no gaps.",
+      "body": "The default validity of your quotes, the numbering series prefixes (quotes, invoices, credit notes) and the payment methods you accept. Numbers are assigned per year, without gaps. A method you turn off is no longer offered when you record a payment; payments already recorded keep theirs.",
       "faq": [
         {
           "q": "Can I keep my current numbering?",
@@ -833,7 +833,7 @@
     },
     "vendorTags": {
       "title": "Tags",
-      "body": "Tags to describe and find your suppliers: a style, a facility, a capacity. Add one at the top of the page, file it in a group and choose its families. A « tier » group (capacity, surface…) accepts only one tag per supplier."
+      "body": "Tags to describe and find your vendors: a style, a facility, a capacity. Symbola suggests some, sorted by vendor family; your imported tags sort themselves in one click (families, tiers). Add one at the top of the page, put it in a group and choose its families. A “tier” group (capacity, surface…) accepts only one tag per vendor."
     },
     "vendorTravel": {
       "title": "Travel estimate",
@@ -973,11 +973,8 @@
     "newTaskTemplateTitle": "New template",
     "newTaskTemplateName": "Template name",
     "createTaskTemplate": "Create template",
-    "taskTemplateCreated": "Template created.",
     "loadStarterRetroplanning": "Load the starter template",
     "starterRetroplanningLoaded": "Starter template loaded: adapt it to the way you work.",
-    "removeTaskTemplate": "Delete template {name}",
-    "addTaskTemplateItemTo": "Add a task to template {name}",
     "addTaskTemplateItem": "Add task to template",
     "taskTemplateItemAdded": "Task added to the template.",
     "taskOffsetDays": "Offset in days (negative before the event, positive after)",
@@ -1052,11 +1049,8 @@
     "newProgramTemplateTitle": "New schedule template",
     "newProgramTemplateName": "Schedule template name",
     "createProgramTemplate": "Create schedule template",
-    "programTemplateCreated": "Schedule template created.",
     "loadStarterProgram": "Load the starter schedule template",
     "starterProgramLoaded": "Starter template loaded: adapt it to the way you work.",
-    "removeProgramTemplate": "Delete schedule template {name}",
-    "addProgramTemplateItemTo": "Add a line to template {name}",
     "addProgramTemplateItem": "Add line to template",
     "programTemplateItemAdded": "Line added to the template.",
     "programTemplateParticipants": "Participants (comma-separated)",
@@ -1260,7 +1254,35 @@
     "changeEventType": "Change type",
     "eventTypeSaved": "Event type saved.",
     "eventTypeOf": "Event type of {names}",
-    "actionsLabel": "Event actions"
+    "actionsLabel": "Event actions",
+    "newTemplateButton": "New template",
+    "templateLineCount": "{count, plural, =0 {No lines} one {# line} other {# lines}}",
+    "templateTaskCount": "{count, plural, =0 {No tasks} one {# task} other {# tasks}}",
+    "templateSpan": "{start} → {end}",
+    "backToProgramTemplates": "All programme templates",
+    "backToTaskTemplates": "All planning templates",
+    "renameTemplate": "Rename",
+    "renameTemplateTitle": "Rename the template",
+    "renameTemplateSave": "Save the name",
+    "addTemplateLine": "Add a line",
+    "addTemplateTask": "Add a task",
+    "newTemplateLine": "New line",
+    "newTemplateTask": "New task",
+    "editTemplateLineTitle": "Edit “{label}”",
+    "editTemplateTask": "Edit the task {label}",
+    "saveTemplateLine": "Save the line",
+    "saveTemplateTask": "Save the task",
+    "templateColumnTime": "Time",
+    "templateColumnLabel": "Title",
+    "templateColumnParticipants": "Participants",
+    "templateColumnActions": "Actions",
+    "templateColumnDue": "Due",
+    "templateColumnTask": "Task",
+    "deleteTemplate": "Delete this template…",
+    "deleteTemplateTitle": "Delete the template “{name}”?",
+    "deleteProgramTemplateBody": "Programmes already applied to events do not change.",
+    "deleteTaskTemplateBody": "Tasks already created on events remain.",
+    "deleteTemplateConfirm": "Delete the template"
   },
   "Budget": {
     "title": "Budget",
@@ -1477,14 +1499,13 @@
     "allPaymentsLink": "See all payments",
     "upcomingHorizonDays": "Payments shown on the dashboard (days ahead)",
     "invalidHorizon": "The horizon must be between 1 and 730 days.",
-    "paymentMethodsTitle": "Payment methods",
-    "newPaymentMethod": "New payment method",
-    "addPaymentMethod": "Add method",
+    "paymentMethodsTitle": "Accepted payment methods",
+    "newPaymentMethod": "Add another method",
+    "addPaymentMethod": "Add",
     "paymentMethodAdded": "Payment method added.",
     "missingPaymentMethod": "The payment method name is required.",
     "loadStarterPaymentMethods": "Load starter methods",
     "starterPaymentMethodsLoaded": "Starter methods loaded.",
-    "archivePaymentMethod": "Archive “{label}”",
     "signatureTitle": "Online signature",
     "sendForSignature": "Send for signature",
     "sendForSignatureHint": "The current version is frozen then sent to the signature service; each signer receives their personal link by email. Leave an unneeded row empty.",
@@ -1592,7 +1613,11 @@
     "quoteStatusColumn": "Status",
     "statusBadge": "{status} — version {version}",
     "moreDashboardPayments": "{count, plural, one {And # more instalment.} other {And # more instalments.}}",
-    "dashboardPaymentLine": "{label} · {number}"
+    "dashboardPaymentLine": "{label} · {number}",
+    "paymentMethodsIntro": "Only accepted methods are offered when you record a payment. Turning a method off does not change payments already recorded, and you can turn it back on at any time.",
+    "paymentMethodAccepted": "Accepted",
+    "paymentMethodNotAccepted": "Not offered when recording a payment",
+    "paymentMethodSwitch": "{label} accepted"
   },
   "Documents": {
     "pdfSellerHeading": "From",
@@ -3476,7 +3501,6 @@
     "tagsNewTitle": "New tag",
     "tagsListTitle": "Your tags",
     "tagEdit": "Edit the tag {tag}",
-    "tagEditShort": "Edit",
     "tagGroupsTitle": "Tag groups",
     "tagGroupsIntro": "File your tags by subject (style, facilities…). A « tier » group accepts only one tag per supplier: capacity, surface, price bands.",
     "tagGroupNewTitle": "New group",
@@ -3492,10 +3516,21 @@
     "tagGroupRemoveHint": "Its tags move to « Other »; no supplier loses them.",
     "tagGroupTierBadge": "Tier",
     "tagGroupCount": "{count, plural, =0 {no tag} one {# tag} other {# tags}}",
-    "tierProposalsTitle": "Tiers spotted",
-    "tierProposalsIntro": "These tags describe the same measure in bands. File them as a tier: a supplier will carry only one, and the book will filter them in order.",
-    "tierProposalTags": "{count} tags in « {unit} »: {labels}",
-    "tierProposalApply": "File as a tier"
+    "tagSetupArrangeTitle": "Your imported tags can sort themselves",
+    "tagSetupArrangeIntro": "{count, plural, one {# tag has} other {# tags have}} no family and no group. Symbola looks at which vendors carry them, spots ranges (“50 to 100 guests”…) and recognises the suggested tags. Nothing is deleted.",
+    "tagSetupStarterTitle": "Suggested tags for your vendors",
+    "tagSetupStarterIntro": "Capacity, sleeping capacity, facilities, styles, languages… sorted by vendor family. A tag you already have is not duplicated: it joins its group.",
+    "tagSetupDoneTitle": "Tags sorted",
+    "tagSetupArrange": "Sort my imported tags",
+    "tagSetupAddStarter": "Add the suggested tags ({count})",
+    "tagRecapTitle": "Done:",
+    "tagRecapNothing": "Nothing to sort.",
+    "tagRecapFamilies": "{count, plural, one {# tag linked} other {# tags linked}} to a family, based on the vendors who carry them.",
+    "tagRecapCatalog": "{count, plural, one {# tag joined} other {# tags joined}} the group of a suggested tag.",
+    "tagRecapTier": "Tier “{label}”: {count, plural, one {# range} other {# ranges}}.",
+    "tagRecapVendors": "{count, plural, one {# vendor had several ranges of the same tier; it keeps the highest:} other {# vendors had several ranges of the same tier; they keep the highest:}}",
+    "tagRecapRemaining": "{count, plural, one {# tag stays} other {# tags stay}} in “Other”, for every family.",
+    "tagStarterAdded": "{created, plural, =0 {No tag added} one {# tag added} other {# tags added}}; {placed, plural, =0 {no existing tag sorted} one {# existing tag sorted} other {# existing tags sorted}}."
   },
   "Setup": {
     "title": "Welcome: let's set up your space",
@@ -3676,7 +3711,8 @@
     "closePanel": "Close the panel",
     "moduleSettings": "Settings",
     "filterLabel": "Filter the list",
-    "filterCount": "{shown} shown of {total}"
+    "filterCount": "{shown} shown of {total}",
+    "cancel": "Cancel"
   },
   "TutorialsPage": {
     "title": "Tutorials",

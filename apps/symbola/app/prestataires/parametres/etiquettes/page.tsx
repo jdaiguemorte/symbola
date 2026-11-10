@@ -2,11 +2,16 @@
 // rangées par groupe, rattachées à des familles, groupes « palier » à choix
 // unique ; paliers repérés dans les étiquettes importées, à ranger d'un clic.
 // Décision 3 : ajout en tête, liste filtrable, modification dans un panneau.
+// Lot 21 (PRE-18, PRE-19, ADR 0050) : en tête, le rangement des étiquettes
+// importées et l'ajout des étiquettes proposées (TagSetup).
 import Link from "next/link";
-import { getTranslations } from "next-intl/server";
-import { listVendorFamilies, listVendorTagGroups, listVendorTags, listVendorTagTierProposals } from "@/modules/vendors/service";
+import { Pencil, Trash2 } from "lucide-react";
+import { getLocale, getTranslations } from "next-intl/server";
+import { countMissingStarterVendorTags, listVendorFamilies, listVendorTagGroups, listVendorTags, previewVendorTagArrangement } from "@/modules/vendors/service";
+import { organizationTagCatalog } from "@/lib/vendors/tag-catalog";
 import { isValidId } from "@/app/events/module-access";
-import { applyVendorTagTiersAction, removeVendorTagAction, removeVendorTagGroupAction } from "../../actions";
+import { removeVendorTagAction, removeVendorTagGroupAction } from "../../actions";
+import { TagSetup } from "./tag-setup";
 import { vendorSettingsAccess } from "../guard";
 import { TagForm, TagGroupForm } from "../settings-forms";
 import { ScreenHelp } from "@/app/screen-help";
@@ -15,11 +20,7 @@ import { SidePanel } from "@/app/ui/side-panel";
 
 const BASE = "/prestataires/parametres/etiquettes";
 
-function capitalize(value: string): string {
-  return value.charAt(0).toLocaleUpperCase("fr") + value.slice(1);
-}
-
-export default async function VendorTagsPage({ searchParams }: { searchParams: Promise<{ etiquette?: string }> }) {
+export default async function VendorTagsPage({ searchParams }: { searchParams: Promise<{ etiquette?: string; groupe?: string }> }) {
   const { organizationId, enabled } = await vendorSettingsAccess();
   const t = await getTranslations("VendorBook");
   const tHelp = await getTranslations("Help");
@@ -32,14 +33,19 @@ export default async function VendorTagsPage({ searchParams }: { searchParams: P
       </main>
     );
   }
-  const [tags, groups, families, proposals] = await Promise.all([
+  const catalog = await organizationTagCatalog(organizationId, (await getLocale()) === "en" ? "en" : "fr");
+  const [tags, groups, families, arrangement, missing] = await Promise.all([
     listVendorTags(organizationId),
     listVendorTagGroups(organizationId),
     listVendorFamilies(organizationId),
-    listVendorTagTierProposals(organizationId),
+    previewVendorTagArrangement(organizationId, catalog),
+    countMissingStarterVendorTags(organizationId, catalog),
   ]);
-  const opened = (await searchParams).etiquette;
+  const query = await searchParams;
+  const opened = query.etiquette;
   const openedTag = opened && isValidId(opened) ? tags.find((tag) => tag.id === opened) : undefined;
+  // Lot 21 : un groupe se modifie aussi dans le panneau latéral.
+  const openedGroup = query.groupe && isValidId(query.groupe) ? groups.find((group) => group.id === query.groupe) : undefined;
   const familyLabel = new Map(families.map((family) => [family.id, family.label]));
   const familiesOf = (familyIds: string[]) => (familyIds.length === 0 ? t("tagFamiliesAll") : familyIds.map((id) => familyLabel.get(id) ?? "").filter(Boolean).join(", "));
   const sections = [
@@ -53,23 +59,7 @@ export default async function VendorTagsPage({ searchParams }: { searchParams: P
       <ScreenHelp title={tHelp("vendorTags.title")} body={tHelp("vendorTags.body")} />
       <p>{t("settingsTagsIntro")}</p>
 
-      {proposals.length > 0 ? (
-        <section className="card" aria-labelledby="tier-proposals-title">
-          <h2 id="tier-proposals-title">{t("tierProposalsTitle")}</h2>
-          <p>{t("tierProposalsIntro")}</p>
-          {proposals.map((proposal) => (
-            <form key={proposal.unit} action={applyVendorTagTiersAction} className="tier-proposal">
-              <input type="hidden" name="unit" value={proposal.unit} />
-              <p>{t("tierProposalTags", { count: proposal.tags.length, unit: proposal.unit, labels: proposal.tags.map((tag) => tag.label).join(", ") })}</p>
-              <label>
-                {t("tagGroupNameLabel")}
-                <input type="text" name="label" defaultValue={capitalize(proposal.unit)} required />
-              </label>
-              <button type="submit">{t("tierProposalApply")}</button>
-            </form>
-          ))}
-        </section>
-      ) : null}
+      <TagSetup canArrange={arrangement.changed} looseTags={arrangement.looseTags} missing={missing} />
 
       <section aria-labelledby="tag-new-title">
         <h2 id="tag-new-title">{t("tagsNewTitle")}</h2>
@@ -92,13 +82,16 @@ export default async function VendorTagsPage({ searchParams }: { searchParams: P
                   <li key={tag.id} data-filter-item={`${tag.label} ${section.label}`} aria-current={openedTag?.id === tag.id ? "true" : undefined}>
                     <span className="strong">{tag.label}</span>
                     <span className="meta">{familiesOf(tag.familyIds)}</span>
+                    {/* Lot 21 : actions en icônes, pour laisser la place au libellé. */}
                     <span className="row-actions">
-                      <Link href={`${BASE}?etiquette=${tag.id}`} scroll={false} aria-label={t("tagEdit", { tag: tag.label })}>
-                        {t("tagEditShort")}
+                      <Link href={`${BASE}?etiquette=${tag.id}`} scroll={false} className="icon-button" aria-label={t("tagEdit", { tag: tag.label })} title={t("tagEdit", { tag: tag.label })}>
+                        <Pencil aria-hidden="true" />
                       </Link>
                       <form action={removeVendorTagAction} className="inline-form">
                         <input type="hidden" name="tagId" value={tag.id} />
-                        <button type="submit">{t("tagRemove", { tag: tag.label })}</button>
+                        <button type="submit" className="icon-button" aria-label={t("tagRemove", { tag: tag.label })} title={t("tagRemove", { tag: tag.label })}>
+                          <Trash2 aria-hidden="true" />
+                        </button>
                       </form>
                     </span>
                   </li>
@@ -121,14 +114,13 @@ export default async function VendorTagsPage({ searchParams }: { searchParams: P
                 </span>
                 <span className="meta">{t("tagGroupCount", { count: tags.filter((tag) => tag.groupId === group.id).length })}</span>
                 <span className="row-actions">
-                  <details>
-                    <summary>{t("tagGroupEdit", { group: group.label })}</summary>
-                    <TagGroupForm group={group} />
-                  </details>
+                  <Link href={`${BASE}?groupe=${group.id}`} scroll={false} className="icon-button" aria-label={t("tagGroupEdit", { group: group.label })} title={t("tagGroupEdit", { group: group.label })}>
+                    <Pencil aria-hidden="true" />
+                  </Link>
                   <form action={removeVendorTagGroupAction} className="inline-form">
                     <input type="hidden" name="groupId" value={group.id} />
-                    <button type="submit" title={t("tagGroupRemoveHint")}>
-                      {t("tagGroupRemove", { group: group.label })}
+                    <button type="submit" className="icon-button" aria-label={t("tagGroupRemove", { group: group.label })} title={t("tagGroupRemoveHint")}>
+                      <Trash2 aria-hidden="true" />
                     </button>
                   </form>
                 </span>
@@ -140,6 +132,11 @@ export default async function VendorTagsPage({ searchParams }: { searchParams: P
         <TagGroupForm />
       </section>
 
+      {openedGroup ? (
+        <SidePanel title={openedGroup.label} closeHref={BASE} closeLabel={tCommon("closePanel")}>
+          <TagGroupForm key={openedGroup.id} group={openedGroup} />
+        </SidePanel>
+      ) : null}
       {openedTag ? (
         <SidePanel title={openedTag.label} closeHref={BASE} closeLabel={tCommon("closePanel")}>
           <TagForm key={openedTag.id} tag={openedTag} groups={groups} families={families} />

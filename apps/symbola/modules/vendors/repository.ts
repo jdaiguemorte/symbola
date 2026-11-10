@@ -8,6 +8,7 @@ import { vendorFiles, vendors, vendorSettings, vendorTagGroups, vendorTags, vend
 import { withOrganization } from "@symbola/db/with-organization";
 import type { VendorAround, VendorFieldFilter, VendorFieldKind, VendorFieldValue, VendorFileKind, VendorSettings, VendorSocialLink } from "@symbola/contracts";
 import { EARTH_RADIUS_KM } from "./travel";
+import type { TagPlan } from "./tag-arrangement";
 
 export type VendorTypeRow = typeof vendorTypes.$inferSelect;
 export type VendorTypeFieldRow = typeof vendorTypeFields.$inferSelect;
@@ -125,6 +126,41 @@ export function updateVendorTagGroupRow(organizationId: string, groupId: string,
 export function deleteVendorTagGroup(organizationId: string, groupId: string): Promise<void> {
   return inOrganization(organizationId, async (tx) => {
     await tx.delete(vendorTagGroups).where(eq(vendorTagGroups.id, groupId));
+  });
+}
+
+// Lot 21 (PRE-18, PRE-19, ADR 0050) — fiches (archivées comprises) et leurs
+// étiquettes, pour ranger les étiquettes d'après les prestataires qui les portent.
+export function findVendorTagCarriers(organizationId: string): Promise<{ id: string; name: string; typeId: string | null; tagIds: string[] }[]> {
+  return inOrganization(organizationId, (tx) => tx.select({ id: vendors.id, name: vendors.name, typeId: vendors.typeId, tagIds: vendors.tagIds }).from(vendors));
+}
+
+// Un plan de rangement appliqué d'un bloc : groupes créés, étiquettes placées
+// ou créées, fiches ramenées à une tranche par palier.
+export function applyVendorTagPlan(organizationId: string, plan: TagPlan): Promise<void> {
+  return inOrganization(organizationId, async (tx) => {
+    const created = new Map<string, string>();
+    for (const group of plan.newGroups) {
+      const [row] = await tx.insert(vendorTagGroups).values({ organizationId, label: group.label, exclusive: group.exclusive, position: group.position }).returning({ id: vendorTagGroups.id });
+      if (!row) throw new Error("création du groupe d'étiquettes échouée");
+      created.set(group.key, row.id);
+    }
+    const groupId = (ref: { id: string } | { key: string } | null): string | null => {
+      if (!ref) return null;
+      if ("id" in ref) return ref.id;
+      const id = created.get(ref.key);
+      if (!id) throw new Error("groupe d'étiquettes inconnu");
+      return id;
+    };
+    for (const update of plan.tagUpdates) {
+      await tx.update(vendorTags).set({ groupId: groupId(update.group), familyIds: update.familyIds, position: update.position }).where(eq(vendorTags.id, update.id));
+    }
+    for (const tag of plan.newTags) {
+      await tx.insert(vendorTags).values({ organizationId, label: tag.label, groupId: groupId(tag.group), familyIds: tag.familyIds, position: tag.position });
+    }
+    for (const vendor of plan.vendorUpdates) {
+      await tx.update(vendors).set({ tagIds: vendor.tagIds, updatedAt: new Date() }).where(eq(vendors.id, vendor.id));
+    }
   });
 }
 

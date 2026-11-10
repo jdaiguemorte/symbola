@@ -48,21 +48,25 @@ test("EVT-04 — modèle de rétroplanning appliqué, recalcul des échéances e
   await expect(page).toHaveURL(/\/events\/modeles$/);
   await page.waitForLoadState("networkidle");
   await page.getByRole("button", { name: "Charger le modèle de départ" }).click();
-  await expect(page.getByRole("heading", { name: "Rétroplanning mariage (modèle de départ)" })).toBeVisible();
+  // Lot 21 (EVT-22) : la liste des modèles, puis le détail d'un modèle.
+  await expect(page.getByRole("link", { name: /^Rétroplanning mariage \(modèle de départ\)/ })).toBeVisible();
 
-  await page.getByLabel("Nom du modèle").fill("Mariage court");
+  await page.getByRole("link", { name: "Nouveau modèle" }).click();
+  await page.getByRole("complementary", { name: "Nouveau modèle" }).getByLabel("Nom du modèle").fill("Mariage court");
   await page.getByRole("button", { name: "Créer le modèle" }).click();
-  await expect(page.getByRole("heading", { name: "Mariage court" })).toBeVisible();
-  const addItem = page.getByRole("group", { name: "Ajouter une tâche au modèle Mariage court" });
+  await expect(page).toHaveURL(/\/events\/modeles\/[0-9a-f-]{36}$/);
+  await expect(page.getByRole("heading", { name: "Mariage court", level: 1 })).toBeVisible();
+  await page.getByRole("link", { name: "Ajouter une tâche" }).click();
+  const addItem = page.getByRole("complementary", { name: "Nouvelle tâche" });
   await addItem.getByLabel("Intitulé de la tâche").fill("Réserver le lieu");
   await addItem.getByLabel(/Décalage en jours/).fill("-365");
   await addItem.getByRole("button", { name: "Ajouter la tâche au modèle" }).click();
-  await expect(page.getByRole("listitem").filter({ hasText: "J-365 — Réserver le lieu — Planner" })).toBeVisible();
+  await expect(page.getByRole("row", { name: /J-365 Réserver le lieu Planner/ })).toBeVisible();
   await addItem.getByLabel("Intitulé de la tâche").fill("Envoyer les faire-part");
   await addItem.getByLabel(/Décalage en jours/).fill("-120");
   await addItem.getByLabel("Responsable").selectOption("clients");
   await addItem.getByRole("button", { name: "Ajouter la tâche au modèle" }).click();
-  await expect(page.getByRole("listitem").filter({ hasText: "J-120 — Envoyer les faire-part — Mariés" })).toBeVisible();
+  await expect(page.getByRole("row", { name: /J-120 Envoyer les faire-part Mariés/ })).toBeVisible();
   await expectNoAxeViolation(page);
 
   // Un prospect sans date : l'app indique qu'un modèle demande une date.

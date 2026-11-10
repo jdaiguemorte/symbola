@@ -9,7 +9,8 @@ import { VENDOR_SOCIAL_NETWORKS } from "@symbola/contracts";
 import { addVendorCandidate, VendorCandidateNotFoundError } from "@/modules/events/service";
 import {
   addVendorTypeField,
-  applyVendorTagTierProposal,
+  arrangeVendorTags,
+  seedStarterVendorTags,
   archiveVendor,
   createVendor,
   createVendorTag,
@@ -41,6 +42,8 @@ import {
 } from "@/modules/vendors/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { addStarterVendorCatalog } from "@/lib/vendors/catalog";
+import { organizationTagCatalog } from "@/lib/vendors/tag-catalog";
+import type { VendorTagArrangement, VendorTagSeedResult } from "@symbola/contracts";
 import { isValidId } from "@/app/events/module-access";
 import { isVendorsModuleEnabled } from "./module-access";
 
@@ -56,6 +59,10 @@ async function authorize() {
 }
 
 const text = (formData: FormData, name: string) => String(formData.get(name) ?? "");
+
+async function starterLocale(): Promise<"fr" | "en"> {
+  return (await getLocale()) === "en" ? "en" : "fr";
+}
 
 async function readVendorInput(organizationId: string, formData: FormData): Promise<VendorInput> {
   const typeId = isValidId(text(formData, "typeId")) ? text(formData, "typeId") : null;
@@ -305,14 +312,27 @@ export async function removeVendorTagGroupAction(formData: FormData): Promise<vo
   revalidatePath(TAGS_PATH);
 }
 
-// Paliers repérés : rangés dans un groupe « palier » une fois validés.
-export async function applyVendorTagTiersAction(formData: FormData): Promise<void> {
+// Lot 21 (PRE-19, ADR 0050) : « Ranger mes étiquettes importées », puis le
+// récapitulatif de ce qui a été rangé.
+export type TagSetupState = { error?: string; arrangement?: VendorTagArrangement; added?: VendorTagSeedResult };
+
+export async function arrangeVendorTagsAction(_prevState: TagSetupState, _formData: FormData): Promise<TagSetupState> {
+  const t = await getTranslations("VendorBook");
   const access = await authorize();
-  const unit = text(formData, "unit");
-  const label = text(formData, "label").trim() || unit;
-  if (!access || !unit) return;
-  await applyVendorTagTierProposal(access.organizationId, unit, label);
+  if (!access) return { error: t("unauthorized") };
+  const arrangement = await arrangeVendorTags(access.organizationId, await organizationTagCatalog(access.organizationId, await starterLocale()));
   revalidatePath(TAGS_PATH);
+  return { arrangement };
+}
+
+// Lot 21 (PRE-18) : « Ajouter les étiquettes proposées », sans doublon.
+export async function addStarterVendorTagsAction(_prevState: TagSetupState, _formData: FormData): Promise<TagSetupState> {
+  const t = await getTranslations("VendorBook");
+  const access = await authorize();
+  if (!access) return { error: t("unauthorized") };
+  const added = await seedStarterVendorTags(access.organizationId, await organizationTagCatalog(access.organizationId, await starterLocale()));
+  revalidatePath(TAGS_PATH);
+  return { added };
 }
 
 export async function removeVendorTagAction(formData: FormData): Promise<void> {

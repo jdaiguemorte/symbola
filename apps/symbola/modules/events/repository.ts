@@ -538,6 +538,24 @@ export async function insertTaskTemplateItem(
   });
 }
 
+// Lot 21 (EVT-22) : une ligne de modèle se corrige sans être recréée ; elle
+// garde sa place.
+export async function updateTaskTemplateItemRow(organizationId: string, itemId: string, item: TaskTemplateItemInput): Promise<TaskTemplateItemRow | null> {
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const [row] = await tx.update(taskTemplateItems).set(item).where(eq(taskTemplateItems.id, itemId)).returning();
+    return row ?? null;
+  });
+}
+
+export async function renameTaskTemplateRow(organizationId: string, templateId: string, name: string): Promise<boolean> {
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const rows = await tx.update(taskTemplates).set({ name }).where(eq(taskTemplates.id, templateId)).returning({ id: taskTemplates.id });
+    return rows.length > 0;
+  });
+}
+
 export async function deleteTaskTemplateItem(organizationId: string, itemId: string): Promise<void> {
   const db = appDatabase();
   await withOrganization(db, organizationId, (tx) =>
@@ -1051,6 +1069,28 @@ export async function insertProgramTemplateItem(
       .returning();
     if (!row) throw new Error("ajout de la ligne au modèle échoué");
     return row;
+  });
+}
+
+// Lot 21 (EVT-21) : une ligne de modèle se corrige sans être recréée ; elle
+// garde sa place.
+export async function updateProgramTemplateItemRow(
+  organizationId: string,
+  itemId: string,
+  item: ProgramTemplateItemData,
+): Promise<ProgramTemplateItemRow | null> {
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const [row] = await tx.update(programTemplateItems).set(item).where(eq(programTemplateItems.id, itemId)).returning();
+    return row ?? null;
+  });
+}
+
+export async function renameProgramTemplateRow(organizationId: string, templateId: string, name: string): Promise<boolean> {
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const rows = await tx.update(programTemplates).set({ name }).where(eq(programTemplates.id, templateId)).returning({ id: programTemplates.id });
+    return rows.length > 0;
   });
 }
 

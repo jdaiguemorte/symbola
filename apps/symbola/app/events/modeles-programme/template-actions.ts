@@ -1,7 +1,10 @@
 "use server";
 
-// EVT-05 — modèles de programme du jour J de l'organisation.
+// EVT-05 — modèles de programme du jour J de l'organisation. Lot 21 (EVT-21) :
+// la liste des modèles, puis le détail d'un modèle ; une ligne se modifie
+// sans être recréée, un modèle se renomme.
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { starterProgram, type StarterLocale } from "@symbola/starter-templates";
 import {
@@ -10,7 +13,9 @@ import {
   ProgramTemplateNotFoundError,
   removeProgramTemplate,
   removeProgramTemplateItem,
+  renameProgramTemplate,
   TaskLabelRequiredError,
+  updateProgramTemplateItem,
 } from "@/modules/events/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isEventsModuleEnabled, isValidId } from "../module-access";
@@ -26,6 +31,7 @@ async function authorizedOrganizationId(): Promise<string | null> {
   return auth.user.organizationId;
 }
 
+// Le modèle créé s'ouvre aussitôt : on y ajoute ses lignes.
 export async function createProgramTemplateAction(
   _prevState: ProgramTemplateFormState,
   formData: FormData,
@@ -35,12 +41,12 @@ export async function createProgramTemplateAction(
   if (!organizationId) return { error: t("unauthenticated") };
   const name = String(formData.get("name") ?? "").trim();
   if (!name) return { error: t("missingLabel") };
-  await createProgramTemplate(organizationId, name, []);
+  const template = await createProgramTemplate(organizationId, name, []);
   revalidatePath(PATH);
-  return { success: true };
+  redirect(`${PATH}/${template.id}`);
 }
 
-export async function addProgramTemplateItemAction(
+export async function renameProgramTemplateAction(
   _prevState: ProgramTemplateFormState,
   formData: FormData,
 ): Promise<ProgramTemplateFormState> {
@@ -49,22 +55,50 @@ export async function addProgramTemplateItemAction(
   if (!organizationId) return { error: t("unauthenticated") };
   const templateId = String(formData.get("templateId") ?? "");
   if (!isValidId(templateId)) return { error: t("programTemplateNotFound") };
+  const name = String(formData.get("name") ?? "").trim();
+  if (!name) return { error: t("missingLabel") };
+  try {
+    await renameProgramTemplate(organizationId, templateId, name);
+  } catch (error) {
+    if (error instanceof ProgramTemplateNotFoundError) return { error: t("programTemplateNotFound") };
+    throw error;
+  }
+  revalidatePath(PATH);
+  redirect(`${PATH}/${templateId}`);
+}
+
+// Ajout (le panneau reste ouvert pour enchaîner les lignes) ou modification
+// d'une ligne (le panneau se ferme).
+export async function saveProgramTemplateItemAction(
+  _prevState: ProgramTemplateFormState,
+  formData: FormData,
+): Promise<ProgramTemplateFormState> {
+  const t = await getTranslations("Events");
+  const organizationId = await authorizedOrganizationId();
+  if (!organizationId) return { error: t("unauthenticated") };
+  const templateId = String(formData.get("templateId") ?? "");
+  if (!isValidId(templateId)) return { error: t("programTemplateNotFound") };
+  const itemId = String(formData.get("itemId") ?? "");
+  if (itemId && !isValidId(itemId)) return { error: t("programTemplateNotFound") };
+  const item = {
+    startTime: String(formData.get("startTime") ?? ""),
+    endTime: String(formData.get("endTime") ?? ""),
+    label: String(formData.get("label") ?? ""),
+    location: String(formData.get("location") ?? ""),
+    participantLabels: String(formData.get("participantLabels") ?? "").split(","),
+  };
 
   try {
-    await addProgramTemplateItem(organizationId, templateId, {
-      startTime: String(formData.get("startTime") ?? ""),
-      endTime: String(formData.get("endTime") ?? ""),
-      label: String(formData.get("label") ?? ""),
-      location: String(formData.get("location") ?? ""),
-      participantLabels: String(formData.get("participantLabels") ?? "").split(","),
-    });
+    if (itemId) await updateProgramTemplateItem(organizationId, itemId, item);
+    else await addProgramTemplateItem(organizationId, templateId, item);
   } catch (error) {
     if (error instanceof ProgramTemplateNotFoundError) return { error: t("programTemplateNotFound") };
     if (error instanceof TaskLabelRequiredError) return { error: t("missingLabel") };
     if (error instanceof RangeError) return { error: t("invalidTime") };
     throw error;
   }
-  revalidatePath(PATH);
+  revalidatePath(`${PATH}/${templateId}`);
+  if (itemId) redirect(`${PATH}/${templateId}`);
   return { success: true };
 }
 
@@ -87,9 +121,10 @@ export async function removeProgramTemplateItemAction(formData: FormData): Promi
   const organizationId = await authorizedOrganizationId();
   if (!organizationId) return;
   const itemId = String(formData.get("itemId") ?? "");
-  if (!isValidId(itemId)) return;
+  const templateId = String(formData.get("templateId") ?? "");
+  if (!isValidId(itemId) || !isValidId(templateId)) return;
   await removeProgramTemplateItem(organizationId, itemId);
-  revalidatePath(PATH);
+  revalidatePath(`${PATH}/${templateId}`);
 }
 
 export async function removeProgramTemplateAction(formData: FormData): Promise<void> {
@@ -99,4 +134,5 @@ export async function removeProgramTemplateAction(formData: FormData): Promise<v
   if (!isValidId(templateId)) return;
   await removeProgramTemplate(organizationId, templateId);
   revalidatePath(PATH);
+  redirect(PATH);
 }

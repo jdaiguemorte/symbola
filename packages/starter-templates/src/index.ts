@@ -27,6 +27,8 @@ import agencyVendorSlotsFile from "./vendor-slots.event-agency.json";
 import agencyProspectSourcesFile from "./prospect-sources.event-agency.json";
 import agencyRetroplanningFile from "./retroplanning.event-agency.json";
 import agencyProgramFile from "./program.event-agency.json";
+import vendorTagsFile from "./vendor-tags.json";
+import agencyVendorTagsFile from "./vendor-tags.event-agency.json";
 import allocationFile from "./allocation.json";
 import eventTypesFile from "./event-types.json";
 
@@ -111,6 +113,13 @@ const paymentMethods = vendorSlotsSchema.parse(paymentMethodsFile);
 
 export function starterPaymentMethods(locale: StarterLocale): string[] {
   return paymentMethods.items.map((item) => item.label[locale]);
+}
+
+// Lot 21 (DEV-13) : clé du mode de départ et ses libellés (français et
+// anglais), pour reconnaître un mode et lui donner son icône sans stocker de
+// clé en base.
+export function starterPaymentMethodKinds(): { key: string; labels: string[] }[] {
+  return paymentMethods.items.map((item) => ({ key: item.key, labels: [item.label.fr, item.label.en] }));
 }
 
 // DEV-04 : mentions de facturation de départ (conditions de paiement), à
@@ -662,4 +671,44 @@ export function starterEventTypes(locale: StarterLocale, metier: StarterMetier =
     if (!item) throw new Error(`type d'événement de départ inconnu : ${key}`);
     return { key: item.key, label: item.label[locale], audience: item.audience };
   });
+}
+
+// Lot 21 (PRE-18, ADR 0050) — étiquettes de départ des prestataires, rangées
+// en groupes (certains « paliers », à choix unique) et rattachées aux familles
+// de départ (clés de vendor-families.json ; vide = toutes les familles). Les
+// agences reçoivent en plus vendor-tags.event-agency.json, fusionné par clé de
+// groupe. Chaque organisation les modifie ensuite : jamais rétablies d'office.
+const vendorTagsSchema = z.object({
+  version: z.literal(1),
+  groups: z.array(
+    z.object({
+      key: z.string().min(1),
+      label: translatedLabelSchema,
+      exclusive: z.boolean(),
+      families: z.array(z.string().min(1)),
+      tags: z.array(translatedLabelSchema.extend({ families: z.array(z.string().min(1)).optional() })).min(1),
+    }),
+  ),
+});
+
+const starterTagGroups = vendorTagsSchema.parse(vendorTagsFile);
+const agencyTagGroups = vendorTagsSchema.parse(agencyVendorTagsFile);
+
+export type StarterVendorTagGroup = { key: string; label: string; exclusive: boolean; tags: { label: string; aliases: string[]; familyKeys: string[] }[] };
+
+export function starterVendorTags(locale: StarterLocale, metier: StarterMetier = "wedding_planner"): StarterVendorTagGroup[] {
+  const groups = starterTagGroups.groups.map((group) => ({ ...group, tags: [...group.tags] }));
+  if (metier === "event_agency") {
+    for (const extra of agencyTagGroups.groups) {
+      const same = groups.find((group) => group.key === extra.key);
+      if (same) same.tags.push(...extra.tags.map((tag) => ({ ...tag, families: tag.families ?? extra.families })));
+      else groups.push({ ...extra, tags: [...extra.tags] });
+    }
+  }
+  return groups.map((group) => ({
+    key: group.key,
+    label: group.label[locale],
+    exclusive: group.exclusive,
+    tags: group.tags.map((tag) => ({ label: tag[locale], aliases: [tag.fr, tag.en], familyKeys: tag.families ?? group.families })),
+  }));
 }

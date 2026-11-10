@@ -476,6 +476,9 @@ export interface EventsServiceContract {
   listTaskTemplates(organizationId: string): Promise<TaskTemplate[]>;
   createTaskTemplate(organizationId: string, name: string, items: TaskTemplateItemInput[]): Promise<TaskTemplate>;
   addTaskTemplateItem(organizationId: string, templateId: string, item: TaskTemplateItemInput): Promise<TaskTemplateItem>;
+  // Lot 21 (EVT-22) : modifier une ligne, renommer un modèle.
+  updateTaskTemplateItem(organizationId: string, itemId: string, item: TaskTemplateItemInput): Promise<TaskTemplateItem>;
+  renameTaskTemplate(organizationId: string, templateId: string, name: string): Promise<void>;
   removeTaskTemplateItem(organizationId: string, itemId: string): Promise<void>;
   removeTaskTemplate(organizationId: string, templateId: string): Promise<void>;
   changeEventDate(organizationId: string, eventId: string, eventDate: string | null): Promise<TaskRecalculation>;
@@ -498,6 +501,9 @@ export interface EventsServiceContract {
     templateId: string,
     item: ProgramTemplateItemInput,
   ): Promise<ProgramTemplateItem>;
+  // Lot 21 (EVT-21) : modifier une ligne, renommer un modèle.
+  updateProgramTemplateItem(organizationId: string, itemId: string, item: ProgramTemplateItemInput): Promise<ProgramTemplateItem>;
+  renameProgramTemplate(organizationId: string, templateId: string, name: string): Promise<void>;
   removeProgramTemplateItem(organizationId: string, itemId: string): Promise<void>;
   removeProgramTemplate(organizationId: string, templateId: string): Promise<void>;
   applyProgramTemplate(organizationId: string, eventId: string, templateId: string): Promise<ProgramItem[]>;

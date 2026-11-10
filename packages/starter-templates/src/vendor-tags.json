@@ -1,0 +1,173 @@
+{
+  "version": 1,
+  "groups": [
+    {
+      "key": "capacity",
+      "label": { "fr": "Capacité", "en": "Capacity" },
+      "exclusive": true,
+      "families": ["venues"],
+      "tags": [
+        { "fr": "Moins de 50 personnes", "en": "Under 50 guests" },
+        { "fr": "50 à 100 personnes", "en": "50 to 100 guests" },
+        { "fr": "100 à 150 personnes", "en": "100 to 150 guests" },
+        { "fr": "150 à 200 personnes", "en": "150 to 200 guests" },
+        { "fr": "Plus de 200 personnes", "en": "Over 200 guests" }
+      ]
+    },
+    {
+      "key": "beds",
+      "label": { "fr": "Couchages", "en": "Sleeping capacity" },
+      "exclusive": true,
+      "families": ["venues"],
+      "tags": [
+        { "fr": "Pas de couchage", "en": "No beds" },
+        { "fr": "Moins de 20 couchages", "en": "Under 20 beds" },
+        { "fr": "20 à 50 couchages", "en": "20 to 50 beds" },
+        { "fr": "Plus de 50 couchages", "en": "Over 50 beds" }
+      ]
+    },
+    {
+      "key": "catering_policy",
+      "label": { "fr": "Traiteur", "en": "Caterer policy" },
+      "exclusive": true,
+      "families": ["venues"],
+      "tags": [
+        { "fr": "Traiteur libre", "en": "Any caterer" },
+        { "fr": "Liste de traiteurs agréés", "en": "Approved caterers list" },
+        { "fr": "Traiteur imposé", "en": "Caterer imposed" }
+      ]
+    },
+    {
+      "key": "equipment",
+      "label": { "fr": "Équipements", "en": "Facilities" },
+      "exclusive": false,
+      "families": ["venues"],
+      "tags": [
+        { "fr": "Accès PMR", "en": "Wheelchair access" },
+        { "fr": "Hébergement sur place", "en": "On-site accommodation" },
+        { "fr": "Cuisine équipée traiteur", "en": "Catering kitchen" },
+        { "fr": "Espace enfants", "en": "Children's area" },
+        { "fr": "Parking", "en": "Parking" },
+        { "fr": "Repli en cas de pluie", "en": "Rain plan" },
+        { "fr": "Piscine", "en": "Swimming pool" }
+      ]
+    },
+    {
+      "key": "style",
+      "label": { "fr": "Style", "en": "Style" },
+      "exclusive": false,
+      "families": [],
+      "tags": [
+        { "fr": "Champêtre", "en": "Rustic", "families": ["venues", "decor"] },
+        { "fr": "Château", "en": "Castle", "families": ["venues"] },
+        { "fr": "Demeure de caractère", "en": "Character house", "families": ["venues"] },
+        { "fr": "Domaine viticole", "en": "Wine estate", "families": ["venues"] },
+        { "fr": "Bord de mer", "en": "Seaside", "families": ["venues"] },
+        { "fr": "Urbain", "en": "Urban", "families": ["venues"] },
+        { "fr": "Atypique", "en": "Unusual", "families": ["venues"] },
+        { "fr": "Bohème", "en": "Boho", "families": ["decor"] },
+        { "fr": "Romantique", "en": "Romantic", "families": ["decor"] },
+        { "fr": "Moderne", "en": "Modern", "families": ["decor"] },
+        { "fr": "Fleurs séchées", "en": "Dried flowers", "families": ["decor"] },
+        { "fr": "Reportage", "en": "Documentary", "families": ["photo_video"] },
+        { "fr": "Fine art", "en": "Fine art", "families": ["photo_video"] },
+        { "fr": "Posé", "en": "Posed", "families": ["photo_video"] },
+        { "fr": "Argentique", "en": "Film photography", "families": ["photo_video"] }
+      ]
+    },
+    {
+      "key": "food_formats",
+      "label": { "fr": "Formules", "en": "Formats" },
+      "exclusive": false,
+      "families": ["food"],
+      "tags": [
+        { "fr": "Cocktail", "en": "Cocktail" },
+        { "fr": "Buffet", "en": "Buffet" },
+        { "fr": "Service à l'assiette", "en": "Plated service" },
+        { "fr": "Brunch", "en": "Brunch" },
+        { "fr": "Food truck", "en": "Food truck" }
+      ]
+    },
+    {
+      "key": "diets",
+      "label": { "fr": "Régimes", "en": "Dietary options" },
+      "exclusive": false,
+      "families": ["food"],
+      "tags": [
+        { "fr": "Végétarien", "en": "Vegetarian" },
+        { "fr": "Vegan", "en": "Vegan" },
+        { "fr": "Sans gluten", "en": "Gluten-free" },
+        { "fr": "Halal", "en": "Halal" },
+        { "fr": "Casher", "en": "Kosher" }
+      ]
+    },
+    {
+      "key": "services",
+      "label": { "fr": "Prestations", "en": "Services" },
+      "exclusive": false,
+      "families": [],
+      "tags": [
+        { "fr": "Séance couple", "en": "Couple shoot", "families": ["photo_video"] },
+        { "fr": "Album", "en": "Album", "families": ["photo_video"] },
+        { "fr": "Drone", "en": "Drone", "families": ["photo_video"] },
+        { "fr": "Livraison express", "en": "Express delivery", "families": ["photo_video"] },
+        { "fr": "Arche de cérémonie", "en": "Ceremony arch", "families": ["decor"] },
+        { "fr": "Centres de table", "en": "Centrepieces", "families": ["decor"] },
+        { "fr": "Bouquet", "en": "Bouquet", "families": ["decor"] },
+        { "fr": "Location de contenants", "en": "Vase rental", "families": ["decor"] },
+        { "fr": "À domicile", "en": "At home", "families": ["beauty_attire"] },
+        { "fr": "Essai inclus", "en": "Trial included", "families": ["beauty_attire"] },
+        { "fr": "Invités", "en": "Guests too", "families": ["beauty_attire"] }
+      ]
+    },
+    {
+      "key": "lineup",
+      "label": { "fr": "Formation", "en": "Line-up" },
+      "exclusive": false,
+      "families": ["entertainment"],
+      "tags": [
+        { "fr": "DJ", "en": "DJ" },
+        { "fr": "Groupe live", "en": "Live band" },
+        { "fr": "Solo ou duo", "en": "Solo or duo" },
+        { "fr": "Orchestre", "en": "Orchestra" }
+      ]
+    },
+    {
+      "key": "repertoire",
+      "label": { "fr": "Répertoire", "en": "Repertoire" },
+      "exclusive": false,
+      "families": ["entertainment"],
+      "tags": [
+        { "fr": "Pop", "en": "Pop" },
+        { "fr": "Rock", "en": "Rock" },
+        { "fr": "Années 80", "en": "80s" },
+        { "fr": "Électro", "en": "Electro" },
+        { "fr": "Jazz", "en": "Jazz" },
+        { "fr": "Variété française", "en": "French pop" }
+      ]
+    },
+    {
+      "key": "ceremony",
+      "label": { "fr": "Cérémonie", "en": "Ceremony" },
+      "exclusive": false,
+      "families": ["ceremony"],
+      "tags": [
+        { "fr": "Laïque", "en": "Secular" },
+        { "fr": "Religieuse", "en": "Religious" },
+        { "fr": "Bilingue", "en": "Bilingual" }
+      ]
+    },
+    {
+      "key": "languages",
+      "label": { "fr": "Langues parlées", "en": "Languages spoken" },
+      "exclusive": false,
+      "families": [],
+      "tags": [
+        { "fr": "Anglais", "en": "English" },
+        { "fr": "Espagnol", "en": "Spanish" },
+        { "fr": "Italien", "en": "Italian" },
+        { "fr": "Allemand", "en": "German" }
+      ]
+    }
+  ]
+}

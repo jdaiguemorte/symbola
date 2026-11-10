@@ -31,11 +31,21 @@ import {
   listTaskTemplates,
 } from "@/modules/events/service";
 import { createAllocationModel, listAllocationModels } from "@/modules/budget/service";
-import { seedStarterVendorCatalog } from "@/modules/vendors/service";
+import { seedStarterVendorCatalog, seedStarterVendorTags } from "@/modules/vendors/service";
 import { organizesWeddings, vendorCatalogInput } from "@/lib/vendors/catalog";
+import { vendorTagCatalogInput } from "@/lib/vendors/tag-catalog";
 import { isModuleEnabled, type ModuleKey } from "@/modules/hub/service";
 
-export type StarterKitResult = { budgetLines: number; sources: number; lossReasons: number; taskTemplate: boolean; programTemplate: boolean; allocation: boolean; vendorTypes: number };
+export type StarterKitResult = {
+  budgetLines: number;
+  sources: number;
+  lossReasons: number;
+  taskTemplate: boolean;
+  programTemplate: boolean;
+  allocation: boolean;
+  vendorTypes: number;
+  vendorTags: number;
+};
 
 async function enabled(organizationId: string): Promise<Record<ModuleKey, boolean>> {
   const db = appDatabase();
@@ -46,7 +56,7 @@ async function enabled(organizationId: string): Promise<Record<ModuleKey, boolea
 
 export async function loadStarterKit(organizationId: string, metier: StarterMetier, locale: StarterLocale): Promise<StarterKitResult> {
   const modules = await enabled(organizationId);
-  const result: StarterKitResult = { budgetLines: 0, sources: 0, lossReasons: 0, taskTemplate: false, programTemplate: false, allocation: false, vendorTypes: 0 };
+  const result: StarterKitResult = { budgetLines: 0, sources: 0, lossReasons: 0, taskTemplate: false, programTemplate: false, allocation: false, vendorTypes: 0, vendorTags: 0 };
   if (!modules.events) return result;
 
   // Lot 16 (ADR 0045) : types d'événement de départ du métier, si l'organisation
@@ -91,6 +101,9 @@ export async function loadStarterKit(organizationId: string, metier: StarterMeti
   if (modules.vendors) {
     const weddings = await organizesWeddings(organizationId);
     result.vendorTypes = (await seedStarterVendorCatalog(organizationId, vendorCatalogInput(locale, { weddings }), { withTypes: true })).types;
+    // Lot 21 (PRE-18) : étiquettes de départ, rangées par famille ; rien n'est
+    // dupliqué au second passage.
+    result.vendorTags = (await seedStarterVendorTags(organizationId, vendorTagCatalogInput(locale, metier))).created;
   }
   return result;
 }

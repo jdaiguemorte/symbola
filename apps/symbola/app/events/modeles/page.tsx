@@ -1,18 +1,28 @@
+// EVT-04 — modèles de rétroplanning de l'organisation. Lot 21 (EVT-22,
+// décision 4) : comme le Programme du jour J, la liste des modèles ; un clic
+// ouvre le détail. « Nouveau modèle » demande le nom dans le panneau latéral,
+// puis ouvre le modèle créé.
+import Link from "next/link";
+import { ChevronRight, Plus } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { ScreenHelp } from "@/app/screen-help";
+import { PageHeader } from "@/app/ui/page-header";
+import { SidePanel } from "@/app/ui/side-panel";
 import { listTaskTemplates } from "@/modules/events/service";
 import { requirePlanner } from "@/lib/guards";
 import { isEventsModuleEnabled } from "../module-access";
-import { AddTaskTemplateItemForm, CreateTaskTemplateForm, LoadStarterRetroplanningForm } from "./template-forms";
-import { removeTaskTemplateAction, removeTaskTemplateItemAction } from "./template-actions";
+import { offsetLabel } from "./offset-label";
+import { CreateTaskTemplateForm, LoadStarterRetroplanningForm } from "./template-forms";
 
-// EVT-04 — modèles de rétroplanning de l'organisation.
-export default async function TaskTemplatesPage() {
+const PATH = "/events/modeles";
+
+export default async function TaskTemplatesPage({ searchParams }: { searchParams: Promise<{ nouveau?: string }> }) {
   const auth = await requirePlanner();
   const organizationId = auth.user.organizationId;
 
   const t = await getTranslations("Events");
   const tHelp = await getTranslations("Help");
+  const tCommon = await getTranslations("Common");
   if (!(await isEventsModuleEnabled(organizationId))) {
     return (
       <main>
@@ -22,51 +32,50 @@ export default async function TaskTemplatesPage() {
     );
   }
   const templates = await listTaskTemplates(organizationId);
-
-  function offsetLabel(offsetDays: number): string {
-    if (offsetDays === 0) return t("offsetEventDay");
-    return offsetDays < 0 ? t("offsetBefore", { days: -offsetDays }) : t("offsetAfter", { days: offsetDays });
-  }
+  const creating = (await searchParams).nouveau === "1";
 
   return (
     <main>
-      <h1>{t("taskTemplatesTitle")}</h1>
+      <PageHeader
+        title={t("taskTemplatesTitle")}
+        actions={
+          <Link href={`${PATH}?nouveau=1`} scroll={false} className="button-link button-link-primary">
+            <Plus aria-hidden="true" />
+            {t("newTemplateButton")}
+          </Link>
+        }
+      />
       <ScreenHelp title={tHelp("eventsTemplates.title")} body={tHelp("eventsTemplates.body")} />
       <p>{t("taskTemplatesIntro")}</p>
-      {/* Lot 20 (EVT-20, décision 3) : « Nouveau modèle » en tête, dans une carte
-          de la largeur des cartes des modèles, sans faire défiler la liste. */}
-      <section aria-labelledby="new-task-template">
-        <h2 id="new-task-template">{t("newTaskTemplateTitle")}</h2>
-        <CreateTaskTemplateForm />
-      </section>
 
-      {templates.length === 0 ? <p>{t("noTaskTemplates")}</p> : null}
-      {templates.map((template) => (
-        <section key={template.id} aria-labelledby={`template-${template.id}`}>
-          <h2 id={`template-${template.id}`}>{template.name}</h2>
-          {/* Lot 20 (décision 3) : l'ajout d'une ligne avant la liste du modèle. */}
-          <AddTaskTemplateItemForm templateId={template.id} templateName={template.name} />
-          {template.items.length === 0 ? <p>{t("noTaskTemplateItems")}</p> : null}
-          <ul>
-            {template.items.map((item) => (
-              <li key={item.id}>
-                <strong>{offsetLabel(item.offsetDays)}</strong> — {item.label} —{" "}
-                {item.responsible === "clients" ? t("responsibleClients") : t("responsiblePlanner")}{" "}
-                <form action={removeTaskTemplateItemAction} className="inline-form">
-                  <input type="hidden" name="itemId" value={item.id} />
-                  <button type="submit">{t("removeTask", { label: item.label })}</button>
-                </form>
+      {templates.length === 0 ? (
+        <p>{t("noTaskTemplates")}</p>
+      ) : (
+        <ul className="template-list" aria-label={t("taskTemplatesTitle")}>
+          {templates.map((template) => {
+            const offsets = template.items.map((item) => item.offsetDays);
+            return (
+              <li key={template.id}>
+                <Link href={`${PATH}/${template.id}`} className="template-row">
+                  <span className="template-name">{template.name}</span>
+                  <span className="meta">{t("templateTaskCount", { count: template.items.length })}</span>
+                  <span className="meta">
+                    {offsets.length > 0 ? t("templateSpan", { start: offsetLabel(t, Math.min(...offsets)), end: offsetLabel(t, Math.max(...offsets)) }) : ""}
+                  </span>
+                  <ChevronRight aria-hidden="true" className="template-chevron" />
+                </Link>
               </li>
-            ))}
-          </ul>
-          <form action={removeTaskTemplateAction}>
-            <input type="hidden" name="templateId" value={template.id} />
-            <button type="submit">{t("removeTaskTemplate", { name: template.name })}</button>
-          </form>
-        </section>
-      ))}
-
+            );
+          })}
+        </ul>
+      )}
       <LoadStarterRetroplanningForm />
+
+      {creating ? (
+        <SidePanel title={t("newTaskTemplateTitle")} closeHref={PATH} closeLabel={tCommon("closePanel")}>
+          <CreateTaskTemplateForm />
+        </SidePanel>
+      ) : null}
     </main>
   );
 }

@@ -9,7 +9,7 @@ export function AddPaymentMethodForm() {
   const initialState: QuoteSettingsFormState = {};
   const [state, formAction, pending] = useActionState(addPaymentMethodAction, initialState);
   return (
-    <form action={formAction}>
+    <form action={formAction} className="pay-add">
       <label htmlFor="payment-method-label">{t("newPaymentMethod")}</label>
       <input id="payment-method-label" type="text" name="label" required />
       <button type="submit" disabled={pending}>

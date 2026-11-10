@@ -9,7 +9,7 @@ import { createOrganization, createUser } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
 import { readImportCorpusFile } from "@symbola/testing/import-corpus";
 import { decideFreeColumns, getImportColumns, saveImportMapping, startImport } from "@/modules/hub/service";
-import { createVendor, createVendorFamily, createVendorTag, createVendorType, findVendors, getVendor, listVendorFamilies, listVendorTags, listVendorTypes, seedStarterVendorCatalog, updateVendor } from "@/modules/vendors/service";
+import { createVendor, createVendorFamily, createVendorTag, createVendorType, findVendors, getVendor, listVendorFamilies, listVendorTagGroups, listVendorTags, listVendorTypes, seedStarterVendorCatalog, updateVendor } from "@/modules/vendors/service";
 import { vendorCatalogInput } from "@/lib/vendors/catalog";
 import { runImportJobsUntilIdle } from "@/lib/import-jobs";
 import { confirmImport, getImportPreview, getUndoPreview, undoImport } from "./apply";
@@ -337,3 +337,25 @@ describe("IMP-12 — Types à l'import par familles", () => {
     expect(await decideVendorTypes(planner.organizationId, importId, [{ label: "Photobooth", target: { kind: "new", familyId: foreign.id } }])).toBe(false);
   });
 });
+
+// Lot 21 (PRE-19, ADR 0050) — à l'import, les étiquettes créées se rangent
+// toutes seules ; l'annulation de l'import n'y voit aucune retouche.
+describe("PRE-19 — Les étiquettes importées se rangent toutes seules", () => {
+  it("à la confirmation, les tranches du fichier forment un palier et chaque fiche garde sa plus haute tranche ; annuler l'import ne voit aucune fiche modifiée", async () => {
+    const planner = await createPlanner();
+    const importId = await preparedImport(planner);
+    await confirmImport({ ...planner, importId });
+
+    const guests = (await listVendorTagGroups(planner.organizationId)).find((group) => group.label === "Invités");
+    expect(guests?.exclusive).toBe(true);
+    const tags = await listVendorTags(planner.organizationId);
+    expect(tags.filter((tag) => tag.groupId === guests!.id).map((tag) => tag.label)).toEqual(["Moins de 50 invités", "50 à 100 invités", "100 à 150 invités"]);
+    const labels = new Map(tags.map((tag) => [tag.id, tag.label]));
+    const domaine = (await vendorNamed(planner, "Domaine des Tilleuls"))!;
+    expect(domaine.tagIds.map((id) => labels.get(id))).toEqual(["100 à 150 invités", "Hébergement sur place"]);
+
+    const preview = await getUndoPreview(planner.organizationId, importId);
+    expect(preview!.pendingItems.filter((item) => item.modified)).toEqual([]);
+  });
+});
+

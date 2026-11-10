@@ -1145,10 +1145,13 @@
   .range-filter {
     @apply grid grid-cols-2 gap-2 sm:col-span-2;
   }
-  .vendor-form fieldset {
+  /* Lot 21 (PRE-20) : les deux colonnes valent pour les blocs de champs, pas
+     pour le bloc des étiquettes ni ses groupes, où les pastilles prennent
+     toute la largeur. */
+  .vendor-form fieldset:not(.tag-fieldset, .tag-group) {
     @apply grid grid-cols-1 gap-3 sm:grid-cols-2;
   }
-  .vendor-form fieldset > legend {
+  .vendor-form fieldset:not(.tag-fieldset, .tag-group) > legend {
     @apply sm:col-span-2;
   }
 }
@@ -1399,14 +1402,25 @@
   .app-main:has(> .settings-nav) > :not(.settings-nav) {
     @apply min-w-0 lg:col-start-2;
   }
+  /* Lot 21 (HUB-28) : plus haut que la fenêtre, le menu défile seul, sans
+     emporter l'écran (overscroll-contain). */
   .settings-nav {
-    @apply flex flex-col gap-3 rounded-2xl border border-lin bg-card p-3 lg:sticky lg:top-4 lg:row-span-6 lg:col-start-1 lg:row-start-1;
+    @apply flex flex-col gap-3 rounded-2xl border border-lin bg-card p-3 lg:sticky lg:top-4 lg:row-span-6 lg:col-start-1 lg:row-start-1 lg:max-h-[calc(100dvh-2rem)] lg:overflow-y-auto lg:overscroll-contain;
+  }
+  /* Lot 21 (HUB-29) : titre de groupe en gras, couleur d'encre, avec son
+     icône ; rubriques en retrait le long d'un filet ; un séparateur entre les
+     groupes. */
+  .settings-nav-group + .settings-nav-group {
+    @apply border-t border-lin pt-3;
   }
   .settings-nav-title {
-    @apply m-0 px-2.5 pt-1 pb-1 text-[11px] font-semibold tracking-wider text-muted uppercase;
+    @apply m-0 flex items-center gap-2 px-2 pt-0.5 pb-1.5 text-sm font-bold text-ink;
+  }
+  .settings-nav-title svg {
+    @apply h-[18px] w-[18px] shrink-0 text-sauge;
   }
   .settings-nav ul {
-    @apply m-0 flex list-none flex-col gap-0.5 p-0;
+    @apply m-0 ml-4 flex list-none flex-col gap-0.5 border-l-2 border-lin p-0 pl-2;
   }
   .settings-nav a {
     @apply flex min-h-9 items-center rounded-lg px-2.5 text-sm text-ink-soft no-underline hover:bg-ivory;
@@ -2324,6 +2338,11 @@
   .tag-tier {
     @apply flex flex-wrap gap-2;
   }
+  /* Lot 21 (PRE-20) : la rangée prend toute la largeur du bloc, les
+     pastilles ne passent à la ligne que faute de place. */
+  .tag-chips {
+    @apply w-full;
+  }
   /* Plus précis que label:has(> input[type="checkbox"]) (formulaires). */
   .tag-fieldset label.tag-chip {
     @apply relative w-auto max-w-none flex-row gap-0 text-sm font-medium;
@@ -2381,6 +2400,12 @@
     @apply grid min-h-11 items-center gap-x-3 gap-y-1 border-b border-lin-soft py-1.5;
     grid-template-columns: minmax(0, 1fr);
   }
+  .tag-lines .row-actions {
+    @apply flex-nowrap justify-end;
+  }
+  .tag-lines .icon-button svg {
+    @apply h-4 w-4;
+  }
   .tag-lines > li[aria-current="true"] {
     @apply rounded-lg bg-sauge-tint px-2;
   }
@@ -2389,7 +2414,179 @@
       grid-template-columns: minmax(0, 1fr) minmax(0, 14rem) auto;
     }
   }
-  .tier-proposal {
-    @apply my-3 grid max-w-2xl gap-2 border-t border-lin-soft pt-3;
+  /* Lot 21 (PRE-18, PRE-19) : bandeau de rangement en tête de l'écran. */
+  .tag-setup {
+    @apply grid max-w-3xl gap-3 border-sauge bg-sauge-tint;
+  }
+  .tag-setup h2,
+  .tag-setup p {
+    @apply m-0;
+  }
+  .tag-recap {
+    @apply grid gap-1.5 rounded-xl border border-lin bg-card p-3.5 text-[15px];
+  }
+  .tag-recap ul {
+    @apply m-0 grid gap-1 pl-5;
+  }
+}
+
+/* Lot 21 (DEV-13) — modes de paiement : une carte par mode, son icône et un
+   interrupteur « Accepté ». Un mode désactivé reste visible, grisé, pour être
+   réactivé. */
+@layer components {
+  .pay-grid {
+    @apply m-0 grid list-none gap-3 p-0;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+  }
+  .pay-card {
+    @apply grid grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border border-lin bg-card p-3.5;
+  }
+  .pay-card[data-accepted="false"] {
+    @apply bg-ivory;
+  }
+  .pay-icon {
+    @apply grid h-10 w-10 place-items-center rounded-[11px] bg-sauge-tint text-sauge-ink;
+  }
+  .pay-icon svg {
+    @apply h-[22px] w-[22px];
+  }
+  .pay-card[data-accepted="false"] .pay-icon {
+    @apply bg-lin text-ink-soft;
+  }
+  .pay-text {
+    @apply flex min-w-0 flex-col;
+  }
+  .pay-name {
+    @apply font-semibold text-ink;
+  }
+  .pay-state {
+    @apply text-[13px] text-ink-soft;
+  }
+  .pay-card form {
+    @apply m-0;
+  }
+  /* L'interrupteur : un bouton (role="switch"), 44 × 26 px. Sélecteur plus
+     précis que la règle des formulaires d'un seul bouton (hauteur, fond,
+     survol). */
+  .pay-card form button.switch[type="submit"],
+  .pay-card form button.switch[type="submit"]:hover {
+    @apply relative h-[26px] min-h-0 w-11 shrink-0 cursor-pointer rounded-full border-0 bg-[#8f857b] p-0 transition-none;
+  }
+  .pay-card form button.switch[type="submit"]::after {
+    @apply absolute top-[3px] left-[3px] h-5 w-5 rounded-full bg-white shadow content-[''];
+  }
+  .pay-card form button.switch[type="submit"][aria-checked="true"],
+  .pay-card form button.switch[type="submit"][aria-checked="true"]:hover {
+    @apply bg-sauge;
+  }
+  .pay-card form button.switch[type="submit"][aria-checked="true"]::after {
+    @apply left-[21px];
+  }
+  .pay-card form button.switch[type="submit"]:focus-visible {
+    @apply outline-2 outline-offset-2 outline-sauge;
+  }
+  .pay-add {
+    @apply mt-3 flex flex-wrap items-end gap-2 rounded-2xl border border-dashed border-lin-dark p-3.5;
+  }
+  .pay-add input {
+    @apply min-w-0 flex-[1_1_220px];
+  }
+}
+
+/* Lot 21 (EVT-21, EVT-22) — modèles de programme et de rétroplanning : la
+   liste des modèles (une ligne cliquable par modèle), puis le détail en
+   tableau à colonnes fixes ; les actions toujours en fin de ligne. En 375 px,
+   chaque ligne devient une carte, actions en bas à droite. */
+@layer components {
+  .back-link {
+    @apply inline-flex items-center gap-1.5 self-start text-sm text-sauge no-underline hover:underline;
+  }
+  .back-link svg {
+    @apply h-4 w-4;
+  }
+  .template-list {
+    @apply m-0 grid list-none overflow-hidden rounded-2xl border border-lin bg-card p-0;
+  }
+  .template-list > li + li {
+    @apply border-t border-lin-soft;
+  }
+  .template-row {
+    @apply grid grid-cols-[minmax(0,1fr)_24px] items-center gap-x-3 gap-y-0.5 px-4 py-3.5 text-ink no-underline hover:bg-ivory sm:grid-cols-[minmax(0,1fr)_120px_170px_24px];
+  }
+  .template-row .meta {
+    @apply col-start-1 sm:col-start-auto;
+  }
+  .template-name {
+    @apply font-semibold;
+  }
+  .template-chevron {
+    @apply col-start-2 row-span-3 row-start-1 h-[18px] w-[18px] text-muted sm:col-start-auto sm:row-span-1;
+  }
+  .template-lines {
+    @apply w-full table-fixed;
+  }
+  .template-lines .template-time {
+    @apply w-[130px] font-semibold whitespace-nowrap tabular-nums;
+  }
+  .template-tasks .template-time {
+    @apply w-[110px];
+  }
+  .template-lines .template-place {
+    @apply w-[22%];
+  }
+  .template-lines td.template-place {
+    @apply text-ink-soft;
+  }
+  .template-lines .template-who {
+    @apply w-[26%];
+  }
+  .template-lines td.template-who {
+    @apply text-sm text-ink-soft;
+  }
+  .template-tasks .template-who {
+    @apply w-[150px];
+  }
+  .template-lines .template-actions {
+    @apply w-[96px] text-right whitespace-nowrap;
+  }
+  .template-actions > a,
+  .template-actions > form {
+    @apply ml-1 inline-flex align-middle;
+  }
+  .template-actions svg {
+    @apply h-[17px] w-[17px];
+  }
+  .template-lines tr[aria-current="true"] td {
+    @apply bg-sauge-tint;
+  }
+  @media (width < 640px) {
+    .template-lines,
+    .template-lines tbody,
+    .template-lines tr,
+    .template-lines td {
+      display: block;
+      width: auto;
+    }
+    .template-lines thead {
+      @apply sr-only;
+    }
+    .template-lines tr {
+      @apply mb-2.5 grid grid-cols-[minmax(0,1fr)_auto] gap-x-2 gap-y-0.5 rounded-xl border border-lin px-3 py-2.5;
+    }
+    .template-lines td {
+      @apply col-start-1 border-0 p-0;
+    }
+    .template-lines .template-time,
+    .template-lines .template-place,
+    .template-lines .template-who {
+      width: auto;
+    }
+    .template-lines .template-actions {
+      @apply col-start-2 row-span-4 row-start-1 self-end;
+      width: auto;
+    }
+  }
+  .template-delete {
+    @apply self-start text-terracotta-dark;
   }
 }
