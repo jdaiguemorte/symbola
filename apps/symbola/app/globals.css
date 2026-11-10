@@ -1145,10 +1145,13 @@
   .range-filter {
     @apply grid grid-cols-2 gap-2 sm:col-span-2;
   }
-  .vendor-form fieldset {
+  /* Lot 21 (PRE-20) : les deux colonnes valent pour les blocs de champs, pas
+     pour le bloc des étiquettes ni ses groupes, où les pastilles prennent
+     toute la largeur. */
+  .vendor-form fieldset:not(.tag-fieldset, .tag-group) {
     @apply grid grid-cols-1 gap-3 sm:grid-cols-2;
   }
-  .vendor-form fieldset > legend {
+  .vendor-form fieldset:not(.tag-fieldset, .tag-group) > legend {
     @apply sm:col-span-2;
   }
 }
@@ -1399,8 +1402,10 @@
   .app-main:has(> .settings-nav) > :not(.settings-nav) {
     @apply min-w-0 lg:col-start-2;
   }
+  /* Lot 21 (HUB-28) : plus haut que la fenêtre, le menu défile seul, sans
+     emporter l'écran (overscroll-contain). */
   .settings-nav {
-    @apply flex flex-col gap-3 rounded-2xl border border-lin bg-card p-3 lg:sticky lg:top-4 lg:row-span-6 lg:col-start-1 lg:row-start-1;
+    @apply flex flex-col gap-3 rounded-2xl border border-lin bg-card p-3 lg:sticky lg:top-4 lg:row-span-6 lg:col-start-1 lg:row-start-1 lg:max-h-[calc(100dvh-2rem)] lg:overflow-y-auto lg:overscroll-contain;
   }
   .settings-nav-title {
     @apply m-0 px-2.5 pt-1 pb-1 text-[11px] font-semibold tracking-wider text-muted uppercase;
@@ -2323,6 +2328,11 @@
   .tag-chips,
   .tag-tier {
     @apply flex flex-wrap gap-2;
+  }
+  /* Lot 21 (PRE-20) : la rangée prend toute la largeur du bloc, les
+     pastilles ne passent à la ligne que faute de place. */
+  .tag-chips {
+    @apply w-full;
   }
   /* Plus précis que label:has(> input[type="checkbox"]) (formulaires). */
   .tag-fieldset label.tag-chip {
