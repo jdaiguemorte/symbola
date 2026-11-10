@@ -67,13 +67,17 @@ l'appui). Causes relevées dans le code :
 ### HUB-27 — Une seule barre de recherche
 
 - **Quand** elle cherche depuis la barre du haut, **alors** les résultats s'affichent sous
-  cette même barre, remplie avec sa recherche ; aucun second champ n'apparaît.
+  cette même barre, remplie avec sa recherche ; aucun second champ n'apparaît, et la liste
+  instantanée ne s'ouvre pas au chargement de la page de résultats.
 
-### PRE-17 — Supprimer un prestataire depuis le carnet
+### PRE-17 — Retirer un prestataire depuis le carnet
 
-- **Quand** elle choisit « Supprimer » sur une ligne du carnet, **alors** une fenêtre demande
-  confirmation en nommant le prestataire. Rien n'est supprimé sans cette confirmation.
-- Mêmes règles que depuis la fiche (historique des prestations, postes d'événements).
+- Un prestataire ne s'efface pas : il s'archive (lot 11). Sa fiche quitte le carnet et n'est
+  plus proposée, mais ses prestations restent sur les événements et les budgets.
+- **Quand** elle choisit « Archiver » sur une ligne du carnet, **alors** une fenêtre demande
+  confirmation en nommant le prestataire ; « Annuler » ne change rien. Après confirmation, elle
+  revient au carnet avec ses filtres.
+- La même confirmation protège désormais le bouton « Archiver » de la fiche.
 
 ### AIDE-17 — Textes d'aide revus
 
