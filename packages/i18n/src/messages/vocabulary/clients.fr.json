@@ -1,10 +1,5 @@
 {
   "Tour": {
-    "budget": {
-      "3": {
-        "title": "Avec les clients"
-      }
-    },
     "event": {
       "0": {
         "body": "Vue d'ensemble, budget, rétroplanning, programme, clients : chaque onglet regroupe une partie de la préparation."
@@ -13,10 +8,10 @@
   },
   "Help": {
     "eventsNew": {
-      "body": "Un prénom de contact et la source du contact suffisent ; la date et le lieu se complètent plus tard. Depuis l'agenda, un clic sur une date libre ouvre ce formulaire avec la date déjà remplie."
+      "body": "Un prénom de contact et la source suffisent pour créer le prospect ; la date, le lieu et le budget se complètent plus tard. Depuis l'agenda, une date libre ouvre ce formulaire avec la date déjà remplie."
     },
     "eventsDetail": {
-      "body": "Tout l'événement tient sur cette fiche, en onglets. La frise du haut montre le statut et la date de chaque étape : cliquez l'étape suivante pour avancer. Le bandeau « Prochaine étape » propose ce qui reste à faire (envoyer le devis, appliquer le rétroplanning, préparer le programme, inviter les clients). La vue d'ensemble résume le budget, les lignes réservées, les tâches en retard et le devis signé ; le détail d'une ligne du budget s'ouvre dans le panneau de droite.",
+      "body": "Tout l'événement, en onglets. La frise du haut montre où il en est : cliquez l'étape suivante pour avancer. Le bandeau « Prochaine étape » dit quoi faire maintenant (envoyer le devis, appliquer le rétroplanning, inviter le client). Chaque onglet a son lien « Réglages » vers ses modèles.",
       "faq": {
         "3": {
           "q": "Que voient les clients ?",
@@ -59,7 +54,7 @@
         }
       },
       "title": "Les tâches de tous vos événements",
-      "body": "Les tâches de tous vos événements en cours, triées par échéance. Cochez une tâche faite ; cliquez-la pour la modifier sur la fiche de son événement."
+      "body": "Les tâches de tous vos événements, triées par échéance. Filtrez « En retard » pour rattraper, ou par qui la réalise ; cochez une tâche faite. Cliquez-la pour la modifier sur la fiche de son événement."
     },
     "clientSpace": {
       "body": "Les événements que votre organisateur partage avec vous. Ouvrez-en un pour suivre la préparation."

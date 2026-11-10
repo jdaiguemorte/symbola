@@ -135,6 +135,15 @@ export async function assertEventTypeOf(organizationId: string, eventTypeId: str
   if (!type) throw new EventTypeNotFoundError();
 }
 
+// Lot 20 (décision 6) : le vocabulaire de chaque événement de l'organisation
+// (nul sans type), en une requête, pour les écrans qui en mêlent plusieurs.
+export async function findEventAudiences(organizationId: string): Promise<Map<string, EventTypeAudience | null>> {
+  const rows = await inOrganization(organizationId, (tx) =>
+    tx.select({ id: events.id, audience: eventTypes.audience }).from(events).leftJoin(eventTypes, eq(eventTypes.id, events.eventTypeId)),
+  );
+  return new Map(rows.map((row) => [row.id, row.audience ?? null]));
+}
+
 export async function findEventAudience(organizationId: string, eventId: string): Promise<EventTypeAudience | null> {
   const [row] = await inOrganization(organizationId, (tx) =>
     tx.select({ audience: eventTypes.audience }).from(events).innerJoin(eventTypes, eq(eventTypes.id, events.eventTypeId)).where(eq(events.id, eventId)),

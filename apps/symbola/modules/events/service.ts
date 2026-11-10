@@ -96,6 +96,7 @@ import {
   EventTypeInUseError,
   EventTypeNotFoundError,
   findEventAudience,
+  findEventAudiences,
   LastEventTypeError,
   listEventTypes,
   removeEventType,
@@ -359,6 +360,11 @@ export async function setEventType(organizationId: string, eventId: string, even
 // s'il n'a pas de type : le vocabulaire suit alors le métier.
 export async function getEventAudience(organizationId: string, eventId: string): Promise<EventTypeAudience | null> {
   return findEventAudience(organizationId, eventId);
+}
+
+// Lot 20 (décision 6) : le vocabulaire de chaque événement, par identifiant.
+export async function listEventAudiences(organizationId: string): Promise<Map<string, EventTypeAudience | null>> {
+  return findEventAudiences(organizationId);
 }
 
 export async function listProspectSources(organizationId: string): Promise<ProspectSource[]> {
@@ -1483,6 +1489,7 @@ const _contractCheck: EventsServiceContract = {
   countEventsByType,
   setEventType,
   getEventAudience,
+  listEventAudiences,
   listEventPlaces,
   addEventPlace,
   removeEventPlace,

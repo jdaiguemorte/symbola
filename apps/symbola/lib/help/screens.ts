@@ -35,8 +35,17 @@ export const HELP_SCREENS: HelpScreen[] = [
   { key: "eventsTemplates", group: "events", audience: "team", module: "events", path: "/events/modeles", capture: true },
   { key: "eventsProgramTemplates", group: "events", audience: "team", module: "events", path: "/events/modeles-programme", capture: true },
   { key: "eventsSettings", group: "events", audience: "team", module: "events", path: "/events/parametres", capture: true },
+  // Lot 20 (AIDE-14) : chaque écran de réglage a sa fiche.
+  { key: "eventsSources", group: "events", audience: "team", module: "events", path: "/events/parametres/sources", capture: true },
+  { key: "eventTypes", group: "events", audience: "team", module: "events", path: "/events/parametres/types", capture: true },
+  { key: "followUps", group: "events", audience: "team", module: "events", path: "/parametres/relances", capture: true },
   // Prestataires
   { key: "vendorBook", group: "vendors", audience: "team", module: "vendors", path: "/prestataires", tour: "vendors", capture: true },
+  { key: "vendorDetail", group: "vendors", audience: "team", module: "vendors", path: null, capture: true },
+  { key: "vendorNew", group: "vendors", audience: "team", module: "vendors", path: "/prestataires/nouveau", capture: true },
+  { key: "vendorTypes", group: "vendors", audience: "team", module: "vendors", path: "/prestataires/parametres", capture: true },
+  { key: "vendorTags", group: "vendors", audience: "team", module: "vendors", path: "/prestataires/parametres/etiquettes", capture: true },
+  { key: "vendorTravel", group: "vendors", audience: "team", module: "vendors", path: "/prestataires/parametres/trajet", capture: true },
   // Devis et factures
   { key: "allQuotes", group: "quotes", audience: "team", module: "quotes", path: "/devis", capture: true },
   { key: "quotesDetail", group: "quotes", audience: "team", module: "quotes", path: null, capture: true },
@@ -53,6 +62,9 @@ export const HELP_SCREENS: HelpScreen[] = [
   { key: "home", group: "company", audience: "team", path: "/", tour: "hub", capture: true },
   { key: "settings", group: "company", audience: "team", path: "/parametres", capture: true },
   { key: "profile", group: "company", audience: "team", path: "/profil", capture: true },
+  { key: "search", group: "company", audience: "team", path: "/recherche", capture: true },
+  { key: "tutorials", group: "company", audience: "team", path: "/tutoriels", capture: true },
+  { key: "setup", group: "company", audience: "team", path: null, capture: false },
   // Données : import et données personnelles
   { key: "importFile", group: "data", audience: "team", path: "/import", capture: true },
   { key: "importColumns", group: "data", audience: "team", path: null, capture: false },
@@ -66,7 +78,7 @@ export const HELP_SCREENS: HelpScreen[] = [
   // export et effacement se font dans le dossier d'une demande.
   { key: "privacyRequests", group: "data", audience: "team", ownerOnly: true, path: "/rgpd", capture: true },
   { key: "privacySearch", group: "data", audience: "team", ownerOnly: true, path: "/rgpd/recherche", capture: true },
-  { key: "privacyCase", group: "data", audience: "team", ownerOnly: true, path: null, capture: false },
+  { key: "privacyCase", group: "data", audience: "team", ownerOnly: true, path: null, capture: true },
   { key: "privacyExport", group: "data", audience: "team", ownerOnly: true, path: null, capture: false },
   { key: "privacyErasure", group: "data", audience: "team", ownerOnly: true, path: null, capture: false },
   { key: "privacyPurge", group: "data", audience: "team", ownerOnly: true, path: "/rgpd/purge", capture: true },
@@ -105,6 +117,14 @@ export function helpScreen(key: string): HelpScreen | undefined {
 
 export function captureSrc(key: string): string {
   return `/aide/captures/${key}.jpg`;
+}
+
+// Lot 20 (AIDE-16) : la vignette d'un écran, sa capture réelle ou, à défaut,
+// une illustration générique ; jamais un « ? ».
+export const GENERIC_ILLUSTRATION = "/aide/illustration-ecran.svg";
+
+export function tileImage(screen: HelpScreen): string {
+  return screen.capture ? captureSrc(screen.key) : GENERIC_ILLUSTRATION;
 }
 
 export function helpScreenHref(key: string): string {

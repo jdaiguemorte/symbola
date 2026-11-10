@@ -9,8 +9,9 @@ import { ScreenHelp } from "@/app/screen-help";
 import { listOrganizationTasks } from "@/modules/events/service";
 import { requirePlanner } from "@/lib/guards";
 import { isEventsModuleEnabled } from "@/app/events/module-access";
-import { GearLink } from "@/app/gear-link";
+import { SettingsLink } from "@/app/settings-link";
 import { TaskTable } from "./task-table";
+import { responsibleLabels } from "@/lib/vocabulary";
 
 type SearchParams = { vue?: string; qui?: string };
 
@@ -35,6 +36,7 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
   const locale = (await getLocale()) as Locale;
   const today = parisToday();
   const all = await listOrganizationTasks({ organizationId, today, horizonDays: null, includeDone: view === "toutes" });
+  const labelOf = await responsibleLabels(organizationId, locale);
   const tasks = all.filter((task) => (owner === "tous" || task.responsible === owner) && (view !== "en-retard" || task.overdue));
   const href = (changes: Record<string, string>) => `/taches?${new URLSearchParams({ vue: view, qui: owner, ...changes }).toString()}`;
   const overdue = all.filter((task) => task.overdue).length;
@@ -44,7 +46,7 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
       <PageHeader
         title={t("allTasksTitle")}
         subtitle={<span>{t("allTasksSummary", { count: all.filter((task) => !task.done).length, overdue })}</span>}
-        actions={<GearLink href="/events/modeles" label={t("taskTemplatesSettings")} />}
+        actions={<SettingsLink href="/events/modeles" label={t("taskTemplatesSettings")} />}
       />
       <ScreenHelp title={tHelp("allTasks.title")} body={tHelp("allTasks.body")} />
       <section className="card" aria-labelledby="all-tasks-title">
@@ -76,6 +78,7 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
             caption={t("allTasksTitle")}
             showEvent
             editHref={(task) => `/events/${task.eventId}?onglet=retroplanning&tache=${task.id}`}
+            responsibleLabel={(task) => labelOf(task.eventId, task.responsible)}
           />
         ) : null}
       </section>

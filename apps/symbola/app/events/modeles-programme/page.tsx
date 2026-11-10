@@ -28,11 +28,19 @@ export default async function ProgramTemplatesPage() {
       <h1>{t("programTemplatesTitle")}</h1>
       <ScreenHelp title={tHelp("eventsProgramTemplates.title")} body={tHelp("eventsProgramTemplates.body")} />
       <p>{t("programTemplatesIntro")}</p>
+      {/* Lot 20 (EVT-20, décision 3) : « Nouveau modèle » en tête, dans une carte
+          de la largeur des cartes des modèles, sans faire défiler la liste. */}
+      <section aria-labelledby="new-program-template">
+        <h2 id="new-program-template">{t("newProgramTemplateTitle")}</h2>
+        <CreateProgramTemplateForm />
+      </section>
 
       {templates.length === 0 ? <p>{t("noProgramTemplates")}</p> : null}
       {templates.map((template) => (
         <section key={template.id} aria-labelledby={`program-template-${template.id}`}>
           <h2 id={`program-template-${template.id}`}>{template.name}</h2>
+          {/* Lot 20 (décision 3) : l'ajout d'une ligne avant la liste du modèle. */}
+          <AddProgramTemplateItemForm templateId={template.id} templateName={template.name} />
           {template.items.length === 0 ? <p>{t("noProgramTemplateItems")}</p> : null}
           <ul>
             {template.items.map((item) => (
@@ -47,7 +55,6 @@ export default async function ProgramTemplatesPage() {
               </li>
             ))}
           </ul>
-          <AddProgramTemplateItemForm templateId={template.id} templateName={template.name} />
           <form action={removeProgramTemplateAction}>
             <input type="hidden" name="templateId" value={template.id} />
             <button type="submit">{t("removeProgramTemplate", { name: template.name })}</button>
@@ -55,8 +62,6 @@ export default async function ProgramTemplatesPage() {
         </section>
       ))}
 
-      <h2>{t("newProgramTemplateTitle")}</h2>
-      <CreateProgramTemplateForm />
       <LoadStarterProgramForm />
     </main>
   );

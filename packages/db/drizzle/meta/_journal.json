@@ -589,6 +589,13 @@
       "when": 1794258753061,
       "tag": "0083_lot19_request_proof",
       "breakpoints": true
+    },
+    {
+      "idx": 84,
+      "version": "7",
+      "when": 1794269977506,
+      "tag": "0084_lot20_tag_groups",
+      "breakpoints": true
     }
   ]
 }

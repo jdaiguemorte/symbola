@@ -62,9 +62,9 @@ test("AIDE-11/02 — repères du module événements, puis essai guidé supprim�
   await closeLandmarks(page, "Liste des événements");
 
   // AIDE-02 : l'essai ouvre un mariage fictif complet, marqué comme tel.
-  // Lot 16 (HUB-20) : l'essai est dans « ⋯ Plus d'options ».
-  await page.getByText("⋯ Plus d'options").click();
-  await page.getByRole("button", { name: "Démarrer l'essai" }).click();
+  // Lot 20 (décision 2) : l'essai se lance depuis l'aide de l'écran.
+  await page.getByRole("button", { name: "Aide sur cet écran" }).click();
+  await panel.getByRole("button", { name: "Démarrer l'essai" }).click();
   await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}$/);
   // Les repères de la fiche s'affichent d'eux-mêmes ; ce parcours les ferme.
   await closeLandmarks(page, "Fiche de l'événement");
@@ -87,7 +87,9 @@ test("AIDE-11/02 — repères du module événements, puis essai guidé supprim�
 
   await page.goto("/events");
   await expect(page.getByRole("row", { name: /Camille & Sacha/ })).toContainText("Essai (fictif)");
-  await expect(page.getByRole("link", { name: "Reprendre l'essai en cours" })).toBeVisible();
+  await page.getByRole("button", { name: "Aide sur cet écran" }).click();
+  await expect(panel.getByRole("link", { name: "Reprendre l'essai en cours" })).toBeVisible();
+  await page.keyboard.press("Escape");
 
   // Fin de l'essai : toutes ses données disparaissent.
   await page.goto(trialUrl);
@@ -95,8 +97,8 @@ test("AIDE-11/02 — repères du module événements, puis essai guidé supprim�
   await expect(page).toHaveURL(/\/events\?essai=termine$/);
   await expect(page.getByText("Essai terminé : ses données fictives ont été supprimées.")).toBeVisible();
   await expect(page.getByRole("row", { name: /Camille & Sacha/ })).toHaveCount(0);
-  await page.getByText("⋯ Plus d'options").click();
-  await expect(page.getByRole("button", { name: "Démarrer l'essai" })).toBeVisible();
+  // Plus aucun événement : l'essai est aussi proposé dans la page.
+  await expect(page.getByRole("region", { name: "Essai guidé" }).getByRole("button", { name: "Démarrer l'essai" })).toBeVisible();
   await page.goto(trialUrl);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Page introuvable");
   await expectNoAxeViolation(page);

@@ -15,6 +15,7 @@ import {
   getEvent,
   getEventAudience,
   LastEventTypeError,
+  listEventAudiences,
   listEventTypes,
   removeEventType,
   setEventType,
@@ -97,5 +98,26 @@ describe("lot 16 (ADR 0045) — Types d'événement", () => {
     const { organizationId } = await seedOrganization();
     const trial = await startEventsTrial({ organizationId, userId: plannerId, locale: "fr" });
     expect(await getEventAudience(organizationId, trial.eventId)).toBe("couple");
+  });
+});
+
+describe("Lot 20 (décision 6) — Vocabulaire des écrans qui mêlent les événements", () => {
+  it("le vocabulaire de chaque événement de l'organisation, en une fois ; nul pour un événement sans type", async () => {
+    const { organizationId, typeOf, createEvent } = await seedOrganization();
+    const wedding = await createEvent(typeOf("wedding").id);
+    const seminar = await createEvent(typeOf("seminar").id);
+    const untyped = await createEvent(null);
+    const audiences = await listEventAudiences(organizationId);
+    expect(audiences.get(wedding)).toBe("couple");
+    expect(audiences.get(seminar)).toBe("clients");
+    expect(audiences.get(untyped)).toBeNull();
+  });
+
+  it("isolation : une organisation ne voit pas le vocabulaire des événements d'une autre", async () => {
+    const mine = await seedOrganization();
+    const other = await seedOrganization();
+    const theirs = await other.createEvent(other.typeOf("seminar").id);
+    const audiences = await listEventAudiences(mine.organizationId);
+    expect(audiences.has(theirs)).toBe(false);
   });
 });

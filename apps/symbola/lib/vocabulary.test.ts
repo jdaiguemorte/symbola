@@ -13,7 +13,10 @@ const state = vi.hoisted(() => ({
 
 vi.mock("react", async (importOriginal) => ({ ...(await importOriginal<typeof import("react")>()), cache: <T,>(fn: T) => fn }));
 vi.mock("next/headers", () => ({ headers: async () => new Headers({ "x-pathname": state.pathname }) }));
-vi.mock("@/modules/events/service", () => ({ getEventAudience: async (_org: string, eventId: string) => state.audiences.get(eventId) ?? null }));
+vi.mock("@/modules/events/service", () => ({
+  getEventAudience: async (_org: string, eventId: string) => state.audiences.get(eventId) ?? null,
+  listEventAudiences: async () => new Map(state.audiences),
+}));
 vi.mock("@/modules/quotes/service", () => ({
   getQuote: async (_org: string, quoteId: string) => {
     if (quoteId !== QUOTE) throw new Error("devis introuvable");
@@ -73,5 +76,36 @@ describe("lot 16 (ADR 0045) — Vocabulaire selon le type de l'événement", () 
     expect(labels.couple.client1FirstName).toBe("Prénom du premier marié");
     expect(labels.clients.client1FirstName).toBe("Prénom du premier contact");
     expect(clientFieldLabelsByAudience("en").clients.client2LastName).toMatch(/contact/i);
+  });
+});
+
+const OTHER = "33333333-3333-4333-8333-333333333333";
+
+describe("Lot 20 (décision 6) — Écrans qui mêlent les événements", () => {
+  beforeEach(() => {
+    state.metier = "wedding_planner";
+  });
+
+  it("des mariages et un séminaire : vocabulaire neutre sur l'accueil, la liste, les tâches, les devis et les encaissements", async () => {
+    state.audiences = new Map([
+      [EVENT, "couple"],
+      [OTHER, "clients"],
+    ]);
+    for (const pathname of ["/", "/events", "/taches", "/devis", "/devis/encaissements"]) {
+      state.pathname = pathname;
+      expect(await requestAudience("org-1"), pathname).toBe("clients");
+    }
+    // Ailleurs (réglages, profil) : le vocabulaire du métier.
+    state.pathname = "/profil";
+    expect(await requestAudience("org-1")).toBe("couple");
+  });
+
+  it("des mariages seulement, ou un événement sans type qui suit le métier : le vocabulaire du métier", async () => {
+    state.audiences = new Map([
+      [EVENT, "couple"],
+      [OTHER, null],
+    ]);
+    state.pathname = "/taches";
+    expect(await requestAudience("org-1")).toBe("couple");
   });
 });

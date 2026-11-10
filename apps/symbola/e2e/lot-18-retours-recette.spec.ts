@@ -1,7 +1,8 @@
 // Lot 18 — retours de la recette du lot 17 (Julien, 09/11/2026) : un seul lien
 // du menu allumé (HUB-22), pastille « Reprendre » sur Tutoriels seulement
 // (HUB-23), « Plus d'options » sans déformer la barre (HUB-24), estimation des
-// trajets expliquée (PRE-16). En taille ordinateur et en 375 px, axe-core.
+// trajets expliquée (PRE-16), en-tête de l'agenda aligné (HUB-25, recette du
+// 10/11). En taille ordinateur et en 375 px, axe-core.
 import { randomUUID } from "node:crypto";
 import AxeBuilder from "@axe-core/playwright";
 import { createAppConnection } from "@symbola/db/client";
@@ -43,19 +44,28 @@ test("Lot 18 — menu, « Plus d'options », pastille des tutoriels et estimatio
   }
   await loginAndSetupMfa(page, email, password);
 
+  // HUB-25 (recette du 10/11) : dans l'en-tête de l'agenda, « ‹ Aujourd'hui › »
+  // est centré sur le sélecteur de durée quand ils partagent une ligne ; en
+  // 375 px, la navigation passe au-dessus, sans chevauchement.
+  const navigation = (await page.getByRole("navigation", { name: "Naviguer dans l'agenda" }).boundingBox())!;
+  const spans = (await page.getByRole("navigation", { name: "Durée affichée" }).boundingBox())!;
+  if (page.viewportSize()!.width >= 768) {
+    expect(Math.abs(navigation.y + navigation.height / 2 - (spans.y + spans.height / 2))).toBeLessThanOrEqual(1);
+  } else {
+    expect(navigation.y + navigation.height).toBeLessThanOrEqual(spans.y);
+  }
+
   // HUB-22 : sur Encaissements, seul « Encaissements » est allumé.
   await page.goto("/devis/encaissements");
   await openMenu(page);
   await expect(mainMenu(page).getByRole("link", { name: "Encaissements", exact: true })).toHaveAttribute("aria-current", "page");
   await expect(mainMenu(page).getByRole("link", { name: "Devis et factures", exact: true })).not.toHaveAttribute("aria-current", "page");
 
-  // HUB-24 : ouvrir « Plus d'options » ne grandit pas les boutons voisins.
+  // HUB-24, revu au lot 20 (décision 2) : plus de « Plus d'options » ; la
+  // barre des Événements ne garde que « Nouveau prospect ».
   await page.goto("/events");
-  const newProspect = page.getByRole("link", { name: "Nouveau prospect" });
-  const before = (await newProspect.boundingBox())!.height;
-  await page.getByText("Plus d'options").click();
-  await expect(page.getByText("Essai guidé")).toBeVisible();
-  expect((await newProspect.boundingBox())!.height).toBe(before);
+  await expect(page.getByRole("link", { name: "Nouveau prospect" })).toBeVisible();
+  await expect(page.getByText("Plus d'options")).toHaveCount(0);
 
   // HUB-23 : un tutoriel en cours ; la pastille « Reprendre » n'apparaît que sur Tutoriels.
   const { sql: sql2, db: db2 } = createAppConnection();

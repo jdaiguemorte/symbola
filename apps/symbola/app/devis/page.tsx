@@ -9,7 +9,7 @@ import { ScreenHelp } from "@/app/screen-help";
 import { eventNames, listEvents } from "@/modules/events/service";
 import { listQuotes, type QuoteStatus } from "@/modules/quotes/service";
 import { requirePlanner } from "@/lib/guards";
-import { GearLink } from "@/app/gear-link";
+import { SettingsLink } from "@/app/settings-link";
 import { isQuotesModuleEnabled } from "./module-access";
 import { QUOTE_STATUS_LABEL_KEYS } from "./quote-display";
 
@@ -50,7 +50,7 @@ export default async function QuotesListPage({ searchParams }: { searchParams: P
       <PageHeader
         title={t("allQuotesTitle")}
         subtitle={<span>{t("allQuotesIntro")}</span>}
-        actions={<GearLink href="/devis/parametres" label={t("settingsTitle")} />}
+        actions={<SettingsLink href="/devis/parametres" label={t("settingsTitle")} />}
       />
       <ScreenHelp title={tHelp("allQuotes.title")} body={tHelp("allQuotes.body")} />
       <section className="card" aria-labelledby="all-quotes-title">

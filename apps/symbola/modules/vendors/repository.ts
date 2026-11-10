@@ -4,7 +4,7 @@
 import { and, asc, eq, inArray, isNull, or, sql, type SQL } from "drizzle-orm";
 import { appDatabase } from "@symbola/db/client";
 import { foldedColumn, likeWord } from "@symbola/db/search";
-import { vendorFiles, vendors, vendorSettings, vendorTags, vendorTypeFields, vendorTypes } from "@symbola/db/schema/vendors";
+import { vendorFiles, vendors, vendorSettings, vendorTagGroups, vendorTags, vendorTypeFields, vendorTypes } from "@symbola/db/schema/vendors";
 import { withOrganization } from "@symbola/db/with-organization";
 import type { VendorAround, VendorFieldFilter, VendorFieldKind, VendorFieldValue, VendorFileKind, VendorSettings, VendorSocialLink } from "@symbola/contracts";
 import { EARTH_RADIUS_KM } from "./travel";
@@ -12,6 +12,7 @@ import { EARTH_RADIUS_KM } from "./travel";
 export type VendorTypeRow = typeof vendorTypes.$inferSelect;
 export type VendorTypeFieldRow = typeof vendorTypeFields.$inferSelect;
 export type VendorTagRow = typeof vendorTags.$inferSelect;
+export type VendorTagGroupRow = typeof vendorTagGroups.$inferSelect;
 export type VendorRow = typeof vendors.$inferSelect;
 export type VendorFileRow = typeof vendorFiles.$inferSelect;
 type Tx = Parameters<Parameters<typeof withOrganization>[2]>[0];
@@ -75,14 +76,55 @@ export function deleteVendorTypeField(organizationId: string, fieldId: string): 
 // Étiquettes.
 
 export function findVendorTags(organizationId: string): Promise<VendorTagRow[]> {
-  return inOrganization(organizationId, (tx) => tx.select().from(vendorTags).orderBy(asc(vendorTags.label)));
+  return inOrganization(organizationId, (tx) => tx.select().from(vendorTags).orderBy(asc(vendorTags.position), asc(vendorTags.label)));
 }
 
-export function insertVendorTag(organizationId: string, label: string): Promise<VendorTagRow> {
+export function insertVendorTag(
+  organizationId: string,
+  label: string,
+  options: { groupId?: string | null; familyIds?: string[]; position?: number } = {},
+): Promise<VendorTagRow> {
   return inOrganization(organizationId, async (tx) => {
-    const [row] = await tx.insert(vendorTags).values({ organizationId, label }).returning();
+    const [row] = await tx
+      .insert(vendorTags)
+      .values({ organizationId, label, groupId: options.groupId ?? null, familyIds: options.familyIds ?? [], position: options.position ?? 0 })
+      .returning();
     if (!row) throw new Error("insertion de l'étiquette échouée");
     return row;
+  });
+}
+
+// Lot 20 (décision 5, ADR 0049) — étiquettes rangées par groupe.
+export function updateVendorTagRow(organizationId: string, tagId: string, values: { label: string; groupId: string | null; familyIds: string[] }): Promise<number> {
+  return inOrganization(organizationId, async (tx) => (await tx.update(vendorTags).set(values).where(eq(vendorTags.id, tagId)).returning({ id: vendorTags.id })).length);
+}
+
+export function setVendorTagsGroup(organizationId: string, groupId: string, tags: { id: string; position: number }[]): Promise<void> {
+  return inOrganization(organizationId, async (tx) => {
+    for (const tag of tags) await tx.update(vendorTags).set({ groupId, position: tag.position }).where(eq(vendorTags.id, tag.id));
+  });
+}
+
+export function findVendorTagGroups(organizationId: string): Promise<VendorTagGroupRow[]> {
+  return inOrganization(organizationId, (tx) => tx.select().from(vendorTagGroups).orderBy(asc(vendorTagGroups.position), asc(vendorTagGroups.label)));
+}
+
+export function insertVendorTagGroup(organizationId: string, values: { label: string; exclusive: boolean; position: number }): Promise<VendorTagGroupRow> {
+  return inOrganization(organizationId, async (tx) => {
+    const [row] = await tx.insert(vendorTagGroups).values({ organizationId, ...values }).returning();
+    if (!row) throw new Error("insertion du groupe d'étiquettes échouée");
+    return row;
+  });
+}
+
+export function updateVendorTagGroupRow(organizationId: string, groupId: string, values: { label: string; exclusive: boolean }): Promise<number> {
+  return inOrganization(organizationId, async (tx) => (await tx.update(vendorTagGroups).set(values).where(eq(vendorTagGroups.id, groupId)).returning({ id: vendorTagGroups.id })).length);
+}
+
+// Les étiquettes du groupe passent dans « Autres » (clé étrangère « set null »).
+export function deleteVendorTagGroup(organizationId: string, groupId: string): Promise<void> {
+  return inOrganization(organizationId, async (tx) => {
+    await tx.delete(vendorTagGroups).where(eq(vendorTagGroups.id, groupId));
   });
 }
 

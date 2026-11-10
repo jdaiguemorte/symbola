@@ -4,7 +4,7 @@
 // l'équipe : résultats instantanés regroupés (liste déroulante accessible),
 // ⌘K / Ctrl+K pour y aller, Entrée pour ouvrir, Échap pour fermer. Sans
 // JavaScript, le formulaire mène à la page /recherche.
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import type { SearchGroup } from "@/lib/search/run-search";
@@ -14,7 +14,11 @@ export function SearchBox() {
   const router = useRouter();
   const listId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
-  const [term, setTerm] = useState("");
+  // Lot 20 (HUB-27) : sur la page de résultats, la boîte garde la recherche
+  // faite ; la page n'a plus de second champ.
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [term, setTerm] = useState(() => (pathname === "/recherche" ? (searchParams.get("q") ?? "") : ""));
   const [groups, setGroups] = useState<SearchGroup[]>([]);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
@@ -47,7 +51,7 @@ export function SearchBox() {
         const response = await fetch(`/recherche/instantanee?q=${encodeURIComponent(query)}`, { signal: controller.signal });
         if (response.status === 429) {
           setNotice(((await response.json()) as { error: string }).error);
-          setOpen(true);
+          setOpen(document.activeElement === inputRef.current);
           return;
         }
         if (!response.ok) return;
@@ -55,7 +59,9 @@ export function SearchBox() {
         setNotice(null);
         setGroups(body.groups);
         setActive(-1);
-        setOpen(true);
+        // La liste ne s'ouvre que si l'on est dans le champ (pas au chargement
+        // de la page de résultats, qui reprend la recherche).
+        setOpen(document.activeElement === inputRef.current);
       } catch {
         // Requête annulée (nouvelle frappe) ou réseau indisponible : on garde l'affichage.
       }

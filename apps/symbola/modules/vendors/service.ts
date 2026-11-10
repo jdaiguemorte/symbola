@@ -19,6 +19,10 @@ import type {
   VendorsServiceContract,
   VendorSummary,
   VendorTag,
+  VendorTagGroup,
+  VendorTagGroupInput,
+  VendorTagInput,
+  VendorTagTierProposal,
   VendorType,
   VendorTypeField,
   VendorTypeFieldInput,
@@ -35,27 +39,34 @@ import type { ImportUndoItem, ImportUndoOutcome } from "@symbola/contracts";
 import { cleanFieldValues, isUsableFilter } from "./fields";
 import { undoImportedVendorsElements as undoImportRows } from "./import";
 import { configuredGeocoder } from "./geocoder";
+import { proposeTierGroups, tierUnitKey } from "./tag-tiers";
 import {
   archiveVendorRow,
   deleteDemoVendors,
   deleteVendorFileRow,
   deleteVendorTag,
+  deleteVendorTagGroup,
   deleteVendorTypeField,
   findVendor,
   findVendorFile,
   findVendorRows,
   findVendorsByIds,
   findVendorSettings,
+  findVendorTagGroups,
   findVendorTags,
   findVendorTypes,
   insertVendor,
   insertVendorFile,
   insertVendorTag,
+  insertVendorTagGroup,
   insertVendorType,
   insertVendorTypeField,
   searchVendorRows,
+  setVendorTagsGroup,
   updateVendorLocation,
   updateVendorRow,
+  updateVendorTagGroupRow,
+  updateVendorTagRow,
   updateVendorTypeFieldFilter,
   updateVendorTypeRow,
   upsertVendorSettings,
@@ -81,6 +92,24 @@ import {
 } from "./families";
 
 export { InvalidVendorFieldValueError, parseFieldInput } from "./fields";
+
+// Lot 20 (décision 5, ADR 0049).
+export class VendorTagNotFoundError extends Error {
+  constructor() {
+    super("étiquette introuvable");
+  }
+}
+export class VendorTagGroupNotFoundError extends Error {
+  constructor() {
+    super("groupe d'étiquettes introuvable");
+  }
+}
+// Deux paliers du même groupe sur une fiche (« 100 à 150 » et « 150 à 200 personnes »).
+export class VendorTagTierConflictError extends Error {
+  constructor() {
+    super("un seul palier par groupe");
+  }
+}
 export { findModifiedImportedVendorsElements, importedVendorsToPlace, importVendorRows, listVendorImportCandidates, type VendorTypeChoiceInput, type VendorTypeTarget } from "./import";
 export { placeVendors, type PlacementResult } from "./placement";
 export { estimateTravel, haversineKm } from "./travel";
@@ -104,6 +133,10 @@ export type {
   VendorSocialNetwork,
   VendorSummary,
   VendorTag,
+  VendorTagGroup,
+  VendorTagGroupInput,
+  VendorTagInput,
+  VendorTagTierProposal,
   VendorType,
   VendorTypeField,
   VendorFamily,
@@ -381,20 +414,86 @@ export async function removeVendorTypeField(organizationId: string, fieldId: str
 
 // Étiquettes.
 
-export async function listVendorTags(organizationId: string): Promise<VendorTag[]> {
-  return (await findVendorTags(organizationId)).map((row) => ({ id: row.id, label: row.label }));
+function toTag(row: { id: string; label: string; groupId: string | null; familyIds: string[]; position: number }): VendorTag {
+  return { id: row.id, label: row.label, groupId: row.groupId, familyIds: row.familyIds, position: row.position };
 }
 
-export async function createVendorTag(organizationId: string, label: string): Promise<VendorTag> {
+export async function listVendorTags(organizationId: string): Promise<VendorTag[]> {
+  return (await findVendorTags(organizationId)).map(toTag);
+}
+
+// Lot 20 (décision 5, ADR 0049) : groupe et familles vérifiés ; une
+// étiquette d'un groupe « palier » prend la place suivante du groupe.
+async function cleanTagPlacement(organizationId: string, options: Omit<VendorTagInput, "label">): Promise<{ groupId: string | null; familyIds: string[] }> {
+  const groupId = options.groupId ?? null;
+  if (groupId && !(await findVendorTagGroups(organizationId)).some((group) => group.id === groupId)) throw new VendorTagGroupNotFoundError();
+  const families = new Set((await listVendorFamilies(organizationId)).map((family) => family.id));
+  return { groupId, familyIds: [...new Set((options.familyIds ?? []).filter((id) => families.has(id)))] };
+}
+
+export async function createVendorTag(organizationId: string, label: string, options: Omit<VendorTagInput, "label"> = {}): Promise<VendorTag> {
   const clean = label.trim();
   if (!clean) throw new RangeError("le nom de l'étiquette est obligatoire");
-  const existing = (await findVendorTags(organizationId)).find((tag) => tag.label.toLocaleLowerCase("fr") === clean.toLocaleLowerCase("fr"));
-  const row = existing ?? (await insertVendorTag(organizationId, clean));
-  return { id: row.id, label: row.label };
+  const tags = await findVendorTags(organizationId);
+  const existing = tags.find((tag) => tag.label.toLocaleLowerCase("fr") === clean.toLocaleLowerCase("fr"));
+  if (existing) return toTag(existing);
+  const placement = await cleanTagPlacement(organizationId, options);
+  const position = placement.groupId ? Math.max(-1, ...tags.filter((tag) => tag.groupId === placement.groupId).map((tag) => tag.position)) + 1 : 0;
+  return toTag(await insertVendorTag(organizationId, clean, { ...placement, position }));
+}
+
+export async function updateVendorTag(organizationId: string, tagId: string, input: VendorTagInput): Promise<void> {
+  const label = input.label.trim();
+  if (!label) throw new RangeError("le nom de l'étiquette est obligatoire");
+  const placement = await cleanTagPlacement(organizationId, input);
+  if ((await updateVendorTagRow(organizationId, tagId, { label, ...placement })) === 0) throw new VendorTagNotFoundError();
 }
 
 export async function removeVendorTag(organizationId: string, tagId: string): Promise<void> {
   await deleteVendorTag(organizationId, tagId);
+}
+
+function toTagGroup(row: { id: string; label: string; exclusive: boolean; position: number }): VendorTagGroup {
+  return { id: row.id, label: row.label, exclusive: row.exclusive, position: row.position };
+}
+
+export async function listVendorTagGroups(organizationId: string): Promise<VendorTagGroup[]> {
+  return (await findVendorTagGroups(organizationId)).map(toTagGroup);
+}
+
+export async function createVendorTagGroup(organizationId: string, input: VendorTagGroupInput): Promise<VendorTagGroup> {
+  const label = input.label.trim();
+  if (!label) throw new RangeError("le nom du groupe est obligatoire");
+  const groups = await findVendorTagGroups(organizationId);
+  const existing = groups.find((group) => group.label.toLocaleLowerCase("fr") === label.toLocaleLowerCase("fr"));
+  if (existing) return toTagGroup(existing);
+  const position = Math.max(-1, ...groups.map((group) => group.position)) + 1;
+  return toTagGroup(await insertVendorTagGroup(organizationId, { label, exclusive: input.exclusive, position }));
+}
+
+export async function updateVendorTagGroup(organizationId: string, groupId: string, input: VendorTagGroupInput): Promise<void> {
+  const label = input.label.trim();
+  if (!label) throw new RangeError("le nom du groupe est obligatoire");
+  if ((await updateVendorTagGroupRow(organizationId, groupId, { label, exclusive: input.exclusive })) === 0) throw new VendorTagGroupNotFoundError();
+}
+
+export async function removeVendorTagGroup(organizationId: string, groupId: string): Promise<void> {
+  await deleteVendorTagGroup(organizationId, groupId);
+}
+
+// Paliers repérés parmi les étiquettes sans groupe.
+export async function listVendorTagTierProposals(organizationId: string): Promise<VendorTagTierProposal[]> {
+  const loose = (await findVendorTags(organizationId)).filter((tag) => tag.groupId === null);
+  return proposeTierGroups(loose).map((proposal) => ({ unit: proposal.unit, tags: proposal.tags.map((tag) => ({ id: tag.id, label: tag.label })) }));
+}
+
+export async function applyVendorTagTierProposal(organizationId: string, unit: string, groupLabel: string): Promise<VendorTagGroup | null> {
+  const proposal = (await listVendorTagTierProposals(organizationId)).find((candidate) => tierUnitKey(candidate.unit) === tierUnitKey(unit));
+  if (!proposal) return null;
+  const group = await createVendorTagGroup(organizationId, { label: groupLabel, exclusive: true });
+  if (!group.exclusive) await updateVendorTagGroup(organizationId, group.id, { label: group.label, exclusive: true });
+  await setVendorTagsGroup(organizationId, group.id, proposal.tags.map((tag, position) => ({ id: tag.id, position })));
+  return { ...group, exclusive: true };
 }
 
 // PRE-01 / PRE-03 — fiches.
@@ -411,7 +510,15 @@ async function prepareWrite(organizationId: string, input: VendorInput): Promise
   const types = await listVendorTypes(organizationId);
   const type = input.typeId ? types.find((candidate) => candidate.id === input.typeId) : null;
   if (input.typeId && !type) throw new VendorTypeNotFoundError();
-  const tags = new Set((await findVendorTags(organizationId)).map((tag) => tag.id));
+  const tagRows = await findVendorTags(organizationId);
+  const tags = new Set(tagRows.map((tag) => tag.id));
+  // Lot 20 (décision 5) : un seul palier par groupe « palier ».
+  const exclusiveGroups = new Set((await findVendorTagGroups(organizationId)).filter((group) => group.exclusive).map((group) => group.id));
+  const chosenTiers = (input.tagIds ?? []).flatMap((id) => {
+    const tag = tagRows.find((candidate) => candidate.id === id);
+    return tag?.groupId && exclusiveGroups.has(tag.groupId) ? [tag.groupId] : [];
+  });
+  if (new Set(chosenTiers).size !== chosenTiers.length) throw new VendorTagTierConflictError();
   return {
     typeId: type?.id ?? null,
     name,
@@ -654,7 +761,14 @@ const _contractCheck: VendorsServiceContract = {
   removeVendorTypeField,
   listVendorTags,
   createVendorTag,
+  updateVendorTag,
   removeVendorTag,
+  listVendorTagGroups,
+  createVendorTagGroup,
+  updateVendorTagGroup,
+  removeVendorTagGroup,
+  listVendorTagTierProposals,
+  applyVendorTagTierProposal,
   createVendor,
   updateVendor,
   setVendorLocation,

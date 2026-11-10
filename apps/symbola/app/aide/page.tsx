@@ -12,7 +12,7 @@ import { getHelpProgress, isModuleEnabled, type HelpProgressEntry } from "@/modu
 import { requireSignedIn } from "@/lib/guards";
 import { TUTORIALS, type HelpModule } from "@/lib/help/catalog";
 import { AUTO_TOURS_COOKIE } from "@/lib/help/preferences";
-import { captureSrc, HELP_GROUP_ORDER, helpScreenHref, screensFor, type HelpAudience } from "@/lib/help/screens";
+import { HELP_GROUP_ORDER, helpScreenHref, screensFor, tileImage, type HelpAudience } from "@/lib/help/screens";
 import { AideSearch, type HelpTileGroup } from "./aide-search";
 import { AutoToursToggle } from "./auto-tours-toggle";
 
@@ -60,7 +60,7 @@ export default async function AidePage() {
           body: tHelp(`${screen.key}.body`),
           searchText: faq.map((item) => `${item.q} ${item.a}`).join(" "),
           href: helpScreenHref(screen.key),
-          image: screen.capture ? captureSrc(screen.key) : null,
+          image: tileImage(screen),
           badge: screen.tour ? (seen(screen.tour) ? tCenter("stateSeen") : tCenter("stateNew")) : null,
           badgeSeen: screen.tour ? seen(screen.tour) : false,
         };

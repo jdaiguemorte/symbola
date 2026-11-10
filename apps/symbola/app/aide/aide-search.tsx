@@ -13,7 +13,7 @@ export type HelpTile = {
   body: string;
   searchText: string;
   href: string;
-  image: string | null;
+  image: string;
   badge: string | null;
   badgeSeen: boolean;
 };
@@ -65,14 +65,9 @@ export function AideSearch({
               {group.tiles.map((tile) => (
                 <li key={tile.key}>
                   <Link href={tile.href} className="help-tile">
-                    {tile.image ? (
-                      // Capture réelle de l'écran (script help:captures) ; décorative, le titre suit.
-                      <img src={tile.image} alt="" width={640} height={400} loading="lazy" />
-                    ) : (
-                      <span className="help-tile-placeholder" aria-hidden="true">
-                        ?
-                      </span>
-                    )}
+                    {/* Capture réelle de l'écran (script help:captures) ou, à défaut,
+                        illustration générique (lot 20, AIDE-16) ; décorative, le titre suit. */}
+                    <img src={tile.image} alt="" width={640} height={400} loading="lazy" />
                     <span className="help-tile-text">
                       <span className="help-tile-title">{tile.title}</span>
                       <span className="help-tile-body">{tile.body}</span>

@@ -5,6 +5,7 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { loadFollowUps } from "./follow-ups";
+import { HOME_BLOCK_LINES } from "./home-blocks";
 
 export async function FollowUpBlock({ organizationId, modules }: { organizationId: string; modules: { events: boolean; quotes: boolean } }) {
   const t = await getTranslations("Home");
@@ -13,7 +14,7 @@ export async function FollowUpBlock({ organizationId, modules }: { organizationI
     prospect: (names) => t("followUpProspect", { names }),
   });
   return (
-    <section className="card" aria-labelledby="follow-up-title">
+    <section className="card home-block" aria-labelledby="follow-up-title" data-tour="home-follow-up" data-urgent={items.length > 0 ? "true" : undefined}>
       <div className="section-head">
         <h2 id="follow-up-title">{t("followUpTitle")}</h2>
         <Link href="/parametres/relances">{t("followUpSettings")}</Link>
@@ -21,14 +22,17 @@ export async function FollowUpBlock({ organizationId, modules }: { organizationI
       {items.length === 0 ? (
         <p>{t("followUpEmpty")}</p>
       ) : (
-        <ul className="follow-up-list">
-          {items.map((item) => (
-            <li key={item.key}>
-              <Link href={item.href}>{item.label}</Link>
-              <span className="badge badge-ambre">{t("followUpDays", { days: item.days })}</span>
-            </li>
-          ))}
-        </ul>
+        <>
+          <ul className="follow-up-list">
+            {items.slice(0, HOME_BLOCK_LINES).map((item) => (
+              <li key={item.key}>
+                <Link href={item.href}>{item.label}</Link>
+                <span className="badge badge-ambre">{t("followUpDays", { days: item.days })}</span>
+              </li>
+            ))}
+          </ul>
+          {items.length > HOME_BLOCK_LINES ? <p className="home-more">{t("moreFollowUps", { count: items.length - HOME_BLOCK_LINES })}</p> : null}
+        </>
       )}
     </section>
   );

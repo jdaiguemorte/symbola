@@ -10,6 +10,8 @@ import {
 import { requirePlanner } from "@/lib/guards";
 import { purgeOrganizationsDemoData } from "@/lib/demo-purge";
 import { PageTour } from "../page-tour";
+import { SettingsLink } from "@/app/settings-link";
+import { PageHeader } from "@/app/ui/page-header";
 import { loadPageTour } from "@/lib/help/page-tour";
 import { isEventsModuleEnabled } from "./module-access";
 import { startTrialAction } from "./trial-actions";
@@ -88,41 +90,39 @@ export default async function EventsListPage({
     return clients.map((client) => client.firstName).join(" & ");
   }
 
+  // Lot 20 (décision 2) : l'essai guidé se lance depuis l'aide de l'écran
+  // (et quand la liste est vide), plus depuis « Plus d'options ».
+  const trialAction = trial ? (
+    <Link href={`/events/${trial.eventId}`} className="button-link button-link-primary">
+      {t("trialResume")}
+    </Link>
+  ) : (
+    <form action={startTrialAction} className="primary-action">
+      <button type="submit">{t("trialStart")}</button>
+    </form>
+  );
+  // Dans le tiroir d'aide : un simple bloc (pas une région), pour ne pas
+  // doubler la région « Essai guidé » de la liste vide.
+  const trialHelp = (
+    <div className="help-extra">
+      <h3>{t("trialTitle")}</h3>
+      <p>{t("trialIntro")}</p>
+      {trialAction}
+    </div>
+  );
+
   return (
     <main>
-      <h1>{t("title")}</h1>
-      <PageTour {...tour} helpTitle={tHelp("eventsList.title")} helpBody={tHelp("eventsList.body")} />
+      <PageHeader title={t("title")} actions={<SettingsLink href="/events/parametres" label={t("settingsLink")} tour="events-settings" />} />
+      <PageTour {...tour} helpTitle={tHelp("eventsList.title")} helpBody={tHelp("eventsList.body")} helpExtra={trialHelp} />
 
       {essai === "termine" ? <p role="status">{t("trialEnded")}</p> : null}
-      <nav className="toolbar">
+      {/* Lot 20 (décision 1) : les réglages passent par « Réglages » ; la barre
+          ne garde que l'action principale. */}
+      <nav className="toolbar" aria-label={t("actionsLabel")}>
         <Link href="/events/new" className="button-link button-link-primary" data-tour="new-prospect">
           {t("newProspect")}
         </Link>
-        <Link href="/events/parametres" className="button-link" data-tour="events-settings">
-          {t("settingsLink")}
-        </Link>
-        <Link href="/events/modeles" className="button-link">
-          {t("taskTemplatesLink")}
-        </Link>
-        <Link href="/events/modeles-programme" className="button-link">
-          {t("programTemplatesLink")}
-        </Link>
-        {/* AIDE-02 : essai guidé sur un événement fictif. Lot 16 (HUB-20) : hors
-            du haut de la liste, dans « ⋯ » (et dans le centre d'aide). */}
-        <details className="more-actions" data-tour="events-trial" open={trial ? true : undefined}>
-          <summary>{t("moreActions")}</summary>
-          <div className="more-actions-panel">
-            <p className="strong">{t("trialTitle")}</p>
-            <p>{t("trialIntro")}</p>
-            {trial ? (
-              <Link href={`/events/${trial.eventId}`}>{t("trialResume")}</Link>
-            ) : (
-              <form action={startTrialAction}>
-                <button type="submit">{t("trialStart")}</button>
-              </form>
-            )}
-          </div>
-        </details>
       </nav>
 
       <div data-tour="events-filters">
@@ -206,6 +206,13 @@ export default async function EventsListPage({
         </div>
       ) : null}
       {items.length === 0 ? <p>{t("noResults")}</p> : null}
+      {counts.upcoming + counts.past === 0 ? (
+        <section className="card" aria-labelledby="events-empty-trial">
+          <h2 id="events-empty-trial">{t("trialTitle")}</h2>
+          <p>{t("trialIntro")}</p>
+          {trialAction}
+        </section>
+      ) : null}
     </main>
   );
 }

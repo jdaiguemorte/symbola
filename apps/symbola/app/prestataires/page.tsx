@@ -12,8 +12,9 @@ import { requirePlanner } from "@/lib/guards";
 import { loadPageTour } from "@/lib/help/page-tour";
 import { mapAssets } from "@/lib/map/tiles";
 import { PageTour } from "@/app/page-tour";
-import { GearLink } from "@/app/gear-link";
-import { addVendorToSlotAction } from "./actions";
+import { SettingsLink } from "@/app/settings-link";
+import { addVendorToSlotAction, archiveVendorAction } from "./actions";
+import { ConfirmDialog } from "@/app/ui/confirm-dialog";
 import { queryString, RADIUS_CHOICES, UNCLASSIFIED_FAMILY, type BookQuery } from "./filters";
 import { isVendorsModuleEnabled } from "./module-access";
 import { loadBookSelection } from "./selection";
@@ -46,7 +47,7 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
   await ensureVendorFamilies(organizationId, (await getLocale()) === "en" ? "en" : "fr");
   const query = await searchParams;
   const [selection, assets, counts] = await Promise.all([loadBookSelection(organizationId, query), mapAssets(), countVendorsByType(organizationId)]);
-  const { families, types, tags, filters, center, centerNotFound, results, target } = selection;
+  const { families, types, tags, tagGroups, filters, center, centerNotFound, results, target } = selection;
   const typeById = new Map(types.map((type) => [type.id, type]));
   const familyById = new Map(families.map((family) => [family.id, family]));
   const familyOf = (typeId: string | null) => {
@@ -101,7 +102,7 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
         subtitle={t("subtitle", { count: results.length })}
         actions={
           <>
-            <GearLink href="/prestataires/parametres" label={t("settingsLink")} />
+            <SettingsLink href="/prestataires/parametres" label={t("settingsLink")} />
             <Link className="button-link button-link-primary" href={`/prestataires/nouveau${target ? queryString(query) : ""}`} data-tour="vendor-new">
               {t("newVendor")}
             </Link>
@@ -206,11 +207,26 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
               {t("filterTag")}
               <select name="etiquette" defaultValue={filters.tagId ?? ""}>
                 <option value="">{t("allTags")}</option>
-                {tags.map((tag) => (
-                  <option key={tag.id} value={tag.id}>
-                    {tag.label}
-                  </option>
-                ))}
+                {/* Lot 20 (décision 5) : rangées par groupe, comme sur la fiche. */}
+                {[...tagGroups.map((group) => ({ key: group.id, label: group.label, tags: tags.filter((tag) => tag.groupId === group.id) })), { key: "other", label: t("tagGroupOther"), tags: tags.filter((tag) => tag.groupId === null) }]
+                  .filter((section) => section.tags.length > 0)
+                  .map((section) =>
+                    tagGroups.length === 0 ? (
+                      section.tags.map((tag) => (
+                        <option key={tag.id} value={tag.id}>
+                          {tag.label}
+                        </option>
+                      ))
+                    ) : (
+                      <optgroup key={section.key} label={section.label}>
+                        {section.tags.map((tag) => (
+                          <option key={tag.id} value={tag.id}>
+                            {tag.label}
+                          </option>
+                        ))}
+                      </optgroup>
+                    ),
+                  )}
               </select>
             </label>
           ) : null}
@@ -290,6 +306,18 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
                     {vendor.isDemo ? <span className="badge badge-ambre">{t("demo")}</span> : null}
                     {!vendor.location ? <span>{t("notPlaced")}</span> : null}
                   </span>
+                  {/* Lot 20 (PRE-17) : archiver sans ouvrir la fiche, après confirmation. */}
+                  <ConfirmDialog
+                    trigger={t("archiveShort")}
+                    triggerLabel={t("archive", { vendor: vendor.name })}
+                    triggerClassName="link-button vendor-row-archive"
+                    title={t("archiveConfirmTitle", { vendor: vendor.name })}
+                    body={t("archiveConfirmBody")}
+                    confirmLabel={t("archiveConfirm")}
+                    cancelLabel={t("archiveCancel")}
+                    action={archiveVendorAction}
+                    fields={{ vendorId: vendor.id, back: `/prestataires${queryString(query, { fiche: null })}` }}
+                  />
                   {target ? (
                     <form action={addVendorToSlotAction}>
                       <input type="hidden" name="vendorId" value={vendor.id} />

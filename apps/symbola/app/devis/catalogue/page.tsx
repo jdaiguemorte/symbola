@@ -67,7 +67,7 @@ export default async function QuoteCatalogPage({ searchParams }: { searchParams:
         ))}
       </ul>
 
-      <h2>{t("newItemTitle")}</h2>
+      <h2 data-tour="catalog-new">{t("newItemTitle")}</h2>
       <CatalogItemForm defaultVatRateBasisPoints={defaultRate} />
     </main>
   );

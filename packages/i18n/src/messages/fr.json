@@ -99,7 +99,9 @@
     "topBar": "Recherche et aide de l'écran",
     "agendaYear": "Voir l'année",
     "documentsSettings": "Documents : logo, couleur, IBAN",
-    "privacySearch": "Rechercher une personne (RGPD)"
+    "privacySearch": "Rechercher une personne (RGPD)",
+    "moreTasks": "{count, plural, one {Et # autre tâche.} other {Et # autres tâches.}}",
+    "moreFollowUps": "{count, plural, one {Et # autre à relancer.} other {Et # autres à relancer.}}"
   },
   "Admin": {
     "createOrganizationTitle": "Créer une organisation",
@@ -278,15 +280,23 @@
     "hub": [
       {
         "title": "L'agenda",
-        "body": "Vos événements mois par mois. Cliquez une date libre pour y créer un prospect ou un événement."
+        "body": "Vos week-ends mois par mois : en plein, les événements confirmés ; en pointillé, les dates posées sur un prospect ; une pastille signale deux événements le même week-end. Cliquez une date libre pour y créer un prospect."
       },
       {
-        "title": "Les paramètres",
-        "body": "Votre entreprise, vos listes et vos modèles, rangés par rubrique."
+        "title": "Naviguer dans l'agenda",
+        "body": "‹ et › changent de période, « Aujourd'hui » revient au mois en cours. Affichez 3 mois, 6 mois ou toute l'année."
       },
       {
-        "title": "L'aide de l'écran",
-        "body": "Ce bouton affiche les repères de l'écran où vous êtes. Le centre d'aide, dans le menu, présente tous les écrans."
+        "title": "À traiter",
+        "body": "Les devis envoyés et les prospects restés sans nouvelle au-delà de vos délais de relance."
+      },
+      {
+        "title": "À faire cette quinzaine",
+        "body": "Les tâches en retard ou dues dans les 14 jours, tous événements confondus. Cochez une tâche pour la marquer faite."
+      },
+      {
+        "title": "Encaissements à venir",
+        "body": "Les acomptes et soldes attendus, par date d'échéance."
       }
     ],
     "events": [
@@ -304,47 +314,27 @@
       },
       {
         "title": "Les réglages",
-        "body": "La roue crantée mène aux lignes du budget, sources et modèles."
-      },
-      {
-        "title": "L'essai guidé",
-        "body": "Un mariage fictif complet pour tout tester ; il est supprimé à la fin."
+        "body": "« Réglages » mène aux lignes du budget, sources et motifs, types d'événements et modèles de rétroplanning et de programme."
       }
     ],
     "quotes": [
       {
         "title": "Le catalogue",
-        "body": "Vos prestations réutilisables, prêtes pour vos devis."
+        "body": "Vos prestations réutilisables : intitulé, unité, prix HT, TVA et catégorie. Dépliez un article pour le modifier ; archivé, il n'est plus proposé mais reste sur les devis qui l'utilisent."
       },
       {
-        "title": "Composer un devis",
-        "body": "Depuis la fiche d'un événement : articles, lignes libres et remises."
-      },
-      {
-        "title": "Acomptes et signature",
-        "body": "Prévoyez les acomptes, puis envoyez le devis en signature."
-      },
-      {
-        "title": "Factures et encaissements",
-        "body": "Depuis le devis signé : facture d'acompte, puis de solde."
+        "title": "Nouvel article",
+        "body": "Intitulé, unité et prix suffisent : l'article est aussitôt proposé quand vous composez un devis."
       }
     ],
     "budget": [
       {
         "title": "Vos répartitions",
-        "body": "Des pourcentages par ligne pour proposer des montants prévus."
+        "body": "Chaque modèle partage un budget total entre vos lignes, en pourcentages. Il propose les montants prévus quand vous simulez le budget d'un événement."
       },
       {
-        "title": "Simuler un budget",
-        "body": "Sur un événement : un total et un nombre d'invités, ajustables ligne par ligne."
-      },
-      {
-        "title": "Prévu, réel, écart",
-        "body": "Saisissez le réel et joignez les devis pour suivre l'écart."
-      },
-      {
-        "title": "Avec les mariés",
-        "body": "Ils voient leur budget en lecture seule dans leur espace."
+        "title": "Nouveau modèle",
+        "body": "Un nom, puis un pourcentage par ligne ; le total doit faire 100 %. Les lignes sont celles de Paramètres › Lignes du budget."
       }
     ],
     "event": [
@@ -399,7 +389,7 @@
     },
     "home": {
       "title": "Accueil",
-      "body": "L'agenda de vos événements et le bloc « À traiter » : devis sans réponse, prospects sans nouvelle et acomptes attendus dans les 15 jours, chacun menant à sa fiche. Un clic sur une date libre de l'agenda crée un prospect ou un événement à cette date.",
+      "body": "Votre tableau de bord. L'agenda montre vos week-ends pris ; cliquez une date libre pour y créer un prospect. Dessous, ce qui demande votre attention : devis et prospects à relancer, tâches de la quinzaine, encaissements à venir. Un bloc en retard passe en premier.",
       "faq": [
         {
           "q": "Comment changer les délais de « À traiter » ?",
@@ -407,13 +397,13 @@
         },
         {
           "q": "Où reprendre un tutoriel commencé ?",
-          "a": "La pastille « Reprendre » en bas à droite y mène ; la page Tutoriels montre tout le parcours."
+          "a": "Dans Tutoriels, au menu : le tutoriel en cours y est proposé en premier, avec tout le parcours."
         }
       ]
     },
     "settings": {
       "title": "Entreprise et TVA",
-      "body": "La fiche de votre entreprise (SIREN, adresse, forme juridique, métier) et votre régime de TVA. Ces informations figurent sur vos devis et factures. Les autres réglages sont rangés par rubrique dans le menu de gauche.",
+      "body": "La fiche de votre entreprise (SIREN, adresse, forme juridique, métier) et votre régime de TVA : ils figurent sur vos devis et factures. Le métier règle le vocabulaire et les modèles de départ. Les autres réglages sont rangés par rubrique dans le menu de gauche.",
       "faq": [
         {
           "q": "Je passe de la franchise à la TVA : que faire ?",
@@ -467,7 +457,7 @@
     },
     "eventsList": {
       "title": "Liste des événements",
-      "body": "Tous vos prospects et événements à venir, en tableau. Filtrez à la saisie par nom, statut, source ou année ; « Terminés » garde les événements réalisés ou perdus. Cliquez une ligne pour ouvrir la fiche, ou « Nouveau prospect » pour en créer un. L'essai guidé ouvre un mariage fictif pour tout tester sans risque.",
+      "body": "Tous vos prospects et événements à venir ; « Terminés » garde ceux réalisés ou perdus. Commencez par « Nouveau prospect », ou filtrez la liste par nom, statut, source ou année. Pour découvrir le module sans risque, lancez l'essai guidé ci-dessous.",
       "faq": [
         {
           "q": "Où retrouver un événement passé ?",
@@ -485,7 +475,7 @@
     },
     "eventsNew": {
       "title": "Nouveau prospect",
-      "body": "Un prénom de marié et la source du contact suffisent ; la date et le lieu se complètent plus tard. Depuis l'agenda, un clic sur une date libre ouvre ce formulaire avec la date déjà remplie.",
+      "body": "Un prénom de marié et la source du contact suffisent pour créer le prospect ; la date, le lieu et le budget se complètent plus tard. Depuis l'agenda, une date libre ouvre ce formulaire avec la date déjà remplie.",
       "faq": [
         {
           "q": "Quelle différence entre prospect et événement ?",
@@ -499,7 +489,7 @@
     },
     "eventsDetail": {
       "title": "Fiche de l'événement",
-      "body": "Tout l'événement tient sur cette fiche, en onglets. La frise du haut montre le statut et la date de chaque étape : cliquez l'étape suivante pour avancer. Le bandeau « Prochaine étape » propose ce qui reste à faire (envoyer le devis, appliquer le rétroplanning, préparer le programme, inviter les mariés). La vue d'ensemble résume le budget, les lignes réservées, les tâches en retard et le devis signé ; le détail d'une ligne du budget s'ouvre dans le panneau de droite.",
+      "body": "Tout l'événement, en onglets. La frise du haut montre où il en est : cliquez l'étape suivante pour avancer. Le bandeau « Prochaine étape » dit quoi faire maintenant (envoyer le devis, appliquer le rétroplanning, inviter les mariés). Chaque onglet a son lien « Réglages » vers ses modèles.",
       "faq": [
         {
           "q": "Comment marquer un événement perdu ?",
@@ -521,7 +511,7 @@
     },
     "eventsSettings": {
       "title": "Lignes du budget",
-      "body": "Les lignes que reçoit chaque nouvel événement (lieu, traiteur, photographe…), avec leur icône et leur ordre. Elles ont été préparées au démarrage selon votre métier : ajoutez ou renommez-les (une ligne s'ouvre dans le panneau de droite) et changez leur ordre en les glissant, ou avec les flèches.",
+      "body": "Les lignes que reçoit chaque nouvel événement (lieu, traiteur, photographe…). Elles ont été préparées selon votre métier : ajoutez, renommez, réordonnez en glissant. Un changement vaut pour les prochains événements, pas pour ceux déjà créés.",
       "faq": [
         {
           "q": "Changer une ligne modifie-t-il les événements existants ?",
@@ -535,7 +525,7 @@
     },
     "eventsTemplates": {
       "title": "Modèles de rétroplanning",
-      "body": "Vos listes de tâches types, placées par rapport à la date de l'événement (J-365, J-30, jour J…). Partez du modèle de départ ou créez le vôtre ; un modèle s'applique depuis la fiche d'un événement confirmé et daté.",
+      "body": "Vos listes de tâches types, placées avant ou après la date de l'événement (J-365, J-30, jour J…). Créez un modèle en tête de page, ou chargez le modèle de départ, puis ajoutez ses tâches. Il s'applique depuis l'onglet Rétroplanning d'un événement daté.",
       "faq": [
         {
           "q": "Modifier un modèle change-t-il les événements en cours ?",
@@ -545,7 +535,7 @@
     },
     "eventsProgramTemplates": {
       "title": "Modèles de programme",
-      "body": "Vos déroulés types du jour J, moment par moment. Un modèle s'applique depuis l'onglet Programme d'un événement : ses moments s'ajoutent, et les intervenants qui portent le nom d'une ligne du budget y sont reliés.",
+      "body": "Vos déroulés types du jour J, moment par moment. Créez un modèle en tête de page, puis ajoutez ses moments. Il s'applique depuis l'onglet Programme d'un événement ; les intervenants qui portent le nom d'une ligne du budget y sont reliés.",
       "faq": [
         {
           "q": "Peut-on télécharger le programme ?",
@@ -571,7 +561,7 @@
     },
     "budgetSettings": {
       "title": "Répartition du budget",
-      "body": "Une répartition partage un budget total entre vos lignes, en pourcentages qui font 100 %. Elle sert à proposer des montants prévus ; elle est facultative, le budget d'un événement existe dès sa création.",
+      "body": "Une répartition partage un budget total entre vos lignes, en pourcentages qui font 100 %. Créez-en une pour proposer des montants prévus quand vous simulez le budget d'un événement. Elle est facultative : un événement a un budget dès sa création.",
       "faq": [
         {
           "q": "Faut-il une répartition par type de mariage ?",
@@ -581,7 +571,7 @@
     },
     "budgetDetail": {
       "title": "Budget de l'événement",
-      "body": "Saisissez le budget total et le nombre d'invités, choisissez une répartition : vous obtenez un montant prévu par ligne et le coût par invité. Ajustez une ligne à la main, le reste à répartir se recalcule. Saisissez ensuite le réel et joignez le devis de chaque prestataire (PDF ou image, 20 Mo au plus) pour suivre l'écart.",
+      "body": "Saisissez le budget total et le nombre d'invités, choisissez une répartition : chaque ligne reçoit un montant prévu. Ajustez une ligne, le reste se recalcule. Saisissez ensuite le réel et joignez le devis de chaque prestataire pour suivre l'écart.",
       "faq": [
         {
           "q": "Les mariés voient-ils le budget ?",
@@ -595,7 +585,7 @@
     },
     "quotesCatalog": {
       "title": "Catalogue des prestations",
-      "body": "Vos prestations réutilisables : intitulé, unité, prix HT, taux de TVA et catégorie. Elles se retrouvent prêtes à l'emploi dans vos devis. Un article archivé disparaît du choix mais reste sur les devis qui l'utilisent.",
+      "body": "Vos prestations réutilisables : intitulé, unité, prix HT, TVA et catégorie. Ajoutez un article en bas de page ; il est aussitôt proposé dans vos devis. Archivé, il n'est plus proposé mais reste sur les devis qui l'utilisent.",
       "faq": [
         {
           "q": "Changer un prix modifie-t-il les devis envoyés ?",
@@ -615,7 +605,7 @@
     },
     "quotesDetail": {
       "title": "Composer un devis",
-      "body": "Ajoutez des articles du catalogue ou des lignes libres, ajustez quantités et remises : les totaux se recalculent. Prévoyez l'échéancier des acomptes, puis envoyez le devis en signature : l'événement passe en « Confirmé » à la signature. Une version envoyée est figée ; pour la changer, créez une nouvelle version.",
+      "body": "Composez le devis à partir du catalogue ou de lignes libres ; les totaux se recalculent. Prévoyez les acomptes, puis envoyez-le en signature : à la signature, l'événement passe en « Confirmé ». Une version envoyée est figée ; pour la changer, créez une nouvelle version.",
       "faq": [
         {
           "q": "Comment facturer un acompte ?",
@@ -629,7 +619,7 @@
     },
     "quotesPayments": {
       "title": "Encaissements à venir",
-      "body": "Les échéances non payées de vos devis envoyés ou signés, triées par date, avec un total par mois. Une échéance dépassée est signalée « En retard » et remonte dans « À traiter » sur l'accueil.",
+      "body": "Les échéances non payées de vos devis, triées par date avec un total par mois. Marquez une échéance payée depuis son devis. Une échéance dépassée est signalée « En retard » et passe en tête sur l'accueil.",
       "faq": [
         {
           "q": "Les essais guidés comptent-ils ?",
@@ -649,7 +639,7 @@
     },
     "importFile": {
       "title": "Importer des données",
-      "body": "Choisissez ce que vous reprenez : vos prestataires ou vos fiches événement depuis votre outil actuel, ou un autre fichier. L'assistant enchaîne ensuite les étapes, dans une frise ; une étape sans rien à décider est faite d'office. Un import commencé se reprend depuis le journal.",
+      "body": "Choisissez ce que vous reprenez : vos prestataires ou vos fiches événement depuis votre outil actuel, ou un autre fichier. L'assistant enchaîne les étapes et ne vous demande que ce qui doit être décidé. Rien n'est enregistré avant la confirmation, et un import s'annule depuis le journal.",
       "faq": [
         {
           "q": "Que devient mon fichier ?",
@@ -693,7 +683,7 @@
     },
     "privacyRequests": {
       "title": "Demandes des personnes",
-      "body": "Enregistrez chaque demande reçue (accès, rectification, oubli, portabilité, opposition) avec sa date : son dossier s'ouvre, avec l'échéance légale d'un mois. Il vous guide jusqu'à la réponse : retrouver les données, effacer ou exporter, répondre, clore. Une demande complexe se prolonge une fois, avec un motif, jusqu'à trois mois ; une échéance proche est signalée au menu et à l'accueil."
+      "body": "Enregistrez chaque demande reçue (accès, rectification, oubli, portabilité, opposition) avec sa date : son dossier s'ouvre avec l'échéance légale d'un mois. Il vous guide jusqu'à la réponse. Une échéance proche est signalée au menu et sur l'accueil."
     },
     "privacySettings": {
       "title": "Réglages RGPD",
@@ -705,7 +695,7 @@
     },
     "privacyErasure": {
       "title": "Demande d'oubli",
-      "body": "L'aperçu montre, fiche par fiche, ce qui sera supprimé, anonymisé ou conservé (factures 10 ans, devis signés 5 ans). Après validation, chaque module fait sa part ; la demande se clôt quand tous ont répondu. Téléchargez ensuite la preuve horodatée et envoyez la réponse proposée."
+      "body": "L'aperçu montre, fiche par fiche, ce qui sera supprimé, anonymisé ou conservé (factures 10 ans, devis signés 5 ans). Après validation, chaque module fait sa part. Téléchargez ensuite la preuve horodatée et envoyez la réponse : la demande se clôt une fois la réponse marquée envoyée."
     },
     "privacyPurge": {
       "title": "Purge mensuelle",
@@ -713,7 +703,7 @@
     },
     "allTasks": {
       "title": "Les tâches de tous vos mariages",
-      "body": "Les tâches de tous vos événements en cours, triées par échéance. Cochez une tâche faite ; cliquez-la pour la modifier sur la fiche de son mariage.",
+      "body": "Les tâches de tous vos événements, triées par échéance. Filtrez « En retard » pour rattraper, ou par qui la réalise ; cochez une tâche faite. Cliquez-la pour la modifier sur la fiche de son mariage.",
       "faq": [
         {
           "q": "Les tâches des mariés apparaissent-elles ?",
@@ -723,7 +713,7 @@
     },
     "allQuotes": {
       "title": "Vos devis",
-      "body": "Tous vos devis, avec leur statut. Un devis se crée depuis la fiche de son événement ; les factures d'acompte et de solde se font depuis le devis signé.",
+      "body": "Tous vos devis et factures, avec leur statut. Un devis se crée depuis la fiche de son événement ; les factures d'acompte et de solde, depuis le devis signé. « Réglages » mène à la numérotation, au catalogue et à l'apparence des documents.",
       "faq": [
         {
           "q": "Pourquoi ne puis-je pas créer un devis ici ?",
@@ -755,7 +745,7 @@
     },
     "vendorBook": {
       "title": "Le carnet de prestataires",
-      "body": "Chaque prestataire a une seule fiche, réutilisée d'un événement à l'autre. Les pastilles du haut filtrent par famille, puis par type ; la barre de filtres cherche par nom, autour d'un lieu ou parmi ceux déjà retenus. Sur ordinateur, la liste et la carte sont côte à côte, chaque famille avec sa couleur et son pictogramme ; sur téléphone, basculez de l'une à l'autre. Une fiche s'ouvre dans le panneau de droite.",
+      "body": "Chaque prestataire a une seule fiche, réutilisée d'un événement à l'autre. Filtrez par famille avec les pastilles du haut, puis par type, étiquette, ou autour d'un lieu. Une ligne ouvre sa fiche à droite ; « Archiver » la retire du carnet après confirmation.",
       "faq": [
         {
           "q": "Comment comparer plusieurs devis pour une ligne ?",
@@ -795,7 +785,7 @@
     },
     "quotesDocuments": {
       "title": "Documents",
-      "body": "L'apparence de vos devis, factures et avoirs : logo, couleur, police, textes et IBAN. L'aperçu montre un exemple avec vos réglages en cours. Un document déjà émis ne change jamais.",
+      "body": "L'apparence de vos devis, factures et avoirs : logo, couleur, police, textes et IBAN. L'aperçu se met à jour pendant que vous réglez. Un document déjà émis garde son apparence ; vos réglages valent pour les suivants.",
       "faq": [
         {
           "q": "Pourquoi les titres paraissent-ils plus foncés que ma couleur ?",
@@ -816,6 +806,64 @@
           "a": "Oui, comme preuve du traitement, pendant la durée réglée (5 ans par défaut, onglet Réglages). Ensuite, la purge mensuelle propose de le remplacer par « [anonymisé] » ; le type, les dates et le journal de la demande restent."
         }
       ]
+    },
+    "eventsSources": {
+      "title": "Sources et motifs",
+      "body": "Deux listes qui servent à suivre votre activité. Les sources disent d'où vient un prospect (Instagram, bouche-à-oreille, salon…) : on la choisit à sa création. Les motifs de perte expliquent pourquoi un prospect n'a pas signé : on le choisit en le passant à « Perdu ». Ajoutez, renommez ou retirez les lignes selon votre façon de travailler.",
+      "faq": [
+        {
+          "q": "Retirer une source change-t-il mes prospects ?",
+          "a": "Non : les prospects déjà créés gardent leur source ; elle n'est simplement plus proposée pour les nouveaux."
+        }
+      ]
+    },
+    "followUps": {
+      "title": "Délais de relance",
+      "body": "Au-delà de ces délais, l'accueil vous signale dans « À traiter » les devis envoyés restés sans signature et les prospects sans nouvelle. Raccourcissez-les si vous relancez vite, allongez-les si vos clients prennent leur temps."
+    },
+    "vendorTypes": {
+      "title": "Familles et types de prestataires",
+      "body": "Chaque prestataire a un type (traiteur, fleuriste, domaine…), rangé dans une famille qui donne sa couleur sur la carte. Renommez un type, fusionnez deux doublons, déplacez-le dans une autre famille. Ouvrez un type pour régler ses champs (capacité, tarif, horaires…) et choisir ceux qui servent de filtres dans le carnet.",
+      "faq": [
+        {
+          "q": "Que deviennent les fiches d'un type supprimé ?",
+          "a": "Avant la suppression, vous choisissez le type où les déplacer, ou « à classer ». Pour garder les champs du type, fusionnez-le plutôt."
+        }
+      ]
+    },
+    "vendorTags": {
+      "title": "Étiquettes",
+      "body": "Des étiquettes pour décrire et retrouver vos prestataires : un style, un équipement, une capacité. Ajoutez-en une en tête de page, rangez-la dans un groupe et choisissez ses familles. Un groupe « palier » (capacité, surface…) n'accepte qu'une étiquette par prestataire."
+    },
+    "vendorTravel": {
+      "title": "Estimation des trajets",
+      "body": "Quand vous cherchez des prestataires autour d'un lieu, le carnet estime la distance et la durée de chaque trajet : distance à vol d'oiseau multipliée par un coefficient de détour, puis divisée par une vitesse moyenne. C'est volontairement approximatif, mais instantané et gratuit. L'exemple se recalcule quand vous changez une valeur."
+    },
+    "vendorDetail": {
+      "title": "Fiche d'un prestataire",
+      "body": "Tout ce que vous savez d'un prestataire : coordonnées, caractéristiques de son type, étiquettes, documents, note interne. Cliquez une pastille pour choisir une étiquette ; seules celles de sa famille s'affichent. « Historique avec vous » liste ses prestations, prix devisé et prix final.",
+      "faq": [
+        {
+          "q": "Archiver efface-t-il son historique ?",
+          "a": "Non : la fiche quitte le carnet, mais ses prestations restent sur vos événements et budgets."
+        }
+      ]
+    },
+    "vendorNew": {
+      "title": "Nouveau prestataire",
+      "body": "Un nom et un type suffisent pour créer la fiche ; le reste se complète plus tard. L'adresse saisie place le prestataire sur la carte, et vous pouvez corriger le point à la main."
+    },
+    "search": {
+      "title": "Recherche",
+      "body": "La barre du haut cherche dans toute votre organisation : événements et clients, devis et factures, tâches et fiches d'aide. Tapez un nom, un numéro de devis ou un mot comme « TVA ». Le raccourci ⌘K (Ctrl K sur PC) y place le curseur depuis n'importe quel écran."
+    },
+    "tutorials": {
+      "title": "Tutoriels",
+      "body": "Des tutoriels à faire dans l'ordre conseillé : chacun vous guide sur l'écran réel, avec un exemple fictif que vous pouvez supprimer à la fin. Le compteur du menu montre où vous en êtes ; un tutoriel commencé se reprend d'ici."
+    },
+    "setup": {
+      "title": "Démarrage",
+      "body": "Sept étapes pour préparer votre espace : métier, entreprise, TVA, vos documents, lignes du budget, sources et motifs, modèles. Tout est déjà rempli selon votre métier ; relisez, ajustez, puis « Valider et continuer ». Les étapes facultatives ont un bouton « Plus tard ». Tout se modifie ensuite dans Paramètres."
     }
   },
   "Aide": {
@@ -1206,13 +1254,13 @@
     "clientContactSave": "Enregistrer les coordonnées de {name}",
     "clientContactSaved": "Coordonnées enregistrées.",
     "clientContactInvalidEmail": "Adresse e-mail illisible.",
-    "moreActions": "⋯ Plus d'options",
     "eventType": "Type d'événement",
     "eventTypeNone": "Type à préciser",
     "missingEventType": "Choisissez le type de l'événement.",
     "changeEventType": "Changer le type",
     "eventTypeSaved": "Type de l'événement enregistré.",
-    "eventTypeOf": "Type de l'événement {names}"
+    "eventTypeOf": "Type de l'événement {names}",
+    "actionsLabel": "Actions des événements"
   },
   "Budget": {
     "title": "Budget",
@@ -1542,7 +1590,9 @@
     "quoteNumberColumn": "Numéro",
     "quoteEventColumn": "Mariage",
     "quoteStatusColumn": "Statut",
-    "statusBadge": "{status} — version {version}"
+    "statusBadge": "{status} — version {version}",
+    "moreDashboardPayments": "{count, plural, one {Et # autre échéance.} other {Et # autres échéances.}}",
+    "dashboardPaymentLine": "{label} · {number}"
   },
   "Documents": {
     "pdfSellerHeading": "De",
@@ -2733,7 +2783,6 @@
     "seeAll": "Voir tous les résultats",
     "hint": "↑ ↓ pour choisir · Entrée pour ouvrir · Échap pour fermer",
     "globalLabel": "Recherche dans Symbola",
-    "refineLabel": "Modifier la recherche",
     "vendorBookDetail": "Carnet de prestataires"
   },
   "AdminOnboarding": {
@@ -3282,10 +3331,10 @@
     "typeAdded": "Type ajouté.",
     "typeInvalid": "Nom ou couleur invalide.",
     "settingsTagsTitle": "Étiquettes",
-    "settingsTagsIntro": "Des étiquettes libres pour retrouver vos prestataires (bio, navette, coup de cœur…).",
+    "settingsTagsIntro": "Des étiquettes pour décrire et retrouver vos prestataires : un style, un équipement, une capacité. Rangez-les par groupe et choisissez les familles qu'elles concernent : une fleuriste ne verra pas les étiquettes de lieu.",
     "tagsEmpty": "Aucune étiquette.",
-    "tagLabel": "Nouvelle étiquette",
-    "tagAdd": "Ajouter",
+    "tagLabel": "Nom de l'étiquette",
+    "tagAdd": "Ajouter l'étiquette",
     "tagAdded": "Étiquette ajoutée.",
     "tagRequired": "Indiquez le nom de l'étiquette.",
     "tagRemove": "Supprimer l'étiquette {tag}",
@@ -3408,7 +3457,45 @@
     "familiesTable": "Tableau des familles",
     "typesTable": "Tableau des types",
     "settingsTravelHow": "C'est une estimation, pas un itinéraire : la distance à vol d'oiseau est multipliée par un coefficient de détour (les routes ne vont pas en ligne droite), puis convertie en durée à une vitesse moyenne. Réglez ces deux nombres selon votre région : plus de détour et une vitesse plus basse en montagne ou en ville.",
-    "settingsTravelExample": "Exemple avec ces réglages : un prestataire à {crow} km à vol d'oiseau → environ {km} km de route, ≈ {minutes} min."
+    "settingsTravelExample": "Exemple avec ces réglages : un prestataire à {crow} km à vol d'oiseau → environ {km} km de route, ≈ {minutes} min.",
+    "archiveShort": "Archiver",
+    "archiveConfirmTitle": "Archiver {vendor} ?",
+    "archiveConfirmBody": "La fiche quitte le carnet et n'est plus proposée pour vos événements. Ses prestations restent sur vos événements et budgets.",
+    "archiveConfirm": "Archiver la fiche",
+    "archiveCancel": "Annuler",
+    "tagSave": "Enregistrer l'étiquette",
+    "tagsHint": "Cliquez une pastille pour la choisir.",
+    "tagGroupOther": "Autres",
+    "tagGroupTierLegend": "{group} · un seul choix",
+    "tagTierNone": "Non précisé",
+    "tagTierConflict": "Un seul palier par groupe : choisissez-en un.",
+    "tagGroupLabel": "Groupe",
+    "tagFamiliesLabel": "Pour les familles",
+    "tagFamiliesHint": "Aucune cochée : toutes les familles.",
+    "tagFamiliesAll": "Toutes les familles",
+    "tagsNewTitle": "Nouvelle étiquette",
+    "tagsListTitle": "Vos étiquettes",
+    "tagEdit": "Modifier l'étiquette {tag}",
+    "tagEditShort": "Modifier",
+    "tagGroupsTitle": "Groupes d'étiquettes",
+    "tagGroupsIntro": "Rangez vos étiquettes par sujet (style, équipements…). Un groupe « palier » n'accepte qu'une étiquette par prestataire : capacité, surface, tarif par tranches.",
+    "tagGroupNewTitle": "Nouveau groupe",
+    "tagGroupNameLabel": "Nom du groupe",
+    "tagGroupExclusive": "Palier : une seule étiquette du groupe par prestataire",
+    "tagGroupAdd": "Créer le groupe",
+    "tagGroupAdded": "Groupe créé.",
+    "tagGroupSave": "Enregistrer le groupe",
+    "tagGroupSaved": "Groupe enregistré.",
+    "tagGroupRequired": "Indiquez le nom du groupe.",
+    "tagGroupEdit": "Modifier le groupe {group}",
+    "tagGroupRemove": "Supprimer le groupe {group}",
+    "tagGroupRemoveHint": "Ses étiquettes passent dans « Autres » ; aucun prestataire ne les perd.",
+    "tagGroupTierBadge": "Palier",
+    "tagGroupCount": "{count, plural, =0 {aucune étiquette} one {# étiquette} other {# étiquettes}}",
+    "tierProposalsTitle": "Paliers repérés",
+    "tierProposalsIntro": "Ces étiquettes décrivent la même mesure par tranches. Rangez-les en palier : un prestataire n'en portera plus qu'une, et le carnet les filtrera dans l'ordre.",
+    "tierProposalTags": "{count} étiquettes en « {unit} » : {labels}",
+    "tierProposalApply": "Ranger en palier"
   },
   "Setup": {
     "title": "Bienvenue : préparons votre espace",
@@ -3586,7 +3673,10 @@
     "privacyAlerts": "{count, plural, one {# demande RGPD en alerte} other {# demandes RGPD en alerte}}"
   },
   "Common": {
-    "closePanel": "Fermer le panneau"
+    "closePanel": "Fermer le panneau",
+    "moduleSettings": "Réglages",
+    "filterLabel": "Filtrer la liste",
+    "filterCount": "{shown, plural, one {# affiché} other {# affichés}} sur {total}"
   },
   "TutorialsPage": {
     "title": "Tutoriels",

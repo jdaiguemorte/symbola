@@ -7,11 +7,13 @@ import {
   geocodeAddress,
   getVendor,
   listVendorFamilies,
+  listVendorTagGroups,
   listVendorTags,
   listVendorTypes,
   type VendorFamily,
   type VendorListItem,
   type VendorTag,
+  type VendorTagGroup,
   type VendorType,
 } from "@/modules/vendors/service";
 import { parseBookFilters, toFindInput, type BookFilters, type BookQuery } from "./filters";
@@ -21,6 +23,7 @@ export type BookSelection = {
   families: VendorFamily[];
   types: VendorType[];
   tags: VendorTag[];
+  tagGroups: VendorTagGroup[];
   filters: BookFilters;
   center: { latitude: number; longitude: number; label: string } | null;
   centerNotFound: boolean;
@@ -32,7 +35,12 @@ export type BookSelection = {
 const VENDOR_REFERENCE = /^fiche:([0-9a-f-]{36})$/i;
 
 export async function loadBookSelection(organizationId: string, query: BookQuery): Promise<BookSelection> {
-  const [families, types, tags] = await Promise.all([listVendorFamilies(organizationId), listVendorTypes(organizationId), listVendorTags(organizationId)]);
+  const [families, types, tags, tagGroups] = await Promise.all([
+    listVendorFamilies(organizationId),
+    listVendorTypes(organizationId),
+    listVendorTags(organizationId),
+    listVendorTagGroups(organizationId),
+  ]);
   const filters = parseBookFilters(query, types);
 
   let target: BookSelection["target"] = null;
@@ -67,5 +75,5 @@ export async function loadBookSelection(organizationId: string, query: BookQuery
   }
 
   const results = await findVendors(toFindInput(organizationId, { ...filters, aroundText }, center));
-  return { families, types, tags, filters: { ...filters, aroundText }, center, centerNotFound, results, target };
+  return { families, types, tags, tagGroups, filters: { ...filters, aroundText }, center, centerNotFound, results, target };
 }

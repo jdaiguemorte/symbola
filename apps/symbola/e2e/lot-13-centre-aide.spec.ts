@@ -95,7 +95,10 @@ test("AIDE-12 — l'Admin ne voit que l'aide de la console, sans capture d'organ
   await page.goto("/aide");
   const console = page.getByRole("region", { name: "Administration de la suite" });
   await expect(console.getByRole("link", { name: /Comptes et assistance/ })).toBeVisible();
-  await expect(console.locator("img")).toHaveCount(0);
+  // Lot 20 (AIDE-16) : jamais de capture d'organisation, seulement
+  // l'illustration générique.
+  await expect(console.locator("img").first()).toBeVisible();
+  await expect(console.locator('img:not([src="/aide/illustration-ecran.svg"])')).toHaveCount(0);
   await expect(page.getByRole("region", { name: "Événements" })).toHaveCount(0);
   await expectNoAxeViolation(page);
   const response = await page.goto("/aide/ecrans/eventsList");

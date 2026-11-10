@@ -50,3 +50,4 @@ Un fichier par décision structurante, numéroté. Pour changer une décision : 
 - [0046 — Devis et factures à son image : apparence figée dans l'instantané vendeur](0046-documents-a-son-image.md)
 - [0047 — Une demande RGPD, un dossier ; les documents dans l'accompagnement](0047-dossier-rgpd-et-documents-dans-l-accompagnement.md)
 - [0048 — Preuve d'une demande RGPD close : nom anonymisé par la purge mensuelle](0048-preuve-des-demandes-rgpd-anonymisee.md)
+- [0049 — Étiquettes par groupe et par famille ; un seul accès aux réglages ; vocabulaire des écrans mixtes](0049-etiquettes-reglages-et-ecrans-mixtes.md)

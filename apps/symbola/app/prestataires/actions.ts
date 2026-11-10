@@ -9,9 +9,11 @@ import { VENDOR_SOCIAL_NETWORKS } from "@symbola/contracts";
 import { addVendorCandidate, VendorCandidateNotFoundError } from "@/modules/events/service";
 import {
   addVendorTypeField,
+  applyVendorTagTierProposal,
   archiveVendor,
   createVendor,
   createVendorTag,
+  createVendorTagGroup,
   getVendor,
   InvalidVendorFieldValueError,
   InvalidVendorLinkError,
@@ -19,12 +21,18 @@ import {
   parseFieldInput,
   removeVendorFile,
   removeVendorTag,
+  removeVendorTagGroup,
   removeVendorTypeField,
   saveVendorSettings,
   setVendorLocation,
   setVendorTypeFieldFilter,
   updateVendor,
+  updateVendorTag,
+  updateVendorTagGroup,
   VendorNotFoundError,
+  VendorTagGroupNotFoundError,
+  VendorTagNotFoundError,
+  VendorTagTierConflictError,
   VendorTypeNotFoundError,
   type SaveVendorResult,
   type VendorFieldKind,
@@ -73,7 +81,11 @@ async function readVendorInput(organizationId: string, formData: FormData): Prom
     socialLinks: VENDOR_SOCIAL_NETWORKS.map((network) => ({ network, url: text(formData, `social_${network}`) })).filter((link) => link.url !== ""),
     siret: text(formData, "siret"),
     fieldValues,
-    tagIds: formData.getAll("tagIds").map(String).filter(isValidId),
+    // Lot 20 (décision 5) : pastilles cochées, plus le palier choisi de chaque groupe « palier ».
+    tagIds: [
+      ...formData.getAll("tagIds").map(String),
+      ...[...formData.entries()].filter(([key]) => key.startsWith("tagTier-")).map(([, value]) => String(value)),
+    ].filter(isValidId),
   };
 }
 
@@ -96,6 +108,7 @@ export async function saveVendorAction(_prev: VendorFormState, formData: FormDat
     result = isValidId(vendorId) ? await updateVendor(access.organizationId, vendorId, input) : await createVendor(access.organizationId, input);
   } catch (error) {
     if (error instanceof InvalidVendorFieldValueError) return { error: t("invalidFieldValue") };
+    if (error instanceof VendorTagTierConflictError) return { error: t("tagTierConflict") };
     if (error instanceof InvalidVendorLinkError) return { error: t(error.field === "siret" ? "invalidSiret" : "invalidWebsite") };
     if (error instanceof VendorNotFoundError || error instanceof VendorTypeNotFoundError) return { error: t("notFound") };
     throw error;
@@ -136,7 +149,10 @@ export async function archiveVendorAction(formData: FormData): Promise<void> {
   if (!access || !isValidId(vendorId)) return;
   await archiveVendor(access.organizationId, vendorId);
   revalidatePath("/prestataires");
-  redirect("/prestataires");
+  // Lot 20 (PRE-17) : depuis le carnet, on y revient avec ses filtres ; seule
+  // une adresse du carnet est acceptée (jamais une autre origine).
+  const back = text(formData, "back");
+  redirect(/^\/prestataires(\?[^\s]*)?$/.test(back) ? back : "/prestataires");
 }
 
 export async function removeVendorFileAction(formData: FormData): Promise<void> {
@@ -215,14 +231,88 @@ export async function removeVendorFieldAction(formData: FormData): Promise<void>
   revalidatePath("/prestataires/parametres");
 }
 
+// Lot 20 (décision 5, ADR 0049) — groupe (vide = « Autres ») et familles
+// cochées (aucune = toutes) d'une étiquette.
+function tagPlacement(formData: FormData): { groupId: string | null; familyIds: string[] } {
+  const groupId = text(formData, "groupId");
+  return { groupId: isValidId(groupId) ? groupId : null, familyIds: formData.getAll("familyIds").map(String).filter(isValidId) };
+}
+
+const TAGS_PATH = "/prestataires/parametres/etiquettes";
+
 export async function createVendorTagAction(_prev: VendorFormState, formData: FormData): Promise<VendorFormState> {
   const t = await getTranslations("VendorBook");
   const access = await authorize();
   if (!access) return { error: t("unauthorized") };
   if (!text(formData, "label").trim()) return { error: t("tagRequired") };
-  await createVendorTag(access.organizationId, text(formData, "label"));
-  revalidatePath("/prestataires/parametres/etiquettes");
+  try {
+    await createVendorTag(access.organizationId, text(formData, "label"), tagPlacement(formData));
+  } catch (error) {
+    if (error instanceof VendorTagGroupNotFoundError) return { error: t("notFound") };
+    throw error;
+  }
+  revalidatePath(TAGS_PATH);
   return { success: true };
+}
+
+export async function updateVendorTagAction(_prev: VendorFormState, formData: FormData): Promise<VendorFormState> {
+  const t = await getTranslations("VendorBook");
+  const access = await authorize();
+  const tagId = text(formData, "tagId");
+  if (!access || !isValidId(tagId)) return { error: t("unauthorized") };
+  if (!text(formData, "label").trim()) return { error: t("tagRequired") };
+  try {
+    await updateVendorTag(access.organizationId, tagId, { label: text(formData, "label"), ...tagPlacement(formData) });
+  } catch (error) {
+    if (error instanceof VendorTagNotFoundError || error instanceof VendorTagGroupNotFoundError) return { error: t("notFound") };
+    throw error;
+  }
+  revalidatePath(TAGS_PATH);
+  redirect(TAGS_PATH);
+}
+
+export async function createVendorTagGroupAction(_prev: VendorFormState, formData: FormData): Promise<VendorFormState> {
+  const t = await getTranslations("VendorBook");
+  const access = await authorize();
+  if (!access) return { error: t("unauthorized") };
+  if (!text(formData, "label").trim()) return { error: t("tagGroupRequired") };
+  await createVendorTagGroup(access.organizationId, { label: text(formData, "label"), exclusive: formData.get("exclusive") === "on" });
+  revalidatePath(TAGS_PATH);
+  return { success: true };
+}
+
+export async function updateVendorTagGroupAction(_prev: VendorFormState, formData: FormData): Promise<VendorFormState> {
+  const t = await getTranslations("VendorBook");
+  const access = await authorize();
+  const groupId = text(formData, "groupId");
+  if (!access || !isValidId(groupId)) return { error: t("unauthorized") };
+  if (!text(formData, "label").trim()) return { error: t("tagGroupRequired") };
+  try {
+    await updateVendorTagGroup(access.organizationId, groupId, { label: text(formData, "label"), exclusive: formData.get("exclusive") === "on" });
+  } catch (error) {
+    if (error instanceof VendorTagGroupNotFoundError) return { error: t("notFound") };
+    throw error;
+  }
+  revalidatePath(TAGS_PATH);
+  return { success: true };
+}
+
+export async function removeVendorTagGroupAction(formData: FormData): Promise<void> {
+  const access = await authorize();
+  const groupId = text(formData, "groupId");
+  if (!access || !isValidId(groupId)) return;
+  await removeVendorTagGroup(access.organizationId, groupId);
+  revalidatePath(TAGS_PATH);
+}
+
+// Paliers repérés : rangés dans un groupe « palier » une fois validés.
+export async function applyVendorTagTiersAction(formData: FormData): Promise<void> {
+  const access = await authorize();
+  const unit = text(formData, "unit");
+  const label = text(formData, "label").trim() || unit;
+  if (!access || !unit) return;
+  await applyVendorTagTierProposal(access.organizationId, unit, label);
+  revalidatePath(TAGS_PATH);
 }
 
 export async function removeVendorTagAction(formData: FormData): Promise<void> {
@@ -230,7 +320,7 @@ export async function removeVendorTagAction(formData: FormData): Promise<void> {
   const tagId = text(formData, "tagId");
   if (!access || !isValidId(tagId)) return;
   await removeVendorTag(access.organizationId, tagId);
-  revalidatePath("/prestataires/parametres/etiquettes");
+  revalidatePath(TAGS_PATH);
 }
 
 export async function saveTravelSettingsAction(_prev: VendorFormState, formData: FormData): Promise<VendorFormState> {

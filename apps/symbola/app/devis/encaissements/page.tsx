@@ -1,6 +1,8 @@
 import { getLocale, getTranslations } from "next-intl/server";
 import type { Locale } from "@symbola/i18n";
 import { ScreenHelp } from "@/app/screen-help";
+import { SettingsLink } from "@/app/settings-link";
+import { PageHeader } from "@/app/ui/page-header";
 import { listUnpaidPayments } from "@/modules/quotes/service";
 import { requirePlanner } from "@/lib/guards";
 import { isQuotesModuleEnabled } from "../module-access";
@@ -28,7 +30,7 @@ export default async function UpcomingPaymentsPage() {
   const view = await listUnpaidPayments(organizationId);
   return (
     <main>
-      <h1>{t("paymentsTitle")}</h1>
+      <PageHeader title={t("paymentsTitle")} actions={<SettingsLink href="/devis/parametres" label={t("settingsTitle")} />} />
       <ScreenHelp title={tHelp("quotesPayments.title")} body={tHelp("quotesPayments.body")} />
       <UpcomingPayments organizationId={organizationId} view={view} locale={locale} headingLevel={2} />
     </main>

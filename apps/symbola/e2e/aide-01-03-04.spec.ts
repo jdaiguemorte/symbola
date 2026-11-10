@@ -53,12 +53,15 @@ test("AIDE-11 / AIDE-03 — repères de l'accueil, aide consultable", async ({ p
   let violations = await new AxeBuilder({ page }).analyze();
   expect(violations.violations, JSON.stringify(violations.violations, null, 2)).toEqual([]);
 
-  // Un clic dans la liste des repères l'explique (le repère du menu est
-  // masqué sur téléphone, menu replié) ; « Repère suivant » les parcourt.
-  await panel.getByRole("button", { name: "Les paramètres" }).click();
-  await expect(panel.getByRole("heading", { name: "Les paramètres", level: 3 })).toBeVisible();
+  // Un clic dans la liste des repères l'explique ; « Repère suivant » les
+  // parcourt. Lot 20 (AIDE-15) : l'agenda, ses commandes, puis les blocs du
+  // dessous (À traiter, tâches, encaissements).
+  await panel.getByRole("button", { name: "Naviguer dans l'agenda" }).click();
+  await expect(panel.getByRole("heading", { name: "Naviguer dans l'agenda", level: 3 })).toBeVisible();
   await panel.getByRole("button", { name: "Repère suivant" }).click();
-  await expect(panel.getByRole("heading", { name: "L'aide de l'écran", level: 3 })).toBeVisible();
+  await expect(panel.getByRole("heading", { name: "À traiter", level: 3 })).toBeVisible();
+  await panel.getByRole("button", { name: "Encaissements à venir" }).click();
+  await expect(panel.getByRole("heading", { name: "Encaissements à venir", level: 3 })).toBeVisible();
   await expect(panel.getByRole("button", { name: "Repère suivant" })).toBeDisabled();
   await page.keyboard.press("Escape");
   await expect(panel).toHaveCount(0);

@@ -44,7 +44,15 @@ export type StarterVendorCatalogInput = {
   types: { key: string; label: string; synonyms: string[]; fields: VendorTypeFieldInput[] }[];
 }[];
 export type VendorTypeFieldInput = { label: string; kind: VendorFieldKind; choices?: string[]; isFilter?: boolean };
-export type VendorTag = { id: string; label: string };
+// Lot 20 (décision 5, ADR 0049) : une étiquette appartient à un groupe (nul =
+// « Autres ») et vaut pour certaines familles de prestataires (vide = toutes).
+export type VendorTag = { id: string; label: string; groupId: string | null; familyIds: string[]; position: number };
+export type VendorTagInput = { label: string; groupId?: string | null; familyIds?: string[] };
+// Un groupe « palier » (exclusive) n'accepte qu'une étiquette par fiche.
+export type VendorTagGroup = { id: string; label: string; exclusive: boolean; position: number };
+export type VendorTagGroupInput = { label: string; exclusive: boolean };
+// Paliers repérés dans les étiquettes sans groupe (« 100 à 150 personnes »…).
+export type VendorTagTierProposal = { unit: string; tags: { id: string; label: string }[] };
 
 export type VendorLocation = { latitude: number; longitude: number; source: "geocoded" | "manual" };
 
@@ -174,8 +182,17 @@ export type VendorsServiceContract = {
   setVendorTypeFieldFilter(organizationId: string, fieldId: string, isFilter: boolean): Promise<void>;
   removeVendorTypeField(organizationId: string, fieldId: string): Promise<void>;
   listVendorTags(organizationId: string): Promise<VendorTag[]>;
-  createVendorTag(organizationId: string, label: string): Promise<VendorTag>;
+  createVendorTag(organizationId: string, label: string, options?: Omit<VendorTagInput, "label">): Promise<VendorTag>;
+  updateVendorTag(organizationId: string, tagId: string, input: VendorTagInput): Promise<void>;
   removeVendorTag(organizationId: string, tagId: string): Promise<void>;
+  listVendorTagGroups(organizationId: string): Promise<VendorTagGroup[]>;
+  createVendorTagGroup(organizationId: string, input: VendorTagGroupInput): Promise<VendorTagGroup>;
+  updateVendorTagGroup(organizationId: string, groupId: string, input: VendorTagGroupInput): Promise<void>;
+  // Ses étiquettes passent dans « Autres » ; aucune fiche ne les perd.
+  removeVendorTagGroup(organizationId: string, groupId: string): Promise<void>;
+  listVendorTagTierProposals(organizationId: string): Promise<VendorTagTierProposal[]>;
+  // Range les étiquettes d'une proposition dans un nouveau groupe « palier ».
+  applyVendorTagTierProposal(organizationId: string, unit: string, groupLabel: string): Promise<VendorTagGroup | null>;
   createVendor(organizationId: string, input: VendorInput): Promise<SaveVendorResult>;
   updateVendor(organizationId: string, vendorId: string, input: VendorInput): Promise<SaveVendorResult>;
   setVendorLocation(organizationId: string, vendorId: string, latitude: number, longitude: number): Promise<void>;
