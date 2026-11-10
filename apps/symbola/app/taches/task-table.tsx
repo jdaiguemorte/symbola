@@ -18,6 +18,7 @@ export async function TaskTable({
   showEvent = false,
   selectedTaskId,
   editHref,
+  responsibleLabel,
 }: {
   tasks: TaskRow[];
   locale: Locale;
@@ -26,6 +27,8 @@ export async function TaskTable({
   showEvent?: boolean;
   selectedTaskId?: string | null;
   editHref?: (task: TaskRow) => string;
+  // Lot 20 (décision 6) : libellé dans le vocabulaire de l'événement de la ligne.
+  responsibleLabel?: (task: TaskRow) => string;
 }) {
   const t = await getTranslations("Events");
   const months = new Map<string, TaskRow[]>();
@@ -87,7 +90,7 @@ export async function TaskTable({
                   <td className={overdue ? "nowrap text-overdue" : "nowrap"}>{formatCalendarDate(task.dueDate, locale)}</td>
                   <td>
                     <span className={task.responsible === "clients" ? "badge badge-ambre" : "badge badge-bleu"}>
-                      {t(RESPONSIBLE_LABEL_KEYS[task.responsible])}
+                      {responsibleLabel ? responsibleLabel(task) : t(RESPONSIBLE_LABEL_KEYS[task.responsible])}
                     </span>
                   </td>
                   <td>

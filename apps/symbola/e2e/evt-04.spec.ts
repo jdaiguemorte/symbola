@@ -42,7 +42,9 @@ test("EVT-04 — modèle de rétroplanning appliqué, recalcul des échéances e
 
   // Modèles : le modèle de départ se charge, un modèle se compose à la main.
   await page.goto("/events");
-  await page.getByRole("link", { name: "Modèles de rétroplanning" }).click();
+  // Lot 20 (décision 1) : par « Réglages », puis la rubrique.
+  await page.getByRole("link", { name: /^Réglages/ }).click();
+  await page.getByRole("navigation", { name: "Rubriques des paramètres" }).getByRole("link", { name: "Rétroplanning", exact: true }).click();
   await expect(page).toHaveURL(/\/events\/modeles$/);
   await page.waitForLoadState("networkidle");
   await page.getByRole("button", { name: "Charger le modèle de départ" }).click();

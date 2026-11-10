@@ -63,7 +63,7 @@ import {
 } from "./task-forms";
 import { PageTour } from "../../page-tour";
 import { loadPageTour } from "@/lib/help/page-tour";
-import { GearLink } from "@/app/gear-link";
+import { SettingsLink } from "@/app/settings-link";
 import { TaskTable } from "@/app/taches/task-table";
 import { EVENT_STATUS_CLASSES, STATUS_LABEL_KEYS } from "../event-status";
 import { removeVendorSlotAction } from "./vendor-slot-actions";
@@ -455,7 +455,7 @@ export default async function EventDetailPage({
           <section className="card split-main" aria-labelledby="vendor-slots-title">
             <div className="section-head">
               <h2 id="vendor-slots-title">{t("vendorSlotsTitle")}</h2>
-              <GearLink href="/events/parametres" label={t("vendorSlotsSettings")} />
+              <SettingsLink href="/events/parametres" label={t("vendorSlotsSettings")} />
             </div>
             <p id="vendor-progress-label">{t("vendorProgress", { booked: progress.booked, required: progress.required })}</p>
             {budgetView ? (
@@ -583,7 +583,7 @@ export default async function EventDetailPage({
           <section className="card split-main" aria-labelledby="tasks-title">
             <div className="section-head">
               <h2 id="tasks-title">{t("tasksTitle")}</h2>
-              <GearLink href="/events/modeles" label={t("taskTemplatesSettings")} />
+              <SettingsLink href="/events/modeles" label={t("taskTemplatesSettings")} />
             </div>
             <p className="meta">
               <span>{t("tasksSummary", { done: tasks.filter((task) => task.done).length, total: tasks.length, overdue: overdueCount })}</span>
@@ -693,7 +693,7 @@ export default async function EventDetailPage({
         <section className="card" aria-labelledby="program-title">
           <div className="section-head">
             <h2 id="program-title">{t("programTitle")}</h2>
-            <GearLink href="/events/modeles-programme" label={t("programTemplatesSettings")} />
+            <SettingsLink href="/events/modeles-programme" label={t("programTemplatesSettings")} />
           </div>
           <nav aria-label={t("programExports")}>
             <a href={`/events/${event.id}/programme/pdf?variant=couple`} download>
@@ -807,7 +807,7 @@ export default async function EventDetailPage({
         <section className="card" aria-labelledby="event-quotes-title">
           <div className="section-head">
             <h2 id="event-quotes-title">{tQuotes("eventQuotesTitle")}</h2>
-            <GearLink href="/devis/parametres" label={tQuotes("settingsTitle")} />
+            <SettingsLink href="/devis/parametres" label={tQuotes("settingsTitle")} />
           </div>
           {quotes.length === 0 ? <p>{tQuotes("noEventQuotes")}</p> : null}
           <ul className="item-list">

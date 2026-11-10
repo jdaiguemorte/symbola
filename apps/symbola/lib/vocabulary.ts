@@ -13,7 +13,7 @@ import frMessages from "@symbola/i18n/messages/fr.json";
 import enMessages from "@symbola/i18n/messages/en.json";
 import clientsFrMessages from "@symbola/i18n/messages/vocabulary/clients.fr.json";
 import clientsEnMessages from "@symbola/i18n/messages/vocabulary/clients.en.json";
-import { getEventAudience, type EventTypeAudience } from "@/modules/events/service";
+import { getEventAudience, listEventAudiences, type EventTypeAudience } from "@/modules/events/service";
 import { getQuote } from "@/modules/quotes/service";
 import { getAuthContext } from "./auth-context";
 import { organizationMetier } from "./vendors/catalog";
@@ -53,16 +53,47 @@ async function routeEventId(pathname: string, organizationId: string): Promise<s
   }
 }
 
+// Lot 20 (décision 6) : écrans qui mêlent les événements (accueil, liste des
+// événements, tâches, devis et factures, encaissements).
+const MIXED_PAGE = /^\/(?:|events|taches|devis|devis\/encaissements)$/;
+
+// Vocabulaire de chaque événement (celui du métier pour un événement sans type).
+export const eventAudiences = cache(async (organizationId: string): Promise<Map<string, Audience>> => {
+  const fallback = await organizationAudience(organizationId);
+  return new Map([...(await listEventAudiences(organizationId))].map(([eventId, audience]) => [eventId, audience ?? fallback]));
+});
+
+// L'organisation a-t-elle des événements des deux vocabulaires (mariages et
+// séminaires, par exemple) ?
+export async function organizationMixesAudiences(organizationId: string): Promise<boolean> {
+  return new Set((await eventAudiences(organizationId)).values()).size > 1;
+}
+
 // Vocabulaire de la requête : celui du type de l'événement affiché, sinon celui
-// du métier. L'adresse vient du middleware (en-tête x-pathname).
+// du métier. L'adresse vient du middleware (en-tête x-pathname). Lot 20
+// (décision 6) : sur un écran qui mêle des événements des deux vocabulaires,
+// le vocabulaire neutre (« Événement », « Clients ») ; chaque ligne garde
+// celui de son événement quand l'écran le précise (Tâches).
 export const requestAudience = cache(async (organizationId: string | null): Promise<Audience> => {
   const fallback = await organizationAudience(organizationId);
   if (!organizationId) return fallback;
   const pathname = (await headers()).get("x-pathname") ?? "";
   const eventId = await routeEventId(pathname, organizationId);
-  if (!eventId) return fallback;
+  if (!eventId) return MIXED_PAGE.test(pathname) && (await organizationMixesAudiences(organizationId)) ? "clients" : fallback;
   return (await getEventAudience(organizationId, eventId)) ?? fallback;
 });
+
+// Lot 20 (décision 6) : le libellé « qui réalise la tâche » dans le
+// vocabulaire de son événement (« Mariés » ou « Clients »).
+export async function responsibleLabels(organizationId: string, locale: Locale): Promise<(eventId: string, responsible: "planner" | "clients") => string> {
+  const audiences = await eventAudiences(organizationId);
+  const fallback = await organizationAudience(organizationId);
+  const translators = {
+    couple: createTranslator({ locale, messages: messagesFor(locale, "couple"), namespace: "Events" }),
+    clients: createTranslator({ locale, messages: messagesFor(locale, "clients"), namespace: "Events" }),
+  };
+  return (eventId, responsible) => translators[audiences.get(eventId) ?? fallback](responsible === "clients" ? "responsibleClients" : "responsiblePlanner");
+}
 
 // Messages du cadre de l'app (menu, recherche…), qui reste en place d'une page
 // à l'autre : toujours le vocabulaire du métier.

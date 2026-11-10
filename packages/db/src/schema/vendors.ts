@@ -69,10 +69,27 @@ export const vendorTypeFields = vendorsSchema.table("vendor_type_fields", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
+// Lot 20 (décision 5, ADR 0049) — groupes d'étiquettes (Style, Équipements,
+// Capacité…). Un groupe « palier » (exclusive) n'accepte qu'une étiquette par
+// fiche : « 100 à 150 personnes » ou « 150 à 200 personnes », pas les deux.
+export const vendorTagGroups = vendorsSchema.table("vendor_tag_groups", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  label: text("label").notNull(),
+  exclusive: boolean("exclusive").notNull().default(false),
+  position: integer("position").notNull().default(0),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
 export const vendorTags = vendorsSchema.table("vendor_tags", {
   id: uuid("id").defaultRandom().primaryKey(),
   organizationId: uuid("organization_id").notNull(),
   label: text("label").notNull(),
+  // Lot 20 (décision 5) : groupe (nul = « Autres ») et familles de
+  // prestataires concernées (vide = toutes) ; ordre dans le groupe (paliers).
+  groupId: uuid("group_id").references((): AnyPgColumn => vendorTagGroups.id, { onDelete: "set null" }),
+  familyIds: uuid("family_ids").array().notNull().default([]),
+  position: integer("position").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 

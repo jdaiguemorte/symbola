@@ -20,6 +20,8 @@ export type ScreenHelpDeclaration = {
   tourKey?: string | undefined;
   // Ouverts d'office à la première ouverture de l'écran (décision C du lot 13).
   initialOpen?: boolean | undefined;
+  // Lot 20 (décision 2) : action propre à l'écran, affichée sous son texte.
+  extra?: ReactNode;
 };
 
 export type ActiveTour = { key: string; open: boolean };
@@ -125,6 +127,7 @@ export function HelpProvider({ children }: { children: ReactNode }) {
             marker: (number, markerTitle) => t("marker", { number, title: markerTitle }),
           }}
           onClose={close}
+          extra={screen.extra}
         />
       ) : null}
     </HelpContext.Provider>

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatAmount, formatCalendarDate, type Locale } from "@symbola/i18n";
-import { getVendor, getVendorHistory, listVendorFamilies, listVendorTags, listVendorTypes } from "@/modules/vendors/service";
+import { getVendor, getVendorHistory, listVendorFamilies, listVendorTagGroups, listVendorTags, listVendorTypes } from "@/modules/vendors/service";
 import { requirePlanner } from "@/lib/guards";
 import { mapAssets } from "@/lib/map/tiles";
 import { isBudgetModuleEnabled } from "@/app/budget/module-access";
@@ -39,13 +39,14 @@ export default async function VendorPage({ params, searchParams }: { params: Pro
   if (!isValidId(id)) notFound();
   const vendor = await getVendor(organizationId, id);
   if (!vendor) notFound();
-  const [types, tags, history, assets, budget, families] = await Promise.all([
+  const [types, tags, history, assets, budget, families, tagGroups] = await Promise.all([
     listVendorTypes(organizationId),
     listVendorTags(organizationId),
     isBudgetModuleEnabled(organizationId).then((enabled) => getVendorHistory(organizationId, id, { budget: enabled })),
     mapAssets(),
     isBudgetModuleEnabled(organizationId),
     listVendorFamilies(organizationId),
+    listVendorTagGroups(organizationId),
   ]);
   const locale = (await getLocale()) as Locale;
   const placement = (await searchParams).placement;
@@ -145,7 +146,7 @@ export default async function VendorPage({ params, searchParams }: { params: Pro
             ))}
           </ul>
         ) : null}
-        <VendorForm key={JSON.stringify(vendor)} types={types} tags={tags} families={families} vendor={vendor} />
+        <VendorForm key={JSON.stringify(vendor)} types={types} tags={tags} tagGroups={tagGroups} families={families} vendor={vendor} />
         <ImportedFields fields={vendor.importedFields ?? undefined} />
       </section>
 

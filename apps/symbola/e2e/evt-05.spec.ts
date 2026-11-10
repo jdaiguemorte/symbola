@@ -54,7 +54,9 @@ test("EVT-05 — programme du jour J depuis un modèle, chevauchement signalé e
 
   // Modèles de programme : le modèle de départ se charge.
   await page.goto("/events");
-  await page.getByRole("link", { name: "Modèles de programme" }).click();
+  // Lot 20 (décision 1) : par « Réglages », puis la rubrique.
+  await page.getByRole("link", { name: /^Réglages/ }).click();
+  await page.getByRole("navigation", { name: "Rubriques des paramètres" }).getByRole("link", { name: "Programme du jour J", exact: true }).click();
   await expect(page).toHaveURL(/\/events\/modeles-programme$/);
   await page.waitForLoadState("networkidle");
   await page.getByRole("button", { name: "Charger le modèle de programme de départ" }).click();

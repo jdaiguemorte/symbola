@@ -5,7 +5,7 @@
 // repères et son texte d'aide ; le « ? » de la barre du haut les affiche. À
 // la première ouverture d'un écran, ils s'affichent d'eux-mêmes une fois
 // (décision C du lot 13), et comptent alors comme vus.
-import { useEffect, useId } from "react";
+import { useEffect, useId, type ReactNode } from "react";
 import type { LandmarkStep } from "@symbola/ui";
 import { useHelpContext } from "./help-context";
 
@@ -15,12 +15,14 @@ export function PageTour({
   initialOpen,
   helpTitle,
   helpBody,
+  helpExtra,
 }: {
   tourKey: string;
   steps: LandmarkStep[];
   initialOpen: boolean;
   helpTitle: string;
   helpBody: string;
+  helpExtra?: ReactNode;
 }) {
   const help = useHelpContext();
   const declare = help?.declare;
@@ -31,9 +33,9 @@ export function PageTour({
 
   useEffect(() => {
     if (!declare || !withdraw) return;
-    declare(id, { title: helpTitle, body: helpBody, steps: JSON.parse(stepsKey) as LandmarkStep[], tourKey, initialOpen });
+    declare(id, { title: helpTitle, body: helpBody, steps: JSON.parse(stepsKey) as LandmarkStep[], tourKey, initialOpen, extra: helpExtra });
     return () => withdraw(id);
-  }, [declare, withdraw, id, helpTitle, helpBody, stepsKey, tourKey, initialOpen]);
+  }, [declare, withdraw, id, helpTitle, helpBody, stepsKey, tourKey, initialOpen, helpExtra]);
 
   return null;
 }

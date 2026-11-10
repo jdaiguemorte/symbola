@@ -33,11 +33,19 @@ export default async function TaskTemplatesPage() {
       <h1>{t("taskTemplatesTitle")}</h1>
       <ScreenHelp title={tHelp("eventsTemplates.title")} body={tHelp("eventsTemplates.body")} />
       <p>{t("taskTemplatesIntro")}</p>
+      {/* Lot 20 (EVT-20, décision 3) : « Nouveau modèle » en tête, dans une carte
+          de la largeur des cartes des modèles, sans faire défiler la liste. */}
+      <section aria-labelledby="new-task-template">
+        <h2 id="new-task-template">{t("newTaskTemplateTitle")}</h2>
+        <CreateTaskTemplateForm />
+      </section>
 
       {templates.length === 0 ? <p>{t("noTaskTemplates")}</p> : null}
       {templates.map((template) => (
         <section key={template.id} aria-labelledby={`template-${template.id}`}>
           <h2 id={`template-${template.id}`}>{template.name}</h2>
+          {/* Lot 20 (décision 3) : l'ajout d'une ligne avant la liste du modèle. */}
+          <AddTaskTemplateItemForm templateId={template.id} templateName={template.name} />
           {template.items.length === 0 ? <p>{t("noTaskTemplateItems")}</p> : null}
           <ul>
             {template.items.map((item) => (
@@ -51,7 +59,6 @@ export default async function TaskTemplatesPage() {
               </li>
             ))}
           </ul>
-          <AddTaskTemplateItemForm templateId={template.id} templateName={template.name} />
           <form action={removeTaskTemplateAction}>
             <input type="hidden" name="templateId" value={template.id} />
             <button type="submit">{t("removeTaskTemplate", { name: template.name })}</button>
@@ -59,12 +66,6 @@ export default async function TaskTemplatesPage() {
         </section>
       ))}
 
-      {/* Lot 20 (EVT-20) : titre et formulaire dans une même carte, de la largeur
-          des cartes des modèles (un formulaire seul est limité en largeur). */}
-      <section aria-labelledby="new-task-template">
-        <h2 id="new-task-template">{t("newTaskTemplateTitle")}</h2>
-        <CreateTaskTemplateForm />
-      </section>
       <LoadStarterRetroplanningForm />
     </main>
   );

@@ -16,6 +16,7 @@ import { AddFieldForm } from "./settings-forms";
 import { mergeVendorTypesAction, moveVendorFamilyAction, removeVendorFamilyAction, removeVendorTypeMovingAction } from "./type-actions";
 import { FamilyForm, NewTypeForm, TypeForm } from "./type-forms";
 import { ScreenHelp } from "@/app/screen-help";
+import { ListFilter } from "@/app/ui/list-filter";
 
 const BASE = "/prestataires/parametres";
 const UNCLASSIFIED_COLOR = "#78716c";
@@ -166,6 +167,7 @@ export default async function VendorTypesPage({ searchParams }: { searchParams: 
             {t("typeNew")}
           </Link>
         </div>
+        <ListFilter targetId="vendor-types-list" total={ordered.length} />
         {ordered.length > 0 ? (
           <div className="list-table-wrap" role="region" aria-label={t("typesTable")} tabIndex={0}>
             <table className="list-table">
@@ -177,11 +179,11 @@ export default async function VendorTypesPage({ searchParams }: { searchParams: 
                   <th scope="col">{t("columnFields")}</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody id="vendor-types-list">
                 {ordered.map((type) => {
                   const family = type.familyId ? familyById.get(type.familyId) : undefined;
                   return (
-                    <tr key={type.id} aria-current={openedType?.id === type.id ? "true" : undefined}>
+                    <tr key={type.id} aria-current={openedType?.id === type.id ? "true" : undefined} data-filter-item={`${type.label} ${family?.label ?? ""}`}>
                       <td>
                         <span className="family-cell">
                           <FamilyIcon color={family?.color ?? UNCLASSIFIED_COLOR} icon={family?.icon ?? "other"} />

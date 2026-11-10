@@ -2,7 +2,7 @@
 // ensuite au carnet pour l'ajouter au poste.
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { listVendorFamilies, listVendorTags, listVendorTypes } from "@/modules/vendors/service";
+import { listVendorFamilies, listVendorTagGroups, listVendorTags, listVendorTypes } from "@/modules/vendors/service";
 import { requirePlanner } from "@/lib/guards";
 import { queryString, type BookQuery } from "../filters";
 import { isVendorsModuleEnabled } from "../module-access";
@@ -24,7 +24,12 @@ export default async function NewVendorPage({ searchParams }: { searchParams: Pr
   }
   const query = await searchParams;
   const back = query.evenement && query.poste ? `/prestataires${queryString(query)}` : "";
-  const [types, tags, families] = await Promise.all([listVendorTypes(organizationId), listVendorTags(organizationId), listVendorFamilies(organizationId)]);
+  const [types, tags, families, tagGroups] = await Promise.all([
+    listVendorTypes(organizationId),
+    listVendorTags(organizationId),
+    listVendorFamilies(organizationId),
+    listVendorTagGroups(organizationId),
+  ]);
   return (
     <main>
       <p>
@@ -33,7 +38,7 @@ export default async function NewVendorPage({ searchParams }: { searchParams: Pr
       <h1>{t("newVendor")}</h1>
       <ScreenHelp title={tHelp("vendorNew.title")} body={tHelp("vendorNew.body")} />
       <p>{t("newVendorHint")}</p>
-      <VendorForm types={types} tags={tags} families={families} back={back} />
+      <VendorForm types={types} tags={tags} tagGroups={tagGroups} families={families} back={back} />
     </main>
   );
 }

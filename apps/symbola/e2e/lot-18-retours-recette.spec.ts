@@ -61,13 +61,11 @@ test("Lot 18 — menu, « Plus d'options », pastille des tutoriels et estimatio
   await expect(mainMenu(page).getByRole("link", { name: "Encaissements", exact: true })).toHaveAttribute("aria-current", "page");
   await expect(mainMenu(page).getByRole("link", { name: "Devis et factures", exact: true })).not.toHaveAttribute("aria-current", "page");
 
-  // HUB-24 : ouvrir « Plus d'options » ne grandit pas les boutons voisins.
+  // HUB-24, revu au lot 20 (décision 2) : plus de « Plus d'options » ; la
+  // barre des Événements ne garde que « Nouveau prospect ».
   await page.goto("/events");
-  const newProspect = page.getByRole("link", { name: "Nouveau prospect" });
-  const before = (await newProspect.boundingBox())!.height;
-  await page.getByText("Plus d'options").click();
-  await expect(page.getByText("Essai guidé")).toBeVisible();
-  expect((await newProspect.boundingBox())!.height).toBe(before);
+  await expect(page.getByRole("link", { name: "Nouveau prospect" })).toBeVisible();
+  await expect(page.getByText("Plus d'options")).toHaveCount(0);
 
   // HUB-23 : un tutoriel en cours ; la pastille « Reprendre » n'apparaît que sur Tutoriels.
   const { sql: sql2, db: db2 } = createAppConnection();

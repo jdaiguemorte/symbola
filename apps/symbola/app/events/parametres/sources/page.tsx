@@ -40,15 +40,16 @@ export default async function SourcesSettingsPage() {
 
       <h2>{t("sourcesTitle")}</h2>
       <p>{t("sourcesIntro")}</p>
+      <ProspectSourceForm />
       <ul className="chip-list" aria-label={t("sourcesTitle")}>
         {sources.map((source) => (
           <li key={source.id}>{source.label}</li>
         ))}
       </ul>
-      <ProspectSourceForm />
 
       <h2>{t("lossReasonsTitle")}</h2>
       <p>{t("lossReasonsIntro")}</p>
+      <LossReasonForm />
       <ul className="chip-list" aria-label={t("lossReasonsTitle")}>
         {reasons.map((reason) => (
           <li key={reason.id}>
@@ -57,7 +58,6 @@ export default async function SourcesSettingsPage() {
           </li>
         ))}
       </ul>
-      <LossReasonForm />
 
     </main>
   );

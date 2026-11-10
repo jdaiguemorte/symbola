@@ -531,9 +531,13 @@
     @apply m-0;
   }
 
-  /* Roue crantée : accès direct aux paramètres du module. */
-  .gear-link {
-    @apply inline-flex h-11 w-11 items-center justify-center rounded-[10px] text-muted hover:bg-lin-soft hover:text-ink;
+  /* Accès direct aux réglages du module, depuis ses écrans. */
+  /* Lot 20 (décision 1) : bouton « Réglages » d'un module, roue et libellé. */
+  .settings-link {
+    @apply gap-2 text-ink;
+  }
+  .settings-link svg {
+    @apply shrink-0 text-muted;
   }
 
   /* Filtres en pastilles (liens, aria-current sur le filtre actif). */
@@ -715,24 +719,68 @@
 }
 
 @layer components {
-  .task-checklist {
+  /* Lot 20 (décision 4) : blocs de l'accueil empilés sur toute la largeur ;
+     celui qui a du retard passe en premier. Chaque ligne : case, titre
+     (lien vers sa fiche), événement, échéance. */
+  .home-blocks {
+    @apply grid grid-cols-1 gap-6;
+  }
+  .home-blocks > .home-block {
+    @apply my-0;
+  }
+  .home-blocks > [data-urgent="true"] {
+    order: -1;
+  }
+  .home-lines {
     @apply m-0 flex list-none flex-col p-0;
   }
-  .task-checklist > li {
-    @apply flex min-h-13 items-center gap-3 border-b border-lin-soft;
+  .home-line {
+    @apply grid min-h-12 items-center gap-x-3 gap-y-0.5 border-b border-lin-soft py-2;
+    grid-template-columns: auto minmax(0, 1fr);
   }
-  .task-checklist > li > span:nth-child(2) {
-    @apply flex-1 text-[15px] leading-snug;
+  .home-line:last-child {
+    @apply border-b-0;
   }
-  .task-checklist-event {
-    @apply block text-[13px] text-muted;
+  .home-line > .home-line-meta,
+  .home-line > .home-line-when,
+  .home-line > .home-line-amount {
+    @apply col-start-2 text-[13px];
   }
-  .task-checklist-due {
-    @apply text-[13px] font-medium whitespace-nowrap text-muted;
+  .home-line-payment {
+    grid-template-columns: minmax(0, 1fr);
   }
-  .home-columns {
-    @apply grid gap-6;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  .home-line-payment > .home-line-meta,
+  .home-line-payment > .home-line-when,
+  .home-line-payment > .home-line-amount {
+    @apply col-start-1;
+  }
+  .home-line-title {
+    @apply text-[15px] leading-snug;
+  }
+  .home-line-meta {
+    @apply text-muted;
+  }
+  .home-line-when {
+    @apply font-medium whitespace-nowrap text-muted;
+  }
+  .home-line-amount {
+    @apply font-medium whitespace-nowrap;
+  }
+  @media (min-width: 768px) {
+    .home-line {
+      grid-template-columns: auto minmax(0, 1fr) minmax(0, 12rem) 11rem;
+    }
+    .home-line-payment {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 12rem) 7rem 11rem;
+    }
+    .home-line > .home-line-meta,
+    .home-line > .home-line-when,
+    .home-line > .home-line-amount {
+      @apply col-start-auto text-sm;
+    }
+  }
+  .home-more {
+    @apply m-0 mt-2 text-sm text-muted;
   }
   /* Lot 14 (IMP-09) : les deux reprises côte à côte sur ordinateur. */
   .takeover-cards {
@@ -1591,6 +1639,19 @@
   .landmark-intro {
     @apply m-0 text-sm text-muted;
   }
+  /* Lot 20 (décision 2) : action propre à l'écran (essai guidé…), sous le texte. */
+  .help-extra {
+    @apply grid justify-items-start gap-2 rounded-xl border border-lin bg-card p-4 text-sm;
+  }
+  .help-extra > h3 {
+    @apply m-0 text-base;
+  }
+  .help-extra > p {
+    @apply m-0;
+  }
+  .help-extra > form {
+    @apply m-0;
+  }
   .landmark-list {
     @apply m-0 flex list-none flex-col gap-1 p-0;
   }
@@ -2223,5 +2284,111 @@
   }
   .vendor-row-archive {
     @apply self-start;
+  }
+}
+
+/* Lot 20 (décision 3) — filtre des longues listes de réglages. */
+@layer components {
+  .list-filter {
+    @apply my-3 grid max-w-xl gap-1.5;
+  }
+  .list-filter > label {
+    @apply text-sm font-medium;
+  }
+  .list-filter > p {
+    @apply m-0;
+  }
+  [data-filter-item][hidden] {
+    display: none !important;
+  }
+}
+
+/* Lot 20 (décision 5, ADR 0049) — étiquettes en pastilles sur la fiche d'un
+   prestataire : grises et lisibles, sauges une fois choisies ; un groupe
+   « palier » en segments à choix unique. La case reste le vrai contrôle
+   (clavier, lecteur d'écran), seulement masquée à l'œil. */
+@layer components {
+  .tag-fieldset {
+    @apply gap-4;
+  }
+  .tag-fieldset > p {
+    @apply m-0;
+  }
+  .tag-group {
+    @apply m-0 w-full max-w-none gap-2 border-0 bg-transparent p-0;
+  }
+  .tag-group > legend {
+    @apply mb-1 p-0 text-sm font-semibold text-ink-soft;
+  }
+  .tag-chips,
+  .tag-tier {
+    @apply flex flex-wrap gap-2;
+  }
+  /* Plus précis que label:has(> input[type="checkbox"]) (formulaires). */
+  .tag-fieldset label.tag-chip {
+    @apply relative w-auto max-w-none flex-row gap-0 text-sm font-medium;
+  }
+  .tag-chip > input {
+    @apply absolute h-px w-px opacity-0;
+  }
+  .tag-chip > span {
+    @apply inline-flex min-h-10 cursor-pointer items-center rounded-full border border-lin-dark bg-[#f4f0ea] px-3.5 text-ink-soft transition-colors hover:border-ink-soft;
+  }
+  .tag-chip > input:checked + span {
+    @apply border-sauge bg-sauge text-white;
+  }
+  .tag-chip > input:focus-visible + span {
+    @apply outline-2 outline-offset-2 outline-sauge;
+  }
+  .tag-tier > .tag-chip > span {
+    @apply rounded-[10px];
+  }
+
+  /* Écran Étiquettes : ajout en tête, groupes, lignes compactes. */
+  .tag-form {
+    @apply my-3 grid max-w-2xl gap-3;
+  }
+  .tag-form-inline {
+    @apply max-w-none;
+  }
+  @media (min-width: 768px) {
+    .tag-form-inline {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 14rem) auto;
+      align-items: end;
+    }
+    .tag-form-inline > .tag-families {
+      grid-column: 1 / -1;
+      grid-row: 2;
+    }
+  }
+  .tag-families {
+    @apply m-0 max-w-none flex-row flex-wrap gap-x-5 gap-y-2 p-4;
+  }
+  .tag-families > p {
+    @apply m-0 w-full;
+  }
+  .tag-sections {
+    @apply grid gap-4;
+  }
+  .tag-section > h3 {
+    @apply m-0 mb-1 flex items-center gap-2 text-base;
+  }
+  .tag-lines {
+    @apply m-0 flex list-none flex-col p-0;
+  }
+  .tag-lines > li {
+    @apply grid min-h-11 items-center gap-x-3 gap-y-1 border-b border-lin-soft py-1.5;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .tag-lines > li[aria-current="true"] {
+    @apply rounded-lg bg-sauge-tint px-2;
+  }
+  @media (min-width: 768px) {
+    .tag-lines > li {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 14rem) auto;
+    }
+  }
+  .tier-proposal {
+    @apply my-3 grid max-w-2xl gap-2 border-t border-lin-soft pt-3;
   }
 }

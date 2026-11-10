@@ -435,6 +435,8 @@ export interface EventsServiceContract {
   setEventType(organizationId: string, eventId: string, eventTypeId: string): Promise<void>;
   // Qui sont les clients de cet événement ; nul s'il n'a pas de type.
   getEventAudience(organizationId: string, eventId: string): Promise<EventTypeAudience | null>;
+  // Lot 20 : celui de chaque événement de l'organisation (écrans qui en mêlent plusieurs).
+  listEventAudiences(organizationId: string): Promise<Map<string, EventTypeAudience | null>>;
   createProspectSource(organizationId: string, label: string): Promise<ProspectSource>;
   listLossReasons(organizationId: string): Promise<LossReason[]>;
   createLossReason(organizationId: string, label: string, isFreeText: boolean): Promise<LossReason>;

@@ -1,10 +1,17 @@
 "use client";
 
 // Lot 11 (PRE-02, PRE-07) — formulaires des réglages du carnet.
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import type { VendorFieldKind } from "@/modules/vendors/service";
-import { addVendorFieldAction, createVendorTagAction, saveTravelSettingsAction } from "../actions";
+import {
+  addVendorFieldAction,
+  createVendorTagAction,
+  createVendorTagGroupAction,
+  saveTravelSettingsAction,
+  updateVendorTagAction,
+  updateVendorTagGroupAction,
+} from "../actions";
 
 const KINDS: VendorFieldKind[] = ["number", "text", "time", "amount", "choice", "boolean"];
 
@@ -53,19 +60,83 @@ export function AddFieldForm({ typeId, typeLabel }: { typeId: string; typeLabel:
   );
 }
 
-export function CreateTagForm() {
+// Lot 20 (décision 5, ADR 0049) — une étiquette : nom, groupe (vide =
+// « Autres ») et familles concernées (aucune cochée = toutes). Sert à
+// l'ajout, en tête de l'écran, et à la modification, dans le panneau.
+export function TagForm({
+  tag = null,
+  groups,
+  families,
+}: {
+  tag?: { id: string; label: string; groupId: string | null; familyIds: string[] } | null;
+  groups: { id: string; label: string }[];
+  families: { id: string; label: string }[];
+}) {
   const t = useTranslations("VendorBook");
-  const [state, action, pending] = useActionState(createVendorTagAction, {});
+  const [state, action, pending] = useActionState(tag ? updateVendorTagAction : createVendorTagAction, {});
+  // Après un ajout réussi, le formulaire se vide pour l'étiquette suivante.
+  const formRef = useRef<HTMLFormElement>(null);
+  useEffect(() => {
+    if (state.success && !tag) formRef.current?.reset();
+  }, [state, tag]);
   return (
-    <form action={action} className="vendor-filters">
+    <form ref={formRef} action={action} className={tag ? "tag-form" : "tag-form tag-form-inline"}>
+      {tag ? <input type="hidden" name="tagId" value={tag.id} /> : null}
       <label>
         {t("tagLabel")}
-        <input type="text" name="label" required />
+        <input type="text" name="label" required defaultValue={tag?.label ?? ""} />
       </label>
+      <label>
+        {t("tagGroupLabel")}
+        <select name="groupId" defaultValue={tag?.groupId ?? ""}>
+          <option value="">{t("tagGroupOther")}</option>
+          {groups.map((group) => (
+            <option key={group.id} value={group.id}>
+              {group.label}
+            </option>
+          ))}
+        </select>
+      </label>
+      {families.length > 0 ? (
+        <fieldset className="tag-families">
+          <legend>{t("tagFamiliesLabel")}</legend>
+          <p className="muted">{t("tagFamiliesHint")}</p>
+          {families.map((family) => (
+            <label key={family.id} className="checkbox">
+              <input type="checkbox" name="familyIds" value={family.id} defaultChecked={tag?.familyIds.includes(family.id) ?? false} />
+              {family.label}
+            </label>
+          ))}
+        </fieldset>
+      ) : null}
       <button type="submit" disabled={pending}>
-        {t("tagAdd")}
+        {tag ? t("tagSave") : t("tagAdd")}
       </button>
       <Feedback state={state} success={t("tagAdded")} />
+    </form>
+  );
+}
+
+// Lot 20 (décision 5) — un groupe d'étiquettes ; « palier » : une seule
+// étiquette du groupe par prestataire.
+export function TagGroupForm({ group = null }: { group?: { id: string; label: string; exclusive: boolean } | null }) {
+  const t = useTranslations("VendorBook");
+  const [state, action, pending] = useActionState(group ? updateVendorTagGroupAction : createVendorTagGroupAction, {});
+  return (
+    <form action={action} className="tag-form">
+      {group ? <input type="hidden" name="groupId" value={group.id} /> : null}
+      <label>
+        {t("tagGroupNameLabel")}
+        <input type="text" name="label" required defaultValue={group?.label ?? ""} />
+      </label>
+      <label className="checkbox">
+        <input type="checkbox" name="exclusive" defaultChecked={group?.exclusive ?? false} />
+        {t("tagGroupExclusive")}
+      </label>
+      <button type="submit" disabled={pending}>
+        {group ? t("tagGroupSave") : t("tagGroupAdd")}
+      </button>
+      <Feedback state={state} success={group ? t("tagGroupSaved") : t("tagGroupAdded")} />
     </form>
   );
 }

@@ -99,7 +99,9 @@
     "topBar": "Search and screen help",
     "agendaYear": "See the year",
     "documentsSettings": "Documents: logo, colour, IBAN",
-    "privacySearch": "Find a person (GDPR)"
+    "privacySearch": "Find a person (GDPR)",
+    "moreTasks": "{count, plural, one {And # more task.} other {And # more tasks.}}",
+    "moreFollowUps": "{count, plural, one {And # more to follow up.} other {And # more to follow up.}}"
   },
   "Admin": {
     "createOrganizationTitle": "Create an organization",
@@ -312,11 +314,7 @@
       },
       {
         "title": "Settings",
-        "body": "The gear icon leads to budget lines, sources and templates."
-      },
-      {
-        "title": "Guided trial",
-        "body": "A complete sample wedding to try everything; it is deleted at the end."
+        "body": "« Settings » leads to budget lines, sources and reasons, event types, and planning and schedule templates."
       }
     ],
     "quotes": [
@@ -391,7 +389,7 @@
     },
     "home": {
       "title": "Home",
-      "body": "Your dashboard. The calendar shows your booked weekends month by month; click a free date to create a prospect on it. Below: « To handle » (quotes and prospects to follow up), the tasks of the fortnight and upcoming payments, each leading to its page.",
+      "body": "Your dashboard. The calendar shows your booked weekends; click a free date to create a prospect on it. Below, what needs your attention: quotes and prospects to follow up, the fortnight's tasks, upcoming payments. A block with overdue items comes first.",
       "faq": [
         {
           "q": "How do I change the \"To do\" delays?",
@@ -405,7 +403,7 @@
     },
     "settings": {
       "title": "Company and VAT",
-      "body": "Your company details (SIREN, address, legal form, trade) and your VAT regime. This information appears on your quotes and invoices. The other settings are grouped by section in the left-hand menu.",
+      "body": "Your company record (SIREN, address, legal form, trade) and your VAT regime: they appear on your quotes and invoices. The trade sets the vocabulary and starter templates. Other settings are filed by section in the left menu.",
       "faq": [
         {
           "q": "I am moving from the VAT exemption to charging VAT: what do I do?",
@@ -459,7 +457,7 @@
     },
     "eventsList": {
       "title": "Event list",
-      "body": "All your prospects and upcoming events, in a table. Filter as you type by name, status, source or year; \"Past\" keeps completed or lost events. Click a row to open its page, or \"New prospect\" to create one. The guided trial opens a sample wedding so you can try everything safely.",
+      "body": "All your prospects and upcoming events; « Finished » keeps those held or lost. Start with « New prospect », or filter the list by name, status, source or year. To try the module safely, start the guided trial below.",
       "faq": [
         {
           "q": "Where do I find a past event?",
@@ -477,7 +475,7 @@
     },
     "eventsNew": {
       "title": "New prospect",
-      "body": "A partner's first name and the contact source are enough; the date and venue can be added later. From the calendar, clicking a free date opens this form with the date already filled in.",
+      "body": "A partner's first name and the contact source are enough to create the prospect; date, venue and budget can be filled in later. From the calendar, a free date opens this form with the date already set.",
       "faq": [
         {
           "q": "What is the difference between a prospect and an event?",
@@ -491,7 +489,7 @@
     },
     "eventsDetail": {
       "title": "Event page",
-      "body": "The whole event fits on this page, in tabs. The timeline at the top shows the status and the date of each step: click the next step to move forward. The \"Next step\" banner suggests what is left to do (send the quote, apply the planning timeline, prepare the schedule, invite the couple). The overview sums up the budget, booked lines, overdue tasks and the signed quote; a budget line's details open in the right-hand panel.",
+      "body": "The whole event, in tabs. The top timeline shows where it stands: click the next step to move forward. The « Next step » banner says what to do now (send the quote, apply the planning, invite the couple). Each tab has a « Settings » link to its templates.",
       "faq": [
         {
           "q": "How do I mark an event as lost?",
@@ -513,7 +511,7 @@
     },
     "eventsSettings": {
       "title": "Budget lines",
-      "body": "The lines every new event receives (venue, caterer, photographer…), with their icon and order. They were prepared at setup for your trade: add or rename them (a line opens in the right-hand panel) and change their order by dragging them, or with the arrows.",
+      "body": "The lines each new event receives (venue, caterer, photographer…). They were prepared for your trade: add, rename, reorder by dragging. A change applies to upcoming events, not to existing ones.",
       "faq": [
         {
           "q": "Does changing a line affect existing events?",
@@ -527,7 +525,7 @@
     },
     "eventsTemplates": {
       "title": "Planning timeline templates",
-      "body": "Your standard task lists, placed relative to the event date (D-365, D-30, the day…). Start from the starter template or create your own; a template is applied from the page of a confirmed, dated event.",
+      "body": "Your standard task lists, placed before or after the event date (D-365, D-30, the day…). Create a template at the top of the page, or load the starter template, then add its tasks. It is applied from the Planning tab of a dated event.",
       "faq": [
         {
           "q": "Does editing a template change ongoing events?",
@@ -537,7 +535,7 @@
     },
     "eventsProgramTemplates": {
       "title": "Schedule templates",
-      "body": "Your standard running orders for the day, moment by moment. A template is applied from an event's Schedule tab: its moments are added, and participants named after a budget line are linked to it.",
+      "body": "Your standard schedules for the day, moment by moment. Create a template at the top of the page, then add its moments. It is applied from an event's Schedule tab; contributors named after a budget line are linked to it.",
       "faq": [
         {
           "q": "Can I download the schedule?",
@@ -563,7 +561,7 @@
     },
     "budgetSettings": {
       "title": "Budget allocation",
-      "body": "An allocation splits a total budget across your lines, in percentages adding up to 100%. It is used to suggest planned amounts; it is optional, as an event's budget exists from the moment it is created.",
+      "body": "An allocation splits a total budget across your lines, in percentages adding up to 100 %. Create one to suggest planned amounts when you simulate an event's budget. It is optional: an event has a budget from the start.",
       "faq": [
         {
           "q": "Do I need one allocation per type of wedding?",
@@ -573,7 +571,7 @@
     },
     "budgetDetail": {
       "title": "Event budget",
-      "body": "Enter the total budget and the number of guests, choose an allocation: you get a planned amount per line and the cost per guest. Adjust a line by hand and the amount left to allocate updates. Then enter the actual cost and attach each vendor's quote (PDF or image, 20 MB at most) to track the difference.",
+      "body": "Enter the total budget and the number of guests, choose an allocation: each line gets a planned amount. Adjust a line and the rest is recalculated. Then enter actual costs and attach each supplier's quote to track the difference.",
       "faq": [
         {
           "q": "Does the couple see the budget?",
@@ -587,7 +585,7 @@
     },
     "quotesCatalog": {
       "title": "Services catalogue",
-      "body": "Your reusable services: label, unit, price excluding VAT, VAT rate and category. They are ready to use in your quotes. An archived item disappears from the choices but stays on the quotes that use it.",
+      "body": "Your reusable services: label, unit, price excl. VAT, VAT rate and category. Add an item at the bottom of the page; it is offered in your quotes right away. Once archived, it is no longer offered but stays on the quotes that use it.",
       "faq": [
         {
           "q": "Does changing a price affect quotes already sent?",
@@ -607,7 +605,7 @@
     },
     "quotesDetail": {
       "title": "Composing a quote",
-      "body": "Add catalogue items or free lines, adjust quantities and discounts: totals update straight away. Plan the deposit schedule, then send the quote for signature: the event becomes \"Confirmed\" once it is signed. A sent version is locked; to change it, create a new version.",
+      "body": "Build the quote from the catalogue or free lines; totals update as you go. Plan the deposits, then send it for signature: once signed, the event becomes « Confirmed ». A sent version is frozen; to change it, create a new version.",
       "faq": [
         {
           "q": "How do I invoice a deposit?",
@@ -621,7 +619,7 @@
     },
     "quotesPayments": {
       "title": "Upcoming payments",
-      "body": "Unpaid instalments from your sent or signed quotes, sorted by date, with a monthly total. An overdue instalment is flagged \"Late\" and shows up under \"To do\" on the home page.",
+      "body": "The unpaid instalments of your quotes, sorted by date with a monthly total. Mark an instalment paid from its quote. An overdue instalment is flagged « Overdue » and moves to the top of the home screen.",
       "faq": [
         {
           "q": "Do guided trials count?",
@@ -641,7 +639,7 @@
     },
     "importFile": {
       "title": "Importing data",
-      "body": "Choose what you are bringing in: your vendors or your event sheets from your current tool, or another file. The assistant then takes you through the steps, shown in a timeline; a step with nothing to decide is done for you. An import you started can be resumed from the log.",
+      "body": "Choose what you are bringing in: your suppliers or event sheets from your current tool, or another file. The assistant runs through the steps and only asks what needs deciding. Nothing is saved before confirmation, and an import can be undone from the log.",
       "faq": [
         {
           "q": "What happens to my file?",
@@ -685,7 +683,7 @@
     },
     "privacyRequests": {
       "title": "Requests from individuals",
-      "body": "Record each request received (access, rectification, erasure, portability, objection) with its date: its case opens, with the one-month legal deadline. It guides you to the reply: find the data, erase or export, reply, close. A complex request can be extended once, with a reason, up to three months; a close deadline is flagged in the menu and on the home page."
+      "body": "Record each request received (access, rectification, erasure, portability, objection) with its date: its case opens with the one-month legal deadline. It guides you to the reply. A close deadline is flagged in the menu and on the home screen."
     },
     "privacySettings": {
       "title": "GDPR settings",
@@ -697,7 +695,7 @@
     },
     "privacyErasure": {
       "title": "Erasure request",
-      "body": "The preview shows, record by record, what will be deleted, anonymised or kept (invoices 10 years, signed quotes 5 years). Once you confirm, each module does its part; the request closes when all have replied. Then download the time-stamped proof and send the suggested reply."
+      "body": "The preview shows, record by record, what will be deleted, anonymised or kept (invoices 10 years, signed quotes 5 years). Once confirmed, each module does its part. Then download the timestamped proof and send the reply: the request closes once the reply is marked sent."
     },
     "privacyPurge": {
       "title": "Monthly purge",
@@ -705,7 +703,7 @@
     },
     "allTasks": {
       "title": "Tasks across all your weddings",
-      "body": "Tasks from all your ongoing events, sorted by due date. Tick a task once it is done; click it to edit it on its wedding's page.",
+      "body": "The tasks of all your events, sorted by due date. Filter « Overdue » to catch up, or by who does it; tick a task when done. Click it to edit it on its wedding's page.",
       "faq": [
         {
           "q": "Do the couple's tasks appear here?",
@@ -715,7 +713,7 @@
     },
     "allQuotes": {
       "title": "Your quotes",
-      "body": "All your quotes, with their status. A quote is created from its event's page; deposit and balance invoices are issued from the signed quote.",
+      "body": "All your quotes and invoices, with their status. A quote is created from its event's page; deposit and balance invoices from the signed quote. « Settings » leads to numbering, the catalogue and document appearance.",
       "faq": [
         {
           "q": "Why can't I create a quote here?",
@@ -747,7 +745,7 @@
     },
     "vendorBook": {
       "title": "The vendor book",
-      "body": "Each vendor has a single record, reused from one event to the next. The pills at the top filter by family, then by type; the filter bar searches by name, around a place or among vendors already booked. On a computer, the list and the map sit side by side, each family with its colour and pictogram; on a phone, switch between them. A record opens in the right-hand panel.",
+      "body": "Each supplier has a single record, reused from one event to the next. Filter by family with the top chips, then by type, tag, or around a place. A row opens its record on the right; « Archive » removes it from the book after confirmation.",
       "faq": [
         {
           "q": "How do I compare several quotes for a line?",
@@ -787,7 +785,7 @@
     },
     "quotesDocuments": {
       "title": "Documents",
-      "body": "How your quotes, invoices and credit notes look: logo, colour, font, texts and IBAN. The preview shows a sample with your current settings. A document already issued never changes.",
+      "body": "The look of your quotes, invoices and credit notes: logo, colour, font, texts and IBAN. The preview updates as you adjust. A document already issued keeps its look; your settings apply to the next ones.",
       "faq": [
         {
           "q": "Why do headings look darker than my colour?",
@@ -835,7 +833,7 @@
     },
     "vendorTags": {
       "title": "Tags",
-      "body": "Tags help you find your suppliers in one click in the book: a style, a facility, a spoken language. You pick them on each supplier's record and they serve as filters in the book."
+      "body": "Tags to describe and find your suppliers: a style, a facility, a capacity. Add one at the top of the page, file it in a group and choose its families. A « tier » group (capacity, surface…) accepts only one tag per supplier."
     },
     "vendorTravel": {
       "title": "Travel estimate",
@@ -843,7 +841,7 @@
     },
     "vendorDetail": {
       "title": "Supplier record",
-      "body": "Everything you know about a supplier: contact details, its type's characteristics, tags, documents and an internal note. « History with you » lists the events it worked on, with the quoted and final price. The form at the bottom updates the record; « Search around » opens the book centred on its address.",
+      "body": "Everything you know about a supplier: contact details, its type's characteristics, tags, documents, internal note. Click a tag to choose it; only those of its family are shown. « History with you » lists its services, quoted and final price.",
       "faq": [
         {
           "q": "Does archiving erase its history?",
@@ -1256,13 +1254,13 @@
     "clientContactSave": "Save the contact details of {name}",
     "clientContactSaved": "Contact details saved.",
     "clientContactInvalidEmail": "Unreadable email address.",
-    "moreActions": "⋯ More options",
     "eventType": "Event type",
     "eventTypeNone": "Type not set",
     "missingEventType": "Choose the event type.",
     "changeEventType": "Change type",
     "eventTypeSaved": "Event type saved.",
-    "eventTypeOf": "Event type of {names}"
+    "eventTypeOf": "Event type of {names}",
+    "actionsLabel": "Event actions"
   },
   "Budget": {
     "title": "Budget",
@@ -1592,7 +1590,9 @@
     "quoteNumberColumn": "Number",
     "quoteEventColumn": "Wedding",
     "quoteStatusColumn": "Status",
-    "statusBadge": "{status} — version {version}"
+    "statusBadge": "{status} — version {version}",
+    "moreDashboardPayments": "{count, plural, one {And # more instalment.} other {And # more instalments.}}",
+    "dashboardPaymentLine": "{label} · {number}"
   },
   "Documents": {
     "pdfSellerHeading": "From",
@@ -3331,10 +3331,10 @@
     "typeAdded": "Type added.",
     "typeInvalid": "Invalid name or colour.",
     "settingsTagsTitle": "Tags",
-    "settingsTagsIntro": "Free tags to find your vendors again (organic, shuttle, favourite…).",
+    "settingsTagsIntro": "Tags to describe and find your suppliers: a style, a facility, a capacity. File them in groups and choose the families they concern: a florist will not see venue tags.",
     "tagsEmpty": "No tags.",
-    "tagLabel": "New tag",
-    "tagAdd": "Add",
+    "tagLabel": "Tag name",
+    "tagAdd": "Add the tag",
     "tagAdded": "Tag added.",
     "tagRequired": "Enter the tag name.",
     "tagRemove": "Delete the tag {tag}",
@@ -3462,7 +3462,40 @@
     "archiveConfirmTitle": "Archive {vendor}?",
     "archiveConfirmBody": "The record leaves the book and is no longer offered for your events. Its services stay on your events and budgets.",
     "archiveConfirm": "Archive the record",
-    "archiveCancel": "Cancel"
+    "archiveCancel": "Cancel",
+    "tagSave": "Save the tag",
+    "tagsHint": "Click a tag to choose it.",
+    "tagGroupOther": "Other",
+    "tagGroupTierLegend": "{group} · one choice",
+    "tagTierNone": "Not set",
+    "tagTierConflict": "Only one tier per group: choose one.",
+    "tagGroupLabel": "Group",
+    "tagFamiliesLabel": "For the families",
+    "tagFamiliesHint": "None ticked: every family.",
+    "tagFamiliesAll": "Every family",
+    "tagsNewTitle": "New tag",
+    "tagsListTitle": "Your tags",
+    "tagEdit": "Edit the tag {tag}",
+    "tagEditShort": "Edit",
+    "tagGroupsTitle": "Tag groups",
+    "tagGroupsIntro": "File your tags by subject (style, facilities…). A « tier » group accepts only one tag per supplier: capacity, surface, price bands.",
+    "tagGroupNewTitle": "New group",
+    "tagGroupNameLabel": "Group name",
+    "tagGroupExclusive": "Tier: only one tag of the group per supplier",
+    "tagGroupAdd": "Create the group",
+    "tagGroupAdded": "Group created.",
+    "tagGroupSave": "Save the group",
+    "tagGroupSaved": "Group saved.",
+    "tagGroupRequired": "Enter the group name.",
+    "tagGroupEdit": "Edit the group {group}",
+    "tagGroupRemove": "Delete the group {group}",
+    "tagGroupRemoveHint": "Its tags move to « Other »; no supplier loses them.",
+    "tagGroupTierBadge": "Tier",
+    "tagGroupCount": "{count, plural, =0 {no tag} one {# tag} other {# tags}}",
+    "tierProposalsTitle": "Tiers spotted",
+    "tierProposalsIntro": "These tags describe the same measure in bands. File them as a tier: a supplier will carry only one, and the book will filter them in order.",
+    "tierProposalTags": "{count} tags in « {unit} »: {labels}",
+    "tierProposalApply": "File as a tier"
   },
   "Setup": {
     "title": "Welcome: let's set up your space",
@@ -3640,7 +3673,10 @@
     "privacyAlerts": "{count, plural, one {# privacy request needs attention} other {# privacy requests need attention}}"
   },
   "Common": {
-    "closePanel": "Close the panel"
+    "closePanel": "Close the panel",
+    "moduleSettings": "Settings",
+    "filterLabel": "Filter the list",
+    "filterCount": "{shown} shown of {total}"
   },
   "TutorialsPage": {
     "title": "Tutorials",

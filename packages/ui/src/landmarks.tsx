@@ -6,7 +6,7 @@
 // Un clic sur un repère ou sur la liste le choisit et le met en avant ;
 // « Repère suivant » les parcourt dans l'ordre ; Échap ferme. Positions
 // posées par le CSSOM (style.setProperty) : la CSP refuse les styles en ligne.
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 
 export type LandmarkStep = {
   title: string;
@@ -39,12 +39,16 @@ export function Landmarks({
   steps,
   labels,
   onClose,
+  extra,
 }: {
   open: boolean;
   intro: string;
   steps: LandmarkStep[];
   labels: LandmarkLabels;
   onClose: () => void;
+  // Lot 20 (décision 2) : une action propre à l'écran, sous son texte
+  // (l'essai guidé des Événements, par exemple).
+  extra?: ReactNode;
 }) {
   const [selected, setSelected] = useState(0);
   const [present, setPresent] = useState<boolean[]>([]);
@@ -169,6 +173,7 @@ export function Landmarks({
           </button>
         </div>
         <p className="landmark-intro">{intro}</p>
+        {extra ? <div className="landmark-extra">{extra}</div> : null}
         {step ? (
           <>
             <ol className="landmark-list">

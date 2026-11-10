@@ -80,7 +80,9 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       {auth.user.role === "owner" && auth.user.organizationId ? <PrivacyPurgeAlertBlock organizationId={auth.user.organizationId} /> : null}
       {/* HUB-02 : agenda des mois à venir et tâches de la quinzaine (module Événements). */}
       {eventsAvailable && organizationId ? <AgendaBlock organizationId={organizationId} locale={locale} today={today} query={query} /> : null}
-      <div className="home-columns">
+      {/* Lot 20 (décision 4) : blocs empilés, en-tête commun, trois lignes ;
+          un bloc qui a du retard passe en premier (data-urgent). */}
+      <div className="home-blocks">
         {/* HUB-15 : devis à relancer et prospects sans nouvelle. */}
         {(eventsAvailable || quotesAvailable) && organizationId ? <FollowUpBlock organizationId={organizationId} modules={{ events: eventsAvailable, quotes: quotesAvailable }} /> : null}
         {eventsAvailable && organizationId ? <UpcomingTasksBlock organizationId={organizationId} locale={locale} today={today} /> : null}

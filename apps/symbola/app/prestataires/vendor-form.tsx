@@ -5,7 +5,7 @@
 import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
 import { VENDOR_SOCIAL_NETWORKS } from "@symbola/contracts";
-import type { Vendor, VendorFamily, VendorFieldValue, VendorTag, VendorType, VendorTypeField } from "@/modules/vendors/service";
+import type { Vendor, VendorFamily, VendorFieldValue, VendorTag, VendorTagGroup, VendorType, VendorTypeField } from "@/modules/vendors/service";
 import { saveVendorAction, type VendorFormState } from "./actions";
 
 function initialFieldValue(field: VendorTypeField, value: VendorFieldValue | undefined): string {
@@ -56,15 +56,59 @@ function FieldInput({ field, value }: { field: VendorTypeField; value: VendorFie
   );
 }
 
+// Lot 20 (décision 5, ADR 0049) — étiquettes en pastilles, rangées par
+// groupe ; seules celles de la famille du type choisi (ou de toutes les
+// familles) s'affichent. Un groupe « palier » se choisit en un seul segment.
+function TagChips({ tags, groups, familyId, selected }: { tags: VendorTag[]; groups: VendorTagGroup[]; familyId: string | null; selected: string[] }) {
+  const t = useTranslations("VendorBook");
+  const visible = tags.filter((tag) => tag.familyIds.length === 0 || familyId === null || tag.familyIds.includes(familyId));
+  const sections = [
+    ...groups.map((group) => ({ key: group.id, label: group.label, exclusive: group.exclusive, tags: visible.filter((tag) => tag.groupId === group.id) })),
+    { key: "other", label: groups.length > 0 ? t("tagGroupOther") : t("tags"), exclusive: false, tags: visible.filter((tag) => tag.groupId === null || !groups.some((group) => group.id === tag.groupId)) },
+  ].filter((section) => section.tags.length > 0);
+  if (sections.length === 0) return null;
+  return (
+    <fieldset className="tag-fieldset">
+      <legend>{t("tags")}</legend>
+      <p className="muted">{t("tagsHint")}</p>
+      {sections.map((section) => (
+        <fieldset key={section.key} className="tag-group">
+          <legend>{section.exclusive ? t("tagGroupTierLegend", { group: section.label }) : section.label}</legend>
+          <div className={section.exclusive ? "tag-tier" : "tag-chips"}>
+            {section.exclusive ? (
+              <label className="tag-chip">
+                <input type="radio" name={`tagTier-${section.key}`} value="" defaultChecked={!section.tags.some((tag) => selected.includes(tag.id))} />
+                <span>{t("tagTierNone")}</span>
+              </label>
+            ) : null}
+            {section.tags.map((tag) => (
+              <label key={tag.id} className="tag-chip">
+                {section.exclusive ? (
+                  <input type="radio" name={`tagTier-${section.key}`} value={tag.id} defaultChecked={selected.includes(tag.id)} />
+                ) : (
+                  <input type="checkbox" name="tagIds" value={tag.id} defaultChecked={selected.includes(tag.id)} />
+                )}
+                <span>{tag.label}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      ))}
+    </fieldset>
+  );
+}
+
 export function VendorForm({
   types,
   tags,
+  tagGroups = [],
   families = [],
   vendor = null,
   back = "",
 }: {
   types: VendorType[];
   tags: VendorTag[];
+  tagGroups?: VendorTagGroup[];
   // Lot 16 (PRE-14) : types rangés par famille dans la liste.
   families?: VendorFamily[];
   vendor?: Vendor | null;
@@ -171,17 +215,7 @@ export function VendorForm({
           ))}
         </fieldset>
       ) : null}
-      {tags.length > 0 ? (
-        <fieldset>
-          <legend>{t("tags")}</legend>
-          {tags.map((tag) => (
-            <label key={tag.id} className="checkbox">
-              <input type="checkbox" name="tagIds" value={tag.id} defaultChecked={vendor?.tagIds.includes(tag.id) ?? false} />
-              {tag.label}
-            </label>
-          ))}
-        </fieldset>
-      ) : null}
+      <TagChips key={type?.familyId ?? "all"} tags={tags} groups={tagGroups} familyId={type ? type.familyId : null} selected={vendor?.tagIds ?? []} />
       <label>
         {t("internalNote")}
         <textarea name="internalNote" rows={3} defaultValue={vendor?.internalNote ?? ""} />

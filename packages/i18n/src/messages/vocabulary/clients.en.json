@@ -8,10 +8,10 @@
   },
   "Help": {
     "eventsNew": {
-      "body": "A contact's first name and the contact source are enough; the date and venue can be added later. From the calendar, clicking a free date opens this form with the date already filled in."
+      "body": "A contact's first name and the source are enough to create the prospect; date, venue and budget can be filled in later. From the calendar, a free date opens this form with the date already set."
     },
     "eventsDetail": {
-      "body": "The whole event fits on this page, in tabs. The timeline at the top shows the status and the date of each step: click the next step to move forward. The \"Next step\" banner suggests what is left to do (send the quote, apply the planning timeline, prepare the schedule, invite the client). The overview sums up the budget, booked lines, overdue tasks and the signed quote; a budget line's details open in the right-hand panel.",
+      "body": "The whole event, in tabs. The top timeline shows where it stands: click the next step to move forward. The « Next step » banner says what to do now (send the quote, apply the planning, invite the client). Each tab has a « Settings » link to its templates.",
       "faq": {
         "3": {
           "q": "What does the client see?",
@@ -54,7 +54,7 @@
         }
       },
       "title": "Tasks across all your events",
-      "body": "Tasks from all your ongoing events, sorted by due date. Tick a task once it is done; click it to edit it on its event's page."
+      "body": "The tasks of all your events, sorted by due date. Filter « Overdue » to catch up, or by who does it; tick a task when done. Click it to edit it on its event's page."
     },
     "clientSpace": {
       "body": "The events your organiser shares with you. Open one to follow the preparations."
