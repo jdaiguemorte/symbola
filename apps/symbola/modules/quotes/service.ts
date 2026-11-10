@@ -81,6 +81,7 @@ import {
   applySignatureStateRows,
   archiveCatalogItemRow,
   archivePaymentMethodRow,
+  restorePaymentMethodRow,
   findEventSignatureContexts,
   findSignatureRequestByExternalId,
   listPendingSignatureRequests,
@@ -868,22 +869,39 @@ export async function listPaymentMethods(organizationId: string, options: { incl
 }
 
 // Ajout d'un ou plusieurs modes (saisie libre ou modèle de départ), sans
-// doublon avec les modes actifs.
+// doublon. Lot 21 (DEV-13) : un mode désactivé du même nom est réactivé
+// plutôt que créé une seconde fois.
 export async function addPaymentMethods(organizationId: string, labels: string[]): Promise<PaymentMethod[]> {
-  const existing = new Set((await findPaymentMethods(organizationId, false)).map((method) => method.label.toLocaleLowerCase("fr")));
+  const all = await findPaymentMethods(organizationId, true);
+  const existing = new Map(all.map((method) => [method.label.toLocaleLowerCase("fr"), method]));
   const fresh: string[] = [];
+  const restored: PaymentMethod[] = [];
   for (const label of labels.map((value) => requireText(value, "mode de paiement"))) {
     const key = label.toLocaleLowerCase("fr");
-    if (existing.has(key)) continue;
-    existing.add(key);
+    const known = existing.get(key);
+    if (known) {
+      if (known.archivedAt !== null) {
+        await restorePaymentMethodRow(organizationId, known.id);
+        restored.push({ ...toPaymentMethod(known), archived: false });
+        existing.set(key, { ...known, archivedAt: null });
+      }
+      continue;
+    }
+    existing.set(key, { id: "", label, position: 0, archivedAt: null, organizationId, createdAt: new Date() });
     fresh.push(label);
   }
-  if (fresh.length === 0) return [];
-  return (await insertPaymentMethods(organizationId, fresh)).map(toPaymentMethod);
+  const created = fresh.length > 0 ? (await insertPaymentMethods(organizationId, fresh)).map(toPaymentMethod) : [];
+  return [...restored, ...created];
 }
 
+// Lot 21 (DEV-13) : désactiver un mode le retire des choix à l'encaissement ;
+// les paiements déjà enregistrés gardent leur mode. Il se réactive à tout moment.
 export async function archivePaymentMethod(organizationId: string, paymentMethodId: string): Promise<void> {
   await archivePaymentMethodRow(organizationId, paymentMethodId);
+}
+
+export async function restorePaymentMethod(organizationId: string, paymentMethodId: string): Promise<void> {
+  await restorePaymentMethodRow(organizationId, paymentMethodId);
 }
 
 // --- DEV-03 : échéancier ---
@@ -1751,6 +1769,7 @@ const _contractCheck: QuotesServiceContract = {
   listPaymentMethods,
   addPaymentMethods,
   archivePaymentMethod,
+  restorePaymentMethod,
   addScheduleItem,
   updateScheduleItem,
   removeScheduleItem,

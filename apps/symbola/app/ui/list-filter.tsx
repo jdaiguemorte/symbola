@@ -26,7 +26,8 @@ export function ListFilter({ targetId, total, label }: { targetId: string; total
       if (match) count += 1;
     });
     setShown(count);
-  }, [targetId, term]);
+    // Lot 21 : recalculé aussi quand la liste change (étiquettes ajoutées ou rangées).
+  }, [targetId, term, total]);
 
   if (total <= LIST_FILTER_THRESHOLD) return null;
   return (

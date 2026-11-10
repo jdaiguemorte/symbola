@@ -1,7 +1,10 @@
 "use server";
 
-// EVT-04 — modèles de rétroplanning de l'organisation.
+// EVT-04 — modèles de rétroplanning de l'organisation. Lot 21 (EVT-22) : la
+// liste des modèles, puis le détail d'un modèle ; une tâche se modifie sans
+// être recréée, un modèle se renomme.
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { starterRetroplanning, type StarterLocale } from "@symbola/starter-templates";
 import {
@@ -9,15 +12,19 @@ import {
   createTaskTemplate,
   removeTaskTemplate,
   removeTaskTemplateItem,
+  renameTaskTemplate,
   TASK_RESPONSIBLES,
   TaskLabelRequiredError,
   TaskTemplateNotFoundError,
+  updateTaskTemplateItem,
   type TaskResponsible,
 } from "@/modules/events/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isEventsModuleEnabled, isValidId } from "../module-access";
 
 export type TaskTemplateFormState = { error?: string; success?: boolean };
+
+const PATH = "/events/modeles";
 
 // Au-delà de trois ans avant ou après l'événement, la saisie est une erreur de frappe.
 const MAX_OFFSET_DAYS = 1095;
@@ -29,6 +36,7 @@ async function authorizedOrganizationId(): Promise<string | null> {
   return auth.user.organizationId;
 }
 
+// Le modèle créé s'ouvre aussitôt : on y ajoute ses tâches.
 export async function createTaskTemplateAction(
   _prevState: TaskTemplateFormState,
   formData: FormData,
@@ -39,12 +47,35 @@ export async function createTaskTemplateAction(
 
   const name = String(formData.get("name") ?? "").trim();
   if (!name) return { error: t("missingLabel") };
-  await createTaskTemplate(organizationId, name, []);
-  revalidatePath("/events/modeles");
-  return { success: true };
+  const template = await createTaskTemplate(organizationId, name, []);
+  revalidatePath(PATH);
+  redirect(`${PATH}/${template.id}`);
 }
 
-export async function addTaskTemplateItemAction(
+export async function renameTaskTemplateAction(
+  _prevState: TaskTemplateFormState,
+  formData: FormData,
+): Promise<TaskTemplateFormState> {
+  const t = await getTranslations("Events");
+  const organizationId = await authorizedOrganizationId();
+  if (!organizationId) return { error: t("unauthenticated") };
+  const templateId = String(formData.get("templateId") ?? "");
+  if (!isValidId(templateId)) return { error: t("taskTemplateNotFound") };
+  const name = String(formData.get("name") ?? "").trim();
+  if (!name) return { error: t("missingLabel") };
+  try {
+    await renameTaskTemplate(organizationId, templateId, name);
+  } catch (error) {
+    if (error instanceof TaskTemplateNotFoundError) return { error: t("taskTemplateNotFound") };
+    throw error;
+  }
+  revalidatePath(PATH);
+  redirect(`${PATH}/${templateId}`);
+}
+
+// Ajout (le panneau reste ouvert pour enchaîner les tâches) ou modification
+// d'une tâche (le panneau se ferme).
+export async function saveTaskTemplateItemAction(
   _prevState: TaskTemplateFormState,
   formData: FormData,
 ): Promise<TaskTemplateFormState> {
@@ -54,6 +85,8 @@ export async function addTaskTemplateItemAction(
 
   const templateId = String(formData.get("templateId") ?? "");
   if (!isValidId(templateId)) return { error: t("taskTemplateNotFound") };
+  const itemId = String(formData.get("itemId") ?? "");
+  if (itemId && !isValidId(itemId)) return { error: t("taskTemplateNotFound") };
   const label = String(formData.get("label") ?? "").trim();
   if (!label) return { error: t("missingLabel") };
   const rawOffset = String(formData.get("offsetDays") ?? "").trim();
@@ -61,19 +94,18 @@ export async function addTaskTemplateItemAction(
   if (!/^[+-]?\d+$/.test(rawOffset) || Math.abs(offsetDays) > MAX_OFFSET_DAYS) return { error: t("invalidOffset") };
   const responsible = String(formData.get("responsible") ?? "");
   if (!TASK_RESPONSIBLES.includes(responsible as TaskResponsible)) return { error: t("invalidResponsible") };
+  const item = { label, offsetDays, responsible: responsible as TaskResponsible };
 
   try {
-    await addTaskTemplateItem(organizationId, templateId, {
-      label,
-      offsetDays,
-      responsible: responsible as TaskResponsible,
-    });
+    if (itemId) await updateTaskTemplateItem(organizationId, itemId, item);
+    else await addTaskTemplateItem(organizationId, templateId, item);
   } catch (error) {
     if (error instanceof TaskTemplateNotFoundError) return { error: t("taskTemplateNotFound") };
     if (error instanceof TaskLabelRequiredError) return { error: t("missingLabel") };
     throw error;
   }
-  revalidatePath("/events/modeles");
+  revalidatePath(`${PATH}/${templateId}`);
+  if (itemId) redirect(`${PATH}/${templateId}`);
   return { success: true };
 }
 
@@ -89,7 +121,7 @@ export async function loadStarterRetroplanningAction(
 
   const starter = starterRetroplanning((await getLocale()) as StarterLocale);
   await createTaskTemplate(organizationId, starter.name, starter.items);
-  revalidatePath("/events/modeles");
+  revalidatePath(PATH);
   return { success: true };
 }
 
@@ -97,9 +129,10 @@ export async function removeTaskTemplateItemAction(formData: FormData): Promise<
   const organizationId = await authorizedOrganizationId();
   if (!organizationId) return;
   const itemId = String(formData.get("itemId") ?? "");
-  if (!isValidId(itemId)) return;
+  const templateId = String(formData.get("templateId") ?? "");
+  if (!isValidId(itemId) || !isValidId(templateId)) return;
   await removeTaskTemplateItem(organizationId, itemId);
-  revalidatePath("/events/modeles");
+  revalidatePath(`${PATH}/${templateId}`);
 }
 
 export async function removeTaskTemplateAction(formData: FormData): Promise<void> {
@@ -108,5 +141,6 @@ export async function removeTaskTemplateAction(formData: FormData): Promise<void
   const templateId = String(formData.get("templateId") ?? "");
   if (!isValidId(templateId)) return;
   await removeTaskTemplate(organizationId, templateId);
-  revalidatePath("/events/modeles");
+  revalidatePath(PATH);
+  redirect(PATH);
 }

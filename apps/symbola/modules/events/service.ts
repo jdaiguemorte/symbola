@@ -35,6 +35,8 @@ import {
   deleteProgramItem,
   deleteProgramTemplate,
   deleteProgramTemplateItem,
+  renameProgramTemplateRow,
+  updateProgramTemplateItemRow,
   findEventProgram,
   findProgramTemplates,
   insertProgramItem,
@@ -51,6 +53,8 @@ import {
   deleteEventVendorSlot,
   deleteTaskTemplate,
   deleteTaskTemplateItem,
+  renameTaskTemplateRow,
+  updateTaskTemplateItemRow,
   findDefaultVendorSlots,
   findEventById,
   findEvents,
@@ -796,6 +800,17 @@ export async function addTaskTemplateItem(
   return toTaskTemplateItem(row);
 }
 
+// Lot 21 (EVT-22) : modifier une ligne et renommer un modèle de rétroplanning.
+export async function updateTaskTemplateItem(organizationId: string, itemId: string, item: TaskTemplateItemInput): Promise<TaskTemplateItem> {
+  const row = await updateTaskTemplateItemRow(organizationId, itemId, normalizeTemplateItem(item));
+  if (!row) throw new TaskTemplateNotFoundError();
+  return toTaskTemplateItem(row);
+}
+
+export async function renameTaskTemplate(organizationId: string, templateId: string, name: string): Promise<void> {
+  if (!(await renameTaskTemplateRow(organizationId, templateId, normalizeLabel(name)))) throw new TaskTemplateNotFoundError();
+}
+
 export async function removeTaskTemplateItem(organizationId: string, itemId: string): Promise<void> {
   await deleteTaskTemplateItem(organizationId, itemId);
 }
@@ -1074,6 +1089,17 @@ export async function addProgramTemplateItem(
   const row = await insertProgramTemplateItem(organizationId, templateId, normalizeProgramTemplateItem(item));
   if (!row) throw new ProgramTemplateNotFoundError();
   return toProgramTemplateItem(row);
+}
+
+// Lot 21 (EVT-21) : modifier une ligne et renommer un modèle de programme.
+export async function updateProgramTemplateItem(organizationId: string, itemId: string, item: ProgramTemplateItemInput): Promise<ProgramTemplateItem> {
+  const row = await updateProgramTemplateItemRow(organizationId, itemId, normalizeProgramTemplateItem(item));
+  if (!row) throw new ProgramTemplateNotFoundError();
+  return toProgramTemplateItem(row);
+}
+
+export async function renameProgramTemplate(organizationId: string, templateId: string, name: string): Promise<void> {
+  if (!(await renameProgramTemplateRow(organizationId, templateId, normalizeLabel(name)))) throw new ProgramTemplateNotFoundError();
 }
 
 export async function removeProgramTemplateItem(organizationId: string, itemId: string): Promise<void> {
@@ -1533,6 +1559,8 @@ const _contractCheck: EventsServiceContract = {
   listTaskTemplates,
   createTaskTemplate,
   addTaskTemplateItem,
+  updateTaskTemplateItem,
+  renameTaskTemplate,
   removeTaskTemplateItem,
   removeTaskTemplate,
   changeEventDate,
@@ -1551,6 +1579,8 @@ const _contractCheck: EventsServiceContract = {
   listProgramTemplates,
   createProgramTemplate,
   addProgramTemplateItem,
+  updateProgramTemplateItem,
+  renameProgramTemplate,
   removeProgramTemplateItem,
   removeProgramTemplate,
   applyProgramTemplate,

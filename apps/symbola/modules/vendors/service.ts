@@ -23,6 +23,9 @@ import type {
   VendorTagGroupInput,
   VendorTagInput,
   VendorTagTierProposal,
+  StarterVendorTagCatalogInput,
+  VendorTagSeedResult,
+  VendorTagArrangement,
   VendorType,
   VendorTypeField,
   VendorTypeFieldInput,
@@ -40,6 +43,7 @@ import { cleanFieldValues, isUsableFilter } from "./fields";
 import { undoImportedVendorsElements as undoImportRows } from "./import";
 import { configuredGeocoder } from "./geocoder";
 import { proposeTierGroups, tierUnitKey } from "./tag-tiers";
+import { planStarterTags, planTagArrangement, type PlanCatalogGroup, type PlanVendor, type TagPlan } from "./tag-arrangement";
 import {
   archiveVendorRow,
   deleteDemoVendors,
@@ -54,6 +58,8 @@ import {
   findVendorSettings,
   findVendorTagGroups,
   findVendorTags,
+  findVendorTagCarriers,
+  applyVendorTagPlan,
   findVendorTypes,
   insertVendor,
   insertVendorFile,
@@ -496,6 +502,72 @@ export async function applyVendorTagTierProposal(organizationId: string, unit: s
   return { ...group, exclusive: true };
 }
 
+// Lot 21 (PRE-18, PRE-19, ADR 0050) — étiquettes de départ et rangement des
+// étiquettes importées. Le catalogue vient de packages/starter-templates (par
+// l'app) ; ses familles sont désignées par leur clé de départ.
+
+function planCatalog(families: VendorFamily[], catalog: StarterVendorTagCatalogInput): PlanCatalogGroup[] {
+  const byKey = new Map(families.filter((family) => family.starterKey).map((family) => [family.starterKey!, family.id]));
+  return catalog.map((group) => ({
+    label: group.label.trim(),
+    exclusive: group.exclusive,
+    tags: group.tags.map((tag) => {
+      const familyIds = tag.familyKeys.map((key) => byKey.get(key)).filter((id): id is string => Boolean(id));
+      return { label: tag.label.trim(), aliases: [tag.label, ...tag.aliases], familyIds: tag.familyKeys.length > 0 && familyIds.length === 0 ? null : familyIds };
+    }),
+  }));
+}
+
+async function tagPlanContext(organizationId: string) {
+  const [tags, groups, families, types, carriers] = await Promise.all([
+    findVendorTags(organizationId),
+    findVendorTagGroups(organizationId),
+    listVendorFamilies(organizationId),
+    listVendorTypes(organizationId),
+    findVendorTagCarriers(organizationId),
+  ]);
+  const familyOfType = new Map(types.map((type) => [type.id, type.familyId]));
+  const vendors: PlanVendor[] = carriers.map((vendor) => ({ id: vendor.id, name: vendor.name, familyId: vendor.typeId ? (familyOfType.get(vendor.typeId) ?? null) : null, tagIds: vendor.tagIds }));
+  return { tags, groups, families, vendors };
+}
+
+function hasChanges(plan: TagPlan): boolean {
+  return plan.newGroups.length + plan.tagUpdates.length + plan.newTags.length + plan.vendorUpdates.length > 0;
+}
+
+export async function seedStarterVendorTags(organizationId: string, catalog: StarterVendorTagCatalogInput): Promise<VendorTagSeedResult> {
+  const context = await tagPlanContext(organizationId);
+  const { plan, created, placed } = planStarterTags({ ...context, catalog: planCatalog(context.families, catalog) });
+  if (hasChanges(plan)) await applyVendorTagPlan(organizationId, plan);
+  return { created, placed };
+}
+
+export async function countMissingStarterVendorTags(organizationId: string, catalog: StarterVendorTagCatalogInput): Promise<number> {
+  const context = await tagPlanContext(organizationId);
+  return planStarterTags({ ...context, catalog: planCatalog(context.families, catalog) }).created;
+}
+
+async function vendorTagArrangement(organizationId: string, catalog: StarterVendorTagCatalogInput, options: { tagIds?: string[]; apply: boolean }): Promise<VendorTagArrangement> {
+  const context = await tagPlanContext(organizationId);
+  const { plan, recap } = planTagArrangement({
+    ...context,
+    catalog: planCatalog(context.families, catalog),
+    ...(options.tagIds ? { scope: new Set(options.tagIds) } : {}),
+  });
+  const changed = hasChanges(plan);
+  if (changed && options.apply) await applyVendorTagPlan(organizationId, plan);
+  return { changed, ...recap };
+}
+
+export async function previewVendorTagArrangement(organizationId: string, catalog: StarterVendorTagCatalogInput): Promise<VendorTagArrangement> {
+  return vendorTagArrangement(organizationId, catalog, { apply: false });
+}
+
+export async function arrangeVendorTags(organizationId: string, catalog: StarterVendorTagCatalogInput, options: { tagIds?: string[] } = {}): Promise<VendorTagArrangement> {
+  if (options.tagIds && options.tagIds.length === 0) return { changed: false, looseTags: 0, familiesSet: 0, catalogMatched: 0, tiers: [], adjustedVendors: [], remaining: 0 };
+  return vendorTagArrangement(organizationId, catalog, { ...options, apply: true });
+}
+
 // PRE-01 / PRE-03 — fiches.
 
 function addressOf(input: Pick<VendorWrite, "addressLine" | "postalCode" | "city" | "country">): string | null {
@@ -769,6 +841,10 @@ const _contractCheck: VendorsServiceContract = {
   removeVendorTagGroup,
   listVendorTagTierProposals,
   applyVendorTagTierProposal,
+  seedStarterVendorTags,
+  countMissingStarterVendorTags,
+  previewVendorTagArrangement,
+  arrangeVendorTags,
   createVendor,
   updateVendor,
   setVendorLocation,

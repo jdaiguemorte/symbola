@@ -788,6 +788,10 @@ export async function archivePaymentMethodRow(
   );
 }
 
+export async function restorePaymentMethodRow(organizationId: string, paymentMethodId: string): Promise<void> {
+  await inOrganization(organizationId, (tx) => tx.update(paymentMethods).set({ archivedAt: null }).where(eq(paymentMethods.id, paymentMethodId)));
+}
+
 // --- DEV-03 : échéancier ---
 
 export type ScheduleItemData = Pick<

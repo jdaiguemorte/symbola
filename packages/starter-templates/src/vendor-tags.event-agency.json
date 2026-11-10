@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "groups": [
+    {
+      "key": "plenary_capacity",
+      "label": { "fr": "Capacité en plénière", "en": "Plenary capacity" },
+      "exclusive": true,
+      "families": ["venues"],
+      "tags": [
+        { "fr": "Moins de 50 places", "en": "Under 50 seats" },
+        { "fr": "50 à 150 places", "en": "50 to 150 seats" },
+        { "fr": "150 à 300 places", "en": "150 to 300 seats" },
+        { "fr": "Plus de 300 places", "en": "Over 300 seats" }
+      ]
+    },
+    {
+      "key": "equipment",
+      "label": { "fr": "Équipements", "en": "Facilities" },
+      "exclusive": false,
+      "families": ["venues"],
+      "tags": [
+        { "fr": "Salles de sous-commission", "en": "Breakout rooms" },
+        { "fr": "Wi-Fi haut débit", "en": "High-speed Wi-Fi" },
+        { "fr": "Régie technique", "en": "Technical control room" }
+      ]
+    }
+  ]
+}

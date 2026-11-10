@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { confirmImport } from "@/lib/import/apply";
 import { setEventSheetStatuses } from "@/lib/import/matching";
@@ -21,7 +21,13 @@ export async function confirmImportAction(_prevState: ConfirmFormState, formData
 
   let result;
   try {
-    result = await confirmImport({ organizationId: auth.user.organizationId, userId: auth.user.id, importId, defaultProspectSourceId });
+    result = await confirmImport({
+      organizationId: auth.user.organizationId,
+      userId: auth.user.id,
+      importId,
+      defaultProspectSourceId,
+      locale: (await getLocale()) === "en" ? "en" : "fr",
+    });
   } catch (error) {
     // Rien n'a été écrit (transaction annulée) ; journalisé sans donnée personnelle.
     console.error("confirmation d'import échouée", { organizationId: auth.user.organizationId, importId, error: error instanceof Error ? error.message : "inconnue" });

@@ -54,6 +54,25 @@ export type VendorTagGroupInput = { label: string; exclusive: boolean };
 // Paliers repérés dans les étiquettes sans groupe (« 100 à 150 personnes »…).
 export type VendorTagTierProposal = { unit: string; tags: { id: string; label: string }[] };
 
+// Lot 21 (PRE-18, ADR 0050) — étiquettes de départ : groupes (certains
+// « paliers »), libellé dans la langue de l'organisation, libellés connus pour
+// reconnaître une étiquette existante, familles de départ visées (vide = toutes).
+export type StarterVendorTagCatalogInput = { label: string; exclusive: boolean; tags: { label: string; aliases: string[]; familyKeys: string[] }[] }[];
+
+export type VendorTagSeedResult = { created: number; placed: number };
+
+// Lot 21 (PRE-19) — rangement des étiquettes sans famille ni groupe (reprises
+// de l'import) : ce qui change, ou a changé.
+export type VendorTagArrangement = {
+  changed: boolean;
+  looseTags: number;
+  familiesSet: number;
+  catalogMatched: number;
+  tiers: { label: string; count: number }[];
+  adjustedVendors: { id: string; name: string }[];
+  remaining: number;
+};
+
 export type VendorLocation = { latitude: number; longitude: number; source: "geocoded" | "manual" };
 
 export type VendorFileKind = "brochure" | "rib";
@@ -193,6 +212,11 @@ export type VendorsServiceContract = {
   listVendorTagTierProposals(organizationId: string): Promise<VendorTagTierProposal[]>;
   // Range les étiquettes d'une proposition dans un nouveau groupe « palier ».
   applyVendorTagTierProposal(organizationId: string, unit: string, groupLabel: string): Promise<VendorTagGroup | null>;
+  // Lot 21 (PRE-18, PRE-19, ADR 0050).
+  seedStarterVendorTags(organizationId: string, catalog: StarterVendorTagCatalogInput): Promise<VendorTagSeedResult>;
+  countMissingStarterVendorTags(organizationId: string, catalog: StarterVendorTagCatalogInput): Promise<number>;
+  previewVendorTagArrangement(organizationId: string, catalog: StarterVendorTagCatalogInput): Promise<VendorTagArrangement>;
+  arrangeVendorTags(organizationId: string, catalog: StarterVendorTagCatalogInput, options?: { tagIds?: string[] }): Promise<VendorTagArrangement>;
   createVendor(organizationId: string, input: VendorInput): Promise<SaveVendorResult>;
   updateVendor(organizationId: string, vendorId: string, input: VendorInput): Promise<SaveVendorResult>;
   setVendorLocation(organizationId: string, vendorId: string, latitude: number, longitude: number): Promise<void>;

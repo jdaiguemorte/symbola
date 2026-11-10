@@ -25,7 +25,12 @@ import {
 import { getTranslations } from "next-intl/server";
 import { parisToday } from "@symbola/i18n";
 import { appDatabase } from "@symbola/db/client";
-import { getDocumentHeader, getSetupState, isModuleEnabled, listDueSoonPrivacyRequests } from "@/modules/hub/service";
+import {
+  getDocumentHeader,
+  getSetupState,
+  isModuleEnabled,
+  listDueSoonPrivacyRequests,
+} from "@/modules/hub/service";
 import { listOrganizationTasks } from "@/modules/events/service";
 import { getAuthContext } from "@/lib/auth-context";
 import { AppNavLink } from "./app-nav-link";
@@ -114,7 +119,9 @@ export async function AppShell({ children }: { children: ReactNode }) {
   if (auth.user.role === "client") {
     // Lot 17 (DEV-08, décision G) : le logo de l'organisation, sinon son nom ;
     // l'image est servie par /logo après contrôle de la session.
-    const organization = auth.user.organizationId ? await getDocumentHeader(appDatabase(), auth.user.organizationId) : null;
+    const organization = auth.user.organizationId
+      ? await getDocumentHeader(appDatabase(), auth.user.organizationId)
+      : null;
     const logoVersion = organization?.logoKey?.split("/").pop() ?? null;
     return (
       <div className="app-shell">
@@ -123,9 +130,15 @@ export async function AppShell({ children }: { children: ReactNode }) {
           {organization ? (
             <div className="client-organization">
               {logoVersion ? (
-                <img className="client-organization-logo" src={`/logo?v=${encodeURIComponent(logoVersion)}`} alt={organization.organizationName} />
+                <img
+                  className="client-organization-logo"
+                  src={`/logo?v=${encodeURIComponent(logoVersion)}`}
+                  alt={organization.organizationName}
+                />
               ) : (
-                <p className="client-organization-name">{organization.organizationName}</p>
+                <p className="client-organization-name">
+                  {organization.organizationName}
+                </p>
               )}
             </div>
           ) : null}
@@ -162,16 +175,23 @@ export async function AppShell({ children }: { children: ReactNode }) {
   const isOwner = auth.user.role === "owner" && Boolean(organizationId);
   // Lot 18 (RGPD-07, décision D) : demandes RGPD en alerte (échéance proche ou
   // dépassée), signalées au menu ; la titulaire seule les traite.
-  const privacyAlerts = isOwner && organizationId ? (await listDueSoonPrivacyRequests(appDatabase(), organizationId)).length : 0;
+  const privacyAlerts =
+    isOwner && organizationId
+      ? (await listDueSoonPrivacyRequests(appDatabase(), organizationId)).length
+      : 0;
   // Lot 12 (ONB-03) — assistant de démarrage bloquant : tant qu'il n'est pas
   // terminé, l'équipe n'a que l'assistant (et l'aide, le profil).
-  const teamMember = Boolean(organizationId) && (auth.user.role === "owner" || auth.user.role === "member");
+  const teamMember =
+    Boolean(organizationId) &&
+    (auth.user.role === "owner" || auth.user.role === "member");
   let setupDone = true;
   if (teamMember && organizationId) {
     const db = appDatabase();
     setupDone = (await getSetupState(db, organizationId)).completed;
     const pathname = (await headers()).get("x-pathname") ?? "/";
-    const allowed = ["/demarrage", "/aide", "/profil"].some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
+    const allowed = ["/demarrage", "/aide", "/profil"].some(
+      (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+    );
     if (!setupDone && !allowed) redirect("/demarrage");
   }
   // Lot 10 (AIDE-07) — barre d'aide de l'équipe : tutoriels des modules
@@ -186,8 +206,16 @@ export async function AppShell({ children }: { children: ReactNode }) {
     invites: TutorialInvite[];
   } | null = null;
   if (isTeam) {
-    const subscribed: Record<HelpModule, boolean> = { hub: true, events, budget, quotes, vendors };
-    const available = TUTORIALS.filter((tutorial) => subscribed[tutorial.module]);
+    const subscribed: Record<HelpModule, boolean> = {
+      hub: true,
+      events,
+      budget,
+      quotes,
+      vendors,
+    };
+    const available = TUTORIALS.filter(
+      (tutorial) => subscribed[tutorial.module],
+    );
     const db = appDatabase();
     const progress = await getHelpProgress(db, auth.user.id);
     const tHelpCenter = await getTranslations("HelpCenter");
@@ -262,6 +290,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
     ? [
         {
           label: tSettings("groupCompany"),
+          icon: "company" as const,
           items: [
             { href: "/parametres", label: tSettings("company") },
             { href: "/profil", label: tSettings("account") },
@@ -271,18 +300,44 @@ export async function AppShell({ children }: { children: ReactNode }) {
           ? [
               {
                 label: tSettings("groupEvents"),
+                icon: "events" as const,
                 items: [
                   ...(events
                     ? [
-                        { href: "/events/parametres", label: tSettings("budgetLines") },
-                        { href: "/events/parametres/sources", label: tSettings("sourcesReasons") },
-                        { href: "/events/parametres/types", label: tSettings("eventTypes") },
-                        { href: "/events/modeles", label: tSettings("retroplanning") },
-                        { href: "/events/modeles-programme", label: tSettings("program") },
+                        {
+                          href: "/events/parametres",
+                          label: tSettings("budgetLines"),
+                        },
+                        {
+                          href: "/events/parametres/sources",
+                          label: tSettings("sourcesReasons"),
+                        },
+                        {
+                          href: "/events/parametres/types",
+                          label: tSettings("eventTypes"),
+                        },
+                        {
+                          href: "/events/modeles",
+                          label: tSettings("retroplanning"),
+                        },
+                        {
+                          href: "/events/modeles-programme",
+                          label: tSettings("program"),
+                        },
                       ]
                     : []),
-                  ...(budget ? [{ href: "/budget/parametres", label: tSettings("allocation") }] : []),
-                  { href: "/parametres/relances", label: tSettings("followUp") },
+                  ...(budget
+                    ? [
+                        {
+                          href: "/budget/parametres",
+                          label: tSettings("allocation"),
+                        },
+                      ]
+                    : []),
+                  {
+                    href: "/parametres/relances",
+                    label: tSettings("followUp"),
+                  },
                 ],
               },
             ]
@@ -291,27 +346,54 @@ export async function AppShell({ children }: { children: ReactNode }) {
           ? [
               {
                 label: tSettings("groupSales"),
+                icon: "sales" as const,
                 items: [
                   { href: "/devis/catalogue", label: tSettings("catalog") },
                   { href: "/devis/parametres", label: tSettings("quotes") },
-                  { href: "/devis/parametres/documents", label: tSettings("documents") },
-                  { href: "/devis/e-reporting", label: tSettings("eReporting") },
+                  {
+                    href: "/devis/parametres/documents",
+                    label: tSettings("documents"),
+                  },
+                  {
+                    href: "/devis/e-reporting",
+                    label: tSettings("eReporting"),
+                  },
                 ],
               },
             ]
           : []),
         {
           label: tSettings("groupData"),
+          icon: "data" as const,
           items: [
             ...(vendors
               ? [
-                  { href: "/prestataires/parametres", label: tSettings("vendorTypes") },
-                  { href: "/prestataires/parametres/etiquettes", label: tSettings("vendorTags") },
-                  { href: "/prestataires/parametres/trajet", label: tSettings("vendorTravel") },
+                  {
+                    href: "/prestataires/parametres",
+                    label: tSettings("vendorTypes"),
+                  },
+                  {
+                    href: "/prestataires/parametres/etiquettes",
+                    label: tSettings("vendorTags"),
+                  },
+                  {
+                    href: "/prestataires/parametres/trajet",
+                    label: tSettings("vendorTravel"),
+                  },
                 ]
               : []),
-            ...(events || budget || quotes ? [{ href: "/import", label: tSettings("import") }] : []),
-            ...(isOwner ? [{ href: "/rgpd", label: tSettings("privacy"), ...(privacyAlerts > 0 ? { count: privacyAlerts } : {}) }] : []),
+            ...(events || budget || quotes
+              ? [{ href: "/import", label: tSettings("import") }]
+              : []),
+            ...(isOwner
+              ? [
+                  {
+                    href: "/rgpd",
+                    label: tSettings("privacy"),
+                    ...(privacyAlerts > 0 ? { count: privacyAlerts } : {}),
+                  },
+                ]
+              : []),
           ],
         },
       ].filter((group) => group.items.length > 0)
@@ -323,7 +405,12 @@ export async function AppShell({ children }: { children: ReactNode }) {
     const tAdmin = await getTranslations("AdminMenu");
     return (
       <div className="app-shell">
-        <AppSidebar brand={<Brand href="/admin" suffix={tAdmin("brand")} />} menuLabel={t("menuOpen")} closeLabel={t("menuClose")} admin>
+        <AppSidebar
+          brand={<Brand href="/admin" suffix={tAdmin("brand")} />}
+          menuLabel={t("menuOpen")}
+          closeLabel={t("menuClose")}
+          admin
+        >
           <nav aria-label={tAdmin("label")}>
             <ul className="app-nav">
               <li>
@@ -429,96 +516,109 @@ export async function AppShell({ children }: { children: ReactNode }) {
             </p>
           </nav>
         ) : (
-        <nav aria-label={t("navLabel")}>
-          <ul className="app-nav">
-            <li>
-              <AppNavLink href="/">
-                <CalendarDays {...iconProps} />
-                {t("agenda")}
-              </AppNavLink>
-            </li>
-            {events ? (
-              <>
+          <nav aria-label={t("navLabel")}>
+            <ul className="app-nav">
+              <li>
+                <AppNavLink href="/">
+                  <CalendarDays {...iconProps} />
+                  {t("agenda")}
+                </AppNavLink>
+              </li>
+              {events ? (
+                <>
+                  <li>
+                    <AppNavLink href="/events">
+                      <CalendarHeart {...iconProps} />
+                      {t("events")}
+                    </AppNavLink>
+                  </li>
+                  <li>
+                    <AppNavLink href="/taches">
+                      <ListChecks {...iconProps} />
+                      {t("tasks")}
+                      {overdue > 0 ? (
+                        <span className="nav-count">
+                          {t("tasksOverdue", { count: overdue })}
+                        </span>
+                      ) : null}
+                    </AppNavLink>
+                  </li>
+                </>
+              ) : null}
+              {vendors ? (
                 <li>
-                  <AppNavLink href="/events">
-                    <CalendarHeart {...iconProps} />
-                    {t("events")}
+                  <AppNavLink href="/prestataires" tour="nav-vendors">
+                    <BookUser {...iconProps} />
+                    {t("vendorBook")}
                   </AppNavLink>
                 </li>
+              ) : null}
+              {quotes ? (
+                <>
+                  <li>
+                    <AppNavLink href="/devis" except={["/devis/encaissements"]}>
+                      <FileText {...iconProps} />
+                      {t("navQuotesGroup")}
+                    </AppNavLink>
+                  </li>
+                  <li>
+                    <AppNavLink href="/devis/encaissements">
+                      <Wallet {...iconProps} />
+                      {t("quotePayments")}
+                    </AppNavLink>
+                  </li>
+                </>
+              ) : null}
+            </ul>
+            <ul className="app-nav app-nav-secondary">
+              {organizationId ? (
                 <li>
-                  <AppNavLink href="/taches">
-                    <ListChecks {...iconProps} />
-                    {t("tasks")}
-                    {overdue > 0 ? (
-                      <span className="nav-count">
-                        {t("tasksOverdue", { count: overdue })}
+                  <AppNavLink href="/parametres" settings tour="nav-settings">
+                    <Settings {...iconProps} />
+                    {t("settings")}
+                    {/* Repère visuel : le nom du lien reste « Paramètres » ; le détail est dans Données personnelles. */}
+                    {privacyAlerts > 0 ? (
+                      <span
+                        className="nav-count nav-count-alert"
+                        aria-hidden="true"
+                        title={tSettings("privacyAlerts", {
+                          count: privacyAlerts,
+                        })}
+                      >
+                        {privacyAlerts}
                       </span>
                     ) : null}
                   </AppNavLink>
                 </li>
-              </>
-            ) : null}
-            {vendors ? (
-              <li>
-                <AppNavLink href="/prestataires" tour="nav-vendors">
-                  <BookUser {...iconProps} />
-                  {t("vendorBook")}
-                </AppNavLink>
-              </li>
-            ) : null}
-            {quotes ? (
-              <>
+              ) : null}
+              {/* Lot 13 (AIDE-10) : les tutoriels ont leur page, avec leur compteur. */}
+              {helpBar ? (
                 <li>
-                  <AppNavLink href="/devis" except={["/devis/encaissements"]}>
-                    <FileText {...iconProps} />
-                    {t("navQuotesGroup")}
-                  </AppNavLink>
-                </li>
-                <li>
-                  <AppNavLink href="/devis/encaissements">
-                    <Wallet {...iconProps} />
-                    {t("quotePayments")}
-                  </AppNavLink>
-                </li>
-              </>
-            ) : null}
-          </ul>
-          <ul className="app-nav app-nav-secondary">
-            {organizationId ? (
-              <li>
-                <AppNavLink href="/parametres" settings tour="nav-settings">
-                  <Settings {...iconProps} />
-                  {t("settings")}
-                  {/* Repère visuel : le nom du lien reste « Paramètres » ; le détail est dans Données personnelles. */}
-                  {privacyAlerts > 0 ? (
-                    <span className="nav-count nav-count-alert" aria-hidden="true" title={tSettings("privacyAlerts", { count: privacyAlerts })}>
-                      {privacyAlerts}
+                  <AppNavLink href="/tutoriels">
+                    <GraduationCap {...iconProps} />
+                    {tAide("tutorialsLink")}
+                    {/* Repère visuel : le nom du lien reste « Tutoriels ». */}
+                    <span
+                      className="nav-count"
+                      aria-hidden="true"
+                      title={tAide("tutorialsCount", {
+                        completed: helpBar.completed,
+                        total: helpBar.total,
+                      })}
+                    >
+                      {helpBar.completed}/{helpBar.total}
                     </span>
-                  ) : null}
-                </AppNavLink>
-              </li>
-            ) : null}
-            {/* Lot 13 (AIDE-10) : les tutoriels ont leur page, avec leur compteur. */}
-            {helpBar ? (
+                  </AppNavLink>
+                </li>
+              ) : null}
               <li>
-                <AppNavLink href="/tutoriels">
-                  <GraduationCap {...iconProps} />
-                  {tAide("tutorialsLink")}
-                  {/* Repère visuel : le nom du lien reste « Tutoriels ». */}
-                  <span className="nav-count" aria-hidden="true" title={tAide("tutorialsCount", { completed: helpBar.completed, total: helpBar.total })}>
-                    {helpBar.completed}/{helpBar.total}
-                  </span>
+                <AppNavLink href="/aide">
+                  <LifeBuoy {...iconProps} />
+                  {tAide("link")}
                 </AppNavLink>
               </li>
-            ) : null}
-            <li>
-              <AppNavLink href="/aide">
-                <LifeBuoy {...iconProps} />
-                {tAide("link")}
-              </AppNavLink>
-            </li>
-          </ul>
-        </nav>
+            </ul>
+          </nav>
         )}
         <div className="app-user">
           <span>{t("connectedAs", { email: auth.user.email })}</span>
@@ -533,10 +633,15 @@ export async function AppShell({ children }: { children: ReactNode }) {
             <HelpButton />
           </section>
           {settingsSections.length > 0 ? (
-            <SettingsNav groups={settingsSections} label={t("settingsSections")} />
+            <SettingsNav
+              groups={settingsSections}
+              label={t("settingsSections")}
+            />
           ) : null}
           {/* L'invitation à un tutoriel s'affiche dans la page, plus en surimpression. */}
-          {helpBar && setupDone ? <HelpBar tutorial={helpBar.tutorial} invites={helpBar.invites} /> : null}
+          {helpBar && setupDone ? (
+            <HelpBar tutorial={helpBar.tutorial} invites={helpBar.invites} />
+          ) : null}
           {children}
         </div>
       </HelpProvider>

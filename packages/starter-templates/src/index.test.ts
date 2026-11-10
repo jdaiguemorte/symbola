@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import retroplanningFile from "./retroplanning.json";
 import vendorSlotsFile from "./vendor-slots.json";
 import programFile from "./program.json";
-import { starterDemoEvent, starterDemoQuote, starterErasureResponse, starterPrivacySettings, starterInvoiceMentions, starterDocumentStyle, starterQuoteTerms, starterRequestResponse, starterLossReasons, starterPaymentMethods, starterProgram, starterProspectSources, starterRetroplanning, starterVendorSlots, starterVendorTypes, starterBudgetLines, starterAllocation, starterFollowUpDelays, starterVendorTypeSynonymGroups, starterVendorCatalog, starterEventTypes, BUDGET_LINE_ICONS } from "./index";
+import { starterDemoEvent, starterDemoQuote, starterErasureResponse, starterPrivacySettings, starterInvoiceMentions, starterDocumentStyle, starterQuoteTerms, starterRequestResponse, starterLossReasons, starterPaymentMethods, starterProgram, starterProspectSources, starterRetroplanning, starterVendorSlots, starterVendorTypes, starterBudgetLines, starterAllocation, starterFollowUpDelays, starterVendorTypeSynonymGroups, starterVendorCatalog, starterEventTypes, starterVendorTags, starterPaymentMethodKinds, BUDGET_LINE_ICONS } from "./index";
 
 describe("EVT-03 — Modèle de départ des postes prestataires", () => {
   it("existe en français et en anglais, avec le même nombre de postes", () => {
@@ -305,5 +305,60 @@ describe("lot 16 (ADR 0045) — Types d'événement de départ", () => {
     const audiences = Object.fromEntries(starterEventTypes("fr").map((type) => [type.key, type.audience]));
     expect(audiences).toMatchObject({ wedding: "couple", birthday: "clients", seminar: "clients", other: "clients" });
     expect(Object.values(audiences).filter((audience) => audience === "couple")).toHaveLength(1);
+  });
+});
+
+// Lot 21 (PRE-18, ADR 0050) — étiquettes de départ.
+const fold = (label: string) => label.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+
+describe("PRE-18 — Étiquettes de départ, rangées par famille", () => {
+  it("chaque étiquette vise des familles de départ connues ; vide = toutes les familles", () => {
+    const families = new Set(starterVendorCatalog("fr").map((family) => family.key));
+    for (const metier of ["wedding_planner", "event_agency"] as const) {
+      for (const group of starterVendorTags("fr", metier)) {
+        for (const tag of group.tags) for (const key of tag.familyKeys) expect(families, `${group.key} › ${tag.label}`).toContain(key);
+      }
+    }
+  });
+
+  it("aucun libellé en double, en français comme en anglais (une étiquette n'est que dans un groupe)", () => {
+    for (const locale of ["fr", "en"] as const) {
+      const labels = starterVendorTags(locale, "event_agency").flatMap((group) => group.tags.map((tag) => fold(tag.label)));
+      expect(new Set(labels).size).toBe(labels.length);
+    }
+  });
+
+  it("les paliers de la capacité et des couchages, réservés aux lieux ; les langues valent pour toutes les familles", () => {
+    const groups = starterVendorTags("fr");
+    expect(groups.find((group) => group.label === "Capacité")).toMatchObject({ exclusive: true, tags: expect.arrayContaining([expect.objectContaining({ label: "100 à 150 personnes", familyKeys: ["venues"] })]) });
+    expect(groups.find((group) => group.label === "Couchages")?.exclusive).toBe(true);
+    expect(groups.find((group) => group.label === "Langues parlées")?.tags.every((tag) => tag.familyKeys.length === 0)).toBe(true);
+    expect(groups.find((group) => group.label === "Style")?.tags.find((tag) => tag.label === "Champêtre")?.familyKeys).toEqual(["venues", "decor"]);
+  });
+
+  it("traduites, avec les deux libellés pour reconnaître une étiquette importée", () => {
+    const en = starterVendorTags("en");
+    expect(en.find((group) => group.key === "capacity")?.label).toBe("Capacity");
+    expect(en.find((group) => group.key === "languages")?.tags[0]).toEqual({ label: "English", aliases: ["Anglais", "English"], familyKeys: [] });
+  });
+
+  it("une agence reçoit en plus la capacité en plénière et des équipements de séminaire", () => {
+    const wedding = starterVendorTags("fr", "wedding_planner");
+    const agency = starterVendorTags("fr", "event_agency");
+    expect(wedding.some((group) => group.key === "plenary_capacity")).toBe(false);
+    expect(agency.find((group) => group.key === "plenary_capacity")?.exclusive).toBe(true);
+    expect(agency.find((group) => group.key === "equipment")?.tags.map((tag) => tag.label)).toContain("Salles de sous-commission");
+    expect(wedding.find((group) => group.key === "equipment")?.tags.map((tag) => tag.label)).not.toContain("Salles de sous-commission");
+  });
+});
+
+describe("DEV-13 — Modes de paiement reconnus", () => {
+  it("chaque mode de départ a sa clé et ses libellés français et anglais", () => {
+    expect(starterPaymentMethodKinds()).toEqual([
+      { key: "bank_transfer", labels: ["Virement bancaire", "Bank transfer"] },
+      { key: "card", labels: ["Carte bancaire", "Card"] },
+      { key: "cheque", labels: ["Chèque", "Cheque"] },
+      { key: "cash", labels: ["Espèces", "Cash"] },
+    ]);
   });
 });

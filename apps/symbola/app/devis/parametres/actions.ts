@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getLocale, getTranslations } from "next-intl/server";
 import { starterPaymentMethods } from "@symbola/starter-templates";
-import { addPaymentMethods, archivePaymentMethod, updateQuoteSettings } from "@/modules/quotes/service";
+import { addPaymentMethods, archivePaymentMethod, restorePaymentMethod, updateQuoteSettings } from "@/modules/quotes/service";
 import { isValidId } from "../module-access";
 import { authorizedPlanner } from "../planner-access";
 
@@ -82,11 +82,13 @@ export async function loadStarterPaymentMethodsAction(
   return { success: true };
 }
 
-export async function archivePaymentMethodAction(formData: FormData): Promise<void> {
+// Lot 21 (DEV-13) : l'interrupteur « Accepté » d'un mode de paiement.
+export async function setPaymentMethodAcceptedAction(formData: FormData): Promise<void> {
   const planner = await authorizedPlanner();
   if (!planner) return;
   const paymentMethodId = String(formData.get("paymentMethodId") ?? "");
   if (!isValidId(paymentMethodId)) return;
-  await archivePaymentMethod(planner.organizationId, paymentMethodId);
+  if (formData.get("accepted") === "true") await restorePaymentMethod(planner.organizationId, paymentMethodId);
+  else await archivePaymentMethod(planner.organizationId, paymentMethodId);
   revalidatePath("/devis/parametres");
 }

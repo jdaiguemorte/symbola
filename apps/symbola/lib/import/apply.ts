@@ -41,7 +41,9 @@ import {
   undoImportedQuotesElements,
 } from "@/modules/quotes/service";
 import {
+  arrangeVendorTags,
   findModifiedImportedVendorsElements,
+  getVendor,
   importedVendorsToPlace,
   importVendorRows,
   undoImportedVendorsElements,
@@ -51,6 +53,8 @@ import {
 import { getImportGapsView } from "./gaps";
 import { getImportMatchesView, loadVendorTypeCatalog, parseWorkingSetRows, type MatchesRowView, type VendorTypeCatalog } from "./matching";
 import type { ImportVendorTypeTarget } from "@/modules/hub/service";
+import type { StarterLocale } from "@symbola/starter-templates";
+import { organizationTagCatalog } from "@/lib/vendors/tag-catalog";
 
 // Couleur d'un type « à classer » (sans famille) sur la carte.
 const UNCLASSIFIED_COLOR = "#78716c";
@@ -185,11 +189,29 @@ async function applyToModules(
   }
 }
 
+async function arrangeImportedTags(organizationId: string, importId: string, locale: StarterLocale, items: ImportedItem[]): Promise<void> {
+  const createdTagIds = items.filter((item) => item.kind === "vendor_tag" && item.action === "created").map((item) => item.elementId);
+  if (createdTagIds.length === 0) return;
+  try {
+    const arrangement = await arrangeVendorTags(organizationId, await organizationTagCatalog(organizationId, locale), { tagIds: createdTagIds });
+    for (const adjusted of arrangement.adjustedVendors) {
+      const vendor = await getVendor(organizationId, adjusted.id);
+      if (!vendor) continue;
+      for (const item of items) {
+        if (item.kind === "vendor" && item.elementId === adjusted.id && "tagIds" in item.written) item.written = { ...item.written, tagIds: vendor.tagIds };
+      }
+    }
+  } catch (error) {
+    console.error("rangement des étiquettes importées échoué", { organizationId, importId, error: error instanceof Error ? error.message : "inconnue" });
+  }
+}
+
 export async function confirmImport(input: {
   organizationId: string;
   userId: string;
   importId: string;
   defaultProspectSourceId?: string | null;
+  locale?: StarterLocale;
 }): Promise<ConfirmImportResult> {
   const preview = await getImportPreview(input.organizationId, input.importId);
   if (!preview) return { status: "not_found" };
@@ -234,6 +256,15 @@ export async function confirmImport(input: {
     unchanged: applied.unchanged,
     rejected: matches.rows.length - rows.length,
   };
+  // Lot 21 (PRE-19, ADR 0050) : les étiquettes créées par l'import se rangent
+  // toutes seules (étiquettes de départ reconnues, paliers, familles des
+  // prestataires qui les portent), avant l'enregistrement de l'import : une
+  // fiche ramenée à sa plus haute tranche est enregistrée avec ses étiquettes
+  // finales, pour que l'annulation ne la prenne pas pour une fiche retouchée.
+  // Un échec ici ne défait pas l'import : le rangement reste proposé sur
+  // l'écran Étiquettes.
+  if (preview.entityType === "vendors") await arrangeImportedTags(input.organizationId, input.importId, input.locale ?? "fr", applied.items);
+
   let recorded = false;
   try {
     recorded = await withHubDb((db) =>

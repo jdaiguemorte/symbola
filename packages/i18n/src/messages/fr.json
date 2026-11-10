@@ -525,7 +525,7 @@
     },
     "eventsTemplates": {
       "title": "Modèles de rétroplanning",
-      "body": "Vos listes de tâches types, placées avant ou après la date de l'événement (J-365, J-30, jour J…). Créez un modèle en tête de page, ou chargez le modèle de départ, puis ajoutez ses tâches. Il s'applique depuis l'onglet Rétroplanning d'un événement daté.",
+      "body": "Vos listes de tâches types, placées avant ou après la date de l'événement (J-365, J-30, jour J…). « Nouveau modèle » demande son nom puis l'ouvre ; vous pouvez aussi charger le modèle de départ. Cliquez un modèle pour voir ses tâches : une tâche s'ajoute ou se modifie dans le panneau de droite. Un modèle s'applique depuis l'onglet Rétroplanning d'un événement daté.",
       "faq": [
         {
           "q": "Modifier un modèle change-t-il les événements en cours ?",
@@ -535,7 +535,7 @@
     },
     "eventsProgramTemplates": {
       "title": "Modèles de programme",
-      "body": "Vos déroulés types du jour J, moment par moment. Créez un modèle en tête de page, puis ajoutez ses moments. Il s'applique depuis l'onglet Programme d'un événement ; les intervenants qui portent le nom d'une ligne du budget y sont reliés.",
+      "body": "Vos déroulés types du jour J, moment par moment. « Nouveau modèle » demande son nom puis l'ouvre ; cliquez un modèle pour voir ses lignes. Une ligne s'ajoute ou se modifie dans le panneau de droite, sans être recréée. Un modèle s'applique depuis l'onglet Programme d'un événement ; les intervenants qui portent le nom d'une ligne du budget y sont reliés.",
       "faq": [
         {
           "q": "Peut-on télécharger le programme ?",
@@ -595,7 +595,7 @@
     },
     "quotesSettings": {
       "title": "Devis et factures",
-      "body": "La durée de validité par défaut de vos devis et les préfixes des séries de numérotation (devis, factures, avoirs). Les numéros sont attribués par année, sans trou.",
+      "body": "La durée de validité par défaut de vos devis, les préfixes des séries de numérotation (devis, factures, avoirs) et les modes de paiement que vous acceptez. Les numéros sont attribués par année, sans trou. Un mode désactivé n'est plus proposé quand vous enregistrez un paiement ; les paiements déjà enregistrés gardent le leur.",
       "faq": [
         {
           "q": "Puis-je reprendre ma numérotation actuelle ?",
@@ -833,7 +833,7 @@
     },
     "vendorTags": {
       "title": "Étiquettes",
-      "body": "Des étiquettes pour décrire et retrouver vos prestataires : un style, un équipement, une capacité. Ajoutez-en une en tête de page, rangez-la dans un groupe et choisissez ses familles. Un groupe « palier » (capacité, surface…) n'accepte qu'une étiquette par prestataire."
+      "body": "Des étiquettes pour décrire et retrouver vos prestataires : un style, un équipement, une capacité. Symbola en propose, rangées par famille de prestataires ; vos étiquettes importées se rangent d'un clic (familles, paliers). Ajoutez-en une en tête de page, rangez-la dans un groupe et choisissez ses familles. Un groupe « palier » (capacité, surface…) n'accepte qu'une étiquette par prestataire."
     },
     "vendorTravel": {
       "title": "Estimation des trajets",
@@ -973,11 +973,8 @@
     "newTaskTemplateTitle": "Nouveau modèle",
     "newTaskTemplateName": "Nom du modèle",
     "createTaskTemplate": "Créer le modèle",
-    "taskTemplateCreated": "Modèle créé.",
     "loadStarterRetroplanning": "Charger le modèle de départ",
     "starterRetroplanningLoaded": "Modèle de départ chargé : adaptez-le à votre façon de travailler.",
-    "removeTaskTemplate": "Supprimer le modèle {name}",
-    "addTaskTemplateItemTo": "Ajouter une tâche au modèle {name}",
     "addTaskTemplateItem": "Ajouter la tâche au modèle",
     "taskTemplateItemAdded": "Tâche ajoutée au modèle.",
     "taskOffsetDays": "Décalage en jours (négatif avant l'événement, positif après)",
@@ -1052,11 +1049,8 @@
     "newProgramTemplateTitle": "Nouveau modèle de programme",
     "newProgramTemplateName": "Nom du modèle de programme",
     "createProgramTemplate": "Créer le modèle de programme",
-    "programTemplateCreated": "Modèle de programme créé.",
     "loadStarterProgram": "Charger le modèle de programme de départ",
     "starterProgramLoaded": "Modèle de départ chargé : adaptez-le à votre façon de travailler.",
-    "removeProgramTemplate": "Supprimer le modèle de programme {name}",
-    "addProgramTemplateItemTo": "Ajouter une ligne au modèle {name}",
     "addProgramTemplateItem": "Ajouter la ligne au modèle",
     "programTemplateItemAdded": "Ligne ajoutée au modèle.",
     "programTemplateParticipants": "Intervenants (séparés par des virgules)",
@@ -1260,7 +1254,35 @@
     "changeEventType": "Changer le type",
     "eventTypeSaved": "Type de l'événement enregistré.",
     "eventTypeOf": "Type de l'événement {names}",
-    "actionsLabel": "Actions des événements"
+    "actionsLabel": "Actions des événements",
+    "newTemplateButton": "Nouveau modèle",
+    "templateLineCount": "{count, plural, =0 {Aucune ligne} one {# ligne} other {# lignes}}",
+    "templateTaskCount": "{count, plural, =0 {Aucune tâche} one {# tâche} other {# tâches}}",
+    "templateSpan": "{start} → {end}",
+    "backToProgramTemplates": "Tous les modèles de programme",
+    "backToTaskTemplates": "Tous les modèles de rétroplanning",
+    "renameTemplate": "Renommer",
+    "renameTemplateTitle": "Renommer le modèle",
+    "renameTemplateSave": "Enregistrer le nom",
+    "addTemplateLine": "Ajouter une ligne",
+    "addTemplateTask": "Ajouter une tâche",
+    "newTemplateLine": "Nouvelle ligne",
+    "newTemplateTask": "Nouvelle tâche",
+    "editTemplateLineTitle": "Modifier « {label} »",
+    "editTemplateTask": "Modifier la tâche {label}",
+    "saveTemplateLine": "Enregistrer la ligne",
+    "saveTemplateTask": "Enregistrer la tâche",
+    "templateColumnTime": "Heure",
+    "templateColumnLabel": "Intitulé",
+    "templateColumnParticipants": "Intervenants",
+    "templateColumnActions": "Actions",
+    "templateColumnDue": "Échéance",
+    "templateColumnTask": "Tâche",
+    "deleteTemplate": "Supprimer ce modèle…",
+    "deleteTemplateTitle": "Supprimer le modèle « {name} » ?",
+    "deleteProgramTemplateBody": "Les programmes déjà appliqués aux événements ne changent pas.",
+    "deleteTaskTemplateBody": "Les tâches déjà créées sur les événements restent.",
+    "deleteTemplateConfirm": "Supprimer le modèle"
   },
   "Budget": {
     "title": "Budget",
@@ -1477,14 +1499,13 @@
     "allPaymentsLink": "Voir tous les encaissements",
     "upcomingHorizonDays": "Encaissements affichés au tableau de bord (jours à venir)",
     "invalidHorizon": "L'horizon doit être compris entre 1 et 730 jours.",
-    "paymentMethodsTitle": "Modes de paiement",
-    "newPaymentMethod": "Nouveau mode de paiement",
-    "addPaymentMethod": "Ajouter le mode",
+    "paymentMethodsTitle": "Modes de paiement acceptés",
+    "newPaymentMethod": "Ajouter un autre mode",
+    "addPaymentMethod": "Ajouter",
     "paymentMethodAdded": "Mode de paiement ajouté.",
     "missingPaymentMethod": "Le nom du mode de paiement est obligatoire.",
     "loadStarterPaymentMethods": "Charger les modes de départ",
     "starterPaymentMethodsLoaded": "Modes de départ chargés.",
-    "archivePaymentMethod": "Archiver « {label} »",
     "signatureTitle": "Signature en ligne",
     "sendForSignature": "Envoyer en signature",
     "sendForSignatureHint": "La version courante est figée puis envoyée au service de signature ; chaque signataire reçoit son lien personnel par e-mail. Laissez vide une ligne inutile.",
@@ -1592,7 +1613,11 @@
     "quoteStatusColumn": "Statut",
     "statusBadge": "{status} — version {version}",
     "moreDashboardPayments": "{count, plural, one {Et # autre échéance.} other {Et # autres échéances.}}",
-    "dashboardPaymentLine": "{label} · {number}"
+    "dashboardPaymentLine": "{label} · {number}",
+    "paymentMethodsIntro": "Seuls les modes acceptés sont proposés quand vous enregistrez un paiement. Désactiver un mode ne change rien aux paiements déjà enregistrés, et vous pouvez le réactiver à tout moment.",
+    "paymentMethodAccepted": "Accepté",
+    "paymentMethodNotAccepted": "Non proposé à l'encaissement",
+    "paymentMethodSwitch": "{label} accepté"
   },
   "Documents": {
     "pdfSellerHeading": "De",
@@ -3476,7 +3501,6 @@
     "tagsNewTitle": "Nouvelle étiquette",
     "tagsListTitle": "Vos étiquettes",
     "tagEdit": "Modifier l'étiquette {tag}",
-    "tagEditShort": "Modifier",
     "tagGroupsTitle": "Groupes d'étiquettes",
     "tagGroupsIntro": "Rangez vos étiquettes par sujet (style, équipements…). Un groupe « palier » n'accepte qu'une étiquette par prestataire : capacité, surface, tarif par tranches.",
     "tagGroupNewTitle": "Nouveau groupe",
@@ -3492,10 +3516,21 @@
     "tagGroupRemoveHint": "Ses étiquettes passent dans « Autres » ; aucun prestataire ne les perd.",
     "tagGroupTierBadge": "Palier",
     "tagGroupCount": "{count, plural, =0 {aucune étiquette} one {# étiquette} other {# étiquettes}}",
-    "tierProposalsTitle": "Paliers repérés",
-    "tierProposalsIntro": "Ces étiquettes décrivent la même mesure par tranches. Rangez-les en palier : un prestataire n'en portera plus qu'une, et le carnet les filtrera dans l'ordre.",
-    "tierProposalTags": "{count} étiquettes en « {unit} » : {labels}",
-    "tierProposalApply": "Ranger en palier"
+    "tagSetupArrangeTitle": "Vos étiquettes importées peuvent se ranger toutes seules",
+    "tagSetupArrangeIntro": "{count, plural, one {# étiquette n'a} other {# étiquettes n'ont}} ni famille ni groupe. Symbola regarde quels prestataires les portent, repère les tranches (« 50 à 100 personnes »…) et reconnaît les étiquettes proposées. Rien n'est supprimé.",
+    "tagSetupStarterTitle": "Des étiquettes proposées pour vos prestataires",
+    "tagSetupStarterIntro": "Capacité, couchages, équipements, styles, langues… rangées par famille de prestataires. Une étiquette que vous avez déjà n'est pas dupliquée : elle rejoint son groupe.",
+    "tagSetupDoneTitle": "Étiquettes rangées",
+    "tagSetupArrange": "Ranger mes étiquettes importées",
+    "tagSetupAddStarter": "Ajouter les étiquettes proposées ({count})",
+    "tagRecapTitle": "C'est rangé :",
+    "tagRecapNothing": "Rien à ranger.",
+    "tagRecapFamilies": "{count, plural, one {# étiquette rattachée} other {# étiquettes rattachées}} à une famille, d'après les prestataires qui les portent.",
+    "tagRecapCatalog": "{count, plural, one {# étiquette a rejoint} other {# étiquettes ont rejoint}} le groupe d'une étiquette proposée.",
+    "tagRecapTier": "Palier « {label} » : {count, plural, one {# tranche} other {# tranches}}.",
+    "tagRecapVendors": "{count, plural, one {# fiche portait plusieurs tranches d'un même palier ; elle garde la plus haute :} other {# fiches portaient plusieurs tranches d'un même palier ; elles gardent la plus haute :}}",
+    "tagRecapRemaining": "{count, plural, one {# étiquette reste dans « Autres », valable} other {# étiquettes restent dans « Autres », valables}} pour toutes les familles.",
+    "tagStarterAdded": "{created, plural, =0 {Aucune étiquette ajoutée} one {# étiquette ajoutée} other {# étiquettes ajoutées}} ; {placed, plural, =0 {aucune existante rangée} one {# existante rangée} other {# existantes rangées}}."
   },
   "Setup": {
     "title": "Bienvenue : préparons votre espace",
@@ -3676,7 +3711,8 @@
     "closePanel": "Fermer le panneau",
     "moduleSettings": "Réglages",
     "filterLabel": "Filtrer la liste",
-    "filterCount": "{shown, plural, one {# affiché} other {# affichés}} sur {total}"
+    "filterCount": "{shown, plural, one {# affiché} other {# affichés}} sur {total}",
+    "cancel": "Annuler"
   },
   "TutorialsPage": {
     "title": "Tutoriels",

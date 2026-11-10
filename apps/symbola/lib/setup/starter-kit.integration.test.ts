@@ -16,7 +16,7 @@ import {
   listTaskTemplates,
 } from "@/modules/events/service";
 import { listAllocationModels } from "@/modules/budget/service";
-import { listVendorTypes } from "@/modules/vendors/service";
+import { listVendorTagGroups, listVendorTypes } from "@/modules/vendors/service";
 import { completeSetup, getSetupState, saveSetupStep } from "@/modules/hub/service";
 import { loadStarterKit } from "./starter-kit";
 
@@ -42,6 +42,9 @@ describe("ONB-03 — Assistant de démarrage pré-rempli", { timeout: 30_000 }, 
     const [split] = await listAllocationModels(organization.id);
     expect(split?.items.reduce((sum, item) => sum + item.percentageBasisPoints, 0)).toBe(10000);
     expect((await listVendorTypes(organization.id)).length).toBeGreaterThan(3);
+    // Lot 21 (PRE-18) : étiquettes de départ, rangées par famille.
+    expect(result.vendorTags).toBeGreaterThan(20);
+    expect((await listVendorTagGroups(organization.id)).find((group) => group.label === "Capacité")?.exclusive).toBe(true);
   });
 
   it("agence événementielle : lignes adaptées ; un nouvel événement reçoit ses lignes du budget avec leur icône", async () => {
@@ -65,7 +68,7 @@ describe("ONB-03 — Assistant de démarrage pré-rempli", { timeout: 30_000 }, 
     const again = await loadStarterKit(organization.id, "wedding_planner", "fr");
 
     expect((await listProspectSources(organization.id)).map((source) => source.label)).toEqual(["Mon réseau"]);
-    expect(again).toMatchObject({ budgetLines: 0, sources: 0, lossReasons: 0, taskTemplate: false, programTemplate: false, allocation: false, vendorTypes: 0 });
+    expect(again).toMatchObject({ budgetLines: 0, sources: 0, lossReasons: 0, taskTemplate: false, programTemplate: false, allocation: false, vendorTypes: 0, vendorTags: 0 });
     expect((await listTaskTemplates(organization.id)).length).toBe(1);
   });
 

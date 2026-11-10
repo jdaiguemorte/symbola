@@ -1,18 +1,26 @@
+// EVT-05 — modèles de programme du jour J de l'organisation. Lot 21 (EVT-21,
+// décision 3) : la liste des modèles ; un clic ouvre le détail. « Nouveau
+// modèle » demande le nom dans le panneau latéral, puis ouvre le modèle créé.
+import Link from "next/link";
+import { ChevronRight, Plus } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { ScreenHelp } from "@/app/screen-help";
+import { PageHeader } from "@/app/ui/page-header";
+import { SidePanel } from "@/app/ui/side-panel";
 import { listProgramTemplates } from "@/modules/events/service";
 import { requirePlanner } from "@/lib/guards";
 import { isEventsModuleEnabled } from "../module-access";
-import { AddProgramTemplateItemForm, CreateProgramTemplateForm, LoadStarterProgramForm } from "./template-forms";
-import { removeProgramTemplateAction, removeProgramTemplateItemAction } from "./template-actions";
+import { CreateProgramTemplateForm, LoadStarterProgramForm } from "./template-forms";
 
-// EVT-05 — modèles de programme du jour J de l'organisation.
-export default async function ProgramTemplatesPage() {
+const PATH = "/events/modeles-programme";
+
+export default async function ProgramTemplatesPage({ searchParams }: { searchParams: Promise<{ nouveau?: string }> }) {
   const auth = await requirePlanner();
   const organizationId = auth.user.organizationId;
 
   const t = await getTranslations("Events");
   const tHelp = await getTranslations("Help");
+  const tCommon = await getTranslations("Common");
   if (!(await isEventsModuleEnabled(organizationId))) {
     return (
       <main>
@@ -22,47 +30,49 @@ export default async function ProgramTemplatesPage() {
     );
   }
   const templates = await listProgramTemplates(organizationId);
+  const creating = (await searchParams).nouveau === "1";
 
   return (
     <main>
-      <h1>{t("programTemplatesTitle")}</h1>
+      <PageHeader
+        title={t("programTemplatesTitle")}
+        actions={
+          <Link href={`${PATH}?nouveau=1`} scroll={false} className="button-link button-link-primary">
+            <Plus aria-hidden="true" />
+            {t("newTemplateButton")}
+          </Link>
+        }
+      />
       <ScreenHelp title={tHelp("eventsProgramTemplates.title")} body={tHelp("eventsProgramTemplates.body")} />
       <p>{t("programTemplatesIntro")}</p>
-      {/* Lot 20 (EVT-20, décision 3) : « Nouveau modèle » en tête, dans une carte
-          de la largeur des cartes des modèles, sans faire défiler la liste. */}
-      <section aria-labelledby="new-program-template">
-        <h2 id="new-program-template">{t("newProgramTemplateTitle")}</h2>
-        <CreateProgramTemplateForm />
-      </section>
 
-      {templates.length === 0 ? <p>{t("noProgramTemplates")}</p> : null}
-      {templates.map((template) => (
-        <section key={template.id} aria-labelledby={`program-template-${template.id}`}>
-          <h2 id={`program-template-${template.id}`}>{template.name}</h2>
-          {/* Lot 20 (décision 3) : l'ajout d'une ligne avant la liste du modèle. */}
-          <AddProgramTemplateItemForm templateId={template.id} templateName={template.name} />
-          {template.items.length === 0 ? <p>{t("noProgramTemplateItems")}</p> : null}
-          <ul>
-            {template.items.map((item) => (
-              <li key={item.id}>
-                <strong>{item.endTime ? `${item.startTime} – ${item.endTime}` : item.startTime}</strong> — {item.label}
-                {item.location ? ` — ${item.location}` : ""}
-                {item.participantLabels.length > 0 ? ` — ${item.participantLabels.join(", ")}` : ""}{" "}
-                <form action={removeProgramTemplateItemAction} className="inline-form">
-                  <input type="hidden" name="itemId" value={item.id} />
-                  <button type="submit">{t("removeProgramItem", { label: item.label })}</button>
-                </form>
+      {templates.length === 0 ? (
+        <p>{t("noProgramTemplates")}</p>
+      ) : (
+        <ul className="template-list" aria-label={t("programTemplatesTitle")}>
+          {templates.map((template) => {
+            const first = template.items[0];
+            const last = template.items[template.items.length - 1];
+            return (
+              <li key={template.id}>
+                <Link href={`${PATH}/${template.id}`} className="template-row">
+                  <span className="template-name">{template.name}</span>
+                  <span className="meta">{t("templateLineCount", { count: template.items.length })}</span>
+                  <span className="meta">{first && last ? t("templateSpan", { start: first.startTime, end: last.endTime ?? last.startTime }) : ""}</span>
+                  <ChevronRight aria-hidden="true" className="template-chevron" />
+                </Link>
               </li>
-            ))}
-          </ul>
-          <form action={removeProgramTemplateAction}>
-            <input type="hidden" name="templateId" value={template.id} />
-            <button type="submit">{t("removeProgramTemplate", { name: template.name })}</button>
-          </form>
-        </section>
-      ))}
-
+            );
+          })}
+        </ul>
+      )}
       <LoadStarterProgramForm />
+
+      {creating ? (
+        <SidePanel title={t("newProgramTemplateTitle")} closeHref={PATH} closeLabel={tCommon("closePanel")}>
+          <CreateProgramTemplateForm />
+        </SidePanel>
+      ) : null}
     </main>
   );
 }

@@ -409,6 +409,8 @@ export interface QuotesServiceContract {
   listPaymentMethods(organizationId: string, options?: { includeArchived?: boolean }): Promise<PaymentMethod[]>;
   addPaymentMethods(organizationId: string, labels: string[]): Promise<PaymentMethod[]>;
   archivePaymentMethod(organizationId: string, paymentMethodId: string): Promise<void>;
+  // Lot 21 (DEV-13) : un mode désactivé se réactive.
+  restorePaymentMethod(organizationId: string, paymentMethodId: string): Promise<void>;
   addScheduleItem(organizationId: string, quoteId: string, item: ScheduleItemInput): Promise<QuoteDetail>;
   updateScheduleItem(organizationId: string, scheduleItemId: string, item: ScheduleItemInput): Promise<QuoteDetail>;
   removeScheduleItem(organizationId: string, scheduleItemId: string): Promise<QuoteDetail>;

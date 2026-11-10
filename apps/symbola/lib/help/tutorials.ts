@@ -100,7 +100,8 @@ export const TUTORIAL_SCRIPTS: Record<TutorialKey, TutorialScript> = {
     steps: [
       { kind: "explain" },
       { kind: "setup" },
-      { kind: "look", href: () => "/events/modeles" },
+      // Lot 21 (EVT-22) : le modèle d'exemple s'ouvre directement dans son détail.
+      { kind: "look", href: (context) => (context.templateId ? `/events/modeles/${context.templateId}` : "/events/modeles") },
       { kind: "do", href: eventTab("retroplanning"), check: async (env) => (await listEventTasks(env.organizationId, env.context.eventId!)).length > 0 },
       { kind: "do", href: eventTab("apercu"), check: async (env) => ((await getEvent(env.organizationId, env.context.eventId!))?.eventDate ?? "") !== env.context.initialDate },
       { kind: "finish" },
