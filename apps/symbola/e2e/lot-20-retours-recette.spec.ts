@@ -126,7 +126,7 @@ test("Décision 5 — étiquettes : paliers repérés puis rangés, choix unique
     const organization = await readyOrganization(db, `Org ${randomUUID()}`);
     await createUser(db, { organizationId: organization.id, email, password, role: "owner" });
     const venues = await createVendorFamily(organization.id, { label: "Lieux", color: "#4f6b5a", icon: "venue" });
-    const flowers = await createVendorFamily(organization.id, { label: "Fleurs", color: "#a8553a", icon: "florist" });
+    const flowers = await createVendorFamily(organization.id, { label: "Fleurs", color: "#a8553a", icon: "flower" });
     const domain = await createVendorType(organization.id, "Domaine", "#4f6b5a", { familyId: venues.id });
     const florist = await createVendorType(organization.id, "Fleuriste", "#a8553a", { familyId: flowers.id });
     for (const label of ["150 à 200 personnes", "100 à 150 personnes"]) await createVendorTag(organization.id, label);
@@ -157,8 +157,11 @@ test("Décision 5 — étiquettes : paliers repérés puis rangés, choix unique
   await expect(capacity.getByRole("radio", { name: "100 à 150 personnes" })).not.toBeChecked();
   await expect(page.getByRole("checkbox", { name: "Accès PMR" })).toBeVisible();
   await expectNoAxeViolation(page);
-  await page.getByRole("button", { name: "Enregistrer", exact: true }).click();
-  await expect(page.getByRole("status").filter({ hasText: /enregistr/i })).toBeVisible();
+  // La fiche se recharge après l'enregistrement : on attend la réponse, puis on relit.
+  await Promise.all([
+    page.waitForResponse((response) => response.request().method() === "POST" && response.url().includes(`/prestataires/${venueId}`)),
+    page.getByRole("button", { name: "Enregistrer", exact: true }).click(),
+  ]);
   await page.reload();
   await expect(page.getByRole("radio", { name: "150 à 200 personnes" })).toBeChecked();
 

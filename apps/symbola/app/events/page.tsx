@@ -101,12 +101,14 @@ export default async function EventsListPage({
       <button type="submit">{t("trialStart")}</button>
     </form>
   );
+  // Dans le tiroir d'aide : un simple bloc (pas une région), pour ne pas
+  // doubler la région « Essai guidé » de la liste vide.
   const trialHelp = (
-    <section aria-labelledby="events-trial-title" className="help-extra">
-      <h3 id="events-trial-title">{t("trialTitle")}</h3>
+    <div className="help-extra">
+      <h3>{t("trialTitle")}</h3>
       <p>{t("trialIntro")}</p>
       {trialAction}
-    </section>
+    </div>
   );
 
   return (

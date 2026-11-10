@@ -2332,7 +2332,8 @@
     @apply absolute h-px w-px opacity-0;
   }
   .tag-chip > span {
-    @apply inline-flex min-h-10 cursor-pointer items-center rounded-full border border-lin-dark bg-[#f4f0ea] px-3.5 text-ink-soft transition-colors hover:border-ink-soft;
+    /* Sans transition : une couleur à mi-chemin ferait échouer le contraste (comme au lot 17). */
+    @apply inline-flex min-h-10 cursor-pointer items-center rounded-full border border-lin-dark bg-[#f4f0ea] px-3.5 text-ink-soft transition-none hover:border-ink-soft;
   }
   .tag-chip > input:checked + span {
     @apply border-sauge bg-sauge text-white;
