@@ -1,0 +1,601 @@
+﻿NOM Prénom;tel portable;Mail;Ville ;Catégorie;notes
+HENRY Mathieu;06.39.98.22.65;mathieu.henry.265@exemple.test;Genève ;client;
+CLÉMENT Catherine;06.39.98.20.16;catherine.clement.16@exemple.test;Annecy;Prestataire ;recommandée par une cliente
+GUÉRIN Laura;06 39 98 23 56;laura.guerin.356@exemple.test;Genève ;prestataire;
+GAUTIER Pauline;06.39.98.20.58;pauline.gautier.58@exemple.test;Lyon;prestataire;rappeler en septembre
+LOPEZ Anne;06.39.98.20.87;anne.lopez.87@exemple.test;Aix-les-Bains ;prestataire;
+CHEVALIER Manon;06.39.98.22.16;manon.chevalier.216@exemple.test;Annecy ;lieu;
+BERTRAND Louise;06.39.98.22.92;louise.bertrand.292@exemple.test;Chambéry;Prestataire ;
+CLÉMENT Adrien;06.39.98.22.49;adrien.clement.249@exemple.test;Albertville;prospect;
+GARCIA Adrien;06.39.98.20.61;adrien.garcia.61@exemple.test;Aix-les-Bains ;prestataire;
+MARCHAND Claire;06 39 98 22 45;claire.marchand.245@exemple.test;Aix-les-Bains;PROSPECT;recommandée par une cliente
+ARNAUD Camille;0639982202;camille.arnaud.202@exemple.test;Annecy;Prestataire ;recommandée par une cliente
+DURAND Céline;06 39 98 22 93;celine.durand.293@exemple.test;Thonon-les-Bains;prospect;
+LEFÈVRE Olivier;0639982036;olivier.lefevre.36@exemple.test;Lyon ;cliente;
+LOPEZ Chloé;06 39 98 20 69;chloe.lopez.69@exemple.test;Aix-les-Bains ;PROSPECT;rappeler en septembre
+RICHARD Thomas;06 39 98 24 04;thomas.richard.404@exemple.test;Genève;Prestataire ;
+LAURENT Margaux;0639982401;margaux.laurent.401@exemple.test;Genève ;lieu;recommandée par une cliente
+MORIN Alexandre;06.39.98.23.72;;Lyon;client;
+BERNARD Anne;06 39 98 23 79;anne.bernard.379@exemple.test;Albertville;PROSPECT;
+FONTAINE Charlotte;06 39 98 24 13;;Annecy;;recommandée par une cliente
+LAMBERT Agathe;06 39 98 25 27;agathe.lambert.527@exemple.test;Lyon ;lieu;
+DURAND Clément;06 39 98 24 80;clement.durand.480@exemple.test;Albertville;prospect;
+ARNAUD Pierre;0639982290;;Chambéry;Prestataire ;recommandée par une cliente
+MATHIEU Aurélie;0639982477;aurelie.mathieu.477@exemple.test;Lyon ;client;mariage 2019
+LEGRAND Julien;06 39 98 21 61;julien.legrand.161@exemple.test;Grenoble;lieu;
+MARCHAND Émilie;0639982117;emilie.marchand.117@exemple.test;Lyon;PROSPECT;recommandée par une cliente
+ROUSSEL Amandine;06.39.98.23.07;amandine.roussel.307@exemple.test;Lyon;lieu;
+MARCHAND Inès;0639982288;ines.marchand.288@exemple.test;Albertville ;lieu;
+FAURE Julien;06.39.98.24.31;julien.faure.431@exemple.test;Genève ;prestataire;
+VINCENT Julie;06.39.98.25.50;julie.vincent.550@exemple.test;Annecy;PROSPECT;recommandée par une cliente
+LAURENT Lucie;06.39.98.21.58;lucie.laurent.158@exemple.test;Thonon-les-Bains;client;recommandée par une cliente
+MARCHAND Camille;06.39.98.25.04;camille.marchand.504@exemple.test;Grenoble;;
+BERTRAND Louise;06.39.98.23.53;louise.bertrand.353@exemple.test;Grenoble;PROSPECT;
+LEGRAND Hélène;06 39 98 20 43;helene.legrand.43@exemple.test;Grenoble ;prospect;
+LEROY Laurent;06 39 98 25 13;laurent.leroy.513@exemple.test;Chambéry;cliente;recommandée par une cliente
+MATHIEU Anne;06.39.98.22.59;anne.mathieu.259@exemple.test;Grenoble ;prospect;
+LAMBERT Alice;06 39 98 23 35;alice.lambert.335@exemple.test;Genève ;prestataire;rappeler en septembre
+NICOLAS Inès;06.39.98.22.01;ines.nicolas.201@exemple.test;Lyon;prestataire;
+FRANÇOIS Agathe;0639982438;agathe.francois.438@exemple.test;Grenoble;cliente;
+CHEVALIER Bastien;06 39 98 23 08;bastien.chevalier.308@exemple.test;Grenoble;;recommandée par une cliente
+PETIT Yanis;0639982063;yanis.petit.63@exemple.test;Aix-les-Bains;PROSPECT;recommandée par une cliente
+ROUX Catherine;06.39.98.20.56;catherine.roux.56@exemple.test;Genève;Prestataire ;rappeler en septembre
+BLANC Philippe;06.39.98.25.30;philippe.blanc.530@exemple.test;Albertville ;PROSPECT;recommandée par une cliente
+François Agathe;0639982438; agathe.francois.438@exemple.test;Grenoble;cliente;
+GARCIA Zoé;0639982053;zoe.garcia.53@exemple.test;Aix-les-Bains;Prestataire ;
+FONTAINE Théo;06 39 98 25 44;theo.fontaine.544@exemple.test;Aix-les-Bains ;prospect;
+PERRIN Adrien;06 39 98 21 28;adrien.perrin.128@exemple.test;Lyon ;prestataire;rappeler en septembre
+LAMBERT Guillaume;06 39 98 22 76;guillaume.lambert.276@exemple.test;Albertville;client;
+FRANÇOIS Yanis;06.39.98.22.77;;Annecy ;prestataire;
+ROUX Agathe;06 39 98 21 77;agathe.roux.177@exemple.test;Aix-les-Bains ;prestataire;
+Bonnet Julien;0639982119;julien.bonnet.119@exemple.test ;Annecy ;;
+MATHIEU Émilie;06.39.98.20.21;EMILIE.MATHIEU.21@EXEMPLE.TEST;Chambéry;client;mariage 2019
+VINCENT Nathalie;0639982306;nathalie.vincent.306@exemple.test;Annecy ;prestataire;recommandée par une cliente
+BERTRAND Mathilde;06 39 98 21 83;mathilde.bertrand.183@exemple.test;Thonon-les-Bains;PROSPECT;recommandée par une cliente
+BRUN Michel;06 39 98 22 91;michel.brun.291@exemple.test;Annecy;;
+DURAND Romain;0639982465;romain.durand.465@exemple.test;Lyon ;prestataire;mariage 2019
+FRANÇOIS Thomas;06 39 98 21 27;thomas.francois.127@exemple.test;Aix-les-Bains;PROSPECT;rappeler en septembre
+SIMON Aurélie;06 39 98 21 59;aurelie.simon.159@exemple.test;Albertville;prestataire;mariage 2019
+ARNAUD Yanis;0639982389;yanis.arnaud.389@exemple.test;Thonon-les-Bains ;prospect;
+FAURE Aurélie;06.39.98.21.47;aurelie.faure.147@exemple.test;Annecy ;;mariage 2019
+VINCENT Jean;0639982435;;Thonon-les-Bains ;lieu;
+DURAND Manon;06.39.98.24.32;manon.durand.432@exemple.test;Annecy;;recommandée par une cliente
+MULLER Camille;06 39 98 22 24;camille.muller.224@exemple.test;Chambéry;cliente;
+Bernard Olivier;06.39.98.23.67; olivier.bernard.367@exemple.test;Chambéry ;client;recommandée par une cliente
+PERRIN Benoît;0639982157;benoit.perrin.157@exemple.test;Aix-les-Bains ;PROSPECT;mariage 2019
+DUPONT Hugo;06 39 98 24 15;hugo.dupont.415@exemple.test;Genève ;;
+LAMBERT Hugo;0639982517;hugo.lambert.517@exemple.test;Genève;lieu;
+LOPEZ Laura;06.39.98.24.56;laura.lopez.456@exemple.test;Albertville;PROSPECT;
+PERRIN Thomas;0639982486;thomas.perrin.486@exemple.test;Annecy;PROSPECT;recommandée par une cliente
+GAUTIER Pierre;06 39 98 23 71;pierre.gautier.371@exemple.test;Genève ;PROSPECT;recommandée par une cliente
+MARCHAND Manon;06 39 98 21 15;manon.marchand.115@exemple.test;Genève ;prospect;recommandée par une cliente
+MULLER Aurélie ;0639982449;aurelie.muller.449@exemple.test ;Genève;;
+MOREL Romain;06 39 98 20 67;romain.morel.67@exemple.test;Lyon;prospect;
+MOREAU Louise;0639982112;louise.moreau.112@exemple.test;Aix-les-Bains;;
+BRUN Yanis;0639982209;yanis.brun.209@exemple.test;Genève;PROSPECT;
+LOPEZ Claire;06.39.98.25.05;claire.lopez.505@exemple.test;Thonon-les-Bains;;mariage 2019
+Martin Michel;06 39 98 23 09;MICHEL.MARTIN.309@EXEMPLE.TEST;Aix-les-Bains;;
+DUPONT Laura;06 39 98 20 24;laura.dupont.24@exemple.test;Thonon-les-Bains;prospect;
+BERTRAND Jean;06 39 98 21 78;jean.bertrand.178@exemple.test;Thonon-les-Bains ;PROSPECT;rappeler en septembre
+FONTAINE Romain;06.39.98.22.51;romain.fontaine.251@exemple.test;Grenoble ;Prestataire ;mariage 2019
+LAURENT Anne;06.39.98.24.89;anne.laurent.489@exemple.test;Albertville;PROSPECT;mariage 2019
+FONTAINE Bastien;06.39.98.20.71;bastien.fontaine.71@exemple.test;Aix-les-Bains;prestataire;
+PERRIN Catherine;06.39.98.24.17;catherine.perrin.417@exemple.test;Lyon;prestataire;recommandée par une cliente
+MULLER Mathieu;06 39 98 24 48;mathieu.muller.448@exemple.test;Lyon;Prestataire ;recommandée par une cliente
+VINCENT Sophie;0639982279;sophie.vincent.279@exemple.test;Thonon-les-Bains ;Prestataire ;recommandée par une cliente
+RENARD Thomas;0639982226;;Grenoble ;prospect;rappeler en septembre
+GUÉRIN Hugo;06 39 98 24 09;hugo.guerin.409@exemple.test;Annecy ;;
+MULLER Nicolas;06.39.98.21.51;nicolas.muller.151@exemple.test;Lyon ;PROSPECT;
+NOËL Hélène;0639982110;;Chambéry;cliente;
+MARCHAND Chloé;0639982458;chloe.marchand.458@exemple.test;Annecy ;Prestataire ;
+DUPONT Samuel;06 39 98 20 97;samuel.dupont.97@exemple.test;Lyon ;client;rappeler en septembre
+MOREL Zoé;0639982051;zoe.morel.51@exemple.test;Lyon ;prestataire;recommandée par une cliente
+SIMON Benoît;06 39 98 25 06;benoit.simon.506@exemple.test;Aix-les-Bains;Prestataire ;rappeler en septembre
+BONNET Sarah;06 39 98 23 82;sarah.bonnet.382@exemple.test;Annecy ;;
+CLÉMENT Pierre;06 39 98 23 81;pierre.clement.381@exemple.test;Annecy;lieu;rappeler en septembre
+PERRIN Thomas;06 39 98 24 24;thomas.perrin.424@exemple.test;Albertville ;prospect;rappeler en septembre
+LEROY Hugo;06 39 98 20 85;hugo.leroy.85@exemple.test ;Thonon-les-Bains;lieu;
+MOREAU Jeanne;06 39 98 21 70;jeanne.moreau.170@exemple.test;Lyon;client;
+ROUX Théo;0639982075;theo.roux.75@exemple.test;Aix-les-Bains ;Prestataire ;
+FOURNIER Laura;06 39 98 25 35;laura.fournier.535@exemple.test;Albertville ;Prestataire ;mariage 2019
+MULLER Théo ;06 39 98 20 01;theo.muller.1@exemple.test ;Aix-les-Bains;;mariage 2019
+ROUX Sophie;06.39.98.20.12;sophie.roux.12@exemple.test;Annecy;client;
+MARTIN Julie;06 39 98 22 60;julie.martin.260@exemple.test;Grenoble;cliente;
+ROBERT Thomas;06.39.98.21.73;thomas.robert.173@exemple.test;Albertville ;prospect;
+MOREL Philippe;06.39.98.20.81;philippe.morel.81@exemple.test;Thonon-les-Bains ;Prestataire ;
+FRANÇOIS Vincent;06.39.98.20.96;vincent.francois.96@exemple.test;Chambéry;prestataire;
+FOURNIER Karim;0639982395;karim.fournier.395@exemple.test;Genève;client;
+GAUTHIER Claire;0639982312;claire.gauthier.312@exemple.test;Lyon;cliente;recommandée par une cliente
+BRUN Catherine;06.39.98.24.78;catherine.brun.478@exemple.test;Lyon;;rappeler en septembre
+ANDRÉ Guillaume;0639982046;guillaume.andre.46@exemple.test;Albertville;;
+DUMONT Marie;06.39.98.24.76;marie.dumont.476@exemple.test;Annecy ;;
+DUBOIS Hélène;06 39 98 23 91;helene.dubois.391@exemple.test;Albertville ;lieu;
+GARCIA Jean;06 39 98 21 54;jean.garcia.154@exemple.test;Grenoble;client;
+DUMONT Agathe;0639982321;;Albertville;prestataire;mariage 2019
+DUBOIS Hugo;06 39 98 23 10;;Chambéry;prospect;rappeler en septembre
+MOREAU Jeanne ;06 39 98 21 70; jeanne.moreau.170@exemple.test;Lyon;client;
+DAVID Yanis;0639982197;yanis.david.197@exemple.test;Thonon-les-Bains;lieu;
+SIMON Charlotte;06 39 98 22 43;charlotte.simon.243@exemple.test;Grenoble;prestataire;rappeler en septembre
+GUÉRIN Guillaume;0639982387;guillaume.guerin.387@exemple.test;Genève;prospect;rappeler en septembre
+BONNET Louise;06 39 98 23 03;louise.bonnet.303@exemple.test;Thonon-les-Bains;Prestataire ;rappeler en septembre
+LEROY Romain;0639982457;romain.leroy.457@exemple.test;Genève ;Prestataire ;mariage 2019
+BLANC Julien;06 39 98 21 74;julien.blanc.174@exemple.test;Thonon-les-Bains ;cliente;
+ROUSSEL Hélène;0639982070;helene.roussel.70@exemple.test;Chambéry;cliente;recommandée par une cliente
+LEGRAND Agathe;0639982196;agathe.legrand.196@exemple.test;Thonon-les-Bains ;lieu;
+DAVID Pierre;0639982064;pierre.david.64@exemple.test;Thonon-les-Bains ;prospect;recommandée par une cliente
+DUMONT Adrien;0639982274;adrien.dumont.274@exemple.test;Albertville;prospect;rappeler en septembre
+LEGRAND Sarah;0639982445;;Annecy ;Prestataire ;recommandée par une cliente
+DURAND Sophie;06.39.98.24.11;sophie.durand.411@exemple.test ;Grenoble ;prospect;
+HENRY Laurent;06.39.98.22.28;laurent.henry.228@exemple.test;Genève ;PROSPECT;
+ROBERT Élise;06 39 98 25 42;elise.robert.542@exemple.test;Chambéry ;PROSPECT;mariage 2019
+BERNARD Guillaume;06.39.98.22.99;guillaume.bernard.299@exemple.test;Grenoble;lieu;
+BERTRAND Samuel;0639982254;samuel.bertrand.254@exemple.test;Chambéry ;;
+BERNARD Laura;06 39 98 24 55;laura.bernard.455@exemple.test;Annecy ;;
+DURAND Samuel;06.39.98.24.41;samuel.durand.441@exemple.test;Thonon-les-Bains ;cliente;
+FAURE Zoé;06 39 98 24 74;zoe.faure.474@exemple.test;Albertville ;;mariage 2019
+ROBERT Quentin;06 39 98 22 75;quentin.robert.275@exemple.test;Albertville ;cliente;
+GAUTHIER Catherine;06.39.98.20.07;catherine.gauthier.7@exemple.test;Aix-les-Bains;client;
+GAUTHIER Émilie;06 39 98 22 03;emilie.gauthier.203@exemple.test;Grenoble;Prestataire ;recommandée par une cliente
+MOREAU Agathe;06.39.98.21.88;agathe.moreau.188@exemple.test;Chambéry ;lieu;
+GARCIA Paul;0639982262;paul.garcia.262@exemple.test;Annecy ;PROSPECT;
+ROUSSEAU Paul;0639982266;paul.rousseau.266@exemple.test;Genève ;Prestataire ;recommandée par une cliente
+GAUTHIER Julie;06.39.98.23.84;julie.gauthier.384@exemple.test;Chambéry;prestataire;recommandée par une cliente
+ARNAUD Benoît;06.39.98.24.79;BENOIT.ARNAUD.479@EXEMPLE.TEST;Lyon;PROSPECT;
+LEROY Théo;0639982258;theo.leroy.258@exemple.test;Chambéry ;client;mariage 2019
+DAVID Michel;06 39 98 23 94;michel.david.394@exemple.test;Albertville;Prestataire ;
+LOPEZ Sophie;06.39.98.24.93;sophie.lopez.493@exemple.test;Lyon ;;
+BLANC Michel;0639982364;michel.blanc.364@exemple.test;Chambéry ;client;
+DURAND Charlotte;06 39 98 23 78;charlotte.durand.378@exemple.test;Annecy ;client;recommandée par une cliente
+PETIT Isabelle;06.39.98.22.52;isabelle.petit.252@exemple.test;Lyon ;PROSPECT;mariage 2019
+ANDRÉ Michel;06.39.98.20.15;michel.andre.15@exemple.test;Chambéry ;cliente;
+LAMBERT Philippe;06 39 98 20 25;philippe.lambert.25@exemple.test;Chambéry ;PROSPECT;rappeler en septembre
+CHEVALIER Anne;0639982111;anne.chevalier.111@exemple.test;Chambéry;PROSPECT;
+LAMBERT Isabelle;06.39.98.21.76;isabelle.lambert.176@exemple.test;Thonon-les-Bains ;cliente;
+DURAND Laurent;0639982536;laurent.durand.536@exemple.test;Thonon-les-Bains;PROSPECT;recommandée par une cliente
+ROUSSEAU Nicolas;06 39 98 22 46;nicolas.rousseau.246@exemple.test ;Albertville;;
+BARBIER Jean;06.39.98.22.34;jean.barbier.234@exemple.test;Aix-les-Bains ;;recommandée par une cliente
+FONTAINE Jeanne;06.39.98.22.56;jeanne.fontaine.256@exemple.test;Thonon-les-Bains ;prospect;
+LEROY Amandine;06.39.98.20.54;;Grenoble;cliente;rappeler en septembre
+GAUTHIER Guillaume;06 39 98 24 61;guillaume.gauthier.461@exemple.test;Lyon;lieu;
+MARTIN Philippe;06.39.98.24.39;;Aix-les-Bains ;lieu;
+MULLER Nicolas;06.39.98.21.51; nicolas.muller.151@exemple.test;Lyon ;PROSPECT;
+LEGRAND Jean ;06.39.98.21.68;JEAN.LEGRAND.168@EXEMPLE.TEST;Chambéry;;rappeler en septembre
+CLÉMENT Élise;06.39.98.23.02;elise.clement.302@exemple.test;Chambéry;client;mariage 2019
+BRUN Aurélie;0639982190;aurelie.brun.190@exemple.test;Lyon ;prospect;recommandée par une cliente
+SIMON Laurent;0639982437;laurent.simon.437@exemple.test;Annecy ;lieu;
+FRANÇOIS Hugo;06 39 98 22 47;;Annecy;prestataire;
+ARNAUD Inès;06 39 98 21 98;ines.arnaud.198@exemple.test;Genève ;prospect;
+LOPEZ Émilie;06.39.98.21.26;emilie.lopez.126@exemple.test;Lyon;PROSPECT;
+FAURE Clément;06 39 98 21 71;clement.faure.171@exemple.test;Grenoble ;PROSPECT;
+GAUTHIER Quentin;06 39 98 22 05; quentin.gauthier.205@exemple.test;Genève;PROSPECT;rappeler en septembre
+HENRY Théo;06 39 98 21 64;theo.henry.164@exemple.test;Aix-les-Bains;client;rappeler en septembre
+MATHIEU Charlotte;0639982341;charlotte.mathieu.341@exemple.test;Aix-les-Bains ;client;
+DAVID Vincent;06 39 98 23 97;vincent.david.397@exemple.test;Albertville ;;
+FRANÇOIS Julie;06.39.98.25.34;julie.francois.534@exemple.test;Lyon ;PROSPECT;rappeler en septembre
+RICHARD Claire;06 39 98 22 37;claire.richard.237@exemple.test;Chambéry ;;
+PERRIN Hélène;06 39 98 20 79;helene.perrin.79@exemple.test;Lyon ;prestataire;
+DUBOIS Laurent;0639982141;laurent.dubois.141@exemple.test;Annecy;prospect;recommandée par une cliente
+VINCENT Manon;0639982327;manon.vincent.327@exemple.test;Chambéry;cliente;
+LEFÈVRE Jeanne;06.39.98.22.61;jeanne.lefevre.261@exemple.test;Annecy ;prospect;mariage 2019
+MOREL Nicolas;06 39 98 23 36;nicolas.morel.336@exemple.test;Genève;prospect;recommandée par une cliente
+MARCHAND Catherine;0639982144;catherine.marchand.144@exemple.test;Genève ;;recommandée par une cliente
+MICHEL Benoît;0639982091;benoit.michel.91@exemple.test;Chambéry;client;recommandée par une cliente
+ROBERT Arthur;06.39.98.20.74;arthur.robert.74@exemple.test;Annecy ;PROSPECT;
+MERCIER Yanis;0639982008;yanis.mercier.8@exemple.test;Lyon ;lieu;
+BLANC Hélène;0639982207;helene.blanc.207@exemple.test;Aix-les-Bains ;Prestataire ;recommandée par une cliente
+BARBIER Louis;0639982273;louis.barbier.273@exemple.test;Lyon;PROSPECT;recommandée par une cliente
+BRUN Catherine ;06.39.98.24.78;catherine.brun.478@exemple.test ;Lyon;;rappeler en septembre
+PETIT François;0639982366;francois.petit.366@exemple.test;Albertville ;prospect;
+GAUTHIER Quentin;06 39 98 21 33;quentin.gauthier.133@exemple.test;Lyon ;PROSPECT;mariage 2019
+BERNARD Alexandre;06.39.98.25.11;alexandre.bernard.511@exemple.test;Lyon;;
+BARBIER Élise;0639982004;elise.barbier.4@exemple.test;Thonon-les-Bains;prospect;recommandée par une cliente
+ARNAUD Hélène;06 39 98 21 34;helene.arnaud.134@exemple.test;Lyon ;cliente;rappeler en septembre
+BARBIER Chloé;06.39.98.20.94;chloe.barbier.94@exemple.test;Thonon-les-Bains;;rappeler en septembre
+HENRY Vincent;0639982361;vincent.henry.361@exemple.test;Lyon;prospect;rappeler en septembre
+GAUTHIER Louis;0639982116;;Annecy;prospect;recommandée par une cliente
+PETIT François;06 39 98 20 06;francois.petit.6@exemple.test;Aix-les-Bains ;;mariage 2019
+GUÉRIN François;06.39.98.22.08;francois.guerin.208@exemple.test;Chambéry;PROSPECT;recommandée par une cliente
+ROUSSEL Philippe;0639982206;philippe.roussel.206@exemple.test;Albertville ;lieu;
+GARCIA Marie;0639982377;marie.garcia.377@exemple.test;Lyon ;prestataire;
+MATHIEU Julie;0639982088;julie.mathieu.88@exemple.test;Chambéry ;client;
+FOURNIER Karim ;0639982395;KARIM.FOURNIER.395@EXEMPLE.TEST;Genève;client;
+ROUSSEAU Nathalie;06 39 98 24 25;nathalie.rousseau.425@exemple.test;Annecy;lieu;recommandée par une cliente
+GARCIA Isabelle;06.39.98.20.35;isabelle.garcia.35@exemple.test;Lyon;cliente;recommandée par une cliente
+SIMON Rémi;06 39 98 20 39;remi.simon.39@exemple.test;Chambéry ;lieu;
+PETIT Sophie;0639982301;sophie.petit.301@exemple.test;Aix-les-Bains;client;recommandée par une cliente
+DUMONT Adrien;06 39 98 20 99;adrien.dumont.99@exemple.test;Grenoble ;cliente;recommandée par une cliente
+GAUTIER Quentin;0639982212;quentin.gautier.212@exemple.test;Genève ;lieu;mariage 2019
+FAURE Julien;0639982538;julien.faure.538@exemple.test;Genève;;
+MULLER Samuel;0639982340;samuel.muller.340@exemple.test;Thonon-les-Bains;cliente;rappeler en septembre
+LEFÈVRE Romain;0639982470;;Thonon-les-Bains;cliente;
+CLÉMENT Charlotte;0639982383;charlotte.clement.383@exemple.test;Annecy ;lieu;
+GARCIA Louise;06 39 98 24 12;louise.garcia.412@exemple.test;Grenoble ;lieu;
+ARNAUD Benoît;06.39.98.24.79;benoit.arnaud.479@exemple.test;Lyon;PROSPECT;
+SIMON Hélène;06.39.98.25.22;helene.simon.522@exemple.test;Thonon-les-Bains ;Prestataire ;
+LAMBERT Charlotte;0639982481;charlotte.lambert.481@exemple.test;Chambéry ;lieu;
+FRANÇOIS Thomas ;06 39 98 21 27;THOMAS.FRANCOIS.127@EXEMPLE.TEST;Aix-les-Bains;PROSPECT;rappeler en septembre
+BONNET Antoine ;0639982546;ANTOINE.BONNET.546@EXEMPLE.TEST;Genève;;
+GAUTIER Louise;06.39.98.25.12;louise.gautier.512@exemple.test;Lyon;prospect;
+ARNAUD Sarah;06.39.98.20.92;sarah.arnaud.92@exemple.test;Genève ;PROSPECT;
+MOREAU Guillaume;06.39.98.20.33;guillaume.moreau.33@exemple.test;Annecy ;client;
+BERTRAND Jeanne;0639982280;jeanne.bertrand.280@exemple.test;Annecy ;cliente;mariage 2019
+CHEVALIER Romain;06 39 98 21 85;romain.chevalier.185@exemple.test;Annecy ;prestataire;
+FAURE Samuel;0639982121;samuel.faure.121@exemple.test;Lyon;PROSPECT;
+LEGRAND Hélène;06 39 98 20 72;HELENE.LEGRAND.72@EXEMPLE.TEST;Genève ;PROSPECT;
+MARTIN Olivier;06 39 98 24 47;olivier.martin.447@exemple.test;Grenoble;prospect;mariage 2019
+LEGRAND Hélène;06 39 98 20 72;helene.legrand.72@exemple.test;Genève ;PROSPECT;
+MERCIER Samuel ;0639982405; samuel.mercier.405@exemple.test;Grenoble ;Prestataire ;
+BERNARD Antoine;06.39.98.23.24;antoine.bernard.324@exemple.test;Annecy;lieu;
+FRANÇOIS François;06 39 98 20 49;francois.francois.49@exemple.test;Albertville ;lieu;rappeler en septembre
+BONNET Antoine;0639982546;antoine.bonnet.546@exemple.test;Genève;;
+BARBIER Benoît;06 39 98 22 35;benoit.barbier.235@exemple.test;Chambéry;cliente;
+BARBIER Sophie;06.39.98.24.87;sophie.barbier.487@exemple.test;Thonon-les-Bains;PROSPECT;
+GAUTHIER Clément;06.39.98.22.97;clement.gauthier.297@exemple.test;Thonon-les-Bains;;rappeler en septembre
+BONNET Thomas;0639982396;;Chambéry ;;mariage 2019
+ROUX Margaux;06.39.98.24.95;margaux.roux.495@exemple.test;Annecy ;Prestataire ;
+RENARD Isabelle;06.39.98.23.75;isabelle.renard.375@exemple.test;Grenoble ;client;
+GARCIA Céline;06.39.98.20.19;celine.garcia.19@exemple.test;Albertville;client;
+LAURENT Émilie;06 39 98 21 04;emilie.laurent.104@exemple.test;Chambéry ;prospect;recommandée par une cliente
+NICOLAS Clément;06.39.98.23.46;clement.nicolas.346@exemple.test;Grenoble ;;mariage 2019
+MATHIEU Théo;0639982179;theo.mathieu.179@exemple.test;Thonon-les-Bains ;lieu;
+PETIT Hélène;06 39 98 20 02;helene.petit.2@exemple.test;Lyon;cliente;
+GAUTHIER Margaux;06.39.98.20.23;margaux.gauthier.23@exemple.test;Albertville ;PROSPECT;
+GUÉRIN Amandine;06.39.98.23.68;amandine.guerin.368@exemple.test;Grenoble;PROSPECT;
+DUPONT Julie;0639982442;julie.dupont.442@exemple.test;Annecy;PROSPECT;mariage 2019
+BONNET Alice;0639982257;alice.bonnet.257@exemple.test;Annecy ;prestataire;
+GAUTIER Alexandre;0639982525;alexandre.gautier.525@exemple.test;Thonon-les-Bains;Prestataire ;
+BARBIER Catherine;06.39.98.25.48;;Grenoble;prospect;
+LEFÈVRE Laura;06.39.98.25.51;laura.lefevre.551@exemple.test;Albertville;PROSPECT;rappeler en septembre
+LEFÈVRE Michel;06 39 98 21 46;michel.lefevre.146@exemple.test;Albertville;client;
+ROUSSEAU François;0639982107;francois.rousseau.107@exemple.test;Albertville;;
+BLANC Zoé;06 39 98 23 19;zoe.blanc.319@exemple.test;Annecy;cliente;
+MOREAU Margaux;06.39.98.23.37;margaux.moreau.337@exemple.test;Thonon-les-Bains ;lieu;
+BLANC Pierre;06.39.98.21.60;pierre.blanc.160@exemple.test;Genève ;client;mariage 2019
+HENRY Nicolas;06 39 98 20 31;nicolas.henry.31@exemple.test;Chambéry ;prestataire;
+GAUTHIER Aurélie;06.39.98.22.87;aurelie.gauthier.287@exemple.test;Annecy ;PROSPECT;rappeler en septembre
+DUBOIS Yanis;06 39 98 24 28;yanis.dubois.428@exemple.test;Chambéry;cliente;rappeler en septembre
+BONNET Guillaume;06.39.98.24.94;guillaume.bonnet.494@exemple.test;Thonon-les-Bains;prestataire;mariage 2019
+SIMON Émilie;06 39 98 21 72;emilie.simon.172@exemple.test;Albertville ;client;recommandée par une cliente
+BERNARD Hélène;06.39.98.20.66;helene.bernard.66@exemple.test;Thonon-les-Bains ;lieu;recommandée par une cliente
+MARTIN Michel;06 39 98 23 09;michel.martin.309@exemple.test;Aix-les-Bains;;
+GAUTHIER Adrien;06.39.98.23.00;adrien.gauthier.300@exemple.test;Aix-les-Bains;prestataire;
+NOËL Nicolas;06.39.98.21.56;nicolas.noel.156@exemple.test;Albertville;PROSPECT;
+BARBIER Nathalie;06 39 98 22 23;nathalie.barbier.223@exemple.test;Genève ;;
+DUMONT Catherine;06.39.98.24.21;catherine.dumont.421@exemple.test;Grenoble;Prestataire ;mariage 2019
+MARTIN Mathilde;06.39.98.23.38;mathilde.martin.338@exemple.test;Lyon;prospect;rappeler en septembre
+GUÉRIN Yanis;06 39 98 23 62;yanis.guerin.362@exemple.test;Chambéry;PROSPECT;rappeler en septembre
+MARCHAND Anne;06.39.98.25.37; anne.marchand.537@exemple.test;Thonon-les-Bains ;cliente;
+MERCIER Émilie;0639982402;emilie.mercier.402@exemple.test;Grenoble ;client;
+ARNAUD Quentin;0639982410;quentin.arnaud.410@exemple.test;Genève ;client;rappeler en septembre
+GIRARD Charlotte;06.39.98.21.31;charlotte.girard.131@exemple.test;Lyon ;client;mariage 2019
+DURAND Inès;06.39.98.22.32;ines.durand.232@exemple.test;Grenoble;cliente;
+BONNET Jeanne;06.39.98.24.98;jeanne.bonnet.498@exemple.test;Grenoble;prospect;
+ROBERT Charlotte;06.39.98.21.09;charlotte.robert.109@exemple.test;Albertville ;;
+DUBOIS Julien;06 39 98 20 28;julien.dubois.28@exemple.test;Genève;cliente;mariage 2019
+FRANÇOIS Claire;06 39 98 21 01;claire.francois.101@exemple.test;Chambéry;cliente;recommandée par une cliente
+SIMON Yanis;06 39 98 25 24;yanis.simon.524@exemple.test;Grenoble;Prestataire ;
+ROBERT Nathalie;06 39 98 24 54;nathalie.robert.454@exemple.test;Thonon-les-Bains;cliente;rappeler en septembre
+FAURE Samuel;06 39 98 24 75;samuel.faure.475@exemple.test;Chambéry ;lieu;
+MICHEL Vincent;06 39 98 22 63;vincent.michel.263@exemple.test;Genève;PROSPECT;
+MOREAU Sophie;06 39 98 21 50;sophie.moreau.150@exemple.test;Annecy;;
+MULLER Aurélie;0639982449;aurelie.muller.449@exemple.test;Genève;;
+RENARD Anne;06 39 98 21 36;anne.renard.136@exemple.test;Annecy ;prestataire;
+LEGRAND Laurent;0639982231;laurent.legrand.231@exemple.test;Lyon ;prospect;mariage 2019
+FONTAINE Benoît;06 39 98 20 68;benoit.fontaine.68@exemple.test;Annecy;lieu;
+MATHIEU Aurélie ;0639982477;aurelie.mathieu.477@exemple.test ;Lyon ;client;mariage 2019
+RENARD Louis;06 39 98 24 73;louis.renard.473@exemple.test;Annecy;Prestataire ;recommandée par une cliente
+DAVID Rémi;06.39.98.23.80;remi.david.380@exemple.test;Thonon-les-Bains ;PROSPECT;mariage 2019
+MERCIER Zoé;06 39 98 22 13;zoe.mercier.213@exemple.test;Albertville ;PROSPECT;
+GAUTHIER Nicolas ;06.39.98.23.26; nicolas.gauthier.326@exemple.test;Annecy;client;
+ROUSSEAU Lucie;0639982062;lucie.rousseau.62@exemple.test;Thonon-les-Bains ;cliente;mariage 2019
+MARTIN Adrien;06.39.98.25.00;adrien.martin.500@exemple.test;Thonon-les-Bains ;prestataire;
+NOËL Théo;06.39.98.24.40;theo.noel.440@exemple.test;Grenoble;PROSPECT;recommandée par une cliente
+LAURENT Nathalie;06.39.98.22.72;nathalie.laurent.272@exemple.test;Chambéry;client;mariage 2019
+GARCIA Zoé;06 39 98 20 26;zoe.garcia.26@exemple.test;Thonon-les-Bains ;client;
+GARCIA Isabelle;06.39.98.24.22;isabelle.garcia.422@exemple.test;Lyon ;Prestataire ;
+ROUSSEAU Lucie;0639982065;lucie.rousseau.65@exemple.test;Aix-les-Bains;;rappeler en septembre
+LAMBERT Sarah;0639982052;;Aix-les-Bains;cliente;
+MARTIN Margaux;0639982135;margaux.martin.135@exemple.test;Genève ;;
+GUÉRIN Camille;06.39.98.22.18;camille.guerin.218@exemple.test;Albertville;prestataire;mariage 2019
+PETIT Louis ;0639982496;louis.petit.496@exemple.test ;Chambéry;PROSPECT;mariage 2019
+MULLER Philippe;06.39.98.21.81;philippe.muller.181@exemple.test;Aix-les-Bains ;prestataire;mariage 2019
+ROBERT Mathilde;06 39 98 20 57;mathilde.robert.57@exemple.test;Lyon;lieu;mariage 2019
+BERTRAND Charlotte;0639982434;charlotte.bertrand.434@exemple.test;Albertville ;PROSPECT;
+ROUSSEL Julien;06 39 98 24 43;julien.roussel.443@exemple.test;Aix-les-Bains;PROSPECT;rappeler en septembre
+MARCHAND Rémi;06 39 98 20 18;remi.marchand.18@exemple.test;Albertville ;PROSPECT;
+BONNET Julien;0639982119;julien.bonnet.119@exemple.test;Annecy ;;
+MORIN François;06 39 98 20 29;francois.morin.29@exemple.test;Annecy;client;
+MATHIEU Pauline;0639982113;pauline.mathieu.113@exemple.test;Lyon;client;rappeler en septembre
+MATHIEU Catherine;06 39 98 20 89;catherine.mathieu.89@exemple.test;Thonon-les-Bains;prospect;
+LOPEZ Benoît;06 39 98 21 05;benoit.lopez.105@exemple.test;Grenoble;prestataire;
+DAVID Catherine;06.39.98.23.51;catherine.david.351@exemple.test;Aix-les-Bains;Prestataire ;
+VINCENT Isabelle;06 39 98 25 47;isabelle.vincent.547@exemple.test;Thonon-les-Bains ;PROSPECT;
+LOPEZ Nicolas;06.39.98.24.50;nicolas.lopez.450@exemple.test;Lyon;PROSPECT;
+FAURE Mathieu;06.39.98.22.33;mathieu.faure.233@exemple.test;Chambéry;prestataire;rappeler en septembre
+SIMON Claire;06.39.98.24.52;claire.simon.452@exemple.test;Chambéry ;Prestataire ;
+DUPONT Sarah;06 39 98 20 00;sarah.dupont.0@exemple.test;Grenoble ;lieu;
+SIMON Yanis;0639982175;yanis.simon.175@exemple.test;Aix-les-Bains;lieu;mariage 2019
+BRUN Sarah;06.39.98.23.33;sarah.brun.333@exemple.test;Genève ;prospect;mariage 2019
+FOURNIER Quentin;06 39 98 22 71;quentin.fournier.271@exemple.test;Albertville;client;recommandée par une cliente
+MICHEL Philippe;06 39 98 22 85;;Annecy ;;mariage 2019
+CHEVALIER Sarah;06 39 98 25 20;sarah.chevalier.520@exemple.test;Chambéry ;client;
+MARTIN Nathalie;0639982386;nathalie.martin.386@exemple.test;Chambéry;prestataire;mariage 2019
+GUÉRIN Théo;0639982041;theo.guerin.41@exemple.test;Annecy ;;mariage 2019
+BONNET Manon;06.39.98.21.20;manon.bonnet.120@exemple.test;Grenoble ;PROSPECT;recommandée par une cliente
+GAUTIER Benoît;06.39.98.23.92;benoit.gautier.392@exemple.test;Albertville;client;
+LEFÈVRE Théo;06 39 98 24 90;theo.lefevre.490@exemple.test;Chambéry;client;mariage 2019
+VINCENT Inès;0639982108;ines.vincent.108@exemple.test;Annecy;lieu;
+BONNET Antoine;0639982034;antoine.bonnet.34@exemple.test;Chambéry ;lieu;
+GARCIA Nathalie;06.39.98.20.82;nathalie.garcia.82@exemple.test;Chambéry ;PROSPECT;
+LEGRAND Camille;0639982345;camille.legrand.345@exemple.test;Albertville;client;
+MARTIN Bastien;0639982084;bastien.martin.84@exemple.test;Genève ;cliente;recommandée par une cliente
+BERNARD Romain;0639982193;romain.bernard.193@exemple.test;Genève;cliente;
+MORIN Marie;06.39.98.20.76;marie.morin.76@exemple.test;Aix-les-Bains;;
+ROBERT Anne;06 39 98 22 83;anne.robert.283@exemple.test;Annecy;Prestataire ;rappeler en septembre
+VINCENT Louis;06 39 98 21 49;louis.vincent.149@exemple.test;Aix-les-Bains;cliente;
+LEROY Samuel;06.39.98.22.53; samuel.leroy.253@exemple.test;Grenoble;prospect;mariage 2019
+CHEVALIER Sarah;06 39 98 23 76;sarah.chevalier.376@exemple.test;Lyon ;prestataire;mariage 2019
+MERCIER Catherine;06 39 98 22 89;catherine.mercier.289@exemple.test;Aix-les-Bains ;client;
+MOREL Louis;06 39 98 23 58;louis.morel.358@exemple.test;Annecy ;client;
+LAMBERT Pauline;06 39 98 21 42;pauline.lambert.142@exemple.test;Lyon;Prestataire ;
+ARNAUD Nathalie;06.39.98.21.53;nathalie.arnaud.153@exemple.test;Thonon-les-Bains;Prestataire ;
+PETIT Agathe;06.39.98.22.98;agathe.petit.298@exemple.test;Albertville ;prospect;rappeler en septembre
+ROBERT Olivier;06 39 98 22 42;olivier.robert.242@exemple.test;Albertville ;prestataire;rappeler en septembre
+BRUN Hélène;06.39.98.22.19;helene.brun.219@exemple.test;Chambéry;Prestataire ;rappeler en septembre
+GARCIA Marie;06.39.98.20.93;marie.garcia.93@exemple.test;Thonon-les-Bains;cliente;mariage 2019
+PETIT Benoît;06 39 98 20 05;benoit.petit.5@exemple.test;Thonon-les-Bains ;;
+CLÉMENT Rémi;06.39.98.21.65;remi.clement.165@exemple.test;Lyon ;prospect;rappeler en septembre
+MATHIEU Paul;06 39 98 20 44;;Genève ;;
+BERTRAND Pierre;0639982059;pierre.bertrand.59@exemple.test;Chambéry;cliente;rappeler en septembre
+MATHIEU Charlotte;06.39.98.23.98;charlotte.mathieu.398@exemple.test;Grenoble;Prestataire ;
+MOREAU Bastien;06 39 98 23 15;bastien.moreau.315@exemple.test;Aix-les-Bains ;prospect;mariage 2019
+PETIT Émilie;0639982047;emilie.petit.47@exemple.test;Lyon;client;mariage 2019
+MARCHAND Anne;06.39.98.25.37;anne.marchand.537@exemple.test;Thonon-les-Bains ;cliente;
+Morin Marie;06.39.98.20.76;marie.morin.76@exemple.test ;Aix-les-Bains;;
+ARNAUD Amandine;06 39 98 20 50;;Albertville;prospect;
+PERRIN Isabelle;0639982184;isabelle.perrin.184@exemple.test;Aix-les-Bains;Prestataire ;
+FOURNIER Camille;06.39.98.22.30;camille.fournier.230@exemple.test;Thonon-les-Bains ;client;
+CLÉMENT Julien;06.39.98.23.11;julien.clement.311@exemple.test;Aix-les-Bains ;client;rappeler en septembre
+GAUTHIER Quentin;06 39 98 22 05;quentin.gauthier.205@exemple.test;Genève;PROSPECT;rappeler en septembre
+DURAND Chloé;06.39.98.23.55;;Lyon ;Prestataire ;recommandée par une cliente
+DUPONT Mathieu;0639982350;mathieu.dupont.350@exemple.test;Albertville;;rappeler en septembre
+MARTIN Karim;06.39.98.24.19;karim.martin.419@exemple.test;Grenoble ;client;recommandée par une cliente
+ROUSSEAU Hugo;0639982305;hugo.rousseau.305@exemple.test;Thonon-les-Bains ;client;rappeler en septembre
+BERTRAND Catherine;06 39 98 25 40;catherine.bertrand.540@exemple.test;Grenoble ;PROSPECT;
+MICHEL Rémi;06.39.98.21.30;remi.michel.130@exemple.test;Albertville;prospect;
+PETIT Sophie;0639982433;sophie.petit.433@exemple.test;Thonon-les-Bains;cliente;rappeler en septembre
+David Michel;06 39 98 23 94;MICHEL.DAVID.394@EXEMPLE.TEST;Albertville;Prestataire ;
+GARCIA Élise;0639982220;elise.garcia.220@exemple.test;Annecy ;client;rappeler en septembre
+ROUSSEL Marie;06.39.98.20.13;marie.roussel.13@exemple.test;Annecy;prospect;recommandée par une cliente
+FONTAINE Nathalie;06.39.98.25.19;nathalie.fontaine.519@exemple.test;Annecy;lieu;mariage 2019
+DURAND Rémi;0639982122;remi.durand.122@exemple.test;Albertville;Prestataire ;
+LEGRAND Michel;0639982045;michel.legrand.45@exemple.test;Lyon;PROSPECT;rappeler en septembre
+GAUTHIER Nicolas;06.39.98.23.26;nicolas.gauthier.326@exemple.test;Annecy;client;
+ARNAUD Inès;06.39.98.24.08;;Lyon;prestataire;
+MOREL Céline;06 39 98 23 52;celine.morel.352@exemple.test;Grenoble;cliente;mariage 2019
+ROBERT Olivier ;06 39 98 22 42; olivier.robert.242@exemple.test;Albertville ;prestataire;rappeler en septembre
+MATHIEU Aurélie;0639982267;aurelie.mathieu.267@exemple.test;Genève;;recommandée par une cliente
+ROUSSEL Chloé;0639982330;chloe.roussel.330@exemple.test;Chambéry;prospect;mariage 2019
+LEGRAND Yanis;06 39 98 20 11;yanis.legrand.11@exemple.test;Aix-les-Bains ;;
+DUBOIS Margaux;0639982222;margaux.dubois.222@exemple.test;Chambéry;prospect;
+SIMON Louise;06 39 98 20 38;;Thonon-les-Bains ;lieu;recommandée par une cliente
+LEROY Hugo;06 39 98 20 85;hugo.leroy.85@exemple.test;Thonon-les-Bains;lieu;
+DAVID Olivier;0639982347;olivier.david.347@exemple.test;Albertville;Prestataire ;
+ROBERT Marie;06 39 98 25 15;marie.robert.515@exemple.test;Grenoble ;lieu;recommandée par une cliente
+VINCENT Isabelle;06 39 98 22 04;isabelle.vincent.204@exemple.test;Grenoble;Prestataire ;recommandée par une cliente
+DUPONT Laura;06.39.98.25.49;laura.dupont.549@exemple.test;Grenoble;;
+ROUX Laurent;0639982182;laurent.roux.182@exemple.test;Grenoble ;;rappeler en septembre
+LOPEZ Olivier;0639982106;olivier.lopez.106@exemple.test;Lyon;;recommandée par une cliente
+RENARD Élise;06 39 98 20 78;elise.renard.78@exemple.test;Lyon;lieu;
+HENRY Julien;06 39 98 22 55;julien.henry.255@exemple.test;Grenoble ;prospect;rappeler en septembre
+GAUTIER Alexandre;06 39 98 23 20;alexandre.gautier.320@exemple.test;Chambéry;prestataire;mariage 2019
+GAUTHIER Samuel;06 39 98 24 07;samuel.gauthier.407@exemple.test;Aix-les-Bains ;client;rappeler en septembre
+LAURENT François;06 39 98 23 63;francois.laurent.363@exemple.test;Albertville ;prospect;rappeler en septembre
+LOPEZ Julien;0639982210;julien.lopez.210@exemple.test;Aix-les-Bains;prestataire;
+Mathieu Julie;0639982088; julie.mathieu.88@exemple.test;Chambéry ;client;
+FAURE Alice;06 39 98 21 18;alice.faure.118@exemple.test;Annecy;client;mariage 2019
+GAUTIER Romain;06.39.98.25.23;;Chambéry ;prospect;
+BRUN François;06.39.98.20.10;francois.brun.10@exemple.test;Lyon;PROSPECT;
+DURAND Anne;06.39.98.20.30;anne.durand.30@exemple.test;Lyon ;prestataire;
+HENRY Théo;06.39.98.22.68;theo.henry.268@exemple.test;Genève;client;
+LAURENT Zoé;0639982508;zoe.laurent.508@exemple.test;Albertville ;prospect;
+RICHARD Amandine;06 39 98 20 98;amandine.richard.98@exemple.test;Genève;Prestataire ;
+MICHEL Catherine;06.39.98.21.89;catherine.michel.189@exemple.test;Thonon-les-Bains;PROSPECT;rappeler en septembre
+DUBOIS Jean;0639982123;jean.dubois.123@exemple.test;Grenoble ;lieu;recommandée par une cliente
+GAUTHIER Nicolas ;06 39 98 24 36;NICOLAS.GAUTHIER.436@EXEMPLE.TEST;Thonon-les-Bains;client;mariage 2019
+ARNAUD Laura;06.39.98.21.80;laura.arnaud.180@exemple.test;Genève ;cliente;
+ROBERT Vincent;0639982344;vincent.robert.344@exemple.test;Chambéry;lieu;
+DAVID Quentin;0639982369;quentin.david.369@exemple.test;Genève;;
+BLANC Camille;0639982286;camille.blanc.286@exemple.test;Albertville;prestataire;mariage 2019
+BLANC Vincent;06.39.98.21.00;vincent.blanc.100@exemple.test;Chambéry ;lieu;
+MARTIN Adrien;06.39.98.21.02;adrien.martin.102@exemple.test;Grenoble;PROSPECT;mariage 2019
+LAMBERT Paul;06.39.98.24.03;paul.lambert.403@exemple.test;Genève;Prestataire ;
+NICOLAS Jean;06.39.98.21.95;jean.nicolas.195@exemple.test;Aix-les-Bains ;prospect;rappeler en septembre
+GAUTHIER Sophie;06.39.98.24.68;sophie.gauthier.468@exemple.test;Annecy ;cliente;
+BERNARD Manon;0639982349;manon.bernard.349@exemple.test;Annecy ;PROSPECT;mariage 2019
+MULLER Théo;06 39 98 20 01;theo.muller.1@exemple.test;Aix-les-Bains;;mariage 2019
+LEGRAND Jean;06.39.98.21.68;jean.legrand.168@exemple.test;Chambéry;;rappeler en septembre
+VINCENT Mathieu;06.39.98.25.03;mathieu.vincent.503@exemple.test;Chambéry;client;
+DUBOIS Quentin;06 39 98 22 81;quentin.dubois.281@exemple.test;Thonon-les-Bains ;PROSPECT;
+HENRY Charlotte;0639982270;charlotte.henry.270@exemple.test;Chambéry;lieu;
+Leroy Julie;06.39.98.20.17; julie.leroy.17@exemple.test;Chambéry ;cliente;rappeler en septembre
+MERCIER Alice;06 39 98 24 88;alice.mercier.488@exemple.test;Aix-les-Bains ;lieu;
+FOURNIER Thomas;06.39.98.20.80;thomas.fournier.80@exemple.test;Lyon;client;
+DURAND Théo;0639982464;theo.durand.464@exemple.test;Grenoble ;;
+MOREAU Hélène;06 39 98 23 85;helene.moreau.385@exemple.test;Annecy ;prospect;recommandée par une cliente
+ARNAUD Alice;0639982370;alice.arnaud.370@exemple.test;Genève ;prospect;
+LEGRAND Jean;06 39 98 24 06;jean.legrand.406@exemple.test;Chambéry;PROSPECT;rappeler en septembre
+ROBERT Laura;06 39 98 25 18;;Thonon-les-Bains;prestataire;
+MOREL Romain;06.39.98.25.28;romain.morel.528@exemple.test;Lyon;cliente;mariage 2019
+DUPONT Manon ;06 39 98 20 27;MANON.DUPONT.27@EXEMPLE.TEST;Albertville ;prestataire;mariage 2019
+BRUN Camille;0639982400;camille.brun.400@exemple.test;Thonon-les-Bains;PROSPECT;
+BARBIER Anne;06.39.98.24.18;;Albertville ;client;recommandée par une cliente
+ROUSSEL Mathilde;06.39.98.25.01;;Albertville ;lieu;
+BONNET Benoît;0639982055;benoit.bonnet.55@exemple.test;Aix-les-Bains;prospect;
+GIRARD Anne;06 39 98 21 48;anne.girard.148@exemple.test;Albertville ;;rappeler en septembre
+DAVID Jean;06 39 98 21 67;JEAN.DAVID.167@EXEMPLE.TEST;Thonon-les-Bains ;lieu;mariage 2019
+RENARD Zoé;06 39 98 23 48;zoe.renard.348@exemple.test;Annecy ;;mariage 2019
+LEROY Sarah;06.39.98.21.14;sarah.leroy.114@exemple.test;Aix-les-Bains ;prospect;
+MARCHAND Louis;0639982483;louis.marchand.483@exemple.test;Genève ;Prestataire ;
+ROUX Théo;0639982329;theo.roux.329@exemple.test;Genève ;prestataire;
+MICHEL Émilie;06.39.98.24.66;emilie.michel.466@exemple.test;Grenoble ;prospect;mariage 2019
+GAUTHIER Pauline;0639982169;pauline.gauthier.169@exemple.test;Grenoble;lieu;mariage 2019
+GIRARD Laura;06 39 98 22 25;laura.girard.225@exemple.test;Annecy ;PROSPECT;
+MOREL Agathe;06 39 98 24 85;agathe.morel.485@exemple.test;Albertville;prestataire;
+ROUSSEAU François;06 39 98 23 13;francois.rousseau.313@exemple.test;Grenoble ;cliente;mariage 2019
+ROUSSEAU Jeanne;06.39.98.22.40;;Annecy;;
+RICHARD Manon;0639982124;manon.richard.124@exemple.test;Aix-les-Bains ;prospect;
+MOREL Nathalie;06.39.98.25.26;nathalie.morel.526@exemple.test;Albertville ;PROSPECT;recommandée par une cliente
+ANDRÉ François;0639982129;francois.andre.129@exemple.test;Lyon ;prospect;
+CLÉMENT Pauline;06.39.98.24.16;pauline.clement.416@exemple.test;Annecy ;Prestataire ;
+HENRY Olivier;06.39.98.23.22;olivier.henry.322@exemple.test;Thonon-les-Bains ;client;mariage 2019
+DUPONT Manon;06 39 98 20 27;manon.dupont.27@exemple.test;Albertville ;prestataire;mariage 2019
+LEFÈVRE Arthur;06.39.98.21.38;arthur.lefevre.138@exemple.test;Annecy ;;mariage 2019
+BLANC Paul;06 39 98 21 92;paul.blanc.192@exemple.test;Genève;client;
+LAURENT Élise;06 39 98 21 87;elise.laurent.187@exemple.test;Aix-les-Bains;PROSPECT;rappeler en septembre
+MOREAU Hugo;0639982199;hugo.moreau.199@exemple.test;Chambéry ;Prestataire ;recommandée par une cliente
+MULLER Marie;06.39.98.20.09;marie.muller.9@exemple.test;Annecy ;client;
+VINCENT Bastien;06 39 98 24 62;bastien.vincent.462@exemple.test;Thonon-les-Bains ;PROSPECT;
+PERRIN Louis;06.39.98.21.32;louis.perrin.132@exemple.test;Aix-les-Bains ;;rappeler en septembre
+DAVID Jean;06 39 98 21 67;jean.david.167@exemple.test;Thonon-les-Bains ;lieu;mariage 2019
+ROBERT Alice;06 39 98 23 28;;Lyon ;;
+FAURE Agathe;06.39.98.23.43;agathe.faure.343@exemple.test;Lyon;cliente;recommandée par une cliente
+CHEVALIER Samuel;06.39.98.24.26;samuel.chevalier.426@exemple.test;Thonon-les-Bains ;;
+ARNAUD Alice;06 39 98 24 51;alice.arnaud.451@exemple.test;Aix-les-Bains ;lieu;mariage 2019
+DUPONT Jean;06.39.98.24.60;jean.dupont.460@exemple.test;Thonon-les-Bains ;cliente;mariage 2019
+CHEVALIER Camille;0639982420;camille.chevalier.420@exemple.test;Lyon ;client;
+FRANÇOIS Claire;06 39 98 21 01; claire.francois.101@exemple.test;Chambéry;cliente;recommandée par une cliente
+RENARD Isabelle ;06.39.98.23.75; isabelle.renard.375@exemple.test;Grenoble ;client;
+NICOLAS Agathe;06 39 98 24 84;agathe.nicolas.484@exemple.test;Annecy;prospect;
+BARBIER Karim;0639982284;karim.barbier.284@exemple.test;Albertville;prospect;
+BRUN Jean;0639982296;;Genève;prospect;
+BRUN Alexandre;0639982453;alexandre.brun.453@exemple.test;Genève ;prospect;recommandée par une cliente
+BONNET Alexandre;06.39.98.21.94;;Grenoble;lieu;
+LEGRAND Louis;0639982166;louis.legrand.166@exemple.test;Lyon;prestataire;rappeler en septembre
+RICHARD Jean;0639982139;jean.richard.139@exemple.test;Chambéry ;;rappeler en septembre
+MULLER Aurélie;06.39.98.21.91;aurelie.muller.191@exemple.test;Aix-les-Bains;prospect;recommandée par une cliente
+LOPEZ Théo;0639982145;theo.lopez.145@exemple.test;Genève ;PROSPECT;
+Simon Alexandre;06 39 98 23 54;ALEXANDRE.SIMON.354@EXEMPLE.TEST;Annecy ;;mariage 2019
+BONNET Camille;0639982295;camille.bonnet.295@exemple.test;Genève;;
+GARCIA Nathalie;0639982529;nathalie.garcia.529@exemple.test;Thonon-les-Bains ;Prestataire ;rappeler en septembre
+DUPONT Charlotte;0639982250;charlotte.dupont.250@exemple.test;Lyon ;Prestataire ;
+ANDRÉ Alice;06.39.98.22.41;alice.andre.241@exemple.test;Annecy;cliente;recommandée par une cliente
+BERTRAND Aurélie;06.39.98.25.16;aurelie.bertrand.516@exemple.test;Aix-les-Bains ;PROSPECT;rappeler en septembre
+VINCENT Adrien;06.39.98.23.39;adrien.vincent.339@exemple.test;Annecy ;client;
+GIRARD Pierre;06 39 98 23 93;pierre.girard.393@exemple.test;Annecy ;cliente;
+MULLER Paul;0639982334;paul.muller.334@exemple.test;Genève ;prospect;
+PERRIN Jean;06 39 98 25 31;jean.perrin.531@exemple.test;Aix-les-Bains;PROSPECT;
+BRUN Louise;0639982137;louise.brun.137@exemple.test;Chambéry;prestataire;recommandée par une cliente
+FRANÇOIS Mathilde;06.39.98.24.71;mathilde.francois.471@exemple.test;Chambéry;Prestataire ;rappeler en septembre
+FAURE Nathalie;06 39 98 21 03;nathalie.faure.103@exemple.test;Albertville;prestataire;recommandée par une cliente
+MICHEL Manon;06.39.98.20.42;manon.michel.42@exemple.test;Grenoble;cliente;rappeler en septembre
+RENARD Louise;06 39 98 24 23;louise.renard.423@exemple.test;Lyon ;lieu;mariage 2019
+GAUTIER Julien;0639982545;julien.gautier.545@exemple.test;Annecy;prestataire;recommandée par une cliente
+FOURNIER Jeanne;06 39 98 21 62;jeanne.fournier.162@exemple.test;Albertville;PROSPECT;
+PERRIN Catherine;06.39.98.24.17;CATHERINE.PERRIN.417@EXEMPLE.TEST;Lyon;prestataire;recommandée par une cliente
+Bertrand Mathilde;06 39 98 21 83;mathilde.bertrand.183@exemple.test ;Thonon-les-Bains;PROSPECT;recommandée par une cliente
+Petit Sophie;0639982433; sophie.petit.433@exemple.test;Thonon-les-Bains;cliente;rappeler en septembre
+GAUTIER Pierre;0639982359;pierre.gautier.359@exemple.test;Chambéry ;PROSPECT;recommandée par une cliente
+FOURNIER Sarah;06 39 98 23 60;sarah.fournier.360@exemple.test;Albertville ;prospect;
+MARCHAND Élise;06 39 98 21 43;elise.marchand.143@exemple.test;Albertville ;prestataire;mariage 2019
+GAUTHIER Nicolas;06 39 98 24 36;nicolas.gauthier.436@exemple.test;Thonon-les-Bains;client;mariage 2019
+GUÉRIN Louise;0639982325;louise.guerin.325@exemple.test;Genève;client;
+MARTIN Émilie;0639982077;emilie.martin.77@exemple.test;Albertville ;client;
+GAUTHIER Benoît;06 39 98 20 48;benoit.gauthier.48@exemple.test;Albertville;prospect;recommandée par une cliente
+MARTIN Clément;06 39 98 21 40;clement.martin.140@exemple.test;Albertville;client;
+MARCHAND François;0639982499;francois.marchand.499@exemple.test;Lyon ;lieu;rappeler en septembre
+DUPONT Laurent;06.39.98.22.69;;Albertville ;;
+VINCENT Théo;0639982186;theo.vincent.186@exemple.test;Annecy ;Prestataire ;mariage 2019
+MATHIEU Émilie;06.39.98.20.21;emilie.mathieu.21@exemple.test;Chambéry;client;mariage 2019
+BERTRAND Sarah;0639982217;sarah.bertrand.217@exemple.test;Thonon-les-Bains ;prestataire;mariage 2019
+DUBOIS Sophie;06 39 98 25 02;;Aix-les-Bains ;prospect;rappeler en septembre
+Moreau Jean;06.39.98.24.69; jean.moreau.469@exemple.test;Grenoble;lieu;
+VINCENT Anne;06 39 98 24 59;anne.vincent.459@exemple.test;Thonon-les-Bains;PROSPECT;rappeler en septembre
+BERNARD Zoé;06.39.98.24.63;zoe.bernard.463@exemple.test;Annecy ;cliente;
+BARBIER Pierre;0639982020;pierre.barbier.20@exemple.test;Annecy;lieu;recommandée par une cliente
+FONTAINE Zoé;0639982507;zoe.fontaine.507@exemple.test;Grenoble;prospect;
+FONTAINE Charlotte;06 39 98 20 95;charlotte.fontaine.95@exemple.test;Aix-les-Bains ;cliente;rappeler en septembre
+BRUN Adrien;0639982125;adrien.brun.125@exemple.test;Aix-les-Bains;prospect;
+FONTAINE Antoine;06.39.98.23.16;;Grenoble ;cliente;recommandée par une cliente
+LEROY Samuel;06.39.98.22.53;samuel.leroy.253@exemple.test;Grenoble;prospect;mariage 2019
+BARBIER Chloé ;06.39.98.20.94; chloe.barbier.94@exemple.test;Thonon-les-Bains;;rappeler en septembre
+MARTIN Élise;0639982244;elise.martin.244@exemple.test;Lyon ;prestataire;rappeler en septembre
+MERCIER Guillaume;06.39.98.23.32;guillaume.mercier.332@exemple.test;Lyon ;client;
+MERCIER Jean;0639982155;jean.mercier.155@exemple.test;Chambéry ;cliente;
+DUMONT Sarah;0639982390;sarah.dumont.390@exemple.test;Grenoble;PROSPECT;recommandée par une cliente
+DUBOIS Mathilde;0639982357;mathilde.dubois.357@exemple.test;Grenoble ;client;
+PETIT Lucie;0639982032;lucie.petit.32@exemple.test;Grenoble ;lieu;recommandée par une cliente
+LOPEZ Yanis;06 39 98 24 44;yanis.lopez.444@exemple.test;Annecy;client;
+NOËL Camille;0639982214;;Albertville;prestataire;
+DAVID Guillaume;0639982083;guillaume.david.83@exemple.test;Thonon-les-Bains ;prospect;
+HENRY Camille;06 39 98 23 14;camille.henry.314@exemple.test;Thonon-les-Bains ;cliente;mariage 2019
+GIRARD Lucie;06 39 98 24 91;lucie.girard.491@exemple.test;Genève;lieu;
+RENARD Chloé;06 39 98 22 64;chloe.renard.264@exemple.test;Annecy;prestataire;rappeler en septembre
+GAUTHIER Chloé;06.39.98.22.38;chloe.gauthier.238@exemple.test;Lyon;;recommandée par une cliente
+VINCENT Julie;06 39 98 20 60;julie.vincent.60@exemple.test;Lyon ;prestataire;
+SIMON Alexandre;06 39 98 23 54;alexandre.simon.354@exemple.test;Annecy ;;mariage 2019
+MATHIEU Émilie;06.39.98.24.82;emilie.mathieu.482@exemple.test;Chambéry ;;mariage 2019
+LEROY Mathieu;06.39.98.23.04;mathieu.leroy.304@exemple.test;Aix-les-Bains ;;mariage 2019
+HENRY Charlotte;06.39.98.20.14;charlotte.henry.14@exemple.test;Chambéry ;prospect;
+NICOLAS Margaux;06.39.98.25.32;margaux.nicolas.532@exemple.test;Grenoble;client;recommandée par une cliente
+MOREAU Jean;06.39.98.24.69;jean.moreau.469@exemple.test;Grenoble;lieu;
+LOPEZ Clément;0639982073;clement.lopez.73@exemple.test;Chambéry;prestataire;rappeler en septembre
+BONNET Agathe;06 39 98 20 90;agathe.bonnet.90@exemple.test;Albertville ;client;
+LEFÈVRE Adrien;06.39.98.24.92;adrien.lefevre.492@exemple.test;Thonon-les-Bains ;prospect;rappeler en septembre
+ROBERT Camille;0639982040;camille.robert.40@exemple.test;Albertville ;prestataire;recommandée par une cliente
+DUMONT Adrien;06 39 98 24 14;adrien.dumont.414@exemple.test;Genève ;;
+FONTAINE Nathalie ;06.39.98.25.19;nathalie.fontaine.519@exemple.test ;Annecy;lieu;mariage 2019
+Garcia Olivier;06.39.98.24.46;OLIVIER.GARCIA.446@EXEMPLE.TEST;Annecy;PROSPECT;recommandée par une cliente
+MORIN Amandine;06.39.98.22.48;amandine.morin.248@exemple.test;Annecy;;
+LEROY Julie;06.39.98.20.17;julie.leroy.17@exemple.test;Chambéry ;cliente;rappeler en septembre
+BLANC Adrien;06 39 98 25 39;adrien.blanc.539@exemple.test;Albertville ;client;
+BONNET Laura;0639982543;;Albertville;lieu;
+BLANC Catherine;06.39.98.22.94;catherine.blanc.294@exemple.test;Grenoble;client;recommandée par une cliente
+ROUSSEAU Lucie;0639982062; lucie.rousseau.62@exemple.test;Thonon-les-Bains ;cliente;mariage 2019
+ANDRÉ Zoé;06.39.98.23.99;zoe.andre.399@exemple.test;Aix-les-Bains;prospect;
+GIRARD Adrien;0639982541;adrien.girard.541@exemple.test;Thonon-les-Bains ;prestataire;
+MERCIER Margaux;06.39.98.21.63;margaux.mercier.163@exemple.test;Annecy;cliente;rappeler en septembre
+GIRARD Thomas;0639982373;thomas.girard.373@exemple.test;Grenoble;prestataire;recommandée par une cliente
+GARCIA Olivier;06.39.98.24.46;olivier.garcia.446@exemple.test;Annecy;PROSPECT;recommandée par une cliente
+ROUSSEL Bastien;0639982374;bastien.roussel.374@exemple.test;Genève;client;recommandée par une cliente
+MERCIER Samuel;0639982405;samuel.mercier.405@exemple.test;Grenoble ;Prestataire ;
+BARBIER Pauline;0639982086;pauline.barbier.86@exemple.test;Thonon-les-Bains;prestataire;
+ROBERT Yanis;06 39 98 20 03;yanis.robert.3@exemple.test;Chambéry ;client;mariage 2019
+FRANÇOIS Olivier;0639982430;olivier.francois.430@exemple.test;Aix-les-Bains;PROSPECT;
+ROUSSEAU Nicolas;06 39 98 22 46;nicolas.rousseau.246@exemple.test;Albertville;;
+FAURE Pierre;0639982510;pierre.faure.510@exemple.test;Annecy ;client;
+David Guillaume;0639982083; guillaume.david.83@exemple.test;Thonon-les-Bains ;prospect;
+ROBERT Philippe;06.39.98.25.14;;Albertville ;Prestataire ;
+GAUTHIER Karim;06.39.98.23.18;karim.gauthier.318@exemple.test;Lyon;;recommandée par une cliente
+ROUSSEL Mathieu;0639982221;mathieu.roussel.221@exemple.test;Chambéry;cliente;
+PERRIN Sarah;0639982472;sarah.perrin.472@exemple.test;Thonon-les-Bains ;prospect;mariage 2019
+DURAND Sophie;06.39.98.24.11;sophie.durand.411@exemple.test;Grenoble ;prospect;
+MATHIEU François;06 39 98 23 31;;Genève;lieu;recommandée par une cliente
+MOREAU Hugo;06.39.98.22.27;hugo.moreau.227@exemple.test;Aix-les-Bains ;prestataire;mariage 2019
+MICHEL Émilie ;06.39.98.24.66; emilie.michel.466@exemple.test;Grenoble ;prospect;mariage 2019
+SIMON Bastien;0639982152;bastien.simon.152@exemple.test;Annecy ;;rappeler en septembre
+LAMBERT Charlotte;0639982521;charlotte.lambert.521@exemple.test;Thonon-les-Bains ;client;recommandée par une cliente
+CLÉMENT Mathieu;06.39.98.25.09;mathieu.clement.509@exemple.test;Grenoble ;Prestataire ;
+LAMBERT Mathilde;06 39 98 22 11;mathilde.lambert.211@exemple.test;Chambéry ;lieu;mariage 2019
+MATHIEU Nathalie;06 39 98 20 22;nathalie.mathieu.22@exemple.test;Genève;lieu;rappeler en septembre
+LEROY Bastien;0639982215;bastien.leroy.215@exemple.test;Chambéry ;PROSPECT;mariage 2019
+BLANC Sarah;0639982533;sarah.blanc.533@exemple.test;Genève ;lieu;
+BERTRAND Mathieu;06.39.98.23.23;mathieu.bertrand.323@exemple.test;Thonon-les-Bains;prestataire;
+VINCENT Amandine;0639982200;amandine.vincent.200@exemple.test;Albertville ;cliente;
+GUÉRIN Marie;06 39 98 20 37;marie.guerin.37@exemple.test;Chambéry;;recommandée par une cliente
+LEROY Pauline;06 39 98 22 36;pauline.leroy.236@exemple.test;Chambéry;client;
+RICHARD Hélène;06.39.98.22.78;helene.richard.278@exemple.test;Genève;prestataire;
+BERNARD Olivier;06.39.98.23.67;olivier.bernard.367@exemple.test;Chambéry ;client;recommandée par une cliente
+MATHIEU Manon;06 39 98 24 27;manon.mathieu.427@exemple.test;Annecy ;client;
+PETIT Louis;0639982496;louis.petit.496@exemple.test;Chambéry;PROSPECT;mariage 2019
+BRUN Antoine;06.39.98.22.82;antoine.brun.282@exemple.test;Lyon ;cliente;
+MICHEL Jean;06.39.98.23.88;jean.michel.388@exemple.test;Thonon-les-Bains;Prestataire ;rappeler en septembre
+ROUSSEL Théo;06 39 98 24 67;theo.roussel.467@exemple.test;Chambéry;Prestataire ;recommandée par une cliente
+LAURENT Antoine;06.39.98.23.42;antoine.laurent.342@exemple.test;Thonon-les-Bains;cliente;rappeler en septembre
+LOPEZ Benoît;06 39 98 21 05; benoit.lopez.105@exemple.test;Grenoble;prestataire;
+BONNET Inès;06 39 98 24 97;ines.bonnet.497@exemple.test;Genève ;PROSPECT;
+MORIN Benoît;0639982239;benoit.morin.239@exemple.test;Albertville;PROSPECT;
+RICHARD Louis;06 39 98 22 29;louis.richard.229@exemple.test;Aix-les-Bains;;
+MULLER Jeanne;06.39.98.23.17;jeanne.muller.317@exemple.test;Aix-les-Bains;cliente;
+BONNET Sarah;0639982365;;Aix-les-Bains;prospect;
+MARTIN Lucie;06 39 98 24 29;lucie.martin.429@exemple.test;Grenoble ;client;
