@@ -41,6 +41,8 @@ export const AUDIT_ACTIONS = {
   "hub.module.enabled": { category: "droits", objectType: "organization" },
   "hub.module.disabled": { category: "droits", objectType: "organization" },
   "hub.user.mfa_reset": { category: "droits", objectType: "user" },
+  // Lot 24a (SEC-13, SC-S1) : identifiant introuvable demandé dans une adresse.
+  "hub.access.refused": { category: "droits", objectType: null },
   // Administration de la plateforme (sans organisation).
   "hub.platform_settings.updated": { category: "administration", objectType: null },
   // Exports.

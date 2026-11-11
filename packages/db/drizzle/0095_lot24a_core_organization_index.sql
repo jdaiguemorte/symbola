@@ -1,0 +1,1 @@
+CREATE INDEX "domain_events_organization_idx" ON "core"."domain_events" USING btree ("organization_id");

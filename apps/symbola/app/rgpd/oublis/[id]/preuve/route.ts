@@ -1,5 +1,6 @@
 // RGPD-03 — preuve horodatée d'une demande d'oubli (PDF), rendue à la
 // demande depuis la trace du hub. Titulaire seulement, son organisation.
+import { refusedResponse } from "@/lib/access-refusals";
 import { createElement, type ReactElement } from "react";
 import { renderToBuffer, type DocumentProps } from "@react-pdf/renderer";
 import { z } from "zod";
@@ -10,7 +11,7 @@ import { buildErasureProof } from "../../proof";
 import { ProofPdfDocument } from "../../proof-pdf";
 import { pdfSafe } from "@/lib/pdf-text";
 
-export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }): Promise<Response> {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }): Promise<Response> {
   const owner = await ownerContext();
   if (!owner) return new Response(null, { status: 403 });
   const parsed = z.uuid().safeParse((await params).id);
@@ -20,7 +21,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   try {
     erasure = await getPrivacyErasure(db, owner.organizationId, parsed.data);
   } catch (error) {
-    if (error instanceof PrivacyErasureNotFoundError) return new Response(null, { status: 404 });
+    if (error instanceof PrivacyErasureNotFoundError) return refusedResponse(request);
     throw error;
   }
   const model = await buildErasureProof(owner.organizationId, erasure);

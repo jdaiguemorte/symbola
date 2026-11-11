@@ -133,6 +133,9 @@ importers:
       otpauth:
         specifier: ^9.3.6
         version: 9.5.2
+      tsx:
+        specifier: ^4.19.2
+        version: 4.23.15
       typescript:
         specifier: ^5.7.2
         version: 5.9.3
@@ -167,6 +170,9 @@ importers:
       '@symbola/env':
         specifier: workspace:*
         version: link:../env
+      '@symbola/privacy':
+        specifier: workspace:*
+        version: link:../privacy
       '@types/node':
         specifier: ^22.10.2
         version: 22.20.5
@@ -232,6 +238,9 @@ importers:
       '@symbola/env':
         specifier: workspace:*
         version: link:../env
+      '@symbola/privacy':
+        specifier: workspace:*
+        version: link:../privacy
       '@symbola/testing':
         specifier: workspace:*
         version: link:../testing
@@ -285,6 +294,9 @@ importers:
       '@symbola/config':
         specifier: workspace:*
         version: link:../config
+      '@symbola/privacy':
+        specifier: workspace:*
+        version: link:../privacy
       '@types/node':
         specifier: ^22.10.2
         version: 22.20.5
@@ -353,6 +365,9 @@ importers:
       '@symbola/config':
         specifier: workspace:*
         version: link:../config
+      '@symbola/privacy':
+        specifier: workspace:*
+        version: link:../privacy
       '@types/node':
         specifier: ^22.10.2
         version: 22.20.5

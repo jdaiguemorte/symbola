@@ -1,6 +1,7 @@
 // DEV-01 — PDF A4 d'une version de devis (courante ou ancienne : les
 // versions précédentes restent téléchargeables). Contrôles côté serveur :
 // session planner, organisation, module souscrit, identifiants valides.
+import { refusedResponse } from "@/lib/access-refusals";
 import { z } from "zod";
 import { getQuote, QuoteNotFoundError, type QuoteDetail } from "@/modules/quotes/service";
 import { isValidId } from "../../module-access";
@@ -22,11 +23,11 @@ export async function GET(request: Request, { params }: { params: Promise<{ quot
   try {
     quote = await getQuote(organizationId, quoteId);
   } catch (error) {
-    if (error instanceof QuoteNotFoundError) return new Response(null, { status: 404 });
+    if (error instanceof QuoteNotFoundError) return refusedResponse(request);
     throw error;
   }
   const version = quote.versions.find((candidate) => candidate.version === requested.data);
-  if (!version) return new Response(null, { status: 404 });
+  if (!version) return refusedResponse(request);
 
   const pdf = await renderQuotePdf({ organizationId, quote, version });
   return new Response(new Uint8Array(pdf), {

@@ -1,6 +1,7 @@
 // Lot 11 (L11-EVT-10) — devis d'un prestataire consulté, ouvert par l'équipe :
 // session, organisation et module vérifiés, fichier servi par l'app depuis
 // le stockage privé (ADR 0027).
+import { refusedResponse } from "@/lib/access-refusals";
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { attachVendorCandidateQuote, CandidateQuoteRejectedError, getVendorCandidateQuoteFile, VendorCandidateNotFoundError } from "@/modules/events/service";
@@ -9,7 +10,7 @@ import { getPlannerAuthContext } from "@/lib/auth-context";
 import { receiveUpload, uploadResponse } from "@/lib/uploads/receive";
 import { isEventsModuleEnabled, isValidId } from "../../../../module-access";
 
-export async function GET(_request: Request, { params }: { params: Promise<{ id: string; candidateId: string }> }): Promise<Response> {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string; candidateId: string }> }): Promise<Response> {
   const auth = await getPlannerAuthContext();
   if (auth.status !== "authenticated" || !auth.user.organizationId) return new Response(null, { status: 401 });
   const organizationId = auth.user.organizationId;
@@ -19,7 +20,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   try {
     return fileDownloadResponse(await getVendorCandidateQuoteFile(organizationId, candidateId));
   } catch (error) {
-    if (error instanceof VendorCandidateNotFoundError) return new Response(null, { status: 404 });
+    if (error instanceof VendorCandidateNotFoundError) return refusedResponse(request);
     throw error;
   }
 }

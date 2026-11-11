@@ -8,7 +8,7 @@
 // couplage direct aux données internes d'un autre module. C'est un uuid
 // opaque, validé à la couche service via
 // eventsService.listDefaultVendorSlots(organizationId).
-import { integer, pgSchema, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { integer, pgSchema, text, timestamp, uuid, index } from "drizzle-orm/pg-core";
 
 export const budgetSchema = pgSchema("budget");
 
@@ -24,7 +24,7 @@ export const allocationModels = budgetSchema.table("allocation_models", {
   createdBy: uuid("created_by"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   updatedBy: uuid("updated_by"),
-});
+}, (table) => [index("allocation_models_organization_idx").on(table.organizationId)]);
 
 export const allocationModelItems = budgetSchema.table("allocation_model_items", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -39,7 +39,7 @@ export const allocationModelItems = budgetSchema.table("allocation_model_items",
   createdBy: uuid("created_by"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   updatedBy: uuid("updated_by"),
-});
+}, (table) => [index("allocation_model_items_organization_idx").on(table.organizationId)]);
 
 // PRD-BUD-01 — simulation liée à un prospect : un seul event_budgets par
 // événement (eventId opaque, module events).
@@ -55,7 +55,7 @@ export const eventBudgets = budgetSchema.table("event_budgets", {
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdBy: uuid("created_by"),
   updatedBy: uuid("updated_by"),
-});
+}, (table) => [index("event_budgets_organization_idx").on(table.organizationId)]);
 
 export const eventBudgetItems = budgetSchema.table("event_budget_items", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -70,7 +70,7 @@ export const eventBudgetItems = budgetSchema.table("event_budget_items", {
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdBy: uuid("created_by"),
   updatedBy: uuid("updated_by"),
-});
+}, (table) => [index("event_budget_items_organization_idx").on(table.organizationId)]);
 
 // PRD-BUD-02 — budget réel (prévu/réel), une ligne par poste de l'événement.
 // eventVendorSlotId référence events.event_vendor_slots (pas
@@ -90,7 +90,7 @@ export const budgetLines = budgetSchema.table("budget_lines", {
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdBy: uuid("created_by"),
   updatedBy: uuid("updated_by"),
-});
+}, (table) => [index("budget_lines_organization_idx").on(table.organizationId)]);
 
 export const budgetLineFieldEnum = budgetSchema.enum("budget_line_field", ["planned", "actual"]);
 
@@ -112,7 +112,7 @@ export const budgetLineHistory = budgetSchema.table("budget_line_history", {
   changedAt: timestamp("changed_at", { withTimezone: true }).defaultNow().notNull(),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdBy: uuid("created_by"),
-});
+}, (table) => [index("budget_line_history_organization_idx").on(table.organizationId)]);
 
 // PRD-BUD-03 — devis prestataire joint à une ligne de budget. Le fichier vit
 // dans le stockage privé (@symbola/files : type vérifié par le contenu,
@@ -132,4 +132,4 @@ export const budgetLineAttachments = budgetSchema.table("budget_line_attachments
   createdBy: uuid("created_by"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   updatedBy: uuid("updated_by"),
-});
+}, (table) => [index("budget_line_attachments_organization_idx").on(table.organizationId)]);

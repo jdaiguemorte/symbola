@@ -21,3 +21,4 @@ export { isSuspiciousPersonalField } from "./suspicious-fields";
 export { addMonths, daysBetween, EXTENDED_RESPONSE_MONTHS, isDueSoon, LEGAL_RESPONSE_MONTHS, parisDate, requestDueDate } from "./deadlines";
 export { createZip, toCsv, type ArchiveEntry } from "./archive";
 export { clientDueOn, inactiveAccountDueOn, isExpired, prospectDueOn, requestProofDueOn, type RetentionMonths } from "./retention";
+export { findPersonalData, redactPersonalData, type PersonalDataFinding, type PersonalDataKind } from "./log-redaction";

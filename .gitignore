@@ -18,4 +18,5 @@ infra/compose/garage.production.toml
 *.tsbuildinfo
 playwright-report/
 test-results/
+e2e-server.log
 apps/symbola/public/maplibre/

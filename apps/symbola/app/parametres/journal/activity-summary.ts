@@ -47,6 +47,10 @@ export function activityDetail(entry: Pick<ActivityEntry, "action" | "details" |
       return FAILURES[text(details, "reason") ?? ""] ? t(FAILURES[text(details, "reason")!]!) : null;
     case "hub.trusted_devices.forgotten":
       return t("devices", { count: number(details, "count") ?? 0 });
+    case "hub.access.refused": {
+      const route = text(details, "route");
+      return route ? t("refusedRoute", { route }) : null;
+    }
     case "hub.module.enabled":
     case "hub.module.disabled": {
       const module = text(details, "module");

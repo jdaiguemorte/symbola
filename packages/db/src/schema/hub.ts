@@ -56,7 +56,7 @@ export const invitations = hubSchema.table("invitations", {
   createdBy: uuid("created_by"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   updatedBy: uuid("updated_by"),
-});
+}, (table) => [index("invitations_organization_idx").on(table.organizationId)]);
 
 export const users = hubSchema.table("users", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -97,7 +97,7 @@ export const users = hubSchema.table("users", {
   createdBy: uuid("created_by"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   updatedBy: uuid("updated_by"),
-});
+}, (table) => [index("users_organization_idx").on(table.organizationId)]);
 
 // AIDE-01 : une visite guidée se relance à volonté, mais ne s'affiche
 // automatiquement qu'à la première ouverture d'un module — une ligne ici
@@ -272,7 +272,7 @@ export const vatRegimeChanges = hubSchema.table("vat_regime_changes", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdBy: uuid("created_by"),
-});
+}, (table) => [index("vat_regime_changes_organization_idx").on(table.organizationId)]);
 
 // Seuils de franchise en base de TVA (PRD ONB-02, « jamais une valeur
 // dans le code ») : une seule ligne pour toute la plateforme, modifiable
@@ -453,7 +453,7 @@ export const imports = hubSchema.table("imports", {
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdBy: uuid("created_by"),
   updatedBy: uuid("updated_by"),
-});
+}, (table) => [index("imports_organization_idx").on(table.organizationId)]);
 
 export type ImportResult = { created: number; updated: number; unchanged: number; rejected: number };
 
@@ -482,7 +482,7 @@ export const importItems = hubSchema.table("import_items", {
   createdBy: uuid("created_by"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   updatedBy: uuid("updated_by"),
-});
+}, (table) => [index("import_items_organization_idx").on(table.organizationId)]);
 
 // Lot 15 (IMP-10, GEO-01) — traitement de fond suivi d'un import : lecture
 // des fiches PDF déposées (gardées chiffrées dans le stockage privé le temps de
@@ -517,7 +517,7 @@ export const importJobs = hubSchema.table("import_jobs", {
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdBy: uuid("created_by"),
   updatedBy: uuid("updated_by"),
-});
+}, (table) => [index("import_jobs_organization_idx").on(table.organizationId)]);
 
 // Lot 6 (RGPD-04) — demandes d'exercice de droits reçues par la titulaire :
 // type, personne concernée (libellé saisi), réception, échéance légale
@@ -555,7 +555,7 @@ export const privacyRequests = hubSchema.table("privacy_requests", {
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdBy: uuid("created_by"),
   updatedBy: uuid("updated_by"),
-});
+}, (table) => [index("privacy_requests_organization_idx").on(table.organizationId)]);
 
 // Lot 6 (RGPD-04/05) — réglages RGPD d'une organisation, chargés depuis le
 // modèle de départ (packages/starter-templates) à la première lecture, puis
@@ -599,7 +599,7 @@ export const privacyExports = hubSchema.table("privacy_exports", {
   createdBy: uuid("created_by"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   updatedBy: uuid("updated_by"),
-});
+}, (table) => [index("privacy_exports_organization_idx").on(table.organizationId)]);
 
 // Lot 6 (RGPD-03, ADR 0023) — exécution d'une demande d'oubli : le sort de
 // chaque fiche (sans libellé : identifiants opaques, nature, sort, motif
@@ -633,7 +633,7 @@ export const privacyErasures = hubSchema.table("privacy_erasures", {
   completedAt: timestamp("completed_at", { withTimezone: true }),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdBy: uuid("created_by"),
-});
+}, (table) => [index("privacy_erasures_organization_idx").on(table.organizationId)]);
 
 // Lot 6 (RGPD-05, ADR 0024) — purges mensuelles validées par la titulaire :
 // chaque ligne (règle de conservation, référence opaque, échéance) est
@@ -662,7 +662,7 @@ export const privacyPurges = hubSchema.table("privacy_purges", {
   completedAt: timestamp("completed_at", { withTimezone: true }),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdBy: uuid("created_by"),
-});
+}, (table) => [index("privacy_purges_organization_idx").on(table.organizationId)]);
 
 // Lot 13 (L13-HUB-18, ADR 0033) — exécutions du script de sauvegarde
 // (infra/backup/backup.sh), signalées par une requête SQL dans le conteneur

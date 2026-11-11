@@ -2,6 +2,12 @@
 // On en profite pour valider les variables d'environnement (SOC-03) avant
 // que la moindre requête soit traitée : échec rapide et message clair.
 export async function register() {
+  // Lot 24a (SEC-20) : avant tout le reste, les journaux du serveur masquent
+  // les adresses e-mail et les numéros de téléphone.
+  if (process.env.NEXT_RUNTIME === "nodejs") {
+    const { installLogRedaction } = await import("./lib/log-redaction");
+    installLogRedaction();
+  }
   await import("@symbola/env/validate-on-import");
   // AIDE-02 : purge horaire des essais abandonnés ; lot 5 : purge horaire
   // des imports en cours expirés ; lot 6 : purge horaire des exports RGPD

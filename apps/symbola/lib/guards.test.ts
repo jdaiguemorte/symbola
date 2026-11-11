@@ -1,5 +1,6 @@
 // Lot 16 (L16-ARC-01, ADR 0043) — gardes d'accès des écrans : comportement de
-// chaque garde, et chaque page hors des écrans publics en appelle une.
+// chaque garde. Que chaque page, route et action en appelle une : lot 24a,
+// lib/access-rules.test.ts (SEC-12).
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -37,27 +38,6 @@ function signedIn(role: string, organizationId: string | null = "org-1"): AuthRe
 }
 
 const APP_DIR = fileURLToPath(new URL("../app", import.meta.url));
-
-// Écrans publics : ouverts sans session, chacun protégé autrement (jeton à
-// usage unique, état de connexion en cours) ou simple redirection.
-const PUBLIC_PAGES: Record<string, string> = {
-  "login/page.tsx": "connexion",
-  "mfa/page.tsx": "double authentification d'une connexion en cours",
-  "mot-de-passe-oublie/page.tsx": "demande de réinitialisation",
-  "mot-de-passe/[token]/page.tsx": "jeton de réinitialisation",
-  "invitations/[token]/page.tsx": "jeton d'invitation de l'équipe",
-  "espace/invitation/[token]/page.tsx": "jeton d'invitation du marié",
-  "signature-fictive/[token]/page.tsx": "jeton du signataire (fournisseur fictif, hors production)",
-  "import/[importId]/ecarts/page.tsx": "redirection vers l'étape en cours, elle-même gardée",
-};
-
-// Accès communs d'une rubrique : ils appellent eux-mêmes une garde.
-const SHARED_ACCESS: Record<string, string> = {
-  importStepContext: "import/step-context.ts",
-  vendorSettingsAccess: "prestataires/parametres/guard.ts",
-};
-
-const GUARD_CALL = /\brequire(SignedIn|Planner|Owner|Client|Admin)\(/;
 
 function pages(dir: string): string[] {
   return readdirSync(dir).flatMap((entry) => {
@@ -117,25 +97,6 @@ describe("L16-ARC-01 — Une garde d'accès unique", () => {
     await expect(requireSignedIn()).rejects.toThrow("redirect:/login");
     auth.current = signedIn("client");
     expect((await requireSignedIn()).user.role).toBe("client");
-  });
-
-  it("chaque page hors des écrans publics appelle une garde", () => {
-    const all = pages(APP_DIR);
-    const unguarded = all.filter((page) => {
-      if (page in PUBLIC_PAGES) return false;
-      const source = readFileSync(join(APP_DIR, page), "utf8");
-      if (GUARD_CALL.test(source)) return false;
-      return !Object.keys(SHARED_ACCESS).some((name) => source.includes(`${name}(`));
-    });
-    expect(unguarded).toEqual([]);
-    // La liste des écrans publics ne garde pas d'adresse disparue.
-    expect(Object.keys(PUBLIC_PAGES).filter((page) => !all.includes(page))).toEqual([]);
-  });
-
-  it("les accès communs d'une rubrique appellent eux-mêmes une garde", () => {
-    for (const file of Object.values(SHARED_ACCESS)) {
-      expect(readFileSync(join(APP_DIR, file), "utf8"), file).toMatch(GUARD_CALL);
-    }
   });
 
   it("aucune page ne recopie plus le contrôle de session", () => {
