@@ -1,5 +1,10 @@
 # Prompt de démarrage — à coller dans Claude Code
 
+> **Archivé le 11/11/2026 (lot 25).** Ce document n'est plus une référence : il est remplacé par
+> [`docs/CAHIER_DES_CHARGES.md`](../CAHIER_DES_CHARGES.md) (décision Q2, `docs/QUESTIONS.md`).
+> Les chemins qu'il cite ont changé : l'ancien cahier des charges et le PRD sont dans
+> `docs/archive/`, et `CLAUDE.md` a été réécrit. Il est gardé tel quel pour l'historique.
+
 Copie le bloc ci-dessous comme premier message dans Claude Code, ouvert à la racine du dépôt.
 
 ---

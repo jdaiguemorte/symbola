@@ -1,5 +1,9 @@
 # Cahier des charges — Symbola, suite applicative pour l'événementiel
 
+> **Archivé le 11/11/2026 (lot 25).** Ce document n'est plus une référence : il est remplacé par
+> [`docs/CAHIER_DES_CHARGES.md`](../CAHIER_DES_CHARGES.md) (décision Q2, `docs/QUESTIONS.md`).
+> Il est gardé tel quel pour l'historique.
+
 25 octobre 2026 · Julien
 
 ## 1. Vision et principes

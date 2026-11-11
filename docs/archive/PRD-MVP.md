@@ -1,5 +1,11 @@
 # PRD du MVP — Symbola
 
+> **Archivé le 11/11/2026 (lot 25).** Ce document n'est plus une référence : il est remplacé par
+> [`docs/CAHIER_DES_CHARGES.md`](../CAHIER_DES_CHARGES.md) (décision Q2, `docs/QUESTIONS.md`).
+> Ses identifiants se lisent avec le préfixe `PRD-` (`EVT-03` ici = `PRD-EVT-03` ailleurs,
+> décision Q1 ; table : [`docs/referentiel/correspondance-identifiants.md`](../referentiel/correspondance-identifiants.md)).
+> Il est gardé tel quel pour l'historique.
+
 2026-10-25 · Julien
 
 ## 1. Périmètre

@@ -43,7 +43,9 @@ Julien. Ils devront y être retirés avant son prochain `git pull`, sinon Git re
 ## Partie B — Archiver l'ancien référentiel
 
 - `docs/cahier-des-charges.md` → `docs/archive/cahier-des-charges-v1.md` ;
-- `docs/PRD-MVP.md` → `docs/archive/PRD-MVP.md`.
+- `docs/PRD-MVP.md` → `docs/archive/PRD-MVP.md` ;
+- les deux fichiers du démarrage, qui renvoient à l'ancien référentiel : `PROMPT-LOT-0.md` et
+  `docs/README-kickoff.md` → `docs/archive/`.
 
 Chacun reçoit un bandeau : archivé le 11/11/2026, remplacé par `docs/CAHIER_DES_CHARGES.md`
 (Q2) ; ses identifiants se lisent avec le préfixe `PRD-`. Le texte archivé n'est pas réécrit.
