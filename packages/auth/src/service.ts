@@ -432,6 +432,26 @@ export async function requireUser(
   };
 }
 
+// Lot 23 (partie B, DAT-06, SEC-19, ADR 0060) : l'auteur d'une écriture en base,
+// d'après la session de la requête. Lecture seule (ni expiration glissante ni
+// autre écriture, contrairement à requireUser) : appelée à chaque transaction.
+// Une session expirée ou qui attend encore la double authentification n'a pas
+// d'auteur.
+export async function findSessionActor(
+  db: AppDatabase,
+  sessionToken: string | undefined,
+): Promise<{ kind: "member" | "admin"; id: string } | null> {
+  if (!sessionToken) return null;
+  const [row] = await db
+    .select({ userId: users.id, role: users.role, mfaEnabled: users.mfaEnabled, mfaVerified: sessions.mfaVerified, expiresAt: sessions.expiresAt })
+    .from(sessions)
+    .innerJoin(users, eq(users.id, sessions.userId))
+    .where(eq(sessions.tokenHash, hashSessionToken(sessionToken)));
+  if (!row || row.expiresAt.getTime() < Date.now()) return null;
+  if ((isProfessionalRole(row.role) || row.mfaEnabled) && !row.mfaVerified) return null;
+  return { kind: row.role === "admin" ? "admin" : "member", id: row.userId };
+}
+
 // PRD-EVT-06 — invitation d'un marié : savoir si l'e-mail a déjà un compte, et
 // lequel (rôle, organisation), sans exposer le reste du compte.
 export async function findAccountByEmail(

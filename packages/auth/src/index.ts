@@ -9,6 +9,7 @@ export {
   createUser,
   destroySession,
   findAccountByEmail,
+  findSessionActor,
   forgetTrustedDevices,
   login,
   requireUser,
