@@ -1621,7 +1621,12 @@
     "paymentMethodsIntro": "Only accepted methods are offered when you record a payment. Turning a method off does not change payments already recorded, and you can turn it back on at any time.",
     "paymentMethodAccepted": "Accepted",
     "paymentMethodNotAccepted": "Not offered when recording a payment",
-    "paymentMethodSwitch": "{label} accepted"
+    "paymentMethodSwitch": "{label} accepted",
+    "reversalReason": "Reason for cancelling",
+    "reversalReasonRequired": "Give the reason for cancelling.",
+    "paymentHistory": "Payment history of “{label}”",
+    "paymentReceivedEntry": "Received on {date} ({method})",
+    "paymentReversedEntry": "Cancelled on {date}: {reason}"
   },
   "Documents": {
     "pdfSellerHeading": "From",
@@ -3930,7 +3935,10 @@
       "hub_privacy_purge_executed": "GDPR purge carried out",
       "ops_database_opened": "Database access opened",
       "ops_database_closed": "Database access closed",
-      "ops_backup_restored": "Backup restored"
+      "ops_backup_restored": "Backup restored",
+      "quotes_original_altered": "Altered original detected",
+      "quotes_ledger_anomaly_detected": "Anomaly in the document chain",
+      "quotes_archive_exported": "Accounting archive exported"
     },
     "categories": {
       "connexion": "Sign-ins",
@@ -4002,7 +4010,10 @@
       "vendors_vendor_tags": "tag",
       "vendors_vendor_type_fields": "vendor type field",
       "vendors_vendor_types": "vendor type",
-      "vendors_vendors": "vendor"
+      "vendors_vendors": "vendor",
+      "quotes_payment_entries": "payment entry",
+      "quotes_original_documents": "original document",
+      "quotes_ledger_entries": "document chain entry"
     },
     "modules": {
       "events": "Events",

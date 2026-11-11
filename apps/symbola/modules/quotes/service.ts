@@ -19,7 +19,10 @@ import type {
   GlobalDiscountInput,
   MarkScheduleItemPaidInput,
   PaymentMethod,
+  PaymentEntryView,
   PaymentScheduleView,
+  RenderCreditNoteOriginal,
+  RenderInvoiceOriginal,
   QuoteDetail,
   QuoteLine,
   QuoteLineInput,
@@ -66,7 +69,21 @@ import { signatureTag, type SignatureProvider } from "./signature/provider";
 import { computeQuoteTotals, formatDocumentNumber, lineAmounts, validUntil, type GlobalDiscount } from "./amounts";
 import { addCalendarDays, groupByMonth, isOverdue, parisToday, resolveSchedule } from "./schedule";
 import { addDays, prorateTotals } from "./invoicing";
+import { recordAudit } from "@symbola/db/audit";
 import { cleanDocumentSettings, documentSnapshot, EMPTY_DOCUMENT_SETTINGS } from "./document-settings";
+import {
+  findOriginal,
+  ledgerEntriesOfYear,
+  ledgerYears,
+  readOriginalBytes,
+  sha256Hex,
+  storeOriginal,
+  storeReconstructedOriginal,
+  verifyLedgerRows,
+  type LedgerAnomaly,
+  type LedgerArchiveRow,
+  type OriginalKind,
+} from "./pieces";
 import {
   findCreditNoteById,
   findEReportingRows,
@@ -95,7 +112,8 @@ import {
   findUnpaidScheduleItems,
   insertPaymentMethods,
   insertScheduleItem,
-  setScheduleItemPayment,
+  recordScheduleItemPayment,
+  reverseScheduleItemPayment,
   updateScheduleItemRow,
   type PaymentMethodRow,
   type PaymentResult,
@@ -127,6 +145,7 @@ import {
   type CatalogItemData,
   type CatalogItemRow,
   type LineData,
+  type PaymentEntryRow,
   type QuoteAggregate,
   type QuoteLineRow,
   type QuoteVersionRow,
@@ -139,6 +158,7 @@ export type {
   GlobalDiscountInput,
   MarkScheduleItemPaidInput,
   PaymentMethod,
+  PaymentEntryView,
   PaymentScheduleView,
   QuoteDetail,
   QuoteLine,
@@ -538,11 +558,24 @@ function totalsFor(lines: QuoteLineRow[], version: QuoteVersionRow, vatApplicabl
   return computeQuoteTotals(lines, toGlobalDiscount(version), vatApplicable);
 }
 
+function toPaymentEntryView(entry: PaymentEntryRow): PaymentEntryView {
+  return {
+    id: entry.id,
+    kind: entry.kind,
+    amountCents: entry.amountCents,
+    paidOn: entry.paidOn,
+    paymentMethodLabel: entry.paymentMethodLabel,
+    reason: entry.reason,
+    recordedAt: entry.createdAt.toISOString(),
+  };
+}
+
 function toScheduleView(
   items: ScheduleItemRow[],
   methods: PaymentMethodRow[],
   totalTtcCents: number,
   now: Date,
+  entries: PaymentEntryRow[] = [],
 ): PaymentScheduleView {
   const resolved = resolveSchedule(items, totalTtcCents);
   const labels = new Map(methods.map((method) => [method.id, method.label]));
@@ -558,6 +591,7 @@ function toScheduleView(
     paymentMethodLabel: item.paymentMethodId ? (labels.get(item.paymentMethodId) ?? null) : null,
     overdue: item.paidOn === null && isOverdue(item.dueDate, now),
     position: item.position,
+    payments: entries.filter((entry) => entry.scheduleItemId === item.id).map(toPaymentEntryView),
   }));
   return {
     items: views,
@@ -569,7 +603,7 @@ function toScheduleView(
 
 function toVersionView(
   version: QuoteVersionRow,
-  aggregate: Pick<QuoteAggregate, "lines" | "scheduleItems" | "paymentMethods">,
+  aggregate: Pick<QuoteAggregate, "lines" | "scheduleItems" | "paymentMethods"> & Partial<Pick<QuoteAggregate, "paymentEntries">>,
   profile: OrganizationProfile,
   now: Date,
 ): QuoteVersionView {
@@ -593,7 +627,7 @@ function toVersionView(
     seller: (version.sellerSnapshot as SellerSnapshot | null) ?? null,
     validUntil: version.validUntil,
     sentAt: version.sentAt?.toISOString() ?? null,
-    schedule: toScheduleView(ownItems, aggregate.paymentMethods, totals.totalTtcCents, now),
+    schedule: toScheduleView(ownItems, aggregate.paymentMethods, totals.totalTtcCents, now, aggregate.paymentEntries ?? []),
   };
 }
 
@@ -964,14 +998,16 @@ export async function markScheduleItemPaid(input: MarkScheduleItemPaidInput): Pr
   const paidOn = requireDate(input.paidOn, "date de paiement");
   if (paidOn > parisToday(input.now ?? new Date())) throw new RangeError("date de paiement future");
   const quoteId = unwrap(
-    await setScheduleItemPayment(input.organizationId, input.scheduleItemId, { paidOn, paymentMethodId: input.paymentMethodId }),
+    await recordScheduleItemPayment(input.organizationId, input.scheduleItemId, { paidOn, paymentMethodId: input.paymentMethodId }),
   );
   return loadDetail(input.organizationId, quoteId);
 }
 
-// Correction d'une saisie : l'échéance redevient à payer.
-export async function markScheduleItemUnpaid(organizationId: string, scheduleItemId: string): Promise<QuoteDetail> {
-  const quoteId = unwrap(await setScheduleItemPayment(organizationId, scheduleItemId, null));
+// Correction d'une saisie : l'échéance redevient à payer. Lot 23b (D2,
+// FAC-14) : par une écriture inverse motivée ; la saisie reste.
+export async function markScheduleItemUnpaid(organizationId: string, scheduleItemId: string, reason: string): Promise<QuoteDetail> {
+  const motive = requireText(reason, "motif de l'annulation");
+  const quoteId = unwrap(await reverseScheduleItemPayment(organizationId, scheduleItemId, motive));
   return loadDetail(organizationId, quoteId);
 }
 
@@ -1223,6 +1259,9 @@ async function applySignatureState(
     };
     const signedDocumentKey = await store(documents.signedPdf);
     const auditCertificateKey = await store(documents.auditCertificatePdf);
+    // Lot 23b (DOC-08) : empreintes des fichiers archivés, vérifiées à la relecture.
+    const signedDocumentSha256 = sha256Hex(documents.signedPdf);
+    const auditCertificateSha256 = sha256Hex(documents.auditCertificatePdf);
     storedKeys = [signedDocumentKey, auditCertificateKey];
     const totals = context.version.totalsSnapshot as QuoteTotalsView | null;
     const payload: QuoteSignedPayload = {
@@ -1237,6 +1276,8 @@ async function applySignatureState(
       kind: "completed",
       signedDocumentKey,
       auditCertificateKey,
+      signedDocumentSha256,
+      auditCertificateSha256,
       completedAt: now,
       event: { name: QUOTES_QUOTE_SIGNED, version: QUOTES_QUOTE_SIGNED_VERSION, payload },
     };
@@ -1316,9 +1357,18 @@ export async function getSignatureDocument(organizationId: string, quoteId: stri
   const version = aggregate.versions.find((candidate) => candidate.version === aggregate.quote.currentVersion);
   const request = aggregate.signatureRequests.find((candidate) => candidate.versionId === version?.id);
   const key = kind === "signed" ? request?.signedDocumentKey : request?.auditCertificateKey;
+  const expected = kind === "signed" ? request?.signedDocumentSha256 : request?.auditCertificateSha256;
   if (!key) throw new SignatureDocumentNotFoundError();
   try {
     const { data } = await readPrivateObject(createStorageClient(), key);
+    // Lot 23b (DOC-08) : le fichier relu doit être celui de l'archivage (les
+    // documents signés avant le lot 23b n'ont pas d'empreinte).
+    if (expected && sha256Hex(data) !== expected) {
+      await withDb((db) =>
+        recordAudit(db, { organizationId, action: "quotes.original.altered", objectType: "quote", objectId: aggregate.quote.id, details: { number: aggregate.quote.number, file: kind } }),
+      );
+      throw new OriginalAlteredError();
+    }
     const suffix = kind === "signed" ? "signe" : "certificat";
     return { data, contentType: "application/pdf", fileName: `${aggregate.quote.number}-${suffix}.pdf` };
   } catch (error) {
@@ -1542,7 +1592,7 @@ export async function issueDepositInvoice(input: IssueDepositInvoiceInput): Prom
         totalsSnapshot: snapshot,
       },
     };
-  });
+  }, keepInvoiceOriginal(input.organizationId, input.renderOriginal));
   if (!row) throw new QuoteNotFoundError();
   return getInvoice(input.organizationId, row.id);
 }
@@ -1585,7 +1635,7 @@ export async function issueBalanceInvoice(input: IssueBalanceInvoiceInput): Prom
         totalsSnapshot: snapshot,
       },
     };
-  });
+  }, keepInvoiceOriginal(input.organizationId, input.renderOriginal));
   if (!row) throw new QuoteNotFoundError();
   return getInvoice(input.organizationId, row.id);
 }
@@ -1616,9 +1666,130 @@ export async function issueCreditNote(input: IssueCreditNoteInput): Promise<Cred
         totalsSnapshot: prorateTotals(asQuoteTotals, input.amountCents),
       },
     };
+  }, async (tx, creditNote, invoice) => {
+    // Lot 23b (DOC-08) : l'original de l'avoir, dans la transaction du numéro.
+    if (creditNote.isDemo) return;
+    const pdf = await input.renderOriginal(toCreditNoteView(creditNote, invoice.number), invoice.vatRegime !== "franchise");
+    await storeOriginal(tx, { organizationId: input.organizationId, kind: "credit_note", documentId: creditNote.id, pdf });
   });
   if (!row) throw new InvoiceNotFoundError();
   return getCreditNote(input.organizationId, row.id);
+}
+
+// Lot 23b (DOC-08, ADR 0061) — l'original d'une facture : rendu depuis la copie
+// figée et déposé tel quel, dans la transaction qui attribue son numéro. Si le
+// stockage ne répond pas, la facture n'est pas émise et le numéro n'est pas
+// consommé. Pas d'original pour une facture d'essai (rendue à la demande).
+function keepInvoiceOriginal(organizationId: string, render: RenderInvoiceOriginal) {
+  return async (tx: Parameters<NonNullable<Parameters<typeof insertInvoice>[3]>>[0], invoice: InvoiceRow, context: InvoicingContext) => {
+    if (invoice.isDemo) return;
+    const pdf = await render(toInvoiceView(invoice, context.quote.number, []));
+    await storeOriginal(tx, { organizationId, kind: "invoice", documentId: invoice.id, pdf });
+  };
+}
+
+export class OriginalAlteredError extends Error {
+  constructor() {
+    super("l'original conservé ne correspond plus à son empreinte d'émission");
+    this.name = "OriginalAlteredError";
+  }
+}
+
+// Lot 23b (DOC-08) — le PDF d'une pièce émise : l'original conservé, servi
+// seulement si son empreinte est celle de l'émission ; sinon rien n'est
+// reconstruit à sa place et l'anomalie va au journal. Une pièce émise avant
+// le lot 23b reçoit son original à sa première ouverture, marqué « reconstitué »
+// (décision D6). Une pièce d'essai se rend à la demande.
+async function originalPdf(
+  organizationId: string,
+  kind: OriginalKind,
+  document: { id: string; number: string; isDemo: boolean },
+  render: () => Promise<Uint8Array>,
+): Promise<{ pdf: Buffer; reconstructed: boolean }> {
+  if (document.isDemo) return { pdf: Buffer.from(await render()), reconstructed: false };
+  const original =
+    (await findOriginal(organizationId, kind, document.id)) ??
+    (await storeReconstructedOriginal(organizationId, kind, document.id, await render()));
+  const pdf = await readOriginalBytes(original);
+  if (sha256Hex(pdf) !== original.sha256) {
+    await withDb((db) =>
+      recordAudit(db, {
+        organizationId,
+        action: "quotes.original.altered",
+        objectType: kind,
+        objectId: document.id,
+        details: { number: document.number },
+      }),
+    );
+    throw new OriginalAlteredError();
+  }
+  return { pdf, reconstructed: original.isReconstructed };
+}
+
+export async function getInvoicePdf(
+  organizationId: string,
+  invoiceId: string,
+  render: RenderInvoiceOriginal,
+): Promise<{ pdf: Buffer; number: string; reconstructed: boolean }> {
+  const invoice = await getInvoice(organizationId, invoiceId);
+  const found = await originalPdf(organizationId, "invoice", invoice, () => render(invoice));
+  return { ...found, number: invoice.number };
+}
+
+export async function getCreditNotePdf(
+  organizationId: string,
+  creditNoteId: string,
+  render: RenderCreditNoteOriginal,
+): Promise<{ pdf: Buffer; number: string; reconstructed: boolean }> {
+  const creditNote = await getCreditNote(organizationId, creditNoteId);
+  const invoice = await getInvoice(organizationId, creditNote.invoiceId);
+  const found = await originalPdf(organizationId, "credit_note", creditNote, () => render(creditNote, invoice.vatApplicable));
+  return { ...found, number: creditNote.number };
+}
+
+// Lot 23b (FAC-14, ADR 0061) — vérification de la chaîne d'empreintes de
+// l'organisation : rang, maillons, et chaque écriture comparée à sa pièce.
+export type LedgerVerification = { ok: boolean; entries: number; lastHash: string | null; anomalies: LedgerAnomaly[] };
+
+export async function verifyLedger(organizationId: string): Promise<LedgerVerification> {
+  const result = await verifyLedgerRows(organizationId);
+  return { ok: result.anomalies.length === 0, ...result };
+}
+
+// Lot 23b (JUR-06) — archive comptable : années, et écritures d'une année.
+export async function listLedgerYears(organizationId: string): Promise<number[]> {
+  return ledgerYears(organizationId);
+}
+
+export type LedgerArchiveEntry = {
+  sequence: number;
+  recordedAt: Date;
+  kind: LedgerArchiveRow["entryKind"];
+  number: string | null;
+  quoteNumber: string | null;
+  amountCents: number | null;
+  paymentMethodLabel: string | null;
+  isBackfill: boolean;
+  hash: string;
+  previousHash: string;
+};
+
+export async function listLedgerEntries(organizationId: string, year: number): Promise<LedgerArchiveEntry[]> {
+  return (await ledgerEntriesOfYear(organizationId, year)).map((row) => {
+    const payload = row.payload as Record<string, unknown>;
+    return {
+      sequence: Number(row.sequence),
+      recordedAt: row.recordedAt,
+      kind: row.entryKind,
+      number: typeof payload.number === "string" ? payload.number : null,
+      quoteNumber: row.quoteNumber,
+      amountCents: typeof payload.amountCents === "number" ? payload.amountCents : null,
+      paymentMethodLabel: typeof payload.paymentMethodLabel === "string" ? payload.paymentMethodLabel : null,
+      isBackfill: row.isBackfill,
+      hash: row.hash,
+      previousHash: row.previousHash,
+    };
+  });
 }
 
 export async function listQuoteInvoices(organizationId: string, quoteId: string): Promise<InvoiceView[]> {

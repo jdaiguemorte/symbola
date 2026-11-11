@@ -659,6 +659,13 @@
       "when": 1794416216012,
       "tag": "0093_lot23_connection_traces",
       "breakpoints": true
+    },
+    {
+      "idx": 94,
+      "version": "7",
+      "when": 1794425698970,
+      "tag": "0094_lot23b_pieces_inalterables",
+      "breakpoints": true
     }
   ]
 }

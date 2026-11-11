@@ -38,6 +38,11 @@ import {
   updateQuoteSettings,
 } from "./service";
 
+// Lot 23b (DOC-08) : rendu factice de l'original déposé à l'émission.
+const renderInvoice = async () => Buffer.from("%PDF-1.4\n% facture de test\n%%EOF\n", "latin1");
+const renderCreditNote = async () => Buffer.from("%PDF-1.4\n% avoir de test\n%%EOF\n", "latin1");
+
+
 const PDF = Buffer.from("%PDF-1.4\n%%EOF\n", "latin1");
 const NOW = new Date("2027-04-10T10:00:00Z");
 
@@ -113,7 +118,7 @@ const year = (prefix: string, rank: number) => `${prefix}-2027-${String(rank).pa
 describe("DEV-04 — Facture d'acompte et de solde depuis un devis signé", () => {
   it("quand elle génère une facture d'acompte, alors elle reçoit un numéro de la série de facturation ; tout ce qui y figure est figé", async () => {
     const { organizationId, items, number } = await signedQuote();
-    const invoice = await issueDepositInvoice({ organizationId, scheduleItemId: items[0]!.id, now: NOW });
+    const invoice = await issueDepositInvoice({ renderOriginal: renderInvoice, organizationId, scheduleItemId: items[0]!.id, now: NOW });
 
     expect(invoice).toMatchObject({
       kind: "deposit",
@@ -155,8 +160,8 @@ describe("DEV-04 — Facture d'acompte et de solde depuis un devis signé", () =
       invoicePaymentTermDays: 15,
       invoiceMentions: "Paiement à réception, par virement.",
     });
-    const deposit = await issueDepositInvoice({ organizationId, scheduleItemId: items[0]!.id, now: NOW });
-    const balance = await issueBalanceInvoice({ organizationId, quoteId, now: NOW });
+    const deposit = await issueDepositInvoice({ renderOriginal: renderInvoice, organizationId, scheduleItemId: items[0]!.id, now: NOW });
+    const balance = await issueBalanceInvoice({ renderOriginal: renderInvoice, organizationId, quoteId, now: NOW });
 
     expect(balance).toMatchObject({
       kind: "balance",
@@ -177,14 +182,14 @@ describe("DEV-04 — Facture d'acompte et de solde depuis un devis signé", () =
 
   it("refuse une seconde facture pour la même échéance, un second solde, et un devis non signé", async () => {
     const { organizationId, quoteId, items } = await signedQuote();
-    await issueDepositInvoice({ organizationId, scheduleItemId: items[0]!.id, now: NOW });
-    await expect(issueDepositInvoice({ organizationId, scheduleItemId: items[0]!.id, now: NOW })).rejects.toBeInstanceOf(
+    await issueDepositInvoice({ renderOriginal: renderInvoice, organizationId, scheduleItemId: items[0]!.id, now: NOW });
+    await expect(issueDepositInvoice({ renderOriginal: renderInvoice, organizationId, scheduleItemId: items[0]!.id, now: NOW })).rejects.toBeInstanceOf(
       InvoiceAlreadyIssuedError,
     );
-    await issueBalanceInvoice({ organizationId, quoteId, now: NOW });
-    await expect(issueBalanceInvoice({ organizationId, quoteId, now: NOW })).rejects.toBeInstanceOf(InvoiceAlreadyIssuedError);
+    await issueBalanceInvoice({ renderOriginal: renderInvoice, organizationId, quoteId, now: NOW });
+    await expect(issueBalanceInvoice({ renderOriginal: renderInvoice, organizationId, quoteId, now: NOW })).rejects.toBeInstanceOf(InvoiceAlreadyIssuedError);
     // Après le solde, plus de facture d'acompte.
-    await expect(issueDepositInvoice({ organizationId, scheduleItemId: items[1]!.id, now: NOW })).rejects.toBeInstanceOf(
+    await expect(issueDepositInvoice({ renderOriginal: renderInvoice, organizationId, scheduleItemId: items[1]!.id, now: NOW })).rejects.toBeInstanceOf(
       InvoiceAlreadyIssuedError,
     );
 
@@ -192,17 +197,17 @@ describe("DEV-04 — Facture d'acompte et de solde depuis un devis signé", () =
     const source = await createProspectSource(otherOrg, "Salon");
     const event = await createProspect({ organizationId: otherOrg, createdByUserId: plannerId, prospectSourceId: source.id, clients: [{ firstName: "Lou" }] });
     const draft = await createQuote({ organizationId: otherOrg, eventId: event.id, createdByUserId: plannerId, now: NOW });
-    await expect(issueBalanceInvoice({ organizationId: otherOrg, quoteId: draft.id, now: NOW })).rejects.toBeInstanceOf(QuoteNotSignedError);
+    await expect(issueBalanceInvoice({ renderOriginal: renderInvoice, organizationId: otherOrg, quoteId: draft.id, now: NOW })).rejects.toBeInstanceOf(QuoteNotSignedError);
   });
 
   it("client professionnel : le choix est enregistré, l'émission refusée tant que Factur-X n'est pas livré, sans consommer de numéro", async () => {
     const { organizationId, quoteId, items } = await signedQuote();
     expect((await setQuoteClientKind(organizationId, quoteId, "professional")).clientKind).toBe("professional");
-    await expect(issueDepositInvoice({ organizationId, scheduleItemId: items[0]!.id, now: NOW })).rejects.toBeInstanceOf(
+    await expect(issueDepositInvoice({ renderOriginal: renderInvoice, organizationId, scheduleItemId: items[0]!.id, now: NOW })).rejects.toBeInstanceOf(
       ProfessionalInvoiceNotSupportedError,
     );
     await setQuoteClientKind(organizationId, quoteId, "individual");
-    expect((await issueDepositInvoice({ organizationId, scheduleItemId: items[0]!.id, now: NOW })).number).toBe(year("F", 1));
+    expect((await issueDepositInvoice({ renderOriginal: renderInvoice, organizationId, scheduleItemId: items[0]!.id, now: NOW })).number).toBe(year("F", 1));
   });
 });
 
@@ -211,38 +216,38 @@ describe("DEV-04 — Numérotation continue et sans trou", () => {
     const org = await organization();
     const quotes = await Promise.all(Array.from({ length: 3 }, () => signedQuote(org)));
     const invoices = await Promise.all(
-      quotes.flatMap((quote) => quote.items.map((item) => issueDepositInvoice({ organizationId: org.organizationId, scheduleItemId: item.id, now: NOW }))),
+      quotes.flatMap((quote) => quote.items.map((item) => issueDepositInvoice({ renderOriginal: renderInvoice, organizationId: org.organizationId, scheduleItemId: item.id, now: NOW }))),
     );
     expect(invoices.map((invoice) => invoice.number).sort()).toEqual(Array.from({ length: 6 }, (_, index) => year("F", index + 1)));
 
-    const next = await issueBalanceInvoice({ organizationId: org.organizationId, quoteId: quotes[0]!.quoteId, now: new Date("2028-01-01T00:30:00+01:00") });
+    const next = await issueBalanceInvoice({ renderOriginal: renderInvoice, organizationId: org.organizationId, quoteId: quotes[0]!.quoteId, now: new Date("2028-01-01T00:30:00+01:00") });
     expect(next.number).toBe("F-2028-0001");
   });
 
   it("un refus d'émission ne consomme aucun numéro", async () => {
     const { organizationId, quoteId, items } = await signedQuote();
-    await issueBalanceInvoice({ organizationId, quoteId, now: NOW });
-    await expect(issueBalanceInvoice({ organizationId, quoteId, now: NOW })).rejects.toBeInstanceOf(InvoiceAlreadyIssuedError);
-    await expect(issueDepositInvoice({ organizationId, scheduleItemId: items[0]!.id, now: NOW })).rejects.toBeInstanceOf(InvoiceAlreadyIssuedError);
-    const credit = await issueCreditNote({ organizationId, invoiceId: (await listQuoteInvoices(organizationId, quoteId))[0]!.id, amountCents: 268000, reason: "Annulation", now: NOW });
+    await issueBalanceInvoice({ renderOriginal: renderInvoice, organizationId, quoteId, now: NOW });
+    await expect(issueBalanceInvoice({ renderOriginal: renderInvoice, organizationId, quoteId, now: NOW })).rejects.toBeInstanceOf(InvoiceAlreadyIssuedError);
+    await expect(issueDepositInvoice({ renderOriginal: renderInvoice, organizationId, scheduleItemId: items[0]!.id, now: NOW })).rejects.toBeInstanceOf(InvoiceAlreadyIssuedError);
+    const credit = await issueCreditNote({ renderOriginal: renderCreditNote, organizationId, invoiceId: (await listQuoteInvoices(organizationId, quoteId))[0]!.id, amountCents: 268000, reason: "Annulation", now: NOW });
     expect(credit.number).toBe(year("A", 1));
     // Le solde annulé par un avoir total peut être réémis : numéro suivant, sans trou.
-    expect((await issueBalanceInvoice({ organizationId, quoteId, now: NOW })).number).toBe(year("F", 2));
+    expect((await issueBalanceInvoice({ renderOriginal: renderInvoice, organizationId, quoteId, now: NOW })).number).toBe(year("F", 2));
   });
 });
 
 describe("DEV-04 — Correction par avoir", () => {
   it("un avoir partiel ou total corrige une facture émise, qui elle ne change pas ; jamais plus que le montant restant", async () => {
     const { organizationId, items } = await signedQuote();
-    const invoice = await issueDepositInvoice({ organizationId, scheduleItemId: items[0]!.id, now: NOW });
+    const invoice = await issueDepositInvoice({ renderOriginal: renderInvoice, organizationId, scheduleItemId: items[0]!.id, now: NOW });
 
-    const partial = await issueCreditNote({ organizationId, invoiceId: invoice.id, amountCents: 10000, reason: "Geste commercial", now: NOW });
+    const partial = await issueCreditNote({ renderOriginal: renderCreditNote, organizationId, invoiceId: invoice.id, amountCents: 10000, reason: "Geste commercial", now: NOW });
     expect(partial).toMatchObject({ number: year("A", 1), invoiceNumber: invoice.number, amountCents: 10000, reason: "Geste commercial" });
     expect(partial.totals.totalTtcCents).toBe(10000);
     await expect(
-      issueCreditNote({ organizationId, invoiceId: invoice.id, amountCents: 70401, reason: "Trop", now: NOW }),
+      issueCreditNote({ renderOriginal: renderCreditNote, organizationId, invoiceId: invoice.id, amountCents: 70401, reason: "Trop", now: NOW }),
     ).rejects.toBeInstanceOf(CreditNoteExceedsInvoiceError);
-    await expect(issueCreditNote({ organizationId, invoiceId: invoice.id, amountCents: 0, reason: "Rien", now: NOW })).rejects.toBeInstanceOf(
+    await expect(issueCreditNote({ renderOriginal: renderCreditNote, organizationId, invoiceId: invoice.id, amountCents: 0, reason: "Rien", now: NOW })).rejects.toBeInstanceOf(
       RangeError,
     );
 
@@ -253,9 +258,9 @@ describe("DEV-04 — Correction par avoir", () => {
 
   it("le solde déduit les acomptes nets de leurs avoirs", async () => {
     const { organizationId, quoteId, items } = await signedQuote();
-    const deposit = await issueDepositInvoice({ organizationId, scheduleItemId: items[0]!.id, now: NOW });
-    await issueCreditNote({ organizationId, invoiceId: deposit.id, amountCents: 400, reason: "Arrondi", now: NOW });
-    const balance = await issueBalanceInvoice({ organizationId, quoteId, now: NOW });
+    const deposit = await issueDepositInvoice({ renderOriginal: renderInvoice, organizationId, scheduleItemId: items[0]!.id, now: NOW });
+    await issueCreditNote({ renderOriginal: renderCreditNote, organizationId, invoiceId: deposit.id, amountCents: 400, reason: "Arrondi", now: NOW });
+    const balance = await issueBalanceInvoice({ renderOriginal: renderInvoice, organizationId, quoteId, now: NOW });
     expect(balance.deductions).toEqual([{ number: deposit.number, amountCents: 80000 }]);
     expect(balance.amountCents).toBe(268000 - 80000);
   });
@@ -266,15 +271,15 @@ describe("DEV-04 — E-reporting (clients particuliers)", () => {
     const { organizationId, plannerId, quoteId, items } = await signedQuote();
     const [method] = await addPaymentMethods(organizationId, ["Virement bancaire"]);
     await markScheduleItemPaid({ organizationId, scheduleItemId: items[0]!.id, paidOn: "2027-04-10", paymentMethodId: method!.id, now: NOW });
-    const deposit = await issueDepositInvoice({ organizationId, scheduleItemId: items[0]!.id, now: NOW });
-    await issueCreditNote({ organizationId, invoiceId: deposit.id, amountCents: 400, reason: "Arrondi", now: NOW });
+    const deposit = await issueDepositInvoice({ renderOriginal: renderInvoice, organizationId, scheduleItemId: items[0]!.id, now: NOW });
+    await issueCreditNote({ renderOriginal: renderCreditNote, organizationId, invoiceId: deposit.id, amountCents: 400, reason: "Arrondi", now: NOW });
     // Hors période : un solde émis en juin.
-    await issueBalanceInvoice({ organizationId, quoteId, now: new Date("2027-06-02T10:00:00Z") });
+    await issueBalanceInvoice({ renderOriginal: renderInvoice, organizationId, quoteId, now: new Date("2027-06-02T10:00:00Z") });
 
     // Essai guidé dans la même organisation : jamais exporté.
     const trial = await startEventsTrial({ organizationId, userId: plannerId, locale: "fr", now: NOW });
     const demo = await signedQuote({ organizationId, plannerId, demoEventId: trial.eventId });
-    const demoInvoice = await issueDepositInvoice({ organizationId, scheduleItemId: demo.items[0]!.id, now: NOW });
+    const demoInvoice = await issueDepositInvoice({ renderOriginal: renderInvoice, organizationId, scheduleItemId: demo.items[0]!.id, now: NOW });
     expect(demoInvoice.number).toBe("DEMO-F-2027-0001");
 
     const report = await getEReporting(organizationId, { from: "2027-03-01", to: "2027-04-30" });
@@ -299,29 +304,29 @@ describe("DEV-04 — Essai guidé et isolation", () => {
     const { organizationId, plannerId } = await organization();
     const trial = await startEventsTrial({ organizationId, userId: plannerId, locale: "fr", now: NOW });
     const demo = await signedQuote({ organizationId, plannerId, demoEventId: trial.eventId });
-    const invoice = await issueDepositInvoice({ organizationId, scheduleItemId: demo.items[0]!.id, now: NOW });
-    await issueCreditNote({ organizationId, invoiceId: invoice.id, amountCents: 100, reason: "Essai", now: NOW });
+    const invoice = await issueDepositInvoice({ renderOriginal: renderInvoice, organizationId, scheduleItemId: demo.items[0]!.id, now: NOW });
+    await issueCreditNote({ renderOriginal: renderCreditNote, organizationId, invoiceId: invoice.id, amountCents: 100, reason: "Essai", now: NOW });
     expect(invoice.isDemo).toBe(true);
 
     await removeEventQuotesData(organizationId, [trial.eventId]);
     await expect(getInvoice(organizationId, invoice.id)).rejects.toBeInstanceOf(InvoiceNotFoundError);
     // La série légale n'a pas été consommée.
     const real = await signedQuote({ organizationId, plannerId });
-    expect((await issueDepositInvoice({ organizationId, scheduleItemId: real.items[0]!.id, now: NOW })).number).toBe(year("F", 1));
+    expect((await issueDepositInvoice({ renderOriginal: renderInvoice, organizationId, scheduleItemId: real.items[0]!.id, now: NOW })).number).toBe(year("F", 1));
   });
 
   it("une organisation n'émet rien sur le devis d'une autre et ne lit pas ses factures", async () => {
     const own = await organization();
     const other = await signedQuote();
-    const invoice = await issueDepositInvoice({ organizationId: other.organizationId, scheduleItemId: other.items[0]!.id, now: NOW });
+    const invoice = await issueDepositInvoice({ renderOriginal: renderInvoice, organizationId: other.organizationId, scheduleItemId: other.items[0]!.id, now: NOW });
 
-    await expect(issueDepositInvoice({ organizationId: own.organizationId, scheduleItemId: other.items[1]!.id, now: NOW })).rejects.toBeInstanceOf(
+    await expect(issueDepositInvoice({ renderOriginal: renderInvoice, organizationId: own.organizationId, scheduleItemId: other.items[1]!.id, now: NOW })).rejects.toBeInstanceOf(
       QuoteNotFoundError,
     );
-    await expect(issueBalanceInvoice({ organizationId: own.organizationId, quoteId: other.quoteId, now: NOW })).rejects.toBeInstanceOf(QuoteNotFoundError);
+    await expect(issueBalanceInvoice({ renderOriginal: renderInvoice, organizationId: own.organizationId, quoteId: other.quoteId, now: NOW })).rejects.toBeInstanceOf(QuoteNotFoundError);
     await expect(getInvoice(own.organizationId, invoice.id)).rejects.toBeInstanceOf(InvoiceNotFoundError);
     await expect(
-      issueCreditNote({ organizationId: own.organizationId, invoiceId: invoice.id, amountCents: 100, reason: "Intrus", now: NOW }),
+      issueCreditNote({ renderOriginal: renderCreditNote, organizationId: own.organizationId, invoiceId: invoice.id, amountCents: 100, reason: "Intrus", now: NOW }),
     ).rejects.toBeInstanceOf(InvoiceNotFoundError);
     expect((await getEReporting(own.organizationId, { from: "2027-01-01", to: "2027-12-31" })).invoices).toEqual([]);
   });
@@ -340,8 +345,8 @@ async function journalOf(organizationId: string) {
 describe("SEC-19 — Devis, factures et encaissements au journal d'audit", () => {
   it("l'envoi du devis et la demande de signature sont des partages ; la facture et l'avoir des émissions, avec leur numéro", async () => {
     const { organizationId, quoteId, number, items } = await signedQuote();
-    const invoice = await issueDepositInvoice({ organizationId, scheduleItemId: items[0]!.id, now: NOW });
-    const creditNote = await issueCreditNote({ organizationId, invoiceId: invoice.id, amountCents: 10000, reason: "Remise", now: NOW });
+    const invoice = await issueDepositInvoice({ renderOriginal: renderInvoice, organizationId, scheduleItemId: items[0]!.id, now: NOW });
+    const creditNote = await issueCreditNote({ renderOriginal: renderCreditNote, organizationId, invoiceId: invoice.id, amountCents: 10000, reason: "Remise", now: NOW });
     const journal = await journalOf(organizationId);
     expect(journal.find((entry) => entry.action === "quotes.quote.sent")).toMatchObject({ category: "partage", objectId: quoteId, details: { number, version: 1 } });
     expect(journal.find((entry) => entry.action === "quotes.signature.requested")).toMatchObject({ category: "partage", details: { signers: 2 } });
@@ -361,7 +366,7 @@ describe("SEC-19 — Devis, factures et encaissements au journal d'audit", () =>
     const { organizationId, items } = await signedQuote();
     const [method] = await addPaymentMethods(organizationId, ["Virement"]);
     await markScheduleItemPaid({ organizationId, scheduleItemId: items[0]!.id, paidOn: "2027-04-09", paymentMethodId: method!.id, now: NOW });
-    await markScheduleItemUnpaid(organizationId, items[0]!.id);
+    await markScheduleItemUnpaid(organizationId, items[0]!.id, "Erreur de saisie");
     const payments = (await journalOf(organizationId)).filter((entry) => entry.category === "encaissement");
     expect(payments.map((entry) => entry.action)).toEqual(["quotes.payment.recorded", "quotes.payment.cancelled"]);
     expect(payments[0]).toMatchObject({ objectId: items[0]!.id, details: { paidOn: "2027-04-09" } });

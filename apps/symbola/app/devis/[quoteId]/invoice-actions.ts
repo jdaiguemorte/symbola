@@ -16,6 +16,7 @@ import {
   setQuoteClientKind,
 } from "@/modules/quotes/service";
 import { parseDecimal } from "../decimal-input";
+import { renderCreditNotePdf, renderInvoicePdf } from "../factures/render-invoice-pdf";
 import { isValidId } from "../module-access";
 import { authorizedPlanner } from "../planner-access";
 import type { QuoteFormState } from "./actions";
@@ -63,13 +64,14 @@ export async function issueDepositInvoiceAction(_prevState: QuoteFormState, form
   return run(formData, async (organizationId, _quoteId, t) => {
     const scheduleItemId = String(formData.get("scheduleItemId") ?? "");
     if (!isValidId(scheduleItemId)) return { error: t("invoiceNotFound") };
-    await issueDepositInvoice({ organizationId, scheduleItemId });
+    // Lot 23b (DOC-08) : le PDF rendu à l'émission est conservé comme original.
+    await issueDepositInvoice({ organizationId, scheduleItemId, renderOriginal: (invoice) => renderInvoicePdf(organizationId, invoice) });
   });
 }
 
 export async function issueBalanceInvoiceAction(_prevState: QuoteFormState, formData: FormData): Promise<QuoteFormState> {
   return run(formData, async (organizationId, quoteId) => {
-    await issueBalanceInvoice({ organizationId, quoteId });
+    await issueBalanceInvoice({ organizationId, quoteId, renderOriginal: (invoice) => renderInvoicePdf(organizationId, invoice) });
   });
 }
 
@@ -80,6 +82,12 @@ export async function issueCreditNoteAction(_prevState: QuoteFormState, formData
     if (!isValidId(invoiceId)) return { error: t("invoiceNotFound") };
     const amountCents = parseDecimal(String(formData.get("amount") ?? ""), 2);
     if (!amountCents) return { error: t("invalidCreditNote") };
-    await issueCreditNote({ organizationId, invoiceId, amountCents, reason: String(formData.get("reason") ?? "") });
+    await issueCreditNote({
+      organizationId,
+      invoiceId,
+      amountCents,
+      reason: String(formData.get("reason") ?? ""),
+      renderOriginal: (creditNote, vatApplicable) => renderCreditNotePdf(organizationId, creditNote, vatApplicable),
+    });
   });
 }

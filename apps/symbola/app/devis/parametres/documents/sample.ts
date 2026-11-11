@@ -105,6 +105,7 @@ function sampleVersion(input: SampleInput): QuoteVersionView {
           paymentMethodLabel: null,
           overdue: false,
           position: 0,
+          payments: [],
         },
       ],
       scheduledCents: depositCents,

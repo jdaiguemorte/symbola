@@ -112,6 +112,9 @@ export function MarkUnpaidForm({ quoteId, item }: { quoteId: string; item: Sched
       successMessage={t("markedUnpaid")}
     >
       <input type="hidden" name="scheduleItemId" value={item.id} />
+      {/* Lot 23b (D2) : motif obligatoire, gardé avec l'écriture inverse. */}
+      <label htmlFor={`reason-${item.id}`}>{t("reversalReason")}</label>
+      <input id={`reason-${item.id}`} type="text" name="reason" required maxLength={300} />
     </QuoteActionForm>
   );
 }

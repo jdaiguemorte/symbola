@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { formatAmount, formatCalendarDate, type Locale } from "@symbola/i18n";
+import { formatAmount, formatCalendarDate, type Locale, formatDate } from "@symbola/i18n";
 import type { PaymentMethod, QuoteDetail } from "@/modules/quotes/service";
 import { formatRate, OVERDUE_CLASS, PAID_CLASS } from "../quote-display";
 import { removeScheduleItemAction } from "./schedule-actions";
@@ -49,6 +49,21 @@ export async function ScheduleSection({
                 <span className={OVERDUE_CLASS}>{t("overdue")}</span>
               ) : null}
             </p>
+            {/* Lot 23b (D2) : une annulation ne s'efface pas ; l'historique la montre avec son motif. */}
+            {item.payments.some((entry) => entry.kind === "reversal") ? (
+              <ul aria-label={t("paymentHistory", { label: item.label })}>
+                {item.payments.map((entry) => (
+                  <li key={entry.id}>
+                    {entry.kind === "received"
+                      ? t("paymentReceivedEntry", {
+                          date: formatCalendarDate(entry.paidOn ?? "", locale),
+                          method: entry.paymentMethodLabel ?? "—",
+                        })
+                      : t("paymentReversedEntry", { date: formatDate(new Date(entry.recordedAt), locale), reason: entry.reason ?? "" })}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
             {isDraft ? (
               <>
                 <details>

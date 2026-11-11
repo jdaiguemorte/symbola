@@ -7,6 +7,7 @@ import {
   creditNotes,
   invoices,
   numberSeries,
+  paymentEntries,
   paymentMethods,
   paymentScheduleItems,
   quoteLines,
@@ -21,6 +22,7 @@ import { appendAudit } from "@symbola/db/audit";
 import { emitDomainEvent } from "@symbola/db/events/emit";
 import { withOrganization } from "@symbola/db/with-organization";
 import { foldedContains } from "@symbola/db/search";
+import { resolveSchedule } from "./schedule";
 
 export type CatalogItemRow = typeof catalogItems.$inferSelect;
 export type QuoteSettingsRow = typeof quoteSettings.$inferSelect;
@@ -33,6 +35,7 @@ export type SignatureRequestRow = typeof signatureRequests.$inferSelect;
 export type InvoiceRow = typeof invoices.$inferSelect;
 export type CreditNoteRow = typeof creditNotes.$inferSelect;
 export type QuoteSignerRow = typeof quoteSigners.$inferSelect;
+export type PaymentEntryRow = typeof paymentEntries.$inferSelect;
 
 type Tx = Parameters<Parameters<typeof withOrganization>[2]>[0];
 
@@ -293,6 +296,8 @@ export type QuoteAggregate = {
   paymentMethods: PaymentMethodRow[];
   signatureRequests: SignatureRequestRow[];
   signers: QuoteSignerRow[];
+  // Lot 23b (D2) : écritures d'encaissement des échéances, dans l'ordre.
+  paymentEntries: PaymentEntryRow[];
 };
 
 async function loadAggregate(tx: Tx, quote: QuoteRow): Promise<QuoteAggregate> {
@@ -369,6 +374,14 @@ async function loadAggregate(tx: Tx, quote: QuoteRow): Promise<QuoteAggregate> {
           )
           .orderBy(asc(quoteSigners.position))
       : [];
+  const entries =
+    scheduleItems.length > 0
+      ? await tx
+          .select()
+          .from(paymentEntries)
+          .where(inArray(paymentEntries.scheduleItemId, scheduleItems.map((item) => item.id)))
+          .orderBy(asc(paymentEntries.createdAt))
+      : [];
   return {
     quote,
     versions,
@@ -377,6 +390,7 @@ async function loadAggregate(tx: Tx, quote: QuoteRow): Promise<QuoteAggregate> {
     paymentMethods: methods,
     signatureRequests: requests,
     signers,
+    paymentEntries: entries,
   };
 }
 
@@ -942,47 +956,95 @@ export async function deleteScheduleItemRow(
 export type PaymentResult =
   WriteResult | { status: "not_payable" | "method_not_found" };
 
-// Paiement (ou annulation) d'une échéance de la version courante d'un devis
-// envoyé ou signé ; le mode doit exister et ne pas être archivé.
-export async function setScheduleItemPayment(
+// Lot 23b (D2, FAC-14, JUR-05) — encaissement d'une échéance de la version
+// courante d'un devis envoyé ou signé : une écriture « received » en ajout
+// seul, au montant figé de l'échéance, avec le libellé du mode de paiement.
+// La copie de lecture de l'échéance (paid_on, mode) suit, dans la même
+// transaction.
+async function payableContext(tx: Tx, scheduleItemId: string) {
+  const context = await scheduleItemContext(tx, scheduleItemId);
+  if (!context) return { status: "not_found" as const };
+  const { version, quote } = context;
+  const payable = (quote.status === "sent" || quote.status === "signed") && version.sentAt !== null;
+  if (!payable || version.version !== quote.currentVersion) return { status: "not_payable" as const };
+  await tx.execute(raw`select 1 from ${paymentScheduleItems} where ${paymentScheduleItems.id} = ${scheduleItemId} for update`);
+  return { status: "ok" as const, ...context };
+}
+
+export async function recordScheduleItemPayment(
   organizationId: string,
   scheduleItemId: string,
-  payment: { paidOn: string; paymentMethodId: string } | null,
+  payment: { paidOn: string; paymentMethodId: string },
 ): Promise<PaymentResult> {
   return inOrganization(organizationId, async (tx) => {
-    const context = await scheduleItemContext(tx, scheduleItemId);
-    if (!context) return { status: "not_found" };
-    const { version, quote } = context;
-    const payable =
-      (quote.status === "sent" || quote.status === "signed") &&
-      version.sentAt !== null;
-    if (!payable || version.version !== quote.currentVersion)
-      return { status: "not_payable" };
-    if (payment) {
-      const [method] = await tx
-        .select()
-        .from(paymentMethods)
-        .where(eq(paymentMethods.id, payment.paymentMethodId));
-      if (!method || method.archivedAt) return { status: "method_not_found" };
-    }
+    const context = await payableContext(tx, scheduleItemId);
+    if (context.status !== "ok") return { status: context.status };
+    const { item, version, quote } = context;
+    if (item.paidOn !== null) return { status: "not_payable" };
+    const [method] = await tx.select().from(paymentMethods).where(eq(paymentMethods.id, payment.paymentMethodId));
+    if (!method || method.archivedAt) return { status: "method_not_found" };
+    const totalTtcCents = (version.totalsSnapshot as { totalTtcCents?: number } | null)?.totalTtcCents ?? 0;
+    const amountCents = resolveSchedule([item], totalTtcCents).amounts[0] ?? 0;
+    await tx.insert(paymentEntries).values({
+      organizationId,
+      scheduleItemId,
+      kind: "received",
+      amountCents,
+      paidOn: payment.paidOn,
+      paymentMethodId: method.id,
+      paymentMethodLabel: method.label,
+      isDemo: quote.isDemo,
+    });
     await tx
       .update(paymentScheduleItems)
-      .set(
-        payment
-          ? {
-              paidOn: payment.paidOn,
-              paymentMethodId: payment.paymentMethodId,
-              paidRecordedAt: new Date(),
-            }
-          : { paidOn: null, paymentMethodId: null, paidRecordedAt: null },
-      )
+      .set({ paidOn: payment.paidOn, paymentMethodId: method.id, paidRecordedAt: new Date() })
       .where(eq(paymentScheduleItems.id, scheduleItemId));
-    // Lot 23 (SEC-19) : encaissement saisi ou annulé, au journal.
     await appendAudit(tx, {
       organizationId,
-      action: payment ? "quotes.payment.recorded" : "quotes.payment.cancelled",
+      action: "quotes.payment.recorded",
       objectId: scheduleItemId,
-      details: payment ? { quoteNumber: quote.number, paidOn: payment.paidOn } : { quoteNumber: quote.number },
+      details: { quoteNumber: quote.number, paidOn: payment.paidOn, amountCents },
+      isDemo: quote.isDemo,
+    });
+    return { status: "ok", quoteId: quote.id };
+  });
+}
+
+// Lot 23b (D2) — annuler un encaissement : une écriture inverse, liée à la
+// saisie et motivée ; rien ne s'efface. L'échéance redevient à payer.
+export async function reverseScheduleItemPayment(
+  organizationId: string,
+  scheduleItemId: string,
+  reason: string,
+): Promise<PaymentResult> {
+  return inOrganization(organizationId, async (tx) => {
+    const context = await payableContext(tx, scheduleItemId);
+    if (context.status !== "ok") return { status: context.status };
+    const { quote } = context;
+    const entries = await tx.select().from(paymentEntries).where(eq(paymentEntries.scheduleItemId, scheduleItemId));
+    const reversed = new Set(entries.flatMap((entry) => (entry.reversesEntryId ? [entry.reversesEntryId] : [])));
+    const open = entries.filter((entry) => entry.kind === "received" && !reversed.has(entry.id)).at(-1);
+    if (!open) return { status: "not_payable" };
+    await tx.insert(paymentEntries).values({
+      organizationId,
+      scheduleItemId,
+      kind: "reversal",
+      amountCents: open.amountCents,
+      paymentMethodId: open.paymentMethodId,
+      paymentMethodLabel: open.paymentMethodLabel,
+      reversesEntryId: open.id,
+      reason,
+      isDemo: quote.isDemo,
+    });
+    await tx
+      .update(paymentScheduleItems)
+      .set({ paidOn: null, paymentMethodId: null, paidRecordedAt: null })
+      .where(eq(paymentScheduleItems.id, scheduleItemId));
+    await appendAudit(tx, {
+      organizationId,
+      action: "quotes.payment.cancelled",
+      objectId: scheduleItemId,
+      details: { quoteNumber: quote.number, amountCents: open.amountCents },
       isDemo: quote.isDemo,
     });
     return { status: "ok", quoteId: quote.id };
@@ -1174,6 +1236,9 @@ export type SignatureStateUpdate = {
         kind: "completed";
         signedDocumentKey: string;
         auditCertificateKey: string;
+        // Lot 23b (DOC-08) : empreintes des fichiers archivés.
+        signedDocumentSha256: string;
+        auditCertificateSha256: string;
         completedAt: Date;
         event: { name: string; version: number; payload: unknown };
       }
@@ -1238,6 +1303,8 @@ export async function applySignatureStateRows(
           status: "completed",
           signedDocumentKey: update.outcome.signedDocumentKey,
           auditCertificateKey: update.outcome.auditCertificateKey,
+          signedDocumentSha256: update.outcome.signedDocumentSha256,
+          auditCertificateSha256: update.outcome.auditCertificateSha256,
           completedAt: update.outcome.completedAt,
         })
         .where(eq(signatureRequests.id, requestId));
@@ -1447,6 +1514,8 @@ export async function insertInvoice(
   organizationId: string,
   locate: { quoteId: string } | { scheduleItemId: string },
   prepare: (context: InvoicingContext) => PreparedDocument<InvoiceValues>,
+  // Lot 23b (DOC-08) : dans la même transaction, le dépôt de l'original.
+  afterInsert?: (tx: Tx, row: InvoiceRow, context: InvoicingContext) => Promise<void>,
 ): Promise<InvoiceRow | null> {
   return inOrganization(organizationId, async (tx) => {
     let quoteId: string | undefined;
@@ -1492,6 +1561,7 @@ export async function insertInvoice(
       details: { number: row.number, kind: row.kind, amountCents: row.amountCents },
       isDemo: row.isDemo,
     });
+    if (afterInsert) await afterInsert(tx, row, context);
     return row;
   });
 }
@@ -1504,6 +1574,8 @@ export async function insertCreditNote(
     existing: CreditNoteRow[],
     settings: QuoteSettingsRow | null,
   ) => PreparedDocument<CreditNoteValues>,
+  // Lot 23b (DOC-08) : dans la même transaction, le dépôt de l'original.
+  afterInsert?: (tx: Tx, row: CreditNoteRow, invoice: InvoiceRow) => Promise<void>,
 ): Promise<CreditNoteRow | null> {
   return inOrganization(organizationId, async (tx) => {
     const [found] = await tx
@@ -1545,6 +1617,7 @@ export async function insertCreditNote(
       details: { number: row.number, invoiceNumber: invoice.number, amountCents: row.amountCents },
       isDemo: row.isDemo,
     });
+    if (afterInsert) await afterInsert(tx, row, invoice);
     return row;
   });
 }
