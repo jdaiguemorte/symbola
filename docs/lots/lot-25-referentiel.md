@@ -1,7 +1,8 @@
 # Lot 25 — Nouveau référentiel, ADR et identifiants
 
 **Statut** : spécification validée par Julien le 11/11/2026 (« Oui, les trois » : D1 a, D2 a,
-D3 a). Aucun changement de comportement de l'app. Branche `lot-25-referentiel`.
+D3 a). Aucun changement de comportement de l'app. Branche `lot-25-referentiel`. Livré le même
+jour (voir « Bilan » en fin de document).
 
 Identifiants : ceux de `docs/CAHIER_DES_CHARGES.md`. Un identifiant préfixé (`PRD-EVT-03`,
 `L16-SEC-01`) désigne l'ancien référentiel (décision Q1).
@@ -53,7 +54,7 @@ Les liens qui pointent vers ces deux fichiers sont mis à jour.
 
 ## Partie C — Réécrire `CLAUDE.md` (NFR-24)
 
-Même structure, pas plus long qu'aujourd'hui :
+Même structure, à peu près la même longueur (21 600 caractères contre 20 800) :
 
 - **§ 1 Sources de vérité** : `docs/CAHIER_DES_CHARGES.md` (et son § 1, adressé à l'agent),
   `DESIGN.md`, `docs/gap.csv`, `docs/lots/`, `docs/adr/` ; règle des identifiants (Q1) ;
@@ -168,3 +169,23 @@ Un commit par partie (A à G, F en deux : table et outil, puis résultat), une p
   en bout en CI.
 - `CLAUDE.md` cite les identifiants ARC et SEC qu'il impose (critère de NFR-24).
 - Aucun ancien identifiant des familles retenues ne reste sans préfixe hors des exclusions.
+
+## Bilan (11/11/2026)
+
+- A : référentiel versé ; question 10 (arrondi de la TVA) ajoutée à la fiche de l'expert-comptable.
+- B : ancien cahier des charges, PRD et fichiers du démarrage dans `docs/archive/`, avec bandeau.
+- C : `CLAUDE.md` réécrit ; NFR-24 passe à Conforme dans `docs/gap.csv`.
+- D : ADR 0052 à 0059, avenants 0011, 0012 et 0027, statuts des ADR remplacés, index.
+- E : `docs/conformite/sous-traitants.md` ; Contabo au Luxembourg, Hetzner à Helsinki, IONOS
+  pour les e-mails ; contrats de sous-traitance et lieux d'IONOS et de ntfy.sh « à vérifier ».
+- F : 69 anciens identifiants dans la table ; 1 183 occurrences préfixées dans 377 fichiers ;
+  17 parcours bout en bout renommés ; cas particuliers corrigés à la main (table de la
+  correspondance).
+- G : runbooks (fenêtre de déploiement, accès au VPS, `sudo git pull`, URL Push, relevé du
+  11/11) ; `disk-check.sh` et `backup.sh` ignorent la partie « ?… » d'une URL Push, testés.
+- Grille : 34 Conforme, 168 Partiel, 136 Absent, 6 Divergent ; P0 53 % (50 % strict).
+- Contrôles : lint, types, tests (15 paquets), frontières de modules et shellcheck verts en
+  local ; parcours bout en bout en CI.
+- Reste, hors de ce lot : phase C du lot 22 (relevés des § 7 et § 8 de `restauration.md`) ;
+  vérifier les points « à vérifier » des sous-traitants ; après la fusion, retirer de la copie
+  principale les documents qui y étaient non suivis avant `git pull`.

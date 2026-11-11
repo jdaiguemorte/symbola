@@ -31,7 +31,7 @@ questions sont dans `docs/QUESTIONS.md`. **Aucun code n'a été modifié.**
 
 1. Le socle technique est solide. L'isolation des organisations est garantie par la base et prouvée par des tests. Les factures sont immuables et numérotées sans trou. La CI de sécurité est complète, le RGPD est outillé et l'import passe par un assistant.
 2. L'application suit le PRD-MVP et l'ancien cahier des charges. Le nouveau document vise plus large (CRM, invités, Jour J hors ligne, portails sans compte) et tranche autrement plusieurs choix structurants.
-3. Scores selon la règle de la section 18, après tes décisions du 11 novembre : **P0 52 %** (50 % si l'on refuse les divergences restantes), **P1 21 %**, **P2 6 %**. Sur 367 lignes : 33 Conforme, 170 Partiel, 137 Absent, 4 Divergent, 23 Sans objet.
+3. Scores selon la règle de la section 18, après tes décisions du 11 novembre et le lot 25 : **P0 53 %** (50 % si l'on refuse les divergences restantes), **P1 21 %**, **P2 6 %**. Sur 367 lignes : 34 Conforme, 168 Partiel, 136 Absent, 6 Divergent, 23 Sans objet.
 4. **La porte 1 n'est pas franchie.** Trois raisons : la sauvegarde reste sur le disque du VPS, la restauration n'a jamais été faite sur un serveur vierge, et le journal d'audit est modifiable. 32 exigences P0 des domaines SEC, DAT et RGP ne sont pas conformes.
 5. Quatre parcours P0 cassent de bout en bout :
    - PAR-01 : pas d'inscription libre ;
@@ -72,12 +72,12 @@ si les divergences sont refusées (comptées 0) : il n'apparaît que là où il 
 | GC | — | 0 % (3) | 9 % (11) | Sans objet (10) |
 | IA | — | — | Sans objet (7) | — |
 | ARC | 71 % (19) · 61 % strict | 100 % (1) | — | — |
-| DAT | 62 % (13) · 54 % strict | 50 % (1) | — | — |
+| DAT | 65 % (13) · 50 % strict | 50 % (1) | — | — |
 | SEC | 62 % (25) | 33 % (9) | Sans objet (1) | — |
 | RGP | 64 % (7) | 11 % (9) | 0 % (2) | — |
 | JUR | 44 % (9) | 22 % (9) | 0 % (1) | — |
-| NFR | 41 % (17) | 36 % (14) | — | — |
-| **Total** | **52 % (182) · 50 % strict** | **21 % (126) · 20 % strict** | **6 % (36)** | — |
+| NFR | 50 % (17) · 44 % strict | 36 % (14) | — | — |
+| **Total** | **53 % (182) · 50 % strict** | **21 % (126) · 20 % strict** | **6 % (36)** | — |
 
 Répartition des statuts (après tes décisions du 11 novembre) : P0 = 29 Conforme, 124 Partiel,
 26 Absent, 3 Divergent, 1 Sans objet ; P1 = 4 Conforme, 42 Partiel, 79 Absent, 1 Divergent,
@@ -304,6 +304,13 @@ Le détail est dans `docs/QUESTIONS.md`.
 - Deux écarts sont assumés pendant le pilote, chacun avec un ADR à écrire : Garage reste sur le VPS
   (Q14 b, NFR-31 et ARC-11), et la fenêtre de déploiement reste une règle écrite (Q32, NFR-07).
 - Les autres décisions sont notées dans la colonne « commentaire » des lignes concernées.
+
+**Mise à jour du lot 25** (11/11/2026, `docs/lots/lot-25-referentiel.md`) : NFR-24 passe à
+Conforme (`CLAUDE.md` réécrit) ; DAT-05 (TVA par taux, ADR 0059) et NFR-07 (fenêtre de
+déploiement écrite, ADR 0058) passent à « Divergent », justifiés par un ADR. Les ADR 0052 à 0057
+écrivent les décisions du 11 novembre ; la liste datée des sous-traitants existe (RGP-13, encore
+Partiel tant qu'elle n'est pas publiée). Les anciens identifiants sont préfixés (Q1) : un
+identifiant nu désigne désormais le nouveau document.
 
 **Ce qui change dans le plan** :
 
