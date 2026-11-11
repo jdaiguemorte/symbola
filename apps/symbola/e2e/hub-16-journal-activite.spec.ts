@@ -40,7 +40,7 @@ async function expectNoAxeViolation(page: Page) {
 
 async function organizationWith(role: "owner" | "member") {
   const email = `${role}-hub16-${randomUUID()}@symbola.test`;
-  const password = "mot-de-passe-hub16-e2e";
+  const password = "mot-de-passe-e2e-de-test";
   const { sql, db } = createAppConnection();
   try {
     const organization = await readyOrganization(db, `Org ${randomUUID()}`);
