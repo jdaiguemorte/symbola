@@ -773,3 +773,14 @@ export async function getUserContact(
   const row = await findUserContact(db, organizationId, userId);
   return row ? { email: row.email, language: row.language === "en" ? "en" : "fr" } : null;
 }
+
+// Lot 23 (HUB-16, ADR 0060) : journal d'activité de l'organisation (titulaire).
+export {
+  ACTIVITY_PAGE_SIZE,
+  ACTIVITY_PERIODS,
+  listActivityLog,
+  parseActivityFilters,
+  type ActivityEntry,
+  type ActivityFilters,
+  type ActivityLog,
+} from "./activity-log";

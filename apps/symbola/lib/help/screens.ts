@@ -83,6 +83,8 @@ export const HELP_SCREENS: HelpScreen[] = [
   { key: "privacyErasure", group: "data", audience: "team", ownerOnly: true, path: null, capture: false },
   { key: "privacyPurge", group: "data", audience: "team", ownerOnly: true, path: "/rgpd/purge", capture: true },
   { key: "privacySettings", group: "data", audience: "team", ownerOnly: true, path: "/rgpd/reglages", capture: true },
+  // Lot 23 (HUB-16) : journal d'activité de l'organisation, titulaire seulement.
+  { key: "activityLog", group: "data", audience: "team", ownerOnly: true, path: "/parametres/journal", capture: true },
   // Administration de la suite (aucune capture : elle montrerait des organisations)
   { key: "admin", group: "admin", audience: "admin", path: "/admin", capture: false },
   { key: "adminOrganizations", group: "admin", audience: "admin", path: "/admin/organisations", capture: false },

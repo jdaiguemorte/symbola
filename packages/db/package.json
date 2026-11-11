@@ -8,6 +8,7 @@
     "./with-organization": "./src/with-organization.ts",
     "./actor": "./src/actor.ts",
     "./audit": "./src/audit.ts",
+    "./row-stamps": "./src/row-stamps.ts",
     "./schema/hub": "./src/schema/hub.ts",
     "./schema/events": "./src/schema/events.ts",
     "./schema/budget": "./src/schema/budget.ts",
