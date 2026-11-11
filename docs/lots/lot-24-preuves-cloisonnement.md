@@ -216,3 +216,43 @@ Toutes ont leur script d'annulation.
   « [Recette] » aux identifiants fixes, et refusé en production. (b) Il est inséré directement en
   base. **Recommandation : (a).** Les règles réelles (RLS, journal, chaîne) s'y appliquent, et le
   jeu reste juste quand le code change.
+
+---
+
+## Bilan du lot 24a (11/11/2026)
+
+- **Jeu fictif** (DAT-10, D7) : `pnpm --filter @symbola/app seed:recette` charge les deux
+  organisations « [Recette] » (identifiants fixes `7ec37e00-…-0001` et `…-0002`), 9 comptes,
+  69 événements, catalogue, devis et échéancier, budget confirmé, 42 tâches, prestataires, par
+  les services des modules. Refusé en production et sur une base où le jeu est déjà chargé ; les
+  comptes et mots de passe vont dans un fichier hors du dépôt (mode 600). Runbook
+  `docs/runbooks/jeu-fictif.md`, ligne de `CLAUDE.md` § 9. Pas encore dans le jeu, faute
+  d'écran : invités, tables, accès payeur, comptable, liens des tiers.
+- **Règle d'accès de chaque entrée** (SEC-12) : `lib/access-rules.test.ts` analyse avec le
+  compilateur TypeScript chaque page, route et action serveur (plus de 150 actions) ; une entrée
+  sans garde fait échouer le test, sauf les entrées publiques listées avec leur motif. Il
+  remplace le contrôle des pages du lot 16.
+- **Inexistant = interdit, refus journalisé** (SEC-13, SC-S1, D4) : `hub.access.refused` au
+  journal de l'organisation de la personne (route, identifiants remplacés par `[id]`,
+  identifiant demandé), au plus une ligne par minute, par personne et par route ; par la page
+  introuvable commune pour les écrans, par `refusedResponse` pour les routes. Parcours e2e : les
+  objets d'une autre organisation répondent comme des objets inexistants.
+- **Journaux sans donnée personnelle** (SEC-20) : la console du serveur masque e-mails et
+  téléphones, y compris dans les erreurs affichées par Next.js ; les suites d'intégration relèvent
+  la console et échouent sur une donnée personnelle ; la CI contrôle la sortie du serveur pendant
+  les parcours e2e. Aucune fuite trouvée dans le code actuel.
+- **Index** (DAT-01) : 53 tables indexées sur `organization_id` (migrations 0095 à 0100, une par
+  module, annulables) ; test de la base.
+- **Combinaisons de modules** (ARC-07) : parcours e2e des 16 combinaisons. **ARC-01** : écart
+  accepté (ADR 0062, D6).
+- **Au passage** : un job e2e de la #96 annulé après 30 minutes. Cause : une compilation de
+  Next.js 15.5 a perdu un composant client (`ProfileForm`) de son manifeste, et 13 parcours de
+  `/parametres` ont échoué trois fois chacun. La relance du même code est passée. Défaut
+  intermittent, jamais vu sur les 30 passages précédents.
+
+**Reste, hors du 24a** :
+
+- le 24b (comptes et envois : SEC-03 à SEC-06, SEC-22, SEC-36, SC-S2 à SC-S6) ;
+- charger le jeu fictif sur le staging demandera un réglage explicite (le staging tourne avec
+  `NODE_ENV=production`), à décider au déploiement d'ensemble ;
+- au déploiement d'ensemble : migrations 0095 à 0100 (index seulement, quelques secondes).
