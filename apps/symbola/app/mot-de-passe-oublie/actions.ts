@@ -8,7 +8,7 @@ import { requestPasswordReset } from "@symbola/auth";
 import { appDatabase } from "@symbola/db/client";
 import { parseEnv } from "@symbola/env";
 import { sendMail } from "@symbola/mail";
-import { checkRateLimit, rateLimitMessage } from "@/lib/rate-limit";
+import { checkFailures, checkRateLimit, longestWait, rateLimitMessage, recordFailure } from "@/lib/rate-limit";
 
 export type ForgotPasswordFormState = { sent?: boolean; error?: string };
 
@@ -23,8 +23,15 @@ export async function forgotPasswordAction(_prevState: ForgotPasswordFormState, 
 
   // L16-SEC-02 (ADR 0044) : un formulaire public qui envoie des e-mails, limité par
   // adresse et par compte visé (en plus d'un e-mail par compte toutes les 5 minutes).
+  // Lot 24b (SEC-04) : chaque demande refusée compte ; après dix, un délai qui
+  // double à chaque fois. Le message donne le plus long des deux délais.
+  const backoff = await checkFailures("passwordReset", { account: parsed.data });
   const limited = await checkRateLimit("passwordReset", { account: parsed.data });
-  if (!limited.allowed) return { error: await rateLimitMessage(limited.retryAfterSeconds) };
+  const wait = longestWait(backoff, limited);
+  if (wait !== null) {
+    await recordFailure("passwordReset", { account: parsed.data });
+    return { error: await rateLimitMessage(wait) };
+  }
 
   const db = appDatabase();
   const request = await requestPasswordReset(db, parsed.data);
