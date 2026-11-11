@@ -1,7 +1,7 @@
 CREATE TABLE "core"."audit_entries" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"organization_id" uuid,
-	"occurred_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"occurred_at" timestamp with time zone DEFAULT clock_timestamp() NOT NULL,
 	"actor_kind" text DEFAULT coalesce(nullif(current_setting('app.actor_kind', true), ''), 'system') NOT NULL,
 	"actor_id" uuid DEFAULT nullif(current_setting('app.actor_id', true), '')::uuid,
 	"action" text NOT NULL,

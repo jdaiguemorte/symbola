@@ -101,7 +101,12 @@ export const auditEntries = coreSchema.table(
   {
     id: uuid("id").defaultRandom().primaryKey(),
     organizationId: uuid("organization_id"),
-    occurredAt: timestamp("occurred_at", { withTimezone: true }).defaultNow().notNull(),
+    // clock_timestamp() et non now() : l'instant réel de chaque ligne, même
+    // pour plusieurs gestes d'une même transaction (now() est l'heure de son
+    // début), pour que le journal garde leur ordre.
+    occurredAt: timestamp("occurred_at", { withTimezone: true })
+      .notNull()
+      .default(sql`clock_timestamp()`),
     // Par défaut, l'auteur fixé par withOrganization (lot 23, partie B) :
     // un déclencheur ou une fonction SQL qui écrit au journal n'a rien à
     // passer. Sans auteur déclaré : « system ».
