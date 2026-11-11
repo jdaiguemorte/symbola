@@ -1275,6 +1275,19 @@ export async function getClientInvitationAudience(token: string): Promise<EventT
   return access ? findEventAudience(parsed.organizationId, access.eventId) : null;
 }
 
+// Lot 24b (SC-S4) — état d'un lien d'invitation à l'ouverture de la page : un
+// lien expiré, retiré ou inconnu est refusé d'emblée, avec la proposition d'en
+// demander un nouveau ; rien de l'invitation n'est révélé.
+export async function clientInvitationState(token: string): Promise<"usable" | "accepted" | "invalid"> {
+  const parsed = parseClientToken(token);
+  if (!parsed) return "invalid";
+  const access = await findClientAccessByTokenHash(parsed.organizationId, hashClientToken(parsed.secret));
+  if (!access) return "invalid";
+  if (access.acceptedAt) return "accepted";
+  if (access.revokedAt || access.expiresAt.getTime() < Date.now()) return "invalid";
+  return "usable";
+}
+
 export async function acceptEventClientInvitation(token: string, password: string): Promise<AcceptClientInvitationResult> {
   const parsed = parseClientToken(token);
   if (!parsed) return { outcome: "invalid_or_expired" };
