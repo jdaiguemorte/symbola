@@ -150,8 +150,9 @@ jobs:
       # Lot 11 (ADR 0031) : géocodage simulé, aucun appel réseau à l'IGN.
       GEOCODER: fake
       # Version compilée, NODE_ENV=test : faux fournisseur de signature permis
-      # (jamais en production, packages/env).
-      E2E_SERVER_COMMAND: NODE_ENV=test pnpm exec next start -p 3000
+      # (jamais en production, packages/env). Lot 24a (SEC-20) : la sortie du
+      # serveur est gardée, puis contrôlée après les parcours.
+      E2E_SERVER_COMMAND: NODE_ENV=test pnpm exec next start -p 3000 2>&1 | tee e2e-server.log
     steps:
       - uses: actions/checkout@v4
       # Lot 16 (L16-SEC-01, ADR 0037) : clé de chiffrement de la double
@@ -197,6 +198,8 @@ jobs:
       - run: pnpm --filter @symbola/db migrate
       - name: Parcours Playwright
         run: pnpm --filter @symbola/app test:e2e
+      - name: Journaux du serveur sans adresse e-mail ni téléphone (SEC-20)
+        run: pnpm --filter @symbola/privacy check:logs "$GITHUB_WORKSPACE/apps/symbola/e2e-server.log"
       - name: Traces des parcours en échec
         if: failure()
         uses: actions/upload-artifact@v4

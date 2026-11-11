@@ -11,7 +11,8 @@ export default defineConfig({
     environment: "node",
     include: ["**/*.integration.test.ts"],
     exclude: ["**/node_modules/**"],
-    // L16-ARC-01 : rend la réserve de connexions partagée à la fin de chaque fichier.
-    setupFiles: ["./vitest.integration.setup.ts"],
+    // L16-ARC-01 : rend la réserve de connexions partagée à la fin de chaque
+    // fichier. Lot 24a (SEC-20) : aucune donnée personnelle écrite dans la console.
+    setupFiles: ["./vitest.integration.setup.ts", "@symbola/privacy/console-guard"],
   },
 });

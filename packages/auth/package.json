@@ -23,6 +23,7 @@
   "devDependencies": {
     "@symbola/config": "workspace:*",
     "@symbola/env": "workspace:*",
+    "@symbola/privacy": "workspace:*",
     "@types/node": "^22.10.2",
     "postgres": "^3.4.5",
     "tsx": "^4.19.2",
