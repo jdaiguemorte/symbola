@@ -1,7 +1,8 @@
-# Runbook — Surveillance (SOC-11)
+# Runbook — Surveillance (SOC-11, lot 22)
 
 Uptime Kuma surveille l'app et le socle de **staging** et de **production**
-et alerte par e-mail. Il tourne dans le socle partagé
+et alerte par e-mail et sur le téléphone (application ntfy, lot 22, NFR-14). Il tourne
+dans le socle partagé
 (`infra/compose/docker-compose.socle.yml`), une seule instance pour tout
 le VPS.
 
@@ -72,6 +73,41 @@ puis `http://localhost:3001` dans le navigateur.
    intervalle 26 h. Le script de sauvegarde appelle l'URL Push en fin de
    sauvegarde réussie : une nuit sans sauvegarde déclenche une alerte.
    Mise en place : `docs/runbooks/restauration.md`, § 6.
+5. **Alertes sur le téléphone avec ntfy** (lot 22, NFR-14, décision de Julien du 11/11/2026) :
+   1. Installer l'application **ntfy** sur le téléphone (iOS ou Android). Aucun compte n'est
+      nécessaire.
+   2. Choisir un **nom de sujet long et aléatoire** (par exemple la sortie de
+      `openssl rand -hex 16` précédée de `symbola-`) et le ranger dans le gestionnaire de
+      mots de passe : quiconque le connaît peut lire les alertes ou en envoyer de fausses.
+   3. Dans l'application : *S'abonner à un sujet*, serveur `https://ntfy.sh`, ce nom de sujet.
+   4. Dans Uptime Kuma, *Paramètres → Notifications → Configurer une notification* : type
+      « ntfy », serveur `https://ntfy.sh`, le sujet, priorité haute. Cocher « Activer par
+      défaut » et « Appliquer à toutes les sondes existantes », puis envoyer une notification
+      de test : elle doit arriver sur le téléphone.
+
+   Les alertes ne contiennent aucune donnée personnelle (« Sauvegarde restic — production :
+   DOWN », « Disque / à 85 % ») ; elles transitent par le relais public ntfy.sh. L'e-mail reste
+   actif en plus.
+6. **Disque du VPS** (lot 22, NFR-14) : une sonde de type *Push* « Disque du VPS »,
+   intervalle 1 800 s (30 min). Le contrôle `infra/monitoring/disk-check.sh` tourne toutes les
+   15 minutes : il signale « up » sous le seuil et « down » à partir du seuil (80 %, décision de
+   Julien) ; s'il ne tourne plus, la sonde reste muette et alerte aussi. Mise en place :
+   ```bash
+   install -d -m 700 /etc/symbola/monitoring
+   install -m 600 /dev/null /etc/symbola/monitoring/disk.env
+   nano /etc/symbola/monitoring/disk.env
+   #   DISK_PUSH_URL=<URL push de la sonde « Disque du VPS »>   (secret)
+   #   DISK_THRESHOLD_PERCENT=80
+   #   DISK_PATHS="/"
+   cp /opt/symbola/infra/monitoring/systemd/symbola-disk-check.service \
+      /opt/symbola/infra/monitoring/systemd/symbola-disk-check.timer /etc/systemd/system/
+   systemctl daemon-reload
+   systemctl enable --now symbola-disk-check.timer
+   systemctl start symbola-disk-check.service
+   journalctl -u symbola-disk-check.service -n 5 --no-pager   # « Disque / à … % (seuil 80 %) : up »
+   ```
+   Si les données Docker sont sur une autre partition (`df -h /var/lib/docker`), l'ajouter à
+   `DISK_PATHS`.
 
 ## Vérification
 
@@ -79,3 +115,7 @@ puis `http://localhost:3001` dans le navigateur.
 - [ ] Le port 3001 n'est pas joignable depuis Internet : `nc -vz <ip-du-vps> 3001` échoue depuis ton poste.
 - [ ] Arrêter ClamAV de staging (`sudo docker compose ... -p symbola-staging stop clamav`) : `/health` passe en 503 et l'alerte e-mail arrive après deux tentatives. Relancer ClamAV, l'alerte de rétablissement arrive.
 - [ ] Les données d'Uptime Kuma (volume `uptime_kuma_data`) sont incluses dans la sauvegarde (SOC-10).
+- [ ] La notification de test ntfy arrive sur le téléphone (lot 22).
+- [ ] Le temps d'un essai, `DISK_THRESHOLD_PERCENT=1` dans `/etc/symbola/monitoring/disk.env`,
+      puis `systemctl start symbola-disk-check.service` : l'alerte « Disque du VPS » arrive sur le
+      téléphone. Remettre 80 et relancer : l'alerte de rétablissement arrive (lot 22).

@@ -1,6 +1,9 @@
 // SOC-10 — Sauvegardes : comportement de infra/backup/backup.sh et restore.sh.
-// `docker`, `curl` et `date` sont remplacés par des doublures qui journalisent chaque
-// appel : on vérifie l'ordre des opérations et les garde-fous, sans Docker ni serveur.
+// Lot 22 (NFR-10, NFR-13, ADR 0051) : dépôt distant sur la Storage Box Hetzner et contrôle
+// de la protection de ses copies instantanées (check-snapshot-protection.sh).
+// `docker`, `curl`, `date` et `flock` sont remplacés par des doublures qui journalisent
+// chaque appel : on vérifie l'ordre des opérations et les garde-fous, sans Docker ni serveur
+// (la doublure de `flock` rend aussi les tests jouables sur macOS, qui n'en a pas).
 import { spawnSync } from "node:child_process";
 import { chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -10,6 +13,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 const repoRoot = resolve(import.meta.dirname, "..", "..");
 const backupScript = resolve(repoRoot, "infra/backup/backup.sh");
 const restoreScript = resolve(repoRoot, "infra/backup/restore.sh");
+const protectionScript = resolve(repoRoot, "infra/backup/check-snapshot-protection.sh");
 const read = (path) => readFileSync(resolve(repoRoot, path), "utf8");
 
 const SNAPSHOT_ID = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
@@ -19,7 +23,17 @@ const fakeDocker = `#!/usr/bin/env bash
 echo "docker $*" >>"$FAKE_LOG"
 args=" $* "
 case "$args" in
+  *" --entrypoint sftp "*)
+    # Lot 22 : une commande sftp par lot (-b -), lue sur l'entrée standard.
+    batch=$(cat)
+    echo "sftp-batch $batch" >>"$FAKE_LOG"
+    case "$batch" in
+      "ls -1 "*) [ -n "\${FAKE_SFTP_LS:-}" ] || exit 1; echo "sftp> $batch"; printf '%s\\n' \${FAKE_SFTP_LS} ;;
+      *) exit "\${FAKE_SFTP_WRITE_STATUS:-1}" ;;
+    esac ;;
   *" cat config "*) exit "\${FAKE_REPO_STATUS:-0}" ;;
+  *" check "*) exit "\${FAKE_CHECK_STATUS:-0}" ;;
+  *" stats --mode raw-data "*) echo "Total Size: 42 MiB" ;;
   *"pg_database"*) echo "\${FAKE_DOCUMENSO_DB-}" ;;
   *"documenso.dump"*" dump "*|*" dump "*"documenso.dump"*) [ -n "\${FAKE_DOCUMENSO_DUMP:-}" ] || exit 1; echo "PGDMP-fake" ;;
   *"pg_dump"*) [ -n "\${FAKE_PGDUMP_FAIL:-}" ] && exit 1; echo "PGDMP-fake" ;;
@@ -38,6 +52,9 @@ echo "curl $*" >>"$FAKE_LOG"
 `;
 const fakeDate = `#!/usr/bin/env bash
 if [ "$1" = "+%u" ]; then echo "\${FAKE_WEEKDAY:-1}"; else exec /bin/date "$@"; fi
+`;
+const fakeFlock = `#!/usr/bin/env bash
+exit 0
 `;
 
 let work;
@@ -82,6 +99,7 @@ beforeEach(() => {
   writeExecutable(join(work, "bin/docker"), fakeDocker);
   writeExecutable(join(work, "bin/curl"), fakeCurl);
   writeExecutable(join(work, "bin/date"), fakeDate);
+  writeExecutable(join(work, "bin/flock"), fakeFlock);
   writeFileSync(join(work, "password"), "mot-de-passe-de-test\n");
   writeConfig("production", "INCLUDE_MONITORING=true\nBACKUP_PUSH_URL=http://127.0.0.1:3001/api/push/jeton");
   writeConfig("staging");
@@ -185,10 +203,25 @@ describe("SOC-10 — Sauvegarde nocturne (backup.sh)", () => {
     expect(indexOf(staging.calls, "curl")).toBe(-1); // pas d'URL push configurée
   });
 
-  it("contrôle l'intégrité du dépôt le jour prévu seulement", () => {
-    expect(indexOf(run(backupScript, ["staging"], { FAKE_WEEKDAY: "3" }).calls, " check ")).toBe(-1);
+  it("NFR-10 : contrôle chaque nuit la structure du dépôt, et relit 10 % des données le jour prévu seulement", () => {
+    const weekday = run(backupScript, ["staging"], { FAKE_WEEKDAY: "3" }).calls;
+    const nightly = indexOf(weekday, "restic/restic", " check");
+    expect(nightly).toBeGreaterThanOrEqual(0);
+    expect(weekday[nightly]).not.toContain("--read-data-subset");
+    expect(nightly).toBeGreaterThan(indexOf(weekday, "forget --tag env:staging"));
+    expect(indexOf(weekday, "stats --mode raw-data")).toBe(-1);
     rmSync(env.FAKE_LOG);
-    expect(indexOf(run(backupScript, ["staging"], { FAKE_WEEKDAY: "7" }).calls, "check --read-data-subset=10%")).toBeGreaterThanOrEqual(0);
+    const sunday = run(backupScript, ["staging"], { FAKE_WEEKDAY: "7" }).calls;
+    expect(indexOf(sunday, "check --read-data-subset=10%")).toBeGreaterThanOrEqual(0);
+    // NFR-30 : la taille du dépôt est relevée chaque semaine dans le journal.
+    expect(indexOf(sunday, "stats --mode raw-data")).toBeGreaterThanOrEqual(0);
+  });
+
+  it("NFR-10 : étant donné le contrôle du dépôt en échec, alors aucun signal de succès n'est envoyé", () => {
+    const { status, calls } = run(backupScript, ["production"], { FAKE_CHECK_STATUS: "1" });
+    expect(status).not.toBe(0);
+    expect(indexOf(calls, "curl", "status=up")).toBe(-1);
+    expect(indexOf(calls, "status = 'failed'")).toBeGreaterThanOrEqual(0);
   });
 });
 
@@ -347,5 +380,176 @@ describe("SOC-10 — Planification et documentation", () => {
     expect(runbook).toMatch(/--confirm=staging/);
     expect(runbook).toMatch(/## \d+\. Test de restauration chronométré/);
     expect(runbook).toMatch(/copie externe/i);
+  });
+});
+
+// Lot 22 — configuration d'un environnement dont le dépôt est sur la Storage Box Hetzner.
+function writeRemoteConfig(environment, { strict = "yes", knownHosts = true, extra = "" } = {}) {
+  const sshDir = join(work, "ssh", environment);
+  mkdirSync(sshDir, { recursive: true });
+  writeFileSync(
+    join(sshDir, "config"),
+    [`Host symbola-${environment}`, "  HostName u1-sub1.storage.test", "  Port 23", `  StrictHostKeyChecking ${strict}`, ""].join("\n"),
+  );
+  if (knownHosts) writeFileSync(join(sshDir, "known_hosts"), "[u1-sub1.storage.test]:23 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFAKE\n");
+  writeFileSync(join(sshDir, "id_ed25519"), "CLE-PRIVEE-DE-TEST\n");
+  writeFileSync(
+    join(work, "config", `${environment}.env`),
+    [
+      `SYMBOLA_DIR=${join(work, "symbola")}`,
+      `RESTIC_REPOSITORY=sftp:symbola-${environment}:restic`,
+      `RESTIC_SSH_DIR=${sshDir}`,
+      `RESTIC_PASSWORD_FILE=${join(work, "password")}`,
+      extra,
+    ].join("\n"),
+  );
+  return sshDir;
+}
+
+describe("NFR-10 — Sauvegarde chiffrée vers la Storage Box (lot 22, ADR 0051)", () => {
+  it("étant donné un dépôt distant, l'instantané part vers lui : adresse passée à restic, configuration SSH montée en lecture seule, aucun dossier local monté comme dépôt", () => {
+    const sshDir = writeRemoteConfig("staging");
+    const { status, calls } = run(backupScript, ["staging"]);
+    expect(status).toBe(0);
+    const backupCall = calls[indexOf(calls, "restic/restic", "backup --json --tag env:staging")];
+    expect(backupCall).toContain("RESTIC_REPOSITORY=sftp:symbola-staging:restic");
+    expect(backupCall).toContain(`-v ${sshDir}:/root/.ssh:ro`);
+    expect(backupCall).not.toContain(":/repo");
+    for (const call of calls.filter((c) => c.includes("restic/restic"))) {
+      expect(call).toContain("RESTIC_REPOSITORY=sftp:symbola-staging:restic");
+    }
+  });
+
+  it("la clé SSH et le mot de passe restic ne passent jamais en argument", () => {
+    writeRemoteConfig("staging");
+    const all = run(backupScript, ["staging"]).calls.join("\n");
+    expect(all).not.toContain("CLE-PRIVEE-DE-TEST");
+    expect(all).not.toContain("mot-de-passe-de-test");
+    expect(all).toContain("/run/secrets/restic-password:ro");
+  });
+
+  it("refuse un dépôt distant sans fichier des empreintes connues, sans aucun appel à Docker", () => {
+    writeRemoteConfig("staging", { knownHosts: false });
+    const { status, output, calls } = run(backupScript, ["staging"]);
+    expect(status).not.toBe(0);
+    expect(output).toMatch(/known_hosts/);
+    expect(calls).toEqual([]);
+  });
+
+  it("refuse une configuration SSH qui accepterait une empreinte inconnue ou changée", () => {
+    for (const strict of ["no", "accept-new"]) {
+      writeRemoteConfig("staging", { strict });
+      const { status, output, calls } = run(backupScript, ["staging"]);
+      expect(status).not.toBe(0);
+      expect(output).toMatch(/StrictHostKeyChecking yes/);
+      expect(calls).toEqual([]);
+    }
+  });
+
+  it("étant donné le dépôt distant injoignable (réseau, clé ou empreinte refusée), la sauvegarde échoue avant d'arrêter Garage, sans signal de succès, et sa fin est signalée « failed »", () => {
+    writeRemoteConfig("production", { extra: "BACKUP_PUSH_URL=http://127.0.0.1:3001/api/push/jeton" });
+    const { status, output, calls } = run(backupScript, ["production"], { FAKE_REPO_STATUS: "1" });
+    expect(status).not.toBe(0);
+    expect(output).toMatch(/injoignable/);
+    expect(indexOf(calls, "stop garage")).toBe(-1);
+    expect(indexOf(calls, "curl")).toBe(-1);
+    expect(indexOf(calls, "status = 'failed'")).toBeGreaterThanOrEqual(0);
+  });
+
+  it("restaure depuis le dépôt distant, avec la même configuration SSH en lecture seule", () => {
+    const sshDir = writeRemoteConfig("staging");
+    const { status, calls } = run(restoreScript, ["staging", "--confirm=staging"]);
+    expect(status).toBe(0);
+    const resticCalls = calls.filter((c) => c.includes("restic/restic") && !c.includes("--entrypoint"));
+    expect(resticCalls.length).toBeGreaterThan(0);
+    for (const call of resticCalls) {
+      expect(call).toContain("RESTIC_REPOSITORY=sftp:symbola-staging:restic");
+      expect(call).toContain(`-v ${sshDir}:/root/.ssh:ro`);
+    }
+  });
+});
+
+describe("NFR-13 — Rétention, et copies instantanées hors d'atteinte du VPS (lot 22, ADR 0051)", () => {
+  const SNAPSHOTS = ".zfs/snapshot/2026-11-11T05-00-00 .zfs/snapshot/2026-11-10T05-00-00";
+
+  it("garde par défaut 7 sauvegardes quotidiennes, 4 hebdomadaires et 12 mensuelles", () => {
+    const { calls } = run(backupScript, ["staging"]);
+    expect(calls[indexOf(calls, "forget --tag env:staging")]).toContain("--keep-daily 7 --keep-weekly 4 --keep-monthly 12");
+  });
+
+  it("les modèles de configuration visent la Storage Box, épinglent l'empreinte et gardent 12 mensuelles", () => {
+    const example = read("infra/backup/backup.env.example");
+    expect(example).toMatch(/^RESTIC_REPOSITORY=sftp:symbola-production:restic$/m);
+    expect(example).toMatch(/^RESTIC_SSH_DIR=\/etc\/symbola\/backup\/production\.ssh$/m);
+    expect(example).toMatch(/^KEEP_MONTHLY=12$/m);
+    const sshConfig = read("infra/backup/ssh-config.example");
+    expect(sshConfig).toMatch(/^\s*Port 23$/m);
+    expect(sshConfig).toMatch(/^\s*StrictHostKeyChecking yes$/m);
+  });
+
+  it("refuse de contrôler un dépôt local : le contrôle ne vaut que pour la Storage Box", () => {
+    const { status, output, calls } = run(protectionScript, ["staging", "--confirm=staging"]);
+    expect(status).not.toBe(0);
+    expect(output).toMatch(/dépôt distant/);
+    expect(calls).toEqual([]);
+  });
+
+  it("refuse sans --confirm répétant le nom de l'environnement, sans rien tenter", () => {
+    writeRemoteConfig("staging");
+    const { status, output, calls } = run(protectionScript, ["staging"], { FAKE_SFTP_LS: SNAPSHOTS });
+    expect(status).not.toBe(0);
+    expect(output).toMatch(/--confirm=staging/);
+    expect(calls).toEqual([]);
+  });
+
+  it("étant donné les copies invisibles depuis le sous-compte, conclut qu'il ne peut pas les atteindre et renvoie au contrôle par le compte principal", () => {
+    writeRemoteConfig("staging");
+    const { status, output, calls } = run(protectionScript, ["staging", "--confirm=staging"]);
+    expect(status).toBe(0);
+    expect(output).toMatch(/invisibles/);
+    expect(output).toMatch(/compte principal/);
+    expect(calls.join("\n")).not.toMatch(/sftp-batch (mkdir|rmdir|rename)/);
+  });
+
+  it("étant donné les copies visibles, tente de les créer, modifier, renommer et supprimer depuis le sous-compte ; tout refus prouve qu'elles sont protégées", () => {
+    const sshDir = writeRemoteConfig("staging");
+    const { status, output, calls } = run(protectionScript, ["staging", "--confirm=staging"], { FAKE_SFTP_LS: SNAPSHOTS });
+    expect(status).toBe(0);
+    expect(output).toMatch(/2 copies/);
+    expect(output).toMatch(/protégées/);
+    const batches = calls.filter((c) => c.startsWith("sftp-batch "));
+    expect(batches).toContain("sftp-batch mkdir .zfs/snapshot/symbola-protection-test");
+    expect(batches).toContain("sftp-batch mkdir .zfs/snapshot/2026-11-10T05-00-00/symbola-protection-test");
+    expect(batches).toContain("sftp-batch rename .zfs/snapshot/2026-11-10T05-00-00 .zfs/snapshot/2026-11-10T05-00-00-symbola-test");
+    expect(batches).toContain("sftp-batch rmdir .zfs/snapshot/2026-11-10T05-00-00");
+    for (const call of calls.filter((c) => c.includes("--entrypoint sftp"))) {
+      expect(call).toContain(`-v ${sshDir}:/root/.ssh:ro`);
+      expect(call).toContain("symbola-staging");
+      expect(call).not.toContain("restic-password");
+    }
+  });
+
+  it("étant donné une tentative acceptée, conclut bruyamment que les copies ne sont PAS protégées", () => {
+    writeRemoteConfig("staging");
+    const { status, output } = run(protectionScript, ["staging", "--confirm=staging"], {
+      FAKE_SFTP_LS: SNAPSHOTS,
+      FAKE_SFTP_WRITE_STATUS: "0",
+    });
+    expect(status).not.toBe(0);
+    expect(output).toMatch(/NON protégées/);
+  });
+});
+
+describe("Lot 22 — Runbook et chaîne de contrôle", () => {
+  it("le runbook de restauration décrit la Storage Box, le contrôle des copies et l'exercice « dépôt effacé »", () => {
+    const runbook = read("docs/runbooks/restauration.md");
+    expect(runbook).toMatch(/Storage Box/);
+    expect(runbook).toContain("infra/backup/check-snapshot-protection.sh");
+    expect(runbook).toMatch(/dépôt effacé/);
+    expect(runbook).toMatch(/## \d+\. Exercice « dépôt effacé »/);
+  });
+
+  it("la CI passe shellcheck sur les scripts de surveillance", () => {
+    expect(read(".github/workflows/ci.yml")).toMatch(/shellcheck -x .*infra\/monitoring\/\*\.sh/);
   });
 });

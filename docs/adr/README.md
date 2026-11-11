@@ -52,3 +52,4 @@ Un fichier par décision structurante, numéroté. Pour changer une décision : 
 - [0048 — Preuve d'une demande RGPD close : nom anonymisé par la purge mensuelle](0048-preuve-des-demandes-rgpd-anonymisee.md)
 - [0049 — Étiquettes par groupe et par famille ; un seul accès aux réglages ; vocabulaire des écrans mixtes](0049-etiquettes-reglages-et-ecrans-mixtes.md)
 - [0050 — Étiquettes de départ et rangement des importées ; modèles en liste puis détail ; modes de paiement réactivables](0050-etiquettes-de-depart-et-modeles-en-liste.md)
+- [0051 — Sauvegarde externe chez Hetzner (Storage Box) ; fichiers sur le VPS pendant le pilote](0051-sauvegarde-externe-hetzner.md)

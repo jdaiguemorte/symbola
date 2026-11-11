@@ -1,0 +1,17 @@
+# Configuration SSH d'UN environnement vers la Storage Box Hetzner (lot 22, ADR 0051).
+# Sur le VPS : /etc/symbola/backup/production.ssh/config (root:root, 0600) ; pour le
+# staging, remplacer « production » partout. Ce fichier est lu DANS le conteneur restic,
+# où le dossier est monté en /root/.ssh : d'où les chemins ci-dessous.
+# Remplacer uXXXXX-subN par l'identifiant du sous-compte de l'environnement (console Hetzner).
+Host symbola-production
+  HostName uXXXXX-subN.your-storagebox.de
+  User uXXXXX-subN
+  Port 23
+  IdentityFile /root/.ssh/id_ed25519
+  IdentitiesOnly yes
+  # Empreinte épinglée (known_hosts vérifié à la main) : jamais d'acceptation automatique.
+  StrictHostKeyChecking yes
+  UserKnownHostsFile /root/.ssh/known_hosts
+  # Garde la connexion ouverte pendant les longs envois.
+  ServerAliveInterval 60
+  ServerAliveCountMax 10
