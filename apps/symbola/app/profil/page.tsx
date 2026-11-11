@@ -3,6 +3,7 @@ import { ScreenHelp } from "@/app/screen-help";
 import { countTrustedDevices } from "@symbola/auth";
 import { appDatabase } from "@symbola/db/client";
 import { requireSignedIn } from "@/lib/guards";
+import { SignOutEverywhereForm } from "../sign-out-everywhere-form";
 import { TrustedDevicesForm } from "../trusted-devices-form";
 import { LanguageForm } from "./language-form";
 
@@ -24,6 +25,8 @@ export default async function ProfilePage() {
       <ScreenHelp title={tHelp("profile.title")} body={tHelp("profile.body")} />
       <LanguageForm currentLanguage={auth.user.language ?? "fr"} />
       {trustedDevices !== null ? <TrustedDevicesForm count={trustedDevices} /> : null}
+      {/* Lot 24b (SEC-06) : déconnexion à distance. */}
+      <SignOutEverywhereForm />
     </main>
   );
 }

@@ -1,9 +1,10 @@
 "use server";
 
 import { getTranslations } from "next-intl/server";
-import { PASSWORD_MIN_LENGTH } from "@symbola/auth";
+import { checkPassword } from "@symbola/auth";
 import { appDatabase } from "@symbola/db/client";
 import { acceptInvitation } from "@/modules/hub/service";
+import { isHoneypotFilled } from "@/lib/honeypot";
 
 export type AcceptInvitationFormState = { error?: string; success?: boolean };
 
@@ -14,13 +15,16 @@ export async function acceptInvitationAction(
   const token = String(formData.get("token") ?? "");
   const password = String(formData.get("password") ?? "");
   const t = await getTranslations("Invitation");
+  // Lot 24b (SEC-22) : envoi d'un robot, ignoré.
+  if (isHoneypotFilled(formData)) return { error: t("invalidOrExpired") };
 
   if (!password) {
     return { error: t("missingPassword") };
   }
-  if (password.length < PASSWORD_MIN_LENGTH) {
-    return { error: t("passwordTooShort") };
-  }
+  // Lot 24b (SEC-03) : douze caractères au moins, pas de mot de passe compromis.
+  const verdict = checkPassword(password);
+  if (verdict === "too_short") return { error: t("passwordTooShort") };
+  if (verdict === "compromised") return { error: t("passwordCompromised") };
 
   const db = appDatabase();
   const result = await acceptInvitation(db, { token, password });

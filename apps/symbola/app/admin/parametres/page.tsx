@@ -26,6 +26,7 @@ export default async function AdminSettingsPage() {
         importUndoRetentionDays={settings.importUndoRetentionDays}
         importMaxSheets={settings.importMaxSheets}
         privacyExportRetentionDays={settings.privacyExportRetentionDays}
+        mailHourlyCap={settings.mailHourlyCap}
       />
     </main>
   );

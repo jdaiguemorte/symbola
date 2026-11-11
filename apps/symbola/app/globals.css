@@ -1326,6 +1326,18 @@
 }
 
 @layer components {
+  /* Lot 24b (SEC-22) — piège à robots : hors de l'écran, sans display:none,
+     que certains robots savent éviter. */
+  .honeypot {
+    position: absolute;
+    left: -10000px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+}
+
+@layer components {
   /* Lot 12 (L12-EVT-14) — programme du jour J lisible. */
   .program-list {
     @apply m-0 flex list-none flex-col p-0;

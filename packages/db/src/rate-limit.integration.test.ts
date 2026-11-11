@@ -4,7 +4,16 @@ import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { afterAll, describe, expect, it } from "vitest";
 import { createAppConnection } from "./client";
-import { consumeRateLimits, purgeRateLimitEvents, rateLimitKeyHash, type RateLimitRule } from "./rate-limit";
+import {
+  checkFailureBackoff,
+  clearFailures,
+  consumeRateLimits,
+  failureDelayMs,
+  purgeRateLimitEvents,
+  rateLimitKeyHash,
+  recordFailures,
+  type RateLimitRule,
+} from "./rate-limit";
 import { rateLimitEvents } from "./schema/core";
 
 const { sql, db } = createAppConnection();
@@ -86,3 +95,32 @@ describe("L16-SEC-02 — Limitation de débit à fenêtre glissante (PostgreSQL 
     expect(rows.map((row) => row.createdAt.toISOString())).toEqual(["2020-01-03T00:00:00.000Z"]);
   });
 });
+
+describe("SEC-04 — Dix échecs déclenchent un délai croissant (PostgreSQL réel, horloge simulée)", () => {
+  const failures = () => ({ bucket: `test.failures.${randomUUID()}`, key: "compte@exemple.test" });
+
+  it("le délai part de 1 minute au dixième échec, double à chaque échec suivant, plafonné à 1 heure", () => {
+    expect([9, 10, 11, 12, 13, 15, 16, 30].map((count) => failureDelayMs(count) / MINUTE)).toEqual([0, 1, 2, 4, 8, 32, 60, 60]);
+  });
+
+  it("neuf échecs ne retardent rien ; le dixième impose 1 minute, le onzième 2 minutes après lui", async () => {
+    const r = failures();
+    for (let i = 0; i < 9; i += 1) await recordFailures(db, [r], at(i * 1000));
+    expect(await checkFailureBackoff(db, [r], at(10_000))).toEqual({ allowed: true });
+    await recordFailures(db, [r], at(10_000));
+    expect(await checkFailureBackoff(db, [r], at(10_000))).toEqual({ allowed: false, bucket: r.bucket, retryAfterSeconds: 60 });
+    expect(await checkFailureBackoff(db, [r], at(10_000 + MINUTE))).toEqual({ allowed: true });
+    await recordFailures(db, [r], at(10_000 + MINUTE));
+    expect(await checkFailureBackoff(db, [r], at(10_000 + MINUTE + 30_000))).toEqual({ allowed: false, bucket: r.bucket, retryAfterSeconds: 90 });
+  });
+
+  it("les échecs de plus de 24 heures ne comptent plus ; un succès efface ceux du compte", async () => {
+    const r = failures();
+    for (let i = 0; i < 10; i += 1) await recordFailures(db, [r], at(i * 1000));
+    expect((await checkFailureBackoff(db, [r], at(20_000))).allowed).toBe(false);
+    expect((await checkFailureBackoff(db, [r], at(24 * 60 * MINUTE + 10_000))).allowed).toBe(true);
+    await clearFailures(db, [r]);
+    expect(await db.select().from(rateLimitEvents).where(eq(rateLimitEvents.keyHash, rateLimitKeyHash(r.bucket, r.key)))).toEqual([]);
+  });
+});
+

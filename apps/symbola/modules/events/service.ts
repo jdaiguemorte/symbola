@@ -4,10 +4,10 @@
 import { createHash, randomBytes } from "node:crypto";
 import { z } from "zod";
 import { parisDaysSince, parisToday } from "@symbola/i18n";
-import { createUser, findAccountByEmail } from "@symbola/auth";
+import { checkPassword, createUser, findAccountByEmail, PASSWORD_MIN_LENGTH } from "@symbola/auth";
 import { appDatabase, type AppDatabase } from "@symbola/db/client";
 import { parseEnv } from "@symbola/env";
-import { sendMail } from "@symbola/mail";
+import { reserveOrganizationMail, sendMail } from "@symbola/mail";
 import { starterDemoEvent, starterProgram, starterRetroplanning, starterTutorialEvent, starterVendorSlots } from "@symbola/starter-templates";
 import {
   findEventNamesByIds,
@@ -1125,9 +1125,8 @@ export async function applyProgramTemplate(
 // PRD-EVT-06 — accès des mariés.
 
 const CLIENT_INVITATION_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 jours, comme PRD-HUB-03
-// Longueur minimale d'un mot de passe de marié (recommandation CNIL pour un
-// mot de passe seul, sans double authentification imposée).
-const CLIENT_PASSWORD_MIN_LENGTH = 12;
+// Mot de passe d'un marié : la règle commune (lot 24b, SEC-03, ADR 0063),
+// douze caractères au moins et pas de mot de passe compromis.
 
 // L'e-mail a déjà un compte professionnel ou un compte d'une autre
 // organisation : un compte par personne (PRD PRD-EVT-06).
@@ -1147,8 +1146,15 @@ export class ClientAlreadyInvitedError extends Error {
 
 export class ClientPasswordTooShortError extends Error {
   constructor() {
-    super(`le mot de passe doit contenir au moins ${CLIENT_PASSWORD_MIN_LENGTH} caractères`);
+    super(`le mot de passe doit contenir au moins ${PASSWORD_MIN_LENGTH} caractères`);
     this.name = "ClientPasswordTooShortError";
+  }
+}
+
+export class ClientPasswordCompromisedError extends Error {
+  constructor() {
+    super("ce mot de passe figure parmi les mots de passe compromis");
+    this.name = "ClientPasswordCompromisedError";
   }
 }
 
@@ -1227,6 +1233,9 @@ export async function inviteEventClient(input: InviteEventClientInput): Promise<
     throw new ClientEmailUnavailableError();
   }
 
+  // Lot 24b (SEC-22, décision D5) : l'e-mail d'invitation est réservé avant
+  // tout, pour ne pas créer d'accès qu'on ne pourrait pas annoncer.
+  await reserveOrganizationMail(input.organizationId);
   const secret = account ? null : randomBytes(32).toString("base64url");
   const result = await saveClientAccess({
     organizationId: input.organizationId,
@@ -1266,6 +1275,19 @@ export async function getClientInvitationAudience(token: string): Promise<EventT
   return access ? findEventAudience(parsed.organizationId, access.eventId) : null;
 }
 
+// Lot 24b (SC-S4) — état d'un lien d'invitation à l'ouverture de la page : un
+// lien expiré, retiré ou inconnu est refusé d'emblée, avec la proposition d'en
+// demander un nouveau ; rien de l'invitation n'est révélé.
+export async function clientInvitationState(token: string): Promise<"usable" | "accepted" | "invalid"> {
+  const parsed = parseClientToken(token);
+  if (!parsed) return "invalid";
+  const access = await findClientAccessByTokenHash(parsed.organizationId, hashClientToken(parsed.secret));
+  if (!access) return "invalid";
+  if (access.acceptedAt) return "accepted";
+  if (access.revokedAt || access.expiresAt.getTime() < Date.now()) return "invalid";
+  return "usable";
+}
+
 export async function acceptEventClientInvitation(token: string, password: string): Promise<AcceptClientInvitationResult> {
   const parsed = parseClientToken(token);
   if (!parsed) return { outcome: "invalid_or_expired" };
@@ -1275,7 +1297,9 @@ export async function acceptEventClientInvitation(token: string, password: strin
   }
   if (access.acceptedAt) return { outcome: "already_accepted" };
   if (access.revokedAt || access.expiresAt.getTime() < Date.now()) return { outcome: "invalid_or_expired" };
-  if (password.length < CLIENT_PASSWORD_MIN_LENGTH) throw new ClientPasswordTooShortError();
+  const verdict = checkPassword(password);
+  if (verdict === "too_short") throw new ClientPasswordTooShortError();
+  if (verdict === "compromised") throw new ClientPasswordCompromisedError();
 
   const userId = await withAuthDb(async (db) => {
     const account = await findAccountByEmail(db, access.email);

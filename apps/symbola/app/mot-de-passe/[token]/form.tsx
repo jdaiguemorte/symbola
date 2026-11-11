@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { useTranslations } from "next-intl";
 import { resetPasswordAction, type ResetPasswordFormState } from "./actions";
+import { HoneypotField } from "@/app/ui/honeypot-field";
 
 export function ResetPasswordForm({ token }: { token: string }) {
   const t = useTranslations("PasswordReset");
@@ -22,6 +23,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
 
   return (
     <form action={formAction}>
+        <HoneypotField />
       <input type="hidden" name="token" value={token} />
       <label>
         {t("newPassword")}

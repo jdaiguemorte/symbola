@@ -4,7 +4,7 @@
 // repasse. Les clés (adresse IP, e-mail, compte) ne sont gardées que sous
 // forme d'empreinte.
 import { createHash } from "node:crypto";
-import { and, asc, eq, gt, lt, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gt, lt, sql } from "drizzle-orm";
 import type { AppDatabase } from "./client";
 import { rateLimitEvents } from "./schema/core";
 
@@ -56,4 +56,48 @@ export async function consumeRateLimits(db: AppDatabase, rules: RateLimitRule[],
 export async function purgeRateLimitEvents(db: AppDatabase, before: Date): Promise<number> {
   const deleted = await db.delete(rateLimitEvents).where(lt(rateLimitEvents.createdAt, before)).returning({ id: rateLimitEvents.id });
   return deleted.length;
+}
+
+// Lot 24b (SEC-04) — délai croissant après des échecs répétés : à partir du
+// dixième échec d'une même clé (compte ou adresse) dans les dernières 24 heures,
+// la tentative suivante attend 1 minute après le dernier échec, puis 2, 4, 8…,
+// jusqu'à 1 heure. Les échecs sont des lignes de la même table (empreintes
+// seulement), purgées avec elles ; un succès efface ceux du compte.
+export type FailureRule = { bucket: string; key: string };
+
+export const FAILURE_THRESHOLD = 10;
+const FAILURE_BASE_MS = 60_000;
+const FAILURE_MAX_MS = 60 * 60_000;
+const FAILURE_WINDOW_MS = 24 * 60 * 60_000;
+
+export function failureDelayMs(failures: number): number {
+  if (failures < FAILURE_THRESHOLD) return 0;
+  return Math.min(FAILURE_MAX_MS, FAILURE_BASE_MS * 2 ** (failures - FAILURE_THRESHOLD));
+}
+
+export async function checkFailureBackoff(db: AppDatabase, rules: FailureRule[], now: Date = new Date()): Promise<RateLimitDecision> {
+  for (const rule of rules) {
+    const keyHash = rateLimitKeyHash(rule.bucket, rule.key);
+    const failures = await db
+      .select({ createdAt: rateLimitEvents.createdAt })
+      .from(rateLimitEvents)
+      .where(and(eq(rateLimitEvents.bucket, rule.bucket), eq(rateLimitEvents.keyHash, keyHash), gt(rateLimitEvents.createdAt, new Date(now.getTime() - FAILURE_WINDOW_MS))))
+      .orderBy(desc(rateLimitEvents.createdAt));
+    const delay = failureDelayMs(failures.length);
+    if (delay === 0) continue;
+    const until = failures[0]!.createdAt.getTime() + delay;
+    if (now.getTime() < until) return { allowed: false, bucket: rule.bucket, retryAfterSeconds: Math.max(1, Math.ceil((until - now.getTime()) / 1000)) };
+  }
+  return { allowed: true };
+}
+
+export async function recordFailures(db: AppDatabase, rules: FailureRule[], now: Date = new Date()): Promise<void> {
+  if (rules.length === 0) return;
+  await db.insert(rateLimitEvents).values(rules.map((rule) => ({ bucket: rule.bucket, keyHash: rateLimitKeyHash(rule.bucket, rule.key), createdAt: now })));
+}
+
+export async function clearFailures(db: AppDatabase, rules: FailureRule[]): Promise<void> {
+  for (const rule of rules) {
+    await db.delete(rateLimitEvents).where(and(eq(rateLimitEvents.bucket, rule.bucket), eq(rateLimitEvents.keyHash, rateLimitKeyHash(rule.bucket, rule.key))));
+  }
 }

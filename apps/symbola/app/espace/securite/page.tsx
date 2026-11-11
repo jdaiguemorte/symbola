@@ -4,6 +4,7 @@ import { ScreenHelp } from "@/app/screen-help";
 import { countTrustedDevices } from "@symbola/auth";
 import { appDatabase } from "@symbola/db/client";
 import { requireClient } from "@/lib/guards";
+import { SignOutEverywhereForm } from "../../sign-out-everywhere-form";
 import { TrustedDevicesForm } from "../../trusted-devices-form";
 import { ClientMfaSetup } from "./mfa-forms";
 
@@ -30,6 +31,8 @@ export default async function ClientSecurityPage() {
       <p>{t("mfaIntro")}</p>
       {auth.user.mfaEnabled ? <p role="status">{t("mfaAlreadyEnabled")}</p> : <ClientMfaSetup />}
       {trustedDevices !== null ? <TrustedDevicesForm count={trustedDevices} /> : null}
+      {/* Lot 24b (SEC-06) : déconnexion à distance. */}
+      <SignOutEverywhereForm />
     </main>
   );
 }

@@ -7,7 +7,7 @@ import { starterDemoQuote } from "@symbola/starter-templates";
 import { appDatabase, type AppDatabase } from "@symbola/db/client";
 import { parseEnv } from "@symbola/env";
 import { createStorageClient, deletePrivateObject, PrivateObjectNotFoundError, readPrivateObject, uploadFile } from "@symbola/files";
-import { sendMail } from "@symbola/mail";
+import { reserveOrganizationMail, sendMail } from "@symbola/mail";
 import { parisDaysSince } from "@symbola/i18n";
 import type {
   CatalogItem,
@@ -1176,6 +1176,9 @@ export async function sendQuoteForSignature(input: SendForSignatureInput): Promi
     for (const signer of detail.signature?.signers ?? []) {
       const mail = signingMail({ locale: input.locale, organizationName, number: quote.number, url: signer.signingUrl });
       try {
+        // Lot 24b (SEC-22, décision D5) : au-delà du plafond de l'heure, l'e-mail
+        // ne part pas ; la planner copie le lien depuis le devis.
+        await reserveOrganizationMail(input.organizationId);
         await sendMail({ to: signer.email, ...mail });
       } catch (error) {
         // La demande existe chez le fournisseur : on n'annule rien, la

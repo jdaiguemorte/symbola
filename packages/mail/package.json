@@ -12,6 +12,7 @@
     "test:integration": "vitest run --config vitest.integration.config.ts"
   },
   "dependencies": {
+    "@symbola/db": "workspace:*",
     "@symbola/env": "workspace:*",
     "nodemailer": "^10.2.1"
   },

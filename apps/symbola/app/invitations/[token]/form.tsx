@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { useTranslations } from "next-intl";
 import { acceptInvitationAction, type AcceptInvitationFormState } from "./actions";
+import { HoneypotField } from "@/app/ui/honeypot-field";
 
 export function AcceptInvitationForm({ token }: { token: string }) {
   const t = useTranslations("Invitation");
@@ -15,6 +16,7 @@ export function AcceptInvitationForm({ token }: { token: string }) {
 
   return (
     <form action={formAction}>
+        <HoneypotField />
       <input type="hidden" name="token" value={token} />
       <label>
         {t("choosePassword")}

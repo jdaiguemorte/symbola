@@ -1,6 +1,7 @@
 "use server";
 
 // PRD-EVT-06 — invitation et retrait des accès des mariés, depuis la fiche.
+import { MailQuotaExceededError } from "@symbola/mail";
 import { revalidatePath } from "next/cache";
 import { getLocale, getTranslations } from "next-intl/server";
 import {
@@ -44,6 +45,8 @@ export async function inviteClientAction(_prevState: ClientAccessFormState, form
     return { success: true, linked: result.invitationToken === null };
   } catch (error) {
     if (error instanceof EventNotFoundError) return { error: t("eventNotFound") };
+    // Lot 24b (SEC-22) : plafond d'envois de l'heure atteint.
+    if (error instanceof MailQuotaExceededError) return { error: t("mailQuotaReached", { minutes: Math.max(1, Math.ceil(error.retryAfterSeconds / 60)) }) };
     if (error instanceof ClientEmailUnavailableError) return { error: t("clientEmailUnavailable") };
     if (error instanceof ClientAlreadyInvitedError) return { error: t("clientAlreadyInvited") };
     if (error instanceof RangeError) return { error: t("invalidEmail") };

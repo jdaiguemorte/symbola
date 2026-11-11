@@ -49,6 +49,8 @@ describe("Lot 9 — Mot de passe oublié", () => {
     expect(await isPasswordResetTokenValid(db, request!.token)).toBe(true);
 
     expect(await resetPassword(db, { token: request!.token, password: "court" })).toBe("password_too_short");
+    // Lot 24b (SEC-03) : un mot de passe connu comme compromis est refusé, le lien reste valable.
+    expect(await resetPassword(db, { token: request!.token, password: "Password1234!" })).toBe("password_compromised");
     expect(await resetPassword(db, { token: request!.token, password: "nouveau-mot-de-passe" })).toBe("success");
     expect(await sessionCount(user.id)).toBe(0);
     expect(await isPasswordResetTokenValid(db, request!.token)).toBe(false);

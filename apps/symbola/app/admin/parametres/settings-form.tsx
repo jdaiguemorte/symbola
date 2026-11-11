@@ -13,6 +13,7 @@ export function PlatformSettingsForm({
   importUndoRetentionDays,
   importMaxSheets,
   privacyExportRetentionDays,
+  mailHourlyCap,
 }: {
   franchiseThresholdServicesCents: number | null;
   franchiseThresholdGoodsCents: number | null;
@@ -22,6 +23,7 @@ export function PlatformSettingsForm({
   importUndoRetentionDays: number;
   importMaxSheets: number;
   privacyExportRetentionDays: number;
+  mailHourlyCap: number;
 }) {
   const t = useTranslations("AdminSettings");
   const initialState: PlatformSettingsFormState = {};
@@ -75,6 +77,13 @@ export function PlatformSettingsForm({
         <label>
           {t("privacyExportRetentionDays")}
           <input type="number" min="1" step="1" name="privacyExportRetentionDays" defaultValue={privacyExportRetentionDays} required />
+        </label>
+      </fieldset>
+      <fieldset>
+        <legend>{t("mailLegend")}</legend>
+        <label>
+          {t("mailHourlyCap")}
+          <input type="number" min="1" step="1" name="mailHourlyCap" defaultValue={mailHourlyCap} required />
         </label>
       </fieldset>
       <button type="submit" disabled={pending}>

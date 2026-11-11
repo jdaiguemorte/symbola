@@ -28,7 +28,7 @@ vi.mock("./auth-context", async (importOriginal) => ({
 const { loginAction } = await import("@/app/login/actions");
 const { forgotPasswordAction } = await import("@/app/mot-de-passe-oublie/actions");
 const { GET: instantSearch } = await import("@/app/recherche/instantanee/route");
-const { RATE_LIMITS } = await import("./rate-limit");
+const { checkFailures, checkRateLimit, RATE_LIMITS } = await import("./rate-limit");
 
 // Une adresse propre à chaque test (préfixe de documentation, RFC 5737) :
 // seule son empreinte est gardée, elle n'a pas à être routable.
@@ -47,11 +47,13 @@ describe("L16-SEC-02 — Limitation de débit de la connexion, du mot de passe o
     request.ip = freshIp();
   });
 
-  it("connexion : au-delà de 20 essais par adresse en 15 minutes, le message dit combien de minutes attendre", async () => {
+  // Avec des mots de passe faux, le délai de SEC-04 intervient dès le dixième
+  // échec (voir plus bas) : la fenêtre de 20 essais par adresse se vérifie seule.
+  it("connexion : au-delà de 20 essais par adresse en 15 minutes, la fenêtre refuse et dit combien de minutes attendre", async () => {
     for (let attempt = 0; attempt < RATE_LIMITS.login.ip.limit; attempt += 1) {
-      expect(await loginAction({}, form({ email: unknownEmail(), password: "mauvais" }))).toEqual({ error: "invalidCredentials" });
+      expect(await checkRateLimit("login", { account: unknownEmail() })).toEqual({ allowed: true });
     }
-    expect(await loginAction({}, form({ email: unknownEmail(), password: "mauvais" }))).toEqual({ error: 'tooMany {"minutes":15}' });
+    expect(await checkRateLimit("login", { account: unknownEmail() })).toMatchObject({ allowed: false, retryAfterSeconds: 15 * 60 });
   });
 
   it("connexion : au-delà de 10 essais sur un même compte, même depuis des adresses différentes", async () => {
@@ -82,5 +84,62 @@ describe("L16-SEC-02 — Limitation de débit de la connexion, du mot de passe o
     expect(refused.status).toBe(429);
     expect(Number(refused.headers.get("Retry-After"))).toBeGreaterThan(0);
     expect(await refused.json()).toEqual({ error: 'tooMany {"minutes":1}' });
+  });
+});
+
+// Lot 24b — SEC-04 : en plus de la fenêtre glissante, dix échecs depuis une même
+// adresse ou sur un même compte imposent un délai, qui double à chaque nouvel
+// échec (horloge simulée : packages/db/src/rate-limit.integration.test.ts).
+describe("SEC-04 — Dix échecs déclenchent un délai croissant", { timeout: 60_000 }, () => {
+  beforeEach(() => {
+    request.ip = freshIp();
+  });
+
+  it("dix mots de passe faux depuis une adresse, sur des comptes différents : la tentative suivante attend une minute", async () => {
+    for (let attempt = 0; attempt < 10; attempt += 1) {
+      expect(await loginAction({}, form({ email: unknownEmail(), password: "mauvais" }))).toEqual({ error: "invalidCredentials" });
+    }
+    expect(await loginAction({}, form({ email: unknownEmail(), password: "mauvais" }))).toEqual({ error: 'tooMany {"minutes":1}' });
+  });
+
+  it("mot de passe oublié : au-delà de la limite, chaque demande refusée compte ; au dixième refus, le délai croissant est armé", async () => {
+    const email = unknownEmail();
+    for (let attempt = 0; attempt < RATE_LIMITS.passwordReset.account.limit; attempt += 1) {
+      request.ip = freshIp();
+      expect(await forgotPasswordAction({}, form({ email }))).toEqual({ sent: true });
+    }
+    for (let refused = 0; refused < 10; refused += 1) {
+      request.ip = freshIp();
+      expect((await forgotPasswordAction({}, form({ email }))).error).toMatch(/^tooMany/);
+    }
+    // Le délai croissant est armé ; le message garde le plus long des deux délais (la fenêtre d'une heure).
+    expect(await checkFailures("passwordReset", { account: email })).toMatchObject({ allowed: false, retryAfterSeconds: 60 });
+    request.ip = freshIp();
+    expect(await forgotPasswordAction({}, form({ email }))).toEqual({ error: 'tooMany {"minutes":60}' });
+  });
+});
+
+// Lot 24b — SEC-22 : piège à robots des formulaires publics. Un envoi qui
+// remplit le champ caché est ignoré, sans compter dans la limitation de débit.
+describe("SEC-22 — Piège à robots des formulaires publics", { timeout: 60_000 }, () => {
+  beforeEach(() => {
+    request.ip = freshIp();
+  });
+
+  it("mot de passe oublié : un robot reçoit la réponse habituelle, rien ne part et rien ne compte", async () => {
+    const email = unknownEmail();
+    for (let attempt = 0; attempt < 10; attempt += 1) {
+      expect(await forgotPasswordAction({}, form({ email, site_web: "https://robot.example" }))).toEqual({ sent: true });
+    }
+    expect(await forgotPasswordAction({}, form({ email }))).toEqual({ sent: true });
+    expect(await checkFailures("passwordReset", { account: email })).toEqual({ allowed: true });
+  });
+
+  it("connexion : un robot est refusé comme un mot de passe faux, sans échec compté", async () => {
+    const email = unknownEmail();
+    for (let attempt = 0; attempt < 12; attempt += 1) {
+      expect(await loginAction({}, form({ email, password: "mauvais", site_web: "x" }))).toEqual({ error: "invalidCredentials" });
+    }
+    expect(await checkFailures("login", { account: email })).toEqual({ allowed: true });
   });
 });

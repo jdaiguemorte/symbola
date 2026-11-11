@@ -101,7 +101,8 @@
     "documentsSettings": "Documents : logo, couleur, IBAN",
     "privacySearch": "Rechercher une personne (RGPD)",
     "moreTasks": "{count, plural, one {Et # autre tâche.} other {Et # autres tâches.}}",
-    "moreFollowUps": "{count, plural, one {Et # autre à relancer.} other {Et # autres à relancer.}}"
+    "moreFollowUps": "{count, plural, one {Et # autre à relancer.} other {Et # autres à relancer.}}",
+    "mailQuotaReached": "Plafond d'envois atteint : {sent} e-mails envoyés dans l'heure (plafond : {cap}). Les e-mails aux signataires et aux mariés reprendront vers {time}."
   },
   "Admin": {
     "createOrganizationTitle": "Créer une organisation",
@@ -186,6 +187,7 @@
     "invalidOrExpired": "Ce lien d'invitation est invalide ou a expiré.",
     "alreadyAccepted": "Cette invitation a déjà été utilisée.",
     "missingPassword": "Le mot de passe est obligatoire.",
+    "passwordCompromised": "Ce mot de passe figure parmi les mots de passe les plus courants ou déjà compromis. Choisissez-en un autre, par exemple une phrase de plusieurs mots.",
     "passwordTooShort": "Le mot de passe doit faire au moins 12 caractères."
   },
   "Profile": {
@@ -274,7 +276,9 @@
     "invalidImportLimits": "Les limites de l'import et la durée des exports doivent être des nombres entiers positifs (20 Mo au plus).",
     "privacyLegend": "Données personnelles (RGPD)",
     "privacyExportRetentionDays": "Durée pendant laquelle un export RGPD reste téléchargeable (jours)",
-    "importMaxSheets": "Fiches événement PDF déposées à la fois"
+    "importMaxSheets": "Fiches événement PDF déposées à la fois",
+    "mailLegend": "Envois d'e-mails",
+    "mailHourlyCap": "Plafond d'e-mails par organisation et par heure (signataires, mariés invités)"
   },
   "Tour": {
     "hub": [
@@ -439,7 +443,7 @@
     },
     "profile": {
       "title": "Mon compte et la sécurité",
-      "body": "Choisissez la langue dans laquelle Symbola s'affiche pour vous. Votre mot de passe et votre double authentification protègent votre compte ; « Oublier tous mes appareils » redemande le code sur les appareils de confiance.",
+      "body": "Choisissez la langue dans laquelle Symbola s'affiche pour vous. Votre mot de passe et votre double authentification protègent votre compte ; « Oublier tous mes appareils » redemande le code sur les appareils de confiance. « Déconnecter tous mes autres appareils » ferme vos autres sessions, par exemple après la perte d'un téléphone.",
       "faq": [
         {
           "q": "Comment changer mon mot de passe ?",
@@ -872,6 +876,10 @@
     "ledgerArchive": {
       "title": "Archive comptable",
       "body": "Chaque facture, avoir et encaissement est enchaîné au précédent par une empreinte, et chaque facture est conservée telle qu'émise. Téléchargez les écritures d'une année pour votre comptable, retrouvez les originaux, et vérifiez que rien n'a été modifié. Symbola vérifie aussi la chaîne chaque nuit."
+    },
+    "team": {
+      "title": "Équipe",
+      "body": "La liste des comptes de votre organisation : vous, titulaire, et vos collaborateurs. « Retirer l'accès » ferme tout de suite les sessions d'un collaborateur, sur tous ses appareils, et l'empêche de se reconnecter ; ses travaux restent dans l'organisation. Le retrait va au journal d'activité."
     }
   },
   "Aide": {
@@ -1290,7 +1298,8 @@
     "deleteTemplateTitle": "Supprimer le modèle « {name} » ?",
     "deleteProgramTemplateBody": "Les programmes déjà appliqués aux événements ne changent pas.",
     "deleteTaskTemplateBody": "Les tâches déjà créées sur les événements restent.",
-    "deleteTemplateConfirm": "Supprimer le modèle"
+    "deleteTemplateConfirm": "Supprimer le modèle",
+    "mailQuotaReached": "Plafond d'envois atteint : votre organisation a envoyé le nombre maximal d'e-mails de l'heure. Réessayez dans {minutes} minutes."
   },
   "Budget": {
     "title": "Budget",
@@ -1763,6 +1772,7 @@
     "accountCreated": "Votre compte est créé.",
     "goToLogin": "Se connecter",
     "passwordMismatch": "Les deux mots de passe ne sont pas identiques.",
+    "passwordCompromised": "Ce mot de passe figure parmi les mots de passe les plus courants ou déjà compromis. Choisissez-en un autre, par exemple une phrase de plusieurs mots.",
     "passwordTooShort": "Le mot de passe doit contenir au moins 12 caractères.",
     "invitationInvalid": "Ce lien d'invitation n'est plus valable. Demandez une nouvelle invitation à votre planner.",
     "invitationAlreadyAccepted": "Cette invitation a déjà servi : connectez-vous avec votre compte.",
@@ -2641,6 +2651,7 @@
     "confirmPassword": "Confirmez le mot de passe",
     "save": "Enregistrer le mot de passe",
     "mismatch": "Les deux mots de passe ne sont pas identiques.",
+    "compromised": "Ce mot de passe figure parmi les mots de passe les plus courants ou déjà compromis. Choisissez-en un autre, par exemple une phrase de plusieurs mots.",
     "tooShort": "Le mot de passe doit faire au moins 12 caractères.",
     "invalidOrExpired": "Ce lien n'est plus valable : il a déjà servi ou a expiré.",
     "askAgain": "Demander un nouveau lien",
@@ -3720,7 +3731,8 @@
     "documents": "Documents",
     "privacyAlerts": "{count, plural, one {# demande RGPD en alerte} other {# demandes RGPD en alerte}}",
     "activityLog": "Journal d'activité",
-    "accountingArchive": "Archive comptable"
+    "accountingArchive": "Archive comptable",
+    "team": "Équipe"
   },
   "Common": {
     "closePanel": "Fermer le panneau",
@@ -3887,12 +3899,14 @@
     "openQuote": "Voir le devis",
     "openEvent": "Voir l'événement",
     "reasonLabel": "Motif : {reason}",
+    "sessionsRevoked": "{count, plural, =0 {aucune autre session} one {# session fermée} other {# sessions fermées}}",
     "refusedRoute": "Adresse demandée : {route}",
     "methodPassword": "par mot de passe",
     "methodCode": "avec le code",
     "methodTrustedDevice": "appareil de confiance",
     "failurePassword": "mot de passe incorrect",
     "failureCode": "code incorrect",
+    "failureDisabled": "accès retiré",
     "failureLocked": "compte verrouillé",
     "quoteVersion": "{number}, version {version}",
     "signers": "{number}, {count, plural, =1 {# signataire} other {# signataires}}",
@@ -3923,7 +3937,9 @@
       "hub_invitation_accepted": "Invitation acceptée",
       "hub_module_enabled": "Module activé",
       "hub_module_disabled": "Module retiré",
+      "hub_sessions_revoked": "Tous les appareils déconnectés",
       "hub_user_mfa_reset": "Double authentification réinitialisée",
+      "hub_member_removed": "Accès d'un collaborateur retiré",
       "hub_access_refused": "Accès refusé : objet introuvable",
       "hub_platform_settings_updated": "Réglages de la plateforme modifiés",
       "hub_privacy_export_created": "Export RGPD préparé",
@@ -3945,7 +3961,8 @@
       "ops_backup_restored": "Sauvegarde restaurée",
       "quotes_original_altered": "Original altéré détecté",
       "quotes_ledger_anomaly_detected": "Anomalie dans la chaîne des pièces",
-      "quotes_archive_exported": "Archive comptable exportée"
+      "quotes_archive_exported": "Archive comptable exportée",
+      "hub_mail_quota_reached": "Plafond d'envois de l'heure atteint"
     },
     "categories": {
       "connexion": "Connexions",
@@ -4076,5 +4093,37 @@
       "object_altered": "Pièce modifiée, rang {sequence} ({kind})",
       "object_unchained": "Pièce sans écriture ({kind})"
     }
+  },
+  "Team": {
+    "title": "Équipe",
+    "subtitle": "Les comptes de votre organisation, et le retrait d'un accès.",
+    "ownerOnly": "L'équipe se gère par la titulaire du compte.",
+    "listTitle": "Comptes de l'équipe",
+    "columnEmail": "E-mail",
+    "columnRole": "Rôle",
+    "columnLastLogin": "Dernière connexion",
+    "columnAccess": "Accès",
+    "columnActions": "Actions",
+    "roles": {
+      "owner": "Titulaire",
+      "member": "Collaborateur"
+    },
+    "accessActive": "Actif",
+    "accessRemoved": "Retiré le {date}",
+    "remove": "Retirer l'accès de {email}",
+    "confirmTitle": "Retirer l'accès de {email} ?",
+    "confirmBody": "Ses sessions sont fermées tout de suite, sur tous ses appareils, et ce compte ne pourra plus se connecter. Ses travaux restent dans l'organisation.",
+    "confirmRemove": "Retirer l'accès",
+    "cancel": "Annuler",
+    "removed": "Accès retiré. Les sessions de ce compte sont fermées."
+  },
+  "SignOutEverywhere": {
+    "title": "Appareils connectés",
+    "intro": "Téléphone perdu, ordinateur partagé ? Fermez toutes vos autres sessions ; celle-ci reste ouverte, et le code de double authentification sera redemandé partout.",
+    "submit": "Déconnecter tous mes autres appareils",
+    "done": "{count, plural, =0 {Aucune autre session n'était ouverte.} one {# autre session fermée.} other {# autres sessions fermées.}} Vos appareils de confiance sont oubliés."
+  },
+  "Honeypot": {
+    "label": "Laisser ce champ vide"
   }
 }

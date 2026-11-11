@@ -1,0 +1,1 @@
+ALTER TABLE "hub"."users" ADD COLUMN "disabled_at" timestamp with time zone;

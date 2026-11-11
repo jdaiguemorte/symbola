@@ -31,7 +31,7 @@ export function actorLabel(entry: Pick<ActivityEntry, "actorKind" | "actorLabel"
 }
 
 const METHODS: Record<string, string> = { password: "methodPassword", code: "methodCode", trusted_device: "methodTrustedDevice" };
-const FAILURES: Record<string, string> = { password: "failurePassword", code: "failureCode", locked: "failureLocked" };
+const FAILURES: Record<string, string> = { password: "failurePassword", code: "failureCode", locked: "failureLocked", disabled: "failureDisabled" };
 const STATUSES: Record<string, string> = { completed: "statusCompleted", partial: "statusPartial", pending: "statusPending" };
 
 // Détail d'une ligne, sans donnée personnelle : il n'y en a pas dans le journal.
@@ -47,6 +47,8 @@ export function activityDetail(entry: Pick<ActivityEntry, "action" | "details" |
       return FAILURES[text(details, "reason") ?? ""] ? t(FAILURES[text(details, "reason")!]!) : null;
     case "hub.trusted_devices.forgotten":
       return t("devices", { count: number(details, "count") ?? 0 });
+    case "hub.sessions.revoked":
+      return t("sessionsRevoked", { count: number(details, "count") ?? 0 });
     case "hub.access.refused": {
       const route = text(details, "route");
       return route ? t("refusedRoute", { route }) : null;

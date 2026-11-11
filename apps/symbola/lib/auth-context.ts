@@ -14,7 +14,9 @@ import { registerActorResolver, type Actor } from "@symbola/db/actor";
 import { appDatabase } from "@symbola/db/client";
 import { findSessionActor, isPlannerRole, requireUser, type AuthResult } from "@symbola/auth";
 
-export const SESSION_COOKIE_NAME = "symbola_session";
+// Lot 24b (SEC-05) : nom et réglages du cookie partagés avec le middleware.
+export { SESSION_COOKIE_NAME } from "./session-cookie";
+import { SESSION_COOKIE_NAME, sessionCookieOptions } from "./session-cookie";
 // L16-SEC-03 (lot 16, ADR 0038) : appareil de confiance, dispensé du code de double
 // authentification pendant 90 jours ; seul son hachage est en base.
 export const TRUSTED_DEVICE_COOKIE_NAME = "symbola_appareil";
@@ -82,13 +84,7 @@ export async function getClientAuthContext(): Promise<PlannerAuthResult> {
 
 export async function setSessionCookie(token: string): Promise<void> {
   const cookieStore = await cookies();
-  cookieStore.set(SESSION_COOKIE_NAME, token, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 60 * 60 * 8, // 8h (PRD PRD-HUB-01, proposé)
-  });
+  cookieStore.set(SESSION_COOKIE_NAME, token, sessionCookieOptions());
 }
 
 export async function clearSessionCookie(): Promise<void> {

@@ -8,6 +8,7 @@ import type { AppDatabase } from "@symbola/db/client";
 import { passwordResets, sessions, trustedDevices, users } from "@symbola/db/schema/hub";
 import { connectionAccount, journalConnection } from "./connection-journal";
 import { hashPassword } from "./password";
+import { checkPassword, PASSWORD_MIN_LENGTH } from "./password-policy";
 import { isPlannerRole, type Role } from "./roles";
 import { generateSessionToken, hashSessionToken } from "./session-token";
 
@@ -15,7 +16,8 @@ export const PASSWORD_RESET_DURATION_MS = 30 * 60 * 1000;
 // Un seul e-mail par compte toutes les 5 minutes : un formulaire public ne
 // doit pas servir à inonder une boîte de réception.
 const PASSWORD_RESET_THROTTLE_MS = 5 * 60 * 1000;
-export const PASSWORD_MIN_LENGTH = 12;
+// Lot 24b (SEC-03) : la règle vit dans password-policy.ts.
+export { PASSWORD_MIN_LENGTH };
 
 export type PasswordResetRequest = { token: string; email: string; language: "fr" | "en" | null; expiresAt: Date };
 
@@ -26,7 +28,8 @@ export type PasswordResetRequest = { token: string; email: string; language: "fr
  */
 export async function requestPasswordReset(db: AppDatabase, email: string, now: Date = new Date()): Promise<PasswordResetRequest | null> {
   const [user] = await db.select().from(users).where(eq(users.email, email.trim()));
-  if (!user) return null;
+  // Lot 24b (SEC-06) : pas de lien pour un compte dont l'accès a été retiré.
+  if (!user || user.disabledAt) return null;
 
   const [recent] = await db
     .select({ id: passwordResets.id })
@@ -52,7 +55,7 @@ export async function requestPasswordReset(db: AppDatabase, email: string, now: 
   return { token, email: user.email, language: user.language, expiresAt };
 }
 
-export type PasswordResetOutcome = "success" | "invalid_or_expired" | "password_too_short";
+export type PasswordResetOutcome = "success" | "invalid_or_expired" | "password_too_short" | "password_compromised";
 
 /**
  * Nouveau mot de passe par un lien valide : le lien ne sert qu'une fois,
@@ -64,7 +67,9 @@ export async function resetPassword(
   input: { token: string; password: string; now?: Date },
 ): Promise<PasswordResetOutcome> {
   const now = input.now ?? new Date();
-  if (input.password.length < PASSWORD_MIN_LENGTH) return "password_too_short";
+  const verdict = checkPassword(input.password);
+  if (verdict === "too_short") return "password_too_short";
+  if (verdict === "compromised") return "password_compromised";
   const [reset] = await db.select().from(passwordResets).where(eq(passwordResets.tokenHash, hashSessionToken(input.token)));
   if (!reset || reset.usedAt || reset.expiresAt.getTime() <= now.getTime()) return "invalid_or_expired";
 

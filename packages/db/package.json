@@ -19,7 +19,8 @@
     "./events/worker": "./src/events/worker.ts",
     "./usage/increment": "./src/usage/increment.ts",
     "./search": "./src/search.ts",
-    "./rate-limit": "./src/rate-limit.ts"
+    "./rate-limit": "./src/rate-limit.ts",
+    "./mail-quota": "./src/mail-quota.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",

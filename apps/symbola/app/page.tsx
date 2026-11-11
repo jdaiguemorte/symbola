@@ -2,7 +2,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { after } from "next/server";
 import { getLocale, getTranslations } from "next-intl/server";
-import { parisToday, type Locale } from "@symbola/i18n";
+import { formatDateTime, parisToday, type Locale } from "@symbola/i18n";
+import { organizationMailQuota } from "@symbola/mail";
 import { appDatabase } from "@symbola/db/client";
 import { getOrganizationProfile, isModuleEnabled } from "@/modules/hub/service";
 import { requireSignedIn } from "@/lib/guards";
@@ -64,6 +65,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const query = await searchParams;
   const tour = await loadPageTour(auth.user.id, "hub", query.visite);
   const organizationId = auth.user.organizationId;
+  // Lot 24b (SEC-22, décision D5) : plafond d'e-mails de l'heure atteint.
+  const mailQuota = organizationId ? await organizationMailQuota(organizationId) : null;
 
   return (
     <main>
@@ -73,6 +76,11 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       {onboardingIncomplete ? (
         <p role="status">
           {t("onboardingIncomplete")} <Link href="/parametres">{t("completeProfile")}</Link>
+        </p>
+      ) : null}
+      {mailQuota?.reached && mailQuota.resumesAt ? (
+        <p className="notice" role="alert">
+          {t("mailQuotaReached", { sent: mailQuota.sent, cap: mailQuota.cap, time: formatDateTime(mailQuota.resumesAt, locale) })}
         </p>
       ) : null}
       {/* RGPD-04 : demandes dont l'échéance approche, titulaire seulement. */}

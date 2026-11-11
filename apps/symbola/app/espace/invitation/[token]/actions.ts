@@ -5,8 +5,10 @@ import { getTranslations } from "next-intl/server";
 import {
   acceptEventClientInvitation,
   ClientEmailUnavailableError,
+  ClientPasswordCompromisedError,
   ClientPasswordTooShortError,
 } from "@/modules/events/service";
+import { isHoneypotFilled } from "@/lib/honeypot";
 
 export type ClientInvitationFormState = { error?: string; success?: boolean };
 
@@ -15,6 +17,8 @@ export async function acceptClientInvitationAction(
   formData: FormData,
 ): Promise<ClientInvitationFormState> {
   const t = await getTranslations("ClientSpace");
+  // Lot 24b (SEC-22) : envoi d'un robot, ignoré.
+  if (isHoneypotFilled(formData)) return { error: t("invitationInvalid") };
   const token = String(formData.get("token") ?? "");
   const password = String(formData.get("password") ?? "");
   if (password !== String(formData.get("passwordConfirmation") ?? "")) return { error: t("passwordMismatch") };
@@ -26,6 +30,7 @@ export async function acceptClientInvitationAction(
     return { success: true };
   } catch (error) {
     if (error instanceof ClientPasswordTooShortError) return { error: t("passwordTooShort") };
+    if (error instanceof ClientPasswordCompromisedError) return { error: t("passwordCompromised") };
     if (error instanceof ClientEmailUnavailableError) return { error: t("invitationInvalid") };
     throw error;
   }

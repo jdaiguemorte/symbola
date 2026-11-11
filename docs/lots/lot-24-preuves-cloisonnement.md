@@ -256,3 +256,37 @@ Toutes ont leur script d'annulation.
 - charger le jeu fictif sur le staging demandera un réglage explicite (le staging tourne avec
   `NODE_ENV=production`), à décider au déploiement d'ensemble ;
 - au déploiement d'ensemble : migrations 0095 à 0100 (index seulement, quelques secondes).
+
+## Bilan du lot 24b (11/11/2026)
+
+- **Mots de passe compromis** (SEC-03, Q22, D2) : `checkPassword` (`@symbola/auth`) refuse un mot
+  de passe de la liste `@zxcvbn-ts/language-common` (49 233 mots de passe issus de fuites, contrôle
+  hors ligne). La liste ne comptant que 308 entrées de douze caractères ou plus, la **base** du mot
+  de passe est comparée aussi (minuscules, sans chiffres ni symboles en bordure, sans
+  substitutions, sans répétition) : « Password1234! » est refusé. Une seule règle pour la
+  réinitialisation et les deux invitations (le module Événements recopiait la longueur). ADR 0063.
+- **Délai croissant** (SEC-04) : à partir du dixième échec des dernières 24 heures, par compte et
+  par adresse (mot de passe faux, demande de lien refusée), la tentative suivante attend 1, puis
+  2, 4, 8… minutes, jusqu'à 1 heure ; une connexion réussie remet le compte à zéro. S'ajoute à la
+  fenêtre glissante et au verrouillage ; le message donne le plus long des délais.
+- **Cookie de session** (SEC-05) : prolongé à chaque navigation, comme la session en base (8 heures
+  sans activité) ; HttpOnly, SameSite=Lax, Secure en production, testés.
+- **Révocation** (SEC-06, D3) : Paramètres › Équipe (titulaire) liste les comptes de l'équipe et
+  retire l'accès d'un collaborateur après confirmation (migration 0101) : sessions et appareils de
+  confiance supprimés, connexion et lien de réinitialisation refusés, session refusée dès la
+  requête suivante, ligne au journal. « Déconnecter tous mes autres appareils » dans Mon compte et
+  l'espace du marié.
+- **Envois** (SEC-22, D5) : plafond de 100 e-mails par heure et par organisation, réglable par
+  l'Admin (migration 0102), pour les e-mails vers une adresse saisie (signataires, mariés invités) ;
+  au-delà, refus avec le délai, ligne au journal (une par heure) et bandeau à l'accueil. Piège à
+  robots sur les cinq formulaires publics.
+- **Suite d'abus** (SEC-36) : `e2e/sec-36-suite-abus.spec.ts` rejoue SC-S1, S2, S4, S5 et S6 ;
+  SC-S3 est écrit et marqué « à venir » (lot 26). Au passage, SC-S4 a montré qu'un lien de marié
+  expiré affichait encore le formulaire : la page le refuse désormais dès l'ouverture.
+
+**Reste, hors du 24b** :
+
+- SC-S3 et les liens personnels des prestataires (lot 26) ;
+- la gestion complète de l'équipe (inviter un collaborateur, changer un rôle, rendre un accès) ;
+- une liste de mots de passe français (`@zxcvbn-ts/language-fr`), si Julien le souhaite (ADR 0063) ;
+- au déploiement d'ensemble : migrations 0101 et 0102.

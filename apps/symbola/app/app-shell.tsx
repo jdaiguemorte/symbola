@@ -294,6 +294,8 @@ export async function AppShell({ children }: { children: ReactNode }) {
           items: [
             { href: "/parametres", label: tSettings("company") },
             { href: "/profil", label: tSettings("account") },
+            // Lot 24b (SEC-06, décision D3) : équipe, titulaire seulement.
+            ...(isOwner ? [{ href: "/parametres/equipe", label: tSettings("team") }] : []),
           ],
         },
         ...(events || budget

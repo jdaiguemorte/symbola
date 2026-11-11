@@ -61,6 +61,16 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     await expect(rollback("0099_inconnue")).rejects.toBeInstanceOf(RollbackRefusedError);
   });
 
+  it("lot 24b (SEC-22, SEC-06) — l'annulation de 0102 puis 0101 retire le plafond d'envois et la date de retrait des accès", async () => {
+    await expect(rollback("0101_lot24b_hub_member_removal")).rejects.toBeInstanceOf(RollbackRefusedError);
+    expect(await hasColumn("hub", "platform_settings", "mail_hourly_cap")).toBe(true);
+    await rollback("0102_lot24b_hub_mail_cap");
+    expect(await hasColumn("hub", "platform_settings", "mail_hourly_cap")).toBe(false);
+    expect(await hasColumn("hub", "users", "disabled_at")).toBe(true);
+    await rollback("0101_lot24b_hub_member_removal");
+    expect(await hasColumn("hub", "users", "disabled_at")).toBe(false);
+  });
+
   it("lot 24a (DAT-01) — l'annulation de 0100 à 0095 retire les index sur organization_id, module par module", async () => {
     const steps: [string, string, string][] = [
       ["0100_lot24a_vendors_organization_index", "vendors", "vendors_organization_idx"],

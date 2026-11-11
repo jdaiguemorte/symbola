@@ -92,6 +92,9 @@ export const users = hubSchema.table("users", {
   // un compte créé avant le lot 6 : sa date de création fait foi (décision
   // de Julien du 02/11/2026).
   lastLoginAt: timestamp("last_login_at", { withTimezone: true }),
+  // Lot 24b (SEC-06, décision D3) : accès retiré par la titulaire. Le compte ne
+  // se connecte plus ; ses sessions et appareils de confiance sont supprimés.
+  disabledAt: timestamp("disabled_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdBy: uuid("created_by"),
@@ -304,6 +307,9 @@ export const platformSettings = hubSchema.table("platform_settings", {
   // de 6 mois à 1 an recommandée par la CNIL pour les journaux ; à confirmer
   // par le DPO (fiche, question 11).
   connectionTraceRetentionMonths: integer("connection_trace_retention_months").notNull().default(12),
+  // Lot 24b (SEC-22, décision D5) : plafond d'e-mails envoyés par organisation
+  // et par heure (signataires, mariés invités), réglé par l'Admin.
+  mailHourlyCap: integer("mail_hourly_cap").notNull().default(100),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),

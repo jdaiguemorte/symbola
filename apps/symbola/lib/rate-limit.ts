@@ -6,7 +6,16 @@
 import { headers as requestHeaders } from "next/headers";
 import { getTranslations } from "next-intl/server";
 import { appDatabase } from "@symbola/db/client";
-import { consumeRateLimits, purgeRateLimitEvents, type RateLimitDecision, type RateLimitRule } from "@symbola/db/rate-limit";
+import {
+  checkFailureBackoff,
+  clearFailures,
+  consumeRateLimits,
+  purgeRateLimitEvents,
+  recordFailures,
+  type FailureRule,
+  type RateLimitDecision,
+  type RateLimitRule,
+} from "@symbola/db/rate-limit";
 
 const MINUTE = 60_000;
 
@@ -68,6 +77,40 @@ export async function requestClientIp(): Promise<string | null> {
 export async function checkRateLimit(action: RateLimitedAction, subject: { account: string | null; headers?: Headers }): Promise<RateLimitDecision> {
   const ip = clientIpFrom(subject.headers ?? (await requestHeaders()));
   return consumeRateLimits(appDatabase(), rateLimitRules(action, { ip, account: subject.account }));
+}
+
+// Lot 24b (SEC-04) — délai croissant après dix échecs, par adresse et par
+// compte : mot de passe faux à la connexion, demande de lien refusée. Il
+// s'ajoute à la fenêtre glissante et au verrouillage du compte.
+export type FailureAction = "login" | "passwordReset";
+
+function failureRules(action: FailureAction, subject: { ip: string | null; account: string | null }): FailureRule[] {
+  const rules: FailureRule[] = [];
+  if (subject.ip) rules.push({ bucket: `${action}.failures.ip`, key: subject.ip });
+  const account = subject.account?.trim().toLowerCase();
+  if (account) rules.push({ bucket: `${action}.failures.account`, key: account });
+  return rules;
+}
+
+export async function checkFailures(action: FailureAction, subject: { account: string | null; headers?: Headers }): Promise<RateLimitDecision> {
+  const ip = clientIpFrom(subject.headers ?? (await requestHeaders()));
+  return checkFailureBackoff(appDatabase(), failureRules(action, { ip, account: subject.account }));
+}
+
+export async function recordFailure(action: FailureAction, subject: { account: string | null; headers?: Headers }): Promise<void> {
+  const ip = clientIpFrom(subject.headers ?? (await requestHeaders()));
+  await recordFailures(appDatabase(), failureRules(action, { ip, account: subject.account }));
+}
+
+// Un succès efface les échecs du compte, pas ceux de l'adresse.
+export async function clearAccountFailures(action: FailureAction, account: string): Promise<void> {
+  await clearFailures(appDatabase(), failureRules(action, { ip: null, account }));
+}
+
+// Délai à annoncer quand une ou plusieurs règles refusent : le plus long.
+export function longestWait(...decisions: RateLimitDecision[]): number | null {
+  const waits = decisions.flatMap((decision) => (decision.allowed ? [] : [decision.retryAfterSeconds]));
+  return waits.length === 0 ? null : Math.max(...waits);
 }
 
 export async function rateLimitMessage(retryAfterSeconds: number): Promise<string> {

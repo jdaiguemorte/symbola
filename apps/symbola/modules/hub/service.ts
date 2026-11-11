@@ -642,6 +642,8 @@ export type PlatformSettings = {
   privacyExportRetentionDays: number;
   // Lot 23 (décision D5) : durée de conservation des adresses IP des connexions.
   connectionTraceRetentionMonths: number;
+  // Lot 24b (SEC-22, décision D5) : plafond d'e-mails par organisation et par heure.
+  mailHourlyCap: number;
 };
 
 // ONB-02 — « Le seuil de chiffre d'affaires de la franchise est un
@@ -666,6 +668,7 @@ export async function getPlatformSettings(db: AppDatabase): Promise<PlatformSett
     importMaxSheets: row.importMaxSheets,
     privacyExportRetentionDays: row.privacyExportRetentionDays,
     connectionTraceRetentionMonths: row.connectionTraceRetentionMonths,
+    mailHourlyCap: row.mailHourlyCap,
   };
 }
 
@@ -674,7 +677,7 @@ export async function getPlatformSettings(db: AppDatabase): Promise<PlatformSett
 export async function setPlatformSettings(
   db: AppDatabase,
   input: { adminUserId: string } & Pick<PlatformSettings, "franchiseThresholdServicesCents" | "franchiseThresholdGoodsCents"> &
-    Partial<Pick<PlatformSettings, "importMaxBytes" | "importMaxRows" | "importDraftRetentionDays" | "importUndoRetentionDays" | "importMaxSheets" | "privacyExportRetentionDays">>,
+    Partial<Pick<PlatformSettings, "importMaxBytes" | "importMaxRows" | "importDraftRetentionDays" | "importUndoRetentionDays" | "importMaxSheets" | "privacyExportRetentionDays" | "mailHourlyCap">>,
 ): Promise<void> {
   await upsertPlatformSettings(db, {
     franchiseThresholdServicesCents: input.franchiseThresholdServicesCents,
@@ -685,6 +688,7 @@ export async function setPlatformSettings(
     ...(input.importUndoRetentionDays !== undefined ? { importUndoRetentionDays: input.importUndoRetentionDays } : {}),
     ...(input.importMaxSheets !== undefined ? { importMaxSheets: input.importMaxSheets } : {}),
     ...(input.privacyExportRetentionDays !== undefined ? { privacyExportRetentionDays: input.privacyExportRetentionDays } : {}),
+    ...(input.mailHourlyCap !== undefined ? { mailHourlyCap: input.mailHourlyCap } : {}),
   });
   await recordAudit(db, {
     organizationId: null,

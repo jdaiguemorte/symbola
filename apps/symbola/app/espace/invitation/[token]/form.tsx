@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
 import { acceptClientInvitationAction, type ClientInvitationFormState } from "./actions";
+import { HoneypotField } from "@/app/ui/honeypot-field";
 
 export function ClientInvitationForm({ token }: { token: string }) {
   const t = useTranslations("ClientSpace");
@@ -23,6 +24,7 @@ export function ClientInvitationForm({ token }: { token: string }) {
 
   return (
     <form action={formAction}>
+        <HoneypotField />
       <input type="hidden" name="token" value={token} />
       <label>
         {t("choosePassword")}

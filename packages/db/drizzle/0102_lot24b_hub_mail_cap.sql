@@ -1,0 +1,1 @@
+ALTER TABLE "hub"."platform_settings" ADD COLUMN "mail_hourly_cap" integer DEFAULT 100 NOT NULL;
