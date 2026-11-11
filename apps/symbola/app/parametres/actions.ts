@@ -71,7 +71,7 @@ export async function changeVatRegimeAction(
   return { success: true };
 }
 
-// Lot 13 (HUB-15) — délais de relance (titulaire et membres de l'équipe).
+// Lot 13 (L13-HUB-15) — délais de relance (titulaire et membres de l'équipe).
 export type FollowUpFormState = { error?: string; success?: boolean };
 
 export async function saveFollowUpDelaysAction(_prev: FollowUpFormState, formData: FormData): Promise<FollowUpFormState> {

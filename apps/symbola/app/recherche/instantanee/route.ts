@@ -11,7 +11,7 @@ const querySchema = z.string().trim().min(2).max(100);
 export async function GET(request: Request): Promise<Response> {
   const auth = await getPlannerAuthContext();
   if (auth.status !== "authenticated" || !auth.user.organizationId) return new Response(null, { status: 401 });
-  // SEC-02 (ADR 0044) : une recherche par frappe, limitée par compte et par adresse.
+  // L16-SEC-02 (ADR 0044) : une recherche par frappe, limitée par compte et par adresse.
   const limited = await checkRateLimit("search", { account: auth.user.id, headers: request.headers });
   if (!limited.allowed) return rateLimitedResponse(limited);
   const parsed = querySchema.safeParse(new URL(request.url).searchParams.get("q") ?? "");

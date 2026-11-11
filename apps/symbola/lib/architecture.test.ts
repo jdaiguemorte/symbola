@@ -1,4 +1,4 @@
-// Lot 16 (ARC-01, ADR 0043) — le code de l'app emprunte la réserve de
+// Lot 16 (L16-ARC-01, ADR 0043) — le code de l'app emprunte la réserve de
 // connexions partagée, et le module témoin hello est retiré.
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
@@ -21,7 +21,7 @@ function sources(dir: string): string[] {
 
 const runtime = RUNTIME_DIRS.flatMap((dir) => sources(join(ROOT, dir)));
 
-describe("ARC-01 — Une connexion partagée et une garde d'accès unique", () => {
+describe("L16-ARC-01 — Une connexion partagée et une garde d'accès unique", () => {
   it("le code de l'app n'ouvre ni ne ferme plus de connexion à lui : il emprunte la réserve partagée", () => {
     const opening = runtime.filter((file) => /\bcreateAppConnection\s*\(|\bsql\.end\s*\(|\bpg\.end\s*\(/.test(readFileSync(file, "utf8")));
     expect(opening.map((file) => relative(ROOT, file))).toEqual([]);

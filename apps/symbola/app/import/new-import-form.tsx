@@ -19,7 +19,7 @@ export function NewImportForm({
   defaultEntityType?: ImportEntityType | null;
 }) {
   const t = useTranslations("Import");
-  // Lot 16 (SEC-02) : le fichier part par sa route dédiée, pas par une action serveur.
+  // Lot 16 (L16-SEC-02) : le fichier part par sa route dédiée, pas par une action serveur.
   const [state, formAction, pending] = useUploadAction<StartImportFormState>("/import/envoi");
   // Lot 14c (IMP-08) : des fiches événement PDF, plusieurs à la fois.
   const [entityType, setEntityType] = useState<ImportEntityType | "">(defaultEntityType ?? (entityTypes.length === 1 ? entityTypes[0]! : ""));

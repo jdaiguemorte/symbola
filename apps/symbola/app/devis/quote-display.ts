@@ -17,7 +17,7 @@ export const QUOTE_STATUS_LABEL_KEYS: Record<QuoteStatus, string> = {
 };
 
 // DEV-03 : « en retard » s'affiche toujours en texte, la couleur ne fait
-// que l'accompagner (contraste supérieur à 7:1, même palette qu'EVT-03).
+// que l'accompagner (contraste supérieur à 7:1, même palette qu'PRD-EVT-03).
 // Pastilles de la charte (globals.css) : le libellé porte toujours l'information.
 export const OVERDUE_CLASS = "badge badge-terracotta";
 export const PAID_CLASS = "badge badge-sauge";

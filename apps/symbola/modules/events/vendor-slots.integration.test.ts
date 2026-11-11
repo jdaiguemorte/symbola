@@ -1,4 +1,4 @@
-// EVT-03 — postes prestataires d'un événement, contre un vrai PostgreSQL
+// PRD-EVT-03 — postes prestataires d'un événement, contre un vrai PostgreSQL
 // (RLS, ADR 0012), par la porte d'entrée du module.
 import { randomUUID } from "node:crypto";
 import { and, eq } from "drizzle-orm";
@@ -39,7 +39,7 @@ async function createEvent(organizationId: string) {
   });
 }
 
-describe("EVT-03 — Statut des postes prestataires", () => {
+describe("PRD-EVT-03 — Statut des postes prestataires", () => {
   it("quand un événement est créé, il reçoit la liste de postes par défaut de la planner", async () => {
     const organizationId = randomUUID();
     await addDefaultVendorSlots(organizationId, ["Lieu", "Traiteur", "Photographe"]);
@@ -161,7 +161,7 @@ describe("EVT-03 — Statut des postes prestataires", () => {
   });
 });
 
-describe("EVT-03 — Isolation par la porte d'entrée du module", () => {
+describe("PRD-EVT-03 — Isolation par la porte d'entrée du module", () => {
   it("refuse d'ajouter un poste à l'événement d'une autre organisation, ou de modifier son poste", async () => {
     const organizationId = randomUUID();
     const otherOrganizationId = randomUUID();

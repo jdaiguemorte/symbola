@@ -5,7 +5,7 @@
 - Précise : [0018](0018-caddy-remplace-traefik-proxy-partage.md) (proxy Caddy, qui reportait la
   limitation de débit) et [0037](0037-double-authentification-protegee.md) (double
   authentification protégée)
-- Story : SEC-02 (lot 16, spécification `docs/lots/lot-16-reprise-ux.md`)
+- Story : L16-SEC-02 (lot 16, spécification `docs/lots/lot-16-reprise-ux.md`)
 
 ## Contexte
 
@@ -17,7 +17,7 @@ Audit du 08/11/2026 (`docs/audits/2026-11-08-audit-complet.md`, S2, S5 et S6).
   - Le verrouillage par compte freine une attaque ciblée, mais pas le bourrage d'identifiants
     sur de nombreux comptes.
 - **S5** : toutes les actions serveur acceptaient 21 Mo, avant même le contrôle de session,
-  parce que les devis joints (BUD-03) en ont besoin.
+  parce que les devis joints (PRD-BUD-03) en ont besoin.
 - **S6** : ni `Permissions-Policy` ni `Cross-Origin-Opener-Policy`.
 
 ## Décision

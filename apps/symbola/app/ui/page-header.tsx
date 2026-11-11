@@ -1,4 +1,4 @@
-// Lot 16 (HUB-19, ADR 0039) — en-tête commun d'un écran : titre (et son
+// Lot 16 (L16-HUB-19, ADR 0039) — en-tête commun d'un écran : titre (et son
 // badge de statut), sous-titre, actions à droite. L'action principale est le
 // seul bouton plein ; l'aide n'y figure plus (le « ? » est dans la barre du haut).
 import type { ReactNode } from "react";

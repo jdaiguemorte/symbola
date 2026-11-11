@@ -7,7 +7,7 @@ import { sendForSignatureAction } from "./signature-actions";
 export type SignerDraft = { eventClientId: string | null; name: string; email: string };
 
 // DEV-02 — signataires saisis sur le devis (ADR 0021), pré-remplis depuis
-// les mariés de l'événement et leurs accès (EVT-06).
+// les mariés de l'événement et leurs accès (PRD-EVT-06).
 export function SendForSignatureForm({ quoteId, drafts, rows }: { quoteId: string; drafts: SignerDraft[]; rows: number }) {
   const t = useTranslations("Quotes");
   return (

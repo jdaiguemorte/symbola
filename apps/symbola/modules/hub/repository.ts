@@ -57,7 +57,7 @@ export async function findOrganizationById(db: AppDatabase, organizationId: stri
 }
 
 // Lot 17 (DEV-07) : la titulaire ou une planner corrige le SIRET saisi à la
-// création de l'organisation (HUB-03), imprimé sur ses documents.
+// création de l'organisation (PRD-HUB-03), imprimé sur ses documents.
 export async function updateOrganizationSiret(db: AppDatabase, organizationId: string, siret: string | null) {
   await db.update(organizations).set({ siret }).where(eq(organizations.id, organizationId));
 }
@@ -203,7 +203,7 @@ export async function resetHelpProgressItem(db: AppDatabase, userId: string, ite
     .where(and(eq(helpProgress.userId, userId), eq(helpProgress.itemKey, itemKey)));
 }
 
-// HUB-11 — progression de tous les comptes d'équipe (vue Admin) : clés
+// L10-HUB-11 — progression de tous les comptes d'équipe (vue Admin) : clés
 // d'aide, états et dates seulement.
 export async function findAllHelpProgress(db: AppDatabase) {
   return db.select().from(helpProgress);
@@ -240,13 +240,13 @@ export async function replaceInvitationToken(db: AppDatabase, invitationId: stri
     .where(and(eq(invitations.id, invitationId), isNull(invitations.acceptedAt)));
 }
 
-// HUB-11 (lot 10) — activation des modules de toutes les organisations, en une
+// L10-HUB-11 (lot 10) — activation des modules de toutes les organisations, en une
 // requête (une ligne seulement pour un module déjà basculé par l'Admin).
 export async function findAllOrganizationModules(db: AppDatabase) {
   return db.select().from(organizationModules);
 }
 
-// Lot 13 (HUB-18) — dernières exécutions du script de sauvegarde (lecture seule).
+// Lot 13 (L13-HUB-18) — dernières exécutions du script de sauvegarde (lecture seule).
 export async function findLatestBackupRun(db: AppDatabase) {
   const [row] = await db.select().from(backupRuns).orderBy(desc(backupRuns.startedAt)).limit(1);
   return row ?? null;

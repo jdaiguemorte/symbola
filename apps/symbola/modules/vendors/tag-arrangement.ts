@@ -1,4 +1,4 @@
-// Lot 21 (PRE-18, PRE-19, ADR 0050) — plans de rangement des étiquettes,
+// Lot 21 (L21-PRE-18, L21-PRE-19, ADR 0050) — plans de rangement des étiquettes,
 // en fonctions pures (le service les applique en une transaction) :
 // - étiquettes de départ : créer ce qui manque ; une étiquette existante du
 //   même libellé (sans casse ni accents, en français ou en anglais) prend le
@@ -144,7 +144,7 @@ function finalize(plan: TagPlan, tags: PlanTag[], registry: Registry, vendors: P
   return adjusted;
 }
 
-// PRE-18 — étiquettes de départ.
+// L21-PRE-18 — étiquettes de départ.
 export function planStarterTags(input: { tags: PlanTag[]; groups: PlanGroup[]; vendors: PlanVendor[]; catalog: PlanCatalogGroup[] }): {
   plan: TagPlan;
   created: number;
@@ -183,7 +183,7 @@ export function planStarterTags(input: { tags: PlanTag[]; groups: PlanGroup[]; v
   return { plan, created, placed, adjustedVendors };
 }
 
-// PRE-19 — rangement des étiquettes sans groupe ni famille (reprises de
+// L21-PRE-19 — rangement des étiquettes sans groupe ni famille (reprises de
 // l'import) ; scope : seulement ces étiquettes (celles d'un import).
 export function planTagArrangement(input: {
   tags: PlanTag[];

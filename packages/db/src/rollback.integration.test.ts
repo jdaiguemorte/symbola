@@ -120,14 +120,14 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     expect(await hasColumn("hello", "greetings", "message")).toBe(true);
   });
 
-  it("SEC-02 (lot 16) — l'annulation de 0078 retire la limitation de débit", async () => {
+  it("L16-SEC-02 (lot 16) — l'annulation de 0078 retire la limitation de débit", async () => {
     await expect(rollback("0077_lot16_vendor_families")).rejects.toBeInstanceOf(RollbackRefusedError);
     expect(await hasColumn("core", "rate_limit_events", "key_hash")).toBe(true);
     await rollback("0078_lot16_rate_limit");
     expect(await hasColumn("core", "rate_limit_events", "key_hash")).toBe(false);
   });
 
-  it("PRE-14 (lot 16) — l'annulation de 0077 retire les familles de types ; les types restent", async () => {
+  it("L16-PRE-14 (lot 16) — l'annulation de 0077 retire les familles de types ; les types restent", async () => {
     await expect(rollback("0076_lot16_trusted_devices")).rejects.toBeInstanceOf(RollbackRefusedError);
     expect(await hasColumn("vendors", "vendor_families", "label")).toBe(true);
     expect(await hasColumn("vendors", "vendor_types", "family_id")).toBe(true);
@@ -138,14 +138,14 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     expect(await hasColumn("vendors", "vendor_types", "label")).toBe(true);
   });
 
-  it("SEC-03 (lot 16) — l'annulation de 0076 retire les appareils de confiance", async () => {
+  it("L16-SEC-03 (lot 16) — l'annulation de 0076 retire les appareils de confiance", async () => {
     await expect(rollback("0075_lot16_mfa_protection")).rejects.toBeInstanceOf(RollbackRefusedError);
     expect(await hasColumn("hub", "trusted_devices", "token_hash")).toBe(true);
     await rollback("0076_lot16_trusted_devices");
     expect(await hasColumn("hub", "trusted_devices", "token_hash")).toBe(false);
   });
 
-  it("SEC-01 (lot 16) — l'annulation de 0075 retire le compteur, le verrouillage et l'anti-rejeu de la double authentification", async () => {
+  it("L16-SEC-01 (lot 16) — l'annulation de 0075 retire le compteur, le verrouillage et l'anti-rejeu de la double authentification", async () => {
     expect(await hasColumn("hub", "users", "mfa_failed_attempts")).toBe(true);
     await rollback("0075_lot16_mfa_protection");
     for (const column of ["mfa_failed_attempts", "mfa_locked_until", "totp_last_used_step"]) {

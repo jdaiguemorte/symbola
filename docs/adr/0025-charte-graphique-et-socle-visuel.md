@@ -1,6 +1,7 @@
 # ADR 0025 — Charte graphique et socle visuel (Tailwind CSS, structure d'écran)
 
-- Statut : accepté
+- Statut : remplacé par [0057](0057-charte-graphique-design-md.md) pour la palette et les polices
+  (`DESIGN.md`), en vigueur jusqu'au lot 25b ; le socle Tailwind et la couche de base restent
 - Date : 2026-11-03
 - Complète : CLAUDE.md § 3 (UI : Tailwind CSS + shadcn/ui), [0019](0019-generation-pdf-react-pdf.md)
 

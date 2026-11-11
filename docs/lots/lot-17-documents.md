@@ -90,7 +90,7 @@ logo, des mentions particulières etc. »
   l'en-tête montre le logo de l'organisation (sinon son nom seul).
 - Isolation : le logo de A n'est jamais servi à une session de B ; un visiteur sans session
   reçoit un refus.
-- Limite de débit : les envois de logo passent par la limite des envois de fichiers (SEC-02).
+- Limite de débit : les envois de logo passent par la limite des envois de fichiers (L16-SEC-02).
 
 ## DEV-09 — Apparence des documents
 

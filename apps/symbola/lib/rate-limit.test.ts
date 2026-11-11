@@ -1,9 +1,9 @@
-// Lot 16 (SEC-02, ADR 0044) — règles de limitation de débit et adresse du
+// Lot 16 (L16-SEC-02, ADR 0044) — règles de limitation de débit et adresse du
 // client.
 import { describe, expect, it } from "vitest";
 import { clientIpFrom, RATE_LIMITS, rateLimitRules } from "./rate-limit";
 
-describe("SEC-02 — Limitation de débit : règles et adresse du client", () => {
+describe("L16-SEC-02 — Limitation de débit : règles et adresse du client", () => {
   it("l'adresse du client est la dernière de X-Forwarded-For, celle qu'a vue le proxy", () => {
     expect(clientIpFrom(new Headers({ "x-forwarded-for": "203.0.113.7" }))).toBe("203.0.113.7");
     // Une adresse inventée par le client, devant, ne compte pas.

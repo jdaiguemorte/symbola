@@ -46,7 +46,7 @@ le parcours se déroule sans aide ; sinon noter l'écart.
 - [ ] Questionnaire d'onboarding complet (métier, forme juridique, SIREN, adresse, logo, TVA) ;
       interrompu puis repris.
 - [ ] Changement de régime de TVA avec date d'effet (ONB-02).
-- [ ] Langue : passer en anglais puis revenir en français (HUB-04).
+- [ ] Langue : passer en anglais puis revenir en français (PRD-HUB-04).
 - [ ] Tableau de bord : blocs Tâches, Calendrier, Encaissements à venir, alertes RGPD.
 - [ ] Visite guidée de chaque module, relancée depuis l'aide ; articles d'aide lisibles.
 - [ ] Essai guidé (données de test marquées) : démarré, parcouru, terminé ; plus aucune trace
@@ -66,7 +66,7 @@ le parcours se déroule sans aide ; sinon noter l'écart.
 - [ ] Annulation d'un import d'essai : tout revient comme avant ; une fiche modifiée à la main
       entre-temps est gardée et signalée.
 
-### Événements et Chrono (EVT-01 à 07)
+### Événements et Chrono (PRD-EVT-01 à 07)
 
 - [ ] Liste des événements : filtres par statut, année, source ; recherche par nom.
 - [ ] Création d'un prospect (source obligatoire), passage par les étapes jusqu'à « confirmé »,
@@ -78,7 +78,7 @@ le parcours se déroule sans aide ; sinon noter l'écart.
 - [ ] Accès des mariés : invitation, connexion d'un marié de test, il ne voit que son
       événement, coche une tâche ; la planner le voit dans le fil d'activité.
 
-### Budget (BUD-01 à 04)
+### Budget (PRD-BUD-01 à 04)
 
 - [ ] Simulation pour un prospect depuis un modèle de répartition ; ajustements.
 - [ ] Prévu / réel / écart ; totaux justes.

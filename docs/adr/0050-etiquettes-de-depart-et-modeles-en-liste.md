@@ -25,7 +25,7 @@ possible.
 
 ## Décision
 
-### Étiquettes de départ (PRE-18)
+### Étiquettes de départ (L21-PRE-18)
 
 - Données : `packages/starter-templates/src/vendor-tags.json` (et `vendor-tags.event-agency.json`
   pour les agences, fusionné par clé de groupe). Chaque groupe a un libellé traduit, un drapeau
@@ -39,7 +39,7 @@ possible.
   famille, elle prend ceux du modèle. Une étiquette dont la famille visée n'existe plus dans
   l'organisation n'est pas créée.
 
-### Rangement des étiquettes importées (PRE-19)
+### Rangement des étiquettes importées (L21-PRE-19)
 
 - Fonctions pures (`modules/vendors/tag-arrangement.ts`), appliquées par le service en une
   transaction. Seules les étiquettes sans groupe ni famille sont touchées.
@@ -56,7 +56,7 @@ possible.
   puis un récapitulatif. Le cadre « Paliers repérés » du lot 20 disparaît de l'écran ; les
   fonctions du contrat restent (compatibilité).
 
-### Modèles en liste puis détail (EVT-21, EVT-22)
+### Modèles en liste puis détail (L21-EVT-21, L21-EVT-22)
 
 - `/events/modeles-programme` et `/events/modeles` listent les modèles ; chacun s'ouvre sur sa
   propre adresse (`…/<id>`), en tableau à colonnes fixes, actions en fin de ligne. Création,
@@ -75,7 +75,7 @@ possible.
 - L'icône vient de la correspondance du libellé avec les modes de départ (français ou anglais),
   `starterPaymentMethodKinds()` ; un mode ajouté a une icône générique. Aucune migration.
 
-### Menu des réglages (HUB-28, HUB-29)
+### Menu des réglages (L21-HUB-28, L21-HUB-29)
 
 - Le menu défile seul quand il dépasse la fenêtre (hauteur maximale, `overscroll-contain`).
 - Chaque groupe a une icône et un titre lisible ; ses rubriques sont en retrait.

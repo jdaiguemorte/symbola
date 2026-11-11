@@ -42,7 +42,7 @@ describe("ONB-03 — Assistant de démarrage pré-rempli", { timeout: 30_000 }, 
     const [split] = await listAllocationModels(organization.id);
     expect(split?.items.reduce((sum, item) => sum + item.percentageBasisPoints, 0)).toBe(10000);
     expect((await listVendorTypes(organization.id)).length).toBeGreaterThan(3);
-    // Lot 21 (PRE-18) : étiquettes de départ, rangées par famille.
+    // Lot 21 (L21-PRE-18) : étiquettes de départ, rangées par famille.
     expect(result.vendorTags).toBeGreaterThan(20);
     expect((await listVendorTagGroups(organization.id)).find((group) => group.label === "Capacité")?.exclusive).toBe(true);
   });

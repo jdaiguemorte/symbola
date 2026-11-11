@@ -1,4 +1,4 @@
-// Lot 16 (SEC-02, ADR 0044) — réception d'un envoi de fichier par une route
+// Lot 16 (L16-SEC-02, ADR 0044) — réception d'un envoi de fichier par une route
 // dédiée : origine, session, limite de débit et taille vérifiées avant la
 // lecture du corps.
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -39,7 +39,7 @@ function filesForm(bytes: number): FormData {
   return data;
 }
 
-describe("SEC-02 — Envoi de fichier par une route dédiée", () => {
+describe("L16-SEC-02 — Envoi de fichier par une route dédiée", () => {
   beforeEach(() => {
     state.auth = { status: "authenticated", user: { id: "user-1", email: "planner@symbola.test", role: "owner", organizationId: "org-1", language: null, firstStepsHidden: false, mfaEnabled: true } } as AuthResult;
     state.limited = false;

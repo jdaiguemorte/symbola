@@ -1,6 +1,6 @@
 "use client";
 
-// Lot 13 (HUB-16) — lignes du budget dans l'ordre que reçoivent les nouveaux
+// Lot 13 (L13-HUB-16) — lignes du budget dans l'ordre que reçoivent les nouveaux
 // événements : glisser-déposer à la souris, et « Monter » / « Descendre »
 // pour le clavier et le téléphone (le glisser-déposer HTML ne fonctionne pas
 // au doigt). Chaque déplacement est enregistré aussitôt et annoncé.

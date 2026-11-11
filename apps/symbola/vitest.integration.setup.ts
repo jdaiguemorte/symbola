@@ -1,4 +1,4 @@
-// Lot 16 (ARC-01, ADR 0043) : le code de l'app emprunte la réserve de
+// Lot 16 (L16-ARC-01, ADR 0043) : le code de l'app emprunte la réserve de
 // connexions partagée du processus. Chaque fichier de tests d'intégration la
 // rend à la fin, pour ne pas accumuler de connexions ouvertes d'un fichier à
 // l'autre.

@@ -21,7 +21,7 @@ async function authorizedOrganizationId(): Promise<string | null> {
   return auth.user.organizationId;
 }
 
-// BUD-01 — le pourcentage de chaque poste arrive en champ texte
+// PRD-BUD-01 — le pourcentage de chaque poste arrive en champ texte
 // "<defaultVendorSlotId>" ; un champ vide ou à 0 exclut le poste du
 // modèle (pas d'erreur, simplement pas d'item créé pour ce poste).
 export async function createAllocationModelAction(

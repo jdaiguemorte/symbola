@@ -1,4 +1,4 @@
-// Lot 13 (EVT-18) — options de la liste des événements : années proposées
+// Lot 13 (L13-EVT-18) — options de la liste des événements : années proposées
 // au filtre (celles des événements, plus l'année en cours et la suivante :
 // jamais 1 ni −1) et effectifs des onglets.
 import type { EventStatus } from "@/modules/events/service";

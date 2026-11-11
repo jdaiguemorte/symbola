@@ -36,7 +36,7 @@ avant la mise en production**.
 ## Points à valider avec Julien (signalés, pas tranchés)
 
 - **E-mail des signataires** : `events.event_clients` n'a ni e-mail ni adresse ; les accès
-  mariés (EVT-06) ont un e-mail, mais pas forcément pour chaque marié. Proposition : l'e-mail et
+  mariés (PRD-EVT-06) ont un e-mail, mais pas forcément pour chaque marié. Proposition : l'e-mail et
   l'adresse de facturation de chaque signataire se saisissent **sur le devis** (copie figée dans
   le module Devis, déclarée dans `privacy.registry.yaml`), pré-remplis depuis les accès mariés
   quand ils existent.
@@ -163,11 +163,11 @@ plus proche, demi vers le haut.
   appel ne change rien de plus).
 - Quand le dernier signataire a signé : devis « Signé », PDF signé et certificat de preuve
   archivés (stockage privé, lien signé), e-mail à la planner, **événement passé à Confirmé**
-  (EVT-02), `quotes.quote.signed` publié.
+  (PRD-EVT-02), `quotes.quote.signed` publié.
 - Test obligatoire : le faux fournisseur remplace DocuSeal sans changer le module Devis (même
   suite de tests contre les deux implémentations, l'adaptateur DocuSeal testé contre un serveur
   HTTP simulé).
-- Le marié voit dans son espace (`/espace/[id]`) le devis à signer et son lien (PRD EVT-06), via
+- Le marié voit dans son espace (`/espace/[id]`) le devis à signer et son lien (PRD PRD-EVT-06), via
   le contrôle d'accès existant (`hasActiveClientAccess`).
 
 ### DEV-04 — Factures conformes
@@ -188,7 +188,7 @@ plus proche, demi vers le haut.
   enregistré mais l'émission est refusée avec un message clair tant que le lot dédié n'est pas
   fait.
 
-### Bloc « Encaissements à venir » du tableau de bord (HUB-02)
+### Bloc « Encaissements à venir » du tableau de bord (PRD-HUB-02)
 
 - Acomptes non payés des 90 prochains jours (proposé, paramétrable) avec total par mois, et
   échéances en retard en tête. Bloc absent si le module Devis n'est pas souscrit ; « indisponible »

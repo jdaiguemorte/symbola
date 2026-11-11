@@ -1,6 +1,6 @@
 "use server";
 
-// SEC-03 (lot 16, ADR 0038) — « oublier mes appareils » : le code de double
+// L16-SEC-03 (lot 16, ADR 0038) — « oublier mes appareils » : le code de double
 // authentification est de nouveau demandé à la prochaine connexion, partout.
 import { forgetTrustedDevices } from "@symbola/auth";
 import { appDatabase } from "@symbola/db/client";

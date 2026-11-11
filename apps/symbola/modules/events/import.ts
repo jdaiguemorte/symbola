@@ -206,7 +206,7 @@ export async function importEventRows(input: {
   organizationId: string;
   userId: string;
   rows: ImportApplyRow[];
-  // EVT-07 : la source est obligatoire ; une ligne sans source reçoit celle-ci.
+  // PRD-EVT-07 : la source est obligatoire ; une ligne sans source reçoit celle-ci.
   defaultProspectSourceId: string;
 }): Promise<ImportApplyResult> {
   return inTransaction(input.organizationId, async (tx) => {
@@ -300,7 +300,7 @@ export async function importEventRows(input: {
       if (sheet.program.length > 0) {
         await tx.insert(programItems).values(sheet.program.map((item) => ({ organizationId: input.organizationId, eventId: event.id, ...item })));
       }
-      // EVT-03 : comme une création à la main, l'événement reçoit les postes par défaut.
+      // PRD-EVT-03 : comme une création à la main, l'événement reçoit les postes par défaut.
       if (defaults.length > 0) {
         await tx.insert(eventVendorSlots).values(
           defaults.map((slot, position) => ({ organizationId: input.organizationId, eventId: event.id, label: slot.label, position })),
@@ -400,7 +400,7 @@ async function writeTaskFields(tx: Tx, taskId: string, fields: Values): Promise<
   await tx.update(eventTasks).set(set).where(eq(eventTasks.id, taskId));
 }
 
-// —— Postes d'un événement (lignes de budget, BUD-02) ————————————————————
+// —— Postes d'un événement (lignes de budget, PRD-BUD-02) ————————————————————
 
 async function vendorSlotState(tx: Tx, slotId: string): Promise<Values | null> {
   const [slot] = await tx.select().from(eventVendorSlots).where(eq(eventVendorSlots.id, slotId));

@@ -1,6 +1,6 @@
 "use client";
 
-// Lot 13 (EVT-19) — bandeau « Prochaine étape » : l'action proposée vient du
+// Lot 13 (L13-EVT-19) — bandeau « Prochaine étape » : l'action proposée vient du
 // serveur ; « Plus tard » la masque pour cet événement et cette étape, dans
 // ce navigateur (préférence d'affichage, sans donnée personnelle).
 import { useEffect, useState, type ReactNode } from "react";

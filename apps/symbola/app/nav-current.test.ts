@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { isCurrentNavLink } from "./nav-current";
 
-describe("HUB-22 — Un seul lien du menu principal allumé", () => {
+describe("L18-HUB-22 — Un seul lien du menu principal allumé", () => {
   it("sur Encaissements, seul « Encaissements » est allumé, pas « Devis et factures »", () => {
     expect(isCurrentNavLink("/devis/encaissements", "/devis/encaissements")).toBe(true);
     expect(isCurrentNavLink("/devis/encaissements", "/devis", { except: ["/devis/encaissements"] })).toBe(false);

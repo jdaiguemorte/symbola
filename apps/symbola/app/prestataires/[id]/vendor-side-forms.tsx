@@ -1,6 +1,6 @@
 "use client";
 
-// Lot 11 (PRE-01 / PRE-03) — fichiers de la fiche et correction du point.
+// Lot 11 (L11-PRE-01 / L11-PRE-03) — fichiers de la fiche et correction du point.
 import { useActionState } from "react";
 import { useTranslations } from "next-intl";
 import { useUploadAction } from "@/app/ui/use-upload";

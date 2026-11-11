@@ -6,7 +6,7 @@ import { useEffect, useState, type ReactNode } from "react";
 // Menu latéral : toujours visible sur ordinateur ; replié derrière un
 // bouton « Menu » sur téléphone (charte, lot 7), pour que le contenu de
 // l'écran reste en haut. Il se replie après chaque changement de page.
-// admin : menu sombre de la console d'Administration (lot 13, HUB-17) — on sait
+// admin : menu sombre de la console d'Administration (lot 13, L13-HUB-17) — on sait
 // tout de suite qu'on n'est pas dans l'espace d'une organisation.
 export function AppSidebar({ brand, menuLabel, closeLabel, admin = false, children }: { brand: ReactNode; menuLabel: string; closeLabel: string; admin?: boolean; children: ReactNode }) {
   const [open, setOpen] = useState(false);

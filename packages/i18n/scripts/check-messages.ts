@@ -1,4 +1,4 @@
-// HUB-04 — « Un test en CI échoue si une clé de traduction manque dans
+// PRD-HUB-04 — « Un test en CI échoue si une clé de traduction manque dans
 // l'une des deux langues. » Comparaison récursive des deux catalogues.
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -28,7 +28,7 @@ if (missingInEn.length > 0 || missingInFr.length > 0) {
   process.exit(1);
 }
 
-// Lot 16 (HUB-21, ADR 0045) : vocabulaire « le client » (messages/vocabulary/<vocabulaire>.<langue>.json),
+// Lot 16 (L16-HUB-21, ADR 0045) : vocabulaire « le client » (messages/vocabulary/<vocabulaire>.<langue>.json),
 // fusionné sur les catalogues : mêmes clés en FR et en EN, toutes présentes au catalogue.
 const vocabularyDir = resolve(root, "vocabulary");
 for (const metier of ["clients"]) {

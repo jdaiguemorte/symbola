@@ -81,7 +81,7 @@ export async function resetPassword(
     .set({ passwordHash: await hashPassword(input.password), failedLoginAttempts: 0, lockedUntil: null })
     .where(eq(users.id, reset.userId));
   await db.delete(sessions).where(eq(sessions.userId, reset.userId));
-  // SEC-03 : un nouveau mot de passe révoque aussi les appareils de confiance.
+  // L16-SEC-03 : un nouveau mot de passe révoque aussi les appareils de confiance.
   await db.delete(trustedDevices).where(eq(trustedDevices.userId, reset.userId));
   return "success";
 }

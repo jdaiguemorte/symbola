@@ -1,4 +1,4 @@
-// PRE-03 (lot 11, ADR 0031 § 6) — adresse → point, derrière une interface.
+// L11-PRE-03 (lot 11, ADR 0031 § 6) — adresse → point, derrière une interface.
 // « ign » : API Géocodage de la Géoplateforme (gratuite, sans clé). Seule
 // l'adresse est envoyée, jamais le nom du prestataire ni son contact.
 // « fake » : points simulés et reproductibles (tests, développement hors

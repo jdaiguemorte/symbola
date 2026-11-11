@@ -1,4 +1,4 @@
-// Lot 12 (EVT-15) — lieux de l'événement saisis une fois, contre un vrai
+// Lot 12 (L12-EVT-15) — lieux de l'événement saisis une fois, contre un vrai
 // PostgreSQL (RLS), par la porte d'entrée du module events.
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
@@ -22,7 +22,7 @@ async function newEvent(organizationId: string): Promise<string> {
   return (await createProspect({ organizationId, createdByUserId: plannerId, prospectSourceId: source.id, clients: [{ firstName: "Inès", lastName: null }] })).id;
 }
 
-describe("EVT-15 — Lieux de l'événement saisis une fois", () => {
+describe("L12-EVT-15 — Lieux de l'événement saisis une fois", () => {
   it("elle ajoute les lieux dans l'ordre, sans doublon de nom, et peut en retirer un", async () => {
     const organizationId = await newOrganization();
     const eventId = await newEvent(organizationId);

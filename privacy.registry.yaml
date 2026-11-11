@@ -88,7 +88,7 @@ fields:
     field: email
     category: identifiant
     retention: >-
-      7 jours (durée de validité de l'invitation, PRD HUB-03), puis
+      7 jours (durée de validité de l'invitation, PRD PRD-HUB-03), puis
       purgée ou anonymisée après expiration ou acceptation — à outiller
       avec la purge RGPD-05.
     anonymization: >-
@@ -294,7 +294,7 @@ fields:
     field: vendor_name
     category: identifiant
     retention: >-
-      Tant que l'événement existe (nom du prestataire réservé, EVT-03 ; un
+      Tant que l'événement existe (nom du prestataire réservé, PRD-EVT-03 ; un
       prestataire indépendant est une personne). Après suppression ou
       demande d'oubli : voir RGPD-03/RGPD-05.
     anonymization: >-
@@ -307,7 +307,7 @@ fields:
     category: identifiant
     retention: >-
       Tant que l'événement existe (intervenant libre du programme du jour J,
-      EVT-05 : officiant, témoin…). Après suppression ou demande d'oubli :
+      PRD-EVT-05 : officiant, témoin…). Après suppression ou demande d'oubli :
       voir RGPD-03/RGPD-05.
     anonymization: >-
       L'intervenant est supprimé lors d'une demande d'oubli qui le vise (RGPD-03),
@@ -317,7 +317,7 @@ fields:
     field: address
     category: contact
     retention: >-
-      Lot 12 (EVT-15) : adresse d'un lieu de l'événement (celle des préparatifs
+      Lot 12 (L12-EVT-15) : adresse d'un lieu de l'événement (celle des préparatifs
       peut être le domicile des mariés). Tant que l'événement existe ; voir
       RGPD-03/RGPD-05.
     anonymization: >-
@@ -329,7 +329,7 @@ fields:
     category: contenu_libre
     retention: >-
       Tant que l'événement existe (note interne d'une ligne du programme,
-      EVT-05, jamais montrée aux mariés). Après suppression ou demande
+      PRD-EVT-05, jamais montrée aux mariés). Après suppression ou demande
       d'oubli : voir RGPD-03/RGPD-05.
     anonymization: >-
       La ligne du programme est supprimée lors d'une demande d'oubli qui la vise
@@ -339,7 +339,7 @@ fields:
     field: email
     category: contact
     retention: >-
-      Tant que l'accès du marié à l'événement existe (EVT-06 : e-mail de
+      Tant que l'accès du marié à l'événement existe (PRD-EVT-06 : e-mail de
       l'invitation, affiché dans la fiche et dans le fil d'activité). Le
       compte du marié lui-même relève de hub.users. Après suppression ou
       demande d'oubli : voir RGPD-03/RGPD-05.
@@ -351,7 +351,7 @@ fields:
     field: file_key
     category: contenu_libre
     retention: >-
-      Tant que la ligne de budget existe (BUD-03 : devis d'un prestataire,
+      Tant que la ligne de budget existe (PRD-BUD-03 : devis d'un prestataire,
       stocké en privé ; le document peut nommer un prestataire indépendant,
       donc une personne). Le contenu du fichier n'est pas indexé : il n'entre
       pas dans la recherche RGPD par terme. Après suppression ou demande
@@ -603,7 +603,7 @@ fields:
     field: key_hash
     category: securite
     retention: >-
-      Lot 16 (SEC-02, ADR 0044) : empreinte SHA-256 de l'adresse IP, de l'e-mail
+      Lot 16 (L16-SEC-02, ADR 0044) : empreinte SHA-256 de l'adresse IP, de l'e-mail
       saisi ou de l'identifiant du compte, pour une tentative de connexion, de
       double authentification, de mot de passe oublié, de recherche ou d'envoi
       de fichier. Jamais la valeur en clair. Gardée un jour au plus (purge

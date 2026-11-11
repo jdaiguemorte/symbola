@@ -86,7 +86,7 @@ test("AIDE-11 / AIDE-07 — repères de la fiche d'un événement, et centre d'a
   await expect(landmarksPanel(page, "Liste des événements")).toHaveCount(0);
 });
 
-test("HUB-11 — l'Admin voit la prise en main de chaque compte d'équipe", async ({ page }) => {
+test("L10-HUB-11 — l'Admin voit la prise en main de chaque compte d'équipe", async ({ page }) => {
   const adminEmail = `admin-suivi-${randomUUID()}@symbola.test`;
   const ownerEmail = `titulaire-suivi-${randomUUID()}@symbola.test`;
   const organizationName = `Organisation suivi ${randomUUID().slice(0, 8)}`;

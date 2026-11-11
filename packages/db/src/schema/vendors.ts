@@ -1,4 +1,4 @@
-// Schéma du module vendors (lot 11, PRE-01 à PRE-11, ADR 0031) : le carnet
+// Schéma du module vendors (lot 11, L11-PRE-01 à L11-PRE-11, ADR 0031) : le carnet
 // de prestataires de l'organisation. Chaque table a organization_id
 // (CLAUDE.md §2.4), protégée par Row-Level Security (migration dédiée).
 // Les prestataires consultés pour un poste vivent dans le module events et
@@ -7,7 +7,7 @@ import { boolean, doublePrecision, integer, jsonb, pgSchema, text, timestamp, un
 
 export const vendorsSchema = pgSchema("vendors");
 
-// PRE-02 — formats de champ proposés par le cahier des charges (§ 5.5).
+// L11-PRE-02 — formats de champ proposés par le cahier des charges (§ 5.5).
 export const vendorFieldKindEnum = vendorsSchema.enum("vendor_field_kind", [
   "number",
   "text",
@@ -17,8 +17,8 @@ export const vendorFieldKindEnum = vendorsSchema.enum("vendor_field_kind", [
   "boolean",
 ]);
 
-// Lot 16 (PRE-14, ADR 0040) — familles de types : une dizaine, propres à
-// l'organisation (renommées, scindées, réordonnées, PRE-15). starter_key :
+// Lot 16 (L16-PRE-14, ADR 0040) — familles de types : une dizaine, propres à
+// l'organisation (renommées, scindées, réordonnées, L16-PRE-15). starter_key :
 // clé de la famille de départ dont elle vient, pour y ranger les types par
 // leurs synonymes ; nulle pour une famille créée par l'organisation.
 export const vendorFamilies = vendorsSchema.table(
@@ -37,7 +37,7 @@ export const vendorFamilies = vendorsSchema.table(
   (table) => [unique("vendor_families_organization_starter_key_unique").on(table.organizationId, table.starterKey)],
 );
 
-// PRE-02 — types de prestataires de l'organisation (modèles de départ dans
+// L11-PRE-02 — types de prestataires de l'organisation (modèles de départ dans
 // packages/starter-templates, jamais dans le code).
 export const vendorTypes = vendorsSchema.table("vendor_types", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -47,7 +47,7 @@ export const vendorTypes = vendorsSchema.table("vendor_types", {
   // de la famille ; celle-ci ne sert plus qu'aux types « à classer ».
   color: text("color").notNull(),
   position: integer("position").notNull().default(0),
-  // Lot 16 (PRE-14) : famille (nulle = « à classer ») et clé du type de départ
+  // Lot 16 (L16-PRE-14) : famille (nulle = « à classer ») et clé du type de départ
   // reconnu par les synonymes (nulle si aucun).
   familyId: uuid("family_id").references((): AnyPgColumn => vendorFamilies.id, { onDelete: "set null" }),
   starterKey: text("starter_key"),
@@ -95,7 +95,7 @@ export const vendorTags = vendorsSchema.table("vendor_tags", {
 
 export const vendorLocationSourceEnum = vendorsSchema.enum("vendor_location_source", ["geocoded", "manual"]);
 
-// PRE-01 — fiche d'un prestataire. field_values : { idDuChamp: valeur },
+// L11-PRE-01 — fiche d'un prestataire. field_values : { idDuChamp: valeur },
 // validé selon le format du champ (ADR 0031 § 3). Latitude/longitude en
 // degrés, sans PostGIS (ADR 0031 § 4).
 export const vendors = vendorsSchema.table("vendors", {
@@ -130,7 +130,7 @@ export const vendors = vendorsSchema.table("vendors", {
 
 export const vendorFileKindEnum = vendorsSchema.enum("vendor_file_kind", ["brochure", "rib"]);
 
-// PRE-01 — plaquettes et RIB : fichiers privés (ADR 0027, ADR 0031 § 8).
+// L11-PRE-01 — plaquettes et RIB : fichiers privés (ADR 0027, ADR 0031 § 8).
 export const vendorFiles = vendorsSchema.table("vendor_files", {
   id: uuid("id").defaultRandom().primaryKey(),
   organizationId: uuid("organization_id").notNull(),
@@ -146,13 +146,13 @@ export const vendorFiles = vendorsSchema.table("vendor_files", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
-// PRE-07 — paramètres du trajet estimé, par organisation (une ligne au plus).
+// L11-PRE-07 — paramètres du trajet estimé, par organisation (une ligne au plus).
 export const vendorSettings = vendorsSchema.table("vendor_settings", {
   organizationId: uuid("organization_id").primaryKey(),
   // Coefficient de détour en millièmes (1300 = × 1,3).
   detourFactorPermille: integer("detour_factor_permille").notNull().default(1300),
   averageSpeedKmh: integer("average_speed_kmh").notNull().default(60),
-  // Lot 16 (PRE-14) : familles de départ déjà posées pour cette organisation ;
+  // Lot 16 (L16-PRE-14) : familles de départ déjà posées pour cette organisation ;
   // elles ne le sont qu'une fois, jamais rétablies d'office.
   familiesSeededAt: timestamp("families_seeded_at", { withTimezone: true }),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),

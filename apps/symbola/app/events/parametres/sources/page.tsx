@@ -1,5 +1,5 @@
-// Lot 13 (HUB-16) — rubrique « Sources et motifs » des Paramètres :
-// sources de prospects (EVT-07) et motifs de perte (EVT-02).
+// Lot 13 (L13-HUB-16) — rubrique « Sources et motifs » des Paramètres :
+// sources de prospects (PRD-EVT-07) et motifs de perte (PRD-EVT-02).
 import { getTranslations } from "next-intl/server";
 import { listLossReasons, listProspectSources } from "@/modules/events/service";
 import { requirePlanner } from "@/lib/guards";

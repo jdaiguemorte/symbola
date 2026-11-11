@@ -92,7 +92,7 @@ describe("SOC-03 — Validation des variables d'environnement (Zod)", () => {
   });
 });
 
-describe("SEC-01 — Clé de chiffrement de la double authentification", () => {
+describe("L16-SEC-01 — Clé de chiffrement de la double authentification", () => {
   it("refuse un démarrage sans clé, ou avec une clé qui ne fait pas 32 octets en base64", () => {
     const { MFA_ENCRYPTION_KEY, ...rest } = validEnv;
     expect(MFA_ENCRYPTION_KEY).toBeTruthy();

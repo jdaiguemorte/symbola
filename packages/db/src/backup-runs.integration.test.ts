@@ -1,4 +1,4 @@
-// Lot 13 (HUB-18, ADR 0033) — hub.backup_runs : seul le script de
+// Lot 13 (L13-HUB-18, ADR 0033) — hub.backup_runs : seul le script de
 // sauvegarde écrit (rôle d'administration) ; le rôle applicatif ne fait que
 // lire, pour la console d'Administration. Prérequis : socle + bootstrap + migrate.
 import postgres from "postgres";
@@ -22,7 +22,7 @@ afterAll(async () => {
   await app.end();
 });
 
-describe("HUB-18 — Dernière sauvegarde signalée (droits sur hub.backup_runs)", () => {
+describe("L13-HUB-18 — Dernière sauvegarde signalée (droits sur hub.backup_runs)", () => {
   it("le rôle d'administration (script de sauvegarde) enregistre le début puis la fin d'une exécution", async () => {
     const [run] = await admin<[{ id: string }]>`insert into hub.backup_runs default values returning id`;
     ids.push(run.id);

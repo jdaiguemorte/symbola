@@ -166,7 +166,7 @@ describe("IMP-05 — Aperçu et annulation", () => {
     expect(created).toBeTruthy();
     expect((await getEvent(planner.organizationId, ines!.id))?.prospectSourceId).toBe(created!.id);
     expect((await getEvent(planner.organizationId, chloe!.id))?.prospectSourceId).toBe(other.id);
-    // EVT-03 : postes par défaut copiés comme pour une création à la main.
+    // PRD-EVT-03 : postes par défaut copiés comme pour une création à la main.
     const [eventRow] = await withOrganization(db, planner.organizationId, (tx) => tx.select().from(events).where(eq(events.id, existing)));
     expect(eventRow?.importedFields).toEqual({ "E-mail": "elodie@example.org" });
 

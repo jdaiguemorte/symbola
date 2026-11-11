@@ -1,6 +1,6 @@
 "use client";
 
-// Lot 16 (PRE-15, ADR 0040) — formulaires du panneau latéral des réglages des
+// Lot 16 (L16-PRE-15, ADR 0040) — formulaires du panneau latéral des réglages des
 // types : famille (libellé, couleur, pictogramme), type (libellé, famille),
 // nouveau type. Libellés visibles, champs empilés (motif du lot 13).
 import { useActionState, useState } from "react";

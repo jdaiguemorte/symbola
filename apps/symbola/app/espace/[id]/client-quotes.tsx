@@ -5,7 +5,7 @@ import type { ClientQuoteToSign } from "@/modules/quotes/service";
 const OWN_STATUS_KEYS = { pending: "quoteToSign", signed: "quoteSignedByYou", declined: "quoteDeclinedByYou" } as const;
 
 // DEV-02 — « Le marié voit dans son espace le devis à signer et son lien »
-// (PRD EVT-06) ; jamais le lien d'un autre signataire.
+// (PRD PRD-EVT-06) ; jamais le lien d'un autre signataire.
 export async function ClientQuotes({ quotes, locale }: { quotes: ClientQuoteToSign[]; locale: Locale }) {
   const t = await getTranslations("ClientSpace");
   return (

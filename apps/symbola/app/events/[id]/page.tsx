@@ -160,14 +160,14 @@ export default async function EventDetailPage({
     ? event.clients.map((client) => client.firstName).join(" & ")
     : t("noClient");
 
-  // EVT-02 : « étant donné un événement confirmé dont la date est passée,
+  // PRD-EVT-02 : « étant donné un événement confirmé dont la date est passée,
   // alors l'app propose de le passer en Réalisé ».
   const isPastConfirmed =
     event.status === "confirmed" &&
     event.eventDate !== null &&
     event.eventDate < new Date().toISOString().slice(0, 10);
 
-  // BUD-01/02 : « quand l'événement passe en Confirmé, l'app propose
+  // PRD-BUD-01/02 : « quand l'événement passe en Confirmé, l'app propose
   // d'en faire le budget prévu » — seulement si une simulation existe et
   // qu'aucune ligne de budget (budget_lines) n'a encore été créée.
   let suggestConfirmBudget = false;
@@ -190,13 +190,13 @@ export default async function EventDetailPage({
   const tBudget = await getTranslations("Budget");
 
   const today = parisToday();
-  // Lot 12 (EVT-17) : l'ancien onglet « prestataires » est devenu « budget ».
+  // Lot 12 (L12-EVT-17) : l'ancien onglet « prestataires » est devenu « budget ».
   const asked = query.onglet === "prestataires" ? "budget" : query.onglet;
   const tab: Tab = TABS.includes(asked as Tab) && (asked !== "devis" || quotesAvailable) ? (asked as Tab) : "apercu";
   const tabHref = (key: Tab, extra: Record<string, string> = {}) =>
     `/events/${event.id}?${new URLSearchParams({ onglet: key, ...extra }).toString()}`;
   const overdueCount = tasks.filter((task) => !task.done && task.dueDate < today).length;
-  // Lot 12 (EVT-14 / EVT-15) : icônes des prestataires au programme, lieux saisis une fois.
+  // Lot 12 (L12-EVT-14 / L12-EVT-15) : icônes des prestataires au programme, lieux saisis une fois.
   const slotIconOf = new Map(vendorSlots.map((slot) => [slot.id, slot.icon]));
   const places = tab === "programme" ? await listEventPlaces(organizationId, id) : [];
   const venueCandidates = tab === "programme" ? (await listVendorCandidates(organizationId, id)).filter((candidate) => candidate.outcome === "selected" && vendorSlots.find((slot) => slot.id === candidate.vendorSlotId)?.icon === "venue") : [];
@@ -205,19 +205,19 @@ export default async function EventDetailPage({
     ...(event.venueName ? [{ label: event.venueName, vendorId: null }] : []),
   ].filter((suggestion, index, all) => !places.some((place) => place.label.toLocaleLowerCase("fr") === suggestion.label.toLocaleLowerCase("fr")) && all.findIndex((other) => other.label === suggestion.label) === index);
   const placeOptions = [...new Set([...places.map((place) => place.label), ...placeSuggestions.map((suggestion) => suggestion.label)])];
-  // Lot 12 (EVT-13) : rétroplanning seulement pour un événement confirmé (ou réalisé).
+  // Lot 12 (L12-EVT-13) : rétroplanning seulement pour un événement confirmé (ou réalisé).
   const retroplanningOpen = event.isDemo || event.status === "confirmed" || event.status === "done";
 
-  // EVT-03 : postes en tableau, détail du poste choisi dans un panneau.
+  // PRD-EVT-03 : postes en tableau, détail du poste choisi dans un panneau.
   const toFind = vendorSlots.filter((slot) => slot.status !== "booked" && slot.status !== "not_required");
   const slotFilter = query.filtre === "a-pourvoir" ? "a-pourvoir" : "tous";
   const shownSlots = slotFilter === "a-pourvoir" ? toFind : vendorSlots;
   const selectedSlot = vendorSlots.find((slot) => slot.id === query.poste) ?? null;
-  // Lot 12 (EVT-17) : prévu et réel de chaque ligne, si le module Budget est souscrit.
+  // Lot 12 (L12-EVT-17) : prévu et réel de chaque ligne, si le module Budget est souscrit.
   const budgetAvailable = tab === "budget" ? await isBudgetModuleEnabled(organizationId) : false;
   const budgetView = budgetAvailable ? await listBudgetLines(organizationId, id) : null;
   const amountsOf = (slotId: string) => budgetView?.lines.find((line) => line.eventVendorSlotId === slotId) ?? null;
-  // Lot 11 (EVT-10) : prestataires consultés, et le carnet s'il est souscrit.
+  // Lot 11 (L11-EVT-10) : prestataires consultés, et le carnet s'il est souscrit.
   const candidates = tab === "budget" ? await listVendorCandidates(organizationId, id) : [];
   const vendorsAvailable = tab === "budget" ? await isVendorsModuleEnabled(organizationId) : false;
   const bookOptions =
@@ -226,7 +226,7 @@ export default async function EventDetailPage({
       : [];
   const candidatesBySlot = (slotId: string) => candidates.filter((candidate) => candidate.vendorSlotId === slotId);
 
-  // EVT-04 : filtres du rétroplanning (vue, responsable), tâche choisie.
+  // PRD-EVT-04 : filtres du rétroplanning (vue, responsable), tâche choisie.
   const taskView = query.vue === "a-faire" || query.vue === "en-retard" ? query.vue : "toutes";
   const taskOwner = query.qui === "planner" || query.qui === "clients" ? query.qui : "tous";
   const shownTasks = tasks.filter((task) => {
@@ -243,7 +243,7 @@ export default async function EventDetailPage({
     return tabHref("retroplanning", values);
   };
 
-  // Lot 13 (EVT-19) : frise datée, prochaine étape, chiffres de la vue d'ensemble.
+  // Lot 13 (L13-EVT-19) : frise datée, prochaine étape, chiffres de la vue d'ensemble.
   const statusDates = await getEventStatusDates(organizationId, id);
   const step = nextStep({
     status: event.status,
@@ -347,7 +347,7 @@ export default async function EventDetailPage({
         </section>
       ) : null}
 
-      {/* Lot 13 (EVT-19) : frise datée du statut, visible sur tous les onglets. */}
+      {/* Lot 13 (L13-EVT-19) : frise datée du statut, visible sur tous les onglets. */}
       <ChangeStatusForm eventId={event.id} currentStatus={event.status} reasons={reasons} dates={statusDates} eventDate={event.eventDate} locale={locale} />
       {step && !(step === "apply_retroplanning" && tab === "retroplanning") ? (
         <NextStepBanner storageKey={`symbola_prochaine_etape_${event.id}_${step}`} title={t(`nextStep.${step}.title`)} laterLabel={t("nextStepLater")}>
@@ -383,7 +383,7 @@ export default async function EventDetailPage({
         <>
           <section className="card" aria-labelledby="overview-title" data-tour="event-overview">
             <h2 id="overview-title">{t("tabOverview")}</h2>
-            {/* Lot 13 (EVT-19) : l'essentiel en quatre chiffres, le détail dans les onglets. */}
+            {/* Lot 13 (L13-EVT-19) : l'essentiel en quatre chiffres, le détail dans les onglets. */}
             <dl className="kpis">
               {event.wantedBudgetCents !== null ? (
                 <div>
@@ -412,7 +412,7 @@ export default async function EventDetailPage({
                 </div>
               ) : null}
             </dl>
-            {/* EVT-03 : barre d'avancement en haut de la fiche. */}
+            {/* PRD-EVT-03 : barre d'avancement en haut de la fiche. */}
             <p id="vendor-progress-label">
               {t("vendorProgress", { booked: progress.booked, required: progress.required })}
             </p>
@@ -577,7 +577,7 @@ export default async function EventDetailPage({
         />
       ) : null}
 
-      {/* EVT-04 : rétroplanning en tableau. */}
+      {/* PRD-EVT-04 : rétroplanning en tableau. */}
       {tab === "retroplanning" ? (
         <div className="split">
           <section className="card split-main" aria-labelledby="tasks-title">
@@ -609,7 +609,7 @@ export default async function EventDetailPage({
                 </form>
               </section>
             ) : null}
-            {/* Lot 12 (EVT-13) : pas de rétroplanning pour un prospect ; il démarre à la confirmation (sauf exemple d'essai ou de tutoriel). */}
+            {/* Lot 12 (L12-EVT-13) : pas de rétroplanning pour un prospect ; il démarre à la confirmation (sauf exemple d'essai ou de tutoriel). */}
             {!retroplanningOpen ? (
               <p className="notice">{t("retroplanningAfterConfirm")}</p>
             ) : !event.eventDate ? (
@@ -688,7 +688,7 @@ export default async function EventDetailPage({
         </div>
       ) : null}
 
-      {/* EVT-05 : programme du jour J. */}
+      {/* PRD-EVT-05 : programme du jour J. */}
       {tab === "programme" ? (
         <section className="card" aria-labelledby="program-title">
           <div className="section-head">
@@ -728,7 +728,7 @@ export default async function EventDetailPage({
             </p>
           )}
           {program.items.length === 0 ? <p>{t("noProgramItems")}</p> : null}
-          {/* Lot 12 (EVT-14) : une ligne par moment, une icône par prestataire concerné, actions discrètes à droite. */}
+          {/* Lot 12 (L12-EVT-14) : une ligne par moment, une icône par prestataire concerné, actions discrètes à droite. */}
           <ul aria-label={t("programTitle")} className="program-list">
             {program.items.map((item) => (
               <li key={item.id} className="program-row">
@@ -825,7 +825,7 @@ export default async function EventDetailPage({
         </section>
       ) : null}
 
-      {/* EVT-06 : accès des mariés. */}
+      {/* PRD-EVT-06 : accès des mariés. */}
       {tab === "maries" && event.clients.length > 0 ? (
         <section className="card" aria-labelledby="client-contact-title">
           <h2 id="client-contact-title">{t("clientContactTitle")}</h2>

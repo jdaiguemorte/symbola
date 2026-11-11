@@ -47,7 +47,7 @@ export async function listLabelCandidates(organizationId: string, entityType: Im
 }
 
 // Éléments d'un événement : ses tâches, ou ses postes (une ligne de budget
-// est portée par un poste prestataire, BUD-02).
+// est portée par un poste prestataire, PRD-BUD-02).
 export async function listEventItemCandidates(
   organizationId: string,
   entityType: "tasks" | "budget_lines",

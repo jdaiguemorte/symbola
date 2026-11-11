@@ -1,4 +1,4 @@
-// Lot 11 (PRE-11) — lignes de l'export d'une sélection du carnet, pour le
+// Lot 11 (L11-PRE-11) — lignes de l'export d'une sélection du carnet, pour le
 // CSV (neutralisé contre les formules, @symbola/privacy) et le PDF.
 import type { Vendor, VendorListItem, VendorTag, VendorType } from "@/modules/vendors/service";
 

@@ -111,7 +111,7 @@ async function seed(organizationId: string, userId: string) {
     await simulateEventBudget({ organizationId, eventId: confirmed, totalAmountCents: 3500000, guestCount: 120, allocationModelId: model.id });
   }
 
-  // Lot 16 (PRE-14) : chaque fiche a son type de départ, pour que le carnet
+  // Lot 16 (L16-PRE-14) : chaque fiche a son type de départ, pour que le carnet
   // montre plusieurs familles.
   const types = await listVendorTypes(organizationId);
   const typeOf = (starterKey: string) => types.find((type) => type.starterKey === starterKey)?.id ?? types[0]?.id ?? null;

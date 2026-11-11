@@ -6,7 +6,8 @@ Demandé par Julien après les essais du staging du lot 10 (04/11/2026), maquett
 plusieurs prestataires pour une même prestation, reçoit leurs devis et prend des notes
 (« traiteur : uniquement des produits frais »). Elle veut aussi un **carnet de prestataires**
 pour ne pas recréer 20 fois le même, avec une **carte**. Ce carnet est l'app « Prestataires et
-carte interactive » du cahier des charges (§ 5.5, PRE-01 à PRE-13, V2) : ce lot l'avance.
+carte interactive » de l'ancien cahier des charges (§ 5.5, V2,
+`docs/archive/cahier-des-charges-v1.md`) : ce lot l'avance.
 Décisions techniques : ADR 0031.
 
 ## Décisions de Julien (04/11/2026)
@@ -18,8 +19,8 @@ Décisions techniques : ADR 0031.
   l'API de l'IGN (gratuite, sans clé, seule l'adresse du prestataire est envoyée), pas de
   PostGIS (distance calculée par la base).
 - Paramètres en **pastilles cliquables**, une par solution accessible.
-- Restent pour plus tard (cahier des charges) : isochrones PRE-08, carte partagée aux clients
-  PRE-12, lieux des événements sur la carte PRE-13.
+- Restent pour plus tard (ancien cahier des charges) : isochrones, carte partagée aux clients,
+  lieux des événements sur la carte.
 
 ## Architecture
 
@@ -33,7 +34,7 @@ Décisions techniques : ADR 0031.
 - Les types, champs et étiquettes de départ viennent de `packages/starter-templates`
   (traduisibles, modifiables), jamais du code.
 
-## EVT-10 — Plusieurs prestataires consultés par poste
+## L11-EVT-10 — Plusieurs prestataires consultés par poste
 
 - **Quand** la planner ouvre un poste de l'onglet Prestataires, **alors** elle voit les
   prestataires consultés : nom (lien vers la fiche du carnet s'il y en a une), réponse
@@ -46,39 +47,39 @@ Décisions techniques : ADR 0031.
   « Devis demandé » ; **quand** un devis est reçu (montant ou fichier), **alors** le poste passe
   à « Devis reçu » s'il n'était pas plus avancé. Le statut reste modifiable à la main.
 - **Quand** elle choisit « Retenir », **alors** le poste passe à Réservé avec le nom du
-  prestataire et le montant du devis (EVT-03) ; le budget se met à jour comme aujourd'hui
+  prestataire et le montant du devis (PRD-EVT-03) ; le budget se met à jour comme aujourd'hui
   (`events.vendor_slot.booked`). Les autres consultés restent visibles, « non retenu ».
 - Un devis joint suit les règles des fichiers (PDF ou image, 20 Mo, antivirus, stockage privé,
   servi par l'app, ADR 0027).
 - Un poste déjà réservé en texte libre reste tel quel ; il peut être ajouté au carnet.
 
-## EVT-11 — Notes et options montrées aux clients
+## L11-EVT-11 — Notes et options montrées aux clients
 
 - Chaque note d'un consulté est interne par défaut ; la case « Clients » la rend visible.
 - **Étant donné** un consulté « montré aux clients », **alors** l'espace clients liste, par
   poste, ses options : nom, notes « Clients », montant et devis (téléchargeable par les clients
   de cet événement seulement). Les notes internes et les consultés non montrés n'y sont jamais.
 
-## PRE-01 — Fiche d'un prestataire (carnet)
+## L11-PRE-01 — Fiche d'un prestataire (carnet)
 
 - Coordonnées (contact, téléphone, e-mail, adresse), type, étiquettes, note interne, champs
   propres au type, plaquettes et RIB (fichiers privés, mêmes règles que les devis).
 - Un prestataire n'existe qu'une fois ; une recherche par nom propose les fiches existantes
   avant d'en créer une. Archivage plutôt que suppression s'il a un historique.
 
-## PRE-02 — Types, champs et filtres
+## L11-PRE-02 — Types, champs et filtres
 
 - La planner crée ses types et leurs champs (nombre, texte, heure, montant, liste de choix,
   oui/non) et choisit ceux qui servent de filtres. Types de départ modifiables (lieu de
   réception, hôtel, traiteur, photographe, DJ, fleuriste…).
 
-## PRE-03 — Adresse placée sur la carte
+## L11-PRE-03 — Adresse placée sur la carte
 
 - **Quand** une adresse est enregistrée, **alors** elle est placée automatiquement (géocodage
   IGN) ; la planner peut corriger le point à la main. Sans réponse du géocodage, la fiche est
   enregistrée sans point, avec un message.
 
-## PRE-04 / PRE-05 / PRE-06 — Carte, filtres, cercle
+## L11-PRE-04 / L11-PRE-05 / L11-PRE-06 — Carte, filtres, cercle
 
 - La carte montre les prestataires (une couleur par type, regroupement quand ils sont
   nombreux) ; la liste à côté suit les filtres.
@@ -88,27 +89,27 @@ Décisions techniques : ADR 0031.
   distance au centre.
 - Sans fond de carte installé, la liste et les filtres fonctionnent ; la carte l'indique.
 
-## PRE-07 — Trajet estimé
+## L11-PRE-07 — Trajet estimé
 
 - Distance à vol d'oiseau × 1,3 (détour), durée à 60 km/h ; toujours affichée « estimation ».
   Coefficient et vitesse paramétrables par organisation.
 
-## PRE-09 — Historique avec la planner
+## L11-PRE-09 — Historique avec la planner
 
 - La fiche liste les événements où le prestataire a été consulté : événement, date, issue
   (retenu, non retenu, en cours), prix devisé, prix final (réel du budget si le module Budget
   est souscrit) et prix moyen pratiqué.
 
-## PRE-10 — Du carnet vers le poste
+## L11-PRE-10 — Du carnet vers le poste
 
 - Depuis la carte ou une fiche : « Ajouter au poste … » d'un événement en cours de
   préparation. Depuis un poste : « Trouver sur la carte autour du lieu ».
 
-## PRE-11 — Exporter une sélection
+## L11-PRE-11 — Exporter une sélection
 
 - La sélection filtrée s'exporte en CSV (cellules neutralisées) ou en PDF.
 
-## HUB-12 — Paramètres en pastilles
+## L11-HUB-12 — Paramètres en pastilles
 
 - Une pastille par solution accessible (Organisation, Événements, Prestataires, Budget, Devis
   et factures), puis des pastilles pour les réglages de la solution choisie. Une solution non

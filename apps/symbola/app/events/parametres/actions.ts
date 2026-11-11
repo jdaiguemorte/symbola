@@ -45,7 +45,7 @@ export async function createLossReasonAction(
   return { success: true };
 }
 
-// EVT-07 — listes de départ (packages/starter-templates), dans la langue de
+// PRD-EVT-07 — listes de départ (packages/starter-templates), dans la langue de
 // la planner : sources de prospect et motifs de perte, sans doublon.
 export async function loadStarterListsAction(
   _prevState: EventsSettingsFormState,

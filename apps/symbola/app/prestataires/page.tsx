@@ -1,8 +1,8 @@
-// Lot 11 (PRE-04 à PRE-07, PRE-10, PRE-11) — carnet de prestataires : filtres,
+// Lot 11 (L11-PRE-04 à L11-PRE-07, L11-PRE-10, L11-PRE-11) — carnet de prestataires : filtres,
 // carte et liste du plus proche au plus loin, « Ajouter au poste », export.
-// Lot 13 (PRE-12) : liste et carte côte à côte (bascule sur téléphone),
+// Lot 13 (L13-PRE-12) : liste et carte côte à côte (bascule sur téléphone),
 // filtres en barre alignée appliqués à la saisie, fiche en panneau latéral.
-// Lot 16 (PRE-14, ADR 0040) : pastilles par famille (non vides), types de la
+// Lot 16 (L16-PRE-14, ADR 0040) : pastilles par famille (non vides), types de la
 // famille choisie en second rang, « à classer » signalé ; couleur et
 // pictogramme de la famille sur la carte.
 import { PageHeader } from "@/app/ui/page-header";
@@ -306,7 +306,7 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
                     {vendor.isDemo ? <span className="badge badge-ambre">{t("demo")}</span> : null}
                     {!vendor.location ? <span>{t("notPlaced")}</span> : null}
                   </span>
-                  {/* Lot 20 (PRE-17) : archiver sans ouvrir la fiche, après confirmation. */}
+                  {/* Lot 20 (L20-PRE-17) : archiver sans ouvrir la fiche, après confirmation. */}
                   <ConfirmDialog
                     trigger={t("archiveShort")}
                     triggerLabel={t("archive", { vendor: vendor.name })}

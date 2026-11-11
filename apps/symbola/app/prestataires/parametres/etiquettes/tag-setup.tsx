@@ -1,6 +1,6 @@
 "use client";
 
-// Lot 21 (PRE-18, PRE-19, ADR 0050) — en tête de l'écran Étiquettes :
+// Lot 21 (L21-PRE-18, L21-PRE-19, ADR 0050) — en tête de l'écran Étiquettes :
 // « Ranger mes étiquettes importées » (avec le récapitulatif de ce qui a été
 // rangé) et « Ajouter les étiquettes proposées ». Le bloc reste affiché tant
 // qu'un récapitulatif est à lire, même s'il n'y a plus rien à ranger.

@@ -1,4 +1,4 @@
-// Lot 13 (HUB-15, HUB-16) — rubrique « Délais de relance » des Paramètres.
+// Lot 13 (L13-HUB-15, L13-HUB-16) — rubrique « Délais de relance » des Paramètres.
 import { getTranslations } from "next-intl/server";
 import { appDatabase } from "@symbola/db/client";
 import { getFollowUpDelays } from "@/modules/hub/service";

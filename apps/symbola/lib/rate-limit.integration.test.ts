@@ -1,4 +1,4 @@
-// Lot 16 (SEC-02, ADR 0044) — limitation de débit des vraies actions et
+// Lot 16 (L16-SEC-02, ADR 0044) — limitation de débit des vraies actions et
 // routes, contre un vrai PostgreSQL : seule la requête Next.js (en-têtes,
 // cookies, traductions) est simulée, faute de serveur en test.
 import { randomUUID } from "node:crypto";
@@ -42,7 +42,7 @@ function form(values: Record<string, string>): FormData {
 }
 
 // Jusqu'à 121 vraies tentatives de suite par test : plus que le délai par défaut.
-describe("SEC-02 — Limitation de débit de la connexion, du mot de passe oublié et de la recherche", { timeout: 60_000 }, () => {
+describe("L16-SEC-02 — Limitation de débit de la connexion, du mot de passe oublié et de la recherche", { timeout: 60_000 }, () => {
   beforeEach(() => {
     request.ip = freshIp();
   });

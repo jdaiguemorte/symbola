@@ -10,7 +10,7 @@ migration au déploiement : 0084. Reste la recette sur le staging.
 Retours de Julien du 10/11/2026, en recette des lots 18 et 19 sur le staging (captures à
 l'appui). Causes relevées dans le code :
 
-- Le « ? » d'un écran qui ne déclare pas d'aide mène au centre d'aide (HUB-19, ADR 0039). Ce
+- Le « ? » d'un écran qui ne déclare pas d'aide mène au centre d'aide (L16-HUB-19, ADR 0039). Ce
   centre commence par le bloc « Tutoriels faits », d'où l'impression d'un renvoi vers les
   tutoriels. Écrans concernés : Sources et motifs, Délais de relance, Types de prestataires,
   Étiquettes, Estimation des trajets, fiche et création d'un prestataire, Résultats de
@@ -26,14 +26,14 @@ l'appui). Causes relevées dans le code :
 
 ## A. Corrections directes
 
-### HUB-25 — En-tête de l'agenda aligné (fait)
+### L20-HUB-25 — En-tête de l'agenda aligné (fait)
 
 - **Étant donné** l'accueil en taille ordinateur, **alors** « ‹ Aujourd'hui › » est centré sur
-  le sélecteur de durée. Cause : depuis HUB-24, une barre d'outils aligne ses éléments en
+  le sélecteur de durée. Cause : depuis L18-HUB-24, une barre d'outils aligne ses éléments en
   haut ; la navigation de l'agenda, barre imbriquée, gardait sa marge (environ 14 px).
 - **En 375 px**, la navigation passe au-dessus du sélecteur, sans chevauchement.
 
-### HUB-26 — « Voir le parcours des tutoriels » à sa place
+### L20-HUB-26 — « Voir le parcours des tutoriels » à sa place
 
 - **Quand** elle ouvre le centre d'aide sans aucun tutoriel fait, **alors** le bouton ne
   touche pas la barre de progression, en ordinateur comme en 375 px.
@@ -59,18 +59,18 @@ l'appui). Causes relevées dans le code :
   centre d'aide montre sa capture prise sur des données d'exemple, ou à défaut une
   illustration générique de la rubrique ; jamais « ? ».
 
-### EVT-20 — Rétroplanning : cartes alignées
+### L20-EVT-20 — Rétroplanning : cartes alignées
 
 - **Quand** elle ouvre Paramètres › Rétroplanning, **alors** les cartes des modèles et la carte
   « Nouveau modèle » ont les mêmes bords.
 
-### HUB-27 — Une seule barre de recherche
+### L20-HUB-27 — Une seule barre de recherche
 
 - **Quand** elle cherche depuis la barre du haut, **alors** les résultats s'affichent sous
   cette même barre, remplie avec sa recherche ; aucun second champ n'apparaît, et la liste
   instantanée ne s'ouvre pas au chargement de la page de résultats.
 
-### PRE-17 — Retirer un prestataire depuis le carnet
+### L20-PRE-17 — Retirer un prestataire depuis le carnet
 
 - Un prestataire ne s'efface pas : il s'archive (lot 11). Sa fiche quitte le carnet et n'est
   plus proposée, mais ses prestations restent sur les événements et les budgets.

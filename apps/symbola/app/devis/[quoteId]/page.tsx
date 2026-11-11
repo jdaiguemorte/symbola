@@ -79,7 +79,7 @@ export default async function QuotePage({ params }: { params: Promise<{ quoteId:
 
   return (
     <main>
-      {/* Lot 16 (HUB-20) : en-tête commun — statut en badge, événement en sous-titre, PDF en action. */}
+      {/* Lot 16 (L16-HUB-20) : en-tête commun — statut en badge, événement en sous-titre, PDF en action. */}
       <PageHeader
         title={t("quoteTitle", { number: quote.number })}
         badge={<span className="badge">{t("statusBadge", { status: t(QUOTE_STATUS_LABEL_KEYS[quote.status]), version: current.version })}</span>}

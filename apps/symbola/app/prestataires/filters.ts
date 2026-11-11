@@ -1,6 +1,6 @@
-// Lot 11 (PRE-04 à PRE-06) — filtres du carnet lus dans l'URL (liens
+// Lot 11 (L11-PRE-04 à L11-PRE-06) — filtres du carnet lus dans l'URL (liens
 // partageables, retour arrière) : type, étiquette, champs-filtres du type,
-// « déjà travaillé avec », texte, centre et rayon. Lot 16 (PRE-14) : famille
+// « déjà travaillé avec », texte, centre et rayon. Lot 16 (L16-PRE-14) : famille
 // (« famille=<id> », ou « famille=a-classer »), puis type en second rang.
 import { parseAmountToCents } from "@symbola/i18n";
 import type { FindVendorsInput, VendorFieldFilter, VendorType } from "@/modules/vendors/service";
@@ -91,7 +91,7 @@ export function toFindInput(
   };
 }
 
-// Même sélection pour l'export (PRE-11) : la requête courante, telle quelle.
+// Même sélection pour l'export (L11-PRE-11) : la requête courante, telle quelle.
 export function queryString(query: BookQuery, overrides: Record<string, string | null> = {}): string {
   const params = new URLSearchParams();
   for (const [key, value] of Object.entries(query)) {

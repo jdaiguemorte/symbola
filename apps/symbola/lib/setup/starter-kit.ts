@@ -95,13 +95,13 @@ export async function loadStarterKit(organizationId: string, metier: StarterMeti
       result.allocation = true;
     }
   }
-  // Lot 16 (PRE-14) : familles et types de départ du métier, une seule fois.
+  // Lot 16 (L16-PRE-14) : familles et types de départ du métier, une seule fois.
   // Lot 16 (ADR 0045) : catalogue commun, sans les types propres au mariage si
   // l'organisation n'en organise pas.
   if (modules.vendors) {
     const weddings = await organizesWeddings(organizationId);
     result.vendorTypes = (await seedStarterVendorCatalog(organizationId, vendorCatalogInput(locale, { weddings }), { withTypes: true })).types;
-    // Lot 21 (PRE-18) : étiquettes de départ, rangées par famille ; rien n'est
+    // Lot 21 (L21-PRE-18) : étiquettes de départ, rangées par famille ; rien n'est
     // dupliqué au second passage.
     result.vendorTags = (await seedStarterVendorTags(organizationId, vendorTagCatalogInput(locale, metier))).created;
   }

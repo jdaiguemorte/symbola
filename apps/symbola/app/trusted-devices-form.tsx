@@ -1,6 +1,6 @@
 "use client";
 
-// SEC-03 (lot 16, ADR 0038) — appareils de confiance du compte : leur nombre, et
+// L16-SEC-03 (lot 16, ADR 0038) — appareils de confiance du compte : leur nombre, et
 // « oublier mes appareils » (profil de l'équipe, sécurité de l'espace des mariés).
 import { useActionState } from "react";
 import { useTranslations } from "next-intl";

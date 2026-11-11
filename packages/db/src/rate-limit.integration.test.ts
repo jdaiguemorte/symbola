@@ -1,4 +1,4 @@
-// Lot 16 (SEC-02, ADR 0044) — limitation de débit à fenêtre glissante, contre
+// Lot 16 (L16-SEC-02, ADR 0044) — limitation de débit à fenêtre glissante, contre
 // un vrai PostgreSQL, rôle applicatif, horloge simulée.
 import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
@@ -21,7 +21,7 @@ function rule(overrides: Partial<RateLimitRule> = {}): RateLimitRule {
   return { bucket: `test.${randomUUID()}`, key: "203.0.113.7", limit: 3, windowMs: 15 * MINUTE, ...overrides };
 }
 
-describe("SEC-02 — Limitation de débit à fenêtre glissante (PostgreSQL réel)", () => {
+describe("L16-SEC-02 — Limitation de débit à fenêtre glissante (PostgreSQL réel)", () => {
   it("accepte jusqu'à la limite, puis refuse en annonçant le délai d'attente", async () => {
     const r = rule();
     for (let i = 0; i < 3; i += 1) expect(await consumeRateLimits(db, [r], at(i * MINUTE))).toEqual({ allowed: true });

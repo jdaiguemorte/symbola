@@ -1,10 +1,10 @@
-// EVT-04 — calcul des échéances du rétroplanning. Dates sans heure
+// PRD-EVT-04 — calcul des échéances du rétroplanning. Dates sans heure
 // (CLAUDE.md §5) : le calcul se fait en jours civils, sans dépendre du
 // fuseau ni du passage à l'heure d'été (CLAUDE.md §6).
 import { describe, expect, it } from "vitest";
 import { addDays, daysBetween, dueDateFor, monthKey } from "./schedule";
 
-describe("EVT-04 — Calcul des échéances", () => {
+describe("PRD-EVT-04 — Calcul des échéances", () => {
   it("J-365 d'un mariage le 12 juin 2027 tombe le 12 juin 2026", () => {
     expect(dueDateFor("2027-06-12", -365)).toBe("2026-06-12");
   });

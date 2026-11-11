@@ -1,4 +1,4 @@
-// EVT-05 — programme du jour J, contre un vrai PostgreSQL (RLS, ADR 0012),
+// PRD-EVT-05 — programme du jour J, contre un vrai PostgreSQL (RLS, ADR 0012),
 // par la porte d'entrée du module.
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
@@ -45,7 +45,7 @@ const line = (startTime: string, label: string, extra: Partial<Parameters<typeof
   ...extra,
 });
 
-describe("EVT-05 — Programme du jour J", () => {
+describe("PRD-EVT-05 — Programme du jour J", () => {
   it("le programme est une liste de lignes complètes, triées par heure", async () => {
     const organizationId = randomUUID();
     await addDefaultVendorSlots(organizationId, ["Photographe"]);
@@ -186,7 +186,7 @@ describe("EVT-05 — Programme du jour J", () => {
   });
 });
 
-describe("EVT-05 — Isolation par la porte d'entrée du module", () => {
+describe("PRD-EVT-05 — Isolation par la porte d'entrée du module", () => {
   it("refuse le programme, les postes et les modèles d'une autre organisation", async () => {
     const organizationId = randomUUID();
     const otherOrganizationId = randomUUID();

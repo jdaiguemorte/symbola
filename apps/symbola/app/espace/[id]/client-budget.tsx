@@ -3,7 +3,7 @@ import { formatAmount, type Locale } from "@symbola/i18n";
 import type { BudgetLinesView } from "@/modules/budget/service";
 import { varianceDisplay } from "@/app/budget/variance-display";
 
-// BUD-04 — budget de l'événement vu par le marié : lecture seule, aucun
+// PRD-BUD-04 — budget de l'événement vu par le marié : lecture seule, aucun
 // formulaire, colonnes publiques uniquement (poste, prévu, réel, écart).
 export async function ClientBudget({ view, locale }: { view: BudgetLinesView; locale: Locale }) {
   const t = await getTranslations("Budget");

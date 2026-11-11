@@ -1,4 +1,4 @@
-// Lot 11 (EVT-11) — devis d'une option montrée aux clients : l'accès du
+// Lot 11 (L11-EVT-11) — devis d'une option montrée aux clients : l'accès du
 // client à l'événement et la case « montrer aux clients » sont vérifiés par
 // le module events ; fichier servi par l'app (ADR 0027).
 import { ClientVendorOptionsAccessDeniedError, getClientVendorQuoteFile, VendorCandidateNotFoundError } from "@/modules/events/service";

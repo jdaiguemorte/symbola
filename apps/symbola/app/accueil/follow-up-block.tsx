@@ -1,4 +1,4 @@
-// Lot 13 (HUB-15) — bloc « À traiter » de l'accueil : devis envoyés sans
+// Lot 13 (L13-HUB-15) — bloc « À traiter » de l'accueil : devis envoyés sans
 // réponse et prospects sans nouvelle au-delà des délais de relance de
 // l'organisation (décision G). Chaque ligne mène à sa fiche. Un module non
 // souscrit retire simplement sa partie (dégradation propre).

@@ -19,7 +19,7 @@ export function verifyTotpToken(options: { secret: string; token: string; timest
   return matchTotpStep(options) !== null;
 }
 
-// SEC-01 (lot 16) : pas de temps (période de 30 s) du code reconnu, ou null.
+// L16-SEC-01 (lot 16) : pas de temps (période de 30 s) du code reconnu, ou null.
 // Le service l'enregistre pour refuser qu'un code serve deux fois (anti-rejeu).
 export function matchTotpStep(options: { secret: string; token: string; timestamp?: number }): number | null {
   const totp = new OTPAuth.TOTP({

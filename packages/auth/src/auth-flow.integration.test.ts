@@ -62,7 +62,7 @@ describe("SOC-04 — Parcours de connexion (PostgreSQL réel)", () => {
       token: currentCodeFor(secret),
     });
     if (confirmed.outcome !== "confirmed") throw new Error("validation attendue");
-    // SEC-01 : la validation remplace le jeton de session.
+    // L16-SEC-01 : la validation remplace le jeton de session.
     const sessionToken = confirmed.sessionToken;
 
     const afterMfa = await requireUser(db, sessionToken);
@@ -129,7 +129,7 @@ describe("SOC-04 — Parcours de connexion (PostgreSQL réel)", () => {
     expect(result.status).toBe("authenticated");
   });
 
-  it("EVT-06 — un marié qui active la double authentification la passe à chaque connexion suivante", async () => {
+  it("PRD-EVT-06 — un marié qui active la double authentification la passe à chaque connexion suivante", async () => {
     const organization = await createOrganization(db, `Org ${randomUUID()}`);
     const email = `marie-mfa-${randomUUID()}@example.test`;
     const user = await createUser(db, { organizationId: organization.id, email, password: "mot-de-passe-du-marie", role: "client" });
@@ -152,14 +152,14 @@ describe("SOC-04 — Parcours de connexion (PostgreSQL réel)", () => {
     const pending = await requireUser(db, second.sessionToken);
     expect(pending).toMatchObject({ status: "mfa_required", totpConfirmed: true });
 
-    // Le code de l'activation ne resert pas (SEC-01) : celui de la période suivante.
+    // Le code de l'activation ne resert pas (L16-SEC-01) : celui de la période suivante.
     const next = Date.now() + 30_000;
     const reconfirmed = await confirmTotp(db, { sessionToken: second.sessionToken, token: codeAt(secret, next), now: new Date(next) });
     if (reconfirmed.outcome !== "confirmed") throw new Error("validation attendue");
     expect((await requireUser(db, reconfirmed.sessionToken)).status).toBe("authenticated");
   });
 
-  it("EVT-06 — retrouve un compte par son e-mail, sans rien en exposer d'autre que rôle et organisation", async () => {
+  it("PRD-EVT-06 — retrouve un compte par son e-mail, sans rien en exposer d'autre que rôle et organisation", async () => {
     const organization = await createOrganization(db, `Org ${randomUUID()}`);
     const email = `compte-${randomUUID()}@example.test`;
     const user = await createUser(db, { organizationId: organization.id, email, password: "mot-de-passe", role: "client" });
@@ -191,7 +191,7 @@ describe("SOC-04 — Parcours de connexion (PostgreSQL réel)", () => {
     expect(result.status).toBe("unauthenticated");
   });
 
-  it("HUB-01 — prolonge la session à chaque activité (8h glissantes, pas depuis la connexion)", async () => {
+  it("PRD-HUB-01 — prolonge la session à chaque activité (8h glissantes, pas depuis la connexion)", async () => {
     const organization = await createOrganization(db, `Org ${randomUUID()}`);
     const email = `glissante-${randomUUID()}@example.test`;
     await createUser(db, {

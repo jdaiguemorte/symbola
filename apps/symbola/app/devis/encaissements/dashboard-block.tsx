@@ -5,7 +5,7 @@ import { getEvent } from "@/modules/events/service";
 import { getQuoteSettings, listUnpaidPayments, type UnpaidPaymentsView } from "@/modules/quotes/service";
 import { HOME_BLOCK_LINES } from "@/app/accueil/home-blocks";
 
-// HUB-02 / DEV-03 — bloc « Encaissements à venir » du tableau de bord :
+// PRD-HUB-02 / DEV-03 — bloc « Encaissements à venir » du tableau de bord :
 // retards en tête, puis les N prochains jours (90 proposés, paramétrable).
 // S'il ne répond pas en 2 secondes, il s'affiche « indisponible » et le
 // reste de la page fonctionne (dégradation propre, CLAUDE.md §2.3).

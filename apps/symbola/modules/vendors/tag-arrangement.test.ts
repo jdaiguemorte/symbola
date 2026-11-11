@@ -1,4 +1,4 @@
-// Lot 21 (PRE-18, PRE-19, ADR 0050) — plans de rangement des étiquettes.
+// Lot 21 (L21-PRE-18, L21-PRE-19, ADR 0050) — plans de rangement des étiquettes.
 import { describe, expect, it } from "vitest";
 import { planStarterTags, planTagArrangement, type PlanCatalogGroup, type PlanTag, type PlanVendor } from "./tag-arrangement";
 
@@ -22,7 +22,7 @@ const catalog: PlanCatalogGroup[] = [
 const tag = (id: string, label: string, extra: Partial<PlanTag> = {}): PlanTag => ({ id, label, groupId: null, familyIds: [], position: 0, ...extra });
 const vendor = (id: string, familyId: string | null, tagIds: string[]): PlanVendor => ({ id, name: `Fiche ${id}`, familyId, tagIds });
 
-describe("PRE-18 — Étiquettes de départ", () => {
+describe("L21-PRE-18 — Étiquettes de départ", () => {
   it("crée les groupes et les étiquettes qui manquent ; une étiquette du même libellé prend le groupe et la famille, sans doublon", () => {
     const { plan, created, placed } = planStarterTags({ tags: [tag("t-pmr", "accès pmr")], groups: [], vendors: [], catalog });
 
@@ -47,7 +47,7 @@ describe("PRE-18 — Étiquettes de départ", () => {
   });
 });
 
-describe("PRE-19 — Les étiquettes importées se rangent toutes seules", () => {
+describe("L21-PRE-19 — Les étiquettes importées se rangent toutes seules", () => {
   const imported = [
     tag("t-100", "100 à 150 personnes"),
     tag("t-150", "150 à 200 personnes"),

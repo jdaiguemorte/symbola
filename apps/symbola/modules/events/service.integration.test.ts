@@ -1,4 +1,4 @@
-// EVT-01 / EVT-07 — liste des événements et source du prospect, contre un
+// PRD-EVT-01 / PRD-EVT-07 — liste des événements et source du prospect, contre un
 // vrai PostgreSQL (RLS, ADR 0012), par la porte d'entrée du module.
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
@@ -19,7 +19,7 @@ import {
   listProspectSources,
 } from "./service";
 
-// Auteur des créations, historisé dans event_status_history (EVT-02).
+// Auteur des créations, historisé dans event_status_history (PRD-EVT-02).
 const plannerId = randomUUID();
 
 async function seedOrganization() {
@@ -29,7 +29,7 @@ async function seedOrganization() {
   return { organizationId, instagram, salon };
 }
 
-describe("EVT-01 — Liste des événements", () => {
+describe("PRD-EVT-01 — Liste des événements", () => {
   it("trie par date croissante, les événements sans date en tête", async () => {
     const { organizationId, instagram } = await seedOrganization();
     const base = {
@@ -78,7 +78,7 @@ describe("EVT-01 — Liste des événements", () => {
   });
 });
 
-describe("EVT-07 — Source du prospect", () => {
+describe("PRD-EVT-07 — Source du prospect", () => {
   it("la source est visible dans la fiche et filtrable dans la liste", async () => {
     const { organizationId, instagram, salon } = await seedOrganization();
     const base = {
@@ -107,7 +107,7 @@ describe("EVT-07 — Source du prospect", () => {
   });
 });
 
-describe("EVT-07 — Listes de départ des sources et des motifs de perte", () => {
+describe("PRD-EVT-07 — Listes de départ des sources et des motifs de perte", () => {
   it("ajoute les sources et motifs de départ sans doublon, même relancé, en gardant ceux de la planner", async () => {
     const { organizationId } = await seedOrganization();
     const added = await addProspectSources(organizationId, starterProspectSources("fr"));
@@ -134,7 +134,7 @@ describe("EVT-07 — Listes de départ des sources et des motifs de perte", () =
   });
 });
 
-describe("HUB-02 — Tâches de toute l'organisation (accueil, écran Tâches)", () => {
+describe("PRD-HUB-02 — Tâches de toute l'organisation (accueil, écran Tâches)", () => {
   async function prospect(organizationId: string, sourceId: string, firstName: string, eventDate: string | null) {
     return createProspect({
       organizationId,

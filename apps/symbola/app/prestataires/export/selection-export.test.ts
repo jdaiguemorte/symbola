@@ -1,4 +1,4 @@
-// Lot 11 (PRE-11) — export d'une sélection : colonnes, trajet estimé et
+// Lot 11 (L11-PRE-11) — export d'une sélection : colonnes, trajet estimé et
 // cellules neutralisées contre les formules (CLAUDE.md § 5).
 import { describe, expect, it } from "vitest";
 import { toCsv } from "@symbola/privacy";
@@ -17,7 +17,7 @@ const labels: ExportLabels = {
   tags: "Étiquettes",
 };
 
-describe("PRE-11 — Exporter une sélection", () => {
+describe("L11-PRE-11 — Exporter une sélection", () => {
   it("une ligne par prestataire, trajet estimé et étiquettes ; une cellule « = » est neutralisée", () => {
     const rows = exportRows(
       [{ id: "v1", name: "=HYPERLINK(\"x\")", typeId: "t1", postalCode: "59000", city: "Lille", location: null, tagIds: ["g1"], archived: false, isDemo: false, travel: { distanceKm: 5.2, minutes: 6 } }],

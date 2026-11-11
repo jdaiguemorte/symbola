@@ -1,4 +1,4 @@
-// EVT-04 — arithmétique des dates sans heure (« AAAA-MM-JJ », CLAUDE.md
+// PRD-EVT-04 — arithmétique des dates sans heure (« AAAA-MM-JJ », CLAUDE.md
 // §5). Calcul en UTC : un jour civil vaut toujours 24 h, donc aucun
 // décalage au passage à l'heure d'été ou d'hiver.
 const DAY_MS = 24 * 60 * 60 * 1000;

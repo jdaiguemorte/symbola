@@ -1,4 +1,4 @@
-// Lot 16 (SEC-02, ADR 0044) — limitation de débit à fenêtre glissante, en
+// Lot 16 (L16-SEC-02, ADR 0044) — limitation de débit à fenêtre glissante, en
 // base : une ligne par tentative acceptée, comptée sur la fenêtre de la règle.
 // Une tentative refusée n'est pas enregistrée : qui attend le délai annoncé
 // repasse. Les clés (adresse IP, e-mail, compte) ne sont gardées que sous

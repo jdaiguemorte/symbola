@@ -8,7 +8,7 @@ const run = (status: BackupRunView["status"], finishedAt: string | null, started
   sizeBytes: null,
 });
 
-describe("HUB-18 — Dernière sauvegarde signalée", () => {
+describe("L13-HUB-18 — Dernière sauvegarde signalée", () => {
   const night = run("succeeded", "2026-11-07T02:12:00Z");
 
   it("étant donné la sauvegarde de cette nuit réussie, alors l'état est « faite »", () => {

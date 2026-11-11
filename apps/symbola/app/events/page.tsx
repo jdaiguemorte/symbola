@@ -62,7 +62,7 @@ export default async function EventsListPage({
     status && tabStatuses.includes(status as EventStatus)
       ? [status as EventStatus]
       : tabStatuses;
-  // EVT-18 : années et effectifs des onglets depuis tous les événements
+  // L13-EVT-18 : années et effectifs des onglets depuis tous les événements
   // (quelques centaines au plus pour une organisation).
   const allEvents = await listEvents({ organizationId });
   const years = yearOptions(allEvents.map((event) => event.eventDate), parisToday());
@@ -70,7 +70,7 @@ export default async function EventsListPage({
   const counts = tabCounts(allEvents.map((event) => event.status));
 
   const sources = await listProspectSources(organizationId);
-  // EVT-07 : seule une source de l'organisation est retenue comme filtre.
+  // PRD-EVT-07 : seule une source de l'organisation est retenue comme filtre.
   const sourceFilter = sources.some((candidate) => candidate.id === source)
     ? source
     : undefined;

@@ -1,4 +1,4 @@
-// Lot 11 (PRE-01 à PRE-07, PRE-09) — carnet de prestataires contre un vrai
+// Lot 11 (L11-PRE-01 à L11-PRE-07, L11-PRE-09) — carnet de prestataires contre un vrai
 // PostgreSQL (RLS) et le stockage privé, par la porte d'entrée du module.
 // Géocodeur simulé (GEOCODER non défini hors production, ADR 0031).
 import { randomUUID } from "node:crypto";
@@ -58,7 +58,7 @@ async function hotelType(organizationId: string) {
   return { type, beds, price, shuttle };
 }
 
-describe("PRE-01 — Fiche d'un prestataire", () => {
+describe("L11-PRE-01 — Fiche d'un prestataire", () => {
   it("enregistre coordonnées, type, champs, étiquettes et note ; l'adresse est placée sur la carte", async () => {
     const organizationId = await newOrganization();
     const { type, beds, price } = await hotelType(organizationId);
@@ -95,7 +95,7 @@ describe("PRE-01 — Fiche d'un prestataire", () => {
     await expect(createVendor(organizationId, { name: "X", typeId: type.id, fieldValues: { [price.id]: 12.5 } })).rejects.toBeInstanceOf(InvalidVendorFieldValueError);
   });
 
-  it("PRE-03 — adresse introuvable : fiche enregistrée sans point ; point corrigé à la main gardé tant que l'adresse ne change pas", async () => {
+  it("L11-PRE-03 — adresse introuvable : fiche enregistrée sans point ; point corrigé à la main gardé tant que l'adresse ne change pas", async () => {
     const organizationId = await newOrganization();
     const { vendor, geocoding } = await createVendor(organizationId, { name: "Gîte", typeId: null, addressLine: "lieu-dit introuvable" });
     expect(geocoding).toBe("not_found");
@@ -135,7 +135,7 @@ describe("PRE-01 — Fiche d'un prestataire", () => {
   });
 });
 
-describe("PRE-02 — Types, champs et étiquettes", () => {
+describe("L11-PRE-02 — Types, champs et étiquettes", () => {
   it("types et champs sont propres à l'organisation ; une liste de choix demande des choix", async () => {
     const organizationId = await newOrganization();
     const { type } = await hotelType(organizationId);
@@ -155,7 +155,7 @@ describe("PRE-02 — Types, champs et étiquettes", () => {
   });
 });
 
-describe("PRE-04 à PRE-07 — Recherche, filtres, cercle et trajet estimé", () => {
+describe("L11-PRE-04 à L11-PRE-07 — Recherche, filtres, cercle et trajet estimé", () => {
   it("combine type, champs-filtres, étiquettes et texte (sans accents)", async () => {
     const organizationId = await newOrganization();
     const { type, beds, price, shuttle } = await hotelType(organizationId);
@@ -210,7 +210,7 @@ describe("PRE-04 à PRE-07 — Recherche, filtres, cercle et trajet estimé", ()
   });
 });
 
-describe("PRE-09 — Historique avec la planner", () => {
+describe("L11-PRE-09 — Historique avec la planner", () => {
   it("événements, issue, prix devisé, prix final (réel du budget) et prix moyen", async () => {
     const organizationId = await newOrganization();
     const { vendor } = await createVendor(organizationId, { name: "Maison Verdier", typeId: null });

@@ -1,4 +1,4 @@
-// Lot 12 (EVT-16) — RIB d'un prestataire partagé aux clients : l'accès du
+// Lot 12 (L12-EVT-16) — RIB d'un prestataire partagé aux clients : l'accès du
 // client à l'événement et les cases « montrer » et « partager le RIB » sont
 // vérifiés par le module events, le fichier est lu par le module vendors et
 // servi par l'app (ADR 0027).

@@ -1,4 +1,4 @@
-// HUB-03, revu au lot 13 (HUB-17, ADR 0033) — organisations en tableau :
+// PRD-HUB-03, revu au lot 13 (L13-HUB-17, ADR 0033) — organisations en tableau :
 // modules souscrits, comptes d'équipe, prise en main, dernière connexion.
 // Une ligne ouvre un panneau (?organisation=id) : modules à activer ou
 // désactiver, comptes, prise en main ; « Nouvelle organisation » ouvre le

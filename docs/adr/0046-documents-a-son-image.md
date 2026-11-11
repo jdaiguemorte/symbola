@@ -27,7 +27,7 @@ réglable ne doit donc pas modifier après coup un document déjà émis.
 - **Fiche entreprise** (`hub.organization_profiles`, migration 0081, annulable) : e-mail et
   téléphone de contact, site web, numéro de TVA intracommunautaire, immatriculation (RCS ou
   RM, texte libre), capital social en centimes. Le SIRET reste dans `hub.organizations.siret`,
-  saisi à la création (HUB-03) et désormais modifiable par la planner : une seule source.
+  saisi à la création (PRD-HUB-03) et désormais modifiable par la planner : une seule source.
 - **Réglages des documents** (`quotes.quote_settings`, même migration) :
   - couleur `#rrggbb` (nulle = graphite de départ) ;
   - police `modern` ou `classic` (Helvetica ou Times, incluses dans le moteur PDF : aucune
@@ -82,7 +82,7 @@ L'ajout de champs facultatifs garde le contrat interne compatible : `QuoteSettin
 ### Logo
 
 - PNG ou JPEG, 2 Mo au plus, type vérifié par le contenu avant tout stockage, antivirus, par la
-  route d'envoi `/logo` (SEC-02, ADR 0044 : origine, session, limite de débit, corps borné).
+  route d'envoi `/logo` (L16-SEC-02, ADR 0044 : origine, session, limite de débit, corps borné).
 - Servi par `GET /logo` à l'équipe et aux mariés de l'organisation de la session (aucun
   identifiant dans l'adresse ; `v` ne sert qu'à rafraîchir le cache), jamais par un lien vers le
   stockage (ADR 0027). Refus sans session.

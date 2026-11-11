@@ -1,6 +1,6 @@
 "use client";
 
-// Lot 12 (HUB-13), correctif de recette — menus des dates de l'agenda
+// Lot 12 (L12-HUB-13), correctif de recette — menus des dates de l'agenda
 // (créer à cette date, plusieurs événements le même week-end) : un seul
 // ouvert à la fois, fermé par un clic ailleurs ou par Échap (le focus revient
 // alors sur la date).

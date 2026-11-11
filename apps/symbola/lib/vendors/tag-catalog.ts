@@ -1,4 +1,4 @@
-// Lot 21 (PRE-18, PRE-19, ADR 0050) — étiquettes de départ (packages/starter-
+// Lot 21 (L21-PRE-18, L21-PRE-19, ADR 0050) — étiquettes de départ (packages/starter-
 // templates) dans la langue et selon le métier de l'organisation, posées et
 // rangées par le module vendors. Orchestration entre modules par leurs
 // service.ts (ADR 0011) : le métier vient du hub, les étiquettes vivent dans

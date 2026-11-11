@@ -1,12 +1,13 @@
 # ADR 0037 — Double authentification protégée : limite d'essais, anti-rejeu, secret chiffré
 
-- Statut : accepté
+- Statut : accepté ; prendra fin avec la bascule de l'ADR
+  [0052](0052-identite-fournisseur-open-source.md) (lot 33)
 - Date : 2026-11-08
 - Complète : [0013](0013-auth-maison-pour-le-mvp.md) (authentification maison),
   [0029](0029-assistance-admin-et-statistiques-d-usage.md) (réinitialisation par l'Admin),
   [0035](0035-traitements-de-fond-suivis-des-imports.md) (chiffrement AES-256-GCM),
   [0036](0036-migrations-annulables.md) (migrations annulables)
-- Story : SEC-01 (`docs/lots/lot-16-reprise-ux.md`), audit du 08/11/2026 (S1, S3, S4)
+- Story : L16-SEC-01 (`docs/lots/lot-16-reprise-ux.md`), audit du 08/11/2026 (S1, S3, S4)
 
 ## Contexte
 
@@ -16,7 +17,7 @@ la double authentification :
 1. **Pas de limite d'essais sur le code.** Une fois le mot de passe connu (réutilisé
    ailleurs, hameçonné), la page `/mfa` acceptait des essais sans fin. Un code à 6 chiffres
    avec une tolérance d'une période de chaque côté laisse 3 codes valides à chaque instant :
-   quelques heures de force brute suffisaient. Le verrouillage après 5 essais (HUB-01) ne
+   quelques heures de force brute suffisaient. Le verrouillage après 5 essais (PRD-HUB-01) ne
    protégeait que le mot de passe.
 2. **Secret stocké en clair** (`hub.users.totp_secret`). Une copie de la base, ou une
    sauvegarde mal rangée, livrait le second facteur de chaque compte.
@@ -28,7 +29,7 @@ Ces trois points comptent davantage dès que la solution est proposée à d'autr
 ## Décision
 
 1. **5 codes faux d'affilée verrouillent la validation 15 minutes**, comme le mot de passe
-   (HUB-01). Le compteur est tenu **par compte**, pas par session : une nouvelle connexion
+   (PRD-HUB-01). Le compteur est tenu **par compte**, pas par session : une nouvelle connexion
    par mot de passe ne le remet pas à zéro. Un code juste le remet à zéro. Pendant le
    verrouillage, même un code juste est refusé. Le verrouillage est journalisé avec
    l'identifiant du compte seulement, et le titulaire reçoit un e-mail traduit : à ce stade,
@@ -77,7 +78,7 @@ Ces trois points comptent davantage dès que la solution est proposée à d'autr
 - **`confirmTotp` change de contrat** : elle renvoie `confirmed` (avec le nouveau jeton),
   `invalid` ou `locked`, et non plus un booléen. Ses appelants (écran `/mfa`, espace des
   mariés, tests) sont adaptés dans le même lot.
-- **Limites restantes** (audit S2, story SEC-02) :
+- **Limites restantes** (audit S2, story L16-SEC-02) :
   - aucune limitation de débit par adresse IP ;
   - le verrouillage par compte permet à quelqu'un qui connaît le mot de passe de bloquer la
     double authentification de la titulaire pendant 15 minutes. C'est voulu : l'e-mail

@@ -1,6 +1,6 @@
 "use server";
 
-// EVT-05 — actions du programme du jour J sur la fiche d'un événement.
+// PRD-EVT-05 — actions du programme du jour J sur la fiche d'un événement.
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import {

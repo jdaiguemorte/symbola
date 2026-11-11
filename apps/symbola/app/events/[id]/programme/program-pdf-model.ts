@@ -1,4 +1,4 @@
-// EVT-05 — contenu du PDF du programme du jour J, séparé du rendu pour
+// PRD-EVT-05 — contenu du PDF du programme du jour J, séparé du rendu pour
 // être testé : la variante « mariés » ne contient jamais de note interne.
 import { formatDateTime, type Locale } from "@symbola/i18n";
 import { programForVariant, type EventProgram, type ProgramVariant } from "@/modules/events/service";

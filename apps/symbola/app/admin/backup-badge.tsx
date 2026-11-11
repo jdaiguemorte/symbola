@@ -1,4 +1,4 @@
-// Lot 13 (HUB-18) — état de la dernière sauvegarde signalée par le script de
+// Lot 13 (L13-HUB-18) — état de la dernière sauvegarde signalée par le script de
 // sauvegarde : « Faite le … » ou, en alerte, « Échec » / « Aucune depuis plus
 // de 26 h » / « Aucune sauvegarde signalée ».
 import { getTranslations } from "next-intl/server";

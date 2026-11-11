@@ -1,5 +1,5 @@
-// BUD-03 — devis prestataire joint à une ligne du budget (PDF ou image,
-// 20 Mo). Lot 16 (SEC-02, ADR 0044) : par cette route dédiée plutôt qu'une
+// PRD-BUD-03 — devis prestataire joint à une ligne du budget (PDF ou image,
+// 20 Mo). Lot 16 (L16-SEC-02, ADR 0044) : par cette route dédiée plutôt qu'une
 // action serveur ; origine, session, limite de débit et taille sont vérifiées
 // avant la lecture du fichier (lib/uploads/receive.ts).
 import { revalidatePath } from "next/cache";

@@ -1,6 +1,6 @@
 "use server";
 
-// EVT-05 — modèles de programme du jour J de l'organisation. Lot 21 (EVT-21) :
+// PRD-EVT-05 — modèles de programme du jour J de l'organisation. Lot 21 (L21-EVT-21) :
 // la liste des modèles, puis le détail d'un modèle ; une ligne se modifie
 // sans être recréée, un modèle se renomme.
 import { revalidatePath } from "next/cache";

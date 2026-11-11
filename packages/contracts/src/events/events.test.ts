@@ -73,7 +73,7 @@ const FROZEN_VENDOR_SLOT_BOOKED_PAYLOAD = {
   bookedByUserId: "9a3a6b1f-7e2a-4c9a-9a3a-6b1f7e2a7e3a",
 };
 
-describe("EVT-03 — Contrat de l'événement events.vendor_slot.booked", () => {
+describe("PRD-EVT-03 — Contrat de l'événement events.vendor_slot.booked", () => {
   it("accepte l'exemple figé avec le schéma courant", () => {
     expect(() => vendorSlotBookedPayloadSchema.parse(FROZEN_VENDOR_SLOT_BOOKED_PAYLOAD)).not.toThrow();
   });

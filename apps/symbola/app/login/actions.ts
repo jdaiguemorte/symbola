@@ -16,11 +16,11 @@ export async function loginAction(
   const email = String(formData.get("email") ?? "");
   const password = String(formData.get("password") ?? "");
 
-  // SEC-02 (ADR 0044) : par adresse et par compte, avant tout contrôle du mot de passe.
+  // L16-SEC-02 (ADR 0044) : par adresse et par compte, avant tout contrôle du mot de passe.
   const limited = await checkRateLimit("login", { account: email });
   if (!limited.allowed) return { error: await rateLimitMessage(limited.retryAfterSeconds) };
 
-  // SEC-03 : un appareil de confiance de ce compte dispense du code.
+  // L16-SEC-03 : un appareil de confiance de ce compte dispense du code.
   const trustedDeviceToken = await getTrustedDeviceToken();
   const db = appDatabase();
   const result = await login(db, email, password, { trustedDeviceToken });

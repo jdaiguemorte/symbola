@@ -1,4 +1,4 @@
-// EVT-01/02 — critère obligatoire (CLAUDE.md §6) : étant donné deux
+// PRD-EVT-01/02 — critère obligatoire (CLAUDE.md §6) : étant donné deux
 // organisations A et B avec des événements, quand A lit/liste/modifie,
 // aucune donnée de B n'est visible ou modifiable. Test contre un vrai
 // PostgreSQL, avec le rôle applicatif (jamais le rôle admin).
@@ -30,7 +30,7 @@ afterAll(async () => {
   await sql.end();
 });
 
-describe("EVT-01/02 — Isolation entre organisations (module events, PostgreSQL réel)", () => {
+describe("PRD-EVT-01/02 — Isolation entre organisations (module events, PostgreSQL réel)", () => {
   it("une organisation ne voit et ne modifie jamais les événements d'une autre", async () => {
     await assertOrganizationIsolation({
       seed: async (organizationId) =>
@@ -105,7 +105,7 @@ describe("EVT-01/02 — Isolation entre organisations (module events, PostgreSQL
     });
   });
 
-  it("EVT-03 — une organisation ne voit et ne modifie jamais la liste de postes par défaut d'une autre", async () => {
+  it("PRD-EVT-03 — une organisation ne voit et ne modifie jamais la liste de postes par défaut d'une autre", async () => {
     await assertOrganizationIsolation({
       seed: async (organizationId) =>
         withOrganization(db, organizationId, async (tx) => {
@@ -130,7 +130,7 @@ describe("EVT-01/02 — Isolation entre organisations (module events, PostgreSQL
     });
   });
 
-  it("EVT-03 — une organisation ne voit et ne modifie jamais les postes prestataires d'une autre", async () => {
+  it("PRD-EVT-03 — une organisation ne voit et ne modifie jamais les postes prestataires d'une autre", async () => {
     await assertOrganizationIsolation({
       seed: async (organizationId) =>
         withOrganization(db, organizationId, async (tx) => {
@@ -160,7 +160,7 @@ describe("EVT-01/02 — Isolation entre organisations (module events, PostgreSQL
     });
   });
 
-  it("EVT-04 — une organisation ne voit et ne modifie jamais les modèles de rétroplanning d'une autre", async () => {
+  it("PRD-EVT-04 — une organisation ne voit et ne modifie jamais les modèles de rétroplanning d'une autre", async () => {
     await assertOrganizationIsolation({
       seed: async (organizationId) =>
         withOrganization(db, organizationId, async (tx) => {
@@ -190,7 +190,7 @@ describe("EVT-01/02 — Isolation entre organisations (module events, PostgreSQL
     });
   });
 
-  it("EVT-04 — une organisation ne voit et ne modifie jamais les tâches du rétroplanning d'une autre", async () => {
+  it("PRD-EVT-04 — une organisation ne voit et ne modifie jamais les tâches du rétroplanning d'une autre", async () => {
     await assertOrganizationIsolation({
       seed: async (organizationId) =>
         withOrganization(db, organizationId, async (tx) => {
@@ -216,7 +216,7 @@ describe("EVT-01/02 — Isolation entre organisations (module events, PostgreSQL
     });
   });
 
-  it("EVT-05 — une organisation ne voit et ne modifie jamais le programme du jour J d'une autre", async () => {
+  it("PRD-EVT-05 — une organisation ne voit et ne modifie jamais le programme du jour J d'une autre", async () => {
     await assertOrganizationIsolation({
       seed: async (organizationId) =>
         withOrganization(db, organizationId, async (tx) => {
@@ -242,7 +242,7 @@ describe("EVT-01/02 — Isolation entre organisations (module events, PostgreSQL
     });
   });
 
-  it("EVT-05 — une organisation ne voit et ne modifie jamais les intervenants du programme d'une autre", async () => {
+  it("PRD-EVT-05 — une organisation ne voit et ne modifie jamais les intervenants du programme d'une autre", async () => {
     await assertOrganizationIsolation({
       seed: async (organizationId) =>
         withOrganization(db, organizationId, async (tx) => {
@@ -277,7 +277,7 @@ describe("EVT-01/02 — Isolation entre organisations (module events, PostgreSQL
     });
   });
 
-  it("EVT-05 — une organisation ne voit et ne modifie jamais les modèles de programme d'une autre", async () => {
+  it("PRD-EVT-05 — une organisation ne voit et ne modifie jamais les modèles de programme d'une autre", async () => {
     await assertOrganizationIsolation({
       seed: async (organizationId) =>
         withOrganization(db, organizationId, async (tx) => {
@@ -307,7 +307,7 @@ describe("EVT-01/02 — Isolation entre organisations (module events, PostgreSQL
     });
   });
 
-  it("EVT-06 — une organisation ne voit et ne modifie jamais les accès des mariés d'une autre", async () => {
+  it("PRD-EVT-06 — une organisation ne voit et ne modifie jamais les accès des mariés d'une autre", async () => {
     await assertOrganizationIsolation({
       seed: async (organizationId) =>
         withOrganization(db, organizationId, async (tx) => {
@@ -343,7 +343,7 @@ describe("EVT-01/02 — Isolation entre organisations (module events, PostgreSQL
     });
   });
 
-  it("EVT-06 — une organisation ne voit et ne modifie jamais le fil d'activité d'une autre", async () => {
+  it("PRD-EVT-06 — une organisation ne voit et ne modifie jamais le fil d'activité d'une autre", async () => {
     await assertOrganizationIsolation({
       seed: async (organizationId) =>
         withOrganization(db, organizationId, async (tx) => {

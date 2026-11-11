@@ -21,7 +21,7 @@ export async function forgotPasswordAction(_prevState: ForgotPasswordFormState, 
     return { error: t("invalidEmail") };
   }
 
-  // SEC-02 (ADR 0044) : un formulaire public qui envoie des e-mails, limité par
+  // L16-SEC-02 (ADR 0044) : un formulaire public qui envoie des e-mails, limité par
   // adresse et par compte visé (en plus d'un e-mail par compte toutes les 5 minutes).
   const limited = await checkRateLimit("passwordReset", { account: parsed.data });
   if (!limited.allowed) return { error: await rateLimitMessage(limited.retryAfterSeconds) };

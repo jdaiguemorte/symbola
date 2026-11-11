@@ -20,7 +20,7 @@ font l'objet du lot 14 (reporté après la refonte UX du lot 13).
   « répartition budgétaire », qu'elle ne fait pas avant le budget. Les lignes (lieu, traiteur,
   photographe…) deviennent les **lignes du budget** de l'événement, présentes dès sa création,
   sans simulation préalable ; la répartition devient une aide facultative pour proposer des
-  montants prévus. Voir EVT-17.
+  montants prévus. Voir L12-EVT-17.
 - **Programme du jour J : une icône par prestataire concerné**, pour voir d'un coup d'œil qui
   intervient.
 - Découpage : lot 12 (ce document), puis lot 14 (imports depuis l'outil actuel, reporté après la refonte UX du lot 13 : prestataires en Excel,
@@ -54,7 +54,7 @@ font l'objet du lot 14 (reporté après la refonte UX du lot 13).
   qui était saisi (saisie gardée ou proposition faite sur place : « Créer un modèle à partir
   de la répartition de départ »).
 
-## EVT-17 — Un seul onglet « Budget » (les « postes » disparaissent)
+## L12-EVT-17 — Un seul onglet « Budget » (les « postes » disparaissent)
 
 - La fiche événement n'a plus d'onglet « Postes prestataires » : l'onglet **Budget** liste les
   lignes (lieu, traiteur…) avec, pour chacune, prestataire (retenu ou consultés), statut, prévu,
@@ -68,18 +68,18 @@ font l'objet du lot 14 (reporté après la refonte UX du lot 13).
 - Les données et contrats existants ne changent pas de nature (une ligne du budget est l'ancien
   poste, ADR 0032 à écrire) ; aucune donnée existante n'est perdue.
 
-## EVT-12 — Statut de l'événement en boutons
+## L12-EVT-12 — Statut de l'événement en boutons
 
 - Les statuts (prospect, devis envoyé, confirmé, réalisé, perdu) s'affichent comme des étapes
   cliquables façon Kanban ; l'étape courante est mise en évidence ; « perdu » demande le motif.
 
-## EVT-13 — Rétroplanning seulement pour un événement confirmé
+## L12-EVT-13 — Rétroplanning seulement pour un événement confirmé
 
 - **Étant donné** un prospect, **alors** aucune tâche du rétroplanning n'est créée.
 - **Quand** il passe en « Confirmé » (devis validé), **alors** l'app propose d'appliquer le modèle
   de rétroplanning (appliqué d'un clic, modèle choisi pré-sélectionné).
 
-## EVT-14 — Programme du jour J lisible
+## L12-EVT-14 — Programme du jour J lisible
 
 - Une ligne par moment : heure, intitulé, lieu, puis **une icône par prestataire concerné**
   (appareil photo, caméra, musique, fleur, couverts…, avec son nom en infobulle et pour les
@@ -87,18 +87,18 @@ font l'objet du lot 14 (reporté après la refonte UX du lot 13).
 - L'icône d'une ligne du budget se choisit dans une liste d'icônes (pré-réglée par les modèles de
   départ) ; une ligne sans icône garde ses initiales.
 
-## EVT-15 — Lieux enregistrés une fois
+## L12-EVT-15 — Lieux enregistrés une fois
 
 - Un carnet d'adresses des lieux de l'événement (lieu de réception, cérémonie, préparatifs…) :
   saisie une fois, puis choisie dans le programme et sur la fiche.
 - Un lieu de réception du carnet de prestataires est proposé d'office (type « Lieu »).
 
-## HUB-13 — Agenda cliquable
+## L12-HUB-13 — Agenda cliquable
 
 - **Quand** elle clique une date de l'agenda, **alors** une fenêtre propose « Créer un
   prospect » ou « Créer un événement » à cette date.
 
-## EVT-16 — RIB d'un prestataire partagé aux clients
+## L12-EVT-16 — RIB d'un prestataire partagé aux clients
 
 - Sur un prestataire retenu ou montré aux clients, une case « Partager le RIB » rend le RIB de la
   fiche téléchargeable dans l'espace clients de cet événement (seulement celui-ci).
@@ -118,10 +118,10 @@ V2). Ils sont renumérotés partout (docs, ADR, code, tests) ; le cahier des cha
 
 | Avant | Après | Story |
 | --- | --- | --- |
-| HUB-05 (lot 10) | HUB-11 | Suivi de la prise en main dans l'Administration |
-| HUB-06 (lot 11) | HUB-12 | Paramètres en pastilles |
-| EVT-08 (lot 11) | EVT-10 | Plusieurs prestataires consultés |
-| EVT-09 (lot 11) | EVT-11 | Notes et options montrées aux clients |
+| L10-HUB-05 (lot 10) | L10-HUB-11 | Suivi de la prise en main dans l'Administration |
+| L11-HUB-06 (lot 11) | L11-HUB-12 | Paramètres en pastilles |
+| L11-EVT-08 (lot 11) | L11-EVT-10 | Plusieurs prestataires consultés |
+| L11-EVT-09 (lot 11) | L11-EVT-11 | Notes et options montrées aux clients |
 
 ## Tests
 

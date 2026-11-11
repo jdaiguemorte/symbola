@@ -1,6 +1,6 @@
 "use client";
 
-// EVT-02, lot 12 (EVT-12), refait au lot 13 (EVT-19) — frise du statut :
+// PRD-EVT-02, lot 12 (L12-EVT-12), refait au lot 13 (L13-EVT-19) — frise du statut :
 // Prospect → Devis envoyé → Confirmé → Réalisé, chaque étape franchie avec
 // sa date ; l'étape en cours est mise en avant. Un clic sur une autre étape
 // demande confirmation ; « Marquer perdu… » demande d'abord le motif.

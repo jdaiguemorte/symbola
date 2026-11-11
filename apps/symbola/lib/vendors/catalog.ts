@@ -1,4 +1,4 @@
-// Lot 16 (PRE-14, ADR 0040) — familles et types de départ (packages/starter-
+// Lot 16 (L16-PRE-14, ADR 0040) — familles et types de départ (packages/starter-
 // templates), posés par le module vendors. Lot 16 (ADR 0045) : un seul
 // catalogue pour tous les métiers ; les types propres au mariage n'y sont que
 // si l'organisation organise des mariages (un type d'événement « les mariés »).

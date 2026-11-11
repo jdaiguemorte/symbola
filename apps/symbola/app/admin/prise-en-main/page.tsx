@@ -1,4 +1,4 @@
-// HUB-11 (lot 10) — prise en main des organisations : visites et tutoriels
+// L10-HUB-11 (lot 10) — prise en main des organisations : visites et tutoriels
 // suivis par chaque compte d'équipe. Aucune donnée d'événement, aucun mot
 // cherché : la progression dans l'aide seulement (ADR 0029).
 import { getLocale, getTranslations } from "next-intl/server";

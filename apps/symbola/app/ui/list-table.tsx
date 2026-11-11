@@ -1,6 +1,6 @@
 "use client";
 
-// Lot 13 (HUB-14, ADR 0033) — tableau de liste commun : colonnes alignées,
+// Lot 13 (L13-HUB-14, ADR 0033) — tableau de liste commun : colonnes alignées,
 // ligne entière cliquable. Le lien de la première colonne reste la cible
 // au clavier et pour les lecteurs d'écran ; le clic ailleurs sur la ligne
 // le suit (sauf sur un autre élément interactif).

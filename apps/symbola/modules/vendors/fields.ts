@@ -1,4 +1,4 @@
-// PRE-02 (lot 11, ADR 0031 § 3) — valeurs des champs propres à un type de
+// L11-PRE-02 (lot 11, ADR 0031 § 3) — valeurs des champs propres à un type de
 // prestataire : chaque valeur est validée selon le format du champ. Les
 // montants sont des centimes entiers (CLAUDE.md § 5), les heures « HH:MM ».
 import type { VendorFieldFilter, VendorFieldKind, VendorFieldValue, VendorTypeField } from "@symbola/contracts";

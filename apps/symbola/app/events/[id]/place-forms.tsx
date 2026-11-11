@@ -1,6 +1,6 @@
 "use client";
 
-// Lot 12 (EVT-15) — ajouter un lieu de l'événement.
+// Lot 12 (L12-EVT-15) — ajouter un lieu de l'événement.
 import { useActionState } from "react";
 import { useTranslations } from "next-intl";
 import { addPlaceAction, type PlaceFormState } from "./place-actions";

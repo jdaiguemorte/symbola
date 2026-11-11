@@ -30,13 +30,13 @@ export const organizations = hubSchema.table("organizations", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: text("name").notNull(),
   language: languageEnum("language").notNull().default("fr"),
-  // Facultatif (PRD HUB-03) : une organisation peut être créée avant
+  // Facultatif (PRD PRD-HUB-03) : une organisation peut être créée avant
   // d'avoir un SIRET (prospect, structure en cours de création).
   siret: text("siret"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
-// Invitation du titulaire par l'Admin (PRD HUB-03) : valable 7 jours
+// Invitation du titulaire par l'Admin (PRD PRD-HUB-03) : valable 7 jours
 // (proposé), un seul usage (acceptedAt posé à la première utilisation).
 export const invitations = hubSchema.table("invitations", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -57,14 +57,14 @@ export const users = hubSchema.table("users", {
   email: text("email").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
   role: roleEnum("role").notNull(),
-  // Choix explicite dans le profil (HUB-04) ; nul = pas encore choisi,
+  // Choix explicite dans le profil (PRD-HUB-04) ; nul = pas encore choisi,
   // suit le cookie de langue du navigateur (apps/symbola/middleware.ts).
   language: languageEnum("language"),
-  // Chiffré au repos depuis le lot 16 (SEC-01, ADR 0037) : « v1: » + base64,
+  // Chiffré au repos depuis le lot 16 (L16-SEC-01, ADR 0037) : « v1: » + base64,
   // lu et écrit seulement par packages/auth.
   totpSecret: text("totp_secret"),
   mfaEnabled: boolean("mfa_enabled").notNull().default(false),
-  // SEC-01 (lot 16, ADR 0037) : 5 codes de double authentification faux
+  // L16-SEC-01 (lot 16, ADR 0037) : 5 codes de double authentification faux
   // d'affilée bloquent la validation 15 min (par compte, quelle que soit la
   // session) ; un code juste remet le compteur à zéro.
   mfaFailedAttempts: integer("mfa_failed_attempts").notNull().default(0),
@@ -72,7 +72,7 @@ export const users = hubSchema.table("users", {
   // Pas de temps (période de 30 s) du dernier code accepté : un code ne sert
   // qu'une fois (anti-rejeu).
   totpLastUsedStep: bigint("totp_last_used_step", { mode: "number" }),
-  // Verrouillage de compte (PRD HUB-01) : 5 mots de passe faux d'affilée
+  // Verrouillage de compte (PRD PRD-HUB-01) : 5 mots de passe faux d'affilée
   // bloquent la connexion 15 min, un e-mail part au titulaire. Remis à
   // zéro à chaque connexion réussie.
   failedLoginAttempts: integer("failed_login_attempts").notNull().default(0),
@@ -117,7 +117,7 @@ export const passwordResets = hubSchema.table("password_resets", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
-// Lot 10 (AIDE-05 à AIDE-07, HUB-11) — progression de chaque compte dans
+// Lot 10 (AIDE-05 à AIDE-07, L10-HUB-11) — progression de chaque compte dans
 // l'aide : visites focus et tutoriels. itemKey = « tour:<écran> » ou
 // « tutorial:<clé> ». step = étape où reprendre (visite mise de côté,
 // tutoriel en cours). Aucune donnée d'événement ici : la clé d'un élément
@@ -160,7 +160,7 @@ export const sessions = hubSchema.table("sessions", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
-// Lot 16 (SEC-03, ADR 0038) — appareil de confiance : après un code de double
+// Lot 16 (L16-SEC-03, ADR 0038) — appareil de confiance : après un code de double
 // authentification validé avec « se souvenir de cet appareil », ce navigateur
 // en est dispensé pendant 90 jours. Seul le hachage du jeton est stocké (comme
 // les sessions). Révoqué par une réinitialisation du mot de passe ou de la
@@ -177,7 +177,7 @@ export const trustedDevices = hubSchema.table("trusted_devices", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
-// Activation d'un module par organisation (PRD HUB-03). Pas de ligne =
+// Activation d'un module par organisation (PRD PRD-HUB-03). Pas de ligne =
 // activé par défaut (absence = « jamais désactivé »), pour qu'un nouveau
 // module n'ait besoin d'aucune migration de données pour être actif
 // partout. Désactiver un module ne supprime jamais ses données.
@@ -219,7 +219,7 @@ export const organizationProfiles = hubSchema.table("organization_profiles", {
   // fin ; tant qu'il n'est pas terminé, les menus métier sont verrouillés.
   setupStep: integer("setup_step").notNull().default(1),
   setupCompletedAt: timestamp("setup_completed_at", { withTimezone: true }),
-  // Lot 13 (HUB-15) : délais de relance du bloc « À traiter » ; null =
+  // Lot 13 (L13-HUB-15) : délais de relance du bloc « À traiter » ; null =
   // valeur de départ (packages/starter-templates/src/follow-up.json).
   quoteFollowUpDays: integer("quote_follow_up_days"),
   prospectFollowUpDays: integer("prospect_follow_up_days"),
@@ -280,7 +280,7 @@ export const platformSettings = hubSchema.table("platform_settings", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
-// Journal d'audit des actions Admin (PRD HUB-03, « qui, quoi, quand »).
+// Journal d'audit des actions Admin (PRD PRD-HUB-03, « qui, quoi, quand »).
 // targetOrganizationId nul pour une action qui ne vise aucune organisation
 // précise.
 export const auditLog = hubSchema.table("audit_log", {
@@ -604,7 +604,7 @@ export const privacyPurges = hubSchema.table("privacy_purges", {
   completedAt: timestamp("completed_at", { withTimezone: true }),
 });
 
-// Lot 13 (HUB-18, ADR 0033) — exécutions du script de sauvegarde
+// Lot 13 (L13-HUB-18, ADR 0033) — exécutions du script de sauvegarde
 // (infra/backup/backup.sh), signalées par une requête SQL dans le conteneur
 // PostgreSQL de l'environnement, avec le rôle d'administration du script.
 // Aucune donnée d'organisation : seul l'Admin la lit (console, Santé) ; le

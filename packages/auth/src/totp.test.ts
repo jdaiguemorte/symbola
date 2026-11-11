@@ -18,7 +18,7 @@ describe("SOC-04 — Double authentification TOTP", () => {
     expect(verifyTotpToken({ secret, token: "000000" })).toBe(false);
   });
 
-  it("SEC-01 — donne le pas de temps du code reconnu, pour refuser qu'il serve deux fois", () => {
+  it("L16-SEC-01 — donne le pas de temps du code reconnu, pour refuser qu'il serve deux fois", () => {
     const secret = generateTotpSecret();
     const totp = new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret) });
     const now = Date.UTC(2026, 10, 8, 9, 0, 15);

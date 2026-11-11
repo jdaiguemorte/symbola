@@ -111,7 +111,7 @@ rapprochements, écarts, confirmation. **Rien n'est écrit dans les modules avan
   sous le seuil exige de la confirmer ; choisir soi-même un autre champ vaut validation ; un champ
   obligatoire non associé, un champ en double ou inconnu sont refusés. Écran
   `/import/<id>/colonnes`. Les lignes sans source de prospect (obligatoire à la création d'un
-  événement, EVT-07) seront traitées à la confirmation (IMP-05) par une source par défaut choisie
+  événement, PRD-EVT-07) seront traitées à la confirmation (IMP-05) par une source par défaut choisie
   par la planner, plutôt que de rendre la colonne obligatoire.
 
 ### IMP-03 — Rapprochements

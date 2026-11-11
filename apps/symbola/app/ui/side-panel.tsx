@@ -1,6 +1,6 @@
 "use client";
 
-// Lot 13 (HUB-14, ADR 0033) — panneau latéral commun : le détail ou
+// Lot 13 (L13-HUB-14, ADR 0033) — panneau latéral commun : le détail ou
 // l'édition s'ouvre à droite, la liste reste visible. Son état est dans
 // l'adresse (le parent l'affiche selon un paramètre, `closeHref` le retire) :
 // lien partageable, retour arrière du navigateur. Se ferme par « Fermer »,

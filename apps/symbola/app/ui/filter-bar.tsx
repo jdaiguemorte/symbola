@@ -1,6 +1,6 @@
 "use client";
 
-// Lot 13 (HUB-14, ADR 0033) — barre de filtres commune : contrôles de même
+// Lot 13 (L13-HUB-14, ADR 0033) — barre de filtres commune : contrôles de même
 // hauteur, filtrage à la saisie (sans bouton « Filtrer »), état dans
 // l'adresse. Sans JavaScript, le formulaire GET reste utilisable (bouton
 // masqué « Appliquer »). Un champ marqué data-apply="blur" (adresse à

@@ -1,9 +1,9 @@
 "use client";
 
-// Lot 13 (HUB-16) — menu latéral des Paramètres : quatre groupes, une
+// Lot 13 (L13-HUB-16) — menu latéral des Paramètres : quatre groupes, une
 // rubrique par sujet, chacune à sa propre adresse. Affiché seulement sur
 // les écrans de réglage ; sur téléphone, il passe au-dessus du contenu.
-// Lot 21 (HUB-29) : chaque groupe a son icône et un titre lisible ; ses
+// Lot 21 (L21-HUB-29) : chaque groupe a son icône et un titre lisible ; ses
 // rubriques sont en retrait, le long d'un filet.
 import Link from "next/link";
 import { usePathname } from "next/navigation";

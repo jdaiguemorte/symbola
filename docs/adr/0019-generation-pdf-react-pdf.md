@@ -5,7 +5,7 @@
 
 ## Contexte
 
-EVT-05 demande d'exporter le programme du jour J en PDF A4 « lisible à
+PRD-EVT-05 demande d'exporter le programme du jour J en PDF A4 « lisible à
 l'impression, avec son logo et la date de version », en deux variantes
 (mariés, prestataires). Les lots suivants exporteront aussi des devis et
 des factures (lot 4). Rien dans la stack du CLAUDE.md ne produit de PDF.

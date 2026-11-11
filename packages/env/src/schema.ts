@@ -24,7 +24,7 @@ const booleanFromEnv = z.preprocess((value) => {
 export const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   APP_PORT: z.coerce.number().int().positive().default(3000),
-  // URL publique de l'app (HUB-03) : construit les liens dans les e-mails
+  // URL publique de l'app (PRD-HUB-03) : construit les liens dans les e-mails
   // (invitation…). Dérivée de APP_DOMAIN par le compose de déploiement.
   APP_PUBLIC_URL: z.string().min(1).default("http://localhost:3000"),
   // Version déployée, affichée par /health (SOC-11) : SHA du commit gravé
@@ -81,7 +81,7 @@ export const envSchema = z.object({
   GEOCODER: z.preprocess((value) => (value === "" ? undefined : value), z.enum(["ign", "fake", "none"]).optional()),
   // Dossier du fond de carte (fichier PMTiles et polices), vide = pas de fond.
   MAP_TILES_DIR: z.string().default(""),
-  // Lot 16 (SEC-01, ADR 0037) : clé de chiffrement des secrets de double
+  // Lot 16 (L16-SEC-01, ADR 0037) : clé de chiffrement des secrets de double
   // authentification, 32 octets en base64 (openssl rand -base64 32). Requise
   // partout : sans elle, aucun compte ne pourrait configurer ni valider son
   // code. Une clé perdue oblige chaque compte à reconfigurer sa double

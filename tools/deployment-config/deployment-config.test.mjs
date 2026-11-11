@@ -194,7 +194,7 @@ describe("DEV-02 — Documenso dans le compose d'environnement (ADR 0026)", () =
   });
 });
 
-describe("SEC-01 — Clé de chiffrement de la double authentification (lot 16, ADR 0037)", () => {
+describe("L16-SEC-01 — Clé de chiffrement de la double authentification (lot 16, ADR 0037)", () => {
   it("l'app reçoit la clé de son environnement, sans valeur par défaut (refus de démarrer si elle manque)", () => {
     expect(serviceBlock(prodCompose, "symbola")).toContain("MFA_ENCRYPTION_KEY: ${MFA_ENCRYPTION_KEY}");
   });

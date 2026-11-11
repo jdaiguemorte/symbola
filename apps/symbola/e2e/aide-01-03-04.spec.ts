@@ -1,7 +1,7 @@
 // AIDE-11 (lot 13, remplace la visite guidée d'AIDE-01) — les repères de
 // l'écran s'affichent d'office à la première ouverture, puis seulement au
 // clic sur « ? ». AIDE-03 — l'aide est consultable et cherchable depuis le
-// hub. (AIDE-04, liste des premiers pas : retirée au lot 13, HUB-15.)
+// hub. (AIDE-04, liste des premiers pas : retirée au lot 13, L13-HUB-15.)
 import { randomUUID } from "node:crypto";
 import AxeBuilder from "@axe-core/playwright";
 import { createAppConnection } from "@symbola/db/client";
@@ -91,7 +91,7 @@ test("AIDE-11 / AIDE-03 — repères de l'accueil, aide consultable", async ({ p
   await expect(tasksPanel).toHaveCount(0);
   await page.goto("/");
 
-  // Lot 13 (HUB-15) : plus de liste « premiers pas » ni de barre d'aide
+  // Lot 13 (L13-HUB-15) : plus de liste « premiers pas » ni de barre d'aide
   // permanente ; l'accueil montre ce qui attend.
   await expect(page.getByRole("heading", { name: "Premiers pas" })).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "À traiter" })).toBeVisible();

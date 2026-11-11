@@ -1,4 +1,4 @@
-// Lot 13 (EVT-19) — fiche événement : frise datée du statut, bandeau
+// Lot 13 (L13-EVT-19) — fiche événement : frise datée du statut, bandeau
 // « Prochaine étape », vue d'ensemble en chiffres. Ordinateur et 375 px,
 // axe-core.
 import { randomUUID } from "node:crypto";
@@ -29,7 +29,7 @@ async function login(page: Page, email: string, password: string) {
   await expect(page).toHaveURL("/");
 }
 
-test("EVT-19 — frise datée du statut, prochaine étape et chiffres clés", async ({ page }) => {
+test("L13-EVT-19 — frise datée du statut, prochaine étape et chiffres clés", async ({ page }) => {
   const email = `planner-fiche-${randomUUID()}@symbola.test`;
   const password = "mot-de-passe-fiche";
   const { sql, db } = createAppConnection();

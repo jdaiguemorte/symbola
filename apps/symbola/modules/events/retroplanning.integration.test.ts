@@ -1,4 +1,4 @@
-// EVT-04 — rétroplanning, contre un vrai PostgreSQL (RLS, ADR 0012), par
+// PRD-EVT-04 — rétroplanning, contre un vrai PostgreSQL (RLS, ADR 0012), par
 // la porte d'entrée du module.
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
@@ -44,7 +44,7 @@ const WEDDING_TEMPLATE = [
   { label: "Confirmer les prestataires", offsetDays: -14, responsible: "planner" as const },
 ];
 
-describe("EVT-04 — Rétroplanning", () => {
+describe("PRD-EVT-04 — Rétroplanning", () => {
   it("la planner gère des modèles : intitulé, décalage et responsable de chaque tâche", async () => {
     const organizationId = randomUUID();
     const template = await createTaskTemplate(organizationId, "Mariage", WEDDING_TEMPLATE);
@@ -181,7 +181,7 @@ describe("EVT-04 — Rétroplanning", () => {
   });
 });
 
-describe("EVT-04 — Isolation par la porte d'entrée du module", () => {
+describe("PRD-EVT-04 — Isolation par la porte d'entrée du module", () => {
   it("refuse d'appliquer le modèle d'une autre organisation ou de modifier ses tâches", async () => {
     const organizationId = randomUUID();
     const otherOrganizationId = randomUUID();

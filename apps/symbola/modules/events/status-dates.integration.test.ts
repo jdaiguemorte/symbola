@@ -1,4 +1,4 @@
-// Lot 13 (EVT-19) — dates de la frise du statut, contre un vrai PostgreSQL
+// Lot 13 (L13-EVT-19) — dates de la frise du statut, contre un vrai PostgreSQL
 // (RLS) : dernier passage dans chaque statut, isolation des organisations.
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
@@ -18,7 +18,7 @@ async function newOrganization(): Promise<string> {
   }
 }
 
-describe("EVT-19 — Frise du statut datée", () => {
+describe("L13-EVT-19 — Frise du statut datée", () => {
   it("donne la date de chaque statut franchi, et rien pour une autre organisation", async () => {
     const organizationId = await newOrganization();
     const otherId = await newOrganization();

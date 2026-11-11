@@ -1,11 +1,11 @@
-// Lot 16 (HUB-21) — vocabulaire selon le métier : les textes d'un métier
+// Lot 16 (L16-HUB-21) — vocabulaire selon le métier : les textes d'un métier
 // remplacent ceux du catalogue, clé par clé, sans rien perdre d'autre.
 import { describe, expect, it } from "vitest";
 import frMessages from "./messages/fr.json";
 import agencyFr from "./messages/vocabulary/clients.fr.json";
 import { withMetierMessages } from "./metier-messages";
 
-describe("HUB-21 — Vocabulaire selon le métier", () => {
+describe("L16-HUB-21 — Vocabulaire selon le métier", () => {
   it("une agence événementielle lit « les clients » là où une wedding planner lit « les mariés »", () => {
     const agency = withMetierMessages(frMessages, agencyFr);
     expect(frMessages.Events.tabClients).toBe("Mariés");

@@ -1,4 +1,4 @@
-// PRE-15 — étant donné une modification incompatible du schéma de
+// L16-PRE-15 — étant donné une modification incompatible du schéma de
 // l'événement de fusion des types, ce test échoue : l'exemple figé est une
 // charge utile réellement publiable avec la version actuelle.
 import { describe, expect, it } from "vitest";
@@ -11,7 +11,7 @@ const FROZEN_MERGED_PAYLOAD = {
   movedFieldCount: 1,
 };
 
-describe("PRE-15 — événement vendors.vendor_type.merged", () => {
+describe("L16-PRE-15 — événement vendors.vendor_type.merged", () => {
   it("garde son nom, sa version et accepte la charge utile figée", () => {
     expect(VENDORS_VENDOR_TYPE_MERGED).toBe("vendors.vendor_type.merged");
     expect(VENDORS_VENDOR_TYPE_MERGED_VERSION).toBe(1);

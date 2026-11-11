@@ -62,7 +62,7 @@ export function Landmarks({
       const marker = markers.current[index];
       if (!element || !marker) return Boolean(element);
       const rect = element.getBoundingClientRect();
-      // Lot 16 (HUB-19, ADR 0039) : jamais sur le libellé de l'élément.
+      // Lot 16 (L16-HUB-19, ADR 0039) : jamais sur le libellé de l'élément.
       // - Élément étroit (onglet, bouton) : centré au-dessus de lui, dans
       //   l'espace qui sépare les rangées ; sinon juste en dessous.
       // - Bloc large : dans la marge à gauche ; sans marge (téléphone), dans
@@ -106,7 +106,7 @@ export function Landmarks({
       frame = requestAnimationFrame(place);
     };
     schedule();
-    // Lot 16 (HUB-19) : le tiroir pousse le contenu sans redimensionner la
+    // Lot 16 (L16-HUB-19) : le tiroir pousse le contenu sans redimensionner la
     // fenêtre ; les repères se replacent une fois la mise en page refaite.
     const settle = window.setTimeout(schedule, 150);
     const resized = new ResizeObserver(schedule);

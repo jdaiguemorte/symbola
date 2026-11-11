@@ -23,7 +23,7 @@ async function inOrganization<T>(organizationId: string, fn: (tx: Tx) => Promise
   return await withOrganization(db, organizationId, fn);
 }
 
-// PRE-02 — types et champs.
+// L11-PRE-02 — types et champs.
 
 export function findVendorTypes(organizationId: string): Promise<{ type: VendorTypeRow; fields: VendorTypeFieldRow[] }[]> {
   return inOrganization(organizationId, async (tx) => {
@@ -129,7 +129,7 @@ export function deleteVendorTagGroup(organizationId: string, groupId: string): P
   });
 }
 
-// Lot 21 (PRE-18, PRE-19, ADR 0050) — fiches (archivées comprises) et leurs
+// Lot 21 (L21-PRE-18, L21-PRE-19, ADR 0050) — fiches (archivées comprises) et leurs
 // étiquettes, pour ranger les étiquettes d'après les prestataires qui les portent.
 export function findVendorTagCarriers(organizationId: string): Promise<{ id: string; name: string; typeId: string | null; tagIds: string[] }[]> {
   return inOrganization(organizationId, (tx) => tx.select({ id: vendors.id, name: vendors.name, typeId: vendors.typeId, tagIds: vendors.tagIds }).from(vendors));
@@ -172,7 +172,7 @@ export function deleteVendorTag(organizationId: string, tagId: string): Promise<
   });
 }
 
-// PRE-01 — fiches.
+// L11-PRE-01 — fiches.
 
 export type VendorWrite = {
   typeId: string | null;
@@ -281,7 +281,7 @@ export function findVendorRows(
   input: {
     words: string[];
     typeIds?: string[] | undefined;
-    // Lot 16 (PRE-14) : types d'une famille, ou « à classer » (avec les fiches sans type).
+    // Lot 16 (L16-PRE-14) : types d'une famille, ou « à classer » (avec les fiches sans type).
     typeScope?: { typeIds: string[]; includeUntyped: boolean } | undefined;
     tagIds?: string[] | undefined;
     fieldFilters: (VendorFieldFilter & { kind: VendorFieldKind })[];
@@ -357,7 +357,7 @@ export function deleteVendorFileRow(organizationId: string, fileId: string): Pro
   return inOrganization(organizationId, async (tx) => (await tx.delete(vendorFiles).where(eq(vendorFiles.id, fileId)).returning())[0] ?? null);
 }
 
-// PRE-07 — paramètres du trajet.
+// L11-PRE-07 — paramètres du trajet.
 
 export function findVendorSettings(organizationId: string): Promise<VendorSettings | null> {
   return inOrganization(organizationId, async (tx) => {

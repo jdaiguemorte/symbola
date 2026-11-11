@@ -1,7 +1,7 @@
-// HUB-02 — agenda de l'accueil : calendrier des mois à venir (12 par
+// PRD-HUB-02 — agenda de l'accueil : calendrier des mois à venir (12 par
 // défaut, 3 ou 6 au choix), mariages confirmés en plein, dates posées sur
 // un prospect en atténué, badge « 2 » quand deux événements tombent le même
-// week-end ; un clic ouvre la fiche de l'événement. Lot 12 (HUB-13) : un
+// week-end ; un clic ouvre la fiche de l'événement. Lot 12 (L12-HUB-13) : un
 // clic sur une date libre propose de créer un prospect ou un événement.
 import Link from "next/link";
 import { cookies } from "next/headers";
@@ -40,7 +40,7 @@ export async function AgendaBlock({
   const t = await getTranslations("Home");
   const tEvents = await getTranslations("Events");
   const remembered = (await cookies()).get(AGENDA_SPAN_COOKIE)?.value;
-  // Lot 16 (HUB-20) : 3 mois par défaut ; l'année entière à la demande (« Voir l'année »).
+  // Lot 16 (L16-HUB-20) : 3 mois par défaut ; l'année entière à la demande (« Voir l'année »).
   const span = parseSpan(query.agenda) ?? parseSpan(remembered) ?? 3;
   const current = today.slice(0, 7);
   const start = query.debut && /^\d{4}-(0[1-9]|1[0-2])$/.test(query.debut) ? query.debut : current;

@@ -44,7 +44,7 @@ const labels = {
   empty: "Aucune ligne.",
 };
 
-describe("EVT-05 — Contenu du PDF du programme", () => {
+describe("PRD-EVT-05 — Contenu du PDF du programme", () => {
   it("variante « mariés » : aucune note interne, ni colonne ni contenu", () => {
     const model = buildProgramPdfModel({ program, variant: "couple", labels, locale: "fr", heading: "Inès & Sacha", logo: null, organizationName: "Atelier" });
     expect(model.columns).toEqual(["Heure", "Déroulé", "Lieu", "Intervenants"]);

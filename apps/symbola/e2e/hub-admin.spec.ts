@@ -1,4 +1,4 @@
-// HUB-03 — L'Admin crée une organisation et invite son titulaire par
+// PRD-HUB-03 — L'Admin crée une organisation et invite son titulaire par
 // e-mail (lien valable 7 jours) ; le titulaire crée son compte depuis ce
 // lien. Un utilisateur non-Admin n'accède pas à /admin.
 import { randomUUID } from "node:crypto";
@@ -40,7 +40,7 @@ async function loginWithKnownMfa(page: Page, email: string, password: string, se
   await page.getByLabel("Mot de passe").fill(password);
   await page.getByRole("button", { name: "Se connecter" }).click();
   await expect(page).toHaveURL(/\/mfa$/);
-  // SEC-01 (ADR 0037) : le code déjà accepté au premier login, quelques
+  // L16-SEC-01 (ADR 0037) : le code déjà accepté au premier login, quelques
   // secondes plus tôt, est refusé (anti-rejeu). Comme un téléphone qui affiche
   // déjà le code suivant, on envoie celui de la période suivante, accepté par
   // la tolérance d'une période : toujours plus récent que le code déjà utilisé.
@@ -67,7 +67,7 @@ async function waitForInvitationLink(to: string, attempts = 30): Promise<string>
   throw new Error(`aucun e-mail d'invitation reçu pour ${to}`);
 }
 
-test("HUB-03-01 — l'Admin crée une organisation, le titulaire accepte son invitation", async ({ page }) => {
+test("PRD-HUB-03-01 — l'Admin crée une organisation, le titulaire accepte son invitation", async ({ page }) => {
   const adminEmail = `admin-e2e-${randomUUID()}@symbola.test`;
   const adminPassword = "mot-de-passe-admin-e2e";
   const titulaireEmail = `titulaire-e2e-${randomUUID()}@symbola.test`;
@@ -83,13 +83,13 @@ test("HUB-03-01 — l'Admin crée une organisation, le titulaire accepte son inv
   await expect(page).toHaveURL("/admin");
 
   await page.goto("/admin/organisations");
-  // Lot 13 (HUB-17) : la création s'ouvre dans le panneau latéral.
+  // Lot 13 (L13-HUB-17) : la création s'ouvre dans le panneau latéral.
   await page.getByRole("link", { name: "Nouvelle organisation" }).click();
   await expect(page.getByRole("complementary", { name: "Créer une organisation" })).toBeVisible();
   let violations = await new AxeBuilder({ page }).analyze();
   expect(violations.violations, JSON.stringify(violations.violations, null, 2)).toEqual([]);
 
-  await page.getByLabel("Nom de l'organisation").fill("Organisation E2E HUB-03");
+  await page.getByLabel("Nom de l'organisation").fill("Organisation E2E PRD-HUB-03");
   await page.getByLabel("E-mail du titulaire").fill(titulaireEmail);
   await page.getByRole("button", { name: "Créer et inviter" }).click();
   await expect(page.getByText("Organisation créée, invitation envoyée.")).toBeVisible();
@@ -111,7 +111,7 @@ test("HUB-03-01 — l'Admin crée une organisation, le titulaire accepte son inv
   await expect(page).toHaveURL(/\/mfa$/);
 });
 
-test("HUB-03-02 — un utilisateur non-Admin n'accède pas à /admin", async ({ page }) => {
+test("PRD-HUB-03-02 — un utilisateur non-Admin n'accède pas à /admin", async ({ page }) => {
   const email = `non-admin-e2e-${randomUUID()}@symbola.test`;
   const password = "mot-de-passe-non-admin-e2e";
 
@@ -130,7 +130,7 @@ test("HUB-03-02 — un utilisateur non-Admin n'accède pas à /admin", async ({ 
   await expect(page).toHaveURL("/");
 });
 
-test("HUB-03-03 — désactiver un module l'affiche « indisponible » sans erreur, et la page Santé affiche la version", async ({
+test("PRD-HUB-03-03 — désactiver un module l'affiche « indisponible » sans erreur, et la page Santé affiche la version", async ({
   page,
 }) => {
   const adminEmail = `admin-e2e-${randomUUID()}@symbola.test`;
@@ -151,7 +151,7 @@ test("HUB-03-03 — désactiver un module l'affiche « indisponible » sans erre
   }
 
   // Avant désactivation : le module Événements s'affiche normalement. Lot 16
-  // (ARC-01) : ce test passait par le module témoin hello, retiré.
+  // (L16-ARC-01) : ce test passait par le module témoin hello, retiré.
   const titulaireSecret = await loginAndSetupMfa(page, email, password);
   await page.goto("/events");
   await expect(page.getByRole("heading", { level: 1, name: "Événements" })).toBeVisible();
@@ -162,7 +162,7 @@ test("HUB-03-03 — désactiver un module l'affiche « indisponible » sans erre
   // contient toutes les organisations créées par les autres tests : on
   // cible la ligne de celle-ci par son nom, pas un bouton générique).
   await loginAndSetupMfa(page, adminEmail, adminPassword);
-  // Lot 13 (HUB-17) : on retrouve l'organisation par son nom, ses modules
+  // Lot 13 (L13-HUB-17) : on retrouve l'organisation par son nom, ses modules
   // s'activent dans son panneau.
   await page.goto(`/admin/organisations?q=${encodeURIComponent(organizationName)}`);
   await page.getByRole("link", { name: organizationName }).click();

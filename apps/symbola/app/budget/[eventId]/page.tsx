@@ -57,7 +57,7 @@ export default async function EventBudgetPage({ params }: { params: Promise<{ ev
 
       <BudgetSimulationForm eventId={eventId} models={models} budget={budget} locale={locale} vendorSlots={vendorSlots} wantedBudgetCents={event.wantedBudgetCents} />
 
-      {/* Lot 16 (HUB-20) : chiffres clés alignés, au format de la langue. */}
+      {/* Lot 16 (L16-HUB-20) : chiffres clés alignés, au format de la langue. */}
       {budget ? (
         <dl className="effects budget-figures">
           {(

@@ -1,4 +1,4 @@
-// Schéma du module events (Lot 2, EVT-01/02/07). Tables métier : chaque
+// Schéma du module events (Lot 2, PRD-EVT-01/02/07). Tables métier : chaque
 // table a organization_id (CLAUDE.md §2.4), protégée par Row-Level
 // Security activée par une migration dédiée (même patron que hello,
 // packages/db/drizzle).
@@ -6,7 +6,7 @@ import { boolean, date, integer, pgSchema, text, time, timestamp, unique, uuid, 
 
 export const eventsSchema = pgSchema("events");
 
-// Statuts fixes du cycle de vie d'un événement (PRD EVT-02) — pas une
+// Statuts fixes du cycle de vie d'un événement (PRD PRD-EVT-02) — pas une
 // liste personnalisable par organisation, à la différence des sources de
 // prospect et des motifs de perte ci-dessous.
 export const eventStatusEnum = eventsSchema.enum("event_status", [
@@ -17,7 +17,7 @@ export const eventStatusEnum = eventsSchema.enum("event_status", [
   "lost",
 ]);
 
-// EVT-07 : « la source est obligatoire, choisie dans une liste qu'elle
+// PRD-EVT-07 : « la source est obligatoire, choisie dans une liste qu'elle
 // paramètre » — jamais codée en dur (CLAUDE.md §2.5), gérée par
 // organisation.
 export const prospectSources = eventsSchema.table("prospect_sources", {
@@ -27,7 +27,7 @@ export const prospectSources = eventsSchema.table("prospect_sources", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
-// EVT-02 : motif de perte, également paramétrable par organisation
+// PRD-EVT-02 : motif de perte, également paramétrable par organisation
 // (CLAUDE.md §2.5 cite « motifs » comme exemple explicite). isFreeText
 // marque l'entrée « autre » : une note libre devient alors obligatoire.
 export const lossReasons = eventsSchema.table("loss_reasons", {
@@ -65,7 +65,7 @@ export const events = eventsSchema.table("events", {
   organizationId: uuid("organization_id").notNull(),
   status: eventStatusEnum("status").notNull().default("prospect"),
   // Date sans heure (CLAUDE.md §5) ; nulle tant que la date n'est pas
-  // fixée (« Date à définir », EVT-01).
+  // fixée (« Date à définir », PRD-EVT-01).
   eventDate: date("event_date"),
   // Lieu en texte libre : l'app Prestataires (fiches réutilisables) est
   // V2, hors MVP (cahier des charges §5.5).
@@ -83,11 +83,11 @@ export const events = eventsSchema.table("events", {
   eventTypeId: uuid("event_type_id").references(() => eventTypes.id, { onDelete: "set null" }),
   lossReasonId: uuid("loss_reason_id").references(() => lossReasons.id),
   lossReasonNote: text("loss_reason_note"),
-  // EVT-04 : date de l'événement pour laquelle les échéances du
+  // PRD-EVT-04 : date de l'événement pour laquelle les échéances du
   // rétroplanning ont été calculées. Quand eventDate en diffère, l'app
   // propose de recalculer les échéances des tâches non faites.
   tasksScheduledFor: date("tasks_scheduled_for"),
-  // EVT-05 : dernière modification du programme du jour J (ajout,
+  // PRD-EVT-05 : dernière modification du programme du jour J (ajout,
   // modification, suppression d'une ligne) — « date de version » du PDF.
   programUpdatedAt: timestamp("program_updated_at", { withTimezone: true }),
   // AIDE-02, ADR 0008 : événement fictif d'un essai guidé. Ses lignes
@@ -100,7 +100,7 @@ export const events = eventsSchema.table("events", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
-// Prénoms/noms affichés dans la liste (EVT-01) ; position fixe l'ordre
+// Prénoms/noms affichés dans la liste (PRD-EVT-01) ; position fixe l'ordre
 // d'affichage (ex. « Alice & Bob »).
 export const eventClients = eventsSchema.table("event_clients", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -120,7 +120,7 @@ export const eventClients = eventsSchema.table("event_clients", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
-// EVT-02 : « chaque changement [de statut] est historisé (date, auteur) ».
+// PRD-EVT-02 : « chaque changement [de statut] est historisé (date, auteur) ».
 export const eventStatusHistory = eventsSchema.table("event_status_history", {
   id: uuid("id").defaultRandom().primaryKey(),
   organizationId: uuid("organization_id").notNull(),
@@ -133,7 +133,7 @@ export const eventStatusHistory = eventsSchema.table("event_status_history", {
   changedAt: timestamp("changed_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
-// EVT-03 : statuts fixes d'un poste prestataire (PRD) — pas une liste
+// PRD-EVT-03 : statuts fixes d'un poste prestataire (PRD) — pas une liste
 // personnalisable, à la différence des postes eux-mêmes.
 export const vendorSlotStatusEnum = eventsSchema.enum("vendor_slot_status", [
   "to_find",
@@ -143,20 +143,20 @@ export const vendorSlotStatusEnum = eventsSchema.enum("vendor_slot_status", [
   "not_required",
 ]);
 
-// EVT-03 : « la liste de postes par défaut de la planner » — paramétrable
+// PRD-EVT-03 : « la liste de postes par défaut de la planner » — paramétrable
 // par organisation (CLAUDE.md §2.5), éventuellement chargée depuis le
 // modèle de départ (packages/starter-templates), jamais codée en dur.
 export const defaultVendorSlots = eventsSchema.table("default_vendor_slots", {
   id: uuid("id").defaultRandom().primaryKey(),
   organizationId: uuid("organization_id").notNull(),
   label: text("label").notNull(),
-  // Lot 12 (EVT-14) : icône de la ligne du budget (clé connue de l'app).
+  // Lot 12 (L12-EVT-14) : icône de la ligne du budget (clé connue de l'app).
   icon: text("icon"),
   position: integer("position").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
-// EVT-03 : postes d'un événement, copiés de la liste par défaut à la
+// PRD-EVT-03 : postes d'un événement, copiés de la liste par défaut à la
 // création puis modifiables événement par événement.
 export const eventVendorSlots = eventsSchema.table("event_vendor_slots", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -175,7 +175,7 @@ export const eventVendorSlots = eventsSchema.table("event_vendor_slots", {
   // Lot 5 (IMP-04/IMP-05) : colonnes d'un fichier importé gardées en champ
   // libre (intitulé → texte), affichées en lecture seule sur la fiche.
   importedFields: jsonb("imported_fields").$type<Record<string, string> | null>(),
-  // Lot 11 (EVT-10) : ce que veulent les clients pour ce poste, et le
+  // Lot 11 (L11-EVT-10) : ce que veulent les clients pour ce poste, et le
   // prestataire consulté retenu (null tant qu'aucun ne l'est).
   brief: text("brief"),
   selectedCandidateId: uuid("selected_candidate_id"),
@@ -184,7 +184,7 @@ export const eventVendorSlots = eventsSchema.table("event_vendor_slots", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
-// Lot 11 (EVT-10) — réponse d'un prestataire consulté : statuts fixes,
+// Lot 11 (L11-EVT-10) — réponse d'un prestataire consulté : statuts fixes,
 // comme ceux du poste (« Retenu » / « Non retenu » se déduisent du poste).
 export const vendorCandidateResponseEnum = eventsSchema.enum("vendor_candidate_response", [
   "contacted",
@@ -192,7 +192,7 @@ export const vendorCandidateResponseEnum = eventsSchema.enum("vendor_candidate_r
   "declined",
 ]);
 
-// Lot 11 (EVT-10) — prestataires consultés pour un poste. vendor_id
+// Lot 11 (L11-EVT-10) — prestataires consultés pour un poste. vendor_id
 // référence une fiche du carnet (module vendors, ADR 0031) sans clé
 // étrangère entre schémas ; le nom reste en clair pour fonctionner sans le
 // module Prestataires. Le devis joint suit les règles de l'ADR 0027.
@@ -215,14 +215,14 @@ export const eventVendorCandidates = eventsSchema.table("event_vendor_candidates
   quoteMime: text("quote_mime"),
   quoteSizeBytes: integer("quote_size_bytes"),
   shownToClients: boolean("shown_to_clients").notNull().default(false),
-  // Lot 12 (EVT-16) : RIB de la fiche du carnet partagé aux clients de l'événement.
+  // Lot 12 (L12-EVT-16) : RIB de la fiche du carnet partagé aux clients de l'événement.
   shareRibWithClients: boolean("share_rib_with_clients").notNull().default(false),
   position: integer("position").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
-// Lot 11 (EVT-11) — notes sur un prestataire consulté : internes par
+// Lot 11 (L11-EVT-11) — notes sur un prestataire consulté : internes par
 // défaut, visibles par les clients note par note.
 export const eventVendorCandidateNotes = eventsSchema.table("event_vendor_candidate_notes", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -236,11 +236,11 @@ export const eventVendorCandidateNotes = eventsSchema.table("event_vendor_candid
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
-// EVT-04 : responsable d'une tâche du rétroplanning (PRD). Une tâche des
-// « clients » apparaîtra dans l'espace des mariés (EVT-06).
+// PRD-EVT-04 : responsable d'une tâche du rétroplanning (PRD). Une tâche des
+// « clients » apparaîtra dans l'espace des mariés (PRD-EVT-06).
 export const taskResponsibleEnum = eventsSchema.enum("task_responsible", ["planner", "clients"]);
 
-// EVT-04 : modèles de rétroplanning de l'organisation (CLAUDE.md §2.5 :
+// PRD-EVT-04 : modèles de rétroplanning de l'organisation (CLAUDE.md §2.5 :
 // jamais codés en dur ; un modèle de départ peut être chargé depuis
 // packages/starter-templates).
 export const taskTemplates = eventsSchema.table("task_templates", {
@@ -264,7 +264,7 @@ export const taskTemplateItems = eventsSchema.table("task_template_items", {
   position: integer("position").notNull().default(0),
 });
 
-// EVT-04 : tâches du rétroplanning d'un événement.
+// PRD-EVT-04 : tâches du rétroplanning d'un événement.
 export const eventTasks = eventsSchema.table("event_tasks", {
   id: uuid("id").defaultRandom().primaryKey(),
   organizationId: uuid("organization_id").notNull(),
@@ -284,7 +284,7 @@ export const eventTasks = eventsSchema.table("event_tasks", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
-// EVT-05 : programme du jour J d'un événement. Heures sans date (« HH:MM »),
+// PRD-EVT-05 : programme du jour J d'un événement. Heures sans date (« HH:MM »),
 // le jour étant celui de l'événement ; une heure de fin antérieure au
 // début signifie que la ligne se termine après minuit.
 export const programItems = eventsSchema.table("program_items", {
@@ -297,14 +297,14 @@ export const programItems = eventsSchema.table("program_items", {
   endTime: time("end_time"),
   label: text("label").notNull(),
   location: text("location"),
-  // Jamais dans la variante « mariés » du PDF (PRD EVT-05).
+  // Jamais dans la variante « mariés » du PDF (PRD PRD-EVT-05).
   internalNote: text("internal_note"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
-// EVT-05 : intervenants d'une ligne — un poste prestataire de l'événement
-// (EVT-03) ou un texte libre (officiant, témoin…), l'un ou l'autre.
+// PRD-EVT-05 : intervenants d'une ligne — un poste prestataire de l'événement
+// (PRD-EVT-03) ou un texte libre (officiant, témoin…), l'un ou l'autre.
 export const programItemParticipants = eventsSchema.table("program_item_participants", {
   id: uuid("id").defaultRandom().primaryKey(),
   organizationId: uuid("organization_id").notNull(),
@@ -316,7 +316,7 @@ export const programItemParticipants = eventsSchema.table("program_item_particip
   position: integer("position").notNull().default(0),
 });
 
-// EVT-05 : modèles de programme de l'organisation (CLAUDE.md §2.5). Les
+// PRD-EVT-05 : modèles de programme de l'organisation (CLAUDE.md §2.5). Les
 // intervenants d'un modèle sont des libellés, rapprochés des postes de
 // l'événement quand le modèle est appliqué.
 export const programTemplates = eventsSchema.table("program_templates", {
@@ -340,7 +340,7 @@ export const programTemplateItems = eventsSchema.table("program_template_items",
   position: integer("position").notNull().default(0),
 });
 
-// EVT-06 : accès d'un marié à un événement. Une ligne par invitation ;
+// PRD-EVT-06 : accès d'un marié à un événement. Une ligne par invitation ;
 // userId est posé à l'acceptation (compte hub.users au rôle « client »),
 // revokedAt quand la planner retire l'accès. Le jeton d'invitation n'est
 // stocké que haché (même patron que hub.invitations).
@@ -360,7 +360,7 @@ export const eventClientAccesses = eventsSchema.table("event_client_accesses", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
-// EVT-06 : fil d'activité d'un événement (« quand un marié coche une
+// PRD-EVT-06 : fil d'activité d'un événement (« quand un marié coche une
 // tâche, la planner le voit »). Le libellé de la tâche est copié pour
 // rester lisible si la tâche est supprimée ensuite.
 export const eventActivityKindEnum = eventsSchema.enum("event_activity_kind", ["task_done", "task_undone"]);
@@ -378,7 +378,7 @@ export const eventActivities = eventsSchema.table("event_activities", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
-// Lot 12 (EVT-15) — lieux d'un événement (réception, cérémonie,
+// Lot 12 (L12-EVT-15) — lieux d'un événement (réception, cérémonie,
 // préparatifs…), saisis une fois puis choisis dans le programme. vendor_id
 // : fiche du carnet (module vendors) d'où vient le lieu, sans clé étrangère.
 export const eventPlaces = eventsSchema.table("event_places", {

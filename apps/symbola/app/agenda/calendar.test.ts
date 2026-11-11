@@ -1,4 +1,4 @@
-// HUB-02 — calendrier de l'accueil : mois affichés, week-ends des mariages,
+// PRD-HUB-02 — calendrier de l'accueil : mois affichés, week-ends des mariages,
 // badge quand deux événements tombent le même week-end.
 import { describe, expect, it } from "vitest";
 import { addMonths, buildCalendar, type CalendarEvent } from "./calendar";
@@ -11,7 +11,7 @@ const events: CalendarEvent[] = [
   { id: "e", date: "2027-09-18", status: "confirmed", names: "Hors période", isDemo: false },
 ];
 
-describe("HUB-02 — Calendrier de l'accueil", () => {
+describe("PRD-HUB-02 — Calendrier de l'accueil", () => {
   it("affiche le nombre de mois demandé à partir du mois de départ, semaines commençant le lundi", () => {
     const months = buildCalendar({ start: "2027-06", months: 3, events });
     expect(months.map((month) => month.key)).toEqual(["2027-06", "2027-07", "2027-08"]);

@@ -1,4 +1,4 @@
-// EVT-05/06 — production du PDF du programme, partagée entre la fiche de
+// PRD-EVT-05/06 — production du PDF du programme, partagée entre la fiche de
 // la planner (deux variantes) et l'espace du marié (variante « mariés »
 // seulement). L'appelant a déjà vérifié la session et l'accès.
 import { createElement, type ReactElement } from "react";

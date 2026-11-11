@@ -1,6 +1,7 @@
 # ADR 0013 — Authentification maison derrière `packages/auth` (remplace ADR 0004 pour le MVP)
 
-- Statut : accepté, remplace ADR 0004 pour le MVP
+- Statut : accepté, remplace ADR 0004 pour le MVP ; sera remplacé par
+  [0052](0052-identite-fournisseur-open-source.md) à la bascule vers un fournisseur d'identité (lot 33)
 - Date : 2026-10-26
 
 ## Contexte

@@ -4,7 +4,7 @@
 - Date : 2026-11-09
 - Précise : les lots 9 et 12 (RGPD-01 à RGPD-05 : recherche, export, oubli, suivi des demandes,
   purge), [0039](0039-aide-un-seul-bouton-et-tiroir.md) (aide), l'assistant de démarrage
-  (HUB-13) et [0046](0046-documents-a-son-image.md) (devis et factures à son image)
+  (L12-HUB-13) et [0046](0046-documents-a-son-image.md) (devis et factures à son image)
 - Décisions de Julien du 09/11/2026 : maquette et décisions A à G du lot 18
   (`docs/lots/lot-18-retours-recette.md`), « Oui, je valide ».
 

@@ -2,7 +2,7 @@
 // rôle admin. Ce rôle n'est propriétaire d'aucune table et n'a pas
 // BYPASSRLS (vérifié par packages/db/src/roles.integration.test.ts).
 //
-// Lot 16 (ARC-01, ADR 0043) : l'app partage une seule réserve de connexions
+// Lot 16 (L16-ARC-01, ADR 0043) : l'app partage une seule réserve de connexions
 // par processus (`appDatabase()`). Le partage est sûr : le contexte RLS
 // (`app.organization_id`) est fixé par `set_config(…, true)`, donc limité à
 // la transaction de `withOrganization`, jamais laissé sur la connexion.

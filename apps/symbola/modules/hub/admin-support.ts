@@ -244,7 +244,7 @@ export async function getOrganizationsActivity(
   return activity.sort((a, b) => a.name.localeCompare(b.name, "fr"));
 }
 
-// HUB-11 (lot 10) — prise en main par compte d'équipe : clés d'aide, états et
+// L10-HUB-11 (lot 10) — prise en main par compte d'équipe : clés d'aide, états et
 // dates seulement (jamais une donnée d'événement), et les modules souscrits
 // par organisation pour savoir quels tutoriels lui sont proposés.
 export type TeamHelpEntry = { itemKey: string; status: "started" | "postponed" | "completed"; step: number; updatedAt: Date; completedAt: Date | null };

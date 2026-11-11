@@ -1,6 +1,6 @@
 "use client";
 
-// Lot 16 (SEC-02, ADR 0044) — un formulaire d'envoi de fichier poste vers sa
+// Lot 16 (L16-SEC-02, ADR 0044) — un formulaire d'envoi de fichier poste vers sa
 // route dédiée (lib/uploads/receive.ts) au lieu d'une action serveur, et garde
 // le même usage que useActionState : [état, action du formulaire, envoi en
 // cours]. Après une réussite, l'écran se recharge ; une adresse renvoyée par

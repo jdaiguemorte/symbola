@@ -14,7 +14,7 @@ import { InvitationNotPendingError, resendInvitation, resetTeamAccountMfa } from
 import { requireAdmin } from "@/lib/guards";
 
 const idSchema = z.uuid();
-// Lot 13 (HUB-17) : retour sur la même recherche et la même page de la liste.
+// Lot 13 (L13-HUB-17) : retour sur la même recherche et la même page de la liste.
 const listSchema = z.object({ q: z.string().max(200).optional(), page: z.string().regex(/^\d{1,5}$/).optional() });
 
 function back(outcome: string, formData: FormData): string {

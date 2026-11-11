@@ -69,7 +69,7 @@ export async function SignatureSection({
   }
 
   // Pré-remplissage : les mariés de l'événement, et l'e-mail de leurs
-  // accès (EVT-06) dans l'ordre des invitations.
+  // accès (PRD-EVT-06) dans l'ordre des invitations.
   const accesses = event ? await listEventClientAccesses(organizationId, event.id) : [];
   const emails = accesses.filter((access) => access.status !== "revoked").map((access) => access.email);
   const drafts: SignerDraft[] = (event?.clients ?? []).map((client, index) => ({

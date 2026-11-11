@@ -690,7 +690,7 @@ export async function listEventQuotes(organizationId: string, eventId: string): 
 }
 
 // Écran « Devis et factures » : tous les devis, les plus récents d'abord.
-// Lot 13 (HUB-15) — devis envoyés sans réponse depuis au moins `days`
+// Lot 13 (L13-HUB-15) — devis envoyés sans réponse depuis au moins `days`
 // jours (calendrier de Paris), pour le bloc « À traiter » de l'accueil.
 export async function listQuotesAwaitingAnswer(
   organizationId: string,
@@ -1278,7 +1278,7 @@ export async function reconcilePendingSignatures(organizationId: string): Promis
 }
 
 // Effets qui suivent la signature, une seule fois (appel qui a terminé la
-// demande) : événement Confirmé (EVT-02) et e-mail à la planner.
+// demande) : événement Confirmé (PRD-EVT-02) et e-mail à la planner.
 async function afterSigned(organizationId: string, quoteId: string): Promise<void> {
   const quote = await loadDetail(organizationId, quoteId);
   const aggregate = await findQuoteAggregate(organizationId, quoteId);
@@ -1327,7 +1327,7 @@ export async function getSignatureDocument(organizationId: string, quoteId: stri
 }
 
 // DEV-02 — espace du marié (accès à l'événement vérifié par l'appelant,
-// EVT-06) : les devis à signer et le seul lien de ce marié, reconnu par
+// PRD-EVT-06) : les devis à signer et le seul lien de ce marié, reconnu par
 // l'e-mail de son compte.
 export async function listClientQuotesToSign(organizationId: string, eventId: string, clientEmail: string): Promise<ClientQuoteToSign[]> {
   const email = clientEmail.trim().toLowerCase();

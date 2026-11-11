@@ -14,7 +14,7 @@ export function SearchBox() {
   const router = useRouter();
   const listId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
-  // Lot 20 (HUB-27) : sur la page de résultats, la boîte garde la recherche
+  // Lot 20 (L20-HUB-27) : sur la page de résultats, la boîte garde la recherche
   // faite ; la page n'a plus de second champ.
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -22,7 +22,7 @@ export function SearchBox() {
   const [groups, setGroups] = useState<SearchGroup[]>([]);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
-  // SEC-02 (ADR 0044) : message traduit d'une recherche refusée (trop de requêtes).
+  // L16-SEC-02 (ADR 0044) : message traduit d'une recherche refusée (trop de requêtes).
   const [notice, setNotice] = useState<string | null>(null);
 
   const flat = groups.flatMap((group) => group.items.map((item) => ({ ...item, group: group.key })));

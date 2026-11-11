@@ -1,4 +1,4 @@
-// Lot 11 (EVT-10 / EVT-11, ADR 0031) — prestataires consultés pour un
+// Lot 11 (L11-EVT-10 / L11-EVT-11, ADR 0031) — prestataires consultés pour un
 // poste : accès aux données et règles du module events. Exposé aux autres
 // modules seulement par service.ts (ADR 0011).
 import { and, asc, eq, inArray, isNotNull, sql } from "drizzle-orm";
@@ -20,7 +20,7 @@ type Tx = Parameters<Parameters<typeof withOrganization>[2]>[0];
 type CandidateRow = typeof eventVendorCandidates.$inferSelect;
 type NoteRow = typeof eventVendorCandidateNotes.$inferSelect;
 
-// Mêmes règles que les devis joints au budget (BUD-03, ADR 0031 § 8).
+// Mêmes règles que les devis joints au budget (PRD-BUD-03, ADR 0031 § 8).
 export const CANDIDATE_QUOTE_MAX_SIZE_BYTES = 20 * 1024 * 1024;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -240,7 +240,7 @@ export async function removeCandidateNote(organizationId: string, noteId: string
   await inOrganization(organizationId, (tx) => tx.delete(eventVendorCandidateNotes).where(eq(eventVendorCandidateNotes.id, noteId)));
 }
 
-// « Retenir » = réserver le poste avec ce prestataire et son devis (EVT-03,
+// « Retenir » = réserver le poste avec ce prestataire et son devis (PRD-EVT-03,
 // ADR 0031 § 2) : même chemin que la réservation à la main, donc même
 // événement interne pour le budget. Sans montant de devis, le montant déjà
 // saisi sur le poste est gardé.
@@ -264,7 +264,7 @@ export async function setSlotBrief(organizationId: string, vendorSlotId: string,
   await inOrganization(organizationId, (tx) => tx.update(eventVendorSlots).set({ brief: clean, updatedAt: new Date() }).where(eq(eventVendorSlots.id, vendorSlotId)));
 }
 
-// PRE-09 — consultations d'une fiche du carnet (jamais les essais).
+// L11-PRE-09 — consultations d'une fiche du carnet (jamais les essais).
 export async function listConsultations(organizationId: string, vendorId: string, namesOf: (eventIds: string[]) => Promise<Record<string, string>>): Promise<VendorConsultation[]> {
   if (!UUID.test(vendorId)) return [];
   const rows = await inOrganization(organizationId, (tx) =>
@@ -309,7 +309,7 @@ export async function listSelectedVendors(organizationId: string): Promise<strin
   });
 }
 
-// EVT-11 — ce que voient les clients : consultés montrés, notes « Clients ».
+// L11-EVT-11 — ce que voient les clients : consultés montrés, notes « Clients ».
 // L'accès du client à l'événement est vérifié par l'appelant (service).
 export async function clientOptions(organizationId: string, eventId: string): Promise<ClientVendorSlotOptions[]> {
   return inOrganization(organizationId, async (tx) => {
@@ -394,7 +394,7 @@ export async function candidateQuoteKeysOfSlot(organizationId: string, vendorSlo
   );
 }
 
-// Lot 12 (EVT-16) — fiche du carnet dont le RIB est partagé aux clients de
+// Lot 12 (L12-EVT-16) — fiche du carnet dont le RIB est partagé aux clients de
 // cet événement : consulté montré aux clients, case « Partager le RIB »
 // cochée. L'accès du client est vérifié par l'appelant (service).
 export async function sharedRibVendorId(organizationId: string, eventId: string, candidateId: string): Promise<string> {

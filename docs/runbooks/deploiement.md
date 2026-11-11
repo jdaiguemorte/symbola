@@ -8,6 +8,17 @@ VPS Contabo, en staging et en production.
 DNS ni aux secrets — Julien exécute chaque commande marquée « sur le
 VPS » ou « sur ton poste ».
 
+**Fenêtre de déploiement** (NFR-07, ADR 0058) : aucun déploiement en
+production du vendredi 12 h au lundi 8 h, heure de Paris, sauf correctif
+urgent, motivé et noté avec sa raison dans le journal d'exploitation. Le
+staging n'est pas concerné.
+
+**Accès au VPS** : `ssh symbola` (connexion root par SSH refusée,
+SOC-12), puis `sudo -i` pour les commandes root. Le dépôt `/opt/symbola`
+appartient à `julien` : `sudo git pull` se lance **depuis ta session
+`julien`**, jamais depuis un shell `sudo -i`, où Git refuse le dépôt
+(« dubious ownership ») ; n'ajoute pas l'exception que Git propose.
+
 ## Vue d'ensemble
 
 - Un seul VPS héberge **staging** et **production**, strictement isolés
@@ -158,7 +169,7 @@ Tant que ces étapes ne sont pas faites, la signature en ligne s'affiche
 « indisponible » (sans erreur) et Documenso ne démarre pas (profil compose
 `signature` désactivé). L'essai guidé fonctionne déjà : il utilise le faux
 fournisseur. **Actions de Julien sur le VPS**, staging d'abord, depuis
-`/opt/symbola` à jour (`sudo git pull`), avec la nouvelle image de l'app.
+`/opt/symbola` à jour (`sudo git pull`, depuis la session `julien`), avec la nouvelle image de l'app.
 `$ENV` vaut `staging` (puis `production`) :
 
 ```bash
@@ -268,7 +279,7 @@ l'API de l'IGN dès la production (`GEOCODER` vide), sans clé ni réglage.
 Le fond de carte n'est pas sauvegardé (il se retélécharge) ; le mettre à
 jour une ou deux fois par an suffit.
 
-## Lot 16 : clé de la double authentification (SEC-01, ADR 0037)
+## Lot 16 : clé de la double authentification (L16-SEC-01, ADR 0037)
 
 À faire **une fois par environnement, avant** de passer `APP_IMAGE_TAG` à une image du lot 16 :
 sans cette clé, l'app refuse de démarrer.
@@ -285,7 +296,7 @@ sans cette clé, l'app refuse de démarrer.
    sudo grep -c '^MFA_ENCRYPTION_KEY=.\+' infra/compose/.env.staging   # attendu : 1
    ```
 4. Suivre ensuite « Mise à jour » comme d'habitude (migration 0075 comprise). Au démarrage, le
-   journal de l'app indique `double authentification : n secret(s) chiffré(s) au repos (SEC-01)`
+   journal de l'app indique `double authentification : n secret(s) chiffré(s) au repos (L16-SEC-01)`
    (aucune ligne si tout était déjà chiffré).
 
 ## Mise à jour (nouvelle version)
@@ -302,7 +313,7 @@ sans cette clé, l'app refuse de démarrer.
    `node:22-slim` branché sur le réseau Docker de l'environnement (comme
    « Premiers comptes »), depuis le dépôt à jour :
    ```bash
-   cd /opt/symbola && sudo git pull
+   cd /opt/symbola && sudo git pull   # depuis la session julien, pas depuis sudo -i
    sudo docker run --rm --network symbola-staging_default -v "$PWD":/app -w /app \
      --env-file infra/compose/.env.staging -e POSTGRES_HOST=postgres -e POSTGRES_PORT=5432 \
      node:22-slim sh -c "corepack enable && pnpm install --frozen-lockfile && \

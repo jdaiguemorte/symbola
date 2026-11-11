@@ -85,7 +85,7 @@ export {
   QuoteFileUnsupportedTypeError,
 } from "./attachments";
 
-// BUD-03 : un devis se joint à une ligne existante du budget de cet événement.
+// PRD-BUD-03 : un devis se joint à une ligne existante du budget de cet événement.
 export class BudgetLineNotFoundError extends Error {
   constructor() {
     super("ligne de budget introuvable pour ce poste");
@@ -93,7 +93,7 @@ export class BudgetLineNotFoundError extends Error {
   }
 }
 
-// BUD-04 : accès du marié absent, retiré, ou demande hors de son
+// PRD-BUD-04 : accès du marié absent, retiré, ou demande hors de son
 // événement — même réponse dans tous les cas.
 export class ClientBudgetAccessDeniedError extends Error {
   constructor() {
@@ -146,7 +146,7 @@ export class EventVendorSlotNotFoundError extends Error {
   }
 }
 
-// BUD-01→BUD-02 : la simulation (postes par défaut de l'organisation) ne
+// PRD-BUD-01→PRD-BUD-02 : la simulation (postes par défaut de l'organisation) ne
 // peut devenir le budget réel (postes de l'événement, voir
 // docs/lots/lot-3-budget.md) que si chaque poste simulé se retrouve, par
 // label, parmi les postes de l'événement.
@@ -318,7 +318,7 @@ export async function listBudgetLines(organizationId: string, eventId: string): 
   return toBudgetLinesView(organizationId, eventId, lines);
 }
 
-// BUD-01→BUD-02 : accepte la proposition « en faire le budget prévu »
+// PRD-BUD-01→PRD-BUD-02 : accepte la proposition « en faire le budget prévu »
 // (bandeau sur /events/[id] quand l'événement est confirmé). Rapproche
 // chaque poste de la simulation (clé sur default_vendor_slot_id) avec le
 // poste correspondant de l'événement (clé sur event_vendor_slot_id), par
@@ -363,7 +363,7 @@ export async function confirmEventBudget(input: ConfirmEventBudgetInput): Promis
   return listBudgetLines(input.organizationId, input.eventId);
 }
 
-// BUD-02 : modification à la main de « prévu » ou « réel » sur un poste —
+// PRD-BUD-02 : modification à la main de « prévu » ou « réel » sur un poste —
 // crée la ligne si elle n'existe pas encore (un événement peut recevoir
 // un budget réel sans être jamais passé par la simulation).
 export async function updateBudgetLine(input: UpdateBudgetLineInput): Promise<BudgetLinesView> {
@@ -403,7 +403,7 @@ export async function listBudgetLineHistory(
   }));
 }
 
-// Lot 3 (BUD-02) : gestionnaire de events.vendor_slot.booked, appelé par le
+// Lot 3 (PRD-BUD-02) : gestionnaire de events.vendor_slot.booked, appelé par le
 // worker continu des événements internes (lib/event-worker.ts).
 // Sûr au rejeu : si le montant réel de la ligne a été modifié après
 // l'événement (à la main, ou par un événement plus récent), il n'est pas
@@ -415,7 +415,7 @@ export async function applyVendorSlotBookedToBudget(
   occurredAt?: Date,
 ): Promise<void> {
   if (payload.amountCents === null) return;
-  // Lot 12 (EVT-17) : le budget existe dès la création de l'événement ; une
+  // Lot 12 (L12-EVT-17) : le budget existe dès la création de l'événement ; une
   // réservation crée la ligne (réel connu, prévu encore vide) si besoin.
   const existing = await findBudgetLineByEventVendorSlotId(organizationId, payload.vendorSlotId);
   if (existing && occurredAt) {
@@ -433,7 +433,7 @@ export async function applyVendorSlotBookedToBudget(
   });
 }
 
-// BUD-03 — devis prestataire joint : mêmes règles que l'envoi de fichier
+// PRD-BUD-03 — devis prestataire joint : mêmes règles que l'envoi de fichier
 // du socle (type vérifié par le contenu, antivirus, stockage privé), via
 // @symbola/files. Refus clair, sans rien enregistrer, à chaque étape.
 export async function attachBudgetLineQuote(input: AttachBudgetLineQuoteInput): Promise<BudgetLineAttachment> {
@@ -476,7 +476,7 @@ export async function getBudgetLineAttachmentFile(organizationId: string, attach
   }
 }
 
-// BUD-04 — le budget vu par le marié, en lecture seule : l'accès à
+// PRD-BUD-04 — le budget vu par le marié, en lecture seule : l'accès à
 // l'événement est vérifié par le module events avant toute lecture. Seules
 // les colonnes publiques (poste, prévu, réel, écart, totaux) : les devis
 // joints restent des documents de travail de la planner.

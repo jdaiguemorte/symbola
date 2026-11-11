@@ -1,6 +1,6 @@
 "use client";
 
-// EVT-05 — formulaires des modèles de programme. Lot 21 (EVT-21) : création
+// PRD-EVT-05 — formulaires des modèles de programme. Lot 21 (L21-EVT-21) : création
 // et renommage dans le panneau latéral ; une même fiche pour ajouter ou
 // modifier une ligne.
 import { useActionState, useEffect, useState } from "react";

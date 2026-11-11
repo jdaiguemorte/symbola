@@ -1,11 +1,12 @@
 # ADR 0020 — Accès des mariés : rôle client et accès par événement
 
-- Statut : accepté
+- Statut : remplacé par [0053](0053-acces-des-tiers-par-lien-personnel.md) (liens personnels),
+  en vigueur jusqu'au lot 26
 - Date : 2026-10-27
 
 ## Contexte
 
-EVT-06 ouvre l'app aux mariés : chacun crée son compte sur invitation de
+PRD-EVT-06 ouvre l'app aux mariés : chacun crée son compte sur invitation de
 la planner, suit le rétroplanning, coche ses tâches et consulte le
 programme du jour J, sans jamais voir les notes internes, un autre
 événement ni une autre organisation (tests obligatoires).

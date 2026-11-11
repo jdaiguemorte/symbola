@@ -40,8 +40,8 @@ describe("SOC-09 — En-têtes de sécurité", () => {
   });
 });
 
-// Lot 16 (SEC-02, ADR 0044).
-describe("SEC-02 — Limitation de débit et en-têtes", () => {
+// Lot 16 (L16-SEC-02, ADR 0044).
+describe("L16-SEC-02 — Limitation de débit et en-têtes", () => {
   it("pose Permissions-Policy (ni caméra, ni micro, ni géolocalisation) et Cross-Origin-Opener-Policy", async () => {
     const headers = await getHeaderRules();
     expect(headers["Permissions-Policy"]).toBe("camera=(), microphone=(), geolocation=()");

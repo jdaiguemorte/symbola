@@ -53,8 +53,8 @@ export async function createProspectAction(
     venueCity: venueCity || null,
   });
 
-  // HUB-13 : « Créer un événement » depuis l'agenda = confirmé d'emblée (la
-  // fiche propose alors le rétroplanning, EVT-13).
+  // L12-HUB-13 : « Créer un événement » depuis l'agenda = confirmé d'emblée (la
+  // fiche propose alors le rétroplanning, L12-EVT-13).
   if (formData.get("confirmed") === "1") {
     await changeEventStatus({ organizationId, eventId: result.id, changedByUserId: auth.user.id, toStatus: "confirmed" });
   }

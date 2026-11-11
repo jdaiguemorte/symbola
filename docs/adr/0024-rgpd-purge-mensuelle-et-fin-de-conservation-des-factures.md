@@ -1,6 +1,7 @@
 # ADR 0024 — RGPD : purge mensuelle et fin de conservation des factures
 
-- Statut : accepté
+- Statut : accepté ; points 2 et 3 remplacés par
+  [0056](0056-purge-rgpd-automatique-avec-preavis.md) (purge automatique avec préavis) au lot 34
 - Date : 2026-11-02
 - Complète : [0010](0010-facturation-conforme.md), [0023](0023-rgpd-contrat-par-fiches-et-orchestration.md)
 

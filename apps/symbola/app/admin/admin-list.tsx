@@ -1,4 +1,4 @@
-// Lot 13 (HUB-17) — recherche par nom et pagination communes aux écrans de la
+// Lot 13 (L13-HUB-17) — recherche par nom et pagination communes aux écrans de la
 // console qui listent les organisations (Organisations, Comptes, Prise en
 // main, Activité) : 20 organisations par page, état dans l'adresse.
 import { getTranslations } from "next-intl/server";

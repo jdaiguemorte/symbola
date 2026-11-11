@@ -1,4 +1,4 @@
-// HUB-02 / DEV-03 — le bloc « Encaissements à venir » ne bloque jamais le
+// PRD-HUB-02 / DEV-03 — le bloc « Encaissements à venir » ne bloque jamais le
 // tableau de bord : au-delà de 2 secondes ou en cas d'erreur, il est
 // « indisponible » (null), sans erreur pour la page.
 import { describe, expect, it, vi } from "vitest";
@@ -9,7 +9,7 @@ const { loadDashboardPayments } = await import("./dashboard-block");
 
 const EMPTY = { overdue: [], upcoming: [], overdueTotalCents: 0, months: [] };
 
-describe("HUB-02 / DEV-03 — Bloc Encaissements à venir", () => {
+describe("PRD-HUB-02 / DEV-03 — Bloc Encaissements à venir", () => {
   it("rend les données quand le module répond à temps", async () => {
     expect(await loadDashboardPayments("org", 50, async () => EMPTY)).toEqual(EMPTY);
   });

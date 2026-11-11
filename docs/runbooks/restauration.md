@@ -7,7 +7,8 @@ restauration chronométré, le contrôle de la protection des copies instantané
 « dépôt effacé ».
 
 **Rappel impératif** : Claude Code prépare les scripts et ce runbook, **Julien exécute**
-chaque commande, sur le VPS, en root (`sudo -i`), ou sur son poste quand c'est indiqué.
+chaque commande, sur le VPS, en root (`ssh symbola`, puis `sudo -i`), ou sur son poste quand c'est
+indiqué.
 Prérequis : durcissement fait (`docs/runbooks/durcissement-serveur.md`), environnements déployés
 (`docs/runbooks/deploiement.md`), dépôt cloné dans `/opt/symbola`.
 
@@ -249,16 +250,18 @@ vierge** commence après le pilote (décision de Julien du 11/11/2026). Toujours
 | Date | Environnement | Dépôt | Instantané | Taille (base / fichiers) | Durée affichée | Résultat | Par |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 2026-10-26 | staging | local (VPS) | 6fb7f730 | 1,351 MiB | 0 min 21 s | OK — repère hello.greetings retrouvé après restauration, `/health` ok, production non affectée (aucun redémarrage) | Julien |
+| 2026-11-11 | staging | Storage Box Hetzner (`sftp:symbola-staging:restic`) | b0e26260 | 5,44 MiB | 1 min 1 s | OK — source « Repère restauration 11/11 » et fichier joint retrouvés, `/health` ok, production non affectée (aucun redémarrage) | Julien |
 
 ## 6. Surveillance et entretien
 
 - **Sonde Uptime Kuma** de type *Push*, une par environnement (« Sauvegarde restic —
   production », « — staging »), intervalle 26 h (`docs/runbooks/surveillance.md`). Copier
-  l'URL de chaque sonde dans `BACKUP_PUSH_URL` de la configuration correspondante. Le script
+  l'URL de chaque sonde, **sans sa partie `?status=…`** (`http://127.0.0.1:3001/api/push/<jeton>`),
+  dans `BACKUP_PUSH_URL` de la configuration correspondante. Le script
   ne l'appelle qu'après une sauvegarde **entièrement** réussie, contrôle du dépôt compris : une
   nuit en échec déclenche l'alerte, par e-mail et sur le téléphone. L'URL est un secret (elle
   permettrait de simuler une sauvegarde réussie).
-- **Console d'Administration** (lot 13, HUB-18, ADR 0033) : chaque exécution est aussi
+- **Console d'Administration** (lot 13, L13-HUB-18, ADR 0033) : chaque exécution est aussi
   enregistrée dans la table `hub.backup_runs` de l'environnement (début, fin, résultat, taille
   ajoutée au dépôt), par `psql` dans le conteneur `postgres` avec son rôle d'administration.
   La vue d'ensemble et la page Santé affichent « Faite le … », ou en alerte « Échec » /

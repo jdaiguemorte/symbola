@@ -1,10 +1,10 @@
 // Lot 21 — étiquettes prêtes à l'emploi et écrans de réglage simplifiés
 // (retours de recette du lot 20, Julien, 10/11/2026). Corrections directes :
-// pastilles sur toute la largeur de la fiche (PRE-20), menu des réglages qui
-// défile seul (HUB-28). Décisions validées le 10/11/2026 : étiquettes de
-// départ et rangement des importées (PRE-18, PRE-19), Programme du jour J en
-// liste puis détail (EVT-21), modes de paiement activables (DEV-13), groupes
-// lisibles dans le menu (HUB-29). En taille ordinateur et en 375 px, axe-core.
+// pastilles sur toute la largeur de la fiche (L21-PRE-20), menu des réglages qui
+// défile seul (L21-HUB-28). Décisions validées le 10/11/2026 : étiquettes de
+// départ et rangement des importées (L21-PRE-18, L21-PRE-19), Programme du jour J en
+// liste puis détail (L21-EVT-21), modes de paiement activables (DEV-13), groupes
+// lisibles dans le menu (L21-HUB-29). En taille ordinateur et en 375 px, axe-core.
 import { randomUUID } from "node:crypto";
 import AxeBuilder from "@axe-core/playwright";
 import { createAppConnection } from "@symbola/db/client";
@@ -33,7 +33,7 @@ async function expectNoAxeViolation(page: Page) {
   expect(result.violations, JSON.stringify(result.violations, null, 2)).toEqual([]);
 }
 
-test("PRE-20 — les pastilles d'étiquettes prennent toute la largeur de la fiche", async ({ page }) => {
+test("L21-PRE-20 — les pastilles d'étiquettes prennent toute la largeur de la fiche", async ({ page }) => {
   test.setTimeout(90_000);
   const email = `planner-lot21-${randomUUID()}@symbola.test`;
   const password = "mot-de-passe-lot21-e2e";
@@ -67,7 +67,7 @@ test("PRE-20 — les pastilles d'étiquettes prennent toute la largeur de la fic
   await expectNoAxeViolation(page);
 });
 
-test("HUB-28 — le menu des réglages défile seul, sans faire défiler l'écran", async ({ page }) => {
+test("L21-HUB-28 — le menu des réglages défile seul, sans faire défiler l'écran", async ({ page }) => {
   test.setTimeout(90_000);
   // Le menu est collé à gauche de l'écran seulement en taille ordinateur ;
   // en 375 px il passe au-dessus du contenu et défile avec la page.
@@ -117,7 +117,7 @@ async function newPlanner(page: Page, prepare?: (organizationId: string) => Prom
   await loginAndSetupMfa(page, email, password);
 }
 
-test("HUB-29 — chaque groupe du menu des réglages a son icône et un titre en casse normale", async ({ page }) => {
+test("L21-HUB-29 — chaque groupe du menu des réglages a son icône et un titre en casse normale", async ({ page }) => {
   test.setTimeout(60_000);
   await newPlanner(page);
   await page.goto("/parametres");
@@ -150,7 +150,7 @@ test("DEV-13 — un mode de paiement se désactive puis se réactive, d'un inter
   await expect(cheque).toBeChecked();
 });
 
-test("EVT-21 — Programme du jour J : la liste des modèles, puis le détail ; une ligne se modifie dans le panneau", async ({ page }) => {
+test("L21-EVT-21 — Programme du jour J : la liste des modèles, puis le détail ; une ligne se modifie dans le panneau", async ({ page }) => {
   test.setTimeout(90_000);
   await newPlanner(page);
   await page.goto("/events/modeles-programme");
@@ -203,7 +203,7 @@ test("EVT-21 — Programme du jour J : la liste des modèles, puis le détail ; 
   await expect(page.getByText("Aucun modèle de programme pour l'instant.")).toBeVisible();
 });
 
-test("PRE-18 / PRE-19 — étiquettes importées rangées d'un clic, étiquettes proposées ajoutées ; la fiche ne montre que celles du type", async ({ page }) => {
+test("L21-PRE-18 / L21-PRE-19 — étiquettes importées rangées d'un clic, étiquettes proposées ajoutées ; la fiche ne montre que celles du type", async ({ page }) => {
   test.setTimeout(120_000);
   let venueId = "";
   let floristId = "";

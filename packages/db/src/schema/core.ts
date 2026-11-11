@@ -56,7 +56,7 @@ export const usageCounters = coreSchema.table(
   (table) => [primaryKey({ columns: [table.organizationId, table.date] })],
 );
 
-// Lot 16 (SEC-02, ADR 0044) : limitation de débit à fenêtre glissante, une
+// Lot 16 (L16-SEC-02, ADR 0044) : limitation de débit à fenêtre glissante, une
 // ligne par tentative (connexion, double authentification, mot de passe
 // oublié, recherche, envoi de fichier). La clé (adresse IP, e-mail ou compte)
 // n'est gardée que sous forme d'empreinte SHA-256, 24 heures au plus. Pas de

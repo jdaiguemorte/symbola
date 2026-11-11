@@ -1,4 +1,4 @@
-// BUD-02/04 — présentation de l'écart réel − prévu, partagée entre le
+// PRD-BUD-02/04 — présentation de l'écart réel − prévu, partagée entre le
 // tableau de la planner et la vue en lecture seule du marié. Le texte porte
 // l'information (dépassement, économie), la couleur n'est qu'un renfort
 // (accessibilité, axe-core).

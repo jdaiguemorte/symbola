@@ -1,4 +1,4 @@
-// BUD-03 — règles pures de l'envoi d'un devis prestataire, testées sans
+// PRD-BUD-03 — règles pures de l'envoi d'un devis prestataire, testées sans
 // base ni stockage : taille maximale et traduction des refus de
 // @symbola/files en erreurs du module.
 import type { UploadFileResult } from "@symbola/files";

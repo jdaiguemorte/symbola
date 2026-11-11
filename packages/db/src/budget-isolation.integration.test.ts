@@ -1,4 +1,4 @@
-// BUD-03 — critère obligatoire (CLAUDE.md §6) sur la nouvelle table
+// PRD-BUD-03 — critère obligatoire (CLAUDE.md §6) sur la nouvelle table
 // budget_line_attachments : une organisation ne voit et ne modifie jamais
 // les devis joints d'une autre. PostgreSQL réel, rôle applicatif.
 import { randomUUID } from "node:crypto";
@@ -15,7 +15,7 @@ afterAll(async () => {
   await sql.end();
 });
 
-describe("BUD-03 — Isolation entre organisations (devis joints, PostgreSQL réel)", () => {
+describe("PRD-BUD-03 — Isolation entre organisations (devis joints, PostgreSQL réel)", () => {
   it("une organisation ne voit et ne modifie jamais les devis joints d'une autre", async () => {
     await assertOrganizationIsolation({
       seed: async (organizationId) =>

@@ -1,8 +1,8 @@
-// Lot 11 (PRE-05) — étiquettes du carnet. Lot 20 (décision 5, ADR 0049) :
+// Lot 11 (L11-PRE-05) — étiquettes du carnet. Lot 20 (décision 5, ADR 0049) :
 // rangées par groupe, rattachées à des familles, groupes « palier » à choix
 // unique ; paliers repérés dans les étiquettes importées, à ranger d'un clic.
 // Décision 3 : ajout en tête, liste filtrable, modification dans un panneau.
-// Lot 21 (PRE-18, PRE-19, ADR 0050) : en tête, le rangement des étiquettes
+// Lot 21 (L21-PRE-18, L21-PRE-19, ADR 0050) : en tête, le rangement des étiquettes
 // importées et l'ajout des étiquettes proposées (TagSetup).
 import Link from "next/link";
 import { Pencil, Trash2 } from "lucide-react";

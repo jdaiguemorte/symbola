@@ -176,7 +176,7 @@ export async function insertProspect(input: {
       });
     }
 
-    // EVT-03 : l'événement reçoit la liste de postes par défaut de la planner.
+    // PRD-EVT-03 : l'événement reçoit la liste de postes par défaut de la planner.
     const defaults = await tx
       .select()
       .from(defaultVendorSlots)
@@ -309,7 +309,7 @@ export async function insertLossReason(
   });
 }
 
-// EVT-03 — liste de postes par défaut de l'organisation.
+// PRD-EVT-03 — liste de postes par défaut de l'organisation.
 export async function findDefaultVendorSlots(organizationId: string): Promise<DefaultVendorSlotRow[]> {
   const db = appDatabase();
   return await withOrganization(db, organizationId, (tx) =>
@@ -353,7 +353,7 @@ export async function deleteDefaultVendorSlot(organizationId: string, defaultVen
   );
 }
 
-// Lot 13 (HUB-16) — nouvel ordre des lignes du budget par défaut : la liste
+// Lot 13 (L13-HUB-16) — nouvel ordre des lignes du budget par défaut : la liste
 // doit contenir exactement les lignes de l'organisation (sinon rien ne
 // change, renvoie false) ; chaque position vaut son rang.
 export async function reorderDefaultVendorSlotRows(organizationId: string, orderedIds: string[]): Promise<boolean> {
@@ -369,7 +369,7 @@ export async function reorderDefaultVendorSlotRows(organizationId: string, order
   });
 }
 
-// EVT-03 — postes d'un événement.
+// PRD-EVT-03 — postes d'un événement.
 export async function findEventVendorSlots(organizationId: string, eventId: string): Promise<EventVendorSlotRow[]> {
   const db = appDatabase();
   return await withOrganization(db, organizationId, (tx) =>
@@ -411,7 +411,7 @@ export async function updateEventVendorSlotRow(input: {
   status: VendorSlotStatus;
   vendorName?: string | null | undefined;
   amountCents?: number | null | undefined;
-  // Lot 11 (EVT-10) : consulté retenu ; effacé quand le poste n'est plus réservé.
+  // Lot 11 (L11-EVT-10) : consulté retenu ; effacé quand le poste n'est plus réservé.
   selectedCandidateId?: string | null | undefined;
 }): Promise<EventVendorSlotRow | null> {
   const db = appDatabase();
@@ -464,7 +464,7 @@ export async function deleteEventVendorSlot(organizationId: string, vendorSlotId
   );
 }
 
-// EVT-04 — modèles de rétroplanning.
+// PRD-EVT-04 — modèles de rétroplanning.
 export async function findTaskTemplates(
   organizationId: string,
 ): Promise<{ template: TaskTemplateRow; items: TaskTemplateItemRow[] }[]> {
@@ -538,7 +538,7 @@ export async function insertTaskTemplateItem(
   });
 }
 
-// Lot 21 (EVT-22) : une ligne de modèle se corrige sans être recréée ; elle
+// Lot 21 (L21-EVT-22) : une ligne de modèle se corrige sans être recréée ; elle
 // garde sa place.
 export async function updateTaskTemplateItemRow(organizationId: string, itemId: string, item: TaskTemplateItemInput): Promise<TaskTemplateItemRow | null> {
   const db = appDatabase();
@@ -573,7 +573,7 @@ export async function deleteTaskTemplate(organizationId: string, templateId: str
   });
 }
 
-// EVT-04 — recalcul des échéances après un changement de date.
+// PRD-EVT-04 — recalcul des échéances après un changement de date.
 type Tx = Parameters<Parameters<typeof withOrganization>[2]>[0];
 
 async function countUndoneTasks(tx: Tx, eventId: string): Promise<number> {
@@ -661,7 +661,7 @@ export async function resolveTaskRecalculationRow(
   });
 }
 
-// EVT-04 — tâches d'un événement.
+// PRD-EVT-04 — tâches d'un événement.
 export type ApplyTaskTemplateResult =
   | { status: "applied"; tasks: EventTaskRow[] }
   | { status: "event_not_found" | "template_not_found" | "date_required" | "recalculation_pending" };
@@ -734,7 +734,7 @@ export async function findEventTasks(organizationId: string, eventId: string): P
   );
 }
 
-// HUB-02 — tâches de toute l'organisation, hors événements perdus ou
+// PRD-HUB-02 — tâches de toute l'organisation, hors événements perdus ou
 // réalisés ; échéance au plus tard `until` (date sans heure) si fournie.
 export async function findOrganizationTasks(
   organizationId: string,
@@ -853,7 +853,7 @@ export async function deleteEventTask(organizationId: string, taskId: string): P
   await withOrganization(db, organizationId, (tx) => tx.delete(eventTasks).where(eq(eventTasks.id, taskId)));
 }
 
-// EVT-05 — programme du jour J.
+// PRD-EVT-05 — programme du jour J.
 export type ProgramItemData = {
   startTime: string;
   endTime: string | null;
@@ -996,7 +996,7 @@ export async function deleteProgramItem(organizationId: string, itemId: string):
   });
 }
 
-// EVT-05 — modèles de programme.
+// PRD-EVT-05 — modèles de programme.
 export async function findProgramTemplates(
   organizationId: string,
 ): Promise<{ template: ProgramTemplateRow; items: ProgramTemplateItemRow[] }[]> {
@@ -1072,7 +1072,7 @@ export async function insertProgramTemplateItem(
   });
 }
 
-// Lot 21 (EVT-21) : une ligne de modèle se corrige sans être recréée ; elle
+// Lot 21 (L21-EVT-21) : une ligne de modèle se corrige sans être recréée ; elle
 // garde sa place.
 export async function updateProgramTemplateItemRow(
   organizationId: string,
@@ -1166,7 +1166,7 @@ export async function applyProgramTemplateRows(
   });
 }
 
-// EVT-06 — accès des mariés.
+// PRD-EVT-06 — accès des mariés.
 export async function findEventClientAccesses(organizationId: string, eventId: string): Promise<EventClientAccessRow[]> {
   const db = appDatabase();
   return await withOrganization(db, organizationId, (tx) =>
@@ -1359,7 +1359,7 @@ export async function toggleClientTask(
   });
 }
 
-// Lot 13 (EVT-19) — passages de statut d'un événement, du plus ancien au
+// Lot 13 (L13-EVT-19) — passages de statut d'un événement, du plus ancien au
 // plus récent, pour dater les étapes de la frise.
 export async function findEventStatusChanges(organizationId: string, eventId: string): Promise<{ toStatus: EventStatus; changedAt: Date }[]> {
   const db = appDatabase();
@@ -1665,7 +1665,7 @@ export async function findEventNamesByIds(organizationId: string, eventIds: stri
   });
 }
 
-// Lot 12 (EVT-17) — renommer une ligne du budget par défaut ou changer son icône.
+// Lot 12 (L12-EVT-17) — renommer une ligne du budget par défaut ou changer son icône.
 export async function updateDefaultVendorSlotRow(organizationId: string, id: string, label: string, icon: string | null): Promise<boolean> {
   const db = appDatabase();
   return await withOrganization(

@@ -57,7 +57,7 @@ export async function readyOrganization(db: Parameters<typeof createOrganization
   return organization;
 }
 
-// Lot 13 (EVT-19) : frise du statut ; un clic sur l'étape, puis « Confirmer ».
+// Lot 13 (L13-EVT-19) : frise du statut ; un clic sur l'étape, puis « Confirmer ».
 export async function changeEventStatus(page: Page, status: string): Promise<void> {
   await page.getByRole("button", { name: `Passer en ${status}` }).click();
   await page.getByRole("form", { name: "Confirmer le changement de statut" }).getByRole("button", { name: "Confirmer" }).click();
@@ -77,7 +77,7 @@ export async function closeLandmarks(page: Page, screen: string): Promise<void> 
   await expect(panel).toHaveCount(0);
 }
 
-// Lot 13 (HUB-17) — lien du menu de la console d'Administration (replié sur téléphone).
+// Lot 13 (L13-HUB-17) — lien du menu de la console d'Administration (replié sur téléphone).
 export async function clickAdminMenuLink(page: Page, name: string): Promise<void> {
   await openMenu(page);
   await page.getByRole("navigation", { name: "Menu de l'Administration" }).getByRole("link", { name, exact: true }).click();

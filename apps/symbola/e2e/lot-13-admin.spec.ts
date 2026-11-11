@@ -1,4 +1,4 @@
-// Lot 13 (HUB-17, HUB-18) — console d'Administration : menu latéral distinct,
+// Lot 13 (L13-HUB-17, L13-HUB-18) — console d'Administration : menu latéral distinct,
 // vue d'ensemble (services, chiffres, « À faire », tendance), dernière
 // sauvegarde signalée par le script de sauvegarde, page Santé détaillée.
 // Toujours aucune donnée métier (ADR 0029). Ordinateur et 375 px, axe-core.
@@ -18,7 +18,7 @@ async function expectNoAxeViolation(page: Page) {
 }
 
 // Le script de sauvegarde écrit avec le rôle d'administration de PostgreSQL ;
-// le rôle applicatif ne fait que lire (HUB-18).
+// le rôle applicatif ne fait que lire (L13-HUB-18).
 function adminSql() {
   return postgres({
     host: process.env.POSTGRES_HOST ?? "localhost",
@@ -42,7 +42,7 @@ async function login(page: Page, email: string, password: string) {
   await page.getByRole("button", { name: "Valider" }).click();
 }
 
-test("HUB-17 / HUB-18 — console d'Administration : vue d'ensemble, dernière sauvegarde, Santé", async ({ page }) => {
+test("L13-HUB-17 / L13-HUB-18 — console d'Administration : vue d'ensemble, dernière sauvegarde, Santé", async ({ page }) => {
   const adminEmail = `admin-console-${randomUUID()}@symbola.test`;
   const secretName = `Mariage secret ${randomUUID()}`;
   const organizationName = `Org console ${randomUUID()}`;
@@ -113,7 +113,7 @@ test("HUB-17 / HUB-18 — console d'Administration : vue d'ensemble, dernière s
     await expect(row).toContainText("Événements");
     await row.getByRole("link", { name: organizationName }).click();
     const panel = page.getByRole("complementary", { name: organizationName });
-    // Lot 16 (ARC-01) : le bouton nomme le module dans la langue de l'écran.
+    // Lot 16 (L16-ARC-01) : le bouton nomme le module dans la langue de l'écran.
     await expect(panel.getByRole("button", { name: /Événements : activé/ })).toBeVisible();
     await expect(panel).toContainText("titulaire");
     await expect(page.getByText(secretName)).toHaveCount(0);
@@ -128,7 +128,7 @@ test("HUB-17 / HUB-18 — console d'Administration : vue d'ensemble, dernière s
   }
 });
 
-test("HUB-17 — la console est réservée à l'Admin", async ({ page }) => {
+test("L13-HUB-17 — la console est réservée à l'Admin", async ({ page }) => {
   const email = `titulaire-sans-console-${randomUUID()}@symbola.test`;
   const { sql, db } = createAppConnection();
   try {

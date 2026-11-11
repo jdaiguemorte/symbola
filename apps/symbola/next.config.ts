@@ -14,7 +14,7 @@ const securityHeaders = [
   { key: "X-Frame-Options", value: "DENY" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "X-Content-Type-Options", value: "nosniff" },
-  // Lot 16 (SEC-02, ADR 0044) : ni caméra, ni micro, ni géolocalisation (la
+  // Lot 16 (L16-SEC-02, ADR 0044) : ni caméra, ni micro, ni géolocalisation (la
   // carte cherche autour d'une adresse saisie, jamais de la position de
   // l'appareil) ; la fenêtre de l'app ne partage rien avec une page d'une
   // autre origine qu'elle ouvrirait ou qui l'ouvrirait.
@@ -33,7 +33,7 @@ const nextConfig: NextConfig = {
   poweredByHeader: false, // ne pas annoncer la techno via X-Powered-By
   // @node-rs/argon2 et postgres.js embarquent du binaire natif : Next ne
   // doit pas tenter de les passer dans le bundler webpack (SOC-04).
-  // @react-pdf/renderer (EVT-05) charge ses polices et sa mise en page
+  // @react-pdf/renderer (PRD-EVT-05) charge ses polices et sa mise en page
   // depuis node_modules à l'exécution : même traitement.
   serverExternalPackages: ["@node-rs/argon2", "@node-rs/argon2-darwin-arm64", "postgres", "@react-pdf/renderer"],
   // pdfkit (sous @react-pdf/renderer) charge ses polices standard
@@ -44,7 +44,7 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     "/**": ["../../node_modules/.pnpm/pdfkit@*/node_modules/pdfkit/js/standard-fonts/**"],
   },
-  // Lot 16 (SEC-02, ADR 0044) : les actions serveur gardent la limite par
+  // Lot 16 (L16-SEC-02, ADR 0044) : les actions serveur gardent la limite par
   // défaut de Next.js (1 Mo). Les fichiers (devis, plaquettes, imports, 20 Mo)
   // passent par des routes dédiées qui contrôlent la session et la limite de
   // débit avant de lire le corps (lib/uploads/receive.ts).

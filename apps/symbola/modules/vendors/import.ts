@@ -137,7 +137,7 @@ export async function importVendorRows(input: {
       } else if (target.kind === "none") {
         typeByLabel.set(key, null);
       } else {
-        // Lot 16 (PRE-14) : sans famille choisie, le type part « à classer ».
+        // Lot 16 (L16-PRE-14) : sans famille choisie, le type part « à classer ».
         const familyId = target.kind === "new" ? target.familyId : null;
         const color = target.kind === "new" ? target.color : UNCLASSIFIED_COLOR;
         typeByLabel.set(key, await createType({ label: record.type, color, familyId, starterKey: null }));
@@ -265,7 +265,7 @@ async function stateOf(tx: Tx, kind: string, id: string): Promise<Values | null>
   return tag ? { label: tag.label } : null;
 }
 
-// Lot 16 (PRE-15) : le type d'une fiche importée, disparu depuis par une fusion
+// Lot 16 (L16-PRE-15) : le type d'une fiche importée, disparu depuis par une fusion
 // ou une suppression (ses fiches déplacées), n'est pas une modification à la
 // main ; l'import reste annulable.
 function modifiedSince(current: Values, written: Values | null, existingTypeIds: Set<string>): boolean {

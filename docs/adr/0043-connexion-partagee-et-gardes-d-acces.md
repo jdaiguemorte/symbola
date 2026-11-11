@@ -5,7 +5,7 @@
 - Précise : [0012](0012-base-unique-schemas-logiques-pour-le-mvp.md) (base unique, RLS),
   [0013](0013-auth-maison-pour-le-mvp.md) (authentification maison) et
   [0035](0035-traitements-de-fond-suivis-des-imports.md) (traitements de fond des imports)
-- Story : ARC-01 (lot 16, spécification `docs/lots/lot-16-reprise-ux.md`)
+- Story : L16-ARC-01 (lot 16, spécification `docs/lots/lot-16-reprise-ux.md`)
 
 ## Contexte
 
@@ -78,7 +78,7 @@ Audit du 08/11/2026 (`docs/audits/2026-11-08-audit-complet.md`, R1, R2 et R6).
 - Retirés : le module de l'app, ses contrats (`packages/contracts/src/hello`), sa clé de
   module, ses textes, sa participation à la recherche RGPD et la salutation de l'accueil.
 - Les tests qui passaient par lui reposent sur un autre module :
-  - HUB-03-03 désactive le module Événements ;
+  - PRD-HUB-03-03 désactive le module Événements ;
   - les tests d'activation désactivent le module Budget.
 - La couverture des envois de fichiers (SOC-08) et des événements internes (SOC-06) reste
   dans `packages/files` et `packages/db`.

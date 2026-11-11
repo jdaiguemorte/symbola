@@ -1,6 +1,6 @@
-// HUB-03 — « Quand l'Admin ouvre la page Santé, il voit pour chaque app
-// son état (en ligne/hors ligne) et sa version déployée. » Lot 13 (HUB-17,
-// HUB-18) : le détail de chaque service du socle (mêmes vérifications que
+// PRD-HUB-03 — « Quand l'Admin ouvre la page Santé, il voit pour chaque app
+// son état (en ligne/hors ligne) et sa version déployée. » Lot 13 (L13-HUB-17,
+// L13-HUB-18) : le détail de chaque service du socle (mêmes vérifications que
 // /health) et la dernière sauvegarde signalée par le script de sauvegarde.
 import { getLocale, getTranslations } from "next-intl/server";
 import { ScreenHelp } from "@/app/screen-help";

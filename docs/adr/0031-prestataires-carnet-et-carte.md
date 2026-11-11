@@ -3,7 +3,7 @@
 - Statut : accepté
 - Date : 2026-11-04
 - Avance : l'app « Prestataires et carte interactive » du cahier des charges (§ 5.5), prévue en V2
-- Précise : EVT-03 (postes prestataires), ADR 0011 (modules), ADR 0027 (fichiers servis par l'app)
+- Précise : PRD-EVT-03 (postes prestataires), ADR 0011 (modules), ADR 0027 (fichiers servis par l'app)
 
 ## Contexte
 

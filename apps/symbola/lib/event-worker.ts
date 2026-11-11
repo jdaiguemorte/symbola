@@ -13,7 +13,7 @@ const POLL_INTERVAL_MS = 15_000;
 // Un consommateur par module abonné : chacun garde sa propre trace
 // d'événements traités (domain_event_consumers).
 export const CONSUMERS: Record<string, Record<string, EventHandler>> = {
-  // BUD-02 : poste réservé (EVT-03) → montant réel de la ligne de budget.
+  // PRD-BUD-02 : poste réservé (PRD-EVT-03) → montant réel de la ligne de budget.
   budget: {
     [EVT_VENDOR_SLOT_BOOKED]: async (event: DomainEventRecord) => {
       const payload = vendorSlotBookedPayloadSchema.parse(event.payload);

@@ -11,7 +11,7 @@ export default defineConfig({
     environment: "node",
     include: ["**/*.integration.test.ts"],
     exclude: ["**/node_modules/**"],
-    // ARC-01 : rend la réserve de connexions partagée à la fin de chaque fichier.
+    // L16-ARC-01 : rend la réserve de connexions partagée à la fin de chaque fichier.
     setupFiles: ["./vitest.integration.setup.ts"],
   },
 });

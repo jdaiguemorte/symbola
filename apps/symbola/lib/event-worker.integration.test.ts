@@ -1,6 +1,6 @@
 // Worker continu des événements internes (ADR 0014), contre un vrai
-// PostgreSQL : un poste réservé (EVT-03) met à jour le réel de sa ligne de
-// budget (BUD-02) au passage du worker, une seule fois ; un montant modifié
+// PostgreSQL : un poste réservé (PRD-EVT-03) met à jour le réel de sa ligne de
+// budget (PRD-BUD-02) au passage du worker, une seule fois ; un montant modifié
 // à la main après la réservation n'est jamais écrasé par un rejeu.
 import { randomUUID } from "node:crypto";
 import { afterAll, describe, expect, it } from "vitest";
@@ -33,7 +33,7 @@ async function bookedSlot() {
 
 const actual = async (organizationId: string, eventId: string) => (await listBudgetLines(organizationId, eventId)).lines[0]?.actualAmountCents ?? null;
 
-describe("Worker continu — poste réservé → réel du budget (EVT-03 → BUD-02)", { timeout: 60_000 }, () => {
+describe("Worker continu — poste réservé → réel du budget (PRD-EVT-03 → PRD-BUD-02)", { timeout: 60_000 }, () => {
   it("au passage du worker, le réel de la ligne prend le montant de la réservation, une seule fois", async () => {
     const booked = await bookedSlot();
     await updateEventVendorSlot({ organizationId: booked.organizationId, vendorSlotId: booked.slotId, changedByUserId: booked.userId, status: "booked", vendorName: "Traiteur Dupont", amountCents: 480000 });

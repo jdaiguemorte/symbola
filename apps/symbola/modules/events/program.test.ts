@@ -12,7 +12,7 @@ function line(id: string, startTime: string, endTime: string | null, participant
   };
 }
 
-describe("EVT-05 — Heures du programme", () => {
+describe("PRD-EVT-05 — Heures du programme", () => {
   it("ramène l'heure de la base (« HH:MM:SS ») à « HH:MM » et refuse une heure invalide", () => {
     expect(normalizeTime("09:05:00")).toBe("09:05");
     expect(normalizeTime("23:59")).toBe("23:59");
@@ -26,7 +26,7 @@ describe("EVT-05 — Heures du programme", () => {
   });
 });
 
-describe("EVT-05 — Chevauchements d'un même intervenant", () => {
+describe("PRD-EVT-05 — Chevauchements d'un même intervenant", () => {
   it("étant donné deux lignes qui se chevauchent pour un même intervenant, alors l'app le signale", () => {
     const overlaps = findProgramOverlaps([
       line("ceremony", "15:00", "16:00", ["Photographe", "Officiant"]),
@@ -64,7 +64,7 @@ describe("EVT-05 — Chevauchements d'un même intervenant", () => {
   });
 });
 
-describe("EVT-05 — Variantes du programme exporté", () => {
+describe("PRD-EVT-05 — Variantes du programme exporté", () => {
   it("la variante « mariés » retire les notes internes, la variante « prestataires » les garde", () => {
     const items = [{ id: "a", internalNote: "Prévoir les alliances" }];
     expect(programForVariant(items, "couple")).toEqual([{ id: "a", internalNote: null }]);

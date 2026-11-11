@@ -2,11 +2,11 @@
 
 **Statut : validé par Julien le 08/11/2026** (décisions A à F et maquettes). Seule réserve,
 sur D : une organisation doit pouvoir renommer « Beauté et tenues » ou la scinder en deux
-familles (par exemple « Beauté » et « Tenues ») ; voir PRE-15.
+familles (par exemple « Beauté » et « Tenues ») ; voir L16-PRE-15.
 
-**Avancement (08/11/2026)** : SEC-01 et SEC-03 fusionnés (PR n° 75, ADR 0037 et 0038) ; HUB-19
-fusionné (PR n° 76, ADR 0039, écarts notés dans l'ADR) ; PRE-14 et PRE-15 fusionnés (PR n° 77,
-ADR 0040) ; IMP-11 et IMP-12 fusionnés (PR n° 78, ADR 0041) ; HUB-20 et HUB-21 fusionnés (PR n° 79, ADR 0042) ; ARC-01 fusionné (PR n° 80, ADR 0043) ; SEC-02 fusionné (PR n° 81, ADR 0044, migration 0078) ; captures du centre d'aide régénérées (PR n° 82) ; montants du budget (PR n° 83) ; types d'événement, vocabulaire selon l'événement, catalogue de prestataires commun et suppression de `hello.greetings` sur la branche `lot-16j-types-evenement` (ADR 0045, migrations 0079 et 0080, décisions de Julien du 08/11). Reste la recette de Julien sur le staging. Familles de l'agence événementielle proposées dans
+**Avancement (08/11/2026)** : L16-SEC-01 et L16-SEC-03 fusionnés (PR n° 75, ADR 0037 et 0038) ; L16-HUB-19
+fusionné (PR n° 76, ADR 0039, écarts notés dans l'ADR) ; L16-PRE-14 et L16-PRE-15 fusionnés (PR n° 77,
+ADR 0040) ; IMP-11 et IMP-12 fusionnés (PR n° 78, ADR 0041) ; L16-HUB-20 et L16-HUB-21 fusionnés (PR n° 79, ADR 0042) ; L16-ARC-01 fusionné (PR n° 80, ADR 0043) ; L16-SEC-02 fusionné (PR n° 81, ADR 0044, migration 0078) ; captures du centre d'aide régénérées (PR n° 82) ; montants du budget (PR n° 83) ; types d'événement, vocabulaire selon l'événement, catalogue de prestataires commun et suppression de `hello.greetings` sur la branche `lot-16j-types-evenement` (ADR 0045, migrations 0079 et 0080, décisions de Julien du 08/11). Reste la recette de Julien sur le staging. Familles de l'agence événementielle proposées dans
 `vendor-families.event-agency.json`, à corriger par Julien.
 
 ## Contexte
@@ -50,14 +50,14 @@ Les règles du lot 13 restent valables. S'y ajoutent :
 
 ## Étape 1 — Sécurité de la double authentification (avant la mise en production)
 
-### SEC-01 — Code de double authentification protégé
+### L16-SEC-01 — Code de double authentification protégé
 
 - **Étant donné** une session qui attend la double authentification, **quand** 5 codes faux
   sont saisis, **alors** la double authentification est verrouillée 15 minutes pour ce compte,
   le verrouillage est journalisé sans donnée personnelle et le titulaire reçoit un e-mail (à ce
   stade, son mot de passe est connu d'un tiers : il doit le changer). Pendant le verrouillage,
   même un code juste est refusé, avec le message « verrouillé », comme pour le mot de passe
-  (HUB-01).
+  (PRD-HUB-01).
 - **Quand** un code déjà accepté est saisi à nouveau dans sa période de validité, **alors** il
   est refusé (anti-rejeu).
 - **Quand** la double authentification réussit, **alors** un nouveau jeton de session est émis
@@ -68,7 +68,7 @@ Les règles du lot 13 restent valables. S'y ajoutent :
 - Tests d'intégration : verrouillage avec horloge simulée (veille, fin du verrouillage), rejeu,
   rotation du jeton, lecture d'un secret chiffré.
 
-### SEC-03 — Appareil de confiance (90 jours)
+### L16-SEC-03 — Appareil de confiance (90 jours)
 
 Question de Julien du 08/11/2026 : la double authentification n'est pas une obligation légale
 (choix de l'ADR 0013, maintenu), et il n'est pas utile de la demander à chaque connexion sur un
@@ -88,7 +88,7 @@ appareil connu. Durée retenue : **90 jours** (ADR 0038).
 
 ## Étape 2 — Structure d'écran commune
 
-### HUB-19 — En-tête d'écran et aide au même endroit
+### L16-HUB-19 — En-tête d'écran et aide au même endroit
 
 - **Quand** elle ouvre n'importe quel écran de l'équipe, **alors** le « ? » est dans la barre du
   haut, au même endroit (test e2e : même position sur 10 écrans représentatifs, en ordinateur
@@ -108,7 +108,7 @@ appareil connu. Durée retenue : **90 jours** (ADR 0038).
 
 ## Étape 3 — Familles de types de prestataires
 
-### PRE-14 — Familles et types
+### L16-PRE-14 — Familles et types
 
 - Nouvelle table `vendors.vendor_families` (organisation, libellé, couleur, position), sous
   RLS, avec tests d'isolation ; `vendor_types.family_id` peut être nul (famille « À classer »).
@@ -125,7 +125,7 @@ appareil connu. Durée retenue : **90 jours** (ADR 0038).
 - **Carte** : la couleur du point est celle de la famille, avec un pictogramme par famille dans
   le point (critère 1.4.1).
 
-### PRE-15 — Renommer, fusionner, ranger les types
+### L16-PRE-15 — Renommer, fusionner, ranger les types
 
 - Paramètres › Types de prestataires : tableau aligné (famille, type, nombre de fiches) ;
   détail et champs dans le panneau latéral (motif du lot 13).
@@ -187,7 +187,7 @@ appareil connu. Durée retenue : **90 jours** (ADR 0038).
 
 ## Étape 5 — Écrans restants et vocabulaire
 
-### HUB-20 — Écrans restés à l'ancien motif
+### L16-HUB-20 — Écrans restés à l'ancien motif
 
 - Fiche devis : en-tête avec statut en badge ; actions groupées (Envoyer, Télécharger le PDF,
   Nouvelle version) ; échéancier en tableau.
@@ -201,7 +201,7 @@ appareil connu. Durée retenue : **90 jours** (ADR 0038).
 - Liste des événements : « Essai guidé » quitte le haut de la liste (menu « ⋯ » et centre
   d'aide).
 
-### HUB-21 — Vocabulaire selon le métier
+### L16-HUB-21 — Vocabulaire selon le métier
 
 - Les libellés qui nomment les clients (« mariés », 24 occurrences en FR) dépendent du métier
   de l'organisation : « les mariés » pour un wedding planner, « le client » pour une agence
@@ -209,7 +209,7 @@ appareil connu. Durée retenue : **90 jours** (ADR 0038).
 
 ## Étape 6 — Architecture et limitation de débit
 
-### ARC-01 — Une connexion partagée et une garde d'accès unique
+### L16-ARC-01 — Une connexion partagée et une garde d'accès unique
 
 - `packages/db` expose un pool unique par processus ; les 315 appels à
   `createAppConnection()` / `sql.end()` sont remplacés. Les tests d'isolation RLS restent
@@ -218,7 +218,7 @@ appareil connu. Durée retenue : **90 jours** (ADR 0038).
   85 pages. Un test vérifie que chaque `page.tsx` hors des écrans publics appelle une garde.
 - Le module témoin `hello` est retiré (code, tests, entrée de module, appel sur l'accueil).
 
-### SEC-02 — Limitation de débit
+### L16-SEC-02 — Limitation de débit
 
 - Nouvel ADR : table PostgreSQL à fenêtre glissante (sans dépendance) ou module de limitation
   de Caddy.

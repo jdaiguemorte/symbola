@@ -1,0 +1,368 @@
+﻿id,domaine,section,priorite,exigence,statut,preuve,ecart,effort,risque,lot,commentaire
+UX-01,UX,5,P0,La prochaine action s'affiche en premier,Partiel,apps/symbola/app/page.tsx ; apps/symbola/app/events/[id]/next-step-banner.tsx,"L'accueil s'ouvre sur l'agenda ; la prochaine action, son échéance et son responsable ne sont pas en tête",M,Faible,32,
+UX-02,UX,5,P0,Zéro ressaisie,Partiel,"packages/db/src/schema/quotes.ts (quote_signers : nom, e-mail et adresse saisis sur le devis) ; packages/db/src/schema/events.ts (event_clients par évènement)",Pas de contact unique : un client se ressaisit d'un évènement à l'autre et sur le devis ; aucun scénario mesuré,L,Moyen,36,
+UX-03,UX,5,P0,Trois gestes pour les dix actions fréquentes,Partiel,apps/symbola/app/app-sidebar.tsx ; apps/symbola/app/search-box.tsx,"Pas de création rapide ; plusieurs des dix actions n'existent pas (écrire au client, partager un document) ; gestes non mesurés",M,Faible,32,
+UX-04,UX,5,P0,De la valeur en dix minutes,Partiel,"apps/symbola/app/demarrage (assistant pré-rempli, ONB-03) ; apps/symbola/e2e/lot-12-demarrage.spec.ts",Pas d'inscription libre (l'Admin crée l'organisation) ; durée jamais mesurée,M,Moyen,33,
+UX-05,UX,5,P0,Téléphone d'abord sur le terrain,Partiel,.github/workflows/ci.yml (job e2e « ordinateur et 375 px »),"Testé à 375 px et non à 360 ; cibles de 44 px non contrôlées ; espace prestataire, RSVP et Jour J absents",M,Faible,30,
+UX-06,UX,5,P0,"Statut, suite et blocage visibles",Partiel,"apps/symbola/app/events/[id]/next-step-banner.tsx (frise et prochaine étape, lot 13)",Statut et étape suivante sur l'évènement seulement ; « qui bloque » n'apparaît nulle part,M,Faible,32,
+UX-07,UX,5,P0,"Annuler plutôt que confirmer, corbeille de 30 jours",Partiel,apps/symbola/app/taches/task-table.tsx (tâche décochable),Pas d'annulation de dix secondes généralisée ni de corbeille de 30 jours,M,Moyen,39,
+UX-08,UX,5,P0,L'écran vide enseigne,Partiel,"docs/audits/2026-11-08-audit-complet.md (R3 : pas de composant d'écran vide commun) ; aide par écran (lot 20, AIDE-14)","Écrans vides sans action principale, exemple et aide de trente secondes systématiques",M,Faible,39,
+UX-09,UX,5,P0,"Enregistrement automatique, rien ne se perd",Partiel,packages/db/src/schema/quotes.ts (devis en brouillon conservé côté serveur),"Pas d'enregistrement automatique, de brouillon restauré ni de signalement de conflit d'édition",L,Moyen,39,
+UX-10,UX,5,P0,"Les mots du métier, erreurs explicites",Partiel,apps/symbola/lib/vocabulary.ts ; docs/adr/0045-types-d-evenement-et-vocabulaire.md ; apps/symbola/e2e/l16-hub-21-vocabulaire.spec.ts,"Vocabulaire selon le type d'évènement en place ; messages d'erreur non revus selon la règle « ce qui s'est passé, comment en sortir »",S,Faible,39,
+UX-11,UX,5,P0,Tiers sans compte ni mot de passe,Partiel,docs/adr/0020-acces-maries-par-evenement.md ; apps/symbola/app/espace/invitation/[token],Les mariés agissent par un compte avec mot de passe ; prestataires et invités n'ont aucun accès,L,Élevé,26,Décision Q4 a : liens personnels pour tous les tiers (ADR 0020 à remplacer) ; ADR 0053 (lot 25)
+UX-12,UX,5,P0,"Simple d'abord, complet ensuite",Partiel,"apps/symbola/app/app-sidebar.tsx ; apps/symbola/modules/hub/module-toggle.integration.test.ts ; « Plus d'options » (lot 18, HUB-24)",Modules désactivés masqués ; repli des options avancées non systématique,S,Faible,32,
+UX-13,UX,5,P0,Un seul patron d'interface,Partiel,docs/adr/0033-refonte-ux-panneaux-et-aide-par-reperes.md,"Liste puis fiche ; panneau latéral d'édition pas généralisé, raccourcis non unifiés",M,Faible,39,
+UX-14,UX,5,P0,Accessible WCAG 2.2 AA,Partiel,.github/workflows/ci.yml (axe-core dans les parcours e2e) ; docs/lots/lot-15-traitements-longs.md (A11Y-01),Contrôle automatisé visant WCAG 2.1 ; pas de revue consignée au clavier et au lecteur d'écran,M,Moyen,40,Décision Q11 : WCAG 2.2 AA
+UX-15,UX,5,P0,Réaction immédiate,Absent,aucun loading.tsx ni useOptimistic/useFormStatus dans apps/symbola/app,"Ni mise à jour optimiste, ni squelettes d'écran, ni état d'attente",M,Faible,39,
+UX-16,UX,5,P1,Notifications utiles et réglables,Absent,packages/mail (e-mails de service seulement),"Pas de notifications, de récapitulatif quotidien ni de plages de silence",L,Faible,53,
+UX-17,UX,5,P0,Voir avant d'envoyer,Partiel,apps/symbola/app/devis/[quoteId]/pdf/route.ts (aperçu PDF) ; apps/symbola/app/devis/parametres/documents/exemple/route.ts,"Pas d'aperçu « vu par le client » de l'espace ; pas d'écran nombre, liste et envoi test avant un envoi",M,Moyen,27,
+UX-18,UX,5,P1,Parcours mesurés sans donnée personnelle,Partiel,"apps/symbola/lib/usage.ts ; packages/db/src/schema/core.ts (usage_counters, ADR 0029)","Compteurs d'usage agrégés ; pas de taux d'achèvement, de durée ni d'abandon par parcours",M,Faible,59,
+PAR-01,PAR,6,P0,Démarrer : de l'inscription au premier évènement prêt,Partiel,apps/symbola/app/demarrage ; apps/symbola/e2e/onb-01-02-onboarding.spec.ts ; apps/symbola/e2e/lot-12-demarrage.spec.ts,Étape 1 (inscription par e-mail) absente ; écran « espace prêt » et liste de cinq actions de prise en main à confirmer,M,Moyen,33,
+PAR-02,PAR,6,P0,Convertir : de la demande au contrat signé et à l'acompte,Partiel,apps/symbola/e2e/dev-01-devis.spec.ts ; dev-02-signature.spec.ts ; dev-03-acomptes.spec.ts ; dev-04-factures.spec.ts,"Ni modèle de réponse, ni options au choix du client, ni page de proposition, ni relances J+3/J+7 ; la facture d'acompte s'émet à la main",L,Élevé,31 ; 32 ; 43,
+PAR-03,PAR,6,P0,Piloter : le quotidien d'un évènement,Partiel,"apps/symbola/app/page.tsx (agenda, tâches, « À traiter »)","Pas de liste « Aujourd'hui » triée par urgence, ni de cockpit avec santé et quatorze jours, ni de récapitulatif du soir",M,Moyen,32,
+PAR-04,PAR,6,P0,Maîtriser l'argent : budget du client et facturation,Partiel,apps/symbola/modules/budget ; apps/symbola/e2e/prd-bud-02-previsionnel.spec.ts ; prd-bud-04-budget-maries.spec.ts,Deux montants au lieu de cinq ; pas de validation par le client ; honoraires non distingués ; relances non automatiques,L,Moyen,28 ; 27,
+PAR-05,PAR,6,P1,Coordonner les prestataires,Partiel,apps/symbola/modules/events/vendor-candidates.ts (lot 11) ; apps/symbola/app/espace/[id]/client-vendor-options.tsx,"Consultation et options montrées aux clients ; ni lien prestataire, ni brief envoyé, ni feuille de route",L,Moyen,47,
+PAR-06,PAR,6,P0,Embarquer le client,Partiel,apps/symbola/app/espace ; docs/adr/0020-acces-maries-par-evenement.md,"Espace client avec compte ; pas de « trois prochaines actions », de décisions horodatées ni de fil par sujet",L,Élevé,26 ; 27,
+PAR-07,PAR,6,P1,Gérer les invités,Absent,"aucun module invités (recherche « rsvp », « guest » : modèles de rétroplanning seulement)",Module Invités absent,L,Moyen,49 ; 50,
+PAR-08,PAR,6,P0,Tenir le jour J,Partiel,apps/symbola/app/events/[id]/programme/pdf/route.ts,Programme imprimable seulement ; ni mode Jour J ni fonctionnement hors ligne,L,Élevé,29 ; 30,Décision Q6 a
+PAR-09,PAR,6,P1,Clôturer et capitaliser,Partiel,packages/db/src/schema/events.ts (statut « Réalisé ») ; apps/symbola/app/rgpd/purge,"Ni liste de clôture, ni bilan, ni passage en modèle",M,Faible,58,
+PAR-10,PAR,6,P1,Diriger l'agence,Absent,"packages/db/src/schema/hub.ts (rôles owner, member, client, admin)",Pas de pilotage d'agence ni d'affectation par évènement,L,Moyen,56,
+PAR-11,PAR,6,P2,Le couple autonome,Absent,—,Offre Couple absente,L,Faible,V2,Offre en suspens (§ 3)
+HUB-01,HUB,7,P0,"Inscription par e-mail, lien magique, mot de passe ou clé d'accès",Partiel,packages/auth/src/service.ts ; apps/symbola/app/invitations/[token] (compte créé sur invitation de l'Admin),Pas d'inscription libre avec la seule adresse e-mail ; ni lien magique ni clé d'accès,M,Moyen,33,"Décisions Q3 b et Q5 a : inscription libre dès le pilote, par le fournisseur d'identité"
+HUB-02,HUB,7,P0,"Organisation créée à l'inscription, multi-organisation",Partiel,"packages/db/src/schema/hub.ts (users.organization_id, e-mail unique) ; packages/db/src/*-isolation.integration.test.ts","Isolation prouvée ; un utilisateur n'appartient qu'à une organisation, sans bascule ; organisation créée par l'Admin",L,Moyen,33,Décision Q5 a
+HUB-03,HUB,7,P0,Rôles et droits par app et par évènement,Partiel,packages/db/src/schema/hub.ts (roleEnum) ; apps/symbola/lib/guards.ts,Propriétaire en place ; Planner (member) sans parcours d'ajout ; droits par app et par évènement absents,M,Moyen,33,Décision Q30 : renommer le rôle d'exploitation pour le distinguer d'« Administrateur »
+HUB-04,HUB,7,P1,"Invitation, révocation, transfert de propriété",Absent,packages/db/src/schema/hub.ts (invitations : titulaire seulement),"Pas d'invitation de membre, de révocation ni de transfert de propriété",M,Moyen,52,
+HUB-05,HUB,7,P1,Sessions et appareils,Partiel,apps/symbola/app/espace/securite ; apps/symbola/app/trusted-devices-form.tsx,Appareils de confiance oubliables ; pas de liste des sessions ni de déconnexion à distance,S,Faible,52,
+HUB-06,HUB,7,P0,Lanceur limité aux apps souscrites,Conforme,packages/db/src/schema/hub.ts (organization_modules) ; apps/symbola/modules/hub/module-toggle.integration.test.ts ; apps/symbola/app/app-sidebar.tsx,,,,,Activation par l'Admin tant que l'abonnement (HUB-27) n'existe pas
+HUB-07,HUB,7,P0,Création rapide depuis tout écran,Absent,aucune création rapide dans apps/symbola/app,Pas de création rapide depuis tout écran,M,Faible,32,
+HUB-08,HUB,7,P0,Accueil « Aujourd'hui »,Partiel,apps/symbola/app/page.tsx ; apps/symbola/app/accueil/follow-up-block.tsx ; apps/symbola/app/taches/upcoming-tasks-block.tsx ; apps/symbola/app/devis/encaissements/dashboard-block.tsx,"Tâches, encaissements, relances et alertes RGPD présents ; pas de tri unique par urgence, ni de décisions client ni de rendez-vous",M,Faible,32,
+HUB-09,HUB,7,P0,Questionnaire d'accueil qui configure l'espace,Partiel,apps/symbola/app/demarrage ; packages/starter-templates/src (*.event-agency.json) ; packages/db/src/schema/hub.ts (organization_profiles),Métier et régime de TVA choisissent les modèles ; volume annuel et outils remplacés non demandés,S,Faible,33,
+HUB-10,HUB,7,P0,Données de démonstration étiquetées et supprimables,Partiel,docs/adr/0008-donnees-demo-isolees.md ; apps/symbola/lib/demo-purge.ts ; apps/symbola/modules/quotes/signature/fake.ts,"Données d'essai marquées, exclues et purgées ; pas d'exemple proposé à l'inscription ni de suppression proposée au premier évènement réel ; blocage des envois réels hors signature non prouvé",S,Moyen,33,
+HUB-11,HUB,7,P1,Aide guidée par app,Conforme,apps/symbola/app/aide ; apps/symbola/app/tutoriels ; apps/symbola/e2e/lot-10-aide.spec.ts ; apps/symbola/e2e/lot-13-tutoriels.spec.ts,,,,,
+HUB-12,HUB,7,P1,Recherche globale et palette de commandes,Partiel,apps/symbola/app/search-box.tsx (Cmd ou Ctrl + K) ; apps/symbola/modules/hub/search.ts ; apps/symbola/e2e/lot-10-recherche.spec.ts,Recherche globale en place ; pas de palette d'actions ; délai de 500 ms non mesuré,S,Faible,39,
+HUB-13,HUB,7,P0,"Export complet en libre-service, réimportable",Absent,apps/symbola/app/prestataires/export/route.ts (carnet seul) ; apps/symbola/app/rgpd (export par personne),Pas d'export complet de l'organisation ni de test de réimport dans un espace vide,L,Élevé,35,
+HUB-14,HUB,7,P0,Import CSV et XLSX avec aperçu et annulation,Partiel,apps/symbola/app/import ; packages/import-engine ; apps/symbola/e2e/imp-05-confirmation.spec.ts ; imp-07-prestataires.spec.ts,"Correspondance, aperçu, rapprochements et annulation en bloc en place ; pas d'import de « contacts » faute d'entité contact",M,Moyen,36,
+HUB-15,HUB,7,P1,"Notifications application, e-mail, push",Absent,packages/mail (e-mails de service seulement),"Ni notifications dans l'application, ni push, ni réglages par type, ni récapitulatif",L,Faible,53,
+HUB-16,HUB,7,P1,Journal d'activité de l'organisation,Absent,packages/db/src/schema/hub.ts (audit_log : actions de l'Admin seulement),Pas de journal d'activité de l'organisation,M,Moyen,23,
+HUB-17,HUB,7,P1,Corbeille de 30 jours,Absent,aucune colonne de suppression logique dans packages/db/src/schema,Pas de corbeille,M,Moyen,39,
+HUB-18,HUB,7,P0,Identité de l'organisation sur documents et portails,Partiel,"packages/db/src/schema/hub.ts (organization_profiles.logo_key) ; packages/db/src/schema/quotes.ts (couleur, police, ADR 0046)",Logo et coordonnées sur devis et factures ; e-mails et espace client sans l'identité de l'organisation,S,Faible,38,
+HUB-19,HUB,7,P0,"Français au lancement, textes externalisés",Conforme,packages/i18n/src/messages/fr.json et en.json ; .github/workflows/ci.yml (check:messages),,,,,Français et anglais livrés
+HUB-20,HUB,7,P0,"Référentiels modifiables, aucun libellé métier dans le code",Partiel,"packages/db/src/schema/events.ts (prospect_sources, loss_reasons, event_types) ; packages/db/src/schema/vendors.ts ; packages/starter-templates/src",Listes en base ; statuts fixes dans le code ; régimes alimentaires et étapes de pipeline absents ; aucun test ne cherche les libellés métier dans les sources,S,Faible,40,
+HUB-21,HUB,7,P0,"Modèles par type d'évènement, versionnés",Partiel,"packages/db/src/schema/events.ts (task_templates, program_templates) ; packages/db/src/schema/budget.ts (allocation_models)","Modèles de rétroplanning, déroulé et budget ; ni devis, contrat, e-mails ou questionnaires ; ni duplication ni versions",M,Faible,31 ; 38,
+HUB-22,HUB,7,P0,Catalogue de prestations,Conforme,packages/db/src/schema/quotes.ts (catalog_items) ; apps/symbola/e2e/dev-01-devis.spec.ts ; import du catalogue (PRD § 7),,,,,
+HUB-23,HUB,7,P0,Paramètres fiscaux et légaux datés,Partiel,packages/db/src/schema/hub.ts (vat_regime_changes) ; packages/db/src/schema/quotes.ts (instantanés à l'émission),"Régime daté et documents figés ; taux, mentions, numérotation et pénalités non datés",S,Faible,31,
+HUB-24,HUB,7,P1,Vocabulaire réglable par type d'évènement,Partiel,docs/adr/0045-types-d-evenement-et-vocabulaire.md ; apps/symbola/lib/vocabulary.ts,"Deux vocabulaires fixes, pas de terme libre ; e-mails et documents non couverts",S,Faible,53,
+HUB-25,HUB,7,P1,Champs personnalisés,Partiel,packages/db/src/schema/vendors.ts (vendor_type_fields),Champs personnalisés sur les prestataires seulement,M,Faible,48,
+HUB-26,HUB,7,P0,Bibliothèque de départ livrée comme données,Partiel,packages/starter-templates/src/*.json,Bibliothèque livrée en données ; pas de marque « à adapter » ; aucun modèle de contrat,S,Faible,31,
+HUB-27,HUB,7,P1,Abonnement en libre-service,Absent,aucun prestataire de paiement dans le dépôt,Pas d'abonnement en libre-service,L,Faible,54,
+HUB-28,HUB,7,P1,Automatisations prêtes à activer,Partiel,"packages/db/src/schema/core.ts (domain_events : devis signé, évènement confirmé) ; apps/symbola/app/parametres/relances","Automatisation câblée, non activable une à une ; ni rappel J-7 ni relance RSVP",M,Faible,53,
+HUB-29,HUB,7,P0,Calendrier : flux ICS puis synchronisation,Absent,aucun flux ICS dans le dépôt,Pas de flux ICS par utilisateur ni par évènement,S,Faible,38,
+HUB-30,HUB,7,P2,API publique et webhooks,Absent,—,Pas d'API publique,L,Faible,V2,
+CRM-01,CRM,8,P1,Formulaire de contact intégrable,Absent,—,Pas de formulaire de contact public,M,Moyen,44,
+CRM-02,CRM,8,P1,Pipeline en colonnes paramétrable,Absent,"apps/symbola/app/events/[id] (statut en boutons, EVT-12 du lot 12)",Pas de pipeline en colonnes ; étapes fixes,M,Faible,44,
+CRM-03,CRM,8,P0,Fiche contact unique avec historique,Absent,packages/db/src/schema/events.ts (event_clients par évènement) ; packages/db/src/schema/quotes.ts (quote_signers recopiés),Aucune fiche contact unique avec historique,L,Élevé,36,Décision Q17 a : table de contacts dans le hub
+CRM-04,CRM,8,P0,Contrôle de disponibilité de la date,Partiel,apps/symbola/app/agenda/agenda-block.tsx (badge à deux évènements le même week-end),"Pas d'alerte à la saisie de la date, avant l'enregistrement",S,Faible,32,
+CRM-05,CRM,8,P1,Réponse en un clic depuis des modèles,Absent,—,Pas de modèles de réponse,M,Faible,45,
+CRM-06,CRM,8,P1,Relances automatiques arrêtées à la réponse,Partiel,apps/symbola/app/parametres/relances ; apps/symbola/app/accueil/follow-ups.ts,Rappel interne « à relancer » ; aucune relance envoyée,M,Faible,45,
+CRM-07,CRM,8,P1,Détection et fusion des doublons,Partiel,apps/symbola/lib/import/matching.ts (rapprochements à l'import),Pas de détection ni de fusion de doublons hors import,M,Moyen,45,
+CRM-08,CRM,8,P1,Suivi des sources et de la conversion,Partiel,"packages/db/src/schema/events.ts (prospect_sources, source obligatoire)",Pas de taux de conversion par canal,S,Faible,56,
+CRM-09,CRM,8,P1,Questionnaire de découverte,Absent,—,Pas de questionnaire de découverte,M,Faible,45,
+CRM-10,CRM,8,P2,Journalisation des e-mails,Absent,—,Pas de journalisation des e-mails,L,Faible,V2,
+CRM-11,CRM,8,P0,Conversion prospect vers évènement sans ressaisie,Conforme,packages/db/src/schema/events.ts (le prospect est l'évènement au statut « prospect ») ; apps/symbola/e2e/prd-evt-01-02-07.spec.ts,,,,,"Conversion par changement de statut, sans ressaisie"
+RDV-01,RDV,8,P1,Types de rendez-vous,Absent,—,Pas d'app Rendez-vous,M,Faible,46,
+RDV-02,RDV,8,P1,Page publique de réservation sur disponibilités réelles,Absent,—,Pas de page publique de réservation,L,Moyen,46,
+RDV-03,RDV,8,P1,"Confirmation, rappels, report, annulation par lien",Absent,—,—,M,Faible,46,
+RDV-04,RDV,8,P1,Fonctionnement autonome de l'app Rendez-vous,Absent,—,—,S,Faible,46,
+RDV-05,RDV,8,P2,Fuseaux horaires et rendez-vous à plusieurs,Absent,—,—,M,Faible,V2,
+EVT-01,EVT,8,P0,Création d'évènement depuis un modèle,Partiel,apps/symbola/app/events/new ; docs/lots/lot-12-demarrage.md (EVT-13 : rétroplanning seulement pour un évènement confirmé),Création en trois champs ; rétroplanning seulement à la confirmation ; pas de listes de contrôle,S,Faible,34,Décisions Q2 a et Q7 a : le nouveau document remplace EVT-13 du lot 12 ; ADR 0055 (lot 25)
+EVT-02,EVT,8,P0,Cockpit d'évènement,Partiel,"apps/symbola/app/events/[id] (frise et prochaine étape, EVT-19)","Ni compte à rebours, ni santé du planning, du budget et des décisions, ni échéances à quatorze jours",M,Faible,32,
+EVT-03,EVT,8,P0,Fiche d'identité de l'évènement,Partiel,"packages/db/src/schema/events.ts (event_places, event_clients)",Lieux sans horaires ni contact ; invités estimés et confirmés absents,S,Faible,34,
+EVT-04,EVT,8,P1,Évènements multi-jours et temps forts,Absent,packages/db/src/schema/events.ts (program_items rattachés à l'évènement),Pas de temps forts ni d'évènement sur plusieurs jours,L,Moyen,51,
+EVT-05,EVT,8,P0,Statuts et report avec recalcul,Partiel,"packages/db/src/schema/events.ts (eventStatusEnum : prospect, quote_sent, confirmed, done, lost) ; apps/symbola/e2e/prd-evt-04.spec.ts (recalcul proposé)","Statuts du PRD ; ni Option, En préparation, Jour J, Reporté, Annulé ; pas de liste des échéances tombées dans le passé",M,Moyen,34,Décision Q7 a : statuts du nouveau document ; ADR 0055 (lot 25)
+EVT-06,EVT,8,P1,Équipe et droits par évènement,Absent,packages/db/src/schema/hub.ts (rôles sans portée par évènement),Pas d'équipe par évènement ni de renfort du jour J,M,Moyen,52,
+EVT-07,EVT,8,P0,Vue du portefeuille,Partiel,"apps/symbola/app/events (liste, EVT-18) ; apps/symbola/app/agenda/agenda-block.tsx (calendrier sur douze mois)",Liste et calendrier ; charge par mois absente,S,Faible,32,
+EVT-08,EVT,8,P1,Duplication et enregistrement comme modèle,Absent,—,Ni duplication ni enregistrement en modèle,M,Faible,58,
+EVT-09,EVT,8,P1,Journal des décisions,Partiel,"packages/db/src/schema/events.ts (event_status_history, event_activities) ; packages/db/src/schema/budget.ts (budget_line_history)",Historiques techniques ; pas de journal des décisions du client,M,Moyen,27,
+EVT-10,EVT,8,P1,"Comptes rendus liés, actions en tâches",Absent,—,Pas de comptes rendus de rendez-vous,M,Faible,46,
+EVT-11,EVT,8,P2,Planche d'inspiration,Absent,—,Pas de planche d'inspiration,M,Faible,V2,
+CHR-01,CHR,8,P0,Rétroplanning généré en dates relatives,Partiel,apps/symbola/modules/events/schedule.ts ; packages/db/src/schema/events.ts (tasks_scheduled_for) ; apps/symbola/e2e/prd-evt-04.spec.ts,Recalcul proposé pour les tâches non faites ; la tâche ne garde pas sa date relative (DAT-07),S,Faible,34,
+CHR-02,CHR,8,P0,"Tâches avec responsable, échéance, statut",Partiel,"packages/db/src/schema/events.ts (event_tasks : responsable planner ou clients, échéance, fait)","Ni responsable prestataire, ni pièces jointes, ni commentaires",M,Faible,34,
+CHR-03,CHR,8,P0,"Vues liste et calendrier, puis colonnes et chronologie",Partiel,apps/symbola/app/taches ; apps/symbola/e2e/prd-hub-02-agenda-taches.spec.ts,Vue liste ; pas de vue calendrier des tâches,S,Faible,32,
+CHR-04,CHR,8,P0,Tâches confiées au client,Partiel,apps/symbola/e2e/prd-evt-06.spec.ts (le marié coche ses tâches),Pas de rappel automatique au client ; compte requis,S,Moyen,27,
+CHR-05,CHR,8,P1,"Jalons, alertes de retard, santé du planning",Absent,—,Ni jalons ni indicateur de santé du planning,M,Faible,53,
+CHR-06,CHR,8,P0,Chrono du jour J à la minute,Partiel,"packages/db/src/schema/events.ts (program_items : début, fin, lieu, intervenants, note interne) ; apps/symbola/e2e/prd-evt-05.spec.ts",Durée non calculée ; décalage des séquences suivantes absent,M,Faible,30,
+CHR-07,CHR,8,P0,Diffusion du chrono filtrée par destinataire,Partiel,apps/symbola/app/events/[id]/programme/pdf/route.ts (variantes mariés et prestataires),"Un seul PDF pour tous les prestataires, sans filtre par destinataire, sans lien ni version numérotée",M,Moyen,37,
+CHR-08,CHR,8,P1,Modèles de chrono et import,Partiel,"packages/db/src/schema/events.ts (program_templates, EVT-21 du lot 21)",Modèles en place ; pas d'import depuis un tableur,S,Faible,51,
+CHR-09,CHR,8,P2,Détection des conflits,Partiel,PRD EVT-05 (chevauchement d'un intervenant signalé) ; apps/symbola/modules/vendors/travel.ts,Pas de correction proposée ni de trajet entre deux lieux de l'évènement,M,Faible,V2,
+CHR-10,CHR,8,P1,Tâches hors évènement et récurrentes,Absent,packages/db/src/schema/events.ts (event_tasks.event_id obligatoire),Pas de tâches hors évènement ni récurrentes,M,Faible,53,
+BUD-01,BUD,8,P0,Budget à cinq montants par ligne,Partiel,"packages/db/src/schema/budget.ts (planned_amount_cents, actual_amount_cents) ; apps/symbola/e2e/prd-bud-02-previsionnel.spec.ts","Deux montants (prévu, réel) au lieu de cinq",M,Moyen,28,Décision Q8 a : cinq montants (ADR 0032 à remplacer) ; ADR 0054 (lot 25)
+BUD-02,BUD,8,P0,Enveloppe et alerte de dépassement,Partiel,packages/db/src/schema/events.ts (wanted_budget_cents),Pas d'enveloppe avec seuil d'alerte avant l'engagement,S,Faible,28,
+BUD-03,BUD,8,P0,Échéancier par prestataire,Absent,packages/db/src/schema/quotes.ts (échéancier du planner seulement),Pas d'échéancier par prestataire,M,Moyen,28,
+BUD-04,BUD,8,P0,"Lien ligne, prestataire, documents",Partiel,packages/db/src/schema/budget.ts (budget_line_attachments) ; packages/db/src/schema/events.ts (event_vendor_candidates),Devis joint ; ni contrat ni facture du prestataire,S,Faible,28,
+BUD-05,BUD,8,P1,Comparaison de devis et scénarios,Partiel,apps/symbola/app/espace/[id]/client-vendor-options.tsx,Options montrées ; pas de scénarios comparés côte à côte,M,Faible,47,
+BUD-06,BUD,8,P1,Répartition par payeur,Absent,—,Pas de répartition par payeur,M,Moyen,43,
+BUD-07,BUD,8,P0,Vue client simplifiée et validation des dépenses,Partiel,apps/symbola/app/espace/[id]/client-budget.tsx ; apps/symbola/e2e/prd-bud-04-budget-maries.spec.ts,Vue en lecture seule ; pas de validation horodatée et nominative,S,Moyen,27,
+BUD-08,BUD,8,P1,"Honoraires à part, commissions tracées",Absent,—,Honoraires du planner non distingués ; commissions non tracées,M,Moyen,48,
+BUD-09,BUD,8,P0,Affichage TTC ou HT selon le client,Partiel,packages/db/src/schema/quotes.ts (client_kind),Le budget n'affiche pas TTC ou HT selon le type de client,S,Faible,28,
+BUD-10,BUD,8,P0,Export XLSX et PDF,Absent,—,Pas d'export XLSX ni PDF du budget,S,Faible,28,
+BUD-11,BUD,8,P1,Calendrier des sorties d'argent,Absent,—,Pas de calendrier des sorties d'argent du client,S,Faible,43,
+BUD-12,BUD,8,P2,Plusieurs devises,Absent,packages/db/src/schema/events.ts (currency par défaut EUR),Une seule devise,M,Faible,V2,
+FAC-01,FAC,8,P0,Devis depuis le catalogue et les modèles,Partiel,"packages/db/src/schema/quotes.ts (catalog_items, quote_versions, remises) ; apps/symbola/e2e/dev-01-devis.spec.ts",Ni sections ni options au choix du client,M,Moyen,31,
+FAC-02,FAC,8,P1,Proposition commerciale en page web et PDF,Absent,apps/symbola/app/devis/[quoteId]/pdf/route.ts (PDF seul),Pas de proposition en page web avec options,M,Moyen,43,
+FAC-03,FAC,8,P0,Acceptation en ligne par signature électronique,Conforme,"apps/symbola/modules/quotes/signature/documenso.ts ; packages/db/src/schema/quotes.ts (signed_document_key, audit_certificate_key) ; apps/symbola/e2e/dev-02-signature.spec.ts ; docs/adr/0026-signature-documenso.md",,,,,Mise en service de Documenso à confirmer sur le VPS (docs/runbooks/deploiement.md)
+FAC-04,FAC,8,P0,Contrat généré depuis un modèle à variables,Absent,—,Pas de contrat généré depuis un modèle à variables,L,Élevé,31,
+FAC-05,FAC,8,P0,"Factures d'acompte, intermédiaires et de solde",Partiel,"packages/db/src/schema/quotes.ts (invoiceKindEnum deposit, balance) ; apps/symbola/e2e/dev-03-acomptes.spec.ts ; dev-04-factures.spec.ts","Acompte et solde depuis l'échéancier, acomptes déduits ; émission à la main, pas à la signature",S,Faible,31,
+FAC-06,FAC,8,P0,"Numérotation continue, facture non modifiable, avoir",Conforme,apps/symbola/modules/quotes/invoices.integration.test.ts (« Numérotation continue et sans trou ») ; packages/db/src/invoices-immutability.integration.test.ts,,,,,
+FAC-07,FAC,8,P0,Mentions obligatoires contrôlées avant émission,Partiel,packages/starter-templates/src/invoice-mentions.json ; mention art. 293 B automatique (PRD DEV-01),Pas de contrôle bloquant avant émission qui nomme le champ manquant,S,Moyen,31,
+FAC-08,FAC,8,P1,Paiement en ligne et rapprochement,Absent,—,Pas de paiement en ligne,L,Moyen,43,Prestataire de paiement choisi après un benchmark (Q21)
+FAC-09,FAC,8,P1,Relances d'impayés et pénalités,Partiel,PRD DEV-03 (échéance dépassée signalée à l'accueil),Pas de relance d'impayé envoyée ni de pénalités paramétrées,M,Faible,43,
+FAC-10,FAC,8,P1,Factur-X et connecteur de plateforme agréée,Absent,apps/symbola/modules/quotes/service.ts:294-298 (« Factur-X … pas encore disponible ») ; apps/symbola/app/devis/e-reporting,Ni Factur-X ni connecteur de plateforme agréée ; échéance du 1er septembre 2027,L,Élevé,41 ; 42,Décision Q19 : pas de client professionnel pendant le pilote ; plateforme agréée gardée en feuille de route (Q20)
+FAC-11,FAC,8,P1,Exports comptables et accès comptable,Partiel,apps/symbola/app/devis/e-reporting/export/route.ts,Pas de journal des ventes et encaissements ni d'accès comptable,M,Moyen,58,
+FAC-12,FAC,8,P0,Suivi des encaissements et du chiffre d'affaires,Partiel,apps/symbola/app/devis/encaissements,"Encaissements à venir par mois ; pas des trois chiffres signé, facturé, encaissé",S,Faible,32,
+FAC-13,FAC,8,P0,"Avoirs, annulation, report",Partiel,packages/db/src/schema/quotes.ts (credit_notes) ; apps/symbola/e2e/dev-04-factures.spec.ts,Avoirs en place ; annulation et report d'évènement non gérés,S,Faible,34,
+FAC-14,FAC,8,P0,Inaltérabilité par empreintes chaînées,Partiel,packages/db/src/schema/quotes.ts (déclencheur refusant UPDATE et DELETE) ; packages/db/src/invoices-immutability.integration.test.ts,Pas d'empreinte chaînée ; encaissements modifiables (payment_schedule_items.paid_on) ; journal d'audit modifiable,M,Élevé,23,
+FAC-15,FAC,8,P1,"Validité, versions et relance des devis",Partiel,"packages/db/src/schema/quotes.ts (validity_days, quote_versions figées à l'envoi)",Pas de relance avant expiration,S,Faible,45,
+FAC-16,FAC,8,P2,Frais refacturables et débours,Absent,—,Pas d'app Temps et frais,M,Faible,V2,
+FAC-17,FAC,8,P2,Plusieurs entités ou marques,Absent,—,Une seule entité par organisation,L,Faible,V2,
+PRE-01,PRE,8,P0,Annuaire privé de prestataires,Partiel,apps/symbola/modules/vendors ; apps/symbola/app/prestataires ; apps/symbola/e2e/imp-07-prestataires.spec.ts,"Fiche, type, zone, notes, documents et import en place ; pas d'évaluation",S,Faible,28,
+PRE-02,PRE,8,P0,Rattachement à un évènement avec statut,Partiel,"packages/db/src/schema/events.ts (vendor_slot_status, event_vendor_candidates)",Statuts différents ; ni « Contrat signé » ni « Soldé » ; « Réservé » alimente le réel sans engager la ligne,S,Moyen,28,Décision Q9 : statuts alignés sur le nouveau document
+PRE-03,PRE,8,P1,Demande de devis groupée et comparatif,Partiel,"packages/db/src/schema/events.ts (event_vendor_candidates, lot 11)",Plusieurs consultés par poste ; pas d'envoi de brief groupé ni de réponses des prestataires,M,Moyen,47,
+PRE-04,PRE,8,P1,Espace prestataire par lien personnel,Absent,—,Pas d'espace prestataire,L,Moyen,47,
+PRE-05,PRE,8,P1,Pièces à échéance et alertes,Absent,"packages/db/src/schema/vendors.ts (vendor_files : brochure, RIB)",Pas de pièces à échéance,S,Faible,48,
+PRE-06,PRE,8,P1,Fiche lieu,Partiel,packages/db/src/schema/vendors.ts (vendor_type_fields) ; packages/db/src/schema/events.ts (event_places),Contraintes du lieu non reliées au chrono,M,Faible,48,
+PRE-07,PRE,8,P1,Commissions et apports d'affaires tracés,Absent,—,Commissions non tracées,S,Moyen,48,
+PRE-08,PRE,8,P1,Évaluation après l'évènement,Partiel,docs/lots/lot-11-prestataires.md (PRE-09 : historique avec la planner),Pas d'évaluation après l'évènement,S,Faible,58,
+PRE-09,PRE,8,P1,Sélection partagée au client,Partiel,apps/symbola/app/espace/[id]/client-vendor-options.tsx,Sélection montrée en lecture seule ; le client ne peut ni choisir ni donner son avis,S,Faible,47,
+PRE-10,PRE,8,P1,Contrôle d'un changement d'IBAN,Absent,packages/db/src/schema/vendors.ts (vendor_files kind « rib ») ; docs/lots/lot-12-demarrage.md (EVT-16 : RIB partagé aux clients),Aucun contrôle de changement d'IBAN,S,Élevé,48,
+PRE-11,PRE,8,P2,Carte interactive filtrable,Partiel,"apps/symbola/app/prestataires (carte MapLibre, filtres, lot 11) ; docs/adr/0031-prestataires-carnet-et-carte.md","Filtres par type, zone et champs ; capacité et budget à vérifier",S,Faible,V2,
+INV-01,INV,8,P1,Liste d'invités par foyers et personnes,Absent,—,Module Invités absent,M,Moyen,49,
+INV-02,INV,8,P1,Import et saisie par le client,Absent,—,—,M,Moyen,49,
+INV-03,INV,8,P1,RSVP en ligne par lien ou QR code,Absent,—,Pas de RSVP,M,Moyen,49,
+INV-04,INV,8,P1,Suivi des réponses et relances,Absent,—,—,S,Faible,49,
+INV-05,INV,8,P1,Plan de table par glisser-déposer,Absent,—,Pas de plan de table,L,Faible,50,
+INV-06,INV,8,P1,Synthèse pour le traiteur,Absent,—,Pas de synthèse traiteur,S,Faible,50,
+INV-07,INV,8,P1,"Régimes en liste fermée avec accord, purge programmée",Absent,—,—,M,Élevé,49,
+INV-08,INV,8,P2,Page de l'évènement pour les invités,Absent,—,—,M,Faible,V2,
+INV-09,INV,8,P2,Hébergements et navettes,Absent,—,—,M,Faible,V2,
+INV-10,INV,8,P2,Accueil par QR code et émargement,Absent,—,—,L,Faible,V2,
+INV-11,INV,8,P2,Aide au placement,Absent,—,—,L,Faible,V2,
+POR-01,POR,8,P0,"Accès par lien personnel, plusieurs interlocuteurs",Partiel,docs/adr/0020-acces-maries-par-evenement.md ; packages/db/src/schema/events.ts (event_client_accesses),"Compte par personne au lieu d'un lien ; pas de droits distincts (parent payeur, commanditaire)",L,Élevé,26,Décision Q4 a ; ADR 0053 (lot 25)
+POR-02,POR,8,P0,Accueil du portail : trois prochaines actions,Partiel,apps/symbola/app/espace/[id]/page.tsx,"Ni compte à rebours, ni avancement, ni « trois prochaines actions » ; testé à 375 px, pas à 360",M,Moyen,27,
+POR-03,POR,8,P0,Décisions et validations horodatées,Partiel,apps/symbola/app/espace/[id]/client-quotes.tsx (devis à signer),"Signature seulement ; pas de choix d'options, de validation de dépense ni d'approbation du chrono, horodatés des deux côtés",M,Moyen,27,
+POR-04,POR,8,P0,"Documents, signature, paiement des factures",Partiel,apps/symbola/app/espace/[id]/client-quotes.tsx ; apps/symbola/app/espace/[id]/programme,Ni espace documents partagés ni factures du planner,M,Moyen,27 ; 37,
+POR-05,POR,8,P0,Budget simplifié et échéances,Partiel,apps/symbola/app/espace/[id]/client-budget.tsx,"Pas des trois chiffres prévu, engagé, reste à payer, ni des échéances",S,Faible,27,
+POR-06,POR,8,P1,Messagerie par sujet,Absent,—,Pas de messagerie,L,Moyen,55,
+POR-07,POR,8,P1,Questionnaires,Absent,—,Pas de questionnaires,M,Faible,45,
+POR-08,POR,8,P1,Portail aux couleurs du planner,Partiel,docs/lots/lot-17-documents.md (DEV-08 : logo de l'organisation),Pas de couleurs du planner sur le portail,S,Faible,55,
+POR-09,POR,8,P0,Aperçu « vu par le client »,Absent,—,Pas d'aperçu « vu par le client »,M,Moyen,27,
+POR-10,POR,8,P0,Rien n'est partagé par défaut,Partiel,docs/lots/lot-11-prestataires.md (EVT-11 : options et notes montrées au choix de la planner),Partage objet par objet pour les options ; pas de règle générale ni de pastille « Partagé »,M,Moyen,26,
+POR-11,POR,8,P1,Portail installable et notifications,Absent,apps/symbola/public (ni manifeste ni service worker),Portail non installable,S,Faible,55,
+DOC-01,DOC,8,P0,Espace documents par évènement,Absent,packages/db/src/schema/budget.ts et vendors.ts (fichiers rattachés aux lignes et aux fiches),Pas d'espace documents par évènement,M,Moyen,37,
+DOC-02,DOC,8,P0,Génération depuis des modèles à variables,Absent,—,"Pas de génération de contrat, mandat, brief ou feuille de route",L,Moyen,31,
+DOC-03,DOC,8,P0,Signature électronique intégrée (Documenso),Partiel,"apps/symbola/modules/quotes/signature (Documenso, plusieurs signataires, preuve archivée)",Signature des devis seulement ; pas de contrat généré à signer,S,Moyen,31,
+DOC-04,DOC,8,P1,Partage par lien à durée limitée,Divergent,docs/adr/0027-telechargements-servis-par-l-app.md,Fichiers servis après contrôle des droits ; pas de lien de partage à durée limitée pour un tiers,M,Moyen,37,
+DOC-05,DOC,8,P0,Contrôle des fichiers déposés,Conforme,packages/files/src/magic-bytes.ts ; packages/files/src/clamav-client.ts ; packages/files/src/eicar.ts ; packages/files/src/clamav-client.integration.test.ts,,,,,
+DOC-06,DOC,8,P1,Quota de stockage visible,Absent,—,Pas de quota de stockage,S,Faible,54,
+DOC-07,DOC,8,P0,"Documents non émis stockés comme données, PDF reconstruit à la demande",Partiel,apps/symbola/app/devis/[quoteId]/pdf/route.ts (PDF rendu à la demande),Égalité entre aperçu et PDF non testée,S,Faible,37,
+DOC-08,DOC,8,P0,"Originaux légaux conservés tels qu'émis, jamais reconstruits",Partiel,apps/symbola/app/devis/factures/[invoiceId]/pdf/route.ts ; packages/db/src/schema/quotes.ts (signed_document_key),"Documents signés conservés ; factures émises reconstruites depuis l'instantané, sans fichier ni empreinte d'émission",M,Élevé,23,
+DOC-09,DOC,8,P1,Optimisation des fichiers déposés à l'arrivée,Absent,—,Pas d'optimisation des photos à l'arrivée,M,Faible,59,
+DOC-10,DOC,8,P1,Dédoublonnage des fichiers par empreinte,Absent,—,Pas de dédoublonnage par empreinte,S,Faible,59,
+DOC-11,DOC,8,P2,Stockage froid des évènements clôturés,Absent,—,—,M,Faible,V2,
+DOC-12,DOC,8,P0,Compteur de stockage par organisation et par nature,Absent,packages/db/src/schema/core.ts (usage_counters sans volume de fichiers),Pas de compteur de stockage par organisation et par nature,S,Faible,37,
+MSG-01,MSG,8,P0,"E-mails de service depuis des modèles, aperçu, envoi test",Partiel,packages/mail,"E-mails de service sans modèles paramétrables, sans couleurs de l'organisation, sans aperçu ni envoi test",M,Faible,38,Service d'e-mail à choisir : il doit gérer plusieurs domaines d'envoi (Q18)
+MSG-02,MSG,8,P0,Garde-fou d'envoi groupé,Partiel,apps/symbola/app/devis/[quoteId] (signataires listés avant l'envoi),"Pas d'écran nombre, liste et confirmation explicite ; pas encore d'envoi groupé",S,Moyen,38,
+MSG-03,MSG,8,P1,Fils de discussion internes et partagés distincts,Absent,—,Pas de fil de discussion,L,Moyen,55,
+MSG-04,MSG,8,P1,Envoi depuis le domaine du planner,Absent,PRD § 10 (envoi depuis le domaine de Symbola),Pas d'envoi depuis le domaine du planner,M,Faible,55,"Décision Q18 : domaine du planner, sinon envoi par défaut depuis le domaine de Symbola"
+MSG-05,MSG,8,P1,Journal des envois,Absent,—,Pas de journal des envois,M,Faible,55,
+MSG-06,MSG,8,P2,SMS pour les rappels critiques,Absent,—,Pas de SMS,M,Faible,V2,
+JRJ-01,JRJ,8,P0,Mode Jour J sur téléphone,Absent,—,Pas de mode Jour J,M,Moyen,30,
+JRJ-02,JRJ,8,P0,Fonctionnement hors ligne et synchronisation,Absent,apps/symbola/public (ni manifeste ni service worker),Aucun fonctionnement hors ligne,L,Élevé,29,Décision Q6 a : hors-ligne en lecture au MVP
+JRJ-03,JRJ,8,P0,Annuaire du jour en un toucher,Absent,—,Pas d'annuaire du jour,M,Faible,30,
+JRJ-04,JRJ,8,P0,Documents clés hors ligne,Absent,—,Pas de documents embarqués hors ligne,M,Moyen,29,
+JRJ-05,JRJ,8,P1,Pointage et décalage en cascade,Absent,—,—,M,Moyen,51,
+JRJ-06,JRJ,8,P1,Listes de contrôle avec photos,Absent,—,—,M,Faible,51,
+JRJ-07,JRJ,8,P1,Main courante des incidents,Absent,—,—,M,Faible,51,
+JRJ-08,JRJ,8,P1,Partage en temps réel avec l'équipe,Absent,—,—,L,Moyen,51,
+JRJ-09,JRJ,8,P1,Paiements à remettre le jour même,Absent,—,—,S,Faible,51,
+RPT-01,RPT,8,P1,Tableau d'activité,Absent,—,Pas de tableau d'activité du planner,M,Faible,56,
+RPT-02,RPT,8,P1,Charge par mois et par personne,Absent,—,—,M,Faible,56,
+RPT-03,RPT,8,P2,Rentabilité par évènement,Absent,—,—,M,Faible,V2,
+RPT-04,RPT,8,P2,Bilan d'évènement,Absent,—,—,M,Faible,V2,
+RPT-05,RPT,8,P1,Export de tout tableau,Partiel,apps/symbola/app/prestataires/export/route.ts ; apps/symbola/app/devis/e-reporting/export/route.ts,Export de quelques tableaux seulement,M,Faible,56,
+TPS-01,TPS,8,P2,Saisie du temps,Absent,—,Pas d'app Temps et frais,M,Faible,V2,
+TPS-02,TPS,8,P2,Trajets et indemnités kilométriques,Absent,—,—,M,Faible,V2,
+TPS-03,TPS,8,P2,Frais avec justificatif,Absent,—,—,M,Faible,V2,
+TPS-04,TPS,8,P2,Alimentation de la rentabilité et des tarifs,Absent,—,—,M,Faible,V2,
+GC-01,GC,9,P1,Signer et payer en un seul geste,Absent,—,Ni proposition web ni paiement,L,Moyen,43,
+GC-02,GC,9,P1,Radar des risques,Absent,apps/symbola/app/accueil/follow-ups.ts (relances de devis et de prospects seulement),Pas de radar des risques,M,Faible,53,
+GC-03,GC,9,P1,Assistant de conformité,Absent,—,Pas d'assistant de conformité,M,Moyen,41,
+GC-04,GC,9,P2,Lecture automatique des devis et factures de prestataires,Absent,"apps/symbola/lib/pdf-text.ts (lecture de PDF pour l'import, ADR 0034)",Pas de lecture des devis de prestataires,L,Moyen,V2,
+GC-05,GC,9,P2,Copilote de rédaction,Absent,—,—,L,Moyen,V2,
+GC-06,GC,9,P2,Chrono partagé en direct le jour J,Absent,—,—,L,Moyen,V2,
+GC-07,GC,9,P2,Plan B météo,Absent,—,—,M,Faible,V2,
+GC-08,GC,9,P2,Simulateur de budget au premier rendez-vous,Partiel,docs/lots/lot-3-budget.md (BUD-01 : simulation par modèle de répartition),"Pas d'estimation tirée de l'historique, de la région ni du style",M,Faible,V2,
+GC-09,GC,9,P2,Paiement partagé entre payeurs,Absent,—,—,L,Moyen,V2,
+GC-10,GC,9,P2,Placement assisté des invités,Absent,—,—,L,Faible,V2,
+GC-11,GC,9,P2,Collecte d'avis avec accord de publication,Absent,—,—,M,Faible,V2,
+GC-12,GC,9,P2,Carte des prestataires et temps de trajet,Partiel,docs/adr/0031-prestataires-carnet-et-carte.md ; apps/symbola/modules/vendors/travel.ts,Carte et trajet estimé ; pas de trajet entre les lieux d'un évènement,M,Faible,V2,
+GC-13,GC,9,P2,Dictée sur le terrain,Absent,—,—,M,Faible,V2,
+GC-14,GC,9,P2,Module évènement d'entreprise,Absent,—,Pas de module évènement d'entreprise,L,Faible,V2,Produit à cadrer à part entière (§ 9)
+GC-15,GC,9,P3,Mémoire d'agence,Sans objet,—,,,,Au-delà,"P3 : à instruire, pas à construire (§ 1) — de même pour GC-16 à GC-24"
+GC-16,GC,9,P3,Offre Couple avec passerelle vers un planner,Sans objet,—,,,,Au-delà,P3 : à instruire
+GC-17,GC,9,P3,Réseau de confiance entre planners,Sans objet,—,,,,Au-delà,P3 : à instruire
+GC-18,GC,9,P3,Bibliothèque de modèles partagés,Sans objet,—,,,,Au-delà,P3 : à instruire
+GC-19,GC,9,P3,Passerelle vers les messageries,Sans objet,—,,,,Au-delà,P3 : à instruire
+GC-20,GC,9,P3,Plans de salle à l'échelle,Sans objet,—,,,,Au-delà,P3 : à instruire
+GC-21,GC,9,P3,Bilan environnemental,Sans objet,—,,,,Au-delà,P3 : à instruire
+GC-22,GC,9,P3,Galerie et remerciements,Sans objet,—,,,,Au-delà,P3 : à instruire
+GC-23,GC,9,P3,Parrainage entre planners,Sans objet,—,,,,Au-delà,P3 : à instruire
+GC-24,GC,9,P3,Applications dans les magasins,Sans objet,—,,,,Au-delà,P3 : à instruire
+IA-01,IA,9,P2,"IA activable par organisation, alternative manuelle",Sans objet,—,,,,V2,Aucune fonction d'IA dans l'application (IA-01 à IA-07)
+IA-02,IA,9,P2,Validation humaine avant envoi ou écriture de montant,Sans objet,—,,,,V2,Aucune fonction d'IA
+IA-03,IA,9,P2,Contenu généré signalé,Sans objet,—,,,,V2,Aucune fonction d'IA
+IA-04,IA,9,P2,"Données minimales, aucun entraînement",Sans objet,—,,,,V2,Aucune fonction d'IA
+IA-05,IA,9,P2,Document importé traité comme donnée,Sans objet,—,,,,V2,Aucune fonction d'IA
+IA-06,IA,9,P2,"Volume d'IA par organisation, partagé, visible et plafonné",Sans objet,—,,,,V2,Aucune fonction d'IA
+IA-07,IA,9,P2,Suggestion refusable en un geste,Sans objet,—,,,,V2,Aucune fonction d'IA
+ARC-01,ARC,10,P0,Chaque app est un module autonome,Partiel,apps/symbola/modules/*/service.ts ; tools/boundaries/check-module-boundaries.mjs ; docs/adr/0011-monolithe-modulaire-pour-le-mvp.md,Pas de test qui retire le dossier d'un module et vérifie que les autres compilent et passent,M,Faible,24,
+ARC-02,ARC,10,P0,Aucune lecture des tables d'une autre app,Conforme,tools/boundaries/check-module-boundaries.mjs (CI check:boundaries) ; docs/adr/0012-base-unique-schemas-logiques-pour-le-mvp.md,,,,,
+ARC-03,ARC,10,P0,Noyau partagé minimal,Partiel,packages/db/src/schema/hub.ts ; docs/adr/0011-monolithe-modulaire-pour-le-mvp.md,Le noyau n'a ni contact ni fichier ; l'identité de l'évènement vit dans le module events,L,Moyen,36,Décision Q17 a : contact dans le noyau du hub
+ARC-04,ARC,10,P0,"Contrats OpenAPI versionnés, écrits avant le code",Divergent,packages/contracts/src/*/service-contract.ts ; apps/symbola/modules/*/service.contract.test.ts ; docs/adr/0011-monolithe-modulaire-pour-le-mvp.md ; docs/adr/0011-monolithe-modulaire-pour-le-mvp.md (avenant du 11/11/2026),"Contrats TypeScript testés, pas d'OpenAPI tant que les modules ne sont pas extraits",,Faible,25,"Décision C3 : TypeScript à l'intérieur, OpenAPI pour toute API exposée (ADR 0011 complété au lot 25)"
+ARC-05,ARC,10,P1,Évènements métier publiés de façon fiable,Conforme,"packages/db/src/schema/core.ts (domain_events, domain_event_consumers) ; apps/symbola/lib/event-worker.integration.test.ts ; docs/adr/0014-evenements-internes-pour-le-mvp.md",,,,,
+ARC-06,ARC,10,P0,Droits d'usage pilotés par l'abonnement,Partiel,packages/db/src/schema/hub.ts (organization_modules) ; apps/symbola/modules/hub/module-toggle.integration.test.ts,Activation par module et par l'Admin ; pas par fonction ni par abonnement,S,Faible,40,
+ARC-07,ARC,10,P0,Dégradation propre si une app est absente,Partiel,apps/symbola/app/page.tsx (bloc « indisponible ») ; apps/symbola/modules/hub/module-toggle.integration.test.ts,Pas de tests joués avec chaque combinaison de modules,M,Faible,24,
+ARC-08,ARC,10,P0,Base partagée avec isolation par organisation,Conforme,packages/db/src/with-organization.ts ; packages/db/src/*-isolation.integration.test.ts ; packages/db/src/roles.integration.test.ts,,,,,"Tables d'identité du hub hors RLS, isolées par packages/auth (ADR 0013)"
+ARC-09,ARC,10,P0,Application web progressive,Absent,apps/symbola/public (ni manifeste ni service worker),"Ni installable, ni cache des écrans, ni file d'actions hors ligne, ni push",L,Élevé,29,Décision Q6 a : hors-ligne en lecture au MVP
+ARC-10,ARC,10,P0,"Tâches de fond en file, sans doublon",Partiel,"packages/db/src/schema/hub.ts (import_jobs, ADR 0035) ; apps/symbola/lib/event-worker.ts",E-mails et PDF hors file ; pas de file générique avec reprise et sans doublon,M,Moyen,40,
+ARC-11,ARC,10,P0,"Fichiers en stockage d'objets chiffré, liens signés",Divergent,docs/adr/0027-telechargements-servis-par-l-app.md ; docs/adr/0015-garage-remplace-minio-stockage-objet.md ; infra/compose/docker-compose.prod.yml ; docs/adr/0027-telechargements-servis-par-l-app.md (avenant du 11/11/2026),"Pas de liens signés (fichiers servis par l'app) ; stockage d'objets sur le disque du VPS, chiffrement au repos non attesté",M,Élevé,22,"Liens : divergence couverte par l'ADR 0027 ; fichiers sur le VPS acceptés pendant le pilote (Q14 b, ADR à écrire)"
+ARC-12,ARC,10,P0,Briques tierces derrière des adaptateurs,Partiel,apps/symbola/modules/quotes/signature/provider.ts ; fake.ts ; provider-contract.test.ts ; apps/symbola/modules/vendors/geocoder.ts,"Interface et double pour la signature et le géocodage ; e-mail en SMTP direct ; paiement, plateforme agréée et IA absents",S,Faible,40,
+ARC-13,ARC,10,P0,"Trois environnements, recette en données synthétiques",Conforme,docs/adr/0016-isolation-reseau-staging-production.md ; docs/runbooks/deploiement.md,,,,,
+ARC-14,ARC,10,P0,"Déploiement reproductible, retour arrière",Partiel,infra/compose/docker-compose.prod.yml ; docs/runbooks/deploiement.md (§ Retour arrière) ; docs/adr/0036-migrations-annulables.md,Retour arrière en plusieurs commandes manuelles ; compatibilité des migrations avec le code précédent non testée,M,Moyen,40,
+ARC-15,ARC,10,P0,Configuration et secrets hors du code,Conforme,packages/env/src/schema.ts ; .env.example ; .github/workflows/ci.yml (Gitleaks),,,,,
+ARC-16,ARC,10,P0,Journal d'audit commun en ajout seul,Partiel,packages/db/src/schema/hub.ts (audit_log) ; packages/db/drizzle/0010_grant_hub03_tables.sql (UPDATE et DELETE accordés au rôle applicatif),Journal limité aux actions de l'Admin et modifiable par le rôle applicatif,M,Élevé,23,
+ARC-17,ARC,10,P0,"Dates en UTC, montants en centimes entiers",Partiel,"packages/db/src/schema (timestamptz, *_cents entiers) ; packages/i18n (Europe/Paris)",Pas de fuseau propre à l'évènement,S,Faible,34,
+ARC-18,ARC,10,P0,Identifiants non devinables,Conforme,"packages/db/src/schema (uuid defaultRandom) ; routes apps/symbola/app/events/[id], devis/[quoteId]",,,,,
+ARC-19,ARC,10,P0,Documentation vivante dans le dépôt,Conforme,CLAUDE.md ; docs/adr (ADR 0001 à 0050) ; docs/runbooks,,,,,
+ARC-20,ARC,10,P0,Intégration continue bloquante,Conforme,".github/workflows/ci.yml (lint, types, tests, intégration, e2e, Semgrep, Gitleaks, OSV-Scanner, Trivy)",,,,,Protection de la branche main non vérifiable depuis le dépôt
+DAT-01,DAT,11,P0,Identifiant d'organisation sur toute table métier,Partiel,packages/db/src/schema (organization_id NOT NULL) ; packages/db/drizzle (6 index sur organization_id),Index non systématique ; tables d'identité du hub sans RLS (ADR 0013),S,Faible,24,
+DAT-02,DAT,11,P0,Clés étrangères déclarées en base,Divergent,"packages/db/src/schema (uuid, clés étrangères dans chaque schéma) ; docs/adr/0011-monolithe-modulaire-pour-le-mvp.md ; docs/adr/0012-base-unique-schemas-logiques-pour-le-mvp.md ; docs/adr/0012-base-unique-schemas-logiques-pour-le-mvp.md (avenant du 11/11/2026)","Pas de clé étrangère entre schémas de modules, par choix",,Faible,25,"Divergence assumée pour les références entre modules (avenant de l'ADR 0012, lot 25)"
+DAT-03,DAT,11,P0,Suppression logique puis purge,Partiel,packages/db/src/schema/quotes.ts et vendors.ts (archived_at) ; docs/adr/0024-rgpd-purge-mensuelle-et-fin-de-conservation-des-factures.md,Pas de suppression logique datée générale ; suppressions directes,M,Moyen,39,
+DAT-04,DAT,11,P0,Facture émise figée,Conforme,"packages/db/src/schema/quotes.ts (seller, buyer, lines, totals_snapshot) ; packages/db/src/invoices-immutability.integration.test.ts",,,,,
+DAT-05,DAT,11,P0,Règle d'arrondi unique pour la TVA,Divergent,"apps/symbola/modules/quotes/amounts.ts (roundHalfUp, TVA par taux) ; apps/symbola/modules/quotes/amounts.test.ts ; docs/adr/0059-arrondi-des-montants-et-de-la-tva.md","TVA calculée par taux (norme EN 16931), pas par ligne : écart assumé ; règle d'arrondi unique, documentée",,Faible,25,"Décision D3 a du lot 25 (ADR 0059) ; à confirmer par l'expert-comptable (fiche, question 10)"
+DAT-06,DAT,11,P0,Dates et auteur sur chaque ligne,Partiel,packages/db/src/schema (created_at partout ; updated_at et auteur sur quelques tables),Date de modification et auteur absents sur la plupart des tables,M,Faible,23,
+DAT-07,DAT,11,P0,Dates relatives et absolues du rétroplanning,Partiel,"packages/db/src/schema/events.ts (task_template_items.offset_days, events.tasks_scheduled_for)",La tâche ne garde ni sa date relative ni l'indication « déplacée à la main »,S,Moyen,34,
+DAT-08,DAT,11,P1,Chiffrement au niveau du champ,Partiel,"packages/auth/src/secret-box.ts (secret TOTP chiffré, ADR 0037)",IBAN (quote_settings.iban) et notes confidentielles en clair,M,Moyen,48,
+DAT-09,DAT,11,P0,Migrations versionnées et rejouables,Conforme,packages/db/drizzle (84 migrations) et drizzle-rollback ; packages/db/src/rollback.integration.test.ts ; .github/workflows/ci.yml (bootstrap et migrate sur base vide),,,,,
+DAT-10,DAT,11,P0,Jeu synthétique rechargeable en une commande,Absent,packages/starter-templates/src/demo-event.json (essai guidé seulement),Pas de jeu synthétique de recette chargeable en une commande,M,Faible,24,"Décision C4 : chargeur du jeu fictif au lot 24, rejeu des scénarios à chaque lot"
+DAT-11,DAT,11,P0,Modèles copiés dans l'évènement,Conforme,packages/db/src/schema/events.ts (postes copiés de la liste par défaut à la création) ; apps/symbola/modules/events/templates.integration.test.ts,,,,,
+DAT-12,DAT,11,P0,Unicité des contacts et des numéros de facture,Partiel,"packages/db/src/schema/quotes.ts (unique organization_id, number)","Numéro unique par organisation ; pas d'entité contact, donc pas d'unicité par e-mail",L,Moyen,36,
+DAT-13,DAT,11,P0,Format d'export stable par entité,Partiel,apps/symbola/app/rgpd (export JSON et CSV par personne),Pas de format d'export stable et documenté par entité,M,Moyen,35,
+DAT-14,DAT,11,P0,Versions des documents contractuels,Partiel,"packages/db/src/schema/quotes.ts (quote_versions, signature_requests)",Pas de contrat ; programme diffusé sans versions numérotées,M,Faible,37,
+SEC-01,SEC,12,P0,Authentification déléguée à un fournisseur d'identité,Absent,"docs/adr/0013-auth-maison-pour-le-mvp.md ; packages/db/src/schema/hub.ts (users.password_hash, argon2id)",Symbola stocke les hachés des mots de passe ; aucun fournisseur d'identité,L,Moyen,33,"Décision Q3 b : bascule vers un fournisseur d'identité open source (ADR 0013 à remplacer) ; ADR 0052 (lot 25) : bascule actée, choix du fournisseur au lot 33"
+SEC-02,SEC,12,P1,Double authentification et clés d'accès,Partiel,docs/adr/0037-double-authentification-protegee.md ; docs/adr/0038-appareil-de-confiance.md,Double authentification exigée pour tous les comptes professionnels ; pas de clés d'accès,M,Faible,52,
+SEC-03,SEC,12,P0,Politique de mots de passe,Partiel,packages/auth/src/recovery.ts (PASSWORD_MIN_LENGTH = 12),Pas de contrôle contre les listes de mots de passe compromis,S,Moyen,24,"Décision Q22 : dépendance tenue à jour, à proposer avec un ADR"
+SEC-04,SEC,12,P0,Limitation des tentatives,Partiel,docs/adr/0044-limitation-de-debit.md ; packages/db/src/rate-limit.ts ; apps/symbola/e2e/l16-sec-02-limitation-debit.spec.ts,Limites par compte et par IP ; délai fixe et non croissant,S,Faible,24,
+SEC-05,SEC,12,P0,Cookies de session protégés,Partiel,"apps/symbola/lib/auth-context.ts (httpOnly, sameSite lax, secure en production) ; packages/auth/src/service.ts (session de 8 h)","Durée fixe de 8 h, sans expiration à l'inactivité prouvée",S,Faible,24,
+SEC-06,SEC,12,P0,Révocation immédiate,Partiel,packages/auth/src/recovery.ts (sessions supprimées au changement de mot de passe),Pas de retrait de membre ni de déconnexion à distance ; délai non testé,S,Moyen,24,
+SEC-07,SEC,12,P0,"Lien magique à usage unique, quinze minutes",Sans objet,"packages/auth/src/recovery.ts (lien de mot de passe oublié : usage unique, 30 min)",,,,33,Pas de connexion par lien magique ; s'appliquera si HUB-01 l'introduit (Q3)
+SEC-08,SEC,12,P1,Alertes de connexion et de changement,Partiel,apps/symbola/lib/mfa-lock-mail.ts,Alerte au verrouillage seulement ; ni nouvel appareil ni changement d'e-mail ou de mot de passe,S,Faible,52,
+SEC-09,SEC,12,P0,Comptes d'exploitation séparés et tracés,Partiel,docs/adr/0029-assistance-admin-et-statistiques-d-usage.md ; packages/db/src/admin-no-business-data.integration.test.ts,"Admin sans accès aux données métier ; accès d'exploitation en base (sauvegarde, restauration) non tracés dans le journal de l'organisation",S,Moyen,23,Décision Q31 : tracer les accès d'exploitation
+SEC-10,SEC,12,P0,Isolation des organisations garantie par la base,Conforme,"packages/db/src/events-isolation.integration.test.ts ; budget-, quotes-, vendors-, imports-isolation.integration.test.ts ; packages/testing/src/organization-isolation.ts",,,,,Tests par service et par table ; l'énumération par route relève de SEC-12
+SEC-11,SEC,12,P0,Rôle applicatif sans contournement de l'isolation,Conforme,packages/db/src/roles.integration.test.ts,,,,,
+SEC-12,SEC,12,P0,Contrôle d'accès par objet à chaque requête,Partiel,apps/symbola/lib/guards.ts ; apps/symbola/lib/guards.test.ts,Pas de test qui énumère les routes et échoue sans règle d'accès,S,Moyen,24,
+SEC-13,SEC,12,P0,Erreurs qui ne révèlent rien,Partiel,RLS (packages/db/src/with-organization.ts) : un objet d'une autre organisation est introuvable,Aucun test ne prouve la même réponse pour « inexistant » et « interdit »,S,Moyen,24,
+SEC-14,SEC,12,P0,"Jeton de lien personnel haché, limité, révocable",Partiel,"packages/db/src/schema/events.ts (event_client_accesses.token_hash, lié à un évènement)","Jeton d'invitation vers un compte, pas un lien d'accès limité en portée et en droits",M,Élevé,26,
+SEC-15,SEC,12,P0,Expiration des liens personnels,Absent,packages/db/src/schema/events.ts (invitation valable 7 jours),Pas d'expiration réglable des liens par public,S,Moyen,26,
+SEC-16,SEC,12,P1,Code à usage unique pour les actions sensibles,Absent,—,Pas de code à usage unique pour les actions sensibles,M,Moyen,43,
+SEC-17,SEC,12,P0,"Pages à lien exclues de l'indexation, jeton retiré de l'adresse",Partiel,apps/symbola/next.config.ts (Referrer-Policy strict-origin-when-cross-origin),Ni noindex ni retrait du jeton de l'adresse après ouverture,S,Moyen,26,
+SEC-18,SEC,12,P0,"TLS, HSTS, chiffrement au repos",Partiel,apps/symbola/next.config.ts (HSTS) ; docs/adr/0018-caddy-remplace-traefik-proxy-partage.md ; infra/backup (restic chiffré),Chiffrement au repos du disque et du stockage d'objets non attesté ; note TLS non relevée,S,Moyen,22,
+SEC-19,SEC,12,P0,Journal d'audit en ajout seul,Partiel,packages/db/src/schema/hub.ts (audit_log) ; packages/db/drizzle/0010_grant_hub03_tables.sql,"Connexions, droits, exports, partages, émissions, encaissements et suppressions non journalisés ; modification du journal possible",M,Élevé,23,
+SEC-20,SEC,12,P0,Aucune donnée personnelle dans adresses et journaux,Partiel,CLAUDE.md § 5 ; packages/db/src/schema/quotes.ts (signature_webhook_log sans corps),Pas de test qui recherche e-mails et téléphones dans les journaux,S,Moyen,24,
+SEC-21,SEC,12,P0,"Contrôle des fichiers déposés, antivirus",Conforme,packages/files/src/magic-bytes.ts ; packages/files/src/eicar.ts ; packages/files/src/clamav-client.integration.test.ts,,,,,
+SEC-22,SEC,12,P0,Limitation de débit et plafonds d'envoi,Partiel,docs/adr/0044-limitation-de-debit.md,Pas de formulaire public ; pas de plafond d'envois par organisation et par heure,S,Moyen,24,
+SEC-23,SEC,12,P0,Secrets hors du dépôt,Conforme,"packages/env/src/schema.ts ; .github/workflows/ci.yml (Gitleaks, fetch-depth 0)",,,,,
+SEC-24,SEC,12,P0,"Validation des entrées, requêtes paramétrées, CSP, anti-CSRF",Conforme,"Zod (packages/env, actions) ; Drizzle (requêtes paramétrées) ; apps/symbola/middleware.ts (CSP) ; apps/symbola/middleware.test.ts",,,,,
+SEC-25,SEC,12,P1,Filtrage des appels sortants,Sans objet,—,,,,47,Aucun appel sortant vers une adresse fournie par l'utilisateur (géocodage et signature vers des services fixes)
+SEC-26,SEC,12,P2,Protection contre l'injection par document dans l'IA,Sans objet,—,,,,V2,Aucune fonction d'IA
+SEC-27,SEC,12,P1,Contrôle des changements de coordonnées bancaires,Absent,docs/lots/lot-12-demarrage.md (EVT-16 : RIB d'un prestataire partagé aux clients),Changement de RIB ni journalisé ni signalé,S,Élevé,48,
+SEC-28,SEC,12,P0,Serveur durci,Partiel,infra/server/check-hardening.sh ; docs/runbooks/durcissement-serveur.md ; tools/deployment-config/hardening.test.mjs,"Contrôle lancé à la main, pas à chaque déploiement",S,Moyen,40,
+SEC-29,SEC,12,P1,Procédure d'incident,Absent,—,Ni procédure d'incident écrite ni contact de sécurité publié,S,Moyen,57,
+SEC-30,SEC,12,P0,Analyse statique du code,Conforme,.github/workflows/ci.yml (semgrep --severity=ERROR --error),,,,,
+SEC-31,SEC,12,P0,Détection de secrets,Conforme,".github/workflows/ci.yml (gitleaks detect, fetch-depth 0)",,,,,
+SEC-32,SEC,12,P0,Audit des dépendances,Conforme,.github/workflows/ci.yml (OSV-Scanner) ; renovate.json,,,,,
+SEC-33,SEC,12,P1,Versions figées et inventaire des composants,Partiel,pnpm-lock.yaml (--frozen-lockfile en CI),Pas d'inventaire des composants archivé avec la version,S,Faible,57,
+SEC-34,SEC,12,P1,Analyse des images de conteneurs,Conforme,".github/workflows/ci.yml (Trivy, bloque sur CRITICAL)",,,,,
+SEC-35,SEC,12,P1,Analyse dynamique en recette,Partiel,.github/workflows/zap-baseline.yml (déclenchement manuel),Analyse dynamique non lancée à chaque version,S,Faible,57,
+SEC-36,SEC,12,P0,Suite de tests d'abus,Partiel,packages/db/src/*-isolation.integration.test.ts ; apps/symbola/e2e/l16-sec-02-limitation-debit.spec.ts,Pas de suite qui rejoue SC-S1 à SC-S6,M,Moyen,24,
+SEC-37,SEC,12,P1,Test d'intrusion externe,Absent,—,Pas de test d'intrusion externe,M,Moyen,57,
+RGP-01,RGP,13,P1,Accord de sous-traitance,Absent,—,Pas d'accord de sous-traitance,M,Moyen,57,
+RGP-02,RGP,13,P1,Registre des traitements prérempli,Partiel,privacy.registry.yaml (registre technique des champs),Pas de registre des traitements exportable par le planner,M,Faible,57,
+RGP-03,RGP,13,P0,Information des personnes à chaque collecte,Partiel,apps/symbola/app/espace/invitation/[token],Pas de formulaire public ; aucun texte d'information paramétrable au nom du planner sur l'espace client,S,Moyen,26,
+RGP-04,RGP,13,P0,Minimisation et dictionnaire de données,Partiel,privacy.registry.yaml ; packages/privacy ; .github/workflows/ci.yml (check:registry),Registre vérifié en CI ; mise en garde non systématique sur les champs libres,S,Faible,39,
+RGP-05,RGP,13,P0,Réglages protecteurs par défaut,Partiel,docs/adr/0024-rgpd-purge-mensuelle-et-fin-de-conservation-des-factures.md ; PRD RGPD-05 (rien n'est purgé sans validation),La purge attend la validation de la planner ; rien n'est partagé par défaut ; aucun traceur,M,Moyen,34,Décision Q10 b : purge automatique avec préavis (avenant à l'ADR 0024) ; ADR 0056 (lot 25)
+RGP-06,RGP,13,P1,Régimes : liste fermée et accord explicite,Absent,—,Module Invités absent,M,Élevé,49,
+RGP-07,RGP,13,P1,Accès restreint aux données sensibles,Absent,—,—,M,Élevé,49,
+RGP-08,RGP,13,P1,Purge programmée des données d'invités,Absent,—,—,M,Élevé,49,
+RGP-09,RGP,13,P0,Durées de conservation paramétrables,Conforme,packages/db/src/schema/hub.ts (privacy_settings) ; apps/symbola/modules/*/privacy-retention.ts ; apps/symbola/e2e/rgpd-05-purge.spec.ts ; docs/adr/0048-preuve-des-demandes-rgpd-anonymisee.md,,,,,Purge ou anonymisation après validation mensuelle (voir RGP-05)
+RGP-10,RGP,13,P1,Exercice des droits outillé,Partiel,apps/symbola/app/rgpd ; apps/symbola/e2e/rgpd-01-recherche.spec.ts à rgpd-04-demandes.spec.ts ; docs/adr/0047-dossier-rgpd-et-documents-dans-l-accompagnement.md,"Export, oubli et suivi outillés ; limitation non outillée ; durée non mesurée",S,Faible,57,
+RGP-11,RGP,13,P0,Réversibilité et suppression à la résiliation,Partiel,apps/symbola/app/rgpd (export par personne),Ni export complet de l'organisation ni suppression du compte après résiliation,L,Élevé,35,
+RGP-12,RGP,13,P1,Gestion des violations de données,Absent,—,Ni registre des incidents ni modèles de notification,M,Moyen,57,
+RGP-13,RGP,13,P0,Hébergement et sous-traitants dans l'Union européenne,Partiel,VPS en Union européenne ; Garage et ClamAV auto-hébergés ; géocodage IGN (ADR 0031) ; docs/conformite/sous-traitants.md (liste datée du 11/11/2026),Liste datée et tenue dans le dépôt ; pas encore publiée sur le site (lot 57) ; plusieurs points « à vérifier »,S,Faible,25,
+RGP-14,RGP,13,P2,Accord de diffusion des images,Absent,—,—,M,Faible,V2,
+RGP-15,RGP,13,P2,IA sans entraînement ni données sensibles,Sans objet,—,,,,V2,Aucune fonction d'IA
+RGP-16,RGP,13,P0,Mesure d'audience sans traceur,Conforme,apps/symbola/lib/auth-context.ts (cookie de session) ; apps/symbola/app/profil/actions.ts (cookie de langue) ; aucun outil de mesure tiers,,,,,
+RGP-17,RGP,13,P1,Prospection par e-mail conforme,Sans objet,—,,,,45,Aucun envoi commercial aujourd'hui ; s'appliquera avec les relances de prospects
+RGP-18,RGP,13,P1,Données des enfants invités limitées,Absent,—,Module Invités absent,S,Moyen,49,
+RGP-19,RGP,13,P1,Analyse d'impact,Absent,—,Pas d'analyse d'impact dans docs/conformite/,M,Moyen,57,Fiche docs/conformite/fiche-dpo.md
+RGP-20,RGP,13,P2,Écran « Mes obligations »,Absent,—,—,M,Faible,V2,
+JUR-01,JUR,14,P0,Mentions obligatoires des devis et factures,Partiel,PRD DEV-01 (mention art. 293 B automatique) ; packages/starter-templates/src/invoice-mentions.json,Pas de contrôle bloquant (FAC-07) ; liste à valider par l'expert-comptable,S,Moyen,31,Fiche docs/conformite/fiche-expert-comptable.md
+JUR-02,JUR,14,P1,Mentions ajoutées par la réforme,Absent,packages/db/src/schema/quotes.ts (quote_signers.billing_address),"SIREN du client, adresse de livraison, nature de l'opération et option sur les débits absents",S,Élevé,41,Échéance du 1er septembre 2027
+JUR-03,JUR,14,P1,Facture électronique via plateforme agréée,Absent,apps/symbola/modules/quotes/service.ts:294-298,Ni émission électronique ni plateforme agréée,L,Élevé,42,Échéance du 1er septembre 2027 ; fiche docs/conformite/fiche-expert-comptable.md
+JUR-04,JUR,14,P1,E-reporting,Partiel,apps/symbola/app/devis/e-reporting/export/route.ts,Export des données par période ; pas de transmission par une plateforme agréée,M,Élevé,42,Fiche docs/conformite/fiche-expert-comptable.md
+JUR-05,JUR,14,P0,Conformité des encaissements de particuliers,Partiel,packages/db/src/invoices-immutability.integration.test.ts,"Encaissements modifiables, sans chaînage : attestation impossible",M,Élevé,23,Fiche docs/conformite/fiche-expert-comptable.md
+JUR-06,JUR,14,P0,Conservation dix ans,Partiel,packages/db/src/schema/hub.ts (accounting_retention_months) ; docs/adr/0024-rgpd-purge-mensuelle-et-fin-de-conservation-des-factures.md,Conservation de dix ans réglée ; format d'archive lisible à dix ans non traité,S,Moyen,23,
+JUR-07,JUR,14,P0,Information précontractuelle et rétractation,Absent,—,Ni information précontractuelle ni gestion de la rétractation,M,Élevé,31,Fiche docs/conformite/fiche-avocat.md
+JUR-08,JUR,14,P0,Acompte ou arrhes,Absent,packages/db/src/schema/quotes.ts (payment_schedule_items),Pas de choix imposé entre acompte et arrhes,S,Élevé,31,Fiche docs/conformite/fiche-avocat.md
+JUR-09,JUR,14,P0,Mentions du professionnel,Partiel,"packages/db/src/schema/hub.ts (organization_profiles : SIREN, RCS, capital) ; packages/db/src/schema/quotes.ts (quote_terms)",Assurance et médiateur de la consommation non paramétrés,S,Moyen,31,
+JUR-10,JUR,14,P1,"Mandat, modes intermédiaire et revendeur, commissions",Absent,—,Pas de mode intermédiaire ou revendeur,M,Moyen,48,
+JUR-11,JUR,14,P2,Alerte vente de voyages,Absent,—,—,S,Faible,V2,
+JUR-12,JUR,14,P1,Délais de paiement et pénalités entre professionnels,Partiel,"packages/db/src/schema/quotes.ts (invoice_payment_term_days, invoice_mentions)",Pénalités et indemnité forfaitaire non paramétrées à part,S,Moyen,41,
+JUR-13,JUR,14,P1,Bon de commande sur devis et facture,Absent,—,Pas de bon de commande sur devis et facture,S,Moyen,41,
+JUR-14,JUR,14,P0,Signature électronique avec dossier de preuve,Conforme,apps/symbola/modules/quotes/signature/documenso.ts ; packages/db/src/schema/quotes.ts (audit_certificate_key) ; docs/adr/0026-signature-documenso.md,,,,,Niveau à valider : fiche docs/conformite/fiche-avocat.md
+JUR-15,JUR,14,P1,Documents contractuels de l'éditeur,Absent,—,Aucun texte juridique de l'éditeur,L,Moyen,57,
+JUR-16,JUR,14,P2,Transparence sur l'IA,Sans objet,—,,,,V2,Aucune fonction d'IA
+JUR-17,JUR,14,P1,Accessibilité des écrans destinés aux particuliers,Partiel,.github/workflows/ci.yml (axe-core),WCAG 2.2 AA non visé ; pas d'audit manuel,M,Moyen,40,Décision Q11 : WCAG 2.2 AA
+JUR-18,JUR,14,P0,Inventaire et respect des licences,Partiel,docs/adr/0026-signature-documenso.md ; docs/adr/0019-generation-pdf-react-pdf.md,Pas d'inventaire des licences,S,Moyen,40,
+JUR-19,JUR,14,P1,Marque et nom de domaine,Partiel,docs/runbooks/deploiement.md (domaine symbola.fr enregistré),Dépôt de la marque non documenté,S,Faible,57,
+JUR-20,JUR,14,P0,Modèles juridiques présentés comme bases à adapter,Partiel,packages/starter-templates/src,Aucun avertissement « à adapter » ; aucun modèle juridique,S,Moyen,31,Fiche docs/conformite/fiche-avocat.md
+NFR-01,NFR,15,P0,"Affichage en 2,5 s, interaction en 200 ms",Absent,—,Pas de mesure à chaque version,M,Faible,40,
+NFR-02,NFR,15,P0,API en 300 ms au 95e centile,Absent,—,Pas de mesure en recette,M,Faible,40,
+NFR-03,NFR,15,P1,Volumes de référence tenus,Absent,—,Pas de test de charge,M,Faible,59,
+NFR-04,NFR,15,P1,Portail et RSVP sous 300 Ko,Absent,—,Pas de budget de poids,S,Faible,59,
+NFR-05,NFR,15,P1,PDF en 5 s ou en tâche de fond,Partiel,docs/adr/0019-generation-pdf-react-pdf.md (rendu côté serveur),Pas de tâche de fond au-delà de 5 s,S,Faible,59,
+NFR-06,NFR,15,P1,"Disponibilité de 99,5 %",Partiel,docs/runbooks/surveillance.md (Uptime Kuma),Disponibilité mensuelle non relevée,S,Faible,59,
+NFR-07,NFR,15,P0,Aucun déploiement du vendredi midi au lundi matin,Divergent,docs/adr/0058-fenetre-de-deploiement-regle-ecrite.md ; docs/runbooks/deploiement.md (en tête),"Règle écrite, appliquée à la main ; la chaîne de déploiement ne refuse pas hors fenêtre",S,Faible,40,Décision Q32 (ADR 0058) ; à revoir quand le déploiement sera automatisé (lot 40a)
+NFR-08,NFR,15,P1,"Mise à jour sans coupure, retour arrière en cinq minutes",Partiel,docs/runbooks/deploiement.md (§ Retour arrière) ; docs/adr/0036-migrations-annulables.md,Pas d'exercice de retour arrière consigné,S,Faible,59,
+NFR-09,NFR,15,P0,Jour J utilisable serveur injoignable,Absent,apps/symbola/public (ni manifeste ni service worker),"Mode Jour J inexistant, donc indisponible sans serveur",L,Élevé,29,
+NFR-10,NFR,15,P0,Sauvegarde externe chiffrée quotidienne,Partiel,infra/backup/backup.sh ; infra/backup/backup.env.example (RESTIC_REPOSITORY=/srv/backups/restic/production) ; docs/runbooks/restauration.md,"Sauvegarde chiffrée quotidienne, mais sur le disque du VPS et chez le même fournisseur",M,Élevé,22,"Décisions Q15 et C2 : Hetzner Storage Box, avant la première donnée réelle"
+NFR-11,NFR,15,P0,Perte maximale et délai de remise en service,Partiel,docs/runbooks/restauration.md (relevé du 2026-10-26 : 21 s sur le staging),Perte de 24 h tenue seulement si le VPS survit ; remise en service sur un serveur neuf jamais mesurée,M,Élevé,22,
+NFR-12,NFR,15,P0,Test de restauration mensuel,Partiel,"docs/runbooks/restauration.md (un seul relevé, 2026-10-26)",Pas de test mensuel ni sur serveur vierge,S,Élevé,22,Décision Q15 : test mensuel sur serveur vierge reporté après le pilote
+NFR-13,NFR,15,P1,"Rétention des sauvegardes, protection contre l'effacement",Partiel,infra/backup/backup.sh (--keep-daily 7 --keep-weekly 4 --keep-monthly 6),6 mensuelles au lieu de 12 ; le serveur peut effacer ses propres sauvegardes,S,Élevé,22,Décision C2 : copies instantanées Hetzner non modifiables depuis le VPS (à prouver au lot 22)
+NFR-14,NFR,15,P0,Supervision et alertes,Partiel,"docs/runbooks/surveillance.md (Uptime Kuma : sondes, sauvegarde, certificats)",Alertes par e-mail et non sur téléphone ; ni disque ni file surveillés ; sonde sur le même VPS,S,Moyen,22,
+NFR-15,NFR,15,P1,Page d'état publique,Absent,—,Pas de page d'état publique,S,Faible,59,
+NFR-16,NFR,15,P0,"Erreurs gérées, saisie préservée",Partiel,apps/symbola/app/not-found.tsx,Pas de référence d'erreur retrouvable dans les journaux ; saisie conservée non garantie,M,Moyen,39,"Décision Q27 : service de suivi des erreurs auto-hébergé (ADR, NFR-27)"
+NFR-17,NFR,15,P0,Accessibilité contrôlée à chaque version,Partiel,".github/workflows/ci.yml (axe-core, ordinateur et 375 px)",Pas de revue clavier et lecteur d'écran consignée ; RSVP absent,M,Moyen,40,Décision Q11 : WCAG 2.2 AA
+NFR-18,NFR,15,P0,Navigateurs et téléphones pris en charge,Partiel,.github/workflows/ci.yml (playwright install chromium),"Safari, Firefox et Edge non testés",S,Faible,40,
+NFR-19,NFR,15,P0,"De 360 à 1 920 px, zoom à 200 %",Partiel,.github/workflows/ci.yml (e2e à 375 px),360 px et zoom à 200 % non testés,S,Faible,40,
+NFR-20,NFR,15,P0,"Localisation des textes, dates et montants",Conforme,packages/i18n ; .github/workflows/ci.yml (check:messages),,,,,
+NFR-21,NFR,15,P0,Couverture de tests,Partiel,apps/symbola/e2e (un parcours par story du PRD) ; tests unitaires et d'intégration,Pas de seuil de couverture contrôlé ; parcours PAR de ce document non couverts,S,Faible,40,
+NFR-22,NFR,15,P1,Apps construites et testées séparément,Partiel,turbo.json ; docs/adr/0011-monolithe-modulaire-pour-le-mvp.md,Une seule app Next.js : modifier un module relance tous les tests de l'app,M,Faible,59,
+NFR-23,NFR,15,P0,Documentation et installation en trente minutes,Partiel,CLAUDE.md § 9 ; docs/runbooks,Pas de guide d'installation ni de temps d'installation mesuré,S,Faible,40,
+NFR-24,NFR,15,P0,Fichier d'instructions pour l'agent de code,Conforme,"CLAUDE.md (réécrit au lot 25 : renvoi au cahier des charges, identifiants ARC, SEC, DAT et RGP, règle des identifiants)",,,Faible,25,"Décisions Q1 a, Q2 a, Q23 (lot 25)"
+NFR-25,NFR,15,P1,Journal des modifications lisible,Absent,—,Pas de journal des modifications pour les utilisateurs,S,Faible,59,
+NFR-26,NFR,15,P1,Fonctions derrière un interrupteur,Partiel,packages/db/src/schema/hub.ts (organization_modules),"Interrupteur par module, pas par fonction",M,Faible,54,
+NFR-27,NFR,15,P1,Un seul serveur applicatif jusqu'au palier 2,Conforme,CLAUDE.md § 3 (un seul VPS) ; docs/adr,,,,,
+NFR-28,NFR,15,P1,Retour utilisateur depuis l'application,Absent,—,Pas de retour utilisateur depuis l'application,M,Faible,59,
+NFR-29,NFR,15,P1,Entonnoirs de parcours pour l'éditeur,Partiel,packages/db/src/schema/core.ts (usage_counters),Pas d'entonnoirs,M,Faible,59,
+NFR-30,NFR,15,P1,Sauvegardes incrémentales et dédoublonnées,Partiel,infra/backup/backup.sh (restic incrémental et dédoublonné),Volume des sauvegardes conservées non relevé,S,Faible,22,
+NFR-31,NFR,15,P0,Stockage des fichiers et des sauvegardes séparé du serveur,Partiel,infra/compose/docker-compose.prod.yml (Garage sur le VPS) ; docs/runbooks/restauration.md,Fichiers et sauvegardes sur le disque du serveur applicatif,M,Élevé,22,"Décision Q14 b : fichiers sur le VPS acceptés pendant le pilote (ADR à écrire), sauvegardes à sortir du VPS"

@@ -14,7 +14,7 @@ const base: NextStepInput = {
   today: "2026-11-06",
 };
 
-describe("EVT-19 — Prochaine étape de la fiche événement", () => {
+describe("L13-EVT-19 — Prochaine étape de la fiche événement", () => {
   it("un prospect sans devis envoyé : envoyer le devis", () => {
     expect(nextStep({ ...base, status: "prospect", hasSentOrSignedQuote: false })).toBe("send_quote");
   });

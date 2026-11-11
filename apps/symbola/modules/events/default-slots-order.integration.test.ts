@@ -1,10 +1,10 @@
-// Lot 13 (HUB-16) — ordre des lignes du budget par défaut, contre un vrai
+// Lot 13 (L13-HUB-16) — ordre des lignes du budget par défaut, contre un vrai
 // PostgreSQL (RLS, ADR 0012), par la porte d'entrée du module.
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { addDefaultVendorSlots, createProspect, createProspectSource, listDefaultVendorSlots, listEventVendorSlots, reorderDefaultVendorSlots, VendorSlotNotFoundError } from "./service";
 
-describe("HUB-16 — Ordre des lignes du budget par défaut", () => {
+describe("L13-HUB-16 — Ordre des lignes du budget par défaut", () => {
   it("étant donné trois lignes, quand elle change leur ordre, alors la liste et les nouveaux événements suivent cet ordre", async () => {
     const organizationId = randomUUID();
     await addDefaultVendorSlots(organizationId, ["Lieu", "Traiteur", "Photographe"]);

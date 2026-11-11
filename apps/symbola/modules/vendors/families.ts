@@ -1,4 +1,4 @@
-// Lot 16 (PRE-14, PRE-15, ADR 0040) — accès aux données des familles de types
+// Lot 16 (L16-PRE-14, L16-PRE-15, ADR 0040) — accès aux données des familles de types
 // et opérations de rangement des types (fusion, suppression avec
 // déplacement des fiches, données de départ). Jamais importé hors de
 // modules/vendors/ (ADR 0011) : service.ts en est la porte d'entrée. Chaque
@@ -88,7 +88,7 @@ export function countVendorsByTypeRows(organizationId: string): Promise<{ typeId
   );
 }
 
-// PRE-15 — fusion : les fiches du type fusionné passent au type gardé ; un
+// L16-PRE-15 — fusion : les fiches du type fusionné passent au type gardé ; un
 // champ propre (libellé absent du type gardé) le suit, un champ de même
 // libellé reprend les valeurs sans écraser celles déjà saisies. Journalisée
 // par un événement interne dans la même transaction (outbox, ADR 0014).
@@ -127,7 +127,7 @@ export function mergeVendorTypeRows(organizationId: string, sourceTypeId: string
   });
 }
 
-// PRE-15 — suppression d'un type : s'il a des fiches (hors archives), elles
+// L16-PRE-15 — suppression d'un type : s'il a des fiches (hors archives), elles
 // vont vers le type choisi, ou « à classer » (null) si c'est le choix
 // explicite ; sans choix, rien n'est supprimé. Les valeurs des champs
 // propres au type supprimé disparaissent avec eux.
@@ -157,7 +157,7 @@ export function deleteVendorTypeMovingRows(
   });
 }
 
-// PRE-14 — données de départ du métier, posées une seule fois par
+// L16-PRE-14 — données de départ du métier, posées une seule fois par
 // organisation (repère families_seeded_at) : familles absentes créées, types
 // et champs de départ créés si l'organisation n'a encore aucun type, puis
 // chaque type sans famille rangé par ses synonymes ; le reste reste « à

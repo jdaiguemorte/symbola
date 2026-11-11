@@ -1,4 +1,4 @@
-// EVT-05 — règles pures du programme du jour J : heures, tri,
+// PRD-EVT-05 — règles pures du programme du jour J : heures, tri,
 // chevauchements d'un même intervenant, variantes du PDF.
 const MINUTES_PER_DAY = 24 * 60;
 
@@ -51,7 +51,7 @@ function participantKey(participant: ProgramLineParticipant): string {
 
 export type ProgramOverlapWarning = { participant: string; itemIds: [string, string] };
 
-// PRD EVT-05 : « l'app le signale sans bloquer » — un avertissement par
+// PRD PRD-EVT-05 : « l'app le signale sans bloquer » — un avertissement par
 // paire de lignes et par intervenant, dans l'ordre du programme.
 export function findProgramOverlaps(lines: ProgramLine[]): ProgramOverlapWarning[] {
   const sorted = sortProgramItems(lines);
@@ -74,7 +74,7 @@ export function findProgramOverlaps(lines: ProgramLine[]): ProgramOverlapWarning
 
 export type ProgramVariant = "couple" | "vendors";
 
-// Variante « mariés » : jamais de note interne (PRD EVT-05, EVT-06).
+// Variante « mariés » : jamais de note interne (PRD PRD-EVT-05, PRD-EVT-06).
 export function programForVariant<T extends { internalNote: string | null }>(items: T[], variant: ProgramVariant): T[] {
   return variant === "couple" ? items.map((item) => ({ ...item, internalNote: null })) : items;
 }

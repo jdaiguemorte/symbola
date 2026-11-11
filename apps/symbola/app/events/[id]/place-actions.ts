@@ -1,6 +1,6 @@
 "use server";
 
-// Lot 12 (EVT-15) — lieux de l'événement : ajout et retrait.
+// Lot 12 (L12-EVT-15) — lieux de l'événement : ajout et retrait.
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { addEventPlace, EventPlaceEventNotFoundError, removeEventPlace } from "@/modules/events/service";

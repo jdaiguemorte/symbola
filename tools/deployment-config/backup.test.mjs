@@ -225,7 +225,7 @@ describe("SOC-10 — Sauvegarde nocturne (backup.sh)", () => {
   });
 });
 
-describe("HUB-18 — Dernière sauvegarde signalée à l'app (lot 13, ADR 0033)", () => {
+describe("L13-HUB-18 — Dernière sauvegarde signalée à l'app (lot 13, ADR 0033)", () => {
   const RUN = "11111111-2222-3333-4444-555555555555";
 
   it("étant donné une sauvegarde réussie, son début puis sa fin, son résultat et sa taille sont enregistrés dans hub.backup_runs", () => {
@@ -444,6 +444,15 @@ describe("NFR-10 — Sauvegarde chiffrée vers la Storage Box (lot 22, ADR 0051)
       expect(output).toMatch(/StrictHostKeyChecking yes/);
       expect(calls).toEqual([]);
     }
+  });
+
+  it("étant donné l'URL de sonde collée entre guillemets telle que Kuma l'affiche (« ?status=up&msg=OK&ping= »), le succès part une seule fois, sur l'URL nettoyée (lot 25)", () => {
+    writeConfig("production", 'INCLUDE_MONITORING=true\nBACKUP_PUSH_URL="http://127.0.0.1:3001/api/push/jeton?status=up&msg=OK&ping="');
+    const { status, calls } = run(backupScript, ["production"]);
+    expect(status).toBe(0);
+    const pushes = calls.filter((c) => c.startsWith("curl"));
+    expect(pushes).toHaveLength(1);
+    expect(pushes[0]).toMatch(/ http:\/\/127\.0\.0\.1:3001\/api\/push\/jeton\?status=up&msg=OK$/);
   });
 
   it("étant donné le dépôt distant injoignable (réseau, clé ou empreinte refusée), la sauvegarde échoue avant d'arrêter Garage, sans signal de succès, et sa fin est signalée « failed »", () => {

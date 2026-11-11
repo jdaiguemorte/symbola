@@ -1,7 +1,7 @@
 // SOC-13 — « une requête d'un module incrémente bien le compteur de la bonne
 // organisation. » Exercé via la fonction appelée depuis l'accueil (app/page.tsx,
 // ADR 0016) ; contre un vrai PostgreSQL. (Le critère d'origine citait le module
-// témoin hello, retiré au lot 16, ARC-01.)
+// témoin hello, retiré au lot 16, L16-ARC-01.)
 import { randomUUID } from "node:crypto";
 import { and, eq } from "drizzle-orm";
 import { afterAll, describe, expect, it } from "vitest";

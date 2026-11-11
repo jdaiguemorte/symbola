@@ -3,7 +3,7 @@
 // de l'organisation et à ses mariés ; jamais d'identifiant dans l'adresse,
 // l'organisation est celle de la session (« v » ne sert qu'à rafraîchir le
 // cache après un remplacement).
-// POST : envoi par la route dédiée aux fichiers (SEC-02, lib/uploads).
+// POST : envoi par la route dédiée aux fichiers (L16-SEC-02, lib/uploads).
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { createStorageClient, detectFileType, getPrivateObject } from "@symbola/files";

@@ -1,8 +1,8 @@
 // Lot 20 — retours de la recette des lots 18 et 19 (Julien, 10/11/2026) :
-// bouton du centre d'aide décollé de la barre (HUB-26), une aide sur chaque
+// bouton du centre d'aide décollé de la barre (L20-HUB-26), une aide sur chaque
 // écran de réglage (AIDE-14), une image pour chaque fiche du centre d'aide
-// (AIDE-16), cartes du rétroplanning alignées (EVT-20), archivage d'un
-// prestataire depuis le carnet avec confirmation (PRE-17), étiquettes par
+// (AIDE-16), cartes du rétroplanning alignées (L20-EVT-20), archivage d'un
+// prestataire depuis le carnet avec confirmation (L20-PRE-17), étiquettes par
 // famille avec paliers (décision 5), vocabulaire des écrans qui mêlent les
 // événements (décision 6). En taille ordinateur et en 375 px, axe-core.
 import { randomUUID } from "node:crypto";
@@ -52,7 +52,7 @@ test("Lot 20 — centre d'aide, aide des écrans de réglage, rétroplanning", a
   test.setTimeout(120_000);
   await newPlanner(page);
 
-  // HUB-26 : le bouton « Voir le parcours des tutoriels » est sous la barre de progression.
+  // L20-HUB-26 : le bouton « Voir le parcours des tutoriels » est sous la barre de progression.
   await page.goto("/aide");
   const progress = (await page.locator(".help-progress progress").boundingBox())!;
   const journey = (await page.getByRole("link", { name: "Voir le parcours des tutoriels" }).boundingBox())!;
@@ -77,11 +77,11 @@ test("Lot 20 — centre d'aide, aide des écrans de réglage, rétroplanning", a
     await expect(page).toHaveURL(path);
   }
 
-  // EVT-20 (alignement de la carte « Nouveau modèle ») : remplacé au lot 21
-  // par la liste des modèles puis leur détail (EVT-21, EVT-22).
+  // L20-EVT-20 (alignement de la carte « Nouveau modèle ») : remplacé au lot 21
+  // par la liste des modèles puis leur détail (L21-EVT-21, L21-EVT-22).
 });
 
-test("PRE-17 — archiver un prestataire depuis le carnet, après confirmation", async ({ page }) => {
+test("L20-PRE-17 — archiver un prestataire depuis le carnet, après confirmation", async ({ page }) => {
   test.setTimeout(90_000);
   await newPlanner(page, ["Domaine des Saules", "Fleurs de Lys"]);
   await page.goto("/prestataires");
@@ -129,7 +129,7 @@ test("Décision 5 — étiquettes : paliers repérés puis rangés, choix unique
   }
   await loginAndSetupMfa(page, email, password);
 
-  // Les deux tranches de « personnes » se rangent en palier. Lot 21 (PRE-19) :
+  // Les deux tranches de « personnes » se rangent en palier. Lot 21 (L21-PRE-19) :
   // d'un clic, « Ranger mes étiquettes importées ».
   await page.goto("/prestataires/parametres/etiquettes");
   const setup = page.getByRole("region", { name: "Vos étiquettes importées peuvent se ranger toutes seules" });

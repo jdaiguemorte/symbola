@@ -1,6 +1,6 @@
 "use server";
 
-// EVT-04 — actions du rétroplanning et de la date sur la fiche d'un événement.
+// PRD-EVT-04 — actions du rétroplanning et de la date sur la fiche d'un événement.
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import {
@@ -159,7 +159,7 @@ export async function toggleEventTaskAction(formData: FormData): Promise<void> {
     if (!(error instanceof EventTaskNotFoundError)) throw error;
   }
   revalidatePath(`/events/${eventId}`);
-  // HUB-02 : la même case se coche depuis l'accueil et l'écran Tâches.
+  // PRD-HUB-02 : la même case se coche depuis l'accueil et l'écran Tâches.
   revalidatePath("/");
   revalidatePath("/taches");
 }

@@ -41,7 +41,7 @@ async function advancePlacement(db: AppDatabase, organizationId: string, job: Ac
   return !finished;
 }
 
-// Lot 16 (ARC-01, ADR 0043) : un passage ne visite que les organisations
+// Lot 16 (L16-ARC-01, ADR 0043) : un passage ne visite que les organisations
 // signalées (traitement créé ou relancé, ou encore inachevé au passage
 // précédent). Un tour complet a lieu au démarrage du serveur, pour reprendre un
 // traitement interrompu, puis toutes les 5 minutes, en filet de sécurité.

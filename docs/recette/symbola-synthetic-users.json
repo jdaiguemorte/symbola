@@ -1,0 +1,4486 @@
+{
+ "meta": {
+  "titre": "Symbola : Synthetic Users et jeux de données de recette",
+  "version": "1.0",
+  "genere_le": "2026-11-10",
+  "avertissement": "Données entièrement fictives. Adresses en @exemple.test, téléphones dans les plages réservées à la fiction. Ne jamais mêler à des données réelles.",
+  "notation_des_etapes": {
+   "3": "fluide",
+   "2": "friction légère",
+   "1": "friction forte",
+   "0": "blocage"
+  },
+  "questions_par_etape": [
+   "Le profil savait-il quoi faire ensuite ?",
+   "A-t-il dû ressaisir une information ?",
+   "A-t-il rencontré un mot qu'il ne comprend pas ?",
+   "A-t-il attendu plus que sa limite ?",
+   "Pouvait-il annuler ?",
+   "A-t-il vu quelque chose qui ne le regardait pas ?"
+  ],
+  "fichier_import_associe": "contacts-import-test-600.csv"
+ },
+ "profils": [
+  {
+   "id": "SU-01",
+   "nom": "Camille Roussel",
+   "role": "Wedding planner indépendante",
+   "public": "S1",
+   "age": 34,
+   "lieu": "Bordeaux",
+   "simulation": {
+    "appareil": "iPhone et portable 13 pouces",
+    "largeur_ecran_px": 390,
+    "zoom_pct": 100,
+    "saisie": "tactile et clavier"
+   },
+   "aisance_numerique": "moyenne",
+   "objectifs": [
+    "Répondre aux demandes le jour même",
+    "Ne plus rien oublier",
+    "Paraître aussi professionnelle qu'une agence"
+   ],
+   "frustrations": [
+    "Retaper les mêmes informations",
+    "Relancer les paiements",
+    "Recevoir des messages de clients à 23 heures"
+   ],
+   "comportement_a_simuler": [
+    "Lit les titres, pas les paragraphes",
+    "Essaie avant de lire l'aide",
+    "Travaille par tranches de dix minutes",
+    "Passe du téléphone à l'ordinateur au milieu d'une tâche"
+   ],
+   "limite_patience": {
+    "ecrans_sans_resultat_max": 3,
+    "attente_max_s": 15
+   },
+   "abandonne_si": [
+    "Une donnée qu'elle n'a pas sous la main est exigée",
+    "Un terme comptable n'est pas expliqué"
+   ],
+   "donnees_de_test": "Organisation « Atelier Camille R. », franchise de TVA, catalogue de six prestations, quatre évènements dont le mariage de référence",
+   "phrase_type": "Je veux savoir ce que je dois faire aujourd'hui, pas tout ce que je pourrais faire.",
+   "parcours": [
+    "PAR-01",
+    "PAR-02",
+    "PAR-03",
+    "PAR-04",
+    "PAR-06",
+    "PAR-08",
+    "PAR-09"
+   ],
+   "scenarios": [
+    "SC-01",
+    "SC-02",
+    "SC-03",
+    "SC-04",
+    "SC-05",
+    "SC-08",
+    "SC-09"
+   ]
+  },
+  {
+   "id": "SU-02",
+   "nom": "Nadia Belkacem",
+   "role": "Dirigeante d'agence évènementielle",
+   "public": "S2",
+   "age": 45,
+   "lieu": "Lyon",
+   "simulation": {
+    "appareil": "Grand écran et tablette",
+    "largeur_ecran_px": 1920,
+    "zoom_pct": 100,
+    "saisie": "clavier et souris"
+   },
+   "aisance_numerique": "élevée",
+   "objectifs": [
+    "Voir la charge et le pipeline d'un coup d'œil",
+    "Déléguer sans perdre le contrôle",
+    "Connaître la marge par évènement"
+   ],
+   "frustrations": [
+    "L'information reste dans la tête de chacun",
+    "Des devis partent sans validation",
+    "Les outils ne gèrent pas les droits"
+   ],
+   "comportement_a_simuler": [
+    "Raccourcis clavier",
+    "Dix onglets ouverts",
+    "Filtre tout",
+    "Teste les limites : exports, droits, volumes"
+   ],
+   "limite_patience": {
+    "attente_max_s": 2,
+    "clics_inutiles_max": 0
+   },
+   "abandonne_si": [
+    "Droits en tout ou rien",
+    "Pas d'export",
+    "Longues listes lentes"
+   ],
+   "donnees_de_test": "Organisation « Maison Belkacem Évènements », six membres, quarante évènements, vingt-cinq prospects",
+   "phrase_type": "Si je dois ouvrir chaque dossier pour savoir où on en est, l'outil ne sert à rien.",
+   "parcours": [
+    "PAR-02",
+    "PAR-03",
+    "PAR-10"
+   ],
+   "scenarios": [
+    "SC-11"
+   ]
+  },
+  {
+   "id": "SU-03",
+   "nom": "Hugo Lemaire",
+   "role": "Chef de projet junior, rôle Assistant",
+   "public": "S2",
+   "age": 26,
+   "lieu": "Lyon",
+   "simulation": {
+    "appareil": "Téléphone Android",
+    "largeur_ecran_px": 360,
+    "zoom_pct": 100,
+    "saisie": "tactile, une main"
+   },
+   "aisance_numerique": "élevée",
+   "objectifs": [
+    "Savoir quoi faire sans demander",
+    "Pointer le jour J",
+    "Prévenir vite un prestataire"
+   ],
+   "frustrations": [
+    "Des informations qui changent sans qu'il le sache",
+    "La saisie au clavier en extérieur"
+   ],
+   "comportement_a_simuler": [
+    "Touche vite, lit peu",
+    "Revient souvent en arrière",
+    "Perd le réseau au milieu d'une action"
+   ],
+   "limite_patience": {
+    "touchers_par_information_max": 2
+   },
+   "abandonne_si": [
+    "L'écran ne se lit pas au soleil",
+    "Une action se perd hors ligne"
+   ],
+   "donnees_de_test": "Accès à trois évènements, aucun droit sur les honoraires",
+   "phrase_type": "Dis-moi juste ce qui se passe maintenant et qui j'appelle.",
+   "parcours": [
+    "PAR-03",
+    "PAR-05",
+    "PAR-08"
+   ],
+   "scenarios": [
+    "SC-08",
+    "SC-11"
+   ]
+  },
+  {
+   "id": "SU-04",
+   "nom": "Sophie Garnier",
+   "role": "Planner expérimentée, peu à l'aise avec le numérique",
+   "public": "S1",
+   "age": 52,
+   "lieu": "Annecy",
+   "simulation": {
+    "appareil": "Portable 15 pouces",
+    "largeur_ecran_px": 1366,
+    "zoom_pct": 150,
+    "saisie": "souris, pas de glisser-déposer"
+   },
+   "aisance_numerique": "faible",
+   "objectifs": [
+    "Ne pas perdre quinze ans de contacts",
+    "Être rassurée à chaque étape",
+    "Avancer à son rythme"
+   ],
+   "frustrations": [
+    "Le jargon",
+    "La peur de casser quelque chose",
+    "Les écrans trop denses"
+   ],
+   "comportement_a_simuler": [
+    "Lit tout",
+    "Hésite avant de cliquer",
+    "N'utilise jamais le glisser-déposer",
+    "Imprime",
+    "Ferme l'onglet par erreur et revient"
+   ],
+   "limite_patience": {
+    "message_incompris_max": 0
+   },
+   "abandonne_si": [
+    "Elle ne peut pas annuler",
+    "Ses contacts importés sont en désordre",
+    "Un mot anglais apparaît"
+   ],
+   "donnees_de_test": "Fichier contacts-import-test-600.csv, avec doublons et colonnes mal nommées. Un budget existant en tableur.",
+   "phrase_type": "Et si je me trompe, je peux revenir en arrière ?",
+   "parcours": [
+    "PAR-01",
+    "PAR-04"
+   ],
+   "scenarios": [
+    "SC-10"
+   ]
+  },
+  {
+   "id": "SU-05",
+   "nom": "Léa Martin et Maxime Dubois",
+   "role": "Couple client",
+   "public": "client",
+   "age": "29 et 31",
+   "lieu": "Bordeaux",
+   "simulation": {
+    "appareil": "Deux téléphones",
+    "largeur_ecran_px": 390,
+    "zoom_pct": 100,
+    "saisie": "tactile"
+   },
+   "aisance_numerique": "élevée (Léa), moyenne (Maxime)",
+   "objectifs": [
+    "Savoir où ils en sont",
+    "Décider vite",
+    "Tenir l'enveloppe"
+   ],
+   "frustrations": [
+    "Chercher un document dans trois messageries",
+    "Ne pas savoir ce qu'on attend d'eux"
+   ],
+   "comportement_a_simuler": [
+    "Léa arrive par la notification et décide en moins d'une minute",
+    "Léa pose une question au passage",
+    "Maxime ouvre le lien deux semaines plus tard, sur un autre appareil"
+   ],
+   "limite_patience": {
+    "lea_comprehension_max_s": 30,
+    "maxime_ecrans_max": 1
+   },
+   "abandonne_si": [
+    "Création de compte demandée",
+    "Budget peu clair"
+   ],
+   "donnees_de_test": "L'évènement de référence EV-REF-01 complet",
+   "phrase_type": "On en est où, et qu'est-ce que je dois décider ?",
+   "parcours": [
+    "PAR-02",
+    "PAR-06",
+    "PAR-07"
+   ],
+   "scenarios": [
+    "SC-02",
+    "SC-04",
+    "SC-05",
+    "SC-06",
+    "SC-07"
+   ]
+  },
+  {
+   "id": "SU-06",
+   "nom": "Bernard Martin",
+   "role": "Père de la mariée, payeur",
+   "public": "client",
+   "age": 63,
+   "lieu": "Périgueux",
+   "simulation": {
+    "appareil": "Tablette",
+    "largeur_ecran_px": 768,
+    "zoom_pct": 125,
+    "saisie": "tactile"
+   },
+   "aisance_numerique": "faible",
+   "objectifs": [
+    "Voir ce qu'il doit payer et quand",
+    "Payer sans erreur",
+    "Garder une trace"
+   ],
+   "frustrations": [
+    "Les liens reçus par e-mail dont il ignore l'origine"
+   ],
+   "comportement_a_simuler": [
+    "Lit chaque mot",
+    "Agrandit l'écran",
+    "Appelle sa fille au moindre doute"
+   ],
+   "limite_patience": {
+    "ambiguite_sur_un_montant_max": 0
+   },
+   "abandonne_si": [
+    "L'origine du message n'est pas claire",
+    "Il voit des informations qui ne le concernent pas"
+   ],
+   "donnees_de_test": "Accès payeur limité aux lignes Lieu et Traiteur et à leurs échéances",
+   "phrase_type": "C'est bien Camille qui m'envoie ça ?",
+   "parcours": [
+    "PAR-06"
+   ],
+   "scenarios": [
+    "SC-06"
+   ]
+  },
+  {
+   "id": "SU-07",
+   "nom": "Claire Fontaine",
+   "role": "Responsable communication, cliente entreprise",
+   "public": "client",
+   "age": 38,
+   "lieu": "Nantes",
+   "simulation": {
+    "appareil": "Ordinateur",
+    "largeur_ecran_px": 1440,
+    "zoom_pct": 100,
+    "saisie": "clavier et souris"
+   },
+   "aisance_numerique": "élevée",
+   "objectifs": [
+    "Un devis clair en hors taxes",
+    "Un suivi sans relance",
+    "Une facture acceptée du premier coup"
+   ],
+   "frustrations": [
+    "Les prestataires brouillons"
+   ],
+   "comportement_a_simuler": [
+    "Transfère le lien à deux collègues",
+    "Télécharge le PDF",
+    "Compare avec un autre devis"
+   ],
+   "limite_patience": {
+    "relances_tolerees": 0
+   },
+   "abandonne_si": [
+    "Le hors taxes n'apparaît pas",
+    "Le bon de commande ne peut pas figurer sur la facture"
+   ],
+   "donnees_de_test": "Société cliente fictive avec SIREN fictif, adresse de facturation distincte du lieu, bon de commande BC-2027-0142",
+   "phrase_type": "Il me faut le PDF pour le service achats avant jeudi.",
+   "parcours": [
+    "PAR-02",
+    "PAR-06"
+   ],
+   "scenarios": [
+    "SC-11"
+   ]
+  },
+  {
+   "id": "SU-08",
+   "nom": "Karim Haddad",
+   "role": "Traiteur, dirigeant de la Maison Haddad",
+   "public": "prestataire",
+   "age": 41,
+   "lieu": "Dordogne",
+   "simulation": {
+    "appareil": "Téléphone, en déplacement",
+    "largeur_ecran_px": 360,
+    "zoom_pct": 100,
+    "saisie": "tactile"
+   },
+   "aisance_numerique": "moyenne",
+   "objectifs": [
+    "Savoir vite si la date est libre",
+    "Envoyer son devis",
+    "Recevoir des horaires et des effectifs fiables"
+   ],
+   "frustrations": [
+    "Créer un compte de plus",
+    "Des effectifs qui changent sans prévenir"
+   ],
+   "comportement_a_simuler": [
+    "Ouvre le lien depuis l'e-mail",
+    "Répond d'un toucher",
+    "Joint un PDF ou une photo",
+    "Referme"
+   ],
+   "limite_patience": {
+    "duree_max_s": 120,
+    "ecrans_max": 2
+   },
+   "abandonne_si": [
+    "Mot de passe demandé",
+    "Plus de deux écrans"
+   ],
+   "donnees_de_test": "Retenu pour EV-REF-01, devis de 9 600 € TTC, acompte de 30 %",
+   "phrase_type": "Dites-moi combien de couverts et à quelle heure, c'est tout.",
+   "parcours": [
+    "PAR-05",
+    "PAR-08"
+   ],
+   "scenarios": [
+    "SC-04",
+    "SC-08"
+   ]
+  },
+  {
+   "id": "SU-09",
+   "nom": "Élodie Perrin",
+   "role": "Fleuriste, micro-entrepreneuse",
+   "public": "prestataire",
+   "age": 33,
+   "lieu": "Dordogne",
+   "simulation": {
+    "appareil": "Téléphone",
+    "largeur_ecran_px": 390,
+    "zoom_pct": 100,
+    "saisie": "tactile"
+   },
+   "aisance_numerique": "moyenne",
+   "objectifs": [
+    "Comprendre le style attendu",
+    "Confirmer ses horaires d'installation",
+    "Être payée à l'heure"
+   ],
+   "frustrations": [
+    "Les briefs en long texte"
+   ],
+   "comportement_a_simuler": [
+    "Regarde les inspirations",
+    "Pose une question",
+    "Envoie son devis en image"
+   ],
+   "limite_patience": {
+    "duree_max_s": 180
+   },
+   "abandonne_si": [
+    "Impossible de joindre une photo",
+    "Brief trop long"
+   ],
+   "donnees_de_test": "Consultée avec deux autres fleuristes pour EV-REF-01",
+   "phrase_type": "Montrez-moi les couleurs, je vous dis si je peux.",
+   "parcours": [
+    "PAR-05"
+   ],
+   "scenarios": [
+    "SC-05"
+   ]
+  },
+  {
+   "id": "SU-10",
+   "nom": "Jeanne Morel",
+   "role": "Invitée, grand-tante du marié",
+   "public": "invité",
+   "age": 71,
+   "lieu": "Brive-la-Gaillarde",
+   "simulation": {
+    "appareil": "Téléphone d'entrée de gamme, grande police, connexion lente",
+    "largeur_ecran_px": 360,
+    "zoom_pct": 130,
+    "saisie": "tactile, imprécis"
+   },
+   "aisance_numerique": "faible",
+   "objectifs": [
+    "Dire qu'elle vient",
+    "Signaler son régime",
+    "Savoir où et quand"
+   ],
+   "frustrations": [
+    "Les petits boutons",
+    "Les textes en petits caractères"
+   ],
+   "comportement_a_simuler": [
+    "Ouvre le lien reçu par SMS",
+    "Lit lentement",
+    "Touche à côté des petits boutons"
+   ],
+   "limite_patience": {
+    "pages_max": 1,
+    "duree_max_s": 60
+   },
+   "abandonne_si": [
+    "Adresse e-mail obligatoire",
+    "Texte petit"
+   ],
+   "donnees_de_test": "Invitée avec un accompagnant, présente à la cérémonie et au dîner, absente au brunch, régime sans gluten",
+   "phrase_type": "Je réponds oui, et après ?",
+   "parcours": [
+    "PAR-07"
+   ],
+   "scenarios": [
+    "SC-07"
+   ]
+  },
+  {
+   "id": "SU-11",
+   "nom": "Antoine Leroy",
+   "role": "Invité non-voyant, ami du couple",
+   "public": "invité",
+   "age": 38,
+   "lieu": "Bordeaux",
+   "simulation": {
+    "appareil": "iPhone avec lecteur d'écran",
+    "largeur_ecran_px": 390,
+    "zoom_pct": 100,
+    "saisie": "lecteur d'écran"
+   },
+   "aisance_numerique": "élevée",
+   "objectifs": [
+    "Répondre seul, sans aide"
+   ],
+   "frustrations": [
+    "Les champs sans libellé",
+    "Les boutons muets"
+   ],
+   "comportement_a_simuler": [
+    "Navigue par titres et par champs",
+    "Écoute chaque libellé"
+   ],
+   "limite_patience": {
+    "elements_sans_libelle_max": 0
+   },
+   "abandonne_si": [
+    "Un champ sans libellé",
+    "Un bouton sans nom accessible"
+   ],
+   "donnees_de_test": "Invité seul, végétarien",
+   "phrase_type": "Si le bouton dit juste « bouton », je ne peux rien faire.",
+   "parcours": [
+    "PAR-07"
+   ],
+   "scenarios": [
+    "SC-07"
+   ]
+  },
+  {
+   "id": "SU-12",
+   "nom": "Mathilde Chevalier",
+   "role": "Expert-comptable",
+   "public": "tiers",
+   "age": 47,
+   "lieu": "Bordeaux",
+   "simulation": {
+    "appareil": "Ordinateur",
+    "largeur_ecran_px": 1440,
+    "zoom_pct": 100,
+    "saisie": "clavier et souris"
+   },
+   "aisance_numerique": "élevée",
+   "objectifs": [
+    "Un journal des ventes exact",
+    "Des factures conformes",
+    "Aucun retraitement"
+   ],
+   "frustrations": [
+    "Les exports qui ne se rapprochent pas"
+   ],
+   "comportement_a_simuler": [
+    "Exporte",
+    "Rapproche les totaux",
+    "Cherche les trous de numérotation"
+   ],
+   "limite_patience": {
+    "ecart_tolere_centimes": 0
+   },
+   "abandonne_si": [
+    "L'export ne se rapproche pas du total facturé",
+    "Une facture a changé après émission"
+   ],
+   "donnees_de_test": "Accès Comptable en lecture sur deux organisations",
+   "phrase_type": "Si le total ne tombe pas juste, je ressaisis tout à la main.",
+   "parcours": [
+    "PAR-04"
+   ],
+   "scenarios": [
+    "SC-09"
+   ]
+  },
+  {
+   "id": "SU-13",
+   "nom": "Julie Nguyen et Samuel Petit",
+   "role": "Couple autonome",
+   "public": "S4",
+   "age": "27 et 28",
+   "lieu": "Toulouse",
+   "simulation": {
+    "appareil": "Téléphone",
+    "largeur_ecran_px": 390,
+    "zoom_pct": 100,
+    "saisie": "tactile"
+   },
+   "aisance_numerique": "élevée",
+   "objectifs": [
+    "Ne rien oublier",
+    "Tenir le budget",
+    "Gérer les réponses"
+   ],
+   "frustrations": [
+    "Les outils qui ressemblent à des logiciels professionnels"
+   ],
+   "comportement_a_simuler": [
+    "Tout sur téléphone, le soir et le week-end",
+    "Comparent avec des applications gratuites"
+   ],
+   "limite_patience": {
+    "valeur_visible_max_s": 300
+   },
+   "abandonne_si": [
+    "L'outil ressemble à un logiciel professionnel"
+   ],
+   "donnees_de_test": "Mariage de 60 invités, budget de 12 000 €",
+   "phrase_type": "On veut juste la liste de ce qu'il faut faire, dans l'ordre.",
+   "parcours": [
+    "PAR-11"
+   ],
+   "scenarios": [
+    "SC-12"
+   ]
+  },
+  {
+   "id": "SU-14",
+   "nom": "« Rex »",
+   "role": "Tiers malveillant, joué uniquement en recette",
+   "public": "adversaire",
+   "age": null,
+   "lieu": null,
+   "simulation": {
+    "appareil": "Ordinateur, outils de test",
+    "largeur_ecran_px": 1440,
+    "zoom_pct": 100,
+    "saisie": "requêtes directes"
+   },
+   "aisance_numerique": "experte",
+   "objectifs": [
+    "Lire ce qui ne lui est pas destiné",
+    "Agir au nom d'un autre",
+    "Saturer les envois"
+   ],
+   "frustrations": [],
+   "comportement_a_simuler": [
+    "Change les identifiants dans les adresses et les requêtes",
+    "Rejoue des liens expirés",
+    "Dépose des fichiers piégés",
+    "Soumet des formulaires en rafale"
+   ],
+   "limite_patience": {},
+   "abandonne_si": [],
+   "donnees_de_test": "Trois visages : prestataire curieux, ancien assistant révoqué, inconnu ayant reçu un lien transféré",
+   "phrase_type": "Réussite du test : tout échoue, tout est journalisé, aucune réponse ne lui apprend quoi que ce soit.",
+   "parcours": [],
+   "scenarios": [
+    "SC-S1",
+    "SC-S2",
+    "SC-S3",
+    "SC-S4",
+    "SC-S5",
+    "SC-S6"
+   ]
+  }
+ ],
+ "organisations": [
+  {
+   "id": "ORG-01",
+   "nom": "Atelier Camille R.",
+   "regime_tva": "franchise en base",
+   "membres": [
+    {
+     "profil": "SU-01",
+     "role": "Propriétaire"
+    }
+   ],
+   "tiers": [
+    {
+     "profil": "SU-12",
+     "role": "Comptable en lecture"
+    }
+   ],
+   "catalogue": [
+    {
+     "libelle": "Organisation complète",
+     "prix_centimes": 330000
+    },
+    {
+     "libelle": "Coordination du jour J",
+     "prix_centimes": 120000
+    },
+    {
+     "libelle": "Coordination du brunch du dimanche",
+     "prix_centimes": 35000
+    },
+    {
+     "libelle": "Décoration : conception et installation",
+     "prix_centimes": 60000
+    },
+    {
+     "libelle": "Rendez-vous de conseil, 2 heures",
+     "prix_centimes": 15000
+    },
+    {
+     "libelle": "Recherche de lieu",
+     "prix_centimes": 45000
+    }
+   ],
+   "evenements": [
+    {
+     "id": "EV-REF-01",
+     "nom": "Mariage de Léa et Maxime",
+     "date": "2027-06-12"
+    },
+    {
+     "nom": "Baptême Rivière",
+     "date": "2027-05-16"
+    },
+    {
+     "nom": "Mariage d'Inès et Paul",
+     "date": "2027-07-03"
+    },
+    {
+     "nom": "Anniversaire des 60 ans",
+     "date": "2027-09-18",
+     "statut": "Option"
+    }
+   ]
+  },
+  {
+   "id": "ORG-02",
+   "nom": "Maison Belkacem Évènements",
+   "regime_tva": "assujetti, taux normal",
+   "membres": [
+    {
+     "profil": "SU-02",
+     "role": "Propriétaire"
+    },
+    {
+     "profil": "SU-03",
+     "role": "Assistant",
+     "evenements": 3
+    },
+    {
+     "nom": "Membre fictif 3",
+     "role": "Planner"
+    },
+    {
+     "nom": "Membre fictif 4",
+     "role": "Planner"
+    },
+    {
+     "nom": "Membre fictif 5",
+     "role": "Assistant"
+    },
+    {
+     "nom": "Membre fictif 6",
+     "role": "Administrateur"
+    }
+   ],
+   "volumes": {
+    "evenements": 40,
+    "prospects": 25
+   }
+  }
+ ],
+ "evenements": [
+  {
+   "id": "EV-REF-01",
+   "organisation": "ORG-01",
+   "type": "Mariage",
+   "nom": "Mariage de Léa et Maxime",
+   "statut": "En préparation",
+   "date": "2027-06-12",
+   "date_de_reference_des_scenarios": "2027-04-05",
+   "jours_avant_le_jour_j": 68,
+   "fuseau": "Europe/Paris",
+   "clients": [
+    {
+     "nom": "Léa Martin",
+     "email": "lea.martin@exemple.test",
+     "role": "mariée"
+    },
+    {
+     "nom": "Maxime Dubois",
+     "email": "maxime.dubois@exemple.test",
+     "role": "marié"
+    },
+    {
+     "nom": "Bernard Martin",
+     "email": "bernard.martin@exemple.test",
+     "role": "payeur",
+     "droits": [
+      "Lieu de réception",
+      "Traiteur"
+     ]
+    }
+   ],
+   "lieux": [
+    {
+     "nom": "Domaine des Tilleuls",
+     "commune": "commune fictive de Dordogne",
+     "fictif": true
+    }
+   ],
+   "temps_forts": [
+    {
+     "id": "TF-1",
+     "nom": "Cérémonie laïque",
+     "debut": "2027-06-12T15:30"
+    },
+    {
+     "id": "TF-2",
+     "nom": "Dîner",
+     "debut": "2027-06-12T19:30"
+    },
+    {
+     "id": "TF-3",
+     "nom": "Brunch",
+     "debut": "2027-06-13T11:00"
+    }
+   ],
+   "prestataires": [
+    {
+     "id": "PR-01",
+     "nom": "Domaine des Tilleuls",
+     "categorie": "Lieu de réception",
+     "contact": "Hélène Vasseur",
+     "statut": "contrat signé",
+     "email": "contact.domaine-des-tilleuls@exemple.test",
+     "telephone": "01 99 00 01 00"
+    },
+    {
+     "id": "PR-02",
+     "nom": "Maison Haddad",
+     "categorie": "Traiteur",
+     "contact": "Karim Haddad",
+     "statut": "retenu, validé par le client",
+     "email": "contact.maison-haddad@exemple.test",
+     "telephone": "01 99 00 01 01"
+    },
+    {
+     "id": "PR-03",
+     "nom": "Studio Lumière",
+     "categorie": "Photographe",
+     "contact": "Bastien Roy",
+     "statut": "devis reçu, contrat en retard",
+     "email": "contact.studio-lumiere@exemple.test",
+     "telephone": "01 99 00 01 02"
+    },
+    {
+     "id": "PR-04",
+     "nom": "Élodie Perrin Fleurs",
+     "categorie": "Fleuriste",
+     "contact": "Élodie Perrin",
+     "statut": "consulté, devis reçu",
+     "email": "contact.elodie-perrin-fleurs@exemple.test",
+     "telephone": "01 99 00 01 03"
+    },
+    {
+     "id": "PR-05",
+     "nom": "Atelier Verveine",
+     "categorie": "Fleuriste",
+     "contact": "Margaux Fabre",
+     "statut": "consulté, devis reçu",
+     "email": "contact.atelier-verveine@exemple.test",
+     "telephone": "01 99 00 01 04"
+    },
+    {
+     "id": "PR-06",
+     "nom": "Les Fleurs du Causse",
+     "categorie": "Fleuriste",
+     "contact": "Denis Marty",
+     "statut": "consulté, indisponible",
+     "email": "contact.les-fleurs-du-causse@exemple.test",
+     "telephone": "01 99 00 01 05"
+    },
+    {
+     "id": "PR-07",
+     "nom": "DJ Solal",
+     "categorie": "Musique",
+     "contact": "Solal Benard",
+     "statut": "contrat signé",
+     "email": "contact.dj-solal@exemple.test",
+     "telephone": "01 99 00 01 06"
+    },
+    {
+     "id": "PR-08",
+     "nom": "Duo Cordes",
+     "categorie": "Musique",
+     "contact": "Agathe Colin",
+     "statut": "contrat signé",
+     "email": "contact.duo-cordes@exemple.test",
+     "telephone": "01 99 00 01 07"
+    },
+    {
+     "id": "PR-09",
+     "nom": "Atelier Papier",
+     "categorie": "Papeterie",
+     "contact": "Lucie Hamon",
+     "statut": "soldé",
+     "email": "contact.atelier-papier@exemple.test",
+     "telephone": "01 99 00 01 08"
+    },
+    {
+     "id": "PR-10",
+     "nom": "Navettes du Périgord",
+     "categorie": "Transport",
+     "contact": "Rémi Gaillard",
+     "statut": "contrat signé",
+     "email": "contact.navettes-du-perigord@exemple.test",
+     "telephone": "01 99 00 01 09"
+    },
+    {
+     "id": "PR-11",
+     "nom": "Claire Delmas",
+     "categorie": "Officiante de cérémonie",
+     "contact": "Claire Delmas",
+     "statut": "contrat signé",
+     "email": "contact.claire-delmas@exemple.test",
+     "telephone": "01 99 00 01 10"
+    },
+    {
+     "id": "PR-12",
+     "nom": "Studio Éclat",
+     "categorie": "Coiffure et maquillage",
+     "contact": "Sarah Lopez",
+     "statut": "soldé",
+     "email": "contact.studio-eclat@exemple.test",
+     "telephone": "01 99 00 01 11"
+    }
+   ],
+   "budget": {
+    "synthese": {
+     "enveloppe_centimes": 3500000,
+     "estime_centimes": 3420000,
+     "engage_centimes": 2745000,
+     "paye_centimes": 918000,
+     "reste_a_payer_centimes": 1827000
+    },
+    "lignes": [
+     {
+      "id": "BL-01",
+      "poste": "Lieu de réception",
+      "libelle": "Location du domaine",
+      "prestataire": "PR-01",
+      "estime_centimes": 550000,
+      "engage_centimes": 550000,
+      "paye_centimes": 300000
+     },
+     {
+      "id": "BL-02",
+      "poste": "Lieu de réception",
+      "libelle": "Ménage et gardiennage",
+      "prestataire": "PR-01",
+      "estime_centimes": 40000,
+      "engage_centimes": 40000,
+      "paye_centimes": 0
+     },
+     {
+      "id": "BL-03",
+      "poste": "Lieu de réception",
+      "libelle": "Mobilier complémentaire",
+      "prestataire": "PR-01",
+      "estime_centimes": 60000,
+      "engage_centimes": 60000,
+      "paye_centimes": 0
+     },
+     {
+      "id": "BL-04",
+      "poste": "Traiteur",
+      "libelle": "Dîner, 120 couverts",
+      "prestataire": "PR-02",
+      "estime_centimes": 660000,
+      "engage_centimes": 660000,
+      "paye_centimes": 0
+     },
+     {
+      "id": "BL-05",
+      "poste": "Traiteur",
+      "libelle": "Vin d'honneur",
+      "prestataire": "PR-02",
+      "estime_centimes": 120000,
+      "engage_centimes": 120000,
+      "paye_centimes": 0
+     },
+     {
+      "id": "BL-06",
+      "poste": "Traiteur",
+      "libelle": "Brunch du dimanche",
+      "prestataire": "PR-02",
+      "estime_centimes": 120000,
+      "engage_centimes": 120000,
+      "paye_centimes": 0
+     },
+     {
+      "id": "BL-07",
+      "poste": "Traiteur",
+      "libelle": "Pièce montée",
+      "prestataire": "PR-02",
+      "estime_centimes": 60000,
+      "engage_centimes": 60000,
+      "paye_centimes": 0
+     },
+     {
+      "id": "BL-08",
+      "poste": "Photographe",
+      "libelle": "Reportage photo",
+      "prestataire": "PR-03",
+      "estime_centimes": 240000,
+      "engage_centimes": 0,
+      "paye_centimes": 0
+     },
+     {
+      "id": "BL-09",
+      "poste": "Fleurs et décoration",
+      "libelle": "Fleurs de cérémonie et centres de table",
+      "prestataire": null,
+      "estime_centimes": 160000,
+      "engage_centimes": 0,
+      "paye_centimes": 0
+     },
+     {
+      "id": "BL-10",
+      "poste": "Fleurs et décoration",
+      "libelle": "Arche de cérémonie",
+      "prestataire": null,
+      "estime_centimes": 40000,
+      "engage_centimes": 0,
+      "paye_centimes": 0
+     },
+     {
+      "id": "BL-11",
+      "poste": "Fleurs et décoration",
+      "libelle": "Décoration et location d'accessoires",
+      "prestataire": null,
+      "estime_centimes": 80000,
+      "engage_centimes": 0,
+      "paye_centimes": 0
+     },
+     {
+      "id": "BL-12",
+      "poste": "Musique",
+      "libelle": "DJ de la soirée",
+      "prestataire": "PR-07",
+      "estime_centimes": 110000,
+      "engage_centimes": 110000,
+      "paye_centimes": 33000
+     },
+     {
+      "id": "BL-13",
+      "poste": "Musique",
+      "libelle": "Musiciens de la cérémonie",
+      "prestataire": "PR-08",
+      "estime_centimes": 50000,
+      "engage_centimes": 50000,
+      "paye_centimes": 15000
+     },
+     {
+      "id": "BL-14",
+      "poste": "Musique",
+      "libelle": "Sonorisation de la cérémonie",
+      "prestataire": "PR-07",
+      "estime_centimes": 20000,
+      "engage_centimes": 20000,
+      "paye_centimes": 6000
+     },
+     {
+      "id": "BL-15",
+      "poste": "Tenues et beauté",
+      "libelle": "Robe",
+      "prestataire": null,
+      "estime_centimes": 190000,
+      "engage_centimes": 190000,
+      "paye_centimes": 190000
+     },
+     {
+      "id": "BL-16",
+      "poste": "Tenues et beauté",
+      "libelle": "Costume",
+      "prestataire": null,
+      "estime_centimes": 80000,
+      "engage_centimes": 80000,
+      "paye_centimes": 80000
+     },
+     {
+      "id": "BL-17",
+      "poste": "Tenues et beauté",
+      "libelle": "Coiffure et maquillage",
+      "prestataire": "PR-12",
+      "estime_centimes": 50000,
+      "engage_centimes": 50000,
+      "paye_centimes": 50000
+     },
+     {
+      "id": "BL-18",
+      "poste": "Papeterie",
+      "libelle": "Faire-part",
+      "prestataire": "PR-09",
+      "estime_centimes": 40000,
+      "engage_centimes": 40000,
+      "paye_centimes": 40000
+     },
+     {
+      "id": "BL-19",
+      "poste": "Papeterie",
+      "libelle": "Menus et marque-places",
+      "prestataire": "PR-09",
+      "estime_centimes": 15000,
+      "engage_centimes": 15000,
+      "paye_centimes": 15000
+     },
+     {
+      "id": "BL-20",
+      "poste": "Papeterie",
+      "libelle": "Livret de cérémonie",
+      "prestataire": "PR-09",
+      "estime_centimes": 10000,
+      "engage_centimes": 10000,
+      "paye_centimes": 10000
+     },
+     {
+      "id": "BL-21",
+      "poste": "Hébergement et transport",
+      "libelle": "Hébergement des mariés et des témoins",
+      "prestataire": "PR-01",
+      "estime_centimes": 90000,
+      "engage_centimes": 90000,
+      "paye_centimes": 80000
+     },
+     {
+      "id": "BL-22",
+      "poste": "Hébergement et transport",
+      "libelle": "Navette des invités",
+      "prestataire": "PR-10",
+      "estime_centimes": 110000,
+      "engage_centimes": 110000,
+      "paye_centimes": 0
+     },
+     {
+      "id": "BL-23",
+      "poste": "Hébergement et transport",
+      "libelle": "Voiture des mariés",
+      "prestataire": "PR-10",
+      "estime_centimes": 40000,
+      "engage_centimes": 40000,
+      "paye_centimes": 0
+     },
+     {
+      "id": "BL-24",
+      "poste": "Imprévus",
+      "libelle": "Réserve",
+      "prestataire": null,
+      "estime_centimes": 155000,
+      "engage_centimes": 0,
+      "paye_centimes": 0
+     }
+    ],
+    "honoraires_du_planner": {
+     "libelle": "Forfait d'organisation complète",
+     "montant_centimes": 330000,
+     "acompte_regle_centimes": 99000,
+     "solde_a_facturer_centimes": 231000,
+     "mention": "TVA non applicable, article 293 B du CGI"
+    },
+    "echeances": [
+     {
+      "ligne": "BL-04",
+      "libelle": "Acompte du traiteur, 30 %",
+      "montant_centimes": 288000,
+      "date": "2027-04-09",
+      "payeur": "Léa Martin et Maxime Dubois",
+      "statut": "à régler"
+     },
+     {
+      "ligne": "BL-01",
+      "libelle": "Deuxième échéance du lieu",
+      "montant_centimes": 150000,
+      "date": "2027-04-16",
+      "payeur": "Bernard Martin",
+      "statut": "à régler"
+     },
+     {
+      "ligne": "BL-12",
+      "libelle": "Solde de la musique",
+      "montant_centimes": 126000,
+      "date": "2027-05-12",
+      "payeur": "Léa Martin et Maxime Dubois",
+      "statut": "à venir"
+     },
+     {
+      "ligne": "BL-22",
+      "libelle": "Solde hébergement et transport",
+      "montant_centimes": 160000,
+      "date": "2027-05-28",
+      "payeur": "Léa Martin et Maxime Dubois",
+      "statut": "à venir"
+     }
+    ]
+   },
+   "taches": [
+    {
+     "id": "TA-01",
+     "titre": "Signer le contrat d'organisation",
+     "responsable": "client",
+     "echeance_relative": "J-330",
+     "echeance": "2026-07-17",
+     "statut": "fait"
+    },
+    {
+     "id": "TA-02",
+     "titre": "Fixer l'enveloppe et les priorités",
+     "responsable": "planner",
+     "echeance_relative": "J-320",
+     "echeance": "2026-07-27",
+     "statut": "fait"
+    },
+    {
+     "id": "TA-03",
+     "titre": "Visiter trois lieux",
+     "responsable": "planner",
+     "echeance_relative": "J-310",
+     "echeance": "2026-08-06",
+     "statut": "fait"
+    },
+    {
+     "id": "TA-04",
+     "titre": "Réserver le lieu",
+     "responsable": "client",
+     "echeance_relative": "J-300",
+     "echeance": "2026-08-16",
+     "statut": "fait"
+    },
+    {
+     "id": "TA-05",
+     "titre": "Établir la première liste d'invités",
+     "responsable": "client",
+     "echeance_relative": "J-290",
+     "echeance": "2026-08-26",
+     "statut": "fait"
+    },
+    {
+     "id": "TA-06",
+     "titre": "Choisir le style et les couleurs",
+     "responsable": "client",
+     "echeance_relative": "J-280",
+     "echeance": "2026-09-05",
+     "statut": "fait"
+    },
+    {
+     "id": "TA-07",
+     "titre": "Consulter les traiteurs",
+     "responsable": "planner",
+     "echeance_relative": "J-270",
+     "echeance": "2026-09-15",
+     "statut": "fait"
+    },
+    {
+     "id": "TA-08",
+     "titre": "Réserver l'officiante",
+     "responsable": "planner",
+     "echeance_relative": "J-260",
+     "echeance": "2026-09-25",
+     "statut": "fait"
+    },
+    {
+     "id": "TA-09",
+     "titre": "Consulter les photographes",
+     "responsable": "planner",
+     "echeance_relative": "J-250",
+     "echeance": "2026-10-05",
+     "statut": "fait"
+    },
+    {
+     "id": "TA-10",
+     "titre": "Réserver le DJ",
+     "responsable": "planner",
+     "echeance_relative": "J-240",
+     "echeance": "2026-10-15",
+     "statut": "fait"
+    },
+    {
+     "id": "TA-11",
+     "titre": "Envoyer les « réservez la date »",
+     "responsable": "client",
+     "echeance_relative": "J-230",
+     "echeance": "2026-10-25",
+     "statut": "fait"
+    },
+    {
+     "id": "TA-12",
+     "titre": "Organiser la dégustation de présélection",
+     "responsable": "planner",
+     "echeance_relative": "J-220",
+     "echeance": "2026-11-04",
+     "statut": "fait"
+    },
+    {
+     "id": "TA-13",
+     "titre": "Choisir les tenues",
+     "responsable": "client",
+     "echeance_relative": "J-210",
+     "echeance": "2026-11-14",
+     "statut": "fait"
+    },
+    {
+     "id": "TA-14",
+     "titre": "Réserver l'hébergement des proches",
+     "responsable": "client",
+     "echeance_relative": "J-200",
+     "echeance": "2026-11-24",
+     "statut": "fait"
+    },
+    {
+     "id": "TA-15",
+     "titre": "Réserver les musiciens de la cérémonie",
+     "responsable": "planner",
+     "echeance_relative": "J-190",
+     "echeance": "2026-12-04",
+     "statut": "fait"
+    },
+    {
+     "id": "TA-16",
+     "titre": "Valider le budget détaillé",
+     "responsable": "client",
+     "echeance_relative": "J-180",
+     "echeance": "2026-12-14",
+     "statut": "fait"
+    },
+    {
+     "id": "TA-17",
+     "titre": "Commander la papeterie",
+     "responsable": "planner",
+     "echeance_relative": "J-170",
+     "echeance": "2026-12-24",
+     "statut": "fait"
+    },
+    {
+     "id": "TA-18",
+     "titre": "Réserver la navette des invités",
+     "responsable": "planner",
+     "echeance_relative": "J-160",
+     "echeance": "2027-01-03",
+     "statut": "fait"
+    },
+    {
+     "id": "TA-19",
+     "titre": "Préparer le plan B en cas de pluie",
+     "responsable": "planner",
+     "echeance_relative": "J-150",
+     "echeance": "2027-01-13",
+     "statut": "fait"
+    },
+    {
+     "id": "TA-20",
+     "titre": "Valider le texte du faire-part",
+     "responsable": "client",
+     "echeance_relative": "J-140",
+     "echeance": "2027-01-23",
+     "statut": "fait"
+    },
+    {
+     "id": "TA-21",
+     "titre": "Envoyer les faire-part",
+     "responsable": "client",
+     "echeance_relative": "J-130",
+     "echeance": "2027-02-02",
+     "statut": "fait"
+    },
+    {
+     "id": "TA-22",
+     "titre": "Réserver la coiffure et le maquillage",
+     "responsable": "client",
+     "echeance_relative": "J-125",
+     "echeance": "2027-02-07",
+     "statut": "fait"
+    },
+    {
+     "id": "TA-23",
+     "titre": "Rédiger la trame de la cérémonie",
+     "responsable": "planner",
+     "echeance_relative": "J-120",
+     "echeance": "2027-02-12",
+     "statut": "fait"
+    },
+    {
+     "id": "TA-24",
+     "titre": "Recueillir le devis du traiteur",
+     "responsable": "planner",
+     "echeance_relative": "J-115",
+     "echeance": "2027-02-17",
+     "statut": "fait"
+    },
+    {
+     "id": "TA-25",
+     "titre": "Consulter trois fleuristes",
+     "responsable": "planner",
+     "echeance_relative": "J-110",
+     "echeance": "2027-02-22",
+     "statut": "fait"
+    },
+    {
+     "id": "TA-26",
+     "titre": "Choisir les alliances",
+     "responsable": "client",
+     "echeance_relative": "J-105",
+     "echeance": "2027-02-27",
+     "statut": "fait"
+    },
+    {
+     "id": "TA-27",
+     "titre": "Demander les attestations d'assurance",
+     "responsable": "planner",
+     "echeance_relative": "J-100",
+     "echeance": "2027-03-04",
+     "statut": "fait"
+    },
+    {
+     "id": "TA-28",
+     "titre": "Valider le menu de principe",
+     "responsable": "client",
+     "echeance_relative": "J-95",
+     "echeance": "2027-03-09",
+     "statut": "fait"
+    },
+    {
+     "id": "TA-29",
+     "titre": "Préparer le premier chrono",
+     "responsable": "planner",
+     "echeance_relative": "J-90",
+     "echeance": "2027-03-14",
+     "statut": "fait"
+    },
+    {
+     "id": "TA-30",
+     "titre": "Faire le point de budget à mi-parcours",
+     "responsable": "planner",
+     "echeance_relative": "J-85",
+     "echeance": "2027-03-19",
+     "statut": "fait"
+    },
+    {
+     "id": "TA-31",
+     "titre": "Partager les propositions de fleuristes",
+     "responsable": "planner",
+     "echeance_relative": "J-80",
+     "echeance": "2027-03-24",
+     "statut": "fait"
+    },
+    {
+     "id": "TA-32",
+     "titre": "Faire signer le contrat du photographe",
+     "responsable": "planner",
+     "echeance_relative": "J-71",
+     "echeance": "2027-04-02",
+     "statut": "en retard"
+    },
+    {
+     "id": "TA-33",
+     "titre": "Confirmer la voiture des mariés",
+     "responsable": "planner",
+     "echeance_relative": "J-70",
+     "echeance": "2027-04-03",
+     "statut": "en retard"
+    },
+    {
+     "id": "TA-34",
+     "titre": "Choisir le fleuriste",
+     "responsable": "client",
+     "echeance_relative": "J-62",
+     "echeance": "2027-04-11",
+     "statut": "à faire"
+    },
+    {
+     "id": "TA-35",
+     "titre": "Organiser la dégustation finale",
+     "responsable": "planner",
+     "echeance_relative": "J-61",
+     "echeance": "2027-04-12",
+     "statut": "à faire"
+    },
+    {
+     "id": "TA-36",
+     "titre": "Valider le faire-part du brunch",
+     "responsable": "client",
+     "echeance_relative": "J-58",
+     "echeance": "2027-04-15",
+     "statut": "à faire"
+    },
+    {
+     "id": "TA-37",
+     "titre": "Relancer les invités sans réponse",
+     "responsable": "planner",
+     "echeance_relative": "J-45",
+     "echeance": "2027-04-28",
+     "statut": "à faire"
+    },
+    {
+     "id": "TA-38",
+     "titre": "Envoyer les feuilles de route aux prestataires",
+     "responsable": "planner",
+     "echeance_relative": "J-30",
+     "echeance": "2027-05-13",
+     "statut": "à faire"
+    },
+    {
+     "id": "TA-39",
+     "titre": "Composer le plan de table",
+     "responsable": "planner",
+     "echeance_relative": "J-21",
+     "echeance": "2027-05-22",
+     "statut": "à faire"
+    },
+    {
+     "id": "TA-40",
+     "titre": "Transmettre les effectifs au traiteur",
+     "responsable": "planner",
+     "echeance_relative": "J-14",
+     "echeance": "2027-05-29",
+     "statut": "à faire"
+    },
+    {
+     "id": "TA-41",
+     "titre": "Confirmer les horaires avec chaque prestataire",
+     "responsable": "planner",
+     "echeance_relative": "J-7",
+     "echeance": "2027-06-05",
+     "statut": "à faire"
+    },
+    {
+     "id": "TA-42",
+     "titre": "Activer le mode Jour J",
+     "responsable": "planner",
+     "echeance_relative": "J-1",
+     "echeance": "2027-06-11",
+     "statut": "à faire"
+    }
+   ],
+   "chrono": [
+    {
+     "id": "SQ-01",
+     "jour": "2027-06-12",
+     "heure": "09:00",
+     "duree_min": 60,
+     "titre": "Accès du domaine, livraison du mobilier",
+     "lieu": "Domaine",
+     "prestataire": "PR-01"
+    },
+    {
+     "id": "SQ-02",
+     "jour": "2027-06-12",
+     "heure": "10:00",
+     "duree_min": 120,
+     "titre": "Installation florale et décoration",
+     "lieu": "Jardin et grande salle",
+     "prestataire": null
+    },
+    {
+     "id": "SQ-03",
+     "jour": "2027-06-12",
+     "heure": "10:30",
+     "duree_min": 150,
+     "titre": "Coiffure et maquillage",
+     "lieu": "Maison des mariés",
+     "prestataire": "PR-12"
+    },
+    {
+     "id": "SQ-04",
+     "jour": "2027-06-12",
+     "heure": "12:00",
+     "duree_min": 60,
+     "titre": "Mise en place du traiteur",
+     "lieu": "Cuisine et terrasse",
+     "prestataire": "PR-02"
+    },
+    {
+     "id": "SQ-05",
+     "jour": "2027-06-12",
+     "heure": "13:00",
+     "duree_min": 45,
+     "titre": "Déjeuner de l'équipe",
+     "lieu": "Office",
+     "prestataire": null
+    },
+    {
+     "id": "SQ-06",
+     "jour": "2027-06-12",
+     "heure": "13:30",
+     "duree_min": 60,
+     "titre": "Photos des préparatifs",
+     "lieu": "Maison des mariés",
+     "prestataire": "PR-03"
+    },
+    {
+     "id": "SQ-07",
+     "jour": "2027-06-12",
+     "heure": "14:00",
+     "duree_min": 60,
+     "titre": "Installation et essais de la sonorisation",
+     "lieu": "Sous les tilleuls",
+     "prestataire": "PR-07"
+    },
+    {
+     "id": "SQ-08",
+     "jour": "2027-06-12",
+     "heure": "14:30",
+     "duree_min": 30,
+     "titre": "Arrivée de la navette des invités",
+     "lieu": "Parking",
+     "prestataire": "PR-10"
+    },
+    {
+     "id": "SQ-09",
+     "jour": "2027-06-12",
+     "heure": "15:00",
+     "duree_min": 30,
+     "titre": "Accueil des invités",
+     "lieu": "Allée",
+     "prestataire": null
+    },
+    {
+     "id": "SQ-10",
+     "jour": "2027-06-12",
+     "heure": "15:30",
+     "duree_min": 45,
+     "titre": "Cérémonie laïque",
+     "lieu": "Sous les tilleuls",
+     "prestataire": "PR-11"
+    },
+    {
+     "id": "SQ-11",
+     "jour": "2027-06-12",
+     "heure": "16:15",
+     "duree_min": 15,
+     "titre": "Sortie des mariés",
+     "lieu": "Allée",
+     "prestataire": "PR-08"
+    },
+    {
+     "id": "SQ-12",
+     "jour": "2027-06-12",
+     "heure": "16:30",
+     "duree_min": 30,
+     "titre": "Photos de couple",
+     "lieu": "Parc",
+     "prestataire": "PR-03"
+    },
+    {
+     "id": "SQ-13",
+     "jour": "2027-06-12",
+     "heure": "17:00",
+     "duree_min": 105,
+     "titre": "Vin d'honneur",
+     "lieu": "Terrasse",
+     "prestataire": "PR-02"
+    },
+    {
+     "id": "SQ-14",
+     "jour": "2027-06-12",
+     "heure": "18:45",
+     "duree_min": 30,
+     "titre": "Photos de groupe",
+     "lieu": "Escalier du domaine",
+     "prestataire": "PR-03"
+    },
+    {
+     "id": "SQ-15",
+     "jour": "2027-06-12",
+     "heure": "19:15",
+     "duree_min": 15,
+     "titre": "Placement des invités",
+     "lieu": "Grande salle",
+     "prestataire": null
+    },
+    {
+     "id": "SQ-16",
+     "jour": "2027-06-12",
+     "heure": "19:30",
+     "duree_min": 30,
+     "titre": "Entrée des mariés et premier discours",
+     "lieu": "Grande salle",
+     "prestataire": "PR-07"
+    },
+    {
+     "id": "SQ-17",
+     "jour": "2027-06-12",
+     "heure": "20:00",
+     "duree_min": 45,
+     "titre": "Entrée",
+     "lieu": "Grande salle",
+     "prestataire": "PR-02"
+    },
+    {
+     "id": "SQ-18",
+     "jour": "2027-06-12",
+     "heure": "20:45",
+     "duree_min": 20,
+     "titre": "Discours des témoins",
+     "lieu": "Grande salle",
+     "prestataire": null
+    },
+    {
+     "id": "SQ-19",
+     "jour": "2027-06-12",
+     "heure": "21:05",
+     "duree_min": 55,
+     "titre": "Plat",
+     "lieu": "Grande salle",
+     "prestataire": "PR-02"
+    },
+    {
+     "id": "SQ-20",
+     "jour": "2027-06-12",
+     "heure": "22:00",
+     "duree_min": 20,
+     "titre": "Animation surprise",
+     "lieu": "Grande salle",
+     "prestataire": null
+    },
+    {
+     "id": "SQ-21",
+     "jour": "2027-06-12",
+     "heure": "22:20",
+     "duree_min": 25,
+     "titre": "Fromage",
+     "lieu": "Grande salle",
+     "prestataire": "PR-02"
+    },
+    {
+     "id": "SQ-22",
+     "jour": "2027-06-12",
+     "heure": "22:45",
+     "duree_min": 30,
+     "titre": "Pièce montée",
+     "lieu": "Grande salle",
+     "prestataire": "PR-02"
+    },
+    {
+     "id": "SQ-23",
+     "jour": "2027-06-12",
+     "heure": "23:15",
+     "duree_min": 10,
+     "titre": "Ouverture du bal",
+     "lieu": "Grande salle",
+     "prestataire": "PR-07"
+    },
+    {
+     "id": "SQ-24",
+     "jour": "2027-06-12",
+     "heure": "23:25",
+     "duree_min": 155,
+     "titre": "Soirée dansante",
+     "lieu": "Grande salle",
+     "prestataire": "PR-07"
+    },
+    {
+     "id": "SQ-25",
+     "jour": "2027-06-13",
+     "heure": "01:00",
+     "duree_min": 15,
+     "titre": "Premier départ de la navette",
+     "lieu": "Parking",
+     "prestataire": "PR-10"
+    },
+    {
+     "id": "SQ-26",
+     "jour": "2027-06-13",
+     "heure": "02:00",
+     "duree_min": 30,
+     "titre": "Fin de soirée et dernier départ",
+     "lieu": "Parking",
+     "prestataire": "PR-10"
+    },
+    {
+     "id": "SQ-27",
+     "jour": "2027-06-13",
+     "heure": "11:00",
+     "duree_min": 150,
+     "titre": "Brunch",
+     "lieu": "Terrasse",
+     "prestataire": "PR-02"
+    },
+    {
+     "id": "SQ-28",
+     "jour": "2027-06-13",
+     "heure": "14:00",
+     "duree_min": 120,
+     "titre": "Démontage et restitution du domaine",
+     "lieu": "Domaine",
+     "prestataire": "PR-01"
+    }
+   ],
+   "invites": {
+    "synthese": {
+     "invites": 120,
+     "foyers": 52,
+     "enfants": 14,
+     "presents_diner": 95,
+     "absents": 11,
+     "sans_reponse": 14,
+     "regimes_signales": 15
+    },
+    "foyers": [
+     {
+      "id": "FO-01",
+      "nom": "Foyer Morel",
+      "forme": "couple"
+     },
+     {
+      "id": "FO-02",
+      "nom": "Foyer Leroy",
+      "forme": "seul"
+     },
+     {
+      "id": "FO-03",
+      "nom": "Foyer Martin",
+      "forme": "couple"
+     },
+     {
+      "id": "FO-04",
+      "nom": "Foyer Dubois",
+      "forme": "couple"
+     },
+     {
+      "id": "FO-05",
+      "nom": "Foyer Bernard",
+      "forme": "couple"
+     },
+     {
+      "id": "FO-06",
+      "nom": "Foyer Petit",
+      "forme": "famille1"
+     },
+     {
+      "id": "FO-07",
+      "nom": "Foyer Robert",
+      "forme": "couple"
+     },
+     {
+      "id": "FO-08",
+      "nom": "Foyer Richard",
+      "forme": "couple"
+     },
+     {
+      "id": "FO-09",
+      "nom": "Foyer Durand",
+      "forme": "famille2"
+     },
+     {
+      "id": "FO-10",
+      "nom": "Foyer Moreau",
+      "forme": "couple"
+     },
+     {
+      "id": "FO-11",
+      "nom": "Foyer Laurent",
+      "forme": "couple"
+     },
+     {
+      "id": "FO-12",
+      "nom": "Foyer Simon",
+      "forme": "couple"
+     },
+     {
+      "id": "FO-13",
+      "nom": "Foyer Michel",
+      "forme": "couple"
+     },
+     {
+      "id": "FO-14",
+      "nom": "Foyer Lefèvre",
+      "forme": "couple"
+     },
+     {
+      "id": "FO-15",
+      "nom": "Foyer Garcia",
+      "forme": "couple"
+     },
+     {
+      "id": "FO-16",
+      "nom": "Foyer David",
+      "forme": "trio"
+     },
+     {
+      "id": "FO-17",
+      "nom": "Foyer Bertrand",
+      "forme": "couple"
+     },
+     {
+      "id": "FO-18",
+      "nom": "Foyer Roux",
+      "forme": "couple"
+     },
+     {
+      "id": "FO-19",
+      "nom": "Foyer Vincent",
+      "forme": "famille2"
+     },
+     {
+      "id": "FO-20",
+      "nom": "Foyer Fournier",
+      "forme": "couple"
+     },
+     {
+      "id": "FO-21",
+      "nom": "Foyer Girard",
+      "forme": "couple"
+     },
+     {
+      "id": "FO-22",
+      "nom": "Foyer Bonnet",
+      "forme": "couple"
+     },
+     {
+      "id": "FO-23",
+      "nom": "Foyer Dupont",
+      "forme": "couple"
+     },
+     {
+      "id": "FO-24",
+      "nom": "Foyer Lambert",
+      "forme": "couple"
+     },
+     {
+      "id": "FO-25",
+      "nom": "Foyer Fontaine",
+      "forme": "couple"
+     },
+     {
+      "id": "FO-26",
+      "nom": "Foyer Rousseau",
+      "forme": "couple"
+     },
+     {
+      "id": "FO-27",
+      "nom": "Foyer Blanc",
+      "forme": "famille2"
+     },
+     {
+      "id": "FO-28",
+      "nom": "Foyer Guérin",
+      "forme": "couple"
+     },
+     {
+      "id": "FO-29",
+      "nom": "Foyer Muller",
+      "forme": "couple"
+     },
+     {
+      "id": "FO-30",
+      "nom": "Foyer Henry",
+      "forme": "couple"
+     },
+     {
+      "id": "FO-31",
+      "nom": "Foyer Roussel",
+      "forme": "seul"
+     },
+     {
+      "id": "FO-32",
+      "nom": "Foyer Nicolas",
+      "forme": "famille2"
+     },
+     {
+      "id": "FO-33",
+      "nom": "Foyer Perrin",
+      "forme": "couple"
+     },
+     {
+      "id": "FO-34",
+      "nom": "Foyer Morin",
+      "forme": "famille2"
+     },
+     {
+      "id": "FO-35",
+      "nom": "Foyer Mathieu",
+      "forme": "couple"
+     },
+     {
+      "id": "FO-36",
+      "nom": "Foyer Clément",
+      "forme": "trio"
+     },
+     {
+      "id": "FO-37",
+      "nom": "Foyer Gauthier",
+      "forme": "couple"
+     },
+     {
+      "id": "FO-38",
+      "nom": "Foyer Dumont",
+      "forme": "couple"
+     },
+     {
+      "id": "FO-39",
+      "nom": "Foyer Lopez",
+      "forme": "famille2"
+     },
+     {
+      "id": "FO-40",
+      "nom": "Foyer Faure",
+      "forme": "couple"
+     },
+     {
+      "id": "FO-41",
+      "nom": "Foyer André",
+      "forme": "couple"
+     },
+     {
+      "id": "FO-42",
+      "nom": "Foyer Mercier",
+      "forme": "couple"
+     },
+     {
+      "id": "FO-43",
+      "nom": "Foyer Chevalier",
+      "forme": "couple"
+     },
+     {
+      "id": "FO-44",
+      "nom": "Foyer François",
+      "forme": "trio"
+     },
+     {
+      "id": "FO-45",
+      "nom": "Foyer Legrand",
+      "forme": "couple"
+     },
+     {
+      "id": "FO-46",
+      "nom": "Foyer Gautier",
+      "forme": "couple"
+     },
+     {
+      "id": "FO-47",
+      "nom": "Foyer Renard",
+      "forme": "couple"
+     },
+     {
+      "id": "FO-48",
+      "nom": "Foyer Barbier",
+      "forme": "couple"
+     },
+     {
+      "id": "FO-49",
+      "nom": "Foyer Arnaud",
+      "forme": "couple"
+     },
+     {
+      "id": "FO-50",
+      "nom": "Foyer Marchand",
+      "forme": "trio"
+     },
+     {
+      "id": "FO-51",
+      "nom": "Foyer Noël",
+      "forme": "famille1"
+     },
+     {
+      "id": "FO-52",
+      "nom": "Foyer Brun",
+      "forme": "couple"
+     }
+    ],
+    "personnes": [
+     {
+      "id": "IN-001",
+      "foyer": "FO-01",
+      "prenom": "Jeanne",
+      "nom": "Morel",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "jeanne.morel.1@exemple.test",
+      "telephone": "06 39 98 10 01",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": false
+      },
+      "regime": "sans gluten",
+      "accord_regime": true
+     },
+     {
+      "id": "IN-002",
+      "foyer": "FO-01",
+      "prenom": "Michel",
+      "nom": "Morel",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "michel.morel.2@exemple.test",
+      "telephone": "06 39 98 10 02",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-003",
+      "foyer": "FO-02",
+      "prenom": "Antoine",
+      "nom": "Leroy",
+      "enfant": false,
+      "cote": "Léa",
+      "email": "antoine.leroy.3@exemple.test",
+      "telephone": "06 39 98 10 03",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": true
+      },
+      "regime": "végétarien",
+      "accord_regime": true
+     },
+     {
+      "id": "IN-004",
+      "foyer": "FO-03",
+      "prenom": "Lucie",
+      "nom": "Martin",
+      "enfant": false,
+      "cote": "Léa",
+      "email": "lucie.martin.4@exemple.test",
+      "telephone": "06 39 98 10 04",
+      "reponse": {
+       "ceremonie": false,
+       "diner": false,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-005",
+      "foyer": "FO-03",
+      "prenom": "Julien",
+      "nom": "Martin",
+      "enfant": false,
+      "cote": "Léa",
+      "email": "julien.martin.5@exemple.test",
+      "telephone": "06 39 98 10 05",
+      "reponse": {
+       "ceremonie": false,
+       "diner": false,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-006",
+      "foyer": "FO-04",
+      "prenom": "Camille",
+      "nom": "Dubois",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "camille.dubois.6@exemple.test",
+      "telephone": "06 39 98 10 06",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-007",
+      "foyer": "FO-04",
+      "prenom": "Yanis",
+      "nom": "Dubois",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "yanis.dubois.7@exemple.test",
+      "telephone": "06 39 98 10 07",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": true
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-008",
+      "foyer": "FO-05",
+      "prenom": "Sarah",
+      "nom": "Bernard",
+      "enfant": false,
+      "cote": "Léa",
+      "email": "sarah.bernard.8@exemple.test",
+      "telephone": "06 39 98 10 08",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": true
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-009",
+      "foyer": "FO-05",
+      "prenom": "Benoît",
+      "nom": "Bernard",
+      "enfant": false,
+      "cote": "Léa",
+      "email": "benoit.bernard.9@exemple.test",
+      "telephone": "06 39 98 10 09",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": true
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-010",
+      "foyer": "FO-06",
+      "prenom": "Sophie",
+      "nom": "Petit",
+      "enfant": false,
+      "cote": "Léa",
+      "email": "sophie.petit.10@exemple.test",
+      "telephone": "06 39 98 10 10",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": true
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-011",
+      "foyer": "FO-06",
+      "prenom": "Clément",
+      "nom": "Petit",
+      "enfant": false,
+      "cote": "Léa",
+      "email": "clement.petit.11@exemple.test",
+      "telephone": "06 39 98 10 11",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": false
+      },
+      "regime": "végétarien",
+      "accord_regime": true
+     },
+     {
+      "id": "IN-012",
+      "foyer": "FO-06",
+      "prenom": "Léo",
+      "nom": "Petit",
+      "enfant": true,
+      "cote": "Léa",
+      "email": null,
+      "telephone": null,
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": true
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-013",
+      "foyer": "FO-07",
+      "prenom": "Isabelle",
+      "nom": "Robert",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "isabelle.robert.13@exemple.test",
+      "telephone": "06 39 98 10 13",
+      "reponse": null,
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-014",
+      "foyer": "FO-07",
+      "prenom": "Pierre",
+      "nom": "Robert",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "pierre.robert.14@exemple.test",
+      "telephone": "06 39 98 10 14",
+      "reponse": null,
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-015",
+      "foyer": "FO-08",
+      "prenom": "Anne",
+      "nom": "Richard",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "anne.richard.15@exemple.test",
+      "telephone": "06 39 98 10 15",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": true
+      },
+      "regime": "allergie aux fruits à coque",
+      "accord_regime": true
+     },
+     {
+      "id": "IN-016",
+      "foyer": "FO-08",
+      "prenom": "Hugo",
+      "nom": "Richard",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "hugo.richard.16@exemple.test",
+      "telephone": "06 39 98 10 16",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": true
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-017",
+      "foyer": "FO-09",
+      "prenom": "Lucie",
+      "nom": "Durand",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "lucie.durand.17@exemple.test",
+      "telephone": "06 39 98 10 17",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-018",
+      "foyer": "FO-09",
+      "prenom": "Karim",
+      "nom": "Durand",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "karim.durand.18@exemple.test",
+      "telephone": "06 39 98 10 18",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-019",
+      "foyer": "FO-09",
+      "prenom": "Emma",
+      "nom": "Durand",
+      "enfant": true,
+      "cote": "Maxime",
+      "email": null,
+      "telephone": null,
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-020",
+      "foyer": "FO-09",
+      "prenom": "Jules",
+      "nom": "Durand",
+      "enfant": true,
+      "cote": "Maxime",
+      "email": null,
+      "telephone": null,
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": true
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-021",
+      "foyer": "FO-10",
+      "prenom": "Marie",
+      "nom": "Moreau",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "marie.moreau.21@exemple.test",
+      "telephone": "06 39 98 10 21",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-022",
+      "foyer": "FO-10",
+      "prenom": "Benoît",
+      "nom": "Moreau",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "benoit.moreau.22@exemple.test",
+      "telephone": "06 39 98 10 22",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-023",
+      "foyer": "FO-11",
+      "prenom": "Anne",
+      "nom": "Laurent",
+      "enfant": false,
+      "cote": "Léa",
+      "email": "anne.laurent.23@exemple.test",
+      "telephone": "06 39 98 10 23",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-024",
+      "foyer": "FO-11",
+      "prenom": "Rémi",
+      "nom": "Laurent",
+      "enfant": false,
+      "cote": "Léa",
+      "email": "remi.laurent.24@exemple.test",
+      "telephone": "06 39 98 10 24",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": true
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-025",
+      "foyer": "FO-12",
+      "prenom": "Zoé",
+      "nom": "Simon",
+      "enfant": false,
+      "cote": "Léa",
+      "email": "zoe.simon.25@exemple.test",
+      "telephone": "06 39 98 10 25",
+      "reponse": null,
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-026",
+      "foyer": "FO-12",
+      "prenom": "Nicolas",
+      "nom": "Simon",
+      "enfant": false,
+      "cote": "Léa",
+      "email": "nicolas.simon.26@exemple.test",
+      "telephone": "06 39 98 10 26",
+      "reponse": null,
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-027",
+      "foyer": "FO-13",
+      "prenom": "Manon",
+      "nom": "Michel",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "manon.michel.27@exemple.test",
+      "telephone": "06 39 98 10 27",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": true
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-028",
+      "foyer": "FO-13",
+      "prenom": "Bastien",
+      "nom": "Michel",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "bastien.michel.28@exemple.test",
+      "telephone": "06 39 98 10 28",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": true
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-029",
+      "foyer": "FO-14",
+      "prenom": "Anne",
+      "nom": "Lefèvre",
+      "enfant": false,
+      "cote": "Léa",
+      "email": "anne.lefevre.29@exemple.test",
+      "telephone": "06 39 98 10 29",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": true
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-030",
+      "foyer": "FO-14",
+      "prenom": "Hugo",
+      "nom": "Lefèvre",
+      "enfant": false,
+      "cote": "Léa",
+      "email": "hugo.lefevre.30@exemple.test",
+      "telephone": "06 39 98 10 30",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-031",
+      "foyer": "FO-15",
+      "prenom": "Charlotte",
+      "nom": "Garcia",
+      "enfant": false,
+      "cote": "Léa",
+      "email": "charlotte.garcia.31@exemple.test",
+      "telephone": "06 39 98 10 31",
+      "reponse": {
+       "ceremonie": false,
+       "diner": false,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-032",
+      "foyer": "FO-15",
+      "prenom": "Théo",
+      "nom": "Garcia",
+      "enfant": false,
+      "cote": "Léa",
+      "email": "theo.garcia.32@exemple.test",
+      "telephone": "06 39 98 10 32",
+      "reponse": {
+       "ceremonie": false,
+       "diner": false,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-033",
+      "foyer": "FO-16",
+      "prenom": "Élise",
+      "nom": "David",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "elise.david.33@exemple.test",
+      "telephone": "06 39 98 10 33",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": true
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-034",
+      "foyer": "FO-16",
+      "prenom": "Clément",
+      "nom": "David",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "clement.david.34@exemple.test",
+      "telephone": "06 39 98 10 34",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": true
+      },
+      "regime": "sans porc",
+      "accord_regime": true
+     },
+     {
+      "id": "IN-035",
+      "foyer": "FO-16",
+      "prenom": "Laura",
+      "nom": "David",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "laura.david.35@exemple.test",
+      "telephone": "06 39 98 10 35",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": true
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-036",
+      "foyer": "FO-17",
+      "prenom": "Sarah",
+      "nom": "Bertrand",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "sarah.bertrand.36@exemple.test",
+      "telephone": "06 39 98 10 36",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": true
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-037",
+      "foyer": "FO-17",
+      "prenom": "Guillaume",
+      "nom": "Bertrand",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "guillaume.bertrand.37@exemple.test",
+      "telephone": "06 39 98 10 37",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-038",
+      "foyer": "FO-18",
+      "prenom": "Camille",
+      "nom": "Roux",
+      "enfant": false,
+      "cote": "Léa",
+      "email": "camille.roux.38@exemple.test",
+      "telephone": "06 39 98 10 38",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-039",
+      "foyer": "FO-18",
+      "prenom": "Michel",
+      "nom": "Roux",
+      "enfant": false,
+      "cote": "Léa",
+      "email": "michel.roux.39@exemple.test",
+      "telephone": "06 39 98 10 39",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-040",
+      "foyer": "FO-19",
+      "prenom": "Laura",
+      "nom": "Vincent",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "laura.vincent.40@exemple.test",
+      "telephone": "06 39 98 10 40",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-041",
+      "foyer": "FO-19",
+      "prenom": "Clément",
+      "nom": "Vincent",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "clement.vincent.41@exemple.test",
+      "telephone": "06 39 98 10 41",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": true
+      },
+      "regime": "allergie aux fruits à coque",
+      "accord_regime": true
+     },
+     {
+      "id": "IN-042",
+      "foyer": "FO-19",
+      "prenom": "Lina",
+      "nom": "Vincent",
+      "enfant": true,
+      "cote": "Maxime",
+      "email": null,
+      "telephone": null,
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-043",
+      "foyer": "FO-19",
+      "prenom": "Gabin",
+      "nom": "Vincent",
+      "enfant": true,
+      "cote": "Maxime",
+      "email": null,
+      "telephone": null,
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": true
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-044",
+      "foyer": "FO-20",
+      "prenom": "Inès",
+      "nom": "Fournier",
+      "enfant": false,
+      "cote": "Léa",
+      "email": "ines.fournier.44@exemple.test",
+      "telephone": "06 39 98 10 44",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-045",
+      "foyer": "FO-20",
+      "prenom": "Benoît",
+      "nom": "Fournier",
+      "enfant": false,
+      "cote": "Léa",
+      "email": "benoit.fournier.45@exemple.test",
+      "telephone": "06 39 98 10 45",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-046",
+      "foyer": "FO-21",
+      "prenom": "Laura",
+      "nom": "Girard",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "laura.girard.46@exemple.test",
+      "telephone": "06 39 98 10 46",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": true
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-047",
+      "foyer": "FO-21",
+      "prenom": "Karim",
+      "nom": "Girard",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "karim.girard.47@exemple.test",
+      "telephone": "06 39 98 10 47",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": true
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-048",
+      "foyer": "FO-22",
+      "prenom": "Margaux",
+      "nom": "Bonnet",
+      "enfant": false,
+      "cote": "Léa",
+      "email": "margaux.bonnet.48@exemple.test",
+      "telephone": "06 39 98 10 48",
+      "reponse": null,
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-049",
+      "foyer": "FO-22",
+      "prenom": "Hugo",
+      "nom": "Bonnet",
+      "enfant": false,
+      "cote": "Léa",
+      "email": "hugo.bonnet.49@exemple.test",
+      "telephone": "06 39 98 10 49",
+      "reponse": null,
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-050",
+      "foyer": "FO-23",
+      "prenom": "Alice",
+      "nom": "Dupont",
+      "enfant": false,
+      "cote": "Léa",
+      "email": "alice.dupont.50@exemple.test",
+      "telephone": "06 39 98 10 50",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": true
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-051",
+      "foyer": "FO-23",
+      "prenom": "Jean",
+      "nom": "Dupont",
+      "enfant": false,
+      "cote": "Léa",
+      "email": "jean.dupont.51@exemple.test",
+      "telephone": "06 39 98 10 51",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-052",
+      "foyer": "FO-24",
+      "prenom": "Sophie",
+      "nom": "Lambert",
+      "enfant": false,
+      "cote": "Léa",
+      "email": "sophie.lambert.52@exemple.test",
+      "telephone": "06 39 98 10 52",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": false
+      },
+      "regime": "végétarien",
+      "accord_regime": true
+     },
+     {
+      "id": "IN-053",
+      "foyer": "FO-24",
+      "prenom": "Théo",
+      "nom": "Lambert",
+      "enfant": false,
+      "cote": "Léa",
+      "email": "theo.lambert.53@exemple.test",
+      "telephone": "06 39 98 10 53",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": true
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-054",
+      "foyer": "FO-25",
+      "prenom": "Laura",
+      "nom": "Fontaine",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "laura.fontaine.54@exemple.test",
+      "telephone": "06 39 98 10 54",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-055",
+      "foyer": "FO-25",
+      "prenom": "Quentin",
+      "nom": "Fontaine",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "quentin.fontaine.55@exemple.test",
+      "telephone": "06 39 98 10 55",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": true
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-056",
+      "foyer": "FO-26",
+      "prenom": "Margaux",
+      "nom": "Rousseau",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "margaux.rousseau.56@exemple.test",
+      "telephone": "06 39 98 10 56",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-057",
+      "foyer": "FO-26",
+      "prenom": "Laurent",
+      "nom": "Rousseau",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "laurent.rousseau.57@exemple.test",
+      "telephone": "06 39 98 10 57",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-058",
+      "foyer": "FO-27",
+      "prenom": "Lucie",
+      "nom": "Blanc",
+      "enfant": false,
+      "cote": "Léa",
+      "email": "lucie.blanc.58@exemple.test",
+      "telephone": "06 39 98 10 58",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-059",
+      "foyer": "FO-27",
+      "prenom": "Adrien",
+      "nom": "Blanc",
+      "enfant": false,
+      "cote": "Léa",
+      "email": "adrien.blanc.59@exemple.test",
+      "telephone": "06 39 98 10 59",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": true
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-060",
+      "foyer": "FO-27",
+      "prenom": "Rose",
+      "nom": "Blanc",
+      "enfant": true,
+      "cote": "Léa",
+      "email": null,
+      "telephone": null,
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": true
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-061",
+      "foyer": "FO-27",
+      "prenom": "Noé",
+      "nom": "Blanc",
+      "enfant": true,
+      "cote": "Léa",
+      "email": null,
+      "telephone": null,
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": true
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-062",
+      "foyer": "FO-28",
+      "prenom": "Hélène",
+      "nom": "Guérin",
+      "enfant": false,
+      "cote": "Léa",
+      "email": "helene.guerin.62@exemple.test",
+      "telephone": "06 39 98 10 62",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": true
+      },
+      "regime": "sans porc",
+      "accord_regime": true
+     },
+     {
+      "id": "IN-063",
+      "foyer": "FO-28",
+      "prenom": "Quentin",
+      "nom": "Guérin",
+      "enfant": false,
+      "cote": "Léa",
+      "email": "quentin.guerin.63@exemple.test",
+      "telephone": "06 39 98 10 63",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": true
+      },
+      "regime": "sans gluten",
+      "accord_regime": true
+     },
+     {
+      "id": "IN-064",
+      "foyer": "FO-29",
+      "prenom": "Margaux",
+      "nom": "Muller",
+      "enfant": false,
+      "cote": "Léa",
+      "email": "margaux.muller.64@exemple.test",
+      "telephone": "06 39 98 10 64",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": true
+      },
+      "regime": "végétarien",
+      "accord_regime": true
+     },
+     {
+      "id": "IN-065",
+      "foyer": "FO-29",
+      "prenom": "Quentin",
+      "nom": "Muller",
+      "enfant": false,
+      "cote": "Léa",
+      "email": "quentin.muller.65@exemple.test",
+      "telephone": "06 39 98 10 65",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-066",
+      "foyer": "FO-30",
+      "prenom": "Manon",
+      "nom": "Henry",
+      "enfant": false,
+      "cote": "Léa",
+      "email": "manon.henry.66@exemple.test",
+      "telephone": "06 39 98 10 66",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": true
+      },
+      "regime": "végétarien",
+      "accord_regime": true
+     },
+     {
+      "id": "IN-067",
+      "foyer": "FO-30",
+      "prenom": "Yanis",
+      "nom": "Henry",
+      "enfant": false,
+      "cote": "Léa",
+      "email": "yanis.henry.67@exemple.test",
+      "telephone": "06 39 98 10 67",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-068",
+      "foyer": "FO-31",
+      "prenom": "Michel",
+      "nom": "Roussel",
+      "enfant": false,
+      "cote": "Léa",
+      "email": "michel.roussel.68@exemple.test",
+      "telephone": "06 39 98 10 68",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": true
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-069",
+      "foyer": "FO-32",
+      "prenom": "Jeanne",
+      "nom": "Nicolas",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "jeanne.nicolas.69@exemple.test",
+      "telephone": "06 39 98 10 69",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-070",
+      "foyer": "FO-32",
+      "prenom": "Adrien",
+      "nom": "Nicolas",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "adrien.nicolas.70@exemple.test",
+      "telephone": "06 39 98 10 70",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": true
+      },
+      "regime": "sans porc",
+      "accord_regime": true
+     },
+     {
+      "id": "IN-071",
+      "foyer": "FO-32",
+      "prenom": "Mila",
+      "nom": "Nicolas",
+      "enfant": true,
+      "cote": "Maxime",
+      "email": null,
+      "telephone": null,
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-072",
+      "foyer": "FO-32",
+      "prenom": "Tom",
+      "nom": "Nicolas",
+      "enfant": true,
+      "cote": "Maxime",
+      "email": null,
+      "telephone": null,
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": true
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-073",
+      "foyer": "FO-33",
+      "prenom": "Mathilde",
+      "nom": "Perrin",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "mathilde.perrin.73@exemple.test",
+      "telephone": "06 39 98 10 73",
+      "reponse": {
+       "ceremonie": false,
+       "diner": false,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-074",
+      "foyer": "FO-33",
+      "prenom": "Julien",
+      "nom": "Perrin",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "julien.perrin.74@exemple.test",
+      "telephone": "06 39 98 10 74",
+      "reponse": {
+       "ceremonie": false,
+       "diner": false,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-075",
+      "foyer": "FO-34",
+      "prenom": "Isabelle",
+      "nom": "Morin",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "isabelle.morin.75@exemple.test",
+      "telephone": "06 39 98 10 75",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-076",
+      "foyer": "FO-34",
+      "prenom": "Alexandre",
+      "nom": "Morin",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "alexandre.morin.76@exemple.test",
+      "telephone": "06 39 98 10 76",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-077",
+      "foyer": "FO-34",
+      "prenom": "Jade",
+      "nom": "Morin",
+      "enfant": true,
+      "cote": "Maxime",
+      "email": null,
+      "telephone": null,
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-078",
+      "foyer": "FO-34",
+      "prenom": "Malo",
+      "nom": "Morin",
+      "enfant": true,
+      "cote": "Maxime",
+      "email": null,
+      "telephone": null,
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": true
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-079",
+      "foyer": "FO-35",
+      "prenom": "Manon",
+      "nom": "Mathieu",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "manon.mathieu.79@exemple.test",
+      "telephone": "06 39 98 10 79",
+      "reponse": null,
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-080",
+      "foyer": "FO-35",
+      "prenom": "Guillaume",
+      "nom": "Mathieu",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "guillaume.mathieu.80@exemple.test",
+      "telephone": "06 39 98 10 80",
+      "reponse": null,
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-081",
+      "foyer": "FO-36",
+      "prenom": "Catherine",
+      "nom": "Clément",
+      "enfant": false,
+      "cote": "Léa",
+      "email": "catherine.clement.81@exemple.test",
+      "telephone": "06 39 98 10 81",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": false
+      },
+      "regime": "végétarien",
+      "accord_regime": true
+     },
+     {
+      "id": "IN-082",
+      "foyer": "FO-36",
+      "prenom": "Julien",
+      "nom": "Clément",
+      "enfant": false,
+      "cote": "Léa",
+      "email": "julien.clement.82@exemple.test",
+      "telephone": "06 39 98 10 82",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-083",
+      "foyer": "FO-36",
+      "prenom": "Margaux",
+      "nom": "Clément",
+      "enfant": false,
+      "cote": "Léa",
+      "email": "margaux.clement.83@exemple.test",
+      "telephone": "06 39 98 10 83",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": true
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-084",
+      "foyer": "FO-37",
+      "prenom": "Manon",
+      "nom": "Gauthier",
+      "enfant": false,
+      "cote": "Léa",
+      "email": "manon.gauthier.84@exemple.test",
+      "telephone": "06 39 98 10 84",
+      "reponse": {
+       "ceremonie": false,
+       "diner": false,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-085",
+      "foyer": "FO-37",
+      "prenom": "Théo",
+      "nom": "Gauthier",
+      "enfant": false,
+      "cote": "Léa",
+      "email": "theo.gauthier.85@exemple.test",
+      "telephone": "06 39 98 10 85",
+      "reponse": {
+       "ceremonie": false,
+       "diner": false,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-086",
+      "foyer": "FO-38",
+      "prenom": "Louise",
+      "nom": "Dumont",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "louise.dumont.86@exemple.test",
+      "telephone": "06 39 98 10 86",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-087",
+      "foyer": "FO-38",
+      "prenom": "Pierre",
+      "nom": "Dumont",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "pierre.dumont.87@exemple.test",
+      "telephone": "06 39 98 10 87",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": true
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-088",
+      "foyer": "FO-39",
+      "prenom": "Laura",
+      "nom": "Lopez",
+      "enfant": false,
+      "cote": "Léa",
+      "email": "laura.lopez.88@exemple.test",
+      "telephone": "06 39 98 10 88",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": true
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-089",
+      "foyer": "FO-39",
+      "prenom": "Michel",
+      "nom": "Lopez",
+      "enfant": false,
+      "cote": "Léa",
+      "email": "michel.lopez.89@exemple.test",
+      "telephone": "06 39 98 10 89",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-090",
+      "foyer": "FO-39",
+      "prenom": "Nina",
+      "nom": "Lopez",
+      "enfant": true,
+      "cote": "Léa",
+      "email": null,
+      "telephone": null,
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-091",
+      "foyer": "FO-39",
+      "prenom": "Sacha",
+      "nom": "Lopez",
+      "enfant": true,
+      "cote": "Léa",
+      "email": null,
+      "telephone": null,
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": true
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-092",
+      "foyer": "FO-40",
+      "prenom": "Émilie",
+      "nom": "Faure",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "emilie.faure.92@exemple.test",
+      "telephone": "06 39 98 10 92",
+      "reponse": null,
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-093",
+      "foyer": "FO-40",
+      "prenom": "Philippe",
+      "nom": "Faure",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "philippe.faure.93@exemple.test",
+      "telephone": "06 39 98 10 93",
+      "reponse": null,
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-094",
+      "foyer": "FO-41",
+      "prenom": "Marie",
+      "nom": "André",
+      "enfant": false,
+      "cote": "Léa",
+      "email": "marie.andre.94@exemple.test",
+      "telephone": "06 39 98 10 94",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-095",
+      "foyer": "FO-41",
+      "prenom": "Théo",
+      "nom": "André",
+      "enfant": false,
+      "cote": "Léa",
+      "email": "theo.andre.95@exemple.test",
+      "telephone": "06 39 98 10 95",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": true
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-096",
+      "foyer": "FO-42",
+      "prenom": "Inès",
+      "nom": "Mercier",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "ines.mercier.96@exemple.test",
+      "telephone": "06 39 98 10 96",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-097",
+      "foyer": "FO-42",
+      "prenom": "Rémi",
+      "nom": "Mercier",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "remi.mercier.97@exemple.test",
+      "telephone": "06 39 98 10 97",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-098",
+      "foyer": "FO-43",
+      "prenom": "Émilie",
+      "nom": "Chevalier",
+      "enfant": false,
+      "cote": "Léa",
+      "email": "emilie.chevalier.98@exemple.test",
+      "telephone": "06 39 98 10 98",
+      "reponse": null,
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-099",
+      "foyer": "FO-43",
+      "prenom": "Philippe",
+      "nom": "Chevalier",
+      "enfant": false,
+      "cote": "Léa",
+      "email": "philippe.chevalier.99@exemple.test",
+      "telephone": "06 39 98 10 99",
+      "reponse": null,
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-100",
+      "foyer": "FO-44",
+      "prenom": "Mathilde",
+      "nom": "François",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "mathilde.francois.100@exemple.test",
+      "telephone": "06 39 98 11 00",
+      "reponse": {
+       "ceremonie": false,
+       "diner": false,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-101",
+      "foyer": "FO-44",
+      "prenom": "Louis",
+      "nom": "François",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "louis.francois.101@exemple.test",
+      "telephone": "06 39 98 11 01",
+      "reponse": {
+       "ceremonie": false,
+       "diner": false,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-102",
+      "foyer": "FO-44",
+      "prenom": "Mathieu",
+      "nom": "François",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "mathieu.francois.102@exemple.test",
+      "telephone": "06 39 98 11 02",
+      "reponse": {
+       "ceremonie": false,
+       "diner": false,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-103",
+      "foyer": "FO-45",
+      "prenom": "Nathalie",
+      "nom": "Legrand",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "nathalie.legrand.103@exemple.test",
+      "telephone": "06 39 98 11 03",
+      "reponse": null,
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-104",
+      "foyer": "FO-45",
+      "prenom": "Guillaume",
+      "nom": "Legrand",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "guillaume.legrand.104@exemple.test",
+      "telephone": "06 39 98 11 04",
+      "reponse": null,
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-105",
+      "foyer": "FO-46",
+      "prenom": "Émilie",
+      "nom": "Gautier",
+      "enfant": false,
+      "cote": "Léa",
+      "email": "emilie.gautier.105@exemple.test",
+      "telephone": "06 39 98 11 05",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-106",
+      "foyer": "FO-46",
+      "prenom": "Théo",
+      "nom": "Gautier",
+      "enfant": false,
+      "cote": "Léa",
+      "email": "theo.gautier.106@exemple.test",
+      "telephone": "06 39 98 11 06",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": true
+      },
+      "regime": "végétarien",
+      "accord_regime": true
+     },
+     {
+      "id": "IN-107",
+      "foyer": "FO-47",
+      "prenom": "Anne",
+      "nom": "Renard",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "anne.renard.107@exemple.test",
+      "telephone": "06 39 98 11 07",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": true
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-108",
+      "foyer": "FO-47",
+      "prenom": "Michel",
+      "nom": "Renard",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "michel.renard.108@exemple.test",
+      "telephone": "06 39 98 11 08",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-109",
+      "foyer": "FO-48",
+      "prenom": "Julie",
+      "nom": "Barbier",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "julie.barbier.109@exemple.test",
+      "telephone": "06 39 98 11 09",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": true
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-110",
+      "foyer": "FO-48",
+      "prenom": "Théo",
+      "nom": "Barbier",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "theo.barbier.110@exemple.test",
+      "telephone": "06 39 98 11 10",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-111",
+      "foyer": "FO-49",
+      "prenom": "Zoé",
+      "nom": "Arnaud",
+      "enfant": false,
+      "cote": "Léa",
+      "email": "zoe.arnaud.111@exemple.test",
+      "telephone": "06 39 98 11 11",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": true
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-112",
+      "foyer": "FO-49",
+      "prenom": "Guillaume",
+      "nom": "Arnaud",
+      "enfant": false,
+      "cote": "Léa",
+      "email": "guillaume.arnaud.112@exemple.test",
+      "telephone": "06 39 98 11 12",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": true
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-113",
+      "foyer": "FO-50",
+      "prenom": "Pauline",
+      "nom": "Marchand",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "pauline.marchand.113@exemple.test",
+      "telephone": "06 39 98 11 13",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-114",
+      "foyer": "FO-50",
+      "prenom": "Louis",
+      "nom": "Marchand",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "louis.marchand.114@exemple.test",
+      "telephone": "06 39 98 11 14",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": false
+      },
+      "regime": "végétarien",
+      "accord_regime": true
+     },
+     {
+      "id": "IN-115",
+      "foyer": "FO-50",
+      "prenom": "Émilie",
+      "nom": "Marchand",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "emilie.marchand.115@exemple.test",
+      "telephone": "06 39 98 11 15",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-116",
+      "foyer": "FO-51",
+      "prenom": "Zoé",
+      "nom": "Noël",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "zoe.noel.116@exemple.test",
+      "telephone": "06 39 98 11 16",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": true
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-117",
+      "foyer": "FO-51",
+      "prenom": "Thomas",
+      "nom": "Noël",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "thomas.noel.117@exemple.test",
+      "telephone": "06 39 98 11 17",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": true
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-118",
+      "foyer": "FO-51",
+      "prenom": "Lou",
+      "nom": "Noël",
+      "enfant": true,
+      "cote": "Maxime",
+      "email": null,
+      "telephone": null,
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-119",
+      "foyer": "FO-52",
+      "prenom": "Margaux",
+      "nom": "Brun",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "margaux.brun.119@exemple.test",
+      "telephone": "06 39 98 11 19",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": true
+      },
+      "regime": null,
+      "accord_regime": null
+     },
+     {
+      "id": "IN-120",
+      "foyer": "FO-52",
+      "prenom": "Rémi",
+      "nom": "Brun",
+      "enfant": false,
+      "cote": "Maxime",
+      "email": "remi.brun.120@exemple.test",
+      "telephone": "06 39 98 11 20",
+      "reponse": {
+       "ceremonie": true,
+       "diner": true,
+       "brunch": false
+      },
+      "regime": null,
+      "accord_regime": null
+     }
+    ]
+   },
+   "tables": [
+    {
+     "id": "TB-01",
+     "nom": "Table 1",
+     "capacite": 8,
+     "invites": [
+      "IN-017",
+      "IN-018",
+      "IN-019",
+      "IN-020",
+      "IN-046",
+      "IN-047",
+      "IN-111",
+      "IN-112"
+     ]
+    },
+    {
+     "id": "TB-02",
+     "nom": "Table 2",
+     "capacite": 8,
+     "invites": [
+      "IN-040",
+      "IN-041",
+      "IN-042",
+      "IN-043",
+      "IN-050",
+      "IN-051",
+      "IN-119",
+      "IN-120"
+     ]
+    },
+    {
+     "id": "TB-03",
+     "nom": "Table 3",
+     "capacite": 8,
+     "invites": [
+      "IN-058",
+      "IN-059",
+      "IN-060",
+      "IN-061",
+      "IN-052",
+      "IN-053",
+      "IN-003"
+     ]
+    },
+    {
+     "id": "TB-04",
+     "nom": "Table 4",
+     "capacite": 8,
+     "invites": [
+      "IN-069",
+      "IN-070",
+      "IN-071",
+      "IN-072",
+      "IN-054",
+      "IN-055",
+      "IN-068"
+     ]
+    },
+    {
+     "id": "TB-05",
+     "nom": "Table 5",
+     "capacite": 8,
+     "invites": [
+      "IN-075",
+      "IN-076",
+      "IN-077",
+      "IN-078",
+      "IN-056",
+      "IN-057"
+     ]
+    },
+    {
+     "id": "TB-06",
+     "nom": "Table 6",
+     "capacite": 8,
+     "invites": [
+      "IN-088",
+      "IN-089",
+      "IN-090",
+      "IN-091",
+      "IN-062",
+      "IN-063"
+     ]
+    },
+    {
+     "id": "TB-07",
+     "nom": "Table 7",
+     "capacite": 8,
+     "invites": [
+      "IN-010",
+      "IN-011",
+      "IN-012",
+      "IN-027",
+      "IN-028",
+      "IN-094",
+      "IN-095"
+     ]
+    },
+    {
+     "id": "TB-08",
+     "nom": "Table 8",
+     "capacite": 8,
+     "invites": [
+      "IN-033",
+      "IN-034",
+      "IN-035",
+      "IN-029",
+      "IN-030",
+      "IN-096",
+      "IN-097"
+     ]
+    },
+    {
+     "id": "TB-09",
+     "nom": "Table 9",
+     "capacite": 8,
+     "invites": [
+      "IN-081",
+      "IN-082",
+      "IN-083",
+      "IN-036",
+      "IN-037",
+      "IN-105",
+      "IN-106"
+     ]
+    },
+    {
+     "id": "TB-10",
+     "nom": "Table 10",
+     "capacite": 8,
+     "invites": [
+      "IN-113",
+      "IN-114",
+      "IN-115",
+      "IN-038",
+      "IN-039",
+      "IN-107",
+      "IN-108"
+     ]
+    },
+    {
+     "id": "TB-11",
+     "nom": "Table 11",
+     "capacite": 8,
+     "invites": [
+      "IN-116",
+      "IN-117",
+      "IN-118",
+      "IN-044",
+      "IN-045",
+      "IN-109",
+      "IN-110"
+     ]
+    },
+    {
+     "id": "TB-12",
+     "nom": "Table 12",
+     "capacite": 8,
+     "invites": [
+      "IN-001",
+      "IN-002",
+      "IN-015",
+      "IN-016",
+      "IN-064",
+      "IN-065"
+     ]
+    },
+    {
+     "id": "TB-13",
+     "nom": "Table 13",
+     "capacite": 8,
+     "invites": [
+      "IN-006",
+      "IN-007",
+      "IN-021",
+      "IN-022",
+      "IN-066",
+      "IN-067"
+     ]
+    },
+    {
+     "id": "TB-14",
+     "nom": "Table 14",
+     "capacite": 8,
+     "invites": [
+      "IN-008",
+      "IN-009",
+      "IN-023",
+      "IN-024",
+      "IN-086",
+      "IN-087"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "EV-REF-02",
+   "organisation": "ORG-02",
+   "type": "Séminaire d'entreprise",
+   "nom": "Séminaire annuel Novaléa",
+   "statut": "Devis envoyé",
+   "dates": [
+    "2027-10-07",
+    "2027-10-08"
+   ],
+   "participants": 80,
+   "lieu": {
+    "nom": "Hôtel fictif des Bords de Loire",
+    "commune": "Nantes",
+    "fictif": true
+   },
+   "client": {
+    "raison_sociale": "Novaléa SAS (société fictive)",
+    "siren": "000000000",
+    "contact": "Claire Fontaine",
+    "email": "claire.fontaine@exemple.test",
+    "adresse_facturation": "1 rue Fictive, 44000 Nantes",
+    "bon_de_commande": "BC-2027-0142"
+   },
+   "budget": {
+    "total_ht_centimes": 4800000,
+    "taux_tva_pct": 20,
+    "total_ttc_centimes": 5760000,
+    "postes": [
+     {
+      "poste": "Hébergement et salles",
+      "ht_centimes": 2100000
+     },
+     {
+      "poste": "Restauration",
+      "ht_centimes": 1250000
+     },
+     {
+      "poste": "Animation et intervenants",
+      "ht_centimes": 600000
+     },
+     {
+      "poste": "Transport",
+      "ht_centimes": 350000
+     },
+     {
+      "poste": "Honoraires d'agence",
+      "ht_centimes": 500000
+     }
+    ]
+   },
+   "regle_de_validation": {
+    "seuil_devis_ht_centimes": 2000000,
+    "valideur": "Nadia Belkacem"
+   },
+   "responsable": "Hugo Lemaire"
+  }
+ ],
+ "scenarios": [
+  {
+   "id": "SC-01",
+   "titre": "Le premier quart d'heure",
+   "parcours": "PAR-01",
+   "profils": [
+    "SU-01"
+   ],
+   "priorite": "P0"
+  },
+  {
+   "id": "SC-02",
+   "titre": "De la demande à l'acompte",
+   "parcours": "PAR-02",
+   "profils": [
+    "SU-01",
+    "SU-05"
+   ],
+   "priorite": "P0"
+  },
+  {
+   "id": "SC-03",
+   "titre": "Lundi matin",
+   "parcours": "PAR-03",
+   "profils": [
+    "SU-01"
+   ],
+   "priorite": "P0"
+  },
+  {
+   "id": "SC-04",
+   "titre": "Un devis de traiteur dans le budget",
+   "parcours": "PAR-04",
+   "profils": [
+    "SU-01",
+    "SU-05",
+    "SU-08"
+   ],
+   "priorite": "P0"
+  },
+  {
+   "id": "SC-05",
+   "titre": "Trois fleuristes, un choix",
+   "parcours": "PAR-05",
+   "profils": [
+    "SU-01",
+    "SU-05",
+    "SU-09"
+   ],
+   "priorite": "P1"
+  },
+  {
+   "id": "SC-06",
+   "titre": "Le portail des mariés et du père",
+   "parcours": "PAR-06",
+   "profils": [
+    "SU-05",
+    "SU-06"
+   ],
+   "priorite": "P0"
+  },
+  {
+   "id": "SC-07",
+   "titre": "Cent vingt réponses",
+   "parcours": "PAR-07",
+   "profils": [
+    "SU-05",
+    "SU-10",
+    "SU-11"
+   ],
+   "priorite": "P1"
+  },
+  {
+   "id": "SC-08",
+   "titre": "Jour J sans réseau",
+   "parcours": "PAR-08",
+   "profils": [
+    "SU-01",
+    "SU-03",
+    "SU-08"
+   ],
+   "priorite": "P0"
+  },
+  {
+   "id": "SC-09",
+   "titre": "Clôture",
+   "parcours": "PAR-09",
+   "profils": [
+    "SU-01",
+    "SU-12"
+   ],
+   "priorite": "P1"
+  },
+  {
+   "id": "SC-10",
+   "titre": "Quinze ans de contacts",
+   "parcours": "PAR-01",
+   "profils": [
+    "SU-04"
+   ],
+   "priorite": "P0"
+  },
+  {
+   "id": "SC-11",
+   "titre": "L'agence et la cliente entreprise",
+   "parcours": "PAR-10",
+   "profils": [
+    "SU-02",
+    "SU-03",
+    "SU-07"
+   ],
+   "priorite": "P1"
+  },
+  {
+   "id": "SC-12",
+   "titre": "Le couple autonome",
+   "parcours": "PAR-11",
+   "profils": [
+    "SU-13"
+   ],
+   "priorite": "P2"
+  },
+  {
+   "id": "SC-S1",
+   "titre": "Accès croisé entre organisations",
+   "parcours": null,
+   "profils": [
+    "SU-14"
+   ],
+   "priorite": "P0"
+  },
+  {
+   "id": "SC-S2",
+   "titre": "Session d'un assistant révoqué",
+   "parcours": null,
+   "profils": [
+    "SU-14"
+   ],
+   "priorite": "P0"
+  },
+  {
+   "id": "SC-S3",
+   "titre": "Lien de prestataire hors de sa portée",
+   "parcours": null,
+   "profils": [
+    "SU-14"
+   ],
+   "priorite": "P0"
+  },
+  {
+   "id": "SC-S4",
+   "titre": "Lien expiré ou d'un autre évènement",
+   "parcours": null,
+   "profils": [
+    "SU-14"
+   ],
+   "priorite": "P0"
+  },
+  {
+   "id": "SC-S5",
+   "titre": "Fichier piégé",
+   "parcours": null,
+   "profils": [
+    "SU-14"
+   ],
+   "priorite": "P0"
+  },
+  {
+   "id": "SC-S6",
+   "titre": "Rafale sur le formulaire et envoi groupé abusif",
+   "parcours": null,
+   "profils": [
+    "SU-14"
+   ],
+   "priorite": "P0"
+  }
+ ]
+}

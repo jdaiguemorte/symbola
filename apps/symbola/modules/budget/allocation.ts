@@ -1,4 +1,4 @@
-// BUD-01 — arithmétique pure de la simulation : répartition d'un montant
+// PRD-BUD-01 — arithmétique pure de la simulation : répartition d'un montant
 // total par poste depuis un modèle en pourcentages, total/reste à
 // répartir, coût par invité. Centimes entiers EUR, points de base entiers
 // pour les pourcentages (0 à 10000 = 0,00 % à 100,00 %) — jamais de float
@@ -8,7 +8,7 @@ const TOTAL_BASIS_POINTS = 10000;
 export type AllocationModelItem = { defaultVendorSlotId: string; percentageBasisPoints: number };
 export type EventBudgetItem = { defaultVendorSlotId: string; amountCents: number };
 
-// BUD-01 : « étant donné un modèle dont le total ne fait pas 100 %, alors
+// PRD-BUD-01 : « étant donné un modèle dont le total ne fait pas 100 %, alors
 // l'app l'affiche en alerte et refuse de l'enregistrer. »
 export function sumBasisPoints(items: { percentageBasisPoints: number }[]): number {
   return items.reduce((sum, item) => sum + item.percentageBasisPoints, 0);
@@ -45,7 +45,7 @@ export function remainingToAllocateCents(totalAmountCents: number, items: EventB
   return totalAmountCents - sumAmountCents(items);
 }
 
-// BUD-02 — écart = réel moins prévu, en centimes et en pourcentage du
+// PRD-BUD-02 — écart = réel moins prévu, en centimes et en pourcentage du
 // prévu. Nul tant qu'aucun montant réel n'est renseigné (jamais 0 par
 // défaut, qui laisserait croire à un écart nul constaté). 0 % si le
 // prévu est à 0 (pas de division par zéro affichée).

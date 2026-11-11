@@ -168,7 +168,7 @@ export class VendorTypeNotFoundError extends Error {
     this.name = "VendorTypeNotFoundError";
   }
 }
-// Lot 16 (PRE-15) : type qui a encore des fiches, supprimé sans dire où elles vont.
+// Lot 16 (L16-PRE-15) : type qui a encore des fiches, supprimé sans dire où elles vont.
 export class VendorTypeInUseError extends Error {
   constructor() {
     super("type de prestataire encore utilisé");
@@ -296,7 +296,7 @@ function cleanSiret(value: string | null | undefined): string | null {
   return clean;
 }
 
-// PRE-02 — types et champs.
+// L11-PRE-02 — types et champs.
 
 export async function listVendorTypes(organizationId: string): Promise<VendorType[]> {
   return (await findVendorTypes(organizationId)).map(toType);
@@ -315,7 +315,7 @@ export async function renameVendorType(organizationId: string, typeId: string, l
   if (!(await updateVendorTypeRow(organizationId, typeId, label.trim(), color.toLowerCase()))) throw new VendorTypeNotFoundError();
 }
 
-// Lot 16 (PRE-15) : un type qui a des fiches n'est supprimé qu'en disant où
+// Lot 16 (L16-PRE-15) : un type qui a des fiches n'est supprimé qu'en disant où
 // elles vont — un autre type, ou null pour « à classer ». Jamais en silence.
 export async function removeVendorType(organizationId: string, typeId: string, options: { moveVendorsTo?: string | null } = {}): Promise<void> {
   if (!UUID.test(typeId) || (options.moveVendorsTo && !UUID.test(options.moveVendorsTo))) throw new VendorTypeNotFoundError();
@@ -332,7 +332,7 @@ export async function setVendorTypeFamily(organizationId: string, typeId: string
   if (outcome === "family_not_found") throw new VendorFamilyNotFoundError();
 }
 
-// PRE-15 — fusion d'un type dans un autre (fiches et champs propres repris,
+// L16-PRE-15 — fusion d'un type dans un autre (fiches et champs propres repris,
 // opération journalisée).
 export async function mergeVendorTypes(organizationId: string, input: { sourceTypeId: string; targetTypeId: string }): Promise<{ movedVendors: number; movedFields: number }> {
   if (!UUID.test(input.sourceTypeId) || !UUID.test(input.targetTypeId)) throw new VendorTypeNotFoundError();
@@ -346,7 +346,7 @@ export function countVendorsByType(organizationId: string): Promise<{ typeId: st
   return countVendorsByTypeRows(organizationId);
 }
 
-// PRE-14 / PRE-15 — familles, propres à l'organisation.
+// L16-PRE-14 / L16-PRE-15 — familles, propres à l'organisation.
 
 const ICONS: readonly string[] = BUDGET_LINE_ICONS;
 
@@ -502,7 +502,7 @@ export async function applyVendorTagTierProposal(organizationId: string, unit: s
   return { ...group, exclusive: true };
 }
 
-// Lot 21 (PRE-18, PRE-19, ADR 0050) — étiquettes de départ et rangement des
+// Lot 21 (L21-PRE-18, L21-PRE-19, ADR 0050) — étiquettes de départ et rangement des
 // étiquettes importées. Le catalogue vient de packages/starter-templates (par
 // l'app) ; ses familles sont désignées par leur clé de départ.
 
@@ -568,7 +568,7 @@ export async function arrangeVendorTags(organizationId: string, catalog: Starter
   return vendorTagArrangement(organizationId, catalog, { ...options, apply: true });
 }
 
-// PRE-01 / PRE-03 — fiches.
+// L11-PRE-01 / L11-PRE-03 — fiches.
 
 function addressOf(input: Pick<VendorWrite, "addressLine" | "postalCode" | "city" | "country">): string | null {
   const parts = [input.addressLine, input.postalCode, input.city].filter((part): part is string => Boolean(part));
@@ -661,7 +661,7 @@ export async function getVendorsByIds(organizationId: string, vendorIds: string[
   return (await findVendorsByIds(organizationId, vendorIds.filter((id) => UUID.test(id)))).map(toSummary);
 }
 
-// PRE-04 à PRE-07 — recherche dans le carnet : filtres appliqués par la
+// L11-PRE-04 à L11-PRE-07 — recherche dans le carnet : filtres appliqués par la
 // base ; un filtre qui ne convient pas au champ est ignoré, jamais en erreur.
 export async function findVendors(input: FindVendorsInput): Promise<VendorListItem[]> {
   const [types, settings] = await Promise.all([listVendorTypes(input.organizationId), getVendorSettings(input.organizationId)]);
@@ -675,7 +675,7 @@ export async function findVendors(input: FindVendorsInput): Promise<VendorListIt
     input.around && Number.isFinite(input.around.latitude) && Number.isFinite(input.around.longitude) && input.around.radiusKm > 0
       ? input.around
       : undefined;
-  // Lot 16 (PRE-14) : une famille, ou « à classer » (types sans famille et
+  // Lot 16 (L16-PRE-14) : une famille, ou « à classer » (types sans famille et
   // fiches sans type).
   const typeScope = input.unclassified
     ? { typeIds: types.filter((type) => type.familyId === null).map((type) => type.id), includeUntyped: true }
@@ -700,7 +700,7 @@ export async function findVendors(input: FindVendorsInput): Promise<VendorListIt
   }));
 }
 
-// PRE-09 — historique : consultations (module events) et prix final (réel
+// L11-PRE-09 — historique : consultations (module events) et prix final (réel
 // du budget, module budget) ; prix moyen sur les prestations retenues.
 export async function getVendorHistory(organizationId: string, vendorId: string, options: { budget?: boolean } = {}): Promise<VendorHistory> {
   const consultations = await listVendorConsultations(organizationId, vendorId);
@@ -720,7 +720,7 @@ export async function getVendorHistory(organizationId: string, vendorId: string,
   return { entries, averageFinalCents: finals.length > 0 ? Math.round(finals.reduce((sum, value) => sum + value, 0) / finals.length) : null };
 }
 
-// PRE-07 — paramètres du trajet estimé.
+// L11-PRE-07 — paramètres du trajet estimé.
 
 export async function getVendorSettings(organizationId: string): Promise<VendorSettings> {
   return (await findVendorSettings(organizationId)) ?? DEFAULT_VENDOR_SETTINGS;
@@ -769,7 +769,7 @@ export async function getVendorFile(organizationId: string, fileId: string): Pro
   }
 }
 
-// Lot 12 (EVT-16) : dernier RIB déposé sur la fiche (pour l'espace clients,
+// Lot 12 (L12-EVT-16) : dernier RIB déposé sur la fiche (pour l'espace clients,
 // après vérification de l'accès par l'appelant).
 export async function getVendorRibFile(organizationId: string, vendorId: string): Promise<FileDownload> {
   const vendor = await findVendor(organizationId, vendorId);

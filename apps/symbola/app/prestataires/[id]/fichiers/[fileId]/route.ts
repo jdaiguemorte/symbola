@@ -1,4 +1,4 @@
-// Lot 11 (PRE-01) — plaquette ou RIB d'une fiche : session, organisation et
+// Lot 11 (L11-PRE-01) — plaquette ou RIB d'une fiche : session, organisation et
 // module vérifiés, fichier servi par l'app (ADR 0027).
 import { getVendorFile, VendorFileNotFoundError } from "@/modules/vendors/service";
 import { fileDownloadResponse } from "@/lib/file-response";

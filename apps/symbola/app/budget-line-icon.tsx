@@ -1,4 +1,4 @@
-// Lot 12 (EVT-14 / EVT-17) — icône d'une ligne du budget (lieu, traiteur,
+// Lot 12 (L12-EVT-14 / L12-EVT-17) — icône d'une ligne du budget (lieu, traiteur,
 // photographe…), dans le style de la charte (lucide). Présentation seulement :
 // la clé vient des données de l'organisation (modèles de départ ou choix de
 // la planner). Sans icône, les initiales de la ligne.
@@ -56,7 +56,7 @@ const ICONS: Record<IconKey, LucideIcon> = {
   other: CircleDot,
 };
 
-// Lot 16 (PRE-14) : même jeu d'icônes pour les familles de prestataires
+// Lot 16 (L16-PRE-14) : même jeu d'icônes pour les familles de prestataires
 // (pastilles du carnet, pictogrammes de la carte).
 export function iconComponent(icon: string | null): LucideIcon {
   return icon && icon in ICONS ? ICONS[icon as IconKey] : CircleDot;

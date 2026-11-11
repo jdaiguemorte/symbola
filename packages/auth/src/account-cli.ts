@@ -3,7 +3,7 @@
 // et sa titulaire quand l'e-mail d'invitation n'est pas encore en service.
 // Aucun mot de passe en argument (historique du shell) : il est généré et
 // affiché une seule fois. MFA demandée à la première connexion (rôles
-// professionnels, HUB-01).
+// professionnels, PRD-HUB-01).
 import { randomBytes } from "node:crypto";
 import { z } from "zod";
 

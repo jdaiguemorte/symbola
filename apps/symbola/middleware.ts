@@ -45,7 +45,7 @@ export function middleware(request: NextRequest) {
   const response = NextResponse.next({ request: { headers: requestHeaders } });
   response.headers.set("Content-Security-Policy", csp);
 
-  // HUB-04 : langue par défaut du navigateur, posée une seule fois (la
+  // PRD-HUB-04 : langue par défaut du navigateur, posée une seule fois (la
   // Server Action de profil et le choix lié au compte en prennent le
   // relais ensuite) — jamais écrasée si déjà présente.
   if (!request.cookies.get(LOCALE_COOKIE)) {

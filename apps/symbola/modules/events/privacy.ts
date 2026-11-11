@@ -48,7 +48,7 @@ async function inOrganization<T>(organizationId: string, fn: (tx: Parameters<Par
   return await withOrganization(db, organizationId, fn);
 }
 
-// Lot 11 (EVT-10/11) : prestataires consultés et leurs notes.
+// Lot 11 (L11-EVT-10/11) : prestataires consultés et leurs notes.
 type Tx = Parameters<Parameters<typeof withOrganization>[2]>[0];
 async function candidateRecords(tx: Tx, eventIds: string[], matches: ((values: (string | null)[]) => boolean) | null): Promise<PrivacyRecord[]> {
   const candidates = await tx.select().from(eventVendorCandidates).where(inArray(eventVendorCandidates.eventId, eventIds)).orderBy(asc(eventVendorCandidates.position));
@@ -148,7 +148,7 @@ export const eventsPrivacy: PrivacyContractV1 = {
           records.push({ module: MODULE, kind: "program_item", recordId: item.id, label: item.label, fields: compact({ internalNote: item.internalNote }), eventId: item.eventId });
         }
       }
-      // Lot 12 (EVT-15) : lieux de l'événement.
+      // Lot 12 (L12-EVT-15) : lieux de l'événement.
       for (const place of await tx.select().from(eventPlaces).where(inArray(eventPlaces.eventId, eventIds))) {
         if (recordMatches([place.label, place.address], terms)) {
           records.push({ module: MODULE, kind: "event_place", recordId: place.id, label: place.label, fields: compact({ address: place.address }), eventId: place.eventId });

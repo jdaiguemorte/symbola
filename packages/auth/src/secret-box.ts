@@ -1,4 +1,4 @@
-// SEC-01 (lot 16, ADR 0037) — secret de double authentification chiffré au
+// L16-SEC-01 (lot 16, ADR 0037) — secret de double authentification chiffré au
 // repos. AES-256-GCM de la bibliothèque standard de Node (même choix que les
 // fiches PDF du lot 15, ADR 0035), clé d'environnement MFA_ENCRYPTION_KEY.
 // Le chiffré est rattaché au compte (données associées) : recopié sur un autre

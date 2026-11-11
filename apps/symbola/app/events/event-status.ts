@@ -1,4 +1,4 @@
-// EVT-02 — pastilles de statut de la charte (globals.css), partagées entre
+// PRD-EVT-02 — pastilles de statut de la charte (globals.css), partagées entre
 // la liste, la fiche et l'agenda de l'accueil ; le libellé reste affiché.
 import type { EventStatus } from "@/modules/events/service";
 
