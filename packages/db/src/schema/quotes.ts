@@ -46,6 +46,10 @@ export const quoteSettings = quotesSchema.table("quote_settings", {
   invoiceIntro: text("invoice_intro"),
   documentFooter: text("document_footer"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  createdBy: uuid("created_by"),
+  updatedBy: uuid("updated_by"),
 });
 
 export const numberSeriesKindEnum = quotesSchema.enum("number_series_kind", ["quote", "invoice", "credit_note"]);
@@ -83,6 +87,10 @@ export const catalogItems = quotesSchema.table("catalog_items", {
   importedFields: jsonb("imported_fields").$type<Record<string, string> | null>(),
   archivedAt: timestamp("archived_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+  createdBy: uuid("created_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedBy: uuid("updated_by"),
 });
 
 export const quoteStatusEnum = quotesSchema.enum("quote_status", ["draft", "sent", "signed", "declined", "expired"]);
@@ -107,6 +115,9 @@ export const quotes = quotesSchema.table(
     createdByUserId: uuid("created_by_user_id").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdBy: uuid("created_by"),
+    updatedBy: uuid("updated_by"),
   },
   (table) => [unique().on(table.organizationId, table.number)],
 );
@@ -136,6 +147,10 @@ export const quoteVersions = quotesSchema.table(
     totalsSnapshot: jsonb("totals_snapshot"),
     sentAt: timestamp("sent_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
   },
   (table) => [unique().on(table.quoteId, table.version)],
 );
@@ -156,6 +171,11 @@ export const quoteLines = quotesSchema.table("quote_lines", {
   vatRateBasisPoints: integer("vat_rate_basis_points").notNull(),
   discountBasisPoints: integer("discount_basis_points").notNull().default(0),
   position: integer("position").notNull().default(0),
+  // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  createdBy: uuid("created_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedBy: uuid("updated_by"),
 });
 
 // DEV-03 — modes de paiement, liste paramétrable par organisation (modèle
@@ -168,6 +188,10 @@ export const paymentMethods = quotesSchema.table("payment_methods", {
   position: integer("position").notNull().default(0),
   archivedAt: timestamp("archived_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+  createdBy: uuid("created_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedBy: uuid("updated_by"),
 });
 
 // DEV-03 — échéancier d'une version de devis : chaque acompte a un montant
@@ -189,6 +213,11 @@ export const paymentScheduleItems = quotesSchema.table(
     paymentMethodId: uuid("payment_method_id").references(() => paymentMethods.id),
     paidRecordedAt: timestamp("paid_recorded_at", { withTimezone: true }),
     position: integer("position").notNull().default(0),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
   },
   (table) => [
     check(
@@ -219,6 +248,10 @@ export const signatureRequests = quotesSchema.table(
     auditCertificateKey: text("audit_certificate_key"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     completedAt: timestamp("completed_at", { withTimezone: true }),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
   },
   (table) => [unique().on(table.versionId), unique().on(table.provider, table.externalId)],
 );
@@ -245,6 +278,11 @@ export const quoteSigners = quotesSchema.table("quote_signers", {
   status: quoteSignerStatusEnum("status").notNull().default("pending"),
   signedAt: timestamp("signed_at", { withTimezone: true }),
   position: integer("position").notNull().default(0),
+  // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  createdBy: uuid("created_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedBy: uuid("updated_by"),
 });
 
 // DEV-02 — trace de chaque appel webhook accepté (les appels rejetés,
@@ -295,6 +333,8 @@ export const invoices = quotesSchema.table(
     buyerSnapshot: jsonb("buyer_snapshot").notNull(),
     linesSnapshot: jsonb("lines_snapshot").notNull(),
     totalsSnapshot: jsonb("totals_snapshot").notNull(),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdBy: uuid("created_by"),
   },
   (table) => [unique().on(table.organizationId, table.number)],
 );
@@ -319,6 +359,8 @@ export const creditNotes = quotesSchema.table(
     sellerSnapshot: jsonb("seller_snapshot").notNull(),
     buyerSnapshot: jsonb("buyer_snapshot").notNull(),
     totalsSnapshot: jsonb("totals_snapshot").notNull(),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdBy: uuid("created_by"),
   },
   (table) => [unique().on(table.organizationId, table.number)],
 );

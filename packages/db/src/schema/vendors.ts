@@ -33,6 +33,10 @@ export const vendorFamilies = vendorsSchema.table(
     position: integer("position").notNull().default(0),
     starterKey: text("starter_key"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
   },
   (table) => [unique("vendor_families_organization_starter_key_unique").on(table.organizationId, table.starterKey)],
 );
@@ -52,6 +56,10 @@ export const vendorTypes = vendorsSchema.table("vendor_types", {
   familyId: uuid("family_id").references((): AnyPgColumn => vendorFamilies.id, { onDelete: "set null" }),
   starterKey: text("starter_key"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+  createdBy: uuid("created_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedBy: uuid("updated_by"),
 });
 
 export const vendorTypeFields = vendorsSchema.table("vendor_type_fields", {
@@ -67,6 +75,10 @@ export const vendorTypeFields = vendorsSchema.table("vendor_type_fields", {
   isFilter: boolean("is_filter").notNull().default(false),
   position: integer("position").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+  createdBy: uuid("created_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedBy: uuid("updated_by"),
 });
 
 // Lot 20 (décision 5, ADR 0049) — groupes d'étiquettes (Style, Équipements,
@@ -79,6 +91,10 @@ export const vendorTagGroups = vendorsSchema.table("vendor_tag_groups", {
   exclusive: boolean("exclusive").notNull().default(false),
   position: integer("position").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+  createdBy: uuid("created_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedBy: uuid("updated_by"),
 });
 
 export const vendorTags = vendorsSchema.table("vendor_tags", {
@@ -91,6 +107,10 @@ export const vendorTags = vendorsSchema.table("vendor_tags", {
   familyIds: uuid("family_ids").array().notNull().default([]),
   position: integer("position").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+  createdBy: uuid("created_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedBy: uuid("updated_by"),
 });
 
 export const vendorLocationSourceEnum = vendorsSchema.enum("vendor_location_source", ["geocoded", "manual"]);
@@ -126,6 +146,9 @@ export const vendors = vendorsSchema.table("vendors", {
   archivedAt: timestamp("archived_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+  createdBy: uuid("created_by"),
+  updatedBy: uuid("updated_by"),
 });
 
 export const vendorFileKindEnum = vendorsSchema.enum("vendor_file_kind", ["brochure", "rib"]);
@@ -144,6 +167,10 @@ export const vendorFiles = vendorsSchema.table("vendor_files", {
   sizeBytes: integer("size_bytes").notNull(),
   uploadedByUserId: uuid("uploaded_by_user_id").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+  createdBy: uuid("created_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedBy: uuid("updated_by"),
 });
 
 // L11-PRE-07 — paramètres du trajet estimé, par organisation (une ligne au plus).
@@ -156,4 +183,8 @@ export const vendorSettings = vendorsSchema.table("vendor_settings", {
   // elles ne le sont qu'une fois, jamais rétablies d'office.
   familiesSeededAt: timestamp("families_seeded_at", { withTimezone: true }),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  createdBy: uuid("created_by"),
+  updatedBy: uuid("updated_by"),
 });

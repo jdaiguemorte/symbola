@@ -34,6 +34,10 @@ export const organizations = hubSchema.table("organizations", {
   // d'avoir un SIRET (prospect, structure en cours de création).
   siret: text("siret"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+  createdBy: uuid("created_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedBy: uuid("updated_by"),
 });
 
 // Invitation du titulaire par l'Admin (PRD PRD-HUB-03) : valable 7 jours
@@ -48,6 +52,10 @@ export const invitations = hubSchema.table("invitations", {
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
   acceptedAt: timestamp("accepted_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+  createdBy: uuid("created_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedBy: uuid("updated_by"),
 });
 
 export const users = hubSchema.table("users", {
@@ -85,6 +93,10 @@ export const users = hubSchema.table("users", {
   // de Julien du 02/11/2026).
   lastLoginAt: timestamp("last_login_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+  createdBy: uuid("created_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedBy: uuid("updated_by"),
 });
 
 // AIDE-01 : une visite guidée se relance à volonté, mais ne s'affiche
@@ -190,6 +202,10 @@ export const organizationModules = hubSchema.table(
     moduleKey: text("module_key").notNull(),
     enabled: boolean("enabled").notNull().default(true),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedBy: uuid("updated_by"),
   },
   (table) => [primaryKey({ columns: [table.organizationId, table.moduleKey] })],
 );
@@ -233,6 +249,10 @@ export const organizationProfiles = hubSchema.table("organization_profiles", {
   registration: text("registration"),
   shareCapitalCents: bigint("share_capital_cents", { mode: "number" }),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  createdBy: uuid("created_by"),
+  updatedBy: uuid("updated_by"),
 });
 
 // Historique des changements de régime de TVA (PRD ONB-02) : chaque
@@ -250,6 +270,8 @@ export const vatRegimeChanges = hubSchema.table("vat_regime_changes", {
     .notNull()
     .references(() => users.id),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+  createdBy: uuid("created_by"),
 });
 
 // Seuils de franchise en base de TVA (PRD ONB-02, « jamais une valeur
@@ -278,6 +300,10 @@ export const platformSettings = hubSchema.table("platform_settings", {
   // restent téléchargeables (7 jours, comme un import en cours), puis effacés.
   privacyExportRetentionDays: integer("privacy_export_retention_days").notNull().default(7),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  createdBy: uuid("created_by"),
+  updatedBy: uuid("updated_by"),
 });
 
 // Lot 23 (ARC-16, ADR 0060) : l'ancien journal des actions Admin
@@ -401,6 +427,9 @@ export const imports = hubSchema.table("imports", {
   result: jsonb("result").$type<ImportResult | null>(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+  createdBy: uuid("created_by"),
+  updatedBy: uuid("updated_by"),
 });
 
 export type ImportResult = { created: number; updated: number; unchanged: number; rejected: number };
@@ -426,6 +455,10 @@ export const importItems = hubSchema.table("import_items", {
   written: jsonb("written").$type<Record<string, unknown> | null>(),
   undoOutcome: text("undo_outcome").$type<"undone" | "kept_modified" | "kept_in_use" | "missing" | null>(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+  createdBy: uuid("created_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedBy: uuid("updated_by"),
 });
 
 // Lot 15 (IMP-10, GEO-01) — traitement de fond suivi d'un import : lecture
@@ -458,6 +491,9 @@ export const importJobs = hubSchema.table("import_jobs", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   finishedAt: timestamp("finished_at", { withTimezone: true }),
+  // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+  createdBy: uuid("created_by"),
+  updatedBy: uuid("updated_by"),
 });
 
 // Lot 6 (RGPD-04) — demandes d'exercice de droits reçues par la titulaire :
@@ -493,6 +529,9 @@ export const privacyRequests = hubSchema.table("privacy_requests", {
   createdByUserId: uuid("created_by_user_id").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+  createdBy: uuid("created_by"),
+  updatedBy: uuid("updated_by"),
 });
 
 // Lot 6 (RGPD-04/05) — réglages RGPD d'une organisation, chargés depuis le
@@ -511,6 +550,10 @@ export const privacySettings = hubSchema.table("privacy_settings", {
   // laquelle la purge mensuelle propose d'anonymiser le nom de la personne.
   requestProofRetentionMonths: integer("request_proof_retention_months").notNull().default(60),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  createdBy: uuid("created_by"),
+  updatedBy: uuid("updated_by"),
 });
 
 // Lot 6 (RGPD-02, ADR 0023) — exports des données d'une personne (droits
@@ -529,6 +572,10 @@ export const privacyExports = hubSchema.table("privacy_exports", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
   purgedAt: timestamp("purged_at", { withTimezone: true }),
+  // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+  createdBy: uuid("created_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedBy: uuid("updated_by"),
 });
 
 // Lot 6 (RGPD-03, ADR 0023) — exécution d'une demande d'oubli : le sort de
@@ -561,6 +608,8 @@ export const privacyErasures = hubSchema.table("privacy_erasures", {
   createdByUserId: uuid("created_by_user_id").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   completedAt: timestamp("completed_at", { withTimezone: true }),
+  // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+  createdBy: uuid("created_by"),
 });
 
 // Lot 6 (RGPD-05, ADR 0024) — purges mensuelles validées par la titulaire :
@@ -588,6 +637,8 @@ export const privacyPurges = hubSchema.table("privacy_purges", {
   createdByUserId: uuid("created_by_user_id").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   completedAt: timestamp("completed_at", { withTimezone: true }),
+  // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+  createdBy: uuid("created_by"),
 });
 
 // Lot 13 (L13-HUB-18, ADR 0033) — exécutions du script de sauvegarde

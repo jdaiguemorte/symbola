@@ -429,9 +429,12 @@ async function currentDraft(tx: Tx, quoteId: string): Promise<DraftLookup> {
   return { status: "draft", quote, version };
 }
 
+// Lot 23 (DAT-06) : auteur et dates de la ligne posés par la base.
+export type RowStampColumns = "createdAt" | "createdBy" | "updatedAt" | "updatedBy";
+
 export type LineData = Omit<
   QuoteLineRow,
-  "id" | "organizationId" | "versionId" | "position"
+  "id" | "organizationId" | "versionId" | "position" | RowStampColumns
 >;
 
 export type WriteResult =
@@ -1017,7 +1020,7 @@ export async function findUnpaidScheduleItems(
 
 export type NewSigner = Omit<
   QuoteSignerRow,
-  "organizationId" | "requestId" | "status" | "signedAt"
+  "organizationId" | "requestId" | "status" | "signedAt" | RowStampColumns
 >;
 
 // Enregistre la demande créée chez le fournisseur, pour la version courante

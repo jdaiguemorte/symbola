@@ -61,6 +61,31 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     await expect(rollback("0099_inconnue")).rejects.toBeInstanceOf(RollbackRefusedError);
   });
 
+  it("lot 23 (DAT-06) — l'annulation de 0092 à 0088 retire auteurs, dates ajoutées et déclencheurs, module par module", async () => {
+    const steps: [string, string, string, string][] = [
+      ["0092_lot23_vendors_row_stamps", "vendors", "vendors", "0091_lot23_quotes_row_stamps"],
+      ["0091_lot23_quotes_row_stamps", "quotes", "quotes", "0090_lot23_budget_row_stamps"],
+      ["0090_lot23_budget_row_stamps", "budget", "budget_lines", "0089_lot23_events_row_stamps"],
+      ["0089_lot23_events_row_stamps", "events", "events", "0088_lot23_hub_row_stamps"],
+      ["0088_lot23_hub_row_stamps", "hub", "users", "0087_lot23_row_stamps"],
+    ];
+    for (const [tag, schema, table, previous] of steps) {
+      await expect(rollback(previous)).rejects.toBeInstanceOf(RollbackRefusedError);
+      expect(await hasColumn(schema, table, "updated_by"), tag).toBe(true);
+      await rollback(tag);
+      expect(await hasColumn(schema, table, "updated_by"), tag).toBe(false);
+      expect(await hasColumn(schema, table, "created_at"), tag).toBe(true);
+      const triggers = await target`select 1 from information_schema.triggers where event_object_schema = ${schema} and trigger_name like '%\_stamp' escape '\'`;
+      expect(triggers, tag).toHaveLength(0);
+    }
+  });
+
+  it("lot 23 (DAT-06) — l'annulation de 0087 retire les fonctions communes", async () => {
+    await rollback("0087_lot23_row_stamps");
+    const functions = await target`select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'core' and p.proname in ('stamp_row', 'stamp_created_row', 'journal_deletion')`;
+    expect(functions).toHaveLength(0);
+  });
+
   it("lot 23 (ADR 0060) — l'annulation de 0086 recrée hub.audit_log et y recopie les actions de l'Admin", async () => {
     await expect(rollback("0085_lot23_audit_entries")).rejects.toBeInstanceOf(RollbackRefusedError);
     const [adminUser] = await target<{ id: string }[]>`
