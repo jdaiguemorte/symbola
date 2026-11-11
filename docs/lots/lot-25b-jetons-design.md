@@ -115,6 +115,10 @@ le bord d'un champ (D2).
 - Le mode Jour J (lot 30) : ses jetons sont posés, ses écrans viendront.
 - Les règles d'écran de `DESIGN.md` (un seul bouton principal par écran, la prochaine action en
   tête, pastille « Partagé ») : appliquées écran par écran par les lots qui les refont (26 à 32).
+- Les couleurs qui sont des données et non des jetons : la palette des familles de prestataires
+  (choisie par l'organisation, ADR 0040) et les couleurs du fond de carte (`lib/map/style.ts`,
+  cartographie). La couleur des documents de l'organisation (ADR 0046) reste dans deux zones
+  « hors charte » de la feuille, délimitées et vérifiées par le test.
 
 ## Décisions de Julien (11/11/2026 : D1 oui, D2 a)
 
