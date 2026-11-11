@@ -186,6 +186,7 @@
     "invalidOrExpired": "This invitation link is invalid or has expired.",
     "alreadyAccepted": "This invitation has already been used.",
     "missingPassword": "A password is required.",
+    "passwordCompromised": "This password is among the most common or already compromised passwords. Choose another one, for example a phrase of several words.",
     "passwordTooShort": "The password must be at least 12 characters long."
   },
   "Profile": {
@@ -1763,6 +1764,7 @@
     "accountCreated": "Your account has been created.",
     "goToLogin": "Log in",
     "passwordMismatch": "The two passwords do not match.",
+    "passwordCompromised": "This password is among the most common or already compromised passwords. Choose another one, for example a phrase of several words.",
     "passwordTooShort": "The password must contain at least 12 characters.",
     "invitationInvalid": "This invitation link is no longer valid. Ask your planner for a new invitation.",
     "invitationAlreadyAccepted": "This invitation has already been used: log in with your account.",
@@ -2641,6 +2643,7 @@
     "confirmPassword": "Confirm the password",
     "save": "Save the password",
     "mismatch": "The two passwords do not match.",
+    "compromised": "This password is among the most common or already compromised passwords. Choose another one, for example a phrase of several words.",
     "tooShort": "The password must be at least 12 characters long.",
     "invalidOrExpired": "This link is no longer valid: it has already been used or has expired.",
     "askAgain": "Request a new link",

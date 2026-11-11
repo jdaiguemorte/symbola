@@ -5,6 +5,7 @@ import { getTranslations } from "next-intl/server";
 import {
   acceptEventClientInvitation,
   ClientEmailUnavailableError,
+  ClientPasswordCompromisedError,
   ClientPasswordTooShortError,
 } from "@/modules/events/service";
 
@@ -26,6 +27,7 @@ export async function acceptClientInvitationAction(
     return { success: true };
   } catch (error) {
     if (error instanceof ClientPasswordTooShortError) return { error: t("passwordTooShort") };
+    if (error instanceof ClientPasswordCompromisedError) return { error: t("passwordCompromised") };
     if (error instanceof ClientEmailUnavailableError) return { error: t("invitationInvalid") };
     throw error;
   }

@@ -4,7 +4,7 @@
 import { createHash, randomBytes } from "node:crypto";
 import { z } from "zod";
 import { parisDaysSince, parisToday } from "@symbola/i18n";
-import { createUser, findAccountByEmail } from "@symbola/auth";
+import { checkPassword, createUser, findAccountByEmail, PASSWORD_MIN_LENGTH } from "@symbola/auth";
 import { appDatabase, type AppDatabase } from "@symbola/db/client";
 import { parseEnv } from "@symbola/env";
 import { sendMail } from "@symbola/mail";
@@ -1125,9 +1125,8 @@ export async function applyProgramTemplate(
 // PRD-EVT-06 — accès des mariés.
 
 const CLIENT_INVITATION_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 jours, comme PRD-HUB-03
-// Longueur minimale d'un mot de passe de marié (recommandation CNIL pour un
-// mot de passe seul, sans double authentification imposée).
-const CLIENT_PASSWORD_MIN_LENGTH = 12;
+// Mot de passe d'un marié : la règle commune (lot 24b, SEC-03, ADR 0063),
+// douze caractères au moins et pas de mot de passe compromis.
 
 // L'e-mail a déjà un compte professionnel ou un compte d'une autre
 // organisation : un compte par personne (PRD PRD-EVT-06).
@@ -1147,8 +1146,15 @@ export class ClientAlreadyInvitedError extends Error {
 
 export class ClientPasswordTooShortError extends Error {
   constructor() {
-    super(`le mot de passe doit contenir au moins ${CLIENT_PASSWORD_MIN_LENGTH} caractères`);
+    super(`le mot de passe doit contenir au moins ${PASSWORD_MIN_LENGTH} caractères`);
     this.name = "ClientPasswordTooShortError";
+  }
+}
+
+export class ClientPasswordCompromisedError extends Error {
+  constructor() {
+    super("ce mot de passe figure parmi les mots de passe compromis");
+    this.name = "ClientPasswordCompromisedError";
   }
 }
 
@@ -1275,7 +1281,9 @@ export async function acceptEventClientInvitation(token: string, password: strin
   }
   if (access.acceptedAt) return { outcome: "already_accepted" };
   if (access.revokedAt || access.expiresAt.getTime() < Date.now()) return { outcome: "invalid_or_expired" };
-  if (password.length < CLIENT_PASSWORD_MIN_LENGTH) throw new ClientPasswordTooShortError();
+  const verdict = checkPassword(password);
+  if (verdict === "too_short") throw new ClientPasswordTooShortError();
+  if (verdict === "compromised") throw new ClientPasswordCompromisedError();
 
   const userId = await withAuthDb(async (db) => {
     const account = await findAccountByEmail(db, access.email);

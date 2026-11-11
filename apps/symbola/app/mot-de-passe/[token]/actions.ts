@@ -15,6 +15,8 @@ export async function resetPasswordAction(_prevState: ResetPasswordFormState, fo
   const db = appDatabase();
   const outcome = await resetPassword(db, { token, password });
   if (outcome === "password_too_short") return { error: t("tooShort") };
+  // Lot 24b (SEC-03) : mot de passe connu comme compromis.
+  if (outcome === "password_compromised") return { error: t("compromised") };
   if (outcome === "invalid_or_expired") return { error: t("invalidOrExpired") };
   return { done: true };
 }

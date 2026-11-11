@@ -186,6 +186,7 @@
     "invalidOrExpired": "Ce lien d'invitation est invalide ou a expiré.",
     "alreadyAccepted": "Cette invitation a déjà été utilisée.",
     "missingPassword": "Le mot de passe est obligatoire.",
+    "passwordCompromised": "Ce mot de passe figure parmi les mots de passe les plus courants ou déjà compromis. Choisissez-en un autre, par exemple une phrase de plusieurs mots.",
     "passwordTooShort": "Le mot de passe doit faire au moins 12 caractères."
   },
   "Profile": {
@@ -1763,6 +1764,7 @@
     "accountCreated": "Votre compte est créé.",
     "goToLogin": "Se connecter",
     "passwordMismatch": "Les deux mots de passe ne sont pas identiques.",
+    "passwordCompromised": "Ce mot de passe figure parmi les mots de passe les plus courants ou déjà compromis. Choisissez-en un autre, par exemple une phrase de plusieurs mots.",
     "passwordTooShort": "Le mot de passe doit contenir au moins 12 caractères.",
     "invitationInvalid": "Ce lien d'invitation n'est plus valable. Demandez une nouvelle invitation à votre planner.",
     "invitationAlreadyAccepted": "Cette invitation a déjà servi : connectez-vous avec votre compte.",
@@ -2641,6 +2643,7 @@
     "confirmPassword": "Confirmez le mot de passe",
     "save": "Enregistrer le mot de passe",
     "mismatch": "Les deux mots de passe ne sont pas identiques.",
+    "compromised": "Ce mot de passe figure parmi les mots de passe les plus courants ou déjà compromis. Choisissez-en un autre, par exemple une phrase de plusieurs mots.",
     "tooShort": "Le mot de passe doit faire au moins 12 caractères.",
     "invalidOrExpired": "Ce lien n'est plus valable : il a déjà servi ou a expiré.",
     "askAgain": "Demander un nouveau lien",

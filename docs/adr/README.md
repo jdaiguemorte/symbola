@@ -64,3 +64,4 @@ Un fichier par décision structurante, numéroté. Pour changer une décision : 
 - [0060 — Journal d'audit commun, auteur de chaque ligne, accès d'exploitation](0060-journal-d-audit-commun.md)
 - [0061 — Pièces inaltérables : originaux, encaissements en écritures, chaîne d'empreintes](0061-pieces-inalterables.md)
 - [0062 — Modules autonomes : preuve par les combinaisons de modules (écart ARC-01)](0062-modules-autonomes-preuve-par-combinaisons.md)
+- [0063 — Mots de passe compromis : liste locale tenue à jour](0063-mots-de-passe-compromis.md)

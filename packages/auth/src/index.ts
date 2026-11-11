@@ -45,3 +45,5 @@ export {
 export { purgeConnectionTraces } from "./connection-journal";
 export { MfaKeyError, readMfaEncryptionKey } from "./secret-box";
 export { isPlannerRole, isProfessionalRole, ROLES, type Role } from "./roles";
+// Lot 24b (SEC-03, ADR 0063) : règle des mots de passe.
+export { checkPassword, isCompromisedPassword, type PasswordVerdict } from "./password-policy";
