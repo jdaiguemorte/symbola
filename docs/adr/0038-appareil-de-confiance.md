@@ -1,6 +1,7 @@
 # ADR 0038 — Appareil de confiance : le code de double authentification redemandé tous les 90 jours
 
-- Statut : accepté
+- Statut : accepté ; prendra fin avec la bascule de l'ADR
+  [0052](0052-identite-fournisseur-open-source.md) (lot 33)
 - Date : 2026-11-08
 - Complète : [0013](0013-auth-maison-pour-le-mvp.md) (authentification maison),
   [0037](0037-double-authentification-protegee.md) (double authentification protégée)

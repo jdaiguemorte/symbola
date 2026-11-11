@@ -1,6 +1,7 @@
 # ADR 0032 — « Budget » remplace les postes prestataires
 
-- Statut : accepté
+- Statut : remplacé par [0054](0054-budget-a-cinq-montants.md) (cinq montants), en vigueur jusqu'au
+  lot 28
 - Date : 2026-11-05
 - Précise : EVT-03 (postes prestataires), BUD-01 à BUD-04, ADR 0031 (prestataires consultés)
 

@@ -30,3 +30,13 @@ chantier borné : le dossier `modules/<x>/` devient l'app, `service.ts` devient 
 `/v1/...`. La discipline de frontière imposée dès maintenant est ce qui rend cette extraction
 mécanique plutôt qu'une réécriture. Le routage et la navigation partagée entre modules (session,
 layout commun) devront être revus à ce moment : c'est le point de friction principal identifié.
+
+## Avenant du 11/11/2026 — Contrats d'API (lot 25, C3)
+
+Le nouveau cahier des charges demande des contrats d'API en OpenAPI, écrits avant le code
+(ARC-04). Décision de Julien (C3) : les modules gardent leurs contrats TypeScript
+(`packages/contracts`, vérifiés par le compilateur et par les tests de contrat), car aucun de
+ces appels ne passe par le réseau. **Toute API exposée hors de l'application** (API publique,
+webhooks pour des tiers, module extrait en service) a son contrat OpenAPI, versionné et écrit
+avant le code. ARC-04 reste « Divergent » dans `docs/gap.csv` pour les contrats internes,
+justifié par cet avenant.

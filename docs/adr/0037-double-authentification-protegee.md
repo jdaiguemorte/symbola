@@ -1,6 +1,7 @@
 # ADR 0037 — Double authentification protégée : limite d'essais, anti-rejeu, secret chiffré
 
-- Statut : accepté
+- Statut : accepté ; prendra fin avec la bascule de l'ADR
+  [0052](0052-identite-fournisseur-open-source.md) (lot 33)
 - Date : 2026-11-08
 - Complète : [0013](0013-auth-maison-pour-le-mvp.md) (authentification maison),
   [0029](0029-assistance-admin-et-statistiques-d-usage.md) (réinitialisation par l'Admin),

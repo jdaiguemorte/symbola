@@ -53,3 +53,13 @@ qu'une ligne absente (404). `packages/files` lit l'objet (`readPrivateObject`) ;
   tard sans changer les routes.
 - Tests : les tests d'intégration lisent le fichier par la porte d'entrée du module ; les
   parcours e2e vérifient une réponse `200` directe (aucune redirection), son type et son nom.
+
+## Avenant du 11/11/2026 — Liens de fichiers (lot 25, ARC-11 et DOC-04)
+
+ARC-11 demande des fichiers servis par liens signés de quinze minutes au plus. Ici, aucun lien
+vers le stockage n'existe : chaque téléchargement passe par l'app, qui contrôle les droits à
+chaque demande. C'est au moins aussi strict ; ARC-11 reste « Divergent » sur la forme, justifié
+par cet ADR. Le stockage des fichiers reste sur le VPS pendant le pilote
+([ADR 0051](0051-sauvegarde-externe-hetzner.md), § 6). Le partage par lien à durée limitée pour
+les tiers (DOC-04 : un lien expiré ne révèle rien, pas même le nom du fichier) passera par les
+liens personnels de l'[ADR 0053](0053-acces-des-tiers-par-lien-personnel.md) (lots 26 et 37).

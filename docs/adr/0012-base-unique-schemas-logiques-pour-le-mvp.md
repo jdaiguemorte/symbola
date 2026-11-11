@@ -30,3 +30,13 @@ pertinent : `pg_dump --schema=<module>` vers une nouvelle base, nouvelle chaîne
 aucune ligne de code métier à changer puisque l'accès passait déjà uniquement par le module
 propriétaire. C'est la migration la moins coûteuse des quatre révisées par cet ADR et les
 ADR 0011, 0013, 0014.
+
+## Avenant du 11/11/2026 — Clés primaires et clés étrangères (lot 25, DAT-02)
+
+DAT-02 demande des clés primaires non devinables et des clés étrangères déclarées en base. Les
+clés primaires des tables métier sont des UUID tirés au hasard (`uuid().defaultRandom()`) ; seule
+la table interne `rate_limit_events` a une clé séquentielle, jamais exposée. Les clés étrangères
+sont déclarées **à l'intérieur** d'un schéma de module, pas **entre** schémas : une référence
+vers un autre module passe par son `service.ts` ou par un événement interne (ADR 0011, 0014),
+pour que le module reste extractible. DAT-02 reste « Divergent » pour les références entre
+modules, justifié par cet avenant.
