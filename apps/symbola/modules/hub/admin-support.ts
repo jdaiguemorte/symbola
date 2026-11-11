@@ -6,6 +6,7 @@
 // renvoient ces fonctions.
 import { createHash, randomBytes } from "node:crypto";
 import type { MonthlyCount } from "@symbola/contracts";
+import { recordAudit } from "@symbola/db/audit";
 import type { AppDatabase } from "@symbola/db/client";
 import {
   countAccountsByOrganization,
@@ -21,7 +22,6 @@ import {
   findInvitationById,
   findAllOrganizationModules,
   findPendingInvitations,
-  insertAuditLog,
   listAllOrganizations,
   replaceInvitationToken,
 } from "./repository";
@@ -111,10 +111,11 @@ export async function resendInvitation(
     tokenHash: createHash("sha256").update(token).digest("hex"),
     expiresAt: new Date(now.getTime() + INVITATION_RESEND_DURATION_MS),
   });
-  await insertAuditLog(db, {
-    adminUserId: input.adminUserId,
+  await recordAudit(db, {
+    organizationId: invitation.organizationId,
     action: "hub.invitation.resent",
-    targetOrganizationId: invitation.organizationId,
+    objectId: invitation.organizationId,
+    actor: { kind: "admin", id: input.adminUserId },
   });
   return {
     email: invitation.email,
@@ -135,11 +136,11 @@ export async function resetTeamAccountMfa(
 ): Promise<{ email: string; language: "fr" | "en" | null }> {
   const organizationId = await findTeamAccountOrganization(db, input.userId);
   const account = await resetUserMfa(db, input.userId);
-  await insertAuditLog(db, {
-    adminUserId: input.adminUserId,
+  await recordAudit(db, {
+    organizationId,
     action: "hub.user.mfa_reset",
-    targetOrganizationId: organizationId,
-    targetUserId: input.userId,
+    objectId: input.userId,
+    actor: { kind: "admin", id: input.adminUserId },
   });
   return account;
 }

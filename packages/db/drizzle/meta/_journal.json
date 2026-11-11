@@ -596,6 +596,20 @@
       "when": 1794269977506,
       "tag": "0084_lot20_tag_groups",
       "breakpoints": true
+    },
+    {
+      "idx": 85,
+      "version": "7",
+      "when": 1794415134663,
+      "tag": "0085_lot23_audit_entries",
+      "breakpoints": true
+    },
+    {
+      "idx": 86,
+      "version": "7",
+      "when": 1794415176565,
+      "tag": "0086_lot23_hub_audit_log_to_core",
+      "breakpoints": true
     }
   ]
 }

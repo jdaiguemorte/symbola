@@ -2,6 +2,7 @@
 // suite (PRD PRD-HUB-03). Seul fichier que les autres modules peuvent
 // importer ; jamais repository.ts directement.
 import { createHash, randomBytes } from "node:crypto";
+import { recordAudit } from "@symbola/db/audit";
 import type { AppDatabase } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { detectFileType, uploadFile } from "@symbola/files";
@@ -17,7 +18,6 @@ import {
   findHelpProgress,
   insertDefaultPlatformSettings,
   findUserContact,
-  insertAuditLog,
   insertInvitation,
   insertOrganization,
   upsertHelpProgress,
@@ -249,10 +249,11 @@ export async function createOrganizationWithInvitation(db: AppDatabase, input: C
     expiresAt: new Date(Date.now() + INVITATION_DURATION_MS),
   });
 
-  await insertAuditLog(db, {
-    adminUserId: input.adminUserId,
+  await recordAudit(db, {
+    organizationId: organization.id,
     action: "hub.organization.created",
-    targetOrganizationId: organization.id,
+    objectId: organization.id,
+    actor: { kind: "admin", id: input.adminUserId },
   });
 
   const env = parseEnv(process.env);
@@ -319,10 +320,12 @@ export async function setModuleEnabled(
   input: { adminUserId: string; organizationId: string; moduleKey: ModuleKey; enabled: boolean },
 ): Promise<void> {
   await upsertOrganizationModule(db, input);
-  await insertAuditLog(db, {
-    adminUserId: input.adminUserId,
+  await recordAudit(db, {
+    organizationId: input.organizationId,
     action: input.enabled ? "hub.module.enabled" : "hub.module.disabled",
-    targetOrganizationId: input.organizationId,
+    objectId: input.organizationId,
+    details: { module: input.moduleKey },
+    actor: { kind: "admin", id: input.adminUserId },
   });
 }
 
@@ -673,10 +676,10 @@ export async function setPlatformSettings(
     ...(input.importMaxSheets !== undefined ? { importMaxSheets: input.importMaxSheets } : {}),
     ...(input.privacyExportRetentionDays !== undefined ? { privacyExportRetentionDays: input.privacyExportRetentionDays } : {}),
   });
-  await insertAuditLog(db, {
-    adminUserId: input.adminUserId,
+  await recordAudit(db, {
+    organizationId: null,
     action: "hub.platform_settings.updated",
-    targetOrganizationId: null,
+    actor: { kind: "admin", id: input.adminUserId },
   });
 }
 

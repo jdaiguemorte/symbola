@@ -280,22 +280,8 @@ export const platformSettings = hubSchema.table("platform_settings", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
-// Journal d'audit des actions Admin (PRD PRD-HUB-03, « qui, quoi, quand »).
-// targetOrganizationId nul pour une action qui ne vise aucune organisation
-// précise.
-export const auditLog = hubSchema.table("audit_log", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  adminUserId: uuid("admin_user_id")
-    .notNull()
-    .references(() => users.id),
-  action: text("action").notNull(),
-  targetOrganizationId: uuid("target_organization_id").references(() => organizations.id),
-  // Lot 9 : compte visé par une action d'assistance (réinitialisation de la
-  // double authentification). Nul pour les actions sur une organisation.
-  // SET NULL : supprimer un compte (RGPD) ne bute jamais sur le journal.
-  targetUserId: uuid("target_user_id").references(() => users.id, { onDelete: "set null" }),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-});
+// Lot 23 (ARC-16, ADR 0060) : l'ancien journal des actions Admin
+// (hub.audit_log) est remplacé par le journal commun core.audit_entries.
 
 // Lot 5 — import de données (PRD §7, ADR 0022). Un import en cours garde les
 // lignes lues et neutralisées du fichier (le fichier lui-même n'est jamais

@@ -61,6 +61,25 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     await expect(rollback("0099_inconnue")).rejects.toBeInstanceOf(RollbackRefusedError);
   });
 
+  it("lot 23 (ADR 0060) — l'annulation de 0086 recrée hub.audit_log et y recopie les actions de l'Admin", async () => {
+    await expect(rollback("0085_lot23_audit_entries")).rejects.toBeInstanceOf(RollbackRefusedError);
+    const [adminUser] = await target<{ id: string }[]>`
+      insert into hub.users (email, password_hash, role) values (${`admin-${randomUUID()}@symbola.test`}, 'x', 'admin') returning id`;
+    await target`insert into core.audit_entries (actor_kind, actor_id, action, category) values ('admin', ${adminUser!.id}, 'hub.platform_settings.updated', 'administration')`;
+    await target`insert into core.audit_entries (actor_kind, action, category) values ('system', 'quotes.quote.sent', 'partage')`;
+    expect(await hasColumn("hub", "audit_log", "admin_user_id")).toBe(false);
+    await rollback("0086_lot23_hub_audit_log_to_core");
+    const copied = await target<{ action: string }[]>`select action from hub.audit_log where admin_user_id = ${adminUser!.id}`;
+    expect(copied.map((row) => row.action)).toEqual(["hub.platform_settings.updated"]);
+  });
+
+  it("lot 23 (ADR 0060) — l'annulation de 0085 retire le journal commun", async () => {
+    await expect(rollback("0084_lot20_tag_groups")).rejects.toBeInstanceOf(RollbackRefusedError);
+    await rollback("0085_lot23_audit_entries");
+    expect(await hasColumn("core", "audit_entries", "action")).toBe(false);
+    expect(await hasColumn("hub", "audit_log", "action")).toBe(true);
+  });
+
   it("lot 20 (ADR 0049) — l'annulation de 0084 retire les groupes d'étiquettes, les étiquettes restent", async () => {
     await expect(rollback("0083_lot19_request_proof")).rejects.toBeInstanceOf(RollbackRefusedError);
     expect(await hasColumn("vendors", "vendor_tags", "group_id")).toBe(true);

@@ -210,6 +210,9 @@ importers:
 
   packages/db:
     dependencies:
+      '@symbola/contracts':
+        specifier: workspace:*
+        version: link:../contracts
       drizzle-orm:
         specifier: ^0.45.4
         version: 0.45.4(gel@2.2.1)(postgres@3.4.9)
