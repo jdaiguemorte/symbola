@@ -430,7 +430,8 @@ Compte rendu dans `docs/recette/SC-02.md` et `docs/recette/SC-09.md`.
   question 11 ; runbooks ; `CLAUDE.md` § 9 ; grille d'écart (SEC-19, ARC-16, HUB-16, SEC-09,
   DAT-06 conformes).
 - **Tests** : base 109, authentification 44, app 409 en intégration ; unitaires de tous les
-  paquets ; scripts 133 ; parcours e2e de HUB-16 en ordinateur et en 375 px avec axe-core ;
+  paquets ; scripts 133 ; suite e2e complète sur l'app compilée et une base neuve, comme en CI :
+  173 parcours verts, dont HUB-16 en ordinateur et en 375 px avec axe-core ;
   annulation de chaque migration (0085 à 0093).
 
 **Reste, hors du 23a** :
