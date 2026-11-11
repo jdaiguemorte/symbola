@@ -61,6 +61,24 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     await expect(rollback("0099_inconnue")).rejects.toBeInstanceOf(RollbackRefusedError);
   });
 
+  it("lot 24a (DAT-01) — l'annulation de 0100 à 0095 retire les index sur organization_id, module par module", async () => {
+    const steps: [string, string, string][] = [
+      ["0100_lot24a_vendors_organization_index", "vendors", "vendors_organization_idx"],
+      ["0099_lot24a_quotes_organization_index", "quotes", "quote_lines_organization_idx"],
+      ["0098_lot24a_budget_organization_index", "budget", "budget_lines_organization_idx"],
+      ["0097_lot24a_events_organization_index", "events", "events_organization_idx"],
+      ["0096_lot24a_hub_organization_index", "hub", "imports_organization_idx"],
+      ["0095_lot24a_core_organization_index", "core", "domain_events_organization_idx"],
+    ];
+    await expect(rollback("0094_lot23b_pieces_inalterables")).rejects.toBeInstanceOf(RollbackRefusedError);
+    for (const [tag, schema, index] of steps) {
+      const indexes = () => target`select 1 from pg_indexes where schemaname = ${schema} and indexname = ${index}`;
+      expect(await indexes(), tag).toHaveLength(1);
+      await rollback(tag);
+      expect(await indexes(), tag).toHaveLength(0);
+    }
+  });
+
   it("lot 23b (ADR 0061) — l'annulation de 0094 retire la chaîne, les originaux et les écritures d'encaissement", async () => {
     await expect(rollback("0093_lot23_connection_traces")).rejects.toBeInstanceOf(RollbackRefusedError);
     expect(await hasColumn("quotes", "ledger_entries", "hash")).toBe(true);
