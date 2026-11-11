@@ -59,6 +59,12 @@ export function rateLimitRules(action: RateLimitedAction, subject: { ip: string 
 }
 
 // `headers` : ceux de la requête d'une route ; une action serveur les lit d'elle-même.
+// Lot 23 (décision D5) : adresse de la requête en cours, gardée à part du
+// journal d'audit pour les connexions.
+export async function requestClientIp(): Promise<string | null> {
+  return clientIpFrom(await requestHeaders());
+}
+
 export async function checkRateLimit(action: RateLimitedAction, subject: { account: string | null; headers?: Headers }): Promise<RateLimitDecision> {
   const ip = clientIpFrom(subject.headers ?? (await requestHeaders()));
   return consumeRateLimits(appDatabase(), rateLimitRules(action, { ip, account: subject.account }));

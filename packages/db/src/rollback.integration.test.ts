@@ -61,6 +61,14 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     await expect(rollback("0099_inconnue")).rejects.toBeInstanceOf(RollbackRefusedError);
   });
 
+  it("lot 23 (décision D5) — l'annulation de 0093 retire les adresses IP des connexions et leur durée", async () => {
+    await expect(rollback("0092_lot23_vendors_row_stamps")).rejects.toBeInstanceOf(RollbackRefusedError);
+    expect(await hasColumn("hub", "connection_traces", "ip")).toBe(true);
+    await rollback("0093_lot23_connection_traces");
+    expect(await hasColumn("hub", "connection_traces", "ip")).toBe(false);
+    expect(await hasColumn("hub", "platform_settings", "connection_trace_retention_months")).toBe(false);
+  });
+
   it("lot 23 (DAT-06) — l'annulation de 0092 à 0088 retire auteurs, dates ajoutées et déclencheurs, module par module", async () => {
     const steps: [string, string, string, string][] = [
       ["0092_lot23_vendors_row_stamps", "vendors", "vendors", "0091_lot23_quotes_row_stamps"],

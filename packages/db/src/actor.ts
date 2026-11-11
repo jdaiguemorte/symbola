@@ -19,6 +19,7 @@ export const SYSTEM_ACTOR: Actor = { kind: "system", id: null };
 type Registry = {
   storage: AsyncLocalStorage<Actor>;
   resolver: (() => Promise<Actor | null>) | null;
+  bulk: AsyncLocalStorage<true>;
 };
 
 // Un seul registre par processus : Next charge ce paquet dans plusieurs
@@ -27,12 +28,23 @@ const REGISTRY_KEY = Symbol.for("symbola.db.actor");
 
 function registry(): Registry {
   const holder = globalThis as unknown as Record<symbol, Registry | undefined>;
-  holder[REGISTRY_KEY] ??= { storage: new AsyncLocalStorage<Actor>(), resolver: null };
+  holder[REGISTRY_KEY] ??= { storage: new AsyncLocalStorage<Actor>(), resolver: null, bulk: new AsyncLocalStorage<true>() };
   return holder[REGISTRY_KEY];
 }
 
 export function withActor<T>(actor: Actor, fn: () => Promise<T>): Promise<T> {
   return registry().storage.run(actor, fn);
+}
+
+// Lot 23 (SEC-19) : purge en masse (essai guidé, effacement RGPD, imports
+// expirés). Les suppressions faites dans fn ne vont pas une à une au journal
+// (app.audit_bulk) : l'appelant écrit une ligne de synthèse.
+export function withAuditBulk<T>(fn: () => Promise<T>): Promise<T> {
+  return registry().bulk.run(true, fn);
+}
+
+export function isAuditBulk(): boolean {
+  return registry().bulk.getStore() === true;
 }
 
 export function registerActorResolver(resolver: (() => Promise<Actor | null>) | null): void {

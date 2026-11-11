@@ -3,6 +3,8 @@
 // supprime ses propres données de l'événement fictif (budget et devis d'abord),
 // puis le module events supprime l'événement. Les modules ne se
 // connaissent que par leur service.ts (ADR 0011) ; l'orchestration vit ici.
+import { withAuditBulk } from "@symbola/db/actor";
+import { deleteDemoAuditEntries } from "@symbola/db/audit";
 import { appDatabase } from "@symbola/db/client";
 import { removeEventBudgetData } from "@/modules/budget/service";
 import { removeEventQuotesData } from "@/modules/quotes/service";
@@ -17,15 +19,25 @@ import { listOrganizations } from "@/modules/hub/service";
 const PURGE_INTERVAL_MS = 60 * 60 * 1000; // toutes les heures
 
 // Bouton « Terminer l'essai » : ne fait rien pour un vrai événement.
-export async function endTrial(organizationId: string, eventId: string): Promise<void> {
+// Lot 23 (SEC-19) : les données d'essai effacées ne vont pas au journal.
+export function endTrial(organizationId: string, eventId: string): Promise<void> {
+  return withAuditBulk(() => endTrialNow(organizationId, eventId));
+}
+
+async function endTrialNow(organizationId: string, eventId: string): Promise<void> {
   const event = await getEvent(organizationId, eventId);
   if (!event?.isDemo) return;
   await removeEventBudgetData(organizationId, [eventId]);
   await removeEventQuotesData(organizationId, [eventId]);
+  await deleteDemoAuditEntries(appDatabase(), organizationId);
   await endEventsTrial(organizationId, eventId);
 }
 
-export async function purgeOrganizationsDemoData(organizationIds: string[], now: Date = new Date()): Promise<number> {
+export function purgeOrganizationsDemoData(organizationIds: string[], now: Date = new Date()): Promise<number> {
+  return withAuditBulk(() => purgeOrganizationsDemoDataNow(organizationIds, now));
+}
+
+async function purgeOrganizationsDemoDataNow(organizationIds: string[], now: Date): Promise<number> {
   const expired = await listExpiredDemoEvents(organizationIds, now);
   const byOrganization = new Map<string, string[]>();
   for (const { organizationId, eventId } of expired) {
@@ -34,6 +46,7 @@ export async function purgeOrganizationsDemoData(organizationIds: string[], now:
   for (const [organizationId, eventIds] of byOrganization) {
     await removeEventBudgetData(organizationId, eventIds);
     await removeEventQuotesData(organizationId, eventIds);
+    await deleteDemoAuditEntries(appDatabase(), organizationId);
   }
   return purgeExpiredDemoEventsForOrganizations(organizationIds, now);
 }

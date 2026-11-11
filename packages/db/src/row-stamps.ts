@@ -19,6 +19,7 @@ export const TECHNICAL_TABLES: Record<string, string> = {
   "hub.backup_runs": "suivi des sauvegardes, écrit par l'exploitation",
   "hub.help_progress": "progression d'un compte dans l'aide : l'auteur est le compte",
   "hub.user_tour_seen": "visite guidée vue par un compte",
+  "hub.connection_traces": "adresses IP des connexions, illisibles par l'app, purgées (décision D5)",
   "quotes.number_series": "compteur de numérotation, verrouillé en transaction",
   "quotes.signature_webhook_log": "trace technique des appels du fournisseur de signature (received_at)",
 };

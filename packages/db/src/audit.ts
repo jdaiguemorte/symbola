@@ -9,6 +9,8 @@
 //
 // L'auteur vient du contexte (actor.ts), sauf s'il est passé explicitement.
 // La famille et le type d'objet viennent du catalogue (@symbola/contracts).
+import { randomUUID } from "node:crypto";
+import { eq } from "drizzle-orm";
 import { AUDIT_ACTIONS, type AuditAction, type AuditDetails } from "@symbola/contracts";
 import { currentActor, type Actor } from "./actor";
 import type { AppDatabase } from "./client";
@@ -30,9 +32,10 @@ export type AuditEntryInput = {
   actor?: Actor;
 };
 
-function toRow(entry: AuditEntryInput) {
+function toRow(id: string, entry: AuditEntryInput) {
   const spec = AUDIT_ACTIONS[entry.action];
   return {
+    id,
     organizationId: entry.organizationId,
     action: entry.action,
     category: spec.category,
@@ -45,19 +48,29 @@ function toRow(entry: AuditEntryInput) {
   };
 }
 
-export async function appendAudit(tx: Transaction, entry: AuditEntryInput): Promise<void> {
-  await tx.insert(auditEntries).values(toRow(entry));
+// Renvoie l'identifiant de la ligne, choisi ici : un RETURNING passerait par la
+// politique de lecture, qui cache les lignes de plateforme (connexion de
+// l'Admin) même à qui vient de les écrire.
+export async function appendAudit(tx: Transaction, entry: AuditEntryInput): Promise<string> {
+  const id = randomUUID();
+  await tx.insert(auditEntries).values(toRow(id, entry));
+  return id;
 }
 
-export async function recordAudit(db: AppDatabase, entry: AuditEntryInput): Promise<void> {
+// Fin ou purge d'un essai guidé : ses lignes de journal (is_demo) partent avec
+// lui, comme ses factures fictives. Les seules que le déclencheur laisse effacer.
+export async function deleteDemoAuditEntries(db: AppDatabase, organizationId: string): Promise<void> {
+  await withOrganization(db, organizationId, (tx) => tx.delete(auditEntries).where(eq(auditEntries.isDemo, true)));
+}
+
+export async function recordAudit(db: AppDatabase, entry: AuditEntryInput): Promise<string> {
   if (entry.organizationId) {
     const organizationId = entry.organizationId;
-    await withOrganization(db, organizationId, (tx) => appendAudit(tx, entry));
-    return;
+    return withOrganization(db, organizationId, (tx) => appendAudit(tx, entry));
   }
   const actor = entry.actor ?? (await currentActor());
-  await db.transaction(async (tx) => {
+  return db.transaction(async (tx) => {
     await setActorInTransaction(tx, actor);
-    await appendAudit(tx, entry);
+    return appendAudit(tx, entry);
   });
 }

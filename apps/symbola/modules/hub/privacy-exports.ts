@@ -8,6 +8,7 @@ import { randomUUID } from "node:crypto";
 import { and, desc, eq, gt, inArray, isNull, lte } from "drizzle-orm";
 import type { AppDatabase } from "@symbola/db/client";
 import { privacyExports, privacyRequests } from "@symbola/db/schema/hub";
+import { appendAudit } from "@symbola/db/audit";
 import { withOrganization } from "@symbola/db/with-organization";
 import { createStorageClient, deletePrivateObject, PrivateObjectNotFoundError, readPrivateObject, uploadPrivateObject } from "@symbola/files";
 import type { FileDownload } from "@symbola/contracts";
@@ -99,8 +100,8 @@ export async function storePrivacyExport(
   await uploadPrivateObject(storage, { key: pdfKey, body: input.pdf, contentType: "application/pdf" });
   await uploadPrivateObject(storage, { key: archiveKey, body: input.archive, contentType: "application/zip" });
   try {
-    const [row] = await withOrganization(db, input.organizationId, (tx) =>
-      tx
+    const [row] = await withOrganization(db, input.organizationId, async (tx) => {
+      const rows = await tx
         .insert(privacyExports)
         .values({
           id,
@@ -113,8 +114,11 @@ export async function storePrivacyExport(
           createdAt: now,
           expiresAt: new Date(now.getTime() + retentionDays * DAY_MS),
         })
-        .returning(),
-    );
+        .returning();
+      // Lot 23 (SEC-19) : export RGPD au journal, dans la même transaction.
+      await appendAudit(tx, { organizationId: input.organizationId, action: "hub.privacy_export.created", objectId: id, details: { records: input.recordCount } });
+      return rows;
+    });
     if (!row) throw new Error("enregistrement de l'export échoué");
     return { id: row.id, recordCount: row.recordCount, requestId: row.requestId, requestPersonLabel, createdAt: row.createdAt, expiresAt: row.expiresAt };
   } catch (error) {

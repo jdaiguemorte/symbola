@@ -4,7 +4,7 @@
 // (events, budget, quotes le seront). L'isolation entre organisations pour
 // ces tables est assurée exclusivement par packages/auth (seule porte
 // d'entrée, ADR 0013) : aucun autre code n'y accède directement.
-import { bigint, boolean, date, integer, jsonb, pgSchema, primaryKey, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { bigint, boolean, date, index, integer, jsonb, pgSchema, primaryKey, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
 export const hubSchema = pgSchema("hub");
 
@@ -299,6 +299,11 @@ export const platformSettings = hubSchema.table("platform_settings", {
   // Lot 6 (RGPD-02) : durée pendant laquelle les fichiers d'un export RGPD
   // restent téléchargeables (7 jours, comme un import en cours), puis effacés.
   privacyExportRetentionDays: integer("privacy_export_retention_days").notNull().default(7),
+  // Lot 23 (SEC-19, décision D5) : durée de conservation des adresses IP des
+  // connexions (hub.connection_traces). 12 mois proposés, dans la fourchette
+  // de 6 mois à 1 an recommandée par la CNIL pour les journaux ; à confirmer
+  // par le DPO (fiche, question 11).
+  connectionTraceRetentionMonths: integer("connection_trace_retention_months").notNull().default(12),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
@@ -308,6 +313,24 @@ export const platformSettings = hubSchema.table("platform_settings", {
 
 // Lot 23 (ARC-16, ADR 0060) : l'ancien journal des actions Admin
 // (hub.audit_log) est remplacé par le journal commun core.audit_entries.
+
+// Lot 23 (SEC-19, décision D5, ADR 0060) : adresse IP d'une connexion, à part
+// du journal commun (une ligne par ligne de connexion du journal, par son
+// identifiant, sans clé étrangère entre schémas). Donnée personnelle : la
+// titulaire ne la voit pas ; elle sert à l'enquête de sécurité. Le rôle
+// applicatif y écrit mais ne lit que created_at (purge) ; la lecture passe
+// par un accès d'exploitation tracé (SEC-09). Purgée après
+// platform_settings.connection_trace_retention_months.
+export const connectionTraces = hubSchema.table(
+  "connection_traces",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    auditEntryId: uuid("audit_entry_id").notNull(),
+    ip: text("ip").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [index("connection_traces_created_at_idx").on(table.createdAt)],
+);
 
 // Lot 5 — import de données (PRD §7, ADR 0022). Un import en cours garde les
 // lignes lues et neutralisées du fichier (le fichier lui-même n'est jamais

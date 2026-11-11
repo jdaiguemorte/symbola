@@ -42,5 +42,6 @@ export {
   type OrganizationAccountCounts,
   type TeamAccountStatus,
 } from "./support";
+export { purgeConnectionTraces } from "./connection-journal";
 export { MfaKeyError, readMfaEncryptionKey } from "./secret-box";
 export { isPlannerRole, isProfessionalRole, ROLES, type Role } from "./roles";

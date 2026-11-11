@@ -21,6 +21,7 @@ import {
   taskTemplateItems,
   taskTemplates,
 } from "@symbola/db/schema/events";
+import { appendAudit } from "@symbola/db/audit";
 import { withOrganization } from "@symbola/db/with-organization";
 import { foldedColumn, foldedContains, likeWord } from "@symbola/db/search";
 import { emitDomainEvent } from "@symbola/db/events/emit";
@@ -1244,6 +1245,8 @@ export async function saveClientAccess(input: {
       })
       .returning();
     if (!access) throw new Error("création de l'accès échouée");
+    // Lot 23 (SEC-19) : espace du marié ouvert, au journal.
+    await appendAudit(tx, { organizationId: input.organizationId, action: "events.client_access.granted", objectId: input.eventId, details: { accessId: access.id } });
     return { status: "saved", access };
   });
 }
@@ -1251,12 +1254,17 @@ export async function saveClientAccess(input: {
 // Retirer un accès invalide aussi le jeton d'une invitation en attente.
 export async function revokeClientAccessRow(organizationId: string, accessId: string): Promise<void> {
   const db = appDatabase();
-  await withOrganization(db, organizationId, (tx) =>
-    tx
+  await withOrganization(db, organizationId, async (tx) => {
+    const revoked = await tx
       .update(eventClientAccesses)
       .set({ revokedAt: new Date(), tokenHash: null })
-      .where(and(eq(eventClientAccesses.id, accessId), isNull(eventClientAccesses.revokedAt))),
-  );
+      .where(and(eq(eventClientAccesses.id, accessId), isNull(eventClientAccesses.revokedAt)))
+      .returning({ eventId: eventClientAccesses.eventId });
+    // Lot 23 (SEC-19) : accès retiré, au journal.
+    if (revoked[0]) {
+      await appendAudit(tx, { organizationId, action: "events.client_access.revoked", objectId: revoked[0].eventId, details: { accessId } });
+    }
+  });
 }
 
 export async function findClientAccessByTokenHash(

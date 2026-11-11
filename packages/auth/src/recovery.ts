@@ -6,6 +6,7 @@
 import { and, eq, gt, isNull } from "drizzle-orm";
 import type { AppDatabase } from "@symbola/db/client";
 import { passwordResets, sessions, trustedDevices, users } from "@symbola/db/schema/hub";
+import { connectionAccount, journalConnection } from "./connection-journal";
 import { hashPassword } from "./password";
 import { isPlannerRole, type Role } from "./roles";
 import { generateSessionToken, hashSessionToken } from "./session-token";
@@ -83,6 +84,9 @@ export async function resetPassword(
   await db.delete(sessions).where(eq(sessions.userId, reset.userId));
   // L16-SEC-03 : un nouveau mot de passe révoque aussi les appareils de confiance.
   await db.delete(trustedDevices).where(eq(trustedDevices.userId, reset.userId));
+  // Lot 23 (SEC-19) : au journal d'audit.
+  const account = await connectionAccount(db, reset.userId);
+  if (account) await journalConnection(db, account, "hub.password.reset");
   return "success";
 }
 

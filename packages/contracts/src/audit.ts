@@ -44,8 +44,8 @@ export const AUDIT_ACTIONS = {
   // Administration de la plateforme (sans organisation).
   "hub.platform_settings.updated": { category: "administration", objectType: null },
   // Exports.
-  "hub.privacy_export.created": { category: "export", objectType: "privacy_request" },
-  "hub.privacy_export.downloaded": { category: "export", objectType: "privacy_request" },
+  "hub.privacy_export.created": { category: "export", objectType: "privacy_export" },
+  "hub.privacy_export.downloaded": { category: "export", objectType: "privacy_export" },
   "vendors.vendors.exported": { category: "export", objectType: null },
   "quotes.e_reporting.exported": { category: "export", objectType: null },
   // Partages.
@@ -60,8 +60,8 @@ export const AUDIT_ACTIONS = {
   "quotes.payment.recorded": { category: "encaissement", objectType: "payment_schedule_item" },
   "quotes.payment.cancelled": { category: "encaissement", objectType: "payment_schedule_item" },
   // Suppressions en masse (une ligne de synthèse, pas une par ligne effacée).
-  "hub.privacy_erasure.executed": { category: "suppression", objectType: "privacy_request" },
-  "hub.privacy_purge.executed": { category: "suppression", objectType: null },
+  "hub.privacy_erasure.executed": { category: "suppression", objectType: "privacy_erasure" },
+  "hub.privacy_purge.executed": { category: "suppression", objectType: "privacy_purge" },
   // Exploitation (SEC-09) : sans organisation, visibles dans chaque journal.
   "ops.database.opened": { category: "exploitation", objectType: null },
   "ops.database.closed": { category: "exploitation", objectType: null },

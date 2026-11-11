@@ -652,6 +652,13 @@
       "when": 1794415899391,
       "tag": "0092_lot23_vendors_row_stamps",
       "breakpoints": true
+    },
+    {
+      "idx": 93,
+      "version": "7",
+      "when": 1794416216012,
+      "tag": "0093_lot23_connection_traces",
+      "breakpoints": true
     }
   ]
 }

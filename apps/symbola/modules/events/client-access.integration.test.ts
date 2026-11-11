@@ -6,6 +6,9 @@ import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { createOrganization, createUser, login, requireUser } from "@symbola/auth";
 import { createAppConnection, type AppDatabase } from "@symbola/db/client";
+import { auditEntries } from "@symbola/db/schema/core";
+import { withOrganization } from "@symbola/db/with-organization";
+import { and, eq } from "drizzle-orm";
 import {
   acceptEventClientInvitation,
   addEventTask,
@@ -284,3 +287,24 @@ describe("PRD-EVT-06 — Isolation d'un compte marié", () => {
     expect(await listEventActivity(other.organizationId, eventId)).toEqual([]);
   });
 });
+
+// Lot 23 (SEC-19, ADR 0060) : ouvrir ou retirer l'espace du marié est un partage.
+describe("SEC-19 — Accès à l'espace du marié au journal d'audit", () => {
+  it("l'invitation et le retrait de l'accès laissent chacun une ligne, sans e-mail", async () => {
+    const { organizationId, eventId } = await setup();
+    const email = `marie-${randomUUID()}@example.test`;
+    const invitation = await inviteEventClient({ organizationId, eventId, email, invitedByUserId: plannerId, locale: "fr" });
+    await revokeEventClientAccess(organizationId, invitation.access.id);
+    const shares = await withDb((db) =>
+      withOrganization(db, organizationId, (tx) =>
+        tx.select().from(auditEntries).where(and(eq(auditEntries.organizationId, organizationId), eq(auditEntries.category, "partage"))).orderBy(auditEntries.occurredAt),
+      ),
+    );
+    expect(shares).toMatchObject([
+      { action: "events.client_access.granted", objectId: eventId, details: { accessId: invitation.access.id } },
+      { action: "events.client_access.revoked", objectId: eventId, details: { accessId: invitation.access.id } },
+    ]);
+    expect(JSON.stringify(shares)).not.toContain(email);
+  });
+});
+

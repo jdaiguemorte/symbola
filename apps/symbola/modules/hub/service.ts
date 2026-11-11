@@ -293,13 +293,20 @@ export async function acceptInvitation(
     return { outcome: "already_accepted" };
   }
 
-  await createUser(db, {
+  const owner = await createUser(db, {
     organizationId: invitation.organizationId,
     email: invitation.email,
     password: input.password,
     role: "owner",
   });
   await markInvitationAccepted(db, invitation.id);
+  // Lot 23 (SEC-19) : le compte de la titulaire est créé.
+  await recordAudit(db, {
+    organizationId: invitation.organizationId,
+    action: "hub.invitation.accepted",
+    objectId: owner.id,
+    actor: { kind: "member", id: owner.id },
+  });
 
   return { outcome: "success", organizationId: invitation.organizationId };
 }
@@ -633,6 +640,8 @@ export type PlatformSettings = {
   importMaxSheets: number;
   // Lot 6 (RGPD-02) : durée de téléchargement d'un export RGPD.
   privacyExportRetentionDays: number;
+  // Lot 23 (décision D5) : durée de conservation des adresses IP des connexions.
+  connectionTraceRetentionMonths: number;
 };
 
 // ONB-02 — « Le seuil de chiffre d'affaires de la franchise est un
@@ -656,6 +665,7 @@ export async function getPlatformSettings(db: AppDatabase): Promise<PlatformSett
     importUndoRetentionDays: row.importUndoRetentionDays,
     importMaxSheets: row.importMaxSheets,
     privacyExportRetentionDays: row.privacyExportRetentionDays,
+    connectionTraceRetentionMonths: row.connectionTraceRetentionMonths,
   };
 }
 

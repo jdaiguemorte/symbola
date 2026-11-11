@@ -5,6 +5,9 @@ import { randomUUID } from "node:crypto";
 import { afterEach, describe, expect, it } from "vitest";
 import { createOrganization, createUser } from "@symbola/auth";
 import { createAppConnection, type AppDatabase } from "@symbola/db/client";
+import { auditEntries } from "@symbola/db/schema/core";
+import { withOrganization } from "@symbola/db/with-organization";
+import { eq } from "drizzle-orm";
 import { saveOnboardingStep } from "@/modules/hub/service";
 import { createProspect, createProspectSource, startEventsTrial } from "@/modules/events/service";
 import { fakeSignatureProvider, setSignatureProviderForTests } from "./signature";
@@ -27,6 +30,7 @@ import {
   issueDepositInvoice,
   listQuoteInvoices,
   markScheduleItemPaid,
+  markScheduleItemUnpaid,
   removeEventQuotesData,
   sendQuote,
   sendQuoteForSignature,
@@ -322,3 +326,45 @@ describe("DEV-04 — Essai guidé et isolation", () => {
     expect((await getEReporting(own.organizationId, { from: "2027-01-01", to: "2027-12-31" })).invoices).toEqual([]);
   });
 });
+
+// Lot 23 (SEC-19, ADR 0060) : partages, émissions et encaissements au journal
+// d'audit, dans la transaction du geste.
+async function journalOf(organizationId: string) {
+  return withDb((db) =>
+    withOrganization(db, organizationId, (tx) =>
+      tx.select().from(auditEntries).where(eq(auditEntries.organizationId, organizationId)).orderBy(auditEntries.occurredAt),
+    ),
+  );
+}
+
+describe("SEC-19 — Devis, factures et encaissements au journal d'audit", () => {
+  it("l'envoi du devis et la demande de signature sont des partages ; la facture et l'avoir des émissions, avec leur numéro", async () => {
+    const { organizationId, quoteId, number, items } = await signedQuote();
+    const invoice = await issueDepositInvoice({ organizationId, scheduleItemId: items[0]!.id, now: NOW });
+    const creditNote = await issueCreditNote({ organizationId, invoiceId: invoice.id, amountCents: 10000, reason: "Remise", now: NOW });
+    const journal = await journalOf(organizationId);
+    expect(journal.find((entry) => entry.action === "quotes.quote.sent")).toMatchObject({ category: "partage", objectId: quoteId, details: { number, version: 1 } });
+    expect(journal.find((entry) => entry.action === "quotes.signature.requested")).toMatchObject({ category: "partage", details: { signers: 2 } });
+    expect(journal.find((entry) => entry.action === "quotes.invoice.issued")).toMatchObject({
+      category: "emission",
+      objectId: invoice.id,
+      details: { number: invoice.number, kind: "deposit", amountCents: 80400 },
+      isDemo: false,
+    });
+    expect(journal.find((entry) => entry.action === "quotes.credit_note.issued")).toMatchObject({
+      objectId: creditNote.id,
+      details: { number: creditNote.number, invoiceNumber: invoice.number, amountCents: 10000 },
+    });
+  });
+
+  it("un encaissement saisi puis annulé laisse deux lignes ; rien n'est effacé du journal", async () => {
+    const { organizationId, items } = await signedQuote();
+    const [method] = await addPaymentMethods(organizationId, ["Virement"]);
+    await markScheduleItemPaid({ organizationId, scheduleItemId: items[0]!.id, paidOn: "2027-04-09", paymentMethodId: method!.id, now: NOW });
+    await markScheduleItemUnpaid(organizationId, items[0]!.id);
+    const payments = (await journalOf(organizationId)).filter((entry) => entry.category === "encaissement");
+    expect(payments.map((entry) => entry.action)).toEqual(["quotes.payment.recorded", "quotes.payment.cancelled"]);
+    expect(payments[0]).toMatchObject({ objectId: items[0]!.id, details: { paidOn: "2027-04-09" } });
+  });
+});
+

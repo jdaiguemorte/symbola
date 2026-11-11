@@ -6,7 +6,7 @@ import { confirmTotp, requireUser, resumeTotpSetup, type ConfirmTotpResult } fro
 import { appDatabase } from "@symbola/db/client";
 import { getSessionToken, setSessionCookie, setTrustedDeviceCookie } from "@/lib/auth-context";
 import { sendMfaLockMail } from "@/lib/mfa-lock-mail";
-import { checkRateLimit, rateLimitMessage } from "@/lib/rate-limit";
+import { checkRateLimit, rateLimitMessage, requestClientIp } from "@/lib/rate-limit";
 import { totpSetupDisplay } from "@/lib/totp-qr";
 
 export async function getMfaSetupState() {
@@ -40,7 +40,12 @@ export async function confirmMfaAction(
   const session = await requireUser(db, token);
   const limited = await checkRateLimit("mfa", { account: session.status === "mfa_required" ? session.userId : null });
   if (!limited.allowed) return { error: await rateLimitMessage(limited.retryAfterSeconds) };
-  const result: ConfirmTotpResult = await confirmTotp(db, { sessionToken: token, token: code, rememberDevice: formData.get("rememberDevice") === "on" });
+  const result: ConfirmTotpResult = await confirmTotp(db, {
+    sessionToken: token,
+    token: code,
+    rememberDevice: formData.get("rememberDevice") === "on",
+    clientIp: await requestClientIp(),
+  });
 
   if (result.outcome === "locked") {
     if (result.notify) await sendMfaLockMail(result.notify);

@@ -9,14 +9,14 @@
 // résolu AVANT d'ouvrir la transaction : le résolveur peut lui-même lire la
 // base, et ne doit pas attendre une connexion tenue par cette transaction.
 import { sql } from "drizzle-orm";
-import { currentActor, type Actor } from "./actor";
+import { currentActor, isAuditBulk, type Actor } from "./actor";
 import type { AppDatabase } from "./client";
 
 type Transaction = Parameters<Parameters<AppDatabase["transaction"]>[0]>[0];
 
-export async function setActorInTransaction(tx: Transaction, actor: Actor): Promise<void> {
+export async function setActorInTransaction(tx: Transaction, actor: Actor, bulk = false): Promise<void> {
   await tx.execute(
-    sql`select set_config('app.actor_kind', ${actor.kind}, true), set_config('app.actor_id', ${actor.id ?? ""}, true)`,
+    sql`select set_config('app.actor_kind', ${actor.kind}, true), set_config('app.actor_id', ${actor.id ?? ""}, true), set_config('app.audit_bulk', ${bulk ? "on" : ""}, true)`,
   );
 }
 
@@ -26,9 +26,10 @@ export async function withOrganization<T>(
   fn: (tx: Transaction) => Promise<T>,
 ): Promise<T> {
   const actor = await currentActor();
+  const bulk = isAuditBulk();
   return db.transaction(async (tx) => {
     await tx.execute(sql`select set_config('app.organization_id', ${organizationId}, true)`);
-    await setActorInTransaction(tx, actor);
+    await setActorInTransaction(tx, actor, bulk);
     return fn(tx);
   });
 }
@@ -37,8 +38,9 @@ export async function withOrganization<T>(
 // même auteur, sans contexte d'organisation.
 export async function withActorContext<T>(db: AppDatabase, fn: (tx: Transaction) => Promise<T>): Promise<T> {
   const actor = await currentActor();
+  const bulk = isAuditBulk();
   return db.transaction(async (tx) => {
-    await setActorInTransaction(tx, actor);
+    await setActorInTransaction(tx, actor, bulk);
     return fn(tx);
   });
 }

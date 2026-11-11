@@ -3,6 +3,7 @@
 // par l'app depuis le stockage privé (ADR 0027 : jamais d'URL vers le
 // stockage).
 import { z } from "zod";
+import { recordAudit } from "@symbola/db/audit";
 import { appDatabase } from "@symbola/db/client";
 import { fileDownloadResponse } from "@/lib/file-response";
 import { getPrivacyExportFile, PrivacyExportNotFoundError } from "@/modules/hub/service";
@@ -18,7 +19,10 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
 
   const db = appDatabase();
   try {
-    return fileDownloadResponse(await getPrivacyExportFile(db, { organizationId: owner.organizationId, exportId: parsed.data.id, file: parsed.data.file }));
+    const file = await getPrivacyExportFile(db, { organizationId: owner.organizationId, exportId: parsed.data.id, file: parsed.data.file });
+    // Lot 23 (SEC-19) : téléchargement d'un export au journal.
+    await recordAudit(db, { organizationId: owner.organizationId, action: "hub.privacy_export.downloaded", objectId: parsed.data.id, details: { file: parsed.data.file } });
+    return fileDownloadResponse(file);
   } catch (error) {
     if (error instanceof PrivacyExportNotFoundError) return new Response(null, { status: 404 });
     throw error;

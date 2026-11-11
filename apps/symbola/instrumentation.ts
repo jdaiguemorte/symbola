@@ -31,5 +31,8 @@ export async function register() {
     // Lot 16 (L16-SEC-02, ADR 0044) : tentatives limitées oubliées au bout d'un jour.
     const { scheduleRateLimitPurge } = await import("./lib/rate-limit");
     scheduleRateLimitPurge();
+    // Lot 23 (décision D5) : adresses IP des connexions oubliées après la durée réglée.
+    const { scheduleConnectionTracePurge } = await import("./lib/connection-traces-purge");
+    scheduleConnectionTracePurge();
   }
 }
