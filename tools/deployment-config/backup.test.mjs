@@ -225,7 +225,7 @@ describe("SOC-10 — Sauvegarde nocturne (backup.sh)", () => {
   });
 });
 
-describe("HUB-18 — Dernière sauvegarde signalée à l'app (lot 13, ADR 0033)", () => {
+describe("L13-HUB-18 — Dernière sauvegarde signalée à l'app (lot 13, ADR 0033)", () => {
   const RUN = "11111111-2222-3333-4444-555555555555";
 
   it("étant donné une sauvegarde réussie, son début puis sa fin, son résultat et sa taille sont enregistrés dans hub.backup_runs", () => {

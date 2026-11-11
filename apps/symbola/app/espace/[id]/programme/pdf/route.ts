@@ -1,4 +1,4 @@
-// EVT-06 — le marié télécharge le programme du jour J, toujours en
+// PRD-EVT-06 — le marié télécharge le programme du jour J, toujours en
 // variante « mariés » (sans notes internes), seulement pour un événement
 // auquel il a accès.
 import { ClientAccessDeniedError, getClientEventView } from "@/modules/events/service";

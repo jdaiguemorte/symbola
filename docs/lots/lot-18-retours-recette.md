@@ -1,6 +1,6 @@
 # Lot 18 — Retours de la recette du lot 17
 
-**Statut** : fait sur la branche `lot-18-retours-recette` (HUB-22, HUB-23, HUB-24, PRE-16,
+**Statut** : fait sur la branche `lot-18-retours-recette` (L18-HUB-22, L18-HUB-23, L18-HUB-24, L18-PRE-16,
 RGPD-07, AIDE-13). Maquette et décisions A à G validées par Julien le 09/11/2026 ; choix
 d'architecture dans l'[ADR 0047](../adr/0047-dossier-rgpd-et-documents-dans-l-accompagnement.md).
 Reste : recette sur le staging (migration 0082 au déploiement).
@@ -21,26 +21,26 @@ Retours de Julien du 09/11/2026, en recette du lot 17 sur le staging :
 - « Quand je clique sur encaissements, ça met en surbrillance les 2 menus encaissements et devis
   et factures. »
 
-## HUB-22 — Un seul lien du menu principal allumé
+## L18-HUB-22 — Un seul lien du menu principal allumé
 
 - **Étant donné** l'écran Encaissements (`/devis/encaissements`), **alors** seul
   « Encaissements » est marqué comme page courante, pas « Devis et factures ».
 - **Étant donné** un devis, une facture ou un avoir, **alors** « Devis et factures » reste
   allumé ; un écran de réglage allume « Paramètres », pas le module.
 
-## HUB-23 — Pastille « Reprendre » sur l'onglet Tutoriels seulement
+## L18-HUB-23 — Pastille « Reprendre » sur l'onglet Tutoriels seulement
 
 - **Étant donné** un tutoriel en cours, **quand** la planner navigue dans l'app, **alors** la
   pastille « Reprendre : … » n'apparaît que sur l'onglet Tutoriels. L'invitation à un tutoriel
   à la première visite de son écran (AIDE-06) ne change pas.
 
-## HUB-24 — « Plus d'options » sans déformer la barre d'outils
+## L18-HUB-24 — « Plus d'options » sans déformer la barre d'outils
 
 - **Quand** elle ouvre « Plus d'options » (Événements), **alors** seul le panneau apparaît : les
   boutons voisins gardent leur taille. Cause : le style de carte des blocs dépliants ouverts
   s'appliquait aussi à ce bloc.
 
-## PRE-16 — Estimation des trajets expliquée
+## L18-PRE-16 — Estimation des trajets expliquée
 
 - **Quand** elle ouvre Paramètres › Prestataires et données › Estimation des trajets (ancien
   « Trajets »), **alors** l'écran dit où l'estimation apparaît (recherche « autour d'un lieu »

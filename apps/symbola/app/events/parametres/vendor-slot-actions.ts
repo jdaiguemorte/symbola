@@ -1,6 +1,6 @@
 "use server";
 
-// EVT-03 — liste de postes par défaut de l'organisation.
+// PRD-EVT-03 — liste de postes par défaut de l'organisation.
 import { revalidatePath } from "next/cache";
 import { getLocale, getTranslations } from "next-intl/server";
 import { starterVendorSlots, type StarterLocale } from "@symbola/starter-templates";
@@ -30,7 +30,7 @@ export async function addDefaultVendorSlotAction(
   const label = String(formData.get("label") ?? "").trim();
   if (!label) return { error: t("missingLabel") };
 
-  // Lot 13 (HUB-16) : l'icône se choisit dès l'ajout, depuis le panneau latéral.
+  // Lot 13 (L13-HUB-16) : l'icône se choisit dès l'ajout, depuis le panneau latéral.
   const iconValue = String(formData.get("icon") ?? "");
   const icon = (ICON_KEYS as readonly string[]).includes(iconValue) ? iconValue : null;
   const added = await addDefaultVendorSlots(organizationId, [{ label, icon }]);
@@ -63,7 +63,7 @@ export async function removeDefaultVendorSlotAction(formData: FormData): Promise
   revalidatePath("/events/parametres");
 }
 
-// Lot 13 (HUB-16) — nouvel ordre des lignes du budget (glisser-déposer ou
+// Lot 13 (L13-HUB-16) — nouvel ordre des lignes du budget (glisser-déposer ou
 // boutons « Monter » / « Descendre »). Renvoie false si la liste ne
 // correspond plus aux lignes enregistrées (modifiées entre-temps).
 const orderSchema = z.array(z.uuid()).min(1).max(200);

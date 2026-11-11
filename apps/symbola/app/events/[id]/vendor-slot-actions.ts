@@ -1,6 +1,6 @@
 "use server";
 
-// EVT-03 — actions des postes prestataires de la fiche d'un événement.
+// PRD-EVT-03 — actions des postes prestataires de la fiche d'un événement.
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { parseAmountToCents } from "@symbola/i18n";
@@ -102,7 +102,7 @@ export async function removeVendorSlotAction(formData: FormData): Promise<void> 
   revalidatePath(`/events/${eventId}`);
 }
 
-// Lot 12 (EVT-14) : icône d'une ligne du budget de l'événement.
+// Lot 12 (L12-EVT-14) : icône d'une ligne du budget de l'événement.
 export async function setVendorSlotIconAction(_prevState: VendorSlotFormState, formData: FormData): Promise<VendorSlotFormState> {
   const t = await getTranslations("Events");
   const access = await authorize(t);

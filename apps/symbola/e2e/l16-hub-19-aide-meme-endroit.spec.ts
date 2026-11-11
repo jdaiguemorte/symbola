@@ -1,4 +1,4 @@
-// HUB-19 (lot 16, ADR 0039) — le « ? » est dans la barre du haut, au même
+// L16-HUB-19 (lot 16, ADR 0039) — le « ? » est dans la barre du haut, au même
 // endroit sur tous les écrans de l'équipe ; l'aide s'ouvre dans un tiroir qui
 // ne recouvre pas le contenu (ordinateur) ; fermée, elle rend le focus au « ? ».
 // En taille ordinateur et en 375 px, avec axe-core. Un compte neuf par exécution.
@@ -18,7 +18,7 @@ async function signIn(page: Page) {
   const email = `hub19-e2e-${randomUUID()}@symbola.test`;
   const { sql, db } = createAppConnection();
   try {
-    const organization = await readyOrganization(db, `Organisation HUB-19 ${randomUUID()}`);
+    const organization = await readyOrganization(db, `Organisation L16-HUB-19 ${randomUUID()}`);
     await createUser(db, { organizationId: organization.id, email, password: PASSWORD, role: "owner" });
   } finally {
     await sql.end();
@@ -35,7 +35,7 @@ async function signIn(page: Page) {
   await expect(page).toHaveURL("/");
 }
 
-test("HUB-19 — le « ? » au même endroit sur tous les écrans, un tiroir qui ne recouvre pas l'écran", async ({ page }) => {
+test("L16-HUB-19 — le « ? » au même endroit sur tous les écrans, un tiroir qui ne recouvre pas l'écran", async ({ page }) => {
   await signIn(page);
 
   const positions: { screen: string; x: number; y: number }[] = [];

@@ -1,4 +1,4 @@
-// Lot 21 (PRE-18, PRE-19, ADR 0050) — étiquettes de départ et rangement des
+// Lot 21 (L21-PRE-18, L21-PRE-19, ADR 0050) — étiquettes de départ et rangement des
 // étiquettes importées, contre un vrai PostgreSQL (RLS), par les portes
 // d'entrée des modules ; isolation entre organisations comprise.
 import { randomUUID } from "node:crypto";
@@ -40,7 +40,7 @@ async function organizationWithFamilies() {
   return { organizationId, familyId, typeId };
 }
 
-describe("PRE-18 — Étiquettes de départ, rangées par famille", { timeout: 30_000 }, () => {
+describe("L21-PRE-18 — Étiquettes de départ, rangées par famille", { timeout: 30_000 }, () => {
   it("quand elle ajoute les étiquettes proposées, alors elles sont rangées en groupes et par famille ; un second ajout ne duplique rien", async () => {
     const { organizationId, familyId } = await organizationWithFamilies();
     expect(await countMissingStarterVendorTags(organizationId, catalog)).toBeGreaterThan(20);
@@ -72,7 +72,7 @@ describe("PRE-18 — Étiquettes de départ, rangées par famille", { timeout: 3
   });
 });
 
-describe("PRE-19 — Les étiquettes importées se rangent toutes seules", { timeout: 30_000 }, () => {
+describe("L21-PRE-19 — Les étiquettes importées se rangent toutes seules", { timeout: 30_000 }, () => {
   it("quand elle range ses étiquettes importées, alors les tranches forment un palier, chaque étiquette prend la famille de ses prestataires, et une fiche garde sa plus haute tranche", async () => {
     const { organizationId, familyId, typeId } = await organizationWithFamilies();
     const [small, large, candles, mood] = await Promise.all(["100 à 150 personnes", "150 à 200 personnes", "Bougies", "Ambiance"].map((label) => createVendorTag(organizationId, label)));

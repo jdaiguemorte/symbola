@@ -5,17 +5,17 @@ Une PR par story (`lot-3-bud-0x-<nom>`), tests d'abord à partir des critères c
 Commits en français (Conventional Commits), confirmation de Julien avant chaque `git push`.
 
 Le budget suit les dépenses des clients auprès des prestataires, poste par poste : prévu, réel,
-écart. Il commence dès le prospect, par une simulation (BUD-01), devient le budget réel à la
-confirmation de l'événement (BUD-02), peut recevoir un devis prestataire en pièce jointe
-(BUD-03), et le marié le consulte en lecture seule (BUD-04).
+écart. Il commence dès le prospect, par une simulation (PRD-BUD-01), devient le budget réel à la
+confirmation de l'événement (PRD-BUD-02), peut recevoir un devis prestataire en pièce jointe
+(PRD-BUD-03), et le marié le consulte en lecture seule (PRD-BUD-04).
 
 ## Décisions prises avec Julien avant de coder
 
 1. **Les « postes » du budget sont les mêmes postes prestataires que ceux du module Events**
-   (EVT-03, `default_vendor_slots`, paramétrables par organisation) — pas de liste séparée.
-   Cohérent avec BUD-02 : « le réel se remplit automatiquement quand un poste est réservé avec
-   un montant (EVT-03) ».
-2. **Le bandeau « proposer de faire le budget prévu »** (BUD-01, événement confirmé) vit sur la
+   (PRD-EVT-03, `default_vendor_slots`, paramétrables par organisation) — pas de liste séparée.
+   Cohérent avec PRD-BUD-02 : « le réel se remplit automatiquement quand un poste est réservé avec
+   un montant (PRD-EVT-03) ».
+2. **Le bandeau « proposer de faire le budget prévu »** (PRD-BUD-01, événement confirmé) vit sur la
    fiche événement existante (`/events/[id]`), pas sur une page Budget séparée — la planner le
    voit sans avoir à chercher l'onglet Budget.
 
@@ -34,7 +34,7 @@ n'apparaissent plus dans les nouveaux choix de poste.
 **Extension de contrat nécessaire (additive, pas de rupture)** : `EventsServiceContract` doit
 exposer `hasActiveClientAccess(organizationId, userId, eventId): Promise<boolean>` — aujourd'hui
 utilisé seulement en interne par `modules/events/service.ts` (`getClientEventView`). Budget en a
-besoin pour BUD-04 (vérifier qu'un compte marié a bien accès à l'événement avant de lui montrer
+besoin pour PRD-BUD-04 (vérifier qu'un compte marié a bien accès à l'événement avant de lui montrer
 son budget en lecture seule, et pour refuser toute tentative de modification). C'est un ajout,
 pas une modification incompatible — mais à signaler explicitement dans la PR qui la fait.
 
@@ -46,7 +46,7 @@ module `hello`), migration « grant » dédiée. Montants toujours en centimes e
 0 à 10000 = 0,00 % à 100,00 %), jamais de `float`.
 
 - **`allocation_models`** : `id`, `organization_id`, `name`, `created_at`. Modèles de répartition
-  gérés par la planner (BUD-01).
+  gérés par la planner (PRD-BUD-01).
 - **`allocation_model_items`** : `id`, `organization_id`, `model_id` (FK interne au schéma
   `budget`), `default_vendor_slot_id` (uuid opaque, voir ci-dessus), `percentage_basis_points`.
   Un modèle dont la somme des items ne fait pas 10000 est refusé à l'enregistrement — validation
@@ -54,17 +54,17 @@ module `hello`), migration « grant » dédiée. Montants toujours en centimes e
   `modules/events/schedule.ts`), pas seulement côté UI.
 - **`event_budgets`** : `id`, `organization_id`, `event_id` (uuid opaque, un seul par événement),
   `total_amount_cents`, `guest_count`, `allocation_model_id` (nullable), `created_at`,
-  `updated_at`. La simulation du prospect (BUD-01).
+  `updated_at`. La simulation du prospect (PRD-BUD-01).
 - **`event_budget_items`** : `id`, `organization_id`, `event_budget_id`, `default_vendor_slot_id`
   (uuid opaque), `amount_cents`, `created_at`, `updated_at`. Un montant par poste pour la
   simulation en cours — recalculé quand le modèle ou le total change, ajustable à la main poste
   par poste (le total et le reste à répartir se recalculent côté serveur à chaque changement,
   jamais seulement côté client).
 - **`budget_lines`** : `id`, `organization_id`, `event_id` (uuid opaque), `event_vendor_slot_id`
-  (uuid opaque — **pas** `default_vendor_slot_id` : `events.event_vendor_slots` (EVT-03) n'a
+  (uuid opaque — **pas** `default_vendor_slot_id` : `events.event_vendor_slots` (PRD-EVT-03) n'a
   aucune référence aux postes par défaut, seulement un `label` texte ; `events.vendor_slot.booked`
   publie l'id du poste de l'événement, pas celui d'un poste par défaut), `planned_amount_cents`,
-  `actual_amount_cents` (nullable), `created_at`, `updated_at`. Le budget réel (BUD-02). Créées en
+  `actual_amount_cents` (nullable), `created_at`, `updated_at`. Le budget réel (PRD-BUD-02). Créées en
   rapprochant par `label` chaque `event_budget_items` (simulation, clé sur `default_vendor_slot_id`)
   avec le poste de l'événement correspondant (`eventsService.listEventVendorSlots`), quand la
   planner accepte la proposition « en faire le budget prévu » ; refusé si un poste de la
@@ -74,17 +74,17 @@ module `hello`), migration « grant » dédiée. Montants toujours en centimes e
   jamais stocké**.
 - **`budget_line_history`** : `id`, `organization_id`, `line_id`, `field` (`planned` ou
   `actual`), `old_value_cents` (nullable), `new_value_cents`, `changed_by_user_id`, `changed_at`.
-  Chaque modification de `planned_amount_cents`/`actual_amount_cents` est historisée (BUD-02).
+  Chaque modification de `planned_amount_cents`/`actual_amount_cents` est historisée (PRD-BUD-02).
 - **`budget_line_attachments`** : `id`, `organization_id`, `line_id`, `file_key`, `mime`,
-  `size_bytes`, `uploaded_by_user_id`, `created_at`. Le devis prestataire joint (BUD-03), via
-  `@symbola/files` (déjà prêt pour BUD-03 d'après son commentaire d'origine : type vérifié par le
+  `size_bytes`, `uploaded_by_user_id`, `created_at`. Le devis prestataire joint (PRD-BUD-03), via
+  `@symbola/files` (déjà prêt pour PRD-BUD-03 d'après son commentaire d'origine : type vérifié par le
   contenu, PDF/image, antivirus, stockage privé, lien signé temporaire — aucun changement
   nécessaire dans `packages/files`). Taille maximale 20 Mo (valeur « proposée » du PRD, acceptée
   telle quelle).
 
 ## Stories et critères d'acceptation
 
-### BUD-01 — Simulation pour un prospect
+### PRD-BUD-01 — Simulation pour un prospect
 
 - Modèles de répartition par organisation (`allocation_models`/`allocation_model_items`), CRUD
   sur `/budget/parametres`. Un modèle dont le total des pourcentages n'est pas 10000 points de
@@ -102,9 +102,9 @@ module `hello`), migration « grant » dédiée. Montants toujours en centimes e
 - Sur `/events/[id]`, quand `status === "confirmed"` et qu'une simulation existe mais qu'aucune
   `budget_lines` n'existe encore pour cet événement, un bandeau propose d'« en faire le budget
   prévu » ; accepter rapproche par `label` chaque `event_budget_items` avec le poste de
-  l'événement correspondant, puis crée les `budget_lines` (voir BUD-02 ci-dessous).
+  l'événement correspondant, puis crée les `budget_lines` (voir PRD-BUD-02 ci-dessous).
 
-### BUD-02 — Prévu, réel, écart
+### PRD-BUD-02 — Prévu, réel, écart
 
 - Tableau sur `/budget/[eventId]` : poste, prévu, réel, écart (réel moins prévu) en euros et en
   pourcentage du prévu. Dépassement en rouge, économie en vert (texte ou classe, pas seulement
@@ -124,7 +124,7 @@ module `hello`), migration « grant » dédiée. Montants toujours en centimes e
   `budget_line_history` (ancienne valeur, nouvelle valeur, auteur, date) — testé par un test
   d'intégration dédié, pas seulement vérifié visuellement.
 
-### BUD-03 — Devis prestataire joint
+### PRD-BUD-03 — Devis prestataire joint
 
 - Sur chaque ligne du tableau, un formulaire d'envoi de fichier (PDF ou image, 20 Mo maximum) via
   `uploadFile` de `@symbola/files` — mêmes règles que `modules/hello` (type par le contenu,
@@ -132,11 +132,11 @@ module `hello`), migration « grant » dédiée. Montants toujours en centimes e
 - Le fichier s'ouvre par un lien signé temporaire (`getSignedDownloadUrl`), jamais une URL
   publique permanente.
 
-### BUD-04 — Budget visible par les mariés
+### PRD-BUD-04 — Budget visible par les mariés
 
 - Le budget apparaît dans `/espace/[id]` (existant, module events) en lecture seule. Le schéma
   `budget` ci-dessus ne prévoit aucun champ de note interne sur une ligne (contrairement au
-  programme du jour J, EVT-05) : rien à masquer côté marié au-delà des colonnes déjà publiques
+  programme du jour J, PRD-EVT-05) : rien à masquer côté marié au-delà des colonnes déjà publiques
   (poste, prévu, réel, écart).
 - Le marié ne peut jamais modifier une ligne, y compris par appel direct à l'API/Server Action :
   chaque Server Action d'écriture de `modules/budget` vérifie `getPlannerAuthContext()` (jamais
@@ -148,7 +148,7 @@ module `hello`), migration « grant » dédiée. Montants toujours en centimes e
 
 ## Écrans (`apps/symbola/app/`)
 
-- `/budget/[eventId]` : simulation (BUD-01) et tableau prévu/réel/écart (BUD-02) sur une seule
+- `/budget/[eventId]` : simulation (PRD-BUD-01) et tableau prévu/réel/écart (PRD-BUD-02) sur une seule
   page, section par section — pas de sous-navigation supplémentaire pour un seul événement.
 - `/budget/parametres` : CRUD des modèles de répartition.
 - Bandeau sur `/events/[id]` (import de `budget/service.ts` depuis la page, pas depuis
@@ -159,4 +159,4 @@ module `hello`), migration « grant » dédiée. Montants toujours en centimes e
 ## Suite après le lot 3
 
 Lot 4 — Devis et Facturation (DEV-01 à DEV-04) : le budget confirmé devient la base du devis, et
-`BUD-03` préfigure l'envoi de fichiers réutilisé pour les devis/factures.
+`PRD-BUD-03` préfigure l'envoi de fichiers réutilisé pour les devis/factures.

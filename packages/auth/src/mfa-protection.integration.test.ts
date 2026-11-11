@@ -1,4 +1,4 @@
-// SEC-01 (lot 16, ADR 0037) — code de double authentification protégé, contre
+// L16-SEC-01 (lot 16, ADR 0037) — code de double authentification protégé, contre
 // un vrai PostgreSQL : limite d'essais par compte, anti-rejeu, nouveau jeton de
 // session à la validation, secret chiffré au repos. Horloge simulée par le
 // paramètre `now` (veille et fin du verrouillage).
@@ -71,7 +71,7 @@ async function stored(userId: string) {
   return row;
 }
 
-describe("SEC-01 — Code de double authentification protégé", () => {
+describe("L16-SEC-01 — Code de double authentification protégé", () => {
   it("5 codes faux verrouillent la double authentification 15 minutes et préviennent le titulaire ; même un code juste est alors refusé", async () => {
     const t0 = Date.now();
     const { email, secret, sessionToken } = await plannerWithMfa(t0);

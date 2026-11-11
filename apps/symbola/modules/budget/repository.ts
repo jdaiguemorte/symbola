@@ -91,7 +91,7 @@ export async function findEventBudget(
   });
 }
 
-// Remplace entièrement la simulation d'un événement (BUD-01 : une
+// Remplace entièrement la simulation d'un événement (PRD-BUD-01 : une
 // nouvelle simulation écrase la précédente — un seul event_budgets par
 // événement, contrainte unique sur event_id).
 export async function upsertEventBudget(input: {
@@ -156,7 +156,7 @@ export async function upsertEventBudget(input: {
 }
 
 // Ajuste à la main le montant d'un poste de la simulation en cours
-// (BUD-01 : « elle peut ajuster un poste à la main »). Met à jour le
+// (PRD-BUD-01 : « elle peut ajuster un poste à la main »). Met à jour le
 // poste s'il existe déjà, le crée sinon (poste ajouté après coup, sans
 // repasser par le modèle).
 export async function updateEventBudgetItemAmount(input: {
@@ -222,7 +222,7 @@ export async function findBudgetLineByEventVendorSlotId(
 // Pose planned_amount_cents ou actual_amount_cents selon `field`, crée la
 // ligne si elle n'existe pas encore (un événement peut recevoir un budget
 // réel sans être jamais passé par la simulation), et historise toujours
-// la modification — y compris la toute première valeur posée (BUD-02 :
+// la modification — y compris la toute première valeur posée (PRD-BUD-02 :
 // « chaque modification est historisée »).
 export async function setBudgetLineAmount(input: {
   organizationId: string;
@@ -295,7 +295,7 @@ export async function findBudgetLineHistory(organizationId: string, lineId: stri
   );
 }
 
-// BUD-03 — devis prestataires joints aux lignes de budget.
+// PRD-BUD-03 — devis prestataires joints aux lignes de budget.
 export async function insertBudgetLineAttachment(input: {
   organizationId: string;
   lineId: string;

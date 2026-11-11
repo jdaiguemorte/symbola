@@ -1,4 +1,4 @@
-// BUD-02 — budget réel (prévu/réel/écart), contre un vrai PostgreSQL
+// PRD-BUD-02 — budget réel (prévu/réel/écart), contre un vrai PostgreSQL
 // (RLS, ADR 0012), par la porte d'entrée du module.
 import { randomUUID } from "node:crypto";
 import { afterAll, describe, expect, it } from "vitest";
@@ -63,7 +63,7 @@ async function createEventWithSimulation(organizationId: string) {
   return event;
 }
 
-describe("BUD-02 — Confirmer la simulation en budget prévu", () => {
+describe("PRD-BUD-02 — Confirmer la simulation en budget prévu", () => {
   it("rapproche par label et crée les lignes de budget prévu", async () => {
     const organizationId = randomUUID();
     const event = await createEventWithSimulation(organizationId);
@@ -108,7 +108,7 @@ describe("BUD-02 — Confirmer la simulation en budget prévu", () => {
   });
 });
 
-describe("BUD-02 — Prévu, réel, écart", () => {
+describe("PRD-BUD-02 — Prévu, réel, écart", () => {
   it("modifie le réel à la main et calcule l'écart", async () => {
     const organizationId = randomUUID();
     const event = await createEventWithSimulation(organizationId);
@@ -225,7 +225,7 @@ describe("BUD-02 — Prévu, réel, écart", () => {
     expect(history.at(-1)).toMatchObject({ newValueCents: 390000, changedByUserId: bookedByUserId });
   });
 
-  it("lot 12 (EVT-17) — une réservation crée la ligne du budget : réel connu, prévu encore vide, pas d'écart", async () => {
+  it("lot 12 (L12-EVT-17) — une réservation crée la ligne du budget : réel connu, prévu encore vide, pas d'écart", async () => {
     const organizationId = randomUUID();
     await addDefaultVendorSlots(organizationId, ["Lieu"]);
     const event = await createEvent(organizationId);
@@ -251,7 +251,7 @@ describe("BUD-02 — Prévu, réel, écart", () => {
   });
 });
 
-describe("BUD-02 — Isolation entre organisations", () => {
+describe("PRD-BUD-02 — Isolation entre organisations", () => {
   it("une organisation ne voit ni ne modifie jamais les lignes de budget d'une autre", async () => {
     const organizationId = randomUUID();
     const otherOrganizationId = randomUUID();

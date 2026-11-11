@@ -1,4 +1,4 @@
-// Lot 16 (PRE-14, PRE-15, ADR 0040) — familles de types de prestataires,
+// Lot 16 (L16-PRE-14, L16-PRE-15, ADR 0040) — familles de types de prestataires,
 // renommage, fusion et rangement des types, contre un vrai PostgreSQL (RLS),
 // par la porte d'entrée du module. Données de départ du métier wedding planner.
 import { randomUUID } from "node:crypto";
@@ -62,7 +62,7 @@ async function typeNamed(organizationId: string, label: string) {
   return type;
 }
 
-describe("PRE-14 — Familles et types", () => {
+describe("L16-PRE-14 — Familles et types", () => {
   it("une nouvelle organisation démarre avec une dizaine de familles et environ 25 types rangés dedans", async () => {
     const organizationId = await newOrganization();
     const result = await seedStarterVendorCatalog(organizationId, catalog(), { withTypes: true });
@@ -138,7 +138,7 @@ describe("PRE-14 — Familles et types", () => {
   });
 });
 
-describe("PRE-15 — Renommer, fusionner, ranger les types", () => {
+describe("L16-PRE-15 — Renommer, fusionner, ranger les types", () => {
   it("quand elle renomme un type, toutes les fiches suivent", async () => {
     const organizationId = await newOrganization();
     const type = await createVendorType(organizationId, "Coiffeur", "#123456");
@@ -281,7 +281,7 @@ describe("PRE-15 — Renommer, fusionner, ranger les types", () => {
   });
 });
 
-describe("PRE-14 / PRE-15 — Isolation entre organisations", () => {
+describe("L16-PRE-14 / L16-PRE-15 — Isolation entre organisations", () => {
   it("l'organisation B ne voit, ne modifie ni ne supprime les familles et les types de A", async () => {
     const a = await newOrganization();
     const b = await newOrganization();

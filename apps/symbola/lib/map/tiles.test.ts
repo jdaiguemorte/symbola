@@ -7,7 +7,7 @@ afterEach(() => {
   process.env.MAP_TILES_DIR = previous;
 });
 
-describe("PRE-04 — Fond de carte servi par l'app", () => {
+describe("L11-PRE-04 — Fond de carte servi par l'app", () => {
   it("ne sert que le fichier PMTiles et les polices, jamais en dehors du dossier", () => {
     process.env.MAP_TILES_DIR = "/srv/carte";
     expect(resolveTileFile(["france.pmtiles"])).toBe("/srv/carte/france.pmtiles");

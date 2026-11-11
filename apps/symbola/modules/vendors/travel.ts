@@ -1,4 +1,4 @@
-// PRE-06 / PRE-07 (lot 11, ADR 0031 § 4-5) — distance et trajet estimé.
+// L11-PRE-06 / L11-PRE-07 (lot 11, ADR 0031 § 4-5) — distance et trajet estimé.
 // La base trie et filtre par distance (même formule, en SQL) ; ces
 // fonctions pures servent au calcul du trajet affiché et aux tests.
 import type { TravelEstimate, VendorSettings } from "@symbola/contracts";

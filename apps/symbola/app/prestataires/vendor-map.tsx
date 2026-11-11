@@ -1,9 +1,9 @@
 "use client";
 
-// Lot 11 (PRE-04 / PRE-06, ADR 0031 § 7) — carte du carnet : MapLibre et
+// Lot 11 (L11-PRE-04 / L11-PRE-06, ADR 0031 § 7) — carte du carnet : MapLibre et
 // PMTiles chargés seulement ici, fond de carte servi par l'app. Regroupement
 // quand les points sont nombreux, cercle du rayon choisi. La liste à côté
-// reste l'équivalent accessible de la carte. Lot 16 (PRE-14) : la couleur et
+// reste l'équivalent accessible de la carte. Lot 16 (L16-PRE-14) : la couleur et
 // le pictogramme du point sont ceux de la famille (critère 1.4.1).
 // En mode « choisir un point » (fiche), un clic place le point et remplit
 // les champs latitude/longitude du formulaire.
@@ -52,7 +52,7 @@ const FRANCE: [[number, number], [number, number]] = [
   [9.6, 51.1],
 ];
 
-// Lot 13 (PRE-12) : la liste annonce la fiche survolée par cet événement ;
+// Lot 13 (L13-PRE-12) : la liste annonce la fiche survolée par cet événement ;
 // la carte met son repère en avant (et inversement).
 export const VENDOR_HOVER_EVENT = "symbola:vendor-hover";
 
@@ -133,7 +133,7 @@ export function VendorMap({ points, assets, label, missingTilesNotice, controls,
           filter: ["!", ["has", "point_count"]],
           paint: { "circle-color": ["get", "color"], "circle-radius": 10, "circle-stroke-color": "#ffffff", "circle-stroke-width": 2 },
         });
-        // Lot 13 (PRE-12) : repère de la fiche survolée dans la liste.
+        // Lot 13 (L13-PRE-12) : repère de la fiche survolée dans la liste.
         map.addLayer({
           id: "vendor-highlight",
           type: "circle",
@@ -169,7 +169,7 @@ export function VendorMap({ points, assets, label, missingTilesNotice, controls,
         if (!pick) {
           map.on("click", "vendor-points", (event: MapLayerMouseEvent) => {
             const href = event.features?.[0]?.properties?.href;
-            // Lot 13 (PRE-12) : la fiche s'ouvre dans le panneau, la carte reste en place.
+            // Lot 13 (L13-PRE-12) : la fiche s'ouvre dans le panneau, la carte reste en place.
             if (typeof href === "string" && href.startsWith("/prestataires")) router.push(href, { scroll: false });
           });
           map.on("mouseenter", "vendor-points", (event: MapLayerMouseEvent) => {

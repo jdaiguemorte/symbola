@@ -1,4 +1,4 @@
-// Lot 16 (ARC-01, ADR 0043) — gardes d'accès des écrans. Chaque page protégée
+// Lot 16 (L16-ARC-01, ADR 0043) — gardes d'accès des écrans. Chaque page protégée
 // en appelle une en première ligne : la garde renvoie la personne connectée,
 // ou la redirige (connexion, double authentification, espace du marié,
 // accueil). La RLS protège les données ; la garde protège l'écran. Un test
@@ -20,7 +20,7 @@ export async function requireSignedIn(): Promise<SignedIn> {
   return auth;
 }
 
-// Écrans de la planner (titulaire ou collaborateur, EVT-06) : un marié va à
+// Écrans de la planner (titulaire ou collaborateur, PRD-EVT-06) : un marié va à
 // son espace, l'Admin à sa console.
 export async function requirePlanner(): Promise<InOrganization> {
   const auth = await getPlannerAuthContext();
@@ -40,7 +40,7 @@ export async function requireOwner(): Promise<InOrganization | null> {
   return auth.user.role === "owner" ? auth : null;
 }
 
-// Espace du marié (EVT-06), réservé au rôle « client ». L'appartenance à
+// Espace du marié (PRD-EVT-06), réservé au rôle « client ». L'appartenance à
 // l'événement est vérifiée ensuite par le module events, à chaque requête.
 export async function requireClient(): Promise<InOrganization> {
   const auth = await getClientAuthContext();
@@ -52,7 +52,7 @@ export async function requireClient(): Promise<InOrganization> {
   return { status: "authenticated", user: { ...auth.user, organizationId } };
 }
 
-// HUB-03 — console Admin (/admin/*). L'Admin n'accède jamais aux données
+// PRD-HUB-03 — console Admin (/admin/*). L'Admin n'accède jamais aux données
 // métier d'une organisation (ADR 0029) : cette garde ne vérifie que le rôle.
 export async function requireAdmin(): Promise<{ userId: string; email: string }> {
   const auth = await getAuthContext();

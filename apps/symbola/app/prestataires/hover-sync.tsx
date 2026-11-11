@@ -1,6 +1,6 @@
 "use client";
 
-// Lot 13 (PRE-12) — survoler (ou parcourir au clavier) une fiche de la liste
+// Lot 13 (L13-PRE-12) — survoler (ou parcourir au clavier) une fiche de la liste
 // met son repère en avant sur la carte.
 import { useEffect } from "react";
 import { VENDOR_HOVER_EVENT } from "./vendor-map";

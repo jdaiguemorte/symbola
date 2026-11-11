@@ -64,7 +64,7 @@ function LineRow({
           </button>
           {actualState.error ? <p role="alert">{actualState.error}</p> : null}
         </form>
-        {/* BUD-03 : devis prestataires joints, ouverts par lien signé temporaire. */}
+        {/* PRD-BUD-03 : devis prestataires joints, ouverts par lien signé temporaire. */}
         {line.attachments.length > 0 ? (
           <ul aria-label={t("quotesOf", { label: line.label })}>
             {line.attachments.map((attachment, index) => (

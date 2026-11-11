@@ -1,4 +1,4 @@
-// EVT-04 — rétroplanning : modèles (dont le modèle de départ), application
+// PRD-EVT-04 — rétroplanning : modèles (dont le modèle de départ), application
 // à un événement daté, événement sans date, recalcul proposé au changement
 // de date, ajout, coche et réordonnancement des tâches. En taille
 // ordinateur et en 375 px, axe-core sur chaque écran.
@@ -28,7 +28,7 @@ async function expectNoAxeViolation(page: Page) {
   expect(result.violations, JSON.stringify(result.violations, null, 2)).toEqual([]);
 }
 
-test("EVT-04 — modèle de rétroplanning appliqué, recalcul des échéances et gestion des tâches", async ({ page }) => {
+test("PRD-EVT-04 — modèle de rétroplanning appliqué, recalcul des échéances et gestion des tâches", async ({ page }) => {
   const email = `planner-evt04-${randomUUID()}@symbola.test`;
   const password = "mot-de-passe-evt04-e2e";
   const { sql, db } = createAppConnection();
@@ -48,7 +48,7 @@ test("EVT-04 — modèle de rétroplanning appliqué, recalcul des échéances e
   await expect(page).toHaveURL(/\/events\/modeles$/);
   await page.waitForLoadState("networkidle");
   await page.getByRole("button", { name: "Charger le modèle de départ" }).click();
-  // Lot 21 (EVT-22) : la liste des modèles, puis le détail d'un modèle.
+  // Lot 21 (L21-EVT-22) : la liste des modèles, puis le détail d'un modèle.
   await expect(page.getByRole("link", { name: /^Rétroplanning mariage \(modèle de départ\)/ })).toBeVisible();
 
   await page.getByRole("link", { name: "Nouveau modèle" }).click();
@@ -79,7 +79,7 @@ test("EVT-04 — modèle de rétroplanning appliqué, recalcul des échéances e
   await page.getByLabel("Source du prospect").selectOption({ label: "Salon" });
   await page.getByRole("button", { name: "Créer le prospect" }).click();
   await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}$/);
-  // Lot 12 (EVT-13) : le rétroplanning s'ouvre une fois l'événement confirmé.
+  // Lot 12 (L12-EVT-13) : le rétroplanning s'ouvre une fois l'événement confirmé.
   await page.waitForLoadState("networkidle");
   await changeEventStatus(page, "Confirmé");
   await expect(page.getByText("Statut mis à jour.")).toBeVisible();

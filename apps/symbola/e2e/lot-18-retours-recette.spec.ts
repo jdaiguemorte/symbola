@@ -1,7 +1,7 @@
 // Lot 18 — retours de la recette du lot 17 (Julien, 09/11/2026) : un seul lien
-// du menu allumé (HUB-22), pastille « Reprendre » sur Tutoriels seulement
-// (HUB-23), « Plus d'options » sans déformer la barre (HUB-24), estimation des
-// trajets expliquée (PRE-16), en-tête de l'agenda aligné (HUB-25, recette du
+// du menu allumé (L18-HUB-22), pastille « Reprendre » sur Tutoriels seulement
+// (L18-HUB-23), « Plus d'options » sans déformer la barre (L18-HUB-24), estimation des
+// trajets expliquée (L18-PRE-16), en-tête de l'agenda aligné (L20-HUB-25, recette du
 // 10/11). En taille ordinateur et en 375 px, axe-core.
 import { randomUUID } from "node:crypto";
 import AxeBuilder from "@axe-core/playwright";
@@ -44,7 +44,7 @@ test("Lot 18 — menu, « Plus d'options », pastille des tutoriels et estimatio
   }
   await loginAndSetupMfa(page, email, password);
 
-  // HUB-25 (recette du 10/11) : dans l'en-tête de l'agenda, « ‹ Aujourd'hui › »
+  // L20-HUB-25 (recette du 10/11) : dans l'en-tête de l'agenda, « ‹ Aujourd'hui › »
   // est centré sur le sélecteur de durée quand ils partagent une ligne ; en
   // 375 px, la navigation passe au-dessus, sans chevauchement.
   const navigation = (await page.getByRole("navigation", { name: "Naviguer dans l'agenda" }).boundingBox())!;
@@ -55,19 +55,19 @@ test("Lot 18 — menu, « Plus d'options », pastille des tutoriels et estimatio
     expect(navigation.y + navigation.height).toBeLessThanOrEqual(spans.y);
   }
 
-  // HUB-22 : sur Encaissements, seul « Encaissements » est allumé.
+  // L18-HUB-22 : sur Encaissements, seul « Encaissements » est allumé.
   await page.goto("/devis/encaissements");
   await openMenu(page);
   await expect(mainMenu(page).getByRole("link", { name: "Encaissements", exact: true })).toHaveAttribute("aria-current", "page");
   await expect(mainMenu(page).getByRole("link", { name: "Devis et factures", exact: true })).not.toHaveAttribute("aria-current", "page");
 
-  // HUB-24, revu au lot 20 (décision 2) : plus de « Plus d'options » ; la
+  // L18-HUB-24, revu au lot 20 (décision 2) : plus de « Plus d'options » ; la
   // barre des Événements ne garde que « Nouveau prospect ».
   await page.goto("/events");
   await expect(page.getByRole("link", { name: "Nouveau prospect" })).toBeVisible();
   await expect(page.getByText("Plus d'options")).toHaveCount(0);
 
-  // HUB-23 : un tutoriel en cours ; la pastille « Reprendre » n'apparaît que sur Tutoriels.
+  // L18-HUB-23 : un tutoriel en cours ; la pastille « Reprendre » n'apparaît que sur Tutoriels.
   const { sql: sql2, db: db2 } = createAppConnection();
   try {
     await recordHelpProgress(db2, { userId, itemKey: "tutorial:day-program", status: "started", step: 1 });
@@ -81,7 +81,7 @@ test("Lot 18 — menu, « Plus d'options », pastille des tutoriels et estimatio
   await page.goto("/tutoriels");
   await expect(resume).toBeVisible();
 
-  // PRE-16 : l'écran dit où sert l'estimation et en montre un exemple, recalculé à la saisie.
+  // L18-PRE-16 : l'écran dit où sert l'estimation et en montre un exemple, recalculé à la saisie.
   await page.goto("/prestataires/parametres/trajet");
   await expect(page.getByRole("heading", { level: 1, name: "Estimation des trajets" })).toBeVisible();
   await expect(page.getByText(/autour d'un lieu/)).toBeVisible();

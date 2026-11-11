@@ -256,7 +256,7 @@ export async function confirmImport(input: {
     unchanged: applied.unchanged,
     rejected: matches.rows.length - rows.length,
   };
-  // Lot 21 (PRE-19, ADR 0050) : les étiquettes créées par l'import se rangent
+  // Lot 21 (L21-PRE-19, ADR 0050) : les étiquettes créées par l'import se rangent
   // toutes seules (étiquettes de départ reconnues, paliers, familles des
   // prestataires qui les portent), avant l'enregistrement de l'import : une
   // fiche ramenée à sa plus haute tranche est enregistrée avec ses étiquettes

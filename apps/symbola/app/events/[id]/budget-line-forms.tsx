@@ -1,6 +1,6 @@
 "use client";
 
-// Lot 12 (EVT-17 / EVT-14) — dans l'onglet Budget de la fiche : prévu d'une
+// Lot 12 (L12-EVT-17 / L12-EVT-14) — dans l'onglet Budget de la fiche : prévu d'une
 // ligne (sans passer par une répartition) et son icône.
 import { useActionState, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";

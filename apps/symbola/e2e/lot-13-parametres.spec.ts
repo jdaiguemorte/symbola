@@ -1,4 +1,4 @@
-// Lot 13 (HUB-16) — Paramètres en rubriques : menu latéral groupé, une page
+// Lot 13 (L13-HUB-16) — Paramètres en rubriques : menu latéral groupé, une page
 // par rubrique, lignes du budget en tableau, édition en panneau latéral.
 // Ordinateur et 375 px, axe-core.
 import { randomUUID } from "node:crypto";
@@ -28,7 +28,7 @@ async function login(page: Page, email: string, password: string) {
   await expect(page).toHaveURL("/");
 }
 
-test("HUB-16 — Paramètres en rubriques, lignes du budget modifiées dans le panneau latéral", async ({ page }) => {
+test("L13-HUB-16 — Paramètres en rubriques, lignes du budget modifiées dans le panneau latéral", async ({ page }) => {
   test.setTimeout(90_000);
   const email = `planner-param-${randomUUID()}@symbola.test`;
   const password = "mot-de-passe-parametres";

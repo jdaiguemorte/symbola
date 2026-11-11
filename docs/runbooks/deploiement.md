@@ -268,7 +268,7 @@ l'API de l'IGN dès la production (`GEOCODER` vide), sans clé ni réglage.
 Le fond de carte n'est pas sauvegardé (il se retélécharge) ; le mettre à
 jour une ou deux fois par an suffit.
 
-## Lot 16 : clé de la double authentification (SEC-01, ADR 0037)
+## Lot 16 : clé de la double authentification (L16-SEC-01, ADR 0037)
 
 À faire **une fois par environnement, avant** de passer `APP_IMAGE_TAG` à une image du lot 16 :
 sans cette clé, l'app refuse de démarrer.
@@ -285,7 +285,7 @@ sans cette clé, l'app refuse de démarrer.
    sudo grep -c '^MFA_ENCRYPTION_KEY=.\+' infra/compose/.env.staging   # attendu : 1
    ```
 4. Suivre ensuite « Mise à jour » comme d'habitude (migration 0075 comprise). Au démarrage, le
-   journal de l'app indique `double authentification : n secret(s) chiffré(s) au repos (SEC-01)`
+   journal de l'app indique `double authentification : n secret(s) chiffré(s) au repos (L16-SEC-01)`
    (aucune ligne si tout était déjà chiffré).
 
 ## Mise à jour (nouvelle version)

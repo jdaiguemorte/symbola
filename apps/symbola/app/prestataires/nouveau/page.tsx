@@ -1,4 +1,4 @@
-// Lot 11 (PRE-01) — nouvelle fiche du carnet ; depuis un poste, on revient
+// Lot 11 (L11-PRE-01) — nouvelle fiche du carnet ; depuis un poste, on revient
 // ensuite au carnet pour l'ajouter au poste.
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";

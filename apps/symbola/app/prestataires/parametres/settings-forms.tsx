@@ -1,6 +1,6 @@
 "use client";
 
-// Lot 11 (PRE-02, PRE-07) — formulaires des réglages du carnet.
+// Lot 11 (L11-PRE-02, L11-PRE-07) — formulaires des réglages du carnet.
 import { useActionState, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import type { VendorFieldKind } from "@/modules/vendors/service";
@@ -141,7 +141,7 @@ export function TagGroupForm({ group = null }: { group?: { id: string; label: st
   );
 }
 
-// Lot 18 (PRE-16) : exemple recalculé à la saisie, même formule que
+// Lot 18 (L18-PRE-16) : exemple recalculé à la saisie, même formule que
 // modules/vendors/travel.ts (distance × détour, minute supérieure).
 const EXAMPLE_CROW_FLIES_KM = 40;
 

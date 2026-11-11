@@ -1,4 +1,4 @@
-// Lot 13 (PRE-12) — carnet de prestataires : types en pastilles avec leur
+// Lot 13 (L13-PRE-12) — carnet de prestataires : types en pastilles avec leur
 // nombre, liste et carte côte à côte (bascule sur téléphone), fiche dans le
 // panneau latéral. Géocodeur simulé, pas de fond de carte installé.
 import { randomUUID } from "node:crypto";
@@ -28,7 +28,7 @@ async function login(page: Page, email: string, password: string) {
   await expect(page).toHaveURL("/");
 }
 
-test("PRE-12 — liste et carte côte à côte, fiche dans le panneau latéral", async ({ page }) => {
+test("L13-PRE-12 — liste et carte côte à côte, fiche dans le panneau latéral", async ({ page }) => {
   const email = `planner-carnet-${randomUUID()}@symbola.test`;
   const password = "mot-de-passe-carnet";
   const { sql, db } = createAppConnection();
@@ -44,7 +44,7 @@ test("PRE-12 — liste et carte côte à côte, fiche dans le panneau latéral",
   await login(page, email, password);
 
   await page.goto("/prestataires");
-  // Lot 16 (PRE-14) : pastilles par famille ; ces fiches sans type sont « à classer ».
+  // Lot 16 (L16-PRE-14) : pastilles par famille ; ces fiches sans type sont « à classer ».
   await expect(page.getByRole("navigation", { name: "Familles de prestataires" }).getByRole("link", { name: "Tous · 2" })).toBeVisible();
   const list = page.getByRole("region", { name: /^\d+ résultats?/ });
   await expect(list.getByRole("link", { name: "Maison Verdier" })).toBeVisible();

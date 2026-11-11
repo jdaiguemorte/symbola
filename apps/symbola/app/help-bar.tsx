@@ -1,6 +1,6 @@
 "use client";
 
-// Lot 10 (AIDE-07), revu au lot 13 (HUB-15) — plus de barre permanente :
+// Lot 10 (AIDE-07), revu au lot 13 (L13-HUB-15) — plus de barre permanente :
 // une pastille « Reprendre » quand un tutoriel est en cours, et l'invitation à un tutoriel à la
 // première visite de son écran (AIDE-06). Le compteur des tutoriels est
 // dans le menu.
@@ -52,8 +52,8 @@ export function HelpBar({
           </div>
         </section>
       ) : null}
-      {/* Lot 13 (HUB-15) : plus de barre permanente ; une pastille seulement
-          quand un tutoriel est à reprendre. Lot 18 (HUB-23) : sur l'onglet
+      {/* Lot 13 (L13-HUB-15) : plus de barre permanente ; une pastille seulement
+          quand un tutoriel est à reprendre. Lot 18 (L18-HUB-23) : sur l'onglet
           Tutoriels seulement, pour ne pas gêner la navigation ailleurs. */}
       {tutorial && (pathname === "/tutoriels" || pathname.startsWith("/tutoriels/")) ? (
         <aside className="resume-zone" aria-label={t("resumeLabel")}>

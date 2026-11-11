@@ -1,4 +1,4 @@
-// Lot 11 (PRE-07) — paramètres du trajet estimé (détour, vitesse moyenne).
+// Lot 11 (L11-PRE-07) — paramètres du trajet estimé (détour, vitesse moyenne).
 import { getTranslations } from "next-intl/server";
 import { getVendorSettings } from "@/modules/vendors/service";
 import { vendorSettingsAccess } from "../guard";
@@ -22,7 +22,7 @@ export default async function VendorTravelPage() {
     <main>
       <h1>{t("settingsTravelTitle")}</h1>
       <ScreenHelp title={tHelp("vendorTravel.title")} body={tHelp("vendorTravel.body")} />
-      {/* Lot 18 (PRE-16) : où l'estimation apparaît, et comment elle se calcule. */}
+      {/* Lot 18 (L18-PRE-16) : où l'estimation apparaît, et comment elle se calcule. */}
       <p>{t("settingsTravelIntro")}</p>
       <p className="meta">{t("settingsTravelHow")}</p>
       <TravelForm detour={(settings.detourFactorPermille / 1000).toLocaleString("fr-FR")} speed={settings.averageSpeedKmh} />

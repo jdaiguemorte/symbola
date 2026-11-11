@@ -7,7 +7,7 @@ import {
   quoteUploadError,
 } from "./attachments";
 
-describe("BUD-03 — Refus d'un devis prestataire", () => {
+describe("PRD-BUD-03 — Refus d'un devis prestataire", () => {
   it("limite un devis à 20 Mo", () => {
     expect(QUOTE_MAX_SIZE_BYTES).toBe(20 * 1024 * 1024);
   });

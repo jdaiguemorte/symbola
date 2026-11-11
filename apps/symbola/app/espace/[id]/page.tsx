@@ -15,9 +15,9 @@ import { ClientVendorOptions } from "./client-vendor-options";
 import { isEventsModuleEnabled, isValidId } from "@/app/events/module-access";
 import { toggleClientTaskAction } from "./actions";
 
-// EVT-06 — l'événement vu par le marié : rétroplanning (il coche ses
+// PRD-EVT-06 — l'événement vu par le marié : rétroplanning (il coche ses
 // tâches) et programme du jour J en variante « mariés », jamais de note
-// interne. Budget (BUD-04) et devis à signer (DEV-02) en lecture.
+// interne. Budget (PRD-BUD-04) et devis à signer (DEV-02) en lecture.
 export default async function ClientEventPage({ params }: { params: Promise<{ id: string }> }) {
   const auth = await requireClient();
   // Dégradation propre (CLAUDE.md §2.3) : module désactivé = « indisponible ».
@@ -42,7 +42,7 @@ export default async function ClientEventPage({ params }: { params: Promise<{ id
     throw error;
   }
 
-  // BUD-04 : budget en lecture seule, masqué si le module n'est pas
+  // PRD-BUD-04 : budget en lecture seule, masqué si le module n'est pas
   // souscrit (dégradation propre, CLAUDE.md §2.3). L'accès est revérifié
   // par le module budget lui-même.
   let budget = null;
@@ -60,7 +60,7 @@ export default async function ClientEventPage({ params }: { params: Promise<{ id
     ? await listClientQuotesToSign(auth.user.organizationId, id, auth.user.email)
     : [];
 
-  // EVT-11 : options de prestataires montrées par la planner (accès revérifié).
+  // L11-EVT-11 : options de prestataires montrées par la planner (accès revérifié).
   const vendorOptions = await getClientVendorOptions(auth.user.organizationId, auth.user.id, id);
 
   const t = await getTranslations("ClientSpace");

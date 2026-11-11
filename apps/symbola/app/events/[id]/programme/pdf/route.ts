@@ -1,4 +1,4 @@
-// EVT-05 — export PDF A4 du programme du jour J, en deux variantes :
+// PRD-EVT-05 — export PDF A4 du programme du jour J, en deux variantes :
 // « mariés » (sans notes internes) et « prestataires ». Contrôles côté
 // serveur : session, rôle planner, organisation, module souscrit,
 // identifiant valide.

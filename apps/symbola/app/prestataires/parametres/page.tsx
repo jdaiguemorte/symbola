@@ -1,6 +1,6 @@
-// Lot 11 (PRE-02) — types de prestataires et leurs champs ; les champs
+// Lot 11 (L11-PRE-02) — types de prestataires et leurs champs ; les champs
 // cochés « filtre » apparaissent dans les filtres du carnet.
-// Lot 16 (PRE-15, ADR 0040) — familles et types en tableaux alignés (famille,
+// Lot 16 (L16-PRE-15, ADR 0040) — familles et types en tableaux alignés (famille,
 // type, nombre de fiches) ; le détail s'ouvre dans le panneau latéral (motif
 // du lot 13) : renommer, changer de famille, champs, fusionner, supprimer en
 // déplaçant les fiches. Les familles appartiennent à l'organisation.

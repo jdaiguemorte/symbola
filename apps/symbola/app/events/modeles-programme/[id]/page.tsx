@@ -1,4 +1,4 @@
-// Lot 21 (EVT-21, décision 3) — détail d'un modèle de programme : un tableau
+// Lot 21 (L21-EVT-21, décision 3) — détail d'un modèle de programme : un tableau
 // à colonnes fixes (Heure, Intitulé, Lieu, Intervenants) ; « Modifier » et
 // « Supprimer » toujours en fin de ligne. Ajouter ou modifier une ligne et
 // renommer le modèle se font dans le panneau latéral (ADR 0033) ; la

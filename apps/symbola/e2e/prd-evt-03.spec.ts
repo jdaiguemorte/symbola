@@ -1,4 +1,4 @@
-// EVT-03 — lignes du budget (lot 12, ex-« postes ») : liste par défaut (modèle de départ),
+// PRD-EVT-03 — lignes du budget (lot 12, ex-« postes ») : liste par défaut (modèle de départ),
 // barre d'avancement, statut Réservé avec prestataire obligatoire et
 // montant facultatif, postes modifiables événement par événement. En
 // taille ordinateur et en 375 px, axe-core sur chaque écran.
@@ -28,7 +28,7 @@ async function expectNoAxeViolation(page: Page) {
   expect(result.violations, JSON.stringify(result.violations, null, 2)).toEqual([]);
 }
 
-test("EVT-03 — lignes du budget par défaut, barre d'avancement et réservation d'un prestataire", async ({ page }) => {
+test("PRD-EVT-03 — lignes du budget par défaut, barre d'avancement et réservation d'un prestataire", async ({ page }) => {
   const email = `planner-evt03-${randomUUID()}@symbola.test`;
   const password = "mot-de-passe-evt03-e2e";
   const { sql, db } = createAppConnection();
@@ -50,7 +50,7 @@ test("EVT-03 — lignes du budget par défaut, barre d'avancement et réservatio
   await expect(page.getByText("1 ligne ajoutée depuis le modèle de départ.")).toBeVisible();
   await page.getByRole("button", { name: "Retirer la ligne « Transport des invités »" }).click();
   await expect(page.getByRole("button", { name: "Retirer la ligne « Transport des invités »" })).toHaveCount(0);
-  // Lot 13 (HUB-16) : les sources ont leur rubrique.
+  // Lot 13 (L13-HUB-16) : les sources ont leur rubrique.
   await page.goto("/events/parametres/sources");
   await page.getByLabel("Nouvelle source").fill("Salon");
   await page.getByRole("button", { name: "Ajouter la source" }).click();

@@ -142,7 +142,7 @@ services:
       # = carte sans fond (liste, filtres et distances fonctionnent).
       GEOCODER: ${GEOCODER:-}
       MAP_TILES_DIR: /srv/carte
-      # Lot 16 (SEC-01, ADR 0037) : sans valeur par défaut, l'app refuse de
+      # Lot 16 (L16-SEC-01, ADR 0037) : sans valeur par défaut, l'app refuse de
       # démarrer si la clé manque dans .env.<environnement>.
       MFA_ENCRYPTION_KEY: ${MFA_ENCRYPTION_KEY}
     volumes:

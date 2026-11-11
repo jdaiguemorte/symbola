@@ -23,7 +23,7 @@ points restaient ouverts dans la spécification du lot 4 (tranchés avec Julien 
 
 1. **Signataires saisis sur le devis** (module Devis, table `quotes.quote_signers`) au moment
    de l'envoi en signature : nom, e-mail, adresse de facturation, copiés et figés avec la
-   version envoyée, pré-remplis depuis les accès mariés (EVT-06) quand ils existent. Déclarés
+   version envoyée, pré-remplis depuis les accès mariés (PRD-EVT-06) quand ils existent. Déclarés
    dans `privacy.registry.yaml`.
 2. **Interface `SignatureProvider`** (`apps/symbola/modules/quotes/signature/`) : créer une
    demande à partir du PDF du devis (une zone de signature par signataire), relire une

@@ -1,4 +1,4 @@
-// Lot 11 (PRE-11) — sélection du carnet en PDF A4, à proposer aux clients
+// Lot 11 (L11-PRE-11) — sélection du carnet en PDF A4, à proposer aux clients
 // (@react-pdf/renderer, ADR 0019) : nom, type, ville, trajet estimé.
 import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
 import type { ExportLabels, ExportRow } from "./selection-export";

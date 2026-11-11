@@ -1,4 +1,4 @@
-// HUB-02 — calcul du calendrier de l'accueil (sans rendu) : mois, cases du
+// PRD-HUB-02 — calcul du calendrier de l'accueil (sans rendu) : mois, cases du
 // lundi au dimanche, ton de chaque date et événements du même week-end.
 import type { EventStatus } from "@/modules/events/service";
 

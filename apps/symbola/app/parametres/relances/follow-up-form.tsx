@@ -1,6 +1,6 @@
 "use client";
 
-// Lot 13 (HUB-15) — délais de relance du bloc « À traiter » de l'accueil.
+// Lot 13 (L13-HUB-15) — délais de relance du bloc « À traiter » de l'accueil.
 import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
 import { saveFollowUpDelaysAction, type FollowUpFormState } from "../actions";

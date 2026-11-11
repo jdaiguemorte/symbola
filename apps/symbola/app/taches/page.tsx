@@ -1,4 +1,4 @@
-// HUB-02 / EVT-04 — écran « Tâches » : les tâches de tous les événements en
+// PRD-HUB-02 / PRD-EVT-04 — écran « Tâches » : les tâches de tous les événements en
 // cours (hors perdus et réalisés), en tableau, filtrables par état et par
 // responsable. Cocher une tâche ici la marque faite sur sa fiche.
 import { PageHeader } from "@/app/ui/page-header";

@@ -1,5 +1,5 @@
-// Lot 12 — premier démarrage (ONB-03/04), fiche événement (EVT-12 à
-// EVT-15) et agenda cliquable (HUB-13), en taille ordinateur et en 375 px,
+// Lot 12 — premier démarrage (ONB-03/04), fiche événement (L12-EVT-12 à
+// L12-EVT-15) et agenda cliquable (L12-HUB-13), en taille ordinateur et en 375 px,
 // axe-core.
 import { randomUUID } from "node:crypto";
 import AxeBuilder from "@axe-core/playwright";
@@ -93,7 +93,7 @@ test("ONB-03 / ONB-04 — premier démarrage d'une agence événementielle", asy
   await runSetup(page, /Agence événementielle/, "Technique son et lumière");
 });
 
-test("EVT-12 / EVT-13 / EVT-15 — statut en boutons, rétroplanning à la confirmation, lieux du programme", async ({ page }) => {
+test("L12-EVT-12 / L12-EVT-13 / L12-EVT-15 — statut en boutons, rétroplanning à la confirmation, lieux du programme", async ({ page }) => {
   const account = await owner(true);
   await addDefaultVendorSlots(account.organizationId, [{ label: "Lieu de réception", icon: "venue" }]);
   await createTaskTemplate(account.organizationId, "Mariage", []);
@@ -111,7 +111,7 @@ test("EVT-12 / EVT-13 / EVT-15 — statut en boutons, rétroplanning à la confi
   await page.goto(`/events/${event.id}?onglet=retroplanning`);
   await expect(page.locator("p.notice", { hasText: "Le rétroplanning démarre quand l'événement est confirmé" })).toBeVisible();
 
-  // Lot 13 (EVT-19) : frise du statut ; l'étape choisie se confirme, puis
+  // Lot 13 (L13-EVT-19) : frise du statut ; l'étape choisie se confirme, puis
   // le rétroplanning est proposé.
   const steps = page.getByRole("list", { name: "Statut de l'événement" });
   await expect(steps.getByRole("listitem").filter({ hasText: "Prospect" })).toHaveAttribute("aria-current", "step");
@@ -132,7 +132,7 @@ test("EVT-12 / EVT-13 / EVT-15 — statut en boutons, rétroplanning à la confi
   await expectNoAxeViolation(page);
 });
 
-test("HUB-13 — un clic sur une date libre de l'agenda crée un événement à cette date", async ({ page }) => {
+test("L12-HUB-13 — un clic sur une date libre de l'agenda crée un événement à cette date", async ({ page }) => {
   const account = await owner(true);
   await createProspectSource(account.organizationId, "Salon");
   await login(page, account.email, account.password, /\/$/);

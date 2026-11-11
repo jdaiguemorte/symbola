@@ -1,4 +1,4 @@
-// HUB-04 — « La langue par défaut est celle du navigateur. » « Quand il
+// PRD-HUB-04 — « La langue par défaut est celle du navigateur. » « Quand il
 // choisit FR ou EN dans son profil, toutes les apps s'affichent dans
 // cette langue. » « Un test en CI échoue si une clé manque » est couvert
 // par packages/i18n (pnpm check:messages), pas ici.
@@ -10,7 +10,7 @@ import { expect, test } from "@playwright/test";
 import * as OTPAuth from "otpauth";
 import { openMenu, openSettingsTab, readyOrganization } from "./helpers";
 
-test.describe("HUB-04 — Langue par défaut du navigateur", () => {
+test.describe("PRD-HUB-04 — Langue par défaut du navigateur", () => {
   test.use({ locale: "en-US" });
 
   test("un navigateur en anglais affiche /login en anglais", async ({ page }) => {
@@ -22,7 +22,7 @@ test.describe("HUB-04 — Langue par défaut du navigateur", () => {
   });
 });
 
-test("HUB-04-02 — choisir une langue dans le profil s'applique à toute l'app", async ({ page }) => {
+test("PRD-HUB-04-02 — choisir une langue dans le profil s'applique à toute l'app", async ({ page }) => {
   const email = `langue-e2e-${randomUUID()}@symbola.test`;
   const password = "mot-de-passe-langue-e2e";
 

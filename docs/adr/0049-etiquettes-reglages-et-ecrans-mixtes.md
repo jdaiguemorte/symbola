@@ -2,7 +2,7 @@
 
 - Statut : accepté
 - Date : 2026-11-10
-- Précise : le lot 11 (PRE-01 à PRE-05, étiquettes libres), [0040](0040-familles-de-types-de-prestataires.md)
+- Précise : le lot 11 (L11-PRE-01 à L11-PRE-05, étiquettes libres), [0040](0040-familles-de-types-de-prestataires.md)
   (familles de types), [0045](0045-types-d-evenement-et-vocabulaire.md) (vocabulaire selon le
   type d'événement) et [0039](0039-aide-un-seul-bouton-et-tiroir.md) (tiroir d'aide)
 - Décisions de Julien du 10/11/2026 : maquette du lot 20, décisions 1 à 6 validées (« les

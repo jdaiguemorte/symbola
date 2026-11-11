@@ -1,4 +1,4 @@
-// EVT-05 — rendu A4 du programme du jour J (@react-pdf/renderer). Le
+// PRD-EVT-05 — rendu A4 du programme du jour J (@react-pdf/renderer). Le
 // contenu vient de buildProgramPdfModel ; ce fichier ne fait que la mise
 // en page, lisible à l'impression (texte noir, 10 pt minimum).
 import { Document, Font, Image, Page, StyleSheet, Text, View } from "@react-pdf/renderer";

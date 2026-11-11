@@ -1,4 +1,4 @@
-// EVT-04 / HUB-02 — tableau des tâches (maquette validée) : Fait · Tâche ·
+// PRD-EVT-04 / PRD-HUB-02 — tableau des tâches (maquette validée) : Fait · Tâche ·
 // Échéance · Qui la réalise · Statut, regroupé par mois. Partagé entre le
 // rétroplanning d'un événement et l'écran « Tâches » de l'organisation.
 import Link from "next/link";

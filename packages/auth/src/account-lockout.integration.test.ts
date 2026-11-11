@@ -1,4 +1,4 @@
-// HUB-01 — « 5 mots de passe faux d'affilée bloquent le compte
+// PRD-HUB-01 — « 5 mots de passe faux d'affilée bloquent le compte
 // temporairement et le titulaire reçoit un e-mail. » Contre un vrai
 // PostgreSQL et un vrai Mailpit (socle de dev/CI), pas des mocks.
 import { randomUUID } from "node:crypto";
@@ -25,7 +25,7 @@ async function waitForEmailTo(to: string, attempts = 20): Promise<{ Subject: str
   return [];
 }
 
-describe("HUB-01 — Verrouillage de compte après 5 échecs", () => {
+describe("PRD-HUB-01 — Verrouillage de compte après 5 échecs", () => {
   it("bloque après le 5e mot de passe faux et avertit le titulaire par e-mail", async () => {
     const organization = await createOrganization(db, `Org ${randomUUID()}`);
     const email = `lockout-${randomUUID()}@symbola.test`;

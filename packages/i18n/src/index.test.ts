@@ -65,7 +65,7 @@ describe("@symbola/i18n — formatDate", () => {
   });
 });
 
-describe("@symbola/i18n — localeFromAcceptLanguage (HUB-04)", () => {
+describe("@symbola/i18n — localeFromAcceptLanguage (PRD-HUB-04)", () => {
   it("détecte l'anglais depuis l'en-tête du navigateur", () => {
     expect(localeFromAcceptLanguage("en-US,en;q=0.9")).toBe("en");
   });
@@ -106,7 +106,7 @@ describe("@symbola/i18n — parseAmountToCents (saisie en euros, CLAUDE.md §5)"
   });
 });
 
-describe("HUB-02 — Date du jour à Paris", () => {
+describe("PRD-HUB-02 — Date du jour à Paris", () => {
   it("suit l'heure de Paris, pas celle du serveur (UTC), y compris au passage à l'heure d'été", () => {
     expect(parisToday(new Date("2026-11-03T22:59:00Z"))).toBe("2026-11-03");
     expect(parisToday(new Date("2026-11-03T23:00:00Z"))).toBe("2026-11-04"); // minuit à Paris (UTC+1)
@@ -115,7 +115,7 @@ describe("HUB-02 — Date du jour à Paris", () => {
   });
 });
 
-describe("HUB-15 — jours écoulés à Paris", () => {
+describe("L13-HUB-15 — jours écoulés à Paris", () => {
   it("compte en jours de calendrier parisiens : la veille à 23 h 30 = 1 jour", () => {
     expect(parisDaysSince(new Date("2026-11-05T22:30:00Z"), new Date("2026-11-06T08:00:00Z"))).toBe(1);
   });

@@ -1,4 +1,4 @@
-// SEC-01 (lot 16, ADR 0037) — la double authentification vient d'être
+// L16-SEC-01 (lot 16, ADR 0037) — la double authentification vient d'être
 // verrouillée après 5 codes faux : le mot de passe du compte est connu d'un
 // tiers. Le titulaire est prévenu par un e-mail traduit (dans sa langue, sinon
 // celle de l'écran) ; un échec d'envoi ne change pas la réponse à l'écran.

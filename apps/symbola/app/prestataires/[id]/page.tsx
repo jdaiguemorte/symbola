@@ -1,4 +1,4 @@
-// Lot 11 (PRE-01, PRE-03, PRE-09) — fiche d'un prestataire : coordonnées et
+// Lot 11 (L11-PRE-01, L11-PRE-03, L11-PRE-09) — fiche d'un prestataire : coordonnées et
 // caractéristiques (modifiables), fichiers, point sur la carte, historique
 // avec l'organisation (consultations, issue, prix devisé et final).
 import Link from "next/link";
@@ -186,7 +186,7 @@ export default async function VendorPage({ params, searchParams }: { params: Pro
       </section>
 
       {!vendor.archived ? (
-        // Lot 20 (PRE-17) : même confirmation que depuis le carnet.
+        // Lot 20 (L20-PRE-17) : même confirmation que depuis le carnet.
         <ConfirmDialog
           trigger={t("archive", { vendor: vendor.name })}
           triggerLabel={t("archive", { vendor: vendor.name })}

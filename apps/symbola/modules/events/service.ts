@@ -301,7 +301,7 @@ export async function listEvents(input: ListEventsInput): Promise<EventSummary[]
   return rows.map(({ event, clients }) => toEventSummary(event, clients));
 }
 
-// Lot 13 (HUB-15) — prospects sans nouvelle depuis au moins `days` jours
+// Lot 13 (L13-HUB-15) — prospects sans nouvelle depuis au moins `days` jours
 // (aucune modification de la fiche, calendrier de Paris), hors essais,
 // pour le bloc « À traiter » de l'accueil.
 export async function listStaleProspects(organizationId: string, days: number, now: Date = new Date()): Promise<StaleProspect[]> {
@@ -395,7 +395,7 @@ export async function createLossReason(
   return { id: row.id, label: row.label, isFreeText: row.isFreeText };
 }
 
-// EVT-07 — ajout en lot (listes de départ, ONB-01) : les libellés déjà
+// PRD-EVT-07 — ajout en lot (listes de départ, ONB-01) : les libellés déjà
 // présents, à la casse et aux espaces près, ne sont pas dupliqués. Renvoie
 // le nombre d'entrées ajoutées.
 function normalizedLabel(label: string): string {
@@ -427,7 +427,7 @@ export async function addLossReasons(organizationId: string, reasons: { label: s
   return added;
 }
 
-// EVT-03 — postes prestataires.
+// PRD-EVT-03 — postes prestataires.
 
 export class VendorNameRequiredError extends Error {
   constructor() {
@@ -534,7 +534,7 @@ export async function addDefaultVendorSlots(
   return (await insertDefaultVendorSlots(organizationId, entries)).map(toDefaultVendorSlot);
 }
 
-// Lot 12 (EVT-17) : renommer une ligne du budget par défaut, changer son icône.
+// Lot 12 (L12-EVT-17) : renommer une ligne du budget par défaut, changer son icône.
 export async function updateDefaultVendorSlot(organizationId: string, id: string, label: string, icon: string | null): Promise<void> {
   const clean = label.trim();
   if (!clean) throw new RangeError("le nom de la ligne est obligatoire");
@@ -549,7 +549,7 @@ export async function removeDefaultVendorSlot(organizationId: string, defaultVen
   await deleteDefaultVendorSlot(organizationId, defaultVendorSlotId);
 }
 
-// Lot 13 (HUB-16) — ordre des lignes du budget, changé par glisser-déposer
+// Lot 13 (L13-HUB-16) — ordre des lignes du budget, changé par glisser-déposer
 // ou au clavier ; les nouveaux événements les reçoivent dans cet ordre.
 export async function reorderDefaultVendorSlots(organizationId: string, orderedIds: string[]): Promise<void> {
   if (!(await reorderDefaultVendorSlotRows(organizationId, orderedIds))) throw new VendorSlotNotFoundError();
@@ -584,7 +584,7 @@ export async function removeEventVendorSlot(organizationId: string, vendorSlotId
   await deleteStoredFiles(keys);
 }
 
-// Lot 12 (EVT-15) — lieux de l'événement.
+// Lot 12 (L12-EVT-15) — lieux de l'événement.
 export { EventPlaceEventNotFoundError } from "./places";
 
 export async function listEventPlaces(organizationId: string, eventId: string): Promise<EventPlace[]> {
@@ -599,7 +599,7 @@ export async function removeEventPlace(organizationId: string, eventId: string, 
   await removePlace(organizationId, eventId, placeId);
 }
 
-// Lot 11 (EVT-10 / EVT-11, ADR 0031) — prestataires consultés par poste.
+// Lot 11 (L11-EVT-10 / L11-EVT-11, ADR 0031) — prestataires consultés par poste.
 
 export { CandidateQuoteRejectedError, VendorCandidateNotFoundError, CANDIDATE_QUOTE_MAX_SIZE_BYTES } from "./vendor-candidates";
 
@@ -672,7 +672,7 @@ export class ClientVendorOptionsAccessDeniedError extends Error {
   }
 }
 
-// EVT-11 — l'accès du client à l'événement est vérifié avant toute lecture.
+// L11-EVT-11 — l'accès du client à l'événement est vérifié avant toute lecture.
 export async function getClientVendorOptions(organizationId: string, userId: string, eventId: string): Promise<ClientVendorSlotOptions[]> {
   if (!(await hasActiveClientAccess(organizationId, userId, eventId))) throw new ClientVendorOptionsAccessDeniedError();
   return clientOptions(organizationId, eventId);
@@ -694,7 +694,7 @@ async function deleteStoredFiles(keys: string[]): Promise<void> {
   for (const key of keys) await deletePrivateObject(storage, key).catch(() => undefined);
 }
 
-// EVT-04 — rétroplanning.
+// PRD-EVT-04 — rétroplanning.
 
 export class EventDateRequiredError extends Error {
   constructor() {
@@ -800,7 +800,7 @@ export async function addTaskTemplateItem(
   return toTaskTemplateItem(row);
 }
 
-// Lot 21 (EVT-22) : modifier une ligne et renommer un modèle de rétroplanning.
+// Lot 21 (L21-EVT-22) : modifier une ligne et renommer un modèle de rétroplanning.
 export async function updateTaskTemplateItem(organizationId: string, itemId: string, item: TaskTemplateItemInput): Promise<TaskTemplateItem> {
   const row = await updateTaskTemplateItemRow(organizationId, itemId, normalizeTemplateItem(item));
   if (!row) throw new TaskTemplateNotFoundError();
@@ -867,7 +867,7 @@ export function eventNames(clients: { firstName: string }[]): string {
   return clients.map((client) => client.firstName).join(" & ");
 }
 
-// HUB-02 — tâches de toute l'organisation (accueil, écran Tâches), triées
+// PRD-HUB-02 — tâches de toute l'organisation (accueil, écran Tâches), triées
 // par échéance, avec le nom de leur événement.
 export async function listOrganizationTasks(input: ListOrganizationTasksInput): Promise<OrganizationTask[]> {
   assertDate(input.today);
@@ -921,7 +921,7 @@ export async function removeEventTask(organizationId: string, taskId: string): P
   await deleteEventTask(organizationId, taskId);
 }
 
-// EVT-05 — programme du jour J.
+// PRD-EVT-05 — programme du jour J.
 
 export class ProgramItemNotFoundError extends Error {
   constructor() {
@@ -1091,7 +1091,7 @@ export async function addProgramTemplateItem(
   return toProgramTemplateItem(row);
 }
 
-// Lot 21 (EVT-21) : modifier une ligne et renommer un modèle de programme.
+// Lot 21 (L21-EVT-21) : modifier une ligne et renommer un modèle de programme.
 export async function updateProgramTemplateItem(organizationId: string, itemId: string, item: ProgramTemplateItemInput): Promise<ProgramTemplateItem> {
   const row = await updateProgramTemplateItemRow(organizationId, itemId, normalizeProgramTemplateItem(item));
   if (!row) throw new ProgramTemplateNotFoundError();
@@ -1122,15 +1122,15 @@ export async function applyProgramTemplate(
   return sortProgramItems(result.items.map(toProgramItem));
 }
 
-// EVT-06 — accès des mariés.
+// PRD-EVT-06 — accès des mariés.
 
-const CLIENT_INVITATION_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 jours, comme HUB-03
+const CLIENT_INVITATION_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 jours, comme PRD-HUB-03
 // Longueur minimale d'un mot de passe de marié (recommandation CNIL pour un
 // mot de passe seul, sans double authentification imposée).
 const CLIENT_PASSWORD_MIN_LENGTH = 12;
 
 // L'e-mail a déjà un compte professionnel ou un compte d'une autre
-// organisation : un compte par personne (PRD EVT-06).
+// organisation : un compte par personne (PRD PRD-EVT-06).
 export class ClientEmailUnavailableError extends Error {
   constructor() {
     super("cet e-mail est déjà utilisé par un autre compte");
@@ -1194,7 +1194,7 @@ function toEventClientAccess(row: EventClientAccessRow): EventClientAccess {
 
 async function sendClientMail(email: string, locale: "fr" | "en", audience: EventTypeAudience, invitationUrl: string | null): Promise<void> {
   const appUrl = parseEnv(process.env).APP_PUBLIC_URL;
-  // Service sans next-intl : variantes inline, comme l'invitation HUB-03. Lot 16
+  // Service sans next-intl : variantes inline, comme l'invitation PRD-HUB-03. Lot 16
   // (ADR 0045) : un mariage parle de « votre mariage », les autres événements
   // de « votre événement ».
   const couple = audience === "couple";
@@ -1330,7 +1330,7 @@ export async function setClientTaskDone(
   return toEventTask(result.task);
 }
 
-// Lot 13 (EVT-19) — date (calendrier de Paris) du dernier passage dans
+// Lot 13 (L13-EVT-19) — date (calendrier de Paris) du dernier passage dans
 // chaque statut : la frise de la fiche affiche la date de chaque étape.
 export async function getEventStatusDates(organizationId: string, eventId: string): Promise<EventStatusDates> {
   const dates: EventStatusDates = {};
@@ -1488,7 +1488,7 @@ export async function getEventNamesByIds(organizationId: string, eventIds: strin
   return findEventNamesByIds(organizationId, eventIds);
 }
 
-// Lot 3 (BUD-04) : exposition publique de la vérification déjà utilisée en
+// Lot 3 (PRD-BUD-04) : exposition publique de la vérification déjà utilisée en
 // interne par getClientEventView — le module budget en a besoin pour sa
 // propre vue en lecture seule du marié.
 export { hasActiveClientAccess };

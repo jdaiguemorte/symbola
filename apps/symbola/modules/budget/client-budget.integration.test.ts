@@ -1,4 +1,4 @@
-// BUD-04 — budget visible par les mariés, en lecture seule, contre un
+// PRD-BUD-04 — budget visible par les mariés, en lecture seule, contre un
 // vrai PostgreSQL (RLS) : l'accès du marié à l'événement est vérifié par
 // le module events avant de renvoyer la moindre donnée budget.
 import { randomUUID } from "node:crypto";
@@ -70,7 +70,7 @@ async function newOrganization(): Promise<string> {
   return (await withDb((db) => createOrganization(db, `Org ${randomUUID()}`))).id;
 }
 
-describe("BUD-04 — Budget visible par les mariés", () => {
+describe("PRD-BUD-04 — Budget visible par les mariés", () => {
   it("le marié voit le budget de son événement : poste, prévu, réel, écart et totaux", async () => {
     const organizationId = await newOrganization();
     const eventId = await eventWithBudget(organizationId);
@@ -87,7 +87,7 @@ describe("BUD-04 — Budget visible par les mariés", () => {
   });
 });
 
-describe("BUD-04 — Isolation d'un compte marié", () => {
+describe("PRD-BUD-04 — Isolation d'un compte marié", () => {
   it("refuse le budget d'un autre événement de la même organisation", async () => {
     const organizationId = await newOrganization();
     const eventId = await eventWithBudget(organizationId);

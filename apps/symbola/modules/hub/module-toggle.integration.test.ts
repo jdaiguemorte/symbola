@@ -1,4 +1,4 @@
-// HUB-03 — « Quand l'Admin active ou désactive une app pour une
+// PRD-HUB-03 — « Quand l'Admin active ou désactive une app pour une
 // organisation, le changement s'applique au prochain chargement.
 // Désactiver une app ne supprime aucune donnée. » Contre un vrai
 // PostgreSQL.
@@ -26,7 +26,7 @@ async function createTestAdmin(): Promise<string> {
   return admin.id;
 }
 
-describe("HUB-03 — Activation/désactivation de module", () => {
+describe("PRD-HUB-03 — Activation/désactivation de module", () => {
   it("un module est activé par défaut, sans qu'aucune action Admin ne soit nécessaire", async () => {
     const [organization] = await db
       .insert(organizations)

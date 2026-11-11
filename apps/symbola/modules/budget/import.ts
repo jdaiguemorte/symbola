@@ -1,6 +1,6 @@
 // IMP-05 — import de lignes de budget (lot 5, ADR 0022), exposé par
 // service.ts. Une ligne de budget est portée par un poste de l'événement
-// (module events, BUD-02) : le poste est d'abord créé ou mis à jour par le
+// (module events, PRD-BUD-02) : le poste est d'abord créé ou mis à jour par le
 // service du module events, puis les montants sont écrits ici en une
 // transaction, historisés comme une saisie à la main. Si cette seconde
 // écriture échoue, les postes écrits sont annulés (compensation : deux
@@ -129,7 +129,7 @@ export async function findModifiedImportedBudgetElements(
   });
 }
 
-// Une ligne créée par l'import puis complétée d'un devis joint (BUD-03), ou
+// Une ligne créée par l'import puis complétée d'un devis joint (PRD-BUD-03), ou
 // dont un montant a changé à la main, n'est annulée qu'avec confirmation.
 export async function undoImportedBudgetElements(organizationId: string, userId: string, items: ImportUndoItem[]): Promise<ImportUndoOutcome[]> {
   return inTransaction(organizationId, async (tx) => {

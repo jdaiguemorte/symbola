@@ -1,4 +1,4 @@
-// Lot 16 (HUB-21, ADR 0045) — vocabulaire des clients : les textes « le client »
+// Lot 16 (L16-HUB-21, ADR 0045) — vocabulaire des clients : les textes « le client »
 // (messages/vocabulary/clients.<langue>.json) remplacent ceux du catalogue, qui
 // parle des mariés, clé par clé. L'app les choisit selon le type de l'événement
 // affiché, sinon selon le métier de l'organisation (apps/symbola/lib/vocabulary.ts).

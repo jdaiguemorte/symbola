@@ -7,13 +7,13 @@ import { requireClient } from "@/lib/guards";
 import { TrustedDevicesForm } from "../../trusted-devices-form";
 import { ClientMfaSetup } from "./mfa-forms";
 
-// EVT-06 — sécurité du compte marié : double authentification facultative.
+// PRD-EVT-06 — sécurité du compte marié : double authentification facultative.
 export default async function ClientSecurityPage() {
   const auth = await requireClient();
 
   const t = await getTranslations("ClientSpace");
   const tHelp = await getTranslations("Help");
-  // SEC-03 : appareils de confiance, une fois la double authentification activée.
+  // L16-SEC-03 : appareils de confiance, une fois la double authentification activée.
   let trustedDevices: number | null = null;
   if (auth.user.mfaEnabled) {
     const db = appDatabase();

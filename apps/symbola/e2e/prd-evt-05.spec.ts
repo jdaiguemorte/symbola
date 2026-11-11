@@ -1,4 +1,4 @@
-// EVT-05 — programme du jour J : modèle de départ, lignes triées par
+// PRD-EVT-05 — programme du jour J : modèle de départ, lignes triées par
 // heure, intervenants (postes de l'événement et texte libre),
 // chevauchement signalé sans bloquer, export PDF en deux variantes. En
 // taille ordinateur et en 375 px, axe-core sur chaque écran.
@@ -28,7 +28,7 @@ async function expectNoAxeViolation(page: Page) {
   expect(result.violations, JSON.stringify(result.violations, null, 2)).toEqual([]);
 }
 
-test("EVT-05 — programme du jour J depuis un modèle, chevauchement signalé et export PDF", async ({ page }) => {
+test("PRD-EVT-05 — programme du jour J depuis un modèle, chevauchement signalé et export PDF", async ({ page }) => {
   const email = `planner-evt05-${randomUUID()}@symbola.test`;
   const password = "mot-de-passe-evt05-e2e";
   const { sql, db } = createAppConnection();
@@ -45,7 +45,7 @@ test("EVT-05 — programme du jour J depuis un modèle, chevauchement signalé e
   await page.getByLabel("Nouvelle source").fill("Salon");
   await page.getByRole("button", { name: "Ajouter la source" }).click();
   await expect(page.getByText("Source ajoutée.")).toBeVisible();
-  // Lot 13 (HUB-16) : ajout d'une ligne dans le panneau latéral.
+  // Lot 13 (L13-HUB-16) : ajout d'une ligne dans le panneau latéral.
   await page.goto("/events/parametres");
   await page.getByRole("link", { name: "+ Ajouter une ligne" }).click();
   await page.getByLabel("Nouvelle ligne par défaut").fill("Photographe");
@@ -60,7 +60,7 @@ test("EVT-05 — programme du jour J depuis un modèle, chevauchement signalé e
   await expect(page).toHaveURL(/\/events\/modeles-programme$/);
   await page.waitForLoadState("networkidle");
   await page.getByRole("button", { name: "Charger le modèle de programme de départ" }).click();
-  // Lot 21 (EVT-21) : une ligne de la liste des modèles, qui ouvre son détail.
+  // Lot 21 (L21-EVT-21) : une ligne de la liste des modèles, qui ouvre son détail.
   await expect(page.getByRole("link", { name: /^Programme du jour J \(modèle de départ\)/ })).toBeVisible();
   await expectNoAxeViolation(page);
 
@@ -78,7 +78,7 @@ test("EVT-05 — programme du jour J depuis un modèle, chevauchement signalé e
   await page.getByRole("button", { name: "Appliquer le modèle de programme" }).click();
   await expect(page.getByText("Modèle appliqué : les lignes ont été ajoutées au programme.")).toBeVisible();
   const program = page.getByRole("list", { name: "Programme du jour J" });
-  // Lot 12 (EVT-14) : heure | intitulé, lieu et icônes des prestataires.
+  // Lot 12 (L12-EVT-14) : heure | intitulé, lieu et icônes des prestataires.
   const first = program.getByRole("listitem").first();
   await expect(first.locator(".program-time")).toHaveText("09:00 – 12:00");
   await expect(first.locator("strong")).toHaveText("Coiffure et maquillage");

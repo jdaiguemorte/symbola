@@ -1,4 +1,4 @@
-// Lot 16 (SEC-02, ADR 0044) — réception d'un envoi de fichier par une route
+// Lot 16 (L16-SEC-02, ADR 0044) — réception d'un envoi de fichier par une route
 // dédiée, hors des actions serveur (dont la limite revient à 1 Mo). Dans
 // l'ordre, avant de lire le corps : même origine (comme les actions serveur),
 // session de l'équipe, limite de débit, taille annoncée. Le corps est ensuite

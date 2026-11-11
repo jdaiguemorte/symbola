@@ -1,6 +1,6 @@
 "use client";
 
-// Lot 16 (HUB-19, ADR 0039) — le seul « ? » de l'app, dans la barre du haut, au
+// Lot 16 (L16-HUB-19, ADR 0039) — le seul « ? » de l'app, dans la barre du haut, au
 // même endroit sur tous les écrans. Il ouvre l'aide déclarée par l'écran ; un
 // écran qui n'en déclare pas mène au centre d'aide.
 import Link from "next/link";

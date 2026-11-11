@@ -1,6 +1,6 @@
 "use server";
 
-// EVT-06 — le marié coche ou décoche une de ses tâches.
+// PRD-EVT-06 — le marié coche ou décoche une de ses tâches.
 import { revalidatePath } from "next/cache";
 import { ClientAccessDeniedError, setClientTaskDone } from "@/modules/events/service";
 import { getClientAuthContext } from "@/lib/auth-context";

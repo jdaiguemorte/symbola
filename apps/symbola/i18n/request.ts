@@ -1,7 +1,7 @@
-// HUB-04 — résout la langue affichée : celle du compte si l'utilisateur
+// PRD-HUB-04 — résout la langue affichée : celle du compte si l'utilisateur
 // est connecté et l'a choisie dans son profil, sinon le cookie posé par
 // le middleware (langue du navigateur au premier passage).
-// Lot 16 (HUB-21, ADR 0045) — et le vocabulaire des clients : celui du type de
+// Lot 16 (L16-HUB-21, ADR 0045) — et le vocabulaire des clients : celui du type de
 // l'événement affiché, sinon celui du métier de l'organisation
 // (lib/vocabulary.ts).
 import { cookies } from "next/headers";

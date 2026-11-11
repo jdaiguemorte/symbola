@@ -1,4 +1,4 @@
-// Lot 13 (HUB-17, HUB-18, ADR 0033) — vue d'ensemble de la console
+// Lot 13 (L13-HUB-17, L13-HUB-18, ADR 0033) — vue d'ensemble de la console
 // d'Administration : chiffres agrégés de toutes les organisations, ce qui
 // demande une action, tendance sur 6 mois, et la dernière sauvegarde signalée
 // par le script de sauvegarde. Jamais un nom d'organisation, un montant ni un
@@ -77,7 +77,7 @@ export async function getAdminOverview(db: AppDatabase, now: Date = new Date()):
   };
 }
 
-// Lot 13 (HUB-17) — modules souscrits de chaque organisation, pour le tableau
+// Lot 13 (L13-HUB-17) — modules souscrits de chaque organisation, pour le tableau
 // des organisations (absence de ligne = activé, comme isModuleEnabled).
 export async function listOrganizationModuleStates(
   db: AppDatabase,

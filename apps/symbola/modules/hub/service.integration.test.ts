@@ -1,4 +1,4 @@
-// HUB-03 — « L'Admin crée une organisation et saisit l'e-mail du
+// PRD-HUB-03 — « L'Admin crée une organisation et saisit l'e-mail du
 // titulaire, alors le titulaire reçoit une invitation valable 7 jours. »
 // Contre un vrai PostgreSQL et un vrai Mailpit, pas des mocks.
 import { randomUUID } from "node:crypto";
@@ -40,7 +40,7 @@ async function waitForEmailTo(to: string, attempts = 20): Promise<{ Subject: str
   return [];
 }
 
-describe("HUB-03 — Création d'organisation et invitation du titulaire", () => {
+describe("PRD-HUB-03 — Création d'organisation et invitation du titulaire", () => {
   it("crée l'organisation, envoie une invitation valable 7 jours, et consigne l'action dans le journal d'audit", async () => {
     const adminUserId = await createTestAdmin();
     const titulaireEmail = `titulaire-${randomUUID()}@symbola.test`;

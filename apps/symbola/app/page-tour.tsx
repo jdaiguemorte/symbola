@@ -1,7 +1,7 @@
 "use client";
 
 // Lot 10 (AIDE-05), refait au lot 13 (AIDE-11, ADR 0033) puis au lot 16
-// (HUB-19, ADR 0039) — aide sur l'écran par repères. L'écran DÉCLARE ses
+// (L16-HUB-19, ADR 0039) — aide sur l'écran par repères. L'écran DÉCLARE ses
 // repères et son texte d'aide ; le « ? » de la barre du haut les affiche. À
 // la première ouverture d'un écran, ils s'affichent d'eux-mêmes une fois
 // (décision C du lot 13), et comptent alors comme vus.

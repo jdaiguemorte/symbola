@@ -1,4 +1,4 @@
-// Lot 11 (PRE-11) — export de la sélection courante du carnet (mêmes
+// Lot 11 (L11-PRE-11) — export de la sélection courante du carnet (mêmes
 // filtres que l'écran) en CSV ou en PDF. Session, organisation et module
 // vérifiés ; le PDF ne contient pas les coordonnées personnelles (il peut
 // être remis aux clients), le CSV est un outil de travail de l'équipe.

@@ -1,4 +1,4 @@
-// EVT-03 : « chaque statut a sa couleur ». Présentation seulement (les
+// PRD-EVT-03 : « chaque statut a sa couleur ». Présentation seulement (les
 // statuts sont fixés par le PRD) ; la couleur accompagne toujours le
 // libellé, jamais seule, contrastes WCAG AA (charte, lot 7).
 import type { VendorSlotStatus } from "@/modules/events/service";

@@ -1,6 +1,6 @@
 "use server";
 
-// EVT-06 — création du compte d'un marié depuis le lien d'invitation.
+// PRD-EVT-06 — création du compte d'un marié depuis le lien d'invitation.
 import { getTranslations } from "next-intl/server";
 import {
   acceptEventClientInvitation,

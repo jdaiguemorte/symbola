@@ -3,7 +3,7 @@ import { paginate } from "./pagination";
 
 const items = Array.from({ length: 45 }, (_, index) => index + 1);
 
-describe("HUB-17 — Pagination des listes de la console", () => {
+describe("L13-HUB-17 — Pagination des listes de la console", () => {
   it("affiche 20 éléments par page, la première par défaut", () => {
     const page = paginate(items, undefined);
     expect(page.items).toEqual(items.slice(0, 20));

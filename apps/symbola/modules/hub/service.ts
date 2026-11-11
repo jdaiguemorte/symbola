@@ -1,5 +1,5 @@
 // Porte d'entrée publique du module hub (ADR 0011) — administration de la
-// suite (PRD HUB-03). Seul fichier que les autres modules peuvent
+// suite (PRD PRD-HUB-03). Seul fichier que les autres modules peuvent
 // importer ; jamais repository.ts directement.
 import { createHash, randomBytes } from "node:crypto";
 import type { AppDatabase } from "@symbola/db/client";
@@ -125,7 +125,7 @@ export {
   type PendingInvitation,
 } from "./admin-support";
 
-// Lot 13 (HUB-17, HUB-18) — vue d'ensemble de la console et dernière sauvegarde.
+// Lot 13 (L13-HUB-17, L13-HUB-18) — vue d'ensemble de la console et dernière sauvegarde.
 export {
   BACKUP_STALE_HOURS,
   backupState,
@@ -216,7 +216,7 @@ export type Metier = "wedding_planner" | "event_agency" | "autre";
 export const MODULE_KEYS = ["events", "budget", "quotes", "vendors"] as const;
 export type ModuleKey = (typeof MODULE_KEYS)[number];
 
-const INVITATION_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 jours (PRD HUB-03, proposé)
+const INVITATION_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 jours (PRD PRD-HUB-03, proposé)
 
 function generateInvitationToken(): string {
   return randomBytes(32).toString("base64url");
@@ -257,7 +257,7 @@ export async function createOrganizationWithInvitation(db: AppDatabase, input: C
 
   const env = parseEnv(process.env);
   const invitationUrl = `${env.APP_PUBLIC_URL}/invitations/${invitationToken}`;
-  // HUB-04 : l'e-mail suit la langue de l'organisation (pas encore de
+  // PRD-HUB-04 : l'e-mail suit la langue de l'organisation (pas encore de
   // fiche « marié » à qui appliquer sa propre langue — ADR 0011, lot
   // suivant). Ce service n'est pas un composant React : pas d'accès à
   // next-intl ici, deux variantes inline suffisent pour deux clés.
@@ -418,7 +418,7 @@ export async function completeSetup(db: AppDatabase, organizationId: string): Pr
   await upsertOrganizationProfileFields(db, organizationId, { setupStep: SETUP_STEPS, setupCompletedAt: new Date() });
 }
 
-// Lot 13 (HUB-15) — délais de relance du bloc « À traiter » de l'accueil :
+// Lot 13 (L13-HUB-15) — délais de relance du bloc « À traiter » de l'accueil :
 // réglage de l'organisation, sinon valeur de départ (décision G).
 export type FollowUpDelays = { quoteFollowUpDays: number; prospectFollowUpDays: number };
 
@@ -438,7 +438,7 @@ export async function saveFollowUpDelays(db: AppDatabase, organizationId: string
   await upsertOrganizationProfileFields(db, organizationId, delays);
 }
 
-// EVT-05 — en-tête des documents exportés (programme du jour J, plus tard
+// PRD-EVT-05 — en-tête des documents exportés (programme du jour J, plus tard
 // devis et factures) : nom de l'organisation et clé de son logo.
 export async function getDocumentHeader(
   db: AppDatabase,

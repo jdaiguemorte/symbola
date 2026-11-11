@@ -1,4 +1,4 @@
-// EVT-04 — modèles de rétroplanning de l'organisation. Lot 21 (EVT-22,
+// PRD-EVT-04 — modèles de rétroplanning de l'organisation. Lot 21 (L21-EVT-22,
 // décision 4) : comme le Programme du jour J, la liste des modèles ; un clic
 // ouvre le détail. « Nouveau modèle » demande le nom dans le panneau latéral,
 // puis ouvre le modèle créé.

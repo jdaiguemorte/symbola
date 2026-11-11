@@ -1,4 +1,4 @@
-// Lot 11 (EVT-10 / EVT-11) — prestataires consultés pour un poste, contre
+// Lot 11 (L11-EVT-10 / L11-EVT-11) — prestataires consultés pour un poste, contre
 // un vrai PostgreSQL (RLS) et le stockage privé, par la porte d'entrée du
 // module events.
 import { randomUUID } from "node:crypto";
@@ -72,7 +72,7 @@ async function invitedClient(organizationId: string, eventId: string) {
   return auth.user.id;
 }
 
-describe("EVT-10 — Plusieurs prestataires consultés par poste", () => {
+describe("L11-EVT-10 — Plusieurs prestataires consultés par poste", () => {
   it("elle consulte plusieurs prestataires pour un même poste, avec ou sans fiche du carnet", async () => {
     const organizationId = await newOrganization();
     const { eventId, caterer } = await eventWithCaterer(organizationId);
@@ -189,7 +189,7 @@ describe("EVT-10 — Plusieurs prestataires consultés par poste", () => {
   });
 });
 
-describe("EVT-11 — Notes et options montrées aux clients", () => {
+describe("L11-EVT-11 — Notes et options montrées aux clients", () => {
   it("les clients voient seulement les consultés montrés, avec les notes « Clients », et leur devis", async () => {
     const organizationId = await newOrganization();
     const { eventId, caterer } = await eventWithCaterer(organizationId);
@@ -227,7 +227,7 @@ describe("EVT-11 — Notes et options montrées aux clients", () => {
   });
 });
 
-describe("EVT-16 — RIB d'un prestataire partagé aux clients", () => {
+describe("L12-EVT-16 — RIB d'un prestataire partagé aux clients", () => {
   it("le RIB de la fiche n'est servi aux clients que si l'option est montrée et le RIB partagé", async () => {
     const organizationId = await newOrganization();
     const { eventId, caterer } = await eventWithCaterer(organizationId);
@@ -267,7 +267,7 @@ describe("EVT-16 — RIB d'un prestataire partagé aux clients", () => {
   });
 });
 
-describe("PRE-09 — Consultations d'une fiche du carnet", () => {
+describe("L11-PRE-09 — Consultations d'une fiche du carnet", () => {
   it("liste les événements où la fiche a été consultée, avec l'issue, et les fiches déjà retenues", async () => {
     const organizationId = await newOrganization();
     const vendorId = randomUUID();

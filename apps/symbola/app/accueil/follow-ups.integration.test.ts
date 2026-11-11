@@ -1,4 +1,4 @@
-// Lot 13 (HUB-15) — bloc « À traiter » de l'accueil, contre un vrai
+// Lot 13 (L13-HUB-15) — bloc « À traiter » de l'accueil, contre un vrai
 // PostgreSQL (RLS) : délais de relance de départ ou réglés par
 // l'organisation, horloge simulée, essais exclus, isolation.
 import { randomUUID } from "node:crypto";
@@ -37,7 +37,7 @@ async function prospect(org: { organizationId: string; plannerId: string; source
   return createProspect({ organizationId: org.organizationId, createdByUserId: org.plannerId, prospectSourceId: org.sourceId, clients: [{ firstName, lastName: null }] });
 }
 
-describe("HUB-15 — Accueil : l'agenda et ce qui attend", () => {
+describe("L13-HUB-15 — Accueil : l'agenda et ce qui attend", () => {
   it("les délais de départ viennent des données (7 et 14 jours) et se règlent par organisation", async () => {
     const org = await organization();
     expect(await withDb((db) => getFollowUpDelays(db, org.organizationId))).toEqual({ quoteFollowUpDays: 7, prospectFollowUpDays: 14 });

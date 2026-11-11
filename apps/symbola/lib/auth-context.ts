@@ -13,7 +13,7 @@ import { appDatabase } from "@symbola/db/client";
 import { isPlannerRole, requireUser, type AuthResult } from "@symbola/auth";
 
 export const SESSION_COOKIE_NAME = "symbola_session";
-// SEC-03 (lot 16, ADR 0038) : appareil de confiance, dispensé du code de double
+// L16-SEC-03 (lot 16, ADR 0038) : appareil de confiance, dispensé du code de double
 // authentification pendant 90 jours ; seul son hachage est en base.
 export const TRUSTED_DEVICE_COOKIE_NAME = "symbola_appareil";
 const TRUSTED_DEVICE_MAX_AGE_S = 90 * 24 * 60 * 60;
@@ -26,7 +26,7 @@ export async function getAuthContext(): Promise<AuthResult> {
   return await requireUser(db, token);
 }
 
-// EVT-06 : écrans et actions de la planner. Un compte marié (ou l'Admin)
+// PRD-EVT-06 : écrans et actions de la planner. Un compte marié (ou l'Admin)
 // y reçoit « forbidden » : le type oblige chaque page à le traiter, et
 // toute action qui n'accepte que « authenticated » le refuse d'office.
 export type PlannerAuthResult = AuthResult | { status: "forbidden"; role: string };
@@ -41,7 +41,7 @@ export async function getPlannerAuthContext(): Promise<PlannerAuthResult> {
   return toPlannerAuth(await getAuthContext());
 }
 
-// EVT-06 : espace du marié, réservé au rôle « client ». L'appartenance à
+// PRD-EVT-06 : espace du marié, réservé au rôle « client ». L'appartenance à
 // l'événement est vérifiée ensuite par le module events, à chaque requête.
 export function toClientAuth(result: AuthResult): PlannerAuthResult {
   if (result.status !== "authenticated") return result;
@@ -60,7 +60,7 @@ export async function setSessionCookie(token: string): Promise<void> {
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: 60 * 60 * 8, // 8h (PRD HUB-01, proposé)
+    maxAge: 60 * 60 * 8, // 8h (PRD PRD-HUB-01, proposé)
   });
 }
 

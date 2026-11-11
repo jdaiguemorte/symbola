@@ -1,4 +1,4 @@
-// SEC-01 (lot 16, ADR 0037) — secrets de double authentification, pour
+// L16-SEC-01 (lot 16, ADR 0037) — secrets de double authentification, pour
 // l'opérateur (Julien), avec la clé MFA_ENCRYPTION_KEY de l'environnement :
 //   pnpm --filter @symbola/auth mfa-secrets -- --seal    chiffre ceux encore en clair
 //                                                         (l'app le fait aussi au démarrage)

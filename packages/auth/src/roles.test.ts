@@ -14,7 +14,7 @@ describe("SOC-04 — Rôles professionnels vs client", () => {
   });
 });
 
-describe("EVT-06 — Rôles admis sur les écrans de la planner", () => {
+describe("PRD-EVT-06 — Rôles admis sur les écrans de la planner", () => {
   it.each(["owner", "member"] as const)("admet %s", (role) => {
     expect(isPlannerRole(role)).toBe(true);
   });

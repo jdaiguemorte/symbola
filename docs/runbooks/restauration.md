@@ -258,7 +258,7 @@ vierge** commence après le pilote (décision de Julien du 11/11/2026). Toujours
   ne l'appelle qu'après une sauvegarde **entièrement** réussie, contrôle du dépôt compris : une
   nuit en échec déclenche l'alerte, par e-mail et sur le téléphone. L'URL est un secret (elle
   permettrait de simuler une sauvegarde réussie).
-- **Console d'Administration** (lot 13, HUB-18, ADR 0033) : chaque exécution est aussi
+- **Console d'Administration** (lot 13, L13-HUB-18, ADR 0033) : chaque exécution est aussi
   enregistrée dans la table `hub.backup_runs` de l'environnement (début, fin, résultat, taille
   ajoutée au dépôt), par `psql` dans le conteneur `postgres` avec son rôle d'administration.
   La vue d'ensemble et la page Santé affichent « Faite le … », ou en alerte « Échec » /

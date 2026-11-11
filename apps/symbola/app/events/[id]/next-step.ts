@@ -1,4 +1,4 @@
-// Lot 13 (EVT-19) — bandeau « Prochaine étape » de la fiche événement :
+// Lot 13 (L13-EVT-19) — bandeau « Prochaine étape » de la fiche événement :
 // l'action logique suivante selon l'état de l'événement, une seule à la fois.
 import type { EventStatus } from "@/modules/events/service";
 

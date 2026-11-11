@@ -1,4 +1,4 @@
-// SEC-03 (lot 16, ADR 0038) — appareil de confiance : la planner coche « se
+// L16-SEC-03 (lot 16, ADR 0038) — appareil de confiance : la planner coche « se
 // souvenir de cet appareil », se reconnecte sans code, puis « oublie ses
 // appareils » depuis son profil : le code est de nouveau demandé. En taille
 // ordinateur et en 375 px, avec axe-core. Un compte neuf par exécution.
@@ -29,11 +29,11 @@ async function expectNoAxeViolation(page: Page) {
   expect(results.violations, JSON.stringify(results.violations, null, 2)).toEqual([]);
 }
 
-test("SEC-03 — un appareil retenu dispense du code pendant 90 jours, jusqu'à ce que la planner l'oublie", async ({ page }) => {
+test("L16-SEC-03 — un appareil retenu dispense du code pendant 90 jours, jusqu'à ce que la planner l'oublie", async ({ page }) => {
   const email = `sec03-e2e-${randomUUID()}@symbola.test`;
   const { sql, db } = createAppConnection();
   try {
-    const organization = await readyOrganization(db, `Organisation SEC-03 ${randomUUID()}`);
+    const organization = await readyOrganization(db, `Organisation L16-SEC-03 ${randomUUID()}`);
     await createUser(db, { organizationId: organization.id, email, password: PASSWORD, role: "owner" });
   } finally {
     await sql.end();

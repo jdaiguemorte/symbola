@@ -270,7 +270,7 @@ export async function findQuotes(organizationId: string): Promise<QuoteRow[]> {
   );
 }
 
-// Lot 13 (HUB-15) — devis envoyés en attente de réponse (hors essais),
+// Lot 13 (L13-HUB-15) — devis envoyés en attente de réponse (hors essais),
 // avec la date d'envoi de leur version courante.
 export async function findSentQuotesWithSendDate(organizationId: string): Promise<{ quote: QuoteRow; sentAt: Date }[]> {
   const rows = await inOrganization(organizationId, (tx) =>

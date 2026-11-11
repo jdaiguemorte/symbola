@@ -1,4 +1,4 @@
-// Lot 16 (ARC-01, ADR 0043) — le traitement de fond des imports ne visite que
+// Lot 16 (L16-ARC-01, ADR 0043) — le traitement de fond des imports ne visite que
 // les organisations signalées ; un tour complet au démarrage, puis toutes les
 // 5 minutes.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -31,7 +31,7 @@ vi.mock("@/modules/hub/service", () => ({
   updateImportJob: vi.fn(),
 }));
 
-describe("ARC-01 — Traitement de fond des imports ciblé", () => {
+describe("L16-ARC-01 — Traitement de fond des imports ciblé", () => {
   beforeEach(() => {
     vi.resetModules();
     vi.useFakeTimers();

@@ -296,7 +296,7 @@ export type EReportingView = {
   totals: { invoicedTtcCents: number; creditedTtcCents: number; netHtCents: number; netVatCents: number; netTtcCents: number; collectedCents: number };
 };
 
-// Lot 13 (HUB-15) — devis envoyé sans réponse, pour le bloc « À traiter ».
+// Lot 13 (L13-HUB-15) — devis envoyé sans réponse, pour le bloc « À traiter ».
 export type QuoteAwaitingAnswer = { quoteId: string; number: string; eventId: string; sentAt: Date; daysSince: number };
 
 export type QuoteSummary = {

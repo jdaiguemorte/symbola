@@ -4,7 +4,7 @@
   (un seul catalogue pour tous les métiers)
 - Date : 2026-11-08
 - Précise : [0031](0031-prestataires-carnet-et-carte.md) (carnet de prestataires et carte)
-- Stories : PRE-14 et PRE-15 (lot 16, spécification `docs/lots/lot-16-reprise-ux.md`,
+- Stories : L16-PRE-14 et L16-PRE-15 (lot 16, spécification `docs/lots/lot-16-reprise-ux.md`,
   décisions C, D et F validées par Julien le 08/11/2026, avec sa réserve sur D)
 
 ## Contexte

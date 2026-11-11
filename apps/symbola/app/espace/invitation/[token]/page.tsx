@@ -6,7 +6,7 @@ import { getClientInvitationAudience } from "@/modules/events/service";
 import { messagesFor } from "@/lib/vocabulary";
 import { ClientInvitationForm } from "./form";
 
-// EVT-06 — page publique du lien d'invitation : le jeton est vérifié à
+// PRD-EVT-06 — page publique du lien d'invitation : le jeton est vérifié à
 // l'envoi du formulaire, jamais affiché ni journalisé.
 export default async function ClientInvitationPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;

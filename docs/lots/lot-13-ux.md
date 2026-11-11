@@ -42,7 +42,7 @@ Chaque étape est livrée en une PR (tests, 375 px, axe-core), mise sur le stagi
 
 ## Étape 1 — Socle commun et liste des événements
 
-### HUB-14 — Composants communs
+### L13-HUB-14 — Composants communs
 
 - Panneau latéral (`SidePanel`) : s'ouvre à droite, se ferme par « Fermer », Échap ou clic
   hors du panneau, rend le focus à l'élément qui l'a ouvert, plein écran sous 720 px ; son état
@@ -52,7 +52,7 @@ Chaque étape est livrée en une PR (tests, 375 px, axe-core), mise sur le stagi
 - Tableau de liste (`ListTable`) : colonnes alignées, ligne entière cliquable au clavier et à la
   souris, actions alignées à droite.
 
-### EVT-18 — Liste des événements
+### L13-EVT-18 — Liste des événements
 
 - **Quand** elle ouvre « Événements », **alors** la barre de filtres (recherche, statut, source,
   année) a des contrôles de même taille.
@@ -62,7 +62,7 @@ Chaque étape est livrée en une PR (tests, 375 px, axe-core), mise sur le stagi
 
 ## Étape 2 — Accueil
 
-### HUB-15 — Accueil : l'agenda et ce qui attend
+### L13-HUB-15 — Accueil : l'agenda et ce qui attend
 
 - La liste « Premiers pas » et la barre d'aide permanente disparaissent (l'assistant de
   démarrage du lot 12 couvre les premiers pas).
@@ -76,7 +76,7 @@ Chaque étape est livrée en une PR (tests, 375 px, axe-core), mise sur le stagi
 
 ## Étape 3 — Paramètres
 
-### HUB-16 — Paramètres en rubriques
+### L13-HUB-16 — Paramètres en rubriques
 
 - Un menu latéral en quatre groupes : Mon entreprise (Entreprise et TVA, Équipe, Mon compte) ;
   Événements (Lignes du budget, Sources et motifs, Rétroplanning, Programme du jour J,
@@ -91,7 +91,7 @@ Chaque étape est livrée en une PR (tests, 375 px, axe-core), mise sur le stagi
 
 ## Étape 4 — Fiche événement
 
-### EVT-19 — Frise du statut et prochaine étape
+### L13-EVT-19 — Frise du statut et prochaine étape
 
 - La frise horizontale Prospect → Devis envoyé → Confirmé → Réalisé remplace les boutons :
   chaque étape franchie affiche sa date (historique des statuts), l'étape en cours est mise en
@@ -106,7 +106,7 @@ Chaque étape est livrée en une PR (tests, 375 px, axe-core), mise sur le stagi
 
 ## Étape 5 — Prestataires
 
-### PRE-12 — Liste et carte côte à côte
+### L13-PRE-12 — Liste et carte côte à côte
 
 - Sur ordinateur, liste à gauche et carte à droite ; survoler une fiche met son repère en avant
   et inversement ; le lieu de l'événement ciblé est un repère distinct.
@@ -166,7 +166,7 @@ Livrée en deux PR : **7a** (sauvegarde signalée, menu de la console, vue d'ens
 détaillée, écran Organisations séparé) et **7b** (organisations en tableau avec panneau,
 pagination des écrans Organisations, Comptes, Prise en main et Activité).
 
-### HUB-17 — Console d'Administration
+### L13-HUB-17 — Console d'Administration
 
 - Menu latéral distinct (sombre) : Vue d'ensemble, Organisations, Comptes, Prise en main,
   Activité, Santé, Réglages de la suite.
@@ -183,7 +183,7 @@ pagination des écrans Organisations, Comptes, Prise en main et Activité).
   main. Toujours aucune donnée métier (ADR 0029) ; test : l'Admin n'accède à aucune donnée
   métier par ces écrans.
 
-### HUB-18 — Dernière sauvegarde signalée
+### L13-HUB-18 — Dernière sauvegarde signalée
 
 - Le script de sauvegarde (`infra/backup/backup.sh`) enregistre chaque exécution (début, fin,
   résultat, taille) dans la table `hub.backup_runs` (ADR 0033).
@@ -195,7 +195,7 @@ pagination des écrans Organisations, Comptes, Prise en main et Activité).
 
 ## Tests
 
-- Chaque story a son fichier de tests (`describe('HUB-14 — …')`), critères en `it`.
+- Chaque story a son fichier de tests (`describe('L13-HUB-14 — …')`), critères en `it`.
 - e2e (ordinateur et 375 px, axe-core) pour chaque étape ; les parcours existants sont adaptés.
 - Isolation : nouvelle table `hub.backup_runs` (lecture Admin uniquement), réglages de délais
   par organisation (A ne lit pas B).

@@ -1,6 +1,6 @@
 "use server";
 
-// EVT-06 — invitation et retrait des accès des mariés, depuis la fiche.
+// PRD-EVT-06 — invitation et retrait des accès des mariés, depuis la fiche.
 import { revalidatePath } from "next/cache";
 import { getLocale, getTranslations } from "next-intl/server";
 import {

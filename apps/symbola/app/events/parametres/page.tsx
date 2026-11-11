@@ -1,4 +1,4 @@
-// EVT-03 / EVT-17, refait au lot 13 (HUB-16) — rubrique « Lignes du budget »
+// PRD-EVT-03 / L12-EVT-17, refait au lot 13 (L13-HUB-16) — rubrique « Lignes du budget »
 // des Paramètres : tableau aligné (icône, ligne, actions) ; ajouter ou
 // modifier une ligne ouvre le panneau latéral (?ligne=nouvelle ou ?ligne=id).
 import Link from "next/link";

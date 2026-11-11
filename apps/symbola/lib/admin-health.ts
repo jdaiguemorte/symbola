@@ -1,4 +1,4 @@
-// Lot 13 (HUB-17) — vérifications des services du socle pour la console
+// Lot 13 (L13-HUB-17) — vérifications des services du socle pour la console
 // d'Administration (vue d'ensemble et page Santé), les mêmes que la page
 // publique /health (SOC-11), sans jamais exposer un message d'erreur.
 import { sql as rawSql } from "drizzle-orm";

@@ -7,7 +7,7 @@ import { requireClient } from "@/lib/guards";
 import { isEventsModuleEnabled } from "@/app/events/module-access";
 import { logoutAction } from "../logout-action";
 
-// EVT-06 — accueil de l'espace du marié : ses événements.
+// PRD-EVT-06 — accueil de l'espace du marié : ses événements.
 export default async function ClientSpacePage() {
   const auth = await requireClient();
   // Dégradation propre (CLAUDE.md §2.3) : module désactivé = « indisponible ».

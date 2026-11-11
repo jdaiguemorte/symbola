@@ -1,6 +1,6 @@
 // Lot 10 (AIDE-08) — page de résultats de la recherche globale ; fonctionne
 // sans JavaScript (la boîte de recherche y envoie son formulaire). Lot 20
-// (HUB-27) : plus de second champ ici, la boîte du haut garde la recherche.
+// (L20-HUB-27) : plus de second champ ici, la boîte du haut garde la recherche.
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { requirePlanner } from "@/lib/guards";

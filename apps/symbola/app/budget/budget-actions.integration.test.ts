@@ -1,4 +1,4 @@
-// BUD-04 — « le marié ne peut jamais modifier une ligne, y compris par
+// PRD-BUD-04 — « le marié ne peut jamais modifier une ligne, y compris par
 // appel direct à la Server Action » (test automatisé obligatoire). Les
 // vraies actions du module budget sont appelées avec une vraie session
 // (cookie, PostgreSQL) : seul l'accès à la requête Next.js (cookies,
@@ -41,7 +41,7 @@ const {
   updateBudgetLineAction,
 } = await import("./[eventId]/actions");
 const { createAllocationModelAction } = await import("./parametres/actions");
-// Lot 16 (SEC-02) : le devis joint passe par sa route dédiée.
+// Lot 16 (L16-SEC-02) : le devis joint passe par sa route dédiée.
 const { POST: attachQuote } = await import("./[eventId]/devis/route");
 
 function attachQuoteRequest(eventId: string, values: Record<string, string | Blob>): Request {
@@ -78,7 +78,7 @@ async function setup() {
   if (plannerLogin.outcome !== "success") throw new Error("connexion planner attendue");
   const { secret } = await withDb((db) => setupTotp(db, planner.id));
   const code = new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret) }).generate();
-  // SEC-01 : la validation remplace le jeton de session.
+  // L16-SEC-01 : la validation remplace le jeton de session.
   const confirmed = await withDb((db) => confirmTotp(db, { sessionToken: plannerLogin.sessionToken, token: code }));
   if (confirmed.outcome !== "confirmed") throw new Error("double authentification attendue");
 
@@ -127,7 +127,7 @@ beforeEach(() => {
   sessionToken = undefined;
 });
 
-describe("BUD-04 — Un compte marié ne modifie jamais le budget, même par appel direct", () => {
+describe("PRD-BUD-04 — Un compte marié ne modifie jamais le budget, même par appel direct", () => {
   it("chaque Server Action d'écriture du budget refuse un compte marié, sans rien écrire", async () => {
     const context = await setup();
     sessionToken = context.clientToken;
@@ -184,7 +184,7 @@ describe("BUD-04 — Un compte marié ne modifie jamais le budget, même par app
 // Lot 16 (suite de la recette des captures) : les montants du budget se
 // saisissent comme ailleurs dans l'app, en texte, et sont lus sans calcul à
 // virgule flottante (CLAUDE.md §5).
-describe("BUD-02 — Prévu et réel saisis en euros, au centime près", () => {
+describe("PRD-BUD-02 — Prévu et réel saisis en euros, au centime près", () => {
   it("« 2 929,50 » et « 2929.50 » valent 292 950 centimes ; une saisie illisible est refusée ; un champ vide vaut 0 €", async () => {
     const context = await setup();
     sessionToken = context.plannerToken;

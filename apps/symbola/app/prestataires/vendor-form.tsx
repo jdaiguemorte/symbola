@@ -1,6 +1,6 @@
 "use client";
 
-// Lot 11 (PRE-01 / PRE-02) — fiche d'un prestataire : coordonnées, type et
+// Lot 11 (L11-PRE-01 / L11-PRE-02) — fiche d'un prestataire : coordonnées, type et
 // ses champs, étiquettes, note interne. Les champs suivent le type choisi.
 import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
@@ -109,7 +109,7 @@ export function VendorForm({
   types: VendorType[];
   tags: VendorTag[];
   tagGroups?: VendorTagGroup[];
-  // Lot 16 (PRE-14) : types rangés par famille dans la liste.
+  // Lot 16 (L16-PRE-14) : types rangés par famille dans la liste.
   families?: VendorFamily[];
   vendor?: Vendor | null;
   back?: string;

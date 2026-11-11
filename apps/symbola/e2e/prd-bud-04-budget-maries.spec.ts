@@ -1,4 +1,4 @@
-// BUD-04 — le marié invité voit le budget de son événement (poste, prévu,
+// PRD-BUD-04 — le marié invité voit le budget de son événement (poste, prévu,
 // réel, écart, totaux) en lecture seule, sans aucun formulaire, et les
 // écrans budget de la planner lui restent fermés. En taille ordinateur et
 // en 375 px, axe-core sur chaque écran.
@@ -45,7 +45,7 @@ async function expectNoAxeViolation(page: Page) {
   expect(result.violations, JSON.stringify(result.violations, null, 2)).toEqual([]);
 }
 
-test("BUD-04 — le marié consulte le budget de son événement en lecture seule", async ({ page, browser }) => {
+test("PRD-BUD-04 — le marié consulte le budget de son événement en lecture seule", async ({ page, browser }) => {
   test.setTimeout(150_000);
   const email = `planner-bud04-${randomUUID()}@symbola.test`;
   const password = "mot-de-passe-bud04-e2e";
@@ -58,12 +58,12 @@ test("BUD-04 — le marié consulte le budget de son événement en lecture seul
   }
   await loginAndSetupMfa(page, email, password);
 
-  // Prérequis (même parcours que BUD-02) : postes, source, modèle, budget prévu.
+  // Prérequis (même parcours que PRD-BUD-02) : postes, source, modèle, budget prévu.
   await page.goto("/events/parametres");
   await page.waitForLoadState("networkidle");
   await page.getByRole("button", { name: "Charger le modèle de départ" }).click();
   await expect(page.getByRole("rowheader", { name: "Lieu de réception" })).toBeVisible();
-  // Lot 13 (HUB-16) : les sources ont leur rubrique.
+  // Lot 13 (L13-HUB-16) : les sources ont leur rubrique.
   await page.goto("/events/parametres/sources");
   await page.getByLabel("Nouvelle source").fill("Instagram");
   await page.getByRole("button", { name: "Ajouter la source" }).click();
@@ -81,7 +81,7 @@ test("BUD-04 — le marié consulte le budget de son événement en lecture seul
   await page.getByRole("button", { name: "Créer le prospect" }).click();
   await expect(page.getByRole("heading", { name: "Camille" })).toBeVisible();
   const eventUrl = page.url();
-  // Lot 12 (EVT-17) : le budget est un onglet de la fiche ; le module
+  // Lot 12 (L12-EVT-17) : le budget est un onglet de la fiche ; le module
   // Budget s'ouvre depuis son lien.
   await openEventTab(page, "Budget");
   await page.getByRole("link", { name: "Proposer des montants prévus, historique et devis joints" }).click();
@@ -129,7 +129,7 @@ test("BUD-04 — le marié consulte le budget de son événement en lecture seul
   await couple.getByRole("button", { name: "Se connecter" }).click();
   await expect(couple).toHaveURL(/\/espace$/);
 
-  // BUD-04 : le budget apparaît dans son espace, en lecture seule.
+  // PRD-BUD-04 : le budget apparaît dans son espace, en lecture seule.
   await couple.goto(`/espace/${eventId}`);
   const budget = couple.getByRole("region", { name: "Budget" });
   const table = budget.getByRole("table", { name: "Prévu, réel, écart" });

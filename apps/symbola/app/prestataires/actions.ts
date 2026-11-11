@@ -1,6 +1,6 @@
 "use server";
 
-// Lot 11 (PRE-01 à PRE-03, PRE-10) — actions du carnet de prestataires.
+// Lot 11 (L11-PRE-01 à L11-PRE-03, L11-PRE-10) — actions du carnet de prestataires.
 // Chaque action vérifie session, organisation et module ; entrées validées.
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -156,7 +156,7 @@ export async function archiveVendorAction(formData: FormData): Promise<void> {
   if (!access || !isValidId(vendorId)) return;
   await archiveVendor(access.organizationId, vendorId);
   revalidatePath("/prestataires");
-  // Lot 20 (PRE-17) : depuis le carnet, on y revient avec ses filtres ; seule
+  // Lot 20 (L20-PRE-17) : depuis le carnet, on y revient avec ses filtres ; seule
   // une adresse du carnet est acceptée (jamais une autre origine).
   const back = text(formData, "back");
   redirect(/^\/prestataires(\?[^\s]*)?$/.test(back) ? back : "/prestataires");
@@ -171,7 +171,7 @@ export async function removeVendorFileAction(formData: FormData): Promise<void> 
   revalidatePath(`/prestataires/${vendorId}`);
 }
 
-// PRE-10 — du carnet vers le poste d'un événement.
+// L11-PRE-10 — du carnet vers le poste d'un événement.
 export async function addVendorToSlotAction(formData: FormData): Promise<void> {
   const access = await authorize();
   const vendorId = text(formData, "vendorId");
@@ -190,7 +190,7 @@ export async function addVendorToSlotAction(formData: FormData): Promise<void> {
   redirect(`/events/${eventId}?onglet=budget&poste=${slotId}`);
 }
 
-// PRE-02 — types, champs, étiquettes, trajet.
+// L11-PRE-02 — types, champs, étiquettes, trajet.
 
 export async function addStarterVendorTypesAction(): Promise<void> {
   const access = await authorize();
@@ -312,7 +312,7 @@ export async function removeVendorTagGroupAction(formData: FormData): Promise<vo
   revalidatePath(TAGS_PATH);
 }
 
-// Lot 21 (PRE-19, ADR 0050) : « Ranger mes étiquettes importées », puis le
+// Lot 21 (L21-PRE-19, ADR 0050) : « Ranger mes étiquettes importées », puis le
 // récapitulatif de ce qui a été rangé.
 export type TagSetupState = { error?: string; arrangement?: VendorTagArrangement; added?: VendorTagSeedResult };
 
@@ -325,7 +325,7 @@ export async function arrangeVendorTagsAction(_prevState: TagSetupState, _formDa
   return { arrangement };
 }
 
-// Lot 21 (PRE-18) : « Ajouter les étiquettes proposées », sans doublon.
+// Lot 21 (L21-PRE-18) : « Ajouter les étiquettes proposées », sans doublon.
 export async function addStarterVendorTagsAction(_prevState: TagSetupState, _formData: FormData): Promise<TagSetupState> {
   const t = await getTranslations("VendorBook");
   const access = await authorize();

@@ -1,5 +1,5 @@
-// Lot 11 (PRE-01) — plaquette ou RIB joint à une fiche du carnet. Lot 16
-// (SEC-02, ADR 0044) : par cette route dédiée plutôt qu'une action serveur ;
+// Lot 11 (L11-PRE-01) — plaquette ou RIB joint à une fiche du carnet. Lot 16
+// (L16-SEC-02, ADR 0044) : par cette route dédiée plutôt qu'une action serveur ;
 // origine, session, limite de débit et taille sont vérifiées avant la lecture
 // du fichier (lib/uploads/receive.ts).
 import { revalidatePath } from "next/cache";

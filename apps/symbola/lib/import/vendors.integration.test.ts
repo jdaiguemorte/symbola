@@ -338,9 +338,9 @@ describe("IMP-12 — Types à l'import par familles", () => {
   });
 });
 
-// Lot 21 (PRE-19, ADR 0050) — à l'import, les étiquettes créées se rangent
+// Lot 21 (L21-PRE-19, ADR 0050) — à l'import, les étiquettes créées se rangent
 // toutes seules ; l'annulation de l'import n'y voit aucune retouche.
-describe("PRE-19 — Les étiquettes importées se rangent toutes seules", () => {
+describe("L21-PRE-19 — Les étiquettes importées se rangent toutes seules", () => {
   it("à la confirmation, les tranches du fichier forment un palier et chaque fiche garde sa plus haute tranche ; annuler l'import ne voit aucune fiche modifiée", async () => {
     const planner = await createPlanner();
     const importId = await preparedImport(planner);

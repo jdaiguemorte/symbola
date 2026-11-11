@@ -9,7 +9,7 @@ import {
   sumBasisPoints,
 } from "./allocation";
 
-describe("BUD-01 — Validité du total d'un modèle de répartition", () => {
+describe("PRD-BUD-01 — Validité du total d'un modèle de répartition", () => {
   it("accepte un modèle dont le total fait exactement 100 % (10000 points de base)", () => {
     expect(isModelTotalValid([{ percentageBasisPoints: 6000 }, { percentageBasisPoints: 4000 }])).toBe(true);
   });
@@ -24,7 +24,7 @@ describe("BUD-01 — Validité du total d'un modèle de répartition", () => {
   });
 });
 
-describe("BUD-01 — Répartition d'un montant total par poste", () => {
+describe("PRD-BUD-01 — Répartition d'un montant total par poste", () => {
   it("répartit exactement selon les pourcentages quand la division tombe juste", () => {
     const items = allocateFromModel(100000, [
       { defaultVendorSlotId: "a", percentageBasisPoints: 6000 },
@@ -50,7 +50,7 @@ describe("BUD-01 — Répartition d'un montant total par poste", () => {
   });
 });
 
-describe("BUD-01 — Reste à répartir", () => {
+describe("PRD-BUD-01 — Reste à répartir", () => {
   it("se recalcule après un ajustement manuel d'un poste", () => {
     const items = [
       { defaultVendorSlotId: "a", amountCents: 60000 },
@@ -65,7 +65,7 @@ describe("BUD-01 — Reste à répartir", () => {
   });
 });
 
-describe("BUD-02 — Écart (réel moins prévu)", () => {
+describe("PRD-BUD-02 — Écart (réel moins prévu)", () => {
   it("vaut null tant qu'aucun montant réel n'est renseigné", () => {
     expect(computeVariance(100000, null)).toEqual({ varianceCents: null, variancePercent: null });
   });
@@ -87,7 +87,7 @@ describe("BUD-02 — Écart (réel moins prévu)", () => {
   });
 });
 
-describe("BUD-01 — Coût par invité", () => {
+describe("PRD-BUD-01 — Coût par invité", () => {
   it("divise le total par le nombre d'invités, arrondi au centime", () => {
     expect(costPerGuestCents(100000, 40)).toBe(2500);
     expect(costPerGuestCents(100001, 3)).toBe(33334);

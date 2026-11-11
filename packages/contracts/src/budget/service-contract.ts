@@ -3,7 +3,7 @@
 // 0011). apps/symbola vérifie que le vrai module satisfait ce type (test
 // de contrat, apps/symbola/modules/budget/service.contract.test.ts).
 //
-// BUD-01 uniquement : modèles de répartition, simulation pour un
+// PRD-BUD-01 uniquement : modèles de répartition, simulation pour un
 // prospect. Les montants sont toujours des centimes entiers EUR, les
 // pourcentages des points de base entiers (0 à 10000 = 0,00 % à 100,00 %)
 // — jamais de float (CLAUDE.md §5).
@@ -61,23 +61,23 @@ export type AdjustEventBudgetItemInput = {
   amountCents: number;
 };
 
-// BUD-02 — budget réel (prévu/réel/écart), une ligne par poste de
+// PRD-BUD-02 — budget réel (prévu/réel/écart), une ligne par poste de
 // l'événement (events.event_vendor_slots, pas default_vendor_slots : voir
 // docs/lots/lot-3-budget.md). Écart et pourcentage dérivés, jamais
 // stockés ; null tant qu'aucun montant réel n'est renseigné.
 export type BudgetLine = {
   eventVendorSlotId: string;
   label: string;
-  // Lot 12 (EVT-17) : null tant qu'aucun prévu n'est fixé.
+  // Lot 12 (L12-EVT-17) : null tant qu'aucun prévu n'est fixé.
   plannedAmountCents: number | null;
   actualAmountCents: number | null;
   varianceCents: number | null;
   variancePercent: number | null;
-  // BUD-03 : devis prestataires joints à la ligne.
+  // PRD-BUD-03 : devis prestataires joints à la ligne.
   attachments: BudgetLineAttachment[];
 };
 
-// BUD-03 — devis prestataire joint. Jamais d'URL dans la vue : le fichier
+// PRD-BUD-03 — devis prestataire joint. Jamais d'URL dans la vue : le fichier
 // s'ouvre par un lien signé temporaire demandé au moment de l'ouverture.
 export type BudgetLineAttachment = {
   id: string;
@@ -139,7 +139,7 @@ export interface BudgetServiceContract {
   attachBudgetLineQuote(input: AttachBudgetLineQuoteInput): Promise<BudgetLineAttachment>;
   // ADR 0027 — servi par l'app (jamais de lien direct vers le stockage).
   getBudgetLineAttachmentFile(organizationId: string, attachmentId: string): Promise<FileDownload>;
-  // BUD-04 : lecture seule pour un compte marié ayant accès à l'événement.
+  // PRD-BUD-04 : lecture seule pour un compte marié ayant accès à l'événement.
   getClientBudgetView(organizationId: string, userId: string, eventId: string): Promise<BudgetLinesView>;
   // AIDE-02 : purge des données budget d'événements d'essai.
   removeEventBudgetData(organizationId: string, eventIds: string[]): Promise<void>;

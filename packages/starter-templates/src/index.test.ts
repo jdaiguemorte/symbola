@@ -4,7 +4,7 @@ import vendorSlotsFile from "./vendor-slots.json";
 import programFile from "./program.json";
 import { starterDemoEvent, starterDemoQuote, starterErasureResponse, starterPrivacySettings, starterInvoiceMentions, starterDocumentStyle, starterQuoteTerms, starterRequestResponse, starterLossReasons, starterPaymentMethods, starterProgram, starterProspectSources, starterRetroplanning, starterVendorSlots, starterVendorTypes, starterBudgetLines, starterAllocation, starterFollowUpDelays, starterVendorTypeSynonymGroups, starterVendorCatalog, starterEventTypes, starterVendorTags, starterPaymentMethodKinds, BUDGET_LINE_ICONS } from "./index";
 
-describe("EVT-03 — Modèle de départ des postes prestataires", () => {
+describe("PRD-EVT-03 — Modèle de départ des postes prestataires", () => {
   it("existe en français et en anglais, avec le même nombre de postes", () => {
     const fr = starterVendorSlots("fr");
     const en = starterVendorSlots("en");
@@ -24,7 +24,7 @@ describe("EVT-03 — Modèle de départ des postes prestataires", () => {
   });
 });
 
-describe("EVT-07 — Listes de départ des sources de prospect et des motifs de perte", () => {
+describe("PRD-EVT-07 — Listes de départ des sources de prospect et des motifs de perte", () => {
   it("existent en français et en anglais, avec le même nombre d'entrées, sans doublon", () => {
     for (const list of [starterProspectSources, (locale: "fr" | "en") => starterLossReasons(locale).map((reason) => reason.label)]) {
       const [fr, en] = [list("fr"), list("en")];
@@ -41,7 +41,7 @@ describe("EVT-07 — Listes de départ des sources de prospect et des motifs de 
   });
 });
 
-describe("EVT-04 — Modèle de départ du rétroplanning", () => {
+describe("PRD-EVT-04 — Modèle de départ du rétroplanning", () => {
   it("existe en français et en anglais, avec les mêmes tâches et décalages", () => {
     const fr = starterRetroplanning("fr");
     const en = starterRetroplanning("en");
@@ -59,7 +59,7 @@ describe("EVT-04 — Modèle de départ du rétroplanning", () => {
   });
 });
 
-describe("EVT-05 — Modèle de départ du programme du jour J", () => {
+describe("PRD-EVT-05 — Modèle de départ du programme du jour J", () => {
   it("existe en français et en anglais, avec les mêmes lignes et heures", () => {
     const fr = starterProgram("fr");
     const en = starterProgram("en");
@@ -221,7 +221,7 @@ describe("AIDE-06 — exemples des tutoriels", () => {
   });
 });
 
-describe("HUB-15 — délais de relance de départ", () => {
+describe("L13-HUB-15 — délais de relance de départ", () => {
   it("lit les délais de départ du fichier de données", () => {
     expect(starterFollowUpDelays()).toEqual({ quoteFollowUpDays: 7, prospectFollowUpDays: 14 });
   });
@@ -236,7 +236,7 @@ describe("IMP-07 — synonymes des types de prestataires (décision N)", () => {
   });
 });
 
-describe("PRE-14 — Familles et types de départ, communs à tous les métiers (lot 16, ADR 0045)", () => {
+describe("L16-PRE-14 — Familles et types de départ, communs à tous les métiers (lot 16, ADR 0045)", () => {
   it("un seul catalogue, d'une dizaine de familles, en FR et en EN", () => {
     const fr = starterVendorCatalog("fr");
     const en = starterVendorCatalog("en");
@@ -308,10 +308,10 @@ describe("lot 16 (ADR 0045) — Types d'événement de départ", () => {
   });
 });
 
-// Lot 21 (PRE-18, ADR 0050) — étiquettes de départ.
+// Lot 21 (L21-PRE-18, ADR 0050) — étiquettes de départ.
 const fold = (label: string) => label.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
 
-describe("PRE-18 — Étiquettes de départ, rangées par famille", () => {
+describe("L21-PRE-18 — Étiquettes de départ, rangées par famille", () => {
   it("chaque étiquette vise des familles de départ connues ; vide = toutes les familles", () => {
     const families = new Set(starterVendorCatalog("fr").map((family) => family.key));
     for (const metier of ["wedding_planner", "event_agency"] as const) {

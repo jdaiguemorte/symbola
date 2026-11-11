@@ -1,6 +1,6 @@
 "use client";
 
-// EVT-04 — formulaires des modèles de rétroplanning. Lot 21 (EVT-22) :
+// PRD-EVT-04 — formulaires des modèles de rétroplanning. Lot 21 (L21-EVT-22) :
 // création et renommage dans le panneau latéral ; une même fiche pour ajouter
 // ou modifier une tâche.
 import { useActionState, useEffect, useState } from "react";

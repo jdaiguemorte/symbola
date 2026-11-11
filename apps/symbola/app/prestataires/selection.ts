@@ -1,4 +1,4 @@
-// Lot 11 (PRE-04 à PRE-07, PRE-11) — sélection courante du carnet,
+// Lot 11 (L11-PRE-04 à L11-PRE-07, L11-PRE-11) — sélection courante du carnet,
 // commune à l'écran et à l'export : filtres de l'URL, centre du cercle
 // (une fiche du carnet ou une adresse géocodée), résultats triés.
 import { getEvent, listEventVendorSlots } from "@/modules/events/service";
@@ -19,7 +19,7 @@ import {
 import { parseBookFilters, toFindInput, type BookFilters, type BookQuery } from "./filters";
 
 export type BookSelection = {
-  // Lot 16 (PRE-14) : familles de l'organisation, dans leur ordre.
+  // Lot 16 (L16-PRE-14) : familles de l'organisation, dans leur ordre.
   families: VendorFamily[];
   types: VendorType[];
   tags: VendorTag[];

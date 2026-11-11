@@ -29,10 +29,10 @@ export type EventClientInput = {
   lastName?: string | null;
 } & Partial<EventClientContact>;
 
-// Lot 13 (EVT-19) — date (AAAA-MM-JJ, Paris) du dernier passage dans chaque statut.
+// Lot 13 (L13-EVT-19) — date (AAAA-MM-JJ, Paris) du dernier passage dans chaque statut.
 export type EventStatusDates = Partial<Record<EventStatus, string>>;
 
-// Lot 13 (HUB-15) — prospect sans nouvelle, pour le bloc « À traiter ».
+// Lot 13 (L13-HUB-15) — prospect sans nouvelle, pour le bloc « À traiter ».
 export type StaleProspect = { eventId: string; names: string; lastUpdateAt: Date; daysSince: number };
 
 export type EventSummary = {
@@ -53,7 +53,7 @@ export type EventDetail = EventSummary & {
   eventTypeId: string | null;
   lossReasonId: string | null;
   lossReasonNote: string | null;
-  // EVT-04 : date pour laquelle les échéances ont été calculées.
+  // PRD-EVT-04 : date pour laquelle les échéances ont été calculées.
   tasksScheduledFor: string | null;
   // Lot 5 (IMP-04) : colonnes d'un fichier importé gardées en champ libre.
   importedFields?: Record<string, string>;
@@ -66,7 +66,7 @@ export type ListEventsInput = {
   statusIn?: EventStatus[] | undefined;
   year?: number | undefined;
   search?: string | undefined;
-  // EVT-07 : la source est filtrable dans la liste.
+  // PRD-EVT-07 : la source est filtrable dans la liste.
   prospectSourceId?: string | undefined;
 };
 
@@ -124,13 +124,13 @@ export type LossReason = {
   isFreeText: boolean;
 };
 
-// EVT-03 — postes prestataires.
+// PRD-EVT-03 — postes prestataires.
 export type VendorSlotStatus = "to_find" | "quote_requested" | "quote_received" | "booked" | "not_required";
 
 export type DefaultVendorSlot = {
   id: string;
   label: string;
-  // Lot 12 (EVT-14/17) : icône de la ligne du budget, ou null (initiales).
+  // Lot 12 (L12-EVT-14/17) : icône de la ligne du budget, ou null (initiales).
   icon: string | null;
   position: number;
 };
@@ -146,16 +146,16 @@ export type EventVendorSlot = {
   position: number;
   // Lot 5 (IMP-04) : champs libres d'un import.
   importedFields?: Record<string, string>;
-  // Lot 11 (EVT-10) : ce que veulent les clients, consulté retenu.
+  // Lot 11 (L11-EVT-10) : ce que veulent les clients, consulté retenu.
   brief: string | null;
   selectedCandidateId: string | null;
   icon: string | null;
 };
 
-// Lot 12 (EVT-15) — lieux d'un événement, saisis une fois.
+// Lot 12 (L12-EVT-15) — lieux d'un événement, saisis une fois.
 export type EventPlace = { id: string; eventId: string; label: string; address: string | null; vendorId: string | null };
 
-// Lot 11 (EVT-10 / EVT-11) — prestataires consultés pour un poste.
+// Lot 11 (L11-EVT-10 / L11-EVT-11) — prestataires consultés pour un poste.
 export type VendorCandidateResponse = "contacted" | "quote_received" | "declined";
 export type VendorCandidateNote = { id: string; body: string; visibleToClients: boolean; createdAt: string };
 export type VendorCandidate = {
@@ -171,7 +171,7 @@ export type VendorCandidate = {
   currency: "EUR";
   hasQuoteFile: boolean;
   shownToClients: boolean;
-  // Lot 12 (EVT-16) : RIB de la fiche du carnet partagé aux clients.
+  // Lot 12 (L12-EVT-16) : RIB de la fiche du carnet partagé aux clients.
   shareRibWithClients: boolean;
   // Déduit du poste : retenu, non retenu (un autre l'est), ou null.
   outcome: "selected" | "not_selected" | null;
@@ -193,7 +193,7 @@ export type UpdateVendorCandidateInput = {
   shownToClients?: boolean;
   shareRibWithClients?: boolean;
 };
-// PRE-09 — consultations d'une fiche du carnet, pour son historique.
+// L11-PRE-09 — consultations d'une fiche du carnet, pour son historique.
 export type VendorConsultation = {
   eventId: string;
   eventNames: string;
@@ -203,7 +203,7 @@ export type VendorConsultation = {
   outcome: "selected" | "not_selected" | "pending";
   quotedCents: number | null;
 };
-// EVT-11 — options montrées aux clients, par poste.
+// L11-EVT-11 — options montrées aux clients, par poste.
 export type ClientVendorOption = { candidateId: string; vendorName: string; quoteAmountCents: number | null; hasQuoteFile: boolean; notes: string[]; ribShared: boolean };
 export type ClientVendorSlotOptions = { slotLabel: string; options: ClientVendorOption[] };
 
@@ -212,7 +212,7 @@ export type UpdateEventVendorSlotInput = {
   vendorSlotId: string;
   changedByUserId: string;
   status: VendorSlotStatus;
-  // Obligatoire quand le statut est « booked » (PRD EVT-03).
+  // Obligatoire quand le statut est « booked » (PRD PRD-EVT-03).
   vendorName?: string | null | undefined;
   amountCents?: number | null | undefined;
 };
@@ -222,7 +222,7 @@ export type VendorSlotProgress = {
   required: number;
 };
 
-// EVT-04 — rétroplanning.
+// PRD-EVT-04 — rétroplanning.
 export type TaskResponsible = "planner" | "clients";
 
 export type TaskTemplateItem = {
@@ -264,7 +264,7 @@ export type EventTaskInput = {
   responsible: TaskResponsible;
 };
 
-// HUB-02 — tâche vue depuis l'accueil ou l'écran Tâches, avec son événement.
+// PRD-HUB-02 — tâche vue depuis l'accueil ou l'écran Tâches, avec son événement.
 export type OrganizationTask = EventTask & {
   overdue: boolean;
   event: { id: string; names: string; eventDate: string | null; status: EventStatus; isDemo: boolean };
@@ -295,9 +295,9 @@ export type TaskRecalculation = {
   undoneTasks: number;
 };
 
-// EVT-05 — programme du jour J.
+// PRD-EVT-05 — programme du jour J.
 export type ProgramParticipant = {
-  // Poste prestataire de l'événement (EVT-03), ou nul pour un intervenant libre.
+  // Poste prestataire de l'événement (PRD-EVT-03), ou nul pour un intervenant libre.
   vendorSlotId: string | null;
   label: string;
 };
@@ -353,7 +353,7 @@ export type ProgramTemplateItemInput = {
   participantLabels: string[];
 };
 
-// EVT-06 — accès des mariés.
+// PRD-EVT-06 — accès des mariés.
 export type ClientAccessStatus = "invited" | "active" | "expired" | "revoked";
 
 export type EventClientAccess = {
@@ -440,14 +440,14 @@ export interface EventsServiceContract {
   createProspectSource(organizationId: string, label: string): Promise<ProspectSource>;
   listLossReasons(organizationId: string): Promise<LossReason[]>;
   createLossReason(organizationId: string, label: string, isFreeText: boolean): Promise<LossReason>;
-  // EVT-07 — listes de départ : ajout sans doublon, renvoie le nombre ajouté.
+  // PRD-EVT-07 — listes de départ : ajout sans doublon, renvoie le nombre ajouté.
   addProspectSources(organizationId: string, labels: string[]): Promise<number>;
   addLossReasons(organizationId: string, reasons: { label: string; isFreeText: boolean }[]): Promise<number>;
   listOrganizationTasks(input: ListOrganizationTasksInput): Promise<OrganizationTask[]>;
   listDefaultVendorSlots(organizationId: string): Promise<DefaultVendorSlot[]>;
   addDefaultVendorSlots(organizationId: string, entries: (string | { label: string; icon?: string | null })[]): Promise<DefaultVendorSlot[]>;
   removeDefaultVendorSlot(organizationId: string, defaultVendorSlotId: string): Promise<void>;
-  // Lot 13 (HUB-16) — nouvel ordre : exactement les lignes de l'organisation.
+  // Lot 13 (L13-HUB-16) — nouvel ordre : exactement les lignes de l'organisation.
   reorderDefaultVendorSlots(organizationId: string, orderedIds: string[]): Promise<void>;
   listEventVendorSlots(organizationId: string, eventId: string): Promise<EventVendorSlot[]>;
   addEventVendorSlot(organizationId: string, eventId: string, label: string): Promise<EventVendorSlot>;
@@ -476,7 +476,7 @@ export interface EventsServiceContract {
   listTaskTemplates(organizationId: string): Promise<TaskTemplate[]>;
   createTaskTemplate(organizationId: string, name: string, items: TaskTemplateItemInput[]): Promise<TaskTemplate>;
   addTaskTemplateItem(organizationId: string, templateId: string, item: TaskTemplateItemInput): Promise<TaskTemplateItem>;
-  // Lot 21 (EVT-22) : modifier une ligne, renommer un modèle.
+  // Lot 21 (L21-EVT-22) : modifier une ligne, renommer un modèle.
   updateTaskTemplateItem(organizationId: string, itemId: string, item: TaskTemplateItemInput): Promise<TaskTemplateItem>;
   renameTaskTemplate(organizationId: string, templateId: string, name: string): Promise<void>;
   removeTaskTemplateItem(organizationId: string, itemId: string): Promise<void>;
@@ -501,7 +501,7 @@ export interface EventsServiceContract {
     templateId: string,
     item: ProgramTemplateItemInput,
   ): Promise<ProgramTemplateItem>;
-  // Lot 21 (EVT-21) : modifier une ligne, renommer un modèle.
+  // Lot 21 (L21-EVT-21) : modifier une ligne, renommer un modèle.
   updateProgramTemplateItem(organizationId: string, itemId: string, item: ProgramTemplateItemInput): Promise<ProgramTemplateItem>;
   renameProgramTemplate(organizationId: string, templateId: string, name: string): Promise<void>;
   removeProgramTemplateItem(organizationId: string, itemId: string): Promise<void>;
@@ -529,7 +529,7 @@ export interface EventsServiceContract {
   // Lot 10 (AIDE-06) — événement fictif d'un tutoriel.
   startTutorialEvent(input: StartEventsTrialInput & { tutorialKey: string }): Promise<EventsTrial & { kind: string }>;
   listExpiredDemoEvents(organizationIds: string[], now?: Date): Promise<{ organizationId: string; eventId: string }[]>;
-  // Lot 3 (BUD-04) : vérifie qu'un compte marié a accès à l'événement avant
+  // Lot 3 (PRD-BUD-04) : vérifie qu'un compte marié a accès à l'événement avant
   // de lui montrer son budget en lecture seule. Extension additive du
   // contrat — la fonction existait déjà côté repository, utilisée en
   // interne par getClientEventView ; seule son exposition est nouvelle.

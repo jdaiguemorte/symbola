@@ -115,7 +115,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
     </form>
   );
 
-  // Un marié n'a que l'espace de son mariage (EVT-06).
+  // Un marié n'a que l'espace de son mariage (PRD-EVT-06).
   if (auth.user.role === "client") {
     // Lot 17 (DEV-08, décision G) : le logo de l'organisation, sinon son nom ;
     // l'image est servie par /logo après contrôle de la session.
@@ -147,7 +147,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
             {logout}
           </div>
         </header>
-        {/* Lot 16 (HUB-19, ADR 0039) : le « ? » au même endroit sur tous les écrans. */}
+        {/* Lot 16 (L16-HUB-19, ADR 0039) : le « ? » au même endroit sur tous les écrans. */}
         <HelpProvider>
           <div className="app-main">
             <section className="app-topbar" aria-label={t("topBar")}>
@@ -270,7 +270,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
     };
   }
   const isAdmin = auth.user.role === "admin";
-  // Pastille « en retard » du menu Tâches (HUB-02).
+  // Pastille « en retard » du menu Tâches (PRD-HUB-02).
   const overdue =
     events && organizationId
       ? (
@@ -282,8 +282,8 @@ export async function AppShell({ children }: { children: ReactNode }) {
         ).filter((task) => task.overdue).length
       : 0;
 
-  // Paramètres : une pastille par solution souscrite (HUB-12, lot 11).
-  // Lot 13 (HUB-16) : une rubrique par sujet, rangées en quatre groupes ;
+  // Paramètres : une pastille par solution souscrite (L11-HUB-12, lot 11).
+  // Lot 13 (L13-HUB-16) : une rubrique par sujet, rangées en quatre groupes ;
   // seules apparaissent celles des modules souscrits.
   const tSettings = await getTranslations("SettingsMenu");
   const settingsSections: SettingsGroup[] = organizationId
@@ -400,7 +400,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
     : [];
 
   if (isAdmin) {
-    // Lot 13 (HUB-17, ADR 0033) — console d'Administration : son propre menu,
+    // Lot 13 (L13-HUB-17, ADR 0033) — console d'Administration : son propre menu,
     // sombre ; aucune donnée métier des organisations (ADR 0029).
     const tAdmin = await getTranslations("AdminMenu");
     return (
@@ -627,7 +627,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
       </AppSidebar>
       <HelpProvider>
         <div className="app-main">
-          {/* Lot 16 (HUB-19, ADR 0039) : recherche à gauche, le seul « ? » à droite. */}
+          {/* Lot 16 (L16-HUB-19, ADR 0039) : recherche à gauche, le seul « ? » à droite. */}
           <section className="app-topbar" aria-label={t("topBar")}>
             {isTeam && setupDone ? <SearchBox /> : null}
             <HelpButton />

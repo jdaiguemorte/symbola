@@ -1,4 +1,4 @@
-// Schéma du module budget (Lot 3, BUD-01). Tables métier : chaque table a
+// Schéma du module budget (Lot 3, PRD-BUD-01). Tables métier : chaque table a
 // organization_id (CLAUDE.md §2.4), protégée par Row-Level Security
 // activée par une migration dédiée (même patron que hello/events).
 //
@@ -12,7 +12,7 @@ import { integer, pgSchema, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
 export const budgetSchema = pgSchema("budget");
 
-// BUD-01 — modèles de répartition par organisation, un pourcentage par
+// PRD-BUD-01 — modèles de répartition par organisation, un pourcentage par
 // poste. percentageBasisPoints : 0 à 10000 = 0,00 % à 100,00 %, jamais de
 // float (CLAUDE.md §5).
 export const allocationModels = budgetSchema.table("allocation_models", {
@@ -32,7 +32,7 @@ export const allocationModelItems = budgetSchema.table("allocation_model_items",
   percentageBasisPoints: integer("percentage_basis_points").notNull(),
 });
 
-// BUD-01 — simulation liée à un prospect : un seul event_budgets par
+// PRD-BUD-01 — simulation liée à un prospect : un seul event_budgets par
 // événement (eventId opaque, module events).
 export const eventBudgets = budgetSchema.table("event_budgets", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -57,7 +57,7 @@ export const eventBudgetItems = budgetSchema.table("event_budget_items", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
-// BUD-02 — budget réel (prévu/réel), une ligne par poste de l'événement.
+// PRD-BUD-02 — budget réel (prévu/réel), une ligne par poste de l'événement.
 // eventVendorSlotId référence events.event_vendor_slots (pas
 // default_vendor_slots : voir docs/lots/lot-3-budget.md) — là encore un
 // uuid opaque, jamais de FK inter-schéma.
@@ -66,7 +66,7 @@ export const budgetLines = budgetSchema.table("budget_lines", {
   organizationId: uuid("organization_id").notNull(),
   eventId: uuid("event_id").notNull(),
   eventVendorSlotId: uuid("event_vendor_slot_id").notNull().unique(),
-  // Lot 12 (EVT-17) : prévu facultatif — la ligne existe dès qu'un montant
+  // Lot 12 (L12-EVT-17) : prévu facultatif — la ligne existe dès qu'un montant
   // (prévu ou réel) est connu, sans répartition préalable.
   plannedAmountCents: integer("planned_amount_cents"),
   actualAmountCents: integer("actual_amount_cents"),
@@ -76,7 +76,7 @@ export const budgetLines = budgetSchema.table("budget_lines", {
 
 export const budgetLineFieldEnum = budgetSchema.enum("budget_line_field", ["planned", "actual"]);
 
-// BUD-02 : « chaque modification est historisée : ancienne valeur,
+// PRD-BUD-02 : « chaque modification est historisée : ancienne valeur,
 // nouvelle valeur, auteur, date. »
 export const budgetLineHistory = budgetSchema.table("budget_line_history", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -94,7 +94,7 @@ export const budgetLineHistory = budgetSchema.table("budget_line_history", {
   changedAt: timestamp("changed_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
-// BUD-03 — devis prestataire joint à une ligne de budget. Le fichier vit
+// PRD-BUD-03 — devis prestataire joint à une ligne de budget. Le fichier vit
 // dans le stockage privé (@symbola/files : type vérifié par le contenu,
 // antivirus, jamais d'URL publique) ; seule sa clé est stockée ici.
 export const budgetLineAttachments = budgetSchema.table("budget_line_attachments", {

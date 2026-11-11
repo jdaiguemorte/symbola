@@ -1,4 +1,4 @@
-// BUD-01 — simulation pour un prospect, contre un vrai PostgreSQL (RLS,
+// PRD-BUD-01 — simulation pour un prospect, contre un vrai PostgreSQL (RLS,
 // ADR 0012), par la porte d'entrée du module.
 import { randomUUID } from "node:crypto";
 import { afterAll, describe, expect, it } from "vitest";
@@ -34,7 +34,7 @@ async function createEvent(organizationId: string) {
   });
 }
 
-describe("BUD-01 — Modèles de répartition", () => {
+describe("PRD-BUD-01 — Modèles de répartition", () => {
   it("refuse un modèle dont le total des pourcentages ne fait pas 100 %", async () => {
     const organizationId = randomUUID();
     const [lieu, traiteur] = await addDefaultVendorSlots(organizationId, ["Lieu", "Traiteur"]);
@@ -84,7 +84,7 @@ describe("BUD-01 — Modèles de répartition", () => {
   });
 });
 
-describe("BUD-01 — Simulation pour un prospect", () => {
+describe("PRD-BUD-01 — Simulation pour un prospect", () => {
   it("calcule le montant par poste depuis le modèle choisi", async () => {
     const organizationId = randomUUID();
     const [lieu, traiteur] = await addDefaultVendorSlots(organizationId, ["Lieu", "Traiteur"]);
@@ -223,7 +223,7 @@ describe("BUD-01 — Simulation pour un prospect", () => {
   });
 });
 
-describe("BUD-01 — Isolation entre organisations", () => {
+describe("PRD-BUD-01 — Isolation entre organisations", () => {
   it("une organisation ne voit jamais les modèles ou simulations d'une autre", async () => {
     const organizationId = randomUUID();
     const otherOrganizationId = randomUUID();

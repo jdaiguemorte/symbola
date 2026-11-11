@@ -1,4 +1,4 @@
-// Lot 11 (EVT-10) — devis d'un prestataire consulté, ouvert par l'équipe :
+// Lot 11 (L11-EVT-10) — devis d'un prestataire consulté, ouvert par l'équipe :
 // session, organisation et module vérifiés, fichier servi par l'app depuis
 // le stockage privé (ADR 0027).
 import { revalidatePath } from "next/cache";
@@ -24,8 +24,8 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   }
 }
 
-// EVT-10 — devis reçu d'un prestataire consulté, joint par l'équipe. Lot 16
-// (SEC-02, ADR 0044) : par cette route plutôt qu'une action serveur ; origine,
+// L11-EVT-10 — devis reçu d'un prestataire consulté, joint par l'équipe. Lot 16
+// (L16-SEC-02, ADR 0044) : par cette route plutôt qu'une action serveur ; origine,
 // session, limite de débit et taille sont vérifiées avant la lecture du
 // fichier (lib/uploads/receive.ts).
 export async function POST(request: Request, { params }: { params: Promise<{ id: string; candidateId: string }> }): Promise<Response> {

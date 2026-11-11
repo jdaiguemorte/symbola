@@ -6,7 +6,7 @@
 
 ## Contexte
 
-EVT-06 ouvre l'app aux mariés : chacun crée son compte sur invitation de
+PRD-EVT-06 ouvre l'app aux mariés : chacun crée son compte sur invitation de
 la planner, suit le rétroplanning, coche ses tâches et consulte le
 programme du jour J, sans jamais voir les notes internes, un autre
 événement ni une autre organisation (tests obligatoires).

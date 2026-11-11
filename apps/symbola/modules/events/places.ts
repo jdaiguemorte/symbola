@@ -1,4 +1,4 @@
-// Lot 12 (EVT-15) — lieux d'un événement (réception, cérémonie,
+// Lot 12 (L12-EVT-15) — lieux d'un événement (réception, cérémonie,
 // préparatifs…), saisis une fois puis choisis dans le programme. Exposé aux
 // autres modules seulement par service.ts (ADR 0011).
 import { and, asc, eq, sql } from "drizzle-orm";

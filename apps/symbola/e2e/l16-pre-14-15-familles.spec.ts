@@ -1,4 +1,4 @@
-// Lot 16 (PRE-14, PRE-15, ADR 0040) — familles de types de prestataires :
+// Lot 16 (L16-PRE-14, L16-PRE-15, ADR 0040) — familles de types de prestataires :
 // une organisation existante voit ses types rangés par famille dans le
 // carnet, puis renomme, fusionne, scinde « Beauté et tenues » et supprime un
 // type en déplaçant ses fiches. Ordinateur et 375 px, axe-core.
@@ -33,7 +33,7 @@ const families = (page: Page) => page.getByRole("navigation", { name: "Familles 
 const panel = (page: Page, title: string) => page.getByRole("complementary", { name: title });
 const typesTable = (page: Page) => page.getByRole("region", { name: "Tableau des types" });
 
-test("PRE-14 / PRE-15 — types rangés par famille, renommés, fusionnés, familles scindées", async ({ page }) => {
+test("L16-PRE-14 / L16-PRE-15 — types rangés par famille, renommés, fusionnés, familles scindées", async ({ page }) => {
   test.slow();
   const email = `planner-familles-${randomUUID()}@symbola.test`;
   const password = "mot-de-passe-familles";
@@ -54,7 +54,7 @@ test("PRE-14 / PRE-15 — types rangés par famille, renommés, fusionnés, fami
   await createVendor(organizationId, { name: "Agence Silhouette", typeId: types["Mannequin"]!, city: "Lens" });
   await login(page, email, password);
 
-  // PRE-14 — carnet : pastilles par famille non vide, « à classer » signalé.
+  // L16-PRE-14 — carnet : pastilles par famille non vide, « à classer » signalé.
   await page.goto("/prestataires");
   await expect(families(page).getByRole("link", { name: "Tous · 4" })).toBeVisible();
   await expect(families(page).getByRole("link", { name: "Beauté et tenues · 3" })).toBeVisible();
@@ -76,7 +76,7 @@ test("PRE-14 / PRE-15 — types rangés par famille, renommés, fusionnés, fami
   await expect(results.getByRole("heading", { level: 2 })).toHaveText("1 résultat");
   await expectNoAxeViolation(page);
 
-  // PRE-15 — renommer un type : les fiches suivent.
+  // L16-PRE-15 — renommer un type : les fiches suivent.
   await page.goto("/prestataires/parametres");
   await expect(page.getByRole("heading", { level: 1, name: "Familles et types de prestataires" })).toBeVisible();
   await typesTable(page).getByRole("link", { name: "Maquillage", exact: true }).click();

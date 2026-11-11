@@ -1,4 +1,4 @@
-// Lot 16 (ARC-01, ADR 0043) — gardes d'accès des écrans : comportement de
+// Lot 16 (L16-ARC-01, ADR 0043) — gardes d'accès des écrans : comportement de
 // chaque garde, et chaque page hors des écrans publics en appelle une.
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
@@ -67,7 +67,7 @@ function pages(dir: string): string[] {
   });
 }
 
-describe("ARC-01 — Une garde d'accès unique", () => {
+describe("L16-ARC-01 — Une garde d'accès unique", () => {
   beforeEach(() => {
     auth.current = { status: "unauthenticated" };
   });

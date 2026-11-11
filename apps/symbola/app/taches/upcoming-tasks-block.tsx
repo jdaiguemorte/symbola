@@ -1,4 +1,4 @@
-// HUB-02 — bloc « Tâches » de l'accueil : tâches non faites en retard ou
+// PRD-HUB-02 — bloc « Tâches » de l'accueil : tâches non faites en retard ou
 // dues dans les 14 jours, triées par échéance, avec le nom de l'événement ;
 // cocher une tâche la marque faite dans le module Événements. Lot 20
 // (décision 4) : les trois premières, chacune menant à son rétroplanning.

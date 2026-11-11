@@ -1,4 +1,4 @@
-// Lot 16 (ARC-01, ADR 0043) — la réserve de connexions partagée : une seule par
+// Lot 16 (L16-ARC-01, ADR 0043) — la réserve de connexions partagée : une seule par
 // processus, et le contexte RLS d'une transaction ne reste jamais sur la
 // connexion qu'une autre requête emprunte ensuite. PostgreSQL réel, rôle
 // applicatif ; sources de prospects (une table sous RLS).
@@ -13,7 +13,7 @@ afterAll(async () => {
   await closeAppDatabase();
 });
 
-describe("ARC-01 — Une connexion partagée", () => {
+describe("L16-ARC-01 — Une connexion partagée", () => {
   it("appDatabase renvoie la même réserve à chaque appel, et en rouvre une après fermeture", async () => {
     const first = appDatabase();
     expect(appDatabase()).toBe(first);

@@ -38,7 +38,7 @@ export type ImportJobView = {
 
 type JobRow = typeof importJobs.$inferSelect;
 
-// Lot 16 (ARC-01, ADR 0043) — organisations qui ont un traitement à faire
+// Lot 16 (L16-ARC-01, ADR 0043) — organisations qui ont un traitement à faire
 // avancer, signalées au traitement de fond du même processus dès que leur
 // transaction est validée : il ne visite plus toutes les organisations à
 // chaque passage. Rangées sur globalThis, comme la réserve de connexions, pour

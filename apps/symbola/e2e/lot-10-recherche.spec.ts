@@ -72,7 +72,7 @@ test("AIDE-08 — rechercher un événement par le nom du client, et une aide pa
 
   await page.goto("/recherche?q=xyzintrouvable");
   await expect(page.getByText("Aucun résultat pour « xyzintrouvable ».", { exact: false })).toBeVisible();
-  // Lot 20 (HUB-27) : un seul champ de recherche, celui du haut, qui garde la
+  // Lot 20 (L20-HUB-27) : un seul champ de recherche, celui du haut, qui garde la
   // recherche faite, sans ouvrir sa liste au chargement.
   await expect(page.getByRole("searchbox").or(page.getByRole("combobox"))).toHaveCount(1);
   await expect(box).toHaveValue("xyzintrouvable");

@@ -1,4 +1,4 @@
-// Lot 11 (PRE-02, PRE-03, PRE-06, PRE-07) — règles pures du carnet :
+// Lot 11 (L11-PRE-02, L11-PRE-03, L11-PRE-06, L11-PRE-07) — règles pures du carnet :
 // distance, trajet estimé, valeurs des champs par type, géocodage.
 import { describe, expect, it } from "vitest";
 import type { VendorTypeField } from "@symbola/contracts";
@@ -17,7 +17,7 @@ const field = (id: string, kind: VendorTypeField["kind"], extra: Partial<VendorT
   ...extra,
 });
 
-describe("PRE-07 — Trajet estimé", () => {
+describe("L11-PRE-07 — Trajet estimé", () => {
   it("Lille → Arras : environ 42 km à vol d'oiseau", () => {
     const km = haversineKm({ latitude: 50.6292, longitude: 3.0573 }, { latitude: 50.291, longitude: 2.7775 });
     expect(km).toBeGreaterThan(42);
@@ -36,7 +36,7 @@ describe("PRE-07 — Trajet estimé", () => {
   });
 });
 
-describe("PRE-02 — Valeurs des champs propres à un type", () => {
+describe("L11-PRE-02 — Valeurs des champs propres à un type", () => {
   it("convertit les saisies : nombre, montant en centimes, oui/non, vide", () => {
     expect(parseFieldInput("number", "62")).toBe(62);
     expect(parseFieldInput("amount", "1 200,50 €")).toBe(120050);
@@ -59,7 +59,7 @@ describe("PRE-02 — Valeurs des champs propres à un type", () => {
   });
 });
 
-describe("PRE-03 — Géocodage", () => {
+describe("L11-PRE-03 — Géocodage", () => {
   it("le géocodeur simulé est reproductible et sait dire « introuvable »", async () => {
     const geocoder = fakeGeocoder();
     expect(await geocoder.geocode("12 rue des Halles, 59800 Lille")).toEqual({ latitude: 50.6292, longitude: 3.0573 });

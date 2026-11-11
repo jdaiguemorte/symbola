@@ -29,7 +29,7 @@ async function render(input: ProgramPdfModel): Promise<Buffer> {
   return renderToBuffer(createElement(ProgramPdfDocument, { model: input }) as unknown as ReactElement<DocumentProps>);
 }
 
-describe("EVT-05 — Rendu PDF A4 du programme", () => {
+describe("PRD-EVT-05 — Rendu PDF A4 du programme", () => {
   it("produit un PDF A4 sur plusieurs pages quand le programme est long", async () => {
     const pdf = await render(model);
     expect(pdf.subarray(0, 5).toString("latin1")).toBe("%PDF-");

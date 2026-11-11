@@ -1,4 +1,4 @@
-// HUB-03 — « Étant donné le compte Admin, quand il tente de lire les
+// PRD-HUB-03 — « Étant donné le compte Admin, quand il tente de lire les
 // événements, budgets ou devis d'une organisation, alors l'accès est
 // refusé (test automatisé obligatoire). » L'Admin n'a pas d'organisation
 // (organizationId nul, packages/db/src/schema/hub.ts) et ne fixe donc
@@ -51,7 +51,7 @@ afterAll(async () => {
   await sql.end();
 });
 
-describe("HUB-03 — L'Admin ne lit jamais de donnée métier", () => {
+describe("PRD-HUB-03 — L'Admin ne lit jamais de donnée métier", () => {
   it("une lecture sans app.organization_id (session Admin) ne renvoie jamais de donnée métier, même si des données existent", async () => {
     const organizationId = randomUUID();
     await withOrganization(db, organizationId, (tx) =>
@@ -88,7 +88,7 @@ describe("HUB-03 — L'Admin ne lit jamais de donnée métier", () => {
     }
   });
 
-  it("vaut aussi pour les postes prestataires (EVT-03, PostgreSQL réel)", async () => {
+  it("vaut aussi pour les postes prestataires (PRD-EVT-03, PostgreSQL réel)", async () => {
     const organizationId = randomUUID();
     await withOrganization(db, organizationId, async (tx) => {
       const [event] = await tx.insert(events).values({ organizationId }).returning();
@@ -107,7 +107,7 @@ describe("HUB-03 — L'Admin ne lit jamais de donnée métier", () => {
     }
   });
 
-  it("vaut aussi pour le rétroplanning (EVT-04, PostgreSQL réel)", async () => {
+  it("vaut aussi pour le rétroplanning (PRD-EVT-04, PostgreSQL réel)", async () => {
     const organizationId = randomUUID();
     await withOrganization(db, organizationId, async (tx) => {
       const [event] = await tx.insert(events).values({ organizationId }).returning();
@@ -129,7 +129,7 @@ describe("HUB-03 — L'Admin ne lit jamais de donnée métier", () => {
     }
   });
 
-  it("vaut aussi pour le programme du jour J (EVT-05, PostgreSQL réel)", async () => {
+  it("vaut aussi pour le programme du jour J (PRD-EVT-05, PostgreSQL réel)", async () => {
     const organizationId = randomUUID();
     await withOrganization(db, organizationId, async (tx) => {
       const [event] = await tx.insert(events).values({ organizationId }).returning();
@@ -156,7 +156,7 @@ describe("HUB-03 — L'Admin ne lit jamais de donnée métier", () => {
     }
   });
 
-  it("vaut aussi pour les accès des mariés et le fil d'activité (EVT-06, PostgreSQL réel)", async () => {
+  it("vaut aussi pour les accès des mariés et le fil d'activité (PRD-EVT-06, PostgreSQL réel)", async () => {
     const organizationId = randomUUID();
     await withOrganization(db, organizationId, async (tx) => {
       const [event] = await tx.insert(events).values({ organizationId }).returning();
@@ -183,7 +183,7 @@ describe("HUB-03 — L'Admin ne lit jamais de donnée métier", () => {
     }
   });
 
-  it("vaut aussi pour les devis joints au budget (BUD-03, PostgreSQL réel)", async () => {
+  it("vaut aussi pour les devis joints au budget (PRD-BUD-03, PostgreSQL réel)", async () => {
     const organizationId = randomUUID();
     await withOrganization(db, organizationId, async (tx) => {
       const [line] = await tx

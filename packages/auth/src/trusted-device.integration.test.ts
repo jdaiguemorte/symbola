@@ -1,4 +1,4 @@
-// SEC-03 (lot 16, ADR 0038) — appareil de confiance, contre un vrai PostgreSQL :
+// L16-SEC-03 (lot 16, ADR 0038) — appareil de confiance, contre un vrai PostgreSQL :
 // après un code validé avec « se souvenir de cet appareil », ce navigateur est
 // dispensé du code pendant 90 jours (décision de Julien du 08/11/2026). Horloge
 // simulée par le paramètre `now` (veille et lendemain de l'échéance).
@@ -54,7 +54,7 @@ async function withMfa(rememberDevice: boolean, role: "owner" | "admin" = "owner
   return { user, email, secret, deviceToken: confirmed.deviceToken };
 }
 
-describe("SEC-03 — Appareil de confiance (90 jours)", () => {
+describe("L16-SEC-03 — Appareil de confiance (90 jours)", () => {
   it("une validation avec « se souvenir de cet appareil » dispense du code aux connexions suivantes sur cet appareil", async () => {
     const { email, deviceToken } = await withMfa(true);
     expect(deviceToken).toEqual(expect.any(String));

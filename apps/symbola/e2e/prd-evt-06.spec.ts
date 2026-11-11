@@ -1,4 +1,4 @@
-// EVT-06 — accès des mariés : la planner invite un marié par e-mail
+// PRD-EVT-06 — accès des mariés : la planner invite un marié par e-mail
 // (Mailpit), il crée son compte, voit le rétroplanning et le programme
 // sans notes internes, coche sa tâche (visible dans le fil d'activité de
 // la planner), active s'il le souhaite la double authentification ; les
@@ -47,7 +47,7 @@ async function waitForClientInvitationLink(to: string, attempts = 30): Promise<s
   throw new Error(`aucun e-mail d'invitation reçu pour ${to}`);
 }
 
-test("EVT-06 — le marié invité suit son mariage, coche sa tâche, et perd l'accès quand la planner le retire", async ({
+test("PRD-EVT-06 — le marié invité suit son mariage, coche sa tâche, et perd l'accès quand la planner le retire", async ({
   page: planner,
   browser,
 }) => {
@@ -153,7 +153,7 @@ test("EVT-06 — le marié invité suit son mariage, coche sa tâche, et perd l'
   const secret = new URL(provisioningUri!.replace("otpauth://totp/", "https://x/")).searchParams.get("secret")!;
   await couple.getByLabel("Code à 6 chiffres").fill(new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret) }).generate());
   await couple.getByRole("button", { name: "Confirmer" }).click();
-  // SEC-01 : la validation remplace le jeton de session ; la page se rafraîchit
+  // L16-SEC-01 : la validation remplace le jeton de session ; la page se rafraîchit
   // et affiche l'état enregistré, double authentification activée.
   await expect(couple.getByRole("status").filter({ hasText: /double authentification (est )?activée/i })).toBeVisible();
   await expectNoAxeViolation(couple);

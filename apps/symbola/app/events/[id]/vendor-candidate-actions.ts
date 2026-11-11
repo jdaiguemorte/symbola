@@ -1,6 +1,6 @@
 "use server";
 
-// Lot 11 (EVT-10 / EVT-11) — actions des prestataires consultés d'un poste.
+// Lot 11 (L11-EVT-10 / L11-EVT-11) — actions des prestataires consultés d'un poste.
 // Chaque action vérifie la session, l'organisation et le module ; les
 // identifiants sont validés avant toute requête.
 import { revalidatePath } from "next/cache";

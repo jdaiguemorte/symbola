@@ -1,4 +1,4 @@
-// HUB-02 — accueil : agenda des mois à venir (3, 6 ou 12 mois), mariages
+// PRD-HUB-02 — accueil : agenda des mois à venir (3, 6 ou 12 mois), mariages
 // confirmés et prospects datés, badge « 2 » le même week-end, tâches de la
 // quinzaine cochables ; écran « Tâches » de toute l'organisation. En taille
 // ordinateur et en 375 px, axe-core sur chaque écran.
@@ -36,7 +36,7 @@ function shift(date: string, days: number): string {
   return value.toISOString().slice(0, 10);
 }
 
-test("HUB-02 — agenda des mariages, tâches de la quinzaine cochées depuis l'accueil, écran Tâches", async ({ page }) => {
+test("PRD-HUB-02 — agenda des mariages, tâches de la quinzaine cochées depuis l'accueil, écran Tâches", async ({ page }) => {
   const email = `planner-hub02-${randomUUID()}@symbola.test`;
   const password = "mot-de-passe-hub02-e2e";
   const today = parisToday();
@@ -76,7 +76,7 @@ test("HUB-02 — agenda des mariages, tâches de la quinzaine cochées depuis l'
   }
   await loginAndSetupMfa(page, email, password);
 
-  // Agenda : 3 mois par défaut (lot 16, HUB-20), noms dans les cases, badge « 2 ».
+  // Agenda : 3 mois par défaut (lot 16, L16-HUB-20), noms dans les cases, badge « 2 ».
   const agenda = page.getByRole("region", { name: "Agenda" });
   await expect(agenda.getByRole("link", { name: "3 mois" })).toHaveAttribute("aria-current", "true");
   const weekend = agenda.locator("summary", { hasText: firstName });
@@ -118,7 +118,7 @@ test("HUB-02 — agenda des mariages, tâches de la quinzaine cochées depuis l'
   await expect(page.getByRole("rowheader", { name: "Relancer le traiteur" })).toBeVisible();
   await expectNoAxeViolation(page);
 
-  // HUB-15 : le bloc « À traiter » mène aux délais de relance, réglables.
+  // L13-HUB-15 : le bloc « À traiter » mène aux délais de relance, réglables.
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "À traiter" })).toBeVisible();
   await page.getByRole("link", { name: "Délais de relance" }).click();

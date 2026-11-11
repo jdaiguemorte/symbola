@@ -61,7 +61,7 @@ async function hubErasure(input: ErasureInput, execute: boolean): Promise<Erasur
     if (execute && ids.length > 0) {
       await db.transaction(async (tx) => {
         await tx.delete(sessions).where(inArray(sessions.userId, ids));
-        // SEC-03 : appareils de confiance (aussi effacés en cascade).
+        // L16-SEC-03 : appareils de confiance (aussi effacés en cascade).
         await tx.delete(trustedDevices).where(inArray(trustedDevices.userId, ids));
         await tx.delete(userTourSeen).where(inArray(userTourSeen.userId, ids));
         await tx.delete(helpProgress).where(inArray(helpProgress.userId, ids));

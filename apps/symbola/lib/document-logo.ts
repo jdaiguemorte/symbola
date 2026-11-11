@@ -1,4 +1,4 @@
-// EVT-05, DEV-01 — logo de l'organisation pour les PDF (programme, devis).
+// PRD-EVT-05, DEV-01 — logo de l'organisation pour les PDF (programme, devis).
 // Facultatif : s'il manque ou ne se lit pas, le PDF porte le nom de
 // l'organisation à la place (jamais d'erreur pour la planner).
 import { createStorageClient, detectFileType, getPrivateObject } from "@symbola/files";

@@ -5,7 +5,7 @@
 - Date : 2026-11-08
 - Complète : [0013](0013-auth-maison-pour-le-mvp.md) (authentification maison),
   [0037](0037-double-authentification-protegee.md) (double authentification protégée)
-- Story : SEC-03 (`docs/lots/lot-16-reprise-ux.md`)
+- Story : L16-SEC-03 (`docs/lots/lot-16-reprise-ux.md`)
 
 ## Contexte
 
@@ -53,6 +53,6 @@ temps en temps.
   mais seulement avec le mot de passe du compte. La personne le révoque avec « Oublier tous mes
   appareils » ou en changeant son mot de passe.
 - Une seule durée pour toute la suite (90 jours), dans le code comme les autres règles de
-  session (HUB-01). En faire un réglage par organisation se fera si un client le demande.
+  session (PRD-HUB-01). En faire un réglage par organisation se fera si un client le demande.
 - Les appareils ne sont ni nommés ni listés un par un : on n'enregistre pas le type de
   navigateur, pour ne garder aucune donnée de plus. Le profil en affiche seulement le nombre.

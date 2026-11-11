@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { parseYear, tabCounts, yearOptions } from "./events-list-options";
 
-describe("EVT-18 — Liste des événements : filtres", () => {
+describe("L13-EVT-18 — Liste des événements : filtres", () => {
   it("propose les années des événements, plus l'année en cours et la suivante, de la plus récente à la plus ancienne", () => {
     expect(yearOptions(["2025-06-14", null, "2028-09-02", "2025-07-01"], "2026-11-06")).toEqual([2028, 2027, 2026, 2025]);
   });

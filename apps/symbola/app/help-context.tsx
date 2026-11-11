@@ -1,6 +1,6 @@
 "use client";
 
-// Lot 10 (AIDE-05, AIDE-07), revu au lot 13 (AIDE-11) puis au lot 16 (HUB-19,
+// Lot 10 (AIDE-05, AIDE-07), revu au lot 13 (AIDE-11) puis au lot 16 (L16-HUB-19,
 // ADR 0039) — l'aide de l'écran affiché. L'écran DÉCLARE son aide (titre,
 // texte, repères) par <ScreenHelp> ou <PageTour> ; il ne pose plus de bouton.
 // Un seul « ? », dans la barre du haut (<HelpButton>), ouvre un seul panneau,

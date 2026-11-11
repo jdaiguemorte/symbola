@@ -1,6 +1,6 @@
 "use client";
 
-// Lot 11 (EVT-10 / EVT-11) — prestataires consultés pour le poste choisi :
+// Lot 11 (L11-EVT-10 / L11-EVT-11) — prestataires consultés pour le poste choisi :
 // réponse, devis, notes (internes ou montrées aux clients), « Retenir ».
 // Des cartes plutôt qu'un tableau : lisibles en 375 px.
 import Link from "next/link";

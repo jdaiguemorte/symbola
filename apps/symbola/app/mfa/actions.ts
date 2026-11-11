@@ -15,7 +15,7 @@ export async function getMfaSetupState() {
   const result = await requireUser(db, token);
   if (result.status !== "mfa_required") return null;
 
-  // SEC-03 : jamais d'appareil de confiance pour l'Admin.
+  // L16-SEC-03 : jamais d'appareil de confiance pour l'Admin.
   const allowRememberDevice = result.role !== "admin";
   if (!result.totpConfirmed) {
     const { provisioningUri } = await resumeTotpSetup(db, result.userId);
@@ -36,7 +36,7 @@ export async function confirmMfaAction(
 
   const code = String(formData.get("code") ?? "");
   const db = appDatabase();
-  // SEC-02 (ADR 0044) : par adresse et par compte, en plus du verrouillage après 5 échecs.
+  // L16-SEC-02 (ADR 0044) : par adresse et par compte, en plus du verrouillage après 5 échecs.
   const session = await requireUser(db, token);
   const limited = await checkRateLimit("mfa", { account: session.status === "mfa_required" ? session.userId : null });
   if (!limited.allowed) return { error: await rateLimitMessage(limited.retryAfterSeconds) };
@@ -52,9 +52,9 @@ export async function confirmMfaAction(
     return { error: t("invalidCode") };
   }
 
-  // SEC-01 : nouveau jeton de session après la double authentification.
+  // L16-SEC-01 : nouveau jeton de session après la double authentification.
   await setSessionCookie(result.sessionToken);
-  // SEC-03 : « se souvenir de cet appareil » coché.
+  // L16-SEC-03 : « se souvenir de cet appareil » coché.
   if (result.deviceToken) await setTrustedDeviceCookie(result.deviceToken);
   redirect("/");
 }

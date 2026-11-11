@@ -1,4 +1,4 @@
-// Lot 16 (SEC-02, ADR 0044) — limitation de débit de l'app : connexion,
+// Lot 16 (L16-SEC-02, ADR 0044) — limitation de débit de l'app : connexion,
 // double authentification, mot de passe oublié, recherche instantanée, envoi
 // de fichiers. Chaque tentative compte pour l'adresse du client et pour le
 // compte visé ; au-delà, la réponse dit combien de minutes attendre (429 pour

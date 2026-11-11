@@ -10,7 +10,7 @@ export function isProfessionalRole(role: Role): boolean {
   return PROFESSIONAL_ROLES.includes(role);
 }
 
-// EVT-06 : rôles de l'équipe d'une organisation (titulaire, membre), seuls
+// PRD-EVT-06 : rôles de l'équipe d'une organisation (titulaire, membre), seuls
 // admis sur les écrans de la planner. Un marié (client) n'a accès qu'à son
 // espace ; l'Admin n'a aucune donnée métier (CLAUDE.md §5).
 const PLANNER_ROLES: readonly Role[] = ["owner", "member"];

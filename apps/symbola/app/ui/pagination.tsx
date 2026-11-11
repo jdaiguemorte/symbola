@@ -1,4 +1,4 @@
-// Lot 13 (HUB-17, ADR 0033) — pagination commune des listes longues de la
+// Lot 13 (L13-HUB-17, ADR 0033) — pagination commune des listes longues de la
 // console d'Administration : une page de 20 éléments, état dans l'adresse
 // (« ?page=n », lien partageable), les autres paramètres gardés. Avec
 // plusieurs milliers d'organisations, afficher toute la liste figeait le

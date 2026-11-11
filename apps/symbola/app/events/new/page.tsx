@@ -10,7 +10,7 @@ import Link from "next/link";
 import { NewProspectForm } from "./new-prospect-form";
 import { LoadStarterListsForm } from "../parametres/starter-lists-form";
 
-// HUB-13 (lot 12) : depuis un clic sur une date de l'agenda, la date est
+// L12-HUB-13 (lot 12) : depuis un clic sur une date de l'agenda, la date est
 // pré-remplie et « Créer un événement » crée directement un événement confirmé.
 export default async function NewProspectPage({ searchParams }: { searchParams: Promise<{ date?: string; type?: string }> }) {
   const query = await searchParams;
@@ -36,7 +36,7 @@ export default async function NewProspectPage({ searchParams }: { searchParams: 
     <main>
       <h1>{t(confirmed ? "newConfirmedEvent" : "newProspect")}</h1>
       <ScreenHelp title={tHelp("eventsNew.title")} body={tHelp("eventsNew.body")} />
-      {/* EVT-07 : sans source, la création est impossible ; on dit pourquoi et comment y remédier. */}
+      {/* PRD-EVT-07 : sans source, la création est impossible ; on dit pourquoi et comment y remédier. */}
       {sources.length === 0 ? (
         <section aria-labelledby="no-sources-title" className="card">
           <h2 id="no-sources-title">{t("noSourcesTitle")}</h2>

@@ -11,7 +11,7 @@ export default async function ProfilePage() {
 
   const t = await getTranslations("Profile");
   const tHelp = await getTranslations("Help");
-  // SEC-03 : appareils de confiance (jamais pour l'Admin, ADR 0038).
+  // L16-SEC-03 : appareils de confiance (jamais pour l'Admin, ADR 0038).
   let trustedDevices: number | null = null;
   if (auth.user.role !== "admin") {
     const db = appDatabase();

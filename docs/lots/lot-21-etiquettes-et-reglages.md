@@ -47,14 +47,14 @@ petites capitales grises se distinguent mal des rubriques cliquables.
 
 ## A. Corrections directes
 
-### PRE-20 — Pastilles sur toute la largeur de la fiche
+### L21-PRE-20 — Pastilles sur toute la largeur de la fiche
 
 - **Étant donné** la fiche d'un prestataire ou sa création, en taille ordinateur, **alors**
   les pastilles d'un groupe s'alignent sur toute la largeur du bloc Étiquettes et passent à
   la ligne seulement quand la place manque.
 - **En 375 px**, idem sur une colonne, sans défilement horizontal.
 
-### HUB-28 — Le menu des réglages défile seul
+### L21-HUB-28 — Le menu des réglages défile seul
 
 - **Étant donné** un écran de réglage plus long que la fenêtre et un menu plus haut que la
   fenêtre, **quand** elle fait défiler la molette au-dessus du menu, **alors** le menu défile
@@ -71,7 +71,7 @@ Propositions validées telles quelles le 10/11/2026. Précisions de mise en œuv
 - Décision 3 : le panneau d'ajout reste ouvert pour enchaîner les lignes ; celui de
   modification se ferme à l'enregistrement.
 
-### Décision 1 — PRE-18 : des étiquettes de départ, rangées par famille
+### Décision 1 — L21-PRE-18 : des étiquettes de départ, rangées par famille
 
 - Un fichier de données traduisible `packages/starter-templates/src/vendor-tags.json` décrit
   des groupes par famille de prestataires. Certains groupes sont des paliers (un seul choix).
@@ -106,7 +106,7 @@ Propositions validées telles quelles le 10/11/2026. Précisions de mise en œuv
   Ajouts agence : Lieux › Capacité en plénière (palier) et Équipements « Salles de
   sous-commission », « Wi-Fi haut débit », « Régie technique ».
 
-### Décision 2 — PRE-19 : les étiquettes importées se rangent toutes seules
+### Décision 2 — L21-PRE-19 : les étiquettes importées se rangent toutes seules
 
 - **À l'import**, l'export de l'outil actuel attache chaque critère à un prestataire d'un
   type donné. Une étiquette portée seulement par des prestataires d'une famille est réservée
@@ -122,7 +122,7 @@ Propositions validées telles quelles le 10/11/2026. Précisions de mise en œuv
 - Rien n'est supprimé : une étiquette qui ne correspond à rien reste dans « Autres », pour
   toutes les familles, et se range à la main comme avant.
 
-### Décision 3 — EVT-21 : Programme du jour J en liste, puis le détail d'un modèle
+### Décision 3 — L21-EVT-21 : Programme du jour J en liste, puis le détail d'un modèle
 
 - **Liste** (`/events/modeles-programme`) : une ligne par modèle (nom, nombre de lignes,
   amplitude « 09:00 → 22:30 »), cliquable. « Nouveau modèle » est un bouton : il demande le
@@ -137,7 +137,7 @@ Propositions validées telles quelles le 10/11/2026. Précisions de mise en œuv
 - Ajout au contrat du module Événements, compatible : modifier une ligne de modèle, renommer
   un modèle.
 
-### Décision 4 — EVT-22 : Rétroplanning sur le même modèle
+### Décision 4 — L21-EVT-22 : Rétroplanning sur le même modèle
 
 - Même présentation que le Programme : liste des modèles, puis détail en tableau
   (Échéance · Tâche · Responsable · actions), modification d'une ligne dans le panneau.
@@ -155,7 +155,7 @@ Propositions validées telles quelles le 10/11/2026. Précisions de mise en œuv
   anglais) : pas de migration. Ajout au contrat du module Devis, compatible : réactiver un
   mode.
 
-### Décision 6 — HUB-29 : des groupes lisibles dans le menu des réglages
+### Décision 6 — L21-HUB-29 : des groupes lisibles dans le menu des réglages
 
 - Chaque groupe a une icône et un titre en casse normale, en gras, couleur d'encre.
 - Ses rubriques sont en retrait, le long d'un filet vertical ; un séparateur entre les

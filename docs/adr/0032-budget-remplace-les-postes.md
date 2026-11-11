@@ -3,14 +3,14 @@
 - Statut : remplacé par [0054](0054-budget-a-cinq-montants.md) (cinq montants), en vigueur jusqu'au
   lot 28
 - Date : 2026-11-05
-- Précise : EVT-03 (postes prestataires), BUD-01 à BUD-04, ADR 0031 (prestataires consultés)
+- Précise : PRD-EVT-03 (postes prestataires), PRD-BUD-01 à PRD-BUD-04, ADR 0031 (prestataires consultés)
 
 ## Contexte
 
 En recette (05/11/2026), la planner pilote n'a compris ni « postes » ni « postes de dépenses ».
 Elle ne les retrouvait que dans la répartition budgétaire, qu'elle ne fait pas avant le budget.
 Décision de Julien : on abandonne les postes et on garde « Budget ». Spécification :
-`docs/lots/lot-12-demarrage.md` (EVT-17).
+`docs/lots/lot-12-demarrage.md` (L12-EVT-17).
 
 ## Décision
 
@@ -24,7 +24,7 @@ Décision de Julien : on abandonne les postes et on garde « Budget ». Spécifi
 3. **Le budget existe dès la création de l'événement.** Le prévu devient facultatif
    (`budget.budget_lines.planned_amount_cents` accepte null) : une ligne se crée quand un
    montant est connu (prévu saisi, ou réel venu d'une réservation). Une ligne sans prévu n'a pas
-   d'écart. La répartition (BUD-01) reste une aide facultative pour proposer des prévus.
+   d'écart. La répartition (PRD-BUD-01) reste une aide facultative pour proposer des prévus.
 4. **Icône par ligne** (`icon`, clé d'un jeu fixe d'icônes de l'app), pré-réglée par les modèles
    de départ par métier, reprise du défaut par chaque nouvel événement, affichée au programme du
    jour J pour voir d'un coup d'œil les prestataires concernés.

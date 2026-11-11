@@ -40,7 +40,7 @@ export type StarterMetier = "wedding_planner" | "event_agency" | "autre";
 const isWedding = (metier: StarterMetier) => metier === "wedding_planner";
 
 // Icônes des lignes du budget et des familles de prestataires (présentation) :
-// clés connues de l'app. Lot 16 (PRE-14) : games, stage, truck, megaphone.
+// clés connues de l'app. Lot 16 (L16-PRE-14) : games, stage, truck, megaphone.
 export const BUDGET_LINE_ICONS = [
   "venue", "catering", "camera", "video", "music", "flower", "decoration", "officiant", "cake", "beauty",
   "stationery", "transport", "lodging", "sound", "staff", "furniture", "attire", "rings", "games", "stage",
@@ -59,7 +59,7 @@ const vendorSlots = vendorSlotsSchema.parse(vendorSlotsFile);
 const agencyVendorSlots = vendorSlotsSchema.parse(agencyVendorSlotsFile);
 const slotsFor = (metier: StarterMetier) => (isWedding(metier) ? vendorSlots : agencyVendorSlots);
 
-// EVT-03 / EVT-17 : lignes du budget par défaut (anciens « postes »), dans
+// PRD-EVT-03 / L12-EVT-17 : lignes du budget par défaut (anciens « postes »), dans
 // la langue demandée, pour le métier (mariage par défaut).
 export function starterVendorSlots(locale: StarterLocale, metier: StarterMetier = "wedding_planner"): string[] {
   return slotsFor(metier).items.map((item) => item.label[locale]);
@@ -89,7 +89,7 @@ export function starterAllocation(locale: StarterLocale, metier: StarterMetier =
   };
 }
 
-// EVT-07 : sources de prospect de départ, même format que les postes.
+// PRD-EVT-07 : sources de prospect de départ, même format que les postes.
 const prospectSources = vendorSlotsSchema.parse(prospectSourcesFile);
 const agencyProspectSources = vendorSlotsSchema.parse(agencyProspectSourcesFile);
 
@@ -97,7 +97,7 @@ export function starterProspectSources(locale: StarterLocale, metier: StarterMet
   return (isWedding(metier) ? prospectSources : agencyProspectSources).items.map((item) => item.label[locale]);
 }
 
-// EVT-07 : motifs de perte de départ ; « Autre » demande une précision.
+// PRD-EVT-07 : motifs de perte de départ ; « Autre » demande une précision.
 const lossReasonsSchema = z.object({
   version: z.literal(1),
   items: z.array(z.object({ key: z.string().min(1), label: translatedLabelSchema, freeText: z.boolean() })).min(1),
@@ -179,7 +179,7 @@ export type StarterTaskTemplate = {
   items: { label: string; offsetDays: number; responsible: "planner" | "clients" }[];
 };
 
-// EVT-04 : modèle de rétroplanning de départ, dans la langue demandée.
+// PRD-EVT-04 : modèle de rétroplanning de départ, dans la langue demandée.
 export function starterRetroplanning(locale: StarterLocale, metier: StarterMetier = "wedding_planner"): StarterTaskTemplate {
   const source = isWedding(metier) ? retroplanning : agencyRetroplanning;
   return {
@@ -227,7 +227,7 @@ export type StarterProgramTemplate = {
   }[];
 };
 
-// EVT-05 : modèle de programme de départ, dans la langue demandée. Les
+// PRD-EVT-05 : modèle de programme de départ, dans la langue demandée. Les
 // intervenants portent les libellés des postes du modèle de départ, pour
 // être rapprochés des postes de l'événement quand le modèle est appliqué.
 export function starterProgram(locale: StarterLocale, metier: StarterMetier = "wedding_planner"): StarterProgramTemplate {
@@ -527,8 +527,8 @@ export function starterTutorialCatalogItem(locale: StarterLocale): { label: stri
   return { label: item.label[locale], unit: item.unit[locale], unitPriceCents: item.unitPriceCents };
 }
 
-// Lot 11 (PRE-02) : catalogue des types de prestataires de départ et de leurs
-// champs, modifiables ensuite par l'organisation. Lot 16 (PRE-14) : la couleur
+// Lot 11 (L11-PRE-02) : catalogue des types de prestataires de départ et de leurs
+// champs, modifiables ensuite par l'organisation. Lot 16 (L16-PRE-14) : la couleur
 // est celle de la famille (vendor-families*.json), plus celle du type.
 const vendorTypesSchema = z.object({
   version: z.literal(1),
@@ -569,9 +569,9 @@ export function starterVendorTypes(locale: StarterLocale): StarterVendorType[] {
   }));
 }
 
-// Lot 16 (PRE-14) — familles de types de prestataires de départ, par métier :
+// Lot 16 (L16-PRE-14) — familles de types de prestataires de départ, par métier :
 // une dizaine de familles, chacune avec ses types du catalogue. Une
-// organisation les renomme, les scinde ou en crée d'autres (PRE-15) ; ces
+// organisation les renomme, les scinde ou en crée d'autres (L16-PRE-15) ; ces
 // données ne sont qu'un point de départ, jamais rétablies d'office.
 const vendorFamiliesSchema = z.object({
   version: z.literal(1),
@@ -633,7 +633,7 @@ export function starterTutorialVendors(locale: StarterLocale): { name: string; c
   return tutorialVendorsSchema.parse(raw).map((vendor) => ({ name: vendor.name[locale], city: vendor.city, note: vendor.note[locale] }));
 }
 
-// Lot 13 (HUB-15) — délais de relance du bloc « À traiter » de l'accueil :
+// Lot 13 (L13-HUB-15) — délais de relance du bloc « À traiter » de l'accueil :
 // valeurs de départ, chaque organisation les règle dans ses paramètres.
 export type StarterFollowUpDelays = { quoteFollowUpDays: number; prospectFollowUpDays: number };
 
@@ -673,7 +673,7 @@ export function starterEventTypes(locale: StarterLocale, metier: StarterMetier =
   });
 }
 
-// Lot 21 (PRE-18, ADR 0050) — étiquettes de départ des prestataires, rangées
+// Lot 21 (L21-PRE-18, ADR 0050) — étiquettes de départ des prestataires, rangées
 // en groupes (certains « paliers », à choix unique) et rattachées aux familles
 // de départ (clés de vendor-families.json ; vide = toutes les familles). Les
 // agences reçoivent en plus vendor-tags.event-agency.json, fusionné par clé de

@@ -3,7 +3,7 @@
 - Statut : accepté
 - Date : 2026-11-08
 - Précise : [0033](0033-refonte-ux-panneaux-et-aide-par-reperes.md) (aide par repères)
-- Story : HUB-19 (lot 16, spécification `docs/lots/lot-16-reprise-ux.md`, décisions A et B
+- Story : L16-HUB-19 (lot 16, spécification `docs/lots/lot-16-reprise-ux.md`, décisions A et B
   validées par Julien le 08/11/2026)
 
 ## Contexte
@@ -49,7 +49,7 @@ contenu.
    (devis, tâches, carnet, fiche événement, console Admin, organisations). Les écrans qui
    n'ont qu'un titre gardent leur `<h1>` : le rendu est identique. Les autres composants
    prévus par la spécification (`Stepper`, `ActionBar`, `StatusBadge`, `EmptyState`) seront
-   créés avec les écrans qui s'en servent (assistant d'import IMP-11, écrans de HUB-20), pas
+   créés avec les écrans qui s'en servent (assistant d'import IMP-11, écrans de L16-HUB-20), pas
    avant.
 
 ## Conséquences

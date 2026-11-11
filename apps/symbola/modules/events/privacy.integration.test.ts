@@ -108,7 +108,7 @@ describe("RGPD-01 — Recherche dans le module events (PostgreSQL réel)", () =>
   });
 });
 
-describe("RGPD-01 / RGPD-03 — Lieux de l'événement (lot 12, EVT-15)", () => {
+describe("RGPD-01 / RGPD-03 — Lieux de l'événement (lot 12, L12-EVT-15)", () => {
   it("trouve un lieu par son adresse, puis le supprime à l'oubli", async () => {
     const organizationId = randomUUID();
     const { eventId } = await seedEvent(organizationId, { firstName: `Lea${randomUUID().slice(0, 6)}` });

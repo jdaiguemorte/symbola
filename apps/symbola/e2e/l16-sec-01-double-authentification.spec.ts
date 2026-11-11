@@ -1,4 +1,4 @@
-// SEC-01 (lot 16, ADR 0037) — 5 codes de double authentification faux bloquent
+// L16-SEC-01 (lot 16, ADR 0037) — 5 codes de double authentification faux bloquent
 // la validation 15 minutes, même pour un code juste, et le titulaire reçoit un
 // e-mail. En taille ordinateur et en 375 px, avec axe-core. Un compte neuf par
 // exécution ; l'e-mail est lu dans Mailpit (socle de dev et CI).
@@ -23,11 +23,11 @@ async function mailSubjectsTo(to: string): Promise<string[]> {
   return [];
 }
 
-test("SEC-01 — 5 codes faux bloquent la double authentification et préviennent le titulaire", async ({ page }) => {
+test("L16-SEC-01 — 5 codes faux bloquent la double authentification et préviennent le titulaire", async ({ page }) => {
   const email = `sec01-e2e-${randomUUID()}@symbola.test`;
   const { sql, db } = createAppConnection();
   try {
-    const organization = await readyOrganization(db, `Organisation SEC-01 ${randomUUID()}`);
+    const organization = await readyOrganization(db, `Organisation L16-SEC-01 ${randomUUID()}`);
     await createUser(db, { organizationId: organization.id, email, password: PASSWORD, role: "owner" });
   } finally {
     await sql.end();

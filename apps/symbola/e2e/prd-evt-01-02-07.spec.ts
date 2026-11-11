@@ -1,4 +1,4 @@
-// EVT-01/02/07 — liste des événements, étapes d'un événement et source du
+// PRD-EVT-01/02/07 — liste des événements, étapes d'un événement et source du
 // prospect : parcours complet d'une planner, en taille ordinateur et en
 // 375 px (les deux projets Playwright), avec contrôle axe-core par écran.
 import { randomUUID } from "node:crypto";
@@ -44,7 +44,7 @@ async function createPlanner(page: Page) {
   await loginAndSetupMfa(page, email, password);
 }
 
-test("EVT-07 — la planner paramètre ses sources et motifs de perte, puis la source est obligatoire à la création", async ({
+test("PRD-EVT-07 — la planner paramètre ses sources et motifs de perte, puis la source est obligatoire à la création", async ({
   page,
 }) => {
   await createPlanner(page);
@@ -55,7 +55,7 @@ test("EVT-07 — la planner paramètre ses sources et motifs de perte, puis la s
 
   await page.getByRole("link", { name: "Paramètres des événements" }).first().click();
   await expect(page).toHaveURL(/\/events\/parametres$/);
-  // Lot 13 (HUB-16) : sources et motifs ont leur rubrique.
+  // Lot 13 (L13-HUB-16) : sources et motifs ont leur rubrique.
   await page.getByRole("navigation", { name: "Rubriques des paramètres" }).getByRole("link", { name: "Sources et motifs", exact: true }).click();
   await expect(page).toHaveURL(/\/events\/parametres\/sources$/);
   await page.getByLabel("Nouvelle source").fill("Instagram");
@@ -87,12 +87,12 @@ test("EVT-07 — la planner paramètre ses sources et motifs de perte, puis la s
   await page.getByRole("button", { name: "Créer le prospect" }).click();
   await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}$/);
   await expect(page.getByRole("heading", { name: "Camille" })).toBeVisible();
-  // EVT-07 : la source est visible dans la fiche.
+  // PRD-EVT-07 : la source est visible dans la fiche.
   await expect(page.getByText("Source du prospect : Instagram")).toBeVisible();
   await expectNoAxeViolation(page);
 });
 
-test("EVT-01/02 — un prospect apparaît dans la liste, passe en Confirmé puis en Perdu avec un motif obligatoire", async ({
+test("PRD-EVT-01/02 — un prospect apparaît dans la liste, passe en Confirmé puis en Perdu avec un motif obligatoire", async ({
   page,
 }) => {
   await createPlanner(page);
@@ -115,13 +115,13 @@ test("EVT-01/02 — un prospect apparaît dans la liste, passe en Confirmé puis
   await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}$/);
   const detailUrl = page.url();
 
-  // EVT-01 : le prospect sans date est listé « Date à définir », avec son statut.
+  // PRD-EVT-01 : le prospect sans date est listé « Date à définir », avec son statut.
   await page.goto("/events");
-  // EVT-18 : une ligne du tableau par événement.
+  // L13-EVT-18 : une ligne du tableau par événement.
   const item = page.getByRole("row", { name: new RegExp(`${firstName} & Sacha`) });
   await expect(item).toContainText("Date à définir");
   await expect(item).toContainText("Prospect");
-  // EVT-18 : l'année se choisit dans une liste (jamais 1 ni −1) et les
+  // L13-EVT-18 : l'année se choisit dans une liste (jamais 1 ni −1) et les
   // filtres ont tous la même hauteur.
   const years = await page.getByLabel("Année").locator("option").allTextContents();
   expect(years).toContain(String(new Date().getFullYear()));
@@ -132,8 +132,8 @@ test("EVT-01/02 — un prospect apparaît dans la liste, passe en Confirmé puis
     ),
   );
   expect(new Set(heights.map((height) => Math.round(height))).size).toBe(1);
-  // EVT-07 : filtrable par source.
-  // EVT-18 : les filtres s'appliquent à la saisie, sans bouton.
+  // PRD-EVT-07 : filtrable par source.
+  // L13-EVT-18 : les filtres s'appliquent à la saisie, sans bouton.
   await page.getByLabel("Source du prospect").selectOption({ label: "Salon" });
   await expect(page).toHaveURL(/source=/);
   await expect(item).toBeVisible();
@@ -141,17 +141,17 @@ test("EVT-01/02 — un prospect apparaît dans la liste, passe en Confirmé puis
   await expect(page).toHaveURL(/search=/);
   await expect(item).toBeVisible();
 
-  // EVT-02 : changement de statut à la main.
+  // PRD-EVT-02 : changement de statut à la main.
   await page.goto(detailUrl);
   // Attend l'hydratation : un envoi avant elle partirait sans retour d'erreur.
   await page.waitForLoadState("networkidle");
-  // Lot 12 (EVT-12) : statut en boutons d'étapes, un clic suffit.
+  // Lot 12 (L12-EVT-12) : statut en boutons d'étapes, un clic suffit.
   await changeEventStatus(page, "Confirmé");
   await expect(page.getByText("Statut mis à jour.")).toBeVisible();
   await page.goto("/events");
   await expect(item).toContainText("Confirmé");
 
-  // EVT-02 : Perdu exige un motif, et une précision pour le motif « Autre ».
+  // PRD-EVT-02 : Perdu exige un motif, et une précision pour le motif « Autre ».
   await page.goto(detailUrl);
   // Attend l'hydratation : un envoi avant elle partirait sans retour d'erreur.
   await page.waitForLoadState("networkidle");

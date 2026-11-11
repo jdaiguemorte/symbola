@@ -1,4 +1,4 @@
-// Lot 21 (EVT-22, décision 4) — détail d'un modèle de rétroplanning : un
+// Lot 21 (L21-EVT-22, décision 4) — détail d'un modèle de rétroplanning : un
 // tableau à colonnes fixes (Échéance, Tâche, Responsable) ; « Modifier » et
 // « Supprimer » toujours en fin de ligne. Ajouter ou modifier une tâche et
 // renommer le modèle se font dans le panneau latéral (ADR 0033) ; la

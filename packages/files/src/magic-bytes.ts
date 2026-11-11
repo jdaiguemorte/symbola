@@ -1,6 +1,6 @@
 // Vérification du type de fichier PAR LE CONTENU (SOC-08, CLAUDE.md §5) —
 // jamais par l'extension ou le Content-Type déclaré, qui sont falsifiables.
-// Liste volontairement limitée aux formats mentionnés par le PRD (BUD-03 :
+// Liste volontairement limitée aux formats mentionnés par le PRD (PRD-BUD-03 :
 // « PDF ou image ») ; pas de dépendance à une lib de détection pour un
 // besoin aussi restreint.
 export type DetectedFileType = {

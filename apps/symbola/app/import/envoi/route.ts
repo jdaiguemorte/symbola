@@ -1,6 +1,6 @@
 // IMP-01 — étape « fichier » : type d'éléments choisi, fichier reçu, analysé
 // par l'antivirus et lu ; l'import en cours s'ouvre sur l'étape suivante. Lot 16
-// (SEC-02, ADR 0044) : par cette route dédiée plutôt qu'une action serveur ;
+// (L16-SEC-02, ADR 0044) : par cette route dédiée plutôt qu'une action serveur ;
 // origine, session, limite de débit et taille sont vérifiées avant la lecture
 // du fichier (lib/uploads/receive.ts). La route renvoie l'adresse de l'étape
 // suivante, où le formulaire mène.

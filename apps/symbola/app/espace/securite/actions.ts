@@ -1,6 +1,6 @@
 "use server";
 
-// EVT-06 — double authentification proposée au marié, jamais imposée.
+// PRD-EVT-06 — double authentification proposée au marié, jamais imposée.
 import { getTranslations } from "next-intl/server";
 import { confirmTotp, setupTotp, type ConfirmTotpResult } from "@symbola/auth";
 import { appDatabase } from "@symbola/db/client";
@@ -26,7 +26,7 @@ export async function confirmClientMfaAction(prevState: ClientMfaFormState, form
   const auth = await getClientAuthContext();
   const sessionToken = await getSessionToken();
   if (auth.status !== "authenticated" || !sessionToken) return { error: t("unauthenticated") };
-  // SEC-02 (ADR 0044) : même limite que la double authentification de la connexion.
+  // L16-SEC-02 (ADR 0044) : même limite que la double authentification de la connexion.
   const limited = await checkRateLimit("mfa", { account: auth.user.id });
   if (!limited.allowed) return { ...prevState, error: await rateLimitMessage(limited.retryAfterSeconds) };
   const db = appDatabase();
@@ -36,7 +36,7 @@ export async function confirmClientMfaAction(prevState: ClientMfaFormState, form
     return { ...prevState, error: t("mfaLocked") };
   }
   if (result.outcome === "invalid") return { ...prevState, error: t("mfaInvalidCode") };
-  // SEC-01 : nouveau jeton de session après la double authentification.
+  // L16-SEC-01 : nouveau jeton de session après la double authentification.
   await setSessionCookie(result.sessionToken);
   return { enabled: true };
 }

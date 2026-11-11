@@ -24,7 +24,7 @@ export const eventStatusChangedPayloadSchema = z.object({
 
 export type EventStatusChangedPayload = z.infer<typeof eventStatusChangedPayloadSchema>;
 
-// EVT-03 : un poste prestataire passe à Réservé, ou le montant d'un poste
+// PRD-EVT-03 : un poste prestataire passe à Réservé, ou le montant d'un poste
 // déjà réservé change. Le futur module Budget s'y abonne pour alimenter le
 // « réel » de la ligne correspondante et garde la dernière valeur reçue
 // pour chaque vendorSlotId. Le nom

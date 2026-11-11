@@ -12,17 +12,17 @@ import { generateSessionToken, hashSessionToken } from "./session-token";
 import { isSealedTotpSecret, openTotpSecret, readMfaEncryptionKey, sealTotpSecret } from "./secret-box";
 import { buildTotpProvisioningUri, generateTotpSecret, matchTotpStep } from "./totp";
 
-const SESSION_DURATION_MS = 8 * 60 * 60 * 1000; // 8h sans activité (PRD HUB-01, proposé)
-// Verrouillage de compte (PRD HUB-01) : 5 mots de passe faux d'affilée
+const SESSION_DURATION_MS = 8 * 60 * 60 * 1000; // 8h sans activité (PRD PRD-HUB-01, proposé)
+// Verrouillage de compte (PRD PRD-HUB-01) : 5 mots de passe faux d'affilée
 // bloquent la connexion 15 min, un e-mail part au titulaire.
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCKOUT_DURATION_MS = 15 * 60 * 1000;
-// SEC-01 (lot 16, ADR 0037) : même règle pour le code de double
+// L16-SEC-01 (lot 16, ADR 0037) : même règle pour le code de double
 // authentification, comptée par compte (une nouvelle connexion ne la remet
 // pas à zéro).
 const MFA_MAX_FAILED_ATTEMPTS = 5;
 const MFA_LOCKOUT_DURATION_MS = 15 * 60 * 1000;
-// SEC-03 (lot 16, ADR 0038) : un appareil de confiance est dispensé du code
+// L16-SEC-03 (lot 16, ADR 0038) : un appareil de confiance est dispensé du code
 // pendant 90 jours (décision de Julien du 08/11/2026), jamais pour l'Admin.
 const TRUSTED_DEVICE_DURATION_MS = 90 * 24 * 60 * 60 * 1000;
 
@@ -31,11 +31,11 @@ export type AuthenticatedUser = {
   email: string;
   role: Role;
   organizationId: string | null;
-  // Choix explicite dans le profil (HUB-04) ; nul = pas encore choisi.
+  // Choix explicite dans le profil (PRD-HUB-04) ; nul = pas encore choisi.
   language: "fr" | "en" | null;
   // AIDE-04 : liste « premiers pas » masquée par l'utilisateur.
   firstStepsHidden: boolean;
-  // EVT-06 : double authentification activée (obligatoire pour les rôles
+  // PRD-EVT-06 : double authentification activée (obligatoire pour les rôles
   // professionnels, facultative pour un marié).
   mfaEnabled: boolean;
 };
@@ -77,7 +77,7 @@ export async function createUser(
 }
 
 export type LoginOptions = {
-  // SEC-03 : jeton du cookie d'appareil de confiance de ce navigateur, s'il y en a un.
+  // L16-SEC-03 : jeton du cookie d'appareil de confiance de ce navigateur, s'il y en a un.
   trustedDeviceToken?: string | undefined;
   // Horloge simulée (tests) pour l'échéance de l'appareil de confiance.
   now?: Date | undefined;
@@ -116,8 +116,8 @@ export async function login(db: AppDatabase, email: string, password: string, op
   await db.update(users).set({ failedLoginAttempts: 0, lockedUntil: null, lastLoginAt: new Date() }).where(eq(users.id, user.id));
 
   // Un marié n'y est pas obligé, mais une fois activée elle s'applique à
-  // chaque connexion (EVT-06).
-  // SEC-03 : un appareil de confiance encore valide de ce compte dispense du code.
+  // chaque connexion (PRD-EVT-06).
+  // L16-SEC-03 : un appareil de confiance encore valide de ce compte dispense du code.
   const mfaExpected = isProfessionalRole(user.role) || user.mfaEnabled;
   const trusted = mfaExpected && (await useTrustedDevice(db, user, options));
   const requiresMfa = mfaExpected && !trusted;
@@ -156,7 +156,7 @@ async function useTrustedDevice(
   return used.length > 0;
 }
 
-/** SEC-03 : appareils de confiance encore valides du compte (écran du profil). */
+/** L16-SEC-03 : appareils de confiance encore valides du compte (écran du profil). */
 export async function countTrustedDevices(db: AppDatabase, userId: string, now: Date = new Date()): Promise<number> {
   const [row] = await db
     .select({ count: sql<number>`count(*)::int` })
@@ -165,7 +165,7 @@ export async function countTrustedDevices(db: AppDatabase, userId: string, now: 
   return row?.count ?? 0;
 }
 
-/** SEC-03 : « oublier mes appareils » ; renvoie le nombre d'appareils oubliés. */
+/** L16-SEC-03 : « oublier mes appareils » ; renvoie le nombre d'appareils oubliés. */
 export async function forgetTrustedDevices(db: AppDatabase, userId: string): Promise<number> {
   const forgotten = await db.delete(trustedDevices).where(eq(trustedDevices.userId, userId)).returning({ id: trustedDevices.id });
   return forgotten.length;
@@ -173,7 +173,7 @@ export async function forgetTrustedDevices(db: AppDatabase, userId: string): Pro
 
 export async function setupTotp(db: AppDatabase, userId: string) {
   const secret = generateTotpSecret();
-  // SEC-01 : jamais en clair en base.
+  // L16-SEC-01 : jamais en clair en base.
   const [user] = await db
     .update(users)
     .set({ totpSecret: sealTotpSecret(secret, userId, readMfaEncryptionKey()), totpLastUsedStep: null, mfaFailedAttempts: 0, mfaLockedUntil: null })
@@ -208,9 +208,9 @@ export async function resumeTotpSetup(db: AppDatabase, userId: string) {
 }
 
 export type ConfirmTotpResult =
-  // Nouveau jeton de session : l'ancien est révoqué (SEC-01), l'appelant
+  // Nouveau jeton de session : l'ancien est révoqué (L16-SEC-01), l'appelant
   // remplace le cookie.
-  // deviceToken (SEC-03) : à poser dans le cookie d'appareil de confiance quand
+  // deviceToken (L16-SEC-03) : à poser dans le cookie d'appareil de confiance quand
   // « se souvenir de cet appareil » était coché (jamais pour l'Admin).
   | { outcome: "confirmed"; sessionToken: string; deviceToken?: string }
   | { outcome: "invalid" }
@@ -222,7 +222,7 @@ type MfaAccount = { userId: string; email: string; language: "fr" | "en" | null 
 
 /**
  * Vérifie un code TOTP pour la session en cours. Sert à la configuration
- * initiale comme aux connexions suivantes. SEC-01 (lot 16, ADR 0037) :
+ * initiale comme aux connexions suivantes. L16-SEC-01 (lot 16, ADR 0037) :
  * - 5 codes faux d'affilée verrouillent la validation 15 min pour le compte,
  *   même un code juste est alors refusé ;
  * - un code ne sert qu'une fois (pas de temps du dernier code accepté) ;
@@ -325,7 +325,7 @@ async function recordMfaFailure(db: AppDatabase, account: MfaAccount, now: Date)
 }
 
 /**
- * SEC-01 (ADR 0037) — chiffre les secrets encore en clair (comptes créés avant
+ * L16-SEC-01 (ADR 0037) — chiffre les secrets encore en clair (comptes créés avant
  * le lot 16). Lancé au démarrage de l'app ; sans effet s'il n'y en a plus.
  * `userIds` limite aux comptes donnés (tests). Renvoie le nombre chiffré.
  */
@@ -406,7 +406,7 @@ export async function requireUser(
   if (!row) return { status: "unauthenticated" };
   if (row.expiresAt.getTime() < Date.now()) return { status: "unauthenticated" };
 
-  // Session glissante (PRD HUB-01, « 8h sans activité ») : chaque appel
+  // Session glissante (PRD PRD-HUB-01, « 8h sans activité ») : chaque appel
   // réussi repousse l'expiration, plutôt qu'une durée fixe depuis la
   // connexion.
   await db
@@ -432,7 +432,7 @@ export async function requireUser(
   };
 }
 
-// EVT-06 — invitation d'un marié : savoir si l'e-mail a déjà un compte, et
+// PRD-EVT-06 — invitation d'un marié : savoir si l'e-mail a déjà un compte, et
 // lequel (rôle, organisation), sans exposer le reste du compte.
 export async function findAccountByEmail(
   db: AppDatabase,
@@ -449,7 +449,7 @@ export async function destroySession(db: AppDatabase, sessionToken: string): Pro
   await db.delete(sessions).where(eq(sessions.tokenHash, hashSessionToken(sessionToken)));
 }
 
-// HUB-04 — « Quand il choisit FR ou EN dans son profil, toutes les apps
+// PRD-HUB-04 — « Quand il choisit FR ou EN dans son profil, toutes les apps
 // s'affichent dans cette langue. »
 export async function setUserLanguage(db: AppDatabase, userId: string, language: "fr" | "en"): Promise<void> {
   await db.update(users).set({ language }).where(eq(users.id, userId));

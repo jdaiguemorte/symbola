@@ -1,6 +1,6 @@
 "use server";
 
-// EVT-04 — modèles de rétroplanning de l'organisation. Lot 21 (EVT-22) : la
+// PRD-EVT-04 — modèles de rétroplanning de l'organisation. Lot 21 (L21-EVT-22) : la
 // liste des modèles, puis le détail d'un modèle ; une tâche se modifie sans
 // être recréée, un modèle se renomme.
 import { revalidatePath } from "next/cache";

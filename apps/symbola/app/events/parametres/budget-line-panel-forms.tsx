@@ -1,6 +1,6 @@
 "use client";
 
-// Lot 13 (HUB-16) — formulaires du panneau latéral des lignes du budget :
+// Lot 13 (L13-HUB-16) — formulaires du panneau latéral des lignes du budget :
 // libellés visibles, champs empilés, icône choisie dans la liste commune.
 import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";

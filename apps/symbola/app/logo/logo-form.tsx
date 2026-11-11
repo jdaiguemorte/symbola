@@ -1,7 +1,7 @@
 "use client";
 
 // Lot 17 (DEV-08) — logo des documents : aperçu, envoi par la route dédiée
-// (/logo, SEC-02), retrait. Sur Paramètres › Ventes › Documents et sur
+// (/logo, L16-SEC-02), retrait. Sur Paramètres › Ventes › Documents et sur
 // Entreprise et TVA (décision A).
 import { useId } from "react";
 import { useTranslations } from "next-intl";

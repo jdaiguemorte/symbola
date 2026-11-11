@@ -1,5 +1,5 @@
-// Lot 11 — prestataires consultés (EVT-10/11) et carnet de prestataires
-// (PRE-01 à PRE-07, HUB-12), en taille ordinateur et en 375 px, axe-core.
+// Lot 11 — prestataires consultés (L11-EVT-10/11) et carnet de prestataires
+// (L11-PRE-01 à L11-PRE-07, L11-HUB-12), en taille ordinateur et en 375 px, axe-core.
 // Géocodeur simulé (hors production) ; pas de fond de carte installé : la
 // liste, les filtres et les distances fonctionnent quand même.
 import { randomUUID } from "node:crypto";
@@ -49,7 +49,7 @@ async function plannerOrganization() {
   }
 }
 
-test("EVT-10 / EVT-11 — comparer deux devis pour une ligne du budget, retenir, et ce que voient les clients", async ({ page, browser }) => {
+test("L11-EVT-10 / L11-EVT-11 — comparer deux devis pour une ligne du budget, retenir, et ce que voient les clients", async ({ page, browser }) => {
   const planner = await plannerOrganization();
   await addDefaultVendorSlots(planner.organizationId, ["Lieu de réception", "Traiteur"]);
   const source = await createProspectSource(planner.organizationId, "Salon");
@@ -125,17 +125,17 @@ test("EVT-10 / EVT-11 — comparer deux devis pour une ligne du budget, retenir,
   await clientContext.close();
 });
 
-test("PRE-01 à PRE-07 / HUB-12 — créer ses fiches, filtrer autour d'un lieu, retrouver par la recherche", async ({ page }) => {
+test("L11-PRE-01 à L11-PRE-07 / L11-HUB-12 — créer ses fiches, filtrer autour d'un lieu, retrouver par la recherche", async ({ page }) => {
   const planner = await plannerOrganization();
   await plannerLogin(page, planner.email, "mot-de-passe-presta");
 
-  // Lot 13 (HUB-16) : rubrique « Types de prestataires » des Paramètres.
+  // Lot 13 (L13-HUB-16) : rubrique « Types de prestataires » des Paramètres.
   await clickMenuLink(page, "Paramètres");
   const sections = page.getByRole("navigation", { name: "Rubriques des paramètres" });
   await sections.getByRole("link", { name: "Types de prestataires", exact: true }).click();
   await expect(sections.getByRole("link", { name: "Types de prestataires", exact: true })).toHaveAttribute("aria-current", "page");
   await page.getByRole("button", { name: "Ajouter les types de départ" }).click();
-  // Lot 16 (PRE-15) : types en tableau, rangés par famille.
+  // Lot 16 (L16-PRE-15) : types en tableau, rangés par famille.
   await expect(page.getByRole("region", { name: "Tableau des types" }).getByRole("link", { name: "Hôtel / hébergement" })).toBeVisible();
   await expectNoAxeViolation(page);
 
@@ -159,10 +159,10 @@ test("PRE-01 à PRE-07 / HUB-12 — créer ses fiches, filtrer autour d'un lieu,
   await openMenu(page);
   await page.locator("#app-menu").getByRole("link", { name: "Prestataires", exact: true }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Carnet de prestataires" })).toBeVisible();
-  // Lot 16 (PRE-14) : la famille, puis le type en second rang.
+  // Lot 16 (L16-PRE-14) : la famille, puis le type en second rang.
   await page.getByRole("navigation", { name: "Familles de prestataires" }).getByRole("link", { name: /^Lieux et hébergement/ }).click();
   await page.getByRole("navigation", { name: "Types de la famille Lieux et hébergement" }).getByRole("link", { name: /^Hôtel \/ hébergement/ }).click();
-  // Lot 13 (PRE-12) : barre de filtres ; l'adresse et les nombres
+  // Lot 13 (L13-PRE-12) : barre de filtres ; l'adresse et les nombres
   // s'appliquent en quittant le champ ou avec Entrée.
   const filters = page.getByRole("search", { name: "Filtres du carnet" });
   await filters.getByLabel("Autour de").fill("Lille");

@@ -1,4 +1,4 @@
-// Lot 21 (EVT-21, EVT-22) — modèles de programme et de rétroplanning : une
+// Lot 21 (L21-EVT-21, L21-EVT-22) — modèles de programme et de rétroplanning : une
 // ligne se modifie sans être recréée, un modèle se renomme. Contre un vrai
 // PostgreSQL (RLS, ADR 0012), par la porte d'entrée du module.
 import { randomUUID } from "node:crypto";
@@ -18,7 +18,7 @@ import {
   updateTaskTemplateItem,
 } from "./service";
 
-describe("EVT-21 — Programme du jour J : la liste des modèles, puis le détail", () => {
+describe("L21-EVT-21 — Programme du jour J : la liste des modèles, puis le détail", () => {
   it("quand elle modifie une ligne d'un modèle, alors la ligne change à sa place, sans être recréée", async () => {
     const organizationId = randomUUID();
     const template = await createProgramTemplate(organizationId, "Mariage en domaine", [
@@ -68,7 +68,7 @@ describe("EVT-21 — Programme du jour J : la liste des modèles, puis le détai
   });
 });
 
-describe("EVT-22 — Rétroplanning sur le même modèle", () => {
+describe("L21-EVT-22 — Rétroplanning sur le même modèle", () => {
   it("quand elle modifie une tâche d'un modèle, alors l'échéance, l'intitulé et le responsable changent, à sa place", async () => {
     const organizationId = randomUUID();
     const template = await createTaskTemplate(organizationId, "Mariage court", [

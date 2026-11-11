@@ -1,4 +1,4 @@
-// EVT-06 — accès des mariés, contre un vrai PostgreSQL (RLS, ADR 0012) et
+// PRD-EVT-06 — accès des mariés, contre un vrai PostgreSQL (RLS, ADR 0012) et
 // Mailpit, par la porte d'entrée du module. Tests d'isolation obligatoires
 // (CLAUDE.md §6) : un marié n'accède qu'à son événement, jamais aux notes
 // internes, à un autre événement ni à une autre organisation.
@@ -64,7 +64,7 @@ async function inviteAndAccept(organizationId: string, eventId: string) {
   return { email, userId: auth.user.id, user: auth.user, access: invitation.access };
 }
 
-describe("EVT-06 — Accès des mariés", () => {
+describe("PRD-EVT-06 — Accès des mariés", () => {
   it("quand la planner invite un marié par e-mail, il crée son propre compte, sans double authentification imposée", async () => {
     const { organizationId, eventId } = await setup();
     const email = `marie-${randomUUID()}@example.test`;
@@ -218,7 +218,7 @@ describe("EVT-06 — Accès des mariés", () => {
   });
 });
 
-describe("EVT-06 — Isolation d'un compte marié", () => {
+describe("PRD-EVT-06 — Isolation d'un compte marié", () => {
   it("étant donné un compte marié, l'accès à un autre événement de la même organisation est refusé", async () => {
     const { organizationId, eventId } = await setup();
     const source = await createProspectSource(organizationId, "Salon 2");

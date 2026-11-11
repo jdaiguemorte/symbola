@@ -1,6 +1,6 @@
 "use server";
 
-// Lot 16 (PRE-15, ADR 0040) — actions des réglages des types : familles
+// Lot 16 (L16-PRE-15, ADR 0040) — actions des réglages des types : familles
 // (créer, renommer, couleur, pictogramme, ordre, supprimer une famille vide),
 // types (renommer, changer de famille, fusionner, supprimer en déplaçant les
 // fiches). Session, organisation et module vérifiés côté serveur à chaque

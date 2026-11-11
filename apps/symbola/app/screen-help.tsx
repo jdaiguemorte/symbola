@@ -1,6 +1,6 @@
 "use client";
 
-// Lot 13 (AIDE-11, ADR 0033), revu au lot 16 (HUB-19, ADR 0039) — aide d'un
+// Lot 13 (AIDE-11, ADR 0033), revu au lot 16 (L16-HUB-19, ADR 0039) — aide d'un
 // écran sans repères. Dans l'app, l'écran DÉCLARE son texte d'aide : le « ? »
 // de la barre du haut l'ouvre. Hors de l'app (connexion, double
 // authentification, invitation : pas de barre du haut), le bouton reste dans

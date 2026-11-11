@@ -1,4 +1,4 @@
-// Lot 16 (SEC-02, ADR 0044) — limitation de débit : depuis une même adresse,
+// Lot 16 (L16-SEC-02, ADR 0044) — limitation de débit : depuis une même adresse,
 // la sixième demande de lien « mot de passe oublié » de l'heure est refusée,
 // avec un message qui dit combien de minutes attendre. Ordinateur et 375 px,
 // axe-core. L'adresse du client est celle que le proxy pose dans
@@ -7,7 +7,7 @@ import { randomUUID } from "node:crypto";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-test("SEC-02 — au-delà de 5 demandes de lien par adresse en une heure, un message dit combien de minutes attendre", async ({ page }) => {
+test("L16-SEC-02 — au-delà de 5 demandes de lien par adresse en une heure, un message dit combien de minutes attendre", async ({ page }) => {
   await page.setExtraHTTPHeaders({ "X-Forwarded-For": `203.0.113.${Math.floor(Math.random() * 250) + 1}-${randomUUID().slice(0, 8)}` });
 
   async function askForLink() {

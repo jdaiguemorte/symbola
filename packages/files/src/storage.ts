@@ -54,7 +54,7 @@ export class PrivateObjectNotFoundError extends Error {
 export type PrivateObject = { data: Buffer; contentType: string | null };
 
 // Lecture côté serveur d'un objet privé, sans jamais l'exposer par une URL :
-// logo intégré au PDF du programme (EVT-05), et téléchargements servis par
+// logo intégré au PDF du programme (PRD-EVT-05), et téléchargements servis par
 // l'app après contrôle des droits (ADR 0027) — Garage n'est joignable que
 // depuis le réseau Docker de l'environnement.
 export async function readPrivateObject(storage: ReturnType<typeof createStorageClient>, key: string): Promise<PrivateObject> {

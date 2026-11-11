@@ -17,7 +17,7 @@ export type VendorTypeField = {
   position: number;
 };
 
-// Lot 16 (PRE-14, ADR 0040) — familles de types, propres à l'organisation.
+// Lot 16 (L16-PRE-14, ADR 0040) — familles de types, propres à l'organisation.
 // icon : clé d'icône connue de l'app (BUDGET_LINE_ICONS, starter-templates).
 // starterKey : famille de départ dont elle vient (nulle si créée par l'organisation).
 export type VendorFamily = { id: string; label: string; color: string; icon: string; position: number; starterKey: string | null };
@@ -54,14 +54,14 @@ export type VendorTagGroupInput = { label: string; exclusive: boolean };
 // Paliers repérés dans les étiquettes sans groupe (« 100 à 150 personnes »…).
 export type VendorTagTierProposal = { unit: string; tags: { id: string; label: string }[] };
 
-// Lot 21 (PRE-18, ADR 0050) — étiquettes de départ : groupes (certains
+// Lot 21 (L21-PRE-18, ADR 0050) — étiquettes de départ : groupes (certains
 // « paliers »), libellé dans la langue de l'organisation, libellés connus pour
 // reconnaître une étiquette existante, familles de départ visées (vide = toutes).
 export type StarterVendorTagCatalogInput = { label: string; exclusive: boolean; tags: { label: string; aliases: string[]; familyKeys: string[] }[] }[];
 
 export type VendorTagSeedResult = { created: number; placed: number };
 
-// Lot 21 (PRE-19) — rangement des étiquettes sans famille ni groupe (reprises
+// Lot 21 (L21-PRE-19) — rangement des étiquettes sans famille ni groupe (reprises
 // de l'import) : ce qui change, ou a changé.
 export type VendorTagArrangement = {
   changed: boolean;
@@ -132,7 +132,7 @@ export type VendorInput = {
 
 export type SaveVendorResult = { vendor: Vendor; geocoding: "placed" | "not_found" | "unchanged" | "no_address" };
 
-// PRE-07 — trajet estimé (toujours affiché « estimation »).
+// L11-PRE-07 — trajet estimé (toujours affiché « estimation »).
 export type TravelEstimate = { distanceKm: number; minutes: number };
 export type VendorSettings = { detourFactorPermille: number; averageSpeedKmh: number };
 
@@ -143,7 +143,7 @@ export type FindVendorsInput = {
   organizationId: string;
   text?: string;
   typeIds?: string[];
-  // Lot 16 (PRE-14) : les types d'une famille, ou « à classer » (types sans
+  // Lot 16 (L16-PRE-14) : les types d'une famille, ou « à classer » (types sans
   // famille et fiches sans type).
   familyId?: string;
   unclassified?: boolean;
@@ -160,7 +160,7 @@ export type FindVendorsInput = {
 
 export type VendorListItem = VendorSummary & { travel: TravelEstimate | null };
 
-// PRE-09 — historique d'un prestataire avec l'organisation.
+// L11-PRE-09 — historique d'un prestataire avec l'organisation.
 export type VendorHistoryOutcome = "selected" | "not_selected" | "pending";
 export type VendorHistoryEntry = {
   eventId: string;
@@ -179,7 +179,7 @@ export type VendorsServiceContract = {
   listVendorTypes(organizationId: string): Promise<VendorType[]>;
   createVendorType(organizationId: string, label: string, color: string): Promise<VendorType>;
   renameVendorType(organizationId: string, typeId: string, label: string, color: string): Promise<void>;
-  // PRE-15 : un type qui a des fiches n'est supprimé qu'en disant où elles vont
+  // L16-PRE-15 : un type qui a des fiches n'est supprimé qu'en disant où elles vont
   // (un autre type, ou null pour « à classer ») ; jamais en silence.
   removeVendorType(organizationId: string, typeId: string, options?: { moveVendorsTo?: string | null }): Promise<void>;
   setVendorTypeFamily(organizationId: string, typeId: string, familyId: string | null): Promise<void>;
@@ -212,7 +212,7 @@ export type VendorsServiceContract = {
   listVendorTagTierProposals(organizationId: string): Promise<VendorTagTierProposal[]>;
   // Range les étiquettes d'une proposition dans un nouveau groupe « palier ».
   applyVendorTagTierProposal(organizationId: string, unit: string, groupLabel: string): Promise<VendorTagGroup | null>;
-  // Lot 21 (PRE-18, PRE-19, ADR 0050).
+  // Lot 21 (L21-PRE-18, L21-PRE-19, ADR 0050).
   seedStarterVendorTags(organizationId: string, catalog: StarterVendorTagCatalogInput): Promise<VendorTagSeedResult>;
   countMissingStarterVendorTags(organizationId: string, catalog: StarterVendorTagCatalogInput): Promise<number>;
   previewVendorTagArrangement(organizationId: string, catalog: StarterVendorTagCatalogInput): Promise<VendorTagArrangement>;

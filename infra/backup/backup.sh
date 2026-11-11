@@ -10,7 +10,7 @@
 # Étapes : dump PostgreSQL vérifié → arrêt bref de Garage (fichiers cohérents) →
 # instantané restic unique → redémarrage → rétention → contrôle hebdomadaire du dépôt →
 # signal « push » à Uptime Kuma, envoyé seulement si tout a réussi. Chaque exécution est
-# aussi signalée à l'app (table hub.backup_runs : début, fin, résultat, taille ; HUB-18,
+# aussi signalée à l'app (table hub.backup_runs : début, fin, résultat, taille ; L13-HUB-18,
 # ADR 0033), pour la console d'Administration.
 set -euo pipefail
 
@@ -21,7 +21,7 @@ here=$(cd "$(dirname "$0")" && pwd)
 load_config "${1:-}"
 take_lock
 
-# HUB-18 — requête dans la base de l'environnement, avec le rôle d'administration du
+# L13-HUB-18 — requête dans la base de l'environnement, avec le rôle d'administration du
 # conteneur postgres (ses variables : aucun identifiant ne transite par ce script).
 # shellcheck disable=SC2016
 app_sql() {

@@ -1,6 +1,6 @@
 "use client";
 
-// Lot 20 (PRE-17) — une action lourde (archiver un prestataire…) se confirme
+// Lot 20 (L20-PRE-17) — une action lourde (archiver un prestataire…) se confirme
 // dans une fenêtre qui nomme ce qui va changer. La fenêtre est un <dialog>
 // natif : focus gardé dedans, Échap pour annuler.
 import { useId, useRef, type ReactNode } from "react";

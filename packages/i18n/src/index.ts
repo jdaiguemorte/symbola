@@ -1,4 +1,4 @@
-// Point d'entrée de @symbola/i18n (CLAUDE.md §4, HUB-04) : langues
+// Point d'entrée de @symbola/i18n (CLAUDE.md §4, PRD-HUB-04) : langues
 // prises en charge, formats commun date/montant. Les catalogues de
 // messages (fr.json/en.json) sont importés directement par leur chemin
 // (voir package.json "exports") depuis la config next-intl de l'app.
@@ -129,7 +129,7 @@ export function parisToday(now: Date = new Date()): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Paris", year: "numeric", month: "2-digit", day: "2-digit" }).format(now);
 }
 
-// Lot 13 (HUB-15) — jours entiers écoulés, à Paris, depuis un instant :
+// Lot 13 (L13-HUB-15) — jours entiers écoulés, à Paris, depuis un instant :
 // un devis envoyé la veille à 23 h 30 compte 1 jour le lendemain, quel que
 // soit le passage à l'heure d'hiver ou d'été.
 export function parisDaysSince(instant: Date, now: Date = new Date()): number {
@@ -138,7 +138,7 @@ export function parisDaysSince(instant: Date, now: Date = new Date()): number {
   return Math.round((to - from) / 86_400_000);
 }
 
-// Taille d'un fichier joint (BUD-03), en Ko ou Mo selon la langue.
+// Taille d'un fichier joint (PRD-BUD-03), en Ko ou Mo selon la langue.
 export function formatFileSize(bytes: number, locale: Locale): string {
   const megabytes = bytes >= 1024 * 1024;
   const value = megabytes ? bytes / (1024 * 1024) : Math.max(bytes / 1024, 0.1);
@@ -147,7 +147,7 @@ export function formatFileSize(bytes: number, locale: Locale): string {
   return `${number} ${unit}`;
 }
 
-// Langue par défaut d'un nouvel utilisateur (HUB-04) : celle de son
+// Langue par défaut d'un nouvel utilisateur (PRD-HUB-04) : celle de son
 // navigateur, français si elle n'est ni FR ni EN.
 export function localeFromAcceptLanguage(header: string | null): Locale {
   if (!header) return DEFAULT_LOCALE;

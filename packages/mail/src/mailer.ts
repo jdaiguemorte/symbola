@@ -1,4 +1,4 @@
-// Porte d'entrée unique pour l'envoi d'e-mails (SOC-04, HUB-01). Mailpit en
+// Porte d'entrée unique pour l'envoi d'e-mails (SOC-04, PRD-HUB-01). Mailpit en
 // dev (sans authentification) ; un vrai serveur SMTP en staging/production
 // (packages/env : SMTP_HOST/PORT/USER/PASSWORD/FROM).
 import nodemailer from "nodemailer";

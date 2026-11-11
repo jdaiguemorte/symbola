@@ -1,4 +1,4 @@
-// BUD-03 — devis prestataire joint à une ligne de budget, contre un vrai
+// PRD-BUD-03 — devis prestataire joint à une ligne de budget, contre un vrai
 // PostgreSQL (RLS), ClamAV et le stockage objet, par la porte d'entrée du
 // module.
 import { randomUUID } from "node:crypto";
@@ -46,7 +46,7 @@ async function createLine(organizationId: string) {
   return { eventId: event.id, eventVendorSlotId: slot!.id };
 }
 
-describe("BUD-03 — Devis prestataire joint", () => {
+describe("PRD-BUD-03 — Devis prestataire joint", () => {
   it("un devis PDF joint à une ligne s'ouvre par un lien signé temporaire", async () => {
     const organizationId = randomUUID();
     const { eventId, eventVendorSlotId } = await createLine(organizationId);
@@ -127,7 +127,7 @@ describe("BUD-03 — Devis prestataire joint", () => {
   });
 });
 
-describe("BUD-03 — Isolation entre organisations", () => {
+describe("PRD-BUD-03 — Isolation entre organisations", () => {
   it("une organisation ne joint rien au budget d'une autre et n'ouvre jamais ses devis", async () => {
     const organizationId = randomUUID();
     const otherOrganizationId = randomUUID();

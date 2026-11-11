@@ -1,4 +1,4 @@
-// BUD-01 — modèles de répartition (total 100 % obligatoire), simulation
+// PRD-BUD-01 — modèles de répartition (total 100 % obligatoire), simulation
 // pour un prospect (montant par poste, coût par invité), ajustement d'un
 // poste à la main. En taille ordinateur et en 375 px, axe-core sur chaque
 // écran.
@@ -28,7 +28,7 @@ async function expectNoAxeViolation(page: Page) {
   expect(result.violations, JSON.stringify(result.violations, null, 2)).toEqual([]);
 }
 
-test("BUD-01 — modèle de répartition, simulation et ajustement d'une ligne", async ({ page }) => {
+test("PRD-BUD-01 — modèle de répartition, simulation et ajustement d'une ligne", async ({ page }) => {
   const email = `planner-bud01-${randomUUID()}@symbola.test`;
   const password = "mot-de-passe-bud01-e2e";
   const { sql, db } = createAppConnection();
@@ -40,8 +40,8 @@ test("BUD-01 — modèle de répartition, simulation et ajustement d'une ligne",
   }
   await loginAndSetupMfa(page, email, password);
 
-  // Lignes du budget par défaut (EVT-03, prérequis du modèle de
-  // répartition) puis source (EVT-07, prérequis de la création d'un
+  // Lignes du budget par défaut (PRD-EVT-03, prérequis du modèle de
+  // répartition) puis source (PRD-EVT-07, prérequis de la création d'un
   // prospect).
   await page.goto("/events/parametres");
   await page.getByRole("button", { name: "Charger le modèle de départ" }).click();
@@ -51,7 +51,7 @@ test("BUD-01 — modèle de répartition, simulation et ajustement d'une ligne",
   await page.getByRole("button", { name: "Ajouter la source" }).click();
   await expect(page.getByRole("listitem").filter({ hasText: "Instagram" })).toBeVisible();
 
-  // BUD-01 : un modèle dont le total ne fait pas 100 % est refusé.
+  // PRD-BUD-01 : un modèle dont le total ne fait pas 100 % est refusé.
   await page.goto("/budget/parametres");
   await page.waitForLoadState("networkidle");
   await page.getByLabel("Nom du modèle").fill("Incomplet");
@@ -68,15 +68,15 @@ test("BUD-01 — modèle de répartition, simulation et ajustement d'une ligne",
   await expect(page.getByText("Modèle créé.")).toBeVisible();
   await expect(page.getByRole("listitem").filter({ hasText: "Classique" })).toBeVisible();
 
-  // Création du prospect (EVT-07).
+  // Création du prospect (PRD-EVT-07).
   await page.goto("/events/new");
   await page.getByLabel("Prénom du premier marié", { exact: true }).fill("Camille");
   await page.getByLabel("Source du prospect").selectOption({ label: "Instagram" });
   await page.getByRole("button", { name: "Créer le prospect" }).click();
   await expect(page.getByRole("heading", { name: "Camille" })).toBeVisible();
 
-  // BUD-01 : accès à la simulation depuis la fiche événement.
-  // Lot 12 (EVT-17) : le budget est un onglet de la fiche ; le module
+  // PRD-BUD-01 : accès à la simulation depuis la fiche événement.
+  // Lot 12 (L12-EVT-17) : le budget est un onglet de la fiche ; le module
   // Budget s'ouvre depuis son lien.
   await openEventTab(page, "Budget");
   await page.getByRole("link", { name: "Proposer des montants prévus, historique et devis joints" }).click();
@@ -90,13 +90,13 @@ test("BUD-01 — modèle de répartition, simulation et ajustement d'une ligne",
 
   await expect(page.getByText("250,00 €", { exact: false })).toBeVisible();
 
-  // Ajustement d'un poste à la main (EVT-03/BUD-01 : le reste à répartir
+  // Ajustement d'un poste à la main (PRD-EVT-03/PRD-BUD-01 : le reste à répartir
   // se recalcule) — scopé à la ligne « Lieu de réception », l'ordre des
   // postes n'étant pas garanti.
   const lieuItem = page.getByRole("listitem").filter({ has: page.getByLabel("Lieu de réception", { exact: true }) });
   await lieuItem.getByLabel("Lieu de réception", { exact: true }).fill("7000");
   await lieuItem.getByRole("button", { name: "Ajuster" }).click();
-  // Lot 16 (HUB-20) : chiffres clés en grille (terme, valeur).
+  // Lot 16 (L16-HUB-20) : chiffres clés en grille (terme, valeur).
   await expect(page.getByRole("term").filter({ hasText: "Reste à répartir" })).toBeVisible();
   await expectNoAxeViolation(page);
 });

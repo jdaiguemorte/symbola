@@ -1,6 +1,6 @@
 "use client";
 
-// HUB-02 — choix de la durée affichée (3, 6 ou 12 mois), retenu pour la
+// PRD-HUB-02 — choix de la durée affichée (3, 6 ou 12 mois), retenu pour la
 // prochaine visite dans un cookie (préférence d'affichage, sans donnée
 // personnelle).
 import Link from "next/link";

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { summarizeVendorSlots } from "./service";
 
-describe("EVT-03 — Barre d'avancement des postes", () => {
+describe("PRD-EVT-03 — Barre d'avancement des postes", () => {
   it("compte les postes réservés sur les postes requis, sans les postes non requis", () => {
     expect(
       summarizeVendorSlots([

@@ -41,7 +41,7 @@ par Julien et la wedding planner pilote ; spécification : `docs/lots/lot-10-aid
    (`translate()` + `lower()` côté base, repli en JS côté terme, `@symbola/db/search`) ; chaque mot
    doit se trouver. Aide et écrans : articles et tutoriels traduits, selon les modules et le rôle.
    Les recherches ne sont pas journalisées (un mot cherché peut être un nom de client).
-6. **Suivi Admin** (HUB-11) : progression de chaque compte d'équipe dans l'aide, dans le cadre de
+6. **Suivi Admin** (L10-HUB-11) : progression de chaque compte d'équipe dans l'aide, dans le cadre de
    l'ADR 0029 (aucune donnée d'événement).
 
 ## Conséquences

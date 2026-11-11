@@ -17,7 +17,7 @@ const user = (role: "owner" | "member" | "client" | "admin") => ({
   },
 });
 
-describe("EVT-06 — Écrans de la planner fermés aux comptes marié", () => {
+describe("PRD-EVT-06 — Écrans de la planner fermés aux comptes marié", () => {
   it("laisse passer la titulaire et les membres", () => {
     expect(toPlannerAuth(user("owner"))).toEqual(user("owner"));
     expect(toPlannerAuth(user("member"))).toEqual(user("member"));
@@ -39,7 +39,7 @@ describe("EVT-06 — Écrans de la planner fermés aux comptes marié", () => {
   });
 });
 
-describe("EVT-06 — Espace du marié réservé aux comptes marié", () => {
+describe("PRD-EVT-06 — Espace du marié réservé aux comptes marié", () => {
   it("laisse passer un compte marié, refuse la planner et l'Admin", () => {
     expect(toClientAuth(user("client"))).toEqual(user("client"));
     expect(toClientAuth(user("owner"))).toEqual({ status: "forbidden", role: "owner" });

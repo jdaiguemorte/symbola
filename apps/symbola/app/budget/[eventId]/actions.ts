@@ -125,7 +125,7 @@ export async function updateBudgetLineAction(
   }
 
   revalidatePath(`/budget/${eventId}`);
-  // Lot 12 (EVT-17) : le prévu se saisit aussi depuis l'onglet Budget de la fiche.
+  // Lot 12 (L12-EVT-17) : le prévu se saisit aussi depuis l'onglet Budget de la fiche.
   revalidatePath(`/events/${eventId}`);
   return { success: true };
 }
