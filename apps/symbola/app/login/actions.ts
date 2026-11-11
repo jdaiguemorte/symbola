@@ -6,6 +6,7 @@ import { login } from "@symbola/auth";
 import { appDatabase } from "@symbola/db/client";
 import { getTrustedDeviceToken, setSessionCookie } from "@/lib/auth-context";
 import { checkFailures, checkRateLimit, clearAccountFailures, longestWait, rateLimitMessage, recordFailure, requestClientIp } from "@/lib/rate-limit";
+import { isHoneypotFilled } from "@/lib/honeypot";
 
 export type LoginFormState = { error?: string };
 
@@ -15,6 +16,8 @@ export async function loginAction(
 ): Promise<LoginFormState> {
   const email = String(formData.get("email") ?? "");
   const password = String(formData.get("password") ?? "");
+  // Lot 24b (SEC-22) : envoi d'un robot, ignoré sans le lui dire.
+  if (isHoneypotFilled(formData)) return { error: (await getTranslations("Login"))("invalidCredentials") };
 
   // L16-SEC-02 (ADR 0044) : par adresse et par compte, avant tout contrôle du mot
   // de passe. Lot 24b (SEC-04) : après dix échecs, un délai qui double à chaque

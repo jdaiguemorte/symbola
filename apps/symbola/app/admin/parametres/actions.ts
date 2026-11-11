@@ -36,6 +36,8 @@ export async function savePlatformSettingsAction(
   const importUndoRetentionDays = positiveInteger(formData.get("importUndoRetentionDays"));
   const importMaxSheets = positiveInteger(formData.get("importMaxSheets"));
   const privacyExportRetentionDays = positiveInteger(formData.get("privacyExportRetentionDays"));
+  // Lot 24b (SEC-22, décision D5) : plafond d'e-mails par organisation et par heure.
+  const mailHourlyCap = positiveInteger(formData.get("mailHourlyCap"));
   if (
     !importMaxMegabytes ||
     importMaxMegabytes > IMPORT_MAX_MEGABYTES_CEILING ||
@@ -43,7 +45,8 @@ export async function savePlatformSettingsAction(
     !importDraftRetentionDays ||
     !importUndoRetentionDays ||
     !importMaxSheets ||
-    !privacyExportRetentionDays
+    !privacyExportRetentionDays ||
+    !mailHourlyCap
   ) {
     return { error: t("invalidImportLimits") };
   }
@@ -59,6 +62,7 @@ export async function savePlatformSettingsAction(
     importUndoRetentionDays,
     importMaxSheets,
     privacyExportRetentionDays,
+    mailHourlyCap,
   });
 
   revalidatePath("/admin/parametres");

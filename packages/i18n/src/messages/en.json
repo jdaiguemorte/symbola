@@ -101,7 +101,8 @@
     "documentsSettings": "Documents: logo, colour, IBAN",
     "privacySearch": "Find a person (GDPR)",
     "moreTasks": "{count, plural, one {And # more task.} other {And # more tasks.}}",
-    "moreFollowUps": "{count, plural, one {And # more to follow up.} other {And # more to follow up.}}"
+    "moreFollowUps": "{count, plural, one {And # more to follow up.} other {And # more to follow up.}}",
+    "mailQuotaReached": "Sending cap reached: {sent} emails sent in the last hour (cap: {cap}). Emails to signers and couples will resume around {time}."
   },
   "Admin": {
     "createOrganizationTitle": "Create an organization",
@@ -275,7 +276,9 @@
     "privacyLegend": "Personal data (GDPR)",
     "privacyExportRetentionDays": "How long a GDPR export stays downloadable (days)",
     "invalidImportLimits": "Import limits and the export duration must be positive whole numbers (20 MB at most).",
-    "importMaxSheets": "Event sheets (PDF) uploaded at once"
+    "importMaxSheets": "Event sheets (PDF) uploaded at once",
+    "mailLegend": "Email sending",
+    "mailHourlyCap": "Email cap per organization per hour (signers, invited couples)"
   },
   "Tour": {
     "hub": [
@@ -1295,7 +1298,8 @@
     "deleteTemplateTitle": "Delete the template “{name}”?",
     "deleteProgramTemplateBody": "Programmes already applied to events do not change.",
     "deleteTaskTemplateBody": "Tasks already created on events remain.",
-    "deleteTemplateConfirm": "Delete the template"
+    "deleteTemplateConfirm": "Delete the template",
+    "mailQuotaReached": "Sending cap reached: your organization has sent the maximum number of emails for this hour. Try again in {minutes} minutes."
   },
   "Budget": {
     "title": "Budget",
@@ -3957,7 +3961,8 @@
       "ops_backup_restored": "Backup restored",
       "quotes_original_altered": "Altered original detected",
       "quotes_ledger_anomaly_detected": "Anomaly in the document chain",
-      "quotes_archive_exported": "Accounting archive exported"
+      "quotes_archive_exported": "Accounting archive exported",
+      "hub_mail_quota_reached": "Hourly sending cap reached"
     },
     "categories": {
       "connexion": "Sign-ins",
@@ -4117,5 +4122,8 @@
     "intro": "Lost phone, shared computer? Close all your other sessions; this one stays open, and the two-factor code will be asked again everywhere.",
     "submit": "Sign out all my other devices",
     "done": "{count, plural, =0 {No other session was open.} one {# other session closed.} other {# other sessions closed.}} Your trusted devices are forgotten."
+  },
+  "Honeypot": {
+    "label": "Leave this field empty"
   }
 }

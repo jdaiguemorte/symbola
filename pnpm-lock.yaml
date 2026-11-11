@@ -358,6 +358,9 @@ importers:
 
   packages/mail:
     dependencies:
+      '@symbola/db':
+        specifier: workspace:*
+        version: link:../db
       '@symbola/env':
         specifier: workspace:*
         version: link:../env

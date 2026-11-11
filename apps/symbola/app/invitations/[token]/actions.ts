@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { checkPassword } from "@symbola/auth";
 import { appDatabase } from "@symbola/db/client";
 import { acceptInvitation } from "@/modules/hub/service";
+import { isHoneypotFilled } from "@/lib/honeypot";
 
 export type AcceptInvitationFormState = { error?: string; success?: boolean };
 
@@ -14,6 +15,8 @@ export async function acceptInvitationAction(
   const token = String(formData.get("token") ?? "");
   const password = String(formData.get("password") ?? "");
   const t = await getTranslations("Invitation");
+  // Lot 24b (SEC-22) : envoi d'un robot, ignoré.
+  if (isHoneypotFilled(formData)) return { error: t("invalidOrExpired") };
 
   if (!password) {
     return { error: t("missingPassword") };

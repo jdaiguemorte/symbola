@@ -7,7 +7,7 @@ import { parisDaysSince, parisToday } from "@symbola/i18n";
 import { checkPassword, createUser, findAccountByEmail, PASSWORD_MIN_LENGTH } from "@symbola/auth";
 import { appDatabase, type AppDatabase } from "@symbola/db/client";
 import { parseEnv } from "@symbola/env";
-import { sendMail } from "@symbola/mail";
+import { reserveOrganizationMail, sendMail } from "@symbola/mail";
 import { starterDemoEvent, starterProgram, starterRetroplanning, starterTutorialEvent, starterVendorSlots } from "@symbola/starter-templates";
 import {
   findEventNamesByIds,
@@ -1233,6 +1233,9 @@ export async function inviteEventClient(input: InviteEventClientInput): Promise<
     throw new ClientEmailUnavailableError();
   }
 
+  // Lot 24b (SEC-22, décision D5) : l'e-mail d'invitation est réservé avant
+  // tout, pour ne pas créer d'accès qu'on ne pourrait pas annoncer.
+  await reserveOrganizationMail(input.organizationId);
   const secret = account ? null : randomBytes(32).toString("base64url");
   const result = await saveClientAccess({
     organizationId: input.organizationId,

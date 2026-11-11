@@ -715,6 +715,13 @@
       "when": 1794435670662,
       "tag": "0101_lot24b_hub_member_removal",
       "breakpoints": true
+    },
+    {
+      "idx": 102,
+      "version": "7",
+      "when": 1794436027803,
+      "tag": "0102_lot24b_hub_mail_cap",
+      "breakpoints": true
     }
   ]
 }

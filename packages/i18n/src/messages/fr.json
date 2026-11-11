@@ -101,7 +101,8 @@
     "documentsSettings": "Documents : logo, couleur, IBAN",
     "privacySearch": "Rechercher une personne (RGPD)",
     "moreTasks": "{count, plural, one {Et # autre tâche.} other {Et # autres tâches.}}",
-    "moreFollowUps": "{count, plural, one {Et # autre à relancer.} other {Et # autres à relancer.}}"
+    "moreFollowUps": "{count, plural, one {Et # autre à relancer.} other {Et # autres à relancer.}}",
+    "mailQuotaReached": "Plafond d'envois atteint : {sent} e-mails envoyés dans l'heure (plafond : {cap}). Les e-mails aux signataires et aux mariés reprendront vers {time}."
   },
   "Admin": {
     "createOrganizationTitle": "Créer une organisation",
@@ -275,7 +276,9 @@
     "invalidImportLimits": "Les limites de l'import et la durée des exports doivent être des nombres entiers positifs (20 Mo au plus).",
     "privacyLegend": "Données personnelles (RGPD)",
     "privacyExportRetentionDays": "Durée pendant laquelle un export RGPD reste téléchargeable (jours)",
-    "importMaxSheets": "Fiches événement PDF déposées à la fois"
+    "importMaxSheets": "Fiches événement PDF déposées à la fois",
+    "mailLegend": "Envois d'e-mails",
+    "mailHourlyCap": "Plafond d'e-mails par organisation et par heure (signataires, mariés invités)"
   },
   "Tour": {
     "hub": [
@@ -1295,7 +1298,8 @@
     "deleteTemplateTitle": "Supprimer le modèle « {name} » ?",
     "deleteProgramTemplateBody": "Les programmes déjà appliqués aux événements ne changent pas.",
     "deleteTaskTemplateBody": "Les tâches déjà créées sur les événements restent.",
-    "deleteTemplateConfirm": "Supprimer le modèle"
+    "deleteTemplateConfirm": "Supprimer le modèle",
+    "mailQuotaReached": "Plafond d'envois atteint : votre organisation a envoyé le nombre maximal d'e-mails de l'heure. Réessayez dans {minutes} minutes."
   },
   "Budget": {
     "title": "Budget",
@@ -3957,7 +3961,8 @@
       "ops_backup_restored": "Sauvegarde restaurée",
       "quotes_original_altered": "Original altéré détecté",
       "quotes_ledger_anomaly_detected": "Anomalie dans la chaîne des pièces",
-      "quotes_archive_exported": "Archive comptable exportée"
+      "quotes_archive_exported": "Archive comptable exportée",
+      "hub_mail_quota_reached": "Plafond d'envois de l'heure atteint"
     },
     "categories": {
       "connexion": "Connexions",
@@ -4117,5 +4122,8 @@
     "intro": "Téléphone perdu, ordinateur partagé ? Fermez toutes vos autres sessions ; celle-ci reste ouverte, et le code de double authentification sera redemandé partout.",
     "submit": "Déconnecter tous mes autres appareils",
     "done": "{count, plural, =0 {Aucune autre session n'était ouverte.} one {# autre session fermée.} other {# autres sessions fermées.}} Vos appareils de confiance sont oubliés."
+  },
+  "Honeypot": {
+    "label": "Laisser ce champ vide"
   }
 }

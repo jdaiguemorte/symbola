@@ -3,11 +3,14 @@
 import { getTranslations } from "next-intl/server";
 import { resetPassword } from "@symbola/auth";
 import { appDatabase } from "@symbola/db/client";
+import { isHoneypotFilled } from "@/lib/honeypot";
 
 export type ResetPasswordFormState = { done?: boolean; error?: string };
 
 export async function resetPasswordAction(_prevState: ResetPasswordFormState, formData: FormData): Promise<ResetPasswordFormState> {
   const t = await getTranslations("PasswordReset");
+  // Lot 24b (SEC-22) : envoi d'un robot, ignoré.
+  if (isHoneypotFilled(formData)) return { error: t("invalidOrExpired") };
   const token = String(formData.get("token") ?? "");
   const password = String(formData.get("password") ?? "");
   if (password !== String(formData.get("confirmation") ?? "")) return { error: t("mismatch") };

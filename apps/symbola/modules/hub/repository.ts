@@ -131,6 +131,7 @@ export async function upsertPlatformSettings(
     importUndoRetentionDays?: number;
     importMaxSheets?: number;
     privacyExportRetentionDays?: number;
+    mailHourlyCap?: number;
   },
 ) {
   await db

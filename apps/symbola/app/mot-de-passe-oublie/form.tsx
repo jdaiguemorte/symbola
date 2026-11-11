@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { useTranslations } from "next-intl";
 import { forgotPasswordAction, type ForgotPasswordFormState } from "./actions";
+import { HoneypotField } from "@/app/ui/honeypot-field";
 
 export function ForgotPasswordForm() {
   const t = useTranslations("PasswordReset");
@@ -13,6 +14,7 @@ export function ForgotPasswordForm() {
 
   return (
     <form action={formAction}>
+        <HoneypotField />
       <label>
         {t("email")}
         <input type="email" name="email" autoComplete="email" required />

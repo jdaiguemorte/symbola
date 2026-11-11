@@ -118,3 +118,28 @@ describe("SEC-04 — Dix échecs déclenchent un délai croissant", { timeout: 6
     expect(await forgotPasswordAction({}, form({ email }))).toEqual({ error: 'tooMany {"minutes":60}' });
   });
 });
+
+// Lot 24b — SEC-22 : piège à robots des formulaires publics. Un envoi qui
+// remplit le champ caché est ignoré, sans compter dans la limitation de débit.
+describe("SEC-22 — Piège à robots des formulaires publics", { timeout: 60_000 }, () => {
+  beforeEach(() => {
+    request.ip = freshIp();
+  });
+
+  it("mot de passe oublié : un robot reçoit la réponse habituelle, rien ne part et rien ne compte", async () => {
+    const email = unknownEmail();
+    for (let attempt = 0; attempt < 10; attempt += 1) {
+      expect(await forgotPasswordAction({}, form({ email, site_web: "https://robot.example" }))).toEqual({ sent: true });
+    }
+    expect(await forgotPasswordAction({}, form({ email }))).toEqual({ sent: true });
+    expect(await checkFailures("passwordReset", { account: email })).toEqual({ allowed: true });
+  });
+
+  it("connexion : un robot est refusé comme un mot de passe faux, sans échec compté", async () => {
+    const email = unknownEmail();
+    for (let attempt = 0; attempt < 12; attempt += 1) {
+      expect(await loginAction({}, form({ email, password: "mauvais", site_web: "x" }))).toEqual({ error: "invalidCredentials" });
+    }
+    expect(await checkFailures("login", { account: email })).toEqual({ allowed: true });
+  });
+});

@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { useTranslations } from "next-intl";
 import { ScreenHelp } from "@/app/screen-help";
 import { loginAction, type LoginFormState } from "./actions";
+import { HoneypotField } from "@/app/ui/honeypot-field";
 
 export default function LoginPage() {
   const t = useTranslations("Login");
@@ -16,6 +17,7 @@ export default function LoginPage() {
       <h1>{t("title")}</h1>
       <ScreenHelp title={tHelp("login.title")} body={tHelp("login.body")} />
       <form action={formAction}>
+        <HoneypotField />
         <label>
           {t("email")}
           <input type="email" name="email" required />

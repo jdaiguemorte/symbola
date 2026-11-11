@@ -9,12 +9,15 @@ import { appDatabase } from "@symbola/db/client";
 import { parseEnv } from "@symbola/env";
 import { sendMail } from "@symbola/mail";
 import { checkFailures, checkRateLimit, longestWait, rateLimitMessage, recordFailure } from "@/lib/rate-limit";
+import { isHoneypotFilled } from "@/lib/honeypot";
 
 export type ForgotPasswordFormState = { sent?: boolean; error?: string };
 
 const emailSchema = z.email();
 
 export async function forgotPasswordAction(_prevState: ForgotPasswordFormState, formData: FormData): Promise<ForgotPasswordFormState> {
+  // Lot 24b (SEC-22) : envoi d'un robot, ignoré sans le lui dire.
+  if (isHoneypotFilled(formData)) return { sent: true };
   const parsed = emailSchema.safeParse(String(formData.get("email") ?? "").trim());
   if (!parsed.success) {
     const t = await getTranslations("PasswordReset");

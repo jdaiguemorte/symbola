@@ -58,6 +58,8 @@ export const AUDIT_ACTIONS = {
   // Partages.
   "events.client_access.granted": { category: "partage", objectType: "event" },
   "events.client_access.revoked": { category: "partage", objectType: "event" },
+  // Lot 24b (SEC-22, décision D5) : plafond d'e-mails de l'heure atteint.
+  "hub.mail.quota_reached": { category: "partage", objectType: null },
   "quotes.quote.sent": { category: "partage", objectType: "quote" },
   "quotes.signature.requested": { category: "partage", objectType: "quote" },
   // Émissions.
