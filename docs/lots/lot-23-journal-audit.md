@@ -2,7 +2,7 @@
 
 **Statut** : spécification validée par Julien le 11/11/2026 (« Oui je valide tout ») : D1 à D4,
 D6 et D7 en (a). Il confirme qu'aucune facture ni aucun encaissement réel n'existe en production.
-D5 (adresse IP) est rouverte à sa question. Branche `lot-23-journal-audit`. Le lot change le
+D5 (adresse IP), rouverte à sa question : (c) (« On part sur c »). Branche `lot-23-journal-audit`. Le lot change le
 schéma de données de tous les modules et un parcours P0 (l'encaissement).
 
 ## Contexte
@@ -107,7 +107,7 @@ Le catalogue des actions vit dans `packages/contracts`, avec un libellé FR/EN p
 
 | Famille | Actions |
 | --- | --- |
-| Connexions | connexion réussie (avec la méthode : code, appareil de confiance), échec sur un compte existant, compte verrouillé, déconnexion, mot de passe réinitialisé, double authentification configurée, appareils de confiance oubliés (adresse IP : décision D5) |
+| Connexions | connexion réussie (avec la méthode : code, appareil de confiance), échec sur un compte existant, compte verrouillé, déconnexion, mot de passe réinitialisé, double authentification configurée, appareils de confiance oubliés (adresse IP à part, décision D5) |
 | Droits | organisation créée, invitation envoyée, relancée ou acceptée, module activé ou retiré, double authentification réinitialisée par l'Admin |
 | Exports | export RGPD créé et téléchargé, export du carnet de prestataires, export e-reporting, archive comptable (23b) |
 | Partages | espace du marié ouvert ou révoqué, devis envoyé, demande de signature envoyée |
@@ -358,7 +358,7 @@ du jeu (`docs/recette/symbola-synthetic-users.json`) :
 
 Compte rendu dans `docs/recette/SC-02.md` et `docs/recette/SC-09.md`.
 
-## Décisions de Julien (11/11/2026 : D1 à D4, D6, D7 en a ; D5 en attente)
+## Décisions de Julien (11/11/2026 : D1 à D4, D6, D7 en a ; D5 en c)
 
 - **D1 — Découpage.** (a) Deux lots, 23a puis 23b, avec deux pull requests. (b) Un seul lot.
   **Recommandation : (a).** Chaque PR reste relisible, et le journal est en place avant les
@@ -393,6 +393,7 @@ Compte rendu dans `docs/recette/SC-02.md` et `docs/recette/SC-09.md`.
     registre.
 
   **Recommandation : (c).** C'est la valeur de sécurité, sans personne exposée dans le journal.
+  **Décision : (c).**
 - **D6 — Données existantes.** Je pars du principe qu'**aucune facture ni aucun encaissement réel
   n'existe en production** (le pilote n'a pas commencé) : **confirme-le.** Proposition : la
   migration place les factures, avoirs et encaissements existants dans la chaîne, marqués
