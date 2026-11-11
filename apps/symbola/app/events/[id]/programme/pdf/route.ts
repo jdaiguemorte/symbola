@@ -2,6 +2,7 @@
 // « mariés » (sans notes internes) et « prestataires ». Contrôles côté
 // serveur : session, rôle planner, organisation, module souscrit,
 // identifiant valide.
+import { refusedResponse } from "@/lib/access-refusals";
 import { z } from "zod";
 import { EventNotFoundError, getEvent, getEventProgram } from "@/modules/events/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
@@ -21,12 +22,12 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   if (!isValidId(id) || !variant.success) return new Response(null, { status: 404 });
 
   const event = await getEvent(organizationId, id);
-  if (!event) return new Response(null, { status: 404 });
+  if (!event) return refusedResponse(request);
   let program;
   try {
     program = await getEventProgram(organizationId, id);
   } catch (error) {
-    if (error instanceof EventNotFoundError) return new Response(null, { status: 404 });
+    if (error instanceof EventNotFoundError) return refusedResponse(request);
     throw error;
   }
   return renderProgramPdfResponse({ organizationId, event, program, variant: variant.data });

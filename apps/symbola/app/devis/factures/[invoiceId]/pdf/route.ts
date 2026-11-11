@@ -2,12 +2,13 @@
 // organisation, module souscrit. Lot 23b (DOC-08, ADR 0061) : l'original déposé
 // à l'émission, servi seulement si son empreinte est intacte ; sinon 409 et
 // rien n'est reconstruit à sa place.
+import { refusedResponse } from "@/lib/access-refusals";
 import { getInvoicePdf, InvoiceNotFoundError, OriginalAlteredError } from "@/modules/quotes/service";
 import { isValidId } from "../../../module-access";
 import { authorizedPlanner } from "../../../planner-access";
 import { renderInvoicePdf } from "../../render-invoice-pdf";
 
-export async function GET(_request: Request, { params }: { params: Promise<{ invoiceId: string }> }): Promise<Response> {
+export async function GET(request: Request, { params }: { params: Promise<{ invoiceId: string }> }): Promise<Response> {
   const planner = await authorizedPlanner();
   if (!planner) return new Response(null, { status: 401 });
   const { invoiceId } = await params;
@@ -16,7 +17,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ inv
   try {
     found = await getInvoicePdf(planner.organizationId, invoiceId, (invoice) => renderInvoicePdf(planner.organizationId, invoice));
   } catch (error) {
-    if (error instanceof InvoiceNotFoundError) return new Response(null, { status: 404 });
+    if (error instanceof InvoiceNotFoundError) return refusedResponse(request);
     if (error instanceof OriginalAlteredError) return new Response(null, { status: 409 });
     throw error;
   }

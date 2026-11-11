@@ -56,6 +56,8 @@ describe("HUB-16 — Libellés du journal d'activité", () => {
     expect(actorLabel({ actorKind: "system", actorLabel: null, action: "hub.session.failed" }, t)).toBe("actorAttempt");
     expect(actorLabel({ actorKind: "member", actorLabel: null, action: "quotes.quote.sent" }, t)).toBe("actorUnknown");
     expect(activityDetail({ action: "ops.database.opened", details: {}, reason: "contrôle" }, t, "fr")).toBe('reasonLabel{"reason":"contrôle"}');
+    // Lot 24a (SC-S1) : un refus d'accès montre l'adresse demandée, identifiants masqués.
+    expect(activityDetail({ action: "hub.access.refused", details: { route: "/events/[id]" }, reason: null }, t, "fr")).toBe('refusedRoute{"route":"/events/[id]"}');
     expect(objectHref({ action: "quotes.quote.sent", objectType: "quote", objectId: "q" })).toEqual({ href: "/devis/q", kind: "quote" });
     expect(objectHref({ action: "quotes.quotes.deleted", objectType: "quotes.quotes", objectId: "q" })).toBeNull();
   });
