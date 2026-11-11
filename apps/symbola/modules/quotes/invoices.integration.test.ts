@@ -8,6 +8,8 @@ import { createAppConnection, type AppDatabase } from "@symbola/db/client";
 import { auditEntries } from "@symbola/db/schema/core";
 import { withOrganization } from "@symbola/db/with-organization";
 import { eq } from "drizzle-orm";
+import { invoices, ledgerEntries } from "@symbola/db/schema/quotes";
+import { createStorageClient, uploadPrivateObject } from "@symbola/files";
 import { saveOnboardingStep } from "@/modules/hub/service";
 import { createProspect, createProspectSource, startEventsTrial } from "@/modules/events/service";
 import { fakeSignatureProvider, setSignatureProviderForTests } from "./signature";
@@ -36,6 +38,13 @@ import {
   sendQuoteForSignature,
   setQuoteClientKind,
   updateQuoteSettings,
+  OriginalAlteredError,
+  getCreditNotePdf,
+  getInvoicePdf,
+  getQuote,
+  listLedgerEntries,
+  listLedgerYears,
+  verifyLedger,
 } from "./service";
 
 // Lot 23b (DOC-08) : rendu factice de l'original déposé à l'émission.
@@ -370,6 +379,119 @@ describe("SEC-19 — Devis, factures et encaissements au journal d'audit", () =>
     const payments = (await journalOf(organizationId)).filter((entry) => entry.category === "encaissement");
     expect(payments.map((entry) => entry.action)).toEqual(["quotes.payment.recorded", "quotes.payment.cancelled"]);
     expect(payments[0]).toMatchObject({ objectId: items[0]!.id, details: { paidOn: "2027-04-09" } });
+  });
+});
+
+// Lot 23b (DOC-08, FAC-14, JUR-05, JUR-06, ADR 0061) — pièces inaltérables.
+function ledgerOf(organizationId: string) {
+  return withDb((db) =>
+    withOrganization(db, organizationId, (tx) => tx.select().from(ledgerEntries).where(eq(ledgerEntries.organizationId, organizationId)).orderBy(ledgerEntries.sequence)),
+  );
+}
+
+describe("DOC-08 — Originaux conservés tels qu'émis", () => {
+  it("l'original est déposé à l'émission ; le PDF servi est cet original, sans nouveau rendu, et s'enchaîne", async () => {
+    const { organizationId, items } = await signedQuote();
+    const invoice = await issueDepositInvoice({ renderOriginal: renderInvoice, organizationId, scheduleItemId: items[0]!.id, now: NOW });
+    let renders = 0;
+    const served = await getInvoicePdf(organizationId, invoice.id, async () => {
+      renders += 1;
+      return Buffer.from("autre rendu");
+    });
+    expect(served.pdf.equals(await renderInvoice())).toBe(true);
+    expect(served).toMatchObject({ number: invoice.number, reconstructed: false });
+    expect(renders).toBe(0);
+    const creditNote = await issueCreditNote({ renderOriginal: renderCreditNote, organizationId, invoiceId: invoice.id, amountCents: 100, reason: "Geste", now: NOW });
+    expect((await getCreditNotePdf(organizationId, creditNote.id, async () => Buffer.from("x"))).pdf.equals(await renderCreditNote())).toBe(true);
+    expect((await ledgerOf(organizationId)).map((entry) => entry.entryKind)).toEqual(["invoice", "original", "credit_note", "original"]);
+    expect(await verifyLedger(organizationId)).toMatchObject({ ok: true, entries: 4 });
+  });
+
+  it("un original altéré dans le stockage n'est pas servi, rien n'est reconstruit, et l'anomalie va au journal", async () => {
+    const { organizationId, items } = await signedQuote();
+    const invoice = await issueDepositInvoice({ renderOriginal: renderInvoice, organizationId, scheduleItemId: items[0]!.id, now: NOW });
+    await uploadPrivateObject(createStorageClient(), {
+      key: `originals/${organizationId}/invoice/${invoice.id}.pdf`,
+      body: Buffer.from("%PDF-1.4\n% falsifié\n%%EOF\n"),
+      contentType: "application/pdf",
+    });
+    await expect(getInvoicePdf(organizationId, invoice.id, renderInvoice)).rejects.toBeInstanceOf(OriginalAlteredError);
+    const journal = await withDb((db) => withOrganization(db, organizationId, (tx) => tx.select().from(auditEntries).where(eq(auditEntries.action, "quotes.original.altered"))));
+    expect(journal).toMatchObject([{ objectId: invoice.id, details: { number: invoice.number } }]);
+  });
+
+  it("si l'original ne peut être rendu ou déposé, la facture n'est pas émise et aucun numéro n'est perdu", async () => {
+    const { organizationId, items, quoteId } = await signedQuote();
+    const failing = async (): Promise<Buffer> => {
+      throw new Error("stockage indisponible");
+    };
+    await expect(issueDepositInvoice({ renderOriginal: failing, organizationId, scheduleItemId: items[0]!.id, now: NOW })).rejects.toThrow("stockage indisponible");
+    expect(await listQuoteInvoices(organizationId, quoteId)).toEqual([]);
+    const invoice = await issueDepositInvoice({ renderOriginal: renderInvoice, organizationId, scheduleItemId: items[0]!.id, now: NOW });
+    expect(invoice.number).toBe(year("F", 1));
+  });
+
+  it("une facture émise avant le lot 23b reçoit son original à sa première ouverture, marqué « reconstitué », une seule fois", async () => {
+    const { organizationId, items } = await signedQuote();
+    const issued = await issueDepositInvoice({ renderOriginal: renderInvoice, organizationId, scheduleItemId: items[0]!.id, now: NOW });
+    const legacyId = await withDb((db) =>
+      withOrganization(db, organizationId, async (tx) => {
+        const [row] = await tx.select().from(invoices).where(eq(invoices.id, issued.id));
+        const legacyValues = { ...row!, id: randomUUID(), number: "F-ANCIENNE-0001", scheduleItemId: items[1]!.id, createdBy: null };
+        const [legacy] = await tx.insert(invoices).values(legacyValues).returning();
+        return legacy!.id;
+      }),
+    );
+    let renders = 0;
+    const render = async () => {
+      renders += 1;
+      return Buffer.from("%PDF-1.4\n% reconstitué\n%%EOF\n");
+    };
+    expect(await getInvoicePdf(organizationId, legacyId, render)).toMatchObject({ reconstructed: true });
+    expect(await getInvoicePdf(organizationId, legacyId, render)).toMatchObject({ reconstructed: true });
+    expect(renders).toBe(1);
+    expect(await verifyLedger(organizationId)).toMatchObject({ ok: true });
+  });
+});
+
+describe("JUR-05 — Encaissements corrigés par écriture inverse", () => {
+  it("une annulation motivée s'ajoute à la saisie ; l'historique montre les deux ; un nouvel encaissement reste possible", async () => {
+    const { organizationId, quoteId, items } = await signedQuote();
+    const [method] = await addPaymentMethods(organizationId, ["Virement"]);
+    const pay = () => markScheduleItemPaid({ organizationId, scheduleItemId: items[0]!.id, paidOn: "2027-04-09", paymentMethodId: method!.id, now: NOW });
+    await pay();
+    await expect(markScheduleItemUnpaid(organizationId, items[0]!.id, "   ")).rejects.toBeInstanceOf(RangeError);
+    await markScheduleItemUnpaid(organizationId, items[0]!.id, "Virement rejeté");
+    await pay();
+    const quote = await getQuote(organizationId, quoteId);
+    const item = quote.current.schedule.items.find((candidate) => candidate.id === items[0]!.id)!;
+    expect(item.paidOn).toBe("2027-04-09");
+    expect(item.payments.map((entry) => [entry.kind, entry.amountCents, entry.reason])).toEqual([
+      ["received", 80400, null],
+      ["reversal", 80400, "Virement rejeté"],
+      ["received", 80400, null],
+    ]);
+    expect((await ledgerOf(organizationId)).map((entry) => entry.entryKind)).toEqual(["payment", "payment_reversal", "payment"]);
+    expect(JSON.stringify(await ledgerOf(organizationId))).not.toContain("Virement rejeté");
+    expect(await verifyLedger(organizationId)).toMatchObject({ ok: true, entries: 3 });
+  });
+});
+
+describe("JUR-06 — Archive comptable", () => {
+  it("chaque année d'écritures se lit dans l'ordre de la chaîne, avec les numéros, montants et empreintes", async () => {
+    const { organizationId, items, number } = await signedQuote();
+    const invoice = await issueDepositInvoice({ renderOriginal: renderInvoice, organizationId, scheduleItemId: items[0]!.id, now: NOW });
+    const [method] = await addPaymentMethods(organizationId, ["Chèque"]);
+    await markScheduleItemPaid({ organizationId, scheduleItemId: items[0]!.id, paidOn: "2027-04-09", paymentMethodId: method!.id, now: NOW });
+    const thisYear = Number(new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Paris", year: "numeric" }).format(new Date()));
+    expect(await listLedgerYears(organizationId)).toEqual([thisYear]);
+    const entries = await listLedgerEntries(organizationId, thisYear);
+    expect(entries.map((entry) => [entry.sequence, entry.kind, entry.number, entry.quoteNumber, entry.amountCents, entry.paymentMethodLabel])).toEqual([
+      [1, "invoice", invoice.number, number, 80400, null],
+      [2, "original", null, null, null, null],
+      [3, "payment", null, number, 80400, "Chèque"],
+    ]);
+    expect(entries[1]!.previousHash).toBe(entries[0]!.hash);
   });
 });
 

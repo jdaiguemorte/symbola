@@ -5,6 +5,7 @@
 import { createElement, type ReactElement } from "react";
 import { renderToBuffer, type DocumentProps } from "@react-pdf/renderer";
 import { createTranslator } from "next-intl";
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import frMessages from "@symbola/i18n/messages/fr.json";
 import type { CreditNoteView, InvoiceView } from "@/modules/quotes/service";
@@ -178,3 +179,16 @@ describe("DEV-12 — Nouvelle mise en page, figée à l'émission", () => {
     expect(model.intro).toBeNull();
   });
 });
+
+// Lot 23b (DOC-08, ADR 0061) — « Une facture émise d'une page pèse moins de
+// 150 Ko ». Avec un logo JPEG courant (44 Ko). Un logo très lourd (jusqu'à
+// 2 Mo acceptés à l'envoi) dépasserait : sa réduction à l'envoi relève de DOC-09.
+describe("DOC-08 — Poids de l'original d'une facture", () => {
+  it("une facture d'une page, avec logo, pèse moins de 150 Ko", async () => {
+    const logo = { data: readFileSync(new URL("../../../public/aide/captures/search.jpg", import.meta.url)), format: "jpg" as const };
+    const model = pdfSafe(buildInvoicePdfModel({ invoice: balance, labels, locale: "fr", logo, watermark: null, defaultColor: DEFAULT_COLOR }));
+    const pdf = await renderToBuffer(createElement(QuotePdfDocument, { model }) as unknown as ReactElement<DocumentProps>);
+    expect(pdf.byteLength).toBeLessThan(150 * 1024);
+  });
+});
+

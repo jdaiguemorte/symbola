@@ -1763,6 +1763,7 @@ export async function listLedgerYears(organizationId: string): Promise<number[]>
 
 export type LedgerArchiveEntry = {
   sequence: number;
+  objectId: string;
   recordedAt: Date;
   kind: LedgerArchiveRow["entryKind"];
   number: string | null;
@@ -1779,6 +1780,7 @@ export async function listLedgerEntries(organizationId: string, year: number): P
     const payload = row.payload as Record<string, unknown>;
     return {
       sequence: Number(row.sequence),
+      objectId: row.objectId,
       recordedAt: row.recordedAt,
       kind: row.entryKind,
       number: typeof payload.number === "string" ? payload.number : null,

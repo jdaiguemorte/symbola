@@ -136,6 +136,22 @@ test("DEV-03 — échéancier, encaissements à venir, retard et paiement", asyn
   await expect(page.getByText(/^Payée le .* \(Virement bancaire\)$/)).toBeVisible();
   await expectNoAxeViolation(page);
 
+  // Lot 23b (D2, JUR-05) : une annulation se motive et s'ajoute à la saisie, sans l'effacer.
+  const cancel = page.getByRole("form", { name: "Annuler le paiement de « Acompte à la signature »" });
+  await cancel.getByLabel("Motif de l'annulation").fill("Virement rejeté par la banque");
+  await cancel.getByRole("button", { name: "Annuler le paiement" }).click();
+  const history = page.getByRole("list", { name: "Historique des encaissements de « Acompte à la signature »" });
+  await expect(history.getByText(/^Encaissé le .* \(Virement bancaire\)$/)).toBeVisible();
+  await expect(history.getByText(/^Annulé le .* : Virement rejeté par la banque$/)).toBeVisible();
+  await expectNoAxeViolation(page);
+
+  // Encaissé à nouveau : l'historique garde les trois écritures.
+  await page.getByText("Marquer payée l'échéance « Acompte à la signature »").click();
+  const payAgain = page.getByRole("form", { name: "Marquer payée l'échéance « Acompte à la signature »" });
+  await payAgain.getByLabel("Mode de paiement").selectOption({ label: "Virement bancaire" });
+  await payAgain.getByRole("button", { name: "Marquer payée" }).click();
+  await expect(history.getByRole("listitem")).toHaveCount(3);
+
   await page.goto("/devis/encaissements");
   await expect(page.getByText("Acompte à la signature")).toHaveCount(0);
   await expect(page.getByText("Deuxième acompte")).toBeVisible();

@@ -141,6 +141,7 @@ services:
       # IGN en production) et fond de carte en lecture seule. Dossier vide
       # = carte sans fond (liste, filtres et distances fonctionnent).
       GEOCODER: ${GEOCODER:-}
+      LEDGER_CHECK_PUSH_URL: ${LEDGER_CHECK_PUSH_URL:-}
       MAP_TILES_DIR: /srv/carte
       # Lot 16 (L16-SEC-01, ADR 0037) : sans valeur par défaut, l'app refuse de
       # démarrer si la clé manque dans .env.<environnement>.
