@@ -442,3 +442,26 @@ Compte rendu dans `docs/recette/SC-02.md` et `docs/recette/SC-09.md`.
 - la durée de conservation du journal attend le DPO (purge au lot 34) ;
 - le rejeu de SC-02 (étapes 7 et 8) et de SC-09 (étape 5) se fera au 23b, qui porte la chaîne
   des factures et des encaissements.
+
+## Bilan du lot 23b (11/11/2026)
+
+- **Originaux** (DOC-08) : `quotes.original_documents` ; PDF rendu, déposé et enregistré dans la
+  transaction de l'émission (stockage indisponible = pas d'émission, pas de numéro perdu) ;
+  téléchargement de l'original vérifié (409 et journal s'il est altéré) ; pièce d'avant le lot
+  reconstituée une fois (D6) ; empreinte des documents signés. Facture d'une page avec logo :
+  moins de 150 Ko (un logo très lourd dépasserait : DOC-09).
+- **Encaissements** (JUR-05, D2) : `quotes.payment_entries` en ajout seul ; « Annuler le paiement »
+  exige un motif et crée une écriture inverse ; historique sous l'échéance.
+- **Chaîne** (FAC-14) : `quotes.ledger_entries`, rang et empreintes calculés par la base, pièces
+  enchaînées par déclencheurs, sans donnée personnelle ; `quotes.verify_ledger` ; contrôle
+  quotidien avec journal et sonde Uptime Kuma à part (`LEDGER_CHECK_PUSH_URL`).
+- **Archive** (JUR-06, D7) : Devis › Paramètres › Archive comptable (années, CSV, originaux,
+  vérification), titulaire seulement ; capture du centre d'aide.
+- **Migration** 0094 (reprise D6) et son annulation testée. **Docs** : ADR 0061, fiche de
+  l'expert-comptable (clôtures périodiques), runbook de surveillance, registre RGPD, grille
+  (FAC-14 et DOC-08 conformes ; JUR-05 et JUR-06 partiels, en attente de l'expert-comptable),
+  rejeux SC-02 et SC-09 (`docs/recette/`).
+
+**Reste** : attestation, clôtures et format d'archivage selon l'expert-comptable ; réduction des
+logos à l'envoi (DOC-09) ; export comptable trimestriel (FAC-11).
+
