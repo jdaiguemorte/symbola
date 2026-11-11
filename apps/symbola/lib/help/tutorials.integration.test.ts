@@ -67,7 +67,7 @@ describe("AIDE-06 — Tutoriels en faisant", { timeout: 30_000 }, () => {
 
     expect(await book!.check!(current)).toBe(false);
     const [slot] = await listEventVendorSlots(base.organizationId, context.eventId!);
-    await updateEventVendorSlot({ organizationId: base.organizationId, vendorSlotId: slot!.id, changedByUserId: base.userId, status: "booked", vendorName: "Traiteur fictif" });
+    await updateEventVendorSlot({ organizationId: base.organizationId, vendorSlotId: slot!.id, changedByUserId: base.userId, vendorName: "Traiteur fictif" });
     expect(await book!.check!(current)).toBe(true);
 
     await script.cleanup(current, false);

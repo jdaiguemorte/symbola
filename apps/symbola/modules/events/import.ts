@@ -405,7 +405,8 @@ async function writeTaskFields(tx: Tx, taskId: string, fields: Values): Promise<
 async function vendorSlotState(tx: Tx, slotId: string): Promise<Values | null> {
   const [slot] = await tx.select().from(eventVendorSlots).where(eq(eventVendorSlots.id, slotId));
   if (!slot) return null;
-  return { eventId: slot.eventId, label: slot.label, vendorName: slot.vendorName, status: slot.status, importedFields: slot.importedFields };
+  // Lot 28a (PRE-02) : le poste n'a plus de statut à lui (l'import n'en écrit pas).
+  return { eventId: slot.eventId, label: slot.label, vendorName: slot.vendorName, importedFields: slot.importedFields };
 }
 
 // Postes des lignes de budget importées : existant (rapproché) ou créé ;
@@ -530,8 +531,12 @@ async function stateOf(tx: Tx, kind: string, id: string): Promise<Values | null>
   }
 }
 
+// Lot 28a : la trace d'un poste importé avant le lot porte encore son statut,
+// qui n'existe plus ; il n'entre pas dans la comparaison.
+const RETIRED_KEYS = new Set(["status"]);
+
 function modifiedSince(current: Values, written: Values | null): boolean {
-  return Object.keys(written ?? {}).some((key) => !same(current[key], (written ?? {})[key]));
+  return Object.keys(written ?? {}).some((key) => !(RETIRED_KEYS.has(key) && !(key in current)) && !same(current[key], (written ?? {})[key]));
 }
 
 // Un événement créé par l'import puis enrichi à la main (tâches, accès des

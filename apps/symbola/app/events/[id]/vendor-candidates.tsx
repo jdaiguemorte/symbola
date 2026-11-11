@@ -1,14 +1,16 @@
 "use client";
 
 // Lot 11 (L11-EVT-10 / L11-EVT-11) — prestataires consultés pour le poste choisi :
-// réponse, devis, notes (internes ou montrées aux clients), « Retenir ».
-// Des cartes plutôt qu'un tableau : lisibles en 375 px.
+// statut, devis, notes (internes ou montrées aux clients), « Retenir ».
+// Des cartes plutôt qu'un tableau : lisibles en 375 px. Lot 28a (PRE-02,
+// BUD-02) : sept statuts ; « Retenir » au-delà du seuil se confirme d'abord.
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useUploadAction } from "@/app/ui/use-upload";
 import { formatAmount, formatAmountInput, type Locale } from "@symbola/i18n";
-import type { EventVendorSlot, VendorCandidate, VendorCandidateResponse } from "@/modules/events/service";
+import { ENGAGED_CANDIDATE_STATUSES, VENDOR_CANDIDATE_STATUSES, type VendorCandidateStatus } from "@symbola/contracts";
+import type { EventVendorSlot, VendorCandidate } from "@/modules/events/service";
 import {
   addCandidateAction,
   addCandidateNoteAction,
@@ -22,17 +24,40 @@ import {
   type CandidateFormState,
 } from "./vendor-candidate-actions";
 
-const RESPONSE_KEYS: Record<VendorCandidateResponse, string> = {
-  contacted: "responseContacted",
-  quote_received: "responseQuoteReceived",
-  declined: "responseDeclined",
+// Couleur toujours accompagnée du libellé (charte, contrastes AA).
+const STATUS_CLASSES: Record<VendorCandidateStatus, string> = {
+  shortlisted: "badge",
+  contacted: "badge badge-ambre",
+  quote_received: "badge badge-bleu",
+  retained: "badge badge-sauge",
+  contract_signed: "badge badge-sauge",
+  paid_off: "badge badge-sauge",
+  dismissed: "badge",
 };
 
+function isEngaged(status: VendorCandidateStatus): boolean {
+  return ENGAGED_CANDIDATE_STATUSES.includes(status);
+}
 
 function Feedback({ state, success }: { state: CandidateFormState; success?: string }) {
   if (state.error) return <p role="alert">{state.error}</p>;
   if (state.success && success) return <p role="status">{success}</p>;
   return null;
+}
+
+// BUD-02 : le dépassement chiffré du seuil, puis la confirmation, dans le
+// formulaire qui engage (le même envoi, avec confirmed=1).
+function ConfirmEngagement({ state, vendor }: { state: CandidateFormState; vendor: string }) {
+  const t = useTranslations("VendorCandidates");
+  if (!state.confirm) return null;
+  return (
+    <div className="notice">
+      <p role="alert">{state.confirm}</p>
+      <button type="submit" name="confirmed" value="1">
+        {t("confirmEngagement", { vendor })}
+      </button>
+    </div>
+  );
 }
 
 export type BookOption = { id: string; label: string };
@@ -113,7 +138,8 @@ function CandidateCard({
   const [state, action, pending] = useActionState(updateCandidateAction, {});
   const [quoteState, quoteAction, quotePending] = useUploadAction<CandidateFormState>(`/events/${eventId}/consultes/${candidate.id}/devis`);
   const [noteState, noteAction, notePending] = useActionState(addCandidateNoteAction, {});
-  const [response, setResponse] = useState<VendorCandidateResponse>(candidate.response);
+  const [selectState, selectAction, selectPending] = useActionState(selectCandidateAction, {});
+  const [status, setStatus] = useState<VendorCandidateStatus>(candidate.status);
   const [contactedOn, setContactedOn] = useState(candidate.contactedOn ?? "");
   const [amount, setAmount] = useState(formatAmountInput(candidate.quoteAmountCents, locale));
   const [shown, setShown] = useState(candidate.shownToClients);
@@ -127,9 +153,7 @@ function CandidateCard({
         <h3 id={headingId}>
           {candidate.vendorId && vendorsAvailable ? <Link href={`/prestataires/${candidate.vendorId}`}>{name}</Link> : name}
         </h3>
-        {candidate.outcome === "selected" ? <span className="badge badge-sauge">{t("outcomeSelected")}</span> : null}
-        {candidate.outcome === "not_selected" ? <span className="badge">{t("outcomeNotSelected")}</span> : null}
-        {candidate.outcome === null ? <span className="badge badge-bleu">{t(RESPONSE_KEYS[candidate.response])}</span> : null}
+        <span className={STATUS_CLASSES[candidate.status]}>{t(`status.${candidate.status}`)}</span>
       </div>
       {candidate.quoteAmountCents !== null ? <p className="strong">{t("quoteOf", { amount: formatAmount(candidate.quoteAmountCents, locale) })}</p> : null}
 
@@ -137,11 +161,11 @@ function CandidateCard({
         <input type="hidden" name="eventId" value={eventId} />
         <input type="hidden" name="candidateId" value={candidate.id} />
         <label>
-          {t("response")}
-          <select name="response" value={response} onChange={(event) => setResponse(event.target.value as VendorCandidateResponse)}>
-            {(Object.keys(RESPONSE_KEYS) as VendorCandidateResponse[]).map((value) => (
+          {t("statusLabel")}
+          <select name="status" value={status} onChange={(event) => setStatus(event.target.value as VendorCandidateStatus)}>
+            {VENDOR_CANDIDATE_STATUSES.map((value) => (
               <option key={value} value={value}>
-                {t(RESPONSE_KEYS[value])}
+                {t(`status.${value}`)}
               </option>
             ))}
           </select>
@@ -168,6 +192,7 @@ function CandidateCard({
           {t("save")}
         </button>
         <Feedback state={state} success={t("saved")} />
+        <ConfirmEngagement state={state} vendor={name} />
       </form>
 
       <div className="candidate-quote">
@@ -232,13 +257,15 @@ function CandidateCard({
       </section>
 
       <div className="candidate-actions">
-        {candidate.outcome !== "selected" && candidate.response !== "declined" ? (
-          <form action={selectCandidateAction} className="primary-action">
+        {!isEngaged(candidate.status) && candidate.status !== "dismissed" ? (
+          <form action={selectAction} className="primary-action">
             <input type="hidden" name="eventId" value={eventId} />
             <input type="hidden" name="candidateId" value={candidate.id} />
-            <button type="submit">
+            <button type="submit" disabled={selectPending}>
               {t("select", { vendor: name })}
             </button>
+            <Feedback state={selectState} />
+            <ConfirmEngagement state={selectState} vendor={name} />
           </form>
         ) : null}
         {vendorsAvailable && !candidate.vendorId ? (
@@ -287,7 +314,7 @@ export function VendorCandidates({
       {candidates.length === 0 ? <p>{t("empty")}</p> : null}
       <ul className="candidate-list">
         {candidates.map((candidate) => (
-          <CandidateCard key={`${candidate.id}-${candidate.response}-${candidate.quoteAmountCents}-${candidate.shownToClients}-${candidate.shareRibWithClients}`} eventId={eventId} candidate={candidate} vendorsAvailable={vendorsAvailable} locale={locale} />
+          <CandidateCard key={`${candidate.id}-${candidate.status}-${candidate.quoteAmountCents}-${candidate.shownToClients}-${candidate.shareRibWithClients}`} eventId={eventId} candidate={candidate} vendorsAvailable={vendorsAvailable} locale={locale} />
         ))}
       </ul>
       <p className="muted">{t("selectHint")}</p>

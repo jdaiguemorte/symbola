@@ -13,12 +13,12 @@ export async function ClientBudget({ view, locale }: { view: BudgetLinesView; lo
 
   return (
     <table>
-      <caption>{t("linesTitle")}</caption>
+      <caption>{t("clientLinesTitle")}</caption>
       <thead>
         <tr>
           <th scope="col">{t("vendorSlot")}</th>
-          <th scope="col">{t("planned")}</th>
-          <th scope="col">{t("actual")}</th>
+          <th scope="col">{t("amounts.estimated")}</th>
+          <th scope="col">{t("amounts.committed")}</th>
           <th scope="col">{t("variance")}</th>
         </tr>
       </thead>
@@ -28,8 +28,8 @@ export async function ClientBudget({ view, locale }: { view: BudgetLinesView; lo
           return (
             <tr key={line.eventVendorSlotId}>
               <th scope="row">{line.label}</th>
-              <td>{line.plannedAmountCents === null ? t("notSet") : formatAmount(line.plannedAmountCents, locale)}</td>
-              <td>{line.actualAmountCents === null ? t("notSet") : formatAmount(line.actualAmountCents, locale)}</td>
+              <td>{line.estimatedAmountCents === null ? t("notSet") : formatAmount(line.estimatedAmountCents, locale)}</td>
+              <td>{line.committedAmountCents === null ? t("notSet") : formatAmount(line.committedAmountCents, locale)}</td>
               <td className={variance.className}>
                 {t(variance.labelKey, {
                   amount: variance.amountCents === null ? "" : formatAmount(variance.amountCents, locale),
@@ -43,8 +43,8 @@ export async function ClientBudget({ view, locale }: { view: BudgetLinesView; lo
       <tfoot>
         <tr>
           <th scope="row">{t("total")}</th>
-          <td>{formatAmount(view.totalPlannedCents, locale)}</td>
-          <td>{formatAmount(view.totalActualCents, locale)}</td>
+          <td>{formatAmount(view.totalEstimatedCents, locale)}</td>
+          <td>{formatAmount(view.totalCommittedCents, locale)}</td>
           <td>{formatAmount(view.totalVarianceCents, locale)}</td>
         </tr>
       </tfoot>

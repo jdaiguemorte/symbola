@@ -1,8 +1,10 @@
 // Accès aux données du module budget — jamais importé hors de
 // modules/budget/ (ADR 0011).
-import { and, asc, eq, inArray } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull, or } from "drizzle-orm";
+import type { BudgetAmountField } from "@symbola/contracts";
 import { appDatabase } from "@symbola/db/client";
 import {
+  alertThresholds,
   allocationModelItems,
   allocationModels,
   budgetLineAttachments,
@@ -219,7 +221,15 @@ export async function findBudgetLineByEventVendorSlotId(
   });
 }
 
-// Pose planned_amount_cents ou actual_amount_cents selon `field`, crée la
+// Lot 28a (BUD-01) : colonne de chaque montant saisissable.
+const AMOUNT_COLUMN = {
+  estimated: "estimatedAmountCents",
+  quoted: "quotedAmountCents",
+  committed: "committedAmountCents",
+  paid: "paidAmountCents",
+} as const satisfies Record<BudgetAmountField, keyof BudgetLineRow>;
+
+// Pose l'un des montants saisissables selon `field`, crée la
 // ligne si elle n'existe pas encore (un événement peut recevoir un budget
 // réel sans être jamais passé par la simulation), et historise toujours
 // la modification — y compris la toute première valeur posée (PRD-BUD-02 :
@@ -228,10 +238,11 @@ export async function setBudgetLineAmount(input: {
   organizationId: string;
   eventId: string;
   eventVendorSlotId: string;
-  field: "planned" | "actual";
+  field: BudgetAmountField;
   amountCents: number;
   changedByUserId: string;
 }): Promise<BudgetLineRow> {
+  const column = AMOUNT_COLUMN[input.field];
   const db = appDatabase();
   return await withOrganization(db, input.organizationId, async (tx) => {
     const [existing] = await tx
@@ -239,23 +250,13 @@ export async function setBudgetLineAmount(input: {
       .from(budgetLines)
       .where(eq(budgetLines.eventVendorSlotId, input.eventVendorSlotId));
 
-    const oldValueCents =
-      existing === undefined
-        ? null
-        : input.field === "planned"
-          ? existing.plannedAmountCents
-          : existing.actualAmountCents;
+    const oldValueCents = existing === undefined ? null : existing[column];
 
     let line: BudgetLineRow;
     if (existing) {
       const [updated] = await tx
         .update(budgetLines)
-        .set({
-          ...(input.field === "planned"
-            ? { plannedAmountCents: input.amountCents }
-            : { actualAmountCents: input.amountCents }),
-          updatedAt: new Date(),
-        })
+        .set({ [column]: input.amountCents, updatedAt: new Date() })
         .where(eq(budgetLines.id, existing.id))
         .returning();
       if (!updated) throw new Error("mise à jour de la ligne de budget échouée");
@@ -267,8 +268,7 @@ export async function setBudgetLineAmount(input: {
           organizationId: input.organizationId,
           eventId: input.eventId,
           eventVendorSlotId: input.eventVendorSlotId,
-          plannedAmountCents: input.field === "planned" ? input.amountCents : null,
-          actualAmountCents: input.field === "actual" ? input.amountCents : null,
+          [column]: input.amountCents,
         })
         .returning();
       if (!inserted) throw new Error("création de la ligne de budget échouée");
@@ -372,3 +372,37 @@ export async function deleteEventBudgetRows(organizationId: string, eventIds: st
     return fileKeys;
   });
 }
+
+// Lot 28a (BUD-02, décision D4) — seuils d'alerte : celui de l'organisation
+// (event_id nul) et celui de l'événement.
+export async function findAlertThresholds(organizationId: string, eventId: string | null): Promise<{ organization: number | null; event: number | null }> {
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const rows = await tx
+      .select({ eventId: alertThresholds.eventId, percent: alertThresholds.percent })
+      .from(alertThresholds)
+      .where(eventId === null ? isNull(alertThresholds.eventId) : or(isNull(alertThresholds.eventId), eq(alertThresholds.eventId, eventId)));
+    return {
+      organization: rows.find((row) => row.eventId === null)?.percent ?? null,
+      event: eventId === null ? null : (rows.find((row) => row.eventId === eventId)?.percent ?? null),
+    };
+  });
+}
+
+export async function upsertAlertThreshold(organizationId: string, eventId: string | null, percent: number): Promise<void> {
+  const db = appDatabase();
+  await withOrganization(db, organizationId, async (tx) => {
+    await tx
+      .insert(alertThresholds)
+      .values({ organizationId, eventId, percent })
+      .onConflictDoUpdate({ target: [alertThresholds.organizationId, alertThresholds.eventId], set: { percent, updatedAt: new Date() } });
+  });
+}
+
+export async function deleteEventAlertThreshold(organizationId: string, eventId: string): Promise<void> {
+  const db = appDatabase();
+  await withOrganization(db, organizationId, async (tx) => {
+    await tx.delete(alertThresholds).where(eq(alertThresholds.eventId, eventId));
+  });
+}
+

@@ -19,10 +19,11 @@ export function PlannedAmountForm({ eventId, slotId, label, plannedCents }: { ev
     <form action={action} className="stack">
       <input type="hidden" name="eventId" value={eventId} />
       <input type="hidden" name="eventVendorSlotId" value={slotId} />
-      <input type="hidden" name="field" value="planned" />
+      {/* Lot 28a (BUD-01) : l'estimé de la ligne. */}
+      <input type="hidden" name="current_estimated" value={plannedCents ?? ""} />
       <label>
         {t("plannedAmountFor", { line: label })}
-        <input type="text" inputMode="decimal" name="amount" value={amount} onChange={(event) => setAmount(event.target.value)} />
+        <input type="text" inputMode="decimal" name="amount_estimated" value={amount} onChange={(event) => setAmount(event.target.value)} />
       </label>
       <button type="submit" disabled={pending}>
         {t("savePlanned")}

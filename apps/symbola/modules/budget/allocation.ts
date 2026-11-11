@@ -49,15 +49,32 @@ export function remainingToAllocateCents(totalAmountCents: number, items: EventB
 // prévu. Nul tant qu'aucun montant réel n'est renseigné (jamais 0 par
 // défaut, qui laisserait croire à un écart nul constaté). 0 % si le
 // prévu est à 0 (pas de division par zéro affichée).
+// Lot 28a (BUD-01) : l'écart est celui de l'engagé à l'estimé (autrefois du
+// réel au prévu).
 export function computeVariance(
-  plannedAmountCents: number | null,
-  actualAmountCents: number | null,
+  estimatedAmountCents: number | null,
+  committedAmountCents: number | null,
 ): { varianceCents: number | null; variancePercent: number | null } {
-  // Lot 12 : sans prévu (ligne suivie seulement en réel), pas d'écart.
-  if (actualAmountCents === null || plannedAmountCents === null) return { varianceCents: null, variancePercent: null };
-  const varianceCents = actualAmountCents - plannedAmountCents;
-  const variancePercent = plannedAmountCents === 0 ? 0 : Math.round((varianceCents / plannedAmountCents) * 10000) / 100;
+  // Lot 12 : sans estimé (ligne suivie seulement en engagé), pas d'écart.
+  if (committedAmountCents === null || estimatedAmountCents === null) return { varianceCents: null, variancePercent: null };
+  const varianceCents = committedAmountCents - estimatedAmountCents;
+  const variancePercent = estimatedAmountCents === 0 ? 0 : Math.round((varianceCents / estimatedAmountCents) * 10000) / 100;
   return { varianceCents, variancePercent };
+}
+
+// Lot 28a (BUD-01) : reste à payer, engagé moins payé ; null sans engagé.
+export function remainingToPayCents(committedAmountCents: number | null, paidAmountCents: number | null): number | null {
+  return committedAmountCents === null ? null : committedAmountCents - (paidAmountCents ?? 0);
+}
+
+// Lot 28a (BUD-02) : seuil en centimes, et part engagée de l'enveloppe en
+// pourcentage (arrondie à l'unité).
+export function envelopeThresholdCents(envelopeCents: number, thresholdPercent: number): number {
+  return Math.floor((envelopeCents * thresholdPercent) / 100);
+}
+
+export function shareOfEnvelopePercent(amountCents: number, envelopeCents: number): number {
+  return envelopeCents === 0 ? 0 : Math.round((amountCents / envelopeCents) * 100);
 }
 
 // 0 si guestCount est 0 : jamais de division par zéro affichée à l'écran.

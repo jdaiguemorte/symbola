@@ -14,6 +14,7 @@ import {
   createProspectSource,
   listDefaultVendorSlots,
   listEventVendorSlots,
+  listVendorCandidates,
   removeDefaultVendorSlot,
   removeEventVendorSlot,
   updateEventVendorSlot,
@@ -87,42 +88,49 @@ describe("PRD-EVT-03 — Statut des postes prestataires", () => {
     ]);
   });
 
-  it("quand elle passe un poste à Réservé, le nom du prestataire est obligatoire", async () => {
+  it("PRE-02 — un montant sans nom de prestataire retenu est refusé ; le poste reste « À trouver »", async () => {
     const organizationId = randomUUID();
     await addDefaultVendorSlots(organizationId, ["Photographe"]);
     const event = await createEvent(organizationId);
     const [slot] = await listEventVendorSlots(organizationId, event.id);
 
     await expect(
-      updateEventVendorSlot({ organizationId, vendorSlotId: slot!.id, changedByUserId: plannerId, status: "booked" }),
+      updateEventVendorSlot({ organizationId, vendorSlotId: slot!.id, changedByUserId: plannerId, amountCents: 100000 }),
     ).rejects.toBeInstanceOf(VendorNameRequiredError);
     expect((await listEventVendorSlots(organizationId, event.id))[0]?.status).toBe("to_find");
   });
 
-  it("le montant est facultatif, stocké en centimes, et la réservation est publiée pour le futur module Budget", async () => {
+  it("PRE-02 — « Non requis » est une case du poste, sans toucher ses prestataires", async () => {
+    const organizationId = randomUUID();
+    await addDefaultVendorSlots(organizationId, ["Photographe"]);
+    const event = await createEvent(organizationId);
+    const [slot] = await listEventVendorSlots(organizationId, event.id);
+
+    await updateEventVendorSlot({ organizationId, vendorSlotId: slot!.id, changedByUserId: plannerId, notRequired: true });
+    expect((await listEventVendorSlots(organizationId, event.id))[0]).toMatchObject({ status: "not_required", notRequired: true });
+    await updateEventVendorSlot({ organizationId, vendorSlotId: slot!.id, changedByUserId: plannerId, notRequired: false });
+    expect((await listEventVendorSlots(organizationId, event.id))[0]).toMatchObject({ status: "to_find", notRequired: false });
+  });
+
+  it("PRE-02 — le raccourci retient un prestataire (montant facultatif, en centimes) ; la retenue est publiée pour le module Budget", async () => {
     const organizationId = randomUUID();
     await addDefaultVendorSlots(organizationId, ["Photographe", "DJ"]);
     const event = await createEvent(organizationId);
     const [photographer, dj] = await listEventVendorSlots(organizationId, event.id);
 
-    const booked = await updateEventVendorSlot({
-      organizationId,
-      vendorSlotId: photographer!.id,
-      changedByUserId: plannerId,
-      status: "booked",
-      vendorName: "Studio Lumière",
-      amountCents: 250000,
-    });
-    expect(booked).toMatchObject({ status: "booked", vendorName: "Studio Lumière", amountCents: 250000, currency: "EUR" });
-
-    const withoutAmount = await updateEventVendorSlot({
-      organizationId,
-      vendorSlotId: dj!.id,
-      changedByUserId: plannerId,
-      status: "booked",
-      vendorName: "DJ Sam",
-    });
-    expect(withoutAmount.amountCents).toBeNull();
+    await updateEventVendorSlot({ organizationId, vendorSlotId: photographer!.id, changedByUserId: plannerId, vendorName: "Studio Lumière", amountCents: 250000 });
+    await updateEventVendorSlot({ organizationId, vendorSlotId: dj!.id, changedByUserId: plannerId, vendorName: "DJ Sam" });
+    const slots = await listEventVendorSlots(organizationId, event.id);
+    expect(slots[0]).toMatchObject({ status: "retained", vendorName: "Studio Lumière", amountCents: 250000, currency: "EUR" });
+    expect(slots[1]).toMatchObject({ status: "retained", vendorName: "DJ Sam", amountCents: null });
+    // Le prestataire retenu est un prestataire rattaché, statut « Retenu ».
+    const candidates = await listVendorCandidates(organizationId, event.id);
+    expect(candidates.map((candidate) => [candidate.vendorName, candidate.status, candidate.quoteAmountCents])).toEqual(
+      expect.arrayContaining([
+        ["Studio Lumière", "retained", 250000],
+        ["DJ Sam", "retained", null],
+      ]),
+    );
 
     const published = await withOrganization(db, organizationId, (tx) =>
       tx
@@ -137,16 +145,16 @@ describe("PRD-EVT-03 — Statut des postes prestataires", () => {
     expect(JSON.stringify(published.map((row) => row.payload))).not.toContain("Studio Lumière");
   });
 
-  it("un changement de montant d'un poste réservé est republié, une mise à jour sans changement ne l'est pas", async () => {
+  it("PRE-02 — un changement de montant du prestataire retenu est republié, une mise à jour sans changement ne l'est pas", async () => {
     const organizationId = randomUUID();
     await addDefaultVendorSlots(organizationId, ["Traiteur"]);
     const event = await createEvent(organizationId);
     const [slot] = await listEventVendorSlots(organizationId, event.id);
     const base = { organizationId, vendorSlotId: slot!.id, changedByUserId: plannerId, vendorName: "Traiteur Martin" };
 
-    await updateEventVendorSlot({ ...base, status: "booked", amountCents: 100000 });
-    await updateEventVendorSlot({ ...base, status: "booked", amountCents: 120000 });
-    await updateEventVendorSlot({ ...base, status: "booked", amountCents: 120000 });
+    await updateEventVendorSlot({ ...base, amountCents: 100000 });
+    await updateEventVendorSlot({ ...base, amountCents: 120000 });
+    await updateEventVendorSlot({ ...base, amountCents: 120000 });
 
     const published = await withOrganization(db, organizationId, (tx) =>
       tx
@@ -158,6 +166,8 @@ describe("PRD-EVT-03 — Statut des postes prestataires", () => {
       100000, 120000,
     ]);
     expect((await listEventVendorSlots(organizationId, event.id))[0]?.amountCents).toBe(120000);
+    // Un seul prestataire rattaché : le même nom ne crée pas de doublon.
+    expect(await listVendorCandidates(organizationId, event.id)).toHaveLength(1);
   });
 });
 
@@ -175,7 +185,7 @@ describe("PRD-EVT-03 — Isolation par la porte d'entrée du module", () => {
         organizationId,
         vendorSlotId: otherSlot!.id,
         changedByUserId: plannerId,
-        status: "not_required",
+        notRequired: true,
       }),
     ).rejects.toBeInstanceOf(VendorSlotNotFoundError);
     await removeEventVendorSlot(organizationId, otherSlot!.id);

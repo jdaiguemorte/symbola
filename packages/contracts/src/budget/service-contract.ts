@@ -61,16 +61,21 @@ export type AdjustEventBudgetItemInput = {
   amountCents: number;
 };
 
-// PRD-BUD-02 — budget réel (prévu/réel/écart), une ligne par poste de
-// l'événement (events.event_vendor_slots, pas default_vendor_slots : voir
-// docs/lots/lot-3-budget.md). Écart et pourcentage dérivés, jamais
-// stockés ; null tant qu'aucun montant réel n'est renseigné.
+// Lot 28a (BUD-01, décision D2, ADR 0054) — cinq montants par ligne de budget,
+// une ligne par poste de l'événement (events.event_vendor_slots). Le reste à
+// payer (engagé moins payé) et l'écart à l'estimé (engagé moins estimé) se
+// calculent, jamais stockés ; null tant que l'engagé n'est pas connu.
+export const BUDGET_AMOUNT_FIELDS = ["estimated", "quoted", "committed", "paid"] as const;
+export type BudgetAmountField = (typeof BUDGET_AMOUNT_FIELDS)[number];
+
 export type BudgetLine = {
   eventVendorSlotId: string;
   label: string;
-  // Lot 12 (L12-EVT-17) : null tant qu'aucun prévu n'est fixé.
-  plannedAmountCents: number | null;
-  actualAmountCents: number | null;
+  estimatedAmountCents: number | null;
+  quotedAmountCents: number | null;
+  committedAmountCents: number | null;
+  paidAmountCents: number | null;
+  remainingAmountCents: number | null;
   varianceCents: number | null;
   variancePercent: number | null;
   // PRD-BUD-03 : devis prestataires joints à la ligne.
@@ -97,9 +102,41 @@ export type AttachBudgetLineQuoteInput = {
 export type BudgetLinesView = {
   eventId: string;
   lines: BudgetLine[];
-  totalPlannedCents: number;
-  totalActualCents: number;
+  totalEstimatedCents: number;
+  totalQuotedCents: number;
+  totalCommittedCents: number;
+  totalPaidCents: number;
+  totalRemainingCents: number;
   totalVarianceCents: number;
+  // Lot 28a (BUD-02) : null sans enveloppe (ni budget souhaité, ni simulation).
+  envelope: BudgetEnvelope | null;
+};
+
+// Lot 28a (BUD-02, décision D4) — enveloppe du client : son budget souhaité, ou
+// à défaut le total de la simulation ; seuil d'alerte en pourcentage, celui de
+// l'événement s'il en a un, sinon celui de l'organisation.
+export type BudgetEnvelope = {
+  amountCents: number;
+  source: "wanted" | "simulation";
+  thresholdPercent: number;
+  thresholdCents: number;
+  committedPercent: number;
+  exceeded: boolean;
+};
+
+export type BudgetAlertSettings = {
+  organizationPercent: number;
+  // Seuil propre à l'événement ; null = celui de l'organisation.
+  eventPercent: number | null;
+};
+
+// Lot 28a (BUD-02) — « l'alerte précède l'engagement » : l'effet d'un
+// engagement sur l'enveloppe, calculé avant de le faire.
+export type EngagementPreview = {
+  envelope: BudgetEnvelope | null;
+  committedAfterCents: number;
+  exceedsThreshold: boolean;
+  overThresholdCents: number;
 };
 
 export type ConfirmEventBudgetInput = {
@@ -112,13 +149,13 @@ export type UpdateBudgetLineInput = {
   organizationId: string;
   eventId: string;
   eventVendorSlotId: string;
-  field: "planned" | "actual";
+  field: BudgetAmountField;
   amountCents: number;
   changedByUserId: string;
 };
 
 export type BudgetLineHistoryEntry = {
-  field: "planned" | "actual";
+  field: BudgetAmountField;
   oldValueCents: number | null;
   newValueCents: number;
   changedByUserId: string;

@@ -1,11 +1,12 @@
 import { getTranslations } from "next-intl/server";
 import { listDefaultVendorSlots } from "@/modules/events/service";
-import { listAllocationModels } from "@/modules/budget/service";
+import { getBudgetAlertSettings, listAllocationModels } from "@/modules/budget/service";
 import { requirePlanner } from "@/lib/guards";
 import { PageTour } from "@/app/page-tour";
 import { loadPageTour } from "@/lib/help/page-tour";
 import { isBudgetModuleEnabled } from "../module-access";
 import { AllocationModelForm } from "./allocation-model-form";
+import { AlertThresholdForm } from "./alert-threshold-form";
 import { removeAllocationModelAction } from "./actions";
 
 export default async function BudgetSettingsPage({ searchParams }: { searchParams: Promise<{ visite?: string }> }) {
@@ -24,9 +25,10 @@ export default async function BudgetSettingsPage({ searchParams }: { searchParam
     );
   }
 
-  const [models, vendorSlots] = await Promise.all([
+  const [models, vendorSlots, alertSettings] = await Promise.all([
     listAllocationModels(organizationId),
     listDefaultVendorSlots(organizationId),
+    getBudgetAlertSettings(organizationId),
   ]);
 
   return (
@@ -37,6 +39,11 @@ export default async function BudgetSettingsPage({ searchParams }: { searchParam
         helpTitle={tHelp("budgetSettings.title")}
         helpBody={tHelp("budgetSettings.body")}
       />
+
+      {/* Lot 28a (BUD-02) : seuil d'alerte de l'enveloppe. */}
+      <h2>{t("thresholdTitle")}</h2>
+      <p>{t("thresholdIntro")}</p>
+      <AlertThresholdForm percent={alertSettings.organizationPercent} />
 
       <h2 data-tour="budget-models">{t("modelsTitle")}</h2>
       {models.length === 0 ? <p>{t("noModels")}</p> : null}

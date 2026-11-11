@@ -86,34 +86,34 @@ describe("L11-EVT-10 — Plusieurs prestataires consultés par poste", () => {
       ["Maison Verdier", vendorId],
       ["Les Tables de Flandre", null],
     ]);
-    expect(candidates.every((candidate) => candidate.response === "contacted" && candidate.outcome === null)).toBe(true);
+    expect(candidates.every((candidate) => candidate.status === "shortlisted" && candidate.outcome === null)).toBe(true);
   });
 
-  it("le premier consulté passe le poste « À trouver » à « Devis demandé », un devis reçu à « Devis reçu »", async () => {
+  it("PRE-02 — le poste prend le statut le plus avancé de ses prestataires : Pressenti à l'ajout, Devis reçu avec un montant", async () => {
     const organizationId = await newOrganization();
     const { eventId, caterer } = await eventWithCaterer(organizationId);
 
     const first = await addVendorCandidate({ organizationId, eventId, vendorSlotId: caterer.id, vendorName: "Maison Verdier" });
-    expect((await listEventVendorSlots(organizationId, eventId)).find((slot) => slot.id === caterer.id)?.status).toBe("quote_requested");
+    expect((await listEventVendorSlots(organizationId, eventId)).find((slot) => slot.id === caterer.id)?.status).toBe("shortlisted");
 
-    // Le formulaire renvoie la réponse affichée (« contacté ») avec le montant.
-    await updateVendorCandidate({ organizationId, candidateId: first.id, response: "contacted", quoteAmountCents: 512000 });
+    // Le formulaire renvoie le statut affiché (« Consulté ») avec le montant.
+    await updateVendorCandidate({ organizationId, candidateId: first.id, status: "contacted", quoteAmountCents: 512000 });
     const [candidate] = await listVendorCandidates(organizationId, eventId);
-    expect(candidate?.response).toBe("quote_received");
+    expect(candidate?.status).toBe("quote_received");
     expect((await listEventVendorSlots(organizationId, eventId)).find((slot) => slot.id === caterer.id)?.status).toBe("quote_received");
   });
 
-  it("un poste réservé ou non requis ne change pas de statut quand on ajoute un consulté", async () => {
+  it("un poste non requis reste « Non requis » quand on lui ajoute un prestataire", async () => {
     const organizationId = await newOrganization();
     const { eventId, photographer } = await eventWithCaterer(organizationId);
-    await updateEventVendorSlot({ organizationId, vendorSlotId: photographer.id, changedByUserId: plannerId, status: "not_required" });
+    await updateEventVendorSlot({ organizationId, vendorSlotId: photographer.id, changedByUserId: plannerId, notRequired: true });
 
     await addVendorCandidate({ organizationId, eventId, vendorSlotId: photographer.id, vendorName: "Studio Lumière" });
 
     expect((await listEventVendorSlots(organizationId, eventId)).find((slot) => slot.id === photographer.id)?.status).toBe("not_required");
   });
 
-  it("« Retenir » réserve le poste avec ce prestataire et le montant de son devis, publie la réservation, et les autres deviennent « non retenu »", async () => {
+  it("PRE-02 — « Retenir » engage le poste avec ce prestataire et le montant de son devis, publie la retenue, et les autres deviennent « Écarté »", async () => {
     const organizationId = await newOrganization();
     const { eventId, caterer } = await eventWithCaterer(organizationId);
     const verdier = await addVendorCandidate({ organizationId, eventId, vendorSlotId: caterer.id, vendorName: "Maison Verdier" });
@@ -124,9 +124,10 @@ describe("L11-EVT-10 — Plusieurs prestataires consultés par poste", () => {
     await selectVendorCandidate({ organizationId, candidateId: tables.id, changedByUserId: plannerId });
 
     const slot = (await listEventVendorSlots(organizationId, eventId)).find((candidate) => candidate.id === caterer.id);
-    expect(slot).toMatchObject({ status: "booked", vendorName: "Les Tables de Flandre", amountCents: 448000, selectedCandidateId: tables.id });
-    const outcomes = Object.fromEntries((await listVendorCandidates(organizationId, eventId)).map((candidate) => [candidate.vendorName, candidate.outcome]));
-    expect(outcomes).toEqual({ "Maison Verdier": "not_selected", "Les Tables de Flandre": "selected" });
+    expect(slot).toMatchObject({ status: "retained", vendorName: "Les Tables de Flandre", amountCents: 448000, selectedCandidateId: tables.id });
+    const candidates = await listVendorCandidates(organizationId, eventId);
+    expect(Object.fromEntries(candidates.map((candidate) => [candidate.vendorName, candidate.outcome]))).toEqual({ "Maison Verdier": "not_selected", "Les Tables de Flandre": "selected" });
+    expect(Object.fromEntries(candidates.map((candidate) => [candidate.vendorName, candidate.status]))).toEqual({ "Maison Verdier": "dismissed", "Les Tables de Flandre": "retained" });
     const published = await withDb((db) =>
       withOrganization(db, organizationId, (tx) =>
         tx.select().from(domainEvents).where(and(eq(domainEvents.organizationId, organizationId), eq(domainEvents.name, EVT_VENDOR_SLOT_BOOKED))),
@@ -135,15 +136,41 @@ describe("L11-EVT-10 — Plusieurs prestataires consultés par poste", () => {
     expect(published.map((event) => (event.payload as { amountCents: number }).amountCents)).toEqual([448000]);
   });
 
-  it("le poste repassé à la main hors « Réservé » n'a plus de consulté retenu", async () => {
+  it("PRE-02 — le prestataire retenu repassé avant « Retenu » libère le poste", async () => {
     const organizationId = await newOrganization();
     const { eventId, caterer } = await eventWithCaterer(organizationId);
     const verdier = await addVendorCandidate({ organizationId, eventId, vendorSlotId: caterer.id, vendorName: "Maison Verdier" });
     await selectVendorCandidate({ organizationId, candidateId: verdier.id, changedByUserId: plannerId });
 
-    await updateEventVendorSlot({ organizationId, vendorSlotId: caterer.id, changedByUserId: plannerId, status: "quote_received" });
+    await updateVendorCandidate({ organizationId, candidateId: verdier.id, status: "quote_received", changedByUserId: plannerId });
 
-    expect((await listVendorCandidates(organizationId, eventId))[0]?.outcome).toBeNull();
+    expect((await listVendorCandidates(organizationId, eventId))[0]).toMatchObject({ status: "quote_received", outcome: null });
+    expect((await listEventVendorSlots(organizationId, eventId)).find((slot) => slot.id === caterer.id)).toMatchObject({ status: "quote_received", selectedCandidateId: null });
+  });
+
+  it("PRE-02 — passer un prestataire à « Retenu » par son statut engage comme « Retenir » ; Contrat signé et Soldé gardent l'engagement", async () => {
+    const organizationId = await newOrganization();
+    const { eventId, caterer } = await eventWithCaterer(organizationId);
+    const verdier = await addVendorCandidate({ organizationId, eventId, vendorSlotId: caterer.id, vendorName: "Maison Verdier" });
+    const tables = await addVendorCandidate({ organizationId, eventId, vendorSlotId: caterer.id, vendorName: "Les Tables de Flandre" });
+    await updateVendorCandidate({ organizationId, candidateId: verdier.id, quoteAmountCents: 512000 });
+
+    await updateVendorCandidate({ organizationId, candidateId: verdier.id, status: "retained", changedByUserId: plannerId });
+    expect((await listEventVendorSlots(organizationId, eventId)).find((slot) => slot.id === caterer.id)).toMatchObject({ status: "retained", amountCents: 512000, selectedCandidateId: verdier.id });
+    expect((await listVendorCandidates(organizationId, eventId)).find((candidate) => candidate.id === tables.id)?.status).toBe("dismissed");
+
+    await updateVendorCandidate({ organizationId, candidateId: verdier.id, status: "contract_signed", changedByUserId: plannerId });
+    await updateVendorCandidate({ organizationId, candidateId: verdier.id, status: "paid_off", changedByUserId: plannerId });
+    expect((await listEventVendorSlots(organizationId, eventId)).find((slot) => slot.id === caterer.id)).toMatchObject({ status: "paid_off", selectedCandidateId: verdier.id });
+
+    // Le devis du prestataire retenu change : l'engagement est republié.
+    await updateVendorCandidate({ organizationId, candidateId: verdier.id, quoteAmountCents: 530000, changedByUserId: plannerId });
+    const published = await withDb((db) =>
+      withOrganization(db, organizationId, (tx) =>
+        tx.select().from(domainEvents).where(and(eq(domainEvents.organizationId, organizationId), eq(domainEvents.name, EVT_VENDOR_SLOT_BOOKED))),
+      ),
+    );
+    expect(published.map((event) => (event.payload as { amountCents: number }).amountCents).sort()).toEqual([512000, 530000]);
   });
 
   it("un devis joint est vérifié et rangé dans le stockage privé ; un fichier d'un autre format est refusé", async () => {
@@ -155,7 +182,7 @@ describe("L11-EVT-10 — Plusieurs prestataires consultés par poste", () => {
     const file = await getVendorCandidateQuoteFile(organizationId, verdier.id);
     expect(file.contentType).toBe("application/pdf");
     expect(file.fileName).toBe("devis-Maison-Verdier.pdf");
-    expect((await listVendorCandidates(organizationId, eventId))[0]).toMatchObject({ hasQuoteFile: true, response: "quote_received" });
+    expect((await listVendorCandidates(organizationId, eventId))[0]).toMatchObject({ hasQuoteFile: true, status: "quote_received" });
 
     await expect(attachVendorCandidateQuote({ organizationId, candidateId: verdier.id, content: Buffer.from("<html></html>") })).rejects.toMatchObject({
       name: "CandidateQuoteRejectedError",

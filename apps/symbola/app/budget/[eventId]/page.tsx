@@ -5,11 +5,12 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { formatAmount, type Locale } from "@symbola/i18n";
 import { ScreenHelp } from "@/app/screen-help";
 import { getEvent, listDefaultVendorSlots } from "@/modules/events/service";
-import { getEventBudget, listAllocationModels, listBudgetLines } from "@/modules/budget/service";
+import { getBudgetAlertSettings, getEventBudget, listAllocationModels, listBudgetLines } from "@/modules/budget/service";
 import { requirePlanner } from "@/lib/guards";
 import { isBudgetModuleEnabled, isValidId } from "../module-access";
 import { BudgetSimulationForm } from "./budget-simulation-form";
 import { BudgetLinesTable } from "./budget-lines-table";
+import { EnvelopeSummary } from "./envelope-summary";
 
 export default async function EventBudgetPage({ params }: { params: Promise<{ eventId: string }> }) {
   const auth = await requirePlanner();
@@ -32,11 +33,12 @@ export default async function EventBudgetPage({ params }: { params: Promise<{ ev
   const event = await getEvent(organizationId, eventId);
   if (!event) notFound();
 
-  const [budget, models, vendorSlots, linesView] = await Promise.all([
+  const [budget, models, vendorSlots, linesView, alertSettings] = await Promise.all([
     getEventBudget(organizationId, eventId),
     listAllocationModels(organizationId),
     listDefaultVendorSlots(organizationId),
     listBudgetLines(organizationId, eventId),
+    getBudgetAlertSettings(organizationId, eventId),
   ]);
   const locale = (await getLocale()) as Locale;
   const clientNames = event.clients.length ? event.clients.map((client) => client.firstName).join(" & ") : t("noClient");
@@ -76,6 +78,9 @@ export default async function EventBudgetPage({ params }: { params: Promise<{ ev
           ))}
         </dl>
       ) : null}
+
+      {/* Lot 28a (BUD-02) : enveloppe, part engagée et seuil d'alerte. */}
+      <EnvelopeSummary eventId={eventId} envelope={linesView.envelope} committedCents={linesView.totalCommittedCents} settings={alertSettings} locale={locale} />
 
       <h2>{t("linesTitle")}</h2>
       <BudgetLinesTable eventId={eventId} view={linesView} canConfirm={budget !== null} locale={locale} />

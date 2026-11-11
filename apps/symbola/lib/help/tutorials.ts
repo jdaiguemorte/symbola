@@ -9,6 +9,7 @@ import { appDatabase } from "@symbola/db/client";
 import { getEventBudget, listBudgetLines } from "@/modules/budget/service";
 import {
   createTaskTemplate,
+  ENGAGED_CANDIDATE_STATUSES,
   getEvent,
   getEventProgram,
   listEventTasks,
@@ -83,7 +84,7 @@ export const TUTORIAL_SCRIPTS: Record<TutorialKey, TutorialScript> = {
       {
         kind: "do",
         href: eventTab("prestataires"),
-        check: async (env) => (await listEventVendorSlots(env.organizationId, env.context.eventId!)).some((slot) => slot.status === "booked"),
+        check: async (env) => (await listEventVendorSlots(env.organizationId, env.context.eventId!)).some((slot) => (ENGAGED_CANDIDATE_STATUSES as readonly string[]).includes(slot.status)),
       },
       { kind: "do", href: eventTab("retroplanning"), check: async (env) => (await listEventTasks(env.organizationId, env.context.eventId!)).some((task) => task.done) },
       { kind: "finish" },
@@ -200,7 +201,7 @@ export const TUTORIAL_SCRIPTS: Record<TutorialKey, TutorialScript> = {
       {
         kind: "do",
         href: (context) => `/budget/${context.eventId}`,
-        check: async (env) => (await listBudgetLines(env.organizationId, env.context.eventId!)).totalActualCents > 0,
+        check: async (env) => (await listBudgetLines(env.organizationId, env.context.eventId!)).totalCommittedCents > 0,
       },
       { kind: "finish" },
     ],

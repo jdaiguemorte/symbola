@@ -154,15 +154,6 @@ export const eventStatusHistory = eventsSchema.table("event_status_history", {
   createdBy: uuid("created_by"),
 }, (table) => [index("event_status_history_organization_idx").on(table.organizationId)]);
 
-// PRD-EVT-03 : statuts fixes d'un poste prestataire (PRD) — pas une liste
-// personnalisable, à la différence des postes eux-mêmes.
-export const vendorSlotStatusEnum = eventsSchema.enum("vendor_slot_status", [
-  "to_find",
-  "quote_requested",
-  "quote_received",
-  "booked",
-  "not_required",
-]);
 
 // PRD-EVT-03 : « la liste de postes par défaut de la planner » — paramétrable
 // par organisation (CLAUDE.md §2.5), éventuellement chargée depuis le
@@ -190,7 +181,9 @@ export const eventVendorSlots = eventsSchema.table("event_vendor_slots", {
     .notNull()
     .references(() => events.id),
   label: text("label").notNull(),
-  status: vendorSlotStatusEnum("status").notNull().default("to_find"),
+  // Lot 28a (PRE-02, décision D3) : le poste n'a plus de statut à lui ; il
+  // affiche le plus avancé de ses prestataires. « Non requis » reste une case.
+  notRequired: boolean("not_required").notNull().default(false),
   // Nom du prestataire en texte libre au MVP (l'app Prestataires est V2).
   vendorName: text("vendor_name"),
   // Montant en centimes, devise explicite (CLAUDE.md §5) ; facultatif.
@@ -212,13 +205,12 @@ export const eventVendorSlots = eventsSchema.table("event_vendor_slots", {
   updatedBy: uuid("updated_by"),
 }, (table) => [index("event_vendor_slots_organization_idx").on(table.organizationId)]);
 
-// Lot 11 (L11-EVT-10) — réponse d'un prestataire consulté : statuts fixes,
-// comme ceux du poste (« Retenu » / « Non retenu » se déduisent du poste).
-export const vendorCandidateResponseEnum = eventsSchema.enum("vendor_candidate_response", [
-  "contacted",
-  "quote_received",
-  "declined",
-]);
+// Lot 28a (PRE-02, décisions Q9 et D3) — statut d'un prestataire rattaché à
+// un événement : ceux du cahier des charges, dans l'ordre de leur avancée,
+// plus « Écarté » (il a décliné, ou un autre a été retenu). « Retenu » engage
+// la ligne de budget liée.
+export const VENDOR_CANDIDATE_STATUSES = ["shortlisted", "contacted", "quote_received", "retained", "contract_signed", "paid_off", "dismissed"] as const;
+export const vendorCandidateStatusEnum = eventsSchema.enum("vendor_candidate_status", VENDOR_CANDIDATE_STATUSES);
 
 // Lot 11 (L11-EVT-10) — prestataires consultés pour un poste. vendor_id
 // référence une fiche du carnet (module vendors, ADR 0031) sans clé
@@ -235,7 +227,7 @@ export const eventVendorCandidates = eventsSchema.table("event_vendor_candidates
     .references(() => eventVendorSlots.id, { onDelete: "cascade" }),
   vendorId: uuid("vendor_id"),
   vendorName: text("vendor_name").notNull(),
-  response: vendorCandidateResponseEnum("response").notNull().default("contacted"),
+  status: vendorCandidateStatusEnum("status").notNull().default("shortlisted"),
   contactedOn: date("contacted_on"),
   quoteAmountCents: integer("quote_amount_cents"),
   currency: text("currency").notNull().default("EUR"),

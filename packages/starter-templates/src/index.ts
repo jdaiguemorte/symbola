@@ -15,6 +15,7 @@ import privacyErasureResponseFile from "./privacy-erasure-response.json";
 import privacyRequestResponsesFile from "./privacy-request-responses.json";
 import privacySettingsFile from "./privacy-settings.json";
 import followUpFile from "./follow-up.json";
+import budgetAlertFile from "./budget-alert.json";
 import programFile from "./program.json";
 import prospectSourcesFile from "./prospect-sources.json";
 import retroplanningFile from "./retroplanning.json";
@@ -712,3 +713,15 @@ export function starterVendorTags(locale: StarterLocale, metier: StarterMetier =
     tags: group.tags.map((tag) => ({ label: tag[locale], aliases: [tag.fr, tag.en], familyKeys: tag.families ?? group.families })),
   }));
 }
+
+// Lot 28a (BUD-02, décision D4) — seuil d'alerte de départ du budget, en
+// pourcentage de l'enveloppe du client.
+const budgetAlertSchema = z.object({
+  version: z.literal(1),
+  alertThresholdPercent: z.number().int().min(1).max(500),
+});
+
+export function starterBudgetAlertThreshold(): number {
+  return budgetAlertSchema.parse(budgetAlertFile).alertThresholdPercent;
+}
+

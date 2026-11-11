@@ -334,7 +334,7 @@
     "budget": [
       {
         "title": "Vos répartitions",
-        "body": "Chaque modèle partage un budget total entre vos lignes, en pourcentages. Il propose les montants prévus quand vous simulez le budget d'un événement."
+        "body": "Chaque modèle partage un budget total entre vos lignes, en pourcentages. Il propose les montants estimés quand vous simulez le budget d'un événement."
       },
       {
         "title": "Nouveau modèle",
@@ -356,7 +356,7 @@
       },
       {
         "title": "Le budget",
-        "body": "Une ligne par prestation : prestataire, statut, prévu et réel."
+        "body": "Une ligne par prestation : prestataires, statut, estimé et engagé."
       },
       {
         "title": "La recherche",
@@ -565,7 +565,7 @@
     },
     "budgetSettings": {
       "title": "Répartition du budget",
-      "body": "Une répartition partage un budget total entre vos lignes, en pourcentages qui font 100 %. Créez-en une pour proposer des montants prévus quand vous simulez le budget d'un événement. Elle est facultative : un événement a un budget dès sa création.",
+      "body": "Une répartition partage un budget total entre vos lignes, en pourcentages qui font 100 %. Créez-en une pour proposer des montants estimés quand vous simulez le budget d'un événement. Elle est facultative : un événement a un budget dès sa création. Le seuil d'alerte (90 % par défaut) déclenche une alerte quand l'engagé d'un événement dépasserait cette part de son enveloppe.",
       "faq": [
         {
           "q": "Faut-il une répartition par type de mariage ?",
@@ -575,7 +575,7 @@
     },
     "budgetDetail": {
       "title": "Budget de l'événement",
-      "body": "Saisissez le budget total et le nombre d'invités, choisissez une répartition : chaque ligne reçoit un montant prévu. Ajustez une ligne, le reste se recalcule. Saisissez ensuite le réel et joignez le devis de chaque prestataire pour suivre l'écart.",
+      "body": "Chaque ligne porte cinq montants : l'estimé (saisi, ou réparti par la simulation), le devisé, l'engagé (rempli quand vous retenez un prestataire), le payé et le reste à payer, calculé. L'enveloppe est le budget souhaité du client ; au-delà du seuil d'alerte, un bandeau le signale, et retenir un prestataire demande une confirmation. Joignez le devis de chaque prestataire sous sa ligne.",
       "faq": [
         {
           "q": "Les mariés voient-ils le budget ?",
@@ -952,16 +952,22 @@
     "taskTableRegion": "Tableau : {caption}",
     "vendorSlotsTable": "Lignes du budget",
     "vendorSlotsTitle": "Budget",
-    "vendorProgress": "{booked, plural, =0 {Aucune ligne réservée} one {# ligne réservée} other {# lignes réservées}} sur {required}",
+    "vendorProgress": "{booked, plural, =0 {Aucune ligne pourvue} one {# ligne pourvue} other {# lignes pourvues}} sur {required}",
     "vendorStatusToFind": "À trouver",
-    "vendorStatusQuoteRequested": "Devis demandé",
+    "vendorStatusShortlisted": "Pressenti",
+    "vendorStatusContacted": "Consulté",
     "vendorStatusQuoteReceived": "Devis reçu",
-    "vendorStatusBooked": "Réservé",
+    "vendorStatusRetained": "Retenu",
+    "vendorStatusContractSigned": "Contrat signé",
+    "vendorStatusPaidOff": "Soldé",
     "vendorStatusNotRequired": "Non requis",
     "vendorSlotStatus": "Statut",
     "vendorName": "Prestataire",
-    "vendorNameRequired": "Prestataire (obligatoire si Réservé)",
     "vendorAmount": "Montant en euros (facultatif)",
+    "vendorSlotNotRequired": "Ligne non requise pour cet événement",
+    "retainedVendorName": "Prestataire retenu (nom)",
+    "retainedVendorAmount": "Montant engagé en euros (facultatif)",
+    "confirmRetainedVendor": "Retenir {vendor} malgré le dépassement",
     "saveVendorSlot": "Enregistrer la ligne",
     "vendorSlotSaved": "Ligne enregistrée.",
     "newVendorSlotLabel": "Nouvelle ligne du budget pour cet événement",
@@ -969,10 +975,10 @@
     "removeVendorSlot": "Retirer la ligne « {label} »",
     "noVendorSlots": "Aucune ligne de budget pour cet événement. Ajoutez-en une, ou définissez vos lignes par défaut dans les paramètres.",
     "vendorSlotNotFound": "Cette ligne du budget est introuvable.",
-    "missingVendorName": "Indiquez le nom du prestataire pour une ligne réservée.",
+    "missingVendorName": "Indiquez le nom du prestataire retenu pour saisir un montant.",
     "invalidAmount": "Montant invalide. Exemple : 2 500,50",
     "defaultVendorSlotsTitle": "Lignes du budget par défaut",
-    "defaultVendorSlotsIntro": "Chaque nouvel événement reçoit ces lignes (lieu, traiteur, photographe…) ; vous y suivez prestataires, devis, prévu et réel, et vous les modifiez ensuite événement par événement.",
+    "defaultVendorSlotsIntro": "Chaque nouvel événement reçoit ces lignes (lieu, traiteur, photographe…) ; vous y suivez prestataires, devis et montants (estimé, devisé, engagé, payé), et vous les modifiez ensuite événement par événement.",
     "noDefaultVendorSlots": "Aucune ligne par défaut pour l'instant.",
     "newDefaultVendorSlotLabel": "Nouvelle ligne par défaut",
     "addDefaultVendorSlot": "Ajouter la ligne",
@@ -1100,7 +1106,7 @@
     "activityTaskUndone": "{actor} a décoché « {task} ».",
     "activityFormerClient": "Un marié",
     "trialTitle": "Essai guidé",
-    "trialIntro": "Découvrez le module sur un mariage fictif déjà préparé (budget, rétroplanning, programme du jour J) : changez son statut, réservez un prestataire, cochez des tâches, exportez le programme. Rien ne touche vos vrais événements, et tout est supprimé à la fin de l'essai (ou au bout de 24 h).",
+    "trialIntro": "Découvrez le module sur un mariage fictif déjà préparé (budget, rétroplanning, programme du jour J) : changez son statut, retenez un prestataire, cochez des tâches, exportez le programme. Rien ne touche vos vrais événements, et tout est supprimé à la fin de l'essai (ou au bout de 24 h).",
     "trialStart": "Démarrer l'essai",
     "trialResume": "Reprendre l'essai en cours",
     "trialEnded": "Essai terminé : ses données fictives ont été supprimées.",
@@ -1108,16 +1114,16 @@
     "trialBannerTitle": "Essai guidé — données fictives",
     "trialBannerBody": "Cet événement est fictif : il n'apparaît ni au tableau de bord, ni dans les recherches RGPD, et il sera supprimé à la fin de l'essai ou au bout de 24 h. À essayer :",
     "trialStepStatus": "passer le statut à « Confirmé » ;",
-    "trialStepVendor": "réserver un prestataire et saisir son montant ;",
+    "trialStepVendor": "retenir un prestataire et saisir son montant ;",
     "trialStepTask": "cocher une tâche du rétroplanning, puis changer la date pour voir le recalcul proposé ;",
     "trialStepProgram": "ajouter une ligne au programme et télécharger le PDF (filigrane « Document fictif »).",
     "trialEnd": "Terminer l'essai et supprimer ses données",
     "trialNoInvite": "Pendant l'essai, aucune invitation n'est envoyée : les mariés ne sont invités que sur un vrai événement.",
     "demoWatermark": "Document fictif",
     "budgetLink": "Budget",
-    "confirmBudgetTitle": "Faire de la simulation le budget prévu",
-    "confirmBudgetBody": "L'événement est confirmé et une simulation existe déjà : vous pouvez l'utiliser comme prévu, ligne par ligne.",
-    "confirmAsPlanned": "En faire le budget prévu",
+    "confirmBudgetTitle": "Faire de la simulation le budget estimé",
+    "confirmBudgetBody": "L'événement est confirmé et une simulation existe déjà : vous pouvez en faire l'estimé, ligne par ligne.",
+    "confirmAsPlanned": "En faire le budget estimé",
     "trialStepQuote": "Composez un devis fictif, faites-le signer par le marié fictif sur la page de signature d'essai, puis émettez ses factures (série DEMO, en filigrane).",
     "trialStartQuote": "Essayer un devis fictif",
     "noSourcesTitle": "Une source est nécessaire",
@@ -1139,7 +1145,7 @@
     "vendorColumnSlot": "Ligne",
     "closePanel": "Fermer le panneau",
     "vendorDetailTitle": "Détail de la ligne",
-    "vendorDetailHint": "Choisissez une ligne dans le tableau pour changer son statut, son prestataire ou ses montants.",
+    "vendorDetailHint": "Choisissez une ligne dans le tableau pour suivre ses prestataires, en retenir un ou saisir ses montants.",
     "taskTemplatesSettings": "Modèles de rétroplanning",
     "tasksSummary": "{done} {done, plural, one {tâche faite} other {tâches faites}} sur {total} · {overdue} en retard",
     "tasksViewFilter": "Afficher",
@@ -1165,11 +1171,11 @@
     "allTasksTitle": "Tâches",
     "allTasksSummary": "{count, plural, =0 {Aucune tâche à faire} one {# tâche à faire} other {# tâches à faire}} · {overdue} en retard",
     "allTasksEmpty": "Aucune tâche à faire : tout est à jour.",
-    "budgetTotals": "Prévu : {planned} · Réel : {actual}",
-    "budgetSuggest": "Proposer des montants prévus, historique et devis joints",
-    "plannedAmountFor": "Prévu pour « {line} » (€)",
-    "savePlanned": "Enregistrer le prévu",
-    "plannedSaved": "✓ Prévu enregistré.",
+    "budgetTotals": "Estimé : {estimated} · Engagé : {committed}",
+    "budgetSuggest": "Proposer des montants estimés, historique et devis joints",
+    "plannedAmountFor": "Estimé pour « {line} » (€)",
+    "savePlanned": "Enregistrer l'estimé",
+    "plannedSaved": "✓ Estimé enregistré.",
     "lineIconFor": "Icône de « {line} »",
     "saveIcon": "Enregistrer l'icône",
     "iconSaved": "✓ Icône enregistrée.",
@@ -1237,8 +1243,8 @@
         "action": "Inviter les mariés"
       }
     },
-    "kpiPlanned": "Budget prévu",
-    "kpiBooked": "Lignes réservées",
+    "kpiPlanned": "Budget estimé",
+    "kpiBooked": "Lignes pourvues",
     "kpiBookedValue": "{booked} sur {required}",
     "kpiOverdue": "Tâches en retard",
     "kpiSigned": "Devis signés",
@@ -1338,19 +1344,27 @@
     "allocated": "Déjà réparti",
     "remaining": "Reste à répartir",
     "costPerGuest": "Coût par invité",
-    "linesTitle": "Prévu, réel, écart",
-    "confirmAsPlanned": "En faire le budget prévu",
+    "linesTitle": "Estimé, devisé, engagé, payé",
+    "clientLinesTitle": "Estimé, engagé, écart",
+    "confirmAsPlanned": "En faire le budget estimé",
     "vendorSlot": "Ligne",
-    "planned": "Prévu",
-    "actual": "Réel",
     "notSet": "Non renseigné",
+    "amounts": {
+      "estimated": "Estimé",
+      "quoted": "Devisé",
+      "committed": "Engagé",
+      "paid": "Payé",
+      "remaining": "Reste à payer"
+    },
+    "edit": "Modifier",
+    "editLineName": "« {label} »",
+    "saveLine": "Enregistrer la ligne",
+    "lineSaved": "Ligne enregistrée.",
     "variance": "Écart",
     "varianceUnset": "—",
     "varianceOver": "Dépassement de {amount}",
     "varianceUnder": "Économie de {amount}",
-    "varianceEqual": "Conforme au prévu",
-    "updatePlanned": "Mettre à jour le prévu",
-    "updateActual": "Mettre à jour le réel",
+    "varianceEqual": "Conforme à l'estimé",
     "total": "Total",
     "quoteFile": "Devis du prestataire — {label} (PDF ou image, 20 Mo maximum)",
     "attachQuote": "Joindre le devis",
@@ -1362,7 +1376,23 @@
     "quoteLineNotFound": "Ligne de budget introuvable.",
     "quotesOf": "Devis joints — {label}",
     "openQuote": "Ouvrir le devis {number} — {label} ({size})",
-    "backToEvent": "Retour à la fiche de l'événement"
+    "backToEvent": "Retour à la fiche de l'événement",
+    "envelopeTitle": "Enveloppe et seuil d'alerte",
+    "envelopeWanted": "Budget souhaité du client",
+    "envelopeSimulation": "Total de la simulation",
+    "envelopeCommitted": "Engagé",
+    "envelopeLeft": "Reste dans l'enveloppe",
+    "envelopeThreshold": "Seuil d'alerte",
+    "envelopeShare": "{amount} ({percent} %)",
+    "envelopeExceeded": "L'engagé dépasse de {amount} le seuil d'alerte ({percent} % de l'enveloppe).",
+    "envelopeMissing": "Pas encore d'enveloppe : saisissez le budget souhaité sur la fiche de l'événement, ou simulez le budget.",
+    "eventThreshold": "Seuil de cet événement, en % de l'enveloppe (vide : celui de l'organisation, {percent} %)",
+    "saveThreshold": "Enregistrer le seuil",
+    "thresholdSaved": "Seuil enregistré.",
+    "thresholdInvalid": "Le seuil est un nombre entier de 1 à 500 %.",
+    "thresholdTitle": "Seuil d'alerte",
+    "thresholdIntro": "Une alerte s'affiche quand l'engagé d'un événement dépasserait ce pourcentage de son enveloppe (le budget souhaité du client), avant de retenir le prestataire. Chaque événement peut l'ajuster.",
+    "organizationThreshold": "Seuil d'alerte, en % de l'enveloppe"
   },
   "Quotes": {
     "title": "Devis",
@@ -1925,8 +1955,8 @@
       "done": "Faite",
       "slotLabel": "Ligne du budget",
       "vendorName": "Prestataire",
-      "plannedAmount": "Montant prévu",
-      "actualAmount": "Montant réel",
+      "plannedAmount": "Montant estimé",
+      "actualAmount": "Montant engagé",
       "description": "Description",
       "unit": "Unité",
       "unitPrice": "Prix unitaire HT",
@@ -2338,9 +2368,11 @@
       "number": "Numéro",
       "issuedOn": "Émis le",
       "amountCents": "Montant (centimes)",
+      "estimatedAmountCents": "Estimé (centimes)",
+      "quotedAmountCents": "Devisé (centimes)",
+      "committedAmountCents": "Engagé (centimes)",
+      "paidAmountCents": "Payé (centimes)",
       "reason": "Motif",
-      "plannedAmountCents": "Prévu (centimes)",
-      "actualAmountCents": "Réel (centimes)",
       "totalAmountCents": "Budget total (centimes)",
       "mime": "Type de fichier",
       "sizeBytes": "Taille (octets)",
@@ -2745,7 +2777,7 @@
       },
       "budget-simulation": {
         "title": "Simuler le budget d'un événement",
-        "description": "Répartissez un budget d'exemple par ligne, puis comparez le prévu et le réel."
+        "description": "Répartissez un budget d'exemple par ligne, puis comparez l'estimé et l'engagé."
       },
       "day-program": {
         "title": "Préparer le programme du jour J",
@@ -2888,8 +2920,8 @@
           "body": "Ouvrez l'exemple, onglet Vue d'ensemble, et passez son statut à « Confirmé », comme lorsqu'un client donne son accord."
         },
         {
-          "title": "Réserver un prestataire",
-          "body": "Dans l'onglet Budget, choisissez une ligne (par exemple le traiteur), passez-la à « Réservé » et saisissez un nom de prestataire."
+          "title": "Retenir un prestataire",
+          "body": "Dans l'onglet Budget, choisissez une ligne (par exemple le traiteur) et saisissez le nom du prestataire retenu : il passe à « Retenu »."
         },
         {
           "title": "Cocher une tâche",
@@ -3013,7 +3045,7 @@
       "steps": [
         {
           "title": "Comprendre",
-          "body": "La répartition propose un montant prévu par ligne à partir d'un total, puis le budget compare le prévu et le réel au fil des réservations."
+          "body": "La répartition propose un montant estimé par ligne à partir d'un total, puis le budget compare l'estimé et l'engagé au fil des prestataires retenus."
         },
         {
           "title": "Créer l'exemple",
@@ -3024,8 +3056,8 @@
           "body": "Ouvrez le budget de l'exemple, saisissez une enveloppe et un nombre d'invités, choisissez un modèle de répartition et lancez la simulation."
         },
         {
-          "title": "Saisir un réel",
-          "body": "Saisissez un montant réel sur une ligne : l'écart avec le prévu s'affiche, en terracotta s'il y a dépassement."
+          "title": "Saisir un engagé",
+          "body": "Saisissez un montant engagé sur une ligne : l'écart avec l'estimé s'affiche, en terracotta s'il y a dépassement."
         },
         {
           "title": "Terminer",
@@ -3125,7 +3157,7 @@
         },
         {
           "title": "Retenir",
-          "body": "Cliquez « Retenir » sur le prestataire choisi : la ligne passe à Réservé avec son nom et son montant, et l'autre reste visible, « non retenu »."
+          "body": "Cliquez « Retenir » sur le prestataire choisi : il passe à « Retenu », la ligne est engagée à son montant, et l'autre reste visible, « Écarté »."
         },
         {
           "title": "Ce que voient les clients",
@@ -3179,7 +3211,7 @@
     "briefSave": "Enregistrer le besoin",
     "briefSaved": "Besoin enregistré.",
     "empty": "Aucun prestataire consulté pour l'instant. Ajoutez ceux que vous contactez : vous comparerez leurs devis ici.",
-    "selectHint": "« Retenir » passe la ligne à Réservé avec ce prestataire et le montant de son devis ; le réel du budget se met à jour. Les autres restent visibles, « non retenu ».",
+    "selectHint": "« Retenir » engage la ligne du budget au montant du devis ; les autres prestataires de la ligne passent à « Écarté ». Au-delà du seuil d'alerte de l'enveloppe, une confirmation est demandée.",
     "addTitle": "Ajouter un prestataire consulté pour « {slot} »",
     "fromBook": "Dans mon carnet",
     "fromBookNone": "— Choisir un prestataire —",
@@ -3188,13 +3220,17 @@
     "addToBookToo": "L'ajouter aussi à mon carnet",
     "add": "Ajouter",
     "consultedCount": "{count, plural, one {# consulté} other {# consultés}}",
-    "outcomeSelected": "Retenu",
-    "outcomeNotSelected": "Non retenu",
-    "responseContacted": "Contacté",
-    "responseQuoteReceived": "Devis reçu",
-    "responseDeclined": "Écarté",
+    "statusLabel": "Statut",
+    "status": {
+      "shortlisted": "Pressenti",
+      "contacted": "Consulté",
+      "quote_received": "Devis reçu",
+      "retained": "Retenu",
+      "contract_signed": "Contrat signé",
+      "paid_off": "Soldé",
+      "dismissed": "Écarté"
+    },
     "quoteOf": "Devis : {amount}",
-    "response": "Réponse",
     "contactedOn": "Contacté le",
     "quoteAmount": "Montant du devis (€)",
     "shownToClients": "Montrer aux clients",
@@ -3219,12 +3255,14 @@
     "addNote": "Ajouter la note",
     "addNoteFor": "Ajouter la note sur {vendor}",
     "select": "Retenir {vendor}",
+    "engagementAlert": "Retenir ce prestataire porterait l'engagé à {committed}, soit {over} au-delà du seuil d'alerte ({percent} % de l'enveloppe).",
+    "confirmEngagement": "Retenir {vendor} malgré le dépassement",
     "addToBook": "Ajouter {vendor} à mon carnet",
     "remove": "Retirer {vendor}",
     "unauthorized": "Session expirée ou accès refusé.",
     "notFound": "Prestataire ou ligne introuvable.",
     "nameRequired": "Indiquez le nom du prestataire ou choisissez-le dans votre carnet.",
-    "invalidResponse": "Réponse invalide.",
+    "invalidStatus": "Statut invalide.",
     "invalidAmount": "Montant invalide.",
     "invalidDate": "Date invalide.",
     "quoteMissing": "Choisissez un fichier.",
@@ -3586,7 +3624,7 @@
       "2": "Ces informations apparaissent sur vos devis et factures.",
       "3": "Il fixe les mentions légales de vos devis et factures. Un changement plus tard se fera avec une date d'effet.",
       "4": "Votre logo et votre couleur sur chaque devis, facture et programme du jour J. Facultatif : tout se modifie plus tard dans Paramètres › Ventes › Documents.",
-      "5": "Les lignes du budget de chaque nouvel événement : vous y suivez prestataires consultés, devis, prévu et réel. Nous avons préparé celles de votre métier, avec leur icône : renommez, changez l'icône, retirez ou ajoutez.",
+      "5": "Les lignes du budget de chaque nouvel événement : vous y suivez prestataires consultés, devis et montants. Nous avons préparé celles de votre métier, avec leur icône : renommez, changez l'icône, retirez ou ajoutez.",
       "6": "La source est demandée à chaque nouveau prospect ; le motif quand un projet est perdu. Elles servent à vos statistiques.",
       "7": "Nous avons préparé un rétroplanning, un programme du jour J et une répartition du budget. Vous les modifierez quand vous voudrez."
     },
@@ -3683,7 +3721,7 @@
     "modelCount": "{name} ({count} lignes)",
     "modelNone": "aucun",
     "modelEditLater": "Voir ou modifier",
-    "modelsHint": "Le rétroplanning s'applique quand un événement est confirmé ; la répartition propose des montants prévus si vous le souhaitez.",
+    "modelsHint": "Le rétroplanning s'applique quand un événement est confirmé ; la répartition propose des montants estimés si vous le souhaitez.",
     "finish": "Terminer et découvrir Symbola",
     "alreadyDone": "Le démarrage est terminé : vos menus sont ouverts.",
     "ownerOnly": "Seule la titulaire du compte peut faire le démarrage.",
@@ -4037,7 +4075,8 @@
       "vendors_vendors": "fiche prestataire",
       "quotes_payment_entries": "écriture d'encaissement",
       "quotes_original_documents": "original d'une pièce",
-      "quotes_ledger_entries": "écriture de la chaîne des pièces"
+      "quotes_ledger_entries": "écriture de la chaîne des pièces",
+      "budget_alert_thresholds": "Seuils d'alerte du budget"
     },
     "modules": {
       "events": "Événements",

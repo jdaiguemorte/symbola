@@ -27,16 +27,16 @@ async function bookedSlot() {
     clients: [{ firstName: "Camille", lastName: null }],
   });
   const slot = await addEventVendorSlot(organization.id, eventId, "Traiteur");
-  await updateBudgetLine({ organizationId: organization.id, eventId, eventVendorSlotId: slot.id, field: "planned", amountCents: 500000, changedByUserId: user.id });
+  await updateBudgetLine({ organizationId: organization.id, eventId, eventVendorSlotId: slot.id, field: "estimated", amountCents: 500000, changedByUserId: user.id });
   return { organizationId: organization.id, userId: user.id, eventId, slotId: slot.id };
 }
 
-const actual = async (organizationId: string, eventId: string) => (await listBudgetLines(organizationId, eventId)).lines[0]?.actualAmountCents ?? null;
+const actual = async (organizationId: string, eventId: string) => (await listBudgetLines(organizationId, eventId)).lines[0]?.committedAmountCents ?? null;
 
-describe("Worker continu — poste réservé → réel du budget (PRD-EVT-03 → PRD-BUD-02)", { timeout: 60_000 }, () => {
-  it("au passage du worker, le réel de la ligne prend le montant de la réservation, une seule fois", async () => {
+describe("Worker continu — prestataire retenu → engagé du budget (PRE-02 → BUD-01)", { timeout: 60_000 }, () => {
+  it("au passage du worker, l'engagé de la ligne prend le montant du prestataire retenu, une seule fois", async () => {
     const booked = await bookedSlot();
-    await updateEventVendorSlot({ organizationId: booked.organizationId, vendorSlotId: booked.slotId, changedByUserId: booked.userId, status: "booked", vendorName: "Traiteur Dupont", amountCents: 480000 });
+    await updateEventVendorSlot({ organizationId: booked.organizationId, vendorSlotId: booked.slotId, changedByUserId: booked.userId, vendorName: "Traiteur Dupont", amountCents: 480000 });
     // Rien tant que le worker n'est pas passé : la publication est découplée.
     expect(await actual(booked.organizationId, booked.eventId)).toBeNull();
 
@@ -47,12 +47,12 @@ describe("Worker continu — poste réservé → réel du budget (PRD-EVT-03 →
     expect(await actual(booked.organizationId, booked.eventId)).toBe(480000);
   });
 
-  it("un montant réel modifié à la main après la réservation n'est pas écrasé (premier démarrage du worker)", async () => {
+  it("un engagé modifié à la main après la retenue n'est pas écrasé (premier démarrage du worker)", async () => {
     const booked = await bookedSlot();
-    await updateEventVendorSlot({ organizationId: booked.organizationId, vendorSlotId: booked.slotId, changedByUserId: booked.userId, status: "booked", vendorName: "Traiteur Dupont", amountCents: 480000 });
-    // La planner corrige le réel avant que le worker ne passe.
+    await updateEventVendorSlot({ organizationId: booked.organizationId, vendorSlotId: booked.slotId, changedByUserId: booked.userId, vendorName: "Traiteur Dupont", amountCents: 480000 });
+    // La planner corrige l'engagé avant que le worker ne passe.
     await new Promise((resolve) => setTimeout(resolve, 20));
-    await updateBudgetLine({ organizationId: booked.organizationId, eventId: booked.eventId, eventVendorSlotId: booked.slotId, field: "actual", amountCents: 495000, changedByUserId: booked.userId });
+    await updateBudgetLine({ organizationId: booked.organizationId, eventId: booked.eventId, eventVendorSlotId: booked.slotId, field: "committed", amountCents: 495000, changedByUserId: booked.userId });
 
     await runEventWorkerOnce();
     expect(await actual(booked.organizationId, booked.eventId)).toBe(495000);

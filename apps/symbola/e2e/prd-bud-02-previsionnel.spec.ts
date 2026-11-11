@@ -1,5 +1,5 @@
-// PRD-BUD-02 — confirmer la simulation en budget prévu depuis la fiche
-// événement, tableau prévu/réel/écart, modification du réel à la main.
+// PRD-BUD-02 — confirmer la simulation en budget estimé depuis la fiche
+// événement, tableau des cinq montants et de l'écart, modification de l'engagé à la main.
 // En taille ordinateur et en 375 px, axe-core sur chaque écran.
 import { randomUUID } from "node:crypto";
 import AxeBuilder from "@axe-core/playwright";
@@ -27,7 +27,7 @@ async function expectNoAxeViolation(page: Page) {
   expect(result.violations, JSON.stringify(result.violations, null, 2)).toEqual([]);
 }
 
-test("PRD-BUD-02 — confirmer la simulation en budget prévu, puis suivre prévu/réel/écart", async ({ page }) => {
+test("PRD-BUD-02 — confirmer la simulation en budget estimé, puis suivre estimé/engagé/écart", async ({ page }) => {
   const email = `planner-bud02-${randomUUID()}@symbola.test`;
   const password = "mot-de-passe-bud02-e2e";
   const { sql, db } = createAppConnection();
@@ -71,7 +71,7 @@ test("PRD-BUD-02 — confirmer la simulation en budget prévu, puis suivre prév
   // Lot 12 (L12-EVT-17) : le budget est un onglet de la fiche ; le module
   // Budget s'ouvre depuis son lien.
   await openEventTab(page, "Budget");
-  await page.getByRole("link", { name: "Proposer des montants prévus, historique et devis joints" }).click();
+  await page.getByRole("link", { name: "Proposer des montants estimés, historique et devis joints" }).click();
   await page.getByLabel("Budget total (€)").fill("10000");
   await page.getByLabel("Nombre d'invités").fill("40");
   await page.getByLabel("Modèle de répartition").selectOption({ label: "Classique" });
@@ -81,28 +81,29 @@ test("PRD-BUD-02 — confirmer la simulation en budget prévu, puis suivre prév
   // Pas encore de bandeau avant confirmation (événement toujours prospect).
   await page.goto(eventUrl);
   await page.waitForLoadState("networkidle");
-  await expect(page.getByRole("heading", { name: "Faire de la simulation le budget prévu" })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Faire de la simulation le budget estimé" })).toHaveCount(0);
 
   // Passage en Confirmé → le bandeau apparaît.
   await changeEventStatus(page, "Confirmé");
-  await expect(page.getByRole("heading", { name: "Faire de la simulation le budget prévu" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Faire de la simulation le budget estimé" })).toBeVisible();
   await expectNoAxeViolation(page);
 
-  await page.getByRole("button", { name: "En faire le budget prévu" }).click();
-  await expect(page.getByRole("heading", { name: "Faire de la simulation le budget prévu" })).toHaveCount(0);
+  await page.getByRole("button", { name: "En faire le budget estimé" }).click();
+  await expect(page.getByRole("heading", { name: "Faire de la simulation le budget estimé" })).toHaveCount(0);
 
-  // PRD-BUD-02 : tableau prévu/réel/écart.
+  // PRD-BUD-02, BUD-01 (lot 28a) : tableau des cinq montants et de l'écart.
   await page.goto(`${eventUrl}`.replace("/events/", "/budget/"));
   await expectNoAxeViolation(page);
-  const table = page.getByRole("table", { name: "Prévu, réel, écart" });
+  const table = page.getByRole("table", { name: "Estimé, devisé, engagé, payé" });
   await expect(table).toBeVisible();
   const lieuRow = table.getByRole("row", { name: /Lieu de réception/ });
   await expect(lieuRow).toContainText("6 000,00 €");
   await expect(lieuRow).toContainText("Non renseigné");
 
-  // Modification du réel à la main, écart calculé (6000 € prévu, 7000 € réel).
-  await lieuRow.getByLabel(/Réel —/).fill("7000");
-  await lieuRow.getByRole("button", { name: "Mettre à jour le réel" }).click();
+  // Modification de l'engagé à la main, écart calculé (6000 € estimés, 7000 € engagés).
+  await lieuRow.getByText("Modifier « Lieu de réception »").click();
+  await lieuRow.getByLabel("Engagé — Lieu de réception").fill("7000");
+  await lieuRow.getByRole("button", { name: "Enregistrer la ligne" }).click();
   await expect(lieuRow).toContainText("Dépassement de 1 000,00 €");
   await expectNoAxeViolation(page);
 });

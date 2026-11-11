@@ -40,11 +40,11 @@ async function eventWithBudget(organizationId: string) {
     clients: [{ firstName: "Inès", lastName: null }],
   });
   const [venue, caterer] = await listEventVendorSlots(organizationId, event.id);
-  const line = (eventVendorSlotId: string, field: "planned" | "actual", amountCents: number) =>
+  const line = (eventVendorSlotId: string, field: "estimated" | "committed", amountCents: number) =>
     updateBudgetLine({ organizationId, eventId: event.id, eventVendorSlotId, field, amountCents, changedByUserId: plannerId });
-  await line(venue!.id, "planned", 600000);
-  await line(venue!.id, "actual", 650000);
-  await line(caterer!.id, "planned", 400000);
+  await line(venue!.id, "estimated", 600000);
+  await line(venue!.id, "committed", 650000);
+  await line(caterer!.id, "estimated", 400000);
   await attachBudgetLineQuote({
     organizationId,
     eventId: event.id,
@@ -71,17 +71,17 @@ async function newOrganization(): Promise<string> {
 }
 
 describe("PRD-BUD-04 — Budget visible par les mariés", () => {
-  it("le marié voit le budget de son événement : poste, prévu, réel, écart et totaux", async () => {
+  it("le marié voit le budget de son événement : poste, estimé, engagé, écart et totaux", async () => {
     const organizationId = await newOrganization();
     const eventId = await eventWithBudget(organizationId);
     const client = await invitedClient(organizationId, eventId);
 
     const view = await getClientBudgetView(organizationId, client.userId, eventId);
-    expect(view.lines.map((line) => [line.label, line.plannedAmountCents, line.actualAmountCents, line.varianceCents])).toEqual([
+    expect(view.lines.map((line) => [line.label, line.estimatedAmountCents, line.committedAmountCents, line.varianceCents])).toEqual([
       ["Lieu", 600000, 650000, 50000],
       ["Traiteur", 400000, null, null],
     ]);
-    expect(view).toMatchObject({ totalPlannedCents: 1000000, totalActualCents: 650000, totalVarianceCents: 50000 });
+    expect(view).toMatchObject({ totalEstimatedCents: 1000000, totalCommittedCents: 650000, totalVarianceCents: 50000 });
     // Lecture seule des colonnes publiques : les devis de la planner n'y sont pas.
     expect(view.lines.every((line) => line.attachments.length === 0)).toBe(true);
   });

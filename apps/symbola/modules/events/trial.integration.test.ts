@@ -101,7 +101,6 @@ describe("AIDE-02 — Essai guidé avec données de test (module événements)",
       organizationId,
       vendorSlotId: slot!.id,
       changedByUserId: plannerId,
-      status: "booked",
       vendorName: "Prestataire Démo",
       amountCents: 150000,
     });

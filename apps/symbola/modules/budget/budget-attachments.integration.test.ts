@@ -39,7 +39,7 @@ async function createLine(organizationId: string) {
     organizationId,
     eventId: event.id,
     eventVendorSlotId: slot!.id,
-    field: "planned",
+    field: "estimated",
     amountCents: 250000,
     changedByUserId: plannerId,
   });

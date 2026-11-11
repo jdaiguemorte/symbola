@@ -1,25 +1,29 @@
 "use server";
 
 // PRD-EVT-03 — actions des postes prestataires de la fiche d'un événement.
+// Lot 28a (PRE-02, BUD-02) : le poste n'a plus de statut à lui ; il garde la
+// case « Non requis » et le raccourci « prestataire retenu + montant », dont
+// l'engagement au-delà du seuil d'alerte se confirme d'abord.
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { parseAmountToCents } from "@symbola/i18n";
 import {
   addEventVendorSlot,
   EventNotFoundError,
+  listEventVendorSlots,
   removeEventVendorSlot,
   setEventVendorSlotIcon,
   updateEventVendorSlot,
-  VENDOR_SLOT_STATUSES,
   VendorNameRequiredError,
   VendorSlotNotFoundError,
-  type VendorSlotStatus,
 } from "@/modules/events/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isEventsModuleEnabled, isValidId } from "../module-access";
 import { ICON_KEYS } from "@/app/budget-line-icon";
+import { engagementAlert } from "./engagement-alert";
 
-export type VendorSlotFormState = { error?: string; success?: boolean };
+// `confirm` : dépassement du seuil à confirmer avant l'engagement (BUD-02).
+export type VendorSlotFormState = { error?: string; success?: boolean; confirm?: string };
 
 async function authorize(t: Awaited<ReturnType<typeof getTranslations>>) {
   const auth = await getPlannerAuthContext();
@@ -40,19 +44,33 @@ export async function updateVendorSlotAction(
   const vendorSlotId = String(formData.get("vendorSlotId") ?? "");
   if (!isValidId(eventId) || !isValidId(vendorSlotId)) return { error: t("vendorSlotNotFound") };
 
-  const status = String(formData.get("status") ?? "");
-  if (!VENDOR_SLOT_STATUSES.includes(status as VendorSlotStatus)) return { error: t("invalidStatus") };
-
   const amountCents = parseAmountToCents(String(formData.get("amount") ?? ""));
   if (amountCents === undefined) return { error: t("invalidAmount") };
+  const vendorName = String(formData.get("vendorName") ?? "").trim();
+
+  const slot = (await listEventVendorSlots(access.organizationId, eventId)).find((entry) => entry.id === vendorSlotId);
+  if (!slot) return { error: t("vendorSlotNotFound") };
+  // L'engagé augmente quand un autre prestataire est retenu, ou que le montant monte.
+  const sameVendor = (slot.vendorName ?? "").trim().toLowerCase() === vendorName.toLowerCase();
+  const raises = vendorName !== "" && amountCents !== null && (!sameVendor || amountCents > (slot.amountCents ?? 0));
+  if (raises) {
+    const confirm = await engagementAlert({
+      organizationId: access.organizationId,
+      eventId,
+      vendorSlotId,
+      amountCents,
+      confirmed: formData.get("confirmed") === "1",
+    });
+    if (confirm) return { confirm };
+  }
 
   try {
     await updateEventVendorSlot({
       organizationId: access.organizationId,
       vendorSlotId,
       changedByUserId: access.userId,
-      status: status as VendorSlotStatus,
-      vendorName: String(formData.get("vendorName") ?? ""),
+      notRequired: formData.get("notRequired") === "on",
+      vendorName,
       amountCents,
     });
   } catch (error) {

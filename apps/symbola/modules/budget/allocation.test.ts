@@ -3,8 +3,11 @@ import {
   allocateFromModel,
   computeVariance,
   costPerGuestCents,
+  envelopeThresholdCents,
   isModelTotalValid,
   remainingToAllocateCents,
+  remainingToPayCents,
+  shareOfEnvelopePercent,
   sumAmountCents,
   sumBasisPoints,
 } from "./allocation";
@@ -65,12 +68,12 @@ describe("PRD-BUD-01 — Reste à répartir", () => {
   });
 });
 
-describe("PRD-BUD-02 — Écart (réel moins prévu)", () => {
-  it("vaut null tant qu'aucun montant réel n'est renseigné", () => {
+describe("BUD-01 — Écart (engagé moins estimé, lot 28a)", () => {
+  it("vaut null tant qu'aucun montant engagé n'est renseigné", () => {
     expect(computeVariance(100000, null)).toEqual({ varianceCents: null, variancePercent: null });
   });
 
-  it("un dépassement est positif, en centimes et en pourcentage du prévu", () => {
+  it("un dépassement est positif, en centimes et en pourcentage de l'estimé", () => {
     expect(computeVariance(100000, 120000)).toEqual({ varianceCents: 20000, variancePercent: 20 });
   });
 
@@ -78,12 +81,48 @@ describe("PRD-BUD-02 — Écart (réel moins prévu)", () => {
     expect(computeVariance(100000, 80000)).toEqual({ varianceCents: -20000, variancePercent: -20 });
   });
 
-  it("vaut exactement 0 quand réel égale prévu", () => {
+  it("vaut exactement 0 quand l'engagé égale l'estimé", () => {
     expect(computeVariance(100000, 100000)).toEqual({ varianceCents: 0, variancePercent: 0 });
   });
 
-  it("le pourcentage vaut 0 si le prévu est à 0 (jamais de division par zéro affichée)", () => {
+  it("le pourcentage vaut 0 si l'estimé est à 0 (jamais de division par zéro affichée)", () => {
     expect(computeVariance(0, 5000)).toEqual({ varianceCents: 5000, variancePercent: 0 });
+  });
+
+  it("vaut null sans estimé (ligne suivie seulement en engagé)", () => {
+    expect(computeVariance(null, 5000)).toEqual({ varianceCents: null, variancePercent: null });
+  });
+});
+
+describe("BUD-01 — Reste à payer (engagé moins payé, jamais saisi)", () => {
+  it("vaut null tant que rien n'est engagé", () => {
+    expect(remainingToPayCents(null, null)).toBeNull();
+    expect(remainingToPayCents(null, 10000)).toBeNull();
+  });
+
+  it("vaut l'engagé quand rien n'est payé, puis diminue au centime près", () => {
+    expect(remainingToPayCents(448000, null)).toBe(448000);
+    expect(remainingToPayCents(448000, 134400)).toBe(313600);
+    expect(remainingToPayCents(448000, 448000)).toBe(0);
+  });
+
+  it("devient négatif si le payé dépasse l'engagé (affiché en alerte)", () => {
+    expect(remainingToPayCents(100000, 100001)).toBe(-1);
+  });
+});
+
+describe("BUD-02 — Seuil d'alerte et part engagée de l'enveloppe", () => {
+  it("le seuil en centimes, arrondi à l'inférieur (jamais au-dessus du pourcentage)", () => {
+    expect(envelopeThresholdCents(3000000, 90)).toBe(2700000);
+    expect(envelopeThresholdCents(1999, 90)).toBe(1799);
+    expect(envelopeThresholdCents(1000000, 100)).toBe(1000000);
+    expect(envelopeThresholdCents(1000000, 120)).toBe(1200000);
+  });
+
+  it("la part engagée en pourcentage entier de l'enveloppe ; 0 pour une enveloppe nulle", () => {
+    expect(shareOfEnvelopePercent(2700000, 3000000)).toBe(90);
+    expect(shareOfEnvelopePercent(1, 3)).toBe(33);
+    expect(shareOfEnvelopePercent(5000, 0)).toBe(0);
   });
 });
 

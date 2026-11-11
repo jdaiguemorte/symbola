@@ -334,7 +334,7 @@
     "budget": [
       {
         "title": "Your allocations",
-        "body": "Each template splits a total budget across your lines, in percentages. It suggests planned amounts when you simulate an event's budget."
+        "body": "Each template splits a total budget across your lines, in percentages. It suggests estimated amounts when you simulate an event's budget."
       },
       {
         "title": "New template",
@@ -356,7 +356,7 @@
       },
       {
         "title": "Budget",
-        "body": "One line per service: vendor, status, planned and actual."
+        "body": "One line per service: vendors, status, estimated and committed."
       },
       {
         "title": "Search",
@@ -565,7 +565,7 @@
     },
     "budgetSettings": {
       "title": "Budget allocation",
-      "body": "An allocation splits a total budget across your lines, in percentages adding up to 100 %. Create one to suggest planned amounts when you simulate an event's budget. It is optional: an event has a budget from the start.",
+      "body": "An allocation splits a total budget across your lines, in percentages adding up to 100 %. Create one to suggest estimated amounts when you simulate an event's budget. It is optional: an event has a budget from the start. The alert threshold (90 % by default) raises an alert when an event's committed spending would exceed that share of its envelope.",
       "faq": [
         {
           "q": "Do I need one allocation per type of wedding?",
@@ -575,7 +575,7 @@
     },
     "budgetDetail": {
       "title": "Event budget",
-      "body": "Enter the total budget and the number of guests, choose an allocation: each line gets a planned amount. Adjust a line and the rest is recalculated. Then enter actual costs and attach each supplier's quote to track the difference.",
+      "body": "Each line has five amounts: estimated (entered, or split by the simulation), quoted, committed (filled in when you retain a vendor), paid, and left to pay, calculated. The envelope is the client's wanted budget; above the alert threshold a banner says so, and retaining a vendor asks for confirmation. Attach each vendor's quote under its line.",
       "faq": [
         {
           "q": "Does the couple see the budget?",
@@ -952,16 +952,22 @@
     "taskTableRegion": "Table: {caption}",
     "vendorSlotsTable": "Budget lines",
     "vendorSlotsTitle": "Budget",
-    "vendorProgress": "{booked, plural, =0 {No line booked} one {# line booked} other {# lines booked}} out of {required}",
+    "vendorProgress": "{booked, plural, =0 {No line filled} one {# line filled} other {# lines filled}} out of {required}",
     "vendorStatusToFind": "To find",
-    "vendorStatusQuoteRequested": "Quote requested",
+    "vendorStatusShortlisted": "Shortlisted",
+    "vendorStatusContacted": "Contacted",
     "vendorStatusQuoteReceived": "Quote received",
-    "vendorStatusBooked": "Booked",
+    "vendorStatusRetained": "Retained",
+    "vendorStatusContractSigned": "Contract signed",
+    "vendorStatusPaidOff": "Paid off",
     "vendorStatusNotRequired": "Not required",
     "vendorSlotStatus": "Status",
     "vendorName": "Vendor",
-    "vendorNameRequired": "Vendor (required if Booked)",
     "vendorAmount": "Amount in euros (optional)",
+    "vendorSlotNotRequired": "Line not required for this event",
+    "retainedVendorName": "Retained vendor (name)",
+    "retainedVendorAmount": "Committed amount in euros (optional)",
+    "confirmRetainedVendor": "Retain {vendor} despite the overrun",
     "saveVendorSlot": "Save the line",
     "vendorSlotSaved": "Line saved.",
     "newVendorSlotLabel": "New budget line for this event",
@@ -969,10 +975,10 @@
     "removeVendorSlot": "Remove the line “{label}”",
     "noVendorSlots": "No budget line for this event. Add one, or set your default lines in the settings.",
     "vendorSlotNotFound": "This budget line cannot be found.",
-    "missingVendorName": "Enter the vendor's name for a booked line.",
+    "missingVendorName": "Enter the retained vendor's name to enter an amount.",
     "invalidAmount": "Invalid amount. Example: 2,500.50",
     "defaultVendorSlotsTitle": "Default budget lines",
-    "defaultVendorSlotsIntro": "Every new event receives these lines (venue, caterer, photographer…); you track vendors, quotes, planned and actual amounts on them, then adjust them event by event.",
+    "defaultVendorSlotsIntro": "Every new event receives these lines (venue, caterer, photographer…); you track vendors, quotes and amounts (estimated, quoted, committed, paid) on them, then adjust them event by event.",
     "noDefaultVendorSlots": "No default line yet.",
     "newDefaultVendorSlotLabel": "New default line",
     "addDefaultVendorSlot": "Add the line",
@@ -1100,7 +1106,7 @@
     "activityTaskUndone": "{actor} unchecked “{task}”.",
     "activityFormerClient": "A couple member",
     "trialTitle": "Guided trial",
-    "trialIntro": "Discover the module on a ready-made fictional wedding (budget, planning timeline, day schedule): change its status, book a vendor, check tasks, export the schedule. Your real events are never touched, and everything is deleted when the trial ends (or after 24 hours).",
+    "trialIntro": "Discover the module on a ready-made fictional wedding (budget, planning timeline, day schedule): change its status, retain a vendor, check tasks, export the schedule. Your real events are never touched, and everything is deleted when the trial ends (or after 24 hours).",
     "trialStart": "Start the trial",
     "trialResume": "Resume the current trial",
     "trialEnded": "Trial ended: its fictional data has been deleted.",
@@ -1108,16 +1114,16 @@
     "trialBannerTitle": "Guided trial — fictional data",
     "trialBannerBody": "This event is fictional: it never shows on the dashboard or in GDPR searches, and it will be deleted when the trial ends or after 24 hours. Things to try:",
     "trialStepStatus": "set the status to “Confirmed”;",
-    "trialStepVendor": "book a vendor and enter its amount;",
+    "trialStepVendor": "retain a vendor and enter its amount;",
     "trialStepTask": "check a planning timeline task, then change the date to see the proposed recalculation;",
     "trialStepProgram": "add a schedule line and download the PDF (“Fictional document” watermark).",
     "trialEnd": "End the trial and delete its data",
     "trialNoInvite": "During the trial, no invitation is sent: the couple is only invited on a real event.",
     "demoWatermark": "Fictional document",
     "budgetLink": "Budget",
-    "confirmBudgetTitle": "Make the simulation the planned budget",
-    "confirmBudgetBody": "The event is confirmed and a simulation already exists: you can use it as the planned amounts, line by line.",
-    "confirmAsPlanned": "Make it the planned budget",
+    "confirmBudgetTitle": "Make the simulation the estimated budget",
+    "confirmBudgetBody": "The event is confirmed and a simulation already exists: you can use it as the estimated amounts, line by line.",
+    "confirmAsPlanned": "Make it the estimated budget",
     "trialStepQuote": "Compose a fictional quote, have the fictional couple sign it on the trial signing page, then issue its invoices (DEMO series, watermarked).",
     "trialStartQuote": "Try a fictional quote",
     "noSourcesTitle": "A source is required",
@@ -1139,7 +1145,7 @@
     "vendorColumnSlot": "Line",
     "closePanel": "Close panel",
     "vendorDetailTitle": "Line details",
-    "vendorDetailHint": "Pick a line in the table to change its status, vendor or amounts.",
+    "vendorDetailHint": "Pick a line in the table to follow its vendors, retain one or enter its amounts.",
     "taskTemplatesSettings": "Planning templates",
     "tasksSummary": "{done} of {total} {total, plural, one {task} other {tasks}} done · {overdue} overdue",
     "tasksViewFilter": "Show",
@@ -1165,11 +1171,11 @@
     "allTasksTitle": "Tasks",
     "allTasksSummary": "{count, plural, =0 {No task to do} one {# task to do} other {# tasks to do}} · {overdue} overdue",
     "allTasksEmpty": "Nothing to do: everything is up to date.",
-    "budgetTotals": "Planned: {planned} · Actual: {actual}",
-    "budgetSuggest": "Suggest planned amounts, history and attached quotes",
-    "plannedAmountFor": "Planned for “{line}” (€)",
-    "savePlanned": "Save the planned amount",
-    "plannedSaved": "✓ Planned amount saved.",
+    "budgetTotals": "Estimated: {estimated} · Committed: {committed}",
+    "budgetSuggest": "Suggest estimated amounts, history and attached quotes",
+    "plannedAmountFor": "Estimated for “{line}” (€)",
+    "savePlanned": "Save the estimated amount",
+    "plannedSaved": "✓ Estimated amount saved.",
     "lineIconFor": "Icon of “{line}”",
     "saveIcon": "Save the icon",
     "iconSaved": "✓ Icon saved.",
@@ -1237,8 +1243,8 @@
         "action": "Invite the couple"
       }
     },
-    "kpiPlanned": "Planned budget",
-    "kpiBooked": "Lines booked",
+    "kpiPlanned": "Estimated budget",
+    "kpiBooked": "Lines filled",
     "kpiBookedValue": "{booked} of {required}",
     "kpiOverdue": "Overdue tasks",
     "kpiSigned": "Signed quotes",
@@ -1338,19 +1344,27 @@
     "allocated": "Already allocated",
     "remaining": "Remaining to allocate",
     "costPerGuest": "Cost per guest",
-    "linesTitle": "Planned, actual, variance",
-    "confirmAsPlanned": "Make it the planned budget",
+    "linesTitle": "Estimated, quoted, committed, paid",
+    "clientLinesTitle": "Estimated, committed, variance",
+    "confirmAsPlanned": "Make it the estimated budget",
     "vendorSlot": "Line",
-    "planned": "Planned",
-    "actual": "Actual",
     "notSet": "Not set",
+    "amounts": {
+      "estimated": "Estimated",
+      "quoted": "Quoted",
+      "committed": "Committed",
+      "paid": "Paid",
+      "remaining": "Left to pay"
+    },
+    "edit": "Edit",
+    "editLineName": "“{label}”",
+    "saveLine": "Save the line",
+    "lineSaved": "Line saved.",
     "variance": "Variance",
     "varianceUnset": "—",
     "varianceOver": "{amount} over",
     "varianceUnder": "{amount} under",
-    "varianceEqual": "On budget",
-    "updatePlanned": "Update planned",
-    "updateActual": "Update actual",
+    "varianceEqual": "On estimate",
     "total": "Total",
     "quoteFile": "Vendor quote — {label} (PDF or image, 20 MB max)",
     "attachQuote": "Attach the quote",
@@ -1362,7 +1376,23 @@
     "quoteLineNotFound": "Budget line not found.",
     "quotesOf": "Attached quotes — {label}",
     "openQuote": "Open quote {number} — {label} ({size})",
-    "backToEvent": "Back to the event page"
+    "backToEvent": "Back to the event page",
+    "envelopeTitle": "Envelope and alert threshold",
+    "envelopeWanted": "Client's wanted budget",
+    "envelopeSimulation": "Simulation total",
+    "envelopeCommitted": "Committed",
+    "envelopeLeft": "Left in the envelope",
+    "envelopeThreshold": "Alert threshold",
+    "envelopeShare": "{amount} ({percent} %)",
+    "envelopeExceeded": "Committed spending is {amount} over the alert threshold ({percent} % of the envelope).",
+    "envelopeMissing": "No envelope yet: enter the wanted budget on the event's page, or simulate the budget.",
+    "eventThreshold": "Threshold for this event, as a % of the envelope (empty: the organisation's, {percent} %)",
+    "saveThreshold": "Save the threshold",
+    "thresholdSaved": "Threshold saved.",
+    "thresholdInvalid": "The threshold is a whole number from 1 to 500 %.",
+    "thresholdTitle": "Alert threshold",
+    "thresholdIntro": "An alert shows when an event's committed spending would exceed this percentage of its envelope (the client's wanted budget), before you retain the vendor. Each event can adjust it.",
+    "organizationThreshold": "Alert threshold, as a % of the envelope"
   },
   "Quotes": {
     "title": "Quotes",
@@ -1925,8 +1955,8 @@
       "done": "Done",
       "slotLabel": "Budget line",
       "vendorName": "Vendor",
-      "plannedAmount": "Planned amount",
-      "actualAmount": "Actual amount",
+      "plannedAmount": "Estimated amount",
+      "actualAmount": "Committed amount",
       "description": "Description",
       "unit": "Unit",
       "unitPrice": "Unit price excl. VAT",
@@ -2338,9 +2368,11 @@
       "number": "Number",
       "issuedOn": "Issued on",
       "amountCents": "Amount (cents)",
+      "estimatedAmountCents": "Estimated (cents)",
+      "quotedAmountCents": "Quoted (cents)",
+      "committedAmountCents": "Committed (cents)",
+      "paidAmountCents": "Paid (cents)",
       "reason": "Reason",
-      "plannedAmountCents": "Planned (cents)",
-      "actualAmountCents": "Actual (cents)",
       "totalAmountCents": "Total budget (cents)",
       "mime": "File type",
       "sizeBytes": "Size (bytes)",
@@ -2745,7 +2777,7 @@
       },
       "budget-simulation": {
         "title": "Simulate an event budget",
-        "description": "Split an example budget by line, then compare planned and actual."
+        "description": "Split an example budget by line, then compare estimated and committed."
       },
       "day-program": {
         "title": "Prepare the day's programme",
@@ -2888,8 +2920,8 @@
           "body": "Open the example, Overview tab, and set its status to \"Confirmed\", as when a client agrees."
         },
         {
-          "title": "Book a vendor",
-          "body": "In the Budget tab, pick a line (the caterer, for example), set it to \"Booked\" and enter a vendor name."
+          "title": "Retain a vendor",
+          "body": "In the Budget tab, pick a line (the caterer, for example) and enter the retained vendor's name: it becomes “Retained”."
         },
         {
           "title": "Tick a task",
@@ -3013,7 +3045,7 @@
       "steps": [
         {
           "title": "Understand",
-          "body": "The split suggests a planned amount per line from a total, then the budget compares planned and actual as bookings come in."
+          "body": "The split suggests an estimated amount per line from a total, then the budget compares estimated and committed as vendors are retained."
         },
         {
           "title": "Create the example",
@@ -3024,8 +3056,8 @@
           "body": "Open the example's budget, enter an envelope and a number of guests, choose an allocation model and run the simulation."
         },
         {
-          "title": "Enter an actual",
-          "body": "Enter an actual amount on a line: the difference with the plan shows, in terracotta if over budget."
+          "title": "Enter a committed amount",
+          "body": "Enter a committed amount on a line: the difference with the estimate shows, in terracotta if over budget."
         },
         {
           "title": "Finish",
@@ -3124,8 +3156,8 @@
           "body": "For one of them, enter the quote amount (or attach the file). You can also add a note, internal or shown to the clients."
         },
         {
-          "title": "Select",
-          "body": "Click “Select” on the vendor you choose: the line becomes Booked with its name and amount, and the other one stays visible as “not selected”."
+          "title": "Retain",
+          "body": "Click “Retain” on the vendor you choose: it becomes “Retained”, the line is committed at its amount, and the other one stays visible as “Dismissed”."
         },
         {
           "title": "What the clients see",
@@ -3179,7 +3211,7 @@
     "briefSave": "Save the brief",
     "briefSaved": "Brief saved.",
     "empty": "No vendor consulted yet. Add the ones you contact: you will compare their quotes here.",
-    "selectHint": "“Select” books the line with this vendor and the amount of their quote; the budget's actual amount is updated. The others stay visible as “not selected”.",
+    "selectHint": "“Retain” commits the budget line at the quote's amount; the line's other vendors become “Dismissed”. Above the envelope's alert threshold, you are asked to confirm.",
     "addTitle": "Add a vendor consulted for “{slot}”",
     "fromBook": "From my vendor book",
     "fromBookNone": "— Choose a vendor —",
@@ -3188,13 +3220,17 @@
     "addToBookToo": "Also add to my vendor book",
     "add": "Add",
     "consultedCount": "{count, plural, one {# consulted} other {# consulted}}",
-    "outcomeSelected": "Selected",
-    "outcomeNotSelected": "Not selected",
-    "responseContacted": "Contacted",
-    "responseQuoteReceived": "Quote received",
-    "responseDeclined": "Declined",
+    "statusLabel": "Status",
+    "status": {
+      "shortlisted": "Shortlisted",
+      "contacted": "Contacted",
+      "quote_received": "Quote received",
+      "retained": "Retained",
+      "contract_signed": "Contract signed",
+      "paid_off": "Paid off",
+      "dismissed": "Dismissed"
+    },
     "quoteOf": "Quote: {amount}",
-    "response": "Response",
     "contactedOn": "Contacted on",
     "quoteAmount": "Quote amount (€)",
     "shownToClients": "Show to clients",
@@ -3218,13 +3254,15 @@
     "noteVisibleToClients": "Visible to clients",
     "addNote": "Add the note",
     "addNoteFor": "Add the note about {vendor}",
-    "select": "Select {vendor}",
+    "select": "Retain {vendor}",
+    "engagementAlert": "Retaining this vendor would bring committed spending to {committed}, {over} above the alert threshold ({percent} % of the envelope).",
+    "confirmEngagement": "Retain {vendor} despite the overrun",
     "addToBook": "Add {vendor} to my vendor book",
     "remove": "Remove {vendor}",
     "unauthorized": "Session expired or access denied.",
     "notFound": "Vendor or line not found.",
     "nameRequired": "Enter the vendor's name or choose it from your vendor book.",
-    "invalidResponse": "Invalid response.",
+    "invalidStatus": "Invalid status.",
     "invalidAmount": "Invalid amount.",
     "invalidDate": "Invalid date.",
     "quoteMissing": "Choose a file.",
@@ -3586,7 +3624,7 @@
       "2": "This information appears on your quotes and invoices.",
       "3": "It sets the legal notices on your quotes and invoices. A later change will have an effective date.",
       "4": "Your logo and colour on every quote, invoice and day programme. Optional: everything can be changed later in Settings › Sales › Documents.",
-      "5": "The budget lines of every new event: you track consulted vendors, quotes, planned and actual amounts. We prepared those of your line of work, with their icon: rename, change the icon, remove or add.",
+      "5": "The budget lines of every new event: you track consulted vendors, quotes and amounts. We prepared those of your line of work, with their icon: rename, change the icon, remove or add.",
       "6": "The source is asked for each new lead; the reason when a project is lost. They feed your statistics.",
       "7": "We prepared a timeline, a day schedule and a budget split. You can change them whenever you like."
     },
@@ -4037,7 +4075,8 @@
       "vendors_vendors": "vendor",
       "quotes_payment_entries": "payment entry",
       "quotes_original_documents": "original document",
-      "quotes_ledger_entries": "document chain entry"
+      "quotes_ledger_entries": "document chain entry",
+      "budget_alert_thresholds": "Budget alert thresholds"
     },
     "modules": {
       "events": "Events",

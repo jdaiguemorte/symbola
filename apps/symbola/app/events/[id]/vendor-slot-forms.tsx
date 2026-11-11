@@ -1,23 +1,31 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { formatAmountInput, type Locale } from "@symbola/i18n";
-import type { EventVendorSlot, VendorSlotStatus } from "@/modules/events/service";
+import type { EventVendorSlot } from "@/modules/events/service";
 import { addVendorSlotAction, updateVendorSlotAction, type VendorSlotFormState } from "./vendor-slot-actions";
-import { VENDOR_STATUS_LABEL_KEYS } from "./vendor-slot-status";
+import { VENDOR_STATUS_CLASSES, VENDOR_STATUS_LABEL_KEYS } from "./vendor-slot-status";
 
-
+// Lot 28a (PRE-02) : le statut du poste se lit (celui de ses prestataires) ; le
+// formulaire garde « Non requis » et le raccourci du prestataire retenu.
 export function VendorSlotForm({ eventId, slot }: { eventId: string; slot: EventVendorSlot }) {
   const t = useTranslations("Events");
   const initialState: VendorSlotFormState = {};
   const [state, formAction, pending] = useActionState(updateVendorSlotAction, initialState);
   // Champs contrôlés : React 19 réinitialise le formulaire après chaque
   // action, une erreur ferait sinon perdre la saisie.
-  const [status, setStatus] = useState<VendorSlotStatus>(slot.status);
+  const [notRequired, setNotRequired] = useState(slot.notRequired);
   const [vendorName, setVendorName] = useState(slot.vendorName ?? "");
   const locale = useLocale() as Locale;
   const [amount, setAmount] = useState(formatAmountInput(slot.amountCents, locale));
+  // Un prestataire retenu ailleurs (« Retenir ») met le formulaire à jour sans
+  // le recréer : le message « Ligne enregistrée. » reste affiché.
+  useEffect(() => {
+    setNotRequired(slot.notRequired);
+    setVendorName(slot.vendorName ?? "");
+    setAmount(formatAmountInput(slot.amountCents, locale));
+  }, [slot.notRequired, slot.vendorName, slot.amountCents, locale]);
 
   return (
     <form action={formAction}>
@@ -25,22 +33,15 @@ export function VendorSlotForm({ eventId, slot }: { eventId: string; slot: Event
       <input type="hidden" name="vendorSlotId" value={slot.id} />
       <fieldset>
         <legend>{slot.label}</legend>
-        <label>
-          {t("vendorSlotStatus")}
-          <select
-            name="status"
-            value={status}
-            onChange={(event) => setStatus(event.target.value as VendorSlotStatus)}
-          >
-            {(Object.keys(VENDOR_STATUS_LABEL_KEYS) as VendorSlotStatus[]).map((value) => (
-              <option key={value} value={value}>
-                {t(VENDOR_STATUS_LABEL_KEYS[value])}
-              </option>
-            ))}
-          </select>
+        <p>
+          {t("vendorSlotStatus")} <span className={VENDOR_STATUS_CLASSES[slot.status]}>{t(VENDOR_STATUS_LABEL_KEYS[slot.status])}</span>
+        </p>
+        <label className="checkbox">
+          <input type="checkbox" name="notRequired" checked={notRequired} onChange={(event) => setNotRequired(event.target.checked)} />
+          {t("vendorSlotNotRequired")}
         </label>
         <label>
-          {status === "booked" ? t("vendorNameRequired") : t("vendorName")}
+          {t("retainedVendorName")}
           <input
             type="text"
             name="vendorName"
@@ -49,7 +50,7 @@ export function VendorSlotForm({ eventId, slot }: { eventId: string; slot: Event
           />
         </label>
         <label>
-          {t("vendorAmount")}
+          {t("retainedVendorAmount")}
           <input
             type="text"
             inputMode="decimal"
@@ -63,6 +64,14 @@ export function VendorSlotForm({ eventId, slot }: { eventId: string; slot: Event
         </button>
         {state.error ? <p role="alert">{state.error}</p> : null}
         {state.success ? <p role="status">{t("vendorSlotSaved")}</p> : null}
+        {state.confirm ? (
+          <div className="notice">
+            <p role="alert">{state.confirm}</p>
+            <button type="submit" name="confirmed" value="1">
+              {t("confirmRetainedVendor", { vendor: vendorName })}
+            </button>
+          </div>
+        ) : null}
       </fieldset>
     </form>
   );

@@ -2665,6 +2665,53 @@
   }
 }
 
+/* Lot 28a (BUD-01) — budget à cinq montants : en 375 px, une carte par ligne,
+   chaque montant précédé de son libellé (data-label). Le tableau garde sa
+   sémantique ; l'en-tête reste lu par les lecteurs d'écran. */
+@layer components {
+  .budget-line-edit summary {
+    @apply cursor-pointer text-primary;
+  }
+  @media (width < 640px) {
+    .list-table.budget-lines {
+      @apply min-w-0;
+    }
+    .budget-lines,
+    .budget-lines tbody,
+    .budget-lines tfoot,
+    .budget-lines tr,
+    .budget-lines th,
+    .budget-lines td {
+      display: block;
+      width: auto;
+    }
+    .budget-lines thead {
+      @apply sr-only;
+    }
+    .budget-lines caption {
+      display: block;
+      @apply px-3 pt-3 text-left;
+    }
+    .budget-lines tr {
+      @apply border-b border-line px-3 py-3;
+    }
+    .list-table.budget-lines tbody th,
+    .list-table.budget-lines tfoot th {
+      @apply h-auto border-0 p-0 pb-1 font-semibold;
+    }
+    .list-table.budget-lines td {
+      @apply flex h-auto items-baseline justify-between gap-3 border-0 px-0 py-1;
+    }
+    .list-table.budget-lines td[data-label]::before {
+      content: attr(data-label);
+      @apply text-label text-ink-muted;
+    }
+    .list-table.budget-lines td.budget-line-edit {
+      @apply block pt-2;
+    }
+  }
+}
+
 /* Lot 25b (DESIGN.md, « Components ») — chiffre clé et titre de héros, pour les écrans des
    lots 26 à 32. Un chiffre clé est toujours accompagné de son libellé. */
 @layer components {

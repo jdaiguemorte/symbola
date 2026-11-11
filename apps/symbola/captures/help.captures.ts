@@ -19,10 +19,12 @@ import {
   createProspect,
   createTaskTemplate,
   listDefaultVendorSlots,
+  listEventVendorSlots,
   listProspectSources,
+  setEventWantedBudget,
 } from "../modules/events/service";
 import { addQuoteLine, addScheduleItem, createCatalogItem, createQuote, sendQuote } from "../modules/quotes/service";
-import { createAllocationModel, simulateEventBudget } from "../modules/budget/service";
+import { confirmEventBudget, createAllocationModel, simulateEventBudget, updateBudgetLine } from "../modules/budget/service";
 import { createVendor, createVendorTag, listVendorTypes } from "../modules/vendors/service";
 import { createPrivacyRequest } from "../modules/hub/service";
 import { HELP_SCREENS } from "../lib/help/screens";
@@ -109,6 +111,20 @@ async function seed(organizationId: string, userId: string) {
       items: slots.map((slot, index) => ({ defaultVendorSlotId: slot.id, percentageBasisPoints: index === 0 ? 10000 - share * (slots.length - 1) : share })),
     });
     await simulateEventBudget({ organizationId, eventId: confirmed, totalAmountCents: 3500000, guestCount: 120, allocationModelId: model.id });
+    // Lot 28a (BUD-01, BUD-02) : budget estimé, enveloppe du client, une ligne engagée
+    // et en partie payée, un devis reçu sur la suivante.
+    await confirmEventBudget({ organizationId, eventId: confirmed, confirmedByUserId: userId });
+    await setEventWantedBudget(organizationId, confirmed, 3500000);
+    const [first, next] = await listEventVendorSlots(organizationId, confirmed);
+    const amounts: [string | undefined, "quoted" | "committed" | "paid", number][] = [
+      [first?.id, "quoted", 280000],
+      [first?.id, "committed", 280000],
+      [first?.id, "paid", 84000],
+      [next?.id, "quoted", 275000],
+    ];
+    for (const [eventVendorSlotId, field, amountCents] of amounts) {
+      if (eventVendorSlotId) await updateBudgetLine({ organizationId, eventId: confirmed, eventVendorSlotId, field, amountCents, changedByUserId: userId });
+    }
   }
 
   // Lot 16 (L16-PRE-14) : chaque fiche a son type de départ, pour que le carnet
@@ -175,6 +191,8 @@ test("captures des écrans pour le centre d'aide", async ({ page }) => {
     search: "/recherche?q=Martin",
     privacyCase: `/rgpd/demandes/${privacyRequestId}?etape=found`,
   };
+  // Lot 28a : écrans dont la capture commence plus bas (enveloppe et cinq montants du budget).
+  const anchors: Partial<Record<string, string>> = { budgetDetail: "#envelope-title" };
   // CAPTURES_ONLY=importFile,vendorBook : seulement ces écrans (lot qui n'en change que quelques-uns).
   const only = (process.env.CAPTURES_ONLY ?? "").split(",").filter(Boolean);
   for (const screen of HELP_SCREENS.filter((candidate) => candidate.capture && (only.length === 0 || only.includes(candidate.key)))) {
@@ -190,6 +208,8 @@ test("captures des écrans pour le centre d'aide", async ({ page }) => {
       await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
       await page.waitForTimeout(200);
     }
+    const anchor = anchors[screen.key];
+    if (anchor) await page.locator(anchor).evaluate((element) => element.scrollIntoView({ block: "start", behavior: "instant" }));
     await page.screenshot({ path: `${OUT}${screen.key}.jpg`, type: "jpeg", quality: 72 });
   }
 });

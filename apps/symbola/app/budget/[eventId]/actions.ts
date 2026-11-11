@@ -2,8 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
+import { BUDGET_AMOUNT_FIELDS, type BudgetAmountField } from "@symbola/contracts";
 import { parseAmountToCents } from "@symbola/i18n";
 import {
+  AlertThresholdInvalidError,
+  setEventAlertThreshold,
   AllocationModelNotFoundError,
   BudgetSimulationMismatchError,
   DefaultVendorSlotNotFoundError,
@@ -91,6 +94,9 @@ export async function confirmEventBudgetAction(formData: FormData): Promise<void
   revalidatePath(`/events/${eventId}`);
 }
 
+// Lot 28a (BUD-01) : les quatre montants saisissables d'une ligne en un seul
+// envoi ; un champ vide ou inchangé n'est pas écrit. Chaque montant écrit est
+// historisé.
 export async function updateBudgetLineAction(
   _prevState: BudgetFormState,
   formData: FormData,
@@ -103,21 +109,20 @@ export async function updateBudgetLineAction(
 
   const eventId = String(formData.get("eventId") ?? "");
   const eventVendorSlotId = String(formData.get("eventVendorSlotId") ?? "");
-  const field = String(formData.get("field") ?? "");
-  const amountCents = amountCentsFrom(formData);
-
-  if (field !== "planned" && field !== "actual") return { error: t("invalidAmount") };
-  if (amountCents === undefined) return { error: t("invalidAmount") };
+  const changes: { field: BudgetAmountField; amountCents: number }[] = [];
+  for (const field of BUDGET_AMOUNT_FIELDS) {
+    const raw = String(formData.get(`amount_${field}`) ?? "").trim();
+    if (raw === "") continue;
+    const amountCents = parseAmountToCents(raw);
+    if (amountCents === null || amountCents === undefined || amountCents < 0) return { error: t("invalidAmount") };
+    if (String(amountCents) === String(formData.get(`current_${field}`) ?? "")) continue;
+    changes.push({ field, amountCents });
+  }
 
   try {
-    await updateBudgetLine({
-      organizationId,
-      eventId,
-      eventVendorSlotId,
-      field,
-      amountCents,
-      changedByUserId: auth.user.id,
-    });
+    for (const change of changes) {
+      await updateBudgetLine({ organizationId, eventId, eventVendorSlotId, field: change.field, amountCents: change.amountCents, changedByUserId: auth.user.id });
+    }
   } catch (error) {
     if (error instanceof EventNotFoundError) return { error: t("eventNotFound") };
     if (error instanceof EventVendorSlotNotFoundError) return { error: t("unknownVendorSlot") };
@@ -125,8 +130,28 @@ export async function updateBudgetLineAction(
   }
 
   revalidatePath(`/budget/${eventId}`);
-  // Lot 12 (L12-EVT-17) : le prévu se saisit aussi depuis l'onglet Budget de la fiche.
+  // Lot 12 (L12-EVT-17) : l'estimé se saisit aussi depuis l'onglet Budget de la fiche.
   revalidatePath(`/events/${eventId}`);
+  return { success: true };
+}
+
+// Lot 28a (BUD-02, décision D4) : seuil d'alerte propre à l'événement ; vide,
+// l'événement reprend celui de l'organisation.
+export async function setEventAlertThresholdAction(_prevState: BudgetFormState, formData: FormData): Promise<BudgetFormState> {
+  const t = await getTranslations("Budget");
+  const organizationId = await authorizedOrganizationId();
+  if (!organizationId) return { error: t("unauthenticated") };
+  const eventId = String(formData.get("eventId") ?? "");
+  const raw = String(formData.get("percent") ?? "").trim();
+  const percent = raw === "" ? null : Number(raw);
+  try {
+    await setEventAlertThreshold(organizationId, eventId, percent);
+  } catch (error) {
+    if (error instanceof AlertThresholdInvalidError) return { error: t("thresholdInvalid") };
+    if (error instanceof EventNotFoundError) return { error: t("eventNotFound") };
+    throw error;
+  }
+  revalidatePath(`/budget/${eventId}`);
   return { success: true };
 }
 
