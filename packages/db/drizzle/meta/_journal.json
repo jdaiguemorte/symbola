@@ -666,6 +666,48 @@
       "when": 1794425698970,
       "tag": "0094_lot23b_pieces_inalterables",
       "breakpoints": true
+    },
+    {
+      "idx": 95,
+      "version": "7",
+      "when": 1794434019580,
+      "tag": "0095_lot24a_core_organization_index",
+      "breakpoints": true
+    },
+    {
+      "idx": 96,
+      "version": "7",
+      "when": 1794434020509,
+      "tag": "0096_lot24a_hub_organization_index",
+      "breakpoints": true
+    },
+    {
+      "idx": 97,
+      "version": "7",
+      "when": 1794434021446,
+      "tag": "0097_lot24a_events_organization_index",
+      "breakpoints": true
+    },
+    {
+      "idx": 98,
+      "version": "7",
+      "when": 1794434022395,
+      "tag": "0098_lot24a_budget_organization_index",
+      "breakpoints": true
+    },
+    {
+      "idx": 99,
+      "version": "7",
+      "when": 1794434023339,
+      "tag": "0099_lot24a_quotes_organization_index",
+      "breakpoints": true
+    },
+    {
+      "idx": 100,
+      "version": "7",
+      "when": 1794434024278,
+      "tag": "0100_lot24a_vendors_organization_index",
+      "breakpoints": true
     }
   ]
 }

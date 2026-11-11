@@ -10,7 +10,7 @@
 // Montants en centimes entiers EUR, taux et remises en points de base
 // (2000 = 20,00 %), quantités en millièmes (1500 = 1,5) : jamais de float.
 import { sql } from "drizzle-orm";
-import { bigint, boolean, check, date, integer, jsonb, pgSchema, text, timestamp, unique, uuid, type AnyPgColumn } from "drizzle-orm/pg-core";
+import { bigint, boolean, check, date, integer, jsonb, pgSchema, text, timestamp, unique, uuid, type AnyPgColumn, index } from "drizzle-orm/pg-core";
 
 export const quotesSchema = pgSchema("quotes");
 
@@ -91,7 +91,7 @@ export const catalogItems = quotesSchema.table("catalog_items", {
   createdBy: uuid("created_by"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   updatedBy: uuid("updated_by"),
-});
+}, (table) => [index("catalog_items_organization_idx").on(table.organizationId)]);
 
 export const quoteStatusEnum = quotesSchema.enum("quote_status", ["draft", "sent", "signed", "declined", "expired"]);
 
@@ -152,7 +152,7 @@ export const quoteVersions = quotesSchema.table(
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
     updatedBy: uuid("updated_by"),
   },
-  (table) => [unique().on(table.quoteId, table.version)],
+  (table) => [index("quote_versions_organization_idx").on(table.organizationId), unique().on(table.quoteId, table.version)],
 );
 
 // DEV-01 — ligne d'une version : article du catalogue (copié) ou ligne libre.
@@ -176,7 +176,7 @@ export const quoteLines = quotesSchema.table("quote_lines", {
   createdBy: uuid("created_by"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   updatedBy: uuid("updated_by"),
-});
+}, (table) => [index("quote_lines_organization_idx").on(table.organizationId)]);
 
 // DEV-03 — modes de paiement, liste paramétrable par organisation (modèle
 // de départ facultatif dans packages/starter-templates). Archivés plutôt
@@ -192,7 +192,7 @@ export const paymentMethods = quotesSchema.table("payment_methods", {
   createdBy: uuid("created_by"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   updatedBy: uuid("updated_by"),
-});
+}, (table) => [index("payment_methods_organization_idx").on(table.organizationId)]);
 
 // DEV-03 — échéancier d'une version de devis : chaque acompte a un montant
 // fixe OU un pourcentage du total TTC, et une date. Le solde est calculé,
@@ -219,7 +219,7 @@ export const paymentScheduleItems = quotesSchema.table(
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
     updatedBy: uuid("updated_by"),
   },
-  (table) => [
+  (table) => [index("payment_schedule_items_organization_idx").on(table.organizationId), 
     check(
       "payment_schedule_items_amount_xor_percentage",
       sql`(${table.amountCents} is null) <> (${table.percentageBasisPoints} is null)`,
@@ -258,7 +258,7 @@ export const signatureRequests = quotesSchema.table(
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
     updatedBy: uuid("updated_by"),
   },
-  (table) => [unique().on(table.versionId), unique().on(table.provider, table.externalId)],
+  (table) => [index("signature_requests_organization_idx").on(table.organizationId), unique().on(table.versionId), unique().on(table.provider, table.externalId)],
 );
 
 // DEV-02 — signataires d'une demande, saisis sur le devis (ADR 0021) :
@@ -288,7 +288,7 @@ export const quoteSigners = quotesSchema.table("quote_signers", {
   createdBy: uuid("created_by"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   updatedBy: uuid("updated_by"),
-});
+}, (table) => [index("quote_signers_organization_idx").on(table.organizationId)]);
 
 // DEV-02 — trace de chaque appel webhook accepté (les appels rejetés,
 // sans organisation fiable, vont au journal applicatif) ; aucune donnée
@@ -300,7 +300,7 @@ export const signatureWebhookLog = quotesSchema.table("signature_webhook_log", {
   eventType: text("event_type").notNull(),
   outcome: text("outcome").notNull(),
   receivedAt: timestamp("received_at", { withTimezone: true }).defaultNow().notNull(),
-});
+}, (table) => [index("signature_webhook_log_organization_idx").on(table.organizationId)]);
 
 // DEV-04 — facture d'acompte (une échéance de l'échéancier) ou de solde,
 // émise depuis un devis signé. Tout ce qui figure sur la facture est copié
@@ -399,7 +399,7 @@ export const paymentEntries = quotesSchema.table(
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     createdBy: uuid("created_by"),
   },
-  (table) => [
+  (table) => [index("payment_entries_organization_idx").on(table.organizationId), 
     check("payment_entries_kind_check", sql`${table.kind} in ('received', 'reversal')`),
     check(
       "payment_entries_received_check",
@@ -433,7 +433,7 @@ export const originalDocuments = quotesSchema.table(
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     createdBy: uuid("created_by"),
   },
-  (table) => [
+  (table) => [index("original_documents_organization_idx").on(table.organizationId), 
     unique().on(table.documentKind, table.documentId),
     check("original_documents_kind_check", sql`${table.documentKind} in ('invoice', 'credit_note')`),
     check("original_documents_sha256_check", sql`${table.sha256} ~ '^[0-9a-f]{64}$'`),

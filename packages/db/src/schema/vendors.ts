@@ -3,7 +3,7 @@
 // (CLAUDE.md §2.4), protégée par Row-Level Security (migration dédiée).
 // Les prestataires consultés pour un poste vivent dans le module events et
 // ne connaissent qu'un identifiant opaque de fiche (ADR 0011).
-import { boolean, doublePrecision, integer, jsonb, pgSchema, text, timestamp, unique, uuid, type AnyPgColumn } from "drizzle-orm/pg-core";
+import { boolean, doublePrecision, integer, jsonb, pgSchema, text, timestamp, unique, uuid, type AnyPgColumn, index } from "drizzle-orm/pg-core";
 
 export const vendorsSchema = pgSchema("vendors");
 
@@ -60,7 +60,7 @@ export const vendorTypes = vendorsSchema.table("vendor_types", {
   createdBy: uuid("created_by"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   updatedBy: uuid("updated_by"),
-});
+}, (table) => [index("vendor_types_organization_idx").on(table.organizationId)]);
 
 export const vendorTypeFields = vendorsSchema.table("vendor_type_fields", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -79,7 +79,7 @@ export const vendorTypeFields = vendorsSchema.table("vendor_type_fields", {
   createdBy: uuid("created_by"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   updatedBy: uuid("updated_by"),
-});
+}, (table) => [index("vendor_type_fields_organization_idx").on(table.organizationId)]);
 
 // Lot 20 (décision 5, ADR 0049) — groupes d'étiquettes (Style, Équipements,
 // Capacité…). Un groupe « palier » (exclusive) n'accepte qu'une étiquette par
@@ -95,7 +95,7 @@ export const vendorTagGroups = vendorsSchema.table("vendor_tag_groups", {
   createdBy: uuid("created_by"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   updatedBy: uuid("updated_by"),
-});
+}, (table) => [index("vendor_tag_groups_organization_idx").on(table.organizationId)]);
 
 export const vendorTags = vendorsSchema.table("vendor_tags", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -111,7 +111,7 @@ export const vendorTags = vendorsSchema.table("vendor_tags", {
   createdBy: uuid("created_by"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   updatedBy: uuid("updated_by"),
-});
+}, (table) => [index("vendor_tags_organization_idx").on(table.organizationId)]);
 
 export const vendorLocationSourceEnum = vendorsSchema.enum("vendor_location_source", ["geocoded", "manual"]);
 
@@ -149,7 +149,7 @@ export const vendors = vendorsSchema.table("vendors", {
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdBy: uuid("created_by"),
   updatedBy: uuid("updated_by"),
-});
+}, (table) => [index("vendors_organization_idx").on(table.organizationId)]);
 
 export const vendorFileKindEnum = vendorsSchema.enum("vendor_file_kind", ["brochure", "rib"]);
 
@@ -171,7 +171,7 @@ export const vendorFiles = vendorsSchema.table("vendor_files", {
   createdBy: uuid("created_by"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   updatedBy: uuid("updated_by"),
-});
+}, (table) => [index("vendor_files_organization_idx").on(table.organizationId)]);
 
 // L11-PRE-07 — paramètres du trajet estimé, par organisation (une ligne au plus).
 export const vendorSettings = vendorsSchema.table("vendor_settings", {

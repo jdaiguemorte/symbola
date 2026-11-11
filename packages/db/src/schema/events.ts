@@ -2,7 +2,7 @@
 // table a organization_id (CLAUDE.md §2.4), protégée par Row-Level
 // Security activée par une migration dédiée (même patron que hello,
 // packages/db/drizzle).
-import { boolean, date, integer, pgSchema, text, time, timestamp, unique, uuid, jsonb } from "drizzle-orm/pg-core";
+import { boolean, date, integer, pgSchema, text, time, timestamp, unique, uuid, jsonb, index } from "drizzle-orm/pg-core";
 
 export const eventsSchema = pgSchema("events");
 
@@ -29,7 +29,7 @@ export const prospectSources = eventsSchema.table("prospect_sources", {
   createdBy: uuid("created_by"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   updatedBy: uuid("updated_by"),
-});
+}, (table) => [index("prospect_sources_organization_idx").on(table.organizationId)]);
 
 // PRD-EVT-02 : motif de perte, également paramétrable par organisation
 // (CLAUDE.md §2.5 cite « motifs » comme exemple explicite). isFreeText
@@ -44,7 +44,7 @@ export const lossReasons = eventsSchema.table("loss_reasons", {
   createdBy: uuid("created_by"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   updatedBy: uuid("updated_by"),
-});
+}, (table) => [index("loss_reasons_organization_idx").on(table.organizationId)]);
 
 // Lot 16 (ADR 0045) : type d'un événement (mariage, séminaire…), liste propre
 // à l'organisation (CLAUDE.md §2.5), installée depuis les données de départ.
@@ -113,7 +113,7 @@ export const events = eventsSchema.table("events", {
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdBy: uuid("created_by"),
   updatedBy: uuid("updated_by"),
-});
+}, (table) => [index("events_organization_idx").on(table.organizationId)]);
 
 // Prénoms/noms affichés dans la liste (PRD-EVT-01) ; position fixe l'ordre
 // d'affichage (ex. « Alice & Bob »).
@@ -137,7 +137,7 @@ export const eventClients = eventsSchema.table("event_clients", {
   createdBy: uuid("created_by"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   updatedBy: uuid("updated_by"),
-});
+}, (table) => [index("event_clients_organization_idx").on(table.organizationId)]);
 
 // PRD-EVT-02 : « chaque changement [de statut] est historisé (date, auteur) ».
 export const eventStatusHistory = eventsSchema.table("event_status_history", {
@@ -152,7 +152,7 @@ export const eventStatusHistory = eventsSchema.table("event_status_history", {
   changedAt: timestamp("changed_at", { withTimezone: true }).defaultNow().notNull(),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdBy: uuid("created_by"),
-});
+}, (table) => [index("event_status_history_organization_idx").on(table.organizationId)]);
 
 // PRD-EVT-03 : statuts fixes d'un poste prestataire (PRD) — pas une liste
 // personnalisable, à la différence des postes eux-mêmes.
@@ -179,7 +179,7 @@ export const defaultVendorSlots = eventsSchema.table("default_vendor_slots", {
   createdBy: uuid("created_by"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   updatedBy: uuid("updated_by"),
-});
+}, (table) => [index("default_vendor_slots_organization_idx").on(table.organizationId)]);
 
 // PRD-EVT-03 : postes d'un événement, copiés de la liste par défaut à la
 // création puis modifiables événement par événement.
@@ -210,7 +210,7 @@ export const eventVendorSlots = eventsSchema.table("event_vendor_slots", {
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdBy: uuid("created_by"),
   updatedBy: uuid("updated_by"),
-});
+}, (table) => [index("event_vendor_slots_organization_idx").on(table.organizationId)]);
 
 // Lot 11 (L11-EVT-10) — réponse d'un prestataire consulté : statuts fixes,
 // comme ceux du poste (« Retenu » / « Non retenu » se déduisent du poste).
@@ -251,7 +251,7 @@ export const eventVendorCandidates = eventsSchema.table("event_vendor_candidates
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdBy: uuid("created_by"),
   updatedBy: uuid("updated_by"),
-});
+}, (table) => [index("event_vendor_candidates_organization_idx").on(table.organizationId)]);
 
 // Lot 11 (L11-EVT-11) — notes sur un prestataire consulté : internes par
 // défaut, visibles par les clients note par note.
@@ -269,7 +269,7 @@ export const eventVendorCandidateNotes = eventsSchema.table("event_vendor_candid
   createdBy: uuid("created_by"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   updatedBy: uuid("updated_by"),
-});
+}, (table) => [index("event_vendor_candidate_notes_organization_idx").on(table.organizationId)]);
 
 // PRD-EVT-04 : responsable d'une tâche du rétroplanning (PRD). Une tâche des
 // « clients » apparaîtra dans l'espace des mariés (PRD-EVT-06).
@@ -287,7 +287,7 @@ export const taskTemplates = eventsSchema.table("task_templates", {
   createdBy: uuid("created_by"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   updatedBy: uuid("updated_by"),
-});
+}, (table) => [index("task_templates_organization_idx").on(table.organizationId)]);
 
 export const taskTemplateItems = eventsSchema.table("task_template_items", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -306,7 +306,7 @@ export const taskTemplateItems = eventsSchema.table("task_template_items", {
   createdBy: uuid("created_by"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   updatedBy: uuid("updated_by"),
-});
+}, (table) => [index("task_template_items_organization_idx").on(table.organizationId)]);
 
 // PRD-EVT-04 : tâches du rétroplanning d'un événement.
 export const eventTasks = eventsSchema.table("event_tasks", {
@@ -329,7 +329,7 @@ export const eventTasks = eventsSchema.table("event_tasks", {
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdBy: uuid("created_by"),
   updatedBy: uuid("updated_by"),
-});
+}, (table) => [index("event_tasks_organization_idx").on(table.organizationId)]);
 
 // PRD-EVT-05 : programme du jour J d'un événement. Heures sans date (« HH:MM »),
 // le jour étant celui de l'événement ; une heure de fin antérieure au
@@ -351,7 +351,7 @@ export const programItems = eventsSchema.table("program_items", {
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdBy: uuid("created_by"),
   updatedBy: uuid("updated_by"),
-});
+}, (table) => [index("program_items_organization_idx").on(table.organizationId)]);
 
 // PRD-EVT-05 : intervenants d'une ligne — un poste prestataire de l'événement
 // (PRD-EVT-03) ou un texte libre (officiant, témoin…), l'un ou l'autre.
@@ -369,7 +369,7 @@ export const programItemParticipants = eventsSchema.table("program_item_particip
   createdBy: uuid("created_by"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   updatedBy: uuid("updated_by"),
-});
+}, (table) => [index("program_item_participants_organization_idx").on(table.organizationId)]);
 
 // PRD-EVT-05 : modèles de programme de l'organisation (CLAUDE.md §2.5). Les
 // intervenants d'un modèle sont des libellés, rapprochés des postes de
@@ -383,7 +383,7 @@ export const programTemplates = eventsSchema.table("program_templates", {
   createdBy: uuid("created_by"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   updatedBy: uuid("updated_by"),
-});
+}, (table) => [index("program_templates_organization_idx").on(table.organizationId)]);
 
 export const programTemplateItems = eventsSchema.table("program_template_items", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -402,7 +402,7 @@ export const programTemplateItems = eventsSchema.table("program_template_items",
   createdBy: uuid("created_by"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   updatedBy: uuid("updated_by"),
-});
+}, (table) => [index("program_template_items_organization_idx").on(table.organizationId)]);
 
 // PRD-EVT-06 : accès d'un marié à un événement. Une ligne par invitation ;
 // userId est posé à l'acceptation (compte hub.users au rôle « client »),
@@ -426,7 +426,7 @@ export const eventClientAccesses = eventsSchema.table("event_client_accesses", {
   createdBy: uuid("created_by"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   updatedBy: uuid("updated_by"),
-});
+}, (table) => [index("event_client_accesses_organization_idx").on(table.organizationId)]);
 
 // PRD-EVT-06 : fil d'activité d'un événement (« quand un marié coche une
 // tâche, la planner le voit »). Le libellé de la tâche est copié pour
@@ -446,7 +446,7 @@ export const eventActivities = eventsSchema.table("event_activities", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdBy: uuid("created_by"),
-});
+}, (table) => [index("event_activities_organization_idx").on(table.organizationId)]);
 
 // Lot 12 (L12-EVT-15) — lieux d'un événement (réception, cérémonie,
 // préparatifs…), saisis une fois puis choisis dans le programme. vendor_id
@@ -466,4 +466,4 @@ export const eventPlaces = eventsSchema.table("event_places", {
   createdBy: uuid("created_by"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   updatedBy: uuid("updated_by"),
-});
+}, (table) => [index("event_places_organization_idx").on(table.organizationId)]);

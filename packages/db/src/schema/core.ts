@@ -30,7 +30,7 @@ export const domainEvents = coreSchema.table("domain_events", {
   version: integer("version").notNull(),
   payload: jsonb("payload").notNull(),
   occurredAt: timestamp("occurred_at", { withTimezone: true }).defaultNow().notNull(),
-});
+}, (table) => [index("domain_events_organization_idx").on(table.organizationId)]);
 
 export const domainEventConsumers = coreSchema.table(
   "domain_event_consumers",

@@ -1,0 +1,19 @@
+CREATE INDEX "default_vendor_slots_organization_idx" ON "events"."default_vendor_slots" USING btree ("organization_id");--> statement-breakpoint
+CREATE INDEX "event_activities_organization_idx" ON "events"."event_activities" USING btree ("organization_id");--> statement-breakpoint
+CREATE INDEX "event_client_accesses_organization_idx" ON "events"."event_client_accesses" USING btree ("organization_id");--> statement-breakpoint
+CREATE INDEX "event_clients_organization_idx" ON "events"."event_clients" USING btree ("organization_id");--> statement-breakpoint
+CREATE INDEX "event_places_organization_idx" ON "events"."event_places" USING btree ("organization_id");--> statement-breakpoint
+CREATE INDEX "event_status_history_organization_idx" ON "events"."event_status_history" USING btree ("organization_id");--> statement-breakpoint
+CREATE INDEX "event_tasks_organization_idx" ON "events"."event_tasks" USING btree ("organization_id");--> statement-breakpoint
+CREATE INDEX "event_vendor_candidate_notes_organization_idx" ON "events"."event_vendor_candidate_notes" USING btree ("organization_id");--> statement-breakpoint
+CREATE INDEX "event_vendor_candidates_organization_idx" ON "events"."event_vendor_candidates" USING btree ("organization_id");--> statement-breakpoint
+CREATE INDEX "event_vendor_slots_organization_idx" ON "events"."event_vendor_slots" USING btree ("organization_id");--> statement-breakpoint
+CREATE INDEX "events_organization_idx" ON "events"."events" USING btree ("organization_id");--> statement-breakpoint
+CREATE INDEX "loss_reasons_organization_idx" ON "events"."loss_reasons" USING btree ("organization_id");--> statement-breakpoint
+CREATE INDEX "program_item_participants_organization_idx" ON "events"."program_item_participants" USING btree ("organization_id");--> statement-breakpoint
+CREATE INDEX "program_items_organization_idx" ON "events"."program_items" USING btree ("organization_id");--> statement-breakpoint
+CREATE INDEX "program_template_items_organization_idx" ON "events"."program_template_items" USING btree ("organization_id");--> statement-breakpoint
+CREATE INDEX "program_templates_organization_idx" ON "events"."program_templates" USING btree ("organization_id");--> statement-breakpoint
+CREATE INDEX "prospect_sources_organization_idx" ON "events"."prospect_sources" USING btree ("organization_id");--> statement-breakpoint
+CREATE INDEX "task_template_items_organization_idx" ON "events"."task_template_items" USING btree ("organization_id");--> statement-breakpoint
+CREATE INDEX "task_templates_organization_idx" ON "events"."task_templates" USING btree ("organization_id");
