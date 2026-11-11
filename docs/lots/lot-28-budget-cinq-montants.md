@@ -1,8 +1,8 @@
 # Lot 28 — Budget à cinq montants, prestataires, échéancier et export
 
-**Statut** : spécification à valider par Julien. Branche `lot-28-budget-cinq-montants` (partie du
-lot 24b, pas encore fusionné, pour la suite des migrations). Le lot change le schéma et ferme un
-parcours P0 : il attend ta validation. Huit décisions en fin de document.
+**Statut** : spécification validée par Julien le 11/11/2026, décisions D1 à D8 en (a). 28a codé le
+12/11/2026 (bilan en fin de partie D), branche `lot-28-budget-cinq-montants` (partie du lot 24b,
+pas encore fusionné, pour la suite des migrations) ; le 28b aura sa branche.
 
 ## Contexte
 
@@ -104,9 +104,52 @@ le devis du prestataire retenu quand il en a un, le payé part de zéro. Migrati
   validation dans son portail) viennent au lot 27.
 - ADR 0054 complété (correspondance et reprise), aide du budget, grille d'écart.
 
+### Bilan du lot 28a (12/11/2026)
+
+- **Cinq montants** (BUD-01, D2) : estimé, devisé, engagé, payé par ligne, reste à payer calculé
+  (jamais saisi), écart engagé − estimé ; totaux recalculés à chaque saisie ; historique montant
+  par montant. Une ligne se complète en un seul envoi, sous un volet « Modifier » ; en 375 px,
+  une carte par ligne. Le service refuse désormais un montant négatif ou fractionnaire (seule
+  l'action le refusait). Migration 0104 : prévu → estimé, réel → engagé, devisé repris du
+  prestataire retenu, payé vide ; un import d'avant le lot s'annule encore.
+- **Statuts des prestataires** (PRE-02, Q9, D3) : sept statuts par prestataire rattaché ;
+  « Retenir » (ou le statut Retenu) engage la ligne et écarte les autres prestataires du poste ;
+  revenir avant Retenu libère le poste. Le poste affiche le statut le plus avancé, « Non requis »
+  est une case ; son formulaire garde le raccourci « prestataire retenu + montant ». Migration
+  0103 : reprise du tableau ci-dessus, plus les « non retenus » d'un poste réservé → Écarté.
+- **Enveloppe et seuil** (BUD-02, D4) : enveloppe = budget souhaité du client, sinon total de la
+  simulation ; seuil 90 % (modèle de départ `budget-alert.json`), réglable dans Paramètres ›
+  Budget, ajustable par évènement (table `budget.alert_thresholds`, RLS, journal des
+  suppressions). Retenir un prestataire au-delà du seuil affiche l'engagé qui en résulterait et le
+  dépassement, puis demande une confirmation (fiche de l'évènement : « Retenir », statut Retenu,
+  raccourci du poste) ; un bandeau rappelle le dépassement en haut du budget. Sans module Budget,
+  aucune alerte.
+- **Tests** : unitaires (statut déduit, reste à payer, seuil), intégration (cinq montants,
+  totaux, historique, retenue, seuils, aperçu de l'engagement, isolation RLS de la nouvelle table,
+  Admin sans accès, aller-retour 0103/0104 avec des données d'avant le lot, import d'avant le lot),
+  e2e `bud-01-02-cinq-montants` (ligne complète en moins d'une minute ; alerte avant
+  engagement), en ordinateur et en 375 px, axe-core ; parcours existants adaptés.
+- **Documents** : avenant de l'ADR 0054 ; aide du budget et des paramètres, tutoriels et visite
+  guidée réécrits ; grille d'écart (BUD-02 et PRE-02 Conforme, BUD-01 Partiel) ; question Q33.
+- **Écart trouvé** (Q33) : BUD-01 parle de « catégories et lignes » ; l'app tient une ligne par
+  poste, alors que le jeu fictif range trois lignes sous « Lieu de réception ». Décision de
+  Julien du 12/11 : (a), plusieurs lignes par poste, au début du 28b (partie E0).
+- **Déploiement** (gel en cours) : migrations 0103 et 0104 à ajouter à la liste des gestes.
+
 ---
 
 ## Lot 28b — Échéancier, documents, HT et TTC, export, annuaire
+
+### Partie E0 — Lignes sous chaque catégorie (BUD-01, décision Q33 du 12/11/2026)
+
+- Le poste de l'évènement devient la **catégorie** ; il porte plusieurs **lignes** (« Location du
+  domaine », « Ménage et gardiennage », « Mobilier complémentaire » sous « Lieu de réception »).
+- Chaque ligne a ses cinq montants, son prestataire et son libellé ; la catégorie totalise ses
+  lignes. L'échéancier (partie E) et les documents (partie F) se rattachent à la ligne.
+- Reprise : chaque ligne actuelle devient la première ligne de sa catégorie, avec son historique
+  et ses devis joints. Migration annulable (refusée si une catégorie a plusieurs lignes).
+- À préciser dans la spécification du 28b, avant le code : libellé par défaut d'une ligne, ligne
+  engagée par « Retenu » quand la catégorie en a plusieurs, vue du client (lot 27).
 
 ### Partie E — Échéancier par prestataire (BUD-03, décision D7)
 
