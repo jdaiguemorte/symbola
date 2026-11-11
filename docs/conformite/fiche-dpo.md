@@ -122,10 +122,29 @@ personne ou une exception légale, un lien de désinscription et une liste d'opp
 > **Symbola** : chaque message porte un lien de désinscription, et une adresse en opposition ne
 > reçoit plus aucun envoi commercial.
 
+### 11. Journal d'audit et adresses IP des connexions
+
+Symbola tient un journal d'audit en ajout seul : connexions, changements de droits, exports,
+partages, factures émises, encaissements et suppressions, ainsi que chaque accès de l'équipe
+Symbola à la base, avec son motif. Le journal ne contient aucun nom ni e-mail : l'identifiant du
+compte, l'action, l'objet et la date. L'adresse IP d'une connexion est gardée à part, illisible
+par l'application et par la titulaire, pour l'enquête en cas d'incident (compte piraté,
+notification d'une violation).
+
+- Quelle durée de conservation pour le journal d'audit, famille par famille (connexions,
+  autres gestes) ?
+- Douze mois pour les adresses IP des connexions vous conviennent-ils (la recommandation de la
+  CNIL sur la journalisation va de six mois à un an) ?
+- La titulaire lit les connexions de ses collaborateurs (sans adresse IP) : faut-il les en
+  informer, et sous quelle forme ?
+
+> **Symbola** : rien n'est purgé du journal tant que vous n'avez pas fixé ces durées ; les
+> adresses IP le sont après la durée réglée, douze mois par défaut.
+
 ## Ce dont nous avons besoin
 
 Des réponses écrites, même brèves, à chaque question numérotée.
 
 - **Avant de construire le module Invités** : questions 2 à 4.
 - **Avant les liens personnels** : question 7.
-- **Avant l'ouverture commerciale** : questions 1, 5, 6, 8, 9 et 10.
+- **Avant l'ouverture commerciale** : questions 1, 5, 6, 8, 9, 10 et 11.

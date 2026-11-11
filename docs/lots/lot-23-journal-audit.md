@@ -403,3 +403,41 @@ Compte rendu dans `docs/recette/SC-02.md` et `docs/recette/SC-09.md`.
 - **D7 — Emplacement de l'archive.** (a) `Devis › Paramètres › Archive comptable`. (b) Une
   rubrique à part dans Paramètres. **Recommandation : (a).** L'archive ne concerne que le module
   Devis.
+
+## Bilan du lot 23a (11/11/2026)
+
+- **Journal commun en ajout seul** (ARC-16, SEC-19) : `core.audit_entries` (migration 0085) ;
+  `UPDATE`, `DELETE` et `TRUNCATE` refusés à tout rôle, propriétaire compris, sauf les lignes
+  d'essai ; RLS forcée. `hub.audit_log` recopié puis supprimé (0086). Catalogue des actions dans
+  `@symbola/contracts`, écriture dans la transaction du geste.
+- **Auteur** (partie B) : `withOrganization` fixe l'auteur ; l'app le lit dans la session de la
+  requête (lecture seule, cache de 5 secondes) ; hors requête, « Symbola ».
+- **Ce qui est journalisé** (partie C) : connexions (ouverte, refusée, verrouillage,
+  déconnexion, mot de passe, double authentification, appareils), droits, exports, partages,
+  factures, avoirs, encaissements, et toute suppression d'une ligne métier par un déclencheur
+  (`BEFORE DELETE`, hors cascade, essai et purge en masse, qui écrit une ligne de synthèse).
+- **Adresses IP (D5)** : `hub.connection_traces` (0093), écrites par l'app, illisibles par elle,
+  purgées chaque jour après 12 mois (réglage de la plateforme, à confirmer par le DPO).
+- **Accès d'exploitation** (SEC-09, D3) : `infra/server/acces-base.sh` (motif obligatoire, sans
+  donnée personnelle) ; `restore.sh` journalise la restauration ; runbook
+  `docs/runbooks/acces-exploitation.md`.
+- **Écran** (HUB-16, D4) : Paramètres › Journal d'activité, titulaire seulement ; filtres par
+  personne, période et famille ; FR/EN ; aide de l'écran, fiche du centre d'aide et capture.
+  `FilterBar` reçoit une variante à colonnes égales.
+- **DAT-06** (partie F) : quatre colonnes et `core.stamp_row()` sur chaque table (0087 à 0092,
+  une migration par module) ; tables en ajout seul et tables techniques listées avec leur motif.
+- **Documentation** : ADR 0060 ; registre RGPD (`actor_id`, adresse IP) ; fiche du DPO,
+  question 11 ; runbooks ; `CLAUDE.md` § 9 ; grille d'écart (SEC-19, ARC-16, HUB-16, SEC-09,
+  DAT-06 conformes).
+- **Tests** : base 109, authentification 44, app 409 en intégration ; unitaires de tous les
+  paquets ; scripts 133 ; parcours e2e de HUB-16 en ordinateur et en 375 px avec axe-core ;
+  annulation de chaque migration (0085 à 0093).
+
+**Reste, hors du 23a** :
+
+- l'export RGPD d'une personne n'inclut pas encore ses lignes du journal (registre) ;
+- le lien vers l'objet n'existe que pour un devis ou un événement, sans vérifier qu'il existe
+  encore (une page « introuvable » s'affiche s'il a été supprimé) ;
+- la durée de conservation du journal attend le DPO (purge au lot 34) ;
+- le rejeu de SC-02 (étapes 7 et 8) et de SC-09 (étape 5) se fera au 23b, qui porte la chaîne
+  des factures et des encaissements.

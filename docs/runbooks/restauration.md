@@ -169,6 +169,10 @@ l'instantané. L'autre environnement n'est jamais touché.
    Le script arrête l'app, vérifie le rôle applicatif, recrée la base, restaure le dump,
    remplace le contenu de Garage, redémarre l'environnement et affiche la durée totale.
    En cas d'échec, l'app reste arrêtée : corriger, puis relancer le script.
+   Lot 23 (SEC-09) : la restauration est un accès d'exploitation ; elle écrit
+   `ops.backup.restored` au journal d'activité de chaque organisation, avec pour motif
+   l'instantané, ou celui donné par `--motif="…"` (sans donnée personnelle). Pour toute autre
+   lecture de la base : `docs/runbooks/acces-exploitation.md`.
 4. Vérifier : `curl -s https://<domaine>/health` renvoie `"status":"ok"`, connexion à
    l'app, téléchargement d'un fichier existant.
 5. **RGPD** : les effacements de données demandés **après** la date de l'instantané doivent
