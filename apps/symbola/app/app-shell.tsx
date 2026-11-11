@@ -358,6 +358,8 @@ export async function AppShell({ children }: { children: ReactNode }) {
                     href: "/devis/e-reporting",
                     label: tSettings("eReporting"),
                   },
+                  // Lot 23b (JUR-06, décision D7) : archive comptable, titulaire seulement.
+                  ...(isOwner ? [{ href: "/devis/parametres/archive", label: tSettings("accountingArchive") }] : []),
                 ],
               },
             ]

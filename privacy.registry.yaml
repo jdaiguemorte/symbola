@@ -637,3 +637,15 @@ fields:
       confirmer par le DPO, fiche question 11).
     anonymization: >-
       Supprimée par la purge quotidienne ; rien à anonymiser au-delà.
+  - schema: quotes
+    table: payment_entries
+    field: reason
+    category: contenu_libre
+    retention: >-
+      Lot 23b (JUR-05, décision D2, ADR 0061) : motif saisi par la planner quand elle
+      annule un encaissement (écriture inverse, en ajout seul). Texte libre, qui peut
+      citer une personne ; la chaîne des pièces n'en garde que l'empreinte. Conservé
+      avec les pièces comptables (dix ans, JUR-06).
+    anonymization: >-
+      Écriture en ajout seul, conservée comme pièce comptable : pas d'effacement avant
+      la fin de la conservation comptable ; l'aide invite à ne citer personne.

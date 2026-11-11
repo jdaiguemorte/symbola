@@ -62,3 +62,4 @@ Un fichier par décision structurante, numéroté. Pour changer une décision : 
 - [0058 — Fenêtre de déploiement : règle écrite, appliquée à la main](0058-fenetre-de-deploiement-regle-ecrite.md)
 - [0059 — Arrondi des montants et de la TVA](0059-arrondi-des-montants-et-de-la-tva.md)
 - [0060 — Journal d'audit commun, auteur de chaque ligne, accès d'exploitation](0060-journal-d-audit-commun.md)
+- [0061 — Pièces inaltérables : originaux, encaissements en écritures, chaîne d'empreintes](0061-pieces-inalterables.md)

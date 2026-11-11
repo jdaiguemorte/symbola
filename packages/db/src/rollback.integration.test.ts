@@ -61,6 +61,15 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     await expect(rollback("0099_inconnue")).rejects.toBeInstanceOf(RollbackRefusedError);
   });
 
+  it("lot 23b (ADR 0061) — l'annulation de 0094 retire la chaîne, les originaux et les écritures d'encaissement", async () => {
+    await expect(rollback("0093_lot23_connection_traces")).rejects.toBeInstanceOf(RollbackRefusedError);
+    expect(await hasColumn("quotes", "ledger_entries", "hash")).toBe(true);
+    await rollback("0094_lot23b_pieces_inalterables");
+    for (const table of ["ledger_entries", "original_documents", "payment_entries"]) expect(await hasColumn("quotes", table, "id"), table).toBe(false);
+    expect(await hasColumn("quotes", "signature_requests", "signed_document_sha256")).toBe(false);
+    expect(await hasColumn("quotes", "payment_schedule_items", "paid_on")).toBe(true);
+  });
+
   it("lot 23 (décision D5) — l'annulation de 0093 retire les adresses IP des connexions et leur durée", async () => {
     await expect(rollback("0092_lot23_vendors_row_stamps")).rejects.toBeInstanceOf(RollbackRefusedError);
     expect(await hasColumn("hub", "connection_traces", "ip")).toBe(true);

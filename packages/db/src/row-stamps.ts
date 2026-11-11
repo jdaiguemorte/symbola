@@ -35,6 +35,10 @@ export const APPEND_ONLY_TABLES: Record<string, { createdAtColumn: string }> = {
   "hub.privacy_purges": { createdAtColumn: "created_at" },
   "quotes.invoices": { createdAtColumn: "issued_at" },
   "quotes.credit_notes": { createdAtColumn: "issued_at" },
+  // Lot 23b (ADR 0061) : pièces inaltérables.
+  "quotes.payment_entries": { createdAtColumn: "created_at" },
+  "quotes.original_documents": { createdAtColumn: "created_at" },
+  "quotes.ledger_entries": { createdAtColumn: "recorded_at" },
 };
 
 // Tables horodatées dont les suppressions ne vont pas au journal : la

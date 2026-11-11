@@ -48,6 +48,7 @@ export const AUDIT_ACTIONS = {
   "hub.privacy_export.downloaded": { category: "export", objectType: "privacy_export" },
   "vendors.vendors.exported": { category: "export", objectType: null },
   "quotes.e_reporting.exported": { category: "export", objectType: null },
+  "quotes.archive.exported": { category: "export", objectType: null },
   // Partages.
   "events.client_access.granted": { category: "partage", objectType: "event" },
   "events.client_access.revoked": { category: "partage", objectType: "event" },
@@ -56,6 +57,9 @@ export const AUDIT_ACTIONS = {
   // Émissions.
   "quotes.invoice.issued": { category: "emission", objectType: "invoice" },
   "quotes.credit_note.issued": { category: "emission", objectType: "credit_note" },
+  // Lot 23b (DOC-08, FAC-14, ADR 0061) : original altéré, anomalie de la chaîne.
+  "quotes.original.altered": { category: "emission", objectType: "invoice" },
+  "quotes.ledger.anomaly_detected": { category: "emission", objectType: null },
   // Encaissements.
   "quotes.payment.recorded": { category: "encaissement", objectType: "payment_schedule_item" },
   "quotes.payment.cancelled": { category: "encaissement", objectType: "payment_schedule_item" },

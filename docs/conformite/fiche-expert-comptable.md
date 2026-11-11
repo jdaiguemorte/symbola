@@ -100,6 +100,14 @@ Symbola enregistre les paiements reçus de particuliers : date, montant et mode.
 > être modifié, seulement corrigé par une écriture inverse. Nous pourrons délivrer l'attestation
 > dans la forme que vous indiquerez.
 
+- Faut-il des **clôtures périodiques** (cumuls figés par jour, par mois, par exercice), comme pour un
+  logiciel de caisse ? Si oui, lesquelles ?
+
+> **Symbola** (lot 23b, 11/11/2026) : c'est fait. Factures, avoirs, encaissements et annulations
+> sont enchaînés par empreinte dans l'ordre de leur enregistrement ; la chaîne est vérifiée chaque
+> nuit ; un export annuel des écritures (CSV) est disponible. Aucune clôture périodique n'existe
+> encore : nous l'ajouterons selon votre réponse.
+
 ### 6. Conservation des factures pendant dix ans
 
 Aujourd'hui, Symbola fige les données de chaque facture et redessine le PDF à l'identique à la

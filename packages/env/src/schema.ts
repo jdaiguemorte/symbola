@@ -81,6 +81,11 @@ export const envSchema = z.object({
   GEOCODER: z.preprocess((value) => (value === "" ? undefined : value), z.enum(["ign", "fake", "none"]).optional()),
   // Dossier du fond de carte (fichier PMTiles et polices), vide = pas de fond.
   MAP_TILES_DIR: z.string().default(""),
+  // Lot 23b (FAC-14, ADR 0061) : URL Push d'une sonde Uptime Kuma à part, appelée
+  // chaque jour par le contrôle de la chaîne des pièces (« down » en cas
+  // d'anomalie). Vide = pas d'alerte externe ; l'anomalie va toujours au journal.
+  // Un secret : elle permettrait de simuler un contrôle réussi.
+  LEDGER_CHECK_PUSH_URL: z.string().trim().default(""),
   // Lot 16 (L16-SEC-01, ADR 0037) : clé de chiffrement des secrets de double
   // authentification, 32 octets en base64 (openssl rand -base64 32). Requise
   // partout : sans elle, aucun compte ne pourrait configurer ni valider son

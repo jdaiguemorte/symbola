@@ -10,7 +10,7 @@
 // Montants en centimes entiers EUR, taux et remises en points de base
 // (2000 = 20,00 %), quantités en millièmes (1500 = 1,5) : jamais de float.
 import { sql } from "drizzle-orm";
-import { boolean, check, date, integer, jsonb, pgSchema, text, timestamp, unique, uuid } from "drizzle-orm/pg-core";
+import { bigint, boolean, check, date, integer, jsonb, pgSchema, text, timestamp, unique, uuid, type AnyPgColumn } from "drizzle-orm/pg-core";
 
 export const quotesSchema = pgSchema("quotes");
 
@@ -246,6 +246,11 @@ export const signatureRequests = quotesSchema.table(
     status: signatureRequestStatusEnum("status").notNull().default("pending"),
     signedDocumentKey: text("signed_document_key"),
     auditCertificateKey: text("audit_certificate_key"),
+    // Lot 23b (DOC-08, ADR 0061) : empreinte SHA-256 de chaque fichier à son
+    // archivage ; le fichier relu doit avoir la même. Effacées avec les fichiers
+    // à la fin de leur conservation (RGPD).
+    signedDocumentSha256: text("signed_document_sha256"),
+    auditCertificateSha256: text("audit_certificate_sha256"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     completedAt: timestamp("completed_at", { withTimezone: true }),
     // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
@@ -364,3 +369,109 @@ export const creditNotes = quotesSchema.table(
   },
   (table) => [unique().on(table.organizationId, table.number)],
 );
+
+// Lot 23b (FAC-14, JUR-05, décision D2, ADR 0061) — encaissements en
+// écritures, en ajout seul. Saisir un encaissement crée une écriture
+// « received » ; l'annuler crée une écriture « reversal » liée à la première,
+// avec un motif obligatoire : rien ne s'efface. Le montant est figé à la saisie.
+// Les colonnes paid_on et payment_method_id de l'échéance en restent la copie
+// de lecture rapide, mise à jour dans la même transaction.
+export const PAYMENT_ENTRY_KINDS = ["received", "reversal"] as const;
+
+export const paymentEntries = quotesSchema.table(
+  "payment_entries",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    scheduleItemId: uuid("schedule_item_id")
+      .notNull()
+      .references(() => paymentScheduleItems.id, { onDelete: "cascade" }),
+    kind: text("kind", { enum: PAYMENT_ENTRY_KINDS }).notNull(),
+    amountCents: integer("amount_cents").notNull(),
+    paidOn: date("paid_on"),
+    paymentMethodId: uuid("payment_method_id").references(() => paymentMethods.id),
+    paymentMethodLabel: text("payment_method_label"),
+    reversesEntryId: uuid("reverses_entry_id")
+      .unique()
+      .references((): AnyPgColumn => paymentEntries.id),
+    reason: text("reason"),
+    isDemo: boolean("is_demo").notNull().default(false),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+  },
+  (table) => [
+    check("payment_entries_kind_check", sql`${table.kind} in ('received', 'reversal')`),
+    check(
+      "payment_entries_received_check",
+      sql`${table.kind} <> 'received' or (${table.paidOn} is not null and ${table.reversesEntryId} is null)`,
+    ),
+    check(
+      "payment_entries_reversal_check",
+      sql`${table.kind} <> 'reversal' or (${table.reversesEntryId} is not null and length(trim(${table.reason})) > 0)`,
+    ),
+  ],
+);
+
+// Lot 23b (DOC-08, ADR 0061) — original d'une facture ou d'un avoir émis : le
+// PDF rendu à l'émission, déposé tel quel dans le stockage privé, avec son
+// empreinte. En ajout seul ; jamais recompressé ni reconstruit, sauf une
+// facture émise avant le lot 23b, rendue une fois à sa première ouverture et
+// marquée « reconstitué » (décision D6). Pas d'original pour une pièce d'essai.
+export const ORIGINAL_DOCUMENT_KINDS = ["invoice", "credit_note"] as const;
+
+export const originalDocuments = quotesSchema.table(
+  "original_documents",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    documentKind: text("document_kind", { enum: ORIGINAL_DOCUMENT_KINDS }).notNull(),
+    documentId: uuid("document_id").notNull(),
+    storageKey: text("storage_key").notNull(),
+    sha256: text("sha256").notNull(),
+    byteSize: integer("byte_size").notNull(),
+    isReconstructed: boolean("is_reconstructed").notNull().default(false),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+  },
+  (table) => [
+    unique().on(table.documentKind, table.documentId),
+    check("original_documents_kind_check", sql`${table.documentKind} in ('invoice', 'credit_note')`),
+    check("original_documents_sha256_check", sql`${table.sha256} ~ '^[0-9a-f]{64}$'`),
+  ],
+);
+
+// Lot 23b (FAC-14, ADR 0061) — chaîne d'empreintes, une par organisation :
+// factures, avoirs, originaux, encaissements et écritures inverses, dans
+// l'ordre de leur enregistrement. Rang, empreinte précédente et empreinte sont
+// calculés par la base (déclencheur quotes.chain_ledger_entry) : l'app ne peut
+// ni choisir le rang ni fournir une empreinte. Le contenu (payload) ne porte
+// aucune donnée personnelle : les copies figées et le motif y sont réduits à
+// leur empreinte. En ajout seul ; les pièces d'essai n'y entrent pas.
+export const LEDGER_ENTRY_KINDS = ["invoice", "credit_note", "original", "payment", "payment_reversal"] as const;
+
+export const ledgerEntries = quotesSchema.table(
+  "ledger_entries",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    sequence: bigint("sequence", { mode: "number" }).notNull(),
+    entryKind: text("entry_kind", { enum: LEDGER_ENTRY_KINDS }).notNull(),
+    objectId: uuid("object_id").notNull(),
+    payload: jsonb("payload").notNull(),
+    previousHash: text("previous_hash").notNull(),
+    hash: text("hash").notNull(),
+    // Reprise des pièces émises avant le lot 23b (décision D6).
+    isBackfill: boolean("is_backfill").notNull().default(false),
+    recordedAt: timestamp("recorded_at", { withTimezone: true }).notNull().default(sql`clock_timestamp()`),
+    createdBy: uuid("created_by"),
+  },
+  (table) => [
+    unique().on(table.organizationId, table.sequence),
+    unique().on(table.entryKind, table.objectId),
+    check(
+      "ledger_entries_kind_check",
+      sql`${table.entryKind} in ('invoice', 'credit_note', 'original', 'payment', 'payment_reversal')`,
+    ),
+  ],
+);
+

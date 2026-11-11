@@ -116,6 +116,9 @@ export async function markUnpaidAction(_prevState: QuoteFormState, formData: For
   return run(formData, async (organizationId, t) => {
     const itemId = readItemId(formData);
     if (!itemId) return { error: t("quoteNotFound") };
-    await markScheduleItemUnpaid(organizationId, itemId);
+    // Lot 23b (D2) : une annulation se motive ; elle s'ajoute à la saisie, sans l'effacer.
+    const reason = String(formData.get("reason") ?? "").trim();
+    if (!reason) return { error: t("reversalReasonRequired") };
+    await markScheduleItemUnpaid(organizationId, itemId, reason);
   });
 }

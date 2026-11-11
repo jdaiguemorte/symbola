@@ -144,7 +144,7 @@ describe("DEV-03 — Marquer une échéance payée", () => {
     expect(paid.current.schedule.items[0]).toMatchObject({ paidOn: "2027-03-14", paymentMethodLabel: "Virement bancaire", overdue: false });
 
     // Correction d'une saisie : l'échéance redevient à payer.
-    const unpaid = await markScheduleItemUnpaid(organizationId, itemId);
+    const unpaid = await markScheduleItemUnpaid(organizationId, itemId, "Virement rejeté par la banque");
     expect(unpaid.current.schedule.items[0]).toMatchObject({ paidOn: null, paymentMethodId: null });
   });
 

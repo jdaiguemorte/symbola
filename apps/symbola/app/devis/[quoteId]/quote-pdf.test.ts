@@ -269,6 +269,7 @@ describe("DEV-11 — Paiement : IBAN, échéance, échéancier", () => {
               paymentMethodLabel: null,
               overdue: false,
               position: 0,
+              payments: [],
             },
           ],
           scheduledCents: 45000,

@@ -33,6 +33,11 @@ import {
   updateDocumentSettings,
 } from "./service";
 
+// Lot 23b (DOC-08) : rendu factice de l'original déposé à l'émission.
+const renderInvoice = async () => Buffer.from("%PDF-1.4\n% facture de test\n%%EOF\n", "latin1");
+const renderCreditNote = async () => Buffer.from("%PDF-1.4\n% avoir de test\n%%EOF\n", "latin1");
+
+
 const NOW = new Date("2027-04-10T10:00:00Z");
 const PDF = Buffer.from("%PDF-1.4\n%%EOF\n", "latin1");
 // Image PNG 1 × 1 : le plus petit logo valide.
@@ -228,14 +233,14 @@ describe("DEV-12 — Nouvelle mise en page, figée à l'émission", () => {
     // Après l'envoi du devis : déménagement et nouvelle couleur.
     await withDb((db) => saveOnboardingStep(db, organizationId, { address: "9 quai Saint-Antoine, 69002 Lyon" }));
     await updateDocumentSettings(organizationId, { ...SETTINGS, color: "#2f4a66" });
-    const invoice = await issueBalanceInvoice({ organizationId, quoteId, now: NOW });
+    const invoice = await issueBalanceInvoice({ renderOriginal: renderInvoice, organizationId, quoteId, now: NOW });
     expect(invoice.seller).toMatchObject({ address: "9 quai Saint-Antoine, 69002 Lyon", legalForm: "ei" });
     expect(invoice.seller.document).toMatchObject({ color: "#2f4a66", intro: "Merci pour votre confiance.", terms: null, iban: SAMPLE_IBAN });
     expect(invoice.mentions).toBe("À réception, par virement.");
 
     // Les réglages changent encore : la facture émise ne bouge pas, l'avoir non plus.
     await updateDocumentSettings(organizationId, { ...SETTINGS, color: "#6d3b5a", iban: null });
-    const note = await issueCreditNote({ organizationId, invoiceId: invoice.id, amountCents: 1000, reason: "Geste commercial", now: NOW });
+    const note = await issueCreditNote({ renderOriginal: renderCreditNote, organizationId, invoiceId: invoice.id, amountCents: 1000, reason: "Geste commercial", now: NOW });
     expect(note.seller.document).toMatchObject({ color: "#2f4a66", iban: SAMPLE_IBAN });
   });
 });

@@ -114,6 +114,16 @@ puis `http://localhost:3001` dans le navigateur.
    ```
    Si les données Docker sont sur une autre partition (`df -h /var/lib/docker`), l'ajouter à
    `DISK_PATHS`.
+7. **Chaîne des factures et encaissements** (lot 23b, FAC-14, ADR 0061) : une sonde de type
+   *Push* « Chaîne des pièces (production) », intervalle 90 000 s (25 h). L'app vérifie chaque
+   nuit la chaîne de chaque organisation : « up » si elle est intacte, « down » à la première
+   anomalie (qui va aussi au journal de l'organisation) ; si le contrôle ne tourne plus, la sonde
+   reste muette et alerte aussi. Mettre l'URL Push (secret, sans « ?… ») dans
+   `LEDGER_CHECK_PUSH_URL` du fichier d'environnement (`infra/compose/.env.production`), puis
+   redémarrer l'app. Vide : pas d'alerte externe. Une anomalie veut dire qu'une facture, un avoir
+   ou un encaissement a été modifié **hors de Symbola** : ne rien corriger, prévenir Julien, comparer
+   avec la dernière sauvegarde (`docs/runbooks/restauration.md`), en passant par un accès tracé
+   (`docs/runbooks/acces-exploitation.md`).
 
 ## Vérification
 

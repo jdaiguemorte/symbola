@@ -868,6 +868,10 @@
     "activityLog": {
       "title": "Journal d'activité",
       "body": "Chaque geste sensible y laisse une ligne que personne ne peut modifier ni effacer : connexions, droits, exports, partages, factures, encaissements et suppressions. Les accès de l'équipe Symbola à vos données y figurent aussi, avec leur motif. Filtrez par période, par famille ou par personne."
+    },
+    "ledgerArchive": {
+      "title": "Archive comptable",
+      "body": "Chaque facture, avoir et encaissement est enchaîné au précédent par une empreinte, et chaque facture est conservée telle qu'émise. Téléchargez les écritures d'une année pour votre comptable, retrouvez les originaux, et vérifiez que rien n'a été modifié. Symbola vérifie aussi la chaîne chaque nuit."
     }
   },
   "Aide": {
@@ -1621,7 +1625,12 @@
     "paymentMethodsIntro": "Seuls les modes acceptés sont proposés quand vous enregistrez un paiement. Désactiver un mode ne change rien aux paiements déjà enregistrés, et vous pouvez le réactiver à tout moment.",
     "paymentMethodAccepted": "Accepté",
     "paymentMethodNotAccepted": "Non proposé à l'encaissement",
-    "paymentMethodSwitch": "{label} accepté"
+    "paymentMethodSwitch": "{label} accepté",
+    "reversalReason": "Motif de l'annulation",
+    "reversalReasonRequired": "Indiquez le motif de l'annulation.",
+    "paymentHistory": "Historique des encaissements de « {label} »",
+    "paymentReceivedEntry": "Encaissé le {date} ({method})",
+    "paymentReversedEntry": "Annulé le {date} : {reason}"
   },
   "Documents": {
     "pdfSellerHeading": "De",
@@ -3710,7 +3719,8 @@
     "eventTypes": "Types d'événements",
     "documents": "Documents",
     "privacyAlerts": "{count, plural, one {# demande RGPD en alerte} other {# demandes RGPD en alerte}}",
-    "activityLog": "Journal d'activité"
+    "activityLog": "Journal d'activité",
+    "accountingArchive": "Archive comptable"
   },
   "Common": {
     "closePanel": "Fermer le panneau",
@@ -3930,7 +3940,10 @@
       "hub_privacy_purge_executed": "Purge RGPD exécutée",
       "ops_database_opened": "Accès à la base ouvert",
       "ops_database_closed": "Accès à la base fermé",
-      "ops_backup_restored": "Sauvegarde restaurée"
+      "ops_backup_restored": "Sauvegarde restaurée",
+      "quotes_original_altered": "Original altéré détecté",
+      "quotes_ledger_anomaly_detected": "Anomalie dans la chaîne des pièces",
+      "quotes_archive_exported": "Archive comptable exportée"
     },
     "categories": {
       "connexion": "Connexions",
@@ -4002,13 +4015,64 @@
       "vendors_vendor_tags": "étiquette",
       "vendors_vendor_type_fields": "champ d'un type de prestataire",
       "vendors_vendor_types": "type de prestataire",
-      "vendors_vendors": "fiche prestataire"
+      "vendors_vendors": "fiche prestataire",
+      "quotes_payment_entries": "écriture d'encaissement",
+      "quotes_original_documents": "original d'une pièce",
+      "quotes_ledger_entries": "écriture de la chaîne des pièces"
     },
     "modules": {
       "events": "Événements",
       "budget": "Budget",
       "quotes": "Devis",
       "vendors": "Prestataires"
+    }
+  },
+  "LedgerArchive": {
+    "title": "Archive comptable",
+    "subtitle": "Vos factures, avoirs et encaissements, enchaînés et conservés tels qu'émis, année par année.",
+    "ownerOnly": "L'archive comptable est réservée à la titulaire du compte.",
+    "moduleUnavailable": "Le module Devis et factures n'est pas disponible pour votre organisation.",
+    "integrityTitle": "Intégrité",
+    "integrityIntro": "Chaque pièce est enchaînée à la précédente par une empreinte. La vérification recalcule toute la chaîne et compare chaque écriture à la pièce conservée.",
+    "verify": "Vérifier l'intégrité",
+    "verifiedOk": "Chaîne intacte : {count, plural, =0 {aucune écriture} =1 {# écriture} other {# écritures}}, dernière empreinte {hash}…",
+    "verifiedKo": "{count, plural, =1 {# anomalie} other {# anomalies}} : la chaîne a été modifiée en dehors de Symbola. L'équipe Symbola est prévenue.",
+    "yearsTitle": "Années",
+    "noEntries": "Aucune facture, aucun avoir ni encaissement pour l'instant.",
+    "yearSummary": "{year} : {count, plural, =1 {# écriture} other {# écritures}}.",
+    "downloadCsv": "Télécharger les écritures de {year} (CSV)",
+    "originalsTitle": "Originaux de {year}",
+    "columnNumber": "Numéro",
+    "columnKind": "Pièce",
+    "columnDate": "Enregistrée le",
+    "columnAmount": "Montant",
+    "columnOriginal": "Original",
+    "downloadOriginal": "Télécharger {number}",
+    "csvSequence": "Rang",
+    "csvDate": "Date (UTC)",
+    "csvKind": "Type",
+    "csvNumber": "Numéro",
+    "csvQuote": "Devis",
+    "csvAmount": "Montant",
+    "csvMethod": "Mode de paiement",
+    "csvBackfill": "Reprise",
+    "csvHash": "Empreinte",
+    "csvPreviousHash": "Empreinte précédente",
+    "yes": "oui",
+    "kinds": {
+      "invoice": "Facture",
+      "credit_note": "Avoir",
+      "original": "Original déposé",
+      "payment": "Encaissement",
+      "payment_reversal": "Annulation d'encaissement"
+    },
+    "anomalies": {
+      "sequence_gap": "Rang {sequence} manquant ({kind})",
+      "broken_link": "Maillon rompu au rang {sequence} ({kind})",
+      "entry_altered": "Écriture modifiée au rang {sequence} ({kind})",
+      "object_missing": "Pièce supprimée, rang {sequence} ({kind})",
+      "object_altered": "Pièce modifiée, rang {sequence} ({kind})",
+      "object_unchained": "Pièce sans écriture ({kind})"
     }
   }
 }

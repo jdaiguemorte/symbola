@@ -58,6 +58,19 @@ export type ScheduleItemView = {
   paymentMethodLabel: string | null;
   overdue: boolean;
   position: number;
+  // Lot 23b (D2) : historique des encaissements, saisies et annulations.
+  payments: PaymentEntryView[];
+};
+
+// Lot 23b (D2, ADR 0061) : une écriture d'encaissement, en ajout seul.
+export type PaymentEntryView = {
+  id: string;
+  kind: "received" | "reversal";
+  amountCents: number;
+  paidOn: string | null;
+  paymentMethodLabel: string | null;
+  reason: string | null;
+  recordedAt: string;
 };
 
 export type PaymentScheduleView = {
@@ -275,13 +288,28 @@ export type StartQuotesTrialInput = {
   now?: Date | undefined;
 };
 
-export type IssueDepositInvoiceInput = { organizationId: string; scheduleItemId: string; now?: Date | undefined };
-export type IssueBalanceInvoiceInput = { organizationId: string; quoteId: string; now?: Date | undefined };
+// Lot 23b (DOC-08, ADR 0061) : renderOriginal rend le PDF de la pièce émise,
+// déposé tel quel dans la transaction de l'émission (sauf pièce d'essai).
+export type RenderInvoiceOriginal = (invoice: InvoiceView) => Promise<Uint8Array>;
+export type RenderCreditNoteOriginal = (creditNote: CreditNoteView, vatApplicable: boolean) => Promise<Uint8Array>;
+export type IssueDepositInvoiceInput = {
+  organizationId: string;
+  scheduleItemId: string;
+  renderOriginal: RenderInvoiceOriginal;
+  now?: Date | undefined;
+};
+export type IssueBalanceInvoiceInput = {
+  organizationId: string;
+  quoteId: string;
+  renderOriginal: RenderInvoiceOriginal;
+  now?: Date | undefined;
+};
 export type IssueCreditNoteInput = {
   organizationId: string;
   invoiceId: string;
   amountCents: number;
   reason: string;
+  renderOriginal: RenderCreditNoteOriginal;
   now?: Date | undefined;
 };
 
@@ -415,7 +443,8 @@ export interface QuotesServiceContract {
   updateScheduleItem(organizationId: string, scheduleItemId: string, item: ScheduleItemInput): Promise<QuoteDetail>;
   removeScheduleItem(organizationId: string, scheduleItemId: string): Promise<QuoteDetail>;
   markScheduleItemPaid(input: MarkScheduleItemPaidInput): Promise<QuoteDetail>;
-  markScheduleItemUnpaid(organizationId: string, scheduleItemId: string): Promise<QuoteDetail>;
+  // Lot 23b (D2) : annulation par écriture inverse, motif obligatoire.
+  markScheduleItemUnpaid(organizationId: string, scheduleItemId: string, reason: string): Promise<QuoteDetail>;
   listUnpaidPayments(organizationId: string, options?: { now?: Date; horizonDays?: number }): Promise<UnpaidPaymentsView>;
   isSignatureAvailable(isDemo: boolean): boolean;
   sendQuoteForSignature(input: SendForSignatureInput): Promise<QuoteDetail>;
