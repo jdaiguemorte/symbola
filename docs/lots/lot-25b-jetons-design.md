@@ -141,3 +141,19 @@ le bord d'un champ (D2).
 
 A, B et C dans un même commit (le thème vidé impose la migration de la feuille), puis D, E et F.
 Une pull request.
+
+## Bilan (11/11/2026)
+
+- Police : Space Grotesk (22 Ko, sous-ensemble latin, licence OFL) remplace Fraunces.
+- `DESIGN.md` : `line-strong`, `primary-strong`, `elevation.float`, composants `field` et
+  `floating-panel`.
+- Thème : familles par défaut de Tailwind vidées ; feuille migrée (455 couleurs, 151 tailles,
+  77 rayons, 74 espacements, 8 variables) ; ombres décoratives retirées ; deux zones « hors
+  charte » pour les documents de l'organisation.
+- Relecture des captures : l'ancienne terracotta servait aussi d'accent décoratif. Les repères
+  de l'aide, les boutons discrets et les tutoriels passent en `primary`. La pastille des tâches
+  en retard passe en `critical`, celle des week-ends chargés en `attention`.
+- Tests : `apps/symbola/app/design-tokens.test.ts` (31 cas) ; lint, types, tests et frontières
+  verts ; 36 captures régénérées et relues.
+- Reste, hors de ce lot : les écrans des lots 26 à 32, qui appliquent les règles d'écran de
+  `DESIGN.md`.
