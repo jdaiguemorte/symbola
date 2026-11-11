@@ -28,8 +28,10 @@ export async function withOrganization<T>(
   const actor = await currentActor();
   const bulk = isAuditBulk();
   return db.transaction(async (tx) => {
-    await tx.execute(sql`select set_config('app.organization_id', ${organizationId}, true)`);
-    await setActorInTransaction(tx, actor, bulk);
+    // Un seul aller-retour pour tout le contexte : organisation, auteur, purge.
+    await tx.execute(
+      sql`select set_config('app.organization_id', ${organizationId}, true), set_config('app.actor_kind', ${actor.kind}, true), set_config('app.actor_id', ${actor.id ?? ""}, true), set_config('app.audit_bulk', ${bulk ? "on" : ""}, true)`,
+    );
     return fn(tx);
   });
 }
