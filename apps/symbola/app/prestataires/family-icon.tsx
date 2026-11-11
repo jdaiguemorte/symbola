@@ -11,7 +11,7 @@ export function FamilyIcon({ color, icon }: { color: string; icon: string | null
       <svg className="family-icon-bg" viewBox="0 0 24 24" width="24" height="24" focusable="false">
         <circle cx="12" cy="12" r="12" fill={color} />
       </svg>
-      <Icon size={14} strokeWidth={2.25} color="#ffffff" aria-hidden="true" />
+      <Icon size={14} strokeWidth={2.25} className="text-on-primary" aria-hidden="true" />
     </span>
   );
 }

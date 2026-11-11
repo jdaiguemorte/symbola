@@ -7,15 +7,15 @@ import { AppShell } from "./app-shell";
 import { organizationMessages } from "@/lib/vocabulary";
 import "./globals.css";
 
-// Charte graphique (lot 7, ADR 0025) : polices servies par l'app elle-même,
-// fichiers versionnés dans app/fonts (licence OFL, sous-ensemble latin, poids
-// variables) : ni le navigateur ni le build de l'image n'appellent Google.
-const fraunces = localFont({
-  src: "./fonts/fraunces-latin.woff2",
-  weight: "100 900",
-  variable: "--font-fraunces",
+// Charte graphique (DESIGN.md, lot 25b, ADR 0057) : polices servies par l'app
+// elle-même, fichiers versionnés dans app/fonts (licence OFL, sous-ensemble
+// latin, poids variables) : ni le navigateur ni le build de l'image n'appellent
+// Google. Space Grotesk pour les titres et les chiffres, Inter pour le texte.
+const spaceGrotesk = localFont({
+  src: "./fonts/space-grotesk-latin.woff2",
+  weight: "300 700",
+  variable: "--font-space-grotesk",
   display: "swap",
-  adjustFontFallback: "Times New Roman",
 });
 const inter = localFont({
   src: "./fonts/inter-latin.woff2",
@@ -33,7 +33,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const locale = await getLocale();
 
   return (
-    <html lang={locale} className={`${fraunces.variable} ${inter.variable}`}>
+    <html lang={locale} className={`${spaceGrotesk.variable} ${inter.variable}`}>
       <body>
         {/* Lot 16 (ADR 0045) : le cadre reste en place d'une page à l'autre ; il
             garde le vocabulaire du métier. Une page d'événement dont le type en

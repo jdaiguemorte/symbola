@@ -89,12 +89,14 @@ export function VendorMap({ points, assets, label, missingTilesNotice, controls,
         await addIconImages(map, iconHolder.current);
         if (disposed) return;
         if (around) {
+          // Jeton primary de DESIGN.md, lu dans le thème : la carte ne lit pas les variables CSS.
+          const primary = getComputedStyle(document.documentElement).getPropertyValue("--color-primary").trim() || "#0F6E5C";
           map.addSource("around", {
             type: "geojson",
             data: { type: "Feature", properties: {}, geometry: { type: "Polygon", coordinates: [circlePolygon(around, around.radiusKm)] } },
           });
-          map.addLayer({ id: "around-fill", type: "fill", source: "around", paint: { "fill-color": "#4f6b5a", "fill-opacity": 0.08 } });
-          map.addLayer({ id: "around-line", type: "line", source: "around", paint: { "line-color": "#4f6b5a", "line-width": 2, "line-dasharray": [3, 2] } });
+          map.addLayer({ id: "around-fill", type: "fill", source: "around", paint: { "fill-color": primary, "fill-opacity": 0.08 } });
+          map.addLayer({ id: "around-line", type: "line", source: "around", paint: { "line-color": primary, "line-width": 2, "line-dasharray": [3, 2] } });
         }
         map.addSource("vendors", {
           type: "geojson",

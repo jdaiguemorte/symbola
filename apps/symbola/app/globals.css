@@ -10,59 +10,113 @@
 @source "../../../packages/ui/src";
 
 @theme {
-  --color-ivory: #faf7f2;
-  --color-card: #ffffff;
-  --color-ink: #2b2623;
-  --color-ink-soft: #4a433e;
-  --color-muted: #6b625b;
-  --color-sauge: #4f6b5a;
-  --color-sauge-dark: #3d5446;
-  --color-sauge-tint: #e3ece5;
-  --color-sauge-ink: #2f4337;
-  --color-terracotta: #a8553a;
-  --color-terracotta-dark: #8a3f27;
-  --color-terracotta-tint: #f3e3dd;
-  --color-terracotta-ink: #6e321f;
-  --color-lin: #e6ded3;
-  --color-lin-dark: #cfc5b8;
-  --color-lin-soft: #f0eae2;
-  --color-ambre-tint: #f6ead9;
-  --color-ambre-ink: #7a4b12;
-  --color-bleu-tint: #e8eef5;
-  --color-bleu-ink: #2f4a66;
-  --color-gris-tint: #ece7e1;
+  /* Jetons de DESIGN.md (lot 25b, ADR 0057) : les seules valeurs permises. Les familles par
+     défaut de Tailwind sont vidées : une couleur, une taille de texte, un rayon ou une ombre
+     hors jeton ne compile pas. Un test vérifie que ce bloc et DESIGN.md disent la même chose. */
+  --color-*: initial;
+  --text-*: initial;
+  --radius-*: initial;
+  --shadow-*: initial;
+
+  --color-primary: #0F6E5C;
+  --color-on-primary: #FFFFFF;
+  --color-primary-soft: #E3F1EE;
+  --color-primary-strong: #0B5A4B;
+  --color-ground: #F6F7F9;
+  --color-surface: #FFFFFF;
+  --color-ink: #14181F;
+  --color-ink-muted: #5A6372;
+  --color-line: #DDE1E7;
+  --color-line-strong: #838C99;
+  --color-attention: #9A5B00;
+  --color-attention-soft: #FBF0DC;
+  --color-critical: #B3261E;
+  --color-critical-soft: #FBE9E7;
+  --color-night: #0E1217;
+  --color-night-surface: #1A2029;
+  --color-night-line: #2B3442;
+  --color-night-ink: #F2F4F7;
+  --color-night-ink-muted: #A9B3C1;
+  --color-night-accent: #5FD3B8;
+  --color-on-night-accent: #0E1217;
 
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-fraunces), Georgia, ui-serif, serif;
+  --font-display: var(--font-space-grotesk), var(--font-inter), ui-sans-serif, sans-serif;
 
-  --radius-control: 10px;
-  --radius-card: 16px;
+  --text-display: 32px;
+  --text-display--line-height: 1.15;
+  --text-display--letter-spacing: -0.01em;
+  --text-display--font-weight: 600;
+  --text-title: 22px;
+  --text-title--line-height: 1.25;
+  --text-title--font-weight: 600;
+  --text-heading: 17px;
+  --text-heading--line-height: 1.3;
+  --text-heading--font-weight: 600;
+  --text-body: 15px;
+  --text-body--line-height: 1.5;
+  --text-body--font-weight: 400;
+  --text-body-strong: 15px;
+  --text-body-strong--line-height: 1.5;
+  --text-body-strong--font-weight: 600;
+  --text-label: 13px;
+  --text-label--line-height: 1.35;
+  --text-label--font-weight: 500;
+  --text-figure: 28px;
+  --text-figure--line-height: 1.1;
+  --text-figure--font-weight: 600;
+  --text-field-now: 40px;
+  --text-field-now--line-height: 1.1;
+  --text-field-now--font-weight: 600;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-full: 999px;
+
+  --shadow-float: 0 8px 24px rgba(20, 24, 31, 0.12);
+
+  /* Mise en page (DESIGN.md, « Layout ») : barre latérale et largeur du contenu. */
+  --spacing-sidebar: 232px;
+  --container-content: 1120px;
+  /* Place laissée au panneau d'aide (lot 16) : largeur sur ordinateur, hauteur de la barre. */
+  --spacing-help-panel: 380px;
+  --spacing-help-tray: 112px;
 }
 
 @layer base {
   html {
-    background: var(--color-ivory);
+    background: var(--color-ground);
   }
 
   body {
-    @apply bg-ivory font-sans text-base leading-normal text-ink antialiased;
+    @apply bg-ground font-sans text-body leading-normal text-ink antialiased;
+  }
+
+  /* DESIGN.md : icônes au trait de 1,5 px. La pastille d'une famille garde un trait plus
+     épais, lisible en blanc sur sa couleur. */
+  svg.lucide {
+    stroke-width: 1.5;
+  }
+  .family-icon svg.lucide {
+    stroke-width: 2.25;
   }
 
   :focus-visible {
-    outline: 2px solid var(--color-sauge);
+    outline: 2px solid var(--color-primary);
     outline-offset: 2px;
   }
 
   h1 {
-    @apply mb-4 font-display text-3xl leading-tight font-semibold sm:text-4xl;
+    @apply mb-4 font-display text-title;
   }
 
   h2 {
-    @apply mt-2 mb-3 font-display text-xl leading-snug font-semibold sm:text-2xl;
+    @apply mt-2 mb-3 font-display text-heading;
   }
 
   h3 {
-    @apply mt-2 mb-2 text-base font-semibold;
+    @apply mt-2 mb-2 text-body-strong;
   }
 
   p {
@@ -70,11 +124,11 @@
   }
 
   a {
-    @apply text-sauge underline decoration-lin-dark underline-offset-4 hover:text-sauge-dark hover:decoration-sauge;
+    @apply text-primary underline decoration-line-strong underline-offset-4 hover:text-primary-strong hover:decoration-primary;
   }
 
   small {
-    @apply text-sm text-muted;
+    @apply text-label text-ink-muted;
   }
 
   strong {
@@ -83,11 +137,11 @@
 
   ul,
   ol {
-    @apply my-2 space-y-1.5 pl-5;
+    @apply my-2 space-y-2 pl-6;
   }
 
   ul {
-    @apply list-disc marker:text-lin-dark;
+    @apply list-disc marker:text-line-strong;
   }
 
   ol {
@@ -100,49 +154,49 @@
   }
 
   label {
-    @apply flex w-full max-w-xl flex-col gap-1.5 text-sm font-medium text-ink;
+    @apply flex w-full max-w-xl flex-col gap-2 text-label font-medium text-ink;
   }
 
   label:has(> input[type="checkbox"]),
   label:has(> input[type="radio"]) {
-    @apply w-auto max-w-none flex-row items-center gap-2.5 text-base font-normal;
+    @apply w-auto max-w-none flex-row items-center gap-3 text-body font-normal;
   }
 
   input:not([type="checkbox"], [type="radio"], [type="hidden"], [type="file"], [type="submit"], [type="button"]),
   select,
   textarea {
-    @apply min-h-11 w-full rounded-[10px] border border-lin-dark bg-card px-3.5 text-base font-normal text-ink shadow-none transition-colors placeholder:text-muted;
+    @apply min-h-11 w-full rounded-md border border-line-strong bg-surface px-4 text-body font-normal text-ink shadow-none transition-colors placeholder:text-ink-muted;
   }
 
   textarea {
-    @apply py-2.5 leading-relaxed;
+    @apply py-3 leading-relaxed;
   }
 
   input:not([type="checkbox"], [type="radio"]):focus-visible,
   select:focus-visible,
   textarea:focus-visible {
-    @apply border-sauge;
+    @apply border-primary;
     outline-offset: 0;
   }
 
   input[aria-invalid="true"],
   select[aria-invalid="true"],
   textarea[aria-invalid="true"] {
-    @apply border-2 border-terracotta;
+    @apply border-2 border-critical;
   }
 
   input[readonly],
   textarea[readonly] {
-    @apply bg-lin-soft;
+    @apply bg-ground;
   }
 
   input[type="checkbox"],
   input[type="radio"] {
-    @apply size-5 shrink-0 accent-sauge;
+    @apply size-5 shrink-0 accent-primary;
   }
 
   input[type="file"] {
-    @apply w-full max-w-xl rounded-[10px] border border-dashed border-lin-dark bg-card p-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-sauge-tint file:px-3 file:py-2 file:font-medium file:text-sauge-ink;
+    @apply w-full max-w-xl rounded-md border border-dashed border-line-strong bg-surface p-3 text-label file:mr-3 file:rounded-md file:border-0 file:bg-primary-soft file:px-3 file:py-2 file:font-medium file:text-primary;
   }
 
   /* Boutons : l'envoi d'un formulaire est l'action principale (sauge) ;
@@ -150,13 +204,13 @@
   button,
   [type="submit"],
   [type="button"] {
-    @apply inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-[10px] border border-lin-dark bg-card px-4 text-[15px] font-medium text-ink transition-colors hover:border-ink-soft;
+    @apply inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-md border border-line-strong bg-surface px-4 text-body font-medium text-ink transition-colors hover:border-ink;
   }
 
   button[type="submit"],
   button:not([type]),
   input[type="submit"] {
-    @apply border-sauge bg-sauge font-semibold text-white hover:border-sauge-dark hover:bg-sauge-dark;
+    @apply border-primary bg-primary font-semibold text-on-primary hover:border-primary-strong hover:bg-primary-strong;
   }
 
   button:disabled,
@@ -167,33 +221,33 @@
   }
 
   fieldset {
-    @apply my-4 flex w-full max-w-3xl min-w-0 flex-col items-start gap-3 rounded-[16px] border border-lin bg-card p-5;
+    @apply my-4 flex w-full max-w-3xl min-w-0 flex-col items-start gap-3 rounded-lg border border-line bg-surface p-6;
   }
 
   legend {
-    @apply px-1 font-display text-lg font-semibold;
+    @apply px-1 font-display text-heading font-semibold;
   }
 
   /* Tableaux : en-têtes discrets, lignes séparées ; le défilement
      horizontal se fait dans la région qui les contient. */
   table {
-    @apply my-3 w-full border-collapse text-[15px];
+    @apply my-3 w-full border-collapse text-body;
   }
 
   caption {
-    @apply pb-2 text-left text-sm text-muted;
+    @apply pb-2 text-left text-label text-ink-muted;
   }
 
   th {
-    @apply border-b border-lin-soft px-3 py-3 text-left align-top font-medium;
+    @apply border-b border-ground px-3 py-3 text-left align-top font-medium;
   }
 
   thead th {
-    @apply border-b border-lin py-2.5 align-bottom text-xs tracking-wide text-muted uppercase;
+    @apply border-b border-line py-3 align-bottom text-label tracking-wide text-ink-muted uppercase;
   }
 
   td {
-    @apply border-b border-lin-soft px-3 py-3 align-top;
+    @apply border-b border-ground px-3 py-3 align-top;
   }
 
   tbody tr:last-child td {
@@ -205,7 +259,7 @@
   }
 
   dt {
-    @apply text-sm text-muted;
+    @apply text-label text-ink-muted;
   }
 
   dd {
@@ -218,20 +272,20 @@
   }
 
   code {
-    @apply rounded bg-lin-soft px-1.5 py-0.5 font-mono text-sm break-all;
+    @apply rounded-sm bg-ground px-2 py-1 font-mono text-label break-all;
   }
 
   hr {
-    @apply my-6 border-lin;
+    @apply my-6 border-line;
   }
 
   /* Messages : la couleur aide, le texte porte toujours l'information. */
   [role="alert"] {
-    @apply my-3 rounded-xl bg-terracotta-tint px-4 py-3 text-[15px] text-terracotta-ink;
+    @apply my-3 rounded-md bg-critical-soft px-4 py-3 text-body text-critical;
   }
 
   [role="status"] {
-    @apply my-3 rounded-xl bg-sauge-tint px-4 py-3 text-[15px] text-sauge-ink;
+    @apply my-3 rounded-md bg-primary-soft px-4 py-3 text-body text-primary;
   }
 
   [role="alert"]:empty,
@@ -240,12 +294,12 @@
   }
 
   [role="note"] {
-    @apply my-3 rounded-xl border border-lin bg-ivory px-4 py-3 text-[15px];
+    @apply my-3 rounded-md border border-line bg-ground px-4 py-3 text-body;
   }
 
   /* Aide contextuelle (« ? ») : un bouton rond, l'article en carte. */
   details > summary {
-    @apply inline-flex min-h-11 min-w-11 cursor-pointer list-none items-center justify-center rounded-full border border-lin-dark bg-card px-3 font-semibold text-sauge marker:hidden;
+    @apply inline-flex min-h-11 min-w-11 cursor-pointer list-none items-center justify-center rounded-full border border-line-strong bg-surface px-3 font-semibold text-primary marker:hidden;
   }
 
   details > summary::-webkit-details-marker {
@@ -253,7 +307,7 @@
   }
 
   details[open] {
-    @apply my-3 max-w-2xl rounded-[16px] border border-lin bg-card p-5;
+    @apply my-3 max-w-2xl rounded-lg border border-line bg-surface p-6;
   }
 
   details[open] > summary {
@@ -264,7 +318,7 @@
   [role="dialog"] {
     /* Dans le flux de la page, pas épinglée : la visite guidée n'est pas
        modale et ne doit jamais masquer un bouton de l'écran. */
-    @apply flex max-w-xl flex-col items-start gap-3 rounded-[16px] border border-sauge bg-sauge-tint p-5 shadow-[0_6px_20px_rgba(43,38,35,0.10)];
+    @apply flex max-w-xl flex-col items-start gap-3 rounded-lg border border-primary bg-primary-soft p-6 shadow-float;
   }
 
   /* Zones défilantes (tableaux larges) : la région reste dans la page. */
@@ -280,11 +334,11 @@
   }
 
   .app-sidebar {
-    @apply flex shrink-0 flex-col gap-4 border-b border-lin bg-card px-4 py-4 md:sticky md:top-0 md:h-screen md:w-64 md:gap-6 md:overflow-y-auto md:border-r md:border-b-0 md:px-4 md:py-7;
+    @apply flex shrink-0 flex-col gap-4 border-b border-line bg-surface px-4 py-4 md:sticky md:top-0 md:h-screen md:w-sidebar md:gap-6 md:overflow-y-auto md:border-r md:border-b-0 md:px-4 md:py-8;
   }
 
   .app-brand {
-    @apply flex items-center gap-3 px-2 font-display text-2xl font-semibold text-ink no-underline hover:text-ink;
+    @apply flex items-center gap-3 px-2 font-display text-title font-semibold text-ink no-underline hover:text-ink;
   }
 
   .app-nav {
@@ -296,11 +350,11 @@
   }
 
   .app-nav a {
-    @apply flex min-h-11 items-center gap-3 rounded-[10px] px-3 text-[15px] text-ink no-underline transition-colors hover:bg-lin-soft hover:text-ink;
+    @apply flex min-h-11 items-center gap-3 rounded-md px-3 text-body text-ink no-underline transition-colors hover:bg-ground hover:text-ink;
   }
 
   .app-nav a[aria-current="page"] {
-    @apply bg-sauge-tint font-semibold text-sauge-ink;
+    @apply bg-primary-soft font-semibold text-primary;
   }
 
   .app-menu-toggle {
@@ -320,11 +374,11 @@
   }
 
   .app-nav-group {
-    @apply px-3 pt-2 text-xs font-medium tracking-wider text-muted uppercase;
+    @apply px-3 pt-2 text-label font-medium tracking-wider text-ink-muted uppercase;
   }
 
   .app-user {
-    @apply mt-auto flex flex-col gap-2 border-t border-lin pt-4 text-sm text-muted;
+    @apply mt-auto flex flex-col gap-2 border-t border-line pt-4 text-label text-ink-muted;
   }
 
   .app-user form {
@@ -333,20 +387,20 @@
 
   /* Se déconnecter n'est jamais l'action principale d'un écran. */
   .app-user button[type="submit"] {
-    @apply border-lin-dark bg-card font-medium text-ink hover:border-ink-soft hover:bg-card;
+    @apply border-line-strong bg-surface font-medium text-ink hover:border-ink hover:bg-surface;
   }
 
   .app-main {
-    @apply mx-auto w-full max-w-6xl min-w-0 flex-1 px-4 pt-6 pb-16 sm:px-8 md:pt-8;
+    @apply mx-auto w-full max-w-content min-w-0 flex-1 px-4 pt-6 pb-12 sm:px-8 md:pt-8;
   }
 
   /* Écrans sans menu : connexion, double authentification, invitation. */
   .auth-shell {
-    @apply flex min-h-screen flex-col items-center justify-start gap-6 px-4 pt-16 pb-16;
+    @apply flex min-h-screen flex-col items-center justify-start gap-6 px-4 pt-12 pb-12;
   }
 
   .auth-shell main {
-    @apply w-full max-w-md rounded-[16px] border border-lin bg-card p-6 sm:p-8;
+    @apply w-full max-w-md rounded-lg border border-line bg-surface p-6 sm:p-8;
   }
 
   /* Une section de premier niveau, ou un formulaire de saisie, devient une carte. */
@@ -354,7 +408,7 @@
   .app-main > main > form:has(label),
   .app-main > main > form > section,
   .card {
-    @apply my-6 rounded-[16px] border border-lin bg-card p-5 sm:p-6;
+    @apply my-6 rounded-lg border border-line bg-surface p-6 sm:p-6;
   }
 
   .app-main > main > form:has(label) {
@@ -366,7 +420,7 @@
   }
 
   .card-grid > section {
-    @apply my-0 rounded-[16px] border border-lin bg-card p-5 sm:p-6;
+    @apply my-0 rounded-lg border border-line bg-surface p-6 sm:p-6;
   }
 
   .page-header {
@@ -378,35 +432,35 @@
   }
 
   .eyebrow {
-    @apply text-sm text-muted;
+    @apply text-label text-ink-muted;
   }
 
   .badge {
-    @apply inline-flex items-center rounded-full bg-gris-tint px-3 py-1 text-[13px] font-medium whitespace-nowrap text-ink;
+    @apply inline-flex items-center rounded-full bg-ground px-3 py-1 text-label font-medium whitespace-nowrap text-ink;
   }
 
   .badge-sauge {
-    @apply bg-sauge-tint text-sauge-ink;
+    @apply bg-primary-soft text-primary;
   }
 
   .badge-terracotta {
-    @apply bg-terracotta-tint text-terracotta-ink;
+    @apply bg-critical-soft text-critical;
   }
 
   .badge-ambre {
-    @apply bg-ambre-tint text-ambre-ink;
+    @apply bg-attention-soft text-attention;
   }
 
   .badge-bleu {
-    @apply bg-bleu-tint text-bleu-ink;
+    @apply bg-ground text-ink-muted;
   }
 
   .text-overdue {
-    @apply font-medium text-terracotta-dark;
+    @apply font-medium text-critical;
   }
 
   .text-paid {
-    @apply font-medium text-sauge-ink;
+    @apply font-medium text-primary;
   }
 
   .inline-form {
@@ -416,17 +470,17 @@
   /* Formulaire d'un seul bouton (cocher, déplacer, retirer…) : une action
      secondaire, compacte, alignée avec ses voisines. */
   form:not(:has(label, select, textarea, input:not([type="hidden"]))) {
-    @apply my-1 mr-1.5 inline-flex flex-row flex-wrap items-center gap-1.5 align-middle;
+    @apply my-1 mr-2 inline-flex flex-row flex-wrap items-center gap-2 align-middle;
   }
 
   form:not(:has(label, select, textarea, input:not([type="hidden"]))) button[type="submit"],
   form:not(:has(label, select, textarea, input:not([type="hidden"]))) button:not([type]) {
-    @apply min-h-10 border-lin-dark bg-card px-3 text-sm font-medium text-ink hover:border-ink-soft hover:bg-lin-soft;
+    @apply min-h-10 border-line-strong bg-surface px-3 text-label font-medium text-ink hover:border-ink hover:bg-ground;
   }
 
   /* Sauf l'action principale d'une carte, quand l'écran la désigne. */
   form.primary-action button[type="submit"] {
-    @apply min-h-11 border-sauge bg-sauge px-4 text-[15px] font-semibold text-white hover:bg-sauge-dark;
+    @apply min-h-11 border-primary bg-primary px-4 text-body font-semibold text-on-primary hover:bg-primary-strong;
   }
 
   /* Listes d'éléments (postes, tâches, lignes du programme) : une ligne
@@ -436,11 +490,11 @@
   }
 
   .item-list > li {
-    @apply flex flex-col items-start gap-2 border-b border-lin-soft py-4 last:border-b-0;
+    @apply flex flex-col items-start gap-2 border-b border-ground py-4 last:border-b-0;
   }
 
   .item-list > li > form:has(label) {
-    @apply my-1 grid w-full max-w-none grid-cols-1 items-end gap-3 rounded-xl border border-lin bg-ivory p-4 sm:grid-cols-2 lg:grid-cols-3;
+    @apply my-1 grid w-full max-w-none grid-cols-1 items-end gap-3 rounded-md border border-line bg-ground p-4 sm:grid-cols-2 lg:grid-cols-3;
   }
 
   .item-list > li > form:has(label) > fieldset {
@@ -457,24 +511,24 @@
   }
 
   .button-link {
-    @apply inline-flex min-h-11 items-center rounded-[10px] border border-lin-dark bg-card px-4 text-[15px] font-medium text-ink no-underline hover:border-ink-soft hover:text-ink;
+    @apply inline-flex min-h-11 items-center rounded-md border border-line-strong bg-surface px-4 text-body font-medium text-ink no-underline hover:border-ink hover:text-ink;
   }
 
   .button-link-primary {
-    @apply border-sauge bg-sauge font-semibold text-white hover:bg-sauge-dark hover:text-white;
+    @apply border-primary bg-primary font-semibold text-on-primary hover:bg-primary-strong hover:text-on-primary;
   }
 
   /* Onglets : liens avec aria-current sur l'onglet affiché. */
   .tabs {
-    @apply my-4 flex gap-1 overflow-x-auto border-b border-lin;
+    @apply my-4 flex gap-1 overflow-x-auto border-b border-line;
   }
 
   .tabs a {
-    @apply -mb-px inline-flex min-h-11 items-center border-b-2 border-transparent px-4 text-[15px] whitespace-nowrap text-muted no-underline hover:text-ink;
+    @apply -mb-px inline-flex min-h-11 items-center border-b-2 border-transparent px-4 text-body whitespace-nowrap text-ink-muted no-underline hover:text-ink;
   }
 
   .tabs a[aria-current="page"] {
-    @apply border-sauge font-semibold text-ink;
+    @apply border-primary font-semibold text-ink;
   }
 
   /* Filtres d'une liste : en ligne sur ordinateur. */
@@ -484,33 +538,33 @@
   }
 
   .event-list a {
-    @apply flex flex-wrap items-center gap-x-4 gap-y-1 rounded-[16px] border border-lin bg-card px-5 py-4 text-ink no-underline transition-colors hover:border-sauge hover:text-ink;
+    @apply flex flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-line bg-surface px-6 py-4 text-ink no-underline transition-colors hover:border-primary hover:text-ink;
   }
 
   .event-list-names {
-    @apply basis-full font-display text-lg font-semibold sm:basis-auto;
+    @apply basis-full font-display text-heading font-semibold sm:basis-auto;
   }
 
   .event-list-meta {
-    @apply text-[15px] text-muted sm:order-last sm:basis-full;
+    @apply text-body text-ink-muted sm:order-last sm:basis-full;
   }
 
   .meta {
-    @apply mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[15px] text-muted;
+    @apply mt-1 flex flex-wrap gap-x-3 gap-y-1 text-body text-ink-muted;
   }
 
   progress {
-    @apply my-2 h-2 w-full max-w-md overflow-hidden rounded-full bg-lin-soft accent-sauge;
+    @apply my-2 h-2 w-full max-w-md overflow-hidden rounded-full bg-ground accent-primary;
   }
 }
 
 /* Lot 8 — refonte ergonomique (maquettes validées le 03/11/2026). */
 @layer components {
   .tab-count {
-    @apply ml-2 rounded-full bg-sauge-tint px-2 py-0.5 text-xs font-medium text-sauge-ink;
+    @apply ml-2 rounded-full bg-primary-soft px-2 py-1 text-label font-medium text-primary;
   }
   .tab-count-alert {
-    @apply bg-terracotta-tint text-terracotta-ink;
+    @apply bg-critical-soft text-critical;
   }
 
   /* Liste + panneau de détail à droite (postes, tâches) ; empilés sur téléphone. */
@@ -521,7 +575,7 @@
     @apply min-w-0 flex-[999_1_560px];
   }
   .split > .split-aside {
-    @apply flex w-full max-w-md flex-[1_1_300px] flex-col gap-4 rounded-2xl border border-lin bg-card p-6;
+    @apply flex w-full max-w-md flex-[1_1_300px] flex-col gap-4 rounded-lg border border-line bg-surface p-6;
   }
 
   .section-head {
@@ -537,7 +591,7 @@
     @apply gap-2 text-ink;
   }
   .settings-link svg {
-    @apply shrink-0 text-muted;
+    @apply shrink-0 text-ink-muted;
   }
 
   /* Filtres en pastilles (liens, aria-current sur le filtre actif). */
@@ -545,21 +599,21 @@
     @apply flex flex-wrap gap-2;
   }
   .pills a {
-    @apply inline-flex min-h-10 items-center rounded-full border border-lin-dark bg-card px-4 text-sm font-medium text-ink no-underline;
+    @apply inline-flex min-h-10 items-center rounded-full border border-line-strong bg-surface px-4 text-label font-medium text-ink no-underline;
   }
   .pills a[aria-current="true"] {
-    @apply border-sauge bg-sauge-tint text-sauge-ink;
+    @apply border-primary bg-primary-soft text-primary;
   }
 
   .data-table {
-    @apply w-full min-w-[600px] border-collapse text-[15px];
+    @apply w-full min-w-[600px] border-collapse text-body;
   }
   .data-table td,
   .data-table tbody th {
-    @apply h-13 border-b border-lin-soft px-3 text-left align-middle;
+    @apply h-13 border-b border-ground px-3 text-left align-middle;
   }
   .data-table tr[aria-current="true"] {
-    @apply bg-ivory;
+    @apply bg-ground;
   }
   .data-table .num,
   .data-table .nowrap {
@@ -569,10 +623,10 @@
     @apply text-right;
   }
   .data-table .month-row th {
-    @apply border-0 pt-5 pb-2 font-display text-[17px] font-semibold normal-case tracking-normal text-ink;
+    @apply border-0 pt-6 pb-2 font-display text-heading font-semibold normal-case tracking-normal text-ink;
   }
   .data-table .done {
-    @apply text-muted line-through;
+    @apply text-ink-muted line-through;
   }
 
   /* Case « faite » : un bouton d'envoi au nom explicite, dessiné en case à cocher. */
@@ -580,23 +634,23 @@
     @apply inline-flex h-11 w-11 items-center justify-center;
   }
   .task-check > button {
-    @apply m-0 inline-flex !h-6 !min-h-0 !w-6 !min-w-0 items-center justify-center rounded-md border-2 border-lin-dark bg-card !p-0 text-white;
+    @apply m-0 inline-flex !h-6 !min-h-0 !w-6 !min-w-0 items-center justify-center rounded-sm border-2 border-line-strong bg-surface !p-0 text-on-primary;
   }
   .task-check > button[aria-pressed="true"] {
-    @apply border-sauge bg-sauge;
+    @apply border-primary bg-primary;
   }
 }
 
 /* Lot 8 — agenda de l'accueil (PRD-HUB-02). */
 @layer components {
   .segmented {
-    @apply inline-flex rounded-xl border border-lin-dark bg-card p-[3px];
+    @apply inline-flex rounded-md border border-line-strong bg-surface p-1;
   }
   .segmented a {
-    @apply inline-flex min-h-10 items-center rounded-[9px] px-3.5 text-sm font-medium text-ink no-underline;
+    @apply inline-flex min-h-10 items-center rounded-md px-4 text-label font-medium text-ink no-underline;
   }
   .segmented a[aria-current="true"] {
-    @apply bg-sauge text-white;
+    @apply bg-primary text-on-primary;
   }
   /* Recette du lot 18 (L20-HUB-25) : depuis L18-HUB-24, une barre d'outils aligne ses
      éléments en haut. Dans l'en-tête de l'agenda, la navigation (barre
@@ -610,16 +664,16 @@
   }
 
   .agenda-legend {
-    @apply m-0 flex list-none flex-wrap gap-4 p-0 text-[13px] text-muted;
+    @apply m-0 flex list-none flex-wrap gap-4 p-0 text-label text-ink-muted;
   }
   .agenda-legend li {
-    @apply inline-flex items-center gap-1.5;
+    @apply inline-flex items-center gap-2;
   }
   .agenda-swatch {
-    @apply inline-block h-3.5 w-3.5 rounded;
+    @apply inline-block h-3.5 w-3.5 rounded-sm;
   }
   .agenda-grid {
-    @apply grid gap-x-6 gap-y-5;
+    @apply grid gap-x-6 gap-y-6;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   }
   .agenda-grid[data-span="6"] {
@@ -629,22 +683,22 @@
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   }
   .agenda-month h3 {
-    @apply m-0 mb-2 font-sans text-sm font-semibold capitalize;
+    @apply m-0 mb-2 font-sans text-label font-semibold capitalize;
   }
   .agenda-grid[data-span="3"] .agenda-month h3 {
-    @apply text-[17px];
+    @apply text-heading;
   }
   .agenda-days {
-    @apply grid grid-cols-7 gap-[3px] text-center text-xs text-muted;
+    @apply grid grid-cols-7 gap-1 text-center text-label text-ink-muted;
   }
   .agenda-grid[data-span="3"] .agenda-days {
-    @apply gap-[5px] text-sm;
+    @apply gap-1 text-label;
   }
   .agenda-weekday {
     @apply py-1;
   }
   .agenda-day {
-    @apply relative flex h-[26px] min-w-0 flex-col items-center justify-center gap-0.5 rounded-md text-muted no-underline;
+    @apply relative flex h-[26px] min-w-0 flex-col items-center justify-center gap-1 rounded-sm text-ink-muted no-underline;
   }
   .agenda-grid[data-span="6"] .agenda-day {
     @apply h-10;
@@ -653,24 +707,24 @@
     @apply h-16;
   }
   .agenda-day.is-weekend {
-    @apply bg-ivory text-ink;
+    @apply bg-ground text-ink;
   }
   .agenda-day.is-today {
     @apply outline-2 outline-offset-[-2px] outline-ink;
   }
   .agenda-day.tone-confirmed,
   .agenda-swatch.tone-confirmed {
-    @apply bg-sauge font-semibold text-white;
+    @apply bg-primary font-semibold text-on-primary;
   }
   .agenda-day.tone-tentative,
   .agenda-swatch.tone-tentative {
-    @apply border border-dashed border-sauge bg-sauge-tint text-sauge-ink;
+    @apply border border-dashed border-primary bg-primary-soft text-primary;
   }
   .agenda-names {
-    @apply block w-full truncate px-1 text-[11px] font-medium;
+    @apply block w-full truncate px-1 text-label font-medium;
   }
   .agenda-badge {
-    @apply inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-terracotta px-1 text-[10px] font-semibold text-white;
+    @apply inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-attention px-1 text-label font-semibold text-on-primary;
   }
   .agenda-day .agenda-badge {
     @apply absolute -top-1.5 -right-1.5;
@@ -678,7 +732,7 @@
   /* Le « ? » rond des aides ne s'applique pas aux dates de l'agenda. */
   .agenda-multi > summary,
   .agenda-create > summary {
-    @apply m-0 flex h-full w-full min-h-0 cursor-pointer list-none flex-col items-center justify-center rounded-md border-0 bg-transparent p-0 text-inherit;
+    @apply m-0 flex h-full w-full min-h-0 cursor-pointer list-none flex-col items-center justify-center rounded-sm border-0 bg-transparent p-0 text-inherit;
   }
   .agenda-multi[open],
   .agenda-create[open] {
@@ -694,7 +748,7 @@
   }
   .agenda-multi[open] > ul,
   .agenda-create[open] > ul {
-    @apply absolute top-full left-0 z-20 m-0 mt-1 flex w-56 list-none flex-col gap-1 rounded-xl border border-lin bg-card p-3 text-left text-sm shadow-lg;
+    @apply absolute top-full left-0 z-20 m-0 mt-1 flex w-56 list-none flex-col gap-1 rounded-md border border-line bg-surface p-3 text-left text-label shadow-float;
   }
   /* Fin de semaine : le menu s'ouvre vers la gauche, sans déborder sur le mois suivant. */
   .agenda-multi.align-end[open] > ul,
@@ -735,7 +789,7 @@
     @apply m-0 flex list-none flex-col p-0;
   }
   .home-line {
-    @apply grid min-h-12 items-center gap-x-3 gap-y-0.5 border-b border-lin-soft py-2;
+    @apply grid min-h-12 items-center gap-x-3 gap-y-1 border-b border-ground py-2;
     grid-template-columns: auto minmax(0, 1fr);
   }
   .home-line:last-child {
@@ -744,7 +798,7 @@
   .home-line > .home-line-meta,
   .home-line > .home-line-when,
   .home-line > .home-line-amount {
-    @apply col-start-2 text-[13px];
+    @apply col-start-2 text-label;
   }
   .home-line-payment {
     grid-template-columns: minmax(0, 1fr);
@@ -755,13 +809,13 @@
     @apply col-start-1;
   }
   .home-line-title {
-    @apply text-[15px] leading-snug;
+    @apply text-body leading-snug;
   }
   .home-line-meta {
-    @apply text-muted;
+    @apply text-ink-muted;
   }
   .home-line-when {
-    @apply font-medium whitespace-nowrap text-muted;
+    @apply font-medium whitespace-nowrap text-ink-muted;
   }
   .home-line-amount {
     @apply font-medium whitespace-nowrap;
@@ -776,11 +830,11 @@
     .home-line > .home-line-meta,
     .home-line > .home-line-when,
     .home-line > .home-line-amount {
-      @apply col-start-auto text-sm;
+      @apply col-start-auto text-label;
     }
   }
   .home-more {
-    @apply m-0 mt-2 text-sm text-muted;
+    @apply m-0 mt-2 text-label text-ink-muted;
   }
   /* Lot 14 (IMP-09) : les deux reprises côte à côte sur ordinateur. */
   .takeover-cards {
@@ -791,10 +845,10 @@
 
 @layer components {
   .nav-count {
-    @apply ml-auto rounded-full bg-terracotta-tint px-2 py-0.5 text-xs font-semibold text-terracotta-ink;
+    @apply ml-auto rounded-full bg-critical-soft px-2 py-1 text-label font-semibold text-critical;
   }
   .app-nav-secondary {
-    @apply mt-4 border-t border-lin pt-4;
+    @apply mt-4 border-t border-line pt-4;
   }
 }
 
@@ -813,13 +867,13 @@
     @apply my-4 flex flex-col gap-3;
   }
   .totp-qr {
-    @apply h-48 w-48 rounded-md border border-lin-dark;
+    @apply h-48 w-48 rounded-sm border border-line-strong;
   }
   .totp-secret {
     @apply font-mono tracking-wider break-all;
   }
   .totp-setup code {
-    @apply block break-all text-sm;
+    @apply block break-all text-label;
   }
 }
 
@@ -827,14 +881,14 @@
 @layer components {
   /* Lot 13 (L13-HUB-15) : pastille « Reprendre » à la place de la barre d'aide. */
   .resume-chip {
-    @apply fixed right-4 bottom-4 z-40 inline-flex min-h-11 max-w-[calc(100vw-32px)] items-center rounded-full border-0 bg-ink px-5 text-sm font-semibold text-white no-underline shadow-xl;
+    @apply fixed right-4 bottom-4 z-40 inline-flex min-h-11 max-w-[calc(100vw-32px)] items-center rounded-full border-0 bg-ink px-6 text-label font-semibold text-on-primary no-underline shadow-float;
   }
 }
 
 /* Lot 10 — place pour la barre d'aide sous le contenu. */
 @layer components {
   .app-main {
-    @apply pb-28;
+    @apply pb-help-tray;
   }
 }
 
@@ -844,32 +898,32 @@
     @apply relative flex w-full max-w-xl items-center;
   }
   .search-box input {
-    @apply w-full pr-14;
+    @apply w-full pr-12;
   }
   .search-box-shortcut {
-    @apply pointer-events-none absolute right-3 rounded-md border border-lin-dark px-1.5 text-xs text-muted;
+    @apply pointer-events-none absolute right-3 rounded-sm border border-line-strong px-2 text-label text-ink-muted;
   }
   .search-box-results {
-    @apply absolute top-full right-0 left-0 z-50 mt-2 max-h-[70vh] overflow-auto rounded-2xl border border-lin bg-card p-2 shadow-2xl;
+    @apply absolute top-full right-0 left-0 z-50 mt-2 max-h-[70vh] overflow-auto rounded-lg border border-line bg-surface p-2 shadow-float;
   }
   .search-box-results ul {
     @apply m-0 list-none p-0;
   }
   .search-box-group {
-    @apply mx-2 mt-2 mb-1 text-xs font-semibold tracking-wider text-muted uppercase;
+    @apply mx-2 mt-2 mb-1 text-label font-semibold tracking-wider text-ink-muted uppercase;
   }
   .search-box-option {
-    @apply flex min-h-11 cursor-pointer flex-col gap-0.5 rounded-xl px-3 py-2;
+    @apply flex min-h-11 cursor-pointer flex-col gap-1 rounded-md px-3 py-2;
   }
   .search-box-option[aria-selected="true"],
   .search-box-option:hover {
-    @apply bg-sauge-tint;
+    @apply bg-primary-soft;
   }
   .search-box-option span {
-    @apply text-sm text-muted;
+    @apply text-label text-ink-muted;
   }
   .search-box-hint {
-    @apply mx-2 mt-2 text-xs text-muted;
+    @apply mx-2 mt-2 text-label text-ink-muted;
   }
 }
 
@@ -903,14 +957,14 @@
     @apply m-0 grid list-none grid-cols-1 gap-4 p-0 sm:grid-cols-2 lg:grid-cols-3;
   }
   .help-tile {
-    @apply flex h-full flex-col gap-2 overflow-hidden rounded-2xl border border-lin bg-card text-ink no-underline shadow-sm;
+    @apply flex h-full flex-col gap-2 overflow-hidden rounded-lg border border-line bg-surface text-ink no-underline;
   }
   .help-tile:hover,
   .help-tile:focus-visible {
-    @apply border-sauge;
+    @apply border-primary;
   }
   .help-tile img {
-    @apply block aspect-[16/10] h-auto w-full border-b border-lin bg-ivory object-cover object-top;
+    @apply block aspect-[16/10] h-auto w-full border-b border-line bg-ground object-cover object-top;
   }
   .help-tile-text {
     @apply flex flex-col gap-1 px-4;
@@ -919,7 +973,7 @@
     @apply font-semibold;
   }
   .help-tile-body {
-    @apply line-clamp-3 text-sm text-muted;
+    @apply line-clamp-3 text-label text-ink-muted;
   }
   .help-tile .badge {
     @apply mx-4 mb-4 self-start;
@@ -928,13 +982,13 @@
     @apply max-w-4xl;
   }
   .help-capture {
-    @apply m-0 my-4 overflow-hidden rounded-2xl border border-lin;
+    @apply m-0 my-4 overflow-hidden rounded-lg border border-line;
   }
   .help-capture img {
     @apply block h-auto w-full;
   }
   .help-screen-body {
-    @apply text-lg;
+    @apply text-heading;
   }
   .help-landmarks {
     @apply m-0 flex list-none flex-col gap-3 p-0;
@@ -943,7 +997,7 @@
     @apply flex items-start gap-3;
   }
   .help-landmarks .landmark-number {
-    @apply mt-0.5 h-6 w-6 text-xs;
+    @apply mt-1 h-6 w-6 text-label;
   }
   .help-faq {
     @apply m-0 flex flex-col gap-4;
@@ -962,13 +1016,13 @@
     @apply my-4 grid list-none grid-cols-1 gap-3 p-0 sm:grid-cols-3;
   }
   .kpi-list li {
-    @apply flex flex-col rounded-2xl border border-lin bg-card p-4;
+    @apply flex flex-col rounded-lg border border-line bg-surface p-4;
   }
   .kpi-list li span {
-    @apply text-sm text-muted;
+    @apply text-label text-ink-muted;
   }
   .kpi-list li strong {
-    @apply font-display text-2xl;
+    @apply font-display text-title;
   }
 }
 
@@ -981,7 +1035,7 @@
     @apply flex max-w-sm min-w-0 flex-[1_1_260px] flex-col gap-3;
   }
   .tutorial-steps h1 {
-    @apply m-0 text-2xl;
+    @apply m-0 text-title;
   }
   .tutorial-steps ol {
     @apply m-0 flex list-none flex-col gap-2 p-0;
@@ -993,17 +1047,17 @@
     @apply font-semibold;
   }
   .tutorial-step-mark {
-    @apply flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-lin-soft text-sm font-semibold text-muted;
+    @apply flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-ground text-label font-semibold text-ink-muted;
   }
   .tutorial-steps li[data-state="current"] .tutorial-step-mark {
-    @apply bg-terracotta text-white;
+    @apply bg-primary text-on-primary;
   }
   .tutorial-steps li[data-state="done"] .tutorial-step-mark {
-    @apply bg-sauge text-white;
+    @apply bg-primary text-on-primary;
   }
   .tutorial-note,
   .tutorial-progress {
-    @apply text-sm text-muted;
+    @apply text-label text-ink-muted;
   }
   .tutorial-step {
     @apply flex min-w-0 flex-[999_1_480px] flex-col gap-3;
@@ -1012,10 +1066,10 @@
     @apply flex flex-wrap items-center gap-3;
   }
   .tutorial-actions .button-secondary {
-    @apply border-lin-dark bg-card font-medium text-ink hover:bg-lin-soft;
+    @apply border-line-strong bg-surface font-medium text-ink hover:bg-ground;
   }
   .tutorial-suggestion {
-    @apply rounded-xl bg-sauge-tint p-3 text-sauge-ink;
+    @apply rounded-md bg-primary-soft p-3 text-primary;
   }
 }
 
@@ -1023,19 +1077,19 @@
 @layer components {
   /* Lot 16 (L16-HUB-19) : dans la page, sous la barre du haut, plus en surimpression. */
   .tutorial-invite {
-    @apply mb-6 flex max-w-3xl flex-col gap-2 rounded-2xl border border-lin bg-card p-4;
+    @apply mb-6 flex max-w-3xl flex-col gap-2 rounded-lg border border-line bg-surface p-4;
   }
   .tutorial-invite h2 {
-    @apply m-0 text-lg;
+    @apply m-0 text-heading;
   }
   .tutorial-invite-kicker {
-    @apply m-0 text-sm font-semibold text-terracotta-ink;
+    @apply m-0 text-label font-semibold text-primary;
   }
   .tutorial-invite-actions {
     @apply flex flex-wrap items-center gap-2;
   }
   .tutorial-invite-later {
-    @apply border-transparent bg-transparent text-muted underline underline-offset-4;
+    @apply border-transparent bg-transparent text-ink-muted underline underline-offset-4;
   }
 }
 
@@ -1060,10 +1114,10 @@
     @apply m-0 flex list-none flex-col gap-2 p-0;
   }
   .candidate-notes h4 {
-    @apply m-0 text-base;
+    @apply m-0 text-body;
   }
   .candidate-actions {
-    @apply flex flex-wrap items-center gap-2 border-t border-lin-soft pt-3;
+    @apply flex flex-wrap items-center gap-2 border-t border-ground pt-3;
   }
   .stack {
     @apply flex flex-col gap-2;
@@ -1075,30 +1129,30 @@
     @apply font-semibold;
   }
   .muted {
-    @apply text-muted;
+    @apply text-ink-muted;
   }
   .link-button {
-    @apply min-h-9 border-0 bg-transparent px-2 text-sm text-sauge-ink underline hover:bg-transparent hover:text-ink;
+    @apply min-h-9 border-0 bg-transparent px-2 text-label text-primary underline hover:bg-transparent hover:text-ink;
   }
 }
 
 @layer components {
   /* Lot 11 (L11-PRE-04) — carte du carnet. */
   .vendor-map {
-    @apply relative overflow-hidden rounded-[16px] border border-lin;
+    @apply relative overflow-hidden rounded-lg border border-line;
   }
   .vendor-map-canvas {
     @apply h-[420px] w-full md:h-[560px];
   }
   .vendor-map-notice {
-    @apply absolute right-3 bottom-3 left-3 m-0 rounded-[10px] bg-card px-3 py-2 text-sm text-muted;
+    @apply absolute right-3 bottom-3 left-3 m-0 rounded-md bg-surface px-3 py-2 text-label text-ink-muted;
   }
   /* Lot 13 (L13-PRE-12) : liste à gauche, carte à droite ; sur téléphone, l'un ou l'autre. */
   .vendor-book {
-    @apply mt-2 grid grid-cols-1 gap-0 overflow-hidden rounded-2xl border border-lin bg-card lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)];
+    @apply mt-2 grid grid-cols-1 gap-0 overflow-hidden rounded-lg border border-line bg-surface lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)];
   }
   .vendor-list {
-    @apply m-0 flex flex-col gap-2 rounded-none border-0 p-4 shadow-none lg:max-h-[640px] lg:overflow-y-auto lg:border-r lg:border-lin;
+    @apply m-0 flex flex-col gap-2 rounded-none border-0 p-4 shadow-none lg:max-h-[640px] lg:overflow-y-auto lg:border-r lg:border-line;
   }
   .vendor-map-pane {
     @apply min-h-[420px] lg:sticky lg:top-0;
@@ -1116,25 +1170,25 @@
     @apply mt-3 lg:hidden;
   }
   .vendor-results > li[aria-current="true"] {
-    @apply rounded-xl bg-sauge-tint px-2;
+    @apply rounded-md bg-primary-soft px-2;
   }
   .vendor-summary {
     @apply m-0 grid gap-3;
   }
   .vendor-summary > div {
-    @apply grid gap-0.5;
+    @apply grid gap-1;
   }
   .vendor-summary dt {
-    @apply text-xs text-muted;
+    @apply text-label text-ink-muted;
   }
   .vendor-summary dd {
-    @apply m-0 text-[15px];
+    @apply m-0 text-body;
   }
   .vendor-results {
     @apply m-0 flex list-none flex-col p-0;
   }
   .vendor-results > li {
-    @apply flex flex-col gap-1 border-t border-lin-soft py-3;
+    @apply flex flex-col gap-1 border-t border-ground py-3;
   }
   .vendor-filters {
     @apply grid grid-cols-1 items-end gap-3 sm:grid-cols-2 lg:grid-cols-4;
@@ -1159,7 +1213,7 @@
 @layer components {
   /* Lot 12 (L12-EVT-14/17) — icône d'une ligne du budget. */
   .line-icon {
-    @apply inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-sauge-tint text-[11px] font-semibold text-sauge-ink;
+    @apply inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary-soft text-label font-semibold text-primary;
   }
   .line-icons {
     @apply inline-flex flex-wrap items-center gap-1;
@@ -1169,26 +1223,26 @@
 @layer components {
   /* Lot 12 (ONB-03) — assistant de démarrage. */
   .nav-locked {
-    @apply mx-2 mt-3 flex items-start gap-2 rounded-[10px] bg-ambre-tint px-3 py-2 text-sm text-ambre-ink;
+    @apply mx-2 mt-3 flex items-start gap-2 rounded-md bg-attention-soft px-3 py-2 text-label text-attention;
   }
   .setup-steps ol {
     @apply m-0 flex list-none flex-wrap gap-2 p-0;
   }
   .setup-steps li {
-    @apply rounded-full border border-lin-dark bg-card px-3 py-1.5 text-sm;
+    @apply rounded-full border border-line-strong bg-surface px-3 py-2 text-label;
   }
   .setup-steps li a {
     @apply text-ink no-underline;
   }
   .setup-steps li.done {
-    @apply border-sauge-tint bg-sauge-tint;
+    @apply border-primary-soft bg-primary-soft;
   }
   .setup-steps li.current {
-    @apply border-sauge bg-sauge font-semibold;
+    @apply border-primary bg-primary font-semibold;
   }
   .setup-steps li.current a,
   .setup-steps li.current span {
-    @apply text-white;
+    @apply text-on-primary;
   }
   .choice-cards {
     @apply grid grid-cols-1 gap-3 border-0 p-0 sm:grid-cols-3;
@@ -1197,10 +1251,10 @@
     @apply mb-2 font-semibold;
   }
   .choice-card {
-    @apply flex cursor-pointer items-start gap-3 rounded-[12px] border border-lin-dark bg-white p-4;
+    @apply flex cursor-pointer items-start gap-3 rounded-md border border-line-strong bg-surface p-4;
   }
   .choice-card:has(input:checked) {
-    @apply border-sauge bg-sauge-tint;
+    @apply border-primary bg-primary-soft;
   }
   .choice-card > span {
     @apply flex flex-col gap-1;
@@ -1209,7 +1263,7 @@
     @apply m-0 flex list-none flex-col gap-2 p-0;
   }
   .setup-lines > li {
-    @apply flex flex-wrap items-center gap-2 rounded-[12px] border border-lin bg-white px-3 py-2;
+    @apply flex flex-wrap items-center gap-2 rounded-md border border-line bg-surface px-3 py-2;
   }
   .line-form {
     @apply flex flex-1 flex-wrap items-center gap-2;
@@ -1227,7 +1281,7 @@
     @apply md:col-span-2;
   }
   .saved {
-    @apply font-medium text-sauge-ink;
+    @apply font-medium text-primary;
   }
 }
 
@@ -1243,31 +1297,31 @@
     @apply my-0 grid grid-cols-2 gap-2 sm:grid-cols-5;
   }
   .status-steps .status-step {
-    @apply min-h-11 rounded-[10px] border border-lin-dark bg-card px-3 text-sm font-semibold text-ink hover:border-sauge hover:bg-sauge-tint;
+    @apply min-h-11 rounded-md border border-line-strong bg-surface px-3 text-label font-semibold text-ink hover:border-primary hover:bg-primary-soft;
   }
   .status-steps .status-step.passed {
-    @apply border-sauge-tint bg-sauge-tint text-sauge-ink;
+    @apply border-primary-soft bg-primary-soft text-primary;
   }
   .status-steps .status-step.current {
-    @apply border-sauge bg-sauge text-white opacity-100;
+    @apply border-primary bg-primary text-on-primary opacity-100;
   }
   .status-steps .status-step.lost {
-    @apply text-terracotta-ink;
+    @apply text-critical;
   }
   .status-steps .status-step.lost.current {
-    @apply border-terracotta bg-terracotta-tint;
+    @apply border-critical bg-critical-soft;
   }
   .status-steps-wrap {
     @apply my-4 flex flex-col gap-3;
   }
   .loss-form {
-    @apply max-w-xl rounded-[12px] border border-lin bg-card p-4;
+    @apply max-w-xl rounded-md border border-line bg-surface p-4;
   }
 }
 
 @layer components {
   .notice {
-    @apply rounded-[12px] bg-sauge-tint px-4 py-3 text-sauge-ink;
+    @apply rounded-md bg-primary-soft px-4 py-3 text-primary;
   }
 }
 
@@ -1277,7 +1331,7 @@
     @apply m-0 flex list-none flex-col p-0;
   }
   .program-row {
-    @apply grid grid-cols-[6.5rem_1fr_auto] items-start gap-3 border-t border-lin-soft py-3;
+    @apply grid grid-cols-[6.5rem_1fr_auto] items-start gap-3 border-t border-ground py-3;
   }
   .program-time {
     @apply font-semibold tabular-nums;
@@ -1286,10 +1340,10 @@
     @apply flex min-w-0 flex-col gap-1;
   }
   .program-meta {
-    @apply flex flex-wrap items-center gap-2 text-sm text-muted;
+    @apply flex flex-wrap items-center gap-2 text-label text-ink-muted;
   }
   .program-note {
-    @apply text-sm text-muted italic;
+    @apply text-label text-ink-muted italic;
   }
   .program-actions {
     @apply flex items-start gap-1;
@@ -1305,7 +1359,7 @@
   }
   .icon-button,
   form:not(:has(label, select, textarea, input:not([type="hidden"]))) button.icon-button {
-    @apply inline-flex h-9 w-9 min-h-9 cursor-pointer list-none items-center justify-center rounded-[8px] border border-lin-dark bg-card p-0 text-muted hover:text-ink;
+    @apply inline-flex h-9 w-9 min-h-9 cursor-pointer list-none items-center justify-center rounded-md border border-line-strong bg-surface p-0 text-ink-muted hover:text-ink;
   }
   summary.icon-button::-webkit-details-marker {
     display: none;
@@ -1314,7 +1368,7 @@
     @apply flex flex-wrap gap-2;
   }
   .places {
-    @apply mt-6 border-t border-lin pt-4;
+    @apply mt-6 border-t border-line pt-4;
   }
   @media (max-width: 640px) {
     .program-row {
@@ -1332,27 +1386,27 @@
     @apply m-0 grid max-w-none grid-cols-1 items-end gap-3 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr];
   }
   .filter-bar label {
-    @apply m-0 grid gap-1 text-[13px] font-medium text-muted;
+    @apply m-0 grid gap-1 text-label font-medium text-ink-muted;
   }
   .filter-bar input,
   .filter-bar select {
-    @apply m-0 !h-[38px] !min-h-0 w-full rounded-[10px] border border-lin-dark bg-card px-3 !py-0 text-[15px] font-normal text-ink;
+    @apply m-0 !h-[38px] !min-h-0 w-full rounded-md border border-line-strong bg-surface px-3 !py-0 text-body font-normal text-ink;
   }
   .segmented a[aria-current="page"] {
-    @apply bg-sauge text-white;
+    @apply bg-primary text-on-primary;
   }
   .list-table-wrap {
-    @apply overflow-x-auto rounded-2xl border border-lin bg-card;
+    @apply overflow-x-auto rounded-lg border border-line bg-surface;
   }
   .list-table {
-    @apply w-full min-w-[560px] border-collapse text-[15px];
+    @apply w-full min-w-[560px] border-collapse text-body;
   }
   .list-table thead th {
-    @apply border-b border-lin bg-ivory px-3 py-2.5 text-left text-xs font-semibold tracking-wide text-muted uppercase;
+    @apply border-b border-line bg-ground px-3 py-3 text-left text-label font-semibold tracking-wide text-ink-muted uppercase;
   }
   .list-table td,
   .list-table tbody th {
-    @apply h-13 border-b border-lin-soft px-3 text-left align-middle font-normal;
+    @apply h-13 border-b border-ground px-3 text-left align-middle font-normal;
   }
   .list-table tbody tr:last-child td,
   .list-table tbody tr:last-child th {
@@ -1368,7 +1422,7 @@
     @apply cursor-pointer;
   }
   .list-row:hover {
-    @apply bg-ivory;
+    @apply bg-ground;
   }
   .list-table .num {
     @apply whitespace-nowrap;
@@ -1381,16 +1435,16 @@
     @apply m-0 flex list-none flex-col p-0;
   }
   .follow-up-list li {
-    @apply flex min-h-12 items-center justify-between gap-3 border-b border-lin-soft;
+    @apply flex min-h-12 items-center justify-between gap-3 border-b border-ground;
   }
   .follow-up-list li:last-child {
     @apply border-b-0;
   }
   .follow-up-list a {
-    @apply text-[15px] text-ink;
+    @apply text-body text-ink;
   }
   .nav-count {
-    @apply ml-auto rounded-full bg-sauge-tint px-2 py-0.5 text-xs font-semibold text-sauge-ink;
+    @apply ml-auto rounded-full bg-primary-soft px-2 py-1 text-label font-semibold text-primary;
   }
 }
 
@@ -1405,42 +1459,42 @@
   /* Lot 21 (L21-HUB-28) : plus haut que la fenêtre, le menu défile seul, sans
      emporter l'écran (overscroll-contain). */
   .settings-nav {
-    @apply flex flex-col gap-3 rounded-2xl border border-lin bg-card p-3 lg:sticky lg:top-4 lg:row-span-6 lg:col-start-1 lg:row-start-1 lg:max-h-[calc(100dvh-2rem)] lg:overflow-y-auto lg:overscroll-contain;
+    @apply flex flex-col gap-3 rounded-lg border border-line bg-surface p-3 lg:sticky lg:top-4 lg:row-span-6 lg:col-start-1 lg:row-start-1 lg:max-h-[calc(100dvh-2rem)] lg:overflow-y-auto lg:overscroll-contain;
   }
   /* Lot 21 (L21-HUB-29) : titre de groupe en gras, couleur d'encre, avec son
      icône ; rubriques en retrait le long d'un filet ; un séparateur entre les
      groupes. */
   .settings-nav-group + .settings-nav-group {
-    @apply border-t border-lin pt-3;
+    @apply border-t border-line pt-3;
   }
   .settings-nav-title {
-    @apply m-0 flex items-center gap-2 px-2 pt-0.5 pb-1.5 text-sm font-bold text-ink;
+    @apply m-0 flex items-center gap-2 px-2 pt-1 pb-2 text-label font-bold text-ink;
   }
   .settings-nav-title svg {
-    @apply h-[18px] w-[18px] shrink-0 text-sauge;
+    @apply h-[18px] w-[18px] shrink-0 text-primary;
   }
   .settings-nav ul {
-    @apply m-0 ml-4 flex list-none flex-col gap-0.5 border-l-2 border-lin p-0 pl-2;
+    @apply m-0 ml-4 flex list-none flex-col gap-1 border-l-2 border-line p-0 pl-2;
   }
   .settings-nav a {
-    @apply flex min-h-9 items-center rounded-lg px-2.5 text-sm text-ink-soft no-underline hover:bg-ivory;
+    @apply flex min-h-9 items-center rounded-md px-3 text-label text-ink no-underline hover:bg-ground;
   }
   .settings-nav a[aria-current="page"] {
-    @apply bg-sauge-tint font-semibold text-sauge-ink;
+    @apply bg-primary-soft font-semibold text-primary;
   }
 
   /* Panneau latéral (ADR 0033). */
   .side-panel {
-    @apply fixed inset-0 z-50 flex flex-col gap-4 overflow-y-auto bg-card p-5 shadow-2xl md:inset-y-0 md:right-0 md:left-auto md:w-[400px] md:border-l md:border-lin;
+    @apply fixed inset-0 z-50 flex flex-col gap-4 overflow-y-auto bg-surface p-6 shadow-float md:inset-y-0 md:right-0 md:left-auto md:w-[400px] md:border-l md:border-line;
   }
   .side-panel-head {
     @apply flex items-start justify-between gap-3;
   }
   .side-panel-head h2 {
-    @apply m-0 text-xl outline-none;
+    @apply m-0 text-title outline-none;
   }
   .side-panel-close {
-    @apply inline-flex h-10 w-10 items-center justify-center rounded-full text-2xl text-ink no-underline hover:bg-ivory;
+    @apply inline-flex h-10 w-10 items-center justify-center rounded-full text-title text-ink no-underline hover:bg-ground;
   }
   .list-table td.actions {
     @apply w-1 text-right whitespace-nowrap;
@@ -1453,13 +1507,13 @@
 /* Lot 13 (L13-HUB-16) — actions discrètes et listes courtes en pastilles. */
 @layer components {
   .button-ghost {
-    @apply inline-flex !min-h-11 items-center rounded-[10px] border-0 !bg-transparent px-3 text-[15px] font-medium !text-terracotta-ink hover:underline;
+    @apply inline-flex !min-h-11 items-center rounded-md border-0 !bg-transparent px-3 text-body font-medium !text-primary hover:underline;
   }
   .chip-list {
     @apply my-3 flex list-none flex-wrap gap-2 p-0;
   }
   .chip-list li {
-    @apply inline-flex min-h-9 items-center rounded-full border border-lin-dark bg-card px-3.5 text-sm;
+    @apply inline-flex min-h-9 items-center rounded-full border border-line-strong bg-surface px-4 text-label;
   }
 }
 
@@ -1476,72 +1530,72 @@
   }
   .timeline-step::before {
     content: "";
-    @apply absolute top-[17px] right-1/2 left-[-50%] h-[3px] bg-lin;
+    @apply absolute top-[17px] right-1/2 left-[-50%] h-[3px] bg-line;
   }
   .timeline-step:first-child::before {
     @apply hidden;
   }
   .timeline-step.passed::before,
   .timeline-step.current::before {
-    @apply bg-sauge;
+    @apply bg-primary;
   }
   .timeline-button {
     @apply flex !min-h-0 flex-col items-center gap-1 border-0 !bg-transparent !p-0 !text-ink disabled:cursor-default disabled:opacity-100;
   }
   .timeline-dot {
-    @apply relative z-10 inline-flex h-9 w-9 items-center justify-center rounded-full border-2 border-lin-dark bg-card text-sm font-semibold text-muted;
+    @apply relative z-10 inline-flex h-9 w-9 items-center justify-center rounded-full border-2 border-line-strong bg-surface text-label font-semibold text-ink-muted;
   }
   .timeline-dot::before {
     content: attr(data-mark);
   }
   .timeline-step.passed .timeline-dot {
-    @apply border-sauge bg-sauge text-white;
+    @apply border-primary bg-primary text-on-primary;
   }
   .timeline-step.current .timeline-dot {
-    @apply border-[3px] border-sauge text-sauge-dark opacity-100;
-    box-shadow: 0 0 0 5px var(--color-sauge-tint);
+    @apply border-[3px] border-primary text-primary-strong opacity-100;
+    box-shadow: 0 0 0 5px var(--color-primary-soft);
   }
   .timeline-label {
-    @apply text-[13px] font-semibold text-ink;
+    @apply text-label font-semibold text-ink;
   }
   .timeline-step:not(.passed):not(.current) .timeline-label {
-    @apply text-muted;
+    @apply text-ink-muted;
   }
   .timeline-date {
-    @apply text-xs text-muted;
+    @apply text-label text-ink-muted;
   }
   .timeline-lost {
-    @apply self-end !min-h-0 border-0 !bg-transparent !p-0 text-[13px] !text-terracotta-ink underline;
+    @apply self-end !min-h-0 border-0 !bg-transparent !p-0 text-label !text-critical underline;
   }
   .timeline-confirm {
-    @apply flex flex-wrap items-center gap-3 rounded-xl border border-lin bg-ivory p-3;
+    @apply flex flex-wrap items-center gap-3 rounded-md border border-line bg-ground p-3;
   }
   .timeline-confirm p {
     @apply m-0 flex-1 font-medium;
   }
   .next-step {
-    @apply my-4 flex flex-wrap items-start justify-between gap-3 rounded-2xl !border-0 !bg-sauge-tint p-4;
+    @apply my-4 flex flex-wrap items-start justify-between gap-3 rounded-lg !border-0 !bg-primary-soft p-4;
   }
   .next-step-body {
     @apply flex min-w-0 flex-1 flex-col gap-2;
   }
   .next-step h2 {
-    @apply m-0 text-lg text-sauge-ink;
+    @apply m-0 text-heading text-primary;
   }
   .next-step p {
-    @apply m-0 text-[15px] text-sauge-ink;
+    @apply m-0 text-body text-primary;
   }
   .kpis {
     @apply m-0 grid grid-cols-2 gap-3 md:grid-cols-4;
   }
   .kpis > div {
-    @apply flex flex-col gap-0.5 rounded-xl border border-lin p-3;
+    @apply flex flex-col gap-1 rounded-md border border-line p-3;
   }
   .kpis dt {
-    @apply text-xs text-muted;
+    @apply text-label text-ink-muted;
   }
   .kpis dd {
-    @apply m-0 font-display text-xl font-semibold;
+    @apply m-0 font-display text-title font-semibold;
   }
 }
 
@@ -1557,29 +1611,29 @@
     @apply flex flex-wrap items-baseline gap-3;
   }
   .tutorials-stage-head h2 {
-    @apply m-0 text-lg;
+    @apply m-0 text-heading;
   }
   .tutorial-tiles {
     @apply m-0 grid list-none grid-cols-1 gap-3 p-0 sm:grid-cols-2 lg:grid-cols-3;
   }
   .tutorial-tile {
-    @apply relative flex min-h-32 flex-col items-start gap-2 rounded-2xl border border-lin bg-card p-4 text-ink no-underline hover:border-ink-soft;
+    @apply relative flex min-h-32 flex-col items-start gap-2 rounded-lg border border-line bg-surface p-4 text-ink no-underline hover:border-ink;
   }
   .tutorial-tile strong {
-    @apply pr-8 text-[15px] leading-snug;
+    @apply pr-8 text-body leading-snug;
   }
   .tutorial-tile-done {
-    @apply border-sauge bg-sauge-tint;
+    @apply border-primary bg-primary-soft;
   }
   .tutorial-tile-current {
-    @apply border-2 border-terracotta;
-    box-shadow: 0 0 0 4px var(--color-terracotta-tint);
+    @apply border-2 border-primary;
+    box-shadow: 0 0 0 4px var(--color-primary-soft);
   }
   .tutorial-tile-next {
-    @apply border-dashed border-sauge;
+    @apply border-dashed border-primary;
   }
   .tutorial-tile-check {
-    @apply absolute top-3 right-3 inline-flex h-7 w-7 items-center justify-center rounded-full bg-sauge font-bold text-white;
+    @apply absolute top-3 right-3 inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary font-bold text-on-primary;
   }
   .tutorial-conflict {
     @apply mx-auto mt-8 max-w-xl;
@@ -1589,10 +1643,10 @@
 /* Lot 13 (AIDE-11, ADR 0033) — aide sur l'écran par repères. */
 @layer components {
   .help-button {
-    @apply inline-flex !h-11 !min-h-0 !w-11 !min-w-0 items-center justify-center rounded-full border border-lin-dark !bg-card !p-0 font-semibold !text-sauge;
+    @apply inline-flex !h-11 !min-h-0 !w-11 !min-w-0 items-center justify-center rounded-full border border-line-strong !bg-surface !p-0 font-semibold !text-primary;
   }
   .help-button[aria-expanded="true"] {
-    @apply border-sauge !bg-sauge !text-white;
+    @apply border-primary !bg-primary !text-on-primary;
   }
   a.help-button {
     @apply no-underline;
@@ -1606,18 +1660,18 @@
     @apply ml-auto flex-none;
   }
   .landmark-marker {
-    @apply fixed z-[55] inline-flex !h-7 !min-h-0 !w-7 !min-w-0 items-center justify-center rounded-full border-0 !bg-terracotta !p-0 text-[13px] font-semibold !text-white;
-    box-shadow: 0 0 0 4px rgb(168 85 58 / 0.25);
+    @apply fixed z-[55] inline-flex !h-7 !min-h-0 !w-7 !min-w-0 items-center justify-center rounded-full border-0 !bg-primary !p-0 text-label font-semibold !text-on-primary;
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary) 25%, transparent);
   }
   .landmark-marker[aria-pressed="true"] {
-    @apply !bg-sauge-dark;
-    box-shadow: 0 0 0 5px rgb(79 107 90 / 0.3);
+    @apply !bg-primary-strong;
+    box-shadow: 0 0 0 5px color-mix(in srgb, var(--color-primary) 30%, transparent);
   }
   .landmark-marker[data-hidden="true"] {
     @apply hidden;
   }
   .landmark-active {
-    outline: 3px solid var(--color-sauge);
+    outline: 3px solid var(--color-primary);
     outline-offset: 4px;
     border-radius: 12px;
   }
@@ -1625,13 +1679,13 @@
      recouvrir. Ordinateur : à droite, toute la hauteur ; téléphone et tablette :
      en bas de l'écran, le contenu défile au-dessus. */
   .landmark-panel {
-    @apply fixed inset-x-0 bottom-0 z-[56] flex max-h-[60vh] flex-col gap-3 overflow-y-auto rounded-t-2xl border-t border-lin bg-card p-4 shadow-2xl lg:inset-y-0 lg:right-0 lg:left-auto lg:max-h-none lg:w-[380px] lg:rounded-none lg:border-t-0 lg:border-l lg:p-5;
+    @apply fixed inset-x-0 bottom-0 z-[56] flex max-h-[60vh] flex-col gap-3 overflow-y-auto rounded-t-lg border-t border-line bg-surface p-4 shadow-float lg:inset-y-0 lg:right-0 lg:left-auto lg:max-h-none lg:w-help-panel lg:rounded-none lg:border-t-0 lg:border-l lg:p-6;
   }
   body[data-help-open="true"] .app-main {
-    @apply pb-[64vh] lg:pb-28;
+    @apply pb-[64vh] lg:pb-help-tray;
   }
   body[data-help-open="true"] .app-shell {
-    @apply lg:pr-[380px];
+    @apply lg:pr-help-panel;
   }
   body[data-help-open="true"] .landmark-active {
     scroll-margin-bottom: 64vh;
@@ -1645,20 +1699,20 @@
     @apply flex items-start justify-between gap-2;
   }
   .landmark-panel-head h2 {
-    @apply m-0 text-lg outline-none;
+    @apply m-0 text-heading outline-none;
   }
   .landmark-close {
-    @apply inline-flex !h-9 !min-h-0 !w-9 !min-w-0 items-center justify-center rounded-full border-0 !bg-transparent !p-0 text-xl !text-ink;
+    @apply inline-flex !h-9 !min-h-0 !w-9 !min-w-0 items-center justify-center rounded-full border-0 !bg-transparent !p-0 text-title !text-ink;
   }
   .landmark-intro {
-    @apply m-0 text-sm text-muted;
+    @apply m-0 text-label text-ink-muted;
   }
   /* Lot 20 (décision 2) : action propre à l'écran (essai guidé…), sous le texte. */
   .help-extra {
-    @apply grid justify-items-start gap-2 rounded-xl border border-lin bg-card p-4 text-sm;
+    @apply grid justify-items-start gap-2 rounded-md border border-line bg-surface p-4 text-label;
   }
   .help-extra > h3 {
-    @apply m-0 text-base;
+    @apply m-0 text-body;
   }
   .help-extra > p {
     @apply m-0;
@@ -1670,22 +1724,22 @@
     @apply m-0 flex list-none flex-col gap-1 p-0;
   }
   .landmark-list button {
-    @apply flex w-full !min-h-9 items-center gap-2 rounded-lg border-0 !bg-transparent px-2 text-left text-sm !text-ink;
+    @apply flex w-full !min-h-9 items-center gap-2 rounded-md border-0 !bg-transparent px-2 text-left text-label !text-ink;
   }
   .landmark-list button[aria-current="step"] {
-    @apply !bg-sauge-tint font-semibold;
+    @apply !bg-primary-soft font-semibold;
   }
   .landmark-number {
-    @apply inline-flex h-5 w-5 flex-none items-center justify-center rounded-full bg-terracotta text-[11px] font-semibold text-white;
+    @apply inline-flex h-5 w-5 flex-none items-center justify-center rounded-full bg-primary text-label font-semibold text-on-primary;
   }
   .landmark-detail {
-    @apply rounded-xl bg-ivory p-3;
+    @apply rounded-md bg-ground p-3;
   }
   .landmark-detail h3 {
-    @apply m-0 mb-1 text-[15px];
+    @apply m-0 mb-1 text-body;
   }
   .landmark-detail p {
-    @apply m-0 text-sm;
+    @apply m-0 text-label;
   }
   .landmark-nav {
     @apply flex justify-between gap-2;
@@ -1695,29 +1749,29 @@
 /* Lot 13 (L13-HUB-17) — console d'Administration : menu sombre. */
 @layer components {
   .app-sidebar-admin {
-    @apply border-ink bg-ink text-ivory;
+    @apply border-ink bg-ink text-ground;
   }
   .app-sidebar-admin .app-brand,
   .app-sidebar-admin .app-brand:hover {
-    @apply text-white;
+    @apply text-on-primary;
   }
   .app-brand-suffix {
-    @apply rounded-full bg-white/15 px-2 py-0.5 font-sans text-xs font-semibold tracking-wide uppercase;
+    @apply rounded-full bg-on-primary/15 px-2 py-1 font-sans text-label font-semibold tracking-wide uppercase;
   }
   .app-sidebar-admin .app-nav a {
-    @apply text-lin-soft hover:bg-white/10 hover:text-white;
+    @apply text-ground hover:bg-on-primary/10 hover:text-on-primary;
   }
   .app-sidebar-admin .app-nav a[aria-current="page"] {
-    @apply bg-white/15 font-semibold text-white;
+    @apply bg-on-primary/15 font-semibold text-on-primary;
   }
   .app-sidebar-admin .app-nav-secondary {
-    @apply border-white/15;
+    @apply border-on-primary/15;
   }
   .app-sidebar-admin .app-user {
-    @apply border-white/15 text-lin-soft;
+    @apply border-on-primary/15 text-ground;
   }
   .app-sidebar-admin .app-menu-toggle {
-    @apply border-white/30 bg-transparent text-white;
+    @apply border-on-primary/30 bg-transparent text-on-primary;
   }
 }
 
@@ -1727,13 +1781,13 @@
     @apply sm:grid-cols-2 lg:grid-cols-4;
   }
   .status-pill {
-    @apply m-0 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm font-semibold;
+    @apply m-0 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-label font-semibold;
   }
   .status-pill-ok {
-    @apply border-sauge bg-sauge-tint text-sauge-ink;
+    @apply border-primary bg-primary-soft text-primary;
   }
   .status-pill-alert {
-    @apply border-terracotta bg-terracotta-tint text-terracotta-ink;
+    @apply border-critical bg-critical-soft text-critical;
   }
   .status-led {
     @apply inline-block h-2.5 w-2.5 rounded-full bg-current;
@@ -1742,27 +1796,27 @@
     @apply m-0 flex list-none flex-col p-0;
   }
   .admin-todo li {
-    @apply flex flex-wrap items-center justify-between gap-3 border-b border-lin py-3 last:border-b-0;
+    @apply flex flex-wrap items-center justify-between gap-3 border-b border-line py-3 last:border-b-0;
   }
   .admin-trend {
     @apply block h-20 w-full;
   }
   .admin-trend-area {
-    fill: var(--color-sauge-tint);
+    fill: var(--color-primary-soft);
   }
   .admin-trend-line {
     fill: none;
-    stroke: var(--color-sauge);
+    stroke: var(--color-primary);
     stroke-width: 2;
   }
   .admin-trend-dot {
-    fill: var(--color-sauge);
+    fill: var(--color-primary);
   }
   .definition-grid {
     @apply m-0 grid grid-cols-[auto_1fr] gap-x-6 gap-y-2;
   }
   .definition-grid dt {
-    @apply text-muted;
+    @apply text-ink-muted;
   }
   .definition-grid dd {
     @apply m-0;
@@ -1772,16 +1826,16 @@
 /* Lot 13 (L13-HUB-17) — tableau des organisations, panneau et pagination. */
 @layer components {
   .cell-note {
-    @apply block text-sm font-normal text-muted;
+    @apply block text-label font-normal text-ink-muted;
   }
   .pill-list {
     @apply flex flex-wrap gap-1;
   }
   .panel-section {
-    @apply border-b border-lin py-4 last:border-b-0;
+    @apply border-b border-line py-4 last:border-b-0;
   }
   .panel-section h3 {
-    @apply m-0 mb-2 text-base;
+    @apply m-0 mb-2 text-body;
   }
   .toggle-list,
   .plain-list {
@@ -1791,7 +1845,7 @@
     @apply flex flex-wrap items-center justify-between gap-2;
   }
   .plain-list li {
-    @apply text-sm break-words;
+    @apply text-label break-words;
   }
   .pagination {
     @apply my-4 grid grid-cols-[1fr_auto_1fr] items-center gap-3;
@@ -1804,7 +1858,7 @@
 /* Lot 13 (L13-HUB-16) — ordre des lignes du budget : glisser-déposer et flèches. */
 @layer components {
   .drag-cell {
-    @apply w-8 text-muted;
+    @apply w-8 text-ink-muted;
   }
   tr[draggable="true"] .drag-handle {
     @apply cursor-grab;
@@ -1830,7 +1884,7 @@
     @apply relative;
   }
   .pills a .family-icon {
-    @apply mr-2 -ml-1.5;
+    @apply mr-2 -ml-2;
   }
   .badge-family {
     @apply inline-flex items-center gap-1;
@@ -1846,7 +1900,7 @@
     @apply mt-2;
   }
   .pills-secondary a {
-    @apply min-h-9 border-lin bg-ivory text-[13px];
+    @apply min-h-9 border-line bg-ground text-label;
   }
   /* Sur téléphone, familles et types tiennent sur une ligne défilante. */
   .vendor-types,
@@ -1858,10 +1912,10 @@
     @apply max-sm:flex-none max-sm:whitespace-nowrap;
   }
   .vendor-unclassified {
-    @apply my-3 rounded-[12px] border border-lin bg-ivory px-4 py-2.5 text-sm;
+    @apply my-3 rounded-md border border-line bg-ground px-4 py-3 text-label;
   }
   .vendor-map-legend {
-    @apply m-0 flex list-none flex-wrap gap-x-4 gap-y-2 border-t border-lin px-4 py-3 text-sm;
+    @apply m-0 flex list-none flex-wrap gap-x-4 gap-y-2 border-t border-line px-4 py-3 text-label;
   }
   .vendor-map-legend li {
     @apply inline-flex items-center gap-2;
@@ -1874,7 +1928,7 @@
     @apply inline-flex items-center gap-2;
   }
   .list-table tbody tr[aria-current="true"] {
-    @apply bg-sauge-tint;
+    @apply bg-primary-soft;
   }
   .row-actions {
     @apply flex flex-wrap items-center gap-2;
@@ -1889,10 +1943,10 @@
     @apply m-0 mb-3 flex list-none flex-col gap-2 p-0;
   }
   .panel-fields > li {
-    @apply flex flex-wrap items-center justify-between gap-2 border-b border-lin-soft pb-2;
+    @apply flex flex-wrap items-center justify-between gap-2 border-b border-ground pb-2;
   }
   .family-preview {
-    @apply m-0 inline-flex items-center gap-2 text-sm text-muted;
+    @apply m-0 inline-flex items-center gap-2 text-label text-ink-muted;
   }
   /* Dans le panneau latéral (400 px), les formulaires du carnet s'empilent. */
   .side-panel .vendor-filters {
@@ -1915,50 +1969,50 @@
     @apply m-0;
   }
   .import-abandon {
-    @apply text-sm text-muted;
+    @apply text-label text-ink-muted;
   }
   .import-abandon-confirm {
-    @apply my-4 flex flex-col gap-2 rounded-[12px] border border-terracotta bg-card px-4 py-3;
+    @apply my-4 flex flex-col gap-2 rounded-md border border-critical bg-surface px-4 py-3;
   }
   .import-abandon-confirm h2 {
-    @apply m-0 text-base;
+    @apply m-0 text-body;
   }
   /* Frise des étapes : faite (coche), en cours, à venir. */
   .stepper {
-    @apply my-5;
+    @apply my-6;
   }
   .stepper ol {
     @apply m-0 flex list-none flex-col gap-3 p-0 md:flex-row md:gap-2;
   }
   .stepper li {
-    @apply flex flex-1 items-start gap-2 rounded-[12px] border border-lin bg-card px-3 py-2 text-sm;
+    @apply flex flex-1 items-start gap-2 rounded-md border border-line bg-surface px-3 py-2 text-label;
   }
   .stepper li[data-state="current"] {
-    @apply border-sauge bg-sauge-tint;
+    @apply border-primary bg-primary-soft;
   }
   .stepper li[data-state="todo"] {
-    @apply text-muted;
+    @apply text-ink-muted;
   }
   .stepper-marker {
-    @apply inline-flex h-6 w-6 flex-none items-center justify-center rounded-full border border-lin-dark text-xs font-semibold;
+    @apply inline-flex h-6 w-6 flex-none items-center justify-center rounded-full border border-line-strong text-label font-semibold;
   }
   .stepper li[data-state="done"] .stepper-marker,
   .stepper li[data-state="current"] .stepper-marker {
-    @apply border-sauge bg-sauge text-white;
+    @apply border-primary bg-primary text-on-primary;
   }
   .stepper-text {
-    @apply flex flex-col gap-0.5;
+    @apply flex flex-col gap-1;
   }
   .stepper-text > a,
   .stepper-label {
     @apply font-semibold;
   }
   .stepper-summary {
-    @apply text-xs text-muted;
+    @apply text-label text-ink-muted;
   }
   /* Barre d'action fixe en bas de l'étape. */
   .action-bar {
-    @apply sticky bottom-0 z-20 mt-6 flex items-center justify-between gap-3 border-t border-lin bg-ivory/95 py-3 backdrop-blur;
+    @apply sticky bottom-0 z-20 mt-6 flex items-center justify-between gap-3 border-t border-line bg-ground/95 py-3 backdrop-blur;
   }
   .action-bar-main {
     @apply flex items-center gap-2;
@@ -1968,41 +2022,41 @@
     @apply mt-3 grid grid-cols-1 gap-3 md:grid-cols-3;
   }
   .import-tile {
-    @apply flex flex-col gap-1 rounded-2xl border border-lin bg-card p-4 text-ink no-underline hover:border-sauge;
+    @apply flex flex-col gap-1 rounded-lg border border-line bg-surface p-4 text-ink no-underline hover:border-primary;
   }
   .import-tile[aria-current="true"] {
-    @apply border-sauge bg-sauge-tint;
+    @apply border-primary bg-primary-soft;
   }
   .import-tile-title {
     @apply font-semibold;
   }
   .import-tile-body {
-    @apply text-sm text-muted;
+    @apply text-label text-ink-muted;
   }
   .types-group {
-    @apply my-5;
+    @apply my-6;
   }
   .types-group h2 .meta {
-    @apply ml-2 text-sm font-normal;
+    @apply ml-2 text-label font-normal;
   }
   .matches-accept-safe {
     @apply my-3;
   }
   .matches-manual {
-    @apply mt-2 flex flex-wrap items-end gap-2 text-sm;
+    @apply mt-2 flex flex-wrap items-end gap-2 text-label;
   }
   /* Vérifier et confirmer : bilan des effets. */
   .effects {
     @apply m-0 grid grid-cols-2 gap-3 md:grid-cols-3;
   }
   .effects > div {
-    @apply grid gap-0.5;
+    @apply grid gap-1;
   }
   .effects dt {
-    @apply text-xs text-muted;
+    @apply text-label text-ink-muted;
   }
   .effects dd {
-    @apply m-0 text-lg font-semibold;
+    @apply m-0 text-heading font-semibold;
   }
 }
 
@@ -2021,10 +2075,10 @@
     @apply mb-0;
   }
   .more-actions > summary {
-    @apply inline-flex min-h-11 cursor-pointer list-none items-center rounded-[10px] border border-lin-dark bg-card px-4 text-[15px] font-medium text-ink;
+    @apply inline-flex min-h-11 cursor-pointer list-none items-center rounded-md border border-line-strong bg-surface px-4 text-body font-medium text-ink;
   }
   .more-actions-panel {
-    @apply mt-2 flex max-w-sm flex-col gap-2 rounded-[12px] border border-lin bg-card p-4 text-sm md:absolute md:right-0 md:z-30 md:w-80 md:shadow-lg;
+    @apply mt-2 flex max-w-sm flex-col gap-2 rounded-md border border-line bg-surface p-4 text-label md:absolute md:right-0 md:z-30 md:w-80 md:shadow-float;
   }
 }
 
@@ -2040,7 +2094,7 @@
     @apply my-1;
   }
   .logo-preview {
-    @apply max-h-20 max-w-60 rounded-[10px] border border-lin bg-card object-contain p-2;
+    @apply max-h-20 max-w-60 rounded-md border border-line bg-surface object-contain p-2;
   }
   /* Deux colonnes seulement si la zone de contenu (pas l'écran) a la place :
      menu principal et menu des réglages en prennent déjà une bonne part. */
@@ -2075,31 +2129,34 @@
     @apply flex flex-wrap gap-x-4 gap-y-2;
   }
   .swatch-option {
-    @apply text-[15px];
+    @apply text-body;
   }
+  /* jetons:hors-charte:debut — couleurs choisies par l'organisation pour ses documents (ADR 0046), pas celles de l'app */
   .swatch-dot {
-    @apply inline-block size-6 rounded-full border-2 border-card shadow-[0_0_0_1px_var(--color-lin-dark)];
+    @apply inline-block size-6 rounded-full border-2 border-surface ring-1 ring-line-strong;
     background-color: #3b3b3b;
   }
+  /* jetons:hors-charte:fin */
   .radio-option {
-    @apply text-[15px];
+    @apply text-body;
   }
   .segmented button {
-    @apply min-h-10 border-0 bg-transparent px-3.5 text-sm font-medium text-ink transition-none;
+    @apply min-h-10 border-0 bg-transparent px-4 text-label font-medium text-ink transition-none;
   }
   .segmented button[aria-pressed="true"] {
-    @apply bg-sauge text-white;
+    @apply bg-primary text-on-primary;
   }
 
   /* Le document lui-même : toujours clair, comme le PDF (A4, 595 px). */
   .doc-frame {
-    @apply overflow-x-auto rounded-2xl bg-lin-soft p-4;
+    @apply overflow-x-auto rounded-lg bg-ground p-4;
   }
+  /* jetons:hors-charte:debut — aperçu du document, rendu comme le PDF (A4) avec les couleurs de l'organisation (ADR 0046) */
   .doc-sheet {
     --doc: #3b3b3b;
     --doc-ink: #ffffff;
     --doc-tint: #ececec;
-    @apply mx-auto flex min-h-[842px] w-[595px] flex-col gap-3.5 bg-white text-[#1f1c1a] shadow-[0_6px_24px_rgba(0,0,0,0.12)];
+    @apply mx-auto flex min-h-[842px] w-[595px] flex-col gap-3.5 bg-[#ffffff] text-[#1f1c1a] shadow-[0_6px_24px_rgba(0,0,0,0.12)];
     padding: 34px 38px 28px;
     font: 9.5px/1.45 Helvetica, Arial, sans-serif;
     font-variant-numeric: tabular-nums;
@@ -2183,13 +2240,13 @@
     @apply grid grid-cols-[1fr_210px] items-start gap-3.5;
   }
   .doc-pay {
-    @apply grid gap-0.5 rounded-md border border-[#e6ded3] px-[11px] py-[9px];
+    @apply grid gap-0.5 rounded-[6px] border border-[#e6ded3] px-[11px] py-[9px];
   }
   .doc-pay-row {
     @apply flex justify-between gap-2;
   }
   .doc-totals {
-    @apply grid gap-[3px];
+    @apply grid gap-1;
   }
   .doc-total {
     @apply flex justify-between gap-2;
@@ -2205,18 +2262,19 @@
   .doc-foot {
     @apply mt-auto flex justify-between gap-3 border-t border-[#e6ded3] pt-2 text-[7.5px] whitespace-pre-line;
   }
+  /* jetons:hors-charte:fin */
 }
 
 /* Lot 17 (DEV-08, décision G) — l'organisation dans l'en-tête de l'espace client. */
 @layer components {
   .client-organization {
-    @apply my-2 rounded-[12px] bg-card p-3;
+    @apply my-2 rounded-md bg-surface p-3;
   }
   .client-organization-logo {
     @apply block max-h-14 max-w-full object-contain;
   }
   .client-organization-name {
-    @apply m-0 font-display text-lg font-semibold text-ink;
+    @apply m-0 font-display text-heading font-semibold text-ink;
   }
 }
 
@@ -2224,7 +2282,7 @@
    panneau de l'étape à droite (empilés sur téléphone) ; pastille d'alerte. */
 @layer components {
   .nav-count-alert {
-    @apply bg-terracotta-tint text-terracotta-ink;
+    @apply bg-critical-soft text-critical;
   }
   .tabs a .nav-count {
     @apply ml-2;
@@ -2239,19 +2297,19 @@
     @apply m-0;
   }
   .case-steps a {
-    @apply grid gap-0.5 rounded-[12px] border border-lin bg-card px-3.5 py-2.5 text-[15px] text-ink no-underline hover:border-ink-soft;
+    @apply grid gap-1 rounded-md border border-line bg-surface px-4 py-3 text-body text-ink no-underline hover:border-ink;
   }
   .case-steps a[aria-current="step"] {
-    @apply border-sauge bg-sauge-tint font-semibold;
+    @apply border-primary bg-primary-soft font-semibold;
   }
   .case-steps small {
-    @apply text-[13px] font-normal text-muted;
+    @apply text-label font-normal text-ink-muted;
   }
   .case-step-done small {
-    @apply font-semibold text-sauge-ink;
+    @apply font-semibold text-primary;
   }
   .case-step-waiting small {
-    @apply font-semibold text-ambre-ink;
+    @apply font-semibold text-attention;
   }
   .case-panel {
     @apply grid gap-3;
@@ -2260,41 +2318,41 @@
     @apply mt-0;
   }
   .case-facts {
-    @apply m-0 grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1.5;
+    @apply m-0 grid grid-cols-[max-content_1fr] gap-x-4 gap-y-2;
   }
   .case-facts dt {
-    @apply text-sm text-muted;
+    @apply text-label text-ink-muted;
   }
   .case-facts dd {
     @apply m-0;
   }
   .case-reply {
-    @apply rounded-[10px] border border-lin bg-ivory p-4 text-[15px] whitespace-pre-line;
+    @apply rounded-md border border-line bg-ground p-4 text-body whitespace-pre-line;
   }
   .case-journal {
-    @apply m-0 grid list-none gap-1 p-0 text-sm text-ink-soft;
+    @apply m-0 grid list-none gap-1 p-0 text-label text-ink;
   }
 }
 
 /* Lot 20 (L20-PRE-17) — fenêtre de confirmation (dialog natif, modal). */
 @layer components {
   .confirm-dialog {
-    @apply m-auto w-[min(28rem,calc(100vw-2rem))] rounded-[16px] border border-lin bg-card p-6 text-ink shadow-[0_12px_40px_rgba(43,38,35,0.18)];
+    @apply m-auto w-[min(28rem,calc(100vw-2rem))] rounded-lg border border-line bg-surface p-6 text-ink shadow-float;
   }
   .confirm-dialog::backdrop {
-    background: rgb(43 38 35 / 0.35);
+    background: color-mix(in srgb, var(--color-ink) 35%, transparent);
   }
   .confirm-dialog > h2 {
-    @apply m-0 mb-2 text-xl;
+    @apply m-0 mb-2 text-title;
   }
   .confirm-dialog > p {
-    @apply m-0 mb-5;
+    @apply m-0 mb-6;
   }
   .confirm-dialog .confirm-dialog-actions {
     @apply m-0 flex w-full flex-wrap justify-end gap-2;
   }
   .confirm-dialog .confirm-dialog-actions button.confirm-dialog-confirm {
-    @apply min-h-11 border-terracotta-dark bg-terracotta-dark px-4 text-[15px] font-semibold text-white hover:border-terracotta-dark hover:bg-terracotta;
+    @apply min-h-11 border-critical bg-critical px-4 text-body font-semibold text-on-primary hover:border-critical hover:bg-critical;
   }
   .vendor-row-archive {
     @apply self-start;
@@ -2304,10 +2362,10 @@
 /* Lot 20 (décision 3) — filtre des longues listes de réglages. */
 @layer components {
   .list-filter {
-    @apply my-3 grid max-w-xl gap-1.5;
+    @apply my-3 grid max-w-xl gap-2;
   }
   .list-filter > label {
-    @apply text-sm font-medium;
+    @apply text-label font-medium;
   }
   .list-filter > p {
     @apply m-0;
@@ -2332,7 +2390,7 @@
     @apply m-0 w-full max-w-none gap-2 border-0 bg-transparent p-0;
   }
   .tag-group > legend {
-    @apply mb-1 p-0 text-sm font-semibold text-ink-soft;
+    @apply mb-1 p-0 text-label font-semibold text-ink;
   }
   .tag-chips,
   .tag-tier {
@@ -2345,23 +2403,23 @@
   }
   /* Plus précis que label:has(> input[type="checkbox"]) (formulaires). */
   .tag-fieldset label.tag-chip {
-    @apply relative w-auto max-w-none flex-row gap-0 text-sm font-medium;
+    @apply relative w-auto max-w-none flex-row gap-0 text-label font-medium;
   }
   .tag-chip > input {
     @apply absolute h-px w-px opacity-0;
   }
   .tag-chip > span {
     /* Sans transition : une couleur à mi-chemin ferait échouer le contraste (comme au lot 17). */
-    @apply inline-flex min-h-10 cursor-pointer items-center rounded-full border border-lin-dark bg-[#f4f0ea] px-3.5 text-ink-soft transition-none hover:border-ink-soft;
+    @apply inline-flex min-h-10 cursor-pointer items-center rounded-full border border-line-strong bg-ground px-4 text-ink transition-none hover:border-ink;
   }
   .tag-chip > input:checked + span {
-    @apply border-sauge bg-sauge text-white;
+    @apply border-primary bg-primary text-on-primary;
   }
   .tag-chip > input:focus-visible + span {
-    @apply outline-2 outline-offset-2 outline-sauge;
+    @apply outline-2 outline-offset-2 outline-primary;
   }
   .tag-tier > .tag-chip > span {
-    @apply rounded-[10px];
+    @apply rounded-md;
   }
 
   /* Écran Étiquettes : ajout en tête, groupes, lignes compactes. */
@@ -2382,7 +2440,7 @@
     }
   }
   .tag-families {
-    @apply m-0 max-w-none flex-row flex-wrap gap-x-5 gap-y-2 p-4;
+    @apply m-0 max-w-none flex-row flex-wrap gap-x-6 gap-y-2 p-4;
   }
   .tag-families > p {
     @apply m-0 w-full;
@@ -2391,13 +2449,13 @@
     @apply grid gap-4;
   }
   .tag-section > h3 {
-    @apply m-0 mb-1 flex items-center gap-2 text-base;
+    @apply m-0 mb-1 flex items-center gap-2 text-body;
   }
   .tag-lines {
     @apply m-0 flex list-none flex-col p-0;
   }
   .tag-lines > li {
-    @apply grid min-h-11 items-center gap-x-3 gap-y-1 border-b border-lin-soft py-1.5;
+    @apply grid min-h-11 items-center gap-x-3 gap-y-1 border-b border-ground py-2;
     grid-template-columns: minmax(0, 1fr);
   }
   .tag-lines .row-actions {
@@ -2407,7 +2465,7 @@
     @apply h-4 w-4;
   }
   .tag-lines > li[aria-current="true"] {
-    @apply rounded-lg bg-sauge-tint px-2;
+    @apply rounded-md bg-primary-soft px-2;
   }
   @media (min-width: 768px) {
     .tag-lines > li {
@@ -2416,17 +2474,17 @@
   }
   /* Lot 21 (L21-PRE-18, L21-PRE-19) : bandeau de rangement en tête de l'écran. */
   .tag-setup {
-    @apply grid max-w-3xl gap-3 border-sauge bg-sauge-tint;
+    @apply grid max-w-3xl gap-3 border-primary bg-primary-soft;
   }
   .tag-setup h2,
   .tag-setup p {
     @apply m-0;
   }
   .tag-recap {
-    @apply grid gap-1.5 rounded-xl border border-lin bg-card p-3.5 text-[15px];
+    @apply grid gap-2 rounded-md border border-line bg-surface p-4 text-body;
   }
   .tag-recap ul {
-    @apply m-0 grid gap-1 pl-5;
+    @apply m-0 grid gap-1 pl-6;
   }
 }
 
@@ -2439,19 +2497,19 @@
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
   }
   .pay-card {
-    @apply grid grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border border-lin bg-card p-3.5;
+    @apply grid grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-3 rounded-lg border border-line bg-surface p-4;
   }
   .pay-card[data-accepted="false"] {
-    @apply bg-ivory;
+    @apply bg-ground;
   }
   .pay-icon {
-    @apply grid h-10 w-10 place-items-center rounded-[11px] bg-sauge-tint text-sauge-ink;
+    @apply grid h-10 w-10 place-items-center rounded-md bg-primary-soft text-primary;
   }
   .pay-icon svg {
     @apply h-[22px] w-[22px];
   }
   .pay-card[data-accepted="false"] .pay-icon {
-    @apply bg-lin text-ink-soft;
+    @apply bg-line text-ink;
   }
   .pay-text {
     @apply flex min-w-0 flex-col;
@@ -2460,7 +2518,7 @@
     @apply font-semibold text-ink;
   }
   .pay-state {
-    @apply text-[13px] text-ink-soft;
+    @apply text-label text-ink;
   }
   .pay-card form {
     @apply m-0;
@@ -2470,23 +2528,23 @@
      survol). */
   .pay-card form button.switch[type="submit"],
   .pay-card form button.switch[type="submit"]:hover {
-    @apply relative h-[26px] min-h-0 w-11 shrink-0 cursor-pointer rounded-full border-0 bg-[#8f857b] p-0 transition-none;
+    @apply relative h-[26px] min-h-0 w-11 shrink-0 cursor-pointer rounded-full border-0 bg-line-strong p-0 transition-none;
   }
   .pay-card form button.switch[type="submit"]::after {
-    @apply absolute top-[3px] left-[3px] h-5 w-5 rounded-full bg-white shadow content-[''];
+    @apply absolute top-[3px] left-[3px] h-5 w-5 rounded-full bg-surface content-[''];
   }
   .pay-card form button.switch[type="submit"][aria-checked="true"],
   .pay-card form button.switch[type="submit"][aria-checked="true"]:hover {
-    @apply bg-sauge;
+    @apply bg-primary;
   }
   .pay-card form button.switch[type="submit"][aria-checked="true"]::after {
     @apply left-[21px];
   }
   .pay-card form button.switch[type="submit"]:focus-visible {
-    @apply outline-2 outline-offset-2 outline-sauge;
+    @apply outline-2 outline-offset-2 outline-primary;
   }
   .pay-add {
-    @apply mt-3 flex flex-wrap items-end gap-2 rounded-2xl border border-dashed border-lin-dark p-3.5;
+    @apply mt-3 flex flex-wrap items-end gap-2 rounded-lg border border-dashed border-line-strong p-4;
   }
   .pay-add input {
     @apply min-w-0 flex-[1_1_220px];
@@ -2499,19 +2557,19 @@
    chaque ligne devient une carte, actions en bas à droite. */
 @layer components {
   .back-link {
-    @apply inline-flex items-center gap-1.5 self-start text-sm text-sauge no-underline hover:underline;
+    @apply inline-flex items-center gap-2 self-start text-label text-primary no-underline hover:underline;
   }
   .back-link svg {
     @apply h-4 w-4;
   }
   .template-list {
-    @apply m-0 grid list-none overflow-hidden rounded-2xl border border-lin bg-card p-0;
+    @apply m-0 grid list-none overflow-hidden rounded-lg border border-line bg-surface p-0;
   }
   .template-list > li + li {
-    @apply border-t border-lin-soft;
+    @apply border-t border-ground;
   }
   .template-row {
-    @apply grid grid-cols-[minmax(0,1fr)_24px] items-center gap-x-3 gap-y-0.5 px-4 py-3.5 text-ink no-underline hover:bg-ivory sm:grid-cols-[minmax(0,1fr)_120px_170px_24px];
+    @apply grid grid-cols-[minmax(0,1fr)_24px] items-center gap-x-3 gap-y-1 px-4 py-4 text-ink no-underline hover:bg-ground sm:grid-cols-[minmax(0,1fr)_120px_170px_24px];
   }
   .template-row .meta {
     @apply col-start-1 sm:col-start-auto;
@@ -2520,7 +2578,7 @@
     @apply font-semibold;
   }
   .template-chevron {
-    @apply col-start-2 row-span-3 row-start-1 h-[18px] w-[18px] text-muted sm:col-start-auto sm:row-span-1;
+    @apply col-start-2 row-span-3 row-start-1 h-[18px] w-[18px] text-ink-muted sm:col-start-auto sm:row-span-1;
   }
   .template-lines {
     @apply w-full table-fixed;
@@ -2535,13 +2593,13 @@
     @apply w-[22%];
   }
   .template-lines td.template-place {
-    @apply text-ink-soft;
+    @apply text-ink;
   }
   .template-lines .template-who {
     @apply w-[26%];
   }
   .template-lines td.template-who {
-    @apply text-sm text-ink-soft;
+    @apply text-label text-ink;
   }
   .template-tasks .template-who {
     @apply w-[150px];
@@ -2557,7 +2615,7 @@
     @apply h-[17px] w-[17px];
   }
   .template-lines tr[aria-current="true"] td {
-    @apply bg-sauge-tint;
+    @apply bg-primary-soft;
   }
   @media (width < 640px) {
     .template-lines,
@@ -2571,7 +2629,7 @@
       @apply sr-only;
     }
     .template-lines tr {
-      @apply mb-2.5 grid grid-cols-[minmax(0,1fr)_auto] gap-x-2 gap-y-0.5 rounded-xl border border-lin px-3 py-2.5;
+      @apply mb-3 grid grid-cols-[minmax(0,1fr)_auto] gap-x-2 gap-y-1 rounded-md border border-line px-3 py-3;
     }
     .template-lines td {
       @apply col-start-1 border-0 p-0;
@@ -2587,6 +2645,20 @@
     }
   }
   .template-delete {
-    @apply self-start text-terracotta-dark;
+    @apply self-start text-critical;
+  }
+}
+
+/* Lot 25b (DESIGN.md, « Components ») — chiffre clé et titre de héros, pour les écrans des
+   lots 26 à 32. Un chiffre clé est toujours accompagné de son libellé. */
+@layer components {
+  .key-figure {
+    @apply font-display text-figure text-ink tabular-nums;
+  }
+  .key-figure-label {
+    @apply text-label text-ink-muted;
+  }
+  .hero-title {
+    @apply font-display text-display text-ink;
   }
 }

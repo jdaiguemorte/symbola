@@ -10,7 +10,9 @@ import { importStepContext, wantsAbandon } from "../../step-context";
 import { typeTargetValue } from "../../type-target";
 import { saveTypesAction } from "./actions";
 
-const UNCLASSIFIED_COLOR = "#78716c";
+// Jeton ink-muted de DESIGN.md : la couleur d'une famille passe par l'attribut SVG fill,
+// qui ne lit pas les variables CSS.
+const UNCLASSIFIED_COLOR = "#5A6372";
 
 // Liste « devient » d'un libellé : aucun type, un type du carnet ou un type de
 // départ (par famille), ou un type créé sous le libellé du fichier.

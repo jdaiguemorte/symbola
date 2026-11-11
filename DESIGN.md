@@ -6,11 +6,13 @@ colors:
   primary: "#0F6E5C"
   on-primary: "#FFFFFF"
   primary-soft: "#E3F1EE"
+  primary-strong: "#0B5A4B"
   ground: "#F6F7F9"
   surface: "#FFFFFF"
   ink: "#14181F"
   ink-muted: "#5A6372"
   line: "#DDE1E7"
+  line-strong: "#838C99"
   attention: "#9A5B00"
   attention-soft: "#FBF0DC"
   critical: "#B3261E"
@@ -78,6 +80,8 @@ spacing:
   xl: 24px
   2xl: 32px
   3xl: 48px
+elevation:
+  float: "0 8px 24px rgba(20, 24, 31, 0.12)"
 components:
   page:
     backgroundColor: "{colors.ground}"
@@ -98,10 +102,22 @@ components:
   button-secondary:
     backgroundColor: "{colors.surface}"
     textColor: "{colors.ink}"
+    borderColor: "{colors.line-strong}"
     typography: "{typography.body-strong}"
     rounded: "{rounded.md}"
     height: 44px
     padding: "{spacing.lg}"
+  field:
+    backgroundColor: "{colors.surface}"
+    textColor: "{colors.ink}"
+    borderColor: "{colors.line-strong}"
+    typography: "{typography.body}"
+    rounded: "{rounded.sm}"
+    height: 44px
+  floating-panel:
+    backgroundColor: "{colors.surface}"
+    shadow: "{elevation.float}"
+    rounded: "{rounded.lg}"
   nav-item-active:
     backgroundColor: "{colors.primary-soft}"
     textColor: "{colors.primary}"
@@ -164,9 +180,9 @@ Le ton est celui d'un bon assistant : il dit ce qui presse, il ne décore pas. U
 
 ## Colors
 
-- **Émeraude (`primary`, #0F6E5C)** : la seule couleur d'action. Boutons principaux, liens, élément actif, avancement. Sa version claire (`primary-soft`) sert de fond aux éléments actifs et aux confirmations.
+- **Émeraude (`primary`, #0F6E5C)** : la seule couleur d'action. Boutons principaux, liens, élément actif, avancement. Sa version claire (`primary-soft`) sert de fond aux éléments actifs et aux confirmations. Sa version foncée (`primary-strong`) marque le survol et l'appui.
 - **Encre (`ink`, #14181F)** : texte et titres. `ink-muted` pour les informations secondaires. Les deux passent le contraste de 4,5:1 sur `surface` et `ground`.
-- **Fond (`ground`, #F6F7F9) et surface (`surface`, #FFFFFF)** : le fond de page est gris très clair, les cartes sont blanches. `line` trace les bords et les séparateurs.
+- **Fond (`ground`, #F6F7F9) et surface (`surface`, #FFFFFF)** : le fond de page est gris très clair, les cartes sont blanches. `line` trace les bords des cartes et les séparateurs. `line-strong` trace le bord des champs et des boutons secondaires : 3:1 au moins sur `surface` et `ground`, comme l'exige WCAG 2.2 AA pour un composant.
 - **Ambre (`attention`, #9A5B00)** : ce qui attend quelqu'un. Décision du client en attente, échéance proche.
 - **Rouge (`critical`, #B3261E)** : ce qui est en retard ou bloqué. Jamais pour décorer.
 - **Nuit (`night`, #0E1217)** : le mode Jour J. Fond sombre, texte `night-ink`, accent `night-accent` pour l'action en cours. Contraste de 7:1 au moins sur l'écran principal.
@@ -197,7 +213,7 @@ Sur téléphone : une colonne, marges de 16 px, action principale ancrée en bas
 
 ## Elevation & Depth
 
-Pas d'ombre portée décorative. La profondeur vient du contraste entre `ground` et `surface` et d'un bord `line` de 1 px. Seuls les panneaux latéraux et les menus flottants portent une ombre légère, pour dire qu'ils sont au-dessus.
+Pas d'ombre portée décorative. La profondeur vient du contraste entre `ground` et `surface` et d'un bord `line` de 1 px. Seuls les panneaux latéraux et les menus flottants portent une ombre légère (`elevation.float`), pour dire qu'ils sont au-dessus.
 
 ## Shapes
 
@@ -206,7 +222,9 @@ Coins arrondis sobres : `sm` pour les champs et les pastilles carrées, `md` pou
 ## Components
 
 - **Bouton principal** (`button-primary`) : un seul par écran. Il nomme l'action : « Envoyer le devis », pas « Valider ».
-- **Bouton secondaire** (`button-secondary`) : fond blanc, bord `line`.
+- **Bouton secondaire** (`button-secondary`) : fond blanc, bord `line-strong`.
+- **Champ** (`field`) : fond blanc, bord `line-strong`, coins `sm`, 44 px de haut, libellé au-dessus.
+- **Panneau flottant** (`floating-panel`) : panneau latéral ou menu, seule surface qui porte une ombre (`elevation.float`).
 - **Carte** (`card`) : fond blanc, bord de 1 px en `line` (`divider`), coins `lg`, marge intérieure `xl`.
 - **Statut** (`status-pending`, `status-late`) : pastille à libellé. Ambre pour « en attente d'un tiers », rouge pour « en retard ». Les statuts neutres utilisent `ground` et `ink-muted`.
 - **Entrée de navigation active** (`nav-item-active`) : fond `primary-soft`, texte `primary`.

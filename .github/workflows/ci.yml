@@ -178,7 +178,15 @@ jobs:
       - name: Démarrer ClamAV
         run: docker run -d --name clamav --network host clamav/clamav:1.4
       - name: Installer Chromium pour Playwright
-        run: pnpm --filter @symbola/app exec playwright install --with-deps chromium
+        # --with-deps ajoute surtout des polices système par apt. Si les miroirs Ubuntu ne les
+        # servent pas (11/11/2026 : paquets amd64v3 refusés), Chromium s'installe seul : l'image
+        # du runner fournit déjà ses bibliothèques. Un Chromium qui ne démarre pas fait échouer
+        # les parcours eux-mêmes, avec un message clair.
+        run: |
+          pnpm --filter @symbola/app exec playwright install --with-deps chromium || {
+            echo "::warning::Dépendances système de Playwright indisponibles (miroirs Ubuntu) : Chromium installé sans elles."
+            pnpm --filter @symbola/app exec playwright install chromium
+          }
       - name: Construire l'app (next build)
         run: pnpm --filter @symbola/app build
       - name: Attendre que Garage et ClamAV soient prêts

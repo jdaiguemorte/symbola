@@ -56,7 +56,7 @@ function Logo() {
         cy="28"
         r="26"
         fill="none"
-        stroke="#4F6B5A"
+        className="stroke-primary"
         strokeWidth="3"
       />
       <circle
@@ -64,7 +64,7 @@ function Logo() {
         cy="28"
         r="11"
         fill="none"
-        stroke="#A8553A"
+        className="stroke-ink"
         strokeWidth="3"
       />
       <circle
@@ -72,7 +72,7 @@ function Logo() {
         cy="28"
         r="11"
         fill="none"
-        stroke="#4F6B5A"
+        className="stroke-primary"
         strokeWidth="3"
       />
     </svg>
@@ -89,7 +89,7 @@ function Brand({ href, suffix }: { href: string; suffix?: string }) {
   );
 }
 
-const iconProps = { size: 18, "aria-hidden": true as const, strokeWidth: 1.75 };
+const iconProps = { size: 20, "aria-hidden": true as const, strokeWidth: 1.5 };
 
 export async function AppShell({ children }: { children: ReactNode }) {
   const auth = await getAuthContext();
@@ -537,7 +537,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
                       <ListChecks {...iconProps} />
                       {t("tasks")}
                       {overdue > 0 ? (
-                        <span className="nav-count">
+                        <span className="nav-count nav-count-alert">
                           {t("tasksOverdue", { count: overdue })}
                         </span>
                       ) : null}
