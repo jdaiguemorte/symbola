@@ -537,7 +537,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
                       <ListChecks {...iconProps} />
                       {t("tasks")}
                       {overdue > 0 ? (
-                        <span className="nav-count">
+                        <span className="nav-count nav-count-alert">
                           {t("tasksOverdue", { count: overdue })}
                         </span>
                       ) : null}

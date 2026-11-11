@@ -152,6 +152,8 @@ describe("UX-14 — Contrastes des jetons (WCAG 2.2 AA)", () => {
     ["primary", "primary-soft"],
     ["on-primary", "primary"],
     ["on-primary", "primary-strong"],
+    ["on-primary", "attention"],
+    ["on-primary", "critical"],
     ["attention", "attention-soft"],
     ["critical", "critical-soft"],
     ["critical", "surface"],

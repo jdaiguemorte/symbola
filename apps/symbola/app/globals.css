@@ -724,7 +724,7 @@
     @apply block w-full truncate px-1 text-label font-medium;
   }
   .agenda-badge {
-    @apply inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-critical px-1 text-label font-semibold text-on-primary;
+    @apply inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-attention px-1 text-label font-semibold text-on-primary;
   }
   .agenda-day .agenda-badge {
     @apply absolute -top-1.5 -right-1.5;
@@ -1050,7 +1050,7 @@
     @apply flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-ground text-label font-semibold text-ink-muted;
   }
   .tutorial-steps li[data-state="current"] .tutorial-step-mark {
-    @apply bg-critical text-on-primary;
+    @apply bg-primary text-on-primary;
   }
   .tutorial-steps li[data-state="done"] .tutorial-step-mark {
     @apply bg-primary text-on-primary;
@@ -1083,7 +1083,7 @@
     @apply m-0 text-heading;
   }
   .tutorial-invite-kicker {
-    @apply m-0 text-label font-semibold text-critical;
+    @apply m-0 text-label font-semibold text-primary;
   }
   .tutorial-invite-actions {
     @apply flex flex-wrap items-center gap-2;
@@ -1507,7 +1507,7 @@
 /* Lot 13 (L13-HUB-16) — actions discrètes et listes courtes en pastilles. */
 @layer components {
   .button-ghost {
-    @apply inline-flex !min-h-11 items-center rounded-md border-0 !bg-transparent px-3 text-body font-medium !text-critical hover:underline;
+    @apply inline-flex !min-h-11 items-center rounded-md border-0 !bg-transparent px-3 text-body font-medium !text-primary hover:underline;
   }
   .chip-list {
     @apply my-3 flex list-none flex-wrap gap-2 p-0;
@@ -1626,8 +1626,8 @@
     @apply border-primary bg-primary-soft;
   }
   .tutorial-tile-current {
-    @apply border-2 border-critical;
-    box-shadow: 0 0 0 4px var(--color-critical-soft);
+    @apply border-2 border-primary;
+    box-shadow: 0 0 0 4px var(--color-primary-soft);
   }
   .tutorial-tile-next {
     @apply border-dashed border-primary;
@@ -1660,8 +1660,8 @@
     @apply ml-auto flex-none;
   }
   .landmark-marker {
-    @apply fixed z-[55] inline-flex !h-7 !min-h-0 !w-7 !min-w-0 items-center justify-center rounded-full border-0 !bg-critical !p-0 text-label font-semibold !text-on-primary;
-    box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-critical) 25%, transparent);
+    @apply fixed z-[55] inline-flex !h-7 !min-h-0 !w-7 !min-w-0 items-center justify-center rounded-full border-0 !bg-primary !p-0 text-label font-semibold !text-on-primary;
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary) 25%, transparent);
   }
   .landmark-marker[aria-pressed="true"] {
     @apply !bg-primary-strong;
@@ -1730,7 +1730,7 @@
     @apply !bg-primary-soft font-semibold;
   }
   .landmark-number {
-    @apply inline-flex h-5 w-5 flex-none items-center justify-center rounded-full bg-critical text-label font-semibold text-on-primary;
+    @apply inline-flex h-5 w-5 flex-none items-center justify-center rounded-full bg-primary text-label font-semibold text-on-primary;
   }
   .landmark-detail {
     @apply rounded-md bg-ground p-3;
@@ -2240,7 +2240,7 @@
     @apply grid grid-cols-[1fr_210px] items-start gap-3.5;
   }
   .doc-pay {
-    @apply grid gap-0.5 rounded-md border border-[#e6ded3] px-[11px] py-[9px];
+    @apply grid gap-0.5 rounded-[6px] border border-[#e6ded3] px-[11px] py-[9px];
   }
   .doc-pay-row {
     @apply flex justify-between gap-2;
