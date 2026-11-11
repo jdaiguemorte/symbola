@@ -125,7 +125,8 @@ fi
 
 if [ -n "${BACKUP_PUSH_URL:-}" ]; then
   # Uptime Kuma peut redémarrer à l'instant (sauvegarde de son volume) : on réessaie.
-  curl -fsS --retry 10 --retry-delay 15 --retry-all-errors -o /dev/null "$BACKUP_PUSH_URL?status=up&msg=OK"
+  # Lot 25 : seule la partie avant un « ? » de l'URL collée sert ; le script ajoute la sienne.
+  curl -fsS --retry 10 --retry-delay 15 --retry-all-errors -o /dev/null "${BACKUP_PUSH_URL%%\?*}?status=up&msg=OK"
 fi
 
 log "$ENVIRONMENT_NAME : sauvegarde terminée en ${SECONDS} s"

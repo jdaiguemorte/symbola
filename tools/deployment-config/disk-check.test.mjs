@@ -120,6 +120,17 @@ describe("NFR-14 — Alerte sur l'espace disque du VPS (lot 22)", () => {
     expect(calls).toEqual([]);
   });
 
+  it("étant donné l'URL collée entre guillemets telle que Kuma l'affiche (« ?status=up&msg=OK&ping= »), une alerte part bien « down » (lot 25)", () => {
+    // Sans guillemets, Bash couperait la ligne au premier « & » : l'URL serait vide, le script
+    // s'arrêterait et la sonde muette alerterait. Avec guillemets, la partie « ?… » est ignorée.
+    writeConfig('DISK_PUSH_URL="http://127.0.0.1:3001/api/push/disque?status=up&msg=OK&ping="');
+    const { status, calls } = run({ FAKE_DF: "/=93" });
+    expect(status).toBe(0);
+    expect(calls[0]).toContain("status=down");
+    expect(calls[0]).not.toContain("status=up");
+    expect(calls[0]).toMatch(/ http:\/\/127\.0\.0\.1:3001\/api\/push\/disque$/);
+  });
+
   it("le message ne contient que le chemin et les pourcentages", () => {
     const { calls } = run({ FAKE_DF: "/=42" });
     expect(calls[0]).toMatch(/msg=Disque \/ à 42 % \(seuil 80 %\)/);

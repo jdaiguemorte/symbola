@@ -8,6 +8,17 @@ VPS Contabo, en staging et en production.
 DNS ni aux secrets — Julien exécute chaque commande marquée « sur le
 VPS » ou « sur ton poste ».
 
+**Fenêtre de déploiement** (NFR-07, ADR 0058) : aucun déploiement en
+production du vendredi 12 h au lundi 8 h, heure de Paris, sauf correctif
+urgent, motivé et noté avec sa raison dans le journal d'exploitation. Le
+staging n'est pas concerné.
+
+**Accès au VPS** : `ssh symbola` (connexion root par SSH refusée,
+SOC-12), puis `sudo -i` pour les commandes root. Le dépôt `/opt/symbola`
+appartient à `julien` : `sudo git pull` se lance **depuis ta session
+`julien`**, jamais depuis un shell `sudo -i`, où Git refuse le dépôt
+(« dubious ownership ») ; n'ajoute pas l'exception que Git propose.
+
 ## Vue d'ensemble
 
 - Un seul VPS héberge **staging** et **production**, strictement isolés
@@ -158,7 +169,7 @@ Tant que ces étapes ne sont pas faites, la signature en ligne s'affiche
 « indisponible » (sans erreur) et Documenso ne démarre pas (profil compose
 `signature` désactivé). L'essai guidé fonctionne déjà : il utilise le faux
 fournisseur. **Actions de Julien sur le VPS**, staging d'abord, depuis
-`/opt/symbola` à jour (`sudo git pull`), avec la nouvelle image de l'app.
+`/opt/symbola` à jour (`sudo git pull`, depuis la session `julien`), avec la nouvelle image de l'app.
 `$ENV` vaut `staging` (puis `production`) :
 
 ```bash
@@ -302,7 +313,7 @@ sans cette clé, l'app refuse de démarrer.
    `node:22-slim` branché sur le réseau Docker de l'environnement (comme
    « Premiers comptes »), depuis le dépôt à jour :
    ```bash
-   cd /opt/symbola && sudo git pull
+   cd /opt/symbola && sudo git pull   # depuis la session julien, pas depuis sudo -i
    sudo docker run --rm --network symbola-staging_default -v "$PWD":/app -w /app \
      --env-file infra/compose/.env.staging -e POSTGRES_HOST=postgres -e POSTGRES_PORT=5432 \
      node:22-slim sh -c "corepack enable && pnpm install --frozen-lockfile && \

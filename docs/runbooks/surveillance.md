@@ -73,6 +73,12 @@ puis `http://localhost:3001` dans le navigateur.
    intervalle 26 h. Le script de sauvegarde appelle l'URL Push en fin de
    sauvegarde réussie : une nuit sans sauvegarde déclenche une alerte.
    Mise en place : `docs/runbooks/restauration.md`, § 6.
+
+   **URL Push** (vaut pour chaque sonde *Push*) : Kuma l'affiche sous la forme
+   `http://localhost:3001/api/push/<jeton>?status=up&msg=OK&ping=`. Ne garder que la partie
+   avant le `?`, avec `127.0.0.1:3001` (Kuma vu depuis le VPS) :
+   `http://127.0.0.1:3001/api/push/<jeton>`. Les scripts ajoutent eux-mêmes `status` et `msg`,
+   et ignorent une partie `?…` restée par erreur (lot 25). Le jeton est un secret.
 5. **Alertes sur le téléphone avec ntfy** (lot 22, NFR-14, décision de Julien du 11/11/2026) :
    1. Installer l'application **ntfy** sur le téléphone (iOS ou Android). Aucun compte n'est
       nécessaire.
@@ -96,7 +102,7 @@ puis `http://localhost:3001` dans le navigateur.
    install -d -m 700 /etc/symbola/monitoring
    install -m 600 /dev/null /etc/symbola/monitoring/disk.env
    nano /etc/symbola/monitoring/disk.env
-   #   DISK_PUSH_URL=<URL push de la sonde « Disque du VPS »>   (secret)
+   #   DISK_PUSH_URL=http://127.0.0.1:3001/api/push/<jeton>   (secret, sans « ?… »)
    #   DISK_THRESHOLD_PERCENT=80
    #   DISK_PATHS="/"
    cp /opt/symbola/infra/monitoring/systemd/symbola-disk-check.service \

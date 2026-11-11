@@ -6,7 +6,7 @@
 # Usage (sur le VPS, root, lancé par le timer systemd symbola-disk-check) :
 #   infra/monitoring/disk-check.sh
 # Configuration : /etc/symbola/monitoring/disk.env (root:root, 0600, jamais dans le dépôt) :
-#   DISK_PUSH_URL=<URL push de la sonde « Disque du VPS »>   (secret)
+#   DISK_PUSH_URL=<URL push de la sonde « Disque du VPS », sans « ?… »>   (secret)
 #   DISK_THRESHOLD_PERCENT=80                               (facultatif, 80 par défaut)
 #   DISK_PATHS="/"                                          (facultatif, chemins surveillés)
 # Le message ne contient que le chemin et des pourcentages : aucune donnée personnelle.
@@ -23,6 +23,9 @@ config="${MONITORING_CONFIG_DIR:-/etc/symbola/monitoring}/disk.env"
 . "$config"
 
 [ -n "${DISK_PUSH_URL:-}" ] || die "DISK_PUSH_URL manquant dans $config"
+# Lot 25 : seule la partie avant un « ? » sert. Une URL collée telle que Kuma l'affiche
+# (« …?status=up&msg=OK&ping= ») ferait sinon arriver une alerte comme « up ».
+push_url=${DISK_PUSH_URL%%\?*}
 threshold=${DISK_THRESHOLD_PERCENT:-80}
 if ! [[ $threshold =~ ^[0-9]+$ ]] || [ "$threshold" -lt 1 ] || [ "$threshold" -gt 100 ]; then
   die "DISK_THRESHOLD_PERCENT invalide dans $config : $threshold (entier de 1 à 100 attendu)"
@@ -43,5 +46,5 @@ status=up
 [ "$worst" -lt "$threshold" ] || status=down
 message="Disque $worst_path à $worst % (seuil $threshold %)"
 curl -fsS --retry 3 --retry-delay 10 -o /dev/null -G \
-  --data-urlencode "status=$status" --data-urlencode "msg=$message" "$DISK_PUSH_URL"
+  --data-urlencode "status=$status" --data-urlencode "msg=$message" "$push_url"
 echo "$message : $status"
