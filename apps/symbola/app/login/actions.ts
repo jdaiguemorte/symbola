@@ -5,7 +5,7 @@ import { getTranslations } from "next-intl/server";
 import { login } from "@symbola/auth";
 import { appDatabase } from "@symbola/db/client";
 import { getTrustedDeviceToken, setSessionCookie } from "@/lib/auth-context";
-import { checkRateLimit, rateLimitMessage } from "@/lib/rate-limit";
+import { checkRateLimit, rateLimitMessage, requestClientIp } from "@/lib/rate-limit";
 
 export type LoginFormState = { error?: string };
 
@@ -23,7 +23,7 @@ export async function loginAction(
   // L16-SEC-03 : un appareil de confiance de ce compte dispense du code.
   const trustedDeviceToken = await getTrustedDeviceToken();
   const db = appDatabase();
-  const result = await login(db, email, password, { trustedDeviceToken });
+  const result = await login(db, email, password, { trustedDeviceToken, clientIp: await requestClientIp() });
 
   if (result.outcome === "invalid_credentials") {
     const t = await getTranslations("Login");

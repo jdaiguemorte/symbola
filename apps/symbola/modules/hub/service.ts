@@ -2,6 +2,7 @@
 // suite (PRD PRD-HUB-03). Seul fichier que les autres modules peuvent
 // importer ; jamais repository.ts directement.
 import { createHash, randomBytes } from "node:crypto";
+import { recordAudit } from "@symbola/db/audit";
 import type { AppDatabase } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { detectFileType, uploadFile } from "@symbola/files";
@@ -17,7 +18,6 @@ import {
   findHelpProgress,
   insertDefaultPlatformSettings,
   findUserContact,
-  insertAuditLog,
   insertInvitation,
   insertOrganization,
   upsertHelpProgress,
@@ -249,10 +249,11 @@ export async function createOrganizationWithInvitation(db: AppDatabase, input: C
     expiresAt: new Date(Date.now() + INVITATION_DURATION_MS),
   });
 
-  await insertAuditLog(db, {
-    adminUserId: input.adminUserId,
+  await recordAudit(db, {
+    organizationId: organization.id,
     action: "hub.organization.created",
-    targetOrganizationId: organization.id,
+    objectId: organization.id,
+    actor: { kind: "admin", id: input.adminUserId },
   });
 
   const env = parseEnv(process.env);
@@ -292,13 +293,20 @@ export async function acceptInvitation(
     return { outcome: "already_accepted" };
   }
 
-  await createUser(db, {
+  const owner = await createUser(db, {
     organizationId: invitation.organizationId,
     email: invitation.email,
     password: input.password,
     role: "owner",
   });
   await markInvitationAccepted(db, invitation.id);
+  // Lot 23 (SEC-19) : le compte de la titulaire est créé.
+  await recordAudit(db, {
+    organizationId: invitation.organizationId,
+    action: "hub.invitation.accepted",
+    objectId: owner.id,
+    actor: { kind: "member", id: owner.id },
+  });
 
   return { outcome: "success", organizationId: invitation.organizationId };
 }
@@ -319,10 +327,12 @@ export async function setModuleEnabled(
   input: { adminUserId: string; organizationId: string; moduleKey: ModuleKey; enabled: boolean },
 ): Promise<void> {
   await upsertOrganizationModule(db, input);
-  await insertAuditLog(db, {
-    adminUserId: input.adminUserId,
+  await recordAudit(db, {
+    organizationId: input.organizationId,
     action: input.enabled ? "hub.module.enabled" : "hub.module.disabled",
-    targetOrganizationId: input.organizationId,
+    objectId: input.organizationId,
+    details: { module: input.moduleKey },
+    actor: { kind: "admin", id: input.adminUserId },
   });
 }
 
@@ -630,6 +640,8 @@ export type PlatformSettings = {
   importMaxSheets: number;
   // Lot 6 (RGPD-02) : durée de téléchargement d'un export RGPD.
   privacyExportRetentionDays: number;
+  // Lot 23 (décision D5) : durée de conservation des adresses IP des connexions.
+  connectionTraceRetentionMonths: number;
 };
 
 // ONB-02 — « Le seuil de chiffre d'affaires de la franchise est un
@@ -653,6 +665,7 @@ export async function getPlatformSettings(db: AppDatabase): Promise<PlatformSett
     importUndoRetentionDays: row.importUndoRetentionDays,
     importMaxSheets: row.importMaxSheets,
     privacyExportRetentionDays: row.privacyExportRetentionDays,
+    connectionTraceRetentionMonths: row.connectionTraceRetentionMonths,
   };
 }
 
@@ -673,10 +686,10 @@ export async function setPlatformSettings(
     ...(input.importMaxSheets !== undefined ? { importMaxSheets: input.importMaxSheets } : {}),
     ...(input.privacyExportRetentionDays !== undefined ? { privacyExportRetentionDays: input.privacyExportRetentionDays } : {}),
   });
-  await insertAuditLog(db, {
-    adminUserId: input.adminUserId,
+  await recordAudit(db, {
+    organizationId: null,
     action: "hub.platform_settings.updated",
-    targetOrganizationId: null,
+    actor: { kind: "admin", id: input.adminUserId },
   });
 }
 
@@ -760,3 +773,14 @@ export async function getUserContact(
   const row = await findUserContact(db, organizationId, userId);
   return row ? { email: row.email, language: row.language === "en" ? "en" : "fr" } : null;
 }
+
+// Lot 23 (HUB-16, ADR 0060) : journal d'activité de l'organisation (titulaire).
+export {
+  ACTIVITY_PAGE_SIZE,
+  ACTIVITY_PERIODS,
+  listActivityLog,
+  parseActivityFilters,
+  type ActivityEntry,
+  type ActivityFilters,
+  type ActivityLog,
+} from "./activity-log";

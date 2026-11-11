@@ -5,7 +5,9 @@ import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { afterAll, describe, expect, it } from "vitest";
 import { createAppConnection } from "@symbola/db/client";
-import { auditLog, invitations } from "@symbola/db/schema/hub";
+import { auditEntries } from "@symbola/db/schema/core";
+import { invitations } from "@symbola/db/schema/hub";
+import { withOrganization } from "@symbola/db/with-organization";
 import { createUser, requireUser } from "@symbola/auth";
 import { acceptInvitation, createOrganizationWithInvitation } from "./service";
 
@@ -67,10 +69,11 @@ describe("PRD-HUB-03 — Création d'organisation et invitation du titulaire", (
     expect(messages).toHaveLength(1);
     expect(messages[0]?.Subject).toContain("invit");
 
-    const [logEntry] = await db.select().from(auditLog).where(eq(auditLog.targetOrganizationId, result.organizationId));
+    const [logEntry] = await withOrganization(db, result.organizationId, (tx) =>
+      tx.select().from(auditEntries).where(eq(auditEntries.organizationId, result.organizationId)),
+    );
     expect(logEntry).toBeTruthy();
-    expect(logEntry!.adminUserId).toBe(adminUserId);
-    expect(logEntry!.action).toBe("hub.organization.created");
+    expect(logEntry).toMatchObject({ actorKind: "admin", actorId: adminUserId, action: "hub.organization.created", objectId: result.organizationId });
   });
 
   it("l'acceptation de l'invitation crée le titulaire (rôle owner) et marque l'invitation utilisée", async () => {

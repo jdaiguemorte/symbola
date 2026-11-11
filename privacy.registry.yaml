@@ -610,3 +610,30 @@ fields:
       horaire), au titre de la sécurité du service.
     anonymization: >-
       Supprimée par la purge horaire ; rien à anonymiser au-delà.
+  - schema: core
+    table: audit_entries
+    field: actor_id
+    category: securite
+    retention: >-
+      Lot 23 (SEC-19, ARC-16, ADR 0060) : identifiant du compte auteur d'un geste
+      sensible (connexion, droits, export, partage, émission, encaissement,
+      suppression). Jamais de nom ni d'e-mail dans le journal. Journal en ajout
+      seul : gardé, durée à fixer avec le DPO (fiche, question 11) puis purgé au
+      lot 34 ; d'ici là, rien n'est purgé sauf les lignes d'un essai guidé.
+    anonymization: >-
+      Une fois le compte supprimé ou anonymisé, l'identifiant ne désigne plus
+      personne. L'export RGPD des lignes qui concernent une personne reste à
+      faire (bilan du lot 23).
+  - schema: hub
+    table: connection_traces
+    field: ip
+    category: securite
+    retention: >-
+      Lot 23 (SEC-19, décision D5, ADR 0060) : adresse IP d'une connexion, d'un
+      échec ou d'un verrouillage, à part du journal d'audit. Illisible par l'app
+      (droit d'écriture seul) ; lue seulement par un accès d'exploitation tracé
+      (SEC-09). Purgée chaque jour passé
+      platform_settings.connection_trace_retention_months (12 mois par défaut, à
+      confirmer par le DPO, fiche question 11).
+    anonymization: >-
+      Supprimée par la purge quotidienne ; rien à anonymiser au-delà.

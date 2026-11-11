@@ -1,6 +1,8 @@
 // DEV-04 — export e-reporting d'une période (CSV), hors données d'essai.
 // Contrôles côté serveur : session planner, organisation, module souscrit.
 import { getTranslations } from "next-intl/server";
+import { recordAudit } from "@symbola/db/audit";
+import { appDatabase } from "@symbola/db/client";
 import { getEReporting } from "@/modules/quotes/service";
 import { authorizedPlanner } from "../../planner-access";
 import { eReportingCsv } from "../csv";
@@ -18,6 +20,8 @@ export async function GET(request: Request): Promise<Response> {
     if (error instanceof RangeError) return new Response(null, { status: 400 });
     throw error;
   }
+  // Lot 23 (SEC-19) : export au journal.
+  await recordAudit(appDatabase(), { organizationId: planner.organizationId, action: "quotes.e_reporting.exported", details: { from: view.from, to: view.to } });
   const t = await getTranslations("Quotes");
   const csv = eReportingCsv(view, {
     header: [t("csvType"), t("csvDate"), t("csvNumber"), t("csvReference"), t("csvLabel"), t("csvHt"), t("csvVat"), t("csvTtc"), t("csvMethod")],

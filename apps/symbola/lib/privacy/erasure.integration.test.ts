@@ -9,6 +9,7 @@ import { afterAll, describe, expect, it } from "vitest";
 import { createOrganization, createUser } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
 import { eventClientAccesses, eventClients, events, eventVendorSlots, programItems } from "@symbola/db/schema/events";
+import { auditEntries } from "@symbola/db/schema/core";
 import { users } from "@symbola/db/schema/hub";
 import { invoices, quotes, quoteSigners, quoteVersions, signatureRequests } from "@symbola/db/schema/quotes";
 import { withOrganization } from "@symbola/db/with-organization";
@@ -272,3 +273,24 @@ describe("RGPD-03 — Isolation de l'oubli", { timeout: 30_000 }, () => {
     expect((await searchPerson({ organizationId: plannerA.organizationId, terms }))!.records.length).toBeGreaterThan(0);
   });
 });
+
+// Lot 23 (SEC-19, ADR 0060) : un effacement RGPD laisse une seule ligne de
+// synthèse au journal, pas une par fiche effacée (purge en masse).
+describe("SEC-19 — Effacement RGPD au journal d'audit", () => {
+  it("une ligne de synthèse, avec l'effacement et son statut ; aucune suppression ligne à ligne", async () => {
+    const planner = await createPlanner();
+    const lastName = `Petit${randomUUID().slice(0, 6)}`;
+    await seedWedding(planner, "Léa", lastName, false);
+    const request = await erasureRequest(planner, `Léa ${lastName}`);
+    const terms = { name: `Léa ${lastName}` };
+    const result = await executeErasure({ organizationId: planner.organizationId, userId: planner.userId, requestId: request.id, terms, selectedKeys: await everything(planner, terms) });
+    if (result.status !== "ok") throw new Error("effacement attendu");
+    const deletions = await withOrganization(db, planner.organizationId, (tx) =>
+      tx.select().from(auditEntries).where(eq(auditEntries.category, "suppression")),
+    );
+    expect(deletions.filter((entry) => entry.organizationId === planner.organizationId)).toMatchObject([
+      { action: "hub.privacy_erasure.executed", objectId: result.erasureId, details: { status: "completed" } },
+    ]);
+  });
+});
+

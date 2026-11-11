@@ -6,6 +6,7 @@
 // validation. Chaque module exécute sa part par son contrat privacy/v1, comme
 // pour l'oubli (RGPD-03). RGPD-09 (lot 19, ADR 0048) : la preuve d'une demande
 // close (nom de la personne) arrive aussi dans cette liste à son terme.
+import { recordAudit } from "@symbola/db/audit";
 import { appDatabase } from "@symbola/db/client";
 import { clientDueOn, isExpired, parisDate, prospectDueOn, type PrivacyRecord } from "@symbola/privacy";
 import { lastPaymentDates as quotesLastPaymentDates, listExpiredDocuments } from "@/modules/quotes/service";
@@ -152,6 +153,8 @@ export async function executePurge(
   if (items.length === 0) return { status: "ok", purgeId, purgeStatus: "completed" };
   const acks = await runModules(input.organizationId, items, { ...options, today });
   const purgeStatus = await recordPrivacyPurgeAcks(db, { organizationId: input.organizationId, purgeId, acks });
+  // Lot 23 (SEC-19) : une ligne de synthèse au journal (les fiches effacées n'y vont pas une à une).
+  await recordAudit(db, { organizationId: input.organizationId, action: "hub.privacy_purge.executed", objectId: purgeId, details: { status: purgeStatus, items: items.length } });
   return { status: "ok", purgeId, purgeStatus };
 }
 
@@ -165,5 +168,7 @@ export async function retryPurge(input: { organizationId: string; purgeId: strin
     purge.items.filter((item) => !ok.has(item.module)),
     { ...options, ...(input.today ? { today: input.today } : {}) },
   );
-  return await recordPrivacyPurgeAcks(db, { organizationId: input.organizationId, purgeId: input.purgeId, acks });
+  const purgeStatus = await recordPrivacyPurgeAcks(db, { organizationId: input.organizationId, purgeId: input.purgeId, acks });
+  await recordAudit(db, { organizationId: input.organizationId, action: "hub.privacy_purge.executed", objectId: input.purgeId, details: { status: purgeStatus, retry: true } });
+  return purgeStatus;
 }

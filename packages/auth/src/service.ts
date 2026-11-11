@@ -6,6 +6,7 @@ import { and, eq, gt, gte, isNotNull, isNull, like, lt, lte, not, or, sql, inArr
 import type { AppDatabase } from "@symbola/db/client";
 import { sendMail } from "@symbola/mail";
 import { organizations, sessions, trustedDevices, users } from "@symbola/db/schema/hub";
+import { connectionAccount, journalConnection } from "./connection-journal";
 import { hashPassword, verifyPassword } from "./password";
 import { isProfessionalRole, type Role } from "./roles";
 import { generateSessionToken, hashSessionToken } from "./session-token";
@@ -81,13 +82,19 @@ export type LoginOptions = {
   trustedDeviceToken?: string | undefined;
   // Horloge simulée (tests) pour l'échéance de l'appareil de confiance.
   now?: Date | undefined;
+  // Lot 23 (décision D5) : adresse IP de la requête, gardée à part du journal.
+  clientIp?: string | null | undefined;
 };
 
 export async function login(db: AppDatabase, email: string, password: string, options: LoginOptions = {}): Promise<LoginResult> {
   const [user] = await db.select().from(users).where(eq(users.email, email));
   if (!user) return { outcome: "invalid_credentials" };
 
+  // Lot 23 (SEC-19) : connexions, échecs et verrouillages au journal d'audit.
+  const account = { id: user.id, organizationId: user.organizationId, role: user.role };
+  const clientIp = options.clientIp;
   if (user.lockedUntil && user.lockedUntil.getTime() > Date.now()) {
+    await journalConnection(db, account, "hub.session.failed", { details: { reason: "locked" }, clientIp });
     return { outcome: "locked" };
   }
 
@@ -104,10 +111,12 @@ export async function login(db: AppDatabase, email: string, password: string, op
         subject: "Votre compte Symbola a été verrouillé",
         text: "Cinq mots de passe incorrects d'affilée ont été saisis sur votre compte. Il est verrouillé pendant 15 minutes par mesure de sécurité. Si ce n'était pas vous, pensez à changer votre mot de passe dès le déverrouillage.",
       });
+      await journalConnection(db, account, "hub.account.locked", { details: { reason: "password" }, clientIp });
       return { outcome: "locked" };
     }
 
     await db.update(users).set({ failedLoginAttempts: failedAttempts }).where(eq(users.id, user.id));
+    await journalConnection(db, account, "hub.session.failed", { details: { reason: "password" }, clientIp });
     return { outcome: "invalid_credentials" };
   }
 
@@ -130,6 +139,11 @@ export async function login(db: AppDatabase, email: string, password: string, op
     expiresAt: new Date(Date.now() + SESSION_DURATION_MS),
   });
 
+  // La connexion n'est ouverte qu'une fois le code validé, s'il est demandé
+  // (confirmTotp écrit alors la ligne).
+  if (!requiresMfa) {
+    await journalConnection(db, account, "hub.session.opened", { details: { method: trusted ? "trusted_device" : "password" }, clientIp });
+  }
   return { outcome: "success", sessionToken, requiresMfa };
 }
 
@@ -168,6 +182,8 @@ export async function countTrustedDevices(db: AppDatabase, userId: string, now: 
 /** L16-SEC-03 : « oublier mes appareils » ; renvoie le nombre d'appareils oubliés. */
 export async function forgetTrustedDevices(db: AppDatabase, userId: string): Promise<number> {
   const forgotten = await db.delete(trustedDevices).where(eq(trustedDevices.userId, userId)).returning({ id: trustedDevices.id });
+  const account = await connectionAccount(db, userId);
+  if (account) await journalConnection(db, account, "hub.trusted_devices.forgotten", { details: { count: forgotten.length } });
   return forgotten.length;
 }
 
@@ -231,7 +247,7 @@ type MfaAccount = { userId: string; email: string; language: "fr" | "en" | null 
  */
 export async function confirmTotp(
   db: AppDatabase,
-  params: { sessionToken: string; token: string; now?: Date; rememberDevice?: boolean },
+  params: { sessionToken: string; token: string; now?: Date; rememberDevice?: boolean; clientIp?: string | null },
 ): Promise<ConfirmTotpResult> {
   const now = params.now ?? new Date();
   const tokenHash = hashSessionToken(params.sessionToken);
@@ -241,6 +257,8 @@ export async function confirmTotp(
       email: users.email,
       language: users.language,
       role: users.role,
+      organizationId: users.organizationId,
+      mfaEnabled: users.mfaEnabled,
       totpSecret: users.totpSecret,
       mfaLockedUntil: users.mfaLockedUntil,
       expiresAt: sessions.expiresAt,
@@ -250,13 +268,27 @@ export async function confirmTotp(
     .where(eq(sessions.tokenHash, tokenHash));
 
   if (!row || !row.totpSecret || row.expiresAt.getTime() < Date.now()) return { outcome: "invalid" };
-  if (row.mfaLockedUntil && row.mfaLockedUntil.getTime() > now.getTime()) return { outcome: "locked", notify: null };
+  const journalAccount = { id: row.userId, organizationId: row.organizationId, role: row.role };
+  const clientIp = params.clientIp;
+  if (row.mfaLockedUntil && row.mfaLockedUntil.getTime() > now.getTime()) {
+    await journalConnection(db, journalAccount, "hub.session.failed", { details: { reason: "locked" }, clientIp });
+    return { outcome: "locked", notify: null };
+  }
 
   const key = readMfaEncryptionKey();
   const secret = openTotpSecret(row.totpSecret, row.userId, key);
   const step = matchTotpStep({ secret, token: params.token.trim(), timestamp: now.getTime() });
   const account: MfaAccount = { userId: row.userId, email: row.email, language: row.language };
-  if (step === null) return recordMfaFailure(db, account, now);
+  // Lot 23 (SEC-19) : code faux, ou verrouillage au cinquième.
+  const failed = async () => {
+    const result = await recordMfaFailure(db, account, now);
+    await journalConnection(db, journalAccount, result.outcome === "locked" ? "hub.account.locked" : "hub.session.failed", {
+      details: { reason: "code" },
+      clientIp,
+    });
+    return result;
+  };
+  if (step === null) return failed();
 
   const newToken = generateSessionToken();
   const deviceToken = params.rememberDevice && row.role !== "admin" ? generateSessionToken() : undefined;
@@ -300,7 +332,9 @@ export async function confirmTotp(
     return true;
   });
 
-  if (!confirmed) return recordMfaFailure(db, account, now);
+  if (!confirmed) return failed();
+  if (!row.mfaEnabled) await journalConnection(db, journalAccount, "hub.mfa.configured", { clientIp });
+  await journalConnection(db, journalAccount, "hub.session.opened", { details: { method: "code" }, clientIp });
   return deviceToken ? { outcome: "confirmed", sessionToken: newToken, deviceToken } : { outcome: "confirmed", sessionToken: newToken };
 }
 
@@ -432,6 +466,26 @@ export async function requireUser(
   };
 }
 
+// Lot 23 (partie B, DAT-06, SEC-19, ADR 0060) : l'auteur d'une écriture en base,
+// d'après la session de la requête. Lecture seule (ni expiration glissante ni
+// autre écriture, contrairement à requireUser) : appelée à chaque transaction.
+// Une session expirée ou qui attend encore la double authentification n'a pas
+// d'auteur.
+export async function findSessionActor(
+  db: AppDatabase,
+  sessionToken: string | undefined,
+): Promise<{ kind: "member" | "admin"; id: string } | null> {
+  if (!sessionToken) return null;
+  const [row] = await db
+    .select({ userId: users.id, role: users.role, mfaEnabled: users.mfaEnabled, mfaVerified: sessions.mfaVerified, expiresAt: sessions.expiresAt })
+    .from(sessions)
+    .innerJoin(users, eq(users.id, sessions.userId))
+    .where(eq(sessions.tokenHash, hashSessionToken(sessionToken)));
+  if (!row || row.expiresAt.getTime() < Date.now()) return null;
+  if ((isProfessionalRole(row.role) || row.mfaEnabled) && !row.mfaVerified) return null;
+  return { kind: row.role === "admin" ? "admin" : "member", id: row.userId };
+}
+
 // PRD-EVT-06 — invitation d'un marié : savoir si l'e-mail a déjà un compte, et
 // lequel (rôle, organisation), sans exposer le reste du compte.
 export async function findAccountByEmail(
@@ -446,7 +500,10 @@ export async function findAccountByEmail(
 }
 
 export async function destroySession(db: AppDatabase, sessionToken: string): Promise<void> {
-  await db.delete(sessions).where(eq(sessions.tokenHash, hashSessionToken(sessionToken)));
+  const closed = await db.delete(sessions).where(eq(sessions.tokenHash, hashSessionToken(sessionToken))).returning({ userId: sessions.userId });
+  // Lot 23 (SEC-19) : déconnexion au journal.
+  const account = closed[0] ? await connectionAccount(db, closed[0].userId) : null;
+  if (account) await journalConnection(db, account, "hub.session.closed");
 }
 
 // PRD-HUB-04 — « Quand il choisit FR ou EN dans son profil, toutes les apps

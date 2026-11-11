@@ -17,6 +17,7 @@ import {
   quotes,
   quoteVersions,
 } from "@symbola/db/schema/quotes";
+import { appendAudit } from "@symbola/db/audit";
 import { emitDomainEvent } from "@symbola/db/events/emit";
 import { withOrganization } from "@symbola/db/with-organization";
 import { foldedContains } from "@symbola/db/search";
@@ -429,9 +430,12 @@ async function currentDraft(tx: Tx, quoteId: string): Promise<DraftLookup> {
   return { status: "draft", quote, version };
 }
 
+// Lot 23 (DAT-06) : auteur et dates de la ligne posés par la base.
+export type RowStampColumns = "createdAt" | "createdBy" | "updatedAt" | "updatedBy";
+
 export type LineData = Omit<
   QuoteLineRow,
-  "id" | "organizationId" | "versionId" | "position"
+  "id" | "organizationId" | "versionId" | "position" | RowStampColumns
 >;
 
 export type WriteResult =
@@ -576,6 +580,14 @@ export async function freezeCurrentVersion(
       .update(quotes)
       .set({ status: "sent", updatedAt: new Date() })
       .where(eq(quotes.id, quoteId));
+    // Lot 23 (SEC-19) : un devis envoyé est partagé avec le client.
+    await appendAudit(tx, {
+      organizationId,
+      action: "quotes.quote.sent",
+      objectId: quoteId,
+      details: { number: draft.quote.number, version: draft.version.version },
+      isDemo: draft.quote.isDemo,
+    });
     return { status: "ok", quoteId };
   });
 }
@@ -965,6 +977,14 @@ export async function setScheduleItemPayment(
           : { paidOn: null, paymentMethodId: null, paidRecordedAt: null },
       )
       .where(eq(paymentScheduleItems.id, scheduleItemId));
+    // Lot 23 (SEC-19) : encaissement saisi ou annulé, au journal.
+    await appendAudit(tx, {
+      organizationId,
+      action: payment ? "quotes.payment.recorded" : "quotes.payment.cancelled",
+      objectId: scheduleItemId,
+      details: payment ? { quoteNumber: quote.number, paidOn: payment.paidOn } : { quoteNumber: quote.number },
+      isDemo: quote.isDemo,
+    });
     return { status: "ok", quoteId: quote.id };
   });
 }
@@ -1017,7 +1037,7 @@ export async function findUnpaidScheduleItems(
 
 export type NewSigner = Omit<
   QuoteSignerRow,
-  "organizationId" | "requestId" | "status" | "signedAt"
+  "organizationId" | "requestId" | "status" | "signedAt" | RowStampColumns
 >;
 
 // Enregistre la demande créée chez le fournisseur, pour la version courante
@@ -1070,6 +1090,14 @@ export async function insertSignatureRequest(
           requestId: row.id,
         })),
       );
+    // Lot 23 (SEC-19) : liens de signature envoyés aux signataires.
+    await appendAudit(tx, {
+      organizationId,
+      action: "quotes.signature.requested",
+      objectId: quoteId,
+      details: { number: quote.number, signers: request.signers.length },
+      isDemo: quote.isDemo,
+    });
     return { status: "ok", quoteId };
   });
 }
@@ -1456,6 +1484,14 @@ export async function insertInvoice(
       })
       .returning();
     if (!row) throw new Error("émission de la facture échouée");
+    // Lot 23 (SEC-19) : émission au journal, dans la transaction du numéro.
+    await appendAudit(tx, {
+      organizationId,
+      action: "quotes.invoice.issued",
+      objectId: row.id,
+      details: { number: row.number, kind: row.kind, amountCents: row.amountCents },
+      isDemo: row.isDemo,
+    });
     return row;
   });
 }
@@ -1502,6 +1538,13 @@ export async function insertCreditNote(
       })
       .returning();
     if (!row) throw new Error("émission de l'avoir échouée");
+    await appendAudit(tx, {
+      organizationId,
+      action: "quotes.credit_note.issued",
+      objectId: row.id,
+      details: { number: row.number, invoiceNumber: invoice.number, amountCents: row.amountCents },
+      isDemo: row.isDemo,
+    });
     return row;
   });
 }

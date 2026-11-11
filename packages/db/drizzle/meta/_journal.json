@@ -596,6 +596,69 @@
       "when": 1794269977506,
       "tag": "0084_lot20_tag_groups",
       "breakpoints": true
+    },
+    {
+      "idx": 85,
+      "version": "7",
+      "when": 1794415134663,
+      "tag": "0085_lot23_audit_entries",
+      "breakpoints": true
+    },
+    {
+      "idx": 86,
+      "version": "7",
+      "when": 1794415176565,
+      "tag": "0086_lot23_hub_audit_log_to_core",
+      "breakpoints": true
+    },
+    {
+      "idx": 87,
+      "version": "7",
+      "when": 1794415730415,
+      "tag": "0087_lot23_row_stamps",
+      "breakpoints": true
+    },
+    {
+      "idx": 88,
+      "version": "7",
+      "when": 1794415858426,
+      "tag": "0088_lot23_hub_row_stamps",
+      "breakpoints": true
+    },
+    {
+      "idx": 89,
+      "version": "7",
+      "when": 1794415896473,
+      "tag": "0089_lot23_events_row_stamps",
+      "breakpoints": true
+    },
+    {
+      "idx": 90,
+      "version": "7",
+      "when": 1794415897445,
+      "tag": "0090_lot23_budget_row_stamps",
+      "breakpoints": true
+    },
+    {
+      "idx": 91,
+      "version": "7",
+      "when": 1794415898426,
+      "tag": "0091_lot23_quotes_row_stamps",
+      "breakpoints": true
+    },
+    {
+      "idx": 92,
+      "version": "7",
+      "when": 1794415899391,
+      "tag": "0092_lot23_vendors_row_stamps",
+      "breakpoints": true
+    },
+    {
+      "idx": 93,
+      "version": "7",
+      "when": 1794416216012,
+      "tag": "0093_lot23_connection_traces",
+      "breakpoints": true
     }
   ]
 }

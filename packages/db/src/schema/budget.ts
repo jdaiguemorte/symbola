@@ -20,6 +20,10 @@ export const allocationModels = budgetSchema.table("allocation_models", {
   organizationId: uuid("organization_id").notNull(),
   name: text("name").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+  createdBy: uuid("created_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedBy: uuid("updated_by"),
 });
 
 export const allocationModelItems = budgetSchema.table("allocation_model_items", {
@@ -30,6 +34,11 @@ export const allocationModelItems = budgetSchema.table("allocation_model_items",
     .references(() => allocationModels.id),
   defaultVendorSlotId: uuid("default_vendor_slot_id").notNull(),
   percentageBasisPoints: integer("percentage_basis_points").notNull(),
+  // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  createdBy: uuid("created_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedBy: uuid("updated_by"),
 });
 
 // PRD-BUD-01 — simulation liée à un prospect : un seul event_budgets par
@@ -43,6 +52,9 @@ export const eventBudgets = budgetSchema.table("event_budgets", {
   allocationModelId: uuid("allocation_model_id").references(() => allocationModels.id),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+  createdBy: uuid("created_by"),
+  updatedBy: uuid("updated_by"),
 });
 
 export const eventBudgetItems = budgetSchema.table("event_budget_items", {
@@ -55,6 +67,9 @@ export const eventBudgetItems = budgetSchema.table("event_budget_items", {
   amountCents: integer("amount_cents").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+  createdBy: uuid("created_by"),
+  updatedBy: uuid("updated_by"),
 });
 
 // PRD-BUD-02 — budget réel (prévu/réel), une ligne par poste de l'événement.
@@ -72,6 +87,9 @@ export const budgetLines = budgetSchema.table("budget_lines", {
   actualAmountCents: integer("actual_amount_cents"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+  createdBy: uuid("created_by"),
+  updatedBy: uuid("updated_by"),
 });
 
 export const budgetLineFieldEnum = budgetSchema.enum("budget_line_field", ["planned", "actual"]);
@@ -92,6 +110,8 @@ export const budgetLineHistory = budgetSchema.table("budget_line_history", {
   // jour automatique.
   changedByUserId: uuid("changed_by_user_id").notNull(),
   changedAt: timestamp("changed_at", { withTimezone: true }).defaultNow().notNull(),
+  // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+  createdBy: uuid("created_by"),
 });
 
 // PRD-BUD-03 — devis prestataire joint à une ligne de budget. Le fichier vit
@@ -108,4 +128,8 @@ export const budgetLineAttachments = budgetSchema.table("budget_line_attachments
   sizeBytes: integer("size_bytes").notNull(),
   uploadedByUserId: uuid("uploaded_by_user_id").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+  createdBy: uuid("created_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedBy: uuid("updated_by"),
 });

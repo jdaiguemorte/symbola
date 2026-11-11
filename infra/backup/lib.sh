@@ -120,3 +120,32 @@ restic_run() {
     ${RESTIC_MOUNTS[@]+"${RESTIC_MOUNTS[@]}"} \
     "$RESTIC_IMAGE" "$@"
 }
+
+# Lot 23 (SEC-09, décision Q31, ADR 0060) : un accès d'exploitation à la base est tracé
+# et motivé. Le motif dit pourquoi, sans donnée personnelle (ni e-mail, ni téléphone) :
+# il s'affiche dans le journal de chaque organisation.
+check_motif() {
+  local motif=${1:-}
+  motif=${motif#"${motif%%[![:space:]]*}"}
+  [ -n "$motif" ] || die "motif obligatoire : --motif=\"pourquoi cet accès\" (sans donnée personnelle)"
+  [ "${#motif}" -le 300 ] || die "motif trop long (300 caractères au plus)"
+  if [[ $motif == *@* ]] || [[ $motif =~ ([0-9][\ .-]?){10,} ]]; then
+    die "le motif ne doit contenir aucune donnée personnelle (e-mail, téléphone) : il s'affiche dans le journal de chaque organisation"
+  fi
+}
+
+# journal_operations_access <action> <motif> : une ligne « Accès d'exploitation » au
+# journal d'audit commun (core.audit_entries), sans organisation : elle se lit dans le
+# journal de chacune. Le motif passe par une variable psql (:'motif'), jamais collé dans
+# le SQL. Sans journal (instantané antérieur au lot 23), rien n'est écrit.
+journal_operations_access() {
+  local action=$1 motif=$2
+  # shellcheck disable=SC2016
+  env_compose exec -T postgres sh -c \
+    'psql -v ON_ERROR_STOP=1 -qtA --username="$POSTGRES_USER" --dbname="$POSTGRES_DB" -v action="$1" -v motif="$2"' \
+    sh "$action" "$motif" <<'SQL'
+insert into core.audit_entries (organization_id, actor_kind, action, category, reason)
+select null, 'operator', :'action', 'exploitation', :'motif'
+where to_regclass('core.audit_entries') is not null;
+SQL
+}

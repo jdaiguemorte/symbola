@@ -4,9 +4,12 @@
 // pouvoir lire les événements de toutes les organisations pour les
 // distribuer ; organization_id reste présent sur chaque événement pour un
 // filtrage applicatif futur, pas pour une policy RLS.
+import { sql } from "drizzle-orm";
 import {
   bigint,
   bigserial,
+  boolean,
+  check,
   date,
   index,
   integer,
@@ -71,4 +74,61 @@ export const rateLimitEvents = coreSchema.table(
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [index("rate_limit_events_lookup_idx").on(table.bucket, table.keyHash, table.createdAt)],
+);
+
+// Lot 23 (ARC-16, SEC-19, ADR 0060) : journal d'audit commun, en ajout seul.
+// Le rôle applicatif n'y a que SELECT, INSERT et DELETE ; un trigger refuse
+// toute modification et toute suppression, sauf celle d'une ligne d'essai
+// guidé (is_demo), purgée avec l'essai. RLS forcée : une organisation ne lit
+// que ses lignes, plus les accès d'exploitation de la plateforme
+// (organization_id vide). Aucune donnée personnelle : des identifiants, des
+// numéros de pièce, des codes (SEC-20).
+export const AUDIT_ACTOR_KINDS = ["member", "admin", "operator", "system"] as const;
+export const AUDIT_CATEGORIES = [
+  "connexion",
+  "droits",
+  "export",
+  "partage",
+  "emission",
+  "encaissement",
+  "suppression",
+  "exploitation",
+  "administration",
+] as const;
+
+export const auditEntries = coreSchema.table(
+  "audit_entries",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id"),
+    // clock_timestamp() et non now() : l'instant réel de chaque ligne, même
+    // pour plusieurs gestes d'une même transaction (now() est l'heure de son
+    // début), pour que le journal garde leur ordre.
+    occurredAt: timestamp("occurred_at", { withTimezone: true })
+      .notNull()
+      .default(sql`clock_timestamp()`),
+    // Par défaut, l'auteur fixé par withOrganization (lot 23, partie B) :
+    // un déclencheur ou une fonction SQL qui écrit au journal n'a rien à
+    // passer. Sans auteur déclaré : « system ».
+    actorKind: text("actor_kind", { enum: AUDIT_ACTOR_KINDS })
+      .notNull()
+      .default(sql`coalesce(nullif(current_setting('app.actor_kind', true), ''), 'system')`),
+    actorId: uuid("actor_id").default(sql`nullif(current_setting('app.actor_id', true), '')::uuid`),
+    action: text("action").notNull(),
+    category: text("category", { enum: AUDIT_CATEGORIES }).notNull(),
+    objectType: text("object_type"),
+    objectId: uuid("object_id"),
+    details: jsonb("details").$type<Record<string, string | number | boolean | null>>().notNull().default({}),
+    reason: text("reason"),
+    isDemo: boolean("is_demo").notNull().default(false),
+  },
+  (table) => [
+    index("audit_entries_organization_time_idx").on(table.organizationId, table.occurredAt),
+    check("audit_entries_actor_kind_check", sql`${table.actorKind} in ('member', 'admin', 'operator', 'system')`),
+    check(
+      "audit_entries_category_check",
+      sql`${table.category} in ('connexion', 'droits', 'export', 'partage', 'emission', 'encaissement', 'suppression', 'exploitation', 'administration')`,
+    ),
+    check("audit_entries_operations_reason_check", sql`${table.category} <> 'exploitation' or length(trim(${table.reason})) > 0`),
+  ],
 );

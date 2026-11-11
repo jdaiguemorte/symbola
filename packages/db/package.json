@@ -6,6 +6,9 @@
   "exports": {
     "./client": "./src/client.ts",
     "./with-organization": "./src/with-organization.ts",
+    "./actor": "./src/actor.ts",
+    "./audit": "./src/audit.ts",
+    "./row-stamps": "./src/row-stamps.ts",
     "./schema/hub": "./src/schema/hub.ts",
     "./schema/events": "./src/schema/events.ts",
     "./schema/budget": "./src/schema/budget.ts",
@@ -29,6 +32,7 @@
     "rollback": "tsx scripts/rollback.ts"
   },
   "dependencies": {
+    "@symbola/contracts": "workspace:*",
     "drizzle-orm": "^0.45.4",
     "postgres": "^3.4.5",
     "zod": "^4.6.7"

@@ -4,7 +4,6 @@
 import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import type { AppDatabase } from "@symbola/db/client";
 import {
-  auditLog,
   backupRuns,
   invitations,
   organizationModules,
@@ -42,13 +41,6 @@ export async function findInvitationByTokenHash(db: AppDatabase, tokenHash: stri
 
 export async function markInvitationAccepted(db: AppDatabase, invitationId: string) {
   await db.update(invitations).set({ acceptedAt: new Date() }).where(eq(invitations.id, invitationId));
-}
-
-export async function insertAuditLog(
-  db: AppDatabase,
-  input: { adminUserId: string; action: string; targetOrganizationId: string | null; targetUserId?: string | null },
-) {
-  await db.insert(auditLog).values(input);
 }
 
 export async function findOrganizationById(db: AppDatabase, organizationId: string) {

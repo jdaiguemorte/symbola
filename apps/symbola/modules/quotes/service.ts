@@ -887,7 +887,8 @@ export async function addPaymentMethods(organizationId: string, labels: string[]
       }
       continue;
     }
-    existing.set(key, { id: "", label, position: 0, archivedAt: null, organizationId, createdAt: new Date() });
+    const now = new Date();
+    existing.set(key, { id: "", label, position: 0, archivedAt: null, organizationId, createdAt: now, createdBy: null, updatedAt: now, updatedBy: null });
     fresh.push(label);
   }
   const created = fresh.length > 0 ? (await insertPaymentMethods(organizationId, fresh)).map(toPaymentMethod) : [];

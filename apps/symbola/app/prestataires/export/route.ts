@@ -5,6 +5,8 @@
 import { createElement, type ReactElement } from "react";
 import { renderToBuffer, type DocumentProps } from "@react-pdf/renderer";
 import { getTranslations } from "next-intl/server";
+import { recordAudit } from "@symbola/db/audit";
+import { appDatabase } from "@symbola/db/client";
 import { toCsv } from "@symbola/privacy";
 import { getVendor, type Vendor } from "@/modules/vendors/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
@@ -39,6 +41,8 @@ export async function GET(request: Request): Promise<Response> {
     tags: t("exportTags"),
   };
   const today = new Date().toISOString().slice(0, 10);
+  // Lot 23 (SEC-19) : export du carnet au journal (format et nombre de fiches, aucun nom).
+  await recordAudit(appDatabase(), { organizationId, action: "vendors.vendors.exported", details: { format, count: selection.results.length } });
 
   if (format === "csv") {
     const details = (await Promise.all(selection.results.map((item) => getVendor(organizationId, item.id)))).filter((vendor): vendor is Vendor => vendor !== null);

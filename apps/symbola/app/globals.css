@@ -1388,6 +1388,10 @@
   .filter-bar label {
     @apply m-0 grid gap-1 text-label font-medium text-ink-muted;
   }
+  /* Lot 23 (journal d'activité) : trois listes de même largeur. */
+  .filter-bar-even {
+    @apply lg:grid-cols-3;
+  }
   .filter-bar input,
   .filter-bar select {
     @apply m-0 !h-[38px] !min-h-0 w-full rounded-md border border-line-strong bg-surface px-3 !py-0 text-body font-normal text-ink;

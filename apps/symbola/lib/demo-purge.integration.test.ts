@@ -30,6 +30,8 @@ import {
 } from "@/modules/budget/service";
 import { addQuoteLine, createQuote, getQuote, QuoteNotFoundError } from "@/modules/quotes/service";
 import { endTrial, purgeAllExpiredDemoData, purgeOrganizationsDemoData } from "./demo-purge";
+import { appendAudit } from "@symbola/db/audit";
+import { auditEntries } from "@symbola/db/schema/core";
 
 const HOUR = 60 * 60 * 1000;
 const plannerId = randomUUID();
@@ -191,3 +193,25 @@ describe("AIDE-02 — Purge planifiée des essais abandonnés", () => {
     expect(await getEvent(second, recent.eventId)).not.toBeNull();
   });
 });
+
+// Lot 23 (SEC-19, ADR 0060) : les lignes de journal d'un essai (is_demo)
+// partent avec lui ; les suppressions de l'essai n'y vont pas une à une.
+describe("SEC-19 — Essai guidé et journal d'audit", () => {
+  it("terminer l'essai efface ses lignes de journal, garde les autres, et n'écrit pas ses suppressions", async () => {
+    const organizationId = await createOrganizationId();
+    const { eventId, quoteId } = await trialWithBudget(organizationId, new Date());
+    const { sql, db } = createAppConnection();
+    try {
+      await withOrganization(db, organizationId, async (tx) => {
+        await appendAudit(tx, { organizationId, action: "quotes.quote.sent", objectId: quoteId, isDemo: true });
+        await appendAudit(tx, { organizationId, action: "quotes.quote.sent", objectId: randomUUID() });
+      });
+      await endTrial(organizationId, eventId);
+      const journal = await withOrganization(db, organizationId, (tx) => tx.select().from(auditEntries).where(eq(auditEntries.organizationId, organizationId)));
+      expect(journal.map((entry) => [entry.action, entry.isDemo])).toEqual([["quotes.quote.sent", false]]);
+    } finally {
+      await sql.end();
+    }
+  });
+});
+

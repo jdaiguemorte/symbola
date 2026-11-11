@@ -6,7 +6,9 @@ import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { afterAll, describe, expect, it } from "vitest";
 import { createAppConnection } from "@symbola/db/client";
-import { auditLog, organizations } from "@symbola/db/schema/hub";
+import { auditEntries } from "@symbola/db/schema/core";
+import { organizations } from "@symbola/db/schema/hub";
+import { withOrganization } from "@symbola/db/with-organization";
 import { createUser } from "@symbola/auth";
 import { createOrganizationWithInvitation, isModuleEnabled, listOrganizations, setModuleEnabled } from "./service";
 
@@ -51,11 +53,10 @@ describe("PRD-HUB-03 — Activation/désactivation de module", () => {
     });
     expect(await isModuleEnabled(db, organization!.id, "budget")).toBe(false);
 
-    const [disableLog] = await db
-      .select()
-      .from(auditLog)
-      .where(eq(auditLog.targetOrganizationId, organization!.id));
-    expect(disableLog?.action).toBe("hub.module.disabled");
+    const [disableLog] = await withOrganization(db, organization!.id, (tx) =>
+      tx.select().from(auditEntries).where(eq(auditEntries.action, "hub.module.disabled")),
+    );
+    expect(disableLog).toMatchObject({ action: "hub.module.disabled", details: { module: "budget" }, actorKind: "admin", actorId: adminUserId });
 
     await setModuleEnabled(db, {
       adminUserId,

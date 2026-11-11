@@ -14,12 +14,15 @@ export function FilterBar({
   label,
   applyLabel,
   preserve = {},
+  even = false,
   children,
 }: {
   label: string;
   applyLabel: string;
   // Paramètres de l'adresse à garder tels quels (onglet courant…).
   preserve?: Record<string, string>;
+  // Lot 23 : colonnes de même largeur (trois listes, sans champ de recherche).
+  even?: boolean;
   children: ReactNode;
 }) {
   const router = useRouter();
@@ -50,7 +53,7 @@ export function FilterBar({
       method="get"
       role="search"
       aria-label={label}
-      className="filter-bar"
+      className={even ? "filter-bar filter-bar-even" : "filter-bar"}
       onSubmit={(event) => {
         event.preventDefault();
         apply();

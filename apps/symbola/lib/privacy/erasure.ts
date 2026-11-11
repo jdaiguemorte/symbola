@@ -4,6 +4,8 @@
 // supprimée, anonymisée, conservée avec motif légal et date de fin), puis
 // exécute sa part et renvoie un accusé. La demande n'est close que quand tous
 // les modules ont répondu ; un module en échec se relance depuis la trace.
+import { withAuditBulk } from "@symbola/db/actor";
+import { recordAudit } from "@symbola/db/audit";
 import { appDatabase } from "@symbola/db/client";
 import { parisDate, type ErasurePlanItem, type ErasureRules, type PersonTerms, type PrivacyRecordRef } from "@symbola/privacy";
 import {
@@ -71,7 +73,13 @@ export async function previewErasure(
   return { status: "ok", items };
 }
 
-export async function runModules(organizationId: string, items: PrivacyErasureItem[], options: Options): Promise<PrivacyErasureAck[]> {
+// Lot 23 (SEC-19) : les effacements des modules ne vont pas un à un au journal
+// (purge en masse) ; l'appelant écrit une ligne de synthèse.
+export function runModules(organizationId: string, items: PrivacyErasureItem[], options: Options): Promise<PrivacyErasureAck[]> {
+  return withAuditBulk(() => runModulesNow(organizationId, items, options));
+}
+
+async function runModulesNow(organizationId: string, items: PrivacyErasureItem[], options: Options): Promise<PrivacyErasureAck[]> {
   const participants = options.participants ?? PARTICIPANTS;
   const rules = await rulesOf(organizationId);
   const acks: PrivacyErasureAck[] = [];
@@ -108,6 +116,7 @@ export async function executeErasure(
   const erasureId = await startPrivacyErasure(db, { organizationId: input.organizationId, userId: input.userId, requestId: input.requestId, items });
   const acks = await runModules(input.organizationId, items, options);
   const erasureStatus = await recordPrivacyErasureAcks(db, { organizationId: input.organizationId, erasureId, acks });
+  await recordAudit(db, { organizationId: input.organizationId, action: "hub.privacy_erasure.executed", objectId: erasureId, details: { status: erasureStatus, items: items.length } });
   return { status: "ok", erasureId, erasureStatus };
 }
 
@@ -123,5 +132,7 @@ export async function retryErasure(input: { organizationId: string; erasureId: s
     erasure.items.filter((item) => !ok.has(item.module)),
     options,
   );
-  return await recordPrivacyErasureAcks(db, { organizationId: input.organizationId, erasureId: input.erasureId, acks });
+  const erasureStatus = await recordPrivacyErasureAcks(db, { organizationId: input.organizationId, erasureId: input.erasureId, acks });
+  await recordAudit(db, { organizationId: input.organizationId, action: "hub.privacy_erasure.executed", objectId: input.erasureId, details: { status: erasureStatus, retry: true } });
+  return erasureStatus;
 }

@@ -8,15 +8,42 @@
 // même quand after() n'était jamais exécuté. La collecte d'usage (SOC-13,
 // ADR 0017) est câblée séparément, au niveau de chaque page protégée
 // (voir app/page.tsx), pas ici.
+import { createHash } from "node:crypto";
 import { cookies } from "next/headers";
+import { registerActorResolver, type Actor } from "@symbola/db/actor";
 import { appDatabase } from "@symbola/db/client";
-import { isPlannerRole, requireUser, type AuthResult } from "@symbola/auth";
+import { findSessionActor, isPlannerRole, requireUser, type AuthResult } from "@symbola/auth";
 
 export const SESSION_COOKIE_NAME = "symbola_session";
 // L16-SEC-03 (lot 16, ADR 0038) : appareil de confiance, dispensé du code de double
 // authentification pendant 90 jours ; seul son hachage est en base.
 export const TRUSTED_DEVICE_COOKIE_NAME = "symbola_appareil";
 const TRUSTED_DEVICE_MAX_AGE_S = 90 * 24 * 60 * 60;
+
+// Lot 23 (partie B, ADR 0060) : l'auteur des écritures en base est la personne
+// connectée de la requête en cours. withOrganization (packages/db) appelle ce
+// résolveur à chaque transaction ; un petit cache évite de relire la session
+// à chaque fois (5 secondes : l'attribution, pas l'autorisation, qui reste
+// vérifiée à chaque requête par les gardes). Hors requête, cookies() échoue et
+// l'auteur est « system ».
+const ACTOR_CACHE_MS = 5_000;
+const ACTOR_CACHE_MAX = 500;
+const actorCache = new Map<string, { actor: Actor | null; until: number }>();
+
+export async function resolveRequestActor(): Promise<Actor | null> {
+  const token = (await cookies()).get(SESSION_COOKIE_NAME)?.value;
+  if (!token) return null;
+  const key = createHash("sha256").update(token).digest("hex");
+  const now = Date.now();
+  const cached = actorCache.get(key);
+  if (cached && cached.until > now) return cached.actor;
+  const actor = await findSessionActor(appDatabase(), token);
+  if (actorCache.size >= ACTOR_CACHE_MAX) actorCache.clear();
+  actorCache.set(key, { actor, until: now + ACTOR_CACHE_MS });
+  return actor;
+}
+
+registerActorResolver(resolveRequestActor);
 
 export async function getAuthContext(): Promise<AuthResult> {
   const cookieStore = await cookies();

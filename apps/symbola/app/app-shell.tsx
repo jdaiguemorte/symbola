@@ -392,6 +392,11 @@ export async function AppShell({ children }: { children: ReactNode }) {
                     label: tSettings("privacy"),
                     ...(privacyAlerts > 0 ? { count: privacyAlerts } : {}),
                   },
+                  // Lot 23 (HUB-16, décision D4) : journal d'activité, titulaire seulement.
+                  {
+                    href: "/parametres/journal",
+                    label: tSettings("activityLog"),
+                  },
                 ]
               : []),
           ],

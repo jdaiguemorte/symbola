@@ -3,11 +3,13 @@
 // réinitialisation de la double authentification, nombres mensuels sans
 // aucun contenu et essais exclus.
 import { randomUUID } from "node:crypto";
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { afterAll, describe, expect, it } from "vitest";
 import { createUser, login, MfaResetNotAllowedError, requireUser } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
-import { auditLog, users } from "@symbola/db/schema/hub";
+import { auditEntries } from "@symbola/db/schema/core";
+import { users } from "@symbola/db/schema/hub";
+import { withOrganization } from "@symbola/db/with-organization";
 import { createProspect, createProspectSource, startEventsTrial } from "@/modules/events/service";
 import { createQuote } from "@/modules/quotes/service";
 import {
@@ -20,6 +22,13 @@ import {
   resendInvitation,
   resetTeamAccountMfa,
 } from "./service";
+
+// Lot 23 (ADR 0060) : le journal commun se lit dans le contexte de
+// l'organisation (RLS forcée).
+async function auditOf(organizationId: string) {
+  return withOrganization(db, organizationId, (tx) => tx.select().from(auditEntries).orderBy(auditEntries.occurredAt));
+}
+
 
 const { sql, db } = createAppConnection();
 afterAll(async () => {
@@ -70,11 +79,9 @@ describe("Lot 9 — État des comptes et des invitations (Admin)", () => {
     expect(await acceptInvitation(db, { token: resent.token, password: "mot-de-passe-titulaire" })).toMatchObject({ outcome: "success" });
     await expect(resendInvitation(db, { adminUserId, invitationId: org.invitationId })).rejects.toBeInstanceOf(InvitationNotPendingError);
 
-    const logged = await db
-      .select()
-      .from(auditLog)
-      .where(and(eq(auditLog.adminUserId, adminUserId), eq(auditLog.action, "hub.invitation.resent")));
+    const logged = (await auditOf(org.organizationId)).filter((entry) => entry.action === "hub.invitation.resent");
     expect(logged).toHaveLength(1);
+    expect(logged[0]).toMatchObject({ actorKind: "admin", actorId: adminUserId, category: "droits" });
   });
 
   it("réinitialise la double authentification d'un compte d'équipe, journalise le compte visé, refuse un marié", async () => {
@@ -90,8 +97,8 @@ describe("Lot 9 — État des comptes et des invitations (Admin)", () => {
     expect((await requireUser(db, session.sessionToken)).status).toBe("unauthenticated");
     const [reset] = await db.select().from(users).where(eq(users.id, owner!.id));
     expect(reset).toMatchObject({ totpSecret: null, mfaEnabled: false });
-    const [entry] = await db.select().from(auditLog).where(and(eq(auditLog.adminUserId, adminUserId), eq(auditLog.action, "hub.user.mfa_reset")));
-    expect(entry).toMatchObject({ targetUserId: owner!.id, targetOrganizationId: org.organizationId });
+    const entry = (await auditOf(org.organizationId)).find((candidate) => candidate.action === "hub.user.mfa_reset");
+    expect(entry).toMatchObject({ actorKind: "admin", actorId: adminUserId, objectType: "user", objectId: owner!.id, organizationId: org.organizationId });
 
     const couple = await createUser(db, { organizationId: org.organizationId, email: `marie-${randomUUID()}@symbola.test`, password: "mot-de-passe-du-marie", role: "client" });
     await expect(resetTeamAccountMfa(db, { adminUserId, userId: couple.id })).rejects.toBeInstanceOf(MfaResetNotAllowedError);

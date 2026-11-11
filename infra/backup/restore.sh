@@ -4,7 +4,7 @@
 # quand l'instantané la contient. DESTRUCTIF : remplace les données actuelles.
 #
 # Usage (sur le VPS, root) :
-#   infra/backup/restore.sh staging|production --confirm=<environnement> [--snapshot=<id>]
+#   infra/backup/restore.sh staging|production --confirm=<environnement> [--snapshot=<id>] [--motif="…"]
 #
 # Garde-fous :
 # - --confirm doit répéter le nom de l'environnement ;
@@ -13,6 +13,9 @@
 # - le rôle applicatif PostgreSQL doit exister (sinon : bootstrap d'abord, voir runbook),
 #   vérifié avant toute suppression.
 # Affiche la durée totale, à reporter dans docs/runbooks/restauration.md.
+# Lot 23 (SEC-09, ADR 0060) : la restauration est un accès d'exploitation ; une ligne
+# ops.backup.restored va au journal d'audit de la base restaurée, avec le motif (par
+# défaut : l'instantané restauré).
 set -euo pipefail
 
 here=$(cd "$(dirname "$0")" && pwd)
@@ -23,15 +26,18 @@ environment=${1:-}
 [ $# -gt 0 ] && shift
 confirm=""
 snapshot="latest"
+motif=""
 for arg in "$@"; do
   case $arg in
     --confirm=*) confirm=${arg#*=} ;;
     --snapshot=*) snapshot=${arg#*=} ;;
+    --motif=*) motif=${arg#*=} ;;
     *) die "argument inconnu : $arg" ;;
   esac
 done
 
 load_config "$environment"
+if [ -n "$motif" ]; then check_motif "$motif"; fi
 [ "$confirm" = "$ENVIRONMENT_NAME" ] ||
   die "restauration destructive de $ENVIRONMENT_NAME : relancer avec --confirm=$ENVIRONMENT_NAME"
 take_lock
@@ -44,6 +50,7 @@ else
 fi
 snapshot_id=$(grep -o '"id":"[0-9a-f]*"' <<<"$listing" | head -n 1 | cut -d '"' -f 4 || true)
 [ -n "$snapshot_id" ] || die "aucun instantané « $snapshot » portant le tag $tag dans $RESTIC_REPOSITORY"
+[ -n "$motif" ] || motif="restauration de l'instantané ${snapshot_id:0:8}"
 
 app_role=$(sed -n 's/^POSTGRES_APP_USER=//p' "$ENV_FILE" | tail -n 1)
 [[ $app_role =~ ^[a-z_][a-z0-9_]*$ ]] || die "POSTGRES_APP_USER absent ou invalide dans $ENV_FILE"
@@ -108,4 +115,6 @@ log "$ENVIRONMENT_NAME : redémarrage de l'environnement"
 env_compose up -d --wait
 if [ "$has_documenso" = true ]; then env_compose --profile signature up -d documenso; fi
 
+journal_operations_access ops.backup.restored "$motif" ||
+  log "ATTENTION : restauration non journalisée (journal d'audit inaccessible)"
 log "$ENVIRONMENT_NAME : restauration terminée en $((SECONDS / 60)) min $((SECONDS % 60)) s (instantané ${snapshot_id:0:8})"

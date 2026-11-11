@@ -1,3 +1,14 @@
+export {
+  AUDIT_ACTIONS,
+  AUDIT_ACTOR_KINDS,
+  AUDIT_CATEGORIES,
+  auditActionSpec,
+  isDeletionAction,
+  type AuditAction,
+  type AuditActorKind,
+  type AuditCategory,
+  type AuditDetails,
+} from "./audit";
 export { domainEventEnvelopeSchema, type DomainEventEnvelope } from "./domain-event";
 export type { FileDownload } from "./file-download";
 export type { MonthlyCount } from "./usage";
