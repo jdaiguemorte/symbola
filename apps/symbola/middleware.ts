@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { localeFromAcceptLanguage } from "@symbola/i18n";
+import { SESSION_COOKIE_NAME, sessionCookieOptions } from "./lib/session-cookie";
 
 export const LOCALE_COOKIE = "symbola_locale";
 
@@ -44,6 +45,12 @@ export function middleware(request: NextRequest) {
 
   const response = NextResponse.next({ request: { headers: requestHeaders } });
   response.headers.set("Content-Security-Policy", csp);
+
+  // Lot 24b (SEC-05) : le cookie de session expire après 8 heures sans
+  // activité, comme la session en base ; chaque navigation le prolonge. Pas les
+  // envois de formulaire (POST) : la déconnexion efface le cookie elle-même.
+  const session = request.cookies.get(SESSION_COOKIE_NAME)?.value;
+  if (session && request.method === "GET") response.cookies.set(SESSION_COOKIE_NAME, session, sessionCookieOptions());
 
   // PRD-HUB-04 : langue par défaut du navigateur, posée une seule fois (la
   // Server Action de profil et le choix lié au compte en prennent le

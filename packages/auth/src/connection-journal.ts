@@ -23,6 +23,7 @@ type ConnectionAction = Extract<
   | "hub.password.reset"
   | "hub.mfa.configured"
   | "hub.trusted_devices.forgotten"
+  | "hub.sessions.revoked"
 >;
 
 // Un échec ou un verrouillage n'est pas le fait du titulaire du compte (ce

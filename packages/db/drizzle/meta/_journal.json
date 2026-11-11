@@ -708,6 +708,13 @@
       "when": 1794434024278,
       "tag": "0100_lot24a_vendors_organization_index",
       "breakpoints": true
+    },
+    {
+      "idx": 101,
+      "version": "7",
+      "when": 1794435670662,
+      "tag": "0101_lot24b_hub_member_removal",
+      "breakpoints": true
     }
   ]
 }

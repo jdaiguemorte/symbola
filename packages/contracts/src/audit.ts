@@ -34,6 +34,8 @@ export const AUDIT_ACTIONS = {
   "hub.password.reset": { category: "connexion", objectType: "user" },
   "hub.mfa.configured": { category: "connexion", objectType: "user" },
   "hub.trusted_devices.forgotten": { category: "connexion", objectType: "user" },
+  // Lot 24b (SEC-06) : « Déconnecter tous mes appareils ».
+  "hub.sessions.revoked": { category: "connexion", objectType: "user" },
   // Droits.
   "hub.organization.created": { category: "droits", objectType: "organization" },
   "hub.invitation.resent": { category: "droits", objectType: "organization" },
@@ -43,6 +45,8 @@ export const AUDIT_ACTIONS = {
   "hub.user.mfa_reset": { category: "droits", objectType: "user" },
   // Lot 24a (SEC-13, SC-S1) : identifiant introuvable demandé dans une adresse.
   "hub.access.refused": { category: "droits", objectType: null },
+  // Lot 24b (SEC-06, décision D3) : la titulaire retire l'accès d'un collaborateur.
+  "hub.member.removed": { category: "droits", objectType: "user" },
   // Administration de la plateforme (sans organisation).
   "hub.platform_settings.updated": { category: "administration", objectType: null },
   // Exports.

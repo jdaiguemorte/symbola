@@ -47,3 +47,5 @@ export { MfaKeyError, readMfaEncryptionKey } from "./secret-box";
 export { isPlannerRole, isProfessionalRole, ROLES, type Role } from "./roles";
 // Lot 24b (SEC-03, ADR 0063) : règle des mots de passe.
 export { checkPassword, isCompromisedPassword, type PasswordVerdict } from "./password-policy";
+// Lot 24b (SEC-06, décision D3) : équipe, retrait d'un accès, déconnexion de tous les appareils.
+export { listTeam, removeMember, revokeOtherSessions, type RemoveMemberOutcome, type TeamMember } from "./team";

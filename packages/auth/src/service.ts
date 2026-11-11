@@ -93,6 +93,12 @@ export async function login(db: AppDatabase, email: string, password: string, op
   // Lot 23 (SEC-19) : connexions, échecs et verrouillages au journal d'audit.
   const account = { id: user.id, organizationId: user.organizationId, role: user.role };
   const clientIp = options.clientIp;
+  // Lot 24b (SEC-06, décision D3) : un compte dont l'accès a été retiré ne se
+  // connecte plus ; la réponse est celle d'identifiants faux.
+  if (user.disabledAt) {
+    await journalConnection(db, account, "hub.session.failed", { details: { reason: "disabled" }, clientIp });
+    return { outcome: "invalid_credentials" };
+  }
   if (user.lockedUntil && user.lockedUntil.getTime() > Date.now()) {
     await journalConnection(db, account, "hub.session.failed", { details: { reason: "locked" }, clientIp });
     return { outcome: "locked" };
@@ -432,6 +438,7 @@ export async function requireUser(
       mfaEnabled: users.mfaEnabled,
       mfaVerified: sessions.mfaVerified,
       expiresAt: sessions.expiresAt,
+      disabledAt: users.disabledAt,
     })
     .from(sessions)
     .innerJoin(users, eq(users.id, sessions.userId))
@@ -439,6 +446,8 @@ export async function requireUser(
 
   if (!row) return { status: "unauthenticated" };
   if (row.expiresAt.getTime() < Date.now()) return { status: "unauthenticated" };
+  // Lot 24b (SEC-06) : accès retiré, refusé dès la requête suivante.
+  if (row.disabledAt) return { status: "unauthenticated" };
 
   // Session glissante (PRD PRD-HUB-01, « 8h sans activité ») : chaque appel
   // réussi repousse l'expiration, plutôt qu'une durée fixe depuis la
@@ -477,11 +486,11 @@ export async function findSessionActor(
 ): Promise<{ kind: "member" | "admin"; id: string } | null> {
   if (!sessionToken) return null;
   const [row] = await db
-    .select({ userId: users.id, role: users.role, mfaEnabled: users.mfaEnabled, mfaVerified: sessions.mfaVerified, expiresAt: sessions.expiresAt })
+    .select({ userId: users.id, role: users.role, mfaEnabled: users.mfaEnabled, mfaVerified: sessions.mfaVerified, expiresAt: sessions.expiresAt, disabledAt: users.disabledAt })
     .from(sessions)
     .innerJoin(users, eq(users.id, sessions.userId))
     .where(eq(sessions.tokenHash, hashSessionToken(sessionToken)));
-  if (!row || row.expiresAt.getTime() < Date.now()) return null;
+  if (!row || row.expiresAt.getTime() < Date.now() || row.disabledAt) return null;
   if ((isProfessionalRole(row.role) || row.mfaEnabled) && !row.mfaVerified) return null;
   return { kind: row.role === "admin" ? "admin" : "member", id: row.userId };
 }

@@ -440,7 +440,7 @@
     },
     "profile": {
       "title": "My account and security",
-      "body": "Choose the language Symbola uses for you. Your password and two-factor authentication protect your account; \"Forget all my devices\" asks for the code again on trusted devices.",
+      "body": "Choose the language Symbola uses for you. Your password and two-factor authentication protect your account; \"Forget all my devices\" asks for the code again on trusted devices. \"Sign out all my other devices\" closes your other sessions, for example after losing a phone.",
       "faq": [
         {
           "q": "How do I change my password?",
@@ -873,6 +873,10 @@
     "ledgerArchive": {
       "title": "Accounting archive",
       "body": "Each invoice, credit note and payment is chained to the previous one by a fingerprint, and each invoice is kept as issued. Download a year's entries for your accountant, find the originals, and check that nothing has been changed. Symbola also checks the chain every night."
+    },
+    "team": {
+      "title": "Team",
+      "body": "The accounts of your organization: you, the owner, and your team members. \"Remove access\" closes a team member's sessions right away, on all their devices, and stops them from signing in again; their work stays in the organization. The removal goes to the activity log."
     }
   },
   "Aide": {
@@ -3723,7 +3727,8 @@
     "documents": "Documents",
     "privacyAlerts": "{count, plural, one {# privacy request needs attention} other {# privacy requests need attention}}",
     "activityLog": "Activity log",
-    "accountingArchive": "Accounting archive"
+    "accountingArchive": "Accounting archive",
+    "team": "Team"
   },
   "Common": {
     "closePanel": "Close the panel",
@@ -3890,12 +3895,14 @@
     "openQuote": "View the quote",
     "openEvent": "View the event",
     "reasonLabel": "Reason: {reason}",
+    "sessionsRevoked": "{count, plural, =0 {no other session} one {# session closed} other {# sessions closed}}",
     "refusedRoute": "Requested address: {route}",
     "methodPassword": "with password",
     "methodCode": "with the code",
     "methodTrustedDevice": "trusted device",
     "failurePassword": "wrong password",
     "failureCode": "wrong code",
+    "failureDisabled": "access removed",
     "failureLocked": "account locked",
     "quoteVersion": "{number}, version {version}",
     "signers": "{number}, {count, plural, =1 {# signer} other {# signers}}",
@@ -3926,7 +3933,9 @@
       "hub_invitation_accepted": "Invitation accepted",
       "hub_module_enabled": "Module enabled",
       "hub_module_disabled": "Module disabled",
+      "hub_sessions_revoked": "All devices signed out",
       "hub_user_mfa_reset": "Two-factor authentication reset",
+      "hub_member_removed": "Team member access removed",
       "hub_access_refused": "Access refused: object not found",
       "hub_platform_settings_updated": "Platform settings changed",
       "hub_privacy_export_created": "GDPR export prepared",
@@ -4079,5 +4088,34 @@
       "object_altered": "Document altered, rank {sequence} ({kind})",
       "object_unchained": "Document without entry ({kind})"
     }
+  },
+  "Team": {
+    "title": "Team",
+    "subtitle": "Your organization's accounts, and removing access.",
+    "ownerOnly": "The team is managed by the account owner.",
+    "listTitle": "Team accounts",
+    "columnEmail": "Email",
+    "columnRole": "Role",
+    "columnLastLogin": "Last sign-in",
+    "columnAccess": "Access",
+    "columnActions": "Actions",
+    "roles": {
+      "owner": "Owner",
+      "member": "Team member"
+    },
+    "accessActive": "Active",
+    "accessRemoved": "Removed on {date}",
+    "remove": "Remove access for {email}",
+    "confirmTitle": "Remove access for {email}?",
+    "confirmBody": "Their sessions are closed right away, on all their devices, and this account can no longer sign in. Their work stays in the organization.",
+    "confirmRemove": "Remove access",
+    "cancel": "Cancel",
+    "removed": "Access removed. This account's sessions are closed."
+  },
+  "SignOutEverywhere": {
+    "title": "Signed-in devices",
+    "intro": "Lost phone, shared computer? Close all your other sessions; this one stays open, and the two-factor code will be asked again everywhere.",
+    "submit": "Sign out all my other devices",
+    "done": "{count, plural, =0 {No other session was open.} one {# other session closed.} other {# other sessions closed.}} Your trusted devices are forgotten."
   }
 }

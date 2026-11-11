@@ -28,7 +28,8 @@ export type PasswordResetRequest = { token: string; email: string; language: "fr
  */
 export async function requestPasswordReset(db: AppDatabase, email: string, now: Date = new Date()): Promise<PasswordResetRequest | null> {
   const [user] = await db.select().from(users).where(eq(users.email, email.trim()));
-  if (!user) return null;
+  // Lot 24b (SEC-06) : pas de lien pour un compte dont l'accès a été retiré.
+  if (!user || user.disabledAt) return null;
 
   const [recent] = await db
     .select({ id: passwordResets.id })
