@@ -1,0 +1,10 @@
+# Lot 22 (NFR-14) — occupation du disque du VPS signalée à Uptime Kuma.
+# Installation : docs/runbooks/surveillance.md.
+[Unit]
+Description=Symbola — occupation du disque signalée à Uptime Kuma
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/symbola/infra/monitoring/disk-check.sh

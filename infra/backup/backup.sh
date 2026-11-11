@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Sauvegarde nocturne d'un environnement (SOC-10) : PostgreSQL (dump) et Garage, plus
 # Uptime Kuma pour la production, et Documenso (base dédiée, DEV-02, ADR 0026) une
-# fois déployé, dans un dépôt restic chiffré propre à l'environnement.
+# fois déployé, dans un dépôt restic chiffré propre à l'environnement. Depuis le lot 22
+# (NFR-10, ADR 0051), ce dépôt est sur la Storage Box Hetzner, hors du VPS.
 #
 # Usage (sur le VPS, root, lancé par le timer systemd symbola-backup@<env>) :
 #   infra/backup/backup.sh staging|production
@@ -40,7 +41,7 @@ stopped=()
 
 restart_stopped() {
   local item
-  for item in "${stopped[@]}"; do
+  for item in ${stopped[@]+"${stopped[@]}"}; do
     "${item%%:*}_compose" start "${item#*:}" || log "ÉCHEC du redémarrage de ${item#*:} : à relancer à la main"
   done
   stopped=()
@@ -72,7 +73,7 @@ finish() {
 trap finish EXIT
 
 restic_run cat config >/dev/null 2>&1 ||
-  die "dépôt restic non initialisé ou mot de passe incorrect : $RESTIC_REPOSITORY (voir docs/runbooks/restauration.md, § 2)"
+  die "dépôt restic non initialisé, injoignable (réseau, clé ou empreinte refusée) ou mot de passe incorrect : $RESTIC_REPOSITORY (voir docs/runbooks/restauration.md, § 2)"
 
 log "$ENVIRONMENT_NAME : dump PostgreSQL"
 # Les variables sont celles du conteneur postgres : aucun identifiant ne transite par ce script.
@@ -106,12 +107,20 @@ RESTIC_MOUNTS=()
 
 log "$ENVIRONMENT_NAME : rétention"
 restic_run forget --tag "env:$ENVIRONMENT_NAME" \
-  --keep-daily "${KEEP_DAILY:-7}" --keep-weekly "${KEEP_WEEKLY:-4}" --keep-monthly "${KEEP_MONTHLY:-6}" \
+  --keep-daily "${KEEP_DAILY:-7}" --keep-weekly "${KEEP_WEEKLY:-4}" --keep-monthly "${KEEP_MONTHLY:-12}" \
   --prune
 
+# NFR-10 (lot 22) : la sauvegarde de la nuit doit se relire. Chaque nuit, contrôle de la
+# structure du dépôt ; le jour prévu, relecture d'une part des données et relevé de la
+# taille du dépôt (NFR-30). Un contrôle en échec arrête tout : aucun signal de succès.
 if [ "$(date +%u)" = "${CHECK_WEEKDAY:-7}" ]; then
   log "$ENVIRONMENT_NAME : contrôle d'intégrité du dépôt (${CHECK_SUBSET:-10%} des données relues)"
   restic_run check --read-data-subset="${CHECK_SUBSET:-10%}"
+  log "$ENVIRONMENT_NAME : taille du dépôt"
+  restic_run stats --mode raw-data
+else
+  log "$ENVIRONMENT_NAME : contrôle de la structure du dépôt"
+  restic_run check
 fi
 
 if [ -n "${BACKUP_PUSH_URL:-}" ]; then

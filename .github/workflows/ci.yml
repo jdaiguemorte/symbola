@@ -29,8 +29,8 @@ jobs:
         run: pnpm --filter @symbola/privacy check:registry
       - name: Traductions (HUB-04) — clés manquantes en FR ou EN
         run: pnpm --filter @symbola/i18n check:messages
-      - name: Scripts serveur (SOC-10, SOC-12) — shellcheck
-        run: shellcheck -x infra/server/*.sh infra/backup/*.sh infra/map/*.sh
+      - name: Scripts serveur (SOC-10, SOC-12, lot 22) — shellcheck
+        run: shellcheck -x infra/server/*.sh infra/backup/*.sh infra/map/*.sh infra/monitoring/*.sh
 
   db-isolation:
     name: Isolation RLS, authentification, événements et fichiers (services réels, SOC-04/05/06/08)

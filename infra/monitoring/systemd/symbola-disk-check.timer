@@ -1,0 +1,11 @@
+# Lot 22 (NFR-14) — toutes les 15 minutes ; un passage manqué (VPS éteint) est rattrapé
+# au démarrage. La sonde « Push » d'Uptime Kuma attend un signal toutes les 30 minutes.
+[Unit]
+Description=Symbola — contrôle du disque toutes les 15 minutes
+
+[Timer]
+OnCalendar=*:0/15
+Persistent=true
+
+[Install]
+WantedBy=timers.target
