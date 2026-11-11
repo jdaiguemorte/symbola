@@ -65,8 +65,8 @@ const ADDRESSES: { kind: "page" | "route"; path: (objects: Objects) => string }[
   { kind: "page", path: (o) => `/budget/${o.eventId}` },
   { kind: "page", path: (o) => `/devis/${o.quoteId}` },
   { kind: "page", path: (o) => `/prestataires/${o.vendorId}` },
-  { kind: "route", path: (o) => `/events/${o.eventId}/programme/pdf` },
-  { kind: "route", path: (o) => `/devis/${o.quoteId}/pdf` },
+  { kind: "route", path: (o) => `/events/${o.eventId}/programme/pdf?variant=couple` },
+  { kind: "route", path: (o) => `/devis/${o.quoteId}/pdf?version=1` },
   { kind: "route", path: (o) => `/devis/${o.quoteId}/signature/signed` },
   { kind: "route", path: (o) => `/prestataires/${o.vendorId}/fichiers/${randomUUID()}` },
 ];

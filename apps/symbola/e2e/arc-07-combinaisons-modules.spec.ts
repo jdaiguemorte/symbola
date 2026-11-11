@@ -16,7 +16,10 @@ import { createQuote } from "../modules/quotes/service";
 import { createVendor } from "../modules/vendors/service";
 import { mainMenu, readyOrganization } from "./helpers";
 
-const MODULE_HOME: Record<ModuleKey, string> = { events: "/events", budget: "/budget", quotes: "/devis", vendors: "/prestataires" };
+// Écran d'entrée de chaque module, et son lien au menu (le budget s'ouvre
+// depuis l'événement : pas d'entrée au menu).
+const MODULE_HOME: Record<ModuleKey, string> = { events: "/events", budget: "/budget/parametres", quotes: "/devis", vendors: "/prestataires" };
+const MENU_LINK: Record<ModuleKey, string | null> = { events: "/events", budget: null, quotes: "/devis", vendors: "/prestataires" };
 // Message « indisponible » propre à chaque module, et forme générale.
 const MODULE_UNAVAILABLE: Record<ModuleKey, string> = {
   events: "Le module Événements n'est pas activé pour votre organisation.",
@@ -78,9 +81,16 @@ function moduleOf(path: string): ModuleKey | null {
   return null;
 }
 
-// Liens internes du contenu d'une page (hors menu), sans paramètres.
-function linksOf(html: string): string[] {
-  const main = html.slice(Math.max(0, html.indexOf("<main")));
+// Contenu affiché d'une page : sa balise <main>, sans le menu ni les textes
+// traduits que la page embarque pour ses composants clients.
+function mainOf(html: string): string {
+  const start = html.indexOf("<main");
+  const end = html.indexOf("</main>", start);
+  return start < 0 ? "" : html.slice(start, end < 0 ? undefined : end);
+}
+
+// Liens internes du contenu d'une page, sans paramètres.
+function linksOf(main: string): string[] {
   return [...new Set([...main.matchAll(/href="(\/[^"?#]*)/g)].map((match) => match[1]!))];
 }
 
@@ -88,7 +98,7 @@ async function fetchPage(page: Page, path: string): Promise<{ status: number; ht
   const response = await page.request.get(path);
   // Texte rendu côté serveur : apostrophes et esperluettes échappées par React.
   const html = (await response.text()).replaceAll("&#x27;", "'").replaceAll("&amp;", "&");
-  return { status: response.status(), html };
+  return { status: response.status(), html: mainOf(html) };
 }
 
 test("ARC-07 — chaque combinaison de modules s'affiche sans erreur, et un module absent est indisponible", async ({ page }) => {
@@ -115,7 +125,8 @@ test("ARC-07 — chaque combinaison de modules s'affiche sans erreur, et un modu
     expect(home!.status(), combination).toBe(200);
     await expect(page.getByRole("heading", { level: 1 }), combination).toBeVisible();
     for (const moduleKey of MODULE_KEYS) {
-      await expect(mainMenu(page).locator(`a[href="${MODULE_HOME[moduleKey]}"]`), `${combination} ${moduleKey}`).toHaveCount(enabled.has(moduleKey) ? 1 : 0);
+      const link = MENU_LINK[moduleKey];
+      if (link) await expect(mainMenu(page).locator(`a[href="${link}"]`), `${combination} ${moduleKey}`).toHaveCount(enabled.has(moduleKey) ? 1 : 0);
     }
 
     // Chaque écran répond sans erreur ; celui d'un module absent dit « indisponible ».
