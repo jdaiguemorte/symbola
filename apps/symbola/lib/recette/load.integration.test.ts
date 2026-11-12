@@ -5,9 +5,9 @@
 import { randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { listEvents, listEventTasks, listVendorCandidates } from "@/modules/events/service";
+import { getEventProgram, listEventPlaces, listEvents, listEventTasks, listVendorCandidates } from "@/modules/events/service";
 import { findVendors } from "@/modules/vendors/service";
-import { loadRecette, percentages, recetteEmail, RecetteRefusedError } from "./load";
+import { addMinutes, loadRecette, percentages, recetteEmail, RecetteRefusedError } from "./load";
 
 const dataset: unknown = JSON.parse(readFileSync(new URL("../../../../docs/recette/symbola-synthetic-users.json", import.meta.url), "utf8"));
 
@@ -50,6 +50,16 @@ describe("DAT-10 — Jeu fictif chargeable en une commande", { timeout: 120_000 
     const florists = (await listVendorCandidates(ids["ORG-01"], wedding.id)).filter((candidate) => ["Élodie Perrin Fleurs", "Atelier Verveine", "Les Fleurs du Causse"].includes(candidate.vendorName));
     expect(florists.map((candidate) => candidate.status).sort()).toEqual(["dismissed", "quote_received", "quote_received"]);
     expect((await findVendors({ organizationId: ids["ORG-01"] })).map((vendor) => vendor.name)).toContain("Domaine des Tilleuls");
+    // Lot 29a (rejeu de SC-08) : le déroulé du 12 juin devient le programme (24 séquences ;
+    // le brunch du lendemain n'en est pas), avec le lieu, l'e-mail des mariés et les
+    // prestataires consultés rattachés à leur fiche (coordonnées du jour J).
+    const program = await getEventProgram(ids["ORG-01"], wedding.id);
+    expect(program.items).toHaveLength(24);
+    expect(program.items.find((item) => item.label === "Cérémonie laïque")).toMatchObject({ startTime: "15:30" });
+    expect((await listEventPlaces(ids["ORG-01"], wedding.id)).map((place) => place.label)).toEqual(["Domaine des Tilleuls"]);
+    expect(wedding.clients.map((client) => client.email)).toEqual([expect.stringMatching(/^lea\.martin\+.+@exemple\.test$/), expect.stringMatching(/^maxime\.dubois\+.+@exemple\.test$/)]);
+    const caterer = (await listVendorCandidates(ids["ORG-01"], wedding.id)).find((candidate) => candidate.vendorName === "Maison Haddad")!;
+    expect(caterer.vendorId).not.toBeNull();
     // Cloisonnement : rien de l'une chez l'autre.
     const eventIdsOf02 = new Set((await listEvents({ organizationId: ids["ORG-02"] })).map((event) => event.id));
     expect(eventsOf01.filter((event) => eventIdsOf02.has(event.id))).toEqual([]);
@@ -61,6 +71,11 @@ describe("DAT-10 — Jeu fictif chargeable en une commande", { timeout: 120_000 
     const ids = freshIds();
     await loadRecette(dataset, { nodeEnv: "test", organizationIds: ids, emailTag: randomUUID().slice(0, 8) });
     await expect(loadRecette(dataset, { nodeEnv: "test", organizationIds: ids, emailTag: randomUUID().slice(0, 8) })).rejects.toMatchObject({ reason: "already_loaded" });
+  });
+
+  it("lot 29a — une durée s'ajoute à l'heure de début, après minuit compris", () => {
+    expect(addMinutes("15:30", 45)).toBe("16:15");
+    expect(addMinutes("23:30", 90)).toBe("01:00");
   });
 
   it("dérive des adresses du domaine réservé à la fiction, et une répartition exacte du budget", () => {

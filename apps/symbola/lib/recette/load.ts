@@ -17,7 +17,9 @@ import { organizations } from "@symbola/db/schema/hub";
 import { addBudgetLine, addVendorPayment, createAllocationModel, setVendorPaymentPaid, simulateEventBudget, updateBudgetLine } from "@/modules/budget/service";
 import {
   addDefaultVendorSlots,
+  addEventPlace,
   addEventTask,
+  addProgramItem,
   addVendorCandidate,
   changeEventStatus,
   createEventLink,
@@ -29,6 +31,7 @@ import {
   listVendorCandidates,
   selectVendorCandidate,
   setEventWantedBudget,
+  updateEventClientContact,
   updateEventTask,
   updateVendorCandidate,
   type VendorCandidateStatus,
@@ -68,7 +71,20 @@ const datasetSchema = z.object({
       dates: z.array(z.string()).optional(),
       clients: z.array(z.object({ nom: z.string(), email: z.string(), role: z.string() })).optional(),
       client: z.object({ contact: z.string(), email: z.string() }).optional(),
-      lieux: z.array(z.object({ nom: z.string() })).optional(),
+      lieux: z.array(z.object({ nom: z.string(), commune: z.string().optional() })).optional(),
+      // Lot 29a (rejeu de SC-08) : déroulé du jour J, chargé comme programme.
+      chrono: z
+        .array(
+          z.object({
+            jour: z.string(),
+            heure: z.string().regex(/^\d{2}:\d{2}$/),
+            duree_min: z.number().int().nonnegative().optional(),
+            titre: z.string(),
+            lieu: z.string().nullable().optional(),
+            prestataire: z.string().nullable().optional(),
+          }),
+        )
+        .optional(),
       lieu: z.object({ nom: z.string(), commune: z.string().optional() }).optional(),
       prestataires: z
         .array(
@@ -258,9 +274,21 @@ export async function loadRecette(raw: unknown, options: RecetteOptions = {}): P
       const status = EVENT_STATUS[event.statut] ?? "confirmed";
       if (status !== "prospect") await changeEventStatus({ organizationId, eventId: created.id, changedByUserId: ownerId, toStatus: status });
 
+      // Lot 29a (rejeu de SC-08) : l'e-mail des clients et les lieux de l'événement,
+      // lus sur l'écran du jour J ; chaque fiche de prestataire est retenue pour être
+      // rattachée à sa consultation (coordonnées du jour J).
+      const createdClients = (await getEvent(organizationId, created.id))?.clients ?? [];
+      for (const [index, client] of clients.entries()) {
+        const clientId = createdClients[index]?.id;
+        const email = options.emailTag ? client.email.replace("@", `+${options.emailTag}@`) : client.email;
+        if (clientId) await updateEventClientContact({ organizationId, eventId: created.id, clientId, contact: { email } });
+      }
+      for (const place of event.lieux ?? []) await addEventPlace(organizationId, created.id, { label: place.nom, address: place.commune ?? null });
 
+      const vendorIds = new Map<string, string>();
       for (const vendor of event.prestataires ?? []) {
-        await createVendor(organizationId, { name: vendor.nom, typeId: null, contactName: vendor.contact ?? null, email: vendor.email ?? null, phone: vendor.telephone ?? null });
+        const saved = await createVendor(organizationId, { name: vendor.nom, typeId: null, contactName: vendor.contact ?? null, email: vendor.email ?? null, phone: vendor.telephone ?? null });
+        if (vendor.id) vendorIds.set(vendor.id, saved.vendor.id);
       }
       for (const task of event.taches ?? []) {
         const added = await addEventTask(organizationId, created.id, { label: task.titre, dueDate: task.echeance, responsible: task.responsable === "client" ? "clients" : "planner" });
@@ -304,8 +332,9 @@ export async function loadRecette(raw: unknown, options: RecetteOptions = {}): P
           guestCount: event.invites?.synthese.invites ?? event.participants ?? 0,
           allocationModelId: model.id,
         });
-        await loadBudgetLines(organizationId, ownerId, created.id, event);
+        await loadBudgetLines(organizationId, ownerId, created.id, event, vendorIds);
       }
+      await loadProgram(organizationId, created.id, event);
 
       // Lot 26a (UX-11, POR-01) : un lien personnel par client (profil
       // « Marié(e) ») et par payeur (profil « Payeur », limité à ses postes).
@@ -390,7 +419,13 @@ async function payerSlotIds(organizationId: string, eventId: string, payerName: 
 // prestataire rattaché (au statut du jeu), estimé, devisé et engagé, payé ;
 // échéances à venir. Un payé déjà versé sur une ligne qui a des échéances
 // devient une échéance payée (le payé d'une telle ligne en est la somme, D13).
-async function loadBudgetLines(organizationId: string, ownerId: string, eventId: string, event: RecetteDataset["evenements"][number]): Promise<void> {
+async function loadBudgetLines(
+  organizationId: string,
+  ownerId: string,
+  eventId: string,
+  event: RecetteDataset["evenements"][number],
+  vendorIds: Map<string, string>,
+): Promise<void> {
   const lines = event.budget?.lignes ?? [];
   const slotOf = new Map((await listEventVendorSlots(organizationId, eventId)).map((slot) => [slot.label, slot.id]));
   const vendorOf = new Map((event.prestataires ?? []).flatMap((vendor) => (vendor.id ? [[vendor.id, vendor]] : [])));
@@ -404,7 +439,7 @@ async function loadBudgetLines(organizationId: string, ownerId: string, eventId:
     const vendor = line.prestataire ? vendorOf.get(line.prestataire) : undefined;
     const slotId = slotOf.get(line.poste);
     if (!vendor || !slotId || candidateOf.has(`${slotId}:${line.prestataire}`)) continue;
-    const candidate = await addVendorCandidate({ organizationId, eventId, vendorSlotId: slotId, vendorName: vendor.nom });
+    const candidate = await addVendorCandidate({ organizationId, eventId, vendorSlotId: slotId, vendorName: vendor.nom, vendorId: vendorIds.get(line.prestataire!) ?? null });
     candidateOf.set(`${slotId}:${line.prestataire}`, candidate.id);
     const quote = lines.filter((other) => other.poste === line.poste && other.prestataire === line.prestataire).reduce((sum, other) => sum + (other.engage_centimes ?? 0), 0);
     statuses.push({ candidateId: candidate.id, status: VENDOR_STATUS[vendor.statut ?? ""] ?? "contacted", quote });
@@ -442,7 +477,7 @@ async function loadBudgetLines(organizationId: string, ownerId: string, eventId:
   for (const vendor of event.prestataires ?? []) {
     const slotId = slotForCategory(vendor.categorie);
     if (!vendor.id || attached.has(vendor.id) || !slotId) continue;
-    const candidate = await addVendorCandidate({ organizationId, eventId, vendorSlotId: slotId, vendorName: vendor.nom });
+    const candidate = await addVendorCandidate({ organizationId, eventId, vendorSlotId: slotId, vendorName: vendor.nom, vendorId: vendorIds.get(vendor.id) ?? null });
     statuses.push({ candidateId: candidate.id, status: VENDOR_STATUS[vendor.statut ?? ""] ?? "contacted", quote: 0 });
   }
 
@@ -471,4 +506,34 @@ async function loadBudgetLines(organizationId: string, ownerId: string, eventId:
       await addVendorPayment({ organizationId, eventId, lineId, label: payment.libelle, fixedAmountCents: payment.montant_centimes, dueOn: payment.date, changedByUserId: ownerId });
     }
   }
+}
+
+// Lot 29a (JRJ-02, rejeu de SC-08) : le déroulé du jour de l'événement devient son
+// programme (les autres jours, comme le brunch du lendemain, n'ont pas de place dans un
+// programme d'un jour). Un prestataire y participe par son poste, sinon par son nom.
+async function loadProgram(organizationId: string, eventId: string, event: RecetteDataset["evenements"][number]): Promise<void> {
+  const day = event.date ?? event.dates?.[0];
+  const sequences = (event.chrono ?? []).filter((sequence) => sequence.jour === day);
+  if (sequences.length === 0) return;
+  const slotOf = new Map((await listEventVendorSlots(organizationId, eventId)).map((slot) => [slot.label, slot.id]));
+  const vendorOf = new Map((event.prestataires ?? []).flatMap((vendor) => (vendor.id ? [[vendor.id, vendor]] : [])));
+  for (const sequence of sequences) {
+    const vendor = sequence.prestataire ? vendorOf.get(sequence.prestataire) : undefined;
+    const slotId = vendor ? slotOf.get(vendor.categorie) : undefined;
+    await addProgramItem(organizationId, eventId, {
+      startTime: sequence.heure,
+      endTime: sequence.duree_min ? addMinutes(sequence.heure, sequence.duree_min) : null,
+      label: sequence.titre,
+      location: sequence.lieu ?? null,
+      vendorSlotIds: slotId ? [slotId] : [],
+      freeParticipants: vendor && !slotId ? [vendor.nom] : [],
+    });
+  }
+}
+
+// « HH:MM » plus une durée ; après minuit, le programme lit une heure de fin plus petite.
+export function addMinutes(time: string, minutes: number): string {
+  const [hours, mins] = time.split(":").map(Number) as [number, number];
+  const total = (hours * 60 + mins + minutes) % 1440;
+  return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
 }
