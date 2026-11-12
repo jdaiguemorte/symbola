@@ -1,8 +1,8 @@
 # Lot 27 — Le portail du client
 
-**Statut** : proposition du 12/11/2026, en attente de la validation de Julien (schéma de données et
-parcours P0 : rien n'est codé avant). Branche `lot-27-portail-client`, partie du 26b
-(`lot-26b-prestataire-code`, PR #104) ; la PR visera `main`, après #103 et #104.
+**Statut** : spécification validée par Julien le 12/11/2026 (« Oui, comme recommandé » : D1 à D10
+en (a)). Branche `lot-27-portail-client`, partie du 26b (`lot-26b-prestataire-code`, PR #104) ; la
+PR visera `main`, après #103 et #104.
 
 ## Contexte
 
