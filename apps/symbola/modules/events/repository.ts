@@ -11,6 +11,7 @@ import {
   eventStatusHistory,
   eventTasks,
   eventTypes,
+  eventVendorCandidates,
   eventVendorSlots,
   lossReasons,
   programItemParticipants,
@@ -37,7 +38,7 @@ import {
   type TaskRecalculation,
   type TaskResponsible,
   type TaskTemplateItemInput,
-  type VendorSlotStatus,
+  type VendorCandidateStatus,
 } from "@symbola/contracts";
 import { addDays, daysBetween, dueDateFor } from "./schedule";
 
@@ -409,10 +410,11 @@ export async function updateEventVendorSlotRow(input: {
   organizationId: string;
   vendorSlotId: string;
   changedByUserId: string;
-  status: VendorSlotStatus;
+  // Lot 28a (PRE-02) : « Non requis », seule donnée propre au poste.
+  notRequired?: boolean | undefined;
   vendorName?: string | null | undefined;
   amountCents?: number | null | undefined;
-  // Lot 11 (L11-EVT-10) : consulté retenu ; effacé quand le poste n'est plus réservé.
+  // Lot 11 (L11-EVT-10) : prestataire retenu ; le poste est réservé quand il en a un.
   selectedCandidateId?: string | null | undefined;
 }): Promise<EventVendorSlotRow | null> {
   const db = appDatabase();
@@ -422,21 +424,21 @@ export async function updateEventVendorSlotRow(input: {
 
     const vendorName = input.vendorName === undefined ? current.vendorName : input.vendorName;
     const amountCents = input.amountCents === undefined ? current.amountCents : input.amountCents;
-    const selectedCandidateId =
-      input.selectedCandidateId !== undefined ? input.selectedCandidateId : input.status === "booked" ? current.selectedCandidateId : null;
+    const selectedCandidateId = input.selectedCandidateId !== undefined ? input.selectedCandidateId : current.selectedCandidateId;
+    const notRequired = input.notRequired ?? current.notRequired;
 
     const [updated] = await tx
       .update(eventVendorSlots)
-      .set({ status: input.status, vendorName, amountCents, selectedCandidateId, updatedAt: new Date() })
+      .set({ notRequired, vendorName, amountCents, selectedCandidateId, updatedAt: new Date() })
       .where(eq(eventVendorSlots.id, input.vendorSlotId))
       .returning();
     if (!updated) throw new Error("mise à jour du poste échouée");
 
-    // Publié à la réservation, puis à chaque changement de montant d'un
-    // poste réservé (le futur module Budget garde la dernière valeur).
-    const becomesBooked = current.status !== "booked" && updated.status === "booked";
+    // Publié quand un prestataire est retenu, puis à chaque changement de
+    // montant d'un poste réservé : le module Budget engage la ligne (lot 28a).
+    const becomesBooked = updated.selectedCandidateId !== null && updated.selectedCandidateId !== current.selectedCandidateId;
     const bookedAmountChanged =
-      current.status === "booked" && updated.status === "booked" && current.amountCents !== updated.amountCents;
+      current.selectedCandidateId !== null && updated.selectedCandidateId === current.selectedCandidateId && current.amountCents !== updated.amountCents;
     const [parent] = await tx.select({ isDemo: events.isDemo }).from(events).where(eq(events.id, updated.eventId));
     if ((becomesBooked || bookedAmountChanged) && !parent?.isDemo) {
       await emitDomainEvent(tx, {
@@ -456,6 +458,19 @@ export async function updateEventVendorSlotRow(input: {
 
     return updated;
   });
+}
+
+// Lot 28a (PRE-02) — statuts des prestataires rattachés, par poste, pour en
+// déduire le statut affiché de chaque poste.
+export async function findCandidateStatuses(organizationId: string, eventIds: string[]): Promise<{ vendorSlotId: string; status: VendorCandidateStatus }[]> {
+  if (eventIds.length === 0) return [];
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, (tx) =>
+    tx
+      .select({ vendorSlotId: eventVendorCandidates.vendorSlotId, status: eventVendorCandidates.status })
+      .from(eventVendorCandidates)
+      .where(inArray(eventVendorCandidates.eventId, eventIds)),
+  );
 }
 
 export async function deleteEventVendorSlot(organizationId: string, vendorSlotId: string): Promise<void> {

@@ -68,7 +68,7 @@ async function trialWithBudget(organizationId: string, now: Date) {
     organizationId,
     eventId: trial.eventId,
     eventVendorSlotId: slot!.id,
-    field: "planned",
+    field: "estimated",
     amountCents: 500000,
     changedByUserId: plannerId,
   });

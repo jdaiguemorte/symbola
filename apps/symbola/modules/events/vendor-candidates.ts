@@ -1,7 +1,7 @@
 // Lot 11 (L11-EVT-10 / L11-EVT-11, ADR 0031) — prestataires consultés pour un
 // poste : accès aux données et règles du module events. Exposé aux autres
 // modules seulement par service.ts (ADR 0011).
-import { and, asc, eq, inArray, isNotNull, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, isNotNull, ne, sql } from "drizzle-orm";
 import { appDatabase } from "@symbola/db/client";
 import { eventVendorCandidateNotes, eventVendorCandidates, events, eventVendorSlots } from "@symbola/db/schema/events";
 import { withOrganization } from "@symbola/db/with-organization";
@@ -14,6 +14,7 @@ import type {
   VendorCandidate,
   VendorConsultation,
 } from "@symbola/contracts";
+import { ENGAGED_CANDIDATE_STATUSES, type VendorCandidateStatus } from "@symbola/contracts";
 import { updateEventVendorSlotRow } from "./repository";
 
 type Tx = Parameters<Parameters<typeof withOrganization>[2]>[0];
@@ -50,7 +51,7 @@ function toCandidate(row: CandidateRow, notes: NoteRow[], selectedCandidateId: s
     vendorSlotId: row.vendorSlotId,
     vendorId: row.vendorId,
     vendorName: row.vendorName,
-    response: row.response,
+    status: row.status,
     contactedOn: row.contactedOn,
     quoteAmountCents: row.quoteAmountCents,
     currency: "EUR",
@@ -64,16 +65,11 @@ function toCandidate(row: CandidateRow, notes: NoteRow[], selectedCandidateId: s
   };
 }
 
-// Le poste avance de lui-même (« À trouver » → « Devis demandé » →
-// « Devis reçu »), jamais en arrière ni au-delà : réservé et non requis
-// restent tels quels.
-async function advanceSlot(tx: Tx, slotId: string, to: "quote_requested" | "quote_received"): Promise<void> {
-  const from = to === "quote_requested" ? ["to_find"] : ["to_find", "quote_requested"];
-  await tx
-    .update(eventVendorSlots)
-    .set({ status: to, updatedAt: new Date() })
-    .where(and(eq(eventVendorSlots.id, slotId), inArray(eventVendorSlots.status, from as ("to_find" | "quote_requested")[])));
-}
+// Lot 28a (PRE-02) : le statut du poste se déduit de ses prestataires ; il
+// n'avance plus de lui-même.
+const isEngaged = (status: VendorCandidateStatus) => ENGAGED_CANDIDATE_STATUSES.includes(status);
+// Un montant ou un devis reçu fait passer un prestataire pressenti ou consulté à « Devis reçu ».
+const withQuote = (status: VendorCandidateStatus): VendorCandidateStatus => (status === "shortlisted" || status === "contacted" ? "quote_received" : status);
 
 export async function listCandidates(organizationId: string, eventId: string): Promise<VendorCandidate[]> {
   return inOrganization(organizationId, async (tx) => {
@@ -118,7 +114,6 @@ export async function addCandidate(input: AddVendorCandidateInput): Promise<Vend
       })
       .returning();
     if (!row) throw new Error("ajout du prestataire consulté échoué");
-    await advanceSlot(tx, slot.id, "quote_requested");
     return toCandidate(row, [], slot.selectedCandidateId);
   });
 }
@@ -128,17 +123,20 @@ export async function updateCandidate(input: UpdateVendorCandidateInput): Promis
     if (!Number.isInteger(input.quoteAmountCents) || input.quoteAmountCents < 0) throw new RangeError("le montant doit être un nombre entier positif de centimes");
   }
   if (input.contactedOn && !DATE.test(input.contactedOn)) throw new RangeError("date invalide");
-  await inOrganization(input.organizationId, async (tx) => {
+  const outcome = await inOrganization(input.organizationId, async (tx) => {
     const [current] = await tx.select().from(eventVendorCandidates).where(eq(eventVendorCandidates.id, input.candidateId));
     if (!current) throw new VendorCandidateNotFoundError();
-    // Un montant saisi vaut réponse « devis reçu », même si le formulaire
-    // renvoie encore « contacté » (jamais pour un prestataire écarté).
-    const asked = input.response ?? current.response;
-    const response = input.quoteAmountCents != null && asked === "contacted" ? "quote_received" : asked;
+    const [slot] = await tx.select().from(eventVendorSlots).where(eq(eventVendorSlots.id, current.vendorSlotId));
+    const selected = slot?.selectedCandidateId === current.id;
+    // Un montant saisi vaut « Devis reçu » pour un prestataire pressenti ou consulté.
+    const asked = input.status ?? current.status;
+    const status = input.quoteAmountCents != null ? withQuote(asked) : asked;
+    // Passer à « Retenu » (ou au-delà) passe par la sélection, qui engage le budget.
+    const engaging = isEngaged(status) && !selected;
     await tx
       .update(eventVendorCandidates)
       .set({
-        response,
+        ...(engaging ? {} : { status }),
         ...(input.contactedOn !== undefined ? { contactedOn: input.contactedOn } : {}),
         ...(input.quoteAmountCents !== undefined ? { quoteAmountCents: input.quoteAmountCents } : {}),
         ...(input.shownToClients !== undefined ? { shownToClients: input.shownToClients } : {}),
@@ -146,8 +144,19 @@ export async function updateCandidate(input: UpdateVendorCandidateInput): Promis
         updatedAt: new Date(),
       })
       .where(eq(eventVendorCandidates.id, current.id));
-    if (response === "quote_received") await advanceSlot(tx, current.vendorSlotId, "quote_received");
+    // Revenir avant « Retenu » libère le poste ; l'engagé du budget reste à la main.
+    if (selected && !isEngaged(status)) {
+      await tx.update(eventVendorSlots).set({ selectedCandidateId: null, vendorName: null, amountCents: null, updatedAt: new Date() }).where(eq(eventVendorSlots.id, current.vendorSlotId));
+    }
+    const quoteChanged = input.quoteAmountCents !== undefined && input.quoteAmountCents !== current.quoteAmountCents;
+    return { engaging, status, selected: selected && isEngaged(status), quoteChanged, slotId: current.vendorSlotId, quote: input.quoteAmountCents ?? current.quoteAmountCents };
   });
+  if (outcome.engaging) {
+    await selectCandidate({ organizationId: input.organizationId, candidateId: input.candidateId, changedByUserId: input.changedByUserId ?? "", status: outcome.status });
+  } else if (outcome.selected && outcome.quoteChanged && outcome.quote !== null) {
+    // Le devis du prestataire retenu change : l'engagement du budget suit.
+    await updateEventVendorSlotRow({ organizationId: input.organizationId, vendorSlotId: outcome.slotId, changedByUserId: input.changedByUserId ?? "", amountCents: outcome.quote });
+  }
 }
 
 export async function linkCandidate(organizationId: string, candidateId: string, vendorId: string): Promise<void> {
@@ -185,11 +194,10 @@ export async function attachCandidateQuote(input: { organizationId: string; cand
         quoteFileKey: upload.key,
         quoteMime: upload.mime,
         quoteSizeBytes: upload.size,
-        response: current.response === "contacted" ? "quote_received" : current.response,
+        status: withQuote(current.status),
         updatedAt: new Date(),
       })
       .where(eq(eventVendorCandidates.id, current.id));
-    if (current.response !== "declined") await advanceSlot(tx, current.vendorSlotId, "quote_received");
     return current.quoteFileKey;
   });
   if (previousKey) await deletePrivateObject(createStorageClient(), previousKey).catch(() => undefined);
@@ -244,19 +252,61 @@ export async function removeCandidateNote(organizationId: string, noteId: string
 // ADR 0031 § 2) : même chemin que la réservation à la main, donc même
 // événement interne pour le budget. Sans montant de devis, le montant déjà
 // saisi sur le poste est gardé.
-export async function selectCandidate(input: { organizationId: string; candidateId: string; changedByUserId: string }): Promise<void> {
-  const candidate = await inOrganization(input.organizationId, async (tx) => (await tx.select().from(eventVendorCandidates).where(eq(eventVendorCandidates.id, input.candidateId)))[0]);
+// Lot 28a (PRE-02) — « Retenu » (ou au-delà) : le prestataire devient celui du
+// poste, et un seul l'est (celui qui l'était est écarté) ; l'engagement part au
+// budget par l'événement interne. Sans montant de devis, celui du poste reste.
+export async function selectCandidate(input: { organizationId: string; candidateId: string; changedByUserId: string; status?: VendorCandidateStatus }): Promise<void> {
+  const candidate = await inOrganization(input.organizationId, async (tx) => {
+    const [row] = await tx.select().from(eventVendorCandidates).where(eq(eventVendorCandidates.id, input.candidateId));
+    if (!row) return null;
+    const status = input.status && isEngaged(input.status) ? input.status : isEngaged(row.status) ? row.status : "retained";
+    // PRE-02 : un autre prestataire retenu écarte les autres prestataires du poste.
+    await tx
+      .update(eventVendorCandidates)
+      .set({ status: "dismissed", updatedAt: new Date() })
+      .where(and(eq(eventVendorCandidates.vendorSlotId, row.vendorSlotId), ne(eventVendorCandidates.id, row.id), ne(eventVendorCandidates.status, "dismissed")));
+    await tx.update(eventVendorCandidates).set({ status, updatedAt: new Date() }).where(eq(eventVendorCandidates.id, row.id));
+    return row;
+  });
   if (!candidate) throw new VendorCandidateNotFoundError();
   const updated = await updateEventVendorSlotRow({
     organizationId: input.organizationId,
     vendorSlotId: candidate.vendorSlotId,
     changedByUserId: input.changedByUserId,
-    status: "booked",
     vendorName: candidate.vendorName,
     ...(candidate.quoteAmountCents !== null ? { amountCents: candidate.quoteAmountCents } : {}),
     selectedCandidateId: candidate.id,
   });
   if (!updated) throw new VendorCandidateNotFoundError();
+}
+
+// Raccourci du formulaire du poste : retient un prestataire par son nom (celui
+// déjà rattaché au poste, ou un nouveau), au montant donné.
+export async function retainVendorByName(input: { organizationId: string; vendorSlotId: string; vendorName: string; amountCents: number | null; changedByUserId: string }): Promise<void> {
+  const name = input.vendorName.trim();
+  if (!name) throw new RangeError("le nom du prestataire est obligatoire");
+  const candidateId = await inOrganization(input.organizationId, async (tx) => {
+    const [slot] = await tx.select().from(eventVendorSlots).where(eq(eventVendorSlots.id, input.vendorSlotId));
+    if (!slot) throw new VendorCandidateNotFoundError();
+    const existing = (await tx.select().from(eventVendorCandidates).where(eq(eventVendorCandidates.vendorSlotId, slot.id))).find(
+      (row) => row.vendorName.trim().toLowerCase() === name.toLowerCase(),
+    );
+    if (existing) {
+      if (input.amountCents !== null) await tx.update(eventVendorCandidates).set({ quoteAmountCents: input.amountCents, updatedAt: new Date() }).where(eq(eventVendorCandidates.id, existing.id));
+      return existing.id;
+    }
+    const [{ next } = { next: 0 }] = await tx
+      .select({ next: sql<number>`coalesce(max(${eventVendorCandidates.position}) + 1, 0)::int` })
+      .from(eventVendorCandidates)
+      .where(eq(eventVendorCandidates.vendorSlotId, slot.id));
+    const [row] = await tx
+      .insert(eventVendorCandidates)
+      .values({ organizationId: input.organizationId, eventId: slot.eventId, vendorSlotId: slot.id, vendorName: name, quoteAmountCents: input.amountCents, position: next })
+      .returning();
+    if (!row) throw new Error("ajout du prestataire retenu échoué");
+    return row.id;
+  });
+  await selectCandidate({ organizationId: input.organizationId, candidateId, changedByUserId: input.changedByUserId });
 }
 
 export async function setSlotBrief(organizationId: string, vendorSlotId: string, brief: string | null): Promise<void> {

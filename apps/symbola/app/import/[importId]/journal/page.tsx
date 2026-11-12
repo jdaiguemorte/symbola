@@ -65,8 +65,9 @@ export default async function ImportJournalPage({
       return t(`itemKind.${item.kind}`, { title: [clients, date].filter(Boolean).join(", ") || t("rowWithoutLabel") });
     }
     if (item.kind === "budget_line") {
-      const planned = typeof values.plannedAmountCents === "number" ? formatAmount(values.plannedAmountCents, locale) : "";
-      return t(`itemKind.${item.kind}`, { title: planned });
+      // Lot 28a : l'estimé ; plannedAmountCents pour un import d'avant le lot.
+      const estimated = values.estimatedAmountCents ?? values.plannedAmountCents;
+      return t(`itemKind.${item.kind}`, { title: typeof estimated === "number" ? formatAmount(estimated, locale) : "" });
     }
     const label = item.kind === "vendor" ? values.name : values.label;
     return t(`itemKind.${item.kind}`, { title: typeof label === "string" ? label : t("rowWithoutLabel") });

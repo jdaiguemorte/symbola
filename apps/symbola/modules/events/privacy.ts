@@ -220,7 +220,7 @@ export const eventsPrivacy: PrivacyContractV1 = {
           kind: "event_vendor_slot",
           recordId: slot.id,
           label: slot.label,
-          fields: compact({ status: slot.status, vendorName: slot.vendorName, ...importedFieldsOf(slot.importedFields) }),
+          fields: compact({ ...(slot.notRequired ? { notRequired: "true" } : {}), vendorName: slot.vendorName, ...importedFieldsOf(slot.importedFields) }),
           eventId: slot.eventId,
         });
       }

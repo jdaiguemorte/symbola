@@ -79,7 +79,7 @@ test("PRD-BUD-01 — modèle de répartition, simulation et ajustement d'une lig
   // Lot 12 (L12-EVT-17) : le budget est un onglet de la fiche ; le module
   // Budget s'ouvre depuis son lien.
   await openEventTab(page, "Budget");
-  await page.getByRole("link", { name: "Proposer des montants prévus, historique et devis joints" }).click();
+  await page.getByRole("link", { name: "Proposer des montants estimés, historique et devis joints" }).click();
   await expect(page).toHaveURL(/\/budget\//);
   await expectNoAxeViolation(page);
 

@@ -61,6 +61,110 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     await expect(rollback("0099_inconnue")).rejects.toBeInstanceOf(RollbackRefusedError);
   });
 
+  it("lot 28a (PRE-02, BUD-01, ADR 0054) — 0103 et 0104 reprennent statuts et montants d'avant le lot, et s'annulent", async () => {
+    const statuses = "0103_lot28a_events_vendor_statuses";
+    const amounts = "0104_lot28a_budget_five_amounts";
+    await expect(rollback(statuses)).rejects.toBeInstanceOf(RollbackRefusedError);
+    await rollback(amounts);
+    expect(await hasColumn("budget", "budget_lines", "planned_amount_cents")).toBe(true);
+    expect(await hasColumn("budget", "budget_lines", "quoted_amount_cents")).toBe(false);
+    expect(await hasColumn("budget", "alert_thresholds", "percent")).toBe(false);
+    await rollback(statuses);
+    expect(await hasColumn("events", "event_vendor_slots", "status")).toBe(true);
+    expect(await hasColumn("events", "event_vendor_candidates", "response")).toBe(true);
+    expect(await hasColumn("events", "event_vendor_candidates", "status")).toBe(false);
+
+    // Données d'avant le lot : un traiteur réservé (deux consultés, un retenu), un
+    // lieu réservé saisi à la main, un fleuriste non requis, un DJ qui a décliné.
+    const organizationId = randomUUID();
+    const inOrganization = <T>(work: (tx: postgres.TransactionSql) => Promise<T>) =>
+      target.begin(async (tx) => {
+        await tx`select set_config('app.organization_id', ${organizationId}, true)`;
+        return work(tx);
+      }) as Promise<T>;
+    await inOrganization(async (tx) => {
+      const [event] = await tx<{ id: string }[]>`insert into events.events (organization_id) values (${organizationId}) returning id`;
+      const slot = async (label: string, status: string, vendorName: string | null, amountCents: number | null, position: number) =>
+        (
+          await tx<{ id: string }[]>`insert into events.event_vendor_slots (organization_id, event_id, label, status, vendor_name, amount_cents, position)
+            values (${organizationId}, ${event!.id}, ${label}, ${status}, ${vendorName}, ${amountCents}, ${position}) returning id`
+        )[0]!.id;
+      const candidate = async (slotId: string, vendorName: string, response: string, quoteCents: number | null, position: number) =>
+        (
+          await tx<{ id: string }[]>`insert into events.event_vendor_candidates (organization_id, event_id, vendor_slot_id, vendor_name, response, quote_amount_cents, position)
+            values (${organizationId}, ${event!.id}, ${slotId}, ${vendorName}, ${response}, ${quoteCents}, ${position}) returning id`
+        )[0]!.id;
+      const caterer = await slot("Traiteur", "booked", "Maison Verdier", 512000, 0);
+      const verdier = await candidate(caterer, "Maison Verdier", "quote_received", 512000, 0);
+      await candidate(caterer, "Les Tables", "quote_received", 448000, 1);
+      await tx`update events.event_vendor_slots set selected_candidate_id = ${verdier} where id = ${caterer}`;
+      const venue = await slot("Lieu", "booked", "Château", 900000, 1);
+      await slot("Fleuriste", "not_required", null, null, 2);
+      const dj = await slot("DJ", "quote_requested", null, null, 3);
+      await candidate(dj, "DJ Sam", "declined", null, 0);
+      for (const [slotId, planned, actual] of [
+        [caterer, 500000, 512000],
+        [venue, 1000000, 900000],
+      ] as const) {
+        const [line] = await tx<{ id: string }[]>`insert into budget.budget_lines (organization_id, event_id, event_vendor_slot_id, planned_amount_cents, actual_amount_cents)
+          values (${organizationId}, ${event!.id}, ${slotId}, ${planned}, ${actual}) returning id`;
+        await tx`insert into budget.budget_line_history (organization_id, line_id, field, old_value_cents, new_value_cents, changed_by_user_id)
+          values (${organizationId}, ${line!.id}, 'actual', null, ${actual}, ${organizationId})`;
+      }
+    });
+
+    await migrateAll();
+    const after = await inOrganization(async (tx) => ({
+      candidates: await tx<{ vendor: string; status: string }[]>`select vendor_name as vendor, status::text as status from events.event_vendor_candidates order by vendor_name`,
+      slots: await tx<{ label: string; not_required: boolean; selected: boolean }[]>`select label, not_required, selected_candidate_id is not null as selected from events.event_vendor_slots order by position`,
+      lines: await tx<{ estimated: number; quoted: number | null; committed: number; paid: number | null }[]>`select estimated_amount_cents as estimated, quoted_amount_cents as quoted, committed_amount_cents as committed, paid_amount_cents as paid
+        from budget.budget_lines order by estimated_amount_cents`,
+      fields: await tx<{ field: string }[]>`select distinct field::text as field from budget.budget_line_history`,
+    }));
+    expect(after.candidates.map((row) => [row.vendor, row.status])).toEqual([
+      ["Château", "retained"],
+      ["DJ Sam", "dismissed"],
+      ["Les Tables", "dismissed"],
+      ["Maison Verdier", "retained"],
+    ]);
+    expect(after.slots.map((row) => [row.label, row.not_required, row.selected])).toEqual([
+      ["Traiteur", false, true],
+      ["Lieu", false, true],
+      ["Fleuriste", true, false],
+      ["DJ", false, false],
+    ]);
+    expect(after.lines).toEqual([
+      { estimated: 500000, quoted: 512000, committed: 512000, paid: null },
+      { estimated: 1000000, quoted: 900000, committed: 900000, paid: null },
+    ]);
+    expect(after.fields).toEqual([{ field: "committed" }]);
+
+    // Retour à 0102 pour la suite : les réponses et le statut du poste reviennent.
+    await rollback(amounts);
+    await rollback(statuses);
+    const back = await inOrganization(async (tx) => ({
+      candidates: await tx<{ vendor: string; response: string }[]>`select vendor_name as vendor, response::text as response from events.event_vendor_candidates order by vendor_name`,
+      slots: await tx<{ label: string; status: string }[]>`select label, status::text as status from events.event_vendor_slots order by position`,
+      lines: await tx<{ planned: number; actual: number }[]>`select planned_amount_cents as planned, actual_amount_cents as actual from budget.budget_lines order by planned_amount_cents`,
+    }));
+    expect(back.candidates.map((row) => [row.vendor, row.response])).toEqual([
+      ["Château", "quote_received"],
+      ["DJ Sam", "declined"],
+      ["Les Tables", "declined"],
+      ["Maison Verdier", "quote_received"],
+    ]);
+    expect(back.slots.map((row) => [row.label, row.status])).toEqual([
+      ["Traiteur", "booked"],
+      ["Lieu", "booked"],
+      ["Fleuriste", "not_required"],
+      ["DJ", "to_find"],
+    ]);
+    expect(back.lines).toEqual([
+      { planned: 500000, actual: 512000 },
+      { planned: 1000000, actual: 900000 },
+    ]);
+  });
+
   it("lot 24b (SEC-22, SEC-06) — l'annulation de 0102 puis 0101 retire le plafond d'envois et la date de retrait des accès", async () => {
     await expect(rollback("0101_lot24b_hub_member_removal")).rejects.toBeInstanceOf(RollbackRefusedError);
     expect(await hasColumn("hub", "platform_settings", "mail_hourly_cap")).toBe(true);

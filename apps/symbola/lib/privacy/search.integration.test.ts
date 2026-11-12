@@ -45,7 +45,7 @@ async function seedWedding(planner: Planner, firstName: string, lastName: string
   });
   await addEventTask(planner.organizationId, eventId, { label: "Réserver le traiteur", dueDate: "2027-01-15", responsible: "planner" });
   const slot = await addEventVendorSlot(planner.organizationId, eventId, "Traiteur");
-  await updateBudgetLine({ organizationId: planner.organizationId, eventId, eventVendorSlotId: slot.id, field: "planned", amountCents: 800000, changedByUserId: planner.userId });
+  await updateBudgetLine({ organizationId: planner.organizationId, eventId, eventVendorSlotId: slot.id, field: "estimated", amountCents: 800000, changedByUserId: planner.userId });
   await withOrganization(db, planner.organizationId, async (tx) => {
     const [quote] = await tx
       .insert(quotes)

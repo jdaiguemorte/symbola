@@ -1,6 +1,7 @@
 // PRD-EVT-03 — lignes du budget (lot 12, ex-« postes ») : liste par défaut (modèle de départ),
-// barre d'avancement, statut Réservé avec prestataire obligatoire et
-// montant facultatif, postes modifiables événement par événement. En
+// barre d'avancement, prestataire retenu (nom obligatoire avec un montant, montant
+// facultatif ; lot 28a, PRE-02), case « Non requis », postes modifiables
+// événement par événement. En
 // taille ordinateur et en 375 px, axe-core sur chaque écran.
 import { randomUUID } from "node:crypto";
 import AxeBuilder from "@axe-core/playwright";
@@ -28,7 +29,7 @@ async function expectNoAxeViolation(page: Page) {
   expect(result.violations, JSON.stringify(result.violations, null, 2)).toEqual([]);
 }
 
-test("PRD-EVT-03 — lignes du budget par défaut, barre d'avancement et réservation d'un prestataire", async ({ page }) => {
+test("PRD-EVT-03 — lignes du budget par défaut, barre d'avancement et prestataire retenu", async ({ page }) => {
   const email = `planner-evt03-${randomUUID()}@symbola.test`;
   const password = "mot-de-passe-evt03-e2e";
   const { sql, db } = createAppConnection();
@@ -64,36 +65,36 @@ test("PRD-EVT-03 — lignes du budget par défaut, barre d'avancement et réserv
   await page.getByRole("button", { name: "Créer le prospect" }).click();
   await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}$/);
   await page.waitForLoadState("networkidle");
-  await expect(page.getByText("Aucune ligne réservée sur 11")).toBeVisible();
+  await expect(page.getByText("Aucune ligne pourvue sur 11")).toBeVisible();
   await expectNoAxeViolation(page);
 
   // Onglet Budget : un clic sur une ligne ouvre son détail dans le panneau.
   await openEventTab(page, "Budget");
-  await expect(page.getByText("Aucune ligne réservée sur 11")).toBeVisible();
+  await expect(page.getByText("Aucune ligne pourvue sur 11")).toBeVisible();
   await page.getByRole("link", { name: "Photographe", exact: true }).click();
 
-  // Réservé exige le nom du prestataire ; le montant est facultatif.
+  // Un montant exige le nom du prestataire retenu ; le montant est facultatif.
   const photographer = page.getByRole("group", { name: "Photographe" });
-  await photographer.getByLabel(/^Statut/).selectOption("booked");
+  await expect(photographer.getByText("À trouver")).toBeVisible();
+  await photographer.getByLabel("Montant engagé en euros (facultatif)").fill("2 500,50");
   await photographer.getByRole("button", { name: "Enregistrer la ligne" }).click();
-  await expect(photographer.getByText("Indiquez le nom du prestataire pour une ligne réservée.")).toBeVisible();
-  await photographer.getByLabel("Prestataire (obligatoire si Réservé)").fill("Studio Lumière");
-  await photographer.getByLabel("Montant en euros (facultatif)").fill("2 500,50");
+  await expect(photographer.getByText("Indiquez le nom du prestataire retenu pour saisir un montant.")).toBeVisible();
+  await photographer.getByLabel("Prestataire retenu (nom)").fill("Studio Lumière");
   await photographer.getByRole("button", { name: "Enregistrer la ligne" }).click();
   await expect(photographer.getByText("Ligne enregistrée.")).toBeVisible();
-  await expect(page.getByText("1 ligne réservée sur 11")).toBeVisible();
+  await expect(page.getByText("1 ligne pourvue sur 11")).toBeVisible();
   const photographerRow = page.getByRole("row", { name: /^Photographe/ });
   await expect(photographerRow).toContainText("Studio Lumière");
-  await expect(photographerRow).toContainText("Réservé");
+  await expect(photographerRow).toContainText("Retenu");
   await expect(photographerRow).toContainText(/2\s500,50\s€/);
 
   // Une ligne « Non requise » sort du compte des lignes requises.
   await page.getByRole("link", { name: "Vidéaste", exact: true }).click();
   const videographer = page.getByRole("group", { name: "Vidéaste" });
-  await videographer.getByLabel(/^Statut/).selectOption("not_required");
+  await videographer.getByLabel("Ligne non requise pour cet événement").check();
   await videographer.getByRole("button", { name: "Enregistrer la ligne" }).click();
   await expect(videographer.getByText("Ligne enregistrée.")).toBeVisible();
-  await expect(page.getByText("1 ligne réservée sur 10")).toBeVisible();
+  await expect(page.getByText("1 ligne pourvue sur 10")).toBeVisible();
 
   // Lignes modifiables événement par événement.
   await page.getByLabel("Nouvelle ligne du budget pour cet événement").fill("Wedding designer");
@@ -102,6 +103,6 @@ test("PRD-EVT-03 — lignes du budget par défaut, barre d'avancement et réserv
   await page.getByRole("link", { name: "Papeterie", exact: true }).click();
   await page.getByRole("button", { name: "Retirer la ligne « Papeterie »" }).click();
   await expect(page.getByRole("link", { name: "Papeterie", exact: true })).toHaveCount(0);
-  await expect(page.getByText("1 ligne réservée sur 10")).toBeVisible();
+  await expect(page.getByText("1 ligne pourvue sur 10")).toBeVisible();
   await expectNoAxeViolation(page);
 });

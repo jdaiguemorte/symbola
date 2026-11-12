@@ -80,7 +80,8 @@ test("L11-EVT-10 / L11-EVT-11 — comparer deux devis pour une ligne du budget, 
   await candidates.getByRole("button", { name: "Ajouter", exact: true }).click();
   const tables = candidates.getByRole("listitem", { name: "Les Tables de Flandre" });
   await expect(tables).toBeVisible();
-  await expect(page.getByRole("region", { name: "Lignes du budget" }).getByRole("row", { name: /Traiteur/ })).toContainText("Devis demandé");
+  // Lot 28a (PRE-02) : un prestataire ajouté est « Pressenti » ; le poste montre le statut le plus avancé.
+  await expect(page.getByRole("region", { name: "Lignes du budget" }).getByRole("row", { name: /Traiteur/ })).toContainText("Pressenti");
 
   // Devis, montré aux clients, notes « Clients » et interne.
   await tables.getByLabel("Montant du devis (€)").fill("4480");
@@ -97,14 +98,14 @@ test("L11-EVT-10 / L11-EVT-11 — comparer deux devis pour une ligne du budget, 
   await expect(page.getByRole("region", { name: "Lignes du budget" }).getByRole("row", { name: /Traiteur/ })).toContainText("Devis reçu");
   await expectNoAxeViolation(page);
 
-  // Retenir : le poste est réservé avec ce prestataire et son montant.
+  // Retenir : le poste est engagé avec ce prestataire et son montant ; l'autre est écarté.
   await tables.getByRole("button", { name: "Retenir Les Tables de Flandre" }).click();
   const row = page.getByRole("region", { name: "Lignes du budget" }).getByRole("row", { name: /Traiteur/ });
   await expect(row).toContainText("Les Tables de Flandre");
-  await expect(row).toContainText("Réservé");
+  await expect(row).toContainText("Retenu");
   await expect(row).toContainText("4 480,00 €");
-  await expect(candidates.getByRole("listitem", { name: "Les Tables de Flandre" }).getByText("Retenu", { exact: true })).toBeVisible();
-  await expect(candidates.getByRole("listitem", { name: "Maison Verdier" }).getByText("Non retenu")).toBeVisible();
+  await expect(candidates.getByRole("listitem", { name: "Les Tables de Flandre" }).getByLabel("Statut")).toHaveValue("retained");
+  await expect(candidates.getByRole("listitem", { name: "Maison Verdier" }).getByLabel("Statut")).toHaveValue("dismissed");
 
   // Les clients voient l'option montrée et la note « Clients », rien d'autre.
   const clientContext = await browser.newContext({ locale: "fr-FR", viewport: page.viewportSize() });

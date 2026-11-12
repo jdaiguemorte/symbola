@@ -8,7 +8,8 @@
 // couplage direct aux données internes d'un autre module. C'est un uuid
 // opaque, validé à la couche service via
 // eventsService.listDefaultVendorSlots(organizationId).
-import { integer, pgSchema, text, timestamp, uuid, index } from "drizzle-orm/pg-core";
+import { check, integer, pgSchema, text, timestamp, unique, uuid, index } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 
 export const budgetSchema = pgSchema("budget");
 
@@ -83,8 +84,12 @@ export const budgetLines = budgetSchema.table("budget_lines", {
   eventVendorSlotId: uuid("event_vendor_slot_id").notNull().unique(),
   // Lot 12 (L12-EVT-17) : prévu facultatif — la ligne existe dès qu'un montant
   // (prévu ou réel) est connu, sans répartition préalable.
-  plannedAmountCents: integer("planned_amount_cents"),
-  actualAmountCents: integer("actual_amount_cents"),
+  // Lot 28a (BUD-01, décision D2, ADR 0054) : cinq montants. Le reste à payer
+  // (engagé moins payé) se calcule, il ne se stocke pas.
+  estimatedAmountCents: integer("estimated_amount_cents"),
+  quotedAmountCents: integer("quoted_amount_cents"),
+  committedAmountCents: integer("committed_amount_cents"),
+  paidAmountCents: integer("paid_amount_cents"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
@@ -92,7 +97,7 @@ export const budgetLines = budgetSchema.table("budget_lines", {
   updatedBy: uuid("updated_by"),
 }, (table) => [index("budget_lines_organization_idx").on(table.organizationId)]);
 
-export const budgetLineFieldEnum = budgetSchema.enum("budget_line_field", ["planned", "actual"]);
+export const budgetLineFieldEnum = budgetSchema.enum("budget_line_field", ["estimated", "quoted", "committed", "paid"]);
 
 // PRD-BUD-02 : « chaque modification est historisée : ancienne valeur,
 // nouvelle valeur, auteur, date. »
@@ -133,3 +138,26 @@ export const budgetLineAttachments = budgetSchema.table("budget_line_attachments
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   updatedBy: uuid("updated_by"),
 }, (table) => [index("budget_line_attachments_organization_idx").on(table.organizationId)]);
+
+// Lot 28a (BUD-02, décision D4) — seuil d'alerte, en pourcentage de l'enveloppe
+// du client : celui de l'organisation (event_id nul, 90 % sans ligne), ajustable
+// par événement. Une donnée de réglage, jamais une constante du code.
+export const alertThresholds = budgetSchema.table(
+  "alert_thresholds",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    eventId: uuid("event_id"),
+    percent: integer("percent").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("alert_thresholds_organization_idx").on(table.organizationId),
+    unique("alert_thresholds_organization_event_unique").on(table.organizationId, table.eventId).nullsNotDistinct(),
+    check("alert_thresholds_percent_check", sql`${table.percent} between 1 and 500`),
+  ],
+);
+

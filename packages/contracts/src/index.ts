@@ -64,7 +64,7 @@ export type {
   UpdateVendorCandidateInput,
   VendorCandidate,
   VendorCandidateNote,
-  VendorCandidateResponse,
+  VendorCandidateStatus,
   VendorConsultation,
   UpdateEventVendorSlotInput,
   VendorSlotProgress,
@@ -98,12 +98,16 @@ export type {
   EventsTrial,
   StartEventsTrialInput,
 } from "./events/service-contract";
+export { ENGAGED_CANDIDATE_STATUSES, VENDOR_CANDIDATE_STATUSES } from "./events/service-contract";
 export type {
   AdjustEventBudgetItemInput,
   AllocationModel,
   AllocationModelItem,
   AllocationModelItemInput,
   AttachBudgetLineQuoteInput,
+  BudgetAlertSettings,
+  BudgetAmountField,
+  BudgetEnvelope,
   BudgetLine,
   BudgetLineAttachment,
   BudgetLineHistoryEntry,
@@ -113,9 +117,11 @@ export type {
   CreateAllocationModelInput,
   EventBudgetItem,
   EventBudgetView,
+  EngagementPreview,
   SimulateEventBudgetInput,
   UpdateBudgetLineInput,
 } from "./budget/service-contract";
+export { BUDGET_AMOUNT_FIELDS } from "./budget/service-contract";
 export type {
   CatalogItem,
   CatalogItemInput,

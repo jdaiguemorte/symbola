@@ -55,7 +55,7 @@ test("L13-EVT-19 — frise datée du statut, prochaine étape et chiffres clés"
   await expect(page.getByRole("heading", { name: "Prochaine étape : envoyer le devis" })).toBeVisible();
 
   // La vue d'ensemble tient en chiffres.
-  await expect(page.getByText("Lignes réservées", { exact: true })).toBeVisible();
+  await expect(page.getByText("Lignes pourvues", { exact: true })).toBeVisible();
   await expect(page.getByText("Tâches en retard", { exact: true })).toBeVisible();
   await expectNoAxeViolation(page);
 

@@ -66,13 +66,13 @@ describe("AIDE-08 — Recherche globale", { timeout: 30_000 }, () => {
     expect(byNumber.eventNames[event.id]).toBe("Marion & Julien");
   });
 
-  it("trouve un prestataire réservé par son nom", async () => {
+  it("trouve un prestataire retenu par son nom", async () => {
     const { organizationId, userId, sourceId } = await setup();
     await addDefaultVendorSlots(organizationId, ["Photographe"]);
     const event = await createProspect({ organizationId, createdByUserId: userId, prospectSourceId: sourceId, clients: [{ firstName: "Lou" }] });
     const slots = await listEventVendorSlots(organizationId, event.id);
     expect(slots.length).toBeGreaterThan(0);
-    await updateEventVendorSlot({ organizationId, vendorSlotId: slots[0]!.id, changedByUserId: userId, status: "booked", vendorName: "Atelier Lumière" });
+    await updateEventVendorSlot({ organizationId, vendorSlotId: slots[0]!.id, changedByUserId: userId, vendorName: "Atelier Lumière" });
     const found = await globalSearch({ organizationId, term: "lumiere", modules: all });
     expect(found.vendors).toEqual([expect.objectContaining({ eventId: event.id, vendorName: "Atelier Lumière", eventNames: "Lou" })]);
   });

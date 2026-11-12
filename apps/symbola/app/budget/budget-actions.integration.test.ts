@@ -95,7 +95,7 @@ async function setup() {
     organizationId,
     eventId: event.id,
     eventVendorSlotId: slot!.id,
-    field: "planned",
+    field: "estimated",
     amountCents: 600000,
     changedByUserId: planner.id,
   });
@@ -134,10 +134,10 @@ describe("PRD-BUD-04 — Un compte marié ne modifie jamais le budget, même par
     const { eventId, eventVendorSlotId, defaultVendorSlotId, organizationId } = context;
 
     expect(
-      await updateBudgetLineAction({}, form({ eventId, eventVendorSlotId, field: "actual", amount: "1" })),
+      await updateBudgetLineAction({}, form({ eventId, eventVendorSlotId, amount_committed: "1" })),
     ).toEqual({ error: "unauthenticated" });
     expect(
-      await updateBudgetLineAction({}, form({ eventId, eventVendorSlotId, field: "planned", amount: "1" })),
+      await updateBudgetLineAction({}, form({ eventId, eventVendorSlotId, amount_estimated: "1" })),
     ).toEqual({ error: "unauthenticated" });
     const quoteResponse = await attachQuote(attachQuoteRequest(eventId, { eventVendorSlotId, quote: new File([TINY_PDF], "devis.pdf", { type: "application/pdf" }) }), {
       params: Promise.resolve({ eventId }),
@@ -159,7 +159,7 @@ describe("PRD-BUD-04 — Un compte marié ne modifie jamais le budget, même par
     ).toMatchObject({ error: expect.any(String) });
 
     const view = await listBudgetLines(organizationId, eventId);
-    expect(view.lines.map((line) => [line.plannedAmountCents, line.actualAmountCents, line.attachments.length])).toEqual([
+    expect(view.lines.map((line) => [line.estimatedAmountCents, line.committedAmountCents, line.attachments.length])).toEqual([
       [600000, null, 0],
     ]);
     expect(await getEventBudget(organizationId, eventId)).toBeNull();
@@ -173,24 +173,24 @@ describe("PRD-BUD-04 — Un compte marié ne modifie jamais le budget, même par
     expect(
       await updateBudgetLineAction(
         {},
-        form({ eventId: context.eventId, eventVendorSlotId: context.eventVendorSlotId, field: "actual", amount: "6500" }),
+        form({ eventId: context.eventId, eventVendorSlotId: context.eventVendorSlotId, amount_committed: "6500" }),
       ),
     ).toEqual({ success: true });
     const view = await listBudgetLines(context.organizationId, context.eventId);
-    expect(view.lines[0]?.actualAmountCents).toBe(650000);
+    expect(view.lines[0]?.committedAmountCents).toBe(650000);
   });
 });
 
 // Lot 16 (suite de la recette des captures) : les montants du budget se
 // saisissent comme ailleurs dans l'app, en texte, et sont lus sans calcul à
 // virgule flottante (CLAUDE.md §5).
-describe("PRD-BUD-02 — Prévu et réel saisis en euros, au centime près", () => {
-  it("« 2 929,50 » et « 2929.50 » valent 292 950 centimes ; une saisie illisible est refusée ; un champ vide vaut 0 €", async () => {
+describe("PRD-BUD-02 — Montants saisis en euros, au centime près", () => {
+  it("« 2 929,50 » et « 2929.50 » valent 292 950 centimes ; une saisie illisible est refusée ; un champ vide ne change rien (lot 28a)", async () => {
     const context = await setup();
     sessionToken = context.plannerToken;
     const update = (amount: string) =>
-      updateBudgetLineAction({}, form({ eventId: context.eventId, eventVendorSlotId: context.eventVendorSlotId, field: "actual", amount }));
-    const actual = async () => (await listBudgetLines(context.organizationId, context.eventId)).lines[0]?.actualAmountCents;
+      updateBudgetLineAction({}, form({ eventId: context.eventId, eventVendorSlotId: context.eventVendorSlotId, amount_committed: amount }));
+    const actual = async () => (await listBudgetLines(context.organizationId, context.eventId)).lines[0]?.committedAmountCents;
 
     expect(await update("2 929,50")).toEqual({ success: true });
     expect(await actual()).toBe(292950);
@@ -199,6 +199,6 @@ describe("PRD-BUD-02 — Prévu et réel saisis en euros, au centime près", () 
     expect(await update("deux mille")).toEqual({ error: "invalidAmount" });
     expect(await actual()).toBe(292950);
     expect(await update("")).toEqual({ success: true });
-    expect(await actual()).toBe(0);
+    expect(await actual()).toBe(292950);
   });
 });

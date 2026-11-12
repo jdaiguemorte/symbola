@@ -1,0 +1,5 @@
+{
+  "version": 1,
+  "_source": "Lot 28a (BUD-02), décision D4 de Julien du 11/11/2026 : seuil d'alerte de départ, en pourcentage de l'enveloppe du client, modifiable par chaque organisation et par événement.",
+  "alertThresholdPercent": 90
+}

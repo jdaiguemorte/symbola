@@ -61,7 +61,7 @@ async function seedWedding(planner: Planner, firstName: string, lastName: string
   });
   await addEventTask(planner.organizationId, eventId, { label: `Appeler ${firstName}`, dueDate: "2027-01-15", responsible: "planner" });
   const slot = await addEventVendorSlot(planner.organizationId, eventId, "Traiteur");
-  await updateBudgetLine({ organizationId: planner.organizationId, eventId, eventVendorSlotId: slot.id, field: "planned", amountCents: 800000, changedByUserId: planner.userId });
+  await updateBudgetLine({ organizationId: planner.organizationId, eventId, eventVendorSlotId: slot.id, field: "estimated", amountCents: 800000, changedByUserId: planner.userId });
   await withOrganization(db, planner.organizationId, async (tx) => {
     await tx.update(events).set({ venueName: "Château des Lilas", venueCity: "Senlis" }).where(eq(events.id, eventId));
     await tx.update(eventVendorSlots).set({ vendorName: "Traiteur Dupont" }).where(eq(eventVendorSlots.id, slot.id));
@@ -178,7 +178,7 @@ describe("RGPD-03 — Demande d'oubli", { timeout: 30_000 }, () => {
     // Statistiques justes : statut, source, montants ; date ramenée au mois, lieu effacé.
     const [after] = await withOrganization(db, planner.organizationId, (tx) => tx.select().from(events).where(eq(events.id, eventId)));
     expect(after).toMatchObject({ status: before[0]!.status, prospectSourceId: planner.sourceId, eventDate: "2027-06-01", venueName: null, venueCity: null });
-    expect((await listBudgetLines(planner.organizationId, eventId)).lines.map((line) => line.plannedAmountCents)).toEqual([800000]);
+    expect((await listBudgetLines(planner.organizationId, eventId)).lines.map((line) => line.estimatedAmountCents)).toEqual([800000]);
     const [client] = await withOrganization(db, planner.organizationId, (tx) => tx.select().from(eventClients).where(eq(eventClients.eventId, eventId)));
     expect(client).toMatchObject({ firstName: "[anonymisé]", lastName: null });
     const signers = await withOrganization(db, planner.organizationId, (tx) => tx.select().from(quoteSigners));

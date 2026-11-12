@@ -709,7 +709,7 @@ export async function getVendorHistory(organizationId: string, vendorId: string,
     const eventIds = [...new Set(consultations.filter((entry) => entry.outcome === "selected").map((entry) => entry.eventId))];
     for (const eventId of eventIds) {
       const view = await listBudgetLines(organizationId, eventId);
-      for (const line of view.lines) actualBySlot.set(line.eventVendorSlotId, line.actualAmountCents);
+      for (const line of view.lines) actualBySlot.set(line.eventVendorSlotId, line.committedAmountCents);
     }
   }
   const entries = consultations.map(({ slotId, ...entry }) => ({

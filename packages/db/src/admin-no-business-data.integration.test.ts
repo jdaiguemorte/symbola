@@ -9,7 +9,7 @@
 import { randomUUID } from "node:crypto";
 import { afterAll, describe, expect, it } from "vitest";
 import { createAppConnection } from "./client";
-import { budgetLineAttachments, budgetLines } from "./schema/budget";
+import { alertThresholds, budgetLineAttachments, budgetLines } from "./schema/budget";
 import { vendors, vendorTypes } from "./schema/vendors";
 import { importItems, imports, privacyRequests } from "./schema/hub";
 import {
@@ -188,7 +188,7 @@ describe("PRD-HUB-03 — L'Admin ne lit jamais de donnée métier", () => {
     await withOrganization(db, organizationId, async (tx) => {
       const [line] = await tx
         .insert(budgetLines)
-        .values({ organizationId, eventId: randomUUID(), eventVendorSlotId: randomUUID(), plannedAmountCents: 0 })
+        .values({ organizationId, eventId: randomUUID(), eventVendorSlotId: randomUUID(), estimatedAmountCents: 0 })
         .returning();
       if (!line) throw new Error("insertion attendue");
       await tx.insert(budgetLineAttachments).values({
@@ -203,6 +203,18 @@ describe("PRD-HUB-03 — L'Admin ne lit jamais de donnée métier", () => {
 
     try {
       const rows = await db.select().from(budgetLineAttachments);
+      expect(rows).toHaveLength(0);
+    } catch (error) {
+      expect(error).toBeTruthy();
+    }
+  });
+
+  it("vaut aussi pour les seuils d'alerte du budget (BUD-02, lot 28a, PostgreSQL réel)", async () => {
+    const organizationId = randomUUID();
+    await withOrganization(db, organizationId, (tx) => tx.insert(alertThresholds).values({ organizationId, eventId: null, percent: 90 }));
+
+    try {
+      const rows = await db.select().from(alertThresholds);
       expect(rows).toHaveLength(0);
     } catch (error) {
       expect(error).toBeTruthy();

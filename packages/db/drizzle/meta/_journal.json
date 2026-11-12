@@ -722,6 +722,20 @@
       "when": 1794436027803,
       "tag": "0102_lot24b_hub_mail_cap",
       "breakpoints": true
+    },
+    {
+      "idx": 103,
+      "version": "7",
+      "when": 1794437767403,
+      "tag": "0103_lot28a_events_vendor_statuses",
+      "breakpoints": true
+    },
+    {
+      "idx": 104,
+      "version": "7",
+      "when": 1794437830899,
+      "tag": "0104_lot28a_budget_five_amounts",
+      "breakpoints": true
     }
   ]
 }

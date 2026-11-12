@@ -13,9 +13,12 @@ import {
   findBudgetLineByEventVendorSlotId,
   findBudgetLineHistory,
   findBudgetLines,
+  deleteEventAlertThreshold,
+  findAlertThresholds,
   findEventBudget,
   insertAllocationModel,
   setBudgetLineAmount,
+  upsertAlertThreshold,
   updateEventBudgetItemAmount,
   upsertEventBudget,
   type AllocationModelItemRow,
@@ -28,6 +31,9 @@ import {
   allocateFromModel,
   computeVariance,
   costPerGuestCents,
+  envelopeThresholdCents,
+  remainingToPayCents,
+  shareOfEnvelopePercent,
   isModelTotalValid,
   remainingToAllocateCents,
   sumAmountCents,
@@ -41,10 +47,14 @@ import {
   EventNotFoundError,
   type EventVendorSlot,
 } from "@/modules/events/service";
+import { starterBudgetAlertThreshold } from "@symbola/starter-templates";
 import type {
   AdjustEventBudgetItemInput,
   AllocationModel,
   AttachBudgetLineQuoteInput,
+  BudgetAlertSettings,
+  BudgetEnvelope,
+  EngagementPreview,
   BudgetLine,
   BudgetLineAttachment,
   BudgetLineHistoryEntry,
@@ -273,12 +283,15 @@ function toBudgetLineAttachment(row: BudgetLineAttachmentRow): BudgetLineAttachm
 }
 
 function toBudgetLine(line: BudgetLineRow, label: string, attachments: BudgetLineAttachmentRow[]): BudgetLine {
-  const { varianceCents, variancePercent } = computeVariance(line.plannedAmountCents, line.actualAmountCents);
+  const { varianceCents, variancePercent } = computeVariance(line.estimatedAmountCents, line.committedAmountCents);
   return {
     eventVendorSlotId: line.eventVendorSlotId,
     label,
-    plannedAmountCents: line.plannedAmountCents,
-    actualAmountCents: line.actualAmountCents,
+    estimatedAmountCents: line.estimatedAmountCents,
+    quotedAmountCents: line.quotedAmountCents,
+    committedAmountCents: line.committedAmountCents,
+    paidAmountCents: line.paidAmountCents,
+    remainingAmountCents: remainingToPayCents(line.committedAmountCents, line.paidAmountCents),
     varianceCents,
     variancePercent,
     attachments: attachments.filter((attachment) => attachment.lineId === line.id).map(toBudgetLineAttachment),
@@ -304,13 +317,84 @@ async function toBudgetLinesView(
   const mapped = [...lines]
     .sort((a, b) => (slotOrder.get(a.eventVendorSlotId) ?? Infinity) - (slotOrder.get(b.eventVendorSlotId) ?? Infinity))
     .map((line) => toBudgetLine(line, labelOf.get(line.eventVendorSlotId) ?? line.eventVendorSlotId, attachments));
+  const total = (pick: (line: BudgetLine) => number | null) => mapped.reduce((sum, line) => sum + (pick(line) ?? 0), 0);
+  const totalCommittedCents = total((line) => line.committedAmountCents);
   return {
     eventId,
     lines: mapped,
-    totalPlannedCents: mapped.reduce((sum, line) => sum + (line.plannedAmountCents ?? 0), 0),
-    totalActualCents: mapped.reduce((sum, line) => sum + (line.actualAmountCents ?? 0), 0),
-    totalVarianceCents: mapped.reduce((sum, line) => sum + (line.varianceCents ?? 0), 0),
+    totalEstimatedCents: total((line) => line.estimatedAmountCents),
+    totalQuotedCents: total((line) => line.quotedAmountCents),
+    totalCommittedCents,
+    totalPaidCents: total((line) => line.paidAmountCents),
+    totalRemainingCents: total((line) => line.remainingAmountCents),
+    totalVarianceCents: total((line) => line.varianceCents),
+    envelope: await budgetEnvelope(organizationId, eventId, totalCommittedCents),
   };
+}
+
+// Lot 28a (BUD-02, décision D4) — seuil d'alerte : celui de l'événement, sinon
+// celui de l'organisation, sinon la valeur de départ des modèles.
+export async function getBudgetAlertSettings(organizationId: string, eventId: string | null = null): Promise<BudgetAlertSettings> {
+  const stored = await findAlertThresholds(organizationId, eventId);
+  return { organizationPercent: stored.organization ?? starterBudgetAlertThreshold(), eventPercent: stored.event };
+}
+
+export class AlertThresholdInvalidError extends Error {
+  constructor() {
+    super("le seuil d'alerte doit être un pourcentage entier entre 1 et 500");
+    this.name = "AlertThresholdInvalidError";
+  }
+}
+
+function assertPercent(percent: number): void {
+  if (!Number.isInteger(percent) || percent < 1 || percent > 500) throw new AlertThresholdInvalidError();
+}
+
+export async function setOrganizationAlertThreshold(organizationId: string, percent: number): Promise<void> {
+  assertPercent(percent);
+  await upsertAlertThreshold(organizationId, null, percent);
+}
+
+// null : l'événement reprend le seuil de l'organisation.
+export async function setEventAlertThreshold(organizationId: string, eventId: string, percent: number | null): Promise<void> {
+  if (percent === null) return deleteEventAlertThreshold(organizationId, eventId);
+  assertPercent(percent);
+  const event = await getEvent(organizationId, eventId);
+  if (!event) throw new EventNotFoundError();
+  await upsertAlertThreshold(organizationId, eventId, percent);
+}
+
+// Enveloppe du client : son budget souhaité, sinon le total de la simulation.
+async function budgetEnvelope(organizationId: string, eventId: string, committedCents: number): Promise<BudgetEnvelope | null> {
+  const [event, simulation, settings] = await Promise.all([
+    getEvent(organizationId, eventId),
+    findEventBudget(organizationId, eventId),
+    getBudgetAlertSettings(organizationId, eventId),
+  ]);
+  const wanted = event?.wantedBudgetCents ?? null;
+  const amountCents = wanted ?? simulation?.budget.totalAmountCents ?? null;
+  if (amountCents === null || amountCents <= 0) return null;
+  const thresholdPercent = settings.eventPercent ?? settings.organizationPercent;
+  const thresholdCents = envelopeThresholdCents(amountCents, thresholdPercent);
+  return {
+    amountCents,
+    source: wanted !== null ? "wanted" : "simulation",
+    thresholdPercent,
+    thresholdCents,
+    committedPercent: shareOfEnvelopePercent(committedCents, amountCents),
+    exceeded: committedCents > thresholdCents,
+  };
+}
+
+// Lot 28a (BUD-02) — « l'alerte précède l'engagement » : l'engagé total si la
+// ligne du poste était engagée pour ce montant, comparé au seuil.
+export async function previewEngagement(input: { organizationId: string; eventId: string; eventVendorSlotId: string; amountCents: number }): Promise<EngagementPreview> {
+  const lines = await findBudgetLines(input.organizationId, input.eventId);
+  const others = lines.filter((line) => line.eventVendorSlotId !== input.eventVendorSlotId).reduce((sum, line) => sum + (line.committedAmountCents ?? 0), 0);
+  const committedAfterCents = others + input.amountCents;
+  const envelope = await budgetEnvelope(input.organizationId, input.eventId, committedAfterCents);
+  const overThresholdCents = envelope ? Math.max(0, committedAfterCents - envelope.thresholdCents) : 0;
+  return { envelope, committedAfterCents, exceedsThreshold: overThresholdCents > 0, overThresholdCents };
 }
 
 export async function listBudgetLines(organizationId: string, eventId: string): Promise<BudgetLinesView> {
@@ -354,7 +438,7 @@ export async function confirmEventBudget(input: ConfirmEventBudgetInput): Promis
       organizationId: input.organizationId,
       eventId: input.eventId,
       eventVendorSlotId: match.eventVendorSlotId,
-      field: "planned",
+      field: "estimated",
       amountCents: match.amountCents,
       changedByUserId: input.confirmedByUserId,
     });
@@ -367,6 +451,10 @@ export async function confirmEventBudget(input: ConfirmEventBudgetInput): Promis
 // crée la ligne si elle n'existe pas encore (un événement peut recevoir
 // un budget réel sans être jamais passé par la simulation).
 export async function updateBudgetLine(input: UpdateBudgetLineInput): Promise<BudgetLinesView> {
+  // Montants en centimes entiers, positifs ou nuls (CLAUDE.md § 5), quelle que soit l'entrée.
+  if (!Number.isInteger(input.amountCents) || input.amountCents < 0) {
+    throw new RangeError("le montant doit être un nombre entier positif de centimes");
+  }
   const event = await getEvent(input.organizationId, input.eventId);
   if (!event) throw new EventNotFoundError();
 
@@ -420,17 +508,29 @@ export async function applyVendorSlotBookedToBudget(
   const existing = await findBudgetLineByEventVendorSlotId(organizationId, payload.vendorSlotId);
   if (existing && occurredAt) {
     const history = await findBudgetLineHistory(organizationId, existing.id);
-    if (history.some((row) => row.field === "actual" && row.changedAt.getTime() > occurredAt.getTime())) return;
+    if (history.some((row) => row.field === "committed" && row.changedAt.getTime() > occurredAt.getTime())) return;
   }
 
+  // Lot 28a (PRE-02, BUD-01) : « Retenu » engage la ligne au montant du devis ;
+  // le devisé le reprend s'il n'a pas encore été saisi.
   await setBudgetLineAmount({
     organizationId,
     eventId: payload.eventId,
     eventVendorSlotId: payload.vendorSlotId,
-    field: "actual",
+    field: "committed",
     amountCents: payload.amountCents,
     changedByUserId: payload.bookedByUserId,
   });
+  if (existing?.quotedAmountCents == null) {
+    await setBudgetLineAmount({
+      organizationId,
+      eventId: payload.eventId,
+      eventVendorSlotId: payload.vendorSlotId,
+      field: "quoted",
+      amountCents: payload.amountCents,
+      changedByUserId: payload.bookedByUserId,
+    });
+  }
 }
 
 // PRD-BUD-03 — devis prestataire joint : mêmes règles que l'envoi de fichier

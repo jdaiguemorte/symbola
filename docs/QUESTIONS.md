@@ -551,6 +551,29 @@ données), et avant quel lot ? Les lots 31, 41, 42 et 57 en dépendent.
 
 ---
 
+## Questions ouvertes du lot 28
+
+### Q33 — Budget : une ligne par poste, ou des lignes sous chaque catégorie ?
+
+BUD-01 demande un budget « par catégories et lignes ». L'app tient **une ligne par poste** de
+l'évènement (Lieu, Traiteur…), qui sert de catégorie. Le jeu fictif, lui, range plusieurs lignes
+sous un même poste : « Location du domaine », « Ménage et gardiennage » et « Mobilier
+complémentaire » sous « Lieu de réception » (EV-REF-01). La spécification du lot 28, validée le
+11/11, ne l'avait pas relevé ; le lot 28a garde une ligne par poste (BUD-01 reste Partiel).
+
+- (a) Plusieurs lignes par poste, le poste devenant la catégorie : chaque ligne a ses cinq
+  montants, son prestataire, ses échéances et ses documents ; la catégorie totalise. À faire au
+  28b, avant l'échéancier, qui s'accroche à la ligne.
+- (b) Garder une ligne par poste ; le détail (location, ménage, mobilier) reste dans le devis du
+  prestataire.
+
+**Recommandation : (a)**, au début du 28b : l'échéancier et les documents du 28b se rattachent à
+une ligne, et la migration est plus simple avant qu'après.
+
+**Décision de Julien (12/11/2026) : (a), au début du 28b.**
+
+---
+
 ## Remarques sur le nouveau document lui-même
 
 - Les tableaux PRE, INV, POR, DOC, MSG, JRJ, RPT et TPS sont placés en annexe (§ 20), alors que

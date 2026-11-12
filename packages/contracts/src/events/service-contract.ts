@@ -124,8 +124,18 @@ export type LossReason = {
   isFreeText: boolean;
 };
 
-// PRD-EVT-03 — postes prestataires.
-export type VendorSlotStatus = "to_find" | "quote_requested" | "quote_received" | "booked" | "not_required";
+// Lot 28a (PRE-02, décisions Q9 et D3, ADR 0054) — statut d'un prestataire
+// rattaché à un événement, dans l'ordre de son avancée, plus « Écarté » (il a
+// décliné, ou un autre a été retenu).
+export const VENDOR_CANDIDATE_STATUSES = ["shortlisted", "contacted", "quote_received", "retained", "contract_signed", "paid_off", "dismissed"] as const;
+export type VendorCandidateStatus = (typeof VENDOR_CANDIDATE_STATUSES)[number];
+// « Retenu » et la suite engagent la ligne de budget liée.
+export const ENGAGED_CANDIDATE_STATUSES: readonly VendorCandidateStatus[] = ["retained", "contract_signed", "paid_off"];
+
+// PRD-EVT-03 — postes prestataires. Lot 28a : le poste n'a plus de statut à lui ;
+// il affiche le plus avancé de ses prestataires (« Écarté » ne compte pas),
+// « À trouver » sans prestataire, ou « Non requis ».
+export type VendorSlotStatus = "to_find" | "not_required" | Exclude<VendorCandidateStatus, "dismissed">;
 
 export type DefaultVendorSlot = {
   id: string;
@@ -139,7 +149,9 @@ export type EventVendorSlot = {
   id: string;
   eventId: string;
   label: string;
+  // Déduit de ses prestataires (lot 28a).
   status: VendorSlotStatus;
+  notRequired: boolean;
   vendorName: string | null;
   amountCents: number | null;
   currency: "EUR";
@@ -156,7 +168,6 @@ export type EventVendorSlot = {
 export type EventPlace = { id: string; eventId: string; label: string; address: string | null; vendorId: string | null };
 
 // Lot 11 (L11-EVT-10 / L11-EVT-11) — prestataires consultés pour un poste.
-export type VendorCandidateResponse = "contacted" | "quote_received" | "declined";
 export type VendorCandidateNote = { id: string; body: string; visibleToClients: boolean; createdAt: string };
 export type VendorCandidate = {
   id: string;
@@ -165,7 +176,7 @@ export type VendorCandidate = {
   // Fiche du carnet (module vendors), null en saisie libre.
   vendorId: string | null;
   vendorName: string;
-  response: VendorCandidateResponse;
+  status: VendorCandidateStatus;
   contactedOn: string | null;
   quoteAmountCents: number | null;
   currency: "EUR";
@@ -187,7 +198,9 @@ export type AddVendorCandidateInput = {
 export type UpdateVendorCandidateInput = {
   organizationId: string;
   candidateId: string;
-  response?: VendorCandidateResponse;
+  status?: VendorCandidateStatus;
+  // Auteur d'un passage à « Retenu » (événement interne pour le budget).
+  changedByUserId?: string;
   contactedOn?: string | null;
   quoteAmountCents?: number | null;
   shownToClients?: boolean;
@@ -211,8 +224,10 @@ export type UpdateEventVendorSlotInput = {
   organizationId: string;
   vendorSlotId: string;
   changedByUserId: string;
-  status: VendorSlotStatus;
-  // Obligatoire quand le statut est « booked » (PRD PRD-EVT-03).
+  // Lot 28a : « Non requis », la seule chose propre au poste.
+  notRequired?: boolean;
+  // Raccourci du formulaire du poste : un nom retient ce prestataire (créé au
+  // besoin parmi les prestataires rattachés), au montant donné.
   vendorName?: string | null | undefined;
   amountCents?: number | null | undefined;
 };
@@ -451,7 +466,7 @@ export interface EventsServiceContract {
   reorderDefaultVendorSlots(organizationId: string, orderedIds: string[]): Promise<void>;
   listEventVendorSlots(organizationId: string, eventId: string): Promise<EventVendorSlot[]>;
   addEventVendorSlot(organizationId: string, eventId: string, label: string): Promise<EventVendorSlot>;
-  updateEventVendorSlot(input: UpdateEventVendorSlotInput): Promise<EventVendorSlot>;
+  updateEventVendorSlot(input: UpdateEventVendorSlotInput): Promise<void>;
   removeEventVendorSlot(organizationId: string, vendorSlotId: string): Promise<void>;
   setVendorSlotBrief(organizationId: string, vendorSlotId: string, brief: string | null): Promise<void>;
   listEventPlaces(organizationId: string, eventId: string): Promise<EventPlace[]>;

@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { listDefaultVendorSlots } from "@/modules/events/service";
 import {
+  AlertThresholdInvalidError,
+  setOrganizationAlertThreshold,
   AllocationModelTotalInvalidError,
   DefaultVendorSlotNotFoundError,
   createAllocationModel,
@@ -65,4 +67,20 @@ export async function removeAllocationModelAction(formData: FormData): Promise<v
   const modelId = String(formData.get("modelId") ?? "");
   await removeAllocationModel(organizationId, modelId);
   revalidatePath("/budget/parametres");
+}
+
+// Lot 28a (BUD-02, décision D4) : seuil d'alerte de l'organisation, en
+// pourcentage de l'enveloppe du client.
+export async function setOrganizationAlertThresholdAction(_prevState: AllocationModelFormState, formData: FormData): Promise<AllocationModelFormState> {
+  const t = await getTranslations("Budget");
+  const organizationId = await authorizedOrganizationId();
+  if (!organizationId) return { error: t("unauthenticated") };
+  try {
+    await setOrganizationAlertThreshold(organizationId, Number(String(formData.get("percent") ?? "")));
+  } catch (error) {
+    if (error instanceof AlertThresholdInvalidError) return { error: t("thresholdInvalid") };
+    throw error;
+  }
+  revalidatePath("/budget/parametres");
+  return { success: true };
 }

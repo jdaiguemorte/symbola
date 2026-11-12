@@ -1,5 +1,5 @@
-// PRD-BUD-04 — le marié invité voit le budget de son événement (poste, prévu,
-// réel, écart, totaux) en lecture seule, sans aucun formulaire, et les
+// PRD-BUD-04 — le marié invité voit le budget de son événement (poste, estimé,
+// engagé, écart, totaux) en lecture seule, sans aucun formulaire, et les
 // écrans budget de la planner lui restent fermés. En taille ordinateur et
 // en 375 px, axe-core sur chaque écran.
 import { randomUUID } from "node:crypto";
@@ -58,7 +58,7 @@ test("PRD-BUD-04 — le marié consulte le budget de son événement en lecture 
   }
   await loginAndSetupMfa(page, email, password);
 
-  // Prérequis (même parcours que PRD-BUD-02) : postes, source, modèle, budget prévu.
+  // Prérequis (même parcours que PRD-BUD-02) : postes, source, modèle, budget estimé.
   await page.goto("/events/parametres");
   await page.waitForLoadState("networkidle");
   await page.getByRole("button", { name: "Charger le modèle de départ" }).click();
@@ -84,7 +84,7 @@ test("PRD-BUD-04 — le marié consulte le budget de son événement en lecture 
   // Lot 12 (L12-EVT-17) : le budget est un onglet de la fiche ; le module
   // Budget s'ouvre depuis son lien.
   await openEventTab(page, "Budget");
-  await page.getByRole("link", { name: "Proposer des montants prévus, historique et devis joints" }).click();
+  await page.getByRole("link", { name: "Proposer des montants estimés, historique et devis joints" }).click();
   await page.getByLabel("Budget total (€)").fill("10000");
   await page.getByLabel("Nombre d'invités").fill("40");
   await page.getByLabel("Modèle de répartition").selectOption({ label: "Classique" });
@@ -93,16 +93,17 @@ test("PRD-BUD-04 — le marié consulte le budget de son événement en lecture 
   await page.goto(eventUrl);
   await page.waitForLoadState("networkidle");
   await changeEventStatus(page, "Confirmé");
-  await page.getByRole("button", { name: "En faire le budget prévu" }).click();
-  await expect(page.getByRole("heading", { name: "Faire de la simulation le budget prévu" })).toHaveCount(0);
+  await page.getByRole("button", { name: "En faire le budget estimé" }).click();
+  await expect(page.getByRole("heading", { name: "Faire de la simulation le budget estimé" })).toHaveCount(0);
 
-  // La planner saisit un réel sur le lieu (6 000 € prévus, 7 000 € réels).
+  // La planner saisit un engagé sur le lieu (6 000 € estimés, 7 000 € engagés).
   const eventId = eventUrl.split("/").pop()!;
   await page.goto(`/budget/${eventId}`);
   await page.waitForLoadState("networkidle");
-  const plannerRow = page.getByRole("table", { name: "Prévu, réel, écart" }).getByRole("row", { name: /Lieu de réception/ });
-  await plannerRow.getByLabel(/Réel —/).fill("7000");
-  await plannerRow.getByRole("button", { name: "Mettre à jour le réel" }).click();
+  const plannerRow = page.getByRole("table", { name: "Estimé, devisé, engagé, payé" }).getByRole("row", { name: /Lieu de réception/ });
+  await plannerRow.getByText("Modifier « Lieu de réception »").click();
+  await plannerRow.getByLabel("Engagé — Lieu de réception").fill("7000");
+  await plannerRow.getByRole("button", { name: "Enregistrer la ligne" }).click();
   await expect(plannerRow).toContainText("Dépassement de 1 000,00 €");
 
   // Elle invite le marié depuis la fiche.
@@ -132,7 +133,7 @@ test("PRD-BUD-04 — le marié consulte le budget de son événement en lecture 
   // PRD-BUD-04 : le budget apparaît dans son espace, en lecture seule.
   await couple.goto(`/espace/${eventId}`);
   const budget = couple.getByRole("region", { name: "Budget" });
-  const table = budget.getByRole("table", { name: "Prévu, réel, écart" });
+  const table = budget.getByRole("table", { name: "Estimé, engagé, écart" });
   const coupleRow = table.getByRole("row", { name: /Lieu de réception/ });
   await expect(coupleRow).toContainText("6 000,00 €");
   await expect(coupleRow).toContainText("7 000,00 €");

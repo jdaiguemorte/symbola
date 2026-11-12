@@ -7,8 +7,9 @@ import { afterAll, describe, expect, it } from "vitest";
 import { createOrganization, createUser } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
 import { events } from "@symbola/db/schema/events";
+import { importItems } from "@symbola/db/schema/hub";
 import { withOrganization } from "@symbola/db/with-organization";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { listBudgetLines, updateBudgetLine } from "@/modules/budget/service";
 import {
   addEventVendorSlot,
@@ -280,7 +281,7 @@ describe("IMP-05 — Aperçu et annulation", () => {
     const planner = await createPlanner();
     const eventId = await createEvent(planner, "2027-06-12", [{ firstName: "Élodie", lastName: "Durand" }]);
     const caterer = await addEventVendorSlot(planner.organizationId, eventId, "Traiteur");
-    await updateBudgetLine({ organizationId: planner.organizationId, eventId, eventVendorSlotId: caterer.id, field: "planned", amountCents: 800000, changedByUserId: planner.userId });
+    await updateBudgetLine({ organizationId: planner.organizationId, eventId, eventVendorSlotId: caterer.id, field: "estimated", amountCents: 800000, changedByUserId: planner.userId });
     const importId = await preparedImport(
       planner,
       "budget_lines",
@@ -292,7 +293,7 @@ describe("IMP-05 — Aperçu et annulation", () => {
     expect(await confirmImport({ ...planner, importId })).toMatchObject({ status: "applied", result: { created: 1, updated: 1 } });
 
     const lines = await listBudgetLines(planner.organizationId, eventId);
-    expect(lines.lines.map((line) => [line.label, line.plannedAmountCents, line.actualAmountCents])).toEqual(
+    expect(lines.lines.map((line) => [line.label, line.estimatedAmountCents, line.committedAmountCents])).toEqual(
       expect.arrayContaining([
         ["Traiteur", 850000, 872040],
         ["Fleuriste", 120000, null],
@@ -302,10 +303,40 @@ describe("IMP-05 — Aperçu et annulation", () => {
 
     await undoImport({ ...planner, importId });
     const after = await listBudgetLines(planner.organizationId, eventId);
-    expect(after.lines.map((line) => [line.label, line.plannedAmountCents, line.actualAmountCents])).toEqual([["Traiteur", 800000, null]]);
+    expect(after.lines.map((line) => [line.label, line.estimatedAmountCents, line.committedAmountCents])).toEqual([["Traiteur", 800000, null]]);
     const slots = await listEventVendorSlots(planner.organizationId, eventId);
     expect(slots.some((slot) => slot.label === "Fleuriste")).toBe(false);
     expect(slots.find((slot) => slot.id === caterer.id)?.vendorName).toBeNull();
+  });
+
+  it("lot 28a (BUD-01) — un import du budget fait avant le lot (prévu, réel) s'annule encore : ses montants deviennent l'estimé et l'engagé", async () => {
+    const planner = await createPlanner();
+    const eventId = await createEvent(planner, "2027-06-12", [{ firstName: "Élodie", lastName: "Durand" }]);
+    const caterer = await addEventVendorSlot(planner.organizationId, eventId, "Traiteur");
+    await updateBudgetLine({ organizationId: planner.organizationId, eventId, eventVendorSlotId: caterer.id, field: "estimated", amountCents: 800000, changedByUserId: planner.userId });
+    const importId = await preparedImport(
+      planner,
+      "budget_lines",
+      "Date du mariage;Prénom client 1;Nom client 1;Poste;Prestataire;Prévu;Réel\n" + "12/06/2027;Élodie;Durand;Traiteur;Saveurs & Co;8 500;8 720,40\n",
+    );
+    await acceptAllMatches(planner, importId);
+    await confirmImport({ ...planner, importId });
+    // La trace d'un import d'avant le lot porte les anciens noms.
+    const OLD: Record<string, string> = { estimatedAmountCents: "plannedAmountCents", committedAmountCents: "actualAmountCents" };
+    const legacy = (values: Record<string, unknown> | null) =>
+      values === null ? null : Object.fromEntries(Object.entries(values).map(([key, value]) => [OLD[key] ?? key, value]));
+    const renamed = await withOrganization(db, planner.organizationId, async (tx) => {
+      const items = await tx.select().from(importItems).where(and(eq(importItems.importId, importId), eq(importItems.kind, "budget_line")));
+      for (const item of items) {
+        await tx.update(importItems).set({ previous: legacy(item.previous), written: legacy(item.written) }).where(eq(importItems.id, item.id));
+      }
+      return tx.select().from(importItems).where(and(eq(importItems.importId, importId), eq(importItems.kind, "budget_line")));
+    });
+    expect(renamed.map((item) => Object.keys(item.written ?? {}).sort())).toEqual([["actualAmountCents", "plannedAmountCents"]]);
+
+    await undoImport({ ...planner, importId });
+    const after = await listBudgetLines(planner.organizationId, eventId);
+    expect(after.lines.map((line) => [line.label, line.estimatedAmountCents, line.committedAmountCents])).toEqual([["Traiteur", 800000, null]]);
   });
 
   it("catalogue : taux de TVA par défaut de l'organisation (franchise : 0), article mis à jour puis restauré", async () => {

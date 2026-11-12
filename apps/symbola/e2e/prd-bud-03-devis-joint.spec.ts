@@ -40,7 +40,7 @@ test("PRD-BUD-03 — joindre le devis d'un prestataire à une ligne et l'ouvrir 
   }
   await loginAndSetupMfa(page, email, password);
 
-  // Prérequis (même parcours que PRD-BUD-02) : postes, source, modèle, budget prévu.
+  // Prérequis (même parcours que PRD-BUD-02) : postes, source, modèle, budget estimé.
   await page.goto("/events/parametres");
   await page.waitForLoadState("networkidle");
   await page.getByRole("button", { name: "Charger le modèle de départ" }).click();
@@ -66,7 +66,7 @@ test("PRD-BUD-03 — joindre le devis d'un prestataire à une ligne et l'ouvrir 
   // Lot 12 (L12-EVT-17) : le budget est un onglet de la fiche ; le module
   // Budget s'ouvre depuis son lien.
   await openEventTab(page, "Budget");
-  await page.getByRole("link", { name: "Proposer des montants prévus, historique et devis joints" }).click();
+  await page.getByRole("link", { name: "Proposer des montants estimés, historique et devis joints" }).click();
   await page.getByLabel("Budget total (€)").fill("10000");
   await page.getByLabel("Nombre d'invités").fill("40");
   await page.getByLabel("Modèle de répartition").selectOption({ label: "Classique" });
@@ -75,13 +75,14 @@ test("PRD-BUD-03 — joindre le devis d'un prestataire à une ligne et l'ouvrir 
   await page.goto(eventUrl);
   await page.waitForLoadState("networkidle");
   await changeEventStatus(page, "Confirmé");
-  await page.getByRole("button", { name: "En faire le budget prévu" }).click();
-  await expect(page.getByRole("heading", { name: "Faire de la simulation le budget prévu" })).toHaveCount(0);
+  await page.getByRole("button", { name: "En faire le budget estimé" }).click();
+  await expect(page.getByRole("heading", { name: "Faire de la simulation le budget estimé" })).toHaveCount(0);
 
   // PRD-BUD-03 : un format non supporté est refusé avec un message clair.
   await page.goto(eventUrl.replace("/events/", "/budget/"));
   await page.waitForLoadState("networkidle");
-  const lieuRow = page.getByRole("table", { name: "Prévu, réel, écart" }).getByRole("row", { name: /Lieu de réception/ });
+  const lieuRow = page.getByRole("table", { name: "Estimé, devisé, engagé, payé" }).getByRole("row", { name: /Lieu de réception/ });
+  await lieuRow.getByText("Modifier « Lieu de réception »").click();
   const quoteInput = lieuRow.getByLabel(/Devis du prestataire — Lieu de réception/);
   await quoteInput.setInputFiles({ name: "devis.txt", mimeType: "text/plain", buffer: Buffer.from("devis en texte") });
   await lieuRow.getByRole("button", { name: "Joindre le devis" }).click();

@@ -60,6 +60,7 @@ import {
   findEvents,
   findEventTasks,
   findOrganizationTasks,
+  findCandidateStatuses,
   findEventVendorSlots,
   findLossReasons,
   findProspectSources,
@@ -125,6 +126,7 @@ import {
   listSelectedVendors,
   removeCandidate,
   removeCandidateNote,
+  retainVendorByName,
   selectCandidate,
   sharedRibVendorId,
   setCandidateNoteVisibility,
@@ -184,6 +186,7 @@ import type {
   ListOrganizationTasksInput,
   OrganizationTask,
   UpdateEventVendorSlotInput,
+  VendorCandidateStatus,
   VendorSlotProgress,
   VendorSlotStatus,
 } from "@symbola/contracts";
@@ -222,7 +225,7 @@ export type {
   UpdateVendorCandidateInput,
   VendorCandidate,
   VendorCandidateNote,
-  VendorCandidateResponse,
+  VendorCandidateStatus,
   VendorConsultation,
   EventTask,
   EventTaskInput,
@@ -487,24 +490,29 @@ export class VendorSlotNotFoundError extends Error {
   }
 }
 
-export const VENDOR_SLOT_STATUSES: VendorSlotStatus[] = [
-  "to_find",
-  "quote_requested",
-  "quote_received",
-  "booked",
-  "not_required",
-];
+// Lot 28a (PRE-02, décision D3) : statuts des prestataires rattachés, et
+// statut affiché d'un poste, déduit de ses prestataires.
+export { ENGAGED_CANDIDATE_STATUSES, VENDOR_CANDIDATE_STATUSES } from "@symbola/contracts";
+
+const SLOT_STATUS_ORDER: VendorSlotStatus[] = ["shortlisted", "contacted", "quote_received", "retained", "contract_signed", "paid_off"];
+
+export function deriveSlotStatus(notRequired: boolean, candidateStatuses: VendorCandidateStatus[]): VendorSlotStatus {
+  if (notRequired) return "not_required";
+  const rank = Math.max(-1, ...candidateStatuses.map((status) => SLOT_STATUS_ORDER.indexOf(status as VendorSlotStatus)));
+  return rank < 0 ? "to_find" : SLOT_STATUS_ORDER[rank]!;
+}
 
 function toDefaultVendorSlot(row: DefaultVendorSlotRow): DefaultVendorSlot {
   return { id: row.id, label: row.label, icon: row.icon, position: row.position };
 }
 
-function toEventVendorSlot(row: EventVendorSlotRow): EventVendorSlot {
+function toEventVendorSlot(row: EventVendorSlotRow, candidateStatuses: VendorCandidateStatus[] = []): EventVendorSlot {
   return {
     id: row.id,
     eventId: row.eventId,
     label: row.label,
-    status: row.status,
+    status: deriveSlotStatus(row.notRequired, candidateStatuses),
+    notRequired: row.notRequired,
     vendorName: row.vendorName,
     amountCents: row.amountCents,
     currency: "EUR",
@@ -516,12 +524,14 @@ function toEventVendorSlot(row: EventVendorSlotRow): EventVendorSlot {
   };
 }
 
-// Barre d'avancement de la fiche : postes réservés sur postes requis (un
-// poste « Non requis » ne compte pas).
+// Barre d'avancement de la fiche : postes engagés (un prestataire retenu, au
+// moins) sur postes requis (un poste « Non requis » ne compte pas).
 export function summarizeVendorSlots(slots: Pick<EventVendorSlot, "status">[]): VendorSlotProgress {
   const required = slots.filter((slot) => slot.status !== "not_required");
-  return { booked: required.filter((slot) => slot.status === "booked").length, required: required.length };
+  return { booked: required.filter((slot) => ENGAGED_SLOT_STATUSES.has(slot.status)).length, required: required.length };
 }
+
+const ENGAGED_SLOT_STATUSES = new Set<VendorSlotStatus>(["retained", "contract_signed", "paid_off"]);
 
 export async function listDefaultVendorSlots(organizationId: string): Promise<DefaultVendorSlot[]> {
   return (await findDefaultVendorSlots(organizationId)).map(toDefaultVendorSlot);
@@ -556,7 +566,8 @@ export async function reorderDefaultVendorSlots(organizationId: string, orderedI
 }
 
 export async function listEventVendorSlots(organizationId: string, eventId: string): Promise<EventVendorSlot[]> {
-  return (await findEventVendorSlots(organizationId, eventId)).map(toEventVendorSlot);
+  const [rows, statuses] = await Promise.all([findEventVendorSlots(organizationId, eventId), findCandidateStatuses(organizationId, [eventId])]);
+  return rows.map((row) => toEventVendorSlot(row, statuses.filter((entry) => entry.vendorSlotId === row.id).map((entry) => entry.status)));
 }
 
 export async function addEventVendorSlot(organizationId: string, eventId: string, label: string): Promise<EventVendorSlot> {
@@ -565,17 +576,22 @@ export async function addEventVendorSlot(organizationId: string, eventId: string
   return toEventVendorSlot(row);
 }
 
-export async function updateEventVendorSlot(input: UpdateEventVendorSlotInput): Promise<EventVendorSlot> {
-  const vendorName = typeof input.vendorName === "string" ? input.vendorName.trim() || null : input.vendorName;
-  if (input.status === "booked" && !vendorName) throw new VendorNameRequiredError();
-  if (input.amountCents !== undefined && input.amountCents !== null) {
-    if (!Number.isInteger(input.amountCents) || input.amountCents < 0) {
-      throw new RangeError("le montant doit être un nombre entier positif de centimes");
-    }
+// Lot 28a (PRE-02) : « Non requis », ou le raccourci « prestataire retenu » du
+// formulaire du poste (un nom retient ce prestataire au montant donné).
+export async function updateEventVendorSlot(input: UpdateEventVendorSlotInput): Promise<void> {
+  const vendorName = typeof input.vendorName === "string" ? input.vendorName.trim() || null : null;
+  const amountCents = input.amountCents ?? null;
+  if (amountCents !== null && (!Number.isInteger(amountCents) || amountCents < 0)) {
+    throw new RangeError("le montant doit être un nombre entier positif de centimes");
   }
-  const row = await updateEventVendorSlotRow({ ...input, vendorName });
-  if (!row) throw new VendorSlotNotFoundError();
-  return toEventVendorSlot(row);
+  if (amountCents !== null && !vendorName) throw new VendorNameRequiredError();
+  if (input.notRequired !== undefined) {
+    const row = await updateEventVendorSlotRow({ organizationId: input.organizationId, vendorSlotId: input.vendorSlotId, changedByUserId: input.changedByUserId, notRequired: input.notRequired });
+    if (!row) throw new VendorSlotNotFoundError();
+  }
+  if (vendorName) {
+    await retainVendorByName({ organizationId: input.organizationId, vendorSlotId: input.vendorSlotId, vendorName, amountCents, changedByUserId: input.changedByUserId });
+  }
 }
 
 export async function removeEventVendorSlot(organizationId: string, vendorSlotId: string): Promise<void> {

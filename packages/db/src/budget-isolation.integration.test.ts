@@ -6,7 +6,7 @@ import { assertOrganizationIsolation } from "@symbola/testing";
 import { eq } from "drizzle-orm";
 import { afterAll, describe, it } from "vitest";
 import { createAppConnection } from "./client";
-import { budgetLineAttachments, budgetLines } from "./schema/budget";
+import { alertThresholds, budgetLineAttachments, budgetLines } from "./schema/budget";
 import { withOrganization } from "./with-organization";
 
 const { sql, db } = createAppConnection();
@@ -22,7 +22,7 @@ describe("PRD-BUD-03 — Isolation entre organisations (devis joints, PostgreSQL
         withOrganization(db, organizationId, async (tx) => {
           const [line] = await tx
             .insert(budgetLines)
-            .values({ organizationId, eventId: randomUUID(), eventVendorSlotId: randomUUID(), plannedAmountCents: 0 })
+            .values({ organizationId, eventId: randomUUID(), eventVendorSlotId: randomUUID(), estimatedAmountCents: 0 })
             .returning();
           if (!line) throw new Error("insertion de la ligne attendue");
           const [row] = await tx
@@ -50,6 +50,31 @@ describe("PRD-BUD-03 — Isolation entre organisations (devis joints, PostgreSQL
             .set({ fileKey: "falsifié" })
             .where(eq(budgetLineAttachments.id, targetRow.id))
             .returning(),
+        );
+        return { affectedRows: updated.length };
+      },
+    });
+  });
+});
+
+// Lot 28a (BUD-02) — critère obligatoire sur la nouvelle table alert_thresholds :
+// le seuil d'alerte d'une organisation (ou d'un de ses événements) ne se lit ni
+// ne se modifie depuis une autre.
+describe("BUD-02 — Isolation entre organisations (seuils d'alerte, PostgreSQL réel)", () => {
+  it("une organisation ne voit et ne modifie jamais les seuils d'alerte d'une autre", async () => {
+    await assertOrganizationIsolation({
+      seed: async (organizationId) =>
+        withOrganization(db, organizationId, async (tx) => {
+          const [row] = await tx.insert(alertThresholds).values({ organizationId, eventId: randomUUID(), percent: 90 }).returning();
+          if (!row) throw new Error("insertion attendue, aucune ligne renvoyée");
+          return row;
+        }),
+
+      listVisible: async (organizationId) => withOrganization(db, organizationId, (tx) => tx.select().from(alertThresholds)),
+
+      attemptCrossOrganizationUpdate: async (organizationId, targetRow) => {
+        const updated = await withOrganization(db, organizationId, (tx) =>
+          tx.update(alertThresholds).set({ percent: 500 }).where(eq(alertThresholds.id, targetRow.id)).returning(),
         );
         return { affectedRows: updated.length };
       },

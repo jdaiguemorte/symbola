@@ -96,6 +96,9 @@ type Tab = (typeof TABS)[number];
 
 type SearchParams = { onglet?: string; poste?: string; tache?: string; vue?: string; qui?: string; filtre?: string; visite?: string };
 
+// Lot 28a (PRE-02) : postes pourvus (un prestataire retenu) ou non requis.
+const SETTLED_SLOT_STATUSES = new Set<string>(["retained", "contract_signed", "paid_off", "not_required"]);
+
 export default async function EventDetailPage({
   params,
   searchParams,
@@ -209,7 +212,8 @@ export default async function EventDetailPage({
   const retroplanningOpen = event.isDemo || event.status === "confirmed" || event.status === "done";
 
   // PRD-EVT-03 : postes en tableau, détail du poste choisi dans un panneau.
-  const toFind = vendorSlots.filter((slot) => slot.status !== "booked" && slot.status !== "not_required");
+  // Lot 28a (PRE-02) : un poste est pourvu dès qu'un prestataire est retenu.
+  const toFind = vendorSlots.filter((slot) => !SETTLED_SLOT_STATUSES.has(slot.status));
   const slotFilter = query.filtre === "a-pourvoir" ? "a-pourvoir" : "tous";
   const shownSlots = slotFilter === "a-pourvoir" ? toFind : vendorSlots;
   const selectedSlot = vendorSlots.find((slot) => slot.id === query.poste) ?? null;
@@ -394,7 +398,7 @@ export default async function EventDetailPage({
               {overviewBudget ? (
                 <div>
                   <dt>{t("kpiPlanned")}</dt>
-                  <dd>{formatAmount(overviewBudget.totalPlannedCents, locale)}</dd>
+                  <dd>{formatAmount(overviewBudget.totalEstimatedCents, locale)}</dd>
                 </div>
               ) : null}
               <div>
@@ -460,8 +464,17 @@ export default async function EventDetailPage({
             <p id="vendor-progress-label">{t("vendorProgress", { booked: progress.booked, required: progress.required })}</p>
             {budgetView ? (
               <p className="meta">
-                <span>{t("budgetTotals", { planned: formatAmount(budgetView.totalPlannedCents, locale), actual: formatAmount(budgetView.totalActualCents, locale) })}</span>
+                <span>{t("budgetTotals", { estimated: formatAmount(budgetView.totalEstimatedCents, locale), committed: formatAmount(budgetView.totalCommittedCents, locale) })}</span>
                 <Link href={`/budget/${event.id}`}>{t("budgetSuggest")}</Link>
+              </p>
+            ) : null}
+            {/* Lot 28a (BUD-02) : le dépassement du seuil d'alerte, en haut du budget. */}
+            {budgetView?.envelope?.exceeded ? (
+              <p role="alert" className="notice">
+                {tBudget("envelopeExceeded", {
+                  amount: formatAmount(budgetView.totalCommittedCents - budgetView.envelope.thresholdCents, locale),
+                  percent: budgetView.envelope.thresholdPercent,
+                })}
               </p>
             ) : null}
             <progress aria-labelledby="vendor-progress-label" value={progress.booked} max={Math.max(progress.required, 1)} />
@@ -484,8 +497,8 @@ export default async function EventDetailPage({
                       <th scope="col">{t("vendorSlotStatus")}</th>
                       {budgetView ? (
                         <>
-                          <th scope="col" className="num">{tBudget("planned")}</th>
-                          <th scope="col" className="num">{tBudget("actual")}</th>
+                          <th scope="col" className="num">{tBudget("amounts.estimated")}</th>
+                          <th scope="col" className="num">{tBudget("amounts.committed")}</th>
                           <th scope="col" className="num">{tBudget("variance")}</th>
                         </>
                       ) : (
@@ -516,11 +529,11 @@ export default async function EventDetailPage({
                         {budgetView ? (
                           (() => {
                             const amounts = amountsOf(slot.id);
-                            const planned = amounts?.plannedAmountCents ?? null;
-                            // Le montant réservé alimente le réel du budget (événement
-                            // interne traité en différé) : on l'affiche dès la réservation.
-                            const actual = amounts?.actualAmountCents ?? (slot.status === "booked" ? slot.amountCents : null);
-                            const variance = amounts?.actualAmountCents != null ? (amounts.varianceCents ?? null) : planned !== null && actual !== null ? actual - planned : null;
+                            const planned = amounts?.estimatedAmountCents ?? null;
+                            // Le montant du prestataire retenu engage la ligne (événement
+                            // interne traité en différé) : on l'affiche dès la retenue.
+                            const actual = amounts?.committedAmountCents ?? (slot.selectedCandidateId !== null ? slot.amountCents : null);
+                            const variance = amounts?.committedAmountCents != null ? (amounts.varianceCents ?? null) : planned !== null && actual !== null ? actual - planned : null;
                             return (
                               <>
                                 <td className="num">{planned !== null ? formatAmount(planned, locale) : "—"}</td>
@@ -546,8 +559,8 @@ export default async function EventDetailPage({
             {selectedSlot ? (
               <>
                 <h2 id="vendor-detail-title">{selectedSlot.label}</h2>
-                <VendorSlotForm key={`${selectedSlot.id}-${selectedSlot.selectedCandidateId ?? ""}`} eventId={event.id} slot={selectedSlot} />
-                {budgetView ? <PlannedAmountForm key={`planned-${selectedSlot.id}`} eventId={event.id} slotId={selectedSlot.id} label={selectedSlot.label} plannedCents={amountsOf(selectedSlot.id)?.plannedAmountCents ?? null} /> : null}
+                <VendorSlotForm key={selectedSlot.id} eventId={event.id} slot={selectedSlot} />
+                {budgetView ? <PlannedAmountForm key={`planned-${selectedSlot.id}`} eventId={event.id} slotId={selectedSlot.id} label={selectedSlot.label} plannedCents={amountsOf(selectedSlot.id)?.estimatedAmountCents ?? null} /> : null}
                 <SlotIconForm key={`icon-${selectedSlot.id}-${selectedSlot.icon ?? ""}`} eventId={event.id} slotId={selectedSlot.id} label={selectedSlot.label} icon={selectedSlot.icon} />
                 <ImportedFields fields={selectedSlot.importedFields} compact />
                 <form action={removeVendorSlotAction}>

@@ -107,8 +107,11 @@ export const budgetPrivacy: PrivacyContractV1 = {
         recordId: line.id,
         label: slotLabels.get(line.eventVendorSlotId) ?? "",
         fields: {
-          plannedAmountCents: line.plannedAmountCents === null ? "" : String(line.plannedAmountCents),
-          ...(line.actualAmountCents !== null ? { actualAmountCents: String(line.actualAmountCents) } : {}),
+          // Lot 28a (BUD-01) : les quatre montants saisis de la ligne.
+          estimatedAmountCents: line.estimatedAmountCents === null ? "" : String(line.estimatedAmountCents),
+          ...(line.quotedAmountCents !== null ? { quotedAmountCents: String(line.quotedAmountCents) } : {}),
+          ...(line.committedAmountCents !== null ? { committedAmountCents: String(line.committedAmountCents) } : {}),
+          ...(line.paidAmountCents !== null ? { paidAmountCents: String(line.paidAmountCents) } : {}),
         },
         eventId: line.eventId,
       });

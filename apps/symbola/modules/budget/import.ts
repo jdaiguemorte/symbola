@@ -27,13 +27,22 @@ function amount(value: unknown): number | null {
 async function lineState(tx: Tx, lineId: string): Promise<Values | null> {
   const [line] = await tx.select().from(budgetLines).where(eq(budgetLines.id, lineId));
   if (!line) return null;
-  return { plannedAmountCents: line.plannedAmountCents, actualAmountCents: line.actualAmountCents };
+  return { estimatedAmountCents: line.estimatedAmountCents, committedAmountCents: line.committedAmountCents };
+}
+
+// Lot 28a (BUD-01, décision D2) : un import fait avant le lot garde les anciens
+// noms (prévu, réel) dans sa trace ; ils deviennent l'estimé et l'engagé pour
+// comparer et annuler.
+const LEGACY_KEYS: Record<string, string> = { plannedAmountCents: "estimatedAmountCents", actualAmountCents: "committedAmountCents" };
+
+function currentKeys(values: Values | null): Values | null {
+  return values === null ? null : Object.fromEntries(Object.entries(values).map(([key, value]) => [LEGACY_KEYS[key] ?? key, value]));
 }
 
 async function history(tx: Tx, organizationId: string, lineId: string, userId: string, before: Values, after: Values): Promise<void> {
   for (const [field, key] of [
-    ["planned", "plannedAmountCents"],
-    ["actual", "actualAmountCents"],
+    ["estimated", "estimatedAmountCents"],
+    ["committed", "committedAmountCents"],
   ] as const) {
     if (!(key in after) || after[key] === null || after[key] === before[key]) continue;
     await tx.insert(budgetLineHistory).values({
@@ -56,14 +65,15 @@ export async function importBudgetLineRows(input: { organizationId: string; user
       for (const row of input.rows) {
         const slotId = slots.slotIdByRow.get(row.rowIndex);
         if (!slotId || !row.eventId) throw new Error("poste de la ligne introuvable");
+        // Colonnes du tableur « prévu » et « réel » : l'estimé et l'engagé (lot 28a).
         const planned = amount(row.values.plannedAmount);
         const actual = amount(row.values.actualAmount);
         const [existing] = await tx.select().from(budgetLines).where(eq(budgetLines.eventVendorSlotId, slotId));
         if (existing) {
-          const current = { plannedAmountCents: existing.plannedAmountCents, actualAmountCents: existing.actualAmountCents };
+          const current = { estimatedAmountCents: existing.estimatedAmountCents, committedAmountCents: existing.committedAmountCents };
           const written: Values = {};
-          if (planned !== null && planned !== current.plannedAmountCents) written.plannedAmountCents = planned;
-          if (actual !== null && actual !== current.actualAmountCents) written.actualAmountCents = actual;
+          if (planned !== null && planned !== current.estimatedAmountCents) written.estimatedAmountCents = planned;
+          if (actual !== null && actual !== current.committedAmountCents) written.committedAmountCents = actual;
           if (Object.keys(written).length === 0) {
             if (!slots.items.some((item) => item.rowIndex === row.rowIndex)) unchanged += 1;
             continue;
@@ -83,13 +93,13 @@ export async function importBudgetLineRows(input: { organizationId: string; user
             organizationId: input.organizationId,
             eventId: row.eventId,
             eventVendorSlotId: slotId,
-            plannedAmountCents: planned,
-            actualAmountCents: actual,
+            estimatedAmountCents: planned,
+            committedAmountCents: actual,
           })
           .returning();
         if (!line) throw new Error("création de la ligne de budget échouée");
-        const written = { plannedAmountCents: line.plannedAmountCents, actualAmountCents: line.actualAmountCents };
-        await history(tx, input.organizationId, line.id, input.userId, { plannedAmountCents: null, actualAmountCents: null }, written);
+        const written = { estimatedAmountCents: line.estimatedAmountCents, committedAmountCents: line.committedAmountCents };
+        await history(tx, input.organizationId, line.id, input.userId, { estimatedAmountCents: null, committedAmountCents: null }, written);
         items.push({ rowIndex: row.rowIndex, module: "budget", kind: "budget_line", elementId: line.id, action: "created", previous: null, written });
       }
       return { items, unchanged };
@@ -106,8 +116,9 @@ export async function importBudgetLineRows(input: { organizationId: string; user
   }
 }
 
-function modifiedSince(current: Values, written: Values | null): boolean {
-  return Object.keys(written ?? {}).some((key) => !sameImportValue(current[key], (written ?? {})[key]));
+function modifiedSince(current: Values, recorded: Values | null): boolean {
+  const written = currentKeys(recorded) ?? {};
+  return Object.keys(written).some((key) => !sameImportValue(current[key], written[key]));
 }
 
 async function hasAttachments(tx: Tx, lineId: string): Promise<boolean> {
@@ -154,7 +165,7 @@ export async function undoImportedBudgetElements(organizationId: string, userId:
         await tx.delete(budgetLineHistory).where(inArray(budgetLineHistory.lineId, [item.elementId]));
         await tx.delete(budgetLines).where(eq(budgetLines.id, item.elementId));
       } else {
-        const previous = item.previous ?? {};
+        const previous = currentKeys(item.previous ?? {}) ?? {};
         await tx
           .update(budgetLines)
           .set({ ...(previous as Partial<typeof budgetLines.$inferInsert>), updatedAt: new Date() })

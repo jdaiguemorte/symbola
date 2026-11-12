@@ -2,31 +2,49 @@
 
 // Lot 11 (L11-EVT-10 / L11-EVT-11) — actions des prestataires consultés d'un poste.
 // Chaque action vérifie la session, l'organisation et le module ; les
-// identifiants sont validés avant toute requête.
+// identifiants sont validés avant toute requête. Lot 28a (PRE-02, BUD-02) :
+// statut du prestataire, et alerte avant engagement quand l'engagé total
+// dépasserait le seuil de l'enveloppe.
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { parseAmountToCents } from "@symbola/i18n";
 import {
   addVendorCandidate,
   addVendorCandidateNote,
+  ENGAGED_CANDIDATE_STATUSES,
   linkVendorCandidate,
+  listVendorCandidates,
   removeVendorCandidate,
   removeVendorCandidateNote,
   selectVendorCandidate,
   setVendorCandidateNoteVisibility,
   setVendorSlotBrief,
   updateVendorCandidate,
+  VENDOR_CANDIDATE_STATUSES,
   VendorCandidateNotFoundError,
-  type VendorCandidateResponse,
+  type VendorCandidate,
+  type VendorCandidateStatus,
 } from "@/modules/events/service";
 import { createVendor, getVendor } from "@/modules/vendors/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isVendorsModuleEnabled } from "@/app/prestataires/module-access";
 import { isEventsModuleEnabled, isValidId } from "../module-access";
+import { engagementAlert } from "./engagement-alert";
 
-export type CandidateFormState = { error?: string; success?: boolean };
+// `confirm` : dépassement du seuil à confirmer avant l'engagement (BUD-02).
+export type CandidateFormState = { error?: string; success?: boolean; confirm?: string };
 
-const RESPONSES: VendorCandidateResponse[] = ["contacted", "quote_received", "declined"];
+function isStatus(value: string): value is VendorCandidateStatus {
+  return (VENDOR_CANDIDATE_STATUSES as readonly string[]).includes(value);
+}
+
+function isEngaged(status: VendorCandidateStatus): boolean {
+  return ENGAGED_CANDIDATE_STATUSES.includes(status);
+}
+
+async function findCandidate(organizationId: string, eventId: string, candidateId: string): Promise<VendorCandidate | null> {
+  return (await listVendorCandidates(organizationId, eventId)).find((candidate) => candidate.id === candidateId) ?? null;
+}
 
 async function authorize() {
   const auth = await getPlannerAuthContext();
@@ -84,16 +102,33 @@ export async function updateCandidateAction(_prev: CandidateFormState, formData:
   const found = ids(formData, "eventId", "candidateId");
   if (!found) return { error: t("notFound") };
   const [eventId, candidateId] = found as [string, string];
-  const response = String(formData.get("response") ?? "");
-  if (!RESPONSES.includes(response as VendorCandidateResponse)) return { error: t("invalidResponse") };
+  const status = String(formData.get("status") ?? "");
+  if (!isStatus(status)) return { error: t("invalidStatus") };
   const quoteAmountCents = parseAmountToCents(String(formData.get("quoteAmount") ?? ""));
   if (quoteAmountCents === undefined) return { error: t("invalidAmount") };
   const contactedOn = String(formData.get("contactedOn") ?? "").trim() || null;
+  const current = await findCandidate(access.organizationId, eventId, candidateId);
+  if (!current) return { error: t("notFound") };
+  // L'engagé augmente quand le prestataire devient « Retenu », ou quand le devis
+  // du prestataire déjà retenu augmente.
+  const selected = current.outcome === "selected";
+  const raises = selected ? quoteAmountCents !== null && quoteAmountCents > (current.quoteAmountCents ?? 0) : isEngaged(status);
+  if (raises) {
+    const confirm = await engagementAlert({
+      organizationId: access.organizationId,
+      eventId,
+      vendorSlotId: current.vendorSlotId,
+      amountCents: quoteAmountCents ?? current.quoteAmountCents,
+      confirmed: formData.get("confirmed") === "1",
+    });
+    if (confirm) return { confirm };
+  }
   try {
     await updateVendorCandidate({
       organizationId: access.organizationId,
       candidateId,
-      response: response as VendorCandidateResponse,
+      status,
+      changedByUserId: access.userId,
       quoteAmountCents,
       contactedOn,
       shownToClients: formData.get("shownToClients") === "on",
@@ -152,15 +187,32 @@ export async function removeCandidateNoteAction(formData: FormData): Promise<voi
   refresh(eventId);
 }
 
-export async function selectCandidateAction(formData: FormData): Promise<void> {
+// « Retenir » engage la ligne du budget ; le dépassement du seuil se confirme d'abord.
+export async function selectCandidateAction(_prev: CandidateFormState, formData: FormData): Promise<CandidateFormState> {
+  const t = await getTranslations("VendorCandidates");
   const access = await authorize();
+  if (!access) return { error: t("unauthorized") };
   const found = ids(formData, "eventId", "candidateId");
-  if (!access || !found) return;
+  if (!found) return { error: t("notFound") };
   const [eventId, candidateId] = found as [string, string];
-  await selectVendorCandidate({ organizationId: access.organizationId, candidateId, changedByUserId: access.userId }).catch((error: unknown) => {
-    if (!(error instanceof VendorCandidateNotFoundError)) throw error;
+  const candidate = await findCandidate(access.organizationId, eventId, candidateId);
+  if (!candidate) return { error: t("notFound") };
+  const confirm = await engagementAlert({
+    organizationId: access.organizationId,
+    eventId,
+    vendorSlotId: candidate.vendorSlotId,
+    amountCents: candidate.quoteAmountCents,
+    confirmed: formData.get("confirmed") === "1",
   });
+  if (confirm) return { confirm };
+  try {
+    await selectVendorCandidate({ organizationId: access.organizationId, candidateId, changedByUserId: access.userId });
+  } catch (error) {
+    if (error instanceof VendorCandidateNotFoundError) return { error: t("notFound") };
+    throw error;
+  }
   refresh(eventId);
+  return { success: true };
 }
 
 export async function removeCandidateAction(formData: FormData): Promise<void> {
