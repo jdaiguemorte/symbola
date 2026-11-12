@@ -3,7 +3,9 @@
 **Statut** : spécification validée par Julien le 11/11/2026, décisions D1 à D8 en (a). 28a codé le
 12/11/2026 (bilan en fin de partie D), branche `lot-28-budget-cinq-montants`, PR #99. 28b détaillé
 le 12/11/2026, décisions D9 à D14 validées par Julien le 12/11 (« Oui, comme recommandé » : D12 en
-(b), les autres en (a)), branche `lot-28b-echeancier-export` (partie du 28a).
+(b), les autres en (a)), branche `lot-28b-echeancier-export` (partie du 28a). 28c codé le
+12/11/2026 (décisions D5, D6 et D8, bilan après celui du 28b), branche
+`lot-28c-tva-export-carnet` (partie du 28b).
 
 ## Contexte
 
@@ -286,6 +288,32 @@ F) puis **28c** (parties G, H, I).
   et des échéances), grille d'écart (BUD-01, BUD-03, BUD-04 Conforme).
 - **Reste au 28c** : HT et TTC, export XLSX et PDF, évaluation et tarifs du carnet.
 - **Déploiement** (gel) : migrations 0105 et 0106 à ajouter à la liste des gestes.
+
+### Bilan du lot 28c (12/11/2026)
+
+- **HT et TTC** (BUD-09, D5) : taux de TVA par ligne, saisi dans le formulaire de la ligne
+  (20 % de départ, `budget-vat.json`) ; le type de client vient du devis de l'événement (le
+  signé le plus récent, à défaut le plus récent ; particulier sans devis ni module Devis).
+  Particulier : TTC seul ; professionnel : HT sous chaque montant, à l'écran, au portail du
+  client et dans l'export ; totaux HT par taux (ADR 0059). Migration 0107.
+- **Export** (BUD-10, D6) : « Exporter en XLSX » et « Exporter en PDF » sur la page du budget.
+  Classeur écrit par l'app (`lib/xlsx-workbook.ts`, sans dépendance) : feuilles « Budget » et
+  « Échéances », format monétaire, en-têtes à la couleur des documents ; PDF A4 paysage avec
+  logo, nom et couleur ; sans module Devis, la couleur de départ. Route contrôlée côté serveur ;
+  export au journal (`budget.budget.exported`, format et nombre de lignes).
+- **Annuaire** (PRE-01, D8) : évaluation (1 à 5, étoiles) et tarifs indicatifs sur la fiche ;
+  l'évaluation s'affiche dans le carnet et se filtre (« au moins N ») ; les deux s'importent
+  (« 4/5 », « ★★★★ », « 4 ») ; registre RGPD, recherche, export et oubli. Les synonymes
+  « tarifs » et « prices » vont désormais aux tarifs indicatifs. Migration 0108.
+- **Tests** : unitaires (HT, classeur relu par le lecteur d'import, contenu et rendu du PDF,
+  lecture de l'évaluation) ; intégration (`budget-28c.integration.test.ts`,
+  `vendors/rating.integration.test.ts` : HT par taux au centime, type de client, export,
+  filtre, import CSV, RGPD, isolation) ; aller-retour 0107/0108 ; e2e
+  `bud-09-10-pre-01-tva-export-carnet` (ordinateur et 375 px, axe-core, export d'une autre
+  organisation refusé) ; rejeu SC-04 (`docs/recette/SC-04.md`).
+- **Documents** : avenant de l'ADR 0054, aide du budget et du carnet, registre RGPD, grille
+  d'écart (BUD-09, BUD-10, PRE-01 Conforme).
+- **Déploiement** (gel) : migrations 0107 et 0108 à ajouter à la liste des gestes.
 
 ---
 
