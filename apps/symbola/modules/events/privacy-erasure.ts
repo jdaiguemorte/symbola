@@ -3,11 +3,12 @@
 // catégorie, types de postes, historique des statuts) ; noms, e-mails, notes
 // libres et champs importés disparaissent. Date du mariage ramenée au 1er du
 // mois, lieu effacé (décision de Julien, 02/11/2026). Jamais un élément d'essai.
-import { and, eq, inArray, isNotNull } from "drizzle-orm";
+import { and, eq, inArray, isNotNull, sql } from "drizzle-orm";
 import { appDatabase } from "@symbola/db/client";
 import { createStorageClient, deletePrivateObject } from "@symbola/files";
 import {
   eventActivities,
+  eventDecisions,
   eventLinks,
   eventClients,
   eventPlaces,
@@ -158,7 +159,11 @@ export async function eraseEventsData(input: ErasureInput): Promise<ErasurePlanI
         .set({ vendorName: ANONYMIZED, vendorId: null, quoteFileKey: null, quoteMime: null, quoteSizeBytes: null, updatedAt: now })
         .where(inArray(eventVendorCandidates.id, candidateIds));
     }
-    if (idsFor("link").length > 0) await tx.delete(eventLinks).where(inArray(eventLinks.id, idsFor("link")));
+    if (idsFor("link").length > 0) {
+      // Lot 27b (EVT-09) : la décision reste, sans le nom ni le commentaire de la personne.
+      await tx.update(eventDecisions).set({ decidedByName: ANONYMIZED, comment: sql`case when ${eventDecisions.comment} is null then null else ${ANONYMIZED} end` }).where(inArray(eventDecisions.decidedByLinkId, idsFor("link")));
+      await tx.delete(eventLinks).where(inArray(eventLinks.id, idsFor("link")));
+    }
     if (idsFor("task").length > 0) await tx.delete(eventTasks).where(inArray(eventTasks.id, idsFor("task")));
     if (idsFor("program_participant").length > 0) await tx.delete(programItemParticipants).where(inArray(programItemParticipants.id, idsFor("program_participant")));
     if (idsFor("event_place").length > 0) await tx.delete(eventPlaces).where(inArray(eventPlaces.id, idsFor("event_place")));

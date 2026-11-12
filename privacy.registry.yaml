@@ -358,6 +358,37 @@ fields:
       l'événement. Après suppression ou demande d'oubli : voir RGPD-03/RGPD-05.
     anonymization: >-
       Le lien est supprimé lors d'une demande d'oubli qui le vise (RGPD-03).
+  - schema: events
+    table: event_decisions
+    field: decided_by_name
+    category: identifiant
+    retention: >-
+      Lot 27b (POR-03, BUD-07, EVT-09) : nom de la personne qui a répondu à une
+      décision, copié à la réponse (la décision est nominative et ne se modifie
+      plus), tant que l'événement existe ; purgé avec lui. Après demande
+      d'oubli : voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Remplacé par « [anonymisé] » avec la suppression du lien de la personne
+      (RGPD-03) ; la décision reste, sans auteur.
+  - schema: events
+    table: event_decisions
+    field: comment
+    category: contenu_libre
+    retention: >-
+      Lot 27b : commentaire libre du client sur sa réponse, lisible des deux
+      côtés, tant que l'événement existe.
+    anonymization: >-
+      Remplacé par « [anonymisé] » avec le nom de la personne (RGPD-03).
+  - schema: events
+    table: event_decisions
+    field: note
+    category: contenu_libre
+    retention: >-
+      Lot 27b : message libre de la planner joint à la demande de décision, tant
+      que l'événement existe ; purgé avec lui.
+    anonymization: >-
+      Purgé avec l'événement ; une demande d'oubli vise le client, pas ce
+      message de la planner.
   - schema: budget
     table: budget_lines
     field: label

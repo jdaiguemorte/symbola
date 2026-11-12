@@ -2,7 +2,7 @@
 // compte à rebours, avancement, « vos trois prochaines actions ». Elles
 // réunissent ce que les modules renvoient (tâches, devis à signer, échéances) ;
 // aucune lecture en base ici.
-import type { EventTask } from "@/modules/events/service";
+import type { EventDecision, EventTask } from "@/modules/events/service";
 import type { LinkVendorPayment } from "@/modules/budget/service";
 import type { ClientQuoteToSign } from "@/modules/quotes/service";
 
@@ -28,9 +28,11 @@ export function progress(tasks: Pick<EventTask, "done">[]): { done: number; tota
 export type NextAction =
   | { kind: "task"; id: string; label: string; dueDate: string; overdue: boolean }
   | { kind: "quote"; id: string; number: string; version: number }
+  // Lot 27b (POR-03) : une décision en attente de sa réponse.
+  | { kind: "decision"; id: string; decision: Pick<EventDecision, "kind" | "title" | "snapshot">; dueDate: string | null; overdue: boolean }
   | { kind: "payment"; id: string; slotLabel: string; vendorName: string | null; label: string; amountCents: number; dueDate: string; overdue: boolean };
 
-const KIND_ORDER: Record<NextAction["kind"], number> = { task: 0, payment: 1, quote: 2 };
+const KIND_ORDER: Record<NextAction["kind"], number> = { task: 0, payment: 1, decision: 2, quote: 3 };
 
 // D2 : ce que la personne peut faire, selon ses rubriques (null = rubrique
 // fermée) : ses tâches non faites, les devis qu'elle doit signer, les
@@ -41,6 +43,8 @@ export function nextActions(
     tasks: Pick<EventTask, "id" | "label" | "dueDate" | "done" | "responsible">[] | null;
     quotes: Pick<ClientQuoteToSign, "quoteId" | "number" | "version" | "status" | "ownStatus" | "ownSigningUrl">[];
     payments: Pick<LinkVendorPayment, "id" | "slotLabel" | "vendorName" | "label" | "amountCents" | "dueOn" | "status">[] | null;
+    // Lot 27b : décisions visibles du lien ; seules celles en attente comptent.
+    decisions?: Pick<EventDecision, "id" | "kind" | "title" | "snapshot" | "status" | "dueOn">[] | null;
     today: string;
   },
   limit = 3,
@@ -67,8 +71,12 @@ export function nextActions(
           overdue: payment.dueOn < today,
         }),
       ),
+    ...(input.decisions ?? [])
+      .filter((decision) => decision.status === "pending")
+      .map((decision): NextAction => ({ kind: "decision", id: decision.id, decision, dueDate: decision.dueOn, overdue: decision.dueOn !== null && decision.dueOn < today })),
   ];
-  const dateOf = (action: NextAction) => (action.kind === "quote" ? today : action.dueDate);
+  // Un devis à signer, une décision sans date souhaitée : à faire aujourd'hui.
+  const dateOf = (action: NextAction) => (action.kind === "quote" ? today : action.kind === "decision" ? (action.dueDate ?? today) : action.dueDate);
   return actions
     .sort((a, b) => {
       const lateA = dateOf(a) < today ? 0 : 1;

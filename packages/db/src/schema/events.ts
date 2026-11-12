@@ -510,6 +510,48 @@ export const eventTaskReminders = eventsSchema.table("event_task_reminders", {
   check("event_task_reminders_threshold_check", sql`${table.threshold} in ('week', 'eve', 'overdue')`),
 ]);
 
+// Lot 27b (POR-03, BUD-07, EVT-09 ; décisions D9 et D10) — décision demandée
+// au client : choisir entre des options d'un poste, valider une dépense,
+// approuver le programme. Le contenu est figé à la demande (snapshot) ; une
+// décision répondue ou retirée ne se modifie plus (garde en base), une
+// nouvelle la remplace (replaces_decision_id). Le nom de la personne est copié
+// à la réponse ; effacé avec son lien lors d'une demande d'oubli.
+export const eventDecisions = eventsSchema.table("event_decisions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  eventId: uuid("event_id")
+    .notNull()
+    .references(() => events.id, { onDelete: "cascade" }),
+  kind: text("kind").notNull(),
+  // Poste (options), ligne du budget (dépense, module budget) ; null pour le programme.
+  subjectId: uuid("subject_id"),
+  // Poste concerné (options, dépense) : un payeur ne répond que pour ses catégories.
+  slotId: uuid("slot_id"),
+  title: text("title").notNull(),
+  note: text("note"),
+  snapshot: jsonb("snapshot").$type<Record<string, unknown>>().notNull(),
+  dueOn: date("due_on"),
+  status: text("status").notNull().default("pending"),
+  // Option choisie (prestataire consulté), pour une décision « options ».
+  choiceId: uuid("choice_id"),
+  comment: text("comment"),
+  decidedByLinkId: uuid("decided_by_link_id").references(() => eventLinks.id, { onDelete: "set null" }),
+  decidedByName: text("decided_by_name"),
+  decidedAt: timestamp("decided_at", { withTimezone: true }),
+  replacesDecisionId: uuid("replaces_decision_id"),
+  requestedAt: timestamp("requested_at", { withTimezone: true }).defaultNow().notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  createdBy: uuid("created_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedBy: uuid("updated_by"),
+}, (table) => [
+  index("event_decisions_organization_idx").on(table.organizationId),
+  index("event_decisions_event_idx").on(table.eventId),
+  check("event_decisions_kind_check", sql`${table.kind} in ('option', 'expense', 'program')`),
+  check("event_decisions_status_check", sql`${table.status} in ('pending', 'approved', 'declined', 'withdrawn')`),
+  check("event_decisions_answer_check", sql`(${table.status} in ('approved', 'declined')) = (${table.decidedAt} is not null)`),
+]);
+
 // Lot 26a (SEC-17, décision D7) : session ouverte par un lien. Le jeton du lien
 // quitte l'adresse dès l'ouverture ; le navigateur garde un cookie dont seul le
 // haché est ici. 30 jours sans visite, jamais au-delà de l'expiration du lien,
@@ -529,7 +571,8 @@ export const eventLinkSessions = eventsSchema.table("event_link_sessions", {
 // PRD-EVT-06 : fil d'activité d'un événement (« quand un marié coche une
 // tâche, la planner le voit »). Le libellé de la tâche est copié pour
 // rester lisible si la tâche est supprimée ensuite.
-export const eventActivityKindEnum = eventsSchema.enum("event_activity_kind", ["task_done", "task_undone"]);
+// Lot 27b (EVT-09) : « decision_made », une décision répondue par un lien.
+export const eventActivityKindEnum = eventsSchema.enum("event_activity_kind", ["task_done", "task_undone", "decision_made"]);
 
 export const eventActivities = eventsSchema.table("event_activities", {
   id: uuid("id").defaultRandom().primaryKey(),

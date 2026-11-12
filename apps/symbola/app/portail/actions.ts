@@ -5,6 +5,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import { answerLinkDecision, DecisionInvalidError } from "@/modules/events/service";
 import { cancelLinkVendorPaymentDeclaration, declareLinkVendorPayment, LinkBudgetAccessDeniedError, VendorPaymentDeclarationError } from "@/modules/budget/service";
 import { isBudgetModuleEnabled } from "@/app/budget/module-access";
 import { declarablePaymentMethods } from "./payment-methods";
@@ -60,6 +61,37 @@ export async function cancelPaymentDeclarationAction(formData: FormData): Promis
     if (!(error instanceof VendorPaymentDeclarationError) && !(error instanceof LinkBudgetAccessDeniedError)) throw error;
   }
   revalidatePath("/portail");
+}
+
+// Lot 27b (POR-03, BUD-07, décision D10) — réponse à une décision : la première
+// réponse décide ; une option se choisit parmi celles figées à la demande.
+export type DecisionAnswerState = { error?: string; success?: boolean };
+
+export async function answerDecisionAction(_prev: DecisionAnswerState, formData: FormData): Promise<DecisionAnswerState> {
+  const t = await getTranslations("Decisions");
+  const access = await currentLinkAccess();
+  if (!access || !(await isEventsModuleEnabled(access.organizationId))) return { error: t("answerGone") };
+  const decisionId = String(formData.get("decisionId") ?? "");
+  const answer = String(formData.get("answer") ?? "");
+  if (!isValidId(decisionId) || (answer !== "approved" && answer !== "declined")) return { error: t("answerGone") };
+  const choice = String(formData.get("choiceId") ?? "");
+  try {
+    await answerLinkDecision({
+      organizationId: access.organizationId,
+      linkId: access.linkId,
+      decisionId,
+      answer,
+      // « Aucune ne me convient » ne garde pas d'option cochée.
+      choiceId: answer === "approved" && isValidId(choice) ? choice : null,
+      comment: String(formData.get("comment") ?? ""),
+    });
+  } catch (error) {
+    if (error instanceof DecisionInvalidError) return { error: t(error.reason === "choice" ? "answerChoiceMissing" : error.reason === "comment" ? "answerCommentTooLong" : "answerGone") };
+    if (error instanceof LinkAccessDeniedError) return { error: t("answerGone") };
+    throw error;
+  }
+  revalidatePath("/portail");
+  return { success: true };
 }
 
 // Ferme la session de lien de ce navigateur ; le lien lui-même reste valable.

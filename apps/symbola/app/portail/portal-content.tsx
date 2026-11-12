@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatAmount, formatCalendarDate, formatMonth, parisToday, type Locale } from "@symbola/i18n";
 import { ScreenHelp } from "@/app/screen-help";
-import { getLinkEventView, getLinkVendorOptions, LinkAccessDeniedError, monthKey, type EventTask, type LinkAccess } from "@/modules/events/service";
+import { getLinkEventView, getLinkVendorOptions, LinkAccessDeniedError, listLinkDecisions, monthKey, type EventDecision, type EventTask, type LinkAccess } from "@/modules/events/service";
 import { getLinkBudgetView, LinkBudgetAccessDeniedError } from "@/modules/budget/service";
 import { listClientQuotesToSign } from "@/modules/quotes/service";
 import { isBudgetModuleEnabled } from "@/app/budget/module-access";
@@ -13,6 +13,8 @@ import { ClientBudget } from "./client-budget";
 import { ClientQuotes } from "./client-quotes";
 import { ClientVendorOptions } from "./client-vendor-options";
 import { LinkPrivacyNotice } from "./link-privacy-notice";
+import { ClientDecisions } from "./client-decisions";
+import { decisionLabel } from "./decision-label";
 import { declarablePaymentMethods } from "./payment-methods";
 import { countdown, nextActions, progress } from "./portal-home";
 import { closeLinkSessionAction, toggleLinkTaskAction } from "./actions";
@@ -75,6 +77,17 @@ export async function PortalContent({ access, preview = false, banner }: { acces
     }
   }
 
+  // Lot 27b (POR-03, D10) : décisions de ses rubriques (options, budget, programme).
+  let decisions: EventDecision[] = [];
+  if (rubrics.some((rubric) => rubric === "vendor_options" || rubric === "budget" || rubric === "program")) {
+    try {
+      decisions = await listLinkDecisions(organizationId, linkId);
+    } catch (error) {
+      if (!(error instanceof LinkAccessDeniedError)) throw error;
+    }
+  }
+  const tDecisions = await getTranslations("Decisions");
+
   const tasksByMonth = new Map<string, EventTask[]>();
   for (const task of view.tasks ?? []) {
     const key = monthKey(task.dueDate);
@@ -83,8 +96,9 @@ export async function PortalContent({ access, preview = false, banner }: { acces
   const nothingShared = rubrics.length === 0;
   const until = countdown(view.event.eventDate, today);
   const done = view.tasks ? progress(view.tasks) : null;
-  const actions = nextActions({ tasks: view.tasks, quotes: quotesToSign, payments: budget?.payments ?? null, today });
+  const actions = nextActions({ tasks: view.tasks, quotes: quotesToSign, payments: budget?.payments ?? null, decisions, today });
   const sections = [
+    decisions.length > 0 ? ["decisions", tLink("navDecisions")] : null,
     view.tasks ? ["taches", tLink("navTasks")] : null,
     view.program ? ["programme", tLink("navProgram")] : null,
     vendorOptions.length > 0 ? ["options", tLink("navOptions")] : null,
@@ -157,6 +171,19 @@ export async function PortalContent({ access, preview = false, banner }: { acces
                       <a href="#echeances">{tLink("actionGoPayment")}</a>
                     </>
                   ) : null}
+                  {action.kind === "decision" ? (
+                    <>
+                      <p>
+                        <strong>{decisionLabel(tDecisions, action.decision, locale)}</strong>
+                      </p>
+                      {action.dueDate ? (
+                        <p className={action.overdue ? "text-overdue" : "muted"}>
+                          {action.overdue ? tLink("actionOverdue", { date: formatCalendarDate(action.dueDate, locale) }) : tLink("actionBefore", { date: formatCalendarDate(action.dueDate, locale) })}
+                        </p>
+                      ) : null}
+                      <a href="#decisions">{tLink("actionGoDecision")}</a>
+                    </>
+                  ) : null}
                   {action.kind === "quote" ? (
                     <>
                       <p>
@@ -182,6 +209,8 @@ export async function PortalContent({ access, preview = false, banner }: { acces
           </nav>
         ) : null}
       </section>
+
+      {decisions.length > 0 ? <ClientDecisions decisions={decisions} locale={locale} preview={preview} /> : null}
 
       {view.tasks ? (
         <section aria-labelledby="portal-tasks-title" id="taches">

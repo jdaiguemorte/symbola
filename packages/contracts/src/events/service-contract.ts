@@ -505,7 +505,70 @@ export type ClientEventView = {
   program: EventProgram | null;
 };
 
-export type EventActivityKind = "task_done" | "task_undone";
+export type EventActivityKind = "task_done" | "task_undone" | "decision_made";
+
+// Lot 27b (POR-03, BUD-07, EVT-09 ; décisions D9 et D10) — décision demandée au
+// client : choisir entre des options d'un poste, valider une dépense, approuver
+// le programme. Contenu figé à la demande ; une décision répondue ne se modifie
+// plus, une nouvelle la remplace.
+export const DECISION_KINDS = ["option", "expense", "program"] as const;
+export type DecisionKind = (typeof DECISION_KINDS)[number];
+export type DecisionStatus = "pending" | "approved" | "declined" | "withdrawn";
+export type DecisionOption = { candidateId: string; vendorName: string; quoteAmountCents: number | null };
+export type DecisionSnapshot =
+  | { kind: "option"; slotLabel: string; options: DecisionOption[] }
+  | { kind: "expense"; slotLabel: string; label: string; vendorName: string | null; amountCents: number }
+  | { kind: "program"; programUpdatedAt: string | null; itemCount: number };
+
+export type EventDecision = {
+  id: string;
+  eventId: string;
+  kind: DecisionKind;
+  // Poste (options), ligne du budget (dépense) ; null pour le programme.
+  subjectId: string | null;
+  slotId: string | null;
+  title: string;
+  note: string | null;
+  snapshot: DecisionSnapshot;
+  dueOn: string | null;
+  status: DecisionStatus;
+  choiceId: string | null;
+  comment: string | null;
+  decidedByName: string | null;
+  decidedByLinkId: string | null;
+  decidedAt: string | null;
+  replacesDecisionId: string | null;
+  // La décision qui remplace celle-ci, s'il y en a une.
+  replacedById: string | null;
+  requestedAt: string;
+  // Programme approuvé puis modifié depuis la réponse.
+  programChanged: boolean;
+};
+
+type RequestDecisionBase = {
+  organizationId: string;
+  eventId: string;
+  requestedByUserId: string;
+  note?: string | null | undefined;
+  dueOn?: string | null | undefined;
+  // Remplacer une décision répondue (EVT-09).
+  replacesDecisionId?: string | null | undefined;
+};
+export type RequestDecisionInput =
+  | (RequestDecisionBase & { kind: "option"; slotId: string })
+  // La dépense est lue au module budget par l'appelant : ligne, poste, montant.
+  | (RequestDecisionBase & { kind: "expense"; slotId: string; lineId: string; slotLabel: string; label: string; vendorName: string | null; amountCents: number })
+  | (RequestDecisionBase & { kind: "program" });
+
+export type AnswerDecisionInput = {
+  organizationId: string;
+  linkId: string;
+  decisionId: string;
+  answer: "approved" | "declined";
+  // Option choisie (décision « options »).
+  choiceId?: string | null | undefined;
+  comment?: string | null | undefined;
+};
 
 export type EventActivity = {
   id: string;
@@ -633,6 +696,12 @@ export interface EventsServiceContract {
   getVendorLinkView(organizationId: string, linkId: string): Promise<VendorLinkView>;
   // Lot 27a (CHR-04) : rappels des tâches du client, par la tâche horaire.
   sendClientTaskReminders(organizationId: string, now?: Date): Promise<number>;
+  // Lot 27b (POR-03, BUD-07, EVT-09) : décisions demandées au client.
+  requestDecision(input: RequestDecisionInput): Promise<EventDecision>;
+  withdrawDecision(organizationId: string, decisionId: string): Promise<void>;
+  listEventDecisions(organizationId: string, eventId: string): Promise<EventDecision[]>;
+  listLinkDecisions(organizationId: string, linkId: string): Promise<EventDecision[]>;
+  answerLinkDecision(input: AnswerDecisionInput): Promise<EventDecision>;
   resolveLinkSession(sessionToken: string, now?: Date): Promise<LinkAccess | null>;
   closeLinkSession(sessionToken: string): Promise<void>;
   requestLinkRenewal(token: string, now?: Date): Promise<void>;

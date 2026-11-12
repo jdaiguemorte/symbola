@@ -105,10 +105,17 @@ export type {
   RenewEventLinkInput,
   VendorLinkView,
   VerifyLinkCodeResult,
+  AnswerDecisionInput,
+  DecisionKind,
+  DecisionOption,
+  DecisionSnapshot,
+  DecisionStatus,
+  EventDecision,
+  RequestDecisionInput,
   EventsTrial,
   StartEventsTrialInput,
 } from "./events/service-contract";
-export { ENGAGED_CANDIDATE_STATUSES, LINK_AUDIENCES, LINK_BUDGET_SCOPES, LINK_RUBRICS, VENDOR_CANDIDATE_STATUSES } from "./events/service-contract";
+export { DECISION_KINDS, ENGAGED_CANDIDATE_STATUSES, LINK_AUDIENCES, LINK_BUDGET_SCOPES, LINK_RUBRICS, VENDOR_CANDIDATE_STATUSES } from "./events/service-contract";
 export type {
   AdjustEventBudgetItemInput,
   AllocationModel,

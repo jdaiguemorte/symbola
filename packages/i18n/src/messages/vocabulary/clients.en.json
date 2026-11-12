@@ -19,6 +19,9 @@
         },
         "4": {
           "a": "In the Clients tab, create a link for a retained vendor: they see the date, the venues, the programme lines that involve their role and your contact details, nothing else (no prices, no budget, no other vendors). Tick “Ask for a code when opening” to have a code sent to their e-mail each time they open it."
+        },
+        "5": {
+          "a": "In the Clients tab, “Client decisions” section: have the client choose between the vendors shown for an item, approve an expense or approve the schedule. The answer is time-stamped and in the person's name; you then retain the vendor or commit the expense in one click. An answered decision is never changed: ask for a new one."
         }
       }
     },

@@ -2843,4 +2843,12 @@
   .preview-banner {
     @apply mb-4 flex flex-col gap-1;
   }
+  /* Lot 27b (POR-03) : réponse à une décision, en colonne (le choix, le
+     commentaire, puis les deux boutons), plus lisible que la grille des listes. */
+  .item-list > li > form.decision-form {
+    @apply my-1 flex w-full max-w-xl flex-col items-stretch gap-3 rounded-md border border-line bg-ground p-4;
+  }
+  .decision-form fieldset {
+    @apply my-0;
+  }
 }

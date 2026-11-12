@@ -42,9 +42,10 @@ async function hasColumn(schema: string, table: string, column: string): Promise
 const rollback = (tag: string) => rollbackMigration(target, tag, folders);
 
 // Lots 26a, 26b et 27a : migrations au-dessus de celles du 28, annulées pour revenir à 0108.
+const LOT_27B = "0116_lot27b_events_decisions";
 const LOT_27A = ["0115_lot27a_budget_payment_declarations", "0114_lot27a_events_task_reminders"];
 const LOT_26B = "0113_lot26b_events_vendor_links";
-const LOT_26 = [...LOT_27A, LOT_26B, "0112_lot26a_events_drop_client_accesses", "0111_lot26a_hub_roles_notice", "0110_lot26a_core_link_actor", "0109_lot26a_events_links"];
+const LOT_26 = [LOT_27B, ...LOT_27A, LOT_26B, "0112_lot26a_events_drop_client_accesses", "0111_lot26a_hub_roles_notice", "0110_lot26a_core_link_actor", "0109_lot26a_events_links"];
 async function rollbackLot26() {
   for (const tag of LOT_26) await rollback(tag);
 }
@@ -76,6 +77,39 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     await expect(rollback("0099_inconnue")).rejects.toBeInstanceOf(RollbackRefusedError);
   });
 
+  it("lot 27b (POR-03, EVT-09) — 0116 : décisions du client, garde d'immuabilité, fil d'activité ; l'annulation les retire", async () => {
+    await expect(rollback("0115_lot27a_budget_payment_declarations")).rejects.toBeInstanceOf(RollbackRefusedError);
+    expect(await hasColumn("events", "event_decisions", "snapshot")).toBe(true);
+    const organizationId = randomUUID();
+    const inOrganization = <T>(work: (tx: postgres.TransactionSql) => Promise<T>) =>
+      target.begin(async (tx) => {
+        await tx`select set_config('app.organization_id', ${organizationId}, true)`;
+        return work(tx);
+      }) as Promise<T>;
+    const ids = await inOrganization(async (tx) => {
+      const [event] = await tx<{ id: string }[]>`insert into events.events (organization_id) values (${organizationId}) returning id`;
+      const [decision] = await tx<{ id: string }[]>`insert into events.event_decisions (organization_id, event_id, kind, title, snapshot, status, decided_at)
+        values (${organizationId}, ${event!.id}, 'program', '', ${JSON.stringify({ kind: "program", programUpdatedAt: null, itemCount: 1 })}::jsonb, 'approved', now()) returning id`;
+      await tx`insert into events.event_activities (organization_id, event_id, kind, task_label) values (${organizationId}, ${event!.id}, 'decision_made', '')`;
+      return { eventId: event!.id, decisionId: decision!.id };
+    });
+    // La garde : une décision répondue ne change plus ; une réponse sans date n'existe pas.
+    await expect(inOrganization((tx) => tx`update events.event_decisions set status = 'declined' where id = ${ids.decisionId}`)).rejects.toThrow(/ne se modifie plus/);
+    await expect(
+      inOrganization((tx) => tx`insert into events.event_decisions (organization_id, event_id, kind, title, snapshot, status) values (${organizationId}, ${ids.eventId}, 'program', '', '{}'::jsonb, 'approved')`),
+    ).rejects.toThrow(/event_decisions_answer_check/);
+
+    await rollback(LOT_27B);
+    expect(await hasColumn("events", "event_decisions", "id")).toBe(false);
+    const [kinds] = await target<{ labels: string[] }[]>`select array_agg(e.enumlabel::text order by e.enumsortorder) as labels from pg_enum e join pg_type t on t.oid = e.enumtypid join pg_namespace n on n.oid = t.typnamespace where n.nspname = 'events' and t.typname = 'event_activity_kind'`;
+    expect(kinds!.labels).toEqual(["task_done", "task_undone"]);
+    const [left] = await inOrganization((tx) => tx<{ n: number }[]>`select count(*)::int as n from events.event_activities where event_id = ${ids.eventId}`);
+    expect(left!.n).toBe(0);
+
+    await migrateAll();
+    expect(await hasColumn("events", "event_decisions", "snapshot")).toBe(true);
+  });
+
   it("lot 27a (CHR-04, SC-06 ; décisions D6 et D7) — 0114 et 0115 : rappels des tâches, langue du lien, règlement déclaré ; l'annulation les retire", async () => {
     await expect(rollback("0114_lot27a_events_task_reminders")).rejects.toBeInstanceOf(RollbackRefusedError);
     expect(await hasColumn("events", "event_links", "task_reminders")).toBe(true);
@@ -104,6 +138,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
       inOrganization((tx) => tx`insert into events.event_links (organization_id, event_id, audience, person_name, email, locale) values (${organizationId}, ${ids.eventId}, 'client', 'Léa', 'lea@example.test', 'de')`),
     ).rejects.toThrow(/event_links_locale_check/);
 
+    await rollback(LOT_27B);
     await rollback("0115_lot27a_budget_payment_declarations");
     expect(await hasColumn("budget", "vendor_payments", "declared_paid_on")).toBe(false);
     expect(await hasColumn("budget", "vendor_payments", "refusal_reason")).toBe(false);
@@ -148,6 +183,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
       inOrganization((tx) => tx`insert into events.event_links (organization_id, event_id, audience, person_name, email) values (${organizationId}, ${ids.eventId}, 'vendor', 'Sans poste', 'x@example.test')`),
     ).rejects.toThrow(/event_links_vendor_candidate_check/);
 
+    await rollback(LOT_27B);
     for (const tag of LOT_27A) await rollback(tag);
     await rollback(LOT_26B);
     expect(await hasColumn("events", "event_links", "vendor_candidate_id")).toBe(false);
@@ -188,6 +224,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
       inOrganization((tx) => tx`update events.event_links set rubrics = ${["tout"]} where id = ${ids.linkId}`),
     ).rejects.toThrow(/event_links_rubrics_check/);
 
+    await rollback(LOT_27B);
     for (const tag of LOT_27A) await rollback(tag);
     await rollback(LOT_26B);
     await rollback("0112_lot26a_events_drop_client_accesses");
