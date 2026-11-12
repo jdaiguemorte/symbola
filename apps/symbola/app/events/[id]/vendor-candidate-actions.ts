@@ -119,6 +119,7 @@ export async function updateCandidateAction(_prev: CandidateFormState, formData:
       eventId,
       vendorSlotId: current.vendorSlotId,
       amountCents: quoteAmountCents ?? current.quoteAmountCents,
+      candidateId: current.id,
       confirmed: formData.get("confirmed") === "1",
     });
     if (confirm) return { confirm };
@@ -202,6 +203,7 @@ export async function selectCandidateAction(_prev: CandidateFormState, formData:
     eventId,
     vendorSlotId: candidate.vendorSlotId,
     amountCents: candidate.quoteAmountCents,
+    candidateId: candidate.id,
     confirmed: formData.get("confirmed") === "1",
   });
   if (confirm) return { confirm };

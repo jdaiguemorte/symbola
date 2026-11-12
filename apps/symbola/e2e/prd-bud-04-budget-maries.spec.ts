@@ -100,10 +100,13 @@ test("PRD-BUD-04 — le marié consulte le budget de son événement en lecture 
   const eventId = eventUrl.split("/").pop()!;
   await page.goto(`/budget/${eventId}`);
   await page.waitForLoadState("networkidle");
-  const plannerRow = page.getByRole("table", { name: "Estimé, devisé, engagé, payé" }).getByRole("row", { name: /Lieu de réception/ });
+  // Lot 28b : la ligne (pas le total de sa catégorie), repérée par « Modifier ».
+  const plannerRow = page.getByRole("table", { name: "Estimé, devisé, engagé, payé" }).getByRole("row").filter({ hasText: "Modifier « Lieu de réception »" });
   await plannerRow.getByText("Modifier « Lieu de réception »").click();
-  await plannerRow.getByLabel("Engagé — Lieu de réception").fill("7000");
-  await plannerRow.getByRole("button", { name: "Enregistrer la ligne" }).click();
+  // Lot 28b : le formulaire s'ouvre dans une rangée pleine largeur, sous la ligne.
+  const editor = page.getByRole("region", { name: "Ligne « Lieu de réception » : montants, prestataire, documents et échéances" });
+  await editor.getByLabel("Engagé — Lieu de réception").fill("7000");
+  await editor.getByRole("button", { name: "Enregistrer la ligne" }).click();
   await expect(plannerRow).toContainText("Dépassement de 1 000,00 €");
 
   // Elle invite le marié depuis la fiche.

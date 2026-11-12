@@ -121,8 +121,8 @@ describe("PRD-EVT-03 — Statut des postes prestataires", () => {
     await updateEventVendorSlot({ organizationId, vendorSlotId: photographer!.id, changedByUserId: plannerId, vendorName: "Studio Lumière", amountCents: 250000 });
     await updateEventVendorSlot({ organizationId, vendorSlotId: dj!.id, changedByUserId: plannerId, vendorName: "DJ Sam" });
     const slots = await listEventVendorSlots(organizationId, event.id);
-    expect(slots[0]).toMatchObject({ status: "retained", vendorName: "Studio Lumière", amountCents: 250000, currency: "EUR" });
-    expect(slots[1]).toMatchObject({ status: "retained", vendorName: "DJ Sam", amountCents: null });
+    expect(slots[0]).toMatchObject({ status: "retained", retainedVendors: [expect.objectContaining({ vendorName: "Studio Lumière", quoteAmountCents: 250000 })] });
+    expect(slots[1]).toMatchObject({ status: "retained", retainedVendors: [expect.objectContaining({ vendorName: "DJ Sam", quoteAmountCents: null })] });
     // Le prestataire retenu est un prestataire rattaché, statut « Retenu ».
     const candidates = await listVendorCandidates(organizationId, event.id);
     expect(candidates.map((candidate) => [candidate.vendorName, candidate.status, candidate.quoteAmountCents])).toEqual(
@@ -165,7 +165,7 @@ describe("PRD-EVT-03 — Statut des postes prestataires", () => {
     expect(published.map((row) => (row.payload as { amountCents: number }).amountCents).sort()).toEqual([
       100000, 120000,
     ]);
-    expect((await listEventVendorSlots(organizationId, event.id))[0]?.amountCents).toBe(120000);
+    expect((await listEventVendorSlots(organizationId, event.id))[0]?.retainedVendors).toEqual([expect.objectContaining({ vendorName: "Traiteur Martin", quoteAmountCents: 120000 })]);
     // Un seul prestataire rattaché : le même nom ne crée pas de doublon.
     expect(await listVendorCandidates(organizationId, event.id)).toHaveLength(1);
   });

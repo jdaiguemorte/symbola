@@ -3,14 +3,26 @@
 // /v1/budget si ce module est extrait en app autonome.
 import { createStorageClient, deletePrivateObject, PrivateObjectNotFoundError, readPrivateObject, uploadFile } from "@symbola/files";
 import {
+  deleteBudgetLine,
   deleteEventBudgetRows,
+  deleteVendorPaymentRow,
+  findBudgetLine,
   findBudgetLineAttachment,
   findBudgetLineAttachments,
+  findBudgetLinesOfSlot,
+  findDueVendorPayments,
+  findFirstBudgetLineOfSlot,
+  findVendorPayment,
+  findVendorPayments,
+  insertBudgetLine,
   insertBudgetLineAttachment,
+  insertVendorPayment,
+  updateBudgetLineRow,
+  updateVendorPaymentRow,
   type BudgetLineAttachmentRow,
+  type VendorPaymentRow,
   deleteAllocationModel,
   findAllocationModels,
-  findBudgetLineByEventVendorSlotId,
   findBudgetLineHistory,
   findBudgetLines,
   deleteEventAlertThreshold,
@@ -39,20 +51,27 @@ import {
   sumAmountCents,
 } from "./allocation";
 import { QUOTE_MAX_SIZE_BYTES, quoteUploadError } from "./attachments";
+import { addDaysTo, paymentAmountCents, paymentBaseCents, paymentStatus } from "./payments";
 import {
   getEvent,
+  getEventNamesByIds,
+  getVendorCandidate,
   hasActiveClientAccess,
   listDefaultVendorSlots,
   listEventVendorSlots,
+  listVendorCandidates,
   EventNotFoundError,
   type EventVendorSlot,
 } from "@/modules/events/service";
+import { parisToday } from "@symbola/i18n";
 import { starterBudgetAlertThreshold } from "@symbola/starter-templates";
 import type {
+  AddBudgetLineInput,
   AdjustEventBudgetItemInput,
   AllocationModel,
   AttachBudgetLineQuoteInput,
   BudgetAlertSettings,
+  BudgetCategory,
   BudgetEnvelope,
   EngagementPreview,
   BudgetLine,
@@ -65,9 +84,15 @@ import type {
   EventBudgetView,
   FileDownload,
   SimulateEventBudgetInput,
+  UpcomingVendorPayment,
+  UpdateBudgetLineDetailsInput,
   UpdateBudgetLineInput,
+  VendorCandidate,
+  VendorPayment,
+  VendorPaymentInput,
   VendorSlotBookedPayload,
 } from "@symbola/contracts";
+import { BUDGET_DOCUMENT_KINDS } from "@symbola/contracts";
 
 export type {
   AdjustEventBudgetItemInput,
@@ -86,7 +111,13 @@ export type {
   EventBudgetView,
   SimulateEventBudgetInput,
   UpdateBudgetLineInput,
+  BudgetCategory,
+  BudgetDocumentKind,
+  UpcomingVendorPayment,
+  VendorPayment,
+  VendorPaymentStatus,
 } from "@symbola/contracts";
+export { BUDGET_DOCUMENT_KINDS } from "@symbola/contracts";
 export { EventNotFoundError };
 export {
   QUOTE_MAX_SIZE_BYTES,
@@ -100,6 +131,38 @@ export class BudgetLineNotFoundError extends Error {
   constructor() {
     super("ligne de budget introuvable pour ce poste");
     this.name = "BudgetLineNotFoundError";
+  }
+}
+
+// Lot 28b (D13) : le payé d'une ligne qui a des échéances ne se saisit plus.
+export class BudgetLinePaidFromPaymentsError extends Error {
+  constructor() {
+    super("le payé de cette ligne vient de ses échéances");
+    this.name = "BudgetLinePaidFromPaymentsError";
+  }
+}
+
+// Lot 28b (BUD-01) : le prestataire d'une ligne est l'un des prestataires
+// rattachés à sa catégorie ; le libellé d'une nouvelle ligne est obligatoire.
+export class BudgetLineDetailsInvalidError extends Error {
+  constructor(readonly reason: "label" | "vendor") {
+    super(reason === "label" ? "libellé de ligne obligatoire" : "prestataire hors de la catégorie");
+    this.name = "BudgetLineDetailsInvalidError";
+  }
+}
+
+// Lot 28b (BUD-03) : échéance invalide (libellé, montant ou pourcentage, date).
+export class VendorPaymentInvalidError extends Error {
+  constructor(readonly reason: "label" | "amount" | "date") {
+    super(`échéance invalide : ${reason}`);
+    this.name = "VendorPaymentInvalidError";
+  }
+}
+
+export class VendorPaymentNotFoundError extends Error {
+  constructor() {
+    super("échéance introuvable");
+    this.name = "VendorPaymentNotFoundError";
   }
 }
 
@@ -279,14 +342,42 @@ export async function adjustEventBudgetItem(input: AdjustEventBudgetItemInput): 
 }
 
 function toBudgetLineAttachment(row: BudgetLineAttachmentRow): BudgetLineAttachment {
-  return { id: row.id, mime: row.mime, sizeBytes: row.sizeBytes, createdAt: row.createdAt.toISOString() };
+  return { id: row.id, kind: row.kind, mime: row.mime, sizeBytes: row.sizeBytes, createdAt: row.createdAt.toISOString() };
 }
 
-function toBudgetLine(line: BudgetLineRow, label: string, attachments: BudgetLineAttachmentRow[]): BudgetLine {
-  const { varianceCents, variancePercent } = computeVariance(line.estimatedAmountCents, line.committedAmountCents);
+function toVendorPayment(row: VendorPaymentRow, line: BudgetLineRow, lines: BudgetLineRow[], today: string): VendorPayment {
   return {
+    id: row.id,
+    lineId: row.lineId,
+    label: row.label,
+    amountCents: paymentAmountCents(row, paymentBaseCents(line, lines)),
+    fixedAmountCents: row.fixedAmountCents,
+    percentageBasisPoints: row.percentageBasisPoints,
+    dueOn: row.dueOn,
+    paidOn: row.paidOn,
+    status: paymentStatus(row, today),
+  };
+}
+
+type LineContext = {
+  lines: BudgetLineRow[];
+  attachments: BudgetLineAttachmentRow[];
+  payments: VendorPaymentRow[];
+  vendorNameOf: Map<string, string>;
+  slotLabelOf: Map<string, string>;
+  today: string;
+};
+
+function toBudgetLine(line: BudgetLineRow, context: LineContext): BudgetLine {
+  const { varianceCents, variancePercent } = computeVariance(line.estimatedAmountCents, line.committedAmountCents);
+  const payments = context.payments.filter((payment) => payment.lineId === line.id);
+  return {
+    id: line.id,
     eventVendorSlotId: line.eventVendorSlotId,
-    label,
+    label: line.label || (context.slotLabelOf.get(line.eventVendorSlotId) ?? ""),
+    vendorCandidateId: line.vendorCandidateId,
+    vendorName: line.vendorCandidateId ? (context.vendorNameOf.get(line.vendorCandidateId) ?? null) : null,
+    position: line.position,
     estimatedAmountCents: line.estimatedAmountCents,
     quotedAmountCents: line.quotedAmountCents,
     committedAmountCents: line.committedAmountCents,
@@ -294,40 +385,81 @@ function toBudgetLine(line: BudgetLineRow, label: string, attachments: BudgetLin
     remainingAmountCents: remainingToPayCents(line.committedAmountCents, line.paidAmountCents),
     varianceCents,
     variancePercent,
-    attachments: attachments.filter((attachment) => attachment.lineId === line.id).map(toBudgetLineAttachment),
+    paidFromPayments: payments.length > 0,
+    attachments: context.attachments.filter((attachment) => attachment.lineId === line.id).map(toBudgetLineAttachment),
+    payments: payments.map((payment) => toVendorPayment(payment, line, context.lines, context.today)),
   };
 }
 
+function sumOf(lines: BudgetLine[], pick: (line: BudgetLine) => number | null): number {
+  return lines.reduce((sum, line) => sum + (pick(line) ?? 0), 0);
+}
+
+// Lot 28b (BUD-01, Q33) : les catégories (postes) dans l'ordre de la fiche,
+// chacune avec ses lignes et ses totaux ; une catégorie sans ligne n'y figure pas.
 async function toBudgetLinesView(
   organizationId: string,
   eventId: string,
   lines: BudgetLineRow[],
 ): Promise<BudgetLinesView> {
-  const [vendorSlots, attachments]: [EventVendorSlot[], BudgetLineAttachmentRow[]] = await Promise.all([
+  const lineIds = lines.map((line) => line.id);
+  const [vendorSlots, attachments, payments, candidates]: [EventVendorSlot[], BudgetLineAttachmentRow[], VendorPaymentRow[], VendorCandidate[]] = await Promise.all([
     listEventVendorSlots(organizationId, eventId),
-    findBudgetLineAttachments(
-      organizationId,
-      lines.map((line) => line.id),
-    ),
+    findBudgetLineAttachments(organizationId, lineIds),
+    findVendorPayments(organizationId, lineIds),
+    lines.some((line) => line.vendorCandidateId !== null) ? listVendorCandidates(organizationId, eventId) : Promise.resolve([]),
   ]);
-  const labelOf = new Map(vendorSlots.map((slot) => [slot.id, slot.label]));
-  // Lignes dans l'ordre des postes de l'événement (celui de sa fiche) : la
-  // requête n'en garantit aucun.
+  const context: LineContext = {
+    lines,
+    attachments,
+    payments,
+    vendorNameOf: new Map(candidates.map((candidate) => [candidate.id, candidate.vendorName])),
+    slotLabelOf: new Map(vendorSlots.map((slot) => [slot.id, slot.label])),
+    today: parisToday(),
+  };
   const slotOrder = new Map(vendorSlots.map((slot, index) => [slot.id, index]));
-  const mapped = [...lines]
-    .sort((a, b) => (slotOrder.get(a.eventVendorSlotId) ?? Infinity) - (slotOrder.get(b.eventVendorSlotId) ?? Infinity))
-    .map((line) => toBudgetLine(line, labelOf.get(line.eventVendorSlotId) ?? line.eventVendorSlotId, attachments));
-  const total = (pick: (line: BudgetLine) => number | null) => mapped.reduce((sum, line) => sum + (pick(line) ?? 0), 0);
-  const totalCommittedCents = total((line) => line.committedAmountCents);
+  const sorted = [...lines].sort(
+    (a, b) => (slotOrder.get(a.eventVendorSlotId) ?? Infinity) - (slotOrder.get(b.eventVendorSlotId) ?? Infinity) || a.position - b.position || a.createdAt.getTime() - b.createdAt.getTime(),
+  );
+  const mapped = sorted.map((line) => toBudgetLine(line, context));
+  const categories: BudgetCategory[] = [];
+  for (const line of mapped) {
+    let category = categories.at(-1);
+    if (!category || category.eventVendorSlotId !== line.eventVendorSlotId) {
+      category = {
+        eventVendorSlotId: line.eventVendorSlotId,
+        label: context.slotLabelOf.get(line.eventVendorSlotId) ?? line.label,
+        lines: [],
+        estimatedCents: 0,
+        quotedCents: 0,
+        committedCents: 0,
+        paidCents: 0,
+        remainingCents: 0,
+        varianceCents: 0,
+      };
+      categories.push(category);
+    }
+    category.lines.push(line);
+  }
+  for (const category of categories) {
+    category.estimatedCents = sumOf(category.lines, (line) => line.estimatedAmountCents);
+    category.quotedCents = sumOf(category.lines, (line) => line.quotedAmountCents);
+    category.committedCents = sumOf(category.lines, (line) => line.committedAmountCents);
+    category.paidCents = sumOf(category.lines, (line) => line.paidAmountCents);
+    category.remainingCents = sumOf(category.lines, (line) => line.remainingAmountCents);
+    category.varianceCents = sumOf(category.lines, (line) => line.varianceCents);
+  }
+  const totalCommittedCents = sumOf(mapped, (line) => line.committedAmountCents);
   return {
     eventId,
+    categories,
     lines: mapped,
-    totalEstimatedCents: total((line) => line.estimatedAmountCents),
-    totalQuotedCents: total((line) => line.quotedAmountCents),
+    totalEstimatedCents: sumOf(mapped, (line) => line.estimatedAmountCents),
+    totalQuotedCents: sumOf(mapped, (line) => line.quotedAmountCents),
     totalCommittedCents,
-    totalPaidCents: total((line) => line.paidAmountCents),
-    totalRemainingCents: total((line) => line.remainingAmountCents),
-    totalVarianceCents: total((line) => line.varianceCents),
+    totalPaidCents: sumOf(mapped, (line) => line.paidAmountCents),
+    totalRemainingCents: sumOf(mapped, (line) => line.remainingAmountCents),
+    totalVarianceCents: sumOf(mapped, (line) => line.varianceCents),
     envelope: await budgetEnvelope(organizationId, eventId, totalCommittedCents),
   };
 }
@@ -388,10 +520,14 @@ async function budgetEnvelope(organizationId: string, eventId: string, committed
 
 // Lot 28a (BUD-02) — « l'alerte précède l'engagement » : l'engagé total si la
 // ligne du poste était engagée pour ce montant, comparé au seuil.
-export async function previewEngagement(input: { organizationId: string; eventId: string; eventVendorSlotId: string; amountCents: number }): Promise<EngagementPreview> {
+export async function previewEngagement(input: { organizationId: string; eventId: string; eventVendorSlotId: string; amountCents: number; candidateId?: string }): Promise<EngagementPreview> {
   const lines = await findBudgetLines(input.organizationId, input.eventId);
-  const others = lines.filter((line) => line.eventVendorSlotId !== input.eventVendorSlotId).reduce((sum, line) => sum + (line.committedAmountCents ?? 0), 0);
-  const committedAfterCents = others + input.amountCents;
+  // Lot 28b (D11) : les lignes déjà liées au prestataire sont remplacées par ce
+  // que la retenue y engagera (plusieurs lignes : leur devisé).
+  const linked = input.candidateId ? lines.filter((line) => line.eventVendorSlotId === input.eventVendorSlotId && line.vendorCandidateId === input.candidateId) : [];
+  const projected = linked.length > 1 ? linked.reduce((sum, line) => sum + (line.quotedAmountCents ?? line.committedAmountCents ?? 0), 0) : input.amountCents;
+  const others = lines.filter((line) => !linked.includes(line)).reduce((sum, line) => sum + (line.committedAmountCents ?? 0), 0);
+  const committedAfterCents = others + projected;
   const envelope = await budgetEnvelope(input.organizationId, input.eventId, committedAfterCents);
   const overThresholdCents = envelope ? Math.max(0, committedAfterCents - envelope.thresholdCents) : 0;
   return { envelope, committedAfterCents, exceedsThreshold: overThresholdCents > 0, overThresholdCents };
@@ -419,6 +555,7 @@ export async function confirmEventBudget(input: ConfirmEventBudgetInput): Promis
 
   const eventSlots: EventVendorSlot[] = await listEventVendorSlots(input.organizationId, input.eventId);
   const eventSlotIdByLabel = new Map(eventSlots.map((slot) => [slot.label, slot.id]));
+  const slotLabelOf = new Map(eventSlots.map((slot) => [slot.id, slot.label]));
 
   const unmatchedLabels: string[] = [];
   const matches: { eventVendorSlotId: string; amountCents: number }[] = [];
@@ -433,11 +570,13 @@ export async function confirmEventBudget(input: ConfirmEventBudgetInput): Promis
   }
   if (unmatchedLabels.length > 0) throw new BudgetSimulationMismatchError(unmatchedLabels);
 
+  // Lot 28b (Q33) : l'estimé de chaque catégorie va sur sa première ligne.
   for (const match of matches) {
     await setBudgetLineAmount({
       organizationId: input.organizationId,
       eventId: input.eventId,
       eventVendorSlotId: match.eventVendorSlotId,
+      slotLabel: slotLabelOf.get(match.eventVendorSlotId) ?? "",
       field: "estimated",
       amountCents: match.amountCents,
       changedByUserId: input.confirmedByUserId,
@@ -447,9 +586,9 @@ export async function confirmEventBudget(input: ConfirmEventBudgetInput): Promis
   return listBudgetLines(input.organizationId, input.eventId);
 }
 
-// PRD-BUD-02 : modification à la main de « prévu » ou « réel » sur un poste —
-// crée la ligne si elle n'existe pas encore (un événement peut recevoir
-// un budget réel sans être jamais passé par la simulation).
+// PRD-BUD-02, lot 28b : modification à la main d'un montant d'une ligne. Sans
+// ligne désignée, la première ligne de la catégorie, créée si elle n'existe pas
+// encore (un événement peut recevoir un budget sans passer par la simulation).
 export async function updateBudgetLine(input: UpdateBudgetLineInput): Promise<BudgetLinesView> {
   // Montants en centimes entiers, positifs ou nuls (CLAUDE.md § 5), quelle que soit l'entrée.
   if (!Number.isInteger(input.amountCents) || input.amountCents < 0) {
@@ -458,30 +597,39 @@ export async function updateBudgetLine(input: UpdateBudgetLineInput): Promise<Bu
   const event = await getEvent(input.organizationId, input.eventId);
   if (!event) throw new EventNotFoundError();
 
-  const eventSlots: EventVendorSlot[] = await listEventVendorSlots(input.organizationId, input.eventId);
-  if (!eventSlots.some((slot) => slot.id === input.eventVendorSlotId)) {
-    throw new EventVendorSlotNotFoundError(input.eventVendorSlotId);
+  let slotLabel = "";
+  if (input.lineId) {
+    const line = await findBudgetLine(input.organizationId, input.lineId);
+    if (!line || line.eventId !== input.eventId) throw new BudgetLineNotFoundError();
+    if (input.field === "paid" && (await findVendorPayments(input.organizationId, [line.id])).length > 0) throw new BudgetLinePaidFromPaymentsError();
+  } else {
+    const eventSlots: EventVendorSlot[] = await listEventVendorSlots(input.organizationId, input.eventId);
+    const slot = eventSlots.find((entry) => entry.id === input.eventVendorSlotId);
+    if (!slot) throw new EventVendorSlotNotFoundError(input.eventVendorSlotId ?? "");
+    slotLabel = slot.label;
+    const first = await findFirstBudgetLineOfSlot(input.organizationId, slot.id);
+    if (input.field === "paid" && first && (await findVendorPayments(input.organizationId, [first.id])).length > 0) throw new BudgetLinePaidFromPaymentsError();
   }
 
-  await setBudgetLineAmount({
+  const written = await setBudgetLineAmount({
     organizationId: input.organizationId,
     eventId: input.eventId,
-    eventVendorSlotId: input.eventVendorSlotId,
+    ...(input.lineId ? { lineId: input.lineId } : { eventVendorSlotId: input.eventVendorSlotId!, slotLabel }),
     field: input.field,
     amountCents: input.amountCents,
     changedByUserId: input.changedByUserId,
   });
-
+  if (!written) throw new BudgetLineNotFoundError();
   return listBudgetLines(input.organizationId, input.eventId);
 }
 
+// Historique des lignes d'une catégorie (lot 28b : une catégorie a plusieurs lignes).
 export async function listBudgetLineHistory(
   organizationId: string,
   eventVendorSlotId: string,
 ): Promise<BudgetLineHistoryEntry[]> {
-  const line = await findBudgetLineByEventVendorSlotId(organizationId, eventVendorSlotId);
-  if (!line) return [];
-  const rows = await findBudgetLineHistory(organizationId, line.id);
+  const lines = await findBudgetLinesOfSlot(organizationId, eventVendorSlotId);
+  const rows = await findBudgetLineHistory(organizationId, lines.map((line) => line.id));
   return rows.map((row) => ({
     field: row.field,
     oldValueCents: row.oldValueCents,
@@ -489,6 +637,51 @@ export async function listBudgetLineHistory(
     changedByUserId: row.changedByUserId,
     changedAt: row.changedAt.toISOString(),
   }));
+}
+
+// Lot 28b (BUD-01, Q33) — lignes d'une catégorie : ajout, libellé et
+// prestataire, suppression. Le prestataire est l'un de ceux rattachés à la
+// catégorie (module events).
+async function assertCandidateOfSlot(organizationId: string, eventId: string, eventVendorSlotId: string, candidateId: string | null | undefined): Promise<void> {
+  if (!candidateId) return;
+  const candidate = await getVendorCandidate(organizationId, candidateId);
+  if (!candidate || candidate.eventId !== eventId || candidate.vendorSlotId !== eventVendorSlotId) throw new BudgetLineDetailsInvalidError("vendor");
+}
+
+export async function addBudgetLine(input: AddBudgetLineInput): Promise<BudgetLinesView> {
+  const label = input.label.trim().slice(0, 200);
+  if (!label) throw new BudgetLineDetailsInvalidError("label");
+  const event = await getEvent(input.organizationId, input.eventId);
+  if (!event) throw new EventNotFoundError();
+  const slots = await listEventVendorSlots(input.organizationId, input.eventId);
+  if (!slots.some((slot) => slot.id === input.eventVendorSlotId)) throw new EventVendorSlotNotFoundError(input.eventVendorSlotId);
+  await assertCandidateOfSlot(input.organizationId, input.eventId, input.eventVendorSlotId, input.vendorCandidateId);
+  await insertBudgetLine({ organizationId: input.organizationId, eventId: input.eventId, eventVendorSlotId: input.eventVendorSlotId, label, vendorCandidateId: input.vendorCandidateId ?? null });
+  return listBudgetLines(input.organizationId, input.eventId);
+}
+
+export async function updateBudgetLineDetails(input: UpdateBudgetLineDetailsInput): Promise<BudgetLinesView> {
+  const line = await findBudgetLine(input.organizationId, input.lineId);
+  if (!line || line.eventId !== input.eventId) throw new BudgetLineNotFoundError();
+  const label = input.label === undefined ? undefined : input.label.trim().slice(0, 200);
+  if (label === "") throw new BudgetLineDetailsInvalidError("label");
+  await assertCandidateOfSlot(input.organizationId, input.eventId, line.eventVendorSlotId, input.vendorCandidateId);
+  await updateBudgetLineRow({
+    organizationId: input.organizationId,
+    lineId: line.id,
+    ...(label !== undefined ? { label } : {}),
+    ...(input.vendorCandidateId !== undefined ? { vendorCandidateId: input.vendorCandidateId } : {}),
+  });
+  return listBudgetLines(input.organizationId, input.eventId);
+}
+
+export async function removeBudgetLine(organizationId: string, eventId: string, lineId: string): Promise<BudgetLinesView> {
+  const line = await findBudgetLine(organizationId, lineId);
+  if (!line || line.eventId !== eventId) throw new BudgetLineNotFoundError();
+  const fileKeys = (await deleteBudgetLine(organizationId, lineId)) ?? [];
+  const storage = fileKeys.length > 0 ? createStorageClient() : null;
+  for (const key of fileKeys) await deletePrivateObject(storage!, key).catch(() => undefined);
+  return listBudgetLines(organizationId, eventId);
 }
 
 // Lot 3 (PRD-BUD-02) : gestionnaire de events.vendor_slot.booked, appelé par le
@@ -502,35 +695,64 @@ export async function applyVendorSlotBookedToBudget(
   payload: VendorSlotBookedPayload,
   occurredAt?: Date,
 ): Promise<void> {
-  if (payload.amountCents === null) return;
-  // Lot 12 (L12-EVT-17) : le budget existe dès la création de l'événement ; une
-  // réservation crée la ligne (réel connu, prévu encore vide) si besoin.
-  const existing = await findBudgetLineByEventVendorSlotId(organizationId, payload.vendorSlotId);
-  if (existing && occurredAt) {
-    const history = await findBudgetLineHistory(organizationId, existing.id);
-    if (history.some((row) => row.field === "committed" && row.changedAt.getTime() > occurredAt.getTime())) return;
+  const slotLines = await findBudgetLinesOfSlot(organizationId, payload.vendorSlotId);
+  const engage = async (lineId: string, field: "quoted" | "committed", amountCents: number) =>
+    setBudgetLineAmount({ organizationId, eventId: payload.eventId, lineId, field, amountCents, changedByUserId: payload.bookedByUserId });
+
+  // Événement de version 1 (avant le lot 28b) : la première ligne de la catégorie.
+  if (!payload.candidateId) {
+    if (payload.amountCents === null) return;
+    const first = slotLines[0];
+    if (first && occurredAt && (await committedChangedSince(organizationId, [first.id], occurredAt))) return;
+    const line = first ?? (await insertBudgetLine({ organizationId, eventId: payload.eventId, eventVendorSlotId: payload.vendorSlotId, label: payload.label, vendorCandidateId: null }));
+    await engage(line.id, "committed", payload.amountCents);
+    if (line.quotedAmountCents === null) await engage(line.id, "quoted", payload.amountCents);
+    return;
   }
 
-  // Lot 28a (PRE-02, BUD-01) : « Retenu » engage la ligne au montant du devis ;
-  // le devisé le reprend s'il n'a pas encore été saisi.
-  await setBudgetLineAmount({
-    organizationId,
-    eventId: payload.eventId,
-    eventVendorSlotId: payload.vendorSlotId,
-    field: "committed",
-    amountCents: payload.amountCents,
-    changedByUserId: payload.bookedByUserId,
-  });
-  if (existing?.quotedAmountCents == null) {
-    await setBudgetLineAmount({
-      organizationId,
-      eventId: payload.eventId,
-      eventVendorSlotId: payload.vendorSlotId,
-      field: "quoted",
-      amountCents: payload.amountCents,
-      changedByUserId: payload.bookedByUserId,
-    });
+  // Lot 28b (PRE-02, D11) : les lignes du prestataire. Sûr au rejeu : un engagé
+  // modifié depuis l'événement (à la main, ou par un plus récent) n'est pas écrasé.
+  let linked = slotLines.filter((line) => line.vendorCandidateId === payload.candidateId);
+  if (linked.length > 0 && occurredAt && (await committedChangedSince(organizationId, linked.map((line) => line.id), occurredAt))) return;
+  if (linked.length === 0) {
+    // Une ligne libre de la catégorie (sans prestataire ni engagé, celle de la
+    // simulation par exemple) devient la sienne ; sinon une ligne à son nom.
+    const free = slotLines.find((line) => line.vendorCandidateId === null && line.committedAmountCents === null);
+    if (free) {
+      await updateBudgetLineRow({ organizationId, lineId: free.id, vendorCandidateId: payload.candidateId });
+      linked = [{ ...free, vendorCandidateId: payload.candidateId }];
+    } else {
+      if (payload.amountCents === null) return;
+      const candidate = await getVendorCandidate(organizationId, payload.candidateId);
+      linked = [
+        await insertBudgetLine({
+          organizationId,
+          eventId: payload.eventId,
+          eventVendorSlotId: payload.vendorSlotId,
+          label: candidate?.vendorName ?? payload.label,
+          vendorCandidateId: payload.candidateId,
+        }),
+      ];
+    }
   }
+  if (linked.length === 1) {
+    // Une seule ligne : le devis du prestataire en est le devisé, et l'engagé.
+    const [line] = linked as [BudgetLineRow];
+    const amount = payload.amountCents ?? line.quotedAmountCents;
+    if (amount === null) return;
+    if (line.quotedAmountCents !== amount) await engage(line.id, "quoted", amount);
+    if (line.committedAmountCents !== amount) await engage(line.id, "committed", amount);
+    return;
+  }
+  // Plusieurs lignes : chacune engage son devisé (le détail du devis).
+  for (const line of linked) {
+    if (line.quotedAmountCents !== null && line.committedAmountCents !== line.quotedAmountCents) await engage(line.id, "committed", line.quotedAmountCents);
+  }
+}
+
+async function committedChangedSince(organizationId: string, lineIds: string[], occurredAt: Date): Promise<boolean> {
+  const history = await findBudgetLineHistory(organizationId, lineIds);
+  return history.some((row) => row.field === "committed" && row.changedAt.getTime() > occurredAt.getTime());
 }
 
 // PRD-BUD-03 — devis prestataire joint : mêmes règles que l'envoi de fichier
@@ -539,8 +761,14 @@ export async function applyVendorSlotBookedToBudget(
 export async function attachBudgetLineQuote(input: AttachBudgetLineQuoteInput): Promise<BudgetLineAttachment> {
   const event = await getEvent(input.organizationId, input.eventId);
   if (!event) throw new EventNotFoundError();
-  const line = await findBudgetLineByEventVendorSlotId(input.organizationId, input.eventVendorSlotId);
+  const line = input.lineId
+    ? await findBudgetLine(input.organizationId, input.lineId)
+    : input.eventVendorSlotId
+      ? await findFirstBudgetLineOfSlot(input.organizationId, input.eventVendorSlotId)
+      : null;
   if (!line || line.eventId !== input.eventId) throw new BudgetLineNotFoundError();
+  const kind = input.kind ?? "quote";
+  if (!BUDGET_DOCUMENT_KINDS.includes(kind)) throw new BudgetLineNotFoundError();
 
   const upload = await uploadFile({
     organizationId: input.organizationId,
@@ -552,6 +780,7 @@ export async function attachBudgetLineQuote(input: AttachBudgetLineQuoteInput): 
   const row = await insertBudgetLineAttachment({
     organizationId: input.organizationId,
     lineId: line.id,
+    kind,
     fileKey: upload.key,
     mime: upload.mime,
     sizeBytes: upload.size,
@@ -559,6 +788,9 @@ export async function attachBudgetLineQuote(input: AttachBudgetLineQuoteInput): 
   });
   return toBudgetLineAttachment(row);
 }
+
+// Préfixe technique du nom de fichier téléchargé, par nature de document.
+const DOCUMENT_FILE_PREFIX = { quote: "devis", contract: "contrat", invoice: "facture" } as const;
 
 // Lien signé à durée limitée, demandé au moment de l'ouverture — jamais
 // stocké ni affiché d'avance.
@@ -569,7 +801,7 @@ export async function getBudgetLineAttachmentFile(organizationId: string, attach
   try {
     const { data } = await readPrivateObject(createStorageClient(), attachment.fileKey);
     const extension = attachment.fileKey.split(".").pop() ?? "bin";
-    return { data, contentType: attachment.mime, fileName: `devis-prestataire-${attachment.id}.${extension}` };
+    return { data, contentType: attachment.mime, fileName: `${DOCUMENT_FILE_PREFIX[attachment.kind]}-prestataire-${attachment.id}.${extension}` };
   } catch (error) {
     if (error instanceof PrivateObjectNotFoundError) throw new BudgetLineAttachmentNotFoundError();
     throw error;
@@ -587,7 +819,110 @@ export async function getClientBudgetView(
 ): Promise<BudgetLinesView> {
   if (!(await hasActiveClientAccess(organizationId, userId, eventId))) throw new ClientBudgetAccessDeniedError();
   const view = await listBudgetLines(organizationId, eventId);
-  return { ...view, lines: view.lines.map((line) => ({ ...line, attachments: [] })) };
+  // Lot 28b : les catégories et leurs totaux seulement (le détail au portail : lot 27).
+  return { ...view, lines: [], categories: view.categories.map((category) => ({ ...category, lines: [] })) };
+}
+
+// Lot 28b (BUD-03, D7, D12, D13) — échéances des paiements aux prestataires.
+const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
+function validPayment(input: Pick<VendorPaymentInput, "label" | "fixedAmountCents" | "percentageBasisPoints" | "dueOn">) {
+  const label = input.label.trim().slice(0, 200);
+  if (!label) throw new VendorPaymentInvalidError("label");
+  if (!DATE_PATTERN.test(input.dueOn) || Number.isNaN(Date.parse(`${input.dueOn}T00:00:00Z`))) throw new VendorPaymentInvalidError("date");
+  const fixed = input.fixedAmountCents ?? null;
+  const percentage = input.percentageBasisPoints ?? null;
+  const fixedValid = fixed !== null && Number.isInteger(fixed) && fixed > 0 && percentage === null;
+  const percentageValid = percentage !== null && Number.isInteger(percentage) && percentage >= 1 && percentage <= 10000 && fixed === null;
+  if (!fixedValid && !percentageValid) throw new VendorPaymentInvalidError("amount");
+  return { label, fixedAmountCents: fixed, percentageBasisPoints: percentage, dueOn: input.dueOn };
+}
+
+async function ownPayment(organizationId: string, eventId: string, paymentId: string): Promise<VendorPaymentRow> {
+  const payment = await findVendorPayment(organizationId, paymentId);
+  if (!payment || payment.eventId !== eventId) throw new VendorPaymentNotFoundError();
+  return payment;
+}
+
+export async function addVendorPayment(input: VendorPaymentInput): Promise<BudgetLinesView> {
+  const values = validPayment(input);
+  const row = await insertVendorPayment({ organizationId: input.organizationId, eventId: input.eventId, lineId: input.lineId, ...values, changedByUserId: input.changedByUserId });
+  if (!row) throw new BudgetLineNotFoundError();
+  return listBudgetLines(input.organizationId, input.eventId);
+}
+
+export async function updateVendorPayment(input: VendorPaymentInput & { paymentId: string }): Promise<BudgetLinesView> {
+  await ownPayment(input.organizationId, input.eventId, input.paymentId);
+  const values = validPayment(input);
+  const row = await updateVendorPaymentRow({ organizationId: input.organizationId, eventId: input.eventId, paymentId: input.paymentId, ...values, changedByUserId: input.changedByUserId });
+  if (!row) throw new VendorPaymentNotFoundError();
+  return listBudgetLines(input.organizationId, input.eventId);
+}
+
+// Payée : son montant est figé (un pourcentage devient le montant calculé ce
+// jour-là) ; le payé de la ligne suit (D13). Annuler le paiement garde ce montant.
+export async function setVendorPaymentPaid(input: { organizationId: string; eventId: string; paymentId: string; paidOn: string | null; changedByUserId: string }): Promise<BudgetLinesView> {
+  const payment = await ownPayment(input.organizationId, input.eventId, input.paymentId);
+  if (input.paidOn !== null && !DATE_PATTERN.test(input.paidOn)) throw new VendorPaymentInvalidError("date");
+  let fixedAmountCents = payment.fixedAmountCents;
+  if (input.paidOn !== null && fixedAmountCents === null) {
+    const lines = await findBudgetLines(input.organizationId, input.eventId);
+    const line = lines.find((entry) => entry.id === payment.lineId);
+    if (!line) throw new BudgetLineNotFoundError();
+    fixedAmountCents = paymentAmountCents(payment, paymentBaseCents(line, lines));
+    if (fixedAmountCents <= 0) throw new VendorPaymentInvalidError("amount");
+  }
+  await updateVendorPaymentRow({
+    organizationId: input.organizationId,
+    eventId: input.eventId,
+    paymentId: payment.id,
+    label: payment.label,
+    fixedAmountCents,
+    percentageBasisPoints: fixedAmountCents === null ? payment.percentageBasisPoints : null,
+    dueOn: payment.dueOn,
+    paidOn: input.paidOn,
+    changedByUserId: input.changedByUserId,
+  });
+  return listBudgetLines(input.organizationId, input.eventId);
+}
+
+export async function removeVendorPayment(input: { organizationId: string; eventId: string; paymentId: string; changedByUserId: string }): Promise<BudgetLinesView> {
+  await ownPayment(input.organizationId, input.eventId, input.paymentId);
+  if (!(await deleteVendorPaymentRow(input))) throw new VendorPaymentNotFoundError();
+  return listBudgetLines(input.organizationId, input.eventId);
+}
+
+// D7 : échéances non payées des 7 prochains jours et en retard, toutes les
+// lignes de l'organisation (hors essais : leurs données ne publient rien).
+export async function listUpcomingVendorPayments(organizationId: string, today: string): Promise<UpcomingVendorPayment[]> {
+  const { payments, lines } = await findDueVendorPayments(organizationId, addDaysTo(today, 7));
+  if (payments.length === 0) return [];
+  const eventIds = [...new Set(payments.map((payment) => payment.eventId))];
+  const [names, slotsByEvent, candidatesByEvent] = await Promise.all([
+    getEventNamesByIds(organizationId, eventIds),
+    Promise.all(eventIds.map((eventId) => listEventVendorSlots(organizationId, eventId))),
+    Promise.all(eventIds.map((eventId) => listVendorCandidates(organizationId, eventId))),
+  ]);
+  const slotLabelOf = new Map(slotsByEvent.flat().map((slot) => [slot.id, slot.label]));
+  const vendorNameOf = new Map(candidatesByEvent.flat().map((candidate) => [candidate.id, candidate.vendorName]));
+  const upcoming: UpcomingVendorPayment[] = [];
+  for (const payment of payments) {
+    const line = lines.find((entry) => entry.id === payment.lineId);
+    if (!line || !(payment.eventId in names)) continue;
+    upcoming.push({
+      id: payment.id,
+      eventId: payment.eventId,
+      eventName: names[payment.eventId] ?? "",
+      lineId: line.id,
+      lineLabel: line.label || (slotLabelOf.get(line.eventVendorSlotId) ?? ""),
+      vendorName: line.vendorCandidateId ? (vendorNameOf.get(line.vendorCandidateId) ?? null) : null,
+      label: payment.label,
+      amountCents: paymentAmountCents(payment, paymentBaseCents(line, lines)),
+      dueOn: payment.dueOn,
+      overdue: payment.dueOn < today,
+    });
+  }
+  return upcoming;
 }
 
 // AIDE-02 — appelé à la fin d'un essai guidé (et pour un essai expiré),
@@ -625,5 +960,13 @@ const _contractCheck: BudgetServiceContract = {
   getBudgetLineAttachmentFile,
   getClientBudgetView,
   removeEventBudgetData,
+  addBudgetLine,
+  updateBudgetLineDetails,
+  removeBudgetLine,
+  addVendorPayment,
+  updateVendorPayment,
+  setVendorPaymentPaid,
+  removeVendorPayment,
+  listUpcomingVendorPayments,
 };
 void _contractCheck;

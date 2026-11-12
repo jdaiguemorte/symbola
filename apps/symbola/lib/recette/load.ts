@@ -13,15 +13,21 @@ import { z } from "zod";
 import { createUser, type Role } from "@symbola/auth";
 import { appDatabase } from "@symbola/db/client";
 import { organizations } from "@symbola/db/schema/hub";
-import { confirmEventBudget, createAllocationModel, simulateEventBudget } from "@/modules/budget/service";
+import { addBudgetLine, addVendorPayment, createAllocationModel, setVendorPaymentPaid, simulateEventBudget, updateBudgetLine } from "@/modules/budget/service";
 import {
   acceptEventClientInvitation,
   addDefaultVendorSlots,
   addEventTask,
+  addVendorCandidate,
   changeEventStatus,
   createProspect,
   createProspectSource,
   inviteEventClient,
+  listEventVendorSlots,
+  selectVendorCandidate,
+  setEventWantedBudget,
+  updateVendorCandidate,
+  type VendorCandidateStatus,
 } from "@/modules/events/service";
 import { completeSetup } from "@/modules/hub/service";
 import { addQuoteLine, addScheduleItem, createCatalogItem, createQuote } from "@/modules/quotes/service";
@@ -61,12 +67,38 @@ const datasetSchema = z.object({
       lieux: z.array(z.object({ nom: z.string() })).optional(),
       lieu: z.object({ nom: z.string(), commune: z.string().optional() }).optional(),
       prestataires: z
-        .array(z.object({ nom: z.string(), categorie: z.string(), contact: z.string().optional(), email: z.string().optional(), telephone: z.string().optional() }))
+        .array(
+          z.object({
+            id: z.string().optional(),
+            nom: z.string(),
+            categorie: z.string(),
+            statut: z.string().optional(),
+            contact: z.string().optional(),
+            email: z.string().optional(),
+            telephone: z.string().optional(),
+          }),
+        )
         .optional(),
       budget: z
         .object({
           synthese: z.object({ enveloppe_centimes: z.number().int().positive() }).optional(),
-          lignes: z.array(z.object({ poste: z.string(), estime_centimes: z.number().int().nonnegative() })).optional(),
+          // Lot 28b (Q33) : plusieurs lignes par poste, avec leur prestataire.
+          lignes: z
+            .array(
+              z.object({
+                id: z.string().optional(),
+                poste: z.string(),
+                libelle: z.string().optional(),
+                prestataire: z.string().nullable().optional(),
+                estime_centimes: z.number().int().nonnegative(),
+                engage_centimes: z.number().int().nonnegative().optional(),
+                paye_centimes: z.number().int().nonnegative().optional(),
+              }),
+            )
+            .optional(),
+          echeances: z
+            .array(z.object({ ligne: z.string(), libelle: z.string(), montant_centimes: z.number().int().positive(), date: z.string(), statut: z.string() }))
+            .optional(),
           postes: z.array(z.object({ poste: z.string(), ht_centimes: z.number().int().nonnegative() })).optional(),
           taux_tva_pct: z.number().optional(),
         })
@@ -124,6 +156,17 @@ export function recetteEmail(name: string, tag?: string): string {
 function newPassword(): string {
   return randomBytes(18).toString("base64url");
 }
+
+// Lot 28b (PRE-02) : statut d'un prestataire du jeu, en clair, vers celui de l'app.
+const VENDOR_STATUS: Record<string, VendorCandidateStatus> = {
+  "contrat signé": "contract_signed",
+  "retenu, validé par le client": "retained",
+  "devis reçu, contrat en retard": "quote_received",
+  "consulté, devis reçu": "quote_received",
+  "consulté, indisponible": "dismissed",
+  soldé: "paid_off",
+};
+const ENGAGED: VendorCandidateStatus[] = ["retained", "contract_signed", "paid_off"];
 
 function splitName(name: string): { firstName: string; lastName: string | null } {
   const [firstName, ...rest] = name.split(" ");
@@ -239,9 +282,11 @@ export async function loadRecette(raw: unknown, options: RecetteOptions = {}): P
         await addScheduleItem(organizationId, quote.id, { label: "Solde", dueDate: weeklyDate(date, -2), percentageBasisPoints: 7000 });
       }
 
-      // Budget : enveloppe répartie selon les montants estimés, puis confirmé.
+      // Budget : l'enveloppe du client et sa simulation, puis (lot 28b) les lignes
+      // du jeu sous chaque poste, leurs prestataires rattachés et leurs échéances.
       const lines = event.budget?.lignes ?? [];
       if (event.budget?.synthese && lines.length > 0) {
+        await setEventWantedBudget(organizationId, created.id, event.budget.synthese.enveloppe_centimes);
         const bySlot = slots.map((slot) => lines.filter((line) => line.poste === slot.label).reduce((sum, line) => sum + line.estime_centimes, 0));
         const shares = percentages(bySlot);
         const model = await createAllocationModel({
@@ -256,7 +301,7 @@ export async function loadRecette(raw: unknown, options: RecetteOptions = {}): P
           guestCount: event.invites?.synthese.invites ?? event.participants ?? 0,
           allocationModelId: model.id,
         });
-        await confirmEventBudget({ organizationId, eventId: created.id, confirmedByUserId: ownerId });
+        await loadBudgetLines(organizationId, ownerId, created.id, event);
       }
     }
 
@@ -281,4 +326,75 @@ export async function loadRecette(raw: unknown, options: RecetteOptions = {}): P
     result.organizations.push({ key: organisation.id, id: organizationId, name, events });
   }
   return result;
+}
+
+// Lot 28b (BUD-01, BUD-03, PRE-02) — lignes du jeu sous chaque poste : libellé,
+// prestataire rattaché (au statut du jeu), estimé, devisé et engagé, payé ;
+// échéances à venir. Un payé déjà versé sur une ligne qui a des échéances
+// devient une échéance payée (le payé d'une telle ligne en est la somme, D13).
+async function loadBudgetLines(organizationId: string, ownerId: string, eventId: string, event: RecetteDataset["evenements"][number]): Promise<void> {
+  const lines = event.budget?.lignes ?? [];
+  const slotOf = new Map((await listEventVendorSlots(organizationId, eventId)).map((slot) => [slot.label, slot.id]));
+  const vendorOf = new Map((event.prestataires ?? []).flatMap((vendor) => (vendor.id ? [[vendor.id, vendor]] : [])));
+
+  // Un prestataire rattaché par poste où il a des lignes ; son devis = l'engagé de ces lignes.
+  // Ses statuts sont posés après les lignes : la retenue engage alors les lignes
+  // existantes (le worker peut la traiter à tout moment) au lieu d'en créer une.
+  const candidateOf = new Map<string, string>();
+  const statuses: { candidateId: string; status: VendorCandidateStatus; quote: number }[] = [];
+  for (const line of lines) {
+    const vendor = line.prestataire ? vendorOf.get(line.prestataire) : undefined;
+    const slotId = slotOf.get(line.poste);
+    if (!vendor || !slotId || candidateOf.has(`${slotId}:${line.prestataire}`)) continue;
+    const candidate = await addVendorCandidate({ organizationId, eventId, vendorSlotId: slotId, vendorName: vendor.nom });
+    candidateOf.set(`${slotId}:${line.prestataire}`, candidate.id);
+    const quote = lines.filter((other) => other.poste === line.poste && other.prestataire === line.prestataire).reduce((sum, other) => sum + (other.engage_centimes ?? 0), 0);
+    statuses.push({ candidateId: candidate.id, status: VENDOR_STATUS[vendor.statut ?? ""] ?? "contacted", quote });
+  }
+
+  const lineIdOf = new Map<string, string>();
+  for (const line of lines) {
+    const slotId = slotOf.get(line.poste);
+    if (!slotId) continue;
+    const label = line.libelle ?? line.poste;
+    const vendorCandidateId = line.prestataire ? (candidateOf.get(`${slotId}:${line.prestataire}`) ?? null) : null;
+    const view = await addBudgetLine({ organizationId, eventId, eventVendorSlotId: slotId, label, vendorCandidateId });
+    const lineId = view.lines.filter((entry) => entry.eventVendorSlotId === slotId && entry.label === label).at(-1)!.id;
+    if (line.id) lineIdOf.set(line.id, lineId);
+    const set = (field: "estimated" | "quoted" | "committed" | "paid", amountCents: number) =>
+      updateBudgetLine({ organizationId, eventId, lineId, field, amountCents, changedByUserId: ownerId });
+    await set("estimated", line.estime_centimes);
+    if ((line.engage_centimes ?? 0) > 0) {
+      await set("quoted", line.engage_centimes!);
+      await set("committed", line.engage_centimes!);
+    }
+    const hasPayments = (event.budget?.echeances ?? []).some((payment) => payment.ligne === line.id);
+    if ((line.paye_centimes ?? 0) > 0 && !hasPayments) await set("paid", line.paye_centimes!);
+  }
+
+  for (const { candidateId, status, quote } of statuses) {
+    if (ENGAGED.includes(status)) {
+      await updateVendorCandidate({ organizationId, candidateId, quoteAmountCents: quote > 0 ? quote : null });
+      await selectVendorCandidate({ organizationId, candidateId, changedByUserId: ownerId });
+      if (status !== "retained") await updateVendorCandidate({ organizationId, candidateId, status, changedByUserId: ownerId });
+    } else {
+      await updateVendorCandidate({ organizationId, candidateId, status, ...(quote > 0 ? { quoteAmountCents: quote } : {}) });
+    }
+  }
+
+  const date = event.date ?? event.dates?.[0] ?? null;
+  for (const line of lines) {
+    const lineId = line.id ? lineIdOf.get(line.id) : undefined;
+    const payments = (event.budget?.echeances ?? []).filter((payment) => payment.ligne === line.id);
+    if (!lineId || payments.length === 0) continue;
+    if ((line.paye_centimes ?? 0) > 0) {
+      const paidOn = date ? weeklyDate(date, -40) : payments[0]!.date;
+      const view = await addVendorPayment({ organizationId, eventId, lineId, label: "Paiements déjà versés", fixedAmountCents: line.paye_centimes!, dueOn: paidOn, changedByUserId: ownerId });
+      const paymentId = view.lines.find((entry) => entry.id === lineId)!.payments.find((payment) => payment.label === "Paiements déjà versés")!.id;
+      await setVendorPaymentPaid({ organizationId, eventId, paymentId, paidOn, changedByUserId: ownerId });
+    }
+    for (const payment of payments) {
+      await addVendorPayment({ organizationId, eventId, lineId, label: payment.libelle, fixedAmountCents: payment.montant_centimes, dueOn: payment.date, changedByUserId: ownerId });
+    }
+  }
 }

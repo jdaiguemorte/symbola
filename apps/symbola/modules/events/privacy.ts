@@ -125,13 +125,14 @@ export const eventsPrivacy: PrivacyContractV1 = {
         }
       }
       for (const slot of await tx.select().from(eventVendorSlots).where(inArray(eventVendorSlots.eventId, eventIds))) {
-        if (recordMatches([slot.vendorName, ...importedValues(slot.importedFields)], terms)) {
+        // Lot 28b : le nom des prestataires est porté par les prestataires rattachés.
+        if (recordMatches(importedValues(slot.importedFields), terms)) {
           records.push({
             module: MODULE,
             kind: "event_vendor_slot",
             recordId: slot.id,
-            label: slot.vendorName ? `${slot.label} — ${slot.vendorName}` : slot.label,
-            fields: compact({ vendorName: slot.vendorName, ...importedFieldsOf(slot.importedFields) }),
+            label: slot.label,
+            fields: compact({ ...importedFieldsOf(slot.importedFields) }),
             eventId: slot.eventId,
           });
         }
@@ -220,7 +221,7 @@ export const eventsPrivacy: PrivacyContractV1 = {
           kind: "event_vendor_slot",
           recordId: slot.id,
           label: slot.label,
-          fields: compact({ ...(slot.notRequired ? { notRequired: "true" } : {}), vendorName: slot.vendorName, ...importedFieldsOf(slot.importedFields) }),
+          fields: compact({ ...(slot.notRequired ? { notRequired: "true" } : {}), ...importedFieldsOf(slot.importedFields) }),
           eventId: slot.eventId,
         });
       }

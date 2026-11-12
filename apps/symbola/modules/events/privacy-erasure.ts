@@ -139,12 +139,9 @@ export async function eraseEventsData(input: ErasureInput): Promise<ErasurePlanI
     }
     if (idsFor("event_vendor_slot").length > 0) {
       const slotIds = idsFor("event_vendor_slot");
+      // Le poste reste (statistiques) ; lot 28b : le nom de ses prestataires est
+      // porté par les prestataires rattachés, anonymisés plus bas.
       await tx.update(eventVendorSlots).set({ importedFields: null, brief: null }).where(inArray(eventVendorSlots.id, slotIds));
-      // Le type de poste et son statut restent (statistiques) ; le nom du prestataire non.
-      await tx
-        .update(eventVendorSlots)
-        .set({ vendorName: ANONYMIZED })
-        .where(and(inArray(eventVendorSlots.id, slotIds), isNotNull(eventVendorSlots.vendorName)));
     }
     // Lot 11 : le consulté reste (statistiques, retenu ou non) sans nom ni
     // notes ; son devis, qui le nomme, est supprimé (fichier compris).

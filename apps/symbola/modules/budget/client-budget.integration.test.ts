@@ -77,13 +77,14 @@ describe("PRD-BUD-04 — Budget visible par les mariés", () => {
     const client = await invitedClient(organizationId, eventId);
 
     const view = await getClientBudgetView(organizationId, client.userId, eventId);
-    expect(view.lines.map((line) => [line.label, line.estimatedAmountCents, line.committedAmountCents, line.varianceCents])).toEqual([
+    // Lot 28b (Q33) : les catégories et leurs totaux ; le détail des lignes (et leurs documents) reste à la planner.
+    expect(view.categories.map((category) => [category.label, category.estimatedCents, category.committedCents, category.varianceCents])).toEqual([
       ["Lieu", 600000, 650000, 50000],
-      ["Traiteur", 400000, null, null],
+      ["Traiteur", 400000, 0, 0],
     ]);
     expect(view).toMatchObject({ totalEstimatedCents: 1000000, totalCommittedCents: 650000, totalVarianceCents: 50000 });
-    // Lecture seule des colonnes publiques : les devis de la planner n'y sont pas.
-    expect(view.lines.every((line) => line.attachments.length === 0)).toBe(true);
+    expect(view.lines).toEqual([]);
+    expect(view.categories.every((category) => category.lines.length === 0)).toBe(true);
   });
 });
 

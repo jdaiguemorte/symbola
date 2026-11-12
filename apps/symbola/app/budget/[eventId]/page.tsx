@@ -4,12 +4,13 @@ import { PageHeader } from "@/app/ui/page-header";
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatAmount, type Locale } from "@symbola/i18n";
 import { ScreenHelp } from "@/app/screen-help";
-import { getEvent, listDefaultVendorSlots } from "@/modules/events/service";
+import { getEvent, listDefaultVendorSlots, listVendorCandidates } from "@/modules/events/service";
 import { getBudgetAlertSettings, getEventBudget, listAllocationModels, listBudgetLines } from "@/modules/budget/service";
 import { requirePlanner } from "@/lib/guards";
 import { isBudgetModuleEnabled, isValidId } from "../module-access";
 import { BudgetSimulationForm } from "./budget-simulation-form";
-import { BudgetLinesTable } from "./budget-lines-table";
+import { BudgetLinesTable, type VendorOption } from "./budget-lines-table";
+import { VendorSchedule } from "./vendor-schedule";
 import { EnvelopeSummary } from "./envelope-summary";
 
 export default async function EventBudgetPage({ params }: { params: Promise<{ eventId: string }> }) {
@@ -33,13 +34,21 @@ export default async function EventBudgetPage({ params }: { params: Promise<{ ev
   const event = await getEvent(organizationId, eventId);
   if (!event) notFound();
 
-  const [budget, models, vendorSlots, linesView, alertSettings] = await Promise.all([
+  const [budget, models, vendorSlots, linesView, alertSettings, candidates] = await Promise.all([
     getEventBudget(organizationId, eventId),
     listAllocationModels(organizationId),
     listDefaultVendorSlots(organizationId),
     listBudgetLines(organizationId, eventId),
     getBudgetAlertSettings(organizationId, eventId),
+    listVendorCandidates(organizationId, eventId),
   ]);
+  // Lot 28b (BUD-01) : le prestataire d'une ligne est l'un des prestataires
+  // rattachés à sa catégorie (les écartés exceptés).
+  const vendorOptions: Record<string, VendorOption[]> = {};
+  for (const candidate of candidates) {
+    if (candidate.status === "dismissed") continue;
+    (vendorOptions[candidate.vendorSlotId] ??= []).push({ id: candidate.id, name: candidate.vendorName });
+  }
   const locale = (await getLocale()) as Locale;
   const clientNames = event.clients.length ? event.clients.map((client) => client.firstName).join(" & ") : t("noClient");
 
@@ -83,7 +92,9 @@ export default async function EventBudgetPage({ params }: { params: Promise<{ ev
       <EnvelopeSummary eventId={eventId} envelope={linesView.envelope} committedCents={linesView.totalCommittedCents} settings={alertSettings} locale={locale} />
 
       <h2>{t("linesTitle")}</h2>
-      <BudgetLinesTable eventId={eventId} view={linesView} canConfirm={budget !== null} locale={locale} />
+      <BudgetLinesTable eventId={eventId} view={linesView} canConfirm={budget !== null} vendorOptions={vendorOptions} locale={locale} />
+      {/* Lot 28b (BUD-03) : échéancier par prestataire. */}
+      {linesView.lines.length > 0 ? <VendorSchedule view={linesView} locale={locale} /> : null}
     </main>
   );
 }

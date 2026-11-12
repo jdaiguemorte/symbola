@@ -2672,6 +2672,27 @@
   .budget-line-edit summary {
     @apply cursor-pointer text-primary;
   }
+  /* Lot 28b : le formulaire d'une ligne, en rangée pleine largeur sous la ligne. */
+  .list-table.budget-lines tr.budget-line-editor td {
+    @apply h-auto bg-surface py-4;
+  }
+  .budget-line-editor-panel {
+    @apply grid gap-6 lg:grid-cols-2;
+  }
+  .list-table.budget-lines tr.budget-category th .link-button {
+    @apply flex justify-start px-0 font-normal;
+  }
+  .budget-line-vendor {
+    @apply block text-label text-ink-muted;
+  }
+  .list-table.budget-lines td.budget-line-edit button {
+    @apply min-h-9 px-3 text-label;
+  }
+  /* Lot 28b (Q33) : la ligne de total de chaque catégorie, au-dessus de ses lignes. */
+  .list-table.budget-lines tr.budget-category th,
+  .list-table.budget-lines tr.budget-category td {
+    @apply bg-ground font-semibold;
+  }
   @media (width < 640px) {
     .list-table.budget-lines {
       @apply min-w-0;
@@ -2706,7 +2727,8 @@
       content: attr(data-label);
       @apply text-label text-ink-muted;
     }
-    .list-table.budget-lines td.budget-line-edit {
+    .list-table.budget-lines td.budget-line-edit,
+    .list-table.budget-lines tr.budget-line-editor td {
       @apply block pt-2;
     }
   }

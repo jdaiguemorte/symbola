@@ -151,7 +151,7 @@ describe("PRD-EVT-01/02 — Isolation entre organisations (module events, Postgr
         const updated = await withOrganization(db, organizationId, (tx) =>
           tx
             .update(eventVendorSlots)
-            .set({ vendorName: "falsifié" })
+            .set({ label: "falsifié" })
             .where(eq(eventVendorSlots.id, targetRow.id))
             .returning(),
         );

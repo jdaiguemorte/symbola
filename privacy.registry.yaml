@@ -290,18 +290,6 @@ fields:
     anonymization: >-
       Mis à nul lors d'une demande d'oubli (RGPD-03).
   - schema: events
-    table: event_vendor_slots
-    field: vendor_name
-    category: identifiant
-    retention: >-
-      Tant que l'événement existe (nom du prestataire réservé, PRD-EVT-03 ; un
-      prestataire indépendant est une personne). Après suppression ou
-      demande d'oubli : voir RGPD-03/RGPD-05.
-    anonymization: >-
-      Remplacé par « [anonymisé] » lors d'une demande d'oubli (RGPD-03) ;
-      mis à nul lors d'un effacement, le poste restant attaché à
-      l'événement.
-  - schema: events
     table: program_item_participants
     field: free_label
     category: identifiant
@@ -346,6 +334,28 @@ fields:
     anonymization: >-
       La ligne d'accès est supprimée lors d'une demande d'oubli (RGPD-03) ; le
       compte du marié est supprimé par le hub.
+  - schema: budget
+    table: budget_lines
+    field: label
+    category: contenu_libre
+    retention: >-
+      Lot 28b (BUD-01, Q33) : libellé libre d'une ligne de budget (« Robe de
+      Léa »), tant que la ligne existe. Après suppression ou demande d'oubli :
+      voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Remplacé par « [anonymisé] » lors d'une demande d'oubli (RGPD-03) ; les
+      montants restent pour les totaux.
+  - schema: budget
+    table: vendor_payments
+    field: label
+    category: contenu_libre
+    retention: >-
+      Lot 28b (BUD-03) : libellé libre d'une échéance due à un prestataire
+      (« Acompte du traiteur »), tant que la ligne existe. Après suppression ou
+      demande d'oubli : voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Remplacé par « [anonymisé] » lors d'une demande d'oubli (RGPD-03) ; le
+      montant et les dates restent.
   - schema: budget
     table: budget_line_attachments
     field: file_key

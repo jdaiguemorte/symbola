@@ -22,6 +22,7 @@ import {
   listEventVendorSlots,
   listProspectSources,
   updateEventTask,
+  listVendorCandidates,
 } from "@/modules/events/service";
 import {
   getAppliedImport,
@@ -290,7 +291,8 @@ describe("IMP-05 — Aperçu et annulation", () => {
         "12/06/2027;Élodie;Durand;Fleuriste;Pétales;1 200;\n",
     );
     await acceptAllMatches(planner, importId);
-    expect(await confirmImport({ ...planner, importId })).toMatchObject({ status: "applied", result: { created: 1, updated: 1 } });
+    // Lot 28b : la ligne du traiteur rattache « Saveurs & Co » au poste : elle compte comme une création.
+    expect(await confirmImport({ ...planner, importId })).toMatchObject({ status: "applied", result: { created: 2, updated: 0 } });
 
     const lines = await listBudgetLines(planner.organizationId, eventId);
     expect(lines.lines.map((line) => [line.label, line.estimatedAmountCents, line.committedAmountCents])).toEqual(
@@ -299,14 +301,21 @@ describe("IMP-05 — Aperçu et annulation", () => {
         ["Fleuriste", 120000, null],
       ]),
     );
-    expect((await listEventVendorSlots(planner.organizationId, eventId)).find((slot) => slot.id === caterer.id)?.vendorName).toBe("Saveurs & Co");
+    // Lot 28b : le prestataire importé est rattaché au poste (retenu : la ligne a un réel) et lié à la ligne.
+    // (« Pétales », sans montant réel, est seulement pressenti.)
+    expect((await listVendorCandidates(planner.organizationId, eventId)).map((candidate) => [candidate.vendorName, candidate.status]).sort()).toEqual([
+      ["Pétales", "shortlisted"],
+      ["Saveurs & Co", "retained"],
+    ]);
+    expect((await listVendorCandidates(planner.organizationId, eventId)).find((candidate) => candidate.vendorName === "Saveurs & Co")?.vendorSlotId).toBe(caterer.id);
+    expect(lines.lines.find((line) => line.label === "Traiteur")?.vendorName).toBe("Saveurs & Co");
 
     await undoImport({ ...planner, importId });
     const after = await listBudgetLines(planner.organizationId, eventId);
     expect(after.lines.map((line) => [line.label, line.estimatedAmountCents, line.committedAmountCents])).toEqual([["Traiteur", 800000, null]]);
     const slots = await listEventVendorSlots(planner.organizationId, eventId);
     expect(slots.some((slot) => slot.label === "Fleuriste")).toBe(false);
-    expect(slots.find((slot) => slot.id === caterer.id)?.vendorName).toBeNull();
+    expect(await listVendorCandidates(planner.organizationId, eventId)).toEqual([]);
   });
 
   it("lot 28a (BUD-01) — un import du budget fait avant le lot (prévu, réel) s'annule encore : ses montants deviennent l'estimé et l'engagé", async () => {
@@ -332,7 +341,7 @@ describe("IMP-05 — Aperçu et annulation", () => {
       }
       return tx.select().from(importItems).where(and(eq(importItems.importId, importId), eq(importItems.kind, "budget_line")));
     });
-    expect(renamed.map((item) => Object.keys(item.written ?? {}).sort())).toEqual([["actualAmountCents", "plannedAmountCents"]]);
+    expect(renamed.map((item) => Object.keys(item.written ?? {}).sort())).toEqual([["actualAmountCents", "plannedAmountCents", "vendorCandidateId"]]);
 
     await undoImport({ ...planner, importId });
     const after = await listBudgetLines(planner.organizationId, eventId);

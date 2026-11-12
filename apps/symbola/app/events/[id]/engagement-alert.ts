@@ -12,6 +12,8 @@ export async function engagementAlert(input: {
   eventId: string;
   vendorSlotId: string;
   amountCents: number | null;
+  // Lot 28b (D11) : le prestataire, quand il est déjà rattaché au poste.
+  candidateId?: string;
   confirmed: boolean;
 }): Promise<string | null> {
   if (input.confirmed || input.amountCents === null) return null;
@@ -21,6 +23,7 @@ export async function engagementAlert(input: {
     eventId: input.eventId,
     eventVendorSlotId: input.vendorSlotId,
     amountCents: input.amountCents,
+    ...(input.candidateId ? { candidateId: input.candidateId } : {}),
   });
   if (!preview.exceedsThreshold || !preview.envelope) return null;
   const t = await getTranslations("VendorCandidates");

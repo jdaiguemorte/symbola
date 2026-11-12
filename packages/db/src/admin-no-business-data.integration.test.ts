@@ -9,7 +9,7 @@
 import { randomUUID } from "node:crypto";
 import { afterAll, describe, expect, it } from "vitest";
 import { createAppConnection } from "./client";
-import { alertThresholds, budgetLineAttachments, budgetLines } from "./schema/budget";
+import { alertThresholds, budgetLineAttachments, budgetLines, vendorPayments } from "./schema/budget";
 import { vendors, vendorTypes } from "./schema/vendors";
 import { importItems, imports, privacyRequests } from "./schema/hub";
 import {
@@ -188,7 +188,7 @@ describe("PRD-HUB-03 — L'Admin ne lit jamais de donnée métier", () => {
     await withOrganization(db, organizationId, async (tx) => {
       const [line] = await tx
         .insert(budgetLines)
-        .values({ organizationId, eventId: randomUUID(), eventVendorSlotId: randomUUID(), estimatedAmountCents: 0 })
+        .values({ organizationId, eventId: randomUUID(), eventVendorSlotId: randomUUID(), label: "Lieu", estimatedAmountCents: 0 })
         .returning();
       if (!line) throw new Error("insertion attendue");
       await tx.insert(budgetLineAttachments).values({
@@ -203,6 +203,22 @@ describe("PRD-HUB-03 — L'Admin ne lit jamais de donnée métier", () => {
 
     try {
       const rows = await db.select().from(budgetLineAttachments);
+      expect(rows).toHaveLength(0);
+    } catch (error) {
+      expect(error).toBeTruthy();
+    }
+  });
+
+  it("vaut aussi pour les échéances des prestataires (BUD-03, lot 28b, PostgreSQL réel)", async () => {
+    const organizationId = randomUUID();
+    await withOrganization(db, organizationId, async (tx) => {
+      const [line] = await tx.insert(budgetLines).values({ organizationId, eventId: randomUUID(), eventVendorSlotId: randomUUID(), label: "Dîner" }).returning();
+      if (!line) throw new Error("insertion attendue");
+      await tx.insert(vendorPayments).values({ organizationId, eventId: line.eventId, lineId: line.id, label: "Acompte", fixedAmountCents: 288000, dueOn: "2027-04-09" });
+    });
+
+    try {
+      const rows = await db.select().from(vendorPayments);
       expect(rows).toHaveLength(0);
     } catch (error) {
       expect(error).toBeTruthy();

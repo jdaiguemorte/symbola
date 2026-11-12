@@ -68,6 +68,8 @@ export const IMPORT_FIELDS: Record<ImportEntityType, readonly ImportFieldDefinit
   budget_lines: [
     ...EVENT_REFERENCE,
     { key: "slotLabel", kind: "text", required: true },
+    // Lot 28b (BUD-01, Q33) : plusieurs lignes par catégorie (poste).
+    { key: "lineLabel", kind: "text" },
     { key: "vendorName", kind: "text" },
     { key: "plannedAmount", kind: "amount", required: true },
     { key: "actualAmount", kind: "amount" },

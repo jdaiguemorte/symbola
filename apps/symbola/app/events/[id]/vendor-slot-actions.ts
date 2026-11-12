@@ -11,6 +11,7 @@ import {
   addEventVendorSlot,
   EventNotFoundError,
   listEventVendorSlots,
+  listVendorCandidates,
   removeEventVendorSlot,
   setEventVendorSlotIcon,
   updateEventVendorSlot,
@@ -50,15 +51,21 @@ export async function updateVendorSlotAction(
 
   const slot = (await listEventVendorSlots(access.organizationId, eventId)).find((entry) => entry.id === vendorSlotId);
   if (!slot) return { error: t("vendorSlotNotFound") };
-  // L'engagé augmente quand un autre prestataire est retenu, ou que le montant monte.
-  const sameVendor = (slot.vendorName ?? "").trim().toLowerCase() === vendorName.toLowerCase();
-  const raises = vendorName !== "" && amountCents !== null && (!sameVendor || amountCents > (slot.amountCents ?? 0));
-  if (raises) {
+  // Lot 28b (D10) : le prestataire s'ajoute aux retenus du poste ; l'engagé
+  // augmente sauf pour un prestataire déjà retenu dont le montant ne monte pas.
+  const existing = vendorName
+    ? (await listVendorCandidates(access.organizationId, eventId)).find(
+        (candidate) => candidate.vendorSlotId === vendorSlotId && candidate.vendorName.trim().toLowerCase() === vendorName.toLowerCase(),
+      )
+    : undefined;
+  const alreadyEngaged = existing?.outcome === "selected" && amountCents !== null && amountCents <= (existing.quoteAmountCents ?? 0);
+  if (vendorName !== "" && amountCents !== null && !alreadyEngaged) {
     const confirm = await engagementAlert({
       organizationId: access.organizationId,
       eventId,
       vendorSlotId,
       amountCents,
+      ...(existing ? { candidateId: existing.id } : {}),
       confirmed: formData.get("confirmed") === "1",
     });
     if (confirm) return { confirm };

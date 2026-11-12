@@ -124,7 +124,7 @@ describe("L11-EVT-10 — Plusieurs prestataires consultés par poste", () => {
     await selectVendorCandidate({ organizationId, candidateId: tables.id, changedByUserId: plannerId });
 
     const slot = (await listEventVendorSlots(organizationId, eventId)).find((candidate) => candidate.id === caterer.id);
-    expect(slot).toMatchObject({ status: "retained", vendorName: "Les Tables de Flandre", amountCents: 448000, selectedCandidateId: tables.id });
+    expect(slot).toMatchObject({ status: "retained", retainedVendors: [{ candidateId: tables.id, vendorName: "Les Tables de Flandre", quoteAmountCents: 448000 }] });
     const candidates = await listVendorCandidates(organizationId, eventId);
     expect(Object.fromEntries(candidates.map((candidate) => [candidate.vendorName, candidate.outcome]))).toEqual({ "Maison Verdier": "not_selected", "Les Tables de Flandre": "selected" });
     expect(Object.fromEntries(candidates.map((candidate) => [candidate.vendorName, candidate.status]))).toEqual({ "Maison Verdier": "dismissed", "Les Tables de Flandre": "retained" });
@@ -145,7 +145,7 @@ describe("L11-EVT-10 — Plusieurs prestataires consultés par poste", () => {
     await updateVendorCandidate({ organizationId, candidateId: verdier.id, status: "quote_received", changedByUserId: plannerId });
 
     expect((await listVendorCandidates(organizationId, eventId))[0]).toMatchObject({ status: "quote_received", outcome: null });
-    expect((await listEventVendorSlots(organizationId, eventId)).find((slot) => slot.id === caterer.id)).toMatchObject({ status: "quote_received", selectedCandidateId: null });
+    expect((await listEventVendorSlots(organizationId, eventId)).find((slot) => slot.id === caterer.id)).toMatchObject({ status: "quote_received", retainedVendors: [] });
   });
 
   it("PRE-02 — passer un prestataire à « Retenu » par son statut engage comme « Retenir » ; Contrat signé et Soldé gardent l'engagement", async () => {
@@ -156,12 +156,12 @@ describe("L11-EVT-10 — Plusieurs prestataires consultés par poste", () => {
     await updateVendorCandidate({ organizationId, candidateId: verdier.id, quoteAmountCents: 512000 });
 
     await updateVendorCandidate({ organizationId, candidateId: verdier.id, status: "retained", changedByUserId: plannerId });
-    expect((await listEventVendorSlots(organizationId, eventId)).find((slot) => slot.id === caterer.id)).toMatchObject({ status: "retained", amountCents: 512000, selectedCandidateId: verdier.id });
+    expect((await listEventVendorSlots(organizationId, eventId)).find((slot) => slot.id === caterer.id)).toMatchObject({ status: "retained", retainedVendors: [{ candidateId: verdier.id, vendorName: "Maison Verdier", quoteAmountCents: 512000 }] });
     expect((await listVendorCandidates(organizationId, eventId)).find((candidate) => candidate.id === tables.id)?.status).toBe("dismissed");
 
     await updateVendorCandidate({ organizationId, candidateId: verdier.id, status: "contract_signed", changedByUserId: plannerId });
     await updateVendorCandidate({ organizationId, candidateId: verdier.id, status: "paid_off", changedByUserId: plannerId });
-    expect((await listEventVendorSlots(organizationId, eventId)).find((slot) => slot.id === caterer.id)).toMatchObject({ status: "paid_off", selectedCandidateId: verdier.id });
+    expect((await listEventVendorSlots(organizationId, eventId)).find((slot) => slot.id === caterer.id)).toMatchObject({ status: "paid_off", retainedVendors: [expect.objectContaining({ candidateId: verdier.id })] });
 
     // Le devis du prestataire retenu change : l'engagement est republié.
     await updateVendorCandidate({ organizationId, candidateId: verdier.id, quoteAmountCents: 530000, changedByUserId: plannerId });
@@ -199,7 +199,7 @@ describe("L11-EVT-10 — Plusieurs prestataires consultés par poste", () => {
     await removeVendorCandidate(organizationId, verdier.id);
 
     const slot = (await listEventVendorSlots(organizationId, eventId)).find((candidate) => candidate.id === caterer.id);
-    expect(slot).toMatchObject({ brief: "Buffet assis, produits de saison", selectedCandidateId: null });
+    expect(slot).toMatchObject({ brief: "Buffet assis, produits de saison", retainedVendors: [] });
     expect(await listVendorCandidates(organizationId, eventId)).toEqual([]);
   });
 

@@ -73,3 +73,36 @@ Décisions de Julien du 11/11/2026 (`docs/lots/lot-28-budget-cinq-montants.md`, 
    seuils sont perdus) ; 0103 rend la réponse du prestataire et le statut du poste (Pressenti
    devient Contacté ; Retenu, Contrat signé et Soldé deviennent Devis reçu, leur poste
    « Réservé » ; Écarté devient Décliné, y compris pour un prestataire seulement « non retenu »).
+
+## Avenant du 12/11/2026 — Lignes, prestataires retenus, échéancier (lot 28b, décisions Q33, D9 à D14)
+
+Décisions de Julien du 12/11/2026 (Q33 en (a) ; D9 à D14 en (a), sauf D12 en (b)).
+
+1. **Catégories et lignes (Q33)** : le poste de l'évènement est la catégorie ; il porte plusieurs
+   lignes (`budget.budget_lines` perd son unicité par poste, gagne un libellé, un prestataire
+   rattaché et un ordre). La catégorie totalise ses lignes ; la simulation et les écrans qui ne
+   désignent qu'une catégorie visent sa première ligne. Reprise (migration 0105) : chaque ligne
+   devient la première de sa catégorie, au libellé du poste, liée à son prestataire retenu.
+2. **Plusieurs prestataires retenus par catégorie (D10)** : « Retenir » écarte les concurrents
+   encore en lice (Pressenti, Consulté, Devis reçu), pas les prestataires déjà retenus. Le poste
+   ne porte plus de nom, de montant ni de prestataire choisi (D14, migration 0106) : ses
+   prestataires rattachés les portent ; un nom saisi sur un poste sans prestataire de ce nom
+   devient un prestataire rattaché « Pressenti ».
+3. **Ce que « Retenu » engage (D11)** : l'événement `events.vendor_slot.booked` (version 2) porte
+   le prestataire. Une seule ligne du prestataire : son devis en est le devisé et l'engagé ;
+   plusieurs lignes : chacune engage son devisé ; aucune ligne : une ligne libre de la catégorie
+   (sans prestataire ni engagé, celle de la simulation) devient la sienne, sinon une ligne est
+   créée à son nom. Précision apportée au code : reprendre la ligne libre garde l'écart à
+   l'estimé de la simulation (SC-04 : « la ligne Traiteur passe à engagé »).
+4. **Échéancier (D7, D12, D13)** : une échéance vise une ligne (`budget.vendor_payments`, RLS) ;
+   montant fixe, ou pourcentage de l'engagé du prestataire (toutes ses lignes de la catégorie ;
+   de la ligne sans prestataire), recalculé tant qu'elle n'est pas payée. Payée, son montant est
+   figé. Dès qu'une ligne a des échéances, son payé en est la somme et ne se saisit plus. Les
+   échéances non payées des 7 prochains jours et en retard sont rappelées dans « Aujourd'hui ».
+5. **Documents (BUD-04)** : chaque document joint a une nature (devis, contrat, facture).
+6. **Lecture d'un autre schéma** : la reprise de 0105 lit le schéma `events` (libellé et
+   prestataire choisi du poste), avant que 0106 ne retire ce dernier ; même entorse limitée que
+   0104.
+7. **Annulation** : 0106 rend au poste un prestataire choisi (le premier engagé) ; 0105 est
+   refusée tant qu'une catégorie a plusieurs lignes, et perd les échéances et la nature des
+   documents.

@@ -241,6 +241,20 @@
         "item"
       ]
     },
+    "lineLabel": {
+      "fr": [
+        "libellé de la ligne",
+        "ligne",
+        "détail de la dépense",
+        "libellé"
+      ],
+      "en": [
+        "line",
+        "line label",
+        "expense detail",
+        "label"
+      ]
+    },
     "vendorName": {
       "fr": [
         "prestataire",

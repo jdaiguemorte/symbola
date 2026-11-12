@@ -184,19 +184,15 @@ export const eventVendorSlots = eventsSchema.table("event_vendor_slots", {
   // Lot 28a (PRE-02, décision D3) : le poste n'a plus de statut à lui ; il
   // affiche le plus avancé de ses prestataires. « Non requis » reste une case.
   notRequired: boolean("not_required").notNull().default(false),
-  // Nom du prestataire en texte libre au MVP (l'app Prestataires est V2).
-  vendorName: text("vendor_name"),
-  // Montant en centimes, devise explicite (CLAUDE.md §5) ; facultatif.
-  amountCents: integer("amount_cents"),
-  currency: text("currency").notNull().default("EUR"),
+  // Lot 28b (PRE-02, décisions D10 et D14) : plus de prestataire, de montant
+  // ni de prestataire choisi sur le poste ; ses prestataires rattachés les
+  // portent (plusieurs peuvent être retenus).
   position: integer("position").notNull().default(0),
   // Lot 5 (IMP-04/IMP-05) : colonnes d'un fichier importé gardées en champ
   // libre (intitulé → texte), affichées en lecture seule sur la fiche.
   importedFields: jsonb("imported_fields").$type<Record<string, string> | null>(),
-  // Lot 11 (L11-EVT-10) : ce que veulent les clients pour ce poste, et le
-  // prestataire consulté retenu (null tant qu'aucun ne l'est).
+  // Lot 11 (L11-EVT-10) : ce que veulent les clients pour ce poste.
   brief: text("brief"),
-  selectedCandidateId: uuid("selected_candidate_id"),
   icon: text("icon"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
