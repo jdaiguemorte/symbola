@@ -41,6 +41,7 @@ import { ensureEventTypes } from "@/lib/events/event-types";
 import { setEventTypeAction } from "./actions";
 import { isEventsModuleEnabled, isValidId } from "../module-access";
 import { ChangeStatusForm } from "./change-status-form";
+import { isDayOfOpen } from "@/app/jour-j/[eventId]/day-of-view";
 import { NextStepBanner } from "./next-step-banner";
 import { nextStep } from "./next-step";
 import { endTrialAction } from "../trial-actions";
@@ -372,6 +373,14 @@ export default async function EventDetailPage({
               </button>
             </form>
           </>
+        }
+        actions={
+          // Lot 29a (ARC-09, JRJ-02) : l'écran du jour J, à garder sur le téléphone la veille.
+          isDayOfOpen(event) ? (
+            <a href={`/jour-j/${event.id}`} className="button-link">
+              {t("dayOfLink")}
+            </a>
+          ) : undefined
         }
       />
       <PageTour {...tour} helpTitle={tHelp("eventsDetail.title")} helpBody={tHelp("eventsDetail.body")} />

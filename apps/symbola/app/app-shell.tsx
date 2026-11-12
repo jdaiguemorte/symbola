@@ -36,7 +36,8 @@ import { getAuthContext } from "@/lib/auth-context";
 import { currentLinkAccess } from "@/lib/link-session";
 import { AppNavLink } from "./app-nav-link";
 import { AppSidebar } from "./app-sidebar";
-import { logoutAction } from "./logout-action";
+import { LogoutButton } from "./logout-button";
+import { OfflineGuard } from "./offline-guard";
 import { SettingsNav, type SettingsGroup } from "./settings-nav";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -123,8 +124,26 @@ async function LinkShell({ children }: { children: ReactNode }) {
   );
 }
 
+// Lot 29a (ARC-09, ADR 0064) : l'écran du jour J et la page « Hors ligne » ont un cadre
+// sans menu, sans recherche ni compte : copiés sur l'appareil, ils doivent se lire sans
+// réseau et ne rien garder d'autre que leur contenu.
+const DAY_PAGE = /^\/(?:jour-j|hors-ligne)(?:\/|$)/;
+
+function DayShell({ children }: { children: ReactNode }) {
+  return (
+    <div className="link-shell day-shell">
+      <header className="link-header">
+        <Brand href="/" />
+      </header>
+      {children}
+    </div>
+  );
+}
+
 export async function AppShell({ children }: { children: ReactNode }) {
-  if (LINK_PAGE.test((await headers()).get("x-pathname") ?? "")) return <LinkShell>{children}</LinkShell>;
+  const requestPath = (await headers()).get("x-pathname") ?? "";
+  if (LINK_PAGE.test(requestPath)) return <LinkShell>{children}</LinkShell>;
+  if (DAY_PAGE.test(requestPath)) return <DayShell>{children}</DayShell>;
   const auth = await getAuthContext();
   const t = await getTranslations("Home");
   const tAide = await getTranslations("Aide");
@@ -142,10 +161,12 @@ export async function AppShell({ children }: { children: ReactNode }) {
     );
   }
 
+  // Lot 29a (D4) : la déconnexion efface aussi les copies du jour J de l'appareil.
   const logout = (
-    <form action={logoutAction}>
-      <button type="submit">{t("logout")}</button>
-    </form>
+    <>
+      <LogoutButton label={t("logout")} />
+      <OfflineGuard userId={auth.user.id} />
+    </>
   );
 
   const organizationId = auth.user.organizationId;

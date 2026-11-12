@@ -25,6 +25,7 @@ import {
   findVendors,
   getVendor,
   getVendorFile,
+  getVendorContacts,
   getVendorHistory,
   InvalidVendorFieldValueError,
   InvalidVendorLinkError,
@@ -132,6 +133,24 @@ describe("L11-PRE-01 — Fiche d'un prestataire", () => {
     expect(await findVendors({ organizationId: otherId })).toEqual([]);
     await expect(getVendorFile(otherId, file.id)).rejects.toMatchObject({ name: "VendorFileNotFoundError" });
     await expect(updateVendor(otherId, vendor.id, { name: "Intrus", typeId: null })).rejects.toMatchObject({ name: "VendorNotFoundError" });
+  });
+
+  it("JRJ-02 (lot 29a, D5) — coordonnées pour le jour J : nom, contact, téléphone, e-mail ; rien pour une autre organisation", async () => {
+    const organizationId = await newOrganization();
+    const otherId = await newOrganization();
+    const { vendor } = await createVendor(organizationId, {
+      name: "Maison Ruche",
+      typeId: null,
+      contactName: "Karim Haddad",
+      phone: "06 12 34 56 78",
+      email: "karim@ruche.example",
+      internalNote: "Négocier le champagne",
+    });
+
+    expect(await getVendorContacts(organizationId, [vendor.id, "pas-un-uuid"])).toEqual([
+      { id: vendor.id, name: "Maison Ruche", contactName: "Karim Haddad", phone: "06 12 34 56 78", email: "karim@ruche.example" },
+    ]);
+    expect(await getVendorContacts(otherId, [vendor.id])).toEqual([]);
   });
 });
 

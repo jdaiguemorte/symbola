@@ -62,6 +62,18 @@ const nextConfig: NextConfig = {
       // mises en cache, sans référent vers un autre site ; ces en-têtes,
       // déclarés après, remplacent ceux du dessus.
       ...LINK_PAGES.map((source) => ({ source, headers: linkPageHeaders })),
+      // Lot 29a (ARC-09, ADR 0064) : le service worker n'est jamais gardé par le cache HTTP,
+      // pour qu'un déploiement (ou l'interrupteur d'arrêt) atteigne chaque appareil.
+      {
+        source: "/sw.js",
+        headers: [
+          { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },
+          { key: "Content-Type", value: "application/javascript; charset=utf-8" },
+        ],
+      },
+      // L'écran du jour J n'est gardé que par la copie voulue (Cache Storage), jamais par le
+      // cache HTTP du navigateur ; il n'est ni indexé ni cité comme référent.
+      { source: "/jour-j/:path*", headers: linkPageHeaders },
     ];
   },
   // Lot 26a (ADR 0053 § 9) : l'espace des mariés par compte n'existe plus ; une

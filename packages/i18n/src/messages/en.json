@@ -888,6 +888,32 @@
     "linkPreview": {
       "title": "“View as” preview",
       "body": "This page shows exactly what the person with this link sees: the same sections, the same figures. Nothing can be changed here and nothing is recorded on their link."
+    },
+    "dayOf": {
+      "title": "Day-of",
+      "body": "The day of the event on one screen: the schedule with its internal notes, the places, the booked vendors and the clients with their contact details, and the schedule PDF. “Keep on this device” copies it to the phone: it then opens without a network, and updates each time it is opened with a network.",
+      "faq": [
+        {
+          "q": "How do I open the day without a network?",
+          "a": "The day before, with a network, open the screen from the “Day-of” button on the event and tap “Keep on this device”. On the day, without a network, open Symbola: the “Offline” page lists the days kept."
+        },
+        {
+          "q": "How do I install Symbola on my phone?",
+          "a": "iPhone: in Safari, tap Share, then “Add to Home Screen”. Android: in Chrome, open the ⋮ menu, then “Install app”."
+        },
+        {
+          "q": "When is the copy erased?",
+          "a": "At midnight the day after the event, when you log out on this device, when another account logs in on it, or with “Remove from this device”. It is not erased when your session expires: the day prepared the evening before stays readable in the morning."
+        },
+        {
+          "q": "What if I lose my phone?",
+          "a": "“Sign out all my other devices”, from another device, closes its session but cannot reach a phone without a network: the copy stays readable there until the day after the event. Keep your phone locked with a code."
+        }
+      ]
+    },
+    "offline": {
+      "title": "Offline",
+      "body": "Without a network, only the days kept on this device open. The other screens come back with the network."
     }
   },
   "Aide": {
@@ -1375,7 +1401,8 @@
     "linkPreviewBanner": "Preview: what {name} sees",
     "linkPreviewNote": "Buttons are inactive and files do not open in the preview; nothing is recorded on the link.",
     "linkPreviewBack": "Back to the event page",
-    "activityDecisionMade": "{actor} answered: “{task}”."
+    "activityDecisionMade": "{actor} answered: “{task}”.",
+    "dayOfLink": "Day-of"
   },
   "Budget": {
     "title": "Budget",
@@ -4516,5 +4543,64 @@
       "gone": "This event is no longer available.",
       "subject": "Choose what the client should decide."
     }
+  },
+  "DayOf": {
+    "backToEvent": "Back to the event",
+    "noClient": "Event",
+    "sections": "On this screen",
+    "navProgram": "Schedule",
+    "navPlaces": "Places",
+    "navContacts": "Contacts",
+    "navDocuments": "Documents",
+    "programTitle": "Schedule of the day",
+    "programEmpty": "Nothing on the schedule yet.",
+    "timeRange": "{start} – {end}",
+    "participants": "With:",
+    "note": "Internal note:",
+    "placesTitle": "Places",
+    "placesEmpty": "No place entered.",
+    "contactsTitle": "Contacts",
+    "vendorsTitle": "Booked vendors",
+    "vendorsEmpty": "No vendor booked.",
+    "clientsTitle": "The couple",
+    "clientsEmpty": "No contact entered.",
+    "callLabel": "Call {name} on {phone}",
+    "mailLabel": "Email {name}: {email}",
+    "documentsTitle": "Documents",
+    "programPdf": "Schedule of the day (PDF)",
+    "documentsHint": "Once the day is kept on this device, they also open without a network.",
+    "copyTitle": "On this device",
+    "copyUnsupported": "This browser cannot keep the day for use without a network.",
+    "copyAbsent": "This day is not kept on this device yet.",
+    "copyExpired": "The event is over: the day can no longer be kept on the device.",
+    "copyKeepHint": "The schedule, places, contacts and PDF will stay readable without a network until midnight the day after the event. They are also erased if you log out.",
+    "copyKeep": "Keep on this device",
+    "copyWorking": "Copying…",
+    "copyReady": "Ready offline. Updated on {date}.",
+    "copyUpdate": "Update",
+    "copyRemove": "Remove from this device",
+    "copyRemoved": "The day has been removed from this device.",
+    "copyOffline": "No network: you are reading the copy from {date}.",
+    "copyOfflineNone": "Without a network, the day cannot be kept. Try again with a network.",
+    "copySession": "Your session has expired: you are reading the copy from {date}. Log in again to update it.",
+    "copySessionNone": "Your session has expired: log in again, then keep the day.",
+    "copyLogin": "Log in again",
+    "copySpace": "Not enough space on this device to keep the day. Free some space, then try again.",
+    "copyUnavailable": "The copy failed. Reload the page, then try again.",
+    "copyMissingDocuments": "Not copied: {list}. Update with a better network.",
+    "copyMissingAssets": "Part of the layout was not copied. Update with a better network.",
+    "installTitle": "Install Symbola on your phone",
+    "installIphone": "iPhone: in Safari, tap Share, then “Add to Home Screen”.",
+    "installAndroid": "Android: in Chrome, open the ⋮ menu, then “Install app” (or “Add to Home screen”)."
+  },
+  "Offline": {
+    "title": "Offline",
+    "intro": "No network: this screen cannot open. The days kept on this device remain readable.",
+    "listTitle": "Days kept on this device",
+    "empty": "No day is kept on this device.",
+    "open": "{title}, {date}"
+  },
+  "Manifest": {
+    "description": "Prepare your events, and run them on the day even without a network."
   }
 }

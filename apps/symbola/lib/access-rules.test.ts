@@ -68,6 +68,9 @@ const PUBLIC_ENTRIES: Record<string, string> = {
   "import/[importId]/ecarts/page.tsx#default": "redirection vers l'étape en cours, elle-même gardée",
   "aide/actions.ts#setAutoToursAction": "préférence d'affichage dans un cookie, sans donnée",
   "health/route.ts#GET": "sonde de santé, sans donnée",
+  // Lot 29a (ARC-09, D6) : servie par le service worker sans réseau.
+  "hors-ligne/page.tsx#default": "page « Hors ligne » : aucune donnée du serveur, seulement les copies gardées sur l'appareil",
+  "icons/[name]/route.ts#GET": "icônes de l'application installée, sans donnée",
   "api/webhooks/signature/route.ts#POST": "webhook du fournisseur de signature, authentifié par son secret partagé",
 };
 

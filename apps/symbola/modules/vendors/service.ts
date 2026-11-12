@@ -7,6 +7,7 @@ import type {
   FindVendorsInput,
   SaveVendorResult,
   Vendor,
+  VendorContact,
   VendorBookSearchResult,
   VendorFieldFilter,
   VendorFieldKind,
@@ -125,6 +126,7 @@ export type {
   SaveVendorResult,
   TravelEstimate,
   Vendor,
+  VendorContact,
   VendorFieldFilter,
   VendorFieldKind,
   VendorFieldValue,
@@ -681,6 +683,13 @@ export async function getVendorsByIds(organizationId: string, vendorIds: string[
   return (await findVendorsByIds(organizationId, vendorIds.filter((id) => UUID.test(id)))).map(toSummary);
 }
 
+// Lot 29a (JRJ-02, décision D5) : coordonnées des prestataires retenus, pour l'écran du
+// jour J (rien d'autre de la fiche : ni note interne, ni tarifs).
+export async function getVendorContacts(organizationId: string, vendorIds: string[]): Promise<VendorContact[]> {
+  const rows = await findVendorsByIds(organizationId, vendorIds.filter((id) => UUID.test(id)));
+  return rows.map((row) => ({ id: row.id, name: row.name, contactName: row.contactName, phone: row.phone, email: row.email }));
+}
+
 // L11-PRE-04 à L11-PRE-07 — recherche dans le carnet : filtres appliqués par la
 // base ; un filtre qui ne convient pas au champ est ignoré, jamais en erreur.
 export async function findVendors(input: FindVendorsInput): Promise<VendorListItem[]> {
@@ -873,6 +882,7 @@ const _contractCheck: VendorsServiceContract = {
   archiveVendor,
   getVendor,
   getVendorsByIds,
+  getVendorContacts,
   findVendors,
   getVendorHistory,
   getVendorSettings,

@@ -38,7 +38,7 @@ describe("lot 16 (ADR 0045) — Vocabulaire selon le type de l'événement", () 
   // Lot 26a : le portail d'un lien suit le type de son événement par le lien
   // lui-même (organizationMessages), pas par son adresse.
   it("sur la page d'un événement, sur son budget et ses devis : le vocabulaire de son type", async () => {
-    for (const pathname of [`/events/${EVENT}`, `/events/${EVENT}/programme`, `/budget/${EVENT}`, `/devis/${QUOTE}`]) {
+    for (const pathname of [`/events/${EVENT}`, `/events/${EVENT}/programme`, `/budget/${EVENT}`, `/devis/${QUOTE}`, `/jour-j/${EVENT}`]) {
       state.pathname = pathname;
       expect(await requestAudience("org-1"), pathname).toBe("clients");
     }

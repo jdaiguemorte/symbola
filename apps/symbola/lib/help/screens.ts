@@ -32,6 +32,8 @@ export const HELP_SCREENS: HelpScreen[] = [
   // Événements
   { key: "eventsList", group: "events", audience: "team", module: "events", path: "/events", tour: "events", capture: true },
   { key: "eventsDetail", group: "events", audience: "team", module: "events", path: null, tour: "event", capture: true },
+  // Lot 29a (ARC-09, JRJ-02) : écran du jour J, ouvert depuis la fiche (installation comprise).
+  { key: "dayOf", group: "events", audience: "team", module: "events", path: null, capture: false },
   { key: "eventsNew", group: "events", audience: "team", module: "events", path: "/events/new", capture: true },
   { key: "allTasks", group: "events", audience: "team", module: "events", path: "/taches", capture: true },
   { key: "eventsTemplates", group: "events", audience: "team", module: "events", path: "/events/modeles", capture: true },
