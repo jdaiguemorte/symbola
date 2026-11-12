@@ -142,6 +142,51 @@ déclare réglée par virement, au MVP). Étapes 3 (contrat signé) et 6 (fil) :
 - e2e en 1280, 375 et 360 px, axe-core. Rejeu SC-06 étapes 2 et 5 (`docs/recette/SC-06.md`).
 - Aide (portail, fiche), `docs/gap.csv`, bilan.
 
+### Bilan du lot 27a (12/11/2026)
+
+**Fait** (branche `lot-27-portail-client`, partie du 26b) :
+
+- **Accueil du portail** : compte à rebours en jours de Paris, avancement du rétroplanning
+  (« 1 tâche faite sur 3 »), « vos trois prochaines actions » (tâches, devis à signer, échéances ;
+  retards d'abord ; la tâche se coche sur place), sommaire des rubriques. Le contenu du portail vit
+  dans `app/portail/portal-content.tsx`, règles pures dans `portal-home.ts`.
+- **Budget en trois chiffres** : prévu, engagé, reste à payer, en totaux (budget entier) et par
+  poste ; plus de tableau ni d'écart côté client. Échéances à venir des catégories du lien, payées
+  repliées pendant trois mois.
+- **Règlement déclaré** : « Je l'ai réglée » (date, moyen pris dans les moyens de l'organisation),
+  annulable par son auteur ; la planner confirme ou refuse (motif montré au client) depuis
+  l'échéancier, et voit les déclarations sur « Aujourd'hui ». Journal : `budget.vendor_payment.*`.
+- **Rappels des tâches du client** : tâche horaire (`lib/client-task-reminders.ts`), seuils et
+  heures en données de départ (`client-task-reminders.json`), un e-mail par personne et par jour,
+  sans le lien, dans la langue du lien (nouvelle colonne `event_links.locale`) ; case « Rappels par
+  e-mail des tâches » sur chaque lien de client. Journal : `events.link.reminder_sent`.
+- **Aperçu « Voir comme »** : `/events/<id>/liens/<lien>/apercu`, mêmes composants que le portail
+  et l'espace du prestataire, actions inactives, fichiers fermés, sans session ni trace.
+- **Migrations** 0114 (`events`) et 0115 (`budget`), annulables ; registre RGPD : motif de refus.
+
+**Vérifié** (en local, base `symbola_lot24`) : lint, types, frontières de modules, catalogues de
+messages, registre RGPD ; tests unitaires (app 378, modèles de départ 40) ; intégration (base 143
+dont l'isolation des rappels et le retour arrière de 0114 et 0115, authentification 48, fichiers 12,
+e-mail 2, app 509 dont 8 sur le règlement déclaré et 4 sur les rappels) ; parcours e2e complets sur
+l'app compilée et une base neuve (ordinateur et 375 px, axe-core) : 212 réussis, 1 échec, 1 ignoré.
+L'échec (`l16-sec-01`, délai d'attente de la double authentification) passe seul quatre fois sur
+quatre ; un autre, isolé, de `prd-evt-06` en 375 px au dernier passage ciblé, passe trente fois sur
+trente avec le parcours du portail : instabilités sous charge, sans lien avec le lot. Semgrep :
+0 alerte ; Gitleaks : seul le mot de passe de test déjà sur `main` (`prd-bud-04`) ; journaux du
+serveur sans e-mail ni téléphone ; rejeu SC-06 étapes 2 et 5 (`docs/recette/SC-06.md`).
+
+**Corrigé pendant le rejeu** : le chargeur du jeu fictif marque faites les tâches « fait » ; à
+360 px, libellés visibles plus courts pour déclarer un règlement (nom complet pour les lecteurs
+d'écran).
+
+**Remarques** :
+
+- Après une déclaration, la page se met à jour et l'échéance affiche « en attente de
+  confirmation » à la place du formulaire : c'est la confirmation que voit le client.
+- Les rappels ne portent pas le lien : la personne rouvre son e-mail d'origine, ou en demande un
+  nouveau à l'organisateur (ADR 0053, seul le haché du jeton est gardé).
+- Au déploiement d'ensemble (gel) : migrations 0114 et 0115, après 0109 à 0113.
+
 ## Lot 27b — Ce que le client décide
 
 ### Partie G — Demandes de décision (POR-03, BUD-07, décisions D9 et D10)
