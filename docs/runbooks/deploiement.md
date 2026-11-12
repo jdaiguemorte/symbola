@@ -354,6 +354,42 @@ base non rétrocompatible, la corriger par une nouvelle migration plutôt
 que revenir en arrière sur le schéma (CLAUDE.md §5 : migrations
 réversibles, jamais de perte de données).
 
+## Service worker du jour J : interrupteur d'arrêt (lot 29a, ADR 0064)
+
+`apps/symbola/public/sw.js` sert les copies du jour J gardées sur les téléphones. Il n'existe que
+sur un appareil qui garde un jour J, et n'est jamais gardé par le cache HTTP : chaque navigateur
+reprend la version déployée à sa prochaine visite.
+
+**Quand l'arrêter** : s'il sert une mauvaise page ou bloque un écran. **Attention** : l'arrêter
+efface aussi les jours J gardés ; prévenir les planners dont un évènement est proche, pour
+qu'elles les gardent de nouveau après le correctif.
+
+1. Dans une PR, remplacer tout le contenu de `apps/symbola/public/sw.js` par :
+
+   ```js
+   // Interrupteur d'arrêt (ADR 0064) : efface les copies de Symbola et se désinscrit.
+   self.addEventListener("install", () => self.skipWaiting());
+   self.addEventListener("activate", (event) => {
+     event.waitUntil(
+       (async () => {
+         for (const name of await caches.keys()) if (name.startsWith("symbola-")) await caches.delete(name);
+         await self.registration.unregister();
+         for (const client of await self.clients.matchAll({ type: "window" })) client.navigate(client.url);
+       })(),
+     );
+   });
+   ```
+
+2. Déployer comme une nouvelle version (§ Mise à jour), dans la fenêtre de déploiement.
+3. Vérifier : `curl -s https://<domaine>/sw.js | head -2` montre l'interrupteur.
+
+Le service worker revient avec le correctif : la première planner qui garde un jour J
+l'enregistre de nouveau sur son appareil.
+
+**Retour arrière vers une image antérieure au lot 29** : une image sans `sw.js` ne remplace pas
+celui des appareils qui gardent un jour J. Il reste sans effet sur les autres écrans, mais pour
+l'enlever, déployer d'abord l'interrupteur d'arrêt, puis l'image antérieure.
+
 ## Trajectoire (ADR 0011)
 
 Si un module est un jour extrait en app autonome, il reçoit son propre
