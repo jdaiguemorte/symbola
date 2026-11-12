@@ -21,7 +21,8 @@ import { closeLinkSessionAction, toggleLinkTaskAction } from "./actions";
 // l'accès du lien. Programme en variante « mariés », jamais de note interne.
 // Le contenu nouveau du portail vient au lot 27.
 export default async function PortalPage() {
-  const access = await requireLink();
+  // Lot 26b (SC-S3) : le portail est celui du client.
+  const access = await requireLink("client");
   const { organizationId, linkId } = access;
   const t = await getTranslations("ClientSpace");
   const tLink = await getTranslations("LinkPortal");

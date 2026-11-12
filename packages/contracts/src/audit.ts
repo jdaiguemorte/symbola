@@ -40,6 +40,9 @@ export const AUDIT_ACTIONS = {
   "hub.sessions.revoked": { category: "connexion", objectType: "user" },
   // Lot 26a (SEC-17) : un tiers ouvre son lien personnel (objet : l'événement).
   "events.link.opened": { category: "connexion", objectType: "event" },
+  // Lot 26b (POR-01) : code à usage unique envoyé, puis bloqué après cinq essais.
+  "events.link.code_sent": { category: "connexion", objectType: "event" },
+  "events.link.code_locked": { category: "connexion", objectType: "event" },
   // Droits.
   "hub.organization.created": { category: "droits", objectType: "organization" },
   "hub.invitation.resent": { category: "droits", objectType: "organization" },

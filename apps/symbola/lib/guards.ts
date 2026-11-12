@@ -4,9 +4,9 @@
 // tiers n'ont pas de compte ; leur garde est requireLink (session de lien). La RLS protège les données ; la garde protège l'écran. Un test
 // (guards.test.ts) vérifie que chaque page hors des écrans publics en appelle
 // une.
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import type { AuthenticatedUser } from "@symbola/auth";
-import type { LinkAccess } from "@/modules/events/service";
+import type { LinkAccess, LinkAudience } from "@/modules/events/service";
 import { getAuthContext, getPlannerAuthContext } from "./auth-context";
 import { currentLinkAccess } from "./link-session";
 
@@ -46,9 +46,12 @@ export async function requireOwner(): Promise<InOrganization | null> {
 // personnel : la session de lien est relue en base à chaque requête. Sans
 // session valable, la page « lien non valable » propose d'en demander un
 // nouveau. Une session de compte (planner) n'ouvre pas le portail.
-export async function requireLink(): Promise<LinkAccess> {
+// Lot 26b (SC-S3) : l'espace d'un autre public répond comme inexistant (le
+// lien d'un prestataire n'ouvre jamais le portail du client).
+export async function requireLink(audience?: LinkAudience): Promise<LinkAccess> {
   const access = await currentLinkAccess();
   if (!access) redirect("/lien");
+  if (audience && access.audience !== audience) notFound();
   return access;
 }
 

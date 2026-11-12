@@ -15,6 +15,12 @@ export type LinkCookieOptions = {
   maxAge: number;
 };
 
+// Lot 26b (D9) : l'espace d'un lien dépend de son public ; le portail est
+// celui du client, /prestataire celui du prestataire.
+export function linkHomePath(audience: "client" | "vendor" | "guest"): "/portail" | "/prestataire" {
+  return audience === "vendor" ? "/prestataire" : "/portail";
+}
+
 export function linkCookieOptions(maxAge: number = LINK_COOKIE_IDLE_SECONDS, nodeEnv: string | undefined = process.env.NODE_ENV): LinkCookieOptions {
   return { httpOnly: true, sameSite: "lax", secure: nodeEnv === "production", path: "/", maxAge: Math.min(maxAge, LINK_COOKIE_IDLE_SECONDS) };
 }

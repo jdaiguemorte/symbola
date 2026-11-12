@@ -3,6 +3,7 @@
 // Lot 26a (UX-11, POR-01, POR-10, SEC-14, SEC-15 ; ADR 0053) — liens personnels
 // des tiers, depuis la fiche de l'événement : créer (profil de départ), modifier
 // les droits, renouveler, retirer. Le lien n'est montré qu'une fois (D10).
+// Lot 26b : lien d'un prestataire retenu (D9), code demandé à l'ouverture (D6).
 import { MailQuotaExceededError } from "@symbola/mail";
 import { revalidatePath } from "next/cache";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -68,24 +69,30 @@ export async function createLinkAction(_prev: LinkFormState, formData: FormData)
   const eventId = text(formData, "eventId");
   if (!isValidId(eventId)) return { error: t("eventNotFound") };
   const vocabulary = await requestAudience(access.organizationId);
-  // Le profil ne fait que pré-cocher les rubriques (décision D3).
-  const profile = listLinkProfiles(await locale(), vocabulary).find((candidate) => candidate.key === text(formData, "profile"));
-  if (!profile) return { error: t("linkInvalidChoice") };
+  const vendor = text(formData, "audience") === "vendor";
+  const vendorCandidateId = text(formData, "vendorCandidateId");
+  if (vendor && !isValidId(vendorCandidateId)) return { error: t("linkInvalidChoice") };
+  // Le profil ne fait que pré-cocher les rubriques (décision D3) ; un lien de
+  // prestataire n'en a pas (son espace est fixe, D9).
+  const profile = vendor ? null : listLinkProfiles(await locale(), vocabulary).find((candidate) => candidate.key === text(formData, "profile"));
+  if (!vendor && !profile) return { error: t("linkInvalidChoice") };
   const eventClientId = text(formData, "eventClientId");
   try {
     const delivery = await createEventLink({
       organizationId: access.organizationId,
       eventId,
       createdByUserId: access.userId,
-      audience: "client",
+      audience: vendor ? "vendor" : "client",
+      vendorCandidateId: vendor ? vendorCandidateId : null,
       locale: await locale(),
       vocabulary,
       link: {
         personName: text(formData, "personName"),
         email: text(formData, "email"),
-        eventClientId: isValidId(eventClientId) ? eventClientId : null,
-        rights: { rubrics: profile.rubrics, budgetScope: profile.budgetScope, sharedSlotIds: ids(formData, "sharedSlotIds") },
+        eventClientId: !vendor && isValidId(eventClientId) ? eventClientId : null,
+        rights: profile ? { rubrics: profile.rubrics, budgetScope: profile.budgetScope, sharedSlotIds: ids(formData, "sharedSlotIds") } : { rubrics: [], budgetScope: "all", sharedSlotIds: [] },
         customExpiresOn: text(formData, "customExpiresOn") || null,
+        otpRequired: formData.get("otpRequired") === "on",
       },
     });
     revalidatePath(`/events/${eventId}`);
@@ -117,6 +124,7 @@ export async function updateLinkAction(_prev: LinkFormState, formData: FormData)
       eventClientId: isValidId(eventClientId) ? eventClientId : null,
       rights,
       customExpiresOn: text(formData, "customExpiresOn") || null,
+      otpRequired: formData.get("otpRequired") === "on",
     });
     revalidatePath(`/events/${eventId}`);
     return { success: true };

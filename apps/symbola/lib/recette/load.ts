@@ -5,9 +5,9 @@
 // « [Recette] » ; le chargement refuse de tourner en production et sur une base
 // où le jeu est déjà chargé. Il couvre ce que l'app sait faire aujourd'hui :
 // comptes, événements, clients, catalogue, devis et échéancier, budget,
-// tâches, carnet de prestataires, et (lot 26a) les liens personnels des
-// clients et du payeur. Le reste du jeu (invités, tables, liens des
-// prestataires) viendra avec les lots qui créent ces écrans.
+// tâches, carnet de prestataires, et les liens personnels des clients et du
+// payeur (lot 26a) et du prestataire retenu joué par un profil (lot 26b). Le
+// reste du jeu (invités, tables) viendra avec les lots qui créent ces écrans.
 import { randomBytes } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
@@ -26,6 +26,7 @@ import {
   getEvent,
   listEventVendorSlots,
   listLinkProfiles,
+  listVendorCandidates,
   selectVendorCandidate,
   setEventWantedBudget,
   updateVendorCandidate,
@@ -323,6 +324,27 @@ export async function loadRecette(raw: unknown, options: RecetteOptions = {}): P
           },
         });
         result.links.push({ organisation: organisation.id, evenement: event.id, nom: person.nom, email, profil: profile.label, url: delivery.url });
+      }
+
+      // Lot 26b (UX-11, D9) : un lien personnel pour chaque prestataire retenu
+      // dont le contact est un profil du jeu (Karim Haddad, SU-08, pour SC-S3).
+      const personas = new Set(dataset.profils.map((profile) => profile.nom));
+      const candidates = await listVendorCandidates(organizationId, created.id);
+      for (const vendor of event.prestataires ?? []) {
+        if (!vendor.contact || !vendor.email || !personas.has(vendor.contact)) continue;
+        const candidate = candidates.find((item) => item.vendorName === vendor.nom && item.outcome === "selected");
+        if (!candidate) continue;
+        const email = options.emailTag ? vendor.email.replace("@", `+${options.emailTag}@`) : vendor.email;
+        const delivery = await createEventLink({
+          organizationId,
+          eventId: created.id,
+          createdByUserId: ownerId,
+          audience: "vendor",
+          vendorCandidateId: candidate.id,
+          locale: "fr",
+          link: { personName: vendor.contact, email, rights: { rubrics: [], budgetScope: "all", sharedSlotIds: [] } },
+        });
+        result.links.push({ organisation: organisation.id, evenement: event.id, nom: vendor.contact, email, profil: "Prestataire", url: delivery.url });
       }
     }
 

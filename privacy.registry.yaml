@@ -338,19 +338,23 @@ fields:
     category: identifiant
     retention: >-
       Lot 26a (UX-11, POR-01, ADR 0053) : nom de la personne d'un lien personnel
-      (client, parent payeur), affiché à la planner et dans le portail ; tant
-      que le lien existe, purgé avec l'événement. Après suppression ou demande
+      (client, parent payeur ; prestataire depuis le lot 26b), affiché à la
+      planner, dans le portail ou l'espace du prestataire ; tant que le lien
+      existe, purgé avec l'événement. Après suppression ou demande
       d'oubli : voir RGPD-03/RGPD-05.
     anonymization: >-
-      Le lien (et ses sessions) est supprimé lors d'une demande d'oubli qui le
-      vise (RGPD-03) ; ses coches du fil d'activité perdent leur auteur.
+      Le lien (et ses sessions et codes à usage unique) est supprimé lors d'une
+      demande d'oubli qui le vise (RGPD-03) ; ses coches du fil d'activité
+      perdent leur auteur.
   - schema: events
     table: event_links
     field: email
     category: contact
     retention: >-
       Lot 26a : adresse où le lien personnel est envoyé, et qui reconnaît les
-      devis à signer de la personne ; tant que le lien existe, purgée avec
+      devis à signer de la personne ; lot 26b : le code à usage unique y part
+      (seul son haché est gardé, dans events.event_link_codes, sans donnée
+      personnelle, effacé sous un jour). Tant que le lien existe, purgée avec
       l'événement. Après suppression ou demande d'oubli : voir RGPD-03/RGPD-05.
     anonymization: >-
       Le lien est supprimé lors d'une demande d'oubli qui le vise (RGPD-03).

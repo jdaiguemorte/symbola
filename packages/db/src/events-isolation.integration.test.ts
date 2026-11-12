@@ -10,6 +10,7 @@ import {
   defaultVendorSlots,
   eventActivities,
   eventLinks,
+  eventLinkCodes,
   eventLinkSessions,
   eventLinkSharedSlots,
   eventClients,
@@ -355,6 +356,32 @@ describe("PRD-EVT-01/02 — Isolation entre organisations (module events, Postgr
       attemptCrossOrganizationUpdate: async (organizationId, targetRow) => {
         const updated = await withOrganization(db, organizationId, (tx) =>
           tx.update(eventLinkSessions).set({ expiresAt: new Date(Date.now() + 365 * 86_400_000) }).where(eq(eventLinkSessions.id, targetRow.id)).returning(),
+        );
+        return { affectedRows: updated.length };
+      },
+    });
+  });
+
+  it("SEC-10, lot 26b — une organisation ne voit ni ne réactive jamais les codes à usage unique d'une autre", async () => {
+    await assertOrganizationIsolation({
+      seed: async (organizationId) =>
+        withOrganization(db, organizationId, async (tx) => {
+          const [event] = await tx.insert(events).values({ organizationId }).returning();
+          const [link] = await tx.insert(eventLinks).values({ organizationId, eventId: event!.id, audience: "client", personName: "Léa", email: "lea@example.test", otpRequired: true }).returning();
+          const [row] = await tx
+            .insert(eventLinkCodes)
+            .values({ organizationId, linkId: link!.id, codeHash: `h-${organizationId}`, expiresAt: new Date(Date.now() + 600_000), consumedAt: new Date() })
+            .returning();
+          if (!row) throw new Error("insertion attendue, aucune ligne renvoyée");
+          return row;
+        }),
+
+      listVisible: async (organizationId) =>
+        withOrganization(db, organizationId, (tx) => tx.select().from(eventLinkCodes)),
+
+      attemptCrossOrganizationUpdate: async (organizationId, targetRow) => {
+        const updated = await withOrganization(db, organizationId, (tx) =>
+          tx.update(eventLinkCodes).set({ consumedAt: null, attempts: 0 }).where(eq(eventLinkCodes.id, targetRow.id)).returning(),
         );
         return { affectedRows: updated.length };
       },

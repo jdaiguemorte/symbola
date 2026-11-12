@@ -27,7 +27,7 @@ const securityHeaders = [
     : []),
 ];
 
-const LINK_PAGES = ["/lien", "/lien/:path*", "/portail", "/portail/:path*"];
+const LINK_PAGES = ["/lien", "/lien/:path*", "/portail", "/portail/:path*", "/prestataire", "/prestataire/:path*"];
 const linkPageHeaders = [
   { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
   { key: "Referrer-Policy", value: "no-referrer" },

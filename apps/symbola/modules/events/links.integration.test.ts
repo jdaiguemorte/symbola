@@ -99,11 +99,12 @@ describe("UX-11 — Tiers sans compte ni mot de passe", () => {
     expect(await withDb((db) => db.select().from(users).where(eq(users.organizationId, organizationId)))).toEqual([]);
   });
 
-  it("le lien d'un prestataire ou d'un invité ne se crée pas encore (lots 26b et 49)", async () => {
+  // Lot 26b : le lien d'un prestataire se crée (vendor-links.integration.test.ts).
+  it("le lien d'un invité ne se crée pas encore (lot 49)", async () => {
     const organizationId = await organization();
     const eventId = await event(organizationId);
     await expect(
-      createEventLink({ organizationId, eventId, createdByUserId: plannerId, audience: "vendor", locale: "fr", link: { personName: "Karim", email: "karim@example.test", rights: NOTHING } }),
+      createEventLink({ organizationId, eventId, createdByUserId: plannerId, audience: "guest", locale: "fr", link: { personName: "Karim", email: "karim@example.test", rights: NOTHING } }),
     ).rejects.toBeInstanceOf(EventLinkInvalidError);
   });
 

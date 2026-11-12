@@ -36,7 +36,7 @@ describe("DAT-10 — Jeu fictif chargeable en une commande", { timeout: 120_000 
     // Lot 26a (UX-11, POR-01) : les clients et le payeur n'ont pas de compte, mais un lien personnel.
     expect(result.accounts.some((account) => account.nom === "Léa Martin")).toBe(false);
     expect(result.links.map((link) => `${link.organisation}:${link.profil}:${link.nom}`)).toEqual(
-      expect.arrayContaining(["ORG-01:Marié(e):Léa Martin", "ORG-01:Marié(e):Maxime Dubois", "ORG-01:Payeur:Bernard Martin"]),
+      expect.arrayContaining(["ORG-01:Marié(e):Léa Martin", "ORG-01:Marié(e):Maxime Dubois", "ORG-01:Payeur:Bernard Martin", "ORG-01:Prestataire:Karim Haddad"]),
     );
     expect(result.links.every((link) => /\/lien#[0-9a-f-]{36}\.[A-Za-z0-9_-]{43}$/.test(link.url))).toBe(true);
 

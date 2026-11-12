@@ -77,3 +77,31 @@ Décisions du lot 26 validées par Julien le 12/11/2026 (« Oui, comme recommand
 - **Actions sensibles** (SEC-16, P1, lot 43) : signer, payer, voir le budget détaillé. Le code à
   usage unique avant ces actions arrive avec SEC-16 ; au 26b, le code est seulement proposé en
   option à l'ouverture (POR-01, décision D6).
+
+## Avenant du lot 26b (12/11/2026)
+
+Mêmes décisions (D6 et D9), même spécification.
+
+- **Lien du prestataire** (D9) : public `vendor`, créé depuis la fiche de l'événement pour un
+  prestataire retenu (nom et e-mail préremplis depuis sa fiche du carnet si le module est
+  souscrit). Le lien désigne son prestataire consulté (`event_links.vendor_candidate_id`, la base
+  l'exige pour ce public) ; retirer le prestataire de l'événement retire son lien et ses sessions.
+  Il n'ouvre aucune rubrique du portail : ses droits sont fixes, ceux de l'espace `/prestataire`
+  (prénoms des clients, date, lieux, lignes du programme où figure son poste sans note interne ni
+  autre intervenant, contact de l'organisation). Expiration : 7 jours après l'événement.
+- **Un espace par public** : après l'ouverture, un lien de client va à `/portail`, un lien de
+  prestataire à `/prestataire`. L'espace d'un autre public répond 404 (garde `requireLink(public)`),
+  et chaque service du portail refuse un lien qui n'est pas celui d'un client (SC-S3).
+- **Code à usage unique à l'ouverture** (D6, POR-01) : case « Demander un code à l'ouverture » par
+  lien (`otp_required`, non par défaut). À chaque ouverture, six chiffres partent à l'e-mail du
+  lien (adresse montrée masquée) ; seul le haché SHA-256 « lien + code » est gardé
+  (`events.event_link_codes`, table technique sous RLS, effacée sous un jour). Valable dix minutes,
+  cinq essais comptés en base (le cinquième échec bloque le code), un seul usage ; un nouveau code
+  remplace l'ancien ; au plus cinq codes par lien et par heure, en plus du plafond d'envois de
+  l'organisation (SEC-22) et du débit par adresse IP (`linkOpen`, `linkCode`). La session de lien
+  ne s'ouvre qu'après le bon code ; le jeton reste dans la mémoire de la page le temps de la
+  saisie, jamais dans l'adresse. Cocher la case sur un lien déjà ouvert coupe ses sessions.
+- **Journal** : `events.link.code_sent` et `events.link.code_locked`, sans code ni e-mail.
+- **Actions sensibles** (SEC-16, lot 43) : la liste reste celle de l'avenant du 26a (signer, payer,
+  voir le budget détaillé) ; le code par e-mail du 26b (`modules/events/link-otp.ts`) servira avant
+  ces actions.

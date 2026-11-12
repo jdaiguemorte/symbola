@@ -420,6 +420,11 @@ export const eventLinks = eventsSchema.table("event_links", {
   rubrics: text("rubrics").array().notNull().default(sql`'{}'::text[]`),
   // Budget entier, ou seulement les catégories de event_link_shared_slots.
   budgetScope: text("budget_scope").notNull().default("all"),
+  // Lot 26b (D9) : le prestataire consulté qu'un lien « vendor » désigne ;
+  // retirer le prestataire de l'événement retire son lien.
+  vendorCandidateId: uuid("vendor_candidate_id").references(() => eventVendorCandidates.id, { onDelete: "cascade" }),
+  // Lot 26b (POR-01, D6) : un code à usage unique est demandé à l'ouverture.
+  otpRequired: boolean("otp_required").notNull().default(false),
   // SEC-15 : dernier jour valable choisi par la planner ; sinon calculé.
   customExpiresOn: date("custom_expires_on"),
   tokenHash: text("token_hash").unique(),
@@ -434,8 +439,10 @@ export const eventLinks = eventsSchema.table("event_links", {
 }, (table) => [
   index("event_links_organization_idx").on(table.organizationId),
   index("event_links_event_idx").on(table.eventId),
+  index("event_links_vendor_candidate_idx").on(table.vendorCandidateId),
   check("event_links_rubrics_check", sql`${table.rubrics} <@ array['tasks', 'program', 'vendor_options', 'budget', 'quotes']::text[]`),
   check("event_links_budget_scope_check", sql`${table.budgetScope} in ('all', 'selected')`),
+  check("event_links_vendor_candidate_check", sql`${table.audience} <> 'vendor' or ${table.vendorCandidateId} is not null`),
 ]);
 
 // Lot 26a (POR-10) : catégories du budget (postes de l'événement) partagées
@@ -456,6 +463,25 @@ export const eventLinkSharedSlots = eventsSchema.table("event_link_shared_slots"
 }, (table) => [
   index("event_link_shared_slots_organization_idx").on(table.organizationId),
   unique("event_link_shared_slots_link_slot_unique").on(table.linkId, table.vendorSlotId),
+]);
+
+// Lot 26b (POR-01, décision D6) : code à usage unique demandé à l'ouverture
+// d'un lien qui l'exige. Six chiffres envoyés à l'e-mail du lien, dont seul le
+// haché est ici ; dix minutes, cinq essais, un seul usage.
+export const eventLinkCodes = eventsSchema.table("event_link_codes", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  linkId: uuid("link_id")
+    .notNull()
+    .references(() => eventLinks.id, { onDelete: "cascade" }),
+  codeHash: text("code_hash").notNull(),
+  attempts: integer("attempts").notNull().default(0),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  consumedAt: timestamp("consumed_at", { withTimezone: true }),
+}, (table) => [
+  index("event_link_codes_organization_idx").on(table.organizationId),
+  index("event_link_codes_link_idx").on(table.linkId),
 ]);
 
 // Lot 26a (SEC-17, décision D7) : session ouverte par un lien. Le jeton du lien

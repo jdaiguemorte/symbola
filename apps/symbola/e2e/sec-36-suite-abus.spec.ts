@@ -1,7 +1,7 @@
 // Lot 24b — SEC-36 : suite de tests d'abus, qui rejoue les scénarios de
 // sécurité SC-S1 à SC-S6 du cahier des charges (§ 17), joués par « Rex », tiers
 // malveillant. SC-S1 est rejoué en entier par sec-13-inexistant-interdit.spec.ts ;
-// SC-S3 attend les liens personnels des prestataires (lot 26b). En taille
+// SC-S3 depuis le lot 26b (liens personnels des prestataires). En taille
 // ordinateur et en 375 px, axe-core sur les écrans touchés.
 import { randomUUID } from "node:crypto";
 import AxeBuilder from "@axe-core/playwright";
@@ -11,7 +11,7 @@ import { consumeOrganizationMailQuota } from "@symbola/db/mail-quota";
 import { EICAR_TEST_STRING } from "@symbola/files";
 import { expect, test, type Page } from "@playwright/test";
 import * as OTPAuth from "otpauth";
-import { createEventLink, createProspect, createProspectSource } from "../modules/events/service";
+import { addEventVendorSlot, addProgramItem, addVendorCandidate, createEventLink, createProspect, createProspectSource } from "../modules/events/service";
 import { createVendor } from "../modules/vendors/service";
 import { readyOrganization } from "./helpers";
 
@@ -95,7 +95,49 @@ test("SC-S2 — un collaborateur retiré il y a deux minutes rejoue une requête
   await rex.close();
 });
 
-test.fixme("SC-S3 — avec le lien d'un prestataire, il demande le budget, les devis des autres et le portail du client : refus (lot 26b, liens des prestataires)", async () => {});
+// Lot 26b (UX-11 ; ADR 0053, décision D9) : liens personnels des prestataires.
+test("SC-S3 — avec le lien d'un prestataire, il demande le budget, les devis des autres et le portail du client : refus", async ({ page }) => {
+  const { organizationId, owner, event } = await organization("S3");
+  const wedding = await event("Inès");
+  const caterer = await addEventVendorSlot(organizationId, wedding.id, "Traiteur");
+  const photographer = await addEventVendorSlot(organizationId, wedding.id, "Photographe");
+  const rex = await addVendorCandidate({ organizationId, eventId: wedding.id, vendorSlotId: caterer.id, vendorName: "Rex Réceptions" });
+  const studio = await addVendorCandidate({ organizationId, eventId: wedding.id, vendorSlotId: photographer.id, vendorName: "Studio Lumière" });
+  await addProgramItem(organizationId, wedding.id, { startTime: "18:00", label: "Cocktail", internalNote: "Marge de 20 % sur le champagne", vendorSlotIds: [caterer.id], freeParticipants: [] });
+  await addProgramItem(organizationId, wedding.id, { startTime: "16:00", label: "Photos de groupe", vendorSlotIds: [photographer.id], freeParticipants: [] });
+  const link = await createEventLink({
+    organizationId,
+    eventId: wedding.id,
+    createdByUserId: owner.id,
+    audience: "vendor",
+    vendorCandidateId: rex.id,
+    locale: "fr",
+    link: { personName: "Rex", email: `rex-${randomUUID()}@symbola.test`, rights: { rubrics: ["budget", "quotes", "vendor_options"], budgetScope: "all", sharedSlotIds: [] } },
+  });
+
+  // Son espace : la date, ses horaires, rien d'autre.
+  await page.goto(link.url);
+  await expect(page).toHaveURL(/\/prestataire$/);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Inès");
+  await expect(page.getByRole("list", { name: "Vos horaires" })).toContainText("18:00 — Cocktail");
+  const space = page.locator("main");
+  for (const hidden of ["Marge", "Photos de groupe", "Studio Lumière", "Budget"]) await expect(space).not.toContainText(hidden);
+  await expectNoAxeViolation(page);
+
+  // Le portail du client, le budget, les devis et le RIB des autres : comme inexistants.
+  const portal = await page.goto("/portail");
+  expect(portal!.status()).toBe(404);
+  await expect(page.locator("main")).not.toContainText("Inès");
+  for (const path of [`/portail/options/${studio.id}/devis`, `/portail/options/${studio.id}/rib`, "/portail/programme/pdf"]) {
+    expect((await page.request.get(path)).status(), path).toBe(404);
+  }
+  expect((await page.request.get(`/budget/${wedding.id}/export?format=xlsx`)).status()).toBe(401);
+  await page.goto(`/budget/${wedding.id}`);
+  await expect(page).toHaveURL(/\/login$/);
+  // Son lien n'a pas été retiré pour autant.
+  await page.goto("/prestataire");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Inès");
+});
 
 // Lot 26a (SEC-14, SEC-15, SEC-17 ; ADR 0053) : liens personnels.
 test("SC-S4 — un lien de marié expiré, puis le lien d'un autre événement : refus, nouveau lien proposé, rien de révélé", async ({ page }) => {

@@ -16,6 +16,9 @@
         "3": {
           "q": "Que voient les clients ?",
           "a": "Ce que vous leur ouvrez, par un lien personnel, sans compte ni mot de passe : leurs tâches, le programme, le budget en lecture seule, jamais vos notes internes. Créez leurs liens dans l'onglet Clients ; un commanditaire peut ne voir que certaines catégories du budget."
+        },
+        "4": {
+          "a": "Dans l'onglet Clients, créez le lien d'un prestataire retenu : il voit la date, les lieux, les lignes du programme où figure son poste et votre contact, rien d'autre (ni prix, ni budget, ni autres prestataires). Cochez « Demander un code à l'ouverture » pour qu'un code parte à son e-mail à chaque ouverture."
         }
       }
     },

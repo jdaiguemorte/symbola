@@ -41,10 +41,11 @@ async function hasColumn(schema: string, table: string, column: string): Promise
 
 const rollback = (tag: string) => rollbackMigration(target, tag, folders);
 
-// Lot 26a : migrations au-dessus de celles du 28, annulées pour revenir à 0108.
-const LOT_26A = ["0112_lot26a_events_drop_client_accesses", "0111_lot26a_hub_roles_notice", "0110_lot26a_core_link_actor", "0109_lot26a_events_links"];
-async function rollbackLot26a() {
-  for (const tag of LOT_26A) await rollback(tag);
+// Lots 26a et 26b : migrations au-dessus de celles du 28, annulées pour revenir à 0108.
+const LOT_26B = "0113_lot26b_events_vendor_links";
+const LOT_26 = [LOT_26B, "0112_lot26a_events_drop_client_accesses", "0111_lot26a_hub_roles_notice", "0110_lot26a_core_link_actor", "0109_lot26a_events_links"];
+async function rollbackLot26() {
+  for (const tag of LOT_26) await rollback(tag);
 }
 
 async function roles(): Promise<string[]> {
@@ -74,6 +75,48 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     await expect(rollback("0099_inconnue")).rejects.toBeInstanceOf(RollbackRefusedError);
   });
 
+  it("lot 26b (POR-01, décisions D6 et D9) — 0113 : lien du prestataire et codes à usage unique ; l'annulation retire les liens des prestataires et les codes", async () => {
+    await expect(rollback("0112_lot26a_events_drop_client_accesses")).rejects.toBeInstanceOf(RollbackRefusedError);
+    expect(await hasColumn("events", "event_links", "vendor_candidate_id")).toBe(true);
+    expect(await hasColumn("events", "event_links", "otp_required")).toBe(true);
+    expect(await hasColumn("events", "event_link_codes", "code_hash")).toBe(true);
+
+    const organizationId = randomUUID();
+    const inOrganization = <T>(work: (tx: postgres.TransactionSql) => Promise<T>) =>
+      target.begin(async (tx) => {
+        await tx`select set_config('app.organization_id', ${organizationId}, true)`;
+        return work(tx);
+      }) as Promise<T>;
+    const ids = await inOrganization(async (tx) => {
+      const [event] = await tx<{ id: string }[]>`insert into events.events (organization_id) values (${organizationId}) returning id`;
+      const [slot] = await tx<{ id: string }[]>`insert into events.event_vendor_slots (organization_id, event_id, label) values (${organizationId}, ${event!.id}, 'Traiteur') returning id`;
+      const [candidate] = await tx<{ id: string }[]>`insert into events.event_vendor_candidates (organization_id, event_id, vendor_slot_id, vendor_name)
+        values (${organizationId}, ${event!.id}, ${slot!.id}, 'Traiteur Karim') returning id`;
+      const [vendor] = await tx<{ id: string }[]>`insert into events.event_links (organization_id, event_id, audience, person_name, email, vendor_candidate_id, otp_required)
+        values (${organizationId}, ${event!.id}, 'vendor', 'Karim', 'karim@example.test', ${candidate!.id}, true) returning id`;
+      const [client] = await tx<{ id: string }[]>`insert into events.event_links (organization_id, event_id, audience, person_name, email, otp_required)
+        values (${organizationId}, ${event!.id}, 'client', 'Léa', 'lea@example.test', true) returning id`;
+      await tx`insert into events.event_link_codes (organization_id, link_id, code_hash, expires_at) values (${organizationId}, ${vendor!.id}, 'haché', now() + interval '10 minutes')`;
+      return { eventId: event!.id, candidateId: candidate!.id, vendorLinkId: vendor!.id, clientLinkId: client!.id };
+    });
+    // La base exige le prestataire d'un lien « vendor ».
+    await expect(
+      inOrganization((tx) => tx`insert into events.event_links (organization_id, event_id, audience, person_name, email) values (${organizationId}, ${ids.eventId}, 'vendor', 'Sans poste', 'x@example.test')`),
+    ).rejects.toThrow(/event_links_vendor_candidate_check/);
+
+    await rollback(LOT_26B);
+    expect(await hasColumn("events", "event_links", "vendor_candidate_id")).toBe(false);
+    expect(await hasColumn("events", "event_links", "otp_required")).toBe(false);
+    expect(await hasColumn("events", "event_link_codes", "id")).toBe(false);
+    const links = await inOrganization((tx) => tx<{ id: string }[]>`select id from events.event_links where event_id = ${ids.eventId}`);
+    expect(links.map((link) => link.id)).toEqual([ids.clientLinkId]);
+
+    await migrateAll();
+    expect(await hasColumn("events", "event_link_codes", "code_hash")).toBe(true);
+    const [kept] = await inOrganization((tx) => tx<{ otp: boolean }[]>`select otp_required as otp from events.event_links where id = ${ids.clientLinkId}`);
+    expect(kept!.otp).toBe(false);
+  });
+
   it("lot 26a (UX-11, SEC-14, ADR 0053) — 0109 à 0112 : liens personnels, auteur « link », rôle client retiré ; l'annulation rend les structures, sans les données", async () => {
     await expect(rollback("0109_lot26a_events_links")).rejects.toBeInstanceOf(RollbackRefusedError);
     expect(await hasColumn("events", "event_links", "token_hash")).toBe(true);
@@ -100,6 +143,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
       inOrganization((tx) => tx`update events.event_links set rubrics = ${["tout"]} where id = ${ids.linkId}`),
     ).rejects.toThrow(/event_links_rubrics_check/);
 
+    await rollback(LOT_26B);
     await rollback("0112_lot26a_events_drop_client_accesses");
     expect(await hasColumn("events", "event_client_accesses", "email")).toBe(true);
     await rollback("0111_lot26a_hub_roles_notice");
@@ -128,7 +172,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     expect(await roles()).toEqual(["owner", "member", "admin"]);
     expect(await hasColumn("events", "event_links", "token_hash")).toBe(true);
     // Retour à 0108 pour la suite.
-    await rollbackLot26a();
+    await rollbackLot26();
   });
 
   it("lot 28c (BUD-09, PRE-01) — 0107 et 0108 ajoutent le taux de TVA des lignes, l'évaluation et les tarifs des fiches, bornés, et s'annulent", async () => {
@@ -169,7 +213,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
 
     // Aller de nouveau : colonnes vides, puis retour à 0106 pour la suite.
     await migrateAll();
-    await rollbackLot26a();
+    await rollbackLot26();
     expect(await hasColumn("vendors", "vendors", "rating")).toBe(true);
     expect(await hasColumn("budget", "budget_lines", "vat_rate_basis_points")).toBe(true);
     await inOrganization(async (tx) => {
@@ -224,7 +268,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     });
 
     await migrateAll();
-    await rollbackLot26a();
+    await rollbackLot26();
     const after = await inOrganization(async (tx) => ({
       lines: await tx<{ slot: string; label: string; vendor: string | null }[]>`select event_vendor_slot_id as slot, label, vendor_candidate_id as vendor from budget.budget_lines where event_id = ${before.eventId} order by label`,
       candidates: await tx<{ slot: string; name: string; status: string }[]>`select vendor_slot_id as slot, vendor_name as name, status::text as status from events.event_vendor_candidates where event_id = ${before.eventId} order by vendor_name`,
@@ -309,7 +353,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     });
 
     await migrateAll();
-    await rollbackLot26a();
+    await rollbackLot26();
     // migrateAll applique aussi les migrations des 28b et 28c : retour à 0104 pour lire la reprise du 28a.
     await rollback("0108_lot28c_vendors_rating_prices");
     await rollback("0107_lot28c_budget_vat_rate");

@@ -24,7 +24,7 @@ type Window = { limit: number; windowMs: number };
 // Réglages techniques de sécurité (pas des données métier) : larges pour un
 // usage normal, bas pour une attaque. Le verrouillage par compte (5 échecs,
 // ADR 0037) reste en place en plus.
-export const RATE_LIMITS: Record<"login" | "mfa" | "passwordReset" | "search" | "upload" | "linkOpen" | "linkRenewal", { ip: Window; account: Window }> = {
+export const RATE_LIMITS: Record<"login" | "mfa" | "passwordReset" | "search" | "upload" | "linkOpen" | "linkRenewal" | "linkCode", { ip: Window; account: Window }> = {
   login: { ip: { limit: 20, windowMs: 15 * MINUTE }, account: { limit: 10, windowMs: 15 * MINUTE } },
   mfa: { ip: { limit: 20, windowMs: 15 * MINUTE }, account: { limit: 10, windowMs: 15 * MINUTE } },
   passwordReset: { ip: { limit: 5, windowMs: 60 * MINUTE }, account: { limit: 3, windowMs: 60 * MINUTE } },
@@ -34,6 +34,9 @@ export const RATE_LIMITS: Record<"login" | "mfa" | "passwordReset" | "search" | 
   // nouveau lien, par adresse IP (« account » : l'organisation du jeton).
   linkOpen: { ip: { limit: 30, windowMs: 15 * MINUTE }, account: { limit: 30, windowMs: 15 * MINUTE } },
   linkRenewal: { ip: { limit: 5, windowMs: 60 * MINUTE }, account: { limit: 5, windowMs: 60 * MINUTE } },
+  // Lot 26b (POR-01) : saisie d'un code à usage unique, en plus des cinq
+  // essais par code comptés en base.
+  linkCode: { ip: { limit: 30, windowMs: 15 * MINUTE }, account: { limit: 30, windowMs: 15 * MINUTE } },
 };
 
 export type RateLimitedAction = keyof typeof RATE_LIMITS;

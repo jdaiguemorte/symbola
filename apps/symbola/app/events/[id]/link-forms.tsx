@@ -3,16 +3,21 @@
 // Lot 26a (UX-11, POR-01, POR-10 ; ADR 0053, décisions D3 et D10) — formulaires
 // des liens personnels sur la fiche de l'événement. Le lien créé ou renouvelé
 // n'est montré qu'une fois, avec « Copier le lien » ; seul son haché reste en base.
+// Lot 26b : lien d'un prestataire retenu (D9), code demandé à l'ouverture (D6).
 import { useActionState, useId, useState } from "react";
 import { useTranslations } from "next-intl";
-import { LINK_RUBRICS, type LinkRubric } from "@symbola/contracts";
+import { LINK_RUBRICS, type LinkAudience, type LinkRubric } from "@symbola/contracts";
 import { createLinkAction, renewLinkAction, updateLinkAction, type LinkFormState } from "./link-actions";
 
 export type LinkFormClient = { id: string; name: string; email: string | null };
 export type LinkFormSlot = { id: string; label: string };
 export type LinkFormProfile = { key: string; label: string; budgetScope: "all" | "selected" };
+// Prestataire retenu de l'événement ; nom et e-mail tirés de sa fiche du carnet.
+export type LinkFormVendor = { candidateId: string; label: string; personName: string; email: string };
 export type EditableLink = {
   id: string;
+  audience: LinkAudience;
+  otpRequired: boolean;
   personName: string;
   email: string;
   eventClientId: string | null;
@@ -49,6 +54,23 @@ function LinkDelivered({ state }: { state: LinkFormState }) {
       <span className="meta">{copy === "copied" ? t("linkCopied") : copy === "failed" ? t("linkCopyFailed") : ""}</span>
       <p className="muted">{t("linkUrlOnce")}</p>
     </div>
+  );
+}
+
+// Lot 26b (POR-01, D6) : un code à six chiffres part à l'e-mail du lien à chaque ouverture.
+function OtpChoice({ defaultChecked }: { defaultChecked: boolean }) {
+  const t = useTranslations("Events");
+  const hintId = useId();
+  return (
+    <>
+      <label className="checkbox">
+        <input type="checkbox" name="otpRequired" defaultChecked={defaultChecked} aria-describedby={hintId} />
+        {t("linkOtp")}
+      </label>
+      <p id={hintId} className="muted">
+        {t("linkOtpHint")}
+      </p>
+    </>
   );
 }
 
@@ -120,6 +142,7 @@ export function CreateLinkForm({ eventId, clients, slots, profiles }: { eventId:
         <input type="date" name="customExpiresOn" />
       </label>
       <p className="muted">{t("linkExpiresOnHint")}</p>
+      <OtpChoice defaultChecked={false} />
       <button type="submit" className="primary" disabled={pending}>
         {t("createLink")}
       </button>
@@ -134,6 +157,7 @@ export function EditLinkForm({ eventId, link, clients, slots }: { eventId: strin
   const [state, formAction, pending] = useActionState(updateLinkAction, {} as LinkFormState);
   const [scope, setScope] = useState(link.budgetScope);
   const personId = useId();
+  const vendor = link.audience === "vendor";
   return (
     <form action={formAction} className="link-form">
       <input type="hidden" name="eventId" value={eventId} />
@@ -146,6 +170,41 @@ export function EditLinkForm({ eventId, link, clients, slots }: { eventId: strin
         {t("linkEmail")}
         <input type="email" name="email" required autoComplete="off" defaultValue={link.email} />
       </label>
+      {vendor ? null : <ClientRights link={link} clients={clients} slots={slots} personId={personId} scope={scope} onScope={setScope} />}
+      <label>
+        {t("linkExpiresOn")}
+        <input type="date" name="customExpiresOn" defaultValue={link.customExpiresOn ?? ""} />
+      </label>
+      <OtpChoice defaultChecked={link.otpRequired} />
+      <button type="submit" disabled={pending}>
+        {t("saveLink", { name: link.personName })}
+      </button>
+      {state.error ? <p role="alert">{state.error}</p> : null}
+      {state.success ? <p role="status">{t("linkSaved")}</p> : null}
+    </form>
+  );
+}
+
+// Droits d'un lien du client : la personne représentée, les rubriques, le budget.
+function ClientRights({
+  link,
+  clients,
+  slots,
+  personId,
+  scope,
+  onScope,
+}: {
+  link: EditableLink;
+  clients: LinkFormClient[];
+  slots: LinkFormSlot[];
+  personId: string;
+  scope: "all" | "selected";
+  onScope: (scope: "all" | "selected") => void;
+}) {
+  const t = useTranslations("Events");
+  const setScope = onScope;
+  return (
+    <>
       <label htmlFor={personId}>{t("linkPerson")}</label>
       <select id={personId} name="eventClientId" defaultValue={link.eventClientId ?? ""}>
         <option value="">{t("linkPersonOther")}</option>
@@ -176,15 +235,64 @@ export function EditLinkForm({ eventId, link, clients, slots }: { eventId: strin
         </label>
       </fieldset>
       {scope === "selected" ? <SlotChoices slots={slots} selected={link.sharedSlotIds} /> : null}
-      <label>
-        {t("linkExpiresOn")}
-        <input type="date" name="customExpiresOn" defaultValue={link.customExpiresOn ?? ""} />
-      </label>
-      <button type="submit" disabled={pending}>
-        {t("saveLink", { name: link.personName })}
-      </button>
+    </>
+  );
+}
+
+// Lot 26b (D9) — lien d'un prestataire retenu : son espace montre la date, les
+// lieux, ses lignes du programme et le contact de l'organisation, rien d'autre.
+export function CreateVendorLinkForm({ eventId, vendors }: { eventId: string; vendors: LinkFormVendor[] }) {
+  const t = useTranslations("Events");
+  const [state, formAction, pending] = useActionState(createLinkAction, {} as LinkFormState);
+  const [person, setPerson] = useState({ candidateId: vendors[0]?.candidateId ?? "", name: vendors[0]?.personName ?? "", email: vendors[0]?.email ?? "" });
+  const vendorId = useId();
+  return (
+    <form action={formAction} className="link-form">
+      <h3>{t("createVendorLinkTitle")}</h3>
+      <p className="muted">{t("createVendorLinkIntro")}</p>
+      {vendors.length === 0 ? (
+        <p>{t("noLinkVendors")}</p>
+      ) : (
+        <>
+          <input type="hidden" name="eventId" value={eventId} />
+          <input type="hidden" name="audience" value="vendor" />
+          <label htmlFor={vendorId}>{t("linkVendor")}</label>
+          <select
+            id={vendorId}
+            name="vendorCandidateId"
+            value={person.candidateId}
+            onChange={(event) => {
+              const vendor = vendors.find((candidate) => candidate.candidateId === event.target.value);
+              if (vendor) setPerson({ candidateId: vendor.candidateId, name: vendor.personName, email: vendor.email });
+            }}
+          >
+            {vendors.map((vendor) => (
+              <option key={vendor.candidateId} value={vendor.candidateId}>
+                {vendor.label}
+              </option>
+            ))}
+          </select>
+          <label>
+            {t("linkPersonName")}
+            <input name="personName" required maxLength={120} value={person.name} onChange={(event) => setPerson({ ...person, name: event.target.value })} />
+          </label>
+          <label>
+            {t("linkEmail")}
+            <input type="email" name="email" required autoComplete="off" value={person.email} onChange={(event) => setPerson({ ...person, email: event.target.value })} />
+          </label>
+          <label>
+            {t("linkExpiresOn")}
+            <input type="date" name="customExpiresOn" />
+          </label>
+          <p className="muted">{t("linkVendorExpiresOnHint")}</p>
+          <OtpChoice defaultChecked={false} />
+          <button type="submit" className="primary" disabled={pending}>
+            {t("createVendorLink")}
+          </button>
+        </>
+      )}
       {state.error ? <p role="alert">{state.error}</p> : null}
-      {state.success ? <p role="status">{t("linkSaved")}</p> : null}
+      <LinkDelivered state={state} />
     </form>
   );
 }
