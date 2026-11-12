@@ -888,6 +888,32 @@
     "linkPreview": {
       "title": "Aperçu « vu par »",
       "body": "Cette page montre exactement ce que voit la personne de ce lien : les mêmes rubriques, les mêmes chiffres. Rien n'y est modifiable et rien n'est noté sur son lien."
+    },
+    "dayOf": {
+      "title": "Jour J",
+      "body": "Le jour J en un écran : le programme du jour avec ses notes internes, les lieux, les prestataires retenus et les clients avec leurs coordonnées, et le PDF du programme. « Garder sur cet appareil » le copie sur le téléphone : il s'ouvre ensuite sans réseau, et se met à jour à chaque ouverture avec du réseau.",
+      "faq": [
+        {
+          "q": "Comment ouvrir le jour J sans réseau ?",
+          "a": "La veille, avec du réseau, ouvrez l'écran par le bouton « Jour J » de la fiche et touchez « Garder sur cet appareil ». Le jour même, sans réseau, ouvrez Symbola : la page « Hors ligne » liste les jours J gardés."
+        },
+        {
+          "q": "Comment installer Symbola sur mon téléphone ?",
+          "a": "iPhone : dans Safari, touchez Partager, puis « Sur l'écran d'accueil ». Android : dans Chrome, ouvrez le menu ⋮, puis « Installer l'application »."
+        },
+        {
+          "q": "Quand la copie s'efface-t-elle ?",
+          "a": "Le lendemain de l'événement à minuit, quand vous vous déconnectez de cet appareil, quand un autre compte s'y connecte, ou par « Retirer de cet appareil ». Elle ne s'efface pas quand votre session expire : le jour J préparé la veille reste lisible le matin."
+        },
+        {
+          "q": "Et si je perds mon téléphone ?",
+          "a": "« Déconnecter tous mes autres appareils », depuis un autre appareil, ferme sa session, mais n'atteint pas un téléphone sans réseau : la copie y reste lisible jusqu'au lendemain de l'événement. Gardez votre téléphone verrouillé par un code."
+        }
+      ]
+    },
+    "offline": {
+      "title": "Hors ligne",
+      "body": "Sans réseau, seuls les jours J gardés sur cet appareil s'ouvrent. Les autres écrans reviennent avec le réseau."
     }
   },
   "Aide": {
@@ -1375,7 +1401,8 @@
     "linkPreviewBanner": "Aperçu : ce que voit {name}",
     "linkPreviewNote": "Les boutons sont inactifs et les fichiers ne s'ouvrent pas dans l'aperçu ; rien n'est noté sur le lien.",
     "linkPreviewBack": "Retour à la fiche de l'événement",
-    "activityDecisionMade": "{actor} a répondu : « {task} »."
+    "activityDecisionMade": "{actor} a répondu : « {task} ».",
+    "dayOfLink": "Jour J"
   },
   "Budget": {
     "title": "Budget",
@@ -4516,5 +4543,64 @@
       "gone": "Cet événement n'est plus disponible.",
       "subject": "Choisissez ce que le client doit décider."
     }
+  },
+  "DayOf": {
+    "backToEvent": "Retour à la fiche de l'événement",
+    "noClient": "Événement",
+    "sections": "Sur cet écran",
+    "navProgram": "Programme",
+    "navPlaces": "Lieux",
+    "navContacts": "Contacts",
+    "navDocuments": "Documents",
+    "programTitle": "Programme du jour",
+    "programEmpty": "Aucune séquence au programme.",
+    "timeRange": "{start} – {end}",
+    "participants": "Avec :",
+    "note": "Note interne :",
+    "placesTitle": "Lieux",
+    "placesEmpty": "Aucun lieu saisi.",
+    "contactsTitle": "Contacts",
+    "vendorsTitle": "Prestataires retenus",
+    "vendorsEmpty": "Aucun prestataire retenu.",
+    "clientsTitle": "Les mariés",
+    "clientsEmpty": "Aucun contact saisi.",
+    "callLabel": "Appeler {name} au {phone}",
+    "mailLabel": "Écrire à {name} : {email}",
+    "documentsTitle": "Documents",
+    "programPdf": "Programme du jour (PDF)",
+    "documentsHint": "Une fois le jour J gardé sur l'appareil, ils s'ouvrent aussi sans réseau.",
+    "copyTitle": "Sur cet appareil",
+    "copyUnsupported": "Ce navigateur ne permet pas de garder le jour J pour l'ouvrir sans réseau.",
+    "copyAbsent": "Ce jour J n'est pas encore gardé sur cet appareil.",
+    "copyExpired": "L'événement est passé : le jour J ne se garde plus sur l'appareil.",
+    "copyKeepHint": "Le programme, les lieux, les contacts et le PDF resteront lisibles sans réseau, jusqu'au lendemain de l'événement à minuit. Ils s'effacent aussi si vous vous déconnectez.",
+    "copyKeep": "Garder sur cet appareil",
+    "copyWorking": "Copie en cours…",
+    "copyReady": "Prêt hors ligne. Mis à jour le {date}.",
+    "copyUpdate": "Mettre à jour",
+    "copyRemove": "Retirer de cet appareil",
+    "copyRemoved": "Le jour J est retiré de cet appareil.",
+    "copyOffline": "Sans réseau : vous lisez la copie du {date}.",
+    "copyOfflineNone": "Sans réseau, le jour J ne peut pas être gardé. Réessayez avec du réseau.",
+    "copySession": "Votre session a expiré : vous lisez la copie du {date}. Reconnectez-vous pour la mettre à jour.",
+    "copySessionNone": "Votre session a expiré : reconnectez-vous, puis gardez le jour J.",
+    "copyLogin": "Se reconnecter",
+    "copySpace": "Pas assez de place sur cet appareil pour garder le jour J. Libérez de l'espace, puis réessayez.",
+    "copyUnavailable": "La copie n'a pas pu se faire. Rechargez la page, puis réessayez.",
+    "copyMissingDocuments": "Non copiés : {list}. Mettez à jour avec un meilleur réseau.",
+    "copyMissingAssets": "Une partie de la mise en page n'a pas été copiée. Mettez à jour avec un meilleur réseau.",
+    "installTitle": "Installer Symbola sur votre téléphone",
+    "installIphone": "iPhone : dans Safari, touchez Partager, puis « Sur l'écran d'accueil ».",
+    "installAndroid": "Android : dans Chrome, ouvrez le menu ⋮, puis « Installer l'application » (ou « Ajouter à l'écran d'accueil »)."
+  },
+  "Offline": {
+    "title": "Hors ligne",
+    "intro": "Pas de réseau : cet écran ne peut pas s'ouvrir. Les jours J gardés sur cet appareil restent lisibles.",
+    "listTitle": "Jours J sur cet appareil",
+    "empty": "Aucun jour J n'est gardé sur cet appareil.",
+    "open": "{title}, le {date}"
+  },
+  "Manifest": {
+    "description": "Préparer vos événements, et les vivre même sans réseau le jour J."
   }
 }

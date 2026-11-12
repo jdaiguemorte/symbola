@@ -2852,3 +2852,61 @@
     @apply my-0;
   }
 }
+
+/* Lot 29a (ARC-09, JRJ-02, UX-05 ; ADR 0064) — écran du jour J et page « Hors ligne », dans
+   le cadre des liens personnels : une colonne lisible à 360 px, des cibles de 44 px. Le
+   lot 30 y ajoutera « Maintenant » et « Ensuite », en grand et en thème sombre. */
+@layer components {
+  .day-of {
+    @apply flex w-full max-w-3xl flex-col gap-4;
+  }
+  .day-of > h1,
+  .day-of > .meta,
+  .day-of > p,
+  .day-of > .card {
+    @apply my-0;
+  }
+  .day-of-nav {
+    @apply flex flex-wrap gap-2;
+  }
+  .day-of-nav a {
+    @apply inline-flex min-h-11 items-center rounded-md border border-line bg-surface px-4 font-medium;
+  }
+  .day-program,
+  .day-list {
+    @apply m-0 flex list-none flex-col gap-3 p-0;
+  }
+  .day-program > li {
+    @apply flex gap-4 border-t border-line pt-3 first:border-t-0 first:pt-0;
+  }
+  .day-program p,
+  .day-list p {
+    @apply m-0;
+  }
+  .day-program-time {
+    @apply w-24 shrink-0 font-semibold;
+  }
+  .day-program-label,
+  .day-list-name {
+    @apply font-semibold;
+  }
+  .day-program-note {
+    @apply text-ink-muted;
+  }
+  .day-contact {
+    @apply flex flex-wrap items-center gap-x-4;
+  }
+  .day-contact a,
+  .day-list a {
+    @apply inline-flex min-h-11 items-center;
+  }
+  .day-copy-actions {
+    @apply flex flex-wrap gap-3;
+  }
+  .day-copy-actions:empty {
+    @apply hidden;
+  }
+  .day-install summary {
+    @apply inline-flex min-h-11 cursor-pointer items-center;
+  }
+}

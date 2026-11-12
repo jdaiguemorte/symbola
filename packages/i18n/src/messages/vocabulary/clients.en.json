@@ -134,5 +134,8 @@
   },
   "ClientSpace": {
     "title": "My event"
+  },
+  "DayOf": {
+    "clientsTitle": "The clients"
   }
 }

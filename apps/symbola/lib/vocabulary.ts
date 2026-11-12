@@ -37,7 +37,8 @@ export const organizationAudience = cache(async (organizationId: string | null):
 );
 
 const UUID = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
-const EVENT_PAGE = new RegExp(`^/(?:events|budget)/(${UUID})(?:/|$)`, "i");
+// Lot 29a : l'écran du jour J suit aussi le type de son événement.
+const EVENT_PAGE = new RegExp(`^/(?:events|budget|jour-j)/(${UUID})(?:/|$)`, "i");
 const QUOTE_PAGE = new RegExp(`^/devis/(${UUID})(?:/|$)`, "i");
 
 // L'événement dont la page est affichée, s'il y en a un.

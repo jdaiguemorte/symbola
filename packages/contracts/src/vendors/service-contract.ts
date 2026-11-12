@@ -92,6 +92,15 @@ export type VendorSummary = {
   rating: number | null;
 };
 
+// Lot 29a (JRJ-02, décision D5) : coordonnées d'un prestataire, pour l'écran du jour J.
+export type VendorContact = {
+  id: string;
+  name: string;
+  contactName: string | null;
+  phone: string | null;
+  email: string | null;
+};
+
 export type Vendor = VendorSummary & {
   contactName: string | null;
   email: string | null;
@@ -232,6 +241,7 @@ export type VendorsServiceContract = {
   archiveVendor(organizationId: string, vendorId: string): Promise<void>;
   getVendor(organizationId: string, vendorId: string): Promise<Vendor | null>;
   getVendorsByIds(organizationId: string, vendorIds: string[]): Promise<VendorSummary[]>;
+  getVendorContacts(organizationId: string, vendorIds: string[]): Promise<VendorContact[]>;
   findVendors(input: FindVendorsInput): Promise<VendorListItem[]>;
   getVendorHistory(organizationId: string, vendorId: string): Promise<VendorHistory>;
   getVendorSettings(organizationId: string): Promise<VendorSettings>;

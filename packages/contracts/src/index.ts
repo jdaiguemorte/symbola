@@ -234,6 +234,7 @@ export type {
   Vendor,
   VendorAround,
   VendorBookSearchResult,
+  VendorContact,
   VendorFieldFilter,
   VendorFieldKind,
   VendorFieldValue,

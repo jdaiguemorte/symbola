@@ -1,6 +1,14 @@
 # Registre des champs personnels (SOC-07, CLAUDE.md §2.8). Chaque champ
 # personnel nouveau doit être déclaré ici avant/au moment de sa migration —
 # sinon la CI échoue (packages/privacy/scripts/check-registry.ts).
+#
+# Copies hors ligne du jour J (lot 29a, ADR 0064) : aucun champ nouveau. Sur un geste de la
+# planner (« Garder sur cet appareil »), l'écran du jour J copie dans le navigateur de son
+# téléphone des champs déjà déclarés ci-dessous : noms, téléphones et e-mails des clients
+# (events.event_clients) et des prestataires retenus (vendors.vendors), programme et notes
+# internes (events.program_items), lieux (events.event_places). La copie s'efface au retrait,
+# à la déconnexion, à la connexion d'un autre compte et le lendemain de l'évènement à minuit ;
+# elle n'est pas chiffrée par l'application (verrouillage du téléphone).
 version: 1
 fields:
   - schema: hub
