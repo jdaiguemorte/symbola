@@ -1,8 +1,8 @@
 # Lot 26 — Accès des tiers par lien personnel
 
-**Statut** : spécification écrite le 12/11/2026, **à valider par Julien** (le lot change le schéma
-et un parcours P0). Branche `lot-26-liens-personnels`, partie de `main` (7daefe8, après le 28b).
-Décisions D1 à D10 en fin de document.
+**Statut** : spécification validée par Julien le 12/11/2026 (« Oui, comme recommandé » : D1 à D10
+en (a)). Branche `lot-26-liens-personnels` pour le 26a, partie de `lot-28c-tva-export-carnet`
+(PR #101) pour que ses migrations suivent la 0108.
 
 ## Contexte
 
@@ -197,6 +197,59 @@ SC-S3 et SC-S4 (porte 1).
 - **Documents** : avenant de l'ADR 0053 (décisions D2 à D8), ADR 0020 marqué « remplacé, retiré »,
   aide contextuelle (fiche de l'événement, portail), `docs/gap.csv` (UX-11, POR-01, POR-10, SEC-14,
   SEC-15, SEC-17, RGP-03), bilan dans ce fichier.
+
+### Bilan du lot 26a (12/11/2026)
+
+**Fait** (branche `lot-26-liens-personnels`, partie du 28c) :
+
+- **Liens** : tables `events.event_links`, `event_link_shared_slots`, `event_link_sessions`
+  (migration 0109, RLS forcée, horodatage et journal des suppressions) ; règles pures dans
+  `modules/events/link-tokens.ts`, accès aux données dans `links-repository.ts`, orchestration
+  dans `service.ts`. Jeton de 256 bits haché, format `<organisation>.<secret>`.
+- **Ouverture** : `/lien#<jeton>` (D2) ; la page retire le jeton de l'adresse avant tout envoi,
+  l'échange par une action serveur (débit limité : `linkOpen`, `linkRenewal`) contre le cookie
+  `symbola_lien` (D7) ; `/lien` dit aussi qu'un lien ne vaut plus et propose d'en demander un
+  nouveau (D5).
+- **Portail** `/portail` : rubriques du lien (rétroplanning, programme et PDF, options et leurs
+  fichiers, budget entier ou par catégories, devis à signer), en-tête de l'organisation
+  (`/portail/logo`), mention d'information (RGP-03), « Fermer l'accès sur cet appareil ».
+  `X-Robots-Tag`, `Referrer-Policy: no-referrer`, `Cache-Control: no-store`, `robots.txt`.
+- **Fiche de l'événement** (onglet Mariés) : liste des liens (personne, état, validité, ce
+  qu'elle voit, dernière ouverture, demande de nouveau lien), création avec profil, lien montré
+  une fois avec « Copier le lien » (D10), modification des droits, renouvellement, retrait.
+  « Aujourd'hui » : bloc « Demandes de nouveau lien ».
+- **Reprise** (D8) : `/espace` retiré (redirection vers `/lien`), garde `requireLink`, rôle
+  `client` retiré de `@symbola/auth` et du type `hub.role` (0111), table des invitations
+  supprimée (0112) ; auteur `link` au journal (0110) et au fil d'activité ; RGPD (registre,
+  recherche, export, oubli) ; comptes de mariés retirés du RGPD du hub et des statistiques de
+  l'Admin ; jeu fictif : liens de Léa, Maxime (« Marié(e) ») et Bernard (« Payeur », Lieu de
+  réception et Traiteur).
+- **Réglages RGPD** : mention d'information modifiable (texte de départ à faire relire) ; le
+  réglage des comptes de mariés inactifs n'est plus affiché (sa valeur reste en base).
+
+**Vérifié** (en local, base `symbola_lot24`) : lint, types, frontières de modules ; registre RGPD ;
+tests unitaires (app 363, dont 9 sur les règles des liens ; modèles de départ 39) ; intégration
+(base 139 dont le retour arrière de 0109 à 0112, authentification 48, fichiers 12, e-mail 2,
+app 480, plus 3 sur la mention d'information) ; parcours e2e complets sur l'app compilée et une
+base neuve (ordinateur et 375 px, axe-core) : 205 réussis, 0 échec, 3 ignorés (SC-S3 attend le 26b) ;
+Semgrep 0 alerte ; Gitleaks : aucune fuite ajoutée ; journaux du serveur sans e-mail ni téléphone ;
+rejeu SC-06 étapes 1 et 4 et SC-S4 (`docs/recette/SC-06.md`, `docs/recette/SC-S2-a-S6.md`).
+
+**Corrigé pendant les vérifications** : un second lien ouvert dans le même onglet n'était pas lu
+(seul « # » changeait) ; la mention d'information renvoyait au nom de l'organisation faute
+d'adresse de contact (elle donne l'e-mail de la titulaire) ; le tableau du budget du portail
+défile dans sa zone à 375 px (la lecture sans défilement relève du lot 27, POR-02). Après ces
+correctifs, les trois fichiers e2e touchés (`prd-evt-06`, `prd-bud-04`, `sec-36`) : 18 réussis,
+2 ignorés.
+
+**Remarques** :
+
+- Les instantanés Drizzle d'avant (0106 à 0108) ne suivaient plus le schéma ; ceux de 0109 à 0112
+  sont tirés du schéma réel (`generateDrizzleJson`).
+- Le réglage « Compte d'un marié sans connexion » reste en base sans usage ; à retirer avec le
+  fournisseur d'identité (lot 33) ou à réemployer pour les comptes d'équipe inactifs.
+- Au déploiement d'ensemble (gel) : migrations 0109 à 0112 ; les comptes « client » du staging
+  (fictifs) sont supprimés par 0111.
 
 ## Lot 26b — Le lien du prestataire et le code à usage unique
 
