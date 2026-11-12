@@ -101,10 +101,6 @@
     }
   },
   "Privacy": {
-    "kind": {
-      "client_access": "Accès d'un client",
-      "client_account": "Compte d'un client"
-    },
     "setting": {
       "clientRetentionMonths": "Client : conservation après la fin de la relation (mois)",
       "inactiveAccountMonths": "Compte d'un client sans connexion : suppression après (mois)"

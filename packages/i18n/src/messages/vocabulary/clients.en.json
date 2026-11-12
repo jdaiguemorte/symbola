@@ -101,10 +101,6 @@
     }
   },
   "Privacy": {
-    "kind": {
-      "client_access": "Client access",
-      "client_account": "Client account"
-    },
     "setting": {
       "clientRetentionMonths": "Client: kept after the end of the relationship (months)",
       "inactiveAccountMonths": "Client account without login: deleted after (months)"
