@@ -10,7 +10,7 @@ const base: NextStepInput = {
   templateCount: 1,
   eventDate: "2027-06-12",
   programItemCount: 4,
-  clientAccessCount: 1,
+  clientLinkCount: 1,
   today: "2026-11-06",
 };
 
@@ -30,10 +30,10 @@ describe("L13-EVT-19 — Prochaine étape de la fiche événement", () => {
     expect(nextStep({ ...base, programItemCount: 0, eventDate: "2027-02-07" })).toBeNull();
   });
   it("confirmé sans accès mariés : inviter les mariés", () => {
-    expect(nextStep({ ...base, clientAccessCount: 0 })).toBe("invite_clients");
+    expect(nextStep({ ...base, clientLinkCount: 0 })).toBe("invite_clients");
   });
   it("une seule étape à la fois, dans l'ordre rétroplanning, programme, mariés", () => {
-    expect(nextStep({ ...base, taskCount: 0, programItemCount: 0, eventDate: "2026-12-01", clientAccessCount: 0 })).toBe("apply_retroplanning");
+    expect(nextStep({ ...base, taskCount: 0, programItemCount: 0, eventDate: "2026-12-01", clientLinkCount: 0 })).toBe("apply_retroplanning");
   });
   it("devis envoyé, réalisé, perdu ou essai : pas de bandeau", () => {
     for (const status of ["quote_sent", "done", "lost"] as const) expect(nextStep({ ...base, status, taskCount: 0 })).toBeNull();

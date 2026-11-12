@@ -5,7 +5,7 @@
 // la planner ne relèvent pas de ce traitement.
 import { and, eq, inArray, isNotNull } from "drizzle-orm";
 import { appDatabase } from "@symbola/db/client";
-import { helpProgress, importItems, imports, privacyRequests, sessions, trustedDevices, users, userTourSeen } from "@symbola/db/schema/hub";
+import { importItems, imports, privacyRequests } from "@symbola/db/schema/hub";
 import { withOrganization } from "@symbola/db/with-organization";
 import {
   ANONYMIZED,
@@ -45,32 +45,11 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 //   motif de prolongation effacé ; le type, les dates et le journal restent.
 //   Une demande en cours n'est jamais touchée.
 async function hubErasure(input: ErasureInput, execute: boolean): Promise<ErasurePlanItem[]> {
-  const accountIds = idsOfKind(input.records, "client_account");
   const rowRefs = input.records.filter((record) => record.kind === "import_row" && UUID.test(record.recordId.split(":")[0] ?? ""));
   const itemIds = idsOfKind(input.records, "import_item");
   const requestIds = idsOfKind(input.records, "privacy_request");
   const items: ErasurePlanItem[] = [];
   const db = appDatabase();
-  if (accountIds.length > 0) {
-    // Table d'identité sans RLS : filtrée par organisation et rôle ici (ADR 0013).
-    const accounts = await db
-      .select({ id: users.id })
-      .from(users)
-      .where(and(eq(users.organizationId, input.organizationId), eq(users.role, "client"), inArray(users.id, accountIds)));
-    const ids = accounts.map((account) => account.id);
-    if (execute && ids.length > 0) {
-      await db.transaction(async (tx) => {
-        await tx.delete(sessions).where(inArray(sessions.userId, ids));
-        // L16-SEC-03 : appareils de confiance (aussi effacés en cascade).
-        await tx.delete(trustedDevices).where(inArray(trustedDevices.userId, ids));
-        await tx.delete(userTourSeen).where(inArray(userTourSeen.userId, ids));
-        await tx.delete(helpProgress).where(inArray(helpProgress.userId, ids));
-        await tx.delete(users).where(inArray(users.id, ids));
-      });
-    }
-    for (const id of ids) items.push({ kind: "client_account", recordId: id, fate: "deleted", legalBasis: null, keptUntil: null });
-  }
-
   await withOrganization(db, input.organizationId, async (tx) => {
     const importIds = [...new Set(rowRefs.map((record) => record.recordId.split(":")[0]!))];
     if (importIds.length > 0) {
@@ -129,17 +108,8 @@ export const hubPrivacy: PrivacyContractV1 = {
     if (!hasTerms(terms)) return [];
     const db = appDatabase();
     const records: PrivacyRecord[] = [];
-    // Table d'identité sans RLS : filtrée par organisation ici (ADR 0013).
-    const accounts = await db
-      .select({ id: users.id, email: users.email, createdAt: users.createdAt })
-      .from(users)
-      .where(and(eq(users.organizationId, organizationId), eq(users.role, "client")));
-    for (const account of accounts) {
-      if (recordMatches([account.email], terms)) {
-        records.push({ module: MODULE, kind: "client_account", recordId: account.id, label: account.email, fields: { email: account.email }, eventId: null });
-      }
-    }
-
+    // Lot 26a (ADR 0053) : les tiers n'ont plus de compte ; leur lien personnel
+    // (nom, e-mail) relève du module events.
     await withOrganization(db, organizationId, async (tx) => {
       for (const draft of await tx.select().from(imports).where(and(eq(imports.status, "draft"), isNotNull(imports.rows)))) {
         (draft.rows ?? []).forEach((row, rowIndex) => {

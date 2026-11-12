@@ -1,20 +1,17 @@
 // Lot 24b — SEC-36 : suite de tests d'abus, qui rejoue les scénarios de
 // sécurité SC-S1 à SC-S6 du cahier des charges (§ 17), joués par « Rex », tiers
 // malveillant. SC-S1 est rejoué en entier par sec-13-inexistant-interdit.spec.ts ;
-// SC-S3 attend les liens personnels des prestataires (lot 26). En taille
+// SC-S3 attend les liens personnels des prestataires (lot 26b). En taille
 // ordinateur et en 375 px, axe-core sur les écrans touchés.
 import { randomUUID } from "node:crypto";
 import AxeBuilder from "@axe-core/playwright";
 import { createUser } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
 import { consumeOrganizationMailQuota } from "@symbola/db/mail-quota";
-import { eventClientAccesses } from "@symbola/db/schema/events";
-import { withOrganization } from "@symbola/db/with-organization";
 import { EICAR_TEST_STRING } from "@symbola/files";
 import { expect, test, type Page } from "@playwright/test";
-import { eq } from "drizzle-orm";
 import * as OTPAuth from "otpauth";
-import { acceptEventClientInvitation, createProspect, createProspectSource, inviteEventClient } from "../modules/events/service";
+import { createEventLink, createProspect, createProspectSource } from "../modules/events/service";
 import { createVendor } from "../modules/vendors/service";
 import { readyOrganization } from "./helpers";
 
@@ -98,37 +95,47 @@ test("SC-S2 — un collaborateur retiré il y a deux minutes rejoue une requête
   await rex.close();
 });
 
-test.fixme("SC-S3 — avec le lien d'un prestataire, il demande le budget, les devis des autres et le portail du client : refus (lot 26, liens personnels)", async () => {});
+test.fixme("SC-S3 — avec le lien d'un prestataire, il demande le budget, les devis des autres et le portail du client : refus (lot 26b, liens des prestataires)", async () => {});
 
+// Lot 26a (SEC-14, SEC-15, SEC-17 ; ADR 0053) : liens personnels.
 test("SC-S4 — un lien de marié expiré, puis le lien d'un autre événement : refus, nouveau lien proposé, rien de révélé", async ({ page }) => {
   const { organizationId, owner, event } = await organization("S4");
   const theirs = await event("Inès");
   const another = await event("Bérénice");
-  const expired = await inviteEventClient({ organizationId, eventId: theirs.id, email: `rex-${randomUUID()}@symbola.test`, invitedByUserId: owner.id, locale: "fr" });
-  const { sql, db } = createAppConnection();
-  try {
-    await withOrganization(db, organizationId, (tx) => tx.update(eventClientAccesses).set({ expiresAt: new Date(Date.now() - 60_000) }).where(eq(eventClientAccesses.id, expired.access.id)));
-  } finally {
-    await sql.end();
-  }
-  await page.goto(`/espace/invitation/${expired.invitationToken}`);
-  await expect(page.locator("main").getByRole("alert")).toHaveText("Ce lien d'invitation n'est plus valable. Demandez une nouvelle invitation à votre planner.");
-  await expect(page.getByRole("button", { name: "Créer mon compte" })).toHaveCount(0);
+  const everything = { rubrics: ["tasks", "program", "vendor_options", "budget", "quotes"] as const, budgetScope: "all" as const, sharedSlotIds: [] };
+  const link = (customExpiresOn: string | null) =>
+    createEventLink({
+      organizationId,
+      eventId: theirs.id,
+      createdByUserId: owner.id,
+      audience: "client",
+      locale: "fr",
+      link: { personName: "Rex", email: `rex-${randomUUID()}@symbola.test`, rights: { ...everything, rubrics: [...everything.rubrics] }, customExpiresOn },
+    });
+
+  // Lien expiré (dernier jour valable : avant-hier).
+  const expired = await link(new Date(Date.now() - 2 * 86_400_000).toISOString().slice(0, 10));
+  await page.goto(expired.url);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Ce lien n'est plus valable");
+  expect(page.url()).not.toContain("#");
   await expect(page.locator("main")).not.toContainText("Inès");
   await expectNoAxeViolation(page);
+  await page.getByRole("button", { name: "Demander un nouveau lien" }).click();
+  await expect(page.getByRole("status")).toContainText("Votre demande est transmise");
+  await expect(page.locator("main")).not.toContainText("Inès");
 
-  // Un marié bien invité à son événement tente celui d'un autre couple.
-  const clientEmail = `marie-${randomUUID()}@symbola.test`;
-  const invitation = await inviteEventClient({ organizationId, eventId: theirs.id, email: clientEmail, invitedByUserId: owner.id, locale: "fr" });
-  await acceptEventClientInvitation(invitation.invitationToken!, PASSWORD);
-  await page.goto("/login");
-  await page.getByLabel("E-mail").fill(clientEmail);
-  await page.getByLabel("Mot de passe").fill(PASSWORD);
-  await page.getByRole("button", { name: "Se connecter" }).click();
-  await expect(page).toHaveURL(/\/espace/);
-  const response = await page.goto(`/espace/${another.id}`);
-  expect(response!.status()).toBe(404);
+  // Un lien valable n'ouvre que son événement : le portail ne lit aucun
+  // identifiant dans l'adresse, et les écrans de la planner restent fermés.
+  const valid = await link(null);
+  await page.goto(valid.url);
+  await expect(page).toHaveURL(/\/portail$/);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Inès");
+  await page.goto(`/portail?evenement=${another.id}`);
   await expect(page.locator("main")).not.toContainText("Bérénice");
+  await page.goto(`/events/${another.id}`);
+  await expect(page).toHaveURL(/\/login$/);
+  expect((await page.request.get(`/budget/${another.id}/export?format=xlsx`)).status()).toBe(401);
+  expect((await page.request.get(`/portail/options/${randomUUID()}/devis`)).status()).toBe(404);
 });
 
 test("SC-S5 — le fichier de test antivirus, puis un fichier au type falsifié : refus et message clair", async ({ page }) => {
@@ -173,9 +180,11 @@ test("SC-S6 — demandes de lien en rafale, puis envoi au-delà du plafond : lim
   await loginAndSetupMfa(page, owner.email);
   await expect(page.locator("main").getByRole("alert").filter({ hasText: "Plafond d'envois atteint" })).toContainText("100 e-mails envoyés dans l'heure (plafond : 100)");
   await expectNoAxeViolation(page);
+  // Lot 26a : un lien personnel s'envoie par e-mail ; au-delà du plafond, rien n'est créé.
   await page.goto(`/events/${theirs.id}?onglet=maries`);
-  await page.getByLabel("E-mail du marié").fill(`marie-${randomUUID()}@symbola.test`);
-  await page.getByRole("button", { name: "Inviter le marié" }).click();
+  await page.getByLabel("Nom de la personne").fill("Marie");
+  await page.getByLabel("E-mail de la personne").fill(`marie-${randomUUID()}@symbola.test`);
+  await page.getByRole("button", { name: "Créer le lien et l'envoyer" }).click();
   await expect(page.locator("main").getByRole("alert")).toContainText("Plafond d'envois atteint");
-  await expect(page.getByRole("list", { name: "Accès des mariés" })).not.toContainText("@symbola.test");
+  await expect(page.getByRole("list", { name: "Liens personnels" })).not.toContainText("@symbola.test");
 });

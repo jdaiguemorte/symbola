@@ -4,25 +4,25 @@
 import { randomUUID } from "node:crypto";
 import { and, eq } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
-import { createOrganization, login, requireUser } from "@symbola/auth";
+import { createOrganization } from "@symbola/auth";
 import { createAppConnection, type AppDatabase } from "@symbola/db/client";
 import { domainEvents } from "@symbola/db/schema/core";
 import { withOrganization } from "@symbola/db/with-organization";
 import { EVT_VENDOR_SLOT_BOOKED } from "@symbola/contracts";
 import {
-  acceptEventClientInvitation,
   addDefaultVendorSlots,
   addVendorCandidate,
   addVendorCandidateNote,
   attachVendorCandidateQuote,
-  ClientVendorOptionsAccessDeniedError,
+  LinkAccessDeniedError,
   createProspect,
   createProspectSource,
-  getClientVendorOptions,
-  getClientSharedRibVendorId,
-  getClientVendorQuoteFile,
+  getLinkVendorOptions,
+  getLinkSharedRibVendorId,
+  getLinkVendorQuoteFile,
   getVendorCandidateQuoteFile,
-  inviteEventClient,
+  createEventLink,
+  revokeEventLink,
   listEventVendorSlots,
   listSelectedVendorIds,
   listVendorCandidates,
@@ -37,7 +37,6 @@ import {
 import { attachVendorFile, createVendor, getVendorRibFile } from "../vendors/service";
 
 const plannerId = randomUUID();
-const PASSWORD = "mot-de-passe-du-client";
 const TINY_PDF = Buffer.from("%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n", "latin1");
 
 async function withDb<T>(fn: (db: AppDatabase) => Promise<T>): Promise<T> {
@@ -61,15 +60,17 @@ async function eventWithCaterer(organizationId: string) {
   return { eventId: event.id, caterer: slots.find((slot) => slot.label === "Traiteur")!, photographer: slots.find((slot) => slot.label === "Photographe")! };
 }
 
+// Lot 26a : le client a un lien personnel (rubrique « Options de prestataires »).
 async function invitedClient(organizationId: string, eventId: string) {
-  const email = `client-${randomUUID()}@example.test`;
-  const invitation = await inviteEventClient({ organizationId, eventId, email, invitedByUserId: plannerId, locale: "fr" });
-  await acceptEventClientInvitation(invitation.invitationToken!, PASSWORD);
-  const session = await withDb((db) => login(db, email, PASSWORD));
-  if (session.outcome !== "success") throw new Error("connexion attendue");
-  const auth = await withDb((db) => requireUser(db, session.sessionToken));
-  if (auth.status !== "authenticated") throw new Error("session attendue");
-  return auth.user.id;
+  const delivery = await createEventLink({
+    organizationId,
+    eventId,
+    createdByUserId: plannerId,
+    audience: "client",
+    locale: "fr",
+    link: { personName: "Inès", email: `client-${randomUUID()}@example.test`, rights: { rubrics: ["vendor_options"], budgetScope: "all", sharedSlotIds: [] } },
+  });
+  return delivery.link.id;
 }
 
 describe("L11-EVT-10 — Plusieurs prestataires consultés par poste", () => {
@@ -229,14 +230,14 @@ describe("L11-EVT-11 — Notes et options montrées aux clients", () => {
     await addVendorCandidateNote({ organizationId, candidateId: verdier.id, body: "Négociable à 60 €", visibleToClients: false, createdByUserId: plannerId });
     const clientId = await invitedClient(organizationId, eventId);
 
-    expect(await getClientVendorOptions(organizationId, clientId, eventId)).toEqual([
+    expect(await getLinkVendorOptions(organizationId, clientId)).toEqual([
       {
         slotLabel: "Traiteur",
         options: [{ candidateId: verdier.id, vendorName: "Maison Verdier", quoteAmountCents: 512000, hasQuoteFile: true, notes: ["Uniquement des produits frais"], ribShared: false }],
       },
     ]);
-    expect((await getClientVendorQuoteFile(organizationId, clientId, eventId, verdier.id)).contentType).toBe("application/pdf");
-    await expect(getClientVendorQuoteFile(organizationId, clientId, eventId, hidden.id)).rejects.toBeInstanceOf(VendorCandidateNotFoundError);
+    expect((await getLinkVendorQuoteFile(organizationId, clientId, verdier.id)).contentType).toBe("application/pdf");
+    await expect(getLinkVendorQuoteFile(organizationId, clientId, hidden.id)).rejects.toBeInstanceOf(VendorCandidateNotFoundError);
   });
 
   it("un client d'un autre événement n'a accès à rien", async () => {
@@ -248,9 +249,9 @@ describe("L11-EVT-11 — Notes et options montrées aux clients", () => {
     await updateVendorCandidate({ organizationId, candidateId: verdier.id, shownToClients: true });
     const otherClientId = await invitedClient(organizationId, other.id);
 
-    await expect(getClientVendorOptions(organizationId, otherClientId, first.eventId)).rejects.toBeInstanceOf(ClientVendorOptionsAccessDeniedError);
-    await expect(getClientVendorQuoteFile(organizationId, otherClientId, first.eventId, verdier.id)).rejects.toBeInstanceOf(ClientVendorOptionsAccessDeniedError);
-    expect(await getClientVendorOptions(organizationId, otherClientId, other.id)).toEqual([]);
+    // Lot 26a : le lien ne voit que son événement ; un fichier d'un autre répond comme inexistant.
+    expect(await getLinkVendorOptions(organizationId, otherClientId)).toEqual([]);
+    await expect(getLinkVendorQuoteFile(organizationId, otherClientId, verdier.id)).rejects.toBeInstanceOf(VendorCandidateNotFoundError);
   });
 });
 
@@ -265,19 +266,19 @@ describe("L12-EVT-16 — RIB d'un prestataire partagé aux clients", () => {
 
     // Montré mais RIB non partagé : rien.
     await updateVendorCandidate({ organizationId, candidateId: verdier.id, shownToClients: true });
-    expect((await getClientVendorOptions(organizationId, clientId, eventId))[0]!.options[0]!.ribShared).toBe(false);
-    await expect(getClientSharedRibVendorId(organizationId, clientId, eventId, verdier.id)).rejects.toBeInstanceOf(VendorCandidateNotFoundError);
+    expect((await getLinkVendorOptions(organizationId, clientId))[0]!.options[0]!.ribShared).toBe(false);
+    await expect(getLinkSharedRibVendorId(organizationId, clientId, verdier.id)).rejects.toBeInstanceOf(VendorCandidateNotFoundError);
 
     // Partagé : le lien apparaît et le fichier est servi.
     await updateVendorCandidate({ organizationId, candidateId: verdier.id, shareRibWithClients: true });
     expect((await listVendorCandidates(organizationId, eventId)).find((c) => c.id === verdier.id)!.shareRibWithClients).toBe(true);
-    expect((await getClientVendorOptions(organizationId, clientId, eventId))[0]!.options[0]!.ribShared).toBe(true);
-    const vendorId = await getClientSharedRibVendorId(organizationId, clientId, eventId, verdier.id);
+    expect((await getLinkVendorOptions(organizationId, clientId))[0]!.options[0]!.ribShared).toBe(true);
+    const vendorId = await getLinkSharedRibVendorId(organizationId, clientId, verdier.id);
     expect((await getVendorRibFile(organizationId, vendorId)).contentType).toBe("application/pdf");
 
     // Plus montré : plus servi.
     await updateVendorCandidate({ organizationId, candidateId: verdier.id, shownToClients: false });
-    await expect(getClientSharedRibVendorId(organizationId, clientId, eventId, verdier.id)).rejects.toBeInstanceOf(VendorCandidateNotFoundError);
+    await expect(getLinkSharedRibVendorId(organizationId, clientId, verdier.id)).rejects.toBeInstanceOf(VendorCandidateNotFoundError);
   });
 
   it("un consulté sans fiche du carnet ne peut pas partager de RIB ; un client d'un autre événement n'y a pas accès", async () => {
@@ -290,7 +291,10 @@ describe("L12-EVT-16 — RIB d'un prestataire partagé aux clients", () => {
     const source = await createProspectSource(organizationId, "Salon 2");
     const other = await createProspect({ organizationId, createdByUserId: plannerId, prospectSourceId: source.id, clients: [{ firstName: "Paul", lastName: null }] });
     const otherClientId = await invitedClient(organizationId, other.id);
-    await expect(getClientSharedRibVendorId(organizationId, otherClientId, eventId, free.id)).rejects.toBeInstanceOf(ClientVendorOptionsAccessDeniedError);
+    await expect(getLinkSharedRibVendorId(organizationId, otherClientId, free.id)).rejects.toBeInstanceOf(VendorCandidateNotFoundError);
+    // Un lien retiré n'ouvre plus rien.
+    await revokeEventLink(organizationId, otherClientId);
+    await expect(getLinkVendorOptions(organizationId, otherClientId)).rejects.toBeInstanceOf(LinkAccessDeniedError);
   });
 });
 

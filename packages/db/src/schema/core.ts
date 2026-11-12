@@ -83,7 +83,7 @@ export const rateLimitEvents = coreSchema.table(
 // que ses lignes, plus les accès d'exploitation de la plateforme
 // (organization_id vide). Aucune donnée personnelle : des identifiants, des
 // numéros de pièce, des codes (SEC-20).
-export const AUDIT_ACTOR_KINDS = ["member", "admin", "operator", "system"] as const;
+export const AUDIT_ACTOR_KINDS = ["member", "admin", "operator", "system", "link"] as const;
 export const AUDIT_CATEGORIES = [
   "connexion",
   "droits",
@@ -124,7 +124,7 @@ export const auditEntries = coreSchema.table(
   },
   (table) => [
     index("audit_entries_organization_time_idx").on(table.organizationId, table.occurredAt),
-    check("audit_entries_actor_kind_check", sql`${table.actorKind} in ('member', 'admin', 'operator', 'system')`),
+    check("audit_entries_actor_kind_check", sql`${table.actorKind} in ('member', 'admin', 'operator', 'system', 'link')`),
     check(
       "audit_entries_category_check",
       sql`${table.category} in ('connexion', 'droits', 'export', 'partage', 'emission', 'encaissement', 'suppression', 'exploitation', 'administration')`,

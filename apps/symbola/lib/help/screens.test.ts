@@ -44,12 +44,15 @@ describe("AIDE-12 — Centre d'aide par écran, avec captures réelles", () => {
     expect(screensFor({ audience: "team", isOwner: true, modules: all }).map((screen) => screen.key)).toContain("privacySearch");
   });
 
-  it("l'Admin ne voit que les écrans de la console, les mariés que leur espace, et l'écran de connexion n'est dans aucun centre", () => {
+  it("l'Admin ne voit que les écrans de la console, et l'écran de connexion n'est dans aucun centre", () => {
     const admin = screensFor({ audience: "admin", isOwner: false, modules: all });
     expect(admin.every((screen) => screen.group === "admin")).toBe(true);
-    const client = screensFor({ audience: "client", isOwner: false, modules: all });
-    expect(client.every((screen) => screen.group === "clients")).toBe(true);
     expect(HELP_SCREENS.map((screen) => screen.key)).not.toContain("login");
+  });
+
+  it("L26-UX-11 — le portail d'un lien n'est pas dans le centre d'aide (les tiers n'ont pas de compte)", () => {
+    expect(HELP_SCREENS.map((screen) => screen.key)).not.toContain("clientSpace");
+    expect(HELP_SCREENS.map((screen) => screen.key)).not.toContain("clientSecurity");
   });
 });
 
@@ -79,8 +82,9 @@ describe("AIDE-14 — Chaque écran a son aide", () => {
   it("chaque écran déclare son aide (fiche ou repères), sauf le centre d'aide lui-même et les pages hors session ou de simple redirection", () => {
     const appDirectory = join(__dirname, "..", "..", "app");
     // Le centre d'aide (son « ? » y mène déjà), les liens reçus par e-mail
-    // (nouveau mot de passe, signature d'essai) et les adresses qui redirigent.
-    const exempt = [/^aide\//, /^mot-de-passe\/\[token\]\//, /^signature-fictive\//];
+    // (nouveau mot de passe, signature d'essai, lot 26a : arrivée d'un lien
+    // personnel, qui ne fait qu'ouvrir le portail) et les adresses qui redirigent.
+    const exempt = [/^aide\//, /^mot-de-passe\/\[token\]\//, /^signature-fictive\//, /^lien\/page\.tsx$/];
     const missing = pages(appDirectory)
       .map((path) => ({ path: relative(appDirectory, path), source: readFileSync(path, "utf-8") }))
       .filter(({ path }) => !exempt.some((pattern) => pattern.test(path)))

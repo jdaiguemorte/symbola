@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { isPlannerRole, isProfessionalRole } from "./roles";
+import { isPlannerRole, isProfessionalRole, ROLES } from "./roles";
 
-describe("SOC-04 — Rôles professionnels vs client", () => {
+describe("SOC-04 — Rôles professionnels", () => {
   it.each(["owner", "member", "admin"] as const)(
     "considère %s comme un rôle professionnel (MFA obligatoire)",
     (role) => {
@@ -9,8 +9,8 @@ describe("SOC-04 — Rôles professionnels vs client", () => {
     },
   );
 
-  it("ne considère pas le rôle client comme professionnel (MFA facultative)", () => {
-    expect(isProfessionalRole("client")).toBe(false);
+  it("L26-UX-11 — plus de rôle « client » : les tiers agissent par lien personnel, sans compte (ADR 0053, D8)", () => {
+    expect([...ROLES]).toEqual(["owner", "member", "admin"]);
   });
 });
 
@@ -19,7 +19,7 @@ describe("PRD-EVT-06 — Rôles admis sur les écrans de la planner", () => {
     expect(isPlannerRole(role)).toBe(true);
   });
 
-  it.each(["client", "admin"] as const)("refuse %s", (role) => {
-    expect(isPlannerRole(role)).toBe(false);
+  it("refuse admin", () => {
+    expect(isPlannerRole("admin")).toBe(false);
   });
 });

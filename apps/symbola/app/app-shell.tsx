@@ -33,6 +33,7 @@ import {
 } from "@/modules/hub/service";
 import { listOrganizationTasks } from "@/modules/events/service";
 import { getAuthContext } from "@/lib/auth-context";
+import { currentLinkAccess } from "@/lib/link-session";
 import { AppNavLink } from "./app-nav-link";
 import { AppSidebar } from "./app-sidebar";
 import { logoutAction } from "./logout-action";
@@ -91,7 +92,38 @@ function Brand({ href, suffix }: { href: string; suffix?: string }) {
 
 const iconProps = { size: 20, "aria-hidden": true as const, strokeWidth: 1.5 };
 
+// Lot 26a (UX-11, ADR 0053) : pages d'un lien personnel (/lien, /portail). Elles
+// ont leur propre cadre, sans menu ni recherche ni compte : le logo de
+// l'organisation du lien (servi par /portail/logo), sinon son nom.
+const LINK_PAGE = /^\/(?:lien|portail)(?:\/|$)/;
+
+async function LinkShell({ children }: { children: ReactNode }) {
+  const access = await currentLinkAccess();
+  const organization = access ? await getDocumentHeader(appDatabase(), access.organizationId) : null;
+  const logoVersion = organization?.logoKey?.split("/").pop() ?? null;
+  return (
+    <div className="link-shell">
+      <header className="link-header">
+        {organization ? (
+          logoVersion ? (
+            <img className="client-organization-logo" src={`/portail/logo?v=${encodeURIComponent(logoVersion)}`} alt={organization.organizationName} />
+          ) : (
+            <p className="client-organization-name">{organization.organizationName}</p>
+          )
+        ) : (
+          <span className="app-brand">
+            <Logo />
+            <span>Symbola</span>
+          </span>
+        )}
+      </header>
+      {children}
+    </div>
+  );
+}
+
 export async function AppShell({ children }: { children: ReactNode }) {
+  if (LINK_PAGE.test((await headers()).get("x-pathname") ?? "")) return <LinkShell>{children}</LinkShell>;
   const auth = await getAuthContext();
   const t = await getTranslations("Home");
   const tAide = await getTranslations("Aide");
@@ -114,51 +146,6 @@ export async function AppShell({ children }: { children: ReactNode }) {
       <button type="submit">{t("logout")}</button>
     </form>
   );
-
-  // Un marié n'a que l'espace de son mariage (PRD-EVT-06).
-  if (auth.user.role === "client") {
-    // Lot 17 (DEV-08, décision G) : le logo de l'organisation, sinon son nom ;
-    // l'image est servie par /logo après contrôle de la session.
-    const organization = auth.user.organizationId
-      ? await getDocumentHeader(appDatabase(), auth.user.organizationId)
-      : null;
-    const logoVersion = organization?.logoKey?.split("/").pop() ?? null;
-    return (
-      <div className="app-shell">
-        <header className="app-sidebar">
-          <Brand href="/espace" />
-          {organization ? (
-            <div className="client-organization">
-              {logoVersion ? (
-                <img
-                  className="client-organization-logo"
-                  src={`/logo?v=${encodeURIComponent(logoVersion)}`}
-                  alt={organization.organizationName}
-                />
-              ) : (
-                <p className="client-organization-name">
-                  {organization.organizationName}
-                </p>
-              )}
-            </div>
-          ) : null}
-          <div className="app-user">
-            <span>{t("connectedAs", { email: auth.user.email })}</span>
-            {logout}
-          </div>
-        </header>
-        {/* Lot 16 (L16-HUB-19, ADR 0039) : le « ? » au même endroit sur tous les écrans. */}
-        <HelpProvider>
-          <div className="app-main">
-            <section className="app-topbar" aria-label={t("topBar")}>
-              <HelpButton />
-            </section>
-            {children}
-          </div>
-        </HelpProvider>
-      </div>
-    );
-  }
 
   const organizationId = auth.user.organizationId;
   let events = false;

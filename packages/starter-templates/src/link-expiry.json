@@ -1,0 +1,6 @@
+{
+  "version": 1,
+  "_source": "Lot 26a (SEC-15), décision D4 de Julien du 12/11/2026 : un lien personnel vaut jusqu'à la fin du jour (heure de Paris) qui suit la date de l'événement de ce nombre de jours, sauf date choisie par la planner. Valeurs du cahier des charges : 30 jours pour le client, 7 jours pour un prestataire ; pour un invité, la clôture des réponses la remplacera (lot 49). Sans date d'événement : ce nombre de jours après la création, recalculé dès que la date est posée.",
+  "daysAfterEvent": { "client": 30, "vendor": 7, "guest": 30 },
+  "daysWithoutEventDate": 180
+}

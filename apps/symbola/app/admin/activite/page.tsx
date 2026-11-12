@@ -36,7 +36,6 @@ export default async function AdminActivityPage({ searchParams }: { searchParams
           <h2>{organization.name}</h2>
           <ul aria-label={t("summaryOf", { organization: labels[position]! })}>
             <li>{t("teamAccounts", { count: organization.teamAccounts })}</li>
-            <li>{t("clientAccounts", { count: organization.clientAccounts })}</li>
             <li>{t("activeAccounts", { count: organization.activeAccounts })}</li>
             <li>
               {organization.lastLoginAt

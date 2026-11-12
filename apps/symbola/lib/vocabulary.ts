@@ -1,6 +1,6 @@
 // Lot 16 (ADR 0045) — vocabulaire des clients : « les mariés » (couple) ou « le
 // client » (clients). Sur la page d'un événement (/events/<id>, /budget/<id>,
-// /espace/<id>, et /devis/<id> par l'événement du devis), il suit le type de
+// /devis/<id> par l'événement du devis, et le portail d'un lien), il suit le type de
 // cet événement ; ailleurs, et pour un événement sans type, il suit le métier
 // de l'organisation (une wedding planner parle des mariés, une agence de ses
 // clients). Le catalogue parle des mariés ; les textes « le client » le
@@ -16,6 +16,7 @@ import clientsEnMessages from "@symbola/i18n/messages/vocabulary/clients.en.json
 import { getEventAudience, listEventAudiences, type EventTypeAudience } from "@/modules/events/service";
 import { getQuote } from "@/modules/quotes/service";
 import { getAuthContext } from "./auth-context";
+import { currentLinkAccess } from "./link-session";
 import { organizationMetier } from "./vendors/catalog";
 
 export type Audience = EventTypeAudience;
@@ -36,7 +37,7 @@ export const organizationAudience = cache(async (organizationId: string | null):
 );
 
 const UUID = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
-const EVENT_PAGE = new RegExp(`^/(?:events|budget|espace)/(${UUID})(?:/|$)`, "i");
+const EVENT_PAGE = new RegExp(`^/(?:events|budget)/(${UUID})(?:/|$)`, "i");
 const QUOTE_PAGE = new RegExp(`^/devis/(${UUID})(?:/|$)`, "i");
 
 // L'événement dont la page est affichée, s'il y en a un.
@@ -100,7 +101,11 @@ export async function responsibleLabels(organizationId: string, locale: Locale):
 export async function organizationMessages(locale: Locale): Promise<typeof frMessages> {
   const auth = await getAuthContext();
   const organizationId = auth.status === "authenticated" ? auth.user.organizationId : null;
-  return messagesFor(locale, await organizationAudience(organizationId));
+  if (organizationId) return messagesFor(locale, await organizationAudience(organizationId));
+  // Lot 26a : le portail d'un lien parle comme le type de son événement.
+  const link = await currentLinkAccess();
+  if (link) return messagesFor(locale, (await getEventAudience(link.organizationId, link.eventId)) ?? (await organizationAudience(link.organizationId)));
+  return messagesFor(locale, await organizationAudience(null));
 }
 
 // Création d'un événement : les champs des clients changent de libellé avec le

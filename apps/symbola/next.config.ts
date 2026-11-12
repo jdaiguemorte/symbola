@@ -27,6 +27,13 @@ const securityHeaders = [
     : []),
 ];
 
+const LINK_PAGES = ["/lien", "/lien/:path*", "/portail", "/portail/:path*"];
+const linkPageHeaders = [
+  { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
+  { key: "Referrer-Policy", value: "no-referrer" },
+  { key: "Cache-Control", value: "no-store" },
+];
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   output: "standalone",
@@ -49,7 +56,21 @@ const nextConfig: NextConfig = {
   // passent par des routes dédiées qui contrôlent la session et la limite de
   // débit avant de lire le corps (lib/uploads/receive.ts).
   async headers() {
-    return [{ source: "/:path*", headers: securityHeaders }];
+    return [
+      { source: "/:path*", headers: securityHeaders },
+      // Lot 26a (SEC-17, ADR 0053) : pages à lien personnel jamais indexées ni
+      // mises en cache, sans référent vers un autre site ; ces en-têtes,
+      // déclarés après, remplacent ceux du dessus.
+      ...LINK_PAGES.map((source) => ({ source, headers: linkPageHeaders })),
+    ];
+  },
+  // Lot 26a (ADR 0053 § 9) : l'espace des mariés par compte n'existe plus ; une
+  // ancienne adresse mène à la page « lien non valable ».
+  async redirects() {
+    return [
+      { source: "/espace", destination: "/lien", permanent: false },
+      { source: "/espace/:path*", destination: "/lien", permanent: false },
+    ];
   },
 };
 

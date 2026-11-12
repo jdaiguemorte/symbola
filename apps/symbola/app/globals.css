@@ -2758,3 +2758,42 @@
     @apply font-display text-display text-ink;
   }
 }
+
+/* Lot 26a (UX-11, UX-05 ; ADR 0053) — pages à lien personnel (/lien, /portail) :
+   un cadre sans menu, lisible à 360 px, et la section des liens de la fiche. */
+@layer components {
+  .link-shell {
+    @apply flex min-h-screen flex-col items-center gap-6 bg-ground px-4 pt-8 pb-12;
+  }
+  .link-header {
+    @apply flex w-full max-w-3xl items-center justify-start;
+  }
+  .link-page {
+    @apply w-full max-w-md rounded-lg border border-line bg-surface p-6 sm:p-8;
+  }
+  .portal {
+    @apply w-full max-w-3xl rounded-lg border border-line bg-surface p-4 sm:p-8;
+  }
+  .portal form button,
+  .link-page button {
+    @apply min-h-11;
+  }
+  .link-privacy {
+    @apply mt-8 border-t border-line pt-4 text-ink-muted;
+  }
+  .link-row {
+    @apply flex flex-col gap-1;
+  }
+  .link-actions {
+    @apply flex flex-wrap items-start gap-3;
+  }
+  .link-delivered {
+    @apply mt-3 flex flex-col gap-2 rounded-lg border border-line bg-primary-soft p-4;
+  }
+  .link-delivered input {
+    @apply w-full;
+  }
+  .badge-warning {
+    @apply inline-block rounded-sm bg-attention-soft px-2 py-1 text-attention;
+  }
+}

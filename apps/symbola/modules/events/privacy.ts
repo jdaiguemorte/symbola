@@ -9,7 +9,7 @@
 import { asc, eq, inArray } from "drizzle-orm";
 import { appDatabase } from "@symbola/db/client";
 import {
-  eventClientAccesses,
+  eventLinks,
   eventClients,
   eventPlaces,
   events,
@@ -119,9 +119,10 @@ export const eventsPrivacy: PrivacyContractV1 = {
           });
         }
       }
-      for (const access of await tx.select().from(eventClientAccesses).where(inArray(eventClientAccesses.eventId, eventIds))) {
-        if (recordMatches([access.email], terms)) {
-          records.push({ module: MODULE, kind: "client_access", recordId: access.id, label: access.email, fields: { email: access.email }, eventId: access.eventId });
+      // Lot 26a : lien personnel d'un tiers (nom et e-mail de la personne).
+      for (const link of await tx.select().from(eventLinks).where(inArray(eventLinks.eventId, eventIds))) {
+        if (recordMatches([link.email, link.personName], terms)) {
+          records.push({ module: MODULE, kind: "link", recordId: link.id, label: link.personName, fields: { name: link.personName, email: link.email }, eventId: link.eventId });
         }
       }
       for (const slot of await tx.select().from(eventVendorSlots).where(inArray(eventVendorSlots.eventId, eventIds))) {
@@ -232,8 +233,8 @@ export const eventsPrivacy: PrivacyContractV1 = {
       for (const place of await tx.select().from(eventPlaces).where(inArray(eventPlaces.eventId, ids)).orderBy(asc(eventPlaces.position))) {
         records.push({ module: MODULE, kind: "event_place", recordId: place.id, label: place.label, fields: compact({ address: place.address }), eventId: place.eventId });
       }
-      for (const access of await tx.select().from(eventClientAccesses).where(inArray(eventClientAccesses.eventId, ids))) {
-        records.push({ module: MODULE, kind: "client_access", recordId: access.id, label: access.email, fields: { email: access.email }, eventId: access.eventId });
+      for (const link of await tx.select().from(eventLinks).where(inArray(eventLinks.eventId, ids))) {
+        records.push({ module: MODULE, kind: "link", recordId: link.id, label: link.personName, fields: { name: link.personName, email: link.email }, eventId: link.eventId });
       }
       for (const change of await tx.select().from(eventStatusHistory).where(inArray(eventStatusHistory.eventId, ids)).orderBy(asc(eventStatusHistory.changedAt))) {
         records.push({

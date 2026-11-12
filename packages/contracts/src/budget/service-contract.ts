@@ -8,6 +8,7 @@
 // pourcentages des points de base entiers (0 à 10000 = 0,00 % à 100,00 %)
 // — jamais de float (CLAUDE.md §5).
 import type { FileDownload } from "../file-download";
+import type { LinkBudgetScope } from "../events/service-contract";
 
 export type AllocationModelItemInput = {
   defaultVendorSlotId: string;
@@ -239,6 +240,11 @@ export type BudgetLinesView = {
   envelope: BudgetEnvelope | null;
 };
 
+// Lot 26a (POR-01, POR-10) — budget vu par un lien personnel : catégories et
+// totaux, sans lignes ; en « catégories choisies », ni enveloppe ni total
+// général (les totaux sont ceux des seules catégories partagées).
+export type LinkBudgetView = BudgetLinesView & { scope: LinkBudgetScope };
+
 // Lot 28a (BUD-02, décision D4) — enveloppe du client : son budget souhaité, ou
 // à défaut le total de la simulation ; seuil d'alerte en pourcentage, celui de
 // l'événement s'il en a un, sinon celui de l'organisation.
@@ -314,8 +320,10 @@ export interface BudgetServiceContract {
   attachBudgetLineQuote(input: AttachBudgetLineQuoteInput): Promise<BudgetLineAttachment>;
   // ADR 0027 — servi par l'app (jamais de lien direct vers le stockage).
   getBudgetLineAttachmentFile(organizationId: string, attachmentId: string): Promise<FileDownload>;
-  // PRD-BUD-04 : lecture seule pour un compte marié ayant accès à l'événement.
-  getClientBudgetView(organizationId: string, userId: string, eventId: string): Promise<BudgetLinesView>;
+  // PRD-BUD-04, lot 26a (POR-01, POR-10) : lecture seule pour un lien personnel
+  // dont la rubrique « Budget » est ouverte ; en « catégories choisies », ses
+  // seules catégories, totaux limités à elles.
+  getLinkBudgetView(organizationId: string, linkId: string): Promise<LinkBudgetView>;
   // AIDE-02 : purge des données budget d'événements d'essai.
   removeEventBudgetData(organizationId: string, eventIds: string[]): Promise<void>;
 }

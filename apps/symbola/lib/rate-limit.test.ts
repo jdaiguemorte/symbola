@@ -28,7 +28,7 @@ describe("L16-SEC-02 — Limitation de débit : règles et adresse du client", (
   });
 
   it("connexion, double authentification, mot de passe oublié, recherche et envoi de fichier ont chacun leurs limites", () => {
-    expect(Object.keys(RATE_LIMITS).sort()).toEqual(["login", "mfa", "passwordReset", "search", "upload"]);
+    expect(Object.keys(RATE_LIMITS).sort()).toEqual(["linkOpen", "linkRenewal", "login", "mfa", "passwordReset", "search", "upload"]);
     for (const { ip, account } of Object.values(RATE_LIMITS)) {
       expect(account.limit).toBeLessThanOrEqual(ip.limit);
       expect(ip.windowMs).toBeGreaterThan(0);

@@ -5,8 +5,9 @@
 // « [Recette] » ; le chargement refuse de tourner en production et sur une base
 // où le jeu est déjà chargé. Il couvre ce que l'app sait faire aujourd'hui :
 // comptes, événements, clients, catalogue, devis et échéancier, budget,
-// tâches, carnet de prestataires. Le reste du jeu (invités, tables, accès
-// payeur, liens des tiers) viendra avec les lots qui créent ces écrans.
+// tâches, carnet de prestataires, et (lot 26a) les liens personnels des
+// clients et du payeur. Le reste du jeu (invités, tables, liens des
+// prestataires) viendra avec les lots qui créent ces écrans.
 import { randomBytes } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
@@ -15,15 +16,16 @@ import { appDatabase } from "@symbola/db/client";
 import { organizations } from "@symbola/db/schema/hub";
 import { addBudgetLine, addVendorPayment, createAllocationModel, setVendorPaymentPaid, simulateEventBudget, updateBudgetLine } from "@/modules/budget/service";
 import {
-  acceptEventClientInvitation,
   addDefaultVendorSlots,
   addEventTask,
   addVendorCandidate,
   changeEventStatus,
+  createEventLink,
   createProspect,
   createProspectSource,
-  inviteEventClient,
+  getEvent,
   listEventVendorSlots,
+  listLinkProfiles,
   selectVendorCandidate,
   setEventWantedBudget,
   updateVendorCandidate,
@@ -42,7 +44,7 @@ export const RECETTE_PREFIX = "[Recette]";
 
 const memberSchema = z.object({ profil: z.string().optional(), nom: z.string().optional(), role: z.string() });
 const datasetSchema = z.object({
-  profils: z.array(z.object({ id: z.string(), nom: z.string() })),
+  profils: z.array(z.object({ id: z.string(), nom: z.string(), donnees_de_test: z.string().optional() })),
   organisations: z.array(
     z.object({
       id: z.string(),
@@ -97,7 +99,7 @@ const datasetSchema = z.object({
             )
             .optional(),
           echeances: z
-            .array(z.object({ ligne: z.string(), libelle: z.string(), montant_centimes: z.number().int().positive(), date: z.string(), statut: z.string() }))
+            .array(z.object({ ligne: z.string(), libelle: z.string(), montant_centimes: z.number().int().positive(), date: z.string(), statut: z.string(), payeur: z.string().optional() }))
             .optional(),
           postes: z.array(z.object({ poste: z.string(), ht_centimes: z.number().int().nonnegative() })).optional(),
           taux_tva_pct: z.number().optional(),
@@ -112,9 +114,13 @@ const datasetSchema = z.object({
 export type RecetteDataset = z.infer<typeof datasetSchema>;
 
 export type RecetteAccount = { organisation: string; profil: string | null; nom: string; email: string; password: string; role: Role };
+// Lot 26a (ADR 0053) : lien personnel d'un client ou d'un payeur ; l'adresse
+// n'est montrée qu'une fois, ici, pour le fichier local de recette.
+export type RecetteLink = { organisation: string; evenement: string; nom: string; email: string; profil: string; url: string };
 export type RecetteResult = {
   organizations: { key: string; id: string; name: string; events: number }[];
   accounts: RecetteAccount[];
+  links: RecetteLink[];
 };
 
 export class RecetteRefusedError extends Error {
@@ -199,7 +205,7 @@ export async function loadRecette(raw: unknown, options: RecetteOptions = {}): P
   }
 
   const profileName = new Map(dataset.profils.map((profile) => [profile.id, profile.nom]));
-  const result: RecetteResult = { organizations: [], accounts: [] };
+  const result: RecetteResult = { organizations: [], accounts: [], links: [] };
 
   for (const organisation of dataset.organisations) {
     const organizationId = ids[organisation.id];
@@ -250,14 +256,6 @@ export async function loadRecette(raw: unknown, options: RecetteOptions = {}): P
       const status = EVENT_STATUS[event.statut] ?? "confirmed";
       if (status !== "prospect") await changeEventStatus({ organizationId, eventId: created.id, changedByUserId: ownerId, toStatus: status });
 
-      // Comptes des mariés (espace client) ; le payeur attend son accès propre.
-      for (const client of clients) {
-        const email = options.emailTag ? client.email.replace("@", `+${options.emailTag}@`) : client.email;
-        const password = newPassword();
-        const invitation = await inviteEventClient({ organizationId, eventId: created.id, email, invitedByUserId: ownerId, locale: "fr" });
-        await acceptEventClientInvitation(invitation.invitationToken!, password);
-        result.accounts.push({ organisation: organisation.id, profil: null, nom: client.nom, email, password, role: "client" });
-      }
 
       for (const vendor of event.prestataires ?? []) {
         await createVendor(organizationId, { name: vendor.nom, typeId: null, contactName: vendor.contact ?? null, email: vendor.email ?? null, phone: vendor.telephone ?? null });
@@ -303,6 +301,29 @@ export async function loadRecette(raw: unknown, options: RecetteOptions = {}): P
         });
         await loadBudgetLines(organizationId, ownerId, created.id, event);
       }
+
+      // Lot 26a (UX-11, POR-01) : un lien personnel par client (profil
+      // « Marié(e) ») et par payeur (profil « Payeur », limité à ses postes).
+      for (const person of event.clients ?? []) {
+        const payer = person.role === "payeur";
+        const profile = listLinkProfiles("fr", "couple").find((candidate) => candidate.key === (payer ? "payer" : "couple"))!;
+        const email = options.emailTag ? person.email.replace("@", `+${options.emailTag}@`) : person.email;
+        const eventClient = payer ? undefined : (await getEvent(organizationId, created.id))?.clients.find((client) => [client.firstName, client.lastName].filter(Boolean).join(" ") === person.nom);
+        const delivery = await createEventLink({
+          organizationId,
+          eventId: created.id,
+          createdByUserId: ownerId,
+          audience: "client",
+          locale: "fr",
+          link: {
+            personName: person.nom,
+            email,
+            eventClientId: eventClient?.id ?? null,
+            rights: { rubrics: profile.rubrics, budgetScope: profile.budgetScope, sharedSlotIds: payer ? await payerSlotIds(organizationId, created.id, person.nom, event, dataset) : [] },
+          },
+        });
+        result.links.push({ organisation: organisation.id, evenement: event.id, nom: person.nom, email, profil: profile.label, url: delivery.url });
+      }
     }
 
     // Autres événements de la liste (noms et dates seuls), puis les volumes.
@@ -326,6 +347,17 @@ export async function loadRecette(raw: unknown, options: RecetteOptions = {}): P
     result.organizations.push({ key: organisation.id, id: organizationId, name, events });
   }
   return result;
+}
+
+// Lot 26a (POR-01, POR-10) — postes ouverts au lien d'un payeur : ceux des
+// échéances qu'il règle, et ceux que sa fiche de profil nomme (« Accès payeur
+// limité aux lignes Lieu et Traiteur »), reconnus par le premier mot du poste.
+async function payerSlotIds(organizationId: string, eventId: string, payerName: string, event: RecetteDataset["evenements"][number], dataset: RecetteDataset): Promise<string[]> {
+  const lines = event.budget?.lignes ?? [];
+  const paid = new Set((event.budget?.echeances ?? []).filter((payment) => payment.payeur === payerName).flatMap((payment) => lines.filter((line) => line.id === payment.ligne).map((line) => line.poste)));
+  const described = (dataset.profils.find((profile) => profile.nom === payerName)?.donnees_de_test ?? "").toLowerCase();
+  const slots = await listEventVendorSlots(organizationId, eventId);
+  return slots.filter((slot) => paid.has(slot.label) || (described && described.includes(slot.label.split(" ")[0]!.toLowerCase()))).map((slot) => slot.id);
 }
 
 // Lot 28b (BUD-01, BUD-03, PRE-02) — lignes du jeu sous chaque poste : libellé,

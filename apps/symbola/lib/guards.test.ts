@@ -24,11 +24,14 @@ vi.mock("./auth-context", async () => {
   return {
     getAuthContext: async () => auth.current,
     getPlannerAuthContext: forbiddenUnless((role) => isPlannerRole(role as never)),
-    getClientAuthContext: forbiddenUnless((role) => role === "client"),
   };
 });
 
-const { requireAdmin, requireClient, requireOwner, requirePlanner, requireSignedIn } = await import("./guards");
+// Lot 26a : la session d'un lien personnel, lue par requireLink.
+const link = vi.hoisted(() => ({ current: null as null | { organizationId: string; linkId: string; eventId: string } }));
+vi.mock("./link-session", () => ({ currentLinkAccess: async () => link.current }));
+
+const { requireAdmin, requireLink, requireOwner, requirePlanner, requireSignedIn } = await import("./guards");
 
 function signedIn(role: string, organizationId: string | null = "org-1"): AuthResult {
   return {
@@ -52,12 +55,10 @@ describe("L16-ARC-01 — Une garde d'accès unique", () => {
     auth.current = { status: "unauthenticated" };
   });
 
-  it("requirePlanner envoie à la connexion, à la double authentification, à l'espace du marié ou à l'accueil", async () => {
+  it("requirePlanner envoie à la connexion, à la double authentification ou à l'accueil", async () => {
     await expect(requirePlanner()).rejects.toThrow("redirect:/login");
     auth.current = { status: "mfa_required", userId: "user-owner", role: "owner", totpConfirmed: true };
     await expect(requirePlanner()).rejects.toThrow("redirect:/mfa");
-    auth.current = signedIn("client");
-    await expect(requirePlanner()).rejects.toThrow("redirect:/espace");
     auth.current = signedIn("admin", null);
     await expect(requirePlanner()).rejects.toThrow("redirect:/");
     auth.current = signedIn("member", null);
@@ -75,15 +76,16 @@ describe("L16-ARC-01 — Une garde d'accès unique", () => {
     expect((await requireOwner())?.user.role).toBe("owner");
     auth.current = signedIn("member");
     expect(await requireOwner()).toBeNull();
-    auth.current = signedIn("client");
-    await expect(requireOwner()).rejects.toThrow("redirect:/espace");
+    auth.current = signedIn("admin", null);
+    await expect(requireOwner()).rejects.toThrow("redirect:/");
   });
 
-  it("requireClient réserve l'espace au marié", async () => {
+  it("L26-SEC-14 — requireLink ouvre le portail à une session de lien, jamais à une session de compte", async () => {
     auth.current = signedIn("owner");
-    await expect(requireClient()).rejects.toThrow("redirect:/");
-    auth.current = signedIn("client");
-    expect((await requireClient()).user.role).toBe("client");
+    await expect(requireLink()).rejects.toThrow("redirect:/lien");
+    link.current = { organizationId: "org-1", linkId: "link-1", eventId: "event-1" };
+    expect(await requireLink()).toMatchObject({ linkId: "link-1", eventId: "event-1" });
+    link.current = null;
   });
 
   it("requireAdmin réserve la console à l'Admin", async () => {
@@ -95,8 +97,8 @@ describe("L16-ARC-01 — Une garde d'accès unique", () => {
 
   it("requireSignedIn laisse passer toute personne connectée", async () => {
     await expect(requireSignedIn()).rejects.toThrow("redirect:/login");
-    auth.current = signedIn("client");
-    expect((await requireSignedIn()).user.role).toBe("client");
+    auth.current = signedIn("member");
+    expect((await requireSignedIn()).user.role).toBe("member");
   });
 
   it("aucune page ne recopie plus le contrôle de session", () => {

@@ -69,6 +69,28 @@ export async function updatePrivacySettings(db: AppDatabase, organizationId: str
   );
 }
 
+// Lot 26a (RGP-03) — mention d'information des pages à lien personnel, au nom
+// de l'organisation : son texte, ou null (texte de départ).
+const LINK_NOTICE_MAX = 4000;
+
+export async function getLinkPrivacyNotice(db: AppDatabase, organizationId: string): Promise<string | null> {
+  await getPrivacySettings(db, organizationId);
+  return withOrganization(db, organizationId, async (tx) => {
+    const [row] = await tx.select({ notice: privacySettings.linkPrivacyNotice }).from(privacySettings).where(eq(privacySettings.organizationId, organizationId));
+    return row?.notice ?? null;
+  });
+}
+
+// Vide : retour au texte de départ.
+export async function updateLinkPrivacyNotice(db: AppDatabase, organizationId: string, notice: string | null): Promise<void> {
+  const text = notice?.trim() || null;
+  if (text && text.length > LINK_NOTICE_MAX) throw new PrivacyRequestInvalidError("settings_invalid");
+  await getPrivacySettings(db, organizationId);
+  await withOrganization(db, organizationId, (tx) =>
+    tx.update(privacySettings).set({ linkPrivacyNotice: text, updatedAt: new Date() }).where(eq(privacySettings.organizationId, organizationId)),
+  );
+}
+
 // —— Demandes ——————————————————————————————————————————————————————————
 
 export type PrivacyRequestView = {

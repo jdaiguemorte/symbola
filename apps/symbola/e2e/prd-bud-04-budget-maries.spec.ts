@@ -23,23 +23,6 @@ async function loginAndSetupMfa(page: Page, email: string, password: string) {
   await expect(page).toHaveURL("/");
 }
 
-const MAILPIT_API = "http://localhost:8025/api/v1";
-
-async function waitForClientInvitationLink(to: string, attempts = 30): Promise<string> {
-  for (let i = 0; i < attempts; i++) {
-    const response = await fetch(`${MAILPIT_API}/search?query=${encodeURIComponent(`to:${to}`)}`);
-    const { messages } = (await response.json()) as { messages: { ID: string }[] };
-    if (messages.length > 0) {
-      const detail = await fetch(`${MAILPIT_API}/message/${messages[0]!.ID}`);
-      const { Text } = (await detail.json()) as { Text: string };
-      const match = Text.match(/https?:\/\/\S*\/espace\/invitation\/\S+/);
-      if (match) return new URL(match[0]).pathname;
-    }
-    await new Promise((resolve) => setTimeout(resolve, 200));
-  }
-  throw new Error(`aucun e-mail d'invitation reçu pour ${to}`);
-}
-
 async function expectNoAxeViolation(page: Page) {
   const result = await new AxeBuilder({ page }).analyze();
   expect(result.violations, JSON.stringify(result.violations, null, 2)).toEqual([]);
@@ -109,32 +92,23 @@ test("PRD-BUD-04 — le marié consulte le budget de son événement en lecture 
   await editor.getByRole("button", { name: "Enregistrer la ligne" }).click();
   await expect(plannerRow).toContainText("Dépassement de 1 000,00 €");
 
-  // Elle invite le marié depuis la fiche.
-  const coupleEmail = `marie-bud04-${randomUUID()}@symbola.test`;
-  const couplePassword = "mot-de-passe-du-marie-bud04";
+  // Lot 26a : elle crée le lien personnel du marié depuis la fiche ; le lien
+  // n'est montré qu'une fois.
   await page.goto(eventUrl);
   await page.waitForLoadState("networkidle");
   await openEventTab(page, "Mariés");
-  await page.getByLabel("E-mail du marié").fill(coupleEmail);
-  await page.getByRole("button", { name: "Inviter le marié" }).click();
-  await expect(page.getByText("Invitation envoyée.")).toBeVisible();
+  await page.getByLabel("Nom de la personne").fill("Inès");
+  await page.getByLabel("E-mail de la personne").fill(`marie-bud04-${randomUUID()}@symbola.test`);
+  await page.getByRole("button", { name: "Créer le lien et l'envoyer" }).click();
+  const coupleUrl = await page.getByLabel("Lien personnel de Inès").inputValue();
+  expect(coupleUrl).toMatch(/\/lien#[0-9a-f-]{36}\.[A-Za-z0-9_-]{43}$/);
 
   const coupleContext = await browser.newContext({ locale: "fr-FR", viewport: page.viewportSize() });
   const couple = await coupleContext.newPage();
-  await couple.goto(await waitForClientInvitationLink(coupleEmail));
-  await couple.waitForLoadState("networkidle");
-  await couple.getByLabel("Choisissez un mot de passe (12 caractères minimum)").fill(couplePassword);
-  await couple.getByLabel("Confirmez le mot de passe").fill(couplePassword);
-  await couple.getByRole("button", { name: "Créer mon compte" }).click();
-  await expect(couple.getByText("Votre compte est créé.")).toBeVisible();
-  await couple.goto("/login");
-  await couple.getByLabel("E-mail").fill(coupleEmail);
-  await couple.getByLabel("Mot de passe").fill(couplePassword);
-  await couple.getByRole("button", { name: "Se connecter" }).click();
-  await expect(couple).toHaveURL(/\/espace$/);
+  await couple.goto(coupleUrl);
+  await expect(couple).toHaveURL(/\/portail$/);
 
-  // PRD-BUD-04 : le budget apparaît dans son espace, en lecture seule.
-  await couple.goto(`/espace/${eventId}`);
+  // PRD-BUD-04 : le budget apparaît dans son portail, en lecture seule.
   const budget = couple.getByRole("region", { name: "Budget" });
   const table = budget.getByRole("table", { name: "Estimé, engagé, écart" });
   const coupleRow = table.getByRole("row", { name: /Lieu de réception/ });
@@ -146,10 +120,10 @@ test("PRD-BUD-04 — le marié consulte le budget de son événement en lecture 
   await expect(budget.getByRole("button")).toHaveCount(0);
   await expectNoAxeViolation(couple);
 
-  // Les écrans budget de la planner lui restent fermés.
+  // Les écrans budget de la planner lui restent fermés (il n'a pas de compte).
   await couple.goto(`/budget/${eventId}`);
-  await expect(couple).toHaveURL(/\/espace$/);
+  await expect(couple).toHaveURL(/\/login$/);
   await couple.goto("/budget/parametres");
-  await expect(couple).toHaveURL(/\/espace$/);
+  await expect(couple).toHaveURL(/\/login$/);
   await coupleContext.close();
 });

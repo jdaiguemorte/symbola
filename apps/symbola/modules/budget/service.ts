@@ -56,7 +56,7 @@ import {
   getEvent,
   getEventNamesByIds,
   getVendorCandidate,
-  hasActiveClientAccess,
+  getLinkAccess,
   listDefaultVendorSlots,
   listEventVendorSlots,
   listVendorCandidates,
@@ -81,6 +81,7 @@ import type {
   BudgetLineAttachment,
   BudgetLineHistoryEntry,
   BudgetLinesView,
+  LinkBudgetView,
   BudgetServiceContract,
   ConfirmEventBudgetInput,
   CreateAllocationModelInput,
@@ -107,6 +108,7 @@ export type {
   BudgetLineAttachment,
   BudgetLineHistoryEntry,
   BudgetLinesView,
+  LinkBudgetView,
   BudgetServiceContract,
   ConfirmEventBudgetInput,
   CreateAllocationModelInput,
@@ -169,12 +171,12 @@ export class VendorPaymentNotFoundError extends Error {
   }
 }
 
-// PRD-BUD-04 : accès du marié absent, retiré, ou demande hors de son
-// événement — même réponse dans tous les cas.
-export class ClientBudgetAccessDeniedError extends Error {
+// PRD-BUD-04, lot 26a : lien absent, retiré, expiré ou sans la rubrique
+// « Budget » — même réponse dans tous les cas.
+export class LinkBudgetAccessDeniedError extends Error {
   constructor() {
     super("accès refusé");
-    this.name = "ClientBudgetAccessDeniedError";
+    this.name = "LinkBudgetAccessDeniedError";
   }
 }
 
@@ -851,15 +853,35 @@ export async function getBudgetLineAttachmentFile(organizationId: string, attach
 // l'événement est vérifié par le module events avant toute lecture. Seules
 // les colonnes publiques (poste, prévu, réel, écart, totaux) : les devis
 // joints restent des documents de travail de la planner.
-export async function getClientBudgetView(
-  organizationId: string,
-  userId: string,
-  eventId: string,
-): Promise<BudgetLinesView> {
-  if (!(await hasActiveClientAccess(organizationId, userId, eventId))) throw new ClientBudgetAccessDeniedError();
-  const view = await listBudgetLines(organizationId, eventId);
-  // Lot 28b : les catégories et leurs totaux seulement (le détail au portail : lot 27).
-  return { ...view, lines: [], categories: view.categories.map((category) => ({ ...category, lines: [] })) };
+// PRD-BUD-04, lot 26a (POR-01, POR-10) : budget en lecture seule pour un lien
+// personnel dont la rubrique « Budget » est ouverte ; l'accès est relu par le
+// module events. Les catégories et leurs totaux seulement (le détail au
+// portail : lot 27). En « catégories choisies » : ces catégories seules, leurs
+// propres totaux (ADR 0059 : HT par taux), ni enveloppe ni total général.
+export async function getLinkBudgetView(organizationId: string, linkId: string): Promise<LinkBudgetView> {
+  const access = await getLinkAccess(organizationId, linkId);
+  if (!access || !access.rights.rubrics.includes("budget")) throw new LinkBudgetAccessDeniedError();
+  const view = await listBudgetLines(organizationId, access.eventId);
+  const withoutLines = (categories: BudgetCategory[]) => categories.map((category) => ({ ...category, lines: [] }));
+  if (access.rights.budgetScope === "all") return { ...view, lines: [], categories: withoutLines(view.categories), scope: "all" };
+  const shared = new Set(access.rights.sharedSlotIds);
+  const categories = view.categories.filter((category) => shared.has(category.eventVendorSlotId));
+  const lines = categories.flatMap((category) => category.lines);
+  return {
+    eventId: view.eventId,
+    categories: withoutLines(categories),
+    lines: [],
+    totalEstimatedCents: sumOf(lines, (line) => line.estimatedAmountCents),
+    totalQuotedCents: sumOf(lines, (line) => line.quotedAmountCents),
+    totalCommittedCents: sumOf(lines, (line) => line.committedAmountCents),
+    totalPaidCents: sumOf(lines, (line) => line.paidAmountCents),
+    totalRemainingCents: sumOf(lines, (line) => line.remainingAmountCents),
+    totalVarianceCents: sumOf(lines, (line) => line.varianceCents),
+    clientKind: view.clientKind,
+    totalHt: htTotalsOf(lines),
+    envelope: null,
+    scope: "selected",
+  };
 }
 
 // Lot 28b (BUD-03, D7, D12, D13) — échéances des paiements aux prestataires.
@@ -997,7 +1019,7 @@ const _contractCheck: BudgetServiceContract = {
   listBudgetLineHistory,
   attachBudgetLineQuote,
   getBudgetLineAttachmentFile,
-  getClientBudgetView,
+  getLinkBudgetView,
   removeEventBudgetData,
   addBudgetLine,
   updateBudgetLineDetails,

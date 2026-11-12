@@ -1,12 +1,14 @@
 // Lot 16 (L16-ARC-01, ADR 0043) — gardes d'accès des écrans. Chaque page protégée
 // en appelle une en première ligne : la garde renvoie la personne connectée,
-// ou la redirige (connexion, double authentification, espace du marié,
-// accueil). La RLS protège les données ; la garde protège l'écran. Un test
+// ou la redirige (connexion, double authentification, accueil). Lot 26a : les
+// tiers n'ont pas de compte ; leur garde est requireLink (session de lien). La RLS protège les données ; la garde protège l'écran. Un test
 // (guards.test.ts) vérifie que chaque page hors des écrans publics en appelle
 // une.
 import { redirect } from "next/navigation";
 import type { AuthenticatedUser } from "@symbola/auth";
-import { getAuthContext, getClientAuthContext, getPlannerAuthContext } from "./auth-context";
+import type { LinkAccess } from "@/modules/events/service";
+import { getAuthContext, getPlannerAuthContext } from "./auth-context";
+import { currentLinkAccess } from "./link-session";
 
 export type SignedIn = { status: "authenticated"; user: AuthenticatedUser };
 export type OrganizationUser = AuthenticatedUser & { organizationId: string };
@@ -20,13 +22,13 @@ export async function requireSignedIn(): Promise<SignedIn> {
   return auth;
 }
 
-// Écrans de la planner (titulaire ou collaborateur, PRD-EVT-06) : un marié va à
-// son espace, l'Admin à sa console.
+// Écrans de la planner (titulaire ou collaborateur, PRD-EVT-06) : l'Admin va à
+// sa console.
 export async function requirePlanner(): Promise<InOrganization> {
   const auth = await getPlannerAuthContext();
   if (auth.status === "unauthenticated") redirect("/login");
   if (auth.status === "mfa_required") redirect("/mfa");
-  if (auth.status === "forbidden") redirect(auth.role === "client" ? "/espace" : "/");
+  if (auth.status === "forbidden") redirect("/");
   const { organizationId } = auth.user;
   if (!organizationId) redirect("/");
   return { status: "authenticated", user: { ...auth.user, organizationId } };
@@ -40,16 +42,14 @@ export async function requireOwner(): Promise<InOrganization | null> {
   return auth.user.role === "owner" ? auth : null;
 }
 
-// Espace du marié (PRD-EVT-06), réservé au rôle « client ». L'appartenance à
-// l'événement est vérifiée ensuite par le module events, à chaque requête.
-export async function requireClient(): Promise<InOrganization> {
-  const auth = await getClientAuthContext();
-  if (auth.status === "unauthenticated") redirect("/login");
-  if (auth.status === "mfa_required") redirect("/mfa");
-  if (auth.status === "forbidden") redirect("/");
-  const { organizationId } = auth.user;
-  if (!organizationId) redirect("/login");
-  return { status: "authenticated", user: { ...auth.user, organizationId } };
+// Lot 26a (UX-11, SEC-14 ; ADR 0053) — portail d'un tiers, ouvert par son lien
+// personnel : la session de lien est relue en base à chaque requête. Sans
+// session valable, la page « lien non valable » propose d'en demander un
+// nouveau. Une session de compte (planner) n'ouvre pas le portail.
+export async function requireLink(): Promise<LinkAccess> {
+  const access = await currentLinkAccess();
+  if (!access) redirect("/lien");
+  return access;
 }
 
 // PRD-HUB-03 — console Admin (/admin/*). L'Admin n'accède jamais aux données

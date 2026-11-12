@@ -20,7 +20,9 @@ export const AUDIT_CATEGORIES = [
 ] as const;
 export type AuditCategory = (typeof AUDIT_CATEGORIES)[number];
 
-export const AUDIT_ACTOR_KINDS = ["member", "admin", "operator", "system"] as const;
+// Lot 26a (ADR 0053) : « link », un tiers agissant par son lien personnel
+// (actor_id : le lien).
+export const AUDIT_ACTOR_KINDS = ["member", "admin", "operator", "system", "link"] as const;
 export type AuditActorKind = (typeof AUDIT_ACTOR_KINDS)[number];
 
 type ActionSpec = { category: AuditCategory; objectType: string | null };
@@ -36,6 +38,8 @@ export const AUDIT_ACTIONS = {
   "hub.trusted_devices.forgotten": { category: "connexion", objectType: "user" },
   // Lot 24b (SEC-06) : « Déconnecter tous mes appareils ».
   "hub.sessions.revoked": { category: "connexion", objectType: "user" },
+  // Lot 26a (SEC-17) : un tiers ouvre son lien personnel (objet : l'événement).
+  "events.link.opened": { category: "connexion", objectType: "event" },
   // Droits.
   "hub.organization.created": { category: "droits", objectType: "organization" },
   "hub.invitation.resent": { category: "droits", objectType: "organization" },
@@ -58,8 +62,16 @@ export const AUDIT_ACTIONS = {
   // Lot 28c (BUD-10) : export du budget d'un événement (format, nombre de lignes).
   "budget.budget.exported": { category: "export", objectType: "event" },
   // Partages.
+  // Comptes des mariés (ADR 0020), retirés au lot 26a : gardés pour relire le journal.
   "events.client_access.granted": { category: "partage", objectType: "event" },
   "events.client_access.revoked": { category: "partage", objectType: "event" },
+  // Lot 26a (UX-11, SEC-14, SEC-15 ; ADR 0053) : liens personnels des tiers
+  // (détails : identifiant du lien, public ; jamais le jeton ni l'e-mail).
+  "events.link.created": { category: "partage", objectType: "event" },
+  "events.link.updated": { category: "partage", objectType: "event" },
+  "events.link.renewed": { category: "partage", objectType: "event" },
+  "events.link.revoked": { category: "partage", objectType: "event" },
+  "events.link.renewal_requested": { category: "partage", objectType: "event" },
   // Lot 24b (SEC-22, décision D5) : plafond d'e-mails de l'heure atteint.
   "hub.mail.quota_reached": { category: "partage", objectType: null },
   "quotes.quote.sent": { category: "partage", objectType: "quote" },

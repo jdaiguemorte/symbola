@@ -16,7 +16,8 @@ import {
   getEventStatusDates,
   getTaskRecalculation,
   listEventActivity,
-  listEventClientAccesses,
+  listEventLinks,
+  listLinkProfiles,
   listEventTasks,
   listEventVendorSlots,
   listVendorCandidates,
@@ -42,9 +43,10 @@ import { ChangeStatusForm } from "./change-status-form";
 import { NextStepBanner } from "./next-step-banner";
 import { nextStep } from "./next-step";
 import { endTrialAction } from "../trial-actions";
-import { revokeClientAccessAction } from "./client-access-actions";
+import { revokeLinkAction } from "./link-actions";
 import { ClientContactForm, WantedBudgetForm } from "./client-contact-forms";
-import { InviteClientForm } from "./client-access-forms";
+import { CreateLinkForm, EditLinkForm, RenewLinkForm } from "./link-forms";
+import { requestAudience } from "@/lib/vocabulary";
 import { removeProgramItemAction } from "./program-actions";
 import {
   AddProgramItemForm,
@@ -83,11 +85,11 @@ import {
   VENDOR_STATUS_LABEL_KEYS,
 } from "./vendor-slot-status";
 
-const CLIENT_ACCESS_STATUS_KEYS = {
-  invited: "clientAccessInvited",
-  active: "clientAccessActive",
-  expired: "clientAccessExpired",
-  revoked: "clientAccessRevoked",
+// Lot 26a (SEC-15) : état d'un lien personnel.
+const LINK_STATUS_KEYS = {
+  active: "linkStatus.active",
+  expired: "linkStatus.expired",
+  revoked: "linkStatus.revoked",
 } as const;
 
 // Onglets de la fiche (maquette validée) : un écran par sujet plutôt
@@ -136,7 +138,7 @@ export default async function EventDetailPage({
     recalculation,
     program,
     programTemplates,
-    clientAccesses,
+    links,
     activity,
   ] = await Promise.all([
     listLossReasons(organizationId),
@@ -147,7 +149,7 @@ export default async function EventDetailPage({
     getTaskRecalculation(organizationId, id),
     getEventProgram(organizationId, id),
     listProgramTemplates(organizationId),
-    listEventClientAccesses(organizationId, id),
+    listEventLinks(organizationId, id),
     listEventActivity(organizationId, id),
   ]);
   const programLabels = new Map(
@@ -254,6 +256,11 @@ export default async function EventDetailPage({
     return tabHref("retroplanning", values);
   };
 
+  // Lot 26a : personnes et catégories proposées dans les formulaires des liens.
+  const linkClients = event.clients.map((client) => ({ id: client.id, name: [client.firstName, client.lastName].filter(Boolean).join(" "), email: client.email ?? null }));
+  const linkSlots = vendorSlots.map((slot) => ({ id: slot.id, label: slot.label }));
+  const slotLabelById = new Map(linkSlots.map((slot) => [slot.id, slot.label]));
+
   // Lot 13 (L13-EVT-19) : frise datée, prochaine étape, chiffres de la vue d'ensemble.
   const statusDates = await getEventStatusDates(organizationId, id);
   const step = nextStep({
@@ -265,7 +272,7 @@ export default async function EventDetailPage({
     templateCount: templates.length,
     eventDate: event.eventDate,
     programItemCount: program.items.length,
-    clientAccessCount: clientAccesses.length,
+    clientLinkCount: links.filter((link) => link.audience === "client" && link.status !== "revoked").length,
     today,
   });
   const overviewBudget = tab === "apercu" && (await isBudgetModuleEnabled(organizationId)) ? await listBudgetLines(organizationId, id) : null;
@@ -451,7 +458,7 @@ export default async function EventDetailPage({
                 <li key={entry.id}>
                   {formatDateTime(new Date(entry.createdAt), locale)} —{" "}
                   {t(entry.kind === "task_done" ? "activityTaskDone" : "activityTaskUndone", {
-                    actor: entry.actorEmail ?? t("activityFormerClient"),
+                    actor: entry.actorName ?? t("activityFormerClient"),
                     task: entry.taskLabel,
                   })}
                 </li>
@@ -867,26 +874,78 @@ export default async function EventDetailPage({
           ))}
         </section>
       ) : null}
+      {/* Lot 26a (UX-11, POR-01, POR-10, SEC-14, SEC-15 ; ADR 0053) : liens personnels. */}
       {tab === "maries" ? (
-        <section className="card" aria-labelledby="client-access-title">
-          <h2 id="client-access-title">{t("clientAccessTitle")}</h2>
-          <p>{t("clientAccessIntro")}</p>
-          {clientAccesses.length === 0 ? <p>{t("noClientAccess")}</p> : null}
-          <ul aria-label={t("clientAccessTitle")} className="item-list">
-            {clientAccesses.map((access) => (
-              <li key={access.id}>
-                {access.email} — {t(CLIENT_ACCESS_STATUS_KEYS[access.status])}
-                {access.status === "active" || access.status === "invited" ? (
-                  <form action={revokeClientAccessAction}>
-                    <input type="hidden" name="eventId" value={event.id} />
-                    <input type="hidden" name="accessId" value={access.id} />
-                    <button type="submit">{t("revokeClientAccess", { email: access.email })}</button>
-                  </form>
-                ) : null}
-              </li>
-            ))}
+        <section className="card" aria-labelledby="links-title">
+          <h2 id="links-title">{t("linksTitle")}</h2>
+          <p>{t("linksIntro")}</p>
+          {links.length === 0 ? <p>{t("noLinks")}</p> : null}
+          <ul aria-label={t("linksTitle")} className="item-list">
+            {links.map((link) => {
+              const sees = link.rights.rubrics.map((rubric) =>
+                rubric === "budget" && link.rights.budgetScope === "selected"
+                  ? t("linkBudgetSlots", { slots: link.rights.sharedSlotIds.map((slotId) => slotLabelById.get(slotId) ?? "").filter(Boolean).join(", ") })
+                  : t(`linkRubric.${rubric}`),
+              );
+              return (
+                <li key={link.id} className="link-row">
+                  <p>
+                    <strong>{link.personName}</strong> — {link.email} — {t(LINK_STATUS_KEYS[link.status])}
+                    {link.status !== "revoked" ? ` — ${t("linkValidUntil", { date: formatCalendarDate(link.expiresOn, locale) })}` : ""}
+                  </p>
+                  <p className="muted">
+                    {sees.length > 0 ? t("linkSees", { items: sees.join(", ") }) : t("linkSeesNothing")}
+                    {" — "}
+                    {link.lastOpenedAt ? t("linkOpenedOn", { date: formatDateTime(new Date(link.lastOpenedAt), locale) }) : t("linkNeverOpened")}
+                  </p>
+                  {link.renewalRequestedAt ? (
+                    <p className="badge-warning">{t("linkRenewalRequested", { date: formatDateTime(new Date(link.renewalRequestedAt), locale) })}</p>
+                  ) : null}
+                  {link.status !== "revoked" && !event.isDemo ? (
+                    <div className="link-actions">
+                      <RenewLinkForm eventId={event.id} linkId={link.id} personName={link.personName} />
+                      <details>
+                        <summary>{t("editLink", { name: link.personName })}</summary>
+                        <EditLinkForm
+                          eventId={event.id}
+                          link={{
+                            id: link.id,
+                            personName: link.personName,
+                            email: link.email,
+                            eventClientId: link.eventClientId,
+                            rubrics: link.rights.rubrics,
+                            budgetScope: link.rights.budgetScope,
+                            sharedSlotIds: link.rights.sharedSlotIds,
+                            customExpiresOn: link.customExpiresOn,
+                          }}
+                          clients={linkClients}
+                          slots={linkSlots}
+                        />
+                      </details>
+                      <details>
+                        <summary>{t("revokeLink", { name: link.personName })}</summary>
+                        <form action={revokeLinkAction}>
+                          <input type="hidden" name="eventId" value={event.id} />
+                          <input type="hidden" name="linkId" value={link.id} />
+                          <button type="submit">{t("revokeLinkConfirm", { name: link.personName })}</button>
+                        </form>
+                      </details>
+                    </div>
+                  ) : null}
+                </li>
+              );
+            })}
           </ul>
-          {event.isDemo ? <p>{t("trialNoInvite")}</p> : <InviteClientForm eventId={event.id} />}
+          {event.isDemo ? (
+            <p>{t("trialNoInvite")}</p>
+          ) : (
+            <CreateLinkForm
+              eventId={event.id}
+              clients={linkClients}
+              slots={linkSlots}
+              profiles={listLinkProfiles(locale === "en" ? "en" : "fr", await requestAudience(organizationId)).map((profile) => ({ key: profile.key, label: profile.label, budgetScope: profile.budgetScope }))}
+            />
+          )}
         </section>
       ) : null}
     </main>

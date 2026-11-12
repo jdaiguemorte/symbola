@@ -2,9 +2,9 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("next/headers", () => ({ cookies: vi.fn() }));
 
-const { toClientAuth, toPlannerAuth } = await import("./auth-context");
+const { toPlannerAuth } = await import("./auth-context");
 
-const user = (role: "owner" | "member" | "client" | "admin") => ({
+const user = (role: "owner" | "member" | "admin") => ({
   status: "authenticated" as const,
   user: {
     id: "u",
@@ -17,14 +17,13 @@ const user = (role: "owner" | "member" | "client" | "admin") => ({
   },
 });
 
-describe("PRD-EVT-06 — Écrans de la planner fermés aux comptes marié", () => {
+describe("PRD-EVT-06 — Écrans de la planner fermés aux autres rôles", () => {
   it("laisse passer la titulaire et les membres", () => {
     expect(toPlannerAuth(user("owner"))).toEqual(user("owner"));
     expect(toPlannerAuth(user("member"))).toEqual(user("member"));
   });
 
-  it("refuse un compte marié et l'Admin", () => {
-    expect(toPlannerAuth(user("client"))).toEqual({ status: "forbidden", role: "client" });
+  it("refuse l'Admin (lot 26a : les mariés n'ont plus de compte)", () => {
     expect(toPlannerAuth(user("admin"))).toEqual({ status: "forbidden", role: "admin" });
   });
 
@@ -36,14 +35,5 @@ describe("PRD-EVT-06 — Écrans de la planner fermés aux comptes marié", () =
       role: "owner",
       totpConfirmed: true,
     });
-  });
-});
-
-describe("PRD-EVT-06 — Espace du marié réservé aux comptes marié", () => {
-  it("laisse passer un compte marié, refuse la planner et l'Admin", () => {
-    expect(toClientAuth(user("client"))).toEqual(user("client"));
-    expect(toClientAuth(user("owner"))).toEqual({ status: "forbidden", role: "owner" });
-    expect(toClientAuth(user("member"))).toEqual({ status: "forbidden", role: "member" });
-    expect(toClientAuth(user("admin"))).toEqual({ status: "forbidden", role: "admin" });
   });
 });

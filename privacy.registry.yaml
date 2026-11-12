@@ -12,18 +12,17 @@ fields:
       voir RGPD-03/RGPD-05 (purge selon les règles de conservation du
       cahier des charges).
     anonymization: >-
-      Compte d'accès d'un marié : supprimé, avec ses sessions, lors d'une demande
-      d'oubli (RGPD-03, décision de Julien du 02/11/2026). Les comptes de l'équipe
-      de la planner ne relèvent pas de ce traitement.
+      Comptes de l'équipe de la planner et de l'Admin seulement : depuis le lot
+      26a (ADR 0053), les tiers n'ont plus de compte ; leur lien personnel est
+      déclaré sous events.event_links.
   - schema: hub
     table: users
     field: last_login_at
     category: securite
     retention: >-
       Lot 6 (RGPD-05) : date de la dernière connexion réussie, mise à jour à
-      chaque connexion. Sert à supprimer le compte d'un marié resté inactif
-      au-delà de la durée réglée (2 ans par défaut). Gardée tant que le compte
-      existe.
+      chaque connexion. Gardée tant que le compte existe (lot 26a : les comptes
+      de mariés, dont elle réglait la suppression, n'existent plus).
     anonymization: >-
       Supprimée avec le compte (oubli ou purge).
   - schema: hub
@@ -327,13 +326,34 @@ fields:
     field: email
     category: contact
     retention: >-
-      Tant que l'accès du marié à l'événement existe (PRD-EVT-06 : e-mail de
-      l'invitation, affiché dans la fiche et dans le fil d'activité). Le
-      compte du marié lui-même relève de hub.users. Après suppression ou
-      demande d'oubli : voir RGPD-03/RGPD-05.
+      Table retirée au lot 26a (migration 0112, ADR 0053) : les invitations des
+      comptes de mariés (ADR 0020) sont remplacées par les liens personnels
+      (events.event_links). Entrée gardée parce que la migration 0026 qui l'a
+      créée reste dans l'historique.
     anonymization: >-
-      La ligne d'accès est supprimée lors d'une demande d'oubli (RGPD-03) ; le
-      compte du marié est supprimé par le hub.
+      Sans objet depuis le lot 26a (table supprimée, données fictives seulement).
+  - schema: events
+    table: event_links
+    field: person_name
+    category: identifiant
+    retention: >-
+      Lot 26a (UX-11, POR-01, ADR 0053) : nom de la personne d'un lien personnel
+      (client, parent payeur), affiché à la planner et dans le portail ; tant
+      que le lien existe, purgé avec l'événement. Après suppression ou demande
+      d'oubli : voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Le lien (et ses sessions) est supprimé lors d'une demande d'oubli qui le
+      vise (RGPD-03) ; ses coches du fil d'activité perdent leur auteur.
+  - schema: events
+    table: event_links
+    field: email
+    category: contact
+    retention: >-
+      Lot 26a : adresse où le lien personnel est envoyé, et qui reconnaît les
+      devis à signer de la personne ; tant que le lien existe, purgée avec
+      l'événement. Après suppression ou demande d'oubli : voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Le lien est supprimé lors d'une demande d'oubli qui le vise (RGPD-03).
   - schema: budget
     table: budget_lines
     field: label

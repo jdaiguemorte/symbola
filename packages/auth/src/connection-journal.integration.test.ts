@@ -3,13 +3,14 @@
 // l'app, purgée après la durée réglée. PostgreSQL réel.
 import { randomUUID } from "node:crypto";
 import { and, eq } from "drizzle-orm";
+import * as OTPAuth from "otpauth";
 import postgres from "postgres";
 import { afterAll, describe, expect, it } from "vitest";
 import { createAppConnection } from "@symbola/db/client";
 import { auditEntries } from "@symbola/db/schema/core";
 import { withOrganization } from "@symbola/db/with-organization";
 import { purgeConnectionTraces } from "./connection-journal";
-import { createOrganization, createUser, destroySession, login } from "./service";
+import { confirmTotp, createOrganization, createUser, destroySession, login, setupTotp } from "./service";
 
 const { sql, db } = createAppConnection();
 const admin = postgres({
@@ -30,7 +31,7 @@ afterAll(async () => {
 async function couple() {
   const organization = await createOrganization(db, `Org ${randomUUID()}`);
   const email = `marie-${randomUUID()}@example.test`;
-  const user = await createUser(db, { organizationId: organization.id, email, password: "mot-de-passe-du-marie", role: "client" });
+  const user = await createUser(db, { organizationId: organization.id, email, password: "mot-de-passe-du-marie", role: "member" });
   return { organizationId: organization.id, userId: user.id, email };
 }
 
@@ -53,10 +54,15 @@ describe("SEC-19 — Connexions au journal d'audit", () => {
     const account = await couple();
     const result = await login(db, account.email, "mot-de-passe-du-marie", { clientIp: "203.0.113.7" });
     if (result.outcome !== "success") throw new Error("connexion attendue");
-    await destroySession(db, result.sessionToken);
+    // Lot 26a : tout compte est professionnel ; la connexion s'ouvre au code.
+    const { secret } = await setupTotp(db, account.userId);
+    const code = new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret) }).generate();
+    const confirmed = await confirmTotp(db, { sessionToken: result.sessionToken, token: code, clientIp: "203.0.113.7" });
+    if (confirmed.outcome !== "confirmed") throw new Error("double authentification attendue");
+    await destroySession(db, confirmed.sessionToken);
     const entries = await connections(account.organizationId);
-    expect(entries.map((entry) => entry.action)).toEqual(["hub.session.opened", "hub.session.closed"]);
-    expect(entries[0]).toMatchObject({ actorKind: "member", actorId: account.userId, objectId: account.userId, details: { method: "password" } });
+    expect(entries.map((entry) => entry.action)).toEqual(["hub.mfa.configured", "hub.session.opened", "hub.session.closed"]);
+    expect(entries[1]).toMatchObject({ actorKind: "member", actorId: account.userId, objectId: account.userId, details: { method: "code" } });
   });
 
   it("un mot de passe faux est un échec sans auteur ; le cinquième verrouille le compte", async () => {

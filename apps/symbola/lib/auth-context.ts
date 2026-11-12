@@ -55,8 +55,7 @@ export async function getAuthContext(): Promise<AuthResult> {
   return await requireUser(db, token);
 }
 
-// PRD-EVT-06 : écrans et actions de la planner. Un compte marié (ou l'Admin)
-// y reçoit « forbidden » : le type oblige chaque page à le traiter, et
+// PRD-EVT-06 : écrans et actions de la planner. L'Admin y reçoit « forbidden » : le type oblige chaque page à le traiter, et
 // toute action qui n'accepte que « authenticated » le refuse d'office.
 export type PlannerAuthResult = AuthResult | { status: "forbidden"; role: string };
 
@@ -68,18 +67,6 @@ export function toPlannerAuth(result: AuthResult): PlannerAuthResult {
 
 export async function getPlannerAuthContext(): Promise<PlannerAuthResult> {
   return toPlannerAuth(await getAuthContext());
-}
-
-// PRD-EVT-06 : espace du marié, réservé au rôle « client ». L'appartenance à
-// l'événement est vérifiée ensuite par le module events, à chaque requête.
-export function toClientAuth(result: AuthResult): PlannerAuthResult {
-  if (result.status !== "authenticated") return result;
-  if (result.user.role !== "client") return { status: "forbidden", role: result.user.role };
-  return result;
-}
-
-export async function getClientAuthContext(): Promise<PlannerAuthResult> {
-  return toClientAuth(await getAuthContext());
 }
 
 export async function setSessionCookie(token: string): Promise<void> {

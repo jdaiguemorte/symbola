@@ -13,7 +13,6 @@ import { afterAll, describe, expect, it } from "vitest";
 import { createOrganization, createUser } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
 import { eventClients, events } from "@symbola/db/schema/events";
-import { users } from "@symbola/db/schema/hub";
 import { invoices, paymentScheduleItems, quotes, quoteSigners, quoteVersions, signatureRequests } from "@symbola/db/schema/quotes";
 import { withOrganization } from "@symbola/db/with-organization";
 import { addMonths, parisDate } from "@symbola/privacy";
@@ -139,19 +138,6 @@ describe("RGPD-05 — Purge mensuelle : liste des données échues (dates simul�
     expect(await keys(planner, "2036-03-10")).not.toContain(`accounting_document:invoice:${invoiceId}`);
   });
 
-  it("compte d'un marié : 2 ans sans connexion, à partir de sa création s'il ne s'est jamais connecté", async () => {
-    const planner = await createPlanner();
-    const account = await createUser(db, { organizationId: planner.organizationId, email: `marie-${randomUUID().slice(0, 6)}@example.org`, password: "mot-de-passe", role: "client" });
-    const due = addMonths(today, 24);
-    expect(await keys(planner, dayBefore(due))).toEqual([]);
-    expect(await keys(planner, due)).toEqual([`inactive_account:account:${account.id}`]);
-    // Une connexion repousse l'échéance.
-    await db.update(users).set({ lastLoginAt: new Date(`${addMonths(today, 12)}T12:00:00Z`) }).where(eq(users.id, account.id));
-    expect(await keys(planner, due)).toEqual([]);
-  });
-});
-
-describe("RGPD-05 — Purge mensuelle : validation", { timeout: 30_000 }, () => {
   it("Quand elle valide la liste, alors la purge s'exécute ; une ligne exclue l'est avec un motif obligatoire et revient ensuite", async () => {
     const planner = await createPlanner();
     const lostName = `Petit${randomUUID().slice(0, 4)}`;
@@ -228,18 +214,6 @@ describe("RGPD-05 — Purge mensuelle : validation", { timeout: 30_000 }, () => 
     expect((await keys(planner, day)).filter((key) => key.includes(invoiceId) || key.includes(quoteId))).toEqual([]);
   });
 
-  it("le compte d'un marié inactif est supprimé", async () => {
-    const planner = await createPlanner();
-    const account = await createUser(db, { organizationId: planner.organizationId, email: `marie-${randomUUID().slice(0, 6)}@example.org`, password: "mot-de-passe", role: "client" });
-    const result = await executePurge({
-      organizationId: planner.organizationId,
-      userId: planner.userId,
-      today: addMonths(today, 24),
-      decisions: [{ key: `account:${account.id}`, excluded: false, reason: "" }],
-    });
-    expect(result).toMatchObject({ status: "ok", purgeStatus: "completed" });
-    expect(await db.select().from(users).where(eq(users.id, account.id))).toEqual([]);
-  });
 });
 
 describe("RGPD-05 — Isolation de la purge", { timeout: 30_000 }, () => {

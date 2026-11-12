@@ -98,6 +98,15 @@ les actions sensibles, pages exclues des moteurs de recherche) vous paraît-il a
 sécurité adapté, au sens de l'article 32 ? Un lien transféré par le client à un proche est le
 risque principal.
 
+> **Symbola** (lot 26a, 12/11/2026) : en place pour le client et le parent payeur. Jeton de 256 bits
+> dont seul le haché est gardé, placé après « # » dans l'adresse (jamais transmis au serveur ni
+> écrit dans un journal), retiré de l'adresse dès l'ouverture ; droits par personne (rubriques,
+> catégories du budget) ; expiration 30 jours après l'événement ; retrait immédiat ; pages non
+> indexées. Chaque page du portail affiche une **mention d'information** au nom du planner
+> (`packages/starter-templates/src/link-privacy-notice.json`), que le planner peut adapter dans
+> ses réglages RGPD. **Ce texte de départ est à relire** : contenu (finalité, base légale,
+> durée, droits, réclamation à la CNIL) et formulation.
+
 ### 8. Accord de sous-traitance et sous-traitants ultérieurs
 
 Quel contenu minimal pour l'accord ? Quel préavis avant de changer de sous-traitant ultérieur ? La

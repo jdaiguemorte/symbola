@@ -1,5 +1,5 @@
-// TOTP (SOC-04, ADR 0013) : MFA obligatoire pour les rôles professionnels,
-// facultative pour les mariés (rôle "client").
+// TOTP (SOC-04, ADR 0013) : MFA obligatoire pour les rôles professionnels
+// (lot 26a : tous les comptes ; les tiers n'ont pas de compte).
 import * as OTPAuth from "otpauth";
 
 export function generateTotpSecret(): string {

@@ -15,7 +15,6 @@ import {
   getPrivacyPurge,
   getPrivacySettings,
   listExpiredPrivacyRequests,
-  listInactiveClientAccounts,
   recordPrivacyPurgeAcks,
   startPrivacyPurge,
   type PrivacyErasureItem,
@@ -46,7 +45,6 @@ export function purgePeriod(today: string): string {
 export async function listPurgeCandidates(organizationId: string, today: string = parisDate(new Date())): Promise<PurgeCandidate[]> {
   const db = appDatabase();
   const settings = await getPrivacySettings(db, organizationId);
-  const accounts = await listInactiveClientAccounts(db, { organizationId, months: settings, today });
   const candidates: PurgeCandidate[] = [];
 
   const events = await listRetentionEvents(organizationId);
@@ -67,8 +65,6 @@ export async function listPurgeCandidates(organizationId: string, today: string 
     if (!rule || !dueOn || !isExpired(today, dueOn)) continue;
     candidates.push({ key: `event:${event.eventId}`, rule, dueOn, label: event.clientNames.join(" & "), eventDate: event.eventDate });
   }
-
-  for (const account of accounts) candidates.push({ key: `account:${account.id}`, rule: "inactive_account", dueOn: account.dueOn, label: account.email, eventDate: null });
 
   for (const document of await listExpiredDocuments(organizationId, { ...settings, today })) {
     candidates.push({
@@ -104,7 +100,6 @@ async function recordsOf(organizationId: string, keys: string[], options: Option
   }
   for (const key of keys) {
     const [prefix, id] = key.split(":");
-    if (prefix === "account") refs.push({ module: "hub", kind: "client_account", recordId: id! });
     if (prefix === "invoice" || prefix === "credit_note" || prefix === "quote") refs.push({ module: "quotes", kind: prefix, recordId: id! });
     if (prefix === "request") refs.push({ module: "hub", kind: "privacy_request", recordId: id! });
   }
