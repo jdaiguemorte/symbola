@@ -77,7 +77,10 @@ export function ProgramPdfDocument({ model }: { model: ProgramPdfModel }) {
         {model.rows.map((row, index) => (
           <View key={index} style={styles.row} wrap={false}>
             <Text style={columnStyles[0]!}>{row.time}</Text>
-            <Text style={columnStyles[1]!}>{row.label}</Text>
+            <Text style={columnStyles[1]!}>
+              {row.label}
+              {row.responsible ? `\n${row.responsible}` : ""}
+            </Text>
             <Text style={columnStyles[2]!}>{row.location}</Text>
             <Text style={columnStyles[3]!}>{row.participants}</Text>
             {model.showNotes ? <Text style={columnStyles[4]!}>{row.note ?? ""}</Text> : null}

@@ -82,3 +82,32 @@ export async function clickAdminMenuLink(page: Page, name: string): Promise<void
   await openMenu(page);
   await page.getByRole("navigation", { name: "Menu de l'Administration" }).getByRole("link", { name, exact: true }).click();
 }
+
+// Lot 30b (UX-05, décision D9) — aide commune : chaque bouton, sommaire, lien hors d'une
+// phrase et case à cocher (par son libellé, qui la porte) visible mesure au moins `min`
+// pixels de côté. Un lien dans une phrase est exempté (WCAG 2.5.8, « en ligne »).
+export async function expectTouchTargets(page: Page, min: number): Promise<void> {
+  const small = await page.evaluate((size) => {
+    const visible = (element: Element) => {
+      const box = element.getBoundingClientRect();
+      const style = getComputedStyle(element);
+      return box.width > 0 && box.height > 0 && style.visibility !== "hidden" && style.display !== "none";
+    };
+    const words = (element: Element | null) => (element?.textContent ?? "").replace(/\s+/g, " ").trim();
+    const inSentence = (link: HTMLElement) => getComputedStyle(link).display === "inline" && words(link.parentElement).length > words(link).length;
+    const targets = new Set<Element>();
+    for (const element of document.querySelectorAll<HTMLElement>("button, summary, a[href]")) {
+      if (element.tagName === "A" && inSentence(element)) continue;
+      targets.add(element);
+    }
+    for (const input of document.querySelectorAll<HTMLInputElement>("input[type=checkbox], input[type=radio]")) {
+      targets.add(input.closest("label") ?? input);
+    }
+    return [...targets]
+      .filter(visible)
+      .map((element) => ({ element, box: element.getBoundingClientRect() }))
+      .filter(({ box }) => box.width < size || box.height < size)
+      .map(({ element, box }) => `${element.tagName} « ${words(element).slice(0, 40)} » ${Math.round(box.width)}×${Math.round(box.height)}`);
+  }, min);
+  expect(small).toEqual([]);
+}

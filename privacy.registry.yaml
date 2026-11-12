@@ -330,6 +330,17 @@ fields:
       La ligne du programme est supprimée lors d'une demande d'oubli qui la vise
       (RGPD-03) ; texte libre, sans intérêt statistique.
   - schema: events
+    table: program_items
+    field: responsible
+    category: identifiant
+    retention: >-
+      Tant que l'événement existe (responsable d'une séquence du programme du
+      jour J, lot 30b, CHR-06 : un prénom ou un rôle, « Camille », « Le
+      domaine »). Après suppression ou demande d'oubli : voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Trouvé par la recherche RGPD-01 ; la ligne du programme est supprimée lors
+      d'une demande d'oubli qui la vise (RGPD-03), comme sa note interne.
+  - schema: events
     table: event_client_accesses
     field: email
     category: contact

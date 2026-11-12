@@ -518,6 +518,10 @@
         {
           "q": "Comment faire valider un choix au client ?",
           "a": "Dans l'onglet Mariés, section « Décisions du client » : faites choisir entre les prestataires montrés d'un poste, valider une dépense ou approuver le programme. La réponse est horodatée et au nom de la personne ; vous retenez ensuite le prestataire ou engagez la dépense d'un clic. Une décision répondue ne se modifie pas : demandez-en une nouvelle."
+        },
+        {
+          "q": "Comment décaler la suite du programme ?",
+          "a": "Dans l'onglet Programme, changez l'heure de début d'une séquence : la fiche propose de décaler d'autant les séquences suivantes, début et fin, en un clic, et « Annuler » reste possible dix secondes. À la saisie, la durée donne l'heure de fin, et l'inverse ; le responsable se choisit parmi ceux déjà saisis."
         }
       ]
     },
@@ -1411,7 +1415,19 @@
     "linkPreviewBack": "Retour à la fiche de l'événement",
     "activityDecisionMade": "{actor} a répondu : « {task} ».",
     "dayOfLink": "Jour J",
-    "tabDocuments": "Documents"
+    "tabDocuments": "Documents",
+    "programDuration": "Durée en minutes (facultative)",
+    "programResponsible": "Responsable (facultatif)",
+    "programResponsibleLine": "Responsable : {name}",
+    "programResponsibleTooLong": "Le responsable tient en 120 caractères au plus.",
+    "programDurationInvalid": "Donnez une durée en minutes, de 1 à 1440.",
+    "programShiftLater": "Décaler aussi {count, plural, one {la séquence suivante} other {les # séquences suivantes}} de {duration}",
+    "programShiftEarlier": "Avancer aussi {count, plural, one {la séquence suivante} other {les # séquences suivantes}} de {duration}",
+    "programShiftedLater": "{count, plural, one {La séquence suivante est décalée} other {Les # séquences suivantes sont décalées}} de {duration}.",
+    "programShiftedEarlier": "{count, plural, one {La séquence suivante est avancée} other {Les # séquences suivantes sont avancées}} de {duration}.",
+    "programShiftUndo": "Annuler ({seconds} s)",
+    "programShiftUndone": "Décalage annulé : les séquences suivantes ont repris leurs heures.",
+    "programShiftOutOfDay": "Décaler les séquences suivantes en ferait passer une hors de la journée (après minuit) : déplacez-les à la main."
   },
   "Budget": {
     "title": "Budget",
@@ -4646,7 +4662,8 @@
     "call": "Appeler",
     "sms": "Écrire",
     "mail": "E-mail",
-    "smsLabel": "Écrire à {name} au {phone}"
+    "smsLabel": "Écrire à {name} au {phone}",
+    "responsible": "Responsable : {name}"
   },
   "Offline": {
     "title": "Hors ligne",

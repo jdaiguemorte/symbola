@@ -345,18 +345,28 @@ export type ProgramItem = {
   label: string;
   location: string | null;
   internalNote: string | null;
+  // Lot 30b (CHR-06, décision D6) : responsable de la séquence, texte court.
+  responsible: string | null;
   participants: ProgramParticipant[];
 };
 
 export type ProgramItemInput = {
   startTime: string;
   endTime?: string | null | undefined;
+  // Lot 30b (CHR-06, décision D7) : sans heure de fin, la durée la donne.
+  durationMinutes?: number | null | undefined;
   label: string;
   location?: string | null | undefined;
   internalNote?: string | null | undefined;
+  responsible?: string | null | undefined;
   vendorSlotIds: string[];
   freeParticipants: string[];
 };
+
+// Lot 30b (CHR-06, décision D8) : décaler les séquences suivantes d'autant que la
+// séquence modifiée, proposé après le changement de son heure de début ; `outOfDay`
+// quand l'une d'elles sortirait du jour J (elle se déplace alors à la main).
+export type ProgramShiftProposal = { minutes: number; itemIds: string[]; outOfDay: boolean };
 
 export type ProgramOverlap = { participant: string; itemIds: [string, string] };
 
@@ -689,6 +699,8 @@ export interface EventsServiceContract {
   addProgramItem(organizationId: string, eventId: string, item: ProgramItemInput): Promise<ProgramItem>;
   updateProgramItem(organizationId: string, itemId: string, item: ProgramItemInput): Promise<ProgramItem>;
   removeProgramItem(organizationId: string, itemId: string): Promise<void>;
+  // Lot 30b (CHR-06, décision D8) : décaler des séquences de l'événement, début et fin.
+  shiftProgramItems(organizationId: string, eventId: string, itemIds: string[], minutes: number): Promise<ProgramItem[]>;
   listProgramTemplates(organizationId: string): Promise<ProgramTemplate[]>;
   createProgramTemplate(organizationId: string, name: string, items: ProgramTemplateItemInput[]): Promise<ProgramTemplate>;
   addProgramTemplateItem(

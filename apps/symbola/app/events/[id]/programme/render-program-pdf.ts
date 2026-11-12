@@ -12,6 +12,7 @@ import { ProgramPdfDocument } from "./program-pdf";
 import { loadDocumentLogo } from "@/lib/document-logo";
 import { buildProgramPdfModel } from "./program-pdf-model";
 import { pdfSafe } from "@/lib/pdf-text";
+import { programSpanWords } from "@/lib/program-span-words";
 
 export async function renderProgramPdfResponse(input: {
   organizationId: string;
@@ -45,6 +46,8 @@ export async function renderProgramPdfResponse(input: {
       participants: t("programParticipants"),
       note: t("programInternalNote"),
       empty: t("noProgramItems"),
+      words: await programSpanWords(),
+      responsible: (name) => t("programResponsibleLine", { name }),
     },
   });
 

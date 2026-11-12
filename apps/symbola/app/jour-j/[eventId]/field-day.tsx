@@ -16,6 +16,7 @@ export type FieldItem = {
   label: string;
   location: string | null;
   note: string | null;
+  responsible: string | null;
   participants: string;
   calls: FieldCall[];
 };
@@ -66,6 +67,7 @@ export function FieldDay({ eventDate, items }: { eventDate: string; items: Field
               <p className="field-line">{hoursOf(current.id)}</p>
               {current.location ? <p className="field-line">{current.location}</p> : null}
               {current.participants ? <p className="field-line">{current.participants}</p> : null}
+              {current.responsible ? <p className="field-line">{t("responsible", { name: current.responsible })}</p> : null}
               {current.note ? <p className="field-note">{current.note}</p> : null}
               <p className="field-line">{t("remaining", { duration: duration(moment.endsInMinutes) })}</p>
               {current.calls.length > 0 ? (

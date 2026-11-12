@@ -2,6 +2,7 @@
 // être testé : la variante « mariés » ne contient jamais de note interne.
 import { formatDateTime, type Locale } from "@symbola/i18n";
 import { programForVariant, type EventProgram, type ProgramVariant } from "@/modules/events/service";
+import { programSpans, spanLabel, type SpanWords } from "@/lib/program-spans";
 
 export type ProgramPdfLogo = { data: Buffer; format: "png" | "jpg" };
 
@@ -15,11 +16,15 @@ export type ProgramPdfLabels = {
   participants: string;
   note: string;
   empty: string;
+  // Lot 30b (CHR-06) : durées et responsable de chaque séquence.
+  words: SpanWords;
+  responsible: (name: string) => string;
 };
 
 export type ProgramPdfRow = {
   time: string;
   label: string;
+  responsible: string | null;
   location: string;
   participants: string;
   note: string | null;
@@ -55,9 +60,12 @@ export function buildProgramPdfModel(input: {
   const { labels } = input;
   const showNotes = input.variant === "vendors";
   const versionDate = input.program.updatedAt ? new Date(input.program.updatedAt) : (input.now ?? new Date());
+  // Lot 30b (CHR-06, D7) : « 15:00 – 16:00 · 1 h » ; une fin absente vaut la suivante.
+  const spans = new Map(programSpans(input.program.items).map((span) => [span.id, span]));
   const rows = programForVariant(input.program.items, input.variant).map((item) => ({
-    time: item.endTime ? `${item.startTime} – ${item.endTime}` : item.startTime,
+    time: spanLabel(spans.get(item.id)!, labels.words),
     label: item.label,
+    responsible: item.responsible ? labels.responsible(item.responsible) : null,
     location: item.location ?? "",
     participants: item.participants.map((participant) => participant.label).join(", "),
     note: showNotes ? item.internalNote : null,

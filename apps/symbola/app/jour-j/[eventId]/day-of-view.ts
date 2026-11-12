@@ -22,6 +22,8 @@ export type DayOfItem = {
   label: string;
   location: string | null;
   note: string | null;
+  // Lot 30b (CHR-06, D6) : responsable de la séquence.
+  responsible: string | null;
   participants: DayOfParticipant[];
   // Lot 30a (JRJ-03, D5) : prestataires retenus de la séquence qui ont un téléphone.
   calls: { name: string; phone: string }[];
@@ -82,6 +84,7 @@ export function buildDayOfView(input: {
       label: item.label,
       location: item.location,
       note: item.internalNote,
+      responsible: item.responsible,
       participants: item.participants.map((participant) => ({
         label: participant.label,
         vendors: participant.vendorSlotId ? (namesBySlot.get(participant.vendorSlotId) ?? []) : [],

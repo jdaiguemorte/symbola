@@ -3075,3 +3075,27 @@
     @apply h-36;
   }
 }
+
+/* Lot 30b (CHR-06, décision D8 ; UX-07) — proposition de décaler les séquences suivantes,
+   puis « Annuler » pendant dix secondes. */
+@layer components {
+  .program-shift {
+    @apply my-3 flex flex-wrap items-center gap-3;
+  }
+  .program-shift [role="status"] {
+    @apply my-0;
+  }
+  /* Lot 30b (UX-05, décision D9) — portail du client et espace du prestataire (classe
+     portal), conçus à 360 px : boutons, sommaires, sommaire des rubriques et liens seuls
+     dans leur ligne mesurent 44 px au moins (même les formulaires d'un seul bouton). */
+  .portal button,
+  .portal summary {
+    @apply !min-h-11;
+  }
+  .portal-contents a,
+  .portal p > a:only-child,
+  .portal li > a:only-child,
+  .portal dd > a:only-child {
+    @apply inline-flex min-h-11 items-center;
+  }
+}

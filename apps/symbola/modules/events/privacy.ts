@@ -165,8 +165,9 @@ export const eventsPrivacy: PrivacyContractV1 = {
       }
       const items = await tx.select().from(programItems).where(inArray(programItems.eventId, eventIds));
       for (const item of items) {
-        if (recordMatches([item.internalNote], terms)) {
-          records.push({ module: MODULE, kind: "program_item", recordId: item.id, label: item.label, fields: compact({ internalNote: item.internalNote }), eventId: item.eventId });
+        // Lot 30b (CHR-06, D6) : le responsable d'une séquence peut être une personne.
+        if (recordMatches([item.internalNote, item.responsible], terms)) {
+          records.push({ module: MODULE, kind: "program_item", recordId: item.id, label: item.label, fields: compact({ internalNote: item.internalNote, responsible: item.responsible }), eventId: item.eventId });
         }
       }
       // Lot 12 (L12-EVT-15) : lieux de l'événement.
@@ -255,7 +256,7 @@ export const eventsPrivacy: PrivacyContractV1 = {
       }
       records.push(...(await candidateRecords(tx, ids, null)));
       for (const item of await tx.select().from(programItems).where(inArray(programItems.eventId, ids))) {
-        records.push({ module: MODULE, kind: "program_item", recordId: item.id, label: item.label, fields: compact({ location: item.location, internalNote: item.internalNote }), eventId: item.eventId });
+        records.push({ module: MODULE, kind: "program_item", recordId: item.id, label: item.label, fields: compact({ location: item.location, internalNote: item.internalNote, responsible: item.responsible }), eventId: item.eventId });
       }
       for (const place of await tx.select().from(eventPlaces).where(inArray(eventPlaces.eventId, ids)).orderBy(asc(eventPlaces.position))) {
         records.push({ module: MODULE, kind: "event_place", recordId: place.id, label: place.label, fields: compact({ address: place.address }), eventId: place.eventId });

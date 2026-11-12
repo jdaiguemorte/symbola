@@ -72,6 +72,50 @@ export function findProgramOverlaps(lines: ProgramLine[]): ProgramOverlapWarning
   return warnings;
 }
 
+// Lot 30b (CHR-06, décision D8) — décaler les séquences suivantes d'autant que la
+// séquence dont l'heure de début change. Les heures restent celles du jour J : un
+// début qui passerait minuit (ou avant 00:00) sortirait du jour, et la séquence se
+// déplace alors à la main. La fin suit le début ; une fin après minuit le reste.
+export const MAX_SHIFT_MINUTES = 12 * 60;
+
+function clockOf(minutes: number): string {
+  const wrapped = ((minutes % MINUTES_PER_DAY) + MINUTES_PER_DAY) % MINUTES_PER_DAY;
+  return `${String(Math.floor(wrapped / 60)).padStart(2, "0")}:${String(wrapped % 60).padStart(2, "0")}`;
+}
+
+// Écart signé, ramené dans ]-12 h ; 12 h] : 23:50 → 00:10 avance de 20 min.
+export function startShift(oldStart: string, newStart: string): number {
+  let delta = toMinutes(newStart) - toMinutes(oldStart);
+  if (delta > MAX_SHIFT_MINUTES) delta -= MINUTES_PER_DAY;
+  if (delta <= -MAX_SHIFT_MINUTES) delta += MINUTES_PER_DAY;
+  return delta;
+}
+
+// Début et fin décalés ; null si le début sortirait du jour J.
+export function shiftedTimes(line: { startTime: string; endTime: string | null }, minutes: number): { startTime: string; endTime: string | null } | null {
+  const start = toMinutes(line.startTime) + minutes;
+  if (start < 0 || start >= MINUTES_PER_DAY) return null;
+  return { startTime: clockOf(start), endTime: line.endTime === null ? null : clockOf(toMinutes(line.endTime) + minutes) };
+}
+
+export type ProgramShiftPlan = { minutes: number; itemIds: string[]; outOfDay: boolean };
+
+// Les séquences qui commencent après l'ancienne heure de la séquence modifiée ;
+// `outOfDay` quand l'une d'elles sortirait du jour J.
+export function proposeProgramShift<T extends { id: string; startTime: string; endTime: string | null }>(
+  items: T[],
+  itemId: string,
+  oldStart: string,
+  newStart: string,
+): ProgramShiftPlan | null {
+  const minutes = startShift(oldStart, newStart);
+  if (minutes === 0) return null;
+  const from = toMinutes(oldStart);
+  const following = sortProgramItems(items).filter((item) => item.id !== itemId && toMinutes(item.startTime) > from);
+  if (following.length === 0) return null;
+  return { minutes, itemIds: following.map((item) => item.id), outOfDay: following.some((item) => shiftedTimes(item, minutes) === null) };
+}
+
 export type ProgramVariant = "couple" | "vendors";
 
 // Variante « mariés » : jamais de note interne (PRD PRD-EVT-05, PRD-EVT-06).

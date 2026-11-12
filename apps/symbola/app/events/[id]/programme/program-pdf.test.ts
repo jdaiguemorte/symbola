@@ -14,8 +14,9 @@ const model: ProgramPdfModel = {
   version: "Version du 1 juin 2027 à 10:30",
   columns: ["Heure", "Déroulé", "Lieu", "Intervenants", "Note interne"],
   rows: Array.from({ length: 60 }, (_, index) => ({
-    time: "15:00 – 16:00",
+    time: "15:00 – 16:00 · 1 h",
     label: `Cérémonie ${index} — vin d'honneur, pièce montée`,
+    responsible: index % 2 === 0 ? "Responsable : Camille" : null,
     location: "Église Saint-Paul",
     participants: "Photographe, Officiant",
     note: "Prévoir les alliances (€)",
