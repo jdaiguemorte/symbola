@@ -19,6 +19,9 @@
         },
         "4": {
           "a": "Dans l'onglet Clients, créez le lien d'un prestataire retenu : il voit la date, les lieux, les lignes du programme où figure son poste et votre contact, rien d'autre (ni prix, ni budget, ni autres prestataires). Cochez « Demander un code à l'ouverture » pour qu'un code parte à son e-mail à chaque ouverture."
+        },
+        "5": {
+          "a": "Dans l'onglet Clients, section « Décisions du client » : faites choisir entre les prestataires montrés d'un poste, valider une dépense ou approuver le programme. La réponse est horodatée et au nom de la personne ; vous retenez ensuite le prestataire ou engagez la dépense d'un clic. Une décision répondue ne se modifie pas : demandez-en une nouvelle."
         }
       }
     },

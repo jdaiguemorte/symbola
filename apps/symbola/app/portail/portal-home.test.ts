@@ -60,6 +60,20 @@ describe("POR-02 — Accueil du portail : compte à rebours, avancement, trois p
     expect(nextActions({ tasks: null, quotes: [], payments: null, today: "2027-02-15" })).toEqual([]);
   });
 
+  it("lot 27b — une décision en attente compte ; sans date souhaitée, pour aujourd'hui ; répondue, plus", () => {
+    const decision = (id: string, dueOn: string | null, status: "pending" | "approved" = "pending") => ({
+      id,
+      kind: "program" as const,
+      title: "",
+      snapshot: { kind: "program" as const, programUpdatedAt: null, itemCount: 3 },
+      status,
+      dueOn,
+    });
+    const actions = nextActions({ tasks: [task("t", "2027-02-20")], quotes: [], payments: null, decisions: [decision("d1", null), decision("d2", "2027-02-10"), decision("d3", null, "approved")], today: "2027-02-15" });
+    expect(actions.map((action) => `${action.kind}:${action.id}`)).toEqual(["decision:d2", "decision:d1", "task:t"]);
+    expect(actions[0]).toMatchObject({ overdue: true });
+  });
+
   it("à date égale : la tâche, puis l'échéance, puis le devis", () => {
     const actions = nextActions({ tasks: [task("t", "2027-02-15")], quotes: [quote("q")], payments: [payment("p", "2027-02-15")], today: "2027-02-15" });
     expect(actions.map((action) => action.kind)).toEqual(["task", "payment", "quote"]);

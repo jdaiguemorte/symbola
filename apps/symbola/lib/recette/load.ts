@@ -430,6 +430,22 @@ async function loadBudgetLines(organizationId: string, ownerId: string, eventId:
     if ((line.paye_centimes ?? 0) > 0 && !hasPayments) await set("paid", line.paye_centimes!);
   }
 
+  // Lot 27b (POR-03) : les prestataires consultés du jeu sans ligne de budget
+  // (fleuristes consultés pour EV-REF-01) sont aussi rattachés à leur poste, au
+  // statut du jeu ; ils peuvent alors être proposés au client.
+  // La catégorie du jeu (« Fleuriste ») ne reprend pas toujours le libellé du
+  // poste (« Fleurs et décoration ») : libellé exact, sinon la racine du premier mot.
+  const stem = (text: string) => text.split(" ")[0]!.toLowerCase().replace(/s$/, "");
+  const slotForCategory = (category: string) =>
+    slotOf.get(category) ?? [...slotOf.entries()].find(([label]) => stem(category).startsWith(stem(label)) || stem(label).startsWith(stem(category)))?.[1];
+  const attached = new Set(lines.flatMap((line) => (line.prestataire ? [line.prestataire] : [])));
+  for (const vendor of event.prestataires ?? []) {
+    const slotId = slotForCategory(vendor.categorie);
+    if (!vendor.id || attached.has(vendor.id) || !slotId) continue;
+    const candidate = await addVendorCandidate({ organizationId, eventId, vendorSlotId: slotId, vendorName: vendor.nom });
+    statuses.push({ candidateId: candidate.id, status: VENDOR_STATUS[vendor.statut ?? ""] ?? "contacted", quote: 0 });
+  }
+
   for (const { candidateId, status, quote } of statuses) {
     if (ENGAGED.includes(status)) {
       await updateVendorCandidate({ organizationId, candidateId, quoteAmountCents: quote > 0 ? quote : null });

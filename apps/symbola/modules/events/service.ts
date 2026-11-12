@@ -138,6 +138,8 @@ import {
   parisStartOfDay,
 } from "./link-tokens";
 import { isSendingHour, reminderMail, reminderThreshold, type ReminderTask } from "./task-reminders";
+import { answerDecisionRow, findDecisionRow, findDecisionRows, insertDecisionRow, replacementsOf, withdrawDecisionRow, type EventDecisionRow } from "./decisions-repository";
+import { answerProblem, DECISION_NOTE_MAX, decisionOpenTo, programChangedSince } from "./decisions";
 import { hashLinkCode, LINK_CODE_TTL_MS, LINK_CODES_PER_HOUR, linkCodeExpiresAt, maskEmail, newLinkCode, normalizeLinkCode } from "./link-otp";
 import { addPlace, listPlaces, removePlace } from "./places";
 import { createStorageClient, deletePrivateObject } from "@symbola/files";
@@ -199,6 +201,13 @@ import type {
   RenewEventLinkInput,
   VendorLinkView,
   VerifyLinkCodeResult,
+  AnswerDecisionInput,
+  DecisionKind,
+  DecisionOption,
+  DecisionSnapshot,
+  DecisionStatus,
+  EventDecision,
+  RequestDecisionInput,
   ClientVendorSlotOptions,
   EventsTrial,
   StartEventsTrialInput,
@@ -300,6 +309,13 @@ export type {
   RenewEventLinkInput,
   VendorLinkView,
   VerifyLinkCodeResult,
+  AnswerDecisionInput,
+  DecisionKind,
+  DecisionOption,
+  DecisionSnapshot,
+  DecisionStatus,
+  EventDecision,
+  RequestDecisionInput,
   EventsTrial,
   StartEventsTrialInput,
 } from "@symbola/contracts";
@@ -1692,6 +1708,141 @@ export async function sendClientTaskReminders(organizationId: string, now: Date 
   return sent;
 }
 
+// Lot 27b (POR-03, BUD-07, EVT-09 ; décisions D9 et D10) — décisions demandées
+// au client. La planner les demande (contenu figé), le client y répond depuis
+// son portail (première réponse), la décision répondue ne se modifie plus : une
+// nouvelle la remplace. Une décision n'engage rien d'elle-même (D9).
+
+export class DecisionInvalidError extends Error {
+  constructor(readonly reason: "options" | "expense" | "program" | "date" | "note" | "replace" | "pending" | "choice" | "comment" | "answered") {
+    super(`décision invalide : ${reason}`);
+    this.name = "DecisionInvalidError";
+  }
+}
+
+export class DecisionNotFoundError extends Error {
+  constructor() {
+    super("décision introuvable");
+    this.name = "DecisionNotFoundError";
+  }
+}
+
+function toDecision(row: EventDecisionRow, replacedBy: Map<string, string>, currentProgramUpdatedAt: string | null): EventDecision {
+  const snapshot = row.snapshot as DecisionSnapshot;
+  return {
+    id: row.id,
+    eventId: row.eventId,
+    kind: row.kind as DecisionKind,
+    subjectId: row.subjectId,
+    slotId: row.slotId,
+    title: row.title,
+    note: row.note,
+    snapshot,
+    dueOn: row.dueOn,
+    status: row.status as DecisionStatus,
+    choiceId: row.choiceId,
+    comment: row.comment,
+    decidedByName: row.decidedByName,
+    decidedByLinkId: row.decidedByLinkId,
+    decidedAt: row.decidedAt?.toISOString() ?? null,
+    replacesDecisionId: row.replacesDecisionId,
+    replacedById: replacedBy.get(row.id) ?? null,
+    requestedAt: row.requestedAt.toISOString(),
+    programChanged: row.status === "approved" && programChangedSince(snapshot, currentProgramUpdatedAt),
+  };
+}
+
+async function decisionsWithContext(organizationId: string, eventId: string, rows: EventDecisionRow[], all: EventDecisionRow[]): Promise<EventDecision[]> {
+  const programUpdatedAt = rows.some((row) => row.kind === "program") ? (await getEventProgram(organizationId, eventId)).updatedAt : null;
+  const replacedBy = replacementsOf(all);
+  return rows.map((row) => toDecision(row, replacedBy, programUpdatedAt));
+}
+
+export async function requestDecision(input: RequestDecisionInput): Promise<EventDecision> {
+  const { organizationId, eventId } = input;
+  const found = await findEventById(organizationId, eventId);
+  if (!found) throw new EventNotFoundError();
+  if (found.event.isDemo) throw new DemoEventRestrictionError();
+  const note = input.note?.trim() || null;
+  if (note && note.length > DECISION_NOTE_MAX) throw new DecisionInvalidError("note");
+  const dueOn = input.dueOn?.trim() || null;
+  if (dueOn && (!LINK_DATE_PATTERN.test(dueOn) || Number.isNaN(Date.parse(`${dueOn}T00:00:00Z`)))) throw new DecisionInvalidError("date");
+
+  let subject: { subjectId: string | null; slotId: string | null; title: string; snapshot: DecisionSnapshot };
+  if (input.kind === "option") {
+    const slot = (await listEventVendorSlots(organizationId, eventId)).find((candidate) => candidate.id === input.slotId);
+    const options: DecisionOption[] = (await listVendorCandidates(organizationId, eventId))
+      .filter((candidate) => candidate.vendorSlotId === input.slotId && candidate.shownToClients)
+      .map((candidate) => ({ candidateId: candidate.id, vendorName: candidate.vendorName, quoteAmountCents: candidate.quoteAmountCents }));
+    if (!slot || options.length < 2) throw new DecisionInvalidError("options");
+    subject = { subjectId: slot.id, slotId: slot.id, title: slot.label, snapshot: { kind: "option", slotLabel: slot.label, options } };
+  } else if (input.kind === "expense") {
+    const slot = (await listEventVendorSlots(organizationId, eventId)).find((candidate) => candidate.id === input.slotId);
+    const label = input.label.trim();
+    if (!slot || !label || !Number.isInteger(input.amountCents) || input.amountCents <= 0) throw new DecisionInvalidError("expense");
+    subject = { subjectId: input.lineId, slotId: slot.id, title: label, snapshot: { kind: "expense", slotLabel: slot.label, label, vendorName: input.vendorName, amountCents: input.amountCents } };
+  } else {
+    const program = await getEventProgram(organizationId, eventId);
+    if (program.items.length === 0) throw new DecisionInvalidError("program");
+    // Titre vide : l'écran affiche « le programme du jour J » dans la langue de la personne.
+    subject = { subjectId: null, slotId: null, title: "", snapshot: { kind: "program", programUpdatedAt: program.updatedAt, itemCount: program.items.length } };
+  }
+
+  const existing = await findDecisionRows(organizationId, eventId);
+  if (existing.some((row) => row.status === "pending" && row.kind === input.kind && row.subjectId === subject.subjectId)) throw new DecisionInvalidError("pending");
+  const replacesDecisionId = input.replacesDecisionId || null;
+  if (replacesDecisionId) {
+    const replaced = existing.find((row) => row.id === replacesDecisionId);
+    const answered = replaced && (replaced.status === "approved" || replaced.status === "declined");
+    if (!replaced || !answered || replaced.kind !== input.kind || replaced.subjectId !== subject.subjectId || replacementsOf(existing).has(replaced.id)) throw new DecisionInvalidError("replace");
+  }
+  const row = await insertDecisionRow({ organizationId, eventId, kind: input.kind, ...subject, note, dueOn, replacesDecisionId });
+  return toDecision(row, new Map(), input.kind === "program" && subject.snapshot.kind === "program" ? subject.snapshot.programUpdatedAt : null);
+}
+
+// Une demande sans réponse peut être retirée ; une décision répondue, non.
+export async function withdrawDecision(organizationId: string, decisionId: string): Promise<void> {
+  if (await withdrawDecisionRow(organizationId, decisionId)) return;
+  if (!(await findDecisionRow(organizationId, decisionId))) throw new DecisionNotFoundError();
+  throw new DecisionInvalidError("answered");
+}
+
+export async function listEventDecisions(organizationId: string, eventId: string): Promise<EventDecision[]> {
+  const rows = await findDecisionRows(organizationId, eventId);
+  return decisionsWithContext(organizationId, eventId, rows, rows);
+}
+
+async function clientLinkAccess(organizationId: string, linkId: string): Promise<LinkAccess> {
+  const access = await getLinkAccess(organizationId, linkId);
+  if (!access || access.audience !== "client") throw new LinkAccessDeniedError();
+  return access;
+}
+
+// Ce que voit un lien : les décisions de ses rubriques (D10), sauf retirées.
+export async function listLinkDecisions(organizationId: string, linkId: string): Promise<EventDecision[]> {
+  const access = await clientLinkAccess(organizationId, linkId);
+  const all = await findDecisionRows(organizationId, access.eventId);
+  const visible = all.filter((row) => row.status !== "withdrawn" && decisionOpenTo({ kind: row.kind as DecisionKind, slotId: row.slotId }, access));
+  return decisionsWithContext(organizationId, access.eventId, visible, all);
+}
+
+export async function answerLinkDecision(input: AnswerDecisionInput): Promise<EventDecision> {
+  const access = await clientLinkAccess(input.organizationId, input.linkId);
+  const row = await findDecisionRow(input.organizationId, input.decisionId);
+  if (!row || row.eventId !== access.eventId || row.status === "withdrawn" || !decisionOpenTo({ kind: row.kind as DecisionKind, slotId: row.slotId }, access)) throw new LinkAccessDeniedError();
+  if (row.status !== "pending") throw new DecisionInvalidError("answered");
+  const comment = input.comment?.trim() || null;
+  const choiceId = input.choiceId || null;
+  const problem = answerProblem(row.snapshot as DecisionSnapshot, { answer: input.answer, choiceId, comment });
+  if (problem) throw new DecisionInvalidError(problem);
+  const answered = await withActor({ kind: "link", id: access.linkId }, () =>
+    answerDecisionRow({ organizationId: input.organizationId, decisionId: row.id, status: input.answer, choiceId, comment, linkId: access.linkId, personName: access.personName, now: new Date() }),
+  );
+  if (!answered) throw new DecisionInvalidError("answered");
+  const [decision] = await decisionsWithContext(input.organizationId, access.eventId, [answered], await findDecisionRows(input.organizationId, access.eventId));
+  return decision!;
+}
+
 // Décision D3 : profils de départ d'un lien (ils pré-cochent les rubriques).
 export function listLinkProfiles(locale: "fr" | "en", vocabulary: EventTypeAudience): StarterLinkProfile[] {
   return starterLinkProfiles(locale, vocabulary === "clients" ? "clients" : "couple");
@@ -1962,6 +2113,11 @@ const _contractCheck: EventsServiceContract = {
   verifyLinkCode,
   getVendorLinkView,
   sendClientTaskReminders,
+  requestDecision,
+  withdrawDecision,
+  listEventDecisions,
+  listLinkDecisions,
+  answerLinkDecision,
   resolveLinkSession,
   closeLinkSession,
   requestLinkRenewal,

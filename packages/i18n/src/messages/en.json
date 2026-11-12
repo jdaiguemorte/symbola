@@ -514,6 +514,10 @@
         {
           "q": "How do I share their times with a vendor?",
           "a": "In the Couple tab, create a link for a retained vendor: they see the date, the venues, the programme lines that involve their role and your contact details, nothing else (no prices, no budget, no other vendors). Tick “Ask for a code when opening” to have a code sent to their e-mail each time they open it."
+        },
+        {
+          "q": "How do I have the client approve a choice?",
+          "a": "In the Couple tab, “Client decisions” section: have the client choose between the vendors shown for an item, approve an expense or approve the schedule. The answer is time-stamped and in the person's name; you then retain the vendor or commit the expense in one click. An answered decision is never changed: ask for a new one."
         }
       ]
     },
@@ -553,7 +557,7 @@
     },
     "clientEvent": {
       "title": "Your space",
-      "body": "Your organiser has opened this space for you with a personal link, with no account or password. At the top, your next three actions; further down, what they have shared with you: your tasks to tick, the schedule of the day, the budget in three figures and its instalments. Paid an instalment? Declare it: your organiser will confirm it. This link is for you only: please do not forward it."
+      "body": "Your organiser has opened this space for you with a personal link, with no account or password. At the top, your next three actions and what you are asked to decide; further down, what they have shared with you: your tasks to tick, the schedule of the day, the budget in three figures and its instalments. Paid an instalment? Declare it: your organiser will confirm it. This link is for you only: please do not forward it."
     },
     "vendorSpace": {
       "title": "Your vendor space",
@@ -1370,7 +1374,8 @@
     "linkPreview": "View as {name}",
     "linkPreviewBanner": "Preview: what {name} sees",
     "linkPreviewNote": "Buttons are inactive and files do not open in the preview; nothing is recorded on the link.",
-    "linkPreviewBack": "Back to the event page"
+    "linkPreviewBack": "Back to the event page",
+    "activityDecisionMade": "{actor} answered: “{task}”."
   },
   "Budget": {
     "title": "Budget",
@@ -4168,7 +4173,10 @@
       "budget_vendor_payment_declaration_cancelled": "Payment declaration cancelled",
       "budget_vendor_payment_declaration_confirmed": "Declared payment confirmed",
       "budget_vendor_payment_declaration_refused": "Declared payment refused",
-      "events_link_reminder_sent": "Task reminder sent"
+      "events_link_reminder_sent": "Task reminder sent",
+      "events_decision_requested": "Decision requested from the client",
+      "events_decision_answered": "Client decision",
+      "events_decision_withdrawn": "Decision request withdrawn"
     },
     "categories": {
       "connexion": "Sign-ins",
@@ -4247,7 +4255,8 @@
       "budget_alert_thresholds": "Budget alert thresholds",
       "budget_vendor_payments": "Vendor instalments",
       "events_event_links": "personal link",
-      "events_event_link_shared_slots": "category shared with a link"
+      "events_event_link_shared_slots": "category shared with a link",
+      "events_event_decisions": "client decision"
     },
     "modules": {
       "events": "Events",
@@ -4408,7 +4417,9 @@
     "declareErrorMethod": "Choose a payment method from the list.",
     "declarePaymentShort": "I have paid it",
     "declareSubmitShort": "Declare the payment",
-    "cancelDeclarationShort": "Cancel my declaration"
+    "cancelDeclarationShort": "Cancel my declaration",
+    "navDecisions": "To decide",
+    "actionGoDecision": "Answer"
   },
   "VendorSpace": {
     "title": "Your vendor space",
@@ -4421,5 +4432,89 @@
     "programTitle": "Your times",
     "noProgramItems": "No programme line involves you for now.",
     "contactTitle": "Your contact"
+  },
+  "Decisions": {
+    "decisionOptionTitle": "Choose: {slot}",
+    "decisionExpenseTitle": "Approve the expense: {label} ({amount})",
+    "decisionProgramTitle": "Approve the schedule of the day",
+    "programLabel": "the schedule of the day",
+    "toDecideTitle": "To decide",
+    "nothingToDecide": "Nothing to decide for now.",
+    "dueOn": "Answer wanted before {date}",
+    "yourChoice": "Your choice — {label}",
+    "commentLabel": "A comment (optional)",
+    "approve": {
+      "option": "Confirm my choice",
+      "expense": "I approve",
+      "program": "I approve"
+    },
+    "approveFull": {
+      "option": "Confirm my choice: {label}",
+      "expense": "I approve: {label}",
+      "program": "I approve: {label}"
+    },
+    "decline": {
+      "option": "None suits me",
+      "expense": "I do not approve",
+      "program": "I have a remark"
+    },
+    "declineFull": {
+      "option": "None suits me: {label}",
+      "expense": "I do not approve: {label}",
+      "program": "I have a remark: {label}"
+    },
+    "answerSaved": "Your answer is saved.",
+    "answerGone": "This decision no longer awaits an answer.",
+    "answerChoiceMissing": "Choose an option.",
+    "answerCommentTooLong": "The comment is longer than 500 characters.",
+    "yourDecisionsTitle": "Your decisions",
+    "answeredComment": "Comment: {comment}",
+    "answeredChoice": "{label}: {choice}, chosen by {name} on {at}",
+    "answeredApproved": "{label}: approved by {name} on {at}",
+    "answeredDeclined": "{label}: not approved by {name} on {at}",
+    "someone": "a contact",
+    "programChanged": "The schedule has changed since your approval of {date}.",
+    "programChangedPlanner": "The schedule has changed since this approval: ask for a new one.",
+    "replaced": "Replaced by a new decision.",
+    "replaces": "Replaces an earlier decision.",
+    "planTitle": "Client decisions",
+    "planIntro": "Have the client choose an option, approve an expense or approve the schedule: the answer is time-stamped, in the person's name, and readable on both sides. An answered decision is never changed: it is replaced.",
+    "noDecisions": "No decision requested.",
+    "statusPending": "Awaiting an answer since {date}",
+    "statusWithdrawn": "Request withdrawn",
+    "withdraw": "Withdraw the request: {label}",
+    "retainChoice": "Retain {vendor}",
+    "commitExpense": "Commit {amount}",
+    "replace": "Ask for a new decision: {label}",
+    "requestTitle": "Ask for a decision",
+    "kindLabel": "Kind of decision",
+    "kind": {
+      "option": "Choose between the options of an item",
+      "expense": "Approve an expense",
+      "program": "Approve the schedule of the day"
+    },
+    "slotLabel": "Item",
+    "slotOption": "{label} ({count} options shown)",
+    "expenseLabel": "Expense",
+    "noteLabel": "Message to the client (optional)",
+    "dueOnLabel": "Answer wanted before (optional)",
+    "requestSubmit": "Ask for the decision",
+    "requestSent": "Decision requested: it appears in the portal.",
+    "nothingToRequest": "Nothing to have decided for now: show at least two options of an item, price an expense or prepare the schedule.",
+    "requestError": {
+      "options": "Show at least two vendors of this item to the clients.",
+      "expense": "Choose an expense that has an amount.",
+      "program": "The schedule of the day is empty.",
+      "date": "The date is not valid.",
+      "note": "The message is longer than 500 characters.",
+      "replace": "This decision cannot be replaced.",
+      "pending": "A decision on this subject is already awaiting an answer.",
+      "choice": "Invalid choice.",
+      "comment": "Comment too long.",
+      "answered": "This decision already has an answer.",
+      "demo": "No decision on a trial event.",
+      "gone": "This event is no longer available.",
+      "subject": "Choose what the client should decide."
+    }
   }
 }

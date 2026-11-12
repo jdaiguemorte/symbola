@@ -5,7 +5,7 @@
 import { randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { listEvents, listEventTasks } from "@/modules/events/service";
+import { listEvents, listEventTasks, listVendorCandidates } from "@/modules/events/service";
 import { findVendors } from "@/modules/vendors/service";
 import { loadRecette, percentages, recetteEmail, RecetteRefusedError } from "./load";
 
@@ -46,6 +46,9 @@ describe("DAT-10 — Jeu fictif chargeable en une commande", { timeout: 120_000 
     const wedding = eventsOf01.find((event) => event.clients.some((client) => client.firstName === "Léa"))!;
     const tasks = await listEventTasks(ids["ORG-01"], wedding.id);
     expect([tasks.filter((task) => task.done).length, tasks.length]).toEqual([31, 42]);
+    // Lot 27b (POR-03) : les fleuristes consultés sont rattachés à leur poste, au statut du jeu.
+    const florists = (await listVendorCandidates(ids["ORG-01"], wedding.id)).filter((candidate) => ["Élodie Perrin Fleurs", "Atelier Verveine", "Les Fleurs du Causse"].includes(candidate.vendorName));
+    expect(florists.map((candidate) => candidate.status).sort()).toEqual(["dismissed", "quote_received", "quote_received"]);
     expect((await findVendors({ organizationId: ids["ORG-01"] })).map((vendor) => vendor.name)).toContain("Domaine des Tilleuls");
     // Cloisonnement : rien de l'une chez l'autre.
     const eventIdsOf02 = new Set((await listEvents({ organizationId: ids["ORG-02"] })).map((event) => event.id));

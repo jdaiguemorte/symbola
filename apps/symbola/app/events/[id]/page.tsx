@@ -16,6 +16,7 @@ import {
   getEventStatusDates,
   getTaskRecalculation,
   listEventActivity,
+  listEventDecisions,
   listEventLinks,
   listLinkProfiles,
   listEventTasks,
@@ -46,6 +47,10 @@ import { endTrialAction } from "../trial-actions";
 import { revokeLinkAction } from "./link-actions";
 import { ClientContactForm, WantedBudgetForm } from "./client-contact-forms";
 import { CreateLinkForm, CreateVendorLinkForm, EditLinkForm, RenewLinkForm, type LinkFormVendor } from "./link-forms";
+import { RequestDecisionForm } from "./decision-forms";
+import { commitDecisionExpenseAction, replaceDecisionAction, retainDecisionChoiceAction, withdrawDecisionAction } from "./decision-actions";
+import { answerSentence } from "@/app/portail/client-decisions";
+import { choiceName, decisionLabel } from "@/app/portail/decision-label";
 import { requestAudience } from "@/lib/vocabulary";
 import { removeProgramItemAction } from "./program-actions";
 import {
@@ -268,6 +273,21 @@ export default async function EventDetailPage({
     return candidate ? `${candidate.vendorName} — ${slotLabelById.get(candidate.vendorSlotId) ?? ""}` : "";
   };
   const linkVendorCards = tab === "maries" && (await isVendorsModuleEnabled(organizationId));
+  // Lot 27b (POR-03, BUD-07, EVT-09) : décisions demandées au client ; ce que la
+  // planner peut demander (postes montrant deux options au moins, dépenses
+  // chiffrées, programme non vide).
+  const decisions = tab === "maries" ? await listEventDecisions(organizationId, id) : [];
+  const tDecisions = await getTranslations("Decisions");
+  const decisionSlots = vendorSlots
+    .map((slot) => ({ id: slot.id, label: slot.label, options: linkCandidates.filter((candidate) => candidate.vendorSlotId === slot.id && candidate.shownToClients).length }))
+    .filter((slot) => slot.options >= 2);
+  const decisionBudget = tab === "maries" && (await isBudgetModuleEnabled(organizationId)) ? await listBudgetLines(organizationId, id) : null;
+  const decisionExpenses = (decisionBudget?.lines ?? []).flatMap((line) => {
+    const amount = line.quotedAmountCents ?? line.committedAmountCents ?? line.estimatedAmountCents ?? 0;
+    const slotLabel = decisionBudget?.categories.find((category) => category.eventVendorSlotId === line.eventVendorSlotId)?.label ?? "";
+    return amount > 0 ? [{ lineId: line.id, label: `${[slotLabel, line.vendorName, line.label].filter((part, index, all) => part && all.indexOf(part) === index).join(" — ")} (${formatAmount(amount, locale)})` }] : [];
+  });
+  const decisionById = new Map(decisions.map((decision) => [decision.id, decision]));
   const linkVendors: LinkFormVendor[] = await Promise.all(
     linkCandidates
       .filter((candidate) => candidate.outcome === "selected")
@@ -473,9 +493,9 @@ export default async function EventDetailPage({
               {activity.map((entry) => (
                 <li key={entry.id}>
                   {formatDateTime(new Date(entry.createdAt), locale)} —{" "}
-                  {t(entry.kind === "task_done" ? "activityTaskDone" : "activityTaskUndone", {
+                  {t(entry.kind === "task_done" ? "activityTaskDone" : entry.kind === "decision_made" ? "activityDecisionMade" : "activityTaskUndone", {
                     actor: entry.actorName ?? t("activityFormerClient"),
-                    task: entry.taskLabel,
+                    task: entry.taskLabel || tDecisions("programLabel"),
                   })}
                 </li>
               ))}
@@ -974,6 +994,73 @@ export default async function EventDetailPage({
             />
           )}
           {event.isDemo ? null : <CreateVendorLinkForm eventId={event.id} vendors={linkVendors} />}
+        </section>
+      ) : null}
+      {/* Lot 27b (POR-03, BUD-07, EVT-09 ; D9, D10) : décisions demandées au client, lisibles des deux côtés. */}
+      {tab === "maries" ? (
+        <section className="card" aria-labelledby="decisions-title">
+          <h2 id="decisions-title">{tDecisions("planTitle")}</h2>
+          <p>{tDecisions("planIntro")}</p>
+          {decisions.length === 0 ? <p>{tDecisions("noDecisions")}</p> : null}
+          <ul aria-label={tDecisions("planTitle")} className="item-list">
+            {decisions.map((decision) => {
+              const label = decisionLabel(tDecisions, decision, locale);
+              const chosen = decision.choiceId ? linkCandidates.find((candidate) => candidate.id === decision.choiceId) : undefined;
+              return (
+                <li key={decision.id} className="link-row">
+                  <p>
+                    <strong>{label}</strong>
+                  </p>
+                  <p className={decision.status === "pending" ? "badge-warning" : "muted"}>
+                    {decision.status === "pending"
+                      ? tDecisions("statusPending", { date: formatDateTime(new Date(decision.requestedAt), locale) })
+                      : decision.status === "withdrawn"
+                        ? tDecisions("statusWithdrawn")
+                        : answerSentence(tDecisions, decision, label, locale)}
+                  </p>
+                  {decision.comment ? <p className="muted">{tDecisions("answeredComment", { comment: decision.comment })}</p> : null}
+                  {decision.programChanged ? <p className="badge-warning">{tDecisions("programChangedPlanner")}</p> : null}
+                  {decision.replacesDecisionId && decisionById.has(decision.replacesDecisionId) ? <p className="meta">{tDecisions("replaces")}</p> : null}
+                  {decision.replacedById ? <p className="meta">{tDecisions("replaced")}</p> : null}
+                  {!event.isDemo ? (
+                    <div className="link-actions">
+                      {decision.status === "pending" ? (
+                        <form action={withdrawDecisionAction}>
+                          <input type="hidden" name="eventId" value={event.id} />
+                          <input type="hidden" name="decisionId" value={decision.id} />
+                          <button type="submit">{tDecisions("withdraw", { label })}</button>
+                        </form>
+                      ) : null}
+                      {decision.status === "approved" && decision.kind === "option" && chosen && chosen.outcome !== "selected" ? (
+                        <form action={retainDecisionChoiceAction}>
+                          <input type="hidden" name="eventId" value={event.id} />
+                          <input type="hidden" name="decisionId" value={decision.id} />
+                          <button type="submit" className="primary">
+                            {tDecisions("retainChoice", { vendor: choiceName(decision) ?? "" })}
+                          </button>
+                        </form>
+                      ) : null}
+                      {decision.status === "approved" && decision.snapshot.kind === "expense" ? (
+                        <form action={commitDecisionExpenseAction}>
+                          <input type="hidden" name="eventId" value={event.id} />
+                          <input type="hidden" name="decisionId" value={decision.id} />
+                          <button type="submit">{tDecisions("commitExpense", { amount: formatAmount(decision.snapshot.amountCents, locale) })}</button>
+                        </form>
+                      ) : null}
+                      {(decision.status === "approved" || decision.status === "declined") && !decision.replacedById ? (
+                        <form action={replaceDecisionAction}>
+                          <input type="hidden" name="eventId" value={event.id} />
+                          <input type="hidden" name="decisionId" value={decision.id} />
+                          <button type="submit">{tDecisions("replace", { label })}</button>
+                        </form>
+                      ) : null}
+                    </div>
+                  ) : null}
+                </li>
+              );
+            })}
+          </ul>
+          {event.isDemo ? null : <RequestDecisionForm eventId={event.id} slots={decisionSlots} expenses={decisionExpenses} hasProgram={program.items.length > 0} />}
         </section>
       ) : null}
     </main>

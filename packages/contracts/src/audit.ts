@@ -77,6 +77,10 @@ export const AUDIT_ACTIONS = {
   "events.link.renewal_requested": { category: "partage", objectType: "event" },
   // Lot 27a (CHR-04, D7) : rappel des tâches envoyé au client (nombre de tâches).
   "events.link.reminder_sent": { category: "partage", objectType: "event" },
+  // Lot 27b (EVT-09) : décisions demandées au client (identifiants seulement).
+  "events.decision.requested": { category: "partage", objectType: "event" },
+  "events.decision.answered": { category: "partage", objectType: "event" },
+  "events.decision.withdrawn": { category: "partage", objectType: "event" },
   // Lot 24b (SEC-22, décision D5) : plafond d'e-mails de l'heure atteint.
   "hub.mail.quota_reached": { category: "partage", objectType: null },
   "quotes.quote.sent": { category: "partage", objectType: "quote" },
