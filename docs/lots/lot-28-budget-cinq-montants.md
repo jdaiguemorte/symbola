@@ -2,7 +2,8 @@
 
 **Statut** : spécification validée par Julien le 11/11/2026, décisions D1 à D8 en (a). 28a codé le
 12/11/2026 (bilan en fin de partie D), branche `lot-28-budget-cinq-montants`, PR #99. 28b détaillé
-le 12/11/2026, décisions D9 à D14 à prendre, branche `lot-28b-echeancier-export` (partie du 28a).
+le 12/11/2026, décisions D9 à D14 validées par Julien le 12/11 (« Oui, comme recommandé » : D12 en
+(b), les autres en (a)), branche `lot-28b-echeancier-export` (partie du 28a).
 
 ## Contexte
 
@@ -140,8 +141,8 @@ le devis du prestataire retenu quand il en a un, le payé part de zéro. Migrati
 
 ## Lot 28b — Lignes, prestataires retenus, échéancier, documents, HT et TTC, export, annuaire
 
-**Statut** : spécification détaillée à valider (12/11/2026), décisions D9 à D14 ci-dessous. Elle
-précise les parties E à I déjà validées (D5 à D8) et la partie E0 (Q33, décision du 12/11).
+**Statut** : spécification détaillée validée par Julien le 12/11/2026 (D9 à D14 : D12 en (b), les
+autres en (a)). Elle précise les parties E à I déjà validées (D5 à D8) et la partie E0 (Q33).
 
 ### Constat du 12/11/2026 (après le 28a)
 
@@ -258,6 +259,34 @@ F) puis **28c** (parties G, H, I).
 - **28c** : intégration (HT et TTC, export) ; e2e (export, fiche du carnet) ; rejeu de SC-04.
 - ADR 0054 complété ; aide, centre d'aide, grille d'écart.
 
+### Bilan du lot 28b (12/11/2026)
+
+- **Lignes sous chaque catégorie** (BUD-01, Q33) : une catégorie (le poste) porte plusieurs
+  lignes, chacune avec son libellé, son prestataire (sous le libellé) et ses cinq montants ; elle
+  les totalise. Le formulaire d'une ligne s'ouvre dans une rangée pleine largeur sous elle (dans
+  la dernière colonne, il faisait défiler le tableau et masquait le libellé) ; le tableau tient
+  en 1280 px. Import : colonne « Libellé »
+  facultative ; le prestataire importé devient un prestataire rattaché, lié à la ligne.
+  Migration 0105.
+- **Plusieurs prestataires retenus** (PRE-02, D10, D14) : « Retenir » écarte les concurrents en
+  lice, pas les retenus ; le poste ne porte plus de prestataire (migration 0106) ; recherche,
+  RGPD et carnet lisent les prestataires rattachés.
+- **Engagement** (D11) : `events.vendor_slot.booked` v2 porte le prestataire ; une ligne libre de
+  la catégorie (celle de la simulation) est reprise avant d'en créer une, ce qui garde l'écart à
+  l'estimé.
+- **Échéancier** (BUD-03, D7, D12, D13) : échéances par ligne, montant fixe ou % de l'engagé du
+  prestataire, figé au paiement ; payé de la ligne = échéances payées ; échéancier regroupé par
+  prestataire ; bloc « Échéances prestataires » dans « Aujourd'hui » (7 jours et retards).
+- **Documents** (BUD-04) : devis, contrat ou facture.
+- **Tests** : unitaires ; intégration (`budget-28b.integration.test.ts`, isolation RLS et Admin de
+  `vendor_payments`, aller-retour 0105/0106 avec des données d'avant le lot) ; e2e
+  `bud-03-lignes-echeances` ; parcours existants adaptés ; jeu fictif chargé ligne par ligne ;
+  rejeu SC-04 (étapes 1, 2, 5 et 6, `docs/recette/SC-04.md`).
+- **Documents** : avenant de l'ADR 0054, aide du budget, registre RGPD (libellés libres des lignes
+  et des échéances), grille d'écart (BUD-01, BUD-03, BUD-04 Conforme).
+- **Reste au 28c** : HT et TTC, export XLSX et PDF, évaluation et tarifs du carnet.
+- **Déploiement** (gel) : migrations 0105 et 0106 à ajouter à la liste des gestes.
+
 ---
 
 ## Migrations
@@ -341,7 +370,7 @@ Chaque migration ne touche que le schéma de son module, et a son script d'annul
   **Recommandation : (a).** PRE-01 cite les deux ; le texte libre évite d'inventer une grille de
   tarifs.
 
-### Décisions du 28b (à prendre)
+### Décisions du 28b (validées le 12/11/2026 : D12 en (b), les autres en (a))
 
 - **D9 — Découpage.** (a) Deux PR : 28b (lignes, prestataires retenus, échéancier, documents) puis
   28c (HT et TTC, export, annuaire). (b) Une seule PR.
