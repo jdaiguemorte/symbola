@@ -21,7 +21,7 @@ afterAll(async () => {
   await sql.end();
 });
 
-async function planner(role: "owner" | "client" | "admin" = "owner") {
+async function planner(role: "owner" | "admin" = "owner") {
   const organization = role === "admin" ? null : await createOrganization(db, `Org ${randomUUID()}`);
   const email = `lot9-${role}-${randomUUID()}@symbola.test`;
   const user = await createUser(db, { organizationId: organization?.id ?? null, email, password: "ancien-mot-de-passe", role });
@@ -105,10 +105,8 @@ describe("Lot 9 — Réinitialisation de la double authentification par l'Admin"
     expect((await resumeTotpSetup(db, user.id)).secret).not.toBe(secret);
   });
 
-  it("refuse un compte marié et un compte Admin", async () => {
-    const client = await planner("client");
+  it("refuse un compte Admin et un compte inconnu", async () => {
     const admin = await planner("admin");
-    await expect(resetUserMfa(db, client.user.id)).rejects.toBeInstanceOf(MfaResetNotAllowedError);
     await expect(resetUserMfa(db, admin.user.id)).rejects.toBeInstanceOf(MfaResetNotAllowedError);
     await expect(resetUserMfa(db, randomUUID())).rejects.toBeInstanceOf(MfaResetNotAllowedError);
   });

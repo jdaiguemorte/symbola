@@ -150,7 +150,6 @@ export type OrganizationActivity = {
   name: string;
   createdAt: Date;
   teamAccounts: number;
-  clientAccounts: number;
   activeAccounts: number;
   lastLoginAt: Date | null;
   months: string[];
@@ -233,7 +232,6 @@ export async function getOrganizationsActivity(
       name: organization.name,
       createdAt: organization.createdAt,
       teamAccounts: accountCounts?.teamAccounts ?? 0,
-      clientAccounts: accountCounts?.clientAccounts ?? 0,
       activeAccounts: accountCounts?.activeAccounts ?? 0,
       lastLoginAt: accountCounts?.lastLoginAt ?? null,
       months,

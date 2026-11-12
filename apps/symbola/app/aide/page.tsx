@@ -27,7 +27,7 @@ export default async function AidePage() {
 
   const organizationId = auth.user.organizationId;
   const isTeam = Boolean(organizationId) && (auth.user.role === "owner" || auth.user.role === "member");
-  const audience: HelpAudience = isTeam ? "team" : auth.user.role === "admin" ? "admin" : "client";
+  const audience: HelpAudience = isTeam ? "team" : "admin";
   let modules: Record<HelpModule, boolean> = { hub: true, events: false, budget: false, quotes: false, vendors: false };
   let progress: HelpProgressEntry[] = [];
   if (isTeam && organizationId) {

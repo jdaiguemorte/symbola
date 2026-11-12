@@ -2,7 +2,8 @@
 // table a organization_id (CLAUDE.md §2.4), protégée par Row-Level
 // Security activée par une migration dédiée (même patron que hello,
 // packages/db/drizzle).
-import { boolean, date, integer, pgSchema, text, time, timestamp, unique, uuid, jsonb, index } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+import { boolean, check, date, integer, pgSchema, text, time, timestamp, unique, uuid, jsonb, index } from "drizzle-orm/pg-core";
 
 export const eventsSchema = pgSchema("events");
 
@@ -396,25 +397,82 @@ export const programTemplateItems = eventsSchema.table("program_template_items",
 // userId est posé à l'acceptation (compte hub.users au rôle « client »),
 // revokedAt quand la planner retire l'accès. Le jeton d'invitation n'est
 // stocké que haché (même patron que hub.invitations).
-export const eventClientAccesses = eventsSchema.table("event_client_accesses", {
+// Lot 26a (UX-11, POR-01, POR-10, SEC-14, SEC-15 ; ADR 0053) — lien personnel
+// d'un tiers : une personne, un événement, des droits. Le jeton envoyé est
+// « <organisation>.<secret> » : seul le haché du secret est stocké, et il
+// disparaît quand le lien est retiré. Remplace event_client_accesses (comptes
+// des mariés, ADR 0020).
+export const eventLinkAudienceEnum = eventsSchema.enum("event_link_audience", ["client", "vendor", "guest"]);
+
+export const eventLinks = eventsSchema.table("event_links", {
   id: uuid("id").defaultRandom().primaryKey(),
   organizationId: uuid("organization_id").notNull(),
   eventId: uuid("event_id")
     .notNull()
-    .references(() => events.id),
+    .references(() => events.id, { onDelete: "cascade" }),
+  audience: eventLinkAudienceEnum("audience").notNull(),
+  personName: text("person_name").notNull(),
   email: text("email").notNull(),
-  userId: uuid("user_id"),
+  // Le client de l'événement que la personne représente (facultatif : un
+  // parent payeur n'en est pas un).
+  eventClientId: uuid("event_client_id").references(() => eventClients.id, { onDelete: "set null" }),
+  // Rubriques du portail ouvertes à la personne (POR-10 : rien par défaut).
+  rubrics: text("rubrics").array().notNull().default(sql`'{}'::text[]`),
+  // Budget entier, ou seulement les catégories de event_link_shared_slots.
+  budgetScope: text("budget_scope").notNull().default("all"),
+  // SEC-15 : dernier jour valable choisi par la planner ; sinon calculé.
+  customExpiresOn: date("custom_expires_on"),
   tokenHash: text("token_hash").unique(),
-  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
-  invitedByUserId: uuid("invited_by_user_id").notNull(),
-  acceptedAt: timestamp("accepted_at", { withTimezone: true }),
+  renewalRequestedAt: timestamp("renewal_requested_at", { withTimezone: true }),
+  lastOpenedAt: timestamp("last_opened_at", { withTimezone: true }),
   revokedAt: timestamp("revoked_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdBy: uuid("created_by"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   updatedBy: uuid("updated_by"),
-}, (table) => [index("event_client_accesses_organization_idx").on(table.organizationId)]);
+}, (table) => [
+  index("event_links_organization_idx").on(table.organizationId),
+  index("event_links_event_idx").on(table.eventId),
+  check("event_links_rubrics_check", sql`${table.rubrics} <@ array['tasks', 'program', 'vendor_options', 'budget', 'quotes']::text[]`),
+  check("event_links_budget_scope_check", sql`${table.budgetScope} in ('all', 'selected')`),
+]);
+
+// Lot 26a (POR-10) : catégories du budget (postes de l'événement) partagées
+// avec un lien en « catégories choisies ».
+export const eventLinkSharedSlots = eventsSchema.table("event_link_shared_slots", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  linkId: uuid("link_id")
+    .notNull()
+    .references(() => eventLinks.id, { onDelete: "cascade" }),
+  vendorSlotId: uuid("vendor_slot_id")
+    .notNull()
+    .references(() => eventVendorSlots.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  createdBy: uuid("created_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedBy: uuid("updated_by"),
+}, (table) => [
+  index("event_link_shared_slots_organization_idx").on(table.organizationId),
+  unique("event_link_shared_slots_link_slot_unique").on(table.linkId, table.vendorSlotId),
+]);
+
+// Lot 26a (SEC-17, décision D7) : session ouverte par un lien. Le jeton du lien
+// quitte l'adresse dès l'ouverture ; le navigateur garde un cookie dont seul le
+// haché est ici. 30 jours sans visite, jamais au-delà de l'expiration du lien,
+// supprimée quand le lien est retiré ou renouvelé.
+export const eventLinkSessions = eventsSchema.table("event_link_sessions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  linkId: uuid("link_id")
+    .notNull()
+    .references(() => eventLinks.id, { onDelete: "cascade" }),
+  tokenHash: text("token_hash").notNull().unique(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  lastSeenAt: timestamp("last_seen_at", { withTimezone: true }).defaultNow().notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+}, (table) => [index("event_link_sessions_organization_idx").on(table.organizationId)]);
 
 // PRD-EVT-06 : fil d'activité d'un événement (« quand un marié coche une
 // tâche, la planner le voit »). Le libellé de la tâche est copié pour
@@ -427,7 +485,10 @@ export const eventActivities = eventsSchema.table("event_activities", {
   eventId: uuid("event_id")
     .notNull()
     .references(() => events.id),
-  actorUserId: uuid("actor_user_id").notNull(),
+  // Compte d'une personne de l'équipe, ou (lot 26a) lien personnel du tiers
+  // qui a coché ; l'un des deux, sauf si le lien a été effacé depuis.
+  actorUserId: uuid("actor_user_id"),
+  actorLinkId: uuid("actor_link_id").references(() => eventLinks.id, { onDelete: "set null" }),
   kind: eventActivityKindEnum("kind").notNull(),
   taskId: uuid("task_id").references(() => eventTasks.id, { onDelete: "set null" }),
   taskLabel: text("task_label").notNull(),

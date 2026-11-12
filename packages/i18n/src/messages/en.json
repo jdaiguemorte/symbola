@@ -493,7 +493,7 @@
     },
     "eventsDetail": {
       "title": "Event page",
-      "body": "The whole event, in tabs. The top timeline shows where it stands: click the next step to move forward. The « Next step » banner says what to do now (send the quote, apply the planning, invite the couple). Each tab has a « Settings » link to its templates.",
+      "body": "The whole event, in tabs. The top timeline shows where it stands: click the next step to move forward. The « Next step » banner says what to do now (send the quote, apply the planning, create the couple's links). Each tab has a « Settings » link to its templates.",
       "faq": [
         {
           "q": "How do I mark an event as lost?",
@@ -509,7 +509,7 @@
         },
         {
           "q": "What does the couple see?",
-          "a": "Their tasks, the schedule and the budget as read-only, never your internal notes. Invite them from the Couple tab."
+          "a": "What you open to them, through a personal link, with no account or password: their tasks, the schedule, the budget as read-only, never your internal notes. Create their links in the Couple tab; a paying parent can see only some budget categories."
         }
       ]
     },
@@ -547,21 +547,9 @@
         }
       ]
     },
-    "clientInvitation": {
-      "title": "Creating your account",
-      "body": "Each partner has their own account. The invitation link is valid for 7 days; if it has expired, ask your planner for a new one."
-    },
-    "clientSpace": {
-      "title": "Your space",
-      "body": "The weddings your planner shares with you. Open one to follow the preparations."
-    },
     "clientEvent": {
-      "title": "Following the preparations",
-      "body": "Tick the \"For you\" tasks once they are done: your planner sees it straight away. You will also find the schedule for the day, downloadable as a PDF, and the budget as read-only once it is ready."
-    },
-    "clientSecurity": {
-      "title": "Two-factor authentication",
-      "body": "Optional for your account. Once enabled, a code from your authenticator app is requested each time you log in."
+      "title": "Your space",
+      "body": "Your organiser opened this space for you through a personal link, with no account or password. You see what they shared with you: your tasks to tick, the programme of the day, the budget. This link is for you only: please do not forward it."
     },
     "budgetSettings": {
       "title": "Budget allocation",
@@ -579,7 +567,7 @@
       "faq": [
         {
           "q": "Does the couple see the budget?",
-          "a": "Yes, read-only in their space, once it has been prepared."
+          "a": "Yes, read-only in their portal, if their link opens the Budget section: the whole budget, or only the categories you choose (for a paying parent)."
         },
         {
           "q": "Where are attached quotes stored?",
@@ -707,7 +695,7 @@
     },
     "privacyPurge": {
       "title": "Monthly purge",
-      "body": "Each month the list gathers what has passed its retention period: prospects that went nowhere, finished relationships, inactive couple accounts, documents at the end of retention, names of people in requests closed for longer than the set proof period. Approve it: each row is purged, except those you exclude with a reason. Nothing is purged without you."
+      "body": "Each month the list gathers what has passed its retention period: prospects that went nowhere, finished relationships, documents at the end of retention, names of people in requests closed for longer than the set proof period. Approve it: each row is purged, except those you exclude with a reason. Nothing is purged without you."
     },
     "allTasks": {
       "title": "Tasks across all your weddings",
@@ -715,7 +703,7 @@
       "faq": [
         {
           "q": "Do the couple's tasks appear here?",
-          "a": "Yes: they are marked \"for the couple\", and ticked as soon as the couple completes them in their space."
+          "a": "Yes: they are marked \"for the couple\", and ticked as soon as the couple completes them in their portal, opened with their personal link."
         }
       ]
     },
@@ -1089,21 +1077,7 @@
     "programPdfVersion": "Version of {date}",
     "programPdfFileCouple": "schedule-couple",
     "programPdfFileVendors": "schedule-vendors",
-    "clientAccessTitle": "Couple access",
-    "clientAccessIntro": "Invite each member of the couple by e-mail: they create their own account, follow the planning timeline, check their tasks and see the wedding day schedule (without your internal notes). You can remove an access at any time.",
-    "noClientAccess": "No one from the couple invited yet.",
-    "clientEmail": "E-mail of the couple member",
-    "inviteClient": "Invite",
-    "clientInvited": "Invitation sent.",
-    "clientLinked": "This person already has an account: access to this event is now open.",
-    "clientEmailUnavailable": "This e-mail is already used by another account.",
-    "clientAlreadyInvited": "This person already has access to the event.",
     "invalidEmail": "Invalid e-mail.",
-    "clientAccessInvited": "invitation sent",
-    "clientAccessActive": "active access",
-    "clientAccessExpired": "invitation expired",
-    "clientAccessRevoked": "access removed",
-    "revokeClientAccess": "Remove access for {email}",
     "activityTitle": "Activity feed",
     "noActivity": "No activity from the couple yet.",
     "activityTaskDone": "{actor} checked “{task}”.",
@@ -1122,7 +1096,7 @@
     "trialStepTask": "check a planning timeline task, then change the date to see the proposed recalculation;",
     "trialStepProgram": "add a schedule line and download the PDF (“Fictional document” watermark).",
     "trialEnd": "End the trial and delete its data",
-    "trialNoInvite": "During the trial, no invitation is sent: the couple is only invited on a real event.",
+    "trialNoInvite": "During the trial, no link is sent: links are only created on a real event.",
     "demoWatermark": "Fictional document",
     "budgetLink": "Budget",
     "confirmBudgetTitle": "Make the simulation the estimated budget",
@@ -1242,9 +1216,9 @@
         "action": "Open the schedule"
       },
       "invite_clients": {
-        "title": "Next step: invite the couple",
-        "body": "Give them access to their space: their tasks, the budget, the options you suggest.",
-        "action": "Invite the couple"
+        "title": "Next step: create the couple's links",
+        "body": "Each of them gets a personal link, with no account: their tasks, the programme, the budget, the proposed options.",
+        "action": "Create the links"
       }
     },
     "kpiPlanned": "Estimated budget",
@@ -1311,7 +1285,63 @@
     "deleteTemplateConfirm": "Delete the template",
     "mailQuotaReached": "Sending cap reached: your organization has sent the maximum number of emails for this hour. Try again in {minutes} minutes.",
     "budgetLinesDetail": "{count} lines for “{line}”: detail them in the budget",
-    "retainedVendors": "Retained vendors: {vendors}"
+    "retainedVendors": "Retained vendors: {vendors}",
+    "linksTitle": "Personal links",
+    "linksIntro": "Each person gets their own link, with no account or password. They only see what you open to them, and you can remove their link at any time.",
+    "noLinks": "No link yet.",
+    "linkStatus": {
+      "active": "active",
+      "expired": "expired",
+      "revoked": "removed"
+    },
+    "linkValidUntil": "valid until {date}",
+    "linkSees": "Sees: {items}",
+    "linkSeesNothing": "Sees nothing yet",
+    "linkBudgetSlots": "Budget ({slots})",
+    "linkOpenedOn": "opened on {date}",
+    "linkNeverOpened": "never opened",
+    "linkRenewalRequested": "Asking for a new link since {date}",
+    "linkRubric": {
+      "tasks": "Planning",
+      "program": "Programme",
+      "vendor_options": "Vendor options",
+      "budget": "Budget",
+      "quotes": "Quotes to sign"
+    },
+    "createLinkTitle": "Create a link",
+    "linkPerson": "Person",
+    "linkPersonOther": "Someone else (parent, sponsor…)",
+    "linkPersonName": "Person's name",
+    "linkEmail": "Person's email",
+    "linkProfile": "Profile",
+    "linkSharedSlots": "Shared budget categories",
+    "linkSharedSlotsHint": "Only these categories, with no overall total.",
+    "linkExpiresOn": "Valid until (optional)",
+    "linkExpiresOnHint": "By default: 30 days after the event.",
+    "createLink": "Create and send the link",
+    "linkCreated": "Link sent to {email}.",
+    "linkRenewed": "New link sent to {email}. The previous one no longer works.",
+    "linkUrlLabel": "Personal link of {name}",
+    "linkUrlOnce": "This link will not be shown again: copy it now if you want to send it another way (text message, messaging app).",
+    "copyLink": "Copy the link",
+    "linkCopied": "Link copied.",
+    "linkCopyFailed": "Could not copy: select the link above.",
+    "renewLink": "Renew {name}'s link",
+    "revokeLink": "Remove {name}'s link",
+    "revokeLinkConfirm": "Remove: {name} loses access immediately",
+    "editLink": "Edit {name}'s link",
+    "saveLink": "Save {name}'s link",
+    "linkSaved": "Link updated.",
+    "linkRubrics": "Open sections",
+    "linkBudgetScope": "Budget",
+    "linkBudgetScopeAll": "The whole budget",
+    "linkBudgetScopeSelected": "Only the chosen categories",
+    "linkInvalidName": "Enter the person's name.",
+    "linkInvalidExpiry": "The validity date is not valid.",
+    "linkInvalidChoice": "This choice is not possible for this event.",
+    "linkNotFound": "This link has been removed.",
+    "linkRenewalsTitle": "New link requests",
+    "linkRenewalLine": "{name} is asking for a new link — {event}"
   },
   "Budget": {
     "title": "Budget",
@@ -1876,39 +1906,10 @@
   "ClientSpace": {
     "title": "My wedding",
     "unavailable": "This space is temporarily unavailable.",
-    "unauthenticated": "Please log in again.",
-    "accountNav": "My account",
-    "securityLink": "Account security",
-    "profileLink": "Language and profile",
-    "eventsLabel": "My events",
-    "noEvents": "No event is shared with you yet.",
     "dateUnset": "Date to be set",
-    "logout": "Log out",
-    "backToSpace": "Back to my space",
     "responsibleYou": "For you to do",
     "responsiblePlanner": "Handled by your planner",
     "downloadProgram": "Download the schedule (PDF)",
-    "invitationTitle": "Welcome to Symbola",
-    "invitationIntro": "Your wedding planner invites you to follow your wedding preparations. Choose your password to create your personal account.",
-    "choosePassword": "Choose a password (at least 12 characters)",
-    "confirmPassword": "Confirm the password",
-    "createAccount": "Create my account",
-    "accountCreated": "Your account has been created.",
-    "goToLogin": "Log in",
-    "passwordMismatch": "The two passwords do not match.",
-    "passwordCompromised": "This password is among the most common or already compromised passwords. Choose another one, for example a phrase of several words.",
-    "passwordTooShort": "The password must contain at least 12 characters.",
-    "invitationInvalid": "This invitation link is no longer valid. Ask your planner for a new invitation.",
-    "invitationAlreadyAccepted": "This invitation has already been used: log in with your account.",
-    "securityTitle": "Account security",
-    "mfaIntro": "Two-factor authentication adds a one-time code, given by an app on your phone, to your password. It is optional but recommended.",
-    "mfaAlreadyEnabled": "Two-factor authentication is enabled on your account.",
-    "mfaStart": "Enable two-factor authentication",
-    "mfaScanInstructions": "Scan this QR code with your authenticator app (for example Google Authenticator or 1Password), then enter the code it shows.",
-    "mfaCode": "6-digit code",
-    "mfaConfirm": "Confirm",
-    "mfaInvalidCode": "Incorrect code, try again.",
-    "mfaEnabledNow": "Two-factor authentication enabled: it will be asked at every login.",
     "budgetTitle": "Budget",
     "noBudgetYet": "Your planner has not shared a budget for this event yet.",
     "quotesTitle": "Quotes",
@@ -1923,8 +1924,7 @@
     "vendorOptionsIntro": "Your planner consulted several vendors. Here are the ones they suggest.",
     "vendorOptionQuote": "Quote: {amount}",
     "vendorOptionOpenQuote": "View {vendor}'s quote",
-    "vendorOptionOpenRib": "{vendor} bank details (RIB)",
-    "mfaLocked": "Too many incorrect codes: try again in 15 minutes. An e-mail has been sent to you."
+    "vendorOptionOpenRib": "{vendor} bank details (RIB)"
   },
   "NotFound": {
     "title": "Page not found",
@@ -2415,7 +2415,6 @@
     "kind": {
       "event": "Event",
       "event_client": "Client",
-      "client_access": "Couple access",
       "event_vendor_slot": "Budget line",
       "task": "Task",
       "program_item": "Programme",
@@ -2430,11 +2429,11 @@
       "event_budget": "Budget",
       "budget_line": "Budget line",
       "budget_attachment": "Attached vendor quote",
-      "client_account": "Couple account",
       "import_row": "Row of an import in progress",
       "import_item": "Import record (undo)",
       "privacy_request": "Closed GDPR request (name of the person)",
-      "greeting": "Message"
+      "greeting": "Message",
+      "link": "Personal link"
     },
     "field": {
       "firstName": "First name",
@@ -2767,7 +2766,15 @@
     "copyResponse": "Copy the reply",
     "responseCopied": "Reply copied.",
     "responseCopyFailed": "Copy failed: select the text by hand.",
-    "caseNextAfterExport": "Next step: reply to the person"
+    "caseNextAfterExport": "Next step: reply to the person",
+    "linkNoticeTitle": "Privacy notice of personal links",
+    "linkNoticeIntro": "Shown on every page a client opens through their link, on behalf of your organisation. Variables: {organization} and {contact}.",
+    "linkNoticeLabel": "Notice text",
+    "linkNoticeReview": "Starting text to adapt and to have reviewed by a lawyer.",
+    "linkNoticeSave": "Save the notice",
+    "linkNoticeReset": "Back to the starting text",
+    "linkNoticeSaved": "Notice saved.",
+    "linkNoticeInvalid": "The notice is too long (4,000 characters at most)."
   },
   "PasswordReset": {
     "forgotTitle": "Forgot password",
@@ -2830,7 +2837,6 @@
     "empty": "No organisation.",
     "summaryOf": "Summary of {organization}",
     "teamAccounts": "{count, plural, =0 {No team account} one {# team account} other {# team accounts}}",
-    "clientAccounts": "{count, plural, =0 {No couple account} one {# couple account} other {# couple accounts}}",
     "activeAccounts": "{count, plural, =0 {No account signed in over 30 days} one {# account signed in over 30 days} other {# accounts signed in over 30 days}}",
     "lastLogin": "Last sign-in: {date}",
     "neverLoggedIn": "No sign-in yet",
@@ -2883,8 +2889,8 @@
         "description": "Start from a programme template, adjust the times and download the vendors' version."
       },
       "client-space": {
-        "title": "Invite your clients to their space",
-        "description": "See what your clients see: their tasks, the programme and the budget, without your internal notes."
+        "title": "Open their space to your clients",
+        "description": "One personal link per client, no account: see what they see, their tasks, the programme and the budget, without your internal notes."
       },
       "import": {
         "title": "Import your existing events",
@@ -2932,8 +2938,7 @@
     "fromEvent": "This screen opens from an event page.",
     "fromQuote": "This screen opens from a quote, on its event page.",
     "fromBudget": "This screen opens from the Budget tab of an event page.",
-    "fromImport": "This step follows dropping a file in “Import”.",
-    "fromClientEvent": "This screen opens from your space, by choosing a wedding."
+    "fromImport": "This step follows dropping a file in “Import”."
   },
   "Search": {
     "label": "Search",
@@ -3200,7 +3205,7 @@
         },
         {
           "title": "The Clients tab",
-          "body": "In the example's Couple tab, you will invite your clients by e-mail (during an example no invitation is sent). You can remove their access at any time."
+          "body": "In the Couple tab of the example, you will create a personal link for each client: no account, no password (during an example, no link is sent). You can remove a link at any time."
         },
         {
           "title": "What they see",
@@ -4108,7 +4113,13 @@
       "quotes_ledger_anomaly_detected": "Anomaly in the document chain",
       "quotes_archive_exported": "Accounting archive exported",
       "budget_budget_exported": "Budget exported",
-      "hub_mail_quota_reached": "Hourly sending cap reached"
+      "hub_mail_quota_reached": "Hourly sending cap reached",
+      "events_link_created": "Personal link created",
+      "events_link_updated": "Personal link rights changed",
+      "events_link_renewed": "Personal link renewed",
+      "events_link_revoked": "Personal link removed",
+      "events_link_renewal_requested": "New link requested",
+      "events_link_opened": "Personal link opened"
     },
     "categories": {
       "connexion": "Sign-ins",
@@ -4185,7 +4196,9 @@
       "quotes_original_documents": "original document",
       "quotes_ledger_entries": "document chain entry",
       "budget_alert_thresholds": "Budget alert thresholds",
-      "budget_vendor_payments": "Vendor instalments"
+      "budget_vendor_payments": "Vendor instalments",
+      "events_event_links": "personal link",
+      "events_event_link_shared_slots": "category shared with a link"
     },
     "modules": {
       "events": "Events",
@@ -4193,7 +4206,9 @@
       "quotes": "Quotes",
       "vendors": "Vendors"
     },
-    "budgetExport": "{count, plural, =0 {no lines} =1 {# line} other {# lines}} ({format})"
+    "budgetExport": "{count, plural, =0 {no lines} =1 {# line} other {# lines}} ({format})",
+    "actorLink": "Personal link",
+    "actorLinkNamed": "{name} (personal link)"
   },
   "LedgerArchive": {
     "title": "Accounting archive",
@@ -4274,5 +4289,25 @@
   },
   "Honeypot": {
     "label": "Leave this field empty"
+  },
+  "LinkPortal": {
+    "openingTitle": "Opening your space…",
+    "openingBody": "One moment: we are checking your personal link.",
+    "noScript": "Turn on JavaScript to open your space.",
+    "invalidTitle": "This link is no longer valid",
+    "invalidBody": "It may have expired or been replaced. You can ask your organiser for a new link.",
+    "invalidNoToken": "To open your space, use the personal link you received by email. If it no longer works, ask your organiser for a new one.",
+    "requestRenewal": "Ask for a new link",
+    "renewalRequested": "Your request has been passed on. If this link was meant for you, your organiser will send you a new one.",
+    "retryLater": "Too many attempts. Try again in {minutes} min.",
+    "closedTitle": "Access closed on this device",
+    "closedBody": "This device no longer has access to your space. To come back, open your personal link again.",
+    "pageNotice": "This page keeps no personal data: it only checks your link.",
+    "closeSession": "Close access on this device",
+    "greeting": "Hello {name}",
+    "nothingShared": "Your organiser has not shared anything with you here yet.",
+    "privacyTitle": "Your personal data",
+    "validUntil": "Your link is valid until {date}.",
+    "budgetSelectedIntro": "The items your organiser has shared with you."
   }
 }

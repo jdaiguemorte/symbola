@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { z } from "zod";
 import { appDatabase } from "@symbola/db/client";
-import { PrivacyRequestInvalidError, updatePrivacySettings } from "@/modules/hub/service";
+import { PrivacyRequestInvalidError, updateLinkPrivacyNotice, updatePrivacySettings } from "@/modules/hub/service";
 import { ownerContext } from "../owner-access";
 
 export type SettingsFormState = { error?: string; success?: boolean };
@@ -32,6 +32,23 @@ export async function savePrivacySettingsAction(_prevState: SettingsFormState, f
     await updatePrivacySettings(db, owner.organizationId, parsed.data);
   } catch (error) {
     if (error instanceof PrivacyRequestInvalidError) return { error: t("settingsInvalid") };
+    throw error;
+  }
+  revalidatePath("/rgpd/reglages");
+  return { success: true };
+}
+
+// Lot 26a (RGP-03) : la titulaire adapte la mention d'information des pages à
+// lien personnel, ou revient au texte de départ.
+export async function saveLinkNoticeAction(_prevState: SettingsFormState, formData: FormData): Promise<SettingsFormState> {
+  const t = await getTranslations("Privacy");
+  const owner = await ownerContext();
+  if (!owner) return { error: t("ownerOnly") };
+  const notice = formData.get("intent") === "reset" ? null : String(formData.get("notice") ?? "");
+  try {
+    await updateLinkPrivacyNotice(appDatabase(), owner.organizationId, notice);
+  } catch (error) {
+    if (error instanceof PrivacyRequestInvalidError) return { error: t("linkNoticeInvalid") };
     throw error;
   }
   revalidatePath("/rgpd/reglages");

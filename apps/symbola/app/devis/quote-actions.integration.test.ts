@@ -1,13 +1,14 @@
 // DEV-01 — les Server Actions et la route PDF du devis contrôlent côté
-// serveur la session, le rôle et l'organisation : un compte marié, ou une
-// planner d'une autre organisation, n'écrit ni ne lit rien, même par appel
-// direct. Seul l'accès à la requête Next.js est simulé.
+// serveur la session, le rôle et l'organisation : la session d'un lien
+// personnel de marié (lot 26a), ou une planner d'une autre organisation,
+// n'écrit ni ne lit rien, même par appel direct. Seul l'accès à la requête
+// Next.js est simulé.
 import { randomUUID } from "node:crypto";
 import * as OTPAuth from "otpauth";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { confirmTotp, createOrganization, createUser, login, setupTotp } from "@symbola/auth";
 import { createAppConnection, type AppDatabase } from "@symbola/db/client";
-import { acceptEventClientInvitation, createProspect, createProspectSource, inviteEventClient } from "@/modules/events/service";
+import { createEventLink, createProspect, createProspectSource, openEventLink } from "@/modules/events/service";
 import { saveOnboardingStep } from "@/modules/hub/service";
 import {
   addPaymentMethods,
@@ -90,11 +91,16 @@ async function setup() {
   const quote = await createQuote({ organizationId, eventId: event.id, createdByUserId: planner.userId });
   const detail = await addQuoteLine(organizationId, quote.id, { label: "Coordination", unit: "forfait", quantityMilli: 1000, unitPriceCents: 100000 });
 
-  const clientEmail = `marie-${randomUUID()}@example.test`;
-  const invitation = await inviteEventClient({ organizationId, eventId: event.id, email: clientEmail, invitedByUserId: planner.userId, locale: "fr" });
-  await acceptEventClientInvitation(invitation.invitationToken!, PASSWORD);
-  const clientLogin = await withDb((db) => login(db, clientEmail, PASSWORD));
-  if (clientLogin.outcome !== "success") throw new Error("connexion marié attendue");
+  const delivery = await createEventLink({
+    organizationId,
+    eventId: event.id,
+    createdByUserId: planner.userId,
+    audience: "client",
+    locale: "fr",
+    link: { personName: "Inès", email: `marie-${randomUUID()}@example.test`, rights: { rubrics: ["quotes"], budgetScope: "all", sharedSlotIds: [] } },
+  });
+  const clientLink = await openEventLink(delivery.url.split("#")[1]!);
+  if (clientLink.outcome !== "opened") throw new Error("ouverture du lien attendue");
 
   const otherOrganizationId = (await withDb((db) => createOrganization(db, `Autre ${randomUUID()}`))).id;
   const otherPlanner = await plannerSession(otherOrganizationId);
@@ -104,7 +110,7 @@ async function setup() {
     quoteId: quote.id,
     lineId: detail.current.lines[0]!.id,
     plannerToken: planner.token,
-    clientToken: clientLogin.sessionToken,
+    clientToken: clientLink.sessionToken,
     otherOrganizationId,
     otherPlannerToken: otherPlanner.token,
   };

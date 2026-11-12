@@ -8,7 +8,9 @@ import { bigint, boolean, date, index, integer, jsonb, pgSchema, primaryKey, tex
 
 export const hubSchema = pgSchema("hub");
 
-export const roleEnum = hubSchema.enum("role", ["owner", "member", "client", "admin"]);
+// Lot 26a (ADR 0053, décision D8) : plus de rôle « client » ; les tiers agissent
+// par lien personnel (events.event_links), sans compte.
+export const roleEnum = hubSchema.enum("role", ["owner", "member", "admin"]);
 export const languageEnum = hubSchema.enum("language", ["fr", "en"]);
 // Valeurs réglementaires fixes (CLAUDE.md §2.5 : pas une liste
 // personnalisable par organisation, au même titre que roleEnum).
@@ -578,6 +580,9 @@ export const privacySettings = hubSchema.table("privacy_settings", {
   // RGPD-09 (lot 19, ADR 0048) : durée de la preuve d'une demande close, après
   // laquelle la purge mensuelle propose d'anonymiser le nom de la personne.
   requestProofRetentionMonths: integer("request_proof_retention_months").notNull().default(60),
+  // Lot 26a (RGP-03) : mention d'information des pages à lien personnel, au nom
+  // de l'organisation ; vide, le texte de départ (packages/starter-templates).
+  linkPrivacyNotice: text("link_privacy_notice"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),

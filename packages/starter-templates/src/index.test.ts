@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import retroplanningFile from "./retroplanning.json";
 import vendorSlotsFile from "./vendor-slots.json";
 import programFile from "./program.json";
-import { starterDemoEvent, starterDemoQuote, starterErasureResponse, starterPrivacySettings, starterInvoiceMentions, starterDocumentStyle, starterQuoteTerms, starterRequestResponse, starterLossReasons, starterPaymentMethods, starterProgram, starterProspectSources, starterRetroplanning, starterVendorSlots, starterVendorTypes, starterBudgetLines, starterAllocation, starterFollowUpDelays, starterVendorTypeSynonymGroups, starterVendorCatalog, starterEventTypes, starterVendorTags, starterPaymentMethodKinds, BUDGET_LINE_ICONS } from "./index";
+import { starterDemoEvent, starterDemoQuote, starterErasureResponse, starterPrivacySettings, starterInvoiceMentions, starterDocumentStyle, starterQuoteTerms, starterRequestResponse, starterLossReasons, starterPaymentMethods, starterProgram, starterProspectSources, starterRetroplanning, starterVendorSlots, starterVendorTypes, starterBudgetLines, starterAllocation, starterFollowUpDelays, starterVendorTypeSynonymGroups, starterVendorCatalog, starterEventTypes, starterVendorTags, starterPaymentMethodKinds, BUDGET_LINE_ICONS, starterLinkProfiles, starterLinkExpiry, starterLinkPrivacyNotice } from "./index";
 
 describe("PRD-EVT-03 — Modèle de départ des postes prestataires", () => {
   it("existe en français et en anglais, avec le même nombre de postes", () => {
@@ -360,5 +360,27 @@ describe("DEV-13 — Modes de paiement reconnus", () => {
       { key: "cheque", labels: ["Chèque", "Cheque"] },
       { key: "cash", labels: ["Espèces", "Cash"] },
     ]);
+  });
+});
+
+describe("L26 — Données de départ des liens personnels (POR-01, SEC-15, RGP-03)", () => {
+  it("deux profils : « Marié(e) » ouvre tout le portail, « Payeur » le budget limité et les devis", () => {
+    expect(starterLinkProfiles("fr").map((profile) => [profile.key, profile.label, profile.rubrics, profile.budgetScope])).toEqual([
+      ["couple", "Marié(e)", ["tasks", "program", "vendor_options", "budget", "quotes"], "all"],
+      ["payer", "Payeur", ["budget", "quotes"], "selected"],
+    ]);
+    expect(starterLinkProfiles("en", "clients")[0]!.label).toBe("Client");
+  });
+
+  it("expiration de départ : 30 jours (client), 7 jours (prestataire), 180 jours sans date", () => {
+    expect(starterLinkExpiry()).toEqual({ daysAfterEvent: { client: 30, vendor: 7, guest: 30 }, daysWithoutEventDate: 180 });
+  });
+
+  it("mention d'information en français et en anglais, au nom de l'organisation, avec son contact", () => {
+    for (const locale of ["fr", "en"] as const) {
+      expect(starterLinkPrivacyNotice(locale)).toContain("{organization}");
+      expect(starterLinkPrivacyNotice(locale)).toContain("{contact}");
+      expect(starterLinkPrivacyNotice(locale)).toContain("CNIL");
+    }
   });
 });

@@ -21,8 +21,8 @@ export type TeamAccountStatus = {
 export type OrganizationAccountCounts = {
   organizationId: string;
   teamAccounts: number;
-  clientAccounts: number;
-  // Comptes (équipe et mariés) connectés depuis la date demandée.
+  // Comptes de l'équipe connectés depuis la date demandée (lot 26a : plus de
+  // compte de marié).
   activeAccounts: number;
   lastLoginAt: Date | null;
 };
@@ -50,7 +50,6 @@ export async function countAccountsByOrganization(db: AppDatabase, activeSince: 
     .select({
       organizationId: users.organizationId,
       teamAccounts: sql<number>`count(*) filter (where ${users.role} in ('owner', 'member'))::int`,
-      clientAccounts: sql<number>`count(*) filter (where ${users.role} = 'client')::int`,
       activeAccounts: sql<number>`count(*) filter (where ${users.lastLoginAt} >= ${activeSince.toISOString()})::int`,
       lastLoginAt: sql<string | null>`max(${users.lastLoginAt})`,
     })
@@ -60,7 +59,6 @@ export async function countAccountsByOrganization(db: AppDatabase, activeSince: 
   return rows.map((row) => ({
     organizationId: row.organizationId!,
     teamAccounts: row.teamAccounts,
-    clientAccounts: row.clientAccounts,
     activeAccounts: row.activeAccounts,
     lastLoginAt: row.lastLoginAt ? new Date(row.lastLoginAt) : null,
   }));

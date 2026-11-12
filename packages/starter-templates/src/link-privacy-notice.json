@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "_source": "Lot 26a (RGP-03) : mention d'information affichée sur chaque page à lien personnel, au nom de l'organisation. Proposition À FAIRE RELIRE par un juriste avant la première donnée réelle (§ 20 du cahier des charges, docs/conformite/). La titulaire peut la remplacer dans ses réglages RGPD. Variables : {organization} (nom de l'organisation), {contact} (adresse de contact de l'organisation).",
+  "notice": {
+    "fr": "{organization} utilise les informations de cette page (votre nom, votre adresse e-mail et ce que vous faites sur ce portail) pour préparer votre événement avec vous, dans le cadre de votre contrat. Elles sont gardées le temps de la préparation et de son suivi, puis supprimées selon les règles de conservation de {organization}. Vous pouvez y accéder, les faire corriger ou effacer, ou vous opposer à leur utilisation en écrivant à {contact}. Vous pouvez aussi adresser une réclamation à la CNIL (www.cnil.fr). Symbola héberge ces données pour le compte de {organization}.",
+    "en": "{organization} uses the information on this page (your name, your email address and what you do on this portal) to prepare your event with you, under your contract. It is kept while your event is prepared and followed up, then deleted according to {organization}'s retention rules. You can access it, have it corrected or erased, or object to its use by writing to {contact}. You can also lodge a complaint with the CNIL (www.cnil.fr). Symbola hosts this data on behalf of {organization}."
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "_source": "Lot 26a (POR-01, POR-10), décision D3 de Julien du 12/11/2026 : profils de départ d'un lien personnel. Un profil ne fait que pré-cocher les rubriques du portail ; la planner les ajuste lien par lien. Rubriques : tasks (rétroplanning), program (programme), vendor_options (options de prestataires), budget, quotes (devis à signer). budgetScope : all (budget entier) ou selected (catégories choisies, sans total général).",
+  "profiles": [
+    {
+      "key": "couple",
+      "label": { "fr": "Marié(e)", "en": "Couple" },
+      "labelClients": { "fr": "Client", "en": "Client" },
+      "rubrics": ["tasks", "program", "vendor_options", "budget", "quotes"],
+      "budgetScope": "all"
+    },
+    {
+      "key": "payer",
+      "label": { "fr": "Payeur", "en": "Payer" },
+      "labelClients": { "fr": "Payeur", "en": "Payer" },
+      "rubrics": ["budget", "quotes"],
+      "budgetScope": "selected"
+    }
+  ]
+}

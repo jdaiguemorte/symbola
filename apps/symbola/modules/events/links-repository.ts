@@ -1,0 +1,342 @@
+// Lot 26a (UX-11, POR-01, POR-10, SEC-14, SEC-15, SEC-17 ; ADR 0053) — accès aux
+// données des liens personnels des tiers. Jamais importé hors de
+// modules/events/ (ADR 0011) : les autres modules passent par service.ts.
+// Chaque lecture et écriture se fait sous RLS, dans l'organisation du lien.
+import { and, asc, eq, inArray, isNull, sql } from "drizzle-orm";
+import { appDatabase } from "@symbola/db/client";
+import { appendAudit } from "@symbola/db/audit";
+import { withOrganization } from "@symbola/db/with-organization";
+import {
+  eventActivities,
+  eventClients,
+  eventLinks,
+  eventLinkSessions,
+  eventLinkSharedSlots,
+  events,
+  eventTasks,
+  eventVendorSlots,
+} from "@symbola/db/schema/events";
+import type { EventLinkRights, EventStatus, LinkAudience, LinkRubric } from "@symbola/contracts";
+
+type Tx = Parameters<Parameters<typeof withOrganization>[2]>[0];
+
+export type EventLinkRow = typeof eventLinks.$inferSelect;
+export type EventLinkSessionRow = typeof eventLinkSessions.$inferSelect;
+export type EventTaskRow = typeof eventTasks.$inferSelect;
+
+export type LinkEventInfo = { eventDate: string | null; status: EventStatus; isDemo: boolean };
+
+// Un lien, ses catégories partagées et ce qu'il faut savoir de son événement
+// pour juger s'il vaut encore.
+export type LinkWithContext = { link: EventLinkRow; sharedSlotIds: string[]; event: LinkEventInfo };
+
+export function rightsOf(context: LinkWithContext): EventLinkRights {
+  return {
+    rubrics: context.link.rubrics as LinkRubric[],
+    budgetScope: context.link.budgetScope === "selected" ? "selected" : "all",
+    sharedSlotIds: context.sharedSlotIds,
+  };
+}
+
+async function sharedSlotsByLink(tx: Tx, linkIds: string[]): Promise<Map<string, string[]>> {
+  const result = new Map<string, string[]>();
+  if (linkIds.length === 0) return result;
+  const rows = await tx
+    .select({ linkId: eventLinkSharedSlots.linkId, vendorSlotId: eventLinkSharedSlots.vendorSlotId })
+    .from(eventLinkSharedSlots)
+    .where(inArray(eventLinkSharedSlots.linkId, linkIds))
+    .orderBy(asc(eventLinkSharedSlots.createdAt));
+  for (const row of rows) result.set(row.linkId, [...(result.get(row.linkId) ?? []), row.vendorSlotId]);
+  return result;
+}
+
+const eventInfoColumns = { id: events.id, eventDate: events.eventDate, status: events.status, isDemo: events.isDemo };
+
+async function withContext(tx: Tx, rows: EventLinkRow[]): Promise<LinkWithContext[]> {
+  if (rows.length === 0) return [];
+  const eventIds = [...new Set(rows.map((row) => row.eventId))];
+  const infos = await tx.select(eventInfoColumns).from(events).where(inArray(events.id, eventIds));
+  const infoById = new Map(infos.map((info) => [info.id, { eventDate: info.eventDate, status: info.status, isDemo: info.isDemo }]));
+  const slots = await sharedSlotsByLink(
+    tx,
+    rows.map((row) => row.id),
+  );
+  return rows.flatMap((link) => {
+    const event = infoById.get(link.eventId);
+    return event ? [{ link, sharedSlotIds: slots.get(link.id) ?? [], event }] : [];
+  });
+}
+
+// Le client représenté et les catégories partagées appartiennent-ils bien à
+// l'événement du lien ?
+async function checkReferences(tx: Tx, eventId: string, eventClientId: string | null, slotIds: string[]): Promise<"ok" | "invalid_client" | "invalid_slot"> {
+  if (eventClientId) {
+    const [client] = await tx
+      .select({ id: eventClients.id })
+      .from(eventClients)
+      .where(and(eq(eventClients.id, eventClientId), eq(eventClients.eventId, eventId)));
+    if (!client) return "invalid_client";
+  }
+  if (slotIds.length > 0) {
+    const found = await tx
+      .select({ id: eventVendorSlots.id })
+      .from(eventVendorSlots)
+      .where(and(inArray(eventVendorSlots.id, slotIds), eq(eventVendorSlots.eventId, eventId)));
+    if (found.length !== slotIds.length) return "invalid_slot";
+  }
+  return "ok";
+}
+
+export type LinkFields = {
+  personName: string;
+  email: string;
+  eventClientId: string | null;
+  rights: EventLinkRights;
+  customExpiresOn: string | null;
+};
+
+export type InsertLinkResult =
+  | { status: "saved"; context: LinkWithContext }
+  | { status: "event_not_found" | "demo_event" | "invalid_client" | "invalid_slot" };
+
+export async function insertLinkRow(input: LinkFields & { organizationId: string; eventId: string; audience: LinkAudience; tokenHash: string }): Promise<InsertLinkResult> {
+  const db = appDatabase();
+  return await withOrganization(db, input.organizationId, async (tx) => {
+    const [event] = await tx.select(eventInfoColumns).from(events).where(eq(events.id, input.eventId));
+    if (!event) return { status: "event_not_found" };
+    // AIDE-02 : jamais d'e-mail à un tiers depuis un essai.
+    if (event.isDemo) return { status: "demo_event" };
+    const references = await checkReferences(tx, input.eventId, input.eventClientId, input.rights.sharedSlotIds);
+    if (references !== "ok") return { status: references };
+
+    const [link] = await tx
+      .insert(eventLinks)
+      .values({
+        organizationId: input.organizationId,
+        eventId: input.eventId,
+        audience: input.audience,
+        personName: input.personName,
+        email: input.email,
+        eventClientId: input.eventClientId,
+        rubrics: input.rights.rubrics,
+        budgetScope: input.rights.budgetScope,
+        customExpiresOn: input.customExpiresOn,
+        tokenHash: input.tokenHash,
+      })
+      .returning();
+    if (!link) throw new Error("création du lien échouée");
+    if (input.rights.sharedSlotIds.length > 0) {
+      await tx
+        .insert(eventLinkSharedSlots)
+        .values(input.rights.sharedSlotIds.map((vendorSlotId) => ({ organizationId: input.organizationId, linkId: link.id, vendorSlotId })));
+    }
+    // SEC-19 : partage au journal (identifiants seulement, SEC-20).
+    await appendAudit(tx, { organizationId: input.organizationId, action: "events.link.created", objectId: input.eventId, details: { linkId: link.id, audience: input.audience } });
+    return {
+      status: "saved",
+      context: { link, sharedSlotIds: input.rights.sharedSlotIds, event: { eventDate: event.eventDate, status: event.status, isDemo: event.isDemo } },
+    };
+  });
+}
+
+export async function findEventLinkRows(organizationId: string, eventId: string): Promise<LinkWithContext[]> {
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) =>
+    withContext(tx, await tx.select().from(eventLinks).where(eq(eventLinks.eventId, eventId)).orderBy(asc(eventLinks.createdAt))),
+  );
+}
+
+export async function findLinkRow(organizationId: string, linkId: string): Promise<LinkWithContext | null> {
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const [context] = await withContext(tx, await tx.select().from(eventLinks).where(eq(eventLinks.id, linkId)));
+    return context ?? null;
+  });
+}
+
+export async function findLinkByTokenHash(organizationId: string, tokenHash: string): Promise<LinkWithContext | null> {
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const [context] = await withContext(tx, await tx.select().from(eventLinks).where(eq(eventLinks.tokenHash, tokenHash)));
+    return context ?? null;
+  });
+}
+
+export type UpdateLinkResult = { status: "saved"; context: LinkWithContext } | { status: "not_found" | "invalid_client" | "invalid_slot" };
+
+// Un lien retiré ne se modifie plus. Les catégories partagées sont mises à
+// jour par différence (pas de suppression inutile au journal).
+export async function updateLinkRow(organizationId: string, linkId: string, fields: LinkFields): Promise<UpdateLinkResult> {
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const [current] = await tx
+      .select()
+      .from(eventLinks)
+      .where(and(eq(eventLinks.id, linkId), isNull(eventLinks.revokedAt)));
+    if (!current) return { status: "not_found" };
+    const references = await checkReferences(tx, current.eventId, fields.eventClientId, fields.rights.sharedSlotIds);
+    if (references !== "ok") return { status: references };
+
+    const [link] = await tx
+      .update(eventLinks)
+      .set({
+        personName: fields.personName,
+        email: fields.email,
+        eventClientId: fields.eventClientId,
+        rubrics: fields.rights.rubrics,
+        budgetScope: fields.rights.budgetScope,
+        customExpiresOn: fields.customExpiresOn,
+      })
+      .where(eq(eventLinks.id, linkId))
+      .returning();
+    const existing = (await sharedSlotsByLink(tx, [linkId])).get(linkId) ?? [];
+    const removed = existing.filter((id) => !fields.rights.sharedSlotIds.includes(id));
+    const added = fields.rights.sharedSlotIds.filter((id) => !existing.includes(id));
+    if (removed.length > 0) {
+      await tx.delete(eventLinkSharedSlots).where(and(eq(eventLinkSharedSlots.linkId, linkId), inArray(eventLinkSharedSlots.vendorSlotId, removed)));
+    }
+    if (added.length > 0) {
+      await tx.insert(eventLinkSharedSlots).values(added.map((vendorSlotId) => ({ organizationId, linkId, vendorSlotId })));
+    }
+    await appendAudit(tx, { organizationId, action: "events.link.updated", objectId: current.eventId, details: { linkId } });
+    const [context] = await withContext(tx, [link!]);
+    return { status: "saved", context: context! };
+  });
+}
+
+// Renouveler : nouveau jeton, l'ancien et ses sessions cessent aussitôt ;
+// customExpiresOn (facultatif) prolonge un lien expiré.
+export async function replaceLinkTokenRow(organizationId: string, linkId: string, tokenHash: string, customExpiresOn?: string): Promise<LinkWithContext | null> {
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const [link] = await tx
+      .update(eventLinks)
+      .set({ tokenHash, renewalRequestedAt: null, ...(customExpiresOn ? { customExpiresOn } : {}) })
+      .where(and(eq(eventLinks.id, linkId), isNull(eventLinks.revokedAt)))
+      .returning();
+    if (!link) return null;
+    await tx.delete(eventLinkSessions).where(eq(eventLinkSessions.linkId, linkId));
+    await appendAudit(tx, { organizationId, action: "events.link.renewed", objectId: link.eventId, details: { linkId } });
+    const [context] = await withContext(tx, [link]);
+    return context ?? null;
+  });
+}
+
+// Retirer : le jeton disparaît et les sessions ouvertes sont coupées (SEC-06).
+export async function revokeLinkRow(organizationId: string, linkId: string): Promise<boolean> {
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const [link] = await tx
+      .update(eventLinks)
+      .set({ revokedAt: new Date(), tokenHash: null, renewalRequestedAt: null })
+      .where(and(eq(eventLinks.id, linkId), isNull(eventLinks.revokedAt)))
+      .returning({ eventId: eventLinks.eventId });
+    if (!link) return false;
+    await tx.delete(eventLinkSessions).where(eq(eventLinkSessions.linkId, linkId));
+    await appendAudit(tx, { organizationId, action: "events.link.revoked", objectId: link.eventId, details: { linkId } });
+    return true;
+  });
+}
+
+// Ouverture : une session (haché seul), date de dernière ouverture, journal.
+// L'appelant fixe l'auteur (le lien) par withActor.
+export async function insertLinkSessionRow(input: { organizationId: string; linkId: string; eventId: string; tokenHash: string; expiresAt: Date; now: Date }): Promise<void> {
+  const db = appDatabase();
+  await withOrganization(db, input.organizationId, async (tx) => {
+    await tx.insert(eventLinkSessions).values({
+      organizationId: input.organizationId,
+      linkId: input.linkId,
+      tokenHash: input.tokenHash,
+      createdAt: input.now,
+      lastSeenAt: input.now,
+      expiresAt: input.expiresAt,
+    });
+    await tx.update(eventLinks).set({ lastOpenedAt: input.now }).where(eq(eventLinks.id, input.linkId));
+    await appendAudit(tx, { organizationId: input.organizationId, action: "events.link.opened", objectId: input.eventId, details: { linkId: input.linkId } });
+  });
+}
+
+export async function findLinkSessionRow(organizationId: string, tokenHash: string): Promise<{ session: EventLinkSessionRow; context: LinkWithContext } | null> {
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const [session] = await tx.select().from(eventLinkSessions).where(eq(eventLinkSessions.tokenHash, tokenHash));
+    if (!session) return null;
+    const [context] = await withContext(tx, await tx.select().from(eventLinks).where(eq(eventLinks.id, session.linkId)));
+    return context ? { session, context } : null;
+  });
+}
+
+export async function touchLinkSessionRow(organizationId: string, sessionId: string, lastSeenAt: Date, expiresAt: Date): Promise<void> {
+  const db = appDatabase();
+  await withOrganization(db, organizationId, (tx) => tx.update(eventLinkSessions).set({ lastSeenAt, expiresAt }).where(eq(eventLinkSessions.id, sessionId)));
+}
+
+export async function deleteLinkSessionRow(organizationId: string, tokenHash: string): Promise<void> {
+  const db = appDatabase();
+  await withOrganization(db, organizationId, (tx) => tx.delete(eventLinkSessions).where(eq(eventLinkSessions.tokenHash, tokenHash)));
+}
+
+// Décision D5 : la demande est notée sur le lien (une fois) et inscrite au
+// journal ; true si elle est nouvelle.
+export async function markLinkRenewalRequestedRow(organizationId: string, linkId: string, now: Date): Promise<boolean> {
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const [link] = await tx
+      .update(eventLinks)
+      .set({ renewalRequestedAt: now })
+      .where(and(eq(eventLinks.id, linkId), isNull(eventLinks.revokedAt), isNull(eventLinks.renewalRequestedAt)))
+      .returning({ eventId: eventLinks.eventId });
+    if (!link) return false;
+    await appendAudit(tx, { organizationId, action: "events.link.renewal_requested", objectId: link.eventId, details: { linkId } });
+    return true;
+  });
+}
+
+// Demandes de nouveau lien en attente, pour l'accueil (« Aujourd'hui »).
+export async function findPendingRenewalRows(organizationId: string): Promise<{ linkId: string; eventId: string; personName: string; requestedAt: Date }[]> {
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const rows = await tx
+      .select({ linkId: eventLinks.id, eventId: eventLinks.eventId, personName: eventLinks.personName, requestedAt: eventLinks.renewalRequestedAt })
+      .from(eventLinks)
+      .where(and(isNull(eventLinks.revokedAt), sql`${eventLinks.renewalRequestedAt} is not null`))
+      .orderBy(asc(eventLinks.renewalRequestedAt));
+    return rows.map((row) => ({ ...row, requestedAt: row.requestedAt! }));
+  });
+}
+
+export async function findLinkNameRows(organizationId: string, linkIds: string[]): Promise<Record<string, string>> {
+  if (linkIds.length === 0) return {};
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const rows = await tx.select({ id: eventLinks.id, personName: eventLinks.personName }).from(eventLinks).where(inArray(eventLinks.id, linkIds));
+    return Object.fromEntries(rows.map((row) => [row.id, row.personName]));
+  });
+}
+
+export type LinkTaskToggleResult = { status: "saved"; task: EventTaskRow } | { status: "denied" };
+
+// Le tiers ne coche que les tâches « mariés » de l'événement de son lien ;
+// chaque changement va au fil d'activité, dans la même transaction.
+export async function toggleLinkTaskRow(input: { organizationId: string; linkId: string; eventId: string; taskId: string; done: boolean }): Promise<LinkTaskToggleResult> {
+  const db = appDatabase();
+  return await withOrganization(db, input.organizationId, async (tx) => {
+    const [task] = await tx.select().from(eventTasks).where(and(eq(eventTasks.id, input.taskId), eq(eventTasks.eventId, input.eventId)));
+    if (!task || task.responsible !== "clients") return { status: "denied" };
+    if ((task.doneAt !== null) === input.done) return { status: "saved", task };
+    const [updated] = await tx
+      .update(eventTasks)
+      .set({ doneAt: input.done ? new Date() : null, updatedAt: new Date() })
+      .where(eq(eventTasks.id, input.taskId))
+      .returning();
+    await tx.insert(eventActivities).values({
+      organizationId: input.organizationId,
+      eventId: input.eventId,
+      actorLinkId: input.linkId,
+      kind: input.done ? "task_done" : "task_undone",
+      taskId: input.taskId,
+      taskLabel: task.label,
+    });
+    return { status: "saved", task: updated! };
+  });
+}

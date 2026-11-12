@@ -10,6 +10,7 @@ import type { AppDatabase } from "@symbola/db/client";
 import { auditEntries } from "@symbola/db/schema/core";
 import { users } from "@symbola/db/schema/hub";
 import { withOrganization } from "@symbola/db/with-organization";
+import { getLinkNamesByIds } from "@/modules/events/service";
 
 export const ACTIVITY_PAGE_SIZE = 50;
 // Périodes proposées (jours) ; « tout » = aucune limite.
@@ -86,6 +87,10 @@ export async function listActivityLog(db: AppDatabase, organizationId: string, f
 
   const members = await db.select({ id: users.id, email: users.email }).from(users).where(eq(users.organizationId, organizationId));
   const labels = new Map(members.map((member) => [member.id, member.email]));
+  // Lot 26a (ADR 0053) : un tiers agit par son lien personnel ; son nom vient
+  // du module events (porte d'entrée, ADR 0011).
+  const linkIds = [...new Set(rows.flatMap((row) => (row.actorKind === "link" && row.actorId ? [row.actorId] : [])))];
+  for (const [linkId, name] of Object.entries(await getLinkNamesByIds(organizationId, linkIds))) labels.set(linkId, name);
   return {
     entries: rows.map((row) => ({
       id: row.id,

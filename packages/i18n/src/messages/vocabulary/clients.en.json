@@ -11,11 +11,11 @@
       "body": "A contact's first name and the source are enough to create the prospect; date, venue and budget can be filled in later. From the calendar, a free date opens this form with the date already set."
     },
     "eventsDetail": {
-      "body": "The whole event, in tabs. The top timeline shows where it stands: click the next step to move forward. The « Next step » banner says what to do now (send the quote, apply the planning, invite the client). Each tab has a « Settings » link to its templates.",
+      "body": "The whole event, in tabs. The top timeline shows where it stands: click the next step to move forward. The « Next step » banner says what to do now (send the quote, apply the planning, create the client's link). Each tab has a « Settings » link to its templates.",
       "faq": {
         "3": {
           "q": "What does the client see?",
-          "a": "Their tasks, the schedule and the budget as read-only, never your internal notes. Invite them from the Client tab."
+          "a": "What you open to them, through a personal link, with no account or password: their tasks, the schedule, the budget as read-only, never your internal notes. Create their links in the Clients tab; a sponsor can see only some budget categories."
         }
       }
     },
@@ -25,9 +25,6 @@
           "a": "Yes, from the event page: as a PDF, client version (without internal notes) or vendor version."
         }
       }
-    },
-    "clientInvitation": {
-      "body": "Each client contact has their own account. The invitation link is valid for 7 days; if it has expired, ask your planner for a new one."
     },
     "budgetDetail": {
       "faq": {
@@ -56,9 +53,6 @@
       "title": "Tasks across all your events",
       "body": "The tasks of all your events, sorted by due date. Filter « Overdue » to catch up, or by who does it; tick a task when done. Click it to edit it on its event's page."
     },
-    "clientSpace": {
-      "body": "The events your organiser shares with you. Open one to follow the preparations."
-    },
     "budgetSettings": {
       "faq": {
         "0": {
@@ -78,23 +72,16 @@
     "responsibleClients": "Clients",
     "programExportCouple": "Download the “client” PDF",
     "programPdfCouple": "Client version",
-    "clientAccessTitle": "Client access",
-    "clientAccessIntro": "Invite each client contact by e-mail: they create their own account, follow the planning timeline, check their tasks and see the event day schedule (without your internal notes). You can remove an access at any time.",
-    "noClientAccess": "No client invited yet.",
-    "clientEmail": "E-mail of the client contact",
-    "inviteClient": "Invite",
-    "clientLinked": "This person already has an account: access to this event is now open.",
-    "clientAlreadyInvited": "This person already has access to the event.",
     "noActivity": "No activity from the client yet.",
     "activityFormerClient": "A client contact",
-    "trialNoInvite": "During the trial, no invitation is sent: the client is only invited on a real event.",
+    "trialNoInvite": "During the trial, no link is sent: links are only created on a real event.",
     "trialStepQuote": "Compose a fictional quote, have the fictional client sign it on the trial signing page, then issue its invoices (DEMO series, watermarked).",
     "tabClients": "Clients",
     "columnClients": "Clients",
     "nextStep": {
       "invite_clients": {
-        "title": "Next step: invite the client",
-        "action": "Invite the client"
+        "title": "Next step: create the clients' links",
+        "action": "Create the links"
       }
     },
     "clientContactTitle": "Client's contact details",
@@ -130,7 +117,7 @@
     "client-space": {
       "steps": {
         "2": {
-          "body": "In the example's Client tab, you will invite your clients by e-mail (during an example no invitation is sent). You can remove their access at any time."
+          "body": "In the Clients tab of the example, you will create a personal link for each client: no account, no password (during an example, no link is sent). You can remove a link at any time."
         }
       }
     }
@@ -144,10 +131,6 @@
     "agendaLegendConfirmed": "Confirmed event"
   },
   "ClientSpace": {
-    "title": "My event",
-    "invitationIntro": "Your organiser invites you to follow your event preparations. Choose your password to create your personal account."
-  },
-  "HelpCenter": {
-    "fromClientEvent": "This screen opens from your space, by choosing an event."
+    "title": "My event"
   }
 }

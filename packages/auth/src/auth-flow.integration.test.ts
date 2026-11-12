@@ -110,63 +110,21 @@ describe("SOC-04 — Parcours de connexion (PostgreSQL réel)", () => {
     await expect(resumeTotpSetup(db, pendingFirst.userId)).rejects.toThrow("déjà confirmée");
   });
 
-  it("n'impose pas le TOTP à un rôle client (marié)", async () => {
+  it("L26-UX-11 — la base refuse un compte au rôle « client » : les tiers n'ont plus de compte (ADR 0053, D8)", async () => {
     const organization = await createOrganization(db, `Org ${randomUUID()}`);
-    const email = `marie-${randomUUID()}@example.test`;
-    await createUser(db, {
-      organizationId: organization.id,
-      email,
-      password: "mot-de-passe-du-marie",
-      role: "client",
-    });
-
-    const loginResult = await login(db, email, "mot-de-passe-du-marie");
-    expect(loginResult.outcome).toBe("success");
-    if (loginResult.outcome !== "success") return;
-    expect(loginResult.requiresMfa).toBe(false);
-
-    const result = await requireUser(db, loginResult.sessionToken);
-    expect(result.status).toBe("authenticated");
-  });
-
-  it("PRD-EVT-06 — un marié qui active la double authentification la passe à chaque connexion suivante", async () => {
-    const organization = await createOrganization(db, `Org ${randomUUID()}`);
-    const email = `marie-mfa-${randomUUID()}@example.test`;
-    const user = await createUser(db, { organizationId: organization.id, email, password: "mot-de-passe-du-marie", role: "client" });
-
-    const first = await login(db, email, "mot-de-passe-du-marie");
-    if (first.outcome !== "success") throw new Error("connexion attendue");
-    const before = await requireUser(db, first.sessionToken);
-    expect(before.status === "authenticated" && before.user.mfaEnabled).toBe(false);
-
-    // Activation volontaire depuis son espace, sur une session déjà ouverte.
-    const { secret } = await setupTotp(db, user.id);
-    const activated = await confirmTotp(db, { sessionToken: first.sessionToken, token: currentCodeFor(secret) });
-    if (activated.outcome !== "confirmed") throw new Error("activation attendue");
-    const enabled = await requireUser(db, activated.sessionToken);
-    expect(enabled.status === "authenticated" && enabled.user.mfaEnabled).toBe(true);
-
-    const second = await login(db, email, "mot-de-passe-du-marie");
-    if (second.outcome !== "success") throw new Error("connexion attendue");
-    expect(second.requiresMfa).toBe(true);
-    const pending = await requireUser(db, second.sessionToken);
-    expect(pending).toMatchObject({ status: "mfa_required", totpConfirmed: true });
-
-    // Le code de l'activation ne resert pas (L16-SEC-01) : celui de la période suivante.
-    const next = Date.now() + 30_000;
-    const reconfirmed = await confirmTotp(db, { sessionToken: second.sessionToken, token: codeAt(secret, next), now: new Date(next) });
-    if (reconfirmed.outcome !== "confirmed") throw new Error("validation attendue");
-    expect((await requireUser(db, reconfirmed.sessionToken)).status).toBe("authenticated");
+    await expect(
+      createUser(db, { organizationId: organization.id, email: `marie-${randomUUID()}@example.test`, password: "mot-de-passe-du-marie", role: "client" as never }),
+    ).rejects.toThrow();
   });
 
   it("PRD-EVT-06 — retrouve un compte par son e-mail, sans rien en exposer d'autre que rôle et organisation", async () => {
     const organization = await createOrganization(db, `Org ${randomUUID()}`);
     const email = `compte-${randomUUID()}@example.test`;
-    const user = await createUser(db, { organizationId: organization.id, email, password: "mot-de-passe", role: "client" });
+    const user = await createUser(db, { organizationId: organization.id, email, password: "mot-de-passe", role: "member" });
 
     expect(await findAccountByEmail(db, email.toUpperCase())).toEqual({
       id: user.id,
-      role: "client",
+      role: "member",
       organizationId: organization.id,
     });
     expect(await findAccountByEmail(db, `inconnu-${randomUUID()}@example.test`)).toBeNull();
@@ -194,28 +152,26 @@ describe("SOC-04 — Parcours de connexion (PostgreSQL réel)", () => {
   it("PRD-HUB-01 — prolonge la session à chaque activité (8h glissantes, pas depuis la connexion)", async () => {
     const organization = await createOrganization(db, `Org ${randomUUID()}`);
     const email = `glissante-${randomUUID()}@example.test`;
-    await createUser(db, {
-      organizationId: organization.id,
-      email,
-      password: "mot-de-passe",
-      role: "client", // pas de MFA requis, pour isoler le comportement de session
-    });
-
+    const user = await createUser(db, { organizationId: organization.id, email, password: "mot-de-passe", role: "member" });
     const loginResult = await login(db, email, "mot-de-passe");
-    expect(loginResult.outcome).toBe("success");
-    if (loginResult.outcome !== "success") return;
+    if (loginResult.outcome !== "success") throw new Error("connexion attendue");
+    // Lot 26a : plus de compte sans double authentification ; la session est
+    // d'abord confirmée par le code.
+    const { secret } = await setupTotp(db, user.id);
+    const confirmed = await confirmTotp(db, { sessionToken: loginResult.sessionToken, token: currentCodeFor(secret) });
+    if (confirmed.outcome !== "confirmed") throw new Error("double authentification attendue");
 
-    const firstExpiry = await expiresAtFor(loginResult.sessionToken);
-    await requireUser(db, loginResult.sessionToken);
-    const secondExpiry = await expiresAtFor(loginResult.sessionToken);
+    const firstExpiry = await expiresAtFor(confirmed.sessionToken);
+    expect((await requireUser(db, confirmed.sessionToken)).status).toBe("authenticated");
+    const secondExpiry = await expiresAtFor(confirmed.sessionToken);
 
     expect(secondExpiry.getTime()).toBeGreaterThan(firstExpiry.getTime());
   });
 
   it("RGPD-05 : une connexion réussie enregistre la dernière connexion ; un mot de passe faux, non", async () => {
     const organization = await createOrganization(db, `Org ${randomUUID()}`);
-    const email = `marie-${randomUUID()}@example.test`;
-    const user = await createUser(db, { organizationId: organization.id, email, password: "mot-de-passe-du-marie", role: "client" });
+    const email = `membre-${randomUUID()}@example.test`;
+    const user = await createUser(db, { organizationId: organization.id, email, password: "mot-de-passe-du-marie", role: "member" });
     const lastLogin = async () => (await db.select({ at: users.lastLoginAt }).from(users).where(eq(users.id, user.id)))[0]?.at ?? null;
     expect(await lastLogin()).toBeNull();
     await login(db, email, "mauvais-mot-de-passe");

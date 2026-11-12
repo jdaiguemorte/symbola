@@ -73,8 +73,8 @@ test("AIDE-11/02 — repères du module événements, puis essai guidé supprim�
   await expect(page.getByRole("heading", { name: "Essai guidé — données fictives" })).toBeVisible();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Camille & Sacha");
   await openEventTab(page, "Mariés");
-  await expect(page.getByText("Pendant l'essai, aucune invitation n'est envoyée")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Inviter le marié" })).toHaveCount(0);
+  await expect(page.getByText("Pendant l'essai, aucun lien n'est envoyé")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Créer le lien et l'envoyer" })).toHaveCount(0);
   await expectNoAxeViolation(page);
 
   // Une vraie opération sur les données fictives.

@@ -16,11 +16,10 @@ import { loadPageTour } from "@/lib/help/page-tour";
 import { AgendaBlock } from "./agenda/agenda-block";
 import { UpcomingTasksBlock } from "./taches/upcoming-tasks-block";
 import { FollowUpBlock } from "./accueil/follow-up-block";
+import { LinkRenewalsBlock } from "./events/link-renewals-block";
 
 export default async function HomePage({ searchParams }: { searchParams: Promise<{ agenda?: string; debut?: string; visite?: string }> }) {
   const auth = await requireSignedIn();
-  // PRD-EVT-06 : un marié n'a pas de hub, seulement l'espace de son mariage.
-  if (auth.user.role === "client") redirect("/espace");
   // Lot 13 (L13-HUB-17) : l'Admin arrive sur la console, pas sur un agenda vide.
   if (auth.user.role === "admin") redirect("/admin");
 
@@ -89,6 +88,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       {/* RGPD-04 : demandes dont l'échéance approche, titulaire seulement. */}
       {auth.user.role === "owner" && auth.user.organizationId ? <PrivacyRequestsAlertBlock organizationId={auth.user.organizationId} /> : null}
       {auth.user.role === "owner" && auth.user.organizationId ? <PrivacyPurgeAlertBlock organizationId={auth.user.organizationId} /> : null}
+      {/* Lot 26a (SEC-15, D5) : liens expirés dont la personne demande un nouveau lien. */}
+      {eventsAvailable && organizationId ? <LinkRenewalsBlock organizationId={organizationId} /> : null}
       {/* PRD-HUB-02 : agenda des mois à venir et tâches de la quinzaine (module Événements). */}
       {eventsAvailable && organizationId ? <AgendaBlock organizationId={organizationId} locale={locale} today={today} query={query} /> : null}
       {/* Lot 20 (décision 4) : blocs empilés, en-tête commun, trois lignes ;

@@ -11,7 +11,8 @@
 // 3. sinon « system » (tâche de fond, test, script).
 import { AsyncLocalStorage } from "node:async_hooks";
 
-export type ActorKind = "member" | "admin" | "operator" | "system";
+// Lot 26a (ADR 0053) : « link », un tiers par son lien personnel (id : le lien).
+export type ActorKind = "member" | "admin" | "operator" | "system" | "link";
 export type Actor = { kind: ActorKind; id: string | null };
 
 export const SYSTEM_ACTOR: Actor = { kind: "system", id: null };

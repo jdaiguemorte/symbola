@@ -13,7 +13,7 @@ export type NextStepInput = {
   templateCount: number;
   eventDate: string | null;
   programItemCount: number;
-  clientAccessCount: number;
+  clientLinkCount: number;
   today: string;
 };
 
@@ -30,6 +30,6 @@ export function nextStep(input: NextStepInput): NextStep | null {
   if (input.status !== "confirmed") return null;
   if (input.taskCount === 0 && input.templateCount > 0) return "apply_retroplanning";
   if (input.programItemCount === 0 && input.eventDate && withinThreeMonths(input.eventDate, input.today)) return "prepare_program";
-  if (input.clientAccessCount === 0) return "invite_clients";
+  if (input.clientLinkCount === 0) return "invite_clients";
   return null;
 }

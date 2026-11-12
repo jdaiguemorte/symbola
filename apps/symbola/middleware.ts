@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { localeFromAcceptLanguage } from "@symbola/i18n";
 import { SESSION_COOKIE_NAME, sessionCookieOptions } from "./lib/session-cookie";
+import { LINK_COOKIE_NAME, linkCookieOptions } from "./lib/link-cookie";
 
 export const LOCALE_COOKIE = "symbola_locale";
 
@@ -51,6 +52,10 @@ export function middleware(request: NextRequest) {
   // envois de formulaire (POST) : la déconnexion efface le cookie elle-même.
   const session = request.cookies.get(SESSION_COOKIE_NAME)?.value;
   if (session && request.method === "GET") response.cookies.set(SESSION_COOKIE_NAME, session, sessionCookieOptions());
+  // Lot 26a (décision D7) : la session d'un lien personnel dure 30 jours sans
+  // visite ; la base la refuse de toute façon après l'expiration du lien.
+  const linkSession = request.cookies.get(LINK_COOKIE_NAME)?.value;
+  if (linkSession && request.method === "GET") response.cookies.set(LINK_COOKIE_NAME, linkSession, linkCookieOptions());
 
   // PRD-HUB-04 : langue par défaut du navigateur, posée une seule fois (la
   // Server Action de profil et le choix lié au compte en prennent le

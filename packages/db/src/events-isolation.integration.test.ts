@@ -9,7 +9,9 @@ import { createAppConnection } from "./client";
 import {
   defaultVendorSlots,
   eventActivities,
-  eventClientAccesses,
+  eventLinks,
+  eventLinkSessions,
+  eventLinkSharedSlots,
   eventClients,
   events,
   eventTasks,
@@ -307,36 +309,76 @@ describe("PRD-EVT-01/02 — Isolation entre organisations (module events, Postgr
     });
   });
 
-  it("PRD-EVT-06 — une organisation ne voit et ne modifie jamais les accès des mariés d'une autre", async () => {
+  it("L26-SEC-10 — une organisation ne voit et ne modifie jamais les liens personnels d'une autre", async () => {
     await assertOrganizationIsolation({
       seed: async (organizationId) =>
         withOrganization(db, organizationId, async (tx) => {
           const [event] = await tx.insert(events).values({ organizationId }).returning();
           if (!event) throw new Error("insertion de l'événement attendue");
           const [row] = await tx
-            .insert(eventClientAccesses)
-            .values({
-              organizationId,
-              eventId: event.id,
-              email: "marie@example.test",
-              expiresAt: new Date(Date.now() + 86_400_000),
-              invitedByUserId: organizationId,
-            })
+            .insert(eventLinks)
+            .values({ organizationId, eventId: event.id, audience: "client", personName: "Léa Martin", email: "lea@example.test", rubrics: ["tasks"] })
             .returning();
           if (!row) throw new Error("insertion attendue, aucune ligne renvoyée");
           return row;
         }),
 
       listVisible: async (organizationId) =>
-        withOrganization(db, organizationId, (tx) => tx.select().from(eventClientAccesses)),
+        withOrganization(db, organizationId, (tx) => tx.select().from(eventLinks)),
 
       attemptCrossOrganizationUpdate: async (organizationId, targetRow) => {
         const updated = await withOrganization(db, organizationId, (tx) =>
-          tx
-            .update(eventClientAccesses)
-            .set({ revokedAt: new Date() })
-            .where(eq(eventClientAccesses.id, targetRow.id))
-            .returning(),
+          tx.update(eventLinks).set({ rubrics: ["tasks", "program", "vendor_options", "budget", "quotes"] }).where(eq(eventLinks.id, targetRow.id)).returning(),
+        );
+        return { affectedRows: updated.length };
+      },
+    });
+  });
+
+  it("L26-SEC-10 — une organisation ne voit et ne prolonge jamais les sessions de lien d'une autre", async () => {
+    await assertOrganizationIsolation({
+      seed: async (organizationId) =>
+        withOrganization(db, organizationId, async (tx) => {
+          const [event] = await tx.insert(events).values({ organizationId }).returning();
+          const [link] = await tx.insert(eventLinks).values({ organizationId, eventId: event!.id, audience: "client", personName: "Léa", email: "lea@example.test" }).returning();
+          const [row] = await tx
+            .insert(eventLinkSessions)
+            .values({ organizationId, linkId: link!.id, tokenHash: `h-${organizationId}`, expiresAt: new Date(Date.now() + 86_400_000) })
+            .returning();
+          if (!row) throw new Error("insertion attendue, aucune ligne renvoyée");
+          return row;
+        }),
+
+      listVisible: async (organizationId) =>
+        withOrganization(db, organizationId, (tx) => tx.select().from(eventLinkSessions)),
+
+      attemptCrossOrganizationUpdate: async (organizationId, targetRow) => {
+        const updated = await withOrganization(db, organizationId, (tx) =>
+          tx.update(eventLinkSessions).set({ expiresAt: new Date(Date.now() + 365 * 86_400_000) }).where(eq(eventLinkSessions.id, targetRow.id)).returning(),
+        );
+        return { affectedRows: updated.length };
+      },
+    });
+  });
+
+  it("L26-SEC-10 — une organisation ne voit et n'ajoute jamais de catégorie partagée au lien d'une autre", async () => {
+    await assertOrganizationIsolation({
+      seed: async (organizationId) =>
+        withOrganization(db, organizationId, async (tx) => {
+          const [event] = await tx.insert(events).values({ organizationId }).returning();
+          const [link] = await tx.insert(eventLinks).values({ organizationId, eventId: event!.id, audience: "client", personName: "Bernard", email: "bernard@example.test", rubrics: ["budget"], budgetScope: "selected" }).returning();
+          const [slot] = await tx.insert(eventVendorSlots).values({ organizationId, eventId: event!.id, label: "Traiteur" }).returning();
+          const [row] = await tx.insert(eventLinkSharedSlots).values({ organizationId, linkId: link!.id, vendorSlotId: slot!.id }).returning();
+          if (!row) throw new Error("insertion attendue, aucune ligne renvoyée");
+          return row;
+        }),
+
+      listVisible: async (organizationId) =>
+        withOrganization(db, organizationId, (tx) => tx.select().from(eventLinkSharedSlots)),
+
+      attemptCrossOrganizationUpdate: async (organizationId, targetRow) => {
+        const updated = await withOrganization(db, organizationId, (tx) =>
+          tx.update(eventLinkSharedSlots).set({ updatedAt: new Date() }).where(eq(eventLinkSharedSlots.id, targetRow.id)).returning(),
         );
         return { affectedRows: updated.length };
       },

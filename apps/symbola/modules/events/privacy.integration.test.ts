@@ -7,7 +7,7 @@ import { randomUUID } from "node:crypto";
 import { afterAll, describe, expect, it } from "vitest";
 import { createAppConnection } from "@symbola/db/client";
 import {
-  eventClientAccesses,
+  eventLinks,
   eventClients,
   eventPlaces,
   events,
@@ -34,12 +34,13 @@ async function seedEvent(organizationId: string, options: { firstName: string; l
       .returning();
     if (!event) throw new Error("insertion de l'événement attendue");
     await tx.insert(eventClients).values({ organizationId, eventId: event.id, firstName: options.firstName, lastName: options.lastName ?? null });
-    await tx.insert(eventClientAccesses).values({
+    // Lot 26a : lien personnel de la personne (nom et e-mail).
+    await tx.insert(eventLinks).values({
       organizationId,
       eventId: event.id,
+      audience: "client",
+      personName: `${options.firstName} ${options.lastName ?? ""}`.trim(),
       email: `${options.firstName.toLowerCase()}@example.org`,
-      expiresAt: new Date(Date.now() + 86_400_000),
-      invitedByUserId: randomUUID(),
     });
     const [slot] = await tx.insert(eventVendorSlots).values({ organizationId, eventId: event.id, label: "Photographe" }).returning();
     // Lot 28b (D14) : le nom du prestataire est porté par le prestataire rattaché.
@@ -64,6 +65,8 @@ describe("RGPD-01 — Recherche dans le module events (PostgreSQL réel)", () =>
     const found = await eventsPrivacy.find({ organizationId, terms: { name: `${name.replace("É", "e")} DURAND` } });
     expect(found).toEqual([
       { module: "events", kind: "event_client", recordId: expect.any(String), label: `${name} Durand`, fields: { firstName: name, lastName: "Durand" }, eventId },
+      // Lot 26a : son lien personnel porte aussi son nom.
+      { module: "events", kind: "link", recordId: expect.any(String), label: `${name} Durand`, fields: { name: `${name} Durand`, email: expect.any(String) }, eventId },
     ]);
   });
 
@@ -72,7 +75,7 @@ describe("RGPD-01 — Recherche dans le module events (PostgreSQL réel)", () =>
     const name = `Ines${randomUUID().slice(0, 6)}`;
     await seedEvent(organizationId, { firstName: name });
 
-    expect((await eventsPrivacy.find({ organizationId, terms: { email: `${name.toLowerCase()}@example.org` } })).map((record) => record.kind)).toEqual(["client_access"]);
+    expect((await eventsPrivacy.find({ organizationId, terms: { email: `${name.toLowerCase()}@example.org` } })).map((record) => record.kind)).toEqual(["link"]);
     expect((await eventsPrivacy.find({ organizationId, terms: { phone: "06 12 34 56 78" } })).map((record) => record.kind)).toEqual(["event"]);
     expect((await eventsPrivacy.find({ organizationId, terms: { phone: "0711223344" } })).map((record) => record.kind)).toEqual(["program_item"]);
     expect((await eventsPrivacy.find({ organizationId, terms: { name: "Studio Lumiere" } })).map((record) => record.kind)).toEqual(["vendor_candidate"]);
@@ -87,19 +90,19 @@ describe("RGPD-01 — Recherche dans le module events (PostgreSQL réel)", () =>
     await seedEvent(otherOrganizationId, { firstName: name });
 
     expect(await eventsPrivacy.find({ organizationId, terms: { name } })).toEqual([]);
-    // L'e-mail d'accès (« chloe…@example.org ») contient aussi le prénom.
+    // Le lien personnel porte aussi le prénom (nom de la personne, e-mail).
     expect((await eventsPrivacy.find({ organizationId: otherOrganizationId, terms: { name } })).map((record) => record.kind).sort()).toEqual([
-      "client_access",
       "event_client",
+      "link",
     ]);
   });
 
-  it("rend les données rattachées à l'événement de la personne (fiche, tâches, postes, programme, accès, historique)", async () => {
+  it("rend les données rattachées à l'événement de la personne (fiche, tâches, postes, programme, liens personnels, historique)", async () => {
     const organizationId = randomUUID();
     const { eventId } = await seedEvent(organizationId, { firstName: `Lea${randomUUID().slice(0, 6)}` });
     const related = await eventsPrivacy.related({ organizationId, eventIds: [eventId] });
     expect(related.map((record) => record.kind).sort()).toEqual(
-      ["client_access", "event", "event_vendor_slot", "program_item", "status_change", "task", "vendor_candidate"].sort(),
+      ["link", "event", "event_vendor_slot", "program_item", "status_change", "task", "vendor_candidate"].sort(),
     );
     expect(related.every((record) => record.eventId === eventId)).toBe(true);
     expect(await eventsPrivacy.related({ organizationId: randomUUID(), eventIds: [eventId] })).toEqual([]);
