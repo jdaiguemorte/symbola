@@ -94,6 +94,9 @@ export const budgetLines = budgetSchema.table("budget_lines", {
   quotedAmountCents: integer("quoted_amount_cents"),
   committedAmountCents: integer("committed_amount_cents"),
   paidAmountCents: integer("paid_amount_cents"),
+  // Lot 28c (BUD-09, D5) : taux de TVA de la ligne, en points de base (2000 =
+  // 20 %) ; vide, le taux de départ des modèles (ADR 0007). Montants saisis TTC.
+  vatRateBasisPoints: integer("vat_rate_basis_points"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
@@ -102,6 +105,7 @@ export const budgetLines = budgetSchema.table("budget_lines", {
 }, (table) => [
   index("budget_lines_organization_idx").on(table.organizationId),
   index("budget_lines_event_vendor_slot_idx").on(table.eventVendorSlotId),
+  check("budget_lines_vat_rate_check", sql`${table.vatRateBasisPoints} between 0 and 10000`),
 ]);
 
 export const budgetLineFieldEnum = budgetSchema.enum("budget_line_field", ["estimated", "quoted", "committed", "paid"]);

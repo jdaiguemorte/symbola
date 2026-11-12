@@ -3,7 +3,7 @@ import { readImportCorpusFile } from "@symbola/testing/import-corpus";
 import { planningSoftwareProfile } from "@symbola/starter-templates";
 import { readImportFile } from "../read";
 import type { ImportTable } from "../types";
-import { cleanVendorImportText, detectVendorsExport, normalizeVendorImportValues, normalizeVendorsExportRow, proposeVendorsExportMapping } from "./vendors-export";
+import { cleanVendorImportText, detectVendorsExport, normalizeVendorImportValues, normalizeVendorsExportRow, parseVendorRating, proposeVendorsExportMapping } from "./vendors-export";
 
 const profile = planningSoftwareProfile().vendors;
 const limits = { maxBytes: 10 * 1024 * 1024, maxRows: 5000 };
@@ -105,5 +105,24 @@ describe("IMP-07 — Correspondance proposée et valeurs remises en état (lot 1
     expect(normalizeVendorImportValues({ name: "  " }, ",")).toBeNull();
     expect(cleanVendorImportText("postalCode", "5000")).toBe("05000");
     expect(cleanVendorImportText("name", "Clic &amp; D&eacute;clic")).toBe("Clic & Déclic");
+  });
+});
+
+describe("PRE-01 — Évaluation et tarifs indicatifs importés (lot 28c, D8)", () => {
+  it("lit une évaluation écrite en chiffre, sur 5 ou en étoiles", () => {
+    expect(["4", "4,0", "4.0", "4/5", "4 / 5", "4 sur 5", "4 out of 5", "★★★★", "★★★★☆", "****", "⭐⭐⭐⭐"].map(parseVendorRating)).toEqual(Array(11).fill(4));
+  });
+
+  it("laisse sans évaluation une cellule vide, hors de 1 à 5 ou illisible", () => {
+    expect(["", "0", "6", "4,5", "8/10", "excellent", "☆☆☆☆☆", "******"].map((value) => parseVendorRating(value))).toEqual(Array(8).fill(null));
+    expect(parseVendorRating(null)).toBeNull();
+  });
+
+  it("une ligne importée porte son évaluation et ses tarifs indicatifs", () => {
+    expect(normalizeVendorImportValues({ name: "Maison Haddad", rating: "5/5", indicativePrices: " À partir de 85 € par couvert " }, ",")).toMatchObject({
+      rating: 5,
+      indicativePrices: "À partir de 85 € par couvert",
+    });
+    expect(normalizeVendorImportValues({ name: "DJ Nova" }, ",")).toMatchObject({ rating: null, indicativePrices: null });
   });
 });

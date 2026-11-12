@@ -7,12 +7,15 @@
 // prestataire, ses documents (devis, contrat, facture) et ses échéances. Le
 // formulaire s'ouvre dans une rangée pleine largeur sous la ligne (le tableau
 // ne s'élargit pas). En 375 px, une carte par ligne (globals.css, .budget-lines).
+// Lot 28c (BUD-09, D5) : montants saisis TTC ; pour un client professionnel (type
+// d'acheteur du devis de l'événement), le HT s'affiche sous chaque TTC, calculé
+// au taux de la ligne (ADR 0059).
 
 const COLUMNS = 8;
 import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
 import { formatAmount, formatAmountInput, formatCalendarDate, formatFileSize, type Locale } from "@symbola/i18n";
-import { BUDGET_AMOUNT_FIELDS, BUDGET_DOCUMENT_KINDS, type BudgetAmountField, type BudgetCategory } from "@symbola/contracts";
+import { BUDGET_AMOUNT_FIELDS, BUDGET_DOCUMENT_KINDS, type BudgetAmountField, type BudgetCategory, type BudgetHtTotals } from "@symbola/contracts";
 import {
   addBudgetLineAction,
   addVendorPaymentAction,
@@ -25,6 +28,7 @@ import {
   type BudgetFormState,
 } from "./actions";
 import { useUploadAction } from "@/app/ui/use-upload";
+import { formatDecimal } from "@/app/devis/decimal-input";
 import { varianceDisplay } from "@/app/budget/variance-display";
 import type { BudgetLinesView } from "@/modules/budget/service";
 
@@ -37,6 +41,20 @@ const AMOUNT_OF: Record<BudgetAmountField, (line: Line) => number | null> = {
   committed: (line) => line.committedAmountCents,
   paid: (line) => line.paidAmountCents,
 };
+
+const HT_OF: Record<BudgetAmountField, (line: Line) => number | null> = {
+  estimated: (line) => line.ht.estimatedCents,
+  quoted: (line) => line.ht.quotedCents,
+  committed: (line) => line.ht.committedCents,
+  paid: (line) => line.ht.paidCents,
+};
+
+// BUD-09 : le HT sous le TTC, pour un client professionnel seulement.
+function HtAmount({ cents, professional, locale }: { cents: number | null; professional: boolean; locale: Locale }) {
+  const t = useTranslations("Budget");
+  if (!professional || cents === null) return null;
+  return <span className="budget-ht">{t("htAmount", { amount: formatAmount(cents, locale) })}</span>;
+}
 
 function Feedback({ state, success }: { state: BudgetFormState; success: string }) {
   if (state.error) return <p role="alert">{state.error}</p>;
@@ -71,7 +89,7 @@ function AmountsForm({ eventId, line, locale }: { eventId: string; line: Line; l
   );
 }
 
-function DetailsForm({ eventId, line, vendors }: { eventId: string; line: Line; vendors: VendorOption[] }) {
+function DetailsForm({ eventId, line, vendors, locale }: { eventId: string; line: Line; vendors: VendorOption[]; locale: Locale }) {
   const t = useTranslations("Budget");
   const [state, action, pending] = useActionState(updateBudgetLineDetailsAction, {});
   return (
@@ -92,6 +110,10 @@ function DetailsForm({ eventId, line, vendors }: { eventId: string; line: Line; 
             </option>
           ))}
         </select>
+      </label>
+      <label>
+        {t("lineVatRateOf", { label: line.label })}
+        <input type="text" inputMode="decimal" name="vatRate" defaultValue={formatDecimal(line.vatRateBasisPoints, 2, locale)} />
       </label>
       <button type="submit" disabled={pending}>
         {t("saveLineDetails")}
@@ -231,7 +253,7 @@ function Payments({ eventId, line, locale }: { eventId: string; line: Line; loca
   );
 }
 
-function LineRow({ eventId, line, vendors, locale }: { eventId: string; line: Line; vendors: VendorOption[]; locale: Locale }) {
+function LineRow({ eventId, line, vendors, professional, locale }: { eventId: string; line: Line; vendors: VendorOption[]; professional: boolean; locale: Locale }) {
   const t = useTranslations("Budget");
   const [open, setOpen] = useState(false);
   const shown = (cents: number | null) => (cents === null ? t("notSet") : formatAmount(cents, locale));
@@ -248,13 +270,16 @@ function LineRow({ eventId, line, vendors, locale }: { eventId: string; line: Li
         {BUDGET_AMOUNT_FIELDS.map((field) => (
           <td key={field} className="num" data-label={t(`amounts.${field}`)}>
             {shown(AMOUNT_OF[field](line))}
+            <HtAmount cents={HT_OF[field](line)} professional={professional} locale={locale} />
           </td>
         ))}
         <td className={line.remainingAmountCents !== null && line.remainingAmountCents < 0 ? "num text-overdue" : "num"} data-label={t("amounts.remaining")}>
           {shown(line.remainingAmountCents)}
+          <HtAmount cents={line.ht.remainingCents} professional={professional} locale={locale} />
         </td>
         <td className={variance.className} data-label={t("variance")}>
           {t(variance.labelKey, { amount: variance.amountCents === null ? "" : formatAmount(variance.amountCents, locale) })}
+          <HtAmount cents={line.ht.varianceCents} professional={professional} locale={locale} />
         </td>
         <td className="budget-line-edit">
           {/* « Modifier » visible ; le nom de la ligne pour les lecteurs d'écran. */}
@@ -269,7 +294,7 @@ function LineRow({ eventId, line, vendors, locale }: { eventId: string; line: Li
           <td colSpan={COLUMNS}>
             <section id={editorId} aria-label={t("editorOf", { label: line.label })} className="budget-line-editor-panel">
               <AmountsForm eventId={eventId} line={line} locale={locale} />
-              <DetailsForm eventId={eventId} line={line} vendors={vendors} />
+              <DetailsForm eventId={eventId} line={line} vendors={vendors} locale={locale} />
               <Documents eventId={eventId} line={line} locale={locale} />
               <Payments eventId={eventId} line={line} locale={locale} />
               <form action={removeBudgetLineAction}>
@@ -315,7 +340,19 @@ function AddLineForm({ eventId, category, vendors }: { eventId: string; category
   );
 }
 
-function CategoryRows({ eventId, category, vendors, locale }: { eventId: string; category: BudgetCategory; vendors: VendorOption[]; locale: Locale }) {
+function CategoryRows({
+  eventId,
+  category,
+  vendors,
+  professional,
+  locale,
+}: {
+  eventId: string;
+  category: BudgetCategory;
+  vendors: VendorOption[];
+  professional: boolean;
+  locale: Locale;
+}) {
   const t = useTranslations("Budget");
   const [adding, setAdding] = useState(false);
   const titleId = `categorie-${category.eventVendorSlotId}`;
@@ -331,12 +368,7 @@ function CategoryRows({ eventId, category, vendors, locale }: { eventId: string;
             <span className="sr-only"> {t("addLineTo", { category: category.label })}</span>
           </button>
         </th>
-        <td className="num" data-label={t("amounts.estimated")}>{formatAmount(category.estimatedCents, locale)}</td>
-        <td className="num" data-label={t("amounts.quoted")}>{formatAmount(category.quotedCents, locale)}</td>
-        <td className="num" data-label={t("amounts.committed")}>{formatAmount(category.committedCents, locale)}</td>
-        <td className="num" data-label={t("amounts.paid")}>{formatAmount(category.paidCents, locale)}</td>
-        <td className="num" data-label={t("amounts.remaining")}>{formatAmount(category.remainingCents, locale)}</td>
-        <td className="num" data-label={t("variance")}>{formatAmount(category.varianceCents, locale)}</td>
+        <TotalCells ttc={category} ht={category.ht} professional={professional} locale={locale} />
         <td />
       </tr>
       {adding ? (
@@ -349,9 +381,42 @@ function CategoryRows({ eventId, category, vendors, locale }: { eventId: string;
         </tr>
       ) : null}
       {category.lines.map((line) => (
-        <LineRow key={line.id} eventId={eventId} line={line} vendors={vendors} locale={locale} />
+        <LineRow key={line.id} eventId={eventId} line={line} vendors={vendors} professional={professional} locale={locale} />
       ))}
     </tbody>
+  );
+}
+
+// Totaux d'une catégorie ou du budget : TTC, et HT par taux pour un professionnel.
+function TotalCells({
+  ttc,
+  ht,
+  professional,
+  locale,
+}: {
+  ttc: Record<"estimatedCents" | "quotedCents" | "committedCents" | "paidCents" | "remainingCents" | "varianceCents", number>;
+  ht: BudgetHtTotals;
+  professional: boolean;
+  locale: Locale;
+}) {
+  const t = useTranslations("Budget");
+  const cells = [
+    ["amounts.estimated", "estimatedCents"],
+    ["amounts.quoted", "quotedCents"],
+    ["amounts.committed", "committedCents"],
+    ["amounts.paid", "paidCents"],
+    ["amounts.remaining", "remainingCents"],
+    ["variance", "varianceCents"],
+  ] as const;
+  return (
+    <>
+      {cells.map(([label, key]) => (
+        <td key={key} className="num" data-label={t(label)}>
+          {formatAmount(ttc[key], locale)}
+          <HtAmount cents={ht[key]} professional={professional} locale={locale} />
+        </td>
+      ))}
+    </>
   );
 }
 
@@ -370,6 +435,7 @@ export function BudgetLinesTable({
   locale: Locale;
 }) {
   const t = useTranslations("Budget");
+  const professional = view?.clientKind === "professional";
 
   if (!view || view.lines.length === 0) {
     if (!canConfirm) return null;
@@ -382,6 +448,9 @@ export function BudgetLinesTable({
   }
 
   return (
+    <>
+    {/* BUD-09 : le mode suit le type de client du devis, sans réglage. */}
+    <p className="muted">{t(professional ? "vatModeProfessional" : "vatModeIndividual")}</p>
     <div className="list-table-wrap" role="region" aria-labelledby="budget-lines-caption" tabIndex={0}>
       <table className="list-table budget-lines">
         <caption id="budget-lines-caption">{t("linesTitle")}</caption>
@@ -401,21 +470,36 @@ export function BudgetLinesTable({
           </tr>
         </thead>
         {view.categories.map((category) => (
-          <CategoryRows key={category.eventVendorSlotId} eventId={eventId} category={category} vendors={vendorOptions[category.eventVendorSlotId] ?? []} locale={locale} />
+          <CategoryRows
+            key={category.eventVendorSlotId}
+            eventId={eventId}
+            category={category}
+            vendors={vendorOptions[category.eventVendorSlotId] ?? []}
+            professional={professional}
+            locale={locale}
+          />
         ))}
         <tfoot>
           <tr>
             <th scope="row">{t("total")}</th>
-            <td className="num" data-label={t("amounts.estimated")}>{formatAmount(view.totalEstimatedCents, locale)}</td>
-            <td className="num" data-label={t("amounts.quoted")}>{formatAmount(view.totalQuotedCents, locale)}</td>
-            <td className="num" data-label={t("amounts.committed")}>{formatAmount(view.totalCommittedCents, locale)}</td>
-            <td className="num" data-label={t("amounts.paid")}>{formatAmount(view.totalPaidCents, locale)}</td>
-            <td className="num" data-label={t("amounts.remaining")}>{formatAmount(view.totalRemainingCents, locale)}</td>
-            <td className="num" data-label={t("variance")}>{formatAmount(view.totalVarianceCents, locale)}</td>
+            <TotalCells
+              ttc={{
+                estimatedCents: view.totalEstimatedCents,
+                quotedCents: view.totalQuotedCents,
+                committedCents: view.totalCommittedCents,
+                paidCents: view.totalPaidCents,
+                remainingCents: view.totalRemainingCents,
+                varianceCents: view.totalVarianceCents,
+              }}
+              ht={view.totalHt}
+              professional={professional}
+              locale={locale}
+            />
             <td />
           </tr>
         </tfoot>
       </table>
     </div>
+    </>
   );
 }

@@ -1,7 +1,7 @@
 // Accès aux données du module vendors — jamais importé hors de
 // modules/vendors/ (ADR 0011). Chaque requête passe par withOrganization
 // (RLS, CLAUDE.md § 5).
-import { and, asc, eq, inArray, isNull, or, sql, type SQL } from "drizzle-orm";
+import { and, asc, eq, gte, inArray, isNull, or, sql, type SQL } from "drizzle-orm";
 import { appDatabase } from "@symbola/db/client";
 import { foldedColumn, likeWord } from "@symbola/db/search";
 import { vendorFiles, vendors, vendorSettings, vendorTagGroups, vendorTags, vendorTypeFields, vendorTypes } from "@symbola/db/schema/vendors";
@@ -185,6 +185,8 @@ export type VendorWrite = {
   city: string | null;
   country: string;
   internalNote: string | null;
+  rating: number | null;
+  indicativePrices: string | null;
   website: string | null;
   socialLinks: VendorSocialLink[];
   siret: string | null;
@@ -287,6 +289,7 @@ export function findVendorRows(
     fieldFilters: (VendorFieldFilter & { kind: VendorFieldKind })[];
     onlyIds?: string[] | undefined;
     unplacedOnly?: boolean | undefined;
+    minRating?: number | undefined;
     around?: VendorAround | undefined;
     includeArchived: boolean;
     limit: number;
@@ -296,6 +299,7 @@ export function findVendorRows(
     const conditions: SQL[] = [];
     if (!input.includeArchived) conditions.push(isNull(vendors.archivedAt));
     if (input.unplacedOnly) conditions.push(isNull(vendors.latitude));
+    if (input.minRating !== undefined) conditions.push(gte(vendors.rating, input.minRating));
     if (input.typeIds && input.typeIds.length > 0) conditions.push(inArray(vendors.typeId, input.typeIds));
     if (input.typeScope) {
       const scope = [

@@ -226,6 +226,7 @@ function toSummary(row: VendorRow): VendorSummary {
     tagIds: row.tagIds,
     archived: row.archivedAt !== null,
     isDemo: row.isDemo,
+    rating: row.rating,
   };
 }
 
@@ -242,6 +243,7 @@ function toVendor(row: VendorRow, files: VendorFileRow[]): Vendor {
     addressLine: row.addressLine,
     country: row.country,
     internalNote: row.internalNote,
+    indicativePrices: row.indicativePrices,
     website: row.website,
     socialLinks: cleanSocialLinks(row.socialLinks),
     siret: row.siret,
@@ -252,6 +254,22 @@ function toVendor(row: VendorRow, files: VendorFileRow[]): Vendor {
 }
 
 const blankToNull = (value: string | null | undefined) => (value?.trim() ? value.trim() : null);
+
+// Lot 28c (PRE-01, D8) — évaluation entière de 1 à 5, ou aucune.
+export class InvalidVendorRatingError extends Error {
+  constructor() {
+    super("évaluation hors de 1 à 5");
+    this.name = "InvalidVendorRatingError";
+  }
+}
+
+export const VENDOR_RATING_MAX = 5;
+
+function cleanRating(value: number | null | undefined): number | null {
+  if (value === null || value === undefined) return null;
+  if (!Number.isInteger(value) || value < 1 || value > VENDOR_RATING_MAX) throw new InvalidVendorRatingError();
+  return value;
+}
 
 // Lot 14 (décision M) — site web, réseaux sociaux, SIRET.
 export class InvalidVendorLinkError extends Error {
@@ -602,6 +620,8 @@ async function prepareWrite(organizationId: string, input: VendorInput): Promise
     city: blankToNull(input.city),
     country: (input.country ?? "FR").trim().toUpperCase() || "FR",
     internalNote: blankToNull(input.internalNote),
+    rating: cleanRating(input.rating),
+    indicativePrices: blankToNull(input.indicativePrices),
     website: cleanWebsite(input.website),
     socialLinks: cleanSocialLinks(input.socialLinks ?? []),
     siret: cleanSiret(input.siret),
@@ -690,6 +710,8 @@ export async function findVendors(input: FindVendorsInput): Promise<VendorListIt
     fieldFilters,
     onlyIds: input.workedWith ? await listSelectedVendorIds(input.organizationId) : undefined,
     unplacedOnly: input.unplacedOnly ?? false,
+    // Un seuil hors de 1 à 5 est ignoré, jamais en erreur.
+    minRating: input.minRating !== undefined && Number.isInteger(input.minRating) && input.minRating >= 1 && input.minRating <= VENDOR_RATING_MAX ? input.minRating : undefined,
     around,
     includeArchived: input.includeArchived ?? false,
     limit: Math.min(Math.max(input.limit ?? 200, 1), 500),

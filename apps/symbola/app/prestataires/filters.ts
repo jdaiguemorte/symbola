@@ -16,6 +16,8 @@ export type BookFilters = {
   workedWith: boolean;
   // Lot 15 : fiches sans point sur la carte (« à placer »).
   unplaced: boolean;
+  // Lot 28c (PRE-01) : évaluation d'au moins tant (« note=4 »).
+  minRating: number | null;
   aroundText: string;
   radiusKm: number;
   fieldInputs: Record<string, string>;
@@ -63,6 +65,7 @@ export function parseBookFilters(query: BookQuery, types: VendorType[]): BookFil
     tagId: UUID.test(one(query, "etiquette")) ? one(query, "etiquette") : null,
     workedWith: one(query, "deja") === "1",
     unplaced: one(query, "aplacer") === "1",
+    minRating: /^[1-5]$/.test(one(query, "note")) ? Number(one(query, "note")) : null,
     aroundText: one(query, "autour"),
     radiusKm: RADIUS_CHOICES.includes(radius as (typeof RADIUS_CHOICES)[number]) ? radius : 15,
     fieldInputs,
@@ -87,6 +90,7 @@ export function toFindInput(
     fieldFilters: filters.fieldFilters,
     workedWith: filters.workedWith,
     unplacedOnly: filters.unplaced,
+    ...(filters.minRating ? { minRating: filters.minRating } : {}),
     ...(center ? { around: { ...center, radiusKm: filters.radiusKm } } : {}),
   };
 }

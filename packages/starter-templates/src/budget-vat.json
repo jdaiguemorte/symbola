@@ -1,0 +1,5 @@
+{
+  "version": 1,
+  "_source": "Lot 28c (BUD-09), décision D5 de Julien du 11/11/2026 : taux de TVA de départ d'une ligne de budget, en points de base (2000 = 20 %, taux normal en France, art. 278 du CGI). Modifiable sur chaque ligne ; 0 pour un prestataire en franchise.",
+  "defaultVatRateBasisPoints": 2000
+}

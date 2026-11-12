@@ -577,13 +577,11 @@
       "fr": [
         "prestations",
         "description",
-        "tarifs",
         "offre"
       ],
       "en": [
         "services",
-        "description",
-        "prices"
+        "description"
       ]
     },
     "client1Email": {
@@ -714,6 +712,33 @@
         "wished budget",
         "budget",
         "target budget"
+      ]
+    },
+    "rating": {
+      "fr": [
+        "évaluation",
+        "note sur 5",
+        "notation",
+        "étoiles"
+      ],
+      "en": [
+        "rating",
+        "score",
+        "stars"
+      ]
+    },
+    "indicativePrices": {
+      "fr": [
+        "tarifs indicatifs",
+        "tarifs",
+        "fourchette de prix",
+        "grille tarifaire"
+      ],
+      "en": [
+        "indicative prices",
+        "prices",
+        "pricing",
+        "price range"
       ]
     }
   },

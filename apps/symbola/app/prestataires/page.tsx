@@ -23,6 +23,7 @@ import { HoverSync } from "./hover-sync";
 import { countVendorsByType, getVendor } from "@/modules/vendors/service";
 import { ensureVendorFamilies } from "@/lib/vendors/catalog";
 import { FamilyIcon } from "./family-icon";
+import { RatingStars } from "./rating-stars";
 
 // Types « à classer » (sans famille) et fiches sans type, sur la carte.
 const UNCLASSIFIED_COLOR = "#78716c";
@@ -196,6 +197,17 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
             </select>
           </label>
           <label>
+            {t("filterRating")}
+            <select name="note" defaultValue={filters.minRating ? String(filters.minRating) : ""}>
+              <option value="">{t("any")}</option>
+              {[5, 4, 3, 2].map((value) => (
+                <option key={value} value={value}>
+                  {t("filterRatingAtLeast", { rating: value })}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
             {t("filterUnplacedLabel")}
             <select name="aplacer" defaultValue={filters.unplaced ? "1" : ""}>
               <option value="">{t("any")}</option>
@@ -303,6 +315,7 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
                     ) : null}
                     {vendor.city ? <span>{vendor.city}</span> : null}
                     {vendor.travel ? <span>{t("travel", { km: vendor.travel.distanceKm, minutes: vendor.travel.minutes })}</span> : null}
+                    {vendor.rating ? <RatingStars rating={vendor.rating} label={t("ratingValue", { rating: vendor.rating })} /> : null}
                     {vendor.isDemo ? <span className="badge badge-ambre">{t("demo")}</span> : null}
                     {!vendor.location ? <span>{t("notPlaced")}</span> : null}
                   </span>
@@ -405,6 +418,25 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
               </div>
             ) : null}
           </dl>
+          {/* Lot 28c (PRE-01) : évaluation et tarifs indicatifs. */}
+          {opened.rating || opened.indicativePrices ? (
+            <dl className="vendor-summary">
+              {opened.rating ? (
+                <div>
+                  <dt>{t("rating")}</dt>
+                  <dd>
+                    <RatingStars rating={opened.rating} label={t("ratingValue", { rating: opened.rating })} />
+                  </dd>
+                </div>
+              ) : null}
+              {opened.indicativePrices ? (
+                <div>
+                  <dt>{t("indicativePrices")}</dt>
+                  <dd className="vendor-prices">{opened.indicativePrices}</dd>
+                </div>
+              ) : null}
+            </dl>
+          ) : null}
           {opened.internalNote ? <p className="muted">{opened.internalNote}</p> : null}
           {target ? (
             <form action={addVendorToSlotAction}>

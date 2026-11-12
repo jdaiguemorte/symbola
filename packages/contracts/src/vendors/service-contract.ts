@@ -88,6 +88,8 @@ export type VendorSummary = {
   tagIds: string[];
   archived: boolean;
   isDemo: boolean;
+  // Lot 28c (PRE-01, D8) : évaluation interne, de 1 à 5 ; null sans évaluation.
+  rating: number | null;
 };
 
 export type Vendor = VendorSummary & {
@@ -97,6 +99,8 @@ export type Vendor = VendorSummary & {
   addressLine: string | null;
   country: string;
   internalNote: string | null;
+  // Lot 28c (PRE-01, D8) : tarifs indicatifs, en texte libre.
+  indicativePrices: string | null;
   // Lot 14 (décision M) : liens et identité légale, communs à tous les types.
   website: string | null;
   socialLinks: VendorSocialLink[];
@@ -123,6 +127,9 @@ export type VendorInput = {
   city?: string | null;
   country?: string;
   internalNote?: string | null;
+  // Lot 28c (PRE-01) : évaluation de 1 à 5 (null = aucune) et tarifs indicatifs.
+  rating?: number | null;
+  indicativePrices?: string | null;
   website?: string | null;
   socialLinks?: VendorSocialLink[];
   siret?: string | null;
@@ -153,6 +160,8 @@ export type FindVendorsInput = {
   workedWith?: boolean;
   // Lot 15 (GEO-01) : seulement les fiches sans point sur la carte (« à placer »).
   unplacedOnly?: boolean;
+  // Lot 28c (PRE-01) : évaluation d'au moins tant (1 à 5).
+  minRating?: number;
   around?: VendorAround;
   includeArchived?: boolean;
   limit?: number;

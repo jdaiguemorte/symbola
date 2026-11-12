@@ -63,8 +63,10 @@ import {
   EventNotFoundError,
   type EventVendorSlot,
 } from "@/modules/events/service";
+import { listEventQuotes } from "@/modules/quotes/service";
 import { parisToday } from "@symbola/i18n";
-import { starterBudgetAlertThreshold } from "@symbola/starter-templates";
+import { starterBudgetAlertThreshold, starterBudgetVatRateBasisPoints } from "@symbola/starter-templates";
+import { budgetClientKind, htFromTtcCents, htTotalByRate } from "./vat";
 import type {
   AddBudgetLineInput,
   AdjustEventBudgetItemInput,
@@ -72,6 +74,7 @@ import type {
   AttachBudgetLineQuoteInput,
   BudgetAlertSettings,
   BudgetCategory,
+  BudgetHtTotals,
   BudgetEnvelope,
   EngagementPreview,
   BudgetLine,
@@ -145,8 +148,8 @@ export class BudgetLinePaidFromPaymentsError extends Error {
 // Lot 28b (BUD-01) : le prestataire d'une ligne est l'un des prestataires
 // rattachés à sa catégorie ; le libellé d'une nouvelle ligne est obligatoire.
 export class BudgetLineDetailsInvalidError extends Error {
-  constructor(readonly reason: "label" | "vendor") {
-    super(reason === "label" ? "libellé de ligne obligatoire" : "prestataire hors de la catégorie");
+  constructor(readonly reason: "label" | "vendor" | "vat") {
+    super(reason === "label" ? "libellé de ligne obligatoire" : reason === "vendor" ? "prestataire hors de la catégorie" : "taux de TVA hors de 0 à 100 %");
     this.name = "BudgetLineDetailsInvalidError";
   }
 }
@@ -366,11 +369,15 @@ type LineContext = {
   vendorNameOf: Map<string, string>;
   slotLabelOf: Map<string, string>;
   today: string;
+  defaultVatRateBasisPoints: number;
 };
 
 function toBudgetLine(line: BudgetLineRow, context: LineContext): BudgetLine {
   const { varianceCents, variancePercent } = computeVariance(line.estimatedAmountCents, line.committedAmountCents);
   const payments = context.payments.filter((payment) => payment.lineId === line.id);
+  const remainingAmountCents = remainingToPayCents(line.committedAmountCents, line.paidAmountCents);
+  const vatRateBasisPoints = line.vatRateBasisPoints ?? context.defaultVatRateBasisPoints;
+  const ht = (ttc: number | null) => (ttc === null ? null : htFromTtcCents(ttc, vatRateBasisPoints));
   return {
     id: line.id,
     eventVendorSlotId: line.eventVendorSlotId,
@@ -382,17 +389,39 @@ function toBudgetLine(line: BudgetLineRow, context: LineContext): BudgetLine {
     quotedAmountCents: line.quotedAmountCents,
     committedAmountCents: line.committedAmountCents,
     paidAmountCents: line.paidAmountCents,
-    remainingAmountCents: remainingToPayCents(line.committedAmountCents, line.paidAmountCents),
+    remainingAmountCents,
     varianceCents,
     variancePercent,
     paidFromPayments: payments.length > 0,
     attachments: context.attachments.filter((attachment) => attachment.lineId === line.id).map(toBudgetLineAttachment),
     payments: payments.map((payment) => toVendorPayment(payment, line, context.lines, context.today)),
+    vatRateBasisPoints,
+    ht: {
+      estimatedCents: ht(line.estimatedAmountCents),
+      quotedCents: ht(line.quotedAmountCents),
+      committedCents: ht(line.committedAmountCents),
+      paidCents: ht(line.paidAmountCents),
+      remainingCents: ht(remainingAmountCents),
+      varianceCents: ht(varianceCents),
+    },
   };
 }
 
 function sumOf(lines: BudgetLine[], pick: (line: BudgetLine) => number | null): number {
   return lines.reduce((sum, line) => sum + (pick(line) ?? 0), 0);
+}
+
+// Lot 28c (BUD-09, ADR 0059) : totaux HT, les TTC additionnés par taux.
+function htTotalsOf(lines: BudgetLine[]): BudgetHtTotals {
+  const total = (pick: (line: BudgetLine) => number | null) => htTotalByRate(lines, (line) => line.vatRateBasisPoints, pick);
+  return {
+    estimatedCents: total((line) => line.estimatedAmountCents),
+    quotedCents: total((line) => line.quotedAmountCents),
+    committedCents: total((line) => line.committedAmountCents),
+    paidCents: total((line) => line.paidAmountCents),
+    remainingCents: total((line) => line.remainingAmountCents),
+    varianceCents: total((line) => line.varianceCents),
+  };
 }
 
 // Lot 28b (BUD-01, Q33) : les catégories (postes) dans l'ordre de la fiche,
@@ -403,11 +432,13 @@ async function toBudgetLinesView(
   lines: BudgetLineRow[],
 ): Promise<BudgetLinesView> {
   const lineIds = lines.map((line) => line.id);
-  const [vendorSlots, attachments, payments, candidates]: [EventVendorSlot[], BudgetLineAttachmentRow[], VendorPaymentRow[], VendorCandidate[]] = await Promise.all([
+  const [vendorSlots, attachments, payments, candidates, quotes] = await Promise.all([
     listEventVendorSlots(organizationId, eventId),
     findBudgetLineAttachments(organizationId, lineIds),
     findVendorPayments(organizationId, lineIds),
-    lines.some((line) => line.vendorCandidateId !== null) ? listVendorCandidates(organizationId, eventId) : Promise.resolve([]),
+    lines.some((line) => line.vendorCandidateId !== null) ? listVendorCandidates(organizationId, eventId) : Promise.resolve([] as VendorCandidate[]),
+    // D5 : sans module Devis, ou sans devis, le client est un particulier.
+    listEventQuotes(organizationId, eventId),
   ]);
   const context: LineContext = {
     lines,
@@ -416,6 +447,7 @@ async function toBudgetLinesView(
     vendorNameOf: new Map(candidates.map((candidate) => [candidate.id, candidate.vendorName])),
     slotLabelOf: new Map(vendorSlots.map((slot) => [slot.id, slot.label])),
     today: parisToday(),
+    defaultVatRateBasisPoints: starterBudgetVatRateBasisPoints(),
   };
   const slotOrder = new Map(vendorSlots.map((slot, index) => [slot.id, index]));
   const sorted = [...lines].sort(
@@ -436,6 +468,7 @@ async function toBudgetLinesView(
         paidCents: 0,
         remainingCents: 0,
         varianceCents: 0,
+        ht: { estimatedCents: 0, quotedCents: 0, committedCents: 0, paidCents: 0, remainingCents: 0, varianceCents: 0 },
       };
       categories.push(category);
     }
@@ -448,6 +481,7 @@ async function toBudgetLinesView(
     category.paidCents = sumOf(category.lines, (line) => line.paidAmountCents);
     category.remainingCents = sumOf(category.lines, (line) => line.remainingAmountCents);
     category.varianceCents = sumOf(category.lines, (line) => line.varianceCents);
+    category.ht = htTotalsOf(category.lines);
   }
   const totalCommittedCents = sumOf(mapped, (line) => line.committedAmountCents);
   return {
@@ -460,6 +494,8 @@ async function toBudgetLinesView(
     totalPaidCents: sumOf(mapped, (line) => line.paidAmountCents),
     totalRemainingCents: sumOf(mapped, (line) => line.remainingAmountCents),
     totalVarianceCents: sumOf(mapped, (line) => line.varianceCents),
+    clientKind: budgetClientKind(quotes),
+    totalHt: htTotalsOf(mapped),
     envelope: await budgetEnvelope(organizationId, eventId, totalCommittedCents),
   };
 }
@@ -665,12 +701,15 @@ export async function updateBudgetLineDetails(input: UpdateBudgetLineDetailsInpu
   if (!line || line.eventId !== input.eventId) throw new BudgetLineNotFoundError();
   const label = input.label === undefined ? undefined : input.label.trim().slice(0, 200);
   if (label === "") throw new BudgetLineDetailsInvalidError("label");
+  const rate = input.vatRateBasisPoints;
+  if (rate !== undefined && !(Number.isInteger(rate) && rate >= 0 && rate <= 10000)) throw new BudgetLineDetailsInvalidError("vat");
   await assertCandidateOfSlot(input.organizationId, input.eventId, line.eventVendorSlotId, input.vendorCandidateId);
   await updateBudgetLineRow({
     organizationId: input.organizationId,
     lineId: line.id,
     ...(label !== undefined ? { label } : {}),
     ...(input.vendorCandidateId !== undefined ? { vendorCandidateId: input.vendorCandidateId } : {}),
+    ...(rate !== undefined ? { vatRateBasisPoints: rate } : {}),
   });
   return listBudgetLines(input.organizationId, input.eventId);
 }

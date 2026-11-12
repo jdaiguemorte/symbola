@@ -29,7 +29,10 @@ export type VendorsExportField =
   | "vatNumber"
   | "apeCode"
   | "legalStatus"
-  | "services";
+  | "services"
+  // Lot 28c (PRE-01) : évaluation et tarifs indicatifs (fichiers préparés à la main).
+  | "rating"
+  | "indicativePrices";
 
 export type VendorsExportDetection =
   | { matched: false }
@@ -93,7 +96,24 @@ export type VendorsExportRow = {
   legalStatus: string | null;
   criteria: string[];
   services: string | null;
+  // Lot 28c (PRE-01) : évaluation de 1 à 5, ou null si la cellule ne se lit pas.
+  rating: number | null;
+  indicativePrices: string | null;
 };
+
+// Lot 28c (PRE-01) — évaluation lue dans une cellule : « 4 », « 4,0 », « 4/5 »,
+// « 4 sur 5 », « 4 out of 5 », ou des étoiles (« ★★★★☆ », « **** »). Hors de 1 à
+// 5 : null (la fiche reste sans évaluation, jamais en erreur).
+export function parseVendorRating(value: string | null): number | null {
+  if (!value) return null;
+  const text = value.trim().toLowerCase();
+  if (/^[★☆⭐*\s]+$/u.test(text)) {
+    const stars = [...text].filter((char) => char === "★" || char === "⭐" || char === "*").length;
+    return stars >= 1 && stars <= 5 ? stars : null;
+  }
+  const match = /^([1-5])(?:[.,]0+)?(?:\s*(?:\/|sur|out of)\s*5)?$/.exec(text);
+  return match ? Number(match[1]) : null;
+}
 
 export function normalizeVendorsExportRow(
   row: string[],
@@ -160,6 +180,8 @@ function normalizeVendorFields(raw: (field: VendorsExportField) => string, listS
     legalStatus: text("legalStatus"),
     criteria: splitList(text("criteria") ?? "", listSeparator),
     services: text("services"),
+    rating: parseVendorRating(text("rating")),
+    indicativePrices: text("indicativePrices"),
   };
 }
 

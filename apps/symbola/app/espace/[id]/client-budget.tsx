@@ -6,9 +6,13 @@ import { varianceDisplay } from "@/app/budget/variance-display";
 // PRD-BUD-04 — budget de l'événement vu par le marié : lecture seule, aucun
 // formulaire, colonnes publiques uniquement. Lot 28b (Q33) : une ligne par
 // catégorie, avec ses totaux (le détail et la validation au portail : lot 27).
+// Lot 28c (BUD-09, D5) : TTC pour un particulier ; HT en dessous pour un
+// client professionnel (type d'acheteur du devis de l'événement).
 export async function ClientBudget({ view, locale }: { view: BudgetLinesView; locale: Locale }) {
   const t = await getTranslations("Budget");
   const tClient = await getTranslations("ClientSpace");
+  const professional = view.clientKind === "professional";
+  const ht = (cents: number) => (professional ? <span className="budget-ht">{t("htAmount", { amount: formatAmount(cents, locale) })}</span> : null);
 
   if (view.categories.length === 0) return <p>{tClient("noBudgetYet")}</p>;
 
@@ -30,12 +34,19 @@ export async function ClientBudget({ view, locale }: { view: BudgetLinesView; lo
           return (
             <tr key={category.eventVendorSlotId}>
               <th scope="row">{category.label}</th>
-              <td>{formatAmount(category.estimatedCents, locale)}</td>
-              <td>{engaged ? formatAmount(category.committedCents, locale) : t("notSet")}</td>
+              <td>
+                {formatAmount(category.estimatedCents, locale)}
+                {ht(category.ht.estimatedCents)}
+              </td>
+              <td>
+                {engaged ? formatAmount(category.committedCents, locale) : t("notSet")}
+                {engaged ? ht(category.ht.committedCents) : null}
+              </td>
               <td className={variance.className}>
                 {t(variance.labelKey, {
                   amount: variance.amountCents === null ? "" : formatAmount(variance.amountCents, locale),
                 })}
+                {engaged ? ht(category.ht.varianceCents) : null}
               </td>
             </tr>
           );
@@ -44,9 +55,18 @@ export async function ClientBudget({ view, locale }: { view: BudgetLinesView; lo
       <tfoot>
         <tr>
           <th scope="row">{t("total")}</th>
-          <td>{formatAmount(view.totalEstimatedCents, locale)}</td>
-          <td>{formatAmount(view.totalCommittedCents, locale)}</td>
-          <td>{formatAmount(view.totalVarianceCents, locale)}</td>
+          <td>
+            {formatAmount(view.totalEstimatedCents, locale)}
+            {ht(view.totalHt.estimatedCents)}
+          </td>
+          <td>
+            {formatAmount(view.totalCommittedCents, locale)}
+            {ht(view.totalHt.committedCents)}
+          </td>
+          <td>
+            {formatAmount(view.totalVarianceCents, locale)}
+            {ht(view.totalHt.varianceCents)}
+          </td>
         </tr>
       </tfoot>
     </table>

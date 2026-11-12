@@ -61,6 +61,54 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     await expect(rollback("0099_inconnue")).rejects.toBeInstanceOf(RollbackRefusedError);
   });
 
+  it("lot 28c (BUD-09, PRE-01) — 0107 et 0108 ajoutent le taux de TVA des lignes, l'évaluation et les tarifs des fiches, bornés, et s'annulent", async () => {
+    const vat = "0107_lot28c_budget_vat_rate";
+    const vendorRating = "0108_lot28c_vendors_rating_prices";
+    await expect(rollback(vat)).rejects.toBeInstanceOf(RollbackRefusedError);
+
+    const organizationId = randomUUID();
+    const inOrganization = <T>(work: (tx: postgres.TransactionSql) => Promise<T>) =>
+      target.begin(async (tx) => {
+        await tx`select set_config('app.organization_id', ${organizationId}, true)`;
+        return work(tx);
+      }) as Promise<T>;
+    const ids = await inOrganization(async (tx) => {
+      const [event] = await tx<{ id: string }[]>`insert into events.events (organization_id) values (${organizationId}) returning id`;
+      const [slot] = await tx<{ id: string }[]>`insert into events.event_vendor_slots (organization_id, event_id, label) values (${organizationId}, ${event!.id}, 'Traiteur') returning id`;
+      const [line] = await tx<{ id: string }[]>`insert into budget.budget_lines (organization_id, event_id, event_vendor_slot_id, label, committed_amount_cents, vat_rate_basis_points)
+        values (${organizationId}, ${event!.id}, ${slot!.id}, 'Dîner', 960000, 550) returning id`;
+      const [vendor] = await tx<{ id: string }[]>`insert into vendors.vendors (organization_id, name, rating, indicative_prices)
+        values (${organizationId}, 'Maison Haddad', 4, 'À partir de 85 € par couvert') returning id`;
+      return { lineId: line!.id, vendorId: vendor!.id, slotId: slot!.id, eventId: event!.id };
+    });
+    // Bornes tenues par la base : taux de 0 à 100 %, évaluation de 1 à 5.
+    await expect(inOrganization((tx) => tx`update budget.budget_lines set vat_rate_basis_points = 10001 where id = ${ids.lineId}`)).rejects.toThrow(/budget_lines_vat_rate_check/);
+    await expect(inOrganization((tx) => tx`update vendors.vendors set rating = 6 where id = ${ids.vendorId}`)).rejects.toThrow(/vendors_rating_check/);
+
+    await rollback(vendorRating);
+    expect(await hasColumn("vendors", "vendors", "rating")).toBe(false);
+    expect(await hasColumn("vendors", "vendors", "indicative_prices")).toBe(false);
+    await rollback(vat);
+    expect(await hasColumn("budget", "budget_lines", "vat_rate_basis_points")).toBe(false);
+    // Les montants TTC et la fiche restent.
+    const kept = await inOrganization(async (tx) => ({
+      line: await tx<{ amount: number }[]>`select committed_amount_cents as amount from budget.budget_lines where id = ${ids.lineId}`,
+      vendor: await tx<{ name: string }[]>`select name from vendors.vendors where id = ${ids.vendorId}`,
+    }));
+    expect(kept).toEqual({ line: [{ amount: 960000 }], vendor: [{ name: "Maison Haddad" }] });
+
+    // Aller de nouveau : colonnes vides, puis retour à 0106 pour la suite.
+    await migrateAll();
+    expect(await hasColumn("vendors", "vendors", "rating")).toBe(true);
+    expect(await hasColumn("budget", "budget_lines", "vat_rate_basis_points")).toBe(true);
+    await inOrganization(async (tx) => {
+      await tx`delete from budget.budget_lines where event_vendor_slot_id = ${ids.slotId}`;
+      await tx`delete from vendors.vendors where id = ${ids.vendorId}`;
+    });
+    await rollback(vendorRating);
+    await rollback(vat);
+  });
+
   it("lot 28b (BUD-01, PRE-02, ADR 0054) — 0105 et 0106 reprennent lignes et prestataires d'avant le lot, et s'annulent", async () => {
     const lines = "0105_lot28b_budget_lines_payments";
     const vendors = "0106_lot28b_events_retained_vendors";
@@ -120,7 +168,10 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     ]);
     expect(await hasColumn("events", "event_vendor_slots", "vendor_name")).toBe(false);
 
-    // Retour à 0104 pour la suite : le poste retrouve son prestataire choisi.
+    // Retour à 0104 pour la suite : le poste retrouve son prestataire choisi
+    // (migrateAll a aussi appliqué les migrations du 28c).
+    await rollback("0108_lot28c_vendors_rating_prices");
+    await rollback("0107_lot28c_budget_vat_rate");
     await rollback(vendors);
     await rollback(lines);
     const back = await inOrganization((tx) =>
@@ -186,7 +237,9 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     });
 
     await migrateAll();
-    // migrateAll applique aussi les migrations du 28b : retour à 0104 pour lire la reprise du 28a.
+    // migrateAll applique aussi les migrations des 28b et 28c : retour à 0104 pour lire la reprise du 28a.
+    await rollback("0108_lot28c_vendors_rating_prices");
+    await rollback("0107_lot28c_budget_vat_rate");
     await rollback("0106_lot28b_events_retained_vendors");
     await rollback("0105_lot28b_budget_lines_payments");
     const after = await inOrganization(async (tx) => ({

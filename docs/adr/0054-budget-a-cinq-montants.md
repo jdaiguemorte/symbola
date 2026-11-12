@@ -106,3 +106,42 @@ Décisions de Julien du 12/11/2026 (Q33 en (a) ; D9 à D14 en (a), sauf D12 en (
 7. **Annulation** : 0106 rend au poste un prestataire choisi (le premier engagé) ; 0105 est
    refusée tant qu'une catégorie a plusieurs lignes, et perd les échéances et la nature des
    documents.
+
+## Avenant du 12/11/2026 — HT et TTC, export, annuaire (lot 28c, décisions D5, D6 et D8)
+
+Décisions de Julien du 11/11/2026 (D5, D6 et D8 en (a)).
+
+1. **Taux de TVA par ligne (BUD-09)** : `budget.budget_lines` gagne un taux en points de base
+   (0 à 10000, borné par la base), saisi comme au catalogue (« 20 », « 5,5 »). Vide, la ligne
+   prend le taux de départ des modèles (`budget-vat.json`, 20 %, ADR 0007) : aucune reprise de
+   données (migration 0107), et un changement du taux de départ ne vaut que pour les lignes
+   sans taux saisi. 0 % pour un prestataire en franchise.
+2. **Le mode suit le client (D5)** : le type d'acheteur du devis de l'événement, lu par la
+   porte d'entrée du module Devis ; précision apportée au code : le devis signé le plus récent,
+   à défaut le plus récent. Sans devis, ou sans module Devis : particulier. Particulier : TTC
+   seul ; professionnel : le HT sous chaque montant TTC (écran, portail du client, export).
+   Le contact unique (lot 36) en deviendra la source.
+3. **Calcul du HT (ADR 0059)** : montants saisis TTC ; HT d'une ligne = TTC × 10000 / (10000 +
+   taux), arrondi au centime le plus proche, la moitié vers le haut. Les totaux HT d'une
+   catégorie et du budget additionnent les TTC par taux avant de les convertir, une fois par
+   taux : la somme des HT des lignes peut différer d'un centime du total HT (3 × 1,00 € à 20 %
+   font 2,50 € HT, pas 2,49 €).
+4. **Export (BUD-10, D6)** : classeur XLSX écrit par l'app (`lib/xlsx-workbook.ts`, SpreadsheetML
+   dans l'archive ZIP existante, sans dépendance) : feuilles « Budget » (catégories, lignes, cinq
+   montants et écart ; taux, HT et TTC côte à côte pour un professionnel) et « Échéances » ;
+   montants au format monétaire, en-têtes à la couleur des documents de l'organisation (module
+   Devis ; sans lui, la couleur de départ). Une cellule de texte n'est jamais une formule. PDF
+   (@react-pdf, A4 paysage) : même contenu, logo et nom de l'organisation, filigrane « Document
+   fictif » pour un événement d'essai. Route `/budget/<id>/export?format=xlsx|pdf` : session,
+   rôle, organisation, module, identifiant et événement vérifiés côté serveur ; un événement
+   d'une autre organisation répond comme un objet inexistant. Journal : `budget.budget.exported`
+   (famille « exports »), avec le format et le nombre de lignes, aucun nom.
+5. **Annuaire (PRE-01, D8)** : la fiche du carnet gagne une évaluation (1 à 5, bornée par la
+   base) et des tarifs indicatifs (texte libre), migration 0108. L'évaluation s'affiche dans le
+   carnet (étoiles, lues « 4 sur 5 ») et se filtre (« au moins N », paramètre `note`). Les deux
+   s'importent : l'évaluation se lit en chiffre, sur 5 ou en étoiles ; une note illisible laisse
+   la fiche sans évaluation. Les synonymes « tarifs » et « prices » passent des prestations
+   (note interne) aux tarifs indicatifs. RGPD : déclarés au registre, recherchés et exportés avec
+   la fiche, effacés à l'oubli.
+6. **Annulation** : 0108 retire l'évaluation et les tarifs ; 0107 retire le taux (les montants
+   TTC restent).

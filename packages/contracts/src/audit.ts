@@ -55,6 +55,8 @@ export const AUDIT_ACTIONS = {
   "vendors.vendors.exported": { category: "export", objectType: null },
   "quotes.e_reporting.exported": { category: "export", objectType: null },
   "quotes.archive.exported": { category: "export", objectType: null },
+  // Lot 28c (BUD-10) : export du budget d'un événement (format, nombre de lignes).
+  "budget.budget.exported": { category: "export", objectType: "event" },
   // Partages.
   "events.client_access.granted": { category: "partage", objectType: "event" },
   "events.client_access.revoked": { category: "partage", objectType: "event" },

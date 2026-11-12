@@ -108,6 +108,9 @@ export const IMPORT_FIELDS: Record<ImportEntityType, readonly ImportFieldDefinit
     { key: "siret", kind: "text" },
     { key: "criteria", kind: "text" },
     { key: "services", kind: "text" },
+    // Lot 28c (PRE-01) : évaluation (1 à 5, « 4/5 », étoiles) et tarifs indicatifs.
+    { key: "rating", kind: "text" },
+    { key: "indicativePrices", kind: "text" },
   ],
   // Lot 14c (IMP-08) : une fiche événement PDF par ligne (colonnes construites
   // par l'app, déjà reconnues). Décision I : coordonnées des clients ;

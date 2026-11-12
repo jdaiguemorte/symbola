@@ -274,7 +274,7 @@ export async function insertBudgetLine(input: {
   });
 }
 
-export async function updateBudgetLineRow(input: { organizationId: string; lineId: string; label?: string; vendorCandidateId?: string | null }): Promise<BudgetLineRow | null> {
+export async function updateBudgetLineRow(input: { organizationId: string; lineId: string; label?: string; vendorCandidateId?: string | null; vatRateBasisPoints?: number }): Promise<BudgetLineRow | null> {
   const db = appDatabase();
   return await withOrganization(db, input.organizationId, async (tx) => {
     const [row] = await tx
@@ -282,6 +282,7 @@ export async function updateBudgetLineRow(input: { organizationId: string; lineI
       .set({
         ...(input.label !== undefined ? { label: input.label } : {}),
         ...(input.vendorCandidateId !== undefined ? { vendorCandidateId: input.vendorCandidateId } : {}),
+        ...(input.vatRateBasisPoints !== undefined ? { vatRateBasisPoints: input.vatRateBasisPoints } : {}),
         updatedAt: new Date(),
       })
       .where(eq(budgetLines.id, input.lineId))

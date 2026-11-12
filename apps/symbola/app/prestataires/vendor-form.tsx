@@ -216,6 +216,23 @@ export function VendorForm({
         </fieldset>
       ) : null}
       <TagChips key={type?.familyId ?? "all"} tags={tags} groups={tagGroups} familyId={type ? type.familyId : null} selected={vendor?.tagIds ?? []} />
+      {/* Lot 28c (PRE-01, D8) : évaluation interne et tarifs indicatifs. */}
+      <label>
+        {t("rating")}
+        <select name="rating" defaultValue={vendor?.rating ? String(vendor.rating) : ""}>
+          <option value="">{t("ratingNone")}</option>
+          {[1, 2, 3, 4, 5].map((value) => (
+            <option key={value} value={value}>
+              {t("ratingValue", { rating: value })}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label>
+        {t("indicativePrices")}
+        <textarea name="indicativePrices" rows={2} defaultValue={vendor?.indicativePrices ?? ""} />
+      </label>
+      <p className="muted">{t("indicativePricesHint")}</p>
       <label>
         {t("internalNote")}
         <textarea name="internalNote" rows={3} defaultValue={vendor?.internalNote ?? ""} />

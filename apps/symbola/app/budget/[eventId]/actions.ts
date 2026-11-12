@@ -31,6 +31,7 @@ import {
 } from "@/modules/budget/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isBudgetModuleEnabled, isValidId } from "../module-access";
+import { parseDecimal } from "@/app/devis/decimal-input";
 
 export type BudgetFormState = { error?: string; success?: boolean };
 
@@ -218,7 +219,7 @@ function refresh(eventId: string) {
 }
 
 function lineDetailsError(t: Awaited<ReturnType<typeof getTranslations>>, error: unknown): BudgetFormState {
-  if (error instanceof BudgetLineDetailsInvalidError) return { error: t(error.reason === "label" ? "lineLabelRequired" : "lineVendorInvalid") };
+  if (error instanceof BudgetLineDetailsInvalidError) return { error: t(error.reason === "label" ? "lineLabelRequired" : error.reason === "vendor" ? "lineVendorInvalid" : "lineVatRateInvalid") };
   if (error instanceof BudgetLineNotFoundError || error instanceof EventVendorSlotNotFoundError) return { error: t("unknownVendorSlot") };
   if (error instanceof EventNotFoundError) return { error: t("eventNotFound") };
   throw error;
@@ -255,6 +256,9 @@ export async function updateBudgetLineDetailsAction(_prevState: BudgetFormState,
   const lineId = String(formData.get("lineId") ?? "");
   if (!isValidId(eventId) || !isValidId(lineId)) return { error: t("unknownVendorSlot") };
   const vendorCandidateId = candidateFrom(formData);
+  // Lot 28c (BUD-09) : taux saisi comme au catalogue (« 20 », « 5,5 »).
+  const vatRateBasisPoints = formData.has("vatRate") ? parseDecimal(String(formData.get("vatRate") ?? ""), 2) : undefined;
+  if (vatRateBasisPoints === null || (vatRateBasisPoints !== undefined && vatRateBasisPoints > 10000)) return { error: t("lineVatRateInvalid") };
   try {
     await updateBudgetLineDetails({
       organizationId: access.organizationId,
@@ -262,6 +266,7 @@ export async function updateBudgetLineDetailsAction(_prevState: BudgetFormState,
       lineId,
       label: String(formData.get("label") ?? ""),
       ...(vendorCandidateId !== undefined ? { vendorCandidateId } : {}),
+      ...(vatRateBasisPoints !== undefined ? { vatRateBasisPoints } : {}),
     });
   } catch (error) {
     return lineDetailsError(t, error);

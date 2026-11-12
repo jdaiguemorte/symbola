@@ -538,6 +538,22 @@ fields:
       Lors d'une demande d'oubli (RGPD-03) : nom remplacé par « [anonymisé] », contact, e-mail, téléphone, adresse, note et point effacés, fiche archivée (l'historique garde son identifiant).
   - schema: vendors
     table: vendors
+    field: rating
+    category: contenu_libre
+    retention: >-
+      Lot 28c (PRE-01, D8) : évaluation interne de l'équipe (1 à 5), jamais montrée hors de l'organisation. Tant que la fiche existe ; voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Lors d'une demande d'oubli (RGPD-03) : effacée avec la note interne ; exportée avec la fiche (RGPD-02).
+  - schema: vendors
+    table: vendors
+    field: indicative_prices
+    category: contenu_libre
+    retention: >-
+      Lot 28c (PRE-01, D8) : tarifs indicatifs en texte libre, saisis par l'équipe. Tant que la fiche existe ; voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Lors d'une demande d'oubli (RGPD-03) : effacés avec la note interne ; exportés avec la fiche (RGPD-02).
+  - schema: vendors
+    table: vendors
     field: field_values
     category: contenu_libre
     retention: >-
