@@ -224,13 +224,55 @@ d'écran).
 - e2e en 1280 et 360 px. Rejeu SC-06 étape 2 avec une décision (Léa choisit le traiteur).
 - Aide, `docs/gap.csv`, bilan.
 
+### Bilan du lot 27b (12/11/2026)
+
+**Fait** (branche `lot-27b-decisions`, partie du 27a) :
+
+- **Demandes de décision** sur la fiche (onglet Mariés, « Décisions du client ») : choisir entre les
+  prestataires montrés d'un poste (deux au moins), valider une dépense du budget (montant devisé,
+  sinon engagé, sinon estimé), approuver le programme ; message et date de réponse souhaitée
+  facultatifs ; une seule demande en attente par sujet ; retirer une demande sans réponse.
+- **Réponse du client** dans le portail (« À décider », et dans les trois prochaines actions) :
+  choisir une option ou « Aucune ne me convient », valider ou non, commentaire facultatif ; la
+  première réponse décide (D10), au nom de la personne et horodatée ; un payeur ne répond qu'aux
+  dépenses de ses catégories ; un lien de prestataire ne voit rien.
+- **Journal des décisions** (EVT-09) : table `events.event_decisions` (contenu figé à la demande),
+  garde en base (`events.guard_decision`) : une décision répondue ou retirée ne change plus, sauf
+  l'anonymisation d'une demande d'oubli ; « Demander une nouvelle décision » la remplace (« remplacée
+  par ») ; « Vos décisions » dans le portail, « Décisions du client » sur la fiche, fil d'activité
+  (`decision_made`), journal d'audit (`events.decision.*`). Programme approuvé puis modifié signalé
+  des deux côtés.
+- **Effets d'un geste** (D9) : « Retenir Maison Haddad » (prestataire choisi), « Engager 2 880 € »
+  (dépense validée) ; rien n'est engagé sans la planner.
+- **Migration 0116** (`events`, annulable) ; registre RGPD : nom copié, commentaire, message ;
+  l'oubli d'un lien anonymise ses décisions.
+
+**Vérifié** (en local, base `symbola_lot24`) : lint, types, frontières de modules, catalogues de
+messages, registre RGPD ; tests unitaires (app 384, dont les règles des décisions) ; intégration
+(base 145 dont l'isolation des décisions et le retour arrière de 0116, authentification 48,
+fichiers 12, e-mail 2, app 518 dont 9 sur les décisions) ; parcours e2e complets sur l'app compilée
+et une base neuve (ordinateur et 375 px, axe-core) : 215 réussis, 0 échec, 1 ignoré (comme avant le
+lot) ; Semgrep 0 alerte ; Gitleaks : aucune fuite ; journaux du serveur sans e-mail ni téléphone ;
+rejeu SC-06 étape 2 avec une décision (`docs/recette/SC-06.md`).
+
+**Corrigé pendant le rejeu** : le chargeur du jeu fictif rattache les prestataires consultés sans
+ligne de budget ; le formulaire de réponse est en colonne en taille ordinateur.
+
+**Remarques** :
+
+- Une décision « options » ne propose que les prestataires montrés aux clients (deux au moins) ; un
+  programme vide ne se fait pas approuver.
+- L'engagement d'une dépense validée reprend le montant figé dans la décision ; si la dépense a
+  changé depuis, la planner demande une nouvelle décision.
+- Au déploiement d'ensemble (gel) : migration 0116, après 0109 à 0115.
+
 ## Migrations (à partir de 0114)
 
 | Lot | Schéma | Contenu |
 | --- | --- | --- |
 | 27a | `events` | `event_links.task_reminders` (booléen, vrai par défaut) ; `event_task_reminders` (tâche, lien, seuil, envoyé le ; table technique sous RLS) |
 | 27a | `budget` | `vendor_payments` : date et moyen déclarés, lien déclarant, date de déclaration, motif de refus |
-| 27b | `events` | `event_decisions` (RLS, garde d'immuabilité) ; sortes du fil d'activité `decision_*` |
+| 27b | `events` | `event_decisions` (RLS, garde d'immuabilité) ; sorte du fil d'activité `decision_made` |
 
 Chaque migration a son script d'annulation, testé par `rollback.integration.test.ts`.
 
