@@ -166,6 +166,17 @@ export type EventVendorSlot = {
 export type RetainedVendor = { candidateId: string; vendorName: string; quoteAmountCents: number | null };
 
 // Lot 12 (L12-EVT-15) — lieux d'un événement, saisis une fois.
+// Lot 29b (JRJ-04, décision D8) — documents de l'événement (plan de table, plans,
+// plan B) et documents embarqués pour le jour J, choisis pour l'événement parmi
+// ceux-là et les pièces des autres modules (devis signés, pièces du budget, devis
+// des prestataires retenus). Les fichiers du carnet (plaquettes, RIB) n'en sont pas.
+export const DAY_DOCUMENT_SOURCES = ["event_document", "signed_quote", "budget_attachment", "candidate_quote"] as const;
+export type DayDocumentSource = (typeof DAY_DOCUMENT_SOURCES)[number];
+export type DayDocumentChoice = { source: DayDocumentSource; sourceId: string };
+export type EventDocument = { id: string; eventId: string; label: string; mime: string; sizeBytes: number; createdAt: string };
+export type AttachEventDocumentInput = { organizationId: string; eventId: string; label: string; content: Uint8Array; uploadedByUserId: string };
+export type SetDayDocumentEmbeddedInput = { organizationId: string; eventId: string; source: DayDocumentSource; sourceId: string; embedded: boolean };
+
 export type EventPlace = { id: string; eventId: string; label: string; address: string | null; vendorId: string | null };
 
 // Lot 11 (L11-EVT-10 / L11-EVT-11) — prestataires consultés pour un poste.
@@ -182,6 +193,8 @@ export type VendorCandidate = {
   quoteAmountCents: number | null;
   currency: "EUR";
   hasQuoteFile: boolean;
+  // Lot 29b (JRJ-04) : taille du devis joint, pour les documents embarqués.
+  quoteSizeBytes: number | null;
   shownToClients: boolean;
   // Lot 12 (L12-EVT-16) : RIB de la fiche du carnet partagé aux clients.
   shareRibWithClients: boolean;
@@ -700,6 +713,14 @@ export interface EventsServiceContract {
   requestDecision(input: RequestDecisionInput): Promise<EventDecision>;
   withdrawDecision(organizationId: string, decisionId: string): Promise<void>;
   listEventDecisions(organizationId: string, eventId: string): Promise<EventDecision[]>;
+  // Lot 29b (JRJ-04, décision D8).
+  listEventDocuments(organizationId: string, eventId: string): Promise<EventDocument[]>;
+  attachEventDocument(input: AttachEventDocumentInput): Promise<EventDocument>;
+  renameEventDocument(organizationId: string, documentId: string, label: string): Promise<void>;
+  removeEventDocument(organizationId: string, documentId: string): Promise<void>;
+  getEventDocumentFile(organizationId: string, documentId: string): Promise<FileDownload>;
+  listDayDocumentChoices(organizationId: string, eventId: string): Promise<DayDocumentChoice[]>;
+  setDayDocumentEmbedded(input: SetDayDocumentEmbeddedInput): Promise<void>;
   listLinkDecisions(organizationId: string, linkId: string): Promise<EventDecision[]>;
   answerLinkDecision(input: AnswerDecisionInput): Promise<EventDecision>;
   resolveLinkSession(sessionToken: string, now?: Date): Promise<LinkAccess | null>;

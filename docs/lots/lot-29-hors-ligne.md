@@ -253,7 +253,7 @@ contacts ; le reste vient avec le lot 30.
 
 ### Partie F — Documents de l'évènement (JRJ-04, décision D8)
 
-- **Rubrique « Documents »** sur la fiche : envoyer un fichier (PDF, JPEG ou PNG, 20 Mo au plus)
+- **Rubrique « Documents »** sur la fiche : envoyer un fichier (PDF ou image, 20 Mo au plus)
   avec un intitulé, le renommer, le supprimer.
 - **Contrôles** de `packages/files` : type vérifié par le contenu, ClamAV, stockage privé,
   téléchargement servi après contrôle des droits.
@@ -267,7 +267,8 @@ contacts ; le reste vient avec le lot 30.
   - les documents de l'évènement ;
   - les devis signés de l'évènement ;
   - les pièces des lignes de budget de l'évènement ;
-  - les fichiers des prestataires retenus pour l'évènement ;
+  - les devis joints aux prestataires retenus pour l'évènement. Les fichiers du carnet
+    (plaquettes, RIB) n'en sont pas : un RIB n'a rien à faire sur un téléphone le jour J ;
   - le PDF du programme, toujours embarqué.
 - **Enregistrer le choix** pour l'évènement : toute l'équipe embarque les mêmes documents. Table
   `events.event_day_documents` (source, identifiant de la pièce). Chaque module confirme, par son
@@ -286,6 +287,63 @@ contacts ; le reste vient avec le lot 30.
   - RGP-08 : la copie hors ligne est déjà effacée le lendemain de l'évènement, bien avant la purge
     des invités.
 - **Rejeu** : SC-08 étape 3 (le plan de table hors ligne).
+
+### Bilan du lot 29b (12/11/2026)
+
+**Fait** :
+- **Migration 0117** : `events.event_documents` (intitulé, fichier privé, type, taille) et
+  `events.event_day_documents` (choix par événement : source et pièce). Les deux tables ont la
+  RLS forcée, l'horodatage et le journal des suppressions ; la migration s'annule.
+- **Onglet « Documents » de la fiche** : envoyer un PDF ou une image de 20 Mo au plus, le
+  renommer, le supprimer, l'ouvrir. L'envoi passe par une route dédiée : origine, session, débit
+  et taille sont contrôlés, puis le type par le contenu et l'antivirus.
+- **Écran du jour J** : la rubrique « Documents » liste le PDF du programme et les pièces
+  embarquées. « Choisir les documents embarqués » coche, pour l'événement, parmi :
+  - les documents de l'événement ;
+  - les devis signés ;
+  - les pièces des lignes du budget (devis, contrats, factures des prestataires) ;
+  - les devis joints aux prestataires retenus.
+
+  Les fichiers du carnet n'en sont pas : un RIB n'a rien à faire sur un téléphone. Un module non
+  souscrit n'en propose aucun. Une pièce n'est embarquée et servie que si son module la donne
+  comme candidate de l'événement.
+- **Copie** : les documents choisis partent avec l'écran, s'ouvrent sans réseau, et leur taille
+  entre dans la place libre demandée. Le service worker sert aussi
+  `/jour-j/<id>/documents/<source>/<id>`.
+- **RGPD** :
+  - l'intitulé et le fichier entrent au registre ;
+  - le document est trouvé par son intitulé et rendu avec l'événement ;
+  - à l'oubli, il est supprimé, fichier et choix compris ;
+  - il part aussi avec un essai guidé.
+- **Textes et aide** : en français et en anglais, avec la question d'aide « Comment embarquer le
+  plan de table ? ».
+
+**Vérifications** :
+- intégration : base 148 (isolation des deux tables, annulation de 0117), app 524 (envoi,
+  refus, renommage, suppression, choix, abus d'une autre organisation, RGPD) ;
+- tests unitaires de l'app : 407 ; lint, types, frontières de modules : verts ;
+- de bout en bout, sur une base neuve : 226 réussis, 1 ignoré (déjà ignoré avant), 1 échec. Il
+  vient de `l16-sec-01` (5 codes faux), instable sous charge depuis le 27a, qui passe deux fois sur
+  deux seul. Ils comprennent `e2e/jrj-04-documents-embarques.spec.ts`, en taille ordinateur et en
+  375 px :
+  - envoi du plan de table, choix, copie, ouverture en mode avion ;
+  - abus : document d'une autre organisation, pièce d'un autre événement glissée dans le choix ;
+  - axe-core ;
+- Semgrep : 0 alerte ; Gitleaks : 0 dans les fichiers du lot.
+- Une première série de parcours avait échoué sur l'Admin. La base de test avait accumulé
+  1 409 organisations, et la vue d'ensemble de l'Admin mettait 6,4 s. Sur une base neuve, comme
+  en CI, ces parcours passent.
+
+**Rejeu SC-08 étape 3** (`docs/recette/SC-08.md`) : Camille ajoute le plan de table, l'embarque et
+garde le jour J. En mode avion, il s'ouvre en deux touchers depuis l'écran du jour J.
+
+**Écarts avec la spécification, et suites** :
+- **Fichiers du carnet** : la spécification les citait comme pièces embarquables. Ce sont des
+  plaquettes et des RIB ; les contrats des prestataires sont les pièces du budget et les devis des
+  consultations. J'ai donc embarqué ces deux sources, et jamais un RIB.
+- **Copie hors ligne** : le contenu d'un fichier n'est pas chiffré par l'application ; c'est le
+  risque déjà écrit dans l'ADR 0064.
+- **Gel des déploiements** : la migration 0117 s'ajoute au déploiement d'ensemble (0109 à 0117).
 
 ## Migrations (à partir de 0117 ; 0116 est celle du lot 27b)
 

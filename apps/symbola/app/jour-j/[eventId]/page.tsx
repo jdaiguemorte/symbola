@@ -6,7 +6,7 @@
 // sinon la page est introuvable, sans dire si l'évènement existe.
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
-import { formatCalendarDate, type Locale } from "@symbola/i18n";
+import { formatCalendarDate, formatFileSize, type Locale } from "@symbola/i18n";
 import { eventNames, getEvent, getEventProgram, listEventPlaces, listEventVendorSlots, listVendorCandidates } from "@/modules/events/service";
 import { getVendorContacts } from "@/modules/vendors/service";
 import { requirePlanner } from "@/lib/guards";
@@ -17,6 +17,8 @@ import { ScreenHelp } from "@/app/screen-help";
 import { dayCopyExpiresAt, dayProgramPath, isDayCopyExpired } from "@/lib/offline/day-copy";
 import { buildDayOfView, isDayOfOpen, telHref, type DayOfPerson } from "./day-of-view";
 import { DayCopyPanel } from "./day-copy-panel";
+import { dayDocumentKey, listDayDocumentCandidates } from "./day-documents";
+import { DayDocumentsForm } from "./day-documents-form";
 
 export default async function DayOfPage({ params }: { params: Promise<{ eventId: string }> }) {
   const auth = await requirePlanner();
@@ -43,7 +45,11 @@ export default async function DayOfPage({ params }: { params: Promise<{ eventId:
   const title = eventNames(event.clients) || t("noClient");
   const venue = [event.venueName, event.venueCity].filter(Boolean).join(", ");
   const expiresAt = dayCopyExpiresAt(eventDate);
-  const documents = [{ path: dayProgramPath(eventId), label: t("programPdf") }];
+  // Lot 29b (JRJ-04, D8) : le PDF du programme, toujours ; puis les pièces choisies pour l'événement.
+  const dayDocuments = await listDayDocumentCandidates(organizationId, eventId);
+  const embedded = dayDocuments.filter((candidate) => candidate.embedded);
+  const documents = [{ path: dayProgramPath(eventId), label: t("programPdf"), origin: null as string | null }, ...embedded.map((candidate) => ({ path: candidate.path, label: candidate.label, origin: candidate.origin }))];
+  const embeddedBytes = embedded.reduce((sum, candidate) => sum + (candidate.sizeBytes ?? 0), 0);
 
   return (
     <EventVocabulary>
@@ -65,7 +71,8 @@ export default async function DayOfPage({ params }: { params: Promise<{ eventId:
           eventDate={eventDate}
           expiresAt={expiresAt.toISOString()}
           canKeep={!isDayCopyExpired(expiresAt)}
-          documents={documents}
+          documents={documents.map((document) => ({ path: document.path, label: document.label }))}
+          requiredBytes={embeddedBytes}
         />
 
         <nav aria-label={t("sections")} className="day-of-nav">
@@ -160,10 +167,32 @@ export default async function DayOfPage({ params }: { params: Promise<{ eventId:
             {documents.map((document) => (
               <li key={document.path}>
                 <a href={document.path}>{document.label}</a>
+                {document.origin ? <p className="meta">{document.origin}</p> : null}
               </li>
             ))}
           </ul>
           <p className="meta">{t("documentsHint")}</p>
+          {dayDocuments.length > 0 ? (
+            <details className="day-documents-choice">
+              <summary>{t("chooseTitle")}</summary>
+              <p>{t("chooseHint")}</p>
+              <DayDocumentsForm
+                eventId={eventId}
+                total={formatFileSize(embeddedBytes, locale)}
+                choices={dayDocuments.map((candidate) => ({
+                  key: dayDocumentKey(candidate.source, candidate.sourceId),
+                  label: candidate.label,
+                  origin: candidate.origin,
+                  size: candidate.sizeBytes !== null ? formatFileSize(candidate.sizeBytes, locale) : null,
+                  embedded: candidate.embedded,
+                }))}
+              />
+            </details>
+          ) : (
+            <p>
+              {t("chooseEmpty")} <a href={`/events/${eventId}?onglet=documents`}>{t("chooseEmptyLink")}</a>
+            </p>
+          )}
         </section>
       </main>
     </EventVocabulary>

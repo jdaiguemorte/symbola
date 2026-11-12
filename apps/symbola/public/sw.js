@@ -7,7 +7,7 @@
 // copie, comme sans service worker :
 // - les fichiers statiques de Next (/_next/static/, noms à empreinte, jamais modifiés) :
 //   la copie d'abord, le réseau sinon ;
-// - la navigation vers l'écran d'un jour J gardé ou vers son PDF : le réseau d'abord ; la
+// - la navigation vers l'écran d'un jour J gardé, son PDF ou ses documents : le réseau d'abord ; la
 //   copie si le réseau, le serveur (NFR-09) ou la session ne répondent pas ;
 // - toute autre navigation : le réseau, et la page « Hors ligne » s'il ne répond pas.
 //
@@ -20,7 +20,8 @@ const DAY_STATIC_CACHE = "symbola-jour-j-statique-v1";
 const OFFLINE_PAGE_PATH = "/hors-ligne";
 const DAY_COPY_SUFFIX = "/__copie";
 
-const DAY_PATH = /^\/jour-j\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})(?:\/programme)?$/i;
+// L'écran, son PDF du programme et (lot 29b) ses documents embarqués.
+const DAY_PATH = /^\/jour-j\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})(?:\/programme|\/documents\/[a-z_]+\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})?$/i;
 // Au-delà, un serveur qui ne répond pas est tenu pour injoignable (NFR-09).
 const SERVER_TIMEOUT_MS = 5000;
 

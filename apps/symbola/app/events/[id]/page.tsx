@@ -7,6 +7,7 @@ import {
   formatAmount,
   formatCalendarDate,
   formatDateTime,
+  formatFileSize,
   parisToday,
   type Locale,
 } from "@symbola/i18n";
@@ -17,6 +18,8 @@ import {
   getTaskRecalculation,
   listEventActivity,
   listEventDecisions,
+  listEventDocuments,
+  listDayDocumentChoices,
   listEventLinks,
   listLinkProfiles,
   listEventTasks,
@@ -42,6 +45,8 @@ import { setEventTypeAction } from "./actions";
 import { isEventsModuleEnabled, isValidId } from "../module-access";
 import { ChangeStatusForm } from "./change-status-form";
 import { isDayOfOpen } from "@/app/jour-j/[eventId]/day-of-view";
+import { EventDocumentRenameForm, EventDocumentUploadForm } from "./document-forms";
+import { removeEventDocumentAction } from "./document-actions";
 import { NextStepBanner } from "./next-step-banner";
 import { nextStep } from "./next-step";
 import { endTrialAction } from "../trial-actions";
@@ -100,7 +105,8 @@ const LINK_STATUS_KEYS = {
 
 // Onglets de la fiche (maquette validée) : un écran par sujet plutôt
 // qu'une longue page ; l'onglet actif est dans l'adresse (?onglet=).
-const TABS = ["apercu", "budget", "retroplanning", "programme", "devis", "maries"] as const;
+// Lot 29b (JRJ-04) : onglet « Documents » (plan de table, plans, plan B).
+const TABS = ["apercu", "budget", "retroplanning", "programme", "devis", "maries", "documents"] as const;
 type Tab = (typeof TABS)[number];
 
 type SearchParams = { onglet?: string; poste?: string; tache?: string; vue?: string; qui?: string; filtre?: string; visite?: string };
@@ -317,6 +323,11 @@ export default async function EventDetailPage({
 
   // AIDE-05 : visite focus de la fiche, à la première ouverture.
   const tour = await loadPageTour(auth.user.id, "event", query.visite);
+  // Lot 29b (JRJ-04, D8) : documents de l'événement, et ceux embarqués pour le jour J.
+  const eventDocuments = await listEventDocuments(organizationId, id);
+  const tDocuments = await getTranslations("EventDocuments");
+  const embeddedDocumentIds =
+    tab === "documents" ? new Set((await listDayDocumentChoices(organizationId, id)).filter((choice) => choice.source === "event_document").map((choice) => choice.sourceId)) : new Set<string>();
   const tabs: { key: Tab; label: string; href: string; count?: string; alert?: boolean }[] = [
     { key: "apercu", label: t("tabOverview"), href: tabHref("apercu") },
     { key: "budget", label: t("vendorSlotsTitle"), href: tabHref("budget"), count: `${progress.booked}/${progress.required}` },
@@ -329,6 +340,7 @@ export default async function EventDetailPage({
     { key: "programme", label: t("programTitle"), href: tabHref("programme") },
     ...(quotesAvailable ? [{ key: "devis" as const, label: tQuotes("eventQuotesTitle"), href: tabHref("devis"), count: String(quotes.length) }] : []),
     { key: "maries", label: t("tabClients"), href: tabHref("maries") },
+    { key: "documents", label: t("tabDocuments"), href: tabHref("documents"), count: String(eventDocuments.length) },
   ];
 
   return (
@@ -1070,6 +1082,50 @@ export default async function EventDetailPage({
             })}
           </ul>
           {event.isDemo ? null : <RequestDecisionForm eventId={event.id} slots={decisionSlots} expenses={decisionExpenses} hasProgram={program.items.length > 0} />}
+        </section>
+      ) : null}
+
+      {/* Lot 29b (JRJ-04, décision D8) : documents de l'événement. */}
+      {tab === "documents" ? (
+        <section className="card" aria-labelledby="event-documents-title">
+          <h2 id="event-documents-title">{tDocuments("title")}</h2>
+          <p>{tDocuments("intro")}</p>
+          {eventDocuments.length === 0 ? (
+            <p>{tDocuments("empty")}</p>
+          ) : (
+            <ul className="item-list event-documents">
+              {eventDocuments.map((document) => (
+                <li key={document.id}>
+                  <div>
+                    <a href={`/events/${event.id}/documents/${document.id}`} download>
+                      {document.label}
+                    </a>
+                    <p className="meta">
+                      {formatFileSize(document.sizeBytes, locale)}
+                      {embeddedDocumentIds.has(document.id) ? ` · ${tDocuments("embedded")}` : ""}
+                    </p>
+                  </div>
+                  <EventDocumentRenameForm eventId={event.id} documentId={document.id} label={document.label} />
+                  <form action={removeEventDocumentAction}>
+                    <input type="hidden" name="eventId" value={event.id} />
+                    <input type="hidden" name="documentId" value={document.id} />
+                    <button type="submit" className="button-ghost" aria-label={tDocuments("removeLabel", { label: document.label })}>
+                      {tDocuments("remove")}
+                    </button>
+                  </form>
+                </li>
+              ))}
+            </ul>
+          )}
+          <h3>{tDocuments("addTitle")}</h3>
+          <EventDocumentUploadForm eventId={event.id} />
+          {isDayOfOpen(event) ? (
+            <p>
+              <a href={`/jour-j/${event.id}#documents`}>{tDocuments("chooseForDayOf")}</a>
+            </p>
+          ) : (
+            <p className="meta">{tDocuments("dayOfLater")}</p>
+          )}
         </section>
       ) : null}
     </main>

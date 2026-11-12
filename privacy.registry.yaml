@@ -430,6 +430,30 @@ fields:
       RGPD-03/RGPD-05.
     anonymization: >-
       Effacé avec le libellé de l'échéance lors d'une demande d'oubli (RGPD-03).
+  - schema: events
+    table: event_documents
+    field: label
+    category: contenu_libre
+    retention: >-
+      Lot 29b (JRJ-04) : intitulé d'un document de l'événement (« Plan de table
+      Martin ») saisi par la planner ; trouvé par la recherche RGPD. Tant que
+      l'événement existe ; voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Supprimé avec le document lors d'une demande d'oubli (RGPD-03).
+  - schema: events
+    table: event_documents
+    field: file_key
+    category: contenu_libre
+    retention: >-
+      Lot 29b (JRJ-04) : plan de table, plans, plan B, stockés en privé ; le
+      fichier peut nommer des invités ou les clients. Son contenu n'est pas
+      indexé : il n'entre pas dans la recherche RGPD par terme (l'intitulé, si).
+      Copié sur le téléphone de la planner s'il est embarqué pour le jour J,
+      effacé de l'appareil le lendemain de l'événement (ADR 0064). Tant que
+      l'événement existe ; voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Le document est supprimé du stockage avec sa ligne (pas d'anonymisation
+      partielle d'un PDF ou d'une image), ainsi que son choix pour le jour J.
   - schema: budget
     table: budget_line_attachments
     field: file_key

@@ -891,7 +891,7 @@
     },
     "dayOf": {
       "title": "Day-of",
-      "body": "The day of the event on one screen: the schedule with its internal notes, the places, the booked vendors and the clients with their contact details, and the schedule PDF. “Keep on this device” copies it to the phone: it then opens without a network, and updates each time it is opened with a network.",
+      "body": "The day of the event on one screen: the schedule with its internal notes, the places, the booked vendors and the clients with their contact details, the schedule PDF and the documents chosen (seating plan, plan B, contracts). “Keep on this device” copies it to the phone: it then opens without a network, and updates each time it is opened with a network.",
       "faq": [
         {
           "q": "How do I open the day without a network?",
@@ -908,6 +908,10 @@
         {
           "q": "What if I lose my phone?",
           "a": "“Sign out all my other devices”, from another device, closes its session but cannot reach a phone without a network: the copy stays readable there until the day after the event. Keep your phone locked with a code."
+        },
+        {
+          "q": "How do I keep the seating plan for the day?",
+          "a": "Add it to the “Documents” tab of the event (PDF or image), then, on the day-of screen, open “Choose the documents to keep” and tick it. Signed quotes, budget documents and quotes from booked vendors can be chosen there too; bank details, never."
         }
       ]
     },
@@ -1402,7 +1406,8 @@
     "linkPreviewNote": "Buttons are inactive and files do not open in the preview; nothing is recorded on the link.",
     "linkPreviewBack": "Back to the event page",
     "activityDecisionMade": "{actor} answered: “{task}”.",
-    "dayOfLink": "Day-of"
+    "dayOfLink": "Day-of",
+    "tabDocuments": "Documents"
   },
   "Budget": {
     "title": "Budget",
@@ -4283,7 +4288,9 @@
       "budget_vendor_payments": "Vendor instalments",
       "events_event_links": "personal link",
       "events_event_link_shared_slots": "category shared with a link",
-      "events_event_decisions": "client decision"
+      "events_event_decisions": "client decision",
+      "events_event_documents": "event document",
+      "events_event_day_documents": "document kept for the day"
     },
     "modules": {
       "events": "Events",
@@ -4591,7 +4598,25 @@
     "copyMissingAssets": "Part of the layout was not copied. Update with a better network.",
     "installTitle": "Install Symbola on your phone",
     "installIphone": "iPhone: in Safari, tap Share, then “Add to Home Screen”.",
-    "installAndroid": "Android: in Chrome, open the ⋮ menu, then “Install app” (or “Add to Home screen”)."
+    "installAndroid": "Android: in Chrome, open the ⋮ menu, then “Install app” (or “Add to Home screen”).",
+    "documentOrigin": {
+      "event_document": "Event document",
+      "signed_quote": "Signed quote",
+      "budget_attachment": "Budget document",
+      "candidate_quote": "Vendor quote"
+    },
+    "signedQuoteLabel": "Quote {number}, signed",
+    "budgetAttachmentLabel": "{line} — {kind}",
+    "candidateQuoteLabel": "Quote from {vendor}",
+    "chooseTitle": "Choose the documents to keep",
+    "chooseHint": "The ticked documents go to the phone of every team member who keeps this day. The schedule PDF is always kept.",
+    "chooseLegend": "Documents to keep",
+    "chooseTotal": "Kept today: {size}, on top of the schedule.",
+    "chooseSave": "Save the choice",
+    "chooseSaved": "Choice saved.",
+    "chooseEmpty": "No other document to keep: add the seating plan or plan B to the event.",
+    "chooseEmptyLink": "Open the event documents",
+    "chooseUnauthorized": "You do not have access to this day."
   },
   "Offline": {
     "title": "Offline",
@@ -4602,5 +4627,31 @@
   },
   "Manifest": {
     "description": "Prepare your events, and run them on the day even without a network."
+  },
+  "EventDocuments": {
+    "title": "Event documents",
+    "intro": "Seating plan, access maps, plan B: keep them here. On the day-of screen, choose which ones to keep on the phone.",
+    "empty": "No document yet.",
+    "addTitle": "Add a document",
+    "label": "Title",
+    "labelPlaceholder": "For example: Seating plan",
+    "file": "File (PDF or image, 20 MB at most)",
+    "attach": "Upload the document",
+    "attached": "Document added.",
+    "fileMissing": "Choose a file.",
+    "fileTooLarge": "The file is larger than 20 MB.",
+    "fileUnsupported": "This file type is not accepted: a PDF or an image.",
+    "fileInfected": "The file was rejected by the antivirus.",
+    "labelInvalid": "Give a title of 200 characters at most.",
+    "notFound": "Document or event not found.",
+    "unauthorized": "You do not have access to this action.",
+    "embedded": "kept for the day",
+    "rename": "Rename",
+    "renameLabel": "New title for “{label}”",
+    "renamed": "Title changed.",
+    "remove": "Delete",
+    "removeLabel": "Delete “{label}”",
+    "chooseForDayOf": "Choose the documents to keep for the day",
+    "dayOfLater": "Once the event is confirmed and dated, you will choose on the day-of screen which documents to keep on the phone."
   }
 }

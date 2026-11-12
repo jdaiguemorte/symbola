@@ -62,6 +62,15 @@ Contraintes de l'existant :
    caches de Symbola se déploie comme une version ordinaire ; `sw.js` n'est jamais gardé par le
    cache HTTP (`Cache-Control: no-cache, no-store`). Procédure : `docs/runbooks/deploiement.md`.
 
+8. **Documents embarqués** (lot 29b, D8). Le choix vaut pour l'événement (`events.event_day_documents`) :
+   chaque appareil de l'équipe embarque les mêmes. Les candidats viennent de chaque module par son
+   `service.ts` : documents de l'événement (plan de table, plans, plan B, envoyés à l'onglet
+   « Documents »), devis signés, pièces des lignes du budget (devis, contrats, factures des
+   prestataires), devis joints aux prestataires retenus. Les fichiers du carnet n'en sont pas : un
+   RIB n'a rien à faire sur un téléphone le jour J, une plaquette n'y sert pas. Une pièce n'est
+   embarquée et servie que si son module la donne comme candidate de l'événement ; elle s'ouvre
+   dans le navigateur (`/jour-j/<id>/documents/<source>/<id>`) et se copie avec l'écran.
+
 ## Risques assumés
 
 - **Téléphone perdu ou volé.** « Déconnecter tous mes autres appareils » ferme les sessions, mais

@@ -167,9 +167,14 @@ import {
   setSlotBrief,
   updateCandidate,
 } from "./vendor-candidates";
+import { attachDocument, documentKeys, getDocumentFile, listDayChoices, listDocuments, removeDocument, renameDocument, setDayChoice } from "./documents";
 import { findProgramOverlaps, normalizeTime, programForVariant, sortProgramItems } from "./program";
 import type {
   EventPlace,
+  AttachEventDocumentInput,
+  DayDocumentChoice,
+  EventDocument,
+  SetDayDocumentEmbeddedInput,
   EventTypeAudience,
   AddVendorCandidateInput,
   FileDownload,
@@ -269,6 +274,10 @@ export type {
   VendorSlotStatus,
   AddVendorCandidateInput,
   EventPlace,
+  AttachEventDocumentInput,
+  DayDocumentChoice,
+  EventDocument,
+  SetDayDocumentEmbeddedInput,
   ClientVendorOption,
   ClientVendorSlotOptions,
   UpdateVendorCandidateInput,
@@ -691,6 +700,7 @@ export async function removeEventPlace(organizationId: string, eventId: string, 
 // Lot 11 (L11-EVT-10 / L11-EVT-11, ADR 0031) — prestataires consultés par poste.
 
 export { CandidateQuoteRejectedError, VendorCandidateNotFoundError, CANDIDATE_QUOTE_MAX_SIZE_BYTES } from "./vendor-candidates";
+export { DayDocumentSourceError, EventDocumentNotFoundError, EventDocumentRejectedError, EVENT_DOCUMENT_MAX_SIZE_BYTES, EVENT_DOCUMENT_LABEL_MAX } from "./documents";
 
 export async function setVendorSlotBrief(organizationId: string, vendorSlotId: string, brief: string | null): Promise<void> {
   await setSlotBrief(organizationId, vendorSlotId, brief);
@@ -774,6 +784,38 @@ export async function getLinkVendorQuoteFile(organizationId: string, linkId: str
 export async function getLinkSharedRibVendorId(organizationId: string, linkId: string, candidateId: string): Promise<string> {
   const access = await requireLinkRubric(organizationId, linkId, "vendor_options");
   return sharedRibVendorId(organizationId, access.eventId, candidateId);
+}
+
+// Lot 29b (JRJ-04, décision D8) — documents de l'événement et documents
+// embarqués pour le jour J (documents.ts).
+export async function listEventDocuments(organizationId: string, eventId: string): Promise<EventDocument[]> {
+  return listDocuments(organizationId, eventId);
+}
+
+export async function attachEventDocument(input: AttachEventDocumentInput): Promise<EventDocument> {
+  const document = await attachDocument(input);
+  if (!document) throw new EventNotFoundError();
+  return document;
+}
+
+export async function renameEventDocument(organizationId: string, documentId: string, label: string): Promise<void> {
+  await renameDocument(organizationId, documentId, label);
+}
+
+export async function removeEventDocument(organizationId: string, documentId: string): Promise<void> {
+  await removeDocument(organizationId, documentId);
+}
+
+export async function getEventDocumentFile(organizationId: string, documentId: string): Promise<FileDownload> {
+  return getDocumentFile(organizationId, documentId);
+}
+
+export async function listDayDocumentChoices(organizationId: string, eventId: string): Promise<DayDocumentChoice[]> {
+  return listDayChoices(organizationId, eventId);
+}
+
+export async function setDayDocumentEmbedded(input: SetDayDocumentEmbeddedInput): Promise<void> {
+  await setDayChoice(input);
 }
 
 async function deleteStoredFiles(keys: string[]): Promise<void> {
@@ -1956,12 +1998,14 @@ async function demoCandidateQuoteKeys(expired: { organizationId: string; eventId
   for (const organizationId of new Set(expired.map((entry) => entry.organizationId))) {
     const eventIds = expired.filter((entry) => entry.organizationId === organizationId).map((entry) => entry.eventId);
     keys.push(...(await candidateQuoteKeys(organizationId, eventIds, { demoOnly: true })));
+    // Lot 29b : les documents de l'essai partent avec lui.
+    keys.push(...(await documentKeys(organizationId, eventIds, { demoOnly: true })));
   }
   return keys;
 }
 
 export async function endEventsTrial(organizationId: string, eventId: string): Promise<void> {
-  const keys = await candidateQuoteKeys(organizationId, [eventId], { demoOnly: true });
+  const keys = [...(await candidateQuoteKeys(organizationId, [eventId], { demoOnly: true })), ...(await documentKeys(organizationId, [eventId], { demoOnly: true }))];
   await deleteDemoEvent(organizationId, eventId);
   await deleteStoredFiles(keys);
 }
@@ -2116,6 +2160,13 @@ const _contractCheck: EventsServiceContract = {
   requestDecision,
   withdrawDecision,
   listEventDecisions,
+  listEventDocuments,
+  attachEventDocument,
+  renameEventDocument,
+  removeEventDocument,
+  getEventDocumentFile,
+  listDayDocumentChoices,
+  setDayDocumentEmbedded,
   listLinkDecisions,
   answerLinkDecision,
   resolveLinkSession,

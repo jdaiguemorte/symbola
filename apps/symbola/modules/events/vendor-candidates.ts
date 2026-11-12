@@ -63,6 +63,7 @@ function toCandidate(row: CandidateRow, notes: NoteRow[]): VendorCandidate {
     quoteAmountCents: row.quoteAmountCents,
     currency: "EUR",
     hasQuoteFile: row.quoteFileKey !== null,
+    quoteSizeBytes: row.quoteFileKey !== null ? row.quoteSizeBytes : null,
     shownToClients: row.shownToClients,
     shareRibWithClients: row.shareRibWithClients,
     outcome: isEngaged(row.status) ? "selected" : row.status === "dismissed" ? "not_selected" : null,
