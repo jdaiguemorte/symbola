@@ -23,6 +23,8 @@ export type DayOfItem = {
   location: string | null;
   note: string | null;
   participants: DayOfParticipant[];
+  // Lot 30a (JRJ-03, D5) : prestataires retenus de la séquence qui ont un téléphone.
+  calls: { name: string; phone: string }[];
 };
 export type DayOfPlace = { id: string; label: string; address: string | null };
 export type DayOfView = { items: DayOfItem[]; places: DayOfPlace[]; vendors: DayOfVendor[]; clients: DayOfPerson[] };
@@ -64,9 +66,12 @@ export function buildDayOfView(input: {
   });
 
   const namesBySlot = new Map<string, string[]>();
+  const callsBySlot = new Map<string, { name: string; phone: string }[]>();
   for (const candidate of retained) {
     const contact = candidate.vendorId ? contactById.get(candidate.vendorId) : undefined;
-    namesBySlot.set(candidate.vendorSlotId, [...(namesBySlot.get(candidate.vendorSlotId) ?? []), contact?.name ?? candidate.vendorName]);
+    const name = contact?.name ?? candidate.vendorName;
+    namesBySlot.set(candidate.vendorSlotId, [...(namesBySlot.get(candidate.vendorSlotId) ?? []), name]);
+    if (contact?.phone && telHref(contact.phone)) callsBySlot.set(candidate.vendorSlotId, [...(callsBySlot.get(candidate.vendorSlotId) ?? []), { name, phone: contact.phone }]);
   }
 
   return {
@@ -81,6 +86,7 @@ export function buildDayOfView(input: {
         label: participant.label,
         vendors: participant.vendorSlotId ? (namesBySlot.get(participant.vendorSlotId) ?? []) : [],
       })),
+      calls: item.participants.flatMap((participant) => (participant.vendorSlotId ? (callsBySlot.get(participant.vendorSlotId) ?? []) : [])),
     })),
     places: input.places.map((place) => ({ id: place.id, label: place.label, address: place.address })),
     vendors,

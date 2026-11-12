@@ -63,6 +63,8 @@ export type {
   DayDocumentChoice,
   DayDocumentSource,
   EventDocument,
+  EventDayContact,
+  EventDayContactInput,
   SetDayDocumentEmbeddedInput,
   ClientVendorOption,
   ClientVendorSlotOptions,

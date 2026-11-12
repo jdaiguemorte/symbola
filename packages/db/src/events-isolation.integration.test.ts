@@ -14,6 +14,7 @@ import {
   eventLinkSessions,
   eventTaskReminders,
   eventDecisions,
+  eventDayContacts,
   eventDayDocuments,
   eventDocuments,
   eventLinkSharedSlots,
@@ -387,6 +388,29 @@ describe("PRD-EVT-01/02 — Isolation entre organisations (module events, Postgr
           tx.update(eventDecisions).set({ status: "withdrawn" }).where(eq(eventDecisions.id, targetRow.id)).returning(),
         );
         return { affectedRows: updated.length };
+      },
+    });
+  });
+
+  it("SEC-10, lot 30a — une organisation ne voit, ne modifie ni ne supprime jamais les contacts du jour J d'une autre", async () => {
+    await assertOrganizationIsolation({
+      seed: async (organizationId) =>
+        withOrganization(db, organizationId, async (tx) => {
+          const [event] = await tx.insert(events).values({ organizationId }).returning();
+          const [row] = await tx.insert(eventDayContacts).values({ organizationId, eventId: event!.id, name: "Régisseur", role: "Domaine", phone: "06 00 00 00 00" }).returning();
+          if (!row) throw new Error("insertion attendue, aucune ligne renvoyée");
+          return row;
+        }),
+
+      listVisible: async (organizationId) =>
+        withOrganization(db, organizationId, (tx) => tx.select().from(eventDayContacts)),
+
+      attemptCrossOrganizationUpdate: async (organizationId, targetRow) => {
+        const updated = await withOrganization(db, organizationId, (tx) =>
+          tx.update(eventDayContacts).set({ phone: "06 99 99 99 99" }).where(eq(eventDayContacts.id, targetRow.id)).returning(),
+        );
+        const deleted = await withOrganization(db, organizationId, (tx) => tx.delete(eventDayContacts).where(eq(eventDayContacts.id, targetRow.id)).returning());
+        return { affectedRows: updated.length + deleted.length };
       },
     });
   });

@@ -60,6 +60,16 @@ describe("JRJ-02 — Contenu de l'écran du jour J (décision D5)", () => {
     ]);
   });
 
+  it("JRJ-03 (D5) — chaque séquence porte les appels de ses prestataires retenus qui ont un téléphone", () => {
+    const withCaterer: EventProgram = {
+      ...program,
+      items: [{ ...program.items[0]!, participants: [{ vendorSlotId: "s-traiteur", label: "Traiteur" }, { vendorSlotId: "s-fleurs", label: "Fleurs et décoration" }] }],
+    };
+    const view = buildDayOfView({ event: { clients: [] }, program: withCaterer, places: [], slots, candidates, contacts });
+    expect(view.items[0]!.calls).toEqual([{ name: "Maison Ruche", phone: "06 12 34 56 78" }]);
+    expect(buildDayOfView({ event: { clients: [] }, program: withCaterer, places: [], slots, candidates, contacts: null }).items[0]!.calls).toEqual([]);
+  });
+
   it("module Prestataires non souscrit : les noms restent, sans coordonnées", () => {
     const view = buildDayOfView({ event: { clients: [] }, program, places: [], slots, candidates, contacts: null });
     expect(view.vendors.map((vendor) => [vendor.name, vendor.phone, vendor.email])).toEqual([

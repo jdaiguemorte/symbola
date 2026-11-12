@@ -431,6 +431,39 @@ fields:
     anonymization: >-
       Effacé avec le libellé de l'échéance lors d'une demande d'oubli (RGPD-03).
   - schema: events
+    table: event_day_contacts
+    field: name
+    category: identifiant
+    retention: >-
+      Lot 30a (JRJ-03) : contact du jour J saisi pour l'événement — nom de la personne ou du service (« Régisseur du domaine », « Taxi Dupont »).
+      Copié sur le téléphone de la planner avec l'écran du jour J, effacé de
+      l'appareil le lendemain de l'événement (ADR 0064). Tant que l'événement
+      existe ; voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Le contact est supprimé lors d'une demande d'oubli (RGPD-03).
+  - schema: events
+    table: event_day_contacts
+    field: role
+    category: contenu_libre
+    retention: >-
+      Lot 30a (JRJ-03) : contact du jour J saisi pour l'événement — rôle saisi par la planner (« régisseur », « taxi »).
+      Copié sur le téléphone de la planner avec l'écran du jour J, effacé de
+      l'appareil le lendemain de l'événement (ADR 0064). Tant que l'événement
+      existe ; voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Le contact est supprimé lors d'une demande d'oubli (RGPD-03).
+  - schema: events
+    table: event_day_contacts
+    field: phone
+    category: contact
+    retention: >-
+      Lot 30a (JRJ-03) : contact du jour J saisi pour l'événement — téléphone, pour l'appel ou le SMS en un toucher le jour J.
+      Copié sur le téléphone de la planner avec l'écran du jour J, effacé de
+      l'appareil le lendemain de l'événement (ADR 0064). Tant que l'événement
+      existe ; voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Le contact est supprimé lors d'une demande d'oubli (RGPD-03).
+  - schema: events
     table: event_documents
     field: label
     category: contenu_libre
