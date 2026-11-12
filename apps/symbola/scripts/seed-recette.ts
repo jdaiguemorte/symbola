@@ -19,7 +19,7 @@ function accountsFile(args: string[]): string {
   const chosen = index >= 0 ? args[index + 1] : undefined;
   const file = resolve(chosen ?? join(tmpdir(), "symbola-recette-comptes.txt"));
   if (!relative(REPOSITORY, file).startsWith("..")) {
-    throw new Error("le fichier des comptes doit être hors du dépôt (il contient des mots de passe)");
+    throw new Error("le fichier des comptes doit être hors du dépôt (il contient des mots de passe et des liens personnels)");
   }
   return file;
 }
@@ -31,12 +31,17 @@ async function main(): Promise<void> {
     "Jeu fictif de recette : comptes créés (données fictives, ne pas diffuser).",
     "organisation | rôle | nom | e-mail | mot de passe",
     ...result.accounts.map((account) => [account.organisation, account.role, account.nom, account.email, account.password].join(" | ")),
+    "",
+    // Lot 26a : liens personnels des clients et des payeurs, montrés une seule fois.
+    "Liens personnels (à ouvrir dans un navigateur sans session de l'équipe).",
+    "organisation | événement | profil | nom | e-mail | lien",
+    ...result.links.map((link) => [link.organisation, link.evenement, link.profil, link.nom, link.email, link.url].join(" | ")),
   ];
   writeFileSync(file, `${lines.join("\n")}\n`, { mode: 0o600 });
   for (const organization of result.organizations) {
     console.log(`${organization.name} (${organization.id}) : ${organization.events} événement(s).`);
   }
-  console.log(`${result.accounts.length} compte(s) ; identifiants dans ${file}.`);
+  console.log(`${result.accounts.length} compte(s) et ${result.links.length} lien(s) personnel(s) ; identifiants dans ${file}.`);
 }
 
 main()

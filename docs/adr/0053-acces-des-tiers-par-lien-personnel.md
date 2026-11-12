@@ -1,6 +1,7 @@
 # ADR 0053 — Accès des tiers par lien personnel
 
-- Statut : accepté (décision Q4 a de Julien du 11/11/2026) ; mise en œuvre au lot 26
+- Statut : accepté (décision Q4 a de Julien du 11/11/2026) ; mis en œuvre au lot 26a (client),
+  au lot 26b (prestataire, code à usage unique)
 - Date : 2026-11-11
 - Remplace : [0020](0020-acces-maries-par-evenement.md) (compte client par personne), qui reste
   en vigueur jusqu'au lot 26.
@@ -44,3 +45,35 @@ n'est à reprendre.
 - Le lien devient un secret : envoi, expiration, révocation et journalisation sont à soigner
   (lots 26 et 23).
 - Les écrans des mariés sont refaits sur ce modèle au lot 27 (portail client).
+
+## Avenant du lot 26a (12/11/2026)
+
+Décisions du lot 26 validées par Julien le 12/11/2026 (« Oui, comme recommandé »), spécification
+`docs/lots/lot-26-liens-personnels.md`.
+
+- **Ouverture par le fragment** (D2) : le lien envoyé est `/lien#<organisation>.<secret>`. Le
+  jeton n'est jamais transmis au serveur ni au proxy ; la page le retire de l'adresse et de
+  l'historique de l'onglet, puis l'échange (POST) contre une session de lien. Le serveur ne garde
+  que le haché SHA-256 du secret (256 bits).
+- **Droits** (D3) : rubriques du portail cochées par lien (rétroplanning, programme, options de
+  prestataires, budget, devis à signer), budget entier ou par catégories choisies ; deux profils
+  de départ (« Marié(e) », « Payeur ») dans `packages/starter-templates/src/link-profiles.json`.
+  Une rubrique fermée est refusée par le service, pas seulement masquée.
+- **Expiration calculée** (D4) : date choisie, sinon date de l'événement plus 30 jours (client) ou
+  7 jours (prestataire), jusqu'à minuit à Paris ; sans date, 180 jours après la création
+  (`link-expiry.json`). Un événement perdu ou d'essai n'ouvre aucun lien.
+- **Nouveau lien** (D5) : la demande, depuis un lien expiré, est notée sur le lien (fiche,
+  « Aujourd'hui ») et la planner reçoit un e-mail ; rien n'est envoyé au demandeur. Renouveler un
+  lien expiré le prolonge du délai de son public à partir du jour même.
+- **Session de lien** (D7) : cookie `symbola_lien` (HttpOnly, SameSite=Lax, Secure en production),
+  30 jours sans visite, jamais au-delà du lien ; coupée quand le lien est retiré ou renouvelé.
+- **Comptes des mariés** (D8) : comptes `client`, sessions et invitations supprimés ; la valeur
+  `client` quitte le type `hub.role` (migrations 0111 et 0112, annulables sans les données).
+- **Remise** (D10) : e-mail, plus « Copier le lien » affiché une seule fois.
+- **Journal** : `actor_kind = 'link'` (migration 0110) ; `events.link.created`, `updated`,
+  `renewed`, `revoked`, `renewal_requested` et `opened`, sans jeton ni donnée personnelle.
+- **Information** (RGP-03) : mention au nom de l'organisation sur chaque page du portail, texte de
+  départ à faire relire (`link-privacy-notice.json`), modifiable dans les réglages RGPD.
+- **Actions sensibles** (SEC-16, P1, lot 43) : signer, payer, voir le budget détaillé. Le code à
+  usage unique avant ces actions arrive avec SEC-16 ; au 26b, le code est seulement proposé en
+  option à l'ouverture (POR-01, décision D6).

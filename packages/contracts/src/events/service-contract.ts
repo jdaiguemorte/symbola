@@ -369,46 +369,102 @@ export type ProgramTemplateItemInput = {
   participantLabels: string[];
 };
 
-// PRD-EVT-06 — accès des mariés.
-export type ClientAccessStatus = "invited" | "active" | "expired" | "revoked";
+// Lot 26a (UX-11, POR-01, POR-10, SEC-14, SEC-15 ; ADR 0053) — liens personnels
+// des tiers : une personne, un événement, des droits ; ni compte ni mot de passe.
+export const LINK_AUDIENCES = ["client", "vendor", "guest"] as const;
+export type LinkAudience = (typeof LINK_AUDIENCES)[number];
 
-export type EventClientAccess = {
+// Rubriques du portail qu'un lien peut ouvrir (POR-10 : rien par défaut).
+export const LINK_RUBRICS = ["tasks", "program", "vendor_options", "budget", "quotes"] as const;
+export type LinkRubric = (typeof LINK_RUBRICS)[number];
+
+// Budget entier, ou seulement les catégories choisies (sans total général).
+export const LINK_BUDGET_SCOPES = ["all", "selected"] as const;
+export type LinkBudgetScope = (typeof LINK_BUDGET_SCOPES)[number];
+
+export type EventLinkRights = {
+  rubrics: LinkRubric[];
+  budgetScope: LinkBudgetScope;
+  // Catégories (postes de l'événement) partagées en « catégories choisies ».
+  sharedSlotIds: string[];
+};
+
+export type EventLinkStatus = "active" | "expired" | "revoked";
+
+export type EventLink = {
   id: string;
   eventId: string;
+  audience: LinkAudience;
+  personName: string;
   email: string;
-  status: ClientAccessStatus;
+  eventClientId: string | null;
+  rights: EventLinkRights;
+  // SEC-15 : dernier jour valable choisi par la planner, sinon null.
+  customExpiresOn: string | null;
+  // Dernier jour valable (AAAA-MM-JJ, heure de Paris), calculé ou choisi.
+  expiresOn: string;
+  status: EventLinkStatus;
+  lastOpenedAt: string | null;
+  renewalRequestedAt: string | null;
   createdAt: string;
 };
 
-export type InviteEventClientInput = {
+export type EventLinkInput = {
+  personName: string;
+  email: string;
+  eventClientId?: string | null | undefined;
+  rights: EventLinkRights;
+  customExpiresOn?: string | null | undefined;
+};
+
+export type CreateEventLinkInput = {
   organizationId: string;
   eventId: string;
-  email: string;
-  invitedByUserId: string;
-  // Langue de l'e-mail d'invitation.
+  createdByUserId: string;
+  audience: LinkAudience;
+  link: EventLinkInput;
+  // Langue de l'e-mail.
   locale: "fr" | "en";
-  // Lot 16 (ADR 0045) : vocabulaire de l'e-mail (« votre mariage » ou « votre
-  // événement ») ; à défaut, celui du type de l'événement, sinon les mariés.
-  audience?: EventTypeAudience | undefined;
+  // Vocabulaire de l'e-mail (« votre mariage » ou « votre événement ») ; à
+  // défaut, celui du type de l'événement, sinon les mariés.
+  vocabulary?: EventTypeAudience | undefined;
 };
 
-export type InviteEventClientResult = {
-  access: EventClientAccess;
-  // Nul quand l'e-mail a déjà un compte marié dans l'organisation : l'accès
-  // est ouvert directement, sans création de compte.
-  invitationToken: string | null;
+export type RenewEventLinkInput = {
+  organizationId: string;
+  linkId: string;
+  renewedByUserId: string;
+  locale: "fr" | "en";
+  vocabulary?: EventTypeAudience | undefined;
 };
 
-export type AcceptClientInvitationResult =
-  | { outcome: "invalid_or_expired" }
-  | { outcome: "already_accepted" }
-  | { outcome: "success"; email: string };
+// Le lien n'est montré qu'une fois (D10) : seul son haché reste en base.
+export type EventLinkDelivery = { link: EventLink; url: string };
 
-// Vue du marié : jamais de note interne (programme en variante « mariés »).
+// Accès d'un lien, relu en base à chaque requête : retiré, expiré, événement
+// perdu ou fictif, il n'y en a plus.
+export type LinkAccess = {
+  organizationId: string;
+  linkId: string;
+  eventId: string;
+  audience: LinkAudience;
+  personName: string;
+  email: string;
+  rights: EventLinkRights;
+  // Dernier jour valable (AAAA-MM-JJ, heure de Paris).
+  expiresOn: string;
+};
+
+export type OpenEventLinkResult =
+  | { outcome: "opened"; sessionToken: string; maxAgeSeconds: number; audience: LinkAudience }
+  | { outcome: "invalid" };
+
+// Vue du tiers : jamais de note interne (programme en variante « mariés ») ;
+// une rubrique fermée vaut null.
 export type ClientEventView = {
   event: EventSummary;
-  tasks: EventTask[];
-  program: EventProgram;
+  tasks: EventTask[] | null;
+  program: EventProgram | null;
 };
 
 export type EventActivityKind = "task_done" | "task_undone";
@@ -417,8 +473,9 @@ export type EventActivity = {
   id: string;
   kind: EventActivityKind;
   taskLabel: string;
-  // E-mail du marié tel qu'invité par la planner (null si l'accès a disparu).
-  actorEmail: string | null;
+  // Lot 26a : nom de la personne du lien qui a coché (null si le lien a été
+  // effacé, ou pour une ancienne coche d'un compte de marié).
+  actorName: string | null;
   createdAt: string;
 };
 
@@ -488,9 +545,10 @@ export interface EventsServiceContract {
   getVendorCandidate(organizationId: string, candidateId: string): Promise<VendorCandidate | null>;
   listVendorConsultations(organizationId: string, vendorId: string): Promise<VendorConsultation[]>;
   listSelectedVendorIds(organizationId: string): Promise<string[]>;
-  getClientVendorOptions(organizationId: string, userId: string, eventId: string): Promise<ClientVendorSlotOptions[]>;
-  getClientVendorQuoteFile(organizationId: string, userId: string, eventId: string, candidateId: string): Promise<FileDownload>;
-  getClientSharedRibVendorId(organizationId: string, userId: string, eventId: string, candidateId: string): Promise<string>;
+  // Lot 26a : par le lien personnel (rubrique « Options de prestataires »).
+  getLinkVendorOptions(organizationId: string, linkId: string): Promise<ClientVendorSlotOptions[]>;
+  getLinkVendorQuoteFile(organizationId: string, linkId: string, candidateId: string): Promise<FileDownload>;
+  getLinkSharedRibVendorId(organizationId: string, linkId: string, candidateId: string): Promise<string>;
   listTaskTemplates(organizationId: string): Promise<TaskTemplate[]>;
   createTaskTemplate(organizationId: string, name: string, items: TaskTemplateItemInput[]): Promise<TaskTemplate>;
   addTaskTemplateItem(organizationId: string, templateId: string, item: TaskTemplateItemInput): Promise<TaskTemplateItem>;
@@ -525,13 +583,20 @@ export interface EventsServiceContract {
   removeProgramTemplateItem(organizationId: string, itemId: string): Promise<void>;
   removeProgramTemplate(organizationId: string, templateId: string): Promise<void>;
   applyProgramTemplate(organizationId: string, eventId: string, templateId: string): Promise<ProgramItem[]>;
-  inviteEventClient(input: InviteEventClientInput): Promise<InviteEventClientResult>;
-  listEventClientAccesses(organizationId: string, eventId: string): Promise<EventClientAccess[]>;
-  revokeEventClientAccess(organizationId: string, accessId: string): Promise<void>;
-  acceptEventClientInvitation(token: string, password: string): Promise<AcceptClientInvitationResult>;
-  listClientEvents(organizationId: string, userId: string): Promise<EventSummary[]>;
-  getClientEventView(organizationId: string, userId: string, eventId: string): Promise<ClientEventView>;
-  setClientTaskDone(organizationId: string, userId: string, taskId: string, done: boolean): Promise<EventTask>;
+  // Lot 26a (ADR 0053) — liens personnels des tiers.
+  createEventLink(input: CreateEventLinkInput): Promise<EventLinkDelivery>;
+  listEventLinks(organizationId: string, eventId: string): Promise<EventLink[]>;
+  updateEventLink(organizationId: string, linkId: string, input: EventLinkInput): Promise<EventLink>;
+  renewEventLink(input: RenewEventLinkInput): Promise<EventLinkDelivery>;
+  revokeEventLink(organizationId: string, linkId: string): Promise<void>;
+  openEventLink(token: string, now?: Date): Promise<OpenEventLinkResult>;
+  resolveLinkSession(sessionToken: string, now?: Date): Promise<LinkAccess | null>;
+  closeLinkSession(sessionToken: string): Promise<void>;
+  requestLinkRenewal(token: string, now?: Date): Promise<void>;
+  getLinkAccess(organizationId: string, linkId: string, now?: Date): Promise<LinkAccess | null>;
+  getLinkEventView(organizationId: string, linkId: string): Promise<ClientEventView>;
+  setLinkTaskDone(organizationId: string, linkId: string, taskId: string, done: boolean): Promise<EventTask>;
+  getLinkNamesByIds(organizationId: string, linkIds: string[]): Promise<Record<string, string>>;
   listEventActivity(organizationId: string, eventId: string): Promise<EventActivity[]>;
   getEventStatusDates(organizationId: string, eventId: string): Promise<EventStatusDates>;
   startEventsTrial(input: StartEventsTrialInput): Promise<EventsTrial>;
@@ -547,9 +612,4 @@ export interface EventsServiceContract {
   // Lot 10 (AIDE-06) — événement fictif d'un tutoriel.
   startTutorialEvent(input: StartEventsTrialInput & { tutorialKey: string }): Promise<EventsTrial & { kind: string }>;
   listExpiredDemoEvents(organizationIds: string[], now?: Date): Promise<{ organizationId: string; eventId: string }[]>;
-  // Lot 3 (PRD-BUD-04) : vérifie qu'un compte marié a accès à l'événement avant
-  // de lui montrer son budget en lecture seule. Extension additive du
-  // contrat — la fonction existait déjà côté repository, utilisée en
-  // interne par getClientEventView ; seule son exposition est nouvelle.
-  hasActiveClientAccess(organizationId: string, userId: string, eventId: string): Promise<boolean>;
 }

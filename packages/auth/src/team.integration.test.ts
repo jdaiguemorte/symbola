@@ -21,14 +21,22 @@ afterAll(async () => {
   await sql.end();
 });
 
+async function accountWithout(): Promise<{ id: string; email: string }> {
+  const email = `admin-${randomUUID()}@example.test`;
+  const user = await createUser(db, { organizationId: null, email, password: PASSWORD, role: "admin" });
+  return { id: user.id, email };
+}
+
 async function team() {
   const organization = await createOrganization(db, `Org ${randomUUID()}`);
-  const account = async (role: "owner" | "member" | "client") => {
+  const account = async (role: "owner" | "member" | "admin") => {
     const email = `${role}-${randomUUID()}@example.test`;
     const user = await createUser(db, { organizationId: organization.id, email, password: PASSWORD, role });
     return { id: user.id, email };
   };
-  return { organizationId: organization.id, owner: await account("owner"), member: await account("member"), client: await account("client") };
+  // Lot 26a : plus de compte de marié ; un compte d'une autre organisation
+  // (Admin, sans organisation) sert de compte étranger à l'équipe.
+  return { organizationId: organization.id, owner: await account("owner"), member: await account("member"), outsider: await accountWithout() };
 }
 
 async function signIn(email: string): Promise<string> {
@@ -44,7 +52,7 @@ function journal(organizationId: string, action: string) {
 }
 
 describe("SEC-06 — Révocation immédiate : retrait d'un membre, déconnexion à distance", () => {
-  it("l'équipe liste la titulaire et les collaborateurs de l'organisation, sans les mariés ni les autres organisations", async () => {
+  it("l'équipe liste la titulaire et les collaborateurs de l'organisation, sans l'Admin ni les autres organisations", async () => {
     const mine = await team();
     await team();
     const listed = await listTeam(db, mine.organizationId);
@@ -76,7 +84,7 @@ describe("SEC-06 — Révocation immédiate : retrait d'un membre, déconnexion 
     const mine = await team();
     const other = await team();
     expect(await removeMember(db, { organizationId: mine.organizationId, userId: mine.owner.id, removedByUserId: mine.owner.id })).toBe("not_removable");
-    expect(await removeMember(db, { organizationId: mine.organizationId, userId: mine.client.id, removedByUserId: mine.owner.id })).toBe("not_found");
+    expect(await removeMember(db, { organizationId: mine.organizationId, userId: mine.outsider.id, removedByUserId: mine.owner.id })).toBe("not_found");
     expect(await removeMember(db, { organizationId: mine.organizationId, userId: other.member.id, removedByUserId: mine.owner.id })).toBe("not_found");
     expect(await removeMember(db, { organizationId: mine.organizationId, userId: mine.member.id, removedByUserId: mine.owner.id })).toBe("removed");
     expect(await removeMember(db, { organizationId: mine.organizationId, userId: mine.member.id, removedByUserId: mine.owner.id })).toBe("already_removed");

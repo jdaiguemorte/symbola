@@ -1,6 +1,6 @@
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatDateTime, type Locale } from "@symbola/i18n";
-import { listEventClientAccesses, type EventDetail } from "@/modules/events/service";
+import { listEventLinks, type EventDetail } from "@/modules/events/service";
 import { isSignatureAvailable, type QuoteDetail } from "@/modules/quotes/service";
 import { PAID_CLASS, OVERDUE_CLASS } from "../quote-display";
 import { SendForSignatureForm, type SignerDraft } from "./signature-forms";
@@ -68,14 +68,13 @@ export async function SignatureSection({
     );
   }
 
-  // Pré-remplissage : les mariés de l'événement, et l'e-mail de leurs
-  // accès (PRD-EVT-06) dans l'ordre des invitations.
-  const accesses = event ? await listEventClientAccesses(organizationId, event.id) : [];
-  const emails = accesses.filter((access) => access.status !== "revoked").map((access) => access.email);
-  const drafts: SignerDraft[] = (event?.clients ?? []).map((client, index) => ({
+  // Pré-remplissage : les mariés de l'événement, avec l'e-mail de leur lien
+  // personnel (lot 26a), sinon celui de leur fiche.
+  const links = event ? (await listEventLinks(organizationId, event.id)).filter((link) => link.audience === "client" && link.status !== "revoked") : [];
+  const drafts: SignerDraft[] = (event?.clients ?? []).map((client) => ({
     eventClientId: client.id,
     name: [client.firstName, client.lastName].filter(Boolean).join(" "),
-    email: emails[index] ?? "",
+    email: links.find((link) => link.eventClientId === client.id)?.email ?? client.email ?? "",
   }));
   return (
     <section aria-labelledby="signature-title">

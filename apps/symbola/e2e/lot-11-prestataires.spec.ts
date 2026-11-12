@@ -9,11 +9,10 @@ import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import * as OTPAuth from "otpauth";
 import {
-  acceptEventClientInvitation,
   addDefaultVendorSlots,
   createProspect,
   createProspectSource,
-  inviteEventClient,
+  createEventLink,
   listEventVendorSlots,
 } from "../modules/events/service";
 import { createVendor } from "../modules/vendors/service";
@@ -62,9 +61,15 @@ test("L11-EVT-10 / L11-EVT-11 — comparer deux devis pour une ligne du budget, 
   });
   const caterer = (await listEventVendorSlots(planner.organizationId, event.id)).find((slot) => slot.label === "Traiteur")!;
   await createVendor(planner.organizationId, { name: "Maison Verdier", typeId: null, city: "Lille" });
-  const clientEmail = `client-${randomUUID()}@symbola.test`;
-  const invitation = await inviteEventClient({ organizationId: planner.organizationId, eventId: event.id, email: clientEmail, invitedByUserId: planner.userId, locale: "fr" });
-  await acceptEventClientInvitation(invitation.invitationToken!, "mot-de-passe-du-client");
+  // Lot 26a : le client a un lien personnel (rubrique « Options de prestataires »).
+  const clientLink = await createEventLink({
+    organizationId: planner.organizationId,
+    eventId: event.id,
+    createdByUserId: planner.userId,
+    audience: "client",
+    locale: "fr",
+    link: { personName: "Inès", email: `client-${randomUUID()}@symbola.test`, rights: { rubrics: ["vendor_options"], budgetScope: "all", sharedSlotIds: [] } },
+  });
 
   await plannerLogin(page, planner.email, "mot-de-passe-presta");
   await page.goto(`/events/${event.id}?onglet=budget&poste=${caterer.id}`);
@@ -110,12 +115,8 @@ test("L11-EVT-10 / L11-EVT-11 — comparer deux devis pour une ligne du budget, 
   // Les clients voient l'option montrée et la note « Clients », rien d'autre.
   const clientContext = await browser.newContext({ locale: "fr-FR", viewport: page.viewportSize() });
   const client = await clientContext.newPage();
-  await client.goto("/login");
-  await client.getByLabel("E-mail").fill(clientEmail);
-  await client.getByLabel("Mot de passe").fill("mot-de-passe-du-client");
-  await client.getByRole("button", { name: "Se connecter" }).click();
-  await expect(client).toHaveURL(/\/espace$/);
-  await client.goto(`/espace/${event.id}`);
+  await client.goto(clientLink.url);
+  await expect(client).toHaveURL(/\/portail$/);
   const options = client.getByRole("region", { name: "Prestataires proposés" });
   await expect(options).toContainText("Les Tables de Flandre");
   await expect(options).toContainText("Cuisine régionale, service en plateaux.");

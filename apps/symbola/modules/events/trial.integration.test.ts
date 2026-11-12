@@ -25,10 +25,10 @@ import {
   endEventsTrial,
   eventsPrivacy,
   getActiveEventsTrial,
+  createEventLink,
   getEvent,
   getEventProgram,
   hasRealEvents,
-  inviteEventClient,
   listEvents,
   listEventTasks,
   listEventVendorSlots,
@@ -124,12 +124,13 @@ describe("AIDE-02 — Essai guidé avec données de test (module événements)",
     const organizationId = randomUUID();
     const trial = await startEventsTrial({ organizationId, userId: plannerId, locale: "fr", now: NOW });
     await expect(
-      inviteEventClient({
+      createEventLink({
         organizationId,
         eventId: trial.eventId,
-        email: `tiers-${randomUUID()}@example.test`,
-        invitedByUserId: plannerId,
+        createdByUserId: plannerId,
+        audience: "client",
         locale: "fr",
+        link: { personName: "Tiers", email: `tiers-${randomUUID()}@example.test`, rights: { rubrics: ["tasks"], budgetScope: "all", sharedSlotIds: [] } },
       }),
     ).rejects.toBeInstanceOf(DemoEventRestrictionError);
   });

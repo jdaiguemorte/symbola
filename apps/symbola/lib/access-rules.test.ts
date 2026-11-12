@@ -21,12 +21,13 @@ const BASE_GUARDS = [
   "requireSignedIn",
   "requirePlanner",
   "requireOwner",
-  "requireClient",
   "requireAdmin",
+  // Lot 26a (SEC-14) : portail d'un lien personnel (lib/guards.ts, lib/link-session.ts)
+  "requireLink",
+  "currentLinkAccess",
   // lib/auth-context.ts
   "getAuthContext",
   "getPlannerAuthContext",
-  "getClientAuthContext",
   // @symbola/auth : connexion en cours, avant la double authentification
   "requireUser",
 ];
@@ -55,8 +56,11 @@ const PUBLIC_ENTRIES: Record<string, string> = {
   "mot-de-passe/[token]/actions.ts#resetPasswordAction": "jeton de réinitialisation",
   "invitations/[token]/page.tsx#default": "jeton d'invitation de l'équipe",
   "invitations/[token]/actions.ts#acceptInvitationAction": "jeton d'invitation de l'équipe",
-  "espace/invitation/[token]/page.tsx#default": "jeton d'invitation du marié",
-  "espace/invitation/[token]/actions.ts#acceptClientInvitationAction": "jeton d'invitation du marié",
+  // Lot 26a (UX-11, SEC-14, SEC-15, SEC-17 ; ADR 0053).
+  "lien/page.tsx#default": "arrivée d'un lien personnel : le jeton reste dans le navigateur, la page n'affiche rien d'autre",
+  "lien/actions.ts#openLinkAction": "jeton du lien personnel, vérifié haché sous RLS, limité en débit",
+  "lien/actions.ts#requestLinkRenewalAction": "jeton d'un lien expiré, même réponse dans tous les cas, limitée en débit",
+  "portail/actions.ts#closeLinkSessionAction": "ferme la session de lien du cookie, s'il y en a une",
   "signature-fictive/[token]/page.tsx#default": "jeton du signataire (fournisseur fictif, hors production)",
   "signature-fictive/[token]/actions.ts#fakeSignatureAction": "jeton du signataire (fournisseur fictif, hors production)",
   "import/[importId]/ecarts/page.tsx#default": "redirection vers l'étape en cours, elle-même gardée",

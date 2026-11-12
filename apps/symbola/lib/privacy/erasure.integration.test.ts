@@ -8,14 +8,13 @@ import { eq } from "drizzle-orm";
 import { afterAll, describe, expect, it } from "vitest";
 import { createOrganization, createUser } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
-import { eventClientAccesses, eventClients, events, eventVendorCandidates, programItems } from "@symbola/db/schema/events";
+import { eventClients, eventLinks, events, eventVendorCandidates, programItems } from "@symbola/db/schema/events";
 import { auditEntries } from "@symbola/db/schema/core";
-import { users } from "@symbola/db/schema/hub";
 import { invoices, quotes, quoteSigners, quoteVersions, signatureRequests } from "@symbola/db/schema/quotes";
 import { withOrganization } from "@symbola/db/with-organization";
 import type { PersonTerms, PrivacyContractV1 } from "@symbola/privacy";
 import { listBudgetLines, updateBudgetLine } from "@/modules/budget/service";
-import { addEventTask, addEventVendorSlot, createProspect, createProspectSource, eventsPrivacy } from "@/modules/events/service";
+import { addEventTask, addEventVendorSlot, createEventLink, createProspect, createProspectSource, eventsPrivacy, openEventLink, resolveLinkSession } from "@/modules/events/service";
 import { budgetPrivacy } from "@/modules/budget/service";
 import {
   closePrivacyRequest,
@@ -197,24 +196,29 @@ describe("RGPD-03 — Demande d'oubli", { timeout: 30_000 }, () => {
     expect(direct).toEqual(["invoice", "quote_signer"]);
   });
 
-  it("le compte d'accès d'un marié est supprimé, avec son accès à l'événement", async () => {
+  it("L26-RGP-05 — le lien personnel d'une personne est supprimé, avec ses sessions", async () => {
     const planner = await createPlanner();
     const lastName = `Leroy${randomUUID().slice(0, 6)}`;
     const eventId = await seedWedding(planner, "Zoé", lastName, false);
     const email = `zoe-${randomUUID().slice(0, 6)}@example.org`;
-    const account = await createUser(db, { organizationId: planner.organizationId, email, password: "mot-de-passe-marie", role: "client" });
-    await withOrganization(db, planner.organizationId, (tx) =>
-      tx.insert(eventClientAccesses).values({ organizationId: planner.organizationId, eventId, email, userId: account.id, expiresAt: new Date(), invitedByUserId: planner.userId, acceptedAt: new Date() }),
-    );
+    const delivery = await createEventLink({
+      organizationId: planner.organizationId,
+      eventId,
+      createdByUserId: planner.userId,
+      audience: "client",
+      locale: "fr",
+      link: { personName: `Zoé ${lastName}`, email, rights: { rubrics: ["tasks"], budgetScope: "all", sharedSlotIds: [] } },
+    });
+    const opened = await openEventLink(delivery.url.split("#")[1]!);
+    if (opened.outcome !== "opened") throw new Error("ouverture attendue");
     const request = await erasureRequest(planner, `Zoé ${lastName}`);
     const terms = { email };
     const keys = await everything(planner, terms);
-    expect(keys.some((key) => key.startsWith("hub:client_account:"))).toBe(true);
-    expect(keys.some((key) => key.startsWith("events:client_access:"))).toBe(true);
+    expect(keys.some((key) => key.startsWith("events:link:"))).toBe(true);
     const result = await executeErasure({ organizationId: planner.organizationId, userId: planner.userId, requestId: request.id, terms, selectedKeys: keys });
     expect(result).toMatchObject({ status: "ok", erasureStatus: "completed" });
-    expect(await db.select().from(users).where(eq(users.id, account.id))).toEqual([]);
-    expect(await withOrganization(db, planner.organizationId, (tx) => tx.select().from(eventClientAccesses).where(eq(eventClientAccesses.eventId, eventId)))).toEqual([]);
+    expect(await withOrganization(db, planner.organizationId, (tx) => tx.select().from(eventLinks).where(eq(eventLinks.eventId, eventId)))).toEqual([]);
+    expect(await resolveLinkSession(opened.sessionToken)).toBeNull();
     expect((await searchPerson({ organizationId: planner.organizationId, terms }))!.records).toEqual([]);
   });
 

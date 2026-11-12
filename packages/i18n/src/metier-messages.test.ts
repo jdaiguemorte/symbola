@@ -10,7 +10,7 @@ describe("L16-HUB-21 — Vocabulaire selon le métier", () => {
     const agency = withMetierMessages(frMessages, agencyFr);
     expect(frMessages.Events.tabClients).toBe("Mariés");
     expect(agency.Events.tabClients).toBe("Clients");
-    expect(agency.Events.nextStep.invite_clients.action).toBe("Inviter les clients");
+    expect(agency.Events.nextStep.invite_clients.title).toBe("Prochaine étape : créer les liens des clients");
     // Le reste du catalogue est intact, listes de l'aide comprises.
     expect(agency.Events.title).toBe(frMessages.Events.title);
     expect(Array.isArray(agency.Help.eventsDetail.faq)).toBe(true);

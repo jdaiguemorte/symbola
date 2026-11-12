@@ -1,5 +1,7 @@
 // PRD-BUD-04 — « le marié ne peut jamais modifier une ligne, y compris par
-// appel direct à la Server Action » (test automatisé obligatoire). Les
+// appel direct à la Server Action » (test automatisé obligatoire). Lot 26a :
+// le marié n'a plus de compte, mais une session de lien personnel ; présentée
+// comme cookie de compte, elle n'ouvre aucune action de la planner. Les
 // vraies actions du module budget sont appelées avec une vraie session
 // (cookie, PostgreSQL) : seul l'accès à la requête Next.js (cookies,
 // revalidation, traductions) est simulé, faute de serveur en test.
@@ -9,12 +11,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { confirmTotp, createOrganization, createUser, login, setupTotp } from "@symbola/auth";
 import { createAppConnection, type AppDatabase } from "@symbola/db/client";
 import {
-  acceptEventClientInvitation,
   addDefaultVendorSlots,
+  createEventLink,
   createProspect,
   createProspectSource,
-  inviteEventClient,
   listDefaultVendorSlots,
+  openEventLink,
   listEventVendorSlots,
 } from "@/modules/events/service";
 import { getEventBudget, listAllocationModels, listBudgetLines, updateBudgetLine } from "@/modules/budget/service";
@@ -100,17 +102,16 @@ async function setup() {
     changedByUserId: planner.id,
   });
 
-  const clientEmail = `marie-${randomUUID()}@example.test`;
-  const invitation = await inviteEventClient({
+  const delivery = await createEventLink({
     organizationId,
     eventId: event.id,
-    email: clientEmail,
-    invitedByUserId: planner.id,
+    createdByUserId: planner.id,
+    audience: "client",
     locale: "fr",
+    link: { personName: "Inès", email: `marie-${randomUUID()}@example.test`, rights: { rubrics: ["tasks", "program", "vendor_options", "budget", "quotes"], budgetScope: "all", sharedSlotIds: [] } },
   });
-  await acceptEventClientInvitation(invitation.invitationToken!, PASSWORD);
-  const clientLogin = await withDb((db) => login(db, clientEmail, PASSWORD));
-  if (clientLogin.outcome !== "success") throw new Error("connexion marié attendue");
+  const clientLink = await openEventLink(delivery.url.split("#")[1]!);
+  if (clientLink.outcome !== "opened") throw new Error("ouverture du lien attendue");
 
   const [defaultSlot] = await listDefaultVendorSlots(organizationId);
   return {
@@ -119,7 +120,7 @@ async function setup() {
     eventVendorSlotId: slot!.id,
     defaultVendorSlotId: defaultSlot!.id,
     plannerToken: confirmed.sessionToken,
-    clientToken: clientLogin.sessionToken,
+    clientToken: clientLink.sessionToken,
   };
 }
 
@@ -127,8 +128,8 @@ beforeEach(() => {
   sessionToken = undefined;
 });
 
-describe("PRD-BUD-04 — Un compte marié ne modifie jamais le budget, même par appel direct", () => {
-  it("chaque Server Action d'écriture du budget refuse un compte marié, sans rien écrire", async () => {
+describe("PRD-BUD-04 — Un marié ne modifie jamais le budget, même par appel direct", () => {
+  it("L26-SEC-12 — chaque Server Action d'écriture du budget refuse la session d'un lien personnel, sans rien écrire", async () => {
     const context = await setup();
     sessionToken = context.clientToken;
     const { eventId, eventVendorSlotId, defaultVendorSlotId, organizationId } = context;

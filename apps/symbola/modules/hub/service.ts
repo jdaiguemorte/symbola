@@ -4,11 +4,12 @@
 import { createHash, randomBytes } from "node:crypto";
 import { recordAudit } from "@symbola/db/audit";
 import type { AppDatabase } from "@symbola/db/client";
-import { createUser } from "@symbola/auth";
+import { createUser, listTeam } from "@symbola/auth";
 import { detectFileType, uploadFile } from "@symbola/files";
 import { sendMail } from "@symbola/mail";
 import { parseEnv } from "@symbola/env";
-import { starterFollowUpDelays } from "@symbola/starter-templates";
+import { starterFollowUpDelays, starterLinkPrivacyNotice } from "@symbola/starter-templates";
+import { getLinkPrivacyNotice } from "./privacy-requests";
 import {
   findInvitationByTokenHash,
   findOrganizationById,
@@ -39,6 +40,8 @@ export {
   extendPrivacyRequest,
   getPrivacyRequest,
   getPrivacySettings,
+  getLinkPrivacyNotice,
+  updateLinkPrivacyNotice,
   listDueSoonPrivacyRequests,
   listPrivacyRequests,
   PRIVACY_REQUEST_TYPES,
@@ -93,7 +96,6 @@ export {
 export {
   getPrivacyPurge,
   listExpiredPrivacyRequests,
-  listInactiveClientAccounts,
   listPrivacyPurges,
   PrivacyPurgeInvalidError,
   PrivacyPurgeNotFoundError,
@@ -458,6 +460,33 @@ export async function getDocumentHeader(
   if (!organization) return null;
   const profile = await getOrganizationProfile(db, organizationId);
   return { organizationName: organization.name, logoKey: profile.logoKey };
+}
+
+// Lot 26a (RGP-03) — texte de départ de la mention d'information (variables non
+// remplacées), pour l'écran des réglages RGPD.
+export function linkPrivacyNoticeTemplate(locale: "fr" | "en"): string {
+  return starterLinkPrivacyNotice(locale);
+}
+
+// Lot 26a (RGP-03) — mention d'information d'une page à lien personnel : le
+// texte de l'organisation, sinon le texte de départ, avec son nom et une adresse
+// où exercer ses droits : celle du profil, sinon celle de la titulaire.
+export async function linkPrivacyNoticeFor(db: AppDatabase, organizationId: string, locale: "fr" | "en"): Promise<string> {
+  const [custom, header, profile, team] = await Promise.all([
+    getLinkPrivacyNotice(db, organizationId),
+    getDocumentHeader(db, organizationId),
+    getOrganizationProfile(db, organizationId),
+    listTeam(db, organizationId),
+  ]);
+  const organization = header?.organizationName ?? "";
+  const contact = profile.contactEmail ?? team.find((member) => member.role === "owner" && !member.disabledAt)?.email ?? organization;
+  return (
+    (custom ?? starterLinkPrivacyNotice(locale))
+      .replaceAll("{organization}", organization)
+      .replaceAll("{contact}", contact)
+      // Un nom qui finit par un point (« Atelier Camille R. ») ne le double pas.
+      .replace(/(?<!\.)\.\.(?!\.)/g, ".")
+  );
 }
 
 // Lot 17 (DEV-07) — identité du vendeur imprimée sur les devis et les

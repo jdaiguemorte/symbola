@@ -493,7 +493,7 @@
     },
     "eventsDetail": {
       "title": "Fiche de l'événement",
-      "body": "Tout l'événement, en onglets. La frise du haut montre où il en est : cliquez l'étape suivante pour avancer. Le bandeau « Prochaine étape » dit quoi faire maintenant (envoyer le devis, appliquer le rétroplanning, inviter les mariés). Chaque onglet a son lien « Réglages » vers ses modèles.",
+      "body": "Tout l'événement, en onglets. La frise du haut montre où il en est : cliquez l'étape suivante pour avancer. Le bandeau « Prochaine étape » dit quoi faire maintenant (envoyer le devis, appliquer le rétroplanning, créer les liens des mariés). Chaque onglet a son lien « Réglages » vers ses modèles.",
       "faq": [
         {
           "q": "Comment marquer un événement perdu ?",
@@ -509,7 +509,7 @@
         },
         {
           "q": "Que voient les mariés ?",
-          "a": "Leurs tâches, le programme et le budget en lecture seule, jamais vos notes internes. Invitez-les depuis l'onglet Mariés."
+          "a": "Ce que vous leur ouvrez, par un lien personnel, sans compte ni mot de passe : leurs tâches, le programme, le budget en lecture seule, jamais vos notes internes. Créez leurs liens dans l'onglet Mariés ; un parent payeur peut ne voir que certaines catégories du budget."
         }
       ]
     },
@@ -547,21 +547,9 @@
         }
       ]
     },
-    "clientInvitation": {
-      "title": "Créer votre compte",
-      "body": "Chaque marié a son propre compte. Le lien d'invitation est valable 7 jours ; s'il a expiré, demandez-en un nouveau à votre organisatrice."
-    },
-    "clientSpace": {
-      "title": "Votre espace",
-      "body": "Les mariages que votre organisatrice partage avec vous. Ouvrez-en un pour suivre la préparation."
-    },
     "clientEvent": {
-      "title": "Suivre la préparation",
-      "body": "Cochez les tâches « À faire par vous » une fois faites : votre organisatrice le voit aussitôt. Retrouvez aussi le programme du jour J, à télécharger en PDF, et le budget en lecture seule dès qu'il est préparé."
-    },
-    "clientSecurity": {
-      "title": "Double authentification",
-      "body": "Facultative pour votre compte. Une fois activée, un code de votre application d'authentification vous est demandé à chaque connexion."
+      "title": "Votre espace",
+      "body": "Votre organisateur vous a ouvert cet espace par un lien personnel, sans compte ni mot de passe. Vous y voyez ce qu'il a partagé avec vous : vos tâches à cocher, le programme du jour J, le budget. Ce lien vous est réservé : ne le transférez pas."
     },
     "budgetSettings": {
       "title": "Répartition du budget",
@@ -579,7 +567,7 @@
       "faq": [
         {
           "q": "Les mariés voient-ils le budget ?",
-          "a": "Oui, en lecture seule dans leur espace, dès qu'il est préparé."
+          "a": "Oui, en lecture seule dans leur portail, si leur lien ouvre la rubrique Budget : tout le budget, ou seulement les catégories que vous choisissez (pour un parent payeur)."
         },
         {
           "q": "Où sont rangés les devis joints ?",
@@ -707,7 +695,7 @@
     },
     "privacyPurge": {
       "title": "Purge mensuelle",
-      "body": "Chaque mois, la liste rassemble ce qui a dépassé sa durée de conservation : prospects sans suite, relations terminées, comptes de mariés inactifs, documents en fin de conservation, noms des personnes dans les demandes closes depuis la durée de preuve réglée. Validez-la : chaque ligne est purgée, sauf celles que vous excluez avec un motif. Rien n'est purgé sans vous."
+      "body": "Chaque mois, la liste rassemble ce qui a dépassé sa durée de conservation : prospects sans suite, relations terminées, documents en fin de conservation, noms des personnes dans les demandes closes depuis la durée de preuve réglée. Validez-la : chaque ligne est purgée, sauf celles que vous excluez avec un motif. Rien n'est purgé sans vous."
     },
     "allTasks": {
       "title": "Les tâches de tous vos mariages",
@@ -715,7 +703,7 @@
       "faq": [
         {
           "q": "Les tâches des mariés apparaissent-elles ?",
-          "a": "Oui : elles sont signalées « à faire par les mariés », et cochées dès qu'ils les ont faites dans leur espace."
+          "a": "Oui : elles sont signalées « à faire par les mariés », et cochées dès qu'ils les ont faites dans leur portail, ouvert par leur lien personnel."
         }
       ]
     },
@@ -1089,21 +1077,7 @@
     "programPdfVersion": "Version du {date}",
     "programPdfFileCouple": "programme-maries",
     "programPdfFileVendors": "programme-prestataires",
-    "clientAccessTitle": "Accès des mariés",
-    "clientAccessIntro": "Invitez chaque marié par e-mail : il crée son propre compte et suit le rétroplanning, coche ses tâches et consulte le programme du jour J (sans vos notes internes). Vous pouvez retirer un accès à tout moment.",
-    "noClientAccess": "Aucun marié invité pour l'instant.",
-    "clientEmail": "E-mail du marié",
-    "inviteClient": "Inviter le marié",
-    "clientInvited": "Invitation envoyée.",
-    "clientLinked": "Ce marié a déjà un compte : l'accès à cet événement lui est ouvert.",
-    "clientEmailUnavailable": "Cet e-mail est déjà utilisé par un autre compte.",
-    "clientAlreadyInvited": "Ce marié a déjà accès à l'événement.",
     "invalidEmail": "E-mail invalide.",
-    "clientAccessInvited": "invitation envoyée",
-    "clientAccessActive": "accès actif",
-    "clientAccessExpired": "invitation expirée",
-    "clientAccessRevoked": "accès retiré",
-    "revokeClientAccess": "Retirer l'accès de {email}",
     "activityTitle": "Fil d'activité",
     "noActivity": "Aucune activité des mariés pour l'instant.",
     "activityTaskDone": "{actor} a coché « {task} ».",
@@ -1122,7 +1096,7 @@
     "trialStepTask": "cocher une tâche du rétroplanning, puis changer la date pour voir le recalcul proposé ;",
     "trialStepProgram": "ajouter une ligne au programme et télécharger le PDF (filigrane « Document fictif »).",
     "trialEnd": "Terminer l'essai et supprimer ses données",
-    "trialNoInvite": "Pendant l'essai, aucune invitation n'est envoyée : les mariés ne sont invités que sur un vrai événement.",
+    "trialNoInvite": "Pendant l'essai, aucun lien n'est envoyé : les liens ne se créent que sur un vrai événement.",
     "demoWatermark": "Document fictif",
     "budgetLink": "Budget",
     "confirmBudgetTitle": "Faire de la simulation le budget estimé",
@@ -1242,9 +1216,9 @@
         "action": "Ouvrir le programme"
       },
       "invite_clients": {
-        "title": "Prochaine étape : inviter les mariés",
-        "body": "Donnez-leur accès à leur espace : tâches à leur charge, budget, options proposées.",
-        "action": "Inviter les mariés"
+        "title": "Prochaine étape : créer les liens des mariés",
+        "body": "Chacun reçoit son lien personnel, sans compte : ses tâches, le programme, le budget, les options proposées.",
+        "action": "Créer les liens"
       }
     },
     "kpiPlanned": "Budget estimé",
@@ -1311,7 +1285,63 @@
     "deleteTemplateConfirm": "Supprimer le modèle",
     "mailQuotaReached": "Plafond d'envois atteint : votre organisation a envoyé le nombre maximal d'e-mails de l'heure. Réessayez dans {minutes} minutes.",
     "budgetLinesDetail": "{count} lignes pour « {line} » : les détailler sur le budget",
-    "retainedVendors": "Prestataires retenus : {vendors}"
+    "retainedVendors": "Prestataires retenus : {vendors}",
+    "linksTitle": "Liens personnels",
+    "linksIntro": "Chaque personne reçoit son propre lien, sans compte ni mot de passe. Elle ne voit que ce que vous lui ouvrez, et vous pouvez retirer son lien à tout moment.",
+    "noLinks": "Aucun lien pour l'instant.",
+    "linkStatus": {
+      "active": "actif",
+      "expired": "expiré",
+      "revoked": "retiré"
+    },
+    "linkValidUntil": "valable jusqu'au {date}",
+    "linkSees": "Voit : {items}",
+    "linkSeesNothing": "Ne voit rien pour l'instant",
+    "linkBudgetSlots": "Budget ({slots})",
+    "linkOpenedOn": "ouvert le {date}",
+    "linkNeverOpened": "jamais ouvert",
+    "linkRenewalRequested": "Demande un nouveau lien depuis le {date}",
+    "linkRubric": {
+      "tasks": "Rétroplanning",
+      "program": "Programme",
+      "vendor_options": "Options de prestataires",
+      "budget": "Budget",
+      "quotes": "Devis à signer"
+    },
+    "createLinkTitle": "Créer un lien",
+    "linkPerson": "Personne",
+    "linkPersonOther": "Autre personne (parent, commanditaire…)",
+    "linkPersonName": "Nom de la personne",
+    "linkEmail": "E-mail de la personne",
+    "linkProfile": "Profil",
+    "linkSharedSlots": "Catégories du budget partagées",
+    "linkSharedSlotsHint": "Seulement ces catégories, sans total général.",
+    "linkExpiresOn": "Valable jusqu'au (facultatif)",
+    "linkExpiresOnHint": "Par défaut : 30 jours après l'événement.",
+    "createLink": "Créer le lien et l'envoyer",
+    "linkCreated": "Lien envoyé à {email}.",
+    "linkRenewed": "Nouveau lien envoyé à {email}. L'ancien ne fonctionne plus.",
+    "linkUrlLabel": "Lien personnel de {name}",
+    "linkUrlOnce": "Ce lien ne sera plus affiché : copiez-le maintenant si vous voulez l'envoyer autrement (SMS, messagerie).",
+    "copyLink": "Copier le lien",
+    "linkCopied": "Lien copié.",
+    "linkCopyFailed": "Copie impossible : sélectionnez le lien ci-dessus.",
+    "renewLink": "Renouveler le lien de {name}",
+    "revokeLink": "Retirer le lien de {name}",
+    "revokeLinkConfirm": "Retirer : {name} perdra aussitôt l'accès",
+    "editLink": "Modifier le lien de {name}",
+    "saveLink": "Enregistrer le lien de {name}",
+    "linkSaved": "Lien mis à jour.",
+    "linkRubrics": "Rubriques ouvertes",
+    "linkBudgetScope": "Budget",
+    "linkBudgetScopeAll": "Tout le budget",
+    "linkBudgetScopeSelected": "Seulement les catégories choisies",
+    "linkInvalidName": "Indiquez le nom de la personne.",
+    "linkInvalidExpiry": "La date de validité n'est pas valable.",
+    "linkInvalidChoice": "Ce choix n'est pas possible pour cet événement.",
+    "linkNotFound": "Ce lien a été retiré.",
+    "linkRenewalsTitle": "Demandes de nouveau lien",
+    "linkRenewalLine": "{name} demande un nouveau lien — {event}"
   },
   "Budget": {
     "title": "Budget",
@@ -1876,39 +1906,10 @@
   "ClientSpace": {
     "title": "Mon mariage",
     "unavailable": "Cet espace est momentanément indisponible.",
-    "unauthenticated": "Veuillez vous reconnecter.",
-    "accountNav": "Mon compte",
-    "securityLink": "Sécurité du compte",
-    "profileLink": "Langue et profil",
-    "eventsLabel": "Mes événements",
-    "noEvents": "Aucun événement n'est partagé avec vous pour l'instant.",
     "dateUnset": "Date à définir",
-    "logout": "Se déconnecter",
-    "backToSpace": "Retour à mon espace",
     "responsibleYou": "À faire par vous",
     "responsiblePlanner": "Suivi par votre planner",
     "downloadProgram": "Télécharger le programme (PDF)",
-    "invitationTitle": "Bienvenue sur Symbola",
-    "invitationIntro": "Votre wedding planner vous invite à suivre la préparation de votre mariage. Choisissez votre mot de passe pour créer votre compte personnel.",
-    "choosePassword": "Choisissez un mot de passe (12 caractères minimum)",
-    "confirmPassword": "Confirmez le mot de passe",
-    "createAccount": "Créer mon compte",
-    "accountCreated": "Votre compte est créé.",
-    "goToLogin": "Se connecter",
-    "passwordMismatch": "Les deux mots de passe ne sont pas identiques.",
-    "passwordCompromised": "Ce mot de passe figure parmi les mots de passe les plus courants ou déjà compromis. Choisissez-en un autre, par exemple une phrase de plusieurs mots.",
-    "passwordTooShort": "Le mot de passe doit contenir au moins 12 caractères.",
-    "invitationInvalid": "Ce lien d'invitation n'est plus valable. Demandez une nouvelle invitation à votre planner.",
-    "invitationAlreadyAccepted": "Cette invitation a déjà servi : connectez-vous avec votre compte.",
-    "securityTitle": "Sécurité du compte",
-    "mfaIntro": "La double authentification ajoute un code à usage unique, donné par une application sur votre téléphone, à votre mot de passe. Elle est facultative, mais recommandée.",
-    "mfaAlreadyEnabled": "La double authentification est activée sur votre compte.",
-    "mfaStart": "Activer la double authentification",
-    "mfaScanInstructions": "Scannez ce QR code avec votre application d'authentification (par exemple Google Authenticator ou 1Password), puis saisissez le code affiché.",
-    "mfaCode": "Code à 6 chiffres",
-    "mfaConfirm": "Confirmer",
-    "mfaInvalidCode": "Code incorrect, réessayez.",
-    "mfaEnabledNow": "Double authentification activée : elle vous sera demandée à chaque connexion.",
     "budgetTitle": "Budget",
     "noBudgetYet": "Votre planner n'a pas encore partagé de budget pour cet événement.",
     "quotesTitle": "Devis",
@@ -1923,8 +1924,7 @@
     "vendorOptionsIntro": "Votre organisatrice a consulté plusieurs prestataires. Voici ceux qu'elle vous propose.",
     "vendorOptionQuote": "Devis : {amount}",
     "vendorOptionOpenQuote": "Voir le devis de {vendor}",
-    "vendorOptionOpenRib": "RIB de {vendor}",
-    "mfaLocked": "Trop de codes incorrects : réessayez dans 15 minutes. Un e-mail vous a été envoyé."
+    "vendorOptionOpenRib": "RIB de {vendor}"
   },
   "NotFound": {
     "title": "Page introuvable",
@@ -2415,7 +2415,6 @@
     "kind": {
       "event": "Événement",
       "event_client": "Client",
-      "client_access": "Accès d'un marié",
       "event_vendor_slot": "Ligne du budget",
       "task": "Tâche",
       "program_item": "Programme",
@@ -2430,11 +2429,11 @@
       "event_budget": "Budget",
       "budget_line": "Ligne de budget",
       "budget_attachment": "Devis prestataire joint",
-      "client_account": "Compte d'un marié",
       "import_row": "Ligne d'un import en cours",
       "import_item": "Élément d'un import (annulation)",
       "privacy_request": "Demande RGPD close (nom de la personne)",
-      "greeting": "Message"
+      "greeting": "Message",
+      "link": "Lien personnel"
     },
     "field": {
       "firstName": "Prénom",
@@ -2767,7 +2766,15 @@
     "copyResponse": "Copier la réponse",
     "responseCopied": "Réponse copiée.",
     "responseCopyFailed": "Copie impossible : sélectionnez le texte à la main.",
-    "caseNextAfterExport": "Étape suivante : répondre à la personne"
+    "caseNextAfterExport": "Étape suivante : répondre à la personne",
+    "linkNoticeTitle": "Mention d'information des liens personnels",
+    "linkNoticeIntro": "Affichée sur chaque page qu'un client ouvre par son lien, au nom de votre organisation. Variables : {organization} et {contact}.",
+    "linkNoticeLabel": "Texte de la mention",
+    "linkNoticeReview": "Texte de départ à adapter et à faire relire par un juriste.",
+    "linkNoticeSave": "Enregistrer la mention",
+    "linkNoticeReset": "Revenir au texte de départ",
+    "linkNoticeSaved": "Mention enregistrée.",
+    "linkNoticeInvalid": "La mention est trop longue (4 000 caractères au plus)."
   },
   "PasswordReset": {
     "forgotTitle": "Mot de passe oublié",
@@ -2830,7 +2837,6 @@
     "empty": "Aucune organisation.",
     "summaryOf": "Résumé de {organization}",
     "teamAccounts": "{count, plural, =0 {Aucun compte d'équipe} one {# compte d'équipe} other {# comptes d'équipe}}",
-    "clientAccounts": "{count, plural, =0 {Aucun compte marié} one {# compte marié} other {# comptes mariés}}",
     "activeAccounts": "{count, plural, =0 {Aucun compte connecté sur 30 jours} one {# compte connecté sur 30 jours} other {# comptes connectés sur 30 jours}}",
     "lastLogin": "Dernière connexion : {date}",
     "neverLoggedIn": "Aucune connexion pour l'instant",
@@ -2883,8 +2889,8 @@
         "description": "Partez d'un modèle de programme, ajustez les horaires et téléchargez la version pour les prestataires."
       },
       "client-space": {
-        "title": "Inviter ses clients dans leur espace",
-        "description": "Voyez ce que vos clients voient : leurs tâches, le programme et le budget, sans vos notes internes."
+        "title": "Ouvrir leur espace à vos clients",
+        "description": "Un lien personnel par client, sans compte : voyez ce qu'ils voient, leurs tâches, le programme et le budget, sans vos notes internes."
       },
       "import": {
         "title": "Importer ses événements existants",
@@ -2932,8 +2938,7 @@
     "fromEvent": "Cet écran s'ouvre depuis la fiche d'un événement.",
     "fromQuote": "Cet écran s'ouvre depuis un devis, sur la fiche de son événement.",
     "fromBudget": "Cet écran s'ouvre depuis l'onglet Budget de la fiche d'un événement.",
-    "fromImport": "Cette étape suit le dépôt d'un fichier dans « Importer ».",
-    "fromClientEvent": "Cet écran s'ouvre depuis votre espace, en choisissant un mariage."
+    "fromImport": "Cette étape suit le dépôt d'un fichier dans « Importer »."
   },
   "Search": {
     "label": "Rechercher",
@@ -3200,7 +3205,7 @@
         },
         {
           "title": "L'onglet Clients",
-          "body": "Dans l'onglet Mariés de l'exemple, vous inviterez vos clients par e-mail (pendant un exemple, aucune invitation ne part). Vous pourrez retirer l'accès à tout moment."
+          "body": "Dans l'onglet Mariés de l'exemple, vous créerez un lien personnel pour chaque client : ni compte, ni mot de passe (pendant un exemple, aucun lien ne part). Vous pourrez retirer un lien à tout moment."
         },
         {
           "title": "Ce qu'ils voient",
@@ -4108,7 +4113,13 @@
       "quotes_ledger_anomaly_detected": "Anomalie dans la chaîne des pièces",
       "quotes_archive_exported": "Archive comptable exportée",
       "budget_budget_exported": "Budget exporté",
-      "hub_mail_quota_reached": "Plafond d'envois de l'heure atteint"
+      "hub_mail_quota_reached": "Plafond d'envois de l'heure atteint",
+      "events_link_created": "Lien personnel créé",
+      "events_link_updated": "Droits d'un lien personnel modifiés",
+      "events_link_renewed": "Lien personnel renouvelé",
+      "events_link_revoked": "Lien personnel retiré",
+      "events_link_renewal_requested": "Nouveau lien demandé",
+      "events_link_opened": "Lien personnel ouvert"
     },
     "categories": {
       "connexion": "Connexions",
@@ -4185,7 +4196,9 @@
       "quotes_original_documents": "original d'une pièce",
       "quotes_ledger_entries": "écriture de la chaîne des pièces",
       "budget_alert_thresholds": "Seuils d'alerte du budget",
-      "budget_vendor_payments": "Échéances des prestataires"
+      "budget_vendor_payments": "Échéances des prestataires",
+      "events_event_links": "lien personnel",
+      "events_event_link_shared_slots": "catégorie partagée d'un lien"
     },
     "modules": {
       "events": "Événements",
@@ -4193,7 +4206,9 @@
       "quotes": "Devis",
       "vendors": "Prestataires"
     },
-    "budgetExport": "{count, plural, =0 {aucune ligne} =1 {# ligne} other {# lignes}} ({format})"
+    "budgetExport": "{count, plural, =0 {aucune ligne} =1 {# ligne} other {# lignes}} ({format})",
+    "actorLink": "Lien personnel",
+    "actorLinkNamed": "{name} (lien personnel)"
   },
   "LedgerArchive": {
     "title": "Archive comptable",
@@ -4274,5 +4289,25 @@
   },
   "Honeypot": {
     "label": "Laisser ce champ vide"
+  },
+  "LinkPortal": {
+    "openingTitle": "Ouverture de votre espace…",
+    "openingBody": "Un instant : nous vérifions votre lien personnel.",
+    "noScript": "Activez JavaScript pour ouvrir votre espace.",
+    "invalidTitle": "Ce lien n'est plus valable",
+    "invalidBody": "Il a peut-être expiré ou été remplacé. Vous pouvez demander un nouveau lien à votre organisateur.",
+    "invalidNoToken": "Pour ouvrir votre espace, utilisez le lien personnel reçu par e-mail. S'il ne fonctionne plus, demandez-en un nouveau à votre organisateur.",
+    "requestRenewal": "Demander un nouveau lien",
+    "renewalRequested": "Votre demande est transmise. Si ce lien vous était destiné, votre organisateur vous enverra un nouveau lien.",
+    "retryLater": "Trop de tentatives. Réessayez dans {minutes} min.",
+    "closedTitle": "Accès fermé sur cet appareil",
+    "closedBody": "Cet appareil n'a plus accès à votre espace. Pour y revenir, rouvrez votre lien personnel.",
+    "pageNotice": "Cette page ne garde aucune donnée personnelle : elle vérifie seulement votre lien.",
+    "closeSession": "Fermer l'accès sur cet appareil",
+    "greeting": "Bonjour {name}",
+    "nothingShared": "Votre organisateur n'a encore rien partagé avec vous ici.",
+    "privacyTitle": "Vos données personnelles",
+    "validUntil": "Votre lien est valable jusqu'au {date}.",
+    "budgetSelectedIntro": "Les postes que votre organisateur a partagés avec vous."
   }
 }

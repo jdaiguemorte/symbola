@@ -1,12 +1,12 @@
-// RGPD-05 — purges mensuelles (lot 6, ADR 0024) : comptes de mariés inactifs
-// (table d'identité du hub), preuves des demandes closes arrivées à leur terme
+// RGPD-05 — purges mensuelles (lot 6, ADR 0024) : preuves des demandes closes
+// arrivées à leur terme
 // (RGPD-09, ADR 0048) et trace des purges validées par la titulaire : lignes
 // purgées ou exclues avec motif, sort des fiches, accusés des modules.
 import { and, desc, eq, ne } from "drizzle-orm";
 import type { AppDatabase } from "@symbola/db/client";
-import { privacyPurges, privacyRequests, users, type PrivacyErasureAck, type PrivacyErasureItem, type PrivacyPurgeLine } from "@symbola/db/schema/hub";
+import { privacyPurges, privacyRequests, type PrivacyErasureAck, type PrivacyErasureItem, type PrivacyPurgeLine } from "@symbola/db/schema/hub";
 import { withOrganization } from "@symbola/db/with-organization";
-import { ANONYMIZED, inactiveAccountDueOn, isExpired, parisDate, requestProofDueOn, type RetentionMonths } from "@symbola/privacy";
+import { ANONYMIZED, isExpired, parisDate, requestProofDueOn } from "@symbola/privacy";
 
 export type { PrivacyPurgeLine };
 
@@ -18,25 +18,6 @@ export class PrivacyPurgeInvalidError extends Error {
 }
 
 const REASON_MAX = 2000;
-
-// Comptes d'accès des mariés sans connexion depuis la durée réglée.
-export async function listInactiveClientAccounts(
-  db: AppDatabase,
-  input: { organizationId: string; months: RetentionMonths; today: string },
-): Promise<{ id: string; email: string; dueOn: string }[]> {
-  // Table d'identité sans RLS : filtrée par organisation et rôle ici (ADR 0013).
-  const accounts = await db
-    .select({ id: users.id, email: users.email, lastLoginAt: users.lastLoginAt, createdAt: users.createdAt })
-    .from(users)
-    .where(and(eq(users.organizationId, input.organizationId), eq(users.role, "client")));
-  return accounts
-    .map((account) => ({
-      id: account.id,
-      email: account.email,
-      dueOn: inactiveAccountDueOn({ lastLoginOn: account.lastLoginAt ? parisDate(account.lastLoginAt) : null, createdOn: parisDate(account.createdAt) }, input.months),
-    }))
-    .filter((account) => isExpired(input.today, account.dueOn));
-}
 
 // RGPD-09 — demandes closes dont la preuve (nom de la personne) a dépassé la
 // durée réglée après la clôture (jour de Paris). Celles déjà anonymisées ne

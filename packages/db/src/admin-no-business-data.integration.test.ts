@@ -31,7 +31,7 @@ import {
   defaultVendorSlots,
   prospectSources,
   eventActivities,
-  eventClientAccesses,
+  eventLinks,
   events,
   eventTasks,
   eventVendorCandidates,
@@ -156,24 +156,18 @@ describe("PRD-HUB-03 — L'Admin ne lit jamais de donnée métier", () => {
     }
   });
 
-  it("vaut aussi pour les accès des mariés et le fil d'activité (PRD-EVT-06, PostgreSQL réel)", async () => {
+  it("vaut aussi pour les liens personnels et le fil d'activité (lot 26a, PostgreSQL réel)", async () => {
     const organizationId = randomUUID();
     await withOrganization(db, organizationId, async (tx) => {
       const [event] = await tx.insert(events).values({ organizationId }).returning();
       if (!event) throw new Error("insertion attendue");
-      await tx.insert(eventClientAccesses).values({
-        organizationId,
-        eventId: event.id,
-        email: "marie@example.test",
-        expiresAt: new Date(Date.now() + 86_400_000),
-        invitedByUserId: organizationId,
-      });
+      await tx.insert(eventLinks).values({ organizationId, eventId: event.id, audience: "client", personName: "Léa", email: "lea@example.test" });
       await tx
         .insert(eventActivities)
         .values({ organizationId, eventId: event.id, actorUserId: organizationId, kind: "task_done", taskLabel: "Faire-part" });
     });
 
-    for (const table of [eventClientAccesses, eventActivities]) {
+    for (const table of [eventLinks, eventActivities]) {
       try {
         const rows = await db.select().from(table);
         expect(rows).toHaveLength(0);

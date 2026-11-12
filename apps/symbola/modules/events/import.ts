@@ -22,7 +22,7 @@ import { emitDomainEvent } from "@symbola/db/events/emit";
 import {
   defaultVendorSlots,
   eventActivities,
-  eventClientAccesses,
+  eventLinks,
   eventClients,
   events,
   eventStatusHistory,
@@ -571,13 +571,13 @@ function modifiedSince(current: Values, written: Values | null): boolean {
   return Object.keys(written ?? {}).some((key) => !(RETIRED_KEYS.has(key) && !(key in current)) && !same(current[key], (written ?? {})[key]));
 }
 
-// Un événement créé par l'import puis enrichi à la main (tâches, accès des
-// mariés, programme) est considéré comme modifié.
+// Un événement créé par l'import puis enrichi à la main (tâches, liens
+// personnels, programme) est considéré comme modifié.
 // Le programme écrit par l'import (fiche PDF, lot 14c) fait partie de l'état
 // relu : seul un programme d'avant le lot 14 est compté ici.
 async function eventHasHandWork(tx: Tx, eventId: string, written: Values | null): Promise<boolean> {
   const [tasks] = await tx.select({ n: sql<number>`count(*)::int` }).from(eventTasks).where(eq(eventTasks.eventId, eventId));
-  const [accesses] = await tx.select({ n: sql<number>`count(*)::int` }).from(eventClientAccesses).where(eq(eventClientAccesses.eventId, eventId));
+  const [accesses] = await tx.select({ n: sql<number>`count(*)::int` }).from(eventLinks).where(eq(eventLinks.eventId, eventId));
   const [program] = written && "program" in written ? [{ n: 0 }] : await tx.select({ n: sql<number>`count(*)::int` }).from(programItems).where(eq(programItems.eventId, eventId));
   return (tasks?.n ?? 0) + (accesses?.n ?? 0) + (program?.n ?? 0) > 0;
 }
@@ -703,7 +703,7 @@ export async function undoImportedEventsElements(
         }
         if (item.kind === "event") {
           await tx.delete(eventTasks).where(eq(eventTasks.eventId, item.elementId));
-          await tx.delete(eventClientAccesses).where(eq(eventClientAccesses.eventId, item.elementId));
+          await tx.delete(eventLinks).where(eq(eventLinks.eventId, item.elementId));
           await tx.delete(programItems).where(eq(programItems.eventId, item.elementId));
         }
         await deleteElement(tx, item.kind, item.elementId);

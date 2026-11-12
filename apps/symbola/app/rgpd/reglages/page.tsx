@@ -1,9 +1,9 @@
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { appDatabase } from "@symbola/db/client";
 import { ScreenHelp } from "@/app/screen-help";
-import { getPrivacySettings, type PrivacySettings } from "@/modules/hub/service";
+import { getLinkPrivacyNotice, getPrivacySettings, linkPrivacyNoticeTemplate, type PrivacySettings } from "@/modules/hub/service";
 import { requireOwner } from "@/lib/guards";
-import { PrivacySettingsForm } from "./settings-form";
+import { LinkNoticeForm, PrivacySettingsForm } from "./settings-form";
 import { PrivacyTabs } from "../privacy-tabs";
 
 // RGPD-04/05 — réglages RGPD de l'organisation : seuil d'alerte des demandes
@@ -23,6 +23,8 @@ export default async function PrivacySettingsPage() {
   }
   const db = appDatabase();
   const settings: PrivacySettings = await getPrivacySettings(db, auth.user.organizationId);
+  const notice = await getLinkPrivacyNotice(db, auth.user.organizationId);
+  const locale = (await getLocale()) === "en" ? "en" : "fr";
   return (
     <main>
       <h1>{t("settingsTitle")}</h1>
@@ -31,6 +33,8 @@ export default async function PrivacySettingsPage() {
       <PrivacyTabs />
       <p>{t("settingsIntro")}</p>
       <PrivacySettingsForm settings={settings} />
+      {/* Lot 26a (RGP-03) : mention d'information des pages à lien personnel. */}
+      <LinkNoticeForm text={notice ?? linkPrivacyNoticeTemplate(locale)} custom={notice !== null} />
     </main>
   );
 }

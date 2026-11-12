@@ -27,6 +27,8 @@ export function actorLabel(entry: Pick<ActivityEntry, "actorKind" | "actorLabel"
   if (entry.actorKind === "system") {
     return entry.action === "hub.session.failed" || entry.action === "hub.account.locked" ? t("actorAttempt") : t("actorSystem");
   }
+  // Lot 26a : un tiers par son lien personnel (son nom, sinon « Lien personnel »).
+  if (entry.actorKind === "link") return entry.actorLabel ? t("actorLinkNamed", { name: entry.actorLabel }) : t("actorLink");
   return entry.actorLabel ?? t("actorUnknown");
 }
 

@@ -52,7 +52,7 @@ async function organizationWithInvitation(adminUserId: string) {
 }
 
 describe("Lot 9 — État des comptes et des invitations (Admin)", () => {
-  it("montre l'invitation en attente, puis le compte d'équipe et son état ; jamais un compte marié", async () => {
+  it("montre l'invitation en attente, puis le compte d'équipe et son état", async () => {
     const adminUserId = await admin();
     const org = await organizationWithInvitation(adminUserId);
     let view = (await listOrganizationsSupport(db)).find((candidate) => candidate.id === org.organizationId)!;
@@ -60,13 +60,10 @@ describe("Lot 9 — État des comptes et des invitations (Admin)", () => {
     expect(view.pendingInvitations).toEqual([expect.objectContaining({ email: org.email, expired: false })]);
 
     expect(await acceptInvitation(db, { token: org.invitationToken, password: "mot-de-passe-titulaire" })).toMatchObject({ outcome: "success" });
-    const coupleEmail = `marie-${randomUUID()}@symbola.test`;
-    await createUser(db, { organizationId: org.organizationId, email: coupleEmail, password: "mot-de-passe-du-marie", role: "client" });
 
     view = (await listOrganizationsSupport(db)).find((candidate) => candidate.id === org.organizationId)!;
     expect(view.pendingInvitations).toEqual([]);
     expect(view.accounts).toEqual([expect.objectContaining({ email: org.email, role: "owner", mfaConfigured: false, lockedUntil: null })]);
-    expect(JSON.stringify(view)).not.toContain(coupleEmail);
   });
 
   it("un nouvel envoi remplace le lien : l'ancien ne marche plus, le nouveau oui ; l'action est journalisée", async () => {
@@ -100,8 +97,8 @@ describe("Lot 9 — État des comptes et des invitations (Admin)", () => {
     const entry = (await auditOf(org.organizationId)).find((candidate) => candidate.action === "hub.user.mfa_reset");
     expect(entry).toMatchObject({ actorKind: "admin", actorId: adminUserId, objectType: "user", objectId: owner!.id, organizationId: org.organizationId });
 
-    const couple = await createUser(db, { organizationId: org.organizationId, email: `marie-${randomUUID()}@symbola.test`, password: "mot-de-passe-du-marie", role: "client" });
-    await expect(resetTeamAccountMfa(db, { adminUserId, userId: couple.id })).rejects.toBeInstanceOf(MfaResetNotAllowedError);
+    // Un compte inconnu de l'organisation : refusé (lot 26a : plus de compte de marié).
+    await expect(resetTeamAccountMfa(db, { adminUserId, userId: randomUUID() })).rejects.toBeInstanceOf(MfaResetNotAllowedError);
   });
 });
 
@@ -129,7 +126,7 @@ describe("Lot 9 — Statistiques d'usage par organisation (Admin)", () => {
     expect(a.events.find((row) => row.month === thisMonth)?.count).toBe(2);
     expect(a.quotes.find((row) => row.month === thisMonth)?.count).toBe(1);
     expect(a.invoices.every((row) => row.count === 0)).toBe(true);
-    expect(a).toMatchObject({ teamAccounts: 1, clientAccounts: 0, activeAccounts: 1 });
+    expect(a).toMatchObject({ teamAccounts: 1, activeAccounts: 1 });
     expect(a.lastLoginAt).not.toBeNull();
     // Rien qui ressemble à un contenu : ni prénom, ni source.
     expect(JSON.stringify(a)).not.toMatch(/Inès|Lou|Salon/);

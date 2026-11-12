@@ -1,7 +1,8 @@
 # ADR 0020 — Accès des mariés : rôle client et accès par événement
 
-- Statut : remplacé par [0053](0053-acces-des-tiers-par-lien-personnel.md) (liens personnels),
-  en vigueur jusqu'au lot 26
+- Statut : remplacé par [0053](0053-acces-des-tiers-par-lien-personnel.md) (liens personnels) ;
+  retiré au lot 26a (12/11/2026 : comptes « client », invitations et `/espace` supprimés,
+  migrations 0111 et 0112)
 - Date : 2026-10-27
 
 ## Contexte

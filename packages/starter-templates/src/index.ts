@@ -17,6 +17,9 @@ import privacySettingsFile from "./privacy-settings.json";
 import followUpFile from "./follow-up.json";
 import budgetAlertFile from "./budget-alert.json";
 import budgetVatFile from "./budget-vat.json";
+import linkProfilesFile from "./link-profiles.json";
+import linkExpiryFile from "./link-expiry.json";
+import linkPrivacyNoticeFile from "./link-privacy-notice.json";
 import programFile from "./program.json";
 import prospectSourcesFile from "./prospect-sources.json";
 import retroplanningFile from "./retroplanning.json";
@@ -737,3 +740,62 @@ export function starterBudgetVatRateBasisPoints(): number {
   return budgetVatSchema.parse(budgetVatFile).defaultVatRateBasisPoints;
 }
 
+// Lot 26a (POR-01, POR-10, décision D3) — profils de départ d'un lien
+// personnel : ils pré-cochent les rubriques du portail.
+const LINK_RUBRIC_KEYS = ["tasks", "program", "vendor_options", "budget", "quotes"] as const;
+const linkProfilesSchema = z.object({
+  version: z.literal(1),
+  profiles: z
+    .array(
+      z.object({
+        key: z.string().min(1),
+        label: translatedLabelSchema,
+        labelClients: translatedLabelSchema,
+        rubrics: z.array(z.enum(LINK_RUBRIC_KEYS)),
+        budgetScope: z.enum(["all", "selected"]),
+      }),
+    )
+    .min(1),
+});
+
+export type StarterLinkProfile = {
+  key: string;
+  label: string;
+  rubrics: (typeof LINK_RUBRIC_KEYS)[number][];
+  budgetScope: "all" | "selected";
+};
+
+// vocabulary : « couple » (mariage) ou « clients » (autres événements).
+export function starterLinkProfiles(locale: StarterLocale, vocabulary: "couple" | "clients" = "couple"): StarterLinkProfile[] {
+  return linkProfilesSchema.parse(linkProfilesFile).profiles.map((profile) => ({
+    key: profile.key,
+    label: (vocabulary === "clients" ? profile.labelClients : profile.label)[locale],
+    rubrics: [...profile.rubrics],
+    budgetScope: profile.budgetScope,
+  }));
+}
+
+// Lot 26a (SEC-15, décision D4) — expiration d'un lien personnel.
+const linkExpirySchema = z.object({
+  version: z.literal(1),
+  daysAfterEvent: z.object({ client: z.number().int().min(0), vendor: z.number().int().min(0), guest: z.number().int().min(0) }),
+  daysWithoutEventDate: z.number().int().min(1),
+});
+
+export type StarterLinkExpiry = {
+  daysAfterEvent: { client: number; vendor: number; guest: number };
+  daysWithoutEventDate: number;
+};
+
+export function starterLinkExpiry(): StarterLinkExpiry {
+  const { daysAfterEvent, daysWithoutEventDate } = linkExpirySchema.parse(linkExpiryFile);
+  return { daysAfterEvent: { ...daysAfterEvent }, daysWithoutEventDate };
+}
+
+// Lot 26a (RGP-03) — mention d'information des pages à lien personnel, à faire
+// relire par un juriste ; variables {organization} et {contact}.
+const linkPrivacyNoticeSchema = z.object({ version: z.literal(1), notice: translatedLabelSchema });
+
+export function starterLinkPrivacyNotice(locale: StarterLocale): string {
+  return linkPrivacyNoticeSchema.parse(linkPrivacyNoticeFile).notice[locale];
+}

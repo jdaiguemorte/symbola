@@ -11,7 +11,7 @@ import { invoices, quotes, quoteSigners, quoteVersions, signatureRequests } from
 import { withOrganization } from "@symbola/db/with-organization";
 import type { PrivacyContractV1 } from "@symbola/privacy";
 import { updateBudgetLine } from "@/modules/budget/service";
-import { addEventTask, addEventVendorSlot, createProspect, createProspectSource } from "@/modules/events/service";
+import { addEventTask, addEventVendorSlot, createEventLink, createProspect, createProspectSource } from "@/modules/events/service";
 import { budgetPrivacy } from "@/modules/budget/service";
 import { eventsPrivacy } from "@/modules/events/service";
 import { hubPrivacy, setModuleEnabled } from "@/modules/hub/service";
@@ -162,12 +162,21 @@ describe("RGPD-01 — Recherche transverse", () => {
     expect(result!.complete).toBe(true);
   });
 
-  it("le compte d'accès d'un marié est trouvé par son e-mail (hub)", async () => {
+  it("L26-RGP-05 — le lien personnel d'une personne est trouvé par son e-mail (module events)", async () => {
     const planner = await createPlanner();
     const email = `marie-${randomUUID()}@example.org`;
-    await createUser(db, { organizationId: planner.organizationId, email, password: "mot-de-passe", role: "client" });
+    const eventId = await seedWedding(planner, `Lea${randomUUID().slice(0, 6)}`, "Martin");
+    await createEventLink({
+      organizationId: planner.organizationId,
+      eventId,
+      createdByUserId: planner.userId,
+      audience: "client",
+      locale: "fr",
+      link: { personName: "Léa Martin", email, rights: { rubrics: [], budgetScope: "all", sharedSlotIds: [] } },
+    });
     const result = await searchPerson({ organizationId: planner.organizationId, terms: { email } });
-    expect(result!.records.map((record) => `${record.module}:${record.kind}`)).toEqual(["hub:client_account"]);
+    // Trouvé directement par son e-mail ; les données de son événement suivent.
+    expect(result!.records.filter((record) => record.direct).map((record) => `${record.module}:${record.kind}`)).toEqual(["events:link"]);
   });
 
   it("sans terme exploitable, aucune recherche n'est lancée", async () => {
@@ -183,7 +192,6 @@ describe("RGPD-01 — La recherche ne porte que sur l'organisation de la titulai
     const firstName = `Lea${randomUUID().slice(0, 6)}`;
     await seedWedding(plannerB, firstName, "Martin");
     const email = `${firstName.toLowerCase()}@example.org`;
-    await createUser(db, { organizationId: plannerB.organizationId, email: `compte-${email}`, password: "mot-de-passe", role: "client" });
 
     const fromA = await searchPerson({ organizationId: plannerA.organizationId, terms: { name: `${firstName} Martin`, email } });
     expect(fromA).toMatchObject({ complete: true, records: [] });

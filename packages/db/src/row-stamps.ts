@@ -14,6 +14,8 @@ export const TECHNICAL_TABLES: Record<string, string> = {
   "core.usage_counters": "compteurs agrégés par jour, sans auteur",
   "core.rate_limit_events": "tentatives limitées, effacées sous 24 heures",
   "hub.sessions": "jeton de session d'un compte : l'auteur est le compte",
+  // Lot 26a (SEC-17) : session ouverte par un lien personnel.
+  "events.event_link_sessions": "jeton de session d'un lien personnel : l'auteur est le lien",
   "hub.password_resets": "jeton de réinitialisation d'un compte",
   "hub.trusted_devices": "jeton d'appareil de confiance d'un compte",
   "hub.backup_runs": "suivi des sauvegardes, écrit par l'exploitation",

@@ -764,6 +764,34 @@
       "when": 1794445757794,
       "tag": "0108_lot28c_vendors_rating_prices",
       "breakpoints": true
+    },
+    {
+      "idx": 109,
+      "version": "7",
+      "when": 1794482548823,
+      "tag": "0109_lot26a_events_links",
+      "breakpoints": true
+    },
+    {
+      "idx": 110,
+      "version": "7",
+      "when": 1794482549641,
+      "tag": "0110_lot26a_core_link_actor",
+      "breakpoints": true
+    },
+    {
+      "idx": 111,
+      "version": "7",
+      "when": 1794482550485,
+      "tag": "0111_lot26a_hub_roles_notice",
+      "breakpoints": true
+    },
+    {
+      "idx": 112,
+      "version": "7",
+      "when": 1794482551313,
+      "tag": "0112_lot26a_events_drop_client_accesses",
+      "breakpoints": true
     }
   ]
 }

@@ -1,14 +1,14 @@
 // Porte d'entrée publique du module events — seul fichier que les autres
 // modules peuvent importer (ADR 0011). Pensé comme le futur contrat HTTP
 // /v1/events si ce module est extrait en app autonome.
-import { createHash, randomBytes } from "node:crypto";
 import { z } from "zod";
-import { parisDaysSince, parisToday } from "@symbola/i18n";
-import { checkPassword, createUser, findAccountByEmail, PASSWORD_MIN_LENGTH } from "@symbola/auth";
-import { appDatabase, type AppDatabase } from "@symbola/db/client";
+import { formatCalendarDate, parisDaysSince, parisToday } from "@symbola/i18n";
+import { listTeam } from "@symbola/auth";
+import { withActor } from "@symbola/db/actor";
+import { appDatabase } from "@symbola/db/client";
 import { parseEnv } from "@symbola/env";
 import { reserveOrganizationMail, sendMail } from "@symbola/mail";
-import { starterDemoEvent, starterProgram, starterRetroplanning, starterTutorialEvent, starterVendorSlots } from "@symbola/starter-templates";
+import { starterDemoEvent, starterLinkExpiry, starterLinkProfiles, starterProgram, starterRetroplanning, starterTutorialEvent, starterVendorSlots, type StarterLinkProfile } from "@symbola/starter-templates";
 import {
   findEventNamesByIds,
   searchEventRows,
@@ -19,17 +19,8 @@ import {
   deleteExpiredDemoEvents,
   findActiveDemoEvent,
   insertDemoEvent,
-  findClientAccessByTokenHash,
-  findClientEventIds,
   findEventActivity,
   findEventStatusChanges,
-  findEventClientAccesses,
-  hasActiveClientAccess,
-  markClientAccessAccepted,
-  revokeClientAccessRow,
-  saveClientAccess,
-  toggleClientTask,
-  type EventClientAccessRow,
   applyProgramTemplateRows,
   applyTaskTemplateRows,
   deleteProgramItem,
@@ -109,6 +100,37 @@ import {
   updateEventType,
 } from "./event-types";
 import { addDays } from "./schedule";
+import {
+  deleteLinkSessionRow,
+  findEventLinkRows,
+  findLinkByTokenHash,
+  findLinkNameRows,
+  findLinkRow,
+  findLinkSessionRow,
+  findPendingRenewalRows,
+  insertLinkRow,
+  insertLinkSessionRow,
+  markLinkRenewalRequestedRow,
+  replaceLinkTokenRow,
+  revokeLinkRow,
+  rightsOf,
+  toggleLinkTaskRow,
+  touchLinkSessionRow,
+  updateLinkRow,
+  type LinkFields,
+  type LinkWithContext,
+} from "./links-repository";
+import {
+  formatLinkToken,
+  hashLinkSecret,
+  isLinkExpired,
+  linkExpiresOn,
+  linkSessionExpiresAt,
+  linkStatus,
+  newLinkSecret,
+  normalizeLinkRights,
+  parseLinkToken,
+} from "./link-tokens";
 import { addPlace, listPlaces, removePlace } from "./places";
 import { createStorageClient, deletePrivateObject } from "@symbola/files";
 import {
@@ -140,7 +162,6 @@ import type {
   EventPlace,
   EventTypeAudience,
   AddVendorCandidateInput,
-  ClientVendorSlotOptions,
   FileDownload,
   UpdateVendorCandidateInput,
   VendorCandidate,
@@ -157,13 +178,18 @@ import type {
   EventSummary,
   StaleProspect,
   EventStatusDates,
-  AcceptClientInvitationResult,
-  ClientAccessStatus,
   ClientEventView,
+  CreateEventLinkInput,
   EventActivity,
-  EventClientAccess,
-  InviteEventClientInput,
-  InviteEventClientResult,
+  EventLink,
+  EventLinkDelivery,
+  EventLinkInput,
+  LinkAccess,
+  LinkAudience,
+  LinkRubric,
+  OpenEventLinkResult,
+  RenewEventLinkInput,
+  ClientVendorSlotOptions,
   EventsTrial,
   StartEventsTrialInput,
   EventProgram,
@@ -247,14 +273,21 @@ export type {
   ProgramTemplate,
   ProgramTemplateItem,
   ProgramTemplateItemInput,
-  AcceptClientInvitationResult,
-  ClientAccessStatus,
   ClientEventView,
+  CreateEventLinkInput,
   EventActivity,
   EventActivityKind,
-  EventClientAccess,
-  InviteEventClientInput,
-  InviteEventClientResult,
+  EventLink,
+  EventLinkDelivery,
+  EventLinkInput,
+  EventLinkRights,
+  EventLinkStatus,
+  LinkAccess,
+  LinkAudience,
+  LinkBudgetScope,
+  LinkRubric,
+  OpenEventLinkResult,
+  RenewEventLinkInput,
   EventsTrial,
   StartEventsTrialInput,
 } from "@symbola/contracts";
@@ -698,27 +731,21 @@ export async function listSelectedVendorIds(organizationId: string): Promise<str
   return listSelectedVendors(organizationId);
 }
 
-export class ClientVendorOptionsAccessDeniedError extends Error {
-  constructor() {
-    super("accès refusé aux options de cet événement");
-    this.name = "ClientVendorOptionsAccessDeniedError";
-  }
+// L11-EVT-11, lot 26a : options montrées au tiers dont le lien ouvre la
+// rubrique « Options de prestataires » ; l'événement est celui du lien.
+export async function getLinkVendorOptions(organizationId: string, linkId: string): Promise<ClientVendorSlotOptions[]> {
+  const access = await requireLinkRubric(organizationId, linkId, "vendor_options");
+  return clientOptions(organizationId, access.eventId);
 }
 
-// L11-EVT-11 — l'accès du client à l'événement est vérifié avant toute lecture.
-export async function getClientVendorOptions(organizationId: string, userId: string, eventId: string): Promise<ClientVendorSlotOptions[]> {
-  if (!(await hasActiveClientAccess(organizationId, userId, eventId))) throw new ClientVendorOptionsAccessDeniedError();
-  return clientOptions(organizationId, eventId);
+export async function getLinkVendorQuoteFile(organizationId: string, linkId: string, candidateId: string): Promise<FileDownload> {
+  const access = await requireLinkRubric(organizationId, linkId, "vendor_options");
+  return clientQuoteFile(organizationId, access.eventId, candidateId);
 }
 
-export async function getClientVendorQuoteFile(organizationId: string, userId: string, eventId: string, candidateId: string): Promise<FileDownload> {
-  if (!(await hasActiveClientAccess(organizationId, userId, eventId))) throw new ClientVendorOptionsAccessDeniedError();
-  return clientQuoteFile(organizationId, eventId, candidateId);
-}
-
-export async function getClientSharedRibVendorId(organizationId: string, userId: string, eventId: string, candidateId: string): Promise<string> {
-  if (!(await hasActiveClientAccess(organizationId, userId, eventId))) throw new ClientVendorOptionsAccessDeniedError();
-  return sharedRibVendorId(organizationId, eventId, candidateId);
+export async function getLinkSharedRibVendorId(organizationId: string, linkId: string, candidateId: string): Promise<string> {
+  const access = await requireLinkRubric(organizationId, linkId, "vendor_options");
+  return sharedRibVendorId(organizationId, access.eventId, candidateId);
 }
 
 async function deleteStoredFiles(keys: string[]): Promise<void> {
@@ -1155,236 +1182,329 @@ export async function applyProgramTemplate(
   return sortProgramItems(result.items.map(toProgramItem));
 }
 
-// PRD-EVT-06 — accès des mariés.
+// Lot 26a (UX-11, POR-01, POR-10, SEC-14, SEC-15, SEC-17 ; ADR 0053) — liens
+// personnels des tiers, qui remplacent les comptes des mariés (ADR 0020). Le
+// lien n'est montré qu'une fois (décision D10), à la création et au
+// renouvellement : seul son haché reste en base.
 
-const CLIENT_INVITATION_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 jours, comme PRD-HUB-03
-// Mot de passe d'un marié : la règle commune (lot 24b, SEC-03, ADR 0063),
-// douze caractères au moins et pas de mot de passe compromis.
-
-// L'e-mail a déjà un compte professionnel ou un compte d'une autre
-// organisation : un compte par personne (PRD PRD-EVT-06).
-export class ClientEmailUnavailableError extends Error {
-  constructor() {
-    super("cet e-mail est déjà utilisé par un autre compte");
-    this.name = "ClientEmailUnavailableError";
+export class EventLinkInvalidError extends Error {
+  constructor(readonly reason: "name" | "email" | "expiry" | "client" | "slot" | "audience") {
+    super(`lien personnel invalide : ${reason}`);
+    this.name = "EventLinkInvalidError";
   }
 }
 
-export class ClientAlreadyInvitedError extends Error {
+export class EventLinkNotFoundError extends Error {
   constructor() {
-    super("ce marié a déjà accès à l'événement");
-    this.name = "ClientAlreadyInvitedError";
+    super("lien personnel introuvable");
+    this.name = "EventLinkNotFoundError";
   }
 }
 
-export class ClientPasswordTooShortError extends Error {
-  constructor() {
-    super(`le mot de passe doit contenir au moins ${PASSWORD_MIN_LENGTH} caractères`);
-    this.name = "ClientPasswordTooShortError";
-  }
-}
-
-export class ClientPasswordCompromisedError extends Error {
-  constructor() {
-    super("ce mot de passe figure parmi les mots de passe compromis");
-    this.name = "ClientPasswordCompromisedError";
-  }
-}
-
-// Accès absent, retiré, ou demande hors de l'événement du marié : même
-// réponse dans tous les cas, sans dire ce qui existe.
-export class ClientAccessDeniedError extends Error {
+// Lien absent, retiré ou expiré, rubrique fermée, objet d'un autre événement :
+// même réponse dans tous les cas, sans dire ce qui existe (SEC-13).
+export class LinkAccessDeniedError extends Error {
   constructor() {
     super("accès refusé");
-    this.name = "ClientAccessDeniedError";
+    this.name = "LinkAccessDeniedError";
   }
 }
 
 const emailSchema = z.email();
+const LINK_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+const PERSON_NAME_MAX = 120;
+// Lot 26a : seul le lien du client se crée (prestataire au 26b, invité au lot 49).
+const CREATABLE_AUDIENCES: readonly LinkAudience[] = ["client"];
+// Une session de lien n'est réécrite qu'au plus toutes les cinq minutes.
+const LINK_SESSION_TOUCH_MS = 5 * 60 * 1000;
 
-// Le jeton porte l'organisation en clair (« <organisation>.<secret> ») :
-// la recherche se fait sous RLS dans cette organisation, et seul le haché
-// du secret est stocké.
-function hashClientToken(secret: string): string {
-  return createHash("sha256").update(secret).digest("hex");
+function validLinkFields(input: EventLinkInput): LinkFields {
+  const personName = input.personName.trim().slice(0, PERSON_NAME_MAX);
+  if (!personName) throw new EventLinkInvalidError("name");
+  const email = input.email.trim();
+  if (!emailSchema.safeParse(email).success) throw new EventLinkInvalidError("email");
+  const customExpiresOn = input.customExpiresOn?.trim() || null;
+  if (customExpiresOn && (!LINK_DATE_PATTERN.test(customExpiresOn) || Number.isNaN(Date.parse(`${customExpiresOn}T00:00:00Z`)))) {
+    throw new EventLinkInvalidError("expiry");
+  }
+  return { personName, email, eventClientId: input.eventClientId || null, rights: normalizeLinkRights(input.rights), customExpiresOn };
 }
 
-function parseClientToken(token: string): { organizationId: string; secret: string } | null {
-  const [organizationId, secret, ...rest] = token.split(".");
-  if (rest.length > 0 || !secret || !z.uuid().safeParse(organizationId).success) return null;
-  return { organizationId: organizationId!, secret };
+function linkWriteError(status: "event_not_found" | "demo_event" | "invalid_client" | "invalid_slot" | "not_found"): Error {
+  if (status === "event_not_found") return new EventNotFoundError();
+  if (status === "demo_event") return new DemoEventRestrictionError();
+  if (status === "not_found") return new EventLinkNotFoundError();
+  return new EventLinkInvalidError(status === "invalid_client" ? "client" : "slot");
 }
 
-function clientAccessStatus(row: EventClientAccessRow, now = new Date()): ClientAccessStatus {
-  if (row.revokedAt) return "revoked";
-  if (row.acceptedAt) return "active";
-  return row.expiresAt.getTime() < now.getTime() ? "expired" : "invited";
+function expiresOnOf(context: LinkWithContext): string {
+  return linkExpiresOn({
+    audience: context.link.audience,
+    customExpiresOn: context.link.customExpiresOn,
+    eventDate: context.event.eventDate,
+    createdAt: context.link.createdAt,
+  });
 }
 
-function toEventClientAccess(row: EventClientAccessRow): EventClientAccess {
+function toEventLink(context: LinkWithContext, now = new Date()): EventLink {
+  const { link } = context;
+  const expiresOn = expiresOnOf(context);
   return {
-    id: row.id,
-    eventId: row.eventId,
-    email: row.email,
-    status: clientAccessStatus(row),
-    createdAt: row.createdAt.toISOString(),
+    id: link.id,
+    eventId: link.eventId,
+    audience: link.audience,
+    personName: link.personName,
+    email: link.email,
+    eventClientId: link.eventClientId,
+    rights: rightsOf(context),
+    customExpiresOn: link.customExpiresOn,
+    expiresOn,
+    status: linkStatus({ revokedAt: link.revokedAt, expiresOn }, now),
+    lastOpenedAt: link.lastOpenedAt?.toISOString() ?? null,
+    renewalRequestedAt: link.renewalRequestedAt?.toISOString() ?? null,
+    createdAt: link.createdAt.toISOString(),
   };
 }
 
-async function sendClientMail(email: string, locale: "fr" | "en", audience: EventTypeAudience, invitationUrl: string | null): Promise<void> {
-  const appUrl = parseEnv(process.env).APP_PUBLIC_URL;
-  // Service sans next-intl : variantes inline, comme l'invitation PRD-HUB-03. Lot 16
-  // (ADR 0045) : un mariage parle de « votre mariage », les autres événements
-  // de « votre événement ».
-  const couple = audience === "couple";
-  const frWho = couple ? "Votre wedding planner" : "Votre organisateur";
-  const enWho = couple ? "Your wedding planner" : "Your event organiser";
-  const fr = invitationUrl
-    ? `Bonjour,\n\n${frWho} vous invite à suivre la préparation de ${couple ? "votre mariage" : "votre événement"} sur Symbola. Créez votre compte avec ce lien, valable 7 jours :\n${invitationUrl}\n\nÀ bientôt,\nL'équipe Symbola`
-    : `Bonjour,\n\n${frWho} vous a ouvert l'accès à un nouvel événement sur Symbola. Connectez-vous pour le retrouver :\n${appUrl}/login\n\nÀ bientôt,\nL'équipe Symbola`;
-  const en = invitationUrl
-    ? `Hello,\n\n${enWho} invites you to follow ${couple ? "your wedding" : "your event"} preparations on Symbola. Create your account with this link, valid for 7 days:\n${invitationUrl}\n\nSee you soon,\nThe Symbola team`
-    : `Hello,\n\n${enWho} has given you access to a new event on Symbola. Log in to find it:\n${appUrl}/login\n\nSee you soon,\nThe Symbola team`;
+// Un lien vaut s'il n'est ni retiré ni expiré, et si son événement n'est ni
+// perdu ni un essai.
+function usableLink(context: LinkWithContext, now: Date): boolean {
+  return !context.link.revokedAt && !isLinkExpired(expiresOnOf(context), now) && context.event.status !== "lost" && !context.event.isDemo;
+}
+
+function toLinkAccess(context: LinkWithContext): LinkAccess {
+  return {
+    organizationId: context.link.organizationId,
+    linkId: context.link.id,
+    eventId: context.link.eventId,
+    audience: context.link.audience,
+    personName: context.link.personName,
+    email: context.link.email,
+    rights: rightsOf(context),
+    expiresOn: expiresOnOf(context),
+  };
+}
+
+// SEC-17, décision D2 : le jeton suit « # » ; il n'est jamais envoyé au serveur
+// ni au proxy, donc jamais dans leurs journaux.
+function linkUrl(token: string): string {
+  return `${parseEnv(process.env).APP_PUBLIC_URL}/lien#${token}`;
+}
+
+async function sendLinkMail(input: {
+  email: string;
+  personName: string;
+  locale: "fr" | "en";
+  vocabulary: EventTypeAudience;
+  url: string;
+  expiresOn: string;
+  renewed: boolean;
+}): Promise<void> {
+  // Service sans next-intl : variantes inline, comme l'invitation PRD-HUB-03.
+  // Lot 16 (ADR 0045) : un mariage parle de « votre mariage », les autres
+  // événements de « votre événement ».
+  const couple = input.vocabulary === "couple";
+  const until = formatCalendarDate(input.expiresOn, input.locale);
+  const fr = input.renewed
+    ? `Bonjour ${input.personName},\n\nVoici votre nouveau lien personnel pour suivre ${couple ? "votre mariage" : "votre événement"} sur Symbola, valable jusqu'au ${until} inclus :\n${input.url}\n\nL'ancien lien ne fonctionne plus. Ce lien vous est réservé : ne le transférez pas.\n\nÀ bientôt,\nL'équipe Symbola`
+    : `Bonjour ${input.personName},\n\n${couple ? "Votre wedding planner" : "Votre organisateur"} vous a ouvert un espace pour suivre ${couple ? "votre mariage" : "votre événement"} sur Symbola, sans compte ni mot de passe. Votre lien personnel, valable jusqu'au ${until} inclus :\n${input.url}\n\nCe lien vous est réservé : ne le transférez pas. Si vous ne l'attendiez pas, ignorez ce message.\n\nÀ bientôt,\nL'équipe Symbola`;
+  const en = input.renewed
+    ? `Hello ${input.personName},\n\nHere is your new personal link to follow ${couple ? "your wedding" : "your event"} on Symbola, valid until ${until} included:\n${input.url}\n\nThe previous link no longer works. This link is for you only: please do not forward it.\n\nSee you soon,\nThe Symbola team`
+    : `Hello ${input.personName},\n\n${couple ? "Your wedding planner" : "Your event organiser"} has opened a space for you to follow ${couple ? "your wedding" : "your event"} on Symbola, with no account or password. Your personal link, valid until ${until} included:\n${input.url}\n\nThis link is for you only: please do not forward it. If you were not expecting it, ignore this message.\n\nSee you soon,\nThe Symbola team`;
   await sendMail({
-    to: email,
-    subject: locale === "en" ? (couple ? "Your wedding on Symbola" : "Your event on Symbola") : couple ? "Votre mariage sur Symbola" : "Votre événement sur Symbola",
-    text: locale === "en" ? en : fr,
+    to: input.email,
+    subject: input.locale === "en" ? (couple ? "Your wedding on Symbola" : "Your event on Symbola") : couple ? "Votre mariage sur Symbola" : "Votre événement sur Symbola",
+    text: input.locale === "en" ? en : fr,
   });
 }
 
-async function withAuthDb<T>(fn: (db: AppDatabase) => Promise<T>): Promise<T> {
-  const db = appDatabase();
-  return await fn(db);
-}
-
-export async function inviteEventClient(input: InviteEventClientInput): Promise<InviteEventClientResult> {
-  const email = input.email.trim();
-  if (!emailSchema.safeParse(email).success) throw new RangeError("e-mail invalide");
-
-  const account = await withAuthDb((db) => findAccountByEmail(db, email));
-  if (account && (account.role !== "client" || account.organizationId !== input.organizationId)) {
-    throw new ClientEmailUnavailableError();
-  }
-
-  // Lot 24b (SEC-22, décision D5) : l'e-mail d'invitation est réservé avant
-  // tout, pour ne pas créer d'accès qu'on ne pourrait pas annoncer.
+export async function createEventLink(input: CreateEventLinkInput): Promise<EventLinkDelivery> {
+  if (!CREATABLE_AUDIENCES.includes(input.audience)) throw new EventLinkInvalidError("audience");
+  const fields = validLinkFields(input.link);
+  // Lot 24b (SEC-22, décision D5) : l'e-mail est réservé avant tout, pour ne
+  // pas créer de lien qu'on ne pourrait pas annoncer.
   await reserveOrganizationMail(input.organizationId);
-  const secret = account ? null : randomBytes(32).toString("base64url");
-  const result = await saveClientAccess({
-    organizationId: input.organizationId,
-    eventId: input.eventId,
-    email,
-    invitedByUserId: input.invitedByUserId,
-    expiresAt: new Date(Date.now() + CLIENT_INVITATION_DURATION_MS),
-    tokenHash: secret ? hashClientToken(secret) : null,
-    userId: account?.id ?? null,
-  });
-  if (result.status === "event_not_found") throw new EventNotFoundError();
-  if (result.status === "demo_event") throw new DemoEventRestrictionError();
-  if (result.status !== "saved") throw new ClientAlreadyInvitedError();
-
-  const invitationToken = secret ? `${input.organizationId}.${secret}` : null;
-  const appUrl = parseEnv(process.env).APP_PUBLIC_URL;
-  const audience = input.audience ?? (await findEventAudience(input.organizationId, input.eventId)) ?? "couple";
-  await sendClientMail(email, input.locale, audience, invitationToken ? `${appUrl}/espace/invitation/${invitationToken}` : null);
-  return { access: toEventClientAccess(result.access), invitationToken };
+  const secret = newLinkSecret();
+  const result = await insertLinkRow({ ...fields, organizationId: input.organizationId, eventId: input.eventId, audience: input.audience, tokenHash: hashLinkSecret(secret) });
+  if (result.status !== "saved") throw linkWriteError(result.status);
+  const link = toEventLink(result.context);
+  const url = linkUrl(formatLinkToken(input.organizationId, secret));
+  const vocabulary = input.vocabulary ?? (await findEventAudience(input.organizationId, input.eventId)) ?? "couple";
+  await sendLinkMail({ email: link.email, personName: link.personName, locale: input.locale, vocabulary, url, expiresOn: link.expiresOn, renewed: false });
+  return { link, url };
 }
 
-export async function listEventClientAccesses(organizationId: string, eventId: string): Promise<EventClientAccess[]> {
-  return (await findEventClientAccesses(organizationId, eventId)).map(toEventClientAccess);
+export async function listEventLinks(organizationId: string, eventId: string): Promise<EventLink[]> {
+  const now = new Date();
+  return (await findEventLinkRows(organizationId, eventId)).map((context) => toEventLink(context, now));
 }
 
-export async function revokeEventClientAccess(organizationId: string, accessId: string): Promise<void> {
-  await revokeClientAccessRow(organizationId, accessId);
+export async function updateEventLink(organizationId: string, linkId: string, input: EventLinkInput): Promise<EventLink> {
+  const result = await updateLinkRow(organizationId, linkId, validLinkFields(input));
+  if (result.status !== "saved") throw linkWriteError(result.status);
+  return toEventLink(result.context);
 }
 
-// Lot 16 (ADR 0045) — page publique d'une invitation : seulement le
-// vocabulaire de son événement (« votre mariage » ou « votre événement »), nul
-// si le jeton ne mène à rien. Rien d'autre de l'invitation n'est révélé.
-export async function getClientInvitationAudience(token: string): Promise<EventTypeAudience | null> {
-  const parsed = parseClientToken(token);
-  if (!parsed) return null;
-  const access = await findClientAccessByTokenHash(parsed.organizationId, hashClientToken(parsed.secret));
-  return access ? findEventAudience(parsed.organizationId, access.eventId) : null;
+// Renouveler : nouveau jeton, l'ancien cesse aussitôt. Un lien expiré est
+// prolongé du délai de son public à partir d'aujourd'hui (la planner peut
+// choisir une autre date en modifiant le lien).
+export async function renewEventLink(input: RenewEventLinkInput): Promise<EventLinkDelivery> {
+  const current = await findLinkRow(input.organizationId, input.linkId);
+  if (!current || current.link.revokedAt) throw new EventLinkNotFoundError();
+  if (current.event.isDemo) throw new DemoEventRestrictionError();
+  const now = new Date();
+  const extendTo = isLinkExpired(expiresOnOf(current), now) ? addDays(parisToday(now), starterLinkExpiry().daysAfterEvent[current.link.audience]) : undefined;
+  await reserveOrganizationMail(input.organizationId);
+  const secret = newLinkSecret();
+  const context = await replaceLinkTokenRow(input.organizationId, input.linkId, hashLinkSecret(secret), extendTo);
+  if (!context) throw new EventLinkNotFoundError();
+  const link = toEventLink(context, now);
+  const url = linkUrl(formatLinkToken(input.organizationId, secret));
+  const vocabulary = input.vocabulary ?? (await findEventAudience(input.organizationId, link.eventId)) ?? "couple";
+  await sendLinkMail({ email: link.email, personName: link.personName, locale: input.locale, vocabulary, url, expiresOn: link.expiresOn, renewed: true });
+  return { link, url };
 }
 
-// Lot 24b (SC-S4) — état d'un lien d'invitation à l'ouverture de la page : un
-// lien expiré, retiré ou inconnu est refusé d'emblée, avec la proposition d'en
-// demander un nouveau ; rien de l'invitation n'est révélé.
-export async function clientInvitationState(token: string): Promise<"usable" | "accepted" | "invalid"> {
-  const parsed = parseClientToken(token);
-  if (!parsed) return "invalid";
-  const access = await findClientAccessByTokenHash(parsed.organizationId, hashClientToken(parsed.secret));
-  if (!access) return "invalid";
-  if (access.acceptedAt) return "accepted";
-  if (access.revokedAt || access.expiresAt.getTime() < Date.now()) return "invalid";
-  return "usable";
+// Retirer coupe aussitôt les sessions ouvertes ; retirer deux fois ne fait rien.
+export async function revokeEventLink(organizationId: string, linkId: string): Promise<void> {
+  await revokeLinkRow(organizationId, linkId);
 }
 
-export async function acceptEventClientInvitation(token: string, password: string): Promise<AcceptClientInvitationResult> {
-  const parsed = parseClientToken(token);
-  if (!parsed) return { outcome: "invalid_or_expired" };
-  const access = await findClientAccessByTokenHash(parsed.organizationId, hashClientToken(parsed.secret));
-  if (!access) {
-    return { outcome: "invalid_or_expired" };
-  }
-  if (access.acceptedAt) return { outcome: "already_accepted" };
-  if (access.revokedAt || access.expiresAt.getTime() < Date.now()) return { outcome: "invalid_or_expired" };
-  const verdict = checkPassword(password);
-  if (verdict === "too_short") throw new ClientPasswordTooShortError();
-  if (verdict === "compromised") throw new ClientPasswordCompromisedError();
-
-  const userId = await withAuthDb(async (db) => {
-    const account = await findAccountByEmail(db, access.email);
-    if (account) {
-      if (account.role !== "client" || account.organizationId !== parsed.organizationId) {
-        throw new ClientEmailUnavailableError();
-      }
-      return account.id;
-    }
-    const user = await createUser(db, {
+// SEC-17, décision D2 : la page /lien échange le jeton (reçu en POST, jamais
+// dans l'adresse) contre une session. Jeton invalide, lien retiré ou expiré,
+// événement perdu ou d'essai : même réponse.
+export async function openEventLink(token: string, now: Date = new Date()): Promise<OpenEventLinkResult> {
+  const parsed = parseLinkToken(token);
+  if (!parsed) return { outcome: "invalid" };
+  const context = await findLinkByTokenHash(parsed.organizationId, hashLinkSecret(parsed.secret));
+  if (!context || !usableLink(context, now)) return { outcome: "invalid" };
+  const sessionSecret = newLinkSecret();
+  const expiresAt = linkSessionExpiresAt(expiresOnOf(context), now);
+  await withActor({ kind: "link", id: context.link.id }, () =>
+    insertLinkSessionRow({
       organizationId: parsed.organizationId,
-      email: access.email,
-      password,
-      role: "client",
-    });
-    return user.id;
-  });
-  if (!(await markClientAccessAccepted(parsed.organizationId, access.id, userId))) {
-    return { outcome: "already_accepted" };
+      linkId: context.link.id,
+      eventId: context.link.eventId,
+      tokenHash: hashLinkSecret(sessionSecret),
+      expiresAt,
+      now,
+    }),
+  );
+  return {
+    outcome: "opened",
+    sessionToken: formatLinkToken(parsed.organizationId, sessionSecret),
+    maxAgeSeconds: Math.max(1, Math.floor((expiresAt.getTime() - now.getTime()) / 1000)),
+    audience: context.link.audience,
+  };
+}
+
+// Décision D7 : à chaque requête, la session et son lien sont relus ; une
+// session expirée, ou d'un lien qui ne vaut plus, est supprimée.
+export async function resolveLinkSession(sessionToken: string, now: Date = new Date()): Promise<LinkAccess | null> {
+  const parsed = parseLinkToken(sessionToken);
+  if (!parsed) return null;
+  const tokenHash = hashLinkSecret(parsed.secret);
+  const found = await findLinkSessionRow(parsed.organizationId, tokenHash);
+  if (!found) return null;
+  if (found.session.expiresAt.getTime() <= now.getTime() || !usableLink(found.context, now)) {
+    await deleteLinkSessionRow(parsed.organizationId, tokenHash);
+    return null;
   }
-  return { outcome: "success", email: access.email };
+  if (now.getTime() - found.session.lastSeenAt.getTime() > LINK_SESSION_TOUCH_MS) {
+    await touchLinkSessionRow(parsed.organizationId, found.session.id, now, linkSessionExpiresAt(expiresOnOf(found.context), now));
+  }
+  return toLinkAccess(found.context);
 }
 
-export async function listClientEvents(organizationId: string, userId: string): Promise<EventSummary[]> {
-  const eventIds = new Set(await findClientEventIds(organizationId, userId));
-  if (eventIds.size === 0) return [];
-  const rows = await findEvents(organizationId, {});
-  return rows.filter(({ event }) => eventIds.has(event.id)).map(({ event, clients }) => toEventSummary(event, clients));
+export async function closeLinkSession(sessionToken: string): Promise<void> {
+  const parsed = parseLinkToken(sessionToken);
+  if (!parsed) return;
+  await deleteLinkSessionRow(parsed.organizationId, hashLinkSecret(parsed.secret));
 }
 
-export async function getClientEventView(organizationId: string, userId: string, eventId: string): Promise<ClientEventView> {
-  if (!(await hasActiveClientAccess(organizationId, userId, eventId))) throw new ClientAccessDeniedError();
-  const found = await findEventById(organizationId, eventId);
-  if (!found) throw new ClientAccessDeniedError();
-  const [tasks, program] = await Promise.all([listEventTasks(organizationId, eventId), getEventProgram(organizationId, eventId)]);
+// SEC-15, décision D5 : « Demander un nouveau lien » depuis un lien expiré. La
+// demande est notée sur le lien et la planner prévenue ; rien n'est envoyé au
+// demandeur, et la réponse est la même pour un jeton inconnu ou retiré.
+export async function requestLinkRenewal(token: string, now: Date = new Date()): Promise<void> {
+  const parsed = parseLinkToken(token);
+  if (!parsed) return;
+  const context = await findLinkByTokenHash(parsed.organizationId, hashLinkSecret(parsed.secret));
+  if (!context || context.link.revokedAt || context.event.isDemo || context.event.status === "lost") return;
+  if (!isLinkExpired(expiresOnOf(context), now)) return;
+  const fresh = await withActor({ kind: "link", id: context.link.id }, () => markLinkRenewalRequestedRow(parsed.organizationId, context.link.id, now));
+  if (fresh) await notifyRenewalRequest(parsed.organizationId, context);
+}
+
+// L'e-mail va à la personne de l'équipe qui a créé le lien, sinon aux
+// titulaires. Une seule fois par lien tant qu'il n'est pas renouvelé.
+async function notifyRenewalRequest(organizationId: string, context: LinkWithContext): Promise<void> {
+  const team = (await listTeam(appDatabase(), organizationId)).filter((member) => !member.disabledAt);
+  const creator = team.find((member) => member.id === context.link.createdBy);
+  const recipients = creator ? [creator] : team.filter((member) => member.role === "owner");
+  const url = `${parseEnv(process.env).APP_PUBLIC_URL}/events/${context.link.eventId}?onglet=maries`;
+  for (const member of recipients) {
+    await sendMail({
+      to: member.email,
+      subject: "Demande d'un nouveau lien / New link requested",
+      text: `Bonjour,\n\n${context.link.personName} demande un nouveau lien personnel : le sien a expiré. Vous pouvez le renouveler depuis la fiche de l'événement :\n${url}\n\n—\n\nHello,\n\n${context.link.personName} is asking for a new personal link: theirs has expired. You can renew it from the event page:\n${url}\n\nL'équipe Symbola / The Symbola team`,
+    });
+  }
+}
+
+// Accès d'un lien, relu en base : null s'il ne vaut plus.
+export async function getLinkAccess(organizationId: string, linkId: string, now: Date = new Date()): Promise<LinkAccess | null> {
+  const context = await findLinkRow(organizationId, linkId);
+  return context && usableLink(context, now) ? toLinkAccess(context) : null;
+}
+
+// POR-10 : une rubrique fermée est refusée par le service, pas seulement
+// masquée par l'écran.
+async function requireLinkRubric(organizationId: string, linkId: string, rubric?: LinkRubric): Promise<LinkAccess> {
+  const access = await getLinkAccess(organizationId, linkId);
+  if (!access || (rubric && !access.rights.rubrics.includes(rubric))) throw new LinkAccessDeniedError();
+  return access;
+}
+
+// Vue du tiers : résumé de l'événement, rétroplanning et programme (variante
+// « mariés », jamais de note interne) si leurs rubriques sont ouvertes.
+export async function getLinkEventView(organizationId: string, linkId: string): Promise<ClientEventView> {
+  const access = await requireLinkRubric(organizationId, linkId);
+  const found = await findEventById(organizationId, access.eventId);
+  if (!found) throw new LinkAccessDeniedError();
+  const rubrics = access.rights.rubrics;
+  const [tasks, program] = await Promise.all([
+    rubrics.includes("tasks") ? listEventTasks(organizationId, access.eventId) : Promise.resolve(null),
+    rubrics.includes("program") ? getEventProgram(organizationId, access.eventId) : Promise.resolve(null),
+  ]);
   return {
     // Résumé seulement : ni source du prospect ni motif de perte.
     event: toEventSummary(found.event, found.clients),
     tasks,
-    program: { items: programForVariant(program.items, "couple"), overlaps: [], updatedAt: program.updatedAt },
+    program: program ? { items: programForVariant(program.items, "couple"), overlaps: [], updatedAt: program.updatedAt } : null,
   };
 }
 
-export async function setClientTaskDone(
-  organizationId: string,
-  userId: string,
-  taskId: string,
-  done: boolean,
-): Promise<EventTask> {
-  const result = await toggleClientTask(organizationId, userId, taskId, done);
-  if (result.status === "denied") throw new ClientAccessDeniedError();
+export async function setLinkTaskDone(organizationId: string, linkId: string, taskId: string, done: boolean): Promise<EventTask> {
+  const access = await requireLinkRubric(organizationId, linkId, "tasks");
+  const result = await withActor({ kind: "link", id: linkId }, () =>
+    toggleLinkTaskRow({ organizationId, linkId, eventId: access.eventId, taskId, done }),
+  );
+  if (result.status === "denied") throw new LinkAccessDeniedError();
   return toEventTask(result.task);
+}
+
+export async function getLinkNamesByIds(organizationId: string, linkIds: string[]): Promise<Record<string, string>> {
+  return findLinkNameRows(organizationId, linkIds);
+}
+
+// Décision D3 : profils de départ d'un lien (ils pré-cochent les rubriques).
+export function listLinkProfiles(locale: "fr" | "en", vocabulary: EventTypeAudience): StarterLinkProfile[] {
+  return starterLinkProfiles(locale, vocabulary === "clients" ? "clients" : "couple");
+}
+
+// Décision D5 : demandes de nouveau lien en attente, pour « Aujourd'hui ».
+export async function listPendingLinkRenewals(organizationId: string): Promise<{ linkId: string; eventId: string; personName: string; requestedAt: string }[]> {
+  return (await findPendingRenewalRows(organizationId)).map((row) => ({ ...row, requestedAt: row.requestedAt.toISOString() }));
 }
 
 // Lot 13 (L13-EVT-19) — date (calendrier de Paris) du dernier passage dans
@@ -1396,11 +1516,11 @@ export async function getEventStatusDates(organizationId: string, eventId: strin
 }
 
 export async function listEventActivity(organizationId: string, eventId: string): Promise<EventActivity[]> {
-  return (await findEventActivity(organizationId, eventId)).map(({ activity, actorEmail }) => ({
+  return (await findEventActivity(organizationId, eventId)).map(({ activity, actorName }) => ({
     id: activity.id,
     kind: activity.kind,
     taskLabel: activity.taskLabel,
-    actorEmail,
+    actorName,
     createdAt: activity.createdAt.toISOString(),
   }));
 }
@@ -1545,10 +1665,6 @@ export async function getEventNamesByIds(organizationId: string, eventIds: strin
   return findEventNamesByIds(organizationId, eventIds);
 }
 
-// Lot 3 (PRD-BUD-04) : exposition publique de la vérification déjà utilisée en
-// interne par getClientEventView — le module budget en a besoin pour sa
-// propre vue en lecture seule du marié.
-export { hasActiveClientAccess };
 
 // IMP-05 — fonctions d'import (lot 5, ADR 0022) : écriture d'un lot de
 // lignes, détection des modifications à la main, annulation.
@@ -1591,9 +1707,9 @@ const _contractCheck: EventsServiceContract = {
   getVendorCandidate,
   listVendorConsultations,
   listSelectedVendorIds,
-  getClientVendorOptions,
-  getClientVendorQuoteFile,
-  getClientSharedRibVendorId,
+  getLinkVendorOptions,
+  getLinkVendorQuoteFile,
+  getLinkSharedRibVendorId,
   listEvents,
   listStaleProspects,
   getEvent,
@@ -1642,13 +1758,19 @@ const _contractCheck: EventsServiceContract = {
   removeProgramTemplateItem,
   removeProgramTemplate,
   applyProgramTemplate,
-  inviteEventClient,
-  listEventClientAccesses,
-  revokeEventClientAccess,
-  acceptEventClientInvitation,
-  listClientEvents,
-  getClientEventView,
-  setClientTaskDone,
+  createEventLink,
+  listEventLinks,
+  updateEventLink,
+  renewEventLink,
+  revokeEventLink,
+  openEventLink,
+  resolveLinkSession,
+  closeLinkSession,
+  requestLinkRenewal,
+  getLinkAccess,
+  getLinkEventView,
+  setLinkTaskDone,
+  getLinkNamesByIds,
   listEventActivity,
   getEventStatusDates,
   startEventsTrial,
@@ -1660,7 +1782,6 @@ const _contractCheck: EventsServiceContract = {
   searchEvents,
   getEventNamesByIds,
   startTutorialEvent,
-  hasActiveClientAccess,
   listExpiredDemoEvents,
 };
 void _contractCheck;

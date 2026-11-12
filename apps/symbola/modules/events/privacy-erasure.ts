@@ -8,7 +8,7 @@ import { appDatabase } from "@symbola/db/client";
 import { createStorageClient, deletePrivateObject } from "@symbola/files";
 import {
   eventActivities,
-  eventClientAccesses,
+  eventLinks,
   eventClients,
   eventPlaces,
   events,
@@ -32,7 +32,7 @@ const FATES: Record<string, ErasureFate> = {
   event_vendor_slot: "anonymized",
   vendor_candidate: "anonymized",
   status_change: "anonymized",
-  client_access: "deleted",
+  link: "deleted",
   task: "deleted",
   program_item: "deleted",
   program_participant: "deleted",
@@ -54,10 +54,10 @@ async function existing(tx: Tx, input: ErasureInput): Promise<Found[]> {
   add("event", ids("event").filter((id) => realEventIds.has(id)));
   if (ids("event_client").length > 0)
     add("event_client", keep(await tx.select({ id: eventClients.id, eventId: eventClients.eventId }).from(eventClients).where(inArray(eventClients.id, ids("event_client")))));
-  if (ids("client_access").length > 0)
+  if (ids("link").length > 0)
     add(
-      "client_access",
-      keep(await tx.select({ id: eventClientAccesses.id, eventId: eventClientAccesses.eventId }).from(eventClientAccesses).where(inArray(eventClientAccesses.id, ids("client_access")))),
+      "link",
+      keep(await tx.select({ id: eventLinks.id, eventId: eventLinks.eventId }).from(eventLinks).where(inArray(eventLinks.id, ids("link")))),
     );
   if (ids("event_vendor_slot").length > 0)
     add(
@@ -158,7 +158,7 @@ export async function eraseEventsData(input: ErasureInput): Promise<ErasurePlanI
         .set({ vendorName: ANONYMIZED, vendorId: null, quoteFileKey: null, quoteMime: null, quoteSizeBytes: null, updatedAt: now })
         .where(inArray(eventVendorCandidates.id, candidateIds));
     }
-    if (idsFor("client_access").length > 0) await tx.delete(eventClientAccesses).where(inArray(eventClientAccesses.id, idsFor("client_access")));
+    if (idsFor("link").length > 0) await tx.delete(eventLinks).where(inArray(eventLinks.id, idsFor("link")));
     if (idsFor("task").length > 0) await tx.delete(eventTasks).where(inArray(eventTasks.id, idsFor("task")));
     if (idsFor("program_participant").length > 0) await tx.delete(programItemParticipants).where(inArray(programItemParticipants.id, idsFor("program_participant")));
     if (idsFor("event_place").length > 0) await tx.delete(eventPlaces).where(inArray(eventPlaces.id, idsFor("event_place")));

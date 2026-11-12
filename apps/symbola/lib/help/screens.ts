@@ -7,8 +7,10 @@
 import type { HelpModule } from "./catalog";
 import type { TourKey } from "./tours";
 
-export type HelpGroup = "events" | "vendors" | "quotes" | "budget" | "company" | "data" | "admin" | "clients";
-export type HelpAudience = "team" | "admin" | "client";
+export type HelpGroup = "events" | "vendors" | "quotes" | "budget" | "company" | "data" | "admin";
+// Lot 26a : les tiers (portail par lien) n'ont pas de compte ; leur aide est
+// sur l'écran même (ScreenHelp), pas dans le centre d'aide.
+export type HelpAudience = "team" | "admin";
 
 export type HelpScreen = {
   // Clé dans « Help ».
@@ -95,13 +97,9 @@ export const HELP_SCREENS: HelpScreen[] = [
   { key: "adminOnboarding", group: "admin", audience: "admin", path: "/admin/prise-en-main", capture: false },
   { key: "adminHealth", group: "admin", audience: "admin", path: "/admin/health", capture: false },
   { key: "adminSettings", group: "admin", audience: "admin", path: "/admin/parametres", capture: false },
-  // Espace des mariés
-  { key: "clientSpace", group: "clients", audience: "client", path: "/espace", capture: false },
-  { key: "clientEvent", group: "clients", audience: "client", path: null, capture: false },
-  { key: "clientSecurity", group: "clients", audience: "client", path: "/espace/securite", capture: false },
 ];
 
-export const HELP_GROUP_ORDER: HelpGroup[] = ["events", "vendors", "quotes", "budget", "company", "data", "admin", "clients"];
+export const HELP_GROUP_ORDER: HelpGroup[] = ["events", "vendors", "quotes", "budget", "company", "data", "admin"];
 
 export type HelpViewer = { audience: HelpAudience; isOwner: boolean; modules: Record<HelpModule, boolean> };
 

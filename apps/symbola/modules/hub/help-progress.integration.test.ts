@@ -49,20 +49,20 @@ describe("L10-HUB-11 — Suivi de la prise en main par l'Admin", () => {
   it("donne la progression des comptes d'équipe seulement, sans aucune donnée d'événement", async () => {
     const organization = await createOrganization(db, `Org suivi ${randomUUID()}`);
     const owner = await createUser(db, { organizationId: organization.id, email: `titulaire-${randomUUID()}@symbola.test`, password: "mot-de-passe", role: "owner" });
-    const client = await createUser(db, { organizationId: organization.id, email: `client-${randomUUID()}@symbola.test`, password: "mot-de-passe", role: "client" });
+    // Lot 26a : un membre de l'équipe, à côté de la titulaire (plus de compte de marié).
+    const member = await createUser(db, { organizationId: organization.id, email: `membre-${randomUUID()}@symbola.test`, password: "mot-de-passe", role: "member" });
     await recordHelpProgress(db, { userId: owner.id, itemKey: "tutorial:catalog", status: "completed", step: 3 });
     await recordHelpProgress(db, { userId: owner.id, itemKey: "tutorial:retroplanning-template", status: "started", step: 1 });
-    await recordHelpProgress(db, { userId: client.id, itemKey: "tour:hub", status: "completed" });
+    await recordHelpProgress(db, { userId: member.id, itemKey: "tour:hub", status: "completed" });
 
     const row = (await listTeamHelpProgress(db)).find((candidate) => candidate.id === organization.id)!;
     expect(row.modules).toEqual({ events: true, budget: true, quotes: true });
-    expect(row.accounts.map((account) => account.userId)).toEqual([owner.id]);
-    expect(row.accounts[0]!.help).toEqual(
+    expect(row.accounts.map((account) => account.userId).sort()).toEqual([owner.id, member.id].sort());
+    expect(row.accounts.find((account) => account.userId === owner.id)!.help).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ itemKey: "tutorial:catalog", status: "completed" }),
         expect.objectContaining({ itemKey: "tutorial:retroplanning-template", status: "started", step: 1 }),
       ]),
     );
-    expect(JSON.stringify(row)).not.toContain(client.email);
   });
 });

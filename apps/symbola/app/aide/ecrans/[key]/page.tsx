@@ -19,7 +19,6 @@ function originKey(screen: HelpScreen): string | null {
   if (screen.key === "eventsDetail") return "fromEvent";
   if (screen.key === "quotesDetail") return "fromQuote";
   if (screen.key === "budgetDetail") return "fromBudget";
-  if (screen.key === "clientEvent") return "fromClientEvent";
   if (screen.key.startsWith("import")) return "fromImport";
   return null;
 }
@@ -30,7 +29,7 @@ export default async function HelpScreenPage({ params }: { params: Promise<{ key
 
   const organizationId = auth.user.organizationId;
   const isTeam = Boolean(organizationId) && (auth.user.role === "owner" || auth.user.role === "member");
-  const audience: HelpAudience = isTeam ? "team" : auth.user.role === "admin" ? "admin" : "client";
+  const audience: HelpAudience = isTeam ? "team" : "admin";
   let modules: Record<HelpModule, boolean> = { hub: true, events: false, budget: false, quotes: false, vendors: false };
   if (isTeam && organizationId) {
     const db = appDatabase();

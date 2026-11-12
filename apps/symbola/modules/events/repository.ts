@@ -1,12 +1,12 @@
 // Accès aux données du module events — jamais importé hors de
 // modules/events/ (ADR 0011).
-import { and, asc, desc, eq, gt, gte, ilike, inArray, isNotNull, isNull, lte, notInArray, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gt, gte, ilike, inArray, isNull, lte, notInArray, or, sql } from "drizzle-orm";
 import { appDatabase } from "@symbola/db/client";
 import {
   defaultVendorSlots,
   eventActivities,
-  eventClientAccesses,
   eventClients,
+  eventLinks,
   events,
   eventStatusHistory,
   eventTasks,
@@ -22,7 +22,6 @@ import {
   taskTemplateItems,
   taskTemplates,
 } from "@symbola/db/schema/events";
-import { appendAudit } from "@symbola/db/audit";
 import { withOrganization } from "@symbola/db/with-organization";
 import { foldedColumn, foldedContains, likeWord } from "@symbola/db/search";
 import { emitDomainEvent } from "@symbola/db/events/emit";
@@ -50,7 +49,6 @@ export type TaskTemplateRow = typeof taskTemplates.$inferSelect;
 export type TaskTemplateItemRow = typeof taskTemplateItems.$inferSelect;
 export type EventTaskRow = typeof eventTasks.$inferSelect;
 export type ProgramItemRow = typeof programItems.$inferSelect;
-export type EventClientAccessRow = typeof eventClientAccesses.$inferSelect;
 export type EventActivityRow = typeof eventActivities.$inferSelect;
 export type ProgramItemParticipantRow = typeof programItemParticipants.$inferSelect;
 export type ProgramTemplateRow = typeof programTemplates.$inferSelect;
@@ -1140,206 +1138,6 @@ export async function applyProgramTemplateRows(
   });
 }
 
-// PRD-EVT-06 — accès des mariés.
-export async function findEventClientAccesses(organizationId: string, eventId: string): Promise<EventClientAccessRow[]> {
-  const db = appDatabase();
-  return await withOrganization(db, organizationId, (tx) =>
-    tx
-      .select()
-      .from(eventClientAccesses)
-      .where(eq(eventClientAccesses.eventId, eventId))
-      .orderBy(asc(eventClientAccesses.createdAt)),
-  );
-}
-
-export type SaveClientAccessResult =
-  | { status: "saved"; access: EventClientAccessRow }
-  | { status: "event_not_found" | "already_active" | "demo_event" };
-
-// Une invitation encore en attente pour le même e-mail est renouvelée
-// (nouveau jeton, nouvelle échéance) plutôt que doublée.
-export async function saveClientAccess(input: {
-  organizationId: string;
-  eventId: string;
-  email: string;
-  invitedByUserId: string;
-  expiresAt: Date;
-  tokenHash: string | null;
-  userId: string | null;
-}): Promise<SaveClientAccessResult> {
-  const db = appDatabase();
-  return await withOrganization(db, input.organizationId, async (tx) => {
-    // Clé étrangère vérifiée sans RLS : on contrôle que l'événement est visible.
-    const [event] = await tx
-      .select({ id: events.id, isDemo: events.isDemo })
-      .from(events)
-      .where(eq(events.id, input.eventId));
-    if (!event) return { status: "event_not_found" };
-    // AIDE-02 : jamais d'e-mail à un tiers depuis un essai.
-    if (event.isDemo) return { status: "demo_event" };
-
-    const [current] = await tx
-      .select()
-      .from(eventClientAccesses)
-      .where(
-        and(
-          eq(eventClientAccesses.eventId, input.eventId),
-          sql`lower(${eventClientAccesses.email}) = lower(${input.email})`,
-          isNull(eventClientAccesses.revokedAt),
-        ),
-      );
-    const acceptedAt = input.userId ? new Date() : null;
-    if (current?.acceptedAt) return { status: "already_active" };
-    if (current) {
-      const [access] = await tx
-        .update(eventClientAccesses)
-        .set({
-          tokenHash: input.tokenHash,
-          userId: input.userId,
-          acceptedAt,
-          expiresAt: input.expiresAt,
-          invitedByUserId: input.invitedByUserId,
-        })
-        .where(eq(eventClientAccesses.id, current.id))
-        .returning();
-      return { status: "saved", access: access! };
-    }
-    const [access] = await tx
-      .insert(eventClientAccesses)
-      .values({
-        organizationId: input.organizationId,
-        eventId: input.eventId,
-        email: input.email,
-        tokenHash: input.tokenHash,
-        userId: input.userId,
-        acceptedAt,
-        expiresAt: input.expiresAt,
-        invitedByUserId: input.invitedByUserId,
-      })
-      .returning();
-    if (!access) throw new Error("création de l'accès échouée");
-    // Lot 23 (SEC-19) : espace du marié ouvert, au journal.
-    await appendAudit(tx, { organizationId: input.organizationId, action: "events.client_access.granted", objectId: input.eventId, details: { accessId: access.id } });
-    return { status: "saved", access };
-  });
-}
-
-// Retirer un accès invalide aussi le jeton d'une invitation en attente.
-export async function revokeClientAccessRow(organizationId: string, accessId: string): Promise<void> {
-  const db = appDatabase();
-  await withOrganization(db, organizationId, async (tx) => {
-    const revoked = await tx
-      .update(eventClientAccesses)
-      .set({ revokedAt: new Date(), tokenHash: null })
-      .where(and(eq(eventClientAccesses.id, accessId), isNull(eventClientAccesses.revokedAt)))
-      .returning({ eventId: eventClientAccesses.eventId });
-    // Lot 23 (SEC-19) : accès retiré, au journal.
-    if (revoked[0]) {
-      await appendAudit(tx, { organizationId, action: "events.client_access.revoked", objectId: revoked[0].eventId, details: { accessId } });
-    }
-  });
-}
-
-export async function findClientAccessByTokenHash(
-  organizationId: string,
-  tokenHash: string,
-): Promise<EventClientAccessRow | null> {
-  const db = appDatabase();
-  return await withOrganization(db, organizationId, async (tx) => {
-    const [access] = await tx.select().from(eventClientAccesses).where(eq(eventClientAccesses.tokenHash, tokenHash));
-    return access ?? null;
-  });
-}
-
-// Le jeton ne sert qu'une fois (acceptedAt) ; son haché reste pour pouvoir
-// répondre « invitation déjà acceptée » à un second clic sur le lien.
-export async function markClientAccessAccepted(organizationId: string, accessId: string, userId: string): Promise<boolean> {
-  const db = appDatabase();
-  return await withOrganization(db, organizationId, async (tx) => {
-    const updated = await tx
-      .update(eventClientAccesses)
-      .set({ userId, acceptedAt: new Date() })
-      .where(
-        and(
-          eq(eventClientAccesses.id, accessId),
-          isNull(eventClientAccesses.acceptedAt),
-          isNull(eventClientAccesses.revokedAt),
-        ),
-      )
-      .returning({ id: eventClientAccesses.id });
-    return updated.length === 1;
-  });
-}
-
-function activeAccessFor(userId: string) {
-  return and(
-    eq(eventClientAccesses.userId, userId),
-    isNotNull(eventClientAccesses.acceptedAt),
-    isNull(eventClientAccesses.revokedAt),
-  );
-}
-
-export async function findClientEventIds(organizationId: string, userId: string): Promise<string[]> {
-  const db = appDatabase();
-  return await withOrganization(db, organizationId, async (tx) => {
-    const rows = await tx
-      .selectDistinct({ eventId: eventClientAccesses.eventId })
-      .from(eventClientAccesses)
-      .where(activeAccessFor(userId));
-    return rows.map((row) => row.eventId);
-  });
-}
-
-export async function hasActiveClientAccess(organizationId: string, userId: string, eventId: string): Promise<boolean> {
-  const db = appDatabase();
-  return await withOrganization(db, organizationId, async (tx) => {
-    const [row] = await tx
-      .select({ id: eventClientAccesses.id })
-      .from(eventClientAccesses)
-      .where(and(activeAccessFor(userId), eq(eventClientAccesses.eventId, eventId)));
-    return row !== undefined;
-  });
-}
-
-export type ClientTaskToggleResult = { status: "saved"; task: EventTaskRow } | { status: "denied" };
-
-// Le marié ne coche que les tâches « mariés » d'un événement auquel il a
-// accès ; chaque changement est inscrit au fil d'activité, dans la même
-// transaction.
-export async function toggleClientTask(
-  organizationId: string,
-  userId: string,
-  taskId: string,
-  done: boolean,
-): Promise<ClientTaskToggleResult> {
-  const db = appDatabase();
-  return await withOrganization(db, organizationId, async (tx) => {
-    const [task] = await tx.select().from(eventTasks).where(eq(eventTasks.id, taskId));
-    if (!task || task.responsible !== "clients") return { status: "denied" };
-    const [access] = await tx
-      .select({ id: eventClientAccesses.id })
-      .from(eventClientAccesses)
-      .where(and(activeAccessFor(userId), eq(eventClientAccesses.eventId, task.eventId)));
-    if (!access) return { status: "denied" };
-
-    if ((task.doneAt !== null) === done) return { status: "saved", task };
-    const [updated] = await tx
-      .update(eventTasks)
-      .set({ doneAt: done ? new Date() : null, updatedAt: new Date() })
-      .where(eq(eventTasks.id, taskId))
-      .returning();
-    await tx.insert(eventActivities).values({
-      organizationId,
-      eventId: task.eventId,
-      actorUserId: userId,
-      kind: done ? "task_done" : "task_undone",
-      taskId,
-      taskLabel: task.label,
-    });
-    return { status: "saved", task: updated! };
-  });
-}
-
 // Lot 13 (L13-EVT-19) — passages de statut d'un événement, du plus ancien au
 // plus récent, pour dater les étapes de la frise.
 export async function findEventStatusChanges(organizationId: string, eventId: string): Promise<{ toStatus: EventStatus; changedAt: Date }[]> {
@@ -1353,10 +1151,12 @@ export async function findEventStatusChanges(organizationId: string, eventId: st
   );
 }
 
+// Lot 26a : l'auteur d'une coche est le lien d'un tiers (son nom) ; une
+// ancienne coche d'un compte de marié (ADR 0020, retiré) reste sans nom.
 export async function findEventActivity(
   organizationId: string,
   eventId: string,
-): Promise<{ activity: EventActivityRow; actorEmail: string | null }[]> {
+): Promise<{ activity: EventActivityRow; actorName: string | null }[]> {
   const db = appDatabase();
   return await withOrganization(db, organizationId, async (tx) => {
     const activity = await tx
@@ -1364,16 +1164,13 @@ export async function findEventActivity(
       .from(eventActivities)
       .where(eq(eventActivities.eventId, eventId))
       .orderBy(desc(eventActivities.createdAt));
-    const actorIds = [...new Set(activity.map((row) => row.actorUserId))];
-    const accesses =
-      actorIds.length > 0
-        ? await tx
-            .select({ userId: eventClientAccesses.userId, email: eventClientAccesses.email })
-            .from(eventClientAccesses)
-            .where(and(eq(eventClientAccesses.eventId, eventId), inArray(eventClientAccesses.userId, actorIds)))
+    const linkIds = [...new Set(activity.flatMap((row) => (row.actorLinkId ? [row.actorLinkId] : [])))];
+    const links =
+      linkIds.length > 0
+        ? await tx.select({ id: eventLinks.id, personName: eventLinks.personName }).from(eventLinks).where(inArray(eventLinks.id, linkIds))
         : [];
-    const emailByUser = new Map(accesses.map((access) => [access.userId, access.email]));
-    return activity.map((row) => ({ activity: row, actorEmail: emailByUser.get(row.actorUserId) ?? null }));
+    const nameByLink = new Map(links.map((link) => [link.id, link.personName]));
+    return activity.map((row) => ({ activity: row, actorName: row.actorLinkId ? (nameByLink.get(row.actorLinkId) ?? null) : null }));
   });
 }
 
@@ -1483,7 +1280,7 @@ export async function insertDemoEvent(organizationId: string, data: DemoEventDat
 async function deleteDemoEventRows(tx: Tx, eventIds: string[]): Promise<void> {
   if (eventIds.length === 0) return;
   await tx.delete(eventActivities).where(inArray(eventActivities.eventId, eventIds));
-  await tx.delete(eventClientAccesses).where(inArray(eventClientAccesses.eventId, eventIds));
+  await tx.delete(eventLinks).where(inArray(eventLinks.eventId, eventIds));
   await tx.delete(programItems).where(inArray(programItems.eventId, eventIds));
   await tx.delete(eventTasks).where(inArray(eventTasks.eventId, eventIds));
   await tx.delete(eventVendorSlots).where(inArray(eventVendorSlots.eventId, eventIds));
