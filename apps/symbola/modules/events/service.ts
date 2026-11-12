@@ -119,6 +119,7 @@ import {
   candidateQuoteKeysOfSlot,
   clientOptions,
   clientQuoteFile,
+  getCandidate,
   getCandidateQuoteFile,
   linkCandidate,
   listCandidates,
@@ -127,6 +128,7 @@ import {
   removeCandidate,
   removeCandidateNote,
   retainVendorByName,
+  retainedVendorsBySlot,
   selectCandidate,
   sharedRibVendorId,
   setCandidateNoteVisibility,
@@ -186,6 +188,7 @@ import type {
   ListOrganizationTasksInput,
   OrganizationTask,
   UpdateEventVendorSlotInput,
+  RetainedVendor,
   VendorCandidateStatus,
   VendorSlotProgress,
   VendorSlotStatus,
@@ -215,6 +218,7 @@ export type {
   ProspectSource,
   DefaultVendorSlot,
   EventVendorSlot,
+  RetainedVendor,
   UpdateEventVendorSlotInput,
   VendorSlotProgress,
   VendorSlotStatus,
@@ -506,20 +510,17 @@ function toDefaultVendorSlot(row: DefaultVendorSlotRow): DefaultVendorSlot {
   return { id: row.id, label: row.label, icon: row.icon, position: row.position };
 }
 
-function toEventVendorSlot(row: EventVendorSlotRow, candidateStatuses: VendorCandidateStatus[] = []): EventVendorSlot {
+function toEventVendorSlot(row: EventVendorSlotRow, candidateStatuses: VendorCandidateStatus[] = [], retainedVendors: RetainedVendor[] = []): EventVendorSlot {
   return {
     id: row.id,
     eventId: row.eventId,
     label: row.label,
     status: deriveSlotStatus(row.notRequired, candidateStatuses),
     notRequired: row.notRequired,
-    vendorName: row.vendorName,
-    amountCents: row.amountCents,
-    currency: "EUR",
+    retainedVendors,
     position: row.position,
     ...(row.importedFields ? { importedFields: row.importedFields } : {}),
     brief: row.brief,
-    selectedCandidateId: row.selectedCandidateId,
     icon: row.icon,
   };
 }
@@ -566,8 +567,18 @@ export async function reorderDefaultVendorSlots(organizationId: string, orderedI
 }
 
 export async function listEventVendorSlots(organizationId: string, eventId: string): Promise<EventVendorSlot[]> {
-  const [rows, statuses] = await Promise.all([findEventVendorSlots(organizationId, eventId), findCandidateStatuses(organizationId, [eventId])]);
-  return rows.map((row) => toEventVendorSlot(row, statuses.filter((entry) => entry.vendorSlotId === row.id).map((entry) => entry.status)));
+  const [rows, statuses, retained] = await Promise.all([
+    findEventVendorSlots(organizationId, eventId),
+    findCandidateStatuses(organizationId, [eventId]),
+    retainedVendorsBySlot(organizationId, [eventId]),
+  ]);
+  return rows.map((row) =>
+    toEventVendorSlot(
+      row,
+      statuses.filter((entry) => entry.vendorSlotId === row.id).map((entry) => entry.status),
+      retained.get(row.id) ?? [],
+    ),
+  );
 }
 
 export async function addEventVendorSlot(organizationId: string, eventId: string, label: string): Promise<EventVendorSlot> {
@@ -577,7 +588,8 @@ export async function addEventVendorSlot(organizationId: string, eventId: string
 }
 
 // Lot 28a (PRE-02) : « Non requis », ou le raccourci « prestataire retenu » du
-// formulaire du poste (un nom retient ce prestataire au montant donné).
+// formulaire du poste (un nom retient ce prestataire au montant donné ; lot 28b :
+// il s'ajoute aux prestataires déjà retenus du poste).
 export async function updateEventVendorSlot(input: UpdateEventVendorSlotInput): Promise<void> {
   const vendorName = typeof input.vendorName === "string" ? input.vendorName.trim() || null : null;
   const amountCents = input.amountCents ?? null;
@@ -586,7 +598,7 @@ export async function updateEventVendorSlot(input: UpdateEventVendorSlotInput): 
   }
   if (amountCents !== null && !vendorName) throw new VendorNameRequiredError();
   if (input.notRequired !== undefined) {
-    const row = await updateEventVendorSlotRow({ organizationId: input.organizationId, vendorSlotId: input.vendorSlotId, changedByUserId: input.changedByUserId, notRequired: input.notRequired });
+    const row = await updateEventVendorSlotRow({ organizationId: input.organizationId, vendorSlotId: input.vendorSlotId, notRequired: input.notRequired });
     if (!row) throw new VendorSlotNotFoundError();
   }
   if (vendorName) {
@@ -671,6 +683,11 @@ export async function removeVendorCandidateNote(organizationId: string, noteId: 
 
 export async function selectVendorCandidate(input: { organizationId: string; candidateId: string; changedByUserId: string }): Promise<void> {
   await selectCandidate(input);
+}
+
+// Lot 28b (BUD-01) : un prestataire rattaché, pour le module Budget (nom, poste, devis).
+export async function getVendorCandidate(organizationId: string, candidateId: string): Promise<VendorCandidate | null> {
+  return getCandidate(organizationId, candidateId);
 }
 
 export async function listVendorConsultations(organizationId: string, vendorId: string): Promise<VendorConsultation[]> {
@@ -1571,6 +1588,7 @@ const _contractCheck: EventsServiceContract = {
   setVendorCandidateNoteVisibility,
   removeVendorCandidateNote,
   selectVendorCandidate,
+  getVendorCandidate,
   listVendorConsultations,
   listSelectedVendorIds,
   getClientVendorOptions,

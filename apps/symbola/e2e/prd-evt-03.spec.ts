@@ -76,10 +76,10 @@ test("PRD-EVT-03 — lignes du budget par défaut, barre d'avancement et prestat
   // Un montant exige le nom du prestataire retenu ; le montant est facultatif.
   const photographer = page.getByRole("group", { name: "Photographe" });
   await expect(photographer.getByText("À trouver")).toBeVisible();
-  await photographer.getByLabel("Montant engagé en euros (facultatif)").fill("2 500,50");
+  await photographer.getByLabel("Montant de son devis en euros (facultatif)").fill("2 500,50");
   await photographer.getByRole("button", { name: "Enregistrer la ligne" }).click();
   await expect(photographer.getByText("Indiquez le nom du prestataire retenu pour saisir un montant.")).toBeVisible();
-  await photographer.getByLabel("Prestataire retenu (nom)").fill("Studio Lumière");
+  await photographer.getByLabel("Ajouter un prestataire retenu (nom)").fill("Studio Lumière");
   await photographer.getByRole("button", { name: "Enregistrer la ligne" }).click();
   await expect(photographer.getByText("Ligne enregistrée.")).toBeVisible();
   await expect(page.getByText("1 ligne pourvue sur 11")).toBeVisible();

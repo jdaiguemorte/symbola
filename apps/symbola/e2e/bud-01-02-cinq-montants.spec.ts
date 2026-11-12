@@ -75,17 +75,20 @@ test("BUD-01 — une ligne complète (estimé, devisé, engagé, payé) se saisi
   await page.goto(`/budget/${wedding.eventId}`);
   await page.waitForLoadState("networkidle");
   const table = page.getByRole("table", { name: "Estimé, devisé, engagé, payé" });
-  const row = table.getByRole("row", { name: /Traiteur/ });
+  // Lot 28b : la catégorie « Traiteur » a sa ligne de total ; la ligne se repère par « Modifier ».
+  const row = table.getByRole("row").filter({ hasText: "Modifier « Traiteur »" });
   await expect(row).toContainText("4 500,00 €");
   await expectNoAxeViolation(page);
 
   const started = Date.now();
   await row.getByText("Modifier « Traiteur »").click();
-  await row.getByLabel("Devisé — Traiteur").fill("4 480");
-  await row.getByLabel("Engagé — Traiteur").fill("4 480");
-  await row.getByLabel("Payé — Traiteur").fill("1 344");
-  await row.getByRole("button", { name: "Enregistrer la ligne" }).click();
-  await expect(row.getByText("Ligne enregistrée.")).toBeVisible();
+  // Lot 28b : le formulaire s'ouvre dans une rangée pleine largeur, sous la ligne.
+  const editor = page.getByRole("region", { name: "Ligne « Traiteur » : montants, prestataire, documents et échéances" });
+  await editor.getByLabel("Devisé — Traiteur").fill("4 480");
+  await editor.getByLabel("Engagé — Traiteur").fill("4 480");
+  await editor.getByLabel("Payé — Traiteur").fill("1 344");
+  await editor.getByRole("button", { name: "Enregistrer la ligne" }).click();
+  await expect(editor.getByText("Ligne enregistrée.")).toBeVisible();
   expect(Date.now() - started).toBeLessThan(60_000);
 
   // Cinq montants, l'écart, et les totaux au centime près.

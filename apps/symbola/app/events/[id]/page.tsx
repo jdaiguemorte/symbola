@@ -26,6 +26,7 @@ import {
   listProgramTemplates,
   listProspectSources,
   summarizeVendorSlots,
+  type EventVendorSlot,
 } from "@/modules/events/service";
 import { getEventBudget, listBudgetLines } from "@/modules/budget/service";
 import { confirmEventBudgetAction } from "@/app/budget/[eventId]/actions";
@@ -220,7 +221,8 @@ export default async function EventDetailPage({
   // Lot 12 (L12-EVT-17) : prévu et réel de chaque ligne, si le module Budget est souscrit.
   const budgetAvailable = tab === "budget" ? await isBudgetModuleEnabled(organizationId) : false;
   const budgetView = budgetAvailable ? await listBudgetLines(organizationId, id) : null;
-  const amountsOf = (slotId: string) => budgetView?.lines.find((line) => line.eventVendorSlotId === slotId) ?? null;
+  // Lot 28b (Q33) : chaque poste est une catégorie du budget, avec ses lignes.
+  const categoryOf = (slotId: string) => budgetView?.categories.find((category) => category.eventVendorSlotId === slotId) ?? null;
   // Lot 11 (L11-EVT-10) : prestataires consultés, et le carnet s'il est souscrit.
   const candidates = tab === "budget" ? await listVendorCandidates(organizationId, id) : [];
   const vendorsAvailable = tab === "budget" ? await isVendorsModuleEnabled(organizationId) : false;
@@ -229,6 +231,11 @@ export default async function EventDetailPage({
       ? (await findVendors({ organizationId })).map((vendor) => ({ id: vendor.id, label: vendor.city ? `${vendor.name} — ${vendor.city}` : vendor.name }))
       : [];
   const candidatesBySlot = (slotId: string) => candidates.filter((candidate) => candidate.vendorSlotId === slotId);
+  // Somme des devis des prestataires retenus d'un poste (null s'il n'y en a aucun connu).
+  const retainedQuotesOf = (slot: EventVendorSlot) => {
+    const quotes = slot.retainedVendors.map((vendor) => vendor.quoteAmountCents).filter((amount): amount is number => amount !== null);
+    return quotes.length > 0 ? quotes.reduce((sum, amount) => sum + amount, 0) : null;
+  };
 
   // PRD-EVT-04 : filtres du rétroplanning (vue, responsable), tâche choisie.
   const taskView = query.vue === "a-faire" || query.vue === "en-retard" ? query.vue : "toutes";
@@ -520,20 +527,25 @@ export default async function EventDetailPage({
                           </span>
                         </th>
                         <td>
-                          {slot.vendorName ??
-                            (candidatesBySlot(slot.id).length > 0 ? tCandidates("consultedCount", { count: candidatesBySlot(slot.id).length }) : "—")}
+                          {slot.retainedVendors.length > 0
+                            ? slot.retainedVendors.map((vendor) => vendor.vendorName).join(", ")
+                            : candidatesBySlot(slot.id).length > 0
+                              ? tCandidates("consultedCount", { count: candidatesBySlot(slot.id).length })
+                              : "—"}
                         </td>
                         <td>
                           <span className={VENDOR_STATUS_CLASSES[slot.status]}>{t(VENDOR_STATUS_LABEL_KEYS[slot.status])}</span>
                         </td>
                         {budgetView ? (
                           (() => {
-                            const amounts = amountsOf(slot.id);
-                            const planned = amounts?.estimatedAmountCents ?? null;
-                            // Le montant du prestataire retenu engage la ligne (événement
+                            const category = categoryOf(slot.id);
+                            const planned = category && category.lines.some((line) => line.estimatedAmountCents !== null) ? category.estimatedCents : null;
+                            // Le devis des prestataires retenus engage leurs lignes (événement
                             // interne traité en différé) : on l'affiche dès la retenue.
-                            const actual = amounts?.committedAmountCents ?? (slot.selectedCandidateId !== null ? slot.amountCents : null);
-                            const variance = amounts?.committedAmountCents != null ? (amounts.varianceCents ?? null) : planned !== null && actual !== null ? actual - planned : null;
+                            const engaged = category && category.lines.some((line) => line.committedAmountCents !== null) ? category.committedCents : null;
+                            const retainedQuotes = retainedQuotesOf(slot);
+                            const actual = engaged ?? retainedQuotes;
+                            const variance = planned !== null && actual !== null ? actual - planned : null;
                             return (
                               <>
                                 <td className="num">{planned !== null ? formatAmount(planned, locale) : "—"}</td>
@@ -545,7 +557,7 @@ export default async function EventDetailPage({
                             );
                           })()
                         ) : (
-                          <td className="num">{slot.amountCents !== null ? formatAmount(slot.amountCents, locale) : "—"}</td>
+                          <td className="num">{retainedQuotesOf(slot) !== null ? formatAmount(retainedQuotesOf(slot)!, locale) : "—"}</td>
                         )}
                       </tr>
                     ))}
@@ -560,7 +572,15 @@ export default async function EventDetailPage({
               <>
                 <h2 id="vendor-detail-title">{selectedSlot.label}</h2>
                 <VendorSlotForm key={selectedSlot.id} eventId={event.id} slot={selectedSlot} />
-                {budgetView ? <PlannedAmountForm key={`planned-${selectedSlot.id}`} eventId={event.id} slotId={selectedSlot.id} label={selectedSlot.label} plannedCents={amountsOf(selectedSlot.id)?.estimatedAmountCents ?? null} /> : null}
+                {/* Lot 28b (Q33) : l'estimé d'une catégorie à une seule ligne se saisit ici ; au-delà, sur le budget. */}
+                {budgetView && (categoryOf(selectedSlot.id)?.lines.length ?? 0) <= 1 ? (
+                  <PlannedAmountForm key={`planned-${selectedSlot.id}`} eventId={event.id} slotId={selectedSlot.id} label={selectedSlot.label} plannedCents={categoryOf(selectedSlot.id)?.lines[0]?.estimatedAmountCents ?? null} />
+                ) : null}
+                {budgetView && (categoryOf(selectedSlot.id)?.lines.length ?? 0) > 1 ? (
+                  <p>
+                    <Link href={`/budget/${event.id}#categorie-${selectedSlot.id}`}>{t("budgetLinesDetail", { count: categoryOf(selectedSlot.id)?.lines.length ?? 0, line: selectedSlot.label })}</Link>
+                  </p>
+                ) : null}
                 <SlotIconForm key={`icon-${selectedSlot.id}-${selectedSlot.icon ?? ""}`} eventId={event.id} slotId={selectedSlot.id} label={selectedSlot.label} icon={selectedSlot.icon} />
                 <ImportedFields fields={selectedSlot.importedFields} compact />
                 <form action={removeVendorSlotAction}>

@@ -736,6 +736,20 @@
       "when": 1794437830899,
       "tag": "0104_lot28a_budget_five_amounts",
       "breakpoints": true
+    },
+    {
+      "idx": 105,
+      "version": "7",
+      "when": 1794442044493,
+      "tag": "0105_lot28b_budget_lines_payments",
+      "breakpoints": true
+    },
+    {
+      "idx": 106,
+      "version": "7",
+      "when": 1794442045348,
+      "tag": "0106_lot28b_events_retained_vendors",
+      "breakpoints": true
     }
   ]
 }

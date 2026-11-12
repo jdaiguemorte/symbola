@@ -1,10 +1,11 @@
-// PRD-BUD-03 — devis prestataire joint à une ligne du budget (PDF ou image,
-// 20 Mo). Lot 16 (L16-SEC-02, ADR 0044) : par cette route dédiée plutôt qu'une
+// PRD-BUD-03 — document d'un prestataire joint à une ligne du budget (PDF ou
+// image, 20 Mo) ; lot 28b (BUD-04) : devis, contrat ou facture. Lot 16 (L16-SEC-02, ADR 0044) : par cette route dédiée plutôt qu'une
 // action serveur ; origine, session, limite de débit et taille sont vérifiées
 // avant la lecture du fichier (lib/uploads/receive.ts).
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import {
+  BUDGET_DOCUMENT_KINDS,
   BudgetLineNotFoundError,
   EventNotFoundError,
   QuoteFileInfectedError,
@@ -23,8 +24,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ eve
   if (!(await isBudgetModuleEnabled(user.organizationId))) return uploadResponse({ error: t("unauthenticated") });
 
   const { eventId } = await params;
+  const lineId = String(formData.get("lineId") ?? "");
   const eventVendorSlotId = String(formData.get("eventVendorSlotId") ?? "");
-  if (!isValidId(eventId) || !isValidId(eventVendorSlotId)) return uploadResponse({ error: t("quoteLineNotFound") });
+  if (!isValidId(eventId) || (!isValidId(lineId) && !isValidId(eventVendorSlotId))) return uploadResponse({ error: t("quoteLineNotFound") });
+  const askedKind = String(formData.get("kind") ?? "quote");
+  const kind = BUDGET_DOCUMENT_KINDS.find((entry) => entry === askedKind) ?? "quote";
   const file = formData.get("quote");
   if (!(file instanceof File) || file.size === 0) return uploadResponse({ error: t("quoteMissing") });
 
@@ -32,7 +36,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ eve
     await attachBudgetLineQuote({
       organizationId: user.organizationId,
       eventId,
-      eventVendorSlotId,
+      ...(isValidId(lineId) ? { lineId } : { eventVendorSlotId }),
+      kind,
       content: new Uint8Array(await file.arrayBuffer()),
       uploadedByUserId: user.id,
     });
@@ -46,5 +51,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ eve
   }
 
   revalidatePath(`/budget/${eventId}`);
+  revalidatePath(`/events/${eventId}`);
   return uploadResponse({ success: true });
 }

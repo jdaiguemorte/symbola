@@ -96,14 +96,17 @@ test("PRD-BUD-02 — confirmer la simulation en budget estimé, puis suivre esti
   await expectNoAxeViolation(page);
   const table = page.getByRole("table", { name: "Estimé, devisé, engagé, payé" });
   await expect(table).toBeVisible();
-  const lieuRow = table.getByRole("row", { name: /Lieu de réception/ });
+  // Lot 28b : la ligne (pas le total de sa catégorie), repérée par « Modifier ».
+  const lieuRow = table.getByRole("row").filter({ hasText: "Modifier « Lieu de réception »" });
   await expect(lieuRow).toContainText("6 000,00 €");
   await expect(lieuRow).toContainText("Non renseigné");
 
   // Modification de l'engagé à la main, écart calculé (6000 € estimés, 7000 € engagés).
   await lieuRow.getByText("Modifier « Lieu de réception »").click();
-  await lieuRow.getByLabel("Engagé — Lieu de réception").fill("7000");
-  await lieuRow.getByRole("button", { name: "Enregistrer la ligne" }).click();
+  // Lot 28b : le formulaire s'ouvre dans une rangée pleine largeur, sous la ligne.
+  const editor = page.getByRole("region", { name: "Ligne « Lieu de réception » : montants, prestataire, documents et échéances" });
+  await editor.getByLabel("Engagé — Lieu de réception").fill("7000");
+  await editor.getByRole("button", { name: "Enregistrer la ligne" }).click();
   await expect(lieuRow).toContainText("Dépassement de 1 000,00 €");
   await expectNoAxeViolation(page);
 });

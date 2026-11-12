@@ -80,7 +80,16 @@ describe("PRD-EVT-03 — Contrat de l'événement events.vendor_slot.booked", ()
 
   it("garde le nom et la version attendus", () => {
     expect(EVT_VENDOR_SLOT_BOOKED).toBe("events.vendor_slot.booked");
-    expect(EVT_VENDOR_SLOT_BOOKED_VERSION).toBe(1);
+    // Lot 28b (PRE-02) : version 2, ajout compatible du prestataire retenu.
+    expect(EVT_VENDOR_SLOT_BOOKED_VERSION).toBe(2);
+  });
+
+  it("lot 28b — accepte le prestataire retenu (version 2), et toujours un événement de version 1 sans lui", () => {
+    expect(vendorSlotBookedPayloadSchema.parse({ ...FROZEN_VENDOR_SLOT_BOOKED_PAYLOAD, candidateId: "8b1f8f9e-1a2b-4c3d-9e8f-001122334455" }).candidateId).toBe(
+      "8b1f8f9e-1a2b-4c3d-9e8f-001122334455",
+    );
+    expect(vendorSlotBookedPayloadSchema.parse(FROZEN_VENDOR_SLOT_BOOKED_PAYLOAD).candidateId).toBeUndefined();
+    expect(() => vendorSlotBookedPayloadSchema.parse({ ...FROZEN_VENDOR_SLOT_BOOKED_PAYLOAD, candidateId: "pas-un-uuid" })).toThrow();
   });
 
   it("accepte un poste réservé sans montant", () => {

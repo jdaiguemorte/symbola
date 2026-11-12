@@ -61,6 +61,7 @@ export type {
   EventPlace,
   ClientVendorOption,
   ClientVendorSlotOptions,
+  RetainedVendor,
   UpdateVendorCandidateInput,
   VendorCandidate,
   VendorCandidateNote,
@@ -104,8 +105,11 @@ export type {
   AllocationModel,
   AllocationModelItem,
   AllocationModelItemInput,
+  AddBudgetLineInput,
   AttachBudgetLineQuoteInput,
   BudgetAlertSettings,
+  BudgetCategory,
+  BudgetDocumentKind,
   BudgetAmountField,
   BudgetEnvelope,
   BudgetLine,
@@ -119,9 +123,14 @@ export type {
   EventBudgetView,
   EngagementPreview,
   SimulateEventBudgetInput,
+  UpcomingVendorPayment,
+  UpdateBudgetLineDetailsInput,
   UpdateBudgetLineInput,
+  VendorPayment,
+  VendorPaymentInput,
+  VendorPaymentStatus,
 } from "./budget/service-contract";
-export { BUDGET_AMOUNT_FIELDS } from "./budget/service-contract";
+export { BUDGET_AMOUNT_FIELDS, BUDGET_DOCUMENT_KINDS } from "./budget/service-contract";
 export type {
   CatalogItem,
   CatalogItemInput,

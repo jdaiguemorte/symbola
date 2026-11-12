@@ -2,13 +2,15 @@
 
 import { useActionState, useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { formatAmountInput, type Locale } from "@symbola/i18n";
+import { formatAmount, type Locale } from "@symbola/i18n";
 import type { EventVendorSlot } from "@/modules/events/service";
 import { addVendorSlotAction, updateVendorSlotAction, type VendorSlotFormState } from "./vendor-slot-actions";
 import { VENDOR_STATUS_CLASSES, VENDOR_STATUS_LABEL_KEYS } from "./vendor-slot-status";
 
 // Lot 28a (PRE-02) : le statut du poste se lit (celui de ses prestataires) ; le
-// formulaire garde « Non requis » et le raccourci du prestataire retenu.
+// formulaire garde « Non requis » et le raccourci du prestataire retenu. Lot 28b
+// (D10) : un poste peut avoir plusieurs prestataires retenus ; le raccourci en
+// ajoute un (ou change le montant d'un retenu du même nom).
 export function VendorSlotForm({ eventId, slot }: { eventId: string; slot: EventVendorSlot }) {
   const t = useTranslations("Events");
   const initialState: VendorSlotFormState = {};
@@ -16,16 +18,15 @@ export function VendorSlotForm({ eventId, slot }: { eventId: string; slot: Event
   // Champs contrôlés : React 19 réinitialise le formulaire après chaque
   // action, une erreur ferait sinon perdre la saisie.
   const [notRequired, setNotRequired] = useState(slot.notRequired);
-  const [vendorName, setVendorName] = useState(slot.vendorName ?? "");
+  const [vendorName, setVendorName] = useState("");
   const locale = useLocale() as Locale;
-  const [amount, setAmount] = useState(formatAmountInput(slot.amountCents, locale));
-  // Un prestataire retenu ailleurs (« Retenir ») met le formulaire à jour sans
-  // le recréer : le message « Ligne enregistrée. » reste affiché.
+  const [amount, setAmount] = useState("");
+  // Prestataire ajouté : le raccourci se vide pour le suivant.
   useEffect(() => {
-    setNotRequired(slot.notRequired);
-    setVendorName(slot.vendorName ?? "");
-    setAmount(formatAmountInput(slot.amountCents, locale));
-  }, [slot.notRequired, slot.vendorName, slot.amountCents, locale]);
+    if (!state.success) return;
+    setVendorName("");
+    setAmount("");
+  }, [state]);
 
   return (
     <form action={formAction}>
@@ -36,6 +37,11 @@ export function VendorSlotForm({ eventId, slot }: { eventId: string; slot: Event
         <p>
           {t("vendorSlotStatus")} <span className={VENDOR_STATUS_CLASSES[slot.status]}>{t(VENDOR_STATUS_LABEL_KEYS[slot.status])}</span>
         </p>
+        {slot.retainedVendors.length > 0 ? (
+          <p>
+            {t("retainedVendors", { vendors: slot.retainedVendors.map((vendor) => (vendor.quoteAmountCents !== null ? `${vendor.vendorName} (${formatAmount(vendor.quoteAmountCents, locale)})` : vendor.vendorName)).join(", ") })}
+          </p>
+        ) : null}
         <label className="checkbox">
           <input type="checkbox" name="notRequired" checked={notRequired} onChange={(event) => setNotRequired(event.target.checked)} />
           {t("vendorSlotNotRequired")}

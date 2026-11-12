@@ -6,6 +6,17 @@ import { BUDGET_AMOUNT_FIELDS, type BudgetAmountField } from "@symbola/contracts
 import { parseAmountToCents } from "@symbola/i18n";
 import {
   AlertThresholdInvalidError,
+  BudgetLineDetailsInvalidError,
+  BudgetLineNotFoundError,
+  BudgetLinePaidFromPaymentsError,
+  VendorPaymentInvalidError,
+  VendorPaymentNotFoundError,
+  addBudgetLine,
+  addVendorPayment,
+  removeBudgetLine,
+  removeVendorPayment,
+  setVendorPaymentPaid,
+  updateBudgetLineDetails,
   setEventAlertThreshold,
   AllocationModelNotFoundError,
   BudgetSimulationMismatchError,
@@ -19,7 +30,7 @@ import {
   updateBudgetLine,
 } from "@/modules/budget/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
-import { isBudgetModuleEnabled } from "../module-access";
+import { isBudgetModuleEnabled, isValidId } from "../module-access";
 
 export type BudgetFormState = { error?: string; success?: boolean };
 
@@ -108,7 +119,11 @@ export async function updateBudgetLineAction(
   if (auth.status !== "authenticated") return { error: t("unauthenticated") };
 
   const eventId = String(formData.get("eventId") ?? "");
+  // Lot 28b (Q33) : la ligne visée ; à défaut (fiche de l'événement), la
+  // première ligne de la catégorie.
+  const lineId = String(formData.get("lineId") ?? "");
   const eventVendorSlotId = String(formData.get("eventVendorSlotId") ?? "");
+  const target = isValidId(lineId) ? { lineId } : { eventVendorSlotId };
   const changes: { field: BudgetAmountField; amountCents: number }[] = [];
   for (const field of BUDGET_AMOUNT_FIELDS) {
     const raw = String(formData.get(`amount_${field}`) ?? "").trim();
@@ -121,11 +136,12 @@ export async function updateBudgetLineAction(
 
   try {
     for (const change of changes) {
-      await updateBudgetLine({ organizationId, eventId, eventVendorSlotId, field: change.field, amountCents: change.amountCents, changedByUserId: auth.user.id });
+      await updateBudgetLine({ organizationId, eventId, ...target, field: change.field, amountCents: change.amountCents, changedByUserId: auth.user.id });
     }
   } catch (error) {
     if (error instanceof EventNotFoundError) return { error: t("eventNotFound") };
-    if (error instanceof EventVendorSlotNotFoundError) return { error: t("unknownVendorSlot") };
+    if (error instanceof EventVendorSlotNotFoundError || error instanceof BudgetLineNotFoundError) return { error: t("unknownVendorSlot") };
+    if (error instanceof BudgetLinePaidFromPaymentsError) return { error: t("paidFromPayments") };
     throw error;
   }
 
@@ -187,3 +203,146 @@ export async function adjustEventBudgetItemAction(
   return {};
 }
 
+// —— Lot 28b (BUD-01, Q33) : lignes d'une catégorie ————————————————————————
+
+async function plannerAccess(): Promise<{ organizationId: string; userId: string } | null> {
+  const organizationId = await authorizedOrganizationId();
+  if (!organizationId) return null;
+  const auth = await getPlannerAuthContext();
+  return auth.status === "authenticated" ? { organizationId, userId: auth.user.id } : null;
+}
+
+function refresh(eventId: string) {
+  revalidatePath(`/budget/${eventId}`);
+  revalidatePath(`/events/${eventId}`);
+}
+
+function lineDetailsError(t: Awaited<ReturnType<typeof getTranslations>>, error: unknown): BudgetFormState {
+  if (error instanceof BudgetLineDetailsInvalidError) return { error: t(error.reason === "label" ? "lineLabelRequired" : "lineVendorInvalid") };
+  if (error instanceof BudgetLineNotFoundError || error instanceof EventVendorSlotNotFoundError) return { error: t("unknownVendorSlot") };
+  if (error instanceof EventNotFoundError) return { error: t("eventNotFound") };
+  throw error;
+}
+
+// Prestataire choisi dans la liste de la catégorie : vide = aucun.
+function candidateFrom(formData: FormData): string | null | undefined {
+  if (!formData.has("vendorCandidateId")) return undefined;
+  const value = String(formData.get("vendorCandidateId") ?? "");
+  return isValidId(value) ? value : null;
+}
+
+export async function addBudgetLineAction(_prevState: BudgetFormState, formData: FormData): Promise<BudgetFormState> {
+  const t = await getTranslations("Budget");
+  const access = await plannerAccess();
+  if (!access) return { error: t("unauthenticated") };
+  const eventId = String(formData.get("eventId") ?? "");
+  const eventVendorSlotId = String(formData.get("eventVendorSlotId") ?? "");
+  if (!isValidId(eventId) || !isValidId(eventVendorSlotId)) return { error: t("unknownVendorSlot") };
+  try {
+    await addBudgetLine({ organizationId: access.organizationId, eventId, eventVendorSlotId, label: String(formData.get("label") ?? ""), vendorCandidateId: candidateFrom(formData) ?? null });
+  } catch (error) {
+    return lineDetailsError(t, error);
+  }
+  refresh(eventId);
+  return { success: true };
+}
+
+export async function updateBudgetLineDetailsAction(_prevState: BudgetFormState, formData: FormData): Promise<BudgetFormState> {
+  const t = await getTranslations("Budget");
+  const access = await plannerAccess();
+  if (!access) return { error: t("unauthenticated") };
+  const eventId = String(formData.get("eventId") ?? "");
+  const lineId = String(formData.get("lineId") ?? "");
+  if (!isValidId(eventId) || !isValidId(lineId)) return { error: t("unknownVendorSlot") };
+  const vendorCandidateId = candidateFrom(formData);
+  try {
+    await updateBudgetLineDetails({
+      organizationId: access.organizationId,
+      eventId,
+      lineId,
+      label: String(formData.get("label") ?? ""),
+      ...(vendorCandidateId !== undefined ? { vendorCandidateId } : {}),
+    });
+  } catch (error) {
+    return lineDetailsError(t, error);
+  }
+  refresh(eventId);
+  return { success: true };
+}
+
+export async function removeBudgetLineAction(formData: FormData): Promise<void> {
+  const access = await plannerAccess();
+  const eventId = String(formData.get("eventId") ?? "");
+  const lineId = String(formData.get("lineId") ?? "");
+  if (!access || !isValidId(eventId) || !isValidId(lineId)) return;
+  await removeBudgetLine(access.organizationId, eventId, lineId).catch((error: unknown) => {
+    if (!(error instanceof BudgetLineNotFoundError)) throw error;
+  });
+  refresh(eventId);
+}
+
+// —— Lot 28b (BUD-03, D12, D13) : échéances des prestataires ———————————————
+
+// « 30 », « 12,5 » ou « 33.33 » % vers des points de base, sans calcul à
+// virgule flottante (CLAUDE.md § 5) ; undefined si illisible.
+function basisPointsFrom(raw: string): number | undefined {
+  const match = /^(\d{1,3})(?:[.,](\d{1,2}))?$/.exec(raw.trim().replace(/\s*%$/, ""));
+  if (!match) return undefined;
+  return Number(match[1]) * 100 + Number((match[2] ?? "").padEnd(2, "0"));
+}
+
+export async function addVendorPaymentAction(_prevState: BudgetFormState, formData: FormData): Promise<BudgetFormState> {
+  const t = await getTranslations("Budget");
+  const access = await plannerAccess();
+  if (!access) return { error: t("unauthenticated") };
+  const eventId = String(formData.get("eventId") ?? "");
+  const lineId = String(formData.get("lineId") ?? "");
+  if (!isValidId(eventId) || !isValidId(lineId)) return { error: t("unknownVendorSlot") };
+  const mode = String(formData.get("mode") ?? "amount");
+  const raw = String(formData.get("value") ?? "");
+  const fixedAmountCents = mode === "amount" ? parseAmountToCents(raw) : null;
+  const percentageBasisPoints = mode === "percent" ? basisPointsFrom(raw) : null;
+  if (fixedAmountCents === undefined || percentageBasisPoints === undefined || (fixedAmountCents === null && percentageBasisPoints === null)) return { error: t("paymentAmountInvalid") };
+  try {
+    await addVendorPayment({
+      organizationId: access.organizationId,
+      eventId,
+      lineId,
+      label: String(formData.get("label") ?? ""),
+      fixedAmountCents,
+      percentageBasisPoints,
+      dueOn: String(formData.get("dueOn") ?? ""),
+      changedByUserId: access.userId,
+    });
+  } catch (error) {
+    if (error instanceof VendorPaymentInvalidError) return { error: t(error.reason === "label" ? "paymentLabelRequired" : error.reason === "date" ? "paymentDateInvalid" : "paymentAmountInvalid") };
+    if (error instanceof BudgetLineNotFoundError) return { error: t("unknownVendorSlot") };
+    throw error;
+  }
+  refresh(eventId);
+  return { success: true };
+}
+
+// Payée ce jour (date saisie) ; date vide : le paiement est annulé.
+export async function setVendorPaymentPaidAction(formData: FormData): Promise<void> {
+  const access = await plannerAccess();
+  const eventId = String(formData.get("eventId") ?? "");
+  const paymentId = String(formData.get("paymentId") ?? "");
+  if (!access || !isValidId(eventId) || !isValidId(paymentId)) return;
+  const paidOn = String(formData.get("paidOn") ?? "").trim() || null;
+  await setVendorPaymentPaid({ organizationId: access.organizationId, eventId, paymentId, paidOn, changedByUserId: access.userId }).catch((error: unknown) => {
+    if (!(error instanceof VendorPaymentNotFoundError) && !(error instanceof VendorPaymentInvalidError)) throw error;
+  });
+  refresh(eventId);
+}
+
+export async function removeVendorPaymentAction(formData: FormData): Promise<void> {
+  const access = await plannerAccess();
+  const eventId = String(formData.get("eventId") ?? "");
+  const paymentId = String(formData.get("paymentId") ?? "");
+  if (!access || !isValidId(eventId) || !isValidId(paymentId)) return;
+  await removeVendorPayment({ organizationId: access.organizationId, eventId, paymentId, changedByUserId: access.userId }).catch((error: unknown) => {
+    if (!(error instanceof VendorPaymentNotFoundError)) throw error;
+  });
+  refresh(eventId);
+}

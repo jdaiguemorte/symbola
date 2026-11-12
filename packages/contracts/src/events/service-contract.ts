@@ -152,17 +152,18 @@ export type EventVendorSlot = {
   // Déduit de ses prestataires (lot 28a).
   status: VendorSlotStatus;
   notRequired: boolean;
-  vendorName: string | null;
-  amountCents: number | null;
-  currency: "EUR";
+  // Lot 28b (PRE-02, décisions D10 et D14) : ses prestataires retenus (Retenu,
+  // Contrat signé ou Soldé), dans leur ordre ; le poste n'en porte plus un seul.
+  retainedVendors: RetainedVendor[];
   position: number;
   // Lot 5 (IMP-04) : champs libres d'un import.
   importedFields?: Record<string, string>;
-  // Lot 11 (L11-EVT-10) : ce que veulent les clients, consulté retenu.
+  // Lot 11 (L11-EVT-10) : ce que veulent les clients.
   brief: string | null;
-  selectedCandidateId: string | null;
   icon: string | null;
 };
+
+export type RetainedVendor = { candidateId: string; vendorName: string; quoteAmountCents: number | null };
 
 // Lot 12 (L12-EVT-15) — lieux d'un événement, saisis une fois.
 export type EventPlace = { id: string; eventId: string; label: string; address: string | null; vendorId: string | null };
@@ -184,7 +185,7 @@ export type VendorCandidate = {
   shownToClients: boolean;
   // Lot 12 (L12-EVT-16) : RIB de la fiche du carnet partagé aux clients.
   shareRibWithClients: boolean;
-  // Déduit du poste : retenu, non retenu (un autre l'est), ou null.
+  // Déduit du statut (lot 28b) : retenu (ou au-delà), écarté, ou en lice (null).
   outcome: "selected" | "not_selected" | null;
   notes: VendorCandidateNote[];
 };
@@ -483,6 +484,8 @@ export interface EventsServiceContract {
   setVendorCandidateNoteVisibility(organizationId: string, noteId: string, visibleToClients: boolean): Promise<void>;
   removeVendorCandidateNote(organizationId: string, noteId: string): Promise<void>;
   selectVendorCandidate(input: { organizationId: string; candidateId: string; changedByUserId: string }): Promise<void>;
+  // Lot 28b (BUD-01) : un prestataire rattaché, lu par le module Budget.
+  getVendorCandidate(organizationId: string, candidateId: string): Promise<VendorCandidate | null>;
   listVendorConsultations(organizationId: string, vendorId: string): Promise<VendorConsultation[]>;
   listSelectedVendorIds(organizationId: string): Promise<string[]>;
   getClientVendorOptions(organizationId: string, userId: string, eventId: string): Promise<ClientVendorSlotOptions[]>;

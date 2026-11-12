@@ -81,19 +81,22 @@ test("PRD-BUD-03 — joindre le devis d'un prestataire à une ligne et l'ouvrir 
   // PRD-BUD-03 : un format non supporté est refusé avec un message clair.
   await page.goto(eventUrl.replace("/events/", "/budget/"));
   await page.waitForLoadState("networkidle");
-  const lieuRow = page.getByRole("table", { name: "Estimé, devisé, engagé, payé" }).getByRole("row", { name: /Lieu de réception/ });
+  // Lot 28b : la ligne (pas le total de sa catégorie), repérée par « Modifier ».
+  const lieuRow = page.getByRole("table", { name: "Estimé, devisé, engagé, payé" }).getByRole("row").filter({ hasText: "Modifier « Lieu de réception »" });
   await lieuRow.getByText("Modifier « Lieu de réception »").click();
-  const quoteInput = lieuRow.getByLabel(/Devis du prestataire — Lieu de réception/);
+  // Lot 28b : le formulaire s'ouvre dans une rangée pleine largeur, sous la ligne.
+  const editor = page.getByRole("region", { name: "Ligne « Lieu de réception » : montants, prestataire, documents et échéances" });
+  const quoteInput = editor.getByLabel(/Document du prestataire — Lieu de réception/);
   await quoteInput.setInputFiles({ name: "devis.txt", mimeType: "text/plain", buffer: Buffer.from("devis en texte") });
-  await lieuRow.getByRole("button", { name: "Joindre le devis" }).click();
-  await expect(lieuRow.getByRole("alert")).toHaveText("Format non supporté : joignez un PDF ou une image.");
+  await editor.getByRole("button", { name: "Joindre le document" }).click();
+  await expect(editor.getByRole("alert")).toHaveText("Format non supporté : joignez un PDF ou une image.");
 
   // Un PDF est accepté, puis s'ouvre par un lien signé temporaire.
   const pdf = Buffer.from("%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n", "latin1");
   await quoteInput.setInputFiles({ name: "devis-lieu.pdf", mimeType: "application/pdf", buffer: pdf });
-  await lieuRow.getByRole("button", { name: "Joindre le devis" }).click();
-  await expect(lieuRow.getByText("Devis joint.")).toBeVisible();
-  const link = lieuRow.getByRole("link", { name: /Ouvrir le devis 1 — Lieu de réception/ });
+  await editor.getByRole("button", { name: "Joindre le document" }).click();
+  await expect(editor.getByText("Document joint.")).toBeVisible();
+  const link = editor.getByRole("link", { name: /Ouvrir le devis 1 — Lieu de réception/ });
   await expect(link).toBeVisible();
   await expectNoAxeViolation(page);
 

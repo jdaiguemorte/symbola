@@ -61,6 +61,78 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     await expect(rollback("0099_inconnue")).rejects.toBeInstanceOf(RollbackRefusedError);
   });
 
+  it("lot 28b (BUD-01, PRE-02, ADR 0054) — 0105 et 0106 reprennent lignes et prestataires d'avant le lot, et s'annulent", async () => {
+    const lines = "0105_lot28b_budget_lines_payments";
+    const vendors = "0106_lot28b_events_retained_vendors";
+    await expect(rollback(lines)).rejects.toBeInstanceOf(RollbackRefusedError);
+
+    // Retour refusé tant qu'une catégorie a plusieurs lignes.
+    const organizationId = randomUUID();
+    const inOrganization = <T>(work: (tx: postgres.TransactionSql) => Promise<T>) =>
+      target.begin(async (tx) => {
+        await tx`select set_config('app.organization_id', ${organizationId}, true)`;
+        return work(tx);
+      }) as Promise<T>;
+    const ids = await inOrganization(async (tx) => {
+      const [event] = await tx<{ id: string }[]>`insert into events.events (organization_id) values (${organizationId}) returning id`;
+      const [slot] = await tx<{ id: string }[]>`insert into events.event_vendor_slots (organization_id, event_id, label) values (${organizationId}, ${event!.id}, 'Musique') returning id`;
+      const [extra] = await tx<{ id: string }[]>`insert into budget.budget_lines (organization_id, event_id, event_vendor_slot_id, label, position, estimated_amount_cents)
+        values (${organizationId}, ${event!.id}, ${slot!.id}, 'DJ de la soirée', 0, 110000), (${organizationId}, ${event!.id}, ${slot!.id}, 'Musiciens de la cérémonie', 1, 50000) returning id`;
+      return { eventId: event!.id, slotId: slot!.id, extraId: extra!.id };
+    });
+    await rollback(vendors);
+    expect(await hasColumn("events", "event_vendor_slots", "selected_candidate_id")).toBe(true);
+    await expect(rollback(lines)).rejects.toThrow(/plusieurs lignes/);
+    await inOrganization((tx) => tx`delete from budget.budget_lines where event_vendor_slot_id = ${ids.slotId} and id <> ${ids.extraId}`);
+    await rollback(lines);
+    expect(await hasColumn("budget", "budget_lines", "label")).toBe(false);
+    expect(await hasColumn("budget", "vendor_payments", "label")).toBe(false);
+
+    // Données d'avant le lot : un traiteur retenu (prestataire choisi), un fleuriste
+    // seulement nommé sur le poste (import du lot 5).
+    const before = await inOrganization(async (tx) => {
+      const [event] = await tx<{ id: string }[]>`insert into events.events (organization_id) values (${organizationId}) returning id`;
+      const [caterer] = await tx<{ id: string }[]>`insert into events.event_vendor_slots (organization_id, event_id, label, vendor_name, amount_cents, position)
+        values (${organizationId}, ${event!.id}, 'Traiteur', 'Maison Haddad', 960000, 0) returning id`;
+      const [haddad] = await tx<{ id: string }[]>`insert into events.event_vendor_candidates (organization_id, event_id, vendor_slot_id, vendor_name, status, quote_amount_cents, position)
+        values (${organizationId}, ${event!.id}, ${caterer!.id}, 'Maison Haddad', 'retained', 960000, 0) returning id`;
+      await tx`update events.event_vendor_slots set selected_candidate_id = ${haddad!.id} where id = ${caterer!.id}`;
+      const [florist] = await tx<{ id: string }[]>`insert into events.event_vendor_slots (organization_id, event_id, label, vendor_name, position)
+        values (${organizationId}, ${event!.id}, 'Fleuriste', 'Fleurs Martin', 1) returning id`;
+      await tx`insert into budget.budget_lines (organization_id, event_id, event_vendor_slot_id, estimated_amount_cents, committed_amount_cents)
+        values (${organizationId}, ${event!.id}, ${caterer!.id}, 1087100, 960000), (${organizationId}, ${event!.id}, ${florist!.id}, 300000, null)`;
+      return { eventId: event!.id, catererId: caterer!.id, floristId: florist!.id, haddadId: haddad!.id };
+    });
+
+    await migrateAll();
+    const after = await inOrganization(async (tx) => ({
+      lines: await tx<{ slot: string; label: string; vendor: string | null }[]>`select event_vendor_slot_id as slot, label, vendor_candidate_id as vendor from budget.budget_lines where event_id = ${before.eventId} order by label`,
+      candidates: await tx<{ slot: string; name: string; status: string }[]>`select vendor_slot_id as slot, vendor_name as name, status::text as status from events.event_vendor_candidates where event_id = ${before.eventId} order by vendor_name`,
+      kinds: await tx<{ kind: string }[]>`select distinct kind::text as kind from budget.budget_line_attachments`,
+    }));
+    expect(after.lines).toEqual([
+      { slot: before.floristId, label: "Fleuriste", vendor: null },
+      { slot: before.catererId, label: "Traiteur", vendor: before.haddadId },
+    ]);
+    expect(after.candidates).toEqual([
+      { slot: before.floristId, name: "Fleurs Martin", status: "shortlisted" },
+      { slot: before.catererId, name: "Maison Haddad", status: "retained" },
+    ]);
+    expect(await hasColumn("events", "event_vendor_slots", "vendor_name")).toBe(false);
+
+    // Retour à 0104 pour la suite : le poste retrouve son prestataire choisi.
+    await rollback(vendors);
+    await rollback(lines);
+    const back = await inOrganization((tx) =>
+      tx<{ label: string; vendor: string | null; selected: string | null; amount: number | null }[]>`select label, vendor_name as vendor, selected_candidate_id as selected, amount_cents as amount
+        from events.event_vendor_slots where event_id = ${before.eventId} order by position`,
+    );
+    expect(back).toEqual([
+      { label: "Traiteur", vendor: "Maison Haddad", selected: before.haddadId, amount: 960000 },
+      { label: "Fleuriste", vendor: null, selected: null, amount: null },
+    ]);
+  });
+
   it("lot 28a (PRE-02, BUD-01, ADR 0054) — 0103 et 0104 reprennent statuts et montants d'avant le lot, et s'annulent", async () => {
     const statuses = "0103_lot28a_events_vendor_statuses";
     const amounts = "0104_lot28a_budget_five_amounts";
@@ -114,12 +186,15 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     });
 
     await migrateAll();
+    // migrateAll applique aussi les migrations du 28b : retour à 0104 pour lire la reprise du 28a.
+    await rollback("0106_lot28b_events_retained_vendors");
+    await rollback("0105_lot28b_budget_lines_payments");
     const after = await inOrganization(async (tx) => ({
-      candidates: await tx<{ vendor: string; status: string }[]>`select vendor_name as vendor, status::text as status from events.event_vendor_candidates order by vendor_name`,
-      slots: await tx<{ label: string; not_required: boolean; selected: boolean }[]>`select label, not_required, selected_candidate_id is not null as selected from events.event_vendor_slots order by position`,
+      candidates: await tx<{ vendor: string; status: string }[]>`select vendor_name as vendor, status::text as status from events.event_vendor_candidates where organization_id = ${organizationId} order by vendor_name`,
+      slots: await tx<{ label: string; not_required: boolean; selected: boolean }[]>`select label, not_required, selected_candidate_id is not null as selected from events.event_vendor_slots where organization_id = ${organizationId} order by position`,
       lines: await tx<{ estimated: number; quoted: number | null; committed: number; paid: number | null }[]>`select estimated_amount_cents as estimated, quoted_amount_cents as quoted, committed_amount_cents as committed, paid_amount_cents as paid
-        from budget.budget_lines order by estimated_amount_cents`,
-      fields: await tx<{ field: string }[]>`select distinct field::text as field from budget.budget_line_history`,
+        from budget.budget_lines where organization_id = ${organizationId} order by estimated_amount_cents`,
+      fields: await tx<{ field: string }[]>`select distinct field::text as field from budget.budget_line_history where organization_id = ${organizationId}`,
     }));
     expect(after.candidates.map((row) => [row.vendor, row.status])).toEqual([
       ["Château", "retained"],
@@ -143,9 +218,9 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     await rollback(amounts);
     await rollback(statuses);
     const back = await inOrganization(async (tx) => ({
-      candidates: await tx<{ vendor: string; response: string }[]>`select vendor_name as vendor, response::text as response from events.event_vendor_candidates order by vendor_name`,
-      slots: await tx<{ label: string; status: string }[]>`select label, status::text as status from events.event_vendor_slots order by position`,
-      lines: await tx<{ planned: number; actual: number }[]>`select planned_amount_cents as planned, actual_amount_cents as actual from budget.budget_lines order by planned_amount_cents`,
+      candidates: await tx<{ vendor: string; response: string }[]>`select vendor_name as vendor, response::text as response from events.event_vendor_candidates where organization_id = ${organizationId} order by vendor_name`,
+      slots: await tx<{ label: string; status: string }[]>`select label, status::text as status from events.event_vendor_slots where organization_id = ${organizationId} order by position`,
+      lines: await tx<{ planned: number; actual: number }[]>`select planned_amount_cents as planned, actual_amount_cents as actual from budget.budget_lines where organization_id = ${organizationId} order by planned_amount_cents`,
     }));
     expect(back.candidates.map((row) => [row.vendor, row.response])).toEqual([
       ["Château", "quote_received"],

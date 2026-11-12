@@ -9,6 +9,7 @@ import { getOrganizationProfile, isModuleEnabled } from "@/modules/hub/service";
 import { requireSignedIn } from "@/lib/guards";
 import { recordUsage } from "@/lib/usage";
 import { UpcomingPaymentsBlock } from "./devis/encaissements/dashboard-block";
+import { VendorPaymentsBlock } from "./budget/vendor-payments-block";
 import { PrivacyPurgeAlertBlock, PrivacyRequestsAlertBlock } from "./rgpd/dashboard-block";
 import { PageTour } from "./page-tour";
 import { loadPageTour } from "@/lib/help/page-tour";
@@ -37,11 +38,13 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   // d'organisation) n'a pas de module à vérifier.
   let eventsAvailable = false;
   let quotesAvailable = false;
+  let budgetAvailable = false;
   if (auth.user.organizationId) {
     const organizationId = auth.user.organizationId;
     const db = appDatabase();
     eventsAvailable = await isModuleEnabled(db, organizationId, "events");
     quotesAvailable = await isModuleEnabled(db, organizationId, "quotes");
+    budgetAvailable = await isModuleEnabled(db, organizationId, "budget");
   }
   const t = await getTranslations("Home");
 
@@ -96,6 +99,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         {eventsAvailable && organizationId ? <UpcomingTasksBlock organizationId={organizationId} locale={locale} today={today} /> : null}
         {/* PRD-HUB-02 / DEV-03 : absent si le module Devis n'est pas souscrit. */}
         {quotesAvailable && organizationId ? <UpcomingPaymentsBlock organizationId={organizationId} /> : null}
+        {/* Lot 28b (BUD-03, D7) : échéances des prestataires, absent sans module Budget. */}
+        {budgetAvailable && organizationId ? <VendorPaymentsBlock organizationId={organizationId} /> : null}
       </div>
       <PageTour {...tour} helpTitle={tHelp("home.title")} helpBody={tHelp("home.body")} />
     </main>

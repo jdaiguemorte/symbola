@@ -31,9 +31,7 @@ import {
   EVT_EVENT_CREATED_VERSION,
   EVT_EVENT_STATUS_CHANGED,
   EVT_EVENT_STATUS_CHANGED_VERSION,
-  EVT_VENDOR_SLOT_BOOKED,
-  EVT_VENDOR_SLOT_BOOKED_VERSION,
-  vendorSlotBookedPayloadSchema,
+  ENGAGED_CANDIDATE_STATUSES,
   type EventStatus,
   type TaskRecalculation,
   type TaskResponsible,
@@ -406,57 +404,17 @@ export async function insertEventVendorSlot(
   });
 }
 
-export async function updateEventVendorSlotRow(input: {
-  organizationId: string;
-  vendorSlotId: string;
-  changedByUserId: string;
-  // Lot 28a (PRE-02) : « Non requis », seule donnée propre au poste.
-  notRequired?: boolean | undefined;
-  vendorName?: string | null | undefined;
-  amountCents?: number | null | undefined;
-  // Lot 11 (L11-EVT-10) : prestataire retenu ; le poste est réservé quand il en a un.
-  selectedCandidateId?: string | null | undefined;
-}): Promise<EventVendorSlotRow | null> {
+// Lot 28b (PRE-02, décision D14) : « Non requis » est la seule donnée du poste
+// qui change ici ; ses prestataires retenus portent le reste.
+export async function updateEventVendorSlotRow(input: { organizationId: string; vendorSlotId: string; notRequired: boolean }): Promise<EventVendorSlotRow | null> {
   const db = appDatabase();
   return await withOrganization(db, input.organizationId, async (tx) => {
-    const [current] = await tx.select().from(eventVendorSlots).where(eq(eventVendorSlots.id, input.vendorSlotId));
-    if (!current) return null;
-
-    const vendorName = input.vendorName === undefined ? current.vendorName : input.vendorName;
-    const amountCents = input.amountCents === undefined ? current.amountCents : input.amountCents;
-    const selectedCandidateId = input.selectedCandidateId !== undefined ? input.selectedCandidateId : current.selectedCandidateId;
-    const notRequired = input.notRequired ?? current.notRequired;
-
     const [updated] = await tx
       .update(eventVendorSlots)
-      .set({ notRequired, vendorName, amountCents, selectedCandidateId, updatedAt: new Date() })
+      .set({ notRequired: input.notRequired, updatedAt: new Date() })
       .where(eq(eventVendorSlots.id, input.vendorSlotId))
       .returning();
-    if (!updated) throw new Error("mise à jour du poste échouée");
-
-    // Publié quand un prestataire est retenu, puis à chaque changement de
-    // montant d'un poste réservé : le module Budget engage la ligne (lot 28a).
-    const becomesBooked = updated.selectedCandidateId !== null && updated.selectedCandidateId !== current.selectedCandidateId;
-    const bookedAmountChanged =
-      current.selectedCandidateId !== null && updated.selectedCandidateId === current.selectedCandidateId && current.amountCents !== updated.amountCents;
-    const [parent] = await tx.select({ isDemo: events.isDemo }).from(events).where(eq(events.id, updated.eventId));
-    if ((becomesBooked || bookedAmountChanged) && !parent?.isDemo) {
-      await emitDomainEvent(tx, {
-        organizationId: input.organizationId,
-        name: EVT_VENDOR_SLOT_BOOKED,
-        version: EVT_VENDOR_SLOT_BOOKED_VERSION,
-        payload: vendorSlotBookedPayloadSchema.parse({
-          eventId: updated.eventId,
-          vendorSlotId: updated.id,
-          label: updated.label,
-          amountCents: updated.amountCents,
-          currency: "EUR",
-          bookedByUserId: input.changedByUserId,
-        }),
-      });
-    }
-
-    return updated;
+    return updated ?? null;
   });
 }
 
@@ -1661,14 +1619,19 @@ export async function searchEventRows(
       .orderBy(asc(eventTasks.dueDate))
       .limit(limit);
 
+    // Lot 28b (PRE-02) : les prestataires retenus d'un poste (plusieurs possibles).
     const vendorRows = await tx
-      .select({ id: eventVendorSlots.id, eventId: eventVendorSlots.eventId, label: eventVendorSlots.label, vendorName: eventVendorSlots.vendorName, eventNames: eventNamesSql })
+      .select({ id: eventVendorSlots.id, eventId: eventVendorSlots.eventId, label: eventVendorSlots.label, vendorName: eventVendorCandidates.vendorName, eventNames: eventNamesSql })
       .from(eventVendorSlots)
       .innerJoin(events, eq(events.id, eventVendorSlots.eventId))
+      .leftJoin(
+        eventVendorCandidates,
+        and(eq(eventVendorCandidates.vendorSlotId, eventVendorSlots.id), inArray(eventVendorCandidates.status, [...ENGAGED_CANDIDATE_STATUSES])),
+      )
       .where(
         and(
           eq(events.isDemo, false),
-          ...words.map((word) => sql`${foldedColumn(sql`concat_ws(' ', ${eventVendorSlots.vendorName}, ${eventVendorSlots.label})`)} like ${likeWord(word)}`),
+          ...words.map((word) => sql`${foldedColumn(sql`concat_ws(' ', ${eventVendorCandidates.vendorName}, ${eventVendorSlots.label})`)} like ${likeWord(word)}`),
         ),
       )
       .limit(limit);

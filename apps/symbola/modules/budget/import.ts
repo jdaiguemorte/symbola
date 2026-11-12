@@ -5,10 +5,10 @@
 // transaction, historisés comme une saisie à la main. Si cette seconde
 // écriture échoue, les postes écrits sont annulés (compensation : deux
 // modules, deux transactions).
-import { eq, inArray, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import { sameImportValue, type ImportApplyResult, type ImportApplyRow, type ImportedItem, type ImportUndoItem, type ImportUndoOutcome } from "@symbola/contracts";
 import { appDatabase } from "@symbola/db/client";
-import { budgetLineAttachments, budgetLineHistory, budgetLines } from "@symbola/db/schema/budget";
+import { budgetLineAttachments, budgetLineHistory, budgetLines, vendorPayments } from "@symbola/db/schema/budget";
 import { withOrganization } from "@symbola/db/with-organization";
 import { importVendorSlotsForBudget, undoImportedEventsElements } from "@/modules/events/service";
 
@@ -27,7 +27,20 @@ function amount(value: unknown): number | null {
 async function lineState(tx: Tx, lineId: string): Promise<Values | null> {
   const [line] = await tx.select().from(budgetLines).where(eq(budgetLines.id, lineId));
   if (!line) return null;
-  return { estimatedAmountCents: line.estimatedAmountCents, committedAmountCents: line.committedAmountCents };
+  return { estimatedAmountCents: line.estimatedAmountCents, committedAmountCents: line.committedAmountCents, vendorCandidateId: line.vendorCandidateId };
+}
+
+function text(value: unknown): string | null {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+// Lot 28b (BUD-01, Q33) : la ligne d'un libellé importé dans la catégorie
+// (créée s'il n'y en a pas), ou, sans libellé, la première de la catégorie.
+async function targetLine(tx: Tx, slotId: string, label: string | null) {
+  const lines = await tx.select().from(budgetLines).where(eq(budgetLines.eventVendorSlotId, slotId)).orderBy(asc(budgetLines.position), asc(budgetLines.createdAt));
+  if (label === null) return { line: lines[0] ?? null, position: 0 };
+  const same = lines.find((line) => line.label.trim().toLowerCase() === label.toLowerCase());
+  return { line: same ?? null, position: lines.reduce((max, line) => Math.max(max, line.position + 1), 0) };
 }
 
 // Lot 28a (BUD-01, décision D2) : un import fait avant le lot garde les anciens
@@ -68,12 +81,15 @@ export async function importBudgetLineRows(input: { organizationId: string; user
         // Colonnes du tableur « prévu » et « réel » : l'estimé et l'engagé (lot 28a).
         const planned = amount(row.values.plannedAmount);
         const actual = amount(row.values.actualAmount);
-        const [existing] = await tx.select().from(budgetLines).where(eq(budgetLines.eventVendorSlotId, slotId));
+        const label = text(row.values.lineLabel);
+        const candidateId = slots.candidateIdByRow.get(row.rowIndex) ?? null;
+        const { line: existing, position } = await targetLine(tx, slotId, label);
         if (existing) {
-          const current = { estimatedAmountCents: existing.estimatedAmountCents, committedAmountCents: existing.committedAmountCents };
+          const current = { estimatedAmountCents: existing.estimatedAmountCents, committedAmountCents: existing.committedAmountCents, vendorCandidateId: existing.vendorCandidateId };
           const written: Values = {};
           if (planned !== null && planned !== current.estimatedAmountCents) written.estimatedAmountCents = planned;
           if (actual !== null && actual !== current.committedAmountCents) written.committedAmountCents = actual;
+          if (candidateId !== null && current.vendorCandidateId === null) written.vendorCandidateId = candidateId;
           if (Object.keys(written).length === 0) {
             if (!slots.items.some((item) => item.rowIndex === row.rowIndex)) unchanged += 1;
             continue;
@@ -93,12 +109,15 @@ export async function importBudgetLineRows(input: { organizationId: string; user
             organizationId: input.organizationId,
             eventId: row.eventId,
             eventVendorSlotId: slotId,
+            label: label ?? "",
+            vendorCandidateId: candidateId,
+            position,
             estimatedAmountCents: planned,
             committedAmountCents: actual,
           })
           .returning();
         if (!line) throw new Error("création de la ligne de budget échouée");
-        const written = { estimatedAmountCents: line.estimatedAmountCents, committedAmountCents: line.committedAmountCents };
+        const written = { estimatedAmountCents: line.estimatedAmountCents, committedAmountCents: line.committedAmountCents, vendorCandidateId: line.vendorCandidateId };
         await history(tx, input.organizationId, line.id, input.userId, { estimatedAmountCents: null, committedAmountCents: null }, written);
         items.push({ rowIndex: row.rowIndex, module: "budget", kind: "budget_line", elementId: line.id, action: "created", previous: null, written });
       }
@@ -121,9 +140,11 @@ function modifiedSince(current: Values, recorded: Values | null): boolean {
   return Object.keys(written).some((key) => !sameImportValue(current[key], written[key]));
 }
 
+// Un document joint ou une échéance (lot 28b) : la ligne a reçu du travail à la main.
 async function hasAttachments(tx: Tx, lineId: string): Promise<boolean> {
   const [row] = await tx.select({ n: sql<number>`count(*)::int` }).from(budgetLineAttachments).where(eq(budgetLineAttachments.lineId, lineId));
-  return (row?.n ?? 0) > 0;
+  const [payment] = await tx.select({ n: sql<number>`count(*)::int` }).from(vendorPayments).where(and(eq(vendorPayments.lineId, lineId)));
+  return (row?.n ?? 0) + (payment?.n ?? 0) > 0;
 }
 
 export async function findModifiedImportedBudgetElements(

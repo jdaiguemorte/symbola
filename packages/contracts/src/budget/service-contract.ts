@@ -61,16 +61,23 @@ export type AdjustEventBudgetItemInput = {
   amountCents: number;
 };
 
-// Lot 28a (BUD-01, décision D2, ADR 0054) — cinq montants par ligne de budget,
-// une ligne par poste de l'événement (events.event_vendor_slots). Le reste à
-// payer (engagé moins payé) et l'écart à l'estimé (engagé moins estimé) se
-// calculent, jamais stockés ; null tant que l'engagé n'est pas connu.
+// Lot 28a (BUD-01, décision D2, ADR 0054) — cinq montants par ligne de budget.
+// Le reste à payer (engagé moins payé) et l'écart à l'estimé (engagé moins
+// estimé) se calculent, jamais stockés ; null tant que l'engagé n'est pas
+// connu. Lot 28b (décision Q33) : le poste de l'événement est la catégorie ;
+// il porte plusieurs lignes, chacune avec son libellé et son prestataire.
 export const BUDGET_AMOUNT_FIELDS = ["estimated", "quoted", "committed", "paid"] as const;
 export type BudgetAmountField = (typeof BUDGET_AMOUNT_FIELDS)[number];
 
 export type BudgetLine = {
+  id: string;
   eventVendorSlotId: string;
+  // Libellé de la ligne ; vide, celui de la catégorie.
   label: string;
+  // Prestataire rattaché à la catégorie (module events), et son nom.
+  vendorCandidateId: string | null;
+  vendorName: string | null;
+  position: number;
   estimatedAmountCents: number | null;
   quotedAmountCents: number | null;
   committedAmountCents: number | null;
@@ -78,14 +85,36 @@ export type BudgetLine = {
   remainingAmountCents: number | null;
   varianceCents: number | null;
   variancePercent: number | null;
-  // PRD-BUD-03 : devis prestataires joints à la ligne.
+  // Lot 28b (D13) : le payé vient des échéances payées dès qu'il y en a.
+  paidFromPayments: boolean;
+  // PRD-BUD-03, lot 28b (BUD-04) : documents joints, par nature.
   attachments: BudgetLineAttachment[];
+  // Lot 28b (BUD-03) : échéances des paiements au prestataire.
+  payments: VendorPayment[];
 };
 
-// PRD-BUD-03 — devis prestataire joint. Jamais d'URL dans la vue : le fichier
-// s'ouvre par un lien signé temporaire demandé au moment de l'ouverture.
+// Lot 28b (BUD-01, Q33) — une catégorie (poste de l'événement) et ses lignes.
+export type BudgetCategory = {
+  eventVendorSlotId: string;
+  label: string;
+  lines: BudgetLine[];
+  estimatedCents: number;
+  quotedCents: number;
+  committedCents: number;
+  paidCents: number;
+  remainingCents: number;
+  varianceCents: number;
+};
+
+// Lot 28b (BUD-04) : nature d'un document joint.
+export const BUDGET_DOCUMENT_KINDS = ["quote", "contract", "invoice"] as const;
+export type BudgetDocumentKind = (typeof BUDGET_DOCUMENT_KINDS)[number];
+
+// PRD-BUD-03 — document joint. Jamais d'URL dans la vue : le fichier s'ouvre
+// par une route de l'app, après contrôle des droits (ADR 0027).
 export type BudgetLineAttachment = {
   id: string;
+  kind: BudgetDocumentKind;
   mime: string;
   sizeBytes: number;
   createdAt: string;
@@ -94,13 +123,75 @@ export type BudgetLineAttachment = {
 export type AttachBudgetLineQuoteInput = {
   organizationId: string;
   eventId: string;
-  eventVendorSlotId: string;
+  // La ligne visée ; à défaut, la première ligne de la catégorie.
+  lineId?: string;
+  eventVendorSlotId?: string;
+  kind?: BudgetDocumentKind;
   content: Uint8Array;
   uploadedByUserId: string;
 };
 
+// Lot 28b (BUD-03, décisions D7, D12 et D13) — échéance d'un paiement à un
+// prestataire : montant fixe, ou pourcentage de l'engagé du prestataire (de la
+// ligne sans prestataire). amountCents est le montant calculé.
+export type VendorPaymentStatus = "due" | "overdue" | "paid";
+export type VendorPayment = {
+  id: string;
+  lineId: string;
+  label: string;
+  amountCents: number;
+  fixedAmountCents: number | null;
+  percentageBasisPoints: number | null;
+  dueOn: string;
+  paidOn: string | null;
+  status: VendorPaymentStatus;
+};
+
+export type VendorPaymentInput = {
+  organizationId: string;
+  eventId: string;
+  lineId: string;
+  label: string;
+  fixedAmountCents?: number | null;
+  percentageBasisPoints?: number | null;
+  dueOn: string;
+  changedByUserId: string;
+};
+
+// Bloc « Échéances prestataires » de l'accueil (D7) : 7 prochains jours et retards.
+export type UpcomingVendorPayment = {
+  id: string;
+  eventId: string;
+  eventName: string;
+  lineId: string;
+  lineLabel: string;
+  vendorName: string | null;
+  label: string;
+  amountCents: number;
+  dueOn: string;
+  overdue: boolean;
+};
+
+export type AddBudgetLineInput = {
+  organizationId: string;
+  eventId: string;
+  eventVendorSlotId: string;
+  label: string;
+  vendorCandidateId?: string | null;
+};
+
+export type UpdateBudgetLineDetailsInput = {
+  organizationId: string;
+  eventId: string;
+  lineId: string;
+  label?: string;
+  vendorCandidateId?: string | null;
+};
+
 export type BudgetLinesView = {
   eventId: string;
+  categories: BudgetCategory[];
+  // Toutes les lignes, dans l'ordre des catégories.
   lines: BudgetLine[];
   totalEstimatedCents: number;
   totalQuotedCents: number;
@@ -148,7 +239,9 @@ export type ConfirmEventBudgetInput = {
 export type UpdateBudgetLineInput = {
   organizationId: string;
   eventId: string;
-  eventVendorSlotId: string;
+  // La ligne visée ; à défaut, la première ligne de la catégorie (créée au besoin).
+  lineId?: string;
+  eventVendorSlotId?: string;
   field: BudgetAmountField;
   amountCents: number;
   changedByUserId: string;
@@ -172,7 +265,16 @@ export interface BudgetServiceContract {
   listBudgetLines(organizationId: string, eventId: string): Promise<BudgetLinesView>;
   confirmEventBudget(input: ConfirmEventBudgetInput): Promise<BudgetLinesView>;
   updateBudgetLine(input: UpdateBudgetLineInput): Promise<BudgetLinesView>;
+  // Historique des lignes d'une catégorie.
   listBudgetLineHistory(organizationId: string, eventVendorSlotId: string): Promise<BudgetLineHistoryEntry[]>;
+  addBudgetLine(input: AddBudgetLineInput): Promise<BudgetLinesView>;
+  updateBudgetLineDetails(input: UpdateBudgetLineDetailsInput): Promise<BudgetLinesView>;
+  removeBudgetLine(organizationId: string, eventId: string, lineId: string): Promise<BudgetLinesView>;
+  addVendorPayment(input: VendorPaymentInput): Promise<BudgetLinesView>;
+  updateVendorPayment(input: VendorPaymentInput & { paymentId: string }): Promise<BudgetLinesView>;
+  setVendorPaymentPaid(input: { organizationId: string; eventId: string; paymentId: string; paidOn: string | null; changedByUserId: string }): Promise<BudgetLinesView>;
+  removeVendorPayment(input: { organizationId: string; eventId: string; paymentId: string; changedByUserId: string }): Promise<BudgetLinesView>;
+  listUpcomingVendorPayments(organizationId: string, today: string): Promise<UpcomingVendorPayment[]>;
   attachBudgetLineQuote(input: AttachBudgetLineQuoteInput): Promise<BudgetLineAttachment>;
   // ADR 0027 — servi par l'app (jamais de lien direct vers le stockage).
   getBudgetLineAttachmentFile(organizationId: string, attachmentId: string): Promise<FileDownload>;

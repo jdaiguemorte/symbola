@@ -27,6 +27,8 @@ import {
   events,
   eventStatusHistory,
   eventTasks,
+  eventVendorCandidateNotes,
+  eventVendorCandidates,
   eventVendorSlots,
   lossReasons,
   eventPlaces,
@@ -405,62 +407,89 @@ async function writeTaskFields(tx: Tx, taskId: string, fields: Values): Promise<
 async function vendorSlotState(tx: Tx, slotId: string): Promise<Values | null> {
   const [slot] = await tx.select().from(eventVendorSlots).where(eq(eventVendorSlots.id, slotId));
   if (!slot) return null;
-  // Lot 28a (PRE-02) : le poste n'a plus de statut à lui (l'import n'en écrit pas).
-  return { eventId: slot.eventId, label: slot.label, vendorName: slot.vendorName, importedFields: slot.importedFields };
+  // Lot 28a/28b (PRE-02) : le poste n'a plus de statut ni de prestataire à lui.
+  return { eventId: slot.eventId, label: slot.label, importedFields: slot.importedFields };
 }
 
-// Postes des lignes de budget importées : existant (rapproché) ou créé ;
-// le module budget écrit ensuite les montants.
+async function vendorCandidateState(tx: Tx, candidateId: string): Promise<Values | null> {
+  const [candidate] = await tx.select().from(eventVendorCandidates).where(eq(eventVendorCandidates.id, candidateId));
+  if (!candidate) return null;
+  return { vendorSlotId: candidate.vendorSlotId, vendorName: candidate.vendorName, status: candidate.status };
+}
+
+const hasValue = (value: unknown) => value !== undefined && value !== null && value !== "";
+
+// Lot 28b (PRE-02) : le prestataire d'une ligne importée devient un prestataire
+// rattaché au poste (retenu si la ligne a un montant réel, pressenti sinon),
+// sauf s'il l'est déjà sous ce nom.
+async function importedCandidate(tx: Tx, organizationId: string, row: ImportApplyRow, slotId: string, eventId: string, items: ImportedItem[]): Promise<string | null> {
+  const vendorName = text(row.values.vendorName);
+  if (!vendorName) return null;
+  const existing = (await tx.select().from(eventVendorCandidates).where(eq(eventVendorCandidates.vendorSlotId, slotId))).find(
+    (candidate) => candidate.vendorName.trim().toLowerCase() === vendorName.toLowerCase(),
+  );
+  if (existing) return existing.id;
+  const [last] = await tx.select({ value: max(eventVendorCandidates.position) }).from(eventVendorCandidates).where(eq(eventVendorCandidates.vendorSlotId, slotId));
+  const [candidate] = await tx
+    .insert(eventVendorCandidates)
+    .values({
+      organizationId,
+      eventId,
+      vendorSlotId: slotId,
+      vendorName,
+      status: hasValue(row.values.actualAmount) ? "retained" : "shortlisted",
+      position: (last?.value ?? -1) + 1,
+    })
+    .returning();
+  if (!candidate) throw new Error("création du prestataire rattaché échouée");
+  items.push({ rowIndex: row.rowIndex, module: "events", kind: "event_vendor_candidate", elementId: candidate.id, action: "created", previous: null, written: (await vendorCandidateState(tx, candidate.id)) ?? {} });
+  return candidate.id;
+}
+
+// Postes des lignes de budget importées : existant (rapproché) ou créé, et le
+// prestataire de la ligne ; le module budget écrit ensuite les lignes.
 export async function importVendorSlotsForBudget(input: {
   organizationId: string;
   rows: ImportApplyRow[];
-}): Promise<{ items: ImportedItem[]; slotIdByRow: Map<number, string> }> {
+}): Promise<{ items: ImportedItem[]; slotIdByRow: Map<number, string>; candidateIdByRow: Map<number, string> }> {
   return inTransaction(input.organizationId, async (tx) => {
     const items: ImportedItem[] = [];
     const slotIdByRow = new Map<number, string>();
+    const candidateIdByRow = new Map<number, string>();
     for (const row of input.rows) {
       if (!row.eventId) throw new Error("événement de rattachement inconnu");
       const [event] = await tx.select({ id: events.id }).from(events).where(and(eq(events.id, row.eventId), eq(events.isDemo, false)));
       if (!event) throw new Error("événement de rattachement inconnu");
       const current = row.matchId ? await vendorSlotState(tx, row.matchId) : null;
+      let slotId: string;
       if (row.matchId && current && current.eventId === row.eventId) {
-        slotIdByRow.set(row.rowIndex, row.matchId);
-        const wanted: Values = {};
-        const vendorName = text(row.values.vendorName);
-        if (vendorName) wanted.vendorName = vendorName;
+        slotId = row.matchId;
         const importedFields = mergedImportedFields(current.importedFields as Record<string, string> | null, row.importedFields);
-        if (!same(importedFields, current.importedFields)) wanted.importedFields = importedFields;
-        const keys = changedKeys(current, wanted);
-        if (keys.length === 0) continue;
-        const written = pick(wanted, keys);
-        await tx
-          .update(eventVendorSlots)
-          .set({
-            ...("vendorName" in written ? { vendorName: written.vendorName as string } : {}),
-            ...("importedFields" in written ? { importedFields: written.importedFields as Record<string, string> | null } : {}),
-            updatedAt: new Date(),
+        if (!same(importedFields, current.importedFields)) {
+          await tx.update(eventVendorSlots).set({ importedFields, updatedAt: new Date() }).where(eq(eventVendorSlots.id, slotId));
+          items.push({ rowIndex: row.rowIndex, module: "events", kind: "event_vendor_slot", elementId: slotId, action: "updated", previous: { importedFields: current.importedFields }, written: { importedFields } });
+        }
+      } else {
+        const [last] = await tx.select({ value: max(eventVendorSlots.position) }).from(eventVendorSlots).where(eq(eventVendorSlots.eventId, row.eventId));
+        const [slot] = await tx
+          .insert(eventVendorSlots)
+          .values({
+            organizationId: input.organizationId,
+            eventId: row.eventId,
+            label: text(row.values.slotLabel) ?? "",
+            position: (last?.value ?? -1) + 1,
+            importedFields: Object.keys(row.importedFields).length > 0 ? row.importedFields : null,
           })
-          .where(eq(eventVendorSlots.id, row.matchId));
-        items.push({ rowIndex: row.rowIndex, module: "events", kind: "event_vendor_slot", elementId: row.matchId, action: "updated", previous: pick(current, keys), written });
-        continue;
+          .returning();
+        if (!slot) throw new Error("création du poste échouée");
+        slotId = slot.id;
+        items.push({ rowIndex: row.rowIndex, module: "events", kind: "event_vendor_slot", elementId: slot.id, action: "created", previous: null, written: (await vendorSlotState(tx, slot.id)) ?? {} });
       }
-      const [last] = await tx.select({ value: max(eventVendorSlots.position) }).from(eventVendorSlots).where(eq(eventVendorSlots.eventId, row.eventId));
-      const [slot] = await tx
-        .insert(eventVendorSlots)
-        .values({
-          organizationId: input.organizationId,
-          eventId: row.eventId,
-          label: text(row.values.slotLabel) ?? "",
-          vendorName: text(row.values.vendorName),
-          position: (last?.value ?? -1) + 1,
-          importedFields: Object.keys(row.importedFields).length > 0 ? row.importedFields : null,
-        })
-        .returning();
-      if (!slot) throw new Error("création du poste échouée");
-      slotIdByRow.set(row.rowIndex, slot.id);
-      items.push({ rowIndex: row.rowIndex, module: "events", kind: "event_vendor_slot", elementId: slot.id, action: "created", previous: null, written: (await vendorSlotState(tx, slot.id)) ?? {} });
+      slotIdByRow.set(row.rowIndex, slotId);
+      const candidateId = await importedCandidate(tx, input.organizationId, row, slotId, row.eventId, items);
+      if (candidateId) candidateIdByRow.set(row.rowIndex, candidateId);
     }
-    return { items, slotIdByRow };
+    return { items, slotIdByRow, candidateIdByRow };
   });
 }
 
@@ -526,14 +555,17 @@ async function stateOf(tx: Tx, kind: string, id: string): Promise<Values | null>
       return taskState(tx, id);
     case "event_vendor_slot":
       return vendorSlotState(tx, id);
+    case "event_vendor_candidate":
+      return vendorCandidateState(tx, id);
     default:
       return listItemState(tx, kind, id);
   }
 }
 
-// Lot 28a : la trace d'un poste importé avant le lot porte encore son statut,
-// qui n'existe plus ; il n'entre pas dans la comparaison.
-const RETIRED_KEYS = new Set(["status"]);
+// Lot 28a/28b : la trace d'un poste importé avant ces lots porte encore son
+// statut et son prestataire, qui n'existent plus ; ils n'entrent pas dans la
+// comparaison ni dans la restauration.
+const RETIRED_KEYS = new Set(["status", "vendorName"]);
 
 function modifiedSince(current: Values, written: Values | null): boolean {
   return Object.keys(written ?? {}).some((key) => !(RETIRED_KEYS.has(key) && !(key in current)) && !same(current[key], (written ?? {})[key]));
@@ -577,6 +609,10 @@ async function deleteElement(tx: Tx, kind: string, id: string): Promise<void> {
     case "event_vendor_slot":
       await tx.delete(eventVendorSlots).where(eq(eventVendorSlots.id, id));
       return;
+    case "event_vendor_candidate":
+      await tx.delete(eventVendorCandidateNotes).where(eq(eventVendorCandidateNotes.candidateId, id));
+      await tx.delete(eventVendorCandidates).where(eq(eventVendorCandidates.id, id));
+      return;
     case "prospect_source":
       await tx.delete(prospectSources).where(eq(prospectSources.id, id));
       return;
@@ -602,7 +638,6 @@ async function restoreElement(tx: Tx, organizationId: string, kind: string, id: 
     await tx
       .update(eventVendorSlots)
       .set({
-        ...("vendorName" in previous ? { vendorName: (previous.vendorName as string | null) ?? null } : {}),
         ...("importedFields" in previous ? { importedFields: (previous.importedFields as Record<string, string> | null) ?? null } : {}),
         updatedAt: new Date(),
       })

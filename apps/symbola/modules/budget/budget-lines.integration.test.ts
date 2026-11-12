@@ -407,16 +407,16 @@ describe("BUD-02 — Enveloppe et seuil d'alerte (lot 28a, décision D4)", () =>
     expect((await listBudgetLines(organizationId, eventId)).envelope).toMatchObject({ exceeded: true });
   });
 
-  it("l'alerte précède l'engagement : l'aperçu chiffre le dépassement sans rien écrire, en remplaçant l'engagé de la ligne", async () => {
+  it("l'alerte précède l'engagement : l'aperçu chiffre le dépassement sans rien écrire (lot 28b : un nouveau prestataire s'ajoute à l'engagé)", async () => {
     const organizationId = randomUUID();
     const { eventId, lieu, traiteur } = await eventWithLines(organizationId);
     await setEventWantedBudget(organizationId, eventId, 3000000);
     await updateBudgetLine({ organizationId, eventId, eventVendorSlotId: lieu.id, field: "committed", amountCents: 2000000, changedByUserId: plannerId });
     await updateBudgetLine({ organizationId, eventId, eventVendorSlotId: traiteur.id, field: "committed", amountCents: 300000, changedByUserId: plannerId });
 
-    const preview = await previewEngagement({ organizationId, eventId, eventVendorSlotId: traiteur.id, amountCents: 800000 });
+    const preview = await previewEngagement({ organizationId, eventId, eventVendorSlotId: traiteur.id, amountCents: 500000 });
     expect(preview).toMatchObject({ committedAfterCents: 2800000, exceedsThreshold: true, overThresholdCents: 100000 });
-    expect(await previewEngagement({ organizationId, eventId, eventVendorSlotId: traiteur.id, amountCents: 700000 })).toMatchObject({
+    expect(await previewEngagement({ organizationId, eventId, eventVendorSlotId: traiteur.id, amountCents: 400000 })).toMatchObject({
       committedAfterCents: 2700000,
       exceedsThreshold: false,
       overThresholdCents: 0,

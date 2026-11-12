@@ -1,7 +1,7 @@
 // Accès aux données du module budget — jamais importé hors de
 // modules/budget/ (ADR 0011).
-import { and, asc, eq, inArray, isNull, or } from "drizzle-orm";
-import type { BudgetAmountField } from "@symbola/contracts";
+import { and, asc, eq, inArray, isNull, lte, or, sql } from "drizzle-orm";
+import type { BudgetAmountField, BudgetDocumentKind } from "@symbola/contracts";
 import { appDatabase } from "@symbola/db/client";
 import {
   alertThresholds,
@@ -12,8 +12,12 @@ import {
   budgetLines,
   eventBudgetItems,
   eventBudgets,
+  vendorPayments,
 } from "@symbola/db/schema/budget";
 import { withOrganization } from "@symbola/db/with-organization";
+import { paidTotalCents } from "./payments";
+
+type Tx = Parameters<Parameters<typeof withOrganization>[2]>[0];
 
 export type AllocationModelRow = typeof allocationModels.$inferSelect;
 export type AllocationModelItemRow = typeof allocationModelItems.$inferSelect;
@@ -22,6 +26,7 @@ export type EventBudgetItemRow = typeof eventBudgetItems.$inferSelect;
 export type BudgetLineRow = typeof budgetLines.$inferSelect;
 export type BudgetLineHistoryRow = typeof budgetLineHistory.$inferSelect;
 export type BudgetLineAttachmentRow = typeof budgetLineAttachments.$inferSelect;
+export type VendorPaymentRow = typeof vendorPayments.$inferSelect;
 
 export async function findAllocationModels(
   organizationId: string,
@@ -206,18 +211,98 @@ export async function updateEventBudgetItemAmount(input: {
 export async function findBudgetLines(organizationId: string, eventId: string): Promise<BudgetLineRow[]> {
   const db = appDatabase();
   return await withOrganization(db, organizationId, (tx) =>
-    tx.select().from(budgetLines).where(eq(budgetLines.eventId, eventId)),
+    tx.select().from(budgetLines).where(eq(budgetLines.eventId, eventId)).orderBy(asc(budgetLines.position), asc(budgetLines.createdAt)),
   );
 }
 
-export async function findBudgetLineByEventVendorSlotId(
-  organizationId: string,
-  eventVendorSlotId: string,
-): Promise<BudgetLineRow | null> {
+export async function findBudgetLine(organizationId: string, lineId: string): Promise<BudgetLineRow | null> {
   const db = appDatabase();
   return await withOrganization(db, organizationId, async (tx) => {
-    const [row] = await tx.select().from(budgetLines).where(eq(budgetLines.eventVendorSlotId, eventVendorSlotId));
+    const [row] = await tx.select().from(budgetLines).where(eq(budgetLines.id, lineId));
     return row ?? null;
+  });
+}
+
+// Lot 28b (BUD-01, Q33) : la première ligne d'une catégorie (l'ordre, puis la
+// date de création) — celle que visent la simulation, l'import sans libellé et
+// les écrans qui ne désignent qu'une catégorie.
+async function firstLineOfSlot(tx: Tx, eventVendorSlotId: string): Promise<BudgetLineRow | null> {
+  const [row] = await tx
+    .select()
+    .from(budgetLines)
+    .where(eq(budgetLines.eventVendorSlotId, eventVendorSlotId))
+    .orderBy(asc(budgetLines.position), asc(budgetLines.createdAt))
+    .limit(1);
+  return row ?? null;
+}
+
+export async function findFirstBudgetLineOfSlot(organizationId: string, eventVendorSlotId: string): Promise<BudgetLineRow | null> {
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, (tx) => firstLineOfSlot(tx, eventVendorSlotId));
+}
+
+export async function findBudgetLinesOfSlot(organizationId: string, eventVendorSlotId: string): Promise<BudgetLineRow[]> {
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, (tx) =>
+    tx.select().from(budgetLines).where(eq(budgetLines.eventVendorSlotId, eventVendorSlotId)).orderBy(asc(budgetLines.position), asc(budgetLines.createdAt)),
+  );
+}
+
+async function nextLinePosition(tx: Tx, eventVendorSlotId: string): Promise<number> {
+  const [row] = await tx
+    .select({ next: sql<number>`coalesce(max(${budgetLines.position}) + 1, 0)::int` })
+    .from(budgetLines)
+    .where(eq(budgetLines.eventVendorSlotId, eventVendorSlotId));
+  return row?.next ?? 0;
+}
+
+export async function insertBudgetLine(input: {
+  organizationId: string;
+  eventId: string;
+  eventVendorSlotId: string;
+  label: string;
+  vendorCandidateId: string | null;
+}): Promise<BudgetLineRow> {
+  const db = appDatabase();
+  return await withOrganization(db, input.organizationId, async (tx) => {
+    const [row] = await tx
+      .insert(budgetLines)
+      .values({ ...input, position: await nextLinePosition(tx, input.eventVendorSlotId) })
+      .returning();
+    if (!row) throw new Error("création de la ligne de budget échouée");
+    return row;
+  });
+}
+
+export async function updateBudgetLineRow(input: { organizationId: string; lineId: string; label?: string; vendorCandidateId?: string | null }): Promise<BudgetLineRow | null> {
+  const db = appDatabase();
+  return await withOrganization(db, input.organizationId, async (tx) => {
+    const [row] = await tx
+      .update(budgetLines)
+      .set({
+        ...(input.label !== undefined ? { label: input.label } : {}),
+        ...(input.vendorCandidateId !== undefined ? { vendorCandidateId: input.vendorCandidateId } : {}),
+        updatedAt: new Date(),
+      })
+      .where(eq(budgetLines.id, input.lineId))
+      .returning();
+    return row ?? null;
+  });
+}
+
+// Lot 28b : une ligne supprimée emporte son historique, ses échéances et ses
+// documents (suppressions journalisées par la base) ; renvoie les clés des
+// fichiers à retirer du stockage.
+export async function deleteBudgetLine(organizationId: string, lineId: string): Promise<string[] | null> {
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const [line] = await tx.select({ id: budgetLines.id }).from(budgetLines).where(eq(budgetLines.id, lineId));
+    if (!line) return null;
+    const attachments = await tx.delete(budgetLineAttachments).where(eq(budgetLineAttachments.lineId, lineId)).returning({ fileKey: budgetLineAttachments.fileKey });
+    await tx.delete(vendorPayments).where(eq(vendorPayments.lineId, lineId));
+    await tx.delete(budgetLineHistory).where(eq(budgetLineHistory.lineId, lineId));
+    await tx.delete(budgetLines).where(eq(budgetLines.id, lineId));
+    return attachments.map((attachment) => attachment.fileKey);
   });
 }
 
@@ -229,69 +314,59 @@ const AMOUNT_COLUMN = {
   paid: "paidAmountCents",
 } as const satisfies Record<BudgetAmountField, keyof BudgetLineRow>;
 
-// Pose l'un des montants saisissables selon `field`, crée la
-// ligne si elle n'existe pas encore (un événement peut recevoir un budget
-// réel sans être jamais passé par la simulation), et historise toujours
-// la modification — y compris la toute première valeur posée (PRD-BUD-02 :
-// « chaque modification est historisée »).
+async function writeLineAmount(tx: Tx, organizationId: string, line: BudgetLineRow, field: BudgetAmountField, amountCents: number, changedByUserId: string): Promise<BudgetLineRow> {
+  const column = AMOUNT_COLUMN[field];
+  const [updated] = await tx
+    .update(budgetLines)
+    .set({ [column]: amountCents, updatedAt: new Date() })
+    .where(eq(budgetLines.id, line.id))
+    .returning();
+  if (!updated) throw new Error("mise à jour de la ligne de budget échouée");
+  // PRD-BUD-02 : « chaque modification est historisée », première valeur comprise.
+  await tx.insert(budgetLineHistory).values({ organizationId, lineId: line.id, field, oldValueCents: line[column], newValueCents: amountCents, changedByUserId });
+  return updated;
+}
+
+// Pose l'un des montants saisissables sur la ligne visée ; sans ligne visée, la
+// première de la catégorie, créée au besoin (au libellé de la catégorie) : un
+// événement peut recevoir un budget sans être jamais passé par la simulation.
 export async function setBudgetLineAmount(input: {
   organizationId: string;
   eventId: string;
-  eventVendorSlotId: string;
+  lineId?: string;
+  eventVendorSlotId?: string;
+  slotLabel?: string;
   field: BudgetAmountField;
   amountCents: number;
   changedByUserId: string;
-}): Promise<BudgetLineRow> {
-  const column = AMOUNT_COLUMN[input.field];
+}): Promise<BudgetLineRow | null> {
   const db = appDatabase();
   return await withOrganization(db, input.organizationId, async (tx) => {
-    const [existing] = await tx
-      .select()
-      .from(budgetLines)
-      .where(eq(budgetLines.eventVendorSlotId, input.eventVendorSlotId));
-
-    const oldValueCents = existing === undefined ? null : existing[column];
-
-    let line: BudgetLineRow;
-    if (existing) {
-      const [updated] = await tx
-        .update(budgetLines)
-        .set({ [column]: input.amountCents, updatedAt: new Date() })
-        .where(eq(budgetLines.id, existing.id))
-        .returning();
-      if (!updated) throw new Error("mise à jour de la ligne de budget échouée");
-      line = updated;
-    } else {
-      const [inserted] = await tx
-        .insert(budgetLines)
-        .values({
-          organizationId: input.organizationId,
-          eventId: input.eventId,
-          eventVendorSlotId: input.eventVendorSlotId,
-          [column]: input.amountCents,
-        })
-        .returning();
-      if (!inserted) throw new Error("création de la ligne de budget échouée");
-      line = inserted;
+    let line: BudgetLineRow | null = null;
+    if (input.lineId) {
+      [line = null] = await tx.select().from(budgetLines).where(and(eq(budgetLines.id, input.lineId), eq(budgetLines.eventId, input.eventId)));
+      if (!line) return null;
+    } else if (input.eventVendorSlotId) {
+      line = await firstLineOfSlot(tx, input.eventVendorSlotId);
+      if (!line) {
+        const [inserted] = await tx
+          .insert(budgetLines)
+          .values({ organizationId: input.organizationId, eventId: input.eventId, eventVendorSlotId: input.eventVendorSlotId, label: input.slotLabel ?? "", position: 0 })
+          .returning();
+        if (!inserted) throw new Error("création de la ligne de budget échouée");
+        line = inserted;
+      }
     }
-
-    await tx.insert(budgetLineHistory).values({
-      organizationId: input.organizationId,
-      lineId: line.id,
-      field: input.field,
-      oldValueCents,
-      newValueCents: input.amountCents,
-      changedByUserId: input.changedByUserId,
-    });
-
-    return line;
+    if (!line) return null;
+    return writeLineAmount(tx, input.organizationId, line, input.field, input.amountCents, input.changedByUserId);
   });
 }
 
-export async function findBudgetLineHistory(organizationId: string, lineId: string): Promise<BudgetLineHistoryRow[]> {
+export async function findBudgetLineHistory(organizationId: string, lineIds: string[]): Promise<BudgetLineHistoryRow[]> {
+  if (lineIds.length === 0) return [];
   const db = appDatabase();
   return await withOrganization(db, organizationId, (tx) =>
-    tx.select().from(budgetLineHistory).where(eq(budgetLineHistory.lineId, lineId)),
+    tx.select().from(budgetLineHistory).where(inArray(budgetLineHistory.lineId, lineIds)).orderBy(asc(budgetLineHistory.changedAt)),
   );
 }
 
@@ -299,6 +374,7 @@ export async function findBudgetLineHistory(organizationId: string, lineId: stri
 export async function insertBudgetLineAttachment(input: {
   organizationId: string;
   lineId: string;
+  kind: BudgetDocumentKind;
   fileKey: string;
   mime: string;
   sizeBytes: number;
@@ -357,6 +433,7 @@ export async function deleteEventBudgetRows(organizationId: string, eventIds: st
         .where(inArray(budgetLineAttachments.lineId, lineIds))
         .returning({ fileKey: budgetLineAttachments.fileKey });
       fileKeys = attachments.map((attachment) => attachment.fileKey);
+      await tx.delete(vendorPayments).where(inArray(vendorPayments.lineId, lineIds));
       await tx.delete(budgetLineHistory).where(inArray(budgetLineHistory.lineId, lineIds));
       await tx.delete(budgetLines).where(inArray(budgetLines.id, lineIds));
     }
@@ -406,3 +483,110 @@ export async function deleteEventAlertThreshold(organizationId: string, eventId:
   });
 }
 
+// Lot 28b (BUD-03, D7, D12, D13) — échéances des paiements aux prestataires.
+export async function findVendorPayments(organizationId: string, lineIds: string[]): Promise<VendorPaymentRow[]> {
+  if (lineIds.length === 0) return [];
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, (tx) =>
+    tx.select().from(vendorPayments).where(inArray(vendorPayments.lineId, lineIds)).orderBy(asc(vendorPayments.dueOn), asc(vendorPayments.position)),
+  );
+}
+
+export async function findVendorPayment(organizationId: string, paymentId: string): Promise<VendorPaymentRow | null> {
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const [row] = await tx.select().from(vendorPayments).where(eq(vendorPayments.id, paymentId));
+    return row ?? null;
+  });
+}
+
+// D13 : dès qu'une ligne a des échéances, son payé est la somme de ses échéances
+// payées ; le changement est historisé comme une saisie (montant « payé »).
+async function refreshLinePaid(tx: Tx, organizationId: string, lineId: string, changedByUserId: string): Promise<void> {
+  const [line] = await tx.select().from(budgetLines).where(eq(budgetLines.id, lineId));
+  if (!line) return;
+  const payments = await tx.select().from(vendorPayments).where(eq(vendorPayments.lineId, lineId));
+  if (payments.length === 0) return;
+  const paid = paidTotalCents(payments);
+  if (paid !== (line.paidAmountCents ?? 0) || line.paidAmountCents === null) await writeLineAmount(tx, organizationId, line, "paid", paid, changedByUserId);
+}
+
+export async function insertVendorPayment(input: {
+  organizationId: string;
+  eventId: string;
+  lineId: string;
+  label: string;
+  fixedAmountCents: number | null;
+  percentageBasisPoints: number | null;
+  dueOn: string;
+  changedByUserId: string;
+}): Promise<VendorPaymentRow | null> {
+  const db = appDatabase();
+  return await withOrganization(db, input.organizationId, async (tx) => {
+    const [line] = await tx.select({ id: budgetLines.id }).from(budgetLines).where(and(eq(budgetLines.id, input.lineId), eq(budgetLines.eventId, input.eventId)));
+    if (!line) return null;
+    const [last] = await tx.select({ next: sql<number>`coalesce(max(${vendorPayments.position}) + 1, 0)::int` }).from(vendorPayments).where(eq(vendorPayments.lineId, line.id));
+    const { changedByUserId, ...values } = input;
+    const [row] = await tx.insert(vendorPayments).values({ ...values, position: last?.next ?? 0 }).returning();
+    await refreshLinePaid(tx, input.organizationId, line.id, changedByUserId);
+    return row ?? null;
+  });
+}
+
+export async function updateVendorPaymentRow(input: {
+  organizationId: string;
+  eventId: string;
+  paymentId: string;
+  label: string;
+  fixedAmountCents: number | null;
+  percentageBasisPoints: number | null;
+  dueOn: string;
+  paidOn?: string | null;
+  changedByUserId: string;
+}): Promise<VendorPaymentRow | null> {
+  const db = appDatabase();
+  return await withOrganization(db, input.organizationId, async (tx) => {
+    const [row] = await tx
+      .update(vendorPayments)
+      .set({
+        label: input.label,
+        fixedAmountCents: input.fixedAmountCents,
+        percentageBasisPoints: input.percentageBasisPoints,
+        dueOn: input.dueOn,
+        ...(input.paidOn !== undefined ? { paidOn: input.paidOn } : {}),
+        updatedAt: new Date(),
+      })
+      .where(and(eq(vendorPayments.id, input.paymentId), eq(vendorPayments.eventId, input.eventId)))
+      .returning();
+    if (!row) return null;
+    await refreshLinePaid(tx, input.organizationId, row.lineId, input.changedByUserId);
+    return row;
+  });
+}
+
+export async function deleteVendorPaymentRow(input: { organizationId: string; eventId: string; paymentId: string; changedByUserId: string }): Promise<boolean> {
+  const db = appDatabase();
+  return await withOrganization(db, input.organizationId, async (tx) => {
+    const [row] = await tx.delete(vendorPayments).where(and(eq(vendorPayments.id, input.paymentId), eq(vendorPayments.eventId, input.eventId))).returning();
+    if (!row) return false;
+    await refreshLinePaid(tx, input.organizationId, row.lineId, input.changedByUserId);
+    return true;
+  });
+}
+
+// Bloc « Échéances prestataires » (D7) : échéances non payées jusqu'à la date
+// donnée (retards compris), toutes les lignes de leurs événements pour le calcul
+// des pourcentages.
+export async function findDueVendorPayments(organizationId: string, until: string): Promise<{ payments: VendorPaymentRow[]; lines: BudgetLineRow[] }> {
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const payments = await tx
+      .select()
+      .from(vendorPayments)
+      .where(and(isNull(vendorPayments.paidOn), lte(vendorPayments.dueOn, until)))
+      .orderBy(asc(vendorPayments.dueOn), asc(vendorPayments.position));
+    const eventIds = [...new Set(payments.map((payment) => payment.eventId))];
+    const lines = eventIds.length > 0 ? await tx.select().from(budgetLines).where(inArray(budgetLines.eventId, eventIds)) : [];
+    return { payments, lines };
+  });
+}
