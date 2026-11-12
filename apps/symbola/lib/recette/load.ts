@@ -29,6 +29,7 @@ import {
   listVendorCandidates,
   selectVendorCandidate,
   setEventWantedBudget,
+  updateEventTask,
   updateVendorCandidate,
   type VendorCandidateStatus,
 } from "@/modules/events/service";
@@ -106,7 +107,7 @@ const datasetSchema = z.object({
           taux_tva_pct: z.number().optional(),
         })
         .optional(),
-      taches: z.array(z.object({ titre: z.string(), responsable: z.string(), echeance: z.string() })).optional(),
+      taches: z.array(z.object({ titre: z.string(), responsable: z.string(), echeance: z.string(), statut: z.string().optional() })).optional(),
       invites: z.object({ synthese: z.object({ invites: z.number().int().nonnegative() }) }).optional(),
       participants: z.number().int().nonnegative().optional(),
     }),
@@ -262,7 +263,10 @@ export async function loadRecette(raw: unknown, options: RecetteOptions = {}): P
         await createVendor(organizationId, { name: vendor.nom, typeId: null, contactName: vendor.contact ?? null, email: vendor.email ?? null, phone: vendor.telephone ?? null });
       }
       for (const task of event.taches ?? []) {
-        await addEventTask(organizationId, created.id, { label: task.titre, dueDate: task.echeance, responsible: task.responsable === "client" ? "clients" : "planner" });
+        const added = await addEventTask(organizationId, created.id, { label: task.titre, dueDate: task.echeance, responsible: task.responsable === "client" ? "clients" : "planner" });
+        // Lot 27a (POR-02) : les tâches faites du jeu le sont aussi dans l'app
+        // (avancement et prochaines actions du portail).
+        if (task.statut === "fait") await updateEventTask({ organizationId, taskId: added.id, done: true });
       }
 
       // Devis : le catalogue pour un particulier, les postes HT pour une entreprise.

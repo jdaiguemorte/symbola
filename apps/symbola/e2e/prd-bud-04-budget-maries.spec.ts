@@ -108,13 +108,15 @@ test("PRD-BUD-04 — le marié consulte le budget de son événement en lecture 
   await couple.goto(coupleUrl);
   await expect(couple).toHaveURL(/\/portail$/);
 
-  // PRD-BUD-04 : le budget apparaît dans son portail, en lecture seule.
+  // PRD-BUD-04 : le budget apparaît dans son portail, en lecture seule. Lot 27a
+  // (POR-05, D5) : en trois chiffres par poste (prévu, engagé, reste à payer),
+  // sans écart ni ligne.
   const budget = couple.getByRole("region", { name: "Budget" });
-  const table = budget.getByRole("table", { name: "Estimé, engagé, écart" });
-  const coupleRow = table.getByRole("row", { name: /Lieu de réception/ });
-  await expect(coupleRow).toContainText("6 000,00 €");
-  await expect(coupleRow).toContainText("7 000,00 €");
-  await expect(coupleRow).toContainText("Dépassement de 1 000,00 €");
+  const card = budget.getByRole("listitem").filter({ has: couple.getByRole("heading", { name: "Lieu de réception" }) });
+  await expect(card).toContainText("Prévu6 000,00 €");
+  await expect(card).toContainText("Engagé7 000,00 €");
+  await expect(card).toContainText("Reste à payer7 000,00 €");
+  await expect(budget).not.toContainText("Dépassement");
   await expect(budget.getByRole("textbox")).toHaveCount(0);
   await expect(budget.getByRole("spinbutton")).toHaveCount(0);
   await expect(budget.getByRole("button")).toHaveCount(0);

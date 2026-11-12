@@ -5,7 +5,7 @@
 import { randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { listEvents } from "@/modules/events/service";
+import { listEvents, listEventTasks } from "@/modules/events/service";
 import { findVendors } from "@/modules/vendors/service";
 import { loadRecette, percentages, recetteEmail, RecetteRefusedError } from "./load";
 
@@ -42,6 +42,10 @@ describe("DAT-10 — Jeu fictif chargeable en une commande", { timeout: 120_000 
 
     const eventsOf01 = await listEvents({ organizationId: ids["ORG-01"] });
     expect(eventsOf01).toHaveLength(4);
+    // Lot 27a (POR-02) : les tâches faites du jeu le sont dans l'app (31 sur 42 pour EV-REF-01).
+    const wedding = eventsOf01.find((event) => event.clients.some((client) => client.firstName === "Léa"))!;
+    const tasks = await listEventTasks(ids["ORG-01"], wedding.id);
+    expect([tasks.filter((task) => task.done).length, tasks.length]).toEqual([31, 42]);
     expect((await findVendors({ organizationId: ids["ORG-01"] })).map((vendor) => vendor.name)).toContain("Domaine des Tilleuls");
     // Cloisonnement : rien de l'une chez l'autre.
     const eventIdsOf02 = new Set((await listEvents({ organizationId: ids["ORG-02"] })).map((event) => event.id));

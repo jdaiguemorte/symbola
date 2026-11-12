@@ -912,11 +912,18 @@ export default async function EventDetailPage({
                   <p className="muted">
                     {link.audience === "vendor" ? sees[0] : sees.length > 0 ? t("linkSees", { items: sees.join(", ") }) : t("linkSeesNothing")}
                     {link.otpRequired ? ` — ${t("linkOtpOn")}` : ""}
+                    {link.audience === "client" && !link.taskReminders ? ` — ${t("linkRemindersOff")}` : ""}
                     {" — "}
                     {link.lastOpenedAt ? t("linkOpenedOn", { date: formatDateTime(new Date(link.lastOpenedAt), locale) }) : t("linkNeverOpened")}
                   </p>
                   {link.renewalRequestedAt ? (
                     <p className="badge-warning">{t("linkRenewalRequested", { date: formatDateTime(new Date(link.renewalRequestedAt), locale) })}</p>
+                  ) : null}
+                  {link.status !== "revoked" ? (
+                    <p>
+                      {/* Lot 27a (POR-09, D8) : ce que voit exactement cette personne. */}
+                      <Link href={`/events/${event.id}/liens/${link.id}/apercu`}>{t("linkPreview", { name: link.personName })}</Link>
+                    </p>
                   ) : null}
                   {link.status !== "revoked" && !event.isDemo ? (
                     <div className="link-actions">
@@ -929,6 +936,7 @@ export default async function EventDetailPage({
                             id: link.id,
                             audience: link.audience,
                             otpRequired: link.otpRequired,
+                            taskReminders: link.taskReminders,
                             personName: link.personName,
                             email: link.email,
                             eventClientId: link.eventClientId,

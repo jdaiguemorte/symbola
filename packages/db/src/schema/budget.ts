@@ -195,6 +195,15 @@ export const vendorPayments = budgetSchema.table(
     percentageBasisPoints: integer("percentage_basis_points"),
     dueOn: date("due_on").notNull(),
     paidOn: date("paid_on"),
+    // Lot 27a (SC-06, décision D6) : règlement déclaré par un client depuis son
+    // lien (date, moyen, lien déclarant), en attente de la confirmation de la
+    // planner ; un refus garde son motif, montré au client.
+    declaredPaidOn: date("declared_paid_on"),
+    declaredMethod: text("declared_method"),
+    declaredByLinkId: uuid("declared_by_link_id"),
+    declaredAt: timestamp("declared_at", { withTimezone: true }),
+    refusalReason: text("refusal_reason"),
+    refusedAt: timestamp("refused_at", { withTimezone: true }),
     position: integer("position").notNull().default(0),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     createdBy: uuid("created_by"),
@@ -207,6 +216,10 @@ export const vendorPayments = budgetSchema.table(
     check(
       "vendor_payments_amount_check",
       sql`(${table.fixedAmountCents} is not null and ${table.fixedAmountCents} > 0 and ${table.percentageBasisPoints} is null) or (${table.fixedAmountCents} is null and ${table.percentageBasisPoints} between 1 and 10000)`,
+    ),
+    check(
+      "vendor_payments_declaration_check",
+      sql`(${table.declaredPaidOn} is null and ${table.declaredMethod} is null and ${table.declaredByLinkId} is null and ${table.declaredAt} is null) or (${table.declaredPaidOn} is not null and ${table.declaredMethod} is not null and ${table.declaredByLinkId} is not null and ${table.declaredAt} is not null)`,
     ),
   ],
 );

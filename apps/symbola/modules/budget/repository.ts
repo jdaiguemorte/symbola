@@ -1,6 +1,6 @@
 // Accès aux données du module budget — jamais importé hors de
 // modules/budget/ (ADR 0011).
-import { and, asc, eq, inArray, isNull, lte, or, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, isNotNull, isNull, lte, or, sql } from "drizzle-orm";
 import type { BudgetAmountField, BudgetDocumentKind } from "@symbola/contracts";
 import { appDatabase } from "@symbola/db/client";
 import {
@@ -15,6 +15,7 @@ import {
   vendorPayments,
 } from "@symbola/db/schema/budget";
 import { withOrganization } from "@symbola/db/with-organization";
+import { appendAudit } from "@symbola/db/audit";
 import { paidTotalCents } from "./payments";
 
 type Tx = Parameters<Parameters<typeof withOrganization>[2]>[0];
@@ -586,6 +587,85 @@ export async function findDueVendorPayments(organizationId: string, until: strin
       .from(vendorPayments)
       .where(and(isNull(vendorPayments.paidOn), lte(vendorPayments.dueOn, until)))
       .orderBy(asc(vendorPayments.dueOn), asc(vendorPayments.position));
+    const eventIds = [...new Set(payments.map((payment) => payment.eventId))];
+    const lines = eventIds.length > 0 ? await tx.select().from(budgetLines).where(inArray(budgetLines.eventId, eventIds)) : [];
+    return { payments, lines };
+  });
+}
+
+// Lot 27a (SC-06 étape 5, décision D6) — règlement déclaré par un client.
+
+// Déclarer : seulement une échéance ni payée ni déjà déclarée ; un refus
+// précédent s'efface. L'appelant fixe l'auteur (le lien) par withActor.
+export async function declareVendorPaymentRow(input: {
+  organizationId: string;
+  eventId: string;
+  paymentId: string;
+  paidOn: string;
+  method: string;
+  linkId: string;
+  now: Date;
+}): Promise<VendorPaymentRow | null> {
+  const db = appDatabase();
+  return await withOrganization(db, input.organizationId, async (tx) => {
+    const [row] = await tx
+      .update(vendorPayments)
+      .set({ declaredPaidOn: input.paidOn, declaredMethod: input.method, declaredByLinkId: input.linkId, declaredAt: input.now, refusalReason: null, refusedAt: null, updatedAt: input.now })
+      .where(and(eq(vendorPayments.id, input.paymentId), eq(vendorPayments.eventId, input.eventId), isNull(vendorPayments.paidOn), isNull(vendorPayments.declaredAt)))
+      .returning();
+    if (!row) return null;
+    await appendAudit(tx, { organizationId: input.organizationId, action: "budget.vendor_payment.declared", objectId: input.eventId, details: { paymentId: row.id } });
+    return row;
+  });
+}
+
+// Annuler sa propre déclaration, tant qu'elle n'est pas confirmée.
+export async function cancelVendorPaymentDeclarationRow(input: { organizationId: string; eventId: string; paymentId: string; linkId: string; now: Date }): Promise<boolean> {
+  const db = appDatabase();
+  return await withOrganization(db, input.organizationId, async (tx) => {
+    const [row] = await tx
+      .update(vendorPayments)
+      .set({ declaredPaidOn: null, declaredMethod: null, declaredByLinkId: null, declaredAt: null, updatedAt: input.now })
+      .where(and(eq(vendorPayments.id, input.paymentId), eq(vendorPayments.eventId, input.eventId), eq(vendorPayments.declaredByLinkId, input.linkId), isNull(vendorPayments.paidOn)))
+      .returning({ id: vendorPayments.id });
+    if (!row) return false;
+    await appendAudit(tx, { organizationId: input.organizationId, action: "budget.vendor_payment.declaration_cancelled", objectId: input.eventId, details: { paymentId: row.id } });
+    return true;
+  });
+}
+
+// Refus de la planner : la déclaration s'efface, le motif reste pour le client.
+export async function refuseVendorPaymentDeclarationRow(input: { organizationId: string; eventId: string; paymentId: string; reason: string; now: Date }): Promise<boolean> {
+  const db = appDatabase();
+  return await withOrganization(db, input.organizationId, async (tx) => {
+    const [row] = await tx
+      .update(vendorPayments)
+      .set({ declaredPaidOn: null, declaredMethod: null, declaredByLinkId: null, declaredAt: null, refusalReason: input.reason, refusedAt: input.now, updatedAt: input.now })
+      .where(and(eq(vendorPayments.id, input.paymentId), eq(vendorPayments.eventId, input.eventId), isNotNull(vendorPayments.declaredAt), isNull(vendorPayments.paidOn)))
+      .returning({ id: vendorPayments.id });
+    if (!row) return false;
+    await appendAudit(tx, { organizationId: input.organizationId, action: "budget.vendor_payment.declaration_refused", objectId: input.eventId, details: { paymentId: row.id } });
+    return true;
+  });
+}
+
+export async function recordDeclarationConfirmedRow(input: { organizationId: string; eventId: string; paymentId: string }): Promise<void> {
+  const db = appDatabase();
+  await withOrganization(db, input.organizationId, async (tx) => {
+    await appendAudit(tx, { organizationId: input.organizationId, action: "budget.vendor_payment.declaration_confirmed", objectId: input.eventId, details: { paymentId: input.paymentId } });
+  });
+}
+
+// Déclarations en attente de confirmation, et toutes les lignes de leurs
+// événements (calcul des pourcentages, libellés).
+export async function findPendingDeclarationRows(organizationId: string): Promise<{ payments: VendorPaymentRow[]; lines: BudgetLineRow[] }> {
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const payments = await tx
+      .select()
+      .from(vendorPayments)
+      .where(and(isNotNull(vendorPayments.declaredAt), isNull(vendorPayments.paidOn)))
+      .orderBy(asc(vendorPayments.declaredAt));
     const eventIds = [...new Set(payments.map((payment) => payment.eventId))];
     const lines = eventIds.length > 0 ? await tx.select().from(budgetLines).where(inArray(budgetLines.eventId, eventIds)) : [];
     return { payments, lines };

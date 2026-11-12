@@ -553,7 +553,7 @@
     },
     "clientEvent": {
       "title": "Votre espace",
-      "body": "Votre organisateur vous a ouvert cet espace par un lien personnel, sans compte ni mot de passe. Vous y voyez ce qu'il a partagé avec vous : vos tâches à cocher, le programme du jour J, le budget. Ce lien vous est réservé : ne le transférez pas."
+      "body": "Votre organisateur vous a ouvert cet espace par un lien personnel, sans compte ni mot de passe. En haut, vos trois prochaines actions ; plus bas, ce qu'il a partagé avec vous : vos tâches à cocher, le programme du jour J, le budget en trois chiffres et ses échéances. Une échéance réglée ? Déclarez-la : votre organisateur la confirmera. Ce lien vous est réservé : ne le transférez pas."
     },
     "vendorSpace": {
       "title": "Votre espace prestataire",
@@ -880,6 +880,10 @@
     "team": {
       "title": "Équipe",
       "body": "La liste des comptes de votre organisation : vous, titulaire, et vos collaborateurs. « Retirer l'accès » ferme tout de suite les sessions d'un collaborateur, sur tous ses appareils, et l'empêche de se reconnecter ; ses travaux restent dans l'organisation. Le retrait va au journal d'activité."
+    },
+    "linkPreview": {
+      "title": "Aperçu « vu par »",
+      "body": "Cette page montre exactement ce que voit la personne de ce lien : les mêmes rubriques, les mêmes chiffres. Rien n'y est modifiable et rien n'est noté sur son lien."
     }
   },
   "Aide": {
@@ -1359,7 +1363,14 @@
     "noLinkVendors": "Aucun prestataire retenu pour l'instant : retenez-en un dans l'onglet Budget pour lui créer un lien.",
     "linkVendor": "Prestataire retenu",
     "linkVendorExpiresOnHint": "Par défaut : 7 jours après l'événement.",
-    "createVendorLink": "Créer le lien du prestataire et l'envoyer"
+    "createVendorLink": "Créer le lien du prestataire et l'envoyer",
+    "linkReminders": "Rappels par e-mail des tâches",
+    "linkRemindersHint": "Sept jours avant l'échéance, la veille, puis le lendemain d'un retard ; un e-mail par jour au plus.",
+    "linkRemindersOff": "rappels désactivés",
+    "linkPreview": "Voir comme {name}",
+    "linkPreviewBanner": "Aperçu : ce que voit {name}",
+    "linkPreviewNote": "Les boutons sont inactifs et les fichiers ne s'ouvrent pas dans l'aperçu ; rien n'est noté sur le lien.",
+    "linkPreviewBack": "Retour à la fiche de l'événement"
   },
   "Budget": {
     "title": "Budget",
@@ -1534,7 +1545,20 @@
     "exportStatusPaid": "Payée",
     "exportFileName": "budget",
     "exportGenerated": "Édité le {date}",
-    "exportDemoWatermark": "Document fictif"
+    "exportDemoWatermark": "Document fictif",
+    "declarationPending": "Déclarée réglée par {name} le {date} ({method}), le {at}",
+    "declarationConfirmed": "Règlement déclaré par {name} le {date} ({method}), confirmé",
+    "declarationSomeone": "un interlocuteur",
+    "confirmDeclaration": "Confirmer le paiement : {label}",
+    "refuseDeclarationOpen": "Refuser la déclaration : {label}",
+    "refuseDeclaration": "Refuser et prévenir : {label}",
+    "declarationReason": "Motif, montré au client",
+    "declarationReasonRequired": "Indiquez le motif du refus.",
+    "declarationGone": "Cette déclaration a déjà été traitée.",
+    "declarationRefusedNote": "Déclaration refusée : {reason}",
+    "declarationsTitle": "Règlements déclarés à confirmer",
+    "declarationLine": "{name} a réglé {label} ({amount}) — {event}",
+    "declarationLineMeta": "le {date}, {method}"
   },
   "Quotes": {
     "title": "Devis",
@@ -4139,7 +4163,12 @@
       "events_link_renewal_requested": "Nouveau lien demandé",
       "events_link_opened": "Lien personnel ouvert",
       "events_link_code_sent": "Code d'ouverture envoyé",
-      "events_link_code_locked": "Code d'ouverture bloqué après cinq essais"
+      "events_link_code_locked": "Code d'ouverture bloqué après cinq essais",
+      "budget_vendor_payment_declared": "Règlement d'une échéance déclaré",
+      "budget_vendor_payment_declaration_cancelled": "Déclaration de règlement annulée",
+      "budget_vendor_payment_declaration_confirmed": "Règlement déclaré confirmé",
+      "budget_vendor_payment_declaration_refused": "Règlement déclaré refusé",
+      "events_link_reminder_sent": "Rappel des tâches envoyé"
     },
     "categories": {
       "connexion": "Connexions",
@@ -4336,7 +4365,50 @@
     "codeSubmit": "Ouvrir mon espace",
     "codeWrong": "Ce code ne correspond pas. {count, plural, one {Il vous reste # essai.} other {Il vous reste # essais.}}",
     "codeExpired": "Ce code n'est plus valable : il dure dix minutes, pour cinq essais et un seul usage. Demandez-en un nouveau.",
-    "codeResend": "Recevoir un nouveau code"
+    "codeResend": "Recevoir un nouveau code",
+    "homeTitle": "Accueil",
+    "countdownDays": "dans {days} jours",
+    "countdownTomorrow": "demain",
+    "countdownToday": "c'est aujourd'hui",
+    "progressLabel": "{done, plural, one {# tâche faite} other {# tâches faites}} sur {total}",
+    "nextActionsTitle": "Vos trois prochaines actions",
+    "nothingToDo": "Rien à faire pour l'instant.",
+    "actionBefore": "Avant le {date}",
+    "actionOverdue": "En retard : prévu le {date}",
+    "actionPayment": "Régler {label} : {amount}",
+    "actionGoPayment": "Voir l'échéance",
+    "actionQuote": "Signer le devis {number} (version {version})",
+    "actionGoQuote": "Voir le devis",
+    "contentsLabel": "Sommaire",
+    "navTasks": "À faire",
+    "navProgram": "Programme",
+    "navOptions": "Options",
+    "navBudget": "Budget",
+    "navQuotes": "Devis",
+    "plannedLabel": "Prévu",
+    "committedLabel": "Engagé",
+    "remainingLabel": "Reste à payer",
+    "budgetCategoriesTitle": "Budget par poste",
+    "paymentsTitle": "Échéances à venir",
+    "noPayments": "Aucune échéance à venir.",
+    "paymentDue": "À régler avant le {date}",
+    "paymentOverdue": "En retard : à régler depuis le {date}",
+    "paymentDeclared": "Déclarée réglée le {date} ({method}), en attente de confirmation",
+    "paymentRefused": "Votre déclaration n'a pas été retenue : {reason}",
+    "paymentPaid": "réglée le {date}",
+    "paidPaymentsTitle": "Déjà réglées ({count})",
+    "declarePayment": "Je l'ai réglée : {label}",
+    "declareDate": "Date du règlement",
+    "declareMethod": "Moyen de paiement",
+    "declareSubmit": "Déclarer le règlement de {label}",
+    "declareSent": "Règlement déclaré. Votre organisateur va le confirmer.",
+    "cancelDeclaration": "Annuler ma déclaration pour {label}",
+    "declareErrorState": "Cette échéance n'est plus à régler : elle a peut-être déjà été réglée ou déclarée.",
+    "declareErrorDate": "Indiquez une date qui n'est pas dans le futur.",
+    "declareErrorMethod": "Choisissez un moyen de paiement dans la liste.",
+    "declarePaymentShort": "Je l'ai réglée",
+    "declareSubmitShort": "Déclarer le règlement",
+    "cancelDeclarationShort": "Annuler ma déclaration"
   },
   "VendorSpace": {
     "title": "Votre espace prestataire",

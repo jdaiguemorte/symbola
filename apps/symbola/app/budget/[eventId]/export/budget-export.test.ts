@@ -28,7 +28,7 @@ function line(label: string, committed: number | null, rate: number, vendorName:
     payments:
       vendorName === null
         ? []
-        : [{ id: "p1", lineId: label, label: "Acompte", amountCents: 36000, fixedAmountCents: null, percentageBasisPoints: 3000, dueOn: "2027-03-01", paidOn: null, status: "due" }],
+        : [{ id: "p1", lineId: label, label: "Acompte", amountCents: 36000, fixedAmountCents: null, percentageBasisPoints: 3000, dueOn: "2027-03-01", paidOn: null, status: "due", declaration: null, refusalReason: null }],
     vatRateBasisPoints: rate,
     ht: { estimatedCents: Math.round(1000000000 / (10000 + rate)), quotedCents: null, committedCents: ht, paidCents: null, remainingCents: ht, varianceCents: null },
   };

@@ -18,6 +18,8 @@ export const TECHNICAL_TABLES: Record<string, string> = {
   "events.event_link_sessions": "jeton de session d'un lien personnel : l'auteur est le lien",
   // Lot 26b (POR-01) : code à usage unique demandé à l'ouverture d'un lien.
   "events.event_link_codes": "code à usage unique d'un lien personnel, haché, valable dix minutes",
+  // Lot 27a (CHR-04) : rappels envoyés au client pour ses tâches.
+  "events.event_task_reminders": "trace d'un rappel envoyé (tâche, lien, seuil), écrite par le système",
   "hub.password_resets": "jeton de réinitialisation d'un compte",
   "hub.trusted_devices": "jeton d'appareil de confiance d'un compte",
   "hub.backup_runs": "suivi des sauvegardes, écrit par l'exploitation",

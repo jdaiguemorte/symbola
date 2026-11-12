@@ -425,6 +425,10 @@ export const eventLinks = eventsSchema.table("event_links", {
   vendorCandidateId: uuid("vendor_candidate_id").references(() => eventVendorCandidates.id, { onDelete: "cascade" }),
   // Lot 26b (POR-01, D6) : un code à usage unique est demandé à l'ouverture.
   otpRequired: boolean("otp_required").notNull().default(false),
+  // Lot 27a (CHR-04, D7) : rappels par e-mail des tâches de la personne, dans
+  // la langue de l'e-mail du lien.
+  taskReminders: boolean("task_reminders").notNull().default(true),
+  locale: text("locale").notNull().default("fr"),
   // SEC-15 : dernier jour valable choisi par la planner ; sinon calculé.
   customExpiresOn: date("custom_expires_on"),
   tokenHash: text("token_hash").unique(),
@@ -443,6 +447,7 @@ export const eventLinks = eventsSchema.table("event_links", {
   check("event_links_rubrics_check", sql`${table.rubrics} <@ array['tasks', 'program', 'vendor_options', 'budget', 'quotes']::text[]`),
   check("event_links_budget_scope_check", sql`${table.budgetScope} in ('all', 'selected')`),
   check("event_links_vendor_candidate_check", sql`${table.audience} <> 'vendor' or ${table.vendorCandidateId} is not null`),
+  check("event_links_locale_check", sql`${table.locale} in ('fr', 'en')`),
 ]);
 
 // Lot 26a (POR-10) : catégories du budget (postes de l'événement) partagées
@@ -482,6 +487,27 @@ export const eventLinkCodes = eventsSchema.table("event_link_codes", {
 }, (table) => [
   index("event_link_codes_organization_idx").on(table.organizationId),
   index("event_link_codes_link_idx").on(table.linkId),
+]);
+
+// Lot 27a (CHR-04, décision D7) : rappels envoyés pour une tâche du client, par
+// lien et par seuil (sept jours avant, la veille, le lendemain d'un retard) ;
+// jamais deux fois le même.
+export const eventTaskReminders = eventsSchema.table("event_task_reminders", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  taskId: uuid("task_id")
+    .notNull()
+    .references(() => eventTasks.id, { onDelete: "cascade" }),
+  linkId: uuid("link_id")
+    .notNull()
+    .references(() => eventLinks.id, { onDelete: "cascade" }),
+  threshold: text("threshold").notNull(),
+  sentAt: timestamp("sent_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => [
+  index("event_task_reminders_organization_idx").on(table.organizationId),
+  index("event_task_reminders_link_idx").on(table.linkId),
+  unique("event_task_reminders_unique").on(table.taskId, table.linkId, table.threshold),
+  check("event_task_reminders_threshold_check", sql`${table.threshold} in ('week', 'eve', 'overdue')`),
 ]);
 
 // Lot 26a (SEC-17, décision D7) : session ouverte par un lien. Le jeton du lien

@@ -1,85 +1,140 @@
 import { getTranslations } from "next-intl/server";
-import { formatAmount, type Locale } from "@symbola/i18n";
-import type { LinkBudgetView } from "@/modules/budget/service";
-import { varianceDisplay } from "@/app/budget/variance-display";
+import { formatAmount, formatCalendarDate, type Locale } from "@symbola/i18n";
+import type { LinkBudgetView, LinkVendorPayment } from "@/modules/budget/service";
+import { cancelPaymentDeclarationAction } from "./actions";
+import { PaymentDeclarationForm } from "./payment-declaration-form";
 
-// PRD-BUD-04 — budget de l'événement vu par un lien personnel : lecture seule,
-// aucun formulaire, colonnes publiques uniquement. Lot 28b (Q33) : une ligne par
-// catégorie, avec ses totaux (le détail et la validation au portail : lot 27).
-// Lot 28c (BUD-09, D5) : TTC pour un particulier ; HT en dessous pour un
-// client professionnel. Lot 26a (POR-01, POR-10) : en « catégories choisies »,
-// ces catégories seules, sans total général (Bernard voit le traiteur et le
-// lieu, pas le budget du mariage).
-export async function ClientBudget({ view, locale }: { view: LinkBudgetView; locale: Locale }) {
-  const t = await getTranslations("Budget");
+// PRD-BUD-04, lot 27a (POR-05, BUD-07, décision D5) — budget de l'événement vu
+// par un lien personnel, en trois chiffres : prévu, engagé, reste à payer. En
+// budget entier, les trois totaux, puis une carte par catégorie ; en
+// « catégories choisies » (payeur), ses seules cartes, sans total général
+// (lot 26a). Ni lignes ni écart : le détail reste à la planner (ADR 0054).
+// Lot 28c (BUD-09) : HT sous le TTC pour un client professionnel. Puis les
+// échéances de ses catégories, et « Je l'ai réglée » (SC-06 étape 5, D6).
+export async function ClientBudget({
+  view,
+  locale,
+  methods,
+  today,
+  preview = false,
+}: {
+  view: LinkBudgetView;
+  locale: Locale;
+  methods: string[];
+  today: string;
+  preview?: boolean;
+}) {
+  const t = await getTranslations("LinkPortal");
+  const tBudget = await getTranslations("Budget");
   const tClient = await getTranslations("ClientSpace");
-  const tLink = await getTranslations("LinkPortal");
   const professional = view.clientKind === "professional";
-  const ht = (cents: number) => (professional ? <span className="budget-ht">{t("htAmount", { amount: formatAmount(cents, locale) })}</span> : null);
+  const figures = (amounts: { planned: number; committed: number; remaining: number; ht?: { planned: number | null; committed: number | null; remaining: number | null } }) => (
+    <dl className="budget-figures">
+      {(
+        [
+          ["planned", t("plannedLabel"), amounts.planned, amounts.ht?.planned],
+          ["committed", t("committedLabel"), amounts.committed, amounts.ht?.committed],
+          ["remaining", t("remainingLabel"), Math.max(0, amounts.remaining), amounts.ht?.remaining],
+        ] as const
+      ).map(([key, label, cents, htCents]) => (
+        <div key={key}>
+          <dt>{label}</dt>
+          <dd>
+            {formatAmount(cents, locale)}
+            {professional && htCents !== undefined && htCents !== null ? <span className="budget-ht">{tBudget("htAmount", { amount: formatAmount(htCents, locale) })}</span> : null}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  );
 
   if (view.categories.length === 0) return <p>{tClient("noBudgetYet")}</p>;
+  const upcoming = view.payments.filter((payment) => payment.status !== "paid");
+  const paid = view.payments.filter((payment) => payment.status === "paid");
 
   return (
     <>
-      {view.scope === "selected" ? <p>{tLink("budgetSelectedIntro")}</p> : null}
-      {/* Zone défilante sur téléphone : le tableau reste lisible à 375 px (UX-05). */}
-      <div role="region" tabIndex={0} aria-label={t("clientLinesTitle")}>
-        <table>
-          <caption>{t("clientLinesTitle")}</caption>
-          <thead>
-            <tr>
-              <th scope="col">{t("vendorSlot")}</th>
-              <th scope="col">{t("amounts.estimated")}</th>
-              <th scope="col">{t("amounts.committed")}</th>
-              <th scope="col">{t("variance")}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {view.categories.map((category) => {
-              const engaged = category.committedCents > 0 || category.varianceCents !== 0;
-              const variance = varianceDisplay(engaged ? category.varianceCents : null);
-              return (
-                <tr key={category.eventVendorSlotId}>
-                  <th scope="row">{category.label}</th>
-                  <td>
-                    {formatAmount(category.estimatedCents, locale)}
-                    {ht(category.ht.estimatedCents)}
-                  </td>
-                  <td>
-                    {engaged ? formatAmount(category.committedCents, locale) : t("notSet")}
-                    {engaged ? ht(category.ht.committedCents) : null}
-                  </td>
-                  <td className={variance.className}>
-                    {t(variance.labelKey, {
-                      amount: variance.amountCents === null ? "" : formatAmount(variance.amountCents, locale),
-                    })}
-                    {engaged ? ht(category.ht.varianceCents) : null}
-                  </td>
-                </tr>
-              );
+      {view.scope === "selected" ? (
+        <p>{t("budgetSelectedIntro")}</p>
+      ) : (
+        figures({
+          planned: view.totalEstimatedCents,
+          committed: view.totalCommittedCents,
+          remaining: view.totalRemainingCents,
+          ht: { planned: view.totalHt.estimatedCents, committed: view.totalHt.committedCents, remaining: view.totalHt.remainingCents },
+        })
+      )}
+      <ul className="budget-cards" aria-label={t("budgetCategoriesTitle")}>
+        {view.categories.map((category) => (
+          <li key={category.eventVendorSlotId} className="card">
+            <h3>{category.label}</h3>
+            {figures({
+              planned: category.estimatedCents,
+              committed: category.committedCents,
+              remaining: category.remainingCents,
+              ht: { planned: category.ht.estimatedCents, committed: category.ht.committedCents, remaining: category.ht.remainingCents },
             })}
-          </tbody>
-          {view.scope === "all" ? (
-            <tfoot>
-              <tr>
-                <th scope="row">{t("total")}</th>
-                <td>
-                  {formatAmount(view.totalEstimatedCents, locale)}
-                  {ht(view.totalHt.estimatedCents)}
-                </td>
-                <td>
-                  {formatAmount(view.totalCommittedCents, locale)}
-                  {ht(view.totalHt.committedCents)}
-                </td>
-                <td>
-                  {formatAmount(view.totalVarianceCents, locale)}
-                  {ht(view.totalHt.varianceCents)}
-                </td>
-              </tr>
-            </tfoot>
-          ) : null}
-        </table>
-      </div>
+          </li>
+        ))}
+      </ul>
+
+      <section aria-labelledby="client-payments-title" id="echeances">
+        <h3 id="client-payments-title">{t("paymentsTitle")}</h3>
+        {upcoming.length === 0 ? <p>{t("noPayments")}</p> : null}
+        <ul className="item-list">
+          {upcoming.map((payment) => (
+            <li key={payment.id}>
+              <p>
+                <strong>{paymentTitle(payment)}</strong> — {formatAmount(payment.amountCents, locale)}
+              </p>
+              <p className={payment.status === "overdue" ? "text-overdue" : "muted"}>
+                {payment.status === "declared"
+                  ? t("paymentDeclared", { date: formatCalendarDate(payment.declaredPaidOn!, locale), method: payment.declaredMethod ?? "" })
+                  : payment.status === "overdue"
+                    ? t("paymentOverdue", { date: formatCalendarDate(payment.dueOn, locale) })
+                    : t("paymentDue", { date: formatCalendarDate(payment.dueOn, locale) })}
+              </p>
+              {payment.refusalReason ? <p className="badge-warning">{t("paymentRefused", { reason: payment.refusalReason })}</p> : null}
+              {payment.status === "declared" && payment.declaredByThisLink ? (
+                <form action={preview ? undefined : cancelPaymentDeclarationAction}>
+                  <input type="hidden" name="paymentId" value={payment.id} />
+                  <button type="submit" disabled={preview}>
+                    <span aria-hidden="true">{t("cancelDeclarationShort")}</span>
+                    <span className="sr-only">{t("cancelDeclaration", { label: paymentTitle(payment) })}</span>
+                  </button>
+                </form>
+              ) : null}
+              {payment.status === "due" || payment.status === "overdue" ? (
+                <details>
+                  {/* Libellé visible court (le nom de l'échéance est juste au-dessus) ; nom complet pour les lecteurs d'écran. */}
+                  <summary>
+                    <span aria-hidden="true">{t("declarePaymentShort")}</span>
+                    <span className="sr-only">{t("declarePayment", { label: paymentTitle(payment) })}</span>
+                  </summary>
+                  <PaymentDeclarationForm paymentId={payment.id} label={paymentTitle(payment)} methods={methods} today={today} preview={preview} />
+                </details>
+              ) : null}
+            </li>
+          ))}
+        </ul>
+        {paid.length > 0 ? (
+          <details>
+            <summary>{t("paidPaymentsTitle", { count: paid.length })}</summary>
+            <ul>
+              {paid.map((payment) => (
+                <li key={payment.id}>
+                  {paymentTitle(payment)} — {formatAmount(payment.amountCents, locale)} — {t("paymentPaid", { date: formatCalendarDate(payment.paidOn!, locale) })}
+                </li>
+              ))}
+            </ul>
+          </details>
+        ) : null}
+      </section>
     </>
   );
+}
+
+// « Traiteur — Maison Haddad — Acompte » : le poste, le prestataire s'il y en a un, l'échéance.
+function paymentTitle(payment: LinkVendorPayment): string {
+  return [payment.slotLabel, payment.vendorName, payment.label].filter(Boolean).join(" — ");
 }

@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "_source": "Lot 27a (CHR-04), décision D7 de Julien du 12/11/2026 : rappel par e-mail des tâches « À faire par vous » non faites, sept jours avant l'échéance, la veille, puis une fois le lendemain d'un retard (seulement dans la semaine qui suit l'échéance) ; un e-mail regroupé par personne et par jour, envoyé entre 9 h et 19 h à Paris.",
+  "daysBefore": {
+    "week": 7,
+    "eve": 1
+  },
+  "overdue": {
+    "after": 1,
+    "within": 7
+  },
+  "sendingHours": {
+    "from": 9,
+    "until": 19
+  }
+}

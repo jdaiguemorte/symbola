@@ -553,7 +553,7 @@
     },
     "clientEvent": {
       "title": "Your space",
-      "body": "Your organiser opened this space for you through a personal link, with no account or password. You see what they shared with you: your tasks to tick, the programme of the day, the budget. This link is for you only: please do not forward it."
+      "body": "Your organiser has opened this space for you with a personal link, with no account or password. At the top, your next three actions; further down, what they have shared with you: your tasks to tick, the schedule of the day, the budget in three figures and its instalments. Paid an instalment? Declare it: your organiser will confirm it. This link is for you only: please do not forward it."
     },
     "vendorSpace": {
       "title": "Your vendor space",
@@ -880,6 +880,10 @@
     "team": {
       "title": "Team",
       "body": "The accounts of your organization: you, the owner, and your team members. \"Remove access\" closes a team member's sessions right away, on all their devices, and stops them from signing in again; their work stays in the organization. The removal goes to the activity log."
+    },
+    "linkPreview": {
+      "title": "“View as” preview",
+      "body": "This page shows exactly what the person with this link sees: the same sections, the same figures. Nothing can be changed here and nothing is recorded on their link."
     }
   },
   "Aide": {
@@ -1359,7 +1363,14 @@
     "noLinkVendors": "No vendor retained yet: retain one in the Budget tab to create their link.",
     "linkVendor": "Retained vendor",
     "linkVendorExpiresOnHint": "By default: 7 days after the event.",
-    "createVendorLink": "Create the vendor link and send it"
+    "createVendorLink": "Create the vendor link and send it",
+    "linkReminders": "Task reminders by e-mail",
+    "linkRemindersHint": "Seven days before the due date, the day before, then the day after it is overdue; one e-mail a day at most.",
+    "linkRemindersOff": "reminders off",
+    "linkPreview": "View as {name}",
+    "linkPreviewBanner": "Preview: what {name} sees",
+    "linkPreviewNote": "Buttons are inactive and files do not open in the preview; nothing is recorded on the link.",
+    "linkPreviewBack": "Back to the event page"
   },
   "Budget": {
     "title": "Budget",
@@ -1534,7 +1545,20 @@
     "exportStatusPaid": "Paid",
     "exportFileName": "budget",
     "exportGenerated": "Issued on {date}",
-    "exportDemoWatermark": "Fictional document"
+    "exportDemoWatermark": "Fictional document",
+    "declarationPending": "Declared paid by {name} on {date} ({method}), on {at}",
+    "declarationConfirmed": "Payment declared by {name} on {date} ({method}), confirmed",
+    "declarationSomeone": "a contact",
+    "confirmDeclaration": "Confirm the payment: {label}",
+    "refuseDeclarationOpen": "Refuse the declaration: {label}",
+    "refuseDeclaration": "Refuse and notify: {label}",
+    "declarationReason": "Reason, shown to the client",
+    "declarationReasonRequired": "Enter the reason for the refusal.",
+    "declarationGone": "This declaration has already been handled.",
+    "declarationRefusedNote": "Declaration refused: {reason}",
+    "declarationsTitle": "Declared payments to confirm",
+    "declarationLine": "{name} paid {label} ({amount}) — {event}",
+    "declarationLineMeta": "on {date}, {method}"
   },
   "Quotes": {
     "title": "Quotes",
@@ -4139,7 +4163,12 @@
       "events_link_renewal_requested": "New link requested",
       "events_link_opened": "Personal link opened",
       "events_link_code_sent": "Opening code sent",
-      "events_link_code_locked": "Opening code locked after five attempts"
+      "events_link_code_locked": "Opening code locked after five attempts",
+      "budget_vendor_payment_declared": "Instalment payment declared",
+      "budget_vendor_payment_declaration_cancelled": "Payment declaration cancelled",
+      "budget_vendor_payment_declaration_confirmed": "Declared payment confirmed",
+      "budget_vendor_payment_declaration_refused": "Declared payment refused",
+      "events_link_reminder_sent": "Task reminder sent"
     },
     "categories": {
       "connexion": "Sign-ins",
@@ -4336,7 +4365,50 @@
     "codeSubmit": "Open my space",
     "codeWrong": "This code does not match. {count, plural, one {You have # attempt left.} other {You have # attempts left.}}",
     "codeExpired": "This code is no longer valid: it lasts ten minutes, for five attempts and a single use. Ask for a new one.",
-    "codeResend": "Get a new code"
+    "codeResend": "Get a new code",
+    "homeTitle": "Home",
+    "countdownDays": "in {days} days",
+    "countdownTomorrow": "tomorrow",
+    "countdownToday": "it's today",
+    "progressLabel": "{done, plural, one {# task done} other {# tasks done}} out of {total}",
+    "nextActionsTitle": "Your next three actions",
+    "nothingToDo": "Nothing to do for now.",
+    "actionBefore": "Before {date}",
+    "actionOverdue": "Overdue: due {date}",
+    "actionPayment": "Pay {label}: {amount}",
+    "actionGoPayment": "See the instalment",
+    "actionQuote": "Sign quote {number} (version {version})",
+    "actionGoQuote": "See the quote",
+    "contentsLabel": "Contents",
+    "navTasks": "To do",
+    "navProgram": "Schedule",
+    "navOptions": "Options",
+    "navBudget": "Budget",
+    "navQuotes": "Quotes",
+    "plannedLabel": "Planned",
+    "committedLabel": "Committed",
+    "remainingLabel": "Left to pay",
+    "budgetCategoriesTitle": "Budget by item",
+    "paymentsTitle": "Upcoming instalments",
+    "noPayments": "No upcoming instalment.",
+    "paymentDue": "To pay before {date}",
+    "paymentOverdue": "Overdue: to pay since {date}",
+    "paymentDeclared": "Declared paid on {date} ({method}), awaiting confirmation",
+    "paymentRefused": "Your declaration was not accepted: {reason}",
+    "paymentPaid": "paid on {date}",
+    "paidPaymentsTitle": "Already paid ({count})",
+    "declarePayment": "I have paid it: {label}",
+    "declareDate": "Payment date",
+    "declareMethod": "Payment method",
+    "declareSubmit": "Declare the payment of {label}",
+    "declareSent": "Payment declared. Your organiser will confirm it.",
+    "cancelDeclaration": "Cancel my declaration for {label}",
+    "declareErrorState": "This instalment is no longer to be paid: it may already have been paid or declared.",
+    "declareErrorDate": "Enter a date that is not in the future.",
+    "declareErrorMethod": "Choose a payment method from the list.",
+    "declarePaymentShort": "I have paid it",
+    "declareSubmitShort": "Declare the payment",
+    "cancelDeclarationShort": "Cancel my declaration"
   },
   "VendorSpace": {
     "title": "Your vendor space",

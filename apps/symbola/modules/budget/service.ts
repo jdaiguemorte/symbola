@@ -19,6 +19,11 @@ import {
   insertVendorPayment,
   updateBudgetLineRow,
   updateVendorPaymentRow,
+  cancelVendorPaymentDeclarationRow,
+  declareVendorPaymentRow,
+  findPendingDeclarationRows,
+  recordDeclarationConfirmedRow,
+  refuseVendorPaymentDeclarationRow,
   type BudgetLineAttachmentRow,
   type VendorPaymentRow,
   deleteAllocationModel,
@@ -65,6 +70,7 @@ import {
 } from "@/modules/events/service";
 import { listEventQuotes } from "@/modules/quotes/service";
 import { parisToday } from "@symbola/i18n";
+import { withActor } from "@symbola/db/actor";
 import { starterBudgetAlertThreshold, starterBudgetVatRateBasisPoints } from "@symbola/starter-templates";
 import { budgetClientKind, htFromTtcCents, htTotalByRate } from "./vat";
 import type {
@@ -82,6 +88,8 @@ import type {
   BudgetLineHistoryEntry,
   BudgetLinesView,
   LinkBudgetView,
+  LinkVendorPayment,
+  PendingPaymentDeclaration,
   BudgetServiceContract,
   ConfirmEventBudgetInput,
   CreateAllocationModelInput,
@@ -109,6 +117,8 @@ export type {
   BudgetLineHistoryEntry,
   BudgetLinesView,
   LinkBudgetView,
+  LinkVendorPayment,
+  PendingPaymentDeclaration,
   BudgetServiceContract,
   ConfirmEventBudgetInput,
   CreateAllocationModelInput,
@@ -161,6 +171,15 @@ export class VendorPaymentInvalidError extends Error {
   constructor(readonly reason: "label" | "amount" | "date") {
     super(`échéance invalide : ${reason}`);
     this.name = "VendorPaymentInvalidError";
+  }
+}
+
+// Lot 27a (D6) : une déclaration impossible (échéance payée, déjà déclarée, date
+// ou moyen invalide, rien à annuler ou à traiter, motif de refus manquant).
+export class VendorPaymentDeclarationError extends Error {
+  constructor(readonly reason: "paid" | "declared" | "date" | "method" | "not_declared" | "reason") {
+    super(`déclaration de règlement impossible : ${reason}`);
+    this.name = "VendorPaymentDeclarationError";
   }
 }
 
@@ -361,6 +380,11 @@ function toVendorPayment(row: VendorPaymentRow, line: BudgetLineRow, lines: Budg
     dueOn: row.dueOn,
     paidOn: row.paidOn,
     status: paymentStatus(row, today),
+    declaration:
+      row.declaredAt && row.declaredPaidOn && row.declaredMethod && row.declaredByLinkId
+        ? { paidOn: row.declaredPaidOn, method: row.declaredMethod, linkId: row.declaredByLinkId, declaredAt: row.declaredAt.toISOString() }
+        : null,
+    refusalReason: row.refusalReason,
   };
 }
 
@@ -864,11 +888,15 @@ export async function getLinkBudgetView(organizationId: string, linkId: string):
   if (!access || access.audience !== "client" || !access.rights.rubrics.includes("budget")) throw new LinkBudgetAccessDeniedError();
   const view = await listBudgetLines(organizationId, access.eventId);
   const withoutLines = (categories: BudgetCategory[]) => categories.map((category) => ({ ...category, lines: [] }));
-  if (access.rights.budgetScope === "all") return { ...view, lines: [], categories: withoutLines(view.categories), scope: "all" };
+  const today = parisToday();
+  if (access.rights.budgetScope === "all") {
+    return { ...view, lines: [], categories: withoutLines(view.categories), scope: "all", payments: linkPayments(view.categories, linkId, today) };
+  }
   const shared = new Set(access.rights.sharedSlotIds);
   const categories = view.categories.filter((category) => shared.has(category.eventVendorSlotId));
   const lines = categories.flatMap((category) => category.lines);
   return {
+    payments: linkPayments(categories, linkId, today),
     eventId: view.eventId,
     categories: withoutLines(categories),
     lines: [],
@@ -883,6 +911,36 @@ export async function getLinkBudgetView(organizationId: string, linkId: string):
     envelope: null,
     scope: "selected",
   };
+}
+
+// Lot 27a (POR-05) — échéances vues par un lien : celles de ses catégories, non
+// payées, et payées depuis moins de trois mois ; par date.
+const PAID_VISIBLE_DAYS = 90;
+
+function linkPayments(categories: BudgetCategory[], linkId: string, today: string): LinkVendorPayment[] {
+  const since = addDaysTo(today, -PAID_VISIBLE_DAYS);
+  return categories
+    .flatMap((category) =>
+      category.lines.flatMap((line) =>
+        line.payments
+          .filter((payment) => payment.paidOn === null || payment.paidOn >= since)
+          .map((payment): LinkVendorPayment => ({
+            id: payment.id,
+            slotLabel: category.label,
+            vendorName: line.vendorName,
+            label: payment.label,
+            amountCents: payment.amountCents,
+            dueOn: payment.dueOn,
+            paidOn: payment.paidOn,
+            status: payment.status === "paid" ? "paid" : payment.declaration ? "declared" : payment.status,
+            declaredPaidOn: payment.declaration?.paidOn ?? null,
+            declaredMethod: payment.declaration?.method ?? null,
+            declaredByThisLink: payment.status !== "paid" && payment.declaration?.linkId === linkId,
+            refusalReason: payment.status === "paid" || payment.declaration ? null : payment.refusalReason,
+          })),
+      ),
+    )
+    .sort((a, b) => a.dueOn.localeCompare(b.dueOn));
 }
 
 // Lot 28b (BUD-03, D7, D12, D13) — échéances des paiements aux prestataires.
@@ -952,6 +1010,93 @@ export async function removeVendorPayment(input: { organizationId: string; event
   await ownPayment(input.organizationId, input.eventId, input.paymentId);
   if (!(await deleteVendorPaymentRow(input))) throw new VendorPaymentNotFoundError();
   return listBudgetLines(input.organizationId, input.eventId);
+}
+
+// Lot 27a (SC-06 étape 5, décision D6) — règlement déclaré par un client. Le
+// lien doit ouvrir le budget et, en « catégories choisies », la catégorie de
+// l'échéance ; sinon, même refus qu'une échéance inexistante.
+const DECLARED_METHOD_MAX = 80;
+const REFUSAL_REASON_MAX = 300;
+
+async function linkPaymentAccess(organizationId: string, linkId: string, paymentId: string): Promise<{ eventId: string; payment: VendorPaymentRow }> {
+  const access = await getLinkAccess(organizationId, linkId);
+  if (!access || access.audience !== "client" || !access.rights.rubrics.includes("budget")) throw new LinkBudgetAccessDeniedError();
+  const payment = await findVendorPayment(organizationId, paymentId);
+  if (!payment || payment.eventId !== access.eventId) throw new LinkBudgetAccessDeniedError();
+  if (access.rights.budgetScope === "selected") {
+    const line = (await findBudgetLines(organizationId, access.eventId)).find((entry) => entry.id === payment.lineId);
+    if (!line || !access.rights.sharedSlotIds.includes(line.eventVendorSlotId)) throw new LinkBudgetAccessDeniedError();
+  }
+  return { eventId: access.eventId, payment };
+}
+
+export async function declareLinkVendorPayment(input: { organizationId: string; linkId: string; paymentId: string; paidOn: string; method: string; now?: Date }): Promise<void> {
+  const now = input.now ?? new Date();
+  const { eventId, payment } = await linkPaymentAccess(input.organizationId, input.linkId, input.paymentId);
+  if (payment.paidOn) throw new VendorPaymentDeclarationError("paid");
+  if (payment.declaredAt) throw new VendorPaymentDeclarationError("declared");
+  if (!DATE_PATTERN.test(input.paidOn) || Number.isNaN(Date.parse(`${input.paidOn}T00:00:00Z`)) || input.paidOn > parisToday(now)) throw new VendorPaymentDeclarationError("date");
+  const method = input.method.trim();
+  if (!method || method.length > DECLARED_METHOD_MAX) throw new VendorPaymentDeclarationError("method");
+  const row = await withActor({ kind: "link", id: input.linkId }, () =>
+    declareVendorPaymentRow({ organizationId: input.organizationId, eventId, paymentId: payment.id, paidOn: input.paidOn, method, linkId: input.linkId, now }),
+  );
+  if (!row) throw new VendorPaymentDeclarationError("declared");
+}
+
+// Seul le lien qui a déclaré l'annule, tant que la planner n'a pas confirmé.
+export async function cancelLinkVendorPaymentDeclaration(input: { organizationId: string; linkId: string; paymentId: string; now?: Date }): Promise<void> {
+  const { eventId, payment } = await linkPaymentAccess(input.organizationId, input.linkId, input.paymentId);
+  const cancelled = await withActor({ kind: "link", id: input.linkId }, () =>
+    cancelVendorPaymentDeclarationRow({ organizationId: input.organizationId, eventId, paymentId: payment.id, linkId: input.linkId, now: input.now ?? new Date() }),
+  );
+  if (!cancelled) throw new VendorPaymentDeclarationError("not_declared");
+}
+
+// Confirmer : l'échéance est payée à la date déclarée (son montant se fige, le
+// payé de la ligne suit, D13) ; la déclaration reste lisible.
+export async function confirmVendorPaymentDeclaration(input: { organizationId: string; eventId: string; paymentId: string; changedByUserId: string }): Promise<BudgetLinesView> {
+  const payment = await ownPayment(input.organizationId, input.eventId, input.paymentId);
+  if (!payment.declaredAt || !payment.declaredPaidOn || payment.paidOn) throw new VendorPaymentDeclarationError("not_declared");
+  const view = await setVendorPaymentPaid({ organizationId: input.organizationId, eventId: input.eventId, paymentId: payment.id, paidOn: payment.declaredPaidOn, changedByUserId: input.changedByUserId });
+  await recordDeclarationConfirmedRow({ organizationId: input.organizationId, eventId: input.eventId, paymentId: payment.id });
+  return view;
+}
+
+export async function refuseVendorPaymentDeclaration(input: { organizationId: string; eventId: string; paymentId: string; reason: string; now?: Date }): Promise<BudgetLinesView> {
+  await ownPayment(input.organizationId, input.eventId, input.paymentId);
+  const reason = input.reason.trim().slice(0, REFUSAL_REASON_MAX);
+  if (!reason) throw new VendorPaymentDeclarationError("reason");
+  const refused = await refuseVendorPaymentDeclarationRow({ organizationId: input.organizationId, eventId: input.eventId, paymentId: input.paymentId, reason, now: input.now ?? new Date() });
+  if (!refused) throw new VendorPaymentDeclarationError("not_declared");
+  return listBudgetLines(input.organizationId, input.eventId);
+}
+
+// « Aujourd'hui » : déclarations en attente de confirmation, les plus anciennes d'abord.
+export async function listPendingPaymentDeclarations(organizationId: string): Promise<PendingPaymentDeclaration[]> {
+  const { payments, lines } = await findPendingDeclarationRows(organizationId);
+  const eventIds = [...new Set(payments.map((payment) => payment.eventId))];
+  const candidates = (await Promise.all(eventIds.map((eventId) => listVendorCandidates(organizationId, eventId)))).flat();
+  const vendorNameOf = new Map(candidates.map((candidate) => [candidate.id, candidate.vendorName]));
+  return payments.flatMap((payment) => {
+    const line = lines.find((entry) => entry.id === payment.lineId);
+    if (!line || !payment.declaredAt || !payment.declaredPaidOn || !payment.declaredMethod || !payment.declaredByLinkId) return [];
+    const eventLines = lines.filter((entry) => entry.eventId === payment.eventId);
+    return [
+      {
+        paymentId: payment.id,
+        eventId: payment.eventId,
+        label: payment.label,
+        lineLabel: line.label,
+        vendorName: line.vendorCandidateId ? (vendorNameOf.get(line.vendorCandidateId) ?? null) : null,
+        amountCents: paymentAmountCents(payment, paymentBaseCents(line, eventLines)),
+        declaredPaidOn: payment.declaredPaidOn,
+        declaredMethod: payment.declaredMethod,
+        declaredByLinkId: payment.declaredByLinkId,
+        declaredAt: payment.declaredAt.toISOString(),
+      },
+    ];
+  });
 }
 
 // D7 : échéances non payées des 7 prochains jours et en retard, toutes les

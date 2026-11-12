@@ -105,7 +105,7 @@ export default async function EventBudgetPage({ params }: { params: Promise<{ ev
       ) : null}
       <BudgetLinesTable eventId={eventId} view={linesView} canConfirm={budget !== null} vendorOptions={vendorOptions} locale={locale} />
       {/* Lot 28b (BUD-03) : échéancier par prestataire. */}
-      {linesView.lines.length > 0 ? <VendorSchedule view={linesView} locale={locale} /> : null}
+      {linesView.lines.length > 0 ? <VendorSchedule view={linesView} locale={locale} organizationId={organizationId} /> : null}
     </main>
   );
 }

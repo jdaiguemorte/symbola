@@ -4,11 +4,11 @@
 import { z } from "zod";
 import { formatCalendarDate, parisDaysSince, parisToday } from "@symbola/i18n";
 import { listTeam } from "@symbola/auth";
-import { withActor } from "@symbola/db/actor";
+import { SYSTEM_ACTOR, withActor } from "@symbola/db/actor";
 import { appDatabase } from "@symbola/db/client";
 import { parseEnv } from "@symbola/env";
 import { MailQuotaExceededError, reserveOrganizationMail, sendMail } from "@symbola/mail";
-import { starterDemoEvent, starterLinkExpiry, starterLinkProfiles, starterProgram, starterRetroplanning, starterTutorialEvent, starterVendorSlots, type StarterLinkProfile } from "@symbola/starter-templates";
+import { starterClientTaskReminders, starterDemoEvent, starterLinkExpiry, starterLinkProfiles, starterProgram, starterRetroplanning, starterTutorialEvent, starterVendorSlots, type StarterLinkProfile } from "@symbola/starter-templates";
 import {
   findEventNamesByIds,
   searchEventRows,
@@ -110,6 +110,8 @@ import {
   findLinkSessionRow,
   findLinkVendorRow,
   findPendingRenewalRows,
+  findReminderCandidateRows,
+  insertTaskRemindersRow,
   insertLinkRow,
   insertLinkSessionRow,
   issueLinkCodeRow,
@@ -133,7 +135,9 @@ import {
   newLinkSecret,
   normalizeLinkRights,
   parseLinkToken,
+  parisStartOfDay,
 } from "./link-tokens";
+import { isSendingHour, reminderMail, reminderThreshold, type ReminderTask } from "./task-reminders";
 import { hashLinkCode, LINK_CODE_TTL_MS, LINK_CODES_PER_HOUR, linkCodeExpiresAt, maskEmail, newLinkCode, normalizeLinkCode } from "./link-otp";
 import { addPlace, listPlaces, removePlace } from "./places";
 import { createStorageClient, deletePrivateObject } from "@symbola/files";
@@ -1242,6 +1246,7 @@ function validLinkFields(input: EventLinkInput): LinkFields {
     rights: normalizeLinkRights(input.rights),
     customExpiresOn,
     otpRequired: input.otpRequired === true,
+    taskReminders: input.taskReminders !== false,
   };
 }
 
@@ -1278,6 +1283,7 @@ function toEventLink(context: LinkWithContext, now = new Date()): EventLink {
     status: linkStatus({ revokedAt: link.revokedAt, expiresOn }, now),
     vendorCandidateId: link.vendorCandidateId,
     otpRequired: link.otpRequired,
+    taskReminders: link.taskReminders,
     lastOpenedAt: link.lastOpenedAt?.toISOString() ?? null,
     renewalRequestedAt: link.renewalRequestedAt?.toISOString() ?? null,
     createdAt: link.createdAt.toISOString(),
@@ -1376,6 +1382,7 @@ export async function createEventLink(input: CreateEventLinkInput): Promise<Even
     eventId: input.eventId,
     audience: input.audience,
     vendorCandidateId: input.vendorCandidateId || null,
+    locale: input.locale,
     tokenHash: hashLinkSecret(secret),
   });
   if (result.status !== "saved") throw linkWriteError(result.status);
@@ -1408,7 +1415,7 @@ export async function renewEventLink(input: RenewEventLinkInput): Promise<EventL
   const extendTo = isLinkExpired(expiresOnOf(current), now) ? addDays(parisToday(now), starterLinkExpiry().daysAfterEvent[current.link.audience]) : undefined;
   await reserveOrganizationMail(input.organizationId);
   const secret = newLinkSecret();
-  const context = await replaceLinkTokenRow(input.organizationId, input.linkId, hashLinkSecret(secret), extendTo);
+  const context = await replaceLinkTokenRow(input.organizationId, input.linkId, hashLinkSecret(secret), extendTo, input.locale);
   if (!context) throw new EventLinkNotFoundError();
   const link = toEventLink(context, now);
   const url = linkUrl(formatLinkToken(input.organizationId, secret));
@@ -1641,6 +1648,48 @@ export async function setLinkTaskDone(organizationId: string, linkId: string, ta
 
 export async function getLinkNamesByIds(organizationId: string, linkIds: string[]): Promise<Record<string, string>> {
   return findLinkNameRows(organizationId, linkIds);
+}
+
+// Lot 27a (CHR-04, décision D7) — rappels des tâches confiées au client, pour
+// une organisation : appelé par la tâche horaire de l'app. Un e-mail par
+// personne et par jour, regroupant les tâches qui atteignent un seuil (sept
+// jours avant, la veille, le lendemain d'un retard), jamais deux fois le même
+// rappel ; liens valables seulement ; plafond d'envois de l'organisation.
+export async function sendClientTaskReminders(organizationId: string, now: Date = new Date()): Promise<number> {
+  const policy = starterClientTaskReminders();
+  if (!isSendingHour(now, policy)) return 0;
+  const today = parisToday(now);
+  const candidates = await findReminderCandidateRows(
+    organizationId,
+    addDays(today, -policy.overdue.within),
+    addDays(today, policy.daysBefore.week),
+    parisStartOfDay(today),
+  );
+  let sent = 0;
+  for (const candidate of candidates) {
+    if (candidate.sentToday || !usableLink(candidate.context, now)) continue;
+    const due: (ReminderTask & { taskId: string })[] = candidate.tasks.flatMap((task) => {
+      const threshold = reminderThreshold(task.dueDate, today, policy);
+      return threshold && !candidate.sent.has(`${task.id}:${threshold}`) ? [{ taskId: task.id, label: task.label, dueDate: task.dueDate, threshold }] : [];
+    });
+    if (due.length === 0) continue;
+    try {
+      await reserveOrganizationMail(organizationId, { now });
+    } catch (error) {
+      if (error instanceof MailQuotaExceededError) break;
+      throw error;
+    }
+    const { link } = candidate.context;
+    const recorded = await withActor(SYSTEM_ACTOR, () =>
+      insertTaskRemindersRow({ organizationId, eventId: link.eventId, linkId: link.id, reminders: due.map(({ taskId, threshold }) => ({ taskId, threshold })), now }),
+    );
+    if (recorded === 0) continue;
+    const couple = ((await findEventAudience(organizationId, link.eventId)) ?? "couple") === "couple";
+    const mail = reminderMail({ personName: link.personName, locale: link.locale === "en" ? "en" : "fr", couple, tasks: due, today });
+    await sendMail({ to: link.email, subject: mail.subject, text: mail.text });
+    sent += 1;
+  }
+  return sent;
 }
 
 // Décision D3 : profils de départ d'un lien (ils pré-cochent les rubriques).
@@ -1912,6 +1961,7 @@ const _contractCheck: EventsServiceContract = {
   openEventLink,
   verifyLinkCode,
   getVendorLinkView,
+  sendClientTaskReminders,
   resolveLinkSession,
   closeLinkSession,
   requestLinkRenewal,

@@ -2,13 +2,20 @@
 // reste, puis ses échéances dans l'ordre des dates. Les lignes sans prestataire
 // (la robe payée en direct) ont leur groupe.
 import { getTranslations } from "next-intl/server";
-import { formatAmount, formatCalendarDate, type Locale } from "@symbola/i18n";
+import { formatAmount, formatCalendarDate, formatDateTime, type Locale } from "@symbola/i18n";
 import type { BudgetLinesView } from "@/modules/budget/service";
+import { getLinkNamesByIds } from "@/modules/events/service";
+import { confirmPaymentDeclarationAction } from "./actions";
+import { DeclarationRefusalForm } from "./declaration-refusal-form";
 
 type Group = { key: string; title: string; committedCents: number; paidCents: number; payments: (BudgetLinesView["lines"][number]["payments"][number] & { lineLabel: string })[] };
 
-export async function VendorSchedule({ view, locale }: { view: BudgetLinesView; locale: Locale }) {
+// Lot 27a (SC-06 étape 5, D6) : un règlement déclaré par un client se confirme
+// (payé à la date déclarée) ou se refuse, avec un motif montré au client.
+export async function VendorSchedule({ view, locale, organizationId }: { view: BudgetLinesView; locale: Locale; organizationId: string }) {
   const t = await getTranslations("Budget");
+  const declarerIds = [...new Set(view.lines.flatMap((line) => line.payments.flatMap((payment) => (payment.declaration ? [payment.declaration.linkId] : []))))];
+  const declarers = declarerIds.length > 0 ? await getLinkNamesByIds(organizationId, declarerIds) : {};
   // Un groupe par prestataire (toutes ses lignes, D12), ou par ligne sans prestataire ;
   // seuls les groupes qui ont des échéances s'affichent.
   const keyOf = (line: BudgetLinesView["lines"][number]) => (line.vendorCandidateId ? `${line.eventVendorSlotId}:${line.vendorCandidateId}` : `ligne-${line.id}`);
@@ -48,6 +55,32 @@ export async function VendorSchedule({ view, locale }: { view: BudgetLinesView; 
                       ? t("paymentPaid", { date: formatCalendarDate(payment.paidOn!, locale) })
                       : t(payment.status === "overdue" ? "paymentOverdue" : "paymentDue", { date: formatCalendarDate(payment.dueOn, locale) })}
                   </span>
+                  {payment.declaration ? (
+                    <p className={payment.status === "paid" ? "meta" : "badge-warning"}>
+                      {t(payment.status === "paid" ? "declarationConfirmed" : "declarationPending", {
+                        name: declarers[payment.declaration.linkId] ?? t("declarationSomeone"),
+                        date: formatCalendarDate(payment.declaration.paidOn, locale),
+                        method: payment.declaration.method,
+                        at: formatDateTime(new Date(payment.declaration.declaredAt), locale),
+                      })}
+                    </p>
+                  ) : null}
+                  {payment.declaration && payment.status !== "paid" ? (
+                    <div className="link-actions">
+                      <form action={confirmPaymentDeclarationAction}>
+                        <input type="hidden" name="eventId" value={view.eventId} />
+                        <input type="hidden" name="paymentId" value={payment.id} />
+                        <button type="submit" className="primary">
+                          {t("confirmDeclaration", { label: payment.label })}
+                        </button>
+                      </form>
+                      <details>
+                        <summary>{t("refuseDeclarationOpen", { label: payment.label })}</summary>
+                        <DeclarationRefusalForm eventId={view.eventId} paymentId={payment.id} label={payment.label} />
+                      </details>
+                    </div>
+                  ) : null}
+                  {!payment.declaration && payment.refusalReason && payment.status !== "paid" ? <p className="meta">{t("declarationRefusedNote", { reason: payment.refusalReason })}</p> : null}
                 </li>
               ))}
           </ul>

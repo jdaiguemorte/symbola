@@ -2796,4 +2796,51 @@
   .badge-warning {
     @apply inline-block rounded-sm bg-attention-soft px-2 py-1 text-attention;
   }
+  /* Lot 27a (POR-02, POR-05, POR-09) : accueil du portail, budget en trois
+     chiffres (empilés sur téléphone, lisibles à 360 px), aperçu « vu par ». */
+  .portal-home {
+    @apply flex flex-col gap-3;
+  }
+  .portal-progress {
+    @apply flex flex-col gap-1;
+  }
+  .portal-progress progress {
+    @apply h-2 w-full;
+  }
+  .next-actions {
+    @apply m-0 grid list-none grid-cols-1 gap-3 p-0 sm:grid-cols-3;
+  }
+  .next-actions > .card {
+    @apply my-0 flex flex-col gap-2;
+  }
+  .next-actions p {
+    @apply m-0;
+  }
+  .portal-contents ul {
+    @apply m-0 flex list-none flex-wrap gap-x-4 gap-y-2 p-0;
+  }
+  .budget-figures {
+    @apply m-0 grid grid-cols-1 gap-2 sm:grid-cols-3;
+  }
+  .budget-figures > div {
+    @apply flex items-baseline justify-between gap-2 sm:flex-col sm:items-start;
+  }
+  .budget-figures dt {
+    @apply text-ink-muted;
+  }
+  .budget-figures dd {
+    @apply m-0 font-semibold;
+  }
+  .budget-cards {
+    @apply m-0 mt-4 grid list-none grid-cols-1 gap-3 p-0 sm:grid-cols-2;
+  }
+  .budget-cards > .card {
+    @apply my-0 flex flex-col gap-2;
+  }
+  .budget-cards h3 {
+    @apply m-0;
+  }
+  .preview-banner {
+    @apply mb-4 flex flex-col gap-1;
+  }
 }

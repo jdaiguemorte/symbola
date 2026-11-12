@@ -16,6 +16,9 @@ import {
   removeBudgetLine,
   removeVendorPayment,
   setVendorPaymentPaid,
+  confirmVendorPaymentDeclaration,
+  refuseVendorPaymentDeclaration,
+  VendorPaymentDeclarationError,
   updateBudgetLineDetails,
   setEventAlertThreshold,
   AllocationModelNotFoundError,
@@ -350,4 +353,37 @@ export async function removeVendorPaymentAction(formData: FormData): Promise<voi
     if (!(error instanceof VendorPaymentNotFoundError)) throw error;
   });
   refresh(eventId);
+}
+
+// Lot 27a (SC-06 étape 5, décision D6) — règlement déclaré par un client :
+// confirmer le marque payé à la date déclarée ; refuser le rend à régler, avec
+// un motif montré au client.
+export async function confirmPaymentDeclarationAction(formData: FormData): Promise<void> {
+  const access = await plannerAccess();
+  const eventId = String(formData.get("eventId") ?? "");
+  const paymentId = String(formData.get("paymentId") ?? "");
+  if (!access || !isValidId(eventId) || !isValidId(paymentId)) return;
+  await confirmVendorPaymentDeclaration({ organizationId: access.organizationId, eventId, paymentId, changedByUserId: access.userId }).catch((error: unknown) => {
+    if (!(error instanceof VendorPaymentNotFoundError) && !(error instanceof VendorPaymentDeclarationError)) throw error;
+  });
+  refresh(eventId);
+  revalidatePath("/");
+}
+
+export async function refusePaymentDeclarationAction(_prev: BudgetFormState, formData: FormData): Promise<BudgetFormState> {
+  const t = await getTranslations("Budget");
+  const access = await plannerAccess();
+  const eventId = String(formData.get("eventId") ?? "");
+  const paymentId = String(formData.get("paymentId") ?? "");
+  if (!access || !isValidId(eventId) || !isValidId(paymentId)) return { error: t("declarationGone") };
+  try {
+    await refuseVendorPaymentDeclaration({ organizationId: access.organizationId, eventId, paymentId, reason: String(formData.get("reason") ?? "") });
+  } catch (error) {
+    if (error instanceof VendorPaymentDeclarationError) return { error: t(error.reason === "reason" ? "declarationReasonRequired" : "declarationGone") };
+    if (error instanceof VendorPaymentNotFoundError) return { error: t("declarationGone") };
+    throw error;
+  }
+  refresh(eventId);
+  revalidatePath("/");
+  return { success: true };
 }
