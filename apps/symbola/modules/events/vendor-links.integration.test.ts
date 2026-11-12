@@ -171,12 +171,18 @@ describe("UX-11, lot 26b — Lien du prestataire (décision D9)", () => {
     for (const hidden of ["Prévoir", "Studio Lumière", "Photos de groupe", "Témoins", "Martin", "Durand"]) expect(text).not.toContain(hidden);
   });
 
-  it("modifier le lien ne lui ouvre aucune rubrique ; la case du code se règle", async () => {
+  it("modifier le lien ne lui ouvre aucune rubrique ; demander le code coupe les sessions ouvertes", async () => {
     const organizationId = await organization();
     const { eventId, karimId } = await wedding(organizationId);
-    const { link } = await vendorLink(organizationId, eventId, karimId);
+    const { link, token } = await vendorLink(organizationId, eventId, karimId);
+    const sessionToken = await opened(token);
+    const renamed = await updateEventLink(organizationId, link.id, { personName: "Karim B.", email: link.email, rights: EVERYTHING });
+    expect(renamed).toMatchObject({ personName: "Karim B.", rights: { rubrics: [] }, otpRequired: false, vendorCandidateId: karimId });
+    expect(await resolveLinkSession(sessionToken)).not.toBeNull();
     const updated = await updateEventLink(organizationId, link.id, { personName: "Karim B.", email: link.email, rights: EVERYTHING, otpRequired: true });
-    expect(updated).toMatchObject({ personName: "Karim B.", rights: { rubrics: [] }, otpRequired: true, vendorCandidateId: karimId });
+    expect(updated).toMatchObject({ otpRequired: true });
+    expect(await resolveLinkSession(sessionToken)).toBeNull();
+    expect(await openEventLink(token)).toMatchObject({ outcome: "code_required" });
   });
 
   it("retirer le prestataire de l'événement retire son lien et coupe sa session", async () => {

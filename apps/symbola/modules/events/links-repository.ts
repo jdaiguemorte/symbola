@@ -198,7 +198,8 @@ export async function findLinkByTokenHash(organizationId: string, tokenHash: str
 export type UpdateLinkResult = { status: "saved"; context: LinkWithContext } | { status: "not_found" | "invalid_client" | "invalid_slot" | "invalid_vendor" };
 
 // Un lien retiré ne se modifie plus. Les catégories partagées sont mises à
-// jour par différence (pas de suppression inutile au journal).
+// jour par différence (pas de suppression inutile au journal). Lot 26b : demander
+// un code à l'ouverture coupe les sessions déjà ouvertes, qui devront le saisir.
 export async function updateLinkRow(organizationId: string, linkId: string, input: LinkFields): Promise<UpdateLinkResult> {
   const db = appDatabase();
   return await withOrganization(db, organizationId, async (tx) => {
@@ -224,6 +225,7 @@ export async function updateLinkRow(organizationId: string, linkId: string, inpu
       })
       .where(eq(eventLinks.id, linkId))
       .returning();
+    if (fields.otpRequired && !current.otpRequired) await tx.delete(eventLinkSessions).where(eq(eventLinkSessions.linkId, linkId));
     const existing = (await sharedSlotsByLink(tx, [linkId])).get(linkId) ?? [];
     const removed = existing.filter((id) => !fields.rights.sharedSlotIds.includes(id));
     const added = fields.rights.sharedSlotIds.filter((id) => !existing.includes(id));
