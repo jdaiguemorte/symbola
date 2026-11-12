@@ -137,13 +137,15 @@ test("PRD-EVT-06 / UX-11 / SEC-17 — le marié ouvre son lien sans inscription,
   // Ce qu'elle voit : rétroplanning, programme sans note interne, mention d'information.
   await expect(couple.getByText("Bonjour Inès")).toBeVisible();
   await expect(couple.getByRole("heading", { level: 1 })).toHaveText("Inès");
-  await expect(couple.getByRole("listitem").filter({ hasText: "Choisir les alliances" })).toContainText("À faire par vous");
+  // Lot 27a : la tâche figure aussi dans les trois prochaines actions de l'accueil.
+  const retroplanning = couple.getByRole("region", { name: "Rétroplanning" });
+  await expect(retroplanning.getByRole("listitem").filter({ hasText: "Choisir les alliances" })).toContainText("À faire par vous");
   await expect(couple.getByRole("list", { name: "Programme du jour J" })).toContainText("15:00 — Cérémonie");
   await expect(couple.getByText("oublie toujours")).toHaveCount(0);
   await expect(couple.getByRole("region", { name: "Vos données personnelles" })).toContainText(organization.organizationName);
   await expectNoAxeViolation(couple);
-  await couple.getByRole("button", { name: "Cocher la tâche Choisir les alliances" }).click();
-  await expect(couple.getByRole("button", { name: "Décocher la tâche Choisir les alliances" })).toBeVisible();
+  await retroplanning.getByRole("button", { name: "Cocher la tâche Choisir les alliances" }).click();
+  await expect(retroplanning.getByRole("button", { name: "Décocher la tâche Choisir les alliances" })).toBeVisible();
   const pdf = await couple.request.get("/portail/programme/pdf");
   expect(pdf.status()).toBe(200);
   expect(pdf.headers()["content-disposition"]).toContain("programme-maries.pdf");

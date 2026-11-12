@@ -93,6 +93,8 @@ export async function createLinkAction(_prev: LinkFormState, formData: FormData)
         rights: profile ? { rubrics: profile.rubrics, budgetScope: profile.budgetScope, sharedSlotIds: ids(formData, "sharedSlotIds") } : { rubrics: [], budgetScope: "all", sharedSlotIds: [] },
         customExpiresOn: text(formData, "customExpiresOn") || null,
         otpRequired: formData.get("otpRequired") === "on",
+        // Lot 27a (CHR-04, D7) : rappels des tâches, pour un lien de client.
+        taskReminders: !vendor && formData.get("taskReminders") === "on",
       },
     });
     revalidatePath(`/events/${eventId}`);
@@ -125,6 +127,7 @@ export async function updateLinkAction(_prev: LinkFormState, formData: FormData)
       rights,
       customExpiresOn: text(formData, "customExpiresOn") || null,
       otpRequired: formData.get("otpRequired") === "on",
+      taskReminders: formData.get("taskReminders") === "on",
     });
     revalidatePath(`/events/${eventId}`);
     return { success: true };

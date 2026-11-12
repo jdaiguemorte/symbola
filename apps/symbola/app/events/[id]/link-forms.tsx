@@ -18,6 +18,7 @@ export type EditableLink = {
   id: string;
   audience: LinkAudience;
   otpRequired: boolean;
+  taskReminders: boolean;
   personName: string;
   email: string;
   eventClientId: string | null;
@@ -69,6 +70,23 @@ function OtpChoice({ defaultChecked }: { defaultChecked: boolean }) {
       </label>
       <p id={hintId} className="muted">
         {t("linkOtpHint")}
+      </p>
+    </>
+  );
+}
+
+// Lot 27a (CHR-04, D7) : rappels par e-mail des tâches confiées à la personne.
+function ReminderChoice({ defaultChecked }: { defaultChecked: boolean }) {
+  const t = useTranslations("Events");
+  const hintId = useId();
+  return (
+    <>
+      <label className="checkbox">
+        <input type="checkbox" name="taskReminders" defaultChecked={defaultChecked} aria-describedby={hintId} />
+        {t("linkReminders")}
+      </label>
+      <p id={hintId} className="muted">
+        {t("linkRemindersHint")}
       </p>
     </>
   );
@@ -142,6 +160,7 @@ export function CreateLinkForm({ eventId, clients, slots, profiles }: { eventId:
         <input type="date" name="customExpiresOn" />
       </label>
       <p className="muted">{t("linkExpiresOnHint")}</p>
+      <ReminderChoice defaultChecked />
       <OtpChoice defaultChecked={false} />
       <button type="submit" className="primary" disabled={pending}>
         {t("createLink")}
@@ -175,6 +194,7 @@ export function EditLinkForm({ eventId, link, clients, slots }: { eventId: strin
         {t("linkExpiresOn")}
         <input type="date" name="customExpiresOn" defaultValue={link.customExpiresOn ?? ""} />
       </label>
+      {vendor ? null : <ReminderChoice defaultChecked={link.taskReminders} />}
       <OtpChoice defaultChecked={link.otpRequired} />
       <button type="submit" disabled={pending}>
         {t("saveLink", { name: link.personName })}

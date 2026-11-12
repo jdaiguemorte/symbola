@@ -177,6 +177,45 @@ export type VendorPayment = {
   dueOn: string;
   paidOn: string | null;
   status: VendorPaymentStatus;
+  // Lot 27a (SC-06, D6) : règlement déclaré par un client, en attente ou
+  // confirmé (il reste après la confirmation) ; motif d'un refus.
+  declaration: VendorPaymentDeclaration | null;
+  refusalReason: string | null;
+};
+
+export type VendorPaymentDeclaration = { paidOn: string; method: string; linkId: string; declaredAt: string };
+
+// Lot 27a (POR-05) — échéance vue par un lien : ses catégories seulement.
+// « declared » : déclarée réglée, en attente de la confirmation de la planner.
+export type LinkVendorPaymentStatus = "due" | "overdue" | "declared" | "paid";
+export type LinkVendorPayment = {
+  id: string;
+  slotLabel: string;
+  vendorName: string | null;
+  label: string;
+  amountCents: number;
+  dueOn: string;
+  paidOn: string | null;
+  status: LinkVendorPaymentStatus;
+  declaredPaidOn: string | null;
+  declaredMethod: string | null;
+  // La déclaration en attente vient de ce lien (il peut l'annuler).
+  declaredByThisLink: boolean;
+  refusalReason: string | null;
+};
+
+// Lot 27a (D6) — déclarations à confirmer, pour « Aujourd'hui ».
+export type PendingPaymentDeclaration = {
+  paymentId: string;
+  eventId: string;
+  label: string;
+  lineLabel: string;
+  vendorName: string | null;
+  amountCents: number;
+  declaredPaidOn: string;
+  declaredMethod: string;
+  declaredByLinkId: string;
+  declaredAt: string;
 };
 
 export type VendorPaymentInput = {
@@ -243,7 +282,12 @@ export type BudgetLinesView = {
 // Lot 26a (POR-01, POR-10) — budget vu par un lien personnel : catégories et
 // totaux, sans lignes ; en « catégories choisies », ni enveloppe ni total
 // général (les totaux sont ceux des seules catégories partagées).
-export type LinkBudgetView = BudgetLinesView & { scope: LinkBudgetScope };
+export type LinkBudgetView = BudgetLinesView & {
+  scope: LinkBudgetScope;
+  // Lot 27a (POR-05) : échéances de ses catégories, non payées, et payées
+  // depuis moins de trois mois.
+  payments: LinkVendorPayment[];
+};
 
 // Lot 28a (BUD-02, décision D4) — enveloppe du client : son budget souhaité, ou
 // à défaut le total de la simulation ; seuil d'alerte en pourcentage, celui de

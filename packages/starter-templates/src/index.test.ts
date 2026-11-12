@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import retroplanningFile from "./retroplanning.json";
 import vendorSlotsFile from "./vendor-slots.json";
 import programFile from "./program.json";
-import { starterDemoEvent, starterDemoQuote, starterErasureResponse, starterPrivacySettings, starterInvoiceMentions, starterDocumentStyle, starterQuoteTerms, starterRequestResponse, starterLossReasons, starterPaymentMethods, starterProgram, starterProspectSources, starterRetroplanning, starterVendorSlots, starterVendorTypes, starterBudgetLines, starterAllocation, starterFollowUpDelays, starterVendorTypeSynonymGroups, starterVendorCatalog, starterEventTypes, starterVendorTags, starterPaymentMethodKinds, BUDGET_LINE_ICONS, starterLinkProfiles, starterLinkExpiry, starterLinkPrivacyNotice } from "./index";
+import { starterDemoEvent, starterDemoQuote, starterErasureResponse, starterPrivacySettings, starterInvoiceMentions, starterDocumentStyle, starterQuoteTerms, starterRequestResponse, starterLossReasons, starterPaymentMethods, starterProgram, starterProspectSources, starterRetroplanning, starterVendorSlots, starterVendorTypes, starterBudgetLines, starterAllocation, starterFollowUpDelays, starterVendorTypeSynonymGroups, starterVendorCatalog, starterEventTypes, starterVendorTags, starterPaymentMethodKinds, BUDGET_LINE_ICONS, starterLinkProfiles, starterLinkExpiry, starterLinkPrivacyNotice, starterClientTaskReminders } from "./index";
 
 describe("PRD-EVT-03 — Modèle de départ des postes prestataires", () => {
   it("existe en français et en anglais, avec le même nombre de postes", () => {
@@ -374,6 +374,10 @@ describe("L26 — Données de départ des liens personnels (POR-01, SEC-15, RGP-
 
   it("expiration de départ : 30 jours (client), 7 jours (prestataire), 180 jours sans date", () => {
     expect(starterLinkExpiry()).toEqual({ daysAfterEvent: { client: 30, vendor: 7, guest: 30 }, daysWithoutEventDate: 180 });
+  });
+
+  it("CHR-04, lot 27a — rappels de départ : 7 jours avant, la veille, retard rappelé dans la semaine, de 9 h à 19 h", () => {
+    expect(starterClientTaskReminders()).toEqual({ daysBefore: { week: 7, eve: 1 }, overdue: { after: 1, within: 7 }, sendingHours: { from: 9, until: 19 } });
   });
 
   it("mention d'information en français et en anglais, au nom de l'organisation, avec son contact", () => {

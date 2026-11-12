@@ -70,7 +70,7 @@ export const budgetPrivacy: PrivacyContractV1 = {
     if (lineIds.length > 0 || paymentIds.length > 0) {
       await inOrganization(input.organizationId, async (tx) => {
         if (lineIds.length > 0) await tx.update(budgetLines).set({ label: ANONYMIZED, updatedAt: new Date() }).where(inArray(budgetLines.id, lineIds));
-        if (paymentIds.length > 0) await tx.update(vendorPayments).set({ label: ANONYMIZED, updatedAt: new Date() }).where(inArray(vendorPayments.id, paymentIds));
+        if (paymentIds.length > 0) await tx.update(vendorPayments).set({ label: ANONYMIZED, refusalReason: null, updatedAt: new Date() }).where(inArray(vendorPayments.id, paymentIds));
       });
     }
     if (attachmentKeys.size > 0) {

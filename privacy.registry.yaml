@@ -381,6 +381,17 @@ fields:
       Remplacé par « [anonymisé] » lors d'une demande d'oubli (RGPD-03) ; le
       montant et les dates restent.
   - schema: budget
+    table: vendor_payments
+    field: refusal_reason
+    category: contenu_libre
+    retention: >-
+      Lot 27a (SC-06, décision D6) : motif libre écrit par la planner quand elle
+      refuse un règlement déclaré par un client, montré à ce client, jusqu'à la
+      déclaration suivante. Après suppression ou demande d'oubli : voir
+      RGPD-03/RGPD-05.
+    anonymization: >-
+      Effacé avec le libellé de l'échéance lors d'une demande d'oubli (RGPD-03).
+  - schema: budget
     table: budget_line_attachments
     field: file_key
     category: contenu_libre

@@ -10,6 +10,7 @@ import { requireSignedIn } from "@/lib/guards";
 import { recordUsage } from "@/lib/usage";
 import { UpcomingPaymentsBlock } from "./devis/encaissements/dashboard-block";
 import { VendorPaymentsBlock } from "./budget/vendor-payments-block";
+import { PaymentDeclarationsBlock } from "./budget/payment-declarations-block";
 import { PrivacyPurgeAlertBlock, PrivacyRequestsAlertBlock } from "./rgpd/dashboard-block";
 import { PageTour } from "./page-tour";
 import { loadPageTour } from "@/lib/help/page-tour";
@@ -90,6 +91,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       {auth.user.role === "owner" && auth.user.organizationId ? <PrivacyPurgeAlertBlock organizationId={auth.user.organizationId} /> : null}
       {/* Lot 26a (SEC-15, D5) : liens expirés dont la personne demande un nouveau lien. */}
       {eventsAvailable && organizationId ? <LinkRenewalsBlock organizationId={organizationId} /> : null}
+      {/* Lot 27a (D6) : règlements déclarés par un client, à confirmer. */}
+      {budgetAvailable && organizationId ? <PaymentDeclarationsBlock organizationId={organizationId} /> : null}
       {/* PRD-HUB-02 : agenda des mois à venir et tâches de la quinzaine (module Événements). */}
       {eventsAvailable && organizationId ? <AgendaBlock organizationId={organizationId} locale={locale} today={today} query={query} /> : null}
       {/* Lot 20 (décision 4) : blocs empilés, en-tête commun, trois lignes ;

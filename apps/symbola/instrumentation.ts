@@ -43,5 +43,8 @@ export async function register() {
     // Lot 23 (décision D5) : adresses IP des connexions oubliées après la durée réglée.
     const { scheduleConnectionTracePurge } = await import("./lib/connection-traces-purge");
     scheduleConnectionTracePurge();
+    // Lot 27a (CHR-04) : rappels par e-mail des tâches confiées au client.
+    const { scheduleClientTaskReminders } = await import("./lib/client-task-reminders");
+    scheduleClientTaskReminders();
   }
 }

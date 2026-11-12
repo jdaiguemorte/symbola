@@ -2,7 +2,7 @@
 // données des liens personnels des tiers. Jamais importé hors de
 // modules/events/ (ADR 0011) : les autres modules passent par service.ts.
 // Chaque lecture et écriture se fait sous RLS, dans l'organisation du lien.
-import { and, asc, count, desc, eq, gte, inArray, isNull, lt, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, inArray, isNull, lt, lte, sql } from "drizzle-orm";
 import { appDatabase } from "@symbola/db/client";
 import { appendAudit } from "@symbola/db/audit";
 import { withOrganization } from "@symbola/db/with-organization";
@@ -14,6 +14,7 @@ import {
   eventLinkSessions,
   eventLinkSharedSlots,
   events,
+  eventTaskReminders,
   eventTasks,
   eventVendorCandidates,
   eventVendorSlots,
@@ -111,6 +112,7 @@ export type LinkFields = {
   rights: EventLinkRights;
   customExpiresOn: string | null;
   otpRequired: boolean;
+  taskReminders: boolean;
 };
 
 // Lot 26b (D9) : un lien de prestataire n'ouvre aucune rubrique du portail ni
@@ -126,7 +128,7 @@ export type InsertLinkResult =
   | { status: "event_not_found" | "demo_event" | "invalid_client" | "invalid_slot" | "invalid_vendor" };
 
 export async function insertLinkRow(
-  input: LinkFields & { organizationId: string; eventId: string; audience: LinkAudience; vendorCandidateId: string | null; tokenHash: string },
+  input: LinkFields & { organizationId: string; eventId: string; audience: LinkAudience; vendorCandidateId: string | null; locale: "fr" | "en"; tokenHash: string },
 ): Promise<InsertLinkResult> {
   const db = appDatabase();
   return await withOrganization(db, input.organizationId, async (tx) => {
@@ -154,6 +156,8 @@ export async function insertLinkRow(
         budgetScope: fields.rights.budgetScope,
         customExpiresOn: fields.customExpiresOn,
         otpRequired: fields.otpRequired,
+        taskReminders: fields.taskReminders,
+        locale: input.locale,
         tokenHash: input.tokenHash,
       })
       .returning();
@@ -222,6 +226,7 @@ export async function updateLinkRow(organizationId: string, linkId: string, inpu
         budgetScope: fields.rights.budgetScope,
         customExpiresOn: fields.customExpiresOn,
         otpRequired: fields.otpRequired,
+        taskReminders: fields.taskReminders,
       })
       .where(eq(eventLinks.id, linkId))
       .returning();
@@ -243,12 +248,12 @@ export async function updateLinkRow(organizationId: string, linkId: string, inpu
 
 // Renouveler : nouveau jeton, l'ancien et ses sessions cessent aussitôt ;
 // customExpiresOn (facultatif) prolonge un lien expiré.
-export async function replaceLinkTokenRow(organizationId: string, linkId: string, tokenHash: string, customExpiresOn?: string): Promise<LinkWithContext | null> {
+export async function replaceLinkTokenRow(organizationId: string, linkId: string, tokenHash: string, customExpiresOn?: string, locale?: "fr" | "en"): Promise<LinkWithContext | null> {
   const db = appDatabase();
   return await withOrganization(db, organizationId, async (tx) => {
     const [link] = await tx
       .update(eventLinks)
-      .set({ tokenHash, renewalRequestedAt: null, ...(customExpiresOn ? { customExpiresOn } : {}) })
+      .set({ tokenHash, renewalRequestedAt: null, ...(customExpiresOn ? { customExpiresOn } : {}), ...(locale ? { locale } : {}) })
       .where(and(eq(eventLinks.id, linkId), isNull(eventLinks.revokedAt)))
       .returning();
     if (!link) return null;
@@ -467,5 +472,66 @@ export async function findLinkVendorRow(
       .innerJoin(eventVendorSlots, eq(eventVendorSlots.id, eventVendorCandidates.vendorSlotId))
       .where(eq(eventVendorCandidates.id, vendorCandidateId));
     return row ?? null;
+  });
+}
+
+// Lot 27a (CHR-04, décision D7) — rappels des tâches du client.
+
+export type ReminderCandidate = {
+  context: LinkWithContext;
+  tasks: { id: string; label: string; dueDate: string }[];
+  // « tâche:seuil » déjà envoyés à ce lien.
+  sent: Set<string>;
+  // Un rappel est déjà parti aujourd'hui (un e-mail par jour).
+  sentToday: boolean;
+};
+
+// Liens de client non retirés, rappels cochés, rubrique Rétroplanning ouverte,
+// et leurs tâches « clients » non faites dont l'échéance tombe dans la fenêtre.
+export async function findReminderCandidateRows(organizationId: string, fromDate: string, toDate: string, startOfToday: Date): Promise<ReminderCandidate[]> {
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const links = await tx
+      .select()
+      .from(eventLinks)
+      .where(and(eq(eventLinks.audience, "client"), isNull(eventLinks.revokedAt), eq(eventLinks.taskReminders, true), sql`'tasks' = any(${eventLinks.rubrics})`));
+    if (links.length === 0) return [];
+    const contexts = await withContext(tx, links);
+    const eventIds = [...new Set(links.map((link) => link.eventId))];
+    const tasks = await tx
+      .select({ id: eventTasks.id, eventId: eventTasks.eventId, label: eventTasks.label, dueDate: eventTasks.dueDate })
+      .from(eventTasks)
+      .where(and(inArray(eventTasks.eventId, eventIds), eq(eventTasks.responsible, "clients"), isNull(eventTasks.doneAt), gte(eventTasks.dueDate, fromDate), lte(eventTasks.dueDate, toDate)));
+    const sent = await tx
+      .select({ taskId: eventTaskReminders.taskId, linkId: eventTaskReminders.linkId, threshold: eventTaskReminders.threshold, sentAt: eventTaskReminders.sentAt })
+      .from(eventTaskReminders)
+      .where(inArray(eventTaskReminders.linkId, links.map((link) => link.id)));
+    return contexts.map((context) => {
+      const own = sent.filter((row) => row.linkId === context.link.id);
+      return {
+        context,
+        tasks: tasks.filter((task) => task.eventId === context.link.eventId).map(({ id, label, dueDate }) => ({ id, label, dueDate })),
+        sent: new Set(own.map((row) => `${row.taskId}:${row.threshold}`)),
+        sentToday: own.some((row) => row.sentAt.getTime() >= startOfToday.getTime()),
+      };
+    });
+  });
+}
+
+// Note les rappels envoyés (jamais deux fois : contrainte d'unicité) ; renvoie
+// le nombre de rappels nouveaux. L'appelant fixe l'auteur (le système).
+export async function insertTaskRemindersRow(input: { organizationId: string; eventId: string; linkId: string; reminders: { taskId: string; threshold: string }[]; now: Date }): Promise<number> {
+  if (input.reminders.length === 0) return 0;
+  const db = appDatabase();
+  return await withOrganization(db, input.organizationId, async (tx) => {
+    const inserted = await tx
+      .insert(eventTaskReminders)
+      .values(input.reminders.map((reminder) => ({ organizationId: input.organizationId, linkId: input.linkId, taskId: reminder.taskId, threshold: reminder.threshold, sentAt: input.now })))
+      .onConflictDoNothing()
+      .returning({ id: eventTaskReminders.id });
+    if (inserted.length > 0) {
+      await appendAudit(tx, { organizationId: input.organizationId, action: "events.link.reminder_sent", objectId: input.eventId, details: { linkId: input.linkId, tasks: inserted.length } });
+    }
+    return inserted.length;
   });
 }

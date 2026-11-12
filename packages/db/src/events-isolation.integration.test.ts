@@ -12,6 +12,7 @@ import {
   eventLinks,
   eventLinkCodes,
   eventLinkSessions,
+  eventTaskReminders,
   eventLinkSharedSlots,
   eventClients,
   events,
@@ -356,6 +357,30 @@ describe("PRD-EVT-01/02 — Isolation entre organisations (module events, Postgr
       attemptCrossOrganizationUpdate: async (organizationId, targetRow) => {
         const updated = await withOrganization(db, organizationId, (tx) =>
           tx.update(eventLinkSessions).set({ expiresAt: new Date(Date.now() + 365 * 86_400_000) }).where(eq(eventLinkSessions.id, targetRow.id)).returning(),
+        );
+        return { affectedRows: updated.length };
+      },
+    });
+  });
+
+  it("SEC-10, lot 27a — une organisation ne voit ni n'efface jamais les rappels envoyés d'une autre", async () => {
+    await assertOrganizationIsolation({
+      seed: async (organizationId) =>
+        withOrganization(db, organizationId, async (tx) => {
+          const [event] = await tx.insert(events).values({ organizationId }).returning();
+          const [task] = await tx.insert(eventTasks).values({ organizationId, eventId: event!.id, label: "Choisir les alliances", dueDate: "2027-03-10", responsible: "clients" }).returning();
+          const [link] = await tx.insert(eventLinks).values({ organizationId, eventId: event!.id, audience: "client", personName: "Léa", email: "lea@example.test", rubrics: ["tasks"] }).returning();
+          const [row] = await tx.insert(eventTaskReminders).values({ organizationId, taskId: task!.id, linkId: link!.id, threshold: "week" }).returning();
+          if (!row) throw new Error("insertion attendue, aucune ligne renvoyée");
+          return row;
+        }),
+
+      listVisible: async (organizationId) =>
+        withOrganization(db, organizationId, (tx) => tx.select().from(eventTaskReminders)),
+
+      attemptCrossOrganizationUpdate: async (organizationId, targetRow) => {
+        const updated = await withOrganization(db, organizationId, (tx) =>
+          tx.update(eventTaskReminders).set({ threshold: "eve" }).where(eq(eventTaskReminders.id, targetRow.id)).returning(),
         );
         return { affectedRows: updated.length };
       },

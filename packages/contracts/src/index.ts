@@ -142,6 +142,10 @@ export type {
   VendorPayment,
   VendorPaymentInput,
   VendorPaymentStatus,
+  VendorPaymentDeclaration,
+  LinkVendorPayment,
+  LinkVendorPaymentStatus,
+  PendingPaymentDeclaration,
 } from "./budget/service-contract";
 export { BUDGET_AMOUNT_FIELDS, BUDGET_DOCUMENT_KINDS } from "./budget/service-contract";
 export type {

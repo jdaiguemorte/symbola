@@ -19,6 +19,7 @@ import budgetAlertFile from "./budget-alert.json";
 import budgetVatFile from "./budget-vat.json";
 import linkProfilesFile from "./link-profiles.json";
 import linkExpiryFile from "./link-expiry.json";
+import clientTaskRemindersFile from "./client-task-reminders.json";
 import linkPrivacyNoticeFile from "./link-privacy-notice.json";
 import programFile from "./program.json";
 import prospectSourcesFile from "./prospect-sources.json";
@@ -798,4 +799,26 @@ const linkPrivacyNoticeSchema = z.object({ version: z.literal(1), notice: transl
 
 export function starterLinkPrivacyNotice(locale: StarterLocale): string {
   return linkPrivacyNoticeSchema.parse(linkPrivacyNoticeFile).notice[locale];
+}
+
+// Lot 27a (CHR-04, décision D7) — rappels des tâches confiées au client : jours
+// avant l'échéance, retard rappelé, heures d'envoi (Paris).
+const clientTaskRemindersSchema = z
+  .object({
+    version: z.literal(1),
+    daysBefore: z.object({ week: z.number().int().min(2), eve: z.number().int().min(0) }),
+    overdue: z.object({ after: z.number().int().min(1), within: z.number().int().min(1) }),
+    sendingHours: z.object({ from: z.number().int().min(0).max(23), until: z.number().int().min(1).max(24) }),
+  })
+  .refine((value) => value.daysBefore.eve < value.daysBefore.week && value.overdue.after <= value.overdue.within && value.sendingHours.from < value.sendingHours.until);
+
+export type StarterClientTaskReminders = {
+  daysBefore: { week: number; eve: number };
+  overdue: { after: number; within: number };
+  sendingHours: { from: number; until: number };
+};
+
+export function starterClientTaskReminders(): StarterClientTaskReminders {
+  const { daysBefore, overdue, sendingHours } = clientTaskRemindersSchema.parse(clientTaskRemindersFile);
+  return { daysBefore: { ...daysBefore }, overdue: { ...overdue }, sendingHours: { ...sendingHours } };
 }

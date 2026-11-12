@@ -408,6 +408,8 @@ export type EventLink = {
   vendorCandidateId: string | null;
   // Lot 26b (POR-01, D6) : un code à usage unique est demandé à l'ouverture.
   otpRequired: boolean;
+  // Lot 27a (CHR-04, D7) : rappels par e-mail des tâches de la personne.
+  taskReminders: boolean;
   lastOpenedAt: string | null;
   renewalRequestedAt: string | null;
   createdAt: string;
@@ -421,6 +423,8 @@ export type EventLinkInput = {
   customExpiresOn?: string | null | undefined;
   // Lot 26b (POR-01, D6) : demander un code à l'ouverture (non par défaut).
   otpRequired?: boolean | undefined;
+  // Lot 27a (CHR-04, D7) : rappels par e-mail (oui par défaut).
+  taskReminders?: boolean | undefined;
 };
 
 export type CreateEventLinkInput = {
@@ -627,6 +631,8 @@ export interface EventsServiceContract {
   // Lot 26b (POR-01, D6) : code à usage unique saisi après l'ouverture.
   verifyLinkCode(token: string, code: string, now?: Date): Promise<VerifyLinkCodeResult>;
   getVendorLinkView(organizationId: string, linkId: string): Promise<VendorLinkView>;
+  // Lot 27a (CHR-04) : rappels des tâches du client, par la tâche horaire.
+  sendClientTaskReminders(organizationId: string, now?: Date): Promise<number>;
   resolveLinkSession(sessionToken: string, now?: Date): Promise<LinkAccess | null>;
   closeLinkSession(sessionToken: string): Promise<void>;
   requestLinkRenewal(token: string, now?: Date): Promise<void>;

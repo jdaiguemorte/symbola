@@ -75,6 +75,8 @@ export const AUDIT_ACTIONS = {
   "events.link.renewed": { category: "partage", objectType: "event" },
   "events.link.revoked": { category: "partage", objectType: "event" },
   "events.link.renewal_requested": { category: "partage", objectType: "event" },
+  // Lot 27a (CHR-04, D7) : rappel des tâches envoyé au client (nombre de tâches).
+  "events.link.reminder_sent": { category: "partage", objectType: "event" },
   // Lot 24b (SEC-22, décision D5) : plafond d'e-mails de l'heure atteint.
   "hub.mail.quota_reached": { category: "partage", objectType: null },
   "quotes.quote.sent": { category: "partage", objectType: "quote" },
@@ -88,6 +90,12 @@ export const AUDIT_ACTIONS = {
   // Encaissements.
   "quotes.payment.recorded": { category: "encaissement", objectType: "payment_schedule_item" },
   "quotes.payment.cancelled": { category: "encaissement", objectType: "payment_schedule_item" },
+  // Lot 27a (SC-06, D6) : règlement d'une échéance de prestataire déclaré par
+  // un client (le lien pour auteur), puis confirmé ou refusé par la planner.
+  "budget.vendor_payment.declared": { category: "encaissement", objectType: "event" },
+  "budget.vendor_payment.declaration_cancelled": { category: "encaissement", objectType: "event" },
+  "budget.vendor_payment.declaration_confirmed": { category: "encaissement", objectType: "event" },
+  "budget.vendor_payment.declaration_refused": { category: "encaissement", objectType: "event" },
   // Suppressions en masse (une ligne de synthèse, pas une par ligne effacée).
   "hub.privacy_erasure.executed": { category: "suppression", objectType: "privacy_erasure" },
   "hub.privacy_purge.executed": { category: "suppression", objectType: "privacy_purge" },

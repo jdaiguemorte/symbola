@@ -7,7 +7,8 @@ const OWN_STATUS_KEYS = { pending: "quoteToSign", signed: "quoteSignedByYou", de
 // DEV-02 — devis à signer : seulement ceux dont l'e-mail du lien est
 // signataire, avec son seul lien de signature (jamais celui d'un autre).
 // Lot 26a (SEC-17) : le lien sortant ne transmet pas l'adresse du portail.
-export async function ClientQuotes({ quotes, locale }: { quotes: ClientQuoteToSign[]; locale: Locale }) {
+// Lot 27a (POR-09) : dans l'aperçu de la planner, le lien de signature est inactif.
+export async function ClientQuotes({ quotes, locale, preview = false }: { quotes: ClientQuoteToSign[]; locale: Locale; preview?: boolean }) {
   const t = await getTranslations("ClientSpace");
   return (
     <section aria-labelledby="client-quotes-title">
@@ -26,9 +27,13 @@ export async function ClientQuotes({ quotes, locale }: { quotes: ClientQuoteToSi
               <>
                 {" "}
                 —{" "}
-                <a href={quote.ownSigningUrl} rel="noreferrer">
-                  {t("signQuote", { number: quote.number })}
-                </a>
+                {preview ? (
+                  <span>{t("signQuote", { number: quote.number })}</span>
+                ) : (
+                  <a href={quote.ownSigningUrl} rel="noreferrer">
+                    {t("signQuote", { number: quote.number })}
+                  </a>
+                )}
               </>
             ) : null}
           </li>

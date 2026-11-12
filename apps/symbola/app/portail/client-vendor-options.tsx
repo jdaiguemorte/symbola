@@ -5,7 +5,8 @@ import type { ClientVendorSlotOptions } from "@/modules/events/service";
 // L11-EVT-11 — options proposées, par poste : seulement les prestataires
 // consultés que la planner a montrés et les notes cochées « Clients ».
 // Lot 26a : fichiers servis par le portail, pour l'événement du lien.
-export async function ClientVendorOptions({ groups, locale }: { groups: ClientVendorSlotOptions[]; locale: Locale }) {
+// Lot 27a (POR-09) : dans l'aperçu de la planner, les fichiers ne s'ouvrent pas.
+export async function ClientVendorOptions({ groups, locale, preview = false }: { groups: ClientVendorSlotOptions[]; locale: Locale; preview?: boolean }) {
   const t = await getTranslations("ClientSpace");
   return (
     <section aria-labelledby="client-options-title">
@@ -23,10 +24,18 @@ export async function ClientVendorOptions({ groups, locale }: { groups: ClientVe
                 ))}
                 {option.quoteAmountCents !== null ? <p className="strong">{t("vendorOptionQuote", { amount: formatAmount(option.quoteAmountCents, locale) })}</p> : null}
                 {option.hasQuoteFile ? (
-                  <a href={`/portail/options/${option.candidateId}/devis`}>{t("vendorOptionOpenQuote", { vendor: option.vendorName })}</a>
+                  preview ? (
+                    <span>{t("vendorOptionOpenQuote", { vendor: option.vendorName })}</span>
+                  ) : (
+                    <a href={`/portail/options/${option.candidateId}/devis`}>{t("vendorOptionOpenQuote", { vendor: option.vendorName })}</a>
+                  )
                 ) : null}
                 {option.ribShared ? (
-                  <a href={`/portail/options/${option.candidateId}/rib`}>{t("vendorOptionOpenRib", { vendor: option.vendorName })}</a>
+                  preview ? (
+                    <span>{t("vendorOptionOpenRib", { vendor: option.vendorName })}</span>
+                  ) : (
+                    <a href={`/portail/options/${option.candidateId}/rib`}>{t("vendorOptionOpenRib", { vendor: option.vendorName })}</a>
+                  )
                 ) : null}
               </li>
             ))}
