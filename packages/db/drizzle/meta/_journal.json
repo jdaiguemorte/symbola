@@ -792,6 +792,13 @@
       "when": 1794482551313,
       "tag": "0112_lot26a_events_drop_client_accesses",
       "breakpoints": true
+    },
+    {
+      "idx": 113,
+      "version": "7",
+      "when": 1794482552150,
+      "tag": "0113_lot26b_events_vendor_links",
+      "breakpoints": true
     }
   ]
 }

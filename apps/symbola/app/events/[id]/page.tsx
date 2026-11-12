@@ -45,7 +45,7 @@ import { nextStep } from "./next-step";
 import { endTrialAction } from "../trial-actions";
 import { revokeLinkAction } from "./link-actions";
 import { ClientContactForm, WantedBudgetForm } from "./client-contact-forms";
-import { CreateLinkForm, EditLinkForm, RenewLinkForm } from "./link-forms";
+import { CreateLinkForm, CreateVendorLinkForm, EditLinkForm, RenewLinkForm, type LinkFormVendor } from "./link-forms";
 import { requestAudience } from "@/lib/vocabulary";
 import { removeProgramItemAction } from "./program-actions";
 import {
@@ -78,7 +78,7 @@ import { PlannedAmountForm, SlotIconForm } from "./budget-line-forms";
 import { AddPlaceForm } from "./place-forms";
 import { removePlaceAction } from "./place-actions";
 import { Trash2 } from "lucide-react";
-import { findVendors } from "@/modules/vendors/service";
+import { findVendors, getVendor } from "@/modules/vendors/service";
 import { isVendorsModuleEnabled } from "@/app/prestataires/module-access";
 import {
   VENDOR_STATUS_CLASSES,
@@ -260,6 +260,22 @@ export default async function EventDetailPage({
   const linkClients = event.clients.map((client) => ({ id: client.id, name: [client.firstName, client.lastName].filter(Boolean).join(" "), email: client.email ?? null }));
   const linkSlots = vendorSlots.map((slot) => ({ id: slot.id, label: slot.label }));
   const slotLabelById = new Map(linkSlots.map((slot) => [slot.id, slot.label]));
+  // Lot 26b (D9) : prestataires de l'événement ; un lien se crée pour un
+  // prestataire retenu, prérempli depuis sa fiche du carnet si le module est souscrit.
+  const linkCandidates = tab === "maries" ? await listVendorCandidates(organizationId, id) : [];
+  const vendorLabelOf = (candidateId: string | null) => {
+    const candidate = linkCandidates.find((item) => item.id === candidateId);
+    return candidate ? `${candidate.vendorName} — ${slotLabelById.get(candidate.vendorSlotId) ?? ""}` : "";
+  };
+  const linkVendorCards = tab === "maries" && (await isVendorsModuleEnabled(organizationId));
+  const linkVendors: LinkFormVendor[] = await Promise.all(
+    linkCandidates
+      .filter((candidate) => candidate.outcome === "selected")
+      .map(async (candidate) => {
+        const card = linkVendorCards && candidate.vendorId ? await getVendor(organizationId, candidate.vendorId) : null;
+        return { candidateId: candidate.id, label: vendorLabelOf(candidate.id), personName: card?.contactName || candidate.vendorName, email: card?.email ?? "" };
+      }),
+  );
 
   // Lot 13 (L13-EVT-19) : frise datée, prochaine étape, chiffres de la vue d'ensemble.
   const statusDates = await getEventStatusDates(organizationId, id);
@@ -882,7 +898,7 @@ export default async function EventDetailPage({
           {links.length === 0 ? <p>{t("noLinks")}</p> : null}
           <ul aria-label={t("linksTitle")} className="item-list">
             {links.map((link) => {
-              const sees = link.rights.rubrics.map((rubric) =>
+              const sees = link.audience === "vendor" ? [t("linkSeesVendor", { vendor: vendorLabelOf(link.vendorCandidateId) })] : link.rights.rubrics.map((rubric) =>
                 rubric === "budget" && link.rights.budgetScope === "selected"
                   ? t("linkBudgetSlots", { slots: link.rights.sharedSlotIds.map((slotId) => slotLabelById.get(slotId) ?? "").filter(Boolean).join(", ") })
                   : t(`linkRubric.${rubric}`),
@@ -894,7 +910,8 @@ export default async function EventDetailPage({
                     {link.status !== "revoked" ? ` — ${t("linkValidUntil", { date: formatCalendarDate(link.expiresOn, locale) })}` : ""}
                   </p>
                   <p className="muted">
-                    {sees.length > 0 ? t("linkSees", { items: sees.join(", ") }) : t("linkSeesNothing")}
+                    {link.audience === "vendor" ? sees[0] : sees.length > 0 ? t("linkSees", { items: sees.join(", ") }) : t("linkSeesNothing")}
+                    {link.otpRequired ? ` — ${t("linkOtpOn")}` : ""}
                     {" — "}
                     {link.lastOpenedAt ? t("linkOpenedOn", { date: formatDateTime(new Date(link.lastOpenedAt), locale) }) : t("linkNeverOpened")}
                   </p>
@@ -910,6 +927,8 @@ export default async function EventDetailPage({
                           eventId={event.id}
                           link={{
                             id: link.id,
+                            audience: link.audience,
+                            otpRequired: link.otpRequired,
                             personName: link.personName,
                             email: link.email,
                             eventClientId: link.eventClientId,
@@ -946,6 +965,7 @@ export default async function EventDetailPage({
               profiles={listLinkProfiles(locale === "en" ? "en" : "fr", await requestAudience(organizationId)).map((profile) => ({ key: profile.key, label: profile.label, budgetScope: profile.budgetScope }))}
             />
           )}
+          {event.isDemo ? null : <CreateVendorLinkForm eventId={event.id} vendors={linkVendors} />}
         </section>
       ) : null}
     </main>

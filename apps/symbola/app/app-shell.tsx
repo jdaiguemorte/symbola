@@ -92,10 +92,11 @@ function Brand({ href, suffix }: { href: string; suffix?: string }) {
 
 const iconProps = { size: 20, "aria-hidden": true as const, strokeWidth: 1.5 };
 
-// Lot 26a (UX-11, ADR 0053) : pages d'un lien personnel (/lien, /portail). Elles
+// Lot 26a (UX-11, ADR 0053) : pages d'un lien personnel (/lien, /portail et,
+// lot 26b, /prestataire). Elles
 // ont leur propre cadre, sans menu ni recherche ni compte : le logo de
 // l'organisation du lien (servi par /portail/logo), sinon son nom.
-const LINK_PAGE = /^\/(?:lien|portail)(?:\/|$)/;
+const LINK_PAGE = /^\/(?:lien|portail|prestataire)(?:\/|$)/;
 
 async function LinkShell({ children }: { children: ReactNode }) {
   const access = await currentLinkAccess();

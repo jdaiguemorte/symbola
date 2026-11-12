@@ -60,6 +60,8 @@ const PUBLIC_ENTRIES: Record<string, string> = {
   "lien/page.tsx#default": "arrivée d'un lien personnel : le jeton reste dans le navigateur, la page n'affiche rien d'autre",
   "lien/actions.ts#openLinkAction": "jeton du lien personnel, vérifié haché sous RLS, limité en débit",
   "lien/actions.ts#requestLinkRenewalAction": "jeton d'un lien expiré, même réponse dans tous les cas, limitée en débit",
+  // Lot 26b (POR-01, D6).
+  "lien/actions.ts#verifyLinkCodeAction": "jeton du lien et code à usage unique, vérifiés hachés sous RLS, cinq essais, limitée en débit",
   "portail/actions.ts#closeLinkSessionAction": "ferme la session de lien du cookie, s'il y en a une",
   "signature-fictive/[token]/page.tsx#default": "jeton du signataire (fournisseur fictif, hors production)",
   "signature-fictive/[token]/actions.ts#fakeSignatureAction": "jeton du signataire (fournisseur fictif, hors production)",

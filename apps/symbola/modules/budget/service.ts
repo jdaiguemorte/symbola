@@ -860,7 +860,8 @@ export async function getBudgetLineAttachmentFile(organizationId: string, attach
 // propres totaux (ADR 0059 : HT par taux), ni enveloppe ni total général.
 export async function getLinkBudgetView(organizationId: string, linkId: string): Promise<LinkBudgetView> {
   const access = await getLinkAccess(organizationId, linkId);
-  if (!access || !access.rights.rubrics.includes("budget")) throw new LinkBudgetAccessDeniedError();
+  // Lot 26b (SC-S3) : le budget n'est jamais ouvert au lien d'un prestataire.
+  if (!access || access.audience !== "client" || !access.rights.rubrics.includes("budget")) throw new LinkBudgetAccessDeniedError();
   const view = await listBudgetLines(organizationId, access.eventId);
   const withoutLines = (categories: BudgetCategory[]) => categories.map((category) => ({ ...category, lines: [] }));
   if (access.rights.budgetScope === "all") return { ...view, lines: [], categories: withoutLines(view.categories), scope: "all" };

@@ -472,14 +472,9 @@ export function linkPrivacyNoticeTemplate(locale: "fr" | "en"): string {
 // texte de l'organisation, sinon le texte de départ, avec son nom et une adresse
 // où exercer ses droits : celle du profil, sinon celle de la titulaire.
 export async function linkPrivacyNoticeFor(db: AppDatabase, organizationId: string, locale: "fr" | "en"): Promise<string> {
-  const [custom, header, profile, team] = await Promise.all([
-    getLinkPrivacyNotice(db, organizationId),
-    getDocumentHeader(db, organizationId),
-    getOrganizationProfile(db, organizationId),
-    listTeam(db, organizationId),
-  ]);
-  const organization = header?.organizationName ?? "";
-  const contact = profile.contactEmail ?? team.find((member) => member.role === "owner" && !member.disabledAt)?.email ?? organization;
+  const [custom, details] = await Promise.all([getLinkPrivacyNotice(db, organizationId), getOrganizationContact(db, organizationId)]);
+  const organization = details.name;
+  const contact = details.email ?? organization;
   return (
     (custom ?? starterLinkPrivacyNotice(locale))
       .replaceAll("{organization}", organization)
@@ -487,6 +482,20 @@ export async function linkPrivacyNoticeFor(db: AppDatabase, organizationId: stri
       // Un nom qui finit par un point (« Atelier Camille R. ») ne le double pas.
       .replace(/(?<!\.)\.\.(?!\.)/g, ".")
   );
+}
+
+// Lot 26b (D9) — contact de l'organisation montré à un tiers (espace du
+// prestataire, mention d'information) : nom, e-mail et téléphone du profil ;
+// à défaut d'e-mail, celui de la titulaire.
+export type OrganizationContact = { name: string; email: string | null; phone: string | null };
+
+export async function getOrganizationContact(db: AppDatabase, organizationId: string): Promise<OrganizationContact> {
+  const [header, profile, team] = await Promise.all([getDocumentHeader(db, organizationId), getOrganizationProfile(db, organizationId), listTeam(db, organizationId)]);
+  return {
+    name: header?.organizationName ?? "",
+    email: profile.contactEmail ?? team.find((member) => member.role === "owner" && !member.disabledAt)?.email ?? null,
+    phone: profile.contactPhone,
+  };
 }
 
 // Lot 17 (DEV-07) — identité du vendeur imprimée sur les devis et les

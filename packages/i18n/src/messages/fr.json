@@ -510,6 +510,10 @@
         {
           "q": "Que voient les mariés ?",
           "a": "Ce que vous leur ouvrez, par un lien personnel, sans compte ni mot de passe : leurs tâches, le programme, le budget en lecture seule, jamais vos notes internes. Créez leurs liens dans l'onglet Mariés ; un parent payeur peut ne voir que certaines catégories du budget."
+        },
+        {
+          "q": "Comment partager ses horaires avec un prestataire ?",
+          "a": "Dans l'onglet Mariés, créez le lien d'un prestataire retenu : il voit la date, les lieux, les lignes du programme où figure son poste et votre contact, rien d'autre (ni prix, ni budget, ni autres prestataires). Cochez « Demander un code à l'ouverture » pour qu'un code parte à son e-mail à chaque ouverture."
         }
       ]
     },
@@ -550,6 +554,10 @@
     "clientEvent": {
       "title": "Votre espace",
       "body": "Votre organisateur vous a ouvert cet espace par un lien personnel, sans compte ni mot de passe. Vous y voyez ce qu'il a partagé avec vous : vos tâches à cocher, le programme du jour J, le budget. Ce lien vous est réservé : ne le transférez pas."
+    },
+    "vendorSpace": {
+      "title": "Votre espace prestataire",
+      "body": "Votre organisateur vous a ouvert cet espace par un lien personnel, sans compte ni mot de passe. Vous y trouvez la date, les lieux, les horaires du programme qui vous concernent et le moyen de le joindre. Ce lien vous est réservé : ne le transférez pas."
     },
     "budgetSettings": {
       "title": "Répartition du budget",
@@ -1341,7 +1349,17 @@
     "linkInvalidChoice": "Ce choix n'est pas possible pour cet événement.",
     "linkNotFound": "Ce lien a été retiré.",
     "linkRenewalsTitle": "Demandes de nouveau lien",
-    "linkRenewalLine": "{name} demande un nouveau lien — {event}"
+    "linkRenewalLine": "{name} demande un nouveau lien — {event}",
+    "linkOtp": "Demander un code à l'ouverture",
+    "linkOtpHint": "À chaque ouverture, un code à six chiffres part à l'e-mail du lien ; il est valable dix minutes.",
+    "linkOtpOn": "code demandé à l'ouverture",
+    "linkSeesVendor": "Prestataire {vendor} : voit la date, les lieux et ses horaires",
+    "createVendorLinkTitle": "Créer le lien d'un prestataire",
+    "createVendorLinkIntro": "Le prestataire voit la date, les lieux, les lignes du programme où figure son poste et votre contact. Ni prix, ni budget, ni autres prestataires.",
+    "noLinkVendors": "Aucun prestataire retenu pour l'instant : retenez-en un dans l'onglet Budget pour lui créer un lien.",
+    "linkVendor": "Prestataire retenu",
+    "linkVendorExpiresOnHint": "Par défaut : 7 jours après l'événement.",
+    "createVendorLink": "Créer le lien du prestataire et l'envoyer"
   },
   "Budget": {
     "title": "Budget",
@@ -4119,7 +4137,9 @@
       "events_link_renewed": "Lien personnel renouvelé",
       "events_link_revoked": "Lien personnel retiré",
       "events_link_renewal_requested": "Nouveau lien demandé",
-      "events_link_opened": "Lien personnel ouvert"
+      "events_link_opened": "Lien personnel ouvert",
+      "events_link_code_sent": "Code d'ouverture envoyé",
+      "events_link_code_locked": "Code d'ouverture bloqué après cinq essais"
     },
     "categories": {
       "connexion": "Connexions",
@@ -4308,6 +4328,26 @@
     "nothingShared": "Votre organisateur n'a encore rien partagé avec vous ici.",
     "privacyTitle": "Vos données personnelles",
     "validUntil": "Votre lien est valable jusqu'au {date}.",
-    "budgetSelectedIntro": "Les postes que votre organisateur a partagés avec vous."
+    "budgetSelectedIntro": "Les postes que votre organisateur a partagés avec vous.",
+    "codeTitle": "Votre code d'accès",
+    "codeSent": "Pour protéger votre espace, un code à six chiffres vient de partir à {email}. Il est valable dix minutes.",
+    "codeNotSent": "Aucun nouveau code n'a pu partir pour l'instant. Utilisez le dernier code reçu à {email}, ou réessayez dans une heure.",
+    "codeLabel": "Code reçu par e-mail",
+    "codeSubmit": "Ouvrir mon espace",
+    "codeWrong": "Ce code ne correspond pas. {count, plural, one {Il vous reste # essai.} other {Il vous reste # essais.}}",
+    "codeExpired": "Ce code n'est plus valable : il dure dix minutes, pour cinq essais et un seul usage. Demandez-en un nouveau.",
+    "codeResend": "Recevoir un nouveau code"
+  },
+  "VendorSpace": {
+    "title": "Votre espace prestataire",
+    "unavailable": "Cet espace est indisponible pour le moment. Contactez votre organisateur.",
+    "yourRole": "{vendor} — {slot}",
+    "eventDate": "Date de l'événement",
+    "dateUnset": "à venir",
+    "placesTitle": "Les lieux",
+    "noPlaces": "Les lieux ne sont pas encore indiqués.",
+    "programTitle": "Vos horaires",
+    "noProgramItems": "Aucune ligne du programme ne vous concerne pour le moment.",
+    "contactTitle": "Votre contact"
   }
 }

@@ -4,11 +4,13 @@
 // sans rien révéler, et confirme la fermeture d'une session (?ferme=1).
 import { getTranslations } from "next-intl/server";
 import { currentLinkAccess } from "@/lib/link-session";
+import { linkHomePath } from "@/lib/link-cookie";
 import { LinkOpener } from "./link-opener";
 
 export default async function LinkPage({ searchParams }: { searchParams: Promise<{ ferme?: string }> }) {
   const t = await getTranslations("LinkPortal");
   const { ferme } = await searchParams;
+  const access = ferme === "1" ? null : await currentLinkAccess();
   return (
     <main className="link-page">
       {ferme === "1" ? (
@@ -17,7 +19,7 @@ export default async function LinkPage({ searchParams }: { searchParams: Promise
           <p role="status">{t("closedBody")}</p>
         </>
       ) : (
-        <LinkOpener hasSession={(await currentLinkAccess()) !== null} />
+        <LinkOpener home={access ? linkHomePath(access.audience) : null} />
       )}
       {/* RGP-03 : cette page ne recueille rien. */}
       <p className="muted">{t("pageNotice")}</p>

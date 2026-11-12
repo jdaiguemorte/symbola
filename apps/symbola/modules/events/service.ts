@@ -7,7 +7,7 @@ import { listTeam } from "@symbola/auth";
 import { withActor } from "@symbola/db/actor";
 import { appDatabase } from "@symbola/db/client";
 import { parseEnv } from "@symbola/env";
-import { reserveOrganizationMail, sendMail } from "@symbola/mail";
+import { MailQuotaExceededError, reserveOrganizationMail, sendMail } from "@symbola/mail";
 import { starterDemoEvent, starterLinkExpiry, starterLinkProfiles, starterProgram, starterRetroplanning, starterTutorialEvent, starterVendorSlots, type StarterLinkProfile } from "@symbola/starter-templates";
 import {
   findEventNamesByIds,
@@ -101,15 +101,18 @@ import {
 } from "./event-types";
 import { addDays } from "./schedule";
 import {
+  attemptLinkCodeRow,
   deleteLinkSessionRow,
   findEventLinkRows,
   findLinkByTokenHash,
   findLinkNameRows,
   findLinkRow,
   findLinkSessionRow,
+  findLinkVendorRow,
   findPendingRenewalRows,
   insertLinkRow,
   insertLinkSessionRow,
+  issueLinkCodeRow,
   markLinkRenewalRequestedRow,
   replaceLinkTokenRow,
   revokeLinkRow,
@@ -131,6 +134,7 @@ import {
   normalizeLinkRights,
   parseLinkToken,
 } from "./link-tokens";
+import { hashLinkCode, LINK_CODE_TTL_MS, LINK_CODES_PER_HOUR, linkCodeExpiresAt, maskEmail, newLinkCode, normalizeLinkCode } from "./link-otp";
 import { addPlace, listPlaces, removePlace } from "./places";
 import { createStorageClient, deletePrivateObject } from "@symbola/files";
 import {
@@ -189,6 +193,8 @@ import type {
   LinkRubric,
   OpenEventLinkResult,
   RenewEventLinkInput,
+  VendorLinkView,
+  VerifyLinkCodeResult,
   ClientVendorSlotOptions,
   EventsTrial,
   StartEventsTrialInput,
@@ -288,6 +294,8 @@ export type {
   LinkRubric,
   OpenEventLinkResult,
   RenewEventLinkInput,
+  VendorLinkView,
+  VerifyLinkCodeResult,
   EventsTrial,
   StartEventsTrialInput,
 } from "@symbola/contracts";
@@ -1188,7 +1196,7 @@ export async function applyProgramTemplate(
 // renouvellement : seul son haché reste en base.
 
 export class EventLinkInvalidError extends Error {
-  constructor(readonly reason: "name" | "email" | "expiry" | "client" | "slot" | "audience") {
+  constructor(readonly reason: "name" | "email" | "expiry" | "client" | "slot" | "audience" | "vendor") {
     super(`lien personnel invalide : ${reason}`);
     this.name = "EventLinkInvalidError";
   }
@@ -1213,8 +1221,8 @@ export class LinkAccessDeniedError extends Error {
 const emailSchema = z.email();
 const LINK_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const PERSON_NAME_MAX = 120;
-// Lot 26a : seul le lien du client se crée (prestataire au 26b, invité au lot 49).
-const CREATABLE_AUDIENCES: readonly LinkAudience[] = ["client"];
+// Liens du client (lot 26a) et du prestataire (lot 26b) ; l'invité viendra au lot 49.
+const CREATABLE_AUDIENCES: readonly LinkAudience[] = ["client", "vendor"];
 // Une session de lien n'est réécrite qu'au plus toutes les cinq minutes.
 const LINK_SESSION_TOUCH_MS = 5 * 60 * 1000;
 
@@ -1227,13 +1235,21 @@ function validLinkFields(input: EventLinkInput): LinkFields {
   if (customExpiresOn && (!LINK_DATE_PATTERN.test(customExpiresOn) || Number.isNaN(Date.parse(`${customExpiresOn}T00:00:00Z`)))) {
     throw new EventLinkInvalidError("expiry");
   }
-  return { personName, email, eventClientId: input.eventClientId || null, rights: normalizeLinkRights(input.rights), customExpiresOn };
+  return {
+    personName,
+    email,
+    eventClientId: input.eventClientId || null,
+    rights: normalizeLinkRights(input.rights),
+    customExpiresOn,
+    otpRequired: input.otpRequired === true,
+  };
 }
 
-function linkWriteError(status: "event_not_found" | "demo_event" | "invalid_client" | "invalid_slot" | "not_found"): Error {
+function linkWriteError(status: "event_not_found" | "demo_event" | "invalid_client" | "invalid_slot" | "invalid_vendor" | "not_found"): Error {
   if (status === "event_not_found") return new EventNotFoundError();
   if (status === "demo_event") return new DemoEventRestrictionError();
   if (status === "not_found") return new EventLinkNotFoundError();
+  if (status === "invalid_vendor") return new EventLinkInvalidError("vendor");
   return new EventLinkInvalidError(status === "invalid_client" ? "client" : "slot");
 }
 
@@ -1260,6 +1276,8 @@ function toEventLink(context: LinkWithContext, now = new Date()): EventLink {
     customExpiresOn: link.customExpiresOn,
     expiresOn,
     status: linkStatus({ revokedAt: link.revokedAt, expiresOn }, now),
+    vendorCandidateId: link.vendorCandidateId,
+    otpRequired: link.otpRequired,
     lastOpenedAt: link.lastOpenedAt?.toISOString() ?? null,
     renewalRequestedAt: link.renewalRequestedAt?.toISOString() ?? null,
     createdAt: link.createdAt.toISOString(),
@@ -1282,6 +1300,7 @@ function toLinkAccess(context: LinkWithContext): LinkAccess {
     email: context.link.email,
     rights: rightsOf(context),
     expiresOn: expiresOnOf(context),
+    vendorCandidateId: context.link.vendorCandidateId,
   };
 }
 
@@ -1292,6 +1311,7 @@ function linkUrl(token: string): string {
 }
 
 async function sendLinkMail(input: {
+  audience: LinkAudience;
   email: string;
   personName: string;
   locale: "fr" | "en";
@@ -1300,6 +1320,10 @@ async function sendLinkMail(input: {
   expiresOn: string;
   renewed: boolean;
 }): Promise<void> {
+  if (input.audience === "vendor") {
+    await sendVendorLinkMail(input);
+    return;
+  }
   // Service sans next-intl : variantes inline, comme l'invitation PRD-HUB-03.
   // Lot 16 (ADR 0045) : un mariage parle de « votre mariage », les autres
   // événements de « votre événement ».
@@ -1318,6 +1342,27 @@ async function sendLinkMail(input: {
   });
 }
 
+// Lot 26b (D9) : le prestataire reçoit l'accès à son espace (date, lieux,
+// horaires qui le concernent) ; jamais au portail du client.
+async function sendVendorLinkMail(input: { email: string; personName: string; locale: "fr" | "en"; url: string; expiresOn: string; renewed: boolean }): Promise<void> {
+  const until = formatCalendarDate(input.expiresOn, input.locale);
+  const fr = `Bonjour ${input.personName},\n\n${
+    input.renewed ? "Voici votre nouveau lien personnel" : "L'organisateur d'un événement auquel vous participez vous a ouvert un espace sur Symbola, sans compte ni mot de passe. Votre lien personnel"
+  } pour retrouver la date, les lieux et les horaires qui vous concernent, valable jusqu'au ${until} inclus :\n${input.url}\n\n${
+    input.renewed ? "L'ancien lien ne fonctionne plus. " : ""
+  }Ce lien vous est réservé : ne le transférez pas. Si vous ne l'attendiez pas, ignorez ce message.\n\nÀ bientôt,\nL'équipe Symbola`;
+  const en = `Hello ${input.personName},\n\n${
+    input.renewed ? "Here is your new personal link" : "The organiser of an event you are working on has opened a space for you on Symbola, with no account or password. Your personal link"
+  } to find the date, venues and times that concern you, valid until ${until} included:\n${input.url}\n\n${
+    input.renewed ? "The previous link no longer works. " : ""
+  }This link is for you only: please do not forward it. If you were not expecting it, ignore this message.\n\nSee you soon,\nThe Symbola team`;
+  await sendMail({
+    to: input.email,
+    subject: input.locale === "en" ? "Your event space on Symbola" : "Votre espace prestataire sur Symbola",
+    text: input.locale === "en" ? en : fr,
+  });
+}
+
 export async function createEventLink(input: CreateEventLinkInput): Promise<EventLinkDelivery> {
   if (!CREATABLE_AUDIENCES.includes(input.audience)) throw new EventLinkInvalidError("audience");
   const fields = validLinkFields(input.link);
@@ -1325,12 +1370,19 @@ export async function createEventLink(input: CreateEventLinkInput): Promise<Even
   // pas créer de lien qu'on ne pourrait pas annoncer.
   await reserveOrganizationMail(input.organizationId);
   const secret = newLinkSecret();
-  const result = await insertLinkRow({ ...fields, organizationId: input.organizationId, eventId: input.eventId, audience: input.audience, tokenHash: hashLinkSecret(secret) });
+  const result = await insertLinkRow({
+    ...fields,
+    organizationId: input.organizationId,
+    eventId: input.eventId,
+    audience: input.audience,
+    vendorCandidateId: input.vendorCandidateId || null,
+    tokenHash: hashLinkSecret(secret),
+  });
   if (result.status !== "saved") throw linkWriteError(result.status);
   const link = toEventLink(result.context);
   const url = linkUrl(formatLinkToken(input.organizationId, secret));
   const vocabulary = input.vocabulary ?? (await findEventAudience(input.organizationId, input.eventId)) ?? "couple";
-  await sendLinkMail({ email: link.email, personName: link.personName, locale: input.locale, vocabulary, url, expiresOn: link.expiresOn, renewed: false });
+  await sendLinkMail({ audience: link.audience, email: link.email, personName: link.personName, locale: input.locale, vocabulary, url, expiresOn: link.expiresOn, renewed: false });
   return { link, url };
 }
 
@@ -1361,7 +1413,7 @@ export async function renewEventLink(input: RenewEventLinkInput): Promise<EventL
   const link = toEventLink(context, now);
   const url = linkUrl(formatLinkToken(input.organizationId, secret));
   const vocabulary = input.vocabulary ?? (await findEventAudience(input.organizationId, link.eventId)) ?? "couple";
-  await sendLinkMail({ email: link.email, personName: link.personName, locale: input.locale, vocabulary, url, expiresOn: link.expiresOn, renewed: true });
+  await sendLinkMail({ audience: link.audience, email: link.email, personName: link.personName, locale: input.locale, vocabulary, url, expiresOn: link.expiresOn, renewed: true });
   return { link, url };
 }
 
@@ -1373,16 +1425,28 @@ export async function revokeEventLink(organizationId: string, linkId: string): P
 // SEC-17, décision D2 : la page /lien échange le jeton (reçu en POST, jamais
 // dans l'adresse) contre une session. Jeton invalide, lien retiré ou expiré,
 // événement perdu ou d'essai : même réponse.
-export async function openEventLink(token: string, now: Date = new Date()): Promise<OpenEventLinkResult> {
+// Lot 26b (POR-01, D6) : un lien qui demande un code n'ouvre de session
+// qu'après le code (verifyLinkCode) ; chaque ouverture envoie un nouveau code.
+export async function openEventLink(token: string, now: Date = new Date(), locale: "fr" | "en" = "fr"): Promise<OpenEventLinkResult> {
+  const found = await usableLinkOfToken(token, now);
+  if (!found) return { outcome: "invalid" };
+  if (found.context.link.otpRequired) return await sendLinkCode(found.organizationId, found.context, now, locale);
+  return await startLinkSession(found.organizationId, found.context, now);
+}
+
+async function usableLinkOfToken(token: string, now: Date): Promise<{ organizationId: string; context: LinkWithContext } | null> {
   const parsed = parseLinkToken(token);
-  if (!parsed) return { outcome: "invalid" };
+  if (!parsed) return null;
   const context = await findLinkByTokenHash(parsed.organizationId, hashLinkSecret(parsed.secret));
-  if (!context || !usableLink(context, now)) return { outcome: "invalid" };
+  return context && usableLink(context, now) ? { organizationId: parsed.organizationId, context } : null;
+}
+
+async function startLinkSession(organizationId: string, context: LinkWithContext, now: Date): Promise<Extract<OpenEventLinkResult, { outcome: "opened" }>> {
   const sessionSecret = newLinkSecret();
   const expiresAt = linkSessionExpiresAt(expiresOnOf(context), now);
   await withActor({ kind: "link", id: context.link.id }, () =>
     insertLinkSessionRow({
-      organizationId: parsed.organizationId,
+      organizationId,
       linkId: context.link.id,
       eventId: context.link.eventId,
       tokenHash: hashLinkSecret(sessionSecret),
@@ -1392,10 +1456,70 @@ export async function openEventLink(token: string, now: Date = new Date()): Prom
   );
   return {
     outcome: "opened",
-    sessionToken: formatLinkToken(parsed.organizationId, sessionSecret),
+    sessionToken: formatLinkToken(organizationId, sessionSecret),
     maxAgeSeconds: Math.max(1, Math.floor((expiresAt.getTime() - now.getTime()) / 1000)),
     audience: context.link.audience,
   };
+}
+
+// Le code part à l'e-mail du lien ; seul son haché est gardé. Plafond par
+// lien (LINK_CODES_PER_HOUR) et plafond d'envois de l'organisation (SEC-22) :
+// au-delà, la page le dit sans rien envoyer.
+async function sendLinkCode(organizationId: string, context: LinkWithContext, now: Date, locale: "fr" | "en"): Promise<OpenEventLinkResult> {
+  const { link } = context;
+  const emailHint = maskEmail(link.email);
+  try {
+    await reserveOrganizationMail(organizationId);
+  } catch (error) {
+    if (error instanceof MailQuotaExceededError) return { outcome: "code_required", emailHint, codeSent: false };
+    throw error;
+  }
+  const code = newLinkCode();
+  const issued = await withActor({ kind: "link", id: link.id }, () =>
+    issueLinkCodeRow({
+      organizationId,
+      linkId: link.id,
+      eventId: link.eventId,
+      codeHash: hashLinkCode(link.id, code),
+      expiresAt: linkCodeExpiresAt(now),
+      now,
+      maxPerHour: LINK_CODES_PER_HOUR,
+    }),
+  );
+  if (issued === "throttled") return { outcome: "code_required", emailHint, codeSent: false };
+  const minutes = Math.round(LINK_CODE_TTL_MS / 60_000);
+  await sendMail({
+    to: link.email,
+    subject: locale === "en" ? `Your Symbola code: ${code}` : `Votre code Symbola : ${code}`,
+    text:
+      locale === "en"
+        ? `Hello ${link.personName},\n\nYour code to open your space on Symbola: ${code}\n\nIt is valid for ${minutes} minutes and can be used only once. If you did not ask for it, ignore this message: nobody can open your space without your link.\n\nThe Symbola team`
+        : `Bonjour ${link.personName},\n\nVotre code pour ouvrir votre espace sur Symbola : ${code}\n\nIl est valable ${minutes} minutes et ne sert qu'une fois. Si vous ne l'avez pas demandé, ignorez ce message : personne ne peut ouvrir votre espace sans votre lien.\n\nL'équipe Symbola`,
+  });
+  return { outcome: "code_required", emailHint, codeSent: true };
+}
+
+// Lot 26b (POR-01, D6) : le code saisi ouvre la session. Lien invalide : même
+// réponse que /lien. Mauvais code : il reste des essais, ou il faut un
+// nouveau code (« code_expired »), comme pour un code expiré ou déjà utilisé.
+export async function verifyLinkCode(token: string, code: string, now: Date = new Date()): Promise<VerifyLinkCodeResult> {
+  const found = await usableLinkOfToken(token, now);
+  if (!found || !found.context.link.otpRequired) return { outcome: "invalid" };
+  const { link } = found.context;
+  const typed = normalizeLinkCode(code);
+  const attempt = await withActor({ kind: "link", id: link.id }, () =>
+    attemptLinkCodeRow({
+      organizationId: found.organizationId,
+      linkId: link.id,
+      eventId: link.eventId,
+      // Un code mal formé compte comme un essai (son haché ne correspond à rien).
+      codeHash: hashLinkCode(link.id, typed ?? ""),
+      now,
+    }),
+  );
+  if (attempt.status === "expired") return { outcome: "code_expired" };
+  if (attempt.status === "wrong") return attempt.attemptsLeft > 0 ? { outcome: "wrong_code", attemptsLeft: attempt.attemptsLeft } : { outcome: "code_expired" };
+  return await startLinkSession(found.organizationId, found.context, now);
 }
 
 // Décision D7 : à chaque requête, la session et son lien sont relus ; une
@@ -1458,11 +1582,33 @@ export async function getLinkAccess(organizationId: string, linkId: string, now:
 }
 
 // POR-10 : une rubrique fermée est refusée par le service, pas seulement
-// masquée par l'écran.
+// masquée par l'écran. Le portail est celui du client : le lien d'un
+// prestataire n'y a jamais accès (lot 26b, SC-S3).
 async function requireLinkRubric(organizationId: string, linkId: string, rubric?: LinkRubric): Promise<LinkAccess> {
   const access = await getLinkAccess(organizationId, linkId);
-  if (!access || (rubric && !access.rights.rubrics.includes(rubric))) throw new LinkAccessDeniedError();
+  if (!access || access.audience !== "client" || (rubric && !access.rights.rubrics.includes(rubric))) throw new LinkAccessDeniedError();
   return access;
+}
+
+// Lot 26b (D9) — espace minimal du prestataire : prénoms des clients, date,
+// lieux, lignes du programme où figure son poste. Ni note interne, ni autre
+// intervenant, ni prix, ni budget.
+export async function getVendorLinkView(organizationId: string, linkId: string): Promise<VendorLinkView> {
+  const access = await getLinkAccess(organizationId, linkId);
+  if (!access || access.audience !== "vendor" || !access.vendorCandidateId) throw new LinkAccessDeniedError();
+  const [vendor, found] = await Promise.all([findLinkVendorRow(organizationId, access.vendorCandidateId), findEventById(organizationId, access.eventId)]);
+  if (!vendor || vendor.eventId !== access.eventId || !found) throw new LinkAccessDeniedError();
+  const [places, program] = await Promise.all([listEventPlaces(organizationId, access.eventId), getEventProgram(organizationId, access.eventId)]);
+  return {
+    vendorName: vendor.vendorName,
+    slotLabel: vendor.slotLabel,
+    clientFirstNames: found.clients.map((client) => client.firstName),
+    eventDate: found.event.eventDate,
+    places: places.map((place) => ({ id: place.id, label: place.label, address: place.address })),
+    programItems: program.items
+      .filter((item) => item.participants.some((participant) => participant.vendorSlotId === vendor.vendorSlotId))
+      .map((item) => ({ id: item.id, startTime: item.startTime, endTime: item.endTime, label: item.label, location: item.location })),
+  };
 }
 
 // Vue du tiers : résumé de l'événement, rétroplanning et programme (variante
@@ -1764,6 +1910,8 @@ const _contractCheck: EventsServiceContract = {
   renewEventLink,
   revokeEventLink,
   openEventLink,
+  verifyLinkCode,
+  getVendorLinkView,
   resolveLinkSession,
   closeLinkSession,
   requestLinkRenewal,

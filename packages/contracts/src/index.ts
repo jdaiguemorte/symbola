@@ -103,6 +103,8 @@ export type {
   LinkRubric,
   OpenEventLinkResult,
   RenewEventLinkInput,
+  VendorLinkView,
+  VerifyLinkCodeResult,
   EventsTrial,
   StartEventsTrialInput,
 } from "./events/service-contract";

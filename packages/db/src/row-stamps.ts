@@ -16,6 +16,8 @@ export const TECHNICAL_TABLES: Record<string, string> = {
   "hub.sessions": "jeton de session d'un compte : l'auteur est le compte",
   // Lot 26a (SEC-17) : session ouverte par un lien personnel.
   "events.event_link_sessions": "jeton de session d'un lien personnel : l'auteur est le lien",
+  // Lot 26b (POR-01) : code à usage unique demandé à l'ouverture d'un lien.
+  "events.event_link_codes": "code à usage unique d'un lien personnel, haché, valable dix minutes",
   "hub.password_resets": "jeton de réinitialisation d'un compte",
   "hub.trusted_devices": "jeton d'appareil de confiance d'un compte",
   "hub.backup_runs": "suivi des sauvegardes, écrit par l'exploitation",

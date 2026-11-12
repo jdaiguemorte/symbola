@@ -16,6 +16,9 @@
         "3": {
           "q": "What does the client see?",
           "a": "What you open to them, through a personal link, with no account or password: their tasks, the schedule, the budget as read-only, never your internal notes. Create their links in the Clients tab; a sponsor can see only some budget categories."
+        },
+        "4": {
+          "a": "In the Clients tab, create a link for a retained vendor: they see the date, the venues, the programme lines that involve their role and your contact details, nothing else (no prices, no budget, no other vendors). Tick “Ask for a code when opening” to have a code sent to their e-mail each time they open it."
         }
       }
     },

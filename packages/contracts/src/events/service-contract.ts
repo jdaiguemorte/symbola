@@ -404,6 +404,10 @@ export type EventLink = {
   // Dernier jour valable (AAAA-MM-JJ, heure de Paris), calculé ou choisi.
   expiresOn: string;
   status: EventLinkStatus;
+  // Lot 26b (D9) : prestataire consulté que désigne un lien « vendor ».
+  vendorCandidateId: string | null;
+  // Lot 26b (POR-01, D6) : un code à usage unique est demandé à l'ouverture.
+  otpRequired: boolean;
   lastOpenedAt: string | null;
   renewalRequestedAt: string | null;
   createdAt: string;
@@ -415,6 +419,8 @@ export type EventLinkInput = {
   eventClientId?: string | null | undefined;
   rights: EventLinkRights;
   customExpiresOn?: string | null | undefined;
+  // Lot 26b (POR-01, D6) : demander un code à l'ouverture (non par défaut).
+  otpRequired?: boolean | undefined;
 };
 
 export type CreateEventLinkInput = {
@@ -423,6 +429,9 @@ export type CreateEventLinkInput = {
   createdByUserId: string;
   audience: LinkAudience;
   link: EventLinkInput;
+  // Lot 26b (D9) : obligatoire pour un lien « vendor » : un prestataire
+  // consulté de l'événement. Un tel lien n'ouvre aucune rubrique du portail.
+  vendorCandidateId?: string | null | undefined;
   // Langue de l'e-mail.
   locale: "fr" | "en";
   // Vocabulaire de l'e-mail (« votre mariage » ou « votre événement ») ; à
@@ -453,11 +462,36 @@ export type LinkAccess = {
   rights: EventLinkRights;
   // Dernier jour valable (AAAA-MM-JJ, heure de Paris).
   expiresOn: string;
+  // Lot 26b : prestataire consulté d'un lien « vendor », sinon null.
+  vendorCandidateId: string | null;
 };
 
 export type OpenEventLinkResult =
   | { outcome: "opened"; sessionToken: string; maxAgeSeconds: number; audience: LinkAudience }
+  // Lot 26b (POR-01, D6) : le lien demande un code, envoyé à son e-mail
+  // (montré masqué) ; codeSent faux si trop de codes ont été demandés.
+  | { outcome: "code_required"; emailHint: string; codeSent: boolean }
   | { outcome: "invalid" };
+
+// Lot 26b : réponse à un code saisi. Un code vaut dix minutes, cinq essais,
+// un seul usage ; « code_expired » invite à en demander un nouveau.
+export type VerifyLinkCodeResult =
+  | Extract<OpenEventLinkResult, { outcome: "opened" }>
+  | { outcome: "wrong_code"; attemptsLeft: number }
+  | { outcome: "code_expired" }
+  | { outcome: "invalid" };
+
+// Lot 26b (D9) — espace minimal du prestataire : l'événement, les lieux, les
+// lignes du programme où figure son poste (sans note interne ni autre
+// intervenant). Ni prix, ni budget, ni autre prestataire.
+export type VendorLinkView = {
+  vendorName: string;
+  slotLabel: string;
+  clientFirstNames: string[];
+  eventDate: string | null;
+  places: { id: string; label: string; address: string | null }[];
+  programItems: { id: string; startTime: string; endTime: string | null; label: string; location: string | null }[];
+};
 
 // Vue du tiers : jamais de note interne (programme en variante « mariés ») ;
 // une rubrique fermée vaut null.
@@ -589,7 +623,10 @@ export interface EventsServiceContract {
   updateEventLink(organizationId: string, linkId: string, input: EventLinkInput): Promise<EventLink>;
   renewEventLink(input: RenewEventLinkInput): Promise<EventLinkDelivery>;
   revokeEventLink(organizationId: string, linkId: string): Promise<void>;
-  openEventLink(token: string, now?: Date): Promise<OpenEventLinkResult>;
+  openEventLink(token: string, now?: Date, locale?: "fr" | "en"): Promise<OpenEventLinkResult>;
+  // Lot 26b (POR-01, D6) : code à usage unique saisi après l'ouverture.
+  verifyLinkCode(token: string, code: string, now?: Date): Promise<VerifyLinkCodeResult>;
+  getVendorLinkView(organizationId: string, linkId: string): Promise<VendorLinkView>;
   resolveLinkSession(sessionToken: string, now?: Date): Promise<LinkAccess | null>;
   closeLinkSession(sessionToken: string): Promise<void>;
   requestLinkRenewal(token: string, now?: Date): Promise<void>;

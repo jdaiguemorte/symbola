@@ -510,6 +510,10 @@
         {
           "q": "What does the couple see?",
           "a": "What you open to them, through a personal link, with no account or password: their tasks, the schedule, the budget as read-only, never your internal notes. Create their links in the Couple tab; a paying parent can see only some budget categories."
+        },
+        {
+          "q": "How do I share their times with a vendor?",
+          "a": "In the Couple tab, create a link for a retained vendor: they see the date, the venues, the programme lines that involve their role and your contact details, nothing else (no prices, no budget, no other vendors). Tick “Ask for a code when opening” to have a code sent to their e-mail each time they open it."
         }
       ]
     },
@@ -550,6 +554,10 @@
     "clientEvent": {
       "title": "Your space",
       "body": "Your organiser opened this space for you through a personal link, with no account or password. You see what they shared with you: your tasks to tick, the programme of the day, the budget. This link is for you only: please do not forward it."
+    },
+    "vendorSpace": {
+      "title": "Your vendor space",
+      "body": "Your organiser has opened this space for you with a personal link, with no account or password. You will find the date, the venues, the programme times that concern you and how to reach them. This link is for you only: please do not forward it."
     },
     "budgetSettings": {
       "title": "Budget allocation",
@@ -1341,7 +1349,17 @@
     "linkInvalidChoice": "This choice is not possible for this event.",
     "linkNotFound": "This link has been removed.",
     "linkRenewalsTitle": "New link requests",
-    "linkRenewalLine": "{name} is asking for a new link — {event}"
+    "linkRenewalLine": "{name} is asking for a new link — {event}",
+    "linkOtp": "Ask for a code when opening",
+    "linkOtpHint": "Each time the link is opened, a six-digit code is sent to the link's e-mail; it is valid for ten minutes.",
+    "linkOtpOn": "code asked when opening",
+    "linkSeesVendor": "Vendor {vendor}: sees the date, the venues and their times",
+    "createVendorLinkTitle": "Create a vendor link",
+    "createVendorLinkIntro": "The vendor sees the date, the venues, the programme lines that involve their role and your contact details. No prices, no budget, no other vendors.",
+    "noLinkVendors": "No vendor retained yet: retain one in the Budget tab to create their link.",
+    "linkVendor": "Retained vendor",
+    "linkVendorExpiresOnHint": "By default: 7 days after the event.",
+    "createVendorLink": "Create the vendor link and send it"
   },
   "Budget": {
     "title": "Budget",
@@ -4119,7 +4137,9 @@
       "events_link_renewed": "Personal link renewed",
       "events_link_revoked": "Personal link removed",
       "events_link_renewal_requested": "New link requested",
-      "events_link_opened": "Personal link opened"
+      "events_link_opened": "Personal link opened",
+      "events_link_code_sent": "Opening code sent",
+      "events_link_code_locked": "Opening code locked after five attempts"
     },
     "categories": {
       "connexion": "Sign-ins",
@@ -4308,6 +4328,26 @@
     "nothingShared": "Your organiser has not shared anything with you here yet.",
     "privacyTitle": "Your personal data",
     "validUntil": "Your link is valid until {date}.",
-    "budgetSelectedIntro": "The items your organiser has shared with you."
+    "budgetSelectedIntro": "The items your organiser has shared with you.",
+    "codeTitle": "Your access code",
+    "codeSent": "To protect your space, a six-digit code has just been sent to {email}. It is valid for ten minutes.",
+    "codeNotSent": "No new code could be sent for now. Use the last code received at {email}, or try again in an hour.",
+    "codeLabel": "Code received by e-mail",
+    "codeSubmit": "Open my space",
+    "codeWrong": "This code does not match. {count, plural, one {You have # attempt left.} other {You have # attempts left.}}",
+    "codeExpired": "This code is no longer valid: it lasts ten minutes, for five attempts and a single use. Ask for a new one.",
+    "codeResend": "Get a new code"
+  },
+  "VendorSpace": {
+    "title": "Your vendor space",
+    "unavailable": "This space is unavailable for now. Please contact your organiser.",
+    "yourRole": "{vendor} — {slot}",
+    "eventDate": "Event date",
+    "dateUnset": "to be confirmed",
+    "placesTitle": "Venues",
+    "noPlaces": "The venues have not been set yet.",
+    "programTitle": "Your times",
+    "noProgramItems": "No programme line involves you for now.",
+    "contactTitle": "Your contact"
   }
 }
