@@ -124,7 +124,7 @@ test("SC-06 étape 5 / POR-09 — le payeur déclare une échéance réglée ; l
   await expect(payer.getByRole("region", { name: "Budget" })).not.toContainText("Lieu de réception");
   const payments = payer.getByRole("region", { name: "Échéances à venir" });
   for (const label of ["Acompte", "Solde"]) {
-    await payments.getByText(`Je l'ai réglée : Traiteur — ${label}`).click();
+    await payments.locator("summary").filter({ hasText: `Je l'ai réglée : Traiteur — ${label}` }).click();
     await payments.getByRole("button", { name: `Déclarer le règlement de Traiteur — ${label}` }).click();
     // La page se met à jour : l'échéance attend la confirmation de la planner.
     await expect(payments.getByRole("listitem").filter({ hasText: `Traiteur — ${label}` })).toContainText("en attente de confirmation");
@@ -147,7 +147,7 @@ test("SC-06 étape 5 / POR-09 — le payeur déclare une échéance réglée ; l
 
   await payer.reload();
   await expect(payments).toContainText("Votre déclaration n'a pas été retenue : Virement non reçu par le traiteur");
-  await expect(payer.getByRole("region", { name: "Échéances à venir" })).toContainText("1 échéance réglée ces trois derniers mois");
+  await expect(payer.getByRole("region", { name: "Échéances à venir" })).toContainText("Déjà réglées (1)");
 
   // Aperçu « Voir comme Bernard Martin » : la même page, actions inactives, aucune trace sur son lien.
   await planner.goto(`/events/${setup.eventId}`);

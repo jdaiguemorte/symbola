@@ -26,7 +26,8 @@ export function PaymentDeclarationForm({ paymentId, label, methods, today, previ
         ))}
       </select>
       <button type="submit" className="primary" disabled={pending || preview}>
-        {t("declareSubmit", { label })}
+        <span aria-hidden="true">{t("declareSubmitShort")}</span>
+        <span className="sr-only">{t("declareSubmit", { label })}</span>
       </button>
       {state.error ? <p role="alert">{state.error}</p> : null}
     </form>

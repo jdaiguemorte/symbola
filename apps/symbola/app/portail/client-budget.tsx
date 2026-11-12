@@ -99,13 +99,18 @@ export async function ClientBudget({
                 <form action={preview ? undefined : cancelPaymentDeclarationAction}>
                   <input type="hidden" name="paymentId" value={payment.id} />
                   <button type="submit" disabled={preview}>
-                    {t("cancelDeclaration", { label: paymentTitle(payment) })}
+                    <span aria-hidden="true">{t("cancelDeclarationShort")}</span>
+                    <span className="sr-only">{t("cancelDeclaration", { label: paymentTitle(payment) })}</span>
                   </button>
                 </form>
               ) : null}
               {payment.status === "due" || payment.status === "overdue" ? (
                 <details>
-                  <summary>{t("declarePayment", { label: paymentTitle(payment) })}</summary>
+                  {/* Libellé visible court (le nom de l'échéance est juste au-dessus) ; nom complet pour les lecteurs d'écran. */}
+                  <summary>
+                    <span aria-hidden="true">{t("declarePaymentShort")}</span>
+                    <span className="sr-only">{t("declarePayment", { label: paymentTitle(payment) })}</span>
+                  </summary>
                   <PaymentDeclarationForm paymentId={payment.id} label={paymentTitle(payment)} methods={methods} today={today} preview={preview} />
                 </details>
               ) : null}

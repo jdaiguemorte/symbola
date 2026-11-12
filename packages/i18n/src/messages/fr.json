@@ -4396,7 +4396,7 @@
     "paymentDeclared": "Déclarée réglée le {date} ({method}), en attente de confirmation",
     "paymentRefused": "Votre déclaration n'a pas été retenue : {reason}",
     "paymentPaid": "réglée le {date}",
-    "paidPaymentsTitle": "{count, plural, one {# échéance réglée} other {# échéances réglées}} ces trois derniers mois",
+    "paidPaymentsTitle": "Déjà réglées ({count})",
     "declarePayment": "Je l'ai réglée : {label}",
     "declareDate": "Date du règlement",
     "declareMethod": "Moyen de paiement",
@@ -4405,7 +4405,10 @@
     "cancelDeclaration": "Annuler ma déclaration pour {label}",
     "declareErrorState": "Cette échéance n'est plus à régler : elle a peut-être déjà été réglée ou déclarée.",
     "declareErrorDate": "Indiquez une date qui n'est pas dans le futur.",
-    "declareErrorMethod": "Choisissez un moyen de paiement dans la liste."
+    "declareErrorMethod": "Choisissez un moyen de paiement dans la liste.",
+    "declarePaymentShort": "Je l'ai réglée",
+    "declareSubmitShort": "Déclarer le règlement",
+    "cancelDeclarationShort": "Annuler ma déclaration"
   },
   "VendorSpace": {
     "title": "Votre espace prestataire",

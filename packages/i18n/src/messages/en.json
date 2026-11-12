@@ -4396,7 +4396,7 @@
     "paymentDeclared": "Declared paid on {date} ({method}), awaiting confirmation",
     "paymentRefused": "Your declaration was not accepted: {reason}",
     "paymentPaid": "paid on {date}",
-    "paidPaymentsTitle": "{count, plural, one {# instalment paid} other {# instalments paid}} in the last three months",
+    "paidPaymentsTitle": "Already paid ({count})",
     "declarePayment": "I have paid it: {label}",
     "declareDate": "Payment date",
     "declareMethod": "Payment method",
@@ -4405,7 +4405,10 @@
     "cancelDeclaration": "Cancel my declaration for {label}",
     "declareErrorState": "This instalment is no longer to be paid: it may already have been paid or declared.",
     "declareErrorDate": "Enter a date that is not in the future.",
-    "declareErrorMethod": "Choose a payment method from the list."
+    "declareErrorMethod": "Choose a payment method from the list.",
+    "declarePaymentShort": "I have paid it",
+    "declareSubmitShort": "Declare the payment",
+    "cancelDeclarationShort": "Cancel my declaration"
   },
   "VendorSpace": {
     "title": "Your vendor space",
