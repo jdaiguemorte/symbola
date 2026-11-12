@@ -277,6 +277,53 @@ correctifs, les trois fichiers e2e touchés (`prd-evt-06`, `prd-bud-04`, `sec-36
 - Code à usage unique : expiré à dix minutes (horloge simulée), cinq essais, rejoué refusé.
 - Rejeu SC-S3 ; `docs/gap.csv`, aide de l'espace prestataire, bilan.
 
+### Bilan du lot 26b (12/11/2026)
+
+**Fait** (branche `lot-26b-prestataire-code`, partie du 26a) :
+
+- **Lien du prestataire** (D9) : public `vendor`, créé sur la fiche de l'événement (onglet
+  Mariés, section des liens) pour un prestataire retenu, nom et e-mail préremplis depuis sa fiche
+  du carnet ; `event_links.vendor_candidate_id` (exigé par la base pour ce public, en cascade :
+  retirer le prestataire retire son lien). Aucune rubrique du portail ; 7 jours après l'événement.
+- **Espace minimal** `/prestataire` : prénoms des clients, date, lieux, lignes du programme où
+  figure son poste (sans note interne ni autre intervenant), contact de l'organisation (profil,
+  sinon titulaire), mention d'information, « Fermer l'accès sur cet appareil ». Aide sur l'écran
+  (`Help.vendorSpace`). Pages non indexées, sans référent ni cache, comme le portail.
+- **Un espace par public** : après l'ouverture, le client va au portail, le prestataire à son
+  espace ; `requireLink(public)` répond 404 à l'autre ; chaque service du portail et le budget
+  refusent un lien qui n'est pas celui d'un client.
+- **Code à usage unique** (D6) : case « Demander un code à l'ouverture » sur chaque lien
+  (`otp_required`) ; six chiffres à l'e-mail du lien (adresse montrée masquée), haché
+  (`events.event_link_codes`, table technique sous RLS), dix minutes, cinq essais comptés en
+  base, un seul usage, un nouveau code remplace l'ancien, cinq codes par lien et par heure ;
+  débit limité `linkCode` ; étape du code sur `/lien` (code faux : essais restants ; épuisé ou
+  expiré : « Recevoir un nouveau code »). Journal : `events.link.code_sent`, `code_locked`.
+- **Migration 0113** (`events`) et son annulation (les liens des prestataires et les codes sont
+  perdus) ; jeu fictif : lien de Karim Haddad (SU-08, Maison Haddad, EV-REF-01).
+
+**Vérifié** (en local, base `symbola_lot24`) : lint, types, frontières de modules, catalogues de
+messages, registre RGPD ; tests unitaires (app 369, dont 6 sur les règles du code) ; intégration
+(base 141 dont le retour arrière de 0113 et l'isolation des codes, authentification 48,
+fichiers 12, e-mail 2, app 497 dont 14 sur le lien du prestataire, le code et SC-S3) ;
+parcours e2e complets sur l'app compilée et une base neuve (ordinateur et 375 px, axe-core) : 209
+réussis, 0 échec, 1 ignoré (menu latéral en taille ordinateur seulement, comme avant le lot) ;
+journaux du serveur sans e-mail ni téléphone ; Semgrep 0 alerte ; Gitleaks : aucune fuite dans les fichiers du lot ; rejeu SC-S3
+(`docs/recette/SC-S2-a-S6.md`).
+
+**Corrigé pendant le rejeu** : cocher « Demander un code à l'ouverture » sur un lien déjà ouvert
+laissait la session ouverte ; elle est maintenant coupée, et la personne doit saisir un code
+(test d'intégration ajouté).
+
+**Remarques** :
+
+- La création du lien du prestataire se fait dans la section des liens de l'onglet Mariés ;
+  l'espace complet du prestataire et son brief (lot 47) pourront la placer sur sa fiche.
+- Seuls les prestataires retenus reçoivent un lien ; un prestataire consulté n'en a pas.
+- Le jeu fictif ne charge ni les lieux ni le programme d'EV-REF-01 (le jeu ne dit pas quel
+  prestataire intervient à quel temps fort) : au rejeu sur le staging, les ajouter dans l'onglet
+  Programme avant d'ouvrir le lien de Karim Haddad.
+- Au déploiement d'ensemble (gel) : migration 0113 après 0109 à 0112.
+
 ## Migrations (numéros à partir de 0109, après les 0107 et 0108 du 28c)
 
 | Lot | Schéma | Contenu |
