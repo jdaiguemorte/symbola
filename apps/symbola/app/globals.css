@@ -2910,3 +2910,29 @@
     @apply inline-flex min-h-11 cursor-pointer items-center;
   }
 }
+
+/* Lot 29b (JRJ-04) — documents de l'événement (fiche) et choix des documents embarqués
+   (écran du jour J) : cases et liens de 44 px, lisibles à 360 px. */
+@layer components {
+  .day-documents-choice summary {
+    @apply inline-flex min-h-11 cursor-pointer items-center font-medium;
+  }
+  .day-documents-form {
+    @apply flex flex-col gap-3;
+  }
+  .day-documents-form fieldset {
+    @apply m-0 border-0 p-0;
+  }
+  .day-document-choice {
+    @apply flex min-h-11 items-start gap-3;
+  }
+  .day-document-choice input {
+    @apply mt-1 size-5 shrink-0;
+  }
+  .event-documents > li {
+    @apply flex flex-col gap-2;
+  }
+  .event-documents a {
+    @apply inline-flex min-h-11 items-center;
+  }
+}

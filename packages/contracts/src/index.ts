@@ -59,6 +59,11 @@ export type {
   EventVendorSlot,
   AddVendorCandidateInput,
   EventPlace,
+  AttachEventDocumentInput,
+  DayDocumentChoice,
+  DayDocumentSource,
+  EventDocument,
+  SetDayDocumentEmbeddedInput,
   ClientVendorOption,
   ClientVendorSlotOptions,
   RetainedVendor,
@@ -115,7 +120,7 @@ export type {
   EventsTrial,
   StartEventsTrialInput,
 } from "./events/service-contract";
-export { DECISION_KINDS, ENGAGED_CANDIDATE_STATUSES, LINK_AUDIENCES, LINK_BUDGET_SCOPES, LINK_RUBRICS, VENDOR_CANDIDATE_STATUSES } from "./events/service-contract";
+export { DAY_DOCUMENT_SOURCES, DECISION_KINDS, ENGAGED_CANDIDATE_STATUSES, LINK_AUDIENCES, LINK_BUDGET_SCOPES, LINK_RUBRICS, VENDOR_CANDIDATE_STATUSES } from "./events/service-contract";
 export type {
   AdjustEventBudgetItemInput,
   AllocationModel,

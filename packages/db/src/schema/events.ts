@@ -611,3 +611,51 @@ export const eventPlaces = eventsSchema.table("event_places", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   updatedBy: uuid("updated_by"),
 }, (table) => [index("event_places_organization_idx").on(table.organizationId)]);
+
+// Lot 29b (JRJ-04, décision D8 ; ADR 0064) : documents propres à l'événement
+// (plan de table, plans d'accès, plan B), envoyés par la planner. Le fichier est
+// privé (Garage), contrôlé à l'envoi (type par le contenu, antivirus) et servi par
+// l'app après contrôle des droits (ADR 0027).
+export const eventDocuments = eventsSchema.table("event_documents", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  eventId: uuid("event_id")
+    .notNull()
+    .references(() => events.id, { onDelete: "cascade" }),
+  label: text("label").notNull(),
+  fileKey: text("file_key").notNull(),
+  mime: text("mime").notNull(),
+  sizeBytes: integer("size_bytes").notNull(),
+  uploadedByUserId: uuid("uploaded_by_user_id").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  createdBy: uuid("created_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedBy: uuid("updated_by"),
+}, (table) => [
+  index("event_documents_organization_idx").on(table.organizationId),
+  index("event_documents_event_idx").on(table.eventId),
+  check("event_documents_label_check", sql`char_length(${table.label}) between 1 and 200`),
+  check("event_documents_size_check", sql`${table.sizeBytes} > 0`),
+]);
+
+// Lot 29b (JRJ-04, décision D8) : documents embarqués pour le jour J, choisis
+// pour l'événement (toute l'équipe embarque les mêmes). Une pièce vient d'un
+// module (source) ; pas de clé étrangère entre schémas : le module la confirme
+// par son service.ts à chaque lecture.
+export const eventDayDocuments = eventsSchema.table("event_day_documents", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  eventId: uuid("event_id")
+    .notNull()
+    .references(() => events.id, { onDelete: "cascade" }),
+  source: text("source").notNull(),
+  sourceId: uuid("source_id").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  createdBy: uuid("created_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedBy: uuid("updated_by"),
+}, (table) => [
+  index("event_day_documents_organization_idx").on(table.organizationId),
+  unique("event_day_documents_unique").on(table.eventId, table.source, table.sourceId),
+  check("event_day_documents_source_check", sql`${table.source} in ('event_document', 'signed_quote', 'budget_attachment', 'candidate_quote')`),
+]);

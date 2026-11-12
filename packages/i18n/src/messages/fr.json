@@ -891,7 +891,7 @@
     },
     "dayOf": {
       "title": "Jour J",
-      "body": "Le jour J en un écran : le programme du jour avec ses notes internes, les lieux, les prestataires retenus et les clients avec leurs coordonnées, et le PDF du programme. « Garder sur cet appareil » le copie sur le téléphone : il s'ouvre ensuite sans réseau, et se met à jour à chaque ouverture avec du réseau.",
+      "body": "Le jour J en un écran : le programme du jour avec ses notes internes, les lieux, les prestataires retenus et les clients avec leurs coordonnées, le PDF du programme et les documents choisis (plan de table, plan B, contrats). « Garder sur cet appareil » le copie sur le téléphone : il s'ouvre ensuite sans réseau, et se met à jour à chaque ouverture avec du réseau.",
       "faq": [
         {
           "q": "Comment ouvrir le jour J sans réseau ?",
@@ -908,6 +908,10 @@
         {
           "q": "Et si je perds mon téléphone ?",
           "a": "« Déconnecter tous mes autres appareils », depuis un autre appareil, ferme sa session, mais n'atteint pas un téléphone sans réseau : la copie y reste lisible jusqu'au lendemain de l'événement. Gardez votre téléphone verrouillé par un code."
+        },
+        {
+          "q": "Comment embarquer le plan de table ?",
+          "a": "Ajoutez-le à l'onglet « Documents » de la fiche (PDF ou image), puis, sur l'écran du jour J, ouvrez « Choisir les documents embarqués » et cochez-le. Les devis signés, les pièces du budget et les devis des prestataires retenus s'y choisissent aussi ; un RIB, jamais."
         }
       ]
     },
@@ -1402,7 +1406,8 @@
     "linkPreviewNote": "Les boutons sont inactifs et les fichiers ne s'ouvrent pas dans l'aperçu ; rien n'est noté sur le lien.",
     "linkPreviewBack": "Retour à la fiche de l'événement",
     "activityDecisionMade": "{actor} a répondu : « {task} ».",
-    "dayOfLink": "Jour J"
+    "dayOfLink": "Jour J",
+    "tabDocuments": "Documents"
   },
   "Budget": {
     "title": "Budget",
@@ -4283,7 +4288,9 @@
       "budget_vendor_payments": "Échéances des prestataires",
       "events_event_links": "lien personnel",
       "events_event_link_shared_slots": "catégorie partagée d'un lien",
-      "events_event_decisions": "décision du client"
+      "events_event_decisions": "décision du client",
+      "events_event_documents": "document de l'événement",
+      "events_event_day_documents": "document embarqué pour le jour J"
     },
     "modules": {
       "events": "Événements",
@@ -4591,7 +4598,25 @@
     "copyMissingAssets": "Une partie de la mise en page n'a pas été copiée. Mettez à jour avec un meilleur réseau.",
     "installTitle": "Installer Symbola sur votre téléphone",
     "installIphone": "iPhone : dans Safari, touchez Partager, puis « Sur l'écran d'accueil ».",
-    "installAndroid": "Android : dans Chrome, ouvrez le menu ⋮, puis « Installer l'application » (ou « Ajouter à l'écran d'accueil »)."
+    "installAndroid": "Android : dans Chrome, ouvrez le menu ⋮, puis « Installer l'application » (ou « Ajouter à l'écran d'accueil »).",
+    "documentOrigin": {
+      "event_document": "Document de l'événement",
+      "signed_quote": "Devis signé",
+      "budget_attachment": "Pièce du budget",
+      "candidate_quote": "Devis du prestataire"
+    },
+    "signedQuoteLabel": "Devis {number} signé",
+    "budgetAttachmentLabel": "{line} — {kind}",
+    "candidateQuoteLabel": "Devis de {vendor}",
+    "chooseTitle": "Choisir les documents embarqués",
+    "chooseHint": "Les documents cochés partent sur le téléphone de chaque personne de l'équipe qui garde ce jour J. Le PDF du programme est toujours embarqué.",
+    "chooseLegend": "Documents à embarquer",
+    "chooseTotal": "Embarqués aujourd'hui : {size}, en plus du programme.",
+    "chooseSave": "Enregistrer le choix",
+    "chooseSaved": "Choix enregistré.",
+    "chooseEmpty": "Aucun autre document à embarquer : ajoutez le plan de table ou le plan B à la fiche.",
+    "chooseEmptyLink": "Ouvrir les documents de la fiche",
+    "chooseUnauthorized": "Vous n'avez pas accès à ce jour J."
   },
   "Offline": {
     "title": "Hors ligne",
@@ -4602,5 +4627,31 @@
   },
   "Manifest": {
     "description": "Préparer vos événements, et les vivre même sans réseau le jour J."
+  },
+  "EventDocuments": {
+    "title": "Documents de l'événement",
+    "intro": "Plan de table, plans d'accès, plan B : rangez-les ici. Sur l'écran du jour J, choisissez ceux à garder sur le téléphone.",
+    "empty": "Aucun document pour l'instant.",
+    "addTitle": "Ajouter un document",
+    "label": "Intitulé",
+    "labelPlaceholder": "Par exemple : Plan de table",
+    "file": "Fichier (PDF ou image, 20 Mo au plus)",
+    "attach": "Envoyer le document",
+    "attached": "Document ajouté.",
+    "fileMissing": "Choisissez un fichier.",
+    "fileTooLarge": "Le fichier dépasse 20 Mo.",
+    "fileUnsupported": "Ce type de fichier n'est pas accepté : un PDF ou une image.",
+    "fileInfected": "Le fichier a été refusé par l'antivirus.",
+    "labelInvalid": "Donnez un intitulé de 200 caractères au plus.",
+    "notFound": "Document ou événement introuvable.",
+    "unauthorized": "Vous n'avez pas accès à cette action.",
+    "embedded": "embarqué pour le jour J",
+    "rename": "Renommer",
+    "renameLabel": "Nouvel intitulé de « {label} »",
+    "renamed": "Intitulé modifié.",
+    "remove": "Supprimer",
+    "removeLabel": "Supprimer « {label} »",
+    "chooseForDayOf": "Choisir les documents à embarquer pour le jour J",
+    "dayOfLater": "Une fois l'événement confirmé et daté, vous choisirez sur l'écran du jour J les documents à garder sur le téléphone."
   }
 }

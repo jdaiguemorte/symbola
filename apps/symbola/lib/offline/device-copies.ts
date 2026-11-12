@@ -159,14 +159,14 @@ export async function syncDayCopy(input: {
   eventDate: string;
   expiresAt: string;
   documents: DayDocument[];
+  // Lot 29b : taille connue des documents embarqués.
+  requiredBytes?: number;
   firstTime: boolean;
 }): Promise<SyncOutcome> {
-  if (input.firstTime) {
-    await navigator.storage?.persist?.().catch(() => false);
-    const estimate = await navigator.storage?.estimate?.().catch(() => null);
-    if (estimate?.quota !== undefined && estimate.usage !== undefined && estimate.quota - estimate.usage < DAY_COPY_MIN_FREE_BYTES) {
-      return { status: "space" };
-    }
+  if (input.firstTime) await navigator.storage?.persist?.().catch(() => false);
+  const estimate = await navigator.storage?.estimate?.().catch(() => null);
+  if (estimate?.quota !== undefined && estimate.usage !== undefined && estimate.quota - estimate.usage < DAY_COPY_MIN_FREE_BYTES + (input.requiredBytes ?? 0)) {
+    return { status: "space" };
   }
 
   const page = dayPagePath(input.eventId);

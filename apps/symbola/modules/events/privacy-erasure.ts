@@ -11,6 +11,8 @@ import {
   eventDecisions,
   eventLinks,
   eventClients,
+  eventDayDocuments,
+  eventDocuments,
   eventPlaces,
   events,
   eventStatusHistory,
@@ -38,6 +40,9 @@ const FATES: Record<string, ErasureFate> = {
   program_item: "deleted",
   program_participant: "deleted",
   event_place: "deleted",
+  // Lot 29b : un document peut nommer la personne (plan de table) : supprimé,
+  // fichier compris (pas d'anonymisation partielle d'un fichier).
+  event_document: "deleted",
 };
 
 type Found = { kind: string; ids: string[] };
@@ -86,6 +91,8 @@ async function existing(tx: Tx, input: ErasureInput): Promise<Found[]> {
           .where(inArray(programItemParticipants.id, ids("program_participant"))),
       ),
     );
+  if (ids("event_document").length > 0)
+    add("event_document", keep(await tx.select({ id: eventDocuments.id, eventId: eventDocuments.eventId }).from(eventDocuments).where(inArray(eventDocuments.id, ids("event_document")))));
   if (ids("status_change").length > 0)
     add(
       "status_change",
@@ -163,6 +170,12 @@ export async function eraseEventsData(input: ErasureInput): Promise<ErasurePlanI
       // Lot 27b (EVT-09) : la décision reste, sans le nom ni le commentaire de la personne.
       await tx.update(eventDecisions).set({ decidedByName: ANONYMIZED, comment: sql`case when ${eventDecisions.comment} is null then null else ${ANONYMIZED} end` }).where(inArray(eventDecisions.decidedByLinkId, idsFor("link")));
       await tx.delete(eventLinks).where(inArray(eventLinks.id, idsFor("link")));
+    }
+    if (idsFor("event_document").length > 0) {
+      const documentIds = idsFor("event_document");
+      const documents = await tx.delete(eventDocuments).where(inArray(eventDocuments.id, documentIds)).returning({ key: eventDocuments.fileKey });
+      fileKeys.push(...documents.map((document) => document.key));
+      await tx.delete(eventDayDocuments).where(and(eq(eventDayDocuments.source, "event_document"), inArray(eventDayDocuments.sourceId, documentIds)));
     }
     if (idsFor("task").length > 0) await tx.delete(eventTasks).where(inArray(eventTasks.id, idsFor("task")));
     if (idsFor("program_participant").length > 0) await tx.delete(programItemParticipants).where(inArray(programItemParticipants.id, idsFor("program_participant")));

@@ -4,13 +4,16 @@
 // poste (un indépendant est une personne), intervenants libres et notes
 // internes du programme, adresse des lieux de l'événement (lot 12 :
 // celle des préparatifs peut être le domicile des mariés), motif de perte en texte libre, champs libres
-// importés (événement, tâche, poste). Les données d'un essai guidé (ADR 0008)
+// importés (événement, tâche, poste). Lot 29b : intitulé des documents de
+// l'événement (« Plan de table Martin ») ; le fichier lui-même peut nommer des
+// personnes, il est supprimé à l'oubli. Les données d'un essai guidé (ADR 0008)
 // ne sont jamais trouvées.
 import { asc, eq, inArray } from "drizzle-orm";
 import { appDatabase } from "@symbola/db/client";
 import {
   eventLinks,
   eventClients,
+  eventDocuments,
   eventPlaces,
   events,
   eventStatusHistory,
@@ -68,6 +71,17 @@ async function candidateRecords(tx: Tx, eventIds: string[], matches: ((values: (
     });
   }
   return records;
+}
+
+function documentRecord(document: typeof eventDocuments.$inferSelect): PrivacyRecord {
+  return {
+    module: MODULE,
+    kind: "event_document",
+    recordId: document.id,
+    label: document.label,
+    fields: { label: document.label, mime: document.mime, sizeBytes: String(document.sizeBytes) },
+    eventId: document.eventId,
+  };
 }
 
 // Volumes d'une organisation (une planner : quelques centaines d'événements)
@@ -156,6 +170,10 @@ export const eventsPrivacy: PrivacyContractV1 = {
           records.push({ module: MODULE, kind: "event_place", recordId: place.id, label: place.label, fields: compact({ address: place.address }), eventId: place.eventId });
         }
       }
+      // Lot 29b : documents de l'événement, par leur intitulé.
+      for (const document of await tx.select().from(eventDocuments).where(inArray(eventDocuments.eventId, eventIds))) {
+        if (recordMatches([document.label], terms)) records.push(documentRecord(document));
+      }
       const itemEvent = new Map(items.map((item) => [item.id, item]));
       if (items.length > 0) {
         for (const participant of await tx.select().from(programItemParticipants).where(inArray(programItemParticipants.programItemId, [...itemEvent.keys()]))) {
@@ -235,6 +253,9 @@ export const eventsPrivacy: PrivacyContractV1 = {
       }
       for (const link of await tx.select().from(eventLinks).where(inArray(eventLinks.eventId, ids))) {
         records.push({ module: MODULE, kind: "link", recordId: link.id, label: link.personName, fields: { name: link.personName, email: link.email }, eventId: link.eventId });
+      }
+      for (const document of await tx.select().from(eventDocuments).where(inArray(eventDocuments.eventId, ids)).orderBy(asc(eventDocuments.createdAt))) {
+        records.push(documentRecord(document));
       }
       for (const change of await tx.select().from(eventStatusHistory).where(inArray(eventStatusHistory.eventId, ids)).orderBy(asc(eventStatusHistory.changedAt))) {
         records.push({

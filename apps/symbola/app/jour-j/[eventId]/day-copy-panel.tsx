@@ -27,13 +27,15 @@ export function DayCopyPanel(props: {
   expiresAt: string;
   canKeep: boolean;
   documents: DayDocument[];
+  // Lot 29b : taille des documents embarqués, ajoutée à la place libre demandée.
+  requiredBytes: number;
 }) {
   const t = useTranslations("DayOf");
   const format = useFormatter();
   const [phase, setPhase] = useState<Phase>("checking");
   const [copy, setCopy] = useState<DayCopy | null>(null);
   const [missing, setMissing] = useState<{ documents: string[]; assets: number }>({ documents: [], assets: 0 });
-  const { eventId, userId, title, eventDate, expiresAt, documents } = props;
+  const { eventId, userId, title, eventDate, expiresAt, documents, requiredBytes } = props;
 
   const apply = useCallback((outcome: SyncOutcome) => {
     if (outcome.status === "ready") {
@@ -47,12 +49,12 @@ export function DayCopyPanel(props: {
     async (firstTime: boolean) => {
       setPhase("working");
       try {
-        apply(await syncDayCopy({ eventId, userId, title, eventDate, expiresAt, documents, firstTime }));
+        apply(await syncDayCopy({ eventId, userId, title, eventDate, expiresAt, documents, requiredBytes, firstTime }));
       } catch {
         setPhase("unavailable");
       }
     },
-    [apply, eventId, userId, title, eventDate, expiresAt, documents],
+    [apply, eventId, userId, title, eventDate, expiresAt, documents, requiredBytes],
   );
 
   useEffect(() => {
