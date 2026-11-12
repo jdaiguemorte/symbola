@@ -1,8 +1,8 @@
 # Lot 28 — Budget à cinq montants, prestataires, échéancier et export
 
 **Statut** : spécification validée par Julien le 11/11/2026, décisions D1 à D8 en (a). 28a codé le
-12/11/2026 (bilan en fin de partie D), branche `lot-28-budget-cinq-montants` (partie du lot 24b,
-pas encore fusionné, pour la suite des migrations) ; le 28b aura sa branche.
+12/11/2026 (bilan en fin de partie D), branche `lot-28-budget-cinq-montants`, PR #99. 28b détaillé
+le 12/11/2026, décisions D9 à D14 à prendre, branche `lot-28b-echeancier-export` (partie du 28a).
 
 ## Contexte
 
@@ -138,62 +138,125 @@ le devis du prestataire retenu quand il en a un, le payé part de zéro. Migrati
 
 ---
 
-## Lot 28b — Échéancier, documents, HT et TTC, export, annuaire
+## Lot 28b — Lignes, prestataires retenus, échéancier, documents, HT et TTC, export, annuaire
 
-### Partie E0 — Lignes sous chaque catégorie (BUD-01, décision Q33 du 12/11/2026)
+**Statut** : spécification détaillée à valider (12/11/2026), décisions D9 à D14 ci-dessous. Elle
+précise les parties E à I déjà validées (D5 à D8) et la partie E0 (Q33, décision du 12/11).
 
-- Le poste de l'évènement devient la **catégorie** ; il porte plusieurs **lignes** (« Location du
-  domaine », « Ménage et gardiennage », « Mobilier complémentaire » sous « Lieu de réception »).
-- Chaque ligne a ses cinq montants, son prestataire et son libellé ; la catégorie totalise ses
-  lignes. L'échéancier (partie E) et les documents (partie F) se rattachent à la ligne.
-- Reprise : chaque ligne actuelle devient la première ligne de sa catégorie, avec son historique
-  et ses devis joints. Migration annulable (refusée si une catégorie a plusieurs lignes).
-- À préciser dans la spécification du 28b, avant le code : libellé par défaut d'une ligne, ligne
-  engagée par « Retenu » quand la catégorie en a plusieurs, vue du client (lot 27).
+### Constat du 12/11/2026 (après le 28a)
 
-### Partie E — Échéancier par prestataire (BUD-03, décision D7)
+- **Une ligne par poste** : `budget.budget_lines` porte une contrainte d'unicité sur le poste.
+- **Un seul prestataire retenu par poste** : le poste garde un prestataire choisi
+  (`selected_candidate_id`, nom et montant) ; « Retenir » écarte tous les autres.
+- **Le jeu fictif va plus loin** (EV-REF-01) : 24 lignes dans 9 postes ; « Musique » a deux
+  prestataires retenus (DJ Solal, Duo Cordes), « Hébergement et transport » aussi (le domaine,
+  les navettes) ; le domaine apparaît dans deux postes ; la robe et le costume n'ont pas de
+  prestataire ; le devis du traiteur (9 600 €) se répartit sur quatre lignes ; chaque échéance
+  vise une ligne (« Acompte du traiteur, 30 % » sur « Dîner, 120 couverts ») et nomme un payeur.
+- **Documents** : des devis seulement, sans nature.
+- **HT et TTC** : seul le devis du planner connaît le type de client (`clientKind`).
+- **Export** : l'app écrit déjà un ZIP et un CSV (`@symbola/privacy`, archive RGPD) et des PDF
+  (@react-pdf) ; logo, couleur et nom de l'organisation sont dans les réglages des documents
+  (module Devis, lot 17).
+- **Accueil** : le bloc « Encaissements à venir » montre ce que les clients doivent au planner ;
+  rien pour ce que le planner ou ses clients doivent aux prestataires.
+- **Carnet** : ni évaluation ni tarifs.
 
-- Sur la ligne d'un prestataire retenu : acompte, paiements intermédiaires et solde, chacun avec un
-  montant (fixe ou pourcentage de l'engagé), une date et un statut (à payer, payé le…). Le payé de
-  la ligne est la somme des échéances payées.
-- **Rappels** : un bloc « Échéances prestataires » dans « Aujourd'hui » liste les échéances des
-  7 prochains jours et celles en retard, avec le lien vers la ligne.
-- Données nouvelles, sans donnée personnelle ; registre RGPD tenu.
+### Découpage (décision D9)
+
+Le 28b ouvre trois chantiers de schéma (lignes, prestataires retenus, échéances) avant ceux, plus
+légers, de la TVA, de l'export et du carnet. Recommandation : deux PR, **28b** (parties E0, E1, E,
+F) puis **28c** (parties G, H, I).
+
+### Partie E0 — Lignes sous chaque catégorie (BUD-01, Q33)
+
+- Le **poste** de l'évènement devient la **catégorie** (nom, icône, ordre, case « Non requis » :
+  inchangés). Il porte des **lignes** : libellé, prestataire (facultatif, l'un des prestataires
+  rattachés à la catégorie), cinq montants, ordre.
+- La catégorie totalise ses lignes (cinq montants, écart) ; le budget totalise les catégories.
+- **Écrans** : le budget montre chaque catégorie, son total, puis ses lignes ; « Ajouter une
+  ligne » sous chaque catégorie ; une ligne se renomme, change de prestataire, se supprime (ses
+  montants sortent des totaux, son historique reste au journal). En 375 px : une carte par
+  catégorie, ses lignes dedans.
+- **Simulation** : la confirmation écrit l'estimé de chaque catégorie sur sa première ligne
+  (créée au nom de la catégorie si besoin).
+- **Vue du client** : les catégories et leurs totaux, comme aujourd'hui une ligne par poste (le
+  détail et la validation au portail : lot 27).
+- **Import du budget** : une colonne facultative « Libellé » ; sans elle, la première ligne de la
+  catégorie, comme aujourd'hui.
+- **Reprise** : chaque ligne actuelle devient la première ligne de sa catégorie, au libellé de la
+  catégorie, avec son historique et ses devis ; son prestataire est le prestataire retenu du
+  poste. Annulation refusée tant qu'une catégorie a plus d'une ligne.
+- **Registre RGPD** : le libellé est un texte libre (« Robe de Léa ») : déclaré, exporté, effacé
+  avec les données de l'évènement.
+
+### Partie E1 — Plusieurs prestataires retenus par catégorie (PRE-02, décision D10)
+
+- Une catégorie peut avoir **plusieurs prestataires retenus** (le DJ et le duo de la Musique).
+- « Retenir » écarte les **concurrents encore en lice** (Pressenti, Consulté, Devis reçu) ; un
+  prestataire déjà retenu le reste. Remplacer un prestataire retenu : le passer à « Écarté ».
+- La catégorie affiche le statut le plus avancé (28a) et le nom de ses prestataires retenus. Le
+  raccourci du formulaire (« prestataire retenu + montant ») ajoute un prestataire retenu.
+- **Ce que « Retenu » engage** (décision D11) : les lignes liées à ce prestataire prennent leur
+  devisé comme engagé ; une ligne liée sans devisé, si elle est la seule, prend le montant du
+  devis ; sans ligne liée, une ligne est créée au nom du prestataire, au montant du devis (devisé
+  et engagé). L'alerte du 28a précède l'engagement, sur le total qui en résulte.
+- **Contrat d'événement** : `events.vendor_slot.booked` gagne le prestataire concerné (champ
+  facultatif, ajout compatible) ; le module Budget engage ses lignes.
+- **Schéma `events`** : le nom, le montant et le prestataire choisi du poste deviennent inutiles
+  (tout est porté par les prestataires rattachés) ; ils sont gardés en lecture le temps de la
+  reprise, puis retirés par une migration du même lot.
+
+### Partie E — Échéancier (BUD-03, décisions D7 et D12)
+
+- Une **échéance** vise une ligne : libellé (acompte, deuxième échéance, solde…), montant (fixe,
+  ou pourcentage de l'engagé, recalculé s'il change ; base : décision D12), date, statut (à payer,
+  payé le…).
+- Sur l'écran, les échéances se regroupent **par prestataire** (BUD-03) ; une ligne sans
+  prestataire a les siennes (la robe).
+- **Payé** : dès qu'une ligne a des échéances, son payé est la somme des échéances payées (il ne
+  se saisit plus) ; sans échéance, il reste saisi à la main (28a).
+- **Rappels** : bloc « Échéances prestataires » dans « Aujourd'hui » (7 prochains jours et retards),
+  lien vers la ligne ; absent sans module Budget.
+- Le **payeur** du jeu fictif (mariés, parents) relève de BUD-06 (P1) : hors du lot.
 
 ### Partie F — Documents de la ligne (BUD-04)
 
-Une ligne a trois emplacements : **devis, contrat, facture** du prestataire. Chacun s'ouvre en un
-clic, avec les règles de dépôt actuelles (type vérifié, antivirus, stockage privé, servi après
-contrôle des droits).
+- Chaque document joint a une **nature** : devis, contrat ou facture ; plusieurs par nature.
+  Reprise : les devis joints restent des devis.
+- Depuis la ligne, chaque document s'ouvre en un clic (règles de dépôt inchangées). Le devis joint
+  au prestataire consulté (lot 11) s'affiche aussi sur ses lignes, sans copie.
 
-### Partie G — HT et TTC selon le client (BUD-09, décision D5)
+### Partie G — HT et TTC selon le client (BUD-09, D5) — 28c
 
-- Les montants se saisissent TTC, avec un **taux de TVA par ligne** (20 % par défaut ; 0 % pour un
-  prestataire en franchise).
-- **Particulier** : TTC seul. **Entreprise** : HT et TTC côte à côte. Le mode vient du type de
-  client, sans réglage manuel.
-- Arrondi de l'ADR 0059 (par taux).
+- **Taux de TVA par ligne**, saisi comme au catalogue ; 20 % par défaut, valeur de départ dans
+  les modèles (données, ADR 0007) ; 0 % pour un prestataire en franchise.
+- Montants saisis TTC. **Particulier** : TTC seul. **Entreprise** (type d'acheteur du devis de
+  l'évènement, D5) : HT et TTC côte à côte, HT calculé par taux (arrondi de l'ADR 0059).
 
-### Partie H — Export XLSX et PDF (BUD-10, décision D6)
+### Partie H — Export XLSX et PDF (BUD-10, D6) — 28c
 
-- Le budget de l'événement s'exporte en **XLSX** et en **PDF** : lignes, cinq montants, totaux,
-  échéances, et HT et TTC si le client est une entreprise.
-- Mise en forme de l'organisation : logo, couleur et nom repris des réglages des documents (lot 17).
-- Export journalisé (famille « exports »).
+- **XLSX** écrit par l'app (archive ZIP existante, sans dépendance) : une feuille « Budget »
+  (catégories, lignes, cinq montants, écart, totaux ; HT et TTC si entreprise) et une feuille
+  « Échéances » ; montants au format monétaire, en-têtes à la couleur de l'organisation.
+- **PDF** (@react-pdf) : même contenu, logo, couleur et nom repris des réglages des documents ;
+  sans module Devis, la mise en forme par défaut.
+- Export journalisé (famille « exports »), sans donnée personnelle au journal.
 
-### Partie I — Annuaire des prestataires (PRE-01, décision D8)
+### Partie I — Annuaire (PRE-01, D8) — 28c
 
-La fiche du carnet gagne une **évaluation** (1 à 5) et des **tarifs indicatifs** (texte libre).
-Les deux sont importables depuis un tableur, comme les autres champs.
+- La fiche du carnet gagne une **évaluation** (1 à 5) et des **tarifs indicatifs** (texte libre) ;
+  l'évaluation s'affiche dans le carnet et se filtre (« au moins 4 ») ; les deux s'importent.
 
-### Tests, rejeu et documents du 28b
+### Tests, rejeu et documents
 
-- Tests :
-  - **intégration** : échéances et payé, rappels, documents, HT et TTC, export ;
-  - **e2e** : échéancier, export et fiche du carnet, en ordinateur et en 375 px.
-- Rejeu de SC-04, étape 6 (« Camille marque l'acompte comme payé »), avec les mesures : totaux
-  exacts au centime.
-- Aide, fiche du centre d'aide, grille d'écart.
+- **28b** : intégration (lignes, totaux par catégorie, plusieurs retenus, engagement des lignes,
+  échéances et payé, rappels, documents par nature, reprise et annulation des migrations,
+  isolation des nouvelles tables, Admin) ; e2e (lignes d'une catégorie, échéancier, rappels) en
+  ordinateur et en 375 px ; rejeu de SC-04, étapes 1, 5 et 6 (acompte, deux échéances, acompte
+  payé ; totaux au centime) ; jeu fictif chargé ligne par ligne, avec ses échéances.
+- **28c** : intégration (HT et TTC, export) ; e2e (export, fiche du carnet) ; rejeu de SC-04.
+- ADR 0054 complété ; aide, centre d'aide, grille d'écart.
 
 ---
 
@@ -202,8 +265,11 @@ Les deux sont importables depuis un tableur, comme les autres champs.
 - **28a** : cinq montants sur `budget.budget_lines`, avec reprise ; statuts des prestataires
   rattachés et case « Non requis » du poste (schéma `events`) ; seuil d'alerte (organisation et
   événement).
-- **28b** : échéances des prestataires et nature des documents (schéma `budget`) ; taux de TVA par
-  ligne ; évaluation et tarifs indicatifs (schéma `vendors`).
+- **28b** : plusieurs lignes par catégorie (libellé, prestataire, ordre), échéances, nature des
+  documents (schéma `budget`) ; plusieurs prestataires retenus, retrait du prestataire choisi du
+  poste après reprise (schéma `events`).
+- **28c** : taux de TVA par ligne (schéma `budget`) ; évaluation et tarifs indicatifs (schéma
+  `vendors`).
 
 Chaque migration ne touche que le schéma de son module, et a son script d'annulation.
 
@@ -214,6 +280,8 @@ Chaque migration ne touche que le schéma de son module, et a son script d'annul
   client : lot 27 (POR-05).
 - Les liens personnels des prestataires : lot 26.
 - L'e-mail de rappel d'une échéance : avec les modèles d'e-mails (lot 38).
+- La répartition par payeur (mariés, familles, entreprise) : BUD-06, P1.
+- La comparaison de devis et les scénarios d'options : BUD-05, P1.
 
 ## Décisions à prendre
 
@@ -272,3 +340,47 @@ Chaque migration ne touche que le schéma de son module, et a son script d'annul
 
   **Recommandation : (a).** PRE-01 cite les deux ; le texte libre évite d'inventer une grille de
   tarifs.
+
+### Décisions du 28b (à prendre)
+
+- **D9 — Découpage.** (a) Deux PR : 28b (lignes, prestataires retenus, échéancier, documents) puis
+  28c (HT et TTC, export, annuaire). (b) Une seule PR.
+  **Recommandation : (a).** Le 28b change deux schémas et reprend des données ; le 28c est léger.
+
+- **D10 — Prestataires retenus par catégorie.**
+  - (a) Plusieurs retenus par catégorie ; « Retenir » écarte les concurrents encore en lice, pas
+    les prestataires déjà retenus.
+  - (b) Un seul retenu par catégorie (comme au 28a) ; un second prestataire du même genre ouvre
+    une seconde catégorie (« Musique de la cérémonie »).
+
+  **Recommandation : (a).** Le jeu fictif en a deux dans « Musique » et dans « Hébergement et
+  transport » ; (b) obligerait la planner à découper ses catégories selon ses prestataires.
+
+- **D11 — Ce que « Retenu » engage.**
+  - (a) Les lignes du prestataire : chacune prend son devisé ; une seule ligne sans devisé prend
+    le devis ; sans ligne, une ligne est créée à son nom.
+  - (b) Toujours une seule ligne par prestataire, au montant du devis.
+
+  **Recommandation : (a).** Le devis du traiteur couvre quatre lignes (dîner, vin d'honneur,
+  brunch, pièce montée) ; (b) perdrait ce détail.
+
+- **D12 — Base d'une échéance en pourcentage.**
+  - (a) Pourcentage de l'engagé de **la ligne** visée.
+  - (b) Pourcentage de l'engagé **du prestataire** (toutes ses lignes de la catégorie).
+
+  **Recommandation : (b).** L'acompte de 30 % du traiteur vaut 30 % de son devis (2 880 €), pas de
+  la seule ligne du dîner (1 980 €) ; l'échéance reste rattachée à une ligne pour le payé.
+
+- **D13 — Payé saisi à la main.**
+  - (a) Dès qu'une ligne a des échéances, son payé en est la somme et ne se saisit plus ; sans
+    échéance, il reste saisi.
+  - (b) Payé toujours calculé : il faut créer une échéance pour tout paiement.
+
+  **Recommandation : (a).** La robe payée en une fois ne demande pas d'échéancier.
+
+- **D14 — Champs du poste devenus inutiles** (nom, montant, prestataire choisi).
+  - (a) Retirés au 28b, après la reprise, par une migration du schéma `events` (annulable).
+  - (b) Gardés, tenus à jour par le prestataire retenu principal.
+
+  **Recommandation : (a).** Deux sources pour le même fait finissent par diverger ; la recherche,
+  le carnet et la vue du client lisent les prestataires rattachés.
