@@ -67,6 +67,8 @@ export function activityDetail(entry: Pick<ActivityEntry, "action" | "details" |
       return STATUSES[text(details, "status") ?? ""] ? t(STATUSES[text(details, "status")!]!) : null;
     case "vendors.vendors.exported":
       return t("exportCount", { count: number(details, "count") ?? 0, format: (text(details, "format") ?? "csv").toUpperCase() });
+    case "budget.budget.exported":
+      return t("budgetExport", { count: number(details, "lines") ?? 0, format: (text(details, "format") ?? "xlsx").toUpperCase() });
     case "quotes.e_reporting.exported": {
       const from = text(details, "from");
       const to = text(details, "to");

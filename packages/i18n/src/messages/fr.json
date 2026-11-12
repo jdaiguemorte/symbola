@@ -575,7 +575,7 @@
     },
     "budgetDetail": {
       "title": "Budget de l'événement",
-      "body": "Chaque poste de l'événement est une catégorie ; elle porte des lignes (« Dîner, 120 couverts », « Vin d'honneur »…), chacune avec son prestataire et cinq montants : l'estimé, le devisé, l'engagé (rempli quand vous retenez le prestataire), le payé et le reste à payer, calculé. Sous chaque ligne, joignez le devis, le contrat ou la facture, et posez les échéances (acompte, solde ; un pourcentage porte sur l'engagé du prestataire) : payées, elles font le payé de la ligne, et les prochaines apparaissent dans « Aujourd'hui ». L'enveloppe est le budget souhaité du client ; au-delà du seuil d'alerte, un bandeau le signale, et retenir un prestataire demande une confirmation.",
+      "body": "Chaque poste de l'événement est une catégorie ; elle porte des lignes (« Dîner, 120 couverts », « Vin d'honneur »…), chacune avec son prestataire et cinq montants : l'estimé, le devisé, l'engagé (rempli quand vous retenez le prestataire), le payé et le reste à payer, calculé. Sous chaque ligne, joignez le devis, le contrat ou la facture, et posez les échéances (acompte, solde ; un pourcentage porte sur l'engagé du prestataire) : payées, elles font le payé de la ligne, et les prochaines apparaissent dans « Aujourd'hui ». L'enveloppe est le budget souhaité du client ; au-delà du seuil d'alerte, un bandeau le signale, et retenir un prestataire demande une confirmation. Les montants se saisissent TTC, chaque ligne avec son taux de TVA (20 % par défaut) ; si le devis de l'événement est à un client professionnel, le HT s'affiche sous chaque montant. « Exporter en XLSX » ou « en PDF » reprend le budget et les échéances, aux couleurs de vos documents.",
       "faq": [
         {
           "q": "Les mariés voient-ils le budget ?",
@@ -584,6 +584,10 @@
         {
           "q": "Où sont rangés les devis joints ?",
           "a": "Dans un stockage privé, après vérification par l'antivirus ; ils s'ouvrent par un lien temporaire."
+        },
+        {
+          "q": "Pourquoi le HT ne s'affiche-t-il pas ?",
+          "a": "Le HT s'affiche pour un client professionnel : choisissez « Professionnel » comme type de client sur le devis de l'événement. Sans devis, le client est un particulier et le budget reste en TTC."
         }
       ]
     },
@@ -749,7 +753,7 @@
     },
     "vendorBook": {
       "title": "Le carnet de prestataires",
-      "body": "Chaque prestataire a une seule fiche, réutilisée d'un événement à l'autre. Filtrez par famille avec les pastilles du haut, puis par type, étiquette, ou autour d'un lieu. Une ligne ouvre sa fiche à droite ; « Archiver » la retire du carnet après confirmation.",
+      "body": "Chaque prestataire a une seule fiche, réutilisée d'un événement à l'autre. Filtrez par famille avec les pastilles du haut, puis par type, étiquette, ou autour d'un lieu. Une ligne ouvre sa fiche à droite ; « Archiver » la retire du carnet après confirmation. Le filtre « Évaluation » ne garde que les prestataires notés au moins tant d'étoiles.",
       "faq": [
         {
           "q": "Comment comparer plusieurs devis pour une ligne ?",
@@ -845,7 +849,7 @@
     },
     "vendorDetail": {
       "title": "Fiche d'un prestataire",
-      "body": "Tout ce que vous savez d'un prestataire : coordonnées, caractéristiques de son type, étiquettes, documents, note interne. Cliquez une pastille pour choisir une étiquette ; seules celles de sa famille s'affichent. « Historique avec vous » liste ses prestations, prix devisé et prix final.",
+      "body": "Tout ce que vous savez d'un prestataire : coordonnées, caractéristiques de son type, étiquettes, évaluation (de 1 à 5) et tarifs indicatifs, documents, note interne. Cliquez une pastille pour choisir une étiquette ; seules celles de sa famille s'affichent. « Historique avec vous » liste ses prestations, prix devisé et prix final.",
       "faq": [
         {
           "q": "Archiver efface-t-il son historique ?",
@@ -1404,7 +1408,7 @@
     "lineAdded": "Ligne ajoutée.",
     "lineLabelOf": "Libellé de la ligne « {label} »",
     "lineVendorOf": "Prestataire de la ligne « {label} »",
-    "saveLineDetails": "Enregistrer le libellé et le prestataire",
+    "saveLineDetails": "Enregistrer le libellé, le prestataire et la TVA",
     "lineDetailsSaved": "Ligne mise à jour.",
     "lineLabelRequired": "Le libellé de la ligne est obligatoire.",
     "lineVendorInvalid": "Ce prestataire n'est pas rattaché à cette catégorie.",
@@ -1455,7 +1459,34 @@
     "vendorPaymentOverdue": "En retard",
     "moreVendorPayments": "Et {count, plural, one {# autre} other {# autres}}",
     "editorOf": "Ligne « {label} » : montants, prestataire, documents et échéances",
-    "newLineOf": "Nouvelle ligne de « {category} »"
+    "newLineOf": "Nouvelle ligne de « {category} »",
+    "lineVatRateOf": "Taux de TVA (%) de la ligne « {label} »",
+    "lineVatRateInvalid": "Saisissez un taux de TVA entre 0 et 100 %, par exemple 20 ou 5,5.",
+    "htAmount": "HT {amount}",
+    "vatModeIndividual": "Montants TTC (client particulier).",
+    "vatModeProfessional": "Client professionnel (devis de l'événement) : montants TTC, et HT en dessous, calculé au taux de chaque ligne.",
+    "exportTitle": "Exporter le budget",
+    "exportXlsx": "Exporter en XLSX",
+    "exportPdf": "Exporter en PDF",
+    "exportSheetBudget": "Budget",
+    "exportSheetPayments": "Échéances",
+    "exportCategory": "Catégorie",
+    "exportLine": "Ligne",
+    "exportVendor": "Prestataire",
+    "exportVatRate": "Taux de TVA",
+    "exportTtc": "{label} TTC",
+    "exportHt": "{label} HT",
+    "exportCategoryTotal": "Total de la catégorie",
+    "exportPayment": "Échéance",
+    "exportPaymentAmount": "Montant TTC",
+    "exportStatus": "Statut",
+    "exportPaidOn": "Payée le",
+    "exportStatusDue": "À payer",
+    "exportStatusOverdue": "En retard",
+    "exportStatusPaid": "Payée",
+    "exportFileName": "budget",
+    "exportGenerated": "Édité le {date}",
+    "exportDemoWatermark": "Document fictif"
   },
   "Quotes": {
     "title": "Devis",
@@ -2055,7 +2086,9 @@
       "client2City": "Ville du client 2",
       "places": "Lieux et horaires",
       "wantedBudget": "Budget souhaité",
-      "lineLabel": "Libellé de la ligne"
+      "lineLabel": "Libellé de la ligne",
+      "rating": "Évaluation (1 à 5)",
+      "indicativePrices": "Tarifs indicatifs"
     },
     "requiredField": "{field} (obligatoire)",
     "columnsStepTitle": "Colonnes",
@@ -3658,7 +3691,15 @@
     "tagRecapTier": "Palier « {label} » : {count, plural, one {# tranche} other {# tranches}}.",
     "tagRecapVendors": "{count, plural, one {# fiche portait plusieurs tranches d'un même palier ; elle garde la plus haute :} other {# fiches portaient plusieurs tranches d'un même palier ; elles gardent la plus haute :}}",
     "tagRecapRemaining": "{count, plural, one {# étiquette reste dans « Autres », valable} other {# étiquettes restent dans « Autres », valables}} pour toutes les familles.",
-    "tagStarterAdded": "{created, plural, =0 {Aucune étiquette ajoutée} one {# étiquette ajoutée} other {# étiquettes ajoutées}} ; {placed, plural, =0 {aucune existante rangée} one {# existante rangée} other {# existantes rangées}}."
+    "tagStarterAdded": "{created, plural, =0 {Aucune étiquette ajoutée} one {# étiquette ajoutée} other {# étiquettes ajoutées}} ; {placed, plural, =0 {aucune existante rangée} one {# existante rangée} other {# existantes rangées}}.",
+    "rating": "Évaluation",
+    "ratingNone": "Sans évaluation",
+    "ratingValue": "{rating} sur 5",
+    "indicativePrices": "Tarifs indicatifs",
+    "indicativePricesHint": "Texte libre, visible de votre équipe seulement : par exemple « à partir de 85 € par couvert » ou « forfait soirée 1 200 € ».",
+    "invalidRating": "Choisissez une évaluation de 1 à 5.",
+    "filterRating": "Évaluation",
+    "filterRatingAtLeast": "{rating, plural, =5 {5 sur 5} other {Au moins # sur 5}}"
   },
   "Setup": {
     "title": "Bienvenue : préparons votre espace",
@@ -4066,6 +4107,7 @@
       "quotes_original_altered": "Original altéré détecté",
       "quotes_ledger_anomaly_detected": "Anomalie dans la chaîne des pièces",
       "quotes_archive_exported": "Archive comptable exportée",
+      "budget_budget_exported": "Budget exporté",
       "hub_mail_quota_reached": "Plafond d'envois de l'heure atteint"
     },
     "categories": {
@@ -4150,7 +4192,8 @@
       "budget": "Budget",
       "quotes": "Devis",
       "vendors": "Prestataires"
-    }
+    },
+    "budgetExport": "{count, plural, =0 {aucune ligne} =1 {# ligne} other {# lignes}} ({format})"
   },
   "LedgerArchive": {
     "title": "Archive comptable",

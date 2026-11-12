@@ -72,6 +72,7 @@ export {
   cleanVendorImportText,
   detectVendorsExport,
   normalizeVendorImportValues,
+  parseVendorRating,
   normalizeVendorsExportRow,
   proposeVendorsExportMapping,
   type VendorsExportDetection,

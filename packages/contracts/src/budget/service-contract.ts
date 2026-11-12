@@ -91,7 +91,37 @@ export type BudgetLine = {
   attachments: BudgetLineAttachment[];
   // Lot 28b (BUD-03) : échéances des paiements au prestataire.
   payments: VendorPayment[];
+  // Lot 28c (BUD-09, D5) : taux de TVA de la ligne (celui de départ s'il n'est
+  // pas saisi) et ses montants HT, calculés depuis le TTC (ADR 0059).
+  vatRateBasisPoints: number;
+  ht: BudgetLineHt;
 };
+
+// Lot 28c (BUD-09) — montants HT d'une ligne ; null comme le TTC.
+export type BudgetLineHt = {
+  estimatedCents: number | null;
+  quotedCents: number | null;
+  committedCents: number | null;
+  paidCents: number | null;
+  remainingCents: number | null;
+  varianceCents: number | null;
+};
+
+// Lot 28c (BUD-09) — totaux HT d'une catégorie ou du budget : les TTC sont
+// additionnés par taux, puis convertis une fois par taux (ADR 0059).
+export type BudgetHtTotals = {
+  estimatedCents: number;
+  quotedCents: number;
+  committedCents: number;
+  paidCents: number;
+  remainingCents: number;
+  varianceCents: number;
+};
+
+// Lot 28c (BUD-09, D5) — type de client : le type d'acheteur du devis de
+// l'événement ; particulier sans devis. Particulier : TTC seul ; professionnel :
+// HT et TTC.
+export type BudgetClientKind = "individual" | "professional";
 
 // Lot 28b (BUD-01, Q33) — une catégorie (poste de l'événement) et ses lignes.
 export type BudgetCategory = {
@@ -104,6 +134,7 @@ export type BudgetCategory = {
   paidCents: number;
   remainingCents: number;
   varianceCents: number;
+  ht: BudgetHtTotals;
 };
 
 // Lot 28b (BUD-04) : nature d'un document joint.
@@ -186,6 +217,8 @@ export type UpdateBudgetLineDetailsInput = {
   lineId: string;
   label?: string;
   vendorCandidateId?: string | null;
+  // Lot 28c (BUD-09) : taux de TVA, en points de base (0 à 10000).
+  vatRateBasisPoints?: number;
 };
 
 export type BudgetLinesView = {
@@ -199,6 +232,9 @@ export type BudgetLinesView = {
   totalPaidCents: number;
   totalRemainingCents: number;
   totalVarianceCents: number;
+  // Lot 28c (BUD-09, D5).
+  clientKind: BudgetClientKind;
+  totalHt: BudgetHtTotals;
   // Lot 28a (BUD-02) : null sans enveloppe (ni budget souhaité, ni simulation).
   envelope: BudgetEnvelope | null;
 };

@@ -92,6 +92,17 @@ export default async function EventBudgetPage({ params }: { params: Promise<{ ev
       <EnvelopeSummary eventId={eventId} envelope={linesView.envelope} committedCents={linesView.totalCommittedCents} settings={alertSettings} locale={locale} />
 
       <h2>{t("linesTitle")}</h2>
+      {/* Lot 28c (BUD-10) : export à la mise en forme de l'organisation. */}
+      {linesView.lines.length > 0 ? (
+        <nav aria-label={t("exportTitle")} className="page-actions">
+          <a href={`/budget/${eventId}/export?format=xlsx`} className="button-link" download>
+            {t("exportXlsx")}
+          </a>
+          <a href={`/budget/${eventId}/export?format=pdf`} className="button-link" download>
+            {t("exportPdf")}
+          </a>
+        </nav>
+      ) : null}
       <BudgetLinesTable eventId={eventId} view={linesView} canConfirm={budget !== null} vendorOptions={vendorOptions} locale={locale} />
       {/* Lot 28b (BUD-03) : échéancier par prestataire. */}
       {linesView.lines.length > 0 ? <VendorSchedule view={linesView} locale={locale} /> : null}

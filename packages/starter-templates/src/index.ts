@@ -16,6 +16,7 @@ import privacyRequestResponsesFile from "./privacy-request-responses.json";
 import privacySettingsFile from "./privacy-settings.json";
 import followUpFile from "./follow-up.json";
 import budgetAlertFile from "./budget-alert.json";
+import budgetVatFile from "./budget-vat.json";
 import programFile from "./program.json";
 import prospectSourcesFile from "./prospect-sources.json";
 import retroplanningFile from "./retroplanning.json";
@@ -723,5 +724,16 @@ const budgetAlertSchema = z.object({
 
 export function starterBudgetAlertThreshold(): number {
   return budgetAlertSchema.parse(budgetAlertFile).alertThresholdPercent;
+}
+
+// Lot 28c (BUD-09, décision D5) — taux de TVA de départ d'une ligne de budget,
+// en points de base ; la ligne le garde tant qu'aucun taux n'y est saisi.
+const budgetVatSchema = z.object({
+  version: z.literal(1),
+  defaultVatRateBasisPoints: z.number().int().min(0).max(10000),
+});
+
+export function starterBudgetVatRateBasisPoints(): number {
+  return budgetVatSchema.parse(budgetVatFile).defaultVatRateBasisPoints;
 }
 

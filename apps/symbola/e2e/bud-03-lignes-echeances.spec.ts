@@ -71,7 +71,7 @@ test("BUD-01 / BUD-03 — une catégorie à plusieurs lignes, l'échéancier d'u
   await openLine("Traiteur");
   await editor("Traiteur").getByLabel("Libellé de la ligne « Traiteur »").fill("Dîner, 120 couverts");
   await editor("Traiteur").getByLabel("Prestataire de la ligne « Traiteur »").selectOption({ label: "Maison Haddad" });
-  await editor("Traiteur").getByRole("button", { name: "Enregistrer le libellé et le prestataire" }).click();
+  await editor("Traiteur").getByRole("button", { name: "Enregistrer le libellé, le prestataire et la TVA" }).click();
   const dinner = lineRow("Dîner, 120 couverts");
   await expect(dinner).toContainText("Maison Haddad");
 

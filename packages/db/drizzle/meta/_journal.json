@@ -750,6 +750,20 @@
       "when": 1794442045348,
       "tag": "0106_lot28b_events_retained_vendors",
       "breakpoints": true
+    },
+    {
+      "idx": 107,
+      "version": "7",
+      "when": 1794445756988,
+      "tag": "0107_lot28c_budget_vat_rate",
+      "breakpoints": true
+    },
+    {
+      "idx": 108,
+      "version": "7",
+      "when": 1794445757794,
+      "tag": "0108_lot28c_vendors_rating_prices",
+      "breakpoints": true
     }
   ]
 }

@@ -18,6 +18,7 @@ import {
   getVendor,
   InvalidVendorFieldValueError,
   InvalidVendorLinkError,
+  InvalidVendorRatingError,
   listVendorTypes,
   parseFieldInput,
   removeVendorFile,
@@ -84,6 +85,9 @@ async function readVendorInput(organizationId: string, formData: FormData): Prom
     city: text(formData, "city"),
     country: text(formData, "country") || "FR",
     internalNote: text(formData, "internalNote"),
+    // Lot 28c (PRE-01) : évaluation de 1 à 5 ; vide = aucune.
+    rating: /^[1-5]$/.test(text(formData, "rating")) ? Number(text(formData, "rating")) : null,
+    indicativePrices: text(formData, "indicativePrices"),
     website: text(formData, "website"),
     socialLinks: VENDOR_SOCIAL_NETWORKS.map((network) => ({ network, url: text(formData, `social_${network}`) })).filter((link) => link.url !== ""),
     siret: text(formData, "siret"),
@@ -117,6 +121,7 @@ export async function saveVendorAction(_prev: VendorFormState, formData: FormDat
     if (error instanceof InvalidVendorFieldValueError) return { error: t("invalidFieldValue") };
     if (error instanceof VendorTagTierConflictError) return { error: t("tagTierConflict") };
     if (error instanceof InvalidVendorLinkError) return { error: t(error.field === "siret" ? "invalidSiret" : "invalidWebsite") };
+    if (error instanceof InvalidVendorRatingError) return { error: t("invalidRating") };
     if (error instanceof VendorNotFoundError || error instanceof VendorTypeNotFoundError) return { error: t("notFound") };
     throw error;
   }

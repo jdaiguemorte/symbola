@@ -3,7 +3,8 @@
 // (CLAUDE.md §2.4), protégée par Row-Level Security (migration dédiée).
 // Les prestataires consultés pour un poste vivent dans le module events et
 // ne connaissent qu'un identifiant opaque de fiche (ADR 0011).
-import { boolean, doublePrecision, integer, jsonb, pgSchema, text, timestamp, unique, uuid, type AnyPgColumn, index } from "drizzle-orm/pg-core";
+import { boolean, check, doublePrecision, integer, jsonb, pgSchema, text, timestamp, unique, uuid, type AnyPgColumn, index } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 
 export const vendorsSchema = pgSchema("vendors");
 
@@ -134,6 +135,10 @@ export const vendors = vendorsSchema.table("vendors", {
   longitude: doublePrecision("longitude"),
   locationSource: vendorLocationSourceEnum("location_source"),
   internalNote: text("internal_note"),
+  // Lot 28c (PRE-01, D8) : évaluation interne (1 à 5) et tarifs indicatifs
+  // (texte libre), visibles de l'organisation seule.
+  rating: integer("rating"),
+  indicativePrices: text("indicative_prices"),
   // Lot 14 (décision M) : site web, réseaux sociaux et SIRET, communs à tous
   // les types ; colonnes d'un import gardées telles quelles (TVA, APE…).
   website: text("website"),
@@ -149,7 +154,10 @@ export const vendors = vendorsSchema.table("vendors", {
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdBy: uuid("created_by"),
   updatedBy: uuid("updated_by"),
-}, (table) => [index("vendors_organization_idx").on(table.organizationId)]);
+}, (table) => [
+  index("vendors_organization_idx").on(table.organizationId),
+  check("vendors_rating_check", sql`${table.rating} between 1 and 5`),
+]);
 
 export const vendorFileKindEnum = vendorsSchema.enum("vendor_file_kind", ["brochure", "rib"]);
 

@@ -70,6 +70,8 @@ async function vendorState(tx: Tx, id: string): Promise<Values | null> {
     socialLinks: row.socialLinks,
     siret: row.siret,
     internalNote: row.internalNote,
+    rating: row.rating,
+    indicativePrices: row.indicativePrices,
     tagIds: row.tagIds,
     importedFields: row.importedFields,
   };
@@ -176,6 +178,9 @@ export async function importVendorRows(input: {
         socialLinks: record.socialLinks.map((link) => ({ network: link.network, url: webAddress(link.url) })),
         siret: record.siret,
         internalNote: noteOf(record),
+        // Lot 28c (PRE-01) : évaluation et tarifs indicatifs.
+        rating: record.rating,
+        indicativePrices: record.indicativePrices,
       };
       // Lot 16 (IMP-12) : sans type, le libellé du fichier reste lisible sur la fiche.
       const keptType = record.type && wanted.typeId === null && input.typeColumnHeader ? { [input.typeColumnHeader]: record.type } : {};
@@ -234,6 +239,8 @@ export async function importVendorRows(input: {
           socialLinks: wanted.socialLinks as { network: string; url: string }[],
           siret: record.siret,
           internalNote: wanted.internalNote as string | null,
+          rating: record.rating,
+          indicativePrices: record.indicativePrices,
           tagIds,
           importedFields,
         })

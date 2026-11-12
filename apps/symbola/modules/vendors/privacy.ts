@@ -40,7 +40,7 @@ export const vendorsPrivacy: PrivacyContractV1 = {
       const records: PrivacyRecord[] = [];
       for (const vendor of await tx.select().from(vendors).where(eq(vendors.isDemo, false))) {
         const imported = Object.values(vendor.importedFields ?? {});
-        if (!recordMatches([vendor.name, vendor.contactName, vendor.email, vendor.phone, vendor.internalNote, vendor.siret, ...imported], terms)) continue;
+        if (!recordMatches([vendor.name, vendor.contactName, vendor.email, vendor.phone, vendor.internalNote, vendor.indicativePrices, vendor.siret, ...imported], terms)) continue;
         records.push({
           module: MODULE,
           kind: "vendor",
@@ -53,6 +53,9 @@ export const vendorsPrivacy: PrivacyContractV1 = {
             phone: vendor.phone,
             address: [vendor.addressLine, vendor.postalCode, vendor.city].filter(Boolean).join(" ") || null,
             internalNote: vendor.internalNote,
+            // Lot 28c (PRE-01) : évaluation interne et tarifs indicatifs.
+            rating: vendor.rating === null ? null : `${vendor.rating}/5`,
+            indicativePrices: vendor.indicativePrices,
             website: vendor.website,
             socialLinks: vendor.socialLinks.map((link) => link.url).join(" ") || null,
             siret: vendor.siret,
@@ -91,6 +94,8 @@ export const vendorsPrivacy: PrivacyContractV1 = {
           addressLine: null,
           postalCode: null,
           internalNote: null,
+          rating: null,
+          indicativePrices: null,
           website: null,
           socialLinks: [],
           siret: null,

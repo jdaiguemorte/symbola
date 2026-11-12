@@ -575,7 +575,7 @@
     },
     "budgetDetail": {
       "title": "Event budget",
-      "body": "Each event line is a category; it holds lines (“Dinner, 120 guests”, “Drinks reception”…), each with its vendor and five amounts: estimated, quoted, committed (filled in when you retain the vendor), paid, and left to pay, calculated. Under each line, attach the quote, contract or invoice, and set the instalments (deposit, balance; a percentage applies to the vendor's committed amount): once paid, they make up the line's paid amount, and the next ones show in “Today”. The envelope is the client's wanted budget; above the alert threshold a banner says so, and retaining a vendor asks for confirmation.",
+      "body": "Each event line is a category; it holds lines (“Dinner, 120 guests”, “Drinks reception”…), each with its vendor and five amounts: estimated, quoted, committed (filled in when you retain the vendor), paid, and left to pay, calculated. Under each line, attach the quote, contract or invoice, and set the instalments (deposit, balance; a percentage applies to the vendor's committed amount): once paid, they make up the line's paid amount, and the next ones show in “Today”. The envelope is the client's wanted budget; above the alert threshold a banner says so, and retaining a vendor asks for confirmation. Amounts are entered including VAT, each line with its VAT rate (20% by default); if the event's quote is for a business client, the amount excluding VAT shows under each amount. “Export to XLSX” or “to PDF” gives the budget and instalments, in your documents' colours.",
       "faq": [
         {
           "q": "Does the couple see the budget?",
@@ -584,6 +584,10 @@
         {
           "q": "Where are attached quotes stored?",
           "a": "In private storage, after an antivirus check; they open through a temporary link."
+        },
+        {
+          "q": "Why is the amount excluding VAT not shown?",
+          "a": "It shows for a business client: choose “Business” as the client type on the event's quote. Without a quote, the client is an individual and the budget stays including VAT."
         }
       ]
     },
@@ -749,7 +753,7 @@
     },
     "vendorBook": {
       "title": "The vendor book",
-      "body": "Each supplier has a single record, reused from one event to the next. Filter by family with the top chips, then by type, tag, or around a place. A row opens its record on the right; « Archive » removes it from the book after confirmation.",
+      "body": "Each supplier has a single record, reused from one event to the next. Filter by family with the top chips, then by type, tag, or around a place. A row opens its record on the right; « Archive » removes it from the book after confirmation. The “Rating” filter keeps only vendors rated at least that many stars.",
       "faq": [
         {
           "q": "How do I compare several quotes for a line?",
@@ -845,7 +849,7 @@
     },
     "vendorDetail": {
       "title": "Supplier record",
-      "body": "Everything you know about a supplier: contact details, its type's characteristics, tags, documents, internal note. Click a tag to choose it; only those of its family are shown. « History with you » lists its services, quoted and final price.",
+      "body": "Everything you know about a supplier: contact details, its type's characteristics, tags, rating (1 to 5) and indicative prices, documents, internal note. Click a tag to choose it; only those of its family are shown. « History with you » lists its services, quoted and final price.",
       "faq": [
         {
           "q": "Does archiving erase its history?",
@@ -1404,7 +1408,7 @@
     "lineAdded": "Line added.",
     "lineLabelOf": "Label of the line “{label}”",
     "lineVendorOf": "Vendor of the line “{label}”",
-    "saveLineDetails": "Save the label and vendor",
+    "saveLineDetails": "Save the label, vendor and VAT",
     "lineDetailsSaved": "Line updated.",
     "lineLabelRequired": "The line label is required.",
     "lineVendorInvalid": "This vendor is not attached to this category.",
@@ -1455,7 +1459,34 @@
     "vendorPaymentOverdue": "Overdue",
     "moreVendorPayments": "And {count, plural, one {# more} other {# more}}",
     "editorOf": "Line “{label}”: amounts, vendor, documents and instalments",
-    "newLineOf": "New line in “{category}”"
+    "newLineOf": "New line in “{category}”",
+    "lineVatRateOf": "VAT rate (%) of the line “{label}”",
+    "lineVatRateInvalid": "Enter a VAT rate between 0 and 100%, for example 20 or 5.5.",
+    "htAmount": "excl. VAT {amount}",
+    "vatModeIndividual": "Amounts including VAT (individual client).",
+    "vatModeProfessional": "Business client (event quote): amounts including VAT, with the amount excluding VAT below, at each line's rate.",
+    "exportTitle": "Export the budget",
+    "exportXlsx": "Export to XLSX",
+    "exportPdf": "Export to PDF",
+    "exportSheetBudget": "Budget",
+    "exportSheetPayments": "Payments",
+    "exportCategory": "Category",
+    "exportLine": "Line",
+    "exportVendor": "Vendor",
+    "exportVatRate": "VAT rate",
+    "exportTtc": "{label} incl. VAT",
+    "exportHt": "{label} excl. VAT",
+    "exportCategoryTotal": "Category total",
+    "exportPayment": "Payment",
+    "exportPaymentAmount": "Amount incl. VAT",
+    "exportStatus": "Status",
+    "exportPaidOn": "Paid on",
+    "exportStatusDue": "Due",
+    "exportStatusOverdue": "Overdue",
+    "exportStatusPaid": "Paid",
+    "exportFileName": "budget",
+    "exportGenerated": "Issued on {date}",
+    "exportDemoWatermark": "Fictional document"
   },
   "Quotes": {
     "title": "Quotes",
@@ -2055,7 +2086,9 @@
       "client2City": "Client 2 city",
       "places": "Places and times",
       "wantedBudget": "Wished budget",
-      "lineLabel": "Line label"
+      "lineLabel": "Line label",
+      "rating": "Rating (1 to 5)",
+      "indicativePrices": "Indicative prices"
     },
     "requiredField": "{field} (required)",
     "columnsStepTitle": "Columns",
@@ -3658,7 +3691,15 @@
     "tagRecapTier": "Tier “{label}”: {count, plural, one {# range} other {# ranges}}.",
     "tagRecapVendors": "{count, plural, one {# vendor had several ranges of the same tier; it keeps the highest:} other {# vendors had several ranges of the same tier; they keep the highest:}}",
     "tagRecapRemaining": "{count, plural, one {# tag stays} other {# tags stay}} in “Other”, for every family.",
-    "tagStarterAdded": "{created, plural, =0 {No tag added} one {# tag added} other {# tags added}}; {placed, plural, =0 {no existing tag sorted} one {# existing tag sorted} other {# existing tags sorted}}."
+    "tagStarterAdded": "{created, plural, =0 {No tag added} one {# tag added} other {# tags added}}; {placed, plural, =0 {no existing tag sorted} one {# existing tag sorted} other {# existing tags sorted}}.",
+    "rating": "Rating",
+    "ratingNone": "No rating",
+    "ratingValue": "{rating} out of 5",
+    "indicativePrices": "Indicative prices",
+    "indicativePricesHint": "Free text, visible to your team only: for example “from €85 per guest” or “evening package €1,200”.",
+    "invalidRating": "Choose a rating from 1 to 5.",
+    "filterRating": "Rating",
+    "filterRatingAtLeast": "{rating, plural, =5 {5 out of 5} other {At least # out of 5}}"
   },
   "Setup": {
     "title": "Welcome: let's set up your space",
@@ -4066,6 +4107,7 @@
       "quotes_original_altered": "Altered original detected",
       "quotes_ledger_anomaly_detected": "Anomaly in the document chain",
       "quotes_archive_exported": "Accounting archive exported",
+      "budget_budget_exported": "Budget exported",
       "hub_mail_quota_reached": "Hourly sending cap reached"
     },
     "categories": {
@@ -4150,7 +4192,8 @@
       "budget": "Budget",
       "quotes": "Quotes",
       "vendors": "Vendors"
-    }
+    },
+    "budgetExport": "{count, plural, =0 {no lines} =1 {# line} other {# lines}} ({format})"
   },
   "LedgerArchive": {
     "title": "Accounting archive",

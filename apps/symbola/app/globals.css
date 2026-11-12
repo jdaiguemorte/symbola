@@ -2685,6 +2685,17 @@
   .budget-line-vendor {
     @apply block text-label text-ink-muted;
   }
+  /* Lot 28c (PRE-01) : évaluation en étoiles et tarifs indicatifs du carnet. */
+  .rating-stars {
+    @apply whitespace-nowrap text-ink;
+  }
+  .vendor-prices {
+    @apply whitespace-pre-line;
+  }
+  /* Lot 28c (BUD-09) : le HT sous le TTC, pour un client professionnel. */
+  .budget-ht {
+    @apply block text-label font-normal text-ink-muted;
+  }
   .list-table.budget-lines td.budget-line-edit button {
     @apply min-h-9 px-3 text-label;
   }
