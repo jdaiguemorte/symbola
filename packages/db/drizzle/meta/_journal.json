@@ -827,6 +827,13 @@
       "when": 1794520850337,
       "tag": "0117_lot29b_events_documents",
       "breakpoints": true
+    },
+    {
+      "idx": 118,
+      "version": "7",
+      "when": 1794523166292,
+      "tag": "0118_lot30a_events_day_contacts",
+      "breakpoints": true
     }
   ]
 }

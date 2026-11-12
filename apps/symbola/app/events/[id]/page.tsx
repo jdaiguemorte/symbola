@@ -19,6 +19,7 @@ import {
   listEventActivity,
   listEventDecisions,
   listEventDocuments,
+  listEventDayContacts,
   listDayDocumentChoices,
   listEventLinks,
   listLinkProfiles,
@@ -87,6 +88,8 @@ import { BudgetLineIcon } from "@/app/budget-line-icon";
 import { isBudgetModuleEnabled } from "@/app/budget/module-access";
 import { PlannedAmountForm, SlotIconForm } from "./budget-line-forms";
 import { AddPlaceForm } from "./place-forms";
+import { AddDayContactForm } from "./day-contact-forms";
+import { removeDayContactAction } from "./day-contact-actions";
 import { removePlaceAction } from "./place-actions";
 import { Trash2 } from "lucide-react";
 import { findVendors, getVendor } from "@/modules/vendors/service";
@@ -217,6 +220,9 @@ export default async function EventDetailPage({
   // Lot 12 (L12-EVT-14 / L12-EVT-15) : icônes des prestataires au programme, lieux saisis une fois.
   const slotIconOf = new Map(vendorSlots.map((slot) => [slot.id, slot.icon]));
   const places = tab === "programme" ? await listEventPlaces(organizationId, id) : [];
+  // Lot 30a (JRJ-03, D4) : contacts du jour J, dans l'annuaire de l'écran du jour J.
+  const dayContacts = tab === "programme" ? await listEventDayContacts(organizationId, id) : [];
+  const tDayContacts = await getTranslations("DayContacts");
   const venueCandidates = tab === "programme" ? (await listVendorCandidates(organizationId, id)).filter((candidate) => candidate.outcome === "selected" && vendorSlots.find((slot) => slot.id === candidate.vendorSlotId)?.icon === "venue") : [];
   const placeSuggestions = [
     ...venueCandidates.map((candidate) => ({ label: candidate.vendorName, vendorId: candidate.vendorId })),
@@ -896,6 +902,27 @@ export default async function EventDetailPage({
               ))}
             </ul>
             <AddPlaceForm eventId={event.id} suggestions={placeSuggestions} />
+          </section>
+          <section aria-labelledby="day-contacts-title" className="places">
+            <h3 id="day-contacts-title">{tDayContacts("title")}</h3>
+            <p className="muted">{tDayContacts("intro")}</p>
+            {dayContacts.length === 0 ? <p>{tDayContacts("empty")}</p> : null}
+            <ul className="item-list">
+              {dayContacts.map((contact) => (
+                <li key={contact.id}>
+                  <strong>{contact.name}</strong>
+                  {[contact.role, contact.phone].filter(Boolean).map((part) => ` — ${part}`).join("")}
+                  <form action={removeDayContactAction} className="inline-form">
+                    <input type="hidden" name="eventId" value={event.id} />
+                    <input type="hidden" name="contactId" value={contact.id} />
+                    <button type="submit" aria-label={tDayContacts("removeLabel", { name: contact.name })}>
+                      {tDayContacts("remove")}
+                    </button>
+                  </form>
+                </li>
+              ))}
+            </ul>
+            <AddDayContactForm eventId={event.id} />
           </section>
         </section>
       ) : null}

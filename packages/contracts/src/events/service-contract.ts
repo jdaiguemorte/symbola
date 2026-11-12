@@ -177,6 +177,11 @@ export type EventDocument = { id: string; eventId: string; label: string; mime: 
 export type AttachEventDocumentInput = { organizationId: string; eventId: string; label: string; content: Uint8Array; uploadedByUserId: string };
 export type SetDayDocumentEmbeddedInput = { organizationId: string; eventId: string; source: DayDocumentSource; sourceId: string; embedded: boolean };
 
+// Lot 30a (JRJ-03, décision D4) — contacts du jour J saisis pour l'événement
+// (régisseur du domaine, taxi, pharmacie de garde), dans l'annuaire du jour J.
+export type EventDayContact = { id: string; eventId: string; name: string; role: string | null; phone: string; position: number };
+export type EventDayContactInput = { name: string; role?: string | null; phone: string };
+
 export type EventPlace = { id: string; eventId: string; label: string; address: string | null; vendorId: string | null };
 
 // Lot 11 (L11-EVT-10 / L11-EVT-11) — prestataires consultés pour un poste.
@@ -721,6 +726,10 @@ export interface EventsServiceContract {
   getEventDocumentFile(organizationId: string, documentId: string): Promise<FileDownload>;
   listDayDocumentChoices(organizationId: string, eventId: string): Promise<DayDocumentChoice[]>;
   setDayDocumentEmbedded(input: SetDayDocumentEmbeddedInput): Promise<void>;
+  // Lot 30a (JRJ-03, décision D4).
+  listEventDayContacts(organizationId: string, eventId: string): Promise<EventDayContact[]>;
+  addEventDayContact(organizationId: string, eventId: string, input: EventDayContactInput): Promise<EventDayContact>;
+  removeEventDayContact(organizationId: string, contactId: string): Promise<void>;
   listLinkDecisions(organizationId: string, linkId: string): Promise<EventDecision[]>;
   answerLinkDecision(input: AnswerDecisionInput): Promise<EventDecision>;
   resolveLinkSession(sessionToken: string, now?: Date): Promise<LinkAccess | null>;

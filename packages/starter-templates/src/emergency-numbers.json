@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "_source": "Lot 30a (JRJ-03), décision D4 de Julien du 12/11/2026 : numéros d'urgence nationaux (France) dans l'annuaire de l'écran du jour J, avec les contacts saisis pour l'événement. Le 114 (personnes sourdes ou malentendantes) se joint par SMS. Données, jamais écrites dans le code.",
+  "items": [
+    { "key": "general", "number": "112", "sms": false, "label": { "fr": "Urgences (numéro européen)", "en": "Emergency (European number)" } },
+    { "key": "medical", "number": "15", "sms": false, "label": { "fr": "SAMU", "en": "Ambulance (SAMU)" } },
+    { "key": "police", "number": "17", "sms": false, "label": { "fr": "Police secours", "en": "Police" } },
+    { "key": "fire", "number": "18", "sms": false, "label": { "fr": "Pompiers", "en": "Fire brigade" } },
+    { "key": "sms", "number": "114", "sms": true, "label": { "fr": "Urgences par SMS (sourds et malentendants)", "en": "Emergency by text (deaf and hard of hearing)" } }
+  ]
+}

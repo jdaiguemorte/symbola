@@ -20,6 +20,7 @@ import budgetVatFile from "./budget-vat.json";
 import linkProfilesFile from "./link-profiles.json";
 import linkExpiryFile from "./link-expiry.json";
 import clientTaskRemindersFile from "./client-task-reminders.json";
+import emergencyNumbersFile from "./emergency-numbers.json";
 import linkPrivacyNoticeFile from "./link-privacy-notice.json";
 import programFile from "./program.json";
 import prospectSourcesFile from "./prospect-sources.json";
@@ -821,4 +822,19 @@ export type StarterClientTaskReminders = {
 export function starterClientTaskReminders(): StarterClientTaskReminders {
   const { daysBefore, overdue, sendingHours } = clientTaskRemindersSchema.parse(clientTaskRemindersFile);
   return { daysBefore: { ...daysBefore }, overdue: { ...overdue }, sendingHours: { ...sendingHours } };
+}
+
+// Lot 30a (JRJ-03, décision D4) : numéros d'urgence nationaux de l'annuaire du jour J,
+// tirés d'un fichier de données (jamais écrits dans le code) ; le 114 se joint par SMS.
+const emergencyNumbersSchema = z.object({
+  version: z.literal(1),
+  items: z
+    .array(z.object({ key: z.string().min(1), number: z.string().regex(/^\d{2,10}$/), sms: z.boolean(), label: translatedLabelSchema }))
+    .min(1),
+});
+
+export type StarterEmergencyNumber = { key: string; number: string; sms: boolean; label: string };
+
+export function starterEmergencyNumbers(locale: StarterLocale): StarterEmergencyNumber[] {
+  return emergencyNumbersSchema.parse(emergencyNumbersFile).items.map((item) => ({ key: item.key, number: item.number, sms: item.sms, label: item.label[locale] }));
 }

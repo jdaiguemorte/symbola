@@ -891,7 +891,7 @@
     },
     "dayOf": {
       "title": "Jour J",
-      "body": "Le jour J en un écran : le programme du jour avec ses notes internes, les lieux, les prestataires retenus et les clients avec leurs coordonnées, le PDF du programme et les documents choisis (plan de table, plan B, contrats). « Garder sur cet appareil » le copie sur le téléphone : il s'ouvre ensuite sans réseau, et se met à jour à chaque ouverture avec du réseau.",
+      "body": "Le jour J en un écran sombre, lisible au soleil : « Maintenant » (la séquence en cours, en grand, avec l'appel de ses prestataires) et « Ensuite », calculés sur le téléphone, même sans réseau. La barre du bas, à portée du pouce, appelle le contact de la séquence en cours et mène au programme, aux contacts (urgences, contacts du jour J, prestataires, mariés : appel ou SMS en un toucher) et aux documents choisis. « Garder sur cet appareil » copie l'écran sur le téléphone : il s'ouvre ensuite sans réseau, et se met à jour à chaque ouverture avec du réseau.",
       "faq": [
         {
           "q": "Comment ouvrir le jour J sans réseau ?",
@@ -912,6 +912,10 @@
         {
           "q": "Comment embarquer le plan de table ?",
           "a": "Ajoutez-le à l'onglet « Documents » de la fiche (PDF ou image), puis, sur l'écran du jour J, ouvrez « Choisir les documents embarqués » et cochez-le. Les devis signés, les pièces du budget et les devis des prestataires retenus s'y choisissent aussi ; un RIB, jamais."
+        },
+        {
+          "q": "Où ajouter le régisseur du domaine ou un taxi ?",
+          "a": "Dans l'onglet « Programme » de la fiche, rubrique « Contacts du jour J » : nom, rôle et téléphone. Ils s'affichent dans l'annuaire du jour J, sous les numéros d'urgence."
         }
       ]
     },
@@ -4290,7 +4294,8 @@
       "events_event_link_shared_slots": "catégorie partagée d'un lien",
       "events_event_decisions": "décision du client",
       "events_event_documents": "document de l'événement",
-      "events_event_day_documents": "document embarqué pour le jour J"
+      "events_event_day_documents": "document embarqué pour le jour J",
+      "events_event_day_contacts": "contact du jour J"
     },
     "modules": {
       "events": "Événements",
@@ -4572,7 +4577,7 @@
     "clientsTitle": "Les mariés",
     "clientsEmpty": "Aucun contact saisi.",
     "callLabel": "Appeler {name} au {phone}",
-    "mailLabel": "Écrire à {name} : {email}",
+    "mailLabel": "E-mail à {name} : {email}",
     "documentsTitle": "Documents",
     "programPdf": "Programme du jour (PDF)",
     "documentsHint": "Une fois le jour J gardé sur l'appareil, ils s'ouvrent aussi sans réseau.",
@@ -4616,7 +4621,32 @@
     "chooseSaved": "Choix enregistré.",
     "chooseEmpty": "Aucun autre document à embarquer : ajoutez le plan de table ou le plan B à la fiche.",
     "chooseEmptyLink": "Ouvrir les documents de la fiche",
-    "chooseUnauthorized": "Vous n'avez pas accès à ce jour J."
+    "chooseUnauthorized": "Vous n'avez pas accès à ce jour J.",
+    "durationMinutes": "{minutes} min",
+    "durationHours": "{hours} h",
+    "durationHoursMinutes": "{hours} h {minutes}",
+    "fieldHours": "{start} – {end} · {duration}",
+    "fieldSection": "Maintenant et ensuite",
+    "nowTitle": "Maintenant",
+    "nextTitle": "Ensuite",
+    "remaining": "Encore {duration}",
+    "callName": "Appeler {name}",
+    "pause": "Pause",
+    "pauseUntil": "Reprise à {time}",
+    "beforeTomorrow": "Le jour J, c'est demain",
+    "beforeDays": "Le jour J, c'est dans {days} jours",
+    "over": "Programme terminé",
+    "nextAt": "À {time}, dans {duration}",
+    "nothingNext": "Plus rien ensuite.",
+    "fieldBar": "Jour J",
+    "navNow": "Maintenant",
+    "emergencyTitle": "Urgences",
+    "dayContactsTitle": "Contacts du jour J",
+    "dayContactsEmpty": "Aucun contact ajouté : le régisseur du domaine, un taxi… s'ajoutent dans l'onglet « Programme » de la fiche.",
+    "call": "Appeler",
+    "sms": "Écrire",
+    "mail": "E-mail",
+    "smsLabel": "Écrire à {name} au {phone}"
   },
   "Offline": {
     "title": "Hors ligne",
@@ -4653,5 +4683,22 @@
     "removeLabel": "Supprimer « {label} »",
     "chooseForDayOf": "Choisir les documents à embarquer pour le jour J",
     "dayOfLater": "Une fois l'événement confirmé et daté, vous choisirez sur l'écran du jour J les documents à garder sur le téléphone."
+  },
+  "DayContacts": {
+    "title": "Contacts du jour J",
+    "intro": "Régisseur du domaine, taxi, pharmacie de garde : ils s'affichent dans l'annuaire de l'écran du jour J, à côté des prestataires et des numéros d'urgence, avec l'appel et le SMS en un toucher.",
+    "empty": "Aucun contact du jour J.",
+    "name": "Nom",
+    "role": "Rôle (facultatif)",
+    "phone": "Téléphone",
+    "add": "Ajouter le contact",
+    "added": "Contact ajouté.",
+    "remove": "Retirer",
+    "removeLabel": "Retirer « {name} »",
+    "nameInvalid": "Donnez un nom de 120 caractères au plus.",
+    "roleInvalid": "Le rôle tient en 120 caractères au plus.",
+    "phoneInvalid": "Donnez un numéro de téléphone (chiffres, espaces, +, points ou tirets).",
+    "notFound": "Contact ou événement introuvable.",
+    "unauthorized": "Vous n'avez pas accès à cette action."
   }
 }

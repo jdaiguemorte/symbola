@@ -659,3 +659,28 @@ export const eventDayDocuments = eventsSchema.table("event_day_documents", {
   unique("event_day_documents_unique").on(table.eventId, table.source, table.sourceId),
   check("event_day_documents_source_check", sql`${table.source} in ('event_document', 'signed_quote', 'budget_attachment', 'candidate_quote')`),
 ]);
+
+// Lot 30a (JRJ-03, décision D4) : contacts du jour J saisis pour l'événement
+// (régisseur du domaine, taxi, pharmacie de garde), avec les numéros d'urgence
+// nationaux (fichier de données) dans l'annuaire de l'écran du jour J.
+export const eventDayContacts = eventsSchema.table("event_day_contacts", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  eventId: uuid("event_id")
+    .notNull()
+    .references(() => events.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  role: text("role"),
+  phone: text("phone").notNull(),
+  position: integer("position").notNull().default(0),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  createdBy: uuid("created_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedBy: uuid("updated_by"),
+}, (table) => [
+  index("event_day_contacts_organization_idx").on(table.organizationId),
+  index("event_day_contacts_event_idx").on(table.eventId),
+  check("event_day_contacts_name_check", sql`char_length(${table.name}) between 1 and 120`),
+  check("event_day_contacts_role_check", sql`${table.role} is null or char_length(${table.role}) between 1 and 120`),
+  check("event_day_contacts_phone_check", sql`char_length(${table.phone}) between 3 and 40`),
+]);

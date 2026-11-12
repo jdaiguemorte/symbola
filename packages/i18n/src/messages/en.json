@@ -891,7 +891,7 @@
     },
     "dayOf": {
       "title": "Day-of",
-      "body": "The day of the event on one screen: the schedule with its internal notes, the places, the booked vendors and the clients with their contact details, the schedule PDF and the documents chosen (seating plan, plan B, contracts). “Keep on this device” copies it to the phone: it then opens without a network, and updates each time it is opened with a network.",
+      "body": "The day of the event on one dark screen, readable in the sun: “Now” (the current item, in large type, with a call to its vendors) and “Next”, worked out on the phone, even without a network. The bottom bar, within thumb reach, calls the contact of the current item and leads to the schedule, the contacts (emergencies, day-of contacts, vendors, couple: call or text in one tap) and the chosen documents. “Keep on this device” copies the screen to the phone: it then opens without a network, and updates each time it is opened with a network.",
       "faq": [
         {
           "q": "How do I open the day without a network?",
@@ -912,6 +912,10 @@
         {
           "q": "How do I keep the seating plan for the day?",
           "a": "Add it to the “Documents” tab of the event (PDF or image), then, on the day-of screen, open “Choose the documents to keep” and tick it. Signed quotes, budget documents and quotes from booked vendors can be chosen there too; bank details, never."
+        },
+        {
+          "q": "Where do I add the venue manager or a taxi?",
+          "a": "In the event's “Schedule” tab, “Day-of contacts” section: name, role and phone. They appear in the day-of directory, below the emergency numbers."
         }
       ]
     },
@@ -4290,7 +4294,8 @@
       "events_event_link_shared_slots": "category shared with a link",
       "events_event_decisions": "client decision",
       "events_event_documents": "event document",
-      "events_event_day_documents": "document kept for the day"
+      "events_event_day_documents": "document kept for the day",
+      "events_event_day_contacts": "day-of contact"
     },
     "modules": {
       "events": "Events",
@@ -4616,7 +4621,32 @@
     "chooseSaved": "Choice saved.",
     "chooseEmpty": "No other document to keep: add the seating plan or plan B to the event.",
     "chooseEmptyLink": "Open the event documents",
-    "chooseUnauthorized": "You do not have access to this day."
+    "chooseUnauthorized": "You do not have access to this day.",
+    "durationMinutes": "{minutes} min",
+    "durationHours": "{hours} h",
+    "durationHoursMinutes": "{hours} h {minutes} min",
+    "fieldHours": "{start} – {end} · {duration}",
+    "fieldSection": "Now and next",
+    "nowTitle": "Now",
+    "nextTitle": "Next",
+    "remaining": "{duration} left",
+    "callName": "Call {name}",
+    "pause": "Break",
+    "pauseUntil": "Back at {time}",
+    "beforeTomorrow": "The day is tomorrow",
+    "beforeDays": "The day is in {days} days",
+    "over": "Schedule over",
+    "nextAt": "At {time}, in {duration}",
+    "nothingNext": "Nothing after this.",
+    "fieldBar": "Day-of",
+    "navNow": "Now",
+    "emergencyTitle": "Emergencies",
+    "dayContactsTitle": "Day-of contacts",
+    "dayContactsEmpty": "No contact added: the venue manager, a taxi… are added in the “Schedule” tab of the event.",
+    "call": "Call",
+    "sms": "Text",
+    "mail": "Email",
+    "smsLabel": "Text {name} on {phone}"
   },
   "Offline": {
     "title": "Offline",
@@ -4653,5 +4683,22 @@
     "removeLabel": "Delete “{label}”",
     "chooseForDayOf": "Choose the documents to keep for the day",
     "dayOfLater": "Once the event is confirmed and dated, you will choose on the day-of screen which documents to keep on the phone."
+  },
+  "DayContacts": {
+    "title": "Day-of contacts",
+    "intro": "Venue manager, taxi, on-duty pharmacy: they appear in the day-of screen's directory, next to the vendors and emergency numbers, with one-tap call and text.",
+    "empty": "No day-of contact.",
+    "name": "Name",
+    "role": "Role (optional)",
+    "phone": "Phone",
+    "add": "Add the contact",
+    "added": "Contact added.",
+    "remove": "Remove",
+    "removeLabel": "Remove “{name}”",
+    "nameInvalid": "Give a name of 120 characters at most.",
+    "roleInvalid": "The role fits in 120 characters at most.",
+    "phoneInvalid": "Give a phone number (digits, spaces, +, dots or dashes).",
+    "notFound": "Contact or event not found.",
+    "unauthorized": "You do not have access to this action."
   }
 }

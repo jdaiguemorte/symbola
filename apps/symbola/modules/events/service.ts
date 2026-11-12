@@ -167,6 +167,7 @@ import {
   setSlotBrief,
   updateCandidate,
 } from "./vendor-candidates";
+import { addDayContact, listDayContacts, removeDayContact } from "./day-contacts";
 import { attachDocument, documentKeys, getDocumentFile, listDayChoices, listDocuments, removeDocument, renameDocument, setDayChoice } from "./documents";
 import { findProgramOverlaps, normalizeTime, programForVariant, sortProgramItems } from "./program";
 import type {
@@ -174,6 +175,8 @@ import type {
   AttachEventDocumentInput,
   DayDocumentChoice,
   EventDocument,
+  EventDayContact,
+  EventDayContactInput,
   SetDayDocumentEmbeddedInput,
   EventTypeAudience,
   AddVendorCandidateInput,
@@ -277,6 +280,8 @@ export type {
   AttachEventDocumentInput,
   DayDocumentChoice,
   EventDocument,
+  EventDayContact,
+  EventDayContactInput,
   SetDayDocumentEmbeddedInput,
   ClientVendorOption,
   ClientVendorSlotOptions,
@@ -700,6 +705,7 @@ export async function removeEventPlace(organizationId: string, eventId: string, 
 // Lot 11 (L11-EVT-10 / L11-EVT-11, ADR 0031) — prestataires consultés par poste.
 
 export { CandidateQuoteRejectedError, VendorCandidateNotFoundError, CANDIDATE_QUOTE_MAX_SIZE_BYTES } from "./vendor-candidates";
+export { DayContactInvalidError, EventDayContactNotFoundError } from "./day-contacts";
 export { DayDocumentSourceError, EventDocumentNotFoundError, EventDocumentRejectedError, EVENT_DOCUMENT_MAX_SIZE_BYTES, EVENT_DOCUMENT_LABEL_MAX } from "./documents";
 
 export async function setVendorSlotBrief(organizationId: string, vendorSlotId: string, brief: string | null): Promise<void> {
@@ -816,6 +822,21 @@ export async function listDayDocumentChoices(organizationId: string, eventId: st
 
 export async function setDayDocumentEmbedded(input: SetDayDocumentEmbeddedInput): Promise<void> {
   await setDayChoice(input);
+}
+
+// Lot 30a (JRJ-03, décision D4) — contacts du jour J (day-contacts.ts).
+export async function listEventDayContacts(organizationId: string, eventId: string): Promise<EventDayContact[]> {
+  return listDayContacts(organizationId, eventId);
+}
+
+export async function addEventDayContact(organizationId: string, eventId: string, input: EventDayContactInput): Promise<EventDayContact> {
+  const contact = await addDayContact(organizationId, eventId, input);
+  if (!contact) throw new EventNotFoundError();
+  return contact;
+}
+
+export async function removeEventDayContact(organizationId: string, contactId: string): Promise<void> {
+  await removeDayContact(organizationId, contactId);
 }
 
 async function deleteStoredFiles(keys: string[]): Promise<void> {
@@ -2167,6 +2188,9 @@ const _contractCheck: EventsServiceContract = {
   getEventDocumentFile,
   listDayDocumentChoices,
   setDayDocumentEmbedded,
+  listEventDayContacts,
+  addEventDayContact,
+  removeEventDayContact,
   listLinkDecisions,
   answerLinkDecision,
   resolveLinkSession,

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import retroplanningFile from "./retroplanning.json";
 import vendorSlotsFile from "./vendor-slots.json";
 import programFile from "./program.json";
-import { starterDemoEvent, starterDemoQuote, starterErasureResponse, starterPrivacySettings, starterInvoiceMentions, starterDocumentStyle, starterQuoteTerms, starterRequestResponse, starterLossReasons, starterPaymentMethods, starterProgram, starterProspectSources, starterRetroplanning, starterVendorSlots, starterVendorTypes, starterBudgetLines, starterAllocation, starterFollowUpDelays, starterVendorTypeSynonymGroups, starterVendorCatalog, starterEventTypes, starterVendorTags, starterPaymentMethodKinds, BUDGET_LINE_ICONS, starterLinkProfiles, starterLinkExpiry, starterLinkPrivacyNotice, starterClientTaskReminders } from "./index";
+import { starterDemoEvent, starterDemoQuote, starterErasureResponse, starterPrivacySettings, starterInvoiceMentions, starterDocumentStyle, starterQuoteTerms, starterRequestResponse, starterLossReasons, starterPaymentMethods, starterProgram, starterProspectSources, starterRetroplanning, starterVendorSlots, starterVendorTypes, starterBudgetLines, starterAllocation, starterFollowUpDelays, starterVendorTypeSynonymGroups, starterVendorCatalog, starterEventTypes, starterVendorTags, starterPaymentMethodKinds, BUDGET_LINE_ICONS, starterLinkProfiles, starterLinkExpiry, starterLinkPrivacyNotice, starterClientTaskReminders, starterEmergencyNumbers } from "./index";
 
 describe("PRD-EVT-03 — Modèle de départ des postes prestataires", () => {
   it("existe en français et en anglais, avec le même nombre de postes", () => {
@@ -378,6 +378,13 @@ describe("L26 — Données de départ des liens personnels (POR-01, SEC-15, RGP-
 
   it("CHR-04, lot 27a — rappels de départ : 7 jours avant, la veille, retard rappelé dans la semaine, de 9 h à 19 h", () => {
     expect(starterClientTaskReminders()).toEqual({ daysBefore: { week: 7, eve: 1 }, overdue: { after: 1, within: 7 }, sendingHours: { from: 9, until: 19 } });
+  });
+
+  it("JRJ-03, lot 30a — numéros d'urgence en données, dans les deux langues ; le 114 se joint par SMS", () => {
+    const fr = starterEmergencyNumbers("fr");
+    expect(fr.map((item) => item.number)).toEqual(["112", "15", "17", "18", "114"]);
+    expect(fr.filter((item) => item.sms).map((item) => item.number)).toEqual(["114"]);
+    expect(starterEmergencyNumbers("en").map((item) => item.label)).not.toEqual(fr.map((item) => item.label));
   });
 
   it("mention d'information en français et en anglais, au nom de l'organisation, avec son contact", () => {

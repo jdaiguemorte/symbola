@@ -11,6 +11,7 @@ import {
   eventDecisions,
   eventLinks,
   eventClients,
+  eventDayContacts,
   eventDayDocuments,
   eventDocuments,
   eventPlaces,
@@ -43,6 +44,8 @@ const FATES: Record<string, ErasureFate> = {
   // Lot 29b : un document peut nommer la personne (plan de table) : supprimé,
   // fichier compris (pas d'anonymisation partielle d'un fichier).
   event_document: "deleted",
+  // Lot 30a : contact du jour J (nom, téléphone d'une personne) : supprimé.
+  event_day_contact: "deleted",
 };
 
 type Found = { kind: string; ids: string[] };
@@ -91,6 +94,8 @@ async function existing(tx: Tx, input: ErasureInput): Promise<Found[]> {
           .where(inArray(programItemParticipants.id, ids("program_participant"))),
       ),
     );
+  if (ids("event_day_contact").length > 0)
+    add("event_day_contact", keep(await tx.select({ id: eventDayContacts.id, eventId: eventDayContacts.eventId }).from(eventDayContacts).where(inArray(eventDayContacts.id, ids("event_day_contact")))));
   if (ids("event_document").length > 0)
     add("event_document", keep(await tx.select({ id: eventDocuments.id, eventId: eventDocuments.eventId }).from(eventDocuments).where(inArray(eventDocuments.id, ids("event_document")))));
   if (ids("status_change").length > 0)
@@ -171,6 +176,7 @@ export async function eraseEventsData(input: ErasureInput): Promise<ErasurePlanI
       await tx.update(eventDecisions).set({ decidedByName: ANONYMIZED, comment: sql`case when ${eventDecisions.comment} is null then null else ${ANONYMIZED} end` }).where(inArray(eventDecisions.decidedByLinkId, idsFor("link")));
       await tx.delete(eventLinks).where(inArray(eventLinks.id, idsFor("link")));
     }
+    if (idsFor("event_day_contact").length > 0) await tx.delete(eventDayContacts).where(inArray(eventDayContacts.id, idsFor("event_day_contact")));
     if (idsFor("event_document").length > 0) {
       const documentIds = idsFor("event_document");
       const documents = await tx.delete(eventDocuments).where(inArray(eventDocuments.id, documentIds)).returning({ key: eventDocuments.fileKey });

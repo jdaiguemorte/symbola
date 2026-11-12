@@ -13,6 +13,7 @@ import { appDatabase } from "@symbola/db/client";
 import {
   eventLinks,
   eventClients,
+  eventDayContacts,
   eventDocuments,
   eventPlaces,
   events,
@@ -82,6 +83,10 @@ function documentRecord(document: typeof eventDocuments.$inferSelect): PrivacyRe
     fields: { label: document.label, mime: document.mime, sizeBytes: String(document.sizeBytes) },
     eventId: document.eventId,
   };
+}
+
+function dayContactRecord(contact: typeof eventDayContacts.$inferSelect): PrivacyRecord {
+  return { module: MODULE, kind: "event_day_contact", recordId: contact.id, label: contact.name, fields: compact({ name: contact.name, role: contact.role, phone: contact.phone }), eventId: contact.eventId };
 }
 
 // Volumes d'une organisation (une planner : quelques centaines d'événements)
@@ -170,6 +175,10 @@ export const eventsPrivacy: PrivacyContractV1 = {
           records.push({ module: MODULE, kind: "event_place", recordId: place.id, label: place.label, fields: compact({ address: place.address }), eventId: place.eventId });
         }
       }
+      // Lot 30a : contacts du jour J (nom, rôle, téléphone).
+      for (const contact of await tx.select().from(eventDayContacts).where(inArray(eventDayContacts.eventId, eventIds))) {
+        if (recordMatches([contact.name, contact.role, contact.phone], terms)) records.push(dayContactRecord(contact));
+      }
       // Lot 29b : documents de l'événement, par leur intitulé.
       for (const document of await tx.select().from(eventDocuments).where(inArray(eventDocuments.eventId, eventIds))) {
         if (recordMatches([document.label], terms)) records.push(documentRecord(document));
@@ -253,6 +262,9 @@ export const eventsPrivacy: PrivacyContractV1 = {
       }
       for (const link of await tx.select().from(eventLinks).where(inArray(eventLinks.eventId, ids))) {
         records.push({ module: MODULE, kind: "link", recordId: link.id, label: link.personName, fields: { name: link.personName, email: link.email }, eventId: link.eventId });
+      }
+      for (const contact of await tx.select().from(eventDayContacts).where(inArray(eventDayContacts.eventId, ids)).orderBy(asc(eventDayContacts.position))) {
+        records.push(dayContactRecord(contact));
       }
       for (const document of await tx.select().from(eventDocuments).where(inArray(eventDocuments.eventId, ids)).orderBy(asc(eventDocuments.createdAt))) {
         records.push(documentRecord(document));

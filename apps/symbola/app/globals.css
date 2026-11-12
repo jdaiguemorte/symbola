@@ -2936,3 +2936,142 @@
     @apply inline-flex min-h-11 items-center;
   }
 }
+
+/* Lot 30a (JRJ-01, JRJ-03, UX-05 ; décision D3) — écran de terrain du jour J (et page
+   « Hors ligne ») : thème nuit, contraste de 7:1 sur l'écran principal, gros caractères,
+   cibles de 56 px, barre du bas dans la zone du pouce (DESIGN.md, field-screen). */
+@layer components {
+  .day-shell {
+    @apply bg-night text-night-ink;
+  }
+  .day-shell h1,
+  .day-shell h2,
+  .day-shell h3 {
+    @apply text-night-ink;
+  }
+  .day-shell .stroke-ink {
+    stroke: var(--color-night-ink);
+  }
+  .day-shell .card {
+    @apply border-night-line bg-night-surface text-night-ink;
+  }
+  .day-shell .meta,
+  .day-shell .day-program-note {
+    @apply text-night-ink-muted;
+  }
+  .day-shell a {
+    @apply text-night-accent;
+  }
+  .day-shell main a,
+  .day-shell main button,
+  .day-shell main summary,
+  .day-shell .link-header a {
+    @apply inline-flex min-h-14 min-w-14 items-center;
+  }
+  .day-shell button {
+    @apply border-night-line bg-night-surface text-night-ink hover:border-night-ink;
+  }
+  .day-shell button.primary {
+    @apply border-night-accent bg-night-accent text-on-night-accent;
+  }
+  /* Le « ? » de l'aide garde sa place, à la taille des cibles du terrain. */
+  .day-shell .help-button {
+    @apply !h-14 !w-14 border-night-line !bg-night-surface !text-night-ink;
+  }
+  .day-shell .help-button[aria-expanded="true"] {
+    @apply border-night-accent !bg-night-accent !text-on-night-accent;
+  }
+  /* Panneaux repliables et groupes de cases (copie, documents embarqués) : fond de nuit. */
+  .day-shell details[open],
+  .day-shell fieldset,
+  .day-shell details > summary {
+    @apply border-night-line bg-night-surface text-night-ink;
+  }
+  .day-shell label {
+    @apply text-night-ink;
+  }
+  .day-shell .button-ghost {
+    @apply !min-h-14 !text-night-accent;
+  }
+  /* Le panneau d'aide de l'écran, lui aussi en thème nuit et en cibles de 56 px. */
+  .day-shell .landmark-panel {
+    @apply border-night-line bg-night-surface text-night-ink;
+  }
+  .day-shell .landmark-close {
+    @apply !h-14 !w-14 !text-night-ink;
+  }
+  .day-shell .landmark-intro {
+    @apply text-night-ink-muted;
+  }
+  .day-shell .day-program > li {
+    @apply border-night-line;
+  }
+  .field-screen {
+    @apply pb-12;
+  }
+  .field-cards {
+    @apply flex flex-col gap-3;
+  }
+  .field-card {
+    @apply flex flex-col gap-2 rounded-lg border border-night-line bg-night-surface p-4;
+  }
+  .field-card-now {
+    @apply border-night-accent;
+  }
+  .field-kicker {
+    @apply m-0 text-label font-semibold text-night-accent uppercase;
+  }
+  .field-now {
+    @apply m-0 text-field-now text-night-ink;
+  }
+  .field-next {
+    @apply m-0 text-title text-night-ink;
+  }
+  .field-line,
+  .field-note {
+    @apply m-0 text-heading;
+  }
+  .field-note {
+    @apply text-night-ink-muted;
+  }
+  .field-calls {
+    @apply m-0 flex list-none flex-col gap-2 p-0;
+  }
+  .day-shell .field-action {
+    @apply flex min-h-14 w-full items-center justify-center rounded-md bg-night-accent px-4 text-heading font-semibold text-on-night-accent;
+  }
+  .field-number {
+    @apply font-semibold text-night-accent;
+  }
+  .day-contact-actions {
+    @apply flex flex-wrap gap-2;
+  }
+  .day-shell .day-contact-actions a {
+    @apply min-w-28 justify-center rounded-md border border-night-line px-4 font-medium;
+  }
+  /* La barre du bas reste à portée du pouce ; l'espace en bas de l'écran la laisse lire
+     la fin de la page. */
+  .field-bar {
+    @apply fixed inset-x-0 bottom-0 z-20 flex flex-col gap-2 border-t border-night-line bg-night px-4 pt-2;
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+  }
+  .field-tabs {
+    @apply m-0 grid list-none grid-cols-4 gap-1 p-0;
+  }
+  .day-shell .field-tabs a {
+    @apply flex w-full justify-center rounded-md px-0 text-center text-label font-medium text-night-ink;
+  }
+  /* Retour et aide sur une ligne ; une urgence par ligne, le bouton à droite. */
+  .field-top {
+    @apply flex items-center justify-between gap-3;
+  }
+  .field-top .day-of-back {
+    @apply m-0;
+  }
+  .day-emergencies > li {
+    @apply flex flex-row items-center justify-between gap-3;
+  }
+  .field-bar-spacer {
+    @apply h-36;
+  }
+}
