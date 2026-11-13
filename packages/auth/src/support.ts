@@ -1,19 +1,16 @@
-// Lot 9 (ADR 0029) — vue d'assistance de l'Admin sur les comptes, seule
-// lecture de hub.users pour lui (ADR 0013). Comptes de l'équipe d'une
-// organisation (titulaire, membres) : adresse et état de connexion, pour
-// débloquer quelqu'un. Comptes mariés : seulement des nombres — l'Admin n'a
-// aucun lien avec eux.
-import { and, eq, inArray, isNotNull, sql } from "drizzle-orm";
+// Lot 9 (ADR 0029) — vue d'assistance de l'Exploitation sur les comptes, seule lecture des
+// comptes pour elle (ADR 0013). Comptes de l'équipe d'une organisation (titulaire, membres) :
+// adresse et dernière connexion, pour aider quelqu'un. Lot 33 (HUB-02) : par adhésion ; la
+// double authentification et les verrous sont tenus par le fournisseur d'identité.
+import { and, eq, sql } from "drizzle-orm";
 import type { AppDatabase } from "@symbola/db/client";
-import { users } from "@symbola/db/schema/hub";
+import { memberships, users } from "@symbola/db/schema/hub";
 
 export type TeamAccountStatus = {
   userId: string;
   organizationId: string;
   email: string;
   role: "owner" | "member";
-  mfaConfigured: boolean;
-  lockedUntil: Date | null;
   lastLoginAt: Date | null;
   createdAt: Date;
 };
@@ -21,55 +18,52 @@ export type TeamAccountStatus = {
 export type OrganizationAccountCounts = {
   organizationId: string;
   teamAccounts: number;
-  // Comptes de l'équipe connectés depuis la date demandée (lot 26a : plus de
-  // compte de marié).
+  // Comptes de l'équipe connectés depuis la date demandée.
   activeAccounts: number;
   lastLoginAt: Date | null;
 };
 
 export async function listTeamAccounts(db: AppDatabase): Promise<TeamAccountStatus[]> {
-  const rows = await db
+  return db
     .select({
       userId: users.id,
-      organizationId: users.organizationId,
+      organizationId: memberships.organizationId,
       email: users.email,
-      role: users.role,
-      mfaConfigured: users.mfaEnabled,
-      lockedUntil: users.lockedUntil,
+      role: memberships.role,
       lastLoginAt: users.lastLoginAt,
       createdAt: users.createdAt,
     })
-    .from(users)
-    .where(and(inArray(users.role, ["owner", "member"]), isNotNull(users.organizationId)))
+    .from(memberships)
+    .innerJoin(users, eq(users.id, memberships.userId))
     .orderBy(users.createdAt);
-  return rows.map((row) => ({ ...row, organizationId: row.organizationId!, role: row.role as "owner" | "member" }));
 }
 
 export async function countAccountsByOrganization(db: AppDatabase, activeSince: Date): Promise<OrganizationAccountCounts[]> {
   const rows = await db
     .select({
-      organizationId: users.organizationId,
-      teamAccounts: sql<number>`count(*) filter (where ${users.role} in ('owner', 'member'))::int`,
+      organizationId: memberships.organizationId,
+      teamAccounts: sql<number>`count(*)::int`,
       activeAccounts: sql<number>`count(*) filter (where ${users.lastLoginAt} >= ${activeSince.toISOString()})::int`,
       lastLoginAt: sql<string | null>`max(${users.lastLoginAt})`,
     })
-    .from(users)
-    .where(isNotNull(users.organizationId))
-    .groupBy(users.organizationId);
+    .from(memberships)
+    .innerJoin(users, eq(users.id, memberships.userId))
+    .groupBy(memberships.organizationId);
   return rows.map((row) => ({
-    organizationId: row.organizationId!,
+    organizationId: row.organizationId,
     teamAccounts: row.teamAccounts,
     activeAccounts: row.activeAccounts,
     lastLoginAt: row.lastLoginAt ? new Date(row.lastLoginAt) : null,
   }));
 }
 
-/** Organisation d'un compte d'équipe (contrôle avant une action d'assistance). */
+/** Organisation d'un compte d'équipe (contrôle avant une action d'assistance) ; la première. */
 export async function findTeamAccountOrganization(db: AppDatabase, userId: string): Promise<string | null> {
   const [row] = await db
-    .select({ organizationId: users.organizationId })
-    .from(users)
-    .where(and(eq(users.id, userId), inArray(users.role, ["owner", "member"])));
+    .select({ organizationId: memberships.organizationId })
+    .from(memberships)
+    .where(and(eq(memberships.userId, userId)))
+    .orderBy(memberships.createdAt)
+    .limit(1);
   return row?.organizationId ?? null;
 }
-

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { AccountCliError, generatePassword, parseAccountArgs } from "./account-cli";
+import { AccountCliError, parseAccountArgs } from "./account-cli";
 
 describe("Création d'un compte en ligne de commande (opérateur)", () => {
   it("compte Admin : rôle et e-mail (normalisé)", () => {
@@ -21,11 +21,5 @@ describe("Création d'un compte en ligne de commande (opérateur)", () => {
     expect(() => parseAccountArgs(["--role", "admin", "--email"])).toThrow(AccountCliError);
     // Jamais de mot de passe en argument (il resterait dans l'historique du shell).
     expect(() => parseAccountArgs(["--role", "admin", "--email", "a@b.fr", "--password", "x"])).toThrow(AccountCliError);
-  });
-
-  it("mot de passe généré : 24 caractères, différent à chaque fois", () => {
-    const password = generatePassword();
-    expect(password).toMatch(/^[A-Za-z0-9_-]{24}$/);
-    expect(generatePassword()).not.toBe(password);
   });
 });

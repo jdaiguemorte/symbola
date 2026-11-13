@@ -6,10 +6,10 @@
 // plateforme pour l'Admin). L'adresse IP, donnée personnelle, va à part dans
 // hub.connection_traces : la titulaire ne la voit pas, l'app ne peut pas la
 // relire, elle est purgée après la durée réglée par l'Admin.
-import { eq, lt } from "drizzle-orm";
+import { lt } from "drizzle-orm";
 import { recordAudit, type AuditEntryInput } from "@symbola/db/audit";
 import type { AppDatabase } from "@symbola/db/client";
-import { connectionTraces, users } from "@symbola/db/schema/hub";
+import { connectionTraces } from "@symbola/db/schema/hub";
 import type { Role } from "./roles";
 
 export type ConnectionAccount = { id: string; organizationId: string | null; role: Role };
@@ -47,14 +47,6 @@ export async function journalConnection(
     actor,
   });
   if (extra.clientIp) await db.insert(connectionTraces).values({ auditEntryId, ip: extra.clientIp });
-}
-
-export async function connectionAccount(db: AppDatabase, userId: string): Promise<ConnectionAccount | null> {
-  const [account] = await db
-    .select({ id: users.id, organizationId: users.organizationId, role: users.role })
-    .from(users)
-    .where(eq(users.id, userId));
-  return account ?? null;
 }
 
 // Purge des adresses IP plus anciennes que la durée réglée (décision D5).
