@@ -4,6 +4,9 @@
 import { createElement, type ReactElement } from "react";
 import { renderToBuffer, type DocumentProps } from "@react-pdf/renderer";
 import { getLocale, getTranslations } from "next-intl/server";
+import { createTranslator } from "next-intl";
+import frMessages from "@symbola/i18n/messages/fr.json";
+import enMessages from "@symbola/i18n/messages/en.json";
 import type { Locale } from "@symbola/i18n";
 import { starterDocumentStyle } from "@symbola/starter-templates";
 import type { CreditNoteView, InvoiceView } from "@/modules/quotes/service";
@@ -13,10 +16,13 @@ import { invoicePdfLabels, type Translate } from "../document-labels";
 import { QuotePdfDocument } from "../[quoteId]/quote-pdf";
 import { buildCreditNotePdfModel, buildInvoicePdfModel, type InvoicePdfLabels } from "./invoice-pdf-model";
 
-async function context(): Promise<{ locale: Locale; labels: InvoicePdfLabels; watermark: string; defaultColor: string }> {
-  const locale = (await getLocale()) as Locale;
-  const t = await getTranslations("Documents");
-  const tQuotes = await getTranslations("Quotes");
+// Lot 31b (FAC-05, D6) : une facture émise d'elle-même (worker, traitement régulier) n'a pas de
+// requête : sa langue est donnée, et les textes viennent directement des fichiers de traduction.
+async function context(fixedLocale?: Locale): Promise<{ locale: Locale; labels: InvoicePdfLabels; watermark: string; defaultColor: string }> {
+  const locale = fixedLocale ?? ((await getLocale()) as Locale);
+  const messages = locale === "en" ? enMessages : frMessages;
+  const t = fixedLocale ? createTranslator({ locale, messages, namespace: "Documents" }) : await getTranslations("Documents");
+  const tQuotes = fixedLocale ? createTranslator({ locale, messages, namespace: "Quotes" }) : await getTranslations("Quotes");
   return {
     locale,
     watermark: tQuotes("demoWatermark"),
@@ -29,8 +35,8 @@ function toBuffer(model: Parameters<typeof QuotePdfDocument>[0]["model"]): Promi
   return renderToBuffer(createElement(QuotePdfDocument, { model: pdfSafe(model) }) as unknown as ReactElement<DocumentProps>);
 }
 
-export async function renderInvoicePdf(organizationId: string, invoice: InvoiceView): Promise<Buffer> {
-  const { locale, labels, watermark, defaultColor } = await context();
+export async function renderInvoicePdf(organizationId: string, invoice: InvoiceView, fixedLocale?: Locale): Promise<Buffer> {
+  const { locale, labels, watermark, defaultColor } = await context(fixedLocale);
   return toBuffer(
     buildInvoicePdfModel({
       invoice,

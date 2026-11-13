@@ -525,6 +525,54 @@ fields:
       restent.
   - schema: quotes
     table: quote_versions
+    field: options_chosen_by
+    category: identifiant
+    retention: >-
+      Nom de qui a choisi les options d'un devis envoyé (lot 31a, FAC-01 : le
+      client sur son portail, ou la planner pour lui), avec la date du choix.
+      Conservé avec la version du devis ; voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Trouvé par la recherche RGPD-01 ; remplacé par « [anonymisé] » lors d'une
+      demande d'oubli (RGPD-03), sauf sur un devis signé tant que court la preuve
+      du contrat.
+  - schema: quotes
+    table: contracts
+    field: clauses
+    category: contenu_libre
+    retention: >-
+      Texte figé d'un contrat généré (lot 31b, FAC-04 : clauses du modèle dont les
+      variables sont résolues, dont les noms des clients et le lieu de
+      l'événement). Conservé avec le devis ; un contrat signé est une preuve du
+      contrat, gardée dix ans par défaut (réponse 3 de l'avocat, D16).
+    anonymization: >-
+      Trouvé par la recherche RGPD-01 ; le texte des clauses est remplacé par
+      « [anonymisé] » lors d'une demande d'oubli (RGPD-03), sauf sur un devis
+      signé tant que court la preuve du contrat.
+  - schema: quotes
+    table: contract_signer_acts
+    field: signer_name
+    category: identifiant
+    retention: >-
+      Nom du signataire qui a commandé (contrat à distance) ou demandé
+      l'exécution avant la fin du délai de rétractation (lot 31b, JUR-07), avec
+      la date et le texte présenté. Preuve du contrat, même durée que le devis
+      signé.
+    anonymization: >-
+      Trouvé par la recherche RGPD-01 ; remplacé par « [anonymisé] » lors d'une
+      demande d'oubli (RGPD-03), sauf tant que court la preuve du contrat.
+  - schema: quotes
+    table: contract_evidence
+    field: document_key
+    category: identifiant
+    retention: >-
+      Clé du dossier de preuve de Symbola (lot 31b), fichier JSON privé qui
+      reprend les noms et e-mails des signataires, leurs actes et les empreintes
+      des documents signés. Même durée que le devis signé (dix ans par défaut).
+    anonymization: >-
+      Fichier retiré du stockage et ligne supprimée à la fin de la preuve du
+      contrat (RGPD-05) ; jamais modifié avant.
+  - schema: quotes
+    table: quote_versions
     field: seller_snapshot
     category: contact
     retention: >-
@@ -622,6 +670,26 @@ fields:
       Conservation légale, comme la facture corrigée (DEV-04).
     anonymization: >-
       Aucune avant la fin de la conservation légale (avoir immuable).
+  - schema: quotes
+    table: earnest_receipts
+    field: buyer_snapshot
+    category: contact
+    retention: >-
+      Reçu non fiscal remis à l'encaissement d'arrhes (lot 31c, JUR-08) : noms et
+      adresses de facturation des clients, figés. Même conservation que les pièces
+      comptables (dix ans par défaut), à compter de la date du reçu.
+    anonymization: >-
+      Aucune avant la fin de la conservation (reçu immuable) ; ensuite, les noms et
+      adresses sont remplacés (oubli ou purge mensuelle), le montant et la date restent.
+  - schema: quotes
+    table: earnest_receipts
+    field: seller_snapshot
+    category: contact
+    retention: >-
+      Coordonnées du vendeur figées sur le reçu d'arrhes (lot 31c), comme sur une
+      facture. Même conservation que les pièces comptables.
+    anonymization: >-
+      Aucune avant la fin de la conservation (reçu immuable).
   - schema: vendors
     table: vendors
     field: name

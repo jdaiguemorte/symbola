@@ -32,6 +32,7 @@ import {
   sendQuoteForSignature,
   updateDocumentSettings,
 } from "./service";
+import { fillRequiredMentions } from "@/lib/test-fixtures/legal-mentions";
 
 // Lot 23b (DOC-08) : rendu factice de l'original déposé à l'émission.
 const renderInvoice = async () => Buffer.from("%PDF-1.4\n% facture de test\n%%EOF\n", "latin1");
@@ -73,6 +74,8 @@ async function organization() {
   await withDb((db) =>
     saveOnboardingStep(db, organizationId, { vatRegime: "franchise", vatRateDefaultBasisPoints: null, legalForm: "ei", siren: "123456789", address: "1 rue des Lilas, 69001 Lyon" }),
   );
+  // Lot 31a (FAC-07) : mentions requises remplies.
+  await fillRequiredMentions(organizationId);
   const planner = await withDb((db) =>
     createUser(db, { organizationId, email: `planner-${randomUUID()}@example.test`, password: "mot-de-passe-du-test", role: "owner" }),
   );

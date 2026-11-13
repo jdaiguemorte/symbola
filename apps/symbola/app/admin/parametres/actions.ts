@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { appDatabase } from "@symbola/db/client";
-import { setPlatformSettings } from "@/modules/hub/service";
+import { getRequiredMentionRules, setPlatformSettings, setRequiredMentionRules } from "@/modules/hub/service";
+import { MENTION_DOCUMENTS, MENTION_FIELDS, starterRequiredMentions, type RequiredMentionRule } from "@symbola/starter-templates";
 import { requireAdmin } from "@/lib/guards";
 
 export type PlatformSettingsFormState = { success?: boolean; error?: string };
@@ -67,4 +68,35 @@ export async function savePlatformSettingsAction(
 
   revalidatePath("/admin/parametres");
   return { success: true };
+}
+
+// Lot 31a (FAC-07, JUR-01, décision D4) — mentions requises sur les devis, factures et
+// avoirs : l'Admin coche, pour chaque mention, les documents où elle est exigée ; les
+// conditions (régime de TVA, type de client, forme juridique) restent celles de la liste en
+// vigueur. Valeur réglementaire, à valider par l'expert-comptable.
+export type RequiredMentionsFormState = { success?: boolean; error?: string };
+
+export async function saveRequiredMentionsAction(_prev: RequiredMentionsFormState, formData: FormData): Promise<RequiredMentionsFormState> {
+  const admin = await requireAdmin();
+  const t = await getTranslations("AdminSettings");
+  const db = appDatabase();
+  const current = (await getRequiredMentionRules(db)).rules;
+  const starter = starterRequiredMentions();
+  const rules: RequiredMentionRule[] = [];
+  for (const field of MENTION_FIELDS) {
+    const documents = MENTION_DOCUMENTS.filter((document) => formData.get(`${field}:${document}`) === "on");
+    if (documents.length === 0) continue;
+    const base = current.find((rule) => rule.field === field) ?? starter.find((rule) => rule.field === field);
+    rules.push({ ...(base ?? { field }), field, documents });
+  }
+  if (rules.length === 0) return { error: t("requiredMentionsEmpty") };
+  await setRequiredMentionRules(db, { adminUserId: admin.userId, rules });
+  revalidatePath("/admin/parametres");
+  return { success: true };
+}
+
+export async function resetRequiredMentionsAction(): Promise<void> {
+  const admin = await requireAdmin();
+  await setRequiredMentionRules(appDatabase(), { adminUserId: admin.userId, rules: null });
+  revalidatePath("/admin/parametres");
 }

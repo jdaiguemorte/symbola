@@ -35,6 +35,7 @@ import {
   sendQuoteForSignature,
   type QuoteDetail,
 } from "./service";
+import { fillRequiredMentions } from "@/lib/test-fixtures/legal-mentions";
 
 const MAILPIT_API = "http://localhost:8025/api/v1";
 const PDF = Buffer.from("%PDF-1.4\n%%EOF\n", "latin1");
@@ -110,6 +111,8 @@ async function setup(options: { send?: boolean } = {}) {
   await withDb((db) =>
     saveOnboardingStep(db, organizationId, { vatRegime: "assujetti", vatRateDefaultBasisPoints: 2000, siren: "123456789", address: "1 rue des Lilas" }),
   );
+  // Lot 31a (FAC-07) : mentions requises remplies.
+  await fillRequiredMentions(organizationId);
   const plannerEmail = `planner-${randomUUID()}@example.test`;
   const planner = await withDb((db) => createUser(db, { organizationId, email: plannerEmail, password: "mot-de-passe-du-test", role: "owner" }));
   const source = await createProspectSource(organizationId, "Salon");
@@ -401,6 +404,11 @@ describe("DEV-02 — Espace du marié", () => {
         status: "pending",
         ownSigningUrl: detail.signature!.signers[0]!.signingUrl,
         ownStatus: "pending",
+        // Lot 31a (JUR-08, D5) : acompte ou arrhes, rappelé au client avant de signer.
+        advanceKind: "deposit",
+        // Lot 31b (D9) : le devis seul, sans contrat.
+        kind: "quote",
+        contract: null,
       },
     ]);
     const stranger = await listClientQuotesToSign(organizationId, eventId, "inconnu@example.test");

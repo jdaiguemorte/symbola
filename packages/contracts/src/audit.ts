@@ -56,6 +56,8 @@ export const AUDIT_ACTIONS = {
   "hub.member.removed": { category: "droits", objectType: "user" },
   // Administration de la plateforme (sans organisation).
   "hub.platform_settings.updated": { category: "administration", objectType: null },
+  // Lot 31a (FAC-07, décision D4) : liste des mentions requises réglée par l'Admin.
+  "hub.required_mentions.updated": { category: "administration", objectType: null },
   // Exports.
   "hub.privacy_export.created": { category: "export", objectType: "privacy_export" },
   "hub.privacy_export.downloaded": { category: "export", objectType: "privacy_export" },
@@ -85,6 +87,13 @@ export const AUDIT_ACTIONS = {
   "hub.mail.quota_reached": { category: "partage", objectType: null },
   "quotes.quote.sent": { category: "partage", objectType: "quote" },
   "quotes.signature.requested": { category: "partage", objectType: "quote" },
+  // Lot 31a (FAC-01, décision D2) : options choisies par le client, ou par la planner pour lui.
+  "quotes.quote.options_chosen": { category: "partage", objectType: "quote" },
+  // Lot 31b (FAC-04, JUR-07 ; D11, D13) : contrat généré ; commande et demande d'exécution
+  // anticipée du client (identifiants seulement).
+  "quotes.contract.generated": { category: "partage", objectType: "quote" },
+  "quotes.contract.ordered": { category: "partage", objectType: "quote" },
+  "quotes.contract.early_execution_requested": { category: "partage", objectType: "quote" },
   // Émissions.
   "quotes.invoice.issued": { category: "emission", objectType: "invoice" },
   "quotes.credit_note.issued": { category: "emission", objectType: "credit_note" },

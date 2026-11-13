@@ -32,7 +32,22 @@ export type QuoteSettings = {
   // DEV-04 : délai de paiement d'une facture de solde, mentions de facturation.
   invoicePaymentTermDays: number;
   invoiceMentions: string | null;
+  // Lot 31a (JUR-08, décision D5) : acompte ou arrhes proposé pour chaque nouveau devis.
+  advanceKindDefault?: AdvanceKind | null | undefined;
+  // Lot 31c (D18) : invoiceMentions est le texte des particuliers et des non-professionnels ;
+  // face à un professionnel, son texte et le taux des pénalités choisi (aucun par défaut).
+  // Absents : inchangés à l'enregistrement.
+  invoiceMentionsProfessional?: string | null | undefined;
+  latePenaltyRate?: LatePenaltyRate | null | undefined;
+  // Lot 31c (D21) : préfixe de la série des reçus d'arrhes.
+  receiptPrefix?: string | undefined;
 };
+
+// Lot 31c (D18) : taux des pénalités de retard face à un professionnel, choisi par la planner.
+export type LatePenaltyRate = "ecb_plus_10" | "three_times_legal";
+
+// Lot 31a (JUR-08, décision D5) : sommes versées d'avance, acomptes ou arrhes.
+export type AdvanceKind = "deposit" | "earnest";
 
 // DEV-03 — modes de paiement (liste paramétrable par organisation).
 export type PaymentMethod = { id: string; label: string; archived: boolean };
@@ -126,6 +141,9 @@ export type QuoteLineInput = {
   unitPriceCents?: number | undefined;
   vatRateBasisPoints?: number | undefined;
   discountBasisPoints?: number | undefined;
+  // Lot 31a (FAC-01, décision D2) : section de la ligne, ligne en option.
+  sectionId?: string | null | undefined;
+  isOption?: boolean | undefined;
 };
 
 export type QuoteLine = {
@@ -140,7 +158,17 @@ export type QuoteLine = {
   discountBasisPoints: number;
   position: number;
   netCents: number;
+  // Lot 31a (FAC-01, décision D2) : une option reste hors du total tant qu'elle n'est pas choisie.
+  sectionId: string | null;
+  isOption: boolean;
+  optionChosen: boolean;
 };
+
+// Lot 31a (FAC-01) : section titrée d'une version, avec le sous-total de ses lignes au total.
+export type QuoteSection = { id: string; title: string; position: number; subtotalCents: number };
+
+// Lot 31a (FAC-01, décision D2) : choix des options, daté et nominatif.
+export type OptionsChoice = { chosenAt: string; chosenBy: string; byKind: "client" | "planner" };
 
 export type QuoteTotalsView = {
   subtotalCents: number;
@@ -203,6 +231,17 @@ export type SellerSnapshot = {
   contactPhone?: string | null;
   website?: string | null;
   document?: DocumentSnapshot;
+  // Lot 31a (JUR-09) : absents des copies antérieures au lot 31a.
+  insurer?: string | null;
+  insurancePolicy?: string | null;
+  insuranceCoverage?: string | null;
+  mediatorName?: string | null;
+  mediatorUrl?: string | null;
+  generalTerms?: string | null;
+  // Lot 31c (D18) : sur le devis d'un professionnel, ses conditions de paiement et le taux des
+  // pénalités, figés à l'envoi (la phrase des pénalités s'imprime dans la langue du document).
+  paymentTerms?: string | null;
+  latePenaltyRate?: LatePenaltyRate | null;
 };
 
 export type QuoteVersionView = {
@@ -219,10 +258,15 @@ export type QuoteVersionView = {
   validUntil: string | null;
   sentAt: string | null;
   schedule: PaymentScheduleView;
+  // Lot 31a (FAC-01, JUR-08, HUB-21).
+  sections: QuoteSection[];
+  advanceKind: AdvanceKind | null;
+  optionsChoice: OptionsChoice | null;
+  template: { id: string | null; version: number } | null;
 };
 
 // DEV-04 : un client professionnel exige Factur-X (lot dédié).
-export type ClientKind = "individual" | "professional";
+export type ClientKind = "individual" | "professional" | "non_professional";
 
 export type InvoiceTotalsView = {
   totalHtCents: number;
@@ -271,12 +315,38 @@ export type InvoiceView = {
   // Lignes du devis (solde) ou libellé de l'acompte.
   lines: { label: string; description: string | null; unit: string; quantityMilli: number; unitPriceCents: number; vatRateBasisPoints: number; discountBasisPoints: number; netCents: number }[];
   depositLabel: string | null;
+  // Lot 31a (JUR-08) : acompte ou arrhes, repris du devis (null avant le lot 31a).
+  advanceKind: AdvanceKind | null;
   quoteTotals: QuoteTotalsView;
-  // Acomptes déjà facturés, déduits d'une facture de solde.
-  deductions: { number: string; amountCents: number }[];
+  // Acomptes déjà facturés, déduits d'une facture de solde ; lot 31c (D20) : avec leur HT et leur
+  // TVA par taux, nets de leurs avoirs (absents des soldes émis avant le lot 31c).
+  deductions: { number: string; amountCents: number; totals?: InvoiceTotalsView }[];
+  // Lot 31c (D21) : arrhes reçues, en règlement sur la facture de solde d'un devis à arrhes, qui
+  // porte le prix total. Reste à payer = montant de la facture moins ces règlements.
+  settlements: { label: string; paidOn: string; amountCents: number }[];
+  amountDueCents: number;
   totals: InvoiceTotalsView;
   creditNotes: CreditNoteView[];
   creditedCents: number;
+};
+
+// Lot 31c (JUR-08, D21) — reçu non fiscal remis à l'encaissement des arrhes, de sa propre série.
+// Un encaissement annulé laisse le reçu, marqué « annulé ».
+export type ReceiptView = {
+  id: string;
+  quoteId: string;
+  quoteNumber: string;
+  scheduleItemId: string;
+  number: string;
+  isDemo: boolean;
+  issuedOn: string;
+  paidOn: string;
+  amountCents: number;
+  label: string;
+  paymentMethodLabel: string | null;
+  seller: SellerSnapshot;
+  buyers: InvoiceBuyer[];
+  cancelled: boolean;
 };
 
 // AIDE-02 — devis fictif sur l'événement d'essai guidé (ADR 0008).
@@ -297,6 +367,8 @@ export type IssueDepositInvoiceInput = {
   scheduleItemId: string;
   renderOriginal: RenderInvoiceOriginal;
   now?: Date | undefined;
+  // Lot 31b (réponse 1 de l'avocat) : contrat hors établissement, aucun paiement avant ce jour.
+  paymentNotBefore?: string | null | undefined;
 };
 export type IssueBalanceInvoiceInput = {
   organizationId: string;
@@ -360,6 +432,9 @@ export type SignerView = {
 export type SignatureView = {
   id: string;
   provider: string;
+  // Lot 31b (DOC-03, D9) : le devis seul, ou le devis suivi de son contrat.
+  kind: SignatureRequestKind;
+  contractId: string | null;
   status: "pending" | "completed" | "declined";
   signers: SignerView[];
   createdAt: string;
@@ -372,6 +447,18 @@ export type SendForSignatureInput = {
   quoteId: string;
   signers: SignerInput[];
   // PDF de la version envoyée, avec une balise de signature par signataire.
+  documentPdf: Uint8Array;
+  locale: "fr" | "en";
+  // Lot 31b (DOC-03, D9) : contrat signé avec le devis, dans le même PDF (devis puis contrat).
+  contractId?: string | null | undefined;
+};
+
+// Lot 31b (DOC-03, D9) — contrat généré après la signature du devis : signé seul, par les
+// signataires du devis.
+export type SendContractForSignatureInput = {
+  organizationId: string;
+  quoteId: string;
+  contractId: string;
   documentPdf: Uint8Array;
   locale: "fr" | "en";
 };
@@ -390,6 +477,221 @@ export type ClientQuoteToSign = {
   status: "pending" | "completed" | "declined";
   ownSigningUrl: string | null;
   ownStatus: "pending" | "signed" | "declined" | null;
+  // Lot 31a (JUR-08, D5) : acompte ou arrhes, rappelé au client.
+  advanceKind: AdvanceKind | null;
+  // Lot 31b (DOC-03, D9) : le devis seul, le devis suivi de son contrat, ou le contrat seul.
+  kind: SignatureRequestKind;
+  // Lot 31b (JUR-07 ; D11, D13) : le contrat signé avec le devis (ou seul), lisible avant la
+  // signature, et les actes de ce signataire : commande à distance, exécution anticipée.
+  contract: ClientContract | null;
+};
+
+export type SignatureRequestKind = "quote" | "quote_contract" | "contract";
+
+export type ClientContract = {
+  contractId: string;
+  title: string;
+  version: number;
+  withdrawalApplies: boolean;
+  // À distance : le lien de signature ne s'affiche qu'après la commande.
+  orderRequired: boolean;
+  orderedAt: string | null;
+  // Texte de la clause d'exécution anticipée, si la rétractation s'applique et que le contrat la porte.
+  earlyExecutionText: string | null;
+  earlyExecutionRequestedAt: string | null;
+  // Actes possibles tant que ce signataire n'a pas signé.
+  open: boolean;
+};
+
+// Lot 31a (FAC-01, décision D2) — options d'un devis envoyé, à choisir par le client sur son
+// portail avant la signature (prix TTC estimé de chaque option, total une fois choisi).
+export type ClientQuoteOptions = {
+  quoteId: string;
+  number: string;
+  version: number;
+  totalTtcCents: number;
+  vatApplicable: boolean;
+  options: { lineId: string; label: string; description: string | null; section: string | null; amountCents: number; chosen: boolean }[];
+  choice: OptionsChoice | null;
+  // Le choix se fige dès que la signature commence.
+  locked: boolean;
+  // JUR-08 (D5) : acompte ou arrhes, rappelé au client.
+  advanceKind: AdvanceKind | null;
+};
+
+// Lot 31a (FAC-01, HUB-21, décision D3) — modèle de devis par type d'événement.
+export type QuoteTemplateSummary = {
+  id: string;
+  name: string;
+  eventTypeId: string | null;
+  version: number;
+  sectionCount: number;
+  lineCount: number;
+  optionCount: number;
+  scheduleCount: number;
+  advanceKind: AdvanceKind | null;
+};
+
+// Lot 31a (FAC-07, JUR-01, décision D4) — mentions requises manquantes, nommées.
+export type MissingMention =
+  | "organizationName"
+  | "address"
+  | "siren"
+  | "registration"
+  | "shareCapital"
+  | "vatNumber"
+  | "insurance"
+  | "mediator"
+  | "generalTerms"
+  | "paymentTerms"
+  | "advanceKind"
+  // Lot 31c (D18, D22).
+  | "professionalPaymentTerms"
+  | "latePenaltyRate"
+  | "earnestSingleInstalment";
+
+// --- Lot 31b (FAC-04, FAC-05, DOC-02, DOC-03, JUR-07, JUR-08, HUB-21 ; décisions D6, D7, D9, D11
+// à D17, révisées après les réponses de l'avocat du 13/11/2026) ---
+
+export type ContractClauseRole =
+  | "precontractual_information"
+  | "withdrawal_period"
+  | "withdrawal_form"
+  | "early_execution"
+  | "termination"
+  | "no_withdrawal"
+  | "advance_deposit"
+  | "advance_earnest";
+export type ConclusionChannel = "on_premises" | "distance" | "off_premises" | "fair";
+
+export type ContractTemplateClauseInput = { title: string; body: string; optional: boolean; role: ContractClauseRole | null };
+export type ContractTemplateClause = ContractTemplateClauseInput & { id: string; position: number };
+
+export type ContractTemplateHeaderInput = { name: string; title: string; eventTypeId: string | null; legalReviewedOn: string | null };
+
+export type ContractTemplateView = ContractTemplateHeaderInput & {
+  id: string;
+  version: number;
+  clauses: ContractTemplateClause[];
+};
+
+// Ce qui empêche de générer un contrat, nommé (FAC-04, DOC-02 ; D12, D21).
+export type ContractProblem =
+  | { kind: "variable_missing"; variable: string }
+  | { kind: "variable_unknown"; variable: string }
+  | { kind: "clause_unwritten"; clause: string }
+  | { kind: "role_missing"; role: ContractClauseRole }
+  | { kind: "advance_missing"; advanceKind: AdvanceKind }
+  | { kind: "advance_mismatch"; advanceKind: AdvanceKind | null }
+  | { kind: "channel_blocked" }
+  | { kind: "payment_too_soon"; firstAllowed: string }
+  | { kind: "warning_not_accepted" }
+  | { kind: "quote_not_sent" };
+
+export type ContractRegimeView = {
+  withdrawalApplies: boolean;
+  orderRequired: boolean;
+  noPaymentDays: number | null;
+  requiredRoles: ContractClauseRole[];
+};
+
+export type ContractCheckInput = {
+  organizationId: string;
+  quoteId: string;
+  templateId: string;
+  optionalClauseIds: string[];
+  channel: ConclusionChannel;
+  smallBusinessConfirmed: boolean;
+  userId: string;
+  locale: "fr" | "en";
+  now?: Date | undefined;
+};
+
+// Aperçu d'une génération : clauses résolues, régime, ce qui l'empêche, conseil de signature.
+export type ContractCheck = {
+  templateVersion: number;
+  templateReviewedOn: string | null;
+  title: string;
+  clauses: { title: string; body: string; role: ContractClauseRole | null }[];
+  regime: ContractRegimeView;
+  problems: ContractProblem[];
+  warningAccepted: boolean;
+  // Réponse 5 de l'avocat (D15) : niveau recommandé et niveau disponible.
+  signature: { recommended: "simple" | "advanced"; available: "simple" | "advanced" | "qualified" };
+};
+
+export type GenerateContractInput = ContractCheckInput & { acceptWarning: boolean };
+
+export type ContractActView = { signerId: string; signerName: string; kind: "order" | "early_execution"; actedAt: string };
+
+export type ContractView = {
+  id: string;
+  quoteId: string;
+  quoteVersion: number;
+  version: number;
+  templateId: string | null;
+  templateVersion: number;
+  templateReviewedOn: string | null;
+  title: string;
+  clauses: { title: string; body: string; role: ContractClauseRole | null }[];
+  conclusionChannel: ConclusionChannel;
+  clientCategory: ClientKind;
+  smallBusinessConfirmed: boolean;
+  regime: ContractRegimeView;
+  signatureLevel: string;
+  recommendedSignatureLevel: "simple" | "advanced";
+  generatedAt: string;
+  // Généré pour une autre version du devis, ou avant le dernier choix des options : à refaire.
+  outdated: boolean;
+  signature: { kind: SignatureRequestKind; status: "pending" | "completed" | "declined"; hasSignedDocument: boolean } | null;
+  acts: ContractActView[];
+  hasEvidence: boolean;
+};
+
+// Facture d'acompte émise d'elle-même (FAC-05, D6) : en attente de la fin du délai, bloquée par
+// une mention manquante (champs nommés), ou émise.
+export type ScheduledDepositView = {
+  quoteId: string;
+  quoteNumber: string;
+  eventId: string;
+  scheduleItemLabel: string;
+  status: "waiting" | "blocked" | "issued";
+  issueOn: string;
+  // Hors établissement : aucun paiement demandé avant ce jour.
+  paymentNotBefore: string | null;
+  missingFields: string[];
+  invoiceId: string | null;
+};
+
+export type IssueScheduledDepositsInput = {
+  organizationId: string;
+  quoteId?: string | undefined;
+  now?: Date | undefined;
+  renderOriginal: (invoice: InvoiceView, locale: "fr" | "en") => Promise<Uint8Array>;
+};
+
+// Dossier de preuve de Symbola (réponses 1 et 5 de l'avocat) : faits figés, relus et vérifiés.
+export type ContractEvidenceDocument = {
+  version: 1;
+  writtenAt: string;
+  quote: { number: string; version: number };
+  contract: {
+    id: string;
+    version: number;
+    title: string;
+    templateVersion: number;
+    templateReviewedOn: string | null;
+    generatedAt: string;
+    conclusionChannel: ConclusionChannel;
+    clientCategory: ClientKind;
+    smallBusinessConfirmed: boolean;
+    withdrawalApplies: boolean;
+    signatureLevel: string;
+  };
+  request: { kind: SignatureRequestKind; provider: string; externalId: string; createdAt: string; completedAt: string };
+  signers: { id: string; name: string; email: string; status: string; signedAt: string | null }[];
+  acts: { signerId: string; signerName: string; kind: "order" | "early_execution"; actedAt: string; presentedText: string }[];
+  documents: { signedDocumentSha256: string; auditCertificateSha256: string };
 };
 
 export type QuoteDetail = QuoteSummary & {
@@ -467,7 +769,65 @@ export interface QuotesServiceContract {
   issueCreditNote(input: IssueCreditNoteInput): Promise<CreditNoteView>;
   listQuoteInvoices(organizationId: string, quoteId: string): Promise<InvoiceView[]>;
   getInvoice(organizationId: string, invoiceId: string): Promise<InvoiceView>;
+  // Lot 31c (D21) : reçus d'arrhes d'un devis, et un reçu.
+  listQuoteReceipts(organizationId: string, quoteId: string): Promise<ReceiptView[]>;
+  getReceipt(organizationId: string, receiptId: string): Promise<ReceiptView>;
+  // Lot 31c (D18) : les deux textes de départ des conditions de paiement, s'ils manquent.
+  loadStarterPaymentTerms(organizationId: string, locale: "fr" | "en"): Promise<boolean>;
   getCreditNote(organizationId: string, creditNoteId: string): Promise<CreditNoteView>;
   getEReporting(organizationId: string, period: { from: string; to: string }): Promise<EReportingView>;
   startQuotesTrial(input: StartQuotesTrialInput): Promise<QuoteDetail>;
+  // Lot 31a (FAC-01, FAC-07, JUR-01, JUR-08, HUB-21 ; décisions D2 à D5).
+  addQuoteSection(organizationId: string, quoteId: string, title: string): Promise<QuoteDetail>;
+  renameQuoteSection(organizationId: string, sectionId: string, title: string): Promise<QuoteDetail>;
+  removeQuoteSection(organizationId: string, sectionId: string): Promise<QuoteDetail>;
+  setQuoteAdvanceKind(organizationId: string, quoteId: string, kind: AdvanceKind | null): Promise<QuoteDetail>;
+  chooseQuoteOptions(input: {
+    organizationId: string;
+    quoteId: string;
+    eventId?: string;
+    chosenLineIds: string[];
+    chosenBy: string;
+    byKind: "client" | "planner";
+    now?: Date;
+  }): Promise<QuoteDetail>;
+  listClientQuoteOptions(organizationId: string, eventId: string): Promise<ClientQuoteOptions[]>;
+  quoteMissingMentions(organizationId: string, quoteId: string): Promise<MissingMention[]>;
+  listQuoteTemplates(organizationId: string): Promise<QuoteTemplateSummary[]>;
+  saveQuoteAsTemplate(input: { organizationId: string; quoteId: string; name: string; eventTypeId: string | null }): Promise<QuoteTemplateSummary>;
+  replaceQuoteTemplateFromQuote(input: { organizationId: string; templateId: string; quoteId: string }): Promise<QuoteTemplateSummary>;
+  duplicateQuoteTemplate(input: { organizationId: string; templateId: string; name: string }): Promise<QuoteTemplateSummary>;
+  renameQuoteTemplate(input: { organizationId: string; templateId: string; name: string; eventTypeId: string | null }): Promise<void>;
+  removeQuoteTemplate(organizationId: string, templateId: string): Promise<void>;
+  createQuoteFromTemplate(input: CreateQuoteInput & { templateId: string }): Promise<QuoteDetail>;
+  addStarterQuoteTemplates(organizationId: string, locale: "fr" | "en"): Promise<QuoteTemplateSummary[]>;
+  // Lot 31b (FAC-04, FAC-05, DOC-02, DOC-03, JUR-07, JUR-08, HUB-21 ; décisions D6 à D17).
+  listContractTemplates(organizationId: string): Promise<ContractTemplateView[]>;
+  createContractTemplate(input: ContractTemplateHeaderInput & { organizationId: string }): Promise<ContractTemplateView>;
+  updateContractTemplate(input: ContractTemplateHeaderInput & { organizationId: string; templateId: string }): Promise<ContractTemplateView>;
+  duplicateContractTemplate(input: { organizationId: string; templateId: string; name: string }): Promise<ContractTemplateView>;
+  removeContractTemplate(organizationId: string, templateId: string): Promise<void>;
+  addContractClause(organizationId: string, templateId: string, clause: ContractTemplateClauseInput): Promise<ContractTemplateView>;
+  updateContractClause(organizationId: string, clauseId: string, clause: ContractTemplateClauseInput): Promise<ContractTemplateView>;
+  removeContractClause(organizationId: string, clauseId: string): Promise<ContractTemplateView>;
+  moveContractClause(organizationId: string, clauseId: string, direction: "up" | "down"): Promise<ContractTemplateView>;
+  addStarterContractTemplates(organizationId: string, locale: "fr" | "en"): Promise<ContractTemplateView[]>;
+  checkContract(input: ContractCheckInput): Promise<ContractCheck>;
+  generateContract(input: GenerateContractInput): Promise<ContractView>;
+  listQuoteContracts(organizationId: string, quoteId: string): Promise<ContractView[]>;
+  sendContractForSignature(input: SendContractForSignatureInput): Promise<ContractView>;
+  // orderText : libellé du bouton de commande, tel qu'affiché au client (gardé au dossier de preuve).
+  recordSignerAct(input: {
+    organizationId: string;
+    eventId: string;
+    clientEmail: string;
+    contractId: string;
+    kind: "order" | "early_execution";
+    orderText?: string;
+    now?: Date;
+  }): Promise<void>;
+  getContractEvidence(organizationId: string, quoteId: string, contractId: string): Promise<ContractEvidenceDocument & { sha256: string }>;
+  issueScheduledDepositInvoices(input: IssueScheduledDepositsInput): Promise<{ issued: number; blocked: number }>;
+  listOpenScheduledDeposits(organizationId: string): Promise<ScheduledDepositView[]>;
+  getQuoteScheduledDeposit(organizationId: string, quoteId: string): Promise<ScheduledDepositView | null>;
 }

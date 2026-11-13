@@ -1,22 +1,28 @@
 // Accès aux données du module quotes — jamais importé hors de
 // modules/quotes/ (ADR 0011).
-import { and, asc, desc, eq, gte, inArray, or, sql as raw } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, ne, or, sql as raw } from "drizzle-orm";
 import { appDatabase } from "@symbola/db/client";
 import {
   catalogItems,
+  contractEvidence,
+  contracts,
+  contractSignerActs,
   creditNotes,
+  earnestReceipts,
   invoices,
   numberSeries,
   paymentEntries,
   paymentMethods,
   paymentScheduleItems,
   quoteLines,
+  quoteSections,
   quoteSigners,
   signatureRequests,
   signatureWebhookLog,
   quoteSettings,
   quotes,
   quoteVersions,
+  scheduledDepositInvoices,
 } from "@symbola/db/schema/quotes";
 import { appendAudit } from "@symbola/db/audit";
 import { emitDomainEvent } from "@symbola/db/events/emit";
@@ -29,6 +35,7 @@ export type QuoteSettingsRow = typeof quoteSettings.$inferSelect;
 export type QuoteRow = typeof quotes.$inferSelect;
 export type QuoteVersionRow = typeof quoteVersions.$inferSelect;
 export type QuoteLineRow = typeof quoteLines.$inferSelect;
+export type QuoteSectionRow = typeof quoteSections.$inferSelect;
 export type PaymentMethodRow = typeof paymentMethods.$inferSelect;
 export type ScheduleItemRow = typeof paymentScheduleItems.$inferSelect;
 export type SignatureRequestRow = typeof signatureRequests.$inferSelect;
@@ -36,6 +43,7 @@ export type InvoiceRow = typeof invoices.$inferSelect;
 export type CreditNoteRow = typeof creditNotes.$inferSelect;
 export type QuoteSignerRow = typeof quoteSigners.$inferSelect;
 export type PaymentEntryRow = typeof paymentEntries.$inferSelect;
+export type EarnestReceiptRow = typeof earnestReceipts.$inferSelect;
 
 type Tx = Parameters<Parameters<typeof withOrganization>[2]>[0];
 
@@ -148,7 +156,10 @@ export async function upsertQuoteSettings(
     | "upcomingHorizonDays"
     | "invoicePaymentTermDays"
     | "invoiceMentions"
-  >,
+    | "advanceKindDefault"
+  > &
+    // Lot 31c (D18, D21) : absents, ils restent inchangés.
+    Partial<Pick<QuoteSettingsRow, "invoiceMentionsProfessional" | "latePenaltyRate" | "receiptPrefix">>,
 ): Promise<QuoteSettingsRow> {
   return inOrganization(organizationId, async (tx) => {
     const [row] = await tx
@@ -190,7 +201,7 @@ export async function upsertDocumentSettings(
 export async function nextSeriesRank(
   tx: Tx,
   organizationId: string,
-  kind: "quote" | "invoice" | "credit_note",
+  kind: "quote" | "invoice" | "credit_note" | "receipt",
   isDemo: boolean,
   year: number,
 ): Promise<number> {
@@ -298,6 +309,8 @@ export type QuoteAggregate = {
   signers: QuoteSignerRow[];
   // Lot 23b (D2) : écritures d'encaissement des échéances, dans l'ordre.
   paymentEntries: PaymentEntryRow[];
+  // Lot 31a (FAC-01) : sections des versions, dans l'ordre.
+  sections: QuoteSectionRow[];
 };
 
 async function loadAggregate(tx: Tx, quote: QuoteRow): Promise<QuoteAggregate> {
@@ -382,6 +395,14 @@ async function loadAggregate(tx: Tx, quote: QuoteRow): Promise<QuoteAggregate> {
           .where(inArray(paymentEntries.scheduleItemId, scheduleItems.map((item) => item.id)))
           .orderBy(asc(paymentEntries.createdAt))
       : [];
+  const sections =
+    versions.length > 0
+      ? await tx
+          .select()
+          .from(quoteSections)
+          .where(inArray(quoteSections.versionId, versions.map((version) => version.id)))
+          .orderBy(asc(quoteSections.position), asc(quoteSections.createdAt))
+      : [];
   return {
     quote,
     versions,
@@ -391,6 +412,7 @@ async function loadAggregate(tx: Tx, quote: QuoteRow): Promise<QuoteAggregate> {
     signatureRequests: requests,
     signers,
     paymentEntries: entries,
+    sections,
   };
 }
 
@@ -463,6 +485,7 @@ export async function insertQuoteLine(
   return inOrganization(organizationId, async (tx) => {
     const draft = await currentDraft(tx, quoteId);
     if (draft.status !== "draft") return { status: draft.status };
+    if (data.sectionId && !(await sectionOfVersion(tx, data.sectionId, draft.version.id))) return { status: "not_found" };
     const [last] = await tx
       .select({ max: raw<number | null>`max(${quoteLines.position})` })
       .from(quoteLines)
@@ -513,9 +536,11 @@ export async function updateQuoteLineRow(
   return inOrganization(organizationId, async (tx) => {
     const found = await draftOfLine(tx, lineId);
     if (found.status !== "draft") return { status: found.status };
+    const values = data(found.line);
+    if (values.sectionId && !(await sectionOfVersion(tx, values.sectionId, found.line.versionId))) return { status: "not_found" };
     await tx
       .update(quoteLines)
-      .set(data(found.line))
+      .set(values)
       .where(eq(quoteLines.id, lineId));
     return { status: "ok", quoteId: found.quoteId };
   });
@@ -547,6 +572,117 @@ export async function setGlobalDiscountRow(
       .set({ globalDiscountKind: kind, globalDiscountValue: value })
       .where(eq(quoteVersions.id, draft.version.id));
     return { status: "ok", quoteId };
+  });
+}
+
+// Lot 31a (FAC-01, décision D2) — sections d'une version en brouillon.
+async function sectionOfVersion(tx: Tx, sectionId: string, versionId: string): Promise<boolean> {
+  const [section] = await tx.select({ id: quoteSections.id }).from(quoteSections).where(and(eq(quoteSections.id, sectionId), eq(quoteSections.versionId, versionId)));
+  return section !== undefined;
+}
+
+export async function insertQuoteSection(organizationId: string, quoteId: string, title: string): Promise<WriteResult> {
+  return inOrganization(organizationId, async (tx) => {
+    const draft = await currentDraft(tx, quoteId);
+    if (draft.status !== "draft") return { status: draft.status };
+    const [last] = await tx
+      .select({ max: raw<number | null>`max(${quoteSections.position})` })
+      .from(quoteSections)
+      .where(eq(quoteSections.versionId, draft.version.id));
+    const position = last?.max === null || last?.max === undefined ? 0 : last.max + 1;
+    await tx.insert(quoteSections).values({ organizationId, versionId: draft.version.id, title, position });
+    return { status: "ok", quoteId };
+  });
+}
+
+async function draftOfSection(tx: Tx, sectionId: string): Promise<{ status: "draft"; section: QuoteSectionRow; quoteId: string } | { status: "not_found" | "locked" }> {
+  const [section] = await tx.select().from(quoteSections).where(eq(quoteSections.id, sectionId));
+  if (!section) return { status: "not_found" };
+  const [version] = await tx.select().from(quoteVersions).where(eq(quoteVersions.id, section.versionId));
+  if (!version) return { status: "not_found" };
+  const draft = await currentDraft(tx, version.quoteId);
+  if (draft.status !== "draft") return { status: draft.status };
+  if (draft.version.id !== version.id) return { status: "locked" };
+  return { status: "draft", section, quoteId: version.quoteId };
+}
+
+export async function updateQuoteSectionRow(organizationId: string, sectionId: string, title: string): Promise<WriteResult> {
+  return inOrganization(organizationId, async (tx) => {
+    const found = await draftOfSection(tx, sectionId);
+    if (found.status !== "draft") return { status: found.status };
+    await tx.update(quoteSections).set({ title }).where(eq(quoteSections.id, sectionId));
+    return { status: "ok", quoteId: found.quoteId };
+  });
+}
+
+// Ses lignes restent, sans section.
+export async function deleteQuoteSection(organizationId: string, sectionId: string): Promise<WriteResult> {
+  return inOrganization(organizationId, async (tx) => {
+    const found = await draftOfSection(tx, sectionId);
+    if (found.status !== "draft") return { status: found.status };
+    await tx.delete(quoteSections).where(eq(quoteSections.id, sectionId));
+    return { status: "ok", quoteId: found.quoteId };
+  });
+}
+
+// Lot 31a (JUR-08, décision D5) — acompte ou arrhes, sur la version en brouillon.
+export async function setAdvanceKindRow(organizationId: string, quoteId: string, kind: "deposit" | "earnest" | null): Promise<WriteResult> {
+  return inOrganization(organizationId, async (tx) => {
+    const draft = await currentDraft(tx, quoteId);
+    if (draft.status !== "draft") return { status: draft.status };
+    await tx.update(quoteVersions).set({ advanceKind: kind }).where(eq(quoteVersions.id, draft.version.id));
+    return { status: "ok", quoteId };
+  });
+}
+
+// Lot 31a (FAC-01, décision D2) — choix des options d'un devis envoyé, par le client sur
+// son portail ou par la planner pour lui : possible tant que la signature n'a pas commencé.
+// Les totaux figés de la version suivent le choix, dans la même transaction.
+export type OptionsChoiceResult = { status: "ok"; quoteId: string } | { status: "not_found" | "locked" | "no_options" };
+
+export async function chooseOptionsRow(
+  organizationId: string,
+  input: { quoteId: string; eventId?: string; chosenLineIds: string[]; chosenBy: string; byKind: "client" | "planner"; now: Date },
+  totals: (lines: QuoteLineRow[], version: QuoteVersionRow) => unknown,
+): Promise<OptionsChoiceResult> {
+  return inOrganization(organizationId, async (tx) => {
+    const [quote] = await tx.select().from(quotes).where(eq(quotes.id, input.quoteId));
+    if (!quote || (input.eventId !== undefined && quote.eventId !== input.eventId)) return { status: "not_found" };
+    const [version] = await tx
+      .select()
+      .from(quoteVersions)
+      .where(and(eq(quoteVersions.quoteId, quote.id), eq(quoteVersions.version, quote.currentVersion)));
+    if (!version) return { status: "not_found" };
+    if (quote.status !== "sent" || !version.sentAt) return { status: "locked" };
+    await tx.execute(raw`select 1 from ${quoteVersions} where ${quoteVersions.id} = ${version.id} for update`);
+    const [request] = await tx
+      .select({ id: signatureRequests.id })
+      .from(signatureRequests)
+      .where(and(eq(signatureRequests.versionId, version.id), ne(signatureRequests.kind, "contract")));
+    if (request) return { status: "locked" };
+    const lines = await tx.select().from(quoteLines).where(eq(quoteLines.versionId, version.id));
+    const options = lines.filter((line) => line.isOption);
+    if (options.length === 0) return { status: "no_options" };
+    const optionIds = new Set(options.map((line) => line.id));
+    if (input.chosenLineIds.some((id) => !optionIds.has(id))) return { status: "not_found" };
+    const chosen = new Set(input.chosenLineIds);
+    for (const line of options) {
+      const optionChosen = chosen.has(line.id);
+      if (line.optionChosen !== optionChosen) await tx.update(quoteLines).set({ optionChosen }).where(eq(quoteLines.id, line.id));
+    }
+    const updated = lines.map((line) => (line.isOption ? { ...line, optionChosen: chosen.has(line.id) } : line));
+    await tx
+      .update(quoteVersions)
+      .set({ optionsChosenAt: input.now, optionsChosenBy: input.chosenBy, optionsChosenByKind: input.byKind, totalsSnapshot: totals(updated, version) })
+      .where(eq(quoteVersions.id, version.id));
+    await appendAudit(tx, {
+      organizationId,
+      action: "quotes.quote.options_chosen",
+      objectId: quote.id,
+      details: { number: quote.number, version: version.version, by: input.byKind, chosen: chosen.size, offered: options.length },
+      isDemo: quote.isDemo,
+    });
+    return { status: "ok", quoteId: quote.id };
   });
 }
 
@@ -639,9 +775,26 @@ export async function insertNextVersion(
         version: current.version + 1,
         globalDiscountKind: current.globalDiscountKind,
         globalDiscountValue: current.globalDiscountValue,
+        // Lot 31a : acompte ou arrhes, choix des options et modèle d'origine suivent.
+        advanceKind: current.advanceKind,
+        optionsChosenAt: current.optionsChosenAt,
+        optionsChosenBy: current.optionsChosenBy,
+        optionsChosenByKind: current.optionsChosenByKind,
+        templateId: current.templateId,
+        templateVersion: current.templateVersion,
       })
       .returning();
     if (!next) throw new Error("création de la version échouée");
+    // Lot 31a (FAC-01) : les sections suivent, leurs lignes y restent rattachées.
+    const sections = await tx.select().from(quoteSections).where(eq(quoteSections.versionId, current.id));
+    const sectionIds = new Map<string, string>();
+    for (const section of sections) {
+      const [copy] = await tx
+        .insert(quoteSections)
+        .values({ organizationId: section.organizationId, versionId: next.id, title: section.title, position: section.position })
+        .returning({ id: quoteSections.id });
+      sectionIds.set(section.id, copy!.id);
+    }
     const lines = await tx
       .select()
       .from(quoteLines)
@@ -652,6 +805,7 @@ export async function insertNextVersion(
         .values(
           lines.map(({ id: _id, versionId: _versionId, ...line }) => ({
             ...line,
+            sectionId: line.sectionId ? (sectionIds.get(line.sectionId) ?? null) : null,
             versionId: next.id,
           })),
         );
@@ -704,6 +858,10 @@ export async function deleteEventQuotes(
       .where(inArray(quoteVersions.quoteId, quoteIds));
     const versionIds = versions.map((version) => version.id);
     const documentKeys: string[] = [];
+    // Lot 31b : factures d'acompte à émettre (elles citent les factures).
+    await tx.delete(scheduledDepositInvoices).where(inArray(scheduledDepositInvoices.quoteId, quoteIds));
+    // Lot 31c : reçus d'arrhes (ils citent les encaissements) ; seuls ceux d'un essai se suppriment.
+    await tx.delete(earnestReceipts).where(inArray(earnestReceipts.quoteId, quoteIds));
     // Factures et avoirs : seuls ceux d'un essai se suppriment (trigger
     // d'immuabilité, DEV-04) ; un vrai devis facturé n'est jamais purgé.
     const issued = await tx
@@ -736,6 +894,16 @@ export async function deleteEventQuotes(
         if (request.auditCertificateKey)
           documentKeys.push(request.auditCertificateKey);
       }
+      // Lot 31b : actes des signataires et dossiers de preuve (ils citent les signataires, les
+      // demandes et les contrats).
+      const contractRows = await tx.select({ id: contracts.id }).from(contracts).where(inArray(contracts.quoteId, quoteIds));
+      if (contractRows.length > 0) {
+        const contractIds = contractRows.map((row) => row.id);
+        await tx.delete(contractSignerActs).where(inArray(contractSignerActs.contractId, contractIds));
+        const evidence = await tx.select().from(contractEvidence).where(inArray(contractEvidence.contractId, contractIds));
+        for (const row of evidence) documentKeys.push(row.documentKey);
+        await tx.delete(contractEvidence).where(inArray(contractEvidence.contractId, contractIds));
+      }
       if (requestIds.length > 0) {
         await tx
           .delete(signatureWebhookLog)
@@ -747,6 +915,7 @@ export async function deleteEventQuotes(
           .delete(signatureRequests)
           .where(inArray(signatureRequests.id, requestIds));
       }
+      if (contractRows.length > 0) await tx.delete(contracts).where(inArray(contracts.quoteId, quoteIds));
       await tx
         .delete(paymentScheduleItems)
         .where(inArray(paymentScheduleItems.versionId, versionIds));
@@ -971,10 +1140,21 @@ async function payableContext(tx: Tx, scheduleItemId: string) {
   return { status: "ok" as const, ...context };
 }
 
+// Lot 31c (JUR-08, D21) : à l'encaissement d'arrhes, un reçu non fiscal de sa propre série, dans la
+// même transaction (le rang est perdu avec elle en cas d'échec : aucun trou).
+export type ReceiptPreparation = {
+  issuedAt: Date;
+  issuedOn: string;
+  year: number;
+  formatNumber: (isDemo: boolean, rank: number) => string;
+  sellerSnapshot: unknown;
+};
+
 export async function recordScheduleItemPayment(
   organizationId: string,
   scheduleItemId: string,
   payment: { paidOn: string; paymentMethodId: string },
+  receipt?: ReceiptPreparation,
 ): Promise<PaymentResult> {
   return inOrganization(organizationId, async (tx) => {
     const context = await payableContext(tx, scheduleItemId);
@@ -985,16 +1165,47 @@ export async function recordScheduleItemPayment(
     if (!method || method.archivedAt) return { status: "method_not_found" };
     const totalTtcCents = (version.totalsSnapshot as { totalTtcCents?: number } | null)?.totalTtcCents ?? 0;
     const amountCents = resolveSchedule([item], totalTtcCents).amounts[0] ?? 0;
-    await tx.insert(paymentEntries).values({
-      organizationId,
-      scheduleItemId,
-      kind: "received",
-      amountCents,
-      paidOn: payment.paidOn,
-      paymentMethodId: method.id,
-      paymentMethodLabel: method.label,
-      isDemo: quote.isDemo,
-    });
+    const [entry] = await tx
+      .insert(paymentEntries)
+      .values({
+        organizationId,
+        scheduleItemId,
+        kind: "received",
+        amountCents,
+        paidOn: payment.paidOn,
+        paymentMethodId: method.id,
+        paymentMethodLabel: method.label,
+        isDemo: quote.isDemo,
+      })
+      .returning();
+    if (!entry) throw new Error("enregistrement de l'encaissement échoué");
+    let receiptNumber: string | null = null;
+    if (receipt && version.advanceKind === "earnest") {
+      // Les clients : les signataires du devis (pas d'une demande du contrat seul).
+      const [request] = await tx
+        .select()
+        .from(signatureRequests)
+        .where(and(eq(signatureRequests.versionId, version.id), ne(signatureRequests.kind, "contract")));
+      const signers = request ? await tx.select().from(quoteSigners).where(eq(quoteSigners.requestId, request.id)).orderBy(asc(quoteSigners.position)) : [];
+      const rank = await nextSeriesRank(tx, organizationId, "receipt", quote.isDemo, receipt.year);
+      receiptNumber = receipt.formatNumber(quote.isDemo, rank);
+      await tx.insert(earnestReceipts).values({
+        organizationId,
+        quoteId: quote.id,
+        scheduleItemId,
+        paymentEntryId: entry.id,
+        number: receiptNumber,
+        isDemo: quote.isDemo,
+        issuedAt: receipt.issuedAt,
+        issuedOn: receipt.issuedOn,
+        paidOn: payment.paidOn,
+        amountCents,
+        label: item.label,
+        paymentMethodLabel: method.label,
+        sellerSnapshot: receipt.sellerSnapshot,
+        buyerSnapshot: signers.map((signer) => ({ name: signer.name, billingAddress: signer.billingAddress ?? "" })),
+      });
+    }
     await tx
       .update(paymentScheduleItems)
       .set({ paidOn: payment.paidOn, paymentMethodId: method.id, paidRecordedAt: new Date() })
@@ -1003,10 +1214,45 @@ export async function recordScheduleItemPayment(
       organizationId,
       action: "quotes.payment.recorded",
       objectId: scheduleItemId,
-      details: { quoteNumber: quote.number, paidOn: payment.paidOn, amountCents },
+      details: { quoteNumber: quote.number, paidOn: payment.paidOn, amountCents, ...(receiptNumber ? { receiptNumber } : {}) },
       isDemo: quote.isDemo,
     });
     return { status: "ok", quoteId: quote.id };
+  });
+}
+
+// Lot 31c (D21) — reçus d'arrhes d'un devis, avec leur encaissement annulé ou non.
+export type ReceiptWithState = { receipt: EarnestReceiptRow; quoteNumber: string; cancelled: boolean };
+
+async function receiptsWithState(tx: Tx, rows: EarnestReceiptRow[]): Promise<ReceiptWithState[]> {
+  if (rows.length === 0) return [];
+  const reversals = await tx
+    .select({ reversesEntryId: paymentEntries.reversesEntryId })
+    .from(paymentEntries)
+    .where(inArray(paymentEntries.reversesEntryId, rows.map((row) => row.paymentEntryId)));
+  const cancelled = new Set(reversals.map((row) => row.reversesEntryId));
+  const numbers = await tx
+    .select({ id: quotes.id, number: quotes.number })
+    .from(quotes)
+    .where(inArray(quotes.id, [...new Set(rows.map((row) => row.quoteId))]));
+  const numberOf = new Map(numbers.map((row) => [row.id, row.number]));
+  return rows.map((receipt) => ({ receipt, quoteNumber: numberOf.get(receipt.quoteId) ?? "", cancelled: cancelled.has(receipt.paymentEntryId) }));
+}
+
+// null : devis inconnu (ou d'une autre organisation, invisible par la RLS).
+export async function findQuoteReceipts(organizationId: string, quoteId: string): Promise<ReceiptWithState[] | null> {
+  return inOrganization(organizationId, async (tx) => {
+    const [quote] = await tx.select({ id: quotes.id }).from(quotes).where(eq(quotes.id, quoteId));
+    if (!quote) return null;
+    const rows = await tx.select().from(earnestReceipts).where(eq(earnestReceipts.quoteId, quoteId)).orderBy(asc(earnestReceipts.issuedAt), asc(earnestReceipts.number));
+    return receiptsWithState(tx, rows);
+  });
+}
+
+export async function findReceipt(organizationId: string, receiptId: string): Promise<ReceiptWithState | null> {
+  return inOrganization(organizationId, async (tx) => {
+    const rows = await tx.select().from(earnestReceipts).where(eq(earnestReceipts.id, receiptId));
+    return (await receiptsWithState(tx, rows))[0] ?? null;
   });
 }
 
@@ -1104,11 +1350,20 @@ export type NewSigner = Omit<
 
 // Enregistre la demande créée chez le fournisseur, pour la version courante
 // envoyée d'un devis « envoyé » ; « exists » si la version a déjà sa demande.
+// Lot 31b (DOC-03, D9) : « quote_contract » fait signer le devis suivi de son contrat ;
+// « contract » fait signer seul un contrat généré après la signature du devis.
 export async function insertSignatureRequest(
   organizationId: string,
   quoteId: string,
-  request: { provider: string; externalId: string; signers: NewSigner[] },
+  request: {
+    provider: string;
+    externalId: string;
+    signers: NewSigner[];
+    kind?: "quote" | "quote_contract" | "contract";
+    contractId?: string | null;
+  },
 ): Promise<WriteResult | { status: "exists" | "not_sent" }> {
+  const kind = request.kind ?? "quote";
   return inOrganization(organizationId, async (tx) => {
     const [quote] = await tx
       .select()
@@ -1125,14 +1380,22 @@ export async function insertSignatureRequest(
         ),
       );
     if (!version) return { status: "not_found" };
-    if (quote.status !== "sent" || !version.sentAt)
-      return { status: "not_sent" };
+    const signable = kind === "contract" ? quote.status === "signed" : quote.status === "sent";
+    if (!signable || !version.sentAt) return { status: "not_sent" };
     await lockVersion(tx, version.id);
-    const [existing] = await tx
-      .select({ id: signatureRequests.id })
-      .from(signatureRequests)
-      .where(eq(signatureRequests.versionId, version.id));
-    if (existing) return { status: "exists" };
+    if (request.contractId) {
+      const [contract] = await tx.select({ id: contracts.id }).from(contracts).where(and(eq(contracts.id, request.contractId), eq(contracts.quoteVersionId, version.id)));
+      if (!contract) return { status: "not_found" };
+      const [taken] = await tx.select({ id: signatureRequests.id }).from(signatureRequests).where(eq(signatureRequests.contractId, request.contractId));
+      if (taken) return { status: "exists" };
+    }
+    if (kind !== "contract") {
+      const [existing] = await tx
+        .select({ id: signatureRequests.id })
+        .from(signatureRequests)
+        .where(and(eq(signatureRequests.versionId, version.id), ne(signatureRequests.kind, "contract")));
+      if (existing) return { status: "exists" };
+    }
     const [row] = await tx
       .insert(signatureRequests)
       .values({
@@ -1140,6 +1403,8 @@ export async function insertSignatureRequest(
         versionId: version.id,
         provider: request.provider,
         externalId: request.externalId,
+        kind,
+        contractId: kind === "quote" ? null : (request.contractId ?? null),
       })
       .returning();
     if (!row) throw new Error("création de la demande de signature échouée");
@@ -1157,7 +1422,7 @@ export async function insertSignatureRequest(
       organizationId,
       action: "quotes.signature.requested",
       objectId: quoteId,
-      details: { number: quote.number, signers: request.signers.length },
+      details: { number: quote.number, signers: request.signers.length, kind },
       isDemo: quote.isDemo,
     });
     return { status: "ok", quoteId };
@@ -1296,6 +1561,8 @@ export async function applySignatureStateRows(
       .from(quoteVersions)
       .where(eq(quoteVersions.id, request.versionId));
     let transitioned = false;
+    // Lot 31b (D9) : le contrat signé seul ne change pas le devis (déjà signé).
+    const contractOnly = request.kind === "contract";
     if (version && update.outcome.kind === "completed") {
       await tx
         .update(signatureRequests)
@@ -1308,17 +1575,19 @@ export async function applySignatureStateRows(
           completedAt: update.outcome.completedAt,
         })
         .where(eq(signatureRequests.id, requestId));
-      await tx
-        .update(quotes)
-        .set({ status: "signed", updatedAt: new Date() })
-        .where(eq(quotes.id, version.quoteId));
-      // Outbox : publié dans la même transaction que le passage à « Signé ».
-      const [quote] = await tx
-        .select()
-        .from(quotes)
-        .where(eq(quotes.id, version.quoteId));
-      if (quote && !quote.isDemo) {
-        await emitDomainEvent(tx, { organizationId, ...update.outcome.event });
+      if (!contractOnly) {
+        await tx
+          .update(quotes)
+          .set({ status: "signed", updatedAt: new Date() })
+          .where(eq(quotes.id, version.quoteId));
+        // Outbox : publié dans la même transaction que le passage à « Signé ».
+        const [quote] = await tx
+          .select()
+          .from(quotes)
+          .where(eq(quotes.id, version.quoteId));
+        if (quote && !quote.isDemo) {
+          await emitDomainEvent(tx, { organizationId, ...update.outcome.event });
+        }
       }
       transitioned = true;
     } else if (version && update.outcome.kind === "declined") {
@@ -1326,10 +1595,12 @@ export async function applySignatureStateRows(
         .update(signatureRequests)
         .set({ status: "declined", completedAt: update.outcome.completedAt })
         .where(eq(signatureRequests.id, requestId));
-      await tx
-        .update(quotes)
-        .set({ status: "declined", updatedAt: new Date() })
-        .where(eq(quotes.id, version.quoteId));
+      if (!contractOnly) {
+        await tx
+          .update(quotes)
+          .set({ status: "declined", updatedAt: new Date() })
+          .where(eq(quotes.id, version.quoteId));
+      }
       transitioned = true;
     }
     if (transitioned || changed || options.logUnchanged !== false) {
@@ -1414,6 +1685,8 @@ export type InvoicingContext = {
   creditNotes: CreditNoteRow[];
   signers: QuoteSignerRow[];
   settings: QuoteSettingsRow | null;
+  // Lot 31c (D21) : encaissements de l'échéancier (les arrhes reçues viennent en règlement).
+  payments: PaymentEntryRow[];
 };
 
 async function invoicingContext(
@@ -1470,7 +1743,7 @@ async function invoicingContext(
   const [request] = await tx
     .select()
     .from(signatureRequests)
-    .where(eq(signatureRequests.versionId, version.id));
+    .where(and(eq(signatureRequests.versionId, version.id), ne(signatureRequests.kind, "contract")));
   const signers = request
     ? await tx
         .select()
@@ -1479,6 +1752,14 @@ async function invoicingContext(
         .orderBy(asc(quoteSigners.position))
     : [];
   const [settings] = await tx.select().from(quoteSettings);
+  const payments =
+    scheduleItems.length > 0
+      ? await tx
+          .select()
+          .from(paymentEntries)
+          .where(inArray(paymentEntries.scheduleItemId, scheduleItems.map((item) => item.id)))
+          .orderBy(asc(paymentEntries.createdAt))
+      : [];
   return {
     quote,
     version,
@@ -1488,6 +1769,7 @@ async function invoicingContext(
     creditNotes: notes,
     signers,
     settings: settings ?? null,
+    payments,
   };
 }
 
@@ -1770,6 +2052,9 @@ export async function findEReportingRows(
         and(
           eq(quotes.isDemo, false),
           raw`${paymentScheduleItems.paidOn} between ${from} and ${to}`,
+          // Lot 31c (D21) : les arrhes, hors TVA tant qu'elles ne sont pas imputées sur le prix,
+          // n'entrent pas dans l'e-reporting ; la facture de solde, au prix total, y entre.
+          raw`${quoteVersions.advanceKind} is distinct from 'earnest'`,
         ),
       )
       .orderBy(asc(paymentScheduleItems.paidOn));
@@ -1804,7 +2089,7 @@ export async function findEReportingRows(
 export async function updateQuoteClientKind(
   organizationId: string,
   quoteId: string,
-  clientKind: "individual" | "professional",
+  clientKind: "individual" | "professional" | "non_professional",
 ): Promise<boolean> {
   return inOrganization(organizationId, async (tx) => {
     const rows = await tx

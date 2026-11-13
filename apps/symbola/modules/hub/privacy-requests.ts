@@ -7,7 +7,7 @@ import type { AppDatabase } from "@symbola/db/client";
 import { privacyRequests, privacySettings } from "@symbola/db/schema/hub";
 import { withOrganization } from "@symbola/db/with-organization";
 import { daysBetween, isDueSoon, parisDate, requestDueDate } from "@symbola/privacy";
-import { starterPrivacySettings, type StarterPrivacySettings } from "@symbola/starter-templates";
+import { starterContractRules, starterPrivacySettings, type StarterPrivacySettings } from "@symbola/starter-templates";
 
 export const PRIVACY_REQUEST_TYPES = ["access", "rectification", "erasure", "portability", "objection"] as const;
 export type PrivacyRequestType = (typeof PRIVACY_REQUEST_TYPES)[number];
@@ -27,7 +27,9 @@ export class PrivacyRequestInvalidError extends Error {
       // Lot 18 (RGPD-07) : clôture ou étape demandée trop tôt.
       | "action_missing"
       | "response_missing"
-      | "not_manual",
+      | "not_manual"
+      // Lot 31b (D16) : conservation des devis signés sous les dix ans légaux.
+      | "signed_quote_retention_too_short",
   ) {
     super(code);
   }
@@ -62,6 +64,11 @@ export async function getPrivacySettings(db: AppDatabase, organizationId: string
 export async function updatePrivacySettings(db: AppDatabase, organizationId: string, settings: PrivacySettings): Promise<void> {
   if (Object.values(settings).some((value) => !Number.isInteger(value) || value <= 0 || value > 1200)) {
     throw new PrivacyRequestInvalidError("settings_invalid");
+  }
+  // Lot 31b (réponse 3 de l'avocat, D16) : un contrat électronique et son dossier de preuve se
+  // gardent dix ans au moins.
+  if (settings.signedQuoteRetentionMonths < starterContractRules().retention.signedContractMinimumMonths) {
+    throw new PrivacyRequestInvalidError("signed_quote_retention_too_short");
   }
   await getPrivacySettings(db, organizationId);
   await withOrganization(db, organizationId, (tx) =>

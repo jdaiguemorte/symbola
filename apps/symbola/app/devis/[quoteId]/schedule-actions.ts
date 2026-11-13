@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import {
+  EarnestSingleInstalmentError,
   PaymentMethodNotFoundError,
   QuoteNotFoundError,
   QuoteScheduleExceedsTotalError,
@@ -26,6 +27,8 @@ function errorState(error: unknown, t: Translate): QuoteFormState {
   if (error instanceof QuoteNotFoundError) return { error: t("quoteNotFound") };
   if (error instanceof QuoteVersionLockedError) return { error: t("versionLocked") };
   if (error instanceof QuoteScheduleExceedsTotalError) return { error: t("scheduleExceedsTotal") };
+  // Lot 31c (D22) : des arrhes se versent en une seule échéance.
+  if (error instanceof EarnestSingleInstalmentError) return { error: t("earnestSingleInstalment") };
   if (error instanceof ScheduleItemNotPayableError) return { error: t("scheduleNotPayable") };
   if (error instanceof PaymentMethodNotFoundError) return { error: t("paymentMethodNotFound") };
   if (error instanceof RangeError) return { error: t("invalidScheduleItem") };

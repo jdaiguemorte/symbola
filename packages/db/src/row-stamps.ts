@@ -45,6 +45,8 @@ export const APPEND_ONLY_TABLES: Record<string, { createdAtColumn: string }> = {
   "quotes.payment_entries": { createdAtColumn: "created_at" },
   "quotes.original_documents": { createdAtColumn: "created_at" },
   "quotes.ledger_entries": { createdAtColumn: "recorded_at" },
+  // Lot 31c (D21) : reçus d'arrhes, immuables comme les factures.
+  "quotes.earnest_receipts": { createdAtColumn: "issued_at" },
 };
 
 // Tables horodatées dont les suppressions ne vont pas au journal : la

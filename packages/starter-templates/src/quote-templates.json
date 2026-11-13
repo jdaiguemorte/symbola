@@ -1,0 +1,122 @@
+{
+  "version": 1,
+  "items": [
+    {
+      "metier": "wedding_planner",
+      "eventTypeKey": "wedding",
+      "name": {
+        "fr": "Mariage — organisation complète (à adapter)",
+        "en": "Wedding — full planning (to adapt)"
+      },
+      "sections": [
+        {
+          "key": "preparation",
+          "title": {
+            "fr": "Préparation",
+            "en": "Planning"
+          }
+        },
+        {
+          "key": "day",
+          "title": {
+            "fr": "Jour J",
+            "en": "Wedding day"
+          }
+        },
+        {
+          "key": "options",
+          "title": {
+            "fr": "Options",
+            "en": "Options"
+          }
+        }
+      ],
+      "lines": [
+        {
+          "section": "preparation",
+          "label": {
+            "fr": "Organisation complète : recherche et coordination des prestataires",
+            "en": "Full planning: vendor search and coordination"
+          },
+          "unit": {
+            "fr": "forfait",
+            "en": "package"
+          },
+          "quantity": 1,
+          "isOption": false
+        },
+        {
+          "section": "preparation",
+          "label": {
+            "fr": "Rendez-vous de suivi",
+            "en": "Follow-up meetings"
+          },
+          "unit": {
+            "fr": "rendez-vous",
+            "en": "meeting"
+          },
+          "quantity": 6,
+          "isOption": false
+        },
+        {
+          "section": "day",
+          "label": {
+            "fr": "Coordination le jour J",
+            "en": "Wedding-day coordination"
+          },
+          "unit": {
+            "fr": "forfait",
+            "en": "package"
+          },
+          "quantity": 1,
+          "isOption": false
+        },
+        {
+          "section": "options",
+          "label": {
+            "fr": "Coordination de la répétition, la veille",
+            "en": "Rehearsal coordination, the day before"
+          },
+          "unit": {
+            "fr": "forfait",
+            "en": "package"
+          },
+          "quantity": 1,
+          "isOption": true
+        },
+        {
+          "section": "options",
+          "label": {
+            "fr": "Coordination du brunch du lendemain",
+            "en": "Next-day brunch coordination"
+          },
+          "unit": {
+            "fr": "forfait",
+            "en": "package"
+          },
+          "quantity": 1,
+          "isOption": true
+        }
+      ],
+      "schedule": [
+        {
+          "label": {
+            "fr": "À la signature",
+            "en": "On signing"
+          },
+          "percentage": 30,
+          "dueRule": "at_signature"
+        },
+        {
+          "label": {
+            "fr": "Deux mois avant l'événement",
+            "en": "Two months before the event"
+          },
+          "percentage": 40,
+          "dueRule": "before_event",
+          "daysBeforeEvent": 60
+        }
+      ]
+    }
+  ]
+}

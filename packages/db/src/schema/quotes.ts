@@ -10,7 +10,7 @@
 // Montants en centimes entiers EUR, taux et remises en points de base
 // (2000 = 20,00 %), quantités en millièmes (1500 = 1,5) : jamais de float.
 import { sql } from "drizzle-orm";
-import { bigint, boolean, check, date, integer, jsonb, pgSchema, text, timestamp, unique, uuid, type AnyPgColumn, index } from "drizzle-orm/pg-core";
+import { bigint, boolean, check, date, integer, jsonb, pgSchema, text, timestamp, unique, uniqueIndex, uuid, type AnyPgColumn, index } from "drizzle-orm/pg-core";
 
 export const quotesSchema = pgSchema("quotes");
 
@@ -20,6 +20,13 @@ export const documentFontEnum = quotesSchema.enum("document_font", ["modern", "c
 
 // Réglages du module par organisation (CLAUDE.md §2.5 : rien en dur) :
 // validité par défaut d'un devis, préfixes des séries de numérotation.
+// Lot 31a (JUR-08, décision D5) : sommes versées d'avance, acomptes ou arrhes (leurs effets
+// diffèrent en cas d'annulation, article L214-1 du Code de la consommation).
+export const advanceKindEnum = quotesSchema.enum("advance_kind", ["deposit", "earnest"]);
+
+// Lot 31c (D18) : taux des pénalités de retard proposés (packages/starter-templates/late-penalty.json).
+export const LATE_PENALTY_RATES = ["ecb_plus_10", "three_times_legal"] as const;
+
 export const quoteSettings = quotesSchema.table("quote_settings", {
   id: uuid("id").defaultRandom().primaryKey(),
   organizationId: uuid("organization_id").notNull().unique(),
@@ -45,14 +52,27 @@ export const quoteSettings = quotesSchema.table("quote_settings", {
   quoteTerms: text("quote_terms"),
   invoiceIntro: text("invoice_intro"),
   documentFooter: text("document_footer"),
+  // Lot 31a (JUR-08, décision D5) : acompte ou arrhes proposé pour chaque nouveau devis ;
+  // lot 31b (réponse 2 de l'avocat, D17) : « acompte » par défaut.
+  advanceKindDefault: advanceKindEnum("advance_kind_default").default("deposit"),
+  // Lot 31c (réponse 1 de l'expert-comptable, D18) : conditions de paiement face à un
+  // professionnel (invoice_mentions reste celui des particuliers et des non-professionnels), et
+  // taux des pénalités de retard choisi par la planner, sans valeur par défaut.
+  invoiceMentionsProfessional: text("invoice_mentions_professional"),
+  latePenaltyRate: text("late_penalty_rate", { enum: LATE_PENALTY_RATES }),
+  // Lot 31c (D21) : préfixe de la série des reçus d'arrhes.
+  receiptPrefix: text("receipt_prefix").notNull().default("R"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   createdBy: uuid("created_by"),
   updatedBy: uuid("updated_by"),
-});
+}, (table) => [
+  check("quote_settings_late_penalty_rate_check", sql`${table.latePenaltyRate} is null or ${table.latePenaltyRate} in ('ecb_plus_10', 'three_times_legal')`),
+]);
 
-export const numberSeriesKindEnum = quotesSchema.enum("number_series_kind", ["quote", "invoice", "credit_note"]);
+// Lot 31c (D21) : « receipt », la série à part des reçus d'arrhes (non fiscaux).
+export const numberSeriesKindEnum = quotesSchema.enum("number_series_kind", ["quote", "invoice", "credit_note", "receipt"]);
 
 // Compteur par série, par année et par organisation ; la série d'essai
 // (is_demo, ADR 0008) est distincte et ne consomme jamais la série légale.
@@ -97,7 +117,9 @@ export const quoteStatusEnum = quotesSchema.enum("quote_status", ["draft", "sent
 
 // DEV-04 : un client professionnel exige une facture Factur-X (lot dédié,
 // décision 1 du lot 4) ; le choix est enregistré dès maintenant.
-export const clientKindEnum = quotesSchema.enum("client_kind", ["individual", "professional"]);
+// Lot 31b (réponse 3 de l'avocat, décision D16) : consommateur, non-professionnel (association,
+// SCI…) ou professionnel.
+export const clientKindEnum = quotesSchema.enum("client_kind", ["individual", "professional", "non_professional"]);
 
 // DEV-01 — un devis, rattaché à un événement (décision 4 du lot), numéroté
 // à sa création. Ses versions portent le contenu.
@@ -146,13 +168,55 @@ export const quoteVersions = quotesSchema.table(
     sellerSnapshot: jsonb("seller_snapshot"),
     totalsSnapshot: jsonb("totals_snapshot"),
     sentAt: timestamp("sent_at", { withTimezone: true }),
+    // Lot 31a (JUR-08, décision D5) : acompte ou arrhes, imposé avant l'envoi s'il y a un échéancier.
+    advanceKind: advanceKindEnum("advance_kind"),
+    // Lot 31a (FAC-01, décision D2) : choix des options, daté et nominatif (le client sur
+    // son portail, ou la planner pour lui) ; figé dès que la signature commence.
+    optionsChosenAt: timestamp("options_chosen_at", { withTimezone: true }),
+    optionsChosenBy: text("options_chosen_by"),
+    optionsChosenByKind: text("options_chosen_by_kind"),
+    // Lot 31a (HUB-21, décision D3) : modèle d'origine et sa version.
+    templateId: uuid("template_id").references((): AnyPgColumn => quoteTemplates.id, { onDelete: "set null" }),
+    templateVersion: integer("template_version"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
     createdBy: uuid("created_by"),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
     updatedBy: uuid("updated_by"),
   },
-  (table) => [index("quote_versions_organization_idx").on(table.organizationId), unique().on(table.quoteId, table.version)],
+  (table) => [
+    index("quote_versions_organization_idx").on(table.organizationId),
+    unique().on(table.quoteId, table.version),
+    check(
+      "quote_versions_options_chosen_check",
+      sql`(${table.optionsChosenAt} is null and ${table.optionsChosenBy} is null and ${table.optionsChosenByKind} is null) or (${table.optionsChosenAt} is not null and ${table.optionsChosenBy} is not null and ${table.optionsChosenByKind} is not null and char_length(${table.optionsChosenBy}) between 1 and 200 and ${table.optionsChosenByKind} in ('client', 'planner'))`,
+    ),
+  ],
+);
+
+// Lot 31a (FAC-01, décision D2) — sections titrées d'une version de devis, ordonnées ;
+// chacune a son sous-total.
+export const quoteSections = quotesSchema.table(
+  "quote_sections",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    versionId: uuid("version_id")
+      .notNull()
+      .references(() => quoteVersions.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    position: integer("position").notNull().default(0),
+  // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  createdBy: uuid("created_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("quote_sections_organization_idx").on(table.organizationId),
+    index("quote_sections_version_idx").on(table.versionId),
+    check("quote_sections_title_check", sql`char_length(${table.title}) between 1 and 120`),
+  ],
 );
 
 // DEV-01 — ligne d'une version : article du catalogue (copié) ou ligne libre.
@@ -171,12 +235,275 @@ export const quoteLines = quotesSchema.table("quote_lines", {
   vatRateBasisPoints: integer("vat_rate_basis_points").notNull(),
   discountBasisPoints: integer("discount_basis_points").notNull().default(0),
   position: integer("position").notNull().default(0),
+  // Lot 31a (FAC-01, décision D2) : section de la ligne (ou aucune) ; une option reste hors
+  // du total tant qu'elle n'est pas choisie.
+  sectionId: uuid("section_id").references(() => quoteSections.id, { onDelete: "set null" }),
+  isOption: boolean("is_option").notNull().default(false),
+  optionChosen: boolean("option_chosen").notNull().default(false),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   createdBy: uuid("created_by"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   updatedBy: uuid("updated_by"),
 }, (table) => [index("quote_lines_organization_idx").on(table.organizationId)]);
+
+// Lot 31a (FAC-01, HUB-21, décision D3) — modèles de devis par type d'événement (null : pour
+// tous) : sections, lignes, options, échéancier type. « Nouveau devis depuis un modèle »
+// copie le tout ; modifier le modèle ensuite ne change aucun devis. La version augmente à
+// chaque remplacement du contenu ; le devis garde celle dont il vient.
+export const quoteTemplates = quotesSchema.table(
+  "quote_templates",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    // Type d'événement du module events (uuid opaque, ADR 0011).
+    eventTypeId: uuid("event_type_id"),
+    name: text("name").notNull(),
+    version: integer("version").notNull().default(1),
+    globalDiscountKind: globalDiscountKindEnum("global_discount_kind").notNull().default("none"),
+    globalDiscountValue: integer("global_discount_value").notNull().default(0),
+    advanceKind: advanceKindEnum("advance_kind"),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("quote_templates_organization_idx").on(table.organizationId),
+    check("quote_templates_name_check", sql`char_length(${table.name}) between 1 and 120`),
+    check("quote_templates_version_check", sql`${table.version} >= 1`),
+  ],
+);
+
+export const quoteTemplateSections = quotesSchema.table(
+  "quote_template_sections",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    templateId: uuid("template_id")
+      .notNull()
+      .references(() => quoteTemplates.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    position: integer("position").notNull().default(0),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("quote_template_sections_organization_idx").on(table.organizationId),
+    check("quote_template_sections_title_check", sql`char_length(${table.title}) between 1 and 120`),
+  ],
+);
+
+export const quoteTemplateLines = quotesSchema.table(
+  "quote_template_lines",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    templateId: uuid("template_id")
+      .notNull()
+      .references(() => quoteTemplates.id, { onDelete: "cascade" }),
+    sectionId: uuid("section_id").references(() => quoteTemplateSections.id, { onDelete: "set null" }),
+    catalogItemId: uuid("catalog_item_id").references(() => catalogItems.id, { onDelete: "set null" }),
+    label: text("label").notNull(),
+    description: text("description"),
+    unit: text("unit").notNull(),
+    quantityMilli: integer("quantity_milli").notNull(),
+    unitPriceCents: integer("unit_price_cents").notNull(),
+    vatRateBasisPoints: integer("vat_rate_basis_points").notNull(),
+    discountBasisPoints: integer("discount_basis_points").notNull().default(0),
+    isOption: boolean("is_option").notNull().default(false),
+    position: integer("position").notNull().default(0),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [index("quote_template_lines_organization_idx").on(table.organizationId)],
+);
+
+// Échéancier type : « à la signature » ou « N jours avant l'événement ».
+export const quoteTemplateScheduleItems = quotesSchema.table(
+  "quote_template_schedule_items",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    templateId: uuid("template_id")
+      .notNull()
+      .references(() => quoteTemplates.id, { onDelete: "cascade" }),
+    label: text("label").notNull(),
+    amountCents: integer("amount_cents"),
+    percentageBasisPoints: integer("percentage_basis_points"),
+    dueRule: text("due_rule").notNull(),
+    daysBeforeEvent: integer("days_before_event"),
+    position: integer("position").notNull().default(0),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("quote_template_schedule_items_organization_idx").on(table.organizationId),
+    check("quote_template_schedule_items_amount_xor_percentage", sql`(${table.amountCents} is null) <> (${table.percentageBasisPoints} is null)`),
+    check(
+      "quote_template_schedule_items_due_check",
+      sql`(${table.dueRule} = 'at_signature' and ${table.daysBeforeEvent} is null) or (${table.dueRule} = 'before_event' and ${table.daysBeforeEvent} between 0 and 1095)`,
+    ),
+  ],
+);
+
+// Lot 31b (FAC-04, DOC-02, JUR-07, JUR-08 ; décisions D7, D11, D12, D21) — rôle légal d'une
+// clause : ce que le régime de conclusion exige dans le contrat (liste de l'avocat, réponse 1),
+// et la clause des sommes versées d'avance, qui doit concorder avec le devis (réponse 2).
+export const CONTRACT_CLAUSE_ROLES = [
+  "precontractual_information",
+  "withdrawal_period",
+  "withdrawal_form",
+  "early_execution",
+  "termination",
+  "no_withdrawal",
+  "advance_deposit",
+  "advance_earnest",
+] as const;
+export const contractClauseRoleEnum = quotesSchema.enum("contract_clause_role", CONTRACT_CLAUSE_ROLES);
+
+// Canal de conclusion (réponse 1 de l'avocat, D11) : dans l'établissement du planner, à
+// distance, hors établissement, foire ou salon. Avec la catégorie du client, il fixe le régime.
+export const CONCLUSION_CHANNELS = ["on_premises", "distance", "off_premises", "fair"] as const;
+export const conclusionChannelEnum = quotesSchema.enum("conclusion_channel", CONCLUSION_CHANNELS);
+
+// Lot 31b (FAC-04, HUB-21, décision D7) — modèle de contrat par type d'événement : un titre et
+// des clauses ordonnées à variables. Versionné : chaque modification augmente la version ; un
+// contrat déjà généré garde son texte figé.
+export const contractTemplates = quotesSchema.table(
+  "contract_templates",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    eventTypeId: uuid("event_type_id"),
+    name: text("name").notNull(),
+    title: text("title").notNull(),
+    version: integer("version").notNull().default(1),
+    // Réponse 6 de l'avocat (D11, partie N) : date de la dernière revue juridique, saisie par la
+    // planner ; copiée dans chaque contrat.
+    legalReviewedOn: date("legal_reviewed_on"),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("contract_templates_organization_idx").on(table.organizationId),
+    check("contract_templates_name_check", sql`char_length(${table.name}) between 1 and 120`),
+    check("contract_templates_title_check", sql`char_length(${table.title}) between 1 and 200`),
+    check("contract_templates_version_check", sql`${table.version} >= 1`),
+  ],
+);
+
+// Clause d'un modèle : titre, texte à variables entre accolades, obligatoire ou facultative
+// (cochée à la génération), et son rôle légal éventuel.
+export const contractTemplateClauses = quotesSchema.table(
+  "contract_template_clauses",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    templateId: uuid("template_id")
+      .notNull()
+      .references(() => contractTemplates.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    body: text("body").notNull(),
+    optional: boolean("optional").notNull().default(false),
+    role: contractClauseRoleEnum("role"),
+    position: integer("position").notNull().default(0),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("contract_template_clauses_organization_idx").on(table.organizationId),
+    index("contract_template_clauses_template_idx").on(table.templateId),
+    check("contract_template_clauses_title_check", sql`char_length(${table.title}) between 1 and 200`),
+    check("contract_template_clauses_body_check", sql`char_length(${table.body}) <= 20000`),
+  ],
+);
+
+// Lot 31b (FAC-04, DOC-02, JUR-07 ; D7, D11) — contrat généré depuis un modèle pour une version
+// envoyée d'un devis : texte figé (clauses retenues, variables résolues), version et date de revue
+// du modèle, canal de conclusion, catégorie du client et régime de rétractation qui en découle,
+// niveau de signature. Une modification crée une nouvelle version.
+export type ContractClauseSnapshot = { title: string; body: string; role: (typeof CONTRACT_CLAUSE_ROLES)[number] | null };
+
+export const contracts = quotesSchema.table(
+  "contracts",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    quoteId: uuid("quote_id")
+      .notNull()
+      .references(() => quotes.id),
+    quoteVersionId: uuid("quote_version_id")
+      .notNull()
+      .references(() => quoteVersions.id),
+    version: integer("version").notNull(),
+    templateId: uuid("template_id").references(() => contractTemplates.id, { onDelete: "set null" }),
+    templateVersion: integer("template_version").notNull(),
+    templateReviewedOn: date("template_reviewed_on"),
+    title: text("title").notNull(),
+    clauses: jsonb("clauses").$type<ContractClauseSnapshot[]>().notNull(),
+    conclusionChannel: conclusionChannelEnum("conclusion_channel").notNull(),
+    clientCategory: clientKindEnum("client_category").notNull(),
+    // Hors établissement : petite entreprise de cinq salariés au plus, contrat hors de son
+    // activité principale (confirmé par la planner) ; elle a alors droit à la rétractation.
+    smallBusinessConfirmed: boolean("small_business_confirmed").notNull().default(false),
+    withdrawalApplies: boolean("withdrawal_applies").notNull(),
+    // Réponse 5 de l'avocat (D15) : niveau employé, inscrit au dossier de preuve.
+    signatureLevel: text("signature_level").notNull().default("simple"),
+    generatedAt: timestamp("generated_at", { withTimezone: true }).defaultNow().notNull(),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("contracts_organization_idx").on(table.organizationId),
+    unique().on(table.quoteId, table.version),
+    check("contracts_version_check", sql`${table.version} >= 1`),
+    check("contracts_title_check", sql`char_length(${table.title}) between 1 and 200`),
+    check("contracts_signature_level_check", sql`${table.signatureLevel} in ('simple', 'advanced', 'qualified')`),
+    check("contracts_channel_check", sql`${table.conclusionChannel} <> 'fair'`),
+  ],
+);
+
+// Réponse 6 de l'avocat (D11, partie N) — avertissement « base à adapter » accepté à la première
+// génération avec chaque version d'un modèle : qui, quelle version, quand.
+export const contractTemplateAcceptances = quotesSchema.table(
+  "contract_template_acceptances",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    templateId: uuid("template_id")
+      .notNull()
+      .references(() => contractTemplates.id, { onDelete: "cascade" }),
+    templateVersion: integer("template_version").notNull(),
+    userId: uuid("user_id").notNull(),
+    acceptedAt: timestamp("accepted_at", { withTimezone: true }).defaultNow().notNull(),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [index("contract_template_acceptances_organization_idx").on(table.organizationId), unique().on(table.templateId, table.templateVersion, table.userId)],
+);
 
 // DEV-03 — modes de paiement, liste paramétrable par organisation (modèle
 // de départ facultatif dans packages/starter-templates). Archivés plutôt
@@ -228,10 +555,15 @@ export const paymentScheduleItems = quotesSchema.table(
 );
 
 // DEV-02 — demande de signature d'une version envoyée (une seule par
-// version). Le fournisseur (ADR 0006/0021) est derrière une interface ;
+// version pour le devis ; lot 31b : une de plus pour un contrat signé seul). Le fournisseur (ADR 0006/0021) est derrière une interface ;
 // external_id est l'identifiant de la soumission chez lui. Les documents
 // signés et le certificat de preuve sont archivés en stockage privé.
 export const signatureRequestStatusEnum = quotesSchema.enum("signature_request_status", ["pending", "completed", "declined"]);
+
+// Lot 31b (DOC-03, décision D9) : ce que la demande fait signer — le devis seul, le devis suivi
+// de son contrat (un PDF, un dossier de preuve), ou le contrat seul (généré après la signature
+// du devis).
+export const signatureRequestKindEnum = quotesSchema.enum("signature_request_kind", ["quote", "quote_contract", "contract"]);
 
 export const signatureRequests = quotesSchema.table(
   "signature_requests",
@@ -244,6 +576,9 @@ export const signatureRequests = quotesSchema.table(
     provider: text("provider").notNull(),
     externalId: text("external_id").notNull(),
     status: signatureRequestStatusEnum("status").notNull().default("pending"),
+    // Lot 31b (DOC-03, décision D9) : devis, devis et contrat, ou contrat seul.
+    kind: signatureRequestKindEnum("kind").notNull().default("quote"),
+    contractId: uuid("contract_id").references(() => contracts.id),
     signedDocumentKey: text("signed_document_key"),
     auditCertificateKey: text("audit_certificate_key"),
     // Lot 23b (DOC-08, ADR 0061) : empreinte SHA-256 de chaque fichier à son
@@ -258,7 +593,14 @@ export const signatureRequests = quotesSchema.table(
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
     updatedBy: uuid("updated_by"),
   },
-  (table) => [index("signature_requests_organization_idx").on(table.organizationId), unique().on(table.versionId), unique().on(table.provider, table.externalId)],
+  (table) => [
+    index("signature_requests_organization_idx").on(table.organizationId),
+    // Une seule demande qui fait signer le devis par version ; un contrat ne se signe qu'une fois.
+    uniqueIndex("signature_requests_quote_version_unique").on(table.versionId).where(sql`kind <> 'contract'`),
+    uniqueIndex("signature_requests_contract_unique").on(table.contractId).where(sql`contract_id is not null`),
+    unique().on(table.provider, table.externalId),
+    check("signature_requests_kind_check", sql`(${table.kind} = 'quote') = (${table.contractId} is null)`),
+  ],
 );
 
 // DEV-02 — signataires d'une demande, saisis sur le devis (ADR 0021) :
@@ -289,6 +631,72 @@ export const quoteSigners = quotesSchema.table("quote_signers", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   updatedBy: uuid("updated_by"),
 }, (table) => [index("quote_signers_organization_idx").on(table.organizationId)]);
+
+// Lot 31b (JUR-07 ; réponse 1 de l'avocat, D13) — actes d'un signataire sur son portail, avant
+// de signer : la commande avec obligation de paiement (contrat à distance) et la demande
+// d'exécution avant la fin du délai de rétractation (case distincte de la signature). Horodatés
+// et nominatifs (copie du nom et du texte présenté), versés au dossier de preuve.
+export const SIGNER_ACT_KINDS = ["order", "early_execution"] as const;
+
+export const contractSignerActs = quotesSchema.table(
+  "contract_signer_acts",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    contractId: uuid("contract_id")
+      .notNull()
+      .references(() => contracts.id),
+    signerId: uuid("signer_id")
+      .notNull()
+      .references(() => quoteSigners.id),
+    kind: text("kind", { enum: SIGNER_ACT_KINDS }).notNull(),
+    signerName: text("signer_name").notNull(),
+    presentedText: text("presented_text").notNull(),
+    actedAt: timestamp("acted_at", { withTimezone: true }).defaultNow().notNull(),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("contract_signer_acts_organization_idx").on(table.organizationId),
+    unique().on(table.contractId, table.signerId, table.kind),
+    check("contract_signer_acts_kind_check", sql`${table.kind} in ('order', 'early_execution')`),
+    check("contract_signer_acts_name_check", sql`char_length(${table.signerName}) between 1 and 200`),
+    check("contract_signer_acts_text_check", sql`char_length(${table.presentedText}) between 1 and 20000`),
+  ],
+);
+
+// Lot 31b (réponses 1 et 5 de l'avocat, partie N) — dossier de preuve de Symbola, écrit quand
+// tous ont signé : faits figés (canal, catégorie, régime, versions, actes des signataires, niveau
+// de signature, empreintes du document signé et du certificat) en JSON, stocké en privé avec son
+// empreinte, relu et vérifié à chaque téléchargement.
+export const contractEvidence = quotesSchema.table(
+  "contract_evidence",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    requestId: uuid("request_id")
+      .notNull()
+      .references(() => signatureRequests.id),
+    contractId: uuid("contract_id")
+      .notNull()
+      .references(() => contracts.id),
+    documentKey: text("document_key").notNull(),
+    sha256: text("sha256").notNull(),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("contract_evidence_organization_idx").on(table.organizationId),
+    unique().on(table.requestId),
+    check("contract_evidence_sha256_check", sql`${table.sha256} ~ '^[0-9a-f]{64}$'`),
+  ],
+);
 
 // DEV-02 — trace de chaque appel webhook accepté (les appels rejetés,
 // sans organisation fiable, vont au journal applicatif) ; aucune donnée
@@ -342,6 +750,48 @@ export const invoices = quotesSchema.table(
     createdBy: uuid("created_by"),
   },
   (table) => [unique().on(table.organizationId, table.number)],
+);
+
+// Lot 31b (FAC-05, décision D6) — facture d'acompte de la première échéance, émise d'elle-même
+// quand tous ont signé : le jour même, ou le lendemain de la fin du délai de rétractation s'il
+// court sans renonciation. Une mention manquante la bloque (« blocked », champs nommés) ; la
+// planner l'émet alors en un clic. « issued » garde la facture émise.
+export const SCHEDULED_DEPOSIT_STATUSES = ["waiting", "blocked", "issued"] as const;
+
+export const scheduledDepositInvoices = quotesSchema.table(
+  "scheduled_deposit_invoices",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    quoteId: uuid("quote_id")
+      .notNull()
+      .references(() => quotes.id),
+    versionId: uuid("version_id")
+      .notNull()
+      .references(() => quoteVersions.id),
+    scheduleItemId: uuid("schedule_item_id")
+      .notNull()
+      .references(() => paymentScheduleItems.id),
+    // Jour (Paris) à partir duquel la facture s'émet.
+    issueOn: date("issue_on").notNull(),
+    // Hors établissement (réponse 1 de l'avocat) : aucun paiement demandé avant la signature
+    // plus sept jours.
+    paymentNotBefore: date("payment_not_before"),
+    status: text("status", { enum: SCHEDULED_DEPOSIT_STATUSES }).notNull().default("waiting"),
+    missingFields: text("missing_fields").array().notNull().default(sql`'{}'::text[]`),
+    invoiceId: uuid("invoice_id").references(() => invoices.id),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("scheduled_deposit_invoices_organization_idx").on(table.organizationId),
+    unique().on(table.versionId),
+    check("scheduled_deposit_invoices_status_check", sql`${table.status} in ('waiting', 'blocked', 'issued')`),
+    check("scheduled_deposit_invoices_issued_check", sql`(${table.status} = 'issued') = (${table.invoiceId} is not null)`),
+  ],
 );
 
 // DEV-04 — avoir (série à part), partiel ou total, sur une facture émise ;
@@ -410,6 +860,43 @@ export const paymentEntries = quotesSchema.table(
       sql`${table.kind} <> 'reversal' or (${table.reversesEntryId} is not null and length(trim(${table.reason})) > 0)`,
     ),
   ],
+);
+
+// Lot 31c (JUR-08, réponse 7 bis de l'expert-comptable, décision D21) — reçu d'arrhes : les arrhes
+// sont une indemnité de dédit, hors TVA et hors facturation tant qu'elles ne sont pas imputées sur
+// le prix. À leur encaissement, un reçu non fiscal, de sa propre série, reprend le vendeur, les
+// clients, la date et le montant reçus. Immuable comme une facture (même déclencheur : seul un
+// reçu d'essai se supprime ; seule la copie des clients s'anonymise à la fin de la conservation).
+// Un encaissement annulé laisse le reçu, marqué annulé à l'affichage.
+export const earnestReceipts = quotesSchema.table(
+  "earnest_receipts",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    quoteId: uuid("quote_id")
+      .notNull()
+      .references(() => quotes.id),
+    scheduleItemId: uuid("schedule_item_id")
+      .notNull()
+      .references(() => paymentScheduleItems.id),
+    paymentEntryId: uuid("payment_entry_id")
+      .notNull()
+      .unique()
+      .references(() => paymentEntries.id),
+    number: text("number").notNull(),
+    isDemo: boolean("is_demo").notNull().default(false),
+    issuedAt: timestamp("issued_at", { withTimezone: true }).notNull(),
+    issuedOn: date("issued_on").notNull(),
+    paidOn: date("paid_on").notNull(),
+    amountCents: integer("amount_cents").notNull(),
+    label: text("label").notNull(),
+    paymentMethodLabel: text("payment_method_label"),
+    sellerSnapshot: jsonb("seller_snapshot").notNull(),
+    buyerSnapshot: jsonb("buyer_snapshot").notNull(),
+    // Lot 23 (DAT-06) : auteur de la ligne (core.stamp_row).
+    createdBy: uuid("created_by"),
+  },
+  (table) => [index("earnest_receipts_organization_idx").on(table.organizationId), unique().on(table.organizationId, table.number)],
 );
 
 // Lot 23b (DOC-08, ADR 0061) — original d'une facture ou d'un avoir émis : le

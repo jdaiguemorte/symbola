@@ -12,6 +12,8 @@ import { declarablePaymentMethods } from "./payment-methods";
 import { closeLinkSession, LinkAccessDeniedError, setLinkTaskDone } from "@/modules/events/service";
 import { isEventsModuleEnabled, isValidId } from "@/app/events/module-access";
 import { clearLinkSessionCookie, currentLinkAccess, getLinkSessionToken } from "@/lib/link-session";
+import { chooseQuoteOptions, ContractActNotAllowedError, ContractNotFoundError, QuoteNotFoundError, QuoteOptionsLockedError, recordSignerAct } from "@/modules/quotes/service";
+import { isQuotesModuleEnabled } from "@/app/devis/module-access";
 
 export async function toggleLinkTaskAction(formData: FormData): Promise<void> {
   const access = await currentLinkAccess();
@@ -100,4 +102,62 @@ export async function closeLinkSessionAction(): Promise<void> {
   if (token) await closeLinkSession(token);
   await clearLinkSessionCookie();
   redirect("/lien?ferme=1");
+}
+
+// Lot 31a (FAC-01, décision D2 ; SC-02 étape 5) — le client choisit ses options sur son
+// portail, avant de signer : seulement un lien client qui ouvre la rubrique devis, pour un
+// devis de son événement ; le choix est daté et porte le nom de la personne du lien.
+export type QuoteOptionsState = { error?: string; success?: boolean };
+
+export async function chooseLinkQuoteOptionsAction(_prev: QuoteOptionsState, formData: FormData): Promise<QuoteOptionsState> {
+  const t = await getTranslations("ClientSpace");
+  const access = await currentLinkAccess();
+  if (!access || access.audience !== "client" || !access.rights.rubrics.includes("quotes") || !(await isQuotesModuleEnabled(access.organizationId))) {
+    return { error: t("optionsError") };
+  }
+  const quoteId = String(formData.get("quoteId") ?? "");
+  const chosenLineIds = formData.getAll("optionLineIds").map(String);
+  if (!isValidId(quoteId) || !chosenLineIds.every(isValidId)) return { error: t("optionsError") };
+  try {
+    await chooseQuoteOptions({ organizationId: access.organizationId, quoteId, eventId: access.eventId, chosenLineIds, chosenBy: access.personName, byKind: "client" });
+  } catch (error) {
+    if (error instanceof QuoteOptionsLockedError) return { error: t("optionsLocked") };
+    if (error instanceof QuoteNotFoundError) return { error: t("optionsError") };
+    throw error;
+  }
+  revalidatePath("/portail");
+  return { success: true };
+}
+
+// Lot 31b (JUR-07 ; réponse 1 de l'avocat, D13) — actes du client sur son portail, avant de
+// signer : commande avec obligation de paiement (contrat à distance), demande d'exécution avant
+// la fin du délai de rétractation (case distincte de la signature). Seulement un lien client qui
+// ouvre la rubrique devis, pour un contrat de son événement, dont il est signataire.
+export type ContractActState = { error?: string; success?: boolean };
+
+async function contractAct(formData: FormData, kind: "order" | "early_execution"): Promise<ContractActState> {
+  const t = await getTranslations("ClientSpace");
+  const access = await currentLinkAccess();
+  if (!access || access.audience !== "client" || !access.rights.rubrics.includes("quotes") || !(await isQuotesModuleEnabled(access.organizationId))) {
+    return { error: t("contractActError") };
+  }
+  const contractId = String(formData.get("contractId") ?? "");
+  if (!isValidId(contractId)) return { error: t("contractActError") };
+  if (kind === "early_execution" && formData.get("confirm") !== "on") return { error: t("earlyExecutionConfirmRequired") };
+  try {
+    await recordSignerAct({ organizationId: access.organizationId, eventId: access.eventId, clientEmail: access.email, contractId, kind, orderText: t("orderButton") });
+  } catch (error) {
+    if (error instanceof ContractNotFoundError || error instanceof ContractActNotAllowedError) return { error: t("contractActError") };
+    throw error;
+  }
+  revalidatePath("/portail");
+  return { success: true };
+}
+
+export async function orderContractAction(_prev: ContractActState, formData: FormData): Promise<ContractActState> {
+  return contractAct(formData, "order");
+}
+
+export async function requestEarlyExecutionAction(_prev: ContractActState, formData: FormData): Promise<ContractActState> {
+  return contractAct(formData, "early_execution");
 }

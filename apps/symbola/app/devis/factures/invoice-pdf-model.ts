@@ -25,6 +25,8 @@ export type InvoicePdfLabels = DocumentCommonLabels & {
   invoiceKind: string;
   creditNoteKind: string;
   depositInvoice: string;
+  // Lot 31a (JUR-08) : une facture d'arrhes se dit telle.
+  earnestInvoice: string;
   balanceInvoice: string;
   creditNoteTitle: (number: string) => string;
   creditNoteFor: (invoiceNumber: string) => string;
@@ -39,6 +41,14 @@ export type InvoicePdfLabels = DocumentCommonLabels & {
   quoteTotalTtc: string;
   deduction: (number: string) => string;
   amountDue: string;
+  // Lot 31c (FAC-05, D20, D21) : solde par taux, arrhes en règlement.
+  quoteTotalHt: string;
+  quoteVatAtRate: (rate: string) => string;
+  deductionHt: (number: string) => string;
+  deductionVatAtRate: (number: string, rate: string) => string;
+  balanceHt: string;
+  balanceVatAtRate: (rate: string) => string;
+  earnestSettlement: (date: string, label: string) => string;
 };
 
 function totalRows(totals: InvoiceTotalsView, vat: boolean, labels: InvoicePdfLabels, locale: Locale): QuotePdfModel["totals"] {
@@ -48,6 +58,47 @@ function totalRows(totals: InvoiceTotalsView, vat: boolean, labels: InvoicePdfLa
     rows.push({ label: labels.totalTtc, value: formatAmount(totals.totalTtcCents, locale), strong: true });
   }
   return rows;
+}
+
+// Lot 31c (D20, D21) — totaux d'une facture de solde : le devis par taux, chaque acompte déduit en
+// HT et en TVA, le solde par taux ; ou, sans acompte facturé (devis à arrhes), le prix total puis
+// les arrhes reçues en règlement ; enfin le reste à payer. Un solde émis avant le lot 31c (acomptes
+// sans détail par taux) s'imprime comme à son émission.
+function balanceTotalRows(invoice: InvoiceView, vat: boolean, labels: InvoicePdfLabels, locale: Locale): QuotePdfModel["totals"] {
+  const amount = (cents: number) => formatAmount(cents, locale);
+  const minus = (cents: number) => `− ${formatAmount(cents, locale)}`;
+  const settlements = invoice.settlements.map((settlement) => ({ label: labels.earnestSettlement(formatCalendarDate(settlement.paidOn, locale), settlement.label), value: minus(settlement.amountCents) }));
+  const due = { label: labels.amountDue, value: amount(invoice.amountDueCents), strong: true };
+  if (invoice.deductions.length === 0) return [...totalRows(invoice.totals, vat, labels, locale), ...settlements, due];
+  if (!invoice.deductions.every((deduction) => deduction.totals)) {
+    return [
+      { label: labels.quoteTotalTtc, value: amount(invoice.quoteTotals.totalTtcCents) },
+      ...invoice.deductions.map((deduction) => ({ label: labels.deduction(deduction.number), value: minus(deduction.amountCents) })),
+      ...totalRows(invoice.totals, vat, labels, locale),
+      ...settlements,
+      due,
+    ];
+  }
+  const rate = (basisPoints: number) => formatRate(basisPoints, locale);
+  const rows: QuotePdfModel["totals"] = [];
+  if (vat) {
+    rows.push({ label: labels.quoteTotalHt, value: amount(invoice.quoteTotals.totalHtCents) });
+    for (const line of invoice.quoteTotals.vatByRate) rows.push({ label: labels.quoteVatAtRate(rate(line.rateBasisPoints)), value: amount(line.vatCents) });
+  }
+  rows.push({ label: labels.quoteTotalTtc, value: amount(invoice.quoteTotals.totalTtcCents) });
+  for (const deduction of invoice.deductions) {
+    if (!vat) {
+      rows.push({ label: labels.deduction(deduction.number), value: minus(deduction.amountCents) });
+      continue;
+    }
+    rows.push({ label: labels.deductionHt(deduction.number), value: minus(deduction.totals!.totalHtCents) });
+    for (const line of deduction.totals!.vatByRate) rows.push({ label: labels.deductionVatAtRate(deduction.number, rate(line.rateBasisPoints)), value: minus(line.vatCents) });
+  }
+  if (vat) {
+    rows.push({ label: labels.balanceHt, value: amount(invoice.totals.totalHtCents) });
+    for (const line of invoice.totals.vatByRate) rows.push({ label: labels.balanceVatAtRate(rate(line.rateBasisPoints)), value: amount(line.vatCents) });
+  }
+  return [...rows, ...settlements, due];
 }
 
 function buyersBlock(buyers: InvoiceBuyer[], labels: InvoicePdfLabels): QuotePdfModel["client"] {
@@ -96,18 +147,7 @@ export function buildInvoicePdfModel(input: {
       ? invoice.lines.map((line) => ({ cells: lineCells(line, vat, locale), description: line.description }))
       : [singleLine(labels.depositLine(invoice.depositLabel ?? "", invoice.quoteNumber), invoice.totals, vat, locale)];
 
-  const totals =
-    invoice.kind === "balance"
-      ? [
-          { label: labels.quoteTotalTtc, value: formatAmount(invoice.quoteTotals.totalTtcCents, locale) },
-          ...invoice.deductions.map((deduction) => ({
-            label: labels.deduction(deduction.number),
-            value: `− ${formatAmount(deduction.amountCents, locale)}`,
-          })),
-          ...totalRows(invoice.totals, vat, labels, locale),
-          { label: labels.amountDue, value: formatAmount(invoice.amountCents, locale), strong: true },
-        ]
-      : totalRows(invoice.totals, vat, labels, locale);
+  const totals = invoice.kind === "balance" ? balanceTotalRows(invoice, vat, labels, locale) : totalRows(invoice.totals, vat, labels, locale);
 
   // DEV-11 : échéance, IBAN et BIC s'ils sont renseignés, référence du virement.
   const bank = bankLines(document, labels);
@@ -125,8 +165,8 @@ export function buildInvoicePdfModel(input: {
     title: labels.invoiceTitle(invoice.number),
     kind: labels.invoiceKind,
     number: invoice.number,
-    subtitle: invoice.kind === "deposit" ? labels.depositInvoice : labels.balanceInvoice,
-    status: invoice.kind === "deposit" ? labels.depositInvoice : labels.balanceInvoice,
+    subtitle: invoice.kind === "deposit" ? (invoice.advanceKind === "earnest" ? labels.earnestInvoice : labels.depositInvoice) : labels.balanceInvoice,
+    status: invoice.kind === "deposit" ? (invoice.advanceKind === "earnest" ? labels.earnestInvoice : labels.depositInvoice) : labels.balanceInvoice,
     appearance: appearanceOf(invoice.seller, input.defaultColor),
     logo: input.logo,
     seller: sellerBlock(invoice.seller, labels),
@@ -139,6 +179,8 @@ export function buildInvoicePdfModel(input: {
     payment,
     legalMention: invoice.legalMention,
     terms: invoice.mentions,
+    professional: [],
+    generalTerms: null,
     footer: documentFooter(invoice.seller, labels, locale),
     watermark: input.watermark,
     signature: null,
@@ -175,6 +217,8 @@ export function buildCreditNotePdfModel(input: {
     payment: null,
     legalMention: creditNote.legalMention,
     terms: null,
+    professional: [],
+    generalTerms: null,
     footer: documentFooter(creditNote.seller, labels, locale),
     watermark: input.watermark,
     signature: null,

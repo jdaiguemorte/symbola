@@ -66,3 +66,5 @@ Un fichier par décision structurante, numéroté. Pour changer une décision : 
 - [0062 — Modules autonomes : preuve par les combinaisons de modules (écart ARC-01)](0062-modules-autonomes-preuve-par-combinaisons.md)
 - [0063 — Mots de passe compromis : liste locale tenue à jour](0063-mots-de-passe-compromis.md)
 - [0064 — Jour J hors ligne : service worker écrit à la main, copie gardée sur l'appareil](0064-jour-j-hors-ligne.md)
+- [0065 — Contrats : signature avec le devis, commande avant la signature, dossier de preuve](0065-contrats-signature-combinee-et-dossier-de-preuve.md)
+- [0066 — Arrhes : reçu non fiscal hors de la chaîne des pièces ; solde déduit taux par taux](0066-recus-d-arrhes-et-solde-par-taux.md)

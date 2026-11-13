@@ -29,8 +29,10 @@ export function htTotalByRate<T>(items: T[], rateOf: (item: T) => number, ttcOf:
 }
 
 // D5 : le type d'acheteur du devis de l'événement — le devis signé le plus
-// récent, à défaut le plus récent ; particulier sans devis.
-export function budgetClientKind(quotes: { status: string; clientKind: BudgetClientKind }[]): BudgetClientKind {
+// récent, à défaut le plus récent ; particulier sans devis. Lot 31b (D16) : un client
+// non-professionnel (association, SCI…) voit son budget comme un particulier, TTC.
+export function budgetClientKind(quotes: { status: string; clientKind: BudgetClientKind | "non_professional" }[]): BudgetClientKind {
   const signed = quotes.filter((quote) => quote.status === "signed");
-  return (signed.at(-1) ?? quotes.at(-1))?.clientKind ?? "individual";
+  const kind = (signed.at(-1) ?? quotes.at(-1))?.clientKind ?? "individual";
+  return kind === "professional" ? "professional" : "individual";
 }

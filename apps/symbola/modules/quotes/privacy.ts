@@ -1,13 +1,14 @@
 // Contrat privacy/v1 du module quotes (lot 6, ADR 0023). Champs personnels
 // (privacy.registry.yaml) : signataires d'un devis (nom, e-mail, adresse de
-// facturation), acheteurs copiés sur les factures et avoirs, descriptions
+// facturation), lot 31b : texte des contrats et actes des signataires,
+// acheteurs copiés sur les factures et avoirs, descriptions
 // libres des lignes de devis, champs libres importés du catalogue. Les
 // coordonnées de la planner (copie vendeur) ne sont pas cherchées : elles
 // sont celles de l'organisation. Jamais de document d'essai (ADR 0008).
 import { and, asc, eq, inArray } from "drizzle-orm";
 import type { InvoiceBuyer } from "@symbola/contracts";
 import { appDatabase } from "@symbola/db/client";
-import { catalogItems, creditNotes, invoices, quoteLines, quotes, quoteSigners, quoteVersions, signatureRequests } from "@symbola/db/schema/quotes";
+import { catalogItems, contracts, contractSignerActs, creditNotes, earnestReceipts, invoices, quoteLines, quotes, quoteSigners, quoteVersions, signatureRequests } from "@symbola/db/schema/quotes";
 import { withOrganization } from "@symbola/db/with-organization";
 import { hasTerms, prepareTerms, recordMatches, type PrivacyContractV1, type PrivacyRecord } from "@symbola/privacy";
 import { eraseQuotesData, planQuotesErasure } from "./privacy-erasure";
@@ -74,6 +75,48 @@ export const quotesPrivacy: PrivacyContractV1 = {
             });
           }
         }
+        // Lot 31a (FAC-01, D2) : qui a choisi les options (le client, nommé).
+        for (const version of versions) {
+          if (!version.optionsChosenBy || !recordMatches([version.optionsChosenBy], terms)) continue;
+          const quote = versionQuote.get(version.id);
+          records.push({
+            module: MODULE,
+            kind: "quote_options_choice",
+            recordId: version.id,
+            label: `${quote?.number ?? ""} V${version.version} — ${version.optionsChosenBy}`,
+            fields: { chosenBy: version.optionsChosenBy },
+            eventId: quote?.eventId ?? null,
+          });
+        }
+        // Lot 31b : contrats (leur texte nomme les clients) et actes des signataires.
+        const contractRows = await tx.select().from(contracts).where(inArray(contracts.quoteVersionId, [...versionQuote.keys()]));
+        for (const contract of contractRows) {
+          if (!recordMatches(contract.clauses.map((clause) => clause.body), terms)) continue;
+          const quote = versionQuote.get(contract.quoteVersionId);
+          records.push({
+            module: MODULE,
+            kind: "contract",
+            recordId: contract.id,
+            label: `${quote?.number ?? ""} — ${contract.title} V${contract.version}`,
+            fields: Object.fromEntries(contract.clauses.map((clause, index) => [`clause${index + 1}`, `${clause.title} : ${clause.body}`])),
+            eventId: quote?.eventId ?? null,
+          });
+        }
+        if (contractRows.length > 0) {
+          const contractQuote = new Map(contractRows.map((contract) => [contract.id, versionQuote.get(contract.quoteVersionId)]));
+          for (const act of await tx.select().from(contractSignerActs).where(inArray(contractSignerActs.contractId, [...contractQuote.keys()]))) {
+            if (!recordMatches([act.signerName], terms)) continue;
+            const quote = contractQuote.get(act.contractId);
+            records.push({
+              module: MODULE,
+              kind: "contract_signer_act",
+              recordId: act.id,
+              label: `${quote?.number ?? ""} — ${act.signerName}`,
+              fields: { signerName: act.signerName, kind: act.kind, actedAt: act.actedAt.toISOString() },
+              eventId: quote?.eventId ?? null,
+            });
+          }
+        }
         for (const line of await tx.select().from(quoteLines).where(inArray(quoteLines.versionId, [...versionQuote.keys()]))) {
           if (!recordMatches([line.description], terms)) continue;
           const quote = versionQuote.get(line.versionId);
@@ -114,6 +157,19 @@ export const quotesPrivacy: PrivacyContractV1 = {
           eventId: quoteById.get(invoiceQuote.get(note.invoiceId) ?? "")?.eventId ?? null,
         });
       }
+      // Lot 31c (D21) : reçus d'arrhes, aux noms des clients.
+      for (const receipt of await tx.select().from(earnestReceipts).where(eq(earnestReceipts.isDemo, false))) {
+        const buyers = buyersOf(receipt.buyerSnapshot);
+        if (!buyers.some((buyer) => recordMatches([buyer.name, buyer.billingAddress], terms))) continue;
+        records.push({
+          module: MODULE,
+          kind: "earnest_receipt",
+          recordId: receipt.id,
+          label: receipt.number,
+          fields: buyerFields(buyers),
+          eventId: quoteById.get(receipt.quoteId)?.eventId ?? null,
+        });
+      }
 
       for (const item of await tx.select().from(catalogItems)) {
         const values = Object.entries(item.importedFields ?? {}).map(([name, value]) => `${name} ${value}`);
@@ -142,6 +198,17 @@ export const quotesPrivacy: PrivacyContractV1 = {
       for (const quote of quoteRows) {
         records.push({ module: MODULE, kind: "quote", recordId: quote.id, label: quote.number, fields: { number: quote.number, status: quote.status }, eventId: quote.eventId });
       }
+      // Lot 31b : contrats des devis de ces événements.
+      for (const contract of await tx.select().from(contracts).where(inArray(contracts.quoteId, [...quoteById.keys()]))) {
+        records.push({
+          module: MODULE,
+          kind: "contract",
+          recordId: contract.id,
+          label: `${quoteById.get(contract.quoteId)?.number ?? ""} — ${contract.title} V${contract.version}`,
+          fields: { title: contract.title, version: String(contract.version), generatedAt: contract.generatedAt.toISOString() },
+          eventId: quoteById.get(contract.quoteId)?.eventId ?? null,
+        });
+      }
       const invoiceRows = await tx
         .select()
         .from(invoices)
@@ -169,6 +236,20 @@ export const quotesPrivacy: PrivacyContractV1 = {
             eventId: quoteById.get(invoiceQuote.get(note.invoiceId) ?? "")?.eventId ?? null,
           });
         }
+      }
+      // Lot 31c (D21) : reçus d'arrhes des devis de ces événements.
+      for (const receipt of await tx
+        .select()
+        .from(earnestReceipts)
+        .where(and(eq(earnestReceipts.isDemo, false), inArray(earnestReceipts.quoteId, [...quoteById.keys()])))) {
+        records.push({
+          module: MODULE,
+          kind: "earnest_receipt",
+          recordId: receipt.id,
+          label: receipt.number,
+          fields: { number: receipt.number, issuedOn: receipt.issuedOn, amountCents: String(receipt.amountCents), ...buyerFields(buyersOf(receipt.buyerSnapshot)) },
+          eventId: quoteById.get(receipt.quoteId)?.eventId ?? null,
+        });
       }
       return records;
     });

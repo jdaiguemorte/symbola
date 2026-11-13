@@ -6,7 +6,7 @@
 import { and, eq, inArray, isNotNull, max } from "drizzle-orm";
 import type { InvoiceBuyer } from "@symbola/contracts";
 import { appDatabase } from "@symbola/db/client";
-import { creditNotes, invoices, paymentScheduleItems, quotes, quoteSigners, quoteVersions, signatureRequests } from "@symbola/db/schema/quotes";
+import { creditNotes, earnestReceipts, invoices, paymentScheduleItems, quotes, quoteSigners, quoteVersions, signatureRequests } from "@symbola/db/schema/quotes";
 import { withOrganization } from "@symbola/db/with-organization";
 import { addMonths, ANONYMIZED, isExpired, parisDate } from "@symbola/privacy";
 
@@ -32,7 +32,7 @@ export async function lastPaymentDates(organizationId: string, eventIds: string[
   return new Map(rows.filter((row) => row.paidOn !== null).map((row) => [row.eventId, row.paidOn!]));
 }
 
-export type ExpiredDocument = { kind: "invoice" | "credit_note" | "quote"; id: string; number: string; dueOn: string };
+export type ExpiredDocument = { kind: "invoice" | "credit_note" | "earnest_receipt" | "quote"; id: string; number: string; dueOn: string };
 
 function buyersAnonymized(snapshot: unknown): boolean {
   const buyers = Array.isArray(snapshot) ? (snapshot as InvoiceBuyer[]) : [];
@@ -52,6 +52,11 @@ export async function listExpiredDocuments(
     for (const note of await tx.select().from(creditNotes).where(eq(creditNotes.isDemo, false))) {
       const dueOn = addMonths(note.issuedOn, input.accountingRetentionMonths);
       if (isExpired(input.today, dueOn) && !buyersAnonymized(note.buyerSnapshot)) documents.push({ kind: "credit_note", id: note.id, number: note.number, dueOn });
+    }
+    // Lot 31c (D21) : reçus d'arrhes, à la même conservation que les pièces comptables.
+    for (const receipt of await tx.select().from(earnestReceipts).where(eq(earnestReceipts.isDemo, false))) {
+      const dueOn = addMonths(receipt.issuedOn, input.accountingRetentionMonths);
+      if (isExpired(input.today, dueOn) && !buyersAnonymized(receipt.buyerSnapshot)) documents.push({ kind: "earnest_receipt", id: receipt.id, number: receipt.number, dueOn });
     }
     const signed = await tx
       .select({ request: signatureRequests, quoteId: quotes.id, number: quotes.number })

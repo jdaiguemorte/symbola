@@ -44,6 +44,10 @@ function version(overrides: Partial<QuoteVersionView> = {}): QuoteVersionView {
   return {
     id: "v1",
     version: 1,
+    sections: [],
+    advanceKind: null,
+    optionsChoice: null,
+    template: null,
     lines: [
       {
         id: "l1",
@@ -57,6 +61,9 @@ function version(overrides: Partial<QuoteVersionView> = {}): QuoteVersionView {
         discountBasisPoints: 0,
         position: 0,
         netCents: 150000,
+        sectionId: null,
+        isOption: false,
+        optionChosen: false,
       },
     ],
     globalDiscount: { kind: "none" },
@@ -318,5 +325,59 @@ describe("DEV-12 — Nouvelle mise en page, figée à l'émission", () => {
     expect(result.footer.legal).toBe("Atelier Lumière · SIREN 123456789");
     const pdf = await renderToBuffer(createElement(QuotePdfDocument, { model: result }) as unknown as ReactElement<DocumentProps>);
     expect(pdf.subarray(0, 5).toString("latin1")).toBe("%PDF-");
+  });
+});
+
+// Lot 31a (FAC-01, JUR-08 ; décisions D2 et D5) : sections et options, acompte ou arrhes.
+describe("FAC-01 / JUR-08 — PDF du devis complet", () => {
+  const base = version().lines[0]!;
+  const sectioned = (advanceKind: "deposit" | "earnest" | null) =>
+    model(
+      version({
+        advanceKind,
+        sections: [{ id: "s1", title: "Formule complète", position: 0, subtotalCents: 150000 }],
+        lines: [
+          { ...base, sectionId: "s1" },
+          { ...base, id: "l2", label: "Brunch du lendemain", description: null, unitPriceCents: 80000, netCents: 80000, sectionId: "s1", isOption: true, position: 1 },
+        ],
+        schedule: {
+          items: [
+            {
+              id: "s1",
+              label: "À la signature",
+              dueDate: "2027-03-20",
+              fixedAmountCents: null,
+              percentageBasisPoints: 3000,
+              amountCents: 45000,
+              paidOn: null,
+              paymentMethodId: null,
+              paymentMethodLabel: null,
+              overdue: false,
+              position: 0,
+              payments: [],
+            },
+          ],
+          scheduledCents: 45000,
+          balanceCents: 105000,
+          exceedsTotal: false,
+        },
+      }),
+    );
+
+  it("FAC-01 — titre de section, lignes, option non retenue hors du total, sous-total", () => {
+    const rows = sectioned("deposit").rows;
+    expect(rows.map((row) => [row.kind ?? "line", row.cells[0]])).toEqual([
+      ["section", "Formule complète"],
+      ["line", "Coordination jour J"],
+      ["line", "Brunch du lendemain (option non retenue, hors total)"],
+      ["subtotal", "Sous-total Formule complète"],
+    ]);
+    expect(rows.at(-1)!.cells.at(-1)).toBe("1 500,00 €");
+  });
+
+  it("JUR-08 — l'échéancier dit acomptes ou arrhes, selon le devis", () => {
+    expect(sectioned("deposit").payment?.title).toBe("Échéancier des acomptes");
+    expect(sectioned("earnest").payment?.title).toBe("Échéancier des arrhes");
+    expect(sectioned(null).payment?.title).toBe("Échéancier");
   });
 });

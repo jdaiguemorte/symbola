@@ -27,7 +27,7 @@ export async function ScheduleSection({
   const payable = !isDraft && (quote.status === "sent" || quote.status === "signed");
 
   return (
-    <section aria-labelledby="schedule-title">
+    <section id="echeancier" aria-labelledby="schedule-title">
       <h2 id="schedule-title">{t("scheduleTitle")}</h2>
       {schedule.items.length === 0 ? <p>{t("noScheduleItems")}</p> : null}
       <ul>

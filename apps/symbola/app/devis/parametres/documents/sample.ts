@@ -55,6 +55,9 @@ function sampleLines(t: Translate, vatRate: number): QuoteLine[] {
     discountBasisPoints,
     position: index,
     netCents: Math.round(((unitPriceCents * quantityMilli) / 1000) * (1 - discountBasisPoints / 10000)),
+    sectionId: null,
+    isOption: false,
+    optionChosen: false,
   });
   return [
     line(0, t("sampleLine1"), t("sampleLine1Description"), t("sampleUnitPackage"), 1000, 450000, 0),
@@ -76,6 +79,10 @@ function sampleVersion(input: SampleInput): QuoteVersionView {
     id: "sample-version",
     version: 1,
     lines,
+    sections: [],
+    advanceKind: "deposit",
+    optionsChoice: null,
+    template: null,
     globalDiscount: { kind: "none" },
     totals: {
       subtotalCents: totalHtCents,
@@ -150,11 +157,20 @@ export function sampleDocumentModel(input: SampleInput): QuotePdfModel {
     });
   }
 
-  // Facture de solde : l'acompte de l'échéancier, déjà facturé, est déduit.
+  // Facture de solde : l'acompte de l'échéancier, déjà facturé, est déduit ; lot 31c (D20) : en HT
+  // et en TVA (l'exemple n'a qu'un taux).
   const deposit = version.schedule.items[0]?.amountCents ?? 0;
   const amountCents = version.totals.totalTtcCents - deposit;
-  const totalHtCents = Math.round((version.totals.totalHtCents * amountCents) / version.totals.totalTtcCents);
+  const depositHtCents = version.totals.totalTtcCents === 0 ? 0 : Math.round((version.totals.totalHtCents * deposit) / version.totals.totalTtcCents);
+  const totalHtCents = version.totals.totalHtCents - depositHtCents;
   const vatCents = amountCents - totalHtCents;
+  const rate = context.vatRateBasisPoints ?? 0;
+  const depositTotals = {
+    totalHtCents: depositHtCents,
+    vatByRate: version.vatApplicable ? [{ rateBasisPoints: rate, baseCents: depositHtCents, vatCents: deposit - depositHtCents }] : [],
+    totalVatCents: version.vatApplicable ? deposit - depositHtCents : 0,
+    totalTtcCents: deposit,
+  };
   const buyerAddress = t("sampleBuyerAddress");
   const invoice: InvoiceView = {
     id: "sample-invoice",
@@ -180,11 +196,14 @@ export function sampleDocumentModel(input: SampleInput): QuotePdfModel {
     ],
     lines: version.lines,
     depositLabel: null,
+    advanceKind: null,
     quoteTotals: version.totals,
-    deductions: [{ number: context.depositNumber, amountCents: deposit }],
+    deductions: [{ number: context.depositNumber, amountCents: deposit, totals: depositTotals }],
+    settlements: [],
+    amountDueCents: amountCents,
     totals: {
       totalHtCents,
-      vatByRate: version.vatApplicable ? [{ rateBasisPoints: context.vatRateBasisPoints ?? 0, baseCents: totalHtCents, vatCents }] : [],
+      vatByRate: version.vatApplicable ? [{ rateBasisPoints: rate, baseCents: totalHtCents, vatCents }] : [],
       totalVatCents: version.vatApplicable ? vatCents : 0,
       totalTtcCents: amountCents,
     },

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getLocale, getTranslations } from "next-intl/server";
-import { starterPaymentMethods } from "@symbola/starter-templates";
+import { LATE_PENALTY_RATE_KEYS, starterPaymentMethods, type LatePenaltyRateKey } from "@symbola/starter-templates";
 import { addPaymentMethods, archivePaymentMethod, restorePaymentMethod, updateQuoteSettings } from "@/modules/quotes/service";
 import { isValidId } from "../module-access";
 import { authorizedPlanner } from "../planner-access";
@@ -33,6 +33,11 @@ export async function updateQuoteSettingsAction(
   const invoicePaymentTermDays = /^\d{1,3}$/.test(termText) ? Number(termText) : NaN;
   if (!Number.isInteger(invoicePaymentTermDays) || invoicePaymentTermDays > 120) return { error: t("invalidPaymentTerm") };
   const invoiceMentions = String(formData.get("invoiceMentions") ?? "").trim() || null;
+  // Lot 31c (D18) : texte des professionnels et taux des pénalités (rien de choisi : aucun taux).
+  const invoiceMentionsProfessional = String(formData.get("invoiceMentionsProfessional") ?? "").trim() || null;
+  const rateValue = String(formData.get("latePenaltyRate") ?? "");
+  if (rateValue !== "" && !(LATE_PENALTY_RATE_KEYS as readonly string[]).includes(rateValue)) return { error: t("invalidLatePenaltyRate") };
+  const latePenaltyRate = rateValue === "" ? null : (rateValue as LatePenaltyRateKey);
 
   const prefix = (name: string) => String(formData.get(name) ?? "").trim().toUpperCase();
   try {
@@ -44,6 +49,12 @@ export async function updateQuoteSettingsAction(
       upcomingHorizonDays,
       invoicePaymentTermDays,
       invoiceMentions,
+      // Lot 31a (JUR-08, D5).
+      advanceKindDefault: ((value) => (value === "deposit" || value === "earnest" ? value : null))(String(formData.get("advanceKindDefault") ?? "")),
+      // Lot 31c (D18, D21).
+      invoiceMentionsProfessional,
+      latePenaltyRate,
+      receiptPrefix: prefix("receiptPrefix"),
     });
   } catch (error) {
     if (error instanceof RangeError) return { error: t("invalidPrefix") };

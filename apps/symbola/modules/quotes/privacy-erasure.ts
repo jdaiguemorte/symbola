@@ -11,9 +11,26 @@
 // - Devis non signé : signataires et descriptions libres anonymisés ;
 //   numéros, intitulés et montants restent (statistiques).
 // - Catalogue : champs libres importés effacés.
-import { eq, inArray, sql as rawSql } from "drizzle-orm";
+// - Lot 31b : contrats (texte figé, qui nomme les clients) et actes des signataires (commande,
+//   exécution anticipée) suivent leur devis : conservés comme preuve tant que court la preuve du
+//   devis signé (dix ans par défaut), sinon anonymisés ; à la fin de la preuve, le dossier de
+//   preuve est retiré du stockage.
+import { and, eq, inArray, isNotNull, sql as rawSql } from "drizzle-orm";
 import { appDatabase } from "@symbola/db/client";
-import { catalogItems, creditNotes, invoices, quoteLines, quotes, quoteSigners, quoteVersions, signatureRequests } from "@symbola/db/schema/quotes";
+import {
+  catalogItems,
+  contractEvidence,
+  contracts,
+  contractSignerActs,
+  creditNotes,
+  earnestReceipts,
+  invoices,
+  quoteLines,
+  quotes,
+  quoteSigners,
+  quoteVersions,
+  signatureRequests,
+} from "@symbola/db/schema/quotes";
 import { withOrganization } from "@symbola/db/with-organization";
 import type { InvoiceBuyer } from "@symbola/contracts";
 import { createStorageClient, deletePrivateObject } from "@symbola/files";
@@ -26,10 +43,17 @@ type Plan = {
   // Ce que l'exécution modifie (fiches anonymisées seulement).
   signerIds: string[];
   lineIds: string[];
+  // Lot 31a : versions dont le nom de qui a choisi les options s'efface.
+  choiceVersionIds: string[];
+  // Lot 31b : contrats dont le texte s'efface, actes dont le nom s'efface.
+  contractIds: string[];
+  actIds: string[];
   catalogItemIds: string[];
   // RGPD-05 : documents arrivés au terme de leur conservation.
   invoiceIds: string[];
   creditNoteIds: string[];
+  // Lot 31c (D21) : reçus d'arrhes, gardés comme les pièces comptables.
+  receiptIds: string[];
   expiredRequestIds: string[];
 };
 
@@ -39,7 +63,7 @@ async function inOrganization<T>(organizationId: string, fn: (tx: Tx) => Promise
 }
 
 async function buildPlan(tx: Tx, input: ErasureInput): Promise<Plan> {
-  const plan: Plan = { items: [], signerIds: [], lineIds: [], catalogItemIds: [], invoiceIds: [], creditNoteIds: [], expiredRequestIds: [] };
+  const plan: Plan = { items: [], signerIds: [], lineIds: [], choiceVersionIds: [], contractIds: [], actIds: [], catalogItemIds: [], invoiceIds: [], creditNoteIds: [], receiptIds: [], expiredRequestIds: [] };
   const anonymized = (kind: string, recordId: string) => plan.items.push({ kind, recordId, fate: "anonymized", legalBasis: null, keptUntil: null });
 
   // Factures et avoirs réels : conservés dix ans (réglage) à compter de l'émission.
@@ -65,12 +89,26 @@ async function buildPlan(tx: Tx, input: ErasureInput): Promise<Plan> {
       } else plan.items.push({ kind: "credit_note", recordId: note.id, fate: "kept", legalBasis: "accounting", keptUntil: until });
     }
   }
+  const receiptIds = idsOfKind(input.records, "earnest_receipt");
+  if (receiptIds.length > 0) {
+    for (const receipt of await tx.select().from(earnestReceipts).where(inArray(earnestReceipts.id, receiptIds))) {
+      if (receipt.isDemo) continue;
+      const until = addMonths(receipt.issuedOn, input.rules.accountingRetentionMonths);
+      if (isExpired(input.today, until)) {
+        plan.receiptIds.push(receipt.id);
+        anonymized("earnest_receipt", receipt.id);
+      } else plan.items.push({ kind: "earnest_receipt", recordId: receipt.id, fate: "kept", legalBasis: "accounting", keptUntil: until });
+    }
+  }
 
   // Devis réels concernés : désignés directement, ou par leurs signataires et lignes.
   const quoteIds = idsOfKind(input.records, "quote");
   const signerIds = idsOfKind(input.records, "quote_signer");
   const lineIds = idsOfKind(input.records, "quote_line");
-  if (quoteIds.length + signerIds.length + lineIds.length > 0) {
+  const choiceIds = idsOfKind(input.records, "quote_options_choice");
+  const contractIds = idsOfKind(input.records, "contract");
+  const actIds = idsOfKind(input.records, "contract_signer_act");
+  if (quoteIds.length + signerIds.length + lineIds.length + choiceIds.length + contractIds.length + actIds.length > 0) {
     const realQuotes = await tx.select({ id: quotes.id }).from(quotes).where(eq(quotes.isDemo, false));
     const realQuoteIds = new Set(realQuotes.map((quote) => quote.id));
     const versions = realQuoteIds.size > 0 ? await tx.select({ id: quoteVersions.id, quoteId: quoteVersions.quoteId }).from(quoteVersions).where(inArray(quoteVersions.quoteId, [...realQuoteIds])) : [];
@@ -140,6 +178,42 @@ async function buildPlan(tx: Tx, input: ErasureInput): Promise<Plan> {
       if (line.description !== null) plan.lineIds.push(line.id);
       if (lineIds.includes(line.id)) anonymized("quote_line", line.id);
     }
+    // Lot 31a : le nom de qui a choisi les options, gardé comme preuve d'un devis signé.
+    for (const versionId of versionQuote.keys()) {
+      if (!choiceIds.includes(versionId) && !quoteVersionIds.includes(versionId)) continue;
+      const until = proofUntil.get(versionId);
+      if (until) {
+        if (choiceIds.includes(versionId)) plan.items.push({ kind: "quote_options_choice", recordId: versionId, fate: "kept", legalBasis: "contract_proof", keptUntil: until });
+        continue;
+      }
+      plan.choiceVersionIds.push(versionId);
+      if (choiceIds.includes(versionId)) anonymized("quote_options_choice", versionId);
+    }
+    // Lot 31b : contrats et actes des signataires, gardés comme preuve d'un devis signé.
+    const contractRows =
+      versions.length > 0 ? await tx.select({ id: contracts.id, quoteId: contracts.quoteId, quoteVersionId: contracts.quoteVersionId }).from(contracts).where(inArray(contracts.quoteVersionId, [...versionQuote.keys()])) : [];
+    const contractVersion = new Map(contractRows.map((contract) => [contract.id, contract.quoteVersionId]));
+    for (const contract of contractRows) {
+      if (!contractIds.includes(contract.id) && !designatedQuotes.includes(contract.quoteId)) continue;
+      const until = proofUntil.get(contract.quoteVersionId);
+      if (until) {
+        if (contractIds.includes(contract.id)) plan.items.push({ kind: "contract", recordId: contract.id, fate: "kept", legalBasis: "contract_proof", keptUntil: until });
+        continue;
+      }
+      plan.contractIds.push(contract.id);
+      if (contractIds.includes(contract.id)) anonymized("contract", contract.id);
+    }
+    const acts = contractRows.length > 0 ? await tx.select({ id: contractSignerActs.id, contractId: contractSignerActs.contractId }).from(contractSignerActs).where(inArray(contractSignerActs.contractId, [...contractVersion.keys()])) : [];
+    for (const act of acts) {
+      if (!actIds.includes(act.id) && !plan.contractIds.includes(act.contractId) && !contractIds.includes(act.contractId)) continue;
+      const until = proofUntil.get(contractVersion.get(act.contractId) ?? "");
+      if (until) {
+        if (actIds.includes(act.id)) plan.items.push({ kind: "contract_signer_act", recordId: act.id, fate: "kept", legalBasis: "contract_proof", keptUntil: until });
+        continue;
+      }
+      plan.actIds.push(act.id);
+      if (actIds.includes(act.id)) anonymized("contract_signer_act", act.id);
+    }
   }
 
   const catalogIds = idsOfKind(input.records, "catalog_item");
@@ -164,11 +238,25 @@ export async function eraseQuotesData(input: ErasureInput): Promise<ErasurePlanI
       await tx.update(quoteSigners).set({ name: ANONYMIZED, email: anonymizedEmail(), billingAddress: ANONYMIZED, signingUrl: "" }).where(eq(quoteSigners.id, signerId));
     }
     if (plan.lineIds.length > 0) await tx.update(quoteLines).set({ description: ANONYMIZED }).where(inArray(quoteLines.id, plan.lineIds));
+    if (plan.choiceVersionIds.length > 0) {
+      await tx
+        .update(quoteVersions)
+        .set({ optionsChosenBy: ANONYMIZED })
+        .where(and(inArray(quoteVersions.id, plan.choiceVersionIds), isNotNull(quoteVersions.optionsChosenBy)));
+    }
     if (plan.catalogItemIds.length > 0) await tx.update(catalogItems).set({ importedFields: null }).where(inArray(catalogItems.id, plan.catalogItemIds));
+    // Lot 31b : le texte du contrat nomme les clients ; ses clauses gardent leur titre et leur rôle.
+    for (const contract of plan.contractIds.length > 0 ? await tx.select().from(contracts).where(inArray(contracts.id, plan.contractIds)) : []) {
+      await tx
+        .update(contracts)
+        .set({ clauses: contract.clauses.map((clause) => ({ ...clause, body: ANONYMIZED })) })
+        .where(eq(contracts.id, contract.id));
+    }
+    if (plan.actIds.length > 0) await tx.update(contractSignerActs).set({ signerName: ANONYMIZED }).where(inArray(contractSignerActs.id, plan.actIds));
 
     // RGPD-05 : fin de la conservation comptable. Seule la copie de
     // l'acheteur change, dans une transaction qui le déclare (ADR 0024).
-    if (plan.invoiceIds.length + plan.creditNoteIds.length > 0) {
+    if (plan.invoiceIds.length + plan.creditNoteIds.length + plan.receiptIds.length > 0) {
       await tx.execute(rawSql`SET LOCAL app.retention_anonymization = 'on'`);
       const anonymizedBuyers = (snapshot: unknown) =>
         (Array.isArray(snapshot) ? (snapshot as InvoiceBuyer[]) : []).map((buyer) => ({ ...buyer, name: ANONYMIZED, billingAddress: ANONYMIZED }));
@@ -177,6 +265,9 @@ export async function eraseQuotesData(input: ErasureInput): Promise<ErasurePlanI
       }
       for (const note of plan.creditNoteIds.length > 0 ? await tx.select().from(creditNotes).where(inArray(creditNotes.id, plan.creditNoteIds)) : []) {
         await tx.update(creditNotes).set({ buyerSnapshot: anonymizedBuyers(note.buyerSnapshot) }).where(eq(creditNotes.id, note.id));
+      }
+      for (const receipt of plan.receiptIds.length > 0 ? await tx.select().from(earnestReceipts).where(inArray(earnestReceipts.id, plan.receiptIds)) : []) {
+        await tx.update(earnestReceipts).set({ buyerSnapshot: anonymizedBuyers(receipt.buyerSnapshot) }).where(eq(earnestReceipts.id, receipt.id));
       }
     }
     return plan;
@@ -189,9 +280,13 @@ export async function eraseQuotesData(input: ErasureInput): Promise<ErasurePlanI
     for (const request of requests) {
       for (const key of [request.signedDocumentKey, request.auditCertificateKey]) if (key) await deletePrivateObject(storage, key);
     }
-    await inOrganization(input.organizationId, (tx) =>
-      tx.update(signatureRequests).set({ signedDocumentKey: null, auditCertificateKey: null }).where(inArray(signatureRequests.id, result.expiredRequestIds)),
-    );
+    // Lot 31b : dossiers de preuve de ces demandes (noms et e-mails des signataires).
+    const evidence = await inOrganization(input.organizationId, (tx) => tx.select().from(contractEvidence).where(inArray(contractEvidence.requestId, result.expiredRequestIds)));
+    for (const row of evidence) await deletePrivateObject(storage, row.documentKey);
+    await inOrganization(input.organizationId, async (tx) => {
+      await tx.update(signatureRequests).set({ signedDocumentKey: null, auditCertificateKey: null }).where(inArray(signatureRequests.id, result.expiredRequestIds));
+      if (evidence.length > 0) await tx.delete(contractEvidence).where(inArray(contractEvidence.id, evidence.map((row) => row.id)));
+    });
   }
   return result.items;
 }

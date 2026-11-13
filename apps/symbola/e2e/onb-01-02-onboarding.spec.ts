@@ -105,7 +105,8 @@ test("ONB-02-01 — l'Admin fixe les seuils de franchise, jamais codés en dur",
 
   await page.getByLabel("Seuil de franchise — prestations de services (€)").fill("37500");
   await page.getByLabel("Seuil de franchise — vente de marchandises (€)").fill("85000");
-  await page.getByRole("button", { name: "Enregistrer" }).click();
+  // Lot 31a : l'écran porte aussi « Enregistrer la liste » (mentions obligatoires).
+  await page.getByRole("button", { name: "Enregistrer", exact: true }).click();
   await expect(page.getByText("Paramètres enregistrés.")).toBeVisible();
 
   await page.reload();

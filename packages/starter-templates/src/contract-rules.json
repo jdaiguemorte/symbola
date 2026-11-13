@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "status": {
+    "fr": "Règles de départ issues des réponses de l'avocat du 13/11/2026 (JUR-07, JUR-08, JUR-14) : à revoir à chaque évolution légale.",
+    "en": "Starting rules from the lawyer's answers of 13/11/2026 (JUR-07, JUR-08, JUR-14): to review with every legal change."
+  },
+  "withdrawal": {
+    "periodDays": 14,
+    "extendWeekendToMonday": true
+  },
+  "regime": {
+    "withdrawalChannels": [
+      "distance",
+      "off_premises"
+    ],
+    "smallBusinessChannels": [
+      "off_premises"
+    ],
+    "blockedChannels": [
+      "fair"
+    ],
+    "consumerCategories": [
+      "individual"
+    ],
+    "orderChannels": [
+      "distance"
+    ],
+    "noPaymentDays": {
+      "off_premises": 7
+    }
+  },
+  "requiredRoles": {
+    "withdrawal": [
+      "precontractual_information",
+      "withdrawal_period",
+      "withdrawal_form",
+      "early_execution",
+      "termination"
+    ],
+    "noWithdrawal": [
+      "precontractual_information",
+      "no_withdrawal"
+    ],
+    "professional": []
+  },
+  "advanceRoles": {
+    "deposit": "advance_deposit",
+    "earnest": "advance_earnest"
+  },
+  "signature": {
+    "advancedThresholdCents": 1000000,
+    "availableLevel": "simple"
+  },
+  "retention": {
+    "signedContractMinimumMonths": 120
+  },
+  "placeholderMarkers": [
+    "[À rédiger",
+    "[To be drafted",
+    "[À compléter",
+    "[To be completed"
+  ]
+}

@@ -841,6 +841,55 @@
       "when": 1794526148159,
       "tag": "0119_lot30b_events_program_responsible",
       "breakpoints": true
+    },
+    {
+      "idx": 120,
+      "version": "7",
+      "when": 1794529575074,
+      "tag": "0120_lot31a_quotes_sections_options_templates",
+      "breakpoints": true
+    },
+    {
+      "idx": 121,
+      "version": "7",
+      "when": 1794529575075,
+      "tag": "0121_lot31a_hub_professional_mentions",
+      "breakpoints": true
+    },
+    {
+      "idx": 122,
+      "version": "7",
+      "when": 1794556574403,
+      "tag": "0122_lot31b_quotes_client_kind",
+      "breakpoints": true
+    },
+    {
+      "idx": 123,
+      "version": "7",
+      "when": 1794556580761,
+      "tag": "0123_lot31b_quotes_contracts",
+      "breakpoints": true
+    },
+    {
+      "idx": 124,
+      "version": "7",
+      "when": 1794556613779,
+      "tag": "0124_lot31b_hub_contract_retention",
+      "breakpoints": true
+    },
+    {
+      "idx": 125,
+      "version": "7",
+      "when": 1794561668816,
+      "tag": "0125_lot31c_quotes_receipt_series",
+      "breakpoints": true
+    },
+    {
+      "idx": 126,
+      "version": "7",
+      "when": 1794561669761,
+      "tag": "0126_lot31c_quotes_payment_terms_receipts",
+      "breakpoints": true
     }
   ]
 }

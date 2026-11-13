@@ -140,6 +140,15 @@ export async function upsertPlatformSettings(
     .onConflictDoUpdate({ target: platformSettings.id, set: { ...fields, updatedAt: new Date() } });
 }
 
+// Lot 31a (FAC-07, décision D4) : liste des mentions requises réglée par l'Admin (null :
+// liste de départ).
+export async function updatePlatformRequiredMentions(db: AppDatabase, rules: unknown[] | null) {
+  await db
+    .insert(platformSettings)
+    .values({ id: 1, requiredMentions: rules, updatedAt: new Date() })
+    .onConflictDoUpdate({ target: platformSettings.id, set: { requiredMentions: rules, updatedAt: new Date() } });
+}
+
 // Lot 10 — progression d'un compte dans l'aide (visites focus, tutoriels).
 export async function findHelpProgress(db: AppDatabase, userId: string) {
   return db.select().from(helpProgress).where(eq(helpProgress.userId, userId));

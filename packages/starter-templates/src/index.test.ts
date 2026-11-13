@@ -2,7 +2,46 @@ import { describe, expect, it } from "vitest";
 import retroplanningFile from "./retroplanning.json";
 import vendorSlotsFile from "./vendor-slots.json";
 import programFile from "./program.json";
-import { starterDemoEvent, starterDemoQuote, starterErasureResponse, starterPrivacySettings, starterInvoiceMentions, starterDocumentStyle, starterQuoteTerms, starterRequestResponse, starterLossReasons, starterPaymentMethods, starterProgram, starterProspectSources, starterRetroplanning, starterVendorSlots, starterVendorTypes, starterBudgetLines, starterAllocation, starterFollowUpDelays, starterVendorTypeSynonymGroups, starterVendorCatalog, starterEventTypes, starterVendorTags, starterPaymentMethodKinds, BUDGET_LINE_ICONS, starterLinkProfiles, starterLinkExpiry, starterLinkPrivacyNotice, starterClientTaskReminders, starterEmergencyNumbers } from "./index";
+import {
+  BUDGET_LINE_ICONS,
+  MENTION_FIELDS,
+  starterAllocation,
+  starterBudgetLines,
+  starterClientTaskReminders,
+  starterDemoEvent,
+  starterDemoQuote,
+  starterDocumentStyle,
+  starterEmergencyNumbers,
+  starterErasureResponse,
+  starterEventTypes,
+  starterFollowUpDelays,
+  starterInvoiceMentions,
+  starterLatePenalty,
+  isPreviousStarterInvoiceMentions,
+  starterProfessionalPaymentTerms,
+  starterLinkExpiry,
+  starterLinkPrivacyNotice,
+  starterLinkProfiles,
+  starterLossReasons,
+  starterPaymentMethodKinds,
+  starterPaymentMethods,
+  starterPrivacySettings,
+  starterProgram,
+  starterProspectSources,
+  starterQuoteTemplates,
+  starterContractTemplates,
+  starterContractRules,
+  contractTemplateWarning,
+  starterQuoteTerms,
+  starterRequestResponse,
+  starterRequiredMentions,
+  starterRetroplanning,
+  starterVendorCatalog,
+  starterVendorSlots,
+  starterVendorTags,
+  starterVendorTypes,
+  starterVendorTypeSynonymGroups,
+} from "./index";
 
 describe("PRD-EVT-03 — Modèle de départ des postes prestataires", () => {
   it("existe en français et en anglais, avec le même nombre de postes", () => {
@@ -161,7 +200,8 @@ describe("RGPD-04/05 — Réglages RGPD de départ", () => {
       clientRetentionMonths: 36,
       accountingRetentionMonths: 120,
       inactiveAccountMonths: 24,
-      signedQuoteRetentionMonths: 60,
+      // Lot 31b (réponse 3 de l'avocat, D16) : contrat électronique et dossier de preuve, dix ans.
+      signedQuoteRetentionMonths: 120,
       // RGPD-09 : preuve d'une demande close gardée 5 ans (décision de Julien du 09/11/2026).
       requestProofRetentionMonths: 60,
     });
@@ -393,5 +433,121 @@ describe("L26 — Données de départ des liens personnels (POR-01, SEC-15, RGP-
       expect(starterLinkPrivacyNotice(locale)).toContain("{contact}");
       expect(starterLinkPrivacyNotice(locale)).toContain("CNIL");
     }
+  });
+});
+
+describe("FAC-07 / JUR-01 — Mentions requises de départ (lot 31a, D4)", () => {
+  it("chaque mention connue est requise sur au moins un document ; l'identité du vendeur partout", () => {
+    const rules = starterRequiredMentions();
+    expect(new Set(rules.map((rule) => rule.field))).toEqual(new Set(MENTION_FIELDS));
+    for (const field of ["organizationName", "address", "siren"] as const) {
+      expect(rules.find((rule) => rule.field === field)?.documents).toEqual(["quote", "deposit_invoice", "balance_invoice", "credit_note"]);
+    }
+  });
+
+  it("conditions : numéro de TVA si assujetti, capital pour une société, médiateur pour un particulier", () => {
+    const rules = starterRequiredMentions();
+    expect(rules.find((rule) => rule.field === "vatNumber")?.vatRegimes).toEqual(["assujetti"]);
+    expect(rules.find((rule) => rule.field === "shareCapital")?.legalForms).toContain("sas");
+    expect(rules.find((rule) => rule.field === "mediator")?.clientKinds).toEqual(["individual"]);
+  });
+});
+
+describe("FAC-01 / HUB-26 — Modèle de devis de départ (lot 31a, D3)", () => {
+  it("un modèle de mariage « à adapter » : sections, deux options, échéancier sous le total", () => {
+    const [template] = starterQuoteTemplates("fr");
+    expect(template?.name).toMatch(/à adapter/);
+    expect(template?.eventTypeKey).toBe("wedding");
+    const sectionKeys = new Set(template!.sections.map((section) => section.key));
+    expect(template!.lines.every((line) => line.section === null || sectionKeys.has(line.section))).toBe(true);
+    expect(template!.lines.filter((line) => line.isOption)).toHaveLength(2);
+    expect(template!.schedule.reduce((sum, entry) => sum + entry.percentageBasisPoints, 0)).toBeLessThan(10000);
+    expect(starterQuoteTemplates("en")[0]?.name).toMatch(/to adapt/);
+    expect(starterQuoteTemplates("fr", "event_agency")).toEqual([]);
+  });
+});
+
+describe("FAC-04 / HUB-26 / JUR-20 — Modèle de contrat de départ « à adapter » (lot 31b, D10)", () => {
+  it("un squelette : titres, variables, et un emplacement « à rédiger » à la place de chaque texte juridique", () => {
+    const [template] = starterContractTemplates("fr");
+    expect(template?.name).toMatch(/à adapter/);
+    expect(template?.eventTypeKey).toBe("wedding");
+    expect(template!.clauses.map((clause) => clause.title)).toContain("Annulation et report");
+    expect(template!.clauses.find((clause) => clause.title === "Annulation et report")?.body).toMatch(/^\[À rédiger avec votre conseil/);
+    expect(template!.clauses.find((clause) => clause.title === "Objet")?.body).toContain("{evenement.date}");
+    expect(starterContractTemplates("en")[0]?.clauses.find((clause) => clause.role === "early_execution")?.body).toMatch(/^\[To be drafted/);
+    expect(starterContractTemplates("fr", "event_agency")).toEqual([]);
+  });
+
+  it("chaque élément exigé par un régime, et chaque clause des sommes versées d'avance, a sa clause ; l'avertissement de relecture est fourni", () => {
+    const [template] = starterContractTemplates("fr");
+    const rules = starterContractRules();
+    const roles = new Set(template!.clauses.map((clause) => clause.role));
+    for (const role of [...rules.requiredRoles.withdrawal, ...rules.requiredRoles.noWithdrawal, rules.advanceRoles.deposit, rules.advanceRoles.earnest]) expect(roles).toContain(role);
+    expect(contractTemplateWarning("fr")).toBe("Base à adapter, à faire relire par un professionnel du droit.");
+    expect(contractTemplateWarning("en")).toMatch(/legal professional/);
+  });
+});
+
+describe("JUR-07 / JUR-14 — Règles des contrats (lot 31b, réponses de l'avocat, D11 à D15)", () => {
+  it("quatorze jours reportés au lundi ; rétractation à distance et hors établissement ; foire ou salon refusé ; sept jours sans paiement hors établissement", () => {
+    const rules = starterContractRules();
+    expect(rules.withdrawal).toEqual({ periodDays: 14, extendWeekendToMonday: true });
+    expect(rules.regime.withdrawalChannels).toEqual(["distance", "off_premises"]);
+    expect(rules.regime.blockedChannels).toEqual(["fair"]);
+    expect(rules.regime.consumerCategories).toEqual(["individual"]);
+    expect(rules.regime.orderChannels).toEqual(["distance"]);
+    expect(rules.regime.noPaymentDays).toEqual({ off_premises: 7 });
+    expect(rules.signature).toEqual({ advancedThresholdCents: 1000000, availableLevel: "simple" });
+    expect(rules.retention.signedContractMinimumMonths).toBe(120);
+    expect(rules.placeholderMarkers).toContain("[À rédiger");
+  });
+});
+
+describe("FAC-07 / JUR-01 — Conditions de paiement selon le client (lot 31c, expert-comptable, D18)", () => {
+  it("deux textes de départ, en français et en anglais : particuliers et non-professionnels, puis professionnels", () => {
+    for (const locale of ["fr", "en"] as const) {
+      expect(starterInvoiceMentions(locale)).toBeTruthy();
+      expect(starterProfessionalPaymentTerms(locale)).toBeTruthy();
+      expect(starterProfessionalPaymentTerms(locale)).not.toBe(starterInvoiceMentions(locale));
+    }
+    expect(starterInvoiceMentions("fr")).toContain("escompte");
+    // Le taux légal, sous le plancher face à un professionnel, n'est plus dans le texte de départ.
+    expect(starterInvoiceMentions("fr")).not.toContain("taux d'intérêt légal");
+    expect(starterProfessionalPaymentTerms("fr")).toContain("scompte");
+    expect(starterProfessionalPaymentTerms("en")).toMatch(/discount/i);
+  });
+
+  it("l'ancien texte de départ (pénalités au taux légal) est reconnu, en français et en anglais", () => {
+    expect(isPreviousStarterInvoiceMentions("Conditions de paiement : à réception de la facture, par virement bancaire. Aucun escompte pour paiement anticipé. En cas de retard de paiement, des pénalités au taux d'intérêt légal peuvent être appliquées.")).toBe(true);
+    expect(isPreviousStarterInvoiceMentions("  Payment terms: upon receipt of the invoice, by bank transfer. No discount for early payment. In the event of late payment, penalties at the statutory interest rate may apply.\n")).toBe(true);
+    expect(isPreviousStarterInvoiceMentions(starterInvoiceMentions("fr"))).toBe(false);
+    expect(isPreviousStarterInvoiceMentions(null)).toBe(false);
+  });
+
+  it("le taux des pénalités se choisit dans une liste de deux, sans valeur par défaut ; l'indemnité forfaitaire est de 40 €", () => {
+    const penalty = starterLatePenalty();
+    expect(penalty.rates.map((rate) => rate.key)).toEqual(["ecb_plus_10", "three_times_legal"]);
+    expect(penalty.rates.find((rate) => rate.key === "ecb_plus_10")?.label.fr).toBe("Taux de la BCE majoré de 10 points");
+    expect(penalty.rates.find((rate) => rate.key === "three_times_legal")?.label.fr).toBe("Trois fois le taux d'intérêt légal");
+    expect(penalty.recoveryIndemnityCents).toBe(4000);
+    for (const locale of ["fr", "en"] as const) {
+      expect(penalty.sentence[locale]).toContain("{taux}");
+      expect(penalty.sentence[locale]).toContain("{indemnite}");
+    }
+  });
+
+  it("mentions exigées : texte professionnel et taux pour un client professionnel, sur le devis et les factures ; son texte pour les autres", () => {
+    const rules = starterRequiredMentions();
+    expect(MENTION_FIELDS).toContain("professionalPaymentTerms");
+    expect(MENTION_FIELDS).toContain("latePenaltyRate");
+    for (const field of ["professionalPaymentTerms", "latePenaltyRate"] as const) {
+      const rule = rules.find((candidate) => candidate.field === field);
+      expect(rule?.documents).toEqual(["quote", "deposit_invoice", "balance_invoice"]);
+      expect(rule?.clientKinds).toEqual(["professional"]);
+    }
+    const individual = rules.find((rule) => rule.field === "paymentTerms");
+    expect(individual?.documents).toEqual(["deposit_invoice", "balance_invoice"]);
+    expect(individual?.clientKinds).toEqual(["individual", "non_professional"]);
   });
 });

@@ -30,6 +30,19 @@ indiquons ce que fera Symbola selon votre réponse.
   - conditions de paiement, avec ce texte de départ, modifiable : « à réception de la facture, par
     virement bancaire. Aucun escompte pour paiement anticipé. En cas de retard de paiement, des
     pénalités au taux d'intérêt légal peuvent être appliquées. »
+- **Mentions exigées** (depuis le 13/11/2026) : une liste de départ, réglable, dit quelles
+  mentions chaque document doit porter. L'envoi d'un devis et l'émission d'une facture sont
+  refusés tant qu'une mention manque, et le message nomme le champ à remplir :
+  - sur le devis, les factures d'acompte et de solde et l'avoir : nom, adresse, SIREN ou SIRET ;
+    pour une société (EURL, SARL, SAS, SASU, SA) l'immatriculation (RCS ou RM) et le capital ;
+    pour un assujetti, le numéro de TVA ;
+  - sur le devis seulement : l'assurance de responsabilité civile professionnelle ; pour un
+    client particulier, le médiateur de la consommation et les conditions générales de vente ;
+  - sur les factures d'acompte et de solde : les conditions de paiement ;
+  - un avoir reprend les mentions figées de sa facture.
+- **Acompte ou arrhes** : chaque devis dit si les sommes versées d'avance sont des acomptes ou
+  des arrhes ; la facture correspondante s'intitule « Facture d'acompte » ou « Facture
+  d'arrhes ».
 - **Encaissements** : le planner les saisit à la main (date et mode de paiement). Il n'y a pas
   encore de paiement en ligne.
 - **Export « e-reporting »** : un fichier CSV par période. Une ligne par facture, avoir ou
@@ -50,8 +63,9 @@ Quelles mentions manquent ? Le texte de départ des conditions de paiement prév
 « au taux d'intérêt légal » et ne parle pas de l'indemnité forfaitaire de recouvrement : est-ce
 suffisant pour un client professionnel ?
 
-> **Symbola** : chaque mention manquante devient un champ obligatoire de l'organisation. La facture
-> ne peut pas être émise tant qu'il manque, et le message nomme le champ.
+> **Symbola** : la liste des mentions exigées décrite plus haut est un réglage. Nous l'ajustons
+> selon votre réponse : chaque mention ajoutée devient un champ obligatoire, et le devis ou la
+> facture ne part pas tant qu'il manque.
 
 ### 2. Mentions ajoutées par la réforme au 1er septembre 2027
 
@@ -125,6 +139,10 @@ Une facture par acompte, puis une facture de solde qui déduit les acomptes : es
 pratique pour un planner en franchise ? Et pour un planner assujetti, compte tenu de
 l'exigibilité de la TVA à l'encaissement pour les prestations de services ?
 
+Le devis peut aussi prévoir des arrhes plutôt que des acomptes (question 2 de la fiche de
+l'avocat). Symbola émet alors une « facture d'arrhes » de la même façon : est-ce correct,
+notamment pour la TVA d'un planner assujetti ?
+
 > **Symbola** : nous ajustons la génération des factures selon votre réponse.
 
 ### 8. Ce que vous voulez recevoir
@@ -174,3 +192,24 @@ Des réponses écrites, même brèves, à chaque question numérotée.
 
 - **Avant de développer les contrats et les factures complètes** : questions 1, 6, 7 et 10.
 - **Avant le printemps 2027** : questions 2 à 5, pour être prêts au 1er septembre 2027.
+
+## Réponses reçues le 13 novembre 2026
+
+L'expert-comptable a répondu aux dix questions, puis le même jour à la question des arrhes, posée
+à part ; Julien confirme que ses réponses ont été vérifiées. La note reste hors de ce dépôt, qui
+est public ; ce qui suit est ce que Symbola en retient. Suites : `docs/lots/lot-31-devis-contrat.md`
+(D18 à D22) et `docs/QUESTIONS.md` (Q36).
+
+| Q | Ce que Symbola retient | Où |
+| --- | --- | --- |
+| 1 | Socle : article 242 nonies A de l'annexe II au CGI et article L441-9 du Code de commerce. À ajouter : quantité et prix unitaire HT par ligne (déjà là), remises (déjà là), la mention « EI » pour un entrepreneur individuel, le numéro de bon de commande quand le client en émet un. Franchise : mention de l'article 293 B, sans TVA (déjà là). **Conditions de paiement : le texte de départ est non conforme face à un professionnel** (« taux d'intérêt légal » est sous le plancher). Deux modèles : professionnels (échéance, escompte, pénalités, indemnité forfaitaire de 40 €) ; particuliers (échéance et escompte). Taux recommandé : celui de la BCE majoré de 10 points ; « trois fois le taux légal » est le plancher. | Lot 31c (D18, D19) ; lot 41 (bon de commande) |
+| 2 | Quatre mentions de la réforme (décret 2022-1299) entre assujettis ; imprimer la catégorie de l'opération (biens, services ou les deux) sur toutes les factures. Calendrier d'émission : septembre 2027 pour les PME et micro-entreprises. | Lot 41 |
+| 3 | La facturation électronique vaut aussi en franchise. Émission vers les clients entreprises au 1er septembre 2027 ; un PDF par e-mail ne suffira plus. **Réception obligatoire depuis le 1er septembre 2026** pour toute entreprise (plateforme agréée, annuaire) : à vérifier chez la planner pilote. | Lot 41 ; action de Julien (Q36) |
+| 4 | E-reporting (art. 242 nonies M) : données agrégées, catégorie LB/PS/LBPS, ventilation par taux et motif d'exonération, encaissements de services dans un flux à part, par une plateforme agréée ; en franchise, par bimestre. L'export CSV actuel est une base, insuffisante. | Lot 42 |
+| 5 | Article 286 : la franchise n'est pas concernée ; l'assujetti l'est dès que Symbola enregistre les règlements de particuliers. L'attestation de l'éditeur suffit de nouveau (loi de finances pour 2026, modèle de l'administration). Comparer la conception à la doctrine (clôtures périodiques, archivage restituable). | Lot 42 (JUR-05) |
+| 6 | Dix ans (article L123-22 du Code de commerce). Garder le fichier émis comme original, avec son empreinte (déjà le cas, lot 23b) ; PDF/A-3 pour Factur-X. | Lot 41 |
+| 7 | Une facture par acompte puis un solde qui les déduit : bonne pratique dans les deux régimes. Assujetti : chaque facture d'acompte porte sa TVA ; **le solde déduit les acomptes en HT et en TVA** ; opération mixte : séparer les lignes par catégorie. | Lot 31c (D20) |
+| 7 bis | **Arrhes : pas de « facture d'arrhes »** (le traitement du 31a n'est pas correct). Les arrhes sont une indemnité de dédit, hors champ de la TVA, de la facturation électronique et de l'e-reporting tant qu'elles ne sont pas imputées sur le prix. À l'encaissement : un reçu non fiscal, hors de la série des factures. Facture de solde : le prix total (HT, TVA, TTC), les arrhes imputées figurant comme un règlement ; pour l'assujetti, la TVA devient exigible à l'imputation. Client qui renonce : un constat de renonciation, ni facture ni avoir. Planner qui renonce : un document de restitution du double, sans TVA. Réserves : pour un consommateur, les sommes versées d'avance sont présumées arrhes sauf stipulation contraire, donc le choix doit être explicite et écrit en toutes lettres ; des arrhes sans faculté de dédit réelle seraient requalifiées en acompte. Schéma conseillé : des arrhes versées une seule fois à la réservation, puis des acomptes. | Lot 31c (D21, D22, ADR 0066) ; lot 34 (annulation) |
+| 8 | Micro-entreprise : journal des recettes en CSV (date d'encaissement, mode, numéro de facture, client). Société : journal des ventes et des encaissements, FEC en fin d'exercice, PDF d'origine rattachés. Accès en lecture seule pour le comptable. | Lot 42 |
+| 9 | Intermédiaire transparent : le planner facture ses honoraires ; la commission est facturée au prestataire. Revendeur : base = total refacturé ; en franchise, risque de dépasser le seuil ; débours sous conditions. La qualité d'intermédiaire repose sur le contrat, pas sur la case cochée. | Lot 48 |
+| 10 | Calcul par taux validé ; mêmes totaux au centime entre PDF et fichier structuré, même méthode sur papier et en électronique. | Lot 41 |

@@ -1,0 +1,137 @@
+{
+  "version": 1,
+  "status": {
+    "fr": "Liste de départ à valider par l'expert-comptable (JUR-01, fiche docs/conformite/fiche-expert-comptable.md).",
+    "en": "Starter list, to be validated by the chartered accountant (JUR-01)."
+  },
+  "rules": [
+    {
+      "field": "organizationName",
+      "documents": [
+        "quote",
+        "deposit_invoice",
+        "balance_invoice",
+        "credit_note"
+      ]
+    },
+    {
+      "field": "address",
+      "documents": [
+        "quote",
+        "deposit_invoice",
+        "balance_invoice",
+        "credit_note"
+      ]
+    },
+    {
+      "field": "siren",
+      "documents": [
+        "quote",
+        "deposit_invoice",
+        "balance_invoice",
+        "credit_note"
+      ]
+    },
+    {
+      "field": "registration",
+      "documents": [
+        "quote",
+        "deposit_invoice",
+        "balance_invoice",
+        "credit_note"
+      ],
+      "legalForms": [
+        "eurl",
+        "sarl",
+        "sas",
+        "sasu",
+        "sa"
+      ]
+    },
+    {
+      "field": "shareCapital",
+      "documents": [
+        "quote",
+        "deposit_invoice",
+        "balance_invoice",
+        "credit_note"
+      ],
+      "legalForms": [
+        "eurl",
+        "sarl",
+        "sas",
+        "sasu",
+        "sa"
+      ]
+    },
+    {
+      "field": "vatNumber",
+      "documents": [
+        "quote",
+        "deposit_invoice",
+        "balance_invoice",
+        "credit_note"
+      ],
+      "vatRegimes": [
+        "assujetti"
+      ]
+    },
+    {
+      "field": "insurance",
+      "documents": [
+        "quote"
+      ]
+    },
+    {
+      "field": "mediator",
+      "documents": [
+        "quote"
+      ],
+      "clientKinds": [
+        "individual"
+      ]
+    },
+    {
+      "field": "generalTerms",
+      "documents": [
+        "quote"
+      ],
+      "clientKinds": [
+        "individual"
+      ]
+    },
+    {
+      "field": "paymentTerms",
+      "documents": [
+        "deposit_invoice",
+        "balance_invoice"
+      ],
+      "clientKinds": [
+        "individual",
+        "non_professional"
+      ]
+    },
+    {
+      "field": "professionalPaymentTerms",
+      "documents": [
+        "quote",
+        "deposit_invoice",
+        "balance_invoice"
+      ],
+      "clientKinds": [
+        "professional"
+      ]
+    },
+    {
+      "field": "latePenaltyRate",
+      "documents": [
+        "quote",
+        "deposit_invoice",
+        "balance_invoice"
+      ],
+      "clientKinds": [
+        "professional"
+      ]
+    }
+  ]
+}

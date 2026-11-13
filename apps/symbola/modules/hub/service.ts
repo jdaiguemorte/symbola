@@ -8,7 +8,7 @@ import { createUser, listTeam } from "@symbola/auth";
 import { detectFileType, uploadFile } from "@symbola/files";
 import { sendMail } from "@symbola/mail";
 import { parseEnv } from "@symbola/env";
-import { starterFollowUpDelays, starterLinkPrivacyNotice } from "@symbola/starter-templates";
+import { requiredMentionRuleSchema, starterFollowUpDelays, starterLinkPrivacyNotice, starterRequiredMentions, type RequiredMentionRule } from "@symbola/starter-templates";
 import { getLinkPrivacyNotice } from "./privacy-requests";
 import {
   findInvitationByTokenHash,
@@ -31,6 +31,7 @@ import {
   upsertOrganizationModule,
   upsertOrganizationProfileFields,
   upsertPlatformSettings,
+  updatePlatformRequiredMentions,
 } from "./repository";
 import type { Language } from "./types";
 
@@ -355,6 +356,13 @@ export type OrganizationProfile = {
   vatNumber: string | null;
   registration: string | null;
   shareCapitalCents: number | null;
+  // Lot 31a (JUR-09, décision D4) : informations du professionnel reprises sur les documents.
+  insurer: string | null;
+  insurancePolicy: string | null;
+  insuranceCoverage: string | null;
+  mediatorName: string | null;
+  mediatorUrl: string | null;
+  generalTerms: string | null;
 };
 
 const EMPTY_PROFILE: OrganizationProfile = {
@@ -373,6 +381,12 @@ const EMPTY_PROFILE: OrganizationProfile = {
   vatNumber: null,
   registration: null,
   shareCapitalCents: null,
+  insurer: null,
+  insurancePolicy: null,
+  insuranceCoverage: null,
+  mediatorName: null,
+  mediatorUrl: null,
+  generalTerms: null,
 };
 
 // ONB-01 — Pas encore de ligne = questionnaire jamais commencé : toutes
@@ -513,6 +527,13 @@ export type SellerDetails = {
   contactEmail: string | null;
   contactPhone: string | null;
   website: string | null;
+  // Lot 31a (JUR-09) : assurance, médiateur et conditions générales.
+  insurer: string | null;
+  insurancePolicy: string | null;
+  insuranceCoverage: string | null;
+  mediatorName: string | null;
+  mediatorUrl: string | null;
+  generalTerms: string | null;
 };
 
 export async function getSellerDetails(db: AppDatabase, organizationId: string): Promise<SellerDetails> {
@@ -531,7 +552,66 @@ export async function getSellerDetails(db: AppDatabase, organizationId: string):
     contactEmail: profile.contactEmail,
     contactPhone: profile.contactPhone,
     website: profile.website,
+    insurer: profile.insurer,
+    insurancePolicy: profile.insurancePolicy,
+    insuranceCoverage: profile.insuranceCoverage,
+    mediatorName: profile.mediatorName,
+    mediatorUrl: profile.mediatorUrl,
+    generalTerms: profile.generalTerms,
   };
+}
+
+// Lot 31a (JUR-09, décision D4) — informations du professionnel : assurance de
+// responsabilité civile professionnelle, médiateur de la consommation, conditions
+// générales de vente. Reprises sur les devis ; leur absence bloque l'envoi quand la liste
+// des mentions requises les demande.
+export type ProfessionalMentionsInput = {
+  insurer: string | null;
+  insurancePolicy: string | null;
+  insuranceCoverage: string | null;
+  mediatorName: string | null;
+  mediatorUrl: string | null;
+  generalTerms: string | null;
+};
+
+export class InvalidProfessionalMentionError extends Error {
+  constructor(readonly field: keyof ProfessionalMentionsInput) {
+    super(`information du professionnel invalide : ${field}`);
+    this.name = "InvalidProfessionalMentionError";
+  }
+}
+
+const PROFESSIONAL_MENTION_LIMITS: Record<keyof ProfessionalMentionsInput, number> = {
+  insurer: 120,
+  insurancePolicy: 80,
+  insuranceCoverage: 200,
+  mediatorName: 160,
+  mediatorUrl: 300,
+  generalTerms: 20000,
+};
+
+export function cleanProfessionalMentions(input: ProfessionalMentionsInput): ProfessionalMentionsInput {
+  const clean = {} as ProfessionalMentionsInput;
+  for (const field of Object.keys(PROFESSIONAL_MENTION_LIMITS) as (keyof ProfessionalMentionsInput)[]) {
+    const raw = input[field];
+    const text = field === "generalTerms" ? (raw ?? "").replace(/\r\n/g, "\n").trim() : (raw ?? "").replace(/\s+/g, " ").trim();
+    if (text.length > PROFESSIONAL_MENTION_LIMITS[field]) throw new InvalidProfessionalMentionError(field);
+    clean[field] = text === "" ? null : text;
+  }
+  if (clean.mediatorUrl) {
+    try {
+      const url = new URL(/^https?:\/\//i.test(clean.mediatorUrl) ? clean.mediatorUrl : `https://${clean.mediatorUrl}`);
+      if (!url.hostname.includes(".") || /\s/.test(clean.mediatorUrl)) throw new Error("adresse");
+      clean.mediatorUrl = url.toString().replace(/\/$/, "");
+    } catch {
+      throw new InvalidProfessionalMentionError("mediatorUrl");
+    }
+  }
+  return clean;
+}
+
+export async function saveProfessionalMentions(db: AppDatabase, organizationId: string, input: ProfessionalMentionsInput): Promise<void> {
+  await upsertOrganizationProfileFields(db, organizationId, cleanProfessionalMentions(input));
 }
 
 export type DocumentDetailsInput = {
@@ -712,6 +792,36 @@ export async function getPlatformSettings(db: AppDatabase): Promise<PlatformSett
 
 // Les limites de l'import sont facultatives : non fournies, elles gardent
 // leur valeur actuelle.
+// Lot 31a (FAC-07, JUR-01, décision D4) — mentions requises sur les devis, factures et
+// avoirs : la liste de l'Admin si elle existe, sinon la liste de départ (à valider par
+// l'expert-comptable). Valeur réglementaire : jamais dans le code.
+export type RequiredMentions = { rules: RequiredMentionRule[]; source: "admin" | "starter" };
+
+export async function getRequiredMentionRules(db: AppDatabase): Promise<RequiredMentions> {
+  const row = await findPlatformSettings(db);
+  const parsed = row?.requiredMentions ? requiredMentionRuleSchema.array().min(1).safeParse(row.requiredMentions) : null;
+  return parsed?.success ? { rules: parsed.data, source: "admin" } : { rules: starterRequiredMentions(), source: "starter" };
+}
+
+export class InvalidRequiredMentionsError extends Error {
+  constructor() {
+    super("liste des mentions requises invalide");
+    this.name = "InvalidRequiredMentionsError";
+  }
+}
+
+// null : retour à la liste de départ.
+export async function setRequiredMentionRules(db: AppDatabase, input: { adminUserId: string; rules: RequiredMentionRule[] | null }): Promise<void> {
+  let rules: RequiredMentionRule[] | null = null;
+  if (input.rules !== null) {
+    const parsed = requiredMentionRuleSchema.array().min(1).safeParse(input.rules);
+    if (!parsed.success) throw new InvalidRequiredMentionsError();
+    rules = parsed.data;
+  }
+  await updatePlatformRequiredMentions(db, rules);
+  await recordAudit(db, { organizationId: null, action: "hub.required_mentions.updated", actor: { kind: "admin", id: input.adminUserId } });
+}
+
 export async function setPlatformSettings(
   db: AppDatabase,
   input: { adminUserId: string } & Pick<PlatformSettings, "franchiseThresholdServicesCents" | "franchiseThresholdGoodsCents"> &

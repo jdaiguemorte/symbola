@@ -47,8 +47,11 @@ const balance: InvoiceView = {
   buyers: [{ name: "Inès Martin", billingAddress: "3 place Bellecour, 69002 Lyon" }],
   lines: [{ label: "Coordination", description: null, unit: "forfait", quantityMilli: 1000, unitPriceCents: 223000, vatRateBasisPoints: 2000, discountBasisPoints: 0, netCents: 223000 }],
   depositLabel: null,
+  advanceKind: null,
   quoteTotals: { subtotalCents: 223000, globalDiscountCents: 0, totalHtCents: 223000, vatByRate: [{ rateBasisPoints: 2000, baseCents: 223000, vatCents: 44600 }], totalVatCents: 44600, totalTtcCents: 267600 },
   deductions: [{ number: "F-2027-0001", amountCents: 80000 }],
+  settlements: [],
+  amountDueCents: 187600,
   totals,
   creditNotes: [],
   creditedCents: 0,
@@ -192,3 +195,58 @@ describe("DOC-08 — Poids de l'original d'une facture", () => {
   });
 });
 
+// Lot 31c (FAC-05, JUR-08 ; réponses 7 et 7 bis de l'expert-comptable, D20 et D21).
+const spaced = (rows: { label: string; value: string; strong?: boolean }[]) => rows.map((row) => [row.label, row.value.replace(/\s/g, " "), row.strong ?? false]);
+
+describe("FAC-05 — Solde par taux, arrhes en règlement (lot 31c, D20, D21)", () => {
+  it("le solde montre le devis par taux, chaque acompte déduit en HT et en TVA, puis le solde par taux et le reste à payer", () => {
+    const quoteTotals = {
+      subtotalCents: 230000,
+      globalDiscountCents: 0,
+      totalHtCents: 230000,
+      vatByRate: [
+        { rateBasisPoints: 1000, baseCents: 80000, vatCents: 8000 },
+        { rateBasisPoints: 2000, baseCents: 150000, vatCents: 30000 },
+      ],
+      totalVatCents: 38000,
+      totalTtcCents: 268000,
+    };
+    const deposit = { totalHtCents: 69000, vatByRate: [{ rateBasisPoints: 1000, baseCents: 24000, vatCents: 2400 }, { rateBasisPoints: 2000, baseCents: 45000, vatCents: 9000 }], totalVatCents: 11400, totalTtcCents: 80400 };
+    const rest = { totalHtCents: 161000, vatByRate: [{ rateBasisPoints: 1000, baseCents: 56000, vatCents: 5600 }, { rateBasisPoints: 2000, baseCents: 105000, vatCents: 21000 }], totalVatCents: 26600, totalTtcCents: 187600 };
+    const model = invoiceModel({ ...balance, quoteTotals, deductions: [{ number: "F-2027-0001", amountCents: 80400, totals: deposit }], totals: rest, amountCents: 187600, amountDueCents: 187600 });
+    expect(spaced(model.totals)).toEqual([
+      ["Total HT du devis", "2 300,00 €", false],
+      ["TVA 10 % du devis", "80,00 €", false],
+      ["TVA 20 % du devis", "300,00 €", false],
+      ["Total TTC du devis", "2 680,00 €", false],
+      ["Acompte F-2027-0001 déduit, HT", "− 690,00 €", false],
+      ["Acompte F-2027-0001 déduit, TVA 10 %", "− 24,00 €", false],
+      ["Acompte F-2027-0001 déduit, TVA 20 %", "− 90,00 €", false],
+      ["Solde HT", "1 610,00 €", false],
+      ["Solde, TVA 10 %", "56,00 €", false],
+      ["Solde, TVA 20 %", "210,00 €", false],
+      ["Reste à payer", "1 876,00 €", true],
+    ]);
+  });
+
+  it("devis à arrhes : le prix total, puis les arrhes reçues en règlement, puis le reste à payer ; jamais « facture d'arrhes »", () => {
+    const full = { totalHtCents: 223000, vatByRate: [{ rateBasisPoints: 2000, baseCents: 223000, vatCents: 44600 }], totalVatCents: 44600, totalTtcCents: 267600 };
+    const model = invoiceModel({
+      ...balance,
+      advanceKind: "earnest",
+      deductions: [],
+      totals: full,
+      amountCents: 267600,
+      settlements: [{ label: "Arrhes à la réservation", paidOn: "2027-01-05", amountCents: 80000 }],
+      amountDueCents: 187600,
+    });
+    expect(model.subtitle).toBe("Facture de solde");
+    expect(spaced(model.totals)).toEqual([
+      ["Total HT", "2 230,00 €", false],
+      ["TVA 20 %", "446,00 €", false],
+      ["Total TTC", "2 676,00 €", true],
+      ["Arrhes reçues le 5 janvier 2027 (Arrhes à la réservation)", "− 800,00 €", false],
+      ["Reste à payer", "1 876,00 €", true],
+    ]);
+  });
+});

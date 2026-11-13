@@ -126,14 +126,16 @@ describe("RGPD-05 — Purge mensuelle : liste des données échues (dates simul�
     expect(await keys(planner, due)).toEqual([`prospect:event:${eventId}`]);
   });
 
-  it("client : 3 ans après le dernier encaissement ; facture 10 ans après son émission ; devis signé 5 ans après la signature", async () => {
+  it("client : 3 ans après le dernier encaissement ; facture 10 ans après son émission ; devis signé 10 ans après la signature (lot 31b, D16)", async () => {
     const planner = await createPlanner();
     const { eventId, quoteId, invoiceId } = await client(planner, `Martin${randomUUID().slice(0, 4)}`);
     // Fin de la relation : dernier paiement (01/07/2027) plutôt que la date du mariage (12/06/2027).
     expect(await keys(planner, "2030-06-30")).toEqual([]);
     expect(await keys(planner, "2030-07-01")).toEqual([`client:event:${eventId}`]);
     expect(await keys(planner, "2031-03-09")).toEqual([`client:event:${eventId}`]);
-    expect(await keys(planner, "2031-03-10")).toEqual([`client:event:${eventId}`, `signed_quote:quote:${quoteId}`]);
+    expect(await keys(planner, "2031-03-10")).toEqual([`client:event:${eventId}`]);
+    expect(await keys(planner, "2036-03-09")).not.toContain(`signed_quote:quote:${quoteId}`);
+    expect(await keys(planner, "2036-03-10")).toContain(`signed_quote:quote:${quoteId}`);
     expect(await keys(planner, "2036-03-11")).toContain(`accounting_document:invoice:${invoiceId}`);
     expect(await keys(planner, "2036-03-10")).not.toContain(`accounting_document:invoice:${invoiceId}`);
   });

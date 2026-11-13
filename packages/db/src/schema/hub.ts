@@ -4,7 +4,8 @@
 // (events, budget, quotes le seront). L'isolation entre organisations pour
 // ces tables est assurée exclusivement par packages/auth (seule porte
 // d'entrée, ADR 0013) : aucun autre code n'y accède directement.
-import { bigint, boolean, date, index, integer, jsonb, pgSchema, primaryKey, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+import { bigint, boolean, check, date, index, integer, jsonb, pgSchema, primaryKey, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
 export const hubSchema = pgSchema("hub");
 
@@ -253,12 +254,26 @@ export const organizationProfiles = hubSchema.table("organization_profiles", {
   // RCS ou RM, en texte libre (« RCS Lyon 123 456 789 »).
   registration: text("registration"),
   shareCapitalCents: bigint("share_capital_cents", { mode: "number" }),
+  // Lot 31a (JUR-09, décision D4) : informations du professionnel reprises sur les documents.
+  insurer: text("insurer"),
+  insurancePolicy: text("insurance_policy"),
+  insuranceCoverage: text("insurance_coverage"),
+  mediatorName: text("mediator_name"),
+  mediatorUrl: text("mediator_url"),
+  generalTerms: text("general_terms"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   createdBy: uuid("created_by"),
   updatedBy: uuid("updated_by"),
-});
+}, (table) => [
+  check("organization_profiles_insurer_check", sql`${table.insurer} is null or char_length(${table.insurer}) between 1 and 120`),
+  check("organization_profiles_insurance_policy_check", sql`${table.insurancePolicy} is null or char_length(${table.insurancePolicy}) between 1 and 80`),
+  check("organization_profiles_insurance_coverage_check", sql`${table.insuranceCoverage} is null or char_length(${table.insuranceCoverage}) between 1 and 200`),
+  check("organization_profiles_mediator_name_check", sql`${table.mediatorName} is null or char_length(${table.mediatorName}) between 1 and 160`),
+  check("organization_profiles_mediator_url_check", sql`${table.mediatorUrl} is null or char_length(${table.mediatorUrl}) between 1 and 300`),
+  check("organization_profiles_general_terms_check", sql`${table.generalTerms} is null or char_length(${table.generalTerms}) between 1 and 20000`),
+]);
 
 // Historique des changements de régime de TVA (PRD ONB-02) : chaque
 // changement est daté d'effet, jamais appliqué rétroactivement aux
@@ -301,6 +316,10 @@ export const platformSettings = hubSchema.table("platform_settings", {
   importUndoRetentionDays: integer("import_undo_retention_days").notNull().default(90),
   // Lot 14c (IMP-08) : nombre de fiches événement PDF déposées à la fois.
   importMaxSheets: integer("import_max_sheets").notNull().default(50),
+  // Lot 31a (FAC-07, JUR-01, décision D4) : mentions requises sur les devis, factures et
+  // avoirs, réglées par l'Admin (valeurs réglementaires) ; null : la liste de départ de
+  // packages/starter-templates, à valider par l'expert-comptable.
+  requiredMentions: jsonb("required_mentions"),
   // Lot 6 (RGPD-02) : durée pendant laquelle les fichiers d'un export RGPD
   // restent téléchargeables (7 jours, comme un import en cours), puis effacés.
   privacyExportRetentionDays: integer("privacy_export_retention_days").notNull().default(7),
@@ -575,8 +594,9 @@ export const privacySettings = hubSchema.table("privacy_settings", {
   clientRetentionMonths: integer("client_retention_months").notNull(),
   accountingRetentionMonths: integer("accounting_retention_months").notNull(),
   inactiveAccountMonths: integer("inactive_account_months").notNull(),
-  // RGPD-03 : durée de conservation d'un devis signé (preuve du contrat).
-  signedQuoteRetentionMonths: integer("signed_quote_retention_months").notNull().default(60),
+  // RGPD-03 : durée de conservation d'un devis signé (preuve du contrat). Lot 31b (réponse 3 de
+  // l'avocat, D16) : dix ans pour un contrat électronique de 120 € et plus et son dossier de preuve.
+  signedQuoteRetentionMonths: integer("signed_quote_retention_months").notNull().default(120),
   // RGPD-09 (lot 19, ADR 0048) : durée de la preuve d'une demande close, après
   // laquelle la purge mensuelle propose d'anonymiser le nom de la personne.
   requestProofRetentionMonths: integer("request_proof_retention_months").notNull().default(60),

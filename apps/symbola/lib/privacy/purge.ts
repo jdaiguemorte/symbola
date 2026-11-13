@@ -100,7 +100,7 @@ async function recordsOf(organizationId: string, keys: string[], options: Option
   }
   for (const key of keys) {
     const [prefix, id] = key.split(":");
-    if (prefix === "invoice" || prefix === "credit_note" || prefix === "quote") refs.push({ module: "quotes", kind: prefix, recordId: id! });
+    if (prefix === "invoice" || prefix === "credit_note" || prefix === "quote" || prefix === "earnest_receipt") refs.push({ module: "quotes", kind: prefix, recordId: id! });
     if (prefix === "request") refs.push({ module: "hub", kind: "privacy_request", recordId: id! });
   }
   return refs;

@@ -31,7 +31,7 @@ export async function savePrivacySettingsAction(_prevState: SettingsFormState, f
   try {
     await updatePrivacySettings(db, owner.organizationId, parsed.data);
   } catch (error) {
-    if (error instanceof PrivacyRequestInvalidError) return { error: t("settingsInvalid") };
+    if (error instanceof PrivacyRequestInvalidError) return { error: t(error.code === "signed_quote_retention_too_short" ? "signedQuoteRetentionTooShort" : "settingsInvalid") };
     throw error;
   }
   revalidatePath("/rgpd/reglages");

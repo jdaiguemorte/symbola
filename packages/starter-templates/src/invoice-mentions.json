@@ -1,7 +1,17 @@
 {
-  "version": 1,
+  "version": 2,
   "text": {
-    "fr": "Conditions de paiement : à réception de la facture, par virement bancaire. Aucun escompte pour paiement anticipé. En cas de retard de paiement, des pénalités au taux d'intérêt légal peuvent être appliquées.",
-    "en": "Payment terms: upon receipt of the invoice, by bank transfer. No discount for early payment. In the event of late payment, penalties at the statutory interest rate may apply."
-  }
+    "fr": "Conditions de paiement : par virement bancaire, au plus tard à la date d'échéance indiquée sur la facture. Aucun escompte pour paiement anticipé.",
+    "en": "Payment terms: by bank transfer, no later than the due date shown on the invoice. No discount for early payment."
+  },
+  "professionalText": {
+    "fr": "Conditions de paiement : par virement bancaire, à la date d'échéance indiquée sur la facture. Escompte pour paiement anticipé : néant.",
+    "en": "Payment terms: by bank transfer, on the due date shown on the invoice. Discount for early payment: none."
+  },
+  "previousTexts": [
+    {
+      "fr": "Conditions de paiement : à réception de la facture, par virement bancaire. Aucun escompte pour paiement anticipé. En cas de retard de paiement, des pénalités au taux d'intérêt légal peuvent être appliquées.",
+      "en": "Payment terms: upon receipt of the invoice, by bank transfer. No discount for early payment. In the event of late payment, penalties at the statutory interest rate may apply."
+    }
+  ]
 }

@@ -1,0 +1,191 @@
+{
+  "version": 1,
+  "warning": {
+    "fr": "Base à adapter, à faire relire par un professionnel du droit.",
+    "en": "Starting point to adapt, to be reviewed by a legal professional."
+  },
+  "items": [
+    {
+      "metier": "wedding_planner",
+      "eventTypeKey": "wedding",
+      "name": {
+        "fr": "Contrat de prestation — mariage (à adapter)",
+        "en": "Service contract — wedding (to adapt)"
+      },
+      "title": {
+        "fr": "Contrat de prestation de services",
+        "en": "Service contract"
+      },
+      "clauses": [
+        {
+          "title": {
+            "fr": "Parties",
+            "en": "Parties"
+          },
+          "body": {
+            "fr": "Entre {organisation.nom}, {organisation.adresse}, SIREN {organisation.siren}, ci-après « le prestataire », et {client.noms}, ci-après « les clients ».",
+            "en": "Between {organisation.nom}, {organisation.adresse}, SIREN {organisation.siren}, hereinafter “the provider”, and {client.noms}, hereinafter “the clients”."
+          },
+          "optional": false,
+          "role": null
+        },
+        {
+          "title": {
+            "fr": "Objet",
+            "en": "Purpose"
+          },
+          "body": {
+            "fr": "Le présent contrat porte sur l'organisation de l'événement du {evenement.date}, {evenement.lieu}, selon le devis {devis.numero} joint.",
+            "en": "This contract covers the planning of the event on {evenement.date}, {evenement.lieu}, as set out in the attached quote {devis.numero}."
+          },
+          "optional": false,
+          "role": null
+        },
+        {
+          "title": {
+            "fr": "Prix et paiement",
+            "en": "Price and payment"
+          },
+          "body": {
+            "fr": "Prix : {devis.total_ttc}, selon le devis {devis.numero}.\nÉchéancier :\n{devis.echeancier}\nLes sommes versées d'avance sont des {devis.acompte_ou_arrhes}.",
+            "en": "Price: {devis.total_ttc}, as per quote {devis.numero}.\nPayment schedule:\n{devis.echeancier}\nThe advance payments are {devis.acompte_ou_arrhes}."
+          },
+          "optional": false,
+          "role": null
+        },
+        {
+          "title": {
+            "fr": "Information précontractuelle",
+            "en": "Pre-contractual information"
+          },
+          "body": {
+            "fr": "[À rédiger avec votre conseil : informations à remettre aux clients avant la signature]",
+            "en": "[To be drafted with your adviser: information to give the clients before signing]"
+          },
+          "optional": false,
+          "role": "precontractual_information"
+        },
+        {
+          "title": {
+            "fr": "Droit de rétractation",
+            "en": "Right of withdrawal"
+          },
+          "body": {
+            "fr": "[À rédiger avec votre conseil : délai de rétractation ({retractation.delai}) et conditions d'exercice]",
+            "en": "[To be drafted with your adviser: withdrawal period ({retractation.delai}) and how to exercise it]"
+          },
+          "optional": true,
+          "role": "withdrawal_period"
+        },
+        {
+          "title": {
+            "fr": "Formulaire de rétractation",
+            "en": "Withdrawal form"
+          },
+          "body": {
+            "fr": "[À rédiger avec votre conseil : formulaire type de rétractation]",
+            "en": "[To be drafted with your adviser: model withdrawal form]"
+          },
+          "optional": true,
+          "role": "withdrawal_form"
+        },
+        {
+          "title": {
+            "fr": "Exécution avant la fin du délai de rétractation",
+            "en": "Performance before the end of the withdrawal period"
+          },
+          "body": {
+            "fr": "[À rédiger avec votre conseil : demande expresse des clients de commencer avant la fin du délai, et somme due en cas de rétractation]",
+            "en": "[To be drafted with your adviser: the clients' express request to start before the end of the period, and the amount due if they withdraw]"
+          },
+          "optional": true,
+          "role": "early_execution"
+        },
+        {
+          "title": {
+            "fr": "Absence de droit de rétractation",
+            "en": "No right of withdrawal"
+          },
+          "body": {
+            "fr": "[À rédiger avec votre conseil : contrat conclu dans l'établissement du prestataire : absence de droit de rétractation]",
+            "en": "[To be drafted with your adviser: contract concluded on the provider's premises: no right of withdrawal]"
+          },
+          "optional": true,
+          "role": "no_withdrawal"
+        },
+        {
+          "title": {
+            "fr": "Durée et résiliation",
+            "en": "Term and termination"
+          },
+          "body": {
+            "fr": "[À rédiger avec votre conseil : durée du contrat et conditions de résiliation]",
+            "en": "[To be drafted with your adviser: term of the contract and termination conditions]"
+          },
+          "optional": true,
+          "role": "termination"
+        },
+        {
+          "title": {
+            "fr": "Acompte et annulation",
+            "en": "Deposit and cancellation"
+          },
+          "body": {
+            "fr": "[À rédiger avec votre conseil : acompte avec barème d'annulation progressif et réciproque]",
+            "en": "[To be drafted with your adviser: deposit with a progressive and reciprocal cancellation scale]"
+          },
+          "optional": true,
+          "role": "advance_deposit"
+        },
+        {
+          "title": {
+            "fr": "Arrhes",
+            "en": "Earnest money"
+          },
+          "body": {
+            "fr": "[À rédiger avec votre conseil : arrhes : effets d'une renonciation par le client ou par le prestataire]",
+            "en": "[To be drafted with your adviser: earnest money: effects of a withdrawal by the client or by the provider]"
+          },
+          "optional": true,
+          "role": "advance_earnest"
+        },
+        {
+          "title": {
+            "fr": "Annulation et report",
+            "en": "Cancellation and postponement"
+          },
+          "body": {
+            "fr": "[À rédiger avec votre conseil : clause d'annulation et de report]",
+            "en": "[To be drafted with your adviser: cancellation and postponement clause]"
+          },
+          "optional": false,
+          "role": null
+        },
+        {
+          "title": {
+            "fr": "Responsabilité et assurance",
+            "en": "Liability and insurance"
+          },
+          "body": {
+            "fr": "Assurance de responsabilité civile professionnelle : {organisation.assurance}.\n[À rédiger avec votre conseil : responsabilité du prestataire]",
+            "en": "Professional liability insurance: {organisation.assurance}.\n[To be drafted with your adviser: the provider's liability]"
+          },
+          "optional": false,
+          "role": null
+        },
+        {
+          "title": {
+            "fr": "Médiation de la consommation",
+            "en": "Consumer mediation"
+          },
+          "body": {
+            "fr": "Médiateur de la consommation : {organisation.mediateur}.\n[À rédiger avec votre conseil : modalités de recours au médiateur]",
+            "en": "Consumer mediator: {organisation.mediateur}.\n[To be drafted with your adviser: how to refer a dispute to the mediator]"
+          },
+          "optional": false,
+          "role": null
+        }
+      ]
+    }
+  ]
+}

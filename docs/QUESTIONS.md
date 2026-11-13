@@ -574,6 +574,156 @@ une ligne, et la migration est plus simple avant qu'après.
 
 ---
 
+## Réponses de l'avocat (13 novembre 2026)
+
+### Q34 — Ce que les réponses de l'avocat demandent hors du lot 31
+
+L'avocat a répondu aux onze questions de `docs/conformite/fiche-avocat.md` ; Julien confirme que
+les points marqués « à vérifier » sont validés. La note reste hors du dépôt, qui est public. Ce que
+le lot 31 en fait est dans sa spécification (révision du 13/11/2026, décisions D11 à D17). Le
+reste se range en trois groupes. L'expert-comptable et la DPO ont répondu ensuite (Q35, Q36).
+
+**Actions de Julien, sans code (je ne peux pas les faire) :**
+
+- **Avant toute donnée réelle de la pilote** (réponse 8) : créer la société (ou une entreprise
+  individuelle), souscrire l'assurance et ouvrir le compte ; puis l'accord de sous-traitance avec
+  la pilote (article 28 du RGPD), le registre des traitements (comme sous-traitant et comme
+  responsable), les mentions légales, la politique de confidentialité, le plan de sécurité et la
+  procédure en cas de violation, la liste des sous-traitants ultérieurs. **D'ici là, la pilote
+  reste sur des données fictives.**
+- **Avant le premier client payant** (réponse 8) : conditions générales d'utilisation et de vente,
+  niveaux de service, réversibilité au sens du Data Act (préavis, transition, récupération puis
+  effacement des données), circuit de paiement par un prestataire agréé qui verse directement à la
+  planner (Symbola ne détient jamais les fonds, lot 43), bannière et politique de cookies,
+  assurance responsabilité civile et cyber de l'éditeur.
+- **Documenso** (réponses 5 et 10) : demander à l'éditeur une confirmation écrite que l'édition
+  communautaire, non modifiée et appelée par son API, convient à un service payant ; sinon,
+  budgéter l'édition Business. La signature avancée et la réauthentification relèvent de toute
+  façon de l'édition payante.
+- **Modèles** (réponse 6) : faire relire par un avocat inscrit les trois modèles de départ
+  (contrat de prestation, mandat, conditions générales), puis à chaque évolution légale.
+- **Marque** (réponse 11) : recherche d'antériorités par un conseil en propriété industrielle, puis
+  dépôt (classes 9, 42 et 35), puis communication. Point de vigilance : « Symbola » est aussi le
+  nom d'une police de caractères répandue.
+
+**Choix à faire pour des lots à venir :**
+
+- **Niveau de signature** (réponse 5, JUR-14) : choisir un fournisseur de SMS (nouveau
+  sous-traitant, hors de la pile : ADR) et le moyen de la signature avancée (édition payante de
+  Documenso ou autre prestataire). Un lot à part, après le 31b.
+- **Fournisseur d'identité** (réponse 10, lot 33) : le critère de licence de l'ADR 0052 se précise
+  en Apache ou MIT (Keycloak, Ory) ; éviter un second composant AGPL et les fonctions
+  « enterprise » sans licence. À reprendre dans l'ADR du lot 33.
+
+**Exigences précisées (pas de nouvelle décision) :**
+
+- **Commissions** (réponse 4, JUR-10, lot 48) : affichage obligatoire pour un client particulier,
+  mode intermédiaire ou revendeur par ligne du devis, alerte et blocage du modèle standard pour un
+  forfait touristique.
+- **Clients entreprises** (réponse 7, lot 41) : délai de paiement de 30 jours par défaut,
+  pénalités à trois fois le taux d'intérêt légal, indemnité de 40 €, escompte « Néant », numéro de
+  bon de commande s'il existe ; sur le devis et la facture, verrouillés hors des bornes légales ;
+  facturation électronique.
+- **Accessibilité** (réponse 9, JUR-17, lot 40) : garder WCAG 2.2 AA, publier une déclaration
+  d'accessibilité volontaire pour les écrans du couple, consigner l'analyse d'exemption.
+- **Licences** (réponse 10, JUR-18) : tenir l'inventaire des dépendances et de leurs licences dès
+  maintenant (lot 40 au plus tard).
+
+### Q35 — Ce que les réponses de la DPO demandent (13 novembre 2026)
+
+Réponses vérifiées aux questions 1 à 11 de `docs/conformite/fiche-dpo.md` (résumé dans la fiche ;
+la question 11, posée à part, a reçu sa réponse le même jour). Rien ne change pour le lot 31.
+
+**Actions de Julien, sans code :**
+
+- **Analyse d'impact** : une analyse « socle » du module Invités (outil gratuit de la CNIL), que
+  chaque planner complète, **avant la première donnée réelle d'invité**, donc avant d'ouvrir le
+  lot 49 à la pilote. Avec un registre prérempli pour les planners, et le registre de Symbola
+  comme sous-traitant.
+- **Accord de sous-traitance** : le contenu minimal de l'article 28.3 ; réutilisation des données
+  des planners interdite par défaut ; chaîne de sous-traitance pour un évènement d'entreprise ;
+  purge automatique inscrite comme instruction du planner ; violation signalée au planner sous
+  24 heures ; changement de sous-traitant ultérieur annoncé 30 jours avant (15 jours en urgence
+  de sécurité), avec opposition et résiliation sans pénalité.
+- **Offre « couples »** : Symbola en serait responsable de traitement ; produit distinct, avec sa
+  politique de confidentialité.
+
+**Choix à faire :**
+
+- **Journal d'audit** (question 11) : aujourd'hui rien n'en est purgé, ce que la DPO juge non
+  conforme, « à corriger dès maintenant, même provisoirement ». Lot à part, court : 12 mois
+  glissants pour les gestes courants, 3 ans pour les accès de l'équipe Symbola à la base, la durée
+  des pièces comptables (10 ans) pour les factures et encaissements dans un flux à part ; journal
+  découpé par date, segments supprimés à l'échéance, points de contrôle d'intégrité ; notice aux
+  collaborateurs à l'invitation et à la première connexion, consultable depuis le profil ; chacun
+  voit son propre journal ; mention type pour la titulaire. Les adresses IP sont déjà purgées à
+  12 mois (lot 23). (a) Juste après le lot 31, avant les lots suivants ; (b) avec les lots 34 et
+  35. **Recommandation : (a)** : rien n'est déployé avant la fin du rapport d'écart (gel), mais la
+  durée sans limite ne doit pas partir avec le déploiement d'ensemble.
+- **Sauvegardes** : la DPO demande une rotation de 35 jours au plus et un journal des effacements
+  rejoué après toute restauration. Aujourd'hui, la sauvegarde garde 7 copies quotidiennes,
+  4 hebdomadaires et **12 mensuelles** (`infra/backup/backup.sh`) : des données effacées survivent
+  jusqu'à un an. (a) Réduire à 35 jours et ajouter le rejeu des effacements à la restauration
+  (lot à part : réglage du serveur, runbook, test) ; (b) garder 12 mois en le justifiant dans
+  l'analyse d'impact. Touche le VPS : ta décision. **Recommandation : (a)**, avant la première
+  donnée réelle. Les sauvegardes mensuelles gardent aussi les adresses IP au-delà des 12 mois
+  validés (question 11 : « un seul exemplaire »).
+
+**À vérifier sur le VPS (Julien)** : que le Caddy partagé et le service d'e-mails ne gardent pas
+les adresses IP plus de 12 mois (question 11) ; sinon, régler leurs journaux.
+
+**Exigences précisées (pas de nouvelle décision) :**
+
+- **Invités** (lot 49) : intérêt légitime avec test de mise en balance documenté ; information de
+  l'invité au premier contact et droit d'opposition ; accord pour les régimes et allergies donné
+  par l'invité lui-même par son lien (ou le représentant légal d'un enfant, déclaré), preuve
+  gardée (horodatage, version du texte, canal), retrait aussi simple ; pas de champ libre ;
+  compteur qui ne dévoile pas un régime unique dans un petit groupe ; ni lien ni compte pour un
+  enfant ; régimes purgés 7 jours après l'évènement, le reste 30 jours après ; un seul report,
+  90 jours au plus ; gel pour litige à part.
+- **Liens** (lot 43, SEC-16) : code à usage unique aussi pour voir et modifier les données
+  sensibles, envoyé au seul contact enregistré ; tentatives limitées, code bref, révocation par la
+  personne, alerte sur un nouvel appareil.
+- **Relances** (lot 45, CRM-06, RGP-17) : consentement préalable d'un particulier (case non
+  précochée), planner identifié comme expéditeur, information à la collecte, listes d'opposition.
+- **Conservation** (lots 34 et 35) : base active et archivage intermédiaire séparés ; copie d'une
+  pièce d'identité supprimée après vérification ; export avant purge et corbeille courte.
+
+### Q36 — Ce que les réponses de l'expert-comptable demandent (13 novembre 2026)
+
+Réponses vérifiées aux questions 1 à 10 de `docs/conformite/fiche-expert-comptable.md`, puis à la
+question des arrhes, posée à part (résumé dans la fiche). Ce qui touche le lot 31 y est (D18 à
+D22) : en particulier, plus de « facture d'arrhes ».
+
+**Actions de Julien, sans code :**
+
+- **Planner pilote** : la réception des factures électroniques est obligatoire pour toute
+  entreprise depuis le 1er septembre 2026 (plateforme agréée, annuaire). Vérifier qu'elle est
+  prête : c'est hors de Symbola, mais elle en aura besoin.
+- **Loi de finances pour 2027** : en surveiller le vote définitif (calendrier de la réforme).
+
+**Exigences précisées (pas de nouvelle décision) :**
+
+- **Lot 41** : les quatre mentions de la réforme entre assujettis, la catégorie de l'opération
+  imprimée sur toutes les factures, le numéro de bon de commande, PDF/A-3 pour Factur-X, totaux
+  identiques au centime entre PDF et fichier structuré ; émission vers les entreprises au
+  1er septembre 2027, franchise comprise.
+- **Lot 42** : e-reporting agrégé (catégorie LB/PS/LBPS, ventilation par taux, motif
+  d'exonération), encaissements de services dans un flux à part, par une plateforme agréée ; en
+  franchise, par bimestre ; article 286 seulement pour l'assujetti, avec l'attestation de
+  l'éditeur sur le modèle de l'administration ; exports pour le comptable (journal des recettes,
+  journal des ventes et des encaissements, FEC) et accès en lecture seule.
+- **Lot 34** (annulation d'un évènement, EVT-05) : constat de renonciation quand le client
+  renonce à des arrhes (ni facture ni avoir) ; document de restitution du double quand la planner
+  renonce (sans TVA).
+- **Lot 42** (suite) : les arrhes restent hors de l'e-reporting tant qu'elles ne sont pas imputées
+  sur le prix.
+- **Lot 48** : la TVA diffère entre intermédiaire transparent (honoraires) et revendeur (total
+  refacturé) ; en franchise, le mode revendeur peut faire dépasser le seuil ; la qualité
+  d'intermédiaire repose sur le contrat.
+
+---
+
 ## Remarques sur le nouveau document lui-même
 
 - Les tableaux PRE, INV, POR, DOC, MSG, JRJ, RPT et TPS sont placés en annexe (§ 20), alors que

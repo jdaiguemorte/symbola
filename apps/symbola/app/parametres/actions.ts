@@ -8,7 +8,9 @@ import {
   changeVatRegime,
   completeOnboarding,
   InvalidDocumentDetailsError,
+  InvalidProfessionalMentionError,
   saveDocumentDetails,
+  saveProfessionalMentions,
   saveFollowUpDelays,
   saveOnboardingStep,
   type LegalForm,
@@ -128,5 +130,40 @@ export async function saveDocumentDetailsAction(_prev: DocumentDetailsFormState,
   }
   revalidatePath("/parametres");
   revalidatePath("/devis/parametres/documents");
+  return { success: true };
+}
+
+// Lot 31a (JUR-09, décision D4) — informations du professionnel reprises sur les devis :
+// assurance de responsabilité civile professionnelle, médiateur de la consommation,
+// conditions générales de vente.
+export type ProfessionalMentionsFormState = { error?: string; success?: boolean };
+
+const PROFESSIONAL_ERROR_KEYS = {
+  insurer: "errorInsurer",
+  insurancePolicy: "errorInsurancePolicy",
+  insuranceCoverage: "errorInsuranceCoverage",
+  mediatorName: "errorMediatorName",
+  mediatorUrl: "errorMediatorUrl",
+  generalTerms: "errorGeneralTerms",
+} as const;
+
+export async function saveProfessionalMentionsAction(_prev: ProfessionalMentionsFormState, formData: FormData): Promise<ProfessionalMentionsFormState> {
+  const t = await getTranslations("Settings");
+  const { organizationId } = await requireOrganization();
+  const text = (name: string) => String(formData.get(name) ?? "") || null;
+  try {
+    await saveProfessionalMentions(appDatabase(), organizationId, {
+      insurer: text("insurer"),
+      insurancePolicy: text("insurancePolicy"),
+      insuranceCoverage: text("insuranceCoverage"),
+      mediatorName: text("mediatorName"),
+      mediatorUrl: text("mediatorUrl"),
+      generalTerms: text("generalTerms"),
+    });
+  } catch (error) {
+    if (error instanceof InvalidProfessionalMentionError) return { error: t(PROFESSIONAL_ERROR_KEYS[error.field]) };
+    throw error;
+  }
+  revalidatePath("/parametres");
   return { success: true };
 }

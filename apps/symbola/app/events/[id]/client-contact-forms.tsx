@@ -5,7 +5,7 @@
 import { useActionState } from "react";
 import { useTranslations } from "next-intl";
 import type { EventClient } from "@/modules/events/service";
-import { setWantedBudgetAction, updateClientContactAction, type ClientContactFormState } from "./client-contact-actions";
+import { setWantedBudgetAction, updateClientContactAction, type ClientContactFormState, setVenueAction } from "./client-contact-actions";
 
 export function ClientContactForm({ eventId, client }: { eventId: string; client: EventClient }) {
   const t = useTranslations("Events");
@@ -63,6 +63,31 @@ export function WantedBudgetForm({ eventId, wantedBudgetCents }: { eventId: stri
       </button>
       {state.error ? <p role="alert">{state.error}</p> : null}
       {state.success ? <p role="status">{t("wantedBudgetSaved")}</p> : null}
+    </form>
+  );
+}
+
+// Lot 31b (FAC-04, DOC-02) — lieu de l'événement, pour la variable {evenement.lieu} du contrat
+// (les lieux complets viennent au lot 34).
+export function VenueForm({ eventId, venueName, venueCity }: { eventId: string; venueName: string | null; venueCity: string | null }) {
+  const t = useTranslations("Events");
+  const [state, action, pending] = useActionState<ClientContactFormState, FormData>(setVenueAction, {});
+  return (
+    <form action={action} aria-label={t("venueFormTitle")}>
+      <input type="hidden" name="eventId" value={eventId} />
+      <label>
+        {t("venueName")}
+        <input type="text" name="venueName" maxLength={200} defaultValue={venueName ?? ""} />
+      </label>
+      <label>
+        {t("venueCity")}
+        <input type="text" name="venueCity" maxLength={200} defaultValue={venueCity ?? ""} />
+      </label>
+      <button type="submit" disabled={pending}>
+        {t("venueSave")}
+      </button>
+      {state.error ? <p role="alert">{state.error}</p> : null}
+      {state.success ? <p role="status">{t("venueSaved")}</p> : null}
     </form>
   );
 }

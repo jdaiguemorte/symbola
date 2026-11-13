@@ -5,7 +5,7 @@
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { parseAmountToCents } from "@symbola/i18n";
-import { EventNotFoundError, InvalidClientContactError, setEventWantedBudget, updateEventClientContact } from "@/modules/events/service";
+import { EventNotFoundError, InvalidClientContactError, setEventVenue, setEventWantedBudget, updateEventClientContact } from "@/modules/events/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isEventsModuleEnabled, isValidId } from "../module-access";
 
@@ -62,6 +62,25 @@ export async function setWantedBudgetAction(_prev: ClientContactFormState, formD
     await setEventWantedBudget(access.organizationId, eventId, cents);
   } catch (error) {
     if (error instanceof EventNotFoundError) return { error: t("eventNotFound") };
+    throw error;
+  }
+  revalidatePath(`/events/${eventId}`);
+  return { success: true };
+}
+
+// Lot 31b (FAC-04, DOC-02) — lieu de l'événement (nom, ville), repris par la variable
+// {evenement.lieu} du contrat.
+export async function setVenueAction(_prev: ClientContactFormState, formData: FormData): Promise<ClientContactFormState> {
+  const t = await getTranslations("Events");
+  const access = await authorize(t);
+  if ("error" in access) return { error: access.error };
+  const eventId = field(formData, "eventId");
+  if (!isValidId(eventId)) return { error: t("eventNotFound") };
+  try {
+    await setEventVenue(access.organizationId, eventId, { venueName: field(formData, "venueName"), venueCity: field(formData, "venueCity") });
+  } catch (error) {
+    if (error instanceof EventNotFoundError) return { error: t("eventNotFound") };
+    if (error instanceof RangeError) return { error: t("venueInvalid") };
     throw error;
   }
   revalidatePath(`/events/${eventId}`);

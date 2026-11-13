@@ -45,6 +45,10 @@ describe("ONB-03 — Assistant de démarrage pré-rempli", { timeout: 30_000 }, 
     // Lot 21 (L21-PRE-18) : étiquettes de départ, rangées par famille.
     expect(result.vendorTags).toBeGreaterThan(20);
     expect((await listVendorTagGroups(organization.id)).find((group) => group.label === "Capacité")?.exclusive).toBe(true);
+    // Lot 31b (HUB-26, D10) : le modèle de contrat de départ « à adapter ».
+    expect(result.contractTemplates).toBe(1);
+    // Lot 31c (D18) : les deux textes de départ des conditions de paiement, jamais le taux.
+    expect(result.paymentTerms).toBe(true);
   });
 
   it("agence événementielle : lignes adaptées ; un nouvel événement reçoit ses lignes du budget avec leur icône", async () => {
@@ -68,7 +72,7 @@ describe("ONB-03 — Assistant de démarrage pré-rempli", { timeout: 30_000 }, 
     const again = await loadStarterKit(organization.id, "wedding_planner", "fr");
 
     expect((await listProspectSources(organization.id)).map((source) => source.label)).toEqual(["Mon réseau"]);
-    expect(again).toMatchObject({ budgetLines: 0, sources: 0, lossReasons: 0, taskTemplate: false, programTemplate: false, allocation: false, vendorTypes: 0, vendorTags: 0 });
+    expect(again).toMatchObject({ budgetLines: 0, sources: 0, lossReasons: 0, taskTemplate: false, programTemplate: false, allocation: false, vendorTypes: 0, vendorTags: 0, contractTemplates: 0, paymentTerms: false });
     expect((await listTaskTemplates(organization.id)).length).toBe(1);
   });
 

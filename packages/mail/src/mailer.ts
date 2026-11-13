@@ -8,6 +8,8 @@ export type SendMailInput = {
   to: string;
   subject: string;
   text: string;
+  // Lot 31b (réponse 1 de l'avocat, D11) : le contrat signé, remis sur support durable.
+  attachments?: { filename: string; content: Buffer; contentType: string }[];
 };
 
 // Isolé de sendMail() pour être testé sans connexion réseau : le port 465
@@ -31,5 +33,6 @@ export async function sendMail(input: SendMailInput): Promise<void> {
     to: input.to,
     subject: input.subject,
     text: input.text,
+    ...(input.attachments ? { attachments: input.attachments } : {}),
   });
 }
