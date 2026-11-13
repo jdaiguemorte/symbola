@@ -4,6 +4,7 @@ import { useActionState, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Pencil } from "lucide-react";
 import type { EventVendorSlot, ProgramItem, ProgramTemplate } from "@/modules/events/service";
+import { endTimeAfter, minutesBetween } from "@/lib/program-spans";
 import {
   addProgramItemAction,
   applyProgramTemplateAction,
@@ -14,9 +15,12 @@ import {
 type Draft = {
   startTime: string;
   endTime: string;
+  // Lot 30b (CHR-06, D7) : la durée et l'heure de fin se calculent l'une l'autre.
+  durationMinutes: string;
   label: string;
   location: string;
   internalNote: string;
+  responsible: string;
   vendorSlotIds: string[];
   freeParticipants: string;
 };
@@ -24,9 +28,11 @@ type Draft = {
 const EMPTY_DRAFT: Draft = {
   startTime: "",
   endTime: "",
+  durationMinutes: "",
   label: "",
   location: "",
   internalNote: "",
+  responsible: "",
   vendorSlotIds: [],
   freeParticipants: "",
 };
@@ -35,9 +41,11 @@ function draftOf(item: ProgramItem): Draft {
   return {
     startTime: item.startTime,
     endTime: item.endTime ?? "",
+    durationMinutes: item.endTime ? String(minutesBetween(item.startTime, item.endTime)) : "",
     label: item.label,
     location: item.location ?? "",
     internalNote: item.internalNote ?? "",
+    responsible: item.responsible ?? "",
     vendorSlotIds: item.participants.flatMap((participant) => (participant.vendorSlotId ? [participant.vendorSlotId] : [])),
     freeParticipants: item.participants
       .filter((participant) => participant.vendorSlotId === null)
@@ -60,16 +68,39 @@ function ProgramItemFields({
   const t = useTranslations("Events");
   const set = (field: keyof Omit<Draft, "vendorSlotIds">) => (event: { target: { value: string } }) =>
     setDraft({ ...draft, [field]: event.target.value });
+  // Lot 30b (CHR-06, D7) : le début garde la durée ; la fin donne la durée ; la durée
+  // donne la fin.
+  const validDuration = (value: string) => /^\d+$/.test(value) && Number(value) >= 1 && Number(value) <= 1440;
+  const setStart = (event: { target: { value: string } }) => {
+    const startTime = event.target.value;
+    if (startTime && validDuration(draft.durationMinutes)) setDraft({ ...draft, startTime, endTime: endTimeAfter(startTime, Number(draft.durationMinutes)) });
+    else setDraft({ ...draft, startTime });
+  };
+  const setEnd = (event: { target: { value: string } }) => {
+    const endTime = event.target.value;
+    const durationMinutes = endTime && draft.startTime ? String(minutesBetween(draft.startTime, endTime)) : endTime ? draft.durationMinutes : "";
+    setDraft({ ...draft, endTime, durationMinutes });
+  };
+  const setDuration = (event: { target: { value: string } }) => {
+    const durationMinutes = event.target.value;
+    if (!durationMinutes) setDraft({ ...draft, durationMinutes, endTime: "" });
+    else if (draft.startTime && validDuration(durationMinutes)) setDraft({ ...draft, durationMinutes, endTime: endTimeAfter(draft.startTime, Number(durationMinutes)) });
+    else setDraft({ ...draft, durationMinutes });
+  };
 
   return (
     <>
       <label>
         {t("programStartTime")}
-        <input type="time" name="startTime" required value={draft.startTime} onChange={set("startTime")} />
+        <input type="time" name="startTime" required value={draft.startTime} onChange={setStart} />
       </label>
       <label>
         {t("programEndTime")}
-        <input type="time" name="endTime" value={draft.endTime} onChange={set("endTime")} />
+        <input type="time" name="endTime" value={draft.endTime} onChange={setEnd} />
+      </label>
+      <label>
+        {t("programDuration")}
+        <input type="number" name="durationMinutes" min={1} max={1440} step={1} inputMode="numeric" value={draft.durationMinutes} onChange={setDuration} />
       </label>
       <label>
         {t("programItemLabel")}
@@ -103,6 +134,10 @@ function ProgramItemFields({
           ))}
         </fieldset>
       ) : null}
+      <label>
+        {t("programResponsible")}
+        <input type="text" name="responsible" maxLength={120} list="program-responsible-options" value={draft.responsible} onChange={set("responsible")} />
+      </label>
       <label>
         {t("programFreeParticipants")}
         <input type="text" name="freeParticipants" value={draft.freeParticipants} onChange={set("freeParticipants")} />

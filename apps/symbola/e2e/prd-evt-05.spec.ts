@@ -78,12 +78,13 @@ test("PRD-EVT-05 — programme du jour J depuis un modèle, chevauchement signal
   await page.getByRole("button", { name: "Appliquer le modèle de programme" }).click();
   await expect(page.getByText("Modèle appliqué : les lignes ont été ajoutées au programme.")).toBeVisible();
   const program = page.getByRole("list", { name: "Programme du jour J" });
-  // Lot 12 (L12-EVT-14) : heure | intitulé, lieu et icônes des prestataires.
+  // Lot 12 (L12-EVT-14) : heure | intitulé, lieu et icônes des prestataires ; lot 30b
+  // (CHR-06) : la durée de chaque séquence.
   const first = program.getByRole("listitem").first();
-  await expect(first.locator(".program-time")).toHaveText("09:00 – 12:00");
+  await expect(first.locator(".program-time")).toHaveText("09:00 – 12:00 · 3 h");
   await expect(first.locator("strong")).toHaveText("Coiffure et maquillage");
   const ceremony = program.getByRole("listitem").filter({ has: page.locator("strong", { hasText: /^Cérémonie$/ }) });
-  await expect(ceremony.locator(".program-time")).toHaveText("15:00 – 16:00");
+  await expect(ceremony.locator(".program-time")).toHaveText("15:00 – 16:00 · 1 h");
   await expect(ceremony.getByRole("img", { name: "Prestataires concernés : Photographe" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Chevauchements à vérifier" })).toHaveCount(0);
 
@@ -99,7 +100,7 @@ test("PRD-EVT-05 — programme du jour J depuis un modèle, chevauchement signal
   await newLine.getByRole("button", { name: "Ajouter la ligne" }).click();
   await expect(page.getByText("Ligne ajoutée.")).toBeVisible();
   const added = program.getByRole("listitem").filter({ has: page.locator("strong", { hasText: /^Photos des invités$/ }) });
-  await expect(added.locator(".program-time")).toHaveText("16:15 – 17:00");
+  await expect(added.locator(".program-time")).toHaveText("16:15 – 17:00 · 45 min");
   await expect(added).toContainText("Parc du château");
   await expect(added.getByRole("img", { name: "Prestataires concernés : Photographe, Témoin" })).toBeVisible();
   await expect(added).toContainText("Note interne : Prévoir les alliances");

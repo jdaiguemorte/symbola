@@ -31,6 +31,7 @@ const program: EventProgram = {
       label: "Cérémonie laïque",
       location: "Jardin",
       internalNote: "Prévoir les parapluies",
+      responsible: "Camille",
       participants: [
         { vendorSlotId: "s-fleurs", label: "Fleurs et décoration" },
         { vendorSlotId: null, label: "Officiante" },
@@ -53,7 +54,7 @@ describe("JRJ-02 — Contenu de l'écran du jour J (décision D5)", () => {
 
   it("le programme garde ses notes internes ; chaque participant d'un poste nomme ses prestataires retenus", () => {
     const view = buildDayOfView({ event: { clients: [] }, program, places: [], slots, candidates, contacts });
-    expect(view.items[0]).toMatchObject({ label: "Cérémonie laïque", note: "Prévoir les parapluies", location: "Jardin" });
+    expect(view.items[0]).toMatchObject({ label: "Cérémonie laïque", note: "Prévoir les parapluies", location: "Jardin", responsible: "Camille" });
     expect(view.items[0]!.participants).toEqual([
       { label: "Fleurs et décoration", vendors: ["Atelier Verveine", "Pétales (saisie libre)"] },
       { label: "Officiante", vendors: [] },

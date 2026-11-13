@@ -12,6 +12,7 @@ const program: EventProgram = {
       label: "Cérémonie",
       location: "Mairie",
       internalNote: "Prévoir les alliances",
+      responsible: "Camille",
       participants: [
         { vendorSlotId: "s", label: "Photographe" },
         { vendorSlotId: null, label: "Officiant" },
@@ -25,6 +26,7 @@ const program: EventProgram = {
       label: "Soirée",
       location: null,
       internalNote: null,
+      responsible: null,
       participants: [],
     },
   ],
@@ -42,6 +44,13 @@ const labels = {
   participants: "Intervenants",
   note: "Note interne",
   empty: "Aucune ligne.",
+  words: {
+    minutes: (minutes: number) => `${minutes} min`,
+    hours: (hours: number) => `${hours} h`,
+    hoursMinutes: (hours: number, minutes: number) => `${hours} h ${minutes}`,
+    range: (start: string, end: string, duration: string) => `${start} – ${end} · ${duration}`,
+  },
+  responsible: (name: string) => `Responsable : ${name}`,
 };
 
 describe("PRD-EVT-05 — Contenu du PDF du programme", () => {
@@ -49,14 +58,26 @@ describe("PRD-EVT-05 — Contenu du PDF du programme", () => {
     const model = buildProgramPdfModel({ program, variant: "couple", labels, locale: "fr", heading: "Inès & Sacha", logo: null, organizationName: "Atelier" });
     expect(model.columns).toEqual(["Heure", "Déroulé", "Lieu", "Intervenants"]);
     expect(JSON.stringify(model)).not.toContain("Prévoir les alliances");
-    expect(model.rows[0]).toEqual({ time: "15:00 – 16:00", label: "Cérémonie", location: "Mairie", participants: "Photographe, Officiant", note: null });
+    expect(model.rows[0]).toEqual({ time: "15:00 – 16:00 · 1 h", label: "Cérémonie", responsible: "Responsable : Camille", location: "Mairie", participants: "Photographe, Officiant", note: null });
   });
 
   it("variante « prestataires » : les notes internes sont présentes", () => {
     const model = buildProgramPdfModel({ program, variant: "vendors", labels, locale: "fr", heading: "Inès & Sacha", logo: null, organizationName: "Atelier" });
     expect(model.columns).toContain("Note interne");
     expect(model.rows[0]?.note).toBe("Prévoir les alliances");
-    expect(model.rows[1]).toMatchObject({ time: "22:45", location: "", participants: "" });
+    expect(model.rows[1]).toMatchObject({ time: "22:45", responsible: null, location: "", participants: "" });
+  });
+
+  it("CHR-06 (lot 30b, D7) — une fin absente vaut le début de la suivante ; la dernière sans fin : son début seul", () => {
+    const withGap: EventProgram = {
+      ...program,
+      items: [
+        { ...program.items[0]!, id: "x", startTime: "14:00", endTime: null, responsible: null },
+        ...program.items,
+      ],
+    };
+    const model = buildProgramPdfModel({ program: withGap, variant: "couple", labels, locale: "fr", heading: "Inès", logo: null, organizationName: "Atelier" });
+    expect(model.rows.map((row) => row.time)).toEqual(["14:00 – 15:00 · 1 h", "15:00 – 16:00 · 1 h", "22:45"]);
   });
 
   it("porte la date de version (heure de Paris), le nom de l'organisation et son logo", () => {

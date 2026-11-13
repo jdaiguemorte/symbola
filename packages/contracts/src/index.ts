@@ -91,6 +91,7 @@ export type {
   ProgramItem,
   ProgramItemInput,
   ProgramOverlap,
+  ProgramShiftProposal,
   ProgramParticipant,
   ProgramTemplate,
   ProgramTemplateItem,

@@ -31,7 +31,8 @@ import { buildDayOfView, isDayOfOpen, telHref } from "./day-of-view";
 import { DayCopyPanel } from "./day-copy-panel";
 import { dayDocumentKey, listDayDocumentCandidates } from "./day-documents";
 import { DayDocumentsForm } from "./day-documents-form";
-import { durationParts, timelineSpans } from "./day-timeline";
+import { durationParts } from "./day-timeline";
+import { programSpans } from "@/lib/program-spans";
 import { FieldDay } from "./field-day";
 
 type Translate = Awaited<ReturnType<typeof getTranslations<"DayOf">>>;
@@ -78,7 +79,7 @@ export default async function DayOfPage({ params }: { params: Promise<{ eventId:
   const documents = [{ path: dayProgramPath(eventId), label: t("programPdf"), origin: null as string | null }, ...embedded.map((candidate) => ({ path: candidate.path, label: candidate.label, origin: candidate.origin }))];
   const embeddedBytes = embedded.reduce((sum, candidate) => sum + (candidate.sizeBytes ?? 0), 0);
   // Lot 30a (CHR-06 en partie, D2) : durée et fin de chaque séquence (fin absente : la suivante).
-  const spans = new Map(timelineSpans(view.items).map((span) => [span.id, span]));
+  const spans = new Map(programSpans(view.items).map((span) => [span.id, span]));
   const participantsOf = (item: (typeof view.items)[number]) =>
     item.participants.map((participant) => (participant.vendors.length > 0 ? `${participant.label} (${participant.vendors.join(", ")})` : participant.label)).join(" · ");
   const emergencies = starterEmergencyNumbers(locale);
@@ -108,6 +109,7 @@ export default async function DayOfPage({ params }: { params: Promise<{ eventId:
             label: item.label,
             location: item.location,
             note: item.note,
+            responsible: item.responsible,
             participants: participantsOf(item),
             calls: item.calls.flatMap((call) => {
               const tel = telHref(call.phone);
@@ -126,13 +128,15 @@ export default async function DayOfPage({ params }: { params: Promise<{ eventId:
                 const span = spans.get(item.id)!;
                 return (
                   <li key={item.id}>
+                    {/* Lot 30b : la dernière séquence sans fin, son seul début. */}
                     <p className="day-program-time">
-                      {t("timeRange", { start: item.startTime, end: clock(span.end) })}
-                      <span className="meta">{duration(t, span.end - span.start)}</span>
+                      {span.openEnded ? item.startTime : t("timeRange", { start: item.startTime, end: clock(span.end) })}
+                      {span.openEnded ? null : <span className="meta">{duration(t, span.end - span.start)}</span>}
                     </p>
                     <div>
                       <p className="day-program-label">{item.label}</p>
                       {item.location ? <p>{item.location}</p> : null}
+                      {item.responsible ? <p>{t("responsible", { name: item.responsible })}</p> : null}
                       {item.participants.length > 0 ? (
                         <p>
                           {t("participants")} {participantsOf(item)}

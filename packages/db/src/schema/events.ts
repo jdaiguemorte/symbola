@@ -335,12 +335,17 @@ export const programItems = eventsSchema.table("program_items", {
   location: text("location"),
   // Jamais dans la variante « mariés » du PDF (PRD PRD-EVT-05).
   internalNote: text("internal_note"),
+  // Lot 30b (CHR-06, décision D6) : responsable de la séquence, texte court.
+  responsible: text("responsible"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdBy: uuid("created_by"),
   updatedBy: uuid("updated_by"),
-}, (table) => [index("program_items_organization_idx").on(table.organizationId)]);
+}, (table) => [
+  index("program_items_organization_idx").on(table.organizationId),
+  check("program_items_responsible_check", sql`${table.responsible} is null or char_length(${table.responsible}) between 1 and 120`),
+]);
 
 // PRD-EVT-05 : intervenants d'une ligne — un poste prestataire de l'événement
 // (PRD-EVT-03) ou un texte libre (officiant, témoin…), l'un ou l'autre.

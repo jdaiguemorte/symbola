@@ -14,6 +14,7 @@ import {
 import {
   getEvent,
   getEventProgram,
+  proposeProgramShift,
   getEventStatusDates,
   getTaskRecalculation,
   listEventActivity,
@@ -60,6 +61,9 @@ import { answerSentence } from "@/app/portail/client-decisions";
 import { choiceName, decisionLabel } from "@/app/portail/decision-label";
 import { requestAudience } from "@/lib/vocabulary";
 import { removeProgramItemAction } from "./program-actions";
+import { ProgramShiftProposal, type ShiftProposalView } from "./program-shift";
+import { durationText, programSpans, spanLabel } from "@/lib/program-spans";
+import { programSpanWords } from "@/lib/program-span-words";
 import {
   AddProgramItemForm,
   ApplyProgramTemplateForm,
@@ -112,7 +116,7 @@ const LINK_STATUS_KEYS = {
 const TABS = ["apercu", "budget", "retroplanning", "programme", "devis", "maries", "documents"] as const;
 type Tab = (typeof TABS)[number];
 
-type SearchParams = { onglet?: string; poste?: string; tache?: string; vue?: string; qui?: string; filtre?: string; visite?: string };
+type SearchParams = { onglet?: string; poste?: string; tache?: string; vue?: string; qui?: string; filtre?: string; visite?: string; decalage?: string; depuis?: string };
 
 // Lot 28a (PRE-02) : postes pourvus (un prestataire retenu) ou non requis.
 const SETTLED_SLOT_STATUSES = new Set<string>(["retained", "contract_signed", "paid_off", "not_required"]);
@@ -229,6 +233,14 @@ export default async function EventDetailPage({
     ...(event.venueName ? [{ label: event.venueName, vendorId: null }] : []),
   ].filter((suggestion, index, all) => !places.some((place) => place.label.toLocaleLowerCase("fr") === suggestion.label.toLocaleLowerCase("fr")) && all.findIndex((other) => other.label === suggestion.label) === index);
   const placeOptions = [...new Set([...places.map((place) => place.label), ...placeSuggestions.map((suggestion) => suggestion.label)])];
+  // Lot 30b (CHR-06, D7 et D8) : durées partout ; après le changement d'une heure de
+  // début, la proposition de décaler les séquences suivantes d'autant.
+  const spanWords = await programSpanWords();
+  const programSpanOf = new Map(programSpans(program.items).map((span) => [span.id, span]));
+  const responsibleOptions = [...new Set(program.items.flatMap((item) => (item.responsible ? [item.responsible] : [])))].sort((a, b) => a.localeCompare(b, "fr"));
+  const shiftedItem = tab === "programme" && query.decalage && isValidId(query.decalage) ? program.items.find((item) => item.id === query.decalage) : undefined;
+  const shiftPlan = shiftedItem && query.depuis && /^([01]\d|2[0-3]):[0-5]\d$/.test(query.depuis) ? proposeProgramShift(program.items, shiftedItem.id, query.depuis, shiftedItem.startTime) : null;
+  const shiftProposal: ShiftProposalView | null = shiftPlan ? { ...shiftPlan, duration: durationText(Math.abs(shiftPlan.minutes), spanWords) } : null;
   // Lot 12 (L12-EVT-13) : rétroplanning seulement pour un événement confirmé (ou réalisé).
   const retroplanningOpen = event.isDemo || event.status === "confirmed" || event.status === "done";
 
@@ -798,6 +810,7 @@ export default async function EventDetailPage({
             <h2 id="program-title">{t("programTitle")}</h2>
             <SettingsLink href="/events/modeles-programme" label={t("programTemplatesSettings")} />
           </div>
+          <ProgramShiftProposal eventId={event.id} proposal={shiftProposal} />
           <nav aria-label={t("programExports")}>
             <a href={`/events/${event.id}/programme/pdf?variant=couple`} download>
               {t("programExportCouple")}
@@ -835,11 +848,12 @@ export default async function EventDetailPage({
           <ul aria-label={t("programTitle")} className="program-list">
             {program.items.map((item) => (
               <li key={item.id} className="program-row">
-                <span className="program-time">{item.endTime ? `${item.startTime} – ${item.endTime}` : item.startTime}</span>
+                <span className="program-time">{spanLabel(programSpanOf.get(item.id)!, spanWords)}</span>
                 <span className="program-main">
                   <strong>{item.label}</strong>
                   <span className="program-meta">
                     {item.location ? <span>{item.location}</span> : null}
+                    {item.responsible ? <span>{t("programResponsibleLine", { name: item.responsible })}</span> : null}
                     {item.participants.length > 0 ? (
                       <span
                         className="line-icons"
@@ -877,6 +891,11 @@ export default async function EventDetailPage({
               </li>
             ))}
           </ul>
+          <datalist id="program-responsible-options">
+            {responsibleOptions.map((option) => (
+              <option key={option} value={option} />
+            ))}
+          </datalist>
           <datalist id="event-place-options">
             {placeOptions.map((option) => (
               <option key={option} value={option} />

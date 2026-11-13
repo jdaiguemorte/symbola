@@ -38,6 +38,7 @@ import {
   type VendorCandidateStatus,
 } from "@symbola/contracts";
 import { addDays, daysBetween, dueDateFor } from "./schedule";
+import { shiftedTimes } from "./program";
 
 export type EventRow = typeof events.$inferSelect;
 export type EventClientRow = typeof eventClients.$inferSelect;
@@ -832,6 +833,8 @@ export type ProgramItemData = {
   label: string;
   location: string | null;
   internalNote: string | null;
+  // Lot 30b (CHR-06, décision D6).
+  responsible: string | null;
 };
 
 export type ProgramItemWithParticipants = {
@@ -960,6 +963,37 @@ export async function updateProgramItemRow(
   });
 }
 
+// Lot 30b (CHR-06, décision D8) : décale des séquences de l'événement, début et fin,
+// en une transaction. Tout ou rien : une séquence d'un autre événement (ou d'une autre
+// organisation, invisible sous RLS) ou un début qui sortirait du jour J refuse tout.
+export type ProgramShiftResult =
+  | { status: "shifted"; items: ProgramItemWithParticipants[] }
+  | { status: "event_not_found" | "item_not_found" | "out_of_day" };
+
+export async function shiftProgramItemRows(organizationId: string, eventId: string, itemIds: string[], minutes: number): Promise<ProgramShiftResult> {
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const [event] = await tx.select({ id: events.id }).from(events).where(eq(events.id, eventId));
+    if (!event) return { status: "event_not_found" };
+    const rows = await tx.select().from(programItems).where(and(eq(programItems.eventId, eventId), inArray(programItems.id, itemIds)));
+    if (rows.length !== itemIds.length) return { status: "item_not_found" };
+    const plans = rows.map((row) => ({ row, times: shiftedTimes(row, minutes) }));
+    if (plans.some((plan) => plan.times === null)) return { status: "out_of_day" };
+    const updated: ProgramItemRow[] = [];
+    for (const { row, times } of plans) {
+      const [item] = await tx
+        .update(programItems)
+        .set({ ...times!, updatedAt: new Date() })
+        .where(eq(programItems.id, row.id))
+        .returning();
+      if (!item) throw new Error("décalage de la ligne du programme échoué");
+      updated.push(item);
+    }
+    await touchProgram(tx, eventId);
+    return { status: "shifted", items: await withParticipants(tx, updated) };
+  });
+}
+
 export async function deleteProgramItem(organizationId: string, itemId: string): Promise<void> {
   const db = appDatabase();
   await withOrganization(db, organizationId, async (tx) => {
@@ -995,7 +1029,7 @@ export async function findProgramTemplates(
   });
 }
 
-export type ProgramTemplateItemData = Omit<ProgramItemData, "internalNote"> & { participantLabels: string[] };
+export type ProgramTemplateItemData = Omit<ProgramItemData, "internalNote" | "responsible"> & { participantLabels: string[] };
 
 export async function insertProgramTemplate(
   organizationId: string,
@@ -1186,7 +1220,7 @@ export type DemoEventData = {
   // de liste par défaut.
   fallbackVendorSlotLabels: string[];
   tasks: { label: string; dueDate: string; responsible: TaskResponsible }[];
-  programItems: (Omit<ProgramItemData, "internalNote"> & { participantLabels: string[] })[];
+  programItems: (Omit<ProgramItemData, "internalNote" | "responsible"> & { participantLabels: string[] })[];
 };
 
 function activeDemo(now: Date) {

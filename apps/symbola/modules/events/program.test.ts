@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { findProgramOverlaps, normalizeTime, programForVariant, sortProgramItems } from "./program";
+import { findProgramOverlaps, normalizeTime, programForVariant, proposeProgramShift, shiftedTimes, sortProgramItems, startShift } from "./program";
 
 type Line = Parameters<typeof findProgramOverlaps>[0][number];
 
@@ -69,5 +69,57 @@ describe("PRD-EVT-05 — Variantes du programme exporté", () => {
     const items = [{ id: "a", internalNote: "Prévoir les alliances" }];
     expect(programForVariant(items, "couple")).toEqual([{ id: "a", internalNote: null }]);
     expect(programForVariant(items, "vendors")).toEqual(items);
+  });
+});
+
+describe("CHR-06 — Décaler une séquence propose de décaler les suivantes (lot 30b, D8)", () => {
+  const items = [
+    { id: "ceremonie", startTime: "15:30", endTime: "16:15" },
+    { id: "photos", startTime: "16:30", endTime: null },
+    { id: "cocktail", startTime: "17:00", endTime: "19:00" },
+    { id: "bal", startTime: "23:15", endTime: "02:00" },
+    { id: "preparatifs", startTime: "10:00", endTime: "12:00" },
+  ];
+
+  it("l'écart est signé et ramené au plus court : 23:50 → 00:10 avance de 20 min", () => {
+    expect(startShift("15:30", "15:50")).toBe(20);
+    expect(startShift("15:30", "15:10")).toBe(-20);
+    expect(startShift("23:50", "00:10")).toBe(20);
+    expect(startShift("00:10", "23:50")).toBe(-20);
+    expect(startShift("16:00", "16:00")).toBe(0);
+  });
+
+  it("début et fin bougent d'autant ; une fin après minuit le reste", () => {
+    expect(shiftedTimes({ startTime: "17:00", endTime: "19:00" }, 20)).toEqual({ startTime: "17:20", endTime: "19:20" });
+    expect(shiftedTimes({ startTime: "16:30", endTime: null }, -15)).toEqual({ startTime: "16:15", endTime: null });
+    expect(shiftedTimes({ startTime: "23:15", endTime: "02:00" }, 30)).toEqual({ startTime: "23:45", endTime: "02:30" });
+    expect(shiftedTimes({ startTime: "22:00", endTime: "23:50" }, 20)).toEqual({ startTime: "22:20", endTime: "00:10" });
+  });
+
+  it("un début qui sortirait du jour J (après minuit, avant 00:00) est refusé", () => {
+    expect(shiftedTimes({ startTime: "23:50", endTime: null }, 20)).toBeNull();
+    expect(shiftedTimes({ startTime: "00:10", endTime: "01:00" }, -20)).toBeNull();
+  });
+
+  it("seules les séquences suivantes sont proposées, dans l'ordre du programme", () => {
+    expect(proposeProgramShift(items, "ceremonie", "15:30", "15:50")).toEqual({ minutes: 20, itemIds: ["photos", "cocktail", "bal"], outOfDay: false });
+    expect(proposeProgramShift(items, "cocktail", "17:00", "16:45")).toEqual({ minutes: -15, itemIds: ["bal"], outOfDay: false });
+  });
+
+  it("rien à proposer : même heure, ou aucune séquence après", () => {
+    expect(proposeProgramShift(items, "ceremonie", "15:30", "15:30")).toBeNull();
+    expect(proposeProgramShift(items, "bal", "23:15", "23:30")).toBeNull();
+  });
+
+  it("une séquence suivante sortirait du jour J : la proposition le dit", () => {
+    expect(proposeProgramShift(items, "cocktail", "17:00", "17:50")).toEqual({ minutes: 50, itemIds: ["bal"], outOfDay: true });
+  });
+
+  it("décaler puis annuler rend les mêmes heures", () => {
+    for (const item of items) {
+      const there = shiftedTimes(item, 40);
+      if (!there) continue;
+      expect(shiftedTimes(there, -40)).toEqual({ startTime: item.startTime, endTime: item.endTime });
+    }
   });
 });

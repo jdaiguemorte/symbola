@@ -34,6 +34,7 @@ import {
   insertProgramTemplate,
   insertProgramTemplateItem,
   updateProgramItemRow,
+  shiftProgramItemRows,
   type ProgramItemData,
   type ProgramItemWithParticipants,
   type ProgramTemplateItemRow,
@@ -169,7 +170,8 @@ import {
 } from "./vendor-candidates";
 import { addDayContact, listDayContacts, removeDayContact } from "./day-contacts";
 import { attachDocument, documentKeys, getDocumentFile, listDayChoices, listDocuments, removeDocument, renameDocument, setDayChoice } from "./documents";
-import { findProgramOverlaps, normalizeTime, programForVariant, sortProgramItems } from "./program";
+import { findProgramOverlaps, MAX_SHIFT_MINUTES, normalizeTime, programForVariant, sortProgramItems } from "./program";
+import { endTimeAfter, MINUTES_PER_DAY } from "@/lib/program-spans";
 import type {
   EventPlace,
   AttachEventDocumentInput,
@@ -250,6 +252,9 @@ import type {
 export { eventsPrivacy } from "./privacy";
 export { monthKey } from "./schedule";
 export { programForVariant, type ProgramVariant } from "./program";
+// Lot 30b (CHR-06, décision D8) : proposition de décalage, calculée par l'écran après
+// le changement d'une heure de début.
+export { proposeProgramShift } from "./program";
 
 export type {
   EventType,
@@ -1096,6 +1101,22 @@ export class ProgramTemplateNotFoundError extends Error {
   }
 }
 
+// Lot 30b (CHR-06, décisions D6 et D7) : responsable trop long, durée hors d'une journée.
+export class ProgramItemInvalidError extends Error {
+  constructor(readonly reason: "responsible" | "duration") {
+    super(`ligne du programme invalide : ${reason}`);
+    this.name = "ProgramItemInvalidError";
+  }
+}
+
+// Lot 30b (CHR-06, décision D8) : le décalage ferait sortir un début du jour J.
+export class ProgramShiftOutOfDayError extends Error {
+  constructor() {
+    super("décalage hors du jour J");
+    this.name = "ProgramShiftOutOfDayError";
+  }
+}
+
 function optionalText(value: string | null | undefined): string | null {
   const trimmed = value?.trim();
   return trimmed ? trimmed : null;
@@ -1113,13 +1134,26 @@ function cleanLabels(labels: string[]): string[] {
   return result;
 }
 
+// Lot 30b (D7) : sans heure de fin, une durée la donne (une journée au plus).
+function programEndTime(startTime: string, input: ProgramItemInput): string | null {
+  if (optionalText(input.endTime) !== null) return normalizeTime(input.endTime!.trim());
+  const duration = input.durationMinutes;
+  if (duration === null || duration === undefined) return null;
+  if (!Number.isInteger(duration) || duration < 1 || duration > MINUTES_PER_DAY) throw new ProgramItemInvalidError("duration");
+  return endTimeAfter(startTime, duration);
+}
+
 function normalizeProgramItem(input: ProgramItemInput): ProgramItemData {
+  const startTime = normalizeTime(input.startTime);
+  const responsible = optionalText(input.responsible)?.replace(/\s+/g, " ") ?? null;
+  if (responsible !== null && responsible.length > 120) throw new ProgramItemInvalidError("responsible");
   return {
-    startTime: normalizeTime(input.startTime),
-    endTime: optionalText(input.endTime) === null ? null : normalizeTime(input.endTime!.trim()),
+    startTime,
+    endTime: programEndTime(startTime, input),
     label: normalizeLabel(input.label),
     location: optionalText(input.location),
     internalNote: optionalText(input.internalNote),
+    responsible,
   };
 }
 
@@ -1132,6 +1166,7 @@ function toProgramItem({ item, participants }: ProgramItemWithParticipants): Pro
     label: item.label,
     location: item.location,
     internalNote: item.internalNote,
+    responsible: item.responsible,
     participants: participants.map(
       ({ row, vendorSlotLabel }): ProgramParticipant => ({
         vendorSlotId: row.vendorSlotId,
@@ -1191,6 +1226,24 @@ export async function updateProgramItem(organizationId: string, itemId: string, 
 
 export async function removeProgramItem(organizationId: string, itemId: string): Promise<void> {
   await deleteProgramItem(organizationId, itemId);
+}
+
+// Lot 30b (CHR-06, décision D8) : décale des séquences de l'événement, début et fin ;
+// sert aussi à annuler (décalage opposé). Tout ou rien.
+export async function shiftProgramItems(organizationId: string, eventId: string, itemIds: string[], minutes: number): Promise<ProgramItem[]> {
+  const ids = [...new Set(itemIds)];
+  if (!Number.isInteger(minutes) || minutes === 0 || Math.abs(minutes) > MAX_SHIFT_MINUTES || ids.length === 0) throw new RangeError("décalage invalide");
+  const result = await shiftProgramItemRows(organizationId, eventId, ids, minutes);
+  switch (result.status) {
+    case "shifted":
+      return sortProgramItems(result.items.map(toProgramItem));
+    case "event_not_found":
+      throw new EventNotFoundError();
+    case "item_not_found":
+      throw new ProgramItemNotFoundError();
+    case "out_of_day":
+      throw new ProgramShiftOutOfDayError();
+  }
 }
 
 function toProgramTemplateItem(row: ProgramTemplateItemRow): ProgramTemplateItem {
@@ -2161,6 +2214,7 @@ const _contractCheck: EventsServiceContract = {
   addProgramItem,
   updateProgramItem,
   removeProgramItem,
+  shiftProgramItems,
   listProgramTemplates,
   createProgramTemplate,
   addProgramTemplateItem,

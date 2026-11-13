@@ -2,7 +2,7 @@
 
 **Statut** : spécification validée par Julien le 12/11/2026 (« Oui, comme recommandé » : D1 à D9
 en (a)). Branche `lot-30-jour-j`, partie du lot 29b (PR #108) ; la PR visera `main` après #108.
-30a fait le 13/11/2026 (bilan plus bas) ; 30b à faire.
+30a fait le 13/11/2026 (PR #109) ; 30b fait le 13/11/2026, branche `lot-30b-chrono` (bilans plus bas).
 
 ## Contexte
 
@@ -226,6 +226,70 @@ la barre du bas. Le rejeu a trouvé des défauts, corrigés avant le commit :
 - **Playwright** : saisie avec durée, décalage proposé puis annulé, portail et espace du
   prestataire à 360 px avec des cibles de 44 px, axe-core.
 - **Rejeu** : SC-08 étape 1 avec les durées affichées.
+
+### Bilan du lot 30b (13/11/2026)
+
+**Fait** :
+- **Responsable** (D6) :
+  - migration 0119 : `events.program_items.responsible`, texte de 1 à 120 caractères, avec annulation ;
+  - saisi sur la fiche, proposé parmi les responsables déjà saisis (liste de suggestions) ;
+  - affiché sur la fiche, dans le PDF (sous l'intitulé) et sur l'écran du jour J (carte
+    « Maintenant » et programme) ;
+  - RGPD : registre, trouvé par la recherche, rendu avec l'événement ; effacé avec la ligne.
+- **Durées et heures de fin** (D7) :
+  - à la saisie, la durée en minutes donne l'heure de fin, et l'inverse ; changer le début garde
+    la durée. Le service accepte une durée seule (une journée au plus) ;
+  - partout, « 16:00 – 17:00 · 1 h » ; une fin absente vaut le début de la suivante ; la dernière
+    séquence sans fin n'affiche que son début ;
+  - calcul partagé, utilisable sans réseau : `apps/symbola/lib/program-spans.ts`, repris par
+    l'écran du jour J.
+- **Décalage proposé** (D8, UX-07) :
+  - après le changement de l'heure de début, la fiche propose « Décaler aussi les 5 séquences
+    suivantes de 20 min » (ou « Avancer ») ;
+  - un clic décale début et fin des séquences qui commençaient après, tout ou rien, en une
+    transaction ; « Annuler (10 s) » rejoue le décalage opposé ;
+  - un début qui sortirait du jour J (après minuit) : pas de bouton, un message dit de déplacer
+    à la main ;
+  - la proposition vit dans l'adresse ; une fois faite, elle en est retirée, pour qu'un
+    rechargement ne décale pas deux fois.
+- **360 px et 44 px** (D9) :
+  - aide de test commune `expectTouchTargets` (`e2e/helpers.ts`) : boutons, sommaires, liens hors
+    d'une phrase, cases par leur libellé ;
+  - portail du client et espace du prestataire corrigés : sommaire des rubriques, lien du PDF,
+    lien e-mail du contact, boutons « Cocher la tâche » et « Fermer l'accès ». Ces derniers
+    mesuraient 40 px, à cause de la règle des formulaires d'un seul bouton.
+- **Textes et aide** : en français et en anglais, avec la question d'aide « Comment décaler la
+  suite du programme ? ».
+
+**Vérifications** :
+- tests unitaires : app 431, dont les durées (après minuit, dernière séquence) et le décalage
+  (écart signé, séquences suivantes seulement, sortie du jour, retour arrière) ;
+- intégration : base 151 (annulation de 0119), app 535. Pour le responsable, la durée et le
+  décalage : abus d'une autre organisation, séquence d'un autre événement glissée, tout ou rien,
+  RGPD ;
+- de bout en bout, sur une base neuve : 241 réussis, 1 ignoré (déjà ignoré avant), aucun échec.
+  Ils comprennent :
+  - `e2e/chr-06-chrono.spec.ts` : durées, durée saisie, responsable proposé, décalage fait puis
+    annulé, décalage gardé après dix secondes ;
+  - `e2e/ux-05-tiers-360.spec.ts` : portail et espace du prestataire à 360 px, cibles de 44 px,
+    axe-core ;
+- lint, types, frontières de modules : verts ; Semgrep : 0 alerte ; Gitleaks : 0 dans les
+  fichiers du lot.
+
+**Rejeu SC-08 étape 1** (`docs/recette/SC-08.md`) :
+- la veille, la cérémonie prend vingt minutes de retard ; Camille accepte le décalage des 14
+  séquences suivantes ;
+- le samedi à 17:20, en mode avion, « Maintenant » est le vin d'honneur (17:20 – 19:05 · 1 h 45)
+  et les durées s'affichent au programme.
+
+**Écarts avec la spécification, et suites** :
+- La dernière séquence sans fin n'affiche que son début sur la fiche, dans le PDF et au programme
+  du jour J. La carte « Maintenant » la garde jusqu'à minuit, comme au 30a.
+- Le RSVP n'existe pas encore : il se contrôlera à 360 px à sa livraison (lots 49 et 50).
+- Le message « décalées » paraît un instant avant le rafraîchissement de la liste de la fiche.
+- Aucun ADR nouveau.
+- **Déploiement** : la migration 0119 rejoint le déploiement d'ensemble (gel des déploiements).
+- **Reste** : rejeu de Julien sur le staging, porte 2.
 
 ## Migrations (à partir de 0118 ; 0117 est celle du lot 29b)
 

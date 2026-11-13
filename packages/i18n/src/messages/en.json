@@ -518,6 +518,10 @@
         {
           "q": "How do I have the client approve a choice?",
           "a": "In the Couple tab, “Client decisions” section: have the client choose between the vendors shown for an item, approve an expense or approve the schedule. The answer is time-stamped and in the person's name; you then retain the vendor or commit the expense in one click. An answered decision is never changed: ask for a new one."
+        },
+        {
+          "q": "How do I move the rest of the programme?",
+          "a": "In the Programme tab, change an item's start time: the page offers to move the next items by the same amount, start and end, in one click, and \"Undo\" stays available for ten seconds. When you type, the duration gives the end time, and the other way round; the person in charge is picked from the ones already entered."
         }
       ]
     },
@@ -1411,7 +1415,19 @@
     "linkPreviewBack": "Back to the event page",
     "activityDecisionMade": "{actor} answered: “{task}”.",
     "dayOfLink": "Day-of",
-    "tabDocuments": "Documents"
+    "tabDocuments": "Documents",
+    "programDuration": "Duration in minutes (optional)",
+    "programResponsible": "Person in charge (optional)",
+    "programResponsibleLine": "In charge: {name}",
+    "programResponsibleTooLong": "The person in charge fits in 120 characters at most.",
+    "programDurationInvalid": "Enter a duration in minutes, from 1 to 1440.",
+    "programShiftLater": "Also move {count, plural, one {the next item} other {the # next items}} {duration} later",
+    "programShiftEarlier": "Also move {count, plural, one {the next item} other {the # next items}} {duration} earlier",
+    "programShiftedLater": "{count, plural, one {The next item is moved} other {The # next items are moved}} {duration} later.",
+    "programShiftedEarlier": "{count, plural, one {The next item is moved} other {The # next items are moved}} {duration} earlier.",
+    "programShiftUndo": "Undo ({seconds} s)",
+    "programShiftUndone": "Move undone: the next items are back to their times.",
+    "programShiftOutOfDay": "Moving the next items would push one of them out of the day (past midnight): move them by hand."
   },
   "Budget": {
     "title": "Budget",
@@ -4646,7 +4662,8 @@
     "call": "Call",
     "sms": "Text",
     "mail": "Email",
-    "smsLabel": "Text {name} on {phone}"
+    "smsLabel": "Text {name} on {phone}",
+    "responsible": "In charge: {name}"
   },
   "Offline": {
     "title": "Offline",

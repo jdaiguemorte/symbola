@@ -5,7 +5,12 @@
 // minuit ; une fin absente vaut le début de la séquence suivante (la dernière dure
 // jusqu'à minuit). Aucune dépendance au navigateur ni au serveur.
 
-export type TimelineItem = { id: string; startTime: string; endTime: string | null };
+import { MINUTES_PER_DAY, programSpans, type SpanItem } from "@/lib/program-spans";
+
+// Lot 30b : le calcul des durées est partagé avec la fiche et le PDF.
+export { durationParts, toMinutes } from "@/lib/program-spans";
+
+export type TimelineItem = SpanItem;
 
 export type DayMoment =
   | { phase: "empty" }
@@ -13,13 +18,6 @@ export type DayMoment =
   | { phase: "now"; currentId: string; endsInMinutes: number; nextId: string | null; nextStartsInMinutes: number | null }
   | { phase: "pause"; nextId: string; nextStartsInMinutes: number }
   | { phase: "over" };
-
-const MINUTES_PER_DAY = 1440;
-
-export function toMinutes(time: string): number {
-  const [hours, minutes] = time.split(":").map(Number);
-  return (hours ?? 0) * 60 + (minutes ?? 0);
-}
 
 function parisParts(instant: Date): { date: string; minutes: number } {
   const parts = new Intl.DateTimeFormat("en-CA", {
@@ -41,19 +39,7 @@ function dayNumber(date: string): number {
 
 // Début et fin de chaque séquence en minutes depuis le minuit du jour J, triées.
 export function timelineSpans(items: TimelineItem[]): { id: string; start: number; end: number }[] {
-  const sorted = [...items].sort((a, b) => toMinutes(a.startTime) - toMinutes(b.startTime));
-  return sorted.map((item, index) => {
-    const start = toMinutes(item.startTime);
-    const next = sorted[index + 1];
-    let end: number;
-    if (item.endTime) {
-      end = toMinutes(item.endTime);
-      if (end <= start) end += MINUTES_PER_DAY;
-    } else {
-      end = next ? Math.max(toMinutes(next.startTime), start) : MINUTES_PER_DAY;
-    }
-    return { id: item.id, start, end };
-  });
+  return programSpans(items);
 }
 
 // Durée d'une séquence, en minutes (fin absente : jusqu'à la suivante).
@@ -78,10 +64,4 @@ export function dayMoment(items: TimelineItem[], eventDate: string, now: Date): 
   }
   if (next) return { phase: "pause", nextId: next.id, nextStartsInMinutes: next.start - minute };
   return { phase: "over" };
-}
-
-// « 1 h », « 45 min », « 1 h 30 » : heures et minutes, pour la traduction.
-export function durationParts(minutes: number): { hours: number; minutes: number } {
-  const total = Math.max(0, Math.round(minutes));
-  return { hours: Math.floor(total / 60), minutes: total % 60 };
 }
