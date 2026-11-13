@@ -141,6 +141,8 @@ import {
 } from "./link-tokens";
 import { isSendingHour, reminderMail, reminderThreshold, type ReminderTask } from "./task-reminders";
 import { answerDecisionRow, findDecisionRow, findDecisionRows, insertDecisionRow, replacementsOf, withdrawDecisionRow, type EventDecisionRow } from "./decisions-repository";
+import { findPendingDecisions, findUncontractedVendors, insertVendorReminder } from "./today-sources";
+import { VendorCandidateNotFoundError as CandidateNotFoundError } from "./vendor-candidates";
 import { answerProblem, DECISION_NOTE_MAX, decisionOpenTo, programChangedSince } from "./decisions";
 import { hashLinkCode, LINK_CODE_TTL_MS, LINK_CODES_PER_HOUR, linkCodeExpiresAt, maskEmail, newLinkCode, normalizeLinkCode } from "./link-otp";
 import { addPlace, listPlaces, removePlace } from "./places";
@@ -174,6 +176,8 @@ import { attachDocument, documentKeys, getDocumentFile, listDayChoices, listDocu
 import { findProgramOverlaps, MAX_SHIFT_MINUTES, normalizeTime, programForVariant, sortProgramItems } from "./program";
 import { endTimeAfter, MINUTES_PER_DAY } from "@/lib/program-spans";
 import type {
+  PendingDecision,
+  UncontractedVendor,
   EventPlace,
   AttachEventDocumentInput,
   DayDocumentChoice,
@@ -1935,6 +1939,39 @@ export async function withdrawDecision(organizationId: string, decisionId: strin
   throw new DecisionInvalidError("answered");
 }
 
+// --- Lot 32a (HUB-08, UX-06, EVT-02 ; D4, D6) : urgences de toute l'organisation ---
+
+export async function listPendingDecisions(organizationId: string): Promise<PendingDecision[]> {
+  return (await findPendingDecisions(organizationId)).map((row) => ({
+    id: row.id,
+    eventId: row.eventId,
+    kind: row.kind as DecisionKind,
+    title: row.title,
+    dueOn: row.dueOn,
+    requestedAt: row.requestedAt.toISOString(),
+  }));
+}
+
+export async function listUncontractedVendors(organizationId: string, today: string): Promise<UncontractedVendor[]> {
+  assertDate(today);
+  return (await findUncontractedVendors(organizationId, today)).map(({ candidate, slotLabel }) => ({
+    candidateId: candidate.id,
+    eventId: candidate.eventId,
+    vendorId: candidate.vendorId,
+    vendorName: candidate.vendorName,
+    slotLabel,
+    since: parisToday(candidate.updatedAt),
+  }));
+}
+
+// D6 : la relance d'un prestataire s'inscrit dans l'activité de l'évènement ; le message part de la
+// messagerie de la planner (l'appelant), Symbola n'envoie rien.
+export async function recordVendorReminder(input: { organizationId: string; eventId: string; candidateId: string; userId: string }): Promise<{ vendorName: string; vendorId: string | null; slotLabel: string }> {
+  const recorded = await insertVendorReminder(input);
+  if (!recorded) throw new CandidateNotFoundError();
+  return recorded;
+}
+
 export async function listEventDecisions(organizationId: string, eventId: string): Promise<EventDecision[]> {
   const rows = await findDecisionRows(organizationId, eventId);
   return decisionsWithContext(organizationId, eventId, rows, rows);
@@ -1990,10 +2027,11 @@ export async function getEventStatusDates(organizationId: string, eventId: strin
 }
 
 export async function listEventActivity(organizationId: string, eventId: string): Promise<EventActivity[]> {
-  return (await findEventActivity(organizationId, eventId)).map(({ activity, actorName }) => ({
+  return (await findEventActivity(organizationId, eventId)).map(({ activity, actorName, vendorName }) => ({
     id: activity.id,
     kind: activity.kind,
-    taskLabel: activity.taskLabel,
+    // Lot 32a (D6, RGP-05) : une relance porte le nom actuel du prestataire, vide s'il est retiré.
+    taskLabel: activity.kind === "vendor_reminded" ? (vendorName ?? "") : activity.taskLabel,
     actorName,
     createdAt: activity.createdAt.toISOString(),
   }));

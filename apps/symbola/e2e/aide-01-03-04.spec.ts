@@ -47,21 +47,19 @@ test("AIDE-11 / AIDE-03 — repères de l'accueil, aide consultable", async ({ p
 
   // Lot 13 (AIDE-11) : les repères de l'écran s'affichent d'office à la
   // première ouverture, sans bloquer l'écran.
-  const panel = landmarksPanel(page, "Accueil");
+  const panel = landmarksPanel(page, "Aujourd'hui");
   await expect(panel).toBeVisible();
-  await expect(page.getByRole("button", { name: "Repère 1 : L'agenda" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Repère 1 : À traiter en premier" })).toBeVisible();
   let violations = await new AxeBuilder({ page }).analyze();
   expect(violations.violations, JSON.stringify(violations.violations, null, 2)).toEqual([]);
 
   // Un clic dans la liste des repères l'explique ; « Repère suivant » les
-  // parcourt. Lot 20 (AIDE-15) : l'agenda, ses commandes, puis les blocs du
-  // dessous (À traiter, tâches, encaissements).
-  await panel.getByRole("button", { name: "Naviguer dans l'agenda" }).click();
-  await expect(panel.getByRole("heading", { name: "Naviguer dans l'agenda", level: 3 })).toBeVisible();
+  // parcourt. Lot 32a (HUB-08) : les trois urgences, le reste par groupe, puis
+  // les évènements en cours.
+  await panel.getByRole("button", { name: "Le reste, par urgence" }).click();
+  await expect(panel.getByRole("heading", { name: "Le reste, par urgence", level: 3 })).toBeVisible();
   await panel.getByRole("button", { name: "Repère suivant" }).click();
-  await expect(panel.getByRole("heading", { name: "À traiter", level: 3 })).toBeVisible();
-  await panel.getByRole("button", { name: "Encaissements à venir" }).click();
-  await expect(panel.getByRole("heading", { name: "Encaissements à venir", level: 3 })).toBeVisible();
+  await expect(panel.getByRole("heading", { name: "Mes évènements", level: 3 })).toBeVisible();
   await expect(panel.getByRole("button", { name: "Repère suivant" })).toBeDisabled();
   await page.keyboard.press("Escape");
   await expect(panel).toHaveCount(0);
@@ -72,7 +70,7 @@ test("AIDE-11 / AIDE-03 — repères de l'accueil, aide consultable", async ({ p
   await expect(panel).toHaveCount(0);
   await page.getByRole("button", { name: "Aide sur cet écran" }).click();
   await expect(panel).toBeVisible();
-  await expect(panel.getByRole("heading", { name: "L'agenda", level: 3 })).toBeVisible();
+  await expect(panel.getByRole("heading", { name: "À traiter en premier", level: 3 })).toBeVisible();
   await panel.getByRole("button", { name: "Fermer l'aide" }).click();
   await expect(panel).toHaveCount(0);
 
@@ -92,9 +90,9 @@ test("AIDE-11 / AIDE-03 — repères de l'accueil, aide consultable", async ({ p
   await page.goto("/");
 
   // Lot 13 (L13-HUB-15) : plus de liste « premiers pas » ni de barre d'aide
-  // permanente ; l'accueil montre ce qui attend.
+  // permanente ; l'accueil montre ce qui attend (lot 32a : « Aujourd'hui »).
   await expect(page.getByRole("heading", { name: "Premiers pas" })).toHaveCount(0);
-  await expect(page.getByRole("heading", { name: "À traiter" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "À traiter en premier" })).toBeVisible();
   await expect(page.getByRole("complementary", { name: "Barre d'aide" })).toHaveCount(0);
 
   // AIDE-03, AIDE-12 : le centre d'aide présente chaque écran en vignette,

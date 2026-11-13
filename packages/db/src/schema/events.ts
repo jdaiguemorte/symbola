@@ -577,7 +577,9 @@ export const eventLinkSessions = eventsSchema.table("event_link_sessions", {
 // tâche, la planner le voit »). Le libellé de la tâche est copié pour
 // rester lisible si la tâche est supprimée ensuite.
 // Lot 27b (EVT-09) : « decision_made », une décision répondue par un lien.
-export const eventActivityKindEnum = eventsSchema.enum("event_activity_kind", ["task_done", "task_undone", "decision_made"]);
+// Lot 32a (PAR-03, SC-03 étape 5, décision D6) : « vendor_reminded », un prestataire relancé depuis
+// le cockpit ; task_label reste vide, le nom se lit sur le prestataire (RGP-05).
+export const eventActivityKindEnum = eventsSchema.enum("event_activity_kind", ["task_done", "task_undone", "decision_made", "vendor_reminded"]);
 
 export const eventActivities = eventsSchema.table("event_activities", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -592,6 +594,8 @@ export const eventActivities = eventsSchema.table("event_activities", {
   kind: eventActivityKindEnum("kind").notNull(),
   taskId: uuid("task_id").references(() => eventTasks.id, { onDelete: "set null" }),
   taskLabel: text("task_label").notNull(),
+  // Lot 32a (D6) : le prestataire relancé.
+  vendorCandidateId: uuid("vendor_candidate_id").references(() => eventVendorCandidates.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdBy: uuid("created_by"),

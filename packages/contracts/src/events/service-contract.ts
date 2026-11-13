@@ -533,7 +533,14 @@ export type ClientEventView = {
   program: EventProgram | null;
 };
 
-export type EventActivityKind = "task_done" | "task_undone" | "decision_made";
+// Lot 32a (D6) : « vendor_reminded », un prestataire relancé depuis le cockpit (taskLabel : son nom).
+export type EventActivityKind = "task_done" | "task_undone" | "decision_made" | "vendor_reminded";
+
+// Lot 32a (HUB-08, UX-06) — décision du client sans réponse, pour la liste des urgences.
+export type PendingDecision = { id: string; eventId: string; kind: DecisionKind; title: string; dueOn: string | null; requestedAt: string };
+
+// Lot 32a (UX-06, D6) — prestataire retenu sans contrat signé, sur un évènement en cours.
+export type UncontractedVendor = { candidateId: string; eventId: string; vendorId: string | null; vendorName: string; slotLabel: string; since: string };
 
 // Lot 27b (POR-03, BUD-07, EVT-09 ; décisions D9 et D10) — décision demandée au
 // client : choisir entre des options d'un poste, valider une dépense, approuver

@@ -128,6 +128,8 @@ test("FAC-04 / DOC-03 / FAC-05 / SC-02 étapes 4 à 7 — contrat généré (pro
   await expect(clause.getByRole("status")).toHaveText("✓ Clause enregistrée.");
   await expectNoAxeViolation(page);
   await page.goto(`/events/${setup.eventId}`);
+  // Lot 32a (D5) : les formulaires de la synthèse sont repliés.
+  await page.locator("summary", { hasText: "Modifier les informations" }).click();
   const venue = page.getByRole("form", { name: "Lieu de l'événement" });
   await venue.getByLabel("Lieu", { exact: true }).fill("Domaine des Tilleuls");
   await venue.getByLabel("Ville").fill("Senlis");

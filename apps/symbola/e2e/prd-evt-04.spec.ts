@@ -87,9 +87,10 @@ test("PRD-EVT-04 — modèle de rétroplanning appliqué, recalcul des échéanc
   await expect(page.getByText("Ajoutez une date à l'événement pour appliquer un modèle de rétroplanning.")).toBeVisible();
   await expect(page.getByRole("button", { name: "Appliquer le modèle" })).toHaveCount(0);
 
-  // Avec une date (onglet Vue d'ensemble), le modèle crée les tâches, regroupées par mois.
-  await openEventTab(page, "Vue d'ensemble");
+  // Avec une date (onglet Synthèse, « Modifier les informations »), le modèle crée les tâches, regroupées par mois.
+  await openEventTab(page, "Synthèse");
   await page.waitForLoadState("networkidle");
+  await page.locator("summary", { hasText: "Modifier les informations" }).click();
   await page.getByLabel("Date de l'événement").fill("2027-06-12");
   await page.getByRole("button", { name: "Changer la date" }).click();
   await expect(page.getByText("Date mise à jour.")).toBeVisible();
@@ -109,7 +110,8 @@ test("PRD-EVT-04 — modèle de rétroplanning appliqué, recalcul des échéanc
   // Une tâche faite n'est pas décalée ; les autres le sont si la planner accepte.
   await page.getByRole("button", { name: "Cocher la tâche Réserver le lieu" }).click();
   await expect(page.getByRole("button", { name: "Décocher la tâche Réserver le lieu" })).toBeVisible();
-  await openEventTab(page, "Vue d'ensemble");
+  await openEventTab(page, "Synthèse");
+  await page.locator("summary", { hasText: "Modifier les informations" }).click();
   await page.getByLabel("Date de l'événement").fill("2027-06-19");
   await page.getByRole("button", { name: "Changer la date" }).click();
   await expect(page.getByText("Date mise à jour.")).toBeVisible();

@@ -19,6 +19,7 @@ import { EVENT_STATUS_CLASSES, STATUS_LABEL_KEYS } from "./event-status";
 import { PAST_STATUSES, UPCOMING_STATUSES, parseYear, tabCounts, yearOptions } from "./events-list-options";
 import { FilterBar } from "../ui/filter-bar";
 import { ListRow, ListTable } from "../ui/list-table";
+import { AgendaBlock } from "../agenda/agenda-block";
 
 export default async function EventsListPage({
   searchParams,
@@ -31,6 +32,8 @@ export default async function EventsListPage({
     source?: string;
     essai?: string;
     visite?: string;
+    agenda?: string;
+    debut?: string;
   }>;
 }) {
   const auth = await requirePlanner();
@@ -39,7 +42,7 @@ export default async function EventsListPage({
   const t = await getTranslations("Events");
   const locale = (await getLocale()) as Locale;
   const tHelp = await getTranslations("Help");
-  const { tab, year, search, status, source, essai, visite } = await searchParams;
+  const { tab, year, search, status, source, essai, visite, agenda, debut } = await searchParams;
 
   if (!(await isEventsModuleEnabled(organizationId))) {
     return (
@@ -206,6 +209,8 @@ export default async function EventsListPage({
         </div>
       ) : null}
       {items.length === 0 ? <p>{t("noResults")}</p> : null}
+      {/* Lot 32a (D3) : l'agenda des mois à venir, venu de l'accueil. */}
+      {!isPastTab ? <AgendaBlock organizationId={organizationId} locale={locale} today={parisToday()} query={{ agenda, debut }} /> : null}
       {counts.upcoming + counts.past === 0 ? (
         <section className="card" aria-labelledby="events-empty-trial">
           <h2 id="events-empty-trial">{t("trialTitle")}</h2>

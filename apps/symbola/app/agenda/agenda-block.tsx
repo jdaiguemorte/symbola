@@ -26,16 +26,19 @@ function parseSpan(value: string | undefined): (typeof SPANS)[number] | null {
   return (SPANS as readonly number[]).includes(span) ? (span as (typeof SPANS)[number]) : null;
 }
 
+// Lot 32a (D3) : l'agenda quitte l'accueil pour l'écran « Évènements » ; ses liens y ramènent.
 export async function AgendaBlock({
   organizationId,
   locale,
   today,
   query,
+  basePath = "/events",
 }: {
   organizationId: string;
   locale: Locale;
   today: string;
-  query: { agenda?: string; debut?: string };
+  query: { agenda?: string | undefined; debut?: string | undefined };
+  basePath?: string;
 }) {
   const t = await getTranslations("Home");
   const tEvents = await getTranslations("Events");
@@ -50,7 +53,7 @@ export async function AgendaBlock({
     .map((event) => ({ id: event.id, date: event.eventDate!, status: event.status, names: eventNames(event.clients), isDemo: event.isDemo }));
   const months = buildCalendar({ start, months: span, events });
   const href = (changes: { agenda?: number; debut?: string }) =>
-    `/?${new URLSearchParams({ agenda: String(changes.agenda ?? span), debut: changes.debut ?? start }).toString()}`;
+    `${basePath}?${new URLSearchParams({ agenda: String(changes.agenda ?? span), debut: changes.debut ?? start }).toString()}#agenda-title`;
   const weekdays = t.raw("agendaWeekdays") as string[];
 
   const describe = (cell: CalendarCell) =>
@@ -59,7 +62,7 @@ export async function AgendaBlock({
       .join(", ")}`;
 
   return (
-    <section className="card" aria-labelledby="agenda-title" data-tour="home-agenda">
+    <section className="card" aria-labelledby="agenda-title" data-tour="events-agenda">
       <div className="section-head">
         <div>
           <h2 id="agenda-title">{t("agendaTitle")}</h2>

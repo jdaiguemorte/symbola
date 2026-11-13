@@ -74,6 +74,7 @@ import type {
   IssueDepositInvoiceInput,
   LatePenaltyRate,
   ReceiptView,
+  RevenueSummary,
   SendForSignatureInput,
   SignatureView,
   SignatureWebhookResult,
@@ -96,6 +97,7 @@ import { computeQuoteTotals, formatDocumentNumber, lineAmounts, validUntil, type
 import { addCalendarDays, groupByMonth, isOverdue, parisToday, resolveSchedule } from "./schedule";
 import { addDays, balanceTotals, prorateTotals, subtractTotals, type InvoiceTotals } from "./invoicing";
 import { paymentTermsFor } from "./payment-terms";
+import { findRevenue } from "./revenue";
 import { sellerDisplayName } from "@/lib/documents/seller-lines";
 import { recordAudit } from "@symbola/db/audit";
 import { cleanDocumentSettings, documentSnapshot, EMPTY_DOCUMENT_SETTINGS } from "./document-settings";
@@ -308,6 +310,7 @@ export type {
   StartQuotesTrialInput,
   LatePenaltyRate,
   ReceiptView,
+  RevenueSummary,
 } from "@symbola/contracts";
 export { EventNotFoundError };
 // Lot 31c (D18) : conditions de paiement d'un professionnel et phrase des pénalités, pour les PDF.
@@ -1655,6 +1658,13 @@ export async function markScheduleItemPaid(input: MarkScheduleItemPaidInput): Pr
     await recordScheduleItemPayment(input.organizationId, input.scheduleItemId, { paidOn, paymentMethodId: input.paymentMethodId }, receipt),
   );
   return loadDetail(input.organizationId, quoteId);
+}
+
+// --- Lot 32a (FAC-12, D8) : signé, facturé, encaissé, par année civile ---
+
+export async function getRevenueSummary(organizationId: string, year: number): Promise<RevenueSummary> {
+  if (!Number.isInteger(year) || year < 2000 || year > 2100) throw new RangeError("année hors bornes");
+  return { year, ...(await findRevenue(organizationId, `${year}-01-01`, `${year}-12-31`)) };
 }
 
 // --- Lot 31c (JUR-08, D21) : reçus d'arrhes ---
@@ -3512,6 +3522,7 @@ const _contractCheck: QuotesServiceContract = {
   listQuoteReceipts,
   getReceipt,
   loadStarterPaymentTerms,
+  getRevenueSummary,
 };
 void _contractCheck;
 

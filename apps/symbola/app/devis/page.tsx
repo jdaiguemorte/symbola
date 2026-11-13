@@ -12,6 +12,7 @@ import { requirePlanner } from "@/lib/guards";
 import { SettingsLink } from "@/app/settings-link";
 import { isQuotesModuleEnabled } from "./module-access";
 import { QUOTE_STATUS_LABEL_KEYS } from "./quote-display";
+import { RevenueTiles } from "./revenue-tiles";
 
 const STATUS_CLASSES: Record<QuoteStatus, string> = {
   draft: "badge",
@@ -22,7 +23,7 @@ const STATUS_CLASSES: Record<QuoteStatus, string> = {
 };
 const FILTERS = ["tous", "draft", "sent", "signed", "declined", "expired"] as const;
 
-export default async function QuotesListPage({ searchParams }: { searchParams: Promise<{ statut?: string }> }) {
+export default async function QuotesListPage({ searchParams }: { searchParams: Promise<{ statut?: string; annee?: string }> }) {
   const auth = await requirePlanner();
   const organizationId = auth.user.organizationId;
 
@@ -53,7 +54,10 @@ export default async function QuotesListPage({ searchParams }: { searchParams: P
         actions={<SettingsLink href="/devis/parametres" label={t("settingsTitle")} />}
       />
       <ScreenHelp title={tHelp("allQuotes.title")} body={tHelp("allQuotes.body")} />
-      <section className="card" aria-labelledby="all-quotes-title">
+      {/* Lot 32a (FAC-12, D8) : signé, facturé, encaissé, sur l'année civile. */}
+      <RevenueTiles organizationId={organizationId} locale={locale} basePath="/devis" yearParam={query.annee} preserve={filter === "tous" ? {} : { statut: filter }} />
+      {/* Lot 32a : sans nom, la section n'est plus un repère ; le tableau défilant garde le sien (axe landmark-unique). */}
+      <section className="card">
         <h2 id="all-quotes-title" className="sr-only">
           {t("allQuotesTitle")}
         </h2>

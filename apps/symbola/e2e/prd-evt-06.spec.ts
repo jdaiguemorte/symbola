@@ -157,7 +157,7 @@ test("PRD-EVT-06 / UX-11 / SEC-17 — le marié ouvre son lien sans inscription,
 
   // La planner voit la coche au nom d'Inès, puis retire son lien.
   await planner.reload();
-  await openEventTab(planner, "Vue d'ensemble");
+  await openEventTab(planner, "Synthèse");
   await expect(planner.getByRole("list", { name: "Fil d'activité" })).toContainText("Inès a coché « Choisir les alliances ».");
   await openEventTab(planner, "Mariés");
   await planner.getByText("Retirer le lien de Inès").click();
@@ -238,9 +238,9 @@ test("SEC-15 — un lien expiré propose d'en demander un nouveau ; la planner l
   await expect(couple.getByRole("status")).toContainText("Votre demande est transmise");
 
   await loginAndSetupMfa(page, organization.email);
-  await expect(page.getByRole("region", { name: "Demandes de nouveau lien" })).toContainText("Léa Martin demande un nouveau lien");
+  await expect(page.getByRole("main")).toContainText("Léa Martin demande un nouveau lien");
   await expectNoAxeViolation(page);
-  await page.getByRole("link", { name: /Léa Martin demande un nouveau lien/ }).click();
+  await page.getByRole("link", { name: "Léa Martin demande un nouveau lien", exact: true }).click();
   await expect(page.getByRole("list", { name: "Liens personnels" })).toContainText("Demande un nouveau lien depuis le");
   await page.getByRole("button", { name: "Renouveler le lien de Léa Martin" }).click();
   const renewedUrl = await page.getByLabel("Lien personnel de Léa Martin").inputValue();

@@ -1,6 +1,7 @@
-// PRD-HUB-02 — accueil : agenda des mois à venir (3, 6 ou 12 mois), mariages
-// confirmés et prospects datés, badge « 2 » le même week-end, tâches de la
-// quinzaine cochables ; écran « Tâches » de toute l'organisation. En taille
+// PRD-HUB-02 — agenda des mois à venir (3, 6 ou 12 mois), mariages confirmés et
+// prospects datés, badge « 2 » le même week-end ; depuis le lot 32a (D3), sur
+// l'écran « Évènements ». Tâches cochables depuis « Aujourd'hui » (HUB-08), avec
+// « Annuler » (D7) ; écran « Tâches » de toute l'organisation. En taille
 // ordinateur et en 375 px, axe-core sur chaque écran.
 import { randomUUID } from "node:crypto";
 import AxeBuilder from "@axe-core/playwright";
@@ -36,7 +37,7 @@ function shift(date: string, days: number): string {
   return value.toISOString().slice(0, 10);
 }
 
-test("PRD-HUB-02 — agenda des mariages, tâches de la quinzaine cochées depuis l'accueil, écran Tâches", async ({ page }) => {
+test("PRD-HUB-02 / HUB-08 — agenda des mariages, tâches cochées depuis « Aujourd'hui », écran Tâches", async ({ page }) => {
   const email = `planner-hub02-${randomUUID()}@symbola.test`;
   const password = "mot-de-passe-hub02-e2e";
   const today = parisToday();
@@ -77,6 +78,7 @@ test("PRD-HUB-02 — agenda des mariages, tâches de la quinzaine cochées depui
   await loginAndSetupMfa(page, email, password);
 
   // Agenda : 3 mois par défaut (lot 16, L16-HUB-20), noms dans les cases, badge « 2 ».
+  await page.goto("/events");
   const agenda = page.getByRole("region", { name: "Agenda" });
   await expect(agenda.getByRole("link", { name: "3 mois" })).toHaveAttribute("aria-current", "true");
   const weekend = agenda.locator("summary", { hasText: firstName });
@@ -88,7 +90,7 @@ test("PRD-HUB-02 — agenda des mariages, tâches de la quinzaine cochées depui
   await agenda.getByRole("link", { name: "Voir l'année" }).click();
   await expect(page).toHaveURL(/agenda=12/);
   await expect(agenda.getByText(new RegExp(`${firstName} & Sacha`)).first()).toBeAttached();
-  await page.goto("/");
+  await page.goto("/events");
   await expect(agenda.getByRole("link", { name: "Voir l'année" })).toHaveAttribute("aria-current", "true");
   await agenda.getByRole("link", { name: "3 mois" }).click();
   await expect(page).toHaveURL(/agenda=3/);
@@ -98,15 +100,24 @@ test("PRD-HUB-02 — agenda des mariages, tâches de la quinzaine cochées depui
   await expect(page).toHaveURL(/\/events\/[0-9a-f-]+$/);
   await expect(page.getByRole("heading", { level: 1, name: new RegExp(firstName) })).toBeVisible();
 
-  // Tâches de la quinzaine : retard et échéance proche, pas la lointaine ; cocher la retire.
+  // « Aujourd'hui » (HUB-08) : le retard d'abord, puis ce qu'attend le client ; pas la tâche
+  // lointaine. Cocher la retire ; « Annuler » la rétablit (D7).
   await page.goto("/");
-  const block = page.getByRole("region", { name: "À faire cette quinzaine" });
-  await expect(block.getByText("Relancer le traiteur")).toBeVisible();
-  await expect(block.getByText("Envoyer le questionnaire")).toBeVisible();
-  await expect(block.getByText("Tâche lointaine")).toHaveCount(0);
-  await expect(block.getByText(/En retard/)).toBeVisible();
-  await block.getByRole("button", { name: "Cocher la tâche Relancer le traiteur" }).click();
-  await expect(block.getByText("Relancer le traiteur")).toHaveCount(0);
+  const first = page.getByRole("region", { name: "À traiter en premier" });
+  await expect(first.getByRole("listitem").first()).toContainText("Relancer le traiteur");
+  await expect(first.getByRole("listitem").first()).toContainText("En retard de 2 jours");
+  await expect(first.getByRole("listitem").first()).toContainText("Vous");
+  await expect(first.getByRole("listitem").nth(1)).toContainText("Envoyer le questionnaire");
+  await expect(first.getByRole("listitem").nth(1)).toContainText("Attend le client");
+  await expect(page.getByText("Tâche lointaine")).toHaveCount(0);
+  await first.getByRole("button", { name: "Fait : « Relancer le traiteur »" }).click();
+  const undo = page.getByRole("status").filter({ hasText: "Tâche « Relancer le traiteur » faite." });
+  await expect(undo).toBeVisible();
+  await expect(first.getByText("Relancer le traiteur")).toHaveCount(0);
+  await undo.getByRole("button", { name: "Annuler" }).click();
+  await expect(first.getByText("Relancer le traiteur")).toBeVisible();
+  await first.getByRole("button", { name: "Fait : « Relancer le traiteur »" }).click();
+  await expect(first.getByText("Relancer le traiteur")).toHaveCount(0);
 
   // Écran Tâches : toutes les tâches à faire, avec leur mariage ; filtre « Toutes ».
   await clickMenuLink(page, "Tâches");
@@ -118,11 +129,8 @@ test("PRD-HUB-02 — agenda des mariages, tâches de la quinzaine cochées depui
   await expect(page.getByRole("rowheader", { name: "Relancer le traiteur" })).toBeVisible();
   await expectNoAxeViolation(page);
 
-  // L13-HUB-15 : le bloc « À traiter » mène aux délais de relance, réglables.
-  await page.goto("/");
-  await expect(page.getByRole("heading", { name: "À traiter" })).toBeVisible();
-  await page.getByRole("link", { name: "Délais de relance" }).click();
-  await expect(page).toHaveURL(/\/parametres\/relances$/);
+  // L13-HUB-15 : les délais de relance restent réglables (Paramètres).
+  await page.goto("/parametres/relances");
   await page.getByLabel("Relancer un devis envoyé après (jours)").fill("5");
   await page.getByRole("button", { name: "Enregistrer les délais" }).click();
   await expect(page.getByText("✓ Délais enregistrés.")).toBeVisible();

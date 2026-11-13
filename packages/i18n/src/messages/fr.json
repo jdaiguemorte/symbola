@@ -72,7 +72,7 @@
     "upcomingTasksTitle": "À faire cette quinzaine",
     "upcomingTasksEmpty": "Rien d'urgent : aucune tâche en retard ni due dans les 14 jours.",
     "allTasksLink": "Toutes les tâches",
-    "agenda": "Agenda",
+    "agenda": "Aujourd'hui",
     "tasks": "Tâches",
     "tasksOverdue": "{count} en retard",
     "settingsOrganization": "Mon organisation",
@@ -236,7 +236,7 @@
     "regimeChanged": "Régime de TVA mis à jour.",
     "missingEffectiveDate": "La date d'effet est obligatoire.",
     "followUpTitle": "Délais de relance",
-    "followUpIntro": "L'accueil vous signale dans « À traiter » les devis envoyés et les prospects restés sans nouvelle au-delà de ces délais.",
+    "followUpIntro": "« Aujourd'hui » vous signale les devis envoyés et les prospects restés sans nouvelle au-delà de ces délais.",
     "quoteFollowUpDays": "Relancer un devis envoyé après (jours)",
     "prospectFollowUpDays": "Relancer un prospect sans nouvelle après (jours)",
     "saveFollowUpDelays": "Enregistrer les délais",
@@ -339,24 +339,16 @@
   "Tour": {
     "hub": [
       {
-        "title": "L'agenda",
-        "body": "Vos week-ends mois par mois : en plein, les événements confirmés ; en pointillé, les dates posées sur un prospect ; une pastille signale deux événements le même week-end. Cliquez une date libre pour y créer un prospect."
+        "title": "À traiter en premier",
+        "body": "Les trois points les plus urgents, tous évènements confondus. Chaque ligne dit qui doit agir et propose l'action en un clic."
       },
       {
-        "title": "Naviguer dans l'agenda",
-        "body": "‹ et › changent de période, « Aujourd'hui » revient au mois en cours. Affichez 3 mois, 6 mois ou toute l'année."
+        "title": "Le reste, par urgence",
+        "body": "En retard, aujourd'hui, en attente d'un tiers, puis les quatorze prochains jours."
       },
       {
-        "title": "À traiter",
-        "body": "Les devis envoyés et les prospects restés sans nouvelle au-delà de vos délais de relance."
-      },
-      {
-        "title": "À faire cette quinzaine",
-        "body": "Les tâches en retard ou dues dans les 14 jours, tous événements confondus. Cochez une tâche pour la marquer faite."
-      },
-      {
-        "title": "Encaissements à venir",
-        "body": "Les acomptes et soldes attendus, par date d'échéance."
+        "title": "Mes évènements",
+        "body": "Vos évènements en cours, avec le compte à rebours et ce qui reste à traiter. Un clic ouvre la synthèse de l'évènement."
       }
     ],
     "events": [
@@ -375,6 +367,10 @@
       {
         "title": "Les réglages",
         "body": "« Réglages » mène aux lignes du budget, sources et motifs, types d'événements et modèles de rétroplanning et de programme."
+      },
+      {
+        "title": "L'agenda",
+        "body": "Les mois à venir : évènements confirmés en plein, dates d'option en atténué. Un clic sur une date libre crée un prospect."
       }
     ],
     "quotes": [
@@ -400,11 +396,11 @@
     "event": [
       {
         "title": "Les onglets",
-        "body": "Vue d'ensemble, budget, rétroplanning, programme, mariés : chaque onglet regroupe une partie de la préparation."
+        "body": "Synthèse, budget, rétroplanning, programme, mariés : chaque onglet regroupe une partie de la préparation."
       },
       {
-        "title": "La vue d'ensemble",
-        "body": "Le statut sur la frise, la prochaine étape et les quatre chiffres clés."
+        "title": "La synthèse",
+        "body": "La prochaine action et qui doit agir, la santé de l'évènement, puis les quatorze prochains jours. Les informations se modifient en bas."
       },
       {
         "title": "Le rétroplanning",
@@ -448,16 +444,24 @@
       "body": "La première fois, scannez le QR code avec une application d'authentification (Google Authenticator, Authy…). Ensuite, saisissez le code à 6 chiffres qu'elle affiche à chaque connexion, ou cochez « Se souvenir de cet appareil » : il ne vous sera plus demandé sur cet appareil pendant 90 jours. Après 5 codes faux, la double authentification est bloquée 15 minutes."
     },
     "home": {
-      "title": "Accueil",
-      "body": "Votre tableau de bord. L'agenda montre vos week-ends pris ; cliquez une date libre pour y créer un prospect. Dessous, ce qui demande votre attention : devis et prospects à relancer, tâches de la quinzaine, encaissements à venir. Un bloc en retard passe en premier.",
+      "title": "Aujourd'hui",
+      "body": "Ce qui demande votre attention, tous évènements confondus, trié par urgence : en retard, aujourd'hui, en attente d'un tiers (le client ou un prestataire), puis les quatorze prochains jours. Les trois premiers points sont en tête ; chaque ligne dit qui doit agir et mène à l'action en un clic. Dessous, vos évènements en cours, avec le compte à rebours.",
       "faq": [
         {
-          "q": "Comment changer les délais de « À traiter » ?",
+          "q": "Comment changer les délais de relance des devis et des prospects ?",
           "a": "Dans Paramètres › Délais de relance : par défaut, un devis envoyé après 7 jours et un prospect sans nouvelle après 14 jours."
         },
         {
           "q": "Où reprendre un tutoriel commencé ?",
           "a": "Dans Tutoriels, au menu : le tutoriel en cours y est proposé en premier, avec tout le parcours."
+        },
+        {
+          "q": "J'ai coché une tâche par erreur ?",
+          "a": "Un message « Annuler » reste dix secondes après la coche : il rétablit la tâche."
+        },
+        {
+          "q": "Où est passé l'agenda ?",
+          "a": "Dans Évènements : le calendrier de vos week-ends y est, avec la liste."
         }
       ]
     },
@@ -549,7 +553,7 @@
     },
     "eventsDetail": {
       "title": "Fiche de l'événement",
-      "body": "Tout l'événement, en onglets. La frise du haut montre où il en est : cliquez l'étape suivante pour avancer. Le bandeau « Prochaine étape » dit quoi faire maintenant (envoyer le devis, appliquer le rétroplanning, créer les liens des mariés). Chaque onglet a son lien « Réglages » vers ses modèles.",
+      "body": "Tout l'événement, en onglets. La « Synthèse » s'ouvre sur la prochaine action et qui doit agir, puis la santé de l'événement (planning, budget, décisions du client) et les quatorze prochains jours ; les informations se modifient en bas, dans « Modifier les informations ». La frise du haut montre où il en est : cliquez l'étape suivante pour avancer. Le bandeau « Prochaine étape » propose l'étape du parcours (envoyer le devis, appliquer le rétroplanning, créer les liens des mariés). Chaque onglet a son lien « Réglages » vers ses modèles.",
       "faq": [
         {
           "q": "Comment marquer un événement perdu ?",
@@ -578,6 +582,10 @@
         {
           "q": "Comment décaler la suite du programme ?",
           "a": "Dans l'onglet Programme, changez l'heure de début d'une séquence : la fiche propose de décaler d'autant les séquences suivantes, début et fin, en un clic, et « Annuler » reste possible dix secondes. À la saisie, la durée donne l'heure de fin, et l'inverse ; le responsable se choisit parmi ceux déjà saisis."
+        },
+        {
+          "q": "Comment relancer un prestataire sans contrat signé ?",
+          "a": "Avec « Relancer » sur sa ligne, dans « Aujourd'hui » ou la synthèse : votre messagerie s'ouvre sur un message prêt, à l'adresse de sa fiche du carnet, et la relance s'inscrit dans le fil d'activité."
         }
       ]
     },
@@ -723,7 +731,7 @@
     },
     "quotesPayments": {
       "title": "Encaissements à venir",
-      "body": "Les échéances non payées de vos devis, triées par date avec un total par mois. Marquez une échéance payée depuis son devis. Une échéance dépassée est signalée « En retard » et passe en tête sur l'accueil.",
+      "body": "Les trois chiffres de l'année (signé, facturé, encaissé), puis les échéances non payées de vos devis, triées par date avec un total par mois. Marquez une échéance payée depuis son devis. Une échéance dépassée est signalée « En retard » et remonte dans « Aujourd'hui ».",
       "faq": [
         {
           "q": "Les essais guidés comptent-ils ?",
@@ -817,7 +825,7 @@
     },
     "allQuotes": {
       "title": "Vos devis",
-      "body": "Tous vos devis et factures, avec leur statut. Un devis se crée depuis la fiche de son événement ; les factures d'acompte et de solde, depuis le devis signé. « Réglages » mène à la numérotation, au catalogue et à l'apparence des documents.",
+      "body": "Tous vos devis et factures, avec leur statut. En tête, les trois chiffres de l'année : signé, facturé (moins les avoirs) et encaissé (moins les annulations, arrhes comprises). Un devis se crée depuis la fiche de son événement ; les factures d'acompte et de solde, depuis le devis signé. « Réglages » mène à la numérotation, au catalogue et à l'apparence des documents.",
       "faq": [
         {
           "q": "Pourquoi ne puis-je pas créer un devis ici ?",
@@ -1265,7 +1273,7 @@
     "starterListsIntro": "Chargez les sources de prospect et motifs de perte les plus fréquents, puis ajoutez ou retirez ce que vous voulez. Ce qui existe déjà n'est pas dupliqué.",
     "sourcesIntro": "D'où viennent vos couples. Demandée à la création d'un prospect, elle permet de savoir quels canaux vous rapportent le plus.",
     "lossReasonsIntro": "Pourquoi un projet n'a pas abouti. Demandé quand un événement passe en « Perdu ».",
-    "tabOverview": "Vue d'ensemble",
+    "tabOverview": "Synthèse",
     "tabClients": "Mariés",
     "backToEvents": "← Tous les événements",
     "tasksOverdueCount": "{count, plural, one {# en retard} other {# en retard}}",
@@ -1531,7 +1539,9 @@
     "venueInvalid": "Le nom du lieu et la ville sont limités à 200 caractères.",
     "venueFormTitle": "Lieu de l'événement",
     "venueSave": "Enregistrer le lieu",
-    "venueSaved": "✓ Lieu enregistré."
+    "venueSaved": "✓ Lieu enregistré.",
+    "activityVendorReminded": "Relance envoyée à {task}.",
+    "activityVendorRemoved": "un prestataire retiré"
   },
   "Budget": {
     "title": "Budget",
@@ -3382,7 +3392,7 @@
         },
         {
           "title": "Confirmer l'événement",
-          "body": "Ouvrez l'exemple, onglet Vue d'ensemble, et passez son statut à « Confirmé », comme lorsqu'un client donne son accord."
+          "body": "Ouvrez l'exemple, onglet Synthèse, et passez son statut à « Confirmé », comme lorsqu'un client donne son accord."
         },
         {
           "title": "Retenir un prestataire",
@@ -3420,7 +3430,7 @@
         },
         {
           "title": "Déplacer la date",
-          "body": "Onglet Vue d'ensemble, changez la date de l'événement : Symbola propose de recalculer les échéances. Acceptez et regardez-les suivre."
+          "body": "Onglet Synthèse, dans « Modifier les informations », changez la date de l'événement : Symbola propose de recalculer les échéances. Acceptez et regardez-les suivre."
         },
         {
           "title": "Garder ou supprimer",
@@ -5207,5 +5217,108 @@
     "signersWithoutPortal": "À distance, chaque signataire commande sur son espace personnel avant de signer. Créez d'abord le lien personnel de : {names}.",
     "signingLinkOnPortal": "lien de signature sur son espace personnel, après sa commande",
     "orderFirstHint": "Contrat à distance : chaque signataire lit le contrat et commande sur son espace personnel ; son lien de signature s'y affiche ensuite. L'e-mail envoyé l'y invite, sans lien direct."
+  },
+  "Today": {
+    "title": "Aujourd'hui",
+    "summary": "{date} · {events, plural, =0 {aucun évènement en cours} one {# évènement en cours} other {# évènements en cours}} · {points, plural, =0 {rien ne presse} one {# point demande votre attention} other {# points demandent votre attention}}",
+    "firstTitle": "À traiter en premier",
+    "firstEmpty": "Rien ne presse : tout est à jour.",
+    "group": {
+      "overdue": "En retard",
+      "today": "Aujourd'hui",
+      "waiting": "En attente d'un tiers",
+      "upcoming": "Les 14 prochains jours"
+    },
+    "more": "{count, plural, one {Voir # de plus} other {Voir # de plus}}",
+    "actor": {
+      "you": "Vous",
+      "client": "Attend le client",
+      "vendor": "Attend {name}"
+    },
+    "due": {
+      "overdue": "En retard de {days, plural, one {# jour} other {# jours}}",
+      "today": "Aujourd'hui",
+      "on": "Le {date}",
+      "since": "Depuis le {date}"
+    },
+    "action": {
+      "checkTask": "Fait",
+      "checkTaskLabel": "Fait : « {label} »",
+      "remindVendor": "Relancer",
+      "remindVendorLabel": "Relancer {vendor}",
+      "open": "Ouvrir",
+      "openLabel": "Ouvrir : {title}"
+    },
+    "words": {
+      "clientTask": "Tâche confiée au client",
+      "amount": "{label} · {amount}",
+      "decision": "Choix attendu : {title}",
+      "paymentDeclaration": "Règlement déclaré à confirmer : {label} · {amount}",
+      "quoteFollowUp": "Devis {number} sans réponse",
+      "prospectFollowUp": "Prospect sans nouvelle",
+      "depositBlocked": "Facture d'acompte bloquée ({number})",
+      "vendorContract": "Contrat de {vendor} ({slot}) à faire signer",
+      "dateConflict": "{count} évènements le même jour",
+      "linkRenewal": "{name} demande un nouveau lien"
+    },
+    "myEventsTitle": "Mes évènements",
+    "myEventsEmpty": "Aucun évènement en cours.",
+    "countdown": "{days, plural, =0 {aujourd'hui} one {demain} other {dans # jours}}",
+    "countdownPast": "passé",
+    "dateUnset": "Date à fixer",
+    "points": "{count, plural, one {# point à traiter} other {# points à traiter}}",
+    "upToDate": "À jour",
+    "undo": {
+      "taskDone": "Tâche « {label} » faite.",
+      "action": "Annuler"
+    },
+    "remind": {
+      "subject": "Contrat à signer — {names}",
+      "body": "Bonjour,\n\nNous attendons votre contrat signé pour « {slot} » ({names}{date}). Pouvez-vous nous le renvoyer ?\n\nMerci,\n{organization}",
+      "dateSuffix": ", le {date}",
+      "recorded": "Relance inscrite dans l'activité de l'évènement.",
+      "noEmail": "Relance inscrite. La fiche du prestataire n'a pas d'adresse e-mail : écrivez-lui depuis votre messagerie."
+    },
+    "cockpit": {
+      "countdown": "{days, plural, =0 {C'est le jour J} one {# jour avant le jour J} other {# jours avant le jour J}}",
+      "countdownPast": "Jour J passé",
+      "nextActionTitle": "Prochaine action",
+      "nextActionEmpty": "Rien à faire pour le moment : tout est à jour.",
+      "postpone": "Reporter",
+      "postponeTo": "Nouvelle date",
+      "postponeSave": "Reporter la tâche",
+      "postponed": "Tâche reportée au {date}.",
+      "healthTitle": "Santé de l'évènement",
+      "planningTitle": "Planning",
+      "planningValue": "{done} sur {total} tâches faites",
+      "planningOverdue": "{count, plural, =0 {Aucune tâche en retard} one {# tâche en retard} other {# tâches en retard}}",
+      "budgetTitle": "Budget",
+      "budgetValue": "{committed} engagés",
+      "budgetEnvelope": "sur une enveloppe de {envelope}",
+      "budgetNoEnvelope": "Pas d'enveloppe fixée",
+      "budgetOpen": "Ouvrir le budget",
+      "decisionsTitle": "Décisions du client",
+      "decisionsValue": "{count, plural, =0 {Aucune en attente} one {# en attente} other {# en attente}}",
+      "decisionsOldest": "« {title} », depuis le {date}",
+      "nextDaysTitle": "Les 14 prochains jours",
+      "nextDaysEmpty": "Rien d'ici quatorze jours.",
+      "editInfo": "Modifier les informations"
+    },
+    "revenue": {
+      "title": "Chiffres de l'année",
+      "signed": "Signé",
+      "invoiced": "Facturé",
+      "collected": "Encaissé",
+      "year": "Année",
+      "show": "Afficher",
+      "hint": "Devis signés, factures moins avoirs, et encaissements moins annulations (arrhes comprises), sur l'année civile."
+    },
+    "restTitle": "Ensuite",
+    "unavailable": "Une partie des urgences ne répond pas pour le moment ({sources}) : le reste de la liste est à jour.",
+    "source": {
+      "events": "évènements",
+      "quotes": "devis et encaissements",
+      "budget": "budget"
+    }
   }
 }
