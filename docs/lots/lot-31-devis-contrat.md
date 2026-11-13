@@ -5,8 +5,9 @@ D8 revu selon sa remarque). 31a fait. 31b commencé, puis mis en pause pour atte
 professionnels ; **révisé le 13/11/2026 après les réponses de l'avocat** (section « Révision du
 31b »), complété le même jour par les réponses de l'expert-comptable et de la DPO ; **révision
 validée par Julien le 13/11/2026** (« Oui je valide » : D11 à D22 en (a) ; D18 : le taux des
-pénalités est choisi par la planner). Branche `lot-31-devis`, partie du lot 30b (PR #110) ; la PR visera
-`main` après #110.
+pénalités est choisi par la planner). 31b fait ; **31c** (décisions de l'expert-comptable, D18 à
+D22) fait le même jour (« Oui, le 31c »). Branche `lot-31-devis`, partie du lot 30b (PR #110) ; la PR
+visera `main` après #110.
 
 ## Contexte
 
@@ -607,13 +608,172 @@ blocage.
 
 **Écarts et suites** :
 - **31c** (expert-comptable) : D18 à D20, D21 (reçu d'arrhes, solde au prix total), D22 ; et les
-  conditions de paiement des factures chargées à l'assistant de démarrage (remarque du rejeu).
+  conditions de paiement des factures chargées à l'assistant de démarrage (remarque du rejeu) :
+  fait (bilan du 31c).
 - **Adresses de facturation** : saisies par la planner à l'envoi en signature ; le portail
   pourrait les demander aux mariés.
 - **Jours fériés** : le délai de rétractation n'est prolongé que d'un samedi ou d'un dimanche.
 - **Clauses types de l'avocat** (D14) : à verser au modèle de départ après son accord.
 - **Signature avancée et code SMS** : lot à part (Q34).
 - **Déploiement** : migrations 0120 à 0124 au déploiement d'ensemble (gel).
+
+## Lot 31c — Ce que demande l'expert-comptable (D18 à D22)
+
+Lancé le 13/11/2026 (« Oui, le 31c »), sur les décisions D18 à D22 déjà validées. Même branche.
+
+### Partie O — Conditions de paiement selon le client (D18)
+
+- **Deux textes** dans les réglages des devis, chacun prérempli par un texte de départ en
+  données, à relire :
+  - « Conditions de paiement — particuliers et non-professionnels » : l'échéance et l'escompte ;
+  - « Conditions de paiement — professionnels » : l'échéance et l'escompte, en texte libre.
+- **Le taux des pénalités de retard** (clients professionnels), à choisir dans une liste, sans
+  valeur par défaut :
+  - « taux de la BCE majoré de 10 points » ;
+  - « trois fois le taux d'intérêt légal ».
+
+  La phrase des pénalités et de l'indemnité forfaitaire de 40 € s'ajoute d'elle-même au texte
+  professionnel. La liste, la phrase et le montant sont des données traduisibles.
+- **Mentions exigées** (liste de l'Admin, en données) :
+  - devis, facture d'acompte et facture de solde d'un professionnel : texte professionnel et
+    taux, chacun nommé s'il manque ;
+  - facture d'un particulier ou d'un non-professionnel : son texte, comme aujourd'hui.
+
+  La facture d'un professionnel reste refusée jusqu'au lot 41.
+- **Le devis d'un professionnel imprime ses conditions de paiement** (texte et phrase des
+  pénalités), figées à l'envoi.
+- **Ancien texte** : si le texte enregistré est l'ancien texte de départ, l'écran le signale.
+- **Assistant de démarrage** : les deux textes de départ sont enregistrés pour l'organisation
+  (remarque du rejeu du 31b). Le taux n'est jamais choisi pour elle.
+
+### Partie P — Mention « EI » (D19)
+
+- Elle est déjà imprimée sur les devis, les factures et les avoirs depuis le lot 17, pour l'EI et
+  la micro-entreprise. Le 31c l'ajoute au contrat (en-tête et variable `{organisation.nom}`) et
+  au reçu d'arrhes.
+
+### Partie Q — Solde par taux (D20)
+
+- La facture de solde déduit chaque facture d'acompte **en HT et en TVA, taux par taux**, nette
+  de ses avoirs, à partir de leurs copies figées. Elle ne ventile plus au prorata.
+- Le PDF montre :
+  - le total de la prestation par taux ;
+  - chaque acompte déduit, avec son HT et sa TVA par taux ;
+  - le reste dû par taux.
+
+### Partie R — Arrhes (D21, D22)
+
+- **Aucune facture d'arrhes** : l'émission est refusée pour un devis à arrhes, et l'écran ne la
+  propose plus.
+- **Reçu non fiscal** créé à l'encaissement des arrhes, dans la même transaction :
+  - une série à part, de préfixe réglable (« R » par défaut) ;
+  - le reçu dit qu'il n'est pas une facture, et il est immuable ;
+  - un encaissement annulé le marque « annulé » ; le reçu reste.
+- **Facture de solde d'un devis à arrhes** : elle porte le prix total (HT, TVA, TTC), puis les
+  arrhes reçues en règlement, puis le reste à payer.
+- **E-reporting** : les encaissements d'arrhes sont exclus de l'export.
+- **Une seule échéance d'arrhes** (D22). Sont refusés :
+  - le choix « arrhes » sur un devis à plusieurs échéances ;
+  - une deuxième échéance sur un devis à arrhes.
+
+  Avant l'envoi, un devis à arrhes qui aurait plusieurs échéances (copie d'un modèle) le nomme.
+- **RGPD** : le reçu porte les noms des clients, comme la facture. Il est donc cherché, exporté,
+  gardé pendant la conservation comptable, puis anonymisé ; le registre est complété.
+
+### Migrations du 31c
+
+| Migration | Schéma | Contenu |
+| --- | --- | --- |
+| 0125 | `quotes` | valeur `receipt` de la série de numérotation (seule dans sa migration) |
+| 0126 | `quotes` | `quote_settings` : texte professionnel, taux des pénalités, préfixe des reçus ; table `earnest_receipts` (RLS, immuable, comme les factures) |
+
+### Choix faits sans toi (à relire)
+
+- **Phrase des pénalités** : elle reprend la règle donnée par l'expert-comptable et l'avocat
+  (taux choisi, indemnité forfaitaire de 40 €). Ce n'est pas une clause rédigée par nous.
+- **EIRL** : le nom porte déjà « EIRL » (lot 17). Le 31c n'y touche pas.
+- **Reçu** : il n'est pas déposé comme original et n'entre pas dans la chaîne des pièces
+  (FAC-14), car ce n'est pas une pièce comptable. L'encaissement, lui, y est déjà.
+
+### Tests du 31c
+
+- Unitaires :
+  - solde par taux (un taux, deux taux, franchise, avoir partiel, arrhes en règlement) ;
+  - phrase des pénalités ;
+  - mentions exigées selon le client ;
+  - données de départ.
+- Intégration :
+  - réglages ;
+  - mentions nommées (texte professionnel, taux) ;
+  - refus de la facture d'arrhes ;
+  - reçu à l'encaissement et numérotation ;
+  - solde d'un devis à arrhes ;
+  - e-reporting sans les arrhes ;
+  - une seule échéance d'arrhes ;
+  - assistant de démarrage ;
+  - isolation et annulation des migrations ;
+  - RGPD (recherche, export, effacement du reçu).
+- Parcours (ordinateur et 375 px, axe-core) : réglages des conditions et du taux, devis à arrhes
+  jusqu'au reçu et au solde.
+
+### Bilan du lot 31c (13/11/2026)
+
+**Fait** :
+- **Conditions de paiement selon le client** (D18) :
+  - deux textes de départ en données, enregistrés par l'assistant de démarrage (sans le taux) ;
+  - le taux des pénalités choisi dans une liste de deux, sans valeur proposée ;
+  - la phrase des pénalités et de l'indemnité forfaitaire de 40 € ajoutée d'elle-même au texte
+    des professionnels ;
+  - texte professionnel et taux exigés, chacun nommé avec son lien, sur le devis et les factures
+    d'un professionnel (liste de l'Admin) ;
+  - le devis d'un professionnel imprime ses conditions, figées à l'envoi ;
+  - l'ancien texte de départ est signalé.
+- **Mention « EI »** (D19) : déjà en place depuis le lot 17 sur les devis, factures et avoirs ;
+  ajoutée au contrat (en-tête et `{organisation.nom}`) et au reçu.
+- **Solde par taux** (D20) : chaque acompte, net de ses avoirs, retiré en HT et en TVA de son taux ;
+  le PDF le détaille ; un solde émis avant garde sa présentation.
+- **Arrhes** (D21, D22, ADR 0066) :
+  - plus de facture d'arrhes ;
+  - un reçu non fiscal à l'encaissement (série « R », réglable), immuable, marqué « annulé » si
+    l'encaissement l'est ;
+  - le solde porte le prix total, avec les arrhes en règlement ;
+  - les arrhes sont hors de l'e-reporting ;
+  - une seule échéance d'arrhes ;
+  - le reçu est pris en compte au RGPD (recherche, données liées, oubli, purge) et au registre.
+- **Migrations** 0125 (série des reçus) et 0126 (réglages, reçus), avec leur annulation.
+
+**Vérifications** (13/11/2026) :
+- lint, vérification des types, frontières de modules : verts ;
+- tests unitaires : tous les paquets verts. App 470, dont le solde par taux, les conditions de
+  paiement, les mentions selon le client, le PDF du reçu et « EI » sur le contrat ; modèles de
+  départ 51 ;
+- intégration sur une base réelle :
+  - base 158 (annulation de 0125 et 0126, isolation et immuabilité du reçu) ;
+  - app 574, dont `quotes-31c.integration.test.ts` (14) ;
+  - un test d'import échoue sous la charge de la suite (« too_large ») et passe seul ; il est sans
+    lien avec le lot ;
+- Playwright, ordinateur et 375 px, sur une base rechargée : 254 passés. Le test de verrouillage
+  de la double authentification (375 px) dépasse son délai sous la charge et passe seul. Nouveau
+  parcours `fac-05-jur-08-arrhes` (4) vert ;
+- Semgrep (comme en CI, sans `.next`) : 0 constat ; Gitleaks : aucune fuite dans les 69 fichiers
+  du lot.
+
+**Rejeu SC-02** (`docs/recette/SC-02.md`, section 31c) : étapes 7 et 8 passées sans blocage.
+- La facture d'acompte s'émet d'elle-même 6 s après la dernière signature, sans geste ; la
+  remarque du 31b est levée.
+- Camille enregistre l'acompte de Léa en 4 gestes.
+- Défaut trouvé par le nouveau parcours : à 375 px, le badge « Payée le … » débordait de 12 px
+  (depuis le lot 23b). Il passe maintenant à la ligne.
+- Remarque : la vue d'ensemble de l'Admin a mis 5,5 s sur une base de test de 1 402
+  organisations. Sans effet au pilote, à surveiller.
+
+**Écarts et suites** :
+- **Mentions entre entreprises** : le numéro de bon de commande et les mentions de la réforme
+  viennent au lot 41, avec les factures aux professionnels.
+- **Documents de renonciation aux arrhes** : ils viennent au lot 34, avec l'annulation d'un
+  évènement.
+- **Jeu fictif** : il saute l'assistant de démarrage, donc les conditions de paiement ne sont pas
+  chargées pour les organisations fictives (remarque pour le lot de recette).
 
 ## Migrations (à partir de 0120 ; 0119 est celle du lot 30b)
 
