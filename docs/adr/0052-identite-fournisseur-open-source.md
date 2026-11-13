@@ -1,7 +1,7 @@
 # ADR 0052 — Identité : bascule vers un fournisseur d'identité open source
 
 - Statut : accepté (décision Q3 b de Julien du 11/11/2026) ; le fournisseur est choisi au lot 33
-  (décision D2 a du lot 25)
+  (décision D2 a du lot 25) ; choix écrit dans [0067](0067-fournisseur-d-identite-logto.md) (Logto)
 - Date : 2026-11-11
 - Remplacera, à la bascule : [0013](0013-auth-maison-pour-le-mvp.md) (authentification maison),
   [0037](0037-double-authentification-protegee.md) (double authentification protégée) et
