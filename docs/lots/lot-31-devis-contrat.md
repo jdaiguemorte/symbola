@@ -1,7 +1,11 @@
 # Lot 31 — Devis complet et contrat
 
 **Statut** : spécification validée par Julien le 13/11/2026 (« Oui je valide » : D1 à D10 en (a),
-D8 revu selon sa remarque). Branche `lot-31-devis`, partie du lot 30b (PR #110) ; la PR visera
+D8 revu selon sa remarque). 31a fait. 31b commencé, puis mis en pause pour attendre les
+professionnels ; **révisé le 13/11/2026 après les réponses de l'avocat** (section « Révision du
+31b »), complété le même jour par les réponses de l'expert-comptable et de la DPO ; **révision
+validée par Julien le 13/11/2026** (« Oui je valide » : D11 à D22 en (a) ; D18 : le taux des
+pénalités est choisi par la planner). Branche `lot-31-devis`, partie du lot 30b (PR #110) ; la PR visera
 `main` après #110.
 
 ## Contexte
@@ -229,6 +233,211 @@ d'e-mails (lot 38) et questionnaires (lot 45) de HUB-21 ; brief et feuille de ro
 - **Reste** : réponses de l'expert-comptable (question 1, et les arrhes en question 7) et de
   l'avocat (questions 2 et 3) ; rejeu de Julien sur le staging, porte 2 ; puis le 31b.
 
+## Révision du 31b après les réponses de l'avocat (13/11/2026)
+
+Julien a reçu le 13/11/2026 la note de l'avocat sur les onze questions de
+`docs/conformite/fiche-avocat.md`, et confirme que les points qu'elle marquait « à vérifier » sont
+validés. La note reste hors du dépôt, qui est public ; la fiche résume ce que Symbola en retient.
+Les réponses 1, 2, 3, 5 et 6 étaient attendues « avant de développer les contrats » : voici ce
+qu'elles changent. **Cette révision remplace D8**, précise D5, D6, D7, D9 et D10, et l'emporte sur
+les parties F à K là où elles diffèrent.
+
+### Ce que le 31b déjà écrit garde
+
+Rien n'est commité ni déployé : migration 0122 (appliquée seulement sur la base de test, que je
+recrée), données de départ, texte du contrat (variables, manquantes ou inconnues, clauses à
+rédiger, fin du délai avec report au lundi), dépôt des contrats. Les modèles à clauses et
+variables, la génération bloquée par une variable manquante, le contrat figé et versionné, la
+signature du devis suivi du contrat en un PDF, la case de démarrage immédiat sur le portail et la
+facture d'acompte émise d'elle-même restent comme prévu.
+
+### Partie G révisée — Canal de conclusion et régime (réponse 1, remplace D8)
+
+- **Plus de choix « la rétractation s'applique ou non »**, et l'exception des prestations à date
+  déterminée (L221-28, 12°) n'est jamais proposée pour l'organisation d'un mariage.
+- **Canal de conclusion**, obligatoire à la génération, sans valeur par défaut, figé dans le
+  contrat et le dossier de preuve : dans l'établissement du planner ; à distance ; hors
+  établissement ; foire ou salon. Avec la **catégorie du client** (partie L), il détermine le
+  régime, par une table en données (`withdrawal.json`) et non dans le code :
+  - **établissement** : pas de rétractation, information générale ; le contrat porte la clause
+    standard sans rétractation ;
+  - **à distance**, client consommateur : rétractation de quatorze jours, information complète et
+    formulaire type ; après la signature, confirmation sur support durable (le PDF signé envoyé à
+    chaque signataire et gardé sur son portail) ; sur le portail, un bouton « Je commande avec
+    obligation de paiement » précède le lien de signature, enregistré (date, nom) ;
+  - **hors établissement**, client consommateur, ou non-professionnel dont la planner confirme
+    « petite entreprise de cinq salariés au plus, hors de son activité principale » : même
+    régime, exemplaire remis (même envoi), et **aucun paiement avant sept jours** : la génération
+    refuse une échéance prévue moins de sept jours après le jour même, et la facture d'acompte ne
+    demande pas de paiement avant la signature plus sept jours ;
+  - **foire ou salon** : génération refusée, « modèle dédié à faire valider » (hors du lot).
+- **Information précontractuelle** : la liste de l'avocat (caractéristiques essentielles, prix TTC
+  et modalités, date d'exécution, identité et coordonnées, assurance, rétractation et formulaire,
+  coût d'une exécution anticipée, durée et résiliation, médiateur) devient, selon le régime, la
+  liste des clauses que le contrat doit porter (rôles de clause) et des données qu'il reprend du
+  devis. Le client lit le contrat sur son portail avant le bouton de commande.
+- **Exécution anticipée** : inchangée (case distincte de la signature, sur le portail, horodatée et
+  nominative), et versée au dossier de preuve (partie N).
+
+### Partie J révisée — Acompte et clauses types (réponse 2, précise D5 et D10)
+
+- **« Acompte » par défaut** : un nouveau devis le prend si l'organisation n'a rien réglé, et le
+  réglage de l'organisation part sur « acompte » (au 31a, aucun défaut). Les arrhes restent un
+  choix explicite.
+- **Concordance** : la génération est refusée si la clause des sommes versées d'avance du contrat
+  ne correspond pas au choix du devis (rôle « acompte » ou « arrhes »), ou manque alors que le
+  devis a un échéancier. L'échéancier et la facture reprennent déjà le mot du devis (31a).
+- **Clauses types** : les deux clauses fournies par l'avocat (acompte avec barème progressif et
+  réciproque, arrhes) entrent dans le modèle de départ comme bases à adapter. Les valeurs
+  objectives deviennent des variables (pourcentage et montant de l'acompte) ; les autres valeurs
+  entre crochets (délais, pourcentages du barème, indemnité) restent à compléter par la planner.
+- **Champ à compléter** : une clause retenue qui garde un texte entre crochets bloque la
+  génération, comme « [À rédiger…] ». Les autres textes juridiques (information sur la
+  rétractation, formulaire type, résiliation…) restent des emplacements à rédiger, à fournir par
+  l'avocat ou à reprendre des modèles réglementaires.
+
+### Partie L (nouvelle) — Catégorie du client et conservation (réponse 3)
+
+- **Trois catégories** : consommateur, non-professionnel, professionnel (aujourd'hui deux). Elles
+  règlent le régime de la partie G et la liste des mentions exigées (en données). Médiateur : le
+  champ devient « Médiateur auquel vous adhérez », toujours bloquant pour un consommateur (31a).
+  Un non-professionnel est facturé comme un consommateur en attendant l'expert-comptable ; le
+  professionnel reste refusé à la facturation jusqu'à Factur-X (lot 41, mentions de la réponse 7).
+- **Conservation de dix ans** du contrat et du dossier de preuve (contrat électronique de 120 € et
+  plus) : la durée de conservation des devis signés passe de 60 à 120 mois par défaut, réglage
+  RGPD de l'organisation (schéma `hub`).
+
+### Partie M (nouvelle) — Niveau de signature (réponse 5, précise D9)
+
+- Recommandé : simple, renforcée par un code SMS, pour les devis et avenants de moins de 10 000 € ;
+  avancée à partir de 10 000 € et pour les mandats. Il faut un fournisseur de SMS (nouveau
+  sous-traitant) et sans doute l'édition payante de Documenso (réauthentification, signature
+  avancée), ou un autre prestataire : choix à faire, lot à part (JUR-14).
+- Au 31b : seuil et niveau recommandé en données ; le niveau réellement employé (« simple ») est
+  inscrit au dossier de preuve ; au-dessus du seuil, une alerte dit que le niveau avancé est
+  recommandé mais pas encore disponible.
+
+### Partie N (nouvelle) — Modèles datés, avertissement accepté, dossier de preuve (réponses 1, 5, 6)
+
+- **Modèles** : chaque modèle de contrat porte sa version et la date de sa dernière revue
+  juridique (saisie par la planner ; vide pour le modèle de départ tant qu'un avocat ne l'a pas
+  relu). Les deux sont copiés dans chaque contrat et imprimés en pied du PDF.
+- **Avertissement accepté** : à la première génération avec une version d'un modèle, la planner
+  coche « Base à adapter, à faire relire par un professionnel du droit » ; l'acceptation est
+  enregistrée (personne, modèle, version, date).
+- **Seulement des faits et des options prédéfinies** : canal, catégorie du client, clauses
+  facultatives ; Symbola applique la table de l'avocat, sans conseil sur le choix.
+- **Dossier de preuve Symbola** : quand tous ont signé, Symbola écrit un PDF de preuve, scellé par
+  son empreinte comme les originaux des factures. Il contient le canal, la catégorie, le régime,
+  la version du contrat et du modèle (avec la date de revue), le clic de commande, les demandes
+  d'exécution anticipée, le niveau de signature, et les empreintes du document signé et du
+  certificat du fournisseur. Il est conservé avec le contrat et téléchargeable par la planner.
+
+### Migration 0122 révisée (rien n'est déployé)
+
+`contracts` : canal de conclusion, catégorie du client, confirmation « petite entreprise », régime
+de rétractation figé, version et date de revue du modèle, niveau de signature ; plus de motif
+d'exclusion. `contract_templates` : date de la dernière revue. Nouvelles tables : acceptations de
+l'avertissement ; actes des signataires (commande, exécution anticipée), à la place des seules
+renonciations ; dossier de preuve (clé, empreinte). `quotes.client_kind` : « non_professional ».
+`quote_settings` : plus de rétractation par défaut ; acompte par défaut. Schéma `hub` (D16) :
+conservation des devis signés à 120 mois par défaut.
+
+### Décisions à prendre (révision)
+
+- **D11 — Canal et régime.** (a) Canal obligatoire, régime déduit de la table de l'avocat, exception
+  jamais proposée, foire ou salon refusé. (b) Garder l'exception comme choix non proposé par défaut,
+  avec avertissement. **Recommandation : (a)**, c'est la réponse 1 telle quelle.
+- **D12 — Information précontractuelle.** (a) Bloquante : la génération est refusée tant qu'une
+  clause attendue par le régime manque. (b) Alerte sans blocage, comme prévu au départ.
+  **Recommandation : (a)** : la liste est validée, et un modèle sans l'information sur la
+  rétractation reste fautif malgré l'avertissement (réponse 6).
+- **D13 — Bouton de commande à distance.** (a) Sur le portail, « Je commande avec obligation de
+  paiement » enregistré, puis le lien de signature. (b) Attendre une solution chez le fournisseur
+  de signature. **Recommandation : (a)** : le bouton du fournisseur ne peut pas changer sans
+  modifier Documenso, ce que la réponse 10 déconseille.
+- **D14 — Clauses types de l'avocat dans le modèle de départ.** (a) Oui, comme bases à adapter,
+  si l'avocat accepte qu'elles soient publiées (le dépôt et le produit sont publics). (b) Non :
+  emplacements « à rédiger » seulement. **Recommandation : (a)**, après son accord.
+- **D15 — Niveau de signature.** (a) Au 31b, alerte au-dessus de 10 000 € et niveau inscrit au
+  dossier de preuve ; SMS et signature avancée dans un lot à part, après tes choix (fournisseur de
+  SMS, édition de Documenso). (b) Bloquer l'envoi au-dessus de 10 000 € d'ici là.
+  **Recommandation : (a)** : la pilote travaille sur des données fictives tant que la société
+  n'existe pas (réponse 8).
+- **D16 — Catégories et conservation.** (a) Trois catégories et conservation de 120 mois au 31b
+  (touche le schéma `hub`). (b) Les catégories au 31b, la conservation dans un lot à part.
+  **Recommandation : (a)** : la durée vaut pour le dossier de preuve que le 31b crée. Le DPO en
+  sera informé (fiche DPO).
+- **D17 — Acompte par défaut.** (a) Sur chaque nouveau devis et dans le réglage de l'organisation.
+  (b) Dans le réglage seulement. **Recommandation : (a)** (réponse 2).
+
+### Réponses de l'expert-comptable et de la DPO (13/11/2026)
+
+Julien a reçu le même jour les réponses vérifiées de l'expert-comptable (questions 1 à 10) et de
+la DPO (questions 1 à 10), puis leurs réponses aux deux questions restées ouvertes (arrhes ;
+journal d'audit) ; résumés dans leurs fiches de `docs/conformite/`. Pour le lot 31 :
+
+- **Facture d'acompte** (expert-comptable, question 7) : le schéma du lot (une facture par acompte,
+  puis un solde qui les déduit) est confirmé dans les deux régimes. Mais **le solde doit déduire
+  les acomptes en HT et en TVA** : aujourd'hui il soustrait leurs montants TTC puis ventile le
+  reste au prorata, et le PDF ne montre pas le détail par taux. Écart sur FAC-05, corrigé au 31b
+  (D20).
+- **Arrhes** (question 7 bis) : **pas de « facture d'arrhes »**, contrairement au 31a. Les arrhes
+  sont une indemnité de dédit, hors TVA, hors facturation électronique et hors e-reporting tant
+  qu'elles ne sont pas imputées sur le prix. À leur encaissement, Symbola remet un **reçu non
+  fiscal**, hors de la série des factures, et n'émet aucune facture d'elle-même. La facture de
+  solde montre le prix total (HT, TVA, TTC) et les arrhes comme un règlement déjà reçu. Les
+  documents de renonciation (constat quand le client renonce, restitution du double quand la
+  planner renonce) viennent avec l'annulation d'un évènement (EVT-05, lot 34). Comme le devis du
+  31a n'est ni déployé ni poussé, la correction se fait au 31b (D21).
+- **Choix écrit en toutes lettres** (même réponse) : pour un consommateur, les sommes versées
+  d'avance sont présumées arrhes sauf stipulation contraire. Le choix « acompte » proposé par
+  défaut (D17) ne vaut que s'il est écrit : le devis porte la phrase « Les sommes versées d'avance
+  sont des acomptes » (ou « des arrhes »), et le contrat la clause concordante (partie J).
+- **Conditions de paiement** (question 1) : le texte de départ (« pénalités au taux d'intérêt
+  légal ») est sous le plancher légal face à un professionnel. Deux textes de départ, choisis
+  selon la catégorie du client (partie L) : particulier et non-professionnel, échéance et
+  escompte ; professionnel, échéance, escompte, pénalités et indemnité forfaitaire de 40 € (D18).
+  Les organisations qui ont déjà copié l'ancien texte le gardent : l'écran des réglages le
+  signale. La facture d'un professionnel reste refusée jusqu'au lot 41 ; le texte sert déjà sur
+  son devis, comme le demande l'avocat (réponse 7).
+- **Mention « EI »** (question 1) : ajoutée d'office après le nom d'un entrepreneur individuel
+  (forme juridique EI ou micro-entreprise) sur les devis, contrats et factures (D19). Le numéro de
+  bon de commande vient au lot 41, avec les mentions entre entreprises.
+- **DPO** : rien ne change pour le 31b. Les noms des clients dans le contrat et les demandes
+  d'exécution anticipée suivent la conservation de dix ans (D16) ; la séparation entre base
+  active et archivage intermédiaire (réponse 6) viendra aux lots 34 et 35 (Q35).
+
+- **D18 — Conditions de paiement selon le client.** **Décision de Julien (13/11/2026)** : deux
+  textes, et le taux des pénalités choisi par la planner, puisque les deux formulations sont
+  légales (« la planner ne peut-elle pas choisir ? »). Dans ses réglages, elle choisit « taux de
+  la BCE majoré de 10 points » ou « trois fois le taux d'intérêt légal », sans valeur imposée ; le
+  choix est demandé, comme une mention manquante nommée, avant le premier devis ou la première
+  facture à un professionnel. Le reste des conditions reste un texte libre (elle peut y reprendre
+  celles de ses factures papier). Énoncé d'origine : (a) Deux textes de départ, choisis selon la
+  catégorie du client. **Taux des pénalités du texte « professionnel » : à trancher par toi**, les
+  deux réponses divergent sur la valeur par défaut : l'avocat propose trois fois le taux
+  d'intérêt légal ; l'expert-comptable recommande le taux de la BCE majoré de 10 points (le taux
+  qui s'applique sans stipulation, plus élevé), « trois fois le taux légal » étant le plancher. Les
+  deux respectent la loi ; la planner peut changer le texte. Je ne recommande pas l'un ou l'autre.
+  (b) Un seul texte, comme aujourd'hui, corrigé.
+- **D19 — Mention « EI ».** (a) Ajoutée d'office au 31b. (b) Au lot 41. **Recommandation : (a)** :
+  elle vaut dès maintenant, pour tous les clients.
+- **D20 — Solde par taux.** (a) Au 31b : le solde déduit le HT et la TVA figés de chaque facture
+  d'acompte, taux par taux, et le PDF les montre. (b) Au lot 41. **Recommandation : (a)** : FAC-05
+  est dans ce lot, et un solde faux d'un centime par taux ne doit pas partir.
+- **D21 — Arrhes sans facture.** (a) Au 31b : plus de facture d'arrhes ; reçu non fiscal à
+  l'encaissement (numérotation à part) ; solde au prix total, arrhes en règlement ; aucune facture
+  émise d'elle-même pour un devis à arrhes ; arrhes exclues de l'export d'e-reporting. (b) Garder
+  la facture d'arrhes jusqu'au lot 34. **Recommandation : (a)** : une TVA écrite sur une facture
+  est due, et le 31a n'est pas encore parti.
+- **D22 — Forme des arrhes.** L'expert-comptable conseille des arrhes versées une seule fois à la
+  réservation, puis des acomptes. (a) Au 31b, un devis à arrhes n'a qu'une échéance d'avance (les
+  arrhes) ; le reste est réglé au solde. (b) Le choix arrhes ou acompte par échéance, pour avoir
+  des arrhes puis des acomptes sur le même devis (le choix passe du devis à l'échéance : schéma
+  et contrat plus lourds). **Recommandation : (a)** pour le 31b : l'acompte est le défaut, les
+  arrhes l'exception ; (b) plus tard si la pilote en a besoin.
+
 ## Lot 31b — Le contrat et la signature
 
 ### Partie F — Modèles de contrat à variables (FAC-04, DOC-02, HUB-21, décision D7)
@@ -314,6 +523,97 @@ fait paramétrer, et il alerte.
 - **Rejeu** : SC-02, étapes 3 à 7, sur le jeu fictif.
 - **Documents** : `docs/gap.csv`, aide, registre RGPD (contrat : noms, adresse, renonciation horodatée),
   fiche de l'avocat (ce qui attend sa réponse), ADR si la signature combinée change l'ADR 0026.
+
+### Bilan du lot 31b (13/11/2026)
+
+**Découpage** : le 31b réalise la révision validée sauf les décisions venues de l'expert-comptable,
+qui touchent la facturation (D18 à D20, D21 hormis la facture automatique, D22). Elles forment un
+**31c** à suivre, avant la PR : conditions de paiement selon le client et taux des pénalités au
+choix de la planner, mention « EI », solde par taux, reçu d'arrhes, une seule échéance d'arrhes.
+
+**Fait** :
+- **Modèles de contrat** (D7, D10, partie N) :
+  - écran « Modèles de contrat » : titre, type d'événement, date de la dernière revue juridique,
+    clauses ordonnées (titre, texte à variables, facultative, rôle légal), ajout, modification,
+    déplacement, suppression, duplication ; la liste des variables est documentée à l'écran ;
+  - chaque modification du texte augmente la version ;
+  - le modèle de départ « à adapter » est en données (squelette, emplacements « [À rédiger avec
+    votre conseil…] »), chargé à l'assistant de démarrage, et proposé sur l'écran et dans le devis.
+- **Génération** (FAC-04, DOC-02 ; D11, D12, D17) :
+  - d'un devis envoyé, avec le canal de conclusion (obligatoire, sans valeur proposée), la
+    catégorie du client (trois catégories) et, pour un non-consommateur hors établissement, la
+    petite entreprise ;
+  - refusée tant qu'un problème reste, chacun nommé : variable vide (« Lieu de l'événement :
+    vide ») ou inconnue, clause encore à rédiger, information légale absente pour le régime,
+    clause d'acompte ou d'arrhes qui ne concorde pas, foire ou salon, échéance avant sept jours
+    hors établissement, avertissement « base à adapter » non accepté pour la version ;
+  - contrat figé (texte, versions du modèle, date de revue, canal, catégorie, régime, niveau de
+    signature) ; une nouvelle génération crée une nouvelle version ; un contrat d'avant un choix
+    d'options ou d'une autre version du devis est « à refaire » ;
+  - « acompte » proposé par défaut (D17), et la phrase « Les sommes versées d'avance sont des
+    acomptes » dans le contrat.
+- **Signature** (DOC-03 ; D9, D13) :
+  - un PDF, le devis puis son contrat, une demande, un dossier de preuve ; le contrat seul s'il est
+    généré après la signature du devis, par les mêmes signataires ;
+  - à distance, l'e-mail n'envoie plus le lien du service de signature : le client lit le contrat
+    sur son espace, clique « Je commande avec obligation de paiement », puis voit son lien ;
+    l'envoi est refusé si un signataire n'a pas de lien personnel ;
+  - la demande d'exécution anticipée, case distincte de la signature, au texte de la clause ;
+  - quand tous ont signé : le dossier de preuve de Symbola (JSON scellé, lisible en PDF) et
+    l'exemplaire signé envoyé à chaque signataire en pièce jointe (support durable).
+- **Facture d'acompte sans autre saisie** (FAC-05, D6, D21) : programmée à la signature, émise
+  par le worker des événements le jour même, ou le lendemain de la fin du délai de rétractation
+  si tous les signataires n'ont pas demandé l'exécution anticipée (passage toutes les heures) ;
+  pas pour des arrhes ni pour un client professionnel ; une mention manquante la bloque, la page
+  du devis et « À traiter » le disent, l'émission à la main la clôt ; hors établissement, aucun
+  paiement demandé avant sept jours.
+- **Niveau de signature** (D15) : au-delà de 10 000 € (donnée), une alerte dit que la signature
+  avancée est recommandée et pas encore disponible ; le niveau employé est au dossier de preuve.
+- **Conservation** (D16) : 120 mois au moins pour les devis signés et leurs contrats (migration
+  0124 relève les organisations en dessous ; le réglage refuse moins).
+- **Lieu de l'événement** : la fiche de l'événement permet de le saisir (sans quoi la variable ne
+  pourrait jamais être comblée) ; les lieux complets restent au lot 34.
+- **RGPD** : contrats (texte) et actes des signataires dans la recherche, l'aperçu et l'oubli
+  (gardés comme preuve d'un devis signé, sinon anonymisés) ; dossier de preuve retiré à la fin de
+  la preuve ; registre complété.
+- **Migrations** 0122 (client non-professionnel), 0123 (contrats), 0124 (hub, conservation), avec
+  leur annulation ; ADR 0065.
+
+**Vérifications** (13/11/2026) :
+- lint, vérification des types, frontières de modules : verts ;
+- tests unitaires : tous les paquets verts ; app 454, dont `contract-text.test.ts` (12) et
+  `contract-pdf-model.test.ts` (3) ; modèles de départ 47 ;
+- intégration sur une base réelle : base 156 (annulation de 0122 à 0124, isolation des sept
+  nouvelles tables), app 560, dont `contracts.integration.test.ts` (15, RGPD compris) ;
+- Playwright, ordinateur et 375 px : suite entière, 246 passés. Les 2 échecs de `fac-01-07`
+  venaient de l'acompte désormais proposé par défaut (D17) ; ils sont corrigés. 3 parcours où
+  l'Admin se connecte, en 375 px, échouent sous la charge de la suite entière mais passent
+  relancés (déjà vu avant le lot). Relance finale de `fac-04-05-contrat`, `fac-01-07` et de ces
+  trois parcours : 28 passés ;
+- Semgrep (`--config=auto`, erreurs bloquantes, comme en CI) : 0 constat sur le code ; la sortie
+  de compilation `.next`, ignorée par git, est exclue ;
+- Gitleaks : aucune fuite dans les fichiers du lot. Les 12 alertes viennent d'anciens parcours
+  e2e et des `.env.*.example`.
+
+**Rejeu SC-02, contrat de l'étape 4 et étapes 5 à 7** (`docs/recette/SC-02.md`) : passé sans
+blocage.
+- Camille : 12 gestes par devis, du devis envoyé au contrat en signature. Il faut 36 gestes, une
+  seule fois, pour remplir le modèle avec les textes de son avocat.
+- Léa et Maxime : 7 gestes chacun sur leur téléphone (lire, commander, demander le démarrage,
+  signer). Aucun débordement à 375 px ; axe-core sans violation.
+- La facture d'acompte se programme sans geste. Elle a été bloquée par la mention « Conditions
+  de paiement des factures », jamais enregistrée sur l'organisation fictive, puis débloquée en
+  5 gestes. Remarque reprise au 31c.
+
+**Écarts et suites** :
+- **31c** (expert-comptable) : D18 à D20, D21 (reçu d'arrhes, solde au prix total), D22 ; et les
+  conditions de paiement des factures chargées à l'assistant de démarrage (remarque du rejeu).
+- **Adresses de facturation** : saisies par la planner à l'envoi en signature ; le portail
+  pourrait les demander aux mariés.
+- **Jours fériés** : le délai de rétractation n'est prolongé que d'un samedi ou d'un dimanche.
+- **Clauses types de l'avocat** (D14) : à verser au modèle de départ après son accord.
+- **Signature avancée et code SMS** : lot à part (Q34).
+- **Déploiement** : migrations 0120 à 0124 au déploiement d'ensemble (gel).
 
 ## Migrations (à partir de 0120 ; 0119 est celle du lot 30b)
 
