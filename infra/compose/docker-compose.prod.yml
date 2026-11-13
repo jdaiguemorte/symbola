@@ -146,12 +146,19 @@ services:
       # Lot 16 (L16-SEC-01, ADR 0037) : sans valeur par défaut, l'app refuse de
       # démarrer si la clé manque dans .env.<environnement>.
       MFA_ENCRYPTION_KEY: ${MFA_ENCRYPTION_KEY}
+      # Lot 33 (ADR 0067) : fournisseur d'identité. Adresse publique (émetteur des jetons) et
+      # application machine à machine créée par l'amorçage ; l'app retrouve son application
+      # web par l'API d'administration. Sans valeur par défaut : refus de démarrer.
+      LOGTO_ENDPOINT: https://${LOGTO_DOMAIN:?LOGTO_DOMAIN requis}
+      LOGTO_M2M_APP_ID: ${LOGTO_M2M_APP_ID:-symbola-bootstrap}
+      LOGTO_M2M_SECRET: ${LOGTO_M2M_SECRET:?LOGTO_M2M_SECRET requis}
     volumes:
       - ${MAP_TILES_HOST_DIR:-/opt/symbola-carte}:/srv/carte:ro
     depends_on:
       - postgres
       - garage
       - clamav
+      - logto
     # Aucun port publié sur l'hôte : le Caddy partagé du VPS (ADR 0018,
     # conteneur du compose petites-voitures) rejoint ce réseau Docker
     # après coup (`docker network connect`, sans alias — runbook de
@@ -176,6 +183,36 @@ services:
     # Pas de read_only ici : Next.js en standalone écrit dans .next/cache
     # (cache de rendu) au runtime — à vérifier et durcir plus tard si
     # confirmé sans risque (pas testable sans déploiement réel).
+
+  # Fournisseur d'identité (lot 33, ADR 0067) : Logto, MPL-2.0, utilisé sans modification. Base
+  # dédiée (bootstrap, LOGTO_DB_PASSWORD), jamais un schéma Symbola ; elle est sauvegardée avec
+  # les autres (infra/backup). Ses pages publiques passent par le Caddy partagé, par l'alias
+  # ci-dessous (LOGTO_DOMAIN). Sa console d'administration n'est publiée qu'en boucle locale,
+  # pour un tunnel SSH (runbook de déploiement), jamais par Caddy.
+  logto:
+    image: svhd/logto:1.46.0
+    restart: unless-stopped
+    entrypoint: ["sh", "-c", "npm run cli db seed -- --swe && npm start"]
+    environment:
+      DB_URL: postgres://${LOGTO_DB_USER:-logto}:${LOGTO_DB_PASSWORD:?LOGTO_DB_PASSWORD requis}@postgres:5432/${LOGTO_DB_NAME:-logto}
+      ENDPOINT: https://${LOGTO_DOMAIN:?LOGTO_DOMAIN requis}
+      ADMIN_ENDPOINT: http://localhost:${LOGTO_ADMIN_PORT:?LOGTO_ADMIN_PORT requis}
+      TRUST_PROXY_HEADER: "1"
+    ports:
+      - "127.0.0.1:${LOGTO_ADMIN_PORT:?LOGTO_ADMIN_PORT requis}:3002"
+    depends_on:
+      - postgres
+    networks:
+      default:
+        aliases:
+          - symbola-logto-${ENVIRONMENT_NAME}
+    deploy:
+      resources:
+        limits:
+          memory: ${LOGTO_MEM_LIMIT:?LOGTO_MEM_LIMIT requis}
+          cpus: ${LOGTO_CPUS:?LOGTO_CPUS requis}
+    security_opt:
+      - no-new-privileges:true
 
   # Signature en ligne (DEV-02, ADR 0026) : Documenso auto-hébergé, AGPL,
   # utilisé sans modification. Profil « signature » : ne démarre que si

@@ -34,8 +34,10 @@ case "$args" in
   *" cat config "*) exit "\${FAKE_REPO_STATUS:-0}" ;;
   *" check "*) exit "\${FAKE_CHECK_STATUS:-0}" ;;
   *" stats --mode raw-data "*) echo "Total Size: 42 MiB" ;;
+  *"datname = 'logto'"*) echo "\${FAKE_LOGTO_DB-}" ;;
   *"pg_database"*) echo "\${FAKE_DOCUMENSO_DB-}" ;;
   *"documenso.dump"*" dump "*|*" dump "*"documenso.dump"*) [ -n "\${FAKE_DOCUMENSO_DUMP:-}" ] || exit 1; echo "PGDMP-fake" ;;
+  *"logto.dump"*" dump "*|*" dump "*"logto.dump"*) [ -n "\${FAKE_LOGTO_DUMP:-}" ] || exit 1; echo "PGDMP-fake" ;;
   *"pg_dump"*) [ -n "\${FAKE_PGDUMP_FAIL:-}" ] && exit 1; echo "PGDMP-fake" ;;
   *"pg_restore --list"*) cat >/dev/null ;;
   *"pg_restore --exit-on-error"*) cat >/dev/null ;;
@@ -43,6 +45,7 @@ case "$args" in
   *" backup --json --tag "*) printf '{"message_type":"summary","data_added":%s}\\n' "\${FAKE_DATA_ADDED:-4096}"; exit "\${FAKE_BACKUP_STATUS:-0}" ;;
   *" snapshots "*) printf '%s' "\${FAKE_SNAPSHOTS_JSON-[{\\"tree\\":\\"aaaa\\",\\"id\\":\\"${SNAPSHOT_ID}\\"}]}" ;;
   *" dump "*) echo "PGDMP-fake" ;;
+  *"rolname = 'logto'"*) echo "\${FAKE_LOGTO_ROLE_EXISTS-1}" ;;
   *"pg_roles"*) echo "\${FAKE_ROLE_EXISTS-1}" ;;
 esac
 exit 0
@@ -302,6 +305,58 @@ describe("DEV-02 — Sauvegarde de la base de Documenso (ADR 0026)", () => {
     expect(indexOf(calls, "dropdb", "documenso")).toBe(-1);
     expect(indexOf(calls, "stop documenso")).toBe(-1);
     expect(indexOf(calls, "up -d documenso")).toBe(-1);
+  });
+});
+
+describe("SEC-01 — Sauvegarde du fournisseur d'identité (lot 33, ADR 0067)", () => {
+  it("sans base du fournisseur, la sauvegarde ne la cherche pas plus loin", () => {
+    const { status, calls } = run(backupScript, ["production"]);
+    expect(status).toBe(0);
+    expect(indexOf(calls, "--dbname=logto")).toBe(-1);
+  });
+
+  it("étant donné la base de Logto présente, elle est vidée, vérifiée et entre dans le même instantané, sans arrêter Logto", () => {
+    const { status, calls } = run(backupScript, ["production"], { FAKE_LOGTO_DB: "1" });
+    expect(status).toBe(0);
+    const dump = indexOf(calls, "pg_dump --format=custom", "--dbname=logto");
+    const backup = indexOf(calls, "backup --json --tag env:production");
+    for (const step of [dump, backup]) expect(step).toBeGreaterThanOrEqual(0);
+    expect(dump).toBeLessThan(backup);
+    expect(calls.filter((call) => call.includes("pg_restore --list"))).toHaveLength(2);
+    expect(indexOf(calls, "stop logto")).toBe(-1);
+  });
+
+  it("restaure la base de Logto : rôle de base avant pg_restore, rôles de connexion recréés après, Logto arrêté puis relancé", () => {
+    const { status, calls } = run(restoreScript, ["staging", "--confirm=staging"], { FAKE_LOGTO_DUMP: "1" });
+    expect(status).toBe(0);
+    const stop = indexOf(calls, "-p symbola-staging", "stop logto");
+    const ownerCheck = indexOf(calls, "pg_roles", "rolname = 'logto'");
+    const baseRole = indexOf(calls, "create role logto_tenant_logto nologin");
+    const recreate = indexOf(calls, "dropdb --if-exists --force", "logto");
+    const logtoRestore = indexOf(calls, "pg_restore --exit-on-error", "--dbname=logto");
+    const tenantRoles = indexOf(calls, "psql -v ON_ERROR_STOP=1", "--dbname=logto");
+    const restart = calls.findLastIndex((call) => call.includes("-p symbola-staging") && call.includes("up -d --wait"));
+    for (const step of [stop, ownerCheck, baseRole, recreate, logtoRestore, tenantRoles, restart]) expect(step).toBeGreaterThanOrEqual(0);
+    expect(stop).toBeLessThan(recreate);
+    expect(ownerCheck).toBeLessThan(recreate);
+    expect(baseRole).toBeLessThan(logtoRestore);
+    expect(recreate).toBeLessThan(logtoRestore);
+    expect(logtoRestore).toBeLessThan(tenantRoles);
+    expect(tenantRoles).toBeLessThan(restart);
+  });
+
+  it("refuse de restaurer Logto sans son rôle propriétaire (bootstrap d'abord), avant toute suppression de sa base", () => {
+    const { status, calls, output } = run(restoreScript, ["staging", "--confirm=staging"], { FAKE_LOGTO_DUMP: "1", FAKE_LOGTO_ROLE_EXISTS: "" });
+    expect(status).not.toBe(0);
+    expect(output).toMatch(/rôle logto absent : lancer d'abord le bootstrap avec LOGTO_DB_PASSWORD/);
+    expect(indexOf(calls, "dropdb", "logto")).toBe(-1);
+  });
+
+  it("sans base de Logto dans l'instantané, la restauration ne la touche pas", () => {
+    const { status, calls } = run(restoreScript, ["staging", "--confirm=staging"]);
+    expect(status).toBe(0);
+    expect(indexOf(calls, "dropdb", "logto")).toBe(-1);
+    expect(indexOf(calls, "stop logto")).toBe(-1);
   });
 });
 

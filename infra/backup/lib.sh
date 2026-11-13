@@ -55,6 +55,11 @@ load_config() {
   DOCUMENSO_DB=$(sed -n 's/^DOCUMENSO_DB_NAME=//p' "$ENV_FILE" | tail -n 1)
   DOCUMENSO_DB=${DOCUMENSO_DB:-documenso}
   [[ $DOCUMENSO_DB =~ ^[a-z_][a-z0-9_]*$ ]] || die "DOCUMENSO_DB_NAME invalide dans $ENV_FILE"
+  # Fournisseur d'identité (lot 33, ADR 0067) : base dédiée de Logto, sauvegardée dès qu'elle
+  # existe ; ses rôles de connexion (logto_tenant_*) sont recréés à la restauration.
+  LOGTO_DB=$(sed -n 's/^LOGTO_DB_NAME=//p' "$ENV_FILE" | tail -n 1)
+  LOGTO_DB=${LOGTO_DB:-logto}
+  [[ $LOGTO_DB =~ ^[a-z_][a-z0-9_]*$ ]] || die "LOGTO_DB_NAME invalide dans $ENV_FILE"
   # shellcheck disable=SC2034
   WORK_DIR="${BACKUP_WORK_DIR:-/var/tmp/symbola-backup}/$ENVIRONMENT_NAME"
 }
@@ -92,11 +97,14 @@ env_compose() {
   docker compose -f "$COMPOSE_DIR/docker-compose.prod.yml" --env-file "$ENV_FILE" -p "$PROJECT" "$@"
 }
 
-# Base Documenso présente sur le serveur PostgreSQL de l'environnement ?
-documenso_database_exists() {
+# Base dédiée présente sur le serveur PostgreSQL de l'environnement ? (nom déjà validé)
+database_exists() {
   [ "$(env_compose exec -T postgres sh -c \
-    "psql -tA --username=\"\$POSTGRES_USER\" --dbname=postgres -c \"select 1 from pg_database where datname = '$DOCUMENSO_DB'\"")" = 1 ]
+    "psql -tA --username=\"\$POSTGRES_USER\" --dbname=postgres -c \"select 1 from pg_database where datname = '$1'\"")" = 1 ]
 }
+
+documenso_database_exists() { database_exists "$DOCUMENSO_DB"; }
+logto_database_exists() { database_exists "$LOGTO_DB"; }
 
 socle_compose() {
   docker compose -f "$COMPOSE_DIR/docker-compose.socle.yml" --env-file "$COMPOSE_DIR/.env.socle" -p symbola-socle "$@"

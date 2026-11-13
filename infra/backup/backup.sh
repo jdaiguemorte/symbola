@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Sauvegarde nocturne d'un environnement (SOC-10) : PostgreSQL (dump) et Garage, plus
-# Uptime Kuma pour la production, et Documenso (base dédiée, DEV-02, ADR 0026) une
-# fois déployé, dans un dépôt restic chiffré propre à l'environnement. Depuis le lot 22
+# Uptime Kuma pour la production, Documenso (base dédiée, DEV-02, ADR 0026) une
+# fois déployé, et le fournisseur d'identité (base dédiée de Logto, lot 33, ADR 0067), dans un dépôt restic chiffré propre à l'environnement. Depuis le lot 22
 # (NFR-10, ADR 0051), ce dépôt est sur la Storage Box Hetzner, hors du VPS.
 #
 # Usage (sur le VPS, root, lancé par le timer systemd symbola-backup@<env>) :
@@ -37,6 +37,7 @@ size_bytes=""
 install -d -m 700 "$WORK_DIR"
 dump="$WORK_DIR/postgres.dump"
 documenso_dump="$WORK_DIR/documenso.dump"
+logto_dump="$WORK_DIR/logto.dump"
 stopped=()
 
 restart_stopped() {
@@ -54,7 +55,7 @@ stop_service() { # stop_service <env|socle> <service>
 
 cleanup() {
   restart_stopped
-  rm -f "$dump" "$documenso_dump"
+  rm -f "$dump" "$documenso_dump" "$logto_dump"
 }
 
 # Fin de l'exécution, réussie ou non : services relancés, puis résultat signalé à l'app.
@@ -89,6 +90,14 @@ if documenso_database_exists; then
   env_compose exec -T postgres sh -c "pg_dump --format=custom --username=\"\$POSTGRES_USER\" --dbname=$DOCUMENSO_DB" >"$documenso_dump"
   [ -s "$documenso_dump" ] || die "dump Documenso vide"
   env_compose exec -T postgres pg_restore --list <"$documenso_dump" >/dev/null || die "dump Documenso illisible par pg_restore"
+fi
+
+# Fournisseur d'identité (lot 33, ADR 0067) : comptes, clés d'accès, seconds facteurs.
+if logto_database_exists; then
+  log "$ENVIRONMENT_NAME : dump de la base du fournisseur d'identité ($LOGTO_DB)"
+  env_compose exec -T postgres sh -c "pg_dump --format=custom --username=\"\$POSTGRES_USER\" --dbname=$LOGTO_DB" >"$logto_dump"
+  [ -s "$logto_dump" ] || die "dump du fournisseur d'identité vide"
+  env_compose exec -T postgres pg_restore --list <"$logto_dump" >/dev/null || die "dump du fournisseur d'identité illisible par pg_restore"
 fi
 
 RESTIC_MOUNTS=(-v "$WORK_DIR:/backup/postgres:ro" -v "$GARAGE_VOLUME:/backup/garage:ro")

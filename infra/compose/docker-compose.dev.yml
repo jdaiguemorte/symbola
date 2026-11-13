@@ -120,6 +120,28 @@ services:
     security_opt:
       - no-new-privileges:true
 
+  # Fournisseur d'identité (lot 33, ADR 0067) : Logto, obligatoire (la connexion passe par lui).
+  # Sa base dédiée est créée par le bootstrap (LOGTO_DB_PASSWORD dans .env), puis
+  # `pnpm --filter @symbola/auth configure-identity` le règle en une commande. Pages de connexion
+  # sur http://localhost:3001 ; console d'administration sur http://localhost:3002.
+  logto:
+    image: svhd/logto:1.46.0
+    restart: unless-stopped
+    entrypoint: ["sh", "-c", "npm run cli db seed -- --swe && npm start"]
+    environment:
+      DB_URL: postgres://${LOGTO_DB_USER:-logto}:${LOGTO_DB_PASSWORD:-}@postgres:5432/${LOGTO_DB_NAME:-logto}
+      ENDPOINT: http://localhost:3001
+      ADMIN_ENDPOINT: http://localhost:3002
+      TRUST_PROXY_HEADER: "1"
+    ports:
+      - "127.0.0.1:3001:3001"
+      - "127.0.0.1:3002:3002"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+
   traefik:
     image: traefik:v3.2
     restart: unless-stopped
