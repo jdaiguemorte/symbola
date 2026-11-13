@@ -12,6 +12,7 @@ import {
   listCatalogItems,
   listPaymentMethods,
   listQuoteInvoices,
+  listQuoteReceipts,
   listQuoteTemplates,
   quoteMissingMentions,
   QuoteNotFoundError,
@@ -72,13 +73,15 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
 
   const db = appDatabase();
   const profile = await getOrganizationProfile(db, organizationId);
-  const [event, catalog, paymentMethods, invoices, templates, scheduledDeposit] = await Promise.all([
+  const [event, catalog, paymentMethods, invoices, templates, scheduledDeposit, receipts] = await Promise.all([
     getEvent(organizationId, quote.eventId),
     listCatalogItems(organizationId),
     listPaymentMethods(organizationId),
     listQuoteInvoices(organizationId, quote.id),
     listQuoteTemplates(organizationId),
     getQuoteScheduledDeposit(organizationId, quote.id),
+    // Lot 31c (D21) : reçus d'arrhes.
+    listQuoteReceipts(organizationId, quote.id),
   ]);
   const clientNames = event?.clients.map((client) => client.firstName).join(" & ") || t("noClient");
 
@@ -178,7 +181,7 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
         locale={locale}
       />
       <SignatureSection organizationId={organizationId} quote={quote} event={event} />
-      <InvoicesSection quote={quote} invoices={invoices} locale={locale} scheduled={scheduledDeposit} />
+      <InvoicesSection quote={quote} invoices={invoices} locale={locale} scheduled={scheduledDeposit} receipts={receipts} />
 
       {isDraft ? (
         <>

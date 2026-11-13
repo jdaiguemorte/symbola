@@ -670,6 +670,26 @@ fields:
       Conservation légale, comme la facture corrigée (DEV-04).
     anonymization: >-
       Aucune avant la fin de la conservation légale (avoir immuable).
+  - schema: quotes
+    table: earnest_receipts
+    field: buyer_snapshot
+    category: contact
+    retention: >-
+      Reçu non fiscal remis à l'encaissement d'arrhes (lot 31c, JUR-08) : noms et
+      adresses de facturation des clients, figés. Même conservation que les pièces
+      comptables (dix ans par défaut), à compter de la date du reçu.
+    anonymization: >-
+      Aucune avant la fin de la conservation (reçu immuable) ; ensuite, les noms et
+      adresses sont remplacés (oubli ou purge mensuelle), le montant et la date restent.
+  - schema: quotes
+    table: earnest_receipts
+    field: seller_snapshot
+    category: contact
+    retention: >-
+      Coordonnées du vendeur figées sur le reçu d'arrhes (lot 31c), comme sur une
+      facture. Même conservation que les pièces comptables.
+    anonymization: >-
+      Aucune avant la fin de la conservation (reçu immuable).
   - schema: vendors
     table: vendors
     field: name

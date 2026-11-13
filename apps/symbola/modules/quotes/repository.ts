@@ -8,6 +8,7 @@ import {
   contracts,
   contractSignerActs,
   creditNotes,
+  earnestReceipts,
   invoices,
   numberSeries,
   paymentEntries,
@@ -42,6 +43,7 @@ export type InvoiceRow = typeof invoices.$inferSelect;
 export type CreditNoteRow = typeof creditNotes.$inferSelect;
 export type QuoteSignerRow = typeof quoteSigners.$inferSelect;
 export type PaymentEntryRow = typeof paymentEntries.$inferSelect;
+export type EarnestReceiptRow = typeof earnestReceipts.$inferSelect;
 
 type Tx = Parameters<Parameters<typeof withOrganization>[2]>[0];
 
@@ -155,7 +157,9 @@ export async function upsertQuoteSettings(
     | "invoicePaymentTermDays"
     | "invoiceMentions"
     | "advanceKindDefault"
-  >,
+  > &
+    // Lot 31c (D18, D21) : absents, ils restent inchangés.
+    Partial<Pick<QuoteSettingsRow, "invoiceMentionsProfessional" | "latePenaltyRate" | "receiptPrefix">>,
 ): Promise<QuoteSettingsRow> {
   return inOrganization(organizationId, async (tx) => {
     const [row] = await tx
@@ -197,7 +201,7 @@ export async function upsertDocumentSettings(
 export async function nextSeriesRank(
   tx: Tx,
   organizationId: string,
-  kind: "quote" | "invoice" | "credit_note",
+  kind: "quote" | "invoice" | "credit_note" | "receipt",
   isDemo: boolean,
   year: number,
 ): Promise<number> {
@@ -856,6 +860,8 @@ export async function deleteEventQuotes(
     const documentKeys: string[] = [];
     // Lot 31b : factures d'acompte à émettre (elles citent les factures).
     await tx.delete(scheduledDepositInvoices).where(inArray(scheduledDepositInvoices.quoteId, quoteIds));
+    // Lot 31c : reçus d'arrhes (ils citent les encaissements) ; seuls ceux d'un essai se suppriment.
+    await tx.delete(earnestReceipts).where(inArray(earnestReceipts.quoteId, quoteIds));
     // Factures et avoirs : seuls ceux d'un essai se suppriment (trigger
     // d'immuabilité, DEV-04) ; un vrai devis facturé n'est jamais purgé.
     const issued = await tx
@@ -1134,10 +1140,21 @@ async function payableContext(tx: Tx, scheduleItemId: string) {
   return { status: "ok" as const, ...context };
 }
 
+// Lot 31c (JUR-08, D21) : à l'encaissement d'arrhes, un reçu non fiscal de sa propre série, dans la
+// même transaction (le rang est perdu avec elle en cas d'échec : aucun trou).
+export type ReceiptPreparation = {
+  issuedAt: Date;
+  issuedOn: string;
+  year: number;
+  formatNumber: (isDemo: boolean, rank: number) => string;
+  sellerSnapshot: unknown;
+};
+
 export async function recordScheduleItemPayment(
   organizationId: string,
   scheduleItemId: string,
   payment: { paidOn: string; paymentMethodId: string },
+  receipt?: ReceiptPreparation,
 ): Promise<PaymentResult> {
   return inOrganization(organizationId, async (tx) => {
     const context = await payableContext(tx, scheduleItemId);
@@ -1148,16 +1165,47 @@ export async function recordScheduleItemPayment(
     if (!method || method.archivedAt) return { status: "method_not_found" };
     const totalTtcCents = (version.totalsSnapshot as { totalTtcCents?: number } | null)?.totalTtcCents ?? 0;
     const amountCents = resolveSchedule([item], totalTtcCents).amounts[0] ?? 0;
-    await tx.insert(paymentEntries).values({
-      organizationId,
-      scheduleItemId,
-      kind: "received",
-      amountCents,
-      paidOn: payment.paidOn,
-      paymentMethodId: method.id,
-      paymentMethodLabel: method.label,
-      isDemo: quote.isDemo,
-    });
+    const [entry] = await tx
+      .insert(paymentEntries)
+      .values({
+        organizationId,
+        scheduleItemId,
+        kind: "received",
+        amountCents,
+        paidOn: payment.paidOn,
+        paymentMethodId: method.id,
+        paymentMethodLabel: method.label,
+        isDemo: quote.isDemo,
+      })
+      .returning();
+    if (!entry) throw new Error("enregistrement de l'encaissement échoué");
+    let receiptNumber: string | null = null;
+    if (receipt && version.advanceKind === "earnest") {
+      // Les clients : les signataires du devis (pas d'une demande du contrat seul).
+      const [request] = await tx
+        .select()
+        .from(signatureRequests)
+        .where(and(eq(signatureRequests.versionId, version.id), ne(signatureRequests.kind, "contract")));
+      const signers = request ? await tx.select().from(quoteSigners).where(eq(quoteSigners.requestId, request.id)).orderBy(asc(quoteSigners.position)) : [];
+      const rank = await nextSeriesRank(tx, organizationId, "receipt", quote.isDemo, receipt.year);
+      receiptNumber = receipt.formatNumber(quote.isDemo, rank);
+      await tx.insert(earnestReceipts).values({
+        organizationId,
+        quoteId: quote.id,
+        scheduleItemId,
+        paymentEntryId: entry.id,
+        number: receiptNumber,
+        isDemo: quote.isDemo,
+        issuedAt: receipt.issuedAt,
+        issuedOn: receipt.issuedOn,
+        paidOn: payment.paidOn,
+        amountCents,
+        label: item.label,
+        paymentMethodLabel: method.label,
+        sellerSnapshot: receipt.sellerSnapshot,
+        buyerSnapshot: signers.map((signer) => ({ name: signer.name, billingAddress: signer.billingAddress ?? "" })),
+      });
+    }
     await tx
       .update(paymentScheduleItems)
       .set({ paidOn: payment.paidOn, paymentMethodId: method.id, paidRecordedAt: new Date() })
@@ -1166,10 +1214,45 @@ export async function recordScheduleItemPayment(
       organizationId,
       action: "quotes.payment.recorded",
       objectId: scheduleItemId,
-      details: { quoteNumber: quote.number, paidOn: payment.paidOn, amountCents },
+      details: { quoteNumber: quote.number, paidOn: payment.paidOn, amountCents, ...(receiptNumber ? { receiptNumber } : {}) },
       isDemo: quote.isDemo,
     });
     return { status: "ok", quoteId: quote.id };
+  });
+}
+
+// Lot 31c (D21) — reçus d'arrhes d'un devis, avec leur encaissement annulé ou non.
+export type ReceiptWithState = { receipt: EarnestReceiptRow; quoteNumber: string; cancelled: boolean };
+
+async function receiptsWithState(tx: Tx, rows: EarnestReceiptRow[]): Promise<ReceiptWithState[]> {
+  if (rows.length === 0) return [];
+  const reversals = await tx
+    .select({ reversesEntryId: paymentEntries.reversesEntryId })
+    .from(paymentEntries)
+    .where(inArray(paymentEntries.reversesEntryId, rows.map((row) => row.paymentEntryId)));
+  const cancelled = new Set(reversals.map((row) => row.reversesEntryId));
+  const numbers = await tx
+    .select({ id: quotes.id, number: quotes.number })
+    .from(quotes)
+    .where(inArray(quotes.id, [...new Set(rows.map((row) => row.quoteId))]));
+  const numberOf = new Map(numbers.map((row) => [row.id, row.number]));
+  return rows.map((receipt) => ({ receipt, quoteNumber: numberOf.get(receipt.quoteId) ?? "", cancelled: cancelled.has(receipt.paymentEntryId) }));
+}
+
+// null : devis inconnu (ou d'une autre organisation, invisible par la RLS).
+export async function findQuoteReceipts(organizationId: string, quoteId: string): Promise<ReceiptWithState[] | null> {
+  return inOrganization(organizationId, async (tx) => {
+    const [quote] = await tx.select({ id: quotes.id }).from(quotes).where(eq(quotes.id, quoteId));
+    if (!quote) return null;
+    const rows = await tx.select().from(earnestReceipts).where(eq(earnestReceipts.quoteId, quoteId)).orderBy(asc(earnestReceipts.issuedAt), asc(earnestReceipts.number));
+    return receiptsWithState(tx, rows);
+  });
+}
+
+export async function findReceipt(organizationId: string, receiptId: string): Promise<ReceiptWithState | null> {
+  return inOrganization(organizationId, async (tx) => {
+    const rows = await tx.select().from(earnestReceipts).where(eq(earnestReceipts.id, receiptId));
+    return (await receiptsWithState(tx, rows))[0] ?? null;
   });
 }
 
@@ -1602,6 +1685,8 @@ export type InvoicingContext = {
   creditNotes: CreditNoteRow[];
   signers: QuoteSignerRow[];
   settings: QuoteSettingsRow | null;
+  // Lot 31c (D21) : encaissements de l'échéancier (les arrhes reçues viennent en règlement).
+  payments: PaymentEntryRow[];
 };
 
 async function invoicingContext(
@@ -1667,6 +1752,14 @@ async function invoicingContext(
         .orderBy(asc(quoteSigners.position))
     : [];
   const [settings] = await tx.select().from(quoteSettings);
+  const payments =
+    scheduleItems.length > 0
+      ? await tx
+          .select()
+          .from(paymentEntries)
+          .where(inArray(paymentEntries.scheduleItemId, scheduleItems.map((item) => item.id)))
+          .orderBy(asc(paymentEntries.createdAt))
+      : [];
   return {
     quote,
     version,
@@ -1676,6 +1769,7 @@ async function invoicingContext(
     creditNotes: notes,
     signers,
     settings: settings ?? null,
+    payments,
   };
 }
 
@@ -1958,6 +2052,9 @@ export async function findEReportingRows(
         and(
           eq(quotes.isDemo, false),
           raw`${paymentScheduleItems.paidOn} between ${from} and ${to}`,
+          // Lot 31c (D21) : les arrhes, hors TVA tant qu'elles ne sont pas imputées sur le prix,
+          // n'entrent pas dans l'e-reporting ; la facture de solde, au prix total, y entre.
+          raw`${quoteVersions.advanceKind} is distinct from 'earnest'`,
         ),
       )
       .orderBy(asc(paymentScheduleItems.paidOn));

@@ -3,7 +3,7 @@
 // le code) dit quoi exiger selon le document, le régime de TVA, le type de client et la forme
 // juridique ; le refus nomme chaque champ manquant. Fonction pure.
 import type { MissingMention } from "@symbola/contracts";
-import type { MentionDocument, RequiredMentionRule } from "@symbola/starter-templates";
+import type { LatePenaltyRateKey, MentionDocument, RequiredMentionRule } from "@symbola/starter-templates";
 
 export type MentionValues = {
   organizationName: string | null;
@@ -19,6 +19,9 @@ export type MentionValues = {
   mediatorUrl: string | null;
   generalTerms: string | null;
   paymentTerms: string | null;
+  // Lot 31c (D18) : face à un professionnel, son texte et le taux des pénalités choisi.
+  professionalPaymentTerms: string | null;
+  latePenaltyRate: LatePenaltyRateKey | null;
 };
 
 export type MentionContext = {
@@ -54,6 +57,10 @@ function present(field: RequiredMentionRule["field"], values: MentionValues): bo
       return filled(values.generalTerms);
     case "paymentTerms":
       return filled(values.paymentTerms);
+    case "professionalPaymentTerms":
+      return filled(values.professionalPaymentTerms);
+    case "latePenaltyRate":
+      return values.latePenaltyRate !== null;
   }
 }
 

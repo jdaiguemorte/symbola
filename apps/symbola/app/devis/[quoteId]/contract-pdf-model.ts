@@ -4,9 +4,12 @@
 import { formatCalendarDate, formatDateTime, type Locale } from "@symbola/i18n";
 import type { ContractEvidenceDocument, ContractView, SellerSnapshot } from "@/modules/quotes/service";
 import { documentAppearance, type DocumentAppearance } from "@/lib/documents/appearance";
+import { sellerDisplayName, type SellerLegalLabels } from "@/lib/documents/seller-lines";
 import type { QuotePdfLogo } from "./quote-pdf-model";
 
 export type ContractPdfLabels = {
+  // Lot 31c (D19) : « EI » après le nom d'un entrepreneur individuel.
+  legal: Pick<SellerLegalLabels, "soleTrader" | "legalForms">;
   kind: string;
   subtitle: (contractVersion: number, quoteNumber: string, quoteVersion: number) => string;
   article: (index: number, title: string) => string;
@@ -70,7 +73,7 @@ export function buildContractPdfModel(input: {
     subtitle: labels.subtitle(contract.version, input.quoteNumber, contract.quoteVersion),
     appearance: documentAppearance(input.seller.document?.color, input.seller.document?.font, input.defaultColor),
     logo: input.logo,
-    sellerName: input.seller.organizationName,
+    sellerName: sellerDisplayName(input.seller, labels.legal),
     heading: contract.title,
     articles: contract.clauses.map((clause, index) => ({ heading: labels.article(index + 1, clause.title), body: clause.body })),
     regime: { title: labels.regimeTitle, lines: regime },

@@ -15,7 +15,9 @@ import {
   contractTemplateAcceptances,
   contractTemplateClauses,
   contractTemplates,
+  earnestReceipts,
   numberSeries,
+  paymentEntries,
   paymentMethods,
   paymentScheduleItems,
   quoteLines,
@@ -308,6 +310,32 @@ describe("DEV-01 — Isolation entre organisations (module quotes, PostgreSQL r�
         },
       });
     }
+  });
+
+  // Lot 31c (JUR-08, D21) : reçus d'arrhes. Immuables : seule la copie des clients se met à jour
+  // (anonymisation en fin de conservation) ; une autre organisation n'en voit ni n'en change aucun.
+  it("reçus d'arrhes (lot 31c)", async () => {
+    type Row = { id: string };
+    await assertOrganizationIsolation<Row>({
+      seed: async (organizationId) =>
+        withOrganization(db, organizationId, async (tx) => {
+          const { quote, version } = await seedQuote(tx, organizationId);
+          const [item] = await tx.insert(paymentScheduleItems).values({ organizationId, versionId: version.id, label: "Arrhes", amountCents: 50000, dueDate: "2027-01-15" }).returning();
+          const [entry] = await tx.insert(paymentEntries).values({ organizationId, scheduleItemId: item!.id, kind: "received", amountCents: 50000, paidOn: "2027-01-10" }).returning();
+          const [receipt] = await tx
+            .insert(earnestReceipts)
+            .values({ organizationId, quoteId: quote.id, scheduleItemId: item!.id, paymentEntryId: entry!.id, number: `R-2027-${randomUUID().slice(0, 4)}`, issuedAt: new Date(), issuedOn: "2027-01-10", paidOn: "2027-01-10", amountCents: 50000, label: "Arrhes", sellerSnapshot: { organizationName: "Atelier" }, buyerSnapshot: [{ name: "Léa", billingAddress: "1 rue des Lilas" }] })
+            .returning({ id: earnestReceipts.id });
+          return receipt!;
+        }),
+      listVisible: async (organizationId) => withOrganization(db, organizationId, (tx) => tx.select({ id: earnestReceipts.id }).from(earnestReceipts)),
+      attemptCrossOrganizationUpdate: async (organizationId, targetRow) => {
+        const updated = await withOrganization(db, organizationId, (tx) =>
+          tx.update(earnestReceipts).set({ buyerSnapshot: [] }).where(eq(earnestReceipts.id, targetRow.id)).returning({ id: earnestReceipts.id }),
+        );
+        return { affectedRows: updated.length };
+      },
+    });
   });
 
   it("séries de numérotation", async () => {

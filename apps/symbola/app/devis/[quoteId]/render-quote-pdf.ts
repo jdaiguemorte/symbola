@@ -8,7 +8,7 @@ import { renderToBuffer, type DocumentProps } from "@react-pdf/renderer";
 import { getLocale, getTranslations } from "next-intl/server";
 import { appDatabase } from "@symbola/db/client";
 import type { Locale } from "@symbola/i18n";
-import { starterDocumentStyle } from "@symbola/starter-templates";
+import { starterDocumentStyle, starterLatePenalty } from "@symbola/starter-templates";
 import { getEvent } from "@/modules/events/service";
 import { computeLegalMention, getOrganizationProfile } from "@/modules/hub/service";
 import { currentQuoteSeller, type QuoteDetail, type QuoteVersionView } from "@/modules/quotes/service";
@@ -37,7 +37,8 @@ export async function quotePdfModelFor(input: {
 }): Promise<QuotePdfModel> {
   const { organizationId, quote, version } = input;
   const profile = await getOrganizationProfile(appDatabase(), organizationId);
-  const draftSeller = await currentQuoteSeller(organizationId);
+  // Lot 31c (D18) : le brouillon d'un professionnel montre ses conditions de paiement.
+  const draftSeller = await currentQuoteSeller(organizationId, quote.clientKind);
   const event = await getEvent(organizationId, quote.eventId);
   const locale = (await getLocale()) as Locale;
   const t = await getTranslations("Documents");
@@ -56,6 +57,7 @@ export async function quotePdfModelFor(input: {
     watermark: quote.isDemo ? tQuotes("demoWatermark") : null,
     defaultColor: starterDocumentStyle(locale).defaultColor,
     ...(input.signatureSlots ? { signatureSlots: input.signatureSlots } : {}),
+    latePenalty: starterLatePenalty(),
     labels: quotePdfLabels(t as unknown as Translate, tQuotes as unknown as Translate),
   });
   return model;

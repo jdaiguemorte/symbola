@@ -3,7 +3,7 @@
 // /v1/quotes si ce module est extrait en app autonome.
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
-import { starterContractRules, starterContractTemplates, starterDemoQuote, starterEventTypes, starterQuoteTemplates } from "@symbola/starter-templates";
+import { LATE_PENALTY_RATE_KEYS, starterContractRules, starterContractTemplates, starterDemoQuote, starterEventTypes, starterInvoiceMentions, starterProfessionalPaymentTerms, starterQuoteTemplates } from "@symbola/starter-templates";
 import { appDatabase, type AppDatabase } from "@symbola/db/client";
 import { parseEnv } from "@symbola/env";
 import { createStorageClient, deletePrivateObject, PrivateObjectNotFoundError, readPrivateObject, uploadFile, uploadPrivateObject } from "@symbola/files";
@@ -72,6 +72,8 @@ import type {
   IssueBalanceInvoiceInput,
   IssueCreditNoteInput,
   IssueDepositInvoiceInput,
+  LatePenaltyRate,
+  ReceiptView,
   SendForSignatureInput,
   SignatureView,
   SignatureWebhookResult,
@@ -92,7 +94,9 @@ import { fakeSignatureProvider, realSignatureProvider, signatureProviderFor } fr
 import { signatureTag, type SignatureProvider } from "./signature/provider";
 import { computeQuoteTotals, formatDocumentNumber, lineAmounts, validUntil, type GlobalDiscount } from "./amounts";
 import { addCalendarDays, groupByMonth, isOverdue, parisToday, resolveSchedule } from "./schedule";
-import { addDays, prorateTotals } from "./invoicing";
+import { addDays, balanceTotals, prorateTotals, subtractTotals, type InvoiceTotals } from "./invoicing";
+import { paymentTermsFor } from "./payment-terms";
+import { sellerDisplayName } from "@/lib/documents/seller-lines";
 import { recordAudit } from "@symbola/db/audit";
 import { cleanDocumentSettings, documentSnapshot, EMPTY_DOCUMENT_SETTINGS } from "./document-settings";
 import { missingMentions, type MentionValues } from "./mentions";
@@ -192,6 +196,9 @@ import {
   insertPaymentMethods,
   insertScheduleItem,
   recordScheduleItemPayment,
+  findQuoteReceipts,
+  findReceipt,
+  type ReceiptWithState,
   reverseScheduleItemPayment,
   updateScheduleItemRow,
   type PaymentMethodRow,
@@ -299,8 +306,12 @@ export type {
   SignerInput,
   SignerView,
   StartQuotesTrialInput,
+  LatePenaltyRate,
+  ReceiptView,
 } from "@symbola/contracts";
 export { EventNotFoundError };
+// Lot 31c (D18) : conditions de paiement d'un professionnel et phrase des pénalités, pour les PDF.
+export { latePenaltySentence, professionalTermsText } from "./payment-terms";
 // Lot 17 : numéros des documents d'exemple de l'écran Documents (aucun rang consommé).
 export { formatDocumentNumber } from "./amounts";
 export {
@@ -445,6 +456,30 @@ export class SignatureDocumentNotFoundError extends Error {
   }
 }
 
+// Lot 31c (JUR-08 ; réponse 7 bis de l'expert-comptable, D21) : des arrhes ne se facturent pas ;
+// un reçu non fiscal est remis à leur encaissement.
+export class EarnestNotInvoicedError extends Error {
+  constructor() {
+    super("des arrhes ne se facturent pas : un reçu est remis à l'encaissement");
+    this.name = "EarnestNotInvoicedError";
+  }
+}
+
+// Lot 31c (D22) : un devis à arrhes n'a qu'une échéance d'avance.
+export class EarnestSingleInstalmentError extends Error {
+  constructor() {
+    super("des arrhes se versent en une seule échéance");
+    this.name = "EarnestSingleInstalmentError";
+  }
+}
+
+export class ReceiptNotFoundError extends Error {
+  constructor() {
+    super("reçu introuvable");
+    this.name = "ReceiptNotFoundError";
+  }
+}
+
 // Lot 31a (FAC-07, JUR-01, décision D4) : une mention requise manque ; chaque champ est nommé.
 export class RequiredMentionsMissingError extends Error {
   constructor(readonly fields: MissingMention[]) {
@@ -485,6 +520,10 @@ const DEFAULT_SETTINGS: QuoteSettings = {
   invoiceMentions: null,
   // Lot 31b (réponse 2 de l'avocat, D17) : « acompte » proposé par défaut.
   advanceKindDefault: "deposit",
+  // Lot 31c (D18, D21) : aucun taux des pénalités par défaut.
+  invoiceMentionsProfessional: null,
+  latePenaltyRate: null,
+  receiptPrefix: "R",
 };
 const DEMO_PREFIX = "DEMO";
 const MAX_AMOUNT_CENTS = 100_000_000_00; // 100 M€ : garde-fou contre les débordements d'entier
@@ -577,10 +616,19 @@ export async function getQuoteSettings(organizationId: string): Promise<QuoteSet
     invoicePaymentTermDays: row.invoicePaymentTermDays,
     invoiceMentions: row.invoiceMentions,
     advanceKindDefault: row.advanceKindDefault,
+    invoiceMentionsProfessional: row.invoiceMentionsProfessional,
+    latePenaltyRate: row.latePenaltyRate,
+    receiptPrefix: row.receiptPrefix,
   };
 }
 
 const PREFIX_PATTERN = /^[A-Z0-9]{1,8}$/;
+
+function latePenaltyRateOf(value: string | null | undefined): LatePenaltyRate | null | undefined {
+  if (value === undefined || value === null) return value;
+  if (!(LATE_PENALTY_RATE_KEYS as readonly string[]).includes(value)) throw new RangeError("taux des pénalités inconnu");
+  return value as LatePenaltyRate;
+}
 
 export async function updateQuoteSettings(organizationId: string, settings: QuoteSettings): Promise<QuoteSettings> {
   requireInteger(settings.validityDays, 1, 365, "validité");
@@ -588,12 +636,29 @@ export async function updateQuoteSettings(organizationId: string, settings: Quot
   requireInteger(settings.invoicePaymentTermDays, 0, 120, "délai de paiement");
   const invoiceMentions = optionalText(settings.invoiceMentions);
   if (invoiceMentions && invoiceMentions.length > 2000) throw new RangeError("mentions trop longues");
-  for (const prefix of [settings.quotePrefix, settings.invoicePrefix, settings.creditNotePrefix]) {
+  // Lot 31c (D18, D21) : absents, inchangés.
+  const invoiceMentionsProfessional = settings.invoiceMentionsProfessional === undefined ? undefined : optionalText(settings.invoiceMentionsProfessional);
+  if (invoiceMentionsProfessional && invoiceMentionsProfessional.length > 2000) throw new RangeError("mentions trop longues");
+  const latePenaltyRate = latePenaltyRateOf(settings.latePenaltyRate);
+  const prefixes = [settings.quotePrefix, settings.invoicePrefix, settings.creditNotePrefix, ...(settings.receiptPrefix === undefined ? [] : [settings.receiptPrefix])];
+  for (const prefix of prefixes) {
     // DEMO est réservé à la série d'essai (ADR 0008).
     if (!PREFIX_PATTERN.test(prefix) || prefix === DEMO_PREFIX) throw new RangeError("préfixe invalide");
   }
   const advanceKindDefault = settings.advanceKindDefault === "deposit" || settings.advanceKindDefault === "earnest" ? settings.advanceKindDefault : null;
-  const row = await upsertQuoteSettings(organizationId, { ...settings, invoiceMentions, advanceKindDefault });
+  const row = await upsertQuoteSettings(organizationId, {
+    validityDays: settings.validityDays,
+    quotePrefix: settings.quotePrefix,
+    invoicePrefix: settings.invoicePrefix,
+    creditNotePrefix: settings.creditNotePrefix,
+    upcomingHorizonDays: settings.upcomingHorizonDays,
+    invoicePaymentTermDays: settings.invoicePaymentTermDays,
+    invoiceMentions,
+    advanceKindDefault,
+    ...(invoiceMentionsProfessional === undefined ? {} : { invoiceMentionsProfessional }),
+    ...(latePenaltyRate === undefined ? {} : { latePenaltyRate }),
+    ...(settings.receiptPrefix === undefined ? {} : { receiptPrefix: settings.receiptPrefix }),
+  });
   return {
     validityDays: row.validityDays,
     quotePrefix: row.quotePrefix,
@@ -603,6 +668,33 @@ export async function updateQuoteSettings(organizationId: string, settings: Quot
     invoicePaymentTermDays: row.invoicePaymentTermDays,
     invoiceMentions: row.invoiceMentions,
     advanceKindDefault: row.advanceKindDefault,
+    invoiceMentionsProfessional: row.invoiceMentionsProfessional,
+    latePenaltyRate: row.latePenaltyRate,
+    receiptPrefix: row.receiptPrefix,
+  };
+}
+
+// Lot 31c (D18 ; remarque du rejeu du 31b) : à l'assistant de démarrage, les deux textes de départ
+// des conditions de paiement sont enregistrés s'ils manquent ; le taux des pénalités, jamais.
+export async function loadStarterPaymentTerms(organizationId: string, locale: "fr" | "en"): Promise<boolean> {
+  const settings = await getQuoteSettings(organizationId);
+  const missingIndividual = settings.invoiceMentions === null;
+  const missingProfessional = (settings.invoiceMentionsProfessional ?? null) === null;
+  if (!missingIndividual && !missingProfessional) return false;
+  await updateQuoteSettings(organizationId, {
+    ...settings,
+    invoiceMentions: missingIndividual ? starterInvoiceMentions(locale) : settings.invoiceMentions,
+    invoiceMentionsProfessional: missingProfessional ? starterProfessionalPaymentTerms(locale) : settings.invoiceMentionsProfessional,
+  });
+  return true;
+}
+
+// Lot 31c (D18) : les conditions de paiement selon la catégorie du client, depuis les réglages.
+function termsSettings(settings: Pick<QuoteSettingsRow, "invoiceMentions" | "invoiceMentionsProfessional" | "latePenaltyRate"> | null) {
+  return {
+    individual: settings?.invoiceMentions ?? null,
+    professional: settings?.invoiceMentionsProfessional ?? null,
+    latePenaltyRate: settings?.latePenaltyRate ?? null,
   };
 }
 
@@ -660,8 +752,16 @@ async function currentSeller(organizationId: string, settings: QuoteSettingsRow 
 
 // En-tête et apparence courants d'un devis en brouillon (PDF, aperçu) : ce
 // que figera son envoi.
-export async function currentQuoteSeller(organizationId: string): Promise<SellerSnapshot> {
-  return currentSeller(organizationId, await findQuoteSettings(organizationId), "quote");
+// Lot 31c (D18) : pour un client professionnel, ses conditions de paiement et le taux des pénalités.
+export async function currentQuoteSeller(organizationId: string, clientKind?: ClientKind): Promise<SellerSnapshot> {
+  const settings = await findQuoteSettings(organizationId);
+  return withPaymentTerms(await currentSeller(organizationId, settings, "quote"), settings, clientKind);
+}
+
+function withPaymentTerms(seller: SellerSnapshot, settings: QuoteSettingsRow | null, clientKind: ClientKind | undefined): SellerSnapshot {
+  if (clientKind !== "professional") return seller;
+  const terms = paymentTermsFor(termsSettings(settings), clientKind);
+  return { ...seller, paymentTerms: terms.text, latePenaltyRate: terms.latePenaltyRate };
 }
 
 // Exemple de facture de l'écran Documents : vendeur et apparence courants.
@@ -1060,6 +1160,8 @@ export async function removeQuoteSection(organizationId: string, sectionId: stri
 
 export async function setQuoteAdvanceKind(organizationId: string, quoteId: string, kind: AdvanceKind | null): Promise<QuoteDetail> {
   if (kind !== null && kind !== "deposit" && kind !== "earnest") throw new RangeError("acompte ou arrhes");
+  // Lot 31c (D22) : des arrhes se versent en une seule échéance.
+  if (kind === "earnest" && (await loadDetail(organizationId, quoteId)).current.schedule.items.length > 1) throw new EarnestSingleInstalmentError();
   unwrap(await setAdvanceKindRow(organizationId, quoteId, kind));
   return loadDetail(organizationId, quoteId);
 }
@@ -1131,7 +1233,10 @@ export async function listClientQuoteOptions(organizationId: string, eventId: st
 
 // --- Mentions requises (FAC-07, JUR-01, JUR-09 ; D4) ---
 
-function mentionValues(seller: Partial<SellerSnapshot> & { organizationName?: string | null }, paymentTerms: string | null): MentionValues {
+function mentionValues(
+  seller: Partial<SellerSnapshot> & { organizationName?: string | null },
+  terms: { individual: string | null; professional: string | null; latePenaltyRate: LatePenaltyRate | null },
+): MentionValues {
   return {
     organizationName: seller.organizationName ?? null,
     address: seller.address ?? null,
@@ -1145,7 +1250,10 @@ function mentionValues(seller: Partial<SellerSnapshot> & { organizationName?: st
     mediatorName: seller.mediatorName ?? null,
     mediatorUrl: seller.mediatorUrl ?? null,
     generalTerms: seller.generalTerms ?? null,
-    paymentTerms,
+    paymentTerms: terms.individual,
+    // Lot 31c (D18).
+    professionalPaymentTerms: terms.professional,
+    latePenaltyRate: terms.latePenaltyRate,
   };
 }
 
@@ -1161,7 +1269,7 @@ function requireInvoiceMentions(
     vatRegime: context.version.vatRegime === "assujetti" ? "assujetti" : context.version.vatRegime === "franchise" ? "franchise" : null,
     clientKind: context.quote.clientKind,
     legalForm: seller.legalForm,
-    values: mentionValues(seller, context.settings?.invoiceMentions ?? null),
+    values: mentionValues(seller, termsSettings(context.settings)),
   });
   if (missing.length > 0) throw new RequiredMentionsMissingError(missing);
 }
@@ -1185,10 +1293,12 @@ export async function quoteMissingMentions(organizationId: string, quoteId: stri
     vatRegime: profile.vatRegime,
     clientKind: aggregate.quote.clientKind,
     legalForm: seller.legalForm,
-    values: mentionValues(seller, settings?.invoiceMentions ?? null),
+    values: mentionValues(seller, termsSettings(settings)),
   });
-  const hasSchedule = aggregate.scheduleItems.some((item) => item.versionId === version.id);
-  if (hasSchedule && !version.advanceKind) missing.push("advanceKind");
+  const items = aggregate.scheduleItems.filter((item) => item.versionId === version.id);
+  if (items.length > 0 && !version.advanceKind) missing.push("advanceKind");
+  // Lot 31c (D22) : des arrhes se versent en une seule échéance.
+  if (version.advanceKind === "earnest" && items.length > 1) missing.push("earnestSingleInstalment");
   return missing;
 }
 
@@ -1381,7 +1491,10 @@ export async function sendQuote(input: SendQuoteInput): Promise<QuoteDetail> {
   const profile = await withDb((db) => getOrganizationProfile(db, input.organizationId));
   const settings = await getQuoteSettings(input.organizationId);
   const vatRegime = profile.vatRegime;
-  const seller = await currentSeller(input.organizationId, await findQuoteSettings(input.organizationId), "quote");
+  const aggregate = await findQuoteAggregate(input.organizationId, input.quoteId);
+  if (!aggregate) throw new QuoteNotFoundError();
+  // Lot 31c (D18) : le devis d'un professionnel fige ses conditions de paiement et le taux choisi.
+  const seller = await currentQuoteSeller(input.organizationId, aggregate.quote.clientKind);
   // Lot 31a (FAC-07, JUR-01, JUR-08 ; D4, D5) : mentions requises et acompte ou arrhes, nommés.
   const missing = await quoteMissingMentions(input.organizationId, input.quoteId);
   if (missing.length > 0) throw new RequiredMentionsMissingError(missing);
@@ -1496,6 +1609,8 @@ function scheduleItemData(item: ScheduleItemInput): ScheduleItemData {
 async function scheduleCheck(organizationId: string): Promise<ScheduleCheck> {
   const profile = await withDb((db) => getOrganizationProfile(db, organizationId));
   return (version, lines, items) => {
+    // Lot 31c (D22) : une deuxième échéance sur un devis à arrhes est refusée.
+    if (version.advanceKind === "earnest" && items.length > 1) throw new EarnestSingleInstalmentError();
     const totals = totalsFor(lines, version, profile.vatRegime !== "franchise");
     if (resolveSchedule(items, totals.totalTtcCents).exceedsTotal) throw new QuoteScheduleExceedsTotalError();
   };
@@ -1521,12 +1636,58 @@ export async function removeScheduleItem(organizationId: string, scheduleItemId:
 // DEV-03 — « Quand elle marque une échéance payée, alors elle saisit la
 // date et le mode de paiement. » Pas de date future (heure de Paris).
 export async function markScheduleItemPaid(input: MarkScheduleItemPaidInput): Promise<QuoteDetail> {
+  const now = input.now ?? new Date();
   const paidOn = requireDate(input.paidOn, "date de paiement");
-  if (paidOn > parisToday(input.now ?? new Date())) throw new RangeError("date de paiement future");
+  if (paidOn > parisToday(now)) throw new RangeError("date de paiement future");
+  // Lot 31c (JUR-08, D21) : si ce sont des arrhes, un reçu non fiscal de sa propre série, avec le
+  // vendeur et l'apparence courants (le dépôt n'en crée un que pour un devis à arrhes).
+  const settings = await findQuoteSettings(input.organizationId);
+  const prefix = settings?.receiptPrefix ?? DEFAULT_SETTINGS.receiptPrefix!;
+  const year = Number(parisDate(now).slice(0, 4));
+  const receipt = {
+    issuedAt: now,
+    issuedOn: parisDate(now),
+    year,
+    formatNumber: (isDemo: boolean, rank: number) => formatDocumentNumber(isDemo ? `${DEMO_PREFIX}-${prefix}` : prefix, year, rank),
+    sellerSnapshot: await currentSeller(input.organizationId, settings, "invoice"),
+  };
   const quoteId = unwrap(
-    await recordScheduleItemPayment(input.organizationId, input.scheduleItemId, { paidOn, paymentMethodId: input.paymentMethodId }),
+    await recordScheduleItemPayment(input.organizationId, input.scheduleItemId, { paidOn, paymentMethodId: input.paymentMethodId }, receipt),
   );
   return loadDetail(input.organizationId, quoteId);
+}
+
+// --- Lot 31c (JUR-08, D21) : reçus d'arrhes ---
+
+function toReceiptView({ receipt, quoteNumber, cancelled }: ReceiptWithState): ReceiptView {
+  return {
+    id: receipt.id,
+    quoteId: receipt.quoteId,
+    quoteNumber,
+    scheduleItemId: receipt.scheduleItemId,
+    number: receipt.number,
+    isDemo: receipt.isDemo,
+    issuedOn: receipt.issuedOn,
+    paidOn: receipt.paidOn,
+    amountCents: receipt.amountCents,
+    label: receipt.label,
+    paymentMethodLabel: receipt.paymentMethodLabel,
+    seller: receipt.sellerSnapshot as SellerSnapshot,
+    buyers: receipt.buyerSnapshot as InvoiceBuyer[],
+    cancelled,
+  };
+}
+
+export async function listQuoteReceipts(organizationId: string, quoteId: string): Promise<ReceiptView[]> {
+  const rows = await findQuoteReceipts(organizationId, quoteId);
+  if (!rows) throw new QuoteNotFoundError();
+  return rows.map(toReceiptView);
+}
+
+export async function getReceipt(organizationId: string, receiptId: string): Promise<ReceiptView> {
+  const row = await findReceipt(organizationId, receiptId);
+  if (!row) throw new ReceiptNotFoundError();
+  return toReceiptView(row);
 }
 
 // Correction d'une saisie : l'échéance redevient à payer. Lot 23b (D2,
@@ -2112,10 +2273,13 @@ function frozenLines(context: InvoicingContext): FrozenLine[] {
 type InvoiceTotalsSnapshot = {
   quoteTotals: QuoteTotalsView;
   totals: InvoiceTotalsView;
-  deductions: { number: string; amountCents: number }[];
+  // Lot 31c (D20) : chaque acompte déduit avec son HT et sa TVA par taux (absents avant le 31c).
+  deductions: { number: string; amountCents: number; totals?: InvoiceTotalsView }[];
   depositLabel: string | null;
   // Lot 31a (JUR-08) : acompte ou arrhes, repris du devis.
   advanceKind?: AdvanceKind | null;
+  // Lot 31c (D21) : arrhes reçues, en règlement sur le solde d'un devis à arrhes.
+  settlements?: { label: string; paidOn: string; amountCents: number }[];
 };
 
 function toCreditNoteView(note: CreditNoteRow, invoiceNumber: string): CreditNoteView {
@@ -2161,6 +2325,8 @@ function toInvoiceView(invoice: InvoiceRow, quoteNumber: string, notes: CreditNo
     advanceKind: snapshot.advanceKind ?? null,
     quoteTotals: snapshot.quoteTotals,
     deductions: snapshot.deductions,
+    settlements: snapshot.settlements ?? [],
+    amountDueCents: invoice.amountCents - (snapshot.settlements ?? []).reduce((sum, settlement) => sum + settlement.amountCents, 0),
     totals: snapshot.totals,
     creditNotes: own.map((note) => toCreditNoteView(note, invoice.number)),
     creditedCents: own.reduce((sum, note) => sum + note.amountCents, 0),
@@ -2178,6 +2344,10 @@ export async function issueDepositInvoice(input: IssueDepositInvoiceInput): Prom
   // Lot 31b (réponse 1 de l'avocat) : hors établissement, aucun paiement avant sept jours.
   const paymentNotBefore = input.paymentNotBefore === undefined ? ((await findScheduledDepositForItem(input.organizationId, input.scheduleItemId))?.paymentNotBefore ?? null) : input.paymentNotBefore;
   const row = await insertInvoice(input.organizationId, { scheduleItemId: input.scheduleItemId }, (context) => {
+    // Lot 31c (D21) : des arrhes ne se facturent pas ; aucun numéro n'est consommé.
+    if (context.version.advanceKind === "earnest") throw new EarnestNotInvoicedError();
+    // Le refus du client professionnel (Factur-X, lot 41) passe avant ses mentions (D18).
+    if (context.quote.clientKind === "professional") throw new ProfessionalInvoiceNotSupportedError();
     requireInvoiceMentions(rules, "deposit_invoice", context, seller);
     const base = invoiceBase(context, now, seller);
     const index = context.scheduleItems.findIndex((item) => item.id === input.scheduleItemId);
@@ -2226,21 +2396,40 @@ export async function issueBalanceInvoice(input: IssueBalanceInvoiceInput): Prom
   const seller = await withDb((db) => getSellerDetails(db, input.organizationId));
   const { rules } = await withDb((db) => getRequiredMentionRules(db));
   const row = await insertInvoice(input.organizationId, { quoteId: input.quoteId }, (context) => {
+    if (context.quote.clientKind === "professional") throw new ProfessionalInvoiceNotSupportedError();
     requireInvoiceMentions(rules, "balance_invoice", context, seller);
     const base = invoiceBase(context, now, seller);
     const active = context.invoices.filter((invoice) => isActive(invoice, context.creditNotes));
     if (active.some((invoice) => invoice.kind === "balance")) throw new InvoiceAlreadyIssuedError();
+    // Lot 31c (D20) : chaque acompte, net de ses avoirs, est retiré en HT et en TVA de son propre
+    // taux, depuis les copies figées ; le reste n'est plus ventilé au prorata.
     const deductions = active
       .filter((invoice) => invoice.kind === "deposit")
-      .map((invoice) => ({ number: invoice.number, amountCents: invoice.amountCents - creditedOf(invoice.id, context.creditNotes) }));
-    const amountCents = base.totals.totalTtcCents - deductions.reduce((sum, deduction) => sum + deduction.amountCents, 0);
+      .map((invoice) => {
+        const own = context.creditNotes.filter((note) => note.invoiceId === invoice.id);
+        const net = own.reduce((totals, note) => subtractTotals(totals, note.totalsSnapshot as InvoiceTotals), (invoice.totalsSnapshot as InvoiceTotalsSnapshot).totals as InvoiceTotals);
+        return { number: invoice.number, amountCents: invoice.amountCents - creditedOf(invoice.id, context.creditNotes), totals: net };
+      });
+    const totals = balanceTotals(base.totals, deductions.map((deduction) => deduction.totals));
+    const amountCents = totals.totalTtcCents;
     if (amountCents <= 0) throw new InvoiceAlreadyIssuedError();
+    // Lot 31c (D21) : un devis à arrhes est facturé au prix total ; les arrhes reçues (non
+    // annulées) viennent en règlement.
+    const reversed = new Set(context.payments.flatMap((payment) => (payment.reversesEntryId ? [payment.reversesEntryId] : [])));
+    const labelOf = new Map(context.scheduleItems.map((item) => [item.id, item.label]));
+    const settlements =
+      context.version.advanceKind === "earnest"
+        ? context.payments
+            .filter((payment) => payment.kind === "received" && !reversed.has(payment.id) && payment.paidOn !== null)
+            .map((payment) => ({ label: labelOf.get(payment.scheduleItemId) ?? "", paidOn: payment.paidOn!, amountCents: payment.amountCents }))
+        : [];
     const snapshot: InvoiceTotalsSnapshot = {
       quoteTotals: base.totals,
-      totals: prorateTotals(base.totals, amountCents),
+      totals,
       deductions,
       depositLabel: null,
       advanceKind: context.version.advanceKind,
+      settlements,
     };
     return {
       isDemo: context.quote.isDemo,
@@ -2277,7 +2466,7 @@ export async function issueCreditNote(input: IssueCreditNoteInput): Promise<Cred
         vatRegime: invoice.vatRegime === "assujetti" ? "assujetti" : "franchise",
         clientKind: "individual",
         legalForm: frozen.legalForm ?? null,
-        values: mentionValues(frozen, invoice.mentions),
+        values: mentionValues(frozen, { individual: invoice.mentions, professional: null, latePenaltyRate: null }),
       });
       if (missing.length > 0) throw new RequiredMentionsMissingError(missing);
     }
@@ -2611,6 +2800,16 @@ function contractWords(locale: "fr" | "en") {
   return (locale === "en" ? enMessages : frMessages).Contracts.values;
 }
 
+// Lot 31c (D19) : mêmes mots que les PDF (section « Documents »).
+function soleTraderWords(locale: "fr" | "en") {
+  const documents = (locale === "en" ? enMessages : frMessages).Documents as Record<string, string>;
+  const forms = ["ei", "eirl", "eurl", "sarl", "sas", "sasu", "sa", "auto_entrepreneur", "autre"] as const;
+  return {
+    soleTrader: documents.pdfSoleTrader!,
+    legalForms: Object.fromEntries(forms.map((form) => [form, documents[`pdfLegalForm_${form}`]!])) as Record<(typeof forms)[number], string>,
+  };
+}
+
 function boundedText(value: string, max: number, field: string): string {
   const text = requireText(value, field);
   if (text.length > max) throw new RangeError(`${field} trop long`);
@@ -2736,7 +2935,8 @@ async function contractVariableValues(organizationId: string, quote: QuoteDetail
     "devis.total_ttc": formatAmount(quote.current.totals.totalTtcCents, locale),
     "devis.echeancier": schedule || null,
     "devis.acompte_ou_arrhes": quote.current.advanceKind ? words[quote.current.advanceKind] : null,
-    "organisation.nom": seller.organizationName || null,
+    // Lot 31c (D19) : « EI » après le nom d'un entrepreneur individuel, comme sur les devis et factures.
+    "organisation.nom": seller.organizationName ? sellerDisplayName(seller, soleTraderWords(locale)) : null,
     "organisation.adresse": seller.address,
     "organisation.siren": seller.siren,
     "organisation.assurance": join([seller.insurer, seller.insurancePolicy, seller.insuranceCoverage]),
@@ -3309,6 +3509,9 @@ const _contractCheck: QuotesServiceContract = {
   issueScheduledDepositInvoices,
   listOpenScheduledDeposits,
   getQuoteScheduledDeposit,
+  listQuoteReceipts,
+  getReceipt,
+  loadStarterPaymentTerms,
 };
 void _contractCheck;
 

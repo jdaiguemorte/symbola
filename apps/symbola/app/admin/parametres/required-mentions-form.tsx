@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl";
 import type { RequiredMentionRule } from "@symbola/starter-templates";
 import { saveRequiredMentionsAction, type RequiredMentionsFormState } from "./actions";
 
-const FIELDS = ["organizationName", "address", "siren", "registration", "shareCapital", "vatNumber", "insurance", "mediator", "generalTerms", "paymentTerms"] as const;
+const FIELDS = ["organizationName", "address", "siren", "registration", "shareCapital", "vatNumber", "insurance", "mediator", "generalTerms", "paymentTerms", "professionalPaymentTerms", "latePenaltyRate"] as const;
 const DOCUMENTS = ["quote", "deposit_invoice", "balance_invoice", "credit_note"] as const;
 
 export function RequiredMentionsForm({ rules }: { rules: RequiredMentionRule[] }) {

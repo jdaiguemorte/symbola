@@ -23,6 +23,7 @@ import {
   contracts,
   contractSignerActs,
   creditNotes,
+  earnestReceipts,
   invoices,
   quoteLines,
   quotes,
@@ -51,6 +52,8 @@ type Plan = {
   // RGPD-05 : documents arrivés au terme de leur conservation.
   invoiceIds: string[];
   creditNoteIds: string[];
+  // Lot 31c (D21) : reçus d'arrhes, gardés comme les pièces comptables.
+  receiptIds: string[];
   expiredRequestIds: string[];
 };
 
@@ -60,7 +63,7 @@ async function inOrganization<T>(organizationId: string, fn: (tx: Tx) => Promise
 }
 
 async function buildPlan(tx: Tx, input: ErasureInput): Promise<Plan> {
-  const plan: Plan = { items: [], signerIds: [], lineIds: [], choiceVersionIds: [], contractIds: [], actIds: [], catalogItemIds: [], invoiceIds: [], creditNoteIds: [], expiredRequestIds: [] };
+  const plan: Plan = { items: [], signerIds: [], lineIds: [], choiceVersionIds: [], contractIds: [], actIds: [], catalogItemIds: [], invoiceIds: [], creditNoteIds: [], receiptIds: [], expiredRequestIds: [] };
   const anonymized = (kind: string, recordId: string) => plan.items.push({ kind, recordId, fate: "anonymized", legalBasis: null, keptUntil: null });
 
   // Factures et avoirs réels : conservés dix ans (réglage) à compter de l'émission.
@@ -84,6 +87,17 @@ async function buildPlan(tx: Tx, input: ErasureInput): Promise<Plan> {
         plan.creditNoteIds.push(note.id);
         anonymized("credit_note", note.id);
       } else plan.items.push({ kind: "credit_note", recordId: note.id, fate: "kept", legalBasis: "accounting", keptUntil: until });
+    }
+  }
+  const receiptIds = idsOfKind(input.records, "earnest_receipt");
+  if (receiptIds.length > 0) {
+    for (const receipt of await tx.select().from(earnestReceipts).where(inArray(earnestReceipts.id, receiptIds))) {
+      if (receipt.isDemo) continue;
+      const until = addMonths(receipt.issuedOn, input.rules.accountingRetentionMonths);
+      if (isExpired(input.today, until)) {
+        plan.receiptIds.push(receipt.id);
+        anonymized("earnest_receipt", receipt.id);
+      } else plan.items.push({ kind: "earnest_receipt", recordId: receipt.id, fate: "kept", legalBasis: "accounting", keptUntil: until });
     }
   }
 
@@ -242,7 +256,7 @@ export async function eraseQuotesData(input: ErasureInput): Promise<ErasurePlanI
 
     // RGPD-05 : fin de la conservation comptable. Seule la copie de
     // l'acheteur change, dans une transaction qui le déclare (ADR 0024).
-    if (plan.invoiceIds.length + plan.creditNoteIds.length > 0) {
+    if (plan.invoiceIds.length + plan.creditNoteIds.length + plan.receiptIds.length > 0) {
       await tx.execute(rawSql`SET LOCAL app.retention_anonymization = 'on'`);
       const anonymizedBuyers = (snapshot: unknown) =>
         (Array.isArray(snapshot) ? (snapshot as InvoiceBuyer[]) : []).map((buyer) => ({ ...buyer, name: ANONYMIZED, billingAddress: ANONYMIZED }));
@@ -251,6 +265,9 @@ export async function eraseQuotesData(input: ErasureInput): Promise<ErasurePlanI
       }
       for (const note of plan.creditNoteIds.length > 0 ? await tx.select().from(creditNotes).where(inArray(creditNotes.id, plan.creditNoteIds)) : []) {
         await tx.update(creditNotes).set({ buyerSnapshot: anonymizedBuyers(note.buyerSnapshot) }).where(eq(creditNotes.id, note.id));
+      }
+      for (const receipt of plan.receiptIds.length > 0 ? await tx.select().from(earnestReceipts).where(inArray(earnestReceipts.id, plan.receiptIds)) : []) {
+        await tx.update(earnestReceipts).set({ buyerSnapshot: anonymizedBuyers(receipt.buyerSnapshot) }).where(eq(earnestReceipts.id, receipt.id));
       }
     }
     return plan;

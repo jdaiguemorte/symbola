@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "status": {
+    "fr": "Règle donnée par l'expert-comptable et l'avocat (lot 31c, décision D18) : face à un professionnel, pénalités de retard au taux choisi par la planner et indemnité forfaitaire pour frais de recouvrement.",
+    "en": "Rule given by the chartered accountant and the lawyer (lot 31c, decision D18): for a business client, late payment penalties at the rate chosen by the planner and a fixed recovery fee."
+  },
+  "rates": [
+    {
+      "key": "ecb_plus_10",
+      "label": {
+        "fr": "Taux de la BCE majoré de 10 points",
+        "en": "ECB rate plus 10 percentage points"
+      },
+      "phrase": {
+        "fr": "taux de refinancement de la Banque centrale européenne majoré de 10 points",
+        "en": "the European Central Bank refinancing rate plus 10 percentage points"
+      }
+    },
+    {
+      "key": "three_times_legal",
+      "label": {
+        "fr": "Trois fois le taux d'intérêt légal",
+        "en": "Three times the statutory interest rate"
+      },
+      "phrase": {
+        "fr": "trois fois le taux d'intérêt légal",
+        "en": "three times the French statutory interest rate"
+      }
+    }
+  ],
+  "sentence": {
+    "fr": "En cas de retard de paiement : pénalités au {taux}, et indemnité forfaitaire pour frais de recouvrement de {indemnite}.",
+    "en": "In the event of late payment: penalties at {taux}, and a fixed recovery fee of {indemnite}."
+  },
+  "recoveryIndemnityCents": 4000
+}

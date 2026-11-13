@@ -105,6 +105,32 @@
       "documents": [
         "deposit_invoice",
         "balance_invoice"
+      ],
+      "clientKinds": [
+        "individual",
+        "non_professional"
+      ]
+    },
+    {
+      "field": "professionalPaymentTerms",
+      "documents": [
+        "quote",
+        "deposit_invoice",
+        "balance_invoice"
+      ],
+      "clientKinds": [
+        "professional"
+      ]
+    },
+    {
+      "field": "latePenaltyRate",
+      "documents": [
+        "quote",
+        "deposit_invoice",
+        "balance_invoice"
+      ],
+      "clientKinds": [
+        "professional"
       ]
     }
   ]

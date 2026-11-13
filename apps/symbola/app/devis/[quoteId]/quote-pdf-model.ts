@@ -10,6 +10,8 @@ import type { DocumentSnapshot, QuoteDetail, QuoteVersionView, SellerSnapshot } 
 import { documentAppearance, type DocumentAppearance } from "@/lib/documents/appearance";
 import { sellerContactLine, sellerDisplayName, sellerLegalLine, type SellerLegalLabels } from "@/lib/documents/seller-lines";
 import { formatRate } from "../quote-display";
+import type { LatePenaltyData } from "@symbola/starter-templates";
+import { professionalTermsText } from "@/lib/documents/payment-terms";
 
 export type QuotePdfLogo = { data: Buffer; format: "png" | "jpg" };
 
@@ -161,10 +163,14 @@ function quoteRows(version: QuoteVersionView, labels: QuotePdfLabels, vat: boole
   return rows;
 }
 
-function professionalLines(seller: SellerSnapshot, labels: QuotePdfLabels): string[] {
+function professionalLines(seller: SellerSnapshot, labels: QuotePdfLabels, locale: Locale, latePenalty: LatePenaltyData | undefined): string[] {
   const lines: string[] = [];
   if (seller.insurer && seller.insurancePolicy) lines.push(labels.insurance(seller.insurer, seller.insurancePolicy, seller.insuranceCoverage ?? null));
   if (seller.mediatorName && seller.mediatorUrl) lines.push(labels.mediator(seller.mediatorName, seller.mediatorUrl));
+  // Lot 31c (D18) : devis d'un professionnel, ses conditions de paiement et la phrase des pénalités
+  // au taux choisi (figés à l'envoi), dans la langue du document.
+  const terms = latePenalty ? professionalTermsText(seller.paymentTerms ?? null, seller.latePenaltyRate ?? null, latePenalty, locale) : (seller.paymentTerms ?? null);
+  if (terms) lines.push(terms);
   return lines;
 }
 
@@ -182,6 +188,8 @@ export function buildQuotePdfModel(input: {
   watermark: string | null;
   defaultColor: string;
   signatureSlots?: { role: string; tag: string }[];
+  // Lot 31c (D18) : données de la phrase des pénalités (rendu serveur ; l'aperçu s'en passe).
+  latePenalty?: LatePenaltyData;
 }): QuotePdfModel {
   const { version, labels, locale } = input;
   const sent = version.sentAt !== null;
@@ -244,7 +252,7 @@ export function buildQuotePdfModel(input: {
     payment,
     legalMention: sent ? version.legalMention : input.draftLegalMention,
     terms: document?.terms ?? null,
-    professional: professionalLines(seller, labels),
+    professional: professionalLines(seller, labels, locale, input.latePenalty),
     generalTerms: seller.generalTerms ? { title: labels.generalTermsTitle, text: seller.generalTerms } : null,
     footer: documentFooter(seller, labels, locale),
     watermark: input.watermark,

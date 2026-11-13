@@ -443,6 +443,11 @@
     @apply bg-primary-soft text-primary;
   }
 
+  /* Lot 31c : un badge long (« Payée le … (mode) ») passe à la ligne plutôt que de déborder à 375 px. */
+  .badge-wrap {
+    @apply max-w-full whitespace-normal;
+  }
+
   .badge-terracotta {
     @apply bg-critical-soft text-critical;
   }

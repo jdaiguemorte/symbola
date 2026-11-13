@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import {
   CreditNoteExceedsInvoiceError,
+  EarnestNotInvoicedError,
   InvoiceAlreadyIssuedError,
   InvoiceNotFoundError,
   ProfessionalInvoiceNotSupportedError,
@@ -28,6 +29,8 @@ function errorState(error: unknown, t: Translate): QuoteFormState {
   if (error instanceof QuoteNotSignedError) return { error: t("quoteNotSigned") };
   if (error instanceof InvoiceAlreadyIssuedError || error instanceof QuoteVersionLockedError) return { error: t("invoiceAlreadyIssued") };
   if (error instanceof ProfessionalInvoiceNotSupportedError) return { error: t("professionalInvoiceNotSupported") };
+  // Lot 31c (D21) : des arrhes ne se facturent pas.
+  if (error instanceof EarnestNotInvoicedError) return { error: t("earnestNotInvoiced") };
   if (error instanceof CreditNoteExceedsInvoiceError) return { error: t("creditNoteExceedsInvoice") };
   if (error instanceof RangeError) return { error: t("invalidCreditNote") };
   throw error;

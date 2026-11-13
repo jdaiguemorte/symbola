@@ -223,6 +223,8 @@ export type {
   InvoiceBuyer,
   InvoiceTotalsView,
   InvoiceView,
+  LatePenaltyRate,
+  ReceiptView,
   IssueBalanceInvoiceInput,
   IssueCreditNoteInput,
   IssueDepositInvoiceInput,

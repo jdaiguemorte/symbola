@@ -6,6 +6,7 @@ import type { LegalFormCode } from "@symbola/contracts";
 import type { InvoicePdfLabels } from "./factures/invoice-pdf-model";
 import type { DocumentCommonLabels, QuotePdfLabels } from "./[quoteId]/quote-pdf-model";
 import type { ContractPdfLabels, EvidencePdfLabels } from "./[quoteId]/contract-pdf-model";
+import type { ReceiptPdfLabels } from "./recus/receipt-pdf-model";
 
 export type Translate = (key: string, values?: Record<string, string | number>) => string;
 
@@ -91,6 +92,31 @@ export function invoicePdfLabels(t: Translate, tQuotes: Translate): InvoicePdfLa
     quoteTotalTtc: tQuotes("pdfQuoteTotalTtc"),
     deduction: (number) => tQuotes("pdfDeduction", { number }),
     amountDue: tQuotes("pdfAmountDue"),
+    // Lot 31c (FAC-05, D20, D21).
+    quoteTotalHt: tQuotes("pdfQuoteTotalHt"),
+    quoteVatAtRate: (rate) => tQuotes("pdfQuoteVatAtRate", { rate }),
+    deductionHt: (number) => tQuotes("pdfDeductionHt", { number }),
+    deductionVatAtRate: (number, rate) => tQuotes("pdfDeductionVatAtRate", { number, rate }),
+    balanceHt: tQuotes("pdfBalanceHt"),
+    balanceVatAtRate: (rate) => tQuotes("pdfBalanceVatAtRate", { rate }),
+    earnestSettlement: (date, label) => tQuotes("pdfEarnestSettlement", { date, label }),
+  };
+}
+
+// Lot 31c (JUR-08, D21) — reçu d'arrhes, non fiscal. t : section « Documents » ; tQuotes : « Quotes ».
+export function receiptPdfLabels(t: Translate, tQuotes: Translate): ReceiptPdfLabels {
+  return {
+    ...documentCommonLabels(t, tQuotes),
+    title: (number) => tQuotes("pdfReceiptTitle", { number }),
+    kind: t("pdfReceiptKind"),
+    notInvoice: tQuotes("pdfReceiptNotInvoice"),
+    dates: { issuedOn: tQuotes("pdfReceiptIssuedOn"), paidOn: tQuotes("pdfReceiptPaidOn") },
+    line: (label, quoteNumber) => tQuotes("pdfReceiptLine", { label, number: quoteNumber }),
+    amount: tQuotes("pdfReceiptAmount"),
+    paymentTitle: t("pdfPaymentTitle"),
+    method: (method) => tQuotes("pdfReceiptMethod", { method }),
+    mention: tQuotes("pdfReceiptMention"),
+    cancelled: tQuotes("pdfReceiptCancelled"),
   };
 }
 
@@ -101,6 +127,11 @@ const CATEGORIES = ["individual", "non_professional", "professional"] as const;
 
 export function contractPdfLabels(t: Translate, tDocuments: Translate): ContractPdfLabels {
   return {
+    // Lot 31c (D19) : « EI » après le nom d'un entrepreneur individuel.
+    legal: {
+      soleTrader: tDocuments("pdfSoleTrader"),
+      legalForms: Object.fromEntries(LEGAL_FORMS.map((form) => [form, tDocuments(`pdfLegalForm_${form}`)])) as Record<LegalFormCode, string>,
+    },
     kind: t("pdfKind"),
     subtitle: (contractVersion, quoteNumber, quoteVersion) => t("pdfSubtitle", { version: contractVersion, number: quoteNumber, quoteVersion }),
     article: (index, title) => t("pdfArticle", { index, title }),

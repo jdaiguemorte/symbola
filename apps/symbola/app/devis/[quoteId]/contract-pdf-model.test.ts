@@ -40,6 +40,15 @@ const contract: ContractView = {
 const seller = { organizationName: "Atelier Lumière", address: "1 rue des Lilas, 69001 Lyon", siren: "123456789", logoKey: null };
 
 describe("FAC-04 / DOC-03 — PDF du contrat (lot 31b, D9, D11)", () => {
+  it("lot 31c (D19) : le nom d'un entrepreneur individuel ou d'une micro-entreprise porte « EI »", () => {
+    for (const legalForm of ["ei", "auto_entrepreneur"] as const) {
+      const model = buildContractPdfModel({ quoteNumber: "D-2027-0001", contract, seller: { ...seller, legalForm }, logo: null, labels: contractPdfLabels(t, tDocuments), locale: "fr", withdrawalDays: 14, watermark: null, defaultColor: "#3d5a80" });
+      expect(model.sellerName).toBe("Atelier Lumière EI");
+    }
+    const company = buildContractPdfModel({ quoteNumber: "D-2027-0001", contract, seller: { ...seller, legalForm: "sas" }, logo: null, labels: contractPdfLabels(t, tDocuments), locale: "fr", withdrawalDays: 14, watermark: null, defaultColor: "#3d5a80" });
+    expect(company.sellerName).toBe("Atelier Lumière");
+  });
+
   it("articles numérotés, régime de conclusion, version et date de revue du modèle", () => {
     const model = buildContractPdfModel({ quoteNumber: "D-2027-0001", contract, seller, logo: null, labels: contractPdfLabels(t, tDocuments), locale: "fr", withdrawalDays: 14, watermark: null, defaultColor: "#3d5a80" });
     expect(model.kind).toBe("Contrat");

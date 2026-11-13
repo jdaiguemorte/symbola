@@ -16,6 +16,10 @@ const WHERE: Record<MissingMention, string> = {
   generalTerms: "/parametres#informations-professionnel",
   paymentTerms: "/devis/parametres#invoiceMentions",
   advanceKind: "#acompte-arrhes",
+  // Lot 31c (D18, D22).
+  professionalPaymentTerms: "/devis/parametres#invoiceMentionsProfessional",
+  latePenaltyRate: "/devis/parametres#latePenaltyRate",
+  earnestSingleInstalment: "#echeancier",
 };
 
 export function MissingMentionsList({ fields }: { fields: MissingMention[] }) {

@@ -18,9 +18,11 @@ const complete: MentionValues = {
   mediatorUrl: "https://mediateur.example",
   generalTerms: "Conditions générales de vente…",
   paymentTerms: "À réception de la facture.",
+  professionalPaymentTerms: "Par virement à l'échéance.",
+  latePenaltyRate: "ecb_plus_10",
 };
 const rules = starterRequiredMentions();
-const context = (document: "quote" | "deposit_invoice" | "balance_invoice" | "credit_note", values: Partial<MentionValues>, extra: { vatRegime?: "franchise" | "assujetti"; clientKind?: "individual" | "professional"; legalForm?: string | null } = {}) => ({
+const context = (document: "quote" | "deposit_invoice" | "balance_invoice" | "credit_note", values: Partial<MentionValues>, extra: { vatRegime?: "franchise" | "assujetti"; clientKind?: "individual" | "professional" | "non_professional"; legalForm?: string | null } = {}) => ({
   document,
   vatRegime: extra.vatRegime ?? "franchise",
   clientKind: extra.clientKind ?? "individual",
@@ -57,5 +59,22 @@ describe("FAC-07 — L'émission est refusée si une mention requise manque ; le
 
   it("une liste de l'Admin remplace celle de départ", () => {
     expect(missingMentions([{ field: "insurance", documents: ["credit_note"] }], context("credit_note", { insurer: null }))).toEqual(["insurance"]);
+  });
+});
+
+describe("FAC-07 / JUR-01 — Conditions de paiement selon le client (lot 31c, expert-comptable, D18)", () => {
+  it("devis, facture d'acompte et de solde d'un professionnel : texte professionnel et taux des pénalités, chacun nommé", () => {
+    for (const document of ["quote", "deposit_invoice", "balance_invoice"] as const) {
+      expect(missingMentions(rules, context(document, { professionalPaymentTerms: null, latePenaltyRate: null }, { clientKind: "professional" }))).toEqual(["professionalPaymentTerms", "latePenaltyRate"]);
+    }
+    // Le texte des particuliers ne lui est pas demandé.
+    expect(missingMentions(rules, context("balance_invoice", { paymentTerms: null }, { clientKind: "professional" }))).toEqual([]);
+  });
+
+  it("particulier et non-professionnel : leur texte sur les factures ; ni texte professionnel ni taux", () => {
+    for (const clientKind of ["individual", "non_professional"] as const) {
+      expect(missingMentions(rules, context("deposit_invoice", { paymentTerms: null, professionalPaymentTerms: null, latePenaltyRate: null }, { clientKind }))).toEqual(["paymentTerms"]);
+      expect(missingMentions(rules, context("quote", { professionalPaymentTerms: null, latePenaltyRate: null }, { clientKind }))).toEqual([]);
+    }
   });
 });

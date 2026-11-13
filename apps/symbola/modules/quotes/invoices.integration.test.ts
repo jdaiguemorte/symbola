@@ -275,7 +275,7 @@ describe("DEV-04 — Correction par avoir", () => {
     const deposit = await issueDepositInvoice({ renderOriginal: renderInvoice, organizationId, scheduleItemId: items[0]!.id, now: NOW });
     await issueCreditNote({ renderOriginal: renderCreditNote, organizationId, invoiceId: deposit.id, amountCents: 400, reason: "Arrondi", now: NOW });
     const balance = await issueBalanceInvoice({ renderOriginal: renderInvoice, organizationId, quoteId, now: NOW });
-    expect(balance.deductions).toEqual([{ number: deposit.number, amountCents: 80000 }]);
+    expect(balance.deductions.map((deduction) => ({ number: deduction.number, amountCents: deduction.amountCents }))).toEqual([{ number: deposit.number, amountCents: 80000 }]);
     expect(balance.amountCents).toBe(268000 - 80000);
   });
 });

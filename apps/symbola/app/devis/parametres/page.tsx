@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Banknote, CreditCard, Landmark, PenLine, Wallet, type LucideIcon } from "lucide-react";
-import { starterInvoiceMentions, starterPaymentMethodKinds } from "@symbola/starter-templates";
+import { isPreviousStarterInvoiceMentions, starterInvoiceMentions, starterLatePenalty, starterPaymentMethodKinds, starterProfessionalPaymentTerms } from "@symbola/starter-templates";
 import { ScreenHelp } from "@/app/screen-help";
 import { getQuoteSettings, listPaymentMethods } from "@/modules/quotes/service";
 import { requirePlanner } from "@/lib/guards";
@@ -37,11 +37,18 @@ export default async function QuoteSettingsPage() {
   }
 
   const [settings, methods] = await Promise.all([getQuoteSettings(organizationId), listPaymentMethods(organizationId, { includeArchived: true })]);
+  const locale = (await getLocale()) === "en" ? "en" : "fr";
   return (
     <main>
       <h1>{t("settingsTitle")}</h1>
       <ScreenHelp title={tHelp("quotesSettings.title")} body={tHelp("quotesSettings.body")} />
-      <QuoteSettingsForm settings={settings} defaultMentions={starterInvoiceMentions((await getLocale()) === "en" ? "en" : "fr")} />
+      <QuoteSettingsForm
+        settings={settings}
+        defaultMentions={starterInvoiceMentions(locale)}
+        defaultProfessionalMentions={starterProfessionalPaymentTerms(locale)}
+        rates={starterLatePenalty().rates.map((rate) => ({ key: rate.key, label: rate.label[locale] }))}
+        previousStarterText={isPreviousStarterInvoiceMentions(settings.invoiceMentions)}
+      />
 
       <section aria-labelledby="payment-methods-title">
         <h2 id="payment-methods-title">{t("paymentMethodsTitle")}</h2>

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import {
   CatalogItemNotFoundError,
+  EarnestSingleInstalmentError,
   QuoteEmptyError,
   QuoteNotFoundError,
   QuoteOptionsLockedError,
@@ -46,6 +47,8 @@ function errorState(error: unknown, t: Translate): QuoteFormState {
   if (error instanceof CatalogItemNotFoundError) return { error: t("catalogItemNotFound") };
   if (error instanceof QuoteEmptyError) return { error: t("quoteEmpty") };
   if (error instanceof QuoteScheduleExceedsTotalError) return { error: t("scheduleExceedsTotal") };
+  // Lot 31c (D22) : des arrhes se versent en une seule échéance.
+  if (error instanceof EarnestSingleInstalmentError) return { error: t("earnestSingleInstalment") };
   if (error instanceof QuoteVatRegimeRequiredError) return { error: t("vatRegimeRequired"), vatRegimeRequired: true };
   // Lot 31a (FAC-07, D4) : le refus nomme chaque mention manquante (liens vers où la remplir).
   if (error instanceof RequiredMentionsMissingError) return { error: t("mentionsMissing"), missingMentions: error.fields };

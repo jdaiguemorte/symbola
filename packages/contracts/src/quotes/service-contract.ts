@@ -34,7 +34,17 @@ export type QuoteSettings = {
   invoiceMentions: string | null;
   // Lot 31a (JUR-08, décision D5) : acompte ou arrhes proposé pour chaque nouveau devis.
   advanceKindDefault?: AdvanceKind | null | undefined;
+  // Lot 31c (D18) : invoiceMentions est le texte des particuliers et des non-professionnels ;
+  // face à un professionnel, son texte et le taux des pénalités choisi (aucun par défaut).
+  // Absents : inchangés à l'enregistrement.
+  invoiceMentionsProfessional?: string | null | undefined;
+  latePenaltyRate?: LatePenaltyRate | null | undefined;
+  // Lot 31c (D21) : préfixe de la série des reçus d'arrhes.
+  receiptPrefix?: string | undefined;
 };
+
+// Lot 31c (D18) : taux des pénalités de retard face à un professionnel, choisi par la planner.
+export type LatePenaltyRate = "ecb_plus_10" | "three_times_legal";
 
 // Lot 31a (JUR-08, décision D5) : sommes versées d'avance, acomptes ou arrhes.
 export type AdvanceKind = "deposit" | "earnest";
@@ -228,6 +238,10 @@ export type SellerSnapshot = {
   mediatorName?: string | null;
   mediatorUrl?: string | null;
   generalTerms?: string | null;
+  // Lot 31c (D18) : sur le devis d'un professionnel, ses conditions de paiement et le taux des
+  // pénalités, figés à l'envoi (la phrase des pénalités s'imprime dans la langue du document).
+  paymentTerms?: string | null;
+  latePenaltyRate?: LatePenaltyRate | null;
 };
 
 export type QuoteVersionView = {
@@ -304,11 +318,35 @@ export type InvoiceView = {
   // Lot 31a (JUR-08) : acompte ou arrhes, repris du devis (null avant le lot 31a).
   advanceKind: AdvanceKind | null;
   quoteTotals: QuoteTotalsView;
-  // Acomptes déjà facturés, déduits d'une facture de solde.
-  deductions: { number: string; amountCents: number }[];
+  // Acomptes déjà facturés, déduits d'une facture de solde ; lot 31c (D20) : avec leur HT et leur
+  // TVA par taux, nets de leurs avoirs (absents des soldes émis avant le lot 31c).
+  deductions: { number: string; amountCents: number; totals?: InvoiceTotalsView }[];
+  // Lot 31c (D21) : arrhes reçues, en règlement sur la facture de solde d'un devis à arrhes, qui
+  // porte le prix total. Reste à payer = montant de la facture moins ces règlements.
+  settlements: { label: string; paidOn: string; amountCents: number }[];
+  amountDueCents: number;
   totals: InvoiceTotalsView;
   creditNotes: CreditNoteView[];
   creditedCents: number;
+};
+
+// Lot 31c (JUR-08, D21) — reçu non fiscal remis à l'encaissement des arrhes, de sa propre série.
+// Un encaissement annulé laisse le reçu, marqué « annulé ».
+export type ReceiptView = {
+  id: string;
+  quoteId: string;
+  quoteNumber: string;
+  scheduleItemId: string;
+  number: string;
+  isDemo: boolean;
+  issuedOn: string;
+  paidOn: string;
+  amountCents: number;
+  label: string;
+  paymentMethodLabel: string | null;
+  seller: SellerSnapshot;
+  buyers: InvoiceBuyer[];
+  cancelled: boolean;
 };
 
 // AIDE-02 — devis fictif sur l'événement d'essai guidé (ADR 0008).
@@ -506,7 +544,11 @@ export type MissingMention =
   | "mediator"
   | "generalTerms"
   | "paymentTerms"
-  | "advanceKind";
+  | "advanceKind"
+  // Lot 31c (D18, D22).
+  | "professionalPaymentTerms"
+  | "latePenaltyRate"
+  | "earnestSingleInstalment";
 
 // --- Lot 31b (FAC-04, FAC-05, DOC-02, DOC-03, JUR-07, JUR-08, HUB-21 ; décisions D6, D7, D9, D11
 // à D17, révisées après les réponses de l'avocat du 13/11/2026) ---
@@ -727,6 +769,11 @@ export interface QuotesServiceContract {
   issueCreditNote(input: IssueCreditNoteInput): Promise<CreditNoteView>;
   listQuoteInvoices(organizationId: string, quoteId: string): Promise<InvoiceView[]>;
   getInvoice(organizationId: string, invoiceId: string): Promise<InvoiceView>;
+  // Lot 31c (D21) : reçus d'arrhes d'un devis, et un reçu.
+  listQuoteReceipts(organizationId: string, quoteId: string): Promise<ReceiptView[]>;
+  getReceipt(organizationId: string, receiptId: string): Promise<ReceiptView>;
+  // Lot 31c (D18) : les deux textes de départ des conditions de paiement, s'ils manquent.
+  loadStarterPaymentTerms(organizationId: string, locale: "fr" | "en"): Promise<boolean>;
   getCreditNote(organizationId: string, creditNoteId: string): Promise<CreditNoteView>;
   getEReporting(organizationId: string, period: { from: string; to: string }): Promise<EReportingView>;
   startQuotesTrial(input: StartQuotesTrialInput): Promise<QuoteDetail>;

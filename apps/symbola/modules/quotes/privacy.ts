@@ -8,7 +8,7 @@
 import { and, asc, eq, inArray } from "drizzle-orm";
 import type { InvoiceBuyer } from "@symbola/contracts";
 import { appDatabase } from "@symbola/db/client";
-import { catalogItems, contracts, contractSignerActs, creditNotes, invoices, quoteLines, quotes, quoteSigners, quoteVersions, signatureRequests } from "@symbola/db/schema/quotes";
+import { catalogItems, contracts, contractSignerActs, creditNotes, earnestReceipts, invoices, quoteLines, quotes, quoteSigners, quoteVersions, signatureRequests } from "@symbola/db/schema/quotes";
 import { withOrganization } from "@symbola/db/with-organization";
 import { hasTerms, prepareTerms, recordMatches, type PrivacyContractV1, type PrivacyRecord } from "@symbola/privacy";
 import { eraseQuotesData, planQuotesErasure } from "./privacy-erasure";
@@ -157,6 +157,19 @@ export const quotesPrivacy: PrivacyContractV1 = {
           eventId: quoteById.get(invoiceQuote.get(note.invoiceId) ?? "")?.eventId ?? null,
         });
       }
+      // Lot 31c (D21) : reçus d'arrhes, aux noms des clients.
+      for (const receipt of await tx.select().from(earnestReceipts).where(eq(earnestReceipts.isDemo, false))) {
+        const buyers = buyersOf(receipt.buyerSnapshot);
+        if (!buyers.some((buyer) => recordMatches([buyer.name, buyer.billingAddress], terms))) continue;
+        records.push({
+          module: MODULE,
+          kind: "earnest_receipt",
+          recordId: receipt.id,
+          label: receipt.number,
+          fields: buyerFields(buyers),
+          eventId: quoteById.get(receipt.quoteId)?.eventId ?? null,
+        });
+      }
 
       for (const item of await tx.select().from(catalogItems)) {
         const values = Object.entries(item.importedFields ?? {}).map(([name, value]) => `${name} ${value}`);
@@ -223,6 +236,20 @@ export const quotesPrivacy: PrivacyContractV1 = {
             eventId: quoteById.get(invoiceQuote.get(note.invoiceId) ?? "")?.eventId ?? null,
           });
         }
+      }
+      // Lot 31c (D21) : reçus d'arrhes des devis de ces événements.
+      for (const receipt of await tx
+        .select()
+        .from(earnestReceipts)
+        .where(and(eq(earnestReceipts.isDemo, false), inArray(earnestReceipts.quoteId, [...quoteById.keys()])))) {
+        records.push({
+          module: MODULE,
+          kind: "earnest_receipt",
+          recordId: receipt.id,
+          label: receipt.number,
+          fields: { number: receipt.number, issuedOn: receipt.issuedOn, amountCents: String(receipt.amountCents), ...buyerFields(buyersOf(receipt.buyerSnapshot)) },
+          eventId: quoteById.get(receipt.quoteId)?.eventId ?? null,
+        });
       }
       return records;
     });

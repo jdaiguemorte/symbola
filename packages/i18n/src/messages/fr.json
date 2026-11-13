@@ -327,7 +327,9 @@
       "insurance": "Assurance de responsabilité civile professionnelle (assureur et contrat)",
       "mediator": "Médiateur de la consommation (nom et site)",
       "generalTerms": "Conditions générales de vente",
-      "paymentTerms": "Conditions de paiement des factures"
+      "paymentTerms": "Conditions de paiement des factures",
+      "professionalPaymentTerms": "Conditions de paiement (professionnels)",
+      "latePenaltyRate": "Taux des pénalités de retard (professionnels)"
     },
     "requiredMentionsCheckbox": "{field} exigé sur : {document}",
     "requiredMentionsSave": "Enregistrer la liste",
@@ -661,11 +663,15 @@
     },
     "quotesSettings": {
       "title": "Devis et factures",
-      "body": "La durée de validité par défaut de vos devis, les préfixes des séries de numérotation (devis, factures, avoirs) et les modes de paiement que vous acceptez. Les numéros sont attribués par année, sans trou. Un mode désactivé n'est plus proposé quand vous enregistrez un paiement ; les paiements déjà enregistrés gardent le leur.",
+      "body": "La durée de validité par défaut de vos devis, les préfixes des séries de numérotation (devis, factures, avoirs, reçus d'arrhes), vos conditions de paiement et les modes de paiement que vous acceptez. Les conditions de paiement ont deux textes : l'un pour les particuliers et les non-professionnels, l'autre pour les professionnels, avec le taux des pénalités de retard que vous choisissez. Les numéros sont attribués par année, sans trou. Un mode désactivé n'est plus proposé quand vous enregistrez un paiement ; les paiements déjà enregistrés gardent le leur.",
       "faq": [
         {
           "q": "Puis-je reprendre ma numérotation actuelle ?",
           "a": "Oui : choisissez le préfixe de vos séries ; les numéros suivent ensuite, année par année."
+        },
+        {
+          "q": "Quel taux de pénalités choisir pour un professionnel ?",
+          "a": "Les deux taux proposés sont légaux : le taux de la BCE majoré de 10 points, ou trois fois le taux d'intérêt légal. Reprenez celui de vos conditions habituelles. La phrase des pénalités et l'indemnité forfaitaire de 40 € s'ajoutent d'elles-mêmes à vos conditions face à un professionnel."
         }
       ]
     },
@@ -704,6 +710,14 @@
         {
           "q": "Quand la facture d'acompte part-elle ?",
           "a": "D'elle-même quand tous ont signé, ou le lendemain de la fin du délai de rétractation si les clients n'ont pas demandé un démarrage immédiat. Si une mention manque, « À traiter » le signale et vous l'émettez en un clic une fois le champ rempli. Des arrhes ne donnent pas de facture d'elle-même."
+        },
+        {
+          "q": "Et si je demande des arrhes ?",
+          "a": "Des arrhes se versent en une seule échéance et ne se facturent pas. Quand vous enregistrez leur encaissement, Symbola crée un reçu non fiscal, de sa propre série. La facture de solde porte le prix total, avec les arrhes en règlement."
+        },
+        {
+          "q": "Comment le solde déduit-il les acomptes ?",
+          "a": "Taux par taux : chaque facture d'acompte est retirée en HT et en TVA de son propre taux, nette de ses avoirs. Les acomptes et le solde redonnent exactement le devis."
         }
       ]
     },
@@ -1930,8 +1944,8 @@
     "pdfDeduction": "Acompte déjà facturé ({number})",
     "pdfAmountDue": "Reste à payer",
     "invoicePaymentTermDays": "Délai de paiement d'une facture de solde (jours)",
-    "invoiceMentions": "Mentions de facturation",
-    "invoiceMentionsHint": "Conditions de paiement et autres mentions imprimées sur chaque facture. Texte de départ à faire relire par votre comptable.",
+    "invoiceMentions": "Conditions de paiement — particuliers et non-professionnels",
+    "invoiceMentionsHint": "Imprimées sur chaque facture d'un particulier ou d'un non-professionnel : échéance, mode de paiement, escompte. Texte de départ à faire relire par votre comptable.",
     "invalidPaymentTerm": "Le délai de paiement doit être compris entre 0 et 120 jours.",
     "eReportingTitle": "E-reporting",
     "eReportingIntro": "Données à déclarer sur votre plateforme agréée pour vos clients particuliers : factures et avoirs émis, encaissements reçus, période par période. Les essais n'y figurent jamais. Périodicité et contenu à confirmer avec votre comptable.",
@@ -1994,7 +2008,10 @@
       "mediator": "Médiateur de la consommation (nom et site)",
       "generalTerms": "Conditions générales de vente",
       "paymentTerms": "Conditions de paiement des factures",
-      "advanceKind": "Acompte ou arrhes, sur ce devis"
+      "advanceKind": "Acompte ou arrhes, sur ce devis",
+      "professionalPaymentTerms": "Conditions de paiement face à un professionnel",
+      "latePenaltyRate": "Taux des pénalités de retard (client professionnel)",
+      "earnestSingleInstalment": "Des arrhes se versent en une seule échéance"
     },
     "mentionsMissing": "Mentions requises manquantes : remplissez-les, puis recommencez.",
     "mentionsMissingBeforeSend": "Avant l'envoi, il manque :",
@@ -2068,7 +2085,38 @@
     "pdfOptionChosen": "option retenue",
     "pdfOptionNotChosen": "option non retenue, hors total",
     "invoiceKindEarnest": "Facture d'arrhes",
-    "clientNonProfessional": "Non-professionnel (association, SCI…)"
+    "clientNonProfessional": "Non-professionnel (association, SCI…)",
+    "invoiceMentionsPrevious": "Ce texte vient de l'ancien modèle de départ, qui prévoyait des pénalités au taux d'intérêt légal. Il reste valable pour les particuliers ; face à un professionnel, ce sont le texte et le taux ci-dessous qui s'appliquent.",
+    "invoiceMentionsProfessional": "Conditions de paiement — professionnels",
+    "invoiceMentionsProfessionalHint": "Imprimées sur le devis et les factures d'un professionnel : échéance, mode de paiement, escompte. La phrase des pénalités de retard et de l'indemnité forfaitaire de 40 € s'ajoute d'elle-même, au taux choisi ci-dessous.",
+    "latePenaltyRate": "Taux des pénalités de retard (clients professionnels)",
+    "latePenaltyRateUnset": "À choisir",
+    "latePenaltyRateHint": "Les deux taux sont légaux : choisissez celui de vos conditions habituelles. Il est demandé avant le premier devis ou la première facture à un professionnel.",
+    "invalidLatePenaltyRate": "Taux des pénalités inconnu.",
+    "receiptPrefix": "Préfixe des reçus d'arrhes",
+    "earnestSingleInstalment": "Des arrhes se versent en une seule fois : gardez une seule échéance, ou choisissez l'acompte.",
+    "earnestNotInvoiced": "Des arrhes ne se facturent pas : un reçu non fiscal est remis à leur encaissement.",
+    "earnestNoInvoice": "Des arrhes ne se facturent pas : à leur encaissement, un reçu non fiscal est créé. La facture de solde portera le prix total, arrhes en règlement.",
+    "receiptsTitle": "Reçus d'arrhes",
+    "receiptLine": "{label} — {amount}, reçues le {date}",
+    "receiptCancelled": "encaissement annulé",
+    "downloadReceiptPdf": "PDF du reçu {number}",
+    "pdfQuoteTotalHt": "Total HT du devis",
+    "pdfQuoteVatAtRate": "TVA {rate} % du devis",
+    "pdfDeductionHt": "Acompte {number} déduit, HT",
+    "pdfDeductionVatAtRate": "Acompte {number} déduit, TVA {rate} %",
+    "pdfBalanceHt": "Solde HT",
+    "pdfBalanceVatAtRate": "Solde, TVA {rate} %",
+    "pdfEarnestSettlement": "Arrhes reçues le {date} ({label})",
+    "pdfReceiptTitle": "Reçu d'arrhes {number}",
+    "pdfReceiptNotInvoice": "Document non fiscal : ce reçu n'est pas une facture.",
+    "pdfReceiptIssuedOn": "Date du reçu",
+    "pdfReceiptPaidOn": "Arrhes reçues le",
+    "pdfReceiptLine": "Arrhes « {label} » du devis {number}",
+    "pdfReceiptAmount": "Montant reçu",
+    "pdfReceiptMethod": "Reçu par {method}",
+    "pdfReceiptMention": "Reçu non fiscal. Ces arrhes viendront en règlement sur la facture de solde.",
+    "pdfReceiptCancelled": "Encaissement annulé"
   },
   "Documents": {
     "pdfSellerHeading": "De",
@@ -2135,7 +2183,7 @@
     "quoteTerms": "Conditions particulières du devis",
     "invoiceTextsTitle": "Textes de la facture",
     "invoiceIntro": "Introduction de la facture",
-    "invoiceTerms": "Conditions de paiement",
+    "invoiceTerms": "Conditions de paiement (particuliers et non-professionnels)",
     "textsHint": "Les conditions sont pré-remplies avec un texte de départ, à relire : rien n'est imprimé tant que vous n'avez pas enregistré.",
     "footer": "Pied de page (sur toutes les pages)",
     "mandatoryHint": "Les mentions obligatoires (TVA non applicable, « EI », SIRET, RCS, capital) s'ajoutent d'elles-mêmes.",
@@ -2182,7 +2230,8 @@
     "pdfInsurance": "Assurance de responsabilité civile professionnelle : {insurer}, contrat {policy}.",
     "pdfInsuranceCoverage": "Assurance de responsabilité civile professionnelle : {insurer}, contrat {policy}, couverture : {coverage}.",
     "pdfMediator": "Médiateur de la consommation : {name} — {url}",
-    "pdfGeneralTermsTitle": "Conditions générales de vente"
+    "pdfGeneralTermsTitle": "Conditions générales de vente",
+    "pdfReceiptKind": "Reçu"
   },
   "ClientSpace": {
     "title": "Mon mariage",
@@ -2743,7 +2792,8 @@
       "import_item": "Élément d'un import (annulation)",
       "privacy_request": "Demande RGPD close (nom de la personne)",
       "greeting": "Message",
-      "link": "Lien personnel"
+      "link": "Lien personnel",
+      "earnest_receipt": "Reçu d'arrhes"
     },
     "field": {
       "firstName": "Prénom",
@@ -4542,7 +4592,8 @@
       "quotes_contract_template_acceptances": "Avertissement accepté d'un modèle de contrat",
       "quotes_contract_signer_acts": "Acte d'un signataire (commande, exécution anticipée)",
       "quotes_contract_evidence": "Dossier de preuve d'un contrat",
-      "quotes_scheduled_deposit_invoices": "Facture d'acompte à émettre"
+      "quotes_scheduled_deposit_invoices": "Facture d'acompte à émettre",
+      "quotes_earnest_receipts": "Reçus d'arrhes"
     },
     "modules": {
       "events": "Événements",

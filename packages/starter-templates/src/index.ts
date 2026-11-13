@@ -8,6 +8,7 @@ import demoQuoteFile from "./demo-quote.json";
 import importSynonymsFile from "./import-synonyms.json";
 import importProfilesFile from "./import-profiles.json";
 import invoiceMentionsFile from "./invoice-mentions.json";
+import latePenaltyFile from "./late-penalty.json";
 import documentStyleFile from "./document-style.json";
 import lossReasonsFile from "./loss-reasons.json";
 import paymentMethodsFile from "./payment-methods.json";
@@ -135,10 +136,49 @@ export function starterPaymentMethodKinds(): { key: string; labels: string[] }[]
 
 // DEV-04 : mentions de facturation de départ (conditions de paiement), à
 // relire par le comptable de la planner avant la mise en production.
-const invoiceMentions = z.object({ version: z.literal(1), text: translatedLabelSchema }).parse(invoiceMentionsFile);
+// Lot 31c (réponse 1 de l'expert-comptable, D18) : deux textes, l'un pour les particuliers et
+// les non-professionnels, l'autre pour les professionnels ; l'ancien texte de départ (pénalités au
+// taux légal, sous le plancher face à un professionnel) est reconnu pour être signalé.
+const invoiceMentions = z
+  .object({ version: z.literal(2), text: translatedLabelSchema, professionalText: translatedLabelSchema, previousTexts: z.array(translatedLabelSchema) })
+  .parse(invoiceMentionsFile);
 
 export function starterInvoiceMentions(locale: StarterLocale): string {
   return invoiceMentions.text[locale];
+}
+
+export function starterProfessionalPaymentTerms(locale: StarterLocale): string {
+  return invoiceMentions.professionalText[locale];
+}
+
+const normalizedText = (text: string) => text.replace(/\s+/g, " ").trim();
+const previousInvoiceMentions = new Set(invoiceMentions.previousTexts.flatMap((text) => [normalizedText(text.fr), normalizedText(text.en)]));
+
+export function isPreviousStarterInvoiceMentions(text: string | null | undefined): boolean {
+  return typeof text === "string" && previousInvoiceMentions.has(normalizedText(text));
+}
+
+// Lot 31c (D18) : taux des pénalités de retard face à un professionnel, choisi par la planner
+// dans cette liste (sans valeur par défaut), et phrase imprimée avec l'indemnité forfaitaire.
+export const LATE_PENALTY_RATE_KEYS = ["ecb_plus_10", "three_times_legal"] as const;
+export type LatePenaltyRateKey = (typeof LATE_PENALTY_RATE_KEYS)[number];
+
+const latePenaltySchema = z.object({
+  version: z.literal(1),
+  status: translatedLabelSchema,
+  rates: z.array(z.object({ key: z.enum(LATE_PENALTY_RATE_KEYS), label: translatedLabelSchema, phrase: translatedLabelSchema })).min(1),
+  sentence: translatedLabelSchema,
+  recoveryIndemnityCents: z.number().int().positive(),
+});
+export type LatePenaltyData = Omit<z.infer<typeof latePenaltySchema>, "version" | "status">;
+const latePenalty = latePenaltySchema.parse(latePenaltyFile);
+
+export function starterLatePenalty(): LatePenaltyData {
+  return {
+    rates: latePenalty.rates.map((rate) => ({ key: rate.key, label: { ...rate.label }, phrase: { ...rate.phrase } })),
+    sentence: { ...latePenalty.sentence },
+    recoveryIndemnityCents: latePenalty.recoveryIndemnityCents,
+  };
 }
 
 // Lot 17 (DEV-09, DEV-10) — apparence des documents : couleur neutre (celle
@@ -857,6 +897,9 @@ export const MENTION_FIELDS = [
   "mediator",
   "generalTerms",
   "paymentTerms",
+  // Lot 31c (D18) : conditions de paiement et taux des pénalités face à un professionnel.
+  "professionalPaymentTerms",
+  "latePenaltyRate",
 ] as const;
 export type MentionField = (typeof MENTION_FIELDS)[number];
 export const MENTION_DOCUMENTS = ["quote", "deposit_invoice", "balance_invoice", "credit_note"] as const;

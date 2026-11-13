@@ -20,7 +20,8 @@ export const QUOTE_STATUS_LABEL_KEYS: Record<QuoteStatus, string> = {
 // que l'accompagner (contraste supérieur à 7:1, même palette qu'PRD-EVT-03).
 // Pastilles de la charte (globals.css) : le libellé porte toujours l'information.
 export const OVERDUE_CLASS = "badge badge-terracotta";
-export const PAID_CLASS = "badge badge-sauge";
+// Lot 31c : « Payée le … (mode de paiement) » peut dépasser 375 px ; il passe à la ligne.
+export const PAID_CLASS = "badge badge-sauge badge-wrap";
 
 // Date du jour à Paris (« YYYY-MM-DD »), pour pré-remplir les dates.
 export function parisTodayString(now: Date = new Date()): string {

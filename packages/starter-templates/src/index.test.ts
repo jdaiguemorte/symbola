@@ -16,6 +16,9 @@ import {
   starterEventTypes,
   starterFollowUpDelays,
   starterInvoiceMentions,
+  starterLatePenalty,
+  isPreviousStarterInvoiceMentions,
+  starterProfessionalPaymentTerms,
   starterLinkExpiry,
   starterLinkPrivacyNotice,
   starterLinkProfiles,
@@ -498,5 +501,53 @@ describe("JUR-07 / JUR-14 — Règles des contrats (lot 31b, réponses de l'avoc
     expect(rules.signature).toEqual({ advancedThresholdCents: 1000000, availableLevel: "simple" });
     expect(rules.retention.signedContractMinimumMonths).toBe(120);
     expect(rules.placeholderMarkers).toContain("[À rédiger");
+  });
+});
+
+describe("FAC-07 / JUR-01 — Conditions de paiement selon le client (lot 31c, expert-comptable, D18)", () => {
+  it("deux textes de départ, en français et en anglais : particuliers et non-professionnels, puis professionnels", () => {
+    for (const locale of ["fr", "en"] as const) {
+      expect(starterInvoiceMentions(locale)).toBeTruthy();
+      expect(starterProfessionalPaymentTerms(locale)).toBeTruthy();
+      expect(starterProfessionalPaymentTerms(locale)).not.toBe(starterInvoiceMentions(locale));
+    }
+    expect(starterInvoiceMentions("fr")).toContain("escompte");
+    // Le taux légal, sous le plancher face à un professionnel, n'est plus dans le texte de départ.
+    expect(starterInvoiceMentions("fr")).not.toContain("taux d'intérêt légal");
+    expect(starterProfessionalPaymentTerms("fr")).toContain("scompte");
+    expect(starterProfessionalPaymentTerms("en")).toMatch(/discount/i);
+  });
+
+  it("l'ancien texte de départ (pénalités au taux légal) est reconnu, en français et en anglais", () => {
+    expect(isPreviousStarterInvoiceMentions("Conditions de paiement : à réception de la facture, par virement bancaire. Aucun escompte pour paiement anticipé. En cas de retard de paiement, des pénalités au taux d'intérêt légal peuvent être appliquées.")).toBe(true);
+    expect(isPreviousStarterInvoiceMentions("  Payment terms: upon receipt of the invoice, by bank transfer. No discount for early payment. In the event of late payment, penalties at the statutory interest rate may apply.\n")).toBe(true);
+    expect(isPreviousStarterInvoiceMentions(starterInvoiceMentions("fr"))).toBe(false);
+    expect(isPreviousStarterInvoiceMentions(null)).toBe(false);
+  });
+
+  it("le taux des pénalités se choisit dans une liste de deux, sans valeur par défaut ; l'indemnité forfaitaire est de 40 €", () => {
+    const penalty = starterLatePenalty();
+    expect(penalty.rates.map((rate) => rate.key)).toEqual(["ecb_plus_10", "three_times_legal"]);
+    expect(penalty.rates.find((rate) => rate.key === "ecb_plus_10")?.label.fr).toBe("Taux de la BCE majoré de 10 points");
+    expect(penalty.rates.find((rate) => rate.key === "three_times_legal")?.label.fr).toBe("Trois fois le taux d'intérêt légal");
+    expect(penalty.recoveryIndemnityCents).toBe(4000);
+    for (const locale of ["fr", "en"] as const) {
+      expect(penalty.sentence[locale]).toContain("{taux}");
+      expect(penalty.sentence[locale]).toContain("{indemnite}");
+    }
+  });
+
+  it("mentions exigées : texte professionnel et taux pour un client professionnel, sur le devis et les factures ; son texte pour les autres", () => {
+    const rules = starterRequiredMentions();
+    expect(MENTION_FIELDS).toContain("professionalPaymentTerms");
+    expect(MENTION_FIELDS).toContain("latePenaltyRate");
+    for (const field of ["professionalPaymentTerms", "latePenaltyRate"] as const) {
+      const rule = rules.find((candidate) => candidate.field === field);
+      expect(rule?.documents).toEqual(["quote", "deposit_invoice", "balance_invoice"]);
+      expect(rule?.clientKinds).toEqual(["professional"]);
+    }
+    const individual = rules.find((rule) => rule.field === "paymentTerms");
+    expect(individual?.documents).toEqual(["deposit_invoice", "balance_invoice"]);
+    expect(individual?.clientKinds).toEqual(["individual", "non_professional"]);
   });
 });

@@ -327,7 +327,9 @@
       "insurance": "Professional liability insurance (insurer and policy)",
       "mediator": "Consumer mediator (name and website)",
       "generalTerms": "General terms of sale",
-      "paymentTerms": "Invoice payment terms"
+      "paymentTerms": "Invoice payment terms",
+      "professionalPaymentTerms": "Payment terms (business clients)",
+      "latePenaltyRate": "Late payment penalty rate (business clients)"
     },
     "requiredMentionsCheckbox": "{field} required on: {document}",
     "requiredMentionsSave": "Save the list",
@@ -661,11 +663,15 @@
     },
     "quotesSettings": {
       "title": "Quotes and invoices",
-      "body": "The default validity of your quotes, the numbering series prefixes (quotes, invoices, credit notes) and the payment methods you accept. Numbers are assigned per year, without gaps. A method you turn off is no longer offered when you record a payment; payments already recorded keep theirs.",
+      "body": "The default validity of your quotes, the numbering series prefixes (quotes, invoices, credit notes, earnest money receipts), your payment terms and the payment methods you accept. Payment terms have two texts: one for individuals and non-professionals, one for business clients, with the late payment penalty rate you choose. Numbers are assigned per year, without gaps. A method you turn off is no longer offered when you record a payment; payments already recorded keep theirs.",
       "faq": [
         {
           "q": "Can I keep my current numbering?",
           "a": "Yes: choose your series prefix; numbers then follow on, year by year."
+        },
+        {
+          "q": "Which penalty rate should I choose for a business client?",
+          "a": "Both rates offered are lawful: the ECB rate plus 10 percentage points, or three times the statutory interest rate. Use the one in your usual terms. The penalty sentence and the €40 fixed recovery fee are added automatically to your terms for a business client."
         }
       ]
     },
@@ -704,6 +710,14 @@
         {
           "q": "When is the deposit invoice issued?",
           "a": "Automatically once everyone has signed, or the day after the withdrawal period ends if the clients did not ask for an immediate start. If a mention is missing, “To do” says so and you issue it in one click once the field is filled in. Earnest money does not trigger an invoice on its own."
+        },
+        {
+          "q": "What if I ask for earnest money?",
+          "a": "Earnest money is paid in a single instalment and is not invoiced. When you record its payment, Symbola creates a non-tax receipt in its own series. The balance invoice shows the full price, with the earnest money as a payment."
+        },
+        {
+          "q": "How does the balance deduct deposits?",
+          "a": "Rate by rate: each deposit invoice, net of its credit notes, is deducted from its own VAT rate, both the net amount and the VAT. Deposits and balance add up exactly to the quote."
         }
       ]
     },
@@ -1930,8 +1944,8 @@
     "pdfDeduction": "Deposit already invoiced ({number})",
     "pdfAmountDue": "Amount due",
     "invoicePaymentTermDays": "Payment term of a balance invoice (days)",
-    "invoiceMentions": "Invoice notices",
-    "invoiceMentionsHint": "Payment terms and other notices printed on every invoice. Starter text to be reviewed by your accountant.",
+    "invoiceMentions": "Payment terms — individuals and non-professionals",
+    "invoiceMentionsHint": "Printed on every invoice to an individual or a non-professional: due date, payment method, discount. Starter text to be reviewed by your accountant.",
     "invalidPaymentTerm": "The payment term must be between 0 and 120 days.",
     "eReportingTitle": "E-reporting",
     "eReportingIntro": "Data to report on your approved platform for individual clients: invoices and credit notes issued, payments received, period by period. Trials never appear. Frequency and content to be confirmed with your accountant.",
@@ -1994,7 +2008,10 @@
       "mediator": "Consumer mediator (name and website)",
       "generalTerms": "General terms of sale",
       "paymentTerms": "Invoice payment terms",
-      "advanceKind": "Deposit or earnest money, on this quote"
+      "advanceKind": "Deposit or earnest money, on this quote",
+      "professionalPaymentTerms": "Payment terms for a business client",
+      "latePenaltyRate": "Late payment penalty rate (business client)",
+      "earnestSingleInstalment": "Earnest money is paid in a single instalment"
     },
     "mentionsMissing": "Required mentions are missing: fill them in, then try again.",
     "mentionsMissingBeforeSend": "Before sending, these are missing:",
@@ -2068,7 +2085,38 @@
     "pdfOptionChosen": "option chosen",
     "pdfOptionNotChosen": "option not chosen, not in the total",
     "invoiceKindEarnest": "Earnest money invoice",
-    "clientNonProfessional": "Non-professional (association, property company…)"
+    "clientNonProfessional": "Non-professional (association, property company…)",
+    "invoiceMentionsPrevious": "This text comes from the former starter template, which set penalties at the statutory interest rate. It remains valid for individuals; for a business client, the text and the rate below apply.",
+    "invoiceMentionsProfessional": "Payment terms — business clients",
+    "invoiceMentionsProfessionalHint": "Printed on a business client's quote and invoices: due date, payment method, discount. The sentence on late payment penalties and the €40 fixed recovery fee is added automatically, at the rate chosen below.",
+    "latePenaltyRate": "Late payment penalty rate (business clients)",
+    "latePenaltyRateUnset": "To be chosen",
+    "latePenaltyRateHint": "Both rates are lawful: choose the one in your usual terms. It is required before the first quote or invoice to a business client.",
+    "invalidLatePenaltyRate": "Unknown penalty rate.",
+    "receiptPrefix": "Earnest money receipt prefix",
+    "earnestSingleInstalment": "Earnest money is paid in one go: keep a single instalment, or choose a deposit.",
+    "earnestNotInvoiced": "Earnest money is not invoiced: a non-tax receipt is issued when it is received.",
+    "earnestNoInvoice": "Earnest money is not invoiced: when it is received, a non-tax receipt is created. The balance invoice will show the full price, with the earnest money as a payment.",
+    "receiptsTitle": "Earnest money receipts",
+    "receiptLine": "{label} — {amount}, received on {date}",
+    "receiptCancelled": "payment cancelled",
+    "downloadReceiptPdf": "Receipt {number} PDF",
+    "pdfQuoteTotalHt": "Quote total excl. VAT",
+    "pdfQuoteVatAtRate": "Quote VAT {rate}%",
+    "pdfDeductionHt": "Deposit {number} deducted, excl. VAT",
+    "pdfDeductionVatAtRate": "Deposit {number} deducted, VAT {rate}%",
+    "pdfBalanceHt": "Balance excl. VAT",
+    "pdfBalanceVatAtRate": "Balance, VAT {rate}%",
+    "pdfEarnestSettlement": "Earnest money received on {date} ({label})",
+    "pdfReceiptTitle": "Earnest money receipt {number}",
+    "pdfReceiptNotInvoice": "Non-tax document: this receipt is not an invoice.",
+    "pdfReceiptIssuedOn": "Receipt date",
+    "pdfReceiptPaidOn": "Earnest money received on",
+    "pdfReceiptLine": "Earnest money “{label}” for quote {number}",
+    "pdfReceiptAmount": "Amount received",
+    "pdfReceiptMethod": "Received by {method}",
+    "pdfReceiptMention": "Non-tax receipt. This earnest money will be credited as a payment on the balance invoice.",
+    "pdfReceiptCancelled": "Payment cancelled"
   },
   "Documents": {
     "pdfSellerHeading": "From",
@@ -2135,7 +2183,7 @@
     "quoteTerms": "Quote terms and conditions",
     "invoiceTextsTitle": "Invoice texts",
     "invoiceIntro": "Invoice introduction",
-    "invoiceTerms": "Payment terms",
+    "invoiceTerms": "Payment terms (individuals and non-professionals)",
     "textsHint": "Terms are pre-filled with a starter text to review: nothing is printed until you save.",
     "footer": "Footer (on every page)",
     "mandatoryHint": "Mandatory mentions (VAT exemption, sole trader « EI », SIRET, registration, share capital) are added automatically.",
@@ -2182,7 +2230,8 @@
     "pdfInsurance": "Professional liability insurance: {insurer}, policy {policy}.",
     "pdfInsuranceCoverage": "Professional liability insurance: {insurer}, policy {policy}, coverage: {coverage}.",
     "pdfMediator": "Consumer mediator: {name} — {url}",
-    "pdfGeneralTermsTitle": "General terms of sale"
+    "pdfGeneralTermsTitle": "General terms of sale",
+    "pdfReceiptKind": "Receipt"
   },
   "ClientSpace": {
     "title": "My wedding",
@@ -2743,7 +2792,8 @@
       "import_item": "Import record (undo)",
       "privacy_request": "Closed GDPR request (name of the person)",
       "greeting": "Message",
-      "link": "Personal link"
+      "link": "Personal link",
+      "earnest_receipt": "Earnest money receipt"
     },
     "field": {
       "firstName": "First name",
@@ -4542,7 +4592,8 @@
       "quotes_contract_template_acceptances": "Accepted contract template notice",
       "quotes_contract_signer_acts": "Signer's act (order, early performance)",
       "quotes_contract_evidence": "Contract evidence file",
-      "quotes_scheduled_deposit_invoices": "Deposit invoice to issue"
+      "quotes_scheduled_deposit_invoices": "Deposit invoice to issue",
+      "quotes_earnest_receipts": "Earnest money receipts"
     },
     "modules": {
       "events": "Events",

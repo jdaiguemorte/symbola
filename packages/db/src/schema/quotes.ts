@@ -24,6 +24,9 @@ export const documentFontEnum = quotesSchema.enum("document_font", ["modern", "c
 // diffèrent en cas d'annulation, article L214-1 du Code de la consommation).
 export const advanceKindEnum = quotesSchema.enum("advance_kind", ["deposit", "earnest"]);
 
+// Lot 31c (D18) : taux des pénalités de retard proposés (packages/starter-templates/late-penalty.json).
+export const LATE_PENALTY_RATES = ["ecb_plus_10", "three_times_legal"] as const;
+
 export const quoteSettings = quotesSchema.table("quote_settings", {
   id: uuid("id").defaultRandom().primaryKey(),
   organizationId: uuid("organization_id").notNull().unique(),
@@ -52,14 +55,24 @@ export const quoteSettings = quotesSchema.table("quote_settings", {
   // Lot 31a (JUR-08, décision D5) : acompte ou arrhes proposé pour chaque nouveau devis ;
   // lot 31b (réponse 2 de l'avocat, D17) : « acompte » par défaut.
   advanceKindDefault: advanceKindEnum("advance_kind_default").default("deposit"),
+  // Lot 31c (réponse 1 de l'expert-comptable, D18) : conditions de paiement face à un
+  // professionnel (invoice_mentions reste celui des particuliers et des non-professionnels), et
+  // taux des pénalités de retard choisi par la planner, sans valeur par défaut.
+  invoiceMentionsProfessional: text("invoice_mentions_professional"),
+  latePenaltyRate: text("late_penalty_rate", { enum: LATE_PENALTY_RATES }),
+  // Lot 31c (D21) : préfixe de la série des reçus d'arrhes.
+  receiptPrefix: text("receipt_prefix").notNull().default("R"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   createdBy: uuid("created_by"),
   updatedBy: uuid("updated_by"),
-});
+}, (table) => [
+  check("quote_settings_late_penalty_rate_check", sql`${table.latePenaltyRate} is null or ${table.latePenaltyRate} in ('ecb_plus_10', 'three_times_legal')`),
+]);
 
-export const numberSeriesKindEnum = quotesSchema.enum("number_series_kind", ["quote", "invoice", "credit_note"]);
+// Lot 31c (D21) : « receipt », la série à part des reçus d'arrhes (non fiscaux).
+export const numberSeriesKindEnum = quotesSchema.enum("number_series_kind", ["quote", "invoice", "credit_note", "receipt"]);
 
 // Compteur par série, par année et par organisation ; la série d'essai
 // (is_demo, ADR 0008) est distincte et ne consomme jamais la série légale.
@@ -847,6 +860,43 @@ export const paymentEntries = quotesSchema.table(
       sql`${table.kind} <> 'reversal' or (${table.reversesEntryId} is not null and length(trim(${table.reason})) > 0)`,
     ),
   ],
+);
+
+// Lot 31c (JUR-08, réponse 7 bis de l'expert-comptable, décision D21) — reçu d'arrhes : les arrhes
+// sont une indemnité de dédit, hors TVA et hors facturation tant qu'elles ne sont pas imputées sur
+// le prix. À leur encaissement, un reçu non fiscal, de sa propre série, reprend le vendeur, les
+// clients, la date et le montant reçus. Immuable comme une facture (même déclencheur : seul un
+// reçu d'essai se supprime ; seule la copie des clients s'anonymise à la fin de la conservation).
+// Un encaissement annulé laisse le reçu, marqué annulé à l'affichage.
+export const earnestReceipts = quotesSchema.table(
+  "earnest_receipts",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    quoteId: uuid("quote_id")
+      .notNull()
+      .references(() => quotes.id),
+    scheduleItemId: uuid("schedule_item_id")
+      .notNull()
+      .references(() => paymentScheduleItems.id),
+    paymentEntryId: uuid("payment_entry_id")
+      .notNull()
+      .unique()
+      .references(() => paymentEntries.id),
+    number: text("number").notNull(),
+    isDemo: boolean("is_demo").notNull().default(false),
+    issuedAt: timestamp("issued_at", { withTimezone: true }).notNull(),
+    issuedOn: date("issued_on").notNull(),
+    paidOn: date("paid_on").notNull(),
+    amountCents: integer("amount_cents").notNull(),
+    label: text("label").notNull(),
+    paymentMethodLabel: text("payment_method_label"),
+    sellerSnapshot: jsonb("seller_snapshot").notNull(),
+    buyerSnapshot: jsonb("buyer_snapshot").notNull(),
+    // Lot 23 (DAT-06) : auteur de la ligne (core.stamp_row).
+    createdBy: uuid("created_by"),
+  },
+  (table) => [index("earnest_receipts_organization_idx").on(table.organizationId), unique().on(table.organizationId, table.number)],
 );
 
 // Lot 23b (DOC-08, ADR 0061) — original d'une facture ou d'un avoir émis : le
