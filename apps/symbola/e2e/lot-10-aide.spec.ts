@@ -46,7 +46,7 @@ test("AIDE-11 / AIDE-07 — repères de la fiche d'un événement, et centre d'a
   await page.getByRole("button", { name: "Valider" }).click();
   await expect(page).toHaveURL("/");
   // Les repères de l'accueil s'ouvrent d'eux-mêmes ; on les ferme.
-  await closeLandmarks(page, "Accueil");
+  await closeLandmarks(page, "Aujourd'hui");
 
   // Fiche d'un événement : cinq repères, le premier choisi et son élément mis en avant.
   await page.goto(`/events/${eventId}`);
@@ -58,7 +58,7 @@ test("AIDE-11 / AIDE-07 — repères de la fiche d'un événement, et centre d'a
   // L'écran reste utilisable pendant que les repères sont affichés.
   await expect(page.getByRole("button", { name: "Repère 1 : Les onglets" })).toHaveAttribute("aria-pressed", "true");
   await panel.getByRole("button", { name: "Repère suivant" }).click();
-  await expect(panel.getByRole("heading", { name: "La vue d'ensemble", level: 3 })).toBeVisible();
+  await expect(panel.getByRole("heading", { name: "La synthèse", level: 3 })).toBeVisible();
   await expect(page.locator("[data-tour='event-overview']")).toHaveClass(/landmark-active/);
   await expect(page.locator("[data-tour='event-tabs']")).not.toHaveClass(/landmark-active/);
   await page.keyboard.press("Escape");
@@ -176,6 +176,7 @@ test("AIDE-06 — tutoriel en faisant : modèle de rétroplanning proposé à la
 
   await page.getByRole("link", { name: "Ouvrir l'exemple" }).click();
   await page.waitForLoadState("networkidle");
+  await page.locator("summary", { hasText: "Modifier les informations" }).click();
   await page.getByLabel("Date de l'événement").fill("2029-05-19");
   await page.getByRole("button", { name: "Changer la date" }).click();
   await expect(page.getByText("Date mise à jour.")).toBeVisible();

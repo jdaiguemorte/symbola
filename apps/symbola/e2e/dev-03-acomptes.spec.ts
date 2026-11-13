@@ -119,12 +119,13 @@ test("DEV-03 — échéancier, encaissements à venir, retard et paiement", asyn
   await expect(page.getByRole("listitem").filter({ hasText: "Deuxième acompte" })).toContainText("(Lou)");
   await expectNoAxeViolation(page);
 
-  // Le tableau de bord montre aussi le retard.
+  // « Aujourd'hui » (lot 32a, HUB-08) montre aussi le retard, que le client doit régler ; l'échéance
+  // à quarante jours reste dans « Encaissements ».
   await page.goto("/");
   await page.waitForLoadState("networkidle");
-  const block = page.getByRole("region", { name: "Encaissements à venir" });
-  await expect(block.getByText("Acompte à la signature")).toBeVisible();
-  await expect(block.getByText("Deuxième acompte")).toBeVisible();
+  const first = page.getByRole("region", { name: "À traiter en premier" });
+  await expect(first.getByRole("listitem").filter({ hasText: "Acompte à la signature" })).toContainText("Attend le client");
+  await expect(page.getByText(/Deuxième acompte/)).toHaveCount(0);
 
   // Marquer payée : date et mode de paiement.
   await page.goto(quoteUrl);

@@ -26,16 +26,22 @@ function parseSpan(value: string | undefined): (typeof SPANS)[number] | null {
   return (SPANS as readonly number[]).includes(span) ? (span as (typeof SPANS)[number]) : null;
 }
 
+// Lot 32a (D3) : l'agenda quitte l'accueil pour l'écran « Évènements » ; ses liens y ramènent.
 export async function AgendaBlock({
   organizationId,
   locale,
   today,
   query,
+  basePath = "/events",
+  params = {},
 }: {
   organizationId: string;
   locale: Locale;
   today: string;
-  query: { agenda?: string; debut?: string };
+  query: { agenda?: string | undefined; debut?: string | undefined };
+  basePath?: string;
+  // Lot 32b (EVT-07) : paramètres de l'écran gardés par la navigation de l'agenda (vue calendrier).
+  params?: Record<string, string>;
 }) {
   const t = await getTranslations("Home");
   const tEvents = await getTranslations("Events");
@@ -50,7 +56,7 @@ export async function AgendaBlock({
     .map((event) => ({ id: event.id, date: event.eventDate!, status: event.status, names: eventNames(event.clients), isDemo: event.isDemo }));
   const months = buildCalendar({ start, months: span, events });
   const href = (changes: { agenda?: number; debut?: string }) =>
-    `/?${new URLSearchParams({ agenda: String(changes.agenda ?? span), debut: changes.debut ?? start }).toString()}`;
+    `${basePath}?${new URLSearchParams({ ...params, agenda: String(changes.agenda ?? span), debut: changes.debut ?? start }).toString()}#agenda-title`;
   const weekdays = t.raw("agendaWeekdays") as string[];
 
   const describe = (cell: CalendarCell) =>
@@ -59,7 +65,7 @@ export async function AgendaBlock({
       .join(", ")}`;
 
   return (
-    <section className="card" aria-labelledby="agenda-title" data-tour="home-agenda">
+    <section className="card" aria-labelledby="agenda-title" data-tour="events-agenda">
       <div className="section-head">
         <div>
           <h2 id="agenda-title">{t("agendaTitle")}</h2>
@@ -119,11 +125,14 @@ export async function AgendaBlock({
                 const classes = `agenda-day tone-${cell.tone}${cell.weekend ? " is-weekend" : ""}${cell.date === today ? " is-today" : ""}`;
                 // Le chiffre et le badge restent visibles ; le détail se lit en texte masqué
                 // (pas d'aria-label qui remplacerait le texte visible, WCAG 2.5.3).
+                // Lot 32b (EVT-07) : le week-end compte samedi et dimanche ; un jour de semaine, ses
+                // propres évènements (deux le même jour sont signalés, et listés).
+                const group = cell.weekend ? cell.weekendEvents : cell.events;
                 const badge =
-                  cell.events.length > 0 && cell.weekendCount > 1 ? (
+                  cell.events.length > 0 && group.length > 1 ? (
                     <span className="agenda-badge">
-                      {cell.weekendCount}
-                      <span className="sr-only"> {t("agendaWeekendCount", { count: cell.weekendCount })}</span>
+                      {group.length}
+                      <span className="sr-only"> {t(cell.weekend ? "agendaWeekendCount" : "agendaDayCount", { count: group.length })}</span>
                     </span>
                   ) : null;
                 const description = cell.events.length > 0 ? <span className="sr-only"> {describe(cell)}</span> : null;
@@ -146,7 +155,7 @@ export async function AgendaBlock({
                     </details>
                   );
                 }
-                if (cell.events.length === 1 && cell.weekendCount <= 1) {
+                if (cell.events.length === 1 && group.length <= 1) {
                   return (
                     <Link key={cell.date} href={`/events/${cell.events[0]!.id}`} className={classes} title={describe(cell)}>
                       {cell.day}
@@ -155,7 +164,7 @@ export async function AgendaBlock({
                     </Link>
                   );
                 }
-                // Plusieurs événements ce week-end : une petite liste propose chacun.
+                // Plusieurs événements ce jour ou ce week-end : une petite liste propose chacun.
                 return (
                   <details key={cell.date} className={`${classes} agenda-multi${alignEnd(cell.date) ? " align-end" : ""}`}>
                     <summary title={describe(cell)}>
@@ -165,7 +174,7 @@ export async function AgendaBlock({
                       {description}
                     </summary>
                     <ul>
-                      {cell.weekendEvents.map((event) => (
+                      {group.map((event) => (
                         <li key={event.id}>
                           <Link href={`/events/${event.id}`}>
                             {formatCalendarDate(event.date, locale)} — {event.names}

@@ -890,6 +890,20 @@
       "when": 1794561669761,
       "tag": "0126_lot31c_quotes_payment_terms_receipts",
       "breakpoints": true
+    },
+    {
+      "idx": 127,
+      "version": "7",
+      "when": 1794592844486,
+      "tag": "0127_lot32a_events_activity_vendor_kind",
+      "breakpoints": true
+    },
+    {
+      "idx": 128,
+      "version": "7",
+      "when": 1794592845501,
+      "tag": "0128_lot32a_events_activity_vendor",
+      "breakpoints": true
     }
   ]
 }

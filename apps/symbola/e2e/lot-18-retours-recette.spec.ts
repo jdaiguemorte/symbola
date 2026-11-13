@@ -47,6 +47,8 @@ test("Lot 18 — menu, « Plus d'options », pastille des tutoriels et estimatio
   // L20-HUB-25 (recette du 10/11) : dans l'en-tête de l'agenda, « ‹ Aujourd'hui › »
   // est centré sur le sélecteur de durée quand ils partagent une ligne ; en
   // 375 px, la navigation passe au-dessus, sans chevauchement.
+  // Lot 32a (D3) : l'agenda est passé sur « Évènements » ; lot 32b (D11) : vue « Calendrier ».
+  await page.goto("/events?affichage=calendrier");
   const navigation = (await page.getByRole("navigation", { name: "Naviguer dans l'agenda" }).boundingBox())!;
   const spans = (await page.getByRole("navigation", { name: "Durée affichée" }).boundingBox())!;
   if (page.viewportSize()!.width >= 768) {

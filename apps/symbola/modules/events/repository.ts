@@ -1190,7 +1190,7 @@ export async function findEventStatusChanges(organizationId: string, eventId: st
 export async function findEventActivity(
   organizationId: string,
   eventId: string,
-): Promise<{ activity: EventActivityRow; actorName: string | null }[]> {
+): Promise<{ activity: EventActivityRow; actorName: string | null; vendorName: string | null }[]> {
   const db = appDatabase();
   return await withOrganization(db, organizationId, async (tx) => {
     const activity = await tx
@@ -1204,7 +1204,18 @@ export async function findEventActivity(
         ? await tx.select({ id: eventLinks.id, personName: eventLinks.personName }).from(eventLinks).where(inArray(eventLinks.id, linkIds))
         : [];
     const nameByLink = new Map(links.map((link) => [link.id, link.personName]));
-    return activity.map((row) => ({ activity: row, actorName: row.actorLinkId ? (nameByLink.get(row.actorLinkId) ?? null) : null }));
+    // Lot 32a (D6, RGP-05) : le nom du prestataire relancé se lit sur sa fiche de consulté.
+    const candidateIds = [...new Set(activity.flatMap((row) => (row.vendorCandidateId ? [row.vendorCandidateId] : [])))];
+    const candidates =
+      candidateIds.length > 0
+        ? await tx.select({ id: eventVendorCandidates.id, vendorName: eventVendorCandidates.vendorName }).from(eventVendorCandidates).where(inArray(eventVendorCandidates.id, candidateIds))
+        : [];
+    const nameByCandidate = new Map(candidates.map((candidate) => [candidate.id, candidate.vendorName]));
+    return activity.map((row) => ({
+      activity: row,
+      actorName: row.actorLinkId ? (nameByLink.get(row.actorLinkId) ?? null) : null,
+      vendorName: row.vendorCandidateId ? (nameByCandidate.get(row.vendorCandidateId) ?? null) : null,
+    }));
   });
 }
 

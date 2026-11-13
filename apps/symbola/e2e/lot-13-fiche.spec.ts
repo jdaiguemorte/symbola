@@ -54,9 +54,10 @@ test("L13-EVT-19 — frise datée du statut, prochaine étape et chiffres clés"
   await expect(steps.getByRole("listitem").filter({ hasText: "Réalisé" })).toContainText("après le");
   await expect(page.getByRole("heading", { name: "Prochaine étape : envoyer le devis" })).toBeVisible();
 
-  // La vue d'ensemble tient en chiffres.
-  await expect(page.getByText("Lignes pourvues", { exact: true })).toBeVisible();
-  await expect(page.getByText("Tâches en retard", { exact: true })).toBeVisible();
+  // Lot 32a (EVT-02, D5) : la synthèse dit la prochaine action et la santé de l'évènement.
+  await expect(page.getByRole("heading", { name: "Prochaine action" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Santé de l'évènement" })).toContainText("0 sur 0 tâches faites");
+  await expect(page.getByRole("region", { name: "Santé de l'évènement" })).toContainText("Aucune en attente");
   await expectNoAxeViolation(page);
 
   // Changer d'étape demande confirmation ; « Annuler » ne change rien.

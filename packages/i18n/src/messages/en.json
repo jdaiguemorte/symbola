@@ -58,8 +58,9 @@
     "agendaLegend": "Legend",
     "agendaLegendConfirmed": "Confirmed wedding",
     "agendaLegendTentative": "Date held for a prospect",
-    "agendaLegendTwo": "Two events the same weekend",
+    "agendaLegendTwo": "Several events the same day or weekend",
     "agendaWeekendCount": "{count} events this weekend",
+    "agendaDayCount": "{count} events that day",
     "agendaWeekdays": [
       "M",
       "T",
@@ -72,7 +73,7 @@
     "upcomingTasksTitle": "Due in the next two weeks",
     "upcomingTasksEmpty": "Nothing urgent: no task overdue or due within 14 days.",
     "allTasksLink": "All tasks",
-    "agenda": "Calendar",
+    "agenda": "Today",
     "tasks": "Tasks",
     "tasksOverdue": "{count} overdue",
     "settingsOrganization": "My organisation",
@@ -236,7 +237,7 @@
     "regimeChanged": "VAT regime updated.",
     "missingEffectiveDate": "The effective date is required.",
     "followUpTitle": "Follow-up delays",
-    "followUpIntro": "The home page lists under “To follow up” the quotes sent and prospects with no news beyond these delays.",
+    "followUpIntro": "“Today” flags the quotes sent and prospects with no news beyond these delays.",
     "quoteFollowUpDays": "Follow up a sent quote after (days)",
     "prospectFollowUpDays": "Follow up a prospect with no news after (days)",
     "saveFollowUpDelays": "Save the delays",
@@ -339,24 +340,16 @@
   "Tour": {
     "hub": [
       {
-        "title": "The calendar",
-        "body": "Your weekends month by month: solid, confirmed events; dotted, dates held for a prospect; a badge flags two events on the same weekend. Click a free date to create a prospect on it."
+        "title": "Deal with first",
+        "body": "The three most urgent items, across all events. Each line says who has to act and offers the action in one click."
       },
       {
-        "title": "Moving through the calendar",
-        "body": "‹ and › change period, « Today » goes back to the current month. Show 3 months, 6 months or the whole year."
+        "title": "The rest, by urgency",
+        "body": "Overdue, today, waiting on someone else, then the next fourteen days."
       },
       {
-        "title": "To handle",
-        "body": "Quotes sent and prospects you have not heard from beyond your follow-up delays."
-      },
-      {
-        "title": "To do this fortnight",
-        "body": "Tasks overdue or due within 14 days, across all events. Tick a task to mark it done."
-      },
-      {
-        "title": "Upcoming payments",
-        "body": "Deposits and balances expected, by due date."
+        "title": "My events",
+        "body": "Your events in progress, with the countdown and what is left to deal with. One click opens the event summary."
       }
     ],
     "events": [
@@ -375,6 +368,10 @@
       {
         "title": "Settings",
         "body": "« Settings » leads to budget lines, sources and reasons, event types, and planning and schedule templates."
+      },
+      {
+        "title": "List or calendar",
+        "body": "Switch from the list to the calendar of the coming months. Below, the workload over the next twelve months; two events on the same day are flagged in both views."
       }
     ],
     "quotes": [
@@ -400,11 +397,11 @@
     "event": [
       {
         "title": "The tabs",
-        "body": "Overview, budget, planning timeline, schedule, couple: each tab groups part of the preparations."
+        "body": "Summary, budget, planning timeline, schedule, couple: each tab groups part of the preparations."
       },
       {
-        "title": "Overview",
-        "body": "The status on the timeline, the next step and the four key figures."
+        "title": "Summary",
+        "body": "The next action and who must act, the event's health, then the next fourteen days. Details are edited at the bottom."
       },
       {
         "title": "Planning timeline",
@@ -448,16 +445,28 @@
       "body": "The first time, scan the QR code with an authenticator app (Google Authenticator, Authy…). After that, enter the 6-digit code it shows each time you log in, or tick \"Remember this device\": you won't be asked for it on this device for 90 days. After 5 wrong codes, two-factor authentication is blocked for 15 minutes."
     },
     "home": {
-      "title": "Home",
-      "body": "Your dashboard. The calendar shows your booked weekends; click a free date to create a prospect on it. Below, what needs your attention: quotes and prospects to follow up, the fortnight's tasks, upcoming payments. A block with overdue items comes first.",
+      "title": "Today",
+      "body": "What needs your attention, across all events, sorted by urgency: overdue, today, waiting on someone else (the client or a vendor), then the next fourteen days. The first three items come first; each line says who has to act and leads to the action in one click. Below, your events in progress, with the countdown.",
       "faq": [
         {
-          "q": "How do I change the \"To do\" delays?",
+          "q": "How do I change the follow-up delays for quotes and prospects?",
           "a": "In Settings › Follow-up delays: by default, a sent quote after 7 days and a silent prospect after 14 days."
         },
         {
           "q": "Where do I resume a tutorial I started?",
           "a": "In Tutorials, in the menu: the tutorial in progress comes first, with the whole path."
+        },
+        {
+          "q": "I ticked a task by mistake?",
+          "a": "An “Undo” message stays for ten seconds after the tick: it restores the task."
+        },
+        {
+          "q": "Where is the calendar?",
+          "a": "In Events: the calendar of your weekends is there, with the list."
+        },
+        {
+          "q": "How do I quickly create a prospect, a task, an expense or a quote?",
+          "a": "With « Create » at the top of every screen, or the N key outside a field: a short form opens without leaving the screen, and the screen's event is suggested."
         }
       ]
     },
@@ -517,7 +526,7 @@
     },
     "eventsList": {
       "title": "Event list",
-      "body": "All your prospects and upcoming events; « Finished » keeps those held or lost. Start with « New prospect », or filter the list by name, status, source or year. To try the module safely, start the guided trial below.",
+      "body": "All your prospects and upcoming events; « Finished » keeps those held or lost. « List » or « Calendar »: the filterable table, or the coming months. Below, the workload over the next twelve months; two events on the same day are flagged in both views. Start with « New prospect », or filter the list by name, status, source or year. To try the module safely, start the guided trial below.",
       "faq": [
         {
           "q": "Where do I find a past event?",
@@ -535,7 +544,7 @@
     },
     "eventsNew": {
       "title": "New prospect",
-      "body": "A partner's first name and the contact source are enough to create the prospect; date, venue and budget can be filled in later. From the calendar, a free date opens this form with the date already set.",
+      "body": "A partner's first name and the contact source are enough to create the prospect; date, venue and budget can be filled in later. If the date falls on the same day as another confirmed or optional event, Symbola flags it before saving, without blocking. From the calendar, a free date opens this form with the date already set.",
       "faq": [
         {
           "q": "What is the difference between a prospect and an event?",
@@ -549,7 +558,7 @@
     },
     "eventsDetail": {
       "title": "Event page",
-      "body": "The whole event, in tabs. The top timeline shows where it stands: click the next step to move forward. The « Next step » banner says what to do now (send the quote, apply the planning, create the couple's links). Each tab has a « Settings » link to its templates.",
+      "body": "The whole event, in tabs. The « Summary » opens on the next action and who has to act, then the event's health (planning, budget, client decisions) and the next fourteen days; details are edited at the bottom, under « Edit the details ». The top timeline shows where it stands: click the next step to move forward. The « Next step » banner suggests the next stage (send the quote, apply the planning, create the couple's links). Each tab has a « Settings » link to its templates.",
       "faq": [
         {
           "q": "How do I mark an event as lost?",
@@ -578,6 +587,10 @@
         {
           "q": "How do I move the rest of the programme?",
           "a": "In the Programme tab, change an item's start time: the page offers to move the next items by the same amount, start and end, in one click, and \"Undo\" stays available for ten seconds. When you type, the duration gives the end time, and the other way round; the person in charge is picked from the ones already entered."
+        },
+        {
+          "q": "How do I follow up with a vendor whose contract isn't signed?",
+          "a": "With « Follow up » on its line, in « Today » or the summary: your mail app opens on a ready message, to the address on its card, and the follow-up is logged in the activity feed."
         }
       ]
     },
@@ -723,7 +736,7 @@
     },
     "quotesPayments": {
       "title": "Upcoming payments",
-      "body": "The unpaid instalments of your quotes, sorted by date with a monthly total. Mark an instalment paid from its quote. An overdue instalment is flagged « Overdue » and moves to the top of the home screen.",
+      "body": "The year's three figures (signed, invoiced, collected), then the unpaid instalments of your quotes, sorted by date with a monthly total. Mark an instalment paid from its quote. An overdue instalment is flagged « Overdue » and shows up in « Today ».",
       "faq": [
         {
           "q": "Do guided trials count?",
@@ -807,7 +820,7 @@
     },
     "allTasks": {
       "title": "Tasks across all your weddings",
-      "body": "The tasks of all your events, sorted by due date. Filter « Overdue » to catch up, or by who does it; tick a task when done. Click it to edit it on its wedding's page.",
+      "body": "The tasks of all your events, sorted by due date. Filter « Overdue » to catch up, or by who does it; tick a task when done. « Calendar » places them on their due date, month by month. Click one to edit it on its wedding's page.",
       "faq": [
         {
           "q": "Do the couple's tasks appear here?",
@@ -817,7 +830,7 @@
     },
     "allQuotes": {
       "title": "Your quotes",
-      "body": "All your quotes and invoices, with their status. A quote is created from its event's page; deposit and balance invoices from the signed quote. « Settings » leads to numbering, the catalogue and document appearance.",
+      "body": "All your quotes and invoices, with their status. At the top, the year's three figures: signed, invoiced (less credit notes) and collected (less cancellations, earnest money included). A quote is created from its event's page; deposit and balance invoices from the signed quote. « Settings » leads to numbering, the catalogue and document appearance.",
       "faq": [
         {
           "q": "Why can't I create a quote here?",
@@ -1265,7 +1278,7 @@
     "starterListsIntro": "Load the most common prospect sources and loss reasons, then add or remove what you want. Existing entries are not duplicated.",
     "sourcesIntro": "Where your couples come from. Asked when creating a prospect, it shows which channels bring you the most.",
     "lossReasonsIntro": "Why a project did not go ahead. Asked when an event moves to “Lost”.",
-    "tabOverview": "Overview",
+    "tabOverview": "Summary",
     "tabClients": "Couple",
     "backToEvents": "← All events",
     "tasksOverdueCount": "{count, plural, one {# overdue} other {# overdue}}",
@@ -1531,7 +1544,28 @@
     "venueInvalid": "Venue name and city are limited to 200 characters.",
     "venueFormTitle": "Event venue",
     "venueSave": "Save the venue",
-    "venueSaved": "✓ Venue saved."
+    "venueSaved": "✓ Venue saved.",
+    "activityVendorReminded": "Follow-up sent to {task}.",
+    "activityVendorRemoved": "a removed vendor",
+    "sameDayAlert": "On {date}, you already have: {events}. You can save anyway.",
+    "sameDayConfirmed": "{names} (confirmed)",
+    "sameDayOption": "{names} (option)",
+    "writeToClient": "Write to the client",
+    "viewLabel": "Display",
+    "viewList": "List",
+    "viewCalendar": "Calendar",
+    "loadTitle": "Workload over the next twelve months",
+    "loadMonth": "Month",
+    "loadConfirmed": "Confirmed",
+    "loadOptions": "Options",
+    "loadBar": "Month's workload",
+    "sameDayWith": "Same day: {names}",
+    "tasksDisplayLabel": "Task display",
+    "taskCalendarNavigate": "Change month",
+    "taskCalendarPrevious": "Previous month",
+    "taskCalendarNext": "Next month",
+    "taskCalendarToday": "This month",
+    "taskCalendarCount": "{count, plural, =0 {No task this month.} one {# task this month.} other {# tasks this month.}}"
   },
   "Budget": {
     "title": "Budget",
@@ -3382,7 +3416,7 @@
         },
         {
           "title": "Confirm the event",
-          "body": "Open the example, Overview tab, and set its status to \"Confirmed\", as when a client agrees."
+          "body": "Open the example, Summary tab, and set its status to \"Confirmed\", as when a client agrees."
         },
         {
           "title": "Retain a vendor",
@@ -3420,7 +3454,7 @@
         },
         {
           "title": "Move the date",
-          "body": "In the Overview tab, change the event date: Symbola offers to recompute the due dates. Accept and watch them follow."
+          "body": "In the Summary tab, under \"Edit the details\", change the event date: Symbola offers to recompute the due dates. Accept and watch them follow."
         },
         {
           "title": "Keep or delete",
@@ -5207,5 +5241,162 @@
     "signersWithoutPortal": "At a distance, each signer orders on their personal space before signing. First create the personal link for: {names}.",
     "signingLinkOnPortal": "signing link on their personal space, after their order",
     "orderFirstHint": "Distance contract: each signer reads the contract and orders on their personal space; their signing link then appears there. The e-mail sent invites them there, without a direct link."
+  },
+  "Today": {
+    "title": "Today",
+    "summary": "{date} · {events, plural, =0 {no event in progress} one {# event in progress} other {# events in progress}} · {points, plural, =0 {nothing urgent} one {# item needs your attention} other {# items need your attention}}",
+    "firstTitle": "Deal with first",
+    "firstEmpty": "Nothing urgent: everything is up to date.",
+    "group": {
+      "overdue": "Overdue",
+      "today": "Today",
+      "waiting": "Waiting on someone else",
+      "upcoming": "The next 14 days"
+    },
+    "more": "{count, plural, one {Show # more} other {Show # more}}",
+    "actor": {
+      "you": "You",
+      "client": "Waiting on the client",
+      "vendor": "Waiting on {name}"
+    },
+    "due": {
+      "overdue": "{days, plural, one {# day} other {# days}} overdue",
+      "today": "Today",
+      "on": "On {date}",
+      "since": "Since {date}"
+    },
+    "action": {
+      "checkTask": "Done",
+      "checkTaskLabel": "Done: “{label}”",
+      "remindVendor": "Follow up",
+      "remindVendorLabel": "Follow up with {vendor}",
+      "open": "Open",
+      "openLabel": "Open: {title}"
+    },
+    "words": {
+      "clientTask": "Task assigned to the client",
+      "amount": "{label} · {amount}",
+      "decision": "Choice awaited: {title}",
+      "paymentDeclaration": "Declared payment to confirm: {label} · {amount}",
+      "quoteFollowUp": "Quote {number} without an answer",
+      "prospectFollowUp": "Prospect with no news",
+      "depositBlocked": "Deposit invoice blocked ({number})",
+      "vendorContract": "Contract from {vendor} ({slot}) to be signed",
+      "dateConflict": "{count} events on the same day",
+      "linkRenewal": "{name} is asking for a new link"
+    },
+    "myEventsTitle": "My events",
+    "myEventsEmpty": "No event in progress.",
+    "countdown": "{days, plural, =0 {today} one {tomorrow} other {in # days}}",
+    "countdownPast": "past",
+    "dateUnset": "Date to be set",
+    "points": "{count, plural, one {# item to deal with} other {# items to deal with}}",
+    "upToDate": "Up to date",
+    "undo": {
+      "taskDone": "Task “{label}” done.",
+      "action": "Undo"
+    },
+    "remind": {
+      "subject": "Contract to sign — {names}",
+      "body": "Hello,\n\nWe are waiting for your signed contract for “{slot}” ({names}{date}). Could you send it back to us?\n\nThank you,\n{organization}",
+      "dateSuffix": ", on {date}",
+      "recorded": "Follow-up recorded in the event activity.",
+      "noEmail": "Follow-up recorded. The vendor's card has no email address: write to them from your mailbox."
+    },
+    "cockpit": {
+      "countdown": "{days, plural, =0 {It's the big day} one {# day before the big day} other {# days before the big day}}",
+      "countdownPast": "Big day past",
+      "nextActionTitle": "Next action",
+      "nextActionEmpty": "Nothing to do for now: everything is up to date.",
+      "postpone": "Postpone",
+      "postponeTo": "New date",
+      "postponeSave": "Postpone the task",
+      "postponed": "Task postponed to {date}.",
+      "healthTitle": "Event health",
+      "planningTitle": "Planning",
+      "planningValue": "{done} of {total} tasks done",
+      "planningOverdue": "{count, plural, =0 {No overdue task} one {# overdue task} other {# overdue tasks}}",
+      "budgetTitle": "Budget",
+      "budgetValue": "{committed} committed",
+      "budgetEnvelope": "out of a {envelope} budget",
+      "budgetNoEnvelope": "No budget envelope set",
+      "budgetOpen": "Open the budget",
+      "decisionsTitle": "Client decisions",
+      "decisionsValue": "{count, plural, =0 {None pending} one {# pending} other {# pending}}",
+      "decisionsOldest": "“{title}”, since {date}",
+      "nextDaysTitle": "The next 14 days",
+      "nextDaysEmpty": "Nothing in the next fourteen days.",
+      "editInfo": "Edit the details"
+    },
+    "revenue": {
+      "title": "This year's figures",
+      "signed": "Signed",
+      "invoiced": "Invoiced",
+      "collected": "Collected",
+      "year": "Year",
+      "show": "Show",
+      "hint": "Signed quotes, invoices less credit notes, and payments received less cancellations (earnest money included), over the calendar year."
+    },
+    "restTitle": "Next",
+    "unavailable": "Part of the list is not responding right now ({sources}): the rest is up to date.",
+    "source": {
+      "events": "events",
+      "quotes": "quotes and payments",
+      "budget": "budget"
+    }
+  },
+  "QuickCreate": {
+    "button": "Create",
+    "menuLabel": "What do you want to create?",
+    "shortcutHint": "Shortcut: N key",
+    "kind": {
+      "prospect": "Prospect",
+      "task": "Task",
+      "expense": "Expense",
+      "quote": "Quote"
+    },
+    "title": {
+      "prospect": "New prospect",
+      "task": "New task",
+      "expense": "New expense",
+      "quote": "New quote"
+    },
+    "submit": {
+      "prospect": "Create the prospect",
+      "task": "Add the task",
+      "expense": "Save the expense",
+      "quote": "Create the quote"
+    },
+    "close": "Close",
+    "open": "Open",
+    "loading": "Loading…",
+    "event": "Event",
+    "eventChoose": "Choose an event",
+    "noEvents": "No event in progress: create a prospect first.",
+    "eventType": "Event type",
+    "firstName": "Client's first name",
+    "source": "Contact source",
+    "sourceChoose": "Choose a source",
+    "date": "Event date (optional)",
+    "taskLabel": "Task",
+    "dueDate": "Due date",
+    "responsible": "Who handles it",
+    "responsiblePlanner": "You",
+    "responsibleClients": "The client",
+    "slot": "Budget category",
+    "slotChoose": "Choose a category",
+    "noSlots": "This event has no budget category yet: add one from its budget.",
+    "vendor": "Vendor (optional)",
+    "vendorNone": "None",
+    "expenseLabel": "Label",
+    "amount": "Vendor's quote amount, incl. VAT (optional)",
+    "quoteHint": "The quote is created as a numbered draft; you compose it next.",
+    "prospectDone": "Prospect {name} created.",
+    "taskDone": "Task “{label}” added.",
+    "expenseDone": "Expense “{label}” saved.",
+    "quoteDone": "Quote {number} created, as a draft.",
+    "chooseEventError": "Choose an event.",
+    "amountInvalid": "Unreadable amount: write for example 1,250.50.",
+    "unavailable": "Quick create is unavailable: the Events module is not enabled."
   }
 }

@@ -11,6 +11,7 @@ import {
   type TaskFormState,
 } from "./task-actions";
 import { RESPONSIBLE_LABEL_KEYS } from "./task-responsible";
+import { SameDayNotice } from "../same-day-notice";
 
 function ResponsibleSelect({
   value,
@@ -48,6 +49,8 @@ export function EventDateForm({ eventId, eventDate }: { eventId: string; eventDa
         {t("eventDate")}
         <input type="date" name="eventDate" value={value} onChange={(event) => setValue(event.target.value)} />
       </label>
+      {/* Lot 32b (CRM-04) : les autres évènements du même jour, avant d'enregistrer. */}
+      <SameDayNotice date={value} excludeEventId={eventId} />
       <button type="submit" disabled={pending}>
         {t("changeEventDate")}
       </button>

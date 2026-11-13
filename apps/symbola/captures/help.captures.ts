@@ -26,7 +26,8 @@ import {
 import { addQuoteLine, addScheduleItem, createCatalogItem, createQuote, sendQuote } from "../modules/quotes/service";
 import { confirmEventBudget, createAllocationModel, simulateEventBudget, updateBudgetLine } from "../modules/budget/service";
 import { createVendor, createVendorTag, listVendorTypes } from "../modules/vendors/service";
-import { createPrivacyRequest } from "../modules/hub/service";
+import { createPrivacyRequest, saveDocumentDetails } from "../modules/hub/service";
+import { fillRequiredMentions } from "../lib/test-fixtures/legal-mentions";
 import { HELP_SCREENS } from "../lib/help/screens";
 
 const OUT = join(__dirname, "..", "public", "aide", "captures") + "/";
@@ -168,6 +169,15 @@ test("captures des écrans pour le centre d'aide", async ({ page }) => {
   }
   await login(page, email, password);
   await runSetup(page);
+  // Lot 31a (FAC-07) : un devis ne part qu'avec les mentions requises ; valeurs fictives (SAS de
+  // l'assistant : immatriculation et capital en plus).
+  await fillRequiredMentions(organizationId);
+  const details = createAppConnection();
+  try {
+    await saveDocumentDetails(details.db, organizationId, { siret: null, contactEmail: null, contactPhone: null, website: null, vatNumber: null, registration: "RCS Sarlat 123 456 789", shareCapitalCents: 100_000 });
+  } finally {
+    await details.sql.end();
+  }
   const { confirmed, quoteId, vendorId } = await seed(organizationId, userId);
   // Lot 18 (RGPD-07) : deux demandes fictives, dont une en alerte, pour que la
   // liste des demandes et le compteur du menu aient quelque chose à montrer.

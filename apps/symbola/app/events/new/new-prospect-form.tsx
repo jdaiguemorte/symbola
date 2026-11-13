@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { createProspectAction, type NewProspectFormState } from "./actions";
 import type { EventType, ProspectSource } from "@/modules/events/service";
 import type { Audience, ClientFieldLabels } from "@/lib/vocabulary";
+import { SameDayNotice } from "../same-day-notice";
 
 export function NewProspectForm({
   sources,
@@ -24,6 +25,8 @@ export function NewProspectForm({
   const initialState: NewProspectFormState = {};
   const [state, formAction, pending] = useActionState(createProspectAction, initialState);
   const [eventTypeId, setEventTypeId] = useState(eventTypes[0]?.id ?? "");
+  // Lot 32b (CRM-04) : la date suivie, pour signaler les évènements du même jour avant l'enregistrement.
+  const [eventDate, setEventDate] = useState(initialDate);
   const labels = clientLabels[eventTypes.find((type) => type.id === eventTypeId)?.audience ?? "couple"];
 
   return (
@@ -70,8 +73,9 @@ export function NewProspectForm({
       </label>
       <label>
         {t("eventDate")}
-        <input type="date" name="eventDate" defaultValue={initialDate} />
+        <input type="date" name="eventDate" value={eventDate} onChange={(event) => setEventDate(event.target.value)} />
       </label>
+      <SameDayNotice date={eventDate} />
       <label>
         {t("venueName")}
         <input type="text" name="venueName" />

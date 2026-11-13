@@ -109,11 +109,11 @@ test("BUD-01 / BUD-03 — une catégorie à plusieurs lignes, l'échéancier d'u
   await expect(dinnerEditor).toContainText("2 880,00 €");
   await expectNoAxeViolation(page);
 
-  // Le rappel apparaît dans « Aujourd'hui ».
+  // Le rappel apparaît dans « Aujourd'hui » (lot 32a : une ligne de la liste des urgences).
   await page.goto("/");
-  const reminders = page.getByRole("region", { name: "Échéances prestataires" });
-  await expect(reminders).toContainText("Acompte du traiteur — Maison Haddad");
-  await expect(reminders).toContainText("2 880,00 €");
+  const reminder = page.getByRole("main").getByRole("listitem").filter({ hasText: "Acompte du traiteur · Maison Haddad" });
+  await expect(reminder).toContainText(/2\s880,00\s€/);
+  await expect(reminder).toContainText("Attend le client");
   await expectNoAxeViolation(page);
 
   // Payée : le payé de la ligne en est la somme (D13), le rappel disparaît.
@@ -128,5 +128,5 @@ test("BUD-01 / BUD-03 — une catégorie à plusieurs lignes, l'échéancier d'u
   await expectNoAxeViolation(page);
 
   await page.goto("/");
-  await expect(page.getByRole("region", { name: "Échéances prestataires" })).toContainText("Aucune échéance de prestataire dans les 7 prochains jours.");
+  await expect(page.getByRole("main")).not.toContainText("Acompte du traiteur");
 });

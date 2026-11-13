@@ -2,110 +2,103 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { after } from "next/server";
 import { getLocale, getTranslations } from "next-intl/server";
-import { formatDateTime, parisToday, type Locale } from "@symbola/i18n";
+import { formatDateTime, type Locale } from "@symbola/i18n";
 import { organizationMailQuota } from "@symbola/mail";
 import { appDatabase } from "@symbola/db/client";
 import { getOrganizationProfile, isModuleEnabled } from "@/modules/hub/service";
+import { listEventTasks } from "@/modules/events/service";
 import { requireSignedIn } from "@/lib/guards";
 import { recordUsage } from "@/lib/usage";
-import { UpcomingPaymentsBlock } from "./devis/encaissements/dashboard-block";
-import { VendorPaymentsBlock } from "./budget/vendor-payments-block";
-import { PaymentDeclarationsBlock } from "./budget/payment-declarations-block";
+import { isActiveEvent, loadTodayItems } from "@/lib/today/load";
+import { rankToday } from "@/lib/today/rank";
+import { isValidId } from "./events/module-access";
 import { PrivacyPurgeAlertBlock, PrivacyRequestsAlertBlock } from "./rgpd/dashboard-block";
 import { PageTour } from "./page-tour";
 import { loadPageTour } from "@/lib/help/page-tour";
-import { AgendaBlock } from "./agenda/agenda-block";
-import { UpcomingTasksBlock } from "./taches/upcoming-tasks-block";
-import { FollowUpBlock } from "./accueil/follow-up-block";
-import { LinkRenewalsBlock } from "./events/link-renewals-block";
+import { longDate, MyEvents, TodayList, todayWords, UnavailableNotice } from "./accueil/today-view";
+import { UndoTaskNotice } from "./accueil/today-client";
 
-export default async function HomePage({ searchParams }: { searchParams: Promise<{ agenda?: string; debut?: string; visite?: string }> }) {
+// Lot 32a (HUB-08, UX-01, UX-06 ; D3) — « Aujourd'hui » : ce qui demande une action, tous
+// évènements confondus, trié par urgence, puis les évènements en cours. Les anciens blocs (agenda,
+// tâches, encaissements, relances, alertes de liens et de règlements) passent dans la liste ;
+// l'agenda passe à « Évènements ». Les alertes du titulaire et le plafond d'envois gardent leur
+// bandeau en tête.
+export default async function HomePage({ searchParams }: { searchParams: Promise<{ fait?: string; evenement?: string; visite?: string }> }) {
   const auth = await requireSignedIn();
-  // Lot 13 (L13-HUB-17) : l'Admin arrive sur la console, pas sur un agenda vide.
+  // Lot 13 (L13-HUB-17) : l'Admin arrive sur la console, pas sur un accueil vide.
   if (auth.user.role === "admin") redirect("/admin");
+  const organizationId = auth.user.organizationId;
 
-  // SOC-13, ADR 0016 : collecte brute des compteurs d'usage, au niveau de
-  // cette page plutôt que dans lib/auth-context.ts (voir le commentaire
-  // de ce fichier — importer next/server y cassait le flux de connexion).
-  // after() planifie l'écriture après l'envoi de la réponse.
-  if (auth.user.organizationId) {
-    const organizationId = auth.user.organizationId;
-    after(() => recordUsage(organizationId));
-  }
+  // SOC-13, ADR 0016 : collecte brute des compteurs d'usage, au niveau de cette page plutôt que
+  // dans lib/auth-context.ts (importer next/server y cassait le flux de connexion). after()
+  // planifie l'écriture après l'envoi de la réponse.
+  if (organizationId) after(() => recordUsage(organizationId));
 
-  // Dégradation propre (CLAUDE.md §2.3) : un module désactivé par l'Admin
-  // n'affiche jamais d'erreur, juste « indisponible ». L'Admin (pas
-  // d'organisation) n'a pas de module à vérifier.
-  let eventsAvailable = false;
-  let quotesAvailable = false;
-  let budgetAvailable = false;
-  if (auth.user.organizationId) {
-    const organizationId = auth.user.organizationId;
-    const db = appDatabase();
-    eventsAvailable = await isModuleEnabled(db, organizationId, "events");
-    quotesAvailable = await isModuleEnabled(db, organizationId, "quotes");
-    budgetAvailable = await isModuleEnabled(db, organizationId, "budget");
-  }
-  const t = await getTranslations("Home");
-
-  // ONB-01 : guide vers le questionnaire sans jamais bloquer l'entrée
-  // dans la plateforme (PRD : l'info manquante est demandée au moment
-  // de l'action, pas ici).
-  let onboardingIncomplete = false;
-  if (auth.user.organizationId) {
-    const organizationId = auth.user.organizationId;
-    const db = appDatabase();
-    const profile = await getOrganizationProfile(db, organizationId);
-    onboardingIncomplete = profile.completedAt === null;
-  }
-
-  // AIDE-01 : la visite ne s'affiche automatiquement qu'à la première
-  // ouverture du hub. Lot 13 (L13-HUB-15) : plus de liste « premiers pas »,
-  // l'assistant de démarrage (lot 12) s'en charge.
+  const t = await getTranslations("Today");
+  const tHome = await getTranslations("Home");
   const tHelp = await getTranslations("Help");
   const locale = (await getLocale()) as Locale;
-  const today = parisToday();
   const query = await searchParams;
   const tour = await loadPageTour(auth.user.id, "hub", query.visite);
-  const organizationId = auth.user.organizationId;
+
+  if (!organizationId) {
+    return (
+      <main>
+        <h1>{t("title")}</h1>
+      </main>
+    );
+  }
+
+  // Dégradation propre (ARC-06) : un module non souscrit n'apporte rien à la liste.
+  const db = appDatabase();
+  const modules = {
+    events: await isModuleEnabled(db, organizationId, "events"),
+    quotes: await isModuleEnabled(db, organizationId, "quotes"),
+    budget: await isModuleEnabled(db, organizationId, "budget"),
+  };
+  // ONB-01 : guide vers la fiche entreprise sans jamais bloquer l'entrée.
+  const onboardingIncomplete = (await getOrganizationProfile(db, organizationId)).completedAt === null;
   // Lot 24b (SEC-22, décision D5) : plafond d'e-mails de l'heure atteint.
-  const mailQuota = organizationId ? await organizationMailQuota(organizationId) : null;
+  const mailQuota = await organizationMailQuota(organizationId);
+
+  const now = new Date();
+  const { items, today, events, unavailable } = await loadTodayItems(organizationId, modules, todayWords(t), locale, now);
+  const ranked = rankToday(items, today);
+  const activeEvents = events.filter((event) => isActiveEvent(event) && !event.isDemo).length;
+
+  // D7 : la tâche cochée l'est déjà ; « Annuler » reste dix secondes. Seule une tâche faite de cet
+  // évènement, dans l'organisation, s'annonce.
+  let undone: { eventId: string; taskId: string; label: string } | null = null;
+  if (modules.events && query.fait && query.evenement && isValidId(query.fait) && isValidId(query.evenement)) {
+    const task = (await listEventTasks(organizationId, query.evenement)).find((candidate) => candidate.id === query.fait && candidate.done);
+    if (task) undone = { eventId: query.evenement, taskId: task.id, label: task.label };
+  }
 
   return (
     <main>
-      <div className="page-header">
-        <h1>{t("welcome")}</h1>
+      <div className="page-header today-header">
+        <h1>{t("title")}</h1>
+        <p className="today-summary">{t("summary", { date: longDate(now, locale), events: activeEvents, points: ranked.attentionCount })}</p>
       </div>
       {onboardingIncomplete ? (
         <p role="status">
-          {t("onboardingIncomplete")} <Link href="/parametres">{t("completeProfile")}</Link>
+          {tHome("onboardingIncomplete")} <Link href="/parametres">{tHome("completeProfile")}</Link>
         </p>
       ) : null}
       {mailQuota?.reached && mailQuota.resumesAt ? (
         <p className="notice" role="alert">
-          {t("mailQuotaReached", { sent: mailQuota.sent, cap: mailQuota.cap, time: formatDateTime(mailQuota.resumesAt, locale) })}
+          {tHome("mailQuotaReached", { sent: mailQuota.sent, cap: mailQuota.cap, time: formatDateTime(mailQuota.resumesAt, locale) })}
         </p>
       ) : null}
-      {/* RGPD-04 : demandes dont l'échéance approche, titulaire seulement. */}
-      {auth.user.role === "owner" && auth.user.organizationId ? <PrivacyRequestsAlertBlock organizationId={auth.user.organizationId} /> : null}
-      {auth.user.role === "owner" && auth.user.organizationId ? <PrivacyPurgeAlertBlock organizationId={auth.user.organizationId} /> : null}
-      {/* Lot 26a (SEC-15, D5) : liens expirés dont la personne demande un nouveau lien. */}
-      {eventsAvailable && organizationId ? <LinkRenewalsBlock organizationId={organizationId} /> : null}
-      {/* Lot 27a (D6) : règlements déclarés par un client, à confirmer. */}
-      {budgetAvailable && organizationId ? <PaymentDeclarationsBlock organizationId={organizationId} /> : null}
-      {/* PRD-HUB-02 : agenda des mois à venir et tâches de la quinzaine (module Événements). */}
-      {eventsAvailable && organizationId ? <AgendaBlock organizationId={organizationId} locale={locale} today={today} query={query} /> : null}
-      {/* Lot 20 (décision 4) : blocs empilés, en-tête commun, trois lignes ;
-          un bloc qui a du retard passe en premier (data-urgent). */}
-      <div className="home-blocks">
-        {/* L13-HUB-15 : devis à relancer et prospects sans nouvelle. */}
-        {(eventsAvailable || quotesAvailable) && organizationId ? <FollowUpBlock organizationId={organizationId} modules={{ events: eventsAvailable, quotes: quotesAvailable }} /> : null}
-        {eventsAvailable && organizationId ? <UpcomingTasksBlock organizationId={organizationId} locale={locale} today={today} /> : null}
-        {/* PRD-HUB-02 / DEV-03 : absent si le module Devis n'est pas souscrit. */}
-        {quotesAvailable && organizationId ? <UpcomingPaymentsBlock organizationId={organizationId} /> : null}
-        {/* Lot 28b (BUD-03, D7) : échéances des prestataires, absent sans module Budget. */}
-        {budgetAvailable && organizationId ? <VendorPaymentsBlock organizationId={organizationId} /> : null}
-      </div>
+      {/* RGPD-04 : demandes dont l'échéance approche et purges annoncées, titulaire seulement. */}
+      {auth.user.role === "owner" ? <PrivacyRequestsAlertBlock organizationId={organizationId} /> : null}
+      {auth.user.role === "owner" ? <PrivacyPurgeAlertBlock organizationId={organizationId} /> : null}
+      {undone ? (
+        <UndoTaskNotice key={undone.taskId} eventId={undone.eventId} taskId={undone.taskId} message={t("undo.taskDone", { label: undone.label })} undoLabel={t("undo.action")} returnTo="home" />
+      ) : null}
+      <UnavailableNotice sources={unavailable} />
+      <TodayList ranked={ranked} locale={locale} />
+      {modules.events ? <MyEvents events={events} ranked={ranked} today={today} locale={locale} /> : null}
       <PageTour {...tour} helpTitle={tHelp("home.title")} helpBody={tHelp("home.body")} />
     </main>
   );

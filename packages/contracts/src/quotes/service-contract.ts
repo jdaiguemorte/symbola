@@ -330,6 +330,9 @@ export type InvoiceView = {
   creditedCents: number;
 };
 
+// Lot 32a (FAC-12, D8) — les trois chiffres d'une année civile : signé, facturé, encaissé (TTC).
+export type RevenueSummary = { year: number; signedCents: number; invoicedCents: number; collectedCents: number };
+
 // Lot 31c (JUR-08, D21) — reçu non fiscal remis à l'encaissement des arrhes, de sa propre série.
 // Un encaissement annulé laisse le reçu, marqué « annulé ».
 export type ReceiptView = {
@@ -774,6 +777,8 @@ export interface QuotesServiceContract {
   getReceipt(organizationId: string, receiptId: string): Promise<ReceiptView>;
   // Lot 31c (D18) : les deux textes de départ des conditions de paiement, s'ils manquent.
   loadStarterPaymentTerms(organizationId: string, locale: "fr" | "en"): Promise<boolean>;
+  // Lot 32a (FAC-12, D8).
+  getRevenueSummary(organizationId: string, year: number): Promise<RevenueSummary>;
   getCreditNote(organizationId: string, creditNoteId: string): Promise<CreditNoteView>;
   getEReporting(organizationId: string, period: { from: string; to: string }): Promise<EReportingView>;
   startQuotesTrial(input: StartQuotesTrialInput): Promise<QuoteDetail>;

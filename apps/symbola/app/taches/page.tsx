@@ -11,9 +11,10 @@ import { requirePlanner } from "@/lib/guards";
 import { isEventsModuleEnabled } from "@/app/events/module-access";
 import { SettingsLink } from "@/app/settings-link";
 import { TaskTable } from "./task-table";
+import { TaskCalendar } from "./task-calendar";
 import { responsibleLabels } from "@/lib/vocabulary";
 
-type SearchParams = { vue?: string; qui?: string };
+type SearchParams = { vue?: string; qui?: string; affichage?: string; mois?: string };
 
 export default async function TasksPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const auth = await requirePlanner();
@@ -38,7 +39,11 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
   const all = await listOrganizationTasks({ organizationId, today, horizonDays: null, includeDone: view === "toutes" });
   const labelOf = await responsibleLabels(organizationId, locale);
   const tasks = all.filter((task) => (owner === "tous" || task.responsible === owner) && (view !== "en-retard" || task.overdue));
-  const href = (changes: Record<string, string>) => `/taches?${new URLSearchParams({ vue: view, qui: owner, ...changes }).toString()}`;
+  // Lot 32b (CHR-03, D11) : liste ou calendrier du mois ; le filtre « qui » vaut pour les deux.
+  const calendar = query.affichage === "calendrier";
+  const month = query.mois && /^\d{4}-(0[1-9]|1[0-2])$/.test(query.mois) ? query.mois : today.slice(0, 7);
+  const href = (changes: Record<string, string>) =>
+    `/taches?${new URLSearchParams({ vue: view, qui: owner, ...(calendar ? { affichage: "calendrier", mois: month } : {}), ...changes }).toString()}`;
   const overdue = all.filter((task) => task.overdue).length;
 
   return (
@@ -53,6 +58,14 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
         <h2 id="all-tasks-title" className="sr-only">
           {t("allTasksTitle")}
         </h2>
+        <nav aria-label={t("tasksDisplayLabel")} className="segmented">
+          <Link href={`/taches?${new URLSearchParams({ vue: view, qui: owner }).toString()}`} aria-current={calendar ? undefined : "page"}>
+            {t("viewList")}
+          </Link>
+          <Link href={`/taches?${new URLSearchParams({ vue: view, qui: owner, affichage: "calendrier", mois: month }).toString()}`} aria-current={calendar ? "page" : undefined}>
+            {t("viewCalendar")}
+          </Link>
+        </nav>
         <div className="toolbar">
           <nav aria-label={t("tasksViewFilter")} className="pills">
             {(["a-faire", "en-retard", "toutes"] as const).map((key) => (
@@ -69,8 +82,9 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
             ))}
           </nav>
         </div>
-        {tasks.length === 0 ? <p>{all.length === 0 && view !== "toutes" ? t("allTasksEmpty") : t("noTasksForFilter")}</p> : null}
-        {tasks.length > 0 ? (
+        {calendar ? <TaskCalendar month={month} tasks={tasks} today={today} locale={locale} href={(next) => href({ mois: next })} /> : null}
+        {!calendar && tasks.length === 0 ? <p>{all.length === 0 && view !== "toutes" ? t("allTasksEmpty") : t("noTasksForFilter")}</p> : null}
+        {!calendar && tasks.length > 0 ? (
           <TaskTable
             tasks={tasks}
             locale={locale}

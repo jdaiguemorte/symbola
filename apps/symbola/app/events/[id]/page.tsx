@@ -102,6 +102,8 @@ import {
   VENDOR_STATUS_CLASSES,
   VENDOR_STATUS_LABEL_KEYS,
 } from "./vendor-slot-status";
+import { countdownLabel, EventCockpit } from "./cockpit";
+import { UndoTaskNotice } from "@/app/accueil/today-client";
 
 // Lot 26a (SEC-15) : état d'un lien personnel.
 const LINK_STATUS_KEYS = {
@@ -116,7 +118,7 @@ const LINK_STATUS_KEYS = {
 const TABS = ["apercu", "budget", "retroplanning", "programme", "devis", "maries", "documents"] as const;
 type Tab = (typeof TABS)[number];
 
-type SearchParams = { onglet?: string; poste?: string; tache?: string; vue?: string; qui?: string; filtre?: string; visite?: string; decalage?: string; depuis?: string };
+type SearchParams = { onglet?: string; poste?: string; tache?: string; vue?: string; qui?: string; filtre?: string; visite?: string; decalage?: string; depuis?: string; fait?: string; evenement?: string };
 
 // Lot 28a (PRE-02) : postes pourvus (un prestataire retenu) ou non requis.
 const SETTLED_SLOT_STATUSES = new Set<string>(["retained", "contract_signed", "paid_off", "not_required"]);
@@ -340,8 +342,13 @@ export default async function EventDetailPage({
     clientLinkCount: links.filter((link) => link.audience === "client" && link.status !== "revoked").length,
     today,
   });
-  const overviewBudget = tab === "apercu" && (await isBudgetModuleEnabled(organizationId)) ? await listBudgetLines(organizationId, id) : null;
-  const signedQuotesCents = quotes.filter((quote) => quote.status === "signed").reduce((sum, quote) => sum + quote.totalTtcCents, 0);
+  // Lot 32a (EVT-02, D5) : compte à rebours, aperçu du portail, « Annuler » après une tâche cochée.
+  const countdown = await countdownLabel(event.eventDate, today);
+  const clientPreviewLink = links.find((link) => link.audience === "client" && link.status === "active") ?? null;
+  // Lot 32b (UX-03) : « Écrire au client » ouvre la messagerie de la planner (Symbola n'envoie rien).
+  const clientEmails = event.clients.flatMap((client) => (client.email ? [client.email] : []));
+  const undoneTask = query.fait && query.evenement === event.id ? (tasks.find((task) => task.id === query.fait && task.done) ?? null) : null;
+  const tToday = await getTranslations("Today");
 
   // AIDE-05 : visite focus de la fiche, à la première ouverture.
   const tour = await loadPageTour(auth.user.id, "event", query.visite);
@@ -365,6 +372,30 @@ export default async function EventDetailPage({
     { key: "documents", label: t("tabDocuments"), href: tabHref("documents"), count: String(eventDocuments.length) },
   ];
 
+  // Lot 32a (UX-01, D5) : sur la synthèse, la prochaine action vient d'abord ; le bandeau de la
+  // prochaine étape passe juste dessous. Sur les autres onglets, il reste au-dessus des onglets.
+  const stepBanner =
+    step && !(step === "apply_retroplanning" && tab === "retroplanning") ? (
+      <NextStepBanner storageKey={`symbola_prochaine_etape_${event.id}_${step}`} title={t(`nextStep.${step}.title`)} laterLabel={t("nextStepLater")}>
+        {step === "apply_retroplanning" ? (
+          <>
+            <p>{event.eventDate ? t("proposeRetroplanningBody") : t("taskTemplateNeedsDate")}</p>
+            {event.eventDate ? <ApplyTaskTemplateForm eventId={event.id} templates={templates} /> : null}
+          </>
+        ) : (
+          <>
+            <p>{t(`nextStep.${step}.body`)}</p>
+            <Link
+              href={tabHref(step === "send_quote" ? "devis" : step === "prepare_program" ? "programme" : "maries")}
+              className="button-link button-link-primary"
+            >
+              {t(`nextStep.${step}.action`)}
+            </Link>
+          </>
+        )}
+      </NextStepBanner>
+    ) : null;
+
   return (
     <main>
       <p>
@@ -378,6 +409,7 @@ export default async function EventDetailPage({
             <span>
               {t("eventDate")} : {event.eventDate ? formatCalendarDate(event.eventDate, locale) : t("dateUnset")}
             </span>
+            {countdown ? <span className="countdown">{countdown}</span> : null}
             <span>
               {t("venueName")} : {event.venueName ?? "—"} {event.venueCity ? `(${event.venueCity})` : ""}
             </span>
@@ -385,7 +417,7 @@ export default async function EventDetailPage({
               {t("source")} : {sourceLabel ?? "—"}
             </span>
             {/* Lot 16 (ADR 0045) : le type dit comment parler des clients sur toute la fiche. */}
-            <form action={setEventTypeAction} className="inline-form">
+            <form action={setEventTypeAction} className="inline-form compact-form">
               <input type="hidden" name="eventId" value={event.id} />
               <label>
                 {t("eventType")} :{" "}
@@ -409,14 +441,32 @@ export default async function EventDetailPage({
           </>
         }
         actions={
-          // Lot 29a (ARC-09, JRJ-02) : l'écran du jour J, à garder sur le téléphone la veille.
-          isDayOfOpen(event) ? (
-            <a href={`/jour-j/${event.id}`} className="button-link">
-              {t("dayOfLink")}
-            </a>
+          isDayOfOpen(event) || clientPreviewLink || clientEmails.length > 0 ? (
+            <>
+              {clientEmails.length > 0 ? (
+                <a href={`mailto:${clientEmails.map(encodeURIComponent).join(",")}`} className="button-link">
+                  {t("writeToClient")}
+                </a>
+              ) : null}
+              {/* Lot 32a (EVT-02) : « Voir comme le client », l'aperçu du portail. */}
+              {clientPreviewLink ? (
+                <Link href={`/events/${event.id}/liens/${clientPreviewLink.id}/apercu`} className="button-link">
+                  {t("linkPreview", { name: clientPreviewLink.personName })}
+                </Link>
+              ) : null}
+              {/* Lot 29a (ARC-09, JRJ-02) : l'écran du jour J, à garder sur le téléphone la veille. */}
+              {isDayOfOpen(event) ? (
+                <a href={`/jour-j/${event.id}`} className="button-link">
+                  {t("dayOfLink")}
+                </a>
+              ) : null}
+            </>
           ) : undefined
         }
       />
+      {undoneTask ? (
+        <UndoTaskNotice key={undoneTask.id} eventId={event.id} taskId={undoneTask.id} message={tToday("undo.taskDone", { label: undoneTask.label })} undoLabel={tToday("undo.action")} returnTo="event" />
+      ) : null}
       <PageTour {...tour} helpTitle={tHelp("eventsDetail.title")} helpBody={tHelp("eventsDetail.body")} />
 
       {/* AIDE-02 : bandeau de l'essai guidé, sur données fictives. */}
@@ -446,26 +496,7 @@ export default async function EventDetailPage({
 
       {/* Lot 13 (L13-EVT-19) : frise datée du statut, visible sur tous les onglets. */}
       <ChangeStatusForm eventId={event.id} currentStatus={event.status} reasons={reasons} dates={statusDates} eventDate={event.eventDate} locale={locale} />
-      {step && !(step === "apply_retroplanning" && tab === "retroplanning") ? (
-        <NextStepBanner storageKey={`symbola_prochaine_etape_${event.id}_${step}`} title={t(`nextStep.${step}.title`)} laterLabel={t("nextStepLater")}>
-          {step === "apply_retroplanning" ? (
-            <>
-              <p>{event.eventDate ? t("proposeRetroplanningBody") : t("taskTemplateNeedsDate")}</p>
-              {event.eventDate ? <ApplyTaskTemplateForm eventId={event.id} templates={templates} /> : null}
-            </>
-          ) : (
-            <>
-              <p>{t(`nextStep.${step}.body`)}</p>
-              <Link
-                href={tabHref(step === "send_quote" ? "devis" : step === "prepare_program" ? "programme" : "maries")}
-                className="button-link button-link-primary"
-              >
-                {t(`nextStep.${step}.action`)}
-              </Link>
-            </>
-          )}
-        </NextStepBanner>
-      ) : null}
+      {tab !== "apercu" ? stepBanner : null}
 
       <nav aria-label={t("eventTabsLabel")} className="tabs" data-tour="event-tabs">
         {tabs.map((item) => (
@@ -478,48 +509,17 @@ export default async function EventDetailPage({
 
       {tab === "apercu" ? (
         <>
-          <section className="card" aria-labelledby="overview-title" data-tour="event-overview">
-            <h2 id="overview-title">{t("tabOverview")}</h2>
-            {/* Lot 13 (L13-EVT-19) : l'essentiel en quatre chiffres, le détail dans les onglets. */}
-            <dl className="kpis">
-              {event.wantedBudgetCents !== null ? (
-                <div>
-                  <dt>{t("kpiWanted")}</dt>
-                  <dd>{formatAmount(event.wantedBudgetCents, locale)}</dd>
-                </div>
-              ) : null}
-              {overviewBudget ? (
-                <div>
-                  <dt>{t("kpiPlanned")}</dt>
-                  <dd>{formatAmount(overviewBudget.totalEstimatedCents, locale)}</dd>
-                </div>
-              ) : null}
-              <div>
-                <dt>{t("kpiBooked")}</dt>
-                <dd>{t("kpiBookedValue", { booked: progress.booked, required: progress.required })}</dd>
-              </div>
-              <div>
-                <dt>{t("kpiOverdue")}</dt>
-                <dd>{overdueCount}</dd>
-              </div>
-              {quotesAvailable ? (
-                <div>
-                  <dt>{t("kpiSigned")}</dt>
-                  <dd>{formatAmount(signedQuotesCents, locale)}</dd>
-                </div>
-              ) : null}
-            </dl>
-            {/* PRD-EVT-03 : barre d'avancement en haut de la fiche. */}
-            <p id="vendor-progress-label">
-              {t("vendorProgress", { booked: progress.booked, required: progress.required })}
-            </p>
-            <progress aria-labelledby="vendor-progress-label" value={progress.booked} max={Math.max(progress.required, 1)} />
+          {isPastConfirmed ? <p role="status">{t("suggestMarkDone")}</p> : null}
+          {/* Lot 32a (EVT-02, UX-01, UX-06 ; D5) : prochaine action, santé, quatorze prochains jours. */}
+          <EventCockpit organizationId={organizationId} eventId={event.id} tasks={tasks} quotesAvailable={quotesAvailable} today={today} locale={locale} afterNextAction={stepBanner} vendorProgress={progress} />
+          {/* D5 : les formulaires de l'ancien aperçu, repliés. */}
+          <details className="card edit-info">
+            <summary>{tToday("cockpit.editInfo")}</summary>
             <EventDateForm eventId={event.id} eventDate={event.eventDate} />
             <WantedBudgetForm key={`wanted-${event.wantedBudgetCents ?? ""}`} eventId={event.id} wantedBudgetCents={event.wantedBudgetCents} />
             <VenueForm eventId={event.id} venueName={event.venueName} venueCity={event.venueCity} />
-            {isPastConfirmed ? <p role="status">{t("suggestMarkDone")}</p> : null}
-            <ImportedFields fields={event.importedFields} />
-          </section>
+          </details>
+          <ImportedFields fields={event.importedFields} />
           {suggestConfirmBudget ? (
             <section aria-labelledby="confirm-budget-title">
               <h2 id="confirm-budget-title">{t("confirmBudgetTitle")}</h2>
@@ -537,9 +537,9 @@ export default async function EventDetailPage({
               {activity.map((entry) => (
                 <li key={entry.id}>
                   {formatDateTime(new Date(entry.createdAt), locale)} —{" "}
-                  {t(entry.kind === "task_done" ? "activityTaskDone" : entry.kind === "decision_made" ? "activityDecisionMade" : "activityTaskUndone", {
+                  {t(entry.kind === "task_done" ? "activityTaskDone" : entry.kind === "decision_made" ? "activityDecisionMade" : entry.kind === "vendor_reminded" ? "activityVendorReminded" : "activityTaskUndone", {
                     actor: entry.actorName ?? t("activityFormerClient"),
-                    task: entry.taskLabel || tDecisions("programLabel"),
+                    task: entry.taskLabel || (entry.kind === "vendor_reminded" ? t("activityVendorRemoved") : tDecisions("programLabel")),
                   })}
                 </li>
               ))}

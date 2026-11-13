@@ -778,69 +778,6 @@
 }
 
 @layer components {
-  /* Lot 20 (décision 4) : blocs de l'accueil empilés sur toute la largeur ;
-     celui qui a du retard passe en premier. Chaque ligne : case, titre
-     (lien vers sa fiche), événement, échéance. */
-  .home-blocks {
-    @apply grid grid-cols-1 gap-6;
-  }
-  .home-blocks > .home-block {
-    @apply my-0;
-  }
-  .home-blocks > [data-urgent="true"] {
-    order: -1;
-  }
-  .home-lines {
-    @apply m-0 flex list-none flex-col p-0;
-  }
-  .home-line {
-    @apply grid min-h-12 items-center gap-x-3 gap-y-1 border-b border-ground py-2;
-    grid-template-columns: auto minmax(0, 1fr);
-  }
-  .home-line:last-child {
-    @apply border-b-0;
-  }
-  .home-line > .home-line-meta,
-  .home-line > .home-line-when,
-  .home-line > .home-line-amount {
-    @apply col-start-2 text-label;
-  }
-  .home-line-payment {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .home-line-payment > .home-line-meta,
-  .home-line-payment > .home-line-when,
-  .home-line-payment > .home-line-amount {
-    @apply col-start-1;
-  }
-  .home-line-title {
-    @apply text-body leading-snug;
-  }
-  .home-line-meta {
-    @apply text-ink-muted;
-  }
-  .home-line-when {
-    @apply font-medium whitespace-nowrap text-ink-muted;
-  }
-  .home-line-amount {
-    @apply font-medium whitespace-nowrap;
-  }
-  @media (min-width: 768px) {
-    .home-line {
-      grid-template-columns: auto minmax(0, 1fr) minmax(0, 12rem) 11rem;
-    }
-    .home-line-payment {
-      grid-template-columns: minmax(0, 1fr) minmax(0, 12rem) 7rem 11rem;
-    }
-    .home-line > .home-line-meta,
-    .home-line > .home-line-when,
-    .home-line > .home-line-amount {
-      @apply col-start-auto text-label;
-    }
-  }
-  .home-more {
-    @apply m-0 mt-2 text-label text-ink-muted;
-  }
   /* Lot 14 (IMP-09) : les deux reprises côte à côte sur ordinateur. */
   .takeover-cards {
     @apply grid gap-4;
@@ -3133,5 +3070,244 @@
   .quote-option-unchosen th,
   .quote-option-unchosen td {
     @apply text-ink-muted;
+  }
+}
+
+@layer components {
+  /* Lot 32a (HUB-08, UX-01, UX-06) — « Aujourd'hui » : une ligne par point, ce qu'il faut faire,
+     pour quel évènement, quand, qui agit, et l'action à droite. Les trois premiers tiennent sans
+     défiler, sur ordinateur comme à 375 px. */
+  .today-header {
+    @apply mb-4 flex-col gap-1;
+  }
+  .today-summary {
+    @apply m-0 text-body text-ink-muted;
+  }
+  .app-main > main > .today-first {
+    @apply mt-4 border-primary p-4 sm:p-6;
+  }
+  .today-first > h2,
+  .today-groups > h2 {
+    @apply mt-0 mb-2;
+  }
+  .today-group > h3 {
+    @apply mt-4 mb-1 text-label font-semibold text-ink-muted;
+  }
+  .today-items {
+    @apply m-0 flex list-none flex-col p-0;
+  }
+  .today-item {
+    @apply grid items-center gap-x-3 gap-y-1 border-b border-ground py-2;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .today-item:last-child {
+    @apply border-b-0;
+  }
+  .today-item-body {
+    @apply flex min-w-0 flex-col gap-1;
+  }
+  .today-item-title {
+    @apply text-body leading-snug font-medium;
+  }
+  .today-item-meta {
+    @apply m-0 text-label text-ink-muted;
+  }
+  .today-item-tags {
+    @apply m-0 flex flex-wrap items-center gap-x-2 gap-y-1 text-label;
+  }
+  .today-item-actor {
+    @apply text-ink-muted;
+  }
+  .today-action {
+    @apply m-0 flex flex-col items-end gap-1;
+  }
+  .today-action > p {
+    @apply m-0 max-w-48 text-right text-label;
+  }
+  .today-items + details {
+    @apply mt-1;
+  }
+  .today-events {
+    @apply m-0 flex list-none flex-col p-0;
+  }
+  .today-event {
+    @apply flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-ground py-2;
+  }
+  .today-event:last-child {
+    @apply border-b-0;
+  }
+  .today-event > .today-item-title {
+    @apply basis-full sm:basis-auto;
+  }
+  .today-event > .today-item-tags {
+    @apply sm:ml-auto;
+  }
+  /* D7 : « Tâche faite. Annuler », dix secondes, au-dessus du bouton d'aide. */
+  .undo-notice {
+    @apply fixed right-4 bottom-20 left-4 z-40 mx-auto flex max-w-md flex-wrap items-center justify-between gap-3 rounded-lg bg-ink px-4 py-2 text-label text-on-primary shadow-float;
+  }
+  .undo-notice form {
+    @apply m-0;
+  }
+  .undo-notice .button-ghost {
+    @apply !text-on-primary underline;
+  }
+}
+
+@layer components {
+  /* Lot 32a (EVT-02, D5) — cockpit : compte à rebours dans l'en-tête, trois indicateurs de santé,
+     formulaires de l'ancien aperçu repliés sous « Modifier les informations ». */
+  .countdown {
+    @apply font-semibold text-primary;
+  }
+  .health-tiles {
+    @apply m-0 grid grid-cols-1 gap-3 md:grid-cols-3;
+  }
+  .health-tiles > div {
+    @apply flex flex-col gap-1 rounded-md border border-line p-3;
+  }
+  .health-tiles dt {
+    @apply text-label text-ink-muted;
+  }
+  .health-tiles dd {
+    @apply m-0 font-display text-heading font-semibold;
+  }
+  .health-tiles dd.health-detail {
+    @apply font-sans text-label font-normal text-ink-muted;
+  }
+  .health-tiles dd.health-detail.text-overdue {
+    @apply font-medium text-critical;
+  }
+  .edit-info > summary {
+    @apply min-h-11 cursor-pointer font-semibold;
+  }
+  .postpone {
+    @apply mt-2;
+  }
+  .postpone > summary {
+    @apply inline-flex min-h-11 cursor-pointer items-center text-body font-medium text-primary;
+  }
+  .postpone form {
+    @apply mt-2 flex flex-wrap items-end gap-2;
+  }
+}
+
+@layer components {
+  /* Lot 32a (EVT-02) : un formulaire d'un champ et d'un bouton, sur une seule ligne (type de
+     l'évènement dans l'en-tête, année des chiffres) ; zones tactiles de 44 px gardées. */
+  .compact-form {
+    @apply my-0 flex-row flex-wrap items-center gap-2;
+  }
+  .compact-form label {
+    @apply w-auto max-w-none flex-row items-center gap-2;
+  }
+  .compact-form select {
+    @apply w-auto;
+  }
+}
+
+@layer components {
+  /* Lot 32b (HUB-07, D9) — création rapide : « Créer » dans la barre du haut, menu des quatre
+     entrées, formulaire court dans une fenêtre (dialog natif, modal). */
+  .quick-create {
+    @apply relative flex-none;
+  }
+  .quick-create-button {
+    @apply gap-1 whitespace-nowrap;
+  }
+  .quick-create-menu {
+    @apply absolute top-full left-0 z-30 mt-2 flex w-56 flex-col gap-1 rounded-md border border-line bg-surface p-2 shadow-float;
+  }
+  .quick-create-menu > button {
+    @apply w-full justify-start border-0 bg-transparent font-medium hover:bg-ground;
+  }
+  .quick-create-hint {
+    @apply m-0 px-2 py-1 text-label text-ink-muted;
+  }
+  .quick-create-dialog {
+    @apply m-auto w-[min(32rem,calc(100vw-2rem))] rounded-lg border border-line bg-surface p-6 text-ink shadow-float;
+  }
+  .quick-create-dialog::backdrop {
+    background: color-mix(in srgb, var(--color-ink) 35%, transparent);
+  }
+  .quick-create-head {
+    @apply mb-2 flex items-center justify-between gap-3;
+  }
+  .quick-create-head > h2 {
+    @apply m-0 text-title;
+  }
+  .quick-create-dialog form {
+    @apply my-0;
+  }
+  .quick-create-dialog fieldset {
+    @apply m-0 flex flex-wrap gap-4 border-0 p-0;
+  }
+  .quick-create-dialog legend {
+    @apply mb-2 p-0 text-label font-medium;
+  }
+  .quick-create-done {
+    @apply m-0 rounded-md bg-primary-soft px-3 py-2 text-primary;
+  }
+  /* Lot 32b (CRM-04, D10) — les évènements du même jour, sous un champ de date. */
+  .same-day-notice {
+    @apply m-0 max-w-xl rounded-md border border-attention bg-attention-soft px-3 py-2 text-label text-ink;
+  }
+}
+
+@layer components {
+  /* Lot 32b (EVT-07, D11) — charge des douze prochains mois : les chiffres font foi, la barre
+     (<progress>) est un repère, masqué sur téléphone. */
+  .load-table .load-bar-cell {
+    @apply hidden w-2/5 sm:table-cell;
+  }
+  .load-table progress {
+    @apply w-full;
+  }
+  /* Lot 32b (CHR-03, D11) — calendrier des tâches : grille du lundi au dimanche sur ordinateur ;
+     sur téléphone, une liste des seuls jours qui ont des tâches. */
+  .task-calendar-weekdays {
+    @apply hidden text-center text-label font-medium text-ink-muted md:grid md:grid-cols-7 md:gap-1;
+  }
+  .task-calendar-grid {
+    @apply m-0 mt-2 flex list-none flex-col gap-2 p-0 md:grid md:grid-cols-7 md:gap-1;
+  }
+  .task-calendar-empty {
+    @apply hidden md:block;
+  }
+  .task-calendar-day {
+    @apply rounded-md border border-line p-2 md:min-h-24;
+  }
+  .task-calendar-day.is-free {
+    @apply hidden md:block;
+  }
+  .task-calendar-day.is-weekend {
+    @apply bg-ground;
+  }
+  .task-calendar-day.is-today {
+    @apply border-primary;
+  }
+  .task-calendar-date {
+    @apply m-0 mb-1 text-label font-semibold;
+  }
+  .task-calendar-num {
+    @apply hidden md:inline;
+  }
+  .task-calendar-long {
+    @apply md:hidden;
+  }
+  .task-calendar-day ul {
+    @apply m-0 flex list-none flex-col gap-1 p-0 text-label;
+  }
+  .task-calendar-day li a {
+    @apply break-words;
+  }
+  .task-calendar-event {
+    @apply block text-ink-muted;
+  }
+  .task-calendar-day .is-overdue a {
+    @apply font-medium text-critical;
+  }
+  .task-calendar-day .is-done a {
+    @apply text-ink-muted line-through;
   }
 }

@@ -78,7 +78,7 @@ test("AIDE-11/02 — repères du module événements, puis essai guidé supprim�
   await expectNoAxeViolation(page);
 
   // Une vraie opération sur les données fictives.
-  await openEventTab(page, "Vue d'ensemble");
+  await openEventTab(page, "Synthèse");
   await page.waitForLoadState("networkidle");
   await changeEventStatus(page, "Confirmé");
   await expect(page.getByText("Statut mis à jour.")).toBeVisible();

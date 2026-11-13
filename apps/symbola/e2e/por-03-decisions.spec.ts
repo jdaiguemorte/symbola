@@ -107,7 +107,7 @@ test("POR-03 / EVT-09 — la planner demande un choix ; le marié répond depuis
   await decisions.getByRole("button", { name: "Retenir Maison Haddad" }).click();
   await expect(decisions.getByRole("button", { name: "Retenir Maison Haddad" })).toHaveCount(0);
   await expect(decisions.getByRole("button", { name: "Demander une nouvelle décision : Choisir : Traiteur" })).toBeVisible();
-  await openEventTab(planner, "Vue d'ensemble");
+  await openEventTab(planner, "Synthèse");
   await expect(planner.getByRole("list", { name: "Fil d'activité" })).toContainText("Inès a répondu : « Traiteur ».");
   await expectNoAxeViolation(planner);
   await coupleContext.close();
