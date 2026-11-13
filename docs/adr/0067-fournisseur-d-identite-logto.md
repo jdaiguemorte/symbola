@@ -85,8 +85,8 @@ Julien a retenu Logto sous réserve d'un prototype en local sur sept points.
   - le mot de passe n'est plus qu'une méthode parmi trois, après le lien magique et la clé
     d'accès, et la double authentification protège les comptes qui décident.
 - **« Powered by Logto » reste visible** sous ses pages : la version libre refuse de le masquer.
-  Le logo et les couleurs sont ceux de Symbola. Le mot « passkey » se remplace par « clé
-  d'accès » par les phrases personnalisées.
+  Les couleurs sont celles de Symbola. Le bouton dit « Continuer avec passkey » : sa phrase est
+  commune à d'autres boutons et ne se remplace pas seule ; le reste des pages dit « clé d'accès ».
 - **Clé d'accès proposée une fois** après la première connexion, avec « Passer ». Le choix est
   retenu sur le compte.
 - **L'amorçage SQL dépend du schéma interne de Logto** (tables `applications` et

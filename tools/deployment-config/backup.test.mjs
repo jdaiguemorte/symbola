@@ -333,6 +333,7 @@ describe("SEC-01 — Sauvegarde du fournisseur d'identité (lot 33, ADR 0067)", 
     const ownerCheck = indexOf(calls, "pg_roles", "rolname = 'logto'");
     const baseRole = indexOf(calls, "create role logto_tenant_logto nologin");
     const recreate = indexOf(calls, "dropdb --if-exists --force", "logto");
+    const connect = indexOf(calls, "grant connect on database logto to logto_tenant_logto");
     const logtoRestore = indexOf(calls, "pg_restore --exit-on-error", "--dbname=logto");
     const tenantRoles = indexOf(calls, "psql -v ON_ERROR_STOP=1", "--dbname=logto");
     const restart = calls.findLastIndex((call) => call.includes("-p symbola-staging") && call.includes("up -d --wait"));
@@ -341,6 +342,8 @@ describe("SEC-01 — Sauvegarde du fournisseur d'identité (lot 33, ADR 0067)", 
     expect(ownerCheck).toBeLessThan(recreate);
     expect(baseRole).toBeLessThan(logtoRestore);
     expect(recreate).toBeLessThan(logtoRestore);
+    expect(recreate).toBeLessThan(connect);
+    expect(connect).toBeLessThan(restart);
     expect(logtoRestore).toBeLessThan(tenantRoles);
     expect(tenantRoles).toBeLessThan(restart);
   });

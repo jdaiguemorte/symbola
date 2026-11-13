@@ -10,7 +10,8 @@
     "test:integration": "vitest run --config vitest.integration.config.ts",
     "seed:demo-user": "tsx scripts/seed-demo-user.ts",
     "create-account": "tsx scripts/create-account.ts",
-    "mfa-secrets": "tsx scripts/mfa-secrets.ts"
+    "mfa-secrets": "tsx scripts/mfa-secrets.ts",
+    "configure-identity": "tsx scripts/configure-identity.ts"
   },
   "dependencies": {
     "@node-rs/argon2": "^2.0.2",
@@ -18,6 +19,7 @@
     "@symbola/mail": "workspace:*",
     "@zxcvbn-ts/language-common": "4.1.3",
     "drizzle-orm": "^0.45.4",
+    "openid-client": "^6.9.0",
     "otpauth": "^9.3.6",
     "zod": "^4.6.7"
   },

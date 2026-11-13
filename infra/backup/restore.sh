@@ -128,6 +128,10 @@ if [ "$has_logto" = true ]; then
     "psql -v ON_ERROR_STOP=1 -tA --username=\"\$POSTGRES_USER\" --dbname=postgres -c \"do \\\$\\\$ begin if not exists (select 1 from pg_roles where rolname = '$tenant_role') then create role $tenant_role nologin; end if; end \\\$\\\$\""
   env_compose exec -T postgres sh -c \
     "dropdb --if-exists --force --username=\"\$POSTGRES_USER\" $LOGTO_DB && createdb --username=\"\$POSTGRES_USER\" --owner=$logto_role $LOGTO_DB"
+  # Droit de connexion des rôles de Logto (hors du dump : les droits sur la base elle-même n'y
+  # sont pas ; PUBLIC ne l'a plus depuis le bootstrap).
+  env_compose exec -T postgres sh -c \
+    "psql -v ON_ERROR_STOP=1 -tA --username=\"\$POSTGRES_USER\" --dbname=postgres -c \"grant connect on database $LOGTO_DB to $tenant_role\""
   env_compose exec -T postgres sh -c \
     "pg_restore --exit-on-error --username=\"\$POSTGRES_USER\" --dbname=$LOGTO_DB" <"$logto_dump"
   # Rôles de connexion de Logto (un par tenant), avec le mot de passe que Logto garde dans sa
