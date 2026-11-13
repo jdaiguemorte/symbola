@@ -153,6 +153,9 @@ describe("FAC-07 / JUR-01 / JUR-09 / JUR-08 — Mentions requises et acompte ou 
     const quote = await createQuote({ organizationId: context.organizationId, eventId: context.eventId, createdByUserId: context.plannerId });
     await addQuoteLine(context.organizationId, quote.id, { label: "Coordination", unit: "forfait", quantityMilli: 1000, unitPriceCents: 100000 });
     await addScheduleItem(context.organizationId, quote.id, { label: "À la signature", percentageBasisPoints: 3000, dueDate: "2027-01-15" });
+    // Lot 31b (D17) : « acompte » est proposé par défaut ; sans choix, le champ est nommé.
+    expect((await getQuote(context.organizationId, quote.id)).current.advanceKind).toBe("deposit");
+    await setQuoteAdvanceKind(context.organizationId, quote.id, null);
     expect(await quoteMissingMentions(context.organizationId, quote.id)).toEqual(["vatNumber", "insurance", "mediator", "generalTerms", "advanceKind"]);
     const refused = await sendQuote({ organizationId: context.organizationId, quoteId: quote.id }).catch((error: unknown) => error);
     expect(refused).toBeInstanceOf(RequiredMentionsMissingError);

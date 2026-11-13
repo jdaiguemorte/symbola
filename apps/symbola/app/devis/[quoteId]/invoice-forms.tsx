@@ -12,6 +12,8 @@ export function ClientKindForm({ quoteId, clientKind }: { quoteId: string; clien
       <label htmlFor="client-kind">{t("clientKind")}</label>
       <select id="client-kind" name="clientKind" defaultValue={clientKind}>
         <option value="individual">{t("clientIndividual")}</option>
+        {/* Lot 31b (réponse 3 de l'avocat, D16) : association, SCI… */}
+        <option value="non_professional">{t("clientNonProfessional")}</option>
         <option value="professional">{t("clientProfessional")}</option>
       </select>
     </QuoteActionForm>

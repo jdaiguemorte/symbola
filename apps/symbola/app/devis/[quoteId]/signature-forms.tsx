@@ -8,8 +8,20 @@ export type SignerDraft = { eventClientId: string | null; name: string; email: s
 
 // DEV-02 — signataires saisis sur le devis (ADR 0021), pré-remplis depuis
 // les mariés de l'événement et leurs accès (PRD-EVT-06).
-export function SendForSignatureForm({ quoteId, drafts, rows }: { quoteId: string; drafts: SignerDraft[]; rows: number }) {
+export function SendForSignatureForm({
+  quoteId,
+  drafts,
+  rows,
+  contract,
+}: {
+  quoteId: string;
+  drafts: SignerDraft[];
+  rows: number;
+  // Lot 31b (DOC-03, D9) : contrat à jour, signé avec le devis dans le même PDF.
+  contract?: { id: string; version: number } | null;
+}) {
   const t = useTranslations("Quotes");
+  const tContracts = useTranslations("Contracts");
   return (
     <QuoteActionForm
       action={sendForSignatureAction}
@@ -19,6 +31,14 @@ export function SendForSignatureForm({ quoteId, drafts, rows }: { quoteId: strin
       successMessage={t("signatureSent")}
     >
       <p>{t("sendForSignatureHint")}</p>
+      {contract ? (
+        <>
+          <input type="hidden" name="contractId" value={contract.id} />
+          <p role="note">{tContracts("signedWithQuote", { version: contract.version })}</p>
+        </>
+      ) : (
+        <p className="meta">{tContracts("quoteAloneHint")}</p>
+      )}
       {Array.from({ length: rows }, (_, index) => {
         const draft = drafts[index];
         const id = (field: string) => `signer-${index}-${field}`;

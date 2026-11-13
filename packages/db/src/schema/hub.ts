@@ -594,8 +594,9 @@ export const privacySettings = hubSchema.table("privacy_settings", {
   clientRetentionMonths: integer("client_retention_months").notNull(),
   accountingRetentionMonths: integer("accounting_retention_months").notNull(),
   inactiveAccountMonths: integer("inactive_account_months").notNull(),
-  // RGPD-03 : durée de conservation d'un devis signé (preuve du contrat).
-  signedQuoteRetentionMonths: integer("signed_quote_retention_months").notNull().default(60),
+  // RGPD-03 : durée de conservation d'un devis signé (preuve du contrat). Lot 31b (réponse 3 de
+  // l'avocat, D16) : dix ans pour un contrat électronique de 120 € et plus et son dossier de preuve.
+  signedQuoteRetentionMonths: integer("signed_quote_retention_months").notNull().default(120),
   // RGPD-09 (lot 19, ADR 0048) : durée de la preuve d'une demande close, après
   // laquelle la purge mensuelle propose d'anonymiser le nom de la personne.
   requestProofRetentionMonths: integer("request_proof_retention_months").notNull().default(60),

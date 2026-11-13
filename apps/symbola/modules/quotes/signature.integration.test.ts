@@ -406,6 +406,9 @@ describe("DEV-02 — Espace du marié", () => {
         ownStatus: "pending",
         // Lot 31a (JUR-08, D5) : acompte ou arrhes, rappelé au client avant de signer.
         advanceKind: "deposit",
+        // Lot 31b (D9) : le devis seul, sans contrat.
+        kind: "quote",
+        contract: null,
       },
     ]);
     const stranger = await listClientQuotesToSign(organizationId, eventId, "inconnu@example.test");

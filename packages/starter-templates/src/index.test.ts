@@ -26,6 +26,9 @@ import {
   starterProgram,
   starterProspectSources,
   starterQuoteTemplates,
+  starterContractTemplates,
+  starterContractRules,
+  contractTemplateWarning,
   starterQuoteTerms,
   starterRequestResponse,
   starterRequiredMentions,
@@ -194,7 +197,8 @@ describe("RGPD-04/05 — Réglages RGPD de départ", () => {
       clientRetentionMonths: 36,
       accountingRetentionMonths: 120,
       inactiveAccountMonths: 24,
-      signedQuoteRetentionMonths: 60,
+      // Lot 31b (réponse 3 de l'avocat, D16) : contrat électronique et dossier de preuve, dix ans.
+      signedQuoteRetentionMonths: 120,
       // RGPD-09 : preuve d'une demande close gardée 5 ans (décision de Julien du 09/11/2026).
       requestProofRetentionMonths: 60,
     });
@@ -457,5 +461,42 @@ describe("FAC-01 / HUB-26 — Modèle de devis de départ (lot 31a, D3)", () => 
     expect(template!.schedule.reduce((sum, entry) => sum + entry.percentageBasisPoints, 0)).toBeLessThan(10000);
     expect(starterQuoteTemplates("en")[0]?.name).toMatch(/to adapt/);
     expect(starterQuoteTemplates("fr", "event_agency")).toEqual([]);
+  });
+});
+
+describe("FAC-04 / HUB-26 / JUR-20 — Modèle de contrat de départ « à adapter » (lot 31b, D10)", () => {
+  it("un squelette : titres, variables, et un emplacement « à rédiger » à la place de chaque texte juridique", () => {
+    const [template] = starterContractTemplates("fr");
+    expect(template?.name).toMatch(/à adapter/);
+    expect(template?.eventTypeKey).toBe("wedding");
+    expect(template!.clauses.map((clause) => clause.title)).toContain("Annulation et report");
+    expect(template!.clauses.find((clause) => clause.title === "Annulation et report")?.body).toMatch(/^\[À rédiger avec votre conseil/);
+    expect(template!.clauses.find((clause) => clause.title === "Objet")?.body).toContain("{evenement.date}");
+    expect(starterContractTemplates("en")[0]?.clauses.find((clause) => clause.role === "early_execution")?.body).toMatch(/^\[To be drafted/);
+    expect(starterContractTemplates("fr", "event_agency")).toEqual([]);
+  });
+
+  it("chaque élément exigé par un régime, et chaque clause des sommes versées d'avance, a sa clause ; l'avertissement de relecture est fourni", () => {
+    const [template] = starterContractTemplates("fr");
+    const rules = starterContractRules();
+    const roles = new Set(template!.clauses.map((clause) => clause.role));
+    for (const role of [...rules.requiredRoles.withdrawal, ...rules.requiredRoles.noWithdrawal, rules.advanceRoles.deposit, rules.advanceRoles.earnest]) expect(roles).toContain(role);
+    expect(contractTemplateWarning("fr")).toBe("Base à adapter, à faire relire par un professionnel du droit.");
+    expect(contractTemplateWarning("en")).toMatch(/legal professional/);
+  });
+});
+
+describe("JUR-07 / JUR-14 — Règles des contrats (lot 31b, réponses de l'avocat, D11 à D15)", () => {
+  it("quatorze jours reportés au lundi ; rétractation à distance et hors établissement ; foire ou salon refusé ; sept jours sans paiement hors établissement", () => {
+    const rules = starterContractRules();
+    expect(rules.withdrawal).toEqual({ periodDays: 14, extendWeekendToMonday: true });
+    expect(rules.regime.withdrawalChannels).toEqual(["distance", "off_premises"]);
+    expect(rules.regime.blockedChannels).toEqual(["fair"]);
+    expect(rules.regime.consumerCategories).toEqual(["individual"]);
+    expect(rules.regime.orderChannels).toEqual(["distance"]);
+    expect(rules.regime.noPaymentDays).toEqual({ off_premises: 7 });
+    expect(rules.signature).toEqual({ advancedThresholdCents: 1000000, availableLevel: "simple" });
+    expect(rules.retention.signedContractMinimumMonths).toBe(120);
+    expect(rules.placeholderMarkers).toContain("[À rédiger");
   });
 });

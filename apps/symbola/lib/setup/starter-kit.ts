@@ -32,6 +32,7 @@ import {
 } from "@/modules/events/service";
 import { createAllocationModel, listAllocationModels } from "@/modules/budget/service";
 import { seedStarterVendorCatalog, seedStarterVendorTags } from "@/modules/vendors/service";
+import { addStarterContractTemplates, listContractTemplates } from "@/modules/quotes/service";
 import { organizesWeddings, vendorCatalogInput } from "@/lib/vendors/catalog";
 import { vendorTagCatalogInput } from "@/lib/vendors/tag-catalog";
 import { isModuleEnabled, type ModuleKey } from "@/modules/hub/service";
@@ -45,6 +46,8 @@ export type StarterKitResult = {
   allocation: boolean;
   vendorTypes: number;
   vendorTags: number;
+  // Lot 31b (HUB-26, D10) : modèle de contrat de départ « à adapter ».
+  contractTemplates: number;
 };
 
 async function enabled(organizationId: string): Promise<Record<ModuleKey, boolean>> {
@@ -56,7 +59,7 @@ async function enabled(organizationId: string): Promise<Record<ModuleKey, boolea
 
 export async function loadStarterKit(organizationId: string, metier: StarterMetier, locale: StarterLocale): Promise<StarterKitResult> {
   const modules = await enabled(organizationId);
-  const result: StarterKitResult = { budgetLines: 0, sources: 0, lossReasons: 0, taskTemplate: false, programTemplate: false, allocation: false, vendorTypes: 0, vendorTags: 0 };
+  const result: StarterKitResult = { budgetLines: 0, sources: 0, lossReasons: 0, taskTemplate: false, programTemplate: false, allocation: false, vendorTypes: 0, vendorTags: 0, contractTemplates: 0 };
   if (!modules.events) return result;
 
   // Lot 16 (ADR 0045) : types d'événement de départ du métier, si l'organisation
@@ -104,6 +107,11 @@ export async function loadStarterKit(organizationId: string, metier: StarterMeti
     // Lot 21 (L21-PRE-18) : étiquettes de départ, rangées par famille ; rien n'est
     // dupliqué au second passage.
     result.vendorTags = (await seedStarterVendorTags(organizationId, vendorTagCatalogInput(locale, metier))).created;
+  }
+  // Lot 31b (HUB-26, D10, partie J) : les modèles de contrat de départ se chargent au démarrage,
+  // puis se modifient et se suppriment ; rien n'est ajouté si l'organisation en a déjà.
+  if (modules.quotes && (await listContractTemplates(organizationId)).length === 0) {
+    result.contractTemplates = (await addStarterContractTemplates(organizationId, locale, metier)).length;
   }
   return result;
 }

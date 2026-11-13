@@ -23,6 +23,8 @@ import clientTaskRemindersFile from "./client-task-reminders.json";
 import emergencyNumbersFile from "./emergency-numbers.json";
 import requiredMentionsFile from "./required-mentions.json";
 import quoteTemplatesFile from "./quote-templates.json";
+import contractTemplatesFile from "./contract-templates.json";
+import contractRulesFile from "./contract-rules.json";
 import linkPrivacyNoticeFile from "./link-privacy-notice.json";
 import programFile from "./program.json";
 import prospectSourcesFile from "./prospect-sources.json";
@@ -864,7 +866,7 @@ export const requiredMentionRuleSchema = z.object({
   field: z.enum(MENTION_FIELDS),
   documents: z.array(z.enum(MENTION_DOCUMENTS)).min(1),
   vatRegimes: z.array(z.enum(["franchise", "assujetti"])).min(1).optional(),
-  clientKinds: z.array(z.enum(["individual", "professional"])).min(1).optional(),
+  clientKinds: z.array(z.enum(["individual", "professional", "non_professional"])).min(1).optional(),
   legalForms: z.array(z.enum(["ei", "eirl", "eurl", "sarl", "sas", "sasu", "sa", "auto_entrepreneur", "autre"])).min(1).optional(),
 });
 export type RequiredMentionRule = z.infer<typeof requiredMentionRuleSchema>;
@@ -936,4 +938,98 @@ export function starterQuoteTemplates(locale: StarterLocale, metier: StarterMeti
         daysBeforeEvent: entry.dueRule === "before_event" ? (entry.daysBeforeEvent ?? 0) : null,
       })),
     }));
+}
+
+// Lot 31b (FAC-04, HUB-26, JUR-20 ; décisions D10, D14) : modèle de contrat de départ, par métier
+// et type d'événement. Un squelette : titres de clauses, variables, et à la place de chaque texte
+// juridique un emplacement « [À rédiger avec votre conseil : …] ». Aucun texte juridique de fond.
+export const CONTRACT_CLAUSE_ROLE_KEYS = [
+  "precontractual_information",
+  "withdrawal_period",
+  "withdrawal_form",
+  "early_execution",
+  "termination",
+  "no_withdrawal",
+  "advance_deposit",
+  "advance_earnest",
+] as const;
+export type ContractClauseRoleKey = (typeof CONTRACT_CLAUSE_ROLE_KEYS)[number];
+
+export const CONCLUSION_CHANNEL_KEYS = ["on_premises", "distance", "off_premises", "fair"] as const;
+export type ConclusionChannelKey = (typeof CONCLUSION_CHANNEL_KEYS)[number];
+export const CLIENT_CATEGORY_KEYS = ["individual", "non_professional", "professional"] as const;
+export type ClientCategoryKey = (typeof CLIENT_CATEGORY_KEYS)[number];
+
+const contractTemplatesSchema = z.object({
+  version: z.literal(1),
+  warning: translatedLabelSchema,
+  items: z
+    .array(
+      z.object({
+        metier: z.enum(["wedding_planner", "event_agency", "autre"]),
+        eventTypeKey: z.string().min(1),
+        name: translatedLabelSchema,
+        title: translatedLabelSchema,
+        clauses: z
+          .array(z.object({ title: translatedLabelSchema, body: translatedLabelSchema, optional: z.boolean(), role: z.enum(CONTRACT_CLAUSE_ROLE_KEYS).nullable() }))
+          .min(1),
+      }),
+    )
+    .min(1),
+});
+
+export type StarterContractTemplate = {
+  eventTypeKey: string;
+  name: string;
+  title: string;
+  clauses: { title: string; body: string; optional: boolean; role: ContractClauseRoleKey | null }[];
+};
+
+export function starterContractTemplates(locale: StarterLocale, metier: StarterMetier = "wedding_planner"): StarterContractTemplate[] {
+  return contractTemplatesSchema
+    .parse(contractTemplatesFile)
+    .items.filter((item) => item.metier === metier)
+    .map((item) => ({
+      eventTypeKey: item.eventTypeKey,
+      name: item.name[locale],
+      title: item.title[locale],
+      clauses: item.clauses.map((clause) => ({ title: clause.title[locale], body: clause.body[locale], optional: clause.optional, role: clause.role })),
+    }));
+}
+
+// Lot 31b (JUR-07, JUR-08, JUR-14 ; réponses de l'avocat du 13/11/2026, D11 à D15) : règles des
+// contrats en données — délai de rétractation, régime selon le canal de conclusion et la catégorie
+// du client, éléments que le contrat doit porter selon le régime, clause des sommes versées
+// d'avance, seuil de la signature avancée, marques d'un texte encore à rédiger.
+const roleList = z.array(z.enum(CONTRACT_CLAUSE_ROLE_KEYS));
+const contractRulesSchema = z.object({
+  version: z.literal(1),
+  status: translatedLabelSchema,
+  withdrawal: z.object({ periodDays: z.number().int().min(1).max(60), extendWeekendToMonday: z.boolean() }),
+  regime: z.object({
+    withdrawalChannels: z.array(z.enum(CONCLUSION_CHANNEL_KEYS)),
+    smallBusinessChannels: z.array(z.enum(CONCLUSION_CHANNEL_KEYS)),
+    blockedChannels: z.array(z.enum(CONCLUSION_CHANNEL_KEYS)),
+    consumerCategories: z.array(z.enum(CLIENT_CATEGORY_KEYS)),
+    orderChannels: z.array(z.enum(CONCLUSION_CHANNEL_KEYS)),
+    noPaymentDays: z.partialRecord(z.enum(CONCLUSION_CHANNEL_KEYS), z.number().int().min(1).max(60)),
+  }),
+  requiredRoles: z.object({ withdrawal: roleList, noWithdrawal: roleList, professional: roleList }),
+  advanceRoles: z.object({ deposit: z.enum(CONTRACT_CLAUSE_ROLE_KEYS), earnest: z.enum(CONTRACT_CLAUSE_ROLE_KEYS) }),
+  signature: z.object({ advancedThresholdCents: z.number().int().positive(), availableLevel: z.enum(["simple", "advanced", "qualified"]) }),
+  // Réponse 3 de l'avocat (D16) : contrat électronique de 120 € et plus, conservé dix ans.
+  retention: z.object({ signedContractMinimumMonths: z.number().int().min(1).max(1200) }),
+  placeholderMarkers: z.array(z.string().min(2)).min(1),
+});
+
+export type ContractRules = Omit<z.infer<typeof contractRulesSchema>, "version" | "status">;
+
+export function starterContractRules(): ContractRules {
+  const { version: _version, status: _status, ...rules } = contractRulesSchema.parse(contractRulesFile);
+  return structuredClone(rules);
+}
+
+// Bandeau de chaque modèle de contrat et de chaque génération (JUR-20).
+export function contractTemplateWarning(locale: StarterLocale): string {
+  return contractTemplatesSchema.parse(contractTemplatesFile).warning[locale];
 }

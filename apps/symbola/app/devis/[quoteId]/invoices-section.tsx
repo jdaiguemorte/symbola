@@ -1,12 +1,26 @@
 import { getTranslations } from "next-intl/server";
 import { formatAmount, formatCalendarDate, type Locale } from "@symbola/i18n";
-import type { InvoiceView, QuoteDetail } from "@/modules/quotes/service";
+import type { InvoiceView, MissingMention, QuoteDetail, ScheduledDepositView } from "@/modules/quotes/service";
+import { MissingMentionsList } from "../missing-mentions";
 import { ClientKindForm, CreditNoteForm, IssueBalanceInvoiceForm, IssueDepositInvoiceForm } from "./invoice-forms";
 
 // DEV-04 — factures d'un devis signé : émission (acompte par échéance,
 // solde), liste des factures émises et de leurs avoirs, PDF.
-export async function InvoicesSection({ quote, invoices, locale }: { quote: QuoteDetail; invoices: InvoiceView[]; locale: Locale }) {
+export async function InvoicesSection({
+  quote,
+  invoices,
+  locale,
+  scheduled = null,
+}: {
+  quote: QuoteDetail;
+  invoices: InvoiceView[];
+  locale: Locale;
+  // Lot 31b (FAC-05, D6) : facture d'acompte émise d'elle-même, en attente ou bloquée.
+  scheduled?: ScheduledDepositView | null;
+}) {
   const t = await getTranslations("Quotes");
+  const tContracts = await getTranslations("Contracts");
+  const mentionFields = (scheduled?.missingFields ?? []).filter((field): field is MissingMention => field !== "unavailable");
   if (quote.status !== "signed" && invoices.length === 0) return null;
   const active = invoices.filter((invoice) => invoice.amountCents - invoice.creditedCents > 0);
   const balanceIssued = active.some((invoice) => invoice.kind === "balance");
@@ -16,6 +30,18 @@ export async function InvoicesSection({ quote, invoices, locale }: { quote: Quot
   return (
     <section aria-labelledby="invoices-title">
       <h2 id="invoices-title">{t("invoicesTitle")}</h2>
+      {scheduled && scheduled.status === "waiting" ? (
+        <p role="status">{tContracts("depositWaiting", { label: scheduled.scheduleItemLabel, date: formatCalendarDate(scheduled.issueOn, locale) })}</p>
+      ) : null}
+      {scheduled && scheduled.status === "blocked" ? (
+        <div role="note" className="missing-mentions-panel">
+          <p>{tContracts("depositBlocked", { label: scheduled.scheduleItemLabel })}</p>
+          {mentionFields.length > 0 ? <MissingMentionsList fields={mentionFields} /> : <p>{tContracts("depositUnavailable")}</p>}
+        </div>
+      ) : null}
+      {scheduled?.paymentNotBefore && scheduled.status !== "issued" ? (
+        <p className="meta">{tContracts("depositNoPaymentBefore", { date: formatCalendarDate(scheduled.paymentNotBefore, locale) })}</p>
+      ) : null}
       {quote.status === "signed" ? (
         <>
           <ClientKindForm quoteId={quote.id} clientKind={quote.clientKind} />

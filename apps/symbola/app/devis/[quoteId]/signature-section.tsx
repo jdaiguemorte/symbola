@@ -1,7 +1,7 @@
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatDateTime, type Locale } from "@symbola/i18n";
 import { listEventLinks, type EventDetail } from "@/modules/events/service";
-import { isSignatureAvailable, type QuoteDetail } from "@/modules/quotes/service";
+import { isSignatureAvailable, listQuoteContracts, type QuoteDetail } from "@/modules/quotes/service";
 import { PAID_CLASS, OVERDUE_CLASS } from "../quote-display";
 import { SendForSignatureForm, type SignerDraft } from "./signature-forms";
 
@@ -23,11 +23,19 @@ export async function SignatureSection({
   const locale = (await getLocale()) as Locale;
   const { signature } = quote;
 
+  const tContracts = await getTranslations("Contracts");
+  // D13 : contrat à distance, le lien s'affiche sur l'espace du signataire après sa commande.
+  const orderFirst =
+    signature?.contractId && signature.status === "pending"
+      ? ((await listQuoteContracts(organizationId, quote.id)).find((contract) => contract.id === signature.contractId)?.regime.orderRequired ?? false)
+      : false;
   if (signature) {
     return (
       <section aria-labelledby="signature-title">
         <h2 id="signature-title">{t("signatureTitle")}</h2>
         <p role="status">{t(REQUEST_STATUS_KEYS[signature.status])}</p>
+        {/* Lot 31b (D9) : le devis seul, ou suivi de son contrat dans le même PDF. */}
+        <p className="meta">{tContracts(`signatureScope_${signature.kind}`)}</p>
         <ul>
           {signature.signers.map((signer) => (
             <li key={signer.id}>
@@ -37,16 +45,20 @@ export async function SignatureSection({
                 {signer.signedAt ? ` — ${formatDateTime(new Date(signer.signedAt), locale)}` : ""}
               </span>
               {signature.status === "pending" && signer.status === "pending" ? (
-                <>
-                  {" "}
-                  — <a href={signer.signingUrl}>{t("signingLinkFor", { name: signer.name })}</a>
-                </>
+                orderFirst ? (
+                  <> — {tContracts("signingLinkOnPortal")}</>
+                ) : (
+                  <>
+                    {" "}
+                    — <a href={signer.signingUrl}>{t("signingLinkFor", { name: signer.name })}</a>
+                  </>
+                )
               ) : null}
             </li>
           ))}
         </ul>
         {/* Filet de sécurité : un e-mail non reçu (spam, panne d'envoi) ne bloque pas la signature. */}
-        {signature.status === "pending" ? <p>{t("signingLinksHint")}</p> : null}
+        {signature.status === "pending" ? <p>{orderFirst ? tContracts("orderFirstHint") : t("signingLinksHint")}</p> : null}
         {signature.hasSignedDocument ? (
           <p>
             <a href={`/devis/${quote.id}/signature/signed`}>{t("downloadSignedDocument")}</a> —{" "}
@@ -76,10 +88,16 @@ export async function SignatureSection({
     name: [client.firstName, client.lastName].filter(Boolean).join(" "),
     email: links.find((link) => link.eventClientId === client.id)?.email ?? client.email ?? "",
   }));
+  // Lot 31b (DOC-03, D9) : le contrat de la version courante, à jour (généré après le dernier choix
+  // des options) et pas encore en signature, part avec le devis.
+  const contracts = quote.current.sentAt ? await listQuoteContracts(organizationId, quote.id) : [];
+  const current = [...contracts].reverse().find((contract) => contract.quoteVersion === quote.current.version) ?? null;
+  const contract = current && !current.outdated && !current.signature ? { id: current.id, version: current.version } : null;
   return (
     <section aria-labelledby="signature-title">
       <h2 id="signature-title">{t("signatureTitle")}</h2>
-      <SendForSignatureForm quoteId={quote.id} drafts={drafts} rows={Math.max(2, drafts.length)} />
+      {current?.outdated ? <p role="alert">{tContracts("contractOutdatedBeforeSignature")}</p> : null}
+      <SendForSignatureForm quoteId={quote.id} drafts={drafts} rows={Math.max(2, drafts.length)} contract={contract} />
     </section>
   );
 }

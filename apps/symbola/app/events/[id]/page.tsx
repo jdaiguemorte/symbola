@@ -53,7 +53,7 @@ import { NextStepBanner } from "./next-step-banner";
 import { nextStep } from "./next-step";
 import { endTrialAction } from "../trial-actions";
 import { revokeLinkAction } from "./link-actions";
-import { ClientContactForm, WantedBudgetForm } from "./client-contact-forms";
+import { ClientContactForm, VenueForm, WantedBudgetForm } from "./client-contact-forms";
 import { CreateLinkForm, CreateVendorLinkForm, EditLinkForm, RenewLinkForm, type LinkFormVendor } from "./link-forms";
 import { RequestDecisionForm } from "./decision-forms";
 import { commitDecisionExpenseAction, replaceDecisionAction, retainDecisionChoiceAction, withdrawDecisionAction } from "./decision-actions";
@@ -516,6 +516,7 @@ export default async function EventDetailPage({
             <progress aria-labelledby="vendor-progress-label" value={progress.booked} max={Math.max(progress.required, 1)} />
             <EventDateForm eventId={event.id} eventDate={event.eventDate} />
             <WantedBudgetForm key={`wanted-${event.wantedBudgetCents ?? ""}`} eventId={event.id} wantedBudgetCents={event.wantedBudgetCents} />
+            <VenueForm eventId={event.id} venueName={event.venueName} venueCity={event.venueCity} />
             {isPastConfirmed ? <p role="status">{t("suggestMarkDone")}</p> : null}
             <ImportedFields fields={event.importedFields} />
           </section>

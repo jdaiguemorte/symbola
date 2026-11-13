@@ -89,6 +89,11 @@ export const AUDIT_ACTIONS = {
   "quotes.signature.requested": { category: "partage", objectType: "quote" },
   // Lot 31a (FAC-01, décision D2) : options choisies par le client, ou par la planner pour lui.
   "quotes.quote.options_chosen": { category: "partage", objectType: "quote" },
+  // Lot 31b (FAC-04, JUR-07 ; D11, D13) : contrat généré ; commande et demande d'exécution
+  // anticipée du client (identifiants seulement).
+  "quotes.contract.generated": { category: "partage", objectType: "quote" },
+  "quotes.contract.ordered": { category: "partage", objectType: "quote" },
+  "quotes.contract.early_execution_requested": { category: "partage", objectType: "quote" },
   // Émissions.
   "quotes.invoice.issued": { category: "emission", objectType: "invoice" },
   "quotes.credit_note.issued": { category: "emission", objectType: "credit_note" },

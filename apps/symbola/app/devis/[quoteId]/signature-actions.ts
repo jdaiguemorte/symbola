@@ -12,7 +12,11 @@ import {
   SignatureAlreadyRequestedError,
   SignatureLinksNotMailedError,
   SignatureUnavailableError,
+  ContractNotFoundError,
+  ContractOutdatedError,
+  SignersWithoutPortalError,
   getQuote,
+  listQuoteContracts,
   sendQuote,
   sendQuoteForSignature,
   signatureSlots,
@@ -22,6 +26,7 @@ import { isValidId } from "../module-access";
 import { authorizedPlanner } from "../planner-access";
 import type { QuoteFormState } from "./actions";
 import { renderQuotePdf } from "./render-quote-pdf";
+import { renderQuoteAndContractPdf } from "./render-contract-pdf";
 
 const MAX_SIGNER_ROWS = 4;
 
@@ -51,18 +56,29 @@ export async function sendForSignatureAction(_prevState: QuoteFormState, formDat
   if (signers.length === 0) return { error: t("missingSigners") };
   const { organizationId } = planner;
 
+  // Lot 31b (DOC-03, D9) : avec un contrat, un seul PDF (le devis puis le contrat).
+  const contractId = String(formData.get("contractId") ?? "");
   try {
     let quote = await getQuote(organizationId, quoteId);
     if (quote.status === "draft") quote = await sendQuote({ organizationId, quoteId });
-    const documentPdf = await renderQuotePdf({ organizationId, quote, version: quote.current, signatureSlots: signatureSlots(signers.length) });
+    const contract = isValidId(contractId) ? (await listQuoteContracts(organizationId, quoteId)).find((candidate) => candidate.id === contractId) : undefined;
+    if (isValidId(contractId) && !contract) throw new ContractNotFoundError();
+    const slots = signatureSlots(signers.length);
+    const documentPdf = contract
+      ? await renderQuoteAndContractPdf({ organizationId, quote, contract, signatureSlots: slots })
+      : await renderQuotePdf({ organizationId, quote, version: quote.current, signatureSlots: slots });
     await sendQuoteForSignature({
       organizationId,
       quoteId,
       signers,
       documentPdf,
       locale: (await getLocale()) === "en" ? "en" : "fr",
+      contractId: contract?.id ?? null,
     });
   } catch (error) {
+    if (error instanceof ContractOutdatedError) return { error: (await getTranslations("Contracts"))("contractOutdatedBeforeSignature") };
+    if (error instanceof SignersWithoutPortalError) return { error: (await getTranslations("Contracts"))("signersWithoutPortal", { names: error.names.join(", ") }) };
+    if (error instanceof ContractNotFoundError) return { error: (await getTranslations("Contracts"))("contractNotFound") };
     if (error instanceof QuoteNotFoundError) return { error: t("quoteNotFound") };
     if (error instanceof QuoteNotSentError || error instanceof QuoteVersionLockedError) return { error: t("signatureNotSendable") };
     if (error instanceof SignatureAlreadyRequestedError) return { error: t("signatureAlreadyRequested") };

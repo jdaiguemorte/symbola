@@ -133,8 +133,9 @@ describe("RGPD-03 — Demande d'oubli", { timeout: 30_000 }, () => {
     if (preview.status !== "ok") return;
     const fate = (kind: string) => preview.items.filter((item) => item.kind === kind).map((item) => [item.fate, item.legalBasis, item.keptUntil]);
     expect(fate("invoice")).toEqual([["kept", "accounting", "2036-03-11"]]);
-    expect(fate("quote_signer")).toEqual([["kept", "contract_proof", "2031-03-10"]]);
-    expect(fate("quote")).toEqual([["kept", "contract_proof", "2031-03-10"]]);
+    // Lot 31b (réponse 3 de l'avocat, D16) : contrat électronique et dossier de preuve, dix ans.
+    expect(fate("quote_signer")).toEqual([["kept", "contract_proof", "2036-03-10"]]);
+    expect(fate("quote")).toEqual([["kept", "contract_proof", "2036-03-10"]]);
     expect(fate("event_client")).toEqual([["anonymized", null, null]]);
     expect(fate("event")).toEqual([["anonymized", null, null]]);
     expect(fate("task")).toEqual([["deleted", null, null]]);

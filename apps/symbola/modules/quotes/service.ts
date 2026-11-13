@@ -3,14 +3,31 @@
 // /v1/quotes si ce module est extrait en app autonome.
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
-import { starterDemoQuote, starterEventTypes, starterQuoteTemplates } from "@symbola/starter-templates";
+import { starterContractRules, starterContractTemplates, starterDemoQuote, starterEventTypes, starterQuoteTemplates } from "@symbola/starter-templates";
 import { appDatabase, type AppDatabase } from "@symbola/db/client";
 import { parseEnv } from "@symbola/env";
-import { createStorageClient, deletePrivateObject, PrivateObjectNotFoundError, readPrivateObject, uploadFile } from "@symbola/files";
+import { createStorageClient, deletePrivateObject, PrivateObjectNotFoundError, readPrivateObject, uploadFile, uploadPrivateObject } from "@symbola/files";
 import { reserveOrganizationMail, sendMail } from "@symbola/mail";
-import { parisDaysSince } from "@symbola/i18n";
+import { formatAmount, formatCalendarDate, parisDaysSince } from "@symbola/i18n";
+import frMessages from "@symbola/i18n/messages/fr.json";
+import enMessages from "@symbola/i18n/messages/en.json";
 import type {
   AdvanceKind,
+  ClientContract,
+  ConclusionChannel,
+  ContractCheck,
+  ContractCheckInput,
+  ContractClauseRole,
+  ContractEvidenceDocument,
+  ContractProblem,
+  ContractTemplateClauseInput,
+  ContractTemplateHeaderInput,
+  ContractTemplateView,
+  ContractView,
+  GenerateContractInput,
+  IssueScheduledDepositsInput,
+  ScheduledDepositView,
+  SendContractForSignatureInput,
   ClientQuoteOptions,
   MissingMention,
   OptionsChoice,
@@ -62,7 +79,7 @@ import type {
   StartQuotesTrialInput,
 } from "@symbola/contracts";
 import { QUOTES_QUOTE_SIGNED, QUOTES_QUOTE_SIGNED_VERSION, type QuoteSignedPayload } from "@symbola/contracts";
-import { changeEventStatus, EventNotFoundError, getEvent, listEventTypes } from "@/modules/events/service";
+import { changeEventStatus, EventNotFoundError, getEvent, listEventLinks, listEventTypes } from "@/modules/events/service";
 import {
   computeLegalMention,
   getOrganizationProfile,
@@ -79,6 +96,48 @@ import { addDays, prorateTotals } from "./invoicing";
 import { recordAudit } from "@symbola/db/audit";
 import { cleanDocumentSettings, documentSnapshot, EMPTY_DOCUMENT_SETTINGS } from "./document-settings";
 import { missingMentions, type MentionValues } from "./mentions";
+import {
+  advanceClauseProblem,
+  contractRegime,
+  missingRoles,
+  resolveContractText,
+  withdrawalPeriod,
+  type ContractClauseText,
+  type ContractVariableValues,
+} from "./contract-text";
+import {
+  closeScheduledDepositForItem,
+  deleteContractClauseRow,
+  deleteContractTemplateRow,
+  findContract,
+  findContractRequests,
+  findContractTemplate,
+  findContractTemplates,
+  findDueScheduledDeposits,
+  findLatestEvidence,
+  findOpenScheduledDeposits,
+  findQuoteContracts,
+  findQuoteScheduledDeposit,
+  findScheduledDepositForItem,
+  findSignersOfRequest,
+  hasAcceptedTemplate,
+  insertContract,
+  insertContractClause,
+  insertContractEvidence,
+  insertContractTemplate,
+  insertScheduledDeposit,
+  insertSignerAct,
+  insertTemplateAcceptance,
+  moveContractClauseRow,
+  updateContractClauseRow,
+  updateContractTemplateHeader,
+  updateScheduledDeposit,
+  type ClauseData,
+  type ContractRow,
+  type ContractSignerActRow,
+  type ContractTemplateWithClauses,
+  type ScheduledDepositContext,
+} from "./contracts-repository";
 import {
   applyTemplateToDraft,
   deleteQuoteTemplateRow,
@@ -178,6 +237,19 @@ import {
 } from "./repository";
 
 export type {
+  ClientContract,
+  ConclusionChannel,
+  ContractActView,
+  ContractCheck,
+  ContractClauseRole,
+  ContractEvidenceDocument,
+  ContractProblem,
+  ContractRegimeView,
+  ContractTemplateClause,
+  ContractTemplateView,
+  ContractView,
+  ScheduledDepositView,
+  SignatureRequestKind,
   CatalogItem,
   CatalogItemInput,
   CreateQuoteInput,
@@ -411,7 +483,8 @@ const DEFAULT_SETTINGS: QuoteSettings = {
   upcomingHorizonDays: 90,
   invoicePaymentTermDays: 30,
   invoiceMentions: null,
-  advanceKindDefault: null,
+  // Lot 31b (réponse 2 de l'avocat, D17) : « acompte » proposé par défaut.
+  advanceKindDefault: "deposit",
 };
 const DEMO_PREFIX = "DEMO";
 const MAX_AMOUNT_CENTS = 100_000_000_00; // 100 M€ : garde-fou contre les débordements d'entier
@@ -728,6 +801,8 @@ function toSignatureView(request: SignatureRequestRow, signers: QuoteSignerRow[]
   return {
     id: request.id,
     provider: request.provider,
+    kind: request.kind,
+    contractId: request.contractId,
     status: request.status,
     signers: signers
       .filter((signer) => signer.requestId === request.id)
@@ -751,7 +826,8 @@ function toDetail(aggregate: QuoteAggregate, profile: OrganizationProfile, now: 
   const versions = aggregate.versions.map((version) => toVersionView(version, aggregate, profile, now));
   const current = versions.find((version) => version.version === aggregate.quote.currentVersion);
   if (!current) throw new QuoteNotFoundError();
-  const request = aggregate.signatureRequests.find((candidate) => candidate.versionId === current.id);
+  // Lot 31b (D9) : la demande qui fait signer le devis (seul ou avec son contrat).
+  const request = aggregate.signatureRequests.find((candidate) => candidate.versionId === current.id && candidate.kind !== "contract");
   return {
     ...toSummary(aggregate, current),
     versions,
@@ -1583,6 +1659,17 @@ export async function sendQuoteForSignature(input: SendForSignatureInput): Promi
   if (quote.signature) throw new SignatureAlreadyRequestedError();
   const provider = signatureProviderFor(quote.isDemo);
   if (!provider) throw new SignatureUnavailableError();
+  // Lot 31b (DOC-03, D9) : le contrat signé avec le devis doit être celui de la version courante,
+  // généré après le dernier choix des options, et pas encore en signature.
+  let orderFirst = false;
+  if (input.contractId) {
+    const contract = (await listQuoteContracts(input.organizationId, input.quoteId)).find((candidate) => candidate.id === input.contractId);
+    if (!contract) throw new ContractNotFoundError();
+    if (contract.outdated) throw new ContractOutdatedError();
+    if (contract.signature) throw new SignatureAlreadyRequestedError();
+    orderFirst = contract.regime.orderRequired;
+    if (orderFirst) await requirePortalLinks(input.organizationId, quote.eventId, people);
+  }
 
   const signerIds = people.map(() => randomUUID());
   const created = await provider.createRequest({
@@ -1599,6 +1686,8 @@ export async function sendQuoteForSignature(input: SendForSignatureInput): Promi
   const result = await insertSignatureRequest(input.organizationId, input.quoteId, {
     provider: provider.name,
     externalId: created.externalId,
+    kind: input.contractId ? "quote_contract" : "quote",
+    contractId: input.contractId ?? null,
     signers: people.map((signer, index) => {
       const externalId = `${input.organizationId}.${signerIds[index]}`;
       const link = created.signers.find((candidate) => candidate.externalId === externalId);
@@ -1624,7 +1713,9 @@ export async function sendQuoteForSignature(input: SendForSignatureInput): Promi
     const organizationName = quote.current.seller?.organizationName ?? "";
     let notMailed = 0;
     for (const signer of detail.signature?.signers ?? []) {
-      const mail = signingMail({ locale: input.locale, organizationName, number: quote.number, url: signer.signingUrl });
+      const mail = orderFirst
+        ? orderFirstMail({ locale: input.locale, organizationName, number: quote.number })
+        : signingMail({ locale: input.locale, organizationName, number: quote.number, url: signer.signingUrl });
       try {
         // Lot 24b (SEC-22, décision D5) : au-delà du plafond de l'heure, l'e-mail
         // ne part pas ; la planner copie le lien depuis le devis.
@@ -1703,6 +1794,7 @@ async function applySignatureState(
   const now = new Date();
   let outcome: Parameters<typeof applySignatureStateRows>[2]["outcome"] = { kind: "pending" };
   let storedKeys: string[] = [];
+  let signedDocuments: { signedPdf: Buffer; signedDocumentSha256: string; auditCertificateSha256: string } | null = null;
   if (state.status === "completed") {
     const documents = await provider.downloadDocuments(request.externalId);
     const store = async (buffer: Buffer) => {
@@ -1716,6 +1808,7 @@ async function applySignatureState(
     const signedDocumentSha256 = sha256Hex(documents.signedPdf);
     const auditCertificateSha256 = sha256Hex(documents.auditCertificatePdf);
     storedKeys = [signedDocumentKey, auditCertificateKey];
+    signedDocuments = { signedPdf: documents.signedPdf, signedDocumentSha256, auditCertificateSha256 };
     const totals = context.version.totalsSnapshot as QuoteTotalsView | null;
     const payload: QuoteSignedPayload = {
       quoteId: context.quote.id,
@@ -1747,7 +1840,7 @@ async function applySignatureState(
     for (const key of storedKeys) await deletePrivateObject(storage!, key);
     return applied.changed ? "signer_updated" : outcome.kind === "pending" ? "unchanged" : "duplicate";
   }
-  if (outcome.kind === "completed") await afterSigned(organizationId, context.quote.id);
+  if (outcome.kind === "completed" && signedDocuments) await afterSigned(organizationId, context.quote.id, request.id, signedDocuments, now);
   return outcome.kind;
 }
 
@@ -1773,8 +1866,42 @@ export async function reconcilePendingSignatures(organizationId: string): Promis
 }
 
 // Effets qui suivent la signature, une seule fois (appel qui a terminé la
-// demande) : événement Confirmé (PRD-EVT-02) et e-mail à la planner.
-async function afterSigned(organizationId: string, quoteId: string): Promise<void> {
+// demande) : événement Confirmé (PRD-EVT-02) et e-mail à la planner ; lot 31b : dossier de
+// preuve et exemplaire signé remis aux signataires quand un contrat est signé, facture
+// d'acompte à émettre d'elle-même quand le devis est signé. Une erreur sur un effet n'empêche
+// pas les suivants (la signature, elle, est enregistrée).
+async function afterSigned(
+  organizationId: string,
+  quoteId: string,
+  requestId: string,
+  documents: { signedPdf: Buffer; signedDocumentSha256: string; auditCertificateSha256: string },
+  now: Date,
+): Promise<void> {
+  const aggregate = await findQuoteAggregate(organizationId, quoteId);
+  const request = aggregate?.signatureRequests.find((candidate) => candidate.id === requestId);
+  if (!aggregate || !request) return;
+  const contract = request.contractId ? await findContract(organizationId, request.contractId) : null;
+  const signers = aggregate.signers.filter((signer) => signer.requestId === request.id);
+  const effects: [string, () => Promise<void>][] = [];
+  if (contract) {
+    effects.push(["dossier de preuve", () => writeContractEvidence(organizationId, aggregate.quote, request, contract.contract, contract.acts, signers, documents, now)]);
+    effects.push(["exemplaire signé", () => mailSignedContract(organizationId, aggregate.quote, signers, documents.signedPdf)]);
+  }
+  if (request.kind !== "contract") {
+    effects.push(["facture d'acompte", () => scheduleDepositInvoice(organizationId, aggregate, request, contract, now)]);
+    effects.push(["confirmation", () => confirmSignedQuote(organizationId, quoteId)]);
+  }
+  for (const [label, effect] of effects) {
+    try {
+      await effect();
+    } catch (error) {
+      // Identifiants seulement, jamais de donnée personnelle (CLAUDE.md §5).
+      console.error(`effet de la signature « ${label} » échoué (demande ${requestId})`, error instanceof Error ? error.message : error);
+    }
+  }
+}
+
+async function confirmSignedQuote(organizationId: string, quoteId: string): Promise<void> {
   const quote = await loadDetail(organizationId, quoteId);
   const aggregate = await findQuoteAggregate(organizationId, quoteId);
   const createdByUserId = aggregate?.quote.createdByUserId;
@@ -1804,11 +1931,14 @@ async function afterSigned(organizationId: string, quoteId: string): Promise<voi
 
 // Document signé ou certificat de preuve de la version courante, lu dans le
 // stockage privé et servi par l'app (ADR 0027).
-export async function getSignatureDocument(organizationId: string, quoteId: string, kind: "signed" | "certificate"): Promise<FileDownload> {
+// Lot 31b (D9) : « contract » sert le document du contrat signé seul, après le devis.
+export async function getSignatureDocument(organizationId: string, quoteId: string, kind: "signed" | "certificate", scope: "quote" | "contract" = "quote"): Promise<FileDownload> {
   const aggregate = await findQuoteAggregate(organizationId, quoteId);
   if (!aggregate) throw new QuoteNotFoundError();
   const version = aggregate.versions.find((candidate) => candidate.version === aggregate.quote.currentVersion);
-  const request = aggregate.signatureRequests.find((candidate) => candidate.versionId === version?.id);
+  const request = aggregate.signatureRequests
+    .filter((candidate) => candidate.versionId === version?.id && (scope === "contract" ? candidate.kind === "contract" : candidate.kind !== "contract"))
+    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
   const key = kind === "signed" ? request?.signedDocumentKey : request?.auditCertificateKey;
   const expected = kind === "signed" ? request?.signedDocumentSha256 : request?.auditCertificateSha256;
   if (!key) throw new SignatureDocumentNotFoundError();
@@ -1822,7 +1952,7 @@ export async function getSignatureDocument(organizationId: string, quoteId: stri
       );
       throw new OriginalAlteredError();
     }
-    const suffix = kind === "signed" ? "signe" : "certificat";
+    const suffix = `${scope === "contract" ? "contrat-" : ""}${kind === "signed" ? "signe" : "certificat"}`;
     return { data, contentType: "application/pdf", fileName: `${aggregate.quote.number}-${suffix}.pdf` };
   } catch (error) {
     if (error instanceof PrivateObjectNotFoundError) throw new SignatureDocumentNotFoundError();
@@ -1835,23 +1965,48 @@ export async function getSignatureDocument(organizationId: string, quoteId: stri
 // l'e-mail de son compte.
 export async function listClientQuotesToSign(organizationId: string, eventId: string, clientEmail: string): Promise<ClientQuoteToSign[]> {
   const email = clientEmail.trim().toLowerCase();
-  const contexts = await findEventSignatureContexts(organizationId, eventId);
-  return contexts
-    .filter((context) => context.request.status !== "declined")
-    .map((context) => {
-      const own = context.signers.find((signer) => signer.email === email) ?? null;
-      const totals = context.version.totalsSnapshot as QuoteTotalsView | null;
-      return {
-        quoteId: context.quote.id,
-        number: context.quote.number,
-        version: context.version.version,
-        totalTtcCents: totals?.totalTtcCents ?? 0,
-        status: context.request.status,
-        ownSigningUrl: own && context.request.status === "pending" && own.status === "pending" ? own.signingUrl : null,
-        ownStatus: own?.status ?? null,
-        advanceKind: context.version.advanceKind,
-      };
+  const contexts = (await findEventSignatureContexts(organizationId, eventId)).filter((context) => context.request.status !== "declined");
+  const result: ClientQuoteToSign[] = [];
+  for (const context of contexts) {
+    const own = context.signers.find((signer) => signer.email === email) ?? null;
+    const totals = context.version.totalsSnapshot as QuoteTotalsView | null;
+    const open = Boolean(own && context.request.status === "pending" && own.status === "pending");
+    const contract = context.request.contractId ? await clientContract(organizationId, context.request.contractId, own?.id ?? null, open) : null;
+    // Lot 31b (D13) : à distance, le lien de signature suit la commande avec obligation de paiement.
+    const ordered = !contract || !contract.orderRequired || contract.orderedAt !== null;
+    result.push({
+      quoteId: context.quote.id,
+      number: context.quote.number,
+      version: context.version.version,
+      totalTtcCents: totals?.totalTtcCents ?? 0,
+      status: context.request.status,
+      ownSigningUrl: own && open && ordered ? own.signingUrl : null,
+      ownStatus: own?.status ?? null,
+      advanceKind: context.version.advanceKind,
+      kind: context.request.kind,
+      contract,
     });
+  }
+  return result;
+}
+
+async function clientContract(organizationId: string, contractId: string, signerId: string | null, open: boolean): Promise<ClientContract | null> {
+  const found = await findContract(organizationId, contractId);
+  if (!found) return null;
+  const regime = regimeOf(found.contract);
+  const own = (kind: ContractSignerActRow["kind"]) => found.acts.find((act) => act.signerId === signerId && act.kind === kind)?.actedAt.toISOString() ?? null;
+  const earlyExecution = regime.withdrawalApplies ? (found.contract.clauses.find((clause) => clause.role === "early_execution")?.body ?? null) : null;
+  return {
+    contractId: found.contract.id,
+    title: found.contract.title,
+    version: found.contract.version,
+    withdrawalApplies: found.contract.withdrawalApplies,
+    orderRequired: regime.orderRequired,
+    orderedAt: own("order"),
+    earlyExecutionText: earlyExecution,
+    earlyExecutionRequestedAt: own("early_execution"),
+    open: open && signerId !== null,
+  };
 }
 
 // Page de signature du faux fournisseur (développement, essai guidé) : en
@@ -1887,7 +2042,7 @@ export async function actOnFakeSignature(token: string, action: "sign" | "declin
 // --- DEV-04 : factures conformes ---
 
 export async function setQuoteClientKind(organizationId: string, quoteId: string, clientKind: ClientKind): Promise<QuoteDetail> {
-  if (clientKind !== "individual" && clientKind !== "professional") throw new RangeError("type de client inconnu");
+  if (clientKind !== "individual" && clientKind !== "professional" && clientKind !== "non_professional") throw new RangeError("type de client inconnu");
   if (!(await updateQuoteClientKind(organizationId, quoteId, clientKind))) throw new QuoteNotFoundError();
   return loadDetail(organizationId, quoteId);
 }
@@ -2020,6 +2175,8 @@ export async function issueDepositInvoice(input: IssueDepositInvoiceInput): Prom
   const now = input.now ?? new Date();
   const seller = await withDb((db) => getSellerDetails(db, input.organizationId));
   const { rules } = await withDb((db) => getRequiredMentionRules(db));
+  // Lot 31b (réponse 1 de l'avocat) : hors établissement, aucun paiement avant sept jours.
+  const paymentNotBefore = input.paymentNotBefore === undefined ? ((await findScheduledDepositForItem(input.organizationId, input.scheduleItemId))?.paymentNotBefore ?? null) : input.paymentNotBefore;
   const row = await insertInvoice(input.organizationId, { scheduleItemId: input.scheduleItemId }, (context) => {
     requireInvoiceMentions(rules, "deposit_invoice", context, seller);
     const base = invoiceBase(context, now, seller);
@@ -2046,7 +2203,7 @@ export async function issueDepositInvoice(input: IssueDepositInvoiceInput): Prom
         issuedOn: base.issuedOn,
         // « Date de l'acompte » : celle du paiement s'il est reçu, sinon l'échéance.
         serviceDate: item.paidOn ?? item.dueDate,
-        paymentDueOn: item.dueDate > base.issuedOn ? item.dueDate : base.issuedOn,
+        paymentDueOn: [item.dueDate, base.issuedOn, paymentNotBefore ?? ""].reduce((latest, date) => (date > latest ? date : latest)),
         amountCents,
         linesSnapshot: [],
         totalsSnapshot: snapshot,
@@ -2054,6 +2211,8 @@ export async function issueDepositInvoice(input: IssueDepositInvoiceInput): Prom
     };
   }, keepInvoiceOriginal(input.organizationId, input.renderOriginal));
   if (!row) throw new QuoteNotFoundError();
+  // Lot 31b (FAC-05) : émise à la main ou d'elle-même, elle clôt la facture à émettre.
+  await closeScheduledDepositForItem(input.organizationId, input.scheduleItemId, row.id);
   return getInvoice(input.organizationId, row.id);
 }
 
@@ -2378,6 +2537,680 @@ export {
   undoImportedQuotesElements,
 } from "./import";
 
+// --- Lot 31b : contrats (FAC-04, FAC-05, DOC-02, DOC-03, JUR-07, JUR-08, HUB-21 ; décisions D6,
+// D7, D9, D11 à D17, révisées après les réponses de l'avocat du 13/11/2026) ---
+
+export class ContractTemplateNotFoundError extends Error {
+  constructor() {
+    super("modèle de contrat introuvable");
+    this.name = "ContractTemplateNotFoundError";
+  }
+}
+
+export class ContractNotFoundError extends Error {
+  constructor() {
+    super("contrat introuvable");
+    this.name = "ContractNotFoundError";
+  }
+}
+
+// FAC-04 : « Aucune variable non remplie ne part au client » ; le refus nomme chaque problème.
+export class ContractNotGeneratableError extends Error {
+  constructor(readonly problems: ContractProblem[]) {
+    super("contrat impossible à générer");
+    this.name = "ContractNotGeneratableError";
+  }
+}
+
+// Le devis a changé depuis la génération (autre version, options choisies ensuite).
+export class ContractOutdatedError extends Error {
+  constructor() {
+    super("contrat à générer de nouveau");
+    this.name = "ContractOutdatedError";
+  }
+}
+
+export class ContractSigningInProgressError extends Error {
+  constructor() {
+    super("un contrat de ce devis est en cours de signature");
+    this.name = "ContractSigningInProgressError";
+  }
+}
+
+// D13 : à distance, chaque signataire commande sur son espace personnel avant de signer ; sans
+// lien personnel actif (client, rubrique devis), il ne le pourrait pas.
+export class SignersWithoutPortalError extends Error {
+  constructor(readonly names: string[]) {
+    super("signataires sans lien personnel");
+    this.name = "SignersWithoutPortalError";
+  }
+}
+
+// Commande ou demande d'exécution anticipée impossible : régime, signataire ou demande close.
+export class ContractActNotAllowedError extends Error {
+  constructor() {
+    super("acte du signataire impossible");
+    this.name = "ContractActNotAllowedError";
+  }
+}
+
+const CHANNELS: readonly ConclusionChannel[] = ["on_premises", "distance", "off_premises", "fair"];
+const CLAUSE_ROLES: readonly ContractClauseRole[] = [
+  "precontractual_information",
+  "withdrawal_period",
+  "withdrawal_form",
+  "early_execution",
+  "termination",
+  "no_withdrawal",
+  "advance_deposit",
+  "advance_earnest",
+];
+const REVIEW_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
+function contractWords(locale: "fr" | "en") {
+  return (locale === "en" ? enMessages : frMessages).Contracts.values;
+}
+
+function boundedText(value: string, max: number, field: string): string {
+  const text = requireText(value, field);
+  if (text.length > max) throw new RangeError(`${field} trop long`);
+  return text;
+}
+
+function templateHeader(input: ContractTemplateHeaderInput): ContractTemplateHeaderInput {
+  const legalReviewedOn = input.legalReviewedOn?.trim() || null;
+  if (legalReviewedOn && (!REVIEW_DATE_PATTERN.test(legalReviewedOn) || Number.isNaN(Date.parse(legalReviewedOn)))) throw new RangeError("date de revue invalide");
+  return { name: boundedText(input.name, 120, "nom du modèle"), title: boundedText(input.title, 200, "titre du contrat"), eventTypeId: input.eventTypeId || null, legalReviewedOn };
+}
+
+function clauseData(input: ContractTemplateClauseInput): ClauseData {
+  if (input.body.length > 20000) throw new RangeError("clause trop longue");
+  if (input.role !== null && !CLAUSE_ROLES.includes(input.role)) throw new RangeError("rôle de clause inconnu");
+  return { title: boundedText(input.title, 200, "titre de la clause"), body: input.body.trim(), optional: input.optional, role: input.role };
+}
+
+function toContractTemplateView({ template, clauses }: ContractTemplateWithClauses): ContractTemplateView {
+  return {
+    id: template.id,
+    name: template.name,
+    title: template.title,
+    eventTypeId: template.eventTypeId,
+    legalReviewedOn: template.legalReviewedOn,
+    version: template.version,
+    clauses: clauses.map((clause) => ({ id: clause.id, title: clause.title, body: clause.body, optional: clause.optional, role: clause.role, position: clause.position })),
+  };
+}
+
+export async function listContractTemplates(organizationId: string): Promise<ContractTemplateView[]> {
+  return (await findContractTemplates(organizationId)).map(toContractTemplateView);
+}
+
+export async function getContractTemplate(organizationId: string, templateId: string): Promise<ContractTemplateView> {
+  const found = await findContractTemplate(organizationId, templateId);
+  if (!found) throw new ContractTemplateNotFoundError();
+  return toContractTemplateView(found);
+}
+
+export async function createContractTemplate(input: ContractTemplateHeaderInput & { organizationId: string }): Promise<ContractTemplateView> {
+  const template = await insertContractTemplate(input.organizationId, templateHeader(input), []);
+  return getContractTemplate(input.organizationId, template.id);
+}
+
+export async function updateContractTemplate(input: ContractTemplateHeaderInput & { organizationId: string; templateId: string }): Promise<ContractTemplateView> {
+  if (!(await updateContractTemplateHeader(input.organizationId, input.templateId, templateHeader(input)))) throw new ContractTemplateNotFoundError();
+  return getContractTemplate(input.organizationId, input.templateId);
+}
+
+export async function duplicateContractTemplate(input: { organizationId: string; templateId: string; name: string }): Promise<ContractTemplateView> {
+  const source = await getContractTemplate(input.organizationId, input.templateId);
+  const header = templateHeader({ name: input.name, title: source.title, eventTypeId: source.eventTypeId, legalReviewedOn: source.legalReviewedOn });
+  const copy = await insertContractTemplate(
+    input.organizationId,
+    header,
+    source.clauses.map(({ title, body, optional, role }) => ({ title, body, optional, role })),
+  );
+  return getContractTemplate(input.organizationId, copy.id);
+}
+
+export async function removeContractTemplate(organizationId: string, templateId: string): Promise<void> {
+  if (!(await deleteContractTemplateRow(organizationId, templateId))) throw new ContractTemplateNotFoundError();
+}
+
+export async function addContractClause(organizationId: string, templateId: string, clause: ContractTemplateClauseInput): Promise<ContractTemplateView> {
+  if (!(await insertContractClause(organizationId, templateId, clauseData(clause)))) throw new ContractTemplateNotFoundError();
+  return getContractTemplate(organizationId, templateId);
+}
+
+export async function updateContractClause(organizationId: string, clauseId: string, clause: ContractTemplateClauseInput): Promise<ContractTemplateView> {
+  const templateId = await updateContractClauseRow(organizationId, clauseId, clauseData(clause));
+  if (!templateId) throw new ContractTemplateNotFoundError();
+  return getContractTemplate(organizationId, templateId);
+}
+
+export async function removeContractClause(organizationId: string, clauseId: string): Promise<ContractTemplateView> {
+  const templateId = await deleteContractClauseRow(organizationId, clauseId);
+  if (!templateId) throw new ContractTemplateNotFoundError();
+  return getContractTemplate(organizationId, templateId);
+}
+
+export async function moveContractClause(organizationId: string, clauseId: string, direction: "up" | "down"): Promise<ContractTemplateView> {
+  const templateId = await moveContractClauseRow(organizationId, clauseId, direction);
+  if (!templateId) throw new ContractTemplateNotFoundError();
+  return getContractTemplate(organizationId, templateId);
+}
+
+// HUB-26, JUR-20 (D10) : modèle de départ « à adapter », en données, rattaché au type d'événement.
+export async function addStarterContractTemplates(organizationId: string, locale: "fr" | "en", chosenMetier?: "wedding_planner" | "event_agency" | "autre"): Promise<ContractTemplateView[]> {
+  const profile = await withDb((db) => getOrganizationProfile(db, organizationId));
+  const metier = chosenMetier ?? profile.metier ?? "wedding_planner";
+  const starters = starterContractTemplates(locale, metier);
+  if (starters.length === 0) return [];
+  const types = await listEventTypes(organizationId);
+  const starterTypes = starterEventTypes(locale, metier);
+  const created: ContractTemplateView[] = [];
+  for (const starter of starters) {
+    const label = starterTypes.find((type) => type.key === starter.eventTypeKey)?.label;
+    const eventTypeId = label ? (types.find((type) => type.label.toLocaleLowerCase(locale) === label.toLocaleLowerCase(locale))?.id ?? null) : null;
+    const template = await insertContractTemplate(organizationId, { name: starter.name, title: starter.title, eventTypeId, legalReviewedOn: null }, starter.clauses);
+    created.push(await getContractTemplate(organizationId, template.id));
+  }
+  return created;
+}
+
+// Valeurs des variables pour un devis envoyé : sa copie figée du vendeur et de l'échéancier.
+async function contractVariableValues(organizationId: string, quote: QuoteDetail, locale: "fr" | "en", now: Date): Promise<ContractVariableValues> {
+  const words = contractWords(locale);
+  const rules = starterContractRules();
+  const event = await getEvent(organizationId, quote.eventId);
+  const seller = quote.current.seller ?? (await currentQuoteSeller(organizationId));
+  const join = (parts: (string | null | undefined)[]) => parts.filter((part): part is string => Boolean(part && part.trim())).join(", ") || null;
+  const names = (event?.clients ?? []).map((client) => [client.firstName, client.lastName].filter(Boolean).join(" ")).filter(Boolean);
+  const schedule = quote.current.schedule.items
+    .map((item) => words.scheduleLine.replace("{label}", item.label).replace("{amount}", formatAmount(item.amountCents, locale)).replace("{date}", formatCalendarDate(item.dueDate, locale)))
+    .join("\n");
+  return {
+    "client.noms": names.length > 0 ? names.join(words.namesJoin) : null,
+    "evenement.date": event?.eventDate ? formatCalendarDate(event.eventDate, locale) : null,
+    "evenement.lieu": join([event?.venueName, event?.venueCity]),
+    "devis.numero": quote.number,
+    "devis.total_ttc": formatAmount(quote.current.totals.totalTtcCents, locale),
+    "devis.echeancier": schedule || null,
+    "devis.acompte_ou_arrhes": quote.current.advanceKind ? words[quote.current.advanceKind] : null,
+    "organisation.nom": seller.organizationName || null,
+    "organisation.adresse": seller.address,
+    "organisation.siren": seller.siren,
+    "organisation.assurance": join([seller.insurer, seller.insurancePolicy, seller.insuranceCoverage]),
+    "organisation.mediateur": join([seller.mediatorName, seller.mediatorUrl]),
+    "contrat.date": formatCalendarDate(parisDate(now), locale),
+    "retractation.delai": words.days.replace("{days}", String(rules.withdrawal.periodDays)),
+  };
+}
+
+// Régime d'un contrat généré : la rétractation figée à la génération ; commande et délai sans
+// paiement suivent les règles.
+function regimeOf(contract: ContractRow) {
+  const regime = contractRegime({ channel: contract.conclusionChannel, category: contract.clientCategory, smallBusinessConfirmed: contract.smallBusinessConfirmed }, starterContractRules());
+  return {
+    withdrawalApplies: contract.withdrawalApplies,
+    orderRequired: contract.withdrawalApplies && regime.orderRequired,
+    noPaymentDays: contract.withdrawalApplies ? regime.noPaymentDays : null,
+    requiredRoles: regime.requiredRoles,
+  };
+}
+
+function recommendedSignatureLevel(totalTtcCents: number): "simple" | "advanced" {
+  return totalTtcCents >= starterContractRules().signature.advancedThresholdCents ? "advanced" : "simple";
+}
+
+// Contrôle avant la génération (FAC-04, DOC-02 ; D11, D12, D21) : tout ce qui l'empêche, nommé.
+export async function checkContract(input: ContractCheckInput): Promise<ContractCheck> {
+  if (!CHANNELS.includes(input.channel)) throw new RangeError("canal de conclusion inconnu");
+  const rules = starterContractRules();
+  const now = input.now ?? new Date();
+  const quote = await loadDetail(input.organizationId, input.quoteId);
+  const found = await findContractTemplate(input.organizationId, input.templateId);
+  if (!found) throw new ContractTemplateNotFoundError();
+  const chosen = new Set(input.optionalClauseIds);
+  const selected = found.clauses.filter((clause) => !clause.optional || chosen.has(clause.id));
+  const values = await contractVariableValues(input.organizationId, quote, input.locale, now);
+  const text = resolveContractText(
+    [{ title: found.template.title, body: "", role: null }, ...selected.map((clause): ContractClauseText => ({ title: clause.title, body: clause.body, role: clause.role }))],
+    values,
+    rules.placeholderMarkers,
+  );
+  const [titleText, ...clauses] = text.clauses;
+  const regime = contractRegime({ channel: input.channel, category: quote.clientKind, smallBusinessConfirmed: input.smallBusinessConfirmed }, rules);
+  const roles = selected.map((clause) => clause.role);
+  const problems: ContractProblem[] = [];
+  if (quote.current.sentAt === null) problems.push({ kind: "quote_not_sent" });
+  if (regime.blocked) problems.push({ kind: "channel_blocked" });
+  for (const variable of text.missing) problems.push({ kind: "variable_missing", variable });
+  for (const variable of text.unknown) problems.push({ kind: "variable_unknown", variable });
+  for (const clause of text.unwritten) problems.push({ kind: "clause_unwritten", clause });
+  if (!regime.blocked) for (const role of missingRoles(regime.requiredRoles, roles)) problems.push({ kind: "role_missing", role });
+  const advance = advanceClauseProblem(quote.current.advanceKind, quote.current.schedule.items.length > 0, roles, rules);
+  if (advance === "missing" && quote.current.advanceKind) problems.push({ kind: "advance_missing", advanceKind: quote.current.advanceKind });
+  if (advance === "mismatch") problems.push({ kind: "advance_mismatch", advanceKind: quote.current.advanceKind });
+  if (regime.noPaymentDays !== null) {
+    const firstAllowed = addCalendarDays(parisDate(now), regime.noPaymentDays);
+    if (quote.current.schedule.items.some((item) => !item.paidOn && item.dueDate < firstAllowed)) problems.push({ kind: "payment_too_soon", firstAllowed });
+  }
+  return {
+    templateVersion: found.template.version,
+    templateReviewedOn: found.template.legalReviewedOn,
+    title: titleText?.title ?? found.template.title,
+    clauses,
+    regime: { withdrawalApplies: regime.withdrawalApplies, orderRequired: regime.orderRequired, noPaymentDays: regime.noPaymentDays, requiredRoles: regime.requiredRoles },
+    problems,
+    warningAccepted: await hasAcceptedTemplate(input.organizationId, found.template.id, found.template.version, input.userId),
+    signature: { recommended: recommendedSignatureLevel(quote.current.totals.totalTtcCents), available: rules.signature.availableLevel },
+  };
+}
+
+// FAC-04 (D7) : contrat figé, nouvelle version à chaque génération ; l'avertissement « base à
+// adapter » est accepté à la première génération avec chaque version du modèle (réponse 6).
+export async function generateContract(input: GenerateContractInput): Promise<ContractView> {
+  const now = input.now ?? new Date();
+  const check = await checkContract({ ...input, now });
+  const problems = [...check.problems];
+  if (!check.warningAccepted && !input.acceptWarning) problems.push({ kind: "warning_not_accepted" });
+  if (problems.length > 0) throw new ContractNotGeneratableError(problems);
+  const quote = await loadDetail(input.organizationId, input.quoteId);
+  if (!check.warningAccepted) await insertTemplateAcceptance(input.organizationId, { templateId: input.templateId, templateVersion: check.templateVersion, userId: input.userId, acceptedAt: now });
+  const result = await insertContract(input.organizationId, {
+    quoteId: input.quoteId,
+    quoteVersionId: quote.current.id,
+    templateId: input.templateId,
+    templateVersion: check.templateVersion,
+    templateReviewedOn: check.templateReviewedOn,
+    title: check.title,
+    clauses: check.clauses,
+    conclusionChannel: input.channel,
+    clientCategory: quote.clientKind,
+    smallBusinessConfirmed: input.smallBusinessConfirmed && quote.clientKind !== "individual",
+    withdrawalApplies: check.regime.withdrawalApplies,
+    signatureLevel: starterContractRules().signature.availableLevel,
+    generatedAt: now,
+    isDemo: quote.isDemo,
+    quoteNumber: quote.number,
+  });
+  if (result.status !== "ok") throw result.status === "signing" ? new ContractSigningInProgressError() : new QuoteNotFoundError();
+  const contractId = result.row.id;
+  const view = (await listQuoteContracts(input.organizationId, input.quoteId)).find((contract) => contract.id === contractId);
+  if (!view) throw new ContractNotFoundError();
+  return view;
+}
+
+export async function listQuoteContracts(organizationId: string, quoteId: string): Promise<ContractView[]> {
+  const quote = await loadDetail(organizationId, quoteId);
+  const { contracts, acts, evidence } = await findQuoteContracts(organizationId, quoteId);
+  const requests = await findContractRequests(organizationId, contracts.map((contract) => contract.id));
+  const versions = new Map(quote.versions.map((version) => [version.id, version.version]));
+  const chosenAt = quote.current.optionsChoice ? new Date(quote.current.optionsChoice.chosenAt) : null;
+  return contracts.map((contract) => {
+    const request = requests.filter((candidate) => candidate.contractId === contract.id).sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
+    const outdated = contract.quoteVersionId !== quote.current.id || (!request && chosenAt !== null && chosenAt > contract.generatedAt);
+    return {
+      id: contract.id,
+      quoteId,
+      quoteVersion: versions.get(contract.quoteVersionId) ?? 0,
+      version: contract.version,
+      templateId: contract.templateId,
+      templateVersion: contract.templateVersion,
+      templateReviewedOn: contract.templateReviewedOn,
+      title: contract.title,
+      clauses: contract.clauses,
+      conclusionChannel: contract.conclusionChannel,
+      clientCategory: contract.clientCategory,
+      smallBusinessConfirmed: contract.smallBusinessConfirmed,
+      regime: regimeOf(contract),
+      signatureLevel: contract.signatureLevel,
+      recommendedSignatureLevel: recommendedSignatureLevel(quote.current.totals.totalTtcCents),
+      generatedAt: contract.generatedAt.toISOString(),
+      outdated,
+      signature: request ? { kind: request.kind, status: request.status, hasSignedDocument: request.signedDocumentKey !== null } : null,
+      acts: acts
+        .filter((act) => act.contractId === contract.id)
+        .map((act) => ({ signerId: act.signerId, signerName: act.signerName, kind: act.kind, actedAt: act.actedAt.toISOString() })),
+      hasEvidence: evidence.some((row) => row.contractId === contract.id),
+    };
+  });
+}
+
+// Le contrat d'un devis, lu par le client sur son portail : seulement un contrat envoyé en
+// signature, et seulement pour l'événement de son lien.
+export async function getClientContract(organizationId: string, eventId: string, contractId: string): Promise<{ quote: QuoteDetail; contract: ContractView }> {
+  const found = await findContract(organizationId, contractId);
+  if (!found) throw new ContractNotFoundError();
+  const quote = await loadDetail(organizationId, found.contract.quoteId).catch(() => null);
+  if (!quote || quote.eventId !== eventId) throw new ContractNotFoundError();
+  const contract = (await listQuoteContracts(organizationId, quote.id)).find((candidate) => candidate.id === contractId);
+  if (!contract?.signature) throw new ContractNotFoundError();
+  return { quote, contract };
+}
+
+function contractSigningMail(input: { locale: "fr" | "en"; organizationName: string; number: string; url: string }) {
+  if (input.locale === "en") {
+    return {
+      subject: `Contract for quote ${input.number} to sign — ${input.organizationName}`,
+      text: `Hello,\n\n${input.organizationName} sends you the contract for quote ${input.number} to sign online. Your personal signing link:\n${input.url}\n\nThis link is personal: please do not forward it.\n\nThe Symbola team`,
+    };
+  }
+  return {
+    subject: `Contrat du devis ${input.number} à signer — ${input.organizationName}`,
+    text: `Bonjour,\n\n${input.organizationName} vous envoie le contrat du devis ${input.number} à signer en ligne. Votre lien personnel de signature :\n${input.url}\n\nCe lien vous est personnel : merci de ne pas le transférer.\n\nL'équipe Symbola`,
+  };
+}
+
+// D13 (réponse 1 de l'avocat) — contrat à distance : le lien de signature ne part pas par e-mail ;
+// il s'affiche sur l'espace personnel du signataire après sa commande. Chacun doit donc en avoir un.
+async function requirePortalLinks(organizationId: string, eventId: string, people: { name: string; email: string }[]): Promise<void> {
+  const links = (await listEventLinks(organizationId, eventId)).filter((link) => link.audience === "client" && link.status === "active" && link.rights.rubrics.includes("quotes"));
+  const emails = new Set(links.map((link) => link.email.trim().toLowerCase()));
+  const missing = people.filter((person) => !emails.has(person.email.trim().toLowerCase())).map((person) => person.name);
+  if (missing.length > 0) throw new SignersWithoutPortalError(missing);
+}
+
+function orderFirstMail(input: { locale: "fr" | "en"; organizationName: string; number: string }) {
+  if (input.locale === "en") {
+    return {
+      subject: `Quote ${input.number} and its contract — ${input.organizationName}`,
+      text: `Hello,\n\n${input.organizationName} sends you quote ${input.number} and its contract. Open your personal space (the link ${input.organizationName} gave you) to read the contract, place your order, then sign.\n\nThe Symbola team`,
+    };
+  }
+  return {
+    subject: `Devis ${input.number} et son contrat — ${input.organizationName}`,
+    text: `Bonjour,\n\n${input.organizationName} vous envoie le devis ${input.number} et son contrat. Ouvrez votre espace personnel (le lien que ${input.organizationName} vous a remis) pour lire le contrat, passer commande, puis signer.\n\nL'équipe Symbola`,
+  };
+}
+
+// DOC-03 (D9) : contrat généré après la signature du devis, signé seul par les mêmes signataires.
+export async function sendContractForSignature(input: SendContractForSignatureInput): Promise<ContractView> {
+  const quote = await loadDetail(input.organizationId, input.quoteId);
+  if (quote.status !== "signed" || quote.signature?.status !== "completed") throw new QuoteNotSignedError();
+  const contract = (await listQuoteContracts(input.organizationId, input.quoteId)).find((candidate) => candidate.id === input.contractId);
+  if (!contract) throw new ContractNotFoundError();
+  if (contract.signature) throw new SignatureAlreadyRequestedError();
+  if (contract.outdated) throw new ContractOutdatedError();
+  const provider = signatureProviderFor(quote.isDemo);
+  if (!provider) throw new SignatureUnavailableError();
+  const people = quote.signature.signers.map((signer) => ({ eventClientId: signer.eventClientId, name: signer.name, email: signer.email, billingAddress: signer.billingAddress }));
+  if (contract.regime.orderRequired) await requirePortalLinks(input.organizationId, quote.eventId, people);
+  const signerIds = people.map(() => randomUUID());
+  const created = await provider.createRequest({
+    title: `${quote.number} — ${contract.title} V${contract.version}`,
+    pdf: Buffer.from(input.documentPdf),
+    signers: people.map((signer, index) => ({ externalId: `${input.organizationId}.${signerIds[index]}`, name: signer.name, email: signer.email, role: signerRole(index) })),
+  });
+  const result = await insertSignatureRequest(input.organizationId, input.quoteId, {
+    provider: provider.name,
+    externalId: created.externalId,
+    kind: "contract",
+    contractId: contract.id,
+    signers: people.map((signer, index) => {
+      const externalId = `${input.organizationId}.${signerIds[index]}`;
+      const link = created.signers.find((candidate) => candidate.externalId === externalId);
+      if (!link) throw new Error("lien de signature manquant");
+      return { id: signerIds[index]!, eventClientId: signer.eventClientId, name: signer.name, email: signer.email, billingAddress: signer.billingAddress, signingUrl: link.signingUrl, externalId, position: index };
+    }),
+  });
+  if (result.status === "exists") throw new SignatureAlreadyRequestedError();
+  if (result.status === "not_sent") throw new QuoteNotSignedError();
+  if (result.status !== "ok") throw new ContractNotFoundError();
+  if (!quote.isDemo) {
+    const organizationName = quote.current.seller?.organizationName ?? "";
+    const request = (await findContractRequests(input.organizationId, [contract.id])).find((candidate) => candidate.kind === "contract");
+    const signers = request ? await findSignersOfRequest(input.organizationId, request.id) : [];
+    let notMailed = 0;
+    for (const signer of signers) {
+      try {
+        await reserveOrganizationMail(input.organizationId);
+        const mail = contract.regime.orderRequired
+          ? orderFirstMail({ locale: input.locale, organizationName, number: quote.number })
+          : contractSigningMail({ locale: input.locale, organizationName, number: quote.number, url: signer.signingUrl });
+        await sendMail({ to: signer.email, ...mail });
+      } catch (error) {
+        notMailed += 1;
+        console.error(`e-mail de signature du contrat non envoyé (signataire ${signer.id})`, error instanceof Error ? error.message : error);
+      }
+    }
+    if (notMailed > 0) throw new SignatureLinksNotMailedError(notMailed);
+  }
+  const view = (await listQuoteContracts(input.organizationId, input.quoteId)).find((candidate) => candidate.id === contract.id);
+  if (!view) throw new ContractNotFoundError();
+  return view;
+}
+
+// JUR-07 (réponse 1 de l'avocat, D13) — actes du signataire sur son portail, avant de signer :
+// commande avec obligation de paiement (à distance) ; demande d'exécution avant la fin du délai
+// (case distincte de la signature, texte de la clause du contrat). Horodatés et nominatifs.
+export async function recordSignerAct(input: {
+  organizationId: string;
+  eventId: string;
+  clientEmail: string;
+  contractId: string;
+  kind: "order" | "early_execution";
+  orderText?: string;
+  now?: Date;
+}): Promise<void> {
+  const found = await findContract(input.organizationId, input.contractId);
+  if (!found) throw new ContractNotFoundError();
+  const aggregate = await findQuoteAggregate(input.organizationId, found.contract.quoteId);
+  if (!aggregate || aggregate.quote.eventId !== input.eventId) throw new ContractNotFoundError();
+  const request = aggregate.signatureRequests.find((candidate) => candidate.contractId === found.contract.id && candidate.status === "pending");
+  const email = input.clientEmail.trim().toLowerCase();
+  const signer = request ? aggregate.signers.find((candidate) => candidate.requestId === request.id && candidate.email === email && candidate.status === "pending") : undefined;
+  if (!request || !signer) throw new ContractActNotAllowedError();
+  const regime = regimeOf(found.contract);
+  let presentedText: string | null = null;
+  if (input.kind === "order") {
+    if (!regime.orderRequired) throw new ContractActNotAllowedError();
+    presentedText = input.orderText?.trim() || null;
+  } else {
+    if (!regime.withdrawalApplies) throw new ContractActNotAllowedError();
+    presentedText = found.contract.clauses.find((clause) => clause.role === "early_execution")?.body ?? null;
+  }
+  if (!presentedText) throw new ContractActNotAllowedError();
+  await insertSignerAct(input.organizationId, {
+    contractId: found.contract.id,
+    signerId: signer.id,
+    kind: input.kind,
+    signerName: signer.name,
+    presentedText,
+    actedAt: input.now ?? new Date(),
+    quoteId: aggregate.quote.id,
+    quoteNumber: aggregate.quote.number,
+    isDemo: aggregate.quote.isDemo,
+  });
+}
+
+// Dossier de preuve de Symbola (réponses 1 et 5 de l'avocat) : faits figés en JSON, stockés en
+// privé avec leur empreinte, au moment où tous ont signé.
+async function writeContractEvidence(
+  organizationId: string,
+  quote: QuoteAggregate["quote"],
+  request: SignatureRequestRow,
+  contract: ContractRow,
+  acts: ContractSignerActRow[],
+  signers: QuoteSignerRow[],
+  documents: { signedDocumentSha256: string; auditCertificateSha256: string },
+  now: Date,
+): Promise<void> {
+  const aggregate = await findQuoteAggregate(organizationId, quote.id);
+  const version = aggregate?.versions.find((candidate) => candidate.id === request.versionId);
+  const signerIds = new Set(signers.map((signer) => signer.id));
+  const document: ContractEvidenceDocument = {
+    version: 1,
+    writtenAt: now.toISOString(),
+    quote: { number: quote.number, version: version?.version ?? 0 },
+    contract: {
+      id: contract.id,
+      version: contract.version,
+      title: contract.title,
+      templateVersion: contract.templateVersion,
+      templateReviewedOn: contract.templateReviewedOn,
+      generatedAt: contract.generatedAt.toISOString(),
+      conclusionChannel: contract.conclusionChannel,
+      clientCategory: contract.clientCategory,
+      smallBusinessConfirmed: contract.smallBusinessConfirmed,
+      withdrawalApplies: contract.withdrawalApplies,
+      signatureLevel: contract.signatureLevel,
+    },
+    request: { kind: request.kind, provider: request.provider, externalId: request.externalId, createdAt: request.createdAt.toISOString(), completedAt: (request.completedAt ?? now).toISOString() },
+    signers: signers.map((signer) => ({ id: signer.id, name: signer.name, email: signer.email, status: signer.status, signedAt: signer.signedAt?.toISOString() ?? null })),
+    acts: acts
+      .filter((act) => signerIds.has(act.signerId))
+      .map((act) => ({ signerId: act.signerId, signerName: act.signerName, kind: act.kind, actedAt: act.actedAt.toISOString(), presentedText: act.presentedText })),
+    documents,
+  };
+  const body = Buffer.from(JSON.stringify(document, null, 2), "utf8");
+  const key = `evidence/${organizationId}/${contract.id}/${request.id}.json`;
+  await uploadPrivateObject(createStorageClient(), { key, body, contentType: "application/json" });
+  await insertContractEvidence(organizationId, { requestId: request.id, contractId: contract.id, documentKey: key, sha256: sha256Hex(body) });
+}
+
+export async function getContractEvidence(organizationId: string, quoteId: string, contractId: string): Promise<ContractEvidenceDocument & { sha256: string }> {
+  const found = await findContract(organizationId, contractId);
+  if (!found || found.contract.quoteId !== quoteId) throw new ContractNotFoundError();
+  const row = await findLatestEvidence(organizationId, contractId);
+  if (!row) throw new SignatureDocumentNotFoundError();
+  try {
+    const { data } = await readPrivateObject(createStorageClient(), row.documentKey);
+    if (sha256Hex(data) !== row.sha256) {
+      await withDb((db) =>
+        recordAudit(db, { organizationId, action: "quotes.original.altered", objectType: "quote", objectId: quoteId, details: { file: "contract_evidence", contractId } }),
+      );
+      throw new OriginalAlteredError();
+    }
+    return { ...(JSON.parse(data.toString("utf8")) as ContractEvidenceDocument), sha256: row.sha256 };
+  } catch (error) {
+    if (error instanceof PrivateObjectNotFoundError) throw new SignatureDocumentNotFoundError();
+    throw error;
+  }
+}
+
+// Exemplaire signé remis à chaque signataire (support durable, réponse 1 de l'avocat).
+async function mailSignedContract(organizationId: string, quote: QuoteAggregate["quote"], signers: QuoteSignerRow[], signedPdf: Buffer): Promise<void> {
+  if (quote.isDemo) return;
+  const contact = await withDb((db) => getUserContact(db, organizationId, quote.createdByUserId));
+  const seller = await currentQuoteSeller(organizationId);
+  const english = contact?.language === "en";
+  for (const signer of signers) {
+    try {
+      await reserveOrganizationMail(organizationId);
+      await sendMail({
+        to: signer.email,
+        subject: english ? `Your signed copy — quote ${quote.number}` : `Votre exemplaire signé — devis ${quote.number}`,
+        text: english
+          ? `Hello,\n\nPlease find attached your signed copy of quote ${quote.number} and its contract with ${seller.organizationName}. Keep it: it is your confirmation of the contract.\n\nThe Symbola team`
+          : `Bonjour,\n\nVous trouverez ci-joint votre exemplaire signé du devis ${quote.number} et de son contrat avec ${seller.organizationName}. Conservez-le : c'est la confirmation de votre contrat.\n\nL'équipe Symbola`,
+        attachments: [{ filename: `${quote.number}-signe.pdf`, content: signedPdf, contentType: "application/pdf" }],
+      });
+    } catch (error) {
+      console.error(`exemplaire signé non envoyé (signataire ${signer.id})`, error instanceof Error ? error.message : error);
+    }
+  }
+}
+
+// FAC-05 (D6, D21) — facture d'acompte de la première échéance, à émettre d'elle-même : le jour
+// de la signature, ou le lendemain de la fin du délai de rétractation si tous les signataires
+// n'ont pas demandé l'exécution anticipée. Pas pour des arrhes (D21), ni pour un client
+// professionnel (Factur-X, lot 41). Hors établissement : aucun paiement avant sept jours.
+async function scheduleDepositInvoice(
+  organizationId: string,
+  aggregate: QuoteAggregate,
+  request: SignatureRequestRow,
+  contract: { contract: ContractRow; acts: ContractSignerActRow[] } | null,
+  now: Date,
+): Promise<void> {
+  const version = aggregate.versions.find((candidate) => candidate.id === request.versionId);
+  if (!version || version.advanceKind !== "deposit" || aggregate.quote.clientKind === "professional") return;
+  const first = aggregate.scheduleItems.filter((item) => item.versionId === version.id)[0];
+  if (!first) return;
+  const signedOn = parisDate(now);
+  let issueOn = signedOn;
+  let paymentNotBefore: string | null = null;
+  if (contract) {
+    const regime = regimeOf(contract.contract);
+    const signerIds = new Set(aggregate.signers.filter((signer) => signer.requestId === request.id).map((signer) => signer.id));
+    const early = new Set(contract.acts.filter((act) => act.kind === "early_execution" && signerIds.has(act.signerId)).map((act) => act.signerId));
+    if (regime.withdrawalApplies && early.size < signerIds.size) issueOn = withdrawalPeriod(signedOn, starterContractRules().withdrawal).issueOn;
+    if (regime.noPaymentDays !== null) paymentNotBefore = addCalendarDays(signedOn, regime.noPaymentDays);
+  }
+  await insertScheduledDeposit(organizationId, { quoteId: aggregate.quote.id, versionId: version.id, scheduleItemId: first.id, issueOn, paymentNotBefore });
+}
+
+async function creatorLocale(organizationId: string, userId: string): Promise<"fr" | "en"> {
+  const contact = await withDb((db) => getUserContact(db, organizationId, userId));
+  return contact?.language === "en" ? "en" : "fr";
+}
+
+// Traitement régulier (et worker d'événements à la signature) : émet les factures arrivées à
+// leur date. Une mention manquante bloque l'émission, « À traiter » nomme le champ, et la
+// planner l'émet ensuite en un clic.
+export async function issueScheduledDepositInvoices(input: IssueScheduledDepositsInput): Promise<{ issued: number; blocked: number }> {
+  const now = input.now ?? new Date();
+  const due = await findDueScheduledDeposits(input.organizationId, parisDate(now), input.quoteId);
+  let issued = 0;
+  let blocked = 0;
+  for (const entry of due) {
+    const locale = await creatorLocale(input.organizationId, entry.createdByUserId);
+    try {
+      await issueDepositInvoice({
+        organizationId: input.organizationId,
+        scheduleItemId: entry.row.scheduleItemId,
+        now,
+        paymentNotBefore: entry.row.paymentNotBefore,
+        renderOriginal: (invoice) => input.renderOriginal(invoice, locale),
+      });
+      issued += 1;
+    } catch (error) {
+      if (error instanceof InvoiceAlreadyIssuedError) {
+        const existing = (await listQuoteInvoices(input.organizationId, entry.row.quoteId)).find(
+          (invoice) => invoice.kind === "deposit" && invoice.scheduleItemId === entry.row.scheduleItemId && invoice.creditedCents < invoice.amountCents,
+        );
+        if (existing) {
+          await updateScheduledDeposit(input.organizationId, entry.row.id, { status: "issued", missingFields: [], invoiceId: existing.id });
+          continue;
+        }
+      }
+      const fields = error instanceof RequiredMentionsMissingError ? error.fields : ["unavailable"];
+      if (!(error instanceof RequiredMentionsMissingError)) {
+        console.error(`facture d'acompte automatique non émise (devis ${entry.row.quoteId})`, error instanceof Error ? error.name : error);
+      }
+      await updateScheduledDeposit(input.organizationId, entry.row.id, { status: "blocked", missingFields: fields, invoiceId: null });
+      blocked += 1;
+    }
+  }
+  return { issued, blocked };
+}
+
+function toScheduledDepositView(entry: ScheduledDepositContext): ScheduledDepositView {
+  return {
+    quoteId: entry.row.quoteId,
+    quoteNumber: entry.quoteNumber,
+    eventId: entry.eventId,
+    scheduleItemLabel: entry.label,
+    status: entry.row.status,
+    issueOn: entry.row.issueOn,
+    paymentNotBefore: entry.row.paymentNotBefore,
+    missingFields: entry.row.missingFields,
+    invoiceId: entry.row.invoiceId,
+  };
+}
+
+export async function listOpenScheduledDeposits(organizationId: string): Promise<ScheduledDepositView[]> {
+  return (await findOpenScheduledDeposits(organizationId)).map(toScheduledDepositView);
+}
+
+export async function getQuoteScheduledDeposit(organizationId: string, quoteId: string): Promise<ScheduledDepositView | null> {
+  const entry = await findQuoteScheduledDeposit(organizationId, quoteId);
+  return entry ? toScheduledDepositView(entry) : null;
+}
+
+// Lot 31b (FAC-04, DOC-02) : la liste fixe des variables des contrats, documentée à l'écran.
+export { CONTRACT_VARIABLES } from "./contract-text";
+
 // Lot 6 — contrat privacy/v1 du module (ADR 0023).
 export { quotesPrivacy } from "./privacy";
 
@@ -2457,6 +3290,25 @@ const _contractCheck: QuotesServiceContract = {
   removeQuoteTemplate,
   createQuoteFromTemplate,
   addStarterQuoteTemplates,
+  listContractTemplates,
+  createContractTemplate,
+  updateContractTemplate,
+  duplicateContractTemplate,
+  removeContractTemplate,
+  addContractClause,
+  updateContractClause,
+  removeContractClause,
+  moveContractClause,
+  addStarterContractTemplates,
+  checkContract,
+  generateContract,
+  listQuoteContracts,
+  sendContractForSignature,
+  recordSignerAct,
+  getContractEvidence,
+  issueScheduledDepositInvoices,
+  listOpenScheduledDeposits,
+  getQuoteScheduledDeposit,
 };
 void _contractCheck;
 

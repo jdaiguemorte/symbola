@@ -1,4 +1,5 @@
-// DEV-02 — document signé ou certificat de preuve de la version courante,
+// DEV-02 — document signé ou certificat de preuve de la version courante (lot 31b : ou du
+// contrat signé seul),
 // servi par l'app depuis le stockage privé (ADR 0027). Contrôles côté
 // serveur : session planner, organisation, module souscrit.
 import { refusedResponse } from "@/lib/access-refusals";
@@ -16,8 +17,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ quot
   const { quoteId, kind } = await params;
   const parsed = kindSchema.safeParse(kind);
   if (!isValidId(quoteId) || !parsed.success) return new Response(null, { status: 404 });
+  // Lot 31b (D9) : « ?portee=contrat » sert le document du contrat signé seul, après le devis.
+  const scope = new URL(request.url).searchParams.get("portee") === "contrat" ? "contract" : "quote";
   try {
-    return fileDownloadResponse(await getSignatureDocument(planner.organizationId, quoteId, parsed.data));
+    return fileDownloadResponse(await getSignatureDocument(planner.organizationId, quoteId, parsed.data, scope));
   } catch (error) {
     if (error instanceof QuoteNotFoundError || error instanceof SignatureDocumentNotFoundError) return refusedResponse(request);
     // Lot 23b (DOC-08) : fichier relu différent de celui archivé.

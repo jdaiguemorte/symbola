@@ -536,6 +536,42 @@ fields:
       demande d'oubli (RGPD-03), sauf sur un devis signé tant que court la preuve
       du contrat.
   - schema: quotes
+    table: contracts
+    field: clauses
+    category: contenu_libre
+    retention: >-
+      Texte figé d'un contrat généré (lot 31b, FAC-04 : clauses du modèle dont les
+      variables sont résolues, dont les noms des clients et le lieu de
+      l'événement). Conservé avec le devis ; un contrat signé est une preuve du
+      contrat, gardée dix ans par défaut (réponse 3 de l'avocat, D16).
+    anonymization: >-
+      Trouvé par la recherche RGPD-01 ; le texte des clauses est remplacé par
+      « [anonymisé] » lors d'une demande d'oubli (RGPD-03), sauf sur un devis
+      signé tant que court la preuve du contrat.
+  - schema: quotes
+    table: contract_signer_acts
+    field: signer_name
+    category: identifiant
+    retention: >-
+      Nom du signataire qui a commandé (contrat à distance) ou demandé
+      l'exécution avant la fin du délai de rétractation (lot 31b, JUR-07), avec
+      la date et le texte présenté. Preuve du contrat, même durée que le devis
+      signé.
+    anonymization: >-
+      Trouvé par la recherche RGPD-01 ; remplacé par « [anonymisé] » lors d'une
+      demande d'oubli (RGPD-03), sauf tant que court la preuve du contrat.
+  - schema: quotes
+    table: contract_evidence
+    field: document_key
+    category: identifiant
+    retention: >-
+      Clé du dossier de preuve de Symbola (lot 31b), fichier JSON privé qui
+      reprend les noms et e-mails des signataires, leurs actes et les empreintes
+      des documents signés. Même durée que le devis signé (dix ans par défaut).
+    anonymization: >-
+      Fichier retiré du stockage et ligne supprimée à la fin de la preuve du
+      contrat (RGPD-05) ; jamais modifié avant.
+  - schema: quotes
     table: quote_versions
     field: seller_snapshot
     category: contact

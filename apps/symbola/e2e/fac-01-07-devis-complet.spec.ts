@@ -138,7 +138,8 @@ test("FAC-07 / JUR-09 / JUR-08 — sans assurance ni médiateur, l'envoi est ref
   await expect(panel).toContainText("Assurance de responsabilité civile professionnelle (assureur et contrat)");
   await expect(panel).toContainText("Médiateur de la consommation (nom et site)");
   await expect(panel).toContainText("Conditions générales de vente");
-  await expect(panel).toContainText("Acompte ou arrhes, sur ce devis");
+  // Lot 31b (D17) : « acompte » est proposé par défaut ; le choix ne manque plus.
+  await expect(panel).not.toContainText("Acompte ou arrhes, sur ce devis");
   await page.getByRole("button", { name: "Marquer comme envoyé" }).click();
   const refusal = page.getByRole("form", { name: "Marquer comme envoyé" });
   await expect(refusal.getByRole("alert")).toHaveText("Mentions requises manquantes : remplissez-les, puis recommencez.");

@@ -24,7 +24,7 @@ export type MentionValues = {
 export type MentionContext = {
   document: MentionDocument;
   vatRegime: "franchise" | "assujetti" | null;
-  clientKind: "individual" | "professional";
+  clientKind: "individual" | "professional" | "non_professional";
   legalForm: string | null;
   values: MentionValues;
 };

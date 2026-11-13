@@ -1,9 +1,12 @@
 // Accès aux données du module quotes — jamais importé hors de
 // modules/quotes/ (ADR 0011).
-import { and, asc, desc, eq, gte, inArray, or, sql as raw } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, ne, or, sql as raw } from "drizzle-orm";
 import { appDatabase } from "@symbola/db/client";
 import {
   catalogItems,
+  contractEvidence,
+  contracts,
+  contractSignerActs,
   creditNotes,
   invoices,
   numberSeries,
@@ -18,6 +21,7 @@ import {
   quoteSettings,
   quotes,
   quoteVersions,
+  scheduledDepositInvoices,
 } from "@symbola/db/schema/quotes";
 import { appendAudit } from "@symbola/db/audit";
 import { emitDomainEvent } from "@symbola/db/events/emit";
@@ -647,7 +651,10 @@ export async function chooseOptionsRow(
     if (!version) return { status: "not_found" };
     if (quote.status !== "sent" || !version.sentAt) return { status: "locked" };
     await tx.execute(raw`select 1 from ${quoteVersions} where ${quoteVersions.id} = ${version.id} for update`);
-    const [request] = await tx.select({ id: signatureRequests.id }).from(signatureRequests).where(eq(signatureRequests.versionId, version.id));
+    const [request] = await tx
+      .select({ id: signatureRequests.id })
+      .from(signatureRequests)
+      .where(and(eq(signatureRequests.versionId, version.id), ne(signatureRequests.kind, "contract")));
     if (request) return { status: "locked" };
     const lines = await tx.select().from(quoteLines).where(eq(quoteLines.versionId, version.id));
     const options = lines.filter((line) => line.isOption);
@@ -847,6 +854,8 @@ export async function deleteEventQuotes(
       .where(inArray(quoteVersions.quoteId, quoteIds));
     const versionIds = versions.map((version) => version.id);
     const documentKeys: string[] = [];
+    // Lot 31b : factures d'acompte à émettre (elles citent les factures).
+    await tx.delete(scheduledDepositInvoices).where(inArray(scheduledDepositInvoices.quoteId, quoteIds));
     // Factures et avoirs : seuls ceux d'un essai se suppriment (trigger
     // d'immuabilité, DEV-04) ; un vrai devis facturé n'est jamais purgé.
     const issued = await tx
@@ -879,6 +888,16 @@ export async function deleteEventQuotes(
         if (request.auditCertificateKey)
           documentKeys.push(request.auditCertificateKey);
       }
+      // Lot 31b : actes des signataires et dossiers de preuve (ils citent les signataires, les
+      // demandes et les contrats).
+      const contractRows = await tx.select({ id: contracts.id }).from(contracts).where(inArray(contracts.quoteId, quoteIds));
+      if (contractRows.length > 0) {
+        const contractIds = contractRows.map((row) => row.id);
+        await tx.delete(contractSignerActs).where(inArray(contractSignerActs.contractId, contractIds));
+        const evidence = await tx.select().from(contractEvidence).where(inArray(contractEvidence.contractId, contractIds));
+        for (const row of evidence) documentKeys.push(row.documentKey);
+        await tx.delete(contractEvidence).where(inArray(contractEvidence.contractId, contractIds));
+      }
       if (requestIds.length > 0) {
         await tx
           .delete(signatureWebhookLog)
@@ -890,6 +909,7 @@ export async function deleteEventQuotes(
           .delete(signatureRequests)
           .where(inArray(signatureRequests.id, requestIds));
       }
+      if (contractRows.length > 0) await tx.delete(contracts).where(inArray(contracts.quoteId, quoteIds));
       await tx
         .delete(paymentScheduleItems)
         .where(inArray(paymentScheduleItems.versionId, versionIds));
@@ -1247,11 +1267,20 @@ export type NewSigner = Omit<
 
 // Enregistre la demande créée chez le fournisseur, pour la version courante
 // envoyée d'un devis « envoyé » ; « exists » si la version a déjà sa demande.
+// Lot 31b (DOC-03, D9) : « quote_contract » fait signer le devis suivi de son contrat ;
+// « contract » fait signer seul un contrat généré après la signature du devis.
 export async function insertSignatureRequest(
   organizationId: string,
   quoteId: string,
-  request: { provider: string; externalId: string; signers: NewSigner[] },
+  request: {
+    provider: string;
+    externalId: string;
+    signers: NewSigner[];
+    kind?: "quote" | "quote_contract" | "contract";
+    contractId?: string | null;
+  },
 ): Promise<WriteResult | { status: "exists" | "not_sent" }> {
+  const kind = request.kind ?? "quote";
   return inOrganization(organizationId, async (tx) => {
     const [quote] = await tx
       .select()
@@ -1268,14 +1297,22 @@ export async function insertSignatureRequest(
         ),
       );
     if (!version) return { status: "not_found" };
-    if (quote.status !== "sent" || !version.sentAt)
-      return { status: "not_sent" };
+    const signable = kind === "contract" ? quote.status === "signed" : quote.status === "sent";
+    if (!signable || !version.sentAt) return { status: "not_sent" };
     await lockVersion(tx, version.id);
-    const [existing] = await tx
-      .select({ id: signatureRequests.id })
-      .from(signatureRequests)
-      .where(eq(signatureRequests.versionId, version.id));
-    if (existing) return { status: "exists" };
+    if (request.contractId) {
+      const [contract] = await tx.select({ id: contracts.id }).from(contracts).where(and(eq(contracts.id, request.contractId), eq(contracts.quoteVersionId, version.id)));
+      if (!contract) return { status: "not_found" };
+      const [taken] = await tx.select({ id: signatureRequests.id }).from(signatureRequests).where(eq(signatureRequests.contractId, request.contractId));
+      if (taken) return { status: "exists" };
+    }
+    if (kind !== "contract") {
+      const [existing] = await tx
+        .select({ id: signatureRequests.id })
+        .from(signatureRequests)
+        .where(and(eq(signatureRequests.versionId, version.id), ne(signatureRequests.kind, "contract")));
+      if (existing) return { status: "exists" };
+    }
     const [row] = await tx
       .insert(signatureRequests)
       .values({
@@ -1283,6 +1320,8 @@ export async function insertSignatureRequest(
         versionId: version.id,
         provider: request.provider,
         externalId: request.externalId,
+        kind,
+        contractId: kind === "quote" ? null : (request.contractId ?? null),
       })
       .returning();
     if (!row) throw new Error("création de la demande de signature échouée");
@@ -1300,7 +1339,7 @@ export async function insertSignatureRequest(
       organizationId,
       action: "quotes.signature.requested",
       objectId: quoteId,
-      details: { number: quote.number, signers: request.signers.length },
+      details: { number: quote.number, signers: request.signers.length, kind },
       isDemo: quote.isDemo,
     });
     return { status: "ok", quoteId };
@@ -1439,6 +1478,8 @@ export async function applySignatureStateRows(
       .from(quoteVersions)
       .where(eq(quoteVersions.id, request.versionId));
     let transitioned = false;
+    // Lot 31b (D9) : le contrat signé seul ne change pas le devis (déjà signé).
+    const contractOnly = request.kind === "contract";
     if (version && update.outcome.kind === "completed") {
       await tx
         .update(signatureRequests)
@@ -1451,17 +1492,19 @@ export async function applySignatureStateRows(
           completedAt: update.outcome.completedAt,
         })
         .where(eq(signatureRequests.id, requestId));
-      await tx
-        .update(quotes)
-        .set({ status: "signed", updatedAt: new Date() })
-        .where(eq(quotes.id, version.quoteId));
-      // Outbox : publié dans la même transaction que le passage à « Signé ».
-      const [quote] = await tx
-        .select()
-        .from(quotes)
-        .where(eq(quotes.id, version.quoteId));
-      if (quote && !quote.isDemo) {
-        await emitDomainEvent(tx, { organizationId, ...update.outcome.event });
+      if (!contractOnly) {
+        await tx
+          .update(quotes)
+          .set({ status: "signed", updatedAt: new Date() })
+          .where(eq(quotes.id, version.quoteId));
+        // Outbox : publié dans la même transaction que le passage à « Signé ».
+        const [quote] = await tx
+          .select()
+          .from(quotes)
+          .where(eq(quotes.id, version.quoteId));
+        if (quote && !quote.isDemo) {
+          await emitDomainEvent(tx, { organizationId, ...update.outcome.event });
+        }
       }
       transitioned = true;
     } else if (version && update.outcome.kind === "declined") {
@@ -1469,10 +1512,12 @@ export async function applySignatureStateRows(
         .update(signatureRequests)
         .set({ status: "declined", completedAt: update.outcome.completedAt })
         .where(eq(signatureRequests.id, requestId));
-      await tx
-        .update(quotes)
-        .set({ status: "declined", updatedAt: new Date() })
-        .where(eq(quotes.id, version.quoteId));
+      if (!contractOnly) {
+        await tx
+          .update(quotes)
+          .set({ status: "declined", updatedAt: new Date() })
+          .where(eq(quotes.id, version.quoteId));
+      }
       transitioned = true;
     }
     if (transitioned || changed || options.logUnchanged !== false) {
@@ -1613,7 +1658,7 @@ async function invoicingContext(
   const [request] = await tx
     .select()
     .from(signatureRequests)
-    .where(eq(signatureRequests.versionId, version.id));
+    .where(and(eq(signatureRequests.versionId, version.id), ne(signatureRequests.kind, "contract")));
   const signers = request
     ? await tx
         .select()
@@ -1947,7 +1992,7 @@ export async function findEReportingRows(
 export async function updateQuoteClientKind(
   organizationId: string,
   quoteId: string,
-  clientKind: "individual" | "professional",
+  clientKind: "individual" | "professional" | "non_professional",
 ): Promise<boolean> {
   return inOrganization(organizationId, async (tx) => {
     const rows = await tx

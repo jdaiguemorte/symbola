@@ -8,6 +8,7 @@ import { getEvent } from "@/modules/events/service";
 import { computeLegalMention, getOrganizationProfile } from "@/modules/hub/service";
 import {
   getQuote,
+  getQuoteScheduledDeposit,
   listCatalogItems,
   listPaymentMethods,
   listQuoteInvoices,
@@ -39,8 +40,9 @@ import { ScheduleSection } from "./schedule-section";
 import { PageHeader } from "@/app/ui/page-header";
 import { InvoicesSection } from "./invoices-section";
 import { SignatureSection } from "./signature-section";
+import { ContractSection } from "./contract-section";
 
-export default async function QuotePage({ params }: { params: Promise<{ quoteId: string }> }) {
+export default async function QuotePage({ params, searchParams }: { params: Promise<{ quoteId: string }>; searchParams: Promise<{ modele?: string }> }) {
   const auth = await requirePlanner();
   const organizationId = auth.user.organizationId;
 
@@ -58,6 +60,7 @@ export default async function QuotePage({ params }: { params: Promise<{ quoteId:
   }
 
   const { quoteId } = await params;
+  const { modele: selectedTemplate } = await searchParams;
   if (!isValidId(quoteId)) notFound();
   let quote: QuoteDetail;
   try {
@@ -69,12 +72,13 @@ export default async function QuotePage({ params }: { params: Promise<{ quoteId:
 
   const db = appDatabase();
   const profile = await getOrganizationProfile(db, organizationId);
-  const [event, catalog, paymentMethods, invoices, templates] = await Promise.all([
+  const [event, catalog, paymentMethods, invoices, templates, scheduledDeposit] = await Promise.all([
     getEvent(organizationId, quote.eventId),
     listCatalogItems(organizationId),
     listPaymentMethods(organizationId),
     listQuoteInvoices(organizationId, quote.id),
     listQuoteTemplates(organizationId),
+    getQuoteScheduledDeposit(organizationId, quote.id),
   ]);
   const clientNames = event?.clients.map((client) => client.firstName).join(" & ") || t("noClient");
 
@@ -164,8 +168,17 @@ export default async function QuotePage({ params }: { params: Promise<{ quoteId:
       </section>
 
       <ScheduleSection quote={quote} methods={paymentMethods} locale={locale} today={parisTodayString()} />
+      {/* Lot 31b (FAC-04, DOC-03 ; D7, D9, D11) : contrat du devis envoyé, signé avec lui. */}
+      <ContractSection
+        organizationId={organizationId}
+        userId={auth.user.id}
+        quote={quote}
+        eventTypeId={event?.eventTypeId ?? null}
+        selectedTemplateId={isValidId(selectedTemplate ?? "") ? (selectedTemplate ?? null) : null}
+        locale={locale}
+      />
       <SignatureSection organizationId={organizationId} quote={quote} event={event} />
-      <InvoicesSection quote={quote} invoices={invoices} locale={locale} />
+      <InvoicesSection quote={quote} invoices={invoices} locale={locale} scheduled={scheduledDeposit} />
 
       {isDraft ? (
         <>

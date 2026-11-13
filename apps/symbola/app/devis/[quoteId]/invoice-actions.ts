@@ -55,7 +55,8 @@ async function run(
 
 export async function setClientKindAction(_prevState: QuoteFormState, formData: FormData): Promise<QuoteFormState> {
   return run(formData, async (organizationId, quoteId) => {
-    const kind = formData.get("clientKind") === "professional" ? "professional" : "individual";
+    const value = formData.get("clientKind");
+    const kind = value === "professional" ? "professional" : value === "non_professional" ? "non_professional" : "individual";
     await setQuoteClientKind(organizationId, quoteId, kind);
   });
 }

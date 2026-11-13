@@ -46,5 +46,8 @@ export async function register() {
     // Lot 27a (CHR-04) : rappels par e-mail des tâches confiées au client.
     const { scheduleClientTaskReminders } = await import("./lib/client-task-reminders");
     scheduleClientTaskReminders();
+    // Lot 31b (FAC-05, D6) : factures d'acompte émises d'elles-mêmes (fin du délai de rétractation).
+    const { scheduleDepositInvoiceIssuance } = await import("./lib/deposit-invoices");
+    scheduleDepositInvoiceIssuance();
   }
 }

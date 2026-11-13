@@ -84,6 +84,7 @@ import {
   type TaskTemplateRow,
   updateEventClientContactRow,
   updateWantedBudgetRow,
+  updateVenueRow,
 } from "./repository";
 import {
   addStarterEventTypes,
@@ -565,6 +566,17 @@ export async function updateEventClientContact(input: {
 export async function setEventWantedBudget(organizationId: string, eventId: string, wantedBudgetCents: number | null): Promise<void> {
   if (wantedBudgetCents !== null && (!Number.isInteger(wantedBudgetCents) || wantedBudgetCents < 0)) throw new RangeError("montant invalide");
   if (!(await updateWantedBudgetRow(organizationId, eventId, wantedBudgetCents))) throw new EventNotFoundError();
+}
+
+// Lot 31b (FAC-04, DOC-02) — lieu de l'événement (nom, ville), pour que la variable
+// {evenement.lieu} d'un contrat se comble ; vide : effacé.
+export async function setEventVenue(organizationId: string, eventId: string, venue: { venueName: string | null; venueCity: string | null }): Promise<void> {
+  const clean = (value: string | null) => {
+    const text = value?.trim() ?? "";
+    if (text.length > 200) throw new RangeError("lieu trop long");
+    return text || null;
+  };
+  if (!(await updateVenueRow(organizationId, eventId, { venueName: clean(venue.venueName), venueCity: clean(venue.venueCity) }))) throw new EventNotFoundError();
 }
 
 export class VendorSlotNotFoundError extends Error {

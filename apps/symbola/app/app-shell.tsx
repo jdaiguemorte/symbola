@@ -360,6 +360,9 @@ export async function AppShell({ children }: { children: ReactNode }) {
                 icon: "sales" as const,
                 items: [
                   { href: "/devis/catalogue", label: tSettings("catalog") },
+                  // Lot 31a/31b (HUB-21) : modèles de devis et de contrat.
+                  { href: "/devis/modeles", label: tSettings("quoteTemplates") },
+                  { href: "/devis/modeles-contrat", label: tSettings("contractTemplates") },
                   { href: "/devis/parametres", label: tSettings("quotes") },
                   {
                     href: "/devis/parametres/documents",

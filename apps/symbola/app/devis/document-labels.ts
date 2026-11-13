@@ -5,6 +5,7 @@
 import type { LegalFormCode } from "@symbola/contracts";
 import type { InvoicePdfLabels } from "./factures/invoice-pdf-model";
 import type { DocumentCommonLabels, QuotePdfLabels } from "./[quoteId]/quote-pdf-model";
+import type { ContractPdfLabels, EvidencePdfLabels } from "./[quoteId]/contract-pdf-model";
 
 export type Translate = (key: string, values?: Record<string, string | number>) => string;
 
@@ -90,5 +91,69 @@ export function invoicePdfLabels(t: Translate, tQuotes: Translate): InvoicePdfLa
     quoteTotalTtc: tQuotes("pdfQuoteTotalTtc"),
     deduction: (number) => tQuotes("pdfDeduction", { number }),
     amountDue: tQuotes("pdfAmountDue"),
+  };
+}
+
+// Lot 31b (FAC-04, DOC-03 ; D9, D11, partie N) — contrat et dossier de preuve. t : section
+// « Contracts » ; tDocuments : section « Documents » (numéro de page).
+const CHANNELS = ["on_premises", "distance", "off_premises", "fair"] as const;
+const CATEGORIES = ["individual", "non_professional", "professional"] as const;
+
+export function contractPdfLabels(t: Translate, tDocuments: Translate): ContractPdfLabels {
+  return {
+    kind: t("pdfKind"),
+    subtitle: (contractVersion, quoteNumber, quoteVersion) => t("pdfSubtitle", { version: contractVersion, number: quoteNumber, quoteVersion }),
+    article: (index, title) => t("pdfArticle", { index, title }),
+    regimeTitle: t("pdfRegimeTitle"),
+    channel: Object.fromEntries(CHANNELS.map((channel) => [channel, t(`pdfChannel_${channel}`)])) as ContractPdfLabels["channel"],
+    category: Object.fromEntries(CATEGORIES.map((category) => [category, t(`pdfCategory_${category}`)])) as ContractPdfLabels["category"],
+    withdrawalApplies: (days) => t("pdfWithdrawalApplies", { days }),
+    withdrawalNotApplies: t("pdfWithdrawalNotApplies"),
+    noPaymentBefore: (days) => t("pdfNoPaymentBefore", { days }),
+    templateInfo: (version, reviewedOn) => (reviewedOn ? t("pdfTemplateReviewed", { version, date: reviewedOn }) : t("pdfTemplateNotReviewed", { version })),
+    signatureTitleWithQuote: t("pdfSignatureWithQuote"),
+    signatureTitle: t("pdfSignature"),
+    page: tDocuments("pdfPage", { page: "{page}", total: "{total}" }),
+  };
+}
+
+export function evidencePdfLabels(t: Translate): EvidencePdfLabels {
+  const contract = contractPdfLabels(t, () => "");
+  return {
+    title: t("evidenceTitle"),
+    intro: t("evidenceIntro"),
+    sections: {
+      contract: t("evidenceSectionContract"),
+      signature: t("evidenceSectionSignature"),
+      signers: t("evidenceSectionSigners"),
+      acts: t("evidenceSectionActs"),
+      fingerprints: t("evidenceSectionFingerprints"),
+    },
+    field: (label, value) => t("evidenceField", { label, value }),
+    names: {
+      quote: t("evidenceQuote"),
+      contract: t("evidenceContract"),
+      template: t("evidenceTemplate"),
+      channel: t("evidenceChannel"),
+      category: t("evidenceCategory"),
+      withdrawal: t("evidenceWithdrawal"),
+      level: t("evidenceLevel"),
+      generatedAt: t("evidenceGeneratedAt"),
+      provider: t("evidenceProvider"),
+      requestedAt: t("evidenceRequestedAt"),
+      completedAt: t("evidenceCompletedAt"),
+      signedDocument: t("evidenceSignedDocument"),
+      certificate: t("evidenceCertificate"),
+      evidence: t("evidenceSelf"),
+      writtenAt: t("evidenceWrittenAt"),
+    },
+    channel: contract.channel,
+    category: contract.category,
+    yes: t("evidenceWithdrawalYes"),
+    no: t("evidenceWithdrawalNo"),
+    act: { order: t("actOrder"), early_execution: t("actEarlyExecution") },
+    signer: (name, email, signedAt) => (signedAt ? t("evidenceSignerSigned", { name, email, date: signedAt }) : t("evidenceSigner", { name, email })),
+    actLine: (name, kind, at) => t("evidenceActLine", { name, kind, date: at }),
+    presented: (text) => t("evidencePresented", { text }),
   };
 }

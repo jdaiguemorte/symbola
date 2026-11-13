@@ -1516,6 +1516,15 @@ export async function updateEventClientContactRow(
 }
 
 // Lot 14 (décision K) — budget souhaité par les clients.
+// Lot 31b (FAC-04, DOC-02) : lieu de l'événement, repris par la variable {evenement.lieu} du
+// contrat (les lieux complets viennent au lot 34).
+export async function updateVenueRow(organizationId: string, eventId: string, venue: { venueName: string | null; venueCity: string | null }): Promise<boolean> {
+  return withOrganization(appDatabase(), organizationId, async (tx) => {
+    const rows = await tx.update(events).set({ ...venue, updatedAt: new Date() }).where(eq(events.id, eventId)).returning({ id: events.id });
+    return rows.length > 0;
+  });
+}
+
 export async function updateWantedBudgetRow(organizationId: string, eventId: string, wantedBudgetCents: number | null): Promise<boolean> {
   const db = appDatabase();
   return await withOrganization(db, organizationId, async (tx) => {

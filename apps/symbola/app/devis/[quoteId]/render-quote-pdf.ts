@@ -16,7 +16,7 @@ import { loadDocumentLogo } from "@/lib/document-logo";
 import { pdfSafe } from "@/lib/pdf-text";
 import { quotePdfLabels, type Translate } from "../document-labels";
 import { QuotePdfDocument } from "./quote-pdf";
-import { buildQuotePdfModel } from "./quote-pdf-model";
+import { buildQuotePdfModel, type QuotePdfModel } from "./quote-pdf-model";
 
 export async function renderQuotePdf(input: {
   organizationId: string;
@@ -24,6 +24,17 @@ export async function renderQuotePdf(input: {
   version: QuoteVersionView;
   signatureSlots?: { role: string; tag: string }[];
 }): Promise<Buffer> {
+  const element = createElement(QuotePdfDocument, { model: pdfSafe(await quotePdfModelFor(input)) }) as unknown as ReactElement<DocumentProps>;
+  return renderToBuffer(element);
+}
+
+// Lot 31b (D9) : le modèle seul, pour le PDF qui fait suivre le devis de son contrat.
+export async function quotePdfModelFor(input: {
+  organizationId: string;
+  quote: QuoteDetail;
+  version: QuoteVersionView;
+  signatureSlots?: { role: string; tag: string }[];
+}): Promise<QuotePdfModel> {
   const { organizationId, quote, version } = input;
   const profile = await getOrganizationProfile(appDatabase(), organizationId);
   const draftSeller = await currentQuoteSeller(organizationId);
@@ -47,7 +58,5 @@ export async function renderQuotePdf(input: {
     ...(input.signatureSlots ? { signatureSlots: input.signatureSlots } : {}),
     labels: quotePdfLabels(t as unknown as Translate, tQuotes as unknown as Translate),
   });
-
-  const element = createElement(QuotePdfDocument, { model: pdfSafe(model) }) as unknown as ReactElement<DocumentProps>;
-  return renderToBuffer(element);
+  return model;
 }

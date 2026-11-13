@@ -115,9 +115,12 @@ describe("RGPD-04 — Suivi des demandes", () => {
       clientRetentionMonths: 36,
       accountingRetentionMonths: 120,
       inactiveAccountMonths: 24,
-      signedQuoteRetentionMonths: 60,
+      // Lot 31b (réponse 3 de l'avocat, D16) : contrat électronique et dossier de preuve, dix ans.
+      signedQuoteRetentionMonths: 120,
       requestProofRetentionMonths: 60,
     });
+    // Lot 31b (D16) : la conservation des devis signés ne descend pas sous dix ans.
+    await expect(updatePrivacySettings(db, owner.organizationId, { ...(await getPrivacySettings(db, owner.organizationId)), signedQuoteRetentionMonths: 60 })).rejects.toThrow(PrivacyRequestInvalidError);
     await createPrivacyRequest(db, { ...owner, type: "objection", personLabel: "Manon", receivedOn: "2026-11-02", now: at("2026-11-02") });
     await updatePrivacySettings(db, owner.organizationId, { ...(await getPrivacySettings(db, owner.organizationId)), requestAlertDays: 10 });
     expect(await listDueSoonPrivacyRequests(db, owner.organizationId, at("2026-11-23"))).toHaveLength(1);
