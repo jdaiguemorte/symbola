@@ -345,6 +345,8 @@ export default async function EventDetailPage({
   // Lot 32a (EVT-02, D5) : compte à rebours, aperçu du portail, « Annuler » après une tâche cochée.
   const countdown = await countdownLabel(event.eventDate, today);
   const clientPreviewLink = links.find((link) => link.audience === "client" && link.status === "active") ?? null;
+  // Lot 32b (UX-03) : « Écrire au client » ouvre la messagerie de la planner (Symbola n'envoie rien).
+  const clientEmails = event.clients.flatMap((client) => (client.email ? [client.email] : []));
   const undoneTask = query.fait && query.evenement === event.id ? (tasks.find((task) => task.id === query.fait && task.done) ?? null) : null;
   const tToday = await getTranslations("Today");
 
@@ -439,8 +441,13 @@ export default async function EventDetailPage({
           </>
         }
         actions={
-          isDayOfOpen(event) || clientPreviewLink ? (
+          isDayOfOpen(event) || clientPreviewLink || clientEmails.length > 0 ? (
             <>
+              {clientEmails.length > 0 ? (
+                <a href={`mailto:${clientEmails.map(encodeURIComponent).join(",")}`} className="button-link">
+                  {t("writeToClient")}
+                </a>
+              ) : null}
               {/* Lot 32a (EVT-02) : « Voir comme le client », l'aperçu du portail. */}
               {clientPreviewLink ? (
                 <Link href={`/events/${event.id}/liens/${clientPreviewLink.id}/apercu`} className="button-link">

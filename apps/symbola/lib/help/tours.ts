@@ -7,8 +7,8 @@ export const TOUR_TARGETS = {
   // évènements en cours ; une partie absente (rien d'autre à traiter) a sa bulle au centre.
   hub: ["home-first", "home-groups", "home-events"],
   // Lot 20 (décision 2) : l'essai guidé est dans le texte d'aide, plus à l'écran.
-  // Lot 32a (D3) : l'agenda, venu de l'accueil.
-  events: ["events-list", "new-prospect", "events-filters", "events-settings", "events-agenda"],
+  // Lot 32a (D3), 32b (D11) : les deux vues, liste et calendrier (l'agenda venu de l'accueil).
+  events: ["events-list", "new-prospect", "events-filters", "events-settings", "events-views"],
   event: ["event-tabs", "event-overview", "tab-retroplanning", "tab-budget", "global-search"],
   // Lot 20 (AIDE-15) : seulement ce que montrent le Catalogue et la
   // Répartition du budget ; le reste est dans la fiche d'aide de l'écran.

@@ -58,8 +58,9 @@
     "agendaLegend": "Légende",
     "agendaLegendConfirmed": "Mariage confirmé",
     "agendaLegendTentative": "Date posée sur un prospect",
-    "agendaLegendTwo": "Deux événements le même week-end",
+    "agendaLegendTwo": "Plusieurs événements le même jour ou le même week-end",
     "agendaWeekendCount": "{count} événements ce week-end",
+    "agendaDayCount": "{count} événements ce jour-là",
     "agendaWeekdays": [
       "L",
       "M",
@@ -369,8 +370,8 @@
         "body": "« Réglages » mène aux lignes du budget, sources et motifs, types d'événements et modèles de rétroplanning et de programme."
       },
       {
-        "title": "L'agenda",
-        "body": "Les mois à venir : évènements confirmés en plein, dates d'option en atténué. Un clic sur une date libre crée un prospect."
+        "title": "Liste ou calendrier",
+        "body": "Passez de la liste au calendrier des mois à venir. Dessous, la charge des douze prochains mois ; deux évènements le même jour sont signalés dans les deux vues."
       }
     ],
     "quotes": [
@@ -462,6 +463,10 @@
         {
           "q": "Où est passé l'agenda ?",
           "a": "Dans Évènements : le calendrier de vos week-ends y est, avec la liste."
+        },
+        {
+          "q": "Comment créer vite un prospect, une tâche, une dépense ou un devis ?",
+          "a": "Avec « Créer » en haut de chaque écran, ou la touche N hors d'un champ : un formulaire court s'ouvre sans quitter l'écran, et l'évènement de l'écran est proposé."
         }
       ]
     },
@@ -521,7 +526,7 @@
     },
     "eventsList": {
       "title": "Liste des événements",
-      "body": "Tous vos prospects et événements à venir ; « Terminés » garde ceux réalisés ou perdus. Commencez par « Nouveau prospect », ou filtrez la liste par nom, statut, source ou année. Pour découvrir le module sans risque, lancez l'essai guidé ci-dessous.",
+      "body": "Tous vos prospects et événements à venir ; « Terminés » garde ceux réalisés ou perdus. « Liste » ou « Calendrier » : le tableau filtrable, ou les mois à venir. Dessous, la charge des douze prochains mois ; deux évènements le même jour sont signalés dans les deux vues. Commencez par « Nouveau prospect », ou filtrez la liste par nom, statut, source ou année. Pour découvrir le module sans risque, lancez l'essai guidé ci-dessous.",
       "faq": [
         {
           "q": "Où retrouver un événement passé ?",
@@ -539,7 +544,7 @@
     },
     "eventsNew": {
       "title": "Nouveau prospect",
-      "body": "Un prénom de marié et la source du contact suffisent pour créer le prospect ; la date, le lieu et le budget se complètent plus tard. Depuis l'agenda, une date libre ouvre ce formulaire avec la date déjà remplie.",
+      "body": "Un prénom de marié et la source du contact suffisent pour créer le prospect ; la date, le lieu et le budget se complètent plus tard. Si la date tombe le même jour qu'un autre évènement confirmé ou en option, Symbola le signale avant l'enregistrement, sans l'empêcher. Depuis l'agenda, une date libre ouvre ce formulaire avec la date déjà remplie.",
       "faq": [
         {
           "q": "Quelle différence entre prospect et événement ?",
@@ -815,7 +820,7 @@
     },
     "allTasks": {
       "title": "Les tâches de tous vos mariages",
-      "body": "Les tâches de tous vos événements, triées par échéance. Filtrez « En retard » pour rattraper, ou par qui la réalise ; cochez une tâche faite. Cliquez-la pour la modifier sur la fiche de son mariage.",
+      "body": "Les tâches de tous vos événements, triées par échéance. Filtrez « En retard » pour rattraper, ou par qui la réalise ; cochez une tâche faite. « Calendrier » les range à leur échéance, mois par mois. Cliquez-en une pour la modifier sur la fiche de son mariage.",
       "faq": [
         {
           "q": "Les tâches des mariés apparaissent-elles ?",
@@ -1541,7 +1546,26 @@
     "venueSave": "Enregistrer le lieu",
     "venueSaved": "✓ Lieu enregistré.",
     "activityVendorReminded": "Relance envoyée à {task}.",
-    "activityVendorRemoved": "un prestataire retiré"
+    "activityVendorRemoved": "un prestataire retiré",
+    "sameDayAlert": "Le {date}, vous avez déjà : {events}. Vous pouvez enregistrer quand même.",
+    "sameDayConfirmed": "{names} (confirmé)",
+    "sameDayOption": "{names} (option)",
+    "writeToClient": "Écrire au client",
+    "viewLabel": "Affichage",
+    "viewList": "Liste",
+    "viewCalendar": "Calendrier",
+    "loadTitle": "Charge des douze prochains mois",
+    "loadMonth": "Mois",
+    "loadConfirmed": "Confirmés",
+    "loadOptions": "Options",
+    "loadBar": "Charge du mois",
+    "sameDayWith": "Même jour : {names}",
+    "tasksDisplayLabel": "Affichage des tâches",
+    "taskCalendarNavigate": "Changer de mois",
+    "taskCalendarPrevious": "Mois précédent",
+    "taskCalendarNext": "Mois suivant",
+    "taskCalendarToday": "Ce mois-ci",
+    "taskCalendarCount": "{count, plural, =0 {Aucune tâche ce mois-ci.} one {# tâche ce mois-ci.} other {# tâches ce mois-ci.}}"
   },
   "Budget": {
     "title": "Budget",
@@ -5320,5 +5344,59 @@
       "quotes": "devis et encaissements",
       "budget": "budget"
     }
+  },
+  "QuickCreate": {
+    "button": "Créer",
+    "menuLabel": "Que voulez-vous créer ?",
+    "shortcutHint": "Raccourci : touche N",
+    "kind": {
+      "prospect": "Prospect",
+      "task": "Tâche",
+      "expense": "Dépense",
+      "quote": "Devis"
+    },
+    "title": {
+      "prospect": "Nouveau prospect",
+      "task": "Nouvelle tâche",
+      "expense": "Nouvelle dépense",
+      "quote": "Nouveau devis"
+    },
+    "submit": {
+      "prospect": "Créer le prospect",
+      "task": "Ajouter la tâche",
+      "expense": "Enregistrer la dépense",
+      "quote": "Créer le devis"
+    },
+    "close": "Fermer",
+    "open": "Ouvrir",
+    "loading": "Chargement…",
+    "event": "Évènement",
+    "eventChoose": "Choisir un évènement",
+    "noEvents": "Aucun évènement en cours : créez d'abord un prospect.",
+    "eventType": "Type d'évènement",
+    "firstName": "Prénom du client",
+    "source": "Source du contact",
+    "sourceChoose": "Choisir une source",
+    "date": "Date de l'évènement (facultatif)",
+    "taskLabel": "Tâche",
+    "dueDate": "Échéance",
+    "responsible": "Qui s'en charge",
+    "responsiblePlanner": "Vous",
+    "responsibleClients": "Le client",
+    "slot": "Poste du budget",
+    "slotChoose": "Choisir un poste",
+    "noSlots": "Cet évènement n'a pas encore de poste de budget : ajoutez-en depuis son budget.",
+    "vendor": "Prestataire (facultatif)",
+    "vendorNone": "Aucun",
+    "expenseLabel": "Libellé",
+    "amount": "Montant du devis du prestataire, TTC (facultatif)",
+    "quoteHint": "Le devis se crée en brouillon, numéroté ; vous le composez ensuite.",
+    "prospectDone": "Prospect {name} créé.",
+    "taskDone": "Tâche « {label} » ajoutée.",
+    "expenseDone": "Dépense « {label} » enregistrée.",
+    "quoteDone": "Devis {number} créé, en brouillon.",
+    "chooseEventError": "Choisissez un évènement.",
+    "amountInvalid": "Montant illisible : écrivez par exemple 1 250,50.",
+    "unavailable": "La création rapide n'est pas disponible : le module Évènements n'est pas activé."
   }
 }

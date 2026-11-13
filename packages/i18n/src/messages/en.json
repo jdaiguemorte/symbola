@@ -58,8 +58,9 @@
     "agendaLegend": "Legend",
     "agendaLegendConfirmed": "Confirmed wedding",
     "agendaLegendTentative": "Date held for a prospect",
-    "agendaLegendTwo": "Two events the same weekend",
+    "agendaLegendTwo": "Several events the same day or weekend",
     "agendaWeekendCount": "{count} events this weekend",
+    "agendaDayCount": "{count} events that day",
     "agendaWeekdays": [
       "M",
       "T",
@@ -369,8 +370,8 @@
         "body": "« Settings » leads to budget lines, sources and reasons, event types, and planning and schedule templates."
       },
       {
-        "title": "The calendar",
-        "body": "The coming months: confirmed events in full colour, option dates faded. Click a free date to create a prospect."
+        "title": "List or calendar",
+        "body": "Switch from the list to the calendar of the coming months. Below, the workload over the next twelve months; two events on the same day are flagged in both views."
       }
     ],
     "quotes": [
@@ -462,6 +463,10 @@
         {
           "q": "Where is the calendar?",
           "a": "In Events: the calendar of your weekends is there, with the list."
+        },
+        {
+          "q": "How do I quickly create a prospect, a task, an expense or a quote?",
+          "a": "With « Create » at the top of every screen, or the N key outside a field: a short form opens without leaving the screen, and the screen's event is suggested."
         }
       ]
     },
@@ -521,7 +526,7 @@
     },
     "eventsList": {
       "title": "Event list",
-      "body": "All your prospects and upcoming events; « Finished » keeps those held or lost. Start with « New prospect », or filter the list by name, status, source or year. To try the module safely, start the guided trial below.",
+      "body": "All your prospects and upcoming events; « Finished » keeps those held or lost. « List » or « Calendar »: the filterable table, or the coming months. Below, the workload over the next twelve months; two events on the same day are flagged in both views. Start with « New prospect », or filter the list by name, status, source or year. To try the module safely, start the guided trial below.",
       "faq": [
         {
           "q": "Where do I find a past event?",
@@ -539,7 +544,7 @@
     },
     "eventsNew": {
       "title": "New prospect",
-      "body": "A partner's first name and the contact source are enough to create the prospect; date, venue and budget can be filled in later. From the calendar, a free date opens this form with the date already set.",
+      "body": "A partner's first name and the contact source are enough to create the prospect; date, venue and budget can be filled in later. If the date falls on the same day as another confirmed or optional event, Symbola flags it before saving, without blocking. From the calendar, a free date opens this form with the date already set.",
       "faq": [
         {
           "q": "What is the difference between a prospect and an event?",
@@ -815,7 +820,7 @@
     },
     "allTasks": {
       "title": "Tasks across all your weddings",
-      "body": "The tasks of all your events, sorted by due date. Filter « Overdue » to catch up, or by who does it; tick a task when done. Click it to edit it on its wedding's page.",
+      "body": "The tasks of all your events, sorted by due date. Filter « Overdue » to catch up, or by who does it; tick a task when done. « Calendar » places them on their due date, month by month. Click one to edit it on its wedding's page.",
       "faq": [
         {
           "q": "Do the couple's tasks appear here?",
@@ -1541,7 +1546,26 @@
     "venueSave": "Save the venue",
     "venueSaved": "✓ Venue saved.",
     "activityVendorReminded": "Follow-up sent to {task}.",
-    "activityVendorRemoved": "a removed vendor"
+    "activityVendorRemoved": "a removed vendor",
+    "sameDayAlert": "On {date}, you already have: {events}. You can save anyway.",
+    "sameDayConfirmed": "{names} (confirmed)",
+    "sameDayOption": "{names} (option)",
+    "writeToClient": "Write to the client",
+    "viewLabel": "Display",
+    "viewList": "List",
+    "viewCalendar": "Calendar",
+    "loadTitle": "Workload over the next twelve months",
+    "loadMonth": "Month",
+    "loadConfirmed": "Confirmed",
+    "loadOptions": "Options",
+    "loadBar": "Month's workload",
+    "sameDayWith": "Same day: {names}",
+    "tasksDisplayLabel": "Task display",
+    "taskCalendarNavigate": "Change month",
+    "taskCalendarPrevious": "Previous month",
+    "taskCalendarNext": "Next month",
+    "taskCalendarToday": "This month",
+    "taskCalendarCount": "{count, plural, =0 {No task this month.} one {# task this month.} other {# tasks this month.}}"
   },
   "Budget": {
     "title": "Budget",
@@ -5320,5 +5344,59 @@
       "quotes": "quotes and payments",
       "budget": "budget"
     }
+  },
+  "QuickCreate": {
+    "button": "Create",
+    "menuLabel": "What do you want to create?",
+    "shortcutHint": "Shortcut: N key",
+    "kind": {
+      "prospect": "Prospect",
+      "task": "Task",
+      "expense": "Expense",
+      "quote": "Quote"
+    },
+    "title": {
+      "prospect": "New prospect",
+      "task": "New task",
+      "expense": "New expense",
+      "quote": "New quote"
+    },
+    "submit": {
+      "prospect": "Create the prospect",
+      "task": "Add the task",
+      "expense": "Save the expense",
+      "quote": "Create the quote"
+    },
+    "close": "Close",
+    "open": "Open",
+    "loading": "Loading…",
+    "event": "Event",
+    "eventChoose": "Choose an event",
+    "noEvents": "No event in progress: create a prospect first.",
+    "eventType": "Event type",
+    "firstName": "Client's first name",
+    "source": "Contact source",
+    "sourceChoose": "Choose a source",
+    "date": "Event date (optional)",
+    "taskLabel": "Task",
+    "dueDate": "Due date",
+    "responsible": "Who handles it",
+    "responsiblePlanner": "You",
+    "responsibleClients": "The client",
+    "slot": "Budget category",
+    "slotChoose": "Choose a category",
+    "noSlots": "This event has no budget category yet: add one from its budget.",
+    "vendor": "Vendor (optional)",
+    "vendorNone": "None",
+    "expenseLabel": "Label",
+    "amount": "Vendor's quote amount, incl. VAT (optional)",
+    "quoteHint": "The quote is created as a numbered draft; you compose it next.",
+    "prospectDone": "Prospect {name} created.",
+    "taskDone": "Task “{label}” added.",
+    "expenseDone": "Expense “{label}” saved.",
+    "quoteDone": "Quote {number} created, as a draft.",
+    "chooseEventError": "Choose an event.",
+    "amountInvalid": "Unreadable amount: write for example 1,250.50.",
+    "unavailable": "Quick create is unavailable: the Events module is not enabled."
   }
 }

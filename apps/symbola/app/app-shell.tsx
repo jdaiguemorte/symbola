@@ -45,6 +45,7 @@ import { Lock, Rocket } from "lucide-react";
 import { HelpBar, type TutorialInvite } from "./help-bar";
 import { AUTO_TOURS_COOKIE } from "@/lib/help/preferences";
 import { SearchBox } from "./search-box";
+import { QuickCreate } from "./creation-rapide/quick-create";
 import { HelpProvider } from "./help-context";
 import { HelpButton } from "./help-button";
 import { getHelpProgress } from "@/modules/hub/service";
@@ -651,6 +652,8 @@ export async function AppShell({ children }: { children: ReactNode }) {
           {/* Lot 16 (L16-HUB-19, ADR 0039) : recherche à gauche, le seul « ? » à droite. */}
           <section className="app-topbar" aria-label={t("topBar")}>
             {isTeam && setupDone ? <SearchBox /> : null}
+            {/* Lot 32b (HUB-07, D9) : création rapide, touche N ; ses entrées suivent les modules. */}
+            {isTeam && setupDone ? <QuickCreate modules={{ events, quotes, budget }} /> : null}
             <HelpButton />
           </section>
           {settingsSections.length > 0 ? (

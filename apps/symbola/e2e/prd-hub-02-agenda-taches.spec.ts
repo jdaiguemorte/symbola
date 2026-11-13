@@ -78,7 +78,7 @@ test("PRD-HUB-02 / HUB-08 — agenda des mariages, tâches cochées depuis « Au
   await loginAndSetupMfa(page, email, password);
 
   // Agenda : 3 mois par défaut (lot 16, L16-HUB-20), noms dans les cases, badge « 2 ».
-  await page.goto("/events");
+  await page.goto("/events?affichage=calendrier");
   const agenda = page.getByRole("region", { name: "Agenda" });
   await expect(agenda.getByRole("link", { name: "3 mois" })).toHaveAttribute("aria-current", "true");
   const weekend = agenda.locator("summary", { hasText: firstName });
@@ -90,7 +90,7 @@ test("PRD-HUB-02 / HUB-08 — agenda des mariages, tâches cochées depuis « Au
   await agenda.getByRole("link", { name: "Voir l'année" }).click();
   await expect(page).toHaveURL(/agenda=12/);
   await expect(agenda.getByText(new RegExp(`${firstName} & Sacha`)).first()).toBeAttached();
-  await page.goto("/events");
+  await page.goto("/events?affichage=calendrier");
   await expect(agenda.getByRole("link", { name: "Voir l'année" })).toHaveAttribute("aria-current", "true");
   await agenda.getByRole("link", { name: "3 mois" }).click();
   await expect(page).toHaveURL(/agenda=3/);

@@ -137,7 +137,7 @@ test("L12-HUB-13 — un clic sur une date libre de l'agenda crée un événement
   await createProspectSource(account.organizationId, "Salon");
   await login(page, account.email, account.password, /\/$/);
 
-  await page.goto("/events?agenda=3");
+  await page.goto("/events?affichage=calendrier&agenda=3");
   const agenda = page.locator("[data-tour='events-agenda']");
   // Aucun menu fermé ne reste affiché (image fantôme sous Safari, recette lot 12).
   await expect(agenda.getByRole("link", { name: "Créer un prospect à cette date" }).first()).toBeHidden();

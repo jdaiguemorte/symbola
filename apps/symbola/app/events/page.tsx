@@ -20,6 +20,8 @@ import { PAST_STATUSES, UPCOMING_STATUSES, parseYear, tabCounts, yearOptions } f
 import { FilterBar } from "../ui/filter-bar";
 import { ListRow, ListTable } from "../ui/list-table";
 import { AgendaBlock } from "../agenda/agenda-block";
+import { monthlyLoad, sharedDates } from "@/lib/portfolio/portfolio";
+import { MonthlyLoad } from "./monthly-load";
 
 export default async function EventsListPage({
   searchParams,
@@ -34,6 +36,7 @@ export default async function EventsListPage({
     visite?: string;
     agenda?: string;
     debut?: string;
+    affichage?: string;
   }>;
 }) {
   const auth = await requirePlanner();
@@ -42,7 +45,7 @@ export default async function EventsListPage({
   const t = await getTranslations("Events");
   const locale = (await getLocale()) as Locale;
   const tHelp = await getTranslations("Help");
-  const { tab, year, search, status, source, essai, visite, agenda, debut } = await searchParams;
+  const { tab, year, search, status, source, essai, visite, agenda, debut, affichage } = await searchParams;
 
   if (!(await isEventsModuleEnabled(organizationId))) {
     return (
@@ -71,6 +74,12 @@ export default async function EventsListPage({
   const years = yearOptions(allEvents.map((event) => event.eventDate), parisToday());
   const yearFilter = parseYear(year, years);
   const counts = tabCounts(allEvents.map((event) => event.status));
+  // Lot 32b (EVT-07, D11) : liste ou calendrier ; charge par mois ; jours à deux évènements.
+  const calendarView = !isPastTab && affichage === "calendrier";
+  const load = isPastTab ? [] : monthlyLoad(allEvents, parisToday().slice(0, 7));
+  const shared = sharedDates(allEvents);
+  const sameDayAs = (eventId: string, date: string | null) =>
+    date ? (shared.get(date) ?? []).filter((id) => id !== eventId).map((id) => allEvents.find((event) => event.id === id)).filter((event) => event !== undefined) : [];
 
   const sources = await listProspectSources(organizationId);
   // PRD-EVT-07 : seule une source de l'organisation est retenue comme filtre.
@@ -128,6 +137,7 @@ export default async function EventsListPage({
         </Link>
       </nav>
 
+      {calendarView ? null : (
       <div data-tour="events-filters">
       <FilterBar label={t("filtersLabel")} applyLabel={t("filter")} preserve={isPastTab ? { tab: "termines" } : {}}>
         <label>
@@ -169,6 +179,7 @@ export default async function EventsListPage({
         </label>
       </FilterBar>
       </div>
+      )}
 
       <nav aria-label={t("tabsLabel")} className="segmented">
         <Link href="/events" aria-current={!isPastTab ? "page" : undefined}>
@@ -178,8 +189,18 @@ export default async function EventsListPage({
           {t("tabPastCount", { count: counts.past })}
         </Link>
       </nav>
+      {isPastTab ? null : (
+        <nav aria-label={t("viewLabel")} className="segmented" data-tour="events-views">
+          <Link href="/events" aria-current={calendarView ? undefined : "page"}>
+            {t("viewList")}
+          </Link>
+          <Link href="/events?affichage=calendrier" aria-current={calendarView ? "page" : undefined}>
+            {t("viewCalendar")}
+          </Link>
+        </nav>
+      )}
 
-      {items.length > 0 ? (
+      {!calendarView && items.length > 0 ? (
         <div data-tour="events-list">
           <ListTable
             label={t("listLabel")}
@@ -198,7 +219,12 @@ export default async function EventsListPage({
                   <Link href={`/events/${item.id}`}>{clientNames(item.clients)}</Link>
                   {item.isDemo ? <span className="badge">{t("demoTag")}</span> : null}
                 </th>
-                <td className="num">{item.eventDate ? formatCalendarDate(item.eventDate, locale) : t("dateUnset")}</td>
+                <td className="num">
+                  {item.eventDate ? formatCalendarDate(item.eventDate, locale) : t("dateUnset")}
+                  {sameDayAs(item.id, item.eventDate).length > 0 ? (
+                    <span className="badge badge-ambre badge-wrap">{t("sameDayWith", { names: sameDayAs(item.id, item.eventDate).map((event) => clientNames(event.clients)).join(", ") })}</span>
+                  ) : null}
+                </td>
                 <td>
                   <span className={EVENT_STATUS_CLASSES[item.status]}>{t(STATUS_LABEL_KEYS[item.status])}</span>
                 </td>
@@ -208,9 +234,10 @@ export default async function EventsListPage({
           </ListTable>
         </div>
       ) : null}
-      {items.length === 0 ? <p>{t("noResults")}</p> : null}
-      {/* Lot 32a (D3) : l'agenda des mois à venir, venu de l'accueil. */}
-      {!isPastTab ? <AgendaBlock organizationId={organizationId} locale={locale} today={parisToday()} query={{ agenda, debut }} /> : null}
+      {!calendarView && items.length === 0 ? <p>{t("noResults")}</p> : null}
+      {/* Lot 32a (D3), 32b (D11) : l'agenda des mois à venir, en vue calendrier. */}
+      {calendarView ? <AgendaBlock organizationId={organizationId} locale={locale} today={parisToday()} query={{ agenda, debut }} params={{ affichage: "calendrier" }} /> : null}
+      {isPastTab ? null : <MonthlyLoad load={load} locale={locale} />}
       {counts.upcoming + counts.past === 0 ? (
         <section className="card" aria-labelledby="events-empty-trial">
           <h2 id="events-empty-trial">{t("trialTitle")}</h2>
