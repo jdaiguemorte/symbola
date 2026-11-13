@@ -1,7 +1,7 @@
 # Lot 32 — « Aujourd'hui », cockpit d'évènement et création rapide
 
 **Statut** : spécification **validée par Julien le 13/11/2026** (« Oui, je valide » : D1 à D11 en (a)).
-32a fait le 13/11/2026 (bilan après la partie F) ; 32b à faire.
+32a fait le 13/11/2026 (bilan après la partie F) ; 32b fait le 13/11/2026 (bilan après la partie I).
 Branche `lot-32-aujourdhui`, partie de `main` (après le lot 31, PR #111).
 
 ## Contexte
@@ -276,6 +276,69 @@ Par défaut, l'année civile en cours ; on peut choisir une autre année. Les es
   - les filtres existants.
 - **Écran « Tâches »** : une vue **calendrier du mois** à côté de la liste. Chaque tâche est à son
   échéance et ouvre son évènement.
+
+### Bilan du lot 32b (13/11/2026)
+
+**Fait** :
+- **Création rapide** (HUB-07, D9) :
+  - « Créer » dans la barre du haut de chaque écran de l'équipe, et la touche N hors d'un champ ;
+  - quatre entrées : prospect, tâche, dépense, devis ; une entrée dont le module n'est pas
+    souscrit disparaît (ARC-06) ;
+  - un formulaire court dans une fenêtre, sans quitter l'écran ; l'évènement de l'écran est
+    proposé (fiche, budget, jour J, devis) ;
+  - un message de confirmation avec le lien « Ouvrir » ;
+  - la dépense est une ligne de budget : le poste, le prestataire consulté s'il y en a un, le
+    libellé, le montant du devis du prestataire (« devis reçu ») ;
+  - le devis se crée en brouillon numéroté ;
+  - les créations reprennent les contrôles des écrans d'origine. Un évènement d'une autre
+    organisation est refusé : test d'abus.
+- **« Écrire au client »** dans l'en-tête de la fiche (UX-03) : la messagerie de la planner
+  s'ouvre, aux adresses des clients.
+- **Alerte de date** (CRM-04, D10) :
+  - dès qu'une date est choisie, les évènements confirmés et les options (prospect, devis
+    envoyé) du même jour s'affichent, avant l'enregistrement, sans rien bloquer ;
+  - dans le formulaire « Nouveau prospect », la création rapide et la date de la fiche ;
+  - l'alerte ne montre jamais une autre organisation.
+- **Portefeuille** (EVT-07, D11) :
+  - « Évènements » propose deux vues, « Liste » et « Calendrier » ;
+  - la charge des douze prochains mois (confirmés et options, par mois) ;
+  - « Même jour : … » dans la liste ;
+  - dans le calendrier, le badge vaut aussi pour deux évènements un jour de semaine. Avant, un
+    tel jour ouvrait une liste vide (défaut corrigé).
+- **Calendrier des tâches** (CHR-03) :
+  - « Liste » ou « Calendrier » sur « Tâches » ;
+  - le mois du lundi au dimanche, chaque tâche à son échéance et menant à son évènement ;
+  - sur téléphone, la liste des seuls jours qui ont des tâches.
+- **Textes et aide**, en français et en anglais : aide de l'accueil, des évènements, de la
+  création d'un prospect et des tâches ; repère « Liste ou calendrier » dans la visite.
+- **Aucune migration.**
+
+**Vérifications** (13/11/2026) :
+- lint, vérification des types, frontières de modules : verts ;
+- tests unitaires : app 483, dont la charge par mois, le même jour et la grille d'un mois
+  (passage d'heure, année bissextile) ;
+- intégration : base 159, app 582 ;
+- Playwright, ordinateur et 375 px, axe-core : nouveau parcours `hub-07-creation-rapide` (les
+  quatre créations, la touche N, l'alerte de date, le portefeuille, le calendrier des tâches,
+  « Écrire au client », un module non souscrit, l'abus entre organisations) ; trois parcours de
+  l'agenda passés à la vue « Calendrier ». Sur une base rechargée : 265 passés, 1 ignoré ;
+- captures du centre d'aide régénérées ;
+- Semgrep : 0 constat ; Gitleaks sur les 26 fichiers texte du 32b : seul revient le mot de passe
+  fictif du parcours `prd-hub-02`, ligne antérieure au lot et inchangée.
+
+**Rejeu SC-03, étape 6** (`docs/recette/SC-03.md`, section 32b) : tenue en 3 gestes sur
+téléphone, l'évènement de l'écran proposé.
+
+**Écarts et suites** :
+- **UX-03** reste partiel :
+  - les créations ouvrent leur formulaire en 2 gestes, mais s'enregistrent en 3 ou 4 selon le
+    choix à faire (source, évènement, poste) ;
+  - à arbitrer : faut-il préremplir la dernière source utilisée et l'évènement le plus proche ?
+  - marquer un paiement, appeler un contact et émettre une facture ne sont pas remesurés ;
+    partager un document viendra au lot 37.
+- **Devis du prestataire joint en fichier** : la dépense en garde le montant. Le fichier se
+  joint ensuite sur la ligne du budget, comme aujourd'hui.
+- **Options** : prospect et devis envoyé, en attendant le statut « option » du lot 34 (EVT-01).
 
 ## Décisions à prendre
 
