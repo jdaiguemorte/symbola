@@ -1,6 +1,7 @@
 # Lot 33 — Identité déléguée, inscription libre et démarrage
 
-**Statut** : spécification **à valider par Julien** (lot qui change le schéma et un parcours P0).
+**Statut** : spécification **validée par Julien le 13/11/2026** (« Oui, je valide » : D1 à D12 en
+(a), dépendances comprises ; aucune donnée réelle en production, pour D3).
 Branche `lot-33-identite`, partie de `main` après le lot 32 (PR #112).
 
 ## Contexte
