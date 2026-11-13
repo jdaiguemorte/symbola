@@ -2,7 +2,9 @@
 
 **Statut** : spécification **validée par Julien le 13/11/2026** (« Oui, je valide » : D1 à D11 en (a)).
 32a fait le 13/11/2026 (bilan après la partie F) ; 32b fait le 13/11/2026 (bilan après la partie I).
-Branche `lot-32-aujourdhui`, partie de `main` (après le lot 31, PR #111).
+Branche `lot-32-aujourdhui`, partie de `main` (après le lot 31, PR #111). Le travail reste en deux
+parties, mais une seule PR les porte toutes les deux : décision de Julien du 13/11/2026 (« Une seule
+pour les 2 »), qui remplace les deux PR de D1 (a).
 
 ## Contexte
 
