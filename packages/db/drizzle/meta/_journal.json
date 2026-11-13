@@ -904,6 +904,13 @@
       "when": 1794592845501,
       "tag": "0128_lot32a_events_activity_vendor",
       "breakpoints": true
+    },
+    {
+      "idx": 129,
+      "version": "7",
+      "when": 1794613175955,
+      "tag": "0129_lot33a_hub_memberships",
+      "breakpoints": true
     }
   ]
 }
