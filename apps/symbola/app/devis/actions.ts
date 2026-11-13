@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { getLocale } from "next-intl/server";
-import { createQuote, EventNotFoundError, startQuotesTrial } from "@/modules/quotes/service";
+import { createQuote, createQuoteFromTemplate, EventNotFoundError, QuoteTemplateNotFoundError, startQuotesTrial } from "@/modules/quotes/service";
 import { isValidId } from "./module-access";
 import { authorizedPlanner } from "./planner-access";
 
@@ -13,11 +13,14 @@ export async function createQuoteAction(formData: FormData): Promise<void> {
   if (!planner) return;
   const eventId = String(formData.get("eventId") ?? "");
   if (!isValidId(eventId)) return;
+  // Lot 31a (FAC-01, HUB-21, D3) : depuis un modèle, le devis en reprend tout le contenu.
+  const templateId = String(formData.get("templateId") ?? "");
   let quoteId: string;
   try {
-    quoteId = (await createQuote({ organizationId: planner.organizationId, eventId, createdByUserId: planner.userId })).id;
+    const input = { organizationId: planner.organizationId, eventId, createdByUserId: planner.userId };
+    quoteId = (isValidId(templateId) ? await createQuoteFromTemplate({ ...input, templateId }) : await createQuote(input)).id;
   } catch (error) {
-    if (error instanceof EventNotFoundError) return;
+    if (error instanceof EventNotFoundError || error instanceof QuoteTemplateNotFoundError) return;
     throw error;
   }
   redirect(`/devis/${quoteId}`);

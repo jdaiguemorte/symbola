@@ -44,6 +44,8 @@ export async function updateQuoteSettingsAction(
       upcomingHorizonDays,
       invoicePaymentTermDays,
       invoiceMentions,
+      // Lot 31a (JUR-08, D5).
+      advanceKindDefault: ((value) => (value === "deposit" || value === "earnest" ? value : null))(String(formData.get("advanceKindDefault") ?? "")),
     });
   } catch (error) {
     if (error instanceof RangeError) return { error: t("invalidPrefix") };

@@ -260,7 +260,24 @@
     "errorShareCapital": "The share capital must be a positive amount, for example 10,000.",
     "logoTitle": "Logo",
     "documentsSettingsHint": "Colour, font, texts and IBAN of your documents:",
-    "documentsSettingsLink": "Settings › Sales › Documents"
+    "documentsSettingsLink": "Settings › Sales › Documents",
+    "professionalMentionsTitle": "Professional information",
+    "professionalMentionsHint": "Shown on quotes: when the required mentions list asks for them, a quote cannot be sent without them. Texts to have reviewed by a legal professional.",
+    "insurer": "Insurer (professional liability)",
+    "insurancePolicy": "Policy number",
+    "insuranceCoverage": "Geographic coverage (optional)",
+    "mediatorName": "Consumer mediator",
+    "mediatorUrl": "Mediator website",
+    "generalTerms": "General terms of sale",
+    "generalTermsHint": "Printed at the end of each quote. A base to adapt, to have reviewed by a legal professional.",
+    "professionalMentionsSave": "Save the information",
+    "professionalMentionsSaved": "Information saved.",
+    "errorInsurer": "Insurer: 120 characters at most.",
+    "errorInsurancePolicy": "Policy number: 80 characters at most.",
+    "errorInsuranceCoverage": "Coverage: 200 characters at most.",
+    "errorMediatorName": "Mediator: 160 characters at most.",
+    "errorMediatorUrl": "Mediator website: a web address, for example https://mediator.example.",
+    "errorGeneralTerms": "General terms: 20,000 characters at most."
   },
   "AdminSettings": {
     "title": "Platform settings",
@@ -278,7 +295,40 @@
     "invalidImportLimits": "Import limits and the export duration must be positive whole numbers (20 MB at most).",
     "importMaxSheets": "Event sheets (PDF) uploaded at once",
     "mailLegend": "Email sending",
-    "mailHourlyCap": "Email cap per organization per hour (signers, invited couples)"
+    "mailHourlyCap": "Email cap per organization per hour (signers, invited couples)",
+    "requiredMentionsTitle": "Required mentions on documents",
+    "requiredMentionsWarning": "Regulatory value, to be validated by the chartered accountant: a ticked mention blocks sending a quote or issuing an invoice until the organisation has filled it in.",
+    "requiredMentionsSourceAdmin": "List set by the Admin.",
+    "requiredMentionsSourceStarter": "Starter list (data file), to be validated.",
+    "requiredMentionsReset": "Back to the starter list",
+    "requiredMentionsCaption": "Required mention per document, with its conditions",
+    "requiredMentionsField": "Mention",
+    "requiredMentionsDocument": {
+      "quote": "Quote",
+      "deposit_invoice": "Deposit invoice",
+      "balance_invoice": "Balance invoice",
+      "credit_note": "Credit note"
+    },
+    "requiredMentionsConditions": "Conditions",
+    "requiredMentionsVatRegimes": "VAT regime: {list}",
+    "requiredMentionsClientKinds": "client: {list}",
+    "requiredMentionsLegalForms": "legal form: {list}",
+    "requiredMentionsFieldName": {
+      "organizationName": "Company name",
+      "address": "Address",
+      "siren": "SIREN or SIRET",
+      "registration": "Registration (RCS or RM)",
+      "shareCapital": "Share capital",
+      "vatNumber": "EU VAT number",
+      "insurance": "Professional liability insurance (insurer and policy)",
+      "mediator": "Consumer mediator (name and website)",
+      "generalTerms": "General terms of sale",
+      "paymentTerms": "Invoice payment terms"
+    },
+    "requiredMentionsCheckbox": "{field} required on: {document}",
+    "requiredMentionsSave": "Save the list",
+    "requiredMentionsSaved": "List saved.",
+    "requiredMentionsEmpty": "Tick at least one mention."
   },
   "Tour": {
     "hub": [
@@ -626,6 +676,18 @@
         {
           "q": "Can an issued invoice be edited?",
           "a": "No, it is final: correct it with a credit note, which keeps numbering gap-free."
+        },
+        {
+          "q": "How do I offer options?",
+          "a": "Tick \"Optional\" on a line: it shows with its price, out of the total. Once the quote is sent, the client ticks the options they keep on their portal; the total follows, and the choice locks when signing starts. You can also tick for them (choice made over the phone)."
+        },
+        {
+          "q": "Why is sending refused?",
+          "a": "A required mention is missing: insurance, mediator, general terms, VAT number… The message names each field, with a link to where to fill it in. The list of mentions is to be validated by your chartered accountant."
+        },
+        {
+          "q": "Deposit or earnest money?",
+          "a": "As soon as there is a payment schedule, the quote must say whether advance payments are deposits or earnest money: their effects differ on cancellation. The chosen word appears on the schedule, the PDF and the invoice."
         }
       ]
     },
@@ -926,6 +988,10 @@
     "offline": {
       "title": "Offline",
       "body": "Without a network, only the days kept on this device open. The other screens come back with the network."
+    },
+    "quotesTemplates": {
+      "title": "Quote templates",
+      "body": "One template per event type: sections, lines, options, standard schedule and deposit or earnest money. \"New quote\" on the event page starts from the template of its type; editing a template afterwards changes no quote already created, which keeps the version it came from. The starter template is to adapt: prices, terms, schedule."
     }
   },
   "Aide": {
@@ -1892,7 +1958,92 @@
     "reversalReasonRequired": "Give the reason for cancelling.",
     "paymentHistory": "Payment history of “{label}”",
     "paymentReceivedEntry": "Received on {date} ({method})",
-    "paymentReversedEntry": "Cancelled on {date}: {reason}"
+    "paymentReversedEntry": "Cancelled on {date}: {reason}",
+    "mention": {
+      "organizationName": "Company name",
+      "address": "Address",
+      "siren": "SIREN or SIRET",
+      "registration": "Registration (RCS or RM)",
+      "shareCapital": "Share capital",
+      "vatNumber": "EU VAT number",
+      "insurance": "Professional liability insurance (insurer and policy)",
+      "mediator": "Consumer mediator (name and website)",
+      "generalTerms": "General terms of sale",
+      "paymentTerms": "Invoice payment terms",
+      "advanceKind": "Deposit or earnest money, on this quote"
+    },
+    "mentionsMissing": "Required mentions are missing: fill them in, then try again.",
+    "mentionsMissingBeforeSend": "Before sending, these are missing:",
+    "sectionNotFound": "Section not found.",
+    "optionsLocked": "The options choice is locked: signing has started, or the quote has not been sent.",
+    "templateNotFound": "Template not found.",
+    "invalidSectionTitle": "Enter a section title of 120 characters at most.",
+    "invalidTemplateName": "Enter a template name of 120 characters at most.",
+    "lineSection": "Section",
+    "noSection": "No section",
+    "lineIsOption": "Optional (left out of the total until chosen)",
+    "sectionsTitle": "Sections",
+    "noSections": "No section: lines form a single list.",
+    "addSection": "Add the section",
+    "sectionTitle": "Section title",
+    "sectionAdded": "Section added.",
+    "renameSection": "Rename",
+    "renameSectionNamed": "Rename section {title}",
+    "sectionRenamed": "Section renamed.",
+    "removeSection": "Remove section {title}",
+    "sectionSubtotal": "Subtotal {title}",
+    "optionChosen": "Option: chosen",
+    "optionNotChosen": "Option: not chosen, left out of the total",
+    "advanceKindTitle": "Advance payments",
+    "advanceKindLabel": "Deposit or earnest money",
+    "advanceKindSave": "Save",
+    "advanceKindSaved": "Saved.",
+    "advanceUnset": "To choose",
+    "advanceDeposit": "Deposit",
+    "advanceEarnest": "Earnest money",
+    "advanceKindHint": "Deposit or earnest money: their effects differ on cancellation. The choice is required before sending as soon as there is a payment schedule; the clause will come from the contract.",
+    "advanceKindDefault": "Advance payments, offered on each new quote",
+    "advanceKindDefaultHint": "Deposit or earnest money: can be changed on each quote before sending.",
+    "optionsTitle": "Options",
+    "optionsChoiceTitle": "Options choice",
+    "optionsChosenByClient": "Chosen by {name} on their portal, on {date}.",
+    "optionsChosenByPlanner": "Chosen for {name} by the team, on {date}.",
+    "optionsNotChosenYet": "No option chosen yet: the client ticks them on their portal, before signing.",
+    "optionsLockedHint": "The choice is locked: signing has started.",
+    "chooseOptionsForClient": "Save the choice for the client",
+    "optionsSaved": "Choice saved: the total follows.",
+    "saveAsTemplate": "Save as a template",
+    "saveAsTemplateHint": "Sections, lines, options, schedule (\"on signing\", \"N days before the event\") and deposit or earnest money become a template, for the next standard quote.",
+    "templateTarget": "Template",
+    "templateTargetNew": "New template",
+    "templateTargetReplace": "Replace \"{name}\" (version {version})",
+    "templateName": "Template name",
+    "templateSaved": "Template saved.",
+    "fromTemplateVersion": "Created from a template (version {version}).",
+    "fromTemplate": "Start from a template",
+    "noTemplate": "None (empty quote)",
+    "templatesLink": "Quote templates",
+    "templatesTitle": "Quote templates",
+    "templateAdaptWarning": "Templates to adapt: check prices, terms and schedule before using them.",
+    "noTemplatesTitle": "No template yet",
+    "noTemplatesHint": "A template makes a standard quote in under five minutes. Start from the starter template, or save a quote as a template from its page.",
+    "templateVersion": "Version {version}",
+    "templateAllEventTypes": "All event types",
+    "templateEventType": "Event type",
+    "templateCounts": "{sections, plural, one {# section} other {# sections}}, {lines, plural, one {# line} other {# lines}} including {options, plural, one {# option} other {# options}}, {schedule, plural, one {# instalment} other {# instalments}}",
+    "renameTemplate": "Save",
+    "renameTemplateNamed": "Rename template {name}",
+    "templateRenamed": "Template saved.",
+    "duplicateTemplateNamed": "Duplicate template {name}",
+    "templateDuplicated": "Template duplicated.",
+    "templateCopyName": "{name} (copy)",
+    "removeTemplate": "Delete template {name}",
+    "addStarterTemplates": "Add the starter template",
+    "templatesFromQuoteHint": "To create a template, save a quote as a template from its page.",
+    "quotesLink": "See quotes",
+    "pdfOptionChosen": "option chosen",
+    "pdfOptionNotChosen": "option not chosen, not in the total",
+    "invoiceKindEarnest": "Earnest money invoice"
   },
   "Documents": {
     "pdfSellerHeading": "From",
@@ -2000,7 +2151,13 @@
     "sampleUnitTables": "tables",
     "sampleDeposit": "30% deposit on signature",
     "sampleFileQuote": "sample-quote.pdf",
-    "sampleFileInvoice": "sample-invoice.pdf"
+    "sampleFileInvoice": "sample-invoice.pdf",
+    "pdfScheduleTitleEarnest": "Earnest money schedule",
+    "pdfScheduleTitleDeposit": "Deposit schedule",
+    "pdfInsurance": "Professional liability insurance: {insurer}, policy {policy}.",
+    "pdfInsuranceCoverage": "Professional liability insurance: {insurer}, policy {policy}, coverage: {coverage}.",
+    "pdfMediator": "Consumer mediator: {name} — {url}",
+    "pdfGeneralTermsTitle": "General terms of sale"
   },
   "ClientSpace": {
     "title": "My wedding",
@@ -2023,7 +2180,20 @@
     "vendorOptionsIntro": "Your planner consulted several vendors. Here are the ones they suggest.",
     "vendorOptionQuote": "Quote: {amount}",
     "vendorOptionOpenQuote": "View {vendor}'s quote",
-    "vendorOptionOpenRib": "{vendor} bank details (RIB)"
+    "vendorOptionOpenRib": "{vendor} bank details (RIB)",
+    "optionsTitle": "Your options",
+    "optionsHint": "Tick the options you keep: the total updates, then you sign the quote as you chose it.",
+    "optionsForQuote": "Options of quote {number}",
+    "optionPrice": "{amount}",
+    "optionPriceTtc": "{amount} incl. VAT",
+    "optionsTotal": "Total with your options: {amount}",
+    "optionsChosenOn": "Chosen by {name}, on {date}.",
+    "optionsLocked": "The choice is locked: signing has started.",
+    "advanceDeposit": "Advance payments: deposits (acomptes).",
+    "advanceEarnest": "Advance payments: earnest money (arrhes).",
+    "saveOptions": "Save my choice",
+    "optionsSaved": "Your choice is saved.",
+    "optionsError": "This choice is not possible. Reload the page."
   },
   "NotFound": {
     "title": "Page not found",
@@ -4191,6 +4361,7 @@
       "hub_member_removed": "Team member access removed",
       "hub_access_refused": "Access refused: object not found",
       "hub_platform_settings_updated": "Platform settings changed",
+      "hub_required_mentions_updated": "Required mentions list updated",
       "hub_privacy_export_created": "GDPR export prepared",
       "hub_privacy_export_downloaded": "GDPR export downloaded",
       "vendors_vendors_exported": "Vendor book exported",
@@ -4198,6 +4369,7 @@
       "events_client_access_granted": "Client space opened",
       "events_client_access_revoked": "Client space access removed",
       "quotes_quote_sent": "Quote sent",
+      "quotes_quote_options_chosen": "Quote options chosen",
       "quotes_signature_requested": "Signature requested",
       "quotes_invoice_issued": "Invoice issued",
       "quotes_credit_note_issued": "Credit note issued",
@@ -4311,7 +4483,12 @@
       "events_event_decisions": "client decision",
       "events_event_documents": "event document",
       "events_event_day_documents": "document kept for the day",
-      "events_event_day_contacts": "day-of contact"
+      "events_event_day_contacts": "day-of contact",
+      "quotes_quote_sections": "Quote section",
+      "quotes_quote_templates": "Quote template",
+      "quotes_quote_template_sections": "Quote template section",
+      "quotes_quote_template_lines": "Quote template line",
+      "quotes_quote_template_schedule_items": "Quote template instalment"
     },
     "modules": {
       "events": "Events",

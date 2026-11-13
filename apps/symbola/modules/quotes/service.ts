@@ -3,13 +3,19 @@
 // /v1/quotes si ce module est extrait en app autonome.
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
-import { starterDemoQuote } from "@symbola/starter-templates";
+import { starterDemoQuote, starterEventTypes, starterQuoteTemplates } from "@symbola/starter-templates";
 import { appDatabase, type AppDatabase } from "@symbola/db/client";
 import { parseEnv } from "@symbola/env";
 import { createStorageClient, deletePrivateObject, PrivateObjectNotFoundError, readPrivateObject, uploadFile } from "@symbola/files";
 import { reserveOrganizationMail, sendMail } from "@symbola/mail";
 import { parisDaysSince } from "@symbola/i18n";
 import type {
+  AdvanceKind,
+  ClientQuoteOptions,
+  MissingMention,
+  OptionsChoice,
+  QuoteSection,
+  QuoteTemplateSummary,
   CatalogItem,
   FileDownload,
   MonthlyCount,
@@ -56,10 +62,11 @@ import type {
   StartQuotesTrialInput,
 } from "@symbola/contracts";
 import { QUOTES_QUOTE_SIGNED, QUOTES_QUOTE_SIGNED_VERSION, type QuoteSignedPayload } from "@symbola/contracts";
-import { changeEventStatus, EventNotFoundError, getEvent } from "@/modules/events/service";
+import { changeEventStatus, EventNotFoundError, getEvent, listEventTypes } from "@/modules/events/service";
 import {
   computeLegalMention,
   getOrganizationProfile,
+  getRequiredMentionRules,
   getSellerDetails,
   getUserContact,
   type OrganizationProfile,
@@ -71,6 +78,19 @@ import { addCalendarDays, groupByMonth, isOverdue, parisToday, resolveSchedule }
 import { addDays, prorateTotals } from "./invoicing";
 import { recordAudit } from "@symbola/db/audit";
 import { cleanDocumentSettings, documentSnapshot, EMPTY_DOCUMENT_SETTINGS } from "./document-settings";
+import { missingMentions, type MentionValues } from "./mentions";
+import {
+  applyTemplateToDraft,
+  deleteQuoteTemplateRow,
+  findCurrentVersionContent,
+  findQuoteTemplate,
+  findQuoteTemplates,
+  insertQuoteTemplate,
+  replaceQuoteTemplateContent,
+  updateQuoteTemplateHeader,
+  type TemplateContent,
+  type TemplateWithContent,
+} from "./templates-repository";
 import {
   findOriginal,
   ledgerEntriesOfYear,
@@ -136,6 +156,12 @@ import {
   insertNextVersion,
   insertQuote,
   insertQuoteLine,
+  insertQuoteSection,
+  updateQuoteSectionRow,
+  deleteQuoteSection,
+  setAdvanceKindRow,
+  chooseOptionsRow,
+  type QuoteSectionRow,
   setGlobalDiscountRow,
   updateCatalogItemRow,
   updateQuoteLineRow,
@@ -165,6 +191,12 @@ export type {
   QuoteLineInput,
   QuoteSettings,
   QuoteStatus,
+  AdvanceKind,
+  ClientQuoteOptions,
+  MissingMention,
+  OptionsChoice,
+  QuoteSection,
+  QuoteTemplateSummary,
   QuoteSummary,
   QuoteAwaitingAnswer,
   QuotesServiceContract,
@@ -341,6 +373,36 @@ export class SignatureDocumentNotFoundError extends Error {
   }
 }
 
+// Lot 31a (FAC-07, JUR-01, décision D4) : une mention requise manque ; chaque champ est nommé.
+export class RequiredMentionsMissingError extends Error {
+  constructor(readonly fields: MissingMention[]) {
+    super(`mentions requises manquantes : ${fields.join(", ")}`);
+    this.name = "RequiredMentionsMissingError";
+  }
+}
+
+export class QuoteSectionNotFoundError extends Error {
+  constructor() {
+    super("section du devis introuvable");
+    this.name = "QuoteSectionNotFoundError";
+  }
+}
+
+// Lot 31a (FAC-01, décision D2) : la signature a commencé, ou le devis n'est pas envoyé.
+export class QuoteOptionsLockedError extends Error {
+  constructor() {
+    super("choix des options figé");
+    this.name = "QuoteOptionsLockedError";
+  }
+}
+
+export class QuoteTemplateNotFoundError extends Error {
+  constructor() {
+    super("modèle de devis introuvable");
+    this.name = "QuoteTemplateNotFoundError";
+  }
+}
+
 const DEFAULT_SETTINGS: QuoteSettings = {
   validityDays: 30,
   quotePrefix: "D",
@@ -349,6 +411,7 @@ const DEFAULT_SETTINGS: QuoteSettings = {
   upcomingHorizonDays: 90,
   invoicePaymentTermDays: 30,
   invoiceMentions: null,
+  advanceKindDefault: null,
 };
 const DEMO_PREFIX = "DEMO";
 const MAX_AMOUNT_CENTS = 100_000_000_00; // 100 M€ : garde-fou contre les débordements d'entier
@@ -440,6 +503,7 @@ export async function getQuoteSettings(organizationId: string): Promise<QuoteSet
     upcomingHorizonDays: row.upcomingHorizonDays,
     invoicePaymentTermDays: row.invoicePaymentTermDays,
     invoiceMentions: row.invoiceMentions,
+    advanceKindDefault: row.advanceKindDefault,
   };
 }
 
@@ -455,7 +519,8 @@ export async function updateQuoteSettings(organizationId: string, settings: Quot
     // DEMO est réservé à la série d'essai (ADR 0008).
     if (!PREFIX_PATTERN.test(prefix) || prefix === DEMO_PREFIX) throw new RangeError("préfixe invalide");
   }
-  const row = await upsertQuoteSettings(organizationId, { ...settings, invoiceMentions });
+  const advanceKindDefault = settings.advanceKindDefault === "deposit" || settings.advanceKindDefault === "earnest" ? settings.advanceKindDefault : null;
+  const row = await upsertQuoteSettings(organizationId, { ...settings, invoiceMentions, advanceKindDefault });
   return {
     validityDays: row.validityDays,
     quotePrefix: row.quotePrefix,
@@ -464,6 +529,7 @@ export async function updateQuoteSettings(organizationId: string, settings: Quot
     upcomingHorizonDays: row.upcomingHorizonDays,
     invoicePaymentTermDays: row.invoicePaymentTermDays,
     invoiceMentions: row.invoiceMentions,
+    advanceKindDefault: row.advanceKindDefault,
   };
 }
 
@@ -551,11 +617,34 @@ function toLine(row: QuoteLineRow): QuoteLine {
     discountBasisPoints: row.discountBasisPoints,
     position: row.position,
     netCents: lineAmounts(row).netCents,
+    sectionId: row.sectionId,
+    isOption: row.isOption,
+    optionChosen: row.optionChosen,
   };
 }
 
+// Lot 31a (FAC-01, décision D2) : une option compte au total une fois choisie.
+function includedLines<T extends { isOption: boolean; optionChosen: boolean }>(lines: T[]): T[] {
+  return lines.filter((line) => !line.isOption || line.optionChosen);
+}
+
 function totalsFor(lines: QuoteLineRow[], version: QuoteVersionRow, vatApplicable: boolean): QuoteTotalsView {
-  return computeQuoteTotals(lines, toGlobalDiscount(version), vatApplicable);
+  return computeQuoteTotals(includedLines(lines), toGlobalDiscount(version), vatApplicable);
+}
+
+function toSections(sections: QuoteSectionRow[], lines: QuoteLineRow[]): QuoteSection[] {
+  const counted = includedLines(lines);
+  return sections.map((section) => ({
+    id: section.id,
+    title: section.title,
+    position: section.position,
+    subtotalCents: counted.filter((line) => line.sectionId === section.id).reduce((sum, line) => sum + lineAmounts(line).netCents, 0),
+  }));
+}
+
+function toOptionsChoice(version: QuoteVersionRow): OptionsChoice | null {
+  if (!version.optionsChosenAt || !version.optionsChosenBy) return null;
+  return { chosenAt: version.optionsChosenAt.toISOString(), chosenBy: version.optionsChosenBy, byKind: version.optionsChosenByKind === "client" ? "client" : "planner" };
 }
 
 function toPaymentEntryView(entry: PaymentEntryRow): PaymentEntryView {
@@ -603,7 +692,7 @@ function toScheduleView(
 
 function toVersionView(
   version: QuoteVersionRow,
-  aggregate: Pick<QuoteAggregate, "lines" | "scheduleItems" | "paymentMethods"> & Partial<Pick<QuoteAggregate, "paymentEntries">>,
+  aggregate: Pick<QuoteAggregate, "lines" | "scheduleItems" | "paymentMethods"> & Partial<Pick<QuoteAggregate, "paymentEntries" | "sections">>,
   profile: OrganizationProfile,
   now: Date,
 ): QuoteVersionView {
@@ -628,6 +717,10 @@ function toVersionView(
     validUntil: version.validUntil,
     sentAt: version.sentAt?.toISOString() ?? null,
     schedule: toScheduleView(ownItems, aggregate.paymentMethods, totals.totalTtcCents, now, aggregate.paymentEntries ?? []),
+    sections: toSections((aggregate.sections ?? []).filter((section) => section.versionId === version.id), ownLines),
+    advanceKind: version.advanceKind,
+    optionsChoice: toOptionsChoice(version),
+    template: version.templateVersion !== null ? { id: version.templateId, version: version.templateVersion } : null,
   };
 }
 
@@ -716,6 +809,8 @@ export async function createQuote(input: CreateQuoteInput): Promise<QuoteDetail>
     year,
     formatNumber: (rank) => formatDocumentNumber(prefix, year, rank),
   });
+  // Lot 31a (JUR-08, D5) : la valeur proposée par l'organisation, à confirmer avant l'envoi.
+  if (settings.advanceKindDefault) unwrap(await setAdvanceKindRow(input.organizationId, quote.id, settings.advanceKindDefault));
   return loadDetail(input.organizationId, quote.id);
 }
 
@@ -800,6 +895,9 @@ async function newLineData(organizationId: string, line: QuoteLineInput): Promis
     unitPriceCents,
     vatRateBasisPoints: vatRate,
     discountBasisPoints: line.discountBasisPoints ?? 0,
+    sectionId: line.sectionId ?? null,
+    isOption: line.isOption ?? false,
+    optionChosen: false,
   };
   validateLineNumbers(data);
   return data;
@@ -824,6 +922,9 @@ export async function updateQuoteLine(organizationId: string, lineId: string, li
         unitPriceCents: line.unitPriceCents ?? current.unitPriceCents,
         vatRateBasisPoints: line.vatRateBasisPoints ?? current.vatRateBasisPoints,
         discountBasisPoints: line.discountBasisPoints ?? current.discountBasisPoints,
+        sectionId: line.sectionId !== undefined ? line.sectionId : current.sectionId,
+        isOption: line.isOption ?? current.isOption,
+        optionChosen: (line.isOption ?? current.isOption) ? current.optionChosen : false,
       };
       validateLineNumbers(data);
       return data;
@@ -850,6 +951,352 @@ export async function setQuoteGlobalDiscount(organizationId: string, quoteId: st
   return loadDetail(organizationId, quoteId);
 }
 
+// --- Lot 31a (FAC-01, FAC-07, JUR-01, JUR-08, JUR-09, HUB-21 ; D2 à D5) ---
+
+function sectionTitle(title: string): string {
+  const clean = requireText(title, "titre de section").replace(/\s+/g, " ");
+  if (clean.length > 120) throw new RangeError("titre de section trop long");
+  return clean;
+}
+
+function unwrapSection(result: Awaited<ReturnType<typeof updateQuoteSectionRow>>): string {
+  if (result.status === "not_found") throw new QuoteSectionNotFoundError();
+  if (result.status === "locked") throw new QuoteVersionLockedError();
+  if (result.status !== "ok") throw new QuoteSectionNotFoundError();
+  return result.quoteId;
+}
+
+export async function addQuoteSection(organizationId: string, quoteId: string, title: string): Promise<QuoteDetail> {
+  unwrap(await insertQuoteSection(organizationId, quoteId, sectionTitle(title)));
+  return loadDetail(organizationId, quoteId);
+}
+
+export async function renameQuoteSection(organizationId: string, sectionId: string, title: string): Promise<QuoteDetail> {
+  const quoteId = unwrapSection(await updateQuoteSectionRow(organizationId, sectionId, sectionTitle(title)));
+  return loadDetail(organizationId, quoteId);
+}
+
+// Les lignes de la section restent, sans section.
+export async function removeQuoteSection(organizationId: string, sectionId: string): Promise<QuoteDetail> {
+  const quoteId = unwrapSection(await deleteQuoteSection(organizationId, sectionId));
+  return loadDetail(organizationId, quoteId);
+}
+
+export async function setQuoteAdvanceKind(organizationId: string, quoteId: string, kind: AdvanceKind | null): Promise<QuoteDetail> {
+  if (kind !== null && kind !== "deposit" && kind !== "earnest") throw new RangeError("acompte ou arrhes");
+  unwrap(await setAdvanceKindRow(organizationId, quoteId, kind));
+  return loadDetail(organizationId, quoteId);
+}
+
+// Lot 31a (FAC-01, décision D2) — le client choisit ses options sur son portail (ou la
+// planner pour lui) : figé dès que la signature commence ; les totaux figés suivent.
+export async function chooseQuoteOptions(input: {
+  organizationId: string;
+  quoteId: string;
+  // Lien personnel : l'événement du lien, que le devis doit porter.
+  eventId?: string;
+  chosenLineIds: string[];
+  chosenBy: string;
+  byKind: "client" | "planner";
+  now?: Date;
+}): Promise<QuoteDetail> {
+  const chosenBy = requireText(input.chosenBy, "auteur du choix").slice(0, 200);
+  const result = await chooseOptionsRow(
+    input.organizationId,
+    { quoteId: input.quoteId, ...(input.eventId ? { eventId: input.eventId } : {}), chosenLineIds: [...new Set(input.chosenLineIds)], chosenBy, byKind: input.byKind, now: input.now ?? new Date() },
+    (lines, version) => totalsFor(lines, version, version.vatRegime !== "franchise"),
+  );
+  if (result.status === "not_found") throw new QuoteNotFoundError();
+  if (result.status === "locked" || result.status === "no_options") throw new QuoteOptionsLockedError();
+  return loadDetail(input.organizationId, input.quoteId);
+}
+
+// Options des devis envoyés de l'événement, pour le portail du client (rubrique devis).
+export async function listClientQuoteOptions(organizationId: string, eventId: string): Promise<ClientQuoteOptions[]> {
+  const summaries = await findEventQuotes(organizationId, eventId);
+  const aggregates = await findQuoteAggregates(
+    organizationId,
+    summaries.filter((quote) => quote.status === "sent" || quote.status === "signed").map((quote) => quote.id),
+  );
+  const result: ClientQuoteOptions[] = [];
+  for (const aggregate of aggregates) {
+    const version = aggregate.versions.find((candidate) => candidate.version === aggregate.quote.currentVersion);
+    if (!version?.sentAt) continue;
+    const lines = aggregate.lines.filter((line) => line.versionId === version.id);
+    const options = lines.filter((line) => line.isOption);
+    if (options.length === 0) continue;
+    const vatApplicable = version.vatRegime !== "franchise";
+    const sections = new Map(aggregate.sections.filter((section) => section.versionId === version.id).map((section) => [section.id, section.title]));
+    const totals = (version.totalsSnapshot as QuoteTotalsView | null) ?? totalsFor(lines, version, vatApplicable);
+    result.push({
+      quoteId: aggregate.quote.id,
+      number: aggregate.quote.number,
+      version: version.version,
+      totalTtcCents: totals.totalTtcCents,
+      vatApplicable,
+      options: options.map((line) => {
+        const net = lineAmounts(line).netCents;
+        return {
+          lineId: line.id,
+          label: line.label,
+          description: line.description,
+          section: line.sectionId ? (sections.get(line.sectionId) ?? null) : null,
+          amountCents: vatApplicable ? net + Math.round((net * line.vatRateBasisPoints) / 10000) : net,
+          chosen: line.optionChosen,
+        };
+      }),
+      choice: toOptionsChoice(version),
+      locked: aggregate.quote.status !== "sent" || aggregate.signatureRequests.some((request) => request.versionId === version.id),
+      advanceKind: version.advanceKind,
+    });
+  }
+  return result;
+}
+
+// --- Mentions requises (FAC-07, JUR-01, JUR-09 ; D4) ---
+
+function mentionValues(seller: Partial<SellerSnapshot> & { organizationName?: string | null }, paymentTerms: string | null): MentionValues {
+  return {
+    organizationName: seller.organizationName ?? null,
+    address: seller.address ?? null,
+    siren: seller.siren ?? null,
+    siret: seller.siret ?? null,
+    registration: seller.registration ?? null,
+    shareCapitalCents: seller.shareCapitalCents ?? null,
+    vatNumber: seller.vatNumber ?? null,
+    insurer: seller.insurer ?? null,
+    insurancePolicy: seller.insurancePolicy ?? null,
+    mediatorName: seller.mediatorName ?? null,
+    mediatorUrl: seller.mediatorUrl ?? null,
+    generalTerms: seller.generalTerms ?? null,
+    paymentTerms,
+  };
+}
+
+function requireInvoiceMentions(
+  rules: Awaited<ReturnType<typeof getRequiredMentionRules>>["rules"],
+  document: "deposit_invoice" | "balance_invoice",
+  context: InvoicingContext,
+  seller: Awaited<ReturnType<typeof getSellerDetails>>,
+): void {
+  if (context.quote.isDemo) return;
+  const missing = missingMentions(rules, {
+    document,
+    vatRegime: context.version.vatRegime === "assujetti" ? "assujetti" : context.version.vatRegime === "franchise" ? "franchise" : null,
+    clientKind: context.quote.clientKind,
+    legalForm: seller.legalForm,
+    values: mentionValues(seller, context.settings?.invoiceMentions ?? null),
+  });
+  if (missing.length > 0) throw new RequiredMentionsMissingError(missing);
+}
+
+// Ce qui manque pour envoyer ce devis : mentions requises de la liste, et acompte ou arrhes
+// s'il a un échéancier. Un devis d'essai n'est pas contrôlé (document fictif).
+export async function quoteMissingMentions(organizationId: string, quoteId: string): Promise<MissingMention[]> {
+  const aggregate = await findQuoteAggregate(organizationId, quoteId);
+  if (!aggregate) throw new QuoteNotFoundError();
+  if (aggregate.quote.isDemo) return [];
+  const version = aggregate.versions.find((candidate) => candidate.version === aggregate.quote.currentVersion);
+  if (!version) throw new QuoteNotFoundError();
+  const [{ rules }, seller, profile, settings] = await Promise.all([
+    withDb((db) => getRequiredMentionRules(db)),
+    withDb((db) => getSellerDetails(db, organizationId)),
+    withDb((db) => getOrganizationProfile(db, organizationId)),
+    findQuoteSettings(organizationId),
+  ]);
+  const missing = missingMentions(rules, {
+    document: "quote",
+    vatRegime: profile.vatRegime,
+    clientKind: aggregate.quote.clientKind,
+    legalForm: seller.legalForm,
+    values: mentionValues(seller, settings?.invoiceMentions ?? null),
+  });
+  const hasSchedule = aggregate.scheduleItems.some((item) => item.versionId === version.id);
+  if (hasSchedule && !version.advanceKind) missing.push("advanceKind");
+  return missing;
+}
+
+// --- Modèles de devis (FAC-01, HUB-21 ; D3) ---
+
+function toTemplateSummary({ template, sections, lines, schedule }: TemplateWithContent): QuoteTemplateSummary {
+  return {
+    id: template.id,
+    name: template.name,
+    eventTypeId: template.eventTypeId,
+    version: template.version,
+    sectionCount: sections.length,
+    lineCount: lines.length,
+    optionCount: lines.filter((line) => line.isOption).length,
+    scheduleCount: schedule.length,
+    advanceKind: template.advanceKind,
+  };
+}
+
+function templateName(name: string): string {
+  const clean = requireText(name, "nom du modèle").replace(/\s+/g, " ");
+  if (clean.length > 120) throw new RangeError("nom du modèle trop long");
+  return clean;
+}
+
+export async function listQuoteTemplates(organizationId: string): Promise<QuoteTemplateSummary[]> {
+  return (await findQuoteTemplates(organizationId)).map(toTemplateSummary);
+}
+
+// Le contenu de la version courante d'un devis : sections, lignes, options, remise,
+// acompte ou arrhes, et l'échéancier en règles (« à la signature », « N jours avant »).
+async function quoteAsTemplateContent(organizationId: string, quoteId: string): Promise<TemplateContent> {
+  const content = await findCurrentVersionContent(organizationId, quoteId);
+  if (!content) throw new QuoteNotFoundError();
+  const event = await getEvent(organizationId, content.quote.eventId);
+  const reference = parisDate(content.version.sentAt ?? content.version.createdAt);
+  return {
+    globalDiscountKind: content.version.globalDiscountKind,
+    globalDiscountValue: content.version.globalDiscountValue,
+    advanceKind: content.version.advanceKind,
+    sections: content.sections.map((section) => ({ key: section.id, title: section.title })),
+    lines: content.lines.map((line) => ({
+      sectionKey: line.sectionId,
+      catalogItemId: line.catalogItemId,
+      label: line.label,
+      description: line.description,
+      unit: line.unit,
+      quantityMilli: line.quantityMilli,
+      unitPriceCents: line.unitPriceCents,
+      vatRateBasisPoints: line.vatRateBasisPoints,
+      discountBasisPoints: line.discountBasisPoints,
+      isOption: line.isOption,
+    })),
+    schedule: content.schedule.map((item) => {
+      const before = event?.eventDate && item.dueDate > reference ? daysBetweenDates(item.dueDate, event.eventDate) : null;
+      return before !== null && before >= 0
+        ? { label: item.label, amountCents: item.amountCents, percentageBasisPoints: item.percentageBasisPoints, dueRule: "before_event" as const, daysBeforeEvent: Math.min(before, 1095) }
+        : { label: item.label, amountCents: item.amountCents, percentageBasisPoints: item.percentageBasisPoints, dueRule: "at_signature" as const, daysBeforeEvent: null };
+    }),
+  };
+}
+
+function daysBetweenDates(from: string, to: string): number {
+  return Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86_400_000);
+}
+
+export async function saveQuoteAsTemplate(input: { organizationId: string; quoteId: string; name: string; eventTypeId: string | null }): Promise<QuoteTemplateSummary> {
+  const name = templateName(input.name);
+  const content = await quoteAsTemplateContent(input.organizationId, input.quoteId);
+  if (content.lines.length === 0) throw new QuoteEmptyError();
+  const template = await insertQuoteTemplate(input.organizationId, { name, eventTypeId: input.eventTypeId }, content);
+  return toTemplateSummary((await findQuoteTemplate(input.organizationId, template.id))!);
+}
+
+// Remplace le contenu d'un modèle par celui d'un devis ; sa version augmente.
+export async function replaceQuoteTemplateFromQuote(input: { organizationId: string; templateId: string; quoteId: string }): Promise<QuoteTemplateSummary> {
+  const content = await quoteAsTemplateContent(input.organizationId, input.quoteId);
+  if (content.lines.length === 0) throw new QuoteEmptyError();
+  if (!(await replaceQuoteTemplateContent(input.organizationId, input.templateId, content))) throw new QuoteTemplateNotFoundError();
+  return toTemplateSummary((await findQuoteTemplate(input.organizationId, input.templateId))!);
+}
+
+export async function duplicateQuoteTemplate(input: { organizationId: string; templateId: string; name: string }): Promise<QuoteTemplateSummary> {
+  const source = await findQuoteTemplate(input.organizationId, input.templateId);
+  if (!source) throw new QuoteTemplateNotFoundError();
+  const template = await insertQuoteTemplate(input.organizationId, { name: templateName(input.name), eventTypeId: source.template.eventTypeId }, templateContentOf(source));
+  return toTemplateSummary((await findQuoteTemplate(input.organizationId, template.id))!);
+}
+
+function templateContentOf({ template, sections, lines, schedule }: TemplateWithContent): TemplateContent {
+  return {
+    globalDiscountKind: template.globalDiscountKind,
+    globalDiscountValue: template.globalDiscountValue,
+    advanceKind: template.advanceKind,
+    sections: sections.map((section) => ({ key: section.id, title: section.title })),
+    lines: lines.map((line) => ({
+      sectionKey: line.sectionId,
+      catalogItemId: line.catalogItemId,
+      label: line.label,
+      description: line.description,
+      unit: line.unit,
+      quantityMilli: line.quantityMilli,
+      unitPriceCents: line.unitPriceCents,
+      vatRateBasisPoints: line.vatRateBasisPoints,
+      discountBasisPoints: line.discountBasisPoints,
+      isOption: line.isOption,
+    })),
+    schedule: schedule.map((item) => ({ label: item.label, amountCents: item.amountCents, percentageBasisPoints: item.percentageBasisPoints, dueRule: item.dueRule === "before_event" ? "before_event" : "at_signature", daysBeforeEvent: item.daysBeforeEvent })),
+  };
+}
+
+export async function renameQuoteTemplate(input: { organizationId: string; templateId: string; name: string; eventTypeId: string | null }): Promise<void> {
+  if (!(await updateQuoteTemplateHeader(input.organizationId, input.templateId, { name: templateName(input.name), eventTypeId: input.eventTypeId }))) throw new QuoteTemplateNotFoundError();
+}
+
+export async function removeQuoteTemplate(organizationId: string, templateId: string): Promise<void> {
+  if (!(await deleteQuoteTemplateRow(organizationId, templateId))) throw new QuoteTemplateNotFoundError();
+}
+
+// « Nouveau devis depuis un modèle » : le devis est créé, puis le modèle y est copié.
+// Échéances : « à la signature » le jour même, « N jours avant » depuis la date de
+// l'événement (à défaut, le jour même). Les lignes prennent le taux de TVA du modèle, ou le
+// taux par défaut de l'organisation s'il est nul.
+export async function createQuoteFromTemplate(input: CreateQuoteInput & { templateId: string }): Promise<QuoteDetail> {
+  const template = await findQuoteTemplate(input.organizationId, input.templateId);
+  if (!template) throw new QuoteTemplateNotFoundError();
+  const created = await createQuote(input);
+  const event = await getEvent(input.organizationId, input.eventId);
+  const today = parisDate(input.now ?? new Date());
+  const profile = await withDb((db) => getOrganizationProfile(db, input.organizationId));
+  const defaultRate = profile.vatRegime === "assujetti" ? (profile.vatRateDefaultBasisPoints ?? 0) : 0;
+  const result = await applyTemplateToDraft(input.organizationId, {
+    quoteId: created.id,
+    templateId: input.templateId,
+    dueDate: (item) => {
+      if (item.dueRule !== "before_event" || !event?.eventDate) return today;
+      const due = addCalendarDays(event.eventDate, -(item.daysBeforeEvent ?? 0));
+      return due < today ? today : due;
+    },
+    vatRateFor: (line) => (line.vatRateBasisPoints > 0 ? line.vatRateBasisPoints : defaultRate),
+  });
+  if (result.status === "not_found") throw new QuoteTemplateNotFoundError();
+  if (result.status !== "ok") throw new QuoteVersionLockedError();
+  return loadDetail(input.organizationId, created.id);
+}
+
+// Modèle de départ (HUB-26) : pour le métier de l'organisation, rattaché au type
+// d'événement de même libellé s'il existe ; marqué « à adapter » dans son nom.
+export async function addStarterQuoteTemplates(organizationId: string, locale: "fr" | "en"): Promise<QuoteTemplateSummary[]> {
+  const profile = await withDb((db) => getOrganizationProfile(db, organizationId));
+  const metier = profile.metier ?? "wedding_planner";
+  const starters = starterQuoteTemplates(locale, metier);
+  if (starters.length === 0) return [];
+  const types = await listEventTypes(organizationId);
+  const starterTypes = starterEventTypes(locale, metier);
+  const rate = profile.vatRegime === "assujetti" ? (profile.vatRateDefaultBasisPoints ?? 0) : 0;
+  const created: QuoteTemplateSummary[] = [];
+  for (const starter of starters) {
+    const label = starterTypes.find((type) => type.key === starter.eventTypeKey)?.label;
+    const eventTypeId = label ? (types.find((type) => type.label.toLocaleLowerCase(locale) === label.toLocaleLowerCase(locale))?.id ?? null) : null;
+    const template = await insertQuoteTemplate(organizationId, { name: starter.name, eventTypeId }, {
+      globalDiscountKind: "none",
+      globalDiscountValue: 0,
+      advanceKind: null,
+      sections: starter.sections,
+      lines: starter.lines.map((line) => ({
+        sectionKey: line.section,
+        catalogItemId: null,
+        label: line.label,
+        description: null,
+        unit: line.unit,
+        quantityMilli: line.quantityMilli,
+        unitPriceCents: 0,
+        vatRateBasisPoints: rate,
+        discountBasisPoints: 0,
+        isOption: line.isOption,
+      })),
+      schedule: starter.schedule.map((entry) => ({ label: entry.label, amountCents: null, percentageBasisPoints: entry.percentageBasisPoints, dueRule: entry.dueRule, daysBeforeEvent: entry.daysBeforeEvent })),
+    });
+    created.push(toTemplateSummary((await findQuoteTemplate(organizationId, template.id))!));
+  }
+  return created;
+}
+
 // DEV-01 — à l'envoi, la version courante fige régime de TVA, mention
 // légale, en-tête vendeur, totaux et date de validité (ONB-02 : un document
 // émis ne change jamais quand le profil change).
@@ -859,6 +1306,9 @@ export async function sendQuote(input: SendQuoteInput): Promise<QuoteDetail> {
   const settings = await getQuoteSettings(input.organizationId);
   const vatRegime = profile.vatRegime;
   const seller = await currentSeller(input.organizationId, await findQuoteSettings(input.organizationId), "quote");
+  // Lot 31a (FAC-07, JUR-01, JUR-08 ; D4, D5) : mentions requises et acompte ou arrhes, nommés.
+  const missing = await quoteMissingMentions(input.organizationId, input.quoteId);
+  if (missing.length > 0) throw new RequiredMentionsMissingError(missing);
   const legalMention = computeLegalMention(profile);
 
   const result = await freezeCurrentVersion(input.organizationId, input.quoteId, (version, lines, items) => {
@@ -1399,6 +1849,7 @@ export async function listClientQuotesToSign(organizationId: string, eventId: st
         status: context.request.status,
         ownSigningUrl: own && context.request.status === "pending" && own.status === "pending" ? own.signingUrl : null,
         ownStatus: own?.status ?? null,
+        advanceKind: context.version.advanceKind,
       };
     });
 }
@@ -1491,7 +1942,7 @@ function invoiceBase(context: InvoicingContext, now: Date, seller: Omit<SellerSn
 }
 
 function frozenLines(context: InvoicingContext): FrozenLine[] {
-  return context.lines.map((line) => ({
+  return includedLines(context.lines).map((line) => ({
     label: line.label,
     description: line.description,
     unit: line.unit,
@@ -1508,6 +1959,8 @@ type InvoiceTotalsSnapshot = {
   totals: InvoiceTotalsView;
   deductions: { number: string; amountCents: number }[];
   depositLabel: string | null;
+  // Lot 31a (JUR-08) : acompte ou arrhes, repris du devis.
+  advanceKind?: AdvanceKind | null;
 };
 
 function toCreditNoteView(note: CreditNoteRow, invoiceNumber: string): CreditNoteView {
@@ -1550,6 +2003,7 @@ function toInvoiceView(invoice: InvoiceRow, quoteNumber: string, notes: CreditNo
     buyers: invoice.buyerSnapshot as InvoiceBuyer[],
     lines: invoice.linesSnapshot as FrozenLine[],
     depositLabel: snapshot.depositLabel,
+    advanceKind: snapshot.advanceKind ?? null,
     quoteTotals: snapshot.quoteTotals,
     deductions: snapshot.deductions,
     totals: snapshot.totals,
@@ -1565,7 +2019,9 @@ function toInvoiceView(invoice: InvoiceRow, quoteNumber: string, notes: CreditNo
 export async function issueDepositInvoice(input: IssueDepositInvoiceInput): Promise<InvoiceView> {
   const now = input.now ?? new Date();
   const seller = await withDb((db) => getSellerDetails(db, input.organizationId));
+  const { rules } = await withDb((db) => getRequiredMentionRules(db));
   const row = await insertInvoice(input.organizationId, { scheduleItemId: input.scheduleItemId }, (context) => {
+    requireInvoiceMentions(rules, "deposit_invoice", context, seller);
     const base = invoiceBase(context, now, seller);
     const index = context.scheduleItems.findIndex((item) => item.id === input.scheduleItemId);
     const item = context.scheduleItems[index];
@@ -1578,6 +2034,7 @@ export async function issueDepositInvoice(input: IssueDepositInvoiceInput): Prom
       totals: prorateTotals(base.totals, amountCents),
       deductions: [],
       depositLabel: item.label,
+      advanceKind: context.version.advanceKind,
     };
     return {
       isDemo: context.quote.isDemo,
@@ -1608,7 +2065,9 @@ export async function issueBalanceInvoice(input: IssueBalanceInvoiceInput): Prom
   if (!quote) throw new QuoteNotFoundError();
   const event = await getEvent(input.organizationId, quote.quote.eventId);
   const seller = await withDb((db) => getSellerDetails(db, input.organizationId));
+  const { rules } = await withDb((db) => getRequiredMentionRules(db));
   const row = await insertInvoice(input.organizationId, { quoteId: input.quoteId }, (context) => {
+    requireInvoiceMentions(rules, "balance_invoice", context, seller);
     const base = invoiceBase(context, now, seller);
     const active = context.invoices.filter((invoice) => isActive(invoice, context.creditNotes));
     if (active.some((invoice) => invoice.kind === "balance")) throw new InvoiceAlreadyIssuedError();
@@ -1622,6 +2081,7 @@ export async function issueBalanceInvoice(input: IssueBalanceInvoiceInput): Prom
       totals: prorateTotals(base.totals, amountCents),
       deductions,
       depositLabel: null,
+      advanceKind: context.version.advanceKind,
     };
     return {
       isDemo: context.quote.isDemo,
@@ -1649,7 +2109,19 @@ export async function issueCreditNote(input: IssueCreditNoteInput): Promise<Cred
   const now = input.now ?? new Date();
   requireInteger(input.amountCents, 1, MAX_AMOUNT_CENTS, "montant de l'avoir");
   const reason = requireText(input.reason, "motif de l'avoir");
+  const { rules } = await withDb((db) => getRequiredMentionRules(db));
   const row = await insertCreditNote(input.organizationId, input.invoiceId, (invoice, existing, settings) => {
+    if (!invoice.isDemo) {
+      const frozen = invoice.sellerSnapshot as SellerSnapshot;
+      const missing = missingMentions(rules, {
+        document: "credit_note",
+        vatRegime: invoice.vatRegime === "assujetti" ? "assujetti" : "franchise",
+        clientKind: "individual",
+        legalForm: frozen.legalForm ?? null,
+        values: mentionValues(frozen, invoice.mentions),
+      });
+      if (missing.length > 0) throw new RequiredMentionsMissingError(missing);
+    }
     const remaining = invoice.amountCents - existing.reduce((sum, note) => sum + note.amountCents, 0);
     if (input.amountCents > remaining) throw new CreditNoteExceedsInvoiceError();
     const invoiceTotals = (invoice.totalsSnapshot as InvoiceTotalsSnapshot).totals;
@@ -1970,6 +2442,21 @@ const _contractCheck: QuotesServiceContract = {
   getCreditNote,
   getEReporting,
   startQuotesTrial,
+  addQuoteSection,
+  renameQuoteSection,
+  removeQuoteSection,
+  setQuoteAdvanceKind,
+  chooseQuoteOptions,
+  listClientQuoteOptions,
+  quoteMissingMentions,
+  listQuoteTemplates,
+  saveQuoteAsTemplate,
+  replaceQuoteTemplateFromQuote,
+  duplicateQuoteTemplate,
+  renameQuoteTemplate,
+  removeQuoteTemplate,
+  createQuoteFromTemplate,
+  addStarterQuoteTemplates,
 };
 void _contractCheck;
 

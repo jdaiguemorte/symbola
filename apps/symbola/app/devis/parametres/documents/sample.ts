@@ -55,6 +55,9 @@ function sampleLines(t: Translate, vatRate: number): QuoteLine[] {
     discountBasisPoints,
     position: index,
     netCents: Math.round(((unitPriceCents * quantityMilli) / 1000) * (1 - discountBasisPoints / 10000)),
+    sectionId: null,
+    isOption: false,
+    optionChosen: false,
   });
   return [
     line(0, t("sampleLine1"), t("sampleLine1Description"), t("sampleUnitPackage"), 1000, 450000, 0),
@@ -76,6 +79,10 @@ function sampleVersion(input: SampleInput): QuoteVersionView {
     id: "sample-version",
     version: 1,
     lines,
+    sections: [],
+    advanceKind: "deposit",
+    optionsChoice: null,
+    template: null,
     globalDiscount: { kind: "none" },
     totals: {
       subtotalCents: totalHtCents,
@@ -180,6 +187,7 @@ export function sampleDocumentModel(input: SampleInput): QuotePdfModel {
     ],
     lines: version.lines,
     depositLabel: null,
+    advanceKind: null,
     quoteTotals: version.totals,
     deductions: [{ number: context.depositNumber, amountCents: deposit }],
     totals: {

@@ -3,13 +3,19 @@
 import Link from "next/link";
 import { useActionState, type ReactNode } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import type { CatalogItem, GlobalDiscountInput, QuoteLine } from "@/modules/quotes/service";
+import type { AdvanceKind, CatalogItem, GlobalDiscountInput, QuoteLine, QuoteSection, QuoteTemplateSummary } from "@/modules/quotes/service";
 import { formatDecimal } from "../decimal-input";
+import { MissingMentionsList } from "../missing-mentions";
 import {
   addCatalogLineAction,
   addFreeLineAction,
+  addSectionAction,
+  chooseOptionsAction,
+  renameSectionAction,
   reviseQuoteAction,
+  saveAsTemplateAction,
   sendQuoteAction,
+  setAdvanceKindAction,
   setGlobalDiscountAction,
   updateLineAction,
   type QuoteFormState,
@@ -55,12 +61,39 @@ export function QuoteActionForm({
           ) : null}
         </p>
       ) : null}
+      {state.missingMentions && state.missingMentions.length > 0 ? <MissingMentionsList fields={state.missingMentions} /> : null}
       {state.success ? <p role="status">{successMessage}</p> : null}
     </form>
   );
 }
 
-export function AddCatalogLineForm({ quoteId, items }: { quoteId: string; items: CatalogItem[] }) {
+// Lot 31a (FAC-01, D2) : section de la ligne et ligne en option.
+function PlacementFields({ idPrefix, sections, line }: { idPrefix: string; sections: QuoteSection[]; line?: QuoteLine }) {
+  const t = useTranslations("Quotes");
+  return (
+    <>
+      {sections.length > 0 ? (
+        <>
+          <label htmlFor={`${idPrefix}-section`}>{t("lineSection")}</label>
+          <select id={`${idPrefix}-section`} name="sectionId" defaultValue={line?.sectionId ?? ""}>
+            <option value="">{t("noSection")}</option>
+            {sections.map((section) => (
+              <option key={section.id} value={section.id}>
+                {section.title}
+              </option>
+            ))}
+          </select>
+        </>
+      ) : null}
+      <label className="checkbox-label">
+        <input type="checkbox" name="isOption" defaultChecked={line?.isOption ?? false} />
+        {t("lineIsOption")}
+      </label>
+    </>
+  );
+}
+
+export function AddCatalogLineForm({ quoteId, items, sections = [] }: { quoteId: string; items: CatalogItem[]; sections?: QuoteSection[] }) {
   const t = useTranslations("Quotes");
   return (
     <QuoteActionForm
@@ -83,11 +116,22 @@ export function AddCatalogLineForm({ quoteId, items }: { quoteId: string; items:
       </select>
       <label htmlFor="catalog-quantity">{t("quantity")}</label>
       <input id="catalog-quantity" type="text" inputMode="decimal" name="quantity" required defaultValue="1" />
+      <PlacementFields idPrefix="catalog" sections={sections} />
     </QuoteActionForm>
   );
 }
 
-export function AddFreeLineForm({ quoteId, vatApplicable, defaultVatRateBasisPoints }: { quoteId: string; vatApplicable: boolean; defaultVatRateBasisPoints: number }) {
+export function AddFreeLineForm({
+  quoteId,
+  vatApplicable,
+  defaultVatRateBasisPoints,
+  sections = [],
+}: {
+  quoteId: string;
+  vatApplicable: boolean;
+  defaultVatRateBasisPoints: number;
+  sections?: QuoteSection[];
+}) {
   const t = useTranslations("Quotes");
   const locale = useLocale() as "fr" | "en";
   return (
@@ -120,11 +164,12 @@ export function AddFreeLineForm({ quoteId, vatApplicable, defaultVatRateBasisPoi
           />
         </>
       ) : null}
+      <PlacementFields idPrefix="free" sections={sections} />
     </QuoteActionForm>
   );
 }
 
-export function EditLineForm({ quoteId, line, vatApplicable }: { quoteId: string; line: QuoteLine; vatApplicable: boolean }) {
+export function EditLineForm({ quoteId, line, vatApplicable, sections = [] }: { quoteId: string; line: QuoteLine; vatApplicable: boolean; sections?: QuoteSection[] }) {
   const t = useTranslations("Quotes");
   const locale = useLocale() as "fr" | "en";
   const id = (name: string) => `${name}-${line.id}`;
@@ -153,6 +198,7 @@ export function EditLineForm({ quoteId, line, vatApplicable }: { quoteId: string
           <input id={id("vatRate")} type="text" inputMode="decimal" name="vatRate" defaultValue={formatDecimal(line.vatRateBasisPoints, 2, locale)} />
         </>
       ) : null}
+      <PlacementFields idPrefix={`edit-${line.id}`} sections={sections} line={line} />
     </QuoteActionForm>
   );
 }
@@ -205,5 +251,88 @@ export function ReviseQuoteForm({ quoteId, label }: { quoteId: string; label: st
   const t = useTranslations("Quotes");
   return (
     <QuoteActionForm action={reviseQuoteAction} quoteId={quoteId} label={label} submitLabel={label} successMessage={t("versionCreated")} />
+  );
+}
+
+// --- Lot 31a (FAC-01, JUR-08, HUB-21 ; décisions D2, D3, D5) ---
+
+export function AddSectionForm({ quoteId }: { quoteId: string }) {
+  const t = useTranslations("Quotes");
+  return (
+    <QuoteActionForm action={addSectionAction} quoteId={quoteId} label={t("addSection")} submitLabel={t("addSection")} successMessage={t("sectionAdded")}>
+      <label htmlFor="section-title">{t("sectionTitle")}</label>
+      <input id="section-title" type="text" name="title" maxLength={120} required />
+    </QuoteActionForm>
+  );
+}
+
+export function RenameSectionForm({ quoteId, section }: { quoteId: string; section: QuoteSection }) {
+  const t = useTranslations("Quotes");
+  return (
+    <QuoteActionForm
+      action={renameSectionAction}
+      quoteId={quoteId}
+      label={t("renameSectionNamed", { title: section.title })}
+      submitLabel={t("renameSection")}
+      successMessage={t("sectionRenamed")}
+    >
+      <input type="hidden" name="sectionId" value={section.id} />
+      <label htmlFor={`section-${section.id}`}>{t("sectionTitle")}</label>
+      <input id={`section-${section.id}`} type="text" name="title" maxLength={120} required defaultValue={section.title} />
+    </QuoteActionForm>
+  );
+}
+
+export function AdvanceKindForm({ quoteId, value }: { quoteId: string; value: AdvanceKind | null }) {
+  const t = useTranslations("Quotes");
+  return (
+    <QuoteActionForm action={setAdvanceKindAction} quoteId={quoteId} label={t("advanceKindTitle")} submitLabel={t("advanceKindSave")} successMessage={t("advanceKindSaved")}>
+      <label htmlFor="advance-kind">{t("advanceKindLabel")}</label>
+      <select id="advance-kind" name="advanceKind" defaultValue={value ?? ""}>
+        <option value="">{t("advanceUnset")}</option>
+        <option value="deposit">{t("advanceDeposit")}</option>
+        <option value="earnest">{t("advanceEarnest")}</option>
+      </select>
+    </QuoteActionForm>
+  );
+}
+
+export function ChooseOptionsForm({ quoteId, options }: { quoteId: string; options: QuoteLine[] }) {
+  const t = useTranslations("Quotes");
+  return (
+    <QuoteActionForm action={chooseOptionsAction} quoteId={quoteId} label={t("chooseOptionsForClient")} submitLabel={t("chooseOptionsForClient")} successMessage={t("optionsSaved")}>
+      <fieldset>
+        <legend>{t("optionsTitle")}</legend>
+        {options.map((line) => (
+          <label key={line.id} className="checkbox-label">
+            <input type="checkbox" name="optionLineIds" value={line.id} defaultChecked={line.optionChosen} />
+            {line.label}
+          </label>
+        ))}
+      </fieldset>
+    </QuoteActionForm>
+  );
+}
+
+export function SaveAsTemplateForm({ quoteId, templates }: { quoteId: string; templates: QuoteTemplateSummary[] }) {
+  const t = useTranslations("Quotes");
+  return (
+    <QuoteActionForm action={saveAsTemplateAction} quoteId={quoteId} label={t("saveAsTemplate")} submitLabel={t("saveAsTemplate")} successMessage={t("templateSaved")}>
+      {templates.length > 0 ? (
+        <>
+          <label htmlFor="replace-template">{t("templateTarget")}</label>
+          <select id="replace-template" name="templateId" defaultValue="">
+            <option value="">{t("templateTargetNew")}</option>
+            {templates.map((template) => (
+              <option key={template.id} value={template.id}>
+                {t("templateTargetReplace", { name: template.name, version: template.version })}
+              </option>
+            ))}
+          </select>
+        </>
+      ) : null}
+      <label htmlFor="template-name">{t("templateName")}</label>
+      <input id="template-name" type="text" name="name" maxLength={120} />
+    </QuoteActionForm>
   );
 }

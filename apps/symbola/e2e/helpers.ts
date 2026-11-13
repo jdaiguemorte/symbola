@@ -2,6 +2,7 @@
 import { expect, type Page } from "@playwright/test";
 import { createOrganization } from "@symbola/auth";
 import { completeSetup } from "../modules/hub/service";
+import { fillRequiredMentions } from "../lib/test-fixtures/legal-mentions";
 
 // Sur téléphone, le menu latéral est replié derrière le bouton « Menu » :
 // l'ouvrir avant de cliquer un lien du menu ou « Se déconnecter ». Sur
@@ -54,6 +55,8 @@ export async function openSettingsTab(page: Page, name: string): Promise<void> {
 export async function readyOrganization(db: Parameters<typeof createOrganization>[0], name: string) {
   const organization = await createOrganization(db, name);
   await completeSetup(db, organization.id);
+  // Lot 31a (FAC-07, D4) : une organisation prête a ses mentions requises remplies.
+  await fillRequiredMentions(organization.id);
   return organization;
 }
 

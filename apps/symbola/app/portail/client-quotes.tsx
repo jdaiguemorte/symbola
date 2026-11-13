@@ -36,6 +36,13 @@ export async function ClientQuotes({ quotes, locale, preview = false }: { quotes
                 )}
               </>
             ) : null}
+            {/* Lot 31a (JUR-08, D5) : acompte ou arrhes, rappelé avant de signer. */}
+            {quote.advanceKind ? (
+              <>
+                <br />
+                {t(quote.advanceKind === "earnest" ? "advanceEarnest" : "advanceDeposit")}
+              </>
+            ) : null}
           </li>
         ))}
       </ul>

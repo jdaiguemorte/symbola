@@ -20,6 +20,7 @@ import {
   ProfessionalInvoiceNotSupportedError,
   QuoteNotFoundError,
   QuoteNotSignedError,
+  RequiredMentionsMissingError,
   actOnFakeSignature,
   addPaymentMethods,
   addQuoteLine,
@@ -42,10 +43,12 @@ import {
   getCreditNotePdf,
   getInvoicePdf,
   getQuote,
+  getQuoteSettings,
   listLedgerEntries,
   listLedgerYears,
   verifyLedger,
 } from "./service";
+import { fillRequiredMentions } from "@/lib/test-fixtures/legal-mentions";
 
 // Lot 23b (DOC-08) : rendu factice de l'original déposé à l'émission.
 const renderInvoice = async () => Buffer.from("%PDF-1.4\n% facture de test\n%%EOF\n", "latin1");
@@ -76,6 +79,8 @@ async function organization(vatRegime: "franchise" | "assujetti" = "assujetti") 
       address: "1 rue des Lilas, 69001 Lyon",
     }),
   );
+  // Lot 31a (FAC-07) : mentions requises remplies.
+  await fillRequiredMentions(organizationId);
   const planner = await withDb((db) =>
     createUser(db, { organizationId, email: `planner-${randomUUID()}@example.test`, password: "mot-de-passe-du-test", role: "owner" }),
   );
@@ -495,3 +500,21 @@ describe("JUR-06 — Archive comptable", () => {
   });
 });
 
+// Lot 31a (FAC-07, JUR-01 ; décision D4) : la liste des mentions exigées vaut aussi pour les
+// factures ; un avoir reprend les mentions figées de sa facture.
+describe("FAC-07 / JUR-01 — Mentions exigées sur les factures (lot 31a, D4)", () => {
+  it("sans conditions de paiement, les factures d'acompte et de solde sont refusées et le champ nommé ; remplies, elles partent", async () => {
+    const { organizationId, quoteId, items } = await signedQuote();
+    await updateQuoteSettings(organizationId, { ...(await getQuoteSettings(organizationId)), invoiceMentions: "" });
+
+    const deposit = await issueDepositInvoice({ renderOriginal: renderInvoice, organizationId, scheduleItemId: items[0]!.id, now: NOW }).catch((error: unknown) => error);
+    expect(deposit).toBeInstanceOf(RequiredMentionsMissingError);
+    expect((deposit as RequiredMentionsMissingError).fields).toEqual(["paymentTerms"]);
+    const balance = await issueBalanceInvoice({ renderOriginal: renderInvoice, organizationId, quoteId, now: NOW }).catch((error: unknown) => error);
+    expect(balance).toBeInstanceOf(RequiredMentionsMissingError);
+    expect(await listQuoteInvoices(organizationId, quoteId)).toEqual([]);
+
+    await fillRequiredMentions(organizationId);
+    expect((await issueDepositInvoice({ renderOriginal: renderInvoice, organizationId, scheduleItemId: items[0]!.id, now: NOW })).number).toBe(year("F", 1));
+  });
+});

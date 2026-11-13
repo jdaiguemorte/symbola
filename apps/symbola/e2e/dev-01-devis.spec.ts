@@ -38,6 +38,8 @@ test("DEV-01 — composer un devis depuis un événement, l'envoyer, le téléch
     await createUser(db, { organizationId: organization.id, email, password, role: "owner" });
     await saveOnboardingStep(db, organization.id, {
       vatRegime: "assujetti",
+      // Lot 31a (FAC-07) : en assujetti, le numéro de TVA est une mention requise.
+      vatNumber: "FR12123456789",
       vatRateDefaultBasisPoints: 2000,
       siren: "123456789",
       address: "1 rue des Lilas, 69001 Lyon",

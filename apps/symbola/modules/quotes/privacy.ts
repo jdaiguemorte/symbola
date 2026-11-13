@@ -74,6 +74,19 @@ export const quotesPrivacy: PrivacyContractV1 = {
             });
           }
         }
+        // Lot 31a (FAC-01, D2) : qui a choisi les options (le client, nommé).
+        for (const version of versions) {
+          if (!version.optionsChosenBy || !recordMatches([version.optionsChosenBy], terms)) continue;
+          const quote = versionQuote.get(version.id);
+          records.push({
+            module: MODULE,
+            kind: "quote_options_choice",
+            recordId: version.id,
+            label: `${quote?.number ?? ""} V${version.version} — ${version.optionsChosenBy}`,
+            fields: { chosenBy: version.optionsChosenBy },
+            eventId: quote?.eventId ?? null,
+          });
+        }
         for (const line of await tx.select().from(quoteLines).where(inArray(quoteLines.versionId, [...versionQuote.keys()]))) {
           if (!recordMatches([line.description], terms)) continue;
           const quote = versionQuote.get(line.versionId);

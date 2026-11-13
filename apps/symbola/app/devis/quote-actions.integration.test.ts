@@ -20,6 +20,7 @@ import {
   listPaymentMethods,
   sendQuote,
 } from "@/modules/quotes/service";
+import { fillRequiredMentions } from "@/lib/test-fixtures/legal-mentions";
 
 let sessionToken: string | undefined;
 
@@ -80,6 +81,8 @@ async function plannerSession(organizationId: string): Promise<{ userId: string;
 async function setup() {
   const organizationId = (await withDb((db) => createOrganization(db, `Org ${randomUUID()}`))).id;
   await withDb((db) => saveOnboardingStep(db, organizationId, { vatRegime: "assujetti", vatRateDefaultBasisPoints: 2000 }));
+  // Lot 31a (FAC-07) : mentions requises remplies.
+  await fillRequiredMentions(organizationId);
   const planner = await plannerSession(organizationId);
   const source = await createProspectSource(organizationId, "Salon");
   const event = await createProspect({

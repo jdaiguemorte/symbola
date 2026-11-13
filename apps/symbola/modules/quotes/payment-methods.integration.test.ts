@@ -18,6 +18,7 @@ import {
   restorePaymentMethod,
   sendQuote,
 } from "./service";
+import { fillRequiredMentions } from "@/lib/test-fixtures/legal-mentions";
 
 const plannerId = randomUUID();
 const NOW = new Date("2027-03-15T10:00:00Z");
@@ -34,6 +35,8 @@ async function withDb<T>(fn: (db: AppDatabase) => Promise<T>): Promise<T> {
 async function organization(): Promise<string> {
   const organizationId = (await withDb((db) => createOrganization(db, `Atelier ${randomUUID().slice(0, 6)}`))).id;
   await withDb((db) => saveOnboardingStep(db, organizationId, { vatRegime: "franchise", vatRateDefaultBasisPoints: null }));
+  // Lot 31a (FAC-07) : mentions requises remplies.
+  await fillRequiredMentions(organizationId);
   return organizationId;
 }
 

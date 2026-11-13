@@ -37,7 +37,7 @@ import {
 } from "@/modules/events/service";
 import { getEventBudget, listBudgetLines } from "@/modules/budget/service";
 import { confirmEventBudgetAction } from "@/app/budget/[eventId]/actions";
-import { listEventQuotes } from "@/modules/quotes/service";
+import { listEventQuotes, listQuoteTemplates } from "@/modules/quotes/service";
 import { createQuoteAction, startQuotesTrialAction } from "@/app/devis/actions";
 import { isQuotesModuleEnabled } from "@/app/devis/module-access";
 import { QUOTE_STATUS_LABEL_KEYS } from "@/app/devis/quote-display";
@@ -209,6 +209,10 @@ export default async function EventDetailPage({
   const quotesAvailable = await isQuotesModuleEnabled(organizationId);
   const quotes = quotesAvailable
     ? await listEventQuotes(organizationId, id)
+    : [];
+  // Lot 31a (D3) : modèles de devis, ceux du type de l'événement en tête.
+  const quoteTemplates = quotesAvailable
+    ? (await listQuoteTemplates(organizationId)).sort((a, b) => Number(b.eventTypeId === event.eventTypeId) - Number(a.eventTypeId === event.eventTypeId))
     : [];
   const tQuotes = await getTranslations("Quotes");
   const tCandidates = await getTranslations("VendorCandidates");
@@ -963,8 +967,25 @@ export default async function EventDetailPage({
           </ul>
           <form action={createQuoteAction} className="primary-action">
             <input type="hidden" name="eventId" value={event.id} />
+            {/* Lot 31a (FAC-01, HUB-21, D3) : un devis type part d'un modèle, ceux du type de l'événement d'abord. */}
+            {quoteTemplates.length > 0 ? (
+              <label>
+                {tQuotes("fromTemplate")}
+                <select name="templateId" defaultValue={quoteTemplates[0]?.eventTypeId === event.eventTypeId ? quoteTemplates[0]!.id : ""}>
+                  <option value="">{tQuotes("noTemplate")}</option>
+                  {quoteTemplates.map((template) => (
+                    <option key={template.id} value={template.id}>
+                      {template.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
             <button type="submit">{tQuotes("createQuote")}</button>
           </form>
+          <p className="meta">
+            <Link href="/devis/modeles">{tQuotes("templatesLink")}</Link>
+          </p>
         </section>
       ) : null}
 

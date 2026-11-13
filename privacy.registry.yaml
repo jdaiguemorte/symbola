@@ -525,6 +525,18 @@ fields:
       restent.
   - schema: quotes
     table: quote_versions
+    field: options_chosen_by
+    category: identifiant
+    retention: >-
+      Nom de qui a choisi les options d'un devis envoyé (lot 31a, FAC-01 : le
+      client sur son portail, ou la planner pour lui), avec la date du choix.
+      Conservé avec la version du devis ; voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Trouvé par la recherche RGPD-01 ; remplacé par « [anonymisé] » lors d'une
+      demande d'oubli (RGPD-03), sauf sur un devis signé tant que court la preuve
+      du contrat.
+  - schema: quotes
+    table: quote_versions
     field: seller_snapshot
     category: contact
     retention: >-

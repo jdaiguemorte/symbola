@@ -25,6 +25,8 @@ export type InvoicePdfLabels = DocumentCommonLabels & {
   invoiceKind: string;
   creditNoteKind: string;
   depositInvoice: string;
+  // Lot 31a (JUR-08) : une facture d'arrhes se dit telle.
+  earnestInvoice: string;
   balanceInvoice: string;
   creditNoteTitle: (number: string) => string;
   creditNoteFor: (invoiceNumber: string) => string;
@@ -125,8 +127,8 @@ export function buildInvoicePdfModel(input: {
     title: labels.invoiceTitle(invoice.number),
     kind: labels.invoiceKind,
     number: invoice.number,
-    subtitle: invoice.kind === "deposit" ? labels.depositInvoice : labels.balanceInvoice,
-    status: invoice.kind === "deposit" ? labels.depositInvoice : labels.balanceInvoice,
+    subtitle: invoice.kind === "deposit" ? (invoice.advanceKind === "earnest" ? labels.earnestInvoice : labels.depositInvoice) : labels.balanceInvoice,
+    status: invoice.kind === "deposit" ? (invoice.advanceKind === "earnest" ? labels.earnestInvoice : labels.depositInvoice) : labels.balanceInvoice,
     appearance: appearanceOf(invoice.seller, input.defaultColor),
     logo: input.logo,
     seller: sellerBlock(invoice.seller, labels),
@@ -139,6 +141,8 @@ export function buildInvoicePdfModel(input: {
     payment,
     legalMention: invoice.legalMention,
     terms: invoice.mentions,
+    professional: [],
+    generalTerms: null,
     footer: documentFooter(invoice.seller, labels, locale),
     watermark: input.watermark,
     signature: null,
@@ -175,6 +179,8 @@ export function buildCreditNotePdfModel(input: {
     payment: null,
     legalMention: creditNote.legalMention,
     terms: null,
+    professional: [],
+    generalTerms: null,
     footer: documentFooter(creditNote.seller, labels, locale),
     watermark: input.watermark,
     signature: null,

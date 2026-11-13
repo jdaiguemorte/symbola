@@ -9,6 +9,7 @@ import { getFollowUpDelays, saveFollowUpDelays, saveOnboardingStep } from "@/mod
 import { createProspect, createProspectSource } from "@/modules/events/service";
 import { addQuoteLine, createQuote, sendQuote } from "@/modules/quotes/service";
 import { loadFollowUps } from "./follow-ups";
+import { fillRequiredMentions } from "@/lib/test-fixtures/legal-mentions";
 
 const DAY = 86_400_000;
 const LABELS = { quote: (number: string, names: string) => `devis ${number} ${names}`, prospect: (names: string) => `prospect ${names}` };
@@ -26,6 +27,8 @@ async function withDb<T>(fn: (db: AppDatabase) => Promise<T>): Promise<T> {
 async function organization() {
   const organizationId = (await withDb((db) => createOrganization(db, `Atelier ${randomUUID().slice(0, 6)}`))).id;
   await withDb((db) => saveOnboardingStep(db, organizationId, { vatRegime: "franchise", siren: "123456789", address: "1 rue des Lilas, 69001 Lyon" }));
+  // Lot 31a (FAC-07) : mentions requises remplies.
+  await fillRequiredMentions(organizationId);
   const planner = await withDb((db) =>
     createUser(db, { organizationId, email: `planner-${randomUUID()}@example.test`, password: "mot-de-passe-du-test", role: "owner" }),
   );

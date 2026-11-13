@@ -21,6 +21,8 @@ import linkProfilesFile from "./link-profiles.json";
 import linkExpiryFile from "./link-expiry.json";
 import clientTaskRemindersFile from "./client-task-reminders.json";
 import emergencyNumbersFile from "./emergency-numbers.json";
+import requiredMentionsFile from "./required-mentions.json";
+import quoteTemplatesFile from "./quote-templates.json";
 import linkPrivacyNoticeFile from "./link-privacy-notice.json";
 import programFile from "./program.json";
 import prospectSourcesFile from "./prospect-sources.json";
@@ -837,4 +839,101 @@ export type StarterEmergencyNumber = { key: string; number: string; sms: boolean
 
 export function starterEmergencyNumbers(locale: StarterLocale): StarterEmergencyNumber[] {
   return emergencyNumbersSchema.parse(emergencyNumbersFile).items.map((item) => ({ key: item.key, number: item.number, sms: item.sms, label: item.label[locale] }));
+}
+
+// Lot 31a (FAC-07, JUR-01, JUR-09 ; décision D4) : mentions requises sur les devis, factures
+// et avoirs, par document, régime de TVA, type de client et forme juridique. Liste de
+// départ, à valider par l'expert-comptable ; l'Admin la remplace sans développement.
+export const MENTION_FIELDS = [
+  "organizationName",
+  "address",
+  "siren",
+  "registration",
+  "shareCapital",
+  "vatNumber",
+  "insurance",
+  "mediator",
+  "generalTerms",
+  "paymentTerms",
+] as const;
+export type MentionField = (typeof MENTION_FIELDS)[number];
+export const MENTION_DOCUMENTS = ["quote", "deposit_invoice", "balance_invoice", "credit_note"] as const;
+export type MentionDocument = (typeof MENTION_DOCUMENTS)[number];
+
+export const requiredMentionRuleSchema = z.object({
+  field: z.enum(MENTION_FIELDS),
+  documents: z.array(z.enum(MENTION_DOCUMENTS)).min(1),
+  vatRegimes: z.array(z.enum(["franchise", "assujetti"])).min(1).optional(),
+  clientKinds: z.array(z.enum(["individual", "professional"])).min(1).optional(),
+  legalForms: z.array(z.enum(["ei", "eirl", "eurl", "sarl", "sas", "sasu", "sa", "auto_entrepreneur", "autre"])).min(1).optional(),
+});
+export type RequiredMentionRule = z.infer<typeof requiredMentionRuleSchema>;
+
+const requiredMentionsSchema = z.object({
+  version: z.literal(1),
+  status: translatedLabelSchema,
+  rules: z.array(requiredMentionRuleSchema).min(1),
+});
+
+export function starterRequiredMentions(): RequiredMentionRule[] {
+  return requiredMentionsSchema.parse(requiredMentionsFile).rules.map((rule) => ({ ...rule }));
+}
+
+// Lot 31a (FAC-01, HUB-21, HUB-26 ; décision D3) : modèle de devis de départ, par métier et
+// type d'événement, marqué « à adapter » (prix à zéro, à remplir par la planner).
+const quoteTemplatesSchema = z.object({
+  version: z.literal(1),
+  items: z
+    .array(
+      z.object({
+        metier: z.enum(["wedding_planner", "event_agency", "autre"]),
+        eventTypeKey: z.string().min(1),
+        name: translatedLabelSchema,
+        sections: z.array(z.object({ key: z.string().min(1), title: translatedLabelSchema })),
+        lines: z.array(
+          z.object({
+            section: z.string().min(1).nullable(),
+            label: translatedLabelSchema,
+            unit: translatedLabelSchema,
+            quantity: z.number().positive(),
+            isOption: z.boolean(),
+          }),
+        ),
+        schedule: z.array(
+          z.object({
+            label: translatedLabelSchema,
+            percentage: z.number().positive().max(100),
+            dueRule: z.enum(["at_signature", "before_event"]),
+            daysBeforeEvent: z.number().int().min(0).max(1095).optional(),
+          }),
+        ),
+      }),
+    )
+    .min(1),
+});
+
+export type StarterQuoteTemplate = {
+  eventTypeKey: string;
+  name: string;
+  sections: { key: string; title: string }[];
+  lines: { section: string | null; label: string; unit: string; quantityMilli: number; isOption: boolean }[];
+  schedule: { label: string; percentageBasisPoints: number; dueRule: "at_signature" | "before_event"; daysBeforeEvent: number | null }[];
+};
+
+export function starterQuoteTemplates(locale: StarterLocale, metier: StarterMetier = "wedding_planner"): StarterQuoteTemplate[] {
+  return quoteTemplatesSchema
+    .parse(quoteTemplatesFile)
+    .items.filter((item) => item.metier === metier)
+    .map((item) => ({
+      eventTypeKey: item.eventTypeKey,
+      name: item.name[locale],
+      sections: item.sections.map((section) => ({ key: section.key, title: section.title[locale] })),
+      lines: item.lines.map((line) => ({ section: line.section, label: line.label[locale], unit: line.unit[locale], quantityMilli: Math.round(line.quantity * 1000), isOption: line.isOption })),
+      schedule: item.schedule.map((entry) => ({
+        label: entry.label[locale],
+        percentageBasisPoints: Math.round(entry.percentage * 100),
+        dueRule: entry.dueRule,
+        daysBeforeEvent: entry.dueRule === "before_event" ? (entry.daysBeforeEvent ?? 0) : null,
+      })),
+    }));
 }

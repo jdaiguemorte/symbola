@@ -260,7 +260,24 @@
     "errorShareCapital": "Le capital doit être un montant positif, par exemple 10 000.",
     "logoTitle": "Logo",
     "documentsSettingsHint": "Couleur, police, textes et IBAN des documents :",
-    "documentsSettingsLink": "Paramètres › Ventes › Documents"
+    "documentsSettingsLink": "Paramètres › Ventes › Documents",
+    "professionalMentionsTitle": "Informations du professionnel",
+    "professionalMentionsHint": "Reprises sur les devis : quand la liste des mentions requises les demande, un devis ne part pas sans elles. Textes à faire relire par un professionnel du droit.",
+    "insurer": "Assureur (responsabilité civile professionnelle)",
+    "insurancePolicy": "Numéro de contrat",
+    "insuranceCoverage": "Couverture géographique (facultative)",
+    "mediatorName": "Médiateur de la consommation",
+    "mediatorUrl": "Site du médiateur",
+    "generalTerms": "Conditions générales de vente",
+    "generalTermsHint": "Imprimées à la fin de chaque devis. Base à adapter, à faire relire par un professionnel du droit.",
+    "professionalMentionsSave": "Enregistrer les informations",
+    "professionalMentionsSaved": "Informations enregistrées.",
+    "errorInsurer": "Assureur : 120 caractères au plus.",
+    "errorInsurancePolicy": "Numéro de contrat : 80 caractères au plus.",
+    "errorInsuranceCoverage": "Couverture : 200 caractères au plus.",
+    "errorMediatorName": "Médiateur : 160 caractères au plus.",
+    "errorMediatorUrl": "Site du médiateur : une adresse web, par exemple https://mediateur.example.",
+    "errorGeneralTerms": "Conditions générales : 20 000 caractères au plus."
   },
   "AdminSettings": {
     "title": "Paramètres de la plateforme",
@@ -278,7 +295,40 @@
     "privacyExportRetentionDays": "Durée pendant laquelle un export RGPD reste téléchargeable (jours)",
     "importMaxSheets": "Fiches événement PDF déposées à la fois",
     "mailLegend": "Envois d'e-mails",
-    "mailHourlyCap": "Plafond d'e-mails par organisation et par heure (signataires, mariés invités)"
+    "mailHourlyCap": "Plafond d'e-mails par organisation et par heure (signataires, mariés invités)",
+    "requiredMentionsTitle": "Mentions requises sur les documents",
+    "requiredMentionsWarning": "Valeur réglementaire, à valider par l'expert-comptable : une mention cochée bloque l'envoi d'un devis ou l'émission d'une facture tant que l'organisation ne l'a pas remplie.",
+    "requiredMentionsSourceAdmin": "Liste réglée par l'Admin.",
+    "requiredMentionsSourceStarter": "Liste de départ (fichier de données), à valider.",
+    "requiredMentionsReset": "Revenir à la liste de départ",
+    "requiredMentionsCaption": "Mention requise par document, avec ses conditions",
+    "requiredMentionsField": "Mention",
+    "requiredMentionsDocument": {
+      "quote": "Devis",
+      "deposit_invoice": "Facture d'acompte",
+      "balance_invoice": "Facture de solde",
+      "credit_note": "Avoir"
+    },
+    "requiredMentionsConditions": "Conditions",
+    "requiredMentionsVatRegimes": "régime de TVA : {list}",
+    "requiredMentionsClientKinds": "client : {list}",
+    "requiredMentionsLegalForms": "forme juridique : {list}",
+    "requiredMentionsFieldName": {
+      "organizationName": "Nom de l'entreprise",
+      "address": "Adresse",
+      "siren": "SIREN ou SIRET",
+      "registration": "Immatriculation (RCS ou RM)",
+      "shareCapital": "Capital social",
+      "vatNumber": "Numéro de TVA intracommunautaire",
+      "insurance": "Assurance de responsabilité civile professionnelle (assureur et contrat)",
+      "mediator": "Médiateur de la consommation (nom et site)",
+      "generalTerms": "Conditions générales de vente",
+      "paymentTerms": "Conditions de paiement des factures"
+    },
+    "requiredMentionsCheckbox": "{field} exigé sur : {document}",
+    "requiredMentionsSave": "Enregistrer la liste",
+    "requiredMentionsSaved": "Liste enregistrée.",
+    "requiredMentionsEmpty": "Cochez au moins une mention."
   },
   "Tour": {
     "hub": [
@@ -626,6 +676,18 @@
         {
           "q": "Une facture émise peut-elle être modifiée ?",
           "a": "Non, elle est définitive : corrigez-la par un avoir, qui garde la numérotation sans trou."
+        },
+        {
+          "q": "Comment proposer des options ?",
+          "a": "Cochez « En option » sur une ligne : elle s'affiche avec son prix, hors du total. Une fois le devis envoyé, le client coche les options qu'il retient sur son portail ; le total suit, et le choix se fige quand la signature commence. Vous pouvez aussi cocher pour lui (choix fait au téléphone)."
+        },
+        {
+          "q": "Pourquoi l'envoi est-il refusé ?",
+          "a": "Une mention requise manque : assurance, médiateur, conditions générales, numéro de TVA… Le message nomme chaque champ, avec le lien vers l'endroit où le remplir. La liste des mentions est à valider par votre expert-comptable."
+        },
+        {
+          "q": "Acompte ou arrhes ?",
+          "a": "Dès qu'il y a un échéancier, le devis doit dire si les sommes versées d'avance sont des acomptes ou des arrhes : leurs effets diffèrent en cas d'annulation. Le mot choisi apparaît sur l'échéancier, le PDF et la facture."
         }
       ]
     },
@@ -926,6 +988,10 @@
     "offline": {
       "title": "Hors ligne",
       "body": "Sans réseau, seuls les jours J gardés sur cet appareil s'ouvrent. Les autres écrans reviennent avec le réseau."
+    },
+    "quotesTemplates": {
+      "title": "Modèles de devis",
+      "body": "Un modèle par type d'événement : sections, lignes, options, échéancier type et acompte ou arrhes. « Nouveau devis » sur la fiche de l'événement part du modèle de son type ; modifier un modèle ensuite ne change aucun devis déjà créé, qui garde la version dont il vient. Le modèle de départ est à adapter : prix, conditions, échéancier."
     }
   },
   "Aide": {
@@ -1892,7 +1958,92 @@
     "reversalReasonRequired": "Indiquez le motif de l'annulation.",
     "paymentHistory": "Historique des encaissements de « {label} »",
     "paymentReceivedEntry": "Encaissé le {date} ({method})",
-    "paymentReversedEntry": "Annulé le {date} : {reason}"
+    "paymentReversedEntry": "Annulé le {date} : {reason}",
+    "mention": {
+      "organizationName": "Nom de l'entreprise",
+      "address": "Adresse",
+      "siren": "SIREN ou SIRET",
+      "registration": "Immatriculation (RCS ou RM)",
+      "shareCapital": "Capital social",
+      "vatNumber": "Numéro de TVA intracommunautaire",
+      "insurance": "Assurance de responsabilité civile professionnelle (assureur et contrat)",
+      "mediator": "Médiateur de la consommation (nom et site)",
+      "generalTerms": "Conditions générales de vente",
+      "paymentTerms": "Conditions de paiement des factures",
+      "advanceKind": "Acompte ou arrhes, sur ce devis"
+    },
+    "mentionsMissing": "Mentions requises manquantes : remplissez-les, puis recommencez.",
+    "mentionsMissingBeforeSend": "Avant l'envoi, il manque :",
+    "sectionNotFound": "Section introuvable.",
+    "optionsLocked": "Le choix des options est figé : la signature a commencé, ou le devis n'est pas envoyé.",
+    "templateNotFound": "Modèle introuvable.",
+    "invalidSectionTitle": "Donnez un titre de section de 120 caractères au plus.",
+    "invalidTemplateName": "Donnez un nom de modèle de 120 caractères au plus.",
+    "lineSection": "Section",
+    "noSection": "Sans section",
+    "lineIsOption": "En option (hors du total tant qu'elle n'est pas choisie)",
+    "sectionsTitle": "Sections",
+    "noSections": "Aucune section : les lignes forment une seule liste.",
+    "addSection": "Ajouter la section",
+    "sectionTitle": "Titre de la section",
+    "sectionAdded": "Section ajoutée.",
+    "renameSection": "Renommer",
+    "renameSectionNamed": "Renommer la section {title}",
+    "sectionRenamed": "Section renommée.",
+    "removeSection": "Retirer la section {title}",
+    "sectionSubtotal": "Sous-total {title}",
+    "optionChosen": "Option : choisie",
+    "optionNotChosen": "Option : non retenue, hors du total",
+    "advanceKindTitle": "Sommes versées d'avance",
+    "advanceKindLabel": "Acompte ou arrhes",
+    "advanceKindSave": "Enregistrer",
+    "advanceKindSaved": "Enregistré.",
+    "advanceUnset": "À choisir",
+    "advanceDeposit": "Acompte",
+    "advanceEarnest": "Arrhes",
+    "advanceKindHint": "Acompte ou arrhes : leurs effets diffèrent en cas d'annulation (article L214-1 du Code de la consommation). Le choix est imposé avant l'envoi dès qu'il y a un échéancier ; la clause viendra du contrat.",
+    "advanceKindDefault": "Sommes versées d'avance, proposées sur chaque nouveau devis",
+    "advanceKindDefaultHint": "Acompte ou arrhes : modifiable sur chaque devis avant l'envoi.",
+    "optionsTitle": "Options",
+    "optionsChoiceTitle": "Choix des options",
+    "optionsChosenByClient": "Choisies par {name} sur son portail, le {date}.",
+    "optionsChosenByPlanner": "Choisies pour {name} par l'équipe, le {date}.",
+    "optionsNotChosenYet": "Aucune option choisie pour l'instant : le client les coche sur son portail, avant de signer.",
+    "optionsLockedHint": "Le choix est figé : la signature a commencé.",
+    "chooseOptionsForClient": "Enregistrer le choix pour le client",
+    "optionsSaved": "Choix enregistré : le total suit.",
+    "saveAsTemplate": "Enregistrer comme modèle",
+    "saveAsTemplateHint": "Sections, lignes, options, échéancier (« à la signature », « N jours avant l'événement ») et acompte ou arrhes deviennent un modèle, pour le prochain devis type.",
+    "templateTarget": "Modèle",
+    "templateTargetNew": "Nouveau modèle",
+    "templateTargetReplace": "Remplacer « {name} » (version {version})",
+    "templateName": "Nom du modèle",
+    "templateSaved": "Modèle enregistré.",
+    "fromTemplateVersion": "Créé depuis un modèle (version {version}).",
+    "fromTemplate": "Partir d'un modèle",
+    "noTemplate": "Aucun (devis vide)",
+    "templatesLink": "Modèles de devis",
+    "templatesTitle": "Modèles de devis",
+    "templateAdaptWarning": "Modèles à adapter : vérifiez les prix, les conditions et l'échéancier avant de les utiliser.",
+    "noTemplatesTitle": "Aucun modèle pour l'instant",
+    "noTemplatesHint": "Un modèle fait un devis type en moins de cinq minutes. Partez du modèle de départ, ou enregistrez un devis comme modèle depuis sa page.",
+    "templateVersion": "Version {version}",
+    "templateAllEventTypes": "Tous les types d'événement",
+    "templateEventType": "Type d'événement",
+    "templateCounts": "{sections, plural, one {# section} other {# sections}}, {lines, plural, one {# ligne} other {# lignes}} dont {options, plural, one {# option} other {# options}}, {schedule, plural, one {# échéance} other {# échéances}}",
+    "renameTemplate": "Enregistrer",
+    "renameTemplateNamed": "Renommer le modèle {name}",
+    "templateRenamed": "Modèle enregistré.",
+    "duplicateTemplateNamed": "Dupliquer le modèle {name}",
+    "templateDuplicated": "Modèle dupliqué.",
+    "templateCopyName": "{name} (copie)",
+    "removeTemplate": "Supprimer le modèle {name}",
+    "addStarterTemplates": "Ajouter le modèle de départ",
+    "templatesFromQuoteHint": "Pour créer un modèle, enregistrez un devis comme modèle depuis sa page.",
+    "quotesLink": "Voir les devis",
+    "pdfOptionChosen": "option retenue",
+    "pdfOptionNotChosen": "option non retenue, hors total",
+    "invoiceKindEarnest": "Facture d'arrhes"
   },
   "Documents": {
     "pdfSellerHeading": "De",
@@ -2000,7 +2151,13 @@
     "sampleUnitTables": "tables",
     "sampleDeposit": "Acompte de 30 % à la signature",
     "sampleFileQuote": "exemple-devis.pdf",
-    "sampleFileInvoice": "exemple-facture.pdf"
+    "sampleFileInvoice": "exemple-facture.pdf",
+    "pdfScheduleTitleEarnest": "Échéancier des arrhes",
+    "pdfScheduleTitleDeposit": "Échéancier des acomptes",
+    "pdfInsurance": "Assurance de responsabilité civile professionnelle : {insurer}, contrat {policy}.",
+    "pdfInsuranceCoverage": "Assurance de responsabilité civile professionnelle : {insurer}, contrat {policy}, couverture : {coverage}.",
+    "pdfMediator": "Médiateur de la consommation : {name} — {url}",
+    "pdfGeneralTermsTitle": "Conditions générales de vente"
   },
   "ClientSpace": {
     "title": "Mon mariage",
@@ -2023,7 +2180,20 @@
     "vendorOptionsIntro": "Votre organisatrice a consulté plusieurs prestataires. Voici ceux qu'elle vous propose.",
     "vendorOptionQuote": "Devis : {amount}",
     "vendorOptionOpenQuote": "Voir le devis de {vendor}",
-    "vendorOptionOpenRib": "RIB de {vendor}"
+    "vendorOptionOpenRib": "RIB de {vendor}",
+    "optionsTitle": "Vos options",
+    "optionsHint": "Cochez les options que vous retenez : le total se met à jour, puis vous signez le devis tel que vous l'avez choisi.",
+    "optionsForQuote": "Options du devis {number}",
+    "optionPrice": "{amount}",
+    "optionPriceTtc": "{amount} TTC",
+    "optionsTotal": "Total avec vos options : {amount}",
+    "optionsChosenOn": "Choisies par {name}, le {date}.",
+    "optionsLocked": "Le choix est figé : la signature a commencé.",
+    "advanceDeposit": "Sommes versées d'avance : des acomptes.",
+    "advanceEarnest": "Sommes versées d'avance : des arrhes.",
+    "saveOptions": "Enregistrer mon choix",
+    "optionsSaved": "Votre choix est enregistré.",
+    "optionsError": "Ce choix n'est pas possible. Rechargez la page."
   },
   "NotFound": {
     "title": "Page introuvable",
@@ -4191,6 +4361,7 @@
       "hub_member_removed": "Accès d'un collaborateur retiré",
       "hub_access_refused": "Accès refusé : objet introuvable",
       "hub_platform_settings_updated": "Réglages de la plateforme modifiés",
+      "hub_required_mentions_updated": "Liste des mentions requises modifiée",
       "hub_privacy_export_created": "Export RGPD préparé",
       "hub_privacy_export_downloaded": "Export RGPD téléchargé",
       "vendors_vendors_exported": "Carnet de prestataires exporté",
@@ -4198,6 +4369,7 @@
       "events_client_access_granted": "Espace client ouvert",
       "events_client_access_revoked": "Accès à l'espace client retiré",
       "quotes_quote_sent": "Devis envoyé",
+      "quotes_quote_options_chosen": "Options du devis choisies",
       "quotes_signature_requested": "Signature demandée",
       "quotes_invoice_issued": "Facture émise",
       "quotes_credit_note_issued": "Avoir émis",
@@ -4311,7 +4483,12 @@
       "events_event_decisions": "décision du client",
       "events_event_documents": "document de l'événement",
       "events_event_day_documents": "document embarqué pour le jour J",
-      "events_event_day_contacts": "contact du jour J"
+      "events_event_day_contacts": "contact du jour J",
+      "quotes_quote_sections": "Section d'un devis",
+      "quotes_quote_templates": "Modèle de devis",
+      "quotes_quote_template_sections": "Section d'un modèle de devis",
+      "quotes_quote_template_lines": "Ligne d'un modèle de devis",
+      "quotes_quote_template_schedule_items": "Échéance d'un modèle de devis"
     },
     "modules": {
       "events": "Événements",

@@ -2,7 +2,40 @@ import { describe, expect, it } from "vitest";
 import retroplanningFile from "./retroplanning.json";
 import vendorSlotsFile from "./vendor-slots.json";
 import programFile from "./program.json";
-import { starterDemoEvent, starterDemoQuote, starterErasureResponse, starterPrivacySettings, starterInvoiceMentions, starterDocumentStyle, starterQuoteTerms, starterRequestResponse, starterLossReasons, starterPaymentMethods, starterProgram, starterProspectSources, starterRetroplanning, starterVendorSlots, starterVendorTypes, starterBudgetLines, starterAllocation, starterFollowUpDelays, starterVendorTypeSynonymGroups, starterVendorCatalog, starterEventTypes, starterVendorTags, starterPaymentMethodKinds, BUDGET_LINE_ICONS, starterLinkProfiles, starterLinkExpiry, starterLinkPrivacyNotice, starterClientTaskReminders, starterEmergencyNumbers } from "./index";
+import {
+  BUDGET_LINE_ICONS,
+  MENTION_FIELDS,
+  starterAllocation,
+  starterBudgetLines,
+  starterClientTaskReminders,
+  starterDemoEvent,
+  starterDemoQuote,
+  starterDocumentStyle,
+  starterEmergencyNumbers,
+  starterErasureResponse,
+  starterEventTypes,
+  starterFollowUpDelays,
+  starterInvoiceMentions,
+  starterLinkExpiry,
+  starterLinkPrivacyNotice,
+  starterLinkProfiles,
+  starterLossReasons,
+  starterPaymentMethodKinds,
+  starterPaymentMethods,
+  starterPrivacySettings,
+  starterProgram,
+  starterProspectSources,
+  starterQuoteTemplates,
+  starterQuoteTerms,
+  starterRequestResponse,
+  starterRequiredMentions,
+  starterRetroplanning,
+  starterVendorCatalog,
+  starterVendorSlots,
+  starterVendorTags,
+  starterVendorTypes,
+  starterVendorTypeSynonymGroups,
+} from "./index";
 
 describe("PRD-EVT-03 — Modèle de départ des postes prestataires", () => {
   it("existe en français et en anglais, avec le même nombre de postes", () => {
@@ -393,5 +426,36 @@ describe("L26 — Données de départ des liens personnels (POR-01, SEC-15, RGP-
       expect(starterLinkPrivacyNotice(locale)).toContain("{contact}");
       expect(starterLinkPrivacyNotice(locale)).toContain("CNIL");
     }
+  });
+});
+
+describe("FAC-07 / JUR-01 — Mentions requises de départ (lot 31a, D4)", () => {
+  it("chaque mention connue est requise sur au moins un document ; l'identité du vendeur partout", () => {
+    const rules = starterRequiredMentions();
+    expect(new Set(rules.map((rule) => rule.field))).toEqual(new Set(MENTION_FIELDS));
+    for (const field of ["organizationName", "address", "siren"] as const) {
+      expect(rules.find((rule) => rule.field === field)?.documents).toEqual(["quote", "deposit_invoice", "balance_invoice", "credit_note"]);
+    }
+  });
+
+  it("conditions : numéro de TVA si assujetti, capital pour une société, médiateur pour un particulier", () => {
+    const rules = starterRequiredMentions();
+    expect(rules.find((rule) => rule.field === "vatNumber")?.vatRegimes).toEqual(["assujetti"]);
+    expect(rules.find((rule) => rule.field === "shareCapital")?.legalForms).toContain("sas");
+    expect(rules.find((rule) => rule.field === "mediator")?.clientKinds).toEqual(["individual"]);
+  });
+});
+
+describe("FAC-01 / HUB-26 — Modèle de devis de départ (lot 31a, D3)", () => {
+  it("un modèle de mariage « à adapter » : sections, deux options, échéancier sous le total", () => {
+    const [template] = starterQuoteTemplates("fr");
+    expect(template?.name).toMatch(/à adapter/);
+    expect(template?.eventTypeKey).toBe("wedding");
+    const sectionKeys = new Set(template!.sections.map((section) => section.key));
+    expect(template!.lines.every((line) => line.section === null || sectionKeys.has(line.section))).toBe(true);
+    expect(template!.lines.filter((line) => line.isOption)).toHaveLength(2);
+    expect(template!.schedule.reduce((sum, entry) => sum + entry.percentageBasisPoints, 0)).toBeLessThan(10000);
+    expect(starterQuoteTemplates("en")[0]?.name).toMatch(/to adapt/);
+    expect(starterQuoteTemplates("fr", "event_agency")).toEqual([]);
   });
 });

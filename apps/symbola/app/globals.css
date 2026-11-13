@@ -3099,3 +3099,34 @@
     @apply inline-flex min-h-11 items-center;
   }
 }
+
+/* Lot 31a (FAC-01, FAC-07, HUB-26) — devis complet : mentions manquantes nommées, sections
+   et options du devis, modèles « à adapter ». */
+@layer components {
+  .missing-mentions-panel {
+    @apply my-3 rounded-md border border-attention bg-attention-soft px-4 py-3;
+  }
+  .missing-mentions-panel > p {
+    @apply m-0 font-semibold;
+  }
+  .missing-mentions {
+    @apply my-2 flex list-disc flex-col gap-1 pl-6;
+  }
+  .missing-mentions a {
+    @apply inline-flex min-h-11 items-center;
+  }
+  .adapt-warning {
+    @apply my-3 rounded-md border border-attention bg-attention-soft px-4 py-3;
+  }
+  .quote-section-row th {
+    @apply pt-4 font-display text-heading font-semibold;
+  }
+  .quote-section-subtotal th,
+  .quote-section-subtotal td {
+    @apply border-t border-line font-semibold;
+  }
+  .quote-option-unchosen th,
+  .quote-option-unchosen td {
+    @apply text-ink-muted;
+  }
+}

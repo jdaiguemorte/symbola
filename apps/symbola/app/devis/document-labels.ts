@@ -56,6 +56,15 @@ export function quotePdfLabels(t: Translate, tQuotes: Translate): QuotePdfLabels
     subtotal: tQuotes("subtotal"),
     globalDiscount: tQuotes("globalDiscount"),
     signatureTitle: tQuotes("pdfSignatureTitle"),
+    // Lot 31a (FAC-01, JUR-08, JUR-09).
+    sectionSubtotal: (title) => tQuotes("sectionSubtotal", { title }),
+    optionChosen: tQuotes("pdfOptionChosen"),
+    optionNotChosen: tQuotes("pdfOptionNotChosen"),
+    scheduleTitleEarnest: t("pdfScheduleTitleEarnest"),
+    scheduleTitleDeposit: t("pdfScheduleTitleDeposit"),
+    insurance: (insurer, policy, coverage) => (coverage ? t("pdfInsuranceCoverage", { insurer, policy, coverage }) : t("pdfInsurance", { insurer, policy })),
+    mediator: (name, url) => t("pdfMediator", { name, url }),
+    generalTermsTitle: t("pdfGeneralTermsTitle"),
   };
 }
 
@@ -66,6 +75,7 @@ export function invoicePdfLabels(t: Translate, tQuotes: Translate): InvoicePdfLa
     invoiceKind: t("pdfInvoiceKind"),
     creditNoteKind: t("pdfCreditNoteKind"),
     depositInvoice: tQuotes("invoiceKindDeposit"),
+    earnestInvoice: tQuotes("invoiceKindEarnest"),
     balanceInvoice: tQuotes("invoiceKindBalance"),
     creditNoteTitle: (number) => tQuotes("pdfCreditNoteTitle", { number }),
     creditNoteFor: (number) => tQuotes("pdfCreditNoteFor", { number }),

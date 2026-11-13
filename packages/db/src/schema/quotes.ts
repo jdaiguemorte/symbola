@@ -20,6 +20,10 @@ export const documentFontEnum = quotesSchema.enum("document_font", ["modern", "c
 
 // Réglages du module par organisation (CLAUDE.md §2.5 : rien en dur) :
 // validité par défaut d'un devis, préfixes des séries de numérotation.
+// Lot 31a (JUR-08, décision D5) : sommes versées d'avance, acomptes ou arrhes (leurs effets
+// diffèrent en cas d'annulation, article L214-1 du Code de la consommation).
+export const advanceKindEnum = quotesSchema.enum("advance_kind", ["deposit", "earnest"]);
+
 export const quoteSettings = quotesSchema.table("quote_settings", {
   id: uuid("id").defaultRandom().primaryKey(),
   organizationId: uuid("organization_id").notNull().unique(),
@@ -45,6 +49,8 @@ export const quoteSettings = quotesSchema.table("quote_settings", {
   quoteTerms: text("quote_terms"),
   invoiceIntro: text("invoice_intro"),
   documentFooter: text("document_footer"),
+  // Lot 31a (JUR-08, décision D5) : acompte ou arrhes proposé pour chaque nouveau devis.
+  advanceKindDefault: advanceKindEnum("advance_kind_default"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
@@ -146,13 +152,55 @@ export const quoteVersions = quotesSchema.table(
     sellerSnapshot: jsonb("seller_snapshot"),
     totalsSnapshot: jsonb("totals_snapshot"),
     sentAt: timestamp("sent_at", { withTimezone: true }),
+    // Lot 31a (JUR-08, décision D5) : acompte ou arrhes, imposé avant l'envoi s'il y a un échéancier.
+    advanceKind: advanceKindEnum("advance_kind"),
+    // Lot 31a (FAC-01, décision D2) : choix des options, daté et nominatif (le client sur
+    // son portail, ou la planner pour lui) ; figé dès que la signature commence.
+    optionsChosenAt: timestamp("options_chosen_at", { withTimezone: true }),
+    optionsChosenBy: text("options_chosen_by"),
+    optionsChosenByKind: text("options_chosen_by_kind"),
+    // Lot 31a (HUB-21, décision D3) : modèle d'origine et sa version.
+    templateId: uuid("template_id").references((): AnyPgColumn => quoteTemplates.id, { onDelete: "set null" }),
+    templateVersion: integer("template_version"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
     createdBy: uuid("created_by"),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
     updatedBy: uuid("updated_by"),
   },
-  (table) => [index("quote_versions_organization_idx").on(table.organizationId), unique().on(table.quoteId, table.version)],
+  (table) => [
+    index("quote_versions_organization_idx").on(table.organizationId),
+    unique().on(table.quoteId, table.version),
+    check(
+      "quote_versions_options_chosen_check",
+      sql`(${table.optionsChosenAt} is null and ${table.optionsChosenBy} is null and ${table.optionsChosenByKind} is null) or (${table.optionsChosenAt} is not null and ${table.optionsChosenBy} is not null and ${table.optionsChosenByKind} is not null and char_length(${table.optionsChosenBy}) between 1 and 200 and ${table.optionsChosenByKind} in ('client', 'planner'))`,
+    ),
+  ],
+);
+
+// Lot 31a (FAC-01, décision D2) — sections titrées d'une version de devis, ordonnées ;
+// chacune a son sous-total.
+export const quoteSections = quotesSchema.table(
+  "quote_sections",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    versionId: uuid("version_id")
+      .notNull()
+      .references(() => quoteVersions.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    position: integer("position").notNull().default(0),
+  // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  createdBy: uuid("created_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("quote_sections_organization_idx").on(table.organizationId),
+    index("quote_sections_version_idx").on(table.versionId),
+    check("quote_sections_title_check", sql`char_length(${table.title}) between 1 and 120`),
+  ],
 );
 
 // DEV-01 — ligne d'une version : article du catalogue (copié) ou ligne libre.
@@ -171,12 +219,127 @@ export const quoteLines = quotesSchema.table("quote_lines", {
   vatRateBasisPoints: integer("vat_rate_basis_points").notNull(),
   discountBasisPoints: integer("discount_basis_points").notNull().default(0),
   position: integer("position").notNull().default(0),
+  // Lot 31a (FAC-01, décision D2) : section de la ligne (ou aucune) ; une option reste hors
+  // du total tant qu'elle n'est pas choisie.
+  sectionId: uuid("section_id").references(() => quoteSections.id, { onDelete: "set null" }),
+  isOption: boolean("is_option").notNull().default(false),
+  optionChosen: boolean("option_chosen").notNull().default(false),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   createdBy: uuid("created_by"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   updatedBy: uuid("updated_by"),
 }, (table) => [index("quote_lines_organization_idx").on(table.organizationId)]);
+
+// Lot 31a (FAC-01, HUB-21, décision D3) — modèles de devis par type d'événement (null : pour
+// tous) : sections, lignes, options, échéancier type. « Nouveau devis depuis un modèle »
+// copie le tout ; modifier le modèle ensuite ne change aucun devis. La version augmente à
+// chaque remplacement du contenu ; le devis garde celle dont il vient.
+export const quoteTemplates = quotesSchema.table(
+  "quote_templates",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    // Type d'événement du module events (uuid opaque, ADR 0011).
+    eventTypeId: uuid("event_type_id"),
+    name: text("name").notNull(),
+    version: integer("version").notNull().default(1),
+    globalDiscountKind: globalDiscountKindEnum("global_discount_kind").notNull().default("none"),
+    globalDiscountValue: integer("global_discount_value").notNull().default(0),
+    advanceKind: advanceKindEnum("advance_kind"),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("quote_templates_organization_idx").on(table.organizationId),
+    check("quote_templates_name_check", sql`char_length(${table.name}) between 1 and 120`),
+    check("quote_templates_version_check", sql`${table.version} >= 1`),
+  ],
+);
+
+export const quoteTemplateSections = quotesSchema.table(
+  "quote_template_sections",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    templateId: uuid("template_id")
+      .notNull()
+      .references(() => quoteTemplates.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    position: integer("position").notNull().default(0),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("quote_template_sections_organization_idx").on(table.organizationId),
+    check("quote_template_sections_title_check", sql`char_length(${table.title}) between 1 and 120`),
+  ],
+);
+
+export const quoteTemplateLines = quotesSchema.table(
+  "quote_template_lines",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    templateId: uuid("template_id")
+      .notNull()
+      .references(() => quoteTemplates.id, { onDelete: "cascade" }),
+    sectionId: uuid("section_id").references(() => quoteTemplateSections.id, { onDelete: "set null" }),
+    catalogItemId: uuid("catalog_item_id").references(() => catalogItems.id, { onDelete: "set null" }),
+    label: text("label").notNull(),
+    description: text("description"),
+    unit: text("unit").notNull(),
+    quantityMilli: integer("quantity_milli").notNull(),
+    unitPriceCents: integer("unit_price_cents").notNull(),
+    vatRateBasisPoints: integer("vat_rate_basis_points").notNull(),
+    discountBasisPoints: integer("discount_basis_points").notNull().default(0),
+    isOption: boolean("is_option").notNull().default(false),
+    position: integer("position").notNull().default(0),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [index("quote_template_lines_organization_idx").on(table.organizationId)],
+);
+
+// Échéancier type : « à la signature » ou « N jours avant l'événement ».
+export const quoteTemplateScheduleItems = quotesSchema.table(
+  "quote_template_schedule_items",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    templateId: uuid("template_id")
+      .notNull()
+      .references(() => quoteTemplates.id, { onDelete: "cascade" }),
+    label: text("label").notNull(),
+    amountCents: integer("amount_cents"),
+    percentageBasisPoints: integer("percentage_basis_points"),
+    dueRule: text("due_rule").notNull(),
+    daysBeforeEvent: integer("days_before_event"),
+    position: integer("position").notNull().default(0),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("quote_template_schedule_items_organization_idx").on(table.organizationId),
+    check("quote_template_schedule_items_amount_xor_percentage", sql`(${table.amountCents} is null) <> (${table.percentageBasisPoints} is null)`),
+    check(
+      "quote_template_schedule_items_due_check",
+      sql`(${table.dueRule} = 'at_signature' and ${table.daysBeforeEvent} is null) or (${table.dueRule} = 'before_event' and ${table.daysBeforeEvent} between 0 and 1095)`,
+    ),
+  ],
+);
 
 // DEV-03 — modes de paiement, liste paramétrable par organisation (modèle
 // de départ facultatif dans packages/starter-templates). Archivés plutôt

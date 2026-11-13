@@ -32,7 +32,12 @@ export type QuoteSettings = {
   // DEV-04 : délai de paiement d'une facture de solde, mentions de facturation.
   invoicePaymentTermDays: number;
   invoiceMentions: string | null;
+  // Lot 31a (JUR-08, décision D5) : acompte ou arrhes proposé pour chaque nouveau devis.
+  advanceKindDefault?: AdvanceKind | null | undefined;
 };
+
+// Lot 31a (JUR-08, décision D5) : sommes versées d'avance, acomptes ou arrhes.
+export type AdvanceKind = "deposit" | "earnest";
 
 // DEV-03 — modes de paiement (liste paramétrable par organisation).
 export type PaymentMethod = { id: string; label: string; archived: boolean };
@@ -126,6 +131,9 @@ export type QuoteLineInput = {
   unitPriceCents?: number | undefined;
   vatRateBasisPoints?: number | undefined;
   discountBasisPoints?: number | undefined;
+  // Lot 31a (FAC-01, décision D2) : section de la ligne, ligne en option.
+  sectionId?: string | null | undefined;
+  isOption?: boolean | undefined;
 };
 
 export type QuoteLine = {
@@ -140,7 +148,17 @@ export type QuoteLine = {
   discountBasisPoints: number;
   position: number;
   netCents: number;
+  // Lot 31a (FAC-01, décision D2) : une option reste hors du total tant qu'elle n'est pas choisie.
+  sectionId: string | null;
+  isOption: boolean;
+  optionChosen: boolean;
 };
+
+// Lot 31a (FAC-01) : section titrée d'une version, avec le sous-total de ses lignes au total.
+export type QuoteSection = { id: string; title: string; position: number; subtotalCents: number };
+
+// Lot 31a (FAC-01, décision D2) : choix des options, daté et nominatif.
+export type OptionsChoice = { chosenAt: string; chosenBy: string; byKind: "client" | "planner" };
 
 export type QuoteTotalsView = {
   subtotalCents: number;
@@ -203,6 +221,13 @@ export type SellerSnapshot = {
   contactPhone?: string | null;
   website?: string | null;
   document?: DocumentSnapshot;
+  // Lot 31a (JUR-09) : absents des copies antérieures au lot 31a.
+  insurer?: string | null;
+  insurancePolicy?: string | null;
+  insuranceCoverage?: string | null;
+  mediatorName?: string | null;
+  mediatorUrl?: string | null;
+  generalTerms?: string | null;
 };
 
 export type QuoteVersionView = {
@@ -219,6 +244,11 @@ export type QuoteVersionView = {
   validUntil: string | null;
   sentAt: string | null;
   schedule: PaymentScheduleView;
+  // Lot 31a (FAC-01, JUR-08, HUB-21).
+  sections: QuoteSection[];
+  advanceKind: AdvanceKind | null;
+  optionsChoice: OptionsChoice | null;
+  template: { id: string | null; version: number } | null;
 };
 
 // DEV-04 : un client professionnel exige Factur-X (lot dédié).
@@ -271,6 +301,8 @@ export type InvoiceView = {
   // Lignes du devis (solde) ou libellé de l'acompte.
   lines: { label: string; description: string | null; unit: string; quantityMilli: number; unitPriceCents: number; vatRateBasisPoints: number; discountBasisPoints: number; netCents: number }[];
   depositLabel: string | null;
+  // Lot 31a (JUR-08) : acompte ou arrhes, repris du devis (null avant le lot 31a).
+  advanceKind: AdvanceKind | null;
   quoteTotals: QuoteTotalsView;
   // Acomptes déjà facturés, déduits d'une facture de solde.
   deductions: { number: string; amountCents: number }[];
@@ -390,7 +422,52 @@ export type ClientQuoteToSign = {
   status: "pending" | "completed" | "declined";
   ownSigningUrl: string | null;
   ownStatus: "pending" | "signed" | "declined" | null;
+  // Lot 31a (JUR-08, D5) : acompte ou arrhes, rappelé au client.
+  advanceKind: AdvanceKind | null;
 };
+
+// Lot 31a (FAC-01, décision D2) — options d'un devis envoyé, à choisir par le client sur son
+// portail avant la signature (prix TTC estimé de chaque option, total une fois choisi).
+export type ClientQuoteOptions = {
+  quoteId: string;
+  number: string;
+  version: number;
+  totalTtcCents: number;
+  vatApplicable: boolean;
+  options: { lineId: string; label: string; description: string | null; section: string | null; amountCents: number; chosen: boolean }[];
+  choice: OptionsChoice | null;
+  // Le choix se fige dès que la signature commence.
+  locked: boolean;
+  // JUR-08 (D5) : acompte ou arrhes, rappelé au client.
+  advanceKind: AdvanceKind | null;
+};
+
+// Lot 31a (FAC-01, HUB-21, décision D3) — modèle de devis par type d'événement.
+export type QuoteTemplateSummary = {
+  id: string;
+  name: string;
+  eventTypeId: string | null;
+  version: number;
+  sectionCount: number;
+  lineCount: number;
+  optionCount: number;
+  scheduleCount: number;
+  advanceKind: AdvanceKind | null;
+};
+
+// Lot 31a (FAC-07, JUR-01, décision D4) — mentions requises manquantes, nommées.
+export type MissingMention =
+  | "organizationName"
+  | "address"
+  | "siren"
+  | "registration"
+  | "shareCapital"
+  | "vatNumber"
+  | "insurance"
+  | "mediator"
+  | "generalTerms"
+  | "paymentTerms"
+  | "advanceKind";
 
 export type QuoteDetail = QuoteSummary & {
   versions: QuoteVersionView[];
@@ -470,4 +547,28 @@ export interface QuotesServiceContract {
   getCreditNote(organizationId: string, creditNoteId: string): Promise<CreditNoteView>;
   getEReporting(organizationId: string, period: { from: string; to: string }): Promise<EReportingView>;
   startQuotesTrial(input: StartQuotesTrialInput): Promise<QuoteDetail>;
+  // Lot 31a (FAC-01, FAC-07, JUR-01, JUR-08, HUB-21 ; décisions D2 à D5).
+  addQuoteSection(organizationId: string, quoteId: string, title: string): Promise<QuoteDetail>;
+  renameQuoteSection(organizationId: string, sectionId: string, title: string): Promise<QuoteDetail>;
+  removeQuoteSection(organizationId: string, sectionId: string): Promise<QuoteDetail>;
+  setQuoteAdvanceKind(organizationId: string, quoteId: string, kind: AdvanceKind | null): Promise<QuoteDetail>;
+  chooseQuoteOptions(input: {
+    organizationId: string;
+    quoteId: string;
+    eventId?: string;
+    chosenLineIds: string[];
+    chosenBy: string;
+    byKind: "client" | "planner";
+    now?: Date;
+  }): Promise<QuoteDetail>;
+  listClientQuoteOptions(organizationId: string, eventId: string): Promise<ClientQuoteOptions[]>;
+  quoteMissingMentions(organizationId: string, quoteId: string): Promise<MissingMention[]>;
+  listQuoteTemplates(organizationId: string): Promise<QuoteTemplateSummary[]>;
+  saveQuoteAsTemplate(input: { organizationId: string; quoteId: string; name: string; eventTypeId: string | null }): Promise<QuoteTemplateSummary>;
+  replaceQuoteTemplateFromQuote(input: { organizationId: string; templateId: string; quoteId: string }): Promise<QuoteTemplateSummary>;
+  duplicateQuoteTemplate(input: { organizationId: string; templateId: string; name: string }): Promise<QuoteTemplateSummary>;
+  renameQuoteTemplate(input: { organizationId: string; templateId: string; name: string; eventTypeId: string | null }): Promise<void>;
+  removeQuoteTemplate(organizationId: string, templateId: string): Promise<void>;
+  createQuoteFromTemplate(input: CreateQuoteInput & { templateId: string }): Promise<QuoteDetail>;
+  addStarterQuoteTemplates(organizationId: string, locale: "fr" | "en"): Promise<QuoteTemplateSummary[]>;
 }

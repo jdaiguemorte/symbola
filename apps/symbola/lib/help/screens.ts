@@ -54,6 +54,8 @@ export const HELP_SCREENS: HelpScreen[] = [
   { key: "allQuotes", group: "quotes", audience: "team", module: "quotes", path: "/devis", capture: true },
   { key: "quotesDetail", group: "quotes", audience: "team", module: "quotes", path: null, capture: true },
   { key: "quotesCatalog", group: "quotes", audience: "team", module: "quotes", path: "/devis/catalogue", tour: "quotes", capture: true },
+  // Lot 31a (FAC-01, HUB-21) : modèles de devis.
+  { key: "quotesTemplates", group: "quotes", audience: "team", module: "quotes", path: "/devis/modeles", capture: false },
   { key: "quotesPayments", group: "quotes", audience: "team", module: "quotes", path: "/devis/encaissements", capture: true },
   { key: "quotesEReporting", group: "quotes", audience: "team", module: "quotes", path: "/devis/e-reporting", capture: true },
   { key: "quotesSettings", group: "quotes", audience: "team", module: "quotes", path: "/devis/parametres", capture: true },

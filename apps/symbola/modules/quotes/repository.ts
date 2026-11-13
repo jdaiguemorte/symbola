@@ -11,6 +11,7 @@ import {
   paymentMethods,
   paymentScheduleItems,
   quoteLines,
+  quoteSections,
   quoteSigners,
   signatureRequests,
   signatureWebhookLog,
@@ -29,6 +30,7 @@ export type QuoteSettingsRow = typeof quoteSettings.$inferSelect;
 export type QuoteRow = typeof quotes.$inferSelect;
 export type QuoteVersionRow = typeof quoteVersions.$inferSelect;
 export type QuoteLineRow = typeof quoteLines.$inferSelect;
+export type QuoteSectionRow = typeof quoteSections.$inferSelect;
 export type PaymentMethodRow = typeof paymentMethods.$inferSelect;
 export type ScheduleItemRow = typeof paymentScheduleItems.$inferSelect;
 export type SignatureRequestRow = typeof signatureRequests.$inferSelect;
@@ -148,6 +150,7 @@ export async function upsertQuoteSettings(
     | "upcomingHorizonDays"
     | "invoicePaymentTermDays"
     | "invoiceMentions"
+    | "advanceKindDefault"
   >,
 ): Promise<QuoteSettingsRow> {
   return inOrganization(organizationId, async (tx) => {
@@ -298,6 +301,8 @@ export type QuoteAggregate = {
   signers: QuoteSignerRow[];
   // Lot 23b (D2) : écritures d'encaissement des échéances, dans l'ordre.
   paymentEntries: PaymentEntryRow[];
+  // Lot 31a (FAC-01) : sections des versions, dans l'ordre.
+  sections: QuoteSectionRow[];
 };
 
 async function loadAggregate(tx: Tx, quote: QuoteRow): Promise<QuoteAggregate> {
@@ -382,6 +387,14 @@ async function loadAggregate(tx: Tx, quote: QuoteRow): Promise<QuoteAggregate> {
           .where(inArray(paymentEntries.scheduleItemId, scheduleItems.map((item) => item.id)))
           .orderBy(asc(paymentEntries.createdAt))
       : [];
+  const sections =
+    versions.length > 0
+      ? await tx
+          .select()
+          .from(quoteSections)
+          .where(inArray(quoteSections.versionId, versions.map((version) => version.id)))
+          .orderBy(asc(quoteSections.position), asc(quoteSections.createdAt))
+      : [];
   return {
     quote,
     versions,
@@ -391,6 +404,7 @@ async function loadAggregate(tx: Tx, quote: QuoteRow): Promise<QuoteAggregate> {
     signatureRequests: requests,
     signers,
     paymentEntries: entries,
+    sections,
   };
 }
 
@@ -463,6 +477,7 @@ export async function insertQuoteLine(
   return inOrganization(organizationId, async (tx) => {
     const draft = await currentDraft(tx, quoteId);
     if (draft.status !== "draft") return { status: draft.status };
+    if (data.sectionId && !(await sectionOfVersion(tx, data.sectionId, draft.version.id))) return { status: "not_found" };
     const [last] = await tx
       .select({ max: raw<number | null>`max(${quoteLines.position})` })
       .from(quoteLines)
@@ -513,9 +528,11 @@ export async function updateQuoteLineRow(
   return inOrganization(organizationId, async (tx) => {
     const found = await draftOfLine(tx, lineId);
     if (found.status !== "draft") return { status: found.status };
+    const values = data(found.line);
+    if (values.sectionId && !(await sectionOfVersion(tx, values.sectionId, found.line.versionId))) return { status: "not_found" };
     await tx
       .update(quoteLines)
-      .set(data(found.line))
+      .set(values)
       .where(eq(quoteLines.id, lineId));
     return { status: "ok", quoteId: found.quoteId };
   });
@@ -547,6 +564,114 @@ export async function setGlobalDiscountRow(
       .set({ globalDiscountKind: kind, globalDiscountValue: value })
       .where(eq(quoteVersions.id, draft.version.id));
     return { status: "ok", quoteId };
+  });
+}
+
+// Lot 31a (FAC-01, décision D2) — sections d'une version en brouillon.
+async function sectionOfVersion(tx: Tx, sectionId: string, versionId: string): Promise<boolean> {
+  const [section] = await tx.select({ id: quoteSections.id }).from(quoteSections).where(and(eq(quoteSections.id, sectionId), eq(quoteSections.versionId, versionId)));
+  return section !== undefined;
+}
+
+export async function insertQuoteSection(organizationId: string, quoteId: string, title: string): Promise<WriteResult> {
+  return inOrganization(organizationId, async (tx) => {
+    const draft = await currentDraft(tx, quoteId);
+    if (draft.status !== "draft") return { status: draft.status };
+    const [last] = await tx
+      .select({ max: raw<number | null>`max(${quoteSections.position})` })
+      .from(quoteSections)
+      .where(eq(quoteSections.versionId, draft.version.id));
+    const position = last?.max === null || last?.max === undefined ? 0 : last.max + 1;
+    await tx.insert(quoteSections).values({ organizationId, versionId: draft.version.id, title, position });
+    return { status: "ok", quoteId };
+  });
+}
+
+async function draftOfSection(tx: Tx, sectionId: string): Promise<{ status: "draft"; section: QuoteSectionRow; quoteId: string } | { status: "not_found" | "locked" }> {
+  const [section] = await tx.select().from(quoteSections).where(eq(quoteSections.id, sectionId));
+  if (!section) return { status: "not_found" };
+  const [version] = await tx.select().from(quoteVersions).where(eq(quoteVersions.id, section.versionId));
+  if (!version) return { status: "not_found" };
+  const draft = await currentDraft(tx, version.quoteId);
+  if (draft.status !== "draft") return { status: draft.status };
+  if (draft.version.id !== version.id) return { status: "locked" };
+  return { status: "draft", section, quoteId: version.quoteId };
+}
+
+export async function updateQuoteSectionRow(organizationId: string, sectionId: string, title: string): Promise<WriteResult> {
+  return inOrganization(organizationId, async (tx) => {
+    const found = await draftOfSection(tx, sectionId);
+    if (found.status !== "draft") return { status: found.status };
+    await tx.update(quoteSections).set({ title }).where(eq(quoteSections.id, sectionId));
+    return { status: "ok", quoteId: found.quoteId };
+  });
+}
+
+// Ses lignes restent, sans section.
+export async function deleteQuoteSection(organizationId: string, sectionId: string): Promise<WriteResult> {
+  return inOrganization(organizationId, async (tx) => {
+    const found = await draftOfSection(tx, sectionId);
+    if (found.status !== "draft") return { status: found.status };
+    await tx.delete(quoteSections).where(eq(quoteSections.id, sectionId));
+    return { status: "ok", quoteId: found.quoteId };
+  });
+}
+
+// Lot 31a (JUR-08, décision D5) — acompte ou arrhes, sur la version en brouillon.
+export async function setAdvanceKindRow(organizationId: string, quoteId: string, kind: "deposit" | "earnest" | null): Promise<WriteResult> {
+  return inOrganization(organizationId, async (tx) => {
+    const draft = await currentDraft(tx, quoteId);
+    if (draft.status !== "draft") return { status: draft.status };
+    await tx.update(quoteVersions).set({ advanceKind: kind }).where(eq(quoteVersions.id, draft.version.id));
+    return { status: "ok", quoteId };
+  });
+}
+
+// Lot 31a (FAC-01, décision D2) — choix des options d'un devis envoyé, par le client sur
+// son portail ou par la planner pour lui : possible tant que la signature n'a pas commencé.
+// Les totaux figés de la version suivent le choix, dans la même transaction.
+export type OptionsChoiceResult = { status: "ok"; quoteId: string } | { status: "not_found" | "locked" | "no_options" };
+
+export async function chooseOptionsRow(
+  organizationId: string,
+  input: { quoteId: string; eventId?: string; chosenLineIds: string[]; chosenBy: string; byKind: "client" | "planner"; now: Date },
+  totals: (lines: QuoteLineRow[], version: QuoteVersionRow) => unknown,
+): Promise<OptionsChoiceResult> {
+  return inOrganization(organizationId, async (tx) => {
+    const [quote] = await tx.select().from(quotes).where(eq(quotes.id, input.quoteId));
+    if (!quote || (input.eventId !== undefined && quote.eventId !== input.eventId)) return { status: "not_found" };
+    const [version] = await tx
+      .select()
+      .from(quoteVersions)
+      .where(and(eq(quoteVersions.quoteId, quote.id), eq(quoteVersions.version, quote.currentVersion)));
+    if (!version) return { status: "not_found" };
+    if (quote.status !== "sent" || !version.sentAt) return { status: "locked" };
+    await tx.execute(raw`select 1 from ${quoteVersions} where ${quoteVersions.id} = ${version.id} for update`);
+    const [request] = await tx.select({ id: signatureRequests.id }).from(signatureRequests).where(eq(signatureRequests.versionId, version.id));
+    if (request) return { status: "locked" };
+    const lines = await tx.select().from(quoteLines).where(eq(quoteLines.versionId, version.id));
+    const options = lines.filter((line) => line.isOption);
+    if (options.length === 0) return { status: "no_options" };
+    const optionIds = new Set(options.map((line) => line.id));
+    if (input.chosenLineIds.some((id) => !optionIds.has(id))) return { status: "not_found" };
+    const chosen = new Set(input.chosenLineIds);
+    for (const line of options) {
+      const optionChosen = chosen.has(line.id);
+      if (line.optionChosen !== optionChosen) await tx.update(quoteLines).set({ optionChosen }).where(eq(quoteLines.id, line.id));
+    }
+    const updated = lines.map((line) => (line.isOption ? { ...line, optionChosen: chosen.has(line.id) } : line));
+    await tx
+      .update(quoteVersions)
+      .set({ optionsChosenAt: input.now, optionsChosenBy: input.chosenBy, optionsChosenByKind: input.byKind, totalsSnapshot: totals(updated, version) })
+      .where(eq(quoteVersions.id, version.id));
+    await appendAudit(tx, {
+      organizationId,
+      action: "quotes.quote.options_chosen",
+      objectId: quote.id,
+      details: { number: quote.number, version: version.version, by: input.byKind, chosen: chosen.size, offered: options.length },
+      isDemo: quote.isDemo,
+    });
+    return { status: "ok", quoteId: quote.id };
   });
 }
 
@@ -639,9 +764,26 @@ export async function insertNextVersion(
         version: current.version + 1,
         globalDiscountKind: current.globalDiscountKind,
         globalDiscountValue: current.globalDiscountValue,
+        // Lot 31a : acompte ou arrhes, choix des options et modèle d'origine suivent.
+        advanceKind: current.advanceKind,
+        optionsChosenAt: current.optionsChosenAt,
+        optionsChosenBy: current.optionsChosenBy,
+        optionsChosenByKind: current.optionsChosenByKind,
+        templateId: current.templateId,
+        templateVersion: current.templateVersion,
       })
       .returning();
     if (!next) throw new Error("création de la version échouée");
+    // Lot 31a (FAC-01) : les sections suivent, leurs lignes y restent rattachées.
+    const sections = await tx.select().from(quoteSections).where(eq(quoteSections.versionId, current.id));
+    const sectionIds = new Map<string, string>();
+    for (const section of sections) {
+      const [copy] = await tx
+        .insert(quoteSections)
+        .values({ organizationId: section.organizationId, versionId: next.id, title: section.title, position: section.position })
+        .returning({ id: quoteSections.id });
+      sectionIds.set(section.id, copy!.id);
+    }
     const lines = await tx
       .select()
       .from(quoteLines)
@@ -652,6 +794,7 @@ export async function insertNextVersion(
         .values(
           lines.map(({ id: _id, versionId: _versionId, ...line }) => ({
             ...line,
+            sectionId: line.sectionId ? (sectionIds.get(line.sectionId) ?? null) : null,
             versionId: next.id,
           })),
         );

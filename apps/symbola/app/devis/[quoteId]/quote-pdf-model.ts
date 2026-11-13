@@ -41,6 +41,15 @@ export type QuotePdfLabels = DocumentCommonLabels & {
   subtotal: string;
   globalDiscount: string;
   signatureTitle: string;
+  // Lot 31a (FAC-01, JUR-08, JUR-09).
+  sectionSubtotal: (title: string) => string;
+  optionChosen: string;
+  optionNotChosen: string;
+  scheduleTitleEarnest: string;
+  scheduleTitleDeposit: string;
+  insurance: (insurer: string, policy: string, coverage: string | null) => string;
+  mediator: (name: string, url: string) => string;
+  generalTermsTitle: string;
 };
 
 export type PaymentLine = { label: string; amount: string | null };
@@ -61,13 +70,17 @@ export type QuotePdfModel = {
   dates: { label: string; value: string }[];
   intro: string | null;
   columns: string[];
-  rows: { cells: string[]; description: string | null }[];
+  // Lot 31a : une ligne, un titre de section ou le sous-total d'une section.
+  rows: { cells: string[]; description: string | null; kind?: "section" | "subtotal" }[];
   // La dernière ligne forte est le bandeau du total.
   totals: { label: string; value: string; strong?: boolean }[];
   // Lignes de l'encadré de paiement, avec un montant aligné à droite ou non.
   payment: { title: string; lines: PaymentLine[] } | null;
   legalMention: string | null;
   terms: string | null;
+  // Lot 31a (JUR-09) : assurance et médiateur, puis conditions générales de vente.
+  professional: string[];
+  generalTerms: { title: string; text: string } | null;
   footer: { text: string | null; legal: string; page: string };
   watermark: string | null;
   // DEV-02 : bloc « Bon pour accord » avec une balise de signature par
@@ -128,6 +141,33 @@ export function columnsFor(vat: boolean, labels: DocumentCommonLabels): string[]
   return columns;
 }
 
+// Lot 31a (FAC-01, D2) : lignes hors section, puis chaque section (titre, lignes, sous-total) ;
+// une option est marquée retenue ou non retenue (hors du total).
+function quoteRows(version: QuoteVersionView, labels: QuotePdfLabels, vat: boolean, locale: Locale): QuotePdfModel["rows"] {
+  const width = columnsFor(vat, labels).length;
+  const line = (entry: QuoteVersionView["lines"][number]) => {
+    const cells = lineCells(entry, vat, locale);
+    if (entry.isOption) cells[0] = `${cells[0]} (${entry.optionChosen ? labels.optionChosen : labels.optionNotChosen})`;
+    return { cells, description: entry.description };
+  };
+  const known = new Set(version.sections.map((section) => section.id));
+  const rows: QuotePdfModel["rows"] = version.lines.filter((entry) => entry.sectionId === null || !known.has(entry.sectionId)).map(line);
+  for (const section of version.sections) {
+    const own = version.lines.filter((entry) => entry.sectionId === section.id);
+    rows.push({ cells: [section.title], description: null, kind: "section" });
+    rows.push(...own.map(line));
+    rows.push({ cells: [labels.sectionSubtotal(section.title), ...Array<string>(Math.max(0, width - 2)).fill(""), formatAmount(section.subtotalCents, locale)], description: null, kind: "subtotal" });
+  }
+  return rows;
+}
+
+function professionalLines(seller: SellerSnapshot, labels: QuotePdfLabels): string[] {
+  const lines: string[] = [];
+  if (seller.insurer && seller.insurancePolicy) lines.push(labels.insurance(seller.insurer, seller.insurancePolicy, seller.insuranceCoverage ?? null));
+  if (seller.mediatorName && seller.mediatorUrl) lines.push(labels.mediator(seller.mediatorName, seller.mediatorUrl));
+  return lines;
+}
+
 export function buildQuotePdfModel(input: {
   quote: QuoteDetail;
   version: QuoteVersionView;
@@ -177,7 +217,10 @@ export function buildQuotePdfModel(input: {
   const bank = bankLines(document, labels);
   const payment =
     scheduleLines.length > 0
-      ? { title: labels.scheduleTitle, lines: [...scheduleLines, ...bank] }
+      ? {
+          title: version.advanceKind === "earnest" ? labels.scheduleTitleEarnest : version.advanceKind === "deposit" ? labels.scheduleTitleDeposit : labels.scheduleTitle,
+          lines: [...scheduleLines, ...bank],
+        }
       : bank.length > 0
         ? { title: labels.paymentTitle, lines: bank }
         : null;
@@ -196,11 +239,13 @@ export function buildQuotePdfModel(input: {
     dates,
     intro: document?.intro ?? null,
     columns: columnsFor(vat, labels),
-    rows: version.lines.map((line) => ({ cells: lineCells(line, vat, locale), description: line.description })),
+    rows: quoteRows(version, labels, vat, locale),
     totals: totalRows,
     payment,
     legalMention: sent ? version.legalMention : input.draftLegalMention,
     terms: document?.terms ?? null,
+    professional: professionalLines(seller, labels),
+    generalTerms: seller.generalTerms ? { title: labels.generalTermsTitle, text: seller.generalTerms } : null,
     footer: documentFooter(seller, labels, locale),
     watermark: input.watermark,
     signature: input.signatureSlots && input.signatureSlots.length > 0 ? { title: labels.signatureTitle, slots: input.signatureSlots } : null,

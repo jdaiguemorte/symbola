@@ -46,6 +46,14 @@ export function QuoteSettingsForm({ settings, defaultMentions }: { settings: Quo
         defaultValue={settings.invoiceMentions ?? defaultMentions}
       />
       <p id="invoice-mentions-hint">{t("invoiceMentionsHint")}</p>
+      {/* Lot 31a (JUR-08, D5) : acompte ou arrhes proposé pour chaque nouveau devis. */}
+      <label htmlFor="advanceKindDefault">{t("advanceKindDefault")}</label>
+      <select id="advanceKindDefault" name="advanceKindDefault" aria-describedby="advance-default-hint" defaultValue={settings.advanceKindDefault ?? ""}>
+        <option value="">{t("advanceUnset")}</option>
+        <option value="deposit">{t("advanceDeposit")}</option>
+        <option value="earnest">{t("advanceEarnest")}</option>
+      </select>
+      <p id="advance-default-hint">{t("advanceKindDefaultHint")}</p>
       <p id="prefix-hint">{t("prefixHint")}</p>
       <label htmlFor="quotePrefix">{t("quotePrefix")}</label>
       <input id="quotePrefix" type="text" name="quotePrefix" required aria-describedby="prefix-hint" defaultValue={settings.quotePrefix} />

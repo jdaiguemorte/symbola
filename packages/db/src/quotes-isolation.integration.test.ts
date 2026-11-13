@@ -16,7 +16,12 @@ import {
   quoteSigners,
   signatureRequests,
   signatureWebhookLog,
+  quoteSections,
   quoteSettings,
+  quoteTemplateLines,
+  quoteTemplates,
+  quoteTemplateScheduleItems,
+  quoteTemplateSections,
   quotes,
   quoteVersions,
 } from "./schema/quotes";
@@ -113,6 +118,92 @@ describe("DEV-01 — Isolation entre organisations (module quotes, PostgreSQL r�
       attemptCrossOrganizationUpdate: async (organizationId, targetRow) => {
         const updated = await withOrganization(db, organizationId, (tx) =>
           tx.update(quoteLines).set({ unitPriceCents: 1 }).where(eq(quoteLines.id, targetRow.id)).returning(),
+        );
+        return { affectedRows: updated.length };
+      },
+    });
+  });
+
+  // Lot 31a (FAC-01, HUB-21) : sections des devis, modèles de devis et leur contenu.
+  it("sections de devis (lot 31a)", async () => {
+    await assertOrganizationIsolation({
+      seed: async (organizationId) =>
+        withOrganization(db, organizationId, async (tx) => {
+          const { version } = await seedQuote(tx, organizationId);
+          const [row] = await tx.insert(quoteSections).values({ organizationId, versionId: version.id, title: "Coordination" }).returning();
+          if (!row) throw new Error("insertion attendue");
+          return row;
+        }),
+      listVisible: async (organizationId) => withOrganization(db, organizationId, (tx) => tx.select().from(quoteSections)),
+      attemptCrossOrganizationUpdate: async (organizationId, targetRow) => {
+        const updated = await withOrganization(db, organizationId, (tx) =>
+          tx.update(quoteSections).set({ title: "falsifié" }).where(eq(quoteSections.id, targetRow.id)).returning(),
+        );
+        return { affectedRows: updated.length };
+      },
+    });
+  });
+
+  it("modèles de devis, leurs sections, lignes et échéances (lot 31a)", async () => {
+    const seedTemplate = (tx: Tx, organizationId: string) =>
+      tx.insert(quoteTemplates).values({ organizationId, name: "Mariage complet" }).returning().then(([row]) => row!);
+    await assertOrganizationIsolation({
+      seed: async (organizationId) => withOrganization(db, organizationId, (tx) => seedTemplate(tx, organizationId)),
+      listVisible: async (organizationId) => withOrganization(db, organizationId, (tx) => tx.select().from(quoteTemplates)),
+      attemptCrossOrganizationUpdate: async (organizationId, targetRow) => {
+        const updated = await withOrganization(db, organizationId, (tx) =>
+          tx.update(quoteTemplates).set({ name: "falsifié" }).where(eq(quoteTemplates.id, targetRow.id)).returning(),
+        );
+        return { affectedRows: updated.length };
+      },
+    });
+    await assertOrganizationIsolation({
+      seed: async (organizationId) =>
+        withOrganization(db, organizationId, async (tx) => {
+          const template = await seedTemplate(tx, organizationId);
+          const [row] = await tx.insert(quoteTemplateSections).values({ organizationId, templateId: template.id, title: "Jour J" }).returning();
+          return row!;
+        }),
+      listVisible: async (organizationId) => withOrganization(db, organizationId, (tx) => tx.select().from(quoteTemplateSections)),
+      attemptCrossOrganizationUpdate: async (organizationId, targetRow) => {
+        const updated = await withOrganization(db, organizationId, (tx) =>
+          tx.update(quoteTemplateSections).set({ title: "falsifié" }).where(eq(quoteTemplateSections.id, targetRow.id)).returning(),
+        );
+        return { affectedRows: updated.length };
+      },
+    });
+    await assertOrganizationIsolation({
+      seed: async (organizationId) =>
+        withOrganization(db, organizationId, async (tx) => {
+          const template = await seedTemplate(tx, organizationId);
+          const [row] = await tx
+            .insert(quoteTemplateLines)
+            .values({ organizationId, templateId: template.id, label: "Coordination", unit: "forfait", quantityMilli: 1000, unitPriceCents: 150000, vatRateBasisPoints: 2000, isOption: true })
+            .returning();
+          return row!;
+        }),
+      listVisible: async (organizationId) => withOrganization(db, organizationId, (tx) => tx.select().from(quoteTemplateLines)),
+      attemptCrossOrganizationUpdate: async (organizationId, targetRow) => {
+        const updated = await withOrganization(db, organizationId, (tx) =>
+          tx.update(quoteTemplateLines).set({ unitPriceCents: 1 }).where(eq(quoteTemplateLines.id, targetRow.id)).returning(),
+        );
+        return { affectedRows: updated.length };
+      },
+    });
+    await assertOrganizationIsolation({
+      seed: async (organizationId) =>
+        withOrganization(db, organizationId, async (tx) => {
+          const template = await seedTemplate(tx, organizationId);
+          const [row] = await tx
+            .insert(quoteTemplateScheduleItems)
+            .values({ organizationId, templateId: template.id, label: "Acompte", percentageBasisPoints: 3000, dueRule: "at_signature" })
+            .returning();
+          return row!;
+        }),
+      listVisible: async (organizationId) => withOrganization(db, organizationId, (tx) => tx.select().from(quoteTemplateScheduleItems)),
+      attemptCrossOrganizationUpdate: async (organizationId, targetRow) => {
+        const updated = await withOrganization(db, organizationId, (tx) =>
+          tx.update(quoteTemplateScheduleItems).set({ label: "falsifié" }).where(eq(quoteTemplateScheduleItems.id, targetRow.id)).returning(),
         );
         return { affectedRows: updated.length };
       },

@@ -1,7 +1,9 @@
 import { getTranslations } from "next-intl/server";
 import { ScreenHelp } from "@/app/screen-help";
 import { appDatabase } from "@symbola/db/client";
-import { getPlatformSettings } from "@/modules/hub/service";
+import { getPlatformSettings, getRequiredMentionRules } from "@/modules/hub/service";
+import { resetRequiredMentionsAction } from "./actions";
+import { RequiredMentionsForm } from "./required-mentions-form";
 import { requireAdmin } from "@/lib/guards";
 import { PlatformSettingsForm } from "./settings-form";
 
@@ -12,6 +14,7 @@ export default async function AdminSettingsPage() {
 
   const db = appDatabase();
   const settings = await getPlatformSettings(db);
+  const mentions = await getRequiredMentionRules(db);
 
   return (
     <main>
@@ -28,6 +31,17 @@ export default async function AdminSettingsPage() {
         privacyExportRetentionDays={settings.privacyExportRetentionDays}
         mailHourlyCap={settings.mailHourlyCap}
       />
+
+      {/* Lot 31a (FAC-07, JUR-01, D4) : mentions requises avant l'émission, valeur réglementaire. */}
+      <h2 id="mentions-requises">{t("requiredMentionsTitle")}</h2>
+      <p role="note">{t("requiredMentionsWarning")}</p>
+      <p className="meta">{mentions.source === "admin" ? t("requiredMentionsSourceAdmin") : t("requiredMentionsSourceStarter")}</p>
+      <RequiredMentionsForm rules={mentions.rules} />
+      {mentions.source === "admin" ? (
+        <form action={resetRequiredMentionsAction}>
+          <button type="submit">{t("requiredMentionsReset")}</button>
+        </form>
+      ) : null}
     </main>
   );
 }

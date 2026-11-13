@@ -84,7 +84,7 @@ export function QuotePdfDocument({ model }: { model: QuotePdfModel }) {
   const font = FONTS[model.appearance.font];
   const bold = { fontFamily: font.bold };
   const lastStrong = model.totals.map((total) => Boolean(total.strong)).lastIndexOf(true);
-  const mentions = [model.legalMention, model.terms].filter((text): text is string => Boolean(text));
+  const mentions = [model.legalMention, ...model.professional, model.terms].filter((text): text is string => Boolean(text));
   return (
     <Document title={model.title} author={model.seller.name} language={model.language}>
       <Page size="A4" style={[styles.page, { fontFamily: font.regular, fontSize: font.size }]} wrap>
@@ -144,8 +144,13 @@ export function QuotePdfDocument({ model }: { model: QuotePdfModel }) {
               </Text>
             ))}
           </View>
-          {model.rows.map((row, rowIndex) => (
-            <View key={rowIndex} style={[styles.row, rowIndex % 2 === 1 ? { backgroundColor: ZEBRA } : {}]} wrap={false}>
+          {model.rows.map((row, rowIndex) =>
+            row.kind === "section" ? (
+              <View key={rowIndex} style={[styles.row, { borderBottomColor: accent }]} wrap={false}>
+                <Text style={[bold, { color: accent, paddingLeft: 2 }]}>{row.cells[0]}</Text>
+              </View>
+            ) : (
+            <View key={rowIndex} style={[styles.row, rowIndex % 2 === 1 ? { backgroundColor: ZEBRA } : {}, row.kind === "subtotal" ? bold : {}]} wrap={false}>
               {row.cells.map((cell, index) => (
                 <View key={index} style={{ width: widths[index]!, paddingRight: 4, paddingLeft: index === 0 ? 2 : 0 }}>
                   <Text style={{ textAlign: index === 0 ? "left" : "right" }}>{cell}</Text>
@@ -153,7 +158,8 @@ export function QuotePdfDocument({ model }: { model: QuotePdfModel }) {
                 </View>
               ))}
             </View>
-          ))}
+            ),
+          )}
         </View>
 
         <View style={styles.bottom} wrap={false}>
@@ -190,6 +196,13 @@ export function QuotePdfDocument({ model }: { model: QuotePdfModel }) {
         </View>
 
         {mentions.length > 0 ? <Text style={styles.mentions}>{mentions.join("\n")}</Text> : null}
+        {/* Lot 31a (JUR-09) : conditions générales de vente, après les mentions. */}
+        {model.generalTerms ? (
+          <View style={styles.mentions}>
+            <Text style={[bold, { color: accent }]}>{model.generalTerms.title}</Text>
+            <Text>{model.generalTerms.text}</Text>
+          </View>
+        ) : null}
 
         {model.signature ? (
           <View wrap={false}>

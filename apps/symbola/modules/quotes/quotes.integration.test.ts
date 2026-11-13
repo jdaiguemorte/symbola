@@ -31,6 +31,7 @@ import {
   updateQuoteLine,
   updateQuoteSettings,
 } from "./service";
+import { fillRequiredMentions } from "@/lib/test-fixtures/legal-mentions";
 
 const plannerId = randomUUID();
 const NOW = new Date("2027-03-15T10:00:00Z");
@@ -57,6 +58,8 @@ async function setup(vatRegime: "franchise" | "assujetti" | null = "assujetti") 
       }),
     );
   }
+  // Lot 31a (FAC-07) : mentions requises remplies.
+  await fillRequiredMentions(organizationId);
   const source = await createProspectSource(organizationId, "Salon");
   const event = await createProspect({
     organizationId,
@@ -167,14 +170,14 @@ describe("DEV-01 — Composition d'un devis", () => {
 
   it("la validité (30 jours par défaut) et le préfixe sont paramétrables par organisation", async () => {
     const { organizationId, eventId } = await setup();
-    expect(await getQuoteSettings(organizationId)).toEqual({
+    // Lot 31a : les conditions de paiement et « acompte » viennent de l'aide des tests.
+    expect(await getQuoteSettings(organizationId)).toMatchObject({
       validityDays: 30,
       quotePrefix: "D",
       invoicePrefix: "F",
       creditNotePrefix: "A",
       upcomingHorizonDays: 90,
       invoicePaymentTermDays: 30,
-      invoiceMentions: null,
     });
     await updateQuoteSettings(organizationId, {
       validityDays: 45,

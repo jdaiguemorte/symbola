@@ -11,7 +11,7 @@
 // - Devis non signé : signataires et descriptions libres anonymisés ;
 //   numéros, intitulés et montants restent (statistiques).
 // - Catalogue : champs libres importés effacés.
-import { eq, inArray, sql as rawSql } from "drizzle-orm";
+import { and, eq, inArray, isNotNull, sql as rawSql } from "drizzle-orm";
 import { appDatabase } from "@symbola/db/client";
 import { catalogItems, creditNotes, invoices, quoteLines, quotes, quoteSigners, quoteVersions, signatureRequests } from "@symbola/db/schema/quotes";
 import { withOrganization } from "@symbola/db/with-organization";
@@ -26,6 +26,8 @@ type Plan = {
   // Ce que l'exécution modifie (fiches anonymisées seulement).
   signerIds: string[];
   lineIds: string[];
+  // Lot 31a : versions dont le nom de qui a choisi les options s'efface.
+  choiceVersionIds: string[];
   catalogItemIds: string[];
   // RGPD-05 : documents arrivés au terme de leur conservation.
   invoiceIds: string[];
@@ -39,7 +41,7 @@ async function inOrganization<T>(organizationId: string, fn: (tx: Tx) => Promise
 }
 
 async function buildPlan(tx: Tx, input: ErasureInput): Promise<Plan> {
-  const plan: Plan = { items: [], signerIds: [], lineIds: [], catalogItemIds: [], invoiceIds: [], creditNoteIds: [], expiredRequestIds: [] };
+  const plan: Plan = { items: [], signerIds: [], lineIds: [], choiceVersionIds: [], catalogItemIds: [], invoiceIds: [], creditNoteIds: [], expiredRequestIds: [] };
   const anonymized = (kind: string, recordId: string) => plan.items.push({ kind, recordId, fate: "anonymized", legalBasis: null, keptUntil: null });
 
   // Factures et avoirs réels : conservés dix ans (réglage) à compter de l'émission.
@@ -70,7 +72,8 @@ async function buildPlan(tx: Tx, input: ErasureInput): Promise<Plan> {
   const quoteIds = idsOfKind(input.records, "quote");
   const signerIds = idsOfKind(input.records, "quote_signer");
   const lineIds = idsOfKind(input.records, "quote_line");
-  if (quoteIds.length + signerIds.length + lineIds.length > 0) {
+  const choiceIds = idsOfKind(input.records, "quote_options_choice");
+  if (quoteIds.length + signerIds.length + lineIds.length + choiceIds.length > 0) {
     const realQuotes = await tx.select({ id: quotes.id }).from(quotes).where(eq(quotes.isDemo, false));
     const realQuoteIds = new Set(realQuotes.map((quote) => quote.id));
     const versions = realQuoteIds.size > 0 ? await tx.select({ id: quoteVersions.id, quoteId: quoteVersions.quoteId }).from(quoteVersions).where(inArray(quoteVersions.quoteId, [...realQuoteIds])) : [];
@@ -140,6 +143,17 @@ async function buildPlan(tx: Tx, input: ErasureInput): Promise<Plan> {
       if (line.description !== null) plan.lineIds.push(line.id);
       if (lineIds.includes(line.id)) anonymized("quote_line", line.id);
     }
+    // Lot 31a : le nom de qui a choisi les options, gardé comme preuve d'un devis signé.
+    for (const versionId of versionQuote.keys()) {
+      if (!choiceIds.includes(versionId) && !quoteVersionIds.includes(versionId)) continue;
+      const until = proofUntil.get(versionId);
+      if (until) {
+        if (choiceIds.includes(versionId)) plan.items.push({ kind: "quote_options_choice", recordId: versionId, fate: "kept", legalBasis: "contract_proof", keptUntil: until });
+        continue;
+      }
+      plan.choiceVersionIds.push(versionId);
+      if (choiceIds.includes(versionId)) anonymized("quote_options_choice", versionId);
+    }
   }
 
   const catalogIds = idsOfKind(input.records, "catalog_item");
@@ -164,6 +178,12 @@ export async function eraseQuotesData(input: ErasureInput): Promise<ErasurePlanI
       await tx.update(quoteSigners).set({ name: ANONYMIZED, email: anonymizedEmail(), billingAddress: ANONYMIZED, signingUrl: "" }).where(eq(quoteSigners.id, signerId));
     }
     if (plan.lineIds.length > 0) await tx.update(quoteLines).set({ description: ANONYMIZED }).where(inArray(quoteLines.id, plan.lineIds));
+    if (plan.choiceVersionIds.length > 0) {
+      await tx
+        .update(quoteVersions)
+        .set({ optionsChosenBy: ANONYMIZED })
+        .where(and(inArray(quoteVersions.id, plan.choiceVersionIds), isNotNull(quoteVersions.optionsChosenBy)));
+    }
     if (plan.catalogItemIds.length > 0) await tx.update(catalogItems).set({ importedFields: null }).where(inArray(catalogItems.id, plan.catalogItemIds));
 
     // RGPD-05 : fin de la conservation comptable. Seule la copie de

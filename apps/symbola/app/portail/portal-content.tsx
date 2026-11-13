@@ -5,12 +5,13 @@ import { formatAmount, formatCalendarDate, formatMonth, parisToday, type Locale 
 import { ScreenHelp } from "@/app/screen-help";
 import { getLinkEventView, getLinkVendorOptions, LinkAccessDeniedError, listLinkDecisions, monthKey, type EventDecision, type EventTask, type LinkAccess } from "@/modules/events/service";
 import { getLinkBudgetView, LinkBudgetAccessDeniedError } from "@/modules/budget/service";
-import { listClientQuotesToSign } from "@/modules/quotes/service";
+import { listClientQuoteOptions, listClientQuotesToSign } from "@/modules/quotes/service";
 import { isBudgetModuleEnabled } from "@/app/budget/module-access";
 import { isQuotesModuleEnabled } from "@/app/devis/module-access";
 import { isEventsModuleEnabled } from "@/app/events/module-access";
 import { ClientBudget } from "./client-budget";
 import { ClientQuotes } from "./client-quotes";
+import { ClientQuoteOptionsForm } from "./client-quote-options";
 import { ClientVendorOptions } from "./client-vendor-options";
 import { LinkPrivacyNotice } from "./link-privacy-notice";
 import { ClientDecisions } from "./client-decisions";
@@ -67,7 +68,10 @@ export async function PortalContent({ access, preview = false, banner }: { acces
   }
   const methods = budget ? await declarablePaymentMethods(organizationId) : [];
   // DEV-02 : devis à signer, reconnus par l'e-mail du lien.
-  const quotesToSign = rubrics.includes("quotes") && (await isQuotesModuleEnabled(organizationId)) ? await listClientQuotesToSign(organizationId, access.eventId, access.email) : [];
+  const quotesEnabled = rubrics.includes("quotes") && (await isQuotesModuleEnabled(organizationId));
+  const quotesToSign = quotesEnabled ? await listClientQuotesToSign(organizationId, access.eventId, access.email) : [];
+  // Lot 31a (FAC-01, D2 ; SC-02 étape 5) : options des devis envoyés, à cocher avant de signer.
+  const quoteOptions = quotesEnabled && access.audience === "client" ? await listClientQuoteOptions(organizationId, access.eventId) : [];
   let vendorOptions: Awaited<ReturnType<typeof getLinkVendorOptions>> = [];
   if (rubrics.includes("vendor_options")) {
     try {
@@ -103,7 +107,7 @@ export async function PortalContent({ access, preview = false, banner }: { acces
     view.program ? ["programme", tLink("navProgram")] : null,
     vendorOptions.length > 0 ? ["options", tLink("navOptions")] : null,
     budget ? ["budget", tLink("navBudget")] : null,
-    quotesToSign.length > 0 ? ["devis", tLink("navQuotes")] : null,
+    quotesToSign.length > 0 || quoteOptions.length > 0 ? ["devis", tLink("navQuotes")] : null,
   ].filter((entry): entry is [string, string] => entry !== null);
 
   const taskToggle = (task: Pick<EventTask, "id" | "label" | "done">) => (
@@ -269,9 +273,18 @@ export async function PortalContent({ access, preview = false, banner }: { acces
         </section>
       ) : null}
 
-      {quotesToSign.length > 0 ? (
+      {quotesToSign.length > 0 || quoteOptions.length > 0 ? (
         <div id="devis">
-          <ClientQuotes quotes={quotesToSign} locale={locale} preview={preview} />
+          {quoteOptions.length > 0 ? (
+            <section aria-labelledby="client-options-title">
+              <h2 id="client-options-title">{t("optionsTitle")}</h2>
+              <p>{t("optionsHint")}</p>
+              {quoteOptions.map((quote) => (
+                <ClientQuoteOptionsForm key={quote.quoteId} quote={quote} preview={preview} />
+              ))}
+            </section>
+          ) : null}
+          {quotesToSign.length > 0 ? <ClientQuotes quotes={quotesToSign} locale={locale} preview={preview} /> : null}
         </div>
       ) : null}
 

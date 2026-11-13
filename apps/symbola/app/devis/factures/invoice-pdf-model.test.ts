@@ -47,6 +47,7 @@ const balance: InvoiceView = {
   buyers: [{ name: "Inès Martin", billingAddress: "3 place Bellecour, 69002 Lyon" }],
   lines: [{ label: "Coordination", description: null, unit: "forfait", quantityMilli: 1000, unitPriceCents: 223000, vatRateBasisPoints: 2000, discountBasisPoints: 0, netCents: 223000 }],
   depositLabel: null,
+  advanceKind: null,
   quoteTotals: { subtotalCents: 223000, globalDiscountCents: 0, totalHtCents: 223000, vatByRate: [{ rateBasisPoints: 2000, baseCents: 223000, vatCents: 44600 }], totalVatCents: 44600, totalTtcCents: 267600 },
   deductions: [{ number: "F-2027-0001", amountCents: 80000 }],
   totals,
