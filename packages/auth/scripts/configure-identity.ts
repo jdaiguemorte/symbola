@@ -17,7 +17,7 @@
 import postgres from "postgres";
 import { z } from "zod";
 import { createManagementClient } from "../src/identity/management";
-import { forbiddenPasswordWords, signInExperience, smtpConnector, webApplication, WEB_APPLICATION_NAME } from "../src/identity/settings";
+import { accountCenter, forbiddenPasswordWords, signInExperience, smtpConnector, webApplication, WEB_APPLICATION_NAME } from "../src/identity/settings";
 
 const env = z
   .object({
@@ -138,6 +138,9 @@ async function main(): Promise<void> {
 
   await client.request("PATCH", "/api/sign-in-exp", signInExperience(forbiddenPasswordWords()));
   console.log("Expérience de connexion réglée (e-mail, lien magique, clé d'accès, mots de passe interdits, sans appel sortant).");
+
+  await client.request("PATCH", "/api/account-center", accountCenter());
+  console.log("Centre de compte activé (mot de passe, clé d'accès, double authentification).");
 }
 
 main().catch((error: unknown) => {

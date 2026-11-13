@@ -69,3 +69,28 @@ export function smtpConnector(smtp: SmtpSettings) {
     ],
   };
 }
+
+// Centre de compte du fournisseur (/account) : la personne y gère elle-même son mot de passe, sa
+// clé d'accès et sa double authentification (D4). L'adresse reste en lecture seule : Symbola
+// la connaît, et son changement (avec l'alerte de SEC-08) vient au lot 52. Le reste est coupé.
+export function accountCenter() {
+  return {
+    enabled: true,
+    fields: {
+      email: "ReadOnly",
+      password: "Edit",
+      mfa: "Edit",
+      passkey: "Edit",
+      name: "Off",
+      avatar: "Off",
+      profile: "Off",
+      phone: "Off",
+      username: "Off",
+      social: "Off",
+      customData: "Off",
+      session: "Off",
+      trustedDevice: "Off",
+      personalAccessToken: "Off",
+    },
+  };
+}

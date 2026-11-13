@@ -1,6 +1,6 @@
 // Lot 33 (HUB-01, SEC-03, ADR 0067) — réglages appliqués au fournisseur d'identité.
 import { describe, expect, it } from "vitest";
-import { forbiddenPasswordWords, signInExperience, smtpConnector, webApplication } from "./settings";
+import { accountCenter, forbiddenPasswordWords, signInExperience, smtpConnector, webApplication } from "./settings";
 
 describe("HUB-01 — Expérience de connexion du fournisseur d'identité", () => {
   const settings = signInExperience(["azerty"]);
@@ -54,5 +54,15 @@ describe("SEC-01 — Application web et e-mails du fournisseur", () => {
     expect(dev).toMatchObject({ ignoreTLS: true });
     expect(dev.templates.map((template) => template.usageType)).toEqual(["SignIn", "Register", "ForgotPassword", "Generic"]);
     for (const template of dev.templates) expect(template.content).toContain("{{code}}");
+  });
+});
+
+describe("SEC-01 — Centre de compte du fournisseur (D4)", () => {
+  it("mot de passe, clé d'accès et double authentification modifiables ; adresse en lecture seule ; le reste coupé", () => {
+    const { enabled, fields } = accountCenter();
+    expect(enabled).toBe(true);
+    expect(fields).toMatchObject({ password: "Edit", mfa: "Edit", passkey: "Edit", email: "ReadOnly" });
+    const others = Object.entries(fields).filter(([key]) => !["password", "mfa", "passkey", "email"].includes(key));
+    for (const [, value] of others) expect(value).toBe("Off");
   });
 });
