@@ -30,6 +30,19 @@ indiquons ce que fera Symbola selon votre réponse.
   - conditions de paiement, avec ce texte de départ, modifiable : « à réception de la facture, par
     virement bancaire. Aucun escompte pour paiement anticipé. En cas de retard de paiement, des
     pénalités au taux d'intérêt légal peuvent être appliquées. »
+- **Mentions exigées** (depuis le 13/11/2026) : une liste de départ, réglable, dit quelles
+  mentions chaque document doit porter. L'envoi d'un devis et l'émission d'une facture sont
+  refusés tant qu'une mention manque, et le message nomme le champ à remplir :
+  - sur le devis, les factures d'acompte et de solde et l'avoir : nom, adresse, SIREN ou SIRET ;
+    pour une société (EURL, SARL, SAS, SASU, SA) l'immatriculation (RCS ou RM) et le capital ;
+    pour un assujetti, le numéro de TVA ;
+  - sur le devis seulement : l'assurance de responsabilité civile professionnelle ; pour un
+    client particulier, le médiateur de la consommation et les conditions générales de vente ;
+  - sur les factures d'acompte et de solde : les conditions de paiement ;
+  - un avoir reprend les mentions figées de sa facture.
+- **Acompte ou arrhes** : chaque devis dit si les sommes versées d'avance sont des acomptes ou
+  des arrhes ; la facture correspondante s'intitule « Facture d'acompte » ou « Facture
+  d'arrhes ».
 - **Encaissements** : le planner les saisit à la main (date et mode de paiement). Il n'y a pas
   encore de paiement en ligne.
 - **Export « e-reporting »** : un fichier CSV par période. Une ligne par facture, avoir ou
@@ -50,8 +63,9 @@ Quelles mentions manquent ? Le texte de départ des conditions de paiement prév
 « au taux d'intérêt légal » et ne parle pas de l'indemnité forfaitaire de recouvrement : est-ce
 suffisant pour un client professionnel ?
 
-> **Symbola** : chaque mention manquante devient un champ obligatoire de l'organisation. La facture
-> ne peut pas être émise tant qu'il manque, et le message nomme le champ.
+> **Symbola** : la liste des mentions exigées décrite plus haut est un réglage. Nous l'ajustons
+> selon votre réponse : chaque mention ajoutée devient un champ obligatoire, et le devis ou la
+> facture ne part pas tant qu'il manque.
 
 ### 2. Mentions ajoutées par la réforme au 1er septembre 2027
 
@@ -124,6 +138,10 @@ demande.
 Une facture par acompte, puis une facture de solde qui déduit les acomptes : est-ce la bonne
 pratique pour un planner en franchise ? Et pour un planner assujetti, compte tenu de
 l'exigibilité de la TVA à l'encaissement pour les prestations de services ?
+
+Le devis peut aussi prévoir des arrhes plutôt que des acomptes (question 2 de la fiche de
+l'avocat). Symbola émet alors une « facture d'arrhes » de la même façon : est-ce correct,
+notamment pour la TVA d'un planner assujetti ?
 
 > **Symbola** : nous ajustons la génération des factures selon votre réponse.
 

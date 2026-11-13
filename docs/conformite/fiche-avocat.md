@@ -16,14 +16,22 @@ planner. Les obligations d'éditeur (§ 8) s'appliqueront à l'ouverture commerc
 
 ## Ce que fait Symbola aujourd'hui
 
-- Le planner compose un devis depuis son catalogue. Le client le signe en ligne, sans compte, par
-  un lien envoyé par le service de signature Documenso, hébergé par nos soins.
+- Le planner compose un devis depuis son catalogue ou un modèle de devis, en sections, avec des
+  options que le client choisit sur son espace en ligne. Le client le signe en ligne, sans compte,
+  par un lien envoyé par le service de signature Documenso, hébergé par nos soins.
 - Le dossier de preuve est conservé avec le document signé : identité déclarée, adresse e-mail
   vérifiée par le lien, horodatage, empreinte du document et journal des étapes.
-- L'échéancier du devis prévoit des sommes versées d'avance, appelées « acomptes ».
+- Chaque devis dit si ses sommes versées d'avance sont des acomptes ou des arrhes : le planner
+  règle une valeur par défaut, et le devis ne part pas sans ce choix. Le mot figure sur le devis,
+  les factures et l'espace du client. La clause qui l'explique viendra du contrat.
+- Le planner renseigne son assureur et son contrat de responsabilité civile professionnelle (avec
+  la couverture géographique), son médiateur de la consommation et ses conditions générales de
+  vente. Ils sont repris sur chaque devis, qui ne part pas sans eux (médiateur et conditions
+  générales : pour un client particulier).
 - Il n'existe encore ni contrat généré depuis un modèle, ni gestion du droit de rétractation.
 - Nous fournirons des modèles de départ (contrat de prestation, mandat, conditions générales).
-  Chacun sera marqué « base à adapter, à faire relire par un professionnel du droit ».
+  Chacun sera marqué « base à adapter, à faire relire par un professionnel du droit ». Les modèles
+  de devis de départ portent déjà l'avertissement « Modèles à adapter ».
 
 ## Questions
 
