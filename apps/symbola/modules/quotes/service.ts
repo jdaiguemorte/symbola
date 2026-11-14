@@ -1012,6 +1012,12 @@ export async function listQuotesAwaitingAnswer(
     .filter((row) => row.daysSince >= days);
 }
 
+// Lot 34a (EVT-05, D2) : les évènements dont un devis est parti (envoyé ou signé). Une option
+// ainsi relancée par son devis n'est pas un prospect sans nouvelle.
+export async function listEventIdsWithSentQuote(organizationId: string): Promise<Set<string>> {
+  return new Set((await findQuotes(organizationId)).filter((quote) => quote.status === "sent" || quote.status === "signed").map((quote) => quote.eventId));
+}
+
 export async function listQuotes(organizationId: string): Promise<QuoteSummary[]> {
   return summarize(organizationId, await findQuotes(organizationId));
 }

@@ -540,7 +540,7 @@
     },
     "eventsList": {
       "title": "Event list",
-      "body": "All your prospects and upcoming events; « Finished » keeps those held or lost. « List » or « Calendar »: the filterable table, or the coming months. Below, the workload over the next twelve months; two events on the same day are flagged in both views. Start with « New prospect », or filter the list by name, status, source or year. To try the module safely, start the guided trial below.",
+      "body": "All your prospects and ongoing events; « Finished » keeps those closed or cancelled. « List » or « Calendar »: the filterable table, or the coming months. Below, the workload over the next twelve months; two events on the same day are flagged in both views. Start with « New prospect », or filter the list by name, status, source or year. To try the module safely, start the guided trial below.",
       "faq": [
         {
           "q": "Where do I find a past event?",
@@ -572,7 +572,7 @@
     },
     "eventsDetail": {
       "title": "Event page",
-      "body": "The whole event, in tabs. The « Summary » opens on the next action and who has to act, then the event's health (planning, budget, client decisions) and the next fourteen days; details are edited at the bottom, under « Edit the details ». The top timeline shows where it stands: click the next step to move forward. The « Next step » banner suggests the next stage (send the quote, apply the planning, create the couple's links). Each tab has a « Settings » link to its templates.",
+      "body": "The whole event, in tabs. The « Summary » opens on the next action and who has to act, then the event's health (planning, budget, client decisions) and the next fourteen days; details are edited at the bottom, under « Edit the details », the event's time zone included. The top timeline shows where it stands: Option, Confirmed, In preparation, Event day, Closed. Click a step to set it; « Event day » applies by itself on the day of the event, and closing is offered from the next day. « Postpone the event… » asks for the new date: once you confirm the postponement, the planning's due dates follow, except tasks already done and those whose date you set by hand; the ones that would fall in the past are listed first. « Cancel the event… » asks for a reason: the data stays, links close, reminders and scheduled deposit invoices stop, and a credit note is offered for each issued invoice. The « Next step » banner suggests the next stage (send the quote, apply the planning, create the couple's links). Each tab has a « Settings » link to its templates.",
       "faq": [
         {
           "q": "How do I mark an event as lost?",
@@ -624,7 +624,7 @@
     },
     "eventsTemplates": {
       "title": "Planning timeline templates",
-      "body": "Your typical task lists, placed before or after the event date (D-365, D-30, the day…). “New template” asks for its name then opens it; you can also load the starter template. Click a template to see its tasks: a task is added or edited in the right-hand panel. A template is applied from a dated event's Planning tab.",
+      "body": "Your typical task lists, placed before or after the event date (D-365, D-30, the day…). “New template” asks for its name then opens it; you can also load the starter template. Click a template to see its tasks: a task is added or edited in the right-hand panel. Linked to an event type, a template applies by itself when a dated event of that type is created, options included (with no template for that type, the first template created); it can also be applied from the Planning tab.",
       "faq": [
         {
           "q": "Does editing a template change ongoing events?",
@@ -704,7 +704,7 @@
     },
     "quotesDetail": {
       "title": "Composing a quote",
-      "body": "Build the quote from the catalogue or free lines; totals update as you go. Plan the deposits, then send it for signature: once signed, the event becomes « Confirmed ». A sent version is frozen; to change it, create a new version.",
+      "body": "Build the quote from the catalogue or free lines; totals update as you go. Plan the deposits, then send it for signature: once signed, an option becomes « Confirmed ». A sent version is frozen; to change it, create a new version.",
       "faq": [
         {
           "q": "How do I invoice a deposit?",
@@ -940,7 +940,7 @@
     },
     "eventsSources": {
       "title": "Sources and reasons",
-      "body": "Two lists that help you follow your business. Sources tell where a prospect comes from (Instagram, word of mouth, a fair…): you pick one when creating it. Loss reasons explain why a prospect did not sign: you pick one when marking it « Lost ». Add, rename or remove lines to match the way you work.",
+      "body": "Two lists that help you follow your business. Sources tell where a prospect comes from (Instagram, word of mouth, a fair…): you pick one when creating it. Loss or cancellation reasons explain why an event does not go ahead: you pick one when cancelling it (« Cancel the event… »). Add, rename or remove lines to match the way you work.",
       "faq": [
         {
           "q": "Does removing a source change my prospects?",
@@ -1150,12 +1150,10 @@
     "status": "Status",
     "lossReason": "Reason for loss or cancellation",
     "lossReasonNote": "Details on the reason",
-    "onlyIfLost": "if Lost",
     "changeStatus": "Change status",
     "invalidStatus": "This status does not exist.",
     "missingLossReason": "Choose a reason.",
     "missingLossReasonNote": "This reason requires details.",
-    "suggestMarkDone": "This event's date has passed: you can mark it as Done.",
     "settingsTitle": "Event settings",
     "sourcesTitle": "Prospect sources",
     "newSourceLabel": "New source",

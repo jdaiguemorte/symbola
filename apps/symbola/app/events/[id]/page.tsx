@@ -7,7 +7,7 @@ import {
   formatAmount,
   formatCalendarDate,
   formatDate,
-  formatDateTime,
+  formatDateTimeIn,
   formatFileSize,
   parisToday,
   type Locale,
@@ -194,13 +194,6 @@ export default async function EventDetailPage({
     ? event.clients.map((client) => client.firstName).join(" & ")
     : t("noClient");
 
-  // PRD-EVT-02 : « étant donné un événement confirmé dont la date est passée,
-  // alors l'app propose de le passer en Réalisé ».
-  const isPastConfirmed =
-    event.status === "confirmed" &&
-    event.eventDate !== null &&
-    event.eventDate < new Date().toISOString().slice(0, 10);
-
   // PRD-BUD-01/02 : « quand l'événement passe en Confirmé, l'app propose
   // d'en faire le budget prévu » — seulement si une simulation existe et
   // qu'aucune ligne de budget (budget_lines) n'a encore été créée.
@@ -228,6 +221,11 @@ export default async function EventDetailPage({
   const tBudget = await getTranslations("Budget");
 
   const today = parisToday();
+  // Lot 34a (ARC-17, D9) : les heures de l'évènement dans son fuseau, nommé s'il n'est pas celui de Paris.
+  const eventTime = (instant: Date | string) => {
+    const text = formatDateTimeIn(new Date(instant), locale, event.timeZone);
+    return event.timeZone === "Europe/Paris" ? text : `${text} (${event.timeZone.replaceAll("_", " ")})`;
+  };
   // Lot 12 (L12-EVT-17) : l'ancien onglet « prestataires » est devenu « budget ».
   const asked = query.onglet === "prestataires" ? "budget" : query.onglet;
   const tab: Tab = TABS.includes(asked as Tab) && (asked !== "devis" || quotesAvailable) ? (asked as Tab) : "apercu";
@@ -599,7 +597,6 @@ export default async function EventDetailPage({
 
       {tab === "apercu" ? (
         <>
-          {isPastConfirmed ? <p role="status">{t("suggestMarkDone")}</p> : null}
           {/* Lot 32a (EVT-02, UX-01, UX-06 ; D5) : prochaine action, santé, quatorze prochains jours. */}
           <EventCockpit organizationId={organizationId} eventId={event.id} tasks={tasks} quotesAvailable={quotesAvailable} today={today} locale={locale} afterNextAction={stepBanner} vendorProgress={progress} />
           {/* D5 : les formulaires de l'ancien aperçu, repliés. */}
@@ -627,7 +624,7 @@ export default async function EventDetailPage({
             <ul aria-label={t("activityTitle")}>
               {activity.map((entry) => (
                 <li key={entry.id}>
-                  {formatDateTime(new Date(entry.createdAt), locale)} —{" "}
+                  {eventTime(entry.createdAt)} —{" "}
                   {t(entry.kind === "task_done" ? "activityTaskDone" : entry.kind === "decision_made" ? "activityDecisionMade" : entry.kind === "vendor_reminded" ? "activityVendorReminded" : "activityTaskUndone", {
                     actor: entry.actorName ?? t("activityFormerClient"),
                     task: entry.taskLabel || (entry.kind === "vendor_reminded" ? t("activityVendorRemoved") : tDecisions("programLabel")),
@@ -799,7 +796,8 @@ export default async function EventDetailPage({
             <p className="meta">
               <span>{t("tasksSummary", { done: tasks.filter((task) => task.done).length, total: tasks.length, overdue: overdueCount })}</span>
             </p>
-            {recalculation.pending ? (
+            {/* Lot 34a (D4) : pendant un report, les échéances suivent à la confirmation du report. */}
+            {recalculation.pending && event.status !== "postponed" ? (
               <section aria-labelledby="recalculation-title">
                 <h3 id="recalculation-title">{t("recalculationTitle")}</h3>
                 <p>
@@ -1133,10 +1131,10 @@ export default async function EventDetailPage({
                     {link.otpRequired ? ` — ${t("linkOtpOn")}` : ""}
                     {link.audience === "client" && !link.taskReminders ? ` — ${t("linkRemindersOff")}` : ""}
                     {" — "}
-                    {link.lastOpenedAt ? t("linkOpenedOn", { date: formatDateTime(new Date(link.lastOpenedAt), locale) }) : t("linkNeverOpened")}
+                    {link.lastOpenedAt ? t("linkOpenedOn", { date: eventTime(link.lastOpenedAt) }) : t("linkNeverOpened")}
                   </p>
                   {link.renewalRequestedAt ? (
-                    <p className="badge-warning">{t("linkRenewalRequested", { date: formatDateTime(new Date(link.renewalRequestedAt), locale) })}</p>
+                    <p className="badge-warning">{t("linkRenewalRequested", { date: eventTime(link.renewalRequestedAt) })}</p>
                   ) : null}
                   {link.status !== "revoked" ? (
                     <p>
@@ -1212,7 +1210,7 @@ export default async function EventDetailPage({
                   </p>
                   <p className={decision.status === "pending" ? "badge-warning" : "muted"}>
                     {decision.status === "pending"
-                      ? tDecisions("statusPending", { date: formatDateTime(new Date(decision.requestedAt), locale) })
+                      ? tDecisions("statusPending", { date: eventTime(decision.requestedAt) })
                       : decision.status === "withdrawn"
                         ? tDecisions("statusWithdrawn")
                         : answerSentence(tDecisions, decision, label, locale)}

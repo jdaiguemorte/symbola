@@ -540,7 +540,7 @@
     },
     "eventsList": {
       "title": "Liste des événements",
-      "body": "Tous vos prospects et événements à venir ; « Terminés » garde ceux réalisés ou perdus. « Liste » ou « Calendrier » : le tableau filtrable, ou les mois à venir. Dessous, la charge des douze prochains mois ; deux évènements le même jour sont signalés dans les deux vues. Commencez par « Nouveau prospect », ou filtrez la liste par nom, statut, source ou année. Pour découvrir le module sans risque, lancez l'essai guidé ci-dessous.",
+      "body": "Tous vos prospects et événements en cours ; « Terminés » garde ceux clôturés ou annulés. « Liste » ou « Calendrier » : le tableau filtrable, ou les mois à venir. Dessous, la charge des douze prochains mois ; deux évènements le même jour sont signalés dans les deux vues. Commencez par « Nouveau prospect », ou filtrez la liste par nom, statut, source ou année. Pour découvrir le module sans risque, lancez l'essai guidé ci-dessous.",
       "faq": [
         {
           "q": "Où retrouver un événement passé ?",
@@ -572,7 +572,7 @@
     },
     "eventsDetail": {
       "title": "Fiche de l'événement",
-      "body": "Tout l'événement, en onglets. La « Synthèse » s'ouvre sur la prochaine action et qui doit agir, puis la santé de l'événement (planning, budget, décisions du client) et les quatorze prochains jours ; les informations se modifient en bas, dans « Modifier les informations ». La frise du haut montre où il en est : cliquez l'étape suivante pour avancer. Le bandeau « Prochaine étape » propose l'étape du parcours (envoyer le devis, appliquer le rétroplanning, créer les liens des mariés). Chaque onglet a son lien « Réglages » vers ses modèles.",
+      "body": "Tout l'événement, en onglets. La « Synthèse » s'ouvre sur la prochaine action et qui doit agir, puis la santé de l'événement (planning, budget, décisions du client) et les quatorze prochains jours ; les informations se modifient en bas, dans « Modifier les informations », fuseau de l'évènement compris. La frise du haut montre où il en est : Option, Confirmé, En préparation, Jour J, Clôturé. Cliquez une étape pour la poser ; « Jour J » s'applique de lui-même le jour de l'évènement, et la clôture vous est proposée dès le lendemain. « Reporter l'évènement… » demande la nouvelle date : à la confirmation du report, les échéances du rétroplanning suivent, sauf les tâches faites et celles dont vous avez fixé la date ; celles qui tomberaient dans le passé sont listées avant. « Annuler l'évènement… » demande un motif : les données restent, les liens se ferment, les rappels et les factures d'acompte programmées s'arrêtent, et un avoir vous est proposé pour chaque facture émise. Le bandeau « Prochaine étape » propose l'étape du parcours (envoyer le devis, appliquer le rétroplanning, créer les liens des mariés). Chaque onglet a son lien « Réglages » vers ses modèles.",
       "faq": [
         {
           "q": "Comment marquer un événement perdu ?",
@@ -624,7 +624,7 @@
     },
     "eventsTemplates": {
       "title": "Modèles de rétroplanning",
-      "body": "Vos listes de tâches types, placées avant ou après la date de l'événement (J-365, J-30, jour J…). « Nouveau modèle » demande son nom puis l'ouvre ; vous pouvez aussi charger le modèle de départ. Cliquez un modèle pour voir ses tâches : une tâche s'ajoute ou se modifie dans le panneau de droite. Un modèle s'applique depuis l'onglet Rétroplanning d'un événement daté.",
+      "body": "Vos listes de tâches types, placées avant ou après la date de l'événement (J-365, J-30, jour J…). « Nouveau modèle » demande son nom puis l'ouvre ; vous pouvez aussi charger le modèle de départ. Cliquez un modèle pour voir ses tâches : une tâche s'ajoute ou se modifie dans le panneau de droite. Rattaché à un type d'évènement, un modèle s'applique de lui-même à la création d'un évènement daté de ce type, option comprise (sans modèle pour ce type, le premier modèle créé) ; il s'applique aussi depuis l'onglet Rétroplanning.",
       "faq": [
         {
           "q": "Modifier un modèle change-t-il les événements en cours ?",
@@ -704,7 +704,7 @@
     },
     "quotesDetail": {
       "title": "Composer un devis",
-      "body": "Composez le devis à partir du catalogue ou de lignes libres ; les totaux se recalculent. Prévoyez les acomptes, puis envoyez-le en signature : à la signature, l'événement passe en « Confirmé ». Une version envoyée est figée ; pour la changer, créez une nouvelle version.",
+      "body": "Composez le devis à partir du catalogue ou de lignes libres ; les totaux se recalculent. Prévoyez les acomptes, puis envoyez-le en signature : à la signature, une option passe en « Confirmé ». Une version envoyée est figée ; pour la changer, créez une nouvelle version.",
       "faq": [
         {
           "q": "Comment facturer un acompte ?",
@@ -940,7 +940,7 @@
     },
     "eventsSources": {
       "title": "Sources et motifs",
-      "body": "Deux listes qui servent à suivre votre activité. Les sources disent d'où vient un prospect (Instagram, bouche-à-oreille, salon…) : on la choisit à sa création. Les motifs de perte expliquent pourquoi un prospect n'a pas signé : on le choisit en le passant à « Perdu ». Ajoutez, renommez ou retirez les lignes selon votre façon de travailler.",
+      "body": "Deux listes qui servent à suivre votre activité. Les sources disent d'où vient un prospect (Instagram, bouche-à-oreille, salon…) : on la choisit à sa création. Les motifs de perte ou d'annulation expliquent pourquoi un évènement ne se fait pas : on le choisit en l'annulant (« Annuler l'évènement… »). Ajoutez, renommez ou retirez les lignes selon votre façon de travailler.",
       "faq": [
         {
           "q": "Retirer une source change-t-il mes prospects ?",
@@ -1150,12 +1150,10 @@
     "status": "Statut",
     "lossReason": "Motif de perte ou d'annulation",
     "lossReasonNote": "Précision sur le motif",
-    "onlyIfLost": "si Perdu",
     "changeStatus": "Changer le statut",
     "invalidStatus": "Ce statut n'existe pas.",
     "missingLossReason": "Choisissez un motif.",
     "missingLossReasonNote": "Ce motif demande une précision.",
-    "suggestMarkDone": "La date de cet événement est passée : vous pouvez le passer en Réalisé.",
     "settingsTitle": "Paramètres des événements",
     "sourcesTitle": "Sources de prospect",
     "newSourceLabel": "Nouvelle source",

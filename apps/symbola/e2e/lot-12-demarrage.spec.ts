@@ -32,7 +32,7 @@ async function owner(ready: boolean) {
   }
 }
 
-test("L12-EVT-12 / L12-EVT-13 / L12-EVT-15 — statut en boutons, rétroplanning à la confirmation, lieux du programme", async ({ page }) => {
+test("L12-EVT-12 / L12-EVT-13 / L12-EVT-15 / EVT-01 — statut en boutons, rétroplanning ouvert dès l'option, lieux du programme", async ({ page }) => {
   const account = await owner(true);
   await addDefaultVendorSlots(account.organizationId, [{ label: "Lieu de réception", icon: "venue" }]);
   await createTaskTemplate(account.organizationId, "Mariage", []);
@@ -46,14 +46,14 @@ test("L12-EVT-12 / L12-EVT-13 / L12-EVT-15 — statut en boutons, rétroplanning
   });
   await login(page, account.email, account.password, /\/$/);
 
-  // Prospect : pas de rétroplanning, on explique pourquoi.
+  // Lot 34a (EVT-01, D8) : le rétroplanning est ouvert dès l'option ; ce modèle vide n'a rien créé.
   await page.goto(`/events/${event.id}?onglet=retroplanning`);
-  await expect(page.locator("p.notice", { hasText: "Le rétroplanning démarre quand l'événement est confirmé" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Appliquer le modèle" })).toBeVisible();
 
   // Lot 13 (L13-EVT-19) : frise du statut ; l'étape choisie se confirme, puis
   // le rétroplanning est proposé.
   const steps = page.getByRole("list", { name: "Statut de l'événement" });
-  await expect(steps.getByRole("listitem").filter({ hasText: "Prospect" })).toHaveAttribute("aria-current", "step");
+  await expect(steps.getByRole("listitem").filter({ hasText: "Option" })).toHaveAttribute("aria-current", "step");
   await changeEventStatus(page, "Confirmé");
   // Sur l'onglet Rétroplanning, le modèle s'applique sur place ; ailleurs,
   // une carte le propose.
