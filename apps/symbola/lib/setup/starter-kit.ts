@@ -32,7 +32,7 @@ import {
 } from "@/modules/events/service";
 import { createAllocationModel, listAllocationModels } from "@/modules/budget/service";
 import { seedStarterVendorCatalog, seedStarterVendorTags } from "@/modules/vendors/service";
-import { addStarterContractTemplates, listContractTemplates, loadStarterPaymentTerms } from "@/modules/quotes/service";
+import { addStarterContractTemplates, addStarterQuoteTemplates, listContractTemplates, listQuoteTemplates, loadStarterPaymentTerms } from "@/modules/quotes/service";
 import { organizesWeddings, vendorCatalogInput } from "@/lib/vendors/catalog";
 import { vendorTagCatalogInput } from "@/lib/vendors/tag-catalog";
 import { isModuleEnabled, type ModuleKey } from "@/modules/hub/service";
@@ -119,4 +119,13 @@ export async function loadStarterKit(organizationId: string, metier: StarterMeti
   // pour que la première facture d'acompte ne soit pas bloquée ; le taux des pénalités reste à choisir.
   if (modules.quotes) result.paymentTerms = await loadStarterPaymentTerms(organizationId, locale);
   return result;
+}
+
+// Lot 33b (HUB-09, PAR-01) — à la fin du questionnaire, quand le métier et le régime de TVA sont
+// connus : le modèle de devis de départ du métier (lignes et échéancier, prix à compléter), pour que
+// le premier devis parte de quelque chose. Rien n'est ajouté si l'organisation a déjà un modèle.
+export async function loadStarterQuoteTemplates(organizationId: string, locale: StarterLocale): Promise<number> {
+  if (!(await enabled(organizationId)).quotes) return 0;
+  if ((await listQuoteTemplates(organizationId)).length > 0) return 0;
+  return (await addStarterQuoteTemplates(organizationId, locale)).length;
 }

@@ -30,7 +30,7 @@ import {
   type Metier,
 } from "@/modules/hub/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
-import { loadStarterKit } from "@/lib/setup/starter-kit";
+import { loadStarterKit, loadStarterQuoteTemplates } from "@/lib/setup/starter-kit";
 import { isValidId } from "@/app/events/module-access";
 import { ICON_KEYS } from "@/app/budget-line-icon";
 
@@ -49,10 +49,12 @@ const text = (formData: FormData, name: string) => String(formData.get(name) ?? 
 
 // La question suivante, sans jamais faire reculer la progression (revenir à une question déjà
 // répondue puis la valider ne rouvre pas les suivantes).
-async function goToNext(organizationId: string, step: number): Promise<never> {
+async function goToNext(organizationId: string, step: number, locale: StarterLocale): Promise<never> {
   const db = appDatabase();
   const state = await getSetupState(db, organizationId);
   if (step >= SETUP_STEPS) {
+    // Le régime de TVA est connu : le modèle de devis de départ peut se charger.
+    await loadStarterQuoteTemplates(organizationId, locale);
     if (!state.completed) await completeSetup(db, organizationId);
     revalidatePath("/", "layout");
     redirect("/demarrage/pret");
@@ -119,7 +121,7 @@ export async function answerQuestionAction(_prev: QuestionFormState, formData: F
       break;
     }
   }
-  return goToNext(access.organizationId, step);
+  return goToNext(access.organizationId, step, locale);
 }
 
 // Lignes du budget (Paramètres des évènements) : renommer, changer l'icône. Gardée ici depuis le

@@ -17,10 +17,11 @@ import {
 } from "@/modules/events/service";
 import { listAllocationModels } from "@/modules/budget/service";
 import { listVendorTagGroups, listVendorTypes } from "@/modules/vendors/service";
-import { completeSetup, getSetupState, saveSetupStep } from "@/modules/hub/service";
+import { completeSetup, getSetupState, saveSetupStep, setModuleEnabled } from "@/modules/hub/service";
+import { listQuoteTemplates } from "@/modules/quotes/service";
 import { organizationProfiles } from "@symbola/db/schema/hub";
 import { eq } from "drizzle-orm";
-import { loadStarterKit } from "./starter-kit";
+import { loadStarterKit, loadStarterQuoteTemplates } from "./starter-kit";
 
 const { sql, db } = createAppConnection();
 afterAll(async () => {
@@ -76,6 +77,19 @@ describe("ONB-03 — Assistant de démarrage pré-rempli", { timeout: 30_000 }, 
     expect((await listProspectSources(organization.id)).map((source) => source.label)).toEqual(["Mon réseau"]);
     expect(again).toMatchObject({ budgetLines: 0, sources: 0, lossReasons: 0, taskTemplate: false, programTemplate: false, allocation: false, vendorTypes: 0, vendorTags: 0, contractTemplates: 0, paymentTerms: false });
     expect((await listTaskTemplates(organization.id)).length).toBe(1);
+  });
+
+  it("HUB-09 — à la fin du questionnaire, le modèle de devis de départ du métier se charge une fois, jamais sans le module Devis", async () => {
+    const organization = await createOrganization(db, `Org ${randomUUID()}`);
+    await loadStarterKit(organization.id, "wedding_planner", "fr");
+    expect(await loadStarterQuoteTemplates(organization.id, "fr")).toBeGreaterThan(0);
+    const templates = await listQuoteTemplates(organization.id);
+    expect(templates.length).toBeGreaterThan(0);
+    expect(await loadStarterQuoteTemplates(organization.id, "fr")).toBe(0);
+    expect((await listQuoteTemplates(organization.id)).length).toBe(templates.length);
+    const withoutQuotes = await createOrganization(db, `Org ${randomUUID()}`);
+    await setModuleEnabled(db, { adminUserId: randomUUID(), organizationId: withoutQuotes.id, moduleKey: "quotes", enabled: false });
+    expect(await loadStarterQuoteTemplates(withoutQuotes.id, "fr")).toBe(0);
   });
 
   it("HUB-09 — le questionnaire se reprend à sa question et se termine une fois", async () => {
