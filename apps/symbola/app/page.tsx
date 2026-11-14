@@ -65,8 +65,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const checklist = await loadOnboardingChecklist(organizationId);
   const tOnboarding = await getTranslations("Onboarding");
   // ONB-01 : guide vers la fiche entreprise sans jamais bloquer l'entrée ; lot 33b (PAR-01, « à
-  // éviter ») : seulement une fois la prise en main finie, jamais avant d'avoir montré la valeur.
-  const onboardingIncomplete = checklist === null && !resumeQuestionnaire && (await getOrganizationProfile(db, organizationId)).completedAt === null;
+  // éviter ») : seulement une fois le questionnaire fini et l'espace prêt, jamais avant.
+  const onboardingIncomplete = setup.completed && (await getOrganizationProfile(db, organizationId)).completedAt === null;
   // Lot 24b (SEC-22, décision D5) : plafond d'e-mails de l'heure atteint.
   const mailQuota = await organizationMailQuota(organizationId);
 
@@ -94,7 +94,6 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           {tOnboarding("resume", { count: SETUP_STEPS - setup.step + 1 })} <Link href="/demarrage">{tOnboarding("resumeLink")}</Link>
         </p>
       ) : null}
-      {checklist ? <OnboardingChecklist items={checklist} /> : null}
       {onboardingIncomplete ? (
         <p role="status">
           {tHome("onboardingIncomplete")} <Link href="/parametres">{tHome("completeProfile")}</Link>
@@ -113,6 +112,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       ) : null}
       <UnavailableNotice sources={unavailable} />
       <TodayList ranked={ranked} locale={locale} />
+      {/* Lot 33b (PAR-01, étape 6) : après ce qui demande une action (UX-01 : la prochaine action d'abord). */}
+      {checklist ? <OnboardingChecklist items={checklist} /> : null}
       {modules.events ? <MyEvents events={events} ranked={ranked} today={today} locale={locale} /> : null}
       <PageTour {...tour} helpTitle={tHelp("home.title")} helpBody={tHelp("home.body")} />
     </main>
