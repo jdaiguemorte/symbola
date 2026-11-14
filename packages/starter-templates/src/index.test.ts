@@ -5,6 +5,12 @@ import programFile from "./program.json";
 import {
   BUDGET_LINE_ICONS,
   MENTION_FIELDS,
+  ONBOARDING_CHECKLIST_KEYS,
+  isOnboardingTool,
+  isOnboardingVolume,
+  onboardingChecklistOrder,
+  onboardingDefaultEventTypes,
+  starterOnboarding,
   starterAllocation,
   starterBudgetLines,
   starterClientTaskReminders,
@@ -549,5 +555,39 @@ describe("FAC-07 / JUR-01 — Conditions de paiement selon le client (lot 31c, e
     const individual = rules.find((rule) => rule.field === "paymentTerms");
     expect(individual?.documents).toEqual(["deposit_invoice", "balance_invoice"]);
     expect(individual?.clientKinds).toEqual(["individual", "non_professional"]);
+  });
+});
+
+describe("HUB-09 — Questionnaire d'accueil : réponses de départ (lot 33b, D9, D11)", () => {
+  it("chaque question a sa valeur par défaut, et les volumes et outils proposés existent en français et en anglais", () => {
+    for (const locale of ["fr", "en"] as const) {
+      const questionnaire = starterOnboarding(locale);
+      expect(questionnaire.defaults).toEqual({ metier: "wedding_planner", vatRegime: "franchise", volume: "11_to_25", tools: [] });
+      expect(questionnaire.volumes.map((volume) => volume.key)).toContain(questionnaire.defaults.volume);
+      expect(questionnaire.tools.length).toBeGreaterThan(2);
+      for (const entry of [...questionnaire.volumes, ...questionnaire.tools]) expect(entry.label.length).toBeGreaterThan(0);
+    }
+    expect(starterOnboarding("en").tools[0]!.label).toBe("A spreadsheet (Excel, Google Sheets…)");
+  });
+
+  it("les types d'évènements cochés d'avance existent parmi les types de départ de chaque métier", () => {
+    expect(onboardingDefaultEventTypes("wedding_planner")).toEqual(["wedding"]);
+    expect(onboardingDefaultEventTypes("event_agency")).toEqual(["seminar", "corporate_party", "product_launch"]);
+    expect(onboardingDefaultEventTypes("autre")).toEqual(["other"]);
+  });
+
+  it("un tableur met « Importer vos contacts » en premier ; sans outil, l'ordre de départ", () => {
+    expect(onboardingChecklistOrder([])).toEqual(["logo", "first_vendor", "first_quote", "client_invite", "contacts_import"]);
+    expect(onboardingChecklistOrder(["spreadsheet"])).toEqual(["contacts_import", "logo", "first_vendor", "first_quote", "client_invite"]);
+    expect(onboardingChecklistOrder(["word_processor", "spreadsheet"])).toEqual(["first_quote", "contacts_import", "logo", "first_vendor", "client_invite"]);
+    expect(onboardingChecklistOrder(["inconnu"])).toEqual(onboardingChecklistOrder([]));
+    expect(ONBOARDING_CHECKLIST_KEYS).toHaveLength(5);
+  });
+
+  it("reconnaît les clés de volume et d'outil, et refuse les autres", () => {
+    expect(isOnboardingVolume("11_to_25")).toBe(true);
+    expect(isOnboardingVolume("1000")).toBe(false);
+    expect(isOnboardingTool("spreadsheet")).toBe(true);
+    expect(isOnboardingTool("fax")).toBe(false);
   });
 });

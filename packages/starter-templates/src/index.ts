@@ -43,6 +43,7 @@ import vendorTagsFile from "./vendor-tags.json";
 import agencyVendorTagsFile from "./vendor-tags.event-agency.json";
 import allocationFile from "./allocation.json";
 import eventTypesFile from "./event-types.json";
+import onboardingFile from "./onboarding.json";
 
 export type StarterLocale = "fr" | "en";
 
@@ -1075,4 +1076,67 @@ export function starterContractRules(): ContractRules {
 // Bandeau de chaque modèle de contrat et de chaque génération (JUR-20).
 export function contractTemplateWarning(locale: StarterLocale): string {
   return contractTemplatesSchema.parse(contractTemplatesFile).warning[locale];
+}
+
+// Lot 33b (HUB-09, PAR-01 ; D9, D11) — questionnaire d'accueil : valeur par défaut de chacune des
+// cinq questions (« Passer » la retient), volumes et outils remplacés proposés, et ordre de la
+// liste de prise en main. Un outil remplacé fait passer devant les actions qu'il appelle (un
+// tableur : « Importer vos contacts » d'abord). Les clés sont gardées dans le profil (D11).
+export const ONBOARDING_CHECKLIST_KEYS = ["logo", "first_vendor", "first_quote", "client_invite", "contacts_import"] as const;
+export type OnboardingChecklistKey = (typeof ONBOARDING_CHECKLIST_KEYS)[number];
+export type OnboardingVatRegime = "franchise" | "assujetti";
+
+const checklistKeySchema = z.enum(ONBOARDING_CHECKLIST_KEYS);
+const onboardingSchema = z.object({
+  version: z.literal(1),
+  defaults: z.object({
+    metier: z.enum(["wedding_planner", "event_agency", "autre"]),
+    vatRegime: z.enum(["franchise", "assujetti"]),
+    volume: z.string().min(1),
+    tools: z.array(z.string().min(1)),
+  }),
+  eventTypeDefaults: z.object({
+    wedding_planner: z.array(z.string().min(1)).min(1),
+    event_agency: z.array(z.string().min(1)).min(1),
+    autre: z.array(z.string().min(1)).min(1),
+  }),
+  volumes: z.array(z.object({ key: z.string().min(1).max(40), label: translatedLabelSchema })).min(1),
+  tools: z.array(z.object({ key: z.string().min(1).max(40), label: translatedLabelSchema, first: z.array(checklistKeySchema) })).min(1).max(10),
+  checklist: z.array(checklistKeySchema).length(ONBOARDING_CHECKLIST_KEYS.length),
+});
+const onboarding = onboardingSchema.parse(onboardingFile);
+
+export type StarterOnboarding = {
+  defaults: { metier: StarterMetier; vatRegime: OnboardingVatRegime; volume: string; tools: string[] };
+  volumes: { key: string; label: string }[];
+  tools: { key: string; label: string }[];
+};
+
+export function starterOnboarding(locale: StarterLocale): StarterOnboarding {
+  return {
+    defaults: { ...onboarding.defaults, tools: [...onboarding.defaults.tools] },
+    volumes: onboarding.volumes.map(({ key, label }) => ({ key, label: label[locale] })),
+    tools: onboarding.tools.map(({ key, label }) => ({ key, label: label[locale] })),
+  };
+}
+
+// Types d'évènements cochés d'avance pour un métier, dans l'ordre de ses types de départ.
+export function onboardingDefaultEventTypes(metier: StarterMetier): string[] {
+  const wanted = new Set(onboarding.eventTypeDefaults[metier]);
+  return starterEventTypes("fr", metier).map((type) => type.key).filter((key) => wanted.has(key));
+}
+
+// Ordre de la liste de prise en main : d'abord ce qu'appellent les outils remplacés, puis le reste,
+// chaque groupe dans l'ordre de départ. Une clé d'outil inconnue est ignorée.
+export function onboardingChecklistOrder(tools: readonly string[]): OnboardingChecklistKey[] {
+  const promoted = new Set(onboarding.tools.filter((tool) => tools.includes(tool.key)).flatMap((tool) => tool.first));
+  return [...onboarding.checklist.filter((key) => promoted.has(key)), ...onboarding.checklist.filter((key) => !promoted.has(key))];
+}
+
+export function isOnboardingVolume(key: string): boolean {
+  return onboarding.volumes.some((volume) => volume.key === key);
+}
+
+export function isOnboardingTool(key: string): boolean {
+  return onboarding.tools.some((tool) => tool.key === key);
 }
