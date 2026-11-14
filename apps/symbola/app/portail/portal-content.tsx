@@ -230,7 +230,7 @@ export async function PortalContent({ access, preview = false, banner }: { acces
                     {" — "}
                     {formatCalendarDate(task.dueDate, locale)}
                     {" — "}
-                    {task.responsible === "clients" ? t("responsibleYou") : t("responsiblePlanner")}
+                    {task.responsible === "clients" ? t("responsibleYou") : task.responsible === "vendor" ? t("responsibleVendor") : t("responsiblePlanner")}
                     {task.done ? ` — ${tEvents("taskDone")}` : ""}
                     {task.responsible === "clients" ? taskToggle(task) : null}
                   </li>

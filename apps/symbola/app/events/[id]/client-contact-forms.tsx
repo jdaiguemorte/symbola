@@ -4,8 +4,8 @@
 // budget souhaité.
 import { useActionState } from "react";
 import { useTranslations } from "next-intl";
-import type { EventClient } from "@/modules/events/service";
-import { setWantedBudgetAction, updateClientContactAction, type ClientContactFormState, setVenueAction } from "./client-contact-actions";
+import type { EventClient, EventDetail } from "@/modules/events/service";
+import { setEventIdentityAction, setWantedBudgetAction, updateClientContactAction, type ClientContactFormState, setVenueAction } from "./client-contact-actions";
 
 export function ClientContactForm({ eventId, client }: { eventId: string; client: EventClient }) {
   const t = useTranslations("Events");
@@ -88,6 +88,41 @@ export function VenueForm({ eventId, venueName, venueCity }: { eventId: string; 
       </button>
       {state.error ? <p role="alert">{state.error}</p> : null}
       {state.success ? <p role="status">{t("venueSaved")}</p> : null}
+    </form>
+  );
+}
+
+// Lot 34b (EVT-03, D11) — fiche d'identité : invités estimés et confirmés (le nombre confirmé se
+// saisit à la main jusqu'au module Invités), style, notes.
+export function EventIdentityForm({ eventId, identity }: { eventId: string; identity: Pick<EventDetail, "guestsEstimated" | "guestsConfirmed" | "style" | "notes"> }) {
+  const t = useTranslations("Events");
+  const [state, action, pending] = useActionState<ClientContactFormState, FormData>(setEventIdentityAction, {});
+  return (
+    <form action={action} className="stack" aria-label={t("identityTitle")}>
+      <input type="hidden" name="eventId" value={eventId} />
+      <div className="row-wrap">
+        <label>
+          {t("guestsEstimated")}
+          <input type="number" name="guestsEstimated" min={0} max={100000} step={1} inputMode="numeric" defaultValue={identity.guestsEstimated ?? ""} />
+        </label>
+        <label>
+          {t("guestsConfirmed")}
+          <input type="number" name="guestsConfirmed" min={0} max={100000} step={1} inputMode="numeric" defaultValue={identity.guestsConfirmed ?? ""} />
+        </label>
+      </div>
+      <label>
+        {t("eventStyle")}
+        <input type="text" name="style" maxLength={2000} defaultValue={identity.style ?? ""} />
+      </label>
+      <label>
+        {t("eventNotes")}
+        <textarea name="notes" maxLength={10000} rows={4} defaultValue={identity.notes ?? ""} />
+      </label>
+      <button type="submit" disabled={pending}>
+        {t("identitySave")}
+      </button>
+      {state.error ? <p role="alert">{state.error}</p> : null}
+      {state.success ? <p role="status">{t("identitySaved")}</p> : null}
     </form>
   );
 }

@@ -5,7 +5,7 @@
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { parseAmountToCents } from "@symbola/i18n";
-import { EventNotFoundError, InvalidClientContactError, setEventVenue, setEventWantedBudget, updateEventClientContact } from "@/modules/events/service";
+import { EventNotFoundError, InvalidClientContactError, setEventIdentity, setEventVenue, setEventWantedBudget, updateEventClientContact } from "@/modules/events/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isEventsModuleEnabled, isValidId } from "../module-access";
 
@@ -81,6 +81,37 @@ export async function setVenueAction(_prev: ClientContactFormState, formData: Fo
   } catch (error) {
     if (error instanceof EventNotFoundError) return { error: t("eventNotFound") };
     if (error instanceof RangeError) return { error: t("venueInvalid") };
+    throw error;
+  }
+  revalidatePath(`/events/${eventId}`);
+  return { success: true };
+}
+
+// Lot 34b (EVT-03, D11) — fiche d'identité : invités estimés et confirmés, style, notes.
+export async function setEventIdentityAction(_prev: ClientContactFormState, formData: FormData): Promise<ClientContactFormState> {
+  const t = await getTranslations("Events");
+  const access = await authorize(t);
+  if ("error" in access) return { error: access.error };
+  const eventId = field(formData, "eventId");
+  if (!isValidId(eventId)) return { error: t("eventNotFound") };
+  const count = (name: string): number | null | "invalid" => {
+    const raw = String(formData.get(name) ?? "").trim();
+    if (!raw) return null;
+    return /^\d{1,6}$/.test(raw) ? Number(raw) : "invalid";
+  };
+  const guestsEstimated = count("guestsEstimated");
+  const guestsConfirmed = count("guestsConfirmed");
+  if (guestsEstimated === "invalid" || guestsConfirmed === "invalid") return { error: t("guestsInvalid") };
+  try {
+    await setEventIdentity(access.organizationId, eventId, {
+      guestsEstimated,
+      guestsConfirmed,
+      style: String(formData.get("style") ?? "").slice(0, 2001),
+      notes: String(formData.get("notes") ?? "").slice(0, 10_001),
+    });
+  } catch (error) {
+    if (error instanceof RangeError) return { error: t("identityInvalid") };
+    if (error instanceof EventNotFoundError) return { error: t("eventNotFound") };
     throw error;
   }
   revalidatePath(`/events/${eventId}`);

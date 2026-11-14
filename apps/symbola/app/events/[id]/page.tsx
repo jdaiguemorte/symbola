@@ -12,7 +12,12 @@ import {
   parisToday,
   type Locale,
 } from "@symbola/i18n";
+import { ENGAGED_CANDIDATE_STATUSES } from "@symbola/contracts";
+import { listTeam } from "@symbola/auth";
+import { appDatabase } from "@symbola/db/client";
 import {
+  listTaskAttachments,
+  listTaskComments,
   getEvent,
   getEventProgram,
   proposeProgramShift,
@@ -59,7 +64,7 @@ import { NextStepBanner } from "./next-step-banner";
 import { nextStep } from "./next-step";
 import { endTrialAction, removeExampleAction } from "../trial-actions";
 import { revokeLinkAction } from "./link-actions";
-import { ClientContactForm, VenueForm, WantedBudgetForm } from "./client-contact-forms";
+import { ClientContactForm, EventIdentityForm, VenueForm, WantedBudgetForm } from "./client-contact-forms";
 import { CreateLinkForm, CreateVendorLinkForm, EditLinkForm, RenewLinkForm, type LinkFormVendor } from "./link-forms";
 import { RequestDecisionForm } from "./decision-forms";
 import { commitDecisionExpenseAction, replaceDecisionAction, retainDecisionChoiceAction, withdrawDecisionAction } from "./decision-actions";
@@ -98,10 +103,12 @@ import { VendorCandidates } from "./vendor-candidates";
 import { BudgetLineIcon } from "@/app/budget-line-icon";
 import { isBudgetModuleEnabled } from "@/app/budget/module-access";
 import { PlannedAmountForm, SlotIconForm } from "./budget-line-forms";
-import { AddPlaceForm } from "./place-forms";
+import { AddPlaceForm, EditPlaceForm } from "./place-forms";
+import { TaskAttachmentUploadForm, TaskCommentForm } from "./task-extra-forms";
+import { removeTaskAttachmentAction, removeTaskCommentAction } from "./task-extra-actions";
 import { AddDayContactForm } from "./day-contact-forms";
 import { removeDayContactAction } from "./day-contact-actions";
-import { removePlaceAction } from "./place-actions";
+import { makeReceptionPlaceAction, removePlaceAction } from "./place-actions";
 import { Trash2 } from "lucide-react";
 import { findVendors, getVendor } from "@/modules/vendors/service";
 import { isVendorsModuleEnabled } from "@/app/prestataires/module-access";
@@ -234,7 +241,8 @@ export default async function EventDetailPage({
   const overdueCount = tasks.filter((task) => !task.done && task.dueDate < today).length;
   // Lot 12 (L12-EVT-14 / L12-EVT-15) : icônes des prestataires au programme, lieux saisis une fois.
   const slotIconOf = new Map(vendorSlots.map((slot) => [slot.id, slot.icon]));
-  const places = tab === "programme" ? await listEventPlaces(organizationId, id) : [];
+  // Lot 34b (EVT-03) : les lieux nourrissent aussi la fiche d'identité de la synthèse.
+  const places = tab === "programme" || tab === "apercu" ? await listEventPlaces(organizationId, id) : [];
   // Lot 30a (JRJ-03, D4) : contacts du jour J, dans l'annuaire de l'écran du jour J.
   const dayContacts = tab === "programme" ? await listEventDayContacts(organizationId, id) : [];
   const tDayContacts = await getTranslations("DayContacts");
@@ -292,6 +300,15 @@ export default async function EventDetailPage({
   const selectedTask = tasks.find((task) => task.id === query.tache) ?? null;
   const sameMonth = selectedTask ? tasks.filter((task) => task.dueDate.slice(0, 7) === selectedTask.dueDate.slice(0, 7)) : [];
   const selectedIndex = selectedTask ? sameMonth.findIndex((task) => task.id === selectedTask.id) : -1;
+  // Lot 34b (CHR-02, D12, D13) : prestataires engagés à qui confier une tâche ; pièces jointes et
+  // commentaires de la tâche ouverte, avec l'adresse de l'auteur (équipe).
+  const taskVendors =
+    tab === "retroplanning"
+      ? (await listVendorCandidates(organizationId, id)).filter((candidate) => ENGAGED_CANDIDATE_STATUSES.includes(candidate.status)).map((candidate) => ({ candidateId: candidate.id, name: candidate.vendorName }))
+      : [];
+  const taskAttachments = selectedTask ? await listTaskAttachments(organizationId, selectedTask.id) : [];
+  const taskComments = selectedTask ? await listTaskComments(organizationId, selectedTask.id) : [];
+  const commentAuthors = taskComments.length > 0 ? new Map((await listTeam(appDatabase(), organizationId)).map((member) => [member.id, member.email])) : new Map<string, string>();
   const retroQuery = (changes: Record<string, string>) => {
     const values: Record<string, string> = { vue: taskView, qui: taskOwner, ...changes };
     return tabHref("retroplanning", values);
@@ -599,6 +616,30 @@ export default async function EventDetailPage({
         <>
           {/* Lot 32a (EVT-02, UX-01, UX-06 ; D5) : prochaine action, santé, quatorze prochains jours. */}
           <EventCockpit organizationId={organizationId} eventId={event.id} tasks={tasks} quotesAvailable={quotesAvailable} today={today} locale={locale} afterNextAction={stepBanner} vendorProgress={progress} />
+          {/* Lot 34b (EVT-03, D10, D11) : fiche d'identité — invités, lieux, interlocuteurs, style, notes. */}
+          <section className="card" aria-labelledby="identity-title">
+            <h2 id="identity-title">{t("identityTitle")}</h2>
+            <dl className="identity-facts">
+              <dt>{t("guestsLabel")}</dt>
+              <dd>{t("guestsSummary", { estimated: event.guestsEstimated === null ? "—" : String(event.guestsEstimated), confirmed: event.guestsConfirmed === null ? "—" : String(event.guestsConfirmed) })}</dd>
+              <dt>{t("placesTitle")}</dt>
+              <dd>
+                {places.length === 0 ? t("noPlaces") : places.map((place) => (place.startTime ? `${place.label} (${place.startTime})` : place.label)).join(" · ")}{" "}
+                <Link href={tabHref("programme")}>{t("placesManage")}</Link>
+              </dd>
+              <dt>{t("interlocutorsLabel")}</dt>
+              <dd>
+                {[
+                  ...event.clients.map((client) => [client.firstName, client.lastName].filter(Boolean).join(" ")),
+                  ...places.filter((place) => place.contactName).map((place) => t("interlocutorOfPlace", { name: place.contactName!, place: place.label })),
+                ].join(" · ") || "—"}
+              </dd>
+              <dt>{t("eventStyle")}</dt>
+              <dd>{event.style ?? "—"}</dd>
+              <dt>{t("eventNotes")}</dt>
+              <dd className="task-comment-body">{event.notes ?? "—"}</dd>
+            </dl>
+          </section>
           {/* D5 : les formulaires de l'ancien aperçu, repliés. */}
           <details className="card edit-info">
             <summary>{tToday("cockpit.editInfo")}</summary>
@@ -606,6 +647,7 @@ export default async function EventDetailPage({
             <TimeZoneForm eventId={event.id} timeZone={event.timeZone} zones={Intl.supportedValuesOf("timeZone")} />
             <WantedBudgetForm key={`wanted-${event.wantedBudgetCents ?? ""}`} eventId={event.id} wantedBudgetCents={event.wantedBudgetCents} />
             <VenueForm eventId={event.id} venueName={event.venueName} venueCity={event.venueCity} />
+            <EventIdentityForm key={`identity-${event.guestsEstimated ?? ""}-${event.guestsConfirmed ?? ""}-${event.style ?? ""}-${(event.notes ?? "").length}`} eventId={event.id} identity={event} />
           </details>
           <ImportedFields fields={event.importedFields} />
           {suggestConfirmBudget ? (
@@ -865,7 +907,7 @@ export default async function EventDetailPage({
                 editHref={(task) => retroQuery({ tache: task.id })}
               />
             ) : null}
-            <AddEventTaskForm eventId={event.id} />
+            <AddEventTaskForm eventId={event.id} vendors={taskVendors} />
           </section>
           <aside className="split-aside" aria-labelledby="task-detail-title">
             {selectedTask ? (
@@ -876,6 +918,7 @@ export default async function EventDetailPage({
                   key={`${selectedTask.id}-${selectedTask.dueDate}-${selectedTask.label}-${selectedTask.responsible}`}
                   eventId={event.id}
                   task={selectedTask}
+                  vendors={taskVendors}
                 />
                 <ImportedFields fields={selectedTask.importedFields} compact />
                 {/* Lot 34a (DAT-07) : déplacée à la main, la tâche est fixée ; elle peut redevenir relative. */}
@@ -899,6 +942,55 @@ export default async function EventDetailPage({
                     {t("moveTaskDown", { label: selectedTask.label })}
                   </button>
                 </form>
+                {/* Lot 34b (CHR-02, D13) : pièces jointes et commentaires, réservés à l'équipe. */}
+                <section aria-labelledby="task-attachments-title" className="stack">
+                  <h3 id="task-attachments-title">{t("taskAttachmentsTitle")}</h3>
+                  {taskAttachments.length === 0 ? <p className="muted">{t("taskAttachmentsEmpty")}</p> : null}
+                  {taskAttachments.length > 0 ? (
+                    <ul className="item-list">
+                      {taskAttachments.map((attachment) => (
+                        <li key={attachment.id} className="row-wrap">
+                          <a href={`/events/${event.id}/taches/${selectedTask.id}/pieces/${attachment.id}`}>{attachment.label}</a>
+                          <span className="muted">{formatFileSize(attachment.sizeBytes, locale)}</span>
+                          <form action={removeTaskAttachmentAction}>
+                            <input type="hidden" name="eventId" value={event.id} />
+                            <input type="hidden" name="attachmentId" value={attachment.id} />
+                            <button type="submit" className="button-ghost">
+                              {t("taskAttachmentRemove", { label: attachment.label })}
+                            </button>
+                          </form>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                  <TaskAttachmentUploadForm eventId={event.id} taskId={selectedTask.id} />
+                </section>
+                <section aria-labelledby="task-comments-title" className="stack">
+                  <h3 id="task-comments-title">{t("taskCommentsTitle")}</h3>
+                  {taskComments.length === 0 ? <p className="muted">{t("taskCommentsEmpty")}</p> : null}
+                  {taskComments.length > 0 ? (
+                    <ol className="item-list task-comments">
+                      {taskComments.map((comment) => (
+                        <li key={comment.id}>
+                          <p className="meta">
+                            {(comment.authorUserId ? commentAuthors.get(comment.authorUserId) : null) ?? t("taskCommentFormerMember")} — {eventTime(comment.createdAt)}
+                          </p>
+                          <p className="task-comment-body">{comment.body}</p>
+                          {comment.authorUserId === auth.user.id ? (
+                            <form action={removeTaskCommentAction}>
+                              <input type="hidden" name="eventId" value={event.id} />
+                              <input type="hidden" name="commentId" value={comment.id} />
+                              <button type="submit" className="button-ghost">
+                                {t("taskCommentRemove")}
+                              </button>
+                            </form>
+                          ) : null}
+                        </li>
+                      ))}
+                    </ol>
+                  ) : null}
+                  <TaskCommentForm eventId={event.id} taskId={selectedTask.id} />
+                </section>
                 <form action={removeEventTaskAction}>
                   <input type="hidden" name="eventId" value={event.id} />
                   <input type="hidden" name="taskId" value={selectedTask.id} />
@@ -1020,16 +1112,36 @@ export default async function EventDetailPage({
             <p className="muted">{t("placesHint")}</p>
             {places.length === 0 ? <p>{t("noPlaces")}</p> : null}
             <ul className="item-list">
-              {places.map((place) => (
-                <li key={place.id}>
-                  <strong>{place.label}</strong>
-                  {place.address ? ` — ${place.address}` : ""}
-                  {place.vendorId ? <span className="badge badge-sauge">{t("placeFromBook")}</span> : null}
-                  <form action={removePlaceAction} className="inline-form">
-                    <input type="hidden" name="eventId" value={event.id} />
-                    <input type="hidden" name="placeId" value={place.id} />
-                    <button type="submit">{t("removePlace", { place: place.label })}</button>
-                  </form>
+              {places.map((place, index) => (
+                <li key={place.id} className="stack">
+                  <div className="row-wrap">
+                    <strong>{place.label}</strong>
+                    {/* Lot 34b (EVT-03, D10) : le premier lieu est le lieu de réception. */}
+                    {index === 0 ? <span className="badge badge-sauge">{t("placeReception")}</span> : null}
+                    {place.vendorId ? <span className="badge badge-sauge">{t("placeFromBook")}</span> : null}
+                  </div>
+                  {place.address || place.city ? <p className="muted">{[place.address, place.city].filter(Boolean).join(", ")}</p> : null}
+                  {place.startTime ? <p className="muted">{place.endTime ? t("placeHours", { start: place.startTime, end: place.endTime }) : t("placeFrom", { start: place.startTime })}</p> : null}
+                  {place.contactName || place.contactPhone || place.contactEmail ? (
+                    <p className="muted">{t("placeContact", { contact: [place.contactName, place.contactPhone, place.contactEmail].filter(Boolean).join(" · ") })}</p>
+                  ) : null}
+                  <EditPlaceForm eventId={event.id} place={place} />
+                  <div className="row-wrap">
+                    {index > 0 ? (
+                      <form action={makeReceptionPlaceAction} className="inline-form">
+                        <input type="hidden" name="eventId" value={event.id} />
+                        <input type="hidden" name="placeId" value={place.id} />
+                        <button type="submit" className="button-ghost">
+                          {t("makeReceptionPlace", { place: place.label })}
+                        </button>
+                      </form>
+                    ) : null}
+                    <form action={removePlaceAction} className="inline-form">
+                      <input type="hidden" name="eventId" value={event.id} />
+                      <input type="hidden" name="placeId" value={place.id} />
+                      <button type="submit">{t("removePlace", { place: place.label })}</button>
+                    </form>
+                  </div>
                 </li>
               ))}
             </ul>

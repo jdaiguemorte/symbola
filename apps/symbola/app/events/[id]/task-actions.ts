@@ -15,6 +15,7 @@ import {
   removeEventTask,
   resolveTaskRecalculation,
   TASK_RESPONSIBLES,
+  TaskVendorInvalidError,
   TaskLabelRequiredError,
   TaskRecalculationPendingError,
   TaskTemplateNotFoundError,
@@ -35,9 +36,14 @@ async function authorize(t: Awaited<ReturnType<typeof getTranslations>>) {
   return { organizationId: auth.user.organizationId } as const;
 }
 
-function readResponsible(formData: FormData): TaskResponsible | null {
+// Lot 34b (CHR-02, D12) : « vendor:<id> » confie la tâche à ce prestataire retenu sur l'événement.
+function readResponsible(formData: FormData): { responsible: TaskResponsible; vendorCandidateId: string | null } | null {
   const value = String(formData.get("responsible") ?? "");
-  return TASK_RESPONSIBLES.includes(value as TaskResponsible) ? (value as TaskResponsible) : null;
+  if (value.startsWith("vendor:")) {
+    const vendorCandidateId = value.slice("vendor:".length);
+    return isValidId(vendorCandidateId) ? { responsible: "vendor", vendorCandidateId } : null;
+  }
+  return value !== "vendor" && TASK_RESPONSIBLES.includes(value as TaskResponsible) ? { responsible: value as TaskResponsible, vendorCandidateId: null } : null;
 }
 
 // Erreurs métier connues → message traduit ; le reste remonte.
@@ -48,6 +54,7 @@ function taskErrorMessage(error: unknown, t: Awaited<ReturnType<typeof getTransl
   if (error instanceof EventDateRequiredError) return t("taskTemplateNeedsDate");
   if (error instanceof TaskRecalculationPendingError) return t("recalculationPendingFirst");
   if (error instanceof TaskLabelRequiredError) return t("missingLabel");
+  if (error instanceof TaskVendorInvalidError) return t("taskVendorInvalid");
   if (error instanceof RangeError) return t("invalidDate");
   throw error;
 }
@@ -115,7 +122,7 @@ export async function addEventTaskAction(_prevState: TaskFormState, formData: Fo
   if (!responsible) return { error: t("invalidResponsible") };
 
   try {
-    await addEventTask(access.organizationId, eventId, { label, dueDate, responsible });
+    await addEventTask(access.organizationId, eventId, { label, dueDate, ...responsible });
   } catch (error) {
     return { error: taskErrorMessage(error, t) };
   }
@@ -139,7 +146,7 @@ export async function updateEventTaskAction(_prevState: TaskFormState, formData:
   if (!responsible) return { error: t("invalidResponsible") };
 
   try {
-    await updateEventTask({ organizationId: access.organizationId, taskId, label, dueDate, responsible });
+    await updateEventTask({ organizationId: access.organizationId, taskId, label, dueDate, ...responsible });
   } catch (error) {
     return { error: taskErrorMessage(error, t) };
   }
