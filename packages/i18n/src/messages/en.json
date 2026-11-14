@@ -34,6 +34,11 @@
     "signOut": "Sign out",
     "linkSent": "A sign-in link has just been sent to your address. Open it: your two-step verification will be asked for, or set up if missing."
   },
+  "Organizations": {
+    "label": "Organization",
+    "switch": "Open",
+    "create": "Create another organization"
+  },
   "Home": {
     "title": "Symbola",
     "connectedAs": "Signed in as {email}",

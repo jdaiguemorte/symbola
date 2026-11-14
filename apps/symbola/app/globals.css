@@ -385,6 +385,15 @@
     @apply m-0;
   }
 
+  /* Lot 33 (HUB-02) : organisation ouverte et création d'une autre, dans le bloc du compte. */
+  .organization-switcher {
+    @apply flex flex-col gap-2;
+  }
+
+  .organization-switcher select {
+    @apply w-full;
+  }
+
   /* Se déconnecter n'est jamais l'action principale d'un écran. */
   .app-user button[type="submit"] {
     @apply border-line-strong bg-surface font-medium text-ink hover:border-ink hover:bg-surface;

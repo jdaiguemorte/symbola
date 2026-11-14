@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { parisToday } from "@symbola/i18n";
+import { listOrganizations } from "@symbola/auth";
 import { appDatabase } from "@symbola/db/client";
 import {
   getDocumentHeader,
@@ -48,6 +49,7 @@ import { SearchBox } from "./search-box";
 import { QuickCreate } from "./creation-rapide/quick-create";
 import { HelpProvider } from "./help-context";
 import { HelpButton } from "./help-button";
+import { OrganizationSwitcher } from "./organization-switcher";
 import { getHelpProgress } from "@/modules/hub/service";
 import { type HelpModule, TUTORIALS, tutorialHref } from "@/lib/help/catalog";
 
@@ -644,6 +646,8 @@ export async function AppShell({ children }: { children: ReactNode }) {
         )}
         <div className="app-user">
           <span>{t("connectedAs", { email: auth.user.email })}</span>
+          {/* Lot 33 (HUB-02, D6) : plusieurs organisations, et en créer une autre. */}
+          {isTeam ? <OrganizationSwitcher organizations={await listOrganizations(appDatabase(), auth.user.id)} current={organizationId} /> : null}
           {logout}
         </div>
       </AppSidebar>

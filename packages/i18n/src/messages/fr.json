@@ -34,6 +34,11 @@
     "signOut": "Me déconnecter",
     "linkSent": "Un lien de connexion vient de partir à votre adresse. Ouvrez-le : votre double authentification vous sera demandée, ou installée si elle manque."
   },
+  "Organizations": {
+    "label": "Organisation",
+    "switch": "Ouvrir",
+    "create": "Créer une autre organisation"
+  },
   "Home": {
     "title": "Symbola",
     "connectedAs": "Connecté comme {email}",
