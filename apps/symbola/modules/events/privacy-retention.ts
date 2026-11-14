@@ -4,7 +4,7 @@
 // création, dernière modification, dernier changement de statut) et ses
 // clients. Les événements d'essai (ADR 0008) et ceux dont tous les clients
 // sont déjà anonymisés (oubli ou purge passés) ne sont jamais proposés.
-import { asc, eq, inArray, max } from "drizzle-orm";
+import { and, asc, eq, inArray, max } from "drizzle-orm";
 import { appDatabase } from "@symbola/db/client";
 import { eventClients, events, eventStatusHistory } from "@symbola/db/schema/events";
 import { withOrganization } from "@symbola/db/with-organization";
@@ -12,7 +12,10 @@ import { ANONYMIZED, parisDate } from "@symbola/privacy";
 
 export type RetentionEvent = {
   eventId: string;
-  status: "prospect" | "quote_sent" | "confirmed" | "done" | "lost";
+  status: "option" | "confirmed" | "in_preparation" | "closed" | "postponed" | "cancelled";
+  // Lot 34a : l'événement a-t-il été confirmé un jour ? Un événement annulé sans l'avoir été suit
+  // la règle des prospects, sinon celle des clients.
+  everConfirmed: boolean;
   eventDate: string | null;
   // Jours (Paris) de création, de dernière modification et de dernier changement de statut.
   activityDates: string[];
@@ -33,6 +36,14 @@ export async function listRetentionEvents(organizationId: string): Promise<Reten
       .where(inArray(eventStatusHistory.eventId, ids))
       .groupBy(eventStatusHistory.eventId);
     const lastChange = new Map(lastChanges.map((row) => [row.eventId, row.changedAt]));
+    const confirmedOnce = new Set(
+      (
+        await tx
+          .select({ eventId: eventStatusHistory.eventId })
+          .from(eventStatusHistory)
+          .where(and(inArray(eventStatusHistory.eventId, ids), inArray(eventStatusHistory.toStatus, ["confirmed", "in_preparation", "closed", "postponed"])))
+      ).map((row) => row.eventId),
+    );
     const result: RetentionEvent[] = [];
     for (const row of rows) {
       const own = clients.filter((client) => client.eventId === row.id);
@@ -41,6 +52,7 @@ export async function listRetentionEvents(organizationId: string): Promise<Reten
       result.push({
         eventId: row.id,
         status: row.status,
+        everConfirmed: confirmedOnce.has(row.id) || ["confirmed", "in_preparation", "closed", "postponed"].includes(row.status),
         eventDate: row.eventDate,
         activityDates: [parisDate(row.createdAt), parisDate(row.updatedAt), ...(changedAt ? [parisDate(new Date(changedAt))] : [])],
         clientNames: own.map((client) => (client.lastName ? `${client.firstName} ${client.lastName}` : client.firstName)),

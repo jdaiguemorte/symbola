@@ -155,7 +155,7 @@ export async function insertProspect(input: {
       .insert(events)
       .values({
         organizationId: input.organizationId,
-        status: "prospect",
+        status: "option",
         eventDate: input.eventDate ?? null,
         venueName: input.venueName ?? null,
         venueCity: input.venueCity ?? null,
@@ -196,7 +196,7 @@ export async function insertProspect(input: {
       organizationId: input.organizationId,
       eventId: event.id,
       fromStatus: null,
-      toStatus: "prospect",
+      toStatus: "option",
       changedByUserId: input.createdByUserId,
     });
 
@@ -224,12 +224,15 @@ export async function updateEventStatus(input: {
     const [current] = await tx.select().from(events).where(eq(events.id, input.eventId));
     if (!current) throw new Error("événement introuvable");
 
+    // Lot 34a (EVT-05, D6) : l'annulation garde son motif ; quitter un report en cours (par une
+    // annulation) oublie la date et le statut d'avant.
     const [updated] = await tx
       .update(events)
       .set({
         status: input.toStatus,
-        lossReasonId: input.toStatus === "lost" ? (input.lossReasonId ?? null) : null,
-        lossReasonNote: input.toStatus === "lost" ? (input.lossReasonNote ?? null) : null,
+        lossReasonId: input.toStatus === "cancelled" ? (input.lossReasonId ?? null) : null,
+        lossReasonNote: input.toStatus === "cancelled" ? (input.lossReasonNote ?? null) : null,
+        ...(input.toStatus === "postponed" ? {} : { postponedFromDate: null, postponedFromStatus: null }),
         updatedAt: new Date(),
       })
       .where(eq(events.id, input.eventId))
@@ -468,10 +471,11 @@ export async function insertTaskTemplate(
   organizationId: string,
   name: string,
   items: TaskTemplateItemInput[],
+  eventTypeId: string | null = null,
 ): Promise<{ template: TaskTemplateRow; items: TaskTemplateItemRow[] }> {
   const db = appDatabase();
   return await withOrganization(db, organizationId, async (tx) => {
-    const [template] = await tx.insert(taskTemplates).values({ organizationId, name }).returning();
+    const [template] = await tx.insert(taskTemplates).values({ organizationId, name, eventTypeId }).returning();
     if (!template) throw new Error("création du modèle échouée");
     const rows =
       items.length > 0
@@ -521,6 +525,32 @@ export async function updateTaskTemplateItemRow(organizationId: string, itemId: 
   });
 }
 
+// Lot 34a (EVT-01, D8) : rattacher un modèle à un type d'événement (ou le détacher).
+export async function setTaskTemplateEventTypeRow(organizationId: string, templateId: string, eventTypeId: string | null): Promise<boolean> {
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    if (eventTypeId) {
+      const [type] = await tx.select({ id: eventTypes.id }).from(eventTypes).where(eq(eventTypes.id, eventTypeId));
+      if (!type) return false;
+    }
+    const rows = await tx.update(taskTemplates).set({ eventTypeId }).where(eq(taskTemplates.id, templateId)).returning({ id: taskTemplates.id });
+    return rows.length > 0;
+  });
+}
+
+// Le modèle à appliquer à la création : celui du type, sinon le premier créé.
+export async function findDefaultTaskTemplateId(organizationId: string, eventTypeId: string | null): Promise<string | null> {
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    if (eventTypeId) {
+      const [typed] = await tx.select({ id: taskTemplates.id }).from(taskTemplates).where(eq(taskTemplates.eventTypeId, eventTypeId)).orderBy(asc(taskTemplates.createdAt)).limit(1);
+      if (typed) return typed.id;
+    }
+    const [first] = await tx.select({ id: taskTemplates.id }).from(taskTemplates).orderBy(asc(taskTemplates.createdAt)).limit(1);
+    return first?.id ?? null;
+  });
+}
+
 export async function renameTaskTemplateRow(organizationId: string, templateId: string, name: string): Promise<boolean> {
   const db = appDatabase();
   return await withOrganization(db, organizationId, async (tx) => {
@@ -553,8 +583,51 @@ async function countUndoneTasks(tx: Tx, eventId: string): Promise<number> {
   const [row] = await tx
     .select({ count: sql<number>`count(*)::int` })
     .from(eventTasks)
-    .where(and(eq(eventTasks.eventId, eventId), isNull(eventTasks.doneAt)));
+    .where(and(eq(eventTasks.eventId, eventId), isNull(eventTasks.doneAt), isNull(eventTasks.fixedAt)));
   return row?.count ?? 0;
+}
+
+// Lot 34a (CHR-01, DAT-07) : nouvelle échéance d'une tâche non faite et non fixée — la date de
+// l'événement plus son écart ; une tâche d'avant le lot 34a sans écart suit l'écart des deux dates.
+function shiftedDueDate(task: EventTaskRow, eventDate: string, shiftDays: number): string {
+  return task.offsetDays === null ? addDays(task.dueDate, shiftDays) : addDays(eventDate, task.offsetDays);
+}
+
+async function movableTasks(tx: Tx, eventId: string): Promise<EventTaskRow[]> {
+  return tx
+    .select()
+    .from(eventTasks)
+    .where(and(eq(eventTasks.eventId, eventId), isNull(eventTasks.doneAt), isNull(eventTasks.fixedAt)))
+    .orderBy(asc(eventTasks.dueDate), asc(eventTasks.position));
+}
+
+export type TaskMoveRow = { taskId: string; label: string; fromDate: string; toDate: string };
+
+// Ce que ferait le recalcul : chaque tâche non faite et non fixée, de sa date à la nouvelle.
+export async function previewTaskRecalculationRows(organizationId: string, eventId: string): Promise<TaskMoveRow[] | null> {
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const [event] = await tx.select().from(events).where(eq(events.id, eventId));
+    if (!event) return null;
+    const recalculation = recalculationFor(event, await countUndoneTasks(tx, eventId));
+    if (!recalculation.pending || !event.eventDate) return [];
+    const eventDate = event.eventDate;
+    return (await movableTasks(tx, eventId))
+      .map((task) => ({ taskId: task.id, label: task.label, fromDate: task.dueDate, toDate: shiftedDueDate(task, eventDate, recalculation.shiftDays) }))
+      .filter((move) => move.fromDate !== move.toDate);
+  });
+}
+
+async function applyRecalculation(tx: Tx, event: EventRow, shiftDays: number): Promise<void> {
+  if (!event.eventDate) return;
+  const eventDate = event.eventDate;
+  for (const task of await movableTasks(tx, event.id)) {
+    const dueDate = shiftedDueDate(task, eventDate, shiftDays);
+    await tx
+      .update(eventTasks)
+      .set({ dueDate, offsetDays: task.offsetDays ?? daysBetween(eventDate, dueDate), updatedAt: new Date() })
+      .where(eq(eventTasks.id, task.id));
+  }
 }
 
 // Une proposition est en attente quand la date de l'événement diffère de
@@ -589,6 +662,81 @@ export async function updateEventDateRow(
   });
 }
 
+// Historique et événement interne d'un changement de statut (hors événement fictif).
+async function recordStatusChange(tx: Tx, current: EventRow, toStatus: EventStatus, changedByUserId: string): Promise<void> {
+  await tx.insert(eventStatusHistory).values({
+    organizationId: current.organizationId,
+    eventId: current.id,
+    fromStatus: current.status,
+    toStatus,
+    changedByUserId,
+  });
+  if (current.isDemo) return;
+  await emitDomainEvent(tx, {
+    organizationId: current.organizationId,
+    name: EVT_EVENT_STATUS_CHANGED,
+    version: EVT_EVENT_STATUS_CHANGED_VERSION,
+    payload: { eventId: current.id, fromStatus: current.status, toStatus, changedByUserId },
+  });
+}
+
+// Lot 34a (EVT-05, D4) — reporter : la date et le statut d'avant sont gardés ; la nouvelle date
+// (ou « date à définir ») s'applique, et les échéances attendent la confirmation du report.
+export type PostponeEventResult = { status: "postponed"; event: EventRow } | { status: "not_found" | "not_postponable" };
+
+export async function postponeEventRow(input: { organizationId: string; eventId: string; changedByUserId: string; newDate: string | null }): Promise<PostponeEventResult> {
+  const db = appDatabase();
+  return await withOrganization(db, input.organizationId, async (tx) => {
+    const [current] = await tx.select().from(events).where(eq(events.id, input.eventId));
+    if (!current) return { status: "not_found" };
+    if (current.status !== "confirmed" && current.status !== "in_preparation") return { status: "not_postponable" };
+    const [updated] = await tx
+      .update(events)
+      .set({ status: "postponed", postponedFromDate: current.eventDate, postponedFromStatus: current.status, eventDate: input.newDate, updatedAt: new Date() })
+      .where(eq(events.id, input.eventId))
+      .returning();
+    if (!updated) throw new Error("report de l'événement échoué");
+    await recordStatusChange(tx, current, "postponed", input.changedByUserId);
+    return { status: "postponed", event: updated };
+  });
+}
+
+// Confirmer le report : les échéances relatives suivent la nouvelle date (les tâches faites et
+// fixées ne bougent pas, CHR-01), et l'événement retrouve son statut d'avant.
+export type ConfirmPostponementResult =
+  | { status: "confirmed"; event: EventRow; previousDate: string | null }
+  | { status: "not_found" | "not_postponed" | "date_required" };
+
+export async function confirmPostponementRow(input: { organizationId: string; eventId: string; changedByUserId: string }): Promise<ConfirmPostponementResult> {
+  const db = appDatabase();
+  return await withOrganization(db, input.organizationId, async (tx) => {
+    const [current] = await tx.select().from(events).where(eq(events.id, input.eventId));
+    if (!current) return { status: "not_found" };
+    if (current.status !== "postponed") return { status: "not_postponed" };
+    if (!current.eventDate) return { status: "date_required" };
+    const recalculation = recalculationFor(current, await countUndoneTasks(tx, input.eventId));
+    if (recalculation.pending) await applyRecalculation(tx, current, recalculation.shiftDays);
+    const toStatus = current.postponedFromStatus ?? "confirmed";
+    const [updated] = await tx
+      .update(events)
+      .set({ status: toStatus, tasksScheduledFor: current.eventDate, postponedFromDate: null, postponedFromStatus: null, updatedAt: new Date() })
+      .where(eq(events.id, input.eventId))
+      .returning();
+    if (!updated) throw new Error("confirmation du report échouée");
+    await recordStatusChange(tx, current, toStatus, input.changedByUserId);
+    return { status: "confirmed", event: updated, previousDate: current.postponedFromDate };
+  });
+}
+
+// Lot 34a (ARC-17, D9) — fuseau de l'événement (déjà validé par l'appelant).
+export async function updateEventTimeZoneRow(organizationId: string, eventId: string, timeZone: string): Promise<boolean> {
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const rows = await tx.update(events).set({ timeZone, updatedAt: new Date() }).where(eq(events.id, eventId)).returning({ id: events.id });
+    return rows.length > 0;
+  });
+}
+
 export async function findTaskRecalculation(
   organizationId: string,
   eventId: string,
@@ -614,18 +762,7 @@ export async function resolveTaskRecalculationRow(
     if (!event) return false;
     const recalculation = recalculationFor(event, await countUndoneTasks(tx, eventId));
     if (!recalculation.pending) return true;
-    if (accept) {
-      const undone = await tx
-        .select()
-        .from(eventTasks)
-        .where(and(eq(eventTasks.eventId, eventId), isNull(eventTasks.doneAt)));
-      for (const task of undone) {
-        await tx
-          .update(eventTasks)
-          .set({ dueDate: addDays(task.dueDate, recalculation.shiftDays), updatedAt: new Date() })
-          .where(eq(eventTasks.id, task.id));
-      }
-    }
+    if (accept) await applyRecalculation(tx, event, recalculation.shiftDays);
     await tx
       .update(events)
       .set({ tasksScheduledFor: event.eventDate, updatedAt: new Date() })
@@ -680,6 +817,8 @@ export async function applyTaskTemplateRows(
                 eventId,
                 label: item.label,
                 dueDate: dueDateFor(eventDate, item.offsetDays),
+                // DAT-07 : la tâche garde sa date relative.
+                offsetDays: item.offsetDays,
                 responsible: item.responsible,
                 position: start + index,
               })),
@@ -721,7 +860,7 @@ export async function findOrganizationTasks(
       .innerJoin(events, eq(events.id, eventTasks.eventId))
       .where(
         and(
-          notInArray(events.status, ["lost", "done"]),
+          notInArray(events.status, ["cancelled", "closed"]),
           options.until ? lte(eventTasks.dueDate, options.until) : undefined,
           options.includeDone ? undefined : isNull(eventTasks.doneAt),
         ),
@@ -742,9 +881,11 @@ export async function insertEventTask(
     const [event] = await tx.select().from(events).where(eq(events.id, eventId));
     if (!event) return null;
     const position = await nextTaskPosition(tx, eventId);
+    // Lot 34a (DAT-07, D5) : une tâche créée à la main sur un événement daté est relative.
+    const offsetDays = event.eventDate ? daysBetween(event.eventDate, task.dueDate) : null;
     const [row] = await tx
       .insert(eventTasks)
-      .values({ organizationId, eventId, ...task, position })
+      .values({ organizationId, eventId, ...task, offsetDays, position })
       .returning();
     if (!row) throw new Error("ajout de la tâche échoué");
     if (!event.tasksScheduledFor && event.eventDate) {
@@ -767,6 +908,8 @@ export async function updateEventTaskRow(input: {
     const [current] = await tx.select().from(eventTasks).where(eq(eventTasks.id, input.taskId));
     if (!current) return null;
     const doneAt = input.done === undefined ? current.doneAt : input.done ? (current.doneAt ?? new Date()) : null;
+    // Lot 34a (DAT-07) : déplacée à la main, la tâche est fixée ; le report ne la bouge plus.
+    const moved = input.dueDate !== undefined && input.dueDate !== current.dueDate;
     const [updated] = await tx
       .update(eventTasks)
       .set({
@@ -774,9 +917,28 @@ export async function updateEventTaskRow(input: {
         dueDate: input.dueDate ?? current.dueDate,
         responsible: input.responsible ?? current.responsible,
         doneAt,
+        ...(moved ? { fixedAt: current.fixedAt ?? new Date() } : {}),
         updatedAt: new Date(),
       })
       .where(eq(eventTasks.id, input.taskId))
+      .returning();
+    return updated ?? null;
+  });
+}
+
+// Lot 34a (DAT-07) : remettre une tâche fixée en relatif — sa date redevient la date de
+// l'événement plus son écart. Sans écart ou sans date d'événement, rien ne change.
+export async function releaseEventTaskRow(organizationId: string, taskId: string): Promise<EventTaskRow | null> {
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const [task] = await tx.select().from(eventTasks).where(eq(eventTasks.id, taskId));
+    if (!task) return null;
+    const [event] = await tx.select().from(events).where(eq(events.id, task.eventId));
+    if (!event?.eventDate || task.offsetDays === null) return task;
+    const [updated] = await tx
+      .update(eventTasks)
+      .set({ fixedAt: null, dueDate: addDays(event.eventDate, task.offsetDays), updatedAt: new Date() })
+      .where(eq(eventTasks.id, taskId))
       .returning();
     return updated ?? null;
   });
@@ -1222,8 +1384,8 @@ export async function findEventActivity(
 // AIDE-02 — essai guidé : événement fictif complet, puis purge.
 export type DemoEventData = {
   createdByUserId: string;
-  // Lot 33b (HUB-10) : l'exemple du démarrage est un mariage confirmé ; l'essai reste un prospect.
-  status?: "prospect" | "confirmed";
+  // Lot 33b (HUB-10) : l'exemple du démarrage est un mariage confirmé ; l'essai reste une option.
+  status?: "option" | "confirmed";
   eventDate: string;
   expiresAt: Date;
   clients: { firstName: string; lastName: string }[];
@@ -1259,7 +1421,7 @@ export async function insertDemoEvent(organizationId: string, data: DemoEventDat
       .insert(events)
       .values({
         organizationId,
-        status: data.status ?? "prospect",
+        status: data.status ?? "option",
         eventTypeId: weddingType?.id ?? null,
         eventDate: data.eventDate,
         venueName: data.venueName,
@@ -1279,7 +1441,7 @@ export async function insertDemoEvent(organizationId: string, data: DemoEventDat
       organizationId,
       eventId: event.id,
       fromStatus: null,
-      toStatus: data.status ?? "prospect",
+      toStatus: data.status ?? "option",
       changedByUserId: data.createdByUserId,
     });
 

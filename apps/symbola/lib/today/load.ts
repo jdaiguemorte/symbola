@@ -14,8 +14,7 @@ import {
   listPendingDecisions,
   listPendingLinkRenewals,
   listStaleProspects,
-  listUncontractedVendors,
-} from "@/modules/events/service";
+  listUncontractedVendors, isInProgress } from "@/modules/events/service";
 import { getFollowUpDelays } from "@/modules/hub/service";
 import { listOpenScheduledDeposits, listQuotesAwaitingAnswer, listUnpaidPayments } from "@/modules/quotes/service";
 import { TODAY_HORIZON_DAYS, type TodayItem } from "./rank";
@@ -37,10 +36,9 @@ export type TodayWords = {
   linkRenewal: (personName: string) => string;
 };
 
-// Évènements en cours : ni faits, ni perdus.
-export const ACTIVE_STATUSES = ["prospect", "quote_sent", "confirmed"] as const;
+// Évènements en cours : ni clôturés, ni annulés (lot 34a, EVT-05).
 export function isActiveEvent(event: Pick<EventSummary, "status">): boolean {
-  return (ACTIVE_STATUSES as readonly string[]).includes(event.status);
+  return isInProgress(event.status);
 }
 
 function day(instant: Date | string): string {
