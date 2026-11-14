@@ -1059,6 +1059,8 @@ export async function createTaskTemplate(
 
 // Lot 34a (EVT-01, D8) : rattacher un modèle à un type d'événement, ou le détacher.
 export async function setTaskTemplateEventType(organizationId: string, templateId: string, eventTypeId: string | null): Promise<void> {
+  // La clé étrangère ne voit pas la RLS : le type doit être de l'organisation.
+  if (eventTypeId) await assertEventTypeOf(organizationId, eventTypeId);
   if (!(await setTaskTemplateEventTypeRow(organizationId, templateId, eventTypeId))) throw new TaskTemplateNotFoundError();
 }
 

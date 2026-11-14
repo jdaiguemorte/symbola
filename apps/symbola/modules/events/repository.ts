@@ -630,6 +630,16 @@ async function applyRecalculation(tx: Tx, event: EventRow, shiftDays: number): P
   }
 }
 
+// Lot 34a (DAT-07) : échéances gardées malgré la nouvelle date — l'écart de chaque tâche se compte
+// désormais depuis cette date, pour qu'un report suivant ne rejoue pas le décalage refusé.
+async function keepDueDates(tx: Tx, event: EventRow): Promise<void> {
+  if (!event.eventDate) return;
+  const eventDate = event.eventDate;
+  for (const task of await movableTasks(tx, event.id)) {
+    await tx.update(eventTasks).set({ offsetDays: daysBetween(eventDate, task.dueDate), updatedAt: new Date() }).where(eq(eventTasks.id, task.id));
+  }
+}
+
 // Une proposition est en attente quand la date de l'événement diffère de
 // celle qui a servi au calcul des échéances et qu'il reste des tâches non
 // faites à décaler.
@@ -763,6 +773,7 @@ export async function resolveTaskRecalculationRow(
     const recalculation = recalculationFor(event, await countUndoneTasks(tx, eventId));
     if (!recalculation.pending) return true;
     if (accept) await applyRecalculation(tx, event, recalculation.shiftDays);
+    else await keepDueDates(tx, event);
     await tx
       .update(events)
       .set({ tasksScheduledFor: event.eventDate, updatedAt: new Date() })

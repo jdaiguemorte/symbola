@@ -10,6 +10,7 @@ import { starterRetroplanning, type StarterLocale } from "@symbola/starter-templ
 import {
   addTaskTemplateItem,
   createTaskTemplate,
+  EventTypeNotFoundError,
   removeTaskTemplate,
   removeTaskTemplateItem,
   renameTaskTemplate,
@@ -156,7 +157,7 @@ export async function setTemplateEventTypeAction(formData: FormData): Promise<vo
   try {
     await setTaskTemplateEventType(organizationId, templateId, raw === "" ? null : raw);
   } catch (error) {
-    if (!(error instanceof TaskTemplateNotFoundError)) throw error;
+    if (!(error instanceof TaskTemplateNotFoundError) && !(error instanceof EventTypeNotFoundError)) throw error;
   }
   revalidatePath(`${PATH}/${templateId}`);
   revalidatePath(PATH);

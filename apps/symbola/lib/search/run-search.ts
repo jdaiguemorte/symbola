@@ -52,7 +52,7 @@ export async function runSearch(input: { organizationId: string; role: string; t
       label: t("groupEvents"),
       items: found.events.map((event) => ({
         title: event.names || t("noClientName"),
-        detail: [event.eventDate ? formatCalendarDate(event.eventDate, locale) : t("noDate"), event.venueName, tEvents(STATUS_LABEL_KEYS[event.status as EventStatus] ?? "statusProspect")]
+        detail: [event.eventDate ? formatCalendarDate(event.eventDate, locale) : t("noDate"), event.venueName, tEvents(STATUS_LABEL_KEYS[event.status as EventStatus] ?? "statusOption")]
           .filter(Boolean)
           .join(" · "),
         href: `/events/${event.id}`,
