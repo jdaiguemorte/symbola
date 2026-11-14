@@ -14,7 +14,7 @@ test.describe("PRD-HUB-04 — Langue par défaut du navigateur", () => {
 
   test("un navigateur en anglais affiche /login en anglais", async ({ page }) => {
     await page.goto("/login");
-    await expect(page.getByRole("heading", { name: "Log in" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Sign in" })).toBeVisible();
     await expect(page.getByLabel("Email")).toBeVisible();
     const violations = await new AxeBuilder({ page }).analyze();
     expect(violations.violations, JSON.stringify(violations.violations, null, 2)).toEqual([]);

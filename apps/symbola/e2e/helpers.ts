@@ -34,10 +34,13 @@ export async function clickMenuLink(page: Page, name: string): Promise<void> {
   await mainMenu(page).getByRole("link", { name, exact: true }).click();
 }
 
-// Ouvre le menu si besoin puis se déconnecte.
+// Ouvre le menu si besoin puis se déconnecte. Lot 33 : la déconnexion passe par le fournisseur
+// d'identité, qui ramène sur /login ; attendre ce retour, sinon la navigation suivante du parcours
+// est interrompue par lui.
 export async function logout(page: Page): Promise<void> {
   await openMenu(page);
   await page.getByRole("button", { name: "Se déconnecter" }).click();
+  await page.waitForURL((url) => url.origin === APP_ORIGIN && url.pathname === "/login", { timeout: 30_000 });
 }
 
 // Fiche événement en onglets (lot 8) : ouvre l'onglet dont le nom commence
@@ -88,7 +91,7 @@ export async function closeLandmarks(page: Page, screen: string): Promise<void> 
 // Lot 13 (L13-HUB-17) — lien du menu de la console d'Administration (replié sur téléphone).
 export async function clickAdminMenuLink(page: Page, name: string): Promise<void> {
   await openMenu(page);
-  await page.getByRole("navigation", { name: "Menu de l'Administration" }).getByRole("link", { name, exact: true }).click();
+  await page.getByRole("navigation", { name: "Menu de l'Exploitation" }).getByRole("link", { name, exact: true }).click();
 }
 
 // Lot 30b (UX-05, décision D9) — aide commune : chaque bouton, sommaire, lien hors d'une

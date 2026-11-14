@@ -61,7 +61,7 @@ test("L13-HUB-17 / L13-HUB-18 — console d'Administration : vue d'ensemble, der
     await expect(page).toHaveURL("/exploitation");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Vue d'ensemble");
     await openMenu(page);
-    const menu = page.getByRole("navigation", { name: "Menu de l'Administration" });
+    const menu = page.getByRole("navigation", { name: "Menu de l'Exploitation" });
     await expect(menu.getByRole("link", { name: "Vue d'ensemble" })).toHaveAttribute("aria-current", "page");
     await expect(menu.getByRole("link", { name: "Organisations" })).toBeVisible();
     await expect(page.getByRole("navigation", { name: "Menu principal" })).toHaveCount(0);

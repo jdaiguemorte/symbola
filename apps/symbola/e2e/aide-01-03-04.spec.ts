@@ -94,7 +94,7 @@ test("AIDE-11 / AIDE-03 — repères de l'accueil, aide consultable", async ({ p
   expect(violations.violations, JSON.stringify(violations.violations, null, 2)).toEqual([]);
 
   // L'aide de la console d'Administration n'est pas proposée à l'équipe.
-  await expect(page.getByRole("heading", { name: "Administration de la suite" })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Exploitation de la suite" })).toHaveCount(0);
   await page.getByLabel("Rechercher dans l'aide").fill("TVA");
   await expect(page.getByRole("link", { name: /Entreprise et TVA/ })).toBeVisible();
   await expect(page.getByRole("link", { name: /Liste des événements/ })).toHaveCount(0);

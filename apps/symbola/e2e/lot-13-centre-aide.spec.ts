@@ -84,7 +84,7 @@ test("AIDE-12 — l'Admin ne voit que l'aide de la console, sans capture d'organ
   const admin = await account("admin");
   await login(page, admin.email, admin.password);
   await page.goto("/aide");
-  const console = page.getByRole("region", { name: "Administration de la suite" });
+  const console = page.getByRole("region", { name: "Exploitation de la suite" });
   await expect(console.getByRole("link", { name: /Comptes et assistance/ })).toBeVisible();
   // Lot 20 (AIDE-16) : jamais de capture d'organisation, seulement
   // l'illustration générique.
