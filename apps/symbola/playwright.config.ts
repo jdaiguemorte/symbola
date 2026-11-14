@@ -8,9 +8,11 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  // En CI, un parcours à la fois : sous charge (hachage des mots de passe,
-  // délai de 2 s des vérifications de la page Santé), les parcours en
-  // parallèle se gênent sur un runner de 4 cœurs ; 7 min environ en série.
+  // En CI, un parcours à la fois : sous charge (fournisseur d'identité sur le
+  // même runner, délai de 2 s des vérifications de la page Santé), les
+  // parcours en parallèle se gênent sur un runner de 4 cœurs. Depuis le
+  // lot 33, chaque connexion passe par le lien, Mailpit et Logto : 28 min
+  // environ en série (timeout-minutes du job e2e : 45).
   ...(process.env.CI ? { workers: 1 } : {}),
   reporter: "list",
   use: {

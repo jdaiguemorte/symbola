@@ -113,7 +113,9 @@ jobs:
   e2e:
     name: Parcours bout en bout (Playwright, ordinateur et 375 px, axe-core)
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # Lot 33 : chaque connexion passe par le lien, Mailpit et Logto ; la suite en série dure
+    # environ 28 min sur le runner (16 min avant).
+    timeout-minutes: 45
     services:
       postgres:
         image: postgres:16-alpine
