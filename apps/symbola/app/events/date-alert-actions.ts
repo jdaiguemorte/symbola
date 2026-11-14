@@ -17,8 +17,8 @@ export async function sameDayEventsAction(date: string, excludeEventId: string |
   const organizationId = auth.user.organizationId;
   if (typeof date !== "string" || !(await isEventsModuleEnabled(organizationId))) return [];
   const exclude = typeof excludeEventId === "string" && isValidId(excludeEventId) ? excludeEventId : undefined;
-  return sameDayEvents(await listEvents({ organizationId }), date, exclude).map((event) => ({
-    names: eventNames(event.clients),
-    confirmed: event.status === "confirmed",
-  }));
+  // Les confirmés d'abord, puis les options : un ordre fixe (la liste n'est triée que par date).
+  return sameDayEvents(await listEvents({ organizationId }), date, exclude)
+    .map((event) => ({ names: eventNames(event.clients), confirmed: event.status === "confirmed" }))
+    .sort((a, b) => Number(b.confirmed) - Number(a.confirmed));
 }
