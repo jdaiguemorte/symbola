@@ -135,6 +135,82 @@ avec les statuts actuels et la migration.
   diffère de `Europe/Paris`.
 - Les dates sans heure (date de l'évènement, échéances) restent des dates.
 
+### Bilan du lot 34a (14/11/2026)
+
+**Fait** :
+- **Les sept statuts** (EVT-05 ; D2, D3) : migration 0132 (schéma `events`, annulable), statuts
+  repris par la correspondance de D2, historique compris. Jour J n'est pas enregistré : il se
+  calcule le jour de l'évènement, dans son fuseau, pour un évènement confirmé ou en préparation
+  (`modules/events/lifecycle.ts`) ; la clôture se propose dès le lendemain. La frise compte cinq
+  étapes (Option → Clôturé), Reporté et Annulé s'affichent à part. Les règles par statut sont
+  réécrites : en cours, calendrier, alerte de date, portefeuille, liens des tiers, rappels, purge
+  RGPD (une option, ou un annulé jamais confirmé, suit la règle des prospects), mode Jour J,
+  import, jeu de recette, « Aujourd'hui » (une option dont le devis est parti se relance par son
+  devis, plus comme prospect sans nouvelle).
+- **Le report** (EVT-05, CHR-01, DAT-07 ; D4, D5) : chaque tâche garde son écart (J-90) ; une
+  tâche créée à la main sur un évènement daté est relative, déplacée à la main elle est fixée
+  (« date fixée ») et peut redevenir relative. « Reporter l'évènement… » garde la date et le
+  statut d'avant ; la carte « Confirmer le report » dit combien de tâches bougent et liste celles
+  qui tomberaient dans le passé ; la confirmation recalcule (faites et fixées exceptées) et rend
+  le statut d'avant. « Date à définir » attend la date. Garder les échéances après un changement
+  de date recompte l'écart des tâches, pour qu'un report suivant ne rejoue pas le décalage refusé.
+- **L'annulation** (EVT-05, FAC-13 ; D6, D7) : motif obligatoire (« motifs de perte ou
+  d'annulation »), la question nomme l'évènement ; liens fermés, rappels arrêtés, factures
+  d'acompte programmées suspendues (elles partent à la réactivation) ; « Factures déjà émises »
+  propose « Émettre un avoir » pour chacune ; la signature d'un devis ne confirme qu'une option ;
+  réactiver remet en Option. Au report, les échéances du devis signé, ni payées ni facturées et
+  dues après la signature, suivent la date (case cochée par défaut, au journal).
+- **Rétroplanning à la création** (EVT-01 ; D8) : un modèle se rattache à un type ; à la
+  création, Option comprise, le modèle du type s'applique, sinon le premier créé ; sans date, à la
+  première date. Le modèle de départ du kit est rattaché au premier type.
+- **Le fuseau** (ARC-17 ; D9) : un fuseau par évènement (Europe/Paris par défaut), choisi dans
+  « Modifier les informations » ; Jour J, « Maintenant » et « Ensuite » du mode Jour J, et les
+  heures de la fiche (activité, liens, décisions) s'y affichent, le fuseau nommé s'il n'est pas
+  celui de Paris.
+- **Contrats** : `events.event.created` et `events.event.status_changed` en version 2 ; un
+  événement de version 1 reste lisible (`readEventStatusChanged`).
+- **Aide** : textes des écrans Évènements, fiche, motifs, modèles et devis (FR, EN) ; captures de
+  la fiche, de la liste et des modèles régénérées.
+- **Tests** : unitaires (cycle de vie à l'horloge simulée : veille, jour même, heure d'été,
+  fuseau lointain ; fuseau dans `@symbola/i18n` ; « Maintenant » à Montréal) ; intégration
+  (`modules/events/lifecycle.integration.test.ts` : report, aperçu des tâches passées le jour même
+  et le lendemain, annulation, réactivation, modèle du type, fuseau, événements de version 2,
+  isolation ; facture d'acompte programmée suspendue ; échéancier signé décalé et journalisé ;
+  relance d'une option au devis parti ; annulation de 0132). Totaux : app 493 unitaires et 611 en
+  intégration, `@symbola/db` 165, `@symbola/auth` 21. Parcours `evt-05-cycle-de-vie` (option née
+  avec son rétroplanning, report avec la tâche passée, annulation avec l'avoir proposé,
+  réactivation) et parcours existants repris, ordinateur et 375 px, axe-core. Suite complète sur
+  une base rechargée : 274 parcours réussis, 3 ignorés (les mêmes qu'au lot 33b) et un échec
+  aléatoire (`prd-evt-06` en 375 px : navigation interrompue par le retour arrière du test, sans
+  lien avec le lot ; seul, il passe). Une première suite avait relevé deux régressions, corrigées
+  dans le lot : la frise passée sur deux lignes (SC-03 à 1 280 × 800) et PRD-EVT-04 (rétroplanning
+  doublé). Lint, typecheck, frontières de modules : verts. Semgrep
+  (p/default) : aucune erreur sur les 79 fichiers du lot. Gitleaks : aucune fuite dans les commits
+  du lot.
+- **Rejeu** : SC-02, étapes 1 et 6, et un report du mariage de référence
+  (`docs/recette/SC-02.md`).
+
+**Écarts avec la spécification, à trancher** :
+- **Signature en attente non annulée** (D6) : à l'annulation, une signature déjà partie chez le
+  fournisseur n'est pas retirée. L'interface de signature n'a pas d'annulation et l'appel de
+  Documenso n'est pas vérifié. Une signature arrivée après l'annulation marque le devis signé
+  sans confirmer l'évènement ; la planner doit retirer la demande chez le fournisseur.
+- **Échéancier du devis signé décalé au report** (D7) : le PDF signé ne change pas, seules les
+  dates de l'échéancier suivent ; à faire relire par l'expert-comptable et l'avocat.
+- **Listes de contrôle** (EVT-01) : lues comme le rétroplanning généré.
+- **« Remettre en date relative »** rend à la tâche sa date relative d'origine (J-14 de la date
+  de l'évènement) ; la date posée à la main est perdue.
+
+**Corrigé en passant** :
+- le script des captures du centre d'aide se connectait par mot de passe et passait l'ancien
+  assistant : il passe au lien magique et au questionnaire (lot 33) ;
+- l'alerte de date annonçait « (option) » un évènement en préparation (trouvé au rejeu).
+
+**Reste** :
+- **Déploiement d'ensemble** : migration 0132 après 0131 ; elle n'est pas compatible avec l'image
+  d'avant, l'app s'arrête le temps de la migration (`docs/runbooks/deploiement.md`).
+- **Lot 34b** : fiche d'identité (EVT-03) et tâches (CHR-02).
+
 ## Lot 34b — Fiche d'identité et tâches
 
 ### Partie F — Les lieux (EVT-03 ; D10)
