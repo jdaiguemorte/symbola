@@ -46,6 +46,7 @@ import { configuredGeocoder } from "./geocoder";
 import { proposeTierGroups, tierUnitKey } from "./tag-tiers";
 import { planStarterTags, planTagArrangement, type PlanCatalogGroup, type PlanVendor, type TagPlan } from "./tag-arrangement";
 import {
+  countRealVendors,
   archiveVendorRow,
   deleteDemoVendors,
   deleteVendorFileRow,
@@ -894,3 +895,8 @@ const _contractCheck: VendorsServiceContract = {
   geocodeAddress,
 };
 void _contractCheck;
+
+// Lot 33b (PAR-01, étape 6) — « Ajouter un premier prestataire » de la liste de prise en main.
+export async function countOrganizationRealVendors(organizationId: string): Promise<number> {
+  return countRealVendors(organizationId);
+}

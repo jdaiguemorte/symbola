@@ -1172,10 +1172,7 @@
 }
 
 @layer components {
-  /* Lot 12 (ONB-03) — assistant de démarrage. */
-  .nav-locked {
-    @apply mx-2 mt-3 flex items-start gap-2 rounded-md bg-attention-soft px-3 py-2 text-label text-attention;
-  }
+  /* Lot 12 (ONB-03) — assistant de démarrage ; lot 33b (HUB-09) : questionnaire d'accueil. */
   .setup-steps ol {
     @apply m-0 flex list-none flex-wrap gap-2 p-0;
   }
@@ -1233,6 +1230,31 @@
   }
   .saved {
     @apply font-medium text-primary;
+  }
+  /* Lot 33b (HUB-09, HUB-10, PAR-01) — questionnaire, « Votre espace est prêt », prise en main. */
+  .choice-list {
+    @apply m-0 flex flex-col gap-2 border-0 p-0;
+  }
+  .choice-item {
+    @apply flex min-h-11 cursor-pointer items-center gap-3 rounded-md border border-line-strong bg-surface px-4 py-2;
+  }
+  .choice-item:has(input:checked) {
+    @apply border-primary bg-primary-soft;
+  }
+  .question-actions {
+    @apply flex flex-wrap items-center gap-3;
+  }
+  .ready-list {
+    @apply m-0 flex flex-col gap-2 pl-4;
+  }
+  .ready-choices {
+    @apply grid grid-cols-1 gap-4 md:grid-cols-2;
+  }
+  .onboarding-checklist .checklist {
+    @apply m-0 flex flex-col gap-2 pl-4;
+  }
+  .onboarding-checklist .checklist li.done {
+    @apply text-ink-muted;
   }
 }
 

@@ -6,6 +6,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import {
   formatAmount,
   formatCalendarDate,
+  formatDate,
   formatDateTime,
   formatFileSize,
   parisToday,
@@ -17,6 +18,7 @@ import {
   proposeProgramShift,
   getEventStatusDates,
   getTaskRecalculation,
+  getActiveEventsTrial,
   listEventActivity,
   listEventDecisions,
   listEventDocuments,
@@ -51,7 +53,7 @@ import { EventDocumentRenameForm, EventDocumentUploadForm } from "./document-for
 import { removeEventDocumentAction } from "./document-actions";
 import { NextStepBanner } from "./next-step-banner";
 import { nextStep } from "./next-step";
-import { endTrialAction } from "../trial-actions";
+import { endTrialAction, removeExampleAction } from "../trial-actions";
 import { revokeLinkAction } from "./link-actions";
 import { ClientContactForm, VenueForm, WantedBudgetForm } from "./client-contact-forms";
 import { CreateLinkForm, CreateVendorLinkForm, EditLinkForm, RenewLinkForm, type LinkFormVendor } from "./link-forms";
@@ -118,7 +120,7 @@ const LINK_STATUS_KEYS = {
 const TABS = ["apercu", "budget", "retroplanning", "programme", "devis", "maries", "documents"] as const;
 type Tab = (typeof TABS)[number];
 
-type SearchParams = { onglet?: string; poste?: string; tache?: string; vue?: string; qui?: string; filtre?: string; visite?: string; decalage?: string; depuis?: string; fait?: string; evenement?: string };
+type SearchParams = { exemple?: string; onglet?: string; poste?: string; tache?: string; vue?: string; qui?: string; filtre?: string; visite?: string; decalage?: string; depuis?: string; fait?: string; evenement?: string };
 
 // Lot 28a (PRE-02) : postes pourvus (un prestataire retenu) ou non requis.
 const SETTLED_SLOT_STATUSES = new Set<string>(["retained", "contract_signed", "paid_off", "not_required"]);
@@ -347,6 +349,9 @@ export default async function EventDetailPage({
   const clientPreviewLink = links.find((link) => link.audience === "client" && link.status === "active") ?? null;
   // Lot 32b (UX-03) : « Écrire au client » ouvre la messagerie de la planner (Symbola n'envoie rien).
   const clientEmails = event.clients.flatMap((client) => (client.email ? [client.email] : []));
+  // Lot 33b (HUB-10) : l'évènement fictif en cours (essai ou exemple), pour sa date de suppression
+  // et la proposition de le supprimer au premier évènement réel.
+  const activeDemo = event.isDemo || query.exemple === "proposer" ? await getActiveEventsTrial(organizationId) : null;
   const undoneTask = query.fait && query.evenement === event.id ? (tasks.find((task) => task.id === query.fait && task.done) ?? null) : null;
   const tToday = await getTranslations("Today");
 
@@ -469,11 +474,28 @@ export default async function EventDetailPage({
       ) : null}
       <PageTour {...tour} helpTitle={tHelp("eventsDetail.title")} helpBody={tHelp("eventsDetail.body")} />
 
-      {/* AIDE-02 : bandeau de l'essai guidé, sur données fictives. */}
+      {/* Lot 33b (HUB-10, D10) : la suppression de l'exemple est proposée au premier évènement réel. */}
+      {!event.isDemo && query.exemple === "proposer" && activeDemo ? (
+        <section className="card notice" aria-labelledby="example-proposal-title">
+          <h2 id="example-proposal-title">{t("exampleProposalTitle")}</h2>
+          <p>{t("exampleProposalBody")}</p>
+          <div className="row-wrap">
+            <form action={removeExampleAction}>
+              <input type="hidden" name="eventId" value={activeDemo.eventId} />
+              <input type="hidden" name="returnTo" value={event.id} />
+              <button type="submit">{t("exampleRemove")}</button>
+            </form>
+            <Link href={`/events/${event.id}`}>{t("exampleKeep")}</Link>
+          </div>
+        </section>
+      ) : null}
+      {!event.isDemo && query.exemple === "supprime" ? <p role="status">{t("exampleRemoved")}</p> : null}
+
+      {/* AIDE-02 : bandeau des données fictives (essai guidé ; lot 33b : l'exemple du démarrage). */}
       {event.isDemo ? (
         <section aria-labelledby="trial-banner-title">
           <h2 id="trial-banner-title">{t("trialBannerTitle")}</h2>
-          <p>{t("trialBannerBody")}</p>
+          <p>{t("trialBannerBody", { date: activeDemo?.eventId === event.id ? formatDate(new Date(activeDemo.expiresAt), locale) : "—" })}</p>
           <ol>
             <li>{t("trialStepStatus")}</li>
             <li>{t("trialStepVendor")}</li>

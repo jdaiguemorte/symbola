@@ -1,13 +1,13 @@
-// Lot 12 — premier démarrage (ONB-03/04), fiche événement (L12-EVT-12 à
-// L12-EVT-15) et agenda cliquable (L12-HUB-13), en taille ordinateur et en 375 px,
-// axe-core.
+// Lot 12 — fiche événement (L12-EVT-12 à L12-EVT-15) et agenda cliquable (L12-HUB-13), en taille
+// ordinateur et en 375 px, axe-core. Le premier démarrage (ONB-03/04) est devenu le questionnaire
+// d'accueil du lot 33b : e2e/hub-09-10-demarrage.spec.ts.
 import { randomUUID } from "node:crypto";
 import AxeBuilder from "@axe-core/playwright";
 import { createAppConnection } from "@symbola/db/client";
 import { createOrganization, createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import { addDefaultVendorSlots, createProspect, createProspectSource, createTaskTemplate } from "../modules/events/service";
-import { clickMenuLink, readyOrganization, changeEventStatus, signIn as signInByLink } from "./helpers";
+import { readyOrganization, changeEventStatus, signIn as signInByLink } from "./helpers";
 
 async function expectNoAxeViolation(page: Page) {
   const result = await new AxeBuilder({ page }).analyze();
@@ -31,58 +31,6 @@ async function owner(ready: boolean) {
     await sql.end();
   }
 }
-
-async function validate(page: Page, nextStep: number) {
-  await page.getByRole("button", { name: "Valider et continuer" }).click();
-  await expect(page).toHaveURL(new RegExp(`/demarrage\\?etape=${nextStep}$`));
-}
-
-async function runSetup(page: Page, metier: RegExp, expectedLine: string) {
-  // Tant que le démarrage n'est pas fini, les autres écrans renvoient ici.
-  await page.goto("/events");
-  await expect(page).toHaveURL(/\/demarrage/);
-
-  await page.getByRole("radio", { name: metier }).check();
-  await validate(page, 2);
-  await page.getByLabel("Forme juridique").selectOption("sas");
-  await validate(page, 3);
-  await page.getByRole("radio", { name: /Franchise en base/ }).check();
-  await validate(page, 4);
-
-  // Lot 18 (AIDE-13) : « Vos documents », facultative — logo et couleur.
-  await expect(page.getByRole("heading", { name: "Vos devis et factures" })).toBeVisible();
-  await expect(page.getByLabel("Choisir une image (PNG ou JPEG, 2 Mo au plus)")).toBeVisible();
-  await page.getByRole("radio", { name: "Terracotta" }).check();
-  await expectNoAxeViolation(page);
-  await validate(page, 5);
-
-  // Les lignes du budget du métier sont pré-remplies, avec leur icône.
-  await expect(page.getByRole("textbox", { name: `Nom de la ligne ${expectedLine}` })).toHaveValue(expectedLine);
-  await expectNoAxeViolation(page);
-  await page.getByLabel("Ajouter une ligne (ex. Navettes)").fill("Navettes");
-  await page.getByRole("button", { name: "Ajouter" }).click();
-  await expect(page.getByRole("textbox", { name: "Nom de la ligne Navettes" })).toHaveValue("Navettes");
-  await validate(page, 6);
-  await validate(page, 7);
-  await page.getByRole("button", { name: "Terminer et découvrir Symbola" }).click();
-  await expect(page).toHaveURL(/\/\?demarrage=termine$/);
-
-  // Menus ouverts.
-  await clickMenuLink(page, "Événements");
-  await expect(page).toHaveURL(/\/events$/);
-}
-
-test("ONB-03 / ONB-04 — premier démarrage d'une wedding planner, paramètres pré-remplis", async ({ page }) => {
-  const account = await owner(false);
-  await login(page, account.email, account.password, /\/demarrage/);
-  await runSetup(page, /Wedding planner/, "Lieu de réception");
-});
-
-test("ONB-03 / ONB-04 — premier démarrage d'une agence événementielle", async ({ page }) => {
-  const account = await owner(false);
-  await login(page, account.email, account.password, /\/demarrage/);
-  await runSetup(page, /Agence événementielle/, "Technique son et lumière");
-});
 
 test("L12-EVT-12 / L12-EVT-13 / L12-EVT-15 — statut en boutons, rétroplanning à la confirmation, lieux du programme", async ({ page }) => {
   const account = await owner(true);

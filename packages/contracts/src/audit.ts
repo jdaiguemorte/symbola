@@ -46,6 +46,8 @@ export const AUDIT_ACTIONS = {
   // Droits.
   "hub.organization.created": { category: "droits", objectType: "organization" },
   "hub.invitation.resent": { category: "droits", objectType: "organization" },
+  // Lot 33b (HUB-03, D12) : la Propriétaire invite une Planner (aucune adresse au journal).
+  "hub.invitation.sent": { category: "droits", objectType: "organization" },
   "hub.invitation.accepted": { category: "droits", objectType: "user" },
   "hub.module.enabled": { category: "droits", objectType: "organization" },
   "hub.module.disabled": { category: "droits", objectType: "organization" },

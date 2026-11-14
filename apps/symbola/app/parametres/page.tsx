@@ -46,7 +46,7 @@ export default async function SettingsPage() {
       <p className="meta">{t("professionalMentionsHint")}</p>
       <ProfessionalMentionsForm details={details} />
 
-      <h2>{t("logoTitle")}</h2>
+      <h2 id="logo">{t("logoTitle")}</h2>
       <LogoForm version={logoVersion} />
       {quotes ? (
         <p>

@@ -27,8 +27,10 @@ describe("L16-SEC-02 — Limitation de débit : règles et adresse du client", (
     ]);
   });
 
-  it("demande de lien de connexion, recherche, envoi de fichier et liens personnels ont chacun leurs limites", () => {
-    expect(Object.keys(RATE_LIMITS).sort()).toEqual(["linkCode", "linkOpen", "linkRenewal", "login", "search", "upload"]);
+  it("demande de lien de connexion, recherche, envoi de fichier, liens personnels et invitations ont chacun leurs limites", () => {
+    expect(Object.keys(RATE_LIMITS).sort()).toEqual(["linkCode", "linkOpen", "linkRenewal", "login", "search", "teamInvite", "upload"]);
+    // Lot 33b (HUB-03) : chaque invitation envoie un e-mail, dix par heure et par organisation.
+    expect(RATE_LIMITS.teamInvite.account).toEqual({ limit: 10, windowMs: 60 * 60 * 1000 });
     for (const { ip, account } of Object.values(RATE_LIMITS)) {
       expect(account.limit).toBeLessThanOrEqual(ip.limit);
       expect(ip.windowMs).toBeGreaterThan(0);

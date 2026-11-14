@@ -1,43 +1,43 @@
 "use server";
 
-// Lot 12 (ONB-03) — actions de l'assistant de démarrage. Réservé à la
-// titulaire ; chaque étape enregistre puis passe à la suivante.
+// Lot 33b (HUB-09, PAR-01 ; D9, D11) — questionnaire d'accueil : cinq questions, une par écran.
+// Chaque réponse s'enregistre et ouvre la question suivante ; « Passer » garde la réponse déjà
+// donnée, sinon la valeur proposée (packages/starter-templates, onboarding.json). Le kit de départ
+// du métier se charge dès les types d'évènements choisis. Réservé à la Propriétaire.
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { parisToday } from "@symbola/i18n";
-import { appDatabase, type AppDatabase } from "@symbola/db/client";
-import { starterEventTypes, type StarterLocale, type StarterMetier } from "@symbola/starter-templates";
-import { addStarterEventTypes } from "@/modules/events/service";
+import { appDatabase } from "@symbola/db/client";
 import {
-  addDefaultVendorSlots,
-  addLossReasons,
-  addProspectSources,
-  removeDefaultVendorSlot,
-  updateDefaultVendorSlot,
-} from "@/modules/events/service";
+  isOnboardingTool,
+  isOnboardingVolume,
+  onboardingDefaultEventTypes,
+  starterEventTypes,
+  starterOnboarding,
+  type StarterLocale,
+  type StarterMetier,
+} from "@symbola/starter-templates";
+import { addStarterEventTypes, listEventTypes, updateDefaultVendorSlot } from "@/modules/events/service";
 import {
   changeVatRegime,
-  completeOnboarding,
   completeSetup,
   getOrganizationProfile,
+  getSetupState,
   saveOnboardingStep,
-  isModuleEnabled,
   saveSetupStep,
   SETUP_STEPS,
-  type LegalForm,
   type Metier,
 } from "@/modules/hub/service";
-import { InvalidDocumentSettingsError, updateDocumentColor } from "@/modules/quotes/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
-import { loadStarterKit } from "@/lib/setup/starter-kit";
+import { loadStarterKit, loadStarterQuoteTemplates } from "@/lib/setup/starter-kit";
 import { isValidId } from "@/app/events/module-access";
 import { ICON_KEYS } from "@/app/budget-line-icon";
 
 export type SetupFormState = { error?: string; success?: boolean };
+export type QuestionFormState = { error?: string };
 
 const METIERS: Metier[] = ["wedding_planner", "event_agency", "autre"];
-const LEGAL_FORMS: LegalForm[] = ["ei", "eirl", "eurl", "sarl", "sas", "sasu", "sa", "auto_entrepreneur", "autre"];
 
 async function owner() {
   const auth = await getPlannerAuthContext();
@@ -45,74 +45,87 @@ async function owner() {
   return { organizationId: auth.user.organizationId, userId: auth.user.id };
 }
 
-async function withDb<T>(fn: (db: AppDatabase) => Promise<T>): Promise<T> {
-  const db = appDatabase();
-  return await fn(db);
-}
-
-function goTo(step: number): never {
-  revalidatePath("/demarrage");
-  redirect(`/demarrage?etape=${step}`);
-}
-
 const text = (formData: FormData, name: string) => String(formData.get(name) ?? "").trim();
 
-// Étape 1 — métier : charge d'office les paramètres de départ de ce métier.
-export async function saveActivityAction(_prev: SetupFormState, formData: FormData): Promise<SetupFormState> {
-  const t = await getTranslations("Setup");
+// La question suivante, sans jamais faire reculer la progression (revenir à une question déjà
+// répondue puis la valider ne rouvre pas les suivantes).
+async function goToNext(organizationId: string, step: number, locale: StarterLocale): Promise<never> {
+  const db = appDatabase();
+  const state = await getSetupState(db, organizationId);
+  if (step >= SETUP_STEPS) {
+    // Le régime de TVA est connu : le modèle de devis de départ peut se charger.
+    await loadStarterQuoteTemplates(organizationId, locale);
+    if (!state.completed) await completeSetup(db, organizationId);
+    revalidatePath("/", "layout");
+    redirect("/demarrage/pret");
+  }
+  await saveSetupStep(db, organizationId, Math.max(state.step, step + 1));
+  revalidatePath("/demarrage");
+  redirect(`/demarrage?etape=${step + 1}`);
+}
+
+export async function answerQuestionAction(_prev: QuestionFormState, formData: FormData): Promise<QuestionFormState> {
+  const t = await getTranslations("Onboarding");
   const access = await owner();
   if (!access) return { error: t("ownerOnly") };
-  const metier = text(formData, "metier") as Metier;
-  if (!METIERS.includes(metier)) return { error: t("metierRequired") };
-  const metierPrecision = text(formData, "metierPrecision") || null;
+  const step = Number(text(formData, "step"));
+  if (!Number.isInteger(step) || step < 1 || step > SETUP_STEPS) return { error: t("ownerOnly") };
+  const skip = text(formData, "intent") === "skip";
   const locale = ((await getLocale()) === "en" ? "en" : "fr") as StarterLocale;
-  // Lot 16 (ADR 0045) : les types d'événement cochés, avant le reste du kit (le
-  // mariage décide des types de prestataires propres au mariage).
-  const chosen = new Set(formData.getAll("eventTypes").map(String));
-  const eventTypes = starterEventTypes(locale, metier as StarterMetier).filter((type) => chosen.has(type.key));
-  if (eventTypes.length === 0) return { error: t("eventTypesRequired") };
-  await withDb((db) => saveOnboardingStep(db, access.organizationId, { metier, metierPrecision }));
-  await addStarterEventTypes(access.organizationId, eventTypes);
-  await loadStarterKit(access.organizationId, metier as StarterMetier, locale);
-  await withDb((db) => saveSetupStep(db, access.organizationId, 2));
-  goTo(2);
-}
+  const defaults = starterOnboarding(locale).defaults;
+  const db = appDatabase();
+  const profile = await getOrganizationProfile(db, access.organizationId);
+  const metier = (profile.metier ?? defaults.metier) as StarterMetier;
 
-// Étape 2 — entreprise.
-export async function saveCompanyAction(_prev: SetupFormState, formData: FormData): Promise<SetupFormState> {
-  const t = await getTranslations("Setup");
-  const access = await owner();
-  if (!access) return { error: t("ownerOnly") };
-  const legalForm = text(formData, "legalForm") as LegalForm;
-  if (!LEGAL_FORMS.includes(legalForm)) return { error: t("legalFormRequired") };
-  const siren = text(formData, "siren").replace(/\s/g, "") || null;
-  if (siren && !/^\d{9}(\d{5})?$/.test(siren)) return { error: t("sirenInvalid") };
-  await withDb(async (db) => {
-    await saveOnboardingStep(db, access.organizationId, { legalForm, siren, address: text(formData, "address") || null });
-    await saveSetupStep(db, access.organizationId, 3);
-  });
-  goTo(3);
-}
-
-// Étape 3 — TVA : le premier régime prend effet aujourd'hui (ONB-02 pour
-// les changements suivants, avec leur date d'effet).
-export async function saveVatAction(_prev: SetupFormState, formData: FormData): Promise<SetupFormState> {
-  const t = await getTranslations("Setup");
-  const access = await owner();
-  if (!access) return { error: t("ownerOnly") };
-  const regime = text(formData, "vatRegime") === "assujetti" ? "assujetti" : "franchise";
-  await withDb(async (db) => {
-    const profile = await getOrganizationProfile(db, access.organizationId);
-    if (profile.vatRegime !== regime) {
-      await changeVatRegime(db, { organizationId: access.organizationId, userId: access.userId, newRegime: regime, effectiveDate: parisToday() });
+  switch (step) {
+    case 1: {
+      const chosen = (skip ? (profile.metier ?? defaults.metier) : text(formData, "metier")) as Metier;
+      if (!METIERS.includes(chosen)) return { error: t("metierRequired") };
+      const metierPrecision = chosen === "autre" && !skip ? text(formData, "metierPrecision").slice(0, 120) || null : profile.metierPrecision;
+      await saveOnboardingStep(db, access.organizationId, { metier: chosen, metierPrecision });
+      break;
     }
-    await completeOnboarding(db, access.organizationId);
-    await saveSetupStep(db, access.organizationId, 4);
-  });
-  goTo(4);
+    case 2: {
+      const installed = await listEventTypes(access.organizationId);
+      const starters = starterEventTypes(locale, metier);
+      const keys = skip ? (installed.length > 0 ? [] : onboardingDefaultEventTypes(metier)) : formData.getAll("eventTypes").map(String);
+      const chosen = starters.filter((type) => keys.includes(type.key));
+      if (!skip && chosen.length === 0) return { error: t("eventTypesRequired") };
+      if (profile.metier === null) await saveOnboardingStep(db, access.organizationId, { metier });
+      // Le métier et les types décident du kit : postes de budget, rétroplanning, programme,
+      // sources, catalogue (seulement là où l'organisation n'a encore rien).
+      if (chosen.length > 0) await addStarterEventTypes(access.organizationId, chosen);
+      await loadStarterKit(access.organizationId, metier, locale);
+      break;
+    }
+    case 3: {
+      const regime = skip ? (profile.vatRegime ?? defaults.vatRegime) : text(formData, "vatRegime") === "assujetti" ? "assujetti" : "franchise";
+      if (profile.vatRegime !== regime) {
+        await changeVatRegime(db, { organizationId: access.organizationId, userId: access.userId, newRegime: regime, effectiveDate: parisToday() });
+      }
+      break;
+    }
+    case 4: {
+      const volume = skip ? (profile.annualEventVolume ?? defaults.volume) : text(formData, "volume");
+      if (!isOnboardingVolume(volume)) return { error: t("volumeRequired") };
+      await saveOnboardingStep(db, access.organizationId, { annualEventVolume: volume });
+      break;
+    }
+    case 5: {
+      const tools = skip
+        ? profile.replacedTools.length > 0
+          ? profile.replacedTools
+          : defaults.tools
+        : [...new Set(formData.getAll("tools").map(String))].filter(isOnboardingTool);
+      await saveOnboardingStep(db, access.organizationId, { replacedTools: tools });
+      break;
+    }
+  }
+  return goToNext(access.organizationId, step, locale);
 }
 
-// Étape 4 — lignes du budget : renommer, changer l'icône, retirer, ajouter.
+// Lignes du budget (Paramètres des évènements) : renommer, changer l'icône. Gardée ici depuis le
+// lot 12 ; les autres formulaires de l'ancien assistant sont partis avec lui (lot 33b, D9).
 export async function updateBudgetLineAction(_prev: SetupFormState, formData: FormData): Promise<SetupFormState> {
   const t = await getTranslations("Setup");
   const access = await owner();
@@ -126,88 +139,6 @@ export async function updateBudgetLineAction(_prev: SetupFormState, formData: Fo
     if (error instanceof RangeError) return { error: t("labelRequired") };
     throw error;
   }
-  revalidatePath("/demarrage");
   revalidatePath("/events/parametres");
   return { success: true };
-}
-
-export async function removeBudgetLineAction(formData: FormData): Promise<void> {
-  const access = await owner();
-  const id = text(formData, "id");
-  if (!access || !isValidId(id)) return;
-  await removeDefaultVendorSlot(access.organizationId, id);
-  revalidatePath("/demarrage");
-}
-
-export async function addBudgetLineAction(_prev: SetupFormState, formData: FormData): Promise<SetupFormState> {
-  const t = await getTranslations("Setup");
-  const access = await owner();
-  if (!access) return { error: t("ownerOnly") };
-  const label = text(formData, "label");
-  if (!label) return { error: t("labelRequired") };
-  const added = await addDefaultVendorSlots(access.organizationId, [{ label, icon: null }]);
-  revalidatePath("/demarrage");
-  return added.length > 0 ? { success: true } : { error: t("alreadyExists") };
-}
-
-// Étape 5 — sources et motifs : ajout (les existants servent déjà).
-export async function addSourceAction(_prev: SetupFormState, formData: FormData): Promise<SetupFormState> {
-  const t = await getTranslations("Setup");
-  const access = await owner();
-  if (!access) return { error: t("ownerOnly") };
-  const label = text(formData, "label");
-  if (!label) return { error: t("labelRequired") };
-  const added = await addProspectSources(access.organizationId, [label]);
-  revalidatePath("/demarrage");
-  return added > 0 ? { success: true } : { error: t("alreadyExists") };
-}
-
-export async function addLossReasonAction(_prev: SetupFormState, formData: FormData): Promise<SetupFormState> {
-  const t = await getTranslations("Setup");
-  const access = await owner();
-  if (!access) return { error: t("ownerOnly") };
-  const label = text(formData, "label");
-  if (!label) return { error: t("labelRequired") };
-  const added = await addLossReasons(access.organizationId, [{ label, isFreeText: false }]);
-  revalidatePath("/demarrage");
-  return added > 0 ? { success: true } : { error: t("alreadyExists") };
-}
-
-// Lot 18 (AIDE-13, décision E) — étape 4 facultative « Vos documents » : la
-// couleur des devis et factures (le logo s'envoie par sa route, /logo).
-// « Plus tard » passe à l'étape suivante sans rien enregistrer.
-export async function saveDocumentsStepAction(_prev: SetupFormState, formData: FormData): Promise<SetupFormState> {
-  const access = await owner();
-  const t = await getTranslations("Setup");
-  if (!access) return { error: t("ownerOnly") };
-  const color = text(formData, "color");
-  if (color !== "" && (await withDb((db) => isModuleEnabled(db, access.organizationId, "quotes")))) {
-    try {
-      await updateDocumentColor(access.organizationId, color);
-    } catch (error) {
-      if (error instanceof InvalidDocumentSettingsError) return { error: t("documentsColorInvalid") };
-      throw error;
-    }
-  }
-  await withDb((db) => saveSetupStep(db, access.organizationId, 5));
-  goTo(5);
-}
-
-// « Valider et continuer » des étapes de listes (5, 6) et « Plus tard » (4).
-export async function nextStepAction(formData: FormData): Promise<void> {
-  const access = await owner();
-  if (!access) return;
-  const next = Number(text(formData, "next"));
-  if (!Number.isInteger(next) || next < 2 || next > SETUP_STEPS) return;
-  await withDb((db) => saveSetupStep(db, access.organizationId, next));
-  goTo(next);
-}
-
-// Étape 7 — fin : les menus se déverrouillent.
-export async function finishSetupAction(): Promise<void> {
-  const access = await owner();
-  if (!access) return;
-  await withDb((db) => completeSetup(db, access.organizationId));
-  revalidatePath("/", "layout");
-  redirect("/?demarrage=termine");
 }

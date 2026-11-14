@@ -127,7 +127,7 @@ test("AIDE-02 — essai guidé du module Devis : devis fictif signé et facturé
   // Fin de l'essai : le devis fictif et sa facture disparaissent.
   await page.goto(trialUrl);
   await page.waitForLoadState("networkidle");
-  await page.getByRole("button", { name: "Terminer l'essai et supprimer ses données" }).click();
+  await page.getByRole("button", { name: "Supprimer l'exemple et ses données" }).click();
   await expect(page).toHaveURL(/\/events\?essai=termine$/);
   await page.goto(quoteUrl);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Page introuvable");

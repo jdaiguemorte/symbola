@@ -2181,3 +2181,11 @@ export async function searchQuoteRows(
     return { quotes: quoteRows, invoices: invoiceRows };
   });
 }
+
+// Lot 33b (PAR-01, étape 6) : devis réels, brouillons compris (liste de prise en main).
+export async function countRealQuotes(organizationId: string): Promise<number> {
+  return await withOrganization(appDatabase(), organizationId, async (tx) => {
+    const [row] = await tx.select({ count: raw<number>`count(*)::int` }).from(quotes).where(eq(quotes.isDemo, false));
+    return row?.count ?? 0;
+  });
+}

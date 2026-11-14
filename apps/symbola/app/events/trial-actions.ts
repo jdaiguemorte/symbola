@@ -28,3 +28,15 @@ export async function endTrialAction(formData: FormData): Promise<void> {
   if (isValidId(eventId)) await endTrial(auth.user.organizationId, eventId);
   redirect("/events?essai=termine");
 }
+
+// Lot 33b (HUB-10, D10) — « Supprimer l'exemple », proposé sur le premier évènement réel : l'exemple
+// part avec toutes ses données, puis la planner revient sur l'évènement qu'elle vient de créer.
+// endTrial ne touche jamais un évènement réel.
+export async function removeExampleAction(formData: FormData): Promise<void> {
+  const auth = await getPlannerAuthContext();
+  if (auth.status !== "authenticated" || !auth.user.organizationId) redirect("/login");
+  const eventId = String(formData.get("eventId") ?? "");
+  const returnTo = String(formData.get("returnTo") ?? "");
+  if (isValidId(eventId)) await endTrial(auth.user.organizationId, eventId);
+  redirect(isValidId(returnTo) ? `/events/${returnTo}?exemple=supprime` : "/events?essai=termine");
+}

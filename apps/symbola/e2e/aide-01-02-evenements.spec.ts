@@ -61,7 +61,7 @@ test("AIDE-11/02 — repères du module événements, puis essai guidé supprim�
   await closeLandmarks(page, "Fiche de l'événement");
   const trialUrl = page.url();
   const trialId = trialUrl.split("/").pop()!;
-  await expect(page.getByRole("heading", { name: "Essai guidé — données fictives" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Exemple — données fictives" })).toBeVisible();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Camille & Sacha");
   await openEventTab(page, "Mariés");
   await expect(page.getByText("Pendant l'essai, aucun lien n'est envoyé")).toBeVisible();
@@ -77,14 +77,14 @@ test("AIDE-11/02 — repères du module événements, puis essai guidé supprim�
   expect(pdf.status()).toBe(200);
 
   await page.goto("/events");
-  await expect(page.getByRole("row", { name: /Camille & Sacha/ })).toContainText("Essai (fictif)");
+  await expect(page.getByRole("row", { name: /Camille & Sacha/ })).toContainText("Exemple");
   await page.getByRole("button", { name: "Aide sur cet écran" }).click();
   await expect(panel.getByRole("link", { name: "Reprendre l'essai en cours" })).toBeVisible();
   await page.keyboard.press("Escape");
 
   // Fin de l'essai : toutes ses données disparaissent.
   await page.goto(trialUrl);
-  await page.getByRole("button", { name: "Terminer l'essai et supprimer ses données" }).click();
+  await page.getByRole("button", { name: "Supprimer l'exemple et ses données" }).click();
   await expect(page).toHaveURL(/\/events\?essai=termine$/);
   await expect(page.getByText("Essai terminé : ses données fictives ont été supprimées.")).toBeVisible();
   await expect(page.getByRole("row", { name: /Camille & Sacha/ })).toHaveCount(0);

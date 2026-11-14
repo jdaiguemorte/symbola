@@ -28,7 +28,6 @@ import { listOrganizations } from "@symbola/auth";
 import { appDatabase } from "@symbola/db/client";
 import {
   getDocumentHeader,
-  getSetupState,
   isModuleEnabled,
   listDueSoonPrivacyRequests,
 } from "@/modules/hub/service";
@@ -41,8 +40,6 @@ import { LogoutButton } from "./logout-button";
 import { OfflineGuard } from "./offline-guard";
 import { SettingsNav, type SettingsGroup } from "./settings-nav";
 import { cookies, headers } from "next/headers";
-import { redirect } from "next/navigation";
-import { Lock, Rocket } from "lucide-react";
 import { HelpBar, type TutorialInvite } from "./help-bar";
 import { AUTO_TOURS_COOKIE } from "@/lib/help/preferences";
 import { SearchBox } from "./search-box";
@@ -191,21 +188,8 @@ export async function AppShell({ children }: { children: ReactNode }) {
     isOwner && organizationId
       ? (await listDueSoonPrivacyRequests(appDatabase(), organizationId)).length
       : 0;
-  // Lot 12 (ONB-03) — assistant de démarrage bloquant : tant qu'il n'est pas
-  // terminé, l'équipe n'a que l'assistant (et l'aide, le profil).
-  const teamMember =
-    Boolean(organizationId) &&
-    (auth.user.role === "owner" || auth.user.role === "member");
-  let setupDone = true;
-  if (teamMember && organizationId) {
-    const db = appDatabase();
-    setupDone = (await getSetupState(db, organizationId)).completed;
-    const pathname = (await headers()).get("x-pathname") ?? "/";
-    const allowed = ["/demarrage", "/aide", "/profil"].some(
-      (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
-    );
-    if (!setupDone && !allowed) redirect("/demarrage");
-  }
+  // Lot 33b (PAR-01, D9) : le questionnaire d'accueil ne verrouille plus les menus ; l'accueil
+  // propose de le reprendre tant qu'il n'est pas fini (lot 12 : il bloquait l'équipe).
   // Lot 10 (AIDE-07) — barre d'aide de l'équipe : tutoriels des modules
   // souscrits, terminés ou en cours.
   const isTeam =
@@ -519,27 +503,6 @@ export async function AppShell({ children }: { children: ReactNode }) {
         menuLabel={t("menuOpen")}
         closeLabel={t("menuClose")}
       >
-        {!setupDone ? (
-          <nav aria-label={t("navLabel")}>
-            <ul className="app-nav">
-              <li>
-                <AppNavLink href="/demarrage">
-                  <Rocket {...iconProps} />
-                  {t("setup")}
-                </AppNavLink>
-              </li>
-              <li>
-                <AppNavLink href="/aide">
-                  <LifeBuoy {...iconProps} />
-                  {tAide("link")}
-                </AppNavLink>
-              </li>
-            </ul>
-            <p className="nav-locked">
-              <Lock size={16} aria-hidden="true" /> {t("setupLocked")}
-            </p>
-          </nav>
-        ) : (
           <nav aria-label={t("navLabel")}>
             <ul className="app-nav">
               <li>
@@ -643,7 +606,6 @@ export async function AppShell({ children }: { children: ReactNode }) {
               </li>
             </ul>
           </nav>
-        )}
         <div className="app-user">
           <span>{t("connectedAs", { email: auth.user.email })}</span>
           {/* Lot 33 (HUB-02, D6) : plusieurs organisations, et en créer une autre. */}
@@ -655,9 +617,9 @@ export async function AppShell({ children }: { children: ReactNode }) {
         <div className="app-main">
           {/* Lot 16 (L16-HUB-19, ADR 0039) : recherche à gauche, le seul « ? » à droite. */}
           <section className="app-topbar" aria-label={t("topBar")}>
-            {isTeam && setupDone ? <SearchBox /> : null}
+            {isTeam ? <SearchBox /> : null}
             {/* Lot 32b (HUB-07, D9) : création rapide, touche N ; ses entrées suivent les modules. */}
-            {isTeam && setupDone ? <QuickCreate modules={{ events, quotes, budget }} /> : null}
+            {isTeam ? <QuickCreate modules={{ events, quotes, budget }} /> : null}
             <HelpButton />
           </section>
           {settingsSections.length > 0 ? (
@@ -667,7 +629,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
             />
           ) : null}
           {/* L'invitation à un tutoriel s'affiche dans la page, plus en surimpression. */}
-          {helpBar && setupDone ? (
+          {helpBar ? (
             <HelpBar tutorial={helpBar.tutorial} invites={helpBar.invites} />
           ) : null}
           {children}

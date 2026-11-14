@@ -994,7 +994,11 @@
     },
     "setup": {
       "title": "Getting started",
-      "body": "Seven steps to prepare your space: trade, company, VAT, your documents, budget lines, sources and reasons, templates. Everything is pre-filled for your trade; review, adjust, then « Confirm and continue ». Optional steps have a « Later » button. Everything can be changed later in Settings."
+      "body": "Five questions, one per screen: your business, your event types, your VAT status, your number of events per year and the tools Symbola replaces. Each question has a suggested answer: \"Skip\" keeps it. Your answers pick the templates loaded (budget lines, planning, programme, catalogue); everything can be changed later in Settings."
+    },
+    "setupReady": {
+      "title": "Your workspace is ready",
+      "body": "What Symbola prepared from your answers: event types, planning, budget lines, VAT status. Then two paths: create your first event (clients' first names, date, type: the planning and the budget appear straight away), or explore a fictional wedding labelled \"Example\", which contacts no one and disappears on its own after 30 days."
     },
     "activityLog": {
       "title": "Activity log",
@@ -1006,7 +1010,7 @@
     },
     "team": {
       "title": "Team",
-      "body": "The accounts of your organization: you, the owner, and your team members. \"Remove access\" closes a team member's sessions right away, on all their devices, and stops them from signing in again; their work stays in the organization. The removal goes to the activity log."
+      "body": "The accounts of your organization: you, the owner, and your planners. \"Invite\" sends a link valid for seven days, single use: the planner joins your organization and can use every module; the team, the activity log, GDPR and settings stay with you. \"Remove access\" closes their sessions right away, on all their devices; their work stays in the organization. Invitations and removals go to the activity log."
     },
     "linkPreview": {
       "title": "“View as” preview",
@@ -1273,14 +1277,20 @@
     "trialStart": "Start the trial",
     "trialResume": "Resume the current trial",
     "trialEnded": "Trial ended: its fictional data has been deleted.",
-    "demoTag": "Trial (fictional)",
-    "trialBannerTitle": "Guided trial — fictional data",
-    "trialBannerBody": "This event is fictional: it never shows on the dashboard or in GDPR searches, and it will be deleted when the trial ends or after 24 hours. Things to try:",
+    "demoTag": "Example",
+    "demoNoSend": "Nothing is sent to anyone from an example: reminders and messages are sent from a real event.",
+    "trialBannerTitle": "Example — fictional data",
+    "trialBannerBody": "This event is a fictional example: it does not appear in your statistics, exports or GDPR searches, and it contacts no one. It will be deleted on its own on {date}. Things to try:",
     "trialStepStatus": "set the status to “Confirmed”;",
     "trialStepVendor": "retain a vendor and enter its amount;",
     "trialStepTask": "check a planning timeline task, then change the date to see the proposed recalculation;",
     "trialStepProgram": "add a schedule line and download the PDF (“Fictional document” watermark).",
-    "trialEnd": "End the trial and delete its data",
+    "trialEnd": "Delete the example and its data",
+    "exampleProposalTitle": "Your first event is created",
+    "exampleProposalBody": "The example is still there. Do you want to delete it now? Otherwise it will disappear on its own after 30 days.",
+    "exampleRemove": "Delete the example",
+    "exampleKeep": "Keep it for now",
+    "exampleRemoved": "The example and its fictional data have been deleted.",
     "trialNoInvite": "During the trial, no link is sent: links are only created on a real event.",
     "demoWatermark": "Fictional document",
     "budgetLink": "Budget",
@@ -4098,6 +4108,93 @@
     "filterRating": "Rating",
     "filterRatingAtLeast": "{rating, plural, =5 {5 out of 5} other {At least # out of 5}}"
   },
+  "Onboarding": {
+    "title": "Let's set up your workspace",
+    "intro": "Five questions, one per screen. Each answer has a suggested value: \"Skip\" keeps it. Everything can be changed later in Settings.",
+    "progress": "Question {number} of {total}",
+    "progressLabel": "Setup questions",
+    "stepItem": "{number}. {label}",
+    "stepDone": "(answered)",
+    "steps": {
+      "1": "Business",
+      "2": "Events",
+      "3": "VAT",
+      "4": "Volume",
+      "5": "Tools"
+    },
+    "questions": {
+      "1": {
+        "title": "What is your business?",
+        "hint": "It picks your starter templates: budget lines, planning, day-of programme, catalogue."
+      },
+      "2": {
+        "title": "Which events do you organise?",
+        "hint": "Tick at least one. You can add more whenever you like."
+      },
+      "3": {
+        "title": "Are you registered for VAT?",
+        "hint": "It sets the legal notices on your quotes and invoices. A later change takes effect from a date."
+      },
+      "4": {
+        "title": "How many events do you organise per year?",
+        "hint": "An estimate is enough: it helps us suggest the right first steps."
+      },
+      "5": {
+        "title": "What do you want Symbola to replace?",
+        "hint": "Tick everything that applies, or nothing. What saves you the most time will come first."
+      }
+    },
+    "continue": "Continue",
+    "finish": "See my workspace",
+    "skip": "Skip",
+    "skipHint": "\"Skip\" keeps the suggested answer.",
+    "back": "Previous question",
+    "eventTypesRequired": "Tick at least one event type, or choose \"Skip\".",
+    "metierRequired": "Choose your business, or \"Skip\".",
+    "volumeRequired": "Choose an estimate, or \"Skip\".",
+    "ownerOnly": "Only the account owner answers the questionnaire.",
+    "ownerMustFinish": "The account owner is setting up your workspace. The modules are already open.",
+    "resume": "Finish setting up your workspace: {count, plural, one {# question} other {# questions}} left.",
+    "resumeLink": "Resume the questionnaire",
+    "ready": {
+      "title": "Your workspace is ready",
+      "intro": "Here is what Symbola prepared from your answers:",
+      "eventTypes": "Your event types: {types}",
+      "tasks": "{count, plural, =0 {No task} one {# task} other {# tasks}} in your planning",
+      "budgetLines": "{count, plural, =0 {No budget line} one {# budget line} other {# budget lines}}",
+      "vat": "Your VAT status: {regime}",
+      "editLater": "Everything can be changed later in Settings.",
+      "settingsLink": "Open Settings",
+      "choiceTitle": "What next?",
+      "firstEventTitle": "Create my first event",
+      "firstEventBody": "The clients' first names, the date and the type: the planning and the budget appear straight away.",
+      "firstEventSubmit": "Create the event",
+      "exampleTitle": "Explore with an example",
+      "exampleBody": "A fictional wedding, labelled \"Example\", to try everything safely. It contacts no one and disappears on its own after 30 days.",
+      "exampleSubmit": "Open the example",
+      "exampleOpen": "See the example again",
+      "noEventsModule": "The Events module is not subscribed: your first steps start with the checklist on the home page.",
+      "goHome": "Go to the home page",
+      "noSource": "First add a lead source in the event settings.",
+      "dateRequired": "Enter the event date: the planning is calculated from it."
+    },
+    "vatRegime": {
+      "franchise": "VAT exemption (small business)",
+      "assujetti": "registered for VAT"
+    },
+    "checklist": {
+      "title": "Getting started",
+      "progress": "{done} of {total} done",
+      "done": "done",
+      "items": {
+        "logo": "Add your logo",
+        "first_vendor": "Add a first vendor",
+        "first_quote": "Prepare a first quote",
+        "client_invite": "Invite a client to their space",
+        "contacts_import": "Import your contacts"
+      }
+    }
+  },
   "Setup": {
     "title": "Welcome: let's set up your space",
     "titleDone": "Your starting settings",
@@ -4474,6 +4571,7 @@
       "hub_trusted_devices_forgotten": "Trusted devices forgotten",
       "hub_organization_created": "Organization created",
       "hub_invitation_resent": "Invitation resent",
+      "hub_invitation_sent": "Planner invited",
       "hub_invitation_accepted": "Invitation accepted",
       "hub_module_enabled": "Module enabled",
       "hub_module_disabled": "Module disabled",
@@ -4683,7 +4781,7 @@
   },
   "Team": {
     "title": "Team",
-    "subtitle": "Your organization's accounts, and removing access.",
+    "subtitle": "Your organization's accounts: invite a planner, remove access.",
     "ownerOnly": "The team is managed by the account owner.",
     "listTitle": "Team accounts",
     "columnEmail": "Email",
@@ -4693,7 +4791,7 @@
     "columnActions": "Actions",
     "roles": {
       "owner": "Owner",
-      "member": "Team member"
+      "member": "Planner"
     },
     "accessActive": "Active",
     "accessRemoved": "Removed on {date}",
@@ -4702,7 +4800,20 @@
     "confirmBody": "Their sessions are closed right away, on all their devices, and this account can no longer sign in. Their work stays in the organization.",
     "confirmRemove": "Remove access",
     "cancel": "Cancel",
-    "removed": "Access removed. This account's sessions are closed."
+    "removed": "Access removed. This account's sessions are closed.",
+    "inviteTitle": "Invite a planner",
+    "inviteEmail": "Planner's e-mail address",
+    "inviteHint": "They receive a link valid for seven days, single use. They will have access to every module; the team, activity log, GDPR and settings stay with you.",
+    "inviteSubmit": "Send the invitation",
+    "inviteSent": "Invitation sent. It shows below until it is accepted.",
+    "inviteInvalidEmail": "This e-mail address is not valid.",
+    "inviteAlreadyMember": "This person is already in your team.",
+    "inviteMailQuota": "This hour's sending limit has been reached: try again a little later.",
+    "inviteSendFailed": "The invitation could not be sent. Try again in a few minutes.",
+    "inviteMailSubject": "\"{organization}\" invites you to Symbola",
+    "inviteMailBody": "Hello,\n\n\"{organization}\" invites you to join their team on Symbola, as a planner. This link is valid until {date} and works only once:\n{url}\n\nSee you soon,\nThe Symbola team",
+    "pendingTitle": "Pending invitations",
+    "pendingUntil": "{email}, valid until {date}"
   },
   "SignOutEverywhere": {
     "title": "Signed-in devices",

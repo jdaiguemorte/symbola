@@ -2,7 +2,7 @@
 
 **Statut** : spécification **validée par Julien le 13/11/2026** (« Oui, je valide » : D1 à D12 en
 (a), dépendances comprises ; aucune donnée réelle en production, pour D3).
-33a fait le 14/11/2026 (bilan après la partie G) ; 33b à faire.
+33a fait le 14/11/2026 (bilan après la partie G, PR #113) ; 33b fait le 14/11/2026 (bilan après la partie L).
 Branche `lot-33-identite`, partie de `main` après le lot 32 (PR #112).
 
 ## Contexte
@@ -344,6 +344,75 @@ ordre variable ; les confirmés passent maintenant avant les options.
 - **SC-01** en entier, sur un téléphone (375 × 812), chronométré.
 - **SC-10**, étape 1, à 150 % de zoom.
 - Résultats dans `docs/recette/SC-01.md` et `docs/recette/SC-10.md`.
+
+### Bilan du lot 33b (14/11/2026)
+
+**Fait** :
+- **Questionnaire d'accueil** (HUB-09 ; D9, D11) : cinq questions, une par écran (métier, types
+  d'évènements, régime de TVA, volume, outils remplacés). Chacune a sa réponse proposée
+  (`packages/starter-templates/src/onboarding.json`) et « Passer » la garde. On revient sur une
+  réponse sans faire reculer la progression. Il remplace l'assistant du lot 12 : société, SIRET,
+  logo et documents passent dans la prise en main et les Paramètres, et les menus ne sont plus
+  verrouillés. L'accueil propose de reprendre le questionnaire tant qu'il n'est pas fini. Le volume
+  et les outils sont gardés dans le profil (migration 0131).
+- **Les modèles chargés** : le métier et les types choisis chargent le kit de départ (postes de
+  budget, rétroplanning, programme, sources, catalogue des prestataires, modèles de contrat) ; à la
+  fin du questionnaire, le régime de TVA connu, le modèle de devis de départ du métier se charge.
+- **« Votre espace est prêt »** (PAR-01, étapes 3 à 5) : ce qui a été préparé (types, tâches de
+  rétroplanning, postes de budget, régime de TVA), puis deux chemins. « Créer mon premier
+  évènement » demande les prénoms, la date et le type ; l'évènement est confirmé et son
+  rétroplanning appliqué. « Explorer avec un exemple » ouvre le mariage de référence.
+- **L'exemple** (HUB-10 ; D10) : Léa et Maxime en données fictives, confirmé, étiqueté « Exemple »
+  dans la liste et sur la fiche (avec sa date de suppression), exclu des statistiques, exports et
+  recherches. Il se supprime d'un clic ; sa suppression est proposée à la création du premier
+  évènement réel, depuis l'écran « prêt » comme depuis « Nouvel évènement » ; il est purgé seul au
+  bout de 30 jours. Aucun envoi vers un tiers réel : liens client et prestataire, décisions,
+  rappels de tâches, relance d'un prestataire (bloquée au lot 33b) ; la signature d'un devis fictif
+  reste la signature d'essai. Un test par canal.
+- **Liste de prise en main** (PAR-01, étape 6 ; D11) : cinq actions sur l'accueil (logo, premier
+  prestataire, premier devis, invitation du client, import des contacts), cochées d'elles-mêmes,
+  dans l'ordre que donnent les outils remplacés (un tableur met l'import en premier), masquées pour
+  un module non souscrit ; la liste disparaît une fois finie. Elle vient après « À traiter en
+  premier » : la prochaine action reste en tête de l'accueil (UX-01). Le rappel de la fiche
+  entreprise n'apparaît qu'une fois le questionnaire fini.
+- **Ajouter une Planner** (HUB-03 ; D12) : depuis Équipe, la Propriétaire invite par e-mail ; le
+  lien vaut sept jours et ne sert qu'une fois ; à l'acceptation, le compte naît si besoin et
+  l'adhésion de Planner est créée, jamais de Propriétaire. Une Planner retirée puis invitée de
+  nouveau retrouve l'accès. E-mail traduit, quota d'envois de l'organisation, débit limité à dix par
+  heure et par organisation, journal sans adresse. Les invitations en attente se listent ; elles
+  n'apparaissent pas dans l'assistance de l'Exploitation.
+- **Tests** : `@symbola/starter-templates` 56 ; `@symbola/db` 164 en intégration (annulation de
+  0131 comprise) ; app : 484 unitaires et les nouveaux tests d'intégration de l'exemple (8) et de
+  l'invitation (7) ; parcours `hub-09-10-demarrage`, `hub-03-planner`, `sc-01-sc-10-demarrage`,
+  ordinateur et 375 px, axe-core. Suite complète sur une base rechargée : 271 parcours réussis,
+  3 ignorés (prévus : un écran en taille ordinateur seulement, SC-01 sur téléphone seulement,
+  SC-10 sur ordinateur seulement). Lint, typecheck, frontières de modules : verts. Semgrep : aucune
+  erreur. Gitleaks : les mêmes 12 faux positifs que sur `main`.
+- **Rejeux** : SC-01 en entier (`docs/recette/SC-01.md`), SC-10 étape 1 (`docs/recette/SC-10.md`).
+
+**Écarts avec la spécification** :
+- **Libellés du métier et du régime de TVA** : restés dans les fichiers de traduction, car ils
+  suivent des valeurs fixées en base ; les listes ouvertes (volumes, outils) sont des données de
+  départ traduisibles, comme prévu.
+- **L'exemple et l'essai guidé** partagent le même mécanisme (`is_demo`) : un seul évènement fictif
+  à la fois, étiqueté « Exemple » dans les deux cas ; l'essai garde ses 24 heures, l'exemple ses
+  30 jours.
+- **« Invitation du client »** se coche au premier lien client créé sur un évènement réel ;
+  **« Import des contacts »** au premier import appliqué, de quelque nature (les contacts uniques
+  arrivent au lot 36).
+- **Étape 6 de SC-01** : le devis part du modèle de départ du métier, pas du catalogue, vide pour
+  une nouvelle inscrite.
+
+**Corrigé en passant** : le test IMP-08 (import de fiches PDF) partait d'une date fixe et échouait
+depuis le 14 novembre, sur `main` aussi ; il part désormais de l'heure réelle.
+
+**Reste** :
+- **À décider** : un catalogue de prestations de départ (prix propres à chaque planner) ; l'écran
+  de Logto qui propose une clé d'accès à l'inscription.
+- **À rejouer à la main sur le staging (porte 1)** : SC-01 en entier, avec l'installation du
+  second facteur de la Propriétaire à la reconnexion (D4), que les parcours installent par l'API.
+- **Lot 36** : SC-10, étapes 2 à 5. **Lot 52** : transfert de propriété (HUB-04).
+- **Déploiement d'ensemble** : migration 0131 après 0129 et 0130.
 
 ## Décisions à prendre
 

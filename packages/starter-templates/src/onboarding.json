@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "defaults": {
+    "metier": "wedding_planner",
+    "vatRegime": "franchise",
+    "volume": "11_to_25",
+    "tools": []
+  },
+  "eventTypeDefaults": {
+    "wedding_planner": ["wedding"],
+    "event_agency": ["seminar", "corporate_party", "product_launch"],
+    "autre": ["other"]
+  },
+  "volumes": [
+    { "key": "up_to_10", "label": { "fr": "Jusqu'à 10", "en": "Up to 10" } },
+    { "key": "11_to_25", "label": { "fr": "De 11 à 25", "en": "11 to 25" } },
+    { "key": "26_to_50", "label": { "fr": "De 26 à 50", "en": "26 to 50" } },
+    { "key": "over_50", "label": { "fr": "Plus de 50", "en": "More than 50" } }
+  ],
+  "tools": [
+    { "key": "spreadsheet", "label": { "fr": "Un tableur (Excel, Google Sheets…)", "en": "A spreadsheet (Excel, Google Sheets…)" }, "first": ["contacts_import"] },
+    { "key": "other_software", "label": { "fr": "Un autre logiciel de gestion", "en": "Another management software" }, "first": ["contacts_import"] },
+    { "key": "word_processor", "label": { "fr": "Un traitement de texte pour les devis", "en": "A word processor for quotes" }, "first": ["first_quote"] },
+    { "key": "email_calendar", "label": { "fr": "Ma messagerie et mon agenda", "en": "My e-mail and calendar" }, "first": ["first_vendor"] },
+    { "key": "paper", "label": { "fr": "Un carnet et du papier", "en": "A notebook and paper" }, "first": [] }
+  ],
+  "checklist": ["logo", "first_vendor", "first_quote", "client_invite", "contacts_import"]
+}

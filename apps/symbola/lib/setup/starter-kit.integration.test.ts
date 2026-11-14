@@ -17,8 +17,11 @@ import {
 } from "@/modules/events/service";
 import { listAllocationModels } from "@/modules/budget/service";
 import { listVendorTagGroups, listVendorTypes } from "@/modules/vendors/service";
-import { completeSetup, getSetupState, saveSetupStep } from "@/modules/hub/service";
-import { loadStarterKit } from "./starter-kit";
+import { completeSetup, getSetupState, saveSetupStep, setModuleEnabled } from "@/modules/hub/service";
+import { listQuoteTemplates } from "@/modules/quotes/service";
+import { organizationProfiles } from "@symbola/db/schema/hub";
+import { eq } from "drizzle-orm";
+import { loadStarterKit, loadStarterQuoteTemplates } from "./starter-kit";
 
 const { sql, db } = createAppConnection();
 afterAll(async () => {
@@ -76,14 +79,30 @@ describe("ONB-03 — Assistant de démarrage pré-rempli", { timeout: 30_000 }, 
     expect((await listTaskTemplates(organization.id)).length).toBe(1);
   });
 
-  it("l'assistant se reprend à son étape et se termine une fois", async () => {
+  it("HUB-09 — à la fin du questionnaire, le modèle de devis de départ du métier se charge une fois, jamais sans le module Devis", async () => {
+    const organization = await createOrganization(db, `Org ${randomUUID()}`);
+    await loadStarterKit(organization.id, "wedding_planner", "fr");
+    expect(await loadStarterQuoteTemplates(organization.id, "fr")).toBeGreaterThan(0);
+    const templates = await listQuoteTemplates(organization.id);
+    expect(templates.length).toBeGreaterThan(0);
+    expect(await loadStarterQuoteTemplates(organization.id, "fr")).toBe(0);
+    expect((await listQuoteTemplates(organization.id)).length).toBe(templates.length);
+    const withoutQuotes = await createOrganization(db, `Org ${randomUUID()}`);
+    await setModuleEnabled(db, { adminUserId: randomUUID(), organizationId: withoutQuotes.id, moduleKey: "quotes", enabled: false });
+    expect(await loadStarterQuoteTemplates(withoutQuotes.id, "fr")).toBe(0);
+  });
+
+  it("HUB-09 — le questionnaire se reprend à sa question et se termine une fois", async () => {
     const organization = await createOrganization(db, `Org ${randomUUID()}`);
     expect(await getSetupState(db, organization.id)).toEqual({ step: 1, completed: false, metier: null });
     await saveSetupStep(db, organization.id, 4);
     expect((await getSetupState(db, organization.id)).step).toBe(4);
     await saveSetupStep(db, organization.id, 99);
-    // Lot 18 (AIDE-13) : 7 étapes, avec « Vos documents » en 4ᵉ.
-    expect((await getSetupState(db, organization.id)).step).toBe(7);
+    // Lot 33b (D9) : cinq questions ; une organisation arrêtée plus loin dans l'ancien assistant
+    // (sept étapes) reprend à la dernière question.
+    expect((await getSetupState(db, organization.id)).step).toBe(5);
+    await db.update(organizationProfiles).set({ setupStep: 7 }).where(eq(organizationProfiles.organizationId, organization.id));
+    expect((await getSetupState(db, organization.id)).step).toBe(5);
     await completeSetup(db, organization.id);
     expect((await getSetupState(db, organization.id)).completed).toBe(true);
   });

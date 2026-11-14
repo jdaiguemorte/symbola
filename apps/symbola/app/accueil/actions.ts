@@ -11,7 +11,7 @@ import { appDatabase } from "@symbola/db/client";
 import { formatCalendarDate, type Locale } from "@symbola/i18n";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isEventsModuleEnabled, isValidId } from "@/app/events/module-access";
-import { eventNames, EventTaskNotFoundError, getEvent, recordVendorReminder, updateEventTask, VendorCandidateNotFoundError } from "@/modules/events/service";
+import { DemoEventRestrictionError, eventNames, EventTaskNotFoundError, getEvent, recordVendorReminder, updateEventTask, VendorCandidateNotFoundError } from "@/modules/events/service";
 import { getDocumentHeader, isModuleEnabled } from "@/modules/hub/service";
 import { getVendorContacts } from "@/modules/vendors/service";
 
@@ -107,6 +107,8 @@ export async function remindVendorAction(_prev: RemindState, formData: FormData)
     reminded = await recordVendorReminder({ organizationId: allowed.organizationId, eventId, candidateId, userId: allowed.userId });
   } catch (error) {
     if (error instanceof VendorCandidateNotFoundError) return { error: tEvents("eventNotFound") };
+    // Lot 33b (HUB-10) : rien ne part vers un tiers depuis un évènement fictif.
+    if (error instanceof DemoEventRestrictionError) return { error: tEvents("demoNoSend") };
     throw error;
   }
   const db = appDatabase();

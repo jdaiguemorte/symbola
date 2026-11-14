@@ -8,8 +8,9 @@ import { SYSTEM_ACTOR, withActor } from "@symbola/db/actor";
 import { appDatabase } from "@symbola/db/client";
 import { parseEnv } from "@symbola/env";
 import { MailQuotaExceededError, reserveOrganizationMail, sendMail } from "@symbola/mail";
-import { starterClientTaskReminders, starterDemoEvent, starterLinkExpiry, starterLinkProfiles, starterProgram, starterRetroplanning, starterTutorialEvent, starterVendorSlots, type StarterLinkProfile } from "@symbola/starter-templates";
+import { starterClientTaskReminders, starterDemoEvent, starterExampleEvent, starterLinkExpiry, starterLinkProfiles, starterProgram, starterRetroplanning, starterTutorialEvent, starterVendorSlots, type StarterLinkProfile } from "@symbola/starter-templates";
 import {
+  countRealClientLinks,
   findEventNamesByIds,
   searchEventRows,
   countEventsByCreationMonth,
@@ -1965,8 +1966,12 @@ export async function listUncontractedVendors(organizationId: string, today: str
 }
 
 // D6 : la relance d'un prestataire s'inscrit dans l'activité de l'évènement ; le message part de la
-// messagerie de la planner (l'appelant), Symbola n'envoie rien.
+// messagerie de la planner (l'appelant), Symbola n'envoie rien. Lot 33b (HUB-10) : jamais depuis un
+// évènement fictif, même vers un prestataire réel du carnet ajouté à l'exemple.
 export async function recordVendorReminder(input: { organizationId: string; eventId: string; candidateId: string; userId: string }): Promise<{ vendorName: string; vendorId: string | null; slotLabel: string }> {
+  const found = await findEventById(input.organizationId, input.eventId);
+  if (!found) throw new CandidateNotFoundError();
+  if (found.event.isDemo) throw new DemoEventRestrictionError();
   const recorded = await insertVendorReminder(input);
   if (!recorded) throw new CandidateNotFoundError();
   return recorded;
@@ -2084,6 +2089,36 @@ export async function startEventsTrial(input: StartEventsTrialInput): Promise<Ev
   return toTrial(event);
 }
 
+// Lot 33b (HUB-10, PAR-01 ; D10) — « Explorer avec un exemple » : le mariage de référence en
+// données fictives (is_demo), confirmé, avec le rétroplanning et le programme de départ. Étiqueté
+// « Exemple », exclu des statistiques, exports et recherches comme tout évènement fictif ; supprimé
+// d'un clic, proposé à la suppression au premier évènement réel, et purgé seul au bout de 30 jours.
+// Un exemple ou un essai déjà en cours est rouvert, jamais doublé.
+export const EXAMPLE_DURATION_MS = 30 * 24 * 60 * 60 * 1000;
+
+export async function startExampleEvent(input: StartEventsTrialInput): Promise<EventsTrial> {
+  const now = input.now ?? new Date();
+  const active = await findActiveDemoEvent(input.organizationId, now);
+  if (active) return toTrial(active);
+
+  const example = starterExampleEvent(input.locale);
+  const eventDate = addDays(now.toISOString().slice(0, 10), example.daysFromToday);
+  const retroplanning = starterRetroplanning(input.locale);
+  const event = await insertDemoEvent(input.organizationId, {
+    createdByUserId: input.userId,
+    status: "confirmed",
+    eventDate,
+    expiresAt: new Date(now.getTime() + EXAMPLE_DURATION_MS),
+    clients: example.clients,
+    venueName: example.venueName,
+    venueCity: example.venueCity,
+    fallbackVendorSlotLabels: starterVendorSlots(input.locale),
+    tasks: retroplanning.items.map((item) => ({ label: item.label, dueDate: addDays(eventDate, item.offsetDays), responsible: item.responsible })),
+    programItems: starterProgram(input.locale).items,
+  });
+  return toTrial(event);
+}
+
 // Lot 10 (AIDE-06) — événement fictif d'un tutoriel « en faisant » : son type
 // (anniversaire, séminaire, mariage…) et ses données viennent des modèles de
 // départ ; marqué démo, supprimé avec le tutoriel ou au bout de 24 h comme
@@ -2161,6 +2196,16 @@ export async function listExpiredDemoEvents(
 // Tableau de bord (AIDE-04) : un événement d'essai ne compte pas.
 export async function hasRealEvents(organizationId: string): Promise<boolean> {
   return (await countRealEvents(organizationId)) > 0;
+}
+
+// Lot 33b (HUB-10) : nombre d'évènements réels, pour proposer de supprimer l'exemple au premier.
+export async function countOrganizationRealEvents(organizationId: string): Promise<number> {
+  return countRealEvents(organizationId);
+}
+
+// Lot 33b (PAR-01, étape 6) — « Inviter un client » de la liste de prise en main.
+export async function countOrganizationClientLinks(organizationId: string): Promise<number> {
+  return countRealClientLinks(organizationId);
 }
 
 // Lot 9 (ADR 0029) — statistique d'usage pour l'Admin : événements réels

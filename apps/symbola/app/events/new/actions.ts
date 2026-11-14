@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import type { Locale } from "@symbola/i18n";
-import { changeEventStatus, createProspect, listEventTypes, listProspectSources } from "@/modules/events/service";
+import { changeEventStatus, countOrganizationRealEvents, createProspect, getActiveEventsTrial, listEventTypes, listProspectSources } from "@/modules/events/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { eventsMessageFor } from "@/lib/vocabulary";
 import { isEventsModuleEnabled } from "../module-access";
@@ -59,5 +59,8 @@ export async function createProspectAction(
     await changeEventStatus({ organizationId, eventId: result.id, changedByUserId: auth.user.id, toStatus: "confirmed" });
   }
 
-  redirect(`/events/${result.id}`);
+  // Lot 33b (HUB-10, D10) : au premier évènement réel, la suppression de l'exemple est proposée.
+  const example = await getActiveEventsTrial(organizationId);
+  const first = example ? (await countOrganizationRealEvents(organizationId)) === 1 : false;
+  redirect(`/events/${result.id}${first ? "?exemple=proposer" : ""}`);
 }

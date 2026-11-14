@@ -40,8 +40,12 @@ export const organizations = hubSchema.table("organizations", {
   updatedBy: uuid("updated_by"),
 });
 
+// Lot 33 (HUB-02, HUB-03) : rôle d'une adhésion, et de l'invitation qui la crée (lot 33b, D12).
+export const membershipRoleEnum = hubSchema.enum("membership_role", ["owner", "member"]);
+
 // Invitation du titulaire par l'Admin (PRD PRD-HUB-03) : valable 7 jours
 // (proposé), un seul usage (acceptedAt posé à la première utilisation).
+// Lot 33b (HUB-03, D12) : la Propriétaire invite aussi une Planner (rôle member).
 export const invitations = hubSchema.table("invitations", {
   id: uuid("id").defaultRandom().primaryKey(),
   organizationId: uuid("organization_id")
@@ -49,6 +53,7 @@ export const invitations = hubSchema.table("invitations", {
     .references(() => organizations.id),
   email: text("email").notNull(),
   tokenHash: text("token_hash").notNull().unique(),
+  role: membershipRoleEnum("role").notNull().default("owner"),
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
   acceptedAt: timestamp("accepted_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
@@ -133,7 +138,6 @@ export const helpProgress = hubSchema.table(
 // portée par la session et contrôlée à chaque requête. Table d'identité : pas de RLS,
 // isolation assurée par packages/auth (ADR 0013), comme hub.users. disabledAt : accès retiré
 // par la Propriétaire (lot 24b), pour cette organisation seulement.
-export const membershipRoleEnum = hubSchema.enum("membership_role", ["owner", "member"]);
 
 export const memberships = hubSchema.table(
   "memberships",
@@ -214,9 +218,13 @@ export const organizationProfiles = hubSchema.table("organization_profiles", {
   // Taux par défaut en centièmes de point (2000 = 20,00 %), utilisé
   // seulement si vatRegime = "assujetti".
   vatRateDefaultBasisPoints: integer("vat_rate_default_basis_points"),
+  // Lot 33b (HUB-09, D11) : réponses du questionnaire d'accueil, en clés des listes de départ
+  // (packages/starter-templates, onboarding.json) ; elles règlent l'ordre de la prise en main.
+  annualEventVolume: text("annual_event_volume"),
+  replacedTools: text("replaced_tools").array().notNull().default(sql`'{}'::text[]`),
   completedAt: timestamp("completed_at", { withTimezone: true }),
-  // Lot 12 (ONB-03) : assistant de démarrage — étape en cours (1 à 6) et
-  // fin ; tant qu'il n'est pas terminé, les menus métier sont verrouillés.
+  // Lot 12 (ONB-03) : assistant de démarrage — étape en cours et fin. Lot 33b (HUB-09, D9) :
+  // questionnaire d'accueil en cinq questions ; les menus ne sont plus verrouillés.
   setupStep: integer("setup_step").notNull().default(1),
   setupCompletedAt: timestamp("setup_completed_at", { withTimezone: true }),
   // Lot 13 (L13-HUB-15) : délais de relance du bloc « À traiter » ; null =
@@ -251,6 +259,8 @@ export const organizationProfiles = hubSchema.table("organization_profiles", {
   check("organization_profiles_mediator_name_check", sql`${table.mediatorName} is null or char_length(${table.mediatorName}) between 1 and 160`),
   check("organization_profiles_mediator_url_check", sql`${table.mediatorUrl} is null or char_length(${table.mediatorUrl}) between 1 and 300`),
   check("organization_profiles_general_terms_check", sql`${table.generalTerms} is null or char_length(${table.generalTerms}) between 1 and 20000`),
+  check("organization_profiles_annual_event_volume_check", sql`${table.annualEventVolume} is null or char_length(${table.annualEventVolume}) between 1 and 40`),
+  check("organization_profiles_replaced_tools_check", sql`cardinality(${table.replacedTools}) <= 10`),
 ]);
 
 // Historique des changements de régime de TVA (PRD ONB-02) : chaque

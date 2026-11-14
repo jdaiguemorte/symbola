@@ -2,18 +2,20 @@ import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import { listTeam } from "@symbola/auth";
 import { appDatabase } from "@symbola/db/client";
-import { formatDateTime, type Locale } from "@symbola/i18n";
+import { formatDate, formatDateTime, type Locale } from "@symbola/i18n";
 import { ScreenHelp } from "@/app/screen-help";
 import { PageHeader } from "@/app/ui/page-header";
 import { requireOwner } from "@/lib/guards";
 import { removeMemberAction } from "./actions";
+import { InviteMemberForm } from "./invite-form";
+import { listPendingTeamInvitations } from "@/modules/hub/service";
 
 type Query = { retirer?: string; retire?: string };
 
 // Lot 24b (SEC-06, décision D3) — équipe de l'organisation : la titulaire voit
 // les comptes de l'équipe et retire l'accès d'un collaborateur, après une
-// confirmation. Titulaire seulement. Inviter un collaborateur ou changer un
-// rôle viendra avec la gestion complète de l'équipe.
+// confirmation. Titulaire seulement. Lot 33b (HUB-03, D12) : elle invite une
+// Planner ; transfert de propriété et changement de rôle restent au lot 52.
 export default async function TeamPage({ searchParams }: { searchParams: Promise<Query> }) {
   const auth = await requireOwner();
   const t = await getTranslations("Team");
@@ -29,6 +31,7 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
   const locale = (await getLocale()) as Locale;
   const query = await searchParams;
   const members = await listTeam(appDatabase(), auth.user.organizationId);
+  const pending = await listPendingTeamInvitations(appDatabase(), auth.user.organizationId);
   const confirming = members.find((member) => member.id === query.retirer && member.role === "member" && !member.disabledAt);
 
   return (
@@ -82,6 +85,21 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
           </tbody>
         </table>
       </div>
+
+      <section className="card" aria-labelledby="invite-title">
+        <h2 id="invite-title">{t("inviteTitle")}</h2>
+        <InviteMemberForm />
+        {pending.length > 0 ? (
+          <>
+            <h3>{t("pendingTitle")}</h3>
+            <ul>
+              {pending.map((invitation) => (
+                <li key={invitation.id}>{t("pendingUntil", { email: invitation.email, date: formatDate(invitation.expiresAt, locale) })}</li>
+              ))}
+            </ul>
+          </>
+        ) : null}
+      </section>
     </main>
   );
 }

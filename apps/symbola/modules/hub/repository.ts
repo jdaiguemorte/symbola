@@ -1,7 +1,7 @@
 // Accès aux données du module hub — jamais importé hors de modules/hub/
 // (ADR 0011). Pas de RLS sur ces tables (packages/db/src/schema/hub.ts) :
 // l'isolation est assurée par le code applicatif, pas par PostgreSQL.
-import { and, desc, eq, isNull, sql } from "drizzle-orm";
+import { and, desc, eq, gt, isNull, sql } from "drizzle-orm";
 import type { AppDatabase } from "@symbola/db/client";
 import { backupRuns, helpProgress, invitations, memberships, organizationModules, organizationProfiles, organizations, platformSettings, users, vatRegimeChanges } from "@symbola/db/schema/hub";
 import type { Language } from "./types";
@@ -17,7 +17,7 @@ export async function insertOrganization(
 
 export async function insertInvitation(
   db: AppDatabase,
-  input: { organizationId: string; email: string; tokenHash: string; expiresAt: Date },
+  input: { organizationId: string; email: string; tokenHash: string; expiresAt: Date; role?: "owner" | "member"; createdBy?: string },
 ) {
   const [invitation] = await db.insert(invitations).values(input).returning();
   if (!invitation) throw new Error("création de l'invitation échouée");
@@ -31,6 +31,15 @@ export async function findInvitationByTokenHash(db: AppDatabase, tokenHash: stri
 
 export async function markInvitationAccepted(db: AppDatabase, invitationId: string) {
   await db.update(invitations).set({ acceptedAt: new Date() }).where(eq(invitations.id, invitationId));
+}
+
+// Lot 33b (HUB-03) : invitations d'un rôle encore valables, pas encore acceptées.
+export async function findPendingRoleInvitations(db: AppDatabase, organizationId: string, role: "owner" | "member", now: Date) {
+  return db
+    .select({ id: invitations.id, email: invitations.email, expiresAt: invitations.expiresAt, createdAt: invitations.createdAt })
+    .from(invitations)
+    .where(and(eq(invitations.organizationId, organizationId), eq(invitations.role, role), isNull(invitations.acceptedAt), gt(invitations.expiresAt, now)))
+    .orderBy(desc(invitations.createdAt));
 }
 
 export async function findOrganizationById(db: AppDatabase, organizationId: string) {
@@ -216,9 +225,14 @@ export async function findUserContact(db: AppDatabase, organizationId: string, u
 }
 
 // Lot 9 (ADR 0029) — invitations de titulaire pas encore acceptées (vue
-// d'assistance de l'Admin), la plus récente d'abord.
+// d'assistance de l'Admin), la plus récente d'abord. Lot 33b : les invitations de Planner,
+// envoyées par la Propriétaire, n'y figurent pas.
 export async function findPendingInvitations(db: AppDatabase) {
-  return db.select().from(invitations).where(isNull(invitations.acceptedAt)).orderBy(desc(invitations.createdAt));
+  return db
+    .select()
+    .from(invitations)
+    .where(and(isNull(invitations.acceptedAt), eq(invitations.role, "owner")))
+    .orderBy(desc(invitations.createdAt));
 }
 
 export async function findInvitationById(db: AppDatabase, invitationId: string) {

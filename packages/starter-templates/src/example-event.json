@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "daysFromToday": 210,
+  "clients": [
+    { "firstName": { "fr": "Léa", "en": "Léa" }, "lastName": { "fr": "Martin (exemple)", "en": "Martin (example)" } },
+    { "firstName": { "fr": "Maxime", "en": "Maxime" }, "lastName": { "fr": "Dubois (exemple)", "en": "Dubois (example)" } }
+  ],
+  "venueName": { "fr": "Domaine des Tilleuls (fictif)", "en": "Linden Estate (fictional)" },
+  "venueCity": { "fr": "Dordogne", "en": "Dordogne" }
+}
