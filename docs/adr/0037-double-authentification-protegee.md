@@ -1,7 +1,8 @@
 # ADR 0037 — Double authentification protégée : limite d'essais, anti-rejeu, secret chiffré
 
-- Statut : accepté ; prendra fin avec la bascule de l'ADR
-  [0052](0052-identite-fournisseur-open-source.md) (lot 33)
+- Statut : **remplacé** au lot 33 par [0052](0052-identite-fournisseur-open-source.md) et
+  [0067](0067-fournisseur-d-identite-logto.md) : la double authentification est tenue par Logto,
+  les secrets et la commande `mfa-secrets` ont disparu de Symbola (migration 0130)
 - Date : 2026-11-08
 - Complète : [0013](0013-auth-maison-pour-le-mvp.md) (authentification maison),
   [0029](0029-assistance-admin-et-statistiques-d-usage.md) (réinitialisation par l'Admin),

@@ -63,7 +63,8 @@ Julien a retenu Logto sous réserve d'un prototype en local sur sept points.
      connecteur d'e-mail, langues, couleurs ;
    - le script est rejouable.
 7. **Console d'administration de Logto** : jamais exposée publiquement, seulement par un tunnel
-   SSH.
+   SSH. Son propre contrôle par Have I Been Pwned est coupé dès l'initialisation
+   (`db seed -- --dapc`) : aucun appel sortant non plus depuis la console.
 8. **E-mails envoyés par Logto** (code de connexion, mot de passe oublié) : connecteur SMTP du
    serveur d'envoi de Symbola (Mailpit en dev, IONOS en production).
 

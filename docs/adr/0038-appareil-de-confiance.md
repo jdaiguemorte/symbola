@@ -1,7 +1,8 @@
 # ADR 0038 — Appareil de confiance : le code de double authentification redemandé tous les 90 jours
 
-- Statut : accepté ; prendra fin avec la bascule de l'ADR
-  [0052](0052-identite-fournisseur-open-source.md) (lot 33)
+- Statut : **remplacé** au lot 33 par [0052](0052-identite-fournisseur-open-source.md) et
+  [0067](0067-fournisseur-d-identite-logto.md) : la table des appareils de confiance a disparu
+  (migration 0130) ; quand redemander le second facteur relève désormais de Logto
 - Date : 2026-11-08
 - Complète : [0013](0013-auth-maison-pour-le-mvp.md) (authentification maison),
   [0037](0037-double-authentification-protegee.md) (double authentification protégée)

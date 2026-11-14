@@ -3,9 +3,9 @@
 - Statut : accepté (décision Q3 b de Julien du 11/11/2026) ; le fournisseur est choisi au lot 33
   (décision D2 a du lot 25) ; choix écrit dans [0067](0067-fournisseur-d-identite-logto.md) (Logto)
 - Date : 2026-11-11
-- Remplacera, à la bascule : [0013](0013-auth-maison-pour-le-mvp.md) (authentification maison),
-  [0037](0037-double-authentification-protegee.md) (double authentification protégée) et
-  [0038](0038-appareil-de-confiance.md) (appareil de confiance). Ils restent en vigueur jusque-là.
+- Remplace, depuis la bascule du lot 33 : [0013](0013-auth-maison-pour-le-mvp.md) (authentification
+  maison), [0037](0037-double-authentification-protegee.md) (double authentification protégée) et
+  [0038](0038-appareil-de-confiance.md) (appareil de confiance).
 - Exigences : SEC-01, HUB-01, HUB-02, SEC-07, JUR-18, NFR-27 de `docs/CAHIER_DES_CHARGES.md`.
 
 ## Contexte

@@ -28,12 +28,13 @@ la documentation ou le contrat du fournisseur avant la première donnée réelle
 ## Briques hébergées sur le serveur de Symbola (pas de sous-traitant)
 
 PostgreSQL, Garage (fichiers), ClamAV (antivirus : seules ses bases de signatures sont
-téléchargées, aucun fichier n'est envoyé), Documenso (signature, ADR 0026), Uptime Kuma, Caddy,
-fond de carte servi par l'app (ADR 0031).
+téléchargées, aucun fichier n'est envoyé), Documenso (signature, ADR 0026), Logto (fournisseur
+d'identité, lot 33, ADR 0067 : comptes, mots de passe hachés et seconds facteurs dans sa base
+dédiée, sur le même serveur ; ses e-mails partent par le même serveur d'envoi que Symbola), Uptime
+Kuma, Caddy, fond de carte servi par l'app (ADR 0031).
 
 ## À venir
 
 Chaque choix ajoutera une ligne, avec son ADR : service d'e-mail capable d'envoyer depuis le
-domaine du planner (Q18, lots 38 et 55), fournisseur d'identité, hébergé sur le serveur (ADR 0052,
-lot 33), prestataire de paiement (Q21, lot 43), plateforme agréée de facturation électronique
+domaine du planner (Q18, lots 38 et 55), prestataire de paiement (Q21, lot 43), plateforme agréée de facturation électronique
 (lot 42), suivi des erreurs (Q27, lot 40).

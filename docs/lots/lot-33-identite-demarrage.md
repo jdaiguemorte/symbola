@@ -2,6 +2,7 @@
 
 **Statut** : spécification **validée par Julien le 13/11/2026** (« Oui, je valide » : D1 à D12 en
 (a), dépendances comprises ; aucune donnée réelle en production, pour D3).
+33a fait le 14/11/2026 (bilan après la partie G) ; 33b à faire.
 Branche `lot-33-identite`, partie de `main` après le lot 32 (PR #112).
 
 ## Contexte
@@ -201,6 +202,88 @@ Le comparatif et le choix sont écrits dans l'**ADR 0067**, qui complète l'ADR 
   chez le fournisseur et l'adhésion. Jamais de route d'essai dans l'app.
 - **Tests de SEC-07 à l'horloge simulée** : lien rejoué, lien à 14 min 59 s et à 15 min 01 s,
   lien d'une autre adresse.
+
+### Bilan du lot 33a (14/11/2026)
+
+**Fait** :
+- **Logto 1.46.0 sur le VPS** (ADR 0067, NFR-27) : service des Compose de dev et de production,
+  base dédiée créée par le bootstrap, console en boucle locale seulement, journaux tournants
+  (2 × 5 Mo), limites de mémoire et de processeur. `configure-identity` le règle en une commande
+  rejouable : application de Symbola, e-mails, expérience de connexion (mots interdits, verrou
+  après cinq échecs pour quinze minutes), centre de compte. Sa base part dans la sauvegarde
+  nocturne ; la restauration recrée ses rôles et a été rejouée sur un PostgreSQL vierge.
+- **Inscription et connexion** (HUB-01, SEC-07 ; D5, D8) :
+  - `/inscription` et `/login` demandent un lien, avec la même réponse pour une adresse connue
+    ou inconnue ; débit limité à 20 demandes par adresse IP et 5 par adresse e-mail sur quinze
+    minutes ;
+  - le lien est un jeton à usage unique de quinze minutes créé par Logto, scellé et envoyé par
+    Symbola, dans la langue de l'écran ; il est émis pour l'adresse exacte que Logto connaît,
+    casse comprise ;
+  - « Se connecter avec un mot de passe ou une clé d'accès » mène aux pages de Logto, par
+    demande poussée (PAR) ;
+  - au retour, Symbola ouvre sa session opaque ; un nouveau compte arrive sur `/demarrage` avec
+    son organisation provisoire, « Mon atelier » ;
+  - la déconnexion ferme aussi la session chez Logto.
+- **Double authentification** (D4) : titulaires et Exploitation l'ont obligatoire chez Logto
+  (`mfa.required`) ; Symbola vérifie à chaque connexion qu'elle a eu lieu (`acr`) et, sinon,
+  renvoie vers `/securite`. L'Exploitation la réinitialise par l'API de Logto.
+- **Plusieurs organisations** (HUB-02 ; D6) : table `hub.memberships` (titulaire, Planner),
+  organisation active portée par la session, bascule par le menu du compte.
+- **Rôle d'exploitation** (Q30 ; D7) : « Admin » devient « Exploitation », `/admin` devient
+  `/exploitation`, le compte porte le marqueur `operator`.
+- **Reprise des comptes et retrait des mots de passe** (SEC-01 ; D3) : `migrate-accounts` relie
+  les comptes existants à Logto (rejouable). La migration 0130 retire mots de passe, secrets de
+  double authentification, compteurs, `hub.password_resets` et `hub.trusted_devices`. Les
+  invitations ne demandent plus de mot de passe. Code retiré : mots de passe, TOTP, codes de
+  secours, appareils de confiance, commande `mfa-secrets`, dépendances `@node-rs/argon2` et
+  `otpauth` (ce dernier reste en dépendance de développement de l'app, pour les parcours de
+  test). Dépendance ajoutée : `openid-client` 6.9.0 (ADR 0067).
+- **Journal d'activité** : une connexion se lit « par le service de connexion » ou « avec double
+  authentification » ; les méthodes d'avant restent lisibles dans l'historique.
+- **Tests** : 42 tests unitaires dans `@symbola/auth` et 21 d'intégration ; 163 d'intégration
+  dans `@symbola/db` (dont les annulations de 0129 et 0130) ; 481 unitaires et 579 d'intégration
+  dans l'app. Parcours : les 70 fonctions de connexion passent par le lien et Mailpit ; nouveau
+  parcours `sec-01-07-connexion` ; suite complète rejouée sur une base rechargée, ordinateur et
+  375 px : 265 réussis, 1 ignoré (prévu, taille ordinateur seulement). Lint, typecheck,
+  frontières de modules : verts. Semgrep (règles par défaut) : aucune erreur. Gitleaks : les
+  mêmes 12 faux positifs que sur `main`, aucun nouveau.
+- **Rejeu** : SC-01, étape 1, dans `docs/recette/SC-01.md` (une seule donnée, 4 gestes).
+- **Documentation** : ADR 0067 ; ADR 0013, 0037 et 0038 remplacés ; runbooks de déploiement (mise
+  en service de Logto, premiers comptes, retour arrière) et de restauration ; registre RGPD ;
+  sous-traitants ; `CLAUDE.md` ; `docs/gap.csv`.
+
+**Écarts avec la spécification** :
+- **0130 sans garde-fou** : la migration retire les colonnes sans attendre que chaque compte soit
+  relié. Le garde-fou prévu aurait bloqué le déploiement d'ensemble ; un compte non relié l'est
+  à sa première connexion, par son adresse, donc personne ne reste dehors.
+- **Valeur interne `admin`** (D7) : elle reste dans le type des rôles et dans l'auteur des
+  lignes du journal d'audit, qui est en ajout seul. Seuls les libellés et les adresses changent.
+- **D4 par compte** : Logto ne sait pas exiger le second facteur pour un groupe ; Symbola le pose
+  compte par compte (`mfa.required`), quand une titulaire ou l'Exploitation se connecte sans
+  l'avoir, puis depuis `/securite`.
+- **Grâce de la séance d'inscription** : une session ouverte dans les 60 s qui suivent la
+  création du compte n'exige pas encore le second facteur ; il est demandé à la connexion
+  suivante. Elle couvre aussi une titulaire créée par l'Exploitation qui se connecte dans la
+  minute.
+- **Échecs de connexion** : refus et verrous sont journalisés chez Logto, plus dans le journal
+  d'activité de Symbola.
+- **Adresse chez Logto** : la demande poussée n'empêche pas Logto d'écrire l'adresse et le
+  jeton dans ses propres adresses et journaux ; rotation courte, inscrite au registre RGPD.
+- **Mots de passe** : le contrôle de Logto (longueur, mots interdits) est moins strict que
+  l'ancien ; mention « Powered by Logto » sur ses pages (ADR 0067).
+- **Comptes de test** (partie G) : pas de fabrique dans `packages/testing`. Les comptes sont
+  créés dans Symbola et reliés à Logto à leur première connexion ; le second facteur des
+  titulaires est posé par l'API de Logto dans `e2e/helpers.ts`.
+
+**Corrigé en passant** : l'alerte « même jour » (CRM-04, lot 32b) listait les évènements dans un
+ordre variable ; les confirmés passent maintenant avant les options.
+
+**Reste** :
+- **33b** : questionnaire, « Votre espace est prêt », exemple, liste de prise en main, ajout
+  d'une Planner ; SC-01 en entier et SC-10, étape 1.
+- **Déploiement d'ensemble (Julien)** : enregistrements DNS `connexion.staging.symbola.fr` et
+  `connexion.symbola.fr`, secrets `LOGTO_*`, mise en service de Logto (runbook de déploiement),
+  migrations 0129 et 0130, puis `migrate-accounts` ; recette sur le staging.
 
 ## Lot 33b — Démarrer
 

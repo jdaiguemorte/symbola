@@ -14,7 +14,7 @@ Un fichier par décision structurante, numéroté. Pour changer une décision : 
 - [0010 — Facturation conforme](0010-facturation-conforme.md)
 - [0011 — Une seule app Next.js, modules internes](0011-monolithe-modulaire-pour-le-mvp.md)
 - [0012 — Une seule base PostgreSQL, schémas logiques par module](0012-base-unique-schemas-logiques-pour-le-mvp.md)
-- [0013 — Authentification maison derrière `packages/auth`](0013-auth-maison-pour-le-mvp.md) — *remplacé par 0052 à la bascule (lot 33)*
+- [0013 — Authentification maison derrière `packages/auth`](0013-auth-maison-pour-le-mvp.md) — *remplacé par 0052 et 0067 (lot 33)*
 - [0014 — Table d'événements internes, pas de bus séparé](0014-evenements-internes-pour-le-mvp.md)
 - [0015 — Garage remplace MinIO pour le stockage objet](0015-garage-remplace-minio-stockage-objet.md)
 - [0016 — Isolation réseau staging ↔ production sur le VPS unique](0016-isolation-reseau-staging-production.md)
@@ -38,8 +38,8 @@ Un fichier par décision structurante, numéroté. Pour changer une décision : 
 - [0034 — Import : lecture des fiches PDF avec `pdfjs-dist`](0034-lecture-des-pdf-pour-l-import.md)
 - [0035 — Traitements de fond suivis des imports](0035-traitements-de-fond-suivis-des-imports.md)
 - [0036 — Migrations annulables par script, types énumérés compris](0036-migrations-annulables.md)
-- [0037 — Double authentification protégée : limite d'essais, anti-rejeu, secret chiffré](0037-double-authentification-protegee.md) — *prend fin avec 0052 (lot 33)*
-- [0038 — Appareil de confiance : le code de double authentification redemandé tous les 90 jours](0038-appareil-de-confiance.md) — *prend fin avec 0052 (lot 33)*
+- [0037 — Double authentification protégée : limite d'essais, anti-rejeu, secret chiffré](0037-double-authentification-protegee.md) — *remplacé par 0052 et 0067 (lot 33)*
+- [0038 — Appareil de confiance : le code de double authentification redemandé tous les 90 jours](0038-appareil-de-confiance.md) — *remplacé par 0052 et 0067 (lot 33)*
 - [0039 — Aide : un seul « ? » dans la barre du haut, un tiroir qui pousse le contenu](0039-aide-un-seul-bouton-et-tiroir.md)
 - [0040 — Familles de types de prestataires, propres à l'organisation ; fusion et suppression sans perte](0040-familles-de-types-de-prestataires.md)
 - [0041 — Import en assistant linéaire ; types de l'import rangés par famille](0041-import-en-assistant.md)
