@@ -932,6 +932,13 @@
       "when": 1794687042793,
       "tag": "0132_lot34a_events_lifecycle",
       "breakpoints": true
+    },
+    {
+      "idx": 133,
+      "version": "7",
+      "when": 1794694560492,
+      "tag": "0133_lot34b_events_fiche_tasks",
+      "breakpoints": true
     }
   ]
 }

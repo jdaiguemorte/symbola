@@ -51,10 +51,11 @@ const rollback = async (tag: string) => {
 };
 
 // Lots 26a à 29b : migrations au-dessus de celles du 28, annulées pour revenir à 0108.
+const LOT_34B = ["0133_lot34b_events_fiche_tasks"];
 const LOT_34A = ["0132_lot34a_events_lifecycle"];
 const LOT_33B = ["0131_lot33b_hub_onboarding"];
 const LOT_33A = ["0130_lot33a_hub_drop_passwords", "0129_lot33a_hub_memberships"];
-const LOT_33 = [...LOT_34A, ...LOT_33B, ...LOT_33A];
+const LOT_33 = [...LOT_34B, ...LOT_34A, ...LOT_33B, ...LOT_33A];
 const LOT_32A = ["0128_lot32a_events_activity_vendor", "0127_lot32a_events_activity_vendor_kind"];
 const LOT_31C = ["0126_lot31c_quotes_payment_terms_receipts", "0125_lot31c_quotes_receipt_series"];
 const LOT_31B = ["0124_lot31b_hub_contract_retention", "0123_lot31b_quotes_contracts", "0122_lot31b_quotes_client_kind"];
@@ -97,8 +98,59 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     await expect(rollback("0099_inconnue")).rejects.toBeInstanceOf(RollbackRefusedError);
   });
 
+  it("lot 34b (EVT-03, CHR-02 ; D10 à D13) — 0133 : le lieu de réception devient le premier lieu (un lieu du même nom est repris) ; invités, style, notes ; tâche confiée à un prestataire ; l'annulation rend le lieu et la tâche à la planner", async () => {
+    await rollback(LOT_34B[0]!);
+    const organizationId = randomUUID();
+    const inOrganization = <T>(work: (tx: postgres.TransactionSql) => Promise<T>) =>
+      target.begin(async (tx) => {
+        await tx`select set_config('app.organization_id', ${organizationId}, true)`;
+        return work(tx);
+      }) as Promise<T>;
+    const ids: Record<string, string> = await inOrganization(async (tx) => {
+      const event = async (venueName: string | null, venueCity: string | null) =>
+        (await tx<{ id: string }[]>`insert into events.events (organization_id, venue_name, venue_city) values (${organizationId}, ${venueName}, ${venueCity}) returning id`)[0]!.id;
+      const named = await event("Domaine des Tilleuls", "Lille");
+      await tx`insert into events.event_places (organization_id, event_id, label, position) values (${organizationId}, ${named}, 'Église du village', 0), (${organizationId}, ${named}, ' domaine des tilleuls ', 1)`;
+      const other = await event("Château de la Roche", "Arras");
+      await tx`insert into events.event_places (organization_id, event_id, label, position) values (${organizationId}, ${other}, 'Mairie', 0)`;
+      return { named, other, cityOnly: await event(null, "Amiens"), none: await event(null, null) };
+    });
+
+    await migrateAll();
+    expect(await hasColumn("events", "events", "venue_name")).toBe(false);
+    const places = await inOrganization((tx) => tx<{ event_id: string; label: string; city: string | null }[]>`select event_id, label, city from events.event_places where organization_id = ${organizationId} order by event_id, position, created_at`);
+    const placesOf = (eventId: string) => places.filter((place) => place.event_id === eventId).map((place) => [place.label, place.city]);
+    // Le lieu du même nom (casse et espaces mis à part) devient le premier, avec la ville ; rien n'est créé.
+    expect(placesOf(ids.named!)).toEqual([[" domaine des tilleuls ", "Lille"], ["Église du village", null]]);
+    expect(placesOf(ids.other!)).toEqual([["Château de la Roche", "Arras"], ["Mairie", null]]);
+    // Sans nom, la ville sert d'intitulé ; sans lieu, aucune ligne.
+    expect(placesOf(ids.cityOnly!)).toEqual([["Amiens", null]]);
+    expect(placesOf(ids.none!)).toEqual([]);
+
+    await inOrganization((tx) => tx`update events.events set guests_estimated = 120, guests_confirmed = 98, style = 'Bohème', notes = 'Allergie aux fruits à coque' where id = ${ids.named!}`);
+    await expect(inOrganization((tx) => tx`update events.events set guests_confirmed = -1 where id = ${ids.named!}`)).rejects.toThrow(/events_guests_check/);
+    const [task] = await inOrganization((tx) => tx<{ id: string }[]>`insert into events.event_tasks (organization_id, event_id, label, due_date, responsible) values (${organizationId}, ${ids.named!}, 'Livrer les fleurs', '2027-06-11', 'vendor') returning id`);
+    await inOrganization((tx) => tx`insert into events.event_task_comments (organization_id, event_id, task_id, body) values (${organizationId}, ${ids.named!}, ${task!.id}, 'Accès par le portail nord')`);
+
+    await rollback(LOT_34B[0]!);
+    const venues = await inOrganization((tx) => tx<{ id: string; venue_name: string | null; venue_city: string | null }[]>`select id, venue_name, venue_city from events.events where organization_id = ${organizationId}`);
+    expect(Object.fromEntries(venues.map((row) => [row.id, [row.venue_name, row.venue_city]]))).toEqual({
+      [ids.named!]: [" domaine des tilleuls ", "Lille"],
+      [ids.other!]: ["Château de la Roche", "Arras"],
+      [ids.cityOnly!]: ["Amiens", null],
+      [ids.none!]: [null, null],
+    });
+    const [back] = await inOrganization((tx) => tx<{ responsible: string }[]>`select responsible::text as responsible from events.event_tasks where id = ${task!.id}`);
+    expect(back!.responsible).toBe("planner");
+    expect(await hasColumn("events", "event_places", "contact_email")).toBe(false);
+    expect(await hasColumn("events", "events", "guests_estimated")).toBe(false);
+    const [comments] = await target<{ name: string | null }[]>`select to_regclass('events.event_task_comments')::text as name`;
+    expect(comments!.name).toBeNull();
+    await migrateAll();
+  });
+
   it("lot 34a (EVT-05, DAT-07, ARC-17 ; D2) — 0132 : statuts du cahier des charges repris des anciens, historique compris ; écart des tâches ; fuseau ; l'annulation ramène les statuts du PRD", async () => {
-    await rollback(LOT_34A[0]!);
+    for (const tag of [...LOT_34B, ...LOT_34A]) await rollback(tag);
     const organizationId = randomUUID();
     const inOrganization = <T>(work: (tx: postgres.TransactionSql) => Promise<T>) =>
       target.begin(async (tx) => {
@@ -131,7 +183,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     expect(created!.status).toBe("option");
     await inOrganization((tx) => tx`update events.events set status = 'in_preparation' where id = ${ids.confirmed!}`);
 
-    await rollback(LOT_34A[0]!);
+    for (const tag of [...LOT_34B, ...LOT_34A]) await rollback(tag);
     const back = await inOrganization((tx) => tx<{ id: string; status: string }[]>`select id, status::text as status from events.events where id in (${ids.prospect!}, ${ids.confirmed!}, ${ids.done!}, ${ids.lost!})`);
     expect(Object.fromEntries(back.map((row) => [row.id, row.status]))).toEqual({ [ids.prospect!]: "prospect", [ids.confirmed!]: "confirmed", [ids.done!]: "done", [ids.lost!]: "lost" });
     expect(await hasColumn("events", "event_tasks", "offset_days")).toBe(false);
@@ -148,7 +200,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     expect(owner!.role).toBe("owner");
     await expect(target`update hub.organization_profiles set replaced_tools = ${"{a,b,c,d,e,f,g,h,i,j,k}"}::text[] where organization_id = ${organization!.id}`).rejects.toThrow(/replaced_tools_check/);
     const [planner] = await target<{ id: string }[]>`insert into hub.invitations (organization_id, email, token_hash, expires_at, role) values (${organization!.id}, ${`planner-${randomUUID()}@symbola.test`}, ${`t-${randomUUID()}`}, now() + interval '7 days', 'member') returning id`;
-    await rollback(LOT_34A[0]!);
+    for (const tag of [...LOT_34B, ...LOT_34A]) await rollback(tag);
     await expect(rollback(LOT_33B[0]!)).rejects.toThrow(/invitations de Planner/);
     await target`update hub.invitations set accepted_at = now() where id = ${planner!.id}`;
     await rollback(LOT_33B[0]!);
@@ -186,7 +238,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     expect(await hasColumn("hub", "trusted_devices", "token_hash")).toBe(false);
     // Annuler 0130 : colonnes revenues vides, organisation et rôle repris des adhésions ; les mots de
     // passe ne reviennent pas, donc revenir avant 0129 reste refusé.
-    await rollback(LOT_34A[0]!);
+    for (const tag of [...LOT_34B, ...LOT_34A]) await rollback(tag);
     await rollback(LOT_33B[0]!);
     await rollback(LOT_33A[0]!);
     const restored = await target<{ id: string; role: string; organization_id: string | null; password_hash: string | null }[]>`
