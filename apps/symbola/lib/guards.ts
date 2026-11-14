@@ -18,8 +18,18 @@ export type InOrganization = { status: "authenticated"; user: OrganizationUser }
 export async function requireSignedIn(): Promise<SignedIn> {
   const auth = await getAuthContext();
   if (auth.status === "unauthenticated") redirect("/login");
-  if (auth.status === "mfa_required") redirect("/mfa");
+  if (auth.status === "mfa_required") redirect("/securite");
   return auth;
+}
+
+// Lot 33 (D4) — page « Sécurisez votre compte » : seulement pour une session qui attend la double
+// authentification (Propriétaire, Exploitation). Sans session, la connexion ; session complète,
+// l'accueil.
+export async function requirePendingMfa(): Promise<{ role: "owner" | "member" | "admin" }> {
+  const auth = await getAuthContext();
+  if (auth.status === "unauthenticated") redirect("/login");
+  if (auth.status === "authenticated") redirect("/");
+  return { role: auth.role };
 }
 
 // Écrans de la planner (titulaire ou collaborateur, PRD-EVT-06) : l'Admin va à
@@ -27,7 +37,7 @@ export async function requireSignedIn(): Promise<SignedIn> {
 export async function requirePlanner(): Promise<InOrganization> {
   const auth = await getPlannerAuthContext();
   if (auth.status === "unauthenticated") redirect("/login");
-  if (auth.status === "mfa_required") redirect("/mfa");
+  if (auth.status === "mfa_required") redirect("/securite");
   if (auth.status === "forbidden") redirect("/");
   const { organizationId } = auth.user;
   if (!organizationId) redirect("/");
@@ -60,7 +70,7 @@ export async function requireLink(audience?: LinkAudience): Promise<LinkAccess> 
 export async function requireAdmin(): Promise<{ userId: string; email: string }> {
   const auth = await getAuthContext();
   if (auth.status === "unauthenticated") redirect("/login");
-  if (auth.status === "mfa_required") redirect("/mfa");
+  if (auth.status === "mfa_required") redirect("/securite");
   if (auth.user.role !== "admin") redirect("/");
   return { userId: auth.user.id, email: auth.user.email };
 }

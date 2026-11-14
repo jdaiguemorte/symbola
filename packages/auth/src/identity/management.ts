@@ -23,7 +23,7 @@ export class IdentityProviderError extends Error {
 const tokenResponse = z.object({ access_token: z.string().min(1), expires_in: z.number().positive() });
 const oneTimeToken = z.object({ token: z.string().min(1), expiresAt: z.number() });
 const identityUser = z.object({ id: z.string().min(1), primaryEmail: z.string().nullable() });
-const mfaVerification = z.object({ type: z.string() });
+const mfaVerification = z.object({ id: z.string(), type: z.string() });
 const application = z.object({ id: z.string().min(1), name: z.string(), type: z.string() });
 const applicationSecret = z.object({ value: z.string().min(1) });
 
@@ -83,9 +83,12 @@ export function createManagementClient(connection: IdentityConnection, fetchImpl
       return identityUser.parse(await request("POST", "/api/users", { primaryEmail: email }));
     },
 
-    async listMfaFactors(userId: string): Promise<string[]> {
-      const factors = z.array(mfaVerification).parse(await request("GET", `/api/users/${encodeURIComponent(userId)}/mfa-verifications`));
-      return factors.map((factor) => factor.type);
+    async listMfaVerifications(userId: string): Promise<{ id: string; type: string }[]> {
+      return z.array(mfaVerification).parse(await request("GET", `/api/users/${encodeURIComponent(userId)}/mfa-verifications`));
+    },
+
+    async deleteMfaVerification(userId: string, verificationId: string): Promise<void> {
+      await request("DELETE", `/api/users/${encodeURIComponent(userId)}/mfa-verifications/${encodeURIComponent(verificationId)}`);
     },
 
     // L'application web de Symbola, créée par configure-identity : son identifiant et son secret.

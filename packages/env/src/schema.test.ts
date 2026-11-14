@@ -7,6 +7,8 @@ const validEnv = {
   S3_ACCESS_KEY: "dev-access-key",
   S3_SECRET_KEY: "dev-secret-key",
   MFA_ENCRYPTION_KEY: Buffer.alloc(32, 7).toString("base64"),
+  LOGTO_M2M_SECRET: "s".repeat(64),
+  LOGTO_ENDPOINT: "https://connexion.symbola.test",
 };
 
 describe("SOC-03 — Validation des variables d'environnement (Zod)", () => {
@@ -99,5 +101,16 @@ describe("L16-SEC-01 — Clé de chiffrement de la double authentification", () 
     expect(() => parseEnv(rest)).toThrow(/MFA_ENCRYPTION_KEY/);
     expect(() => parseEnv({ ...validEnv, MFA_ENCRYPTION_KEY: Buffer.alloc(16, 7).toString("base64") })).toThrow(/MFA_ENCRYPTION_KEY/);
     expect(() => parseEnv({ ...validEnv, MFA_ENCRYPTION_KEY: "pas-une-clé" })).toThrow(/MFA_ENCRYPTION_KEY/);
+  });
+  it("lot 33 (SEC-01, ADR 0067) — fournisseur d'identité : secret machine à machine requis, https en production", () => {
+    const { LOGTO_M2M_SECRET, ...rest } = validEnv;
+    expect(LOGTO_M2M_SECRET).toBeTruthy();
+    expect(() => parseEnv(rest)).toThrow(/LOGTO_M2M_SECRET/);
+    expect(() => parseEnv({ ...validEnv, LOGTO_M2M_SECRET: "court" })).toThrow(/LOGTO_M2M_SECRET/);
+    const { LOGTO_ENDPOINT, ...withoutEndpoint } = validEnv;
+    expect(LOGTO_ENDPOINT).toBeTruthy();
+    expect(parseEnv(withoutEndpoint).LOGTO_ENDPOINT).toBe("http://localhost:3001");
+    expect(() => parseEnv({ ...withoutEndpoint, NODE_ENV: "production" })).toThrow(/LOGTO_ENDPOINT/);
+    expect(parseEnv({ ...validEnv, NODE_ENV: "production", LOGTO_ENDPOINT: "https://connexion.symbola.test" }).LOGTO_ENDPOINT).toBe("https://connexion.symbola.test");
   });
 });

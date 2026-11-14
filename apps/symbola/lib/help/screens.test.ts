@@ -84,7 +84,8 @@ describe("AIDE-14 — Chaque écran a son aide", () => {
     // Le centre d'aide (son « ? » y mène déjà), les liens reçus par e-mail
     // (nouveau mot de passe, signature d'essai, lot 26a : arrivée d'un lien
     // personnel, qui ne fait qu'ouvrir le portail) et les adresses qui redirigent.
-    const exempt = [/^aide\//, /^mot-de-passe\/\[token\]\//, /^signature-fictive\//, /^lien\/page\.tsx$/];
+    // Lot 33 : « Sécurisez votre compte » est une étape de passage, hors session complète.
+    const exempt = [/^aide\//, /^securite\/page\.tsx$/, /^signature-fictive\//, /^lien\/page\.tsx$/];
     const missing = pages(appDirectory)
       .map((path) => ({ path: relative(appDirectory, path), source: readFileSync(path, "utf-8") }))
       .filter(({ path }) => !exempt.some((pattern) => pattern.test(path)))

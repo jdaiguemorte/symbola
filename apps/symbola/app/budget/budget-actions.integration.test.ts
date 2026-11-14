@@ -6,9 +6,9 @@
 // (cookie, PostgreSQL) : seul l'accès à la requête Next.js (cookies,
 // revalidation, traductions) est simulé, faute de serveur en test.
 import { randomUUID } from "node:crypto";
-import * as OTPAuth from "otpauth";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { confirmTotp, createOrganization, createUser, login, setupTotp } from "@symbola/auth";
+import { createOrganization } from "@symbola/auth";
+import { signedInAccount } from "@/lib/test-fixtures/session";
 import { createAppConnection, type AppDatabase } from "@symbola/db/client";
 import {
   addDefaultVendorSlots,
@@ -50,7 +50,6 @@ function attachQuoteRequest(eventId: string, values: Record<string, string | Blo
   return new Request(`http://localhost:3000/budget/${eventId}/devis`, { method: "POST", body: form(values), headers: { origin: "http://localhost:3000", host: "localhost:3000" } });
 }
 
-const PASSWORD = "mot-de-passe-du-marie";
 const TINY_PDF = Buffer.from("%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n", "latin1");
 
 async function withDb<T>(fn: (db: AppDatabase) => Promise<T>): Promise<T> {
@@ -72,17 +71,10 @@ function form(values: Record<string, string | Blob>): FormData {
 // événement avec une ligne de budget, et un marié invité sur l'événement.
 async function setup() {
   const organizationId = (await withDb((db) => createOrganization(db, `Org ${randomUUID()}`))).id;
-  const plannerEmail = `planner-${randomUUID()}@example.test`;
-  const planner = await withDb((db) =>
-    createUser(db, { organizationId, email: plannerEmail, password: PASSWORD, role: "owner" }),
-  );
-  const plannerLogin = await withDb((db) => login(db, plannerEmail, PASSWORD));
-  if (plannerLogin.outcome !== "success") throw new Error("connexion planner attendue");
-  const { secret } = await withDb((db) => setupTotp(db, planner.id));
-  const code = new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret) }).generate();
-  // L16-SEC-01 : la validation remplace le jeton de session.
-  const confirmed = await withDb((db) => confirmTotp(db, { sessionToken: plannerLogin.sessionToken, token: code }));
-  if (confirmed.outcome !== "confirmed") throw new Error("double authentification attendue");
+  // Lot 33 : session ouverte comme après le fournisseur d'identité, double authentification déclarée.
+  const signedIn = await withDb((db) => signedInAccount(db, { organizationId, role: "owner" }));
+  const planner = { id: signedIn.userId };
+  const confirmed = { sessionToken: signedIn.token };
 
   await addDefaultVendorSlots(organizationId, ["Lieu"]);
   const source = await createProspectSource(organizationId, "Salon");

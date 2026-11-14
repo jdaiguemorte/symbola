@@ -4,7 +4,8 @@
 // double authentification et les verrous sont tenus par le fournisseur d'identité.
 import { and, eq, sql } from "drizzle-orm";
 import type { AppDatabase } from "@symbola/db/client";
-import { memberships, users } from "@symbola/db/schema/hub";
+import { memberships, sessions, users } from "@symbola/db/schema/hub";
+import type { ManagementClient } from "./identity/management";
 
 export type TeamAccountStatus = {
   userId: string;
@@ -66,4 +67,25 @@ export async function findTeamAccountOrganization(db: AppDatabase, userId: strin
     .orderBy(memberships.createdAt)
     .limit(1);
   return row?.organizationId ?? null;
+}
+
+export class MfaResetNotAllowedError extends Error {
+  constructor() {
+    super("réinitialisation refusée : compte sans organisation ou jamais connecté par le fournisseur d'identité");
+    this.name = "MfaResetNotAllowedError";
+  }
+}
+
+// Assistance (ADR 0029, lot 33) : une personne a perdu son second facteur. Ses seconds facteurs
+// sont retirés chez le fournisseur d'identité et ses sessions Symbola fermées ; à la connexion
+// suivante, la page « Sécurisez votre compte » lui en fait installer un nouveau. Refusé pour un
+// compte sans organisation (l'Exploitation) ou jamais connecté par le fournisseur.
+export async function resetIdentityMfa(db: AppDatabase, management: Pick<ManagementClient, "listMfaVerifications" | "deleteMfaVerification">, userId: string): Promise<{ email: string; language: "fr" | "en" | null }> {
+  const [account] = await db.select({ email: users.email, language: users.language, idpSubject: users.idpSubject, operator: users.operator }).from(users).where(eq(users.id, userId));
+  if (!account || account.operator || !account.idpSubject || !(await findTeamAccountOrganization(db, userId))) throw new MfaResetNotAllowedError();
+  for (const verification of await management.listMfaVerifications(account.idpSubject)) {
+    await management.deleteMfaVerification(account.idpSubject, verification.id);
+  }
+  await db.delete(sessions).where(eq(sessions.userId, userId));
+  return { email: account.email, language: account.language };
 }

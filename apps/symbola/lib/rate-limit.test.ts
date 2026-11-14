@@ -21,14 +21,14 @@ describe("L16-SEC-02 — Limitation de débit : règles et adresse du client", (
   });
 
   it("chaque tentative compte pour l'adresse et pour le compte ; l'e-mail est compté sans casse ni espaces", () => {
-    expect(rateLimitRules("passwordReset", { ip: "203.0.113.7", account: "  Planner@Symbola.TEST " })).toEqual([
-      { bucket: "passwordReset.ip", key: "203.0.113.7", ...RATE_LIMITS.passwordReset.ip },
-      { bucket: "passwordReset.account", key: "planner@symbola.test", ...RATE_LIMITS.passwordReset.account },
+    expect(rateLimitRules("login", { ip: "203.0.113.7", account: "  Planner@Symbola.TEST " })).toEqual([
+      { bucket: "login.ip", key: "203.0.113.7", ...RATE_LIMITS.login.ip },
+      { bucket: "login.account", key: "planner@symbola.test", ...RATE_LIMITS.login.account },
     ]);
   });
 
-  it("connexion, double authentification, mot de passe oublié, recherche et envoi de fichier ont chacun leurs limites", () => {
-    expect(Object.keys(RATE_LIMITS).sort()).toEqual(["linkCode", "linkOpen", "linkRenewal", "login", "mfa", "passwordReset", "search", "upload"]);
+  it("demande de lien de connexion, recherche, envoi de fichier et liens personnels ont chacun leurs limites", () => {
+    expect(Object.keys(RATE_LIMITS).sort()).toEqual(["linkCode", "linkOpen", "linkRenewal", "login", "search", "upload"]);
     for (const { ip, account } of Object.values(RATE_LIMITS)) {
       expect(account.limit).toBeLessThanOrEqual(ip.limit);
       expect(ip.windowMs).toBeGreaterThan(0);

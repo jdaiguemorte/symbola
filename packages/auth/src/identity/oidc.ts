@@ -75,8 +75,11 @@ export function createOidcClient(settings: OidcSettings, management: ManagementC
     },
 
     // Retour du fournisseur : code échangé, jeton d'identité vérifié (signature, émetteur,
-    // audience, nonce, état), adresse vérifiée exigée.
-    async complete(callbackUrl: URL, pending: PendingAuthorization): Promise<IdentityClaims> {
+    // audience, nonce, état), adresse vérifiée exigée. L'adresse de retour est rebâtie depuis
+    // l'adresse publique de l'app (derrière le proxy, la requête porte une adresse interne).
+    async complete(callbackParameters: URLSearchParams, pending: PendingAuthorization): Promise<IdentityClaims> {
+      const callbackUrl = new URL(redirectUri);
+      callbackUrl.search = callbackParameters.toString();
       const tokens = await client.authorizationCodeGrant(await config(), callbackUrl, {
         pkceCodeVerifier: pending.codeVerifier,
         expectedState: pending.state,

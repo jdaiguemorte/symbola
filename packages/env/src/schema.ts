@@ -97,7 +97,17 @@ export const envSchema = z.object({
     .refine((value) => /^[A-Za-z0-9+/]+={0,2}$/.test(value) && Buffer.from(value, "base64").length === 32, {
       message: "32 octets encodés en base64 (openssl rand -base64 32)",
     }),
+  // Lot 33 (SEC-01, ADR 0067) : fournisseur d'identité (Logto). Adresse publique, émetteur des
+  // jetons ; application machine à machine créée par configure-identity (son secret). Requis :
+  // sans eux, personne ne se connecte. Depuis le lot 33, MFA_ENCRYPTION_KEY scelle les liens
+  // magiques envoyés par Symbola.
+  LOGTO_ENDPOINT: z.string().url().default("http://localhost:3001"),
+  LOGTO_M2M_APP_ID: z.string().min(1).default("symbola-bootstrap"),
+  LOGTO_M2M_SECRET: z.string().min(32, "32 caractères au moins (openssl rand -hex 32)"),
 }).superRefine((env, context) => {
+  if (env.NODE_ENV === "production" && !env.LOGTO_ENDPOINT.startsWith("https://")) {
+    context.addIssue({ code: "custom", path: ["LOGTO_ENDPOINT"], message: "https exigé en production" });
+  }
   if (env.NODE_ENV === "production" && env.GEOCODER === "fake") {
     context.addIssue({ code: "custom", path: ["GEOCODER"], message: "le faux géocodage est interdit en production" });
   }

@@ -1,11 +1,13 @@
 // Lot 16 (L16-SEC-02, ADR 0044) — limitation de débit des vraies actions et
 // routes, contre un vrai PostgreSQL : seule la requête Next.js (en-têtes,
-// cookies, traductions) est simulée, faute de serveur en test.
+// cookies, traductions) est simulée, faute de serveur en test. Lot 33 : la
+// connexion se fait par lien (envoi simulé, compté) ; les échecs de mot de passe
+// et leurs délais sont chez le fournisseur d'identité (sa sentinelle).
 import { randomUUID } from "node:crypto";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { PlannerAuthResult } from "./auth-context";
 
-const request = vi.hoisted(() => ({ ip: "203.0.113.1", searchAuth: { status: "unauthenticated" } as PlannerAuthResult }));
+const request = vi.hoisted(() => ({ ip: "203.0.113.1", searchAuth: { status: "unauthenticated" } as PlannerAuthResult, linksSent: [] as string[] }));
 
 vi.mock("next/headers", () => ({
   headers: async () => new Headers({ "x-forwarded-for": request.ip }),
@@ -20,15 +22,19 @@ vi.mock("next-intl/server", () => ({
   getTranslations: async () => (key: string, values?: Record<string, unknown>) => (values ? `${key} ${JSON.stringify(values)}` : key),
   getLocale: async () => "fr",
 }));
+vi.mock("./identity", () => ({
+  sendMagicLink: async (email: string) => {
+    request.linksSent.push(email);
+  },
+}));
 vi.mock("./auth-context", async (importOriginal) => ({
   ...(await importOriginal<typeof import("./auth-context")>()),
   getPlannerAuthContext: async () => request.searchAuth,
 }));
 
-const { loginAction } = await import("@/app/login/actions");
-const { forgotPasswordAction } = await import("@/app/mot-de-passe-oublie/actions");
+const { requestLinkAction } = await import("@/app/login/actions");
 const { GET: instantSearch } = await import("@/app/recherche/instantanee/route");
-const { checkFailures, checkRateLimit, RATE_LIMITS } = await import("./rate-limit");
+const { checkRateLimit, RATE_LIMITS } = await import("./rate-limit");
 
 // Une adresse propre à chaque test (préfixe de documentation, RFC 5737) :
 // seule son empreinte est gardée, elle n'a pas à être routable.
@@ -41,36 +47,29 @@ function form(values: Record<string, string>): FormData {
   return data;
 }
 
-// Jusqu'à 121 vraies tentatives de suite par test : plus que le délai par défaut.
-describe("L16-SEC-02 — Limitation de débit de la connexion, du mot de passe oublié et de la recherche", { timeout: 60_000 }, () => {
+describe("L16-SEC-02 — Limitation de débit des demandes de lien et de la recherche", { timeout: 60_000 }, () => {
   beforeEach(() => {
     request.ip = freshIp();
+    request.linksSent = [];
   });
 
-  // Avec des mots de passe faux, le délai de SEC-04 intervient dès le dixième
-  // échec (voir plus bas) : la fenêtre de 20 essais par adresse se vérifie seule.
-  it("connexion : au-delà de 20 essais par adresse en 15 minutes, la fenêtre refuse et dit combien de minutes attendre", async () => {
+  it("lien : au-delà de 20 demandes par adresse IP en 15 minutes, la fenêtre refuse et dit combien de minutes attendre", async () => {
     for (let attempt = 0; attempt < RATE_LIMITS.login.ip.limit; attempt += 1) {
       expect(await checkRateLimit("login", { account: unknownEmail() })).toEqual({ allowed: true });
     }
     expect(await checkRateLimit("login", { account: unknownEmail() })).toMatchObject({ allowed: false, retryAfterSeconds: 15 * 60 });
   });
 
-  it("connexion : au-delà de 10 essais sur un même compte, même depuis des adresses différentes", async () => {
+  it("lien : au-delà de 5 demandes pour une même adresse e-mail, même depuis des adresses IP différentes, aucun lien ne part et un message", async () => {
     const email = unknownEmail();
+    expect(RATE_LIMITS.login.account.limit).toBe(5);
     for (let attempt = 0; attempt < RATE_LIMITS.login.account.limit; attempt += 1) {
       request.ip = freshIp();
-      expect(await loginAction({}, form({ email, password: "mauvais" }))).toEqual({ error: "invalidCredentials" });
+      expect(await requestLinkAction({}, form({ email }))).toEqual({ sent: true });
     }
     request.ip = freshIp();
-    expect(await loginAction({}, form({ email: email.toUpperCase(), password: "mauvais" }))).toEqual({ error: 'tooMany {"minutes":15}' });
-  });
-
-  it("mot de passe oublié : au-delà de 5 demandes par adresse en une heure, plus d'e-mail envoyé et un message", async () => {
-    for (let attempt = 0; attempt < RATE_LIMITS.passwordReset.ip.limit; attempt += 1) {
-      expect(await forgotPasswordAction({}, form({ email: unknownEmail() }))).toEqual({ sent: true });
-    }
-    expect(await forgotPasswordAction({}, form({ email: unknownEmail() }))).toEqual({ error: 'tooMany {"minutes":60}' });
+    expect(await requestLinkAction({}, form({ email: email.toUpperCase() }))).toEqual({ error: 'tooMany {"minutes":15}' });
+    expect(request.linksSent).toHaveLength(RATE_LIMITS.login.account.limit);
   });
 
   it("recherche instantanée : au-delà de la limite par compte, réponse 429 avec le délai et le message", async () => {
@@ -87,59 +86,26 @@ describe("L16-SEC-02 — Limitation de débit de la connexion, du mot de passe o
   });
 });
 
-// Lot 24b — SEC-04 : en plus de la fenêtre glissante, dix échecs depuis une même
-// adresse ou sur un même compte imposent un délai, qui double à chaque nouvel
-// échec (horloge simulée : packages/db/src/rate-limit.integration.test.ts).
-describe("SEC-04 — Dix échecs déclenchent un délai croissant", { timeout: 60_000 }, () => {
-  beforeEach(() => {
-    request.ip = freshIp();
-  });
-
-  it("dix mots de passe faux depuis une adresse, sur des comptes différents : la tentative suivante attend une minute", async () => {
-    for (let attempt = 0; attempt < 10; attempt += 1) {
-      expect(await loginAction({}, form({ email: unknownEmail(), password: "mauvais" }))).toEqual({ error: "invalidCredentials" });
-    }
-    expect(await loginAction({}, form({ email: unknownEmail(), password: "mauvais" }))).toEqual({ error: 'tooMany {"minutes":1}' });
-  });
-
-  it("mot de passe oublié : au-delà de la limite, chaque demande refusée compte ; au dixième refus, le délai croissant est armé", async () => {
-    const email = unknownEmail();
-    for (let attempt = 0; attempt < RATE_LIMITS.passwordReset.account.limit; attempt += 1) {
-      request.ip = freshIp();
-      expect(await forgotPasswordAction({}, form({ email }))).toEqual({ sent: true });
-    }
-    for (let refused = 0; refused < 10; refused += 1) {
-      request.ip = freshIp();
-      expect((await forgotPasswordAction({}, form({ email }))).error).toMatch(/^tooMany/);
-    }
-    // Le délai croissant est armé ; le message garde le plus long des deux délais (la fenêtre d'une heure).
-    expect(await checkFailures("passwordReset", { account: email })).toMatchObject({ allowed: false, retryAfterSeconds: 60 });
-    request.ip = freshIp();
-    expect(await forgotPasswordAction({}, form({ email }))).toEqual({ error: 'tooMany {"minutes":60}' });
-  });
-});
-
 // Lot 24b — SEC-22 : piège à robots des formulaires publics. Un envoi qui
 // remplit le champ caché est ignoré, sans compter dans la limitation de débit.
 describe("SEC-22 — Piège à robots des formulaires publics", { timeout: 60_000 }, () => {
   beforeEach(() => {
     request.ip = freshIp();
+    request.linksSent = [];
   });
 
-  it("mot de passe oublié : un robot reçoit la réponse habituelle, rien ne part et rien ne compte", async () => {
-    const email = unknownEmail();
-    for (let attempt = 0; attempt < 10; attempt += 1) {
-      expect(await forgotPasswordAction({}, form({ email, site_web: "https://robot.example" }))).toEqual({ sent: true });
-    }
-    expect(await forgotPasswordAction({}, form({ email }))).toEqual({ sent: true });
-    expect(await checkFailures("passwordReset", { account: email })).toEqual({ allowed: true });
-  });
-
-  it("connexion : un robot est refusé comme un mot de passe faux, sans échec compté", async () => {
+  it("demande de lien : un robot reçoit la réponse habituelle, aucun lien ne part et rien ne compte", async () => {
     const email = unknownEmail();
     for (let attempt = 0; attempt < 12; attempt += 1) {
-      expect(await loginAction({}, form({ email, password: "mauvais", site_web: "x" }))).toEqual({ error: "invalidCredentials" });
+      expect(await requestLinkAction({}, form({ email, site_web: "https://robot.example" }))).toEqual({ sent: true });
     }
-    expect(await checkFailures("login", { account: email })).toEqual({ allowed: true });
+    expect(request.linksSent).toEqual([]);
+    expect(await requestLinkAction({}, form({ email }))).toEqual({ sent: true });
+    expect(request.linksSent).toEqual([email]);
+  });
+
+  it("demande de lien : une adresse invalide est refusée sans rien envoyer", async () => {
+    expect(await requestLinkAction({}, form({ email: "pas-une-adresse" }))).toEqual({ error: "invalidEmail" });
+    expect(request.linksSent).toEqual([]);
   });
 });

@@ -6,6 +6,7 @@ export {
   createOrganization,
   createUser,
   destroySession,
+  ensureMembership,
   findSessionActor,
   listOrganizations,
   PROVISIONAL_ORGANIZATION_NAME,
@@ -38,6 +39,8 @@ export {
   countAccountsByOrganization,
   findTeamAccountOrganization,
   listTeamAccounts,
+  MfaResetNotAllowedError,
+  resetIdentityMfa,
   type OrganizationAccountCounts,
   type TeamAccountStatus,
 } from "./support";

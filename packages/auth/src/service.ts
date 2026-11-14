@@ -69,6 +69,18 @@ export async function addMembership(db: AppDatabase, input: { userId: string; or
   await db.insert(memberships).values(input).onConflictDoNothing();
 }
 
+// Invitation acceptée (lot 33, HUB-02) : le compte de l'adresse invitée, créé s'il n'existe pas,
+// reçoit l'adhésion à l'organisation. Un compte qui a déjà d'autres organisations les garde.
+export async function ensureMembership(db: AppDatabase, input: { organizationId: string; email: string; role: "owner" | "member" }): Promise<{ userId: string }> {
+  const email = input.email.toLowerCase();
+  return db.transaction(async (tx) => {
+    const [existing] = await tx.select({ id: users.id }).from(users).where(eq(users.email, email));
+    const userId = existing?.id ?? (await tx.insert(users).values({ email }).returning({ id: users.id }))[0]!.id;
+    await tx.insert(memberships).values({ userId, organizationId: input.organizationId, role: input.role }).onConflictDoNothing();
+    return { userId };
+  });
+}
+
 export type SignInOutcome =
   | { outcome: "signed_in"; sessionToken: string; userId: string; organizationId: string | null; isNewAccount: boolean }
   // Compte désactivé, ou plus aucune organisation active (accès retirés) : refus, sans détail.

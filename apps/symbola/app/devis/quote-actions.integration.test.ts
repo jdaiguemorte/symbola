@@ -4,9 +4,9 @@
 // n'écrit ni ne lit rien, même par appel direct. Seul l'accès à la requête
 // Next.js est simulé.
 import { randomUUID } from "node:crypto";
-import * as OTPAuth from "otpauth";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { confirmTotp, createOrganization, createUser, login, setupTotp } from "@symbola/auth";
+import { createOrganization } from "@symbola/auth";
+import { signedInAccount } from "@/lib/test-fixtures/session";
 import { createAppConnection, type AppDatabase } from "@symbola/db/client";
 import { createEventLink, createProspect, createProspectSource, openEventLink } from "@/modules/events/service";
 import { saveOnboardingStep } from "@/modules/hub/service";
@@ -46,7 +46,6 @@ const { issueBalanceInvoiceAction, setClientKindAction } = await import("./[quot
 const { GET: getEReportingExport } = await import("./e-reporting/export/route");
 const { GET: getQuotePdf } = await import("./[quoteId]/pdf/route");
 
-const PASSWORD = "mot-de-passe-du-test";
 
 async function withDb<T>(fn: (db: AppDatabase) => Promise<T>): Promise<T> {
   const { sql, db } = createAppConnection();
@@ -64,16 +63,8 @@ function form(values: Record<string, string>): FormData {
 }
 
 async function plannerSession(organizationId: string): Promise<{ userId: string; token: string }> {
-  const email = `planner-${randomUUID()}@example.test`;
-  const user = await withDb((db) => createUser(db, { organizationId, email, password: PASSWORD, role: "owner" }));
-  const result = await withDb((db) => login(db, email, PASSWORD));
-  if (result.outcome !== "success") throw new Error("connexion planner attendue");
-  const { secret } = await withDb((db) => setupTotp(db, user.id));
-  const code = new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret) }).generate();
-  // L16-SEC-01 : la validation remplace le jeton de session.
-  const confirmed = await withDb((db) => confirmTotp(db, { sessionToken: result.sessionToken, token: code }));
-  if (confirmed.outcome !== "confirmed") throw new Error("double authentification attendue");
-  return { userId: user.id, token: confirmed.sessionToken };
+  // Lot 33 : session ouverte comme après le fournisseur d'identité, double authentification déclarée.
+  return withDb((db) => signedInAccount(db, { organizationId, role: "owner" }));
 }
 
 // Une organisation, sa planner, un événement avec un devis d'une ligne et

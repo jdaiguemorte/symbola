@@ -4,7 +4,7 @@
 import { createHash, randomBytes } from "node:crypto";
 import { recordAudit } from "@symbola/db/audit";
 import type { AppDatabase } from "@symbola/db/client";
-import { createUser, listTeam } from "@symbola/auth";
+import { ensureMembership, listTeam } from "@symbola/auth";
 import { detectFileType, uploadFile } from "@symbola/files";
 import { sendMail } from "@symbola/mail";
 import { parseEnv } from "@symbola/env";
@@ -282,11 +282,19 @@ export async function createOrganizationWithInvitation(db: AppDatabase, input: C
 export type AcceptInvitationResult =
   | { outcome: "invalid_or_expired" }
   | { outcome: "already_accepted" }
-  | { outcome: "success"; organizationId: string };
+  | { outcome: "success"; organizationId: string; email: string };
+
+// Lot 33 : l'organisation d'une invitation encore valable, pour la page d'accueil de l'invité.
+export async function describeInvitation(db: AppDatabase, token: string): Promise<{ organizationName: string } | null> {
+  const invitation = await findInvitationByTokenHash(db, hashInvitationToken(token));
+  if (!invitation || invitation.acceptedAt || invitation.expiresAt.getTime() < Date.now()) return null;
+  const organization = await findOrganizationById(db, invitation.organizationId);
+  return organization ? { organizationName: organization.name } : null;
+}
 
 export async function acceptInvitation(
   db: AppDatabase,
-  input: { token: string; password: string },
+  input: { token: string },
 ): Promise<AcceptInvitationResult> {
   const invitation = await findInvitationByTokenHash(db, hashInvitationToken(input.token));
   if (!invitation || invitation.expiresAt.getTime() < Date.now()) {
@@ -296,22 +304,19 @@ export async function acceptInvitation(
     return { outcome: "already_accepted" };
   }
 
-  const owner = await createUser(db, {
-    organizationId: invitation.organizationId,
-    email: invitation.email,
-    password: input.password,
-    role: "owner",
-  });
+  // Lot 33 (HUB-02, ADR 0067) : aucun mot de passe ; le compte (créé s'il n'existe pas) reçoit
+  // l'adhésion, puis la personne se connecte par le lien envoyé à l'adresse invitée.
+  const owner = await ensureMembership(db, { organizationId: invitation.organizationId, email: invitation.email, role: "owner" });
   await markInvitationAccepted(db, invitation.id);
   // Lot 23 (SEC-19) : le compte de la titulaire est créé.
   await recordAudit(db, {
     organizationId: invitation.organizationId,
     action: "hub.invitation.accepted",
-    objectId: owner.id,
-    actor: { kind: "member", id: owner.id },
+    objectId: owner.userId,
+    actor: { kind: "member", id: owner.userId },
   });
 
-  return { outcome: "success", organizationId: invitation.organizationId };
+  return { outcome: "success", organizationId: invitation.organizationId, email: invitation.email };
 }
 
 export async function listOrganizations(db: AppDatabase) {

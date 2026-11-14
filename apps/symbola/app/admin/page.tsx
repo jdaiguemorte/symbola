@@ -83,10 +83,6 @@ export default async function AdminOverviewPage() {
               {overview.expiredInvitations > 0 ? <Link href="/admin/comptes">{t("seeAccounts")}</Link> : <span className="badge badge-sauge">{t("nothingToDo")}</span>}
             </li>
             <li>
-              <span>{t("mfaPending", { count: overview.mfaPending })}</span>
-              {overview.mfaPending > 0 ? <Link href="/admin/comptes">{t("seeAccounts")}</Link> : <span className="badge badge-sauge">{t("nothingToDo")}</span>}
-            </li>
-            <li>
               <span>{t("lastBackup")}</span>
               <BackupBadge status={overview.backup} locale={locale} />
             </li>

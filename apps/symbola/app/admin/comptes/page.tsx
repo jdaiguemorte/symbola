@@ -59,26 +59,20 @@ export default async function AdminAccountsPage({ searchParams }: { searchParams
                   <tr>
                     <th scope="col">{t("email")}</th>
                     <th scope="col">{t("role")}</th>
-                    <th scope="col">{t("mfa")}</th>
                     <th scope="col">{t("lastLogin")}</th>
                     <th scope="col">{t("actions")}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {organization.accounts.map((account) => {
-                    const locked = account.lockedUntil !== null && account.lockedUntil.getTime() > now.getTime();
                     return (
                       <tr key={account.userId}>
                         <th scope="row">{account.email}</th>
                         <td>{t(account.role === "owner" ? "roleOwner" : "roleMember")}</td>
-                        <td>
-                          {t(account.mfaConfigured ? "mfaConfigured" : "mfaPending")}
-                          {locked ? ` · ${t("lockedUntil", { date: formatDateTime(account.lockedUntil!, locale) })}` : ""}
-                        </td>
                         <td>{account.lastLoginAt ? formatDateTime(account.lastLoginAt, locale) : t("never")}</td>
                         <td>
-                          {account.mfaConfigured ? (
-                            <form action={resetMfaAction} className="inline-form">
+                          {/* Lot 33 : les seconds facteurs sont chez le fournisseur ; la réinitialisation est toujours proposée. */}
+                          <form action={resetMfaAction} className="inline-form">
                               <input type="hidden" name="userId" value={account.userId} />
                               <input type="hidden" name="q" value={q ?? ""} />
                               <input type="hidden" name="page" value={String(page.page)} />
@@ -87,9 +81,6 @@ export default async function AdminAccountsPage({ searchParams }: { searchParams
                               </label>
                               <button type="submit">{t("resetMfa")}</button>
                             </form>
-                          ) : (
-                            t("mfaPendingHint")
-                          )}
                         </td>
                       </tr>
                     );

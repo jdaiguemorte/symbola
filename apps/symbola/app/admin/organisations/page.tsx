@@ -191,7 +191,7 @@ export default async function AdminOrganizationsPage({ searchParams }: { searchP
               <ul className="plain-list">
                 {openedSupport.accounts.map((account) => (
                   <li key={account.userId}>
-                    {account.email} · {t(account.role === "owner" ? "roleOwner" : "roleMember")} · {t(account.mfaConfigured ? "mfaConfigured" : "mfaPending")}
+                    {account.email} · {t(account.role === "owner" ? "roleOwner" : "roleMember")}
                   </li>
                 ))}
               </ul>

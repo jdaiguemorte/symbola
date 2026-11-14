@@ -1,38 +1,31 @@
-"use client";
-
-import { useActionState } from "react";
-import { useTranslations } from "next-intl";
+// Lot 33 (SEC-01, SEC-07, HUB-01, ADR 0067, décision D5) — connexion : lien magique envoyé par
+// Symbola, ou page du fournisseur d'identité (mot de passe, clé d'accès). Messages de retour
+// (lien échu, accès retiré, échec) par un code dans l'adresse, jamais une donnée personnelle.
+import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { ScreenHelp } from "@/app/screen-help";
-import { loginAction, type LoginFormState } from "./actions";
-import { HoneypotField } from "@/app/ui/honeypot-field";
+import { LinkRequestForm } from "./link-request-form";
 
-export default function LoginPage() {
-  const t = useTranslations("Login");
-  const tHelp = useTranslations("Help");
-  const initialState: LoginFormState = {};
-  const [state, formAction, pending] = useActionState(loginAction, initialState);
+const NOTICES = { lien: { invalide: "linkInvalid" }, acces: { refuse: "accessRefused" }, erreur: { connexion: "failed" } } as const;
 
+export default async function LoginPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const t = await getTranslations("Login");
+  const tHelp = await getTranslations("Help");
+  const query = await searchParams;
+  const notice =
+    (query.lien === "invalide" && NOTICES.lien.invalide) || (query.acces === "refuse" && NOTICES.acces.refuse) || (query.erreur === "connexion" && NOTICES.erreur.connexion) || null;
   return (
     <main>
       <h1>{t("title")}</h1>
       <ScreenHelp title={tHelp("login.title")} body={tHelp("login.body")} />
-      <form action={formAction}>
-        <HoneypotField />
-        <label>
-          {t("email")}
-          <input type="email" name="email" required />
-        </label>
-        <label>
-          {t("password")}
-          <input type="password" name="password" required />
-        </label>
-        <button type="submit" disabled={pending}>
-          {t("submit")}
-        </button>
-      </form>
-      {state.error ? <p role="alert">{state.error}</p> : null}
+      {notice ? <p role="alert">{t(notice)}</p> : null}
+      <p>{t("intro")}</p>
+      <LinkRequestForm namespace="Login" />
       <p>
-        <a href="/mot-de-passe-oublie">{t("forgotPassword")}</a>
+        {t("providerPrompt")} <a href="/auth/connexion">{t("providerLink")}</a>
+      </p>
+      <p>
+        {t("signupPrompt")} <Link href="/inscription">{t("signupLink")}</Link>
       </p>
     </main>
   );

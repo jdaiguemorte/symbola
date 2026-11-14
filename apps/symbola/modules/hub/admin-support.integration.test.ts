@@ -5,7 +5,7 @@
 import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { afterAll, describe, expect, it } from "vitest";
-import { createUser, login, MfaResetNotAllowedError, requireUser } from "@symbola/auth";
+import { createUser, MfaResetNotAllowedError, requireUser, signInWithIdentity } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
 import { auditEntries } from "@symbola/db/schema/core";
 import { users } from "@symbola/db/schema/hub";
@@ -36,7 +36,7 @@ afterAll(async () => {
 });
 
 async function admin(): Promise<string> {
-  return (await createUser(db, { organizationId: null, email: `admin-${randomUUID()}@symbola.test`, password: "mot-de-passe-admin", role: "admin" })).id;
+  return (await createUser(db, { organizationId: null, email: `admin-${randomUUID()}@symbola.test`, role: "admin" })).id;
 }
 
 async function organizationWithInvitation(adminUserId: string) {
@@ -59,11 +59,11 @@ describe("Lot 9 — État des comptes et des invitations (Admin)", () => {
     expect(view.accounts).toEqual([]);
     expect(view.pendingInvitations).toEqual([expect.objectContaining({ email: org.email, expired: false })]);
 
-    expect(await acceptInvitation(db, { token: org.invitationToken, password: "mot-de-passe-titulaire" })).toMatchObject({ outcome: "success" });
+    expect(await acceptInvitation(db, { token: org.invitationToken })).toMatchObject({ outcome: "success" });
 
     view = (await listOrganizationsSupport(db)).find((candidate) => candidate.id === org.organizationId)!;
     expect(view.pendingInvitations).toEqual([]);
-    expect(view.accounts).toEqual([expect.objectContaining({ email: org.email, role: "owner", mfaConfigured: false, lockedUntil: null })]);
+    expect(view.accounts).toEqual([expect.objectContaining({ email: org.email, role: "owner" })]);
   });
 
   it("un nouvel envoi remplace le lien : l'ancien ne marche plus, le nouveau oui ; l'action est journalisée", async () => {
@@ -72,8 +72,8 @@ describe("Lot 9 — État des comptes et des invitations (Admin)", () => {
     const resent = await resendInvitation(db, { adminUserId, invitationId: org.invitationId });
     expect(resent).toMatchObject({ email: org.email, organizationId: org.organizationId, language: "fr" });
 
-    expect(await acceptInvitation(db, { token: org.invitationToken, password: "mot-de-passe-titulaire" })).toEqual({ outcome: "invalid_or_expired" });
-    expect(await acceptInvitation(db, { token: resent.token, password: "mot-de-passe-titulaire" })).toMatchObject({ outcome: "success" });
+    expect(await acceptInvitation(db, { token: org.invitationToken })).toEqual({ outcome: "invalid_or_expired" });
+    expect(await acceptInvitation(db, { token: resent.token })).toMatchObject({ outcome: "success" });
     await expect(resendInvitation(db, { adminUserId, invitationId: org.invitationId })).rejects.toBeInstanceOf(InvitationNotPendingError);
 
     const logged = (await auditOf(org.organizationId)).filter((entry) => entry.action === "hub.invitation.resent");
@@ -81,24 +81,32 @@ describe("Lot 9 — État des comptes et des invitations (Admin)", () => {
     expect(logged[0]).toMatchObject({ actorKind: "admin", actorId: adminUserId, category: "droits" });
   });
 
-  it("réinitialise la double authentification d'un compte d'équipe, journalise le compte visé, refuse un marié", async () => {
+  it("réinitialise la double authentification d'un compte d'équipe chez le fournisseur, ferme ses sessions, journalise le compte visé", async () => {
     const adminUserId = await admin();
     const org = await organizationWithInvitation(adminUserId);
-    await acceptInvitation(db, { token: org.invitationToken, password: "mot-de-passe-titulaire" });
+    await acceptInvitation(db, { token: org.invitationToken });
     const [owner] = await db.select().from(users).where(eq(users.email, org.email));
-    await db.update(users).set({ totpSecret: "SECRETDEJACONFIGURE", mfaEnabled: true }).where(eq(users.id, owner!.id));
-    const session = await login(db, org.email, "mot-de-passe-titulaire");
-    if (session.outcome !== "success") throw new Error("connexion attendue");
+    // Lot 33 : seconds facteurs chez le fournisseur d'identité (doublure de son API).
+    const deleted: string[] = [];
+    const management = {
+      listMfaVerifications: async (subject: string) => (subject === `sub-${owner!.id}` ? [{ id: "totp-1", type: "Totp" }, { id: "cle-1", type: "WebAuthn" }] : []),
+      deleteMfaVerification: async (_subject: string, id: string) => {
+        deleted.push(id);
+      },
+    };
+    // Jamais connecté par le fournisseur : rien à réinitialiser.
+    await expect(resetTeamAccountMfa(db, { adminUserId, userId: owner!.id }, management)).rejects.toBeInstanceOf(MfaResetNotAllowedError);
+    const session = await signInWithIdentity(db, { subject: `sub-${owner!.id}`, email: org.email, mfa: true });
+    if (session.outcome !== "signed_in") throw new Error("connexion attendue");
 
-    expect(await resetTeamAccountMfa(db, { adminUserId, userId: owner!.id })).toMatchObject({ email: org.email });
+    expect(await resetTeamAccountMfa(db, { adminUserId, userId: owner!.id }, management)).toMatchObject({ email: org.email });
+    expect(deleted).toEqual(["totp-1", "cle-1"]);
     expect((await requireUser(db, session.sessionToken)).status).toBe("unauthenticated");
-    const [reset] = await db.select().from(users).where(eq(users.id, owner!.id));
-    expect(reset).toMatchObject({ totpSecret: null, mfaEnabled: false });
     const entry = (await auditOf(org.organizationId)).find((candidate) => candidate.action === "hub.user.mfa_reset");
     expect(entry).toMatchObject({ actorKind: "admin", actorId: adminUserId, objectType: "user", objectId: owner!.id, organizationId: org.organizationId });
 
     // Un compte inconnu de l'organisation : refusé (lot 26a : plus de compte de marié).
-    await expect(resetTeamAccountMfa(db, { adminUserId, userId: randomUUID() })).rejects.toBeInstanceOf(MfaResetNotAllowedError);
+    await expect(resetTeamAccountMfa(db, { adminUserId, userId: randomUUID() }, management)).rejects.toBeInstanceOf(MfaResetNotAllowedError);
   });
 });
 
@@ -107,9 +115,9 @@ describe("Lot 9 — Statistiques d'usage par organisation (Admin)", () => {
     const adminUserId = await admin();
     const orgA = await organizationWithInvitation(adminUserId);
     const orgB = await organizationWithInvitation(adminUserId);
-    await acceptInvitation(db, { token: orgA.invitationToken, password: "mot-de-passe-titulaire" });
+    await acceptInvitation(db, { token: orgA.invitationToken });
     const [owner] = await db.select().from(users).where(eq(users.email, orgA.email));
-    await login(db, orgA.email, "mot-de-passe-titulaire");
+    await signInWithIdentity(db, { subject: `sub-${owner!.id}`, email: orgA.email, mfa: true });
 
     const source = await createProspectSource(orgA.organizationId, "Salon");
     const event = await createProspect({ organizationId: orgA.organizationId, createdByUserId: owner!.id, prospectSourceId: source.id, clients: [{ firstName: "Inès" }] });

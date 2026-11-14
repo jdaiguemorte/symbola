@@ -57,8 +57,8 @@ describe("L16-ARC-01 — Une garde d'accès unique", () => {
 
   it("requirePlanner envoie à la connexion, à la double authentification ou à l'accueil", async () => {
     await expect(requirePlanner()).rejects.toThrow("redirect:/login");
-    auth.current = { status: "mfa_required", userId: "user-owner", role: "owner", totpConfirmed: true };
-    await expect(requirePlanner()).rejects.toThrow("redirect:/mfa");
+    auth.current = { status: "mfa_required", userId: "user-owner", role: "owner" };
+    await expect(requirePlanner()).rejects.toThrow("redirect:/securite");
     auth.current = signedIn("admin", null);
     await expect(requirePlanner()).rejects.toThrow("redirect:/");
     auth.current = signedIn("member", null);
