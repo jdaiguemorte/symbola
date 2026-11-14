@@ -4,6 +4,7 @@
 // partir de zéro, ou importer un fichier ») ; rien n'est créé d'office.
 import { z } from "zod";
 import demoEventFile from "./demo-event.json";
+import exampleEventFile from "./example-event.json";
 import demoQuoteFile from "./demo-quote.json";
 import importSynonymsFile from "./import-synonyms.json";
 import importProfilesFile from "./import-profiles.json";
@@ -312,6 +313,8 @@ const demoEventSchema = z.object({
 });
 
 const demoEvent = demoEventSchema.parse(demoEventFile);
+// Lot 33b (HUB-10, PAR-01 ; D10) : le mariage de référence de « Explorer avec un exemple ».
+const exampleEvent = demoEventSchema.parse(exampleEventFile);
 
 export type StarterDemoEvent = {
   daysFromToday: number;
@@ -320,18 +323,27 @@ export type StarterDemoEvent = {
   venueCity: string;
 };
 
-// AIDE-02 : couple et lieu fictifs de l'essai guidé du module événements,
-// dans la langue demandée.
-export function starterDemoEvent(locale: StarterLocale): StarterDemoEvent {
+function localizedDemoEvent(event: z.infer<typeof demoEventSchema>, locale: StarterLocale): StarterDemoEvent {
   return {
-    daysFromToday: demoEvent.daysFromToday,
-    clients: demoEvent.clients.map((client) => ({
+    daysFromToday: event.daysFromToday,
+    clients: event.clients.map((client) => ({
       firstName: client.firstName[locale],
       lastName: client.lastName[locale],
     })),
-    venueName: demoEvent.venueName[locale],
-    venueCity: demoEvent.venueCity[locale],
+    venueName: event.venueName[locale],
+    venueCity: event.venueCity[locale],
   };
+}
+
+// AIDE-02 : couple et lieu fictifs de l'essai guidé du module événements,
+// dans la langue demandée.
+export function starterDemoEvent(locale: StarterLocale): StarterDemoEvent {
+  return localizedDemoEvent(demoEvent, locale);
+}
+
+// Lot 33b (HUB-10, D10) : couple et lieu fictifs de l'exemple du démarrage, étiquetés « exemple ».
+export function starterExampleEvent(locale: StarterLocale): StarterDemoEvent {
+  return localizedDemoEvent(exampleEvent, locale);
 }
 
 // AIDE-02 / lot 4 : devis fictif de l'essai guidé (module Devis), lignes et

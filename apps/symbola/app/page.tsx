@@ -5,7 +5,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { formatDateTime, type Locale } from "@symbola/i18n";
 import { organizationMailQuota } from "@symbola/mail";
 import { appDatabase } from "@symbola/db/client";
-import { getOrganizationProfile, isModuleEnabled } from "@/modules/hub/service";
+import { getOrganizationProfile, getSetupState, isModuleEnabled, SETUP_STEPS } from "@/modules/hub/service";
 import { listEventTasks } from "@/modules/events/service";
 import { requireSignedIn } from "@/lib/guards";
 import { recordUsage } from "@/lib/usage";
@@ -17,6 +17,8 @@ import { PageTour } from "./page-tour";
 import { loadPageTour } from "@/lib/help/page-tour";
 import { longDate, MyEvents, TodayList, todayWords, UnavailableNotice } from "./accueil/today-view";
 import { UndoTaskNotice } from "./accueil/today-client";
+import { OnboardingChecklist } from "./accueil/onboarding-checklist";
+import { loadOnboardingChecklist } from "@/lib/onboarding/checklist";
 
 // Lot 32a (HUB-08, UX-01, UX-06 ; D3) — « Aujourd'hui » : ce qui demande une action, tous
 // évènements confondus, trié par urgence, puis les évènements en cours. Les anciens blocs (agenda,
@@ -56,8 +58,15 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
     quotes: await isModuleEnabled(db, organizationId, "quotes"),
     budget: await isModuleEnabled(db, organizationId, "budget"),
   };
-  // ONB-01 : guide vers la fiche entreprise sans jamais bloquer l'entrée.
-  const onboardingIncomplete = (await getOrganizationProfile(db, organizationId)).completedAt === null;
+  // Lot 33b (HUB-09, PAR-01) : le questionnaire d'accueil se reprend d'ici tant qu'il n'est pas
+  // fini (Propriétaire), puis la liste de prise en main guide les premiers pas de l'équipe.
+  const setup = await getSetupState(db, organizationId);
+  const resumeQuestionnaire = auth.user.role === "owner" && !setup.completed;
+  const checklist = await loadOnboardingChecklist(organizationId);
+  const tOnboarding = await getTranslations("Onboarding");
+  // ONB-01 : guide vers la fiche entreprise sans jamais bloquer l'entrée ; lot 33b (PAR-01, « à
+  // éviter ») : seulement une fois la prise en main finie, jamais avant d'avoir montré la valeur.
+  const onboardingIncomplete = checklist === null && !resumeQuestionnaire && (await getOrganizationProfile(db, organizationId)).completedAt === null;
   // Lot 24b (SEC-22, décision D5) : plafond d'e-mails de l'heure atteint.
   const mailQuota = await organizationMailQuota(organizationId);
 
@@ -80,6 +89,12 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         <h1>{t("title")}</h1>
         <p className="today-summary">{t("summary", { date: longDate(now, locale), events: activeEvents, points: ranked.attentionCount })}</p>
       </div>
+      {resumeQuestionnaire ? (
+        <p className="notice" role="status">
+          {tOnboarding("resume", { count: SETUP_STEPS - setup.step + 1 })} <Link href="/demarrage">{tOnboarding("resumeLink")}</Link>
+        </p>
+      ) : null}
+      {checklist ? <OnboardingChecklist items={checklist} /> : null}
       {onboardingIncomplete ? (
         <p role="status">
           {tHome("onboardingIncomplete")} <Link href="/parametres">{tHome("completeProfile")}</Link>

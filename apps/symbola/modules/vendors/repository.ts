@@ -388,3 +388,11 @@ export function deleteDemoVendors(organizationId: string, vendorIds: string[]): 
     return files.map((file) => file.fileKey);
   });
 }
+
+// Lot 33b (PAR-01, étape 6) : prestataires réels du carnet (liste de prise en main).
+export async function countRealVendors(organizationId: string): Promise<number> {
+  return await withOrganization(appDatabase(), organizationId, async (tx) => {
+    const [row] = await tx.select({ count: sql<number>`count(*)::int` }).from(vendors).where(eq(vendors.isDemo, false));
+    return row?.count ?? 0;
+  });
+}

@@ -11,6 +11,7 @@ import {
   onboardingChecklistOrder,
   onboardingDefaultEventTypes,
   starterOnboarding,
+  starterExampleEvent,
   starterAllocation,
   starterBudgetLines,
   starterClientTaskReminders,
@@ -589,5 +590,15 @@ describe("HUB-09 — Questionnaire d'accueil : réponses de départ (lot 33b, D9
     expect(isOnboardingVolume("1000")).toBe(false);
     expect(isOnboardingTool("spreadsheet")).toBe(true);
     expect(isOnboardingTool("fax")).toBe(false);
+  });
+});
+
+describe("HUB-10 — L'exemple du démarrage (lot 33b, D10)", () => {
+  it("le mariage de référence est fictif et dit qu'il l'est, en français et en anglais", () => {
+    expect(starterExampleEvent("fr").clients.map((client) => client.firstName)).toEqual(["Léa", "Maxime"]);
+    expect(starterExampleEvent("fr").clients.every((client) => client.lastName.includes("(exemple)"))).toBe(true);
+    expect(starterExampleEvent("en").clients.every((client) => client.lastName.includes("(example)"))).toBe(true);
+    expect(starterExampleEvent("fr").venueName).toContain("fictif");
+    expect(starterExampleEvent("fr").daysFromToday).toBeGreaterThan(180);
   });
 });

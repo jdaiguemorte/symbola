@@ -994,7 +994,11 @@
     },
     "setup": {
       "title": "Démarrage",
-      "body": "Sept étapes pour préparer votre espace : métier, entreprise, TVA, vos documents, lignes du budget, sources et motifs, modèles. Tout est déjà rempli selon votre métier ; relisez, ajustez, puis « Valider et continuer ». Les étapes facultatives ont un bouton « Plus tard ». Tout se modifie ensuite dans Paramètres."
+      "body": "Cinq questions, une par écran : votre métier, vos types d'évènements, votre régime de TVA, votre nombre d'évènements par an et les outils que Symbola remplace. Chaque question a une réponse proposée : « Passer » la garde. Vos réponses choisissent les modèles chargés (postes de budget, rétroplanning, programme, catalogue) ; tout se modifie ensuite dans Paramètres."
+    },
+    "setupReady": {
+      "title": "Votre espace est prêt",
+      "body": "Ce que Symbola a préparé d'après vos réponses : types d'évènements, rétroplanning, postes de budget, régime de TVA. Ensuite, deux chemins : créer votre premier évènement (prénoms des clients, date, type : le rétroplanning et le budget apparaissent aussitôt), ou explorer un mariage fictif étiqueté « Exemple », qui ne contacte personne et disparaît seul au bout de 30 jours."
     },
     "activityLog": {
       "title": "Journal d'activité",
@@ -1006,7 +1010,7 @@
     },
     "team": {
       "title": "Équipe",
-      "body": "La liste des comptes de votre organisation : vous, titulaire, et vos collaborateurs. « Retirer l'accès » ferme tout de suite les sessions d'un collaborateur, sur tous ses appareils, et l'empêche de se reconnecter ; ses travaux restent dans l'organisation. Le retrait va au journal d'activité."
+      "body": "La liste des comptes de votre organisation : vous, Propriétaire, et vos Planners. « Inviter » envoie un lien valable sept jours, à usage unique : la Planner rejoint votre organisation et a accès à tous les modules ; l'équipe, le journal, le RGPD et les réglages restent à vous. « Retirer l'accès » ferme tout de suite ses sessions, sur tous ses appareils ; ses travaux restent dans l'organisation. Invitations et retraits vont au journal d'activité."
     },
     "linkPreview": {
       "title": "Aperçu « vu par »",
@@ -1273,14 +1277,20 @@
     "trialStart": "Démarrer l'essai",
     "trialResume": "Reprendre l'essai en cours",
     "trialEnded": "Essai terminé : ses données fictives ont été supprimées.",
-    "demoTag": "Essai (fictif)",
-    "trialBannerTitle": "Essai guidé — données fictives",
-    "trialBannerBody": "Cet événement est fictif : il n'apparaît ni au tableau de bord, ni dans les recherches RGPD, et il sera supprimé à la fin de l'essai ou au bout de 24 h. À essayer :",
+    "demoTag": "Exemple",
+    "demoNoSend": "Depuis un exemple, rien ne part vers personne : les relances et les envois se font sur un vrai évènement.",
+    "trialBannerTitle": "Exemple — données fictives",
+    "trialBannerBody": "Cet évènement est un exemple fictif : il n'apparaît ni dans vos statistiques, ni dans les exports, ni dans les recherches RGPD, et il ne contacte personne. Il sera supprimé seul le {date}. À essayer :",
     "trialStepStatus": "passer le statut à « Confirmé » ;",
     "trialStepVendor": "retenir un prestataire et saisir son montant ;",
     "trialStepTask": "cocher une tâche du rétroplanning, puis changer la date pour voir le recalcul proposé ;",
     "trialStepProgram": "ajouter une ligne au programme et télécharger le PDF (filigrane « Document fictif »).",
-    "trialEnd": "Terminer l'essai et supprimer ses données",
+    "trialEnd": "Supprimer l'exemple et ses données",
+    "exampleProposalTitle": "Votre premier évènement est créé",
+    "exampleProposalBody": "L'exemple est toujours là. Voulez-vous le supprimer maintenant ? Sinon, il disparaîtra seul au bout de 30 jours.",
+    "exampleRemove": "Supprimer l'exemple",
+    "exampleKeep": "Le garder pour l'instant",
+    "exampleRemoved": "L'exemple et ses données fictives ont été supprimés.",
     "trialNoInvite": "Pendant l'essai, aucun lien n'est envoyé : les liens ne se créent que sur un vrai événement.",
     "demoWatermark": "Document fictif",
     "budgetLink": "Budget",
@@ -4098,6 +4108,93 @@
     "filterRating": "Évaluation",
     "filterRatingAtLeast": "{rating, plural, =5 {5 sur 5} other {Au moins # sur 5}}"
   },
+  "Onboarding": {
+    "title": "Préparons votre espace",
+    "intro": "Cinq questions, une par écran. Chaque réponse a une valeur proposée : « Passer » la garde. Tout reste modifiable ensuite dans les Paramètres.",
+    "progress": "Question {number} sur {total}",
+    "progressLabel": "Questions du démarrage",
+    "stepItem": "{number}. {label}",
+    "stepDone": "(répondue)",
+    "steps": {
+      "1": "Métier",
+      "2": "Évènements",
+      "3": "TVA",
+      "4": "Volume",
+      "5": "Outils"
+    },
+    "questions": {
+      "1": {
+        "title": "Quel est votre métier ?",
+        "hint": "Il choisit vos modèles de départ : postes de budget, rétroplanning, programme du jour J, catalogue."
+      },
+      "2": {
+        "title": "Quels évènements organisez-vous ?",
+        "hint": "Cochez-en au moins un. Vous en ajouterez d'autres quand vous voudrez."
+      },
+      "3": {
+        "title": "Êtes-vous soumise à la TVA ?",
+        "hint": "Il fixe les mentions de vos devis et factures. Un changement plus tard se fera avec une date d'effet."
+      },
+      "4": {
+        "title": "Combien d'évènements organisez-vous par an ?",
+        "hint": "Une estimation suffit : elle nous aide à vous proposer la bonne prise en main."
+      },
+      "5": {
+        "title": "Que voulez-vous remplacer par Symbola ?",
+        "hint": "Cochez tout ce qui s'applique, ou rien. Ce qui vous fera gagner le plus de temps passera en premier."
+      }
+    },
+    "continue": "Continuer",
+    "finish": "Voir mon espace",
+    "skip": "Passer",
+    "skipHint": "« Passer » garde la réponse proposée.",
+    "back": "Question précédente",
+    "eventTypesRequired": "Cochez au moins un type d'évènement, ou choisissez « Passer ».",
+    "metierRequired": "Choisissez votre métier, ou « Passer ».",
+    "volumeRequired": "Choisissez une estimation, ou « Passer ».",
+    "ownerOnly": "Seule la Propriétaire du compte répond au questionnaire.",
+    "ownerMustFinish": "La Propriétaire du compte prépare votre espace. Les modules sont déjà ouverts.",
+    "resume": "Terminez la préparation de votre espace : il reste {count, plural, one {# question} other {# questions}}.",
+    "resumeLink": "Reprendre le questionnaire",
+    "ready": {
+      "title": "Votre espace est prêt",
+      "intro": "Voici ce que Symbola a préparé d'après vos réponses :",
+      "eventTypes": "Vos types d'évènements : {types}",
+      "tasks": "{count, plural, =0 {Aucune tâche} one {# tâche} other {# tâches}} de rétroplanning",
+      "budgetLines": "{count, plural, =0 {Aucun poste} one {# poste} other {# postes}} de budget",
+      "vat": "Votre régime de TVA : {regime}",
+      "editLater": "Tout se modifie ensuite dans les Paramètres.",
+      "settingsLink": "Ouvrir les Paramètres",
+      "choiceTitle": "Et maintenant ?",
+      "firstEventTitle": "Créer mon premier évènement",
+      "firstEventBody": "Les prénoms des clients, la date et le type : le rétroplanning et le budget apparaissent aussitôt.",
+      "firstEventSubmit": "Créer l'évènement",
+      "exampleTitle": "Explorer avec un exemple",
+      "exampleBody": "Un mariage fictif, étiqueté « Exemple », pour tout essayer sans risque. Il ne contacte personne et disparaît seul au bout de 30 jours.",
+      "exampleSubmit": "Ouvrir l'exemple",
+      "exampleOpen": "Revoir l'exemple",
+      "noEventsModule": "Le module Évènements n'est pas souscrit : vos premiers pas commencent par la liste de prise en main de l'accueil.",
+      "goHome": "Aller à l'accueil",
+      "noSource": "Ajoutez d'abord une source de prospects dans les Paramètres des évènements.",
+      "dateRequired": "Indiquez la date de l'évènement : le rétroplanning se calcule à partir d'elle."
+    },
+    "vatRegime": {
+      "franchise": "franchise en base de TVA",
+      "assujetti": "assujettie à la TVA"
+    },
+    "checklist": {
+      "title": "Pour bien démarrer",
+      "progress": "{done} sur {total} faits",
+      "done": "fait",
+      "items": {
+        "logo": "Ajouter votre logo",
+        "first_vendor": "Ajouter un premier prestataire",
+        "first_quote": "Préparer un premier devis",
+        "client_invite": "Inviter un client sur son espace",
+        "contacts_import": "Importer vos contacts"
+      }
+    }
+  },
   "Setup": {
     "title": "Bienvenue : préparons votre espace",
     "titleDone": "Vos paramètres de départ",
@@ -4474,6 +4571,7 @@
       "hub_trusted_devices_forgotten": "Appareils de confiance oubliés",
       "hub_organization_created": "Organisation créée",
       "hub_invitation_resent": "Invitation renvoyée",
+      "hub_invitation_sent": "Planner invitée",
       "hub_invitation_accepted": "Invitation acceptée",
       "hub_module_enabled": "Module activé",
       "hub_module_disabled": "Module retiré",
@@ -4683,8 +4781,8 @@
   },
   "Team": {
     "title": "Équipe",
-    "subtitle": "Les comptes de votre organisation, et le retrait d'un accès.",
-    "ownerOnly": "L'équipe se gère par la titulaire du compte.",
+    "subtitle": "Les comptes de votre organisation : inviter une Planner, retirer un accès.",
+    "ownerOnly": "L'équipe se gère par la Propriétaire du compte.",
     "listTitle": "Comptes de l'équipe",
     "columnEmail": "E-mail",
     "columnRole": "Rôle",
@@ -4692,8 +4790,8 @@
     "columnAccess": "Accès",
     "columnActions": "Actions",
     "roles": {
-      "owner": "Titulaire",
-      "member": "Collaborateur"
+      "owner": "Propriétaire",
+      "member": "Planner"
     },
     "accessActive": "Actif",
     "accessRemoved": "Retiré le {date}",
@@ -4702,7 +4800,20 @@
     "confirmBody": "Ses sessions sont fermées tout de suite, sur tous ses appareils, et ce compte ne pourra plus se connecter. Ses travaux restent dans l'organisation.",
     "confirmRemove": "Retirer l'accès",
     "cancel": "Annuler",
-    "removed": "Accès retiré. Les sessions de ce compte sont fermées."
+    "removed": "Accès retiré. Les sessions de ce compte sont fermées.",
+    "inviteTitle": "Inviter une Planner",
+    "inviteEmail": "Adresse e-mail de la Planner",
+    "inviteHint": "Elle reçoit un lien valable sept jours, à usage unique. Elle aura accès à tous les modules ; l'équipe, le journal, le RGPD et les réglages restent à vous.",
+    "inviteSubmit": "Envoyer l'invitation",
+    "inviteSent": "Invitation envoyée. Elle apparaît ci-dessous jusqu'à ce qu'elle soit acceptée.",
+    "inviteInvalidEmail": "Cette adresse e-mail n'est pas valide.",
+    "inviteAlreadyMember": "Cette personne fait déjà partie de votre équipe.",
+    "inviteMailQuota": "Le plafond d'envois de l'heure est atteint : réessayez un peu plus tard.",
+    "inviteSendFailed": "L'invitation n'a pas pu partir. Réessayez dans quelques minutes.",
+    "inviteMailSubject": "« {organization} » vous invite sur Symbola",
+    "inviteMailBody": "Bonjour,\n\n« {organization} » vous invite à rejoindre son équipe sur Symbola, comme Planner. Ce lien est valable jusqu'au {date} et ne sert qu'une fois :\n{url}\n\nÀ bientôt,\nL'équipe Symbola",
+    "pendingTitle": "Invitations en attente",
+    "pendingUntil": "{email}, valable jusqu'au {date}"
   },
   "SignOutEverywhere": {
     "title": "Appareils connectés",

@@ -1222,6 +1222,8 @@ export async function findEventActivity(
 // AIDE-02 — essai guidé : événement fictif complet, puis purge.
 export type DemoEventData = {
   createdByUserId: string;
+  // Lot 33b (HUB-10) : l'exemple du démarrage est un mariage confirmé ; l'essai reste un prospect.
+  status?: "prospect" | "confirmed";
   eventDate: string;
   expiresAt: Date;
   clients: { firstName: string; lastName: string }[];
@@ -1257,7 +1259,7 @@ export async function insertDemoEvent(organizationId: string, data: DemoEventDat
       .insert(events)
       .values({
         organizationId,
-        status: "prospect",
+        status: data.status ?? "prospect",
         eventTypeId: weddingType?.id ?? null,
         eventDate: data.eventDate,
         venueName: data.venueName,
@@ -1277,7 +1279,7 @@ export async function insertDemoEvent(organizationId: string, data: DemoEventDat
       organizationId,
       eventId: event.id,
       fromStatus: null,
-      toStatus: "prospect",
+      toStatus: data.status ?? "prospect",
       changedByUserId: data.createdByUserId,
     });
 
@@ -1541,5 +1543,18 @@ export async function updateWantedBudgetRow(organizationId: string, eventId: str
   return await withOrganization(db, organizationId, async (tx) => {
     const rows = await tx.update(events).set({ wantedBudgetCents, updatedAt: new Date() }).where(eq(events.id, eventId)).returning({ id: events.id });
     return rows.length > 0;
+  });
+}
+
+// Lot 33b (PAR-01, étape 6) : liens client créés sur un évènement réel (révoqués compris : le client
+// a été invité au moins une fois).
+export async function countRealClientLinks(organizationId: string): Promise<number> {
+  return await withOrganization(appDatabase(), organizationId, async (tx) => {
+    const [row] = await tx
+      .select({ count: sql<number>`count(*)::int` })
+      .from(eventLinks)
+      .innerJoin(events, eq(events.id, eventLinks.eventId))
+      .where(and(eq(eventLinks.audience, "client"), eq(events.isDemo, false)));
+    return row?.count ?? 0;
   });
 }

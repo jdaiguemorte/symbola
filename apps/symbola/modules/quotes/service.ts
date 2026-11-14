@@ -170,6 +170,7 @@ import {
   type OriginalKind,
 } from "./pieces";
 import {
+  countRealQuotes,
   findCreditNoteById,
   findEReportingRows,
   findInvoiceById,
@@ -3528,3 +3529,8 @@ void _contractCheck;
 
 // Lot 6 (RGPD-05) — données nécessaires aux règles de conservation.
 export { lastPaymentDates, listExpiredDocuments, type ExpiredDocument } from "./privacy-retention";
+
+// Lot 33b (PAR-01, étape 6) — « Préparer un premier devis » de la liste de prise en main.
+export async function countOrganizationRealQuotes(organizationId: string): Promise<number> {
+  return countRealQuotes(organizationId);
+}
