@@ -27,7 +27,7 @@ la planner (un ordinateur **et** un téléphone), une heure de bascule.
       `SIGNATURE_PROVIDER=documenso`, webhook testé (un appel sans secret est rejeté).
 - [ ] E-mails : `SMTP_*` renseignés ; un e-mail de test reçu (invitation d'un collaborateur).
       **Jamais d'adresse réelle de marié sur le staging** : utiliser des adresses de test.
-- [ ] Compte Admin : `/admin/parametres` renseigné — seuils de franchise de TVA (valeurs de
+- [ ] Compte Admin : `/exploitation/parametres` renseigné — seuils de franchise de TVA (valeurs de
       l'année en cours), limites de l'import (10 Mo, 5 000 lignes, 7 j, 90 j), durée des exports
       RGPD (7 j).
 - [ ] Compte de la planner créé sur le staging (organisation dédiée à la recette), MFA activée.
@@ -140,7 +140,7 @@ Tous doivent être remplis :
 - [ ] Factures et e-reporting relus par le comptable ; valeurs « proposées » du PRD validées.
 - [ ] Limites connues acceptées par Julien : sauvegardes sur le même VPS (copie externe avant un
       second client), pas d'avertissement au marié avant suppression d'un compte inactif,
-      page `/admin` sans pagination des organisations (à prévoir avant plusieurs clients).
+      page `/exploitation` sans pagination des organisations (à prévoir avant plusieurs clients).
 
 ## 4. Bascule en production (Julien)
 

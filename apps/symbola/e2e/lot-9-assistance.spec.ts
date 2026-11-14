@@ -103,7 +103,7 @@ test("Lot 9 — l'Admin relance une invitation, réinitialise la double authenti
 
   await signIn(page, adminEmail, "mot-de-passe-admin-lot9");
   await setUpMfa(page);
-  await page.goto("/admin/organisations?panneau=nouvelle");
+  await page.goto("/exploitation/organisations?panneau=nouvelle");
   await page.getByLabel("Nom de l'organisation").fill(organizationName);
   await page.getByLabel("E-mail du titulaire").fill(ownerEmail);
   await page.getByRole("button", { name: "Créer et inviter" }).click();
@@ -159,7 +159,7 @@ test("Lot 9 — l'Admin relance une invitation, réinitialise la double authenti
   await ownerContext.close();
 
   // Activité : des nombres seulement.
-  await page.goto(`/admin/activite?q=${encodeURIComponent(organizationName)}`);
+  await page.goto(`/exploitation/activite?q=${encodeURIComponent(organizationName)}`);
   const activity = page.locator(".card").filter({ has: page.getByRole("heading", { name: organizationName }) });
   await expect(activity.getByRole("list", { name: `Résumé de ${organizationName}` })).toContainText("1 compte d'équipe");
   await expect(activity.getByRole("list", { name: `Résumé de ${organizationName}` })).toContainText("1 compte connecté sur 30 jours");

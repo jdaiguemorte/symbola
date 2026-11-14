@@ -22,7 +22,7 @@ const BASE_GUARDS = [
   "requirePendingMfa",
   "requirePlanner",
   "requireOwner",
-  "requireAdmin",
+  "requireOperator",
   // Lot 26a (SEC-14) : portail d'un lien personnel (lib/guards.ts, lib/link-session.ts)
   "requireLink",
   "currentLinkAccess",

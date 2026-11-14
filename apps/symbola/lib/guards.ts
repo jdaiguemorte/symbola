@@ -67,7 +67,7 @@ export async function requireLink(audience?: LinkAudience): Promise<LinkAccess> 
 
 // PRD-HUB-03 — console Admin (/admin/*). L'Admin n'accède jamais aux données
 // métier d'une organisation (ADR 0029) : cette garde ne vérifie que le rôle.
-export async function requireAdmin(): Promise<{ userId: string; email: string }> {
+export async function requireOperator(): Promise<{ userId: string; email: string }> {
   const auth = await getAuthContext();
   if (auth.status === "unauthenticated") redirect("/login");
   if (auth.status === "mfa_required") redirect("/securite");

@@ -80,9 +80,9 @@ test("PRD-HUB-03-01 — l'Admin crée une organisation, le titulaire accepte son
   }
 
   await loginAndSetupMfa(page, adminEmail, adminPassword);
-  await expect(page).toHaveURL("/admin");
+  await expect(page).toHaveURL("/exploitation");
 
-  await page.goto("/admin/organisations");
+  await page.goto("/exploitation/organisations");
   // Lot 13 (L13-HUB-17) : la création s'ouvre dans le panneau latéral.
   await page.getByRole("link", { name: "Nouvelle organisation" }).click();
   await expect(page.getByRole("complementary", { name: "Créer une organisation" })).toBeVisible();
@@ -111,7 +111,7 @@ test("PRD-HUB-03-01 — l'Admin crée une organisation, le titulaire accepte son
   await expect(page).toHaveURL(/\/mfa$/);
 });
 
-test("PRD-HUB-03-02 — un utilisateur non-Admin n'accède pas à /admin", async ({ page }) => {
+test("PRD-HUB-03-02 — un utilisateur non-Admin n'accède pas à /exploitation", async ({ page }) => {
   const email = `non-admin-e2e-${randomUUID()}@symbola.test`;
   const password = "mot-de-passe-non-admin-e2e";
 
@@ -126,7 +126,7 @@ test("PRD-HUB-03-02 — un utilisateur non-Admin n'accède pas à /admin", async
   await loginAndSetupMfa(page, email, password);
   await expect(page).toHaveURL("/");
 
-  await page.goto("/admin");
+  await page.goto("/exploitation");
   await expect(page).toHaveURL("/");
 });
 
@@ -164,13 +164,13 @@ test("PRD-HUB-03-03 — désactiver un module l'affiche « indisponible » sans 
   await loginAndSetupMfa(page, adminEmail, adminPassword);
   // Lot 13 (L13-HUB-17) : on retrouve l'organisation par son nom, ses modules
   // s'activent dans son panneau.
-  await page.goto(`/admin/organisations?q=${encodeURIComponent(organizationName)}`);
+  await page.goto(`/exploitation/organisations?q=${encodeURIComponent(organizationName)}`);
   await page.getByRole("link", { name: organizationName }).click();
   const panel = page.getByRole("complementary", { name: organizationName });
   await panel.getByRole("button", { name: "Événements : activé (désactiver)" }).click();
   await expect(panel.getByRole("button", { name: "Événements : désactivé (activer)" })).toBeVisible();
 
-  await page.goto("/admin/health");
+  await page.goto("/exploitation/health");
   const violations = await new AxeBuilder({ page }).analyze();
   expect(violations.violations, JSON.stringify(violations.violations, null, 2)).toEqual([]);
   await expect(page.getByRole("row", { name: /Base de données/ })).toContainText("en ligne");

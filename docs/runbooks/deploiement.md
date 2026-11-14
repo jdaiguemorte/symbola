@@ -156,9 +156,9 @@ sudo docker run --rm --network symbola-staging_default -v "$PWD":/app -w /app \
     pnpm -s --filter @symbola/auth create-account -- --role admin --email <ton-e-mail>"
 ```
 
-L'Admin crée ensuite les organisations depuis `/admin` (invitation de la titulaire par e-mail).
+L'Admin crée ensuite les organisations depuis `/exploitation` (invitation de la titulaire par e-mail).
 Pour aider quelqu'un (invitation perdue ou expirée, téléphone de double authentification
-perdu), voir `/admin/comptes` ; un mot de passe oublié se règle depuis l'écran de connexion
+perdu), voir `/exploitation/comptes` ; un mot de passe oublié se règle depuis l'écran de connexion
 (ADR 0029).
 Tant que les e-mails ne sont pas en service, la même commande crée directement une organisation
 et sa titulaire : `-- --role owner --email <e-mail> --organization "<nom>"`.

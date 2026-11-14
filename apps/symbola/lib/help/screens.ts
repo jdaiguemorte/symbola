@@ -96,13 +96,13 @@ export const HELP_SCREENS: HelpScreen[] = [
   // Lot 23b (JUR-06) : archive comptable, titulaire seulement.
   { key: "ledgerArchive", group: "quotes", audience: "team", module: "quotes", ownerOnly: true, path: "/devis/parametres/archive", capture: true },
   // Administration de la suite (aucune capture : elle montrerait des organisations)
-  { key: "admin", group: "admin", audience: "admin", path: "/admin", capture: false },
-  { key: "adminOrganizations", group: "admin", audience: "admin", path: "/admin/organisations", capture: false },
-  { key: "adminAccounts", group: "admin", audience: "admin", path: "/admin/comptes", capture: false },
-  { key: "adminActivity", group: "admin", audience: "admin", path: "/admin/activite", capture: false },
-  { key: "adminOnboarding", group: "admin", audience: "admin", path: "/admin/prise-en-main", capture: false },
-  { key: "adminHealth", group: "admin", audience: "admin", path: "/admin/health", capture: false },
-  { key: "adminSettings", group: "admin", audience: "admin", path: "/admin/parametres", capture: false },
+  { key: "admin", group: "admin", audience: "admin", path: "/exploitation", capture: false },
+  { key: "adminOrganizations", group: "admin", audience: "admin", path: "/exploitation/organisations", capture: false },
+  { key: "adminAccounts", group: "admin", audience: "admin", path: "/exploitation/comptes", capture: false },
+  { key: "adminActivity", group: "admin", audience: "admin", path: "/exploitation/activite", capture: false },
+  { key: "adminOnboarding", group: "admin", audience: "admin", path: "/exploitation/prise-en-main", capture: false },
+  { key: "adminHealth", group: "admin", audience: "admin", path: "/exploitation/health", capture: false },
+  { key: "adminSettings", group: "admin", audience: "admin", path: "/exploitation/parametres", capture: false },
 ];
 
 export const HELP_GROUP_ORDER: HelpGroup[] = ["events", "vendors", "quotes", "budget", "company", "data", "admin"];

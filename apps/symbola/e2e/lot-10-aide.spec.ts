@@ -110,11 +110,11 @@ test("L10-HUB-11 — l'Admin voit la prise en main de chaque compte d'équipe", 
   const secret = new URL(uri!.replace("otpauth://totp/", "https://x/")).searchParams.get("secret")!;
   await page.getByLabel("Code").fill(new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret) }).generate());
   await page.getByRole("button", { name: "Valider" }).click();
-  await expect(page).toHaveURL("/admin");
+  await expect(page).toHaveURL("/exploitation");
   await clickAdminMenuLink(page, "Prise en main");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Prise en main des organisations");
   // 20 organisations par page : on la retrouve par son nom.
-  await page.goto(`/admin/prise-en-main?q=${encodeURIComponent(organizationName)}`);
+  await page.goto(`/exploitation/prise-en-main?q=${encodeURIComponent(organizationName)}`);
   const row = page.getByRole("row", { name: new RegExp(ownerEmail) });
   await expect(row).toContainText("1 sur 11");
   await expect(row).toContainText("Saisir son catalogue de prestations");

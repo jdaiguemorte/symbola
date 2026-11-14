@@ -45,7 +45,7 @@
     "logout": "Se déconnecter",
     "myProfile": "Mon profil",
     "settings": "Paramètres",
-    "administration": "Administration",
+    "administration": "Exploitation",
     "onboardingIncomplete": "Votre fiche entreprise n'est pas encore complète.",
     "completeProfile": "La compléter",
     "events": "Événements",
@@ -317,7 +317,7 @@
     "mailHourlyCap": "Plafond d'e-mails par organisation et par heure (signataires, mariés invités)",
     "requiredMentionsTitle": "Mentions requises sur les documents",
     "requiredMentionsWarning": "Valeur réglementaire, à valider par l'expert-comptable : une mention cochée bloque l'envoi d'un devis ou l'émission d'une facture tant que l'organisation ne l'a pas remplie.",
-    "requiredMentionsSourceAdmin": "Liste réglée par l'Admin.",
+    "requiredMentionsSourceAdmin": "Liste réglée par l'Exploitation.",
     "requiredMentionsSourceStarter": "Liste de départ (fichier de données), à valider.",
     "requiredMentionsReset": "Revenir à la liste de départ",
     "requiredMentionsCaption": "Mention requise par document, avec ses conditions",
@@ -3316,7 +3316,7 @@
       "budget": "Budget",
       "company": "Mon entreprise et mon compte",
       "data": "Import et données personnelles",
-      "admin": "Administration de la suite",
+      "admin": "Exploitation de la suite",
       "clients": "Votre espace"
     },
     "screenTitle": "Aide : {title}",
@@ -4324,8 +4324,8 @@
     "center": "Centre d'aide"
   },
   "AdminMenu": {
-    "brand": "Admin",
-    "label": "Menu de l'Administration",
+    "brand": "Exploitation",
+    "label": "Menu de l'Exploitation",
     "overview": "Vue d'ensemble",
     "organizations": "Organisations",
     "accounts": "Comptes",

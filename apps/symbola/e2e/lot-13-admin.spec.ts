@@ -66,7 +66,7 @@ test("L13-HUB-17 / L13-HUB-18 — console d'Administration : vue d'ensemble, der
 
     // L'Admin arrive sur la console, avec son propre menu.
     await login(page, adminEmail, "mot-de-passe-admin-console");
-    await expect(page).toHaveURL("/admin");
+    await expect(page).toHaveURL("/exploitation");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Vue d'ensemble");
     await openMenu(page);
     const menu = page.getByRole("navigation", { name: "Menu de l'Administration" });
@@ -94,7 +94,7 @@ test("L13-HUB-17 / L13-HUB-18 — console d'Administration : vue d'ensemble, der
     await expect(page.getByRole("region", { name: "À faire" }).getByRole("listitem").filter({ hasText: "Dernière sauvegarde" })).toContainText("Échec le");
 
     // Santé : chaque service, et le détail de la dernière sauvegarde.
-    await page.goto("/admin/health");
+    await page.goto("/exploitation/health");
     await expect(page.getByRole("row", { name: /Base de données/ })).toContainText("en ligne");
     await expect(page.getByRole("row", { name: /Stockage des fichiers/ })).toBeVisible();
     const backup = page.getByRole("region", { name: "Dernière sauvegarde" });
@@ -103,7 +103,7 @@ test("L13-HUB-17 / L13-HUB-18 — console d'Administration : vue d'ensemble, der
 
     // Organisations en tableau : recherche par nom, une ligne ouvre son panneau
     // (modules, comptes, prise en main), toujours sans donnée métier.
-    await page.goto("/admin/organisations");
+    await page.goto("/exploitation/organisations");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Organisations");
     await page.getByRole("search", { name: "Chercher une organisation" }).getByLabel("Rechercher par nom").fill(organizationName);
     await expect(page).toHaveURL(/q=/);
@@ -139,7 +139,7 @@ test("L13-HUB-17 — la console est réservée à l'Admin", async ({ page }) => 
   }
   await login(page, email, "mot-de-passe-sans-console");
   await expect(page).toHaveURL("/");
-  for (const path of ["/admin", "/admin/organisations", "/admin/health"]) {
+  for (const path of ["/exploitation", "/exploitation/organisations", "/exploitation/health"]) {
     await page.goto(path);
     await expect(page).toHaveURL("/");
   }

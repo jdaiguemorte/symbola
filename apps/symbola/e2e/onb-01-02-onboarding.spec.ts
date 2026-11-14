@@ -99,7 +99,7 @@ test("ONB-02-01 — l'Admin fixe les seuils de franchise, jamais codés en dur",
   }
 
   await loginAndSetupMfa(page, adminEmail, adminPassword);
-  await page.goto("/admin/parametres");
+  await page.goto("/exploitation/parametres");
   const violations = await new AxeBuilder({ page }).analyze();
   expect(violations.violations, JSON.stringify(violations.violations, null, 2)).toEqual([]);
 

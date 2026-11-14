@@ -45,7 +45,7 @@
     "logout": "Log out",
     "myProfile": "My profile",
     "settings": "Settings",
-    "administration": "Administration",
+    "administration": "Operations",
     "onboardingIncomplete": "Your company profile is not complete yet.",
     "completeProfile": "Complete it",
     "events": "Events",
@@ -317,7 +317,7 @@
     "mailHourlyCap": "Email cap per organization per hour (signers, invited couples)",
     "requiredMentionsTitle": "Required mentions on documents",
     "requiredMentionsWarning": "Regulatory value, to be validated by the chartered accountant: a ticked mention blocks sending a quote or issuing an invoice until the organisation has filled it in.",
-    "requiredMentionsSourceAdmin": "List set by the Admin.",
+    "requiredMentionsSourceAdmin": "List set by Operations.",
     "requiredMentionsSourceStarter": "Starter list (data file), to be validated.",
     "requiredMentionsReset": "Back to the starter list",
     "requiredMentionsCaption": "Required mention per document, with its conditions",
@@ -3316,7 +3316,7 @@
       "budget": "Budget",
       "company": "My company and account",
       "data": "Import and personal data",
-      "admin": "Suite administration",
+      "admin": "Suite operations",
       "clients": "Your space"
     },
     "screenTitle": "Help: {title}",
@@ -4324,8 +4324,8 @@
     "center": "Help center"
   },
   "AdminMenu": {
-    "brand": "Admin",
-    "label": "Administration menu",
+    "brand": "Operations",
+    "label": "Operations menu",
     "overview": "Overview",
     "organizations": "Organisations",
     "accounts": "Accounts",

@@ -430,7 +430,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
     return (
       <div className="app-shell">
         <AppSidebar
-          brand={<Brand href="/admin" suffix={tAdmin("brand")} />}
+          brand={<Brand href="/exploitation" suffix={tAdmin("brand")} />}
           menuLabel={t("menuOpen")}
           closeLabel={t("menuClose")}
           admin
@@ -438,37 +438,37 @@ export async function AppShell({ children }: { children: ReactNode }) {
           <nav aria-label={tAdmin("label")}>
             <ul className="app-nav">
               <li>
-                <AppNavLink href="/admin" exact>
+                <AppNavLink href="/exploitation" exact>
                   <LayoutDashboard {...iconProps} />
                   {tAdmin("overview")}
                 </AppNavLink>
               </li>
               <li>
-                <AppNavLink href="/admin/organisations">
+                <AppNavLink href="/exploitation/organisations">
                   <Building2 {...iconProps} />
                   {tAdmin("organizations")}
                 </AppNavLink>
               </li>
               <li>
-                <AppNavLink href="/admin/comptes">
+                <AppNavLink href="/exploitation/comptes">
                   <Users {...iconProps} />
                   {tAdmin("accounts")}
                 </AppNavLink>
               </li>
               <li>
-                <AppNavLink href="/admin/prise-en-main">
+                <AppNavLink href="/exploitation/prise-en-main">
                   <GraduationCap {...iconProps} />
                   {tAdmin("onboarding")}
                 </AppNavLink>
               </li>
               <li>
-                <AppNavLink href="/admin/activite">
+                <AppNavLink href="/exploitation/activite">
                   <Activity {...iconProps} />
                   {tAdmin("activity")}
                 </AppNavLink>
               </li>
               <li>
-                <AppNavLink href="/admin/health">
+                <AppNavLink href="/exploitation/health">
                   <HeartPulse {...iconProps} />
                   {tAdmin("health")}
                 </AppNavLink>
@@ -476,7 +476,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
             </ul>
             <ul className="app-nav app-nav-secondary">
               <li>
-                <AppNavLink href="/admin/parametres">
+                <AppNavLink href="/exploitation/parametres">
                   <SlidersHorizontal {...iconProps} />
                   {tAdmin("settings")}
                 </AppNavLink>
