@@ -11,7 +11,8 @@
     "seed:demo-user": "tsx scripts/seed-demo-user.ts",
     "create-account": "tsx scripts/create-account.ts",
     "mfa-secrets": "tsx scripts/mfa-secrets.ts",
-    "configure-identity": "tsx scripts/configure-identity.ts"
+    "configure-identity": "tsx scripts/configure-identity.ts",
+    "migrate-accounts": "tsx scripts/migrate-accounts.ts"
   },
   "dependencies": {
     "@symbola/db": "workspace:*",
