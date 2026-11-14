@@ -47,6 +47,8 @@ export type EventSummary = {
   eventDate: string | null;
   // Lot 34a (ARC-17, D9) : fuseau IANA de l'événement.
   timeZone: string;
+  // Lot 34b (EVT-03, D10) : le lieu de réception est le premier lieu de la liste (son intitulé et
+  // sa ville) ; il se modifie par la liste des lieux.
   venueName: string | null;
   venueCity: string | null;
   clients: EventClient[];
@@ -70,6 +72,20 @@ export type EventDetail = EventSummary & {
   importedFields?: Record<string, string>;
   // Lot 14 (décision K) : budget souhaité par les clients, en centimes.
   wantedBudgetCents: number | null;
+  // Lot 34b (EVT-03, D11) : invités estimés et confirmés (saisis à la main jusqu'au module
+  // Invités), style et notes.
+  guestsEstimated: number | null;
+  guestsConfirmed: number | null;
+  style: string | null;
+  notes: string | null;
+};
+
+// Lot 34b (EVT-03, D11) : fiche d'identité de l'événement.
+export type EventIdentityInput = {
+  guestsEstimated: number | null;
+  guestsConfirmed: number | null;
+  style: string | null;
+  notes: string | null;
 };
 
 export type ListEventsInput = {
@@ -195,7 +211,33 @@ export type SetDayDocumentEmbeddedInput = { organizationId: string; eventId: str
 export type EventDayContact = { id: string; eventId: string; name: string; role: string | null; phone: string; position: number };
 export type EventDayContactInput = { name: string; role?: string | null; phone: string };
 
-export type EventPlace = { id: string; eventId: string; label: string; address: string | null; vendorId: string | null };
+// Lot 34b (EVT-03, D10) : chaque lieu porte son adresse, sa ville, ses horaires (« HH:MM », début
+// et fin facultatifs) et son contact ; le premier de la liste est le lieu de réception.
+export type EventPlace = {
+  id: string;
+  eventId: string;
+  label: string;
+  address: string | null;
+  city: string | null;
+  startTime: string | null;
+  endTime: string | null;
+  contactName: string | null;
+  contactPhone: string | null;
+  contactEmail: string | null;
+  vendorId: string | null;
+};
+
+export type EventPlaceInput = {
+  label: string;
+  address?: string | null;
+  city?: string | null;
+  startTime?: string | null;
+  endTime?: string | null;
+  contactName?: string | null;
+  contactPhone?: string | null;
+  contactEmail?: string | null;
+  vendorId?: string | null;
+};
 
 // Lot 11 (L11-EVT-10 / L11-EVT-11) — prestataires consultés pour un poste.
 export type VendorCandidateNote = { id: string; body: string; visibleToClients: boolean; createdAt: string };
@@ -269,15 +311,17 @@ export type VendorSlotProgress = {
   required: number;
 };
 
-// PRD-EVT-04 — rétroplanning.
-export type TaskResponsible = "planner" | "clients";
+// PRD-EVT-04 — rétroplanning. Lot 34b (CHR-02, D12) : une tâche peut être confiée à un
+// prestataire retenu sur l'événement (responsable « vendor ») ; un modèle n'en a pas.
+export type TaskResponsible = "planner" | "clients" | "vendor";
+export type TemplateTaskResponsible = Exclude<TaskResponsible, "vendor">;
 
 export type TaskTemplateItem = {
   id: string;
   label: string;
   // Décalage en jours par rapport à la date de l'événement (J-365 = -365).
   offsetDays: number;
-  responsible: TaskResponsible;
+  responsible: TemplateTaskResponsible;
   position: number;
 };
 
@@ -292,7 +336,7 @@ export type TaskTemplate = {
 export type TaskTemplateItemInput = {
   label: string;
   offsetDays: number;
-  responsible: TaskResponsible;
+  responsible: TemplateTaskResponsible;
 };
 
 export type EventTask = {
@@ -301,6 +345,9 @@ export type EventTask = {
   label: string;
   dueDate: string;
   responsible: TaskResponsible;
+  // Lot 34b (CHR-02, D12) : le prestataire retenu à qui la tâche est confiée ; nul s'il a été
+  // retiré de l'événement.
+  vendorCandidateId: string | null;
   done: boolean;
   position: number;
   // Lot 34a (DAT-07) : écart avec la date de l'événement (J-90 = -90), et tâche fixée (déplacée à
@@ -315,7 +362,13 @@ export type EventTaskInput = {
   label: string;
   dueDate: string;
   responsible: TaskResponsible;
+  vendorCandidateId?: string | null;
 };
+
+// Lot 34b (CHR-02, D13) : pièces jointes et fil de commentaires d'une tâche, réservés à l'équipe.
+export type EventTaskAttachment = { id: string; taskId: string; eventId: string; label: string; mime: string; sizeBytes: number; createdAt: string };
+export type AttachTaskFileInput = { organizationId: string; taskId: string; label: string; content: Uint8Array; uploadedByUserId: string };
+export type EventTaskComment = { id: string; taskId: string; authorUserId: string | null; body: string; createdAt: string };
 
 // PRD-HUB-02 — tâche vue depuis l'accueil ou l'écran Tâches, avec son événement.
 export type OrganizationTask = EventTask & {
@@ -338,6 +391,7 @@ export type UpdateEventTaskInput = {
   label?: string | undefined;
   dueDate?: string | undefined;
   responsible?: TaskResponsible | undefined;
+  vendorCandidateId?: string | null | undefined;
   done?: boolean | undefined;
 };
 
@@ -540,8 +594,10 @@ export type VendorLinkView = {
   slotLabel: string;
   clientFirstNames: string[];
   eventDate: string | null;
-  places: { id: string; label: string; address: string | null }[];
+  places: { id: string; label: string; address: string | null; city: string | null; startTime: string | null; endTime: string | null }[];
   programItems: { id: string; startTime: string; endTime: string | null; label: string; location: string | null }[];
+  // Lot 34b (CHR-02, D12) : les tâches qui lui sont confiées, qu'il coche.
+  tasks: { id: string; label: string; dueDate: string; done: boolean }[];
 };
 
 // Vue du tiers : jamais de note interne (programme en variante « mariés ») ;
