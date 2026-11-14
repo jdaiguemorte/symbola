@@ -1,6 +1,7 @@
 # Lot 34 — Statuts, report et annulation, dates relatives, fiche d'identité de l'évènement
 
-**Statut** : spécification **à valider par Julien** (14/11/2026). Rien n'est codé.
+**Statut** : spécification **validée par Julien le 14/11/2026** (« Oui, je valide » : D1 à D13 en
+(a), contrats d'événements internes en version 2 compris).
 Branche `lot-34-statuts`, partie de `main` après le lot 33 (PR #114).
 
 ## Contexte
