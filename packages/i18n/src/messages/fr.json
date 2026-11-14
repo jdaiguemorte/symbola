@@ -4439,6 +4439,8 @@
     "reasonLabel": "Motif : {reason}",
     "sessionsRevoked": "{count, plural, =0 {aucune autre session} one {# session fermée} other {# sessions fermées}}",
     "refusedRoute": "Adresse demandée : {route}",
+    "methodIdentity": "par le service de connexion",
+    "methodIdentityMfa": "avec double authentification",
     "methodPassword": "par mot de passe",
     "methodCode": "avec le code",
     "methodTrustedDevice": "appareil de confiance",

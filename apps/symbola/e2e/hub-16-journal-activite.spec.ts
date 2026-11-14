@@ -51,14 +51,13 @@ test("HUB-16 — la titulaire lit son journal : sa connexion y figure, filtrée 
     page.getByRole("heading", { level: 1, name: "Journal d'activité" }),
   ).toBeVisible();
   const log = page.getByRole("region", { name: "Activité de l'organisation" });
-  await expect(
-    log
-      .getByRole("row")
-      .filter({ hasText: "Double authentification configurée" }),
-  ).toContainText(owner.email);
-  await expect(
-    log.getByRole("row").filter({ hasText: "avec le code" }),
-  ).toContainText("Connexion");
+  // Lot 33 (ADR 0067) : le second facteur s'installe chez le fournisseur d'identité ; le journal
+  // de Symbola garde la connexion, son auteur et sa méthode.
+  const connection = log
+    .getByRole("row")
+    .filter({ hasText: "avec double authentification" });
+  await expect(connection).toContainText("Connexion");
+  await expect(connection).toContainText(owner.email);
   await expectNoAxeViolation(page);
 
   await page.getByLabel("Famille").selectOption({ label: "Émissions" });
