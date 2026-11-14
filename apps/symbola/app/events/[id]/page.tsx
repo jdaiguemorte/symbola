@@ -647,7 +647,8 @@ export default async function EventDetailPage({
             <TimeZoneForm eventId={event.id} timeZone={event.timeZone} zones={Intl.supportedValuesOf("timeZone")} />
             <WantedBudgetForm key={`wanted-${event.wantedBudgetCents ?? ""}`} eventId={event.id} wantedBudgetCents={event.wantedBudgetCents} />
             <VenueForm eventId={event.id} venueName={event.venueName} venueCity={event.venueCity} />
-            <EventIdentityForm key={`identity-${event.guestsEstimated ?? ""}-${event.guestsConfirmed ?? ""}-${event.style ?? ""}-${(event.notes ?? "").length}`} eventId={event.id} identity={event} />
+            {/* Sans clé liée aux valeurs : l'enregistrement garde son message de confirmation. */}
+            <EventIdentityForm eventId={event.id} identity={event} />
           </details>
           <ImportedFields fields={event.importedFields} />
           {suggestConfirmBudget ? (
