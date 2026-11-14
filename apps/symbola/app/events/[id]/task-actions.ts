@@ -11,6 +11,7 @@ import {
   EventNotFoundError,
   EventTaskNotFoundError,
   moveEventTask,
+  releaseEventTask,
   removeEventTask,
   resolveTaskRecalculation,
   TASK_RESPONSIBLES,
@@ -188,5 +189,21 @@ export async function removeEventTaskAction(formData: FormData): Promise<void> {
   const taskId = String(formData.get("taskId") ?? "");
   if (!isValidId(eventId) || !isValidId(taskId)) return;
   await removeEventTask(access.organizationId, taskId);
+  revalidatePath(`/events/${eventId}`);
+}
+
+// Lot 34a (DAT-07) : une tâche déplacée à la main redevient relative à la date de l'évènement.
+export async function releaseEventTaskAction(formData: FormData): Promise<void> {
+  const t = await getTranslations("Events");
+  const access = await authorize(t);
+  if ("error" in access) return;
+  const eventId = String(formData.get("eventId") ?? "");
+  const taskId = String(formData.get("taskId") ?? "");
+  if (!isValidId(eventId) || !isValidId(taskId)) return;
+  try {
+    await releaseEventTask(access.organizationId, taskId);
+  } catch (error) {
+    if (!(error instanceof EventTaskNotFoundError)) throw error;
+  }
   revalidatePath(`/events/${eventId}`);
 }

@@ -1,6 +1,6 @@
 // PRD-HUB-02 — calcul du calendrier de l'accueil (sans rendu) : mois, cases du
 // lundi au dimanche, ton de chaque date et événements du même week-end.
-import type { EventStatus } from "@/modules/events/service";
+import { FIRM_STATUSES, TENTATIVE_STATUSES, type EventStatus } from "@/modules/events/service";
 
 export type CalendarEvent = { id: string; date: string; status: EventStatus; names: string; isDemo: boolean };
 
@@ -21,8 +21,9 @@ export type CalendarCell = {
 
 export type CalendarMonth = { key: string; cells: (CalendarCell | null)[] };
 
-const CONFIRMED: EventStatus[] = ["confirmed", "done"];
-const TENTATIVE: EventStatus[] = ["prospect", "quote_sent"];
+// Lot 34a (EVT-05) : sûrs (confirmé, en préparation, clôturé) ; provisoires (option, report).
+const CONFIRMED: readonly EventStatus[] = FIRM_STATUSES;
+const TENTATIVE: readonly EventStatus[] = TENTATIVE_STATUSES;
 
 export function addMonths(month: string, count: number): string {
   const [year, value] = month.split("-").map(Number) as [number, number];

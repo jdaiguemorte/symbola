@@ -4,9 +4,9 @@
 import type { EventDetail, EventPlace, EventProgram, EventStatus, EventVendorSlot, VendorCandidate } from "@/modules/events/service";
 import type { VendorContact } from "@/modules/vendors/service";
 
-// L'écran existe pour un évènement confirmé et daté, et encore le lendemain une fois
-// l'évènement passé en « réalisé ».
-export const DAY_OF_STATUSES: readonly EventStatus[] = ["confirmed", "done"];
+// L'écran existe pour un évènement confirmé (ou en préparation) et daté, et encore le lendemain
+// une fois l'évènement clôturé (lot 34a, statuts du cahier des charges).
+export const DAY_OF_STATUSES: readonly EventStatus[] = ["confirmed", "in_preparation", "closed"];
 
 export function isDayOfOpen(event: Pick<EventDetail, "status" | "eventDate">): event is Pick<EventDetail, "status"> & { eventDate: string } {
   return DAY_OF_STATUSES.includes(event.status) && event.eventDate !== null;

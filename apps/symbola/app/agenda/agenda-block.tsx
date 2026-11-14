@@ -3,6 +3,7 @@
 // un prospect en atténué, badge « 2 » quand deux événements tombent le même
 // week-end ; un clic ouvre la fiche de l'événement. Lot 12 (L12-HUB-13) : un
 // clic sur une date libre propose de créer un prospect ou un événement.
+import { STATUS_LABEL_KEYS } from "@/app/events/event-status";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { getTranslations } from "next-intl/server";
@@ -52,7 +53,7 @@ export async function AgendaBlock({
   const start = query.debut && /^\d{4}-(0[1-9]|1[0-2])$/.test(query.debut) ? query.debut : current;
 
   const events = (await listEvents({ organizationId }))
-    .filter((event) => event.eventDate !== null && event.status !== "lost")
+    .filter((event) => event.eventDate !== null && event.status !== "cancelled")
     .map((event) => ({ id: event.id, date: event.eventDate!, status: event.status, names: eventNames(event.clients), isDemo: event.isDemo }));
   const months = buildCalendar({ start, months: span, events });
   const href = (changes: { agenda?: number; debut?: string }) =>
@@ -61,7 +62,7 @@ export async function AgendaBlock({
 
   const describe = (cell: CalendarCell) =>
     `${formatCalendarDate(cell.date, locale)} : ${cell.events
-      .map((event) => `${event.names} (${tEvents(event.status === "confirmed" || event.status === "done" ? "statusConfirmed" : "statusProspect")})`)
+      .map((event) => `${event.names} (${tEvents(STATUS_LABEL_KEYS[event.status])})`)
       .join(", ")}`;
 
   return (

@@ -11,12 +11,12 @@ import { ScreenHelp } from "@/app/screen-help";
 import { ConfirmDialog } from "@/app/ui/confirm-dialog";
 import { PageHeader } from "@/app/ui/page-header";
 import { SidePanel } from "@/app/ui/side-panel";
-import { listTaskTemplates } from "@/modules/events/service";
+import { listEventTypes, listTaskTemplates } from "@/modules/events/service";
 import { requirePlanner } from "@/lib/guards";
 import { isEventsModuleEnabled, isValidId } from "../../module-access";
 import { offsetLabel } from "../offset-label";
 import { RenameTaskTemplateForm, TaskTemplateItemForm } from "../template-forms";
-import { removeTaskTemplateAction, removeTaskTemplateItemAction } from "../template-actions";
+import { removeTaskTemplateAction, removeTaskTemplateItemAction, setTemplateEventTypeAction } from "../template-actions";
 
 const PATH = "/events/modeles";
 
@@ -46,6 +46,7 @@ export default async function TaskTemplatePage({
   const template = (await listTaskTemplates(organizationId)).find((candidate) => candidate.id === id);
   if (!template) notFound();
   const { tache, renommer } = await searchParams;
+  const eventTypes = await listEventTypes(organizationId);
   const base = `${PATH}/${template.id}`;
   const editing = tache && tache !== "nouvelle" ? template.items.find((item) => item.id === tache) : undefined;
 
@@ -70,6 +71,25 @@ export default async function TaskTemplatePage({
         }
       />
       <ScreenHelp title={tHelp("eventsTemplates.title")} body={tHelp("eventsTemplates.body")} />
+      {/* Lot 34a (EVT-01, D8) : le modèle du type naît avec chaque évènement de ce type. */}
+      <form action={setTemplateEventTypeAction} className="row-wrap">
+        <input type="hidden" name="templateId" value={template.id} />
+        <label>
+          {t("templateEventType")}
+          <select name="eventTypeId" defaultValue={template.eventTypeId ?? ""}>
+            <option value="">{t("templateEventTypeNone")}</option>
+            {eventTypes.map((type) => (
+              <option key={type.id} value={type.id}>
+                {type.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <button type="submit" className="button-ghost">
+          {t("templateEventTypeSave")}
+        </button>
+      </form>
+      <p className="muted">{t("templateEventTypeHint")}</p>
 
       {template.items.length === 0 ? (
         <p>{t("noTaskTemplateItems")}</p>

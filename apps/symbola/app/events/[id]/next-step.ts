@@ -26,8 +26,10 @@ function withinThreeMonths(eventDate: string, today: string): boolean {
 
 export function nextStep(input: NextStepInput): NextStep | null {
   if (input.isDemo) return null;
-  if (input.status === "prospect") return input.quotesAvailable && !input.hasSentOrSignedQuote ? "send_quote" : null;
-  if (input.status !== "confirmed") return null;
+  // Lot 34a (EVT-05) : une option attend son devis ; un évènement confirmé ou en préparation, la
+  // suite de sa préparation.
+  if (input.status === "option") return input.quotesAvailable && !input.hasSentOrSignedQuote ? "send_quote" : null;
+  if (input.status !== "confirmed" && input.status !== "in_preparation") return null;
   if (input.taskCount === 0 && input.templateCount > 0) return "apply_retroplanning";
   if (input.programItemCount === 0 && input.eventDate && withinThreeMonths(input.eventDate, input.today)) return "prepare_program";
   if (input.clientLinkCount === 0) return "invite_clients";
