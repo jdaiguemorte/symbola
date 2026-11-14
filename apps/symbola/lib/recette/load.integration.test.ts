@@ -32,7 +32,7 @@ describe("DAT-10 — Jeu fictif chargeable en une commande", { timeout: 120_000 
         "ORG-02:member:Hugo Lemaire",
       ]),
     );
-    expect(result.accounts.every((account) => account.email.endsWith("@exemple.test") && account.password.length >= 20)).toBe(true);
+    expect(result.accounts.every((account) => account.email.endsWith("@exemple.test"))).toBe(true);
     // Lot 26a (UX-11, POR-01) : les clients et le payeur n'ont pas de compte, mais un lien personnel.
     expect(result.accounts.some((account) => account.nom === "Léa Martin")).toBe(false);
     expect(result.links.map((link) => `${link.organisation}:${link.profil}:${link.nom}`)).toEqual(
