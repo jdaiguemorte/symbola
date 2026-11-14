@@ -26,6 +26,7 @@ import {
   insertVatRegimeChange,
   listAllOrganizations,
   markInvitationAccepted,
+  findPendingRoleInvitations,
   updateFirstStepsHidden,
   updateOrganizationSiret,
   upsertOrganizationModule,
@@ -305,15 +306,17 @@ export async function acceptInvitation(
   }
 
   // Lot 33 (HUB-02, ADR 0067) : aucun mot de passe ; le compte (créé s'il n'existe pas) reçoit
-  // l'adhésion, puis la personne se connecte par le lien envoyé à l'adresse invitée.
-  const owner = await ensureMembership(db, { organizationId: invitation.organizationId, email: invitation.email, role: "owner" });
+  // l'adhésion, puis la personne se connecte par le lien envoyé à l'adresse invitée. Lot 33b
+  // (HUB-03, D12) : le rôle est celui de l'invitation (Propriétaire ou Planner).
+  const joined = await ensureMembership(db, { organizationId: invitation.organizationId, email: invitation.email, role: invitation.role });
   await markInvitationAccepted(db, invitation.id);
-  // Lot 23 (SEC-19) : le compte de la titulaire est créé.
+  // Lot 23 (SEC-19) : le compte invité rejoint l'organisation.
   await recordAudit(db, {
     organizationId: invitation.organizationId,
     action: "hub.invitation.accepted",
-    objectId: owner.userId,
-    actor: { kind: "member", id: owner.userId },
+    objectId: joined.userId,
+    details: { role: invitation.role },
+    actor: { kind: "member", id: joined.userId },
   });
 
   return { outcome: "success", organizationId: invitation.organizationId, email: invitation.email };
@@ -321,6 +324,52 @@ export async function acceptInvitation(
 
 export async function listOrganizations(db: AppDatabase) {
   return listAllOrganizations(db);
+}
+
+// Lot 33b (HUB-03, D12) — la Propriétaire invite une Planner par e-mail : lien valable sept jours,
+// à usage unique ; à l'acceptation, le compte naît si besoin et l'adhésion de Planner est créée.
+// L'e-mail est composé et envoyé par l'app, dans la langue de l'écran (textes traduits). Une
+// adresse déjà dans l'équipe n'est pas invitée de nouveau ; le journal ne garde aucune adresse.
+export const TEAM_INVITATION_DURATION_MS = INVITATION_DURATION_MS;
+
+export type CreateTeamInvitationResult =
+  | { outcome: "invited"; invitationId: string; token: string; expiresAt: Date }
+  | { outcome: "already_member" }
+  | { outcome: "invalid_email" };
+
+export async function createTeamInvitation(
+  db: AppDatabase,
+  input: { organizationId: string; email: string; invitedByUserId: string; now?: Date },
+): Promise<CreateTeamInvitationResult> {
+  const email = input.email.trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) return { outcome: "invalid_email" };
+  const team = await listTeam(db, input.organizationId);
+  if (team.some((member) => member.email === email && !member.disabledAt)) return { outcome: "already_member" };
+  const token = generateInvitationToken();
+  const expiresAt = new Date((input.now ?? new Date()).getTime() + INVITATION_DURATION_MS);
+  const invitation = await insertInvitation(db, {
+    organizationId: input.organizationId,
+    email,
+    tokenHash: hashInvitationToken(token),
+    expiresAt,
+    role: "member",
+    createdBy: input.invitedByUserId,
+  });
+  await recordAudit(db, {
+    organizationId: input.organizationId,
+    action: "hub.invitation.sent",
+    objectId: input.organizationId,
+    details: { role: "member" },
+    actor: { kind: "member", id: input.invitedByUserId },
+  });
+  return { outcome: "invited", invitationId: invitation.id, token, expiresAt };
+}
+
+export type PendingTeamInvitation = { id: string; email: string; expiresAt: Date; createdAt: Date };
+
+// Invitations de Planner encore valables et pas encore acceptées, les plus récentes d'abord.
+export async function listPendingTeamInvitations(db: AppDatabase, organizationId: string, now: Date = new Date()): Promise<PendingTeamInvitation[]> {
+  return findPendingRoleInvitations(db, organizationId, "member", now);
 }
 
 // Absence de ligne = activé (CLAUDE.md §2.3, dégradation propre : un
@@ -353,6 +402,9 @@ export type OrganizationProfile = {
   metierPrecision: string | null;
   vatRegime: VatRegime | null;
   vatRateDefaultBasisPoints: number | null;
+  // Lot 33b (HUB-09, D11) : réponses du questionnaire d'accueil (clés de onboarding.json).
+  annualEventVolume: string | null;
+  replacedTools: string[];
   completedAt: Date | null;
   // Lot 17 (DEV-07) : coordonnées et mentions des devis et factures.
   contactEmail: string | null;
@@ -379,6 +431,8 @@ const EMPTY_PROFILE: OrganizationProfile = {
   metierPrecision: null,
   vatRegime: null,
   vatRateDefaultBasisPoints: null,
+  annualEventVolume: null,
+  replacedTools: [],
   completedAt: null,
   contactEmail: null,
   contactPhone: null,
@@ -429,15 +483,16 @@ export async function completeOnboarding(
   return { outcome: "success" };
 }
 
-// Lot 12 (ONB-03) — assistant de démarrage : étape en cours et fin. Tant
-// qu'il n'est pas terminé, les menus métier sont verrouillés (app-shell).
-// Lot 18 (AIDE-13, ADR 0047) : 7 étapes, dont « Vos documents » (4e, facultative).
-export const SETUP_STEPS = 7;
+// Lot 12 (ONB-03) — assistant de démarrage : étape en cours et fin. Lot 33b (HUB-09, PAR-01,
+// D9) : il devient le questionnaire d'accueil, cinq questions, une par écran (métier, types
+// d'évènements, TVA, volume, outils remplacés) ; les menus ne sont plus verrouillés. Une
+// organisation arrêtée plus loin dans l'ancien assistant reprend à la dernière question.
+export const SETUP_STEPS = 5;
 export type SetupState = { step: number; completed: boolean; metier: Metier | null };
 
 export async function getSetupState(db: AppDatabase, organizationId: string): Promise<SetupState> {
   const row = await findOrganizationProfile(db, organizationId);
-  return { step: row?.setupStep ?? 1, completed: Boolean(row?.setupCompletedAt), metier: row?.metier ?? null };
+  return { step: Math.min(row?.setupStep ?? 1, SETUP_STEPS), completed: Boolean(row?.setupCompletedAt), metier: row?.metier ?? null };
 }
 
 export async function saveSetupStep(db: AppDatabase, organizationId: string, step: number): Promise<void> {

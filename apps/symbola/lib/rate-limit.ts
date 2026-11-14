@@ -17,7 +17,7 @@ type Window = { limit: number; windowMs: number };
 // ADR 0037) reste en place en plus.
 // Lot 33 : « login » limite les demandes de lien de connexion (chacune envoie un e-mail) ; les
 // échecs de mot de passe et leurs délais sont chez le fournisseur d'identité (ADR 0067).
-export const RATE_LIMITS: Record<"login" | "search" | "upload" | "linkOpen" | "linkRenewal" | "linkCode", { ip: Window; account: Window }> = {
+export const RATE_LIMITS: Record<"login" | "search" | "upload" | "linkOpen" | "linkRenewal" | "linkCode" | "teamInvite", { ip: Window; account: Window }> = {
   login: { ip: { limit: 20, windowMs: 15 * MINUTE }, account: { limit: 5, windowMs: 15 * MINUTE } },
   search: { ip: { limit: 300, windowMs: MINUTE }, account: { limit: 120, windowMs: MINUTE } },
   upload: { ip: { limit: 60, windowMs: 10 * MINUTE }, account: { limit: 30, windowMs: 10 * MINUTE } },
@@ -28,6 +28,9 @@ export const RATE_LIMITS: Record<"login" | "search" | "upload" | "linkOpen" | "l
   // Lot 26b (POR-01) : saisie d'un code à usage unique, en plus des cinq
   // essais par code comptés en base.
   linkCode: { ip: { limit: 30, windowMs: 15 * MINUTE }, account: { limit: 30, windowMs: 15 * MINUTE } },
+  // Lot 33b (HUB-03, D12) : invitations de Planner, chacune envoie un e-mail (« account » :
+  // l'organisation qui invite).
+  teamInvite: { ip: { limit: 20, windowMs: 60 * MINUTE }, account: { limit: 10, windowMs: 60 * MINUTE } },
 };
 
 export type RateLimitedAction = keyof typeof RATE_LIMITS;

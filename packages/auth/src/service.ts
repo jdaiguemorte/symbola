@@ -6,7 +6,7 @@
 // d'identité authentifie (OpenID Connect, identity/oidc.ts), puis signInWithIdentity ouvre la
 // session Symbola, opaque, comme avant. Un compte peut appartenir à plusieurs organisations
 // (hub.memberships, HUB-02) ; la session porte l'organisation active, relue à chaque requête.
-import { and, asc, eq, isNull } from "drizzle-orm";
+import { and, asc, eq, isNotNull, isNull } from "drizzle-orm";
 import type { AppDatabase } from "@symbola/db/client";
 import { memberships, organizations, sessions, users } from "@symbola/db/schema/hub";
 import { journalConnection } from "./connection-journal";
@@ -70,13 +70,18 @@ export async function addMembership(db: AppDatabase, input: { userId: string; or
 }
 
 // Invitation acceptée (lot 33, HUB-02) : le compte de l'adresse invitée, créé s'il n'existe pas,
-// reçoit l'adhésion à l'organisation. Un compte qui a déjà d'autres organisations les garde.
+// reçoit l'adhésion à l'organisation. Un compte qui a déjà d'autres organisations les garde. Lot 33b
+// (HUB-03) : une adhésion retirée se rouvre quand la Propriétaire invite de nouveau la personne ;
+// le rôle d'une adhésion existante ne change pas (transfert de propriété : lot 52).
 export async function ensureMembership(db: AppDatabase, input: { organizationId: string; email: string; role: "owner" | "member" }): Promise<{ userId: string }> {
   const email = input.email.toLowerCase();
   return db.transaction(async (tx) => {
     const [existing] = await tx.select({ id: users.id }).from(users).where(eq(users.email, email));
     const userId = existing?.id ?? (await tx.insert(users).values({ email }).returning({ id: users.id }))[0]!.id;
-    await tx.insert(memberships).values({ userId, organizationId: input.organizationId, role: input.role }).onConflictDoNothing();
+    await tx
+      .insert(memberships)
+      .values({ userId, organizationId: input.organizationId, role: input.role })
+      .onConflictDoUpdate({ target: [memberships.userId, memberships.organizationId], set: { disabledAt: null }, setWhere: isNotNull(memberships.disabledAt) });
     return { userId };
   });
 }
