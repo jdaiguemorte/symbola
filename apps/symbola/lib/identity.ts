@@ -4,7 +4,7 @@
 // @symbola/auth.
 import { cookies } from "next/headers";
 import { getTranslations } from "next-intl/server";
-import { createManagementClient, createOidcClient, MAGIC_LINK_TTL_SECONDS, readMfaEncryptionKey, sealMagicLink, type ManagementClient, type OidcClient, type PendingAuthorization } from "@symbola/auth";
+import { createManagementClient, createOidcClient, identityConnectionFromEnv, MAGIC_LINK_TTL_SECONDS, readMfaEncryptionKey, sealMagicLink, type ManagementClient, type OidcClient, type PendingAuthorization } from "@symbola/auth";
 import { parseEnv } from "@symbola/env";
 import { sendMail } from "@symbola/mail";
 
@@ -14,7 +14,7 @@ let identityClients: Identity | null = null;
 export function identity(): Identity {
   if (!identityClients) {
     const env = parseEnv(process.env);
-    const connection = { endpoint: env.LOGTO_ENDPOINT, m2mAppId: env.LOGTO_M2M_APP_ID, m2mSecret: env.LOGTO_M2M_SECRET };
+    const connection = identityConnectionFromEnv(env);
     const management = createManagementClient(connection);
     identityClients = { management, oidc: createOidcClient({ ...connection, appPublicUrl: env.APP_PUBLIC_URL }, management), appPublicUrl: env.APP_PUBLIC_URL.replace(/\/+$/, "") };
   }
@@ -68,8 +68,9 @@ export async function requireMfaAtProvider(subject: string): Promise<void> {
 export async function sendMagicLink(email: string, locale: "fr" | "en"): Promise<void> {
   const { management, appPublicUrl } = identity();
   try {
-    const { token } = await management.createOneTimeToken(email);
-    const sealed = sealMagicLink({ email, token, expiresAt: Date.now() + MAGIC_LINK_TTL_SECONDS * 1000 }, readMfaEncryptionKey());
+    // Adresse exacte connue du fournisseur (casse comprise) : c'est elle que le lien lui rend.
+    const issued = await management.issueSignInToken(email);
+    const sealed = sealMagicLink({ email: issued.email, token: issued.token, expiresAt: Date.now() + MAGIC_LINK_TTL_SECONDS * 1000 }, readMfaEncryptionKey());
     const t = await getTranslations({ locale, namespace: "Login" });
     await sendMail({ to: email, subject: t("magicLinkSubject"), text: t("magicLinkBody", { link: `${appPublicUrl}/auth/lien/${sealed}` }) });
   } catch (error) {

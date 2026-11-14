@@ -25,6 +25,7 @@ export {
   IdentityProviderError,
   MAGIC_LINK_TTL_SECONDS,
   type IdentityConnection,
+  identityConnectionFromEnv,
   type ManagementClient,
 } from "./identity/management";
 export {

@@ -5,7 +5,7 @@
 import { createAppConnection } from "@symbola/db/client";
 import { z } from "zod";
 import { migrateAccounts } from "../src/identity/account-migration";
-import { createManagementClient } from "../src/identity/management";
+import { createManagementClient, identityConnectionFromEnv } from "../src/identity/management";
 
 const env = z
   .object({
@@ -18,7 +18,7 @@ const env = z
 async function main(): Promise<void> {
   const { sql, db } = createAppConnection();
   try {
-    const report = await migrateAccounts(db, createManagementClient({ endpoint: env.LOGTO_ENDPOINT, m2mAppId: env.LOGTO_M2M_APP_ID, m2mSecret: env.LOGTO_M2M_SECRET }));
+    const report = await migrateAccounts(db, createManagementClient(identityConnectionFromEnv(env)));
     console.log(`Comptes reliés : ${report.linked} (dont ${report.created} créés chez le fournisseur, ${report.relinked} inconnus de lui et reliés de nouveau) ; déjà reliés : ${report.alreadyLinked}.`);
     console.log(`Double authentification exigée (titulaires et Exploitation) : ${report.mfaRequired}.`);
   } finally {

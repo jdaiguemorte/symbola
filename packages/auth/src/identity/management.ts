@@ -9,6 +9,12 @@ export const MAGIC_LINK_TTL_SECONDS = 15 * 60;
 
 export type IdentityConnection = { endpoint: string; m2mAppId: string; m2mSecret: string };
 
+// Connexion lue des variables d'environnement validées (@symbola/env), en un seul endroit.
+export function identityConnectionFromEnv(env: { LOGTO_ENDPOINT: string; LOGTO_M2M_APP_ID: string; LOGTO_M2M_SECRET: string }): IdentityConnection {
+  const { LOGTO_ENDPOINT: endpoint, LOGTO_M2M_APP_ID: m2mAppId, LOGTO_M2M_SECRET: m2mSecret } = env;
+  return { endpoint, m2mAppId, m2mSecret };
+}
+
 export class IdentityProviderError extends Error {
   constructor(
     readonly path: string,
@@ -64,18 +70,29 @@ export function createManagementClient(connection: IdentityConnection, fetchImpl
     return payload;
   }
 
+  // SEC-07 : jeton à usage unique ; le lien est construit et envoyé par Symbola.
+  async function createOneTimeToken(email: string, expiresInSeconds = MAGIC_LINK_TTL_SECONDS) {
+    return oneTimeToken.parse(await request("POST", "/api/one-time-tokens", { email, expiresIn: expiresInSeconds }));
+  }
+
+  // Recherche « exacte » du fournisseur : insensible à la casse.
+  async function findUserByEmail(email: string): Promise<IdentityUser | null> {
+    const query = new URLSearchParams({ "search.primaryEmail": email, "mode.primaryEmail": "exact" });
+    const users = z.array(identityUser).parse(await request("GET", `/api/users?${query.toString()}`));
+    return users[0] ?? null;
+  }
+
   return {
     request,
+    createOneTimeToken,
+    findUserByEmail,
 
-    // SEC-07 : jeton à usage unique ; le lien est construit et envoyé par Symbola.
-    async createOneTimeToken(email: string, expiresInSeconds = MAGIC_LINK_TTL_SECONDS) {
-      return oneTimeToken.parse(await request("POST", "/api/one-time-tokens", { email, expiresIn: expiresInSeconds }));
-    },
-
-    async findUserByEmail(email: string): Promise<IdentityUser | null> {
-      const query = new URLSearchParams({ "search.primaryEmail": email, "mode.primaryEmail": "exact" });
-      const users = z.array(identityUser).parse(await request("GET", `/api/users?${query.toString()}`));
-      return users[0] ?? null;
+    // SEC-07 : le fournisseur cherche les adresses sans tenir compte de la casse, mais garde celle
+    // de l'inscription, et un jeton émis pour une autre casse ne connecte pas. Le jeton est donc
+    // émis pour l'adresse qu'il connaît (« Camille@… » inscrite chez lui), sinon pour celle demandée.
+    async issueSignInToken(email: string): Promise<{ token: string; expiresAt: number; email: string }> {
+      const providerEmail = (await findUserByEmail(email))?.primaryEmail ?? email;
+      return { ...(await createOneTimeToken(providerEmail)), email: providerEmail };
     },
 
     // Reprise des comptes (partie F) : adresse seule, vérifiée par la confiance déjà accordée.

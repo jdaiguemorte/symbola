@@ -16,7 +16,7 @@
 // Aucun secret affiché.
 import postgres from "postgres";
 import { z } from "zod";
-import { createManagementClient } from "../src/identity/management";
+import { createManagementClient, identityConnectionFromEnv } from "../src/identity/management";
 import { accountCenter, forbiddenPasswordWords, signInExperience, smtpConnector, webApplication, WEB_APPLICATION_NAME } from "../src/identity/settings";
 
 const env = z
@@ -105,7 +105,7 @@ async function main(): Promise<void> {
   await bootstrapMachineApplication();
   console.log("Application machine à machine de Symbola prête.");
 
-  const client = createManagementClient({ endpoint: env.LOGTO_ENDPOINT, m2mAppId: env.LOGTO_M2M_APP_ID, m2mSecret: env.LOGTO_M2M_SECRET });
+  const client = createManagementClient(identityConnectionFromEnv(env));
 
   const wanted = webApplication(env.APP_PUBLIC_URL);
   const existing = await client.findWebApplication(WEB_APPLICATION_NAME);

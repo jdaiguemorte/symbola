@@ -2,7 +2,7 @@
 // faux fetch : jeton machine à machine gardé puis renouvelé, lien magique de quinze minutes,
 // recherche exacte par adresse, erreurs sans donnée personnelle.
 import { describe, expect, it } from "vitest";
-import { createManagementClient, IdentityProviderError, MAGIC_LINK_TTL_SECONDS } from "./management";
+import { createManagementClient, identityConnectionFromEnv, IdentityProviderError, MAGIC_LINK_TTL_SECONDS } from "./management";
 
 type Call = { url: string; method: string; body: string | undefined; authorization: string | undefined };
 
@@ -50,6 +50,19 @@ describe("SEC-01 — Client de l'API d'administration du fournisseur d'identité
     expect(JSON.parse(calls[1]!.body!)).toEqual({ email: "camille@example.test", expiresIn: 900 });
   });
 
+  it("SEC-07 — émet le jeton pour l'adresse que le fournisseur connaît, avec sa casse ; sinon pour celle demandée", async () => {
+    const { impl, calls } = fakeFetch({
+      "POST /oidc/token": token,
+      "GET /api/users": (call) => ({ json: new URL(call.url).searchParams.get("search.primaryEmail") === "camille@example.test" ? [{ id: "sub-1", primaryEmail: "Camille@Example.test" }] : [] }),
+      "POST /api/one-time-tokens": () => ({ status: 201, json: { token: "jeton-unique", expiresAt: 1 } }),
+    });
+    const client = createManagementClient(connection, impl);
+    await expect(client.issueSignInToken("camille@example.test")).resolves.toEqual({ token: "jeton-unique", expiresAt: 1, email: "Camille@Example.test" });
+    expect(JSON.parse(calls.at(-1)!.body!)).toEqual({ email: "Camille@Example.test", expiresIn: 900 });
+    await expect(client.issueSignInToken("nouvelle@example.test")).resolves.toMatchObject({ email: "nouvelle@example.test" });
+    expect(JSON.parse(calls.at(-1)!.body!)).toEqual({ email: "nouvelle@example.test", expiresIn: 900 });
+  });
+
   it("cherche un compte par son adresse exacte, et répond « aucun » sans erreur", async () => {
     const { impl, calls } = fakeFetch({ "POST /oidc/token": token, "GET /api/users": () => ({ json: [] }) });
     const client = createManagementClient(connection, impl);
@@ -73,6 +86,14 @@ describe("SEC-01 — Client de l'API d'administration du fournisseur d'identité
     const client = createManagementClient(connection, impl);
     await expect(client.createOneTimeToken("camille@example.test")).rejects.toThrow("/oidc/token a répondu 401");
     expect(calls).toHaveLength(1);
+  });
+
+  it("lit la connexion dans les variables d'environnement validées", () => {
+    expect(identityConnectionFromEnv({ LOGTO_ENDPOINT: "http://identite.test", LOGTO_M2M_APP_ID: "symbola-bootstrap", LOGTO_M2M_SECRET: "s".repeat(32) })).toEqual({
+      endpoint: "http://identite.test",
+      m2mAppId: "symbola-bootstrap",
+      m2mSecret: "s".repeat(32),
+    });
   });
 
   it("D4 — rend la double authentification obligatoire pour un compte, chez le fournisseur", async () => {
