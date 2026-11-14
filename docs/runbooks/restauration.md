@@ -20,6 +20,7 @@ Prérequis : durcissement fait (`docs/runbooks/durcissement-serveur.md`), enviro
 | Garage (fichiers et métadonnées, volume `symbola-<env>_garage_data`) | Copie du volume par restic, **Garage arrêté pendant la copie** (quelques secondes à minutes la nuit) | Fichiers figés, métadonnées SQLite cohérentes |
 | Uptime Kuma (volume `symbola-socle_uptime_kuma_data`) — production seulement | Copie du volume, Kuma arrêté pendant la copie | Base SQLite cohérente |
 | Documenso (DEV-02, ADR 0026) — une fois déployé : base dédiée `documenso`, fichiers compris | Second `pg_dump` vérifié par `pg_restore --list` | Ignoré tant que la base n'existe pas ; restaurée seulement si l'instantané la contient (rôle `documenso` requis : bootstrap avec `DOCUMENSO_DB_PASSWORD` d'abord). Le certificat de scellement est dans `.env.<env>` et le gestionnaire de mots de passe |
+| Fournisseur d'identité Logto (lot 33, ADR 0067) : base dédiée `logto` (comptes, mots de passe hachés, seconds facteurs, réglages) | Troisième `pg_dump` vérifié par `pg_restore --list` | Ignoré tant que la base n'existe pas ; restaurée seulement si l'instantané la contient (rôle `logto` requis : bootstrap avec `LOGTO_DB_PASSWORD` d'abord). Le script recrée les rôles de connexion propres à Logto (`logto_tenant_*`) d'après sa table `tenants`. **Sans cette base, plus personne ne se connecte** |
 
 - **Un dépôt restic par environnement**, sur la Storage Box Hetzner (BX11, Helsinki), dans le
   dossier du sous-compte de l'environnement (`symbola-production`, `symbola-staging`), chacun
@@ -159,8 +160,10 @@ l'instantané. L'autre environnement n'est jamais touché.
    l'environnement (`docs/runbooks/deploiement.md`, « Premier déploiement », étape 1), puis
    créer le rôle applicatif **sans lancer les migrations** (le dump contient déjà le
    schéma et l'historique des migrations) : étape 2 du même runbook, `pnpm --filter
-   @symbola/db bootstrap` uniquement. Si le volume existe déjà, le rôle existe : rien à
-   faire.
+   @symbola/db bootstrap` uniquement, avec `LOGTO_DB_PASSWORD` (et `DOCUMENSO_DB_PASSWORD`
+   s'il est déployé) rempli dans `.env.<env>` : le bootstrap crée aussi le rôle `logto`. Ne
+   **pas** relancer `configure-identity` : les réglages de Logto reviennent avec sa base. Si le
+   volume existe déjà, les rôles existent : rien à faire.
 3. Lancer la restauration :
    ```bash
    /opt/symbola/infra/backup/restore.sh staging --confirm=staging
@@ -168,13 +171,18 @@ l'instantané. L'autre environnement n'est jamais touché.
    ```
    Le script arrête l'app, vérifie le rôle applicatif, recrée la base, restaure le dump,
    remplace le contenu de Garage, redémarre l'environnement et affiche la durée totale.
+   Lot 33 (ADR 0067) : si l'instantané contient la base de Logto, il arrête aussi Logto,
+   recrée sa base, lui rend le droit de connexion, restaure le dump et recrée ses rôles de
+   connexion ; comptes et seconds facteurs reviennent tels qu'à la date de l'instantané (un
+   compte créé depuis n'existe plus chez Logto, et sa fiche Symbola non plus).
    En cas d'échec, l'app reste arrêtée : corriger, puis relancer le script.
    Lot 23 (SEC-09) : la restauration est un accès d'exploitation ; elle écrit
    `ops.backup.restored` au journal d'activité de chaque organisation, avec pour motif
    l'instantané, ou celui donné par `--motif="…"` (sans donnée personnelle). Pour toute autre
    lecture de la base : `docs/runbooks/acces-exploitation.md`.
 4. Vérifier : `curl -s https://<domaine>/health` renvoie `"status":"ok"`, connexion à
-   l'app, téléchargement d'un fichier existant.
+   l'app par un lien de connexion (la page de Logto doit s'ouvrir), téléchargement d'un
+   fichier existant.
 5. **RGPD** : les effacements de données demandés **après** la date de l'instantané doivent
    être réappliqués avant de rouvrir l'accès (une sauvegarde restaurée fait réapparaître des
    données effacées depuis). À outiller avec le module RGPD (lot 6) ; en attendant, noter
@@ -222,9 +230,13 @@ supprime une colonne en perd les données.
    Annuler 0078 retire la limitation de débit et oublie les tentatives du jour (ADR 0044).
    Annuler 0077 retire les familles de types : chaque fiche garde son type, le carnet revient à
    une pastille par type (ADR 0040).
-   Avant d'annuler 0075 et de revenir à une image antérieure au lot 16, remettre en clair les
-   secrets de double authentification (`mfa-secrets -- --unseal`, runbook de déploiement,
-   « Retour arrière », ADR 0037).
+   Avant d'annuler 0075 et de revenir à une image antérieure au lot 16, il fallait remettre en
+   clair les secrets de double authentification (ADR 0037) ; depuis le lot 33, ces secrets
+   n'existent plus chez Symbola et la commande `mfa-secrets` a disparu.
+   **Lot 33 (0130, puis 0129)** : annuler 0130 recrée les colonnes de mot de passe et de double
+   authentification **vides** ; l'annulation de 0129 est ensuite refusée tant qu'un compte n'a
+   pas de mot de passe. Revenir avant le lot 33 = restaurer la sauvegarde prise avant le
+   déploiement (§ 4), pas annuler ces migrations (runbook de déploiement, « Retour arrière »).
    La commande refuse une migration qui n'est pas la dernière appliquée, ou dont des données
    dépendent encore (par exemple des imports de fiches PDF pour 0072) : elle l'écrit en clair
    et ne modifie rien.

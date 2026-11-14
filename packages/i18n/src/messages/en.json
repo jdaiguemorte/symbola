@@ -1,28 +1,43 @@
 {
   "Login": {
-    "title": "Log in",
-    "email": "Email",
-    "password": "Password",
-    "submit": "Log in",
-    "invalidCredentials": "Invalid credentials.",
-    "locked": "Account temporarily locked after several failed attempts. Try again in a few minutes.",
-    "forgotPassword": "Forgot your password?"
+    "title": "Sign in",
+    "intro": "Get a sign-in link by email: it is valid for fifteen minutes and works only once.",
+    "email": "Email address",
+    "submit": "Send me a sign-in link",
+    "sent": "A sign-in link has just been sent to this address. It is valid for fifteen minutes.",
+    "invalidEmail": "Enter a valid email address.",
+    "providerPrompt": "Do you have a password or a passkey?",
+    "providerLink": "Sign in with a password or a passkey",
+    "signupPrompt": "No workspace yet?",
+    "signupLink": "Create my workspace",
+    "linkInvalid": "This sign-in link is no longer valid. Ask for a new one.",
+    "accessRefused": "This access is no longer open. Please contact your organization's owner.",
+    "failed": "Sign-in did not complete. Please try again.",
+    "magicLinkSubject": "Your Symbola sign-in link",
+    "magicLinkBody": "Hello,\n\nHere is your Symbola sign-in link. It is valid for fifteen minutes and works only once:\n{link}\n\nIf you did not ask for it, ignore this message: nobody can sign in without this link.\n\nThe Symbola team"
   },
-  "Mfa": {
-    "title": "Two-factor authentication",
-    "scanInstructions": "Scan this QR code with your authenticator app (for example Google Authenticator or 1Password), then enter the 6-digit code it shows.",
-    "enterCodeInstructions": "Enter the code from your authenticator app.",
-    "code": "Code",
-    "submit": "Confirm",
-    "invalidCode": "Invalid code.",
-    "qrLabel": "QR code to scan with your authenticator app",
-    "manualKey": "Can't scan? Enter this key in the app:",
-    "setupLink": "Full setup link",
-    "locked": "Too many incorrect codes: two-factor authentication is blocked for 15 minutes. An e-mail has been sent to you.",
-    "lockedMailSubject": "Your Symbola two-factor authentication has been blocked",
-    "lockedMailBody": "Five incorrect two-factor authentication codes in a row were entered on your account, after a correct password. Two-factor authentication is blocked for 15 minutes as a security measure.\n\nIf this wasn't you, someone knows your password: change it now with \"Forgot your password?\" on the login screen.",
-    "rememberDevice": "Remember this device for 90 days",
-    "rememberDeviceHint": "You won't be asked for the code on this device for 90 days. Don't tick this on a shared computer."
+  "Signup": {
+    "title": "Create your Symbola workspace",
+    "intro": "Your email address is all we need. We send you a link: it opens your workspace, with no password to choose.",
+    "email": "Email address",
+    "submit": "Send me my link",
+    "sent": "A link has just been sent to this address. It is valid for fifteen minutes.",
+    "loginPrompt": "Already have a workspace?",
+    "loginLink": "Sign in"
+  },
+  "Security": {
+    "title": "Secure your account",
+    "ownerBody": "As the owner, you protect your organization's data: two-step verification is required at every sign-in. Get a sign-in link: you will set up an authenticator app or a passkey, then it will be asked for.",
+    "operatorBody": "The operations account requires two-step verification at every sign-in. Get a sign-in link: you will set up an authenticator app or a passkey, then it will be asked for.",
+    "setUp": "Manage my sign-in methods",
+    "signInAgain": "Send me a sign-in link",
+    "signOut": "Sign out",
+    "linkSent": "A sign-in link has just been sent to your address. Open it: your two-step verification will be asked for, or set up if missing."
+  },
+  "Organizations": {
+    "label": "Organization",
+    "switch": "Open",
+    "create": "Create another organization"
   },
   "Home": {
     "title": "Symbola",
@@ -30,7 +45,7 @@
     "logout": "Log out",
     "myProfile": "My profile",
     "settings": "Settings",
-    "administration": "Administration",
+    "administration": "Operations",
     "onboardingIncomplete": "Your company profile is not complete yet.",
     "completeProfile": "Complete it",
     "events": "Events",
@@ -185,15 +200,11 @@
     "backupNever": "The backup script has not reported anything in this environment yet."
   },
   "Invitation": {
-    "welcome": "Welcome to Symbola",
-    "choosePassword": "Choose a password (at least 12 characters)",
-    "submit": "Create my account",
-    "success": "Account created. You can now log in.",
-    "invalidOrExpired": "This invitation link is invalid or has expired.",
-    "alreadyAccepted": "This invitation has already been used.",
-    "missingPassword": "A password is required.",
-    "passwordCompromised": "This password is among the most common or already compromised passwords. Choose another one, for example a phrase of several words.",
-    "passwordTooShort": "The password must be at least 12 characters long."
+    "welcome": "You are invited to join \"{organization}\" on Symbola.",
+    "submit": "Accept and send me a sign-in link",
+    "sent": "Done. A sign-in link has just been sent to your address; it is valid for fifteen minutes.",
+    "invalidOrExpired": "This invitation is no longer valid. Ask the person who invited you for a new one.",
+    "alreadyAccepted": "This invitation has already been accepted. Sign in with your email address."
   },
   "Profile": {
     "title": "My profile",
@@ -201,7 +212,10 @@
     "languageFr": "Français",
     "languageEn": "English",
     "submit": "Save",
-    "success": "Preferences saved."
+    "success": "Preferences saved.",
+    "securityTitle": "Account security",
+    "securityBody": "Your password, passkeys and two-step verification are managed in your sign-in space.",
+    "securityLink": "Open my sign-in space"
   },
   "Settings": {
     "title": "Settings",
@@ -303,7 +317,7 @@
     "mailHourlyCap": "Email cap per organization per hour (signers, invited couples)",
     "requiredMentionsTitle": "Required mentions on documents",
     "requiredMentionsWarning": "Regulatory value, to be validated by the chartered accountant: a ticked mention blocks sending a quote or issuing an invoice until the organisation has filled it in.",
-    "requiredMentionsSourceAdmin": "List set by the Admin.",
+    "requiredMentionsSourceAdmin": "List set by Operations.",
     "requiredMentionsSourceStarter": "Starter list (data file), to be validated.",
     "requiredMentionsReset": "Back to the starter list",
     "requiredMentionsCaption": "Required mention per document, with its conditions",
@@ -437,8 +451,8 @@
   },
   "Help": {
     "login": {
-      "title": "Logging in",
-      "body": "Enter your account email and password, then the code from your authenticator app. After several failed attempts the account locks for a few minutes to protect it. Forgotten password: use the link below the form."
+      "title": "Sign in",
+      "body": "Enter your email address: a sign-in link is sent right away, valid for fifteen minutes and for one use only. Do you have a password or a passkey? Use the link below the form. As an owner, two-step verification is required at every sign-in."
     },
     "mfa": {
       "title": "Two-factor authentication",
@@ -1039,6 +1053,10 @@
     "contractTemplates": {
       "title": "Contract templates",
       "body": "One template per event type: a title and ordered clauses, each mandatory or optional, with variables in braces and a legal role (pre-contractual information, withdrawal, deposit…). When generating, Symbola fills the variables from the quote, the event and your organisation, and names whatever is missing. Every change increases the version; contracts already generated keep their text. The starter template is a starting point to adapt, to be reviewed by a legal professional: enter the date of the last review."
+    },
+    "signup": {
+      "title": "Create your workspace",
+      "body": "Your email address is all we need: the link you receive creates your account and your organization, then opens the setup. No password to choose; you can add one, or a passkey, later."
     }
   },
   "Aide": {
@@ -3171,27 +3189,6 @@
     "linkNoticeInvalid": "The notice is too long (4,000 characters at most).",
     "signedQuoteRetentionTooShort": "Signed quotes and their contracts must be kept for at least ten years (120 months): the legal period for a contract concluded online."
   },
-  "PasswordReset": {
-    "forgotTitle": "Forgot password",
-    "forgotIntro": "Enter the e-mail address of your account: you will receive a link to choose a new password, valid for 30 minutes.",
-    "email": "E-mail",
-    "send": "Send me the link",
-    "invalidEmail": "Invalid e-mail address.",
-    "sent": "If an account exists for this address, an e-mail has just been sent to it. Remember to check your spam folder.",
-    "backToLogin": "Back to sign in",
-    "resetTitle": "New password",
-    "newPassword": "New password (at least 12 characters)",
-    "confirmPassword": "Confirm the password",
-    "save": "Save the password",
-    "mismatch": "The two passwords do not match.",
-    "compromised": "This password is among the most common or already compromised passwords. Choose another one, for example a phrase of several words.",
-    "tooShort": "The password must be at least 12 characters long.",
-    "invalidOrExpired": "This link is no longer valid: it has already been used or has expired.",
-    "askAgain": "Request a new link",
-    "done": "Password saved. You can sign in; two-factor authentication will be requested as usual.",
-    "mailSubject": "Choose a new Symbola password",
-    "mailBody": "Hello,\n\nA new password was requested for your Symbola account. This link is valid for 30 minutes and works only once:\n{link}\n\nIf you did not make this request, ignore this e-mail: your current password remains valid.\n\nThe Symbola team"
-  },
   "AdminAccounts": {
     "title": "Accounts and support",
     "intro": "Team accounts of each organisation and pending invitations. Couples' accounts are not shown here.",
@@ -3319,7 +3316,7 @@
       "budget": "Budget",
       "company": "My company and account",
       "data": "Import and personal data",
-      "admin": "Suite administration",
+      "admin": "Suite operations",
       "clients": "Your space"
     },
     "screenTitle": "Help: {title}",
@@ -4327,8 +4324,8 @@
     "center": "Help center"
   },
   "AdminMenu": {
-    "brand": "Admin",
-    "label": "Administration menu",
+    "brand": "Operations",
+    "label": "Operations menu",
     "overview": "Overview",
     "organizations": "Organisations",
     "accounts": "Accounts",
@@ -4371,12 +4368,6 @@
     "previous": "Previous page",
     "next": "Next page",
     "status": "Page {page} of {count}"
-  },
-  "TrustedDevices": {
-    "title": "Trusted devices",
-    "count": "{count, plural, =0 {No trusted device: the two-factor authentication code is asked at every login.} one {# trusted device: the two-factor authentication code isn't asked there for 90 days.} other {# trusted devices: the two-factor authentication code isn't asked there for 90 days.}}",
-    "forget": "Forget all my devices",
-    "forgotten": "Your trusted devices have been forgotten: the code will be asked at the next login, on each of them."
   },
   "RateLimit": {
     "tooMany": "Too many attempts. Try again in {minutes, plural, one {# minute} other {# minutes}}."
@@ -4448,6 +4439,8 @@
     "reasonLabel": "Reason: {reason}",
     "sessionsRevoked": "{count, plural, =0 {no other session} one {# session closed} other {# sessions closed}}",
     "refusedRoute": "Requested address: {route}",
+    "methodIdentity": "through the sign-in service",
+    "methodIdentityMfa": "with two-step verification",
     "methodPassword": "with password",
     "methodCode": "with the code",
     "methodTrustedDevice": "trusted device",
@@ -4627,7 +4620,8 @@
       "quotes_contract_signer_acts": "Signer's act (order, early performance)",
       "quotes_contract_evidence": "Contract evidence file",
       "quotes_scheduled_deposit_invoices": "Deposit invoice to issue",
-      "quotes_earnest_receipts": "Earnest money receipts"
+      "quotes_earnest_receipts": "Earnest money receipts",
+      "hub_memberships": "membership"
     },
     "modules": {
       "events": "Events",

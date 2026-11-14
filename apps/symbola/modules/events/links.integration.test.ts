@@ -10,7 +10,7 @@ import { createOrganization } from "@symbola/auth";
 import { createAppConnection, type AppDatabase } from "@symbola/db/client";
 import { auditEntries } from "@symbola/db/schema/core";
 import { eventLinks, eventLinkSessions } from "@symbola/db/schema/events";
-import { users } from "@symbola/db/schema/hub";
+import { memberships } from "@symbola/db/schema/hub";
 import { withOrganization } from "@symbola/db/with-organization";
 import type { EventLinkRights } from "@symbola/contracts";
 import {
@@ -96,7 +96,8 @@ describe("UX-11 — Tiers sans compte ni mot de passe", () => {
     expect(created).toMatchObject({ audience: "client", personName: "Léa Martin", status: "active", expiresOn: "2027-07-12" });
     const sessionToken = await opened(token);
     expect(await resolveLinkSession(sessionToken)).toMatchObject({ organizationId, eventId, linkId: created.id, personName: "Léa Martin" });
-    expect(await withDb((db) => db.select().from(users).where(eq(users.organizationId, organizationId)))).toEqual([]);
+    // Aucun compte n'entre dans l'organisation pour un lien (lot 33 : par adhésion).
+    expect(await withDb((db) => db.select().from(memberships).where(eq(memberships.organizationId, organizationId)))).toEqual([]);
   });
 
   // Lot 26b : le lien d'un prestataire se crée (vendor-links.integration.test.ts).

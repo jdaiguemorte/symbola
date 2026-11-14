@@ -12,9 +12,11 @@ import {
   countAccountsByOrganization,
   findTeamAccountOrganization,
   listTeamAccounts,
-  resetUserMfa,
+  resetIdentityMfa,
+  type ManagementClient,
   type TeamAccountStatus,
 } from "@symbola/auth";
+import { identity } from "@/lib/identity";
 import { countEventsCreatedByMonth } from "@/modules/events/service";
 import { countQuotesAndInvoicesByMonth } from "@/modules/quotes/service";
 import {
@@ -133,9 +135,11 @@ export async function resendInvitation(
 export async function resetTeamAccountMfa(
   db: AppDatabase,
   input: { adminUserId: string; userId: string },
+  management: Pick<ManagementClient, "listMfaVerifications" | "deleteMfaVerification"> = identity().management,
 ): Promise<{ email: string; language: "fr" | "en" | null }> {
   const organizationId = await findTeamAccountOrganization(db, input.userId);
-  const account = await resetUserMfa(db, input.userId);
+  // Lot 33 (ADR 0067) : les seconds facteurs sont chez le fournisseur d'identité.
+  const account = await resetIdentityMfa(db, management, input.userId);
   await recordAudit(db, {
     organizationId,
     action: "hub.user.mfa_reset",

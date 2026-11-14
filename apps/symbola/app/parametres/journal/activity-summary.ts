@@ -32,7 +32,15 @@ export function actorLabel(entry: Pick<ActivityEntry, "actorKind" | "actorLabel"
   return entry.actorLabel ?? t("actorUnknown");
 }
 
-const METHODS: Record<string, string> = { password: "methodPassword", code: "methodCode", trusted_device: "methodTrustedDevice" };
+// Lot 33 (ADR 0067) : les connexions passent par le fournisseur d'identité ; les méthodes d'avant
+// (mot de passe, code, appareil de confiance) restent lisibles dans l'historique.
+const METHODS: Record<string, string> = {
+  identity: "methodIdentity",
+  identity_mfa: "methodIdentityMfa",
+  password: "methodPassword",
+  code: "methodCode",
+  trusted_device: "methodTrustedDevice",
+};
 const FAILURES: Record<string, string> = { password: "failurePassword", code: "failureCode", locked: "failureLocked", disabled: "failureDisabled" };
 const STATUSES: Record<string, string> = { completed: "statusCompleted", partial: "statusPartial", pending: "statusPending" };
 

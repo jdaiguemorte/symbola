@@ -1,13 +1,12 @@
-// Lot 23 (partie B ; DAT-06, SEC-19 ; ADR 0060) — l'auteur des écritures se
-// lit dans la session, sans la modifier, et seulement une fois la double
-// authentification passée pour un rôle professionnel.
+// Lot 23 (partie B ; DAT-06, SEC-19 ; ADR 0060) — l'auteur des écritures se lit dans la session,
+// sans la modifier, et seulement quand la session donne accès (lot 33 : double authentification
+// de la Propriétaire, adhésion active).
 import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
-import * as OTPAuth from "otpauth";
 import { afterAll, describe, expect, it } from "vitest";
 import { createAppConnection } from "@symbola/db/client";
 import { sessions } from "@symbola/db/schema/hub";
-import { confirmTotp, createOrganization, createUser, findSessionActor, login, setupTotp } from "./service";
+import { createOrganization, createUser, findSessionActor, signInWithIdentity } from "./service";
 import { hashSessionToken } from "./session-token";
 
 const { sql, db } = createAppConnection();
@@ -16,20 +15,13 @@ afterAll(async () => {
   await sql.end();
 });
 
-// Lot 26a : tout compte est professionnel ; « confirmed » passe la double
-// authentification, sinon la session attend le code.
-async function signIn(role: "owner" | "member", confirmed = true) {
+async function signIn(role: "owner" | "member", mfa = true) {
   const organization = await createOrganization(db, `Org ${randomUUID()}`);
   const email = `${role}-${randomUUID()}@example.test`;
-  const user = await createUser(db, { organizationId: organization.id, email, password: "mot-de-passe-de-test", role });
-  const result = await login(db, email, "mot-de-passe-de-test");
-  if (result.outcome !== "success") throw new Error("connexion attendue");
-  if (!confirmed) return { userId: user.id, token: result.sessionToken };
-  const { secret } = await setupTotp(db, user.id);
-  const code = new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret) }).generate();
-  const verified = await confirmTotp(db, { sessionToken: result.sessionToken, token: code });
-  if (verified.outcome !== "confirmed") throw new Error("double authentification attendue");
-  return { userId: user.id, token: verified.sessionToken };
+  const user = await createUser(db, { organizationId: organization.id, email, role });
+  const outcome = await signInWithIdentity(db, { subject: `sub-${randomUUID()}`, email, mfa }, { now: new Date(Date.now() + 2 * 60 * 1000) });
+  if (outcome.outcome !== "signed_in") throw new Error("session attendue");
+  return { userId: user.id, token: outcome.sessionToken };
 }
 
 describe("SEC-19 — Auteur des écritures d'après la session", () => {
@@ -41,11 +33,11 @@ describe("SEC-19 — Auteur des écritures d'après la session", () => {
     expect(after!.expiresAt.getTime()).toBe(before!.expiresAt.getTime());
   });
 
-  it("aucun auteur sans session, avec une session expirée, ou avant la double authentification", async () => {
+  it("aucun auteur sans session, avec une session expirée, ou pour la Propriétaire sans double authentification", async () => {
     expect(await findSessionActor(db, undefined)).toBeNull();
     expect(await findSessionActor(db, "jeton-inconnu")).toBeNull();
-    const professional = await signIn("owner", false);
-    expect(await findSessionActor(db, professional.token)).toBeNull();
+    const owner = await signIn("owner", false);
+    expect(await findSessionActor(db, owner.token)).toBeNull();
     const member = await signIn("member");
     await db.update(sessions).set({ expiresAt: new Date(Date.now() - 1000) }).where(eq(sessions.tokenHash, hashSessionToken(member.token)));
     expect(await findSessionActor(db, member.token)).toBeNull();

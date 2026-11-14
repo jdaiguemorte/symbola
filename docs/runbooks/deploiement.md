@@ -141,12 +141,81 @@ Exemple pour staging (remplacer `staging` par `production` pour l'autre) :
    curl -sI https://staging.symbola.fr/ | grep -Ei "content-security-policy|strict-transport-security|x-frame-options|referrer-policy"
    ```
 
-## Premiers comptes (Admin, puis titulaire)
+## Fournisseur d'identité : mise en service de Logto (lot 33, ADR 0067)
 
-Un environnement neuf n'a aucun compte. Julien crée le compte **Admin** (opérateur de la suite)
-en ligne de commande, sur le VPS, depuis le dépôt à jour. Le mot de passe est généré et affiché
-une seule fois (jamais en argument, donc jamais dans l'historique du shell) ; la double
-authentification se configure à la première connexion :
+Depuis le lot 33, la connexion passe par Logto (lien magique, mot de passe, clé d'accès, double
+authentification) ; Symbola ne garde plus aucun mot de passe. **Sans Logto, personne ne se
+connecte** : ces étapes viennent avant la première mise à jour vers une image du lot 33.
+**Actions de Julien**, staging d'abord, depuis `/opt/symbola` à jour (`sudo git pull`, depuis la
+session `julien`). `$ENV` vaut `staging` (puis `production`).
+
+1. **DNS** (chez le registraire du domaine) : un enregistrement pour `LOGTO_DOMAIN`
+   (`connexion.staging.symbola.fr`, puis `connexion.symbola.fr`) vers l'adresse du VPS, comme
+   pour l'app.
+2. **Secrets**, propres à l'environnement, rangés aussi dans le gestionnaire de mots de passe :
+   ```bash
+   openssl rand -hex 32   # LOGTO_DB_PASSWORD
+   openssl rand -hex 32   # LOGTO_M2M_SECRET
+   ```
+   Les écrire dans `infra/compose/.env.$ENV` (les autres valeurs `LOGTO_*` ont leur défaut dans
+   le modèle), puis vérifier :
+   ```bash
+   sudo grep -c '^LOGTO_DB_PASSWORD=.\+\|^LOGTO_M2M_SECRET=.\+' infra/compose/.env.$ENV   # attendu : 2
+   ```
+3. **Base dédiée** : relancer le bootstrap (il crée la base `logto` et son rôle, comme pour
+   Documenso) :
+   ```bash
+   sudo docker run --rm --network symbola-${ENV}_default -v "$PWD":/app -w /app \
+     --env-file infra/compose/.env.$ENV -e POSTGRES_HOST=postgres -e POSTGRES_PORT=5432 \
+     node:22-slim sh -c "corepack enable && pnpm install --frozen-lockfile && pnpm -s --filter @symbola/db bootstrap"
+   ```
+4. **Démarrer Logto** (il initialise sa base au premier démarrage) :
+   ```bash
+   sudo docker compose -f infra/compose/docker-compose.prod.yml --env-file infra/compose/.env.$ENV -p symbola-$ENV up -d logto
+   ```
+5. **Caddy** : dans le Caddyfile partagé, un bloc pour `LOGTO_DOMAIN` avec
+   `reverse_proxy symbola-logto-$ENV:3001` ; recharger Caddy. Vérifier :
+   ```bash
+   curl -s https://connexion.staging.symbola.fr/oidc/.well-known/openid-configuration | head -c 120
+   ```
+6. **Régler Logto en une commande** (rejouable) : droit de connexion des rôles de Logto,
+   application machine à machine, application web de Symbola, e-mails, expérience de connexion,
+   centre de compte :
+   ```bash
+   sudo docker run --rm --network symbola-${ENV}_default -v "$PWD":/app -w /app \
+     --env-file infra/compose/.env.$ENV -e POSTGRES_HOST=postgres -e POSTGRES_PORT=5432 \
+     -e LOGTO_ENDPOINT="https://$(sudo sed -n 's/^LOGTO_DOMAIN=//p' infra/compose/.env.$ENV)" \
+     -e APP_PUBLIC_URL="https://$(sudo sed -n 's/^APP_DOMAIN=//p' infra/compose/.env.$ENV)" \
+     node:22-slim sh -c "corepack enable && pnpm install --frozen-lockfile && pnpm -s --filter @symbola/auth configure-identity"
+   ```
+7. **Mettre à jour l'app** vers l'image du lot 33 (« Mise à jour » ci-dessous ; migrations 0129
+   et 0130 comprises : 0130 retire définitivement les mots de passe).
+8. **Reprise des comptes** (une fois, rejouable ; n'affiche que des nombres) : chaque compte est
+   relié à Logto, et la double authentification y devient obligatoire pour les titulaires et
+   l'Exploitation :
+   ```bash
+   sudo docker run --rm --network symbola-${ENV}_default -v "$PWD":/app -w /app \
+     --env-file infra/compose/.env.$ENV -e POSTGRES_HOST=postgres -e POSTGRES_PORT=5432 \
+     -e LOGTO_ENDPOINT="https://$(sudo sed -n 's/^LOGTO_DOMAIN=//p' infra/compose/.env.$ENV)" \
+     node:22-slim sh -c "corepack enable && pnpm install --frozen-lockfile && pnpm -s --filter @symbola/auth migrate-accounts"
+   ```
+   Sans cette étape, chaque compte se relie quand même à sa première connexion, par son adresse.
+9. **Surveillance** : une sonde Uptime Kuma sur
+   `https://<LOGTO_DOMAIN>/oidc/.well-known/openid-configuration`.
+10. **Console de Logto** (rarement utile : tout se règle par `configure-identity`) : jamais
+    publiée par Caddy, seulement par un tunnel SSH vers `LOGTO_ADMIN_PORT` :
+    ```bash
+    ssh -L 3003:127.0.0.1:3003 symbola   # staging ; 3002 pour la production
+    ```
+    puis `http://localhost:3003`. À la première visite, créer son compte d'administration de la
+    console (gestionnaire de mots de passe).
+
+## Premiers comptes (Exploitation, puis titulaire)
+
+Un environnement neuf n'a aucun compte. Julien crée le compte **d'exploitation** en ligne de
+commande, sur le VPS, depuis le dépôt à jour, après la mise en service de Logto. Aucun mot de
+passe : la connexion se fait par « Recevoir un lien de connexion » sur la page de connexion, et
+Logto fait installer la double authentification à la première connexion.
 
 ```bash
 cd /opt/symbola
@@ -156,10 +225,10 @@ sudo docker run --rm --network symbola-staging_default -v "$PWD":/app -w /app \
     pnpm -s --filter @symbola/auth create-account -- --role admin --email <ton-e-mail>"
 ```
 
-L'Admin crée ensuite les organisations depuis `/admin` (invitation de la titulaire par e-mail).
-Pour aider quelqu'un (invitation perdue ou expirée, téléphone de double authentification
-perdu), voir `/admin/comptes` ; un mot de passe oublié se règle depuis l'écran de connexion
-(ADR 0029).
+L'Exploitation crée ensuite les organisations depuis `/exploitation` (invitation de la titulaire
+par e-mail ; en l'acceptant, elle reçoit un lien de connexion). Pour aider quelqu'un (invitation
+perdue ou expirée, second facteur perdu), voir `/exploitation/comptes` (ADR 0029). Depuis le
+lot 33, une personne peut aussi s'inscrire seule, sur `/inscription` (décision Q5 a).
 Tant que les e-mails ne sont pas en service, la même commande crée directement une organisation
 et sa titulaire : `-- --role owner --email <e-mail> --organization "<nom>"`.
 
@@ -281,6 +350,11 @@ jour une ou deux fois par an suffit.
 
 ## Lot 16 : clé de la double authentification (L16-SEC-01, ADR 0037)
 
+> Depuis le lot 33 (ADR 0067), la double authentification est chez Logto ; la même clé
+> (`MFA_ENCRYPTION_KEY`) scelle désormais les liens de connexion envoyés par Symbola. Elle reste
+> requise : l'app refuse de démarrer sans elle. Perdue, il suffit d'en générer une autre (les
+> liens déjà envoyés ne s'ouvrent plus, rien d'autre).
+
 À faire **une fois par environnement, avant** de passer `APP_IMAGE_TAG` à une image du lot 16 :
 sans cette clé, l'app refuse de démarrer.
 
@@ -334,19 +408,16 @@ sans cette clé, l'app refuse de démarrer.
 
 ## Retour arrière
 
-**Vers une image antérieure au lot 16** (ADR 0037) : elle ne sait pas lire les secrets de double
-authentification chiffrés. Avant de changer le tag, les remettre en clair, avec l'image et la
-clé encore en place :
+**Vers une image antérieure au lot 33** (ADR 0067) : un simple changement de tag ne suffit pas.
+Ces images connectent par mot de passe, et la migration 0130 a retiré les mots de passe, les
+secrets de double authentification et les appareils de confiance. Son annulation recrée les
+colonnes vides, sans rendre aucun mot de passe, et l'annulation de 0129 est alors refusée tant
+qu'un compte n'a pas de mot de passe. Revenir avant le lot 33 = **restaurer la sauvegarde prise
+juste avant le déploiement** (`docs/runbooks/restauration.md`), en perdant ce qui a été saisi
+depuis. La commande `mfa-secrets --unseal` (retour avant le lot 16) a disparu au lot 33 : il n'y a
+plus de secret de double authentification chez Symbola.
 
-```bash
-cd /opt/symbola
-sudo docker run --rm --network symbola-staging_default -v "$PWD":/app -w /app \
-  --env-file infra/compose/.env.staging -e POSTGRES_HOST=postgres -e POSTGRES_PORT=5432 \
-  node:22-slim sh -c "corepack enable && pnpm install --frozen-lockfile && \
-    pnpm -s --filter @symbola/auth mfa-secrets -- --unseal"
-```
-
-Puis remettre l'ancien tag d'image dans `.env.<environnement>`
+**Vers une image du lot 33 ou postérieure** : remettre l'ancien tag d'image dans `.env.<environnement>`
 (`APP_IMAGE_TAG=<sha précédent>`), puis répéter les étapes 4 et 5
 ci-dessus (`pull` puis `up -d symbola`) — en moins d'une minute
 (cahier des charges §3). Si la version déployée avait une migration de

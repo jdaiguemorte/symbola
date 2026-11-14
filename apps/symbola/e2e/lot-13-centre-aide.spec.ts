@@ -7,25 +7,16 @@ import AxeBuilder from "@axe-core/playwright";
 import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
-import * as OTPAuth from "otpauth";
-import { landmarksPanel, readyOrganization } from "./helpers";
+import { landmarksPanel, readyOrganization, signIn as signInByLink } from "./helpers";
 
 async function expectNoAxeViolation(page: Page) {
   const result = await new AxeBuilder({ page }).analyze();
   expect(result.violations, JSON.stringify(result.violations, null, 2)).toEqual([]);
 }
 
-async function login(page: Page, email: string, password: string) {
-  await page.goto("/login");
-  await page.getByLabel("E-mail").fill(email);
-  await page.getByLabel("Mot de passe").fill(password);
-  await page.getByRole("button", { name: "Se connecter" }).click();
-  await expect(page).toHaveURL(/\/mfa$/);
-  const uri = await page.locator("code").textContent();
-  const secret = new URL(uri!.replace("otpauth://totp/", "https://x/")).searchParams.get("secret")!;
-  await page.getByLabel("Code").fill(new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret) }).generate());
-  await page.getByRole("button", { name: "Valider" }).click();
-  await expect(page).not.toHaveURL(/\/mfa$/);
+async function login(page: Page, email: string, _password: string) {
+  // Lot 33 : lien magique et fournisseur d'identité (e2e/helpers.ts).
+  await signInByLink(page, email);
 }
 
 async function account(role: "owner" | "member" | "admin") {
@@ -93,7 +84,7 @@ test("AIDE-12 — l'Admin ne voit que l'aide de la console, sans capture d'organ
   const admin = await account("admin");
   await login(page, admin.email, admin.password);
   await page.goto("/aide");
-  const console = page.getByRole("region", { name: "Administration de la suite" });
+  const console = page.getByRole("region", { name: "Exploitation de la suite" });
   await expect(console.getByRole("link", { name: /Comptes et assistance/ })).toBeVisible();
   // Lot 20 (AIDE-16) : jamais de capture d'organisation, seulement
   // l'illustration générique.

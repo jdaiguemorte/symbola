@@ -9,12 +9,11 @@ import { randomUUID } from "node:crypto";
 import { createUser } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
 import { expect, test, type Page } from "@playwright/test";
-import * as OTPAuth from "otpauth";
 import { createProspect, createProspectSource } from "../modules/events/service";
 import { MODULE_KEYS, setModuleEnabled, type ModuleKey } from "../modules/hub/service";
 import { createQuote } from "../modules/quotes/service";
 import { createVendor } from "../modules/vendors/service";
-import { mainMenu, readyOrganization } from "./helpers";
+import { mainMenu, readyOrganization, signIn as signInByLink } from "./helpers";
 
 // Écran d'entrée de chaque module, et son lien au menu (le budget s'ouvre
 // depuis l'événement : pas d'entrée au menu).
@@ -30,17 +29,9 @@ const MODULE_UNAVAILABLE: Record<ModuleKey, string> = {
 const UNAVAILABLE = /n'est pas (activé|disponible) pour votre organisation/;
 const NOT_FOUND = "Page introuvable";
 
-async function loginAndSetupMfa(page: Page, email: string, password: string) {
-  await page.goto("/login");
-  await page.getByLabel("E-mail").fill(email);
-  await page.getByLabel("Mot de passe").fill(password);
-  await page.getByRole("button", { name: "Se connecter" }).click();
-  await expect(page).toHaveURL(/\/mfa$/);
-  const provisioningUri = await page.locator("code").textContent();
-  const secret = new URL(provisioningUri!.replace("otpauth://totp/", "https://x/")).searchParams.get("secret")!;
-  await page.getByLabel("Code").fill(new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret) }).generate());
-  await page.getByRole("button", { name: "Valider" }).click();
-  await expect(page).toHaveURL("/");
+async function loginAndSetupMfa(page: Page, email: string, _password: string) {
+  // Lot 33 : lien magique et fournisseur d'identité (e2e/helpers.ts).
+  await signInByLink(page, email, "/");
 }
 
 async function organizationWithObjects() {

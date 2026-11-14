@@ -56,6 +56,11 @@ describe("HUB-16 — Libellés du journal d'activité", () => {
     expect(actorLabel({ actorKind: "system", actorLabel: null, action: "hub.session.failed" }, t)).toBe("actorAttempt");
     expect(actorLabel({ actorKind: "member", actorLabel: null, action: "quotes.quote.sent" }, t)).toBe("actorUnknown");
     expect(activityDetail({ action: "ops.database.opened", details: {}, reason: "contrôle" }, t, "fr")).toBe('reasonLabel{"reason":"contrôle"}');
+    // Lot 33 (ADR 0067) : connexion par le fournisseur d'identité, avec ou sans second facteur ;
+    // les méthodes d'avant restent lisibles dans l'historique.
+    expect(activityDetail({ action: "hub.session.opened", details: { method: "identity_mfa" }, reason: null }, t, "fr")).toBe("methodIdentityMfa");
+    expect(activityDetail({ action: "hub.session.opened", details: { method: "identity" }, reason: null }, t, "fr")).toBe("methodIdentity");
+    expect(activityDetail({ action: "hub.session.opened", details: { method: "code" }, reason: null }, t, "fr")).toBe("methodCode");
     // Lot 24a (SC-S1) : un refus d'accès montre l'adresse demandée, identifiants masqués.
     expect(activityDetail({ action: "hub.access.refused", details: { route: "/events/[id]" }, reason: null }, t, "fr")).toBe('refusedRoute{"route":"/events/[id]"}');
     expect(objectHref({ action: "quotes.quote.sent", objectType: "quote", objectId: "q" })).toEqual({ href: "/devis/q", kind: "quote" });

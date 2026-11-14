@@ -29,8 +29,9 @@ async function main(): Promise<void> {
   const result = await loadRecette(JSON.parse(readFileSync(DATASET, "utf8")));
   const lines = [
     "Jeu fictif de recette : comptes créés (données fictives, ne pas diffuser).",
-    "organisation | rôle | nom | e-mail | mot de passe",
-    ...result.accounts.map((account) => [account.organisation, account.role, account.nom, account.email, account.password].join(" | ")),
+    "Connexion : « Recevoir un lien de connexion » avec l'adresse ; le lien arrive dans Mailpit en local.",
+    "organisation | rôle | nom | e-mail",
+    ...result.accounts.map((account) => [account.organisation, account.role, account.nom, account.email].join(" | ")),
     "",
     // Lot 26a : liens personnels des clients et des payeurs, montrés une seule fois.
     "Liens personnels (à ouvrir dans un navigateur sans session de l'équipe).",

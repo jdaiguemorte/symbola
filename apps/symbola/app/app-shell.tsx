@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { parisToday } from "@symbola/i18n";
+import { listOrganizations } from "@symbola/auth";
 import { appDatabase } from "@symbola/db/client";
 import {
   getDocumentHeader,
@@ -48,6 +49,7 @@ import { SearchBox } from "./search-box";
 import { QuickCreate } from "./creation-rapide/quick-create";
 import { HelpProvider } from "./help-context";
 import { HelpButton } from "./help-button";
+import { OrganizationSwitcher } from "./organization-switcher";
 import { getHelpProgress } from "@/modules/hub/service";
 import { type HelpModule, TUTORIALS, tutorialHref } from "@/lib/help/catalog";
 
@@ -428,7 +430,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
     return (
       <div className="app-shell">
         <AppSidebar
-          brand={<Brand href="/admin" suffix={tAdmin("brand")} />}
+          brand={<Brand href="/exploitation" suffix={tAdmin("brand")} />}
           menuLabel={t("menuOpen")}
           closeLabel={t("menuClose")}
           admin
@@ -436,37 +438,37 @@ export async function AppShell({ children }: { children: ReactNode }) {
           <nav aria-label={tAdmin("label")}>
             <ul className="app-nav">
               <li>
-                <AppNavLink href="/admin" exact>
+                <AppNavLink href="/exploitation" exact>
                   <LayoutDashboard {...iconProps} />
                   {tAdmin("overview")}
                 </AppNavLink>
               </li>
               <li>
-                <AppNavLink href="/admin/organisations">
+                <AppNavLink href="/exploitation/organisations">
                   <Building2 {...iconProps} />
                   {tAdmin("organizations")}
                 </AppNavLink>
               </li>
               <li>
-                <AppNavLink href="/admin/comptes">
+                <AppNavLink href="/exploitation/comptes">
                   <Users {...iconProps} />
                   {tAdmin("accounts")}
                 </AppNavLink>
               </li>
               <li>
-                <AppNavLink href="/admin/prise-en-main">
+                <AppNavLink href="/exploitation/prise-en-main">
                   <GraduationCap {...iconProps} />
                   {tAdmin("onboarding")}
                 </AppNavLink>
               </li>
               <li>
-                <AppNavLink href="/admin/activite">
+                <AppNavLink href="/exploitation/activite">
                   <Activity {...iconProps} />
                   {tAdmin("activity")}
                 </AppNavLink>
               </li>
               <li>
-                <AppNavLink href="/admin/health">
+                <AppNavLink href="/exploitation/health">
                   <HeartPulse {...iconProps} />
                   {tAdmin("health")}
                 </AppNavLink>
@@ -474,7 +476,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
             </ul>
             <ul className="app-nav app-nav-secondary">
               <li>
-                <AppNavLink href="/admin/parametres">
+                <AppNavLink href="/exploitation/parametres">
                   <SlidersHorizontal {...iconProps} />
                   {tAdmin("settings")}
                 </AppNavLink>
@@ -644,6 +646,8 @@ export async function AppShell({ children }: { children: ReactNode }) {
         )}
         <div className="app-user">
           <span>{t("connectedAs", { email: auth.user.email })}</span>
+          {/* Lot 33 (HUB-02, D6) : plusieurs organisations, et en créer une autre. */}
+          {isTeam ? <OrganizationSwitcher organizations={await listOrganizations(appDatabase(), auth.user.id)} current={organizationId} /> : null}
           {logout}
         </div>
       </AppSidebar>

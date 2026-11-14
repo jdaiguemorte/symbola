@@ -26,7 +26,7 @@ import { UndoTaskNotice } from "./accueil/today-client";
 export default async function HomePage({ searchParams }: { searchParams: Promise<{ fait?: string; evenement?: string; visite?: string }> }) {
   const auth = await requireSignedIn();
   // Lot 13 (L13-HUB-17) : l'Admin arrive sur la console, pas sur un accueil vide.
-  if (auth.user.role === "admin") redirect("/admin");
+  if (auth.user.role === "admin") redirect("/exploitation");
   const organizationId = auth.user.organizationId;
 
   // SOC-13, ADR 0016 : collecte brute des compteurs d'usage, au niveau de cette page plutôt que

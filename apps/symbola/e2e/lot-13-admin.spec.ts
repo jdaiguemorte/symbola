@@ -8,9 +8,8 @@ import postgres from "postgres";
 import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
-import * as OTPAuth from "otpauth";
 import { createProspect, createProspectSource } from "../modules/events/service";
-import { openMenu, readyOrganization } from "./helpers";
+import { openMenu, readyOrganization, signIn as signInByLink } from "./helpers";
 
 async function expectNoAxeViolation(page: Page) {
   const result = await new AxeBuilder({ page }).analyze();
@@ -30,16 +29,9 @@ function adminSql() {
   });
 }
 
-async function login(page: Page, email: string, password: string) {
-  await page.goto("/login");
-  await page.getByLabel("E-mail").fill(email);
-  await page.getByLabel("Mot de passe").fill(password);
-  await page.getByRole("button", { name: "Se connecter" }).click();
-  await expect(page).toHaveURL(/\/mfa$/);
-  const uri = await page.locator("code").textContent();
-  const secret = new URL(uri!.replace("otpauth://totp/", "https://x/")).searchParams.get("secret")!;
-  await page.getByLabel("Code").fill(new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret) }).generate());
-  await page.getByRole("button", { name: "Valider" }).click();
+async function login(page: Page, email: string, _password: string) {
+  // Lot 33 : lien magique et fournisseur d'identité (e2e/helpers.ts).
+  await signInByLink(page, email);
 }
 
 test("L13-HUB-17 / L13-HUB-18 — console d'Administration : vue d'ensemble, dernière sauvegarde, Santé", async ({ page }) => {
@@ -66,10 +58,10 @@ test("L13-HUB-17 / L13-HUB-18 — console d'Administration : vue d'ensemble, der
 
     // L'Admin arrive sur la console, avec son propre menu.
     await login(page, adminEmail, "mot-de-passe-admin-console");
-    await expect(page).toHaveURL("/admin");
+    await expect(page).toHaveURL("/exploitation");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Vue d'ensemble");
     await openMenu(page);
-    const menu = page.getByRole("navigation", { name: "Menu de l'Administration" });
+    const menu = page.getByRole("navigation", { name: "Menu de l'Exploitation" });
     await expect(menu.getByRole("link", { name: "Vue d'ensemble" })).toHaveAttribute("aria-current", "page");
     await expect(menu.getByRole("link", { name: "Organisations" })).toBeVisible();
     await expect(page.getByRole("navigation", { name: "Menu principal" })).toHaveCount(0);
@@ -94,7 +86,7 @@ test("L13-HUB-17 / L13-HUB-18 — console d'Administration : vue d'ensemble, der
     await expect(page.getByRole("region", { name: "À faire" }).getByRole("listitem").filter({ hasText: "Dernière sauvegarde" })).toContainText("Échec le");
 
     // Santé : chaque service, et le détail de la dernière sauvegarde.
-    await page.goto("/admin/health");
+    await page.goto("/exploitation/health");
     await expect(page.getByRole("row", { name: /Base de données/ })).toContainText("en ligne");
     await expect(page.getByRole("row", { name: /Stockage des fichiers/ })).toBeVisible();
     const backup = page.getByRole("region", { name: "Dernière sauvegarde" });
@@ -103,7 +95,7 @@ test("L13-HUB-17 / L13-HUB-18 — console d'Administration : vue d'ensemble, der
 
     // Organisations en tableau : recherche par nom, une ligne ouvre son panneau
     // (modules, comptes, prise en main), toujours sans donnée métier.
-    await page.goto("/admin/organisations");
+    await page.goto("/exploitation/organisations");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Organisations");
     await page.getByRole("search", { name: "Chercher une organisation" }).getByLabel("Rechercher par nom").fill(organizationName);
     await expect(page).toHaveURL(/q=/);
@@ -139,7 +131,7 @@ test("L13-HUB-17 — la console est réservée à l'Admin", async ({ page }) => 
   }
   await login(page, email, "mot-de-passe-sans-console");
   await expect(page).toHaveURL("/");
-  for (const path of ["/admin", "/admin/organisations", "/admin/health"]) {
+  for (const path of ["/exploitation", "/exploitation/organisations", "/exploitation/health"]) {
     await page.goto(path);
     await expect(page).toHaveURL("/");
   }

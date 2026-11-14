@@ -86,7 +86,7 @@ describe("PRD-HUB-03 — Création d'organisation et invitation du titulaire", (
       titulaireEmail,
     });
 
-    const accepted = await acceptInvitation(db, { token: invitationToken, password: "mot-de-passe-du-titulaire" });
+    const accepted = await acceptInvitation(db, { token: invitationToken });
     expect(accepted.outcome).toBe("success");
     if (accepted.outcome !== "success") return;
 
@@ -94,13 +94,13 @@ describe("PRD-HUB-03 — Création d'organisation et invitation du titulaire", (
     expect(loginResult.status).toBe("unauthenticated"); // sanity : pas de session créée par acceptInvitation
 
     // Un second essai avec le même jeton échoue (déjà utilisé).
-    const secondAttempt = await acceptInvitation(db, { token: invitationToken, password: "autre-mot-de-passe" });
+    const secondAttempt = await acceptInvitation(db, { token: invitationToken });
     expect(secondAttempt.outcome).toBe("already_accepted");
     expect(organizationId).toBe(accepted.organizationId);
   });
 
   it("refuse un jeton d'invitation inconnu ou expiré", async () => {
-    const result = await acceptInvitation(db, { token: "jeton-qui-n-existe-pas", password: "peu-importe" });
+    const result = await acceptInvitation(db, { token: "jeton-qui-n-existe-pas" });
     expect(result.outcome).toBe("invalid_or_expired");
   });
 });

@@ -8,7 +8,7 @@ import { and, count, desc, eq, gte, isNull, or, type SQL } from "drizzle-orm";
 import { AUDIT_CATEGORIES, type AuditActorKind, type AuditCategory, type AuditDetails } from "@symbola/contracts";
 import type { AppDatabase } from "@symbola/db/client";
 import { auditEntries } from "@symbola/db/schema/core";
-import { users } from "@symbola/db/schema/hub";
+import { memberships, users } from "@symbola/db/schema/hub";
 import { withOrganization } from "@symbola/db/with-organization";
 import { getLinkNamesByIds } from "@/modules/events/service";
 
@@ -85,7 +85,12 @@ export async function listActivityLog(db: AppDatabase, organizationId: string, f
     return { rows, total, page };
   });
 
-  const members = await db.select({ id: users.id, email: users.email }).from(users).where(eq(users.organizationId, organizationId));
+  // Lot 33 (HUB-02) : les personnes de l'organisation, par adhésion (retirées comprises : elles ont agi).
+  const members = await db
+    .select({ id: users.id, email: users.email })
+    .from(memberships)
+    .innerJoin(users, eq(users.id, memberships.userId))
+    .where(eq(memberships.organizationId, organizationId));
   const labels = new Map(members.map((member) => [member.id, member.email]));
   // Lot 26a (ADR 0053) : un tiers agit par son lien personnel ; son nom vient
   // du module events (porte d'entrée, ADR 0011).

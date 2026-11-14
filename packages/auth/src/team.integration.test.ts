@@ -1,115 +1,75 @@
-// Lot 24b — SEC-06 (décision D3) : la titulaire retire l'accès d'un
-// collaborateur, et la session de celui-ci est refusée dès la requête suivante ;
-// « Déconnecter tous mes appareils » ferme les autres sessions. SEC-05 : une
-// session sans activité depuis 8 heures est refusée. PostgreSQL réel.
+// Lot 24b (SEC-06, décision D3) — équipe de l'organisation, retrait d'un accès, déconnexion de
+// tous les appareils. Lot 33 (HUB-02, D6) : par adhésion ; le retrait ne touche que
+// l'organisation qui retire. PostgreSQL réel.
 import { randomUUID } from "node:crypto";
 import { and, eq } from "drizzle-orm";
 import { afterAll, describe, expect, it } from "vitest";
 import { createAppConnection } from "@symbola/db/client";
 import { auditEntries } from "@symbola/db/schema/core";
-import { sessions, trustedDevices } from "@symbola/db/schema/hub";
+import { sessions } from "@symbola/db/schema/hub";
 import { withOrganization } from "@symbola/db/with-organization";
-import { requestPasswordReset } from "./recovery";
-import { createOrganization, createUser, login, requireUser } from "./service";
-import { hashSessionToken } from "./session-token";
+import { createOrganization, createUser, requireUser, signInWithIdentity } from "./service";
 import { listTeam, removeMember, revokeOtherSessions } from "./team";
 
 const { sql, db } = createAppConnection();
-const PASSWORD = "mot-de-passe-de-test";
 
 afterAll(async () => {
   await sql.end();
 });
 
-async function accountWithout(): Promise<{ id: string; email: string }> {
-  const email = `admin-${randomUUID()}@example.test`;
-  const user = await createUser(db, { organizationId: null, email, password: PASSWORD, role: "admin" });
-  return { id: user.id, email };
-}
-
 async function team() {
-  const organization = await createOrganization(db, `Org ${randomUUID()}`);
-  const account = async (role: "owner" | "member" | "admin") => {
-    const email = `${role}-${randomUUID()}@example.test`;
-    const user = await createUser(db, { organizationId: organization.id, email, password: PASSWORD, role });
+  const organization = await createOrganization(db, `Équipe ${randomUUID()}`);
+  const make = async (role: "owner" | "member", label: string) => {
+    const email = `${label}-${randomUUID()}@example.test`;
+    const user = await createUser(db, { organizationId: organization.id, email, role });
     return { id: user.id, email };
   };
-  // Lot 26a : plus de compte de marié ; un compte d'une autre organisation
-  // (Admin, sans organisation) sert de compte étranger à l'équipe.
-  return { organizationId: organization.id, owner: await account("owner"), member: await account("member"), outsider: await accountWithout() };
+  return { organizationId: organization.id, owner: await make("owner", "titulaire"), member: await make("member", "planner"), other: await make("member", "assistante") };
 }
 
-async function signIn(email: string): Promise<string> {
-  const result = await login(db, email, PASSWORD);
-  if (result.outcome !== "success") throw new Error("connexion attendue");
-  return result.sessionToken;
+async function signIn(email: string) {
+  const outcome = await signInWithIdentity(db, { subject: `sub-${email}`, email, mfa: true });
+  if (outcome.outcome !== "signed_in") throw new Error("session attendue");
+  return outcome.sessionToken;
 }
 
-function journal(organizationId: string, action: string) {
-  return withOrganization(db, organizationId, (tx) =>
-    tx.select().from(auditEntries).where(and(eq(auditEntries.organizationId, organizationId), eq(auditEntries.action, action))),
-  );
-}
-
-describe("SEC-06 — Révocation immédiate : retrait d'un membre, déconnexion à distance", () => {
-  it("l'équipe liste la titulaire et les collaborateurs de l'organisation, sans l'Admin ni les autres organisations", async () => {
-    const mine = await team();
+describe("SEC-06 — Équipe de l'organisation (lot 24b, D3 ; lot 33, adhésions)", () => {
+  it("liste la titulaire puis les collaborateurs de cette organisation seulement", async () => {
+    const { organizationId, owner, member, other } = await team();
     await team();
-    const listed = await listTeam(db, mine.organizationId);
-    expect(listed.map((member) => [member.role, member.email])).toEqual([
-      ["owner", mine.owner.email],
-      ["member", mine.member.email],
-    ]);
+    const listed = await listTeam(db, organizationId);
+    expect(listed[0]).toMatchObject({ id: owner.id, role: "owner", disabledAt: null });
+    expect(listed.slice(1).map((entry) => entry.id).sort()).toEqual([member.id, other.id].sort());
   });
 
-  it("un collaborateur retiré : sa session est refusée à la requête suivante, il ne se connecte plus, aucun lien ne lui est envoyé", async () => {
+  it("retirer un collaborateur ferme ses sessions sur l'organisation et le journalise ; la titulaire ne se retire pas", async () => {
     const { organizationId, owner, member } = await team();
     const token = await signIn(member.email);
-    expect((await requireUser(db, token)).status).toBe("mfa_required");
-
+    expect(await removeMember(db, { organizationId, userId: owner.id, removedByUserId: owner.id })).toBe("not_removable");
     expect(await removeMember(db, { organizationId, userId: member.id, removedByUserId: owner.id })).toBe("removed");
+    expect(await removeMember(db, { organizationId, userId: member.id, removedByUserId: owner.id })).toBe("already_removed");
     expect(await requireUser(db, token)).toEqual({ status: "unauthenticated" });
     expect(await db.select().from(sessions).where(eq(sessions.userId, member.id))).toEqual([]);
-    expect(await login(db, member.email, PASSWORD)).toEqual({ outcome: "invalid_credentials" });
-    expect(await requestPasswordReset(db, member.email)).toBeNull();
-
-    const [removed] = await journal(organizationId, "hub.member.removed");
-    expect(removed).toMatchObject({ category: "droits", objectId: member.id, actorKind: "member", actorId: owner.id });
-    const [refused] = await journal(organizationId, "hub.session.failed");
-    expect(refused!.details).toEqual({ reason: "disabled" });
+    const [entry] = await withOrganization(db, organizationId, (tx) =>
+      tx.select().from(auditEntries).where(and(eq(auditEntries.organizationId, organizationId), eq(auditEntries.action, "hub.member.removed"))),
+    );
+    expect(entry).toMatchObject({ objectId: member.id, actorId: owner.id });
     expect((await listTeam(db, organizationId)).find((entry) => entry.id === member.id)?.disabledAt).toBeInstanceOf(Date);
   });
 
-  it("ni la titulaire, ni un marié, ni le compte d'une autre organisation ne se retirent depuis l'équipe", async () => {
-    const mine = await team();
-    const other = await team();
-    expect(await removeMember(db, { organizationId: mine.organizationId, userId: mine.owner.id, removedByUserId: mine.owner.id })).toBe("not_removable");
-    expect(await removeMember(db, { organizationId: mine.organizationId, userId: mine.outsider.id, removedByUserId: mine.owner.id })).toBe("not_found");
-    expect(await removeMember(db, { organizationId: mine.organizationId, userId: other.member.id, removedByUserId: mine.owner.id })).toBe("not_found");
-    expect(await removeMember(db, { organizationId: mine.organizationId, userId: mine.member.id, removedByUserId: mine.owner.id })).toBe("removed");
-    expect(await removeMember(db, { organizationId: mine.organizationId, userId: mine.member.id, removedByUserId: mine.owner.id })).toBe("already_removed");
+  it("refuse un compte d'une autre organisation (même réponse qu'un compte inconnu)", async () => {
+    const first = await team();
+    const second = await team();
+    expect(await removeMember(db, { organizationId: first.organizationId, userId: second.member.id, removedByUserId: first.owner.id })).toBe("not_found");
+    expect(await removeMember(db, { organizationId: first.organizationId, userId: randomUUID(), removedByUserId: first.owner.id })).toBe("not_found");
   });
 
-  it("« Déconnecter tous mes appareils » ferme les autres sessions et oublie les appareils de confiance, pas la session en cours", async () => {
-    const { organizationId, owner } = await team();
-    const current = await signIn(owner.email);
-    const elsewhere = await signIn(owner.email);
-    await db.insert(trustedDevices).values({ userId: owner.id, tokenHash: hashSessionToken(randomUUID()), expiresAt: new Date(Date.now() + 86_400_000) });
-
-    expect(await revokeOtherSessions(db, { userId: owner.id, currentSessionToken: current })).toBe(1);
-    expect((await requireUser(db, elsewhere)).status).toBe("unauthenticated");
-    expect((await requireUser(db, current)).status).toBe("mfa_required");
-    expect(await db.select().from(trustedDevices).where(eq(trustedDevices.userId, owner.id))).toEqual([]);
-    const [revoked] = await journal(organizationId, "hub.sessions.revoked");
-    expect(revoked).toMatchObject({ category: "connexion", actorId: owner.id, details: { count: 1 } });
-  });
-});
-
-describe("SEC-05 — Expiration à l'inactivité", () => {
-  it("une session sans activité depuis 8 heures est refusée", async () => {
-    const { owner } = await team();
-    const token = await signIn(owner.email);
-    await db.update(sessions).set({ expiresAt: new Date(Date.now() - 1000) }).where(eq(sessions.tokenHash, hashSessionToken(token)));
-    expect(await requireUser(db, token)).toEqual({ status: "unauthenticated" });
+  it("« déconnecter tous mes appareils » ferme les autres sessions du compte, garde la session en cours", async () => {
+    const { member } = await team();
+    const current = await signIn(member.email);
+    const other = await signIn(member.email);
+    expect(await revokeOtherSessions(db, { userId: member.id, currentSessionToken: current })).toBe(1);
+    expect((await requireUser(db, current)).status).toBe("authenticated");
+    expect(await requireUser(db, other)).toEqual({ status: "unauthenticated" });
   });
 });

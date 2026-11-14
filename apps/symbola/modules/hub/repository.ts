@@ -3,17 +3,7 @@
 // l'isolation est assurée par le code applicatif, pas par PostgreSQL.
 import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import type { AppDatabase } from "@symbola/db/client";
-import {
-  backupRuns,
-  invitations,
-  organizationModules,
-  organizationProfiles,
-  organizations,
-  platformSettings,
-  helpProgress,
-  users,
-  vatRegimeChanges,
-} from "@symbola/db/schema/hub";
+import { backupRuns, helpProgress, invitations, memberships, organizationModules, organizationProfiles, organizations, platformSettings, users, vatRegimeChanges } from "@symbola/db/schema/hub";
 import type { Language } from "./types";
 
 export async function insertOrganization(
@@ -215,11 +205,13 @@ export async function updateFirstStepsHidden(db: AppDatabase, userId: string, hi
   await db.update(users).set({ firstStepsHidden: hidden }).where(eq(users.id, userId));
 }
 
+// Lot 33 (HUB-02) : le compte doit avoir une adhésion à l'organisation.
 export async function findUserContact(db: AppDatabase, organizationId: string, userId: string) {
   const [row] = await db
     .select({ email: users.email, language: users.language })
-    .from(users)
-    .where(and(eq(users.id, userId), eq(users.organizationId, organizationId)));
+    .from(memberships)
+    .innerJoin(users, eq(users.id, memberships.userId))
+    .where(and(eq(memberships.userId, userId), eq(memberships.organizationId, organizationId)));
   return row ?? null;
 }
 

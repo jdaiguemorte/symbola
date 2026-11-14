@@ -9,8 +9,23 @@
 # internes (events.program_items), lieux (events.event_places). La copie s'efface au retrait,
 # à la déconnexion, à la connexion d'un autre compte et le lendemain de l'évènement à minuit ;
 # elle n'est pas chiffrée par l'application (verrouillage du téléphone).
+#
+# Fournisseur d'identité (lot 33, ADR 0067) : Logto garde dans sa base dédiée (hors des schémas de
+# l'app) l'adresse e-mail du compte, ses clés d'accès, ses seconds facteurs, ses codes de secours
+# et son mot de passe s'il en a un ; il les supprime avec le compte. Ses journaux de requêtes
+# contiennent l'adresse e-mail (paramètre login_hint de ses pages) : ils restent sur le VPS et
+# tournent sur deux fichiers de 5 Mo au plus (docker-compose.prod.yml, service logto).
 version: 1
 fields:
+  - schema: hub
+    table: users
+    field: idp_subject
+    category: identifiant
+    retention: >-
+      Tant que le compte existe : identifiant du compte chez le fournisseur d'identité (lot 33,
+      ADR 0067), pseudonyme, sans autre donnée.
+    anonymization: >-
+      Supprimé avec le compte ; le compte chez le fournisseur est supprimé avec lui.
   - schema: hub
     table: users
     field: email

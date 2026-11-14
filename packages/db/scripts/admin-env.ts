@@ -18,6 +18,11 @@ const schema = z.object({
   DOCUMENSO_DB_USER: z.string().min(1).default("documenso"),
   DOCUMENSO_DB_NAME: z.string().min(1).default("documenso"),
   DOCUMENSO_DB_PASSWORD: z.string().default(""),
+  // Lot 33, ADR 0067 : base et rôle du fournisseur d'identité (Logto), créés seulement si un mot
+  // de passe est fourni.
+  LOGTO_DB_USER: z.string().min(1).default("logto"),
+  LOGTO_DB_NAME: z.string().min(1).default("logto"),
+  LOGTO_DB_PASSWORD: z.string().default(""),
 });
 
 export type AdminEnv = z.infer<typeof schema>;

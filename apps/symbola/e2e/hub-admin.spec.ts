@@ -1,55 +1,24 @@
-// PRD-HUB-03 — L'Admin crée une organisation et invite son titulaire par
-// e-mail (lien valable 7 jours) ; le titulaire crée son compte depuis ce
-// lien. Un utilisateur non-Admin n'accède pas à /admin.
+// PRD-HUB-03 — L'Exploitation crée une organisation et invite sa titulaire par
+// e-mail (lien valable 7 jours) ; la titulaire accepte et reçoit un lien de connexion
+// (lot 33). Un compte d'organisation n'accède pas à /exploitation.
 import { randomUUID } from "node:crypto";
 import AxeBuilder from "@axe-core/playwright";
 import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
-import * as OTPAuth from "otpauth";
-import { logout, readyOrganization } from "./helpers";
+import { logout, readyOrganization, signIn as signInByLink } from "./helpers";
 
 const MAILPIT_API = "http://localhost:8025/api/v1";
 
-// Premier login : le TOTP n'est pas encore configuré, /mfa affiche le
-// lien otpauth:// à « scanner ». Renvoie le secret pour les logins
-// suivants (configuré une fois, plus de lien ensuite).
-async function loginAndSetupMfa(page: Page, email: string, password: string): Promise<string> {
-  await page.goto("/login");
-  await page.getByLabel("E-mail").fill(email);
-  await page.getByLabel("Mot de passe").fill(password);
-  await page.getByRole("button", { name: "Se connecter" }).click();
-  await expect(page).toHaveURL(/\/mfa$/);
-
-  const provisioningUri = await page.locator("code").textContent();
-  const secret = new URL(provisioningUri!.replace("otpauth://totp/", "https://x/")).searchParams.get("secret")!;
-  await page.getByLabel("Code").fill(new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret) }).generate());
-  await page.getByRole("button", { name: "Valider" }).click();
-  // Attend l'atterrissage sur l'accueil avant de rendre la main : sinon un
-  // page.goto() immédiat de l'appelant peut courir plus vite que la
-  // redirection post-MFA et partir sans le cookie de session.
-  await expect(page).toHaveURL(/\/(admin)?$/);
-  return secret;
+// Lot 33 : connexion par lien magique et fournisseur d'identité (e2e/helpers.ts) ; la double
+// authentification de l'Exploitation et de la titulaire est posée par l'assistant des parcours.
+async function loginAndSetupMfa(page: Page, email: string, _password: string): Promise<string> {
+  await signInByLink(page, email, /\/(exploitation)?$/);
+  return "";
 }
 
-// Login suivant : le TOTP est déjà configuré, pas de lien otpauth:// sur
-// /mfa — le secret doit être connu de l'appelant (capturé au premier login).
-async function loginWithKnownMfa(page: Page, email: string, password: string, secret: string) {
-  await page.goto("/login");
-  await page.getByLabel("E-mail").fill(email);
-  await page.getByLabel("Mot de passe").fill(password);
-  await page.getByRole("button", { name: "Se connecter" }).click();
-  await expect(page).toHaveURL(/\/mfa$/);
-  // L16-SEC-01 (ADR 0037) : le code déjà accepté au premier login, quelques
-  // secondes plus tôt, est refusé (anti-rejeu). Comme un téléphone qui affiche
-  // déjà le code suivant, on envoie celui de la période suivante, accepté par
-  // la tolérance d'une période : toujours plus récent que le code déjà utilisé.
-  const nextCode = new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret) }).generate({ timestamp: Date.now() + 30_000 });
-  await page.getByLabel("Code").fill(nextCode);
-  await page.getByRole("button", { name: "Valider" }).click();
-  // Comme loginAndSetupMfa : attendre l'accueil, sinon un page.goto() immédiat
-  // part avant que la session ne soit validée.
-  await expect(page).toHaveURL(/\/(admin)?$/);
+async function loginWithKnownMfa(page: Page, email: string, _password: string, _secret: string) {
+  await signInByLink(page, email, /\/(exploitation)?$/);
 }
 
 async function waitForInvitationLink(to: string, attempts = 30): Promise<string> {
@@ -80,9 +49,9 @@ test("PRD-HUB-03-01 — l'Admin crée une organisation, le titulaire accepte son
   }
 
   await loginAndSetupMfa(page, adminEmail, adminPassword);
-  await expect(page).toHaveURL("/admin");
+  await expect(page).toHaveURL("/exploitation");
 
-  await page.goto("/admin/organisations");
+  await page.goto("/exploitation/organisations");
   // Lot 13 (L13-HUB-17) : la création s'ouvre dans le panneau latéral.
   await page.getByRole("link", { name: "Nouvelle organisation" }).click();
   await expect(page.getByRole("complementary", { name: "Créer une organisation" })).toBeVisible();
@@ -99,19 +68,18 @@ test("PRD-HUB-03-01 — l'Admin crée une organisation, le titulaire accepte son
   violations = await new AxeBuilder({ page }).analyze();
   expect(violations.violations, JSON.stringify(violations.violations, null, 2)).toEqual([]);
 
-  await page.getByLabel("Choisissez un mot de passe").fill("mot-de-passe-du-titulaire-e2e");
-  await page.getByRole("button", { name: "Créer mon compte" }).click();
-  await expect(page.getByText("Compte créé. Vous pouvez maintenant vous connecter.")).toBeVisible();
+  // Lot 33 : accepter envoie un lien de connexion à l'adresse invitée, sans mot de passe.
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Organisation E2E PRD-HUB-03");
+  await page.getByRole("button", { name: "Accepter et recevoir mon lien de connexion" }).click();
+  await expect(page.getByRole("status")).toContainText("Un lien de connexion vient de partir");
 
-  // Le compte créé fonctionne vraiment : la connexion atteint l'étape MFA.
-  await page.goto("/login");
-  await page.getByLabel("E-mail").fill(titulaireEmail);
-  await page.getByLabel("Mot de passe").fill("mot-de-passe-du-titulaire-e2e");
-  await page.getByRole("button", { name: "Se connecter" }).click();
-  await expect(page).toHaveURL(/\/mfa$/);
+  // Le compte fonctionne vraiment : la titulaire se connecte et arrive dans son organisation.
+  await logout(page);
+  await signInByLink(page, titulaireEmail);
+  await expect(page).toHaveURL(/\/(demarrage)?$/);
 });
 
-test("PRD-HUB-03-02 — un utilisateur non-Admin n'accède pas à /admin", async ({ page }) => {
+test("PRD-HUB-03-02 — un utilisateur non-Admin n'accède pas à /exploitation", async ({ page }) => {
   const email = `non-admin-e2e-${randomUUID()}@symbola.test`;
   const password = "mot-de-passe-non-admin-e2e";
 
@@ -126,7 +94,7 @@ test("PRD-HUB-03-02 — un utilisateur non-Admin n'accède pas à /admin", async
   await loginAndSetupMfa(page, email, password);
   await expect(page).toHaveURL("/");
 
-  await page.goto("/admin");
+  await page.goto("/exploitation");
   await expect(page).toHaveURL("/");
 });
 
@@ -164,13 +132,13 @@ test("PRD-HUB-03-03 — désactiver un module l'affiche « indisponible » sans 
   await loginAndSetupMfa(page, adminEmail, adminPassword);
   // Lot 13 (L13-HUB-17) : on retrouve l'organisation par son nom, ses modules
   // s'activent dans son panneau.
-  await page.goto(`/admin/organisations?q=${encodeURIComponent(organizationName)}`);
+  await page.goto(`/exploitation/organisations?q=${encodeURIComponent(organizationName)}`);
   await page.getByRole("link", { name: organizationName }).click();
   const panel = page.getByRole("complementary", { name: organizationName });
   await panel.getByRole("button", { name: "Événements : activé (désactiver)" }).click();
   await expect(panel.getByRole("button", { name: "Événements : désactivé (activer)" })).toBeVisible();
 
-  await page.goto("/admin/health");
+  await page.goto("/exploitation/health");
   const violations = await new AxeBuilder({ page }).analyze();
   expect(violations.violations, JSON.stringify(violations.violations, null, 2)).toEqual([]);
   await expect(page.getByRole("row", { name: /Base de données/ })).toContainText("en ligne");

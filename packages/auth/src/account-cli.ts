@@ -1,10 +1,8 @@
 // Création d'un compte par l'opérateur (Julien), en ligne de commande sur le
-// serveur : le premier compte Admin d'un environnement, ou une organisation
-// et sa titulaire quand l'e-mail d'invitation n'est pas encore en service.
-// Aucun mot de passe en argument (historique du shell) : il est généré et
-// affiché une seule fois. MFA demandée à la première connexion (rôles
-// professionnels, PRD-HUB-01).
-import { randomBytes } from "node:crypto";
+// serveur : le premier compte d'exploitation d'un environnement, ou une
+// organisation et sa titulaire. Lot 33 (SEC-01, ADR 0067) : aucun mot de passe ;
+// la personne se connecte par lien magique à son adresse, et le fournisseur
+// d'identité lui fait installer sa double authentification (D4).
 import { z } from "zod";
 
 const argsSchema = z.discriminatedUnion("role", [
@@ -36,9 +34,4 @@ export function parseAccountArgs(argv: string[]): AccountRequest {
     );
   }
   return parsed.data;
-}
-
-// 24 caractères aléatoires (144 bits), sans caractère ambigu pour un shell.
-export function generatePassword(): string {
-  return randomBytes(18).toString("base64url");
 }

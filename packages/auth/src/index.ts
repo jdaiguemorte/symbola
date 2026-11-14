@@ -1,51 +1,54 @@
-// Porte d'entrée publique de @symbola/auth (SOC-04, ADR 0013). Aucun autre
-// code n'importe un fichier interne du package (password.ts, totp.ts,
-// session-token.ts…) ni une lib sous-jacente (@node-rs/argon2, otpauth)
+// Porte d'entrée publique de @symbola/auth (SOC-04, ADR 0013 ; lot 33 : ADR 0052 et 0067). Aucun
+// autre code n'importe un fichier interne du package ni une lib sous-jacente (openid-client)
 // directement — tout passe par ici.
 export {
-  confirmTotp,
-  countTrustedDevices,
+  accountIdentity,
+  addMembership,
   createOrganization,
   createUser,
   destroySession,
-  findAccountByEmail,
+  ensureMembership,
   findSessionActor,
-  forgetTrustedDevices,
-  login,
+  listOrganizations,
+  PROVISIONAL_ORGANIZATION_NAME,
   requireUser,
   setUserLanguage,
-  resumeTotpSetup,
-  sealLegacyTotpSecrets,
-  setupTotp,
-  unsealTotpSecrets,
+  signInWithIdentity,
+  switchOrganization,
   type AuthenticatedUser,
-  type ConfirmTotpResult,
   type AuthResult,
-  type LoginOptions,
-  type LoginResult,
+  type SignInOutcome,
 } from "./service";
+// Lot 33 (SEC-01, SEC-07) : fournisseur d'identité.
 export {
-  isPasswordResetTokenValid,
-  MfaResetNotAllowedError,
-  PASSWORD_MIN_LENGTH,
-  PASSWORD_RESET_DURATION_MS,
-  requestPasswordReset,
-  resetPassword,
-  resetUserMfa,
-  type PasswordResetOutcome,
-  type PasswordResetRequest,
-} from "./recovery";
+  createManagementClient,
+  IdentityProviderError,
+  MAGIC_LINK_TTL_SECONDS,
+  type IdentityConnection,
+  identityConnectionFromEnv,
+  type ManagementClient,
+} from "./identity/management";
+export {
+  createOidcClient,
+  IdentityClaimsError,
+  MFA_ACR,
+  type IdentityClaims,
+  type OidcClient,
+  type PendingAuthorization,
+} from "./identity/oidc";
+export { openMagicLink, sealMagicLink, type MagicLinkPayload } from "./identity/magic-link";
 export {
   countAccountsByOrganization,
   findTeamAccountOrganization,
   listTeamAccounts,
+  MfaResetNotAllowedError,
+  resetIdentityMfa,
   type OrganizationAccountCounts,
   type TeamAccountStatus,
 } from "./support";
 export { purgeConnectionTraces } from "./connection-journal";
+// Clé de l'app (MFA_ENCRYPTION_KEY) : depuis le lot 33, elle scelle les liens magiques.
 export { MfaKeyError, readMfaEncryptionKey } from "./secret-box";
 export { isPlannerRole, isProfessionalRole, ROLES, type Role } from "./roles";
-// Lot 24b (SEC-03, ADR 0063) : règle des mots de passe.
-export { checkPassword, isCompromisedPassword, type PasswordVerdict } from "./password-policy";
 // Lot 24b (SEC-06, décision D3) : équipe, retrait d'un accès, déconnexion de tous les appareils.
 export { listTeam, removeMember, revokeOtherSessions, type RemoveMemberOutcome, type TeamMember } from "./team";

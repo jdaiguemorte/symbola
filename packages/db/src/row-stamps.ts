@@ -20,8 +20,6 @@ export const TECHNICAL_TABLES: Record<string, string> = {
   "events.event_link_codes": "code à usage unique d'un lien personnel, haché, valable dix minutes",
   // Lot 27a (CHR-04) : rappels envoyés au client pour ses tâches.
   "events.event_task_reminders": "trace d'un rappel envoyé (tâche, lien, seuil), écrite par le système",
-  "hub.password_resets": "jeton de réinitialisation d'un compte",
-  "hub.trusted_devices": "jeton d'appareil de confiance d'un compte",
   "hub.backup_runs": "suivi des sauvegardes, écrit par l'exploitation",
   "hub.help_progress": "progression d'un compte dans l'aide : l'auteur est le compte",
   "hub.user_tour_seen": "visite guidée vue par un compte",

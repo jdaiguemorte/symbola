@@ -7,21 +7,11 @@ import AxeBuilder from "@axe-core/playwright";
 import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
-import * as OTPAuth from "otpauth";
-import { clickMenuLink, landmarksPanel, readyOrganization } from "./helpers";
+import { clickMenuLink, landmarksPanel, readyOrganization, signIn as signInByLink } from "./helpers";
 
-async function loginAndSetupMfa(page: Page, email: string, password: string): Promise<void> {
-  await page.goto("/login");
-  await page.getByLabel("E-mail").fill(email);
-  await page.getByLabel("Mot de passe").fill(password);
-  await page.getByRole("button", { name: "Se connecter" }).click();
-  await expect(page).toHaveURL(/\/mfa$/);
-
-  const provisioningUri = await page.locator("code").textContent();
-  const secret = new URL(provisioningUri!.replace("otpauth://totp/", "https://x/")).searchParams.get("secret")!;
-  await page.getByLabel("Code").fill(new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret) }).generate());
-  await page.getByRole("button", { name: "Valider" }).click();
-  await expect(page).toHaveURL("/");
+async function loginAndSetupMfa(page: Page, email: string, _password: string): Promise<void> {
+  // Lot 33 : lien magique et fournisseur d'identité (e2e/helpers.ts).
+  await signInByLink(page, email, "/");
 }
 
 async function createTestUser(): Promise<{ email: string; password: string }> {
@@ -104,7 +94,7 @@ test("AIDE-11 / AIDE-03 — repères de l'accueil, aide consultable", async ({ p
   expect(violations.violations, JSON.stringify(violations.violations, null, 2)).toEqual([]);
 
   // L'aide de la console d'Administration n'est pas proposée à l'équipe.
-  await expect(page.getByRole("heading", { name: "Administration de la suite" })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Exploitation de la suite" })).toHaveCount(0);
   await page.getByLabel("Rechercher dans l'aide").fill("TVA");
   await expect(page.getByRole("link", { name: /Entreprise et TVA/ })).toBeVisible();
   await expect(page.getByRole("link", { name: /Liste des événements/ })).toHaveCount(0);

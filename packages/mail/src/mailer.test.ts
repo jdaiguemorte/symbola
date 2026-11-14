@@ -8,6 +8,7 @@ function envWith(overrides: Record<string, string>) {
     S3_ACCESS_KEY: "x",
     S3_SECRET_KEY: "x",
     MFA_ENCRYPTION_KEY: Buffer.alloc(32, 7).toString("base64"),
+    LOGTO_M2M_SECRET: "secret-machine-a-machine-de-test-32c",
     ...overrides,
   });
 }

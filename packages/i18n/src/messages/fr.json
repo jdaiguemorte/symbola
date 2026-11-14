@@ -1,28 +1,43 @@
 {
   "Login": {
-    "title": "Connexion",
-    "email": "E-mail",
-    "password": "Mot de passe",
-    "submit": "Se connecter",
-    "invalidCredentials": "Identifiants invalides.",
-    "locked": "Compte temporairement verrouillé après plusieurs échecs. Réessayez dans quelques minutes.",
-    "forgotPassword": "Mot de passe oublié ?"
+    "title": "Se connecter",
+    "intro": "Recevez un lien de connexion par e-mail : il est valable quinze minutes et ne sert qu'une fois.",
+    "email": "Adresse e-mail",
+    "submit": "Recevoir un lien de connexion",
+    "sent": "Un lien de connexion vient de partir à cette adresse. Il est valable quinze minutes.",
+    "invalidEmail": "Saisissez une adresse e-mail valide.",
+    "providerPrompt": "Vous avez un mot de passe ou une clé d'accès ?",
+    "providerLink": "Se connecter avec un mot de passe ou une clé d'accès",
+    "signupPrompt": "Pas encore d'espace ?",
+    "signupLink": "Créer mon espace",
+    "linkInvalid": "Ce lien de connexion n'est plus valable. Demandez-en un nouveau.",
+    "accessRefused": "Cet accès n'est plus ouvert. Rapprochez-vous de la titulaire de votre organisation.",
+    "failed": "La connexion n'a pas abouti. Recommencez.",
+    "magicLinkSubject": "Votre lien de connexion à Symbola",
+    "magicLinkBody": "Bonjour,\n\nVoici votre lien de connexion à Symbola. Il est valable quinze minutes et ne sert qu'une fois :\n{link}\n\nSi vous n'avez rien demandé, ignorez ce message : personne ne peut se connecter sans ce lien.\n\nL'équipe Symbola"
   },
-  "Mfa": {
-    "title": "Double authentification",
-    "scanInstructions": "Scannez ce QR code avec votre application d'authentification (par exemple Google Authenticator ou 1Password), puis saisissez le code à 6 chiffres qu'elle affiche.",
-    "enterCodeInstructions": "Saisissez le code de votre application d'authentification.",
-    "code": "Code",
-    "submit": "Valider",
-    "invalidCode": "Code invalide.",
-    "qrLabel": "QR code à scanner avec votre application d'authentification",
-    "manualKey": "Impossible de scanner ? Saisissez cette clé dans l'application :",
-    "setupLink": "Lien de configuration complet",
-    "locked": "Trop de codes incorrects : la double authentification est bloquée pendant 15 minutes. Un e-mail vous a été envoyé.",
-    "lockedMailSubject": "Votre double authentification Symbola a été bloquée",
-    "lockedMailBody": "Cinq codes de double authentification incorrects d'affilée ont été saisis sur votre compte, après un mot de passe correct. La double authentification est bloquée pendant 15 minutes par mesure de sécurité.\n\nSi ce n'était pas vous, quelqu'un connaît votre mot de passe : changez-le dès maintenant avec « Mot de passe oublié ? » sur l'écran de connexion.",
-    "rememberDevice": "Se souvenir de cet appareil pendant 90 jours",
-    "rememberDeviceHint": "Le code ne vous sera plus demandé sur cet appareil pendant 90 jours. Ne cochez pas sur un ordinateur partagé."
+  "Signup": {
+    "title": "Créer votre espace Symbola",
+    "intro": "Votre adresse e-mail suffit. Nous vous envoyons un lien : il ouvre votre espace, sans mot de passe à choisir.",
+    "email": "Adresse e-mail",
+    "submit": "Recevoir mon lien",
+    "sent": "Un lien vient de partir à cette adresse. Il est valable quinze minutes.",
+    "loginPrompt": "Vous avez déjà un espace ?",
+    "loginLink": "Se connecter"
+  },
+  "Security": {
+    "title": "Sécurisez votre compte",
+    "ownerBody": "Comme titulaire, vous protégez les données de votre organisation : une double authentification est demandée à chaque connexion. Recevez un lien de connexion : vous installerez une application d'authentification ou une clé d'accès, puis elle vous sera demandée.",
+    "operatorBody": "Le compte d'exploitation exige une double authentification à chaque connexion. Recevez un lien de connexion : vous installerez une application d'authentification ou une clé d'accès, puis elle vous sera demandée.",
+    "setUp": "Gérer mes moyens de connexion",
+    "signInAgain": "Recevoir un lien de connexion",
+    "signOut": "Me déconnecter",
+    "linkSent": "Un lien de connexion vient de partir à votre adresse. Ouvrez-le : votre double authentification vous sera demandée, ou installée si elle manque."
+  },
+  "Organizations": {
+    "label": "Organisation",
+    "switch": "Ouvrir",
+    "create": "Créer une autre organisation"
   },
   "Home": {
     "title": "Symbola",
@@ -30,7 +45,7 @@
     "logout": "Se déconnecter",
     "myProfile": "Mon profil",
     "settings": "Paramètres",
-    "administration": "Administration",
+    "administration": "Exploitation",
     "onboardingIncomplete": "Votre fiche entreprise n'est pas encore complète.",
     "completeProfile": "La compléter",
     "events": "Événements",
@@ -185,15 +200,11 @@
     "backupNever": "Le script de sauvegarde n'a encore rien signalé dans cet environnement."
   },
   "Invitation": {
-    "welcome": "Bienvenue sur Symbola",
-    "choosePassword": "Choisissez un mot de passe (12 caractères minimum)",
-    "submit": "Créer mon compte",
-    "success": "Compte créé. Vous pouvez maintenant vous connecter.",
-    "invalidOrExpired": "Ce lien d'invitation est invalide ou a expiré.",
-    "alreadyAccepted": "Cette invitation a déjà été utilisée.",
-    "missingPassword": "Le mot de passe est obligatoire.",
-    "passwordCompromised": "Ce mot de passe figure parmi les mots de passe les plus courants ou déjà compromis. Choisissez-en un autre, par exemple une phrase de plusieurs mots.",
-    "passwordTooShort": "Le mot de passe doit faire au moins 12 caractères."
+    "welcome": "Vous êtes invité·e à rejoindre « {organization} » sur Symbola.",
+    "submit": "Accepter et recevoir mon lien de connexion",
+    "sent": "C'est fait. Un lien de connexion vient de partir à votre adresse ; il est valable quinze minutes.",
+    "invalidOrExpired": "Cette invitation n'est plus valable. Demandez-en une nouvelle à la personne qui vous a invité·e.",
+    "alreadyAccepted": "Cette invitation a déjà été acceptée. Connectez-vous avec votre adresse e-mail."
   },
   "Profile": {
     "title": "Mon profil",
@@ -201,7 +212,10 @@
     "languageFr": "Français",
     "languageEn": "English",
     "submit": "Enregistrer",
-    "success": "Préférences enregistrées."
+    "success": "Préférences enregistrées.",
+    "securityTitle": "Sécurité du compte",
+    "securityBody": "Votre mot de passe, vos clés d'accès et votre double authentification se gèrent dans votre espace de connexion.",
+    "securityLink": "Ouvrir mon espace de connexion"
   },
   "Settings": {
     "title": "Paramètres",
@@ -303,7 +317,7 @@
     "mailHourlyCap": "Plafond d'e-mails par organisation et par heure (signataires, mariés invités)",
     "requiredMentionsTitle": "Mentions requises sur les documents",
     "requiredMentionsWarning": "Valeur réglementaire, à valider par l'expert-comptable : une mention cochée bloque l'envoi d'un devis ou l'émission d'une facture tant que l'organisation ne l'a pas remplie.",
-    "requiredMentionsSourceAdmin": "Liste réglée par l'Admin.",
+    "requiredMentionsSourceAdmin": "Liste réglée par l'Exploitation.",
     "requiredMentionsSourceStarter": "Liste de départ (fichier de données), à valider.",
     "requiredMentionsReset": "Revenir à la liste de départ",
     "requiredMentionsCaption": "Mention requise par document, avec ses conditions",
@@ -438,7 +452,7 @@
   "Help": {
     "login": {
       "title": "Se connecter",
-      "body": "Saisissez l'e-mail et le mot de passe de votre compte, puis le code de votre application d'authentification. Après plusieurs essais manqués, le compte se bloque quelques minutes pour le protéger. Mot de passe oublié : utilisez le lien sous le formulaire."
+      "body": "Saisissez votre adresse e-mail : un lien de connexion part aussitôt, valable quinze minutes et pour une seule fois. Vous avez un mot de passe ou une clé d'accès ? Passez par le lien sous le formulaire. Comme titulaire, une double authentification vous est demandée à chaque connexion."
     },
     "mfa": {
       "title": "Double authentification",
@@ -1039,6 +1053,10 @@
     "contractTemplates": {
       "title": "Modèles de contrat",
       "body": "Un modèle par type d'événement : un titre et des clauses ordonnées, chacune obligatoire ou facultative, avec des variables entre accolades et un rôle légal (information précontractuelle, rétractation, acompte…). À la génération, Symbola remplit les variables depuis le devis, l'événement et votre organisation, et nomme tout ce qui manque. Chaque modification augmente la version ; les contrats déjà générés gardent leur texte. Le modèle de départ est une base à adapter, à faire relire par un professionnel du droit : indiquez la date de la dernière relecture."
+    },
+    "signup": {
+      "title": "Créer votre espace",
+      "body": "Votre adresse e-mail suffit : le lien reçu crée votre compte et votre organisation, puis ouvre le démarrage. Aucun mot de passe à choisir ; vous pourrez en ajouter un, ou une clé d'accès, plus tard."
     }
   },
   "Aide": {
@@ -3171,27 +3189,6 @@
     "linkNoticeInvalid": "La mention est trop longue (4 000 caractères au plus).",
     "signedQuoteRetentionTooShort": "Les devis signés et leurs contrats se conservent dix ans au moins (120 mois) : c'est la durée légale d'un contrat conclu en ligne."
   },
-  "PasswordReset": {
-    "forgotTitle": "Mot de passe oublié",
-    "forgotIntro": "Saisissez l'adresse e-mail de votre compte : vous recevrez un lien pour choisir un nouveau mot de passe, valable 30 minutes.",
-    "email": "E-mail",
-    "send": "Recevoir le lien",
-    "invalidEmail": "Adresse e-mail invalide.",
-    "sent": "Si un compte existe pour cette adresse, un e-mail vient de lui être envoyé. Pensez à regarder dans les indésirables.",
-    "backToLogin": "Retour à la connexion",
-    "resetTitle": "Nouveau mot de passe",
-    "newPassword": "Nouveau mot de passe (12 caractères minimum)",
-    "confirmPassword": "Confirmez le mot de passe",
-    "save": "Enregistrer le mot de passe",
-    "mismatch": "Les deux mots de passe ne sont pas identiques.",
-    "compromised": "Ce mot de passe figure parmi les mots de passe les plus courants ou déjà compromis. Choisissez-en un autre, par exemple une phrase de plusieurs mots.",
-    "tooShort": "Le mot de passe doit faire au moins 12 caractères.",
-    "invalidOrExpired": "Ce lien n'est plus valable : il a déjà servi ou a expiré.",
-    "askAgain": "Demander un nouveau lien",
-    "done": "Mot de passe enregistré. Vous pouvez vous connecter ; la double authentification vous sera demandée comme d'habitude.",
-    "mailSubject": "Choisir un nouveau mot de passe Symbola",
-    "mailBody": "Bonjour,\n\nUne demande de nouveau mot de passe a été faite pour votre compte Symbola. Ce lien est valable 30 minutes et ne sert qu'une fois :\n{link}\n\nSi vous n'êtes pas à l'origine de cette demande, ignorez cet e-mail : votre mot de passe actuel reste valable.\n\nL'équipe Symbola"
-  },
   "AdminAccounts": {
     "title": "Comptes et assistance",
     "intro": "Comptes de l'équipe de chaque organisation et invitations en attente. Les comptes des mariés n'apparaissent pas ici.",
@@ -3319,7 +3316,7 @@
       "budget": "Budget",
       "company": "Mon entreprise et mon compte",
       "data": "Import et données personnelles",
-      "admin": "Administration de la suite",
+      "admin": "Exploitation de la suite",
       "clients": "Votre espace"
     },
     "screenTitle": "Aide : {title}",
@@ -4327,8 +4324,8 @@
     "center": "Centre d'aide"
   },
   "AdminMenu": {
-    "brand": "Admin",
-    "label": "Menu de l'Administration",
+    "brand": "Exploitation",
+    "label": "Menu de l'Exploitation",
     "overview": "Vue d'ensemble",
     "organizations": "Organisations",
     "accounts": "Comptes",
@@ -4371,12 +4368,6 @@
     "previous": "Page précédente",
     "next": "Page suivante",
     "status": "Page {page} sur {count}"
-  },
-  "TrustedDevices": {
-    "title": "Appareils de confiance",
-    "count": "{count, plural, =0 {Aucun appareil de confiance : le code de double authentification est demandé à chaque connexion.} one {# appareil de confiance : le code de double authentification n'y est pas redemandé pendant 90 jours.} other {# appareils de confiance : le code de double authentification n'y est pas redemandé pendant 90 jours.}}",
-    "forget": "Oublier tous mes appareils",
-    "forgotten": "Vos appareils de confiance sont oubliés : le code sera demandé à la prochaine connexion, sur chacun d'eux."
   },
   "RateLimit": {
     "tooMany": "Trop de tentatives. Réessayez dans {minutes, plural, one {# minute} other {# minutes}}."
@@ -4448,6 +4439,8 @@
     "reasonLabel": "Motif : {reason}",
     "sessionsRevoked": "{count, plural, =0 {aucune autre session} one {# session fermée} other {# sessions fermées}}",
     "refusedRoute": "Adresse demandée : {route}",
+    "methodIdentity": "par le service de connexion",
+    "methodIdentityMfa": "avec double authentification",
     "methodPassword": "par mot de passe",
     "methodCode": "avec le code",
     "methodTrustedDevice": "appareil de confiance",
@@ -4627,7 +4620,8 @@
       "quotes_contract_signer_acts": "Acte d'un signataire (commande, exécution anticipée)",
       "quotes_contract_evidence": "Dossier de preuve d'un contrat",
       "quotes_scheduled_deposit_invoices": "Facture d'acompte à émettre",
-      "quotes_earnest_receipts": "Reçus d'arrhes"
+      "quotes_earnest_receipts": "Reçus d'arrhes",
+      "hub_memberships": "adhésion"
     },
     "modules": {
       "events": "Événements",

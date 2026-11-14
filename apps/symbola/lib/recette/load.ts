@@ -8,7 +8,6 @@
 // tâches, carnet de prestataires, et les liens personnels des clients et du
 // payeur (lot 26a) et du prestataire retenu joué par un profil (lot 26b). Le
 // reste du jeu (invités, tables) viendra avec les lots qui créent ces écrans.
-import { randomBytes } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { createUser, type Role } from "@symbola/auth";
@@ -131,7 +130,8 @@ const datasetSchema = z.object({
 });
 export type RecetteDataset = z.infer<typeof datasetSchema>;
 
-export type RecetteAccount = { organisation: string; profil: string | null; nom: string; email: string; password: string; role: Role };
+// Lot 33 : plus de mot de passe ; connexion par lien magique (Mailpit en local).
+export type RecetteAccount = { organisation: string; profil: string | null; nom: string; email: string; role: Role };
 // Lot 26a (ADR 0053) : lien personnel d'un client ou d'un payeur ; l'adresse
 // n'est montrée qu'une fois, ici, pour le fichier local de recette.
 export type RecetteLink = { organisation: string; evenement: string; nom: string; email: string; profil: string; url: string };
@@ -175,10 +175,6 @@ export function recetteEmail(name: string, tag?: string): string {
     .replace(/[^a-z0-9]+/g, ".")
     .replace(/^\.|\.$/g, "");
   return `${local}${tag ? `+${tag}` : ""}@exemple.test`;
-}
-
-function newPassword(): string {
-  return randomBytes(18).toString("base64url");
 }
 
 // Lot 28b (PRE-02) : statut d'un prestataire du jeu, en clair, vers celui de l'app.
@@ -237,8 +233,8 @@ export async function loadRecette(raw: unknown, options: RecetteOptions = {}): P
     for (const [index, member] of organisation.membres.entries()) {
       const memberName = (member.profil ? profileName.get(member.profil) : undefined) ?? member.nom ?? `Membre ${index + 1}`;
       const role: Role = member.role === "Propriétaire" ? "owner" : "member";
-      const account = { organisation: organisation.id, profil: member.profil ?? null, nom: memberName, email: recetteEmail(memberName, options.emailTag), password: newPassword(), role };
-      const user = await createUser(db, { organizationId, email: account.email, password: account.password, role });
+      const account = { organisation: organisation.id, profil: member.profil ?? null, nom: memberName, email: recetteEmail(memberName, options.emailTag), role };
+      const user = await createUser(db, { organizationId, email: account.email, role });
       if (role === "owner" && !ownerId) ownerId = user.id;
       result.accounts.push(account);
     }

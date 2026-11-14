@@ -21,6 +21,6 @@ describe("L18-HUB-22 — Un seul lien du menu principal allumé", () => {
   it("l'accueil ne s'allume que sur lui-même ; « exact » ignore les sous-écrans", () => {
     expect(isCurrentNavLink("/", "/")).toBe(true);
     expect(isCurrentNavLink("/events", "/")).toBe(false);
-    expect(isCurrentNavLink("/admin/organisations", "/admin", { exact: true })).toBe(false);
+    expect(isCurrentNavLink("/exploitation/organisations", "/exploitation", { exact: true })).toBe(false);
   });
 });

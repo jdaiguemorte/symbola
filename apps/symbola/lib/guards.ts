@@ -18,8 +18,18 @@ export type InOrganization = { status: "authenticated"; user: OrganizationUser }
 export async function requireSignedIn(): Promise<SignedIn> {
   const auth = await getAuthContext();
   if (auth.status === "unauthenticated") redirect("/login");
-  if (auth.status === "mfa_required") redirect("/mfa");
+  if (auth.status === "mfa_required") redirect("/securite");
   return auth;
+}
+
+// Lot 33 (D4) — page « Sécurisez votre compte » : seulement pour une session qui attend la double
+// authentification (Propriétaire, Exploitation). Sans session, la connexion ; session complète,
+// l'accueil.
+export async function requirePendingMfa(): Promise<{ userId: string; role: "owner" | "member" | "admin" }> {
+  const auth = await getAuthContext();
+  if (auth.status === "unauthenticated") redirect("/login");
+  if (auth.status === "authenticated") redirect("/");
+  return { userId: auth.userId, role: auth.role };
 }
 
 // Écrans de la planner (titulaire ou collaborateur, PRD-EVT-06) : l'Admin va à
@@ -27,7 +37,7 @@ export async function requireSignedIn(): Promise<SignedIn> {
 export async function requirePlanner(): Promise<InOrganization> {
   const auth = await getPlannerAuthContext();
   if (auth.status === "unauthenticated") redirect("/login");
-  if (auth.status === "mfa_required") redirect("/mfa");
+  if (auth.status === "mfa_required") redirect("/securite");
   if (auth.status === "forbidden") redirect("/");
   const { organizationId } = auth.user;
   if (!organizationId) redirect("/");
@@ -57,10 +67,10 @@ export async function requireLink(audience?: LinkAudience): Promise<LinkAccess> 
 
 // PRD-HUB-03 — console Admin (/admin/*). L'Admin n'accède jamais aux données
 // métier d'une organisation (ADR 0029) : cette garde ne vérifie que le rôle.
-export async function requireAdmin(): Promise<{ userId: string; email: string }> {
+export async function requireOperator(): Promise<{ userId: string; email: string }> {
   const auth = await getAuthContext();
   if (auth.status === "unauthenticated") redirect("/login");
-  if (auth.status === "mfa_required") redirect("/mfa");
+  if (auth.status === "mfa_required") redirect("/securite");
   if (auth.user.role !== "admin") redirect("/");
   return { userId: auth.user.id, email: auth.user.email };
 }

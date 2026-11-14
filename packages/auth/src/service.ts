@@ -1,522 +1,294 @@
-// Porte d'entrée unique de l'authentification (SOC-04, ADR 0013). Aucun
-// autre code ne doit appeler packages/db sur le schéma hub, ni la lib
-// d'argon2/otpauth directement : tout passe par les fonctions exportées
-// d'ici (createAppUser, login, setupTotp, confirmTotp, requireUser…).
-import { and, eq, gt, gte, isNotNull, isNull, like, lt, lte, not, or, sql, inArray } from "drizzle-orm";
+// Porte d'entrée unique de l'authentification (SOC-04, ADR 0013 ; lot 33 : ADR 0052 et 0067).
+// Aucun autre code n'appelle packages/db sur les tables d'identité du hub : tout passe par les
+// fonctions exportées d'ici.
+//
+// Depuis le lot 33, Symbola ne vérifie plus aucun mot de passe ni code : le fournisseur
+// d'identité authentifie (OpenID Connect, identity/oidc.ts), puis signInWithIdentity ouvre la
+// session Symbola, opaque, comme avant. Un compte peut appartenir à plusieurs organisations
+// (hub.memberships, HUB-02) ; la session porte l'organisation active, relue à chaque requête.
+import { and, asc, eq, isNull } from "drizzle-orm";
 import type { AppDatabase } from "@symbola/db/client";
-import { sendMail } from "@symbola/mail";
-import { organizations, sessions, trustedDevices, users } from "@symbola/db/schema/hub";
-import { connectionAccount, journalConnection } from "./connection-journal";
-import { hashPassword, verifyPassword } from "./password";
-import { isProfessionalRole, type Role } from "./roles";
+import { memberships, organizations, sessions, users } from "@symbola/db/schema/hub";
+import { journalConnection } from "./connection-journal";
+import type { IdentityClaims } from "./identity/oidc";
+import type { Role } from "./roles";
 import { generateSessionToken, hashSessionToken } from "./session-token";
-import { isSealedTotpSecret, openTotpSecret, readMfaEncryptionKey, sealTotpSecret } from "./secret-box";
-import { buildTotpProvisioningUri, generateTotpSecret, matchTotpStep } from "./totp";
 
-const SESSION_DURATION_MS = 8 * 60 * 60 * 1000; // 8h sans activité (PRD PRD-HUB-01, proposé)
-// Verrouillage de compte (PRD PRD-HUB-01) : 5 mots de passe faux d'affilée
-// bloquent la connexion 15 min, un e-mail part au titulaire.
-const MAX_FAILED_ATTEMPTS = 5;
-const LOCKOUT_DURATION_MS = 15 * 60 * 1000;
-// L16-SEC-01 (lot 16, ADR 0037) : même règle pour le code de double
-// authentification, comptée par compte (une nouvelle connexion ne la remet
-// pas à zéro).
-const MFA_MAX_FAILED_ATTEMPTS = 5;
-const MFA_LOCKOUT_DURATION_MS = 15 * 60 * 1000;
-// L16-SEC-03 (lot 16, ADR 0038) : un appareil de confiance est dispensé du code
-// pendant 90 jours (décision de Julien du 08/11/2026), jamais pour l'Admin.
-const TRUSTED_DEVICE_DURATION_MS = 90 * 24 * 60 * 60 * 1000;
+const SESSION_DURATION_MS = 8 * 60 * 60 * 1000; // 8 h sans activité, glissantes
+// D4 (lot 33) : la double authentification est demandée après « Votre espace est prêt », pas
+// pendant l'inscription. Seule la séance ouverte par l'inscription elle-même en est dispensée :
+// sa session naît dans la minute qui suit la création du compte.
+const SIGNUP_GRACE_MS = 60 * 1000;
+// Nom provisoire de l'organisation créée à l'inscription (HUB-02), modifiable au démarrage.
+export const PROVISIONAL_ORGANIZATION_NAME = "Mon atelier";
 
 export type AuthenticatedUser = {
   id: string;
   email: string;
   role: Role;
+  // Organisation active de la session ; nulle pour l'Exploitation.
   organizationId: string | null;
   // Choix explicite dans le profil (PRD-HUB-04) ; nul = pas encore choisi.
   language: "fr" | "en" | null;
   // AIDE-04 : liste « premiers pas » masquée par l'utilisateur.
   firstStepsHidden: boolean;
-  // PRD-EVT-06 : double authentification activée (obligatoire pour les rôles
-  // professionnels, facultative pour un marié).
+  // La session a été ouverte avec une double authentification (déclaration acr).
   mfaEnabled: boolean;
 };
 
 export type AuthResult =
   | { status: "unauthenticated" }
-  // totpConfirmed : un code a déjà été validé avec la clé enregistrée ; sinon
-  // la configuration est à (re)prendre, jamais seulement à vérifier.
-  | { status: "mfa_required"; userId: string; role: Role; totpConfirmed: boolean }
+  // D4 : la Propriétaire et l'Exploitation doivent se reconnecter avec leur double
+  // authentification (ou l'installer d'abord, dans le centre de compte du fournisseur).
+  | { status: "mfa_required"; userId: string; role: Role }
   | { status: "authenticated"; user: AuthenticatedUser };
-
-export type LoginResult =
-  | { outcome: "invalid_credentials" }
-  | { outcome: "locked" }
-  | { outcome: "success"; sessionToken: string; requiresMfa: boolean };
 
 export async function createOrganization(db: AppDatabase, name: string) {
   const [organization] = await db.insert(organizations).values({ name }).returning();
-  if (!organization) throw new Error("création de l'organisation échouée");
-  return organization;
+  return organization!;
 }
 
-export async function createUser(
+// Compte d'organisation (avec son adhésion) ou d'exploitation (role « admin »). Utilisé par la
+// création de comptes en ligne de commande, le jeu de recette et les tests ; le compte se
+// connecte ensuite par le fournisseur d'identité, retrouvé par son adresse. `password` n'est plus
+// lu (lot 33) : il reste accepté le temps que les appelants s'en défassent.
+export async function createUser(db: AppDatabase, input: { organizationId: string | null; email: string; password?: string; role: Role }) {
+  return db.transaction(async (tx) => {
+    const [user] = await tx
+      .insert(users)
+      .values({ email: input.email.toLowerCase(), operator: input.role === "admin" })
+      .returning();
+    if (input.organizationId && input.role !== "admin") {
+      await tx.insert(memberships).values({ userId: user!.id, organizationId: input.organizationId, role: input.role });
+    }
+    return user!;
+  });
+}
+
+export async function addMembership(db: AppDatabase, input: { userId: string; organizationId: string; role: "owner" | "member" }): Promise<void> {
+  await db.insert(memberships).values(input).onConflictDoNothing();
+}
+
+// Invitation acceptée (lot 33, HUB-02) : le compte de l'adresse invitée, créé s'il n'existe pas,
+// reçoit l'adhésion à l'organisation. Un compte qui a déjà d'autres organisations les garde.
+export async function ensureMembership(db: AppDatabase, input: { organizationId: string; email: string; role: "owner" | "member" }): Promise<{ userId: string }> {
+  const email = input.email.toLowerCase();
+  return db.transaction(async (tx) => {
+    const [existing] = await tx.select({ id: users.id }).from(users).where(eq(users.email, email));
+    const userId = existing?.id ?? (await tx.insert(users).values({ email }).returning({ id: users.id }))[0]!.id;
+    await tx.insert(memberships).values({ userId, organizationId: input.organizationId, role: input.role }).onConflictDoNothing();
+    return { userId };
+  });
+}
+
+export type SignInOutcome =
+  // requiresMfa : Propriétaire de l'organisation ouverte, ou Exploitation (D4).
+  | { outcome: "signed_in"; sessionToken: string; userId: string; organizationId: string | null; isNewAccount: boolean; requiresMfa: boolean }
+  // Compte désactivé, ou plus aucune organisation active (accès retirés) : refus, sans détail.
+  | { outcome: "refused" };
+
+// Après l'authentification par le fournisseur : retrouve le compte par son identifiant chez le
+// fournisseur, sinon par son adresse vérifiée (reprise des comptes, partie F), sinon le crée
+// avec son organisation et son adhésion de Propriétaire (inscription libre, HUB-01, HUB-02).
+export async function signInWithIdentity(
   db: AppDatabase,
-  input: { organizationId: string | null; email: string; password: string; role: Role },
-) {
-  const passwordHash = await hashPassword(input.password);
-  const [user] = await db
-    .insert(users)
-    .values({
-      organizationId: input.organizationId,
-      email: input.email,
-      passwordHash,
-      role: input.role,
-    })
-    .returning();
-  if (!user) throw new Error("création de l'utilisateur échouée");
-  return user;
+  claims: IdentityClaims,
+  options: { preferredOrganizationId?: string | null; clientIp?: string | null; now?: Date } = {},
+): Promise<SignInOutcome> {
+  const now = options.now ?? new Date();
+  const email = claims.email.toLowerCase();
+  const result = await db.transaction(async (tx) => {
+    let isNewAccount = false;
+    let [user] = await tx.select().from(users).where(eq(users.idpSubject, claims.subject));
+    if (!user) {
+      const [byEmail] = await tx.select().from(users).where(eq(users.email, email));
+      if (byEmail && byEmail.idpSubject && byEmail.idpSubject !== claims.subject) return { outcome: "refused" } as const;
+      if (byEmail) {
+        [user] = await tx.update(users).set({ idpSubject: claims.subject }).where(eq(users.id, byEmail.id)).returning();
+      } else {
+        isNewAccount = true;
+        [user] = await tx.insert(users).values({ email, idpSubject: claims.subject, createdAt: now }).returning();
+        const [organization] = await tx.insert(organizations).values({ name: PROVISIONAL_ORGANIZATION_NAME }).returning();
+        await tx.insert(memberships).values({ userId: user!.id, organizationId: organization!.id, role: "owner" });
+      }
+    }
+    if (!user || user.disabledAt) return { outcome: "refused" } as const;
+
+    let organizationId: string | null = null;
+    let requiresMfa = user.operator;
+    if (!user.operator) {
+      const active = await tx
+        .select({ organizationId: memberships.organizationId, role: memberships.role })
+        .from(memberships)
+        .where(and(eq(memberships.userId, user.id), isNull(memberships.disabledAt)))
+        .orderBy(asc(memberships.createdAt));
+      if (active.length === 0) return { outcome: "refused" } as const;
+      const preferred = active.find((membership) => membership.organizationId === options.preferredOrganizationId);
+      const chosen = preferred ?? active[0]!;
+      organizationId = chosen.organizationId;
+      requiresMfa = chosen.role === "owner";
+    }
+
+    const sessionToken = generateSessionToken();
+    await tx.insert(sessions).values({
+      userId: user.id,
+      organizationId,
+      tokenHash: hashSessionToken(sessionToken),
+      mfaVerified: claims.mfa,
+      expiresAt: new Date(now.getTime() + SESSION_DURATION_MS),
+      createdAt: now,
+    });
+    await tx.update(users).set({ lastLoginAt: now }).where(eq(users.id, user.id));
+    return { outcome: "signed_in", sessionToken, userId: user.id, organizationId, isNewAccount, requiresMfa, operator: user.operator } as const;
+  });
+  if (result.outcome === "signed_in") {
+    await journalConnection(db, { id: result.userId, organizationId: result.organizationId, role: result.operator ? "admin" : "member" }, "hub.session.opened", {
+      details: { method: claims.mfa ? "identity_mfa" : "identity" },
+      clientIp: options.clientIp,
+    });
+    const { operator: _operator, ...outcome } = result;
+    return outcome;
+  }
+  return result;
 }
 
-export type LoginOptions = {
-  // L16-SEC-03 : jeton du cookie d'appareil de confiance de ce navigateur, s'il y en a un.
-  trustedDeviceToken?: string | undefined;
-  // Horloge simulée (tests) pour l'échéance de l'appareil de confiance.
-  now?: Date | undefined;
-  // Lot 23 (décision D5) : adresse IP de la requête, gardée à part du journal.
-  clientIp?: string | null | undefined;
+type SessionRow = {
+  userId: string;
+  email: string;
+  operator: boolean;
+  userCreatedAt: Date;
+  language: "fr" | "en" | null;
+  firstStepsHidden: boolean;
+  disabledAt: Date | null;
+  organizationId: string | null;
+  mfaVerified: boolean;
+  expiresAt: Date;
+  sessionCreatedAt: Date;
+  membershipRole: "owner" | "member" | null;
 };
 
-export async function login(db: AppDatabase, email: string, password: string, options: LoginOptions = {}): Promise<LoginResult> {
-  const [user] = await db.select().from(users).where(eq(users.email, email));
-  if (!user) return { outcome: "invalid_credentials" };
-
-  // Lot 23 (SEC-19) : connexions, échecs et verrouillages au journal d'audit.
-  const account = { id: user.id, organizationId: user.organizationId, role: user.role };
-  const clientIp = options.clientIp;
-  // Lot 24b (SEC-06, décision D3) : un compte dont l'accès a été retiré ne se
-  // connecte plus ; la réponse est celle d'identifiants faux.
-  if (user.disabledAt) {
-    await journalConnection(db, account, "hub.session.failed", { details: { reason: "disabled" }, clientIp });
-    return { outcome: "invalid_credentials" };
-  }
-  if (user.lockedUntil && user.lockedUntil.getTime() > Date.now()) {
-    await journalConnection(db, account, "hub.session.failed", { details: { reason: "locked" }, clientIp });
-    return { outcome: "locked" };
-  }
-
-  const validPassword = await verifyPassword(user.passwordHash, password);
-  if (!validPassword) {
-    const failedAttempts = user.failedLoginAttempts + 1;
-    if (failedAttempts >= MAX_FAILED_ATTEMPTS) {
-      await db
-        .update(users)
-        .set({ failedLoginAttempts: 0, lockedUntil: new Date(Date.now() + LOCKOUT_DURATION_MS) })
-        .where(eq(users.id, user.id));
-      await sendMail({
-        to: user.email,
-        subject: "Votre compte Symbola a été verrouillé",
-        text: "Cinq mots de passe incorrects d'affilée ont été saisis sur votre compte. Il est verrouillé pendant 15 minutes par mesure de sécurité. Si ce n'était pas vous, pensez à changer votre mot de passe dès le déverrouillage.",
-      });
-      await journalConnection(db, account, "hub.account.locked", { details: { reason: "password" }, clientIp });
-      return { outcome: "locked" };
-    }
-
-    await db.update(users).set({ failedLoginAttempts: failedAttempts }).where(eq(users.id, user.id));
-    await journalConnection(db, account, "hub.session.failed", { details: { reason: "password" }, clientIp });
-    return { outcome: "invalid_credentials" };
-  }
-
-  // RGPD-05 : dernière connexion réussie, pour la suppression des comptes de
-  // mariés inactifs (registre de données).
-  await db.update(users).set({ failedLoginAttempts: 0, lockedUntil: null, lastLoginAt: new Date() }).where(eq(users.id, user.id));
-
-  // Un marié n'y est pas obligé, mais une fois activée elle s'applique à
-  // chaque connexion (PRD-EVT-06).
-  // L16-SEC-03 : un appareil de confiance encore valide de ce compte dispense du code.
-  const mfaExpected = isProfessionalRole(user.role) || user.mfaEnabled;
-  const trusted = mfaExpected && (await useTrustedDevice(db, user, options));
-  const requiresMfa = mfaExpected && !trusted;
-  const sessionToken = generateSessionToken();
-
-  await db.insert(sessions).values({
-    userId: user.id,
-    tokenHash: hashSessionToken(sessionToken),
-    mfaVerified: !requiresMfa,
-    expiresAt: new Date(Date.now() + SESSION_DURATION_MS),
-  });
-
-  // La connexion n'est ouverte qu'une fois le code validé, s'il est demandé
-  // (confirmTotp écrit alors la ligne).
-  if (!requiresMfa) {
-    await journalConnection(db, account, "hub.session.opened", { details: { method: trusted ? "trusted_device" : "password" }, clientIp });
-  }
-  return { outcome: "success", sessionToken, requiresMfa };
-}
-
-async function useTrustedDevice(
-  db: AppDatabase,
-  user: { id: string; role: Role; mfaEnabled: boolean; totpSecret: string | null },
-  options: LoginOptions,
-): Promise<boolean> {
-  if (!options.trustedDeviceToken || user.role === "admin" || !user.mfaEnabled || !user.totpSecret) return false;
-  const now = options.now ?? new Date();
-  // Les appareils échus de ce compte n'ont plus d'usage : effacés au passage.
-  await db.delete(trustedDevices).where(and(eq(trustedDevices.userId, user.id), lte(trustedDevices.expiresAt, now)));
-  const used = await db
-    .update(trustedDevices)
-    .set({ lastUsedAt: now })
-    .where(
-      and(
-        eq(trustedDevices.tokenHash, hashSessionToken(options.trustedDeviceToken)),
-        eq(trustedDevices.userId, user.id),
-        gt(trustedDevices.expiresAt, now),
-      ),
-    )
-    .returning({ id: trustedDevices.id });
-  return used.length > 0;
-}
-
-/** L16-SEC-03 : appareils de confiance encore valides du compte (écran du profil). */
-export async function countTrustedDevices(db: AppDatabase, userId: string, now: Date = new Date()): Promise<number> {
-  const [row] = await db
-    .select({ count: sql<number>`count(*)::int` })
-    .from(trustedDevices)
-    .where(and(eq(trustedDevices.userId, userId), gt(trustedDevices.expiresAt, now)));
-  return row?.count ?? 0;
-}
-
-/** L16-SEC-03 : « oublier mes appareils » ; renvoie le nombre d'appareils oubliés. */
-export async function forgetTrustedDevices(db: AppDatabase, userId: string): Promise<number> {
-  const forgotten = await db.delete(trustedDevices).where(eq(trustedDevices.userId, userId)).returning({ id: trustedDevices.id });
-  const account = await connectionAccount(db, userId);
-  if (account) await journalConnection(db, account, "hub.trusted_devices.forgotten", { details: { count: forgotten.length } });
-  return forgotten.length;
-}
-
-export async function setupTotp(db: AppDatabase, userId: string) {
-  const secret = generateTotpSecret();
-  // L16-SEC-01 : jamais en clair en base.
-  const [user] = await db
-    .update(users)
-    .set({ totpSecret: sealTotpSecret(secret, userId, readMfaEncryptionKey()), totpLastUsedStep: null, mfaFailedAttempts: 0, mfaLockedUntil: null })
-    .where(eq(users.id, userId))
-    .returning();
-  if (!user) throw new Error("utilisateur introuvable");
-  // Nouvelle clé : aucun appareil retenu avec l'ancienne ne reste dispensé.
-  await db.delete(trustedDevices).where(eq(trustedDevices.userId, userId));
-
-  return { secret, provisioningUri: buildTotpProvisioningUri({ secret, email: user.email }) };
-}
-
-/**
- * Écran de configuration (rôles professionnels) : tant qu'aucun code n'a été
- * validé, réaffiche la clé déjà enregistrée (même QR code d'une connexion ou
- * d'un rechargement à l'autre) ou en crée une. Sans cette reprise, une clé
- * enregistrée mais jamais confirmée laissait l'utilisateur devant une
- * demande de code qu'il ne pouvait pas produire.
- */
-export async function resumeTotpSetup(db: AppDatabase, userId: string) {
-  const [user] = await db
-    .select({ email: users.email, totpSecret: users.totpSecret, mfaEnabled: users.mfaEnabled })
-    .from(users)
-    .where(eq(users.id, userId));
-  if (!user) throw new Error("utilisateur introuvable");
-  if (user.mfaEnabled) throw new Error("double authentification déjà confirmée");
-  if (user.totpSecret) {
-    const secret = openTotpSecret(user.totpSecret, userId, readMfaEncryptionKey());
-    return { secret, provisioningUri: buildTotpProvisioningUri({ secret, email: user.email }) };
-  }
-  return setupTotp(db, userId);
-}
-
-export type ConfirmTotpResult =
-  // Nouveau jeton de session : l'ancien est révoqué (L16-SEC-01), l'appelant
-  // remplace le cookie.
-  // deviceToken (L16-SEC-03) : à poser dans le cookie d'appareil de confiance quand
-  // « se souvenir de cet appareil » était coché (jamais pour l'Admin).
-  | { outcome: "confirmed"; sessionToken: string; deviceToken?: string }
-  | { outcome: "invalid" }
-  // notify : le verrouillage vient d'être posé, l'app prévient le titulaire
-  // (e-mail traduit) ; nul pour les essais suivants pendant le verrouillage.
-  | { outcome: "locked"; notify: { email: string; language: "fr" | "en" | null } | null };
-
-type MfaAccount = { userId: string; email: string; language: "fr" | "en" | null };
-
-/**
- * Vérifie un code TOTP pour la session en cours. Sert à la configuration
- * initiale comme aux connexions suivantes. L16-SEC-01 (lot 16, ADR 0037) :
- * - 5 codes faux d'affilée verrouillent la validation 15 min pour le compte,
- *   même un code juste est alors refusé ;
- * - un code ne sert qu'une fois (pas de temps du dernier code accepté) ;
- * - une validation émet un nouveau jeton de session et révoque l'ancien.
- * `now` simule l'horloge dans les tests.
- */
-export async function confirmTotp(
-  db: AppDatabase,
-  params: { sessionToken: string; token: string; now?: Date; rememberDevice?: boolean; clientIp?: string | null },
-): Promise<ConfirmTotpResult> {
-  const now = params.now ?? new Date();
-  const tokenHash = hashSessionToken(params.sessionToken);
-  const [row] = await db
-    .select({
-      userId: sessions.userId,
-      email: users.email,
-      language: users.language,
-      role: users.role,
-      organizationId: users.organizationId,
-      mfaEnabled: users.mfaEnabled,
-      totpSecret: users.totpSecret,
-      mfaLockedUntil: users.mfaLockedUntil,
-      expiresAt: sessions.expiresAt,
-    })
-    .from(sessions)
-    .innerJoin(users, eq(users.id, sessions.userId))
-    .where(eq(sessions.tokenHash, tokenHash));
-
-  if (!row || !row.totpSecret || row.expiresAt.getTime() < Date.now()) return { outcome: "invalid" };
-  const journalAccount = { id: row.userId, organizationId: row.organizationId, role: row.role };
-  const clientIp = params.clientIp;
-  if (row.mfaLockedUntil && row.mfaLockedUntil.getTime() > now.getTime()) {
-    await journalConnection(db, journalAccount, "hub.session.failed", { details: { reason: "locked" }, clientIp });
-    return { outcome: "locked", notify: null };
-  }
-
-  const key = readMfaEncryptionKey();
-  const secret = openTotpSecret(row.totpSecret, row.userId, key);
-  const step = matchTotpStep({ secret, token: params.token.trim(), timestamp: now.getTime() });
-  const account: MfaAccount = { userId: row.userId, email: row.email, language: row.language };
-  // Lot 23 (SEC-19) : code faux, ou verrouillage au cinquième.
-  const failed = async () => {
-    const result = await recordMfaFailure(db, account, now);
-    await journalConnection(db, journalAccount, result.outcome === "locked" ? "hub.account.locked" : "hub.session.failed", {
-      details: { reason: "code" },
-      clientIp,
-    });
-    return result;
-  };
-  if (step === null) return failed();
-
-  const newToken = generateSessionToken();
-  const deviceToken = params.rememberDevice && row.role !== "admin" ? generateSessionToken() : undefined;
-  const confirmed = await db.transaction(async (tx) => {
-    // Consomme le code sous condition : deux envois simultanés du même code,
-    // ou un code rejoué, ne passent pas tous les deux.
-    const claimed = await tx
-      .update(users)
-      .set({
-        totpLastUsedStep: step,
-        mfaFailedAttempts: 0,
-        mfaLockedUntil: null,
-        mfaEnabled: true,
-        // Secret enregistré en clair avant le lot 16 : chiffré au passage.
-        ...(isSealedTotpSecret(row.totpSecret ?? "") ? {} : { totpSecret: sealTotpSecret(secret, row.userId, key) }),
-      })
-      .where(
-        and(
-          eq(users.id, row.userId),
-          or(isNull(users.totpLastUsedStep), lt(users.totpLastUsedStep, step)),
-          or(isNull(users.mfaLockedUntil), lte(users.mfaLockedUntil, now)),
-        ),
-      )
-      .returning({ id: users.id });
-    if (claimed.length === 0) return false;
-    const revoked = await tx.delete(sessions).where(eq(sessions.tokenHash, tokenHash)).returning({ id: sessions.id });
-    if (revoked.length === 0) throw new Error("session disparue pendant la validation");
-    await tx.insert(sessions).values({
-      userId: row.userId,
-      tokenHash: hashSessionToken(newToken),
-      mfaVerified: true,
-      expiresAt: new Date(Date.now() + SESSION_DURATION_MS),
-    });
-    if (deviceToken) {
-      await tx.insert(trustedDevices).values({
-        userId: row.userId,
-        tokenHash: hashSessionToken(deviceToken),
-        expiresAt: new Date(now.getTime() + TRUSTED_DEVICE_DURATION_MS),
-      });
-    }
-    return true;
-  });
-
-  if (!confirmed) return failed();
-  if (!row.mfaEnabled) await journalConnection(db, journalAccount, "hub.mfa.configured", { clientIp });
-  await journalConnection(db, journalAccount, "hub.session.opened", { details: { method: "code" }, clientIp });
-  return deviceToken ? { outcome: "confirmed", sessionToken: newToken, deviceToken } : { outcome: "confirmed", sessionToken: newToken };
-}
-
-async function recordMfaFailure(db: AppDatabase, account: MfaAccount, now: Date): Promise<ConfirmTotpResult> {
-  const [counted] = await db
-    .update(users)
-    .set({ mfaFailedAttempts: sql`${users.mfaFailedAttempts} + 1` })
-    .where(eq(users.id, account.userId))
-    .returning({ attempts: users.mfaFailedAttempts });
-  if (!counted || counted.attempts < MFA_MAX_FAILED_ATTEMPTS) return { outcome: "invalid" };
-
-  // Un seul envoi concurrent pose le verrouillage (et prévient le titulaire).
-  const locked = await db
-    .update(users)
-    .set({ mfaFailedAttempts: 0, mfaLockedUntil: new Date(now.getTime() + MFA_LOCKOUT_DURATION_MS) })
-    .where(and(eq(users.id, account.userId), gte(users.mfaFailedAttempts, MFA_MAX_FAILED_ATTEMPTS)))
-    .returning({ id: users.id });
-  if (locked.length === 0) return { outcome: "locked", notify: null };
-  // Journal sans donnée personnelle : l'identifiant du compte seulement.
-  console.warn(`double authentification verrouillée après ${MFA_MAX_FAILED_ATTEMPTS} codes faux (compte ${account.userId})`);
-  return { outcome: "locked", notify: { email: account.email, language: account.language } };
-}
-
-/**
- * L16-SEC-01 (ADR 0037) — chiffre les secrets encore en clair (comptes créés avant
- * le lot 16). Lancé au démarrage de l'app ; sans effet s'il n'y en a plus.
- * `userIds` limite aux comptes donnés (tests). Renvoie le nombre chiffré.
- */
-export async function sealLegacyTotpSecrets(db: AppDatabase, options: { userIds?: string[] } = {}): Promise<number> {
-  const key = readMfaEncryptionKey();
-  const rows = await db
-    .select({ id: users.id, totpSecret: users.totpSecret })
-    .from(users)
-    .where(and(isNotNull(users.totpSecret), not(like(users.totpSecret, "v1:%")), options.userIds ? inArray(users.id, options.userIds) : undefined));
-  let sealed = 0;
-  for (const row of rows) {
-    if (!row.totpSecret) continue;
-    const updated = await db
-      .update(users)
-      .set({ totpSecret: sealTotpSecret(row.totpSecret, row.id, key) })
-      .where(and(eq(users.id, row.id), eq(users.totpSecret, row.totpSecret)))
-      .returning({ id: users.id });
-    sealed += updated.length;
-  }
-  return sealed;
-}
-
-/**
- * Retour arrière seulement (runbook de déploiement) : remet les secrets en
- * clair avant de relancer une image antérieure au lot 16, qui ne sait pas les
- * déchiffrer. Renvoie le nombre déchiffré.
- */
-export async function unsealTotpSecrets(db: AppDatabase, options: { userIds?: string[] } = {}): Promise<number> {
-  const key = readMfaEncryptionKey();
-  const rows = await db
-    .select({ id: users.id, totpSecret: users.totpSecret })
-    .from(users)
-    .where(and(like(users.totpSecret, "v1:%"), options.userIds ? inArray(users.id, options.userIds) : undefined));
-  let opened = 0;
-  for (const row of rows) {
-    if (!row.totpSecret) continue;
-    const updated = await db
-      .update(users)
-      .set({ totpSecret: openTotpSecret(row.totpSecret, row.id, key) })
-      .where(and(eq(users.id, row.id), eq(users.totpSecret, row.totpSecret)))
-      .returning({ id: users.id });
-    opened += updated.length;
-  }
-  return opened;
-}
-
-/**
- * Seule porte d'entrée pour résoudre une session en utilisateur authentifié
- * (SOC-04). Renvoie "mfa_required" pour un rôle professionnel dont la
- * session n'a pas encore passé l'étape TOTP — avec ou sans secret déjà
- * configuré, pour que l'app sache proposer la configuration ou la
- * vérification.
- */
-export async function requireUser(
-  db: AppDatabase,
-  sessionToken: string | undefined,
-): Promise<AuthResult> {
-  if (!sessionToken) return { status: "unauthenticated" };
-
-  const tokenHash = hashSessionToken(sessionToken);
+async function readSession(db: AppDatabase, tokenHash: string): Promise<SessionRow | null> {
   const [row] = await db
     .select({
       userId: users.id,
       email: users.email,
-      role: users.role,
-      organizationId: users.organizationId,
+      operator: users.operator,
+      userCreatedAt: users.createdAt,
       language: users.language,
       firstStepsHidden: users.firstStepsHidden,
-      totpSecret: users.totpSecret,
-      mfaEnabled: users.mfaEnabled,
+      disabledAt: users.disabledAt,
+      organizationId: sessions.organizationId,
       mfaVerified: sessions.mfaVerified,
       expiresAt: sessions.expiresAt,
-      disabledAt: users.disabledAt,
+      sessionCreatedAt: sessions.createdAt,
+      membershipRole: memberships.role,
     })
     .from(sessions)
     .innerJoin(users, eq(users.id, sessions.userId))
-    .where(and(eq(sessions.tokenHash, tokenHash)));
-
-  if (!row) return { status: "unauthenticated" };
-  if (row.expiresAt.getTime() < Date.now()) return { status: "unauthenticated" };
-  // Lot 24b (SEC-06) : accès retiré, refusé dès la requête suivante.
-  if (row.disabledAt) return { status: "unauthenticated" };
-
-  // Session glissante (PRD PRD-HUB-01, « 8h sans activité ») : chaque appel
-  // réussi repousse l'expiration, plutôt qu'une durée fixe depuis la
-  // connexion.
-  await db
-    .update(sessions)
-    .set({ expiresAt: new Date(Date.now() + SESSION_DURATION_MS) })
+    .leftJoin(
+      memberships,
+      and(eq(memberships.userId, sessions.userId), eq(memberships.organizationId, sessions.organizationId), isNull(memberships.disabledAt)),
+    )
     .where(eq(sessions.tokenHash, tokenHash));
+  return row ?? null;
+}
 
-  if ((isProfessionalRole(row.role) || row.mfaEnabled) && !row.mfaVerified) {
-    return { status: "mfa_required", userId: row.userId, role: row.role, totpConfirmed: row.mfaEnabled && row.totpSecret !== null };
-  }
+// Rôle de la session, ou null si elle ne donne plus accès (compte désactivé, adhésion retirée).
+function sessionRole(row: SessionRow): Role | null {
+  if (row.disabledAt) return null;
+  if (row.operator) return "admin";
+  if (!row.organizationId || !row.membershipRole) return null;
+  return row.membershipRole;
+}
 
+// D4 : Propriétaire et Exploitation sans double authentification dans cette session ? La séance
+// ouverte par l'inscription en est seule dispensée (jamais l'Exploitation).
+function missesMfa(row: SessionRow, role: Role): boolean {
+  if (row.mfaVerified || role === "member") return false;
+  if (role === "owner" && row.sessionCreatedAt.getTime() - row.userCreatedAt.getTime() <= SIGNUP_GRACE_MS) return false;
+  return true;
+}
+
+export async function requireUser(db: AppDatabase, sessionToken: string | undefined): Promise<AuthResult> {
+  if (!sessionToken) return { status: "unauthenticated" };
+  const tokenHash = hashSessionToken(sessionToken);
+  const row = await readSession(db, tokenHash);
+  if (!row || row.expiresAt.getTime() < Date.now()) return { status: "unauthenticated" };
+  const role = sessionRole(row);
+  if (!role) return { status: "unauthenticated" };
+
+  // Session glissante : chaque appel réussi repousse l'expiration.
+  await db.update(sessions).set({ expiresAt: new Date(Date.now() + SESSION_DURATION_MS) }).where(eq(sessions.tokenHash, tokenHash));
+
+  if (missesMfa(row, role)) return { status: "mfa_required", userId: row.userId, role };
   return {
     status: "authenticated",
     user: {
       id: row.userId,
       email: row.email,
-      role: row.role,
-      organizationId: row.organizationId,
+      role,
+      organizationId: row.operator ? null : row.organizationId,
       language: row.language,
       firstStepsHidden: row.firstStepsHidden,
-      mfaEnabled: row.mfaEnabled,
+      mfaEnabled: row.mfaVerified,
     },
   };
 }
 
-// Lot 23 (partie B, DAT-06, SEC-19, ADR 0060) : l'auteur d'une écriture en base,
-// d'après la session de la requête. Lecture seule (ni expiration glissante ni
-// autre écriture, contrairement à requireUser) : appelée à chaque transaction.
-// Une session expirée ou qui attend encore la double authentification n'a pas
-// d'auteur.
-export async function findSessionActor(
-  db: AppDatabase,
-  sessionToken: string | undefined,
-): Promise<{ kind: "member" | "admin"; id: string } | null> {
+// Lot 23 (ADR 0060) : l'auteur d'une écriture en base, d'après la session de la requête. Lecture
+// seule. Une session expirée, retirée ou qui attend la double authentification n'a pas d'auteur.
+export async function findSessionActor(db: AppDatabase, sessionToken: string | undefined): Promise<{ kind: "member" | "admin"; id: string } | null> {
   if (!sessionToken) return null;
-  const [row] = await db
-    .select({ userId: users.id, role: users.role, mfaEnabled: users.mfaEnabled, mfaVerified: sessions.mfaVerified, expiresAt: sessions.expiresAt, disabledAt: users.disabledAt })
-    .from(sessions)
-    .innerJoin(users, eq(users.id, sessions.userId))
-    .where(eq(sessions.tokenHash, hashSessionToken(sessionToken)));
-  if (!row || row.expiresAt.getTime() < Date.now() || row.disabledAt) return null;
-  if ((isProfessionalRole(row.role) || row.mfaEnabled) && !row.mfaVerified) return null;
-  return { kind: row.role === "admin" ? "admin" : "member", id: row.userId };
+  const row = await readSession(db, hashSessionToken(sessionToken));
+  if (!row || row.expiresAt.getTime() < Date.now()) return null;
+  const role = sessionRole(row);
+  if (!role || missesMfa(row, role)) return null;
+  return { kind: role === "admin" ? "admin" : "member", id: row.userId };
 }
 
-// PRD-EVT-06 — invitation d'un marié : savoir si l'e-mail a déjà un compte, et
-// lequel (rôle, organisation), sans exposer le reste du compte.
-export async function findAccountByEmail(
-  db: AppDatabase,
-  email: string,
-): Promise<{ id: string; role: Role; organizationId: string | null } | null> {
-  const [user] = await db
-    .select({ id: users.id, role: users.role, organizationId: users.organizationId })
-    .from(users)
-    .where(sql`lower(${users.email}) = lower(${email.trim()})`);
-  return user ?? null;
+// HUB-02 : organisations où le compte a une adhésion active, pour le sélecteur.
+export async function listOrganizations(db: AppDatabase, userId: string): Promise<{ organizationId: string; name: string; role: "owner" | "member" }[]> {
+  return db
+    .select({ organizationId: organizations.id, name: organizations.name, role: memberships.role })
+    .from(memberships)
+    .innerJoin(organizations, eq(organizations.id, memberships.organizationId))
+    .where(and(eq(memberships.userId, userId), isNull(memberships.disabledAt)))
+    .orderBy(asc(organizations.name));
+}
+
+// HUB-02 : passer sur une autre organisation. Refusé (false), sans distinguer « inexistante » et
+// « sans adhésion » (SEC-13), si le compte n'y a pas d'adhésion active.
+export async function switchOrganization(db: AppDatabase, sessionToken: string, organizationId: string): Promise<boolean> {
+  const tokenHash = hashSessionToken(sessionToken);
+  const [session] = await db.select({ userId: sessions.userId }).from(sessions).where(eq(sessions.tokenHash, tokenHash));
+  if (!session) return false;
+  const [membership] = await db
+    .select({ id: memberships.id })
+    .from(memberships)
+    .where(and(eq(memberships.userId, session.userId), eq(memberships.organizationId, organizationId), isNull(memberships.disabledAt)));
+  if (!membership) return false;
+  await db.update(sessions).set({ organizationId }).where(eq(sessions.tokenHash, tokenHash));
+  return true;
 }
 
 export async function destroySession(db: AppDatabase, sessionToken: string): Promise<void> {
-  const closed = await db.delete(sessions).where(eq(sessions.tokenHash, hashSessionToken(sessionToken))).returning({ userId: sessions.userId });
-  // Lot 23 (SEC-19) : déconnexion au journal.
-  const account = closed[0] ? await connectionAccount(db, closed[0].userId) : null;
-  if (account) await journalConnection(db, account, "hub.session.closed");
+  const tokenHash = hashSessionToken(sessionToken);
+  const [closed] = await db
+    .delete(sessions)
+    .where(eq(sessions.tokenHash, tokenHash))
+    .returning({ userId: sessions.userId, organizationId: sessions.organizationId });
+  if (!closed) return;
+  const [user] = await db.select({ operator: users.operator }).from(users).where(eq(users.id, closed.userId));
+  await journalConnection(db, { id: closed.userId, organizationId: closed.organizationId, role: user?.operator ? "admin" : "member" }, "hub.session.closed");
 }
 
-// PRD-HUB-04 — « Quand il choisit FR ou EN dans son profil, toutes les apps
-// s'affichent dans cette langue. »
+// D4 (lot 33) : adresse du compte et son identifiant chez le fournisseur, pour exiger la double
+// authentification chez lui et renvoyer un lien de connexion.
+export async function accountIdentity(db: AppDatabase, userId: string): Promise<{ email: string; idpSubject: string | null } | null> {
+  const [user] = await db.select({ email: users.email, idpSubject: users.idpSubject }).from(users).where(eq(users.id, userId));
+  return user ?? null;
+}
+
 export async function setUserLanguage(db: AppDatabase, userId: string, language: "fr" | "en"): Promise<void> {
   await db.update(users).set({ language }).where(eq(users.id, userId));
 }

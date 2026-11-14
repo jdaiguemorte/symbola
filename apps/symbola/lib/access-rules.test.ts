@@ -19,9 +19,10 @@ const APP_DIR = join(ROOT, "app");
 const BASE_GUARDS = [
   // lib/guards.ts
   "requireSignedIn",
+  "requirePendingMfa",
   "requirePlanner",
   "requireOwner",
-  "requireAdmin",
+  "requireOperator",
   // Lot 26a (SEC-14) : portail d'un lien personnel (lib/guards.ts, lib/link-session.ts)
   "requireLink",
   "currentLinkAccess",
@@ -46,16 +47,16 @@ const GUARDS = new Set([...BASE_GUARDS, ...Object.keys(SHARED_ACCESS)]);
 // Entrées publiques (« fichier#fonction exportée ») : ouvertes sans session,
 // chacune protégée autrement, ou sans donnée.
 const PUBLIC_ENTRIES: Record<string, string> = {
-  "login/page.tsx#default": "connexion",
-  "login/actions.ts#loginAction": "connexion, limitée en débit",
-  "logout-action.ts#logoutAction": "déconnexion : ferme la session du cookie, s'il y en a une",
-  "mfa/page.tsx#default": "double authentification d'une connexion en cours",
-  "mot-de-passe-oublie/page.tsx#default": "demande de réinitialisation",
-  "mot-de-passe-oublie/actions.ts#forgotPasswordAction": "demande de réinitialisation, limitée en débit",
-  "mot-de-passe/[token]/page.tsx#default": "jeton de réinitialisation",
-  "mot-de-passe/[token]/actions.ts#resetPasswordAction": "jeton de réinitialisation",
+  // Lot 33 (SEC-01, SEC-07, HUB-01 ; ADR 0067) : connexion par le fournisseur d'identité.
+  "login/page.tsx#default": "connexion : demande d'un lien, ou page du fournisseur d'identité",
+  "login/actions.ts#requestLinkAction": "demande d'un lien de connexion ou d'inscription : même réponse pour toute adresse, limitée en débit, piège à robots",
+  "inscription/page.tsx#default": "inscription libre : une adresse e-mail, sans donnée",
+  "auth/connexion/route.ts#GET": "demande d'autorisation poussée au fournisseur d'identité, sans donnée",
+  "auth/lien/[lien]/route.ts#GET": "lien magique scellé ; le fournisseur juge le jeton (usage unique, quinze minutes)",
+  "auth/callback/route.ts#GET": "retour du fournisseur : état, nonce et PKCE vérifiés, jeton d'identité vérifié par openid-client",
+  "logout-action.ts#logoutAction": "déconnexion : ferme la session du cookie, s'il y en a une, puis celle du fournisseur",
   "invitations/[token]/page.tsx#default": "jeton d'invitation de l'équipe",
-  "invitations/[token]/actions.ts#acceptInvitationAction": "jeton d'invitation de l'équipe",
+  "invitations/[token]/actions.ts#acceptInvitationAction": "jeton d'invitation de l'équipe ; le lien de connexion part à l'adresse invitée",
   // Lot 26a (UX-11, SEC-14, SEC-15, SEC-17 ; ADR 0053).
   "lien/page.tsx#default": "arrivée d'un lien personnel : le jeton reste dans le navigateur, la page n'affiche rien d'autre",
   "lien/actions.ts#openLinkAction": "jeton du lien personnel, vérifié haché sous RLS, limité en débit",

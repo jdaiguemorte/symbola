@@ -10,9 +10,8 @@ import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { parisToday } from "@symbola/i18n";
 import { expect, test, type Page } from "@playwright/test";
-import * as OTPAuth from "otpauth";
 import { attachEventDocument, changeEventStatus, createProspect, createProspectSource } from "../modules/events/service";
-import { readyOrganization } from "./helpers";
+import { readyOrganization, signIn as signInByLink } from "./helpers";
 
 const PASSWORD = "mot-de-passe-documents-e2e";
 const TINY_PDF = Buffer.from("%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n", "latin1");
@@ -24,16 +23,8 @@ function addDays(date: string, days: number): string {
 }
 
 async function login(page: Page, email: string) {
-  await page.goto("/login");
-  await page.getByLabel("E-mail").fill(email);
-  await page.getByLabel("Mot de passe").fill(PASSWORD);
-  await page.getByRole("button", { name: "Se connecter" }).click();
-  await expect(page).toHaveURL(/\/mfa$/);
-  const provisioningUri = await page.locator("code").textContent();
-  const secret = new URL(provisioningUri!.replace("otpauth://totp/", "https://x/")).searchParams.get("secret")!;
-  await page.getByLabel("Code").fill(new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret) }).generate());
-  await page.getByRole("button", { name: "Valider" }).click();
-  await expect(page).toHaveURL(/\/$/);
+  // Lot 33 : lien magique et fournisseur d'identité (e2e/helpers.ts).
+  await signInByLink(page, email, /\/$/);
 }
 
 async function expectNoAxeViolation(page: Page) {

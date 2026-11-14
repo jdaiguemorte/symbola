@@ -37,8 +37,8 @@ code (variables, tables, routes) en anglais.
 
 Architecture du pilote (ADR 0011 à 0014) : **une seule app Next.js** (`apps/symbola/`) à modules
 internes, **une seule base PostgreSQL** à un schéma par module, des **événements internes**
-(`domain_events`), une authentification maison en attendant le fournisseur d'identité
-(ADR 0052, lot 33). L'architecture du cahier des charges (§ 10) reste la trajectoire ; chaque
+(`domain_events`), une identité déléguée à Logto, fournisseur open source hébergé sur le VPS
+(ADR 0052, ADR 0067, lot 33). L'architecture du cahier des charges (§ 10) reste la trajectoire ; chaque
 écart assumé a son ADR (ADR 0011, 0012, 0027, 0051, 0058, 0059).
 
 1. **Un module = une frontière** (ARC-01, ARC-02). Chaque module vit sous
@@ -66,7 +66,8 @@ internes, **une seule base PostgreSQL** à un schéma par module, des **événem
 7. **Sécurité héritée, pas réinventée** (SEC-01, ARC-12) : jamais de crypto, de stockage de mots
    de passe ou de signature électronique maison au-delà de l'existant. Briques tierces derrière
    une interface : signature (Documenso, ADR 0026), e-mail, paiement, plateforme agréée.
-   Identité déléguée à un fournisseur open source au lot 33 (ADR 0052).
+   Identité déléguée à Logto depuis le lot 33 (ADR 0052, ADR 0067) : plus aucun mot de passe ni
+   second facteur chez Symbola.
 8. **RGPD par construction** (RGP-05, SEC-20) : chaque champ personnel est déclaré dans le
    registre (`privacy.registry.yaml`) ; chaque module implémente `privacy/v1` (find, export,
    anonymize, erase). Réglages protecteurs par défaut, purge automatique avec préavis
@@ -93,7 +94,7 @@ Versions figées dans les ADR. Colonne « Pilote » = ce qu'on construit mainten
 | Validation | Zod (entrées, formulaires, variables d'environnement) | — |
 | ORM / migrations | Drizzle ORM + drizzle-kit, migrations annulables (ADR 0036) | — |
 | Base | **Une seule base PostgreSQL, un schéma par module** | Une base par module si extrait |
-| Identité | **Authentification maison** (argon2id, session opaque, TOTP) derrière `packages/auth` (ADR 0013) | Fournisseur d'identité open source sur le VPS (ADR 0052, lot 33) |
+| Identité | **Logto 1.46** sur le VPS (base dédiée, OIDC, lien de connexion, TOTP, clés d'accès), relié par `openid-client` ; session opaque et rôles chez Symbola, derrière `packages/auth` (ADR 0052, ADR 0067, lot 33) | — |
 | Événements | **Table `domain_events`** (outbox), schémas versionnés dans `packages/contracts` | Bus séparé si un module est extrait |
 | Fichiers | Garage (S3) sur le VPS (ADR 0015, 0051), servis par l'app après contrôle des droits (ADR 0027), ClamAV à l'envoi | Stockage d'objets hors du serveur (NFR-31, palier 2) |
 | i18n | next-intl | — |
@@ -245,7 +246,7 @@ interne ; Julien passe par l'équivalent Docker donné à droite. Sur le VPS : `
 | Besoin | Commande (si Node est disponible) | Équivalent Docker (poste de Julien) |
 | --- | --- | --- |
 | Installer les dépendances | `pnpm install` | `docker run --rm -v "$PWD":/app -w /app node:22-slim corepack enable && corepack use pnpm@9.15.0 && pnpm install` |
-| Démarrer le socle + l'app en dev | `pnpm dev` | `cp .env.example .env` (une fois, puis remplir les mots de passe et les trois secrets `GARAGE_*`, générés par `openssl rand`) puis `docker compose -f infra/compose/docker-compose.dev.yml --env-file .env up -d && pnpm dev`, depuis la racine du dépôt |
+| Démarrer le socle + l'app en dev | `pnpm dev` | `cp .env.example .env` (une fois, puis remplir les mots de passe, les trois secrets `GARAGE_*` et `LOGTO_M2M_SECRET`, générés par `openssl rand` ; après le bootstrap, `configure-identity` règle Logto) puis `docker compose -f infra/compose/docker-compose.dev.yml --env-file .env up -d && pnpm dev`, depuis la racine du dépôt |
 | Lint | `pnpm lint` | `docker run --rm -v "$PWD":/app -w /app node:22-slim pnpm lint` |
 | Vérification des types | `pnpm typecheck` | `docker run --rm -v "$PWD":/app -w /app node:22-slim pnpm typecheck` |
 | Tests | `pnpm test` | `docker run --rm -v "$PWD":/app -w /app node:22-slim pnpm test` |
@@ -256,10 +257,11 @@ interne ; Julien passe par l'équivalent Docker donné à droite. Sur le VPS : `
 | Créer/mettre à jour le rôle applicatif PostgreSQL (une fois par base, SOC-05 ; crée aussi la base dédiée de Documenso si `DOCUMENSO_DB_PASSWORD` est rempli, DEV-02, ADR 0026) | `pnpm --filter @symbola/db bootstrap` | `docker run --rm --network symbola-dev_default -v "$PWD":/app -w /app --env-file .env node:22-slim pnpm --filter @symbola/db bootstrap` |
 | Appliquer les migrations de base (après le bootstrap, SOC-05) | `pnpm --filter @symbola/db migrate` | `docker run --rm --network symbola-dev_default -v "$PWD":/app -w /app --env-file .env node:22-slim pnpm --filter @symbola/db migrate` |
 | Annuler la dernière migration appliquée (lot 15, ADR 0036 ; **Julien**, après une sauvegarde, voir `docs/runbooks/restauration.md` § 4 bis) | `pnpm --filter @symbola/db rollback -- <tag>` | `docker run --rm --network symbola-dev_default -v "$PWD":/app -w /app --env-file .env node:22-slim pnpm --filter @symbola/db rollback -- <tag>` |
-| Remettre en clair les secrets de double authentification, **seulement** avant de relancer une image antérieure au lot 16 (L16-SEC-01, ADR 0037 ; **Julien**, voir `docs/runbooks/deploiement.md` § Retour arrière) ; `--seal` les chiffre (l'app le fait aussi au démarrage) | `pnpm --filter @symbola/auth mfa-secrets -- --unseal` | voir le runbook (conteneur `node:22-slim` sur le réseau Docker de l'environnement) |
+| Régler le fournisseur d'identité Logto en une commande (application de Symbola, e-mails, expérience de connexion, centre de compte ; rejouable ; lot 33, ADR 0067 ; socle démarré + bootstrap avec `LOGTO_DB_PASSWORD`) | `pnpm --filter @symbola/auth configure-identity` | `docker run --rm --network symbola-dev_default -v "$PWD":/app -w /app --env-file .env node:22-slim pnpm --filter @symbola/auth configure-identity` |
+| Relier les comptes existants à Logto (une fois, au déploiement du lot 33, rejouable ; **Julien, sur le VPS**, voir `docs/runbooks/deploiement.md` § Fournisseur d'identité) | `pnpm --filter @symbola/auth migrate-accounts` | voir le runbook (conteneur `node:22-slim` sur le réseau Docker de l'environnement) |
 | Tests d'isolation RLS réels (SOC-05, nécessite le socle démarré + bootstrap + migrate) | `pnpm --filter @symbola/db test:integration` | `docker run --rm --network symbola-dev_default -v "$PWD":/app -w /app --env-file .env node:22-slim pnpm --filter @symbola/db test:integration` |
 | Charger le jeu fictif de recette (lot 24a, DAT-10 ; socle démarré + bootstrap + migrate ; refusé en production ; comptes écrits hors du dépôt, voir `docs/runbooks/jeu-fictif.md`) | `pnpm --filter @symbola/app seed:recette` | `docker run --rm --network symbola-dev_default -v "$PWD":/app -w /app --env-file .env -v "$HOME/symbola-recette":/recette node:22-slim pnpm --filter @symbola/app seed:recette -- --comptes /recette/comptes.txt` (comptes dans `~/symbola-recette/comptes.txt`) |
-| Créer un compte Admin, ou une organisation et sa titulaire (mot de passe généré, affiché une fois ; **Julien, sur le VPS**, voir `docs/runbooks/deploiement.md` § Premiers comptes) | `pnpm --filter @symbola/auth create-account -- --role admin --email <e-mail>` | voir le runbook (conteneur `node:22-slim` sur le réseau Docker de l'environnement) |
+| Créer le compte d'Exploitation, ou une organisation et sa titulaire (aucun mot de passe : connexion par lien, second facteur installé chez Logto à la première connexion ; **Julien, sur le VPS**, voir `docs/runbooks/deploiement.md` § Premiers comptes) | `pnpm --filter @symbola/auth create-account -- --role admin --email <e-mail>` | voir le runbook (conteneur `node:22-slim` sur le réseau Docker de l'environnement) |
 | Lancer le socle en local seul | — | `docker compose -f infra/compose/docker-compose.dev.yml --env-file .env up` |
 | Vérifier les scripts serveur (SOC-10, SOC-12, lots 11, 22 et 23) | `shellcheck -x infra/server/*.sh infra/backup/*.sh infra/map/*.sh infra/monitoring/*.sh` | `docker run --rm -v "$PWD/infra":/mnt:ro -w /mnt koalaman/shellcheck:stable -x server/check-hardening.sh server/acces-base.sh backup/backup.sh backup/restore.sh backup/lib.sh backup/check-snapshot-protection.sh monitoring/disk-check.sh` |
 | Tests des sauvegardes et des configurations de déploiement (SOC-09 à SOC-12, lot 22) | `pnpm --filter @symbola/tools-deployment-config test` | `docker run --rm -v "$PWD":/app -w /app node:22-slim pnpm --filter @symbola/tools-deployment-config test` |
@@ -269,7 +271,7 @@ interne ; Julien passe par l'équivalent Docker donné à droite. Sur le VPS : `
 | Vérifier le durcissement du VPS (SOC-12, **Julien, sur le VPS**) | — | `sudo bash infra/server/check-hardening.sh` (lecture seule, voir `docs/runbooks/durcissement-serveur.md`) |
 | Ouvrir `psql` sur un environnement, tracé et motivé (SEC-09, lot 23, **Julien, sur le VPS**) | — | `sudo /opt/symbola/infra/server/acces-base.sh staging --motif="…"` (voir `docs/runbooks/acces-exploitation.md`) |
 
-Le socle de dev (Postgres, Garage, ClamAV, Mailpit, Traefik) est défini dans
+Le socle de dev (Postgres, Garage, ClamAV, Mailpit, Logto, Traefik) est défini dans
 `infra/compose/docker-compose.dev.yml` ; les variables d'environnement sont validées par Zod au
 démarrage de l'app (`packages/env`, voir `.env.example`). `pnpm dev` démarre l'app ; le socle se
 lance à part. Cette section se complète à chaque lot qui ajoute une commande.

@@ -1,16 +1,16 @@
-// Lot 23 — SEC-19 : connexions, échecs, verrouillage et déconnexion au journal
-// d'audit ; décision D5 : l'adresse IP est gardée à part, illisible par
-// l'app, purgée après la durée réglée. PostgreSQL réel.
+// Lot 23 — SEC-19 : connexions et déconnexions au journal d'audit ; décision D5 :
+// l'adresse IP est gardée à part, illisible par l'app, purgée après la durée réglée.
+// Lot 33 (ADR 0067) : les échecs et les verrous se passent chez le fournisseur
+// d'identité, qui les garde dans son propre journal. PostgreSQL réel.
 import { randomUUID } from "node:crypto";
 import { and, eq } from "drizzle-orm";
-import * as OTPAuth from "otpauth";
 import postgres from "postgres";
 import { afterAll, describe, expect, it } from "vitest";
 import { createAppConnection } from "@symbola/db/client";
 import { auditEntries } from "@symbola/db/schema/core";
 import { withOrganization } from "@symbola/db/with-organization";
 import { purgeConnectionTraces } from "./connection-journal";
-import { confirmTotp, createOrganization, createUser, destroySession, login, setupTotp } from "./service";
+import { createOrganization, createUser, destroySession, signInWithIdentity } from "./service";
 
 const { sql, db } = createAppConnection();
 const admin = postgres({
@@ -30,9 +30,15 @@ afterAll(async () => {
 
 async function couple() {
   const organization = await createOrganization(db, `Org ${randomUUID()}`);
-  const email = `marie-${randomUUID()}@example.test`;
-  const user = await createUser(db, { organizationId: organization.id, email, password: "mot-de-passe-du-marie", role: "member" });
+  const email = `planner-${randomUUID()}@example.test`;
+  const user = await createUser(db, { organizationId: organization.id, email, role: "member" });
   return { organizationId: organization.id, userId: user.id, email };
+}
+
+async function signIn(email: string, clientIp?: string) {
+  const outcome = await signInWithIdentity(db, { subject: `sub-${email}`, email, mfa: false }, { clientIp: clientIp ?? null });
+  if (outcome.outcome !== "signed_in") throw new Error("session attendue");
+  return outcome.sessionToken;
 }
 
 function connections(organizationId: string) {
@@ -50,41 +56,25 @@ async function tracesOf(auditEntryId: string) {
 }
 
 describe("SEC-19 — Connexions au journal d'audit", () => {
-  it("une connexion réussie, puis la déconnexion, au journal de l'organisation du compte", async () => {
+  it("une connexion par le fournisseur, puis la déconnexion, au journal de l'organisation du compte", async () => {
     const account = await couple();
-    const result = await login(db, account.email, "mot-de-passe-du-marie", { clientIp: "203.0.113.7" });
-    if (result.outcome !== "success") throw new Error("connexion attendue");
-    // Lot 26a : tout compte est professionnel ; la connexion s'ouvre au code.
-    const { secret } = await setupTotp(db, account.userId);
-    const code = new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret) }).generate();
-    const confirmed = await confirmTotp(db, { sessionToken: result.sessionToken, token: code, clientIp: "203.0.113.7" });
-    if (confirmed.outcome !== "confirmed") throw new Error("double authentification attendue");
-    await destroySession(db, confirmed.sessionToken);
+    const token = await signIn(account.email);
+    await destroySession(db, token);
     const entries = await connections(account.organizationId);
-    expect(entries.map((entry) => entry.action)).toEqual(["hub.mfa.configured", "hub.session.opened", "hub.session.closed"]);
-    expect(entries[1]).toMatchObject({ actorKind: "member", actorId: account.userId, objectId: account.userId, details: { method: "code" } });
+    expect(entries.map((entry) => entry.action)).toEqual(["hub.session.opened", "hub.session.closed"]);
+    expect(entries[0]).toMatchObject({ actorKind: "member", actorId: account.userId, objectId: account.userId, details: { method: "identity" } });
   });
 
-  it("un mot de passe faux est un échec sans auteur ; le cinquième verrouille le compte", async () => {
+  it("aucune ligne pour un jeton de session inconnu", async () => {
     const account = await couple();
-    for (let attempt = 0; attempt < 5; attempt += 1) await login(db, account.email, "mauvais-mot-de-passe");
-    const entries = await connections(account.organizationId);
-    expect(entries.map((entry) => entry.action)).toEqual([...Array(4).fill("hub.session.failed"), "hub.account.locked"]);
-    expect(entries[0]).toMatchObject({ actorKind: "system", actorId: null, details: { reason: "password" } });
-    await login(db, account.email, "mot-de-passe-du-marie");
-    expect((await connections(account.organizationId)).at(-1)).toMatchObject({ action: "hub.session.failed", details: { reason: "locked" } });
+    await destroySession(db, "jeton-inconnu");
+    expect(await connections(account.organizationId)).toEqual([]);
   });
 
-  it("aucune ligne pour une adresse e-mail inconnue (aucune organisation à qui l'écrire)", async () => {
-    expect(await login(db, `inconnu-${randomUUID()}@example.test`, "x")).toEqual({ outcome: "invalid_credentials" });
-  });
-});
-
-describe("Décision D5 — Adresse IP des connexions, à part et purgée", () => {
   it("l'adresse est gardée à part du journal, liée à sa ligne ; aucune ligne sans adresse", async () => {
     const account = await couple();
-    await login(db, account.email, "mauvais-mot-de-passe", { clientIp: "198.51.100.23" });
-    await login(db, account.email, "mauvais-mot-de-passe");
+    await signIn(account.email, "198.51.100.23");
+    await signIn(account.email);
     const [withIp, withoutIp] = await connections(account.organizationId);
     expect(await tracesOf(withIp!.id)).toEqual([{ ip: "198.51.100.23" }]);
     expect(await tracesOf(withoutIp!.id)).toEqual([]);

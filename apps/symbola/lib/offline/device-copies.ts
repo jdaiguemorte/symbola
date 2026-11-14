@@ -178,7 +178,7 @@ export async function syncDayCopy(input: {
   }
   if (pageResponse.redirected) {
     const target = new URL(pageResponse.url).pathname;
-    return target === "/login" || target === "/mfa" ? { status: "session" } : { status: "unavailable" };
+    return target === "/login" || target === "/securite" ? { status: "session" } : { status: "unavailable" };
   }
   if (pageResponse.status >= 500) return { status: "offline" };
   if (!pageResponse.ok) return { status: "unavailable" };

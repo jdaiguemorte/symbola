@@ -7,8 +7,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
-import * as OTPAuth from "otpauth";
-import { landmarksPanel, readyOrganization } from "./helpers";
+import { landmarksPanel, readyOrganization, signIn as signInByLink } from "./helpers";
 
 const PASSWORD = "mot-de-passe-e2e-de-test";
 // Dix écrans représentatifs : à repères, sans repères, réglages (menu des rubriques).
@@ -23,15 +22,8 @@ async function signIn(page: Page) {
   } finally {
     await sql.end();
   }
-  await page.goto("/login");
-  await page.getByLabel("E-mail").fill(email);
-  await page.getByLabel("Mot de passe").fill(PASSWORD);
-  await page.getByRole("button", { name: "Se connecter" }).click();
-  await expect(page).toHaveURL(/\/mfa$/);
-  const uri = await page.locator("code").textContent();
-  const secret = new URL(uri!.replace("otpauth://totp/", "https://x/")).searchParams.get("secret")!;
-  await page.getByLabel("Code").fill(new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret) }).generate());
-  await page.getByRole("button", { name: "Valider" }).click();
+  // Lot 33 : lien magique et fournisseur d'identité (e2e/helpers.ts).
+  await signInByLink(page, email);
   await expect(page).toHaveURL("/");
 }
 

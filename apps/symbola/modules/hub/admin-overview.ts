@@ -48,7 +48,6 @@ export type AdminOverview = {
   // Événements créés par mois, toutes organisations, du plus ancien au plus récent.
   trend: { month: string; count: number }[];
   expiredInvitations: number;
-  mfaPending: number;
   backup: BackupStatus;
 };
 
@@ -63,7 +62,6 @@ export async function getAdminOverview(db: AppDatabase, now: Date = new Date()):
     month,
     count: activity.reduce((sum, organization) => sum + (organization.events.find((row) => row.month === month)?.count ?? 0), 0),
   }));
-  const accounts = support.flatMap((organization) => organization.accounts);
   return {
     organizations: activity.length,
     activeOrganizations: activity.filter((organization) => organization.activeAccounts > 0).length,
@@ -72,7 +70,6 @@ export async function getAdminOverview(db: AppDatabase, now: Date = new Date()):
     eventsThisMonth: trend.at(-1)?.count ?? 0,
     trend,
     expiredInvitations: support.reduce((sum, organization) => sum + organization.pendingInvitations.filter((invitation) => invitation.expired).length, 0),
-    mfaPending: accounts.filter((account) => !account.mfaConfigured).length,
     backup,
   };
 }

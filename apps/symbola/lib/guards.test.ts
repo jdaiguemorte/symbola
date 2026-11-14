@@ -31,7 +31,7 @@ vi.mock("./auth-context", async () => {
 const link = vi.hoisted(() => ({ current: null as null | { organizationId: string; linkId: string; eventId: string } }));
 vi.mock("./link-session", () => ({ currentLinkAccess: async () => link.current }));
 
-const { requireAdmin, requireLink, requireOwner, requirePlanner, requireSignedIn } = await import("./guards");
+const { requireOperator, requireLink, requireOwner, requirePlanner, requireSignedIn } = await import("./guards");
 
 function signedIn(role: string, organizationId: string | null = "org-1"): AuthResult {
   return {
@@ -57,8 +57,8 @@ describe("L16-ARC-01 — Une garde d'accès unique", () => {
 
   it("requirePlanner envoie à la connexion, à la double authentification ou à l'accueil", async () => {
     await expect(requirePlanner()).rejects.toThrow("redirect:/login");
-    auth.current = { status: "mfa_required", userId: "user-owner", role: "owner", totpConfirmed: true };
-    await expect(requirePlanner()).rejects.toThrow("redirect:/mfa");
+    auth.current = { status: "mfa_required", userId: "user-owner", role: "owner" };
+    await expect(requirePlanner()).rejects.toThrow("redirect:/securite");
     auth.current = signedIn("admin", null);
     await expect(requirePlanner()).rejects.toThrow("redirect:/");
     auth.current = signedIn("member", null);
@@ -88,11 +88,11 @@ describe("L16-ARC-01 — Une garde d'accès unique", () => {
     link.current = null;
   });
 
-  it("requireAdmin réserve la console à l'Admin", async () => {
+  it("requireOperator réserve la console à l'Admin", async () => {
     auth.current = signedIn("owner");
-    await expect(requireAdmin()).rejects.toThrow("redirect:/");
+    await expect(requireOperator()).rejects.toThrow("redirect:/");
     auth.current = signedIn("admin", null);
-    expect(await requireAdmin()).toEqual({ userId: "user-admin", email: "admin@symbola.test" });
+    expect(await requireOperator()).toEqual({ userId: "user-admin", email: "admin@symbola.test" });
   });
 
   it("requireSignedIn laisse passer toute personne connectée", async () => {

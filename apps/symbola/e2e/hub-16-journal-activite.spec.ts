@@ -7,28 +7,11 @@ import AxeBuilder from "@axe-core/playwright";
 import { createUser } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
 import { expect, test, type Page } from "@playwright/test";
-import * as OTPAuth from "otpauth";
-import { readyOrganization } from "./helpers";
+import { readyOrganization, signIn as signInByLink } from "./helpers";
 
-async function loginAndSetupMfa(page: Page, email: string, password: string) {
-  await page.goto("/login");
-  await page.getByLabel("E-mail").fill(email);
-  await page.getByLabel("Mot de passe").fill(password);
-  await page.getByRole("button", { name: "Se connecter" }).click();
-  await expect(page).toHaveURL(/\/mfa$/);
-  const provisioningUri = await page.locator("code").textContent();
-  const secret = new URL(
-    provisioningUri!.replace("otpauth://totp/", "https://x/"),
-  ).searchParams.get("secret")!;
-  await page
-    .getByLabel("Code")
-    .fill(
-      new OTPAuth.TOTP({
-        secret: OTPAuth.Secret.fromBase32(secret),
-      }).generate(),
-    );
-  await page.getByRole("button", { name: "Valider" }).click();
-  await expect(page).toHaveURL("/");
+async function loginAndSetupMfa(page: Page, email: string, _password: string) {
+  // Lot 33 : lien magique et fournisseur d'identité (e2e/helpers.ts).
+  await signInByLink(page, email, "/");
 }
 
 async function expectNoAxeViolation(page: Page) {
@@ -68,14 +51,13 @@ test("HUB-16 — la titulaire lit son journal : sa connexion y figure, filtrée 
     page.getByRole("heading", { level: 1, name: "Journal d'activité" }),
   ).toBeVisible();
   const log = page.getByRole("region", { name: "Activité de l'organisation" });
-  await expect(
-    log
-      .getByRole("row")
-      .filter({ hasText: "Double authentification configurée" }),
-  ).toContainText(owner.email);
-  await expect(
-    log.getByRole("row").filter({ hasText: "avec le code" }),
-  ).toContainText("Connexion");
+  // Lot 33 (ADR 0067) : le second facteur s'installe chez le fournisseur d'identité ; le journal
+  // de Symbola garde la connexion, son auteur et sa méthode.
+  const connection = log
+    .getByRole("row")
+    .filter({ hasText: "avec double authentification" });
+  await expect(connection).toContainText("Connexion");
+  await expect(connection).toContainText(owner.email);
   await expectNoAxeViolation(page);
 
   await page.getByLabel("Famille").selectOption({ label: "Émissions" });

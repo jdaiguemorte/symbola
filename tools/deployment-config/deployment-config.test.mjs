@@ -63,11 +63,8 @@ describe("SOC-09 — Compose d'environnement (staging et production)", () => {
 
   it("n'expose l'app sur aucun port hôte (Caddy rejoint le réseau Docker, ADR 0018)", () => {
     expect(prodCompose).not.toMatch(/traefik\./);
-    const symbolaBlock = prodCompose.slice(
-      prodCompose.indexOf("\n  symbola:"),
-      prodCompose.indexOf("\nnetworks:"),
-    );
-    expect(symbolaBlock).not.toMatch(/ports:/);
+    // Lot 33 : le bloc de l'app seul (Logto le suit et publie sa console en boucle locale).
+    expect(serviceBlock(prodCompose, "symbola")).not.toMatch(/ports:/);
   });
 
   it("n'expose PostgreSQL qu'en boucle locale (jamais au réseau public)", () => {
@@ -190,6 +187,55 @@ describe("DEV-02 — Documenso dans le compose d'environnement (ADR 0026)", () =
       ]) {
         expect(envValue(content, key)).toBe("");
       }
+    }
+  });
+});
+
+describe("SEC-01 — Fournisseur d'identité Logto dans les compose (lot 33, ADR 0067)", () => {
+  const block = () => serviceBlock(prodCompose, "logto");
+  const devCompose = readFileSync(resolve(repoRoot, "infra/compose/docker-compose.dev.yml"), "utf8");
+
+  it("épingle l'image svhd/logto sur une version précise, en dev comme en environnement", () => {
+    expect(block()).toMatch(/image: svhd\/logto:\d+\.\d+\.\d+\n/);
+    expect(serviceBlock(devCompose, "logto")).toMatch(/image: svhd\/logto:\d+\.\d+\.\d+\n/);
+  });
+
+  it("utilise sa propre base, jamais celle de Symbola ni Garage", () => {
+    expect(block()).toMatch(/DB_URL: postgres:\/\/\$\{LOGTO_DB_USER:-logto\}:\$\{LOGTO_DB_PASSWORD:\?[^}]*\}@postgres:5432\/\$\{LOGTO_DB_NAME:-logto\}/);
+    expect(block()).not.toContain("POSTGRES_DB");
+    expect(block()).not.toMatch(/S3_|garage/);
+    expect(block()).not.toMatch(/\n {4}volumes:/);
+    expect(block()).toContain("no-new-privileges:true");
+  });
+
+  it("ses pages passent par Caddy (alias réseau) ; sa console n'est publiée qu'en boucle locale, sur un port distinct par environnement", () => {
+    expect(block()).toContain("ENDPOINT: https://${LOGTO_DOMAIN:?LOGTO_DOMAIN requis}");
+    expect(block()).toContain("- symbola-logto-${ENVIRONMENT_NAME}");
+    const ports = block().match(/\n {4}ports:\n((?: {6}- .*\n)+)/)?.[1] ?? "";
+    expect(ports.trim().split("\n")).toEqual(['- "127.0.0.1:${LOGTO_ADMIN_PORT:?LOGTO_ADMIN_PORT requis}:3002"']);
+    const [staging, production] = [envExample("staging"), envExample("production")];
+    expect(envValue(staging, "LOGTO_ADMIN_PORT")).not.toBe(envValue(production, "LOGTO_ADMIN_PORT"));
+    expect(envValue(staging, "LOGTO_DOMAIN")).not.toBe(envValue(production, "LOGTO_DOMAIN"));
+  });
+
+  it("ses journaux, qui portent l'adresse e-mail des pages de connexion, tournent sur deux fichiers de 5 Mo au plus", () => {
+    expect(block()).toMatch(/logging:\n\s+driver: json-file\n\s+options:\n\s+max-size: "5m"\n\s+max-file: "2"/);
+  });
+
+  it("limite sa mémoire et son CPU, staging jamais au-dessus de la production", () => {
+    expect(block()).toMatch(/memory:\s*\$\{LOGTO_MEM_LIMIT:\?/);
+    expect(block()).toMatch(/cpus:\s*\$\{LOGTO_CPUS:\?/);
+    const [staging, production] = [envExample("staging"), envExample("production")];
+    expect(toBytes(envValue(staging, "LOGTO_MEM_LIMIT"))).toBeLessThanOrEqual(toBytes(envValue(production, "LOGTO_MEM_LIMIT")));
+    expect(Number(envValue(staging, "LOGTO_CPUS"))).toBeLessThanOrEqual(Number(envValue(production, "LOGTO_CPUS")));
+  });
+
+  it("l'app reçoit l'adresse publique et le secret machine à machine, sans valeur par défaut ; aucun secret dans les modèles", () => {
+    const app = serviceBlock(prodCompose, "symbola");
+    expect(app).toContain("LOGTO_ENDPOINT: https://${LOGTO_DOMAIN:?LOGTO_DOMAIN requis}");
+    expect(app).toContain("LOGTO_M2M_SECRET: ${LOGTO_M2M_SECRET:?LOGTO_M2M_SECRET requis}");
+    for (const name of ["staging", "production"]) {
+      for (const key of ["LOGTO_DB_PASSWORD", "LOGTO_M2M_SECRET"]) expect(envValue(envExample(name), key)).toBe("");
     }
   });
 });

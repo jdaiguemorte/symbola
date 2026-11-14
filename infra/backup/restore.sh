@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Restauration complète d'un environnement depuis son dépôt restic (SOC-10) :
-# base PostgreSQL et données Garage, et Documenso (base dédiée, DEV-02, ADR 0026)
-# quand l'instantané la contient. DESTRUCTIF : remplace les données actuelles.
+# base PostgreSQL et données Garage, Documenso (base dédiée, DEV-02, ADR 0026) et le
+# fournisseur d'identité (base dédiée de Logto, lot 33, ADR 0067) quand l'instantané les contient. DESTRUCTIF : remplace les données actuelles.
 #
 # Usage (sur le VPS, root) :
 #   infra/backup/restore.sh staging|production --confirm=<environnement> [--snapshot=<id>] [--motif="…"]
@@ -59,7 +59,8 @@ SECONDS=0
 install -d -m 700 "$WORK_DIR"
 dump="$WORK_DIR/restore-postgres.dump"
 documenso_dump="$WORK_DIR/restore-documenso.dump"
-trap 'rm -f "$dump" "$documenso_dump"' EXIT
+logto_dump="$WORK_DIR/restore-logto.dump"
+trap 'rm -f "$dump" "$documenso_dump" "$logto_dump"' EXIT
 
 log "$ENVIRONMENT_NAME : extraction du dump de l'instantané ${snapshot_id:0:8}"
 restic_run dump "$snapshot_id" /backup/postgres/postgres.dump >"$dump"
@@ -71,8 +72,15 @@ if restic_run dump "$snapshot_id" /backup/postgres/documenso.dump >"$documenso_d
   has_documenso=true
 fi
 
+# Fournisseur d'identité (lot 33) : présent dans l'instantané dès qu'il était déployé.
+has_logto=false
+if restic_run dump "$snapshot_id" /backup/postgres/logto.dump >"$logto_dump" 2>/dev/null && [ -s "$logto_dump" ]; then
+  has_logto=true
+fi
+
 log "$ENVIRONMENT_NAME : arrêt de l'app"
 env_compose stop symbola
+if [ "$has_logto" = true ]; then env_compose stop logto; fi
 if [ "$has_documenso" = true ]; then env_compose --profile signature stop documenso; fi
 env_compose up -d --wait postgres
 
@@ -102,6 +110,45 @@ if [ "$has_documenso" = true ]; then
     "dropdb --if-exists --force --username=\"\$POSTGRES_USER\" $DOCUMENSO_DB && createdb --username=\"\$POSTGRES_USER\" --owner=$documenso_role $DOCUMENSO_DB"
   env_compose exec -T postgres sh -c \
     "pg_restore --exit-on-error --username=\"\$POSTGRES_USER\" --dbname=$DOCUMENSO_DB" <"$documenso_dump"
+fi
+
+if [ "$has_logto" = true ]; then
+  log "$ENVIRONMENT_NAME : restauration de la base du fournisseur d'identité ($LOGTO_DB)"
+  logto_role=$(sed -n 's/^LOGTO_DB_USER=//p' "$ENV_FILE" | tail -n 1)
+  logto_role=${logto_role:-logto}
+  [[ $logto_role =~ ^[a-z_][a-z0-9_]*$ ]] || die "LOGTO_DB_USER invalide dans $ENV_FILE"
+  logto_role_exists=$(env_compose exec -T postgres sh -c \
+    "psql -tA --username=\"\$POSTGRES_USER\" --dbname=postgres -c \"select 1 from pg_roles where rolname = '$logto_role'\"")
+  [ "$logto_role_exists" = 1 ] ||
+    die "rôle $logto_role absent : lancer d'abord le bootstrap avec LOGTO_DB_PASSWORD (docs/runbooks/restauration.md)"
+  # Les droits de la base visent le rôle logto_tenant_<base>, qui vit hors de la base : le
+  # recréer avant le pg_restore (sans connexion, comme à l'initialisation de Logto).
+  tenant_role="logto_tenant_$LOGTO_DB"
+  env_compose exec -T postgres sh -c \
+    "psql -v ON_ERROR_STOP=1 -tA --username=\"\$POSTGRES_USER\" --dbname=postgres -c \"do \\\$\\\$ begin if not exists (select 1 from pg_roles where rolname = '$tenant_role') then create role $tenant_role nologin; end if; end \\\$\\\$\""
+  env_compose exec -T postgres sh -c \
+    "dropdb --if-exists --force --username=\"\$POSTGRES_USER\" $LOGTO_DB && createdb --username=\"\$POSTGRES_USER\" --owner=$logto_role $LOGTO_DB"
+  # Droit de connexion des rôles de Logto (hors du dump : les droits sur la base elle-même n'y
+  # sont pas ; PUBLIC ne l'a plus depuis le bootstrap).
+  env_compose exec -T postgres sh -c \
+    "psql -v ON_ERROR_STOP=1 -tA --username=\"\$POSTGRES_USER\" --dbname=postgres -c \"grant connect on database $LOGTO_DB to $tenant_role\""
+  env_compose exec -T postgres sh -c \
+    "pg_restore --exit-on-error --username=\"\$POSTGRES_USER\" --dbname=$LOGTO_DB" <"$logto_dump"
+  # Rôles de connexion de Logto (un par tenant), avec le mot de passe que Logto garde dans sa
+  # table tenants : il ne quitte jamais PostgreSQL.
+  env_compose exec -T postgres sh -c \
+    "psql -v ON_ERROR_STOP=1 -tA --username=\"\$POSTGRES_USER\" --dbname=$LOGTO_DB" <<SQL
+do \$\$ declare t record; begin
+  for t in select db_user, db_user_password from tenants loop
+    if exists (select 1 from pg_roles where rolname = t.db_user) then
+      execute format('alter role %I with login password %L', t.db_user, t.db_user_password);
+    else
+      execute format('create role %I login password %L', t.db_user, t.db_user_password);
+    end if;
+    execute format('grant %I to %I', '$tenant_role', t.db_user);
+  end loop;
+end \$\$;
+SQL
 fi
 
 log "$ENVIRONMENT_NAME : restauration de Garage"
