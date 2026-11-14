@@ -2,6 +2,7 @@
 // d'une autre clé, non scellé ou échu ne s'ouvre pas.
 import { randomBytes } from "node:crypto";
 import { describe, expect, it } from "vitest";
+import { MAGIC_LINK_TTL_SECONDS } from "./management";
 import { openMagicLink, sealMagicLink } from "./magic-link";
 
 const key = randomBytes(32);
@@ -20,6 +21,15 @@ describe("SEC-07 — Lien magique scellé", () => {
     const link = sealMagicLink(payload, key);
     expect(openMagicLink(link, key, 1_000_000)).toBeNull();
     expect(openMagicLink(link, key, 2_000_000)).toBeNull();
+  });
+
+  it("valable quinze minutes à l'horloge simulée : ouvert à 14 min 59 s, refusé à 15 min 01 s", () => {
+    // 01 h 59 min 30 s à Paris, trente secondes avant le passage à l'heure d'été : l'échéance
+    // se compte en millisecondes UTC, le changement d'heure n'y change rien.
+    const sentAt = Date.UTC(2026, 2, 29, 0, 59, 30);
+    const link = sealMagicLink({ ...payload, expiresAt: sentAt + MAGIC_LINK_TTL_SECONDS * 1000 }, key);
+    expect(openMagicLink(link, key, sentAt + (14 * 60 + 59) * 1000)).not.toBeNull();
+    expect(openMagicLink(link, key, sentAt + (15 * 60 + 1) * 1000)).toBeNull();
   });
 
   it("refuse un lien altéré, scellé avec une autre clé, non scellé ou illisible", () => {
