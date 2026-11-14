@@ -1,6 +1,11 @@
 // Aides communes aux parcours e2e (ADR 0025).
+import { createHash } from "node:crypto";
 import { expect, type Page } from "@playwright/test";
-import { createOrganization } from "@symbola/auth";
+import { and, eq, isNull } from "drizzle-orm";
+import { Secret, TOTP } from "otpauth";
+import { createManagementClient, createOrganization } from "@symbola/auth";
+import { createAppConnection } from "@symbola/db/client";
+import { memberships, users } from "@symbola/db/schema/hub";
 import { completeSetup } from "../modules/hub/service";
 import { fillRequiredMentions } from "../lib/test-fixtures/legal-mentions";
 
@@ -113,4 +118,100 @@ export async function expectTouchTargets(page: Page, min: number): Promise<void>
       .map(({ element, box }) => `${element.tagName} « ${words(element).slice(0, 40)} » ${Math.round(box.width)}×${Math.round(box.height)}`);
   }, min);
   expect(small).toEqual([]);
+}
+
+// Lot 33 (SEC-01, SEC-07, D4 ; ADR 0067) — connexion des parcours, comme une personne : lien
+// demandé sur /login, lu dans Mailpit, ouvert ; écrans du fournisseur d'identité traversés (clé
+// d'accès proposée, code de double authentification, codes de secours). Une titulaire ou
+// l'Exploitation a, chez le fournisseur, un second facteur dont le secret se déduit de son
+// adresse (parcours seulement), et la double authentification obligatoire.
+const MAILPIT = "http://localhost:8025/api/v1";
+const APP_ORIGIN = "http://localhost:3000";
+
+function management() {
+  return createManagementClient({
+    endpoint: process.env.LOGTO_ENDPOINT ?? "http://localhost:3001",
+    m2mAppId: process.env.LOGTO_M2M_APP_ID ?? "symbola-bootstrap",
+    m2mSecret: process.env.LOGTO_M2M_SECRET ?? "",
+  });
+}
+
+export function totpSecretFor(email: string): string {
+  // Copie des 20 premiers octets : le condensat de Node peut vivre dans un tampon partagé plus grand.
+  const bytes = Uint8Array.from(createHash("sha256").update(`symbola-e2e:${email}`).digest().subarray(0, 20));
+  return new Secret({ buffer: bytes.buffer }).base32;
+}
+
+async function needsMfa(email: string): Promise<boolean> {
+  const { sql, db } = createAppConnection();
+  try {
+    const [user] = await db.select({ id: users.id, operator: users.operator }).from(users).where(eq(users.email, email.toLowerCase()));
+    if (!user) return false;
+    if (user.operator) return true;
+    const owners = await db.select({ id: memberships.id }).from(memberships).where(and(eq(memberships.userId, user.id), eq(memberships.role, "owner"), isNull(memberships.disabledAt)));
+    return owners.length > 0;
+  } finally {
+    await sql.end();
+  }
+}
+
+// Second facteur connu et double authentification obligatoire chez le fournisseur.
+export async function provisionTestMfa(email: string): Promise<string> {
+  const client = management();
+  const user = (await client.findUserByEmail(email)) ?? (await client.createUser(email));
+  for (const verification of await client.listMfaVerifications(user.id)) await client.deleteMfaVerification(user.id, verification.id);
+  const secret = totpSecretFor(email);
+  await client.request("POST", `/api/users/${user.id}/mfa-verifications`, { type: "Totp", secret });
+  await client.requireMfa(user.id);
+  return secret;
+}
+
+export async function latestMagicLink(email: string, after: number): Promise<string> {
+  for (let attempt = 0; attempt < 40; attempt += 1) {
+    const list = (await (await fetch(`${MAILPIT}/search?query=${encodeURIComponent(`to:"${email}"`)}`)).json()) as { messages?: { ID: string; Created: string }[] };
+    const fresh = (list.messages ?? []).filter((message) => new Date(message.Created).getTime() >= after);
+    if (fresh.length > 0) {
+      const { Text } = (await (await fetch(`${MAILPIT}/message/${fresh[0]!.ID}`)).json()) as { Text: string };
+      const link = Text.match(/https?:\/\/[^\s]+\/auth\/lien\/[A-Za-z0-9_-]+/)?.[0];
+      if (link) return link;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
+  throw new Error("aucun lien de connexion reçu");
+}
+
+// Écrans du fournisseur entre le lien et le retour dans l'app.
+export async function crossIdentityProvider(page: Page, secret: string | null): Promise<void> {
+  for (let step = 0; step < 8; step += 1) {
+    await page.waitForURL((url) => url.origin === APP_ORIGIN ? !url.pathname.startsWith("/auth/") : /\/(create-passkey|mfa-verification|mfa-binding)/.test(url.pathname), { timeout: 30_000 });
+    const url = new URL(page.url());
+    if (url.origin === APP_ORIGIN) return;
+    if (url.pathname.includes("/create-passkey")) await page.getByRole("button", { name: "Passer" }).click();
+    else if (url.pathname.includes("/mfa-binding/BackupCode")) await page.getByRole("button", { name: "Continuer" }).click();
+    else if (url.pathname.includes("/mfa-verification")) {
+      if (!secret) throw new Error("double authentification demandée sans secret connu");
+      await page.locator("input").first().click();
+      await page.keyboard.type(new TOTP({ secret: Secret.fromBase32(secret) }).generate());
+    } else throw new Error(`écran du fournisseur inattendu : ${url.pathname}`);
+    await page.waitForURL((next) => next.href !== url.href, { timeout: 30_000 });
+  }
+  throw new Error("connexion inachevée");
+}
+
+// Demande le lien, l'ouvre et traverse le fournisseur, sans juger de l'arrivée.
+export async function followSignInLink(page: Page, email: string): Promise<void> {
+  const secret = (await needsMfa(email)) ? await provisionTestMfa(email) : null;
+  const after = Date.now() - 1000;
+  await page.goto("/login");
+  await page.getByLabel("Adresse e-mail").fill(email);
+  await page.getByRole("button", { name: "Recevoir un lien de connexion" }).click();
+  await expect(page.getByRole("status")).toContainText("Un lien de connexion vient de partir");
+  await page.goto(await latestMagicLink(email, after));
+  await crossIdentityProvider(page, secret);
+}
+
+export async function signIn(page: Page, email: string, landing?: RegExp | string): Promise<void> {
+  await followSignInLink(page, email);
+  if (landing) await expect(page).toHaveURL(landing);
+  else await expect(page).not.toHaveURL(/\/(login|securite)(\?|$)/);
 }

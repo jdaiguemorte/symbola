@@ -10,24 +10,15 @@ import { createAppConnection } from "@symbola/db/client";
 import { consumeOrganizationMailQuota } from "@symbola/db/mail-quota";
 import { EICAR_TEST_STRING } from "@symbola/files";
 import { expect, test, type Page } from "@playwright/test";
-import * as OTPAuth from "otpauth";
 import { addEventVendorSlot, addProgramItem, addVendorCandidate, createEventLink, createProspect, createProspectSource } from "../modules/events/service";
 import { createVendor } from "../modules/vendors/service";
-import { readyOrganization } from "./helpers";
+import { readyOrganization, signIn as signInByLink, followSignInLink } from "./helpers";
 
 const PASSWORD = "mot-de-passe-e2e-de-test";
 
 async function loginAndSetupMfa(page: Page, email: string) {
-  await page.goto("/login");
-  await page.getByLabel("E-mail").fill(email);
-  await page.getByLabel("Mot de passe").fill(PASSWORD);
-  await page.getByRole("button", { name: "Se connecter" }).click();
-  await expect(page).toHaveURL(/\/mfa$/);
-  const provisioningUri = await page.locator("code").textContent();
-  const secret = new URL(provisioningUri!.replace("otpauth://totp/", "https://x/")).searchParams.get("secret")!;
-  await page.getByLabel("Code").fill(new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret) }).generate());
-  await page.getByRole("button", { name: "Valider" }).click();
-  await expect(page).toHaveURL("/");
+  // Lot 33 : lien magique et fournisseur d'identité (e2e/helpers.ts).
+  await signInByLink(page, email, "/");
 }
 
 async function expectNoAxeViolation(page: Page) {
@@ -88,10 +79,10 @@ test("SC-S2 — un collaborateur retiré il y a deux minutes rejoue une requête
 
   await rex.goto("/events");
   await expect(rex).toHaveURL(/\/login$/);
-  await rex.getByLabel("E-mail").fill(member.email);
-  await rex.getByLabel("Mot de passe").fill(PASSWORD);
-  await rex.getByRole("button", { name: "Se connecter" }).click();
-  await expect(rex.locator("main").getByRole("alert")).toHaveText("Identifiants invalides.");
+  // Lot 33 : le fournisseur l'authentifie encore, mais Symbola refuse, sans détail.
+  await followSignInLink(rex, member.email);
+  await expect(rex).toHaveURL(/\/login\?acces=refuse$/);
+  await expect(rex.locator("main").getByRole("alert")).toHaveText("Cet accès n'est plus ouvert. Rapprochez-vous de la titulaire de votre organisation.");
   await rex.close();
 });
 
@@ -200,17 +191,19 @@ test("SC-S6 — demandes de lien en rafale, puis envoi au-delà du plafond : lim
   const { organizationId, owner, event } = await organization("S6");
   const theirs = await event("Inès");
 
-  // Demandes de lien en rafale pour un même compte : limitées, avec le délai.
-  await page.goto("/mot-de-passe-oublie");
-  for (let attempt = 0; attempt < 3; attempt += 1) {
-    await page.getByLabel("E-mail").fill(owner.email);
-    await page.getByRole("button", { name: "Recevoir le lien" }).click();
+  // Demandes de lien de connexion en rafale pour une même adresse : limitées, avec le délai
+  // (lot 33 : une autre adresse que celle de la titulaire, qui se connecte ensuite).
+  const burst = `rafale-${randomUUID()}@symbola.test`;
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    await page.goto("/login");
+    await page.getByLabel("Adresse e-mail").fill(burst);
+    await page.getByRole("button", { name: "Recevoir un lien de connexion" }).click();
     await expect(page.getByRole("status")).toBeVisible();
-    await page.goto("/mot-de-passe-oublie");
   }
-  await page.getByLabel("E-mail").fill(owner.email);
-  await page.getByRole("button", { name: "Recevoir le lien" }).click();
-  await expect(page.locator("main").getByRole("alert")).toHaveText("Trop de tentatives. Réessayez dans 60 minutes.");
+  await page.goto("/login");
+  await page.getByLabel("Adresse e-mail").fill(burst);
+  await page.getByRole("button", { name: "Recevoir un lien de connexion" }).click();
+  await expect(page.locator("main").getByRole("alert")).toHaveText("Trop de tentatives. Réessayez dans 15 minutes.");
 
   // L'organisation a déjà envoyé ses 100 e-mails de l'heure.
   const { sql, db } = createAppConnection();

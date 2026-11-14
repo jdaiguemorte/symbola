@@ -7,8 +7,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test } from "@playwright/test";
-import * as OTPAuth from "otpauth";
-import { openMenu, openSettingsTab, readyOrganization } from "./helpers";
+import { openMenu, openSettingsTab, readyOrganization, signIn as signInByLink } from "./helpers";
 
 test.describe("PRD-HUB-04 — Langue par défaut du navigateur", () => {
   test.use({ locale: "en-US" });
@@ -35,15 +34,8 @@ test("PRD-HUB-04-02 — choisir une langue dans le profil s'applique à toute l'
   }
 
   // Connexion en français (contexte par défaut, fr-FR).
-  await page.goto("/login");
-  await page.getByLabel("E-mail").fill(email);
-  await page.getByLabel("Mot de passe").fill(password);
-  await page.getByRole("button", { name: "Se connecter" }).click();
-  await expect(page).toHaveURL(/\/mfa$/);
-  const provisioningUri = await page.locator("code").textContent();
-  const secret = new URL(provisioningUri!.replace("otpauth://totp/", "https://x/")).searchParams.get("secret")!;
-  await page.getByLabel("Code").fill(new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret) }).generate());
-  await page.getByRole("button", { name: "Valider" }).click();
+  // Lot 33 : lien magique et fournisseur d'identité (e2e/helpers.ts).
+  await signInByLink(page, email);
   await expect(page).toHaveURL("/");
   await openMenu(page);
   await expect(page.getByRole("button", { name: "Se déconnecter" })).toBeVisible();

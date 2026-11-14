@@ -5,23 +5,11 @@ import AxeBuilder from "@axe-core/playwright";
 import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
-import * as OTPAuth from "otpauth";
-import { readyOrganization } from "./helpers";
+import { readyOrganization, signIn as signInByLink } from "./helpers";
 
-async function loginAndSetupMfa(page: Page, email: string, password: string) {
-  await page.goto("/login");
-  await page.getByLabel("E-mail").fill(email);
-  await page.getByLabel("Mot de passe").fill(password);
-  await page.getByRole("button", { name: "Se connecter" }).click();
-  await expect(page).toHaveURL(/\/mfa$/);
-  const provisioningUri = await page.locator("code").textContent();
-  const secret = new URL(provisioningUri!.replace("otpauth://totp/", "https://x/")).searchParams.get("secret")!;
-  await page.getByLabel("Code").fill(new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret) }).generate());
-  await page.getByRole("button", { name: "Valider" }).click();
-  // Attend l'atterrissage sur l'accueil avant de rendre la main : sinon un
-  // page.goto() immédiat de l'appelant peut courir plus vite que la
-  // redirection post-MFA et partir sans le cookie de session.
-  await expect(page).toHaveURL(/\/(admin)?$/);
+async function loginAndSetupMfa(page: Page, email: string, _password: string) {
+  // Lot 33 : lien magique et fournisseur d'identité (e2e/helpers.ts).
+  await signInByLink(page, email, /\/(exploitation)?$/);
 }
 
 test("ONB-01-01 — le bandeau guide vers la fiche entreprise incomplète, sans bloquer l'accès", async ({ page }) => {

@@ -8,9 +8,8 @@ import AxeBuilder from "@axe-core/playwright";
 import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
-import * as OTPAuth from "otpauth";
 import { createProspect, createProspectSource } from "../modules/events/service";
-import { clickAdminMenuLink, clickMenuLink, closeLandmarks, landmarksPanel, readyOrganization } from "./helpers";
+import { clickAdminMenuLink, clickMenuLink, closeLandmarks, landmarksPanel, readyOrganization, signIn as signInByLink } from "./helpers";
 import { recordHelpProgress } from "../modules/hub/service";
 
 // Repères ouverts d'office : sans la préférence posée par la configuration.
@@ -35,15 +34,8 @@ test("AIDE-11 / AIDE-07 — repères de la fiche d'un événement, et centre d'a
     await sql.end();
   }
 
-  await page.goto("/login");
-  await page.getByLabel("E-mail").fill(email);
-  await page.getByLabel("Mot de passe").fill("mot-de-passe-aide-lot10");
-  await page.getByRole("button", { name: "Se connecter" }).click();
-  await expect(page).toHaveURL(/\/mfa$/);
-  const uri = await page.locator("code").textContent();
-  const secret = new URL(uri!.replace("otpauth://totp/", "https://x/")).searchParams.get("secret")!;
-  await page.getByLabel("Code").fill(new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret) }).generate());
-  await page.getByRole("button", { name: "Valider" }).click();
+  // Lot 33 : lien magique et fournisseur d'identité (e2e/helpers.ts).
+  await signInByLink(page, email);
   await expect(page).toHaveURL("/");
   // Les repères de l'accueil s'ouvrent d'eux-mêmes ; on les ferme.
   await closeLandmarks(page, "Aujourd'hui");
@@ -101,15 +93,8 @@ test("L10-HUB-11 — l'Admin voit la prise en main de chaque compte d'équipe", 
     await sql.end();
   }
 
-  await page.goto("/login");
-  await page.getByLabel("E-mail").fill(adminEmail);
-  await page.getByLabel("Mot de passe").fill("mot-de-passe-admin-suivi");
-  await page.getByRole("button", { name: "Se connecter" }).click();
-  await expect(page).toHaveURL(/\/mfa$/);
-  const uri = await page.locator("code").textContent();
-  const secret = new URL(uri!.replace("otpauth://totp/", "https://x/")).searchParams.get("secret")!;
-  await page.getByLabel("Code").fill(new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret) }).generate());
-  await page.getByRole("button", { name: "Valider" }).click();
+  // Lot 33 : lien magique et fournisseur d'identité (e2e/helpers.ts).
+  await signInByLink(page, adminEmail);
   await expect(page).toHaveURL("/exploitation");
   await clickAdminMenuLink(page, "Prise en main");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Prise en main des organisations");
@@ -134,15 +119,8 @@ test("AIDE-06 — tutoriel en faisant : modèle de rétroplanning proposé à la
   } finally {
     await sql.end();
   }
-  await page.goto("/login");
-  await page.getByLabel("E-mail").fill(email);
-  await page.getByLabel("Mot de passe").fill("mot-de-passe-tutoriel");
-  await page.getByRole("button", { name: "Se connecter" }).click();
-  await expect(page).toHaveURL(/\/mfa$/);
-  const uri = await page.locator("code").textContent();
-  const secret = new URL(uri!.replace("otpauth://totp/", "https://x/")).searchParams.get("secret")!;
-  await page.getByLabel("Code").fill(new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret) }).generate());
-  await page.getByRole("button", { name: "Valider" }).click();
+  // Lot 33 : lien magique et fournisseur d'identité (e2e/helpers.ts).
+  await signInByLink(page, email);
   await expect(page).toHaveURL("/");
 
   // Première visite de l'écran des modèles : le tutoriel est proposé.

@@ -8,27 +8,18 @@ import AxeBuilder from "@axe-core/playwright";
 import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
-import * as OTPAuth from "otpauth";
 import { createProspect, createProspectSource } from "../modules/events/service";
 import { saveOnboardingStep } from "../modules/hub/service";
 import { addPaymentMethods, addQuoteLine, addScheduleItem, createQuote, getQuoteSettings, setQuoteAdvanceKind, updateQuoteSettings } from "../modules/quotes/service";
-import { readyOrganization } from "./helpers";
+import { readyOrganization, signIn as signInByLink } from "./helpers";
 
 const PASSWORD = "mot-de-passe-terrain-e2e";
 const OLD_STARTER_TEXT =
   "Conditions de paiement : à réception de la facture, par virement bancaire. Aucun escompte pour paiement anticipé. En cas de retard de paiement, des pénalités au taux d'intérêt légal peuvent être appliquées.";
 
 async function login(page: Page, email: string) {
-  await page.goto("/login");
-  await page.getByLabel("E-mail").fill(email);
-  await page.getByLabel("Mot de passe").fill(PASSWORD);
-  await page.getByRole("button", { name: "Se connecter" }).click();
-  await expect(page).toHaveURL(/\/mfa$/);
-  const provisioningUri = await page.locator("code").textContent();
-  const secret = new URL(provisioningUri!.replace("otpauth://totp/", "https://x/")).searchParams.get("secret")!;
-  await page.getByLabel("Code").fill(new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret) }).generate());
-  await page.getByRole("button", { name: "Valider" }).click();
-  await expect(page).toHaveURL(/\/$/);
+  // Lot 33 : lien magique et fournisseur d'identité (e2e/helpers.ts).
+  await signInByLink(page, email, /\/$/);
 }
 
 async function expectNoAxeViolation(page: Page) {

@@ -11,25 +11,16 @@ import AxeBuilder from "@axe-core/playwright";
 import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
-import * as OTPAuth from "otpauth";
 import { addDefaultVendorSlots, createEventLink, createProspect, createProspectSource, listEventVendorSlots } from "../modules/events/service";
 import { updateBudgetLine } from "../modules/budget/service";
-import { openEventTab, readyOrganization } from "./helpers";
+import { openEventTab, readyOrganization, signIn as signInByLink } from "./helpers";
 
 const MAILPIT_API = "http://localhost:8025/api/v1";
 const PASSWORD = "mot-de-passe-evt06-e2e";
 
 async function loginAndSetupMfa(page: Page, email: string) {
-  await page.goto("/login");
-  await page.getByLabel("E-mail").fill(email);
-  await page.getByLabel("Mot de passe").fill(PASSWORD);
-  await page.getByRole("button", { name: "Se connecter" }).click();
-  await expect(page).toHaveURL(/\/mfa$/);
-  const provisioningUri = await page.locator("code").textContent();
-  const secret = new URL(provisioningUri!.replace("otpauth://totp/", "https://x/")).searchParams.get("secret")!;
-  await page.getByLabel("Code").fill(new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret) }).generate());
-  await page.getByRole("button", { name: "Valider" }).click();
-  await expect(page).toHaveURL("/");
+  // Lot 33 : lien magique et fournisseur d'identité (e2e/helpers.ts).
+  await signInByLink(page, email, "/");
 }
 
 async function expectNoAxeViolation(page: Page) {

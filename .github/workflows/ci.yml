@@ -73,8 +73,10 @@ jobs:
       - uses: actions/checkout@v4
       # Lot 16 (L16-SEC-01, ADR 0037) : clé de chiffrement de la double
       # authentification, générée pour ce job (aucune valeur commitée).
-      - name: Clé de chiffrement de la double authentification
-        run: echo "MFA_ENCRYPTION_KEY=$(openssl rand -base64 32)" >> "$GITHUB_ENV"
+      - name: Clé de l'app (liens magiques scellés, lot 33) et secret machine du fournisseur d'identité (fictif)
+        run: |
+          echo "MFA_ENCRYPTION_KEY=$(openssl rand -base64 32)" >> "$GITHUB_ENV"
+          echo "LOGTO_M2M_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
@@ -149,6 +151,9 @@ jobs:
       SIGNATURE_PROVIDER: fake
       # Lot 11 (ADR 0031) : géocodage simulé, aucun appel réseau à l'IGN.
       GEOCODER: fake
+      # Lot 33 (ADR 0067) : fournisseur d'identité Logto, sur le réseau de l'hôte.
+      LOGTO_ENDPOINT: http://localhost:3001
+      LOGTO_M2M_APP_ID: symbola-bootstrap
       # Version compilée, NODE_ENV=test : faux fournisseur de signature permis
       # (jamais en production, packages/env). Lot 24a (SEC-20) : la sortie du
       # serveur est gardée, puis contrôlée après les parcours.
@@ -157,8 +162,11 @@ jobs:
       - uses: actions/checkout@v4
       # Lot 16 (L16-SEC-01, ADR 0037) : clé de chiffrement de la double
       # authentification, générée pour ce job (aucune valeur commitée).
-      - name: Clé de chiffrement de la double authentification
-        run: echo "MFA_ENCRYPTION_KEY=$(openssl rand -base64 32)" >> "$GITHUB_ENV"
+      - name: Clé de l'app (liens magiques scellés, lot 33) et secrets du fournisseur d'identité
+        run: |
+          echo "MFA_ENCRYPTION_KEY=$(openssl rand -base64 32)" >> "$GITHUB_ENV"
+          echo "LOGTO_M2M_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
+          echo "LOGTO_DB_PASSWORD=$(openssl rand -hex 24)" >> "$GITHUB_ENV"
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
@@ -196,6 +204,16 @@ jobs:
           timeout 180 bash -c 'until docker exec clamav clamdcheck.sh; do sleep 5; done'
       - run: pnpm --filter @symbola/db bootstrap
       - run: pnpm --filter @symbola/db migrate
+      # Lot 33 (ADR 0067) : Logto initialise sa base dédiée (créée par le bootstrap), puis
+      # configure-identity le règle en une commande (droit de connexion, application machine à
+      # machine, application web, e-mails vers Mailpit, expérience de connexion).
+      - name: Démarrer le fournisseur d'identité (Logto) et le régler
+        run: |
+          docker run -d --name logto --network host \
+            -e DB_URL="postgres://logto:${LOGTO_DB_PASSWORD}@localhost:5432/logto" \
+            -e ENDPOINT=http://localhost:3001 -e ADMIN_ENDPOINT=http://localhost:3002 \
+            --entrypoint sh svhd/logto:1.46.0 -c "npm run cli db seed -- --swe && npm start"
+          pnpm --filter @symbola/auth configure-identity
       - name: Parcours Playwright
         run: pnpm --filter @symbola/app test:e2e
       - name: Journaux du serveur sans adresse e-mail ni téléphone (SEC-20)

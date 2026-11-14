@@ -6,9 +6,8 @@ import AxeBuilder from "@axe-core/playwright";
 import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
-import * as OTPAuth from "otpauth";
 import { createProspect, createProspectSource } from "../modules/events/service";
-import { readyOrganization } from "./helpers";
+import { readyOrganization, signIn as signInByLink } from "./helpers";
 
 async function expectNoAxeViolation(page: Page) {
   const result = await new AxeBuilder({ page }).analyze();
@@ -37,15 +36,8 @@ test("AIDE-08 — rechercher un événement par le nom du client, et une aide pa
     await sql.end();
   }
 
-  await page.goto("/login");
-  await page.getByLabel("E-mail").fill(email);
-  await page.getByLabel("Mot de passe").fill("mot-de-passe-recherche");
-  await page.getByRole("button", { name: "Se connecter" }).click();
-  await expect(page).toHaveURL(/\/mfa$/);
-  const uri = await page.locator("code").textContent();
-  const secret = new URL(uri!.replace("otpauth://totp/", "https://x/")).searchParams.get("secret")!;
-  await page.getByLabel("Code").fill(new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret) }).generate());
-  await page.getByRole("button", { name: "Valider" }).click();
+  // Lot 33 : lien magique et fournisseur d'identité (e2e/helpers.ts).
+  await signInByLink(page, email);
   await expect(page).toHaveURL("/");
 
   // Résultats instantanés : flèche bas puis Entrée ouvre l'événement.

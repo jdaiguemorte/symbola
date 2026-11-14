@@ -6,26 +6,17 @@ import AxeBuilder from "@axe-core/playwright";
 import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
-import * as OTPAuth from "otpauth";
 import { recordHelpProgress } from "../modules/hub/service";
-import { clickMenuLink, readyOrganization } from "./helpers";
+import { clickMenuLink, readyOrganization, signIn as signInByLink } from "./helpers";
 
 async function expectNoAxeViolation(page: Page) {
   const result = await new AxeBuilder({ page }).analyze();
   expect(result.violations, JSON.stringify(result.violations, null, 2)).toEqual([]);
 }
 
-async function login(page: Page, email: string, password: string) {
-  await page.goto("/login");
-  await page.getByLabel("E-mail").fill(email);
-  await page.getByLabel("Mot de passe").fill(password);
-  await page.getByRole("button", { name: "Se connecter" }).click();
-  await expect(page).toHaveURL(/\/mfa$/);
-  const uri = await page.locator("code").textContent();
-  const secret = new URL(uri!.replace("otpauth://totp/", "https://x/")).searchParams.get("secret")!;
-  await page.getByLabel("Code").fill(new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret) }).generate());
-  await page.getByRole("button", { name: "Valider" }).click();
-  await expect(page).toHaveURL("/");
+async function login(page: Page, email: string, _password: string) {
+  // Lot 33 : lien magique et fournisseur d'identité (e2e/helpers.ts).
+  await signInByLink(page, email, "/");
 }
 
 test("AIDE-10 — parcours des tutoriels, un seul en cours à la fois", async ({ page }) => {
