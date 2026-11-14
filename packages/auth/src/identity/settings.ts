@@ -30,6 +30,8 @@ export function signInExperience(words: string[]) {
       characterTypes: { min: 1 },
       rejects: { pwned: false, repetitionAndSequence: true, userInfo: true, words },
     },
+    // Lot 24b et ADR 0037, repris chez le fournisseur : cinq essais manqués bloquent quinze minutes.
+    sentinelPolicy: { maxAttempts: 5, lockoutDuration: 15 },
     languageInfo: { autoDetect: true, fallbackLanguage: "fr" },
     color: { primaryColor: BRAND_PRIMARY_COLOR, isDarkModeEnabled: false, darkPrimaryColor: BRAND_PRIMARY_COLOR },
   };

@@ -25,11 +25,11 @@ export async function requireSignedIn(): Promise<SignedIn> {
 // Lot 33 (D4) — page « Sécurisez votre compte » : seulement pour une session qui attend la double
 // authentification (Propriétaire, Exploitation). Sans session, la connexion ; session complète,
 // l'accueil.
-export async function requirePendingMfa(): Promise<{ role: "owner" | "member" | "admin" }> {
+export async function requirePendingMfa(): Promise<{ userId: string; role: "owner" | "member" | "admin" }> {
   const auth = await getAuthContext();
   if (auth.status === "unauthenticated") redirect("/login");
   if (auth.status === "authenticated") redirect("/");
-  return { role: auth.role };
+  return { userId: auth.userId, role: auth.role };
 }
 
 // Écrans de la planner (titulaire ou collaborateur, PRD-EVT-06) : l'Admin va à

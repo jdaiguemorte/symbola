@@ -82,7 +82,8 @@ export async function ensureMembership(db: AppDatabase, input: { organizationId:
 }
 
 export type SignInOutcome =
-  | { outcome: "signed_in"; sessionToken: string; userId: string; organizationId: string | null; isNewAccount: boolean }
+  // requiresMfa : Propriétaire de l'organisation ouverte, ou Exploitation (D4).
+  | { outcome: "signed_in"; sessionToken: string; userId: string; organizationId: string | null; isNewAccount: boolean; requiresMfa: boolean }
   // Compte désactivé, ou plus aucune organisation active (accès retirés) : refus, sans détail.
   | { outcome: "refused" };
 
@@ -114,15 +115,18 @@ export async function signInWithIdentity(
     if (!user || user.disabledAt) return { outcome: "refused" } as const;
 
     let organizationId: string | null = null;
+    let requiresMfa = user.operator;
     if (!user.operator) {
       const active = await tx
-        .select({ organizationId: memberships.organizationId })
+        .select({ organizationId: memberships.organizationId, role: memberships.role })
         .from(memberships)
         .where(and(eq(memberships.userId, user.id), isNull(memberships.disabledAt)))
         .orderBy(asc(memberships.createdAt));
       if (active.length === 0) return { outcome: "refused" } as const;
       const preferred = active.find((membership) => membership.organizationId === options.preferredOrganizationId);
-      organizationId = (preferred ?? active[0]!).organizationId;
+      const chosen = preferred ?? active[0]!;
+      organizationId = chosen.organizationId;
+      requiresMfa = chosen.role === "owner";
     }
 
     const sessionToken = generateSessionToken();
@@ -135,7 +139,7 @@ export async function signInWithIdentity(
       createdAt: now,
     });
     await tx.update(users).set({ lastLoginAt: now }).where(eq(users.id, user.id));
-    return { outcome: "signed_in", sessionToken, userId: user.id, organizationId, isNewAccount, operator: user.operator } as const;
+    return { outcome: "signed_in", sessionToken, userId: user.id, organizationId, isNewAccount, requiresMfa, operator: user.operator } as const;
   });
   if (result.outcome === "signed_in") {
     await journalConnection(db, { id: result.userId, organizationId: result.organizationId, role: result.operator ? "admin" : "member" }, "hub.session.opened", {
@@ -276,6 +280,13 @@ export async function destroySession(db: AppDatabase, sessionToken: string): Pro
   if (!closed) return;
   const [user] = await db.select({ operator: users.operator }).from(users).where(eq(users.id, closed.userId));
   await journalConnection(db, { id: closed.userId, organizationId: closed.organizationId, role: user?.operator ? "admin" : "member" }, "hub.session.closed");
+}
+
+// D4 (lot 33) : adresse du compte et son identifiant chez le fournisseur, pour exiger la double
+// authentification chez lui et renvoyer un lien de connexion.
+export async function accountIdentity(db: AppDatabase, userId: string): Promise<{ email: string; idpSubject: string | null } | null> {
+  const [user] = await db.select({ email: users.email, idpSubject: users.idpSubject }).from(users).where(eq(users.id, userId));
+  return user ?? null;
 }
 
 export async function setUserLanguage(db: AppDatabase, userId: string, language: "fr" | "en"): Promise<void> {

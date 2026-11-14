@@ -143,11 +143,16 @@ describe("D4 — Double authentification de la Propriétaire et de l'Exploitatio
     const memberEmail = `planner-${randomUUID()}@example.test`;
     await createUser(db, { organizationId: organization.id, email: memberEmail, role: "member" });
     const member = await signedIn(memberEmail, false, later());
+    expect(member.requiresMfa).toBe(false);
     expect(await requireUser(db, member.sessionToken)).toMatchObject({ status: "authenticated", user: { role: "member" } });
+    const ownerEmail = `titulaire-${randomUUID()}@example.test`;
+    await createUser(db, { organizationId: organization.id, email: ownerEmail, role: "owner" });
+    expect((await signedIn(ownerEmail, false, later())).requiresMfa).toBe(true);
 
     const operatorEmail = `exploitation-${randomUUID()}@example.test`;
     await createUser(db, { organizationId: null, email: operatorEmail, role: "admin" });
     const operator = await signedIn(operatorEmail, false);
+    expect(operator.requiresMfa).toBe(true);
     expect(await requireUser(db, operator.sessionToken)).toMatchObject({ status: "mfa_required", role: "admin" });
     expect(await findSessionActor(db, operator.sessionToken)).toBeNull();
     const operatorMfa = await signedIn(operatorEmail, true);

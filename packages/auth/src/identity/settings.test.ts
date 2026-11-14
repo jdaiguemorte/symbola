@@ -24,6 +24,10 @@ describe("HUB-01 — Expérience de connexion du fournisseur d'identité", () =>
 });
 
 describe("SEC-03 — Mots de passe compromis chez le fournisseur (ADR 0063, 0067)", () => {
+  it("SEC-04 — cinq essais manqués bloquent la connexion quinze minutes, chez le fournisseur", () => {
+    expect(signInExperience([]).sentinelPolicy).toEqual({ maxAttempts: 5, lockoutDuration: 15 });
+  });
+
   it("douze caractères au moins, répétitions et suites refusées, aucun appel sortant", () => {
     const { passwordPolicy } = signInExperience([]);
     expect(passwordPolicy.length.min).toBe(12);

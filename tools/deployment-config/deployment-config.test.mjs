@@ -218,6 +218,10 @@ describe("SEC-01 — Fournisseur d'identité Logto dans les compose (lot 33, ADR
     expect(envValue(staging, "LOGTO_DOMAIN")).not.toBe(envValue(production, "LOGTO_DOMAIN"));
   });
 
+  it("ses journaux, qui portent l'adresse e-mail des pages de connexion, tournent sur deux fichiers de 5 Mo au plus", () => {
+    expect(block()).toMatch(/logging:\n\s+driver: json-file\n\s+options:\n\s+max-size: "5m"\n\s+max-file: "2"/);
+  });
+
   it("limite sa mémoire et son CPU, staging jamais au-dessus de la production", () => {
     expect(block()).toMatch(/memory:\s*\$\{LOGTO_MEM_LIMIT:\?/);
     expect(block()).toMatch(/cpus:\s*\$\{LOGTO_CPUS:\?/);

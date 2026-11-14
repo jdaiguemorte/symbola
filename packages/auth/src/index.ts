@@ -2,6 +2,7 @@
 // autre code n'importe un fichier interne du package ni une lib sous-jacente (openid-client)
 // directement — tout passe par ici.
 export {
+  accountIdentity,
   addMembership,
   createOrganization,
   createUser,

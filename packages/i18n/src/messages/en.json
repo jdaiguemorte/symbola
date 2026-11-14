@@ -27,11 +27,12 @@
   },
   "Security": {
     "title": "Secure your account",
-    "ownerBody": "As the owner, you protect your organization's data: two-step verification is required at every sign-in. Set up an authenticator app or a passkey, then sign in again.",
-    "operatorBody": "The operations account requires two-step verification at every sign-in. Set up an authenticator app or a passkey, then sign in again.",
-    "setUp": "Set up two-step verification",
-    "signInAgain": "Done, sign me in again",
-    "signOut": "Sign out"
+    "ownerBody": "As the owner, you protect your organization's data: two-step verification is required at every sign-in. Get a sign-in link: you will set up an authenticator app or a passkey, then it will be asked for.",
+    "operatorBody": "The operations account requires two-step verification at every sign-in. Get a sign-in link: you will set up an authenticator app or a passkey, then it will be asked for.",
+    "setUp": "Manage my sign-in methods",
+    "signInAgain": "Send me a sign-in link",
+    "signOut": "Sign out",
+    "linkSent": "A sign-in link has just been sent to your address. Open it: your two-step verification will be asked for, or set up if missing."
   },
   "Home": {
     "title": "Symbola",

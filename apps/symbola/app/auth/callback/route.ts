@@ -7,7 +7,7 @@ import { signInWithIdentity } from "@symbola/auth";
 import { appDatabase } from "@symbola/db/client";
 import { setSessionCookie } from "@/lib/auth-context";
 import { ORGANIZATION_COOKIE_NAME } from "@/lib/active-organization";
-import { identity, takePendingAuthorization } from "@/lib/identity";
+import { identity, requireMfaAtProvider, takePendingAuthorization } from "@/lib/identity";
 import { requestClientIp } from "@/lib/rate-limit";
 
 export async function GET(request: Request): Promise<Response> {
@@ -19,6 +19,9 @@ export async function GET(request: Request): Promise<Response> {
     const preferredOrganizationId = (await cookies()).get(ORGANIZATION_COOKIE_NAME)?.value ?? null;
     const outcome = await signInWithIdentity(appDatabase(), claims, { preferredOrganizationId, clientIp: await requestClientIp() });
     if (outcome.outcome === "refused") return NextResponse.redirect(`${appPublicUrl}/login?acces=refuse`, 303);
+    // D4 : la double authentification devient obligatoire chez le fournisseur pour la Propriétaire
+    // et l'Exploitation, sauf pendant la séance d'inscription.
+    if (outcome.requiresMfa && !outcome.isNewAccount) await requireMfaAtProvider(claims.subject);
     await setSessionCookie(outcome.sessionToken);
     return NextResponse.redirect(`${appPublicUrl}${outcome.isNewAccount ? "/demarrage" : "/"}`, 303);
   } catch (error) {

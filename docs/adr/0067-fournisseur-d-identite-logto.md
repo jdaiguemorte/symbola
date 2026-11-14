@@ -42,8 +42,12 @@ Julien a retenu Logto sous réserve d'un prototype en local sur sept points.
    - le même lien inscrit une adresse inconnue (HUB-01).
 4. **Double authentification** :
    - Logto ne la propose jamais de lui-même (politique `NoPrompt`) ;
-   - Symbola l'exige pour la Propriétaire et l'Exploitation (décision D4 du lot 33), en lisant la
-     déclaration `acr` du jeton : `urn:logto:acr:mfa` quand elle a eu lieu ;
+   - Symbola l'exige pour la Propriétaire et l'Exploitation (décision D4 du lot 33) : à chaque
+     connexion, sauf celle de l'inscription, elle rend la double authentification obligatoire
+     pour ce compte chez Logto (`mfa.required`, réglage d'administration que la personne ne peut
+     pas retirer) ; Logto la fait installer si elle manque, puis la demande ;
+   - Symbola vérifie qu'elle a eu lieu par la déclaration `acr` du jeton (`urn:logto:acr:mfa`) ;
+     sinon, la page « Sécurisez votre compte » renvoie un lien ;
    - une fois un second facteur installé, le lien magique ne suffit plus : Logto le demande ;
    - une clé d'accès vaut double authentification ;
    - facteurs proposés : application d'authentification, clé d'accès, codes de secours.
@@ -87,6 +91,10 @@ Julien a retenu Logto sous réserve d'un prototype en local sur sept points.
 - **« Powered by Logto » reste visible** sous ses pages : la version libre refuse de le masquer.
   Les couleurs sont celles de Symbola. Le bouton dit « Continuer avec passkey » : sa phrase est
   commune à d'autres boutons et ne se remplace pas seule ; le reste des pages dit « clé d'accès ».
+- **L'adresse e-mail paraît dans les adresses des pages du fournisseur** (`login_hint`), donc
+  dans ses journaux de requêtes, qu'on ne peut pas couper : la demande poussée la garde hors des
+  adresses de Symbola, pas de celles de Logto. Ses journaux restent sur le VPS et tournent sur
+  deux fichiers de 5 Mo au plus ; c'est écrit au registre RGPD.
 - **Clé d'accès proposée une fois** après la première connexion, avec « Passer ». Le choix est
   retenu sur le compte.
 - **L'amorçage SQL dépend du schéma interne de Logto** (tables `applications` et

@@ -27,11 +27,12 @@
   },
   "Security": {
     "title": "Sécurisez votre compte",
-    "ownerBody": "Comme titulaire, vous protégez les données de votre organisation : une double authentification est demandée à chaque connexion. Installez une application d'authentification ou une clé d'accès, puis reconnectez-vous.",
-    "operatorBody": "Le compte d'exploitation exige une double authentification à chaque connexion. Installez une application d'authentification ou une clé d'accès, puis reconnectez-vous.",
-    "setUp": "Installer ma double authentification",
-    "signInAgain": "Je l'ai installée, me reconnecter",
-    "signOut": "Me déconnecter"
+    "ownerBody": "Comme titulaire, vous protégez les données de votre organisation : une double authentification est demandée à chaque connexion. Recevez un lien de connexion : vous installerez une application d'authentification ou une clé d'accès, puis elle vous sera demandée.",
+    "operatorBody": "Le compte d'exploitation exige une double authentification à chaque connexion. Recevez un lien de connexion : vous installerez une application d'authentification ou une clé d'accès, puis elle vous sera demandée.",
+    "setUp": "Gérer mes moyens de connexion",
+    "signInAgain": "Recevoir un lien de connexion",
+    "signOut": "Me déconnecter",
+    "linkSent": "Un lien de connexion vient de partir à votre adresse. Ouvrez-le : votre double authentification vous sera demandée, ou installée si elle manque."
   },
   "Home": {
     "title": "Symbola",

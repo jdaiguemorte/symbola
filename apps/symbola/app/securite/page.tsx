@@ -5,6 +5,7 @@ import { getTranslations } from "next-intl/server";
 import { parseEnv } from "@symbola/env";
 import { requirePendingMfa } from "@/lib/guards";
 import { logoutAction } from "@/app/logout-action";
+import { SecurityLinkForm } from "./security-link-form";
 
 export default async function SecurityPage() {
   const pending = await requirePendingMfa();
@@ -19,9 +20,7 @@ export default async function SecurityPage() {
           {t("setUp")}
         </a>
       </p>
-      <p>
-        <a href="/auth/connexion">{t("signInAgain")}</a>
-      </p>
+      <SecurityLinkForm />
       <form action={logoutAction}>
         <button type="submit" className="button-ghost">
           {t("signOut")}

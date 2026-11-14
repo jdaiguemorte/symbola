@@ -51,6 +51,16 @@ export async function takePendingAuthorization(): Promise<PendingAuthorization |
   }
 }
 
+// D4 : exige la double authentification de ce compte chez le fournisseur. Un échec ne bloque pas
+// la connexion : la page « Sécurisez votre compte » la redemande.
+export async function requireMfaAtProvider(subject: string): Promise<void> {
+  try {
+    await identity().management.requireMfa(subject);
+  } catch (error) {
+    console.error("double authentification : réglage chez le fournisseur impossible", error instanceof Error ? error.name : "erreur");
+  }
+}
+
 // SEC-07 : demande au fournisseur un jeton à usage unique de quinze minutes, puis envoie le lien
 // scellé, avec les textes de Symbola, dans la langue de l'écran. Une adresse inconnue reçoit le
 // même lien : il l'inscrit (HUB-01). Un échec d'envoi ne change pas la réponse à l'écran ; le

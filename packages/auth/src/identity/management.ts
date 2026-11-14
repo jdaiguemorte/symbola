@@ -87,6 +87,13 @@ export function createManagementClient(connection: IdentityConnection, fetchImpl
       return z.array(mfaVerification).parse(await request("GET", `/api/users/${encodeURIComponent(userId)}/mfa-verifications`));
     },
 
+    // D4 : la double authentification devient obligatoire pour ce compte chez le fournisseur ;
+    // sans second facteur, il le fait installer pendant la connexion, puis le demande à chaque
+    // connexion. Réglage d'administration, que la personne ne peut pas retirer elle-même.
+    async requireMfa(userId: string): Promise<void> {
+      await request("PATCH", `/api/users/${encodeURIComponent(userId)}/logto-configs`, { mfa: { enabled: true, required: true } });
+    },
+
     async deleteMfaVerification(userId: string, verificationId: string): Promise<void> {
       await request("DELETE", `/api/users/${encodeURIComponent(userId)}/mfa-verifications/${encodeURIComponent(verificationId)}`);
     },

@@ -206,6 +206,13 @@ services:
       default:
         aliases:
           - symbola-logto-${ENVIRONMENT_NAME}
+    # Ses journaux de requêtes contiennent l'adresse e-mail (login_hint de ses pages) : rotation
+    # courte, deux fichiers de 5 Mo au plus (registre RGPD, ADR 0067).
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "2"
     deploy:
       resources:
         limits:

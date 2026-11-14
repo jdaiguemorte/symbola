@@ -75,6 +75,13 @@ describe("SEC-01 — Client de l'API d'administration du fournisseur d'identité
     expect(calls).toHaveLength(1);
   });
 
+  it("D4 — rend la double authentification obligatoire pour un compte, chez le fournisseur", async () => {
+    const { impl, calls } = fakeFetch({ "POST /oidc/token": token, "PATCH /api/users/sub-1/logto-configs": () => ({ json: {} }) });
+    await createManagementClient(connection, impl).requireMfa("sub-1");
+    expect(calls[1]!.method).toBe("PATCH");
+    expect(JSON.parse(calls[1]!.body!)).toEqual({ mfa: { enabled: true, required: true } });
+  });
+
   it("retrouve l'application web de Symbola et son secret ; aucune application : null", async () => {
     const apps = [
       { id: "app-autre", name: "Autre", type: "Traditional" },
