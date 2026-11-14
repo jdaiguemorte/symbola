@@ -38,10 +38,8 @@ test("PRD-EVT-04 — modèle de rétroplanning appliqué, recalcul des échéanc
   await page.getByRole("navigation", { name: "Rubriques des paramètres" }).getByRole("link", { name: "Rétroplanning", exact: true }).click();
   await expect(page).toHaveURL(/\/events\/modeles$/);
   await page.waitForLoadState("networkidle");
-  await page.getByRole("button", { name: "Charger le modèle de départ" }).click();
-  // Lot 21 (L21-EVT-22) : la liste des modèles, puis le détail d'un modèle.
-  await expect(page.getByRole("link", { name: /^Rétroplanning mariage \(modèle de départ\)/ })).toBeVisible();
 
+  // Lot 21 (L21-EVT-22) : la liste des modèles, puis le détail d'un modèle.
   await page.getByRole("link", { name: "Nouveau modèle" }).click();
   await page.getByRole("complementary", { name: "Nouveau modèle" }).getByLabel("Nom du modèle").fill("Mariage court");
   await page.getByRole("button", { name: "Créer le modèle" }).click();
@@ -59,6 +57,11 @@ test("PRD-EVT-04 — modèle de rétroplanning appliqué, recalcul des échéanc
   await addItem.getByRole("button", { name: "Ajouter la tâche au modèle" }).click();
   await expect(page.getByRole("row", { name: /J-120 Envoyer les faire-part Mariés/ })).toBeVisible();
   await expectNoAxeViolation(page);
+  // Le modèle de départ se charge à côté ; « Mariage court », créé le premier, reste celui par défaut (lot 34a, D8).
+  await page.goto("/events/modeles");
+  await page.waitForLoadState("networkidle");
+  await page.getByRole("button", { name: "Charger le modèle de départ" }).click();
+  await expect(page.getByRole("link", { name: /^Rétroplanning mariage \(modèle de départ\)/ })).toBeVisible();
 
   // Un prospect sans date : l'app indique qu'un modèle demande une date.
   await page.goto("/events/parametres/sources");
@@ -78,7 +81,8 @@ test("PRD-EVT-04 — modèle de rétroplanning appliqué, recalcul des échéanc
   await expect(page.getByText("Ajoutez une date à l'événement pour appliquer un modèle de rétroplanning.")).toBeVisible();
   await expect(page.getByRole("button", { name: "Appliquer le modèle" })).toHaveCount(0);
 
-  // Avec une date (onglet Synthèse, « Modifier les informations »), le modèle crée les tâches, regroupées par mois.
+  // Lot 34a (EVT-01, D8) : à sa première date (onglet Synthèse, « Modifier les informations »), le
+  // modèle par défaut crée de lui-même les tâches, regroupées par mois.
   await openEventTab(page, "Synthèse");
   await page.waitForLoadState("networkidle");
   await page.locator("summary", { hasText: "Modifier les informations" }).click();
@@ -86,9 +90,8 @@ test("PRD-EVT-04 — modèle de rétroplanning appliqué, recalcul des échéanc
   await page.getByRole("button", { name: "Changer la date" }).click();
   await expect(page.getByText("Date mise à jour.")).toBeVisible();
   await openEventTab(page, "Rétroplanning");
-  await page.getByLabel("Modèle à appliquer").selectOption({ label: "Mariage court" });
-  await page.getByRole("button", { name: "Appliquer le modèle" }).click();
-  await expect(page.getByText("Modèle appliqué : les tâches ont été créées.")).toBeVisible();
+  // Un autre modèle reste applicable à la main.
+  await expect(page.getByRole("button", { name: "Appliquer le modèle" })).toBeVisible();
   const row = (label: string) => page.getByRole("row", { name: new RegExp(label) });
   await expect(page.getByRole("columnheader", { name: "juin 2026" })).toBeVisible();
   await expect(row("Réserver le lieu")).toContainText("12 juin 2026");
