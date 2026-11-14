@@ -9,6 +9,8 @@ import {
   EVT_EVENT_STATUS_CHANGED_VERSION,
   eventCreatedPayloadSchema,
   eventStatusChangedPayloadSchema,
+  eventStatusFromV1,
+  readEventStatusChanged,
   EVT_VENDOR_SLOT_BOOKED,
   EVT_VENDOR_SLOT_BOOKED_VERSION,
   vendorSlotBookedPayloadSchema,
@@ -16,12 +18,12 @@ import {
 
 const FROZEN_CREATED_PAYLOAD = {
   eventId: "6b1f7e2a-7e3a-4c9a-9a3a-6b1f7e2a7e3a",
-  status: "prospect",
+  status: "option",
 };
 
 const FROZEN_STATUS_CHANGED_PAYLOAD = {
   eventId: "6b1f7e2a-7e3a-4c9a-9a3a-6b1f7e2a7e3a",
-  fromStatus: "prospect",
+  fromStatus: "option",
   toStatus: "confirmed",
   changedByUserId: "9a3a6b1f-7e2a-4c9a-9a3a-6b1f7e2a7e3a",
 };
@@ -33,7 +35,7 @@ describe("SOC-06 — Contrat de l'événement events.event.created", () => {
 
   it("garde le nom et la version attendus", () => {
     expect(EVT_EVENT_CREATED).toBe("events.event.created");
-    expect(EVT_EVENT_CREATED_VERSION).toBe(1);
+    expect(EVT_EVENT_CREATED_VERSION).toBe(2);
   });
 
   it("refuse un statut inconnu", () => {
@@ -48,7 +50,7 @@ describe("SOC-06 — Contrat de l'événement events.event.status_changed", () =
 
   it("garde le nom et la version attendus", () => {
     expect(EVT_EVENT_STATUS_CHANGED).toBe("events.event.status_changed");
-    expect(EVT_EVENT_STATUS_CHANGED_VERSION).toBe(1);
+    expect(EVT_EVENT_STATUS_CHANGED_VERSION).toBe(2);
   });
 
   it("accepte fromStatus nul (création directe à un statut)", () => {
@@ -107,5 +109,14 @@ describe("PRD-EVT-03 — Contrat de l'événement events.vendor_slot.booked", ()
   it("ne transporte jamais le nom du prestataire (donnée potentiellement personnelle)", () => {
     const parsed = vendorSlotBookedPayloadSchema.parse({ ...FROZEN_VENDOR_SLOT_BOOKED_PAYLOAD, vendorName: "Jean Dupont" });
     expect(parsed).not.toHaveProperty("vendorName");
+  });
+});
+
+describe("EVT-05 — Version 2 des statuts (lot 34a, D2) : un événement de version 1 reste lisible", () => {
+  it("traduit les statuts de la version 1 : prospect et devis envoyé en Option, réalisé en Clôturé, perdu en Annulé", () => {
+    expect(["prospect", "quote_sent", "confirmed", "done", "lost"].map((status) => eventStatusFromV1(status as "prospect"))).toEqual(["option", "option", "confirmed", "closed", "cancelled"]);
+    expect(readEventStatusChanged(1, { ...FROZEN_STATUS_CHANGED_PAYLOAD, fromStatus: "quote_sent", toStatus: "lost" })).toMatchObject({ fromStatus: "option", toStatus: "cancelled" });
+    expect(readEventStatusChanged(2, FROZEN_STATUS_CHANGED_PAYLOAD)).toEqual(FROZEN_STATUS_CHANGED_PAYLOAD);
+    expect(() => readEventStatusChanged(2, { ...FROZEN_STATUS_CHANGED_PAYLOAD, toStatus: "lost" })).toThrow();
   });
 });

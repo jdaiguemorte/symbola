@@ -744,31 +744,28 @@
   },
   "choices": {
     "status": {
-      "prospect": {
+      "option": {
         "fr": [
           "prospect",
           "nouveau",
           "contact",
           "à rappeler",
-          "en cours"
+          "en cours",
+          "devis envoyé",
+          "devis",
+          "proposition envoyée",
+          "option"
         ],
         "en": [
           "prospect",
           "lead",
           "new",
-          "in progress"
-        ]
-      },
-      "quote_sent": {
-        "fr": [
-          "devis envoyé",
-          "devis",
-          "proposition envoyée"
-        ],
-        "en": [
+          "in progress",
           "quote sent",
           "proposal sent",
-          "quoted"
+          "quoted",
+          "option",
+          "tentative"
         ]
       },
       "confirmed": {
@@ -788,21 +785,48 @@
           "won"
         ]
       },
-      "done": {
+      "in_preparation": {
+        "fr": [
+          "en préparation",
+          "en préparation active",
+          "préparation"
+        ],
+        "en": [
+          "in preparation",
+          "preparing",
+          "planning"
+        ]
+      },
+      "closed": {
         "fr": [
           "terminé",
           "terminée",
           "passé",
           "réalisé",
-          "fait"
+          "fait",
+          "clôturé",
+          "clôturée",
+          "clos"
         ],
         "en": [
           "done",
           "completed",
-          "past"
+          "past",
+          "closed"
         ]
       },
-      "lost": {
+      "postponed": {
+        "fr": [
+          "reporté",
+          "reportée",
+          "report"
+        ],
+        "en": [
+          "postponed",
+          "rescheduled"
+        ]
+      },
+      "cancelled": {
         "fr": [
           "perdu",
           "perdue",
