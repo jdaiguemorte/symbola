@@ -5,7 +5,7 @@
 // antivirus, stockage privé) et servi par l'app après contrôle des droits (ADR 0027).
 import { and, asc, eq, inArray } from "drizzle-orm";
 import { appDatabase } from "@symbola/db/client";
-import { eventDayDocuments, eventDocuments, events } from "@symbola/db/schema/events";
+import { eventDayDocuments, eventDocuments, events, eventTaskAttachments } from "@symbola/db/schema/events";
 import { withOrganization } from "@symbola/db/with-organization";
 import { createStorageClient, deletePrivateObject, PrivateObjectNotFoundError, readPrivateObject, uploadFile } from "@symbola/files";
 import {
@@ -168,16 +168,22 @@ export async function setDayChoice(input: SetDayDocumentEmbeddedInput): Promise<
   });
 }
 
-// Fichiers des documents d'événements (purge des essais, RGPD).
+// Fichiers des documents d'événements et, lot 34b (CHR-02), des pièces jointes de leurs tâches
+// (purge des essais, RGPD).
 export async function documentKeys(organizationId: string, eventIds: string[], options: { demoOnly?: boolean } = {}): Promise<string[]> {
   if (eventIds.length === 0) return [];
-  return inOrganization(organizationId, async (tx) =>
-    (
-      await tx
-        .select({ key: eventDocuments.fileKey })
-        .from(eventDocuments)
-        .innerJoin(events, eq(events.id, eventDocuments.eventId))
-        .where(and(inArray(eventDocuments.eventId, eventIds), ...(options.demoOnly ? [eq(events.isDemo, true)] : [])))
-    ).map((row) => row.key),
-  );
+  return inOrganization(organizationId, async (tx) => {
+    const demo = options.demoOnly ? [eq(events.isDemo, true)] : [];
+    const documents = await tx
+      .select({ key: eventDocuments.fileKey })
+      .from(eventDocuments)
+      .innerJoin(events, eq(events.id, eventDocuments.eventId))
+      .where(and(inArray(eventDocuments.eventId, eventIds), ...demo));
+    const attachments = await tx
+      .select({ key: eventTaskAttachments.fileKey })
+      .from(eventTaskAttachments)
+      .innerJoin(events, eq(events.id, eventTaskAttachments.eventId))
+      .where(and(inArray(eventTaskAttachments.eventId, eventIds), ...demo));
+    return [...documents, ...attachments].map((row) => row.key);
+  });
 }

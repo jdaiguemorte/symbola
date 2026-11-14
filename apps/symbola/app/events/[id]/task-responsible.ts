@@ -5,4 +5,5 @@ import type { TaskResponsible } from "@/modules/events/service";
 export const RESPONSIBLE_LABEL_KEYS: Record<TaskResponsible, string> = {
   planner: "responsiblePlanner",
   clients: "responsibleClients",
+  vendor: "responsibleVendor",
 };

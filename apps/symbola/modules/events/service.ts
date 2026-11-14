@@ -89,12 +89,14 @@ import {
   updateEventVendorSlotIcon,
   type DefaultVendorSlotRow,
   type EventClientRow,
+  type EventRecord,
   type EventRow,
   type EventTaskRow,
   type EventVendorSlotRow,
   type TaskTemplateItemRow,
   type TaskTemplateRow,
   updateEventClientContactRow,
+  updateEventIdentityRow,
   updateWantedBudgetRow,
   updateVenueRow,
 } from "./repository";
@@ -123,6 +125,8 @@ import {
   findLinkRow,
   findLinkSessionRow,
   findLinkVendorRow,
+  findVendorTaskRows,
+  toggleVendorTaskRow,
   findPendingRenewalRows,
   findReminderCandidateRows,
   insertTaskRemindersRow,
@@ -157,7 +161,9 @@ import { findPendingDecisions, findUncontractedVendors, insertVendorReminder } f
 import { VendorCandidateNotFoundError as CandidateNotFoundError } from "./vendor-candidates";
 import { answerProblem, DECISION_NOTE_MAX, decisionOpenTo, programChangedSince } from "./decisions";
 import { hashLinkCode, LINK_CODE_TTL_MS, LINK_CODES_PER_HOUR, linkCodeExpiresAt, maskEmail, newLinkCode, normalizeLinkCode } from "./link-otp";
-import { addPlace, listPlaces, removePlace } from "./places";
+import { addPlace, listPlaces, makeReceptionPlace, removePlace, updatePlace } from "./places";
+import { attachFile, getAttachmentFile, listAttachments, removeAttachment } from "./task-attachments";
+import { addComment, listComments, removeComment } from "./task-comments";
 import { createStorageClient, deletePrivateObject } from "@symbola/files";
 import {
   addCandidate,
@@ -191,6 +197,11 @@ import type {
   PendingDecision,
   UncontractedVendor,
   EventPlace,
+  EventPlaceInput,
+  EventIdentityInput,
+  EventTaskAttachment,
+  AttachTaskFileInput,
+  EventTaskComment,
   AttachEventDocumentInput,
   DayDocumentChoice,
   EventDocument,
@@ -253,6 +264,7 @@ import type {
   ProspectSource,
   TaskRecalculation,
   TaskResponsible,
+  TemplateTaskResponsible,
   TaskTemplate,
   TaskTemplateItem,
   TaskTemplateItemInput,
@@ -317,6 +329,7 @@ export type {
   EventTaskInput,
   TaskRecalculation,
   TaskResponsible,
+  TemplateTaskResponsible,
   TaskTemplate,
   TaskTemplateItem,
   TaskTemplateItemInput,
@@ -371,7 +384,7 @@ function toEventClient(row: EventClientRow): EventClient {
   };
 }
 
-function toEventSummary(event: EventRow, clients: EventClientRow[]): EventSummary {
+function toEventSummary(event: EventRecord, clients: EventClientRow[]): EventSummary {
   return {
     id: event.id,
     status: event.status,
@@ -385,7 +398,7 @@ function toEventSummary(event: EventRow, clients: EventClientRow[]): EventSummar
   };
 }
 
-function toEventDetail(event: EventRow, clients: EventClientRow[]): EventDetail {
+function toEventDetail(event: EventRecord, clients: EventClientRow[]): EventDetail {
   return {
     ...toEventSummary(event, clients),
     prospectSourceId: event.prospectSourceId,
@@ -396,6 +409,10 @@ function toEventDetail(event: EventRow, clients: EventClientRow[]): EventDetail 
     postponedFromDate: event.postponedFromDate,
     postponedFromStatus: event.postponedFromStatus,
     wantedBudgetCents: event.wantedBudgetCents,
+    guestsEstimated: event.guestsEstimated,
+    guestsConfirmed: event.guestsConfirmed,
+    style: event.style,
+    notes: event.notes,
     ...(event.importedFields ? { importedFields: event.importedFields } : {}),
   };
 }
@@ -658,6 +675,23 @@ export async function updateEventClientContact(input: {
 }
 
 // Lot 14 (décision K) — budget souhaité, en centimes (null : effacé).
+// Lot 34b (EVT-03, D11) — fiche d'identité : invités estimés et confirmés (0 à 100 000), style
+// (2 000 caractères) et notes (10 000 caractères) ; un champ vide vaut nul.
+export async function setEventIdentity(organizationId: string, eventId: string, input: EventIdentityInput): Promise<void> {
+  const count = (value: number | null) => {
+    if (value === null) return null;
+    if (!Number.isInteger(value) || value < 0 || value > 100_000) throw new RangeError("nombre d'invités invalide");
+    return value;
+  };
+  const text = (value: string | null, max: number) => {
+    const clean = value?.replace(/\r\n/g, "\n").trim() ?? "";
+    if (clean.length > max) throw new RangeError("texte trop long");
+    return clean || null;
+  };
+  const identity = { guestsEstimated: count(input.guestsEstimated), guestsConfirmed: count(input.guestsConfirmed), style: text(input.style, 2000), notes: text(input.notes, 10_000) };
+  if (!(await updateEventIdentityRow(organizationId, eventId, identity))) throw new EventNotFoundError();
+}
+
 export async function setEventWantedBudget(organizationId: string, eventId: string, wantedBudgetCents: number | null): Promise<void> {
   if (wantedBudgetCents !== null && (!Number.isInteger(wantedBudgetCents) || wantedBudgetCents < 0)) throw new RangeError("montant invalide");
   if (!(await updateWantedBudgetRow(organizationId, eventId, wantedBudgetCents))) throw new EventNotFoundError();
@@ -799,15 +833,24 @@ export async function removeEventVendorSlot(organizationId: string, vendorSlotId
   await deleteStoredFiles(keys);
 }
 
-// Lot 12 (L12-EVT-15) — lieux de l'événement.
-export { EventPlaceEventNotFoundError } from "./places";
+// Lot 12 (L12-EVT-15) — lieux de l'événement. Lot 34b (EVT-03, D10) : une seule liste, le
+// premier est le lieu de réception ; chaque lieu porte adresse, ville, horaires et contact.
+export { EventPlaceEventNotFoundError, EventPlaceNotFoundError } from "./places";
 
 export async function listEventPlaces(organizationId: string, eventId: string): Promise<EventPlace[]> {
   return listPlaces(organizationId, eventId);
 }
 
-export async function addEventPlace(organizationId: string, eventId: string, input: { label: string; address?: string | null; vendorId?: string | null }): Promise<EventPlace> {
+export async function addEventPlace(organizationId: string, eventId: string, input: EventPlaceInput): Promise<EventPlace> {
   return addPlace(organizationId, eventId, input);
+}
+
+export async function updateEventPlace(organizationId: string, eventId: string, placeId: string, input: EventPlaceInput): Promise<EventPlace> {
+  return updatePlace(organizationId, eventId, placeId, input);
+}
+
+export async function makeEventReceptionPlace(organizationId: string, eventId: string, placeId: string): Promise<void> {
+  await makeReceptionPlace(organizationId, eventId, placeId);
 }
 
 export async function removeEventPlace(organizationId: string, eventId: string, placeId: string): Promise<void> {
@@ -994,7 +1037,17 @@ export class TaskLabelRequiredError extends Error {
   }
 }
 
-export const TASK_RESPONSIBLES: TaskResponsible[] = ["planner", "clients"];
+export const TASK_RESPONSIBLES: TaskResponsible[] = ["planner", "clients", "vendor"];
+// Lot 34b (CHR-02, D12) : un modèle ne confie rien à un prestataire, qui n'est connu qu'une fois
+// retenu sur l'événement.
+export const TEMPLATE_TASK_RESPONSIBLES: TemplateTaskResponsible[] = ["planner", "clients"];
+
+export class TaskVendorInvalidError extends Error {
+  constructor() {
+    super("la tâche ne se confie qu'à un prestataire retenu sur l'événement");
+    this.name = "TaskVendorInvalidError";
+  }
+}
 
 // Lève une RangeError si la date n'est pas un « AAAA-MM-JJ » réel.
 function assertDate(date: string): void {
@@ -1009,7 +1062,7 @@ function normalizeLabel(label: string): string {
 
 function normalizeTemplateItem(item: TaskTemplateItemInput): TaskTemplateItemInput {
   if (!Number.isInteger(item.offsetDays)) throw new RangeError("le décalage doit être un nombre entier de jours");
-  if (!TASK_RESPONSIBLES.includes(item.responsible)) throw new RangeError("responsable inconnu");
+  if (!TEMPLATE_TASK_RESPONSIBLES.includes(item.responsible)) throw new RangeError("responsable inconnu");
   return { label: normalizeLabel(item.label), offsetDays: item.offsetDays, responsible: item.responsible };
 }
 
@@ -1018,7 +1071,7 @@ function toTaskTemplateItem(row: TaskTemplateItemRow): TaskTemplateItem {
     id: row.id,
     label: row.label,
     offsetDays: row.offsetDays,
-    responsible: row.responsible,
+    responsible: row.responsible === "vendor" ? "planner" : row.responsible,
     position: row.position,
   };
 }
@@ -1034,6 +1087,7 @@ function toEventTask(row: EventTaskRow): EventTask {
     label: row.label,
     dueDate: row.dueDate,
     responsible: row.responsible,
+    vendorCandidateId: row.vendorCandidateId,
     done: row.doneAt !== null,
     position: row.position,
     offsetDays: row.offsetDays,
@@ -1178,6 +1232,7 @@ export async function addEventTask(organizationId: string, eventId: string, task
   if (!TASK_RESPONSIBLES.includes(task.responsible)) throw new RangeError("responsable inconnu");
   const row = await insertEventTask(organizationId, eventId, { ...task, label: normalizeLabel(task.label) });
   if (!row) throw new EventNotFoundError();
+  if (row === "invalid_vendor") throw new TaskVendorInvalidError();
   return toEventTask(row);
 }
 
@@ -1189,6 +1244,7 @@ export async function updateEventTask(input: UpdateEventTaskInput): Promise<Even
   const label = input.label === undefined ? undefined : normalizeLabel(input.label);
   const row = await updateEventTaskRow({ ...input, label });
   if (!row) throw new EventTaskNotFoundError();
+  if (row === "invalid_vendor") throw new TaskVendorInvalidError();
   return toEventTask(row);
 }
 
@@ -1873,11 +1929,60 @@ export async function getVendorLinkView(organizationId: string, linkId: string):
     slotLabel: vendor.slotLabel,
     clientFirstNames: found.clients.map((client) => client.firstName),
     eventDate: found.event.eventDate,
-    places: places.map((place) => ({ id: place.id, label: place.label, address: place.address })),
+    places: places.map((place) => ({ id: place.id, label: place.label, address: place.address, city: place.city, startTime: place.startTime, endTime: place.endTime })),
     programItems: program.items
       .filter((item) => item.participants.some((participant) => participant.vendorSlotId === vendor.vendorSlotId))
       .map((item) => ({ id: item.id, startTime: item.startTime, endTime: item.endTime, label: item.label, location: item.location })),
+    // Lot 34b (CHR-02, D12) : seulement les tâches qui lui sont confiées.
+    tasks: (await findVendorTaskRows(organizationId, access.eventId, access.vendorCandidateId)).map((task) => ({ id: task.id, label: task.label, dueDate: task.dueDate, done: task.doneAt !== null })),
   };
+}
+
+// Lot 34b (CHR-02, D12) : le prestataire coche une tâche qui lui est confiée, depuis son espace.
+export async function setVendorLinkTaskDone(organizationId: string, linkId: string, taskId: string, done: boolean): Promise<void> {
+  const access = await getLinkAccess(organizationId, linkId);
+  if (!access || access.audience !== "vendor" || !access.vendorCandidateId) throw new LinkAccessDeniedError();
+  const vendorCandidateId = access.vendorCandidateId;
+  const result = await withActor({ kind: "link", id: linkId }, () =>
+    toggleVendorTaskRow({ organizationId, linkId, eventId: access.eventId, vendorCandidateId, taskId, done }),
+  );
+  if (result.status === "denied") throw new LinkAccessDeniedError();
+}
+
+// Lot 34b (CHR-02, D13) — pièces jointes et commentaires d'une tâche, réservés à l'équipe.
+export { TaskAttachmentNotFoundError } from "./task-attachments";
+export { TaskCommentNotFoundError, TASK_COMMENT_MAX } from "./task-comments";
+
+export async function listTaskAttachments(organizationId: string, taskId: string): Promise<EventTaskAttachment[]> {
+  return listAttachments(organizationId, taskId);
+}
+
+export async function attachTaskFile(input: AttachTaskFileInput): Promise<EventTaskAttachment> {
+  const attachment = await attachFile(input);
+  if (!attachment) throw new EventTaskNotFoundError();
+  return attachment;
+}
+
+export async function removeTaskAttachment(organizationId: string, attachmentId: string): Promise<void> {
+  await removeAttachment(organizationId, attachmentId);
+}
+
+export async function getTaskAttachmentFile(organizationId: string, attachmentId: string): Promise<FileDownload> {
+  return getAttachmentFile(organizationId, attachmentId);
+}
+
+export async function listTaskComments(organizationId: string, taskId: string): Promise<EventTaskComment[]> {
+  return listComments(organizationId, taskId);
+}
+
+export async function addTaskComment(input: { organizationId: string; taskId: string; authorUserId: string; body: string }): Promise<EventTaskComment> {
+  const comment = await addComment(input);
+  if (!comment) throw new EventTaskNotFoundError();
+  return comment;
+}
+
+export async function removeTaskComment(input: { organizationId: string; commentId: string; authorUserId: string }): Promise<void> {
+  await removeComment(input);
 }
 
 // Vue du tiers : résumé de l'événement, rétroplanning et programme (variante

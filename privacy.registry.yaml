@@ -334,6 +334,67 @@ fields:
       Le lieu est supprimé lors d'une demande d'oubli qui le vise ou qui vise
       l'événement (RGPD-03), comme le lieu de réception de l'événement.
   - schema: events
+    table: event_places
+    field: city
+    category: contact
+    retention: >-
+      Lot 34b (EVT-03, D10) : ville d'un lieu de l'événement ; celle du premier lieu est la ville du
+      lieu de réception (reprise des anciennes colonnes venue_city). Tant que l'événement existe ;
+      voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Supprimée avec le lieu lors d'une demande d'oubli qui le vise ou qui vise l'événement
+      (RGPD-03).
+  - schema: events
+    table: event_places
+    field: contact_name
+    category: identifiant
+    retention: >-
+      Lot 34b (EVT-03, D10) : nom du contact d'un lieu (régisseur, propriétaire), trouvé par la
+      recherche RGPD. Tant que l'événement existe ; voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Supprimé avec le lieu lors d'une demande d'oubli qui le vise ou qui vise l'événement
+      (RGPD-03).
+  - schema: events
+    table: event_places
+    field: contact_phone
+    category: contact
+    retention: >-
+      Lot 34b (EVT-03, D10) : téléphone du contact d'un lieu. Tant que l'événement existe ; voir
+      RGPD-03/RGPD-05.
+    anonymization: >-
+      Supprimé avec le lieu lors d'une demande d'oubli qui le vise ou qui vise l'événement
+      (RGPD-03).
+  - schema: events
+    table: event_places
+    field: contact_email
+    category: contact
+    retention: >-
+      Lot 34b (EVT-03, D10) : e-mail du contact d'un lieu. Tant que l'événement existe ; voir
+      RGPD-03/RGPD-05.
+    anonymization: >-
+      Supprimé avec le lieu lors d'une demande d'oubli qui le vise ou qui vise l'événement
+      (RGPD-03).
+  - schema: events
+    table: events
+    field: style
+    category: contenu_libre
+    retention: >-
+      Lot 34b (EVT-03, D11) : style de l'événement en texte libre, saisi par l'équipe ; trouvé par la
+      recherche RGPD. Tant que l'événement existe ; voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Effacé lors d'une demande d'oubli qui vise l'événement (RGPD-03) ; les nombres d'invités,
+      sans donnée personnelle, restent.
+  - schema: events
+    table: events
+    field: notes
+    category: contenu_libre
+    retention: >-
+      Lot 34b (EVT-03, D11) : notes libres de la fiche (allergies, contraintes), saisies par
+      l'équipe ; trouvées par la recherche RGPD. Tant que l'événement existe ; voir
+      RGPD-03/RGPD-05.
+    anonymization: >-
+      Effacées lors d'une demande d'oubli qui vise l'événement (RGPD-03).
+  - schema: events
     table: program_items
     field: internal_note
     category: contenu_libre
@@ -900,3 +961,41 @@ fields:
     anonymization: >-
       Écriture en ajout seul, conservée comme pièce comptable : pas d'effacement avant
       la fin de la conservation comptable ; l'aide invite à ne citer personne.
+  - schema: events
+    table: event_task_comments
+    field: body
+    category: contenu_libre
+    retention: >-
+      Lot 34b (CHR-02, D13) : commentaire d'une tâche, lu et écrit par l'équipe seulement ; trouvé
+      par la recherche RGPD. Tant que l'événement existe ; voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Supprimé lors d'une demande d'oubli qui le vise ou qui vise l'événement (RGPD-03).
+  - schema: events
+    table: event_task_comments
+    field: author_user_id
+    category: identifiant
+    retention: >-
+      Lot 34b (CHR-02, D13) : compte de l'équipe auteur du commentaire (identifiant, sans nom ni
+      e-mail dans la table). Tant que le commentaire existe.
+    anonymization: >-
+      Supprimé avec le commentaire (RGPD-03).
+  - schema: events
+    table: event_task_attachments
+    field: label
+    category: contenu_libre
+    retention: >-
+      Lot 34b (CHR-02, D13) : intitulé d'une pièce jointe de tâche, trouvé par la recherche RGPD.
+      Tant que l'événement existe ; voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Supprimé avec la pièce jointe lors d'une demande d'oubli (RGPD-03).
+  - schema: events
+    table: event_task_attachments
+    field: file_key
+    category: contenu_libre
+    retention: >-
+      Lot 34b (CHR-02, D13) : fichier joint à une tâche, stocké en privé, réservé à l'équipe ; il
+      peut nommer des personnes. Son contenu n'est pas indexé (l'intitulé, si). Tant que
+      l'événement existe ; voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Supprimé du stockage avec sa ligne lors d'une demande d'oubli qui le vise, qui vise sa tâche
+      ou l'événement (pas d'anonymisation partielle d'un fichier).

@@ -385,6 +385,42 @@ export async function toggleLinkTaskRow(input: { organizationId: string; linkId:
   });
 }
 
+// Lot 34b (CHR-02, D12) — tâches confiées au prestataire d'un lien, et leur coche par lui ; chaque
+// changement va au fil d'activité, dans la même transaction.
+export async function findVendorTaskRows(organizationId: string, eventId: string, vendorCandidateId: string): Promise<EventTaskRow[]> {
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, (tx) =>
+    tx
+      .select()
+      .from(eventTasks)
+      .where(and(eq(eventTasks.eventId, eventId), eq(eventTasks.responsible, "vendor"), eq(eventTasks.vendorCandidateId, vendorCandidateId)))
+      .orderBy(asc(eventTasks.dueDate), asc(eventTasks.position)),
+  );
+}
+
+export async function toggleVendorTaskRow(input: { organizationId: string; linkId: string; eventId: string; vendorCandidateId: string; taskId: string; done: boolean }): Promise<LinkTaskToggleResult> {
+  const db = appDatabase();
+  return await withOrganization(db, input.organizationId, async (tx) => {
+    const [task] = await tx.select().from(eventTasks).where(and(eq(eventTasks.id, input.taskId), eq(eventTasks.eventId, input.eventId)));
+    if (!task || task.responsible !== "vendor" || task.vendorCandidateId !== input.vendorCandidateId) return { status: "denied" };
+    if ((task.doneAt !== null) === input.done) return { status: "saved", task };
+    const [updated] = await tx
+      .update(eventTasks)
+      .set({ doneAt: input.done ? new Date() : null, updatedAt: new Date() })
+      .where(eq(eventTasks.id, input.taskId))
+      .returning();
+    await tx.insert(eventActivities).values({
+      organizationId: input.organizationId,
+      eventId: input.eventId,
+      actorLinkId: input.linkId,
+      kind: input.done ? "task_done" : "task_undone",
+      taskId: input.taskId,
+      taskLabel: task.label,
+    });
+    return { status: "saved", task: updated! };
+  });
+}
+
 // Lot 26b (POR-01, décision D6) — codes à usage unique.
 
 const HOUR_MS = 60 * 60 * 1000;

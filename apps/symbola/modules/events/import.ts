@@ -118,16 +118,18 @@ async function eventState(tx: Tx, eventId: string): Promise<Values | null> {
   const [event] = await tx.select().from(events).where(and(eq(events.id, eventId), eq(events.isDemo, false)));
   if (!event) return null;
   const clients = await tx.select().from(eventClients).where(eq(eventClients.eventId, eventId)).orderBy(asc(eventClients.position));
+  const placeRows = await tx.select().from(eventPlaces).where(eq(eventPlaces.eventId, eventId)).orderBy(asc(eventPlaces.position), asc(eventPlaces.createdAt));
   return {
     eventDate: event.eventDate,
-    venueName: event.venueName,
-    venueCity: event.venueCity,
+    // Lot 34b (D10) : le lieu de réception est le premier lieu de la liste.
+    venueName: placeRows[0]?.label ?? null,
+    venueCity: placeRows[0]?.city ?? null,
     prospectSourceId: event.prospectSourceId,
     status: event.status,
     clients: clients.map(clientOf),
     importedFields: event.importedFields,
     wantedBudgetCents: event.wantedBudgetCents,
-    places: (await tx.select().from(eventPlaces).where(eq(eventPlaces.eventId, eventId)).orderBy(asc(eventPlaces.position))).map((place) => ({ label: place.label })),
+    places: placeRows.map((place) => ({ label: place.label })),
     program: (await tx.select().from(programItems).where(eq(programItems.eventId, eventId)).orderBy(asc(programItems.startTime), asc(programItems.createdAt))).map(
       (item) => ({ startTime: item.startTime.slice(0, 5), label: item.label, location: item.location }),
     ),
@@ -158,11 +160,35 @@ function rowClients(values: Values, current: ImportedClient[]): ImportedClient[]
   return touched ? result.filter((client): client is ImportedClient => client !== undefined) : null;
 }
 
+// Lot 34b (EVT-03, D10) : le lieu de réception d'une ligne devient le premier lieu. Un lieu du même
+// nom passe en tête et prend la ville ; sinon un lieu est créé en tête. Une ville seule complète le
+// premier lieu (ou sert d'intitulé s'il n'y en a pas). Une cellule vide n'efface rien.
+async function writeVenue(tx: Tx, organizationId: string, eventId: string, venueName: string | null, venueCity: string | null): Promise<void> {
+  const name = venueName?.trim() || null;
+  const city = venueCity?.trim() || null;
+  if (!name && !city) return;
+  const places = await tx.select().from(eventPlaces).where(eq(eventPlaces.eventId, eventId)).orderBy(asc(eventPlaces.position), asc(eventPlaces.createdAt));
+  const first = places[0];
+  const top = (first?.position ?? 1) - 1;
+  if (!name) {
+    if (first) await tx.update(eventPlaces).set({ city, updatedAt: new Date() }).where(eq(eventPlaces.id, first.id));
+    else await tx.insert(eventPlaces).values({ organizationId, eventId, label: city!, position: 0 });
+    return;
+  }
+  const same = places.find((place) => place.label.trim().toLocaleLowerCase("fr") === name.toLocaleLowerCase("fr"));
+  if (same) {
+    await tx
+      .update(eventPlaces)
+      .set({ position: same.id === first?.id ? same.position : top, city: city ?? same.city, updatedAt: new Date() })
+      .where(eq(eventPlaces.id, same.id));
+    return;
+  }
+  await tx.insert(eventPlaces).values({ organizationId, eventId, label: name, city, position: top });
+}
+
 async function writeEventFields(tx: Tx, organizationId: string, eventId: string, fields: Values, userId: string, fromStatus: EventStatus | null): Promise<void> {
   const set: Partial<typeof events.$inferInsert> = { updatedAt: new Date() };
   if ("eventDate" in fields) set.eventDate = (fields.eventDate as string | null) ?? null;
-  if ("venueName" in fields) set.venueName = (fields.venueName as string | null) ?? null;
-  if ("venueCity" in fields) set.venueCity = (fields.venueCity as string | null) ?? null;
   if ("prospectSourceId" in fields) set.prospectSourceId = (fields.prospectSourceId as string | null) ?? null;
   if ("importedFields" in fields) set.importedFields = (fields.importedFields as Record<string, string> | null) ?? null;
   if ("status" in fields) set.status = fields.status as EventStatus;
@@ -173,6 +199,9 @@ async function writeEventFields(tx: Tx, organizationId: string, eventId: string,
     const places = (fields.places as ImportedPlace[] | null) ?? [];
     await tx.delete(eventPlaces).where(eq(eventPlaces.eventId, eventId));
     if (places.length > 0) await tx.insert(eventPlaces).values(places.map((place, position) => ({ organizationId, eventId, label: place.label, position })));
+  }
+  if ("venueName" in fields || "venueCity" in fields) {
+    await writeVenue(tx, organizationId, eventId, (fields.venueName as string | null | undefined) ?? null, (fields.venueCity as string | null | undefined) ?? null);
   }
   if ("program" in fields) {
     const program = (fields.program as ImportedProgramItem[] | null) ?? [];
@@ -275,8 +304,6 @@ export async function importEventRows(input: {
           organizationId: input.organizationId,
           status: finalStatus,
           eventDate: (row.values.eventDate as string | null) ?? null,
-          venueName: text(row.values.venueName),
-          venueCity: text(row.values.venueCity),
           prospectSourceId: sourceId ?? input.defaultProspectSourceId,
           importedFields: Object.keys(row.importedFields).length > 0 ? row.importedFields : null,
           wantedBudgetCents: sheet.wantedBudgetCents,
@@ -299,6 +326,7 @@ export async function importEventRows(input: {
       if (sheet.places.length > 0) {
         await tx.insert(eventPlaces).values(sheet.places.map((place, position) => ({ organizationId: input.organizationId, eventId: event.id, label: place.label, position })));
       }
+      await writeVenue(tx, input.organizationId, event.id, text(row.values.venueName), text(row.values.venueCity));
       if (sheet.program.length > 0) {
         await tx.insert(programItems).values(sheet.program.map((item) => ({ organizationId: input.organizationId, eventId: event.id, ...item })));
       }

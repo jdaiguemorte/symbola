@@ -87,14 +87,15 @@ export const requestAudience = cache(async (organizationId: string | null): Prom
 
 // Lot 20 (décision 6) : le libellé « qui réalise la tâche » dans le
 // vocabulaire de son événement (« Mariés » ou « Clients »).
-export async function responsibleLabels(organizationId: string, locale: Locale): Promise<(eventId: string, responsible: "planner" | "clients") => string> {
+export async function responsibleLabels(organizationId: string, locale: Locale): Promise<(eventId: string, responsible: "planner" | "clients" | "vendor") => string> {
   const audiences = await eventAudiences(organizationId);
   const fallback = await organizationAudience(organizationId);
   const translators = {
     couple: createTranslator({ locale, messages: messagesFor(locale, "couple"), namespace: "Events" }),
     clients: createTranslator({ locale, messages: messagesFor(locale, "clients"), namespace: "Events" }),
   };
-  return (eventId, responsible) => translators[audiences.get(eventId) ?? fallback](responsible === "clients" ? "responsibleClients" : "responsiblePlanner");
+  return (eventId, responsible) =>
+    translators[audiences.get(eventId) ?? fallback](responsible === "clients" ? "responsibleClients" : responsible === "vendor" ? "responsibleVendor" : "responsiblePlanner");
 }
 
 // Messages du cadre de l'app (menu, recherche…), qui reste en place d'une page

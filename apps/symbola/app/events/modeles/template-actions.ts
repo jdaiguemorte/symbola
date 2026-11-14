@@ -15,11 +15,11 @@ import {
   removeTaskTemplateItem,
   renameTaskTemplate,
   setTaskTemplateEventType,
-  TASK_RESPONSIBLES,
+  TEMPLATE_TASK_RESPONSIBLES,
   TaskLabelRequiredError,
   TaskTemplateNotFoundError,
   updateTaskTemplateItem,
-  type TaskResponsible,
+  type TemplateTaskResponsible,
 } from "@/modules/events/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isEventsModuleEnabled, isValidId } from "../module-access";
@@ -95,8 +95,8 @@ export async function saveTaskTemplateItemAction(
   const offsetDays = Number(rawOffset);
   if (!/^[+-]?\d+$/.test(rawOffset) || Math.abs(offsetDays) > MAX_OFFSET_DAYS) return { error: t("invalidOffset") };
   const responsible = String(formData.get("responsible") ?? "");
-  if (!TASK_RESPONSIBLES.includes(responsible as TaskResponsible)) return { error: t("invalidResponsible") };
-  const item = { label, offsetDays, responsible: responsible as TaskResponsible };
+  if (!TEMPLATE_TASK_RESPONSIBLES.includes(responsible as TemplateTaskResponsible)) return { error: t("invalidResponsible") };
+  const item = { label, offsetDays, responsible: responsible as TemplateTaskResponsible };
 
   try {
     if (itemId) await updateTaskTemplateItem(organizationId, itemId, item);

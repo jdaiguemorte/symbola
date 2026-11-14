@@ -164,8 +164,10 @@ describe("UX-11, lot 26b — Lien du prestataire (décision D9)", () => {
       slotLabel: "Traiteur",
       clientFirstNames: ["Léa", "Maxime"],
       eventDate: "2027-06-12",
-      places: [{ id: placeId, label: "Domaine des Tilleuls", address: "1 allée des Tilleuls, Lyon" }],
+      places: [{ id: placeId, label: "Domaine des Tilleuls", address: "1 allée des Tilleuls, Lyon", city: null, startTime: null, endTime: null }],
       programItems: [{ id: cocktailId, startTime: "18:00", endTime: "19:30", label: "Cocktail", location: "Terrasse" }],
+      // Lot 34b (CHR-02) : aucune tâche ne lui est confiée.
+      tasks: [],
     });
     const text = JSON.stringify(view);
     for (const hidden of ["Prévoir", "Studio Lumière", "Photos de groupe", "Témoins", "Martin", "Durand"]) expect(text).not.toContain(hidden);
