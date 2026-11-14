@@ -233,6 +233,8 @@ supprime une colonne en perd les données.
    Avant d'annuler 0075 et de revenir à une image antérieure au lot 16, il fallait remettre en
    clair les secrets de double authentification (ADR 0037) ; depuis le lot 33, ces secrets
    n'existent plus chez Symbola et la commande `mfa-secrets` a disparu.
+   **Lot 33b (0131)** : l'annulation retire le volume, les outils remplacés et le rôle des
+   invitations ; elle est refusée tant qu'une invitation de Planner attend d'être acceptée.
    **Lot 33 (0130, puis 0129)** : annuler 0130 recrée les colonnes de mot de passe et de double
    authentification **vides** ; l'annulation de 0129 est ensuite refusée tant qu'un compte n'a
    pas de mot de passe. Revenir avant le lot 33 = restaurer la sauvegarde prise avant le

@@ -188,8 +188,9 @@ session `julien`). `$ENV` vaut `staging` (puis `production`).
      -e APP_PUBLIC_URL="https://$(sudo sed -n 's/^APP_DOMAIN=//p' infra/compose/.env.$ENV)" \
      node:22-slim sh -c "corepack enable && pnpm install --frozen-lockfile && pnpm -s --filter @symbola/auth configure-identity"
    ```
-7. **Mettre à jour l'app** vers l'image du lot 33 (« Mise à jour » ci-dessous ; migrations 0129
-   et 0130 comprises : 0130 retire définitivement les mots de passe).
+7. **Mettre à jour l'app** vers l'image du lot 33 (« Mise à jour » ci-dessous ; migrations 0129,
+   0130 et 0131 comprises : 0130 retire définitivement les mots de passe ; 0131, lot 33b, ajoute
+   les réponses du questionnaire et le rôle des invitations).
 8. **Reprise des comptes** (une fois, rejouable ; n'affiche que des nombres) : chaque compte est
    relié à Logto, et la double authentification y devient obligatoire pour les titulaires et
    l'Exploitation :
