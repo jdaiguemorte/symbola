@@ -100,6 +100,10 @@ describe("EVT-03 — Une seule liste de lieux, le premier est le lieu de récept
     expect((await listEventPlaces(organizationId, eventId)).map((place) => place.label)).toEqual(["Château de la Roche"]);
     expect((await listEvents({ organizationId, search: "Arras" })).map((event) => event.id)).toEqual([eventId]);
 
+    // Un lieu ajouté au même nom complète le lieu existant, sans écraser une valeur saisie.
+    await addEventPlace(organizationId, eventId, { label: "château de la roche", address: "1 rue du Château", city: "Lille" });
+    expect((await listEventPlaces(organizationId, eventId)).map((place) => [place.label, place.address, place.city])).toEqual([["Château de la Roche", "1 rue du Château", "Arras"]]);
+
     // Sans nom, la ville sert d'intitulé.
     const cityOnly = await wedding({ venueName: null, venueCity: "Amiens" });
     expect(await getEvent(cityOnly.organizationId, cityOnly.eventId)).toMatchObject({ venueName: "Amiens", venueCity: null });

@@ -86,7 +86,16 @@ export async function addPlace(organizationId: string, eventId: string, input: E
     const existing = (await tx.select().from(eventPlaces).where(eq(eventPlaces.eventId, eventId))).find(
       (place) => place.label.toLocaleLowerCase("fr") === label.toLocaleLowerCase("fr"),
     );
-    if (existing) return toPlace(existing);
+    if (existing) {
+      // Lot 34b (D10) : le lieu existe déjà (lieu de réception saisi à la création, import) : ses
+      // champs encore vides reçoivent ce qui est donné, sans écraser une valeur saisie.
+      const missing = Object.fromEntries(
+        Object.entries({ ...details, vendorId: input.vendorId ?? null }).filter(([key, value]) => value !== null && existing[key as keyof typeof existing] === null),
+      );
+      if (Object.keys(missing).length === 0) return toPlace(existing);
+      const [completed] = await tx.update(eventPlaces).set({ ...missing, updatedAt: new Date() }).where(eq(eventPlaces.id, existing.id)).returning();
+      return toPlace(completed ?? existing);
+    }
     const [{ next } = { next: 0 }] = await tx
       .select({ next: sql<number>`coalesce(max(${eventPlaces.position}) + 1, 0)::int` })
       .from(eventPlaces)
