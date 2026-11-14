@@ -1,5 +1,6 @@
 // Lot 30a (JRJ-01, décision D2) — « Maintenant » et « Ensuite », calculés sur
-// l'appareil à l'heure de Paris (ils marchent sans réseau) : avant le jour J, la
+// l'appareil à l'heure de l'évènement (ils marchent sans réseau ; lot 34a, ARC-17 : dans son
+// fuseau, Paris par défaut) : avant le jour J, la
 // séquence en cours, la pause entre deux séquences, le programme terminé. Les heures
 // sont celles de l'horloge murale du jour J ; une fin plus petite que le début passe
 // minuit ; une fin absente vaut le début de la séquence suivante (la dernière dure
@@ -19,9 +20,9 @@ export type DayMoment =
   | { phase: "pause"; nextId: string; nextStartsInMinutes: number }
   | { phase: "over" };
 
-function parisParts(instant: Date): { date: string; minutes: number } {
+function zonedParts(instant: Date, timeZone: string): { date: string; minutes: number } {
   const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Europe/Paris",
+    timeZone,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -48,10 +49,10 @@ export function spanMinutes(items: TimelineItem[], id: string): number | null {
   return span ? span.end - span.start : null;
 }
 
-export function dayMoment(items: TimelineItem[], eventDate: string, now: Date): DayMoment {
+export function dayMoment(items: TimelineItem[], eventDate: string, now: Date, timeZone = "Europe/Paris"): DayMoment {
   const spans = timelineSpans(items);
   if (spans.length === 0) return { phase: "empty" };
-  const paris = parisParts(now);
+  const paris = zonedParts(now, timeZone);
   const offset = dayNumber(paris.date) - dayNumber(eventDate);
   if (offset < 0) return { phase: "before", daysUntil: -offset, nextId: spans[0]!.id };
   // Le lendemain, la nuit continue le jour J (séquences après minuit).

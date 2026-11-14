@@ -26,7 +26,7 @@ function clock(minutes: number): string {
   return `${String(Math.floor(wrapped / 60)).padStart(2, "0")}:${String(wrapped % 60).padStart(2, "0")}`;
 }
 
-export function FieldDay({ eventDate, items }: { eventDate: string; items: FieldItem[] }) {
+export function FieldDay({ eventDate, timeZone, items }: { eventDate: string; timeZone: string; items: FieldItem[] }) {
   const t = useTranslations("DayOf");
   const [now, setNow] = useState<Date | null>(null);
   useEffect(() => {
@@ -37,7 +37,7 @@ export function FieldDay({ eventDate, items }: { eventDate: string; items: Field
 
   const spans = new Map(timelineSpans(items).map((span) => [span.id, span]));
   const byId = new Map(items.map((item) => [item.id, item]));
-  const moment: DayMoment | null = now ? dayMoment(items, eventDate, now) : null;
+  const moment: DayMoment | null = now ? dayMoment(items, eventDate, now, timeZone) : null;
   const duration = (minutes: number) => {
     const { hours, minutes: rest } = durationParts(minutes);
     return hours === 0 ? t("durationMinutes", { minutes: rest }) : rest === 0 ? t("durationHours", { hours }) : t("durationHoursMinutes", { hours, minutes: rest });

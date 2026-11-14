@@ -102,6 +102,7 @@ export default async function DayOfPage({ params }: { params: Promise<{ eventId:
 
         <FieldDay
           eventDate={eventDate}
+          timeZone={event.timeZone}
           items={view.items.map((item) => ({
             id: item.id,
             startTime: item.startTime,
