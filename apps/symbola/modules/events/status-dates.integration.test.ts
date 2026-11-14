@@ -27,7 +27,7 @@ describe("L13-EVT-19 — Frise du statut datée", () => {
     await changeEventStatus({ organizationId, eventId: event.id, changedByUserId: plannerId, toStatus: "confirmed" });
 
     const today = parisToday();
-    expect(await getEventStatusDates(organizationId, event.id)).toEqual({ prospect: today, confirmed: today });
+    expect(await getEventStatusDates(organizationId, event.id)).toEqual({ option: today, confirmed: today });
     expect(await getEventStatusDates(otherId, event.id)).toEqual({});
   });
 });

@@ -264,7 +264,7 @@ describe("DEV-02 — Webhook du fournisseur", () => {
     let current = await getQuote(organizationId, quoteId);
     expect(current.status).toBe("sent");
     expect(current.signature!.signers.map((signer) => signer.status)).toEqual(["signed", "pending"]);
-    expect((await getEvent(organizationId, eventId))?.status).toBe("prospect");
+    expect((await getEvent(organizationId, eventId))?.status).toBe("option");
 
     const last = await deliver(detail, 1, "sign");
     expect(last.result).toEqual({ httpStatus: 200, outcome: "completed" });
@@ -301,7 +301,7 @@ describe("DEV-02 — Webhook du fournisseur", () => {
     const current = await getQuote(organizationId, quoteId);
     expect(current.status).toBe("declined");
     expect(current.signature?.status).toBe("declined");
-    expect((await getEvent(organizationId, eventId))?.status).toBe("prospect");
+    expect((await getEvent(organizationId, eventId))?.status).toBe("option");
 
     // Un devis refusé peut repartir dans une nouvelle version, sans signature.
     const revised = await reviseQuote(organizationId, quoteId);

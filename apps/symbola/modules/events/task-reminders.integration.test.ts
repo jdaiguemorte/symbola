@@ -107,7 +107,7 @@ describe("CHR-04 — Rappel automatique des tâches confiées au client", () => 
     const lost = await wedding();
     const active = await link(lost.organizationId, lost.eventId);
     const reason = await createLossReason(lost.organizationId, "Budget", false);
-    await changeEventStatus({ organizationId: lost.organizationId, eventId: lost.eventId, changedByUserId: plannerId, toStatus: "lost", lossReasonId: reason.id });
+    await changeEventStatus({ organizationId: lost.organizationId, eventId: lost.eventId, changedByUserId: plannerId, toStatus: "cancelled", lossReasonId: reason.id });
     expect(await sendClientTaskReminders(lost.organizationId, MARCH_3)).toBe(0);
     for (const email of [noTasks.email, off.email, revoked.email, active.email]) expect(await mailsTo(email)).toEqual([]);
   });

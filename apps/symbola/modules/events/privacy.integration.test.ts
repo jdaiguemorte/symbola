@@ -51,7 +51,7 @@ async function seedEvent(organizationId: string, options: { firstName: string; l
       .values({ organizationId, eventId: event.id, startTime: "15:00", label: "Cérémonie", internalNote: "Rappeler la témoin au 07 11 22 33 44" })
       .returning();
     await tx.insert(programItemParticipants).values({ organizationId, programItemId: item!.id, freeLabel: "Officiant : Jean Valjean" });
-    await tx.insert(eventStatusHistory).values({ organizationId, eventId: event.id, fromStatus: null, toStatus: "prospect", changedByUserId: randomUUID() });
+    await tx.insert(eventStatusHistory).values({ organizationId, eventId: event.id, fromStatus: null, toStatus: "option", changedByUserId: randomUUID() });
     return { eventId: event.id, slotId: slot!.id };
   });
 }

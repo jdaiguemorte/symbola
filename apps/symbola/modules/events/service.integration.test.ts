@@ -174,7 +174,7 @@ describe("PRD-HUB-02 — Tâches de toute l'organisation (accueil, écran Tâche
     const doneTask = await addEventTask(organizationId, kept.id, { label: "Faite", dueDate: "2026-09-01", responsible: "planner" });
     await updateEventTask({ organizationId, taskId: doneTask.id, done: true });
     await addEventTask(organizationId, lost.id, { label: "Événement perdu", dueDate: "2026-11-04", responsible: "planner" });
-    await changeEventStatus({ organizationId, eventId: lost.id, changedByUserId: plannerId, toStatus: "lost", lossReasonId: reason.id });
+    await changeEventStatus({ organizationId, eventId: lost.id, changedByUserId: plannerId, toStatus: "cancelled", lossReasonId: reason.id });
 
     const tasks = await listOrganizationTasks({ organizationId, today: "2026-11-03", horizonDays: null, includeDone: true });
     expect(tasks.map((task) => [task.label, task.done])).toEqual([

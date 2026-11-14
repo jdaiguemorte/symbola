@@ -57,7 +57,7 @@ describe("RGPD-02 — Export des fiches sélectionnées", () => {
     expect(selection.records.map(recordKey).sort()).toEqual(chosen.map(recordKey).sort());
     expect(selection.records.some((record) => record.label === "Tâche de l'homonyme")).toBe(false);
     // La fiche de l'événement, trouvée par le client, porte aussi sa date et son statut.
-    expect(selection.records.find((record) => record.kind === "event")?.fields).toMatchObject({ eventDate: "2027-06-12", status: "prospect" });
+    expect(selection.records.find((record) => record.kind === "event")?.fields).toMatchObject({ eventDate: "2027-06-12", status: "option" });
 
     const pdf = Buffer.from("%PDF-1.4 test");
     const generatedAt = new Date("2026-11-02T14:00:00Z");

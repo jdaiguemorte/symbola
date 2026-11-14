@@ -5,9 +5,9 @@ import { addMonths, buildCalendar, type CalendarEvent } from "./calendar";
 
 const events: CalendarEvent[] = [
   { id: "a", date: "2027-06-12", status: "confirmed", names: "Inès & Sacha", isDemo: false },
-  { id: "b", date: "2027-06-13", status: "prospect", names: "Léa & Hugo", isDemo: false },
-  { id: "c", date: "2027-06-26", status: "quote_sent", names: "Zoé & Paul", isDemo: false },
-  { id: "d", date: "2027-07-03", status: "lost", names: "Perdu", isDemo: false },
+  { id: "b", date: "2027-06-13", status: "option", names: "Léa & Hugo", isDemo: false },
+  { id: "c", date: "2027-06-26", status: "postponed", names: "Zoé & Paul", isDemo: false },
+  { id: "d", date: "2027-07-03", status: "cancelled", names: "Annulé", isDemo: false },
   { id: "e", date: "2027-09-18", status: "confirmed", names: "Hors période", isDemo: false },
 ];
 
@@ -22,7 +22,7 @@ describe("PRD-HUB-02 — Calendrier de l'accueil", () => {
     expect(june.cells.filter((cell) => cell !== null)).toHaveLength(30);
   });
 
-  it("un mariage confirmé est plein, une date posée sur un prospect est atténuée ; un événement perdu n'apparaît pas", () => {
+  it("un mariage confirmé est plein, une option ou un report en cours est atténué ; un évènement annulé n'apparaît pas (lot 34a, EVT-05)", () => {
     const [june, july] = buildCalendar({ start: "2027-06", months: 2, events });
     const day = (date: string) => [...june!.cells, ...july!.cells].find((cell) => cell?.date === date)!;
     expect(day("2027-06-12").tone).toBe("confirmed");

@@ -21,14 +21,14 @@ async function expectNoAxeViolation(page: Page) {
   expect(result.violations, JSON.stringify(result.violations, null, 2)).toEqual([]);
 }
 
-// Prospect resté sans suite depuis quatre ans (dernière activité en 2022).
+// Option annulée, jamais confirmée, sans suite depuis quatre ans (dernière activité en 2022).
 async function seedOldProspect(db: ReturnType<typeof createAppConnection>["db"], organizationId: string, lastName: string) {
   await withOrganization(db, organizationId, async (tx) => {
     const [source] = await tx.insert(prospectSources).values({ organizationId, label: "Instagram" }).returning();
     const old = new Date("2022-03-01T10:00:00Z");
     const [event] = await tx
       .insert(events)
-      .values({ organizationId, eventDate: "2023-06-12", prospectSourceId: source!.id, status: "lost", createdAt: old, updatedAt: old })
+      .values({ organizationId, eventDate: "2023-06-12", prospectSourceId: source!.id, status: "cancelled", createdAt: old, updatedAt: old })
       .returning();
     await tx.insert(eventClients).values({ organizationId, eventId: event!.id, firstName: "Élodie", lastName, position: 0 });
   });

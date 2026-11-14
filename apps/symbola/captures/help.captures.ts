@@ -75,7 +75,7 @@ async function seed(organizationId: string, userId: string) {
   await make([{ firstName: "Sarah" }, { firstName: "Yanis" }], "2028-07-01", "Ferme du Vert Bocage", "Lens");
 
   await changeEventStatus({ organizationId, eventId: confirmed, changedByUserId: userId, toStatus: "confirmed" });
-  await changeEventStatus({ organizationId, eventId: quoted, changedByUserId: userId, toStatus: "quote_sent" });
+  await changeEventStatus({ organizationId, eventId: quoted, changedByUserId: userId, toStatus: "in_preparation" });
 
   const template = await createTaskTemplate(organizationId, "Mariage — 12 mois", [
     { label: "Réserver le lieu de réception", offsetDays: -365, responsible: "planner" },
