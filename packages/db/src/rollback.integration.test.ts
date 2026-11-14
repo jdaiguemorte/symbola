@@ -106,7 +106,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
         return work(tx);
       }) as Promise<T>;
     const user = randomUUID();
-    const ids = await inOrganization(async (tx) => {
+    const ids: Record<string, string> = await inOrganization(async (tx) => {
       const byStatus: Record<string, string> = {};
       for (const status of ["prospect", "quote_sent", "confirmed", "done", "lost"]) {
         const [event] = await tx<{ id: string }[]>`insert into events.events (organization_id, status, event_date, tasks_scheduled_for) values (${organizationId}, ${status}::events.event_status, '2027-06-12', '2027-06-05') returning id`;
@@ -125,7 +125,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     const [history] = await inOrganization((tx) => tx<{ from_status: string; to_status: string }[]>`select from_status::text as from_status, to_status::text as to_status from events.event_status_history where event_id = ${ids.lost!}`);
     expect(history).toEqual({ from_status: "option", to_status: "cancelled" });
     // DAT-07 : J-180 depuis la date de calcul du rétroplanning (5 juin), pas la date de l'événement.
-    const [task] = await inOrganization((tx) => tx<{ offset_days: number | null }[]>`select offset_days from events.event_tasks where id = ${ids.task}`);
+    const [task] = await inOrganization((tx) => tx<{ offset_days: number | null }[]>`select offset_days from events.event_tasks where id = ${ids.task!}`);
     expect(task!.offset_days).toBe(-180);
     const [created] = await inOrganization((tx) => tx<{ status: string }[]>`insert into events.events (organization_id) values (${organizationId}) returning status::text as status`);
     expect(created!.status).toBe("option");
