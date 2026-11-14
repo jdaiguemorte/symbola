@@ -116,7 +116,7 @@ export function ChangeStatusForm({
       ) : (
         <div className="timeline-actions">
           {currentStatus === "confirmed" || currentStatus === "in_preparation" ? (
-            <button type="button" className="timeline-lost" aria-expanded={asking === "postpone"} disabled={busy} onClick={() => setAsking(asking === "postpone" ? null : "postpone")}>
+            <button type="button" className="timeline-lost timeline-postpone" aria-expanded={asking === "postpone"} disabled={busy} onClick={() => setAsking(asking === "postpone" ? null : "postpone")}>
               {t("postponeAsk")}
             </button>
           ) : null}
