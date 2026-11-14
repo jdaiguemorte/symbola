@@ -127,7 +127,7 @@ services:
   logto:
     image: svhd/logto:1.46.0
     restart: unless-stopped
-    entrypoint: ["sh", "-c", "npm run cli db seed -- --swe && npm start"]
+    entrypoint: ["sh", "-c", "npm run cli db seed -- --swe --dapc && npm start"]
     environment:
       DB_URL: postgres://${LOGTO_DB_USER:-logto}:${LOGTO_DB_PASSWORD:-}@postgres:5432/${LOGTO_DB_NAME:-logto}
       ENDPOINT: http://localhost:3001

@@ -212,7 +212,7 @@ jobs:
           docker run -d --name logto --network host \
             -e DB_URL="postgres://logto:${LOGTO_DB_PASSWORD}@localhost:5432/logto" \
             -e ENDPOINT=http://localhost:3001 -e ADMIN_ENDPOINT=http://localhost:3002 \
-            --entrypoint sh svhd/logto:1.46.0 -c "npm run cli db seed -- --swe && npm start"
+            --entrypoint sh svhd/logto:1.46.0 -c "npm run cli db seed -- --swe --dapc && npm start"
           pnpm --filter @symbola/auth configure-identity
       - name: Parcours Playwright
         run: pnpm --filter @symbola/app test:e2e
