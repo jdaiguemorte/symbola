@@ -39,10 +39,19 @@ async function hasColumn(schema: string, table: string, column: string): Promise
   return rows.length > 0;
 }
 
-const rollback = (tag: string) => rollbackMigration(target, tag, folders);
+// Lot 33a : annuler 0129 est refusé tant qu'un compte n'a ni mot de passe ni rôle, ce qui est le
+// cas de tous une fois 0130 passée (voulu en vrai). Pour remonter la chaîne des lots plus anciens,
+// le banc d'essai remet des valeurs d'avant juste avant d'annuler 0129.
+const rollback = async (tag: string) => {
+  if (tag === "0129_lot33a_hub_memberships" && (await hasColumn("hub", "users", "password_hash"))) {
+    await target`update hub.users set password_hash = 'x' where password_hash is null`;
+    await target`update hub.users set role = 'member' where role is null and not operator`;
+  }
+  return rollbackMigration(target, tag, folders);
+};
 
 // Lots 26a à 29b : migrations au-dessus de celles du 28, annulées pour revenir à 0108.
-const LOT_33A = ["0129_lot33a_hub_memberships"];
+const LOT_33A = ["0130_lot33a_hub_drop_passwords", "0129_lot33a_hub_memberships"];
 const LOT_32A = ["0128_lot32a_events_activity_vendor", "0127_lot32a_events_activity_vendor_kind"];
 const LOT_31C = ["0126_lot31c_quotes_payment_terms_receipts", "0125_lot31c_quotes_receipt_series"];
 const LOT_31B = ["0124_lot31b_hub_contract_retention", "0123_lot31b_quotes_contracts", "0122_lot31b_quotes_client_kind"];
@@ -85,7 +94,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     await expect(rollback("0099_inconnue")).rejects.toBeInstanceOf(RollbackRefusedError);
   });
 
-  it("lot 33a (HUB-02, HUB-03, Q30 ; D6) — 0129 : adhésions reprises des comptes, Exploitation marquée ; l'annulation ramène le rôle sur le compte, refusée pour un compte à deux organisations", async () => {
+  it("lot 33a (HUB-02, HUB-03, SEC-01, Q30 ; D6) — 0129 et 0130 : adhésions reprises des comptes, Exploitation marquée, mots de passe retirés ; annuler 0130 ne les rend pas, annuler 0129 ramène le rôle sur le compte, refusé pour un compte à deux organisations", async () => {
     // Avant 0129 : une organisation, sa titulaire, une Planner et l'Admin.
     for (const tag of LOT_33A) await rollback(tag);
     const [organization] = await target<{ id: string }[]>`insert into hub.organizations (name) values ('Atelier de reprise') returning id`;
@@ -108,16 +117,32 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     const [session] = await target<{ organization_id: string }[]>`select organization_id from hub.sessions where user_id = ${owner!.id}`;
     expect(session!.organization_id).toBe(organization!.id);
 
+    // 0130 : plus de mot de passe ni d'organisation ou de rôle sur le compte.
+    for (const column of ["password_hash", "totp_secret", "role", "organization_id", "failed_login_attempts"]) expect(await hasColumn("hub", "users", column)).toBe(false);
+    expect(await hasColumn("hub", "trusted_devices", "token_hash")).toBe(false);
+    // Annuler 0130 : colonnes revenues vides, organisation et rôle repris des adhésions ; les mots de
+    // passe ne reviennent pas, donc revenir avant 0129 reste refusé.
+    await rollback(LOT_33A[0]!);
+    const restored = await target<{ id: string; role: string; organization_id: string | null; password_hash: string | null }[]>`
+      select id, role::text as role, organization_id, password_hash from hub.users where id in (${owner!.id}, ${operator!.id}) order by role`;
+    expect(restored).toEqual([
+      { id: operator!.id, role: "admin", organization_id: null, password_hash: null },
+      { id: owner!.id, role: "owner", organization_id: organization!.id, password_hash: null },
+    ]);
+    await expect(rollbackMigration(target, LOT_33A[1]!, folders)).rejects.toThrow(/ni mot de passe ni rôle/);
+    // Pour éprouver le reste de l'annulation de 0129, des mots de passe d'avant sont remis à la main.
+    await target`update hub.users set password_hash = 'x' where password_hash is null`;
+
     // Un compte dans deux organisations : l'ancien schéma ne sait pas le représenter.
     await target`insert into hub.memberships (user_id, organization_id, role) values (${owner!.id}, ${other!.id}, 'member')`;
-    await expect(rollback(LOT_33A[0]!)).rejects.toThrow(/plusieurs organisations/);
+    await expect(rollbackMigration(target, LOT_33A[1]!, folders)).rejects.toThrow(/plusieurs organisations/);
     await target`delete from hub.memberships where user_id = ${owner!.id} and organization_id = ${other!.id}`;
     // Un compte né chez le fournisseur, sans mot de passe : refus aussi.
     const [fresh] = await target<{ id: string }[]>`insert into hub.users (email, idp_subject) values (${`nouvelle-${suffix}@symbola.test`}, ${`sub-${suffix}`}) returning id`;
-    await expect(rollback(LOT_33A[0]!)).rejects.toThrow(/ni mot de passe ni rôle/);
+    await expect(rollbackMigration(target, LOT_33A[1]!, folders)).rejects.toThrow(/ni mot de passe ni rôle/);
     await target`delete from hub.users where id = ${fresh!.id}`;
 
-    await rollback(LOT_33A[0]!);
+    await rollback(LOT_33A[1]!);
     expect(await hasColumn("hub", "users", "idp_subject")).toBe(false);
     const back = await target<{ id: string; role: string; organization_id: string | null; disabled: boolean }[]>`
       select id, role::text as role, organization_id, disabled_at is not null as disabled from hub.users where id in (${owner!.id}, ${member!.id}, ${operator!.id}) order by role`;
@@ -522,7 +547,8 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     expect(await hasColumn("events", "event_links", "token_hash")).toBe(true);
     expect(await hasColumn("hub", "privacy_settings", "link_privacy_notice")).toBe(true);
     expect(await hasColumn("events", "event_client_accesses", "email")).toBe(false);
-    expect(await roles()).toEqual(["owner", "member", "admin"]);
+    // Lot 33a : le type des rôles du compte disparaît avec 0130 ; son annulation le recrée.
+    expect(await roles()).toEqual([]);
 
     const organizationId = randomUUID();
     const inOrganization = <T>(work: (tx: postgres.TransactionSql) => Promise<T>) =>
@@ -575,7 +601,8 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     await target`insert into hub.sessions (user_id, token_hash, expires_at) values (${client!.id}, ${`jeton-${randomUUID()}`}, now() + interval '1 day')`;
     await migrateAll();
     expect(await target`select 1 from hub.users where id = ${client!.id}`).toHaveLength(0);
-    expect(await roles()).toEqual(["owner", "member", "admin"]);
+    // Lot 33a : 0130 retire le type des rôles du compte (les rôles sont sur les adhésions).
+    expect(await roles()).toEqual([]);
     expect(await hasColumn("events", "event_links", "token_hash")).toBe(true);
     // Retour à 0108 pour la suite.
     await rollbackLot26();
@@ -1026,8 +1053,10 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     expect(await entityTypes()).toEqual(expect.arrayContaining(["vendors", "event_sheets"]));
     expect(await hasColumn("hub", "import_jobs", "payload")).toBe(true);
     expect(await hasColumn("events", "event_clients", "email")).toBe(true);
-    expect(await hasColumn("hub", "users", "totp_last_used_step")).toBe(true);
-    expect(await hasColumn("hub", "trusted_devices", "expires_at")).toBe(true);
+    // Lot 33a : 0130 retire la double authentification maison (colonnes et appareils de confiance).
+    expect(await hasColumn("hub", "users", "totp_last_used_step")).toBe(false);
+    expect(await hasColumn("hub", "trusted_devices", "expires_at")).toBe(false);
+    expect(await hasColumn("hub", "memberships", "role")).toBe(true);
     const [rls] = await target<{ relforcerowsecurity: boolean }[]>`select relforcerowsecurity from pg_class where oid = 'hub.import_jobs'::regclass`;
     expect(rls?.relforcerowsecurity).toBe(true);
   });

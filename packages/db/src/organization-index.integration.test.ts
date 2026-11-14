@@ -22,7 +22,6 @@ afterAll(async () => {
 
 // organization_id facultatif par conception, avec sa raison.
 const OPTIONAL_ORGANIZATION: Record<string, string> = {
-  "hub.users": "le compte Admin n'appartient à aucune organisation (ADR 0013, SEC-09)",
   "core.audit_entries": "les lignes d'exploitation et de plateforme sont sans organisation (ADR 0060)",
   // Lot 33 (HUB-02) : organisation active de la session.
   "hub.sessions": "la session du compte d'exploitation n'a pas d'organisation active (Q30, SEC-09)",

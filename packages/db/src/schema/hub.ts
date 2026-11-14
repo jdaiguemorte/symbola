@@ -9,12 +9,9 @@ import { bigint, boolean, check, date, index, integer, jsonb, pgSchema, primaryK
 
 export const hubSchema = pgSchema("hub");
 
-// Lot 26a (ADR 0053, décision D8) : plus de rôle « client » ; les tiers agissent
-// par lien personnel (events.event_links), sans compte.
-export const roleEnum = hubSchema.enum("role", ["owner", "member", "admin"]);
 export const languageEnum = hubSchema.enum("language", ["fr", "en"]);
 // Valeurs réglementaires fixes (CLAUDE.md §2.5 : pas une liste
-// personnalisable par organisation, au même titre que roleEnum).
+// personnalisable par organisation).
 export const legalFormEnum = hubSchema.enum("legal_form", [
   "ei",
   "eirl",
@@ -63,14 +60,7 @@ export const invitations = hubSchema.table("invitations", {
 
 export const users = hubSchema.table("users", {
   id: uuid("id").defaultRandom().primaryKey(),
-  // Nul pour le rôle admin (opérateur de la suite, sans organisation).
-  // Lot 33 (HUB-02) : remplacé par hub.memberships ; retiré par la migration de retrait.
-  organizationId: uuid("organization_id").references(() => organizations.id),
   email: text("email").notNull().unique(),
-  // Lot 33 (SEC-01, ADR 0067) : facultatif pendant la bascule, retiré ensuite.
-  passwordHash: text("password_hash"),
-  // Lot 33 : rôle porté par l'adhésion (hub.memberships) ou par operator ; retiré ensuite.
-  role: roleEnum("role"),
   // Lot 33 (SEC-01, ADR 0067) : identifiant du compte chez le fournisseur d'identité (« sub »).
   idpSubject: text("idp_subject").unique(),
   // Lot 33 (Q30, SEC-09) : compte d'exploitation, sans adhésion ni accès aux données métier.
@@ -78,23 +68,6 @@ export const users = hubSchema.table("users", {
   // Choix explicite dans le profil (PRD-HUB-04) ; nul = pas encore choisi,
   // suit le cookie de langue du navigateur (apps/symbola/middleware.ts).
   language: languageEnum("language"),
-  // Chiffré au repos depuis le lot 16 (L16-SEC-01, ADR 0037) : « v1: » + base64,
-  // lu et écrit seulement par packages/auth.
-  totpSecret: text("totp_secret"),
-  mfaEnabled: boolean("mfa_enabled").notNull().default(false),
-  // L16-SEC-01 (lot 16, ADR 0037) : 5 codes de double authentification faux
-  // d'affilée bloquent la validation 15 min (par compte, quelle que soit la
-  // session) ; un code juste remet le compteur à zéro.
-  mfaFailedAttempts: integer("mfa_failed_attempts").notNull().default(0),
-  mfaLockedUntil: timestamp("mfa_locked_until", { withTimezone: true }),
-  // Pas de temps (période de 30 s) du dernier code accepté : un code ne sert
-  // qu'une fois (anti-rejeu).
-  totpLastUsedStep: bigint("totp_last_used_step", { mode: "number" }),
-  // Verrouillage de compte (PRD PRD-HUB-01) : 5 mots de passe faux d'affilée
-  // bloquent la connexion 15 min, un e-mail part au titulaire. Remis à
-  // zéro à chaque connexion réussie.
-  failedLoginAttempts: integer("failed_login_attempts").notNull().default(0),
-  lockedUntil: timestamp("locked_until", { withTimezone: true }),
   // AIDE-04 : masque la liste « premiers pas » du tableau de bord,
   // choix explicite de l'utilisateur.
   firstStepsHidden: boolean("first_steps_hidden").notNull().default(false),
@@ -110,7 +83,7 @@ export const users = hubSchema.table("users", {
   createdBy: uuid("created_by"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   updatedBy: uuid("updated_by"),
-}, (table) => [index("users_organization_idx").on(table.organizationId)]);
+});
 
 // AIDE-01 : une visite guidée se relance à volonté, mais ne s'affiche
 // automatiquement qu'à la première ouverture d'un module — une ligne ici
@@ -126,21 +99,6 @@ export const userTourSeen = hubSchema.table(
   },
   (table) => [primaryKey({ columns: [table.userId, table.moduleKey] })],
 );
-
-// Lot 9 — mot de passe oublié : lien à usage unique et de courte durée.
-// Seul le hachage du jeton est stocké (comme les sessions et invitations) ;
-// usedAt posé à la première utilisation. Table d'identité : pas de RLS,
-// isolation assurée par packages/auth (ADR 0013).
-export const passwordResets = hubSchema.table("password_resets", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  userId: uuid("user_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  tokenHash: text("token_hash").notNull().unique(),
-  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
-  usedAt: timestamp("used_at", { withTimezone: true }),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-});
 
 // Lot 10 (AIDE-05 à AIDE-07, L10-HUB-11) — progression de chaque compte dans
 // l'aide : visites focus et tutoriels. itemKey = « tour:<écran> » ou
@@ -208,31 +166,12 @@ export const sessions = hubSchema.table("sessions", {
   // Lot 33 (HUB-02) : organisation active de la session ; nulle pour l'Exploitation.
   organizationId: uuid("organization_id").references(() => organizations.id),
   tokenHash: text("token_hash").notNull().unique(),
-  // Un utilisateur au rôle professionnel doit repasser son code TOTP à
-  // chaque nouvelle session (pas seulement à la création du compte) —
-  // mfaVerified distingue une session « mot de passe validé » d'une
-  // session pleinement authentifiée pour les rôles professionnels.
+  // Lot 33 (D4) : la session a été ouverte avec une double authentification (déclaration acr
+  // du fournisseur d'identité).
   mfaVerified: boolean("mfa_verified").notNull().default(false),
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 }, (table) => [index("sessions_organization_idx").on(table.organizationId)]);
-
-// Lot 16 (L16-SEC-03, ADR 0038) — appareil de confiance : après un code de double
-// authentification validé avec « se souvenir de cet appareil », ce navigateur
-// en est dispensé pendant 90 jours. Seul le hachage du jeton est stocké (comme
-// les sessions). Révoqué par une réinitialisation du mot de passe ou de la
-// double authentification, ou par « oublier mes appareils ». Table d'identité :
-// pas de RLS, isolation assurée par packages/auth (ADR 0013).
-export const trustedDevices = hubSchema.table("trusted_devices", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  userId: uuid("user_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  tokenHash: text("token_hash").notNull().unique(),
-  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
-  lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-});
 
 // Activation d'un module par organisation (PRD PRD-HUB-03). Pas de ligne =
 // activé par défaut (absence = « jamais désactivé »), pour qu'un nouveau

@@ -911,6 +911,13 @@
       "when": 1794613175955,
       "tag": "0129_lot33a_hub_memberships",
       "breakpoints": true
+    },
+    {
+      "idx": 130,
+      "version": "7",
+      "when": 1794616173055,
+      "tag": "0130_lot33a_hub_drop_passwords",
+      "breakpoints": true
     }
   ]
 }
