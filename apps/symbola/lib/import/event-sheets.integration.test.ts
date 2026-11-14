@@ -22,8 +22,10 @@ afterAll(async () => {
   await sql.end();
 });
 
-// Date fixée : les fiches du corpus sont en 2027 et 2028.
-const NOW = new Date("2026-11-07T10:00:00Z");
+// Départ de l'import une heure avant l'horloge réelle : les lectures suivantes (colonnes,
+// rapprochements) se font à l'heure réelle, et le brouillon ne vit que quelques jours (une date fixe
+// le faisait expirer une semaine plus tard). Les fiches du corpus sont en 2027 et 2028.
+const NOW = new Date(Date.now() - 60 * 60 * 1000);
 
 async function createPlanner() {
   const organization = await createOrganization(db, `Org ${randomUUID()}`);
