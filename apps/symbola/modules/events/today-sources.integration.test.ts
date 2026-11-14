@@ -79,7 +79,7 @@ describe("UX-06 / EVT-02 — Prestataires retenus sans contrat signé (lot 32a, 
     await candidate(lea, await slot(lea, "DJ"), "Son et Lumière", "contacted");
     await candidate(past, await slot(past, "Photographe"), "Ancien studio", "retained");
     await candidate(lost, await slot(lost, "Photographe"), "Studio perdu", "retained");
-    await changeEventStatus({ organizationId, eventId: lost, changedByUserId: plannerId, toStatus: "lost", lossReasonId: null, lossReasonNote: "Choix d'un autre planner" });
+    await changeEventStatus({ organizationId, eventId: lost, changedByUserId: plannerId, toStatus: "cancelled", lossReasonId: null, lossReasonNote: "Choix d'un autre planner" });
 
     const vendors = await listUncontractedVendors(organizationId, TODAY);
     expect(vendors.map((vendor) => [vendor.candidateId, vendor.eventId, vendor.vendorName, vendor.slotLabel])).toEqual([[studio, lea, "Studio Lumière", "Photographe"]]);

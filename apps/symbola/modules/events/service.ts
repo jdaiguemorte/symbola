@@ -2,7 +2,11 @@
 // modules peuvent importer (ADR 0011). Pensé comme le futur contrat HTTP
 // /v1/events si ce module est extrait en app autonome.
 import { z } from "zod";
-import { formatCalendarDate, parisDaysSince, parisToday } from "@symbola/i18n";
+import { formatCalendarDate, isTimeZone, parisDaysSince, parisToday } from "@symbola/i18n";
+import { canSetStatus, eventPhase } from "./lifecycle";
+// Lot 34a (EVT-05) : les règles du cycle de vie, pour les écrans et lib/.
+export { canPostpone, canSetStatus, closingDue, eventPhase, FINISHED_STATUSES, FIRM_STATUSES, IN_PROGRESS_STATUSES, isInProgress, MANUAL_STATUSES, TENTATIVE_STATUSES, TIMELINE_PHASES } from "./lifecycle";
+import type { EventStatus as LifecycleStatus } from "@symbola/contracts";
 import { listTeam } from "@symbola/auth";
 import { SYSTEM_ACTOR, withActor } from "@symbola/db/actor";
 import { appDatabase } from "@symbola/db/client";
@@ -10,6 +14,13 @@ import { parseEnv } from "@symbola/env";
 import { MailQuotaExceededError, reserveOrganizationMail, sendMail } from "@symbola/mail";
 import { starterClientTaskReminders, starterDemoEvent, starterExampleEvent, starterLinkExpiry, starterLinkProfiles, starterProgram, starterRetroplanning, starterTutorialEvent, starterVendorSlots, type StarterLinkProfile } from "@symbola/starter-templates";
 import {
+  postponeEventRow,
+  confirmPostponementRow,
+  previewTaskRecalculationRows,
+  releaseEventTaskRow,
+  updateEventTimeZoneRow,
+  setTaskTemplateEventTypeRow,
+  findDefaultTaskTemplateId,
   countRealClientLinks,
   findEventNamesByIds,
   searchEventRows,
@@ -273,6 +284,7 @@ export type {
   EventClient,
   EventClientInput,
   EventDetail,
+  EventPhase,
   EventStatus,
   EventSummary,
   StaleProspect,
@@ -363,7 +375,9 @@ function toEventSummary(event: EventRow, clients: EventClientRow[]): EventSummar
   return {
     id: event.id,
     status: event.status,
+    phase: eventPhase(event),
     eventDate: event.eventDate,
+    timeZone: event.timeZone,
     venueName: event.venueName,
     venueCity: event.venueCity,
     clients: clients.map(toEventClient),
@@ -379,6 +393,8 @@ function toEventDetail(event: EventRow, clients: EventClientRow[]): EventDetail 
     lossReasonId: event.lossReasonId,
     lossReasonNote: event.lossReasonNote,
     tasksScheduledFor: event.tasksScheduledFor,
+    postponedFromDate: event.postponedFromDate,
+    postponedFromStatus: event.postponedFromStatus,
     wantedBudgetCents: event.wantedBudgetCents,
     ...(event.importedFields ? { importedFields: event.importedFields } : {}),
   };
@@ -398,7 +414,9 @@ export async function listEvents(input: ListEventsInput): Promise<EventSummary[]
 // (aucune modification de la fiche, calendrier de Paris), hors essais,
 // pour le bloc « À traiter » de l'accueil.
 export async function listStaleProspects(organizationId: string, days: number, now: Date = new Date()): Promise<StaleProspect[]> {
-  const rows = await findEvents(organizationId, { statusIn: ["prospect"] });
+  // Lot 34a (D2) : les options ; l'appelant écarte celles qui ont un devis envoyé (relancées par
+  // le devis).
+  const rows = await findEvents(organizationId, { statusIn: ["option"] });
   return rows
     .filter(({ event }) => !event.isDemo)
     .map(({ event, clients }) => ({
@@ -429,11 +447,83 @@ export async function createProspect(input: CreateProspectInput): Promise<Create
     venueName: input.venueName,
     venueCity: input.venueCity,
   });
+  // Lot 34a (EVT-01, D8) : le rétroplanning du type naît avec l'événement, Option comprise.
+  if (input.applyTemplate !== false && event.eventDate) await applyDefaultTemplate(input.organizationId, event.id, event.eventTypeId);
   return { id: event.id };
 }
 
+async function applyDefaultTemplate(organizationId: string, eventId: string, eventTypeId: string | null): Promise<void> {
+  const templateId = await findDefaultTaskTemplateId(organizationId, eventTypeId);
+  if (templateId) await applyTaskTemplateRows(organizationId, eventId, templateId);
+}
+
+// Lot 34a (EVT-05, D2 à D6) — statuts. La frise pose Option, Confirmé, En préparation, Clôturé ;
+// l'annulation passe par cancelEvent (motif), le report par postponeEvent ; un report en cours se
+// confirme (confirmPostponement), une annulation se réactive en Option.
+export class EventStatusTransitionError extends Error {
+  constructor() {
+    super("changement de statut impossible depuis le statut actuel");
+    this.name = "EventStatusTransitionError";
+  }
+}
+
+async function currentStatus(organizationId: string, eventId: string): Promise<LifecycleStatus> {
+  const found = await findEventById(organizationId, eventId);
+  if (!found) throw new EventNotFoundError();
+  return found.event.status;
+}
+
 export async function changeEventStatus(input: ChangeEventStatusInput): Promise<void> {
+  const from = await currentStatus(input.organizationId, input.eventId);
+  if (input.toStatus === "cancelled") {
+    if (from === "cancelled") throw new EventStatusTransitionError();
+  } else if (!canSetStatus(from, input.toStatus)) {
+    throw new EventStatusTransitionError();
+  }
   await updateEventStatus(input);
+}
+
+export async function cancelEvent(input: { organizationId: string; eventId: string; changedByUserId: string; lossReasonId: string | null; lossReasonNote: string | null }): Promise<void> {
+  await changeEventStatus({ ...input, toStatus: "cancelled" });
+}
+
+export async function reactivateEvent(input: { organizationId: string; eventId: string; changedByUserId: string }): Promise<void> {
+  await changeEventStatus({ ...input, toStatus: "option" });
+}
+
+export async function postponeEvent(input: { organizationId: string; eventId: string; changedByUserId: string; newDate: string | null }): Promise<void> {
+  if (input.newDate !== null) assertDate(input.newDate);
+  const result = await postponeEventRow(input);
+  if (result.status === "not_found") throw new EventNotFoundError();
+  if (result.status === "not_postponable") throw new EventStatusTransitionError();
+}
+
+// Confirmer le report : les échéances relatives suivent la nouvelle date, puis l'événement
+// retrouve son statut d'avant. Renvoie la date d'avant (pour le devis signé, D7).
+export async function confirmPostponement(input: { organizationId: string; eventId: string; changedByUserId: string }): Promise<{ previousDate: string | null; eventDate: string }> {
+  const result = await confirmPostponementRow(input);
+  if (result.status !== "confirmed") {
+    if (result.status === "not_found") throw new EventNotFoundError();
+    if (result.status === "not_postponed") throw new EventStatusTransitionError();
+    throw new EventDateRequiredError();
+  }
+  return { previousDate: result.previousDate, eventDate: result.event.eventDate! };
+}
+
+// CHR-01, EVT-05 : ce que ferait le recalcul, et les tâches qui tomberaient dans le passé.
+export type TaskRecalculationPreview = { moves: { taskId: string; label: string; fromDate: string; toDate: string }[]; inThePast: { taskId: string; label: string; toDate: string }[] };
+
+export async function previewTaskRecalculation(organizationId: string, eventId: string, today: string): Promise<TaskRecalculationPreview> {
+  assertDate(today);
+  const moves = await previewTaskRecalculationRows(organizationId, eventId);
+  if (moves === null) throw new EventNotFoundError();
+  return { moves, inThePast: moves.filter((move) => move.toDate < today).map(({ taskId, label, toDate }) => ({ taskId, label, toDate })) };
+}
+
+// ARC-17, D9 : fuseau IANA de l'événement.
+export async function setEventTimeZone(organizationId: string, eventId: string, timeZone: string): Promise<void> {
+  if (!isTimeZone(timeZone)) throw new RangeError("fuseau inconnu");
+  if (!(await updateEventTimeZoneRow(organizationId, eventId, timeZone))) throw new EventNotFoundError();
 }
 
 // Lot 16 (ADR 0045) — types d'événement (modules/events/event-types.ts).
@@ -934,7 +1024,7 @@ function toTaskTemplateItem(row: TaskTemplateItemRow): TaskTemplateItem {
 }
 
 function toTaskTemplate(template: TaskTemplateRow, items: TaskTemplateItemRow[]): TaskTemplate {
-  return { id: template.id, name: template.name, items: items.map(toTaskTemplateItem) };
+  return { id: template.id, name: template.name, eventTypeId: template.eventTypeId, items: items.map(toTaskTemplateItem) };
 }
 
 function toEventTask(row: EventTaskRow): EventTask {
@@ -946,6 +1036,8 @@ function toEventTask(row: EventTaskRow): EventTask {
     responsible: row.responsible,
     done: row.doneAt !== null,
     position: row.position,
+    offsetDays: row.offsetDays,
+    fixed: row.fixedAt !== null,
     ...(row.importedFields ? { importedFields: row.importedFields } : {}),
   };
 }
@@ -958,9 +1050,18 @@ export async function createTaskTemplate(
   organizationId: string,
   name: string,
   items: TaskTemplateItemInput[],
+  eventTypeId: string | null = null,
 ): Promise<TaskTemplate> {
-  const result = await insertTaskTemplate(organizationId, normalizeLabel(name), items.map(normalizeTemplateItem));
+  if (eventTypeId) await assertEventTypeOf(organizationId, eventTypeId);
+  const result = await insertTaskTemplate(organizationId, normalizeLabel(name), items.map(normalizeTemplateItem), eventTypeId);
   return toTaskTemplate(result.template, result.items);
+}
+
+// Lot 34a (EVT-01, D8) : rattacher un modèle à un type d'événement, ou le détacher.
+export async function setTaskTemplateEventType(organizationId: string, templateId: string, eventTypeId: string | null): Promise<void> {
+  // La clé étrangère ne voit pas la RLS : le type doit être de l'organisation.
+  if (eventTypeId) await assertEventTypeOf(organizationId, eventTypeId);
+  if (!(await setTaskTemplateEventTypeRow(organizationId, templateId, eventTypeId))) throw new TaskTemplateNotFoundError();
 }
 
 export async function addTaskTemplateItem(
@@ -1000,8 +1101,13 @@ export async function changeEventDate(
   eventDate: string | null,
 ): Promise<TaskRecalculation> {
   if (eventDate !== null) assertDate(eventDate);
+  const before = await findEventById(organizationId, eventId);
   const recalculation = await updateEventDateRow(organizationId, eventId, eventDate);
   if (!recalculation) throw new EventNotFoundError();
+  // Lot 34a (EVT-01, D8) : sa première date donne son rétroplanning à un évènement qui n'en a pas.
+  if (before && before.event.eventDate === null && eventDate !== null && (await findEventTasks(organizationId, eventId)).length === 0) {
+    await applyDefaultTemplate(organizationId, eventId, before.event.eventTypeId);
+  }
   return recalculation;
 }
 
@@ -1082,6 +1188,13 @@ export async function updateEventTask(input: UpdateEventTaskInput): Promise<Even
   }
   const label = input.label === undefined ? undefined : normalizeLabel(input.label);
   const row = await updateEventTaskRow({ ...input, label });
+  if (!row) throw new EventTaskNotFoundError();
+  return toEventTask(row);
+}
+
+// Lot 34a (DAT-07) : une tâche fixée redevient relative, à sa date d'écart.
+export async function releaseEventTask(organizationId: string, taskId: string): Promise<EventTask> {
+  const row = await releaseEventTaskRow(organizationId, taskId);
   if (!row) throw new EventTaskNotFoundError();
   return toEventTask(row);
 }
@@ -1442,7 +1555,7 @@ function toEventLink(context: LinkWithContext, now = new Date()): EventLink {
 // Un lien vaut s'il n'est ni retiré ni expiré, et si son événement n'est ni
 // perdu ni un essai.
 function usableLink(context: LinkWithContext, now: Date): boolean {
-  return !context.link.revokedAt && !isLinkExpired(expiresOnOf(context), now) && context.event.status !== "lost" && !context.event.isDemo;
+  return !context.link.revokedAt && !isLinkExpired(expiresOnOf(context), now) && context.event.status !== "cancelled" && !context.event.isDemo;
 }
 
 function toLinkAccess(context: LinkWithContext): LinkAccess {
@@ -1709,7 +1822,7 @@ export async function requestLinkRenewal(token: string, now: Date = new Date()):
   const parsed = parseLinkToken(token);
   if (!parsed) return;
   const context = await findLinkByTokenHash(parsed.organizationId, hashLinkSecret(parsed.secret));
-  if (!context || context.link.revokedAt || context.event.isDemo || context.event.status === "lost") return;
+  if (!context || context.link.revokedAt || context.event.isDemo || context.event.status === "cancelled") return;
   if (!isLinkExpired(expiresOnOf(context), now)) return;
   const fresh = await withActor({ kind: "link", id: context.link.id }, () => markLinkRenewalRequestedRow(parsed.organizationId, context.link.id, now));
   if (fresh) await notifyRenewalRequest(parsed.organizationId, context);

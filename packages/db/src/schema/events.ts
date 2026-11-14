@@ -7,15 +7,17 @@ import { boolean, check, date, integer, pgSchema, text, time, timestamp, unique,
 
 export const eventsSchema = pgSchema("events");
 
-// Statuts fixes du cycle de vie d'un événement (PRD PRD-EVT-02) — pas une
-// liste personnalisable par organisation, à la différence des sources de
-// prospect et des motifs de perte ci-dessous.
+// Statuts fixes du cycle de vie d'un événement — pas une liste personnalisable par organisation,
+// à la différence des sources de prospect et des motifs de perte ci-dessous. Lot 34a (EVT-05,
+// ADR 0055, décisions D2 et D3) : Option, Confirmé, En préparation, Clôturé, Reporté, Annulé ;
+// « Jour J » n'est pas stocké, il s'applique de lui-même le jour de l'événement, dans son fuseau.
 export const eventStatusEnum = eventsSchema.enum("event_status", [
-  "prospect",
-  "quote_sent",
+  "option",
   "confirmed",
-  "done",
-  "lost",
+  "in_preparation",
+  "closed",
+  "postponed",
+  "cancelled",
 ]);
 
 // PRD-EVT-07 : « la source est obligatoire, choisie dans une liste qu'elle
@@ -76,10 +78,16 @@ export const eventTypes = eventsSchema.table(
 export const events = eventsSchema.table("events", {
   id: uuid("id").defaultRandom().primaryKey(),
   organizationId: uuid("organization_id").notNull(),
-  status: eventStatusEnum("status").notNull().default("prospect"),
+  status: eventStatusEnum("status").notNull().default("option"),
   // Date sans heure (CLAUDE.md §5) ; nulle tant que la date n'est pas
   // fixée (« Date à définir », PRD-EVT-01).
   eventDate: date("event_date"),
+  // Lot 34a (ARC-17, D9) : fuseau IANA de l'événement ; les heures liées à l'événement s'y
+  // affichent, et le jour J s'y compte.
+  timeZone: text("time_zone").notNull().default("Europe/Paris"),
+  // Lot 34a (EVT-05, D4) : un report garde la date et le statut d'avant, jusqu'à sa confirmation.
+  postponedFromDate: date("postponed_from_date"),
+  postponedFromStatus: eventStatusEnum("postponed_from_status"),
   // Lieu en texte libre : l'app Prestataires (fiches réutilisables) est
   // V2, hors MVP (cahier des charges §5.5).
   venueName: text("venue_name"),
@@ -114,7 +122,10 @@ export const events = eventsSchema.table("events", {
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdBy: uuid("created_by"),
   updatedBy: uuid("updated_by"),
-}, (table) => [index("events_organization_idx").on(table.organizationId)]);
+}, (table) => [
+  index("events_organization_idx").on(table.organizationId),
+  check("events_time_zone_check", sql`char_length(${table.timeZone}) between 1 and 64`),
+]);
 
 // Prénoms/noms affichés dans la liste (PRD-EVT-01) ; position fixe l'ordre
 // d'affichage (ex. « Alice & Bob »).
@@ -271,6 +282,8 @@ export const taskTemplates = eventsSchema.table("task_templates", {
   id: uuid("id").defaultRandom().primaryKey(),
   organizationId: uuid("organization_id").notNull(),
   name: text("name").notNull(),
+  // Lot 34a (EVT-01, D8) : modèle du type d'événement, appliqué dès la création.
+  eventTypeId: uuid("event_type_id").references(() => eventTypes.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdBy: uuid("created_by"),
@@ -307,6 +320,11 @@ export const eventTasks = eventsSchema.table("event_tasks", {
   label: text("label").notNull(),
   // Échéance, date sans heure (CLAUDE.md §5).
   dueDate: date("due_date").notNull(),
+  // Lot 34a (DAT-07, D5) : écart en jours avec la date de l'événement (J-90 = -90) ; nul pour une
+  // tâche sans date relative. Une tâche déplacée à la main est fixée (fixedAt) : sa date absolue
+  // fait foi et le report ne la bouge plus.
+  offsetDays: integer("offset_days"),
+  fixedAt: timestamp("fixed_at", { withTimezone: true }),
   responsible: taskResponsibleEnum("responsible").notNull().default("planner"),
   doneAt: timestamp("done_at", { withTimezone: true }),
   position: integer("position").notNull().default(0),

@@ -26,6 +26,7 @@ import {
   addQuoteLine,
   addScheduleItem,
   createQuote,
+  followEventDateInSignedQuotes,
   getEReporting,
   getInvoice,
   issueBalanceInvoice,
@@ -516,5 +517,35 @@ describe("FAC-07 / JUR-01 — Mentions exigées sur les factures (lot 31a, D4)",
 
     await fillRequiredMentions(organizationId);
     expect((await issueDepositInvoice({ renderOriginal: renderInvoice, organizationId, scheduleItemId: items[0]!.id, now: NOW })).number).toBe(year("F", 1));
+  });
+});
+
+// Lot 34a (EVT-05, FAC-13 ; D7) : au report, les échéances du devis signé, ni payées ni facturées
+// et dues après la signature, suivent la nouvelle date ; le geste est au journal, le PDF signé reste.
+describe("EVT-05 / FAC-13 — Report : l'échéancier du devis signé suit la date (lot 34a, D7)", () => {
+  const scheduleOf = async (organizationId: string, quoteId: string) => (await getQuote(organizationId, quoteId)).current.schedule.items.map((item) => item.dueDate);
+
+  it("une échéance facturée ne bouge pas ; les autres suivent l'écart des deux dates, au journal", async () => {
+    const { organizationId, plannerId, eventId, quoteId, number, items } = await signedQuote();
+    await issueDepositInvoice({ renderOriginal: renderInvoice, organizationId, scheduleItemId: items[0]!.id, now: NOW });
+
+    expect(await followEventDateInSignedQuotes({ organizationId, eventId, userId: plannerId, fromDate: "2027-09-18", toDate: "2027-10-02" })).toBe(1);
+    expect(await scheduleOf(organizationId, quoteId)).toEqual(["2027-04-15", "2027-06-15"]);
+    const journal = await withDb((db) => withOrganization(db, organizationId, (tx) => tx.select().from(auditEntries).where(eq(auditEntries.action, "quotes.schedule.shifted"))));
+    expect(journal.map((entry) => [entry.objectId, entry.details])).toEqual([[quoteId, { number, items: 1, days: 14 }]]);
+  });
+
+  it("une échéance payée ne bouge pas ; même date, autre organisation : rien ne change", async () => {
+    const { organizationId, plannerId, eventId, quoteId, items } = await signedQuote();
+    const [method] = await addPaymentMethods(organizationId, ["Virement bancaire"]);
+    await markScheduleItemPaid({ organizationId, scheduleItemId: items[0]!.id, paidOn: "2027-04-10", paymentMethodId: method!.id, now: NOW });
+
+    expect(await followEventDateInSignedQuotes({ organizationId, eventId, userId: plannerId, fromDate: "2027-09-18", toDate: "2027-09-18" })).toBe(0);
+    const other = await organization();
+    expect(await followEventDateInSignedQuotes({ organizationId: other.organizationId, eventId, userId: other.plannerId, fromDate: "2027-09-18", toDate: "2027-08-28" })).toBe(0);
+    expect(await scheduleOf(organizationId, quoteId)).toEqual(["2027-04-15", "2027-06-01"]);
+
+    expect(await followEventDateInSignedQuotes({ organizationId, eventId, userId: plannerId, fromDate: "2027-09-18", toDate: "2027-08-28" })).toBe(1);
+    expect(await scheduleOf(organizationId, quoteId)).toEqual(["2027-04-15", "2027-05-11"]);
   });
 });

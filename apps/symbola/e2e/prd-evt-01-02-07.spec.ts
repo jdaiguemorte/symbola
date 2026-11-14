@@ -79,7 +79,7 @@ test("PRD-EVT-07 — la planner paramètre ses sources et motifs de perte, puis 
   await expectNoAxeViolation(page);
 });
 
-test("PRD-EVT-01/02 — un prospect apparaît dans la liste, passe en Confirmé puis en Perdu avec un motif obligatoire", async ({
+test("PRD-EVT-01/02 / EVT-05 — un prospect apparaît dans la liste en Option, passe en Confirmé puis s'annule avec un motif obligatoire", async ({
   page,
 }) => {
   await createPlanner(page);
@@ -102,12 +102,12 @@ test("PRD-EVT-01/02 — un prospect apparaît dans la liste, passe en Confirmé 
   await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}$/);
   const detailUrl = page.url();
 
-  // PRD-EVT-01 : le prospect sans date est listé « Date à définir », avec son statut.
+  // PRD-EVT-01 : le prospect sans date est listé « Date à définir », avec son statut (Option, lot 34a).
   await page.goto("/events");
   // L13-EVT-18 : une ligne du tableau par événement.
   const item = page.getByRole("row", { name: new RegExp(`${firstName} & Sacha`) });
   await expect(item).toContainText("Date à définir");
-  await expect(item).toContainText("Prospect");
+  await expect(item).toContainText("Option");
   // L13-EVT-18 : l'année se choisit dans une liste (jamais 1 ni −1) et les
   // filtres ont tous la même hauteur.
   const years = await page.getByLabel("Année").locator("option").allTextContents();
@@ -138,28 +138,28 @@ test("PRD-EVT-01/02 — un prospect apparaît dans la liste, passe en Confirmé 
   await page.goto("/events");
   await expect(item).toContainText("Confirmé");
 
-  // PRD-EVT-02 : Perdu exige un motif, et une précision pour le motif « Autre ».
+  // PRD-EVT-02, EVT-05 (lot 34a, D6) : l'annulation exige un motif, et une précision pour le motif
+  // « Autre » ; la question nomme l'évènement (UX-07).
   await page.goto(detailUrl);
   // Attend l'hydratation : un envoi avant elle partirait sans retour d'erreur.
   await page.waitForLoadState("networkidle");
-  // « Perdu… » ouvre le choix du motif (obligatoire) ; le motif « Autre »
-  // demande une précision avant de confirmer.
-  await page.getByRole("button", { name: "Marquer perdu…" }).click();
-  await expect(page.getByLabel("Motif de perte")).toHaveAttribute("required", "");
-  await page.getByLabel("Motif de perte").selectOption({ label: "Autre" });
+  await page.getByRole("button", { name: "Annuler l'évènement…" }).click();
+  await expect(page.getByRole("form", { name: `Annuler l'évènement ${firstName} & Sacha ?` })).toBeVisible();
+  await expect(page.getByLabel("Motif de perte ou d'annulation")).toHaveAttribute("required", "");
+  await page.getByLabel("Motif de perte ou d'annulation").selectOption({ label: "Autre" });
   await expect(page.getByLabel("Précision sur le motif")).toHaveAttribute("required", "");
   await expectNoAxeViolation(page);
 
   await page.getByLabel("Précision sur le motif").fill("Le couple a choisi un autre lieu.");
-  await page.getByRole("button", { name: "Confirmer « Perdu »" }).click();
+  await page.getByRole("button", { name: "Annuler l'évènement", exact: true }).click();
   await expect(page.getByText("Statut mis à jour.")).toBeVisible();
   await expect(page.locator("form p[role=alert]")).toHaveCount(0);
 
-  // Les événements perdus sont dans l'onglet séparé « Terminés ».
+  // Les évènements annulés sont dans l'onglet séparé « Terminés ».
   await page.goto("/events");
   await expect(item).toHaveCount(0);
   await page.getByRole("link", { name: "Terminés" }).click();
   await expect(page).toHaveURL(/tab=termines/);
-  await expect(item).toContainText("Perdu");
+  await expect(item).toContainText("Annulé");
   await expectNoAxeViolation(page);
 });

@@ -925,6 +925,13 @@
       "when": 1794654391203,
       "tag": "0131_lot33b_hub_onboarding",
       "breakpoints": true
+    },
+    {
+      "idx": 132,
+      "version": "7",
+      "when": 1794687042793,
+      "tag": "0132_lot34a_events_lifecycle",
+      "breakpoints": true
     }
   ]
 }

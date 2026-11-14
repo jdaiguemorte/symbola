@@ -179,6 +179,10 @@ test("FAC-04 / DOC-03 / FAC-05 / SC-02 étapes 4 à 7 — contrat généré (pro
     await expect(invoices).toContainText(/F-\d{4}-0001 — Facture d'acompte \(À la signature\)/, { timeout: 2_000 });
   }).toPass({ timeout: 90_000, intervals: [5_000] });
   await expectNoAxeViolation(page);
+
+  // Lot 34a (EVT-05, D6) : la signature a confirmé l'option.
+  await page.goto(`/events/${setup.eventId}`);
+  await expect(page.getByRole("list", { name: "Statut de l'événement" }).getByRole("listitem").filter({ hasText: "Confirmé" })).toHaveAttribute("aria-current", "step");
 });
 
 test("HUB-21 / JUR-20 — Modèles de contrat : bandeau « à adapter », version et date de revue, variables documentées", async ({ page }) => {

@@ -12,20 +12,15 @@ import { getImportGapsView } from "@/lib/import/gaps";
 import { rowEventReference } from "@/lib/import/matching";
 import { importStepHref } from "@/lib/import/wizard";
 import { listVendorTags } from "@/modules/vendors/service";
+import { STATUS_LABEL_KEYS } from "@/app/events/event-status";
 import { ImportHeader } from "../../import-header";
 import { importStepContext, wantsAbandon } from "../../step-context";
 import { reasonText } from "../ecarts/reasons";
 import { saveSheetStatusesAction } from "./actions";
 import { ConfirmForm } from "./confirm-form";
 
-// Décision J : libellés des statuts (fiche événement, module events).
-const STATUS_KEYS: Record<string, string> = {
-  prospect: "statusProspect",
-  quote_sent: "statusQuoteSent",
-  confirmed: "statusConfirmed",
-  done: "statusDone",
-  lost: "statusLost",
-};
+// Décision J : libellés des statuts (fiche événement, module events) ; statuts du lot 34a (EVT-05).
+const STATUS_KEYS: Record<string, string> = STATUS_LABEL_KEYS;
 
 // IMP-05 — « Avant confirmation, elle voit le résultat : X créations, Y mises
 // à jour, Z lignes rejetées, avec un échantillon. » Lot 16 (IMP-11, ADR 0041) :
@@ -149,10 +144,10 @@ export default async function ImportConfirmationPage({
                   <li key={row.rowIndex}>
                     <input type="hidden" name="rowIndex" value={row.rowIndex} />
                     <label htmlFor={`status-${row.rowIndex}`}>{t("rowHeading", { line: row.lineNumber, title })}</label>
-                    <select id={`status-${row.rowIndex}`} name={`status-${row.rowIndex}`} defaultValue={typeof row.values.status === "string" ? row.values.status : "prospect"}>
+                    <select id={`status-${row.rowIndex}`} name={`status-${row.rowIndex}`} defaultValue={typeof row.values.status === "string" ? row.values.status : "option"}>
                       {EVENT_STATUS_CHOICES.map((status) => (
                         <option key={status} value={status}>
-                          {tEvents(STATUS_KEYS[status] ?? "statusProspect")}
+                          {tEvents(STATUS_KEYS[status] ?? "statusOption")}
                         </option>
                       ))}
                     </select>

@@ -188,7 +188,7 @@ describe("RGPD-05 — Purge mensuelle : liste des données échues (dates simul�
     // Purgé : introuvable, statistiques gardées ; l'exclu est intact et revient.
     expect((await searchPerson({ organizationId: planner.organizationId, terms: { name: lostName } }))!.records).toEqual([]);
     const [purgedEvent] = await withOrganization(db, planner.organizationId, (tx) => tx.select().from(events).where(eq(events.id, toPurge)));
-    expect(purgedEvent).toMatchObject({ status: "prospect", prospectSourceId: planner.sourceId, eventDate: "2027-06-01" });
+    expect(purgedEvent).toMatchObject({ status: "option", prospectSourceId: planner.sourceId, eventDate: "2027-06-01" });
     expect((await searchPerson({ organizationId: planner.organizationId, terms: { name: keptName } }))!.records.length).toBeGreaterThan(0);
     expect(await keys(planner, addMonths(day, 1))).toEqual([`prospect:event:${toKeep}`]);
   });

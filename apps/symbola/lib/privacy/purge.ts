@@ -34,8 +34,11 @@ export type PurgeCandidate = {
   eventDate: string | null;
 };
 
-const PROSPECT_STATUSES = new Set(["prospect", "quote_sent", "lost"]);
-const CLIENT_STATUSES = new Set(["confirmed", "done"]);
+// Lot 34a (D2) : une option, ou un événement annulé sans avoir été confirmé, suit la règle des
+// prospects ; tout événement confirmé un jour suit celle des clients.
+type RetentionStatus = { status: string; everConfirmed: boolean };
+const isProspect = (event: RetentionStatus) => event.status === "option" || (event.status === "cancelled" && !event.everConfirmed);
+const isClient = (event: RetentionStatus) => !isProspect(event);
 
 export function purgePeriod(today: string): string {
   return today.slice(0, 7);
@@ -50,15 +53,15 @@ export async function listPurgeCandidates(organizationId: string, today: string 
   const events = await listRetentionEvents(organizationId);
   const payments = await quotesLastPaymentDates(
     organizationId,
-    events.filter((event) => CLIENT_STATUSES.has(event.status)).map((event) => event.eventId),
+    events.filter(isClient).map((event) => event.eventId),
   );
   for (const event of events) {
     let rule: PurgeRule | null = null;
     let dueOn: string | null = null;
-    if (PROSPECT_STATUSES.has(event.status)) {
+    if (isProspect(event)) {
       rule = "prospect";
       dueOn = prospectDueOn(event.activityDates, settings);
-    } else if (CLIENT_STATUSES.has(event.status)) {
+    } else if (isClient(event)) {
       rule = "client";
       dueOn = clientDueOn({ eventDate: event.eventDate, lastPaymentOn: payments.get(event.eventId) ?? null }, settings);
     }

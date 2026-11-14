@@ -170,6 +170,7 @@ import {
   type OriginalKind,
 } from "./pieces";
 import {
+  shiftScheduleItemDueDatesRows,
   countRealQuotes,
   findCreditNoteById,
   findEReportingRows,
@@ -1011,6 +1012,12 @@ export async function listQuotesAwaitingAnswer(
     .filter((row) => row.daysSince >= days);
 }
 
+// Lot 34a (EVT-05, D2) : les évènements dont un devis est parti (envoyé ou signé). Une option
+// ainsi relancée par son devis n'est pas un prospect sans nouvelle.
+export async function listEventIdsWithSentQuote(organizationId: string): Promise<Set<string>> {
+  return new Set((await findQuotes(organizationId)).filter((quote) => quote.status === "sent" || quote.status === "signed").map((quote) => quote.eventId));
+}
+
 export async function listQuotes(organizationId: string): Promise<QuoteSummary[]> {
   return summarize(organizationId, await findQuotes(organizationId));
 }
@@ -1367,6 +1374,42 @@ async function quoteAsTemplateContent(organizationId: string, quoteId: string): 
 
 function daysBetweenDates(from: string, to: string): number {
   return Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86_400_000);
+}
+
+// Lot 34a (FAC-13, D7) — un événement reporté : les échéances de ses devis signés qui dépendent de
+// sa date suivent le même écart. Ne bougent pas : celles déjà payées, celles déjà facturées, et
+// celles dues au plus tard le jour de la signature (« à la signature »). Le PDF signé reste tel
+// qu'il a été signé ; le décalage va au journal d'activité.
+export async function followEventDateInSignedQuotes(input: { organizationId: string; eventId: string; userId: string; fromDate: string; toDate: string }): Promise<number> {
+  const shift = daysBetweenDates(input.fromDate, input.toDate);
+  if (shift === 0) return 0;
+  let shifted = 0;
+  for (const quote of await findEventQuotes(input.organizationId, input.eventId)) {
+    if (quote.status !== "signed" || quote.isDemo) continue;
+    const aggregate = await findQuoteAggregate(input.organizationId, quote.id);
+    const version = aggregate?.versions.find((candidate) => candidate.version === quote.currentVersion);
+    const signedAt = aggregate?.signers.map((signer) => signer.signedAt).filter((at): at is Date => at !== null).sort((a, b) => b.getTime() - a.getTime())[0];
+    if (!aggregate || !version || !signedAt) continue;
+    const signedOn = parisDate(signedAt);
+    const invoiced = new Set((await listQuoteInvoices(input.organizationId, quote.id)).filter((invoice) => invoice.creditedCents < invoice.amountCents).map((invoice) => invoice.scheduleItemId));
+    const updates = aggregate.scheduleItems
+      .filter((item) => item.versionId === version.id && item.paidOn === null && !invoiced.has(item.id) && item.dueDate > signedOn)
+      .map((item) => ({ id: item.id, dueDate: addCalendarDays(item.dueDate, shift) }));
+    if (updates.length === 0) continue;
+    await shiftScheduleItemDueDatesRows(input.organizationId, updates);
+    await withDb((db) =>
+      recordAudit(db, {
+        organizationId: input.organizationId,
+        action: "quotes.schedule.shifted",
+        objectType: "quote",
+        objectId: quote.id,
+        details: { number: quote.number, items: updates.length, days: shift },
+        actor: { kind: "member", id: input.userId },
+      }),
+    );
+    shifted += updates.length;
+  }
+  return shifted;
 }
 
 export async function saveQuoteAsTemplate(input: { organizationId: string; quoteId: string; name: string; eventTypeId: string | null }): Promise<QuoteTemplateSummary> {
@@ -2078,7 +2121,9 @@ async function confirmSignedQuote(organizationId: string, quoteId: string): Prom
   const aggregate = await findQuoteAggregate(organizationId, quoteId);
   const createdByUserId = aggregate?.quote.createdByUserId;
   const event = await getEvent(organizationId, quote.eventId);
-  if (event && createdByUserId && event.status !== "confirmed" && event.status !== "done") {
+  // Lot 34a (EVT-05) : la signature confirme une option ; un événement déjà confirmé, reporté,
+  // clôturé ou annulé garde son statut (une signature tardive ne réveille pas un annulé).
+  if (event && createdByUserId && event.status === "option") {
     await changeEventStatus({ organizationId, eventId: quote.eventId, changedByUserId: createdByUserId, toStatus: "confirmed" });
   }
   if (quote.isDemo || !createdByUserId) return;
@@ -3364,7 +3409,12 @@ export async function issueScheduledDepositInvoices(input: IssueScheduledDeposit
   const due = await findDueScheduledDeposits(input.organizationId, parisDate(now), input.quoteId);
   let issued = 0;
   let blocked = 0;
+  // Lot 34a (FAC-13, D6) : rien ne s'émet pour un événement annulé ; la facture attend, et part
+  // si l'événement est réactivé.
+  const cancelled = new Map<string, boolean>();
   for (const entry of due) {
+    if (!cancelled.has(entry.eventId)) cancelled.set(entry.eventId, (await getEvent(input.organizationId, entry.eventId))?.status === "cancelled");
+    if (cancelled.get(entry.eventId)) continue;
     const locale = await creatorLocale(input.organizationId, entry.createdByUserId);
     try {
       await issueDepositInvoice({

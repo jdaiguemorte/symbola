@@ -12,9 +12,7 @@ import { join } from "node:path";
 import { createAppConnection } from "@symbola/db/client";
 import { createOrganization, createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
-import * as OTPAuth from "otpauth";
 import {
-  applyTaskTemplate,
   changeEventStatus,
   createProspect,
   createTaskTemplate,
@@ -29,37 +27,21 @@ import { createVendor, createVendorTag, listVendorTypes } from "../modules/vendo
 import { createPrivacyRequest, saveDocumentDetails } from "../modules/hub/service";
 import { fillRequiredMentions } from "../lib/test-fixtures/legal-mentions";
 import { HELP_SCREENS } from "../lib/help/screens";
+import { signIn } from "../e2e/helpers";
 
 const OUT = join(__dirname, "..", "public", "aide", "captures") + "/";
 
-async function login(page: Page, email: string, password: string) {
-  await page.goto("/login");
-  await page.getByLabel("E-mail").fill(email);
-  await page.getByLabel("Mot de passe").fill(password);
-  await page.getByRole("button", { name: "Se connecter" }).click();
-  await expect(page).toHaveURL(/\/mfa$/);
-  const uri = await page.locator("code").textContent();
-  const secret = new URL(uri!.replace("otpauth://totp/", "https://x/")).searchParams.get("secret")!;
-  await page.getByLabel("Code").fill(new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret) }).generate());
-  await page.getByRole("button", { name: "Valider" }).click();
-  await expect(page).toHaveURL(/\/demarrage/);
+// Lot 33a : lien magique et fournisseur d'identité, comme les parcours (e2e/helpers.ts).
+async function login(page: Page, email: string) {
+  await signIn(page, email);
 }
 
-// Assistant de démarrage (ONB-03), comme une wedding planner : listes et modèles de départ.
+// Lot 33b (HUB-09) : le questionnaire, comme une wedding planner ; « Passer » garde les réponses
+// proposées (wedding planner, mariage, franchise en base) et charge les listes et modèles de départ.
 async function runSetup(page: Page) {
-  // Tant que le démarrage n'est pas fini, les écrans renvoient vers l'assistant.
-  await page.goto("/events");
-  await expect(page).toHaveURL(/\/demarrage/);
-  await page.getByRole("radio", { name: /Wedding planner/ }).check();
-  // Lot 18 (AIDE-13) : 7 étapes, la 4ᵉ « Vos documents » (facultative) validée telle quelle.
-  for (const step of [2, 3, 4, 5, 6, 7]) {
-    if (step === 3) await page.getByLabel("Forme juridique").selectOption("sas");
-    if (step === 4) await page.getByRole("radio", { name: /Franchise en base/ }).check();
-    await page.getByRole("button", { name: "Valider et continuer" }).click();
-    await expect(page).toHaveURL(new RegExp(`/demarrage\\?etape=${step}$`));
-  }
-  await page.getByRole("button", { name: "Terminer et découvrir Symbola" }).click();
-  await expect(page).toHaveURL(/\/\?demarrage=termine$/);
+  await page.goto("/demarrage");
+  for (let step = 1; step <= 5; step += 1) await page.getByRole("button", { name: "Passer" }).click();
+  await expect(page).toHaveURL(/\/demarrage\/pret$/);
 }
 
 async function seed(organizationId: string, userId: string) {
@@ -75,9 +57,11 @@ async function seed(organizationId: string, userId: string) {
   await make([{ firstName: "Sarah" }, { firstName: "Yanis" }], "2028-07-01", "Ferme du Vert Bocage", "Lens");
 
   await changeEventStatus({ organizationId, eventId: confirmed, changedByUserId: userId, toStatus: "confirmed" });
-  await changeEventStatus({ organizationId, eventId: quoted, changedByUserId: userId, toStatus: "quote_sent" });
+  await changeEventStatus({ organizationId, eventId: quoted, changedByUserId: userId, toStatus: "in_preparation" });
 
-  const template = await createTaskTemplate(organizationId, "Mariage — 12 mois", [
+  // Lot 34a (EVT-01, D8) : le rétroplanning de départ est né avec chaque évènement daté ; ce
+  // modèle-ci reste dans la liste des modèles.
+  await createTaskTemplate(organizationId, "Mariage — 12 mois", [
     { label: "Réserver le lieu de réception", offsetDays: -365, responsible: "planner" },
     { label: "Choisir le photographe", offsetDays: -300, responsible: "clients" },
     { label: "Envoyer les faire-part", offsetDays: -120, responsible: "clients" },
@@ -85,7 +69,6 @@ async function seed(organizationId: string, userId: string) {
     { label: "Plan de table définitif", offsetDays: -14, responsible: "clients" },
     { label: "Briefing des prestataires", offsetDays: -7, responsible: "planner" },
   ]);
-  await applyTaskTemplate(organizationId, confirmed, template.id);
 
   const items = [
     await createCatalogItem(organizationId, { label: "Organisation complète", unit: "forfait", unitPriceCents: 450000, vatRateBasisPoints: 0, category: "Organisation" }),
@@ -167,7 +150,7 @@ test("captures des écrans pour le centre d'aide", async ({ page }) => {
   } finally {
     await sql.end();
   }
-  await login(page, email, password);
+  await login(page, email);
   await runSetup(page);
   // Lot 31a (FAC-07) : un devis ne part qu'avec les mentions requises ; valeurs fictives (SAS de
   // l'assistant : immatriculation et capital en plus).

@@ -73,3 +73,13 @@ describe("JRJ-01 — « Maintenant » et « Ensuite » (décision D2)", () => {
     expect(timelineSpans([item("b", "14:00", "15:00"), item("a", "09:00", "10:00")]).map((span) => span.id)).toEqual(["a", "b"]);
   });
 });
+
+describe("ARC-17 — « Maintenant » dans le fuseau de l'évènement (lot 34a, D9)", () => {
+  it("à Montréal, 15 h 40 locales tombent dans la cérémonie, quelle que soit l'heure de Paris", () => {
+    // 15 h 40 à Montréal (UTC-4 en juin) = 21 h 40 à Paris.
+    const montreal = new Date("2027-06-12T19:40:00Z");
+    expect(dayMoment(wedding, DAY, montreal, "America/Montreal")).toMatchObject({ phase: "now", currentId: "ceremonie" });
+    expect(dayMoment(wedding, DAY, montreal)).not.toMatchObject({ currentId: "ceremonie" });
+  });
+});
+

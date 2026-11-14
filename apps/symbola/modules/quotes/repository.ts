@@ -2189,3 +2189,14 @@ export async function countRealQuotes(organizationId: string): Promise<number> {
     return row?.count ?? 0;
   });
 }
+
+// Lot 34a (FAC-13, D7) : au report confirmé, les échéances d'un devis signé qui suivent la date de
+// l'événement (ni payées, ni facturées) prennent leur nouvelle date. Le PDF signé ne change pas.
+export async function shiftScheduleItemDueDatesRows(organizationId: string, updates: { id: string; dueDate: string }[]): Promise<void> {
+  if (updates.length === 0) return;
+  await inOrganization(organizationId, async (tx) => {
+    for (const update of updates) {
+      await tx.update(paymentScheduleItems).set({ dueDate: update.dueDate }).where(eq(paymentScheduleItems.id, update.id));
+    }
+  });
+}

@@ -268,7 +268,7 @@ export async function importEventRows(input: {
       }
 
       const clients = rowClients(row.values, []) ?? [];
-      const finalStatus: EventStatus = status ?? "prospect";
+      const finalStatus: EventStatus = status ?? "option";
       const [event] = await tx
         .insert(events)
         .values({

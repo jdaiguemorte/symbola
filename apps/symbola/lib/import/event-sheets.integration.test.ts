@@ -107,22 +107,22 @@ describe("IMP-08 — Importer ses événements depuis les fiches PDF", () => {
     expect(event.importedFields).toMatchObject({ Note: "Cérémonie laïque", "Total Payé": "3200,00 €", Solde: "18450,50 €", Total: "21650,50 €" });
   });
 
-  it("décision J : confirmé (date à venir et lieu), réalisé (date passée) ; la planner change le statut d'une ligne dans l'aperçu", async () => {
+  it("décision J : confirmé (date à venir et lieu), clôturé (date passée, lot 34a) ; la planner change le statut d'une ligne dans l'aperçu", async () => {
     const planner = await createPlanner();
     // Le 1er juillet 2027, la fiche du 12 juin 2027 est passée.
     const importId = await startSheets(planner, ALL.map(sheet), new Date("2027-07-01T08:00:00Z"));
     let preview = await getImportPreview(planner.organizationId, importId);
-    expect(preview!.creations.map((row) => row.values.status)).toEqual(["done", "confirmed", "confirmed"]);
+    expect(preview!.creations.map((row) => row.values.status)).toEqual(["closed", "confirmed", "confirmed"]);
 
     const third = preview!.creations[2]!;
-    expect(await setEventSheetStatuses(planner.organizationId, importId, [{ rowIndex: third.rowIndex, status: "prospect" }])).toBe(true);
+    expect(await setEventSheetStatuses(planner.organizationId, importId, [{ rowIndex: third.rowIndex, status: "option" }])).toBe(true);
     expect(await setEventSheetStatuses(planner.organizationId, importId, [{ rowIndex: third.rowIndex, status: "inconnu" }])).toBe(false);
     preview = await getImportPreview(planner.organizationId, importId);
-    expect(preview!.creations.map((row) => row.values.status)).toEqual(["done", "confirmed", "prospect"]);
+    expect(preview!.creations.map((row) => row.values.status)).toEqual(["closed", "confirmed", "option"]);
 
     await confirmImport({ ...planner, importId, defaultProspectSourceId: planner.sourceId });
     const statuses = (await listEvents({ organizationId: planner.organizationId })).map((event) => `${event.eventDate} ${event.status}`).sort();
-    expect(statuses).toEqual(["2027-06-12 done", "2027-09-03 confirmed", "2028-12-09 prospect"]);
+    expect(statuses).toEqual(["2027-06-12 closed", "2027-09-03 confirmed", "2028-12-09 option"]);
   });
 
   it("rapprochements : un événement déjà présent (mêmes mariés, même date) est proposé en mise à jour ; deux fiches du même lot pour le même événement sont signalées", async () => {
@@ -189,7 +189,7 @@ describe("IMP-08 — Importer ses événements depuis les fiches PDF", () => {
     const matches = await getImportMatchesView(a.organizationId, importId);
     expect(matches!.rows[0]!.match).toBeNull();
     expect(await getImportMatchesView(b.organizationId, importId)).toBeNull();
-    expect(await setEventSheetStatuses(b.organizationId, importId, [{ rowIndex: 0, status: "prospect" }])).toBe(false);
+    expect(await setEventSheetStatuses(b.organizationId, importId, [{ rowIndex: 0, status: "option" }])).toBe(false);
     await confirmImport({ ...a, importId, defaultProspectSourceId: a.sourceId });
     expect(await listEvents({ organizationId: b.organizationId })).toHaveLength(1);
   });

@@ -44,6 +44,7 @@ export type {
   EventClientInput,
   EventDetail,
   EventsServiceContract,
+  EventPhase,
   EventStatus,
   EventSummary,
   StaleProspect,

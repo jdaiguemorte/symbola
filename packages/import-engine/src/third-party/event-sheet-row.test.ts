@@ -40,10 +40,10 @@ describe("IMP-08 — Une fiche PDF devient une ligne d'import (lot 14c)", () => 
 
   it("décision J : confirmé si la date est à venir et un lieu connu, réalisé si elle est passée, prospect sinon", () => {
     expect(eventSheetStatus({ eventDate: "2027-06-12", places: [{ label: "A", date: null, time: null }] }, "2026-11-07")).toBe("confirmed");
-    expect(eventSheetStatus({ eventDate: "2027-06-12", places: [] }, "2026-11-07")).toBe("prospect");
-    expect(eventSheetStatus({ eventDate: "2026-11-06", places: [] }, "2026-11-07")).toBe("done");
+    expect(eventSheetStatus({ eventDate: "2027-06-12", places: [] }, "2026-11-07")).toBe("option");
+    expect(eventSheetStatus({ eventDate: "2026-11-06", places: [] }, "2026-11-07")).toBe("closed");
     expect(eventSheetStatus({ eventDate: "2026-11-07", places: [{ label: "A", date: null, time: null }] }, "2026-11-07")).toBe("confirmed");
-    expect(eventSheetStatus({ eventDate: null, places: [{ label: "A", date: null, time: null }] }, "2026-11-07")).toBe("prospect");
+    expect(eventSheetStatus({ eventDate: null, places: [{ label: "A", date: null, time: null }] }, "2026-11-07")).toBe("option");
   });
 
   it("un téléphone marqué d'un prénom va à ce client, les autres dans l'ordre", () => {

@@ -1,10 +1,11 @@
 // Lot 13 (L13-EVT-18) — options de la liste des événements : années proposées
 // au filtre (celles des événements, plus l'année en cours et la suivante :
 // jamais 1 ni −1) et effectifs des onglets.
-import type { EventStatus } from "@/modules/events/service";
+import { FINISHED_STATUSES, IN_PROGRESS_STATUSES, type EventStatus } from "@/modules/events/service";
 
-export const UPCOMING_STATUSES: EventStatus[] = ["prospect", "quote_sent", "confirmed"];
-export const PAST_STATUSES: EventStatus[] = ["done", "lost"];
+// Lot 34a (EVT-05) : à venir, les évènements en cours ; passés, les clôturés et les annulés.
+export const UPCOMING_STATUSES: EventStatus[] = [...IN_PROGRESS_STATUSES];
+export const PAST_STATUSES: EventStatus[] = [...FINISHED_STATUSES];
 
 export function yearOptions(eventDates: (string | null)[], today: string): number[] {
   const current = Number(today.slice(0, 4));

@@ -156,10 +156,12 @@ export type RecetteOptions = {
   emailTag?: string;
 };
 
-const EVENT_STATUS: Record<string, "prospect" | "quote_sent" | "confirmed"> = {
-  "En préparation": "confirmed",
-  Option: "prospect",
-  "Devis envoyé": "quote_sent",
+// Lot 34a (EVT-05, D2) : statuts du jeu fictif, ceux du cahier des charges.
+const EVENT_STATUS: Record<string, "option" | "confirmed" | "in_preparation"> = {
+  "En préparation": "in_preparation",
+  Option: "option",
+  "Devis envoyé": "option",
+  Confirmé: "confirmed",
 };
 
 export function parseRecetteDataset(raw: unknown): RecetteDataset {
@@ -268,7 +270,7 @@ export async function loadRecette(raw: unknown, options: RecetteOptions = {}): P
       });
       events += 1;
       const status = EVENT_STATUS[event.statut] ?? "confirmed";
-      if (status !== "prospect") await changeEventStatus({ organizationId, eventId: created.id, changedByUserId: ownerId, toStatus: status });
+      if (status !== "option") await changeEventStatus({ organizationId, eventId: created.id, changedByUserId: ownerId, toStatus: status });
 
       // Lot 29a (rejeu de SC-08) : l'e-mail des clients et les lieux de l'événement,
       // lus sur l'écran du jour J ; chaque fiche de prestataire est retenue pour être
@@ -383,7 +385,7 @@ export async function loadRecette(raw: unknown, options: RecetteOptions = {}): P
       const created = await createProspect({ organizationId, createdByUserId: ownerId, prospectSourceId: source.id, clients: [splitName(event.nom)], eventDate: event.date });
       events += 1;
       const status = EVENT_STATUS[event.statut ?? ""] ?? "confirmed";
-      if (status !== "prospect") await changeEventStatus({ organizationId, eventId: created.id, changedByUserId: ownerId, toStatus: status });
+      if (status !== "option") await changeEventStatus({ organizationId, eventId: created.id, changedByUserId: ownerId, toStatus: status });
     }
     const volumes = organisation.volumes ?? { evenements: 0, prospects: 0 };
     const extraEvents = Math.max(0, volumes.evenements - detailed.length);

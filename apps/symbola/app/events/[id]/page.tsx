@@ -7,7 +7,7 @@ import {
   formatAmount,
   formatCalendarDate,
   formatDate,
-  formatDateTime,
+  formatDateTimeIn,
   formatFileSize,
   parisToday,
   type Locale,
@@ -17,7 +17,10 @@ import {
   getEventProgram,
   proposeProgramShift,
   getEventStatusDates,
+  closingDue,
+  eventNames,
   getTaskRecalculation,
+  previewTaskRecalculation,
   getActiveEventsTrial,
   listEventActivity,
   listEventDecisions,
@@ -39,7 +42,7 @@ import {
 } from "@/modules/events/service";
 import { getEventBudget, listBudgetLines } from "@/modules/budget/service";
 import { confirmEventBudgetAction } from "@/app/budget/[eventId]/actions";
-import { listEventQuotes, listQuoteTemplates } from "@/modules/quotes/service";
+import { listEventQuotes, listQuoteInvoices, listQuoteTemplates } from "@/modules/quotes/service";
 import { createQuoteAction, startQuotesTrialAction } from "@/app/devis/actions";
 import { isQuotesModuleEnabled } from "@/app/devis/module-access";
 import { QUOTE_STATUS_LABEL_KEYS } from "@/app/devis/quote-display";
@@ -48,6 +51,7 @@ import { ensureEventTypes } from "@/lib/events/event-types";
 import { setEventTypeAction } from "./actions";
 import { isEventsModuleEnabled, isValidId } from "../module-access";
 import { ChangeStatusForm } from "./change-status-form";
+import { CloseEventForm, ConfirmPostponementForm, TimeZoneForm } from "./lifecycle-forms";
 import { isDayOfOpen } from "@/app/jour-j/[eventId]/day-of-view";
 import { EventDocumentRenameForm, EventDocumentUploadForm } from "./document-forms";
 import { removeEventDocumentAction } from "./document-actions";
@@ -72,6 +76,7 @@ import {
   EditProgramItemForm,
 } from "./program-forms";
 import {
+  releaseEventTaskAction,
   moveEventTaskAction,
   removeEventTaskAction,
   resolveRecalculationAction,
@@ -189,13 +194,6 @@ export default async function EventDetailPage({
     ? event.clients.map((client) => client.firstName).join(" & ")
     : t("noClient");
 
-  // PRD-EVT-02 : « étant donné un événement confirmé dont la date est passée,
-  // alors l'app propose de le passer en Réalisé ».
-  const isPastConfirmed =
-    event.status === "confirmed" &&
-    event.eventDate !== null &&
-    event.eventDate < new Date().toISOString().slice(0, 10);
-
   // PRD-BUD-01/02 : « quand l'événement passe en Confirmé, l'app propose
   // d'en faire le budget prévu » — seulement si une simulation existe et
   // qu'aucune ligne de budget (budget_lines) n'a encore été créée.
@@ -223,6 +221,11 @@ export default async function EventDetailPage({
   const tBudget = await getTranslations("Budget");
 
   const today = parisToday();
+  // Lot 34a (ARC-17, D9) : les heures de l'évènement dans son fuseau, nommé s'il n'est pas celui de Paris.
+  const eventTime = (instant: Date | string) => {
+    const text = formatDateTimeIn(new Date(instant), locale, event.timeZone);
+    return event.timeZone === "Europe/Paris" ? text : `${text} (${event.timeZone.replaceAll("_", " ")})`;
+  };
   // Lot 12 (L12-EVT-17) : l'ancien onglet « prestataires » est devenu « budget ».
   const asked = query.onglet === "prestataires" ? "budget" : query.onglet;
   const tab: Tab = TABS.includes(asked as Tab) && (asked !== "devis" || quotesAvailable) ? (asked as Tab) : "apercu";
@@ -249,8 +252,8 @@ export default async function EventDetailPage({
   const shiftedItem = tab === "programme" && query.decalage && isValidId(query.decalage) ? program.items.find((item) => item.id === query.decalage) : undefined;
   const shiftPlan = shiftedItem && query.depuis && /^([01]\d|2[0-3]):[0-5]\d$/.test(query.depuis) ? proposeProgramShift(program.items, shiftedItem.id, query.depuis, shiftedItem.startTime) : null;
   const shiftProposal: ShiftProposalView | null = shiftPlan ? { ...shiftPlan, duration: durationText(Math.abs(shiftPlan.minutes), spanWords) } : null;
-  // Lot 12 (L12-EVT-13) : rétroplanning seulement pour un événement confirmé (ou réalisé).
-  const retroplanningOpen = event.isDemo || event.status === "confirmed" || event.status === "done";
+  // Lot 34a (EVT-01, ADR 0055) : le rétroplanning naît avec l'évènement, Option comprise ; la
+  // décision L12-EVT-13 (seulement à la confirmation) est remplacée.
 
   // PRD-EVT-03 : postes en tableau, détail du poste choisi dans un panneau.
   // Lot 28a (PRE-02) : un poste est pourvu dès qu'un prestataire est retenu.
@@ -332,6 +335,13 @@ export default async function EventDetailPage({
 
   // Lot 13 (L13-EVT-19) : frise datée, prochaine étape, chiffres de la vue d'ensemble.
   const statusDates = await getEventStatusDates(organizationId, id);
+  // Lot 34a (EVT-05, CHR-01) : ce que ferait le recalcul (report ou nouvelle date), et les tâches
+  // qui tomberaient dans le passé.
+  const preview = recalculation.pending || event.status === "postponed" ? await previewTaskRecalculation(organizationId, id, today) : null;
+  const invoicesToCredit =
+    event.status === "cancelled" && quotesAvailable
+      ? (await Promise.all(quotes.map((quote) => listQuoteInvoices(organizationId, quote.id)))).flat().filter((invoice) => !invoice.isDemo && invoice.creditedCents < invoice.amountCents)
+      : [];
   const step = nextStep({
     status: event.status,
     isDemo: event.isDemo,
@@ -517,7 +527,63 @@ export default async function EventDetailPage({
       ) : null}
 
       {/* Lot 13 (L13-EVT-19) : frise datée du statut, visible sur tous les onglets. */}
-      <ChangeStatusForm eventId={event.id} currentStatus={event.status} reasons={reasons} dates={statusDates} eventDate={event.eventDate} locale={locale} />
+      <ChangeStatusForm
+        eventId={event.id}
+        eventNames={eventNames(event.clients)}
+        currentStatus={event.status}
+        phase={event.phase}
+        reasons={reasons}
+        dates={statusDates}
+        eventDate={event.eventDate}
+        postponedFromDate={event.postponedFromDate}
+        locale={locale}
+      />
+      {/* Lot 34a (EVT-05, D4, D7) : un report se confirme après la liste des tâches qui tomberaient dans le passé. */}
+      {event.status === "postponed" ? (
+        <section className="card notice" aria-labelledby="postponement-title">
+          <h2 id="postponement-title">{t("postponementTitle")}</h2>
+          {event.eventDate && preview ? (
+            <>
+              <p>{t("postponementBody", { date: formatCalendarDate(event.eventDate, locale) })}</p>
+              <p>{t("postponementMoves", { count: preview.moves.length })}</p>
+              {preview.inThePast.length > 0 ? (
+                <>
+                  <p>{t("postponementPastTitle", { count: preview.inThePast.length })}</p>
+                  <ul>
+                    {preview.inThePast.map((task) => (
+                      <li key={task.taskId}>{t("postponementPastItem", { label: task.label, date: formatCalendarDate(task.toDate, locale) })}</li>
+                    ))}
+                  </ul>
+                </>
+              ) : null}
+              <ConfirmPostponementForm eventId={event.id} hasSignedQuote={quotes.some((quote) => quote.status === "signed")} />
+            </>
+          ) : (
+            <p>{t("postponementNoDate")}</p>
+          )}
+        </section>
+      ) : null}
+      {/* D3 : la clôture se propose dès le lendemain. */}
+      {closingDue(event) ? (
+        <section className="card notice" aria-labelledby="closing-title">
+          <h2 id="closing-title">{t("closeProposal")}</h2>
+          <CloseEventForm eventId={event.id} />
+        </section>
+      ) : null}
+      {/* FAC-13, D7 : à l'annulation, un avoir est proposé pour chaque facture émise ; la planner décide. */}
+      {event.status === "cancelled" && invoicesToCredit.length > 0 ? (
+        <section className="card notice" aria-labelledby="cancelled-invoices-title">
+          <h2 id="cancelled-invoices-title">{t("cancelledInvoicesTitle")}</h2>
+          <p>{t("cancelledInvoicesBody")}</p>
+          <ul>
+            {invoicesToCredit.map((invoice) => (
+              <li key={invoice.id}>
+                {invoice.number} — {formatAmount(invoice.amountCents - invoice.creditedCents, locale)} <Link href={`/devis/${invoice.quoteId}`}>{t("issueCreditNote")}</Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
       {tab !== "apercu" ? stepBanner : null}
 
       <nav aria-label={t("eventTabsLabel")} className="tabs" data-tour="event-tabs">
@@ -531,13 +597,13 @@ export default async function EventDetailPage({
 
       {tab === "apercu" ? (
         <>
-          {isPastConfirmed ? <p role="status">{t("suggestMarkDone")}</p> : null}
           {/* Lot 32a (EVT-02, UX-01, UX-06 ; D5) : prochaine action, santé, quatorze prochains jours. */}
           <EventCockpit organizationId={organizationId} eventId={event.id} tasks={tasks} quotesAvailable={quotesAvailable} today={today} locale={locale} afterNextAction={stepBanner} vendorProgress={progress} />
           {/* D5 : les formulaires de l'ancien aperçu, repliés. */}
           <details className="card edit-info">
             <summary>{tToday("cockpit.editInfo")}</summary>
             <EventDateForm eventId={event.id} eventDate={event.eventDate} />
+            <TimeZoneForm eventId={event.id} timeZone={event.timeZone} zones={Intl.supportedValuesOf("timeZone")} />
             <WantedBudgetForm key={`wanted-${event.wantedBudgetCents ?? ""}`} eventId={event.id} wantedBudgetCents={event.wantedBudgetCents} />
             <VenueForm eventId={event.id} venueName={event.venueName} venueCity={event.venueCity} />
           </details>
@@ -558,7 +624,7 @@ export default async function EventDetailPage({
             <ul aria-label={t("activityTitle")}>
               {activity.map((entry) => (
                 <li key={entry.id}>
-                  {formatDateTime(new Date(entry.createdAt), locale)} —{" "}
+                  {eventTime(entry.createdAt)} —{" "}
                   {t(entry.kind === "task_done" ? "activityTaskDone" : entry.kind === "decision_made" ? "activityDecisionMade" : entry.kind === "vendor_reminded" ? "activityVendorReminded" : "activityTaskUndone", {
                     actor: entry.actorName ?? t("activityFormerClient"),
                     task: entry.taskLabel || (entry.kind === "vendor_reminded" ? t("activityVendorRemoved") : tDecisions("programLabel")),
@@ -730,7 +796,8 @@ export default async function EventDetailPage({
             <p className="meta">
               <span>{t("tasksSummary", { done: tasks.filter((task) => task.done).length, total: tasks.length, overdue: overdueCount })}</span>
             </p>
-            {recalculation.pending ? (
+            {/* Lot 34a (D4) : pendant un report, les échéances suivent à la confirmation du report. */}
+            {recalculation.pending && event.status !== "postponed" ? (
               <section aria-labelledby="recalculation-title">
                 <h3 id="recalculation-title">{t("recalculationTitle")}</h3>
                 <p>
@@ -740,6 +807,17 @@ export default async function EventDetailPage({
                     count: recalculation.undoneTasks,
                   })}
                 </p>
+                {/* Lot 34a (EVT-05) : les tâches qui tomberaient dans le passé, avant de choisir. */}
+                {preview && preview.inThePast.length > 0 ? (
+                  <>
+                    <p>{t("recalculationPastTitle", { count: preview.inThePast.length })}</p>
+                    <ul>
+                      {preview.inThePast.map((task) => (
+                        <li key={task.taskId}>{t("postponementPastItem", { label: task.label, date: formatCalendarDate(task.toDate, locale) })}</li>
+                      ))}
+                    </ul>
+                  </>
+                ) : null}
                 <form action={resolveRecalculationAction}>
                   <input type="hidden" name="eventId" value={event.id} />
                   <button type="submit" name="decision" value="accept">
@@ -751,10 +829,7 @@ export default async function EventDetailPage({
                 </form>
               </section>
             ) : null}
-            {/* Lot 12 (L12-EVT-13) : pas de rétroplanning pour un prospect ; il démarre à la confirmation (sauf exemple d'essai ou de tutoriel). */}
-            {!retroplanningOpen ? (
-              <p className="notice">{t("retroplanningAfterConfirm")}</p>
-            ) : !event.eventDate ? (
+            {!event.eventDate ? (
               <p>{t("taskTemplateNeedsDate")}</p>
             ) : templates.length === 0 ? (
               <p>
@@ -803,6 +878,17 @@ export default async function EventDetailPage({
                   task={selectedTask}
                 />
                 <ImportedFields fields={selectedTask.importedFields} compact />
+                {/* Lot 34a (DAT-07) : déplacée à la main, la tâche est fixée ; elle peut redevenir relative. */}
+                {selectedTask.fixed && selectedTask.offsetDays !== null && event.eventDate ? (
+                  <form action={releaseEventTaskAction} className="row-wrap">
+                    <span className="badge">{t("taskFixed")}</span>
+                    <input type="hidden" name="eventId" value={event.id} />
+                    <input type="hidden" name="taskId" value={selectedTask.id} />
+                    <button type="submit" className="button-ghost">
+                      {t("taskRelease")}
+                    </button>
+                  </form>
+                ) : null}
                 <form action={moveEventTaskAction}>
                   <input type="hidden" name="eventId" value={event.id} />
                   <input type="hidden" name="taskId" value={selectedTask.id} />
@@ -1045,10 +1131,10 @@ export default async function EventDetailPage({
                     {link.otpRequired ? ` — ${t("linkOtpOn")}` : ""}
                     {link.audience === "client" && !link.taskReminders ? ` — ${t("linkRemindersOff")}` : ""}
                     {" — "}
-                    {link.lastOpenedAt ? t("linkOpenedOn", { date: formatDateTime(new Date(link.lastOpenedAt), locale) }) : t("linkNeverOpened")}
+                    {link.lastOpenedAt ? t("linkOpenedOn", { date: eventTime(link.lastOpenedAt) }) : t("linkNeverOpened")}
                   </p>
                   {link.renewalRequestedAt ? (
-                    <p className="badge-warning">{t("linkRenewalRequested", { date: formatDateTime(new Date(link.renewalRequestedAt), locale) })}</p>
+                    <p className="badge-warning">{t("linkRenewalRequested", { date: eventTime(link.renewalRequestedAt) })}</p>
                   ) : null}
                   {link.status !== "revoked" ? (
                     <p>
@@ -1124,7 +1210,7 @@ export default async function EventDetailPage({
                   </p>
                   <p className={decision.status === "pending" ? "badge-warning" : "muted"}>
                     {decision.status === "pending"
-                      ? tDecisions("statusPending", { date: formatDateTime(new Date(decision.requestedAt), locale) })
+                      ? tDecisions("statusPending", { date: eventTime(decision.requestedAt) })
                       : decision.status === "withdrawn"
                         ? tDecisions("statusWithdrawn")
                         : answerSentence(tDecisions, decision, label, locale)}

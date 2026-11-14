@@ -1,22 +1,20 @@
 "use server";
 
 // Lot 33b (HUB-10, PAR-01 ; D10) — les deux chemins de « Votre espace est prêt » :
-// - « Créer mon premier évènement » : prénoms des clients, date, type ; l'évènement est confirmé
-//   et le rétroplanning de départ appliqué, les postes de budget viennent avec lui ;
+// - « Créer mon premier évènement » : prénoms des clients, date, type ; l'évènement est confirmé,
+//   son rétroplanning et ses postes de budget naissent avec lui (lot 34a, EVT-01) ;
 // - « Explorer avec un exemple » : le mariage de référence en données fictives (30 jours).
 // Contrôles côté serveur : session de l'équipe, organisation, module Évènements.
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import type { Locale } from "@symbola/i18n";
 import {
-  applyTaskTemplate,
   changeEventStatus,
   countOrganizationRealEvents,
   createProspect,
   getActiveEventsTrial,
   listEventTypes,
   listProspectSources,
-  listTaskTemplates,
   startExampleEvent,
 } from "@/modules/events/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
@@ -62,9 +60,8 @@ export async function createFirstEventAction(_prev: FirstEventFormState, formDat
     venueName: null,
     venueCity: null,
   });
+  // Lot 34a (EVT-01) : le rétroplanning du type est né avec l'évènement.
   await changeEventStatus({ organizationId: access.organizationId, eventId: created.id, changedByUserId: access.userId, toStatus: "confirmed" });
-  const [template] = await listTaskTemplates(access.organizationId);
-  if (template) await applyTaskTemplate(access.organizationId, created.id, template.id);
 
   // HUB-10 : au premier évènement réel, la suppression de l'exemple est proposée.
   const example = await getActiveEventsTrial(access.organizationId);

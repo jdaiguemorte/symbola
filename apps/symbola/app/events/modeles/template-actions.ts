@@ -10,9 +10,11 @@ import { starterRetroplanning, type StarterLocale } from "@symbola/starter-templ
 import {
   addTaskTemplateItem,
   createTaskTemplate,
+  EventTypeNotFoundError,
   removeTaskTemplate,
   removeTaskTemplateItem,
   renameTaskTemplate,
+  setTaskTemplateEventType,
   TASK_RESPONSIBLES,
   TaskLabelRequiredError,
   TaskTemplateNotFoundError,
@@ -143,4 +145,20 @@ export async function removeTaskTemplateAction(formData: FormData): Promise<void
   await removeTaskTemplate(organizationId, templateId);
   revalidatePath(PATH);
   redirect(PATH);
+}
+
+// Lot 34a (EVT-01, D8) : le modèle d'un type s'applique dès la création d'un évènement de ce type.
+export async function setTemplateEventTypeAction(formData: FormData): Promise<void> {
+  const organizationId = await authorizedOrganizationId();
+  if (!organizationId) return;
+  const templateId = String(formData.get("templateId") ?? "");
+  const raw = String(formData.get("eventTypeId") ?? "");
+  if (!isValidId(templateId) || (raw !== "" && !isValidId(raw))) return;
+  try {
+    await setTaskTemplateEventType(organizationId, templateId, raw === "" ? null : raw);
+  } catch (error) {
+    if (!(error instanceof TaskTemplateNotFoundError) && !(error instanceof EventTypeNotFoundError)) throw error;
+  }
+  revalidatePath(`${PATH}/${templateId}`);
+  revalidatePath(PATH);
 }

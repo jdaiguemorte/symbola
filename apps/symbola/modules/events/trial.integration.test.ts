@@ -80,7 +80,7 @@ describe("AIDE-02 — Essai guidé avec données de test (module événements)",
     );
 
     const event = await getEvent(organizationId, trial.eventId);
-    expect(event).toMatchObject({ isDemo: true, status: "prospect", venueName: "Domaine des Tilleuls (fictif)" });
+    expect(event).toMatchObject({ isDemo: true, status: "option", venueName: "Domaine des Tilleuls (fictif)" });
     expect(event?.clients.map((client) => client.firstName)).toEqual(["Camille", "Sacha"]);
     expect(event?.eventDate).toBe("2027-07-24");
     expect((await listEventVendorSlots(organizationId, trial.eventId)).length).toBeGreaterThan(0);

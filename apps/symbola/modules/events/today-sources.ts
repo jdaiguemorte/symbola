@@ -8,7 +8,8 @@ import { appDatabase } from "@symbola/db/client";
 import { eventActivities, eventDecisions, events, eventVendorCandidates, eventVendorSlots } from "@symbola/db/schema/events";
 import { withOrganization } from "@symbola/db/with-organization";
 
-const CLOSED_STATUSES: ("lost" | "done")[] = ["lost", "done"];
+// Lot 34a : un évènement clôturé ou annulé ne demande plus rien.
+const CLOSED_STATUSES: ("cancelled" | "closed")[] = ["cancelled", "closed"];
 
 export type PendingDecisionRow = typeof eventDecisions.$inferSelect;
 

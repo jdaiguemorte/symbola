@@ -3,12 +3,15 @@
 // civiles (AAAA-MM-JJ) : aucun fuseau n'entre en jeu.
 import { addMonths } from "@/app/agenda/calendar";
 
-type PortfolioStatus = "prospect" | "quote_sent" | "confirmed" | "done" | "lost";
+import { FIRM_STATUSES, TENTATIVE_STATUSES, type EventStatus } from "@/modules/events/service";
+
+type PortfolioStatus = EventStatus;
 export type PortfolioEvent = { id: string; eventDate: string | null; status: PortfolioStatus; isDemo: boolean };
 
-const CONFIRMED: PortfolioStatus[] = ["confirmed", "done"];
-// Une « option » : une date posée sur un prospect ou un devis envoyé (cahier des charges, CRM-04).
-const OPTIONS: PortfolioStatus[] = ["prospect", "quote_sent"];
+// Lot 34a (EVT-05) : sûrs (confirmé, en préparation, clôturé) ; une « option » : une date posée
+// sur une option ou un report en cours (cahier des charges, CRM-04).
+const CONFIRMED: readonly PortfolioStatus[] = FIRM_STATUSES;
+const OPTIONS: readonly PortfolioStatus[] = TENTATIVE_STATUSES;
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 function counts(event: PortfolioEvent): boolean {
@@ -34,14 +37,14 @@ export function monthlyLoad(events: PortfolioEvent[], startMonth: string, months
 // CRM-04 : les confirmés et les options d'une date, sans l'évènement en cours de saisie.
 export function sameDayEvents<T extends PortfolioEvent>(events: T[], date: string, excludeEventId?: string): T[] {
   if (!DATE.test(date)) return [];
-  return events.filter((event) => counts(event) && event.status !== "done" && event.eventDate === date && event.id !== excludeEventId);
+  return events.filter((event) => counts(event) && event.status !== "closed" && event.eventDate === date && event.id !== excludeEventId);
 }
 
 // EVT-07 : les dates partagées par deux évènements en cours au moins (identifiants, dans l'ordre).
 export function sharedDates(events: PortfolioEvent[]): Map<string, string[]> {
   const byDate = new Map<string, string[]>();
   for (const event of events) {
-    if (!counts(event) || event.status === "done") continue;
+    if (!counts(event) || event.status === "closed") continue;
     byDate.set(event.eventDate!, [...(byDate.get(event.eventDate!) ?? []), event.id]);
   }
   return new Map([...byDate].filter(([, ids]) => ids.length >= 2));

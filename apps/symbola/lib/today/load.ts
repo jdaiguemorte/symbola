@@ -14,10 +14,9 @@ import {
   listPendingDecisions,
   listPendingLinkRenewals,
   listStaleProspects,
-  listUncontractedVendors,
-} from "@/modules/events/service";
+  listUncontractedVendors, isInProgress } from "@/modules/events/service";
 import { getFollowUpDelays } from "@/modules/hub/service";
-import { listOpenScheduledDeposits, listQuotesAwaitingAnswer, listUnpaidPayments } from "@/modules/quotes/service";
+import { listEventIdsWithSentQuote, listOpenScheduledDeposits, listQuotesAwaitingAnswer, listUnpaidPayments } from "@/modules/quotes/service";
 import { TODAY_HORIZON_DAYS, type TodayItem } from "./rank";
 import { settleWithin, TODAY_SOURCE_TIMEOUT_MS } from "./settle";
 
@@ -37,10 +36,9 @@ export type TodayWords = {
   linkRenewal: (personName: string) => string;
 };
 
-// Évènements en cours : ni faits, ni perdus.
-export const ACTIVE_STATUSES = ["prospect", "quote_sent", "confirmed"] as const;
+// Évènements en cours : ni clôturés, ni annulés (lot 34a, EVT-05).
 export function isActiveEvent(event: Pick<EventSummary, "status">): boolean {
-  return (ACTIVE_STATUSES as readonly string[]).includes(event.status);
+  return isInProgress(event.status);
 }
 
 function day(instant: Date | string): string {
@@ -276,5 +274,15 @@ export async function loadTodayItems(
     if (result.ok) items.push(...result.value);
     else if (!unavailable.includes(source)) unavailable.push(source);
   }
-  return { items, today, events, unavailable };
+  return { items: await withoutQuotedOptions(items, organizationId, modules.quotes, timeoutMs), today, events, unavailable };
+}
+
+// Lot 34a (EVT-05, D2) : « Devis envoyé » n'est plus un statut ; une option dont le devis est parti
+// se relance par son devis (« devis sans réponse »), pas comme prospect sans nouvelle. Sans le
+// module Devis, ou s'il ne répond pas, elle reste un prospect à relancer.
+async function withoutQuotedOptions(items: TodayItem[], organizationId: string, quotesEnabled: boolean, timeoutMs: number): Promise<TodayItem[]> {
+  if (!quotesEnabled || !items.some((item) => item.kind === "prospect_follow_up")) return items;
+  const quoted = await settleWithin(() => listEventIdsWithSentQuote(organizationId), timeoutMs, "quotes");
+  if (!quoted.ok) return items;
+  return items.filter((item) => item.kind !== "prospect_follow_up" || item.eventId === null || !quoted.value.has(item.eventId));
 }

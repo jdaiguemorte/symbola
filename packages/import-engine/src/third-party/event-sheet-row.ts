@@ -72,12 +72,12 @@ export function assignPhones(people: Pick<EventSheetPerson, "firstName">[], phon
   return result;
 }
 
-// Décision J : « confirmé » quand la date est à venir et qu'un lieu est
-// connu, « réalisé » quand elle est passée, « prospect » sinon.
-export function eventSheetStatus(sheet: Pick<EventSheet, "eventDate" | "places">, today: string): "confirmed" | "done" | "prospect" {
-  if (sheet.eventDate && sheet.eventDate < today) return "done";
+// Décision J : « confirmé » quand la date est à venir et qu'un lieu est connu, « clôturé » quand
+// elle est passée, « option » sinon (lot 34a, statuts du cahier des charges).
+export function eventSheetStatus(sheet: Pick<EventSheet, "eventDate" | "places">, today: string): "confirmed" | "closed" | "option" {
+  if (sheet.eventDate && sheet.eventDate < today) return "closed";
   if (sheet.eventDate && sheet.places.length > 0) return "confirmed";
-  return "prospect";
+  return "option";
 }
 
 // Lieux, un par ligne : « 14:30 — Domaine des Tilleuls » (sans heure : « — Nom »).

@@ -1,12 +1,12 @@
 "use server";
 
 // Lot 32b (CRM-04 ; décision D10) — à la saisie d'une date d'évènement, les évènements confirmés et
-// les options (prospect, devis envoyé) du même jour, avant l'enregistrement. L'alerte n'empêche
+// les options (option, report en cours ; lot 34a) du même jour, avant l'enregistrement. L'alerte n'empêche
 // rien. Contrôles côté serveur : session planner, organisation, module Évènements ; les noms ne
 // sortent que pour l'organisation de la planner (RLS).
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { sameDayEvents } from "@/lib/portfolio/portfolio";
-import { eventNames, listEvents } from "@/modules/events/service";
+import { eventNames, FIRM_STATUSES, listEvents } from "@/modules/events/service";
 import { isEventsModuleEnabled, isValidId } from "./module-access";
 
 export type SameDayEvent = { names: string; confirmed: boolean };
@@ -19,6 +19,7 @@ export async function sameDayEventsAction(date: string, excludeEventId: string |
   const exclude = typeof excludeEventId === "string" && isValidId(excludeEventId) ? excludeEventId : undefined;
   // Les confirmés d'abord, puis les options : un ordre fixe (la liste n'est triée que par date).
   return sameDayEvents(await listEvents({ organizationId }), date, exclude)
-    .map((event) => ({ names: eventNames(event.clients), confirmed: event.status === "confirmed" }))
+    // Lot 34a (EVT-05) : un évènement en préparation ou clôturé est ferme, comme un confirmé.
+    .map((event) => ({ names: eventNames(event.clients), confirmed: FIRM_STATUSES.includes(event.status) }))
     .sort((a, b) => Number(b.confirmed) - Number(a.confirmed));
 }

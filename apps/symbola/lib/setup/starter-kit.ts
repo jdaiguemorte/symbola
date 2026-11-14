@@ -79,7 +79,10 @@ export async function loadStarterKit(organizationId: string, metier: StarterMeti
   }
   if ((await listTaskTemplates(organizationId)).length === 0) {
     const template = starterRetroplanning(locale, metier);
-    await createTaskTemplate(organizationId, template.name, template.items);
+    // Lot 34a (EVT-01, D8) : le modèle de départ est rattaché au premier type du métier (le
+    // mariage pour une wedding planner).
+    const [firstType] = await listEventTypes(organizationId);
+    await createTaskTemplate(organizationId, template.name, template.items, firstType?.id ?? null);
     result.taskTemplate = true;
   }
   if ((await listProgramTemplates(organizationId)).length === 0) {

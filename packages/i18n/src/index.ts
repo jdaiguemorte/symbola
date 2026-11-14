@@ -126,7 +126,30 @@ export function formatDateTime(date: Date, locale: Locale): string {
 // Date du jour à Paris (« AAAA-MM-JJ ») : retards et échéances se jugent
 // à l'heure de la planner, pas à celle du serveur (UTC).
 export function parisToday(now: Date = new Date()): string {
-  return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Paris", year: "numeric", month: "2-digit", day: "2-digit" }).format(now);
+  return dateInTimeZone(now, "Europe/Paris");
+}
+
+// Lot 34a (ARC-17) — date du jour (« AAAA-MM-JJ ») dans un fuseau IANA, celui d'un événement.
+export function dateInTimeZone(now: Date, timeZone: string): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone, year: "numeric", month: "2-digit", day: "2-digit" }).format(now);
+}
+
+// Lot 34a (ARC-17) — fuseau IANA reconnu par le moteur (« Europe/Paris », « America/Montreal »).
+export function isTimeZone(value: string): boolean {
+  if (!/^[A-Za-z_]+(\/[A-Za-z0-9_+-]+){0,2}$/.test(value) || value.length > 64) return false;
+  try {
+    new Intl.DateTimeFormat("en", { timeZone: value });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// Heure affichée dans un fuseau donné (celui de l'événement), sinon à Paris.
+export function formatDateTimeIn(date: Date, locale: Locale, timeZone: string): string {
+  return new Intl.DateTimeFormat(INTL_LOCALE[locale], { dateStyle: "long", timeStyle: "short", timeZone })
+    .format(date)
+    .replace(/[\u00a0\u202f]/g, " ");
 }
 
 // Lot 13 (L13-HUB-15) — jours entiers écoulés, à Paris, depuis un instant :

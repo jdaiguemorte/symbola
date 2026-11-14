@@ -4,18 +4,18 @@
 import { describe, expect, it } from "vitest";
 import { monthGrid, monthlyLoad, sameDayEvents, sharedDates } from "./portfolio";
 
-const event = (id: string, date: string | null, status: "prospect" | "quote_sent" | "confirmed" | "done" | "lost", isDemo = false) => ({ id, eventDate: date, status, isDemo });
+const event = (id: string, date: string | null, status: "option" | "postponed" | "confirmed" | "closed" | "cancelled", isDemo = false) => ({ id, eventDate: date, status, isDemo });
 
 describe("EVT-07 — Charge par mois sur douze mois", () => {
-  it("compte, mois par mois, les confirmés et les options (prospect, devis envoyé), sans les perdus ni les essais", () => {
+  it("compte, mois par mois, les confirmés et les options (option, report en cours), sans les annulés ni les essais (lot 34a)", () => {
     const load = monthlyLoad(
       [
         event("a", "2027-06-12", "confirmed"),
-        event("b", "2027-06-19", "prospect"),
-        event("c", "2027-06-26", "quote_sent"),
-        event("d", "2027-07-03", "lost"),
+        event("b", "2027-06-19", "option"),
+        event("c", "2027-06-26", "postponed"),
+        event("d", "2027-07-03", "cancelled"),
         event("e", "2027-07-10", "confirmed", true),
-        event("f", null, "prospect"),
+        event("f", null, "option"),
         event("g", "2028-06-10", "confirmed"),
       ],
       "2026-11",
@@ -31,13 +31,13 @@ describe("EVT-07 — Charge par mois sur douze mois", () => {
 describe("CRM-04 / EVT-07 — Deux évènements le même jour", () => {
   const events = [
     event("lea", "2027-06-12", "confirmed"),
-    event("ines", "2027-06-12", "quote_sent"),
-    event("chloe", "2027-06-12", "lost"),
-    event("demo", "2027-06-12", "prospect", true),
-    event("emma", "2027-06-19", "prospect"),
+    event("ines", "2027-06-12", "postponed"),
+    event("chloe", "2027-06-12", "cancelled"),
+    event("demo", "2027-06-12", "option", true),
+    event("emma", "2027-06-19", "option"),
   ];
 
-  it("à la saisie d'une date : les confirmés et les options de ce jour, sans l'évènement lui-même, ni perdus ni essais", () => {
+  it("à la saisie d'une date : les confirmés et les options de ce jour, sans l'évènement lui-même, ni annulés ni essais", () => {
     expect(sameDayEvents(events, "2027-06-12").map((entry) => entry.id)).toEqual(["lea", "ines"]);
     expect(sameDayEvents(events, "2027-06-12", "lea").map((entry) => entry.id)).toEqual(["ines"]);
     expect(sameDayEvents(events, "2027-06-13")).toEqual([]);

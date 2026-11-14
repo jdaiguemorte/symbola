@@ -43,7 +43,8 @@ const EVENT_REFERENCE: ImportFieldDefinition[] = [
 
 const LIST_LABEL: ImportFieldDefinition[] = [{ key: "label", kind: "text", required: true }];
 
-export const EVENT_STATUS_CHOICES = ["prospect", "quote_sent", "confirmed", "done", "lost"] as const;
+// Lot 34a (EVT-05, D2) : statuts du cahier des charges.
+export const EVENT_STATUS_CHOICES = ["option", "confirmed", "in_preparation", "closed", "postponed", "cancelled"] as const;
 export const TASK_RESPONSIBLE_CHOICES = ["planner", "clients"] as const;
 
 export const IMPORT_FIELDS: Record<ImportEntityType, readonly ImportFieldDefinition[]> = {

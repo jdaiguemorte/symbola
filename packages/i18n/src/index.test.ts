@@ -11,6 +11,9 @@ import {
   formatAmountInput,
   parseAmountToCents,
   parisDaysSince,
+  dateInTimeZone,
+  formatDateTimeIn,
+  isTimeZone,
 } from "./index";
 
 describe("@symbola/i18n — formatAmount", () => {
@@ -112,6 +115,31 @@ describe("PRD-HUB-02 — Date du jour à Paris", () => {
     expect(parisToday(new Date("2026-11-03T23:00:00Z"))).toBe("2026-11-04"); // minuit à Paris (UTC+1)
     expect(parisToday(new Date("2027-03-27T22:30:00Z"))).toBe("2027-03-27"); // veille du passage à l'heure d'été
     expect(parisToday(new Date("2027-03-28T22:00:00Z"))).toBe("2027-03-29"); // minuit à Paris (UTC+2)
+  });
+});
+
+describe("ARC-17 — Fuseau de l'évènement (lot 34a, D9)", () => {
+  it("le jour dans un fuseau donné : veille, jour même, passage à l'heure d'été, fuseau lointain", () => {
+    expect(dateInTimeZone(new Date("2027-03-27T22:59:00Z"), "Europe/Paris")).toBe("2027-03-27");
+    expect(dateInTimeZone(new Date("2027-03-27T23:00:00Z"), "Europe/Paris")).toBe("2027-03-28");
+    expect(dateInTimeZone(new Date("2027-03-27T12:00:00Z"), "Pacific/Auckland")).toBe("2027-03-28");
+    expect(dateInTimeZone(new Date("2027-03-28T03:00:00Z"), "America/Montreal")).toBe("2027-03-27");
+  });
+
+  it("reconnaît un fuseau IANA, refuse le reste", () => {
+    expect(isTimeZone("Europe/Paris")).toBe(true);
+    expect(isTimeZone("America/Argentina/Buenos_Aires")).toBe(true);
+    expect(isTimeZone("Mars/Olympus")).toBe(false);
+    expect(isTimeZone("Europe/Paris; drop")).toBe(false);
+    expect(isTimeZone("")).toBe(false);
+  });
+
+  it("affiche l'heure dans le fuseau donné, sans espace insécable", () => {
+    const montreal = formatDateTimeIn(new Date("2027-06-12T17:05:00Z"), "fr", "America/Montreal");
+    expect(montreal).toContain("12 juin 2027");
+    expect(montreal).toContain("13:05");
+    expect(montreal).not.toMatch(/[\u00a0\u202f]/);
+    expect(formatDateTimeIn(new Date("2027-06-12T17:05:00Z"), "fr", "Europe/Paris")).toContain("19:05");
   });
 });
 

@@ -92,6 +92,20 @@ describe("L13-HUB-15 / HUB-08 — Relances de « Aujourd'hui »", () => {
     expect(await followUps(org.organizationId, new Date(sentAt.getTime() + 7 * DAY), { events: true, quotes: false, budget: true })).toEqual([]);
   });
 
+  it("lot 34a (D2) : une option dont le devis est parti se relance par son devis, pas comme prospect ; sans le module Devis, elle reste à relancer", async () => {
+    const org = await organization();
+    const event = await prospect(org, "Zoé");
+    const quote = await createQuote({ organizationId: org.organizationId, eventId: event.id, createdByUserId: org.plannerId });
+    await addQuoteLine(org.organizationId, quote.id, { label: "Coordination", unit: "forfait", quantityMilli: 1000, unitPriceCents: 150000, vatRateBasisPoints: 0 });
+    const later = new Date(Date.now() + 30 * DAY);
+    // Brouillon : l'option attend toujours sa relance.
+    expect((await followUps(org.organizationId, later)).map((item) => item.key)).toEqual([`prospect:${event.id}`]);
+
+    await sendQuote({ organizationId: org.organizationId, quoteId: quote.id });
+    expect((await followUps(org.organizationId, later)).map((item) => item.key)).toEqual([`quote:${quote.id}`]);
+    expect((await followUps(org.organizationId, later, { events: true, quotes: false, budget: true })).map((item) => item.key)).toEqual([`prospect:${event.id}`]);
+  });
+
   it("isolation : une autre organisation ne voit rien de ce qui attend chez la première", async () => {
     const org = await organization();
     const other = await organization();

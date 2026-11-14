@@ -68,9 +68,9 @@ test("IMP-08 — reprendre ses événements depuis les fiches PDF de l'outil act
 
   const second = page.getByLabel(/Ligne 2 : Chloé PETIT & Antoine ROUX/);
   await expect(second).toHaveValue("confirmed");
-  await second.selectOption({ label: "Prospect" });
+  await second.selectOption({ label: "Option" });
   await page.getByRole("button", { name: "Enregistrer les statuts" }).click();
-  await expect(page.getByLabel(/Ligne 2 : Chloé PETIT & Antoine ROUX/)).toHaveValue("prospect");
+  await expect(page.getByLabel(/Ligne 2 : Chloé PETIT & Antoine ROUX/)).toHaveValue("option");
   await expectNoAxeViolation(page);
 
   await page.getByLabel("Source pour les événements sans source").selectOption({ label: "Outil actuel" });

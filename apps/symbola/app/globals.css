@@ -1511,8 +1511,12 @@
   .status-timeline-wrap {
     @apply my-4 flex flex-col gap-3;
   }
+  /* Lot 34a (EVT-05) : cinq étapes, Option à Clôturé ; Reporté et Annulé s'affichent à part. */
   .status-timeline {
-    @apply m-0 grid list-none grid-cols-4 p-0;
+    @apply m-0 grid list-none grid-cols-5 p-0;
+  }
+  .timeline-actions {
+    @apply flex flex-wrap gap-3 self-end;
   }
   .timeline-step {
     @apply relative flex flex-col items-center gap-1 px-1 text-center;
@@ -1555,6 +1559,10 @@
   }
   .timeline-lost {
     @apply self-end !min-h-0 border-0 !bg-transparent !p-0 text-label !text-critical underline;
+  }
+  /* Reporter n'efface rien : couleur principale ; Annuler garde la couleur critique. */
+  .timeline-postpone {
+    @apply !text-primary-strong;
   }
   .timeline-confirm {
     @apply flex flex-wrap items-center gap-3 rounded-md border border-line bg-ground p-3;

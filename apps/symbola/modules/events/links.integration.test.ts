@@ -180,7 +180,7 @@ describe("SEC-14 — Jeton de lien personnel haché, limité, révocable", () =>
     const { token } = await link(organizationId, eventId);
     const sessionToken = await opened(token);
     const reason = await createLossReason(organizationId, "Budget", false);
-    await changeEventStatus({ organizationId, eventId, changedByUserId: plannerId, toStatus: "lost", lossReasonId: reason.id });
+    await changeEventStatus({ organizationId, eventId, changedByUserId: plannerId, toStatus: "cancelled", lossReasonId: reason.id });
     expect(await resolveLinkSession(sessionToken)).toBeNull();
     expect(await openEventLink(token)).toEqual({ outcome: "invalid" });
   });

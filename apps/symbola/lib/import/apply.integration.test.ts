@@ -160,8 +160,8 @@ describe("IMP-05 — Aperçu et annulation", () => {
     const ines = all.find((event) => event.clients[0]?.firstName === "Inès");
     const chloe = all.find((event) => event.clients[0]?.firstName === "Chloé");
     expect(ines?.status).toBe("confirmed");
-    // « Perdu » accepté sans motif (décision de Julien, lot 5).
-    expect(chloe?.status).toBe("lost");
+    // « Perdu » accepté sans motif (décision de Julien, lot 5) ; lot 34a (D2) : il devient Annulé.
+    expect(chloe?.status).toBe("cancelled");
     // Source inconnue créée ; ligne sans source : source par défaut.
     const sources = await listProspectSources(planner.organizationId);
     const created = sources.find((source) => source.label === "Mariages.net");

@@ -396,6 +396,12 @@ sans cette clé, l'app refuse de démarrer.
    ```
    En production : `symbola-production_default` et `.env.production`.
    Depuis un poste qui a Node, le tunnel SSH ci-dessus reste possible.
+
+   **Exception, migration 0132 (lot 34a, ADR 0055)** : elle renomme les statuts des évènements
+   (prospect et devis envoyé deviennent Option, réalisé devient Clôturé, perdu devient Annulé).
+   L'image d'avant ne les lit plus : arrêter `symbola` (`… -p symbola-staging stop symbola`),
+   lancer la migration, puis démarrer la nouvelle image (étape 4). L'interruption dure le temps
+   de la migration, quelques secondes.
 4. Redémarrer seulement le service `symbola` :
    ```bash
    sudo docker compose -f infra/compose/docker-compose.prod.yml \
@@ -418,7 +424,14 @@ juste avant le déploiement** (`docs/runbooks/restauration.md`), en perdant ce q
 depuis. La commande `mfa-secrets --unseal` (retour avant le lot 16) a disparu au lot 33 : il n'y a
 plus de secret de double authentification chez Symbola.
 
-**Vers une image du lot 33 ou postérieure** : remettre l'ancien tag d'image dans `.env.<environnement>`
+**Vers une image du lot 33** (antérieure au lot 34a) : la migration 0132 doit être annulée
+(`restauration.md`, § 4 bis : `0132_lot34a_events_lifecycle`), après une sauvegarde. L'annulation
+rend les statuts du PRD et perd ce qui n'y existait pas : En préparation et Reporté redeviennent
+Confirmé (la date d'avant un report en cours est perdue, la nouvelle reste), l'écart des tâches,
+les tâches fixées, le fuseau et le rattachement des modèles aux types disparaissent. Arrêter
+`symbola` avant l'annulation, puis démarrer l'image du lot 33.
+
+**Vers une image du lot 34a ou postérieure** : remettre l'ancien tag d'image dans `.env.<environnement>`
 (`APP_IMAGE_TAG=<sha précédent>`), puis répéter les étapes 4 et 5
 ci-dessus (`pull` puis `up -d symbola`) — en moins d'une minute
 (cahier des charges §3). Si la version déployée avait une migration de

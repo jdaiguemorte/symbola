@@ -5,7 +5,10 @@
 import type { FileDownload } from "../file-download";
 import type { MonthlyCount } from "../usage";
 import type { EventsSearchResults } from "../search";
-export type EventStatus = "prospect" | "quote_sent" | "confirmed" | "done" | "lost";
+// Lot 34a (EVT-05, ADR 0055) : statuts stockés ; EventPhase ajoute « Jour J », qui s'applique de
+// lui-même le jour de l'événement, dans son fuseau (décision D3).
+export type EventStatus = "option" | "confirmed" | "in_preparation" | "closed" | "postponed" | "cancelled";
+export type EventPhase = EventStatus | "day_of";
 
 export type EventClient = {
   id: string;
@@ -38,7 +41,12 @@ export type StaleProspect = { eventId: string; names: string; lastUpdateAt: Date
 export type EventSummary = {
   id: string;
   status: EventStatus;
+  // Lot 34a (EVT-05, D3) : le statut affiché, « Jour J » compris (le jour de l'événement, dans
+  // son fuseau, pour un événement confirmé ou en préparation).
+  phase: EventPhase;
   eventDate: string | null;
+  // Lot 34a (ARC-17, D9) : fuseau IANA de l'événement.
+  timeZone: string;
   venueName: string | null;
   venueCity: string | null;
   clients: EventClient[];
@@ -55,6 +63,9 @@ export type EventDetail = EventSummary & {
   lossReasonNote: string | null;
   // PRD-EVT-04 : date pour laquelle les échéances ont été calculées.
   tasksScheduledFor: string | null;
+  // Lot 34a (EVT-05, D4) : report en cours — date et statut d'avant.
+  postponedFromDate: string | null;
+  postponedFromStatus: EventStatus | null;
   // Lot 5 (IMP-04) : colonnes d'un fichier importé gardées en champ libre.
   importedFields?: Record<string, string>;
   // Lot 14 (décision K) : budget souhaité par les clients, en centimes.
@@ -80,6 +91,8 @@ export type CreateProspectInput = {
   eventDate?: string | null;
   venueName?: string | null;
   venueCity?: string | null;
+  // Lot 34a (EVT-01, D8) : le modèle du type s'applique dès la création (faux pour un import).
+  applyTemplate?: boolean;
 };
 
 export type CreateProspectResult = {
@@ -271,6 +284,8 @@ export type TaskTemplateItem = {
 export type TaskTemplate = {
   id: string;
   name: string;
+  // Lot 34a (EVT-01, D8) : type d'événement auquel le modèle est rattaché.
+  eventTypeId: string | null;
   items: TaskTemplateItem[];
 };
 
@@ -288,6 +303,10 @@ export type EventTask = {
   responsible: TaskResponsible;
   done: boolean;
   position: number;
+  // Lot 34a (DAT-07) : écart avec la date de l'événement (J-90 = -90), et tâche fixée (déplacée à
+  // la main : le report ne la bouge plus).
+  offsetDays: number | null;
+  fixed: boolean;
   // Lot 5 (IMP-04) : champs libres d'un import.
   importedFields?: Record<string, string>;
 };

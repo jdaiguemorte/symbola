@@ -10,7 +10,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { createOrganization, createUser } from "@symbola/auth";
 import { appDatabase } from "@symbola/db/client";
 import { starterContractRules } from "@symbola/starter-templates";
-import { createEventLink, createProspect, createProspectSource, setEventVenue } from "@/modules/events/service";
+import { cancelEvent, createEventLink, createProspect, createProspectSource, getEvent, reactivateEvent, setEventVenue } from "@/modules/events/service";
 import { saveOnboardingStep } from "@/modules/hub/service";
 import { fillRequiredMentions } from "@/lib/test-fixtures/legal-mentions";
 import {
@@ -515,5 +515,27 @@ describe("RGP-05 / RGPD-03 — Contrats et actes des signataires dans la recherc
     expect(open!.acts.map((entry) => entry.signerName)).toEqual(["[anonymisé]"]);
     const [kept] = await listQuoteContracts(context.organizationId, signedQuote.id);
     expect(kept!.clauses.find((clause) => clause.title === "Parties")!.body).toContain("Léa Martin");
+  });
+});
+
+// Lot 34a (FAC-13, EVT-05 ; D6) : un évènement annulé n'émet pas sa facture d'acompte programmée ;
+// elle attend, et part s'il est réactivé.
+describe("FAC-13 / EVT-05 — Annulation : la facture d'acompte programmée attend (lot 34a, D6)", () => {
+  it("la signature confirme l'option ; annulé, rien ne s'émet ; réactivé, la facture part", async () => {
+    const context = await organization();
+    const sent = await quote(context);
+    const template = await readyTemplate(context);
+    const contract = await generateContract(generation(context, sent.id, template, { channel: "on_premises", optionalClauseIds: clauseIds(template, ON_PREMISES_CLAUSES) }));
+    setSignatureProviderForTests(fakeSignatureProvider());
+    await signEveryone(await sendQuoteForSignature({ organizationId: context.organizationId, quoteId: sent.id, signers: signers(), documentPdf: PDF, locale: "fr", contractId: contract.id }));
+    expect((await getEvent(context.organizationId, context.eventId))?.status).toBe("confirmed");
+
+    await cancelEvent({ organizationId: context.organizationId, eventId: context.eventId, changedByUserId: context.plannerId, lossReasonId: null, lossReasonNote: "Séparation" });
+    expect(await issueScheduledDepositInvoices({ organizationId: context.organizationId, renderOriginal: render })).toEqual({ issued: 0, blocked: 0 });
+    expect(await getQuoteScheduledDeposit(context.organizationId, sent.id)).toMatchObject({ status: "waiting" });
+    expect(await listQuoteInvoices(context.organizationId, sent.id)).toEqual([]);
+
+    await reactivateEvent({ organizationId: context.organizationId, eventId: context.eventId, changedByUserId: context.plannerId });
+    expect(await issueScheduledDepositInvoices({ organizationId: context.organizationId, renderOriginal: render })).toEqual({ issued: 1, blocked: 0 });
   });
 });

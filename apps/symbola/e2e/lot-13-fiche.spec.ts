@@ -37,12 +37,12 @@ test("L13-EVT-19 — frise datée du statut, prochaine étape et chiffres clés"
   const event = await createProspect({ organizationId, createdByUserId: userId, prospectSourceId: source.id, clients: [{ firstName: "Inès" }], eventDate: "2027-06-12" });
   await login(page, email, password);
 
-  // Prospect : la frise date l'étape en cours ; le bandeau propose le devis.
+  // Option (lot 34a, EVT-05) : la frise date l'étape en cours ; le bandeau propose le devis.
   await page.goto(`/events/${event.id}`);
   const today = formatCalendarDate(parisToday(), "fr");
   const steps = page.getByRole("list", { name: "Statut de l'événement" });
-  await expect(steps.getByRole("listitem").filter({ hasText: "Prospect" })).toContainText(today);
-  await expect(steps.getByRole("listitem").filter({ hasText: "Réalisé" })).toContainText("après le");
+  await expect(steps.getByRole("listitem").filter({ hasText: "Option" })).toContainText(today);
+  await expect(steps.getByRole("listitem").filter({ hasText: "Clôturé" })).toContainText("après le");
   await expect(page.getByRole("heading", { name: "Prochaine étape : envoyer le devis" })).toBeVisible();
 
   // Lot 32a (EVT-02, D5) : la synthèse dit la prochaine action et la santé de l'évènement.
@@ -53,8 +53,8 @@ test("L13-EVT-19 — frise datée du statut, prochaine étape et chiffres clés"
 
   // Changer d'étape demande confirmation ; « Annuler » ne change rien.
   await page.getByRole("button", { name: "Passer en Confirmé" }).click();
-  await page.getByRole("button", { name: "Annuler" }).click();
-  await expect(steps.getByRole("listitem").filter({ hasText: "Prospect" })).toHaveAttribute("aria-current", "step");
+  await page.getByRole("button", { name: "Annuler", exact: true }).click();
+  await expect(steps.getByRole("listitem").filter({ hasText: "Option" })).toHaveAttribute("aria-current", "step");
   await changeEventStatus(page, "Confirmé");
   await expect(steps.getByRole("listitem").filter({ hasText: "Confirmé" })).toContainText(today);
 
