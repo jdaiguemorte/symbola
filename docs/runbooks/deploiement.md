@@ -401,7 +401,9 @@ sans cette clé, l'app refuse de démarrer.
    (prospect et devis envoyé deviennent Option, réalisé devient Clôturé, perdu devient Annulé).
    L'image d'avant ne les lit plus : arrêter `symbola` (`… -p symbola-staging stop symbola`),
    lancer la migration, puis démarrer la nouvelle image (étape 4). L'interruption dure le temps
-   de la migration, quelques secondes.
+   de la migration, quelques secondes. **Même chose pour la migration 0133 (lot 34b)** : le lieu
+   de réception passe de deux colonnes de l'évènement (`venue_name`, `venue_city`, retirées) au
+   premier lieu de la liste ; l'image du lot 34a les lit encore.
 4. Redémarrer seulement le service `symbola` :
    ```bash
    sudo docker compose -f infra/compose/docker-compose.prod.yml \
@@ -431,7 +433,14 @@ Confirmé (la date d'avant un report en cours est perdue, la nouvelle reste), l'
 les tâches fixées, le fuseau et le rattachement des modèles aux types disparaissent. Arrêter
 `symbola` avant l'annulation, puis démarrer l'image du lot 33.
 
-**Vers une image du lot 34a ou postérieure** : remettre l'ancien tag d'image dans `.env.<environnement>`
+**Vers une image du lot 34a** (antérieure au lot 34b) : annuler la migration 0133
+(`0133_lot34b_events_fiche_tasks`), après une sauvegarde. Le lieu de réception redevient deux
+colonnes, reprises du premier lieu ; les horaires et le contact des lieux, les invités, le style,
+les notes, les pièces jointes et les commentaires des tâches sont perdus (les fichiers des pièces
+jointes restent dans le stockage, sans ligne : `restauration.md`, § 4 bis), et une tâche confiée à
+un prestataire revient à la planner. Arrêter `symbola` avant l'annulation.
+
+**Vers une image du lot 34b ou postérieure** : remettre l'ancien tag d'image dans `.env.<environnement>`
 (`APP_IMAGE_TAG=<sha précédent>`), puis répéter les étapes 4 et 5
 ci-dessus (`pull` puis `up -d symbola`) — en moins d'une minute
 (cahier des charges §3). Si la version déployée avait une migration de

@@ -241,6 +241,61 @@ avec les statuts actuels et la migration.
 - **Commentaires** (D13) : un fil par tâche (auteur, date, texte), lu et écrit par l'équipe.
 - **Dépendances** : V1 (critère de CHR-02).
 
+### Bilan du lot 34b (14/11/2026)
+
+**Fait** :
+- **Une seule liste de lieux** (EVT-03, D10) : migration 0133 (schéma `events`, annulable). Le lieu
+  de réception (`venue_name`, `venue_city`) devient le premier lieu : un lieu du même nom (fiche
+  importée, lieux du programme) est repris et passe en tête, sinon un lieu est créé ; sans nom, la
+  ville sert d'intitulé ; puis les deux colonnes disparaissent. Le service expose toujours le lieu
+  de réception, lu dans le premier lieu : la liste, la recherche, les Devis (variable
+  `{evenement.lieu}`), le mode Jour J et le choix des prestataires n'ont pas changé de contrat. La
+  création, l'import (et son annulation), l'essai et l'exemple l'écrivent dans la liste.
+- **Chaque lieu** porte adresse, ville, horaires (début et fin) et contact sur place (nom,
+  téléphone, e-mail), contrôlés ; un autre lieu peut devenir le lieu de réception. L'espace du
+  prestataire montre la ville et les horaires des lieux, jamais leur contact.
+- **Un lieu ajouté au nom d'un lieu existant** (le lieu de réception saisi à la création, un
+  import) complète ses champs vides, sans écraser une valeur saisie : le lieu ne se saisit qu'une
+  fois.
+- **Fiche d'identité** (D11) sur la synthèse : invités estimés et confirmés (saisis à la main), lieux,
+  interlocuteurs (clients et contacts des lieux), style, notes ; saisie dans « Modifier les
+  informations ».
+- **Tâche confiée à un prestataire** (CHR-02, D12) : à un prestataire engagé (retenu, contrat signé,
+  soldé) sur le même événement ; il la voit et la coche dans son espace, au fil d'activité ; rendue
+  à la planner, elle en sort. Le portail du client la dit « Confiée à un prestataire ». Un modèle de
+  rétroplanning ne confie rien à un prestataire.
+- **Pièces jointes et commentaires** (D13), réservés à l'équipe : mêmes contrôles que les documents
+  de l'événement (type par le contenu, 20 Mo, antivirus, stockage privé, téléchargement après
+  contrôle des droits) ; seul l'auteur retire son commentaire. Les fichiers partent avec
+  l'événement (essai, oubli).
+- **RGPD** : contact des lieux, style et notes, commentaires et pièces jointes déclarés au registre,
+  trouvés par la recherche, exportés, effacés à l'oubli (fichiers compris) ; libellés du journal.
+- **Aide** : fiche de l'événement et espace du prestataire (FR, EN).
+- **Tests** : `@symbola/db` (annulation de 0133 : nom repris malgré la casse, ville seule, lieu
+  absent, contrôle des invités, tâche rendue à la planner) ; intégration
+  `modules/events/fiche.integration.test.ts` (lieux, fiche, tâche confiée et cochée, refus d'un
+  prestataire non engagé ou d'un autre événement, pièce jointe refusée par le contrôle de contenu
+  et par l'antivirus, commentaires, RGPD, isolation) ; parcours `evt-03-chr-02-fiche-taches`,
+  ordinateur et 375 px, axe-core. Totaux : app 493 unitaires et 619 en intégration,
+  `@symbola/db` 166, `@symbola/auth` 21. Suite complète sur une base rechargée : 275 parcours
+  réussis, 3 ignorés (les mêmes qu'avant) ; elle a relevé un défaut, corrigé dans le lot (un lieu
+  ajouté au nom du lieu de réception n'en complétait pas l'adresse, parcours JRJ-02), et les
+  parcours qui ajoutent ce lieu repassent. Lint, typecheck, frontières de modules : verts.
+  Semgrep (p/default) : aucune erreur sur les fichiers du lot. Gitleaks : aucune fuite dans ses
+  commits.
+
+**Écarts avec la spécification** :
+- **Lieu de réception** : le service garde ses deux champs de lecture (lieu et ville), lus dans le
+  premier lieu, plutôt que de réécrire chaque écran ; « Modifier les informations » garde un
+  raccourci vers ce premier lieu. La donnée n'existe qu'une fois (D10).
+- **Interlocuteurs** : ceux du cahier des charges sont les clients et les contacts des lieux ; un
+  annuaire des contacts (CRM-03) viendra au lot 36.
+
+**Reste** :
+- **Déploiement d'ensemble** : migration 0133 après 0132 ; elle n'est pas compatible avec l'image du
+  lot 34a, l'app s'arrête le temps de la migration (`docs/runbooks/deploiement.md`).
+- **Dépendances entre tâches** : V1 (critère de CHR-02).
+
 ## Décisions à prendre
 
 - **D1 — Découpage.**
