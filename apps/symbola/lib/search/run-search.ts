@@ -20,7 +20,7 @@ const QUOTE_STATUS_KEYS: Record<string, string> = {
   expired: "statusExpired",
 };
 
-export type SearchGroupKey = "events" | "documents" | "tasks" | "help";
+export type SearchGroupKey = "contacts" | "events" | "documents" | "tasks" | "help";
 export type SearchItem = { title: string; detail: string; href: string };
 export type SearchGroup = { key: SearchGroupKey; label: string; items: SearchItem[] };
 
@@ -57,6 +57,13 @@ export async function runSearch(input: { organizationId: string; role: string; t
           .join(" · "),
         href: `/events/${event.id}`,
       })),
+    },
+    // Lot 36a (CRM-03) : les contacts de l'organisation, après leurs évènements (un nom de client
+    // ouvre d'abord l'évènement, AIDE-08).
+    {
+      key: "contacts",
+      label: t("groupContacts"),
+      items: found.contacts.map((contact) => ({ title: contact.displayName, detail: [contact.email, contact.city].filter(Boolean).join(" · "), href: `/contacts/${contact.id}` })),
     },
     {
       key: "documents",

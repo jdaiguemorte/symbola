@@ -405,6 +405,10 @@ sans cette clé, l'app refuse de démarrer.
    de réception passe de deux colonnes de l'évènement (`venue_name`, `venue_city`, retirées) au
    premier lieu de la liste ; l'image du lot 34a les lit encore. La migration 0134 (lot 35a,
    exports complets) n'ajoute qu'une table et une colonne : elle passe sans arrêter `symbola`.
+   **La migration 0135 (lot 36a, ADR 0069) demande, elle, l'arrêt de `symbola`** : elle reprend
+   les clients des évènements dans les contacts du hub, puis retire leurs coordonnées
+   d'`event_clients`, que l'image du lot 35a lit encore. La reprise se fait dans une seule
+   transaction : en cas d'échec, rien n'est repris et l'ancienne image redémarre telle quelle.
 4. Redémarrer seulement le service `symbola` :
    ```bash
    sudo docker compose -f infra/compose/docker-compose.prod.yml \
@@ -441,8 +445,15 @@ les notes, les pièces jointes et les commentaires des tâches sont perdus (les 
 jointes restent dans le stockage, sans ligne : `restauration.md`, § 4 bis), et une tâche confiée à
 un prestataire revient à la planner. Arrêter `symbola` avant l'annulation.
 
-**Vers une image du lot 34b ou postérieure** (la migration 0134 du lot 35a peut rester : l'image du
-lot 34b ignore sa table et sa colonne) : remettre l'ancien tag d'image dans `.env.<environnement>`
+**Vers une image du lot 35a** (antérieure au lot 36a) : annuler la migration 0135
+(`0135_lot36a_contacts`), après une sauvegarde, `symbola` arrêté. Chaque client retrouve ses
+coordonnées, reprises de son contact ; un client retiré par le RGPD redevient « [anonymisé] ». Les
+contacts sans évènement, les notes des contacts et leurs adresses de facturation sont perdus. Deux
+évènements qui partageaient un contact gardent chacun sa copie. Démarrer ensuite l'image du
+lot 35a.
+
+**Vers une image du lot 34b ou du lot 35a** (la migration 0134 du lot 35a peut rester : l'image du
+lot 34b ignore sa table et sa colonne ; la migration 0135 est annulée d'abord, ci-dessus) : remettre l'ancien tag d'image dans `.env.<environnement>`
 (`APP_IMAGE_TAG=<sha précédent>`), puis répéter les étapes 4 et 5
 ci-dessus (`pull` puis `up -d symbola`) — en moins d'une minute
 (cahier des charges §3). Si la version déployée avait une migration de

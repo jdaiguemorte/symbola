@@ -12,11 +12,11 @@ import { eq } from "drizzle-orm";
 import { afterAll, describe, expect, it } from "vitest";
 import { createOrganization, createUser } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
-import { eventClients, events } from "@symbola/db/schema/events";
+import { events } from "@symbola/db/schema/events";
 import { invoices, paymentScheduleItems, quotes, quoteSigners, quoteVersions, signatureRequests } from "@symbola/db/schema/quotes";
 import { withOrganization } from "@symbola/db/with-organization";
 import { addMonths, parisDate } from "@symbola/privacy";
-import { createProspect, createProspectSource } from "@/modules/events/service";
+import { createProspect, createProspectSource, getEvent } from "@/modules/events/service";
 import {
   closePrivacyRequest,
   createPrivacyRequest,
@@ -228,8 +228,9 @@ describe("RGPD-05 — Isolation de la purge", { timeout: 30_000 }, () => {
     expect(
       await executePurge({ organizationId: plannerA.organizationId, userId: plannerA.userId, today: day, decisions: [{ key: `event:${eventB}`, excluded: false, reason: "" }] }),
     ).toEqual({ status: "empty" });
-    const clients = await withOrganization(db, plannerB.organizationId, (tx) => tx.select().from(eventClients).where(eq(eventClients.eventId, eventB)));
-    expect(clients[0]?.firstName).toBe("Élodie");
+    // Lot 36a : le client est un contact du hub, toujours là, nom intact.
+    const event = await getEvent(plannerB.organizationId, eventB);
+    expect(event?.clients[0]?.firstName).toBe("Élodie");
   });
 });
 

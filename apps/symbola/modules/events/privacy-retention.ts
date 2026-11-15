@@ -9,6 +9,7 @@ import { appDatabase } from "@symbola/db/client";
 import { eventClients, events, eventStatusHistory } from "@symbola/db/schema/events";
 import { withOrganization } from "@symbola/db/with-organization";
 import { ANONYMIZED, parisDate } from "@symbola/privacy";
+import { withContacts } from "./clients";
 
 export type RetentionEvent = {
   eventId: string;
@@ -25,11 +26,11 @@ export type RetentionEvent = {
 
 export async function listRetentionEvents(organizationId: string): Promise<RetentionEvent[]> {
   const db = appDatabase();
-  return await withOrganization(db, organizationId, async (tx) => {
+  const found = await withOrganization(db, organizationId, async (tx) => {
     const rows = await tx.select().from(events).where(eq(events.isDemo, false));
-    if (rows.length === 0) return [];
+    if (rows.length === 0) return null;
     const ids = rows.map((row) => row.id);
-    const clients = await tx.select().from(eventClients).where(inArray(eventClients.eventId, ids)).orderBy(asc(eventClients.position));
+    const clientLinks = await tx.select().from(eventClients).where(inArray(eventClients.eventId, ids)).orderBy(asc(eventClients.position));
     const lastChanges = await tx
       .select({ eventId: eventStatusHistory.eventId, changedAt: max(eventStatusHistory.changedAt) })
       .from(eventStatusHistory)
@@ -44,21 +45,27 @@ export async function listRetentionEvents(organizationId: string): Promise<Reten
           .where(and(inArray(eventStatusHistory.eventId, ids), inArray(eventStatusHistory.toStatus, ["confirmed", "in_preparation", "closed", "postponed"])))
       ).map((row) => row.eventId),
     );
-    const result: RetentionEvent[] = [];
-    for (const row of rows) {
-      const own = clients.filter((client) => client.eventId === row.id);
-      if (own.length > 0 && own.every((client) => client.firstName === ANONYMIZED)) continue;
-      const changedAt = lastChange.get(row.id);
-      result.push({
-        eventId: row.id,
-        status: row.status,
-        everConfirmed: confirmedOnce.has(row.id) || ["confirmed", "in_preparation", "closed", "postponed"].includes(row.status),
-        eventDate: row.eventDate,
-        activityDates: [parisDate(row.createdAt), parisDate(row.updatedAt), ...(changedAt ? [parisDate(new Date(changedAt))] : [])],
-        clientNames: own.map((client) => (client.lastName ? `${client.firstName} ${client.lastName}` : client.firstName)),
-        clientIds: own.map((client) => client.id),
-      });
-    }
-    return result;
+    return { rows, clientLinks, lastChange, confirmedOnce };
   });
+  if (!found) return [];
+  const { rows, lastChange, confirmedOnce } = found;
+  // Lot 36a (ADR 0069) : le nom des clients est celui de leur contact ; un client retiré par le RGPD
+  // (lien vide, ou contact anonymisé) s'affiche « [anonymisé] ».
+  const clients = await withContacts(organizationId, found.clientLinks);
+  const result: RetentionEvent[] = [];
+  for (const row of rows) {
+    const own = clients.filter((client) => client.eventId === row.id);
+    if (own.length > 0 && own.every((client) => client.firstName === ANONYMIZED)) continue;
+    const changedAt = lastChange.get(row.id);
+    result.push({
+      eventId: row.id,
+      status: row.status,
+      everConfirmed: confirmedOnce.has(row.id) || ["confirmed", "in_preparation", "closed", "postponed"].includes(row.status),
+      eventDate: row.eventDate,
+      activityDates: [parisDate(row.createdAt), parisDate(row.updatedAt), ...(changedAt ? [parisDate(new Date(changedAt))] : [])],
+      clientNames: own.map((client) => (client.lastName ? `${client.firstName} ${client.lastName}` : client.firstName)),
+      clientIds: own.map((client) => client.id),
+    });
+  }
+  return result;
 }

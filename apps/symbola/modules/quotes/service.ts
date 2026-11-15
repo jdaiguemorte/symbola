@@ -85,10 +85,12 @@ import { QUOTES_QUOTE_SIGNED, QUOTES_QUOTE_SIGNED_VERSION, type QuoteSignedPaylo
 import { changeEventStatus, EventNotFoundError, getEvent, listEventLinks, listEventTypes } from "@/modules/events/service";
 import {
   computeLegalMention,
+  ContactNotFoundError,
   getOrganizationProfile,
   getRequiredMentionRules,
   getSellerDetails,
   getUserContact,
+  updateContact,
   type OrganizationProfile,
 } from "@/modules/hub/service";
 import { fakeSignatureProvider, realSignatureProvider, signatureProviderFor } from "./signature";
@@ -914,6 +916,7 @@ function toSignatureView(request: SignatureRequestRow, signers: QuoteSignerRow[]
       .map((signer) => ({
         id: signer.id,
         eventClientId: signer.eventClientId,
+        contactId: signer.contactId,
         name: signer.name,
         email: signer.email,
         billingAddress: signer.billingAddress,
@@ -1835,6 +1838,8 @@ function validSigners(signers: SignerInput[]): SignerInput[] {
     if (!emailSchema.safeParse(email).success) throw new RangeError("e-mail du signataire invalide");
     return {
       eventClientId: signer.eventClientId ?? null,
+      contactId: signer.contactId ?? null,
+      saveBillingAddress: signer.saveBillingAddress ?? false,
       name: requireText(signer.name, "nom du signataire"),
       email,
       billingAddress: requireText(signer.billingAddress, "adresse de facturation"),
@@ -1910,6 +1915,7 @@ export async function sendQuoteForSignature(input: SendForSignatureInput): Promi
       return {
         id: signerIds[index]!,
         eventClientId: signer.eventClientId ?? null,
+        contactId: signer.contactId ?? null,
         name: signer.name,
         email: signer.email,
         billingAddress: signer.billingAddress,
@@ -1922,6 +1928,17 @@ export async function sendQuoteForSignature(input: SendForSignatureInput): Promi
   if (result.status === "exists") throw new SignatureAlreadyRequestedError();
   if (result.status === "not_sent") throw new QuoteNotSentError();
   unwrap(result as PaymentResult);
+
+  // Lot 36a (UX-02, D8) : l'adresse de facturation saisie ou corrigée est gardée sur la fiche du
+  // contact quand la planner l'a demandé, pour ne plus la ressaisir. La copie du signataire reste.
+  for (const signer of people) {
+    if (!signer.contactId || !signer.saveBillingAddress) continue;
+    try {
+      await updateContact(input.organizationId, signer.contactId, { billingAddress: signer.billingAddress });
+    } catch (error) {
+      if (!(error instanceof ContactNotFoundError)) throw error;
+    }
+  }
 
   const detail = await loadDetail(input.organizationId, input.quoteId);
   if (!quote.isDemo) {
@@ -3190,7 +3207,7 @@ export async function sendContractForSignature(input: SendContractForSignatureIn
   if (contract.outdated) throw new ContractOutdatedError();
   const provider = signatureProviderFor(quote.isDemo);
   if (!provider) throw new SignatureUnavailableError();
-  const people = quote.signature.signers.map((signer) => ({ eventClientId: signer.eventClientId, name: signer.name, email: signer.email, billingAddress: signer.billingAddress }));
+  const people = quote.signature.signers.map((signer) => ({ eventClientId: signer.eventClientId, contactId: signer.contactId, name: signer.name, email: signer.email, billingAddress: signer.billingAddress }));
   if (contract.regime.orderRequired) await requirePortalLinks(input.organizationId, quote.eventId, people);
   const signerIds = people.map(() => randomUUID());
   const created = await provider.createRequest({
@@ -3207,7 +3224,7 @@ export async function sendContractForSignature(input: SendContractForSignatureIn
       const externalId = `${input.organizationId}.${signerIds[index]}`;
       const link = created.signers.find((candidate) => candidate.externalId === externalId);
       if (!link) throw new Error("lien de signature manquant");
-      return { id: signerIds[index]!, eventClientId: signer.eventClientId, name: signer.name, email: signer.email, billingAddress: signer.billingAddress, signingUrl: link.signingUrl, externalId, position: index };
+      return { id: signerIds[index]!, eventClientId: signer.eventClientId, contactId: signer.contactId, name: signer.name, email: signer.email, billingAddress: signer.billingAddress, signingUrl: link.signingUrl, externalId, position: index };
     }),
   });
   if (result.status === "exists") throw new SignatureAlreadyRequestedError();

@@ -10,7 +10,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { createUser } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
 import { expect, test, type Page } from "@playwright/test";
-import { createProspect, createProspectSource } from "../modules/events/service";
+import { createProspect, createProspectSource, getEvent } from "../modules/events/service";
 import { createQuote } from "../modules/quotes/service";
 import { createVendor } from "../modules/vendors/service";
 import { readyOrganization, signIn as signInByLink } from "./helpers";
@@ -44,7 +44,9 @@ async function organizationWithObjects(label: string) {
   const event = await createProspect({ organizationId, createdByUserId: userId, prospectSourceId: source.id, clients: [{ firstName: "Inès" }], eventDate: "2027-06-12" });
   const quote = await createQuote({ organizationId, eventId: event.id, createdByUserId: userId });
   const { vendor } = await createVendor(organizationId, { name: `Maison ${label}`, typeId: null, city: "Lille" });
-  return { email, password, eventId: event.id, quoteId: quote.id, vendorId: vendor.id };
+  // Lot 36a (CRM-03) : le client de l'évènement est un contact du hub.
+  const contactId = (await getEvent(organizationId, event.id))!.clients[0]!.contactId!;
+  return { email, password, eventId: event.id, quoteId: quote.id, vendorId: vendor.id, contactId };
 }
 
 type Objects = Awaited<ReturnType<typeof organizationWithObjects>>;
@@ -56,6 +58,7 @@ const ADDRESSES: { kind: "page" | "route"; path: (objects: Objects) => string }[
   { kind: "page", path: (o) => `/budget/${o.eventId}` },
   { kind: "page", path: (o) => `/devis/${o.quoteId}` },
   { kind: "page", path: (o) => `/prestataires/${o.vendorId}` },
+  { kind: "page", path: (o) => `/contacts/${o.contactId}` },
   { kind: "route", path: (o) => `/events/${o.eventId}/programme/pdf?variant=couple` },
   // Lot 28c (BUD-10) : exports du budget.
   { kind: "route", path: (o) => `/budget/${o.eventId}/export?format=xlsx` },
@@ -66,7 +69,7 @@ const ADDRESSES: { kind: "page" | "route"; path: (objects: Objects) => string }[
 ];
 
 function nowhere(): Objects {
-  return { email: "", password: "", eventId: randomUUID(), quoteId: randomUUID(), vendorId: randomUUID() };
+  return { email: "", password: "", eventId: randomUUID(), quoteId: randomUUID(), vendorId: randomUUID(), contactId: randomUUID() };
 }
 
 async function answer(page: Page, kind: "page" | "route", path: string): Promise<{ status: number; text: string }> {
@@ -107,6 +110,7 @@ test("SEC-13 / SC-S1 — un objet d'une autre organisation répond comme un obje
   const refusals = page.getByRole("row").filter({ hasText: "Accès refusé : objet introuvable" });
   await expect(refusals.filter({ hasText: "Adresse demandée : /events/[id]" }).first()).toBeVisible();
   await expect(refusals.filter({ hasText: "Adresse demandée : /devis/[id]/pdf" }).first()).toBeVisible();
+  await expect(refusals.filter({ hasText: "Adresse demandée : /contacts/[id]" }).first()).toBeVisible();
   await expect(page.locator("main")).not.toContainText("owner-sec13-B");
   await expectNoAxeViolation(page);
 });

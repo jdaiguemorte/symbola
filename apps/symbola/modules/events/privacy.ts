@@ -8,7 +8,7 @@
 // l'événement (« Plan de table Martin ») ; le fichier lui-même peut nommer des
 // personnes, il est supprimé à l'oubli. Les données d'un essai guidé (ADR 0008)
 // ne sont jamais trouvées.
-import { asc, eq, inArray } from "drizzle-orm";
+import { and, asc, eq, inArray } from "drizzle-orm";
 import { appDatabase } from "@symbola/db/client";
 import {
   eventLinks,
@@ -29,6 +29,8 @@ import {
 } from "@symbola/db/schema/events";
 import { withOrganization } from "@symbola/db/with-organization";
 import { hasTerms, prepareTerms, recordMatches, type PrivacyContractV1, type PrivacyRecord } from "@symbola/privacy";
+import { findContactsByTerms } from "@/modules/hub/service";
+import { withContacts } from "./clients";
 import { eraseEventsData, planEventsErasure } from "./privacy-erasure";
 
 const MODULE = "events";
@@ -117,6 +119,9 @@ export const eventsPrivacy: PrivacyContractV1 = {
   async find({ organizationId, terms: rawTerms }) {
     const terms = prepareTerms(rawTerms);
     if (!hasTerms(terms)) return [];
+    // Lot 36a (CRM-03, ADR 0069) : les clients sont des contacts du hub ; ceux qui correspondent à la
+    // personne sont cherchés chez lui, puis leurs participations ici.
+    const matchingContacts = new Map((await findContactsByTerms(organizationId, rawTerms)).map((contact) => [contact.id, contact]));
     return inOrganization(organizationId, async (tx) => {
       const realEvents = await tx.select().from(events).where(eq(events.isDemo, false));
       const eventIds = realEvents.map((event) => event.id);
@@ -136,23 +141,25 @@ export const eventsPrivacy: PrivacyContractV1 = {
           });
         }
       }
-      for (const client of await tx.select().from(eventClients).where(inArray(eventClients.eventId, eventIds))) {
-        if (recordMatches([client.firstName, client.lastName, client.email, client.phone], terms)) {
-          records.push({
-            module: MODULE,
-            kind: "event_client",
-            recordId: client.id,
-            label: fullName(client.firstName, client.lastName),
-            fields: compact({
-              firstName: client.firstName,
-              lastName: client.lastName,
-              email: client.email,
-              phone: client.phone,
-              address: [client.addressLine, client.postalCode, client.city].filter(Boolean).join(" ") || null,
-            }),
-            eventId: client.eventId,
-          });
-        }
+      const contactIds = [...matchingContacts.keys()];
+      const clientLinks = contactIds.length > 0 ? await tx.select().from(eventClients).where(and(inArray(eventClients.eventId, eventIds), inArray(eventClients.contactId, contactIds))) : [];
+      for (const client of clientLinks) {
+        const contact = matchingContacts.get(client.contactId!);
+        if (!contact) continue;
+        records.push({
+          module: MODULE,
+          kind: "event_client",
+          recordId: client.id,
+          label: contact.displayName,
+          fields: compact({
+            firstName: contact.firstName,
+            lastName: contact.lastName,
+            email: contact.email,
+            phone: contact.phone,
+            address: [contact.addressLine, contact.postalCode, contact.city].filter(Boolean).join(" ") || null,
+          }),
+          eventId: client.eventId,
+        });
       }
       // Lot 26a : lien personnel d'un tiers (nom et e-mail de la personne).
       for (const link of await tx.select().from(eventLinks).where(inArray(eventLinks.eventId, eventIds))) {
@@ -235,7 +242,8 @@ export const eventsPrivacy: PrivacyContractV1 = {
       if (ids.length === 0) return [];
       const records: PrivacyRecord[] = [];
       const clientsByEvent = new Map<string, string[]>();
-      for (const client of await tx.select().from(eventClients).where(inArray(eventClients.eventId, ids)).orderBy(asc(eventClients.position))) {
+      const clientLinks = await tx.select().from(eventClients).where(inArray(eventClients.eventId, ids)).orderBy(asc(eventClients.position));
+      for (const client of await withContacts(organizationId, clientLinks)) {
         clientsByEvent.set(client.eventId, [...(clientsByEvent.get(client.eventId) ?? []), fullName(client.firstName, client.lastName)]);
       }
       for (const event of realEvents.filter((candidate) => ids.includes(candidate.id))) {

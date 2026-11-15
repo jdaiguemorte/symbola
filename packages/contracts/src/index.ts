@@ -333,3 +333,5 @@ export {
   type ModuleExportEntity,
   type OrganizationExportModule,
 } from "./export/organization-export";
+// Lot 36a (CRM-03, DAT-12, ADR 0069) : le contact unique du hub.
+export type { Contact, ContactCoordinates, ContactInput, ContactKind, ContactNote } from "./contacts";

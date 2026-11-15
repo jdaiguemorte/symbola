@@ -5,7 +5,7 @@
 # Copies hors ligne du jour J (lot 29a, ADR 0064) : aucun champ nouveau. Sur un geste de la
 # planner (« Garder sur cet appareil »), l'écran du jour J copie dans le navigateur de son
 # téléphone des champs déjà déclarés ci-dessous : noms, téléphones et e-mails des clients
-# (events.event_clients) et des prestataires retenus (vendors.vendors), programme et notes
+# (hub.contacts, lot 36a) et des prestataires retenus (vendors.vendors), programme et notes
 # internes (events.program_items), lieux (events.event_places). La copie s'efface au retrait,
 # à la déconnexion, à la connexion d'un autre compte et le lendemain de l'évènement à minuit ;
 # elle n'est pas chiffrée par l'application (verrouillage du téléphone).
@@ -253,64 +253,199 @@ fields:
     field: first_name
     category: identifiant
     retention: >-
-      Tant que l'événement existe. Après suppression ou demande d'oubli :
-      voir RGPD-03/RGPD-05.
+      Colonne retirée au lot 36a (migration 0135, ADR 0069) : le nom et les coordonnées
+      d'un client sont repris dans son contact (hub.contacts). Entrée gardée parce que
+      la migration qui l'a créée reste dans l'historique.
     anonymization: >-
-      Remplacé par « [anonymisé] » lors d'une demande d'oubli (RGPD-03).
+      Sans objet depuis le lot 36a (colonne supprimée) ; voir hub.contacts.
   - schema: events
     table: event_clients
     field: last_name
     category: identifiant
     retention: >-
-      Tant que l'événement existe. Après suppression ou demande d'oubli :
-      voir RGPD-03/RGPD-05.
+      Colonne retirée au lot 36a (migration 0135, ADR 0069) : le nom et les coordonnées
+      d'un client sont repris dans son contact (hub.contacts). Entrée gardée parce que
+      la migration qui l'a créée reste dans l'historique.
     anonymization: >-
-      Mis à nul lors d'une demande d'oubli (RGPD-03).
+      Sans objet depuis le lot 36a (colonne supprimée) ; voir hub.contacts.
   - schema: events
     table: event_clients
     field: email
     category: contact
     retention: >-
-      Lot 14 (décision I) : e-mail du client. Tant que l'événement existe. Après
-      suppression ou demande d'oubli : voir RGPD-03/RGPD-05.
+      Colonne retirée au lot 36a (migration 0135, ADR 0069) : le nom et les coordonnées
+      d'un client sont repris dans son contact (hub.contacts). Entrée gardée parce que
+      la migration qui l'a créée reste dans l'historique.
     anonymization: >-
-      Mis à nul lors d'une demande d'oubli (RGPD-03).
+      Sans objet depuis le lot 36a (colonne supprimée) ; voir hub.contacts.
   - schema: events
     table: event_clients
     field: phone
     category: contact
     retention: >-
-      Lot 14 (décision I) : téléphone du client. Tant que l'événement existe. Après
-      suppression ou demande d'oubli : voir RGPD-03/RGPD-05.
+      Colonne retirée au lot 36a (migration 0135, ADR 0069) : le nom et les coordonnées
+      d'un client sont repris dans son contact (hub.contacts). Entrée gardée parce que
+      la migration qui l'a créée reste dans l'historique.
     anonymization: >-
-      Mis à nul lors d'une demande d'oubli (RGPD-03).
+      Sans objet depuis le lot 36a (colonne supprimée) ; voir hub.contacts.
   - schema: events
     table: event_clients
     field: address_line
     category: contact
     retention: >-
-      Lot 14 (décision I) : adresse du client. Tant que l'événement existe. Après
-      suppression ou demande d'oubli : voir RGPD-03/RGPD-05.
+      Colonne retirée au lot 36a (migration 0135, ADR 0069) : le nom et les coordonnées
+      d'un client sont repris dans son contact (hub.contacts). Entrée gardée parce que
+      la migration qui l'a créée reste dans l'historique.
     anonymization: >-
-      Mis à nul lors d'une demande d'oubli (RGPD-03).
+      Sans objet depuis le lot 36a (colonne supprimée) ; voir hub.contacts.
   - schema: events
     table: event_clients
     field: postal_code
     category: contact
     retention: >-
-      Lot 14 (décision I) : code postal du client. Tant que l'événement existe. Après
-      suppression ou demande d'oubli : voir RGPD-03/RGPD-05.
+      Colonne retirée au lot 36a (migration 0135, ADR 0069) : le nom et les coordonnées
+      d'un client sont repris dans son contact (hub.contacts). Entrée gardée parce que
+      la migration qui l'a créée reste dans l'historique.
     anonymization: >-
-      Mis à nul lors d'une demande d'oubli (RGPD-03).
+      Sans objet depuis le lot 36a (colonne supprimée) ; voir hub.contacts.
   - schema: events
     table: event_clients
     field: city
     category: contact
     retention: >-
-      Lot 14 (décision I) : ville du client. Tant que l'événement existe. Après
-      suppression ou demande d'oubli : voir RGPD-03/RGPD-05.
+      Colonne retirée au lot 36a (migration 0135, ADR 0069) : le nom et les coordonnées
+      d'un client sont repris dans son contact (hub.contacts). Entrée gardée parce que
+      la migration qui l'a créée reste dans l'historique.
     anonymization: >-
-      Mis à nul lors d'une demande d'oubli (RGPD-03).
+      Sans objet depuis le lot 36a (colonne supprimée) ; voir hub.contacts.
+  - schema: hub
+    table: contacts
+    field: first_name
+    category: identifiant
+    retention: >-
+      Prénom d'une personne.
+      Lot 36a (CRM-03, D9, ADR 0069) : contact unique de l'organisation. Client d'un
+      évènement : la règle de son évènement (prospect ou client, RGPD-05) ; sans évènement :
+      la règle des prospects, à compter de sa dernière modification. Après une demande
+      d'oubli : voir RGPD-03.
+    anonymization: >-
+      Remplacé par « [anonymisé] » à l'oubli (RGPD-03) ou à la purge (RGPD-05).
+  - schema: hub
+    table: contacts
+    field: last_name
+    category: identifiant
+    retention: >-
+      Nom d'une personne.
+      Lot 36a (CRM-03, D9, ADR 0069) : contact unique de l'organisation. Client d'un
+      évènement : la règle de son évènement (prospect ou client, RGPD-05) ; sans évènement :
+      la règle des prospects, à compter de sa dernière modification. Après une demande
+      d'oubli : voir RGPD-03.
+    anonymization: >-
+      Mis à nul à l'oubli ou à la purge.
+  - schema: hub
+    table: contacts
+    field: name
+    category: identifiant
+    retention: >-
+      Nom d'un foyer ou d'une entreprise.
+      Lot 36a (CRM-03, D9, ADR 0069) : contact unique de l'organisation. Client d'un
+      évènement : la règle de son évènement (prospect ou client, RGPD-05) ; sans évènement :
+      la règle des prospects, à compter de sa dernière modification. Après une demande
+      d'oubli : voir RGPD-03.
+    anonymization: >-
+      Remplacé par « [anonymisé] » à l'oubli ou à la purge.
+  - schema: hub
+    table: contacts
+    field: email
+    category: contact
+    retention: >-
+      Adresse e-mail (unique dans l'organisation, DAT-12).
+      Lot 36a (CRM-03, D9, ADR 0069) : contact unique de l'organisation. Client d'un
+      évènement : la règle de son évènement (prospect ou client, RGPD-05) ; sans évènement :
+      la règle des prospects, à compter de sa dernière modification. Après une demande
+      d'oubli : voir RGPD-03.
+    anonymization: >-
+      Mis à nul à l'oubli ou à la purge.
+  - schema: hub
+    table: contacts
+    field: phone
+    category: contact
+    retention: >-
+      Téléphone.
+      Lot 36a (CRM-03, D9, ADR 0069) : contact unique de l'organisation. Client d'un
+      évènement : la règle de son évènement (prospect ou client, RGPD-05) ; sans évènement :
+      la règle des prospects, à compter de sa dernière modification. Après une demande
+      d'oubli : voir RGPD-03.
+    anonymization: >-
+      Mis à nul à l'oubli ou à la purge.
+  - schema: hub
+    table: contacts
+    field: address_line
+    category: contact
+    retention: >-
+      Adresse.
+      Lot 36a (CRM-03, D9, ADR 0069) : contact unique de l'organisation. Client d'un
+      évènement : la règle de son évènement (prospect ou client, RGPD-05) ; sans évènement :
+      la règle des prospects, à compter de sa dernière modification. Après une demande
+      d'oubli : voir RGPD-03.
+    anonymization: >-
+      Mis à nul à l'oubli ou à la purge.
+  - schema: hub
+    table: contacts
+    field: postal_code
+    category: contact
+    retention: >-
+      Code postal.
+      Lot 36a (CRM-03, D9, ADR 0069) : contact unique de l'organisation. Client d'un
+      évènement : la règle de son évènement (prospect ou client, RGPD-05) ; sans évènement :
+      la règle des prospects, à compter de sa dernière modification. Après une demande
+      d'oubli : voir RGPD-03.
+    anonymization: >-
+      Mis à nul à l'oubli ou à la purge.
+  - schema: hub
+    table: contacts
+    field: city
+    category: contact
+    retention: >-
+      Ville.
+      Lot 36a (CRM-03, D9, ADR 0069) : contact unique de l'organisation. Client d'un
+      évènement : la règle de son évènement (prospect ou client, RGPD-05) ; sans évènement :
+      la règle des prospects, à compter de sa dernière modification. Après une demande
+      d'oubli : voir RGPD-03.
+    anonymization: >-
+      Mis à nul à l'oubli ou à la purge.
+  - schema: hub
+    table: contacts
+    field: country
+    category: contact
+    retention: >-
+      Pays.
+      Lot 36a (CRM-03, D9, ADR 0069) : contact unique de l'organisation. Client d'un
+      évènement : la règle de son évènement (prospect ou client, RGPD-05) ; sans évènement :
+      la règle des prospects, à compter de sa dernière modification. Après une demande
+      d'oubli : voir RGPD-03.
+    anonymization: >-
+      Mis à nul à l'oubli ou à la purge.
+  - schema: hub
+    table: contacts
+    field: billing_address
+    category: contact
+    retention: >-
+      Adresse de facturation, reprise à l'envoi en signature (D8).
+      Lot 36a (CRM-03, D9, ADR 0069) : contact unique de l'organisation. Client d'un
+      évènement : la règle de son évènement (prospect ou client, RGPD-05) ; sans évènement :
+      la règle des prospects, à compter de sa dernière modification. Après une demande
+      d'oubli : voir RGPD-03.
+    anonymization: >-
+      Mis à nul à l'oubli ou à la purge ; les copies figées des signataires et des factures suivent leurs propres règles.
+  - schema: hub
+    table: contact_notes
+    field: body
+    category: identifiant
+    retention: >-
+      Lot 36a (CRM-03) : note de l'équipe sur un contact ; elle suit son contact.
+    anonymization: >-
+      Supprimée avec les coordonnées du contact à l'oubli ou à la purge.
   - schema: events
     table: program_item_participants
     field: free_label

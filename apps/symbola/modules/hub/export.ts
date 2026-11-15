@@ -11,6 +11,8 @@ import { appDatabase } from "@symbola/db/client";
 import { describeModuleEntities, exportModuleEntities, type ExportEntitySpec } from "@symbola/db/export";
 import { auditEntries } from "@symbola/db/schema/core";
 import {
+  contactNotes,
+  contacts,
   membershipRoleEnum,
   organizationModules,
   organizationProfiles,
@@ -29,6 +31,9 @@ export const HUB_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   { table: organizationProfiles, idField: "organizationId", files: ["logoKey"] },
   { table: organizationModules, idField: "moduleKey" },
   { table: vatRegimeChanges },
+  // Lot 36a (CRM-03, ADR 0069) : le contact unique et ses notes ; les contacts d'essai sont exclus.
+  { table: contacts, demoField: "isDemo" },
+  { table: contactNotes, parents: { contactId: "contacts" } },
   { table: privacySettings, idField: "organizationId" },
   { table: privacyRequests },
   // Trace des exports RGPD : leurs fichiers, effacés à l'expiration, ne sont pas repris.

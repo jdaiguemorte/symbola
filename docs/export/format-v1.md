@@ -67,3 +67,7 @@ La liste table par table, avec sa raison, est dans l'index généré. Un test
 - Les schémas sont tirés des colonnes des tables. Une migration qui change une table exportée fait
   échouer le test de `schemas.test.ts` : on décide alors de la version, puis on régénère
   (`pnpm --filter @symbola/app export:schemas`).
+- **Exception du lot 36a** (D10, ADR 0069) : la v1 a changé sur place, avant toute archive livrée.
+  Les coordonnées des clients ont quitté `events/event_clients` pour `hub/contacts` (avec
+  `hub/contact_notes`) ; `event_clients`, `event_links` et `quote_signers` portent l'identifiant du
+  contact (`contactId`).

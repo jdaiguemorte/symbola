@@ -12,6 +12,9 @@ export type EventPhase = EventStatus | "day_of";
 
 export type EventClient = {
   id: string;
+  // Lot 36a (CRM-03, ADR 0069) : le contact du hub qui porte le nom et les coordonnées ; nul quand
+  // le RGPD a retiré la personne de l'évènement (nom « [anonymisé] »).
+  contactId: string | null;
   firstName: string;
   lastName: string | null;
   position: number;
@@ -27,7 +30,10 @@ export type EventClientContact = {
   city: string | null;
 };
 
+// Lot 36a (UX-02, DAT-12) : un contact existant (contactId), ou un nouveau, créé dans le hub — une
+// adresse e-mail déjà connue reprend le contact qui la porte.
 export type EventClientInput = {
+  contactId?: string | null;
   firstName: string;
   lastName?: string | null;
 } & Partial<EventClientContact>;

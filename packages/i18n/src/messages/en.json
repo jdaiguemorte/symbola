@@ -122,7 +122,8 @@
     "followUpDepositWaiting": "Deposit invoice for quote {number}, issued automatically",
     "followUpDepositBlocked": "Deposit invoice for quote {number} blocked: a mention is missing",
     "followUpDepositOn": "on {date}",
-    "followUpDepositBlockedBadge": "to issue"
+    "followUpDepositBlockedBadge": "to issue",
+    "contacts": "Contacts"
   },
   "Admin": {
     "createOrganizationTitle": "Create an organization",
@@ -559,7 +560,7 @@
     },
     "eventsNew": {
       "title": "New prospect",
-      "body": "A partner's first name and the contact source are enough to create the prospect; date, venue and budget can be filled in later. If the date falls on the same day as another confirmed or optional event, Symbola flags it before saving, without blocking. From the calendar, a free date opens this form with the date already set.",
+      "body": "A partner's first name and the contact source are enough to create the prospect; date, venue and budget can be filled in later. A client you already know is picked from the search: their name and details are not typed again. If the date falls on the same day as another confirmed or optional event, Symbola flags it before saving, without blocking. From the calendar, a free date opens this form with the date already set.",
       "faq": [
         {
           "q": "What is the difference between a prospect and an event?",
@@ -705,7 +706,7 @@
     },
     "quotesDetail": {
       "title": "Composing a quote",
-      "body": "Build the quote from the catalogue or free lines; totals update as you go. Plan the deposits, then send it for signature: once signed, an option becomes « Confirmed ». A sent version is frozen; to change it, create a new version.",
+      "body": "Build the quote from the catalogue or free lines; totals update as you go. Plan the deposits, then send it for signature: once signed, an option becomes « Confirmed ». A sent version is frozen; to change it, create a new version. Signers take the name, e-mail and billing address from the contact's record; an address corrected when sending is kept there if the box stays ticked.",
       "faq": [
         {
           "q": "How do I invoice a deposit?",
@@ -1076,6 +1077,14 @@
           "a": "Yes: each table has its CSV file (semicolon separator, UTF-8). The JSON files are the reference: they keep the links between tables."
         }
       ]
+    },
+    "contactsList": {
+      "title": "Contacts",
+      "body": "Each person exists only once in your space: a couple who comes back for a second event keeps their record, details and history. Search by name, address or phone; an e-mail address belongs to one contact only. Trial contacts do not appear here."
+    },
+    "contactDetail": {
+      "title": "Contact record",
+      "body": "The details on the record are the ones used by their events, personal links and quotes: changing them here changes them everywhere. The history gathers their events, quotes and invoices, and the documents of their events; notes are for the team. \"Create an event\" picks them as the client straight away."
     }
   },
   "Aide": {
@@ -2275,7 +2284,8 @@
     "pdfReceiptAmount": "Amount received",
     "pdfReceiptMethod": "Received by {method}",
     "pdfReceiptMention": "Non-tax receipt. This earnest money will be credited as a payment on the balance invoice.",
-    "pdfReceiptCancelled": "Payment cancelled"
+    "pdfReceiptCancelled": "Payment cancelled",
+    "signerSaveAddress": "Keep this address on the contact's record"
   },
   "Documents": {
     "pdfSellerHeading": "From",
@@ -2953,7 +2963,8 @@
       "privacy_request": "Closed GDPR request (name of the person)",
       "greeting": "Message",
       "link": "Personal link",
-      "earnest_receipt": "Earnest money receipt"
+      "earnest_receipt": "Earnest money receipt",
+      "contact": "Contact"
     },
     "field": {
       "firstName": "First name",
@@ -3468,7 +3479,8 @@
     "seeAll": "See all results",
     "hint": "↑ ↓ to choose · Enter to open · Esc to close",
     "globalLabel": "Search Symbola",
-    "vendorBookDetail": "Vendor book"
+    "vendorBookDetail": "Vendor book",
+    "groupContacts": "Contacts"
   },
   "AdminOnboarding": {
     "title": "Organisations getting started",
@@ -4825,7 +4837,9 @@
       "quotes_scheduled_deposit_invoices": "Deposit invoice to issue",
       "quotes_earnest_receipts": "Earnest money receipts",
       "hub_memberships": "membership",
-      "hub_organization_exports": "full export"
+      "hub_organization_exports": "full export",
+      "hub_contacts": "contact",
+      "hub_contact_notes": "contact note"
     },
     "modules": {
       "events": "Events",
@@ -5652,5 +5666,68 @@
     "missingFiles": "{count, plural, one {# file} other {# files}} not found in storage: the list is in the archive's manifest.",
     "errorTooLarge": "The archive exceeds the allowed size (4 GB). Write to us: we will prepare it with you.",
     "errorFailed": "The preparation failed. Start the export again; if it fails again, write to us."
+  },
+  "Contacts": {
+    "title": "Contacts",
+    "subtitle": "Each person exists only once in your space.",
+    "searchLabel": "Search a contact",
+    "search": "Name, e-mail or phone",
+    "searchSubmit": "Search",
+    "newTitle": "Add a contact",
+    "create": "Add the contact",
+    "noResults": "No contact matches.",
+    "empty": "No contact yet. The clients of your events become contacts.",
+    "listLabel": "List of contacts",
+    "name": "Name",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "email": "E-mail",
+    "phone": "Phone",
+    "addressLine": "Address",
+    "postalCode": "Postcode",
+    "city": "City",
+    "country": "Country",
+    "billingAddress": "Billing address",
+    "billingAddressHint": "Used when a quote is sent for signature; without it, the address above.",
+    "identityTitle": "Identity and details",
+    "save": "Save the record",
+    "saved": "Record saved.",
+    "emailTaken": "This e-mail address already belongs to another contact in your space.",
+    "openExisting": "Open this contact",
+    "invalidEmail": "This e-mail address is not valid.",
+    "missingFirstName": "Enter at least the first name.",
+    "notFound": "This contact does not exist or no longer exists.",
+    "detailSubtitle": "Contact record",
+    "back": "All contacts",
+    "newEvent": "Create an event",
+    "historyTitle": "History",
+    "eventsTitle": "Events",
+    "noEvents": "This contact is not a client of any event.",
+    "quotesTitle": "Quotes and invoices",
+    "noQuotes": "No quote for their events.",
+    "invoiceLine": "Invoice {number} of {date}, {amount} (quote {quote})",
+    "documentsTitle": "Documents",
+    "noDocuments": "No document in their events.",
+    "notesTitle": "Team notes",
+    "noNotes": "No note.",
+    "noteBody": "Your note",
+    "noteAdd": "Add the note",
+    "noteAdded": "Note added.",
+    "noteInvalid": "A note has 1 to 2,000 characters.",
+    "noteMeta": "{author}, {date}",
+    "noteRemove": "Remove my note",
+    "noteAuthorUnknown": "Former team member",
+    "pickerClient1": "First client",
+    "pickerClient2": "Second client",
+    "pickerSearch": "Already a contact? Search them by name, e-mail or phone",
+    "pickerResults": "{count, plural, =0 {No contact found.} one {# contact found.} other {# contacts found.}}",
+    "pickerResultsLabel": "Contacts found",
+    "pickerChoose": "Choose {name}",
+    "pickerChooseShort": "Choose",
+    "pickerChosen": "Chosen contact: {name}",
+    "pickerChange": "Change",
+    "pickerNone": "No contact found: enter the name below.",
+    "sharedHint": "These are the details of the contact's record: changing them here changes them everywhere.",
+    "openContact": "Open {name}'s record"
   }
 }

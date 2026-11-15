@@ -8,6 +8,7 @@ import { createAppConnection } from "@symbola/db/client";
 import { eventClients, eventPlaces, events, prospectSources } from "@symbola/db/schema/events";
 import { withOrganization } from "@symbola/db/with-organization";
 import { createUser } from "@symbola/auth";
+import { createContact } from "../modules/hub/service";
 import { expect, test, type Page } from "@playwright/test";
 import { openSettingsTab, readyOrganization, signIn as signInByLink } from "./helpers";
 
@@ -37,7 +38,9 @@ test("IMP-05 — aperçu, confirmation, champ libre sur la fiche, journal et ann
         .returning();
       // Lot 34b (D10) : le lieu de réception est le premier lieu de la liste.
       await tx.insert(eventPlaces).values({ organizationId: organization.id, eventId: event!.id, label: "Salle des fêtes", position: 0 });
-      await tx.insert(eventClients).values({ organizationId: organization.id, eventId: event!.id, firstName: "Élodie", lastName: "Durand", position: 0 });
+      // Lot 36a : le client est un contact du hub.
+    const contact = await createContact(organization.id, { firstName: "Élodie", lastName: "Durand" });
+    await tx.insert(eventClients).values({ organizationId: organization.id, eventId: event!.id, contactId: contact.id, position: 0 });
       return event!.id;
     });
   } finally {

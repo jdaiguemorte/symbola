@@ -75,3 +75,12 @@ privés qui peuvent peser plusieurs centaines de mégaoctets.
 - **Le traitement tourne dans le processus de l'app.** Avec plusieurs instances, le verrou sans
   attente et l'index unique évitent les doublons ; une vraie file pourra le remplacer sans
   changer la table ni l'écran.
+
+## Avenant du lot 36a (décision D10, ADR 0069)
+
+Le contact unique retire des champs de `events/event_clients` (ses coordonnées passent dans
+`hub/contacts`), ce qui devrait créer une v2. La v1 change pourtant sur place : la règle de version
+protège des archives livrées, et aucune n'a encore quitté une machine de développement (gel des
+déploiements). Les entités `hub/contacts` et `hub/contact_notes` s'ajoutent ; `events/event_links`
+et `quotes/quote_signers` gagnent l'identifiant du contact. La règle de version vaut de nouveau
+sans exception dès le premier export livré.

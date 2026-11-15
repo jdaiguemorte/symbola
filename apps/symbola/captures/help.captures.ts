@@ -49,11 +49,22 @@ async function seed(organizationId: string, userId: string) {
   const source = sources[0]!;
   const slots = await listDefaultVendorSlots(organizationId);
 
-  const make = async (clients: { firstName: string; lastName?: string }[], eventDate: string, venueName: string, venueCity: string) =>
+  // Lot 36a (CRM-03) : les clients deviennent des contacts ; quelques coordonnées fictives pour la
+  // liste des contacts.
+  type Client = { firstName: string; lastName?: string; email?: string; phone?: string; city?: string };
+  const make = async (clients: Client[], eventDate: string, venueName: string, venueCity: string) =>
     (await createProspect({ organizationId, createdByUserId: userId, prospectSourceId: source.id, clients, eventDate, venueName, venueCity })).id;
-  const confirmed = await make([{ firstName: "Léa", lastName: "Martin" }, { firstName: "Hugo" }], "2027-06-12", "Domaine des Tilleuls", "Lille");
-  const quoted = await make([{ firstName: "Inès" }, { firstName: "Malik" }], "2027-09-04", "Château de la Roche", "Arras");
-  await make([{ firstName: "Chloé" }, { firstName: "Antoine" }], "2027-05-22", "Moulin de Beauregard", "Amiens");
+  const confirmed = await make(
+    [
+      { firstName: "Léa", lastName: "Martin", email: "lea.martin@exemple.test", phone: "06 12 34 56 78", city: "Lille" },
+      { firstName: "Hugo", lastName: "Martin", email: "hugo.martin@exemple.test", city: "Lille" },
+    ],
+    "2027-06-12",
+    "Domaine des Tilleuls",
+    "Lille",
+  );
+  const quoted = await make([{ firstName: "Inès", lastName: "Benali", email: "ines.benali@exemple.test", city: "Arras" }, { firstName: "Malik" }], "2027-09-04", "Château de la Roche", "Arras");
+  await make([{ firstName: "Chloé", lastName: "Dubois", phone: "07 98 76 54 32", city: "Amiens" }, { firstName: "Antoine", lastName: "Dubois" }], "2027-05-22", "Moulin de Beauregard", "Amiens");
   await make([{ firstName: "Sarah" }, { firstName: "Yanis" }], "2028-07-01", "Ferme du Vert Bocage", "Lens");
 
   await changeEventStatus({ organizationId, eventId: confirmed, changedByUserId: userId, toStatus: "confirmed" });

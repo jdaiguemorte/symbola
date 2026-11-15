@@ -15,6 +15,7 @@ import {
   BookUser,
   CalendarDays,
   CalendarHeart,
+  Contact,
   FileText,
   GraduationCap,
   LifeBuoy,
@@ -536,6 +537,15 @@ export async function AppShell({ children }: { children: ReactNode }) {
                     </AppNavLink>
                   </li>
                 </>
+              ) : null}
+              {/* Lot 36a (CRM-03, ADR 0069) : les contacts, dans le noyau du hub, pour toute l'équipe. */}
+              {organizationId ? (
+                <li>
+                  <AppNavLink href="/contacts">
+                    <Contact {...iconProps} />
+                    {t("contacts")}
+                  </AppNavLink>
+                </li>
               ) : null}
               {vendors ? (
                 <li>

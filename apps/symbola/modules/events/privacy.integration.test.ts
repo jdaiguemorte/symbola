@@ -18,6 +18,7 @@ import {
   programItems,
 } from "@symbola/db/schema/events";
 import { withOrganization } from "@symbola/db/with-organization";
+import { createContact } from "@/modules/hub/service";
 import { eventsPrivacy } from "./privacy";
 
 const { sql, db } = createAppConnection();
@@ -27,13 +28,15 @@ afterAll(async () => {
 });
 
 async function seedEvent(organizationId: string, options: { firstName: string; lastName?: string; isDemo?: boolean }) {
+  // Lot 36a : le client est un contact du hub (d'essai pour un évènement d'essai).
+  const contact = await createContact(organizationId, { firstName: options.firstName, lastName: options.lastName ?? null }, { isDemo: options.isDemo ?? false });
   return withOrganization(db, organizationId, async (tx) => {
     const [event] = await tx
       .insert(events)
       .values({ organizationId, eventDate: "2027-06-12", isDemo: options.isDemo ?? false, importedFields: { Téléphone: "+33 6 12 34 56 78" } })
       .returning();
     if (!event) throw new Error("insertion de l'événement attendue");
-    await tx.insert(eventClients).values({ organizationId, eventId: event.id, firstName: options.firstName, lastName: options.lastName ?? null });
+    await tx.insert(eventClients).values({ organizationId, eventId: event.id, contactId: contact.id });
     // Lot 26a : lien personnel de la personne (nom et e-mail).
     await tx.insert(eventLinks).values({
       organizationId,

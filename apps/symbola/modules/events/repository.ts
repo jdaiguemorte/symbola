@@ -1,6 +1,6 @@
 // Accès aux données du module events — jamais importé hors de
 // modules/events/ (ADR 0011).
-import { and, asc, desc, eq, gt, gte, ilike, inArray, isNull, lte, notInArray, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, exists, gt, gte, inArray, isNull, lte, notInArray, or, sql } from "drizzle-orm";
 import { appDatabase } from "@symbola/db/client";
 import {
   defaultVendorSlots,
@@ -40,11 +40,19 @@ import {
 } from "@symbola/contracts";
 import { addDays, daysBetween, dueDateFor } from "./schedule";
 import { shiftedTimes } from "./program";
+import { resolveClientContacts, withContacts, type EventClientLinkRow, type EventClientRow } from "./clients";
+import { searchContactIds, searchContactIdsByWord } from "@/modules/hub/service";
 
 export type EventRow = typeof events.$inferSelect;
 // Lot 34b (EVT-03, D10) : un événement et son lieu de réception, le premier lieu de la liste.
 export type EventRecord = EventRow & { venueName: string | null; venueCity: string | null };
-export type EventClientRow = typeof eventClients.$inferSelect;
+// Lot 36a (CRM-03, ADR 0069) : un client est un lien vers un contact du hub, complété par lui.
+export type { EventClientRow } from "./clients";
+
+async function resolveClients<T extends { clients: EventClientLinkRow[] }>(organizationId: string, items: T[]): Promise<(Omit<T, "clients"> & { clients: EventClientRow[] })[]> {
+  const resolved = new Map((await withContacts(organizationId, items.flatMap((item) => item.clients))).map((client) => [client.id, client]));
+  return items.map((item) => ({ ...item, clients: item.clients.map((client) => resolved.get(client.id)!) }));
+}
 export type ProspectSourceRow = typeof prospectSources.$inferSelect;
 export type DefaultVendorSlotRow = typeof defaultVendorSlots.$inferSelect;
 export type EventVendorSlotRow = typeof eventVendorSlots.$inferSelect;
@@ -68,7 +76,9 @@ export async function findEvents(
   },
 ): Promise<{ event: EventRecord; clients: EventClientRow[] }[]> {
   const db = appDatabase();
-  return await withOrganization(db, organizationId, async (tx) => {
+  // Lot 36a : le nom des clients est celui de leur contact, cherché chez le hub.
+  const contactIds = filters.search ? await searchContactIds(organizationId, filters.search) : [];
+  const found = await withOrganization(db, organizationId, async (tx) => {
     let matchingIds: string[] | undefined;
     if (filters.search) {
       const term = `%${filters.search}%`;
@@ -80,8 +90,7 @@ export async function findEvents(
           or(
             // Lot 34b (D10) : les lieux de l'événement, réception comprise.
             sql`exists (select 1 from "events"."event_places" ep where ep.event_id = ${events.id} and (ep.label ilike ${term} or ep.city ilike ${term}))`,
-            ilike(eventClients.firstName, term),
-            ilike(eventClients.lastName, term),
+            contactIds.length > 0 ? inArray(eventClients.contactId, contactIds) : sql`false`,
           ),
         );
       matchingIds = matches.map((row) => row.id);
@@ -123,6 +132,7 @@ export async function findEvents(
       clients: clientRows.filter((client) => client.eventId === event.id),
     }));
   });
+  return resolveClients(organizationId, found);
 }
 
 // Lot 34b (EVT-03, D10) : le lieu de réception de chaque événement, son premier lieu (intitulé et
@@ -153,7 +163,7 @@ export async function findEventById(
   eventId: string,
 ): Promise<{ event: EventRecord; clients: EventClientRow[] } | null> {
   const db = appDatabase();
-  return await withOrganization(db, organizationId, async (tx) => {
+  const found = await withOrganization(db, organizationId, async (tx) => {
     const [row] = await tx.select().from(events).where(eq(events.id, eventId));
     if (!row) return null;
     const [event] = await withVenues(tx, [row]);
@@ -164,12 +174,16 @@ export async function findEventById(
       .orderBy(asc(eventClients.position));
     return { event: event!, clients };
   });
+  if (!found) return null;
+  const [resolved] = await resolveClients(organizationId, [found]);
+  return resolved!;
 }
 
 export async function insertProspect(input: {
   organizationId: string;
   createdByUserId: string;
-  clients: { firstName: string; lastName?: string | null }[];
+  // Lot 36a : les contacts des clients, déjà résolus chez le hub, dans l'ordre.
+  clientContactIds: string[];
   prospectSourceId: string;
   eventTypeId?: string | null | undefined;
   eventDate?: string | null | undefined;
@@ -191,14 +205,8 @@ export async function insertProspect(input: {
     if (!event) throw new Error("création de l'événement échouée");
     await insertVenuePlace(tx, input.organizationId, event.id, input.venueName, input.venueCity);
 
-    for (const [index, client] of input.clients.entries()) {
-      await tx.insert(eventClients).values({
-        organizationId: input.organizationId,
-        eventId: event.id,
-        firstName: client.firstName,
-        lastName: client.lastName ?? null,
-        position: index,
-      });
+    for (const [index, contactId] of input.clientContactIds.entries()) {
+      await tx.insert(eventClients).values({ organizationId: input.organizationId, eventId: event.id, contactId, position: index });
     }
 
     // PRD-EVT-03 : l'événement reçoit la liste de postes par défaut de la planner.
@@ -1469,6 +1477,8 @@ export async function findActiveDemoEvent(organizationId: string, now: Date): Pr
 
 export async function insertDemoEvent(organizationId: string, data: DemoEventData): Promise<EventRow> {
   const db = appDatabase();
+  // Lot 36a : les clients fictifs sont des contacts d'essai du hub, supprimés avec l'essai.
+  const clientContactIds = await resolveClientContacts(organizationId, data.clients, { isDemo: true });
   return await withOrganization(db, organizationId, async (tx) => {
     const now = new Date();
     // Lot 16 (ADR 0045) : l'événement fictif est un mariage ; il prend le premier
@@ -1490,9 +1500,7 @@ export async function insertDemoEvent(organizationId: string, data: DemoEventDat
     if (!event) throw new Error("création de l'événement d'essai échouée");
     await insertVenuePlace(tx, organizationId, event.id, data.venueName, data.venueCity);
 
-    await tx.insert(eventClients).values(
-      data.clients.map((client, position) => ({ organizationId, eventId: event.id, ...client, position })),
-    );
+    await tx.insert(eventClients).values(clientContactIds.map((contactId, position) => ({ organizationId, eventId: event.id, contactId, position })));
     await tx.insert(eventStatusHistory).values({
       organizationId,
       eventId: event.id,
@@ -1652,7 +1660,17 @@ export type VendorSearchRow = { id: string; eventId: string; label: string; vend
 
 // Sous-requêtes écrites avec un alias explicite : Drizzle n'y qualifie pas les
 // colonnes, et « id » désignerait alors la table des clients.
-const eventNamesSql = sql<string>`coalesce((select string_agg(ec.first_name, ' & ' order by ec.created_at) from "events"."event_clients" ec where ec.event_id = "events"."id"), '')`;
+// Lot 36a (ADR 0069) : prénoms des clients de chaque évènement, lus chez le hub (contacts).
+async function eventNamesOf(organizationId: string, eventIds: readonly string[]): Promise<Map<string, string>> {
+  const unique = [...new Set(eventIds)];
+  if (unique.length === 0) return new Map();
+  const links = await withOrganization(appDatabase(), organizationId, (tx) =>
+    tx.select().from(eventClients).where(inArray(eventClients.eventId, unique)).orderBy(asc(eventClients.position), asc(eventClients.createdAt)),
+  );
+  const names = new Map<string, string[]>();
+  for (const client of await withContacts(organizationId, links)) names.set(client.eventId, [...(names.get(client.eventId) ?? []), client.firstName]);
+  return new Map(unique.map((id) => [id, (names.get(id) ?? []).join(" & ")]));
+}
 // Lot 34b (D10) : le lieu de réception, premier lieu de la liste.
 const venueNameSql = sql<string | null>`(select ep.label from "events"."event_places" ep where ep.event_id = "events"."id" order by ep.position, ep.created_at limit 1)`;
 
@@ -1663,20 +1681,32 @@ export async function searchEventRows(
 ): Promise<{ events: EventSearchRow[]; tasks: TaskSearchRow[]; vendors: VendorSearchRow[] }> {
   if (words.length === 0) return { events: [], tasks: [], vendors: [] };
   const db = appDatabase();
-  return await withOrganization(db, organizationId, async (tx) => {
-    // Tout ce qui décrit un événement, en une chaîne : prénoms, noms, lieu, ville.
-    const haystack = foldedColumn(
-      sql`concat_ws(' ', (select string_agg(concat_ws(' ', ep.label, ep.city), ' ') from "events"."event_places" ep where ep.event_id = "events"."id"), (select string_agg(concat_ws(' ', ec.first_name, ec.last_name), ' ') from "events"."event_clients" ec where ec.event_id = "events"."id"))`,
-    );
+  // Lot 36a : les prénoms et noms des clients sont ceux de leurs contacts, cherchés chez le hub, mot
+  // par mot ; chaque mot doit se trouver dans les lieux ou dans un client de l'évènement.
+  const contactsByWord = await Promise.all(words.map((word) => searchContactIdsByWord(organizationId, word)));
+  const found = await withOrganization(db, organizationId, async (tx) => {
+    const places = foldedColumn(sql`(select string_agg(concat_ws(' ', ep.label, ep.city), ' ') from "events"."event_places" ep where ep.event_id = "events"."id")`);
     const eventRows = await tx
-      .select({ id: events.id, names: eventNamesSql, eventDate: events.eventDate, venueName: venueNameSql, status: events.status })
+      .select({ id: events.id, eventDate: events.eventDate, venueName: venueNameSql, status: events.status })
       .from(events)
-      .where(and(eq(events.isDemo, false), ...words.map((word) => sql`${haystack} like ${likeWord(word)}`)))
+      .where(
+        and(
+          eq(events.isDemo, false),
+          ...words.map((word, index) => {
+            const ids = contactsByWord[index]!;
+            const byClient =
+              ids.length > 0
+                ? exists(tx.select({ one: sql`1` }).from(eventClients).where(and(eq(eventClients.eventId, events.id), inArray(eventClients.contactId, ids))))
+                : sql`false`;
+            return or(sql`${places} like ${likeWord(word)}`, byClient)!;
+          }),
+        ),
+      )
       .orderBy(sql`${events.eventDate} desc nulls last`)
       .limit(limit);
 
     const taskRows = await tx
-      .select({ id: eventTasks.id, eventId: eventTasks.eventId, label: eventTasks.label, dueDate: eventTasks.dueDate, eventNames: eventNamesSql })
+      .select({ id: eventTasks.id, eventId: eventTasks.eventId, label: eventTasks.label, dueDate: eventTasks.dueDate })
       .from(eventTasks)
       .innerJoin(events, eq(events.id, eventTasks.eventId))
       .where(and(eq(events.isDemo, false), ...words.map((word) => foldedContains(eventTasks.label, word))))
@@ -1685,7 +1715,7 @@ export async function searchEventRows(
 
     // Lot 28b (PRE-02) : les prestataires retenus d'un poste (plusieurs possibles).
     const vendorRows = await tx
-      .select({ id: eventVendorSlots.id, eventId: eventVendorSlots.eventId, label: eventVendorSlots.label, vendorName: eventVendorCandidates.vendorName, eventNames: eventNamesSql })
+      .select({ id: eventVendorSlots.id, eventId: eventVendorSlots.eventId, label: eventVendorSlots.label, vendorName: eventVendorCandidates.vendorName })
       .from(eventVendorSlots)
       .innerJoin(events, eq(events.id, eventVendorSlots.eventId))
       .leftJoin(
@@ -1702,6 +1732,12 @@ export async function searchEventRows(
 
     return { events: eventRows, tasks: taskRows, vendors: vendorRows };
   });
+  const names = await eventNamesOf(organizationId, [...found.events.map((row) => row.id), ...found.tasks.map((row) => row.eventId), ...found.vendors.map((row) => row.eventId)]);
+  return {
+    events: found.events.map((row) => ({ ...row, names: names.get(row.id) ?? "" })),
+    tasks: found.tasks.map((row) => ({ ...row, eventNames: names.get(row.eventId) ?? "" })),
+    vendors: found.vendors.map((row) => ({ ...row, eventNames: names.get(row.eventId) ?? "" })),
+  };
 }
 
 // Lot 10 (AIDE-08) — prénoms des clients de quelques événements (affichage
@@ -1709,10 +1745,9 @@ export async function searchEventRows(
 export async function findEventNamesByIds(organizationId: string, eventIds: string[]): Promise<Record<string, string>> {
   if (eventIds.length === 0) return {};
   const db = appDatabase();
-  return await withOrganization(db, organizationId, async (tx) => {
-    const rows = await tx.select({ id: events.id, names: eventNamesSql }).from(events).where(inArray(events.id, eventIds));
-    return Object.fromEntries(rows.map((row) => [row.id, row.names]));
-  });
+  const rows = await withOrganization(db, organizationId, (tx) => tx.select({ id: events.id }).from(events).where(inArray(events.id, eventIds)));
+  const names = await eventNamesOf(organizationId, rows.map((row) => row.id));
+  return Object.fromEntries(rows.map((row) => [row.id, names.get(row.id) ?? ""]));
 }
 
 // Lot 12 (L12-EVT-17) — renommer une ligne du budget par défaut ou changer son icône.
@@ -1730,22 +1765,41 @@ export async function updateEventVendorSlotIcon(organizationId: string, id: stri
   await withOrganization(db, organizationId, (tx) => tx.update(eventVendorSlots).set({ icon }).where(eq(eventVendorSlots.id, id)));
 }
 
-// Lot 14 (décision I) — coordonnées d'un client de l'événement.
-export async function updateEventClientContactRow(
-  organizationId: string,
-  eventId: string,
-  clientId: string,
-  contact: { email: string | null; phone: string | null; addressLine: string | null; postalCode: string | null; city: string | null },
-): Promise<boolean> {
-  const db = appDatabase();
-  return await withOrganization(db, organizationId, async (tx) => {
-    const rows = await tx
-      .update(eventClients)
-      .set(contact)
-      .where(and(eq(eventClients.id, clientId), eq(eventClients.eventId, eventId)))
-      .returning({ id: eventClients.id });
-    return rows.length > 0;
-  });
+// Lot 14 (décision I) — un client de l'événement ; lot 36a : ses coordonnées sont celles de son
+// contact, modifiées chez le hub.
+export async function findEventClientLink(organizationId: string, eventId: string, clientId: string): Promise<EventClientLinkRow | null> {
+  const [row] = await withOrganization(appDatabase(), organizationId, (tx) =>
+    tx
+      .select()
+      .from(eventClients)
+      .where(and(eq(eventClients.id, clientId), eq(eventClients.eventId, eventId))),
+  );
+  return row ?? null;
+}
+
+// Lot 36a : clients des évènements donnés (contacts), pour la fin d'un essai et la purge RGPD.
+export async function findClientLinks(organizationId: string, eventIds: readonly string[]): Promise<EventClientLinkRow[]> {
+  if (eventIds.length === 0) return [];
+  return withOrganization(appDatabase(), organizationId, (tx) => tx.select().from(eventClients).where(inArray(eventClients.eventId, [...eventIds])));
+}
+
+// Lot 36a : contacts encore clients d'au moins un évènement de l'organisation.
+export async function findLinkedContactIds(organizationId: string, contactIds?: readonly string[]): Promise<Set<string>> {
+  const rows = await withOrganization(appDatabase(), organizationId, (tx) =>
+    tx
+      .selectDistinct({ contactId: eventClients.contactId })
+      .from(eventClients)
+      .where(contactIds ? inArray(eventClients.contactId, contactIds.length > 0 ? [...contactIds] : ["00000000-0000-0000-0000-000000000000"]) : sql`${eventClients.contactId} is not null`),
+  );
+  return new Set(rows.map((row) => row.contactId).filter((id): id is string => id !== null));
+}
+
+// Lot 36a (CRM-03, D7) : évènements dont le contact est client.
+export async function findEventIdsOfContact(organizationId: string, contactId: string): Promise<string[]> {
+  const rows = await withOrganization(appDatabase(), organizationId, (tx) =>
+    tx.selectDistinct({ eventId: eventClients.eventId }).from(eventClients).where(eq(eventClients.contactId, contactId)),
+  );
+  return rows.map((row) => row.eventId);
 }
 
 // Lot 14 (décision K) — budget souhaité par les clients.

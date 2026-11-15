@@ -14,43 +14,16 @@
       "format": "uuid",
       "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
     },
-    "firstName": {
-      "type": "string"
-    },
-    "lastName": {
-      "type": [
-        "string",
-        "null"
-      ]
-    },
-    "email": {
-      "type": [
-        "string",
-        "null"
-      ]
-    },
-    "phone": {
-      "type": [
-        "string",
-        "null"
-      ]
-    },
-    "addressLine": {
-      "type": [
-        "string",
-        "null"
-      ]
-    },
-    "postalCode": {
-      "type": [
-        "string",
-        "null"
-      ]
-    },
-    "city": {
-      "type": [
-        "string",
-        "null"
+    "contactId": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
+        },
+        {
+          "type": "null"
+        }
       ]
     },
     "position": {
@@ -96,13 +69,7 @@
   "required": [
     "id",
     "eventId",
-    "firstName",
-    "lastName",
-    "email",
-    "phone",
-    "addressLine",
-    "postalCode",
-    "city",
+    "contactId",
     "position",
     "createdAt",
     "createdBy",

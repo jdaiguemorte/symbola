@@ -37,6 +37,8 @@ import {
 } from "@symbola/db/schema/events";
 import { withOrganization } from "@symbola/db/with-organization";
 import { parsePlacesCell } from "@symbola/import-engine";
+import { ContactInvalidError, ContactNotFoundError, findContactByEmail, normalizeContactEmail, resolveContact, updateContact } from "@/modules/hub/service";
+import { withContacts } from "./clients";
 
 type Tx = Parameters<Parameters<typeof withOrganization>[2]>[0];
 type Values = Record<string, unknown>;
@@ -110,14 +112,49 @@ function clientOf(row: { firstName: string; lastName: string | null } & Partial<
   return client;
 }
 
-function clientColumns(client: ImportedClient) {
-  return Object.fromEntries(CONTACT_KEYS.map((key) => [key, client[key] ?? null])) as Record<(typeof CONTACT_KEYS)[number], string | null>;
+// Lot 36a (UX-02, DAT-12, ADR 0069) — le contact de chaque client importé, dans l'ordre : une
+// adresse e-mail connue reprend le contact qui la porte ; sinon le client déjà à cette place voit son
+// contact mis à jour (c'est la même personne) ; sinon un contact est créé. Une adresse mal formée
+// est ignorée. Une annulation réécrit les valeurs d'avant de la même façon.
+async function importedClientContacts(organizationId: string, existing: readonly (string | null)[], clients: readonly ImportedClient[]): Promise<string[]> {
+  const ids: string[] = [];
+  for (const [position, client] of clients.entries()) {
+    let email: string | null = null;
+    try {
+      email = normalizeContactEmail(client.email);
+    } catch (error) {
+      if (!(error instanceof ContactInvalidError)) throw error;
+    }
+    const values = {
+      kind: "person" as const,
+      firstName: client.firstName,
+      lastName: client.lastName,
+      // Les valeurs d'un client importé sont complètes (la fusion avec la fiche est déjà faite) : une
+      // coordonnée absente est vide, ce qui rend aussi à l'annulation l'état d'avant.
+      ...Object.fromEntries(CONTACT_KEYS.filter((key) => key !== "email").map((key) => [key, client[key] ?? null])),
+      email,
+    };
+    const byEmail = email ? await findContactByEmail(organizationId, email) : null;
+    let contactId: string;
+    if (byEmail) contactId = byEmail.id;
+    else if (existing[position]) {
+      try {
+        contactId = (await updateContact(organizationId, existing[position]!, values)).id;
+      } catch (error) {
+        if (!(error instanceof ContactNotFoundError)) throw error;
+        contactId = (await resolveContact(organizationId, values)).id;
+      }
+    } else contactId = (await resolveContact(organizationId, values)).id;
+    if (!ids.includes(contactId)) ids.push(contactId);
+  }
+  return ids;
 }
 
 async function eventState(tx: Tx, eventId: string): Promise<Values | null> {
   const [event] = await tx.select().from(events).where(and(eq(events.id, eventId), eq(events.isDemo, false)));
   if (!event) return null;
-  const clients = await tx.select().from(eventClients).where(eq(eventClients.eventId, eventId)).orderBy(asc(eventClients.position));
+  // Lot 36a : les clients sont des contacts du hub (nom et coordonnées lus chez lui).
+  const clients = await withContacts(event.organizationId, await tx.select().from(eventClients).where(eq(eventClients.eventId, eventId)).orderBy(asc(eventClients.position)));
   const placeRows = await tx.select().from(eventPlaces).where(eq(eventPlaces.eventId, eventId)).orderBy(asc(eventPlaces.position), asc(eventPlaces.createdAt));
   return {
     eventDate: event.eventDate,
@@ -212,12 +249,10 @@ async function writeEventFields(tx: Tx, organizationId: string, eventId: string,
 
   if ("clients" in fields) {
     const clients = (fields.clients as ImportedClient[] | null) ?? [];
+    const current = await tx.select().from(eventClients).where(eq(eventClients.eventId, eventId)).orderBy(asc(eventClients.position));
+    const contactIds = await importedClientContacts(organizationId, current.map((link) => link.contactId), clients);
     await tx.delete(eventClients).where(eq(eventClients.eventId, eventId));
-    if (clients.length > 0) {
-      await tx.insert(eventClients).values(
-        clients.map((client, position) => ({ organizationId, eventId, firstName: client.firstName, lastName: client.lastName, ...clientColumns(client), position })),
-      );
-    }
+    if (contactIds.length > 0) await tx.insert(eventClients).values(contactIds.map((contactId, position) => ({ organizationId, eventId, contactId, position })));
   }
   if ("status" in fields && fields.status !== fromStatus) {
     const toStatus = fields.status as EventStatus;
@@ -312,16 +347,8 @@ export async function importEventRows(input: {
         .returning();
       if (!event) throw new Error("création de l'événement échouée");
       if (clients.length > 0) {
-        await tx.insert(eventClients).values(
-          clients.map((client, position) => ({
-            organizationId: input.organizationId,
-            eventId: event.id,
-            firstName: client.firstName,
-            lastName: client.lastName,
-            ...clientColumns(client),
-            position,
-          })),
-        );
+        const contactIds = await importedClientContacts(input.organizationId, [], clients);
+        await tx.insert(eventClients).values(contactIds.map((contactId, position) => ({ organizationId: input.organizationId, eventId: event.id, contactId, position })));
       }
       if (sheet.places.length > 0) {
         await tx.insert(eventPlaces).values(sheet.places.map((place, position) => ({ organizationId: input.organizationId, eventId: event.id, label: place.label, position })));

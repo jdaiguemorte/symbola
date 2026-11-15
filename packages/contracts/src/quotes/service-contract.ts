@@ -416,6 +416,9 @@ export type QuoteSummary = {
 // DEV-02 — signataires saisis sur le devis (ADR 0021).
 export type SignerInput = {
   eventClientId?: string | null | undefined;
+  // Lot 36a (CRM-03, D5, D8) : le contact du hub ; l'adresse saisie peut être gardée sur sa fiche.
+  contactId?: string | null | undefined;
+  saveBillingAddress?: boolean | undefined;
   name: string;
   email: string;
   billingAddress: string;
@@ -424,6 +427,7 @@ export type SignerInput = {
 export type SignerView = {
   id: string;
   eventClientId: string | null;
+  contactId: string | null;
   name: string;
   email: string;
   billingAddress: string;

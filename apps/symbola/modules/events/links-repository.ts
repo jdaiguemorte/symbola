@@ -105,6 +105,14 @@ async function checkReferences(
   return "ok";
 }
 
+// Lot 36a (CRM-03, ADR 0069) : le contact du client qu'un lien représente (nul pour un prestataire
+// ou un invité, ou un client retiré par le RGPD).
+async function clientContactId(tx: Tx, eventClientId: string | null): Promise<string | null> {
+  if (!eventClientId) return null;
+  const [client] = await tx.select({ contactId: eventClients.contactId }).from(eventClients).where(eq(eventClients.id, eventClientId));
+  return client?.contactId ?? null;
+}
+
 export type LinkFields = {
   personName: string;
   email: string;
@@ -151,6 +159,8 @@ export async function insertLinkRow(
         personName: fields.personName,
         email: fields.email,
         eventClientId: fields.eventClientId,
+        // Lot 36a (SEC-14) : le lien vise le contact du client.
+        contactId: await clientContactId(tx, fields.eventClientId),
         vendorCandidateId,
         rubrics: fields.rights.rubrics,
         budgetScope: fields.rights.budgetScope,
@@ -222,6 +232,8 @@ export async function updateLinkRow(organizationId: string, linkId: string, inpu
         personName: fields.personName,
         email: fields.email,
         eventClientId: fields.eventClientId,
+        // Lot 36a (SEC-14) : le lien vise le contact du client.
+        contactId: await clientContactId(tx, fields.eventClientId),
         rubrics: fields.rights.rubrics,
         budgetScope: fields.rights.budgetScope,
         customExpiresOn: fields.customExpiresOn,

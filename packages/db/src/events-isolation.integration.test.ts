@@ -2,6 +2,7 @@
 // organisations A et B avec des événements, quand A lit/liste/modifie,
 // aucune donnée de B n'est visible ou modifiable. Test contre un vrai
 // PostgreSQL, avec le rôle applicatif (jamais le rôle admin).
+import { randomUUID } from "node:crypto";
 import { assertOrganizationIsolation } from "@symbola/testing";
 import { eq } from "drizzle-orm";
 import { afterAll, describe, it } from "vitest";
@@ -69,7 +70,8 @@ describe("PRD-EVT-01/02 — Isolation entre organisations (module events, Postgr
           if (!event) throw new Error("insertion de l'événement attendue");
           const inserted = await tx
             .insert(eventClients)
-            .values({ organizationId, eventId: event.id, firstName: "Prénom" })
+            // Lot 36a : le client est un contact du hub ; ici, le seul lien.
+            .values({ organizationId, eventId: event.id, contactId: randomUUID() })
             .returning();
           const row = inserted[0];
           if (!row) throw new Error("insertion attendue, aucune ligne renvoyée");
@@ -83,7 +85,7 @@ describe("PRD-EVT-01/02 — Isolation entre organisations (module events, Postgr
         const updated = await withOrganization(db, organizationId, (tx) =>
           tx
             .update(eventClients)
-            .set({ firstName: "falsifié" })
+            .set({ position: 99 })
             .where(eq(eventClients.id, targetRow.id))
             .returning(),
         );

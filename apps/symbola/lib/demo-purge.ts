@@ -11,10 +11,11 @@ import { removeEventQuotesData } from "@/modules/quotes/service";
 import {
   endEventsTrial,
   getEvent,
+  listClientContactIds,
   listExpiredDemoEvents,
   purgeExpiredDemoEventsForOrganizations,
 } from "@/modules/events/service";
-import { listOrganizations } from "@/modules/hub/service";
+import { deleteContacts, listOrganizations } from "@/modules/hub/service";
 
 const PURGE_INTERVAL_MS = 60 * 60 * 1000; // toutes les heures
 
@@ -27,10 +28,13 @@ export function endTrial(organizationId: string, eventId: string): Promise<void>
 async function endTrialNow(organizationId: string, eventId: string): Promise<void> {
   const event = await getEvent(organizationId, eventId);
   if (!event?.isDemo) return;
+  // Lot 36a : les clients fictifs sont des contacts d'essai, supprimés avec l'essai.
+  const contactIds = await listClientContactIds(organizationId, [eventId]);
   await removeEventBudgetData(organizationId, [eventId]);
   await removeEventQuotesData(organizationId, [eventId]);
   await deleteDemoAuditEntries(appDatabase(), organizationId);
   await endEventsTrial(organizationId, eventId);
+  await deleteContacts(organizationId, contactIds, { demoOnly: true });
 }
 
 export function purgeOrganizationsDemoData(organizationIds: string[], now: Date = new Date()): Promise<number> {
@@ -43,12 +47,17 @@ async function purgeOrganizationsDemoDataNow(organizationIds: string[], now: Dat
   for (const { organizationId, eventId } of expired) {
     byOrganization.set(organizationId, [...(byOrganization.get(organizationId) ?? []), eventId]);
   }
+  const demoContacts = new Map<string, string[]>();
   for (const [organizationId, eventIds] of byOrganization) {
+    demoContacts.set(organizationId, await listClientContactIds(organizationId, eventIds));
     await removeEventBudgetData(organizationId, eventIds);
     await removeEventQuotesData(organizationId, eventIds);
     await deleteDemoAuditEntries(appDatabase(), organizationId);
   }
-  return purgeExpiredDemoEventsForOrganizations(organizationIds, now);
+  const purged = await purgeExpiredDemoEventsForOrganizations(organizationIds, now);
+  // Lot 36a : leurs contacts d'essai partent avec eux.
+  for (const [organizationId, contactIds] of demoContacts) await deleteContacts(organizationId, contactIds, { demoOnly: true });
+  return purged;
 }
 
 export async function purgeAllExpiredDemoData(now: Date = new Date()): Promise<number> {

@@ -93,6 +93,9 @@ export const HELP_SCREENS: HelpScreen[] = [
   { key: "privacySettings", group: "data", audience: "team", ownerOnly: true, path: "/rgpd/reglages", capture: true },
   // Lot 23 (HUB-16) : journal d'activité de l'organisation, titulaire seulement.
   { key: "activityLog", group: "data", audience: "team", ownerOnly: true, path: "/parametres/journal", capture: true },
+  // Lot 36a (CRM-03) : les contacts de l'organisation et la fiche d'un contact.
+  { key: "contactsList", group: "company", audience: "team", path: "/contacts", capture: true },
+  { key: "contactDetail", group: "company", audience: "team", path: null, capture: false },
   // Lot 35a (HUB-13, D5) : export complet des données, titulaire seulement.
   { key: "organizationExport", group: "data", audience: "team", ownerOnly: true, path: "/parametres/export", capture: true },
   // Lot 23b (JUR-06) : archive comptable, titulaire seulement.
