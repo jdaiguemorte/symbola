@@ -1,0 +1,305 @@
+{
+  "title": "hub/organization_profiles",
+  "description": "symbola.export/v1 : une ligne de json/hub/organization_profiles.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "siren": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "address": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "logoKey": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "legalForm": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "ei",
+            "eirl",
+            "eurl",
+            "sarl",
+            "sas",
+            "sasu",
+            "sa",
+            "auto_entrepreneur",
+            "autre"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "metier": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "wedding_planner",
+            "event_agency",
+            "autre"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "metierPrecision": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "vatRegime": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "franchise",
+            "assujetti"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "vatRateDefaultBasisPoints": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "annualEventVolume": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "replacedTools": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "completedAt": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "setupStep": {
+      "type": "integer",
+      "minimum": -9007199254740991,
+      "maximum": 9007199254740991
+    },
+    "setupCompletedAt": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "quoteFollowUpDays": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "prospectFollowUpDays": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "contactEmail": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "contactPhone": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "website": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "vatNumber": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "registration": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "shareCapitalCents": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "insurer": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "insurancePolicy": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "insuranceCoverage": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "mediatorName": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "mediatorUrl": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "generalTerms": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+    },
+    "createdBy": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "updatedBy": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "siren",
+    "address",
+    "logoKey",
+    "legalForm",
+    "metier",
+    "metierPrecision",
+    "vatRegime",
+    "vatRateDefaultBasisPoints",
+    "annualEventVolume",
+    "replacedTools",
+    "completedAt",
+    "setupStep",
+    "setupCompletedAt",
+    "quoteFollowUpDays",
+    "prospectFollowUpDays",
+    "contactEmail",
+    "contactPhone",
+    "website",
+    "vatNumber",
+    "registration",
+    "shareCapitalCents",
+    "insurer",
+    "insurancePolicy",
+    "insuranceCoverage",
+    "mediatorName",
+    "mediatorUrl",
+    "generalTerms",
+    "updatedAt",
+    "createdAt",
+    "createdBy",
+    "updatedBy"
+  ],
+  "additionalProperties": false
+}

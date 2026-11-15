@@ -1,0 +1,190 @@
+{
+  "title": "quotes/quote_settings",
+  "description": "symbola.export/v1 : une ligne de json/quotes/quote_settings.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
+    },
+    "validityDays": {
+      "type": "integer",
+      "minimum": -9007199254740991,
+      "maximum": 9007199254740991
+    },
+    "quotePrefix": {
+      "type": "string"
+    },
+    "invoicePrefix": {
+      "type": "string"
+    },
+    "creditNotePrefix": {
+      "type": "string"
+    },
+    "upcomingHorizonDays": {
+      "type": "integer",
+      "minimum": -9007199254740991,
+      "maximum": 9007199254740991
+    },
+    "invoicePaymentTermDays": {
+      "type": "integer",
+      "minimum": -9007199254740991,
+      "maximum": 9007199254740991
+    },
+    "invoiceMentions": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "documentColor": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "documentFont": {
+      "type": "string",
+      "enum": [
+        "modern",
+        "classic"
+      ]
+    },
+    "iban": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "bic": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "quoteIntro": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "quoteTerms": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "invoiceIntro": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "documentFooter": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "advanceKindDefault": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "deposit",
+            "earnest"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "invoiceMentionsProfessional": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "latePenaltyRate": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "ecb_plus_10",
+            "three_times_legal"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "receiptPrefix": {
+      "type": "string"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+    },
+    "createdBy": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "updatedBy": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "id",
+    "validityDays",
+    "quotePrefix",
+    "invoicePrefix",
+    "creditNotePrefix",
+    "upcomingHorizonDays",
+    "invoicePaymentTermDays",
+    "invoiceMentions",
+    "documentColor",
+    "documentFont",
+    "iban",
+    "bic",
+    "quoteIntro",
+    "quoteTerms",
+    "invoiceIntro",
+    "documentFooter",
+    "advanceKindDefault",
+    "invoiceMentionsProfessional",
+    "latePenaltyRate",
+    "receiptPrefix",
+    "updatedAt",
+    "createdAt",
+    "createdBy",
+    "updatedBy"
+  ],
+  "additionalProperties": false
+}

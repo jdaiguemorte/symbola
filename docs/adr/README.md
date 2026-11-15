@@ -69,3 +69,4 @@ Un fichier par décision structurante, numéroté. Pour changer une décision : 
 - [0065 — Contrats : signature avec le devis, commande avant la signature, dossier de preuve](0065-contrats-signature-combinee-et-dossier-de-preuve.md)
 - [0066 — Arrhes : reçu non fiscal hors de la chaîne des pièces ; solde déduit taux par taux](0066-recus-d-arrhes-et-solde-par-taux.md)
 - [0067 — Fournisseur d'identité : Logto, lien magique envoyé par Symbola](0067-fournisseur-d-identite-logto.md)
+- [0068 — Export complet : contrat export/v1, archive écrite en flux, format tiré des tables](0068-export-complet-contrat-export-v1.md)
