@@ -28,6 +28,8 @@ import {
 } from "@symbola/db/schema/events";
 import { withOrganization } from "@symbola/db/with-organization";
 import { ANONYMIZED, idsOfKind, monthStart, type ErasureFate, type ErasureInput, type ErasurePlanItem } from "@symbola/privacy";
+import { anonymizeContacts } from "@/modules/hub/service";
+import { findLinkedContactIds } from "./repository";
 
 type Tx = Parameters<Parameters<typeof withOrganization>[2]>[0];
 
@@ -132,6 +134,9 @@ export async function planEventsErasure(input: ErasureInput): Promise<ErasurePla
 // Exécution dans une seule transaction : tout ou rien pour le module.
 export async function eraseEventsData(input: ErasureInput): Promise<ErasurePlanItem[]> {
   const fileKeys: string[] = [];
+  // Lot 36a (ADR 0069) : contacts retirés d'un évènement, anonymisés chez le hub s'ils ne sont plus
+  // clients d'aucun autre.
+  const unlinkedContacts: string[] = [];
   const plan = await inOrganization(input.organizationId, async (tx) => {
     const found = await existing(tx, input);
     const idsFor = (kind: string) => found.find((entry) => entry.kind === kind)?.ids ?? [];
@@ -163,7 +168,15 @@ export async function eraseEventsData(input: ErasureInput): Promise<ErasurePlanI
       fileKeys.push(...attachments.map((attachment) => attachment.key));
     }
     if (idsFor("event_client").length > 0) {
-      await tx.update(eventClients).set({ firstName: ANONYMIZED, lastName: null, email: null, phone: null, addressLine: null, postalCode: null, city: null }).where(inArray(eventClients.id, idsFor("event_client")));
+      // Lot 36a : la personne est retirée de l'évènement (lien vidé) ; la ligne reste, pour les
+      // statistiques. Son contact est anonymisé plus bas s'il n'est plus client d'aucun évènement.
+      // Les contacts se lisent avant : RETURNING rendrait le lien déjà vidé.
+      const linked = await tx
+        .select({ contactId: eventClients.contactId })
+        .from(eventClients)
+        .where(and(inArray(eventClients.id, idsFor("event_client")), isNotNull(eventClients.contactId)));
+      await tx.update(eventClients).set({ contactId: null }).where(inArray(eventClients.id, idsFor("event_client")));
+      unlinkedContacts.push(...linked.map((row) => row.contactId).filter((id): id is string => id !== null));
     }
     if (idsFor("event_vendor_slot").length > 0) {
       const slotIds = idsFor("event_vendor_slot");
@@ -217,6 +230,10 @@ export async function eraseEventsData(input: ErasureInput): Promise<ErasurePlanI
     }
     return toPlan(found);
   });
+  if (unlinkedContacts.length > 0) {
+    const stillLinked = await findLinkedContactIds(input.organizationId, unlinkedContacts);
+    await anonymizeContacts(input.organizationId, unlinkedContacts.filter((id) => !stillLinked.has(id)));
+  }
   const storage = fileKeys.length > 0 ? createStorageClient() : null;
   for (const key of fileKeys) await deletePrivateObject(storage!, key).catch(() => undefined);
   return plan;

@@ -14,7 +14,7 @@ import { invoices, quotes, quoteSigners, quoteVersions, signatureRequests } from
 import { withOrganization } from "@symbola/db/with-organization";
 import type { PersonTerms, PrivacyContractV1 } from "@symbola/privacy";
 import { listBudgetLines, updateBudgetLine } from "@/modules/budget/service";
-import { addEventTask, addEventVendorSlot, createEventLink, createProspect, createProspectSource, eventsPrivacy, openEventLink, resolveLinkSession } from "@/modules/events/service";
+import { addEventTask, addEventVendorSlot, createEventLink, createProspect, createProspectSource, eventsPrivacy, getEvent, openEventLink, resolveLinkSession } from "@/modules/events/service";
 import { budgetPrivacy } from "@/modules/budget/service";
 import {
   closePrivacyRequest,
@@ -161,9 +161,11 @@ describe("RGPD-03 — Demande d'oubli", { timeout: 30_000 }, () => {
     // Accusés de chaque module concerné. Lot 18 (RGPD-07, décision C) : la
     // demande reste ouverte jusqu'à la réponse à la personne.
     const erasure = await getPrivacyErasure(db, planner.organizationId, result.erasureId);
+    // Lot 36a : le hub anonymise la fiche du contact.
     expect(erasure.acks.map((ack) => [ack.module, ack.status]).sort()).toEqual([
       ["budget", "ok"],
       ["events", "ok"],
+      ["hub", "ok"],
       ["quotes", "ok"],
     ]);
     expect(erasure.completedAt).not.toBeNull();
@@ -183,8 +185,10 @@ describe("RGPD-03 — Demande d'oubli", { timeout: 30_000 }, () => {
     // Lot 34b (D10) : le lieu de réception, premier lieu de la liste, part avec les lieux.
     expect(await withOrganization(db, planner.organizationId, (tx) => tx.select().from(eventPlaces).where(eq(eventPlaces.eventId, eventId)))).toEqual([]);
     expect((await listBudgetLines(planner.organizationId, eventId)).lines.map((line) => line.estimatedAmountCents)).toEqual([800000]);
+    // Lot 36a : le client reste (statistiques), sans contact ; l'évènement le montre « [anonymisé] ».
     const [client] = await withOrganization(db, planner.organizationId, (tx) => tx.select().from(eventClients).where(eq(eventClients.eventId, eventId)));
-    expect(client).toMatchObject({ firstName: "[anonymisé]", lastName: null });
+    expect(client).toMatchObject({ contactId: null });
+    expect((await getEvent(planner.organizationId, eventId))?.clients[0]).toMatchObject({ firstName: "[anonymisé]", lastName: null, email: null });
     const signers = await withOrganization(db, planner.organizationId, (tx) => tx.select().from(quoteSigners));
     expect(signers.every((signer) => signer.name === "[anonymisé]" && signer.email.endsWith("@anonymise.invalid") && signer.signingUrl === "")).toBe(true);
   });

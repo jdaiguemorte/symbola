@@ -20,6 +20,7 @@ import { ZipArchive } from "@symbola/import-engine";
 import { addEventTask, createProspect, createProspectSource } from "@/modules/events/service";
 import {
   claimOrganizationExport,
+  createContact,
   failOrganizationExport,
   getOrganizationExportRetentionDays,
   listOrganizationExports,
@@ -72,6 +73,7 @@ async function seedAtelier(atelier: Atelier, marker: string) {
   await uploadPrivateObject(storage, { key: documentKey, body: PDF, contentType: "application/pdf" });
   const secrets = { linkToken: `jeton-${randomUUID()}`, sessionToken: `session-${randomUUID()}`, signingUrl: `https://signature.invalid/s/${randomUUID()}` };
   const demo = { client: `Client Démo ${randomUUID()}`, vendor: `Prestataire Démo ${randomUUID()}` };
+  const demoContact = await createContact(organizationId, { firstName: demo.client }, { isDemo: true });
   await withOrganization(db, organizationId, async (tx) => {
     await tx.insert(eventDocuments).values({ organizationId, eventId, label: "Plan de table", fileKey: documentKey, mime: "application/pdf", sizeBytes: PDF.byteLength, uploadedByUserId: atelier.ownerId });
     await tx.insert(eventTaskAttachments).values({
@@ -95,7 +97,8 @@ async function seedAtelier(atelier: Atelier, marker: string) {
     await tx.insert(quoteSigners).values({ organizationId, requestId: request!.id, name: "Léa Martin", email: `lea-${randomUUID()}@symbola.test`, billingAddress: "1 rue des Lilas, 60300 Senlis", signingUrl: secrets.signingUrl });
     // L'essai guidé : un événement is_demo, son client et sa tâche, et une fiche d'essai.
     const [demoEvent] = await tx.insert(events).values({ organizationId, isDemo: true, eventDate: "2027-09-01" }).returning();
-    await tx.insert(eventClients).values({ organizationId, eventId: demoEvent!.id, firstName: demo.client });
+    // Lot 36a : le client d'essai est un contact d'essai du hub.
+    await tx.insert(eventClients).values({ organizationId, eventId: demoEvent!.id, contactId: demoContact.id });
     await tx.insert(eventTasks).values({ organizationId, eventId: demoEvent!.id, label: `Tâche ${demo.client}`, dueDate: "2027-08-01", responsible: "planner" });
     await tx.insert(vendors).values({ organizationId, name: `Fleurs de Lys ${marker}` });
     await tx.insert(vendors).values({ organizationId, name: demo.vendor, isDemo: true });
@@ -163,7 +166,9 @@ describe("HUB-13 — Export complet en libre-service : données en CSV et JSON, 
 
     // Les données de l'organisation : son événement réel, son client, sa tâche, sa fiche, son équipe, son journal.
     expect(rowsOf(content, "events/events").map((row) => row.id)).toEqual([seeded.eventId]);
-    expect(rowsOf(content, "events/event_clients").map((row) => row.lastName)).toEqual([`Martin ${marker}`]);
+    // Lot 36a (CRM-03) : le client est un contact du hub ; event_clients n'est que le lien.
+    expect(rowsOf(content, "hub/contacts").map((row) => row.lastName)).toEqual([`Martin ${marker}`]);
+    expect(rowsOf(content, "events/event_clients").map((row) => row.contactId)).toEqual([rowsOf(content, "hub/contacts")[0]!.id]);
     expect(rowsOf(content, "events/event_tasks").map((row) => row.label)).toEqual([`Livrer les fleurs ${marker}`]);
     expect(rowsOf(content, "vendors/vendors").map((row) => row.name)).toEqual([`Fleurs de Lys ${marker}`]);
     expect(rowsOf(content, "hub/team_members").map((row) => row.role).sort()).toEqual(["member", "owner"]);
@@ -174,7 +179,7 @@ describe("HUB-13 — Export complet en libre-service : données en CSV et JSON, 
     expect(Buffer.from(content.get(String(document!.fileKey))!).equals(PDF)).toBe(true);
     expect(manifest.missingFiles).toEqual([expect.objectContaining({ entity: "events/event_task_attachments", field: "fileKey" })]);
     // Le CSV : point-virgule, une ligne par ligne, mêmes colonnes que le schéma.
-    const csv = new TextDecoder().decode(content.get("csv/events/event_clients.csv")!);
+    const csv = new TextDecoder().decode(content.get("csv/hub/contacts.csv")!);
     expect(csv.split("\r\n")[0]).toContain("firstName;lastName");
     expect(csv).toContain(`Martin ${marker}`);
 

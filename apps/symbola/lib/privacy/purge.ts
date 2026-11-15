@@ -10,10 +10,11 @@ import { recordAudit } from "@symbola/db/audit";
 import { appDatabase } from "@symbola/db/client";
 import { clientDueOn, isExpired, parisDate, prospectDueOn, type PrivacyRecord } from "@symbola/privacy";
 import { lastPaymentDates as quotesLastPaymentDates, listExpiredDocuments } from "@/modules/quotes/service";
-import { listRetentionEvents } from "@/modules/events/service";
+import { listLinkedContactIds, listRetentionEvents } from "@/modules/events/service";
 import {
   getPrivacyPurge,
   getPrivacySettings,
+  listContactsUnchangedSince,
   listExpiredPrivacyRequests,
   recordPrivacyPurgeAcks,
   startPrivacyPurge,
@@ -79,6 +80,16 @@ export async function listPurgeCandidates(organizationId: string, today: string 
     });
   }
 
+  // Lot 36a (D9, ADR 0069) : un contact client d'aucun évènement (créé à la main, ou dont les
+  // évènements sont purgés) suit la règle des prospects, à compter de sa dernière modification.
+  const linked = await listLinkedContactIds(organizationId);
+  for (const contact of await listContactsUnchangedSince(organizationId, new Date())) {
+    if (linked.has(contact.id)) continue;
+    const dueOn = prospectDueOn([parisDate(contact.updatedAt)], settings);
+    if (!dueOn || !isExpired(today, dueOn)) continue;
+    candidates.push({ key: `contact:${contact.id}`, rule: "prospect", dueOn, label: contact.displayName, eventDate: null });
+  }
+
   for (const request of await listExpiredPrivacyRequests(db, { organizationId, months: settings, today })) {
     candidates.push({ key: `request:${request.id}`, rule: "privacy_request", dueOn: request.dueOn, label: request.personLabel, eventDate: null });
   }
@@ -105,6 +116,7 @@ async function recordsOf(organizationId: string, keys: string[], options: Option
     const [prefix, id] = key.split(":");
     if (prefix === "invoice" || prefix === "credit_note" || prefix === "quote" || prefix === "earnest_receipt") refs.push({ module: "quotes", kind: prefix, recordId: id! });
     if (prefix === "request") refs.push({ module: "hub", kind: "privacy_request", recordId: id! });
+    if (prefix === "contact") refs.push({ module: "hub", kind: "contact", recordId: id! });
   }
   return refs;
 }

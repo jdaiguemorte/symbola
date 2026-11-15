@@ -95,7 +95,10 @@ import {
   type EventVendorSlotRow,
   type TaskTemplateItemRow,
   type TaskTemplateRow,
-  updateEventClientContactRow,
+  findEventClientLink,
+  findClientLinks,
+  findEventIdsOfContact,
+  findLinkedContactIds,
   updateEventIdentityRow,
   updateWantedBudgetRow,
   updateVenueRow,
@@ -156,6 +159,8 @@ import {
   parisStartOfDay,
 } from "./link-tokens";
 import { isSendingHour, reminderMail, reminderThreshold, type ReminderTask } from "./task-reminders";
+import { resolveClientContacts } from "./clients";
+import { ContactEmailTakenError, ContactInvalidError, ContactNotFoundError, updateContact } from "@/modules/hub/service";
 import { answerDecisionRow, findDecisionRow, findDecisionRows, insertDecisionRow, replacementsOf, withdrawDecisionRow, type EventDecisionRow } from "./decisions-repository";
 import { findPendingDecisions, findUncontractedVendors, insertVendorReminder } from "./today-sources";
 import { VendorCandidateNotFoundError as CandidateNotFoundError } from "./vendor-candidates";
@@ -373,6 +378,7 @@ export type {
 function toEventClient(row: EventClientRow): EventClient {
   return {
     id: row.id,
+    contactId: row.contactId,
     firstName: row.firstName,
     lastName: row.lastName,
     position: row.position,
@@ -454,10 +460,13 @@ export async function getEvent(organizationId: string, eventId: string): Promise
 
 export async function createProspect(input: CreateProspectInput): Promise<CreateProspectResult> {
   if (input.eventTypeId) await assertEventTypeOf(input.organizationId, input.eventTypeId);
+  // Lot 36a (UX-02, DAT-12) : chaque client est un contact du hub, choisi, repris par son adresse
+  // e-mail, ou créé.
+  const clientContactIds = await resolveClientContacts(input.organizationId, input.clients);
   const event = await insertProspect({
     organizationId: input.organizationId,
     createdByUserId: input.createdByUserId,
-    clients: input.clients,
+    clientContactIds,
     prospectSourceId: input.prospectSourceId,
     eventTypeId: input.eventTypeId ?? null,
     eventDate: input.eventDate,
@@ -654,7 +663,10 @@ export class InvalidClientContactError extends Error {
   }
 }
 
-const CONTACT_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// Lot 36a (CRM-03, ADR 0069) : les coordonnées d'un client sont celles de son contact ; les modifier
+// depuis l'évènement modifie la fiche du contact, partout. Une adresse prise par un autre contact
+// est refusée (DAT-12).
+export class ClientEmailTakenError extends Error {}
 
 export async function updateEventClientContact(input: {
   organizationId: string;
@@ -662,16 +674,22 @@ export async function updateEventClientContact(input: {
   clientId: string;
   contact: Partial<Record<"email" | "phone" | "addressLine" | "postalCode" | "city", string | null>>;
 }): Promise<void> {
-  const clean = (value: string | null | undefined) => (value?.trim() ? value.trim().slice(0, 300) : null);
-  const contact = {
-    email: clean(input.contact.email),
-    phone: clean(input.contact.phone),
-    addressLine: clean(input.contact.addressLine),
-    postalCode: clean(input.contact.postalCode),
-    city: clean(input.contact.city),
-  };
-  if (contact.email && !CONTACT_EMAIL.test(contact.email)) throw new InvalidClientContactError();
-  if (!(await updateEventClientContactRow(input.organizationId, input.eventId, input.clientId, contact))) throw new EventNotFoundError();
+  const link = await findEventClientLink(input.organizationId, input.eventId, input.clientId);
+  if (!link?.contactId) throw new EventNotFoundError();
+  try {
+    await updateContact(input.organizationId, link.contactId, {
+      email: input.contact.email ?? null,
+      phone: input.contact.phone ?? null,
+      addressLine: input.contact.addressLine ?? null,
+      postalCode: input.contact.postalCode ?? null,
+      city: input.contact.city ?? null,
+    });
+  } catch (error) {
+    if (error instanceof ContactInvalidError) throw new InvalidClientContactError();
+    if (error instanceof ContactEmailTakenError) throw new ClientEmailTakenError();
+    if (error instanceof ContactNotFoundError) throw new EventNotFoundError();
+    throw error;
+  }
 }
 
 // Lot 14 (décision K) — budget souhaité, en centimes (null : effacé).
@@ -2587,3 +2605,22 @@ export { listRetentionEvents, type RetentionEvent } from "./privacy-retention";
 
 // Lot 35a (HUB-13, DAT-13, ADR 0068) : entités du module dans l'export complet de l'organisation.
 export { describeEventsExport, EVENTS_EXPORT_EXCLUSIONS, exportEventsData, listDemoEventIds } from "./export";
+
+// Lot 36a (CRM-03, ADR 0069) : contacts des clients des évènements donnés (fin d'un essai : ses
+// contacts d'essai partent avec lui), contacts encore clients d'un évènement, et évènements d'un
+// contact (sa fiche, CRM-03 D7).
+export async function listClientContactIds(organizationId: string, eventIds: readonly string[]): Promise<string[]> {
+  return [...new Set((await findClientLinks(organizationId, eventIds)).map((link) => link.contactId).filter((id): id is string => id !== null))];
+}
+
+export async function listLinkedContactIds(organizationId: string, contactIds?: readonly string[]): Promise<Set<string>> {
+  return findLinkedContactIds(organizationId, contactIds);
+}
+
+export async function listEventsOfContact(organizationId: string, contactId: string): Promise<EventSummary[]> {
+  const ids = new Set(await findEventIdsOfContact(organizationId, contactId));
+  if (ids.size === 0) return [];
+  return (await findEvents(organizationId, {}))
+    .filter((row) => ids.has(row.event.id) && !row.event.isDemo)
+    .map((row) => toEventSummary(row.event, row.clients));
+}

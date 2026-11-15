@@ -94,7 +94,8 @@ describe("RGPD-01 — Recherche transverse", () => {
     const result = await searchPerson({ organizationId: planner.organizationId, terms: { name: `${firstName} Durand` } });
     expect(result?.complete).toBe(true);
     const direct = result!.records.filter((record) => record.direct).map((record) => `${record.module}:${record.kind}`).sort();
-    expect(direct).toEqual(["events:event_client", "quotes:invoice", "quotes:quote_signer"]);
+    // Lot 36a (CRM-03) : la fiche du contact (hub), et sa participation à l'évènement (events).
+    expect(direct).toEqual(["events:event_client", "hub:contact", "quotes:invoice", "quotes:quote_signer"]);
     // Données de son événement : fiche, tâche, postes, budget, devis.
     const related = new Set(result!.records.filter((record) => !record.direct).map((record) => `${record.module}:${record.kind}`));
     for (const kind of ["events:event", "events:task", "events:event_vendor_slot", "events:status_change", "budget:budget_line", "quotes:quote"]) {

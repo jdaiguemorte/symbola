@@ -6,6 +6,7 @@
 import { and, eq, inArray, isNotNull } from "drizzle-orm";
 import { appDatabase } from "@symbola/db/client";
 import { importItems, imports, privacyRequests } from "@symbola/db/schema/hub";
+import { anonymizeContacts, findContactsByTerms, getContactsByIds, listContactNotes } from "./contacts";
 import { withOrganization } from "@symbola/db/with-organization";
 import {
   ANONYMIZED,
@@ -44,7 +45,18 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 //   mensuelle validée : nom de la personne remplacé par « [anonymisé] » et
 //   motif de prolongation effacé ; le type, les dates et le journal restent.
 //   Une demande en cours n'est jamais touchée.
+// Lot 36a (CRM-03, ADR 0069) : la fiche d'un contact (nom, coordonnées, notes) est anonymisée — nom
+// remplacé, coordonnées et notes effacées ; la ligne reste, pour que les évènements restent justes.
+async function contactErasure(input: ErasureInput, execute: boolean): Promise<ErasurePlanItem[]> {
+  const ids = idsOfKind(input.records, "contact");
+  if (ids.length === 0) return [];
+  const known = [...(await getContactsByIds(input.organizationId, ids)).values()].filter((contact) => !contact.isDemo);
+  if (execute) await anonymizeContacts(input.organizationId, known.filter((contact) => !contact.anonymized).map((contact) => contact.id));
+  return known.map((contact) => ({ kind: "contact", recordId: contact.id, fate: "anonymized", legalBasis: null, keptUntil: null }));
+}
+
 async function hubErasure(input: ErasureInput, execute: boolean): Promise<ErasurePlanItem[]> {
+  const contactItems = await contactErasure(input, execute);
   const rowRefs = input.records.filter((record) => record.kind === "import_row" && UUID.test(record.recordId.split(":")[0] ?? ""));
   const itemIds = idsOfKind(input.records, "import_item");
   const requestIds = idsOfKind(input.records, "privacy_request");
@@ -94,7 +106,7 @@ async function hubErasure(input: ErasureInput, execute: boolean): Promise<Erasur
       for (const id of ids) items.push({ kind: "privacy_request", recordId: id, fate: "anonymized", legalBasis: null, keptUntil: null });
     }
   });
-  return items;
+  return [...contactItems, ...items];
 }
 
 export const hubPrivacy: PrivacyContractV1 = {
@@ -108,6 +120,29 @@ export const hubPrivacy: PrivacyContractV1 = {
     if (!hasTerms(terms)) return [];
     const db = appDatabase();
     const records: PrivacyRecord[] = [];
+    // Lot 36a (CRM-03) : la fiche du contact, ses coordonnées et ses notes.
+    for (const contact of await findContactsByTerms(organizationId, rawTerms)) {
+      const notes = await listContactNotes(organizationId, contact.id);
+      const fields: Record<string, string> = {};
+      for (const [key, value] of Object.entries({
+        firstName: contact.firstName,
+        lastName: contact.lastName,
+        name: contact.name,
+        email: contact.email,
+        phone: contact.phone,
+        addressLine: contact.addressLine,
+        postalCode: contact.postalCode,
+        city: contact.city,
+        country: contact.country,
+        billingAddress: contact.billingAddress,
+      })) {
+        if (value) fields[key] = value;
+      }
+      notes.forEach((note, index) => {
+        fields[`note${index + 1}`] = note.body;
+      });
+      records.push({ module: MODULE, kind: "contact", recordId: contact.id, label: contact.displayName, fields, eventId: null });
+    }
     // Lot 26a (ADR 0053) : les tiers n'ont plus de compte ; leur lien personnel
     // (nom, e-mail) relève du module events.
     await withOrganization(db, organizationId, async (tx) => {
