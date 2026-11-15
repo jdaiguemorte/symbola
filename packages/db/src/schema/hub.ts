@@ -5,7 +5,7 @@
 // ces tables est assurée exclusivement par packages/auth (seule porte
 // d'entrée, ADR 0013) : aucun autre code n'y accède directement.
 import { sql } from "drizzle-orm";
-import { bigint, boolean, check, date, index, integer, jsonb, pgSchema, primaryKey, text, timestamp, unique, uuid } from "drizzle-orm/pg-core";
+import { bigint, boolean, check, date, index, integer, jsonb, pgSchema, primaryKey, text, timestamp, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 
 export const hubSchema = pgSchema("hub");
 
@@ -319,6 +319,9 @@ export const platformSettings = hubSchema.table("platform_settings", {
   // Lot 24b (SEC-22, décision D5) : plafond d'e-mails envoyés par organisation
   // et par heure (signataires, mariés invités), réglé par l'Admin.
   mailHourlyCap: integer("mail_hourly_cap").notNull().default(100),
+  // Lot 35a (HUB-13, décision D4) : durée pendant laquelle l'archive d'un export complet de
+  // l'organisation reste téléchargeable (7 jours), puis effacée du stockage.
+  organizationExportRetentionDays: integer("organization_export_retention_days").notNull().default(7),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
@@ -619,6 +622,52 @@ export const privacyExports = hubSchema.table("privacy_exports", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   updatedBy: uuid("updated_by"),
 }, (table) => [index("privacy_exports_organization_idx").on(table.organizationId)]);
+
+// Lot 35a (HUB-13, DAT-13, ADR 0068) — exports complets de l'organisation (contrat export/v1) :
+// demandés par la Propriétaire (décision D5), préparés en arrière-plan (lib/export, décision D4),
+// gardés le temps réglé par l'Admin, puis effacés du stockage ; la ligne reste comme trace, sans
+// donnée personnelle (nombres de lignes par entité, taille). Un seul export en préparation à la
+// fois par organisation. Une préparation interrompue (redémarrage) est reprise quand son
+// battement (heartbeat_at) s'arrête. Données d'une organisation : RLS forcée.
+export const ORGANIZATION_EXPORT_STATUSES = ["pending", "running", "ready", "failed"] as const;
+export type OrganizationExportStatus = (typeof ORGANIZATION_EXPORT_STATUSES)[number];
+export const ORGANIZATION_EXPORT_ERRORS = ["too_large", "failed"] as const;
+export type OrganizationExportError = (typeof ORGANIZATION_EXPORT_ERRORS)[number];
+
+export const organizationExports = hubSchema.table(
+  "organization_exports",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    status: text("status", { enum: ORGANIZATION_EXPORT_STATUSES }).notNull().default("pending"),
+    requestedByUserId: uuid("requested_by_user_id").notNull(),
+    requestedAt: timestamp("requested_at", { withTimezone: true }).defaultNow().notNull(),
+    startedAt: timestamp("started_at", { withTimezone: true }),
+    heartbeatAt: timestamp("heartbeat_at", { withTimezone: true }),
+    readyAt: timestamp("ready_at", { withTimezone: true }),
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
+    purgedAt: timestamp("purged_at", { withTimezone: true }),
+    filesTotal: integer("files_total").notNull().default(0),
+    filesDone: integer("files_done").notNull().default(0),
+    missingFiles: integer("missing_files").notNull().default(0),
+    sizeBytes: bigint("size_bytes", { mode: "number" }),
+    entityCounts: jsonb("entity_counts").$type<Record<string, number>>().notNull().default({}),
+    archiveKey: text("archive_key"),
+    error: text("error", { enum: ORGANIZATION_EXPORT_ERRORS }),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("organization_exports_organization_idx").on(table.organizationId),
+    uniqueIndex("organization_exports_active_idx").on(table.organizationId).where(sql`status in ('pending', 'running')`),
+    check("organization_exports_status_check", sql`${table.status} in ('pending', 'running', 'ready', 'failed')`),
+    check("organization_exports_error_check", sql`${table.error} is null or ${table.error} in ('too_large', 'failed')`),
+    check("organization_exports_files_check", sql`${table.filesDone} >= 0 and ${table.filesTotal} >= 0 and ${table.missingFiles} >= 0`),
+  ],
+);
 
 // Lot 6 (RGPD-03, ADR 0023) — exécution d'une demande d'oubli : le sort de
 // chaque fiche (sans libellé : identifiants opaques, nature, sort, motif

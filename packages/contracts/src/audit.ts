@@ -63,6 +63,11 @@ export const AUDIT_ACTIONS = {
   // Exports.
   "hub.privacy_export.created": { category: "export", objectType: "privacy_export" },
   "hub.privacy_export.downloaded": { category: "export", objectType: "privacy_export" },
+  // Lot 35a (HUB-13, D4, D5) : export complet de l'organisation demandé par la Propriétaire,
+  // préparé en arrière-plan (auteur : le système), puis téléchargé.
+  "hub.organization_export.requested": { category: "export", objectType: "organization_export" },
+  "hub.organization_export.ready": { category: "export", objectType: "organization_export" },
+  "hub.organization_export.downloaded": { category: "export", objectType: "organization_export" },
   "vendors.vendors.exported": { category: "export", objectType: null },
   "quotes.e_reporting.exported": { category: "export", objectType: null },
   "quotes.archive.exported": { category: "export", objectType: null },

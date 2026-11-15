@@ -318,3 +318,18 @@ export {
   type VendorTypeMergedPayload,
 } from "./vendors/events";
 export { VENDOR_SOCIAL_NETWORKS } from "./vendors/service-contract";
+// Lot 35a (HUB-13, DAT-13, ADR 0068) : contrat export/v1 de l'export complet d'une organisation.
+export {
+  exportManifestSchema,
+  ORGANIZATION_EXPORT_FORMAT,
+  ORGANIZATION_EXPORT_MODULES,
+  type ExportEntitySchema,
+  type ExportFileRef,
+  type ExportManifest,
+  type ExportRow,
+  type ExportValue,
+  type ModuleExport,
+  type ModuleExportContext,
+  type ModuleExportEntity,
+  type OrganizationExportModule,
+} from "./export/organization-export";
