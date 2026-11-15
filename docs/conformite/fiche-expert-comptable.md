@@ -213,3 +213,32 @@ est public ; ce qui suit est ce que Symbola en retient. Suites : `docs/lots/lot-
 | 8 | Micro-entreprise : journal des recettes en CSV (date d'encaissement, mode, numéro de facture, client). Société : journal des ventes et des encaissements, FEC en fin d'exercice, PDF d'origine rattachés. Accès en lecture seule pour le comptable. | Lot 42 |
 | 9 | Intermédiaire transparent : le planner facture ses honoraires ; la commission est facturée au prestataire. Revendeur : base = total refacturé ; en franchise, risque de dépasser le seuil ; débours sous conditions. La qualité d'intermédiaire repose sur le contrat, pas sur la case cochée. | Lot 48 |
 | 10 | Calcul par taux validé ; mêmes totaux au centime entre PDF et fichier structuré, même méthode sur papier et en électronique. | Lot 41 |
+
+## Question du 15 novembre 2026 (lot 35)
+
+### 11. Reprise d'un export dans un nouvel espace
+
+Une planner peut exporter toutes les données de son entreprise : une archive complète, factures et
+avoirs compris, avec leur PDF d'origine et la chaîne d'empreintes des pièces (question 6). Elle
+pourra reprendre cette archive dans un espace Symbola vide, pour changer d'espace ou pour revenir
+après une fermeture. Ses pièces déjà émises posent trois questions.
+
+- **Nature des pièces reprises.** Les factures, avoirs et encaissements repris restent-ils des
+  pièces comptables de l'espace d'arrivée (en lecture seule, avec leur numéro et leur PDF
+  d'origine) ? Ou deviennent-ils de simples documents archivés (les PDF), hors de la comptabilité
+  de cet espace ?
+- **Numérotation.** Pour la même entreprise (même SIREN), les nouvelles factures doivent-elles
+  continuer la série après le dernier numéro repris ? Et si l'entreprise a changé (autre SIREN) ?
+- **Chaîne d'empreintes.** Faut-il vérifier la chaîne reprise et y raccrocher les pièces
+  suivantes ? Ou démarrer une nouvelle chaîne, en gardant l'ancienne comme archive ?
+
+> **Symbola** : deux possibilités.
+>
+> - **(a)** Les pièces reprises restent des pièces, en lecture seule. Pour le même SIREN, la
+>   numérotation continue ; la chaîne reprise est vérifiée, puis prolongée.
+> - **(b)** Seuls les PDF sont repris, sans ligne comptable ; la numérotation repart dans le
+>   nouvel espace.
+>
+> Nous proposons (a). La reprise des pièces ne sera développée qu'après votre réponse.
+
+Besoin : une réponse **avant de développer la reprise d'un export** (lot 35b).

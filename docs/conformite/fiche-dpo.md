@@ -177,3 +177,29 @@ qui suit est ce que Symbola en retient. Suites : `docs/QUESTIONS.md` (Q35).
 | 9 | Violation : alerte initiale au planner sous 24 heures, puis compléments ; contenu minimal fixé ; liste des enregistrements touchés par planner ; modèles de notification. C'est le planner qui notifie la CNIL. | Lot 57 (RGP-12) |
 | 11 | Journal d'audit : « rien n'est purgé » est une conservation sans limite, **non conforme, à corriger dès maintenant**, même provisoirement. Trois durées : 12 mois glissants pour les gestes courants (connexions, droits, exports, partages, suppressions) ; 3 ans pour les accès de l'équipe Symbola à la base (risque documenté, procédure d'analyse écrite) ; la durée des pièces comptables pour les factures et encaissements, dans un flux à part. Journal découpé par date, segments supprimés à l'échéance, points de contrôle d'intégrité. Une ligne de suppression peut rester comme preuve d'effacement si la correspondance identifiant-personne disparaît. Adresses IP à 12 mois validées, à conditions : un seul exemplaire (aucune copie plus longue chez le proxy ou le service d'e-mails), finalité unique, accès par un rôle nommé avec motif journalisé, procédure pour les remettre à la personne qui les demande, mention dans la politique de confidentialité, même règle pour les connexions par lien. Collaborateurs : notice de Symbola à l'invitation et à la première connexion, consultable depuis le profil ; mention type fournie à la titulaire pour informer ses collaborateurs (consultation du CSE s'il existe) ; chacun voit son propre journal ; le journal de la titulaire sert la sécurité, pas le suivi du temps de travail. | Lot à part, avant les données réelles (Q35) |
 | 10 | Relances automatiques de devis = prospection. Particuliers : consentement préalable (case non précochée au formulaire de demande, preuve gardée). Entreprises : sans consentement si le message touche leur activité, avec origine des données et opposition simple. Identifier le planner comme expéditeur, informer à la collecte, listes d'opposition par planner ou commune. | Lot 45 (CRM-06, RGP-17) |
+
+## Question du 15 novembre 2026 (lot 35)
+
+### 12. Effacement à la fin de l'abonnement
+
+À la résiliation, la Propriétaire fermera son espace :
+
+- pendant 30 jours, elle peut encore tout exporter, et un e-mail la prévient avant la fin ;
+- ensuite, Symbola supprime l'espace et ses fichiers.
+
+- **Effacement complet.** Confirmez-vous que Symbola, sous-traitant (réponse 1), efface toutes les
+  données de la planner 30 jours après la fermeture, après lui avoir proposé l'export ? C'est
+  l'article 28.3 g : rendre ou supprimer.
+- **Pièces gardées.** L'avocat est interrogé sur les pièces que Symbola devrait peut-être garder
+  (factures, contrats signés et dossiers de preuve). S'il conclut qu'il faut en garder, à quelles
+  conditions Symbola peut-il le faire : accès, durée, information de la planner et des personnes ?
+- **Trace de la suppression.** Pour rejouer l'effacement après une restauration (réponse 2),
+  Symbola garde une trace de chaque suppression : identifiant de l'organisation, dates de
+  fermeture et de suppression, sans donnée personnelle. Combien de temps la garder ? Faut-il en
+  parler dans l'accord de sous-traitance ?
+
+> **Symbola** : la fermeture d'un espace ne sera développée qu'après votre réponse et celle de
+> l'avocat. La durée de rotation des sauvegardes (réponse 2 : 35 jours au plus) est une décision
+> déjà en cours chez Julien (`docs/QUESTIONS.md`, Q35).
+
+Besoin : une réponse **avant de développer la fermeture d'un espace** (lot 35c).

@@ -1,8 +1,9 @@
 # Lot 35 — Export complet réversible et fermeture d'un espace
 
 **Statut** : spécification **validée par Julien le 15/11/2026** (« Oui, je valide » : D1 à D9
-en (a)). D7 reste à faire confirmer par l'expert-comptable avant le code du 35b, D8 par l'avocat
-et le DPO avant le code du 35c, et la durée de D9 par le DPO.
+en (a)). D7 reste à faire confirmer par l'expert-comptable avant le code du 35b (question 11 de
+sa fiche), et D8 par l'avocat et le DPO avant le code du 35c (question 12 de leurs fiches). D9
+rejoint la décision Q35 sur les sauvegardes (erratum ci-dessous, Q37).
 Branche `lot-35-export` (35a), partie de `main` après le lot 34 (PR #116).
 
 ## Contexte
@@ -249,6 +250,12 @@ demande aussi trois choses :
 
   **Recommandation : (a)**, conforme au cahier des charges. La durée de 12 mois est à faire
   confirmer par le DPO.
+
+  **Erratum (15/11/2026)** : la DPO avait déjà répondu le 13/11 (fiche, réponse 2 ; Q35). Elle
+  demande une rotation de 35 jours au plus, et le rejeu des effacements après toute restauration.
+  D9 (a) contredit cette réponse. La rétention se décide donc dans Q35 (Q37 : réduire à 35 jours
+  avec un ADR, ou garder 12 mois en le justifiant). Le rejeu après une restauration reste prévu
+  au 35c.
 
 ## Migrations (prévision, schéma `hub` seulement)
 
