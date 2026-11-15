@@ -311,6 +311,7 @@
     "importUndoRetentionDays": "How long a confirmed import can be undone (days)",
     "privacyLegend": "Personal data (GDPR)",
     "privacyExportRetentionDays": "How long a GDPR export stays downloadable (days)",
+    "organizationExportRetentionDays": "How long an organisation's full export stays downloadable (days)",
     "invalidImportLimits": "Import limits and the export duration must be positive whole numbers (20 MB at most).",
     "importMaxSheets": "Event sheets (PDF) uploaded at once",
     "mailLegend": "Email sending",
@@ -1061,6 +1062,20 @@
     "signup": {
       "title": "Create your workspace",
       "body": "Your email address is all we need: the link you receive creates your account and your organization, then opens the setup. No password to choose; you can add one, or a passkey, later."
+    },
+    "organizationExport": {
+      "title": "Export my data",
+      "body": "Download all your business data, free of charge and at any time: a ZIP archive with your data in JSON and CSV, the schema of each table and your documents. The export is prepared in the background; an e-mail lets you know when it is ready. Only secrets (link tokens, sessions), sign-in credentials, trial data and Symbola's operating data are not exported. Reserved for the account Owner.",
+      "faq": [
+        {
+          "q": "How long does the archive stay available?",
+          "a": "For the time shown on the screen, then it is deleted. You can prepare a new export whenever you want."
+        },
+        {
+          "q": "Can I open the archive in a spreadsheet?",
+          "a": "Yes: each table has its CSV file (semicolon separator, UTF-8). The JSON files are the reference: they keep the links between tables."
+        }
+      ]
     }
   },
   "Aide": {
@@ -4456,7 +4471,8 @@
     "accountingArchive": "Accounting archive",
     "team": "Team",
     "quoteTemplates": "Quote templates",
-    "contractTemplates": "Contract templates"
+    "contractTemplates": "Contract templates",
+    "export": "Export my data"
   },
   "Common": {
     "closePanel": "Close the panel",
@@ -4706,7 +4722,10 @@
       "events_decision_withdrawn": "Decision request withdrawn",
       "quotes_contract_generated": "Contract generated",
       "quotes_contract_ordered": "Client order (distance contract)",
-      "quotes_contract_early_execution_requested": "Early performance requested by the client"
+      "quotes_contract_early_execution_requested": "Early performance requested by the client",
+      "hub_organization_export_requested": "Full export requested",
+      "hub_organization_export_ready": "Full export prepared",
+      "hub_organization_export_downloaded": "Full export downloaded"
     },
     "categories": {
       "connexion": "Sign-ins",
@@ -4805,7 +4824,8 @@
       "quotes_contract_evidence": "Contract evidence file",
       "quotes_scheduled_deposit_invoices": "Deposit invoice to issue",
       "quotes_earnest_receipts": "Earnest money receipts",
-      "hub_memberships": "membership"
+      "hub_memberships": "membership",
+      "hub_organization_exports": "full export"
     },
     "modules": {
       "events": "Events",
@@ -4815,7 +4835,8 @@
     },
     "budgetExport": "{count, plural, =0 {no lines} =1 {# line} other {# lines}} ({format})",
     "actorLink": "Personal link",
-    "actorLinkNamed": "{name} (personal link)"
+    "actorLinkNamed": "{name} (personal link)",
+    "organizationExportReady": "{rows, plural, one {# row} other {# rows}}, {files, plural, one {# file} other {# files}}"
   },
   "LedgerArchive": {
     "title": "Accounting archive",
@@ -5591,5 +5612,45 @@
     "chooseEventError": "Choose an event.",
     "amountInvalid": "Unreadable amount: write for example 1,250.50.",
     "unavailable": "Quick create is unavailable: the Events module is not enabled."
+  },
+  "OrganizationExport": {
+    "title": "Export my data",
+    "subtitle": "All your business data, free of charge and at any time.",
+    "ownerOnly": "This screen is reserved for the account Owner.",
+    "intro": "The export gathers everything your business has entered or received in Symbola: events, clients, tasks, programmes, vendors, budgets, quotes, contracts, invoices, payments, settings, GDPR register and activity log, with your documents.",
+    "formatTitle": "The format",
+    "format": "A ZIP archive: your data in JSON (the reference) and CSV (for a spreadsheet), the schema of each table, your files, and a README file that describes it all. The format is documented and stable.",
+    "excludedTitle": "What is not exported",
+    "excludedSecrets": "Secrets: tokens of personal links, sessions, pending invitations. A link can be created again, an invitation sent again.",
+    "excludedIdentity": "The team's sign-in credentials. The team is listed, with each person's address and role.",
+    "excludedDemo": "Trial and sample data.",
+    "excludedOperations": "Symbola's operating data: backups, IP addresses of sign-ins, technical history of imports.",
+    "requestTitle": "Prepare an export",
+    "requestHint": "The export is prepared in the background: you can leave this page. We will let you know by e-mail as soon as it is ready; it stays downloadable for {days, plural, one {# day} other {# days}}.",
+    "request": "Prepare the export",
+    "requested": "Export requested. We will let you know by e-mail as soon as it is ready.",
+    "alreadyActive": "An export is already being prepared.",
+    "forbidden": "Only the account Owner can export the data.",
+    "historyTitle": "Your latest exports",
+    "none": "No export yet.",
+    "requestedAt": "Requested on {date}",
+    "statusPending": "Waiting",
+    "statusRunning": "Being prepared",
+    "statusReady": "Ready",
+    "statusFailed": "Failed",
+    "statusExpired": "Expired",
+    "progressLabel": "Preparing the export",
+    "progressText": "{done} files out of {total}",
+    "progressData": "Gathering the data…",
+    "finished": "Your export is ready.",
+    "stopped": "The export preparation has stopped.",
+    "readySummary": "{rows, plural, one {# row} other {# rows}}, {files, plural, one {# file} other {# files}}, {size}",
+    "availableUntil": "Downloadable until {date}",
+    "expiredOn": "Archive deleted; prepare a new export.",
+    "download": "Download the archive",
+    "downloadLabel": "Download the archive of the export of {date}",
+    "missingFiles": "{count, plural, one {# file} other {# files}} not found in storage: the list is in the archive's manifest.",
+    "errorTooLarge": "The archive exceeds the allowed size (4 GB). Write to us: we will prepare it with you.",
+    "errorFailed": "The preparation failed. Start the export again; if it fails again, write to us."
   }
 }

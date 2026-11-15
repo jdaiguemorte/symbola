@@ -900,3 +900,6 @@ void _contractCheck;
 export async function countOrganizationRealVendors(organizationId: string): Promise<number> {
   return countRealVendors(organizationId);
 }
+
+// Lot 35a (HUB-13, DAT-13, ADR 0068) : entités du module dans l'export complet de l'organisation.
+export { describeVendorsExport, exportVendorsData, VENDORS_EXPORT_EXCLUSIONS } from "./export";

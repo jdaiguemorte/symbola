@@ -3584,3 +3584,6 @@ export { lastPaymentDates, listExpiredDocuments, type ExpiredDocument } from "./
 export async function countOrganizationRealQuotes(organizationId: string): Promise<number> {
   return countRealQuotes(organizationId);
 }
+
+// Lot 35a (HUB-13, DAT-13, ADR 0068) : entités du module dans l'export complet de l'organisation.
+export { describeQuotesExport, exportQuotesData, QUOTES_EXPORT_EXCLUSIONS } from "./export";

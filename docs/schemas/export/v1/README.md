@@ -1,0 +1,147 @@
+# Format symbola.export/v1 — entités et exclusions
+
+Fichier généré (`pnpm --filter @symbola/app export:schemas`) : ne pas le modifier à la main.
+Le format est décrit dans `docs/export/format-v1.md`.
+
+## Module `hub`
+
+| Entité | Champs | Schéma |
+| --- | --- | --- |
+| `organizations` | `id`, `name`, `language`, `siret`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [organizations.schema.json](hub/organizations.schema.json) |
+| `organization_profiles` | `siren`, `address`, `logoKey`, `legalForm`, `metier`, `metierPrecision`, `vatRegime`, `vatRateDefaultBasisPoints`, `annualEventVolume`, `replacedTools`, `completedAt`, `setupStep`, `setupCompletedAt`, `quoteFollowUpDays`, `prospectFollowUpDays`, `contactEmail`, `contactPhone`, `website`, `vatNumber`, `registration`, `shareCapitalCents`, `insurer`, `insurancePolicy`, `insuranceCoverage`, `mediatorName`, `mediatorUrl`, `generalTerms`, `updatedAt`, `createdAt`, `createdBy`, `updatedBy` | [organization_profiles.schema.json](hub/organization_profiles.schema.json) |
+| `organization_modules` | `moduleKey`, `enabled`, `updatedAt`, `createdAt`, `createdBy`, `updatedBy` | [organization_modules.schema.json](hub/organization_modules.schema.json) |
+| `vat_regime_changes` | `id`, `previousRegime`, `newRegime`, `effectiveDate`, `changedByUserId`, `createdAt`, `createdBy` | [vat_regime_changes.schema.json](hub/vat_regime_changes.schema.json) |
+| `privacy_settings` | `requestAlertDays`, `prospectRetentionMonths`, `clientRetentionMonths`, `accountingRetentionMonths`, `inactiveAccountMonths`, `signedQuoteRetentionMonths`, `requestProofRetentionMonths`, `linkPrivacyNotice`, `updatedAt`, `createdAt`, `createdBy`, `updatedBy` | [privacy_settings.schema.json](hub/privacy_settings.schema.json) |
+| `privacy_requests` | `id`, `type`, `personLabel`, `receivedOn`, `dueOn`, `status`, `extensionReason`, `extendedAt`, `closedAt`, `actionDoneAt`, `responseSentAt`, `createdByUserId`, `createdAt`, `updatedAt`, `createdBy`, `updatedBy` | [privacy_requests.schema.json](hub/privacy_requests.schema.json) |
+| `privacy_exports` | `id`, `requestId`, `recordCount`, `createdByUserId`, `createdAt`, `expiresAt`, `purgedAt`, `createdBy`, `updatedAt`, `updatedBy` | [privacy_exports.schema.json](hub/privacy_exports.schema.json) |
+| `privacy_erasures` | `id`, `requestId`, `status`, `items`, `acks`, `createdByUserId`, `createdAt`, `completedAt`, `createdBy` | [privacy_erasures.schema.json](hub/privacy_erasures.schema.json) |
+| `privacy_purges` | `id`, `period`, `status`, `lines`, `items`, `acks`, `createdByUserId`, `createdAt`, `completedAt`, `createdBy` | [privacy_purges.schema.json](hub/privacy_purges.schema.json) |
+| `activity_journal` | `id`, `occurredAt`, `actorKind`, `actorId`, `action`, `category`, `objectType`, `objectId`, `details`, `reason` | [activity_journal.schema.json](hub/activity_journal.schema.json) |
+| `team_members` | `userId`, `email`, `role`, `disabledAt` | [team_members.schema.json](hub/team_members.schema.json) |
+
+Tables non exportées :
+
+- `sessions` — secret : sessions ouvertes (jetons hachés)
+- `invitations` — secret : invitations en attente (jetons hachés) ; une invitation se renvoie
+- `users` — identité : les comptes sont listés dans team_members ; leurs identifiants de connexion restent chez le fournisseur d'identité
+- `memberships` — identité : listées dans team_members
+- `help_progress` — préférence : avancement de l'aide à l'écran, propre à chaque compte
+- `user_tour_seen` — préférence : visites guidées vues, propres à chaque compte
+- `imports` — technique : imports en cours ou confirmés, purgés ; les données importées sont dans leurs entités
+- `import_items` — technique : détail des imports, gardé pour leur annulation puis purgé
+- `import_jobs` — technique : traitements de fond des imports
+- `platform_settings` — exploitation : réglages de la plateforme Symbola
+- `backup_runs` — exploitation : sauvegardes de la plateforme
+- `connection_traces` — exploitation : adresses IP des connexions, pour l'enquête de sécurité
+- `organization_exports` — technique : trace des exports complets eux-mêmes
+- `domain_events` — technique : événements internes entre modules
+- `domain_event_consumers` — technique : suivi des événements internes
+- `rate_limit_events` — exploitation : tentatives limitées
+- `usage_counters` — exploitation : compteurs d'usage de la plateforme
+
+## Module `events`
+
+| Entité | Champs | Schéma |
+| --- | --- | --- |
+| `default_vendor_slots` | `id`, `label`, `icon`, `position`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [default_vendor_slots.schema.json](events/default_vendor_slots.schema.json) |
+| `event_types` | `id`, `label`, `audience`, `position`, `starterKey`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [event_types.schema.json](events/event_types.schema.json) |
+| `prospect_sources` | `id`, `label`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [prospect_sources.schema.json](events/prospect_sources.schema.json) |
+| `loss_reasons` | `id`, `label`, `isFreeText`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [loss_reasons.schema.json](events/loss_reasons.schema.json) |
+| `task_templates` | `id`, `name`, `eventTypeId`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [task_templates.schema.json](events/task_templates.schema.json) |
+| `task_template_items` | `id`, `templateId`, `label`, `offsetDays`, `responsible`, `position`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [task_template_items.schema.json](events/task_template_items.schema.json) |
+| `program_templates` | `id`, `name`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [program_templates.schema.json](events/program_templates.schema.json) |
+| `program_template_items` | `id`, `templateId`, `startTime`, `endTime`, `label`, `location`, `participantLabels`, `position`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [program_template_items.schema.json](events/program_template_items.schema.json) |
+| `events` | `id`, `status`, `eventDate`, `timeZone`, `postponedFromDate`, `postponedFromStatus`, `guestsEstimated`, `guestsConfirmed`, `style`, `notes`, `importedFields`, `wantedBudgetCents`, `prospectSourceId`, `eventTypeId`, `lossReasonId`, `lossReasonNote`, `tasksScheduledFor`, `programUpdatedAt`, `demoExpiresAt`, `createdAt`, `updatedAt`, `createdBy`, `updatedBy` | [events.schema.json](events/events.schema.json) |
+| `event_clients` | `id`, `eventId`, `firstName`, `lastName`, `email`, `phone`, `addressLine`, `postalCode`, `city`, `position`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [event_clients.schema.json](events/event_clients.schema.json) |
+| `event_status_history` | `id`, `eventId`, `fromStatus`, `toStatus`, `changedByUserId`, `changedAt`, `createdBy` | [event_status_history.schema.json](events/event_status_history.schema.json) |
+| `event_places` | `id`, `eventId`, `label`, `address`, `city`, `startTime`, `endTime`, `contactName`, `contactPhone`, `contactEmail`, `vendorId`, `position`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [event_places.schema.json](events/event_places.schema.json) |
+| `event_day_contacts` | `id`, `eventId`, `name`, `role`, `phone`, `position`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [event_day_contacts.schema.json](events/event_day_contacts.schema.json) |
+| `event_documents` | `id`, `eventId`, `label`, `fileKey`, `mime`, `sizeBytes`, `uploadedByUserId`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [event_documents.schema.json](events/event_documents.schema.json) |
+| `event_day_documents` | `id`, `eventId`, `source`, `sourceId`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [event_day_documents.schema.json](events/event_day_documents.schema.json) |
+| `event_vendor_slots` | `id`, `eventId`, `label`, `notRequired`, `position`, `importedFields`, `brief`, `icon`, `createdAt`, `updatedAt`, `createdBy`, `updatedBy` | [event_vendor_slots.schema.json](events/event_vendor_slots.schema.json) |
+| `event_vendor_candidates` | `id`, `eventId`, `vendorSlotId`, `vendorId`, `vendorName`, `status`, `contactedOn`, `quoteAmountCents`, `currency`, `quoteFileKey`, `quoteMime`, `quoteSizeBytes`, `shownToClients`, `shareRibWithClients`, `position`, `createdAt`, `updatedAt`, `createdBy`, `updatedBy` | [event_vendor_candidates.schema.json](events/event_vendor_candidates.schema.json) |
+| `event_vendor_candidate_notes` | `id`, `candidateId`, `body`, `visibleToClients`, `createdByUserId`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [event_vendor_candidate_notes.schema.json](events/event_vendor_candidate_notes.schema.json) |
+| `event_tasks` | `id`, `eventId`, `label`, `dueDate`, `offsetDays`, `fixedAt`, `responsible`, `vendorCandidateId`, `doneAt`, `position`, `importedFields`, `createdAt`, `updatedAt`, `createdBy`, `updatedBy` | [event_tasks.schema.json](events/event_tasks.schema.json) |
+| `event_task_comments` | `id`, `eventId`, `taskId`, `authorUserId`, `body`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [event_task_comments.schema.json](events/event_task_comments.schema.json) |
+| `event_task_attachments` | `id`, `eventId`, `taskId`, `label`, `fileKey`, `mime`, `sizeBytes`, `uploadedByUserId`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [event_task_attachments.schema.json](events/event_task_attachments.schema.json) |
+| `program_items` | `id`, `eventId`, `startTime`, `endTime`, `label`, `location`, `internalNote`, `responsible`, `createdAt`, `updatedAt`, `createdBy`, `updatedBy` | [program_items.schema.json](events/program_items.schema.json) |
+| `program_item_participants` | `id`, `programItemId`, `vendorSlotId`, `freeLabel`, `position`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [program_item_participants.schema.json](events/program_item_participants.schema.json) |
+| `event_links` | `id`, `eventId`, `audience`, `personName`, `email`, `eventClientId`, `rubrics`, `budgetScope`, `vendorCandidateId`, `otpRequired`, `taskReminders`, `locale`, `customExpiresOn`, `renewalRequestedAt`, `lastOpenedAt`, `revokedAt`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [event_links.schema.json](events/event_links.schema.json) |
+| `event_link_shared_slots` | `id`, `linkId`, `vendorSlotId`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [event_link_shared_slots.schema.json](events/event_link_shared_slots.schema.json) |
+| `event_decisions` | `id`, `eventId`, `kind`, `subjectId`, `slotId`, `title`, `note`, `snapshot`, `dueOn`, `status`, `choiceId`, `comment`, `decidedByLinkId`, `decidedByName`, `decidedAt`, `replacesDecisionId`, `requestedAt`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [event_decisions.schema.json](events/event_decisions.schema.json) |
+| `event_activities` | `id`, `eventId`, `actorUserId`, `actorLinkId`, `kind`, `taskId`, `taskLabel`, `vendorCandidateId`, `createdAt`, `createdBy` | [event_activities.schema.json](events/event_activities.schema.json) |
+
+Tables non exportées :
+
+- `event_link_codes` — secret : codes à usage unique des liens personnels (hachés)
+- `event_link_sessions` — secret : sessions ouvertes par les liens personnels (jetons hachés)
+- `event_task_reminders` — technique : rappels déjà envoyés par les liens, qui ne sont pas repris
+
+## Module `budget`
+
+| Entité | Champs | Schéma |
+| --- | --- | --- |
+| `allocation_models` | `id`, `name`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [allocation_models.schema.json](budget/allocation_models.schema.json) |
+| `allocation_model_items` | `id`, `modelId`, `defaultVendorSlotId`, `percentageBasisPoints`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [allocation_model_items.schema.json](budget/allocation_model_items.schema.json) |
+| `alert_thresholds` | `id`, `eventId`, `percent`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [alert_thresholds.schema.json](budget/alert_thresholds.schema.json) |
+| `event_budgets` | `id`, `eventId`, `totalAmountCents`, `guestCount`, `allocationModelId`, `createdAt`, `updatedAt`, `createdBy`, `updatedBy` | [event_budgets.schema.json](budget/event_budgets.schema.json) |
+| `event_budget_items` | `id`, `eventBudgetId`, `defaultVendorSlotId`, `amountCents`, `createdAt`, `updatedAt`, `createdBy`, `updatedBy` | [event_budget_items.schema.json](budget/event_budget_items.schema.json) |
+| `budget_lines` | `id`, `eventId`, `eventVendorSlotId`, `label`, `vendorCandidateId`, `position`, `estimatedAmountCents`, `quotedAmountCents`, `committedAmountCents`, `paidAmountCents`, `vatRateBasisPoints`, `createdAt`, `updatedAt`, `createdBy`, `updatedBy` | [budget_lines.schema.json](budget/budget_lines.schema.json) |
+| `budget_line_history` | `id`, `lineId`, `field`, `oldValueCents`, `newValueCents`, `changedByUserId`, `changedAt`, `createdBy` | [budget_line_history.schema.json](budget/budget_line_history.schema.json) |
+| `budget_line_attachments` | `id`, `lineId`, `kind`, `fileKey`, `mime`, `sizeBytes`, `uploadedByUserId`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [budget_line_attachments.schema.json](budget/budget_line_attachments.schema.json) |
+| `vendor_payments` | `id`, `eventId`, `lineId`, `label`, `fixedAmountCents`, `percentageBasisPoints`, `dueOn`, `paidOn`, `declaredPaidOn`, `declaredMethod`, `declaredByLinkId`, `declaredAt`, `refusalReason`, `refusedAt`, `position`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [vendor_payments.schema.json](budget/vendor_payments.schema.json) |
+
+Toutes les tables du module sont exportées.
+
+
+## Module `quotes`
+
+| Entité | Champs | Schéma |
+| --- | --- | --- |
+| `quote_settings` | `id`, `validityDays`, `quotePrefix`, `invoicePrefix`, `creditNotePrefix`, `upcomingHorizonDays`, `invoicePaymentTermDays`, `invoiceMentions`, `documentColor`, `documentFont`, `iban`, `bic`, `quoteIntro`, `quoteTerms`, `invoiceIntro`, `documentFooter`, `advanceKindDefault`, `invoiceMentionsProfessional`, `latePenaltyRate`, `receiptPrefix`, `updatedAt`, `createdAt`, `createdBy`, `updatedBy` | [quote_settings.schema.json](quotes/quote_settings.schema.json) |
+| `number_series` | `id`, `kind`, `year`, `lastNumber` | [number_series.schema.json](quotes/number_series.schema.json) |
+| `payment_methods` | `id`, `label`, `position`, `archivedAt`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [payment_methods.schema.json](quotes/payment_methods.schema.json) |
+| `catalog_items` | `id`, `label`, `description`, `unit`, `unitPriceCents`, `vatRateBasisPoints`, `category`, `importedFields`, `archivedAt`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [catalog_items.schema.json](quotes/catalog_items.schema.json) |
+| `contract_templates` | `id`, `eventTypeId`, `name`, `title`, `version`, `legalReviewedOn`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [contract_templates.schema.json](quotes/contract_templates.schema.json) |
+| `contract_template_clauses` | `id`, `templateId`, `title`, `body`, `optional`, `role`, `position`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [contract_template_clauses.schema.json](quotes/contract_template_clauses.schema.json) |
+| `contract_template_acceptances` | `id`, `templateId`, `templateVersion`, `userId`, `acceptedAt`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [contract_template_acceptances.schema.json](quotes/contract_template_acceptances.schema.json) |
+| `quote_templates` | `id`, `eventTypeId`, `name`, `version`, `globalDiscountKind`, `globalDiscountValue`, `advanceKind`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [quote_templates.schema.json](quotes/quote_templates.schema.json) |
+| `quote_template_sections` | `id`, `templateId`, `title`, `position`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [quote_template_sections.schema.json](quotes/quote_template_sections.schema.json) |
+| `quote_template_lines` | `id`, `templateId`, `sectionId`, `catalogItemId`, `label`, `description`, `unit`, `quantityMilli`, `unitPriceCents`, `vatRateBasisPoints`, `discountBasisPoints`, `isOption`, `position`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [quote_template_lines.schema.json](quotes/quote_template_lines.schema.json) |
+| `quote_template_schedule_items` | `id`, `templateId`, `label`, `amountCents`, `percentageBasisPoints`, `dueRule`, `daysBeforeEvent`, `position`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [quote_template_schedule_items.schema.json](quotes/quote_template_schedule_items.schema.json) |
+| `quotes` | `id`, `eventId`, `number`, `status`, `currentVersion`, `clientKind`, `createdByUserId`, `createdAt`, `updatedAt`, `createdBy`, `updatedBy` | [quotes.schema.json](quotes/quotes.schema.json) |
+| `quote_versions` | `id`, `quoteId`, `version`, `globalDiscountKind`, `globalDiscountValue`, `validUntil`, `vatRegime`, `legalMention`, `sellerSnapshot`, `totalsSnapshot`, `sentAt`, `advanceKind`, `optionsChosenAt`, `optionsChosenBy`, `optionsChosenByKind`, `templateId`, `templateVersion`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [quote_versions.schema.json](quotes/quote_versions.schema.json) |
+| `quote_sections` | `id`, `versionId`, `title`, `position`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [quote_sections.schema.json](quotes/quote_sections.schema.json) |
+| `quote_lines` | `id`, `versionId`, `catalogItemId`, `label`, `description`, `unit`, `quantityMilli`, `unitPriceCents`, `vatRateBasisPoints`, `discountBasisPoints`, `position`, `sectionId`, `isOption`, `optionChosen`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [quote_lines.schema.json](quotes/quote_lines.schema.json) |
+| `payment_schedule_items` | `id`, `versionId`, `label`, `amountCents`, `percentageBasisPoints`, `dueDate`, `paidOn`, `paymentMethodId`, `paidRecordedAt`, `position`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [payment_schedule_items.schema.json](quotes/payment_schedule_items.schema.json) |
+| `contracts` | `id`, `quoteId`, `quoteVersionId`, `version`, `templateId`, `templateVersion`, `templateReviewedOn`, `title`, `clauses`, `conclusionChannel`, `clientCategory`, `smallBusinessConfirmed`, `withdrawalApplies`, `signatureLevel`, `generatedAt`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [contracts.schema.json](quotes/contracts.schema.json) |
+| `contract_signer_acts` | `id`, `contractId`, `signerId`, `kind`, `signerName`, `presentedText`, `actedAt`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [contract_signer_acts.schema.json](quotes/contract_signer_acts.schema.json) |
+| `signature_requests` | `id`, `versionId`, `provider`, `externalId`, `status`, `kind`, `contractId`, `signedDocumentKey`, `auditCertificateKey`, `signedDocumentSha256`, `auditCertificateSha256`, `createdAt`, `completedAt`, `createdBy`, `updatedAt`, `updatedBy` | [signature_requests.schema.json](quotes/signature_requests.schema.json) |
+| `quote_signers` | `id`, `requestId`, `eventClientId`, `name`, `email`, `billingAddress`, `externalId`, `status`, `signedAt`, `position`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [quote_signers.schema.json](quotes/quote_signers.schema.json) |
+| `contract_evidence` | `id`, `requestId`, `contractId`, `documentKey`, `sha256`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [contract_evidence.schema.json](quotes/contract_evidence.schema.json) |
+| `invoices` | `id`, `quoteId`, `versionId`, `scheduleItemId`, `kind`, `number`, `issuedAt`, `issuedOn`, `serviceDate`, `paymentDueOn`, `amountCents`, `vatRegime`, `legalMention`, `mentions`, `sellerSnapshot`, `buyerSnapshot`, `linesSnapshot`, `totalsSnapshot`, `createdBy` | [invoices.schema.json](quotes/invoices.schema.json) |
+| `scheduled_deposit_invoices` | `id`, `quoteId`, `versionId`, `scheduleItemId`, `issueOn`, `paymentNotBefore`, `status`, `missingFields`, `invoiceId`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [scheduled_deposit_invoices.schema.json](quotes/scheduled_deposit_invoices.schema.json) |
+| `credit_notes` | `id`, `invoiceId`, `number`, `issuedAt`, `issuedOn`, `amountCents`, `reason`, `legalMention`, `sellerSnapshot`, `buyerSnapshot`, `totalsSnapshot`, `createdBy` | [credit_notes.schema.json](quotes/credit_notes.schema.json) |
+| `payment_entries` | `id`, `scheduleItemId`, `kind`, `amountCents`, `paidOn`, `paymentMethodId`, `paymentMethodLabel`, `reversesEntryId`, `reason`, `createdAt`, `createdBy` | [payment_entries.schema.json](quotes/payment_entries.schema.json) |
+| `earnest_receipts` | `id`, `quoteId`, `scheduleItemId`, `paymentEntryId`, `number`, `issuedAt`, `issuedOn`, `paidOn`, `amountCents`, `label`, `paymentMethodLabel`, `sellerSnapshot`, `buyerSnapshot`, `createdBy` | [earnest_receipts.schema.json](quotes/earnest_receipts.schema.json) |
+| `original_documents` | `id`, `documentKind`, `documentId`, `storageKey`, `sha256`, `byteSize`, `isReconstructed`, `createdAt`, `createdBy` | [original_documents.schema.json](quotes/original_documents.schema.json) |
+| `ledger_entries` | `id`, `sequence`, `entryKind`, `objectId`, `payload`, `previousHash`, `hash`, `isBackfill`, `recordedAt`, `createdBy` | [ledger_entries.schema.json](quotes/ledger_entries.schema.json) |
+
+Tables non exportées :
+
+- `signature_webhook_log` — technique : notifications reçues du fournisseur de signature
+
+## Module `vendors`
+
+| Entité | Champs | Schéma |
+| --- | --- | --- |
+| `vendor_families` | `id`, `label`, `color`, `icon`, `position`, `starterKey`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [vendor_families.schema.json](vendors/vendor_families.schema.json) |
+| `vendor_types` | `id`, `label`, `color`, `position`, `familyId`, `starterKey`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [vendor_types.schema.json](vendors/vendor_types.schema.json) |
+| `vendor_type_fields` | `id`, `typeId`, `label`, `kind`, `choices`, `isFilter`, `position`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [vendor_type_fields.schema.json](vendors/vendor_type_fields.schema.json) |
+| `vendor_tag_groups` | `id`, `label`, `exclusive`, `position`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [vendor_tag_groups.schema.json](vendors/vendor_tag_groups.schema.json) |
+| `vendor_tags` | `id`, `label`, `groupId`, `familyIds`, `position`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [vendor_tags.schema.json](vendors/vendor_tags.schema.json) |
+| `vendors` | `id`, `typeId`, `name`, `contactName`, `email`, `phone`, `addressLine`, `postalCode`, `city`, `country`, `latitude`, `longitude`, `locationSource`, `internalNote`, `rating`, `indicativePrices`, `website`, `socialLinks`, `siret`, `importedFields`, `fieldValues`, `tagIds`, `archivedAt`, `createdAt`, `updatedAt`, `createdBy`, `updatedBy` | [vendors.schema.json](vendors/vendors.schema.json) |
+| `vendor_files` | `id`, `vendorId`, `kind`, `fileName`, `fileKey`, `mime`, `sizeBytes`, `uploadedByUserId`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [vendor_files.schema.json](vendors/vendor_files.schema.json) |
+| `vendor_settings` | `detourFactorPermille`, `averageSpeedKmh`, `familiesSeededAt`, `updatedAt`, `createdAt`, `createdBy`, `updatedBy` | [vendor_settings.schema.json](vendors/vendor_settings.schema.json) |
+
+Toutes les tables du module sont exportées.

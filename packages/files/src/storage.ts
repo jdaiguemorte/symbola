@@ -3,6 +3,8 @@
 // uniquement par lien signé à durée limitée.
 import { DeleteObjectCommand, GetObjectCommand, HeadBucketCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { createReadStream } from "node:fs";
+import { stat } from "node:fs/promises";
 import { parseEnv } from "@symbola/env";
 
 export function createStorageClient() {
@@ -35,6 +37,25 @@ export async function uploadPrivateObject(
   );
 }
 
+// Lot 35a (HUB-13) : fichier volumineux écrit sur le disque (archive de l'export complet),
+// envoyé en flux sans être chargé en mémoire.
+export async function uploadPrivateFile(
+  storage: ReturnType<typeof createStorageClient>,
+  input: { key: string; path: string; contentType: string },
+): Promise<number> {
+  const { size } = await stat(input.path);
+  await storage.client.send(
+    new PutObjectCommand({
+      Bucket: storage.bucket,
+      Key: input.key,
+      Body: createReadStream(input.path),
+      ContentLength: size,
+      ContentType: input.contentType,
+    }),
+  );
+  return size;
+}
+
 export async function getSignedDownloadUrl(
   storage: ReturnType<typeof createStorageClient>,
   key: string,
@@ -62,6 +83,22 @@ export async function readPrivateObject(storage: ReturnType<typeof createStorage
     const response = await storage.client.send(new GetObjectCommand({ Bucket: storage.bucket, Key: key }));
     if (!response.Body) throw new PrivateObjectNotFoundError();
     return { data: Buffer.from(await response.Body.transformToByteArray()), contentType: response.ContentType ?? null };
+  } catch (error) {
+    if (error instanceof Error && (error.name === "NoSuchKey" || error.name === "NotFound")) throw new PrivateObjectNotFoundError();
+    throw error;
+  }
+}
+
+// Lot 35a (HUB-13) : lecture en flux d'un objet privé volumineux (archive de l'export complet),
+// transmise telle quelle par la route de l'app après contrôle des droits (ADR 0027).
+export async function openPrivateObjectStream(
+  storage: ReturnType<typeof createStorageClient>,
+  key: string,
+): Promise<{ stream: ReadableStream<Uint8Array>; contentLength: number | null }> {
+  try {
+    const response = await storage.client.send(new GetObjectCommand({ Bucket: storage.bucket, Key: key }));
+    if (!response.Body) throw new PrivateObjectNotFoundError();
+    return { stream: response.Body.transformToWebStream() as ReadableStream<Uint8Array>, contentLength: response.ContentLength ?? null };
   } catch (error) {
     if (error instanceof Error && (error.name === "NoSuchKey" || error.name === "NotFound")) throw new PrivateObjectNotFoundError();
     throw error;
