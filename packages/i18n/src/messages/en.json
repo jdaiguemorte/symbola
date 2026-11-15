@@ -572,7 +572,7 @@
     },
     "eventsDetail": {
       "title": "Event page",
-      "body": "The whole event, in tabs. The « Summary » opens on the next action and who has to act, then the event's health (planning, budget, client decisions) and the next fourteen days; details are edited at the bottom, under « Edit the details », the event's time zone included. The top timeline shows where it stands: Option, Confirmed, In preparation, Event day, Closed. Click a step to set it; « Event day » applies by itself on the day of the event, and closing is offered from the next day. « Postpone the event… » asks for the new date: once you confirm the postponement, the planning's due dates follow, except tasks already done and those whose date you set by hand; the ones that would fall in the past are listed first. « Cancel the event… » asks for a reason: the data stays, links close, reminders and scheduled deposit invoices stop, and a credit note is offered for each issued invoice. The « Next step » banner suggests the next stage (send the quote, apply the planning, create the couple's links). Each tab has a « Settings » link to its templates.",
+      "body": "The whole event, in tabs. The « Summary » opens on the next action and who has to act, then the event's health (planning, budget, client decisions) and the next fourteen days; details are edited at the bottom, under « Edit the details », the event's time zone included. The top timeline shows where it stands: Option, Confirmed, In preparation, Event day, Closed. Click a step to set it; « Event day » applies by itself on the day of the event, and closing is offered from the next day. « Postpone the event… » asks for the new date: once you confirm the postponement, the planning's due dates follow, except tasks already done and those whose date you set by hand; the ones that would fall in the past are listed first. « Cancel the event… » asks for a reason: the data stays, links close, reminders and scheduled deposit invoices stop, and a credit note is offered for each issued invoice. The « Event profile » gathers estimated and confirmed guests, venues, contacts, style and notes; venues are managed in the « Day programme » tab (address, town, times, on-site contact), the first being the reception venue. A task can be given to you, to the couple or to a retained vendor, who ticks it in their space; its attachments and comments stay within the team. The « Next step » banner suggests the next stage (send the quote, apply the planning, create the couple's links). Each tab has a « Settings » link to its templates.",
       "faq": [
         {
           "q": "How do I mark an event as lost?",
@@ -648,7 +648,7 @@
     },
     "vendorSpace": {
       "title": "Your vendor space",
-      "body": "Your organiser has opened this space for you with a personal link, with no account or password. You will find the date, the venues, the programme times that concern you and how to reach them. This link is for you only: please do not forward it."
+      "body": "Your organiser has opened this space for you with a personal link, with no account or password. You will find the date, the venues, the programme times that concern you, the tasks they give you (tick them once done) and how to reach them. This link is for you only: please do not forward it."
     },
     "budgetSettings": {
       "title": "Budget allocation",
@@ -1244,6 +1244,7 @@
     "taskResponsible": "Owner",
     "responsiblePlanner": "Planner",
     "responsibleClients": "Couple",
+    "responsibleVendor": "Vendor",
     "invalidResponsible": "Choose an owner.",
     "addTask": "Add task",
     "taskAdded": "Task added.",
@@ -1628,7 +1629,53 @@
     "taskCalendarPrevious": "Previous month",
     "taskCalendarNext": "Next month",
     "taskCalendarToday": "This month",
-    "taskCalendarCount": "{count, plural, =0 {No task this month.} one {# task this month.} other {# tasks this month.}}"
+    "taskCalendarCount": "{count, plural, =0 {No task this month.} one {# task this month.} other {# tasks this month.}}",
+    "responsibleVendorNamed": "Vendor: {name}",
+    "responsibleVendorRemoved": "Vendor removed from the event",
+    "taskVendorInvalid": "A task can only be given to a vendor retained for this event.",
+    "taskAttachmentsTitle": "Attachments",
+    "taskAttachmentsEmpty": "No attachment.",
+    "taskAttachmentAdd": "Attach the file",
+    "taskAttachmentAdded": "Attachment added.",
+    "taskAttachmentRemove": "Remove “{label}”",
+    "taskCommentsTitle": "Team comments",
+    "taskCommentsEmpty": "No comment.",
+    "taskCommentLabel": "Your comment",
+    "taskCommentAdd": "Comment",
+    "taskCommentAdded": "Comment added.",
+    "taskCommentRemove": "Remove my comment",
+    "taskCommentFormerMember": "Former team member",
+    "taskCommentInvalid": "Write a comment of 2,000 characters at most.",
+    "placeCity": "Town",
+    "placeStartTime": "Start",
+    "placeEndTime": "End",
+    "placeContactName": "On-site contact",
+    "placeContactPhone": "Contact phone",
+    "placeContactEmail": "Contact email",
+    "editPlace": "Edit “{place}”",
+    "savePlace": "Save the venue",
+    "placeSaved": "Venue saved.",
+    "placeNotFound": "Venue not found.",
+    "placeDetailsInvalid": "Check the venue: a name, times as HH:MM, a valid email.",
+    "placeReception": "Reception venue",
+    "placeHours": "{start} – {end}",
+    "placeFrom": "From {start}",
+    "placeContact": "Contact: {contact}",
+    "makeReceptionPlace": "Make “{place}” the reception venue",
+    "placesManage": "Manage venues",
+    "identityTitle": "Event profile",
+    "guestsLabel": "Guests",
+    "guestsSummary": "{estimated} estimated · {confirmed} confirmed",
+    "guestsEstimated": "Estimated guests",
+    "guestsConfirmed": "Confirmed guests",
+    "eventStyle": "Style",
+    "eventNotes": "Notes",
+    "identitySave": "Save the profile",
+    "identitySaved": "Profile saved.",
+    "guestsInvalid": "Enter a whole number of guests, from 0 to 100,000.",
+    "identityInvalid": "The style fits in 2,000 characters and the notes in 10,000.",
+    "interlocutorsLabel": "Contacts",
+    "interlocutorOfPlace": "{name} ({place})"
   },
   "Budget": {
     "title": "Budget",
@@ -2380,7 +2427,8 @@
     "withdrawalInfo": "You have a {days}-day right of withdrawal; the contract sets out its terms and includes the form.",
     "noWithdrawalInfo": "This contract has no right of withdrawal; it states why.",
     "orderedOn": "Order recorded on {date}.",
-    "earlyExecutionOn": "Request to start before the end of the period recorded on {date}."
+    "earlyExecutionOn": "Request to start before the end of the period recorded on {date}.",
+    "responsibleVendor": "Given to a vendor"
   },
   "NotFound": {
     "title": "Page not found",
@@ -4742,6 +4790,8 @@
       "events_event_documents": "event document",
       "events_event_day_documents": "document kept for the day",
       "events_event_day_contacts": "day-of contact",
+      "events_event_task_attachments": "task attachment",
+      "events_event_task_comments": "task comment",
       "quotes_quote_sections": "Quote section",
       "quotes_quote_templates": "Quote template",
       "quotes_quote_template_sections": "Quote template section",
@@ -4943,7 +4993,9 @@
     "noPlaces": "The venues have not been set yet.",
     "programTitle": "Your times",
     "noProgramItems": "No programme line involves you for now.",
-    "contactTitle": "Your contact"
+    "contactTitle": "Your contact",
+    "tasksTitle": "Your tasks",
+    "noTasks": "No task has been given to you for now."
   },
   "Decisions": {
     "decisionOptionTitle": "Choose: {slot}",

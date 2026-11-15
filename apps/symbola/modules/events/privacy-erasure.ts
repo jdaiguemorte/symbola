@@ -15,6 +15,8 @@ import {
   eventDayDocuments,
   eventDocuments,
   eventPlaces,
+  eventTaskAttachments,
+  eventTaskComments,
   events,
   eventStatusHistory,
   eventTasks,
@@ -46,6 +48,10 @@ const FATES: Record<string, ErasureFate> = {
   event_document: "deleted",
   // Lot 30a : contact du jour J (nom, téléphone d'une personne) : supprimé.
   event_day_contact: "deleted",
+  // Lot 34b (CHR-02) : un commentaire ou une pièce jointe de tâche peut nommer la personne :
+  // supprimés, fichier compris.
+  task_comment: "deleted",
+  task_attachment: "deleted",
 };
 
 type Found = { kind: string; ids: string[] };
@@ -98,6 +104,10 @@ async function existing(tx: Tx, input: ErasureInput): Promise<Found[]> {
     add("event_day_contact", keep(await tx.select({ id: eventDayContacts.id, eventId: eventDayContacts.eventId }).from(eventDayContacts).where(inArray(eventDayContacts.id, ids("event_day_contact")))));
   if (ids("event_document").length > 0)
     add("event_document", keep(await tx.select({ id: eventDocuments.id, eventId: eventDocuments.eventId }).from(eventDocuments).where(inArray(eventDocuments.id, ids("event_document")))));
+  if (ids("task_comment").length > 0)
+    add("task_comment", keep(await tx.select({ id: eventTaskComments.id, eventId: eventTaskComments.eventId }).from(eventTaskComments).where(inArray(eventTaskComments.id, ids("task_comment")))));
+  if (ids("task_attachment").length > 0)
+    add("task_attachment", keep(await tx.select({ id: eventTaskAttachments.id, eventId: eventTaskAttachments.eventId }).from(eventTaskAttachments).where(inArray(eventTaskAttachments.id, ids("task_attachment")))));
   if (ids("status_change").length > 0)
     add(
       "status_change",
@@ -134,9 +144,10 @@ export async function eraseEventsData(input: ErasureInput): Promise<ErasurePlanI
           .update(events)
           .set({
             eventDate: event.eventDate ? monthStart(event.eventDate) : null,
-            venueName: null,
-            venueCity: null,
             lossReasonNote: null,
+            // Lot 34b (EVT-03) : style et notes libres effacés ; les nombres d'invités restent.
+            style: null,
+            notes: null,
             importedFields: null,
             updatedAt: now,
           })
@@ -144,8 +155,12 @@ export async function eraseEventsData(input: ErasureInput): Promise<ErasurePlanI
       }
       // Fil d'activité des mariés (qui a coché quelle tâche) : données sur eux.
       await tx.delete(eventActivities).where(inArray(eventActivities.eventId, eventIds));
-      // Lot 12 : lieux de l'événement (adresse possiblement privée), comme le lieu de réception.
+      // Lot 12 : lieux de l'événement (adresse possiblement privée), réception comprise (lot 34b).
       await tx.delete(eventPlaces).where(inArray(eventPlaces.eventId, eventIds));
+      // Lot 34b (CHR-02) : commentaires et pièces jointes des tâches de l'événement.
+      await tx.delete(eventTaskComments).where(inArray(eventTaskComments.eventId, eventIds));
+      const attachments = await tx.delete(eventTaskAttachments).where(inArray(eventTaskAttachments.eventId, eventIds)).returning({ key: eventTaskAttachments.fileKey });
+      fileKeys.push(...attachments.map((attachment) => attachment.key));
     }
     if (idsFor("event_client").length > 0) {
       await tx.update(eventClients).set({ firstName: ANONYMIZED, lastName: null, email: null, phone: null, addressLine: null, postalCode: null, city: null }).where(inArray(eventClients.id, idsFor("event_client")));
@@ -183,7 +198,17 @@ export async function eraseEventsData(input: ErasureInput): Promise<ErasurePlanI
       fileKeys.push(...documents.map((document) => document.key));
       await tx.delete(eventDayDocuments).where(and(eq(eventDayDocuments.source, "event_document"), inArray(eventDayDocuments.sourceId, documentIds)));
     }
-    if (idsFor("task").length > 0) await tx.delete(eventTasks).where(inArray(eventTasks.id, idsFor("task")));
+    if (idsFor("task_comment").length > 0) await tx.delete(eventTaskComments).where(inArray(eventTaskComments.id, idsFor("task_comment")));
+    if (idsFor("task_attachment").length > 0) {
+      const removed = await tx.delete(eventTaskAttachments).where(inArray(eventTaskAttachments.id, idsFor("task_attachment"))).returning({ key: eventTaskAttachments.fileKey });
+      fileKeys.push(...removed.map((attachment) => attachment.key));
+    }
+    if (idsFor("task").length > 0) {
+      // Les pièces jointes partent avec leur tâche (clé étrangère) : leurs fichiers aussi.
+      const removed = await tx.delete(eventTaskAttachments).where(inArray(eventTaskAttachments.taskId, idsFor("task"))).returning({ key: eventTaskAttachments.fileKey });
+      fileKeys.push(...removed.map((attachment) => attachment.key));
+      await tx.delete(eventTasks).where(inArray(eventTasks.id, idsFor("task")));
+    }
     if (idsFor("program_participant").length > 0) await tx.delete(programItemParticipants).where(inArray(programItemParticipants.id, idsFor("program_participant")));
     if (idsFor("event_place").length > 0) await tx.delete(eventPlaces).where(inArray(eventPlaces.id, idsFor("event_place")));
     if (idsFor("program_item").length > 0) {

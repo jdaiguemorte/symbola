@@ -5,7 +5,7 @@
 import { randomUUID } from "node:crypto";
 import AxeBuilder from "@axe-core/playwright";
 import { createAppConnection } from "@symbola/db/client";
-import { eventClients, events, prospectSources } from "@symbola/db/schema/events";
+import { eventClients, eventPlaces, events, prospectSources } from "@symbola/db/schema/events";
 import { withOrganization } from "@symbola/db/with-organization";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
@@ -33,8 +33,10 @@ test("IMP-05 — aperçu, confirmation, champ libre sur la fiche, journal et ann
       const [source] = await tx.insert(prospectSources).values({ organizationId: organization.id, label: "Instagram" }).returning();
       const [event] = await tx
         .insert(events)
-        .values({ organizationId: organization.id, eventDate: "2027-06-12", venueName: "Salle des fêtes", prospectSourceId: source!.id })
+        .values({ organizationId: organization.id, eventDate: "2027-06-12", prospectSourceId: source!.id })
         .returning();
+      // Lot 34b (D10) : le lieu de réception est le premier lieu de la liste.
+      await tx.insert(eventPlaces).values({ organizationId: organization.id, eventId: event!.id, label: "Salle des fêtes", position: 0 });
       await tx.insert(eventClients).values({ organizationId: organization.id, eventId: event!.id, firstName: "Élodie", lastName: "Durand", position: 0 });
       return event!.id;
     });

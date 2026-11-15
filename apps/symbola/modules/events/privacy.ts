@@ -16,6 +16,8 @@ import {
   eventDayContacts,
   eventDocuments,
   eventPlaces,
+  eventTaskAttachments,
+  eventTaskComments,
   events,
   eventStatusHistory,
   eventTasks,
@@ -85,6 +87,19 @@ function documentRecord(document: typeof eventDocuments.$inferSelect): PrivacyRe
   };
 }
 
+// Lot 34b (EVT-03, CHR-02) : contact d'un lieu, commentaires et pièces jointes des tâches.
+function placeRecord(place: typeof eventPlaces.$inferSelect): PrivacyRecord {
+  return { module: MODULE, kind: "event_place", recordId: place.id, label: place.label, fields: compact({ address: place.address, city: place.city, contactName: place.contactName, contactPhone: place.contactPhone, contactEmail: place.contactEmail }), eventId: place.eventId };
+}
+
+function commentRecord(comment: typeof eventTaskComments.$inferSelect): PrivacyRecord {
+  return { module: MODULE, kind: "task_comment", recordId: comment.id, label: comment.createdAt.toISOString().slice(0, 10), fields: { body: comment.body }, eventId: comment.eventId };
+}
+
+function attachmentRecord(attachment: typeof eventTaskAttachments.$inferSelect): PrivacyRecord {
+  return { module: MODULE, kind: "task_attachment", recordId: attachment.id, label: attachment.label, fields: { label: attachment.label, mime: attachment.mime }, eventId: attachment.eventId };
+}
+
 function dayContactRecord(contact: typeof eventDayContacts.$inferSelect): PrivacyRecord {
   return { module: MODULE, kind: "event_day_contact", recordId: contact.id, label: contact.name, fields: compact({ name: contact.name, role: contact.role, phone: contact.phone }), eventId: contact.eventId };
 }
@@ -109,13 +124,14 @@ export const eventsPrivacy: PrivacyContractV1 = {
       const records: PrivacyRecord[] = [];
 
       for (const event of realEvents) {
-        if (recordMatches([event.lossReasonNote, ...importedValues(event.importedFields)], terms)) {
+        // Lot 34b (EVT-03) : le style et les notes libres peuvent nommer la personne.
+        if (recordMatches([event.lossReasonNote, event.style, event.notes, ...importedValues(event.importedFields)], terms)) {
           records.push({
             module: MODULE,
             kind: "event",
             recordId: event.id,
             label: event.eventDate ?? "",
-            fields: compact({ lossReasonNote: event.lossReasonNote, ...importedFieldsOf(event.importedFields) }),
+            fields: compact({ lossReasonNote: event.lossReasonNote, style: event.style, notes: event.notes, ...importedFieldsOf(event.importedFields) }),
             eventId: event.id,
           });
         }
@@ -172,9 +188,14 @@ export const eventsPrivacy: PrivacyContractV1 = {
       }
       // Lot 12 (L12-EVT-15) : lieux de l'événement.
       for (const place of await tx.select().from(eventPlaces).where(inArray(eventPlaces.eventId, eventIds))) {
-        if (recordMatches([place.label, place.address], terms)) {
-          records.push({ module: MODULE, kind: "event_place", recordId: place.id, label: place.label, fields: compact({ address: place.address }), eventId: place.eventId });
-        }
+        if (recordMatches([place.label, place.address, place.city, place.contactName, place.contactPhone, place.contactEmail], terms)) records.push(placeRecord(place));
+      }
+      // Lot 34b (CHR-02) : commentaires des tâches (texte) et pièces jointes (intitulé).
+      for (const comment of await tx.select().from(eventTaskComments).where(inArray(eventTaskComments.eventId, eventIds))) {
+        if (recordMatches([comment.body], terms)) records.push(commentRecord(comment));
+      }
+      for (const attachment of await tx.select().from(eventTaskAttachments).where(inArray(eventTaskAttachments.eventId, eventIds))) {
+        if (recordMatches([attachment.label], terms)) records.push(attachmentRecord(attachment));
       }
       // Lot 30a : contacts du jour J (nom, rôle, téléphone).
       for (const contact of await tx.select().from(eventDayContacts).where(inArray(eventDayContacts.eventId, eventIds))) {
@@ -226,9 +247,11 @@ export const eventsPrivacy: PrivacyContractV1 = {
           fields: compact({
             status: event.status,
             eventDate: event.eventDate,
-            venueName: event.venueName,
-            venueCity: event.venueCity,
             lossReasonNote: event.lossReasonNote,
+            guestsEstimated: event.guestsEstimated === null ? null : String(event.guestsEstimated),
+            guestsConfirmed: event.guestsConfirmed === null ? null : String(event.guestsConfirmed),
+            style: event.style,
+            notes: event.notes,
             ...importedFieldsOf(event.importedFields),
           }),
           eventId: event.id,
@@ -258,9 +281,9 @@ export const eventsPrivacy: PrivacyContractV1 = {
       for (const item of await tx.select().from(programItems).where(inArray(programItems.eventId, ids))) {
         records.push({ module: MODULE, kind: "program_item", recordId: item.id, label: item.label, fields: compact({ location: item.location, internalNote: item.internalNote, responsible: item.responsible }), eventId: item.eventId });
       }
-      for (const place of await tx.select().from(eventPlaces).where(inArray(eventPlaces.eventId, ids)).orderBy(asc(eventPlaces.position))) {
-        records.push({ module: MODULE, kind: "event_place", recordId: place.id, label: place.label, fields: compact({ address: place.address }), eventId: place.eventId });
-      }
+      for (const place of await tx.select().from(eventPlaces).where(inArray(eventPlaces.eventId, ids)).orderBy(asc(eventPlaces.position))) records.push(placeRecord(place));
+      for (const comment of await tx.select().from(eventTaskComments).where(inArray(eventTaskComments.eventId, ids)).orderBy(asc(eventTaskComments.createdAt))) records.push(commentRecord(comment));
+      for (const attachment of await tx.select().from(eventTaskAttachments).where(inArray(eventTaskAttachments.eventId, ids)).orderBy(asc(eventTaskAttachments.createdAt))) records.push(attachmentRecord(attachment));
       for (const link of await tx.select().from(eventLinks).where(inArray(eventLinks.eventId, ids))) {
         records.push({ module: MODULE, kind: "link", recordId: link.id, label: link.personName, fields: { name: link.personName, email: link.email }, eventId: link.eventId });
       }

@@ -84,7 +84,7 @@ describe("JRJ-02 — Contenu de l'écran du jour J (décision D5)", () => {
     const view = buildDayOfView({
       event: { clients: [client("Léa", "Martin", "07 00 00 00 01"), client("Hugo", null, null)] },
       program,
-      places: [{ id: "p", eventId: "e", label: "Domaine des Tilleuls", address: "12 route des Vignes", vendorId: null }],
+      places: [{ id: "p", eventId: "e", label: "Domaine des Tilleuls", address: "12 route des Vignes", city: null, startTime: null, endTime: null, contactName: null, contactPhone: null, contactEmail: null, vendorId: null }],
       slots,
       candidates,
       contacts,

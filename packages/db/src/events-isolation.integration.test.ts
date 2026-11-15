@@ -54,7 +54,7 @@ describe("PRD-EVT-01/02 — Isolation entre organisations (module events, Postgr
 
       attemptCrossOrganizationUpdate: async (organizationId, targetRow) => {
         const updated = await withOrganization(db, organizationId, (tx) =>
-          tx.update(events).set({ venueName: "falsifié" }).where(eq(events.id, targetRow.id)).returning(),
+          tx.update(events).set({ notes: "falsifié" }).where(eq(events.id, targetRow.id)).returning(),
         );
         return { affectedRows: updated.length };
       },

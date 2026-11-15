@@ -8,7 +8,7 @@ import { eq } from "drizzle-orm";
 import { afterAll, describe, expect, it } from "vitest";
 import { createOrganization, createUser } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
-import { eventClients, eventLinks, events, eventVendorCandidates, programItems } from "@symbola/db/schema/events";
+import { eventClients, eventLinks, eventPlaces, events, eventVendorCandidates, programItems } from "@symbola/db/schema/events";
 import { auditEntries } from "@symbola/db/schema/core";
 import { invoices, quotes, quoteSigners, quoteVersions, signatureRequests } from "@symbola/db/schema/quotes";
 import { withOrganization } from "@symbola/db/with-organization";
@@ -62,7 +62,8 @@ async function seedWedding(planner: Planner, firstName: string, lastName: string
   const slot = await addEventVendorSlot(planner.organizationId, eventId, "Traiteur");
   await updateBudgetLine({ organizationId: planner.organizationId, eventId, eventVendorSlotId: slot.id, field: "estimated", amountCents: 800000, changedByUserId: planner.userId });
   await withOrganization(db, planner.organizationId, async (tx) => {
-    await tx.update(events).set({ venueName: "Château des Lilas", venueCity: "Senlis" }).where(eq(events.id, eventId));
+    // Lot 34b (D10) : le lieu de réception est le premier lieu de la liste.
+    await tx.insert(eventPlaces).values({ organizationId: planner.organizationId, eventId, label: "Château des Lilas", city: "Senlis", position: 0 });
     // Lot 28b (D14) : le nom du prestataire est porté par le prestataire rattaché.
     await tx.insert(eventVendorCandidates).values({ organizationId: planner.organizationId, eventId, vendorSlotId: slot.id, vendorName: "Traiteur Dupont", status: "retained" });
     await tx.insert(programItems).values({ organizationId: planner.organizationId, eventId, label: "Cérémonie", startTime: "15:00", internalNote: `${firstName} ${lastName} arrive en retard` });
@@ -178,7 +179,9 @@ describe("RGPD-03 — Demande d'oubli", { timeout: 30_000 }, () => {
 
     // Statistiques justes : statut, source, montants ; date ramenée au mois, lieu effacé.
     const [after] = await withOrganization(db, planner.organizationId, (tx) => tx.select().from(events).where(eq(events.id, eventId)));
-    expect(after).toMatchObject({ status: before[0]!.status, prospectSourceId: planner.sourceId, eventDate: "2027-06-01", venueName: null, venueCity: null });
+    expect(after).toMatchObject({ status: before[0]!.status, prospectSourceId: planner.sourceId, eventDate: "2027-06-01" });
+    // Lot 34b (D10) : le lieu de réception, premier lieu de la liste, part avec les lieux.
+    expect(await withOrganization(db, planner.organizationId, (tx) => tx.select().from(eventPlaces).where(eq(eventPlaces.eventId, eventId)))).toEqual([]);
     expect((await listBudgetLines(planner.organizationId, eventId)).lines.map((line) => line.estimatedAmountCents)).toEqual([800000]);
     const [client] = await withOrganization(db, planner.organizationId, (tx) => tx.select().from(eventClients).where(eq(eventClients.eventId, eventId)));
     expect(client).toMatchObject({ firstName: "[anonymisé]", lastName: null });

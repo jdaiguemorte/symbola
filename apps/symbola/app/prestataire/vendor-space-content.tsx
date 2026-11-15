@@ -9,6 +9,7 @@ import { getOrganizationContact } from "@/modules/hub/service";
 import { isEventsModuleEnabled } from "@/app/events/module-access";
 import { closeLinkSessionAction } from "@/app/portail/actions";
 import { LinkPrivacyNotice } from "@/app/portail/link-privacy-notice";
+import { toggleVendorTaskAction } from "./actions";
 
 // Lot 26b (UX-11, POR-01 ; ADR 0053, décision D9) — espace minimal d'un
 // prestataire, ouvert par son lien personnel, sans compte : l'événement
@@ -23,6 +24,7 @@ export async function VendorSpaceContent({ access, preview = false, banner }: { 
   const t = await getTranslations("VendorSpace");
   const tLink = await getTranslations("LinkPortal");
   const tHelp = await getTranslations("Help");
+  const tEvents = await getTranslations("Events");
   const locale = (await getLocale()) as Locale;
 
   // Dégradation propre (CLAUDE.md § 2.2) : module désactivé = « indisponible ».
@@ -65,11 +67,38 @@ export async function VendorSpaceContent({ access, preview = false, banner }: { 
           {view.places.map((place) => (
             <li key={place.id}>
               <strong>{place.label}</strong>
-              {place.address ? ` — ${place.address}` : ""}
+              {place.address || place.city ? ` — ${[place.address, place.city].filter(Boolean).join(", ")}` : ""}
+              {place.startTime ? ` — ${place.endTime ? `${place.startTime} – ${place.endTime}` : place.startTime}` : ""}
             </li>
           ))}
         </ul>
       )}
+
+      {/* Lot 34b (CHR-02, D12) : les tâches qui lui sont confiées, qu'il coche. */}
+      <section aria-labelledby="vendor-tasks-title">
+        <h2 id="vendor-tasks-title">{t("tasksTitle")}</h2>
+        {view.tasks.length === 0 ? (
+          <p>{t("noTasks")}</p>
+        ) : (
+          <ul aria-label={t("tasksTitle")}>
+            {view.tasks.map((task) => (
+              <li key={task.id}>
+                <strong className={task.done ? "line-through" : undefined}>{task.label}</strong>
+                {" — "}
+                {formatCalendarDate(task.dueDate, locale)}
+                {task.done ? ` — ${tEvents("taskDone")}` : ""}
+                <form action={preview ? undefined : toggleVendorTaskAction}>
+                  <input type="hidden" name="taskId" value={task.id} />
+                  <input type="hidden" name="done" value={task.done ? "false" : "true"} />
+                  <button type="submit" disabled={preview}>
+                    {task.done ? tEvents("markTaskUndone", { label: task.label }) : tEvents("markTaskDone", { label: task.label })}
+                  </button>
+                </form>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
       <h2>{t("programTitle")}</h2>
       {view.programItems.length === 0 ? (

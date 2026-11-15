@@ -88,10 +88,14 @@ export const events = eventsSchema.table("events", {
   // Lot 34a (EVT-05, D4) : un report garde la date et le statut d'avant, jusqu'à sa confirmation.
   postponedFromDate: date("postponed_from_date"),
   postponedFromStatus: eventStatusEnum("postponed_from_status"),
-  // Lieu en texte libre : l'app Prestataires (fiches réutilisables) est
-  // V2, hors MVP (cahier des charges §5.5).
-  venueName: text("venue_name"),
-  venueCity: text("venue_city"),
+  // Lot 34b (EVT-03, D10) : le lieu de réception est le premier lieu de event_places (une seule
+  // liste) ; venue_name et venue_city ont été repris par la migration 0133.
+  // Lot 34b (EVT-03, D11) : invités estimés et confirmés (saisis à la main jusqu'au module
+  // Invités), style et notes en texte libre.
+  guestsEstimated: integer("guests_estimated"),
+  guestsConfirmed: integer("guests_confirmed"),
+  style: text("style"),
+  notes: text("notes"),
   // Lot 5 (IMP-04/IMP-05) : colonnes d'un fichier importé gardées en champ
   // libre (intitulé → texte), affichées en lecture seule sur la fiche.
   importedFields: jsonb("imported_fields").$type<Record<string, string> | null>(),
@@ -125,6 +129,8 @@ export const events = eventsSchema.table("events", {
 }, (table) => [
   index("events_organization_idx").on(table.organizationId),
   check("events_time_zone_check", sql`char_length(${table.timeZone}) between 1 and 64`),
+  check("events_guests_check", sql`(${table.guestsEstimated} is null or ${table.guestsEstimated} between 0 and 100000) and (${table.guestsConfirmed} is null or ${table.guestsConfirmed} between 0 and 100000)`),
+  check("events_identity_text_check", sql`(${table.style} is null or char_length(${table.style}) <= 2000) and (${table.notes} is null or char_length(${table.notes}) <= 10000)`),
 ]);
 
 // Prénoms/noms affichés dans la liste (PRD-EVT-01) ; position fixe l'ordre
@@ -273,7 +279,8 @@ export const eventVendorCandidateNotes = eventsSchema.table("event_vendor_candid
 
 // PRD-EVT-04 : responsable d'une tâche du rétroplanning (PRD). Une tâche des
 // « clients » apparaîtra dans l'espace des mariés (PRD-EVT-06).
-export const taskResponsibleEnum = eventsSchema.enum("task_responsible", ["planner", "clients"]);
+// Lot 34b (CHR-02, D12) : une tâche peut être confiée à un prestataire retenu sur l'événement.
+export const taskResponsibleEnum = eventsSchema.enum("task_responsible", ["planner", "clients", "vendor"]);
 
 // PRD-EVT-04 : modèles de rétroplanning de l'organisation (CLAUDE.md §2.5 :
 // jamais codés en dur ; un modèle de départ peut être chargé depuis
@@ -326,6 +333,9 @@ export const eventTasks = eventsSchema.table("event_tasks", {
   offsetDays: integer("offset_days"),
   fixedAt: timestamp("fixed_at", { withTimezone: true }),
   responsible: taskResponsibleEnum("responsible").notNull().default("planner"),
+  // Lot 34b (CHR-02, D12) : le prestataire retenu à qui la tâche est confiée (responsable
+  // « vendor ») ; nul si le prestataire est retiré de l'événement.
+  vendorCandidateId: uuid("vendor_candidate_id").references(() => eventVendorCandidates.id, { onDelete: "set null" }),
   doneAt: timestamp("done_at", { withTimezone: true }),
   position: integer("position").notNull().default(0),
   // Lot 5 (IMP-04/IMP-05) : colonnes d'un fichier importé gardées en champ
@@ -336,7 +346,10 @@ export const eventTasks = eventsSchema.table("event_tasks", {
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdBy: uuid("created_by"),
   updatedBy: uuid("updated_by"),
-}, (table) => [index("event_tasks_organization_idx").on(table.organizationId)]);
+}, (table) => [
+  index("event_tasks_organization_idx").on(table.organizationId),
+  index("event_tasks_vendor_candidate_idx").on(table.vendorCandidateId),
+]);
 
 // PRD-EVT-05 : programme du jour J d'un événement. Heures sans date (« HH:MM »),
 // le jour étant celui de l'événement ; une heure de fin antérieure au
@@ -630,6 +643,14 @@ export const eventPlaces = eventsSchema.table("event_places", {
     .references(() => events.id, { onDelete: "cascade" }),
   label: text("label").notNull(),
   address: text("address"),
+  // Lot 34b (EVT-03, D10) : le premier lieu (position la plus petite) est le lieu de réception ;
+  // chaque lieu porte sa ville, ses horaires (début et fin, facultatifs) et son contact.
+  city: text("city"),
+  startTime: time("start_time"),
+  endTime: time("end_time"),
+  contactName: text("contact_name"),
+  contactPhone: text("contact_phone"),
+  contactEmail: text("contact_email"),
   vendorId: uuid("vendor_id"),
   position: integer("position").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
@@ -637,7 +658,13 @@ export const eventPlaces = eventsSchema.table("event_places", {
   createdBy: uuid("created_by"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   updatedBy: uuid("updated_by"),
-}, (table) => [index("event_places_organization_idx").on(table.organizationId)]);
+}, (table) => [
+  index("event_places_organization_idx").on(table.organizationId),
+  check(
+    "event_places_details_check",
+    sql`(${table.city} is null or char_length(${table.city}) <= 200) and (${table.contactName} is null or char_length(${table.contactName}) <= 200) and (${table.contactPhone} is null or char_length(${table.contactPhone}) <= 40) and (${table.contactEmail} is null or char_length(${table.contactEmail}) <= 320)`,
+  ),
+]);
 
 // Lot 29b (JRJ-04, décision D8 ; ADR 0064) : documents propres à l'événement
 // (plan de table, plans d'accès, plan B), envoyés par la planner. Le fichier est
@@ -710,4 +737,55 @@ export const eventDayContacts = eventsSchema.table("event_day_contacts", {
   check("event_day_contacts_name_check", sql`char_length(${table.name}) between 1 and 120`),
   check("event_day_contacts_role_check", sql`${table.role} is null or char_length(${table.role}) between 1 and 120`),
   check("event_day_contacts_phone_check", sql`char_length(${table.phone}) between 3 and 40`),
+]);
+
+// Lot 34b (CHR-02, D13) : pièces jointes d'une tâche, réservées à l'équipe. Le fichier est
+// contrôlé à l'envoi comme les documents de l'événement (type par le contenu, taille, antivirus,
+// stockage privé) et servi par l'app après contrôle des droits (ADR 0027).
+export const eventTaskAttachments = eventsSchema.table("event_task_attachments", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  eventId: uuid("event_id")
+    .notNull()
+    .references(() => events.id, { onDelete: "cascade" }),
+  taskId: uuid("task_id")
+    .notNull()
+    .references(() => eventTasks.id, { onDelete: "cascade" }),
+  label: text("label").notNull(),
+  fileKey: text("file_key").notNull(),
+  mime: text("mime").notNull(),
+  sizeBytes: integer("size_bytes").notNull(),
+  uploadedByUserId: uuid("uploaded_by_user_id").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  createdBy: uuid("created_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedBy: uuid("updated_by"),
+}, (table) => [
+  index("event_task_attachments_organization_idx").on(table.organizationId),
+  index("event_task_attachments_task_idx").on(table.taskId),
+  check("event_task_attachments_label_check", sql`char_length(${table.label}) between 1 and 200`),
+  check("event_task_attachments_size_check", sql`${table.sizeBytes} > 0`),
+]);
+
+// Lot 34b (CHR-02, D13) : fil de commentaires d'une tâche (auteur, date, texte), lu et écrit par
+// l'équipe. L'auteur est un compte de l'organisation, sans clé étrangère entre schémas.
+export const eventTaskComments = eventsSchema.table("event_task_comments", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  eventId: uuid("event_id")
+    .notNull()
+    .references(() => events.id, { onDelete: "cascade" }),
+  taskId: uuid("task_id")
+    .notNull()
+    .references(() => eventTasks.id, { onDelete: "cascade" }),
+  authorUserId: uuid("author_user_id"),
+  body: text("body").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  createdBy: uuid("created_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedBy: uuid("updated_by"),
+}, (table) => [
+  index("event_task_comments_organization_idx").on(table.organizationId),
+  index("event_task_comments_task_idx").on(table.taskId),
+  check("event_task_comments_body_check", sql`char_length(${table.body}) between 1 and 2000`),
 ]);

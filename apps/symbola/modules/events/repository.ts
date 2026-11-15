@@ -7,6 +7,7 @@ import {
   eventActivities,
   eventClients,
   eventLinks,
+  eventPlaces,
   events,
   eventStatusHistory,
   eventTasks,
@@ -41,6 +42,8 @@ import { addDays, daysBetween, dueDateFor } from "./schedule";
 import { shiftedTimes } from "./program";
 
 export type EventRow = typeof events.$inferSelect;
+// Lot 34b (EVT-03, D10) : un événement et son lieu de réception, le premier lieu de la liste.
+export type EventRecord = EventRow & { venueName: string | null; venueCity: string | null };
 export type EventClientRow = typeof eventClients.$inferSelect;
 export type ProspectSourceRow = typeof prospectSources.$inferSelect;
 export type DefaultVendorSlotRow = typeof defaultVendorSlots.$inferSelect;
@@ -63,7 +66,7 @@ export async function findEvents(
     search?: string | undefined;
     prospectSourceId?: string | undefined;
   },
-): Promise<{ event: EventRow; clients: EventClientRow[] }[]> {
+): Promise<{ event: EventRecord; clients: EventClientRow[] }[]> {
   const db = appDatabase();
   return await withOrganization(db, organizationId, async (tx) => {
     let matchingIds: string[] | undefined;
@@ -75,8 +78,8 @@ export async function findEvents(
         .leftJoin(eventClients, eq(eventClients.eventId, events.id))
         .where(
           or(
-            ilike(events.venueName, term),
-            ilike(events.venueCity, term),
+            // Lot 34b (D10) : les lieux de l'événement, réception comprise.
+            sql`exists (select 1 from "events"."event_places" ep where ep.event_id = ${events.id} and (ep.label ilike ${term} or ep.city ilike ${term}))`,
             ilike(eventClients.firstName, term),
             ilike(eventClients.lastName, term),
           ),
@@ -115,27 +118,51 @@ export async function findEvents(
             .orderBy(asc(eventClients.position))
         : [];
 
-    return eventRows.map((event) => ({
+    return (await withVenues(tx, eventRows)).map((event) => ({
       event,
       clients: clientRows.filter((client) => client.eventId === event.id),
     }));
   });
 }
 
+// Lot 34b (EVT-03, D10) : le lieu de réception de chaque événement, son premier lieu (intitulé et
+// ville).
+async function withVenues(tx: Tx, rows: EventRow[]): Promise<EventRecord[]> {
+  if (rows.length === 0) return [];
+  const firsts = await tx
+    .selectDistinctOn([eventPlaces.eventId], { eventId: eventPlaces.eventId, label: eventPlaces.label, city: eventPlaces.city })
+    .from(eventPlaces)
+    .where(inArray(eventPlaces.eventId, rows.map((row) => row.id)))
+    .orderBy(eventPlaces.eventId, asc(eventPlaces.position), asc(eventPlaces.createdAt));
+  const byEvent = new Map(firsts.map((first) => [first.eventId, first]));
+  return rows.map((row) => ({ ...row, venueName: byEvent.get(row.id)?.label ?? null, venueCity: byEvent.get(row.id)?.city ?? null }));
+}
+
+// Le lieu de réception saisi à la création (ou à l'import) devient le premier lieu ; sans nom, la
+// ville sert d'intitulé.
+async function insertVenuePlace(tx: Tx, organizationId: string, eventId: string, venueName: string | null | undefined, venueCity: string | null | undefined): Promise<void> {
+  const name = venueName?.trim() || null;
+  const city = venueCity?.trim() || null;
+  if (!name && !city) return;
+  const [first] = await tx.select({ position: sql<number>`min(${eventPlaces.position})` }).from(eventPlaces).where(eq(eventPlaces.eventId, eventId));
+  await tx.insert(eventPlaces).values({ organizationId, eventId, label: (name ?? city)!, city: name ? city : null, position: first?.position === null || first?.position === undefined ? 0 : Number(first.position) - 1 });
+}
+
 export async function findEventById(
   organizationId: string,
   eventId: string,
-): Promise<{ event: EventRow; clients: EventClientRow[] } | null> {
+): Promise<{ event: EventRecord; clients: EventClientRow[] } | null> {
   const db = appDatabase();
   return await withOrganization(db, organizationId, async (tx) => {
-    const [event] = await tx.select().from(events).where(eq(events.id, eventId));
-    if (!event) return null;
+    const [row] = await tx.select().from(events).where(eq(events.id, eventId));
+    if (!row) return null;
+    const [event] = await withVenues(tx, [row]);
     const clients = await tx
       .select()
       .from(eventClients)
       .where(eq(eventClients.eventId, eventId))
       .orderBy(asc(eventClients.position));
-    return { event, clients };
+    return { event: event!, clients };
   });
 }
 
@@ -157,13 +184,12 @@ export async function insertProspect(input: {
         organizationId: input.organizationId,
         status: "option",
         eventDate: input.eventDate ?? null,
-        venueName: input.venueName ?? null,
-        venueCity: input.venueCity ?? null,
         prospectSourceId: input.prospectSourceId,
         eventTypeId: input.eventTypeId ?? null,
       })
       .returning();
     if (!event) throw new Error("création de l'événement échouée");
+    await insertVenuePlace(tx, input.organizationId, event.id, input.venueName, input.venueCity);
 
     for (const [index, client] of input.clients.entries()) {
       await tx.insert(eventClients).values({
@@ -881,22 +907,36 @@ export async function findOrganizationTasks(
   );
 }
 
+// Lot 34b (CHR-02, D12) : une tâche se confie à un prestataire engagé (ENGAGED_CANDIDATE_STATUSES)
+// sur le même événement ; la clé étrangère seule ne voit ni la RLS ni l'événement.
+
+async function isEngagedCandidate(tx: Tx, eventId: string, candidateId: string | null | undefined): Promise<boolean> {
+  if (!candidateId) return false;
+  const [candidate] = await tx
+    .select({ id: eventVendorCandidates.id })
+    .from(eventVendorCandidates)
+    .where(and(eq(eventVendorCandidates.id, candidateId), eq(eventVendorCandidates.eventId, eventId), inArray(eventVendorCandidates.status, [...ENGAGED_CANDIDATE_STATUSES])));
+  return Boolean(candidate);
+}
+
 export async function insertEventTask(
   organizationId: string,
   eventId: string,
-  task: { label: string; dueDate: string; responsible: TaskResponsible },
-): Promise<EventTaskRow | null> {
+  task: { label: string; dueDate: string; responsible: TaskResponsible; vendorCandidateId?: string | null | undefined },
+): Promise<EventTaskRow | null | "invalid_vendor"> {
   const db = appDatabase();
   return await withOrganization(db, organizationId, async (tx) => {
     // Clé étrangère vérifiée sans RLS : on contrôle que l'événement est visible.
     const [event] = await tx.select().from(events).where(eq(events.id, eventId));
     if (!event) return null;
+    const vendorCandidateId = task.responsible === "vendor" ? (task.vendorCandidateId ?? null) : null;
+    if (task.responsible === "vendor" && !(await isEngagedCandidate(tx, eventId, vendorCandidateId))) return "invalid_vendor";
     const position = await nextTaskPosition(tx, eventId);
     // Lot 34a (DAT-07, D5) : une tâche créée à la main sur un événement daté est relative.
     const offsetDays = event.eventDate ? daysBetween(event.eventDate, task.dueDate) : null;
     const [row] = await tx
       .insert(eventTasks)
-      .values({ organizationId, eventId, ...task, offsetDays, position })
+      .values({ organizationId, eventId, label: task.label, dueDate: task.dueDate, responsible: task.responsible, vendorCandidateId, offsetDays, position })
       .returning();
     if (!row) throw new Error("ajout de la tâche échoué");
     if (!event.tasksScheduledFor && event.eventDate) {
@@ -912,12 +952,17 @@ export async function updateEventTaskRow(input: {
   label?: string | undefined;
   dueDate?: string | undefined;
   responsible?: TaskResponsible | undefined;
+  vendorCandidateId?: string | null | undefined;
   done?: boolean | undefined;
-}): Promise<EventTaskRow | null> {
+}): Promise<EventTaskRow | null | "invalid_vendor"> {
   const db = appDatabase();
   return await withOrganization(db, input.organizationId, async (tx) => {
     const [current] = await tx.select().from(eventTasks).where(eq(eventTasks.id, input.taskId));
     if (!current) return null;
+    const responsible = input.responsible ?? current.responsible;
+    const vendorCandidateId = responsible === "vendor" ? (input.vendorCandidateId !== undefined ? input.vendorCandidateId : current.vendorCandidateId) : null;
+    const vendorChanged = responsible === "vendor" && (responsible !== current.responsible || vendorCandidateId !== current.vendorCandidateId);
+    if (vendorChanged && !(await isEngagedCandidate(tx, current.eventId, vendorCandidateId))) return "invalid_vendor";
     const doneAt = input.done === undefined ? current.doneAt : input.done ? (current.doneAt ?? new Date()) : null;
     // Lot 34a (DAT-07) : déplacée à la main, la tâche est fixée ; le report ne la bouge plus.
     const moved = input.dueDate !== undefined && input.dueDate !== current.dueDate;
@@ -926,7 +971,8 @@ export async function updateEventTaskRow(input: {
       .set({
         label: input.label ?? current.label,
         dueDate: input.dueDate ?? current.dueDate,
-        responsible: input.responsible ?? current.responsible,
+        responsible,
+        vendorCandidateId,
         doneAt,
         ...(moved ? { fixedAt: current.fixedAt ?? new Date() } : {}),
         updatedAt: new Date(),
@@ -1435,8 +1481,6 @@ export async function insertDemoEvent(organizationId: string, data: DemoEventDat
         status: data.status ?? "option",
         eventTypeId: weddingType?.id ?? null,
         eventDate: data.eventDate,
-        venueName: data.venueName,
-        venueCity: data.venueCity,
         tasksScheduledFor: data.eventDate,
         programUpdatedAt: now,
         isDemo: true,
@@ -1444,6 +1488,7 @@ export async function insertDemoEvent(organizationId: string, data: DemoEventDat
       })
       .returning();
     if (!event) throw new Error("création de l'événement d'essai échouée");
+    await insertVenuePlace(tx, organizationId, event.id, data.venueName, data.venueCity);
 
     await tx.insert(eventClients).values(
       data.clients.map((client, position) => ({ organizationId, eventId: event.id, ...client, position })),
@@ -1608,6 +1653,8 @@ export type VendorSearchRow = { id: string; eventId: string; label: string; vend
 // Sous-requêtes écrites avec un alias explicite : Drizzle n'y qualifie pas les
 // colonnes, et « id » désignerait alors la table des clients.
 const eventNamesSql = sql<string>`coalesce((select string_agg(ec.first_name, ' & ' order by ec.created_at) from "events"."event_clients" ec where ec.event_id = "events"."id"), '')`;
+// Lot 34b (D10) : le lieu de réception, premier lieu de la liste.
+const venueNameSql = sql<string | null>`(select ep.label from "events"."event_places" ep where ep.event_id = "events"."id" order by ep.position, ep.created_at limit 1)`;
 
 export async function searchEventRows(
   organizationId: string,
@@ -1619,10 +1666,10 @@ export async function searchEventRows(
   return await withOrganization(db, organizationId, async (tx) => {
     // Tout ce qui décrit un événement, en une chaîne : prénoms, noms, lieu, ville.
     const haystack = foldedColumn(
-      sql`concat_ws(' ', "events"."venue_name", "events"."venue_city", (select string_agg(concat_ws(' ', ec.first_name, ec.last_name), ' ') from "events"."event_clients" ec where ec.event_id = "events"."id"))`,
+      sql`concat_ws(' ', (select string_agg(concat_ws(' ', ep.label, ep.city), ' ') from "events"."event_places" ep where ep.event_id = "events"."id"), (select string_agg(concat_ws(' ', ec.first_name, ec.last_name), ' ') from "events"."event_clients" ec where ec.event_id = "events"."id"))`,
     );
     const eventRows = await tx
-      .select({ id: events.id, names: eventNamesSql, eventDate: events.eventDate, venueName: events.venueName, status: events.status })
+      .select({ id: events.id, names: eventNamesSql, eventDate: events.eventDate, venueName: venueNameSql, status: events.status })
       .from(events)
       .where(and(eq(events.isDemo, false), ...words.map((word) => sql`${haystack} like ${likeWord(word)}`)))
       .orderBy(sql`${events.eventDate} desc nulls last`)
@@ -1703,10 +1750,30 @@ export async function updateEventClientContactRow(
 
 // Lot 14 (décision K) — budget souhaité par les clients.
 // Lot 31b (FAC-04, DOC-02) : lieu de l'événement, repris par la variable {evenement.lieu} du
-// contrat (les lieux complets viennent au lot 34).
+// contrat. Lot 34b (D10) : c'est le premier lieu de la liste ; il est créé s'il manque, et un nom
+// et une ville vides le laissent tel quel (un lieu se retire par la liste).
 export async function updateVenueRow(organizationId: string, eventId: string, venue: { venueName: string | null; venueCity: string | null }): Promise<boolean> {
   return withOrganization(appDatabase(), organizationId, async (tx) => {
-    const rows = await tx.update(events).set({ ...venue, updatedAt: new Date() }).where(eq(events.id, eventId)).returning({ id: events.id });
+    const [event] = await tx.select({ id: events.id }).from(events).where(eq(events.id, eventId));
+    if (!event) return false;
+    const [first] = await tx.select().from(eventPlaces).where(eq(eventPlaces.eventId, eventId)).orderBy(asc(eventPlaces.position), asc(eventPlaces.createdAt)).limit(1);
+    if (!first) {
+      await insertVenuePlace(tx, organizationId, eventId, venue.venueName, venue.venueCity);
+    } else if (venue.venueName || venue.venueCity) {
+      await tx
+        .update(eventPlaces)
+        .set({ label: venue.venueName ?? first.label, city: venue.venueCity, updatedAt: new Date() })
+        .where(eq(eventPlaces.id, first.id));
+    }
+    await tx.update(events).set({ updatedAt: new Date() }).where(eq(events.id, eventId));
+    return true;
+  });
+}
+
+// Lot 34b (EVT-03, D11) — invités estimés et confirmés, style et notes.
+export async function updateEventIdentityRow(organizationId: string, eventId: string, identity: { guestsEstimated: number | null; guestsConfirmed: number | null; style: string | null; notes: string | null }): Promise<boolean> {
+  return withOrganization(appDatabase(), organizationId, async (tx) => {
+    const rows = await tx.update(events).set({ ...identity, updatedAt: new Date() }).where(eq(events.id, eventId)).returning({ id: events.id });
     return rows.length > 0;
   });
 }

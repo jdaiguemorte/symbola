@@ -1518,6 +1518,10 @@
   .timeline-actions {
     @apply flex flex-wrap gap-3 self-end;
   }
+  /* Lot 34b (EVT-03, CHR-02) : notes de la fiche et commentaires de tâche gardent leurs retours à la ligne. */
+  .task-comment-body {
+    @apply m-0 whitespace-pre-line;
+  }
   .timeline-step {
     @apply relative flex flex-col items-center gap-1 px-1 text-center;
   }
