@@ -615,6 +615,9 @@ export const quoteSigners = quotesSchema.table("quote_signers", {
     .references(() => signatureRequests.id),
   // Marié de l'événement (uuid opaque du module events, ADR 0011), facultatif.
   eventClientId: uuid("event_client_id"),
+  // Lot 36a (CRM-03, D5, ADR 0069) : le contact du hub (uuid opaque) ; nom, e-mail et adresse de
+  // facturation restent une copie figée (preuve de signature, DAT-04).
+  contactId: uuid("contact_id"),
   name: text("name").notNull(),
   email: text("email").notNull(),
   billingAddress: text("billing_address").notNull(),
@@ -630,7 +633,7 @@ export const quoteSigners = quotesSchema.table("quote_signers", {
   createdBy: uuid("created_by"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   updatedBy: uuid("updated_by"),
-}, (table) => [index("quote_signers_organization_idx").on(table.organizationId)]);
+}, (table) => [index("quote_signers_organization_idx").on(table.organizationId), index("quote_signers_contact_idx").on(table.contactId)]);
 
 // Lot 31b (JUR-07 ; réponse 1 de l'avocat, D13) — actes d'un signataire sur son portail, avant
 // de signer : la commande avec obligation de paiement (contrat à distance) et la demande

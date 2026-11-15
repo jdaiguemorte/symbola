@@ -623,6 +623,74 @@ export const privacyExports = hubSchema.table("privacy_exports", {
   updatedBy: uuid("updated_by"),
 }, (table) => [index("privacy_exports_organization_idx").on(table.organizationId)]);
 
+// Lot 36a (CRM-03, DAT-12, ARC-03 ; décisions D2 à D4 ; ADR 0069) — le contact unique, dans le
+// noyau du hub : une personne, un foyer ou une entreprise, qui n'existe qu'une fois dans
+// l'organisation, quel que soit le nombre d'apps. Les modules ne gardent que son identifiant
+// (clients d'un évènement, liens personnels, signataires), sans clé étrangère entre schémas.
+// Une adresse e-mail n'appartient qu'à un contact (DAT-12) ; elle est rangée en minuscules.
+// Données métier d'une organisation : RLS forcée.
+export const CONTACT_KINDS = ["person", "household", "company"] as const;
+export type ContactKind = (typeof CONTACT_KINDS)[number];
+
+export const contacts = hubSchema.table(
+  "contacts",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    kind: text("kind", { enum: CONTACT_KINDS }).notNull().default("person"),
+    // Personne : prénom et nom ; foyer ou entreprise : un nom.
+    firstName: text("first_name"),
+    lastName: text("last_name"),
+    name: text("name"),
+    email: text("email"),
+    phone: text("phone"),
+    addressLine: text("address_line"),
+    postalCode: text("postal_code"),
+    city: text("city"),
+    country: text("country"),
+    // D8 : l'adresse de facturation, reprise à l'envoi en signature.
+    billingAddress: text("billing_address"),
+    // AIDE-02, ADR 0008 : contact d'un essai guidé, purgé avec lui.
+    isDemo: boolean("is_demo").notNull().default(false),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("contacts_organization_idx").on(table.organizationId),
+    uniqueIndex("contacts_email_idx").on(table.organizationId, table.email).where(sql`email is not null`),
+    check("contacts_kind_check", sql`${table.kind} in ('person', 'household', 'company')`),
+    check("contacts_name_check", sql`case when ${table.kind} = 'person' then ${table.firstName} is not null else ${table.name} is not null end`),
+    check("contacts_email_check", sql`${table.email} is null or (${table.email} = lower(btrim(${table.email})) and ${table.email} <> '')`),
+  ],
+);
+
+// Lot 36a (CRM-03, « notes ») : notes datées de la fiche d'un contact, avec leur auteur ; seul
+// l'auteur retire la sienne.
+export const contactNotes = hubSchema.table(
+  "contact_notes",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    contactId: uuid("contact_id")
+      .notNull()
+      .references(() => contacts.id, { onDelete: "cascade" }),
+    authorUserId: uuid("author_user_id"),
+    body: text("body").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("contact_notes_organization_idx").on(table.organizationId),
+    index("contact_notes_contact_idx").on(table.contactId),
+    check("contact_notes_body_check", sql`char_length(${table.body}) between 1 and 2000`),
+  ],
+);
+
 // Lot 35a (HUB-13, DAT-13, ADR 0068) — exports complets de l'organisation (contrat export/v1) :
 // demandés par la Propriétaire (décision D5), préparés en arrière-plan (lib/export, décision D4),
 // gardés le temps réglé par l'Admin, puis effacés du stockage ; la ligne reste comme trace, sans

@@ -141,21 +141,17 @@ export const eventClients = eventsSchema.table("event_clients", {
   eventId: uuid("event_id")
     .notNull()
     .references(() => events.id),
-  firstName: text("first_name").notNull(),
-  lastName: text("last_name"),
-  // Lot 14 (décision I) : coordonnées du client (registre RGPD).
-  email: text("email"),
-  phone: text("phone"),
-  addressLine: text("address_line"),
-  postalCode: text("postal_code"),
-  city: text("city"),
+  // Lot 36a (CRM-03, D4, ADR 0069) : le client est un contact du hub, qui porte son nom et ses
+  // coordonnées ; ici, seulement le lien. Vide quand le RGPD a retiré la personne de l'évènement
+  // (oubli ou purge) : la ligne reste, pour que les statistiques restent justes.
+  contactId: uuid("contact_id"),
   position: integer("position").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdBy: uuid("created_by"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   updatedBy: uuid("updated_by"),
-}, (table) => [index("event_clients_organization_idx").on(table.organizationId)]);
+}, (table) => [index("event_clients_organization_idx").on(table.organizationId), index("event_clients_contact_idx").on(table.contactId)]);
 
 // PRD-EVT-02 : « chaque changement [de statut] est historisé (date, auteur) ».
 export const eventStatusHistory = eventsSchema.table("event_status_history", {
@@ -452,6 +448,9 @@ export const eventLinks = eventsSchema.table("event_links", {
   // Le client de l'événement que la personne représente (facultatif : un
   // parent payeur n'en est pas un).
   eventClientId: uuid("event_client_id").references(() => eventClients.id, { onDelete: "set null" }),
+  // Lot 36a (CRM-03, SEC-14, D5) : le contact du hub à qui le lien est envoyé ; le nom et l'adresse
+  // d'envoi restent une copie (à qui il a été envoyé).
+  contactId: uuid("contact_id"),
   // Rubriques du portail ouvertes à la personne (POR-10 : rien par défaut).
   rubrics: text("rubrics").array().notNull().default(sql`'{}'::text[]`),
   // Budget entier, ou seulement les catégories de event_link_shared_slots.
@@ -480,6 +479,7 @@ export const eventLinks = eventsSchema.table("event_links", {
   index("event_links_organization_idx").on(table.organizationId),
   index("event_links_event_idx").on(table.eventId),
   index("event_links_vendor_candidate_idx").on(table.vendorCandidateId),
+  index("event_links_contact_idx").on(table.contactId),
   check("event_links_rubrics_check", sql`${table.rubrics} <@ array['tasks', 'program', 'vendor_options', 'budget', 'quotes']::text[]`),
   check("event_links_budget_scope_check", sql`${table.budgetScope} in ('all', 'selected')`),
   check("event_links_vendor_candidate_check", sql`${table.audience} <> 'vendor' or ${table.vendorCandidateId} is not null`),
