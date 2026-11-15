@@ -724,6 +724,36 @@ D22) : en particulier, plus de « facture d'arrhes ».
 
 ---
 
+### Q37 — Lot 35 : questions aux conseils, et la rétention des sauvegardes (15 novembre 2026)
+
+Suite de la spécification du lot 35 (`docs/lots/lot-35-export.md`), validée le 15/11 (D1 à D9
+en a). Le 35a (export complet) est fusionné (PR #117).
+
+**Questions préparées** (brouillons à relire avant envoi) :
+
+- **D7, reprise des factures, avoirs et numérotation** : question 11 de
+  `docs/conformite/fiche-expert-comptable.md`. Elle bloque la reprise des pièces au lot 35b.
+- **D8, ce que Symbola garde après la suppression** : question 12 de
+  `docs/conformite/fiche-avocat.md` (avec la conservation des contrats signés, réponse 3) et
+  question 12 de `docs/conformite/fiche-dpo.md` (avec la trace des suppressions). Elles bloquent
+  le lot 35c.
+
+**D9 rejoint Q35 (erratum de la spécification)** :
+
+- **Ce que dit la spécification** : D9 recommandait de garder la rétention de NFR-13 (12 copies
+  mensuelles) et d'en faire confirmer la durée par la DPO.
+- **Ce qui avait échappé** : la DPO a déjà répondu le 13/11 (fiche, réponse 2 ; Q35). Elle demande
+  une rotation de 35 jours au plus, et le rejeu des effacements après toute restauration.
+- **Conséquence** : D9 (a) contredit cette réponse, et la réponse contredit NFR-13. Le choix reste
+  celui de Q35, à prendre par toi (il touche le VPS) :
+  - (a) ramener la rétention à 35 jours, avec un ADR qui assume l'écart avec NFR-13 ;
+  - (b) garder 12 mois en le justifiant dans l'analyse d'impact.
+
+  La recommandation de Q35 reste (a), avant la première donnée réelle.
+- **Pour le lot 35** : le rejeu de l'effacement après une restauration est déjà prévu au 35c
+  (trace des suppressions) ; seul le délai écrit dans la fiche de conformité et dans l'accord de
+  sous-traitance dépend de ce choix.
+
 ## Remarques sur le nouveau document lui-même
 
 - Les tableaux PRE, INV, POR, DOC, MSG, JRJ, RPT et TPS sont placés en annexe (§ 20), alors que

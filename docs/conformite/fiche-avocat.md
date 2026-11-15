@@ -175,3 +175,37 @@ seulement ce que Symbola en retient. La traduction dans le produit est dans
 | 9 | Pas d'obligation directe probable aujourd'hui ; garder WCAG 2.2 AA et publier une déclaration d'accessibilité volontaire pour les écrans du couple ; consigner l'analyse d'exemption. | Lot 40 (JUR-17) |
 | 10 | Documenso non modifié, appelé par son API ; obtenir de l'éditeur une confirmation écrite de l'usage, ou prévoir l'édition Business. Fournisseur d'identité sous licence Apache ou MIT (Keycloak, Ory). Inventaire des licences dès maintenant. | Lot 33 (ADR 0052), lot 40 (JUR-18), Q34 |
 | 11 | Recherche d'antériorités par un conseil en propriété industrielle, puis dépôt (classes 9, 42, 35), puis communication. | Action de Julien (Q34) |
+
+## Question du 15 novembre 2026 (lot 35)
+
+### 12. Fin de l'abonnement : ce que Symbola garde après la suppression
+
+À la résiliation, la Propriétaire fermera son espace :
+
+- pendant 30 jours, elle peut encore tout exporter, et un e-mail la prévient avant la fin ;
+- ensuite, Symbola supprime l'espace et ses fichiers.
+
+Le cahier des charges ajoute « hors obligations légales ».
+
+- **Ce que Symbola doit garder.** Symbola, sous-traitant, doit-il tout effacer au 30e jour, la
+  planner gardant son export pour remplir ses propres obligations ? Ou doit-il garder certaines
+  pièces : factures, avoirs, chaîne d'empreintes, contrats signés et dossiers de preuve ?
+- **Les contrats signés.** Vous avez indiqué (réponse 3) qu'un contrat électronique de 120 € et
+  plus se conserve dix ans, avec son dossier de preuve. Cette obligation est-elle celle de la
+  planner seule, que son export lui permet de remplir ? Ou Symbola doit-il en garder une copie
+  après la fermeture ?
+- **Les conditions de garde.** Si Symbola garde des pièces : sur quel fondement, combien de temps,
+  sous quelle forme (accès restreint, sous scellé), et à qui les remettre sur demande ?
+- **Les conditions de l'éditeur.** Que doit dire la clause de réversibilité (réponse 8, Data
+  Act) : délai de 30 jours, préavis, format de l'export, sort des données ?
+
+> **Symbola** : deux possibilités.
+>
+> - **(a)** Symbola efface tout au 30e jour ; l'export reste proposé jusqu'au dernier jour.
+> - **(b)** Symbola garde les pièces comptables et les preuves de signature jusqu'à la fin de
+>   leur durée légale, sous accès restreint, puis les efface.
+>
+> Nous proposons (a), sous réserve de votre avis. La fermeture d'un espace ne sera développée
+> qu'après votre réponse.
+
+Besoin : une réponse **avant de développer la fermeture d'un espace** (lot 35c).
