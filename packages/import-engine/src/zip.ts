@@ -38,6 +38,11 @@ export class ZipArchive {
     return this.entries.has(name);
   }
 
+  // Lot 35a (HUB-13) : noms des entrées, dans l'ordre du répertoire central.
+  names(): string[] {
+    return [...this.entries.keys()];
+  }
+
   // Contenu décompressé d'une entrée, ou null si elle n'existe pas.
   read(name: string): Uint8Array | null {
     const entry = this.entries.get(name);

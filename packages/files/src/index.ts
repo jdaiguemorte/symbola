@@ -5,10 +5,12 @@ export {
   createStorageClient,
   deletePrivateObject,
   getPrivateObject,
+  openPrivateObjectStream,
   PrivateObjectNotFoundError,
   readPrivateObject,
   type PrivateObject,
   getSignedDownloadUrl,
+  uploadPrivateFile,
   uploadPrivateObject,
 } from "./storage";
 export { uploadFile, type UploadFileInput, type UploadFileResult } from "./upload-service";

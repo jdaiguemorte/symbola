@@ -72,6 +72,9 @@ export function activityDetail(entry: Pick<ActivityEntry, "action" | "details" |
       return t("records", { count: number(details, "records") ?? 0 });
     case "hub.privacy_export.downloaded":
       return text(details, "file") === "archive" ? t("fileArchive") : t("filePdf");
+    // Lot 35a (HUB-13) : export complet prêt (lignes et fichiers mis dans l'archive).
+    case "hub.organization_export.ready":
+      return t("organizationExportReady", { rows: number(details, "rows") ?? 0, files: number(details, "files") ?? 0 });
     case "hub.privacy_erasure.executed":
     case "hub.privacy_purge.executed":
       return STATUSES[text(details, "status") ?? ""] ? t(STATUSES[text(details, "status")!]!) : null;

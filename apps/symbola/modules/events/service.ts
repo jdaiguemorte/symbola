@@ -2584,3 +2584,6 @@ void _contractCheck;
 
 // Lot 6 (RGPD-05) — données nécessaires aux règles de conservation.
 export { listRetentionEvents, type RetentionEvent } from "./privacy-retention";
+
+// Lot 35a (HUB-13, DAT-13, ADR 0068) : entités du module dans l'export complet de l'organisation.
+export { describeEventsExport, EVENTS_EXPORT_EXCLUSIONS, exportEventsData, listDemoEventIds } from "./export";

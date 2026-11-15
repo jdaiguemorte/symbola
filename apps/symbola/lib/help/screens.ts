@@ -93,6 +93,8 @@ export const HELP_SCREENS: HelpScreen[] = [
   { key: "privacySettings", group: "data", audience: "team", ownerOnly: true, path: "/rgpd/reglages", capture: true },
   // Lot 23 (HUB-16) : journal d'activité de l'organisation, titulaire seulement.
   { key: "activityLog", group: "data", audience: "team", ownerOnly: true, path: "/parametres/journal", capture: true },
+  // Lot 35a (HUB-13, D5) : export complet des données, titulaire seulement.
+  { key: "organizationExport", group: "data", audience: "team", ownerOnly: true, path: "/parametres/export", capture: true },
   // Lot 23b (JUR-06) : archive comptable, titulaire seulement.
   { key: "ledgerArchive", group: "quotes", audience: "team", module: "quotes", ownerOnly: true, path: "/devis/parametres/archive", capture: true },
   // Administration de la suite (aucune capture : elle montrerait des organisations)

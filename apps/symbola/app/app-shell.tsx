@@ -400,6 +400,11 @@ export async function AppShell({ children }: { children: ReactNode }) {
                     href: "/parametres/journal",
                     label: tSettings("activityLog"),
                   },
+                  // Lot 35a (HUB-13, décision D5) : export complet des données, Propriétaire seulement.
+                  {
+                    href: "/parametres/export",
+                    label: tSettings("export"),
+                  },
                 ]
               : []),
           ],

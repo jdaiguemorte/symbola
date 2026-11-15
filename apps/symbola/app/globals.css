@@ -1073,6 +1073,16 @@
   .stack {
     @apply flex flex-col gap-2;
   }
+  /* Lot 35a (HUB-13) : derniers exports complets de l'organisation. */
+  .export-list {
+    @apply m-0 flex list-none flex-col gap-3 p-0;
+  }
+  .export-list > li {
+    @apply rounded-md border border-ground p-3;
+  }
+  .export-list p {
+    @apply my-1;
+  }
   label.checkbox {
     @apply flex flex-row items-center gap-2;
   }

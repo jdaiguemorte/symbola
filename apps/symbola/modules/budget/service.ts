@@ -1177,3 +1177,6 @@ const _contractCheck: BudgetServiceContract = {
   listUpcomingVendorPayments,
 };
 void _contractCheck;
+
+// Lot 35a (HUB-13, DAT-13, ADR 0068) : entités du module dans l'export complet de l'organisation.
+export { BUDGET_EXPORT_EXCLUSIONS, describeBudgetExport, exportBudgetData } from "./export";

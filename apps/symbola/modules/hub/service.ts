@@ -822,6 +822,8 @@ export type PlatformSettings = {
   connectionTraceRetentionMonths: number;
   // Lot 24b (SEC-22, décision D5) : plafond d'e-mails par organisation et par heure.
   mailHourlyCap: number;
+  // Lot 35a (HUB-13, D4) : durée de téléchargement de l'archive d'un export complet.
+  organizationExportRetentionDays: number;
 };
 
 // ONB-02 — « Le seuil de chiffre d'affaires de la franchise est un
@@ -847,6 +849,7 @@ export async function getPlatformSettings(db: AppDatabase): Promise<PlatformSett
     privacyExportRetentionDays: row.privacyExportRetentionDays,
     connectionTraceRetentionMonths: row.connectionTraceRetentionMonths,
     mailHourlyCap: row.mailHourlyCap,
+    organizationExportRetentionDays: row.organizationExportRetentionDays,
   };
 }
 
@@ -885,7 +888,7 @@ export async function setRequiredMentionRules(db: AppDatabase, input: { adminUse
 export async function setPlatformSettings(
   db: AppDatabase,
   input: { adminUserId: string } & Pick<PlatformSettings, "franchiseThresholdServicesCents" | "franchiseThresholdGoodsCents"> &
-    Partial<Pick<PlatformSettings, "importMaxBytes" | "importMaxRows" | "importDraftRetentionDays" | "importUndoRetentionDays" | "importMaxSheets" | "privacyExportRetentionDays" | "mailHourlyCap">>,
+    Partial<Pick<PlatformSettings, "importMaxBytes" | "importMaxRows" | "importDraftRetentionDays" | "importUndoRetentionDays" | "importMaxSheets" | "privacyExportRetentionDays" | "mailHourlyCap" | "organizationExportRetentionDays">>,
 ): Promise<void> {
   await upsertPlatformSettings(db, {
     franchiseThresholdServicesCents: input.franchiseThresholdServicesCents,
@@ -897,6 +900,7 @@ export async function setPlatformSettings(
     ...(input.importMaxSheets !== undefined ? { importMaxSheets: input.importMaxSheets } : {}),
     ...(input.privacyExportRetentionDays !== undefined ? { privacyExportRetentionDays: input.privacyExportRetentionDays } : {}),
     ...(input.mailHourlyCap !== undefined ? { mailHourlyCap: input.mailHourlyCap } : {}),
+    ...(input.organizationExportRetentionDays !== undefined ? { organizationExportRetentionDays: input.organizationExportRetentionDays } : {}),
   });
   await recordAudit(db, {
     organizationId: null,
@@ -996,3 +1000,29 @@ export {
   type ActivityFilters,
   type ActivityLog,
 } from "./activity-log";
+
+// Lot 35a (HUB-13, DAT-13, ADR 0068) : entités du module dans l'export complet de l'organisation.
+export { describeHubExport, exportHubData, HUB_EXPORT_EXCLUSIONS } from "./export";
+// Lot 35a (HUB-13, D4, D5, ADR 0068) : exports complets de l'organisation (demande, préparation en
+// arrière-plan, téléchargement, purge).
+export {
+  claimOrganizationExport,
+  completeOrganizationExport,
+  failOrganizationExport,
+  getOrganizationExportRetentionDays,
+  listOrganizationExports,
+  openOrganizationExportArchive,
+  ORGANIZATION_EXPORT_STALE_MS,
+  OrganizationExportForbiddenError,
+  OrganizationExportNotFoundError,
+  organizationExportReadyMail,
+  purgeExpiredOrganizationExports,
+  recordOrganizationExportProgress,
+  requestOrganizationExport,
+  takeAwakenedExportOrganizations,
+  wakeOrganizationExports,
+  type ClaimedOrganizationExport,
+  type OrganizationExportArchive,
+  type OrganizationExportView,
+  type RequestOrganizationExportResult,
+} from "./organization-exports";

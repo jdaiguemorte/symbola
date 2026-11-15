@@ -312,6 +312,7 @@
     "invalidImportLimits": "Les limites de l'import et la durée des exports doivent être des nombres entiers positifs (20 Mo au plus).",
     "privacyLegend": "Données personnelles (RGPD)",
     "privacyExportRetentionDays": "Durée pendant laquelle un export RGPD reste téléchargeable (jours)",
+    "organizationExportRetentionDays": "Durée pendant laquelle l'export complet d'une organisation reste téléchargeable (jours)",
     "importMaxSheets": "Fiches événement PDF déposées à la fois",
     "mailLegend": "Envois d'e-mails",
     "mailHourlyCap": "Plafond d'e-mails par organisation et par heure (signataires, mariés invités)",
@@ -1061,6 +1062,20 @@
     "signup": {
       "title": "Créer votre espace",
       "body": "Votre adresse e-mail suffit : le lien reçu crée votre compte et votre organisation, puis ouvre le démarrage. Aucun mot de passe à choisir ; vous pourrez en ajouter un, ou une clé d'accès, plus tard."
+    },
+    "organizationExport": {
+      "title": "Exporter mes données",
+      "body": "Téléchargez toutes les données de votre entreprise, gratuitement et à tout moment : une archive ZIP avec vos données en JSON et en CSV, le schéma de chaque table et vos documents. L'export se prépare en arrière-plan ; un e-mail vous prévient quand il est prêt. Seuls les secrets (jetons des liens, sessions), les identifiants de connexion, les données d'essai et celles de l'exploitation de Symbola ne sont pas exportés. Réservé à la Propriétaire du compte.",
+      "faq": [
+        {
+          "q": "Combien de temps l'archive reste-t-elle disponible ?",
+          "a": "Le temps indiqué sur l'écran, puis elle est effacée. Vous pouvez préparer un nouvel export quand vous voulez."
+        },
+        {
+          "q": "Puis-je ouvrir l'archive dans un tableur ?",
+          "a": "Oui : chaque table a son fichier CSV (séparateur point-virgule, UTF-8). Les fichiers JSON sont la référence : ils gardent les liens entre les tables."
+        }
+      ]
     }
   },
   "Aide": {
@@ -4456,7 +4471,8 @@
     "accountingArchive": "Archive comptable",
     "team": "Équipe",
     "quoteTemplates": "Modèles de devis",
-    "contractTemplates": "Modèles de contrat"
+    "contractTemplates": "Modèles de contrat",
+    "export": "Exporter mes données"
   },
   "Common": {
     "closePanel": "Fermer le panneau",
@@ -4706,7 +4722,10 @@
       "events_decision_withdrawn": "Demande de décision retirée",
       "quotes_contract_generated": "Contrat généré",
       "quotes_contract_ordered": "Commande du client (contrat à distance)",
-      "quotes_contract_early_execution_requested": "Exécution anticipée demandée par le client"
+      "quotes_contract_early_execution_requested": "Exécution anticipée demandée par le client",
+      "hub_organization_export_requested": "Export complet demandé",
+      "hub_organization_export_ready": "Export complet préparé",
+      "hub_organization_export_downloaded": "Export complet téléchargé"
     },
     "categories": {
       "connexion": "Connexions",
@@ -4805,7 +4824,8 @@
       "quotes_contract_evidence": "Dossier de preuve d'un contrat",
       "quotes_scheduled_deposit_invoices": "Facture d'acompte à émettre",
       "quotes_earnest_receipts": "Reçus d'arrhes",
-      "hub_memberships": "adhésion"
+      "hub_memberships": "adhésion",
+      "hub_organization_exports": "export complet"
     },
     "modules": {
       "events": "Événements",
@@ -4815,7 +4835,8 @@
     },
     "budgetExport": "{count, plural, =0 {aucune ligne} =1 {# ligne} other {# lignes}} ({format})",
     "actorLink": "Lien personnel",
-    "actorLinkNamed": "{name} (lien personnel)"
+    "actorLinkNamed": "{name} (lien personnel)",
+    "organizationExportReady": "{rows, plural, one {# ligne} other {# lignes}}, {files, plural, one {# fichier} other {# fichiers}}"
   },
   "LedgerArchive": {
     "title": "Archive comptable",
@@ -5591,5 +5612,45 @@
     "chooseEventError": "Choisissez un évènement.",
     "amountInvalid": "Montant illisible : écrivez par exemple 1 250,50.",
     "unavailable": "La création rapide n'est pas disponible : le module Évènements n'est pas activé."
+  },
+  "OrganizationExport": {
+    "title": "Exporter mes données",
+    "subtitle": "Toutes les données de votre entreprise, gratuitement et à tout moment.",
+    "ownerOnly": "Cet écran est réservé à la Propriétaire du compte.",
+    "intro": "L'export rassemble tout ce que votre entreprise a saisi ou reçu dans Symbola : événements, clients, tâches, programmes, prestataires, budgets, devis, contrats, factures, encaissements, réglages, registre RGPD et journal d'activité, avec vos documents.",
+    "formatTitle": "Le format",
+    "format": "Une archive ZIP : vos données en JSON (la référence) et en CSV (pour un tableur), le schéma de chaque table, vos fichiers, et un fichier LISEZMOI qui décrit le tout. Le format est documenté et stable.",
+    "excludedTitle": "Ce qui n'est pas exporté",
+    "excludedSecrets": "Les secrets : jetons des liens personnels, sessions, invitations en attente. Un lien se recrée, une invitation se renvoie.",
+    "excludedIdentity": "Les identifiants de connexion de l'équipe. L'équipe est listée, avec l'adresse et le rôle de chacun.",
+    "excludedDemo": "Les données d'essai et d'exemple.",
+    "excludedOperations": "Les données d'exploitation de Symbola : sauvegardes, adresses IP des connexions, historique technique des imports.",
+    "requestTitle": "Préparer un export",
+    "requestHint": "L'export se prépare en arrière-plan : vous pouvez quitter cette page. Nous vous prévenons par e-mail dès qu'il est prêt ; il reste téléchargeable {days, plural, one {# jour} other {# jours}}.",
+    "request": "Préparer l'export",
+    "requested": "Export demandé. Nous vous prévenons par e-mail dès qu'il est prêt.",
+    "alreadyActive": "Un export est déjà en préparation.",
+    "forbidden": "Seule la Propriétaire du compte peut exporter les données.",
+    "historyTitle": "Vos derniers exports",
+    "none": "Aucun export pour l'instant.",
+    "requestedAt": "Demandé le {date}",
+    "statusPending": "En attente",
+    "statusRunning": "En préparation",
+    "statusReady": "Prêt",
+    "statusFailed": "Échec",
+    "statusExpired": "Expiré",
+    "progressLabel": "Préparation de l'export",
+    "progressText": "{done} fichiers sur {total}",
+    "progressData": "Rassemblement des données…",
+    "finished": "Votre export est prêt.",
+    "stopped": "La préparation de l'export s'est arrêtée.",
+    "readySummary": "{rows, plural, one {# ligne} other {# lignes}}, {files, plural, one {# fichier} other {# fichiers}}, {size}",
+    "availableUntil": "Téléchargeable jusqu'au {date}",
+    "expiredOn": "Archive effacée ; préparez un nouvel export.",
+    "download": "Télécharger l'archive",
+    "downloadLabel": "Télécharger l'archive de l'export du {date}",
+    "missingFiles": "{count, plural, one {# fichier introuvable} other {# fichiers introuvables}} dans le stockage : la liste est dans le manifeste de l'archive.",
+    "errorTooLarge": "L'archive dépasse la taille permise (4 Go). Écrivez-nous : nous la préparerons avec vous.",
+    "errorFailed": "La préparation a échoué. Relancez l'export ; si l'échec revient, écrivez-nous."
   }
 }

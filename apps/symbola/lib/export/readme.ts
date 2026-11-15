@@ -1,0 +1,63 @@
+// Lot 35a (HUB-13, DAT-13, ADR 0068) — fichier LISEZMOI.txt de l'archive de l'export complet, en
+// français puis en anglais : ce qu'elle contient, ce qui en est exclu et pourquoi, le format, et
+// comment la reprendre. Texte d'un document rangé dans l'archive (pas un écran de l'app) : les
+// deux langues y figurent ensemble, quelle que soit celle de l'organisation.
+import { ORGANIZATION_EXPORT_FORMAT } from "@symbola/contracts";
+
+export function exportReadme(input: { organizationName: string; generatedAt: Date; entityCount: number; rowCount: number; fileCount: number; missingFiles: number }): string {
+  const at = input.generatedAt.toISOString();
+  return [
+    `SYMBOLA — EXPORT COMPLET DES DONNÉES (${ORGANIZATION_EXPORT_FORMAT})`,
+    "",
+    `Organisation : ${input.organizationName}`,
+    `Préparé le : ${at} (UTC)`,
+    `Contenu : ${input.entityCount} entités, ${input.rowCount} lignes, ${input.fileCount} fichiers.`,
+    ...(input.missingFiles > 0 ? [`Attention : ${input.missingFiles} fichier(s) référencé(s) introuvable(s) dans le stockage, listés dans manifest.json (missingFiles).`] : []),
+    "",
+    "Ce que contient l'archive",
+    "- manifest.json : format, date, organisation, liste des entités (nombre de lignes, fichiers JSON, CSV et schéma), fichiers et empreinte SHA-256 de chaque entrée.",
+    "- json/<module>/<entité>.json : la référence, une liste d'objets ; les identifiants relient les entités entre elles.",
+    "- csv/<module>/<entité>.csv : les mêmes colonnes, pour un tableur (séparateur « ; », UTF-8) ; une cellule qui commence par =, +, - ou @ est précédée d'une apostrophe.",
+    "- schemas/<module>/<entité>.schema.json : le schéma de chaque entité (JSON Schema 2020-12).",
+    "- fichiers/<module>/<entité>/<identifiant>-<champ>.<extension> : vos documents ; la ligne qui porte un fichier donne ce chemin.",
+    "",
+    "Conventions : montants en centimes entiers (devise EUR) ; dates au format AAAA-MM-JJ ; instants en ISO 8601 UTC ; heures en HH:MM:SS.",
+    "",
+    "Ce qui n'est pas exporté, et pourquoi",
+    "- Les secrets : sessions, jetons et codes des liens personnels, invitations en attente. Un lien se recrée ; une invitation se renvoie.",
+    "- Les identifiants de connexion : ils sont chez le fournisseur d'identité. L'équipe est listée (adresse, rôle) dans hub/team_members.",
+    "- Les données d'essai et d'exemple (essais guidés, série DEMO).",
+    "- Les données d'exploitation de Symbola : sauvegardes, réglages de la plateforme, événements internes, adresses IP des connexions, historique technique des imports.",
+    "",
+    "Reprendre l'archive : dans un espace Symbola vide, Paramètres, Importer, « Reprendre un export Symbola ».",
+    "Format documenté : docs/export/format-v1.md et docs/schemas/export/v1 du dépôt de Symbola.",
+    "",
+    "----------------------------------------------------------------------",
+    "",
+    `SYMBOLA — FULL DATA EXPORT (${ORGANIZATION_EXPORT_FORMAT})`,
+    "",
+    `Organisation: ${input.organizationName}`,
+    `Prepared on: ${at} (UTC)`,
+    `Content: ${input.entityCount} entities, ${input.rowCount} rows, ${input.fileCount} files.`,
+    ...(input.missingFiles > 0 ? [`Warning: ${input.missingFiles} referenced file(s) not found in storage, listed in manifest.json (missingFiles).`] : []),
+    "",
+    "What the archive contains",
+    "- manifest.json: format, date, organisation, list of entities (row count, JSON, CSV and schema files), files and the SHA-256 digest of every entry.",
+    "- json/<module>/<entity>.json: the reference, a list of objects; identifiers link the entities together.",
+    "- csv/<module>/<entity>.csv: the same columns, for a spreadsheet (\";\" separator, UTF-8); a cell starting with =, +, - or @ is prefixed with an apostrophe.",
+    "- schemas/<module>/<entity>.schema.json: the schema of each entity (JSON Schema 2020-12).",
+    "- fichiers/<module>/<entity>/<identifier>-<field>.<extension>: your documents; the row that holds a file gives this path.",
+    "",
+    "Conventions: amounts in whole cents (EUR currency); dates as YYYY-MM-DD; instants in ISO 8601 UTC; times as HH:MM:SS.",
+    "",
+    "What is not exported, and why",
+    "- Secrets: sessions, tokens and codes of personal links, pending invitations. A link can be created again; an invitation can be sent again.",
+    "- Sign-in credentials: they are held by the identity provider. The team is listed (address, role) in hub/team_members.",
+    "- Trial and sample data (guided trials, DEMO series).",
+    "- Symbola's operating data: backups, platform settings, internal events, IP addresses of sign-ins, technical history of imports.",
+    "",
+    "Restoring the archive: in an empty Symbola space, Settings, Import, \"Restore a Symbola export\".",
+    "Documented format: docs/export/format-v1.md and docs/schemas/export/v1 in the Symbola repository.",
+    "",
+  ].join("\r\n");
+}

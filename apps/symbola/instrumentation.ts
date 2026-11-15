@@ -45,5 +45,10 @@ export async function register() {
     // Lot 31b (FAC-05, D6) : factures d'acompte émises d'elles-mêmes (fin du délai de rétractation).
     const { scheduleDepositInvoiceIssuance } = await import("./lib/deposit-invoices");
     scheduleDepositInvoiceIssuance();
+    // Lot 35a (HUB-13, D4, ADR 0068) : préparation en arrière-plan des exports complets, et
+    // purge horaire de leurs archives expirées.
+    const { scheduleOrganizationExportPurge, scheduleOrganizationExports } = await import("./lib/export/organization-export-jobs");
+    scheduleOrganizationExports();
+    scheduleOrganizationExportPurge();
   }
 }
