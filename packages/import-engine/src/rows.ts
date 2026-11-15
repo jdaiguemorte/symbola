@@ -16,7 +16,11 @@ export type RowErrorCode =
   | "invalid_boolean"
   | "invalid_choice"
   // Lot 14c : fiche PDF refusée à la lecture (valeur : motif).
-  | "sheet_rejected";
+  | "sheet_rejected"
+  // Lot 36b (HUB-14) : adresse e-mail illisible ; ligne écartée par la planner selon la valeur
+  // d'une colonne (D11 ; fieldKey : intitulé de la colonne, valeur : la cellule).
+  | "invalid_email"
+  | "excluded_by_filter";
 
 export type RowError = { fieldKey: string; code: RowErrorCode; value: string };
 

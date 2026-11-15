@@ -258,6 +258,7 @@ export {
   EVENT_STATUS_CHOICES,
   IMPORT_ENTITY_TYPES,
   IMPORT_FIELDS,
+  IMPORT_REQUIRED_ONE_OF,
   TASK_RESPONSIBLE_CHOICES,
   type ImportEntityType,
   type ImportFieldDefinition,
@@ -334,4 +335,4 @@ export {
   type OrganizationExportModule,
 } from "./export/organization-export";
 // Lot 36a (CRM-03, DAT-12, ADR 0069) : le contact unique du hub.
-export type { Contact, ContactCoordinates, ContactInput, ContactKind, ContactNote } from "./contacts";
+export type { Contact, ContactCompanyIds, ContactCoordinates, ContactInput, ContactKind, ContactMembership, ContactNote } from "./contacts";

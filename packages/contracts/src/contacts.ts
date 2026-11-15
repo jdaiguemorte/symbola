@@ -14,6 +14,14 @@ export type ContactCoordinates = {
   billingAddress: string | null;
 };
 
+// Lot 36b (CRM-03, SC-11) : identifiants d'une entreprise, reportés sur le devis et la facture.
+export type ContactCompanyIds = {
+  // SIREN (9 chiffres) ou SIRET (14 chiffres).
+  companyIdNumber: string | null;
+  // Numéro de TVA intracommunautaire.
+  vatNumber: string | null;
+};
+
 export type Contact = {
   id: string;
   kind: ContactKind;
@@ -28,13 +36,26 @@ export type Contact = {
   isDemo: boolean;
   createdAt: Date;
   updatedAt: Date;
-} & ContactCoordinates;
+} & ContactCoordinates &
+  ContactCompanyIds;
 
 export type ContactInput = {
   kind?: ContactKind;
   firstName?: string | null;
   lastName?: string | null;
   name?: string | null;
-} & Partial<ContactCoordinates>;
+} & Partial<ContactCoordinates> &
+  Partial<ContactCompanyIds>;
 
 export type ContactNote = { id: string; contactId: string; authorUserId: string | null; body: string; createdAt: Date };
+
+// Lot 36b (CRM-03, D2) : une personne membre d'un foyer (un couple, une famille) ou d'une entreprise
+// (un interlocuteur), avec un rôle libre. `contact` est l'autre bout du lien : la personne vue du
+// foyer, ou le foyer vu de la personne.
+export type ContactMembership = {
+  id: string;
+  groupContactId: string;
+  memberContactId: string;
+  role: string | null;
+  contact: Pick<Contact, "id" | "kind" | "displayName" | "email" | "anonymized">;
+};

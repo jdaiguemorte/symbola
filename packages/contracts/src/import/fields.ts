@@ -16,6 +16,8 @@ export const IMPORT_ENTITY_TYPES = [
   "payment_methods",
   "vendors",
   "event_sheets",
+  // Lot 36b (HUB-14, D11) : contacts du hub.
+  "contacts",
 ] as const;
 export type ImportEntityType = (typeof IMPORT_ENTITY_TYPES)[number];
 
@@ -29,6 +31,12 @@ export type ImportFieldDefinition = {
   kind: ImportFieldKind;
   required?: true;
   choices?: readonly string[];
+};
+
+// Lot 36b (HUB-14) : un champ obligatoire parmi plusieurs (un contact a un nom, de sa colonne ou
+// d'une colonne « nom complet ») ; la clé d'erreur nomme le groupe (Import.field.<clé>).
+export const IMPORT_REQUIRED_ONE_OF: Partial<Record<ImportEntityType, { errorKey: string; keys: readonly string[] }>> = {
+  contacts: { errorKey: "contactName", keys: ["lastFirstName", "firstLastName", "firstName", "lastName"] },
 };
 
 // Une tâche ou une ligne de budget se rattache à un événement existant par
@@ -131,5 +139,22 @@ export const IMPORT_FIELDS: Record<ImportEntityType, readonly ImportFieldDefinit
     { key: "places", kind: "text" },
     { key: "status", kind: "choice", choices: EVENT_STATUS_CHOICES },
     { key: "wantedBudget", kind: "amount" },
+  ],
+  // Lot 36b (HUB-14, D11) : des personnes. Le nom vient d'une colonne pour le prénom et d'une pour
+  // le nom, ou d'une seule colonne (« NOM Prénom », « Prénom Nom ») : un mot tout en majuscules y
+  // est le nom, sinon l'ordre de la colonne décide. Au moins un nom par ligne (vérifié à la lecture).
+  // « notes » devient une note de la fiche.
+  contacts: [
+    { key: "lastFirstName", kind: "text" },
+    { key: "firstLastName", kind: "text" },
+    { key: "firstName", kind: "text" },
+    { key: "lastName", kind: "text" },
+    { key: "email", kind: "text" },
+    { key: "phone", kind: "text" },
+    { key: "addressLine", kind: "text" },
+    { key: "postalCode", kind: "text" },
+    { key: "city", kind: "text" },
+    { key: "country", kind: "text" },
+    { key: "notes", kind: "text" },
   ],
 };

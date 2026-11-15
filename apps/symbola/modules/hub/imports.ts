@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 // service.ts. IMP-01 : réception du fichier (taille, antivirus, lecture),
 // import en cours gardé en attente ; rien n'est écrit dans les modules avant
 // la confirmation (IMP-05).
-import { IMPORT_FIELDS, type ImportEntityType, type ImportFieldDefinition } from "@symbola/contracts";
+import { IMPORT_FIELDS, IMPORT_REQUIRED_ONE_OF, type ImportEntityType, type ImportFieldDefinition } from "@symbola/contracts";
 import type { AppDatabase } from "@symbola/db/client";
 import type { ImportColumnChoice, ImportMatch, ImportMatching, ImportResult, ImportVendorTypeTarget } from "@symbola/db/schema/hub";
 import { parseEnv } from "@symbola/env";
@@ -45,8 +45,9 @@ export { IMPORT_ENTITY_TYPES, type ImportEntityType } from "@symbola/contracts";
 export type { ImportColumnChoice, ImportMatch, ImportMatching, ImportResult, ImportRowEvent, ImportVendorTypeChoice, ImportVendorTypeTarget } from "@symbola/db/schema/hub";
 
 // Module qui reçoit chaque type d'éléments : un type dont le module n'est pas
-// souscrit n'est pas proposé (dégradation propre, CLAUDE.md §2.3).
-export const IMPORT_ENTITY_MODULE: Record<ImportEntityType, "events" | "budget" | "quotes" | "vendors"> = {
+// souscrit n'est pas proposé (dégradation propre, CLAUDE.md §2.3). Lot 36b : les
+// contacts vont au hub, le noyau, toujours là.
+export const IMPORT_ENTITY_MODULE: Record<ImportEntityType, "events" | "budget" | "quotes" | "vendors" | "hub"> = {
   events: "events",
   tasks: "events",
   vendor_slots: "events",
@@ -57,6 +58,7 @@ export const IMPORT_ENTITY_MODULE: Record<ImportEntityType, "events" | "budget" 
   payment_methods: "quotes",
   vendors: "vendors",
   event_sheets: "events",
+  contacts: "hub",
 };
 
 export type ImportLimits = { maxBytes: number; maxRows: number; maxSheets: number; draftRetentionDays: number; undoRetentionDays: number };
@@ -451,6 +453,9 @@ export async function saveImportMapping(
   for (const field of view.fields) {
     if (field.required && !usedFields.has(field.key)) errors.push({ code: "missing_required", fieldKey: field.key });
   }
+  // Lot 36b : un champ parmi plusieurs (le nom d'un contact, de sa colonne ou d'un « nom complet »).
+  const oneOf = IMPORT_REQUIRED_ONE_OF[view.entityType];
+  if (oneOf && !oneOf.keys.some((key) => usedFields.has(key))) errors.push({ code: "missing_required", fieldKey: oneOf.errorKey });
   if (errors.length > 0) return { status: "invalid", errors };
 
   const saved = await updateDraftMapping(db, input.organizationId, input.importId, mapping, now);
@@ -577,13 +582,34 @@ export async function setImportRowStatuses(
 // (« Continuer ») : l'assistant passe ensuite à la suivante.
 export async function markImportStepReviewed(
   db: AppDatabase,
-  input: { organizationId: string; importId: string; step: "types" | "matches"; now?: Date },
+  input: { organizationId: string; importId: string; step: "types" | "matches" | "rows"; now?: Date },
 ): Promise<boolean> {
   const now = input.now ?? new Date();
   const set = await getImportWorkingSet(db, input.organizationId, input.importId, now);
   if (!set?.matching) return false;
   const reviewed = { ...(set.matching.reviewed ?? {}), [input.step]: true };
   return updateDraftMatching(db, input.organizationId, input.importId, { ...set.matching, reviewed }, now);
+}
+
+// Lot 36b (D11) — lignes d'un import de contacts écartées selon une colonne : l'orchestrateur a
+// recalculé les rapprochements des lignes gardées ; l'étape « Lignes » est faite.
+export async function setImportRowFilter(
+  db: AppDatabase,
+  input: { organizationId: string; importId: string; matching: ImportMatching; filter: { columnIndex: number; excluded: string[] } | null; now?: Date },
+): Promise<boolean> {
+  const now = input.now ?? new Date();
+  const set = await getImportWorkingSet(db, input.organizationId, input.importId, now);
+  if (set?.entityType !== "contacts") return false;
+  if (input.filter && (input.filter.columnIndex < 0 || input.filter.columnIndex >= set.headers.length)) return false;
+  // Le filtre enregistré est celui donné (null : aucune ligne écartée), jamais un filtre ancien.
+  const rest: ImportMatching = { ...input.matching };
+  delete rest.rowFilter;
+  const matching: ImportMatching = {
+    ...rest,
+    ...(input.filter && input.filter.excluded.length > 0 ? { rowFilter: input.filter } : {}),
+    reviewed: { ...(input.matching.reviewed ?? {}), rows: true },
+  };
+  return updateDraftMatching(db, input.organizationId, input.importId, matching, now);
 }
 
 export type VendorTypeDecision = { label: string; typeId: string | null; target?: ImportVendorTypeTarget };

@@ -77,6 +77,18 @@
         "null"
       ]
     },
+    "companyIdNumber": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "vatNumber": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
     "createdAt": {
       "type": "string",
       "format": "date-time",
@@ -125,6 +137,8 @@
     "city",
     "country",
     "billingAddress",
+    "companyIdNumber",
+    "vatNumber",
     "createdAt",
     "createdBy",
     "updatedAt",

@@ -154,6 +154,7 @@ export {
   decideImportMatches,
   decideImportVendorTypes,
   markImportStepReviewed,
+  setImportRowFilter,
   setImportRowStatuses,
   getImportColumns,
   getImportDraft,
@@ -1026,13 +1027,16 @@ export {
   type OrganizationExportView,
   type RequestOrganizationExportResult,
 } from "./organization-exports";
-// Lot 36a (CRM-03, DAT-12, UX-02, ARC-03 ; ADR 0069) : le contact unique du noyau.
+// Lot 36a (CRM-03, DAT-12, UX-02, ARC-03 ; ADR 0069) : le contact unique du noyau. Lot 36b :
+// foyers et entreprises (membres, identifiants d'entreprise).
 export {
+  addContactMember,
   addContactNote,
   anonymizeContacts,
   CONTACT_NOTE_MAX,
   ContactEmailTakenError,
   ContactInvalidError,
+  ContactMemberNotFoundError,
   ContactNoteNotFoundError,
   ContactNotFoundError,
   createContact,
@@ -1041,10 +1045,15 @@ export {
   findContactsByTerms,
   getContact,
   getContactsByIds,
+  listContactGroups,
+  listContactMembers,
   listContactNotes,
   listContacts,
   listContactsUnchangedSince,
+  normalizeCompanyIdNumber,
   normalizeContactEmail,
+  normalizeVatNumber,
+  removeContactMember,
   removeContactNote,
   resolveContact,
   searchContactIds,
@@ -1052,3 +1061,13 @@ export {
   updateContact,
   type ContactListItem,
 } from "./contacts";
+// Lot 36b (HUB-14, D11) : import de contacts.
+export {
+  findModifiedImportedHubElements,
+  importContactRows,
+  importedContactValues,
+  listContactImportCandidates,
+  splitPersonName,
+  undoImportedHubElements,
+  type ContactImportCandidate,
+} from "./contacts-import";
