@@ -953,6 +953,13 @@
       "when": 1794761290404,
       "tag": "0135_lot36a_contacts",
       "breakpoints": true
+    },
+    {
+      "idx": 136,
+      "version": "7",
+      "when": 1794783301196,
+      "tag": "0136_lot36b_contacts_members",
+      "breakpoints": true
     }
   ]
 }

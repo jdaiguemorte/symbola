@@ -366,6 +366,8 @@ export const importEntityTypeEnum = hubSchema.enum("import_entity_type", [
   "payment_methods",
   "vendors",
   "event_sheets",
+  // Lot 36b (HUB-14, D11) : contacts du hub.
+  "contacts",
 ]);
 
 export type ImportColumnChoice = {
@@ -391,6 +393,9 @@ export type ImportMatch = {
   status: "proposed" | "accepted" | "refused";
   // Ajouté à la main par la planner (pas une proposition de l'app).
   manual: boolean;
+  // Lot 36b (DAT-12) : contact rapproché par son adresse e-mail (refuser, c'est ignorer la ligne :
+  // jamais deux contacts pour une adresse) ou par son nom (refuser, c'est créer un contact).
+  reason?: "email" | "name";
 };
 
 // Tâche ou ligne de budget : événement existant auquel la ligne se rattache
@@ -429,8 +434,12 @@ export type ImportMatching = {
   // statut choisi par la planner dans l'aperçu (décision J).
   duplicates?: { rowIndex: number; sameAsRowIndex: number }[];
   rowStatuses?: { rowIndex: number; status: string }[];
-  // Lot 16 (IMP-11) : étapes vérifiées par la planner (« Continuer »).
-  reviewed?: { types?: boolean; matches?: boolean };
+  // Lot 16 (IMP-11) : étapes vérifiées par la planner (« Continuer »). Lot 36b : « rows », les
+  // lignes à écarter d'un import de contacts.
+  reviewed?: { types?: boolean; matches?: boolean; rows?: boolean };
+  // Lot 36b (D11, SC-10) : lignes écartées selon la valeur d'une colonne (« Catégorie » vaut
+  // « prestataire ») ; valeurs comparées sans casse, accents ni espaces autour.
+  rowFilter?: { columnIndex: number; excluded: string[] };
 };
 
 export const importStatusEnum = hubSchema.enum("import_status", ["draft", "applied", "undone", "cancelled"]);
@@ -650,6 +659,10 @@ export const contacts = hubSchema.table(
     country: text("country"),
     // D8 : l'adresse de facturation, reprise à l'envoi en signature.
     billingAddress: text("billing_address"),
+    // Lot 36b (CRM-03, SC-11) : identifiants d'une entreprise, reportés sur le devis et la
+    // facture : SIREN (9 chiffres) ou SIRET (14 chiffres), numéro de TVA intracommunautaire.
+    companyIdNumber: text("company_id_number"),
+    vatNumber: text("vat_number"),
     // AIDE-02, ADR 0008 : contact d'un essai guidé, purgé avec lui.
     isDemo: boolean("is_demo").notNull().default(false),
     // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
@@ -664,6 +677,42 @@ export const contacts = hubSchema.table(
     check("contacts_kind_check", sql`${table.kind} in ('person', 'household', 'company')`),
     check("contacts_name_check", sql`case when ${table.kind} = 'person' then ${table.firstName} is not null else ${table.name} is not null end`),
     check("contacts_email_check", sql`${table.email} is null or (${table.email} = lower(btrim(${table.email})) and ${table.email} <> '')`),
+    check(
+      "contacts_company_ids_check",
+      sql`(${table.kind} = 'company' or (${table.companyIdNumber} is null and ${table.vatNumber} is null)) and (${table.companyIdNumber} is null or ${table.companyIdNumber} ~ '^[0-9]{9}([0-9]{5})?$') and (${table.vatNumber} is null or (${table.vatNumber} = upper(replace(${table.vatNumber}, ' ', '')) and ${table.vatNumber} <> ''))`,
+    ),
+  ],
+);
+
+// Lot 36b (CRM-03, D2) — les membres d'un foyer (un couple, une famille) ou d'une entreprise (ses
+// interlocuteurs) : des personnes, avec un rôle libre (« conjoint », « assistante de direction »).
+// Une personne peut appartenir à plusieurs foyers ou entreprises. Supprimer un contact retire ses
+// liens. Données métier d'une organisation : RLS forcée.
+export const contactMembers = hubSchema.table(
+  "contact_members",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    // Le foyer ou l'entreprise.
+    groupContactId: uuid("group_contact_id")
+      .notNull()
+      .references(() => contacts.id, { onDelete: "cascade" }),
+    // La personne.
+    memberContactId: uuid("member_contact_id")
+      .notNull()
+      .references(() => contacts.id, { onDelete: "cascade" }),
+    role: text("role"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("contact_members_organization_idx").on(table.organizationId),
+    index("contact_members_member_idx").on(table.memberContactId),
+    uniqueIndex("contact_members_pair_idx").on(table.groupContactId, table.memberContactId),
+    check("contact_members_distinct_check", sql`${table.groupContactId} <> ${table.memberContactId}`),
+    check("contact_members_role_check", sql`${table.role} is null or char_length(${table.role}) between 1 and 100`),
   ],
 );
 

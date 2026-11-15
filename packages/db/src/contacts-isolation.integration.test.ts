@@ -1,5 +1,5 @@
 // Lot 36a (CRM-03, DAT-12, SEC-10) — critère obligatoire (CLAUDE.md § 6) sur chaque nouvelle
-// table : les contacts du hub et leurs notes. Une organisation ne voit et ne modifie jamais les
+// table : les contacts du hub, leurs notes et (lot 36b) les membres des foyers et entreprises. Une organisation ne voit et ne modifie jamais les
 // lignes d'une autre ; l'unicité de l'adresse e-mail vaut par organisation, pas au-delà.
 // PostgreSQL réel, rôle applicatif.
 import { randomUUID } from "node:crypto";
@@ -7,7 +7,7 @@ import { assertOrganizationIsolation } from "@symbola/testing";
 import { eq } from "drizzle-orm";
 import { afterAll, describe, expect, it } from "vitest";
 import { createAppConnection } from "./client";
-import { contactNotes, contacts } from "./schema/hub";
+import { contactMembers, contactNotes, contacts } from "./schema/hub";
 import { withOrganization } from "./with-organization";
 
 const { sql, db } = createAppConnection();
@@ -51,6 +51,23 @@ describe("CRM-03 / SEC-10 — Isolation des contacts entre organisations (Postgr
       attemptCrossOrganizationUpdate: async (organizationId, target) => ({
         affectedRows: (
           await withOrganization(db, organizationId, (tx) => tx.update(contactNotes).set({ body: "falsifié" }).where(eq(contactNotes.id, target.id)).returning())
+        ).length,
+      }),
+    });
+  });
+
+  it("membres des foyers et des entreprises (lot 36b)", async () => {
+    await assertOrganizationIsolation({
+      seed: (organizationId) =>
+        withOrganization(db, organizationId, async (tx) => {
+          const household = first(await tx.insert(contacts).values({ organizationId, kind: "household", name: "Famille Martin" }).returning());
+          const member = await seedContact(tx, organizationId);
+          return first(await tx.insert(contactMembers).values({ organizationId, groupContactId: household.id, memberContactId: member.id, role: "Mariée" }).returning());
+        }),
+      listVisible: (organizationId) => withOrganization(db, organizationId, (tx) => tx.select().from(contactMembers)),
+      attemptCrossOrganizationUpdate: async (organizationId, target) => ({
+        affectedRows: (
+          await withOrganization(db, organizationId, (tx) => tx.update(contactMembers).set({ role: "falsifié" }).where(eq(contactMembers.id, target.id)).returning())
         ).length,
       }),
     });

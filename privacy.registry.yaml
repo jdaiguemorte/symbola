@@ -446,6 +446,35 @@ fields:
       Lot 36a (CRM-03) : note de l'équipe sur un contact ; elle suit son contact.
     anonymization: >-
       Supprimée avec les coordonnées du contact à l'oubli ou à la purge.
+  - schema: hub
+    table: contacts
+    field: company_id_number
+    category: identifiant
+    retention: >-
+      Lot 36b (CRM-03, SC-11) : SIREN ou SIRET d'une entreprise cliente, repris sur ses
+      devis ; donnée personnelle pour un entrepreneur individuel. Suit son contact (règle de
+      ses évènements, ou celle des prospects sans évènement).
+    anonymization: >-
+      Mis à nul à l'oubli ou à la purge.
+  - schema: hub
+    table: contacts
+    field: vat_number
+    category: identifiant
+    retention: >-
+      Lot 36b (CRM-03, SC-11) : numéro de TVA intracommunautaire d'une entreprise cliente,
+      repris sur ses devis. Suit son contact.
+    anonymization: >-
+      Mis à nul à l'oubli ou à la purge.
+  - schema: hub
+    table: contact_members
+    field: role
+    category: identifiant
+    retention: >-
+      Lot 36b (CRM-03, D2) : rôle libre d'une personne dans un foyer ou une entreprise
+      (« mariée », « assistante de direction »). Le lien suit ses deux contacts ; il disparaît
+      avec l'un d'eux.
+    anonymization: >-
+      Mis à nul quand la personne ou le groupe est anonymisé (oubli ou purge).
   - schema: events
     table: program_item_participants
     field: free_label
