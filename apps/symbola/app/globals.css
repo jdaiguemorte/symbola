@@ -1988,6 +1988,14 @@
   .import-assistant {
     @apply pb-4;
   }
+  /* Lot 36b (SC-10, écran à 150 %) : un formulaire est une colonne alignée à gauche ; ses sections,
+     groupes et tableaux y prennent la largeur du formulaire (un tableau défile en lui-même) au lieu de
+     la largeur de leur contenu, qui débordait de l'écran. */
+  .import-assistant form > section,
+  .import-assistant form > fieldset,
+  .import-assistant form .list-table-wrap {
+    @apply w-full min-w-0 self-stretch;
+  }
   .import-head {
     @apply flex flex-wrap items-baseline justify-between gap-3;
   }
@@ -2007,11 +2015,13 @@
   .stepper {
     @apply my-6;
   }
+  /* Lot 36b (SC-10, écran à 150 %) : en rangée, les étapes passent à la ligne quand la place manque
+     (cinq étapes ne tiennent pas à côté du menu), au lieu de déborder de l'écran. */
   .stepper ol {
-    @apply m-0 flex list-none flex-col gap-3 p-0 md:flex-row md:gap-2;
+    @apply m-0 flex list-none flex-col gap-3 p-0 md:flex-row md:flex-wrap md:gap-2;
   }
   .stepper li {
-    @apply flex flex-1 items-start gap-2 rounded-md border border-line bg-surface px-3 py-2 text-label;
+    @apply flex flex-1 items-start gap-2 rounded-md border border-line bg-surface px-3 py-2 text-label md:min-w-[8rem];
   }
   .stepper li[data-state="current"] {
     @apply border-primary bg-primary-soft;

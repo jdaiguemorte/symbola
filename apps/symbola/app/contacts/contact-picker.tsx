@@ -6,6 +6,7 @@
 // cadre) ; « Changer » revient à la recherche.
 import { useEffect, useId, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
+import type { ContactKind } from "@symbola/contracts";
 import { searchContactsAction, type ContactChoice } from "./actions";
 
 const DEBOUNCE_MS = 250;
@@ -14,6 +15,8 @@ export function ContactPicker({
   name,
   legend,
   initial = null,
+  kinds,
+  searchLabel,
   children,
 }: {
   // Nom du champ caché qui porte l'identifiant du contact choisi.
@@ -22,23 +25,30 @@ export function ContactPicker({
   initial?: ContactChoice | null;
   // Les champs d'un nouveau contact, montrés tant qu'aucun contact n'est choisi.
   children?: ReactNode;
+  // Lot 36b : natures proposées (les personnes seulement, pour le membre d'un foyer).
+  kinds?: readonly ContactKind[];
+  // Libellé de la recherche (par défaut : « Client déjà connu ? … »).
+  searchLabel?: string;
 }) {
   const t = useTranslations("Contacts");
   const id = useId();
   const [chosen, setChosen] = useState<ContactChoice | null>(initial);
   const [term, setTerm] = useState("");
   const [results, setResults] = useState<ContactChoice[] | null>(null);
+  // Clé stable des natures demandées (un tableau change à chaque rendu).
+  const kindsKey = (kinds ?? []).join(",");
 
   useEffect(() => {
     if (chosen || term.trim().length < 2) {
       setResults(null);
       return;
     }
+    const wanted = kindsKey ? (kindsKey.split(",") as ContactKind[]) : undefined;
     const timer = setTimeout(() => {
-      searchContactsAction(term).then(setResults, () => setResults([]));
+      searchContactsAction(term, wanted).then(setResults, () => setResults([]));
     }, DEBOUNCE_MS);
     return () => clearTimeout(timer);
-  }, [term, chosen]);
+  }, [term, chosen, kindsKey]);
 
   const choose = (contact: ContactChoice | null) => {
     setChosen(contact);
@@ -61,7 +71,7 @@ export function ContactPicker({
         </>
       ) : (
         <>
-          <label htmlFor={`${id}-search`}>{t("pickerSearch")}</label>
+          <label htmlFor={`${id}-search`}>{searchLabel ?? t("pickerSearch")}</label>
           <input id={`${id}-search`} type="search" value={term} onChange={(event) => setTerm(event.target.value)} maxLength={100} autoComplete="off" />
           <p className="sr-only" role="status" aria-live="polite">
             {results ? t("pickerResults", { count: results.length }) : ""}
@@ -81,7 +91,7 @@ export function ContactPicker({
               ))}
             </ul>
           ) : null}
-          {results && results.length === 0 ? <p className="meta">{t("pickerNone")}</p> : null}
+          {results && results.length === 0 ? <p className="meta">{children ? t("pickerNone") : t("pickerNoneAlone")}</p> : null}
           {children}
         </>
       )}

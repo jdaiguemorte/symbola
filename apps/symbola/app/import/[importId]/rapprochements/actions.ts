@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getPlannerAuthContext } from "@/lib/auth-context";
-import { addManualMatch, decideMatches, getImportMatchesView } from "@/lib/import/matching";
+import { addManualMatch, decideMatches, getImportMatchesView, setContactRowsIgnored } from "@/lib/import/matching";
 import { redirect } from "next/navigation";
 import { appDatabase } from "@symbola/db/client";
 import { markImportStepReviewed } from "@/modules/hub/service";
@@ -70,4 +70,15 @@ export async function reviewMatchesAction(formData: FormData): Promise<void> {
   await markImportStepReviewed(db, { organizationId: context.organizationId, importId: context.importId, step: "matches" });
   const wizard = await getImportWizard(context.organizationId, context.importId);
   redirect(wizard ? importStepHref(context.importId, wizard.next) : "/import");
+}
+
+// Lot 36b (DAT-12) — une ligne de contact qui répète une adresse plus haut dans le fichier :
+// ignorée, ou de nouveau gardée (elle complète alors la première).
+export async function ignoreContactRowsAction(formData: FormData): Promise<void> {
+  const context = await authorized(formData);
+  if (!context) return;
+  const rowIndex = rowIndexOf(formData.get("rowIndex") ?? "");
+  if (rowIndex === null) return;
+  await setContactRowsIgnored(context.organizationId, context.importId, [rowIndex], formData.get("ignored") === "1");
+  revalidatePath(`/import/${context.importId}/rapprochements`);
 }

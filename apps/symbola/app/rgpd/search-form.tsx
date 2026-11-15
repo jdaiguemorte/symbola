@@ -19,7 +19,11 @@ export type CreateRequest = { types: readonly string[]; today: string };
 
 function fieldLabel(t: ReturnType<typeof useTranslations>, key: string): string {
   if (key.startsWith("imported:")) return t("importedField", { name: key.slice("imported:".length) });
-  return t.has(`field.${key}`) ? t(`field.${key}`) : key;
+  if (t.has(`field.${key}`)) return t(`field.${key}`);
+  // Lots 36a et 36b : champs numérotés d'une fiche de contact (« note1 », « link2 »).
+  const numbered = /^([a-z]+)(\d+)$/.exec(key);
+  if (numbered && t.has(`field.${numbered[1]}N`)) return t(`field.${numbered[1]}N`, { n: Number(numbered[2]) });
+  return key;
 }
 
 function recordKey(record: SearchRecord): string {

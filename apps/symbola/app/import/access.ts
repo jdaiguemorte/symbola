@@ -10,7 +10,8 @@ export async function availableImportEntityTypes(organizationId: string): Promis
   const db = appDatabase();
   const enabled = new Map<string, boolean>();
   for (const moduleKey of new Set(Object.values(IMPORT_ENTITY_MODULE))) {
-    enabled.set(moduleKey, await isModuleEnabled(db, organizationId, moduleKey));
+    // Lot 36b : le hub (contacts) est le noyau, jamais désactivé.
+    enabled.set(moduleKey, moduleKey === "hub" ? true : await isModuleEnabled(db, organizationId, moduleKey));
   }
   return IMPORT_ENTITY_TYPES.filter((type) => enabled.get(IMPORT_ENTITY_MODULE[type]));
 }

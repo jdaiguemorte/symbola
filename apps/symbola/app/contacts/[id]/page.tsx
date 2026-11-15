@@ -10,10 +10,10 @@ import { ScreenHelp } from "@/app/screen-help";
 import { PageHeader } from "@/app/ui/page-header";
 import { requirePlanner } from "@/lib/guards";
 import { listEventDocuments, listEventsOfContact } from "@/modules/events/service";
-import { getContact, isModuleEnabled, listContactNotes } from "@/modules/hub/service";
+import { getContact, isModuleEnabled, listContactGroups, listContactMembers, listContactNotes } from "@/modules/hub/service";
 import { listEventQuotes, listQuoteInvoices } from "@/modules/quotes/service";
-import { removeContactNoteAction } from "../actions";
-import { ContactForm, NoteForm } from "../contact-forms";
+import { removeContactMemberAction, removeContactNoteAction } from "../actions";
+import { ContactForm, MemberForm, NoteForm } from "../contact-forms";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -21,7 +21,8 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 // modifiées une fois pour toute l'organisation ; son historique, tiré de chaque module souscrit
 // (évènements dont il est client, devis et factures de ces évènements, leurs documents) ; ses
 // notes. Messages et rendez-vous viendront avec leurs modules. Un identifiant inconnu, d'essai ou
-// d'une autre organisation répond comme une page absente (SEC-13).
+// d'une autre organisation répond comme une page absente (SEC-13). Lot 36b (D2) : un foyer ou une
+// entreprise montre ses membres ; une personne, les foyers et entreprises dont elle fait partie.
 export default async function ContactPage({ params }: { params: Promise<{ id: string }> }) {
   const auth = await requirePlanner();
   const { id } = await params;
@@ -36,11 +37,13 @@ export default async function ContactPage({ params }: { params: Promise<{ id: st
   const tHelp = await getTranslations("Help");
   const locale = (await getLocale()) as Locale;
   const db = appDatabase();
-  const [eventsEnabled, quotesEnabled, notes, team] = await Promise.all([
+  const isGroup = contact.kind !== "person";
+  const [eventsEnabled, quotesEnabled, notes, team, memberships] = await Promise.all([
     isModuleEnabled(db, organizationId, "events"),
     isModuleEnabled(db, organizationId, "quotes"),
     listContactNotes(organizationId, id),
     listTeam(db, organizationId),
+    isGroup ? listContactMembers(organizationId, id) : listContactGroups(organizationId, id),
   ]);
   const events = eventsEnabled ? await listEventsOfContact(organizationId, id) : [];
   const documents = eventsEnabled ? (await Promise.all(events.map((event) => listEventDocuments(organizationId, event.id)))).flat() : [];
@@ -56,7 +59,7 @@ export default async function ContactPage({ params }: { params: Promise<{ id: st
     <main>
       <PageHeader
         title={contact.displayName}
-        subtitle={t("detailSubtitle")}
+        subtitle={t(contact.kind === "company" ? "detailSubtitleCompany" : contact.kind === "household" ? "detailSubtitleHousehold" : "detailSubtitle")}
         actions={
           <>
             <Link className="button-link" href="/contacts">
@@ -76,6 +79,50 @@ export default async function ContactPage({ params }: { params: Promise<{ id: st
         <h2 id="contact-identity">{t("identityTitle")}</h2>
         <ContactForm contact={contact} />
       </section>
+
+      {isGroup ? (
+        <section aria-labelledby="contact-members" className="card">
+          <h2 id="contact-members">{t(contact.kind === "company" ? "membersCompany" : "membersHousehold")}</h2>
+          {memberships.length === 0 ? (
+            <p>{t("noMembers")}</p>
+          ) : (
+            <ul className="contact-choices">
+              {memberships.map((membership) => (
+                <li key={membership.id}>
+                  <span>
+                    {membership.contact.anonymized ? membership.contact.displayName : <Link href={`/contacts/${membership.contact.id}`}>{membership.contact.displayName}</Link>}
+                    {membership.role ? <span className="meta"> · {membership.role}</span> : null}
+                  </span>
+                  <form action={removeContactMemberAction} className="inline-form">
+                    <input type="hidden" name="groupContactId" value={contact.id} />
+                    <input type="hidden" name="membershipId" value={membership.id} />
+                    <button type="submit" className="button-ghost" aria-label={t("memberRemoveFor", { name: membership.contact.displayName })}>
+                      {t("memberRemove")}
+                    </button>
+                  </form>
+                </li>
+              ))}
+            </ul>
+          )}
+          <MemberForm groupContactId={contact.id} kind={contact.kind} />
+        </section>
+      ) : memberships.length > 0 ? (
+        <section aria-labelledby="contact-groups" className="card">
+          <h2 id="contact-groups">{t("groupsTitle")}</h2>
+          <ul>
+            {memberships.map((membership) => (
+              <li key={membership.id}>
+                {membership.contact.anonymized ? membership.contact.displayName : <Link href={`/contacts/${membership.contact.id}`}>{membership.contact.displayName}</Link>}
+                <span className="meta">
+                  {" "}
+                  · {t(`kind.${membership.contact.kind}`)}
+                  {membership.role ? ` · ${membership.role}` : ""}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       <section aria-labelledby="contact-history">
         <h2 id="contact-history">{t("historyTitle")}</h2>

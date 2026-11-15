@@ -12,7 +12,8 @@ import { NewImportForm } from "./new-import-form";
 // Lot 14 (IMP-09) : les deux reprises depuis l'outil actuel, en premier.
 // Lot 16 (IMP-11, ADR 0041) : « Que voulez-vous reprendre ? » en trois tuiles ;
 // le choix détaillé des contenus n'apparaît que pour « Un autre fichier ».
-const TAKEOVER_TYPES = ["vendors", "event_sheets"] as const;
+// Lot 36b (HUB-14, SC-10) : les contacts d'abord.
+const TAKEOVER_TYPES = ["contacts", "vendors", "event_sheets"] as const;
 const OTHER = "autre";
 
 export default async function ImportPage({ searchParams }: { searchParams: Promise<{ type?: string }> }) {

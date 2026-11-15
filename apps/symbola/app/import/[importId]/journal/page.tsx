@@ -26,6 +26,7 @@ const FINISH_LINKS: Partial<Record<string, string>> = {
   event_sheets: "/events",
   tasks: "/taches",
   catalog_items: "/devis/catalogue",
+  contacts: "/contacts",
 };
 
 export default async function ImportJournalPage({
@@ -68,6 +69,15 @@ export default async function ImportJournalPage({
       // Lot 28a : l'estimé ; plannedAmountCents pour un import d'avant le lot.
       const estimated = values.estimatedAmountCents ?? values.plannedAmountCents;
       return t(`itemKind.${item.kind}`, { title: typeof estimated === "number" ? formatAmount(estimated, locale) : "" });
+    }
+    // Lot 36b : un contact (son nom), une note de contact (son début).
+    if (item.kind === "contact") {
+      const name = [values.firstName, values.lastName].filter((part) => typeof part === "string" && part !== "").join(" ");
+      return t(`itemKind.${item.kind}`, { title: name || t("rowWithoutLabel") });
+    }
+    if (item.kind === "contact_note") {
+      const body = typeof values.body === "string" ? values.body : "";
+      return t(`itemKind.${item.kind}`, { title: body.length > 60 ? `${body.slice(0, 60)}…` : body });
     }
     const label = item.kind === "vendor" ? values.name : values.label;
     return t(`itemKind.${item.kind}`, { title: typeof label === "string" ? label : t("rowWithoutLabel") });

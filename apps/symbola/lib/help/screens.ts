@@ -78,6 +78,8 @@ export const HELP_SCREENS: HelpScreen[] = [
   { key: "importColumns", group: "data", audience: "team", path: null, capture: false },
   // Lot 16 (IMP-12) : étape « Types » de l'assistant (prestataires).
   { key: "importTypes", group: "data", audience: "team", path: null, capture: false },
+  // Lot 36b (D11) : lignes à écarter d'un import de contacts.
+  { key: "importRows", group: "data", audience: "team", path: null, capture: false },
   { key: "importMatches", group: "data", audience: "team", path: null, capture: false },
   { key: "importGaps", group: "data", audience: "team", path: null, capture: false },
   { key: "importConfirm", group: "data", audience: "team", path: null, capture: false },

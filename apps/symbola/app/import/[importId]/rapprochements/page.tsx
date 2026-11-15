@@ -5,12 +5,12 @@ import { formatCalendarDate, type Locale } from "@symbola/i18n";
 import { ScreenHelp } from "@/app/screen-help";
 import { ActionBar } from "@/app/ui/action-bar";
 import type { ImportValue, PersonName } from "@symbola/import-engine";
-import { rowEventReference, type MatchesRowView } from "@/lib/import/matching";
+import { contactRowTitle, rowEventReference, type MatchesRowView } from "@/lib/import/matching";
 import { importStepHref, SAFE_MATCH_SCORE } from "@/lib/import/wizard";
 import type { EventCandidate } from "@/lib/import/candidates";
 import { ImportHeader } from "../../import-header";
 import { importStepContext, wantsAbandon } from "../../step-context";
-import { decideMatchesAction, manualMatchAction, reviewMatchesAction } from "./actions";
+import { decideMatchesAction, ignoreContactRowsAction, manualMatchAction, reviewMatchesAction } from "./actions";
 
 const FILTERS = ["a-verifier", "nouveaux", "mises-a-jour"] as const;
 type Filter = (typeof FILTERS)[number];
@@ -56,6 +56,7 @@ export default async function ImportMatchesPage({
       const name = typeof values.name === "string" ? values.name : t("rowWithoutLabel");
       return typeof values.city === "string" ? `${name} — ${values.city}` : name;
     }
+    if (view.entityType === "contacts") return contactRowTitle(values) ?? t("rowWithoutLabel");
     const label = view.entityType === "budget_lines" ? values.slotLabel : values.label;
     return typeof label === "string" ? label : t("rowWithoutLabel");
   };
@@ -76,7 +77,17 @@ export default async function ImportMatchesPage({
   const safeCount = valid.filter((row) => row.match?.status === "proposed" && row.match.score >= SAFE_MATCH_SCORE).length;
   const base = importStepHref(importId, "matches");
   const href = (values: { filtre?: Filter; page?: number }) => `${base}?filtre=${values.filtre ?? filter}${values.page && values.page > 1 ? `&page=${values.page}` : ""}`;
-  const previousStep = wizard.steps.some((step) => step.key === "types") ? "types" : "columns";
+  const previousStep = wizard.steps.some((step) => step.key === "types") ? "types" : wizard.steps.some((step) => step.key === "rows") ? "rows" : "columns";
+  // Lot 36b (DAT-12) : pour un contact, accepter, c'est compléter le contact existant ; refuser une
+  // adresse déjà connue, c'est ignorer la ligne (jamais deux contacts pour une adresse).
+  const isContacts = view.entityType === "contacts";
+  const decisionText = (row: MatchesRowView) => {
+    if (row.ignored) return t("rowIgnored");
+    if (!row.match) return isContacts && row.sameAsLine !== undefined ? t("rowWillCompleteLine", { line: row.sameAsLine }) : t("rowWillCreate");
+    if (row.match.status === "accepted") return isContacts ? t("rowWillComplete") : t("rowWillUpdate");
+    if (row.match.status === "refused") return t("rowWillCreate");
+    return t("matchStatus.proposed");
+  };
 
   return (
     <main className="import-assistant">
@@ -122,29 +133,46 @@ export default async function ImportMatchesPage({
                     <td>{row.lineNumber}</td>
                     <th scope="row">
                       {title}
-                      {row.sameAsLine !== undefined ? <span className="meta"> {t("rowSameAs", { line: row.sameAsLine })}</span> : null}
+                      {row.sameAsLine !== undefined ? <span className="meta"> {t(isContacts ? "rowSameEmail" : "rowSameAs", { line: row.sameAsLine })}</span> : null}
                       {row.event ? (
                         <span className="meta"> {row.event.candidate ? t("rowEvent", { event: eventTitle(row.event.candidate), score: row.event.score }) : t("rowEventNotFound")}</span>
                       ) : null}
                     </th>
                     <td>
                       {row.match
-                        ? t("matchProposal", { element: row.match.event ? eventTitle(row.match.event) : (row.match.label ?? ""), score: row.match.score })
+                        ? isContacts
+                          ? t(row.match.reason === "email" ? "contactMatchEmail" : "contactMatchName", { element: row.match.label ?? "" })
+                          : t("matchProposal", { element: row.match.event ? eventTitle(row.match.event) : (row.match.label ?? ""), score: row.match.score })
                         : row.event && !row.event.candidate
                           ? t("rowWillBeRejected")
-                          : t("rowWillCreate")}
+                          : isContacts && row.sameAsLine !== undefined
+                            ? t("contactSameLine", { line: row.sameAsLine })
+                            : t("rowWillCreate")}
                     </td>
                     <td>
+                      {isContacts && !row.match && row.sameAsLine !== undefined ? (
+                        <div className="row-actions">
+                          <span className="meta">{decisionText(row)}</span>
+                          <form action={ignoreContactRowsAction}>
+                            <input type="hidden" name="importId" value={importId} />
+                            <input type="hidden" name="rowIndex" value={row.rowIndex} />
+                            <input type="hidden" name="ignored" value={row.ignored ? "0" : "1"} />
+                            <button type="submit" aria-label={t(row.ignored ? "decisionKeepFor" : "decisionIgnoreFor", { title })}>
+                              {t(row.ignored ? "decisionKeep" : "decisionIgnore")}
+                            </button>
+                          </form>
+                        </div>
+                      ) : null}
                       {row.match ? (
                         <div className="row-actions">
-                          <span className="meta">{row.match.status === "refused" ? t("rowWillCreate") : row.match.status === "accepted" ? t("rowWillUpdate") : t("matchStatus.proposed")}</span>
+                          <span className="meta">{isContacts ? decisionText(row) : row.match.status === "refused" ? t("rowWillCreate") : row.match.status === "accepted" ? t("rowWillUpdate") : t("matchStatus.proposed")}</span>
                           {row.match.status !== "accepted" ? (
                             <form action={decideMatchesAction}>
                               <input type="hidden" name="importId" value={importId} />
                               <input type="hidden" name="rowIndex" value={row.rowIndex} />
                               <input type="hidden" name="decision" value="accept" />
-                              <button type="submit" aria-label={t("decisionUpdateFor", { title })}>
-                                {t("decisionUpdate")}
+                              <button type="submit" aria-label={t(isContacts ? "decisionCompleteFor" : "decisionUpdateFor", { title })}>
+                                {t(isContacts ? "decisionComplete" : "decisionUpdate")}
                               </button>
                             </form>
                           ) : null}
@@ -153,8 +181,8 @@ export default async function ImportMatchesPage({
                               <input type="hidden" name="importId" value={importId} />
                               <input type="hidden" name="rowIndex" value={row.rowIndex} />
                               <input type="hidden" name="decision" value="refuse" />
-                              <button type="submit" aria-label={t("decisionCreateFor", { title })}>
-                                {t("decisionCreate")}
+                              <button type="submit" aria-label={t(isContacts && row.match.reason === "email" ? "decisionIgnoreFor" : "decisionCreateFor", { title })}>
+                                {t(isContacts && row.match.reason === "email" ? "decisionIgnore" : "decisionCreate")}
                               </button>
                             </form>
                           ) : null}
