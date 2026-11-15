@@ -323,3 +323,64 @@ le déploiement d'ensemble.
   ce cycle à 12 mois pour les copies mensuelles. D9 propose de garder ce délai et de l'écrire.
 - **« Données en CSV et JSON »** : le JSON est la référence, car il porte les liens entre
   entités ; le CSV contient la même chose à plat, pour un tableur.
+
+## Bilan du lot 35a (15/11/2026)
+
+### Fait
+
+- **Contrat interne `export/v1`** (`packages/contracts/src/export`). Chaque module livre ses
+  entités par son `service.ts` : `hub`, `events`, `budget`, `quotes`, `vendors`. Les tables non
+  exportées sont listées avec leur raison.
+- **Lecture générique** (`@symbola/db/export`) :
+  - sous RLS, en lecture seule, sur un instantané, avec un filtre explicite sur l'organisation ;
+  - essais exclus de proche en proche (ligne d'essai, ligne d'un événement d'essai, ligne dont
+    le parent est exclu) ;
+  - fichiers remplacés par leur chemin dans l'archive.
+- **Format `symbola.export/v1`** (DAT-13) : 83 entités, chacune avec son schéma JSON tiré des
+  colonnes de sa table, publié dans `docs/schemas/export/v1` avec l'index des exclusions.
+  Référence : `docs/export/format-v1.md`. ADR 0068.
+- **Archive** : écrite en flux (écrivain ZIP du projet étendu, sans dépendance), envoyée et
+  téléchargée en flux. Elle contient le manifeste aux empreintes SHA-256, JSON, CSV, schémas,
+  fichiers et `LISEZMOI.txt` (FR, EN).
+- **Écran « Exporter mes données »** (Paramètres, groupe Prestataires et données), Propriétaire
+  seulement (D5) :
+  - préparation en arrière-plan avec son avancement, un seul export à la fois, reprise d'une
+    préparation interrompue (D4) ;
+  - e-mail quand l'archive est prête ;
+  - téléchargement servi par l'app (ADR 0027) pendant la durée réglée par l'Admin (7 jours),
+    puis purge horaire ; la trace reste.
+  - Demande, mise à disposition et téléchargement vont au journal ; la demande est limitée en
+    débit.
+- **Migration 0134** (schéma `hub`), avec son annulation et son test. Elle passe sans arrêter
+  l'app.
+
+### Écarts et points ouverts
+
+- **Pièces jointes et fichiers absents du stockage** : listés dans `missingFiles` et signalés à
+  l'écran, jamais inventés.
+- **Taille** : pas de zip64, donc 4 Gio et 65 535 entrées au plus ; au-delà, l'export échoue et
+  invite à écrire à Symbola (ADR 0068).
+- **Instantané** : chaque module est lu sur son propre instantané ; deux modules sont lus l'un
+  après l'autre. La reprise (35b) signalera une référence absente.
+- **Avant le code du 35b** : D7 (factures, avoirs et numérotation à la reprise) attend l'avis de
+  l'expert-comptable.
+- **`LISEZMOI.txt`** décrit déjà la reprise (« Reprendre un export Symbola »), livrée au 35b. Le
+  gel des déploiements fait partir les deux ensemble ; si le 35a devait partir seul, retirer
+  cette phrase.
+
+### Vérifications (en local)
+
+- Lint, typecheck, frontières de modules : verts. Registre RGPD à jour.
+- Unitaires : app 499, dont le format et la couverture des tables (`schemas.test.ts`) et l'e-mail ;
+  `@symbola/privacy` 42, dont l'écrivain en flux.
+- Intégration :
+  - app 625, dont 6 pour l'export complet : contenu, exclusions, rôle, isolation, unicité,
+    expiration à l'horloge simulée, reprise ;
+  - `@symbola/db` 167, annulation de 0134 comprise ;
+  - `@symbola/auth` 21.
+- Parcours e2e, base rechargée : 281 réussis, 3 ignorés (les mêmes qu'avant). Nouveau parcours
+  `hub-13-export-complet`, en taille ordinateur et en 375 px, avec axe-core.
+- Semgrep (`p/default`) : rien sur le code du lot (six signalements anciens de
+  `quotes/service.ts`, hors du lot). Gitleaks : aucune fuite dans le diff du lot.
+- Rejeu : export de l'atelier de Camille (ORG-01) sur le jeu fictif, sans blocage
+  (`docs/recette/HUB-13.md`).
