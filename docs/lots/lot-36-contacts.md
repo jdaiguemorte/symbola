@@ -1,8 +1,8 @@
 # Lot 36 — Le contact unique
 
-**Statut** : spécification **à valider par Julien** avant le code. CLAUDE.md § 8 l'exige : le
-lot change le schéma de trois modules (`hub`, `events`, `quotes`) et un parcours P0.
-Branche `lot-36-contacts`, partie de `main` après le lot 35 (PR #118).
+**Statut** : spécification **validée par Julien le 15/11/2026** (« Oui, je valide » : D1 à D12
+en (a)), ce qui vaut accord pour toucher les schémas `hub`, `events` et `quotes`.
+Branche `lot-36-contacts` (36a), partie de `main` après le lot 35 (PR #118).
 
 ## Contexte
 
@@ -296,3 +296,69 @@ d'ensemble.
 - **« Un contact n'existe qu'une fois, quel que soit le nombre d'apps »** et le carnet de
   prestataires, qui a ses propres fiches d'entreprises : D12.
 - **La règle de migration par module** (DAT-09) et une reprise qui traverse deux schémas : D6.
+
+## Bilan du lot 36a (15/11/2026)
+
+### Fait
+
+- **Le contact dans le noyau** (ARC-03, ADR 0069) : `hub.contacts` (personne pour l'instant ; foyer
+  et entreprise prévus au 36b) et `hub.contact_notes`, sous RLS, avec leur journal. Le service du
+  hub crée, retrouve, modifie, cherche, anonymise et efface les contacts ; les autres modules n'en
+  gardent que l'identifiant.
+- **Unicité** (DAT-12) : une adresse e-mail n'appartient qu'à un contact de l'organisation (index
+  unique partiel, adresse en minuscules et sans espaces). Saisie à la création d'un évènement,
+  elle reprend le contact qui la porte ; ailleurs, elle est refusée avec un lien vers lui.
+- **Les clients deviennent des contacts** (D4, D5) : `event_clients` n'est plus que le lien entre
+  l'évènement et ses contacts ; les liens personnels et les signataires portent l'identifiant du
+  contact, et leurs copies figées restent.
+- **Migration 0135** (D6) : une seule migration atomique traverse `hub`, `events` et `quotes`.
+  Elle reprend les clients existants (un contact par client, fusion par adresse e-mail dans
+  l'organisation, sauf entre clients d'un même évènement), avec son annulation et son test.
+  Elle demande l'arrêt de l'app au déploiement (runbook).
+- **Écrans** (CRM-03, D7) :
+  - « Contacts » dans le menu : liste avec recherche et pages ; ajout d'un contact ;
+  - la fiche : identité et coordonnées modifiables, historique (évènements, devis et factures,
+    documents de ces évènements), notes de l'équipe datées avec leur auteur ;
+  - la recherche globale trouve les contacts, après les évènements.
+- **Zéro ressaisie** (UX-02, D8) :
+  - à la création d'un évènement, chaque client se choisit par la recherche ou se crée sur place ;
+    « Créer un évènement » depuis une fiche choisit le contact d'emblée ;
+  - à l'envoi en signature, nom, e-mail et adresse de facturation sont repris de la fiche ; une
+    adresse saisie ou corrigée y est gardée si la case, cochée par défaut, le reste ;
+  - modifier les coordonnées d'un client depuis l'évènement modifie sa fiche, donc partout.
+- **RGPD et export** : registre à jour ; le hub trouve, exporte et anonymise les contacts ;
+  l'effacement d'un client anonymise son contact s'il n'est plus client d'aucun évènement ; un
+  contact sans évènement suit la règle des prospects (D9) ; les essais créent des contacts d'essai,
+  purgés avec eux. Format `symbola.export/v1` changé sur place (D10, avenant de l'ADR 0068).
+- **Aide** : écran « Contacts » avec sa capture, fiche du contact ; textes de la création
+  d'évènement et du devis complétés ; capture de la création régénérée.
+
+### Écarts et points ouverts
+
+- **Foyers, entreprises et import de contacts** : lot 36b (HUB-14, SC-10).
+- **Prestataires du carnet** hors des contacts (D12, écart assumé par l'ADR 0069).
+- **Fusion de deux contacts sans e-mail** : CRM-07.
+- **Jeu fictif** : les évènements sans client nommé y reçoivent un client au nom de l'évènement,
+  qui paraît désormais dans les contacts (64 des 65 d'ORG-02). À compléter dans le jeu ; décision
+  de Julien (`docs/recette/SC-02.md`).
+- **Un envoi en signature refusé** ne garde pas les adresses saisies, et le bloc de signature ne
+  liste pas les mentions manquantes (remarque du rejeu).
+
+### Vérifications (en local)
+
+- Lint, typecheck, frontières de modules : verts. Registre RGPD à jour.
+- Unitaires : app 499, `@symbola/privacy` 42, `@symbola/contracts` 24, `@symbola/i18n` 39.
+- Intégration :
+  - app 633, dont 8 pour les contacts (unicité, retour d'un couple, recherche, notes, isolation,
+    purge à l'horloge simulée, essais) ;
+  - `@symbola/db` 172, dont la reprise de 0135 et son annulation, et l'isolation des contacts ;
+  - `@symbola/auth` 21.
+- Parcours e2e, base rechargée : 285 réussis, 3 ignorés (les mêmes qu'avant). Nouveau parcours
+  `crm-03-ux-02-contacts`, en taille ordinateur et en 375 px, avec axe-core ; `sec-13` couvre la
+  fiche d'un contact d'une autre organisation. Le premier passage a trouvé un défaut : la
+  recherche globale montrait le contact avant l'évènement, alors qu'un nom de client doit ouvrir
+  l'évènement (AIDE-08). Les évènements restent en tête.
+- Semgrep (`p/default`) : rien sur le code du lot (les six signalements anciens de
+  `quotes/service.ts`).
+- Rejeu : SC-02, étapes 1, 3 et 4 sans ressaisie, et SC-01, étape 4 (`docs/recette/`).
+
