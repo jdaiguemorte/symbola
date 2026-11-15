@@ -410,7 +410,11 @@ d'ensemble.
 - Lint, typecheck, frontières de modules : verts. Registre RGPD à jour.
 - Unitaires : app 500 (le client entreprise sur le devis), `@symbola/contracts` 24.
 - Intégration : `@symbola/db` 174 (annulation de 0136, isolation des membres, accès Admin) ;
-  `@symbola/auth` 21 ; app : voir plus bas, dont 8 pour l'import de contacts sur le fichier de 600
-  lignes et 4 pour les foyers et entreprises.
+  `@symbola/auth` 21 ; app 645, dont 8 pour l'import de contacts sur le fichier de 600 lignes et 4
+  pour les foyers et entreprises.
+- Parcours e2e, base rechargée : 289 réussis, 3 ignorés (les mêmes qu'avant). Nouveau parcours
+  `hub-14-sc-10-contacts`, en taille ordinateur et en 375 px, avec axe-core ; `imp-09-reprise`
+  compte désormais quatre tuiles (les contacts en tête).
+- Semgrep (`p/default`) : rien sur le code du lot. Gitleaks : aucune fuite dans les commits du lot.
 - Rejeu : SC-10, étapes 2 à 5, à 150 %, sans blocage (`docs/recette/SC-10.md`).
 

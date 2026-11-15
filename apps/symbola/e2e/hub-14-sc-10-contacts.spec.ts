@@ -71,7 +71,7 @@ test("SC-10 / HUB-14 — importer 600 contacts : colonnes proposées, prestatair
   await expectNoAxeViolation(page);
   await page.getByRole("button", { name: /^Importer \d+ contacts$/ }).click();
   // 192 lignes écartées et le doublon ignoré ne sont pas importés.
-  await expect(page.getByText(/\d+ créations, (aucune mise à jour|\d+ mises? à jour), \d+ lignes? inchangées?, 193 lignes rejetées/)).toBeVisible();
+  await expect(page.getByText(/\d+ créations, (aucune mise à jour|\d+ mises? à jour), \d+ lignes? inchangées?, 193 lignes rejetées/)).toBeVisible({ timeout: 30_000 });
   await page.getByRole("link", { name: /^Voir les \d+ contacts$/ }).click();
 
   // Le contact importé : nom et prénom séparés, la catégorie dans une note.
@@ -87,7 +87,8 @@ test("SC-10 / HUB-14 — importer 600 contacts : colonnes proposées, prestatair
   await page.goto("/import");
   await page.getByRole("link", { name: "contacts-import-test-600.csv" }).click();
   await page.getByRole("button", { name: "Annuler l'import" }).click();
-  await expect(page.getByText(/éléments annulés/)).toBeVisible();
+  // 700 éléments à défaire : quelques secondes quand toute la suite tourne.
+  await expect(page.getByText(/éléments annulés/)).toBeVisible({ timeout: 30_000 });
   await expectNoAxeViolation(page);
   await clickMenuLink(page, "Contacts");
   await expect(page.getByText("Aucun contact pour l'instant. Les clients de vos évènements deviennent des contacts.")).toBeVisible();
