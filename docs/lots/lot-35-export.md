@@ -1,7 +1,9 @@
 # Lot 35 — Export complet réversible et fermeture d'un espace
 
-Statut : spécification **à valider par Julien** avant le code. CLAUDE.md § 8 l'exige : le lot
-change le schéma `hub`.
+**Statut** : spécification **validée par Julien le 15/11/2026** (« Oui, je valide » : D1 à D9
+en (a)). D7 reste à faire confirmer par l'expert-comptable avant le code du 35b, D8 par l'avocat
+et le DPO avant le code du 35c, et la durée de D9 par le DPO.
+Branche `lot-35-export` (35a), partie de `main` après le lot 34 (PR #116).
 
 ## Contexte
 
