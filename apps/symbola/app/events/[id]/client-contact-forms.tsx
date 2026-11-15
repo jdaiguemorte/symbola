@@ -2,6 +2,7 @@
 
 // Lot 14 (décisions I et K) — coordonnées de chaque client de l'événement,
 // budget souhaité.
+import Link from "next/link";
 import { useActionState } from "react";
 import { useTranslations } from "next-intl";
 import type { EventClient, EventDetail } from "@/modules/events/service";
@@ -9,14 +10,21 @@ import { setEventIdentityAction, setWantedBudgetAction, updateClientContactActio
 
 export function ClientContactForm({ eventId, client }: { eventId: string; client: EventClient }) {
   const t = useTranslations("Events");
+  const tContacts = useTranslations("Contacts");
   const [state, action, pending] = useActionState<ClientContactFormState, FormData>(updateClientContactAction, {});
   const name = `${client.firstName} ${client.lastName ?? ""}`.trim();
+  // Lot 36a : un client retiré par le RGPD n'a plus de fiche.
+  if (!client.contactId) return null;
   return (
     <form action={action} className="client-contact-form" aria-label={t("clientContactFormLabel", { name })}>
       <input type="hidden" name="eventId" value={eventId} />
       <input type="hidden" name="clientId" value={client.id} />
       <fieldset>
         <legend>{name}</legend>
+        {/* Lot 36a (CRM-03) : ce sont les coordonnées du contact, partout dans l'organisation. */}
+        <p className="meta">
+          {tContacts("sharedHint")} <Link href={`/contacts/${client.contactId}`}>{tContacts("openContact", { name })}</Link>
+        </p>
         <label>
           {t("contactEmail")}
           <input type="email" name="email" defaultValue={client.email ?? ""} autoComplete="off" />

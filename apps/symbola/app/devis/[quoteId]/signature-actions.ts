@@ -9,6 +9,7 @@ import {
   QuoteScheduleExceedsTotalError,
   QuoteVatRegimeRequiredError,
   QuoteVersionLockedError,
+  RequiredMentionsMissingError,
   SignatureAlreadyRequestedError,
   SignatureLinksNotMailedError,
   SignatureUnavailableError,
@@ -36,9 +37,17 @@ function readSigners(formData: FormData): SignerInput[] {
   const signers: SignerInput[] = [];
   for (let index = 0; index < MAX_SIGNER_ROWS; index++) {
     const value = (field: string) => String(formData.get(`signer_${index}_${field}`) ?? "").trim();
-    const [name, email, billingAddress, eventClientId] = [value("name"), value("email"), value("address"), value("clientId")];
+    const [name, email, billingAddress, eventClientId, contactId] = [value("name"), value("email"), value("address"), value("clientId"), value("contactId")];
     if (!name && !email && !billingAddress) continue;
-    signers.push({ name, email, billingAddress, eventClientId: isValidId(eventClientId) ? eventClientId : null });
+    // Lot 36a (D8) : l'adresse est gardée sur la fiche du contact si la case est cochée.
+    signers.push({
+      name,
+      email,
+      billingAddress,
+      eventClientId: isValidId(eventClientId) ? eventClientId : null,
+      contactId: isValidId(contactId) ? contactId : null,
+      saveBillingAddress: formData.get(`signer_${index}_saveAddress`) === "on",
+    });
   }
   return signers;
 }
@@ -86,6 +95,8 @@ export async function sendForSignatureAction(_prevState: QuoteFormState, formDat
     if (error instanceof QuoteEmptyError) return { error: t("quoteEmpty") };
     if (error instanceof QuoteScheduleExceedsTotalError) return { error: t("scheduleExceedsTotal") };
     if (error instanceof QuoteVatRegimeRequiredError) return { error: t("vatRegimeRequired"), vatRegimeRequired: true };
+    // Rejeu SC-02 du lot 36a : des mentions manquantes ne sont pas une panne du service de signature.
+    if (error instanceof RequiredMentionsMissingError) return { error: t("mentionsMissing"), missingMentions: error.fields };
     if (error instanceof RangeError) return { error: t("invalidSigners") };
     // La demande est enregistrée ; ses liens sont sur le devis (signingLinksHint).
     if (error instanceof SignatureLinksNotMailedError) {

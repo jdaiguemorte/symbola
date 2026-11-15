@@ -5,7 +5,7 @@
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { parseAmountToCents } from "@symbola/i18n";
-import { EventNotFoundError, InvalidClientContactError, setEventIdentity, setEventVenue, setEventWantedBudget, updateEventClientContact } from "@/modules/events/service";
+import { ClientEmailTakenError, EventNotFoundError, InvalidClientContactError, setEventIdentity, setEventVenue, setEventWantedBudget, updateEventClientContact } from "@/modules/events/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isEventsModuleEnabled, isValidId } from "../module-access";
 
@@ -42,6 +42,8 @@ export async function updateClientContactAction(_prev: ClientContactFormState, f
     });
   } catch (error) {
     if (error instanceof InvalidClientContactError) return { error: t("clientContactInvalidEmail") };
+    // Lot 36a (DAT-12) : l'adresse est celle d'un autre contact de l'organisation.
+    if (error instanceof ClientEmailTakenError) return { error: (await getTranslations("Contacts"))("emailTaken") };
     if (error instanceof EventNotFoundError) return { error: t("eventNotFound") };
     throw error;
   }

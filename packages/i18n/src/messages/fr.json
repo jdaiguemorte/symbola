@@ -122,7 +122,8 @@
     "followUpDepositWaiting": "Facture d'acompte du devis {number}, émise d'elle-même",
     "followUpDepositBlocked": "Facture d'acompte du devis {number} bloquée : une mention manque",
     "followUpDepositOn": "le {date}",
-    "followUpDepositBlockedBadge": "à émettre"
+    "followUpDepositBlockedBadge": "à émettre",
+    "contacts": "Contacts"
   },
   "Admin": {
     "createOrganizationTitle": "Créer une organisation",
@@ -559,7 +560,7 @@
     },
     "eventsNew": {
       "title": "Nouveau prospect",
-      "body": "Un prénom de marié et la source du contact suffisent pour créer le prospect ; la date, le lieu et le budget se complètent plus tard. Si la date tombe le même jour qu'un autre évènement confirmé ou en option, Symbola le signale avant l'enregistrement, sans l'empêcher. Depuis l'agenda, une date libre ouvre ce formulaire avec la date déjà remplie.",
+      "body": "Un prénom de marié et la source du contact suffisent pour créer le prospect ; la date, le lieu et le budget se complètent plus tard. Un client déjà connu se choisit par la recherche : son nom et ses coordonnées ne sont pas ressaisis. Si la date tombe le même jour qu'un autre évènement confirmé ou en option, Symbola le signale avant l'enregistrement, sans l'empêcher. Depuis l'agenda, une date libre ouvre ce formulaire avec la date déjà remplie.",
       "faq": [
         {
           "q": "Quelle différence entre prospect et événement ?",
@@ -705,7 +706,7 @@
     },
     "quotesDetail": {
       "title": "Composer un devis",
-      "body": "Composez le devis à partir du catalogue ou de lignes libres ; les totaux se recalculent. Prévoyez les acomptes, puis envoyez-le en signature : à la signature, une option passe en « Confirmé ». Une version envoyée est figée ; pour la changer, créez une nouvelle version.",
+      "body": "Composez le devis à partir du catalogue ou de lignes libres ; les totaux se recalculent. Prévoyez les acomptes, puis envoyez-le en signature : à la signature, une option passe en « Confirmé ». Une version envoyée est figée ; pour la changer, créez une nouvelle version. Les signataires reprennent le nom, l'e-mail et l'adresse de facturation de la fiche du contact ; une adresse corrigée à l'envoi y est gardée si la case reste cochée.",
       "faq": [
         {
           "q": "Comment facturer un acompte ?",
@@ -1076,6 +1077,14 @@
           "a": "Oui : chaque table a son fichier CSV (séparateur point-virgule, UTF-8). Les fichiers JSON sont la référence : ils gardent les liens entre les tables."
         }
       ]
+    },
+    "contactsList": {
+      "title": "Contacts",
+      "body": "Chaque personne n'existe qu'une fois dans votre espace : un couple qui revient pour un second évènement garde sa fiche, ses coordonnées et son historique. Cherchez par nom, adresse ou téléphone ; une adresse e-mail n'appartient qu'à un contact. Les contacts d'essai n'apparaissent pas ici."
+    },
+    "contactDetail": {
+      "title": "Fiche d'un contact",
+      "body": "Les coordonnées de la fiche sont celles que reprennent ses évènements, ses liens personnels et ses devis : les modifier ici les modifie partout. L'historique rassemble ses évènements, ses devis et factures, et les documents de ses évènements ; les notes sont à l'équipe. « Créer un évènement » le choisit d'emblée comme client."
     }
   },
   "Aide": {
@@ -2275,7 +2284,8 @@
     "pdfReceiptAmount": "Montant reçu",
     "pdfReceiptMethod": "Reçu par {method}",
     "pdfReceiptMention": "Reçu non fiscal. Ces arrhes viendront en règlement sur la facture de solde.",
-    "pdfReceiptCancelled": "Encaissement annulé"
+    "pdfReceiptCancelled": "Encaissement annulé",
+    "signerSaveAddress": "Garder cette adresse sur la fiche du contact"
   },
   "Documents": {
     "pdfSellerHeading": "De",
@@ -2953,7 +2963,8 @@
       "privacy_request": "Demande RGPD close (nom de la personne)",
       "greeting": "Message",
       "link": "Lien personnel",
-      "earnest_receipt": "Reçu d'arrhes"
+      "earnest_receipt": "Reçu d'arrhes",
+      "contact": "Contact"
     },
     "field": {
       "firstName": "Prénom",
@@ -3468,7 +3479,8 @@
     "seeAll": "Voir tous les résultats",
     "hint": "↑ ↓ pour choisir · Entrée pour ouvrir · Échap pour fermer",
     "globalLabel": "Recherche dans Symbola",
-    "vendorBookDetail": "Carnet de prestataires"
+    "vendorBookDetail": "Carnet de prestataires",
+    "groupContacts": "Contacts"
   },
   "AdminOnboarding": {
     "title": "Prise en main des organisations",
@@ -4825,7 +4837,9 @@
       "quotes_scheduled_deposit_invoices": "Facture d'acompte à émettre",
       "quotes_earnest_receipts": "Reçus d'arrhes",
       "hub_memberships": "adhésion",
-      "hub_organization_exports": "export complet"
+      "hub_organization_exports": "export complet",
+      "hub_contacts": "contact",
+      "hub_contact_notes": "note d'un contact"
     },
     "modules": {
       "events": "Événements",
@@ -5652,5 +5666,68 @@
     "missingFiles": "{count, plural, one {# fichier introuvable} other {# fichiers introuvables}} dans le stockage : la liste est dans le manifeste de l'archive.",
     "errorTooLarge": "L'archive dépasse la taille permise (4 Go). Écrivez-nous : nous la préparerons avec vous.",
     "errorFailed": "La préparation a échoué. Relancez l'export ; si l'échec revient, écrivez-nous."
+  },
+  "Contacts": {
+    "title": "Contacts",
+    "subtitle": "Chaque personne n'existe qu'une fois dans votre espace.",
+    "searchLabel": "Chercher un contact",
+    "search": "Nom, e-mail ou téléphone",
+    "searchSubmit": "Chercher",
+    "newTitle": "Ajouter un contact",
+    "create": "Ajouter le contact",
+    "noResults": "Aucun contact ne correspond.",
+    "empty": "Aucun contact pour l'instant. Les clients de vos évènements deviennent des contacts.",
+    "listLabel": "Liste des contacts",
+    "name": "Nom",
+    "firstName": "Prénom",
+    "lastName": "Nom",
+    "email": "E-mail",
+    "phone": "Téléphone",
+    "addressLine": "Adresse",
+    "postalCode": "Code postal",
+    "city": "Ville",
+    "country": "Pays",
+    "billingAddress": "Adresse de facturation",
+    "billingAddressHint": "Reprise à l'envoi d'un devis en signature ; sans elle, l'adresse ci-dessus.",
+    "identityTitle": "Identité et coordonnées",
+    "save": "Enregistrer la fiche",
+    "saved": "Fiche enregistrée.",
+    "emailTaken": "Cette adresse e-mail est déjà celle d'un autre contact de votre espace.",
+    "openExisting": "Ouvrir ce contact",
+    "invalidEmail": "Cette adresse e-mail n'est pas valide.",
+    "missingFirstName": "Indiquez au moins le prénom.",
+    "notFound": "Ce contact n'existe pas ou plus.",
+    "detailSubtitle": "Fiche du contact",
+    "back": "Tous les contacts",
+    "newEvent": "Créer un évènement",
+    "historyTitle": "Historique",
+    "eventsTitle": "Évènements",
+    "noEvents": "Ce contact n'est client d'aucun évènement.",
+    "quotesTitle": "Devis et factures",
+    "noQuotes": "Aucun devis pour ses évènements.",
+    "invoiceLine": "Facture {number} du {date}, {amount} (devis {quote})",
+    "documentsTitle": "Documents",
+    "noDocuments": "Aucun document dans ses évènements.",
+    "notesTitle": "Notes de l'équipe",
+    "noNotes": "Aucune note.",
+    "noteBody": "Votre note",
+    "noteAdd": "Ajouter la note",
+    "noteAdded": "Note ajoutée.",
+    "noteInvalid": "Une note compte de 1 à 2 000 caractères.",
+    "noteMeta": "{author}, {date}",
+    "noteRemove": "Retirer ma note",
+    "noteAuthorUnknown": "Ancien membre de l'équipe",
+    "pickerClient1": "Premier client",
+    "pickerClient2": "Second client",
+    "pickerSearch": "Client déjà connu ? Cherchez-le par son nom, son e-mail ou son téléphone",
+    "pickerResults": "{count, plural, =0 {Aucun contact trouvé.} one {# contact trouvé.} other {# contacts trouvés.}}",
+    "pickerResultsLabel": "Contacts trouvés",
+    "pickerChoose": "Choisir {name}",
+    "pickerChooseShort": "Choisir",
+    "pickerChosen": "Contact choisi : {name}",
+    "pickerChange": "Changer",
+    "pickerNone": "Aucun contact trouvé : saisissez le nom ci-dessous.",
+    "sharedHint": "Ce sont les coordonnées de la fiche du contact : les modifier ici les modifie partout.",
+    "openContact": "Ouvrir la fiche de {name}"
   }
 }

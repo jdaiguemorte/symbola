@@ -5,12 +5,15 @@ import { useTranslations } from "next-intl";
 import { createProspectAction, type NewProspectFormState } from "./actions";
 import type { EventType, ProspectSource } from "@/modules/events/service";
 import type { Audience, ClientFieldLabels } from "@/lib/vocabulary";
+import type { ContactChoice } from "@/app/contacts/actions";
+import { ContactPicker } from "@/app/contacts/contact-picker";
 import { SameDayNotice } from "../same-day-notice";
 
 export function NewProspectForm({
   sources,
   eventTypes,
   clientLabels,
+  initialContact = null,
   initialDate = "",
   confirmed = false,
 }: {
@@ -18,6 +21,8 @@ export function NewProspectForm({
   eventTypes: EventType[];
   // Lot 16 (ADR 0045) : les libellés des clients suivent le type choisi.
   clientLabels: Record<Audience, ClientFieldLabels>;
+  // Lot 36a (UX-02) : premier client déjà choisi (depuis la fiche d'un contact).
+  initialContact?: ContactChoice | null;
   initialDate?: string;
   confirmed?: boolean;
 }) {
@@ -28,6 +33,8 @@ export function NewProspectForm({
   // Lot 32b (CRM-04) : la date suivie, pour signaler les évènements du même jour avant l'enregistrement.
   const [eventDate, setEventDate] = useState(initialDate);
   const labels = clientLabels[eventTypes.find((type) => type.id === eventTypeId)?.audience ?? "couple"];
+  // Lot 36a (UX-02) : un contact choisi remplace la saisie de son nom.
+  const tContacts = useTranslations("Contacts");
 
   return (
     <form action={formAction}>
@@ -42,22 +49,26 @@ export function NewProspectForm({
           ))}
         </select>
       </label>
-      <label>
-        {labels.client1FirstName}
-        <input type="text" name="firstName1" required />
-      </label>
-      <label>
-        {labels.client1LastName}
-        <input type="text" name="lastName1" />
-      </label>
-      <label>
-        {labels.client2FirstName}
-        <input type="text" name="firstName2" />
-      </label>
-      <label>
-        {labels.client2LastName}
-        <input type="text" name="lastName2" />
-      </label>
+      <ContactPicker name="contactId1" legend={tContacts("pickerClient1")} initial={initialContact}>
+        <label>
+          {labels.client1FirstName}
+          <input type="text" name="firstName1" required />
+        </label>
+        <label>
+          {labels.client1LastName}
+          <input type="text" name="lastName1" />
+        </label>
+      </ContactPicker>
+      <ContactPicker name="contactId2" legend={tContacts("pickerClient2")}>
+        <label>
+          {labels.client2FirstName}
+          <input type="text" name="firstName2" />
+        </label>
+        <label>
+          {labels.client2LastName}
+          <input type="text" name="lastName2" />
+        </label>
+      </ContactPicker>
       <label>
         {t("source")}
         <select name="prospectSourceId" required defaultValue="">

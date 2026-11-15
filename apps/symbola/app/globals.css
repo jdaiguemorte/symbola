@@ -1073,6 +1073,21 @@
   .stack {
     @apply flex flex-col gap-2;
   }
+  /* Lot 36a (CRM-03) : champs d'un formulaire côte à côte quand la place le permet (fiche d'un
+     contact), les uns sous les autres à 375 px. */
+  .form-row {
+    @apply flex flex-wrap gap-3;
+  }
+  .form-row > label {
+    @apply min-w-48 flex-1;
+  }
+  /* Lot 36a (UX-02) : choix d'un contact existant (création d'un évènement). */
+  .contact-choices {
+    @apply m-0 flex list-none flex-col gap-1 p-0;
+  }
+  .contact-choices > li {
+    @apply flex flex-wrap items-center justify-between gap-2 border-b border-ground py-1;
+  }
   /* Lot 35a (HUB-13) : derniers exports complets de l'organisation. */
   .export-list {
     @apply m-0 flex list-none flex-col gap-3 p-0;

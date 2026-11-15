@@ -11,6 +11,7 @@ import { privacyRequests } from "@symbola/db/schema/hub";
 import { withOrganization } from "@symbola/db/with-organization";
 import { createUser } from "@symbola/auth";
 import { ZipArchive } from "@symbola/import-engine";
+import { createContact } from "../modules/hub/service";
 import { expect, test, type Page } from "@playwright/test";
 import { readyOrganization, signIn as signInByLink } from "./helpers";
 
@@ -28,7 +29,9 @@ async function seedWedding(db: ReturnType<typeof createAppConnection>["db"], org
   await withOrganization(db, organizationId, async (tx) => {
     const [source] = await tx.insert(prospectSources).values({ organizationId, label: "Instagram" }).returning();
     const [event] = await tx.insert(events).values({ organizationId, eventDate: "2027-06-12", prospectSourceId: source!.id }).returning();
-    await tx.insert(eventClients).values({ organizationId, eventId: event!.id, firstName, lastName, position: 0 });
+    // Lot 36a : le client est un contact du hub.
+    const contact = await createContact(organizationId, { firstName, lastName });
+    await tx.insert(eventClients).values({ organizationId, eventId: event!.id, contactId: contact.id, position: 0 });
     await tx.insert(eventTasks).values({ organizationId, eventId: event!.id, label: task, dueDate: "2027-01-15" });
   });
 }

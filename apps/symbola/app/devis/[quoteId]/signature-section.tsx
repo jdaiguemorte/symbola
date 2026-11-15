@@ -1,6 +1,7 @@
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatDateTime, type Locale } from "@symbola/i18n";
 import { listEventLinks, type EventDetail } from "@/modules/events/service";
+import { getContactsByIds } from "@/modules/hub/service";
 import { isSignatureAvailable, listQuoteContracts, type QuoteDetail } from "@/modules/quotes/service";
 import { PAID_CLASS, OVERDUE_CLASS } from "../quote-display";
 import { SendForSignatureForm, type SignerDraft } from "./signature-forms";
@@ -83,11 +84,19 @@ export async function SignatureSection({
   // Pré-remplissage : les mariés de l'événement, avec l'e-mail de leur lien
   // personnel (lot 26a), sinon celui de leur fiche.
   const links = event ? (await listEventLinks(organizationId, event.id)).filter((link) => link.audience === "client" && link.status !== "revoked") : [];
-  const drafts: SignerDraft[] = (event?.clients ?? []).map((client) => ({
-    eventClientId: client.id,
-    name: [client.firstName, client.lastName].filter(Boolean).join(" "),
-    email: links.find((link) => link.eventClientId === client.id)?.email ?? client.email ?? "",
-  }));
+  // Lot 36a (UX-02, D8) : l'adresse de facturation de la fiche du contact, sinon son adresse postale.
+  const contacts = await getContactsByIds(organizationId, (event?.clients ?? []).map((client) => client.contactId).filter((id): id is string => id !== null));
+  const drafts: SignerDraft[] = (event?.clients ?? []).map((client) => {
+    const contact = client.contactId ? contacts.get(client.contactId) : undefined;
+    const postal = [client.addressLine, [client.postalCode, client.city].filter(Boolean).join(" ")].filter(Boolean).join("\n");
+    return {
+      eventClientId: client.id,
+      contactId: client.contactId,
+      name: [client.firstName, client.lastName].filter(Boolean).join(" "),
+      email: links.find((link) => link.eventClientId === client.id)?.email ?? client.email ?? "",
+      billingAddress: contact?.billingAddress ?? postal,
+    };
+  });
   // Lot 31b (DOC-03, D9) : le contrat de la version courante, à jour (généré après le dernier choix
   // des options) et pas encore en signature, part avec le devis.
   const contracts = quote.current.sentAt ? await listQuoteContracts(organizationId, quote.id) : [];
