@@ -415,6 +415,13 @@ sans cette clé, l'app refuse de démarrer.
    La migration 0137 (lot 37a : dossiers, versions, partage et liens de partage des documents d'un
    évènement) ajoute trois tables, trois colonnes et une valeur, et met chaque document existant en
    version 1, dans « Divers », non partagé : elle passe aussi sans arrêter `symbola`.
+   Les migrations 0138 à 0140 (lot 37b, ADR 0071) passent aussi sans arrêter `symbola` : 0138
+   ajoute les versions diffusées du programme et fait du programme existant de chaque évènement sa
+   version 1 (déjà vue par ses liens) ; 0139 ajoute le relevé de stockage et la taille du logo ;
+   0140 les tailles des documents signés et des dossiers de preuve. Au premier démarrage de l'image
+   du lot 37b, le relevé du mois est pris dans l'heure, et les tailles manquantes sont lues une
+   fois au stockage : un fichier absent est signalé au journal (« relevé de stockage : fichier
+   absent du stockage », avec l'identifiant de la ligne), sans bloquer le relevé.
 4. Redémarrer seulement le service `symbola` :
    ```bash
    sudo docker compose -f infra/compose/docker-compose.prod.yml \
@@ -450,6 +457,13 @@ colonnes, reprises du premier lieu ; les horaires et le contact des lieux, les i
 les notes, les pièces jointes et les commentaires des tâches sont perdus (les fichiers des pièces
 jointes restent dans le stockage, sans ligne : `restauration.md`, § 4 bis), et une tâche confiée à
 un prestataire revient à la planner. Arrêter `symbola` avant l'annulation.
+
+**Vers une image du lot 37a** (antérieure au lot 37b) : les migrations 0138 à 0140 peuvent rester
+(l'image du lot 37a ignore les versions, le relevé et les tailles) ; remettre l'ancien tag d'image,
+puis les étapes 4 et 5. Les clients et les prestataires revoient alors le programme en direct ; une
+version diffusée entre-temps reste en base, sans effet. Pour revenir plus loin, annuler 0140, 0139
+puis 0138 (`0140_lot37b_quotes_file_sizes`, `0139_lot37b_hub_storage_snapshots`,
+`0138_lot37b_events_program_versions` ; les versions et les relevés sont perdus).
 
 **Vers une image du lot 36b** (antérieure au lot 37a) : la migration 0137 peut rester (l'image du
 lot 36b ignore les dossiers, les versions, le partage et les liens) ; remettre l'ancien tag

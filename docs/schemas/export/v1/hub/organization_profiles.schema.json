@@ -22,6 +22,18 @@
         "null"
       ]
     },
+    "logoSizeBytes": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "legalForm": {
       "anyOf": [
         {
@@ -272,6 +284,7 @@
     "siren",
     "address",
     "logoKey",
+    "logoSizeBytes",
     "legalForm",
     "metier",
     "metierPrecision",
