@@ -316,3 +316,79 @@ Chaque migration ne touche que le schéma de son module (DAT-09) et a son annula
   couleurs en V1 ; la couleur des documents existe déjà et sert aux e-mails : D4.
 - **Q18** demande un service à plusieurs domaines « pour les lots 38 et 55 » ; ce lot n'en a pas
   besoin si l'envoi depuis le domaine de la planner reste au lot 55 : D2.
+
+## Bilan du lot 38a (16/11/2026)
+
+### Fait
+
+- **Des modèles à variables** (MSG-01, D3, D5, D6) : dix e-mails aux tiers partent des modèles de
+  l'organisation (liens du client et du prestataire, créés et renouvelés ; rappel des tâches ;
+  demandes de signature du devis et du contrat ; commande d'abord ; exemplaire signé ; nouvelle
+  version du programme), en français et en anglais, avec un texte de départ en fichier de données.
+  - Paramètres › Modèles d'e-mails : les modèles rangés par sujet (ceux d'un module non souscrit ne
+    sont pas proposés), la langue au choix ; pour chacun, l'objet, le texte, ses variables (les
+    indispensables marquées), « Enregistrer », « Revenir au texte de départ » (confirmé).
+  - Une variable inconnue ou étrangère au modèle est refusée à l'enregistrement, une variable
+    indispensable aussi si elle manque ; le texte saisi reste dans le formulaire.
+  - Une variable sans valeur arrête l'e-mail avant le plafond d'envois : le lien n'est pas créé, la
+    demande de signature n'est pas enregistrée, la planner lit quel modèle et quelle variable. Un
+    rappel automatique arrêté est porté au journal, sans adresse, et signalé dans « Aujourd'hui »
+    avec le chemin vers le modèle.
+- **À l'image de l'organisation** (MSG-01, HUB-18, D2, D4, D7) : e-mail HTML et sa version texte ;
+  logo joint en ligne ou nom, couleur des documents (graphite sans couleur) pour le bandeau et le
+  bouton, coordonnées en pied ; le nom de l'organisation en expéditeur, l'adresse de Symbola, les
+  réponses vers son adresse de contact. L'aperçu dans l'écran du modèle, avec des données
+  fictives ; « M'envoyer un essai » à la personne connectée seulement, marqué « Essai », compté
+  dans le plafond.
+- **Les e-mails de Symbola** (code d'un lien, demande de renouvellement, devis signé, export prêt,
+  invitation, lien de connexion, console) : texte fixe sorti des services vers les fichiers de
+  traduction, même mise en page ; le lien de connexion et ceux de l'équipe deviennent des boutons.
+- **Le garde-fou d'envoi groupé** (MSG-02, D8) : un écran commun, le nombre, la liste (nom et
+  adresse) et « Envoyer à N personnes », pour la signature du devis (avec ou sans contrat), du
+  contrat seul et l'e-mail du programme. Le serveur refuse une liste changée depuis l'écran et
+  renvoie la nouvelle ; les signataires saisis restent dans le formulaire.
+- **« Prévenir par e-mail »** (D9) : après une diffusion, la dernière version part aux liens actifs
+  des clients avec la rubrique Programme et des prestataires, chacun avec son programme en PDF dans
+  sa langue (la version des clients, ou la vue de son poste) ; une seule fois ; la fiche dit quand
+  et à combien de personnes.
+- **Migrations 0141 et 0142**, une par schéma (`events`, `hub`), chacune avec son annulation et ses
+  tests (annulation, isolation, accès Admin) ; elles passent sans arrêter l'app. Export v1 :
+  `email_templates`, et la date et le nombre d'envoi d'une version (la v1 tient). ADR 0072,
+  runbook (sans retour arrière vers l'image d'un lot intermédiaire, décision du 16/11), aide de
+  l'écran, grille d'écart (MSG-01 et MSG-02 conformes, HUB-18 partiel).
+
+### Écarts et points ouverts
+
+- **38b** : les modèles de messages de la planner (HUB-21) et les flux de calendrier (HUB-29) ; le
+  message depuis un modèle à plusieurs destinataires passera par le même garde-fou.
+- **HUB-18** reste partiel : l'espace client sans l'identité complète de l'organisation, et la
+  police dans les e-mails (V1).
+- **Service d'e-mail** (D2) : inchangé ; le choix d'un service à plusieurs domaines et l'envoi
+  depuis le domaine de la planner restent au lot 55 (MSG-04, Q18).
+- **Ordre des refus** : un refus qui ne tient pas aux destinataires (mentions, régime de TVA)
+  arrive après l'écran du garde-fou (rejeu SC-02) ; laissé en l'état.
+- **Capture du centre d'aide** de Paramètres › Modèles d'e-mails : pas encore prise (illustration
+  générique), au prochain passage du script des captures.
+
+### Vérifications (en local)
+
+- Lint, typecheck, frontières de modules : verts. Registre RGPD à jour (le texte d'un modèle est
+  celui de l'entreprise, aucun champ personnel nouveau).
+- Unitaires : app 522 (dont 8 pour les règles des modèles et l'empreinte des destinataires).
+- Intégration :
+  - app 697, dont 9 pour les e-mails à l'image de l'organisation (MSG-01, HUB-18, isolation),
+    3 pour le garde-fou de la signature, 5 pour « Prévenir par e-mail » (destinataires, PDF de
+    chacun, une seule fois, garde-fou, isolation) et 1 pour le rappel arrêté ;
+  - `@symbola/db` 185 (annulation de 0141 et 0142, isolation des modèles, colonnes d'envoi
+    modifiables seules, accès Admin) ; `@symbola/auth` 21 ; `@symbola/mail` 3 (nom affiché,
+    adresse de réponse, logo en ligne, contre Mailpit).
+- Semgrep (`p/default`) sur les fichiers du lot : rien. Gitleaks : rien dans les fichiers du lot.
+- Parcours e2e, base rechargée : 303 réussis, 3 ignorés (les mêmes qu'avant). Nouveau parcours
+  `msg-01-02-hub-18-emails` (modèles, aperçu, essai, retour au texte de départ, l'autre langue ;
+  « Prévenir par e-mail » par le garde-fou ; bandeau « Aujourd'hui »), en taille ordinateur et en
+  375 px, avec axe-core ; `fac-04-05-contrat` et `aide-01-02-devis-budget` passent par l'écran du
+  garde-fou ; `prd-evt-06` reprend une navigation interrompue par le retour arrière (instable à
+  375 px avant le lot, une fois sur quatre).
+- Rejeu SC-02 étapes 4 et 5 et SC-08 étape 6 (`docs/recette/SC-02.md`, `SC-08.md`) : sans blocage.
+  Un défaut trouvé et corrigé pendant la vérification : après « Revenir au texte de départ », le
+  formulaire gardait l'ancien texte et l'ancien aperçu.

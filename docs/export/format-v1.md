@@ -83,3 +83,7 @@ La liste table par table, avec sa raison, est dans l'index généré. Un test
   `hub/organization_profiles.logoSizeBytes`, `quotes/signature_requests.signedDocumentSizeBytes`
   et `auditCertificateSizeBytes`, `quotes/contract_evidence.sizeBytes`. Le relevé du stockage
   (`hub/storage_snapshots`), donnée d'exploitation, n'est pas exporté ; la v1 tient.
+- **Lot 38a** : l'entité `hub/email_templates` (modèles d'e-mails réécrits par l'organisation ; un
+  modèle absent vaut le texte de départ de Symbola) s'ajoute, ainsi que deux champs facultatifs de
+  `events/program_versions` (`notifiedAt`, `notifiedCount` : envoi de la version par e-mail) ; la v1
+  tient.

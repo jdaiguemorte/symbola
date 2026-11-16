@@ -422,6 +422,12 @@ sans cette clé, l'app refuse de démarrer.
    du lot 37b, le relevé du mois est pris dans l'heure, et les tailles manquantes sont lues une
    fois au stockage : un fichier absent est signalé au journal (« relevé de stockage : fichier
    absent du stockage », avec l'identifiant de la ligne), sans bloquer le relevé.
+   Les migrations 0141 et 0142 (lot 38a, ADR 0072) passent sans arrêter `symbola` : 0141 ajoute
+   la date et le nombre d'envoi par e-mail d'une version du programme (les deux seules colonnes
+   d'une version que l'app peut modifier) ; 0142 ajoute les modèles d'e-mails de l'organisation,
+   vides au départ (chacun vaut son texte de départ). Aucun réglage nouveau : l'adresse
+   d'expédition reste `SMTP_FROM` ; le nom affiché devient celui de l'organisation et les réponses
+   vont à son adresse de contact.
 4. Redémarrer seulement le service `symbola` :
    ```bash
    sudo docker compose -f infra/compose/docker-compose.prod.yml \
