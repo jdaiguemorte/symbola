@@ -1,7 +1,9 @@
 // DEV-01 — PDF A4 d'une version de devis (courante ou ancienne : les
 // versions précédentes restent téléchargeables). Contrôles côté serveur :
 // session planner, organisation, module souscrit, identifiants valides.
+// Lot 37a (DOC-01, DOC-07, D5) : « ?apercu=1 » l'affiche dans le navigateur, même rendu.
 import { refusedResponse } from "@/lib/access-refusals";
+import { wantsPreview } from "@/lib/file-response";
 import { z } from "zod";
 import { getQuote, QuoteNotFoundError, type QuoteDetail } from "@/modules/quotes/service";
 import { isValidId } from "../../module-access";
@@ -33,7 +35,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ quot
   return new Response(new Uint8Array(pdf), {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename="${quote.number}-V${version.version}.pdf"`,
+      "Content-Disposition": `${wantsPreview(request) ? "inline" : "attachment"}; filename="${quote.number}-V${version.version}.pdf"`,
       "Cache-Control": "no-store",
     },
   });

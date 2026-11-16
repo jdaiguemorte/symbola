@@ -111,9 +111,15 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
         }
         actions={
           !isDraft || current.lines.length > 0 ? (
-            <a href={`/devis/${quote.id}/pdf?version=${current.version}`} className="button-link">
-              {t("downloadPdf", { version: current.version })}
-            </a>
+            <>
+              {/* Lot 37a (DOC-07, D5) : l'aperçu est le PDF lui-même, rendu à la demande depuis les données de la version, jamais stocké. */}
+              <a href={`/devis/${quote.id}/pdf?version=${current.version}&apercu=1`} className="button-link" target="_blank" rel="noopener noreferrer">
+                {t("previewPdf", { version: current.version })}
+              </a>
+              <a href={`/devis/${quote.id}/pdf?version=${current.version}`} className="button-link">
+                {t("downloadPdf", { version: current.version })}
+              </a>
+            </>
           ) : null
         }
       />

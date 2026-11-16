@@ -18,3 +18,26 @@ export function fileDownloadResponse(file: FileDownload, options: { inline?: boo
     },
   });
 }
+
+// Lot 37a (DOC-01, D5 ; ADR 0070) — l'aperçu sans téléchargement : un PDF ou une image
+// (types vérifiés par le contenu à l'envoi) s'affiche dans le navigateur quand l'adresse demande
+// « ?apercu=1 », dans son propre onglet (l'app interdit d'être encadrée : X-Frame-Options DENY,
+// frame-ancestors 'none'). Tout autre type se télécharge.
+const PREVIEWABLE = new Set(["application/pdf", "image/png", "image/jpeg", "image/gif", "image/webp"]);
+
+export function isPreviewableMime(mime: string | null | undefined): boolean {
+  return Boolean(mime && PREVIEWABLE.has(mime));
+}
+
+export function wantsPreview(request: Request): boolean {
+  return new URL(request.url).searchParams.get("apercu") === "1";
+}
+
+export function fileResponse(file: FileDownload, request: Request): Response {
+  return fileDownloadResponse(file, { inline: wantsPreview(request) && isPreviewableMime(file.contentType) });
+}
+
+// Adresse d'aperçu d'une route de fichier (le paramètre s'ajoute à ceux qu'elle a déjà).
+export function previewPath(path: string): string {
+  return `${path}${path.includes("?") ? "&" : "?"}apercu=1`;
+}

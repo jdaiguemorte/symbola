@@ -98,7 +98,8 @@ const iconProps = { size: 20, "aria-hidden": true as const, strokeWidth: 1.5 };
 // lot 26b, /prestataire). Elles
 // ont leur propre cadre, sans menu ni recherche ni compte : le logo de
 // l'organisation du lien (servi par /portail/logo), sinon son nom.
-const LINK_PAGE = /^\/(?:lien|portail|prestataire)(?:\/|$)/;
+// Lot 37a (DOC-04) : /partage, la page d'un lien de partage de document.
+const LINK_PAGE = /^\/(?:lien|portail|prestataire|partage)(?:\/|$)/;
 
 async function LinkShell({ children }: { children: ReactNode }) {
   const access = await currentLinkAccess();

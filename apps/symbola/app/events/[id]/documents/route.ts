@@ -22,10 +22,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   // Sans intitulé, le nom du fichier sans son extension.
   const label = String(formData.get("label") ?? "").trim() || file.name.replace(/\.[^.]+$/, "").slice(0, EVENT_DOCUMENT_LABEL_MAX);
   try {
-    await attachEventDocument({ organizationId: user.organizationId, eventId, label, content: new Uint8Array(await file.arrayBuffer()), uploadedByUserId: user.id });
+    // Lot 37a (D3) : le dossier choisi, sinon « Divers » ; un dossier d'un autre évènement est refusé.
+    const folder = String(formData.get("folderId") ?? "");
+    const folderId = isValidId(folder) ? folder : null;
+    await attachEventDocument({ organizationId: user.organizationId, eventId, label, content: new Uint8Array(await file.arrayBuffer()), uploadedByUserId: user.id, folderId });
   } catch (error) {
     if (error instanceof EventDocumentRejectedError) {
-      return uploadResponse({ error: t(error.reason === "too_large" ? "fileTooLarge" : error.reason === "infected" ? "fileInfected" : error.reason === "label" ? "labelInvalid" : "fileUnsupported") });
+      return uploadResponse({ error: t(error.reason === "too_large" ? "fileTooLarge" : error.reason === "infected" ? "fileInfected" : error.reason === "label" ? "labelInvalid" : error.reason === "folder" ? "folderInvalid" : "fileUnsupported") });
     }
     if (error instanceof EventNotFoundError) return uploadResponse({ error: t("notFound") });
     throw error;

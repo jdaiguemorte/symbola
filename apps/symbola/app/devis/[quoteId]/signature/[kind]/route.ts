@@ -2,9 +2,10 @@
 // contrat signé seul),
 // servi par l'app depuis le stockage privé (ADR 0027). Contrôles côté
 // serveur : session planner, organisation, module souscrit.
+// Lot 37a (DOC-01, D5) : « ?apercu=1 » l'affiche dans le navigateur (lib/file-response.ts).
 import { refusedResponse } from "@/lib/access-refusals";
 import { z } from "zod";
-import { fileDownloadResponse } from "@/lib/file-response";
+import { fileResponse } from "@/lib/file-response";
 import { getSignatureDocument, OriginalAlteredError, QuoteNotFoundError, SignatureDocumentNotFoundError } from "@/modules/quotes/service";
 import { isValidId } from "../../../module-access";
 import { authorizedPlanner } from "../../../planner-access";
@@ -20,7 +21,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ quot
   // Lot 31b (D9) : « ?portee=contrat » sert le document du contrat signé seul, après le devis.
   const scope = new URL(request.url).searchParams.get("portee") === "contrat" ? "contract" : "quote";
   try {
-    return fileDownloadResponse(await getSignatureDocument(planner.organizationId, quoteId, parsed.data, scope));
+    return fileResponse(await getSignatureDocument(planner.organizationId, quoteId, parsed.data, scope), request);
   } catch (error) {
     if (error instanceof QuoteNotFoundError || error instanceof SignatureDocumentNotFoundError) return refusedResponse(request);
     // Lot 23b (DOC-08) : fichier relu différent de celui archivé.

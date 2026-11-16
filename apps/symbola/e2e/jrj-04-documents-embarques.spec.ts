@@ -64,7 +64,8 @@ test("JRJ-04 / SC-08 étape 3 — le plan de table envoyé, embarqué, s'ouvre e
   await page.getByLabel("Fichier (PDF ou image, 20 Mo au plus)").setInputFiles({ name: "plan.pdf", mimeType: "application/pdf", buffer: TINY_PDF });
   await page.getByRole("button", { name: "Envoyer le document" }).click();
   await expect(page.getByRole("status")).toHaveText("Document ajouté.");
-  await expect(page.getByRole("link", { name: "Plan de table", exact: true })).toBeVisible();
+  // Lot 37a (DOC-01, D5) : le document s'aperçoit dans un nouvel onglet, ou se télécharge.
+  await expect(page.getByRole("link", { name: "Aperçu de « Plan de table » (nouvel onglet)" })).toBeVisible();
   await expectNoAxeViolation(page);
 
   // Écran du jour J : choisir les documents embarqués.

@@ -1,6 +1,8 @@
 // DEV-04 — PDF d'un avoir émis. Lot 23b (DOC-08, ADR 0061) : l'original déposé
 // à l'émission, servi seulement si son empreinte est intacte ; sinon 409.
+// Lot 37a (DOC-01, DOC-07, D5) : « ?apercu=1 » l'affiche dans le navigateur, même rendu.
 import { refusedResponse } from "@/lib/access-refusals";
+import { wantsPreview } from "@/lib/file-response";
 import { getCreditNotePdf, InvoiceNotFoundError, OriginalAlteredError } from "@/modules/quotes/service";
 import { isValidId } from "../../../module-access";
 import { authorizedPlanner } from "../../../planner-access";
@@ -24,7 +26,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ cred
   return new Response(new Uint8Array(found.pdf), {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename="${found.number}.pdf"`,
+      "Content-Disposition": `${wantsPreview(request) ? "inline" : "attachment"}; filename="${found.number}.pdf"`,
       "Cache-Control": "no-store",
     },
   });

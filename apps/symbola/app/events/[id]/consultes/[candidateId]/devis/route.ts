@@ -1,11 +1,12 @@
 // Lot 11 (L11-EVT-10) — devis d'un prestataire consulté, ouvert par l'équipe :
 // session, organisation et module vérifiés, fichier servi par l'app depuis
 // le stockage privé (ADR 0027).
+// Lot 37a (DOC-01, D5) : « ?apercu=1 » l'affiche dans le navigateur (lib/file-response.ts).
 import { refusedResponse } from "@/lib/access-refusals";
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { attachVendorCandidateQuote, CandidateQuoteRejectedError, getVendorCandidateQuoteFile, VendorCandidateNotFoundError } from "@/modules/events/service";
-import { fileDownloadResponse } from "@/lib/file-response";
+import { fileResponse } from "@/lib/file-response";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { receiveUpload, uploadResponse } from "@/lib/uploads/receive";
 import { isEventsModuleEnabled, isValidId } from "../../../../module-access";
@@ -18,7 +19,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   const { candidateId } = await params;
   if (!isValidId(candidateId)) return new Response(null, { status: 404 });
   try {
-    return fileDownloadResponse(await getVendorCandidateQuoteFile(organizationId, candidateId));
+    return fileResponse(await getVendorCandidateQuoteFile(organizationId, candidateId), request);
   } catch (error) {
     if (error instanceof VendorCandidateNotFoundError) return refusedResponse(request);
     throw error;

@@ -3,9 +3,9 @@ import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatAmount, formatCalendarDate, formatMonth, parisToday, type Locale } from "@symbola/i18n";
 import { ScreenHelp } from "@/app/screen-help";
-import { getLinkEventView, getLinkVendorOptions, LinkAccessDeniedError, listLinkDecisions, monthKey, type EventDecision, type EventTask, type LinkAccess } from "@/modules/events/service";
+import { getLinkEventView, getLinkVendorOptions, LinkAccessDeniedError, listLinkDecisions, listLinkSharedDocuments, monthKey, type EventDecision, type EventTask, type LinkAccess } from "@/modules/events/service";
 import { getLinkBudgetView, LinkBudgetAccessDeniedError } from "@/modules/budget/service";
-import { listClientQuoteOptions, listClientQuotesToSign } from "@/modules/quotes/service";
+import { listClientQuoteOptions, listClientQuotesToSign, listEventInvoices } from "@/modules/quotes/service";
 import { isBudgetModuleEnabled } from "@/app/budget/module-access";
 import { isQuotesModuleEnabled } from "@/app/devis/module-access";
 import { isEventsModuleEnabled } from "@/app/events/module-access";
@@ -14,6 +14,7 @@ import { ClientQuotes } from "./client-quotes";
 import { ClientQuoteOptionsForm } from "./client-quote-options";
 import { ClientVendorOptions } from "./client-vendor-options";
 import { LinkPrivacyNotice } from "./link-privacy-notice";
+import { SharedDocuments } from "./shared-documents";
 import { ClientDecisions } from "./client-decisions";
 import { decisionLabel } from "./decision-label";
 import { declarablePaymentMethods } from "./payment-methods";
@@ -92,12 +93,23 @@ export async function PortalContent({ access, preview = false, banner }: { acces
   }
   const tDecisions = await getTranslations("Decisions");
 
+  // Lot 37a (POR-04, POR-10, D6) : les documents partagés avec les clients (rien par défaut), et
+  // d'office les factures et avoirs émis pour l'évènement, qui leur sont adressés.
+  let sharedDocuments: Awaited<ReturnType<typeof listLinkSharedDocuments>> = [];
+  try {
+    sharedDocuments = await listLinkSharedDocuments(organizationId, linkId);
+  } catch (error) {
+    if (!(error instanceof LinkAccessDeniedError)) throw error;
+  }
+  const invoices = (await isQuotesModuleEnabled(organizationId)) ? await listEventInvoices(organizationId, access.eventId) : [];
+  const hasDocuments = sharedDocuments.length > 0 || invoices.length > 0;
+
   const tasksByMonth = new Map<string, EventTask[]>();
   for (const task of view.tasks ?? []) {
     const key = monthKey(task.dueDate);
     tasksByMonth.set(key, [...(tasksByMonth.get(key) ?? []), task]);
   }
-  const nothingShared = rubrics.length === 0;
+  const nothingShared = rubrics.length === 0 && !hasDocuments;
   const until = countdown(view.event.eventDate, today);
   const done = view.tasks ? progress(view.tasks) : null;
   const actions = nextActions({ tasks: view.tasks, quotes: quotesToSign, payments: budget?.payments ?? null, decisions, today });
@@ -108,6 +120,7 @@ export async function PortalContent({ access, preview = false, banner }: { acces
     vendorOptions.length > 0 ? ["options", tLink("navOptions")] : null,
     budget ? ["budget", tLink("navBudget")] : null,
     quotesToSign.length > 0 || quoteOptions.length > 0 ? ["devis", tLink("navQuotes")] : null,
+    hasDocuments ? ["documents", tLink("navDocuments")] : null,
   ].filter((entry): entry is [string, string] => entry !== null);
 
   const taskToggle = (task: Pick<EventTask, "id" | "label" | "done">) => (
@@ -287,6 +300,8 @@ export async function PortalContent({ access, preview = false, banner }: { acces
           {quotesToSign.length > 0 ? <ClientQuotes quotes={quotesToSign} locale={locale} preview={preview} /> : null}
         </div>
       ) : null}
+
+      {hasDocuments ? <SharedDocuments documents={sharedDocuments} basePath="/portail/documents" invoices={invoices} locale={locale} preview={preview} headingId="portal-documents-title" /> : null}
 
       <p className="muted">{tLink("validUntil", { date: formatCalendarDate(access.expiresOn, locale) })}</p>
       <form action={preview ? undefined : closeLinkSessionAction}>

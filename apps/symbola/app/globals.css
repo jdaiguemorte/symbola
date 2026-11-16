@@ -2955,6 +2955,47 @@
   .event-documents a {
     @apply inline-flex min-h-11 items-center;
   }
+  /* Lot 37a (DOC-01, DOC-04 ; ADR 0070) : espace documents, ses dossiers, ses versions et ses liens. */
+  .document-links {
+    @apply my-0 flex flex-wrap items-center gap-x-4 gap-y-1;
+  }
+  .document-links > a,
+  .document-links > span {
+    @apply inline-flex min-h-11 items-center;
+  }
+  .document-folder {
+    @apply mt-6 w-full min-w-0;
+  }
+  .document-folder > h3,
+  .document-folder > h4 {
+    @apply mb-1 border-b border-line pb-1 font-semibold text-ink;
+  }
+  .document-folders,
+  .document-manage {
+    @apply my-2 w-full min-w-0;
+  }
+  .document-folders > summary,
+  .document-manage > summary {
+    @apply inline-flex min-h-11 cursor-pointer items-center font-medium;
+  }
+  .document-manage[open] {
+    @apply space-y-4 rounded-md border border-line bg-ground p-4;
+  }
+  .document-manage form,
+  .document-folders form {
+    @apply w-full min-w-0 max-w-none;
+  }
+  .document-versions,
+  .document-links-list {
+    @apply my-2 list-none space-y-2 p-0;
+  }
+  .document-versions > li,
+  .document-links-list > li {
+    @apply flex flex-col gap-1 border-b border-line pb-2 last:border-b-0 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between;
+  }
+  .share-open-actions {
+    @apply my-4 flex flex-wrap gap-3;
+  }
 }
 
 /* Lot 30a (JRJ-01, JRJ-03, UX-05 ; décision D3) — écran de terrain du jour J (et page

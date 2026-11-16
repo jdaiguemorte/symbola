@@ -4,11 +4,12 @@ import { appDatabase } from "@symbola/db/client";
 import { formatCalendarDate, type Locale } from "@symbola/i18n";
 import { ScreenHelp } from "@/app/screen-help";
 import type { ReactNode } from "react";
-import { getVendorLinkView, LinkAccessDeniedError, type LinkAccess } from "@/modules/events/service";
+import { getVendorLinkView, LinkAccessDeniedError, listLinkSharedDocuments, type LinkAccess } from "@/modules/events/service";
 import { getOrganizationContact } from "@/modules/hub/service";
 import { isEventsModuleEnabled } from "@/app/events/module-access";
 import { closeLinkSessionAction } from "@/app/portail/actions";
 import { LinkPrivacyNotice } from "@/app/portail/link-privacy-notice";
+import { SharedDocuments } from "@/app/portail/shared-documents";
 import { toggleVendorTaskAction } from "./actions";
 
 // Lot 26b (UX-11, POR-01 ; ADR 0053, décision D9) — espace minimal d'un
@@ -47,6 +48,8 @@ export async function VendorSpaceContent({ access, preview = false, banner }: { 
     throw error;
   }
   const contact = await getOrganizationContact(appDatabase(), organizationId);
+  // Lot 37a (POR-10, D6) : les documents partagés avec les prestataires de l'évènement (rien par défaut).
+  const sharedDocuments = await listLinkSharedDocuments(organizationId, linkId);
 
   return (
     <main className="portal">
@@ -115,6 +118,8 @@ export async function VendorSpaceContent({ access, preview = false, banner }: { 
           ))}
         </ul>
       )}
+
+      {sharedDocuments.length > 0 ? <SharedDocuments documents={sharedDocuments} basePath="/prestataire/documents" locale={locale} preview={preview} headingId="vendor-documents-title" /> : null}
 
       <section aria-labelledby="vendor-contact-title">
         <h2 id="vendor-contact-title">{t("contactTitle")}</h2>

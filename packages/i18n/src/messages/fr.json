@@ -607,6 +607,10 @@
         {
           "q": "Comment relancer un prestataire sans contrat signé ?",
           "a": "Avec « Relancer » sur sa ligne, dans « Aujourd'hui » ou la synthèse : votre messagerie s'ouvre sur un message prêt, à l'adresse de sa fiche du carnet, et la relance s'inscrit dans le fil d'activité."
+        },
+        {
+          "q": "Comment ranger et partager les documents de l'évènement ?",
+          "a": "Dans l'onglet Documents : déposez un plan ou un document dans un dossier (« Plans », « Traiteur »), déposez-en une nouvelle version sans perdre les précédentes, et ouvrez l'aperçu sans rien télécharger. Rien n'est partagé tant que vous ne cochez pas « Avec les clients » ou « Avec les prestataires » ; les factures émises figurent d'office au portail des clients. Pour une personne sans lien personnel, créez un lien de partage de 1 à 30 jours : il n'ouvre que ce document, chaque ouverture s'inscrit dans le fil d'activité, et vous le révoquez à tout moment. Les devis, factures et pièces jointes des autres écrans s'y retrouvent aussi, en lecture."
         }
       ]
     },
@@ -646,11 +650,11 @@
     },
     "clientEvent": {
       "title": "Votre espace",
-      "body": "Votre organisateur vous a ouvert cet espace par un lien personnel, sans compte ni mot de passe. En haut, vos trois prochaines actions et ce qu'il vous demande de décider ; plus bas, ce qu'il a partagé avec vous : vos tâches à cocher, le programme du jour J, le budget en trois chiffres et ses échéances. Une échéance réglée ? Déclarez-la : votre organisateur la confirmera. Ce lien vous est réservé : ne le transférez pas."
+      "body": "Votre organisateur vous a ouvert cet espace par un lien personnel, sans compte ni mot de passe. En haut, vos trois prochaines actions et ce qu'il vous demande de décider ; plus bas, ce qu'il a partagé avec vous : vos tâches à cocher, le programme du jour J, le budget en trois chiffres et ses échéances, les documents qu'il vous a partagés et vos factures, à ouvrir ou à télécharger. Une échéance réglée ? Déclarez-la : votre organisateur la confirmera. Ce lien vous est réservé : ne le transférez pas."
     },
     "vendorSpace": {
       "title": "Votre espace prestataire",
-      "body": "Votre organisateur vous a ouvert cet espace par un lien personnel, sans compte ni mot de passe. Vous y trouvez la date, les lieux, les horaires du programme qui vous concernent, les tâches qu'il vous confie (cochez-les une fois faites) et le moyen de le joindre. Ce lien vous est réservé : ne le transférez pas."
+      "body": "Votre organisateur vous a ouvert cet espace par un lien personnel, sans compte ni mot de passe. Vous y trouvez la date, les lieux, les horaires du programme qui vous concernent, les tâches qu'il vous confie (cochez-les une fois faites), les documents qu'il vous a partagés et le moyen de le joindre. Ce lien vous est réservé : ne le transférez pas."
     },
     "budgetSettings": {
       "title": "Répartition du budget",
@@ -1703,7 +1707,8 @@
     "guestsInvalid": "Indiquez un nombre entier d'invités, de 0 à 100 000.",
     "identityInvalid": "Le style tient en 2 000 caractères et les notes en 10 000.",
     "interlocutorsLabel": "Interlocuteurs",
-    "interlocutorOfPlace": "{name} ({place})"
+    "interlocutorOfPlace": "{name} ({place})",
+    "activityDocumentLinkOpened": "Lien de partage ouvert : « {task} »."
   },
   "Budget": {
     "title": "Budget",
@@ -1951,6 +1956,7 @@
     "reviseWithNewRegime": "Créer une nouvelle version avec le nouveau régime",
     "linesCaption": "Lignes de la version {version}",
     "noLines": "Aucune ligne pour l'instant : ajoutez un article du catalogue ou une ligne libre.",
+    "previewPdf": "Aperçu du PDF (version {version}, nouvel onglet)",
     "downloadPdf": "Télécharger le PDF (version {version})",
     "composeTitle": "Composer le devis",
     "editLineNamed": "Modifier la ligne « {label} »",
@@ -3012,7 +3018,19 @@
       "greeting": "Message",
       "link": "Lien personnel",
       "earnest_receipt": "Reçu d'arrhes",
-      "contact": "Contact"
+      "contact": "Contact",
+      "contract": "Contrat",
+      "contract_signer_act": "Acte d'un signataire de contrat",
+      "event_day_contact": "Contact du jour J",
+      "event_document": "Document de l'événement",
+      "event_document_folder": "Dossier de documents",
+      "event_place": "Lieu de l'événement",
+      "quote_options_choice": "Choix des options d'un devis",
+      "task_attachment": "Pièce jointe d'une tâche",
+      "task_comment": "Commentaire d'une tâche",
+      "vendor": "Prestataire du carnet",
+      "vendor_candidate": "Prestataire consulté",
+      "vendor_payment": "Paiement d'un prestataire"
     },
     "field": {
       "firstName": "Prénom",
@@ -4897,7 +4915,10 @@
       "hub_organization_exports": "export complet",
       "hub_contacts": "contact",
       "hub_contact_notes": "note d'un contact",
-      "hub_contact_members": "membre d'un foyer ou d'une entreprise"
+      "hub_contact_members": "membre d'un foyer ou d'une entreprise",
+      "events_event_document_folders": "dossier de documents",
+      "events_event_document_versions": "version d'un document",
+      "events_event_document_links": "lien de partage d'un document"
     },
     "modules": {
       "events": "Événements",
@@ -5074,7 +5095,8 @@
     "declareSubmitShort": "Déclarer le règlement",
     "cancelDeclarationShort": "Annuler ma déclaration",
     "navDecisions": "À décider",
-    "actionGoDecision": "Répondre"
+    "actionGoDecision": "Répondre",
+    "navDocuments": "Documents"
   },
   "VendorSpace": {
     "title": "Votre espace prestataire",
@@ -5279,7 +5301,7 @@
   },
   "EventDocuments": {
     "title": "Documents de l'événement",
-    "intro": "Plan de table, plans d'accès, plan B : rangez-les ici. Sur l'écran du jour J, choisissez ceux à garder sur le téléphone.",
+    "intro": "Plan de table, plans d'accès, plan B : déposez-les ici, rangez-les dans des dossiers, partagez-les. Les devis, factures et pièces des autres écrans s'y retrouvent aussi, en lecture.",
     "empty": "Aucun document pour l'instant.",
     "addTitle": "Ajouter un document",
     "label": "Intitulé",
@@ -5301,7 +5323,86 @@
     "remove": "Supprimer",
     "removeLabel": "Supprimer « {label} »",
     "chooseForDayOf": "Choisir les documents à embarquer pour le jour J",
-    "dayOfLater": "Une fois l'événement confirmé et daté, vous choisirez sur l'écran du jour J les documents à garder sur le téléphone."
+    "dayOfLater": "Une fois l'événement confirmé et daté, vous choisirez sur l'écran du jour J les documents à garder sur le téléphone.",
+    "folder": "Dossier",
+    "folderMisc": "Divers",
+    "folderInvalid": "Ce dossier n'existe plus : rechargez la page.",
+    "folderNameInvalid": "Donnez au dossier un nom de 80 caractères au plus.",
+    "foldersTitle": "Dossiers ({count})",
+    "foldersHint": "Un niveau de dossiers suffit (« Plans », « Traiteur »). Retirer un dossier range ses documents dans « Divers » : aucun n'est supprimé.",
+    "folderName": "Nouveau dossier",
+    "folderPlaceholder": "Par exemple : Traiteur",
+    "createFolder": "Créer le dossier",
+    "folderCreated": "Dossier créé.",
+    "folderRenameLabel": "Nouveau nom du dossier « {name} »",
+    "folderRenamed": "Dossier renommé.",
+    "folderRemove": "Retirer le dossier",
+    "folderRemoveLabel": "Retirer le dossier « {name} » (ses documents vont dans « Divers »)",
+    "folderEmpty": "Aucun document.",
+    "preview": "Aperçu",
+    "previewLabel": "Aperçu de « {label} » (nouvel onglet)",
+    "download": "Télécharger",
+    "downloadLabel": "Télécharger « {label} »",
+    "versionNumber": "version {version}",
+    "sharedBoth": "partagé avec les clients et les prestataires",
+    "sharedClients": "partagé avec les clients",
+    "sharedVendors": "partagé avec les prestataires",
+    "sharedNobody": "non partagé",
+    "manageLabel": "Gérer « {label} »",
+    "sharingLegend": "Partager « {label} »",
+    "shareClients": "Avec les clients de l'évènement (leur portail)",
+    "shareVendors": "Avec les prestataires de l'évènement (leur espace)",
+    "saveSharing": "Enregistrer le partage",
+    "sharingSaved": "Partage enregistré.",
+    "newVersionLabel": "Nouvelle version de « {label} » (PDF ou image, 20 Mo au plus)",
+    "newVersion": "Déposer la nouvelle version",
+    "versionAdded": "Nouvelle version déposée. Les précédentes restent consultables.",
+    "versionsTitle": "Versions de « {label} »",
+    "versionsHeading": "Versions",
+    "versionLine": "Version {version} — {date} — {size}",
+    "versionCurrent": "celle qu'on voit et qu'on partage",
+    "versionOf": "{label}, version {version}",
+    "linksTitle": "Liens de partage de « {label} »",
+    "linksHeading": "Liens de partage",
+    "linksHint": "Pour une personne sans lien personnel (un traiteur pas encore retenu, un régisseur) : le lien n'ouvre que ce document, pendant 1 à 30 jours. Chaque ouverture va au fil d'activité.",
+    "linkActive": "Valable jusqu'au {date}",
+    "linkExpired": "Expiré le {date}",
+    "linkRevoked": "Révoqué",
+    "linkOpenedAt": "{count, plural, one {ouvert # fois} other {ouvert # fois}}, la dernière le {date}",
+    "linkNeverOpened": "jamais ouvert",
+    "revokeLink": "Révoquer le lien",
+    "linkDaysLabel": "Durée d'un nouveau lien pour « {label} », en jours",
+    "linkDaysHint": "De {min} à {max} jours.",
+    "linkDaysInvalid": "Choisissez une durée de {min} à {max} jours.",
+    "createLink": "Créer un lien de partage",
+    "linkCreated": "Lien créé, valable jusqu'au {date}.",
+    "linkUrlLabel": "Adresse du lien, à envoyer vous-même",
+    "linkUrlOnce": "Cette adresse ne s'affichera plus : copiez-la maintenant. Perdue, elle se remplace par un nouveau lien.",
+    "moveLabel": "Ranger « {label} » dans",
+    "move": "Ranger",
+    "moved": "Document rangé.",
+    "moduleTitle": "Pièces des autres écrans",
+    "moduleHint": "Devis, factures, pièces des tâches et du budget, devis des prestataires consultés : chacun se gère depuis son écran. Les factures, avoirs et documents signés s'affichent tels qu'émis.",
+    "folderQuotes": "Devis et documents signés",
+    "folderInvoices": "Factures et avoirs",
+    "folderTasks": "Pièces des tâches",
+    "folderBudget": "Pièces du budget",
+    "folderCandidates": "Devis des prestataires consultés",
+    "moduleQuote": "Devis {number}",
+    "moduleQuoteDetail": "Version {version} · {status} · rendu à la demande",
+    "moduleSignedQuote": "Devis {number} signé",
+    "moduleOriginal": "original émis",
+    "moduleInvoice": "Facture {number}",
+    "moduleCreditNote": "Avoir {number}",
+    "moduleTaskDetail": "Tâche : {task}",
+    "moduleCandidateQuote": "Devis de {vendor}",
+    "quoteStatus": {
+      "draft": "brouillon",
+      "sent": "envoyé",
+      "signed": "signé",
+      "declined": "refusé",
+      "expired": "expiré"
+    }
   },
   "DayContacts": {
     "title": "Contacts du jour J",
@@ -5821,5 +5922,24 @@
     "groupsTitle": "Foyers et entreprises",
     "memberSearch": "Cherchez la personne par son nom, son e-mail ou son téléphone",
     "pickerNoneAlone": "Aucun contact trouvé : ajoutez-le d'abord à vos contacts."
+  },
+  "SharedDocuments": {
+    "title": "Documents",
+    "hint": "Chaque document s'ouvre dans un nouvel onglet, ou se télécharge.",
+    "documentsLabel": "Documents partagés",
+    "invoicesTitle": "Factures et avoirs",
+    "invoiceDetail": "Émise le {date} — {amount}",
+    "creditNoteDetail": "Sur la facture {invoice}, émis le {date} — {amount}",
+    "openingTitle": "Ouverture du document",
+    "openingBody": "Vérification du lien…",
+    "noScript": "Activez JavaScript pour ouvrir ce document.",
+    "invalidTitle": "Ce lien n'est plus valable",
+    "invalidBody": "Il a expiré, a été révoqué ou n'existe pas. Demandez un nouveau lien à la personne qui vous l'a envoyé.",
+    "retryLater": "Trop de tentatives. Réessayez dans {minutes} min.",
+    "sharedTitle": "Un document a été partagé avec vous",
+    "open": "Ouvrir le document",
+    "downloadFile": "Télécharger",
+    "openNotice": "Chaque ouverture est notée pour la personne qui a partagé le document.",
+    "pageNotice": "Cette page ne garde aucune donnée personnelle : elle vérifie seulement le lien."
   }
 }
