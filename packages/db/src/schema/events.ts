@@ -392,6 +392,41 @@ export const programItemParticipants = eventsSchema.table("program_item_particip
   updatedBy: uuid("updated_by"),
 }, (table) => [index("program_item_participants_organization_idx").on(table.organizationId)]);
 
+// Lot 37b (CHR-07, DAT-14 ; D8, ADR 0071) — versions diffusées du programme du jour J. « Diffuser »
+// fige une copie numérotée des séquences, sans note interne ; clients et prestataires lisent la
+// dernière version diffusée, jamais le programme en cours de modification. En ajout seul : une
+// version ne se modifie pas. publishedByUserId est nul pour la version 1 reprise à la migration.
+export type ProgramVersionItemRow = {
+  id: string;
+  startTime: string;
+  endTime: string | null;
+  label: string;
+  location: string | null;
+  responsible: string | null;
+  participants: { vendorSlotId: string | null; label: string }[];
+};
+
+export const programVersions = eventsSchema.table("program_versions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  eventId: uuid("event_id")
+    .notNull()
+    .references(() => events.id, { onDelete: "cascade" }),
+  number: integer("number").notNull(),
+  publishedAt: timestamp("published_at", { withTimezone: true }).defaultNow().notNull(),
+  publishedByUserId: uuid("published_by_user_id"),
+  items: jsonb("items").$type<ProgramVersionItemRow[]>().notNull(),
+  // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  createdBy: uuid("created_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedBy: uuid("updated_by"),
+}, (table) => [
+  index("program_versions_organization_idx").on(table.organizationId),
+  unique("program_versions_event_number_unique").on(table.eventId, table.number),
+  check("program_versions_number_check", sql`${table.number} >= 1`),
+]);
+
 // PRD-EVT-05 : modèles de programme de l'organisation (CLAUDE.md §2.5). Les
 // intervenants d'un modèle sont des libellés, rapprochés des postes de
 // l'événement quand le modèle est appliqué.
@@ -469,6 +504,9 @@ export const eventLinks = eventsSchema.table("event_links", {
   tokenHash: text("token_hash").unique(),
   renewalRequestedAt: timestamp("renewal_requested_at", { withTimezone: true }),
   lastOpenedAt: timestamp("last_opened_at", { withTimezone: true }),
+  // Lot 37b (CHR-07, D11) : dernière version diffusée du programme que la personne a vue ; une
+  // version plus récente est signalée « Nouvelle version du programme » sur sa page.
+  programVersionSeen: integer("program_version_seen"),
   revokedAt: timestamp("revoked_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).

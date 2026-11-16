@@ -967,6 +967,27 @@
       "when": 1794799120579,
       "tag": "0137_lot37a_events_documents",
       "breakpoints": true
+    },
+    {
+      "idx": 138,
+      "version": "7",
+      "when": 1794813055214,
+      "tag": "0138_lot37b_events_program_versions",
+      "breakpoints": true
+    },
+    {
+      "idx": 139,
+      "version": "7",
+      "when": 1794813061821,
+      "tag": "0139_lot37b_hub_storage_snapshots",
+      "breakpoints": true
+    },
+    {
+      "idx": 140,
+      "version": "7",
+      "when": 1794813062924,
+      "tag": "0140_lot37b_quotes_file_sizes",
+      "breakpoints": true
     }
   ]
 }

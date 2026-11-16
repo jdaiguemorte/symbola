@@ -586,6 +586,10 @@ export const signatureRequests = quotesSchema.table(
     // à la fin de leur conservation (RGPD).
     signedDocumentSha256: text("signed_document_sha256"),
     auditCertificateSha256: text("audit_certificate_sha256"),
+    // Lot 37b (DOC-12, D13) : tailles des deux fichiers, pour le relevé de stockage ; lues une fois
+    // au stockage pour une signature d'avant le lot.
+    signedDocumentSizeBytes: integer("signed_document_size_bytes"),
+    auditCertificateSizeBytes: integer("audit_certificate_size_bytes"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     completedAt: timestamp("completed_at", { withTimezone: true }),
     // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
@@ -688,6 +692,8 @@ export const contractEvidence = quotesSchema.table(
       .references(() => contracts.id),
     documentKey: text("document_key").notNull(),
     sha256: text("sha256").notNull(),
+    // Lot 37b (DOC-12, D13) : taille du dossier de preuve ; lue une fois au stockage avant le lot.
+    sizeBytes: integer("size_bytes"),
     // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     createdBy: uuid("created_by"),
