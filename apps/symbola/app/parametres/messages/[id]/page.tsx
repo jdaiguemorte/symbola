@@ -40,7 +40,7 @@ export default async function MessageTemplatePage({ params, searchParams }: { pa
       <ScreenHelp title={tHelp("messageTemplates.title")} body={tHelp("messageTemplates.body")} />
       {restored ? <p role="status">{t("restored")}</p> : null}
       <MessageTemplateForm
-        key={`${template.version}-${restored ?? ""}`}
+        key={restored ?? "modele"}
         template={{ id: template.id, name: template.name, eventTypeId: template.eventTypeId, subject: template.subject, body: template.body }}
         eventTypes={eventTypes.map((type) => ({ id: type.id, label: type.label }))}
         variables={messageTemplateVariables(template.locale).map((variable) => ({ key: variable.key, token: variable.token, description: t(`variables.${variable.key}`) }))}
