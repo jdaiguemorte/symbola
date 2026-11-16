@@ -77,10 +77,13 @@ function pdf(quoteId: string, preview: boolean) {
 }
 
 // Deux rendus ne diffèrent que par leurs dates de production et leur identifiant de fichier.
+// Les dates du PDF (en ligne ou en objet séparé) et son identifiant changent à chaque rendu ; deux
+// rendus à cheval sur une seconde différaient (test instable, lot 38b).
 function content(bytes: ArrayBuffer): string {
   return Buffer.from(bytes)
     .toString("latin1")
     .replace(/\/(CreationDate|ModDate) \([^)]*\)/g, "/$1 ()")
+    .replace(/\(D:\d{14}(Z|[+-]\d{2}'?\d{2}'?)?\)/g, "(D:)")
     .replace(/\/ID \[<[0-9a-f]+> <[0-9a-f]+>\]/gi, "/ID []");
 }
 
