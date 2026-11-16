@@ -1,9 +1,9 @@
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
-import { formatAmount, formatCalendarDate, formatMonth, parisToday, type Locale } from "@symbola/i18n";
+import { formatAmount, formatCalendarDate, formatDateTime, formatMonth, parisToday, type Locale } from "@symbola/i18n";
 import { ScreenHelp } from "@/app/screen-help";
-import { getLinkEventView, getLinkVendorOptions, LinkAccessDeniedError, listLinkDecisions, listLinkSharedDocuments, monthKey, type EventDecision, type EventTask, type LinkAccess } from "@/modules/events/service";
+import { getLinkEventView, getLinkVendorOptions, LinkAccessDeniedError, listLinkDecisions, listLinkSharedDocuments, markLinkProgramSeen, monthKey, type EventDecision, type EventTask, type LinkAccess } from "@/modules/events/service";
 import { getLinkBudgetView, LinkBudgetAccessDeniedError } from "@/modules/budget/service";
 import { listClientQuoteOptions, listClientQuotesToSign, listEventInvoices } from "@/modules/quotes/service";
 import { isBudgetModuleEnabled } from "@/app/budget/module-access";
@@ -58,6 +58,9 @@ export async function PortalContent({ access, preview = false, banner }: { acces
   }
   const rubrics = access.rights.rubrics;
   const today = parisToday();
+  // Lot 37b (CHR-07 ; D10, D11) : la version diffusée affichée est désormais vue ; jamais depuis
+  // l'aperçu « vu par ».
+  if (!preview && view.program?.version) await markLinkProgramSeen(organizationId, linkId, view.program.version.number);
 
   let budget = null;
   if (rubrics.includes("budget") && (await isBudgetModuleEnabled(organizationId))) {
@@ -257,19 +260,33 @@ export async function PortalContent({ access, preview = false, banner }: { acces
       {view.program ? (
         <section aria-labelledby="portal-program-title" id="programme">
           <h2 id="portal-program-title">{tEvents("programTitle")}</h2>
-          <p>{preview ? <span>{t("downloadProgram")}</span> : <a href="/portail/programme/pdf" download>{t("downloadProgram")}</a>}</p>
-          {view.program.items.length === 0 ? <p>{tEvents("noProgramItems")}</p> : null}
-          <ul aria-label={tEvents("programTitle")}>
-            {view.program.items.map((item) => (
-              <li key={item.id}>
-                <strong>
-                  {item.endTime ? `${item.startTime} – ${item.endTime}` : item.startTime} — {item.label}
-                </strong>
-                {item.location ? ` — ${item.location}` : ""}
-                {item.participants.length > 0 ? ` — ${tEvents("programParticipants")} : ${item.participants.map((participant) => participant.label).join(", ")}` : ""}
-              </li>
-            ))}
-          </ul>
+          {/* Lot 37b (CHR-07 ; D10, D11) : la dernière version diffusée, avec son numéro. */}
+          {view.program.version ? (
+            <>
+              {view.program.isNew ? (
+                <p role="status" className="badge-warning">
+                  {t("programNew", { number: view.program.version.number, date: formatDateTime(new Date(view.program.version.publishedAt), locale) })}
+                </p>
+              ) : null}
+              <p className="muted">{t("programVersion", { number: view.program.version.number, date: formatDateTime(new Date(view.program.version.publishedAt), locale) })}</p>
+              <p>{preview ? <span>{t("downloadProgram")}</span> : <a href="/portail/programme/pdf" download>{t("downloadProgram")}</a>}</p>
+            </>
+          ) : (
+            <p>{t("programNotPublished")}</p>
+          )}
+          {view.program.items.length > 0 ? (
+            <ul aria-label={tEvents("programTitle")}>
+              {view.program.items.map((item) => (
+                <li key={item.id}>
+                  <strong>
+                    {item.endTime ? `${item.startTime} – ${item.endTime}` : item.startTime} — {item.label}
+                  </strong>
+                  {item.location ? ` — ${item.location}` : ""}
+                  {item.participants.length > 0 ? ` — ${tEvents("programParticipants")} : ${item.participants.map((participant) => participant.label).join(", ")}` : ""}
+                </li>
+              ))}
+            </ul>
+          ) : null}
         </section>
       ) : null}
 

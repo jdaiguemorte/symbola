@@ -19,6 +19,7 @@ import {
   createProspectSource,
   selectVendorCandidate,
   updateVendorCandidate,
+  publishEventProgram,
 } from "../modules/events/service";
 import { createVendor } from "../modules/vendors/service";
 import { expectTouchTargets, readyOrganization } from "./helpers";
@@ -60,6 +61,8 @@ async function wedding() {
     await addEventPlace(organizationId, event.id, { label: "Domaine des Tilleuls", address: "1 allée des Tilleuls, Sarlat" });
     await addProgramItem(organizationId, event.id, { startTime: "15:30", endTime: "16:15", label: "Cérémonie laïque", responsible: "Camille", vendorSlotIds: [], freeParticipants: [] });
     await addProgramItem(organizationId, event.id, { startTime: "17:00", endTime: "19:00", label: "Vin d'honneur", vendorSlotIds: [caterer.id], freeParticipants: [] });
+    // Lot 37b (CHR-07, D8, D10) : clients et prestataires lisent la version diffusée.
+    await publishEventProgram({ organizationId, eventId: event.id, userId: owner.id });
     const couple = await createEventLink({
       organizationId,
       eventId: event.id,

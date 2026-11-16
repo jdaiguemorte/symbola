@@ -57,7 +57,7 @@ export async function takeStorageSnapshots(options: { now?: Date; organizationId
     } catch (error) {
       // Une organisation en échec n'empêche pas les autres ; elle est reprise au passage suivant.
       run.failed.push(organizationId);
-      console.error(`relevé de stockage échoué (organisation ${organizationId})`, error instanceof Error ? error.message : error);
+      console.error("relevé de stockage échoué (organisation %s) : %s", organizationId, error instanceof Error ? error.message : String(error));
     }
   }
   return run;

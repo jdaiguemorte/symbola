@@ -594,7 +594,7 @@
         },
         {
           "q": "Comment partager ses horaires avec un prestataire ?",
-          "a": "Dans l'onglet Mariés, créez le lien d'un prestataire retenu : il voit la date, les lieux, les lignes du programme où figure son poste et votre contact, rien d'autre (ni prix, ni budget, ni autres prestataires). Cochez « Demander un code à l'ouverture » pour qu'un code parte à son e-mail à chaque ouverture."
+          "a": "Dans l'onglet Mariés, créez le lien d'un prestataire retenu : il voit la date, les lieux, la dernière version diffusée du programme (ses séquences en entier, le déroulé du jour en titres et horaires) et votre contact, rien d'autre (ni prix, ni budget, ni autres prestataires, ni notes internes). Cochez « Demander un code à l'ouverture » pour qu'un code parte à son e-mail à chaque ouverture."
         },
         {
           "q": "Comment faire valider un choix au client ?",
@@ -611,6 +611,10 @@
         {
           "q": "Comment ranger et partager les documents de l'évènement ?",
           "a": "Dans l'onglet Documents : déposez un plan ou un document dans un dossier (« Plans », « Traiteur »), déposez-en une nouvelle version sans perdre les précédentes, et ouvrez l'aperçu sans rien télécharger. Rien n'est partagé tant que vous ne cochez pas « Avec les clients » ou « Avec les prestataires » ; les factures émises figurent d'office au portail des clients. Pour une personne sans lien personnel, créez un lien de partage de 1 à 30 jours : il n'ouvre que ce document, chaque ouverture s'inscrit dans le fil d'activité, et vous le révoquez à tout moment. Les devis, factures et pièces jointes des autres écrans s'y retrouvent aussi, en lecture."
+        },
+        {
+          "q": "Comment diffuser le programme aux clients et aux prestataires ?",
+          "a": "Dans l'onglet Programme, « Diffuser le programme » fige une version numérotée, datée et signée : clients et prestataires lisent cette version, pas vos modifications en cours, et voient « Nouvelle version du programme » à la suivante. La section dit ce qui a changé depuis la dernière diffusion ; chaque version reste consultable et imprimable. Les notes internes ne sont jamais diffusées."
         }
       ]
     },
@@ -650,11 +654,11 @@
     },
     "clientEvent": {
       "title": "Votre espace",
-      "body": "Votre organisateur vous a ouvert cet espace par un lien personnel, sans compte ni mot de passe. En haut, vos trois prochaines actions et ce qu'il vous demande de décider ; plus bas, ce qu'il a partagé avec vous : vos tâches à cocher, le programme du jour J, le budget en trois chiffres et ses échéances, les documents qu'il vous a partagés et vos factures, à ouvrir ou à télécharger. Une échéance réglée ? Déclarez-la : votre organisateur la confirmera. Ce lien vous est réservé : ne le transférez pas."
+      "body": "Votre organisateur vous a ouvert cet espace par un lien personnel, sans compte ni mot de passe. En haut, vos trois prochaines actions et ce qu'il vous demande de décider ; plus bas, ce qu'il a partagé avec vous : vos tâches à cocher, le programme du jour J dans la dernière version diffusée, le budget en trois chiffres et ses échéances, les documents qu'il vous a partagés et vos factures, à ouvrir ou à télécharger. Une échéance réglée ? Déclarez-la : votre organisateur la confirmera. Ce lien vous est réservé : ne le transférez pas."
     },
     "vendorSpace": {
       "title": "Votre espace prestataire",
-      "body": "Votre organisateur vous a ouvert cet espace par un lien personnel, sans compte ni mot de passe. Vous y trouvez la date, les lieux, les horaires du programme qui vous concernent, les tâches qu'il vous confie (cochez-les une fois faites), les documents qu'il vous a partagés et le moyen de le joindre. Ce lien vous est réservé : ne le transférez pas."
+      "body": "Votre organisateur vous a ouvert cet espace par un lien personnel, sans compte ni mot de passe. Vous y trouvez la date, les lieux, le programme qu'il vous a diffusé (vos séquences en entier, le déroulé du jour en titres et horaires, à télécharger en PDF avec son numéro de version ; une nouvelle version vous est signalée), les tâches qu'il vous confie (cochez-les une fois faites), les documents qu'il vous a partagés et le moyen de le joindre. Ce lien vous est réservé : ne le transférez pas."
     },
     "budgetSettings": {
       "title": "Répartition du budget",
@@ -870,7 +874,7 @@
     },
     "adminActivity": {
       "title": "Activité des organisations",
-      "body": "Des statistiques d'usage : comptes, comptes connectés sur 30 jours, dernière connexion, et nombre d'événements, de devis et de factures créés chaque mois. Jamais un nom, un montant ni un contenu ; les essais guidés ne comptent pas."
+      "body": "Des statistiques d'usage : comptes, comptes connectés sur 30 jours, dernière connexion, nombre d'événements, de devis et de factures créés chaque mois, et le dernier relevé du stockage (nombre de fichiers et volume). Jamais un nom, un montant, un nom de fichier ni un contenu ; les essais guidés ne comptent pas."
     },
     "forgotPassword": {
       "title": "Mot de passe oublié",
@@ -1093,6 +1097,10 @@
     "importRows": {
       "title": "Écarter des lignes",
       "body": "Un fichier de contacts mêle souvent clients, prospects et prestataires. Choisissez une colonne (une catégorie, un type) et cochez les valeurs à écarter : ces lignes ne sont pas importées, et restent au rapport des écarts, téléchargeable. Rien n'est encore enregistré : vous pouvez revenir sur ce choix."
+    },
+    "storage": {
+      "title": "Stockage",
+      "body": "Le premier de chaque mois, Symbola relève les fichiers de votre entreprise, par nature : originaux légaux (factures et avoirs émis), documents signés (devis et contrats signés, dossiers de preuve), dépôts (documents des évènements, pièces jointes, devis des prestataires, fichiers du carnet) et images (logo, images déposées). Chaque relevé donne le nombre de fichiers et leur volume ; il est gardé d'un mois sur l'autre. Les exports, temporaires, et les essais guidés ne comptent pas. Réservé à la titulaire du compte."
     }
   },
   "Aide": {
@@ -1293,7 +1301,7 @@
     "programTitle": "Programme du jour J",
     "programExports": "Exports du programme",
     "programExportCouple": "Télécharger le PDF « mariés »",
-    "programExportVendors": "Télécharger le PDF « prestataires »",
+    "programExportVendors": "Télécharger le PDF « équipe » (notes internes comprises)",
     "programOverlapsTitle": "Chevauchements à vérifier",
     "programOverlap": "{participant} est prévu à la fois sur « {first} » et sur « {second} ».",
     "noProgramItems": "Aucune ligne dans le programme.",
@@ -1334,10 +1342,10 @@
     "applyProgramTemplate": "Appliquer le modèle de programme",
     "programTemplateApplied": "Modèle appliqué : les lignes ont été ajoutées au programme.",
     "programPdfCouple": "Version mariés",
-    "programPdfVendors": "Version prestataires",
+    "programPdfVendors": "Version équipe (notes internes comprises)",
     "programPdfVersion": "Version du {date}",
     "programPdfFileCouple": "programme-maries",
-    "programPdfFileVendors": "programme-prestataires",
+    "programPdfFileVendors": "programme-equipe",
     "invalidEmail": "E-mail invalide.",
     "activityTitle": "Fil d'activité",
     "noActivity": "Aucune activité des mariés pour l'instant.",
@@ -1708,7 +1716,29 @@
     "identityInvalid": "Le style tient en 2 000 caractères et les notes en 10 000.",
     "interlocutorsLabel": "Interlocuteurs",
     "interlocutorOfPlace": "{name} ({place})",
-    "activityDocumentLinkOpened": "Lien de partage ouvert : « {task} »."
+    "activityDocumentLinkOpened": "Lien de partage ouvert : « {task} ».",
+    "programPublicationTitle": "Diffusion aux clients et aux prestataires",
+    "programLatestVersion": "Dernière diffusion : version {number}, le {date}, par {author}.",
+    "programNeverPublished": "Pas encore diffusé : les clients et les prestataires ne voient pas encore le programme.",
+    "programChangesTitle": "Changements depuis la version {number}",
+    "programChangesAdded": "Séquences ajoutées : {labels}",
+    "programChangesChanged": "Séquences modifiées : {labels}",
+    "programChangesRemoved": "Séquences retirées : {labels}",
+    "programNoChanges": "Aucun changement depuis la dernière diffusion.",
+    "programPublish": "Diffuser le programme (version {number})",
+    "programPublished": "Version {number} diffusée : clients et prestataires la voient.",
+    "programPublishEmpty": "Le programme est vide : rien à diffuser.",
+    "programPublishUnchanged": "Cette version est déjà diffusée : modifiez le programme avant de le diffuser à nouveau.",
+    "programVersionsTitle": "{count, plural, one {# version diffusée} other {# versions diffusées}}",
+    "programVersionsList": "Versions diffusées",
+    "programVersionLine": "Version {number} — {date} — {author}",
+    "programVersionPreview": "Aperçu de la version {number} (nouvel onglet)",
+    "programVersionMigrated": "reprise du programme d'avant les versions",
+    "programPdfPublished": "Programme diffusé",
+    "programPdfPublishedVersion": "Version {number} du {date}",
+    "programPdfVendor": "Programme du poste {slot}",
+    "programPdfYourRole": "Votre poste",
+    "programPdfFilePublished": "programme-v{number}"
   },
   "Budget": {
     "title": "Budget",
@@ -2463,7 +2493,10 @@
     "noWithdrawalInfo": "Ce contrat ne comporte pas de droit de rétractation ; il en indique la raison.",
     "orderedOn": "Commande enregistrée le {date}.",
     "earlyExecutionOn": "Demande de démarrage avant la fin du délai enregistrée le {date}.",
-    "responsibleVendor": "Confiée à un prestataire"
+    "responsibleVendor": "Confiée à un prestataire",
+    "programNew": "Nouvelle version du programme : version {number}, diffusée le {date}.",
+    "programVersion": "Programme diffusé : version {number} du {date}.",
+    "programNotPublished": "Votre organisateur n'a pas encore diffusé le programme."
   },
   "NotFound": {
     "title": "Page introuvable",
@@ -3430,7 +3463,10 @@
     "month": "Mois",
     "events": "Événements créés",
     "quotes": "Devis créés",
-    "invoices": "Factures émises"
+    "invoices": "Factures émises",
+    "storage": "Stockage au relevé de {month} : {files, plural, one {# fichier} other {# fichiers}}, {volume}",
+    "storageNone": "Stockage : pas encore de relevé",
+    "storageZeroVolume": "0 Ko"
   },
   "HelpBar": {
     "label": "Barre d'aide",
@@ -4559,7 +4595,8 @@
     "team": "Équipe",
     "quoteTemplates": "Modèles de devis",
     "contractTemplates": "Modèles de contrat",
-    "export": "Exporter mes données"
+    "export": "Exporter mes données",
+    "storage": "Stockage"
   },
   "Common": {
     "closePanel": "Fermer le panneau",
@@ -4918,7 +4955,9 @@
       "hub_contact_members": "membre d'un foyer ou d'une entreprise",
       "events_event_document_folders": "dossier de documents",
       "events_event_document_versions": "version d'un document",
-      "events_event_document_links": "lien de partage d'un document"
+      "events_event_document_links": "lien de partage d'un document",
+      "events_program_versions": "version diffusée du programme",
+      "hub_storage_snapshots": "relevé de stockage"
     },
     "modules": {
       "events": "Événements",
@@ -5110,7 +5149,13 @@
     "noProgramItems": "Aucune ligne du programme ne vous concerne pour le moment.",
     "contactTitle": "Votre contact",
     "tasksTitle": "Vos tâches",
-    "noTasks": "Aucune tâche ne vous est confiée pour le moment."
+    "noTasks": "Aucune tâche ne vous est confiée pour le moment.",
+    "programNew": "Nouvelle version du programme : version {number}, diffusée le {date}.",
+    "programVersion": "Programme diffusé : version {number} du {date}.",
+    "programPdf": "Télécharger votre programme (PDF)",
+    "programNotPublished": "Le programme n'est pas encore diffusé.",
+    "outlineTitle": "Le déroulé du jour",
+    "outlineYours": "vous"
   },
   "Decisions": {
     "decisionOptionTitle": "Choisir : {slot}",
@@ -5941,5 +5986,35 @@
     "downloadFile": "Télécharger",
     "openNotice": "Chaque ouverture est notée pour la personne qui a partagé le document.",
     "pageNotice": "Cette page ne garde aucune donnée personnelle : elle vérifie seulement le lien."
+  },
+  "Storage": {
+    "title": "Stockage",
+    "subtitle": "Le relevé mensuel de vos fichiers, par nature.",
+    "ownerOnly": "Le relevé du stockage est réservé à la titulaire du compte.",
+    "empty": "Aucun relevé pour le moment : le premier est pris dans l'heure qui suit la mise en service, puis le premier de chaque mois.",
+    "latestTitle": "Relevé de {month}",
+    "takenAt": "Pris le {date}.",
+    "latestTable": "Relevé par nature",
+    "nature": "Nature",
+    "files": "Fichiers",
+    "volume": "Volume",
+    "total": "Total",
+    "natures": {
+      "legal_originals": "Originaux légaux",
+      "signed_documents": "Documents signés",
+      "uploads": "Dépôts",
+      "images": "Images"
+    },
+    "natureHints": {
+      "legal_originals": "factures et avoirs émis",
+      "signed_documents": "devis et contrats signés, dossiers de preuve",
+      "uploads": "documents des évènements, pièces des tâches et du budget, devis des prestataires, fichiers du carnet",
+      "images": "logo et images déposées"
+    },
+    "historyTitle": "Relevés des mois précédents",
+    "historyTable": "Relevés par mois",
+    "month": "Mois",
+    "notCounted": "Ne comptent pas : les exports (complet et RGPD), effacés après leur téléchargement, et les fichiers des essais guidés.",
+    "zeroVolume": "0 Ko"
   }
 }

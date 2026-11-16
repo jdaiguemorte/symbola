@@ -100,10 +100,11 @@ test("PRD-EVT-05 — programme du jour J depuis un modèle, chevauchement signal
   );
   await expectNoAxeViolation(page);
 
-  // Export PDF A4 dans les deux variantes.
+  // Export PDF A4 dans les deux variantes. Lot 37b (CHR-07) : la variante avec notes internes est
+  // celle de l'équipe ; les prestataires reçoivent la version diffusée, sans note interne.
   for (const [linkName, file] of [
     ["Télécharger le PDF « mariés »", "programme-maries.pdf"],
-    ["Télécharger le PDF « prestataires »", "programme-prestataires.pdf"],
+    ["Télécharger le PDF « équipe » (notes internes comprises)", "programme-equipe.pdf"],
   ] as const) {
     const href = await page.getByRole("link", { name: linkName }).getAttribute("href");
     const response = await page.request.get(href!);

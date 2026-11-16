@@ -20,6 +20,7 @@ import {
   listTaskComments,
   getEvent,
   getEventProgram,
+  getEventProgramPublication,
   proposeProgramShift,
   getEventStatusDates,
   closingDue,
@@ -78,6 +79,7 @@ import {
   AddProgramItemForm,
   ApplyProgramTemplateForm,
   EditProgramItemForm,
+  ProgramPublishForm,
 } from "./program-forms";
 import {
   releaseEventTaskAction,
@@ -259,6 +261,16 @@ export default async function EventDetailPage({
   const shiftedItem = tab === "programme" && query.decalage && isValidId(query.decalage) ? program.items.find((item) => item.id === query.decalage) : undefined;
   const shiftPlan = shiftedItem && query.depuis && /^([01]\d|2[0-3]):[0-5]\d$/.test(query.depuis) ? proposeProgramShift(program.items, shiftedItem.id, query.depuis, shiftedItem.startTime) : null;
   const shiftProposal: ShiftProposalView | null = shiftPlan ? { ...shiftPlan, duration: durationText(Math.abs(shiftPlan.minutes), spanWords) } : null;
+  // Lot 37b (CHR-07, DAT-14 ; D8) : la diffusion du programme — dernière version, ce qui a changé
+  // depuis, et les versions diffusées avec leur auteur (adresse de l'équipe).
+  // Le client approuve une version diffusée (D10) : l'onglet Mariés propose la décision seulement alors.
+  const publication = tab === "programme" || tab === "maries" ? await getEventProgramPublication(organizationId, id) : null;
+  const publishers =
+    publication && publication.versions.some((version) => version.publishedByUserId !== null)
+      ? new Map((await listTeam(appDatabase(), organizationId)).map((member) => [member.id, member.email]))
+      : new Map<string, string>();
+  const publisherOf = (userId: string | null) => (userId ? (publishers.get(userId) ?? t("taskCommentFormerMember")) : t("programVersionMigrated"));
+  const quoted = (labels: string[]) => labels.join(" ; ");
   // Lot 34a (EVT-01, ADR 0055) : le rétroplanning naît avec l'évènement, Option comprise ; la
   // décision L12-EVT-13 (seulement à la confirmation) est remplacée.
 
@@ -1015,6 +1027,51 @@ export default async function EventDetailPage({
             <SettingsLink href="/events/modeles-programme" label={t("programTemplatesSettings")} />
           </div>
           <ProgramShiftProposal eventId={event.id} proposal={shiftProposal} />
+          {/* Lot 37b (CHR-07, DAT-14 ; D8, D10) : clients et prestataires lisent la dernière version diffusée. */}
+          {publication ? (
+            <section aria-labelledby="program-publication-title" className="program-publication">
+              <h3 id="program-publication-title">{t("programPublicationTitle")}</h3>
+              {publication.latest ? (
+                <p>
+                  {t("programLatestVersion", {
+                    number: publication.latest.number,
+                    date: eventTime(publication.latest.publishedAt),
+                    author: publisherOf(publication.latest.publishedByUserId),
+                  })}
+                </p>
+              ) : (
+                <p>{t("programNeverPublished")}</p>
+              )}
+              {publication.latest ? (
+                publication.canPublish ? (
+                  <ul aria-label={t("programChangesTitle", { number: publication.latest.number })}>
+                    {publication.changes.added.length > 0 ? <li>{t("programChangesAdded", { labels: quoted(publication.changes.added) })}</li> : null}
+                    {publication.changes.changed.length > 0 ? <li>{t("programChangesChanged", { labels: quoted(publication.changes.changed) })}</li> : null}
+                    {publication.changes.removed.length > 0 ? <li>{t("programChangesRemoved", { labels: quoted(publication.changes.removed) })}</li> : null}
+                  </ul>
+                ) : (
+                  <p className="muted">{program.items.length === 0 ? t("programPublishEmpty") : t("programNoChanges")}</p>
+                )
+              ) : null}
+              <ProgramPublishForm eventId={event.id} nextNumber={(publication.latest?.number ?? 0) + 1} canPublish={publication.canPublish} />
+              {publication.versions.length > 0 ? (
+                <details className="program-versions">
+                  <summary>{t("programVersionsTitle", { count: publication.versions.length })}</summary>
+                  <ul aria-label={t("programVersionsList")}>
+                    {publication.versions.map((version) => (
+                      <li key={version.number}>
+                        {t("programVersionLine", { number: version.number, date: eventTime(version.publishedAt), author: publisherOf(version.publishedByUserId) })}
+                        {" — "}
+                        <a href={`/events/${event.id}/programme/pdf?version=${version.number}&apercu=1`} target="_blank" rel="noopener">
+                          {t("programVersionPreview", { number: version.number })}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              ) : null}
+            </section>
+          ) : null}
           <nav aria-label={t("programExports")}>
             <a href={`/events/${event.id}/programme/pdf?variant=couple`} download>
               {t("programExportCouple")}
@@ -1368,7 +1425,7 @@ export default async function EventDetailPage({
               );
             })}
           </ul>
-          {event.isDemo ? null : <RequestDecisionForm eventId={event.id} slots={decisionSlots} expenses={decisionExpenses} hasProgram={program.items.length > 0} />}
+          {event.isDemo ? null : <RequestDecisionForm eventId={event.id} slots={decisionSlots} expenses={decisionExpenses} hasProgram={Boolean(publication?.latest)} />}
         </section>
       ) : null}
 

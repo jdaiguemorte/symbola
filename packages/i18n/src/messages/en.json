@@ -594,7 +594,7 @@
         },
         {
           "q": "How do I share their times with a vendor?",
-          "a": "In the Couple tab, create a link for a retained vendor: they see the date, the venues, the programme lines that involve their role and your contact details, nothing else (no prices, no budget, no other vendors). Tick “Ask for a code when opening” to have a code sent to their e-mail each time they open it."
+          "a": "In the Couple tab, create a link for a retained vendor: they see the date, the venues, the latest shared version of the schedule (their sequences in full, the day at a glance in titles and times) and your contact details, nothing else (no prices, no budget, no other vendors, no internal notes). Tick “Ask for a code when opening” to have a code sent to their e-mail each time they open it."
         },
         {
           "q": "How do I have the client approve a choice?",
@@ -611,6 +611,10 @@
         {
           "q": "How do I file and share the event's documents?",
           "a": "In the Documents tab: upload a map or a document into a folder (“Maps”, “Caterer”), upload a new version without losing the earlier ones, and open the preview without downloading anything. Nothing is shared until you tick “With the clients” or “With the vendors”; issued invoices appear on the clients' portal automatically. For someone without a personal link, create a share link for 1 to 30 days: it opens that document only, each opening is logged in the activity feed, and you can revoke it at any time. Quotes, invoices and attachments from other screens appear there too, read-only."
+        },
+        {
+          "q": "How do I share the schedule with clients and vendors?",
+          "a": "In the Schedule tab, “Share the schedule” freezes a numbered, dated and signed version: clients and vendors read that version, not your changes in progress, and see “New version of the schedule” at the next one. The section says what has changed since the last share; each version stays available to view and print. Internal notes are never shared."
         }
       ]
     },
@@ -650,11 +654,11 @@
     },
     "clientEvent": {
       "title": "Your space",
-      "body": "Your organiser has opened this space for you with a personal link, with no account or password. At the top, your next three actions and what you are asked to decide; further down, what they have shared with you: your tasks to tick, the schedule of the day, the budget in three figures and its instalments, the documents shared with you and your invoices, to open or download. Paid an instalment? Declare it: your organiser will confirm it. This link is for you only: please do not forward it."
+      "body": "Your organiser has opened this space for you with a personal link, with no account or password. At the top, your next three actions and what you are asked to decide; further down, what they have shared with you: your tasks to tick, the schedule of the day in its latest shared version, the budget in three figures and its instalments, the documents shared with you and your invoices, to open or download. Paid an instalment? Declare it: your organiser will confirm it. This link is for you only: please do not forward it."
     },
     "vendorSpace": {
       "title": "Your vendor space",
-      "body": "Your organiser has opened this space for you with a personal link, with no account or password. You will find the date, the venues, the programme times that concern you, the tasks they give you (tick them once done), the documents shared with you and how to reach them. This link is for you only: please do not forward it."
+      "body": "Your organiser has opened this space for you with a personal link, with no account or password. You will find the date, the venues, the schedule they have shared with you (your sequences in full, the day at a glance in titles and times, to download as a PDF with its version number; a new version is flagged to you), the tasks they give you (tick them once done), the documents shared with you and how to reach them. This link is for you only: please do not forward it."
     },
     "budgetSettings": {
       "title": "Budget allocation",
@@ -870,7 +874,7 @@
     },
     "adminActivity": {
       "title": "Organisation activity",
-      "body": "Usage statistics: accounts, accounts active over 30 days, last login, and the number of events, quotes and invoices created each month. Never a name, an amount or any content; guided trials are not counted."
+      "body": "Usage statistics: accounts, accounts active over 30 days, last login, the number of events, quotes and invoices created each month, and the latest storage reading (number of files and size). Never a name, an amount, a file name or any content; guided trials are not counted."
     },
     "forgotPassword": {
       "title": "Forgot password",
@@ -1093,6 +1097,10 @@
     "importRows": {
       "title": "Setting rows aside",
       "body": "A contacts file often mixes clients, prospects and vendors. Choose a column (a category, a type) and tick the values to set aside: those rows are not imported and stay in the gaps report, which you can download. Nothing is saved yet: you can change this choice."
+    },
+    "storage": {
+      "title": "Storage",
+      "body": "On the first of each month, Symbola takes a reading of your business's files, by kind: legal originals (issued invoices and credit notes), signed documents (signed quotes and contracts, evidence files), uploads (event documents, attachments, vendor quotes, vendor book files) and images (logo, uploaded images). Each reading gives the number of files and their size; it is kept month after month. Exports, which are temporary, and guided trials are not counted. Reserved for the account Owner."
     }
   },
   "Aide": {
@@ -1293,7 +1301,7 @@
     "programTitle": "Wedding day schedule",
     "programExports": "Schedule exports",
     "programExportCouple": "Download the “couple” PDF",
-    "programExportVendors": "Download the “vendors” PDF",
+    "programExportVendors": "Download the “team” PDF (internal notes included)",
     "programOverlapsTitle": "Overlaps to check",
     "programOverlap": "{participant} is scheduled on both “{first}” and “{second}”.",
     "noProgramItems": "No line in the schedule.",
@@ -1334,10 +1342,10 @@
     "applyProgramTemplate": "Apply schedule template",
     "programTemplateApplied": "Template applied: the lines were added to the schedule.",
     "programPdfCouple": "Couple version",
-    "programPdfVendors": "Vendors version",
+    "programPdfVendors": "Team version (internal notes included)",
     "programPdfVersion": "Version of {date}",
     "programPdfFileCouple": "schedule-couple",
-    "programPdfFileVendors": "schedule-vendors",
+    "programPdfFileVendors": "schedule-team",
     "invalidEmail": "Invalid e-mail.",
     "activityTitle": "Activity feed",
     "noActivity": "No activity from the couple yet.",
@@ -1708,7 +1716,29 @@
     "identityInvalid": "The style fits in 2,000 characters and the notes in 10,000.",
     "interlocutorsLabel": "Contacts",
     "interlocutorOfPlace": "{name} ({place})",
-    "activityDocumentLinkOpened": "Share link opened: “{task}”."
+    "activityDocumentLinkOpened": "Share link opened: “{task}”.",
+    "programPublicationTitle": "Sharing with clients and vendors",
+    "programLatestVersion": "Last shared: version {number}, on {date}, by {author}.",
+    "programNeverPublished": "Not shared yet: clients and vendors cannot see the schedule yet.",
+    "programChangesTitle": "Changes since version {number}",
+    "programChangesAdded": "Sequences added: {labels}",
+    "programChangesChanged": "Sequences changed: {labels}",
+    "programChangesRemoved": "Sequences removed: {labels}",
+    "programNoChanges": "No changes since the last share.",
+    "programPublish": "Share the schedule (version {number})",
+    "programPublished": "Version {number} shared: clients and vendors can see it.",
+    "programPublishEmpty": "The schedule is empty: nothing to share.",
+    "programPublishUnchanged": "This version is already shared: change the schedule before sharing it again.",
+    "programVersionsTitle": "{count, plural, one {# shared version} other {# shared versions}}",
+    "programVersionsList": "Shared versions",
+    "programVersionLine": "Version {number} — {date} — {author}",
+    "programVersionPreview": "Preview version {number} (new tab)",
+    "programVersionMigrated": "carried over from before versions",
+    "programPdfPublished": "Shared schedule",
+    "programPdfPublishedVersion": "Version {number} of {date}",
+    "programPdfVendor": "Schedule for {slot}",
+    "programPdfYourRole": "Your role",
+    "programPdfFilePublished": "schedule-v{number}"
   },
   "Budget": {
     "title": "Budget",
@@ -2463,7 +2493,10 @@
     "noWithdrawalInfo": "This contract has no right of withdrawal; it states why.",
     "orderedOn": "Order recorded on {date}.",
     "earlyExecutionOn": "Request to start before the end of the period recorded on {date}.",
-    "responsibleVendor": "Given to a vendor"
+    "responsibleVendor": "Given to a vendor",
+    "programNew": "New version of the schedule: version {number}, shared on {date}.",
+    "programVersion": "Shared schedule: version {number} of {date}.",
+    "programNotPublished": "Your organiser has not shared the schedule yet."
   },
   "NotFound": {
     "title": "Page not found",
@@ -3430,7 +3463,10 @@
     "month": "Month",
     "events": "Events created",
     "quotes": "Quotes created",
-    "invoices": "Invoices issued"
+    "invoices": "Invoices issued",
+    "storage": "Storage at the {month} reading: {files, plural, one {# file} other {# files}}, {volume}",
+    "storageNone": "Storage: no reading yet",
+    "storageZeroVolume": "0 KB"
   },
   "HelpBar": {
     "label": "Help bar",
@@ -4559,7 +4595,8 @@
     "team": "Team",
     "quoteTemplates": "Quote templates",
     "contractTemplates": "Contract templates",
-    "export": "Export my data"
+    "export": "Export my data",
+    "storage": "Storage"
   },
   "Common": {
     "closePanel": "Close the panel",
@@ -4918,7 +4955,9 @@
       "hub_contact_members": "household or company member",
       "events_event_document_folders": "document folder",
       "events_event_document_versions": "document version",
-      "events_event_document_links": "document share link"
+      "events_event_document_links": "document share link",
+      "events_program_versions": "shared version of the schedule",
+      "hub_storage_snapshots": "storage reading"
     },
     "modules": {
       "events": "Events",
@@ -5110,7 +5149,13 @@
     "noProgramItems": "No programme line involves you for now.",
     "contactTitle": "Your contact",
     "tasksTitle": "Your tasks",
-    "noTasks": "No task has been given to you for now."
+    "noTasks": "No task has been given to you for now.",
+    "programNew": "New version of the schedule: version {number}, shared on {date}.",
+    "programVersion": "Shared schedule: version {number} of {date}.",
+    "programPdf": "Download your schedule (PDF)",
+    "programNotPublished": "The schedule has not been shared yet.",
+    "outlineTitle": "The day at a glance",
+    "outlineYours": "you"
   },
   "Decisions": {
     "decisionOptionTitle": "Choose: {slot}",
@@ -5941,5 +5986,35 @@
     "downloadFile": "Download",
     "openNotice": "Each opening is recorded for the person who shared the document.",
     "pageNotice": "This page keeps no personal data: it only checks the link."
+  },
+  "Storage": {
+    "title": "Storage",
+    "subtitle": "The monthly reading of your files, by kind.",
+    "ownerOnly": "The storage reading is reserved for the account Owner.",
+    "empty": "No reading yet: the first one is taken within an hour of going live, then on the first of each month.",
+    "latestTitle": "Reading for {month}",
+    "takenAt": "Taken on {date}.",
+    "latestTable": "Reading by kind",
+    "nature": "Kind",
+    "files": "Files",
+    "volume": "Size",
+    "total": "Total",
+    "natures": {
+      "legal_originals": "Legal originals",
+      "signed_documents": "Signed documents",
+      "uploads": "Uploads",
+      "images": "Images"
+    },
+    "natureHints": {
+      "legal_originals": "issued invoices and credit notes",
+      "signed_documents": "signed quotes and contracts, evidence files",
+      "uploads": "event documents, task and budget attachments, vendor quotes, vendor book files",
+      "images": "logo and uploaded images"
+    },
+    "historyTitle": "Readings of previous months",
+    "historyTable": "Readings by month",
+    "month": "Month",
+    "notCounted": "Not counted: exports (full and GDPR), deleted after download, and guided-trial files.",
+    "zeroVolume": "0 KB"
   }
 }

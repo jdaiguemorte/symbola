@@ -223,7 +223,7 @@ import {
   setDayChoice,
   setDocumentSharing,
 } from "./documents";
-import { findProgramOverlaps, hasProgramChanges, MAX_SHIFT_MINUTES, normalizeTime, programChanges, programForVariant, publishedProgramItems, sortProgramItems, vendorProgramOf } from "./program";
+import { findProgramOverlaps, hasProgramChanges, MAX_SHIFT_MINUTES, normalizeTime, programChanges, publishedProgramItems, sortProgramItems, vendorProgramOf } from "./program";
 import { findLatestProgramVersion, findLinkProgramSeen, findProgramVersion, findProgramVersions, insertProgramVersion, markProgramSeen, ProgramPublishError } from "./program-versions";
 import { endTimeAfter, MINUTES_PER_DAY } from "@/lib/program-spans";
 import type {
@@ -396,6 +396,7 @@ export type {
   ProgramVersion,
   ProgramVersionSummary,
   PublishEventProgramInput,
+  PublishedProgramItem,
   PublishedProgramView,
   VendorProgramView,
   ProgramItemInput,

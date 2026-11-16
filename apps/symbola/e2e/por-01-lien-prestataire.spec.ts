@@ -17,6 +17,7 @@ import {
   createProspect,
   createProspectSource,
   selectVendorCandidate,
+  publishEventProgram,
 } from "../modules/events/service";
 import { createVendor } from "../modules/vendors/service";
 import { openEventTab, readyOrganization, signIn as signInByLink } from "./helpers";
@@ -66,6 +67,8 @@ async function plannerWithRetainedCaterer() {
     await addEventPlace(organizationId, event.id, { label: "Domaine des Tilleuls", address: "1 allée des Tilleuls, Lyon" });
     await addProgramItem(organizationId, event.id, { startTime: "18:00", endTime: "19:30", label: "Cocktail", internalNote: "Prévoir vingt bouteilles de plus", vendorSlotIds: [caterer.id], freeParticipants: [] });
     await addProgramItem(organizationId, event.id, { startTime: "16:00", label: "Photos de groupe", vendorSlotIds: [photographer.id], freeParticipants: [] });
+    // Lot 37b (CHR-07, D8) : le prestataire lit la version diffusée.
+    await publishEventProgram({ organizationId, eventId: event.id, userId: randomUUID() });
     return { email, vendorEmail, eventId: event.id, organizationName: organization.name };
   } finally {
     await sql.end();
@@ -119,7 +122,9 @@ test("UX-11 / POR-01 — lien d'un prestataire retenu avec code à l'ouverture :
   await expect(vendor.getByText("Saveurs de Karim — Traiteur")).toBeVisible();
   await expect(vendor.getByRole("list", { name: "Les lieux" })).toContainText("Domaine des Tilleuls — 1 allée des Tilleuls, Lyon");
   await expect(vendor.getByRole("list", { name: "Vos horaires" })).toContainText("18:00 – 19:30 — Cocktail");
-  await expect(vendor.locator("main")).not.toContainText("Photos de groupe");
+  // Lot 37b (D9) : les autres séquences, en titres et horaires seulement, dans le déroulé du jour.
+  await expect(vendor.getByRole("list", { name: "Vos horaires" })).not.toContainText("Photos de groupe");
+  await expect(vendor.getByRole("list", { name: "Le déroulé du jour" })).toContainText("16:00 — Photos de groupe");
   await expect(vendor.locator("main")).not.toContainText("bouteilles");
   await expect(vendor.getByRole("region", { name: "Votre contact" })).toContainText(setup.email);
   await expect(vendor.getByRole("region", { name: "Vos données personnelles" })).toContainText(setup.organizationName);

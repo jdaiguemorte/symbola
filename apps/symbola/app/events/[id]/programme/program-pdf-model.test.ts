@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { EventProgram } from "@/modules/events/service";
-import { buildProgramPdfModel } from "./program-pdf-model";
+import { buildProgramPdfModel, publishedPdfProgram, vendorPdfProgram } from "./program-pdf-model";
 
 const program: EventProgram = {
   items: [
@@ -87,6 +87,33 @@ describe("PRD-EVT-05 — Contenu du PDF du programme", () => {
     expect(model.organizationName).toBe("Atelier");
     expect(model.logo).toBe(logo);
     expect(model.watermark).toBeNull();
+  });
+
+  it("CHR-07 (lot 37b, D8) — le PDF d'une version diffusée porte son numéro et jamais de note interne", () => {
+    const published = program.items.map(({ eventId: _eventId, internalNote: _note, ...item }) => item);
+    const model = buildProgramPdfModel({ program: publishedPdfProgram(published, "2027-06-01T08:30:00.000Z"), variant: "couple", labels, locale: "fr", heading: "Inès", logo: null, organizationName: "Atelier", versionLabel: "Version 3 du 1 juin 2027 à 10:30" });
+    expect(model.version).toBe("Version 3 du 1 juin 2027 à 10:30");
+    expect(model.columns).toEqual(["Heure", "Déroulé", "Lieu", "Intervenants"]);
+    expect(JSON.stringify(model)).not.toContain("alliances");
+  });
+
+  it("CHR-07 (lot 37b, D9) — le PDF d'un prestataire : ses séquences en entier, le reste en titres et horaires, sa colonne dit son poste", () => {
+    const view = {
+      version: { number: 2, publishedAt: "2027-06-01T08:30:00.000Z" },
+      ownItems: [{ id: "b", startTime: "22:45", endTime: null, label: "Soirée", location: "Orangerie", responsible: "Camille" }],
+      outline: [
+        { id: "a", startTime: "15:00", endTime: "16:00", label: "Cérémonie", own: false },
+        { id: "b", startTime: "22:45", endTime: null, label: "Soirée", own: true },
+      ],
+      isNew: false,
+    };
+    const model = buildProgramPdfModel({ program: vendorPdfProgram(view, "Traiteur", view.version.publishedAt), variant: "couple", labels: { ...labels, participants: "Votre poste" }, locale: "fr", heading: "Inès", logo: null, organizationName: "Atelier", versionLabel: "Version 2" });
+    expect(model.columns).toEqual(["Heure", "Déroulé", "Lieu", "Votre poste"]);
+    expect(model.rows).toEqual([
+      { time: "15:00 – 16:00 · 1 h", label: "Cérémonie", responsible: null, location: "", participants: "", note: null },
+      { time: "22:45", label: "Soirée", responsible: "Responsable : Camille", location: "Orangerie", participants: "Traiteur", note: null },
+    ]);
+    expect(JSON.stringify(model)).not.toMatch(/Mairie|Photographe|Officiant|alliances/);
   });
 
   it("AIDE-02 — un événement d'essai porte le filigrane « Document fictif »", () => {

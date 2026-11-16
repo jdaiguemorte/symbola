@@ -10,7 +10,7 @@ import { createAppConnection } from "@symbola/db/client";
 import { consumeOrganizationMailQuota } from "@symbola/db/mail-quota";
 import { EICAR_TEST_STRING } from "@symbola/files";
 import { expect, test, type Page } from "@playwright/test";
-import { addEventVendorSlot, addProgramItem, addVendorCandidate, createEventLink, createProspect, createProspectSource } from "../modules/events/service";
+import { addEventVendorSlot, addProgramItem, addVendorCandidate, createEventLink, createProspect, createProspectSource, publishEventProgram } from "../modules/events/service";
 import { createVendor } from "../modules/vendors/service";
 import { readyOrganization, signIn as signInByLink, followSignInLink } from "./helpers";
 
@@ -96,6 +96,8 @@ test("SC-S3 — avec le lien d'un prestataire, il demande le budget, les devis d
   const studio = await addVendorCandidate({ organizationId, eventId: wedding.id, vendorSlotId: photographer.id, vendorName: "Studio Lumière" });
   await addProgramItem(organizationId, wedding.id, { startTime: "18:00", label: "Cocktail", internalNote: "Marge de 20 % sur le champagne", vendorSlotIds: [caterer.id], freeParticipants: [] });
   await addProgramItem(organizationId, wedding.id, { startTime: "16:00", label: "Photos de groupe", vendorSlotIds: [photographer.id], freeParticipants: [] });
+  // Lot 37b (CHR-07, D8) : le prestataire lit la version diffusée.
+  await publishEventProgram({ organizationId, eventId: wedding.id, userId: randomUUID() });
   const link = await createEventLink({
     organizationId,
     eventId: wedding.id,
@@ -112,7 +114,9 @@ test("SC-S3 — avec le lien d'un prestataire, il demande le budget, les devis d
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Inès");
   await expect(page.getByRole("list", { name: "Vos horaires" })).toContainText("18:00 — Cocktail");
   const space = page.locator("main");
-  for (const hidden of ["Marge", "Photos de groupe", "Studio Lumière", "Budget"]) await expect(space).not.toContainText(hidden);
+  // Lot 37b (D9) : les autres séquences, en titres et horaires seulement, dans le déroulé du jour.
+  await expect(page.getByRole("list", { name: "Vos horaires" })).not.toContainText("Photos de groupe");
+  for (const hidden of ["Marge", "Studio Lumière", "Photographe", "Budget"]) await expect(space).not.toContainText(hidden);
   await expectNoAxeViolation(page);
 
   // Le portail du client, le budget, les devis et le RIB des autres : comme inexistants.

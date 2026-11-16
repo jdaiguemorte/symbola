@@ -73,6 +73,8 @@ export const HUB_EXPORT_EXCLUSIONS: Readonly<Record<string, string>> = {
   backup_runs: "exploitation : sauvegardes de la plateforme",
   connection_traces: "exploitation : adresses IP des connexions, pour l'enquête de sécurité",
   organization_exports: "technique : trace des exports complets eux-mêmes",
+  // Lot 37b (DOC-12, D12) : des nombres pris chaque mois pour l'exploitation (quotas), sans donnée métier.
+  storage_snapshots: "exploitation : relevé mensuel du stockage (nombres de fichiers et volumes)",
   domain_events: "technique : événements internes entre modules",
   domain_event_consumers: "technique : suivi des événements internes",
   rate_limit_events: "exploitation : tentatives limitées",
