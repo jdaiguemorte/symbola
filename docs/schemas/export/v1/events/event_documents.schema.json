@@ -33,6 +33,24 @@
       "format": "uuid",
       "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
     },
+    "folderId": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "sharedWithClients": {
+      "type": "boolean"
+    },
+    "sharedWithVendors": {
+      "type": "boolean"
+    },
     "createdAt": {
       "type": "string",
       "format": "date-time",
@@ -76,6 +94,9 @@
     "mime",
     "sizeBytes",
     "uploadedByUserId",
+    "folderId",
+    "sharedWithClients",
+    "sharedWithVendors",
     "createdAt",
     "createdBy",
     "updatedAt",

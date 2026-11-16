@@ -13,7 +13,10 @@ import {
   eventDayContacts,
   eventDayDocuments,
   eventDecisions,
+  eventDocumentFolders,
+  eventDocumentLinks,
   eventDocuments,
+  eventDocumentVersions,
   eventLinks,
   eventLinkSharedSlots,
   eventPlaces,
@@ -53,7 +56,10 @@ export const EVENTS_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   { table: eventStatusHistory, ...ofEvent },
   { table: eventPlaces, ...ofEvent },
   { table: eventDayContacts, ...ofEvent },
+  // Lot 37a (D3, D4) : dossiers d'abord, puis les documents et toutes leurs versions.
+  { table: eventDocumentFolders, ...ofEvent },
   { table: eventDocuments, ...ofEvent, files: ["fileKey"] },
+  { table: eventDocumentVersions, parents: { documentId: "event_documents" }, files: ["fileKey"] },
   { table: eventDayDocuments, ...ofEvent },
   { table: eventVendorSlots, ...ofEvent },
   { table: eventVendorCandidates, ...ofEvent, files: ["quoteFileKey"] },
@@ -66,6 +72,8 @@ export const EVENTS_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   // Liens personnels des tiers, pour mémoire : jamais leur jeton (haché) ; ils se recréent.
   { table: eventLinks, ...ofEvent, omit: ["tokenHash"] },
   { table: eventLinkSharedSlots, parents: { linkId: "event_links" } },
+  // Lot 37a (D7) : liens de partage d'un document, pour mémoire, sans leur jeton (haché).
+  { table: eventDocumentLinks, ...ofEvent, omit: ["tokenHash"] },
   { table: eventDecisions, ...ofEvent },
   { table: eventActivities, ...ofEvent },
 ];

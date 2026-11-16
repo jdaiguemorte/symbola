@@ -167,7 +167,7 @@ import { VendorCandidateNotFoundError as CandidateNotFoundError } from "./vendor
 import { answerProblem, DECISION_NOTE_MAX, decisionOpenTo, programChangedSince } from "./decisions";
 import { hashLinkCode, LINK_CODE_TTL_MS, LINK_CODES_PER_HOUR, linkCodeExpiresAt, maskEmail, newLinkCode, normalizeLinkCode } from "./link-otp";
 import { addPlace, listPlaces, makeReceptionPlace, removePlace, updatePlace } from "./places";
-import { attachFile, getAttachmentFile, listAttachments, removeAttachment } from "./task-attachments";
+import { attachFile, getAttachmentFile, listAttachments, listEventAttachments, removeAttachment } from "./task-attachments";
 import { addComment, listComments, removeComment } from "./task-comments";
 import { createStorageClient, deletePrivateObject } from "@symbola/files";
 import {
@@ -195,7 +195,34 @@ import {
   updateCandidate,
 } from "./vendor-candidates";
 import { addDayContact, listDayContacts, removeDayContact } from "./day-contacts";
-import { attachDocument, documentKeys, getDocumentFile, listDayChoices, listDocuments, removeDocument, renameDocument, setDayChoice } from "./documents";
+import {
+  addDocumentVersion,
+  attachDocument,
+  createDocumentFolder,
+  createDocumentLink,
+  documentKeys,
+  getDocumentFile,
+  getDocumentVersionFile,
+  getSharedDocumentFile,
+  listDayChoices,
+  listDocumentFolders,
+  listDocumentLinks,
+  listDocuments,
+  listEventDocumentLinkRows,
+  listEventDocumentVersionRows,
+  listDocumentVersions,
+  listSharedDocuments,
+  moveDocument,
+  openDocumentLink,
+  peekDocumentLink,
+  removeDocument,
+  removeDocumentFolder,
+  renameDocument,
+  renameDocumentFolder,
+  revokeDocumentLink,
+  setDayChoice,
+  setDocumentSharing,
+} from "./documents";
 import { findProgramOverlaps, MAX_SHIFT_MINUTES, normalizeTime, programForVariant, sortProgramItems } from "./program";
 import { endTimeAfter, MINUTES_PER_DAY } from "@/lib/program-spans";
 import type {
@@ -208,8 +235,14 @@ import type {
   AttachTaskFileInput,
   EventTaskComment,
   AttachEventDocumentInput,
+  AddEventDocumentVersionInput,
+  CreateEventDocumentLinkInput,
   DayDocumentChoice,
   EventDocument,
+  EventDocumentFolder,
+  EventDocumentShareLink,
+  EventDocumentVersion,
+  OpenedEventDocumentLink,
   EventDayContact,
   EventDayContactInput,
   SetDayDocumentEmbeddedInput,
@@ -318,8 +351,14 @@ export type {
   AddVendorCandidateInput,
   EventPlace,
   AttachEventDocumentInput,
+  AddEventDocumentVersionInput,
+  CreateEventDocumentLinkInput,
   DayDocumentChoice,
   EventDocument,
+  EventDocumentFolder,
+  EventDocumentShareLink,
+  EventDocumentVersion,
+  OpenedEventDocumentLink,
   EventDayContact,
   EventDayContactInput,
   SetDayDocumentEmbeddedInput,
@@ -879,7 +918,16 @@ export async function removeEventPlace(organizationId: string, eventId: string, 
 
 export { CandidateQuoteRejectedError, VendorCandidateNotFoundError, CANDIDATE_QUOTE_MAX_SIZE_BYTES } from "./vendor-candidates";
 export { DayContactInvalidError, EventDayContactNotFoundError } from "./day-contacts";
-export { DayDocumentSourceError, EventDocumentNotFoundError, EventDocumentRejectedError, EVENT_DOCUMENT_MAX_SIZE_BYTES, EVENT_DOCUMENT_LABEL_MAX } from "./documents";
+export {
+  DayDocumentSourceError,
+  DOCUMENT_LINK_MAX_DAYS,
+  DOCUMENT_LINK_MIN_DAYS,
+  EventDocumentNotFoundError,
+  EventDocumentRejectedError,
+  EVENT_DOCUMENT_FOLDER_NAME_MAX,
+  EVENT_DOCUMENT_MAX_SIZE_BYTES,
+  EVENT_DOCUMENT_LABEL_MAX,
+} from "./documents";
 
 export async function setVendorSlotBrief(organizationId: string, vendorSlotId: string, brief: string | null): Promise<void> {
   await setSlotBrief(organizationId, vendorSlotId, brief);
@@ -987,6 +1035,97 @@ export async function removeEventDocument(organizationId: string, documentId: st
 
 export async function getEventDocumentFile(organizationId: string, documentId: string): Promise<FileDownload> {
   return getDocumentFile(organizationId, documentId);
+}
+
+// Lot 37a (DOC-01, D3, D4) — dossiers et versions des documents déposés.
+export async function listEventDocumentFolders(organizationId: string, eventId: string): Promise<EventDocumentFolder[]> {
+  return listDocumentFolders(organizationId, eventId);
+}
+
+export async function createEventDocumentFolder(organizationId: string, eventId: string, name: string): Promise<EventDocumentFolder> {
+  const folder = await createDocumentFolder(organizationId, eventId, name);
+  if (!folder) throw new EventNotFoundError();
+  return folder;
+}
+
+export async function renameEventDocumentFolder(organizationId: string, folderId: string, name: string): Promise<void> {
+  await renameDocumentFolder(organizationId, folderId, name);
+}
+
+export async function removeEventDocumentFolder(organizationId: string, folderId: string): Promise<void> {
+  await removeDocumentFolder(organizationId, folderId);
+}
+
+export async function moveEventDocument(organizationId: string, documentId: string, folderId: string | null): Promise<void> {
+  await moveDocument(organizationId, documentId, folderId);
+}
+
+export async function addEventDocumentVersion(input: AddEventDocumentVersionInput): Promise<EventDocument> {
+  return addDocumentVersion(input);
+}
+
+export async function listEventDocumentVersions(organizationId: string, documentId: string): Promise<EventDocumentVersion[]> {
+  return listDocumentVersions(organizationId, documentId);
+}
+
+export async function getEventDocumentVersionFile(organizationId: string, documentId: string, version: number): Promise<FileDownload> {
+  return getDocumentVersionFile(organizationId, documentId, version);
+}
+
+// Lot 37a (POR-10, D6) — partage avec les clients et les prestataires de l'évènement.
+export async function setEventDocumentSharing(organizationId: string, documentId: string, sharing: { clients: boolean; vendors: boolean }): Promise<void> {
+  await setDocumentSharing(organizationId, documentId, sharing);
+}
+
+// Le lien relu en base décide du public : client (portail) ou prestataire (son espace).
+async function sharedAudienceOf(organizationId: string, linkId: string): Promise<{ eventId: string; audience: "client" | "vendor" }> {
+  const access = await getLinkAccess(organizationId, linkId);
+  if (!access || (access.audience !== "client" && access.audience !== "vendor")) throw new LinkAccessDeniedError();
+  if (access.audience === "vendor" && !access.vendorCandidateId) throw new LinkAccessDeniedError();
+  return { eventId: access.eventId, audience: access.audience };
+}
+
+export async function listLinkSharedDocuments(organizationId: string, linkId: string): Promise<EventDocument[]> {
+  const { eventId, audience } = await sharedAudienceOf(organizationId, linkId);
+  return listSharedDocuments(organizationId, eventId, audience);
+}
+
+export async function getLinkSharedDocumentFile(organizationId: string, linkId: string, documentId: string): Promise<FileDownload> {
+  const { eventId, audience } = await sharedAudienceOf(organizationId, linkId);
+  return getSharedDocumentFile(organizationId, { eventId, documentId, audience });
+}
+
+// Lot 37a (DOC-04, D7) — liens de partage d'un document, à durée limitée.
+// Le jeton suit « # » (SEC-17, comme un lien personnel) : il n'est jamais envoyé au serveur dans
+// l'adresse ; la page /partage le lit, puis l'envoie en POST.
+export async function createEventDocumentLink(input: CreateEventDocumentLinkInput): Promise<{ link: EventDocumentShareLink; token: string; url: string }> {
+  const created = await createDocumentLink(input);
+  return { ...created, url: `${parseEnv(process.env).APP_PUBLIC_URL}/partage#${created.token}` };
+}
+
+export async function listEventDocumentLinks(organizationId: string, documentId: string): Promise<EventDocumentShareLink[]> {
+  return listDocumentLinks(organizationId, documentId);
+}
+
+// Pour l'onglet « Documents » : les versions et les liens de tous les documents de l'évènement.
+export async function listEventDocumentVersionsOfEvent(organizationId: string, eventId: string): Promise<EventDocumentVersion[]> {
+  return listEventDocumentVersionRows(organizationId, eventId);
+}
+
+export async function listEventDocumentLinksOfEvent(organizationId: string, eventId: string): Promise<EventDocumentShareLink[]> {
+  return listEventDocumentLinkRows(organizationId, eventId);
+}
+
+export async function revokeEventDocumentLink(organizationId: string, linkId: string, now?: Date): Promise<void> {
+  await revokeDocumentLink(organizationId, linkId, now);
+}
+
+export async function describeEventDocumentLink(token: string, now?: Date): Promise<{ label: string; mime: string; sizeBytes: number } | null> {
+  return peekDocumentLink(token, now);
+}
+
+export async function openEventDocumentLink(token: string, now?: Date): Promise<OpenedEventDocumentLink | null> {
+  return openDocumentLink(token, now);
 }
 
 export async function listDayDocumentChoices(organizationId: string, eventId: string): Promise<DayDocumentChoice[]> {
@@ -1975,6 +2114,10 @@ export async function listTaskAttachments(organizationId: string, taskId: string
   return listAttachments(organizationId, taskId);
 }
 
+export async function listEventTaskAttachments(organizationId: string, eventId: string): Promise<EventTaskAttachment[]> {
+  return listEventAttachments(organizationId, eventId);
+}
+
 export async function attachTaskFile(input: AttachTaskFileInput): Promise<EventTaskAttachment> {
   const attachment = await attachFile(input);
   if (!attachment) throw new EventTaskNotFoundError();
@@ -2571,6 +2714,25 @@ const _contractCheck: EventsServiceContract = {
   renameEventDocument,
   removeEventDocument,
   getEventDocumentFile,
+  listEventTaskAttachments,
+  listEventDocumentFolders,
+  createEventDocumentFolder,
+  renameEventDocumentFolder,
+  removeEventDocumentFolder,
+  moveEventDocument,
+  addEventDocumentVersion,
+  listEventDocumentVersions,
+  getEventDocumentVersionFile,
+  setEventDocumentSharing,
+  listLinkSharedDocuments,
+  getLinkSharedDocumentFile,
+  createEventDocumentLink,
+  listEventDocumentLinks,
+  listEventDocumentVersionsOfEvent,
+  listEventDocumentLinksOfEvent,
+  revokeEventDocumentLink,
+  describeEventDocumentLink,
+  openEventDocumentLink,
   listDayDocumentChoices,
   setDayDocumentEmbedded,
   listEventDayContacts,

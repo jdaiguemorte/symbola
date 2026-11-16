@@ -776,6 +776,8 @@ export interface QuotesServiceContract {
   issueCreditNote(input: IssueCreditNoteInput): Promise<CreditNoteView>;
   listQuoteInvoices(organizationId: string, quoteId: string): Promise<InvoiceView[]>;
   getInvoice(organizationId: string, invoiceId: string): Promise<InvoiceView>;
+  // Lot 37a (POR-04, D6) : factures émises des devis d'un évènement, avec leurs avoirs.
+  listEventInvoices(organizationId: string, eventId: string): Promise<InvoiceView[]>;
   // Lot 31c (D21) : reçus d'arrhes d'un devis, et un reçu.
   listQuoteReceipts(organizationId: string, quoteId: string): Promise<ReceiptView[]>;
   getReceipt(organizationId: string, receiptId: string): Promise<ReceiptView>;

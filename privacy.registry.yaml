@@ -738,6 +738,40 @@ fields:
     anonymization: >-
       Le document est supprimé du stockage avec sa ligne (pas d'anonymisation
       partielle d'un PDF ou d'une image), ainsi que son choix pour le jour J.
+      Lot 37a : avec toutes ses versions, ses liens de partage et leurs ouvertures au fil d'activité.
+  - schema: events
+    table: event_document_versions
+    field: file_key
+    category: contenu_libre
+    retention: >-
+      Lot 37a (DOC-01, D4) : versions précédentes d'un document de l'événement, stockées en privé,
+      consultables par l'équipe ; la dernière est recopiée sur le document. Le fichier peut nommer
+      des invités ou les clients. Tant que le document existe ; voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Supprimées du stockage avec le document lors d'une demande d'oubli qui le vise (pas
+      d'anonymisation partielle d'un fichier).
+  - schema: events
+    table: event_document_folders
+    field: name
+    category: contenu_libre
+    retention: >-
+      Lot 37a (DOC-01, D3) : nom d'un dossier de documents saisi par l'équipe (« Traiteur »,
+      « Famille Martin ») ; trouvé par la recherche RGPD. Tant que l'événement existe ; voir
+      RGPD-03/RGPD-05.
+    anonymization: >-
+      Le dossier est supprimé lors d'une demande d'oubli qui le vise ; ses documents vont dans
+      « Divers ».
+  - schema: events
+    table: event_activities
+    field: task_label
+    category: contenu_libre
+    retention: >-
+      Fil d'activité de l'événement : intitulé de la tâche cochée ou de la décision ; lot 37a
+      (DOC-04, D7) : intitulé du document dont un lien de partage a été ouvert, copié à
+      l'ouverture. Tant que l'événement existe.
+    anonymization: >-
+      Le fil est supprimé avec l'oubli de l'événement ; les ouvertures d'un document partent avec
+      l'oubli du document.
   - schema: budget
     table: budget_line_attachments
     field: file_key

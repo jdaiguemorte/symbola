@@ -14,6 +14,7 @@ import {
   eventLinks,
   eventClients,
   eventDayContacts,
+  eventDocumentFolders,
   eventDocuments,
   eventPlaces,
   eventTaskAttachments,
@@ -87,6 +88,11 @@ function documentRecord(document: typeof eventDocuments.$inferSelect): PrivacyRe
     fields: { label: document.label, mime: document.mime, sizeBytes: String(document.sizeBytes) },
     eventId: document.eventId,
   };
+}
+
+// Lot 37a (DOC-01, D3) : dossier de documents, par son nom.
+function folderRecord(folder: typeof eventDocumentFolders.$inferSelect): PrivacyRecord {
+  return { module: MODULE, kind: "event_document_folder", recordId: folder.id, label: folder.name, fields: { name: folder.name }, eventId: folder.eventId };
 }
 
 // Lot 34b (EVT-03, CHR-02) : contact d'un lieu, commentaires et pièces jointes des tâches.
@@ -212,6 +218,9 @@ export const eventsPrivacy: PrivacyContractV1 = {
       for (const document of await tx.select().from(eventDocuments).where(inArray(eventDocuments.eventId, eventIds))) {
         if (recordMatches([document.label], terms)) records.push(documentRecord(document));
       }
+      for (const folder of await tx.select().from(eventDocumentFolders).where(inArray(eventDocumentFolders.eventId, eventIds))) {
+        if (recordMatches([folder.name], terms)) records.push(folderRecord(folder));
+      }
       const itemEvent = new Map(items.map((item) => [item.id, item]));
       if (items.length > 0) {
         for (const participant of await tx.select().from(programItemParticipants).where(inArray(programItemParticipants.programItemId, [...itemEvent.keys()]))) {
@@ -301,6 +310,7 @@ export const eventsPrivacy: PrivacyContractV1 = {
       for (const document of await tx.select().from(eventDocuments).where(inArray(eventDocuments.eventId, ids)).orderBy(asc(eventDocuments.createdAt))) {
         records.push(documentRecord(document));
       }
+      for (const folder of await tx.select().from(eventDocumentFolders).where(inArray(eventDocumentFolders.eventId, ids)).orderBy(asc(eventDocumentFolders.name))) records.push(folderRecord(folder));
       for (const change of await tx.select().from(eventStatusHistory).where(inArray(eventStatusHistory.eventId, ids)).orderBy(asc(eventStatusHistory.changedAt))) {
         records.push({
           module: MODULE,

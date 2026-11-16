@@ -42,7 +42,10 @@ import {
   updateQuoteSettings,
   OriginalAlteredError,
   getCreditNotePdf,
+  getEventCreditNotePdf,
+  getEventInvoicePdf,
   getInvoicePdf,
+  listEventInvoices,
   getQuote,
   getQuoteSettings,
   listLedgerEntries,
@@ -547,5 +550,37 @@ describe("EVT-05 / FAC-13 — Report : l'échéancier du devis signé suit la da
 
     expect(await followEventDateInSignedQuotes({ organizationId, eventId, userId: plannerId, fromDate: "2027-09-18", toDate: "2027-08-28" })).toBe(1);
     expect(await scheduleOf(organizationId, quoteId)).toEqual(["2027-04-15", "2027-05-11"]);
+  });
+});
+
+describe("POR-04 — Les factures et avoirs émis d'un évènement, pour son portail (lot 37a, D6)", () => {
+  it("l'évènement liste ses factures émises et leurs avoirs ; l'original se lit pour cet évènement seulement", async () => {
+    const { organizationId, plannerId, eventId, items } = await signedQuote();
+    const invoice = await issueDepositInvoice({ renderOriginal: renderInvoice, organizationId, scheduleItemId: items[0]!.id, now: NOW });
+    const credit = await issueCreditNote({ renderOriginal: renderCreditNote, organizationId, invoiceId: invoice.id, amountCents: 10000, reason: "Geste commercial", now: NOW });
+
+    const listed = await listEventInvoices(organizationId, eventId);
+    expect(listed.map((entry) => [entry.number, entry.creditNotes.map((note) => note.number)])).toEqual([[invoice.number, [credit.number]]]);
+    // L'original déposé à l'émission (DOC-08), jamais reconstruit à sa place.
+    const notRendered = async () => {
+      throw new Error("l'original ne doit pas être reconstruit");
+    };
+    expect((await getEventInvoicePdf(organizationId, eventId, invoice.id, notRendered)).pdf.equals(await renderInvoice())).toBe(true);
+    expect((await getEventCreditNotePdf(organizationId, eventId, credit.id, notRendered)).pdf.equals(await renderCreditNote())).toBe(true);
+
+    // Un autre évènement de l'organisation : ni liste, ni pièce.
+    const source = await createProspectSource(organizationId, "Salon");
+    const other = await createProspect({ organizationId, createdByUserId: plannerId, prospectSourceId: source.id, clients: [{ firstName: "Bérénice" }] });
+    expect(await listEventInvoices(organizationId, other.id)).toEqual([]);
+    await expect(getEventInvoicePdf(organizationId, other.id, invoice.id, renderInvoice)).rejects.toBeInstanceOf(InvoiceNotFoundError);
+    await expect(getEventCreditNotePdf(organizationId, other.id, credit.id, renderCreditNote)).rejects.toBeInstanceOf(InvoiceNotFoundError);
+  });
+
+  it("abus : une autre organisation ne lit ni la liste ni les pièces", async () => {
+    const { organizationId, eventId, items } = await signedQuote();
+    const invoice = await issueDepositInvoice({ renderOriginal: renderInvoice, organizationId, scheduleItemId: items[0]!.id, now: NOW });
+    const stranger = await organization();
+    expect(await listEventInvoices(stranger.organizationId, eventId)).toEqual([]);
+    await expect(getEventInvoicePdf(stranger.organizationId, eventId, invoice.id, renderInvoice)).rejects.toBeInstanceOf(InvoiceNotFoundError);
   });
 });

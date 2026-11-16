@@ -13,7 +13,9 @@ import {
   eventClients,
   eventDayContacts,
   eventDayDocuments,
+  eventDocumentFolders,
   eventDocuments,
+  eventDocumentVersions,
   eventPlaces,
   eventTaskAttachments,
   eventTaskComments,
@@ -48,6 +50,9 @@ const FATES: Record<string, ErasureFate> = {
   // Lot 29b : un document peut nommer la personne (plan de table) : supprimé,
   // fichier compris (pas d'anonymisation partielle d'un fichier).
   event_document: "deleted",
+  // Lot 37a (D3) : un nom de dossier peut nommer la personne : supprimé, ses documents vont dans
+  // « Divers ».
+  event_document_folder: "deleted",
   // Lot 30a : contact du jour J (nom, téléphone d'une personne) : supprimé.
   event_day_contact: "deleted",
   // Lot 34b (CHR-02) : un commentaire ou une pièce jointe de tâche peut nommer la personne :
@@ -106,6 +111,11 @@ async function existing(tx: Tx, input: ErasureInput): Promise<Found[]> {
     add("event_day_contact", keep(await tx.select({ id: eventDayContacts.id, eventId: eventDayContacts.eventId }).from(eventDayContacts).where(inArray(eventDayContacts.id, ids("event_day_contact")))));
   if (ids("event_document").length > 0)
     add("event_document", keep(await tx.select({ id: eventDocuments.id, eventId: eventDocuments.eventId }).from(eventDocuments).where(inArray(eventDocuments.id, ids("event_document")))));
+  if (ids("event_document_folder").length > 0)
+    add(
+      "event_document_folder",
+      keep(await tx.select({ id: eventDocumentFolders.id, eventId: eventDocumentFolders.eventId }).from(eventDocumentFolders).where(inArray(eventDocumentFolders.id, ids("event_document_folder")))),
+    );
   if (ids("task_comment").length > 0)
     add("task_comment", keep(await tx.select({ id: eventTaskComments.id, eventId: eventTaskComments.eventId }).from(eventTaskComments).where(inArray(eventTaskComments.id, ids("task_comment")))));
   if (ids("task_attachment").length > 0)
@@ -207,10 +217,20 @@ export async function eraseEventsData(input: ErasureInput): Promise<ErasurePlanI
     if (idsFor("event_day_contact").length > 0) await tx.delete(eventDayContacts).where(inArray(eventDayContacts.id, idsFor("event_day_contact")));
     if (idsFor("event_document").length > 0) {
       const documentIds = idsFor("event_document");
-      const documents = await tx.delete(eventDocuments).where(inArray(eventDocuments.id, documentIds)).returning({ key: eventDocuments.fileKey });
-      fileKeys.push(...documents.map((document) => document.key));
+      // Lot 37a (D4, D7) : les fichiers de toutes les versions, et les ouvertures de ses liens de
+      // partage au fil d'activité (elles portent son intitulé) ; versions et liens partent avec la
+      // ligne (clé étrangère).
+      const versions = await tx.select({ key: eventDocumentVersions.fileKey }).from(eventDocumentVersions).where(inArray(eventDocumentVersions.documentId, documentIds));
+      const documents = await tx.delete(eventDocuments).where(inArray(eventDocuments.id, documentIds)).returning({ key: eventDocuments.fileKey, eventId: eventDocuments.eventId, label: eventDocuments.label });
+      fileKeys.push(...new Set([...documents.map((document) => document.key), ...versions.map((version) => version.key)]));
+      for (const document of documents) {
+        await tx
+          .delete(eventActivities)
+          .where(and(eq(eventActivities.eventId, document.eventId), eq(eventActivities.kind, "document_link_opened"), eq(eventActivities.taskLabel, document.label)));
+      }
       await tx.delete(eventDayDocuments).where(and(eq(eventDayDocuments.source, "event_document"), inArray(eventDayDocuments.sourceId, documentIds)));
     }
+    if (idsFor("event_document_folder").length > 0) await tx.delete(eventDocumentFolders).where(inArray(eventDocumentFolders.id, idsFor("event_document_folder")));
     if (idsFor("task_comment").length > 0) await tx.delete(eventTaskComments).where(inArray(eventTaskComments.id, idsFor("task_comment")));
     if (idsFor("task_attachment").length > 0) {
       const removed = await tx.delete(eventTaskAttachments).where(inArray(eventTaskAttachments.id, idsFor("task_attachment"))).returning({ key: eventTaskAttachments.fileKey });
