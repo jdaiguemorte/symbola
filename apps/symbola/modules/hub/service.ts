@@ -6,7 +6,10 @@ import { recordAudit } from "@symbola/db/audit";
 import type { AppDatabase } from "@symbola/db/client";
 import { ensureMembership, listTeam } from "@symbola/auth";
 import { detectFileType, uploadFile } from "@symbola/files";
-import { sendMail } from "@symbola/mail";
+import { createTranslator } from "next-intl";
+import frMessages from "@symbola/i18n/messages/fr.json";
+import enMessages from "@symbola/i18n/messages/en.json";
+import { sendSymbolaEmail } from "./emails";
 import { parseEnv } from "@symbola/env";
 import { requiredMentionRuleSchema, starterFollowUpDelays, starterLinkPrivacyNotice, starterRequiredMentions, type RequiredMentionRule } from "@symbola/starter-templates";
 import { getLinkPrivacyNotice } from "./privacy-requests";
@@ -38,6 +41,33 @@ import type { Language } from "./types";
 
 // Lot 6 (RGPD-04) — demandes d'exercice de droits et réglages RGPD.
 // Lot 37b (DOC-12 ; D12, D13 ; ADR 0071) : relevé mensuel du stockage.
+// Lot 38a (MSG-01, MSG-02, HUB-18 ; ADR 0072) : modèles d'e-mails, rendu à l'image de l'organisation,
+// essai, e-mails de Symbola, garde-fou d'envoi groupé.
+export {
+  assertRecipientsConfirmed,
+  EMAIL_BODY_MAX,
+  EMAIL_SUBJECT_MAX,
+  emailTemplateVariables,
+  recipientsDigest,
+  RecipientsNotConfirmedError,
+  reviewRecipients,
+  validateEmailTemplate,
+  variableToken,
+  type EmailBlock,
+  type EmailTemplateProblems,
+} from "./email-template-rules";
+export { EmailTemplateInvalidError, getEmailTemplate, isEmailTemplateKind, listEmailTemplates, recentEmailVariableProblems, resetEmailTemplate, saveEmailTemplate } from "./email-templates";
+export {
+  assertOrganizationEmailReady,
+  composeOrganizationEmail,
+  EmailVariableMissingError,
+  previewEmailTemplate,
+  sendOrganizationEmail,
+  sendSymbolaEmail,
+  sendTestEmail,
+  type EmailPreview,
+} from "./emails";
+
 export {
   emptyStorageTotals,
   getLatestStorageTotals,
@@ -276,19 +306,16 @@ export async function createOrganizationWithInvitation(db: AppDatabase, input: C
 
   const env = parseEnv(process.env);
   const invitationUrl = `${env.APP_PUBLIC_URL}/invitations/${invitationToken}`;
-  // PRD-HUB-04 : l'e-mail suit la langue de l'organisation (pas encore de
-  // fiche « marié » à qui appliquer sa propre langue — ADR 0011, lot
-  // suivant). Ce service n'est pas un composant React : pas d'accès à
-  // next-intl ici, deux variantes inline suffisent pour deux clés.
-  const subject = input.language === "en" ? "Your Symbola invitation" : "Votre invitation Symbola";
-  const text =
-    input.language === "en"
-      ? `Hello,\n\nYou have been invited to join "${organization.name}" on Symbola. This link is valid for 7 days:\n${invitationUrl}\n\nSee you soon,\nThe Symbola team`
-      : `Bonjour,\n\nVous avez été invité·e à rejoindre « ${organization.name} » sur Symbola. Ce lien est valable 7 jours :\n${invitationUrl}\n\nÀ bientôt,\nL'équipe Symbola`;
-  await sendMail({
+  // PRD-HUB-04 : l'e-mail suit la langue de l'organisation. Lot 38a (D3) : texte fixe de Symbola,
+  // dans les fichiers de traduction, mis en page.
+  const locale = input.language === "en" ? "en" : "fr";
+  const t = createTranslator({ locale, messages: locale === "en" ? enMessages : frMessages, namespace: "Emails.fixed.invitation" });
+  await sendSymbolaEmail({
     to: input.titulaireEmail,
-    subject,
-    text,
+    locale,
+    subject: t("subject"),
+    body: t("body", { organization: organization.name, url: invitationUrl }),
+    button: { label: t("button"), url: invitationUrl },
   });
 
   return { organizationId: organization.id, invitationId: invitation.id, invitationToken };

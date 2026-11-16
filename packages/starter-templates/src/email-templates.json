@@ -1,0 +1,90 @@
+{
+  "version": 1,
+  "_source": "Lot 38a (MSG-01, D3, D5, D6 ; ADR 0072) : textes de départ des e-mails que l'organisation adresse aux tiers. Variables entre doubles accolades, en français ({{prénom}}) ou en anglais ({{first_name}}) ; un paragraphe fait du seul lien devient un bouton. La planner les remplace dans Paramètres › Modèles d'e-mails. Les textes de départ n'emploient que des variables toujours renseignées (aucun e-mail ne part avec une variable vide). Repris des textes des lots 26 à 31 ; l'exemplaire signé garde le sens validé par l'avocat (réponse 1, lot 31b).",
+  "templates": {
+    "fr": {
+      "client_link": {
+        "subject": "Votre espace pour suivre {{évènement}}",
+        "body": "Bonjour {{prénom}},\n\n{{organisation}} vous a ouvert un espace pour suivre {{évènement}}, sans compte ni mot de passe. Votre lien personnel est valable jusqu'au {{valable_jusqu_au}} inclus :\n\n{{lien}}\n\nCe lien vous est réservé : ne le transférez pas. Si vous ne l'attendiez pas, ignorez ce message.\n\nÀ bientôt,\n{{organisation}}"
+      },
+      "client_link_renewed": {
+        "subject": "Votre nouveau lien pour suivre {{évènement}}",
+        "body": "Bonjour {{prénom}},\n\nVoici votre nouveau lien personnel pour suivre {{évènement}}, valable jusqu'au {{valable_jusqu_au}} inclus :\n\n{{lien}}\n\nL'ancien lien ne fonctionne plus. Ce lien vous est réservé : ne le transférez pas.\n\nÀ bientôt,\n{{organisation}}"
+      },
+      "vendor_link": {
+        "subject": "Votre espace prestataire — {{organisation}}",
+        "body": "Bonjour {{prénom}},\n\n{{organisation}} vous a ouvert un espace pour {{évènement}}, sans compte ni mot de passe : la date, les lieux, le programme et les tâches qui vous concernent. Votre lien personnel est valable jusqu'au {{valable_jusqu_au}} inclus :\n\n{{lien}}\n\nCe lien vous est réservé : ne le transférez pas. Si vous ne l'attendiez pas, ignorez ce message.\n\nÀ bientôt,\n{{organisation}}"
+      },
+      "vendor_link_renewed": {
+        "subject": "Votre nouveau lien prestataire — {{organisation}}",
+        "body": "Bonjour {{prénom}},\n\nVoici votre nouveau lien personnel pour {{évènement}}, valable jusqu'au {{valable_jusqu_au}} inclus :\n\n{{lien}}\n\nL'ancien lien ne fonctionne plus. Ce lien vous est réservé : ne le transférez pas.\n\nÀ bientôt,\n{{organisation}}"
+      },
+      "task_reminder": {
+        "subject": "Vos prochaines tâches pour {{évènement}}",
+        "body": "Bonjour {{prénom}},\n\nVoici ce qui vous attend pour {{évènement}} :\n{{tâches}}\n\nPour cocher une tâche, ouvrez votre espace avec le lien personnel reçu par e-mail. Vous ne le retrouvez pas ? Demandez-en un nouveau à {{organisation}}.\n\nVous ne souhaitez plus recevoir ces rappels ? Dites-le à {{organisation}}.\n\nÀ bientôt,\n{{organisation}}"
+      },
+      "quote_signature": {
+        "subject": "Devis {{numéro_devis}} à signer — {{organisation}}",
+        "body": "Bonjour {{prénom}},\n\n{{organisation}} vous envoie le devis {{numéro_devis}} à signer en ligne. Votre lien personnel de signature :\n\n{{lien}}\n\nCe lien vous est personnel : merci de ne pas le transférer.\n\n{{organisation}}"
+      },
+      "contract_signature": {
+        "subject": "Contrat du devis {{numéro_devis}} à signer — {{organisation}}",
+        "body": "Bonjour {{prénom}},\n\n{{organisation}} vous envoie le contrat du devis {{numéro_devis}} à signer en ligne. Votre lien personnel de signature :\n\n{{lien}}\n\nCe lien vous est personnel : merci de ne pas le transférer.\n\n{{organisation}}"
+      },
+      "order_first": {
+        "subject": "Devis {{numéro_devis}} et son contrat — {{organisation}}",
+        "body": "Bonjour {{prénom}},\n\n{{organisation}} vous envoie le devis {{numéro_devis}} et son contrat. Ouvrez votre espace personnel (le lien que {{organisation}} vous a remis) pour lire le contrat, passer commande, puis signer.\n\n{{organisation}}"
+      },
+      "signed_copy": {
+        "subject": "Votre exemplaire signé — devis {{numéro_devis}}",
+        "body": "Bonjour {{prénom}},\n\nVous trouverez ci-joint votre exemplaire signé du devis {{numéro_devis}} et de son contrat avec {{organisation}}. Conservez-le : c'est la confirmation de votre contrat.\n\n{{organisation}}"
+      },
+      "program_published": {
+        "subject": "Programme, version {{version}} — {{organisation}}",
+        "body": "Bonjour {{prénom}},\n\n{{organisation}} a diffusé la version {{version}} du programme, pour {{évènement}}. Vous la trouverez en pièce jointe, et dans votre espace avec le lien personnel reçu par e-mail.\n\nÀ bientôt,\n{{organisation}}"
+      }
+    },
+    "en": {
+      "client_link": {
+        "subject": "Your space to follow {{event}}",
+        "body": "Hello {{first_name}},\n\n{{organization}} has opened a space for you to follow {{event}}, with no account or password. Your personal link is valid until {{valid_until}} included:\n\n{{link}}\n\nThis link is for you only: please do not forward it. If you were not expecting it, ignore this message.\n\nSee you soon,\n{{organization}}"
+      },
+      "client_link_renewed": {
+        "subject": "Your new link to follow {{event}}",
+        "body": "Hello {{first_name}},\n\nHere is your new personal link to follow {{event}}, valid until {{valid_until}} included:\n\n{{link}}\n\nThe previous link no longer works. This link is for you only: please do not forward it.\n\nSee you soon,\n{{organization}}"
+      },
+      "vendor_link": {
+        "subject": "Your vendor space — {{organization}}",
+        "body": "Hello {{first_name}},\n\n{{organization}} has opened a space for you for {{event}}, with no account or password: the date, venues, schedule and tasks that concern you. Your personal link is valid until {{valid_until}} included:\n\n{{link}}\n\nThis link is for you only: please do not forward it. If you were not expecting it, ignore this message.\n\nSee you soon,\n{{organization}}"
+      },
+      "vendor_link_renewed": {
+        "subject": "Your new vendor link — {{organization}}",
+        "body": "Hello {{first_name}},\n\nHere is your new personal link for {{event}}, valid until {{valid_until}} included:\n\n{{link}}\n\nThe previous link no longer works. This link is for you only: please do not forward it.\n\nSee you soon,\n{{organization}}"
+      },
+      "task_reminder": {
+        "subject": "Your next tasks for {{event}}",
+        "body": "Hello {{first_name}},\n\nHere is what is coming up for {{event}}:\n{{tasks}}\n\nTo tick a task, open your space with the personal link you received by e-mail. Can't find it? Ask {{organization}} for a new one.\n\nYou no longer wish to receive these reminders? Just tell {{organization}}.\n\nSee you soon,\n{{organization}}"
+      },
+      "quote_signature": {
+        "subject": "Quote {{quote_number}} to sign — {{organization}}",
+        "body": "Hello {{first_name}},\n\n{{organization}} sends you quote {{quote_number}} to sign online. Your personal signing link:\n\n{{link}}\n\nThis link is personal: please do not forward it.\n\n{{organization}}"
+      },
+      "contract_signature": {
+        "subject": "Contract for quote {{quote_number}} to sign — {{organization}}",
+        "body": "Hello {{first_name}},\n\n{{organization}} sends you the contract for quote {{quote_number}} to sign online. Your personal signing link:\n\n{{link}}\n\nThis link is personal: please do not forward it.\n\n{{organization}}"
+      },
+      "order_first": {
+        "subject": "Quote {{quote_number}} and its contract — {{organization}}",
+        "body": "Hello {{first_name}},\n\n{{organization}} sends you quote {{quote_number}} and its contract. Open your personal space (the link {{organization}} gave you) to read the contract, place your order, then sign.\n\n{{organization}}"
+      },
+      "signed_copy": {
+        "subject": "Your signed copy — quote {{quote_number}}",
+        "body": "Hello {{first_name}},\n\nPlease find attached your signed copy of quote {{quote_number}} and its contract with {{organization}}. Keep it: it is your confirmation of the contract.\n\n{{organization}}"
+      },
+      "program_published": {
+        "subject": "Schedule for {{event}}: version {{version}}",
+        "body": "Hello {{first_name}},\n\n{{organization}} has shared version {{version}} of the schedule for {{event}}. You will find it attached, and in your space with the personal link you received by e-mail.\n\nSee you soon,\n{{organization}}"
+      }
+    }
+  }
+}

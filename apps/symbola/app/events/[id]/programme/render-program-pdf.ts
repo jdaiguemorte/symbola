@@ -8,7 +8,7 @@ import { renderToBuffer, type DocumentProps } from "@react-pdf/renderer";
 import { getLocale, getTranslations } from "next-intl/server";
 import { appDatabase } from "@symbola/db/client";
 import { formatCalendarDate, formatDateTime, type Locale } from "@symbola/i18n";
-import type { EventProgram, ProgramVariant, PublishedProgramItem, VendorProgramView } from "@/modules/events/service";
+import type { EventProgram, ProgramRecipientDocument, ProgramVariant, PublishedProgramItem, VendorProgramView } from "@/modules/events/service";
 import { getDocumentHeader } from "@/modules/hub/service";
 import { ProgramPdfDocument } from "./program-pdf";
 import { loadDocumentLogo } from "@/lib/document-logo";
@@ -23,7 +23,7 @@ type PdfVersion = { number: number; publishedAt: string };
 
 type Translate = Awaited<ReturnType<typeof getTranslations>>;
 
-async function renderPdf(input: {
+type PdfInput = {
   organizationId: string;
   event: PdfEvent;
   program: EventProgram;
@@ -32,13 +32,16 @@ async function renderPdf(input: {
   participantsLabel?: (t: Translate) => string;
   version?: PdfVersion;
   filename: (t: Translate) => string;
-  disposition: "inline" | "attachment";
-}): Promise<Response> {
+};
+
+// Lot 38a (D9) : le rendu en mémoire, dans une langue donnée (celle de la page, ou celle du
+// destinataire d'un e-mail).
+async function renderPdfBuffer(input: PdfInput & { locale: "fr" | "en" }): Promise<{ pdf: Buffer; filename: string }> {
   const db = appDatabase();
   const header = await getDocumentHeader(db, input.organizationId);
 
-  const locale = (await getLocale()) as Locale;
-  const t = await getTranslations("Events");
+  const locale = input.locale as Locale;
+  const t = await getTranslations({ locale: input.locale, namespace: "Events" });
   const names = input.event.clients.map((client) => client.firstName).join(" & ") || t("noClient");
   const heading = input.event.eventDate ? `${names} — ${formatCalendarDate(input.event.eventDate, locale)}` : names;
   const version = input.version;
@@ -62,17 +65,21 @@ async function renderPdf(input: {
       participants: input.participantsLabel ? input.participantsLabel(t) : t("programParticipants"),
       note: t("programInternalNote"),
       empty: t("noProgramItems"),
-      words: await programSpanWords(),
+      words: await programSpanWords(input.locale),
       responsible: (name) => t("programResponsibleLine", { name }),
     },
   });
 
   const element = createElement(ProgramPdfDocument, { model: pdfSafe(model) }) as unknown as ReactElement<DocumentProps>;
-  const pdf = await renderToBuffer(element);
+  return { pdf: await renderToBuffer(element), filename: `${input.filename(t)}.pdf` };
+}
+
+async function renderPdf(input: PdfInput & { disposition: "inline" | "attachment" }): Promise<Response> {
+  const { pdf, filename } = await renderPdfBuffer({ ...input, locale: (await getLocale()) === "en" ? "en" : "fr" });
   return new Response(new Uint8Array(pdf), {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `${input.disposition}; filename="${input.filename(t)}.pdf"`,
+      "Content-Disposition": `${input.disposition}; filename="${filename}"`,
       "Cache-Control": "no-store",
     },
   });
@@ -128,4 +135,35 @@ export async function renderVendorProgramPdfResponse(input: {
     filename: (t) => t("programPdfFilePublished", { number: input.program.version.number }),
     disposition: "attachment",
   });
+}
+
+// Lot 38a (D9) — le PDF joint à l'e-mail d'une version diffusée, dans la langue du destinataire : la
+// version des clients, ou la vue du poste d'un prestataire.
+export async function renderRecipientProgramPdf(organizationId: string, document: ProgramRecipientDocument): Promise<{ filename: string; content: Uint8Array }> {
+  const event: PdfEvent = { clients: document.event.clientFirstNames.map((firstName) => ({ firstName })), eventDate: document.event.eventDate, isDemo: false };
+  const { view, version } = document;
+  const rendered =
+    view.kind === "vendor"
+      ? await renderPdfBuffer({
+          organizationId,
+          event,
+          program: vendorPdfProgram({ version, ownItems: view.ownItems, outline: view.outline, isNew: false }, view.slotLabel, version.publishedAt),
+          variant: "couple",
+          version,
+          variantLabel: (t) => t("programPdfVendor", { slot: view.slotLabel }),
+          participantsLabel: (t) => t("programPdfYourRole"),
+          filename: (t) => t("programPdfFilePublished", { number: version.number }),
+          locale: document.recipient.locale,
+        })
+      : await renderPdfBuffer({
+          organizationId,
+          event,
+          program: publishedPdfProgram(view.items, version.publishedAt),
+          variant: "couple",
+          version,
+          variantLabel: (t) => t("programPdfPublished"),
+          filename: (t) => t("programPdfFilePublished", { number: version.number }),
+          locale: document.recipient.locale,
+        });
+  return { filename: rendered.filename, content: new Uint8Array(rendered.pdf) };
 }

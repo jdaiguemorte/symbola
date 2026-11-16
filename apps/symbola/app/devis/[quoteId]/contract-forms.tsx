@@ -8,6 +8,7 @@ import { useActionState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { formatCalendarDate, type Locale } from "@symbola/i18n";
 import type { ContractProblem, ContractTemplateClause } from "@/modules/quotes/service";
+import { RecipientsGuard } from "../../recipients-guard";
 import { generateContractAction, sendContractAloneAction, type ContractFormState } from "./contract-actions";
 
 const CHANNELS = ["on_premises", "distance", "off_premises", "fair"] as const;
@@ -115,9 +116,13 @@ export function SendContractAloneForm({ quoteId, contractId }: { quoteId: string
       <input type="hidden" name="quoteId" value={quoteId} />
       <input type="hidden" name="contractId" value={contractId} />
       <p className="meta">{t("sendContractAloneHint")}</p>
-      <button type="submit" disabled={pending}>
-        {t("sendContractAlone")}
-      </button>
+      {state.confirmRecipients ? (
+        <RecipientsGuard review={state.confirmRecipients} pending={pending} />
+      ) : (
+        <button type="submit" disabled={pending}>
+          {t("sendContractAlone")}
+        </button>
+      )}
       {state.error ? <p role="alert">{state.error}</p> : null}
       {state.success ? <p role="status">{t("contractSentAlone")}</p> : null}
     </form>

@@ -53,6 +53,7 @@ import {
   verifyLedger,
 } from "./service";
 import { fillRequiredMentions } from "@/lib/test-fixtures/legal-mentions";
+import { confirmed } from "@/lib/test-fixtures/recipients";
 
 // Lot 23b (DOC-08) : rendu factice de l'original déposé à l'émission.
 const renderInvoice = async () => Buffer.from("%PDF-1.4\n% facture de test\n%%EOF\n", "latin1");
@@ -116,7 +117,7 @@ async function signedQuote(options: { demoEventId?: string; organizationId?: str
   await addScheduleItem(organizationId, quote.id, { label: "Deuxième acompte", dueDate: "2027-06-01", amountCents: 50000 });
   await sendQuote({ organizationId, quoteId: quote.id, now: NOW });
   setSignatureProviderForTests(fakeSignatureProvider());
-  const sent = await sendQuoteForSignature({
+  const sent = await sendQuoteForSignature(confirmed({
     organizationId,
     quoteId: quote.id,
     signers: [
@@ -125,7 +126,7 @@ async function signedQuote(options: { demoEventId?: string; organizationId?: str
     ],
     documentPdf: PDF,
     locale: "fr",
-  });
+  }));
   for (const signer of sent.signature!.signers) await actOnFakeSignature(signer.signingUrl.split("/").pop()!, "sign");
   const items = sent.current.schedule.items;
   return { organizationId, plannerId, eventId, quoteId: quote.id, number: sent.number, items };

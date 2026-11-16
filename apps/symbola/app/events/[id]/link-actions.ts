@@ -20,8 +20,10 @@ import {
   type EventLinkRights,
   type LinkRubric,
 } from "@/modules/events/service";
+import { EmailVariableMissingError } from "@/modules/hub/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { requestAudience } from "@/lib/vocabulary";
+import { emailVariableMissingMessage } from "../../email-errors";
 import { isEventsModuleEnabled, isValidId } from "../module-access";
 
 export type LinkFormState = { error?: string; success?: boolean; url?: string; email?: string; name?: string; renewed?: boolean };
@@ -100,6 +102,8 @@ export async function createLinkAction(_prev: LinkFormState, formData: FormData)
     revalidatePath(`/events/${eventId}`);
     return { success: true, url: delivery.url, email: delivery.link.email, name: delivery.link.personName };
   } catch (error) {
+    // Lot 38a (MSG-01, D5) : le modèle de l'e-mail emploie une variable sans valeur ; le lien n'est pas créé.
+    if (error instanceof EmailVariableMissingError) return { error: await emailVariableMissingMessage(error) };
     const message = errorMessage(error, t);
     if (message) return { error: message };
     throw error;
@@ -156,6 +160,7 @@ export async function renewLinkAction(_prev: LinkFormState, formData: FormData):
     revalidatePath(`/events/${eventId}`);
     return { success: true, renewed: true, url: delivery.url, email: delivery.link.email, name: delivery.link.personName };
   } catch (error) {
+    if (error instanceof EmailVariableMissingError) return { error: await emailVariableMissingMessage(error) };
     const message = errorMessage(error, t);
     if (message) return { error: message };
     throw error;

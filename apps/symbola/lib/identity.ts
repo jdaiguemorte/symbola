@@ -6,7 +6,7 @@ import { cookies } from "next/headers";
 import { getTranslations } from "next-intl/server";
 import { createManagementClient, createOidcClient, identityConnectionFromEnv, MAGIC_LINK_TTL_SECONDS, readMfaEncryptionKey, sealMagicLink, type ManagementClient, type OidcClient, type PendingAuthorization } from "@symbola/auth";
 import { parseEnv } from "@symbola/env";
-import { sendMail } from "@symbola/mail";
+import { sendSymbolaEmail } from "@/modules/hub/service";
 
 type Identity = { management: ManagementClient; oidc: OidcClient; appPublicUrl: string };
 let identityClients: Identity | null = null;
@@ -72,7 +72,8 @@ export async function sendMagicLink(email: string, locale: "fr" | "en"): Promise
     const issued = await management.issueSignInToken(email);
     const sealed = sealMagicLink({ email: issued.email, token: issued.token, expiresAt: Date.now() + MAGIC_LINK_TTL_SECONDS * 1000 }, readMfaEncryptionKey());
     const t = await getTranslations({ locale, namespace: "Login" });
-    await sendMail({ to: email, subject: t("magicLinkSubject"), text: t("magicLinkBody", { link: `${appPublicUrl}/auth/lien/${sealed}` }) });
+    // Lot 38a (D3) : la même mise en page que les autres e-mails de Symbola.
+    await sendSymbolaEmail({ to: email, locale, subject: t("magicLinkSubject"), body: t("magicLinkBody", { link: `${appPublicUrl}/auth/lien/${sealed}` }) });
   } catch (error) {
     console.error("lien de connexion : envoi impossible", error instanceof Error ? error.name : "erreur");
   }

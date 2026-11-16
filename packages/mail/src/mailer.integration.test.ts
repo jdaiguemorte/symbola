@@ -19,4 +19,34 @@ describe("@symbola/mail — sendMail (Mailpit réel)", () => {
     expect(messages).toHaveLength(1);
     expect(messages[0]?.Subject).toBe(subject);
   });
+
+  it("MSG-01, HUB-18 (lot 38a) — HTML et texte, nom de l'organisation affiché, réponses vers son adresse, logo joint en ligne", async () => {
+    const to = `destinataire-${randomUUID()}@symbola.test`;
+    const subject = `Sujet HTML ${randomUUID()}`;
+    const logo = Buffer.from("89504e470d0a1a0a", "hex");
+    await sendMail({
+      to,
+      subject,
+      text: "Version texte.",
+      html: '<p>Version <img src="cid:logo@symbola"> HTML.</p>',
+      fromName: "Atelier Camille R.",
+      replyTo: "contact@atelier.test",
+      attachments: [{ filename: "logo.png", content: logo, contentType: "image/png", cid: "logo@symbola" }],
+    });
+    const search = await fetch(`${MAILPIT_API}/search?query=${encodeURIComponent(`to:${to}`)}`);
+    const { messages } = (await search.json()) as { messages: Array<{ ID: string }> };
+    const message = (await (await fetch(`${MAILPIT_API}/message/${messages[0]!.ID}`)).json()) as {
+      From: { Name: string; Address: string };
+      ReplyTo: { Address: string }[];
+      HTML: string;
+      Text: string;
+      Inline: { FileName: string; ContentID: string }[];
+    };
+    expect(message.From.Name).toBe("Atelier Camille R.");
+    expect(message.ReplyTo.map((entry) => entry.Address)).toEqual(["contact@atelier.test"]);
+    expect(message.HTML).toContain("Version");
+    expect(message.Text.trim()).toBe("Version texte.");
+    expect(message.Inline.map((part) => part.ContentID)).toEqual(["logo@symbola"]);
+  });
 });
+

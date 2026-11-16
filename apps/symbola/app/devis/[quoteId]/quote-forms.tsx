@@ -6,6 +6,7 @@ import { useLocale, useTranslations } from "next-intl";
 import type { AdvanceKind, CatalogItem, GlobalDiscountInput, QuoteLine, QuoteSection, QuoteTemplateSummary } from "@/modules/quotes/service";
 import { formatDecimal } from "../decimal-input";
 import { MissingMentionsList } from "../missing-mentions";
+import { RecipientsGuard } from "../../recipients-guard";
 import {
   addCatalogLineAction,
   addFreeLineAction,
@@ -24,7 +25,8 @@ import {
 type Action = (state: QuoteFormState, formData: FormData) => Promise<QuoteFormState>;
 
 // Formulaire d'une action du devis : identifiant caché, bouton, retour
-// d'erreur ou de confirmation annoncé aux lecteurs d'écran.
+// d'erreur ou de confirmation annoncé aux lecteurs d'écran. Lot 38a (MSG-02) : les champs peuvent
+// relire l'état (valeurs remises après un refus) ; l'écran du garde-fou remplace le bouton.
 export function QuoteActionForm({
   action,
   quoteId,
@@ -38,7 +40,7 @@ export function QuoteActionForm({
   label: string;
   submitLabel: string;
   successMessage: string;
-  children?: ReactNode;
+  children?: ReactNode | ((state: QuoteFormState) => ReactNode);
 }) {
   const t = useTranslations("Quotes");
   const initialState: QuoteFormState = {};
@@ -46,10 +48,14 @@ export function QuoteActionForm({
   return (
     <form action={formAction} aria-label={label}>
       <input type="hidden" name="quoteId" value={quoteId} />
-      {children}
-      <button type="submit" disabled={pending}>
-        {submitLabel}
-      </button>
+      {typeof children === "function" ? children(state) : children}
+      {state.confirmRecipients ? (
+        <RecipientsGuard review={state.confirmRecipients} pending={pending} />
+      ) : (
+        <button type="submit" disabled={pending}>
+          {submitLabel}
+        </button>
+      )}
       {state.error ? (
         <p role="alert">
           {state.error}

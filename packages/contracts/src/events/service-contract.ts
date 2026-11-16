@@ -487,6 +487,9 @@ export type ProgramVersionSummary = {
   publishedAt: string;
   // null : la version 1 reprise à la migration du lot 37b, sans auteur.
   publishedByUserId: string | null;
+  // Lot 38a (D9) : quand la version a été envoyée par e-mail, et à combien de personnes (null : pas encore).
+  notifiedAt: string | null;
+  notifiedCount: number | null;
 };
 
 export type ProgramVersion = ProgramVersionSummary & { items: PublishedProgramItem[] };
@@ -524,6 +527,31 @@ export type VendorProgramView = {
 };
 
 export type PublishEventProgramInput = { organizationId: string; eventId: string; userId: string; now?: Date | undefined };
+
+// Lot 38a (D9 ; MSG-02, D8) — « Prévenir par e-mail » après une diffusion : les liens actifs des
+// clients (rubrique Programme) et des prestataires. Chacun reçoit son programme en PDF : la version
+// des clients, ou la vue de son poste pour un prestataire (ni note interne ni séquence détaillée
+// d'un autre). Le lien lui-même ne se renvoie pas : Symbola n'en garde que l'empreinte.
+export type ProgramRecipient = { linkId: string; audience: "client" | "vendor"; name: string; email: string; locale: "fr" | "en" };
+
+export type ProgramRecipientDocument = {
+  recipient: ProgramRecipient;
+  event: { clientFirstNames: string[]; eventDate: string | null };
+  version: { number: number; publishedAt: string };
+  view: { kind: "client"; items: PublishedProgramItem[] } | { kind: "vendor"; slotLabel: string; ownItems: VendorProgramView["ownItems"]; outline: VendorProgramView["outline"] };
+};
+
+export type NotifyProgramVersionInput = {
+  organizationId: string;
+  eventId: string;
+  // Empreinte de la liste revue sur l'écran du garde-fou (MSG-02).
+  confirmedRecipients?: string | null | undefined;
+  renderDocument: (document: ProgramRecipientDocument) => Promise<{ filename: string; content: Uint8Array }>;
+  now?: Date | undefined;
+};
+
+// notSent : e-mails non partis (plafond d'envois atteint, messagerie en panne).
+export type ProgramNotification = { version: number; sent: number; notSent: number };
 
 export type ProgramTemplateItem = {
   id: string;
@@ -862,6 +890,9 @@ export interface EventsServiceContract {
   getEventProgramPublication(organizationId: string, eventId: string): Promise<ProgramPublication>;
   getEventProgramVersion(organizationId: string, eventId: string, number: number): Promise<ProgramVersion | null>;
   markLinkProgramSeen(organizationId: string, linkId: string, number: number): Promise<void>;
+  // Lot 38a (D9).
+  listProgramRecipients(organizationId: string, eventId: string): Promise<ProgramRecipient[]>;
+  notifyProgramVersion(input: NotifyProgramVersionInput): Promise<ProgramNotification>;
   addProgramItem(organizationId: string, eventId: string, item: ProgramItemInput): Promise<ProgramItem>;
   updateProgramItem(organizationId: string, itemId: string, item: ProgramItemInput): Promise<ProgramItem>;
   removeProgramItem(organizationId: string, itemId: string): Promise<void>;

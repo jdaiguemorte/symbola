@@ -20,7 +20,13 @@ export class ProgramPublishError extends Error {
 }
 
 function toSummary(row: VersionRow): ProgramVersionSummary {
-  return { number: row.number, publishedAt: row.publishedAt.toISOString(), publishedByUserId: row.publishedByUserId };
+  return {
+    number: row.number,
+    publishedAt: row.publishedAt.toISOString(),
+    publishedByUserId: row.publishedByUserId,
+    notifiedAt: row.notifiedAt ? row.notifiedAt.toISOString() : null,
+    notifiedCount: row.notifiedCount,
+  };
 }
 
 function itemsOf(row: VersionRow): PublishedProgramItem[] {
@@ -89,5 +95,31 @@ export async function markProgramSeen(organizationId: string, linkId: string, nu
       .update(eventLinks)
       .set({ programVersionSeen: number })
       .where(and(eq(eventLinks.id, linkId), or(isNull(eventLinks.programVersionSeen), lt(eventLinks.programVersionSeen, number)))),
+  );
+}
+
+// Lot 38a (D9) — l'envoi d'une version par e-mail. La version est d'abord réservée (une seule fois,
+// même sur un double clic) ; le nombre d'e-mails partis s'inscrit ensuite ; si aucun n'a pu partir,
+// la réservation est levée pour réessayer. Seules ces deux colonnes s'écrivent (migration 0141).
+export async function claimProgramNotification(organizationId: string, eventId: string, number: number, now: Date): Promise<boolean> {
+  const rows = await withOrganization(appDatabase(), organizationId, (tx) =>
+    tx
+      .update(programVersions)
+      .set({ notifiedAt: now })
+      .where(and(eq(programVersions.eventId, eventId), eq(programVersions.number, number), isNull(programVersions.notifiedAt)))
+      .returning({ number: programVersions.number }),
+  );
+  return rows.length > 0;
+}
+
+export async function recordProgramNotification(organizationId: string, eventId: string, number: number, count: number): Promise<void> {
+  await withOrganization(appDatabase(), organizationId, (tx) =>
+    tx.update(programVersions).set({ notifiedCount: count }).where(and(eq(programVersions.eventId, eventId), eq(programVersions.number, number))),
+  );
+}
+
+export async function releaseProgramNotification(organizationId: string, eventId: string, number: number): Promise<void> {
+  await withOrganization(appDatabase(), organizationId, (tx) =>
+    tx.update(programVersions).set({ notifiedAt: null, notifiedCount: null }).where(and(eq(programVersions.eventId, eventId), eq(programVersions.number, number))),
   );
 }

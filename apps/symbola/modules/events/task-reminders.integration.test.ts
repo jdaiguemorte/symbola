@@ -11,7 +11,8 @@ import { auditEntries } from "@symbola/db/schema/core";
 import { eventTaskReminders } from "@symbola/db/schema/events";
 import { withOrganization } from "@symbola/db/with-organization";
 import type { EventLinkRights } from "@symbola/contracts";
-import { addEventTask, changeEventStatus, createEventLink, createLossReason, createProspect, createProspectSource, revokeEventLink, sendClientTaskReminders, updateEventLink, updateEventTask } from "./service";
+import { recentEmailVariableProblems, resetEmailTemplate, saveEmailTemplate } from "@/modules/hub/service";
+import { addEventTask, changeEventDate, changeEventStatus, createEventLink, createLossReason, createProspect, createProspectSource, revokeEventLink, sendClientTaskReminders, updateEventLink, updateEventTask } from "./service";
 
 const plannerId = randomUUID();
 const MAILPIT_API = "http://localhost:8025/api/v1";
@@ -124,5 +125,26 @@ describe("CHR-04 — Rappel automatique des tâches confiées au client", () => 
     // Alliances (semaine), liste des invités (veille), coiffeur (retard), contrat (semaine).
     expect(journal[0]).toMatchObject({ actorKind: "system", details: { linkId, tasks: 4 } });
     expect(JSON.stringify(journal)).not.toContain(email);
+  });
+});
+
+describe("MSG-01 — Aucun e-mail avec une variable vide (lot 38a, D5)", () => {
+  it("un rappel dont le modèle emploie une variable sans valeur ne part pas : il est porté au journal, signalé dans « Aujourd'hui », et part une fois le modèle corrigé", async () => {
+    const w = await wedding();
+    await changeEventDate(w.organizationId, w.eventId, null);
+    await saveEmailTemplate({ organizationId: w.organizationId, kind: "task_reminder", locale: "fr", subject: "Vos tâches avant le {{date_évènement}}", body: "{{tâches}}" });
+    const { email } = await link(w.organizationId, w.eventId);
+    expect(await sendClientTaskReminders(w.organizationId, MARCH_3)).toBe(0);
+    expect(await mailsTo(email)).toEqual([]);
+
+    const journal = await withDb((db) => withOrganization(db, w.organizationId, (tx) => tx.select().from(auditEntries).where(eq(auditEntries.action, "hub.mail.variable_missing"))));
+    expect(journal).toHaveLength(1);
+    expect(journal[0]).toMatchObject({ actorKind: "system", category: "partage", objectType: "event", objectId: w.eventId, details: { kind: "task_reminder", locale: "fr", missing: "event_date" } });
+    expect(JSON.stringify(journal)).not.toContain(email);
+    expect(await recentEmailVariableProblems(w.organizationId)).toEqual({ events: 1, kind: "task_reminder", locale: "fr" });
+
+    await resetEmailTemplate(w.organizationId, "task_reminder", "fr");
+    expect(await sendClientTaskReminders(w.organizationId, MARCH_3)).toBe(1);
+    expect(await mailsTo(email)).toHaveLength(1);
   });
 });

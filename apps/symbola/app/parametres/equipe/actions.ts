@@ -12,10 +12,10 @@ import { removeMember } from "@symbola/auth";
 import { appDatabase } from "@symbola/db/client";
 import { parseEnv } from "@symbola/env";
 import { formatDate, type Locale } from "@symbola/i18n";
-import { MailQuotaExceededError, reserveOrganizationMail, sendMail } from "@symbola/mail";
+import { MailQuotaExceededError, reserveOrganizationMail } from "@symbola/mail";
 import { requireOwner } from "@/lib/guards";
 import { checkRateLimit, longestWait, rateLimitMessage } from "@/lib/rate-limit";
-import { createTeamInvitation, getOrganizationContact } from "@/modules/hub/service";
+import { createTeamInvitation, getOrganizationContact, sendSymbolaEmail } from "@/modules/hub/service";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -50,10 +50,12 @@ export async function inviteMemberAction(_prev: InviteMemberState, formData: For
   try {
     await reserveOrganizationMail(organizationId);
     const organization = (await getOrganizationContact(db, organizationId)).name;
-    await sendMail({
+    // Lot 38a (D3) : texte fixe de Symbola, mis en page.
+    await sendSymbolaEmail({
       to: email,
+      locale,
       subject: t("inviteMailSubject", { organization }),
-      text: t("inviteMailBody", { organization, url, date: formatDate(result.expiresAt, locale) }),
+      body: t("inviteMailBody", { organization, url, date: formatDate(result.expiresAt, locale) }),
     });
   } catch (error) {
     if (error instanceof MailQuotaExceededError) return { error: t("inviteMailQuota") };

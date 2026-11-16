@@ -7,8 +7,8 @@ import { LATE_PENALTY_RATE_KEYS, starterContractRules, starterContractTemplates,
 import { appDatabase, type AppDatabase } from "@symbola/db/client";
 import { parseEnv } from "@symbola/env";
 import { createStorageClient, deletePrivateObject, PrivateObjectNotFoundError, readPrivateObject, uploadFile, uploadPrivateObject } from "@symbola/files";
-import { reserveOrganizationMail, sendMail } from "@symbola/mail";
 import { formatAmount, formatCalendarDate, parisDaysSince } from "@symbola/i18n";
+import { createTranslator } from "next-intl";
 import frMessages from "@symbola/i18n/messages/fr.json";
 import enMessages from "@symbola/i18n/messages/en.json";
 import type {
@@ -84,12 +84,16 @@ import type {
 import { QUOTES_QUOTE_SIGNED, QUOTES_QUOTE_SIGNED_VERSION, type QuoteSignedPayload } from "@symbola/contracts";
 import { changeEventStatus, EventNotFoundError, getEvent, listEventLinks, listEventTypes } from "@/modules/events/service";
 import {
+  assertOrganizationEmailReady,
+  assertRecipientsConfirmed,
   computeLegalMention,
   ContactNotFoundError,
   getOrganizationProfile,
   getRequiredMentionRules,
   getSellerDetails,
   getUserContact,
+  sendOrganizationEmail,
+  sendSymbolaEmail,
   updateContact,
   type OrganizationProfile,
 } from "@/modules/hub/service";
@@ -1849,19 +1853,6 @@ function validSigners(signers: SignerInput[]): SignerInput[] {
   });
 }
 
-function signingMail(input: { locale: "fr" | "en"; organizationName: string; number: string; url: string }) {
-  if (input.locale === "en") {
-    return {
-      subject: `Quote ${input.number} to sign — ${input.organizationName}`,
-      text: `Hello,\n\n${input.organizationName} sends you quote ${input.number} to sign online. Your personal signing link:\n${input.url}\n\nThis link is personal: please do not forward it.\n\nThe Symbola team`,
-    };
-  }
-  return {
-    subject: `Devis ${input.number} à signer — ${input.organizationName}`,
-    text: `Bonjour,\n\n${input.organizationName} vous envoie le devis ${input.number} à signer en ligne. Votre lien personnel de signature :\n${input.url}\n\nCe lien vous est personnel : merci de ne pas le transférer.\n\nL'équipe Symbola`,
-  };
-}
-
 // La demande de signature est enregistrée, mais un ou plusieurs e-mails
 // portant les liens n'ont pas pu partir (SMTP indisponible).
 export class SignatureLinksNotMailedError extends Error {
@@ -1891,6 +1882,13 @@ export async function sendQuoteForSignature(input: SendForSignatureInput): Promi
     if (contract.signature) throw new SignatureAlreadyRequestedError();
     orderFirst = contract.regime.orderRequired;
     if (orderFirst) await requirePortalLinks(input.organizationId, quote.eventId, people);
+  }
+  // Lot 38a (MSG-02, D8) : à plusieurs signataires, l'écran du garde-fou doit avoir confirmé cette
+  // liste exacte. (MSG-01, D5) : et chaque e-mail doit pouvoir partir, avant toute demande.
+  assertRecipientsConfirmed(people.map((signer) => ({ name: signer.name, email: signer.email })), input.confirmedRecipients);
+  const mailKind = orderFirst ? "order_first" : "quote_signature";
+  if (!quote.isDemo) {
+    for (const signer of people) await assertOrganizationEmailReady({ organizationId: input.organizationId, kind: mailKind, locale: input.locale, values: { first_name: signer.name, quote_number: quote.number } });
   }
 
   const signerIds = people.map(() => randomUUID());
@@ -1944,17 +1942,18 @@ export async function sendQuoteForSignature(input: SendForSignatureInput): Promi
 
   const detail = await loadDetail(input.organizationId, input.quoteId);
   if (!quote.isDemo) {
-    const organizationName = quote.current.seller?.organizationName ?? "";
     let notMailed = 0;
     for (const signer of detail.signature?.signers ?? []) {
-      const mail = orderFirst
-        ? orderFirstMail({ locale: input.locale, organizationName, number: quote.number })
-        : signingMail({ locale: input.locale, organizationName, number: quote.number, url: signer.signingUrl });
       try {
         // Lot 24b (SEC-22, décision D5) : au-delà du plafond de l'heure, l'e-mail
-        // ne part pas ; la planner copie le lien depuis le devis.
-        await reserveOrganizationMail(input.organizationId);
-        await sendMail({ to: signer.email, ...mail });
+        // ne part pas ; la planner copie le lien depuis le devis. Lot 38a : le modèle de l'organisation.
+        await sendOrganizationEmail({
+          organizationId: input.organizationId,
+          to: signer.email,
+          kind: mailKind,
+          locale: input.locale,
+          values: { first_name: signer.name, quote_number: quote.number, ...(orderFirst ? {} : { link: signer.signingUrl }) },
+        });
       } catch (error) {
         // La demande existe chez le fournisseur : on n'annule rien, la
         // planner copie les liens depuis le devis (jamais l'adresse au journal).
@@ -2155,19 +2154,9 @@ async function confirmSignedQuote(organizationId: string, quoteId: string): Prom
   if (!contact) return;
   const env = parseEnv(process.env);
   const link = `${env.APP_PUBLIC_URL}/devis/${quoteId}`;
-  await sendMail(
-    contact.language === "en"
-      ? {
-          to: contact.email,
-          subject: `Quote ${quote.number} signed`,
-          text: `Hello,\n\nQuote ${quote.number} has been signed by all signers. The event is now confirmed. The signed document and its audit certificate are available on the quote:\n${link}\n\nThe Symbola team`,
-        }
-      : {
-          to: contact.email,
-          subject: `Devis ${quote.number} signé`,
-          text: `Bonjour,\n\nLe devis ${quote.number} a été signé par tous les signataires. L'événement passe en « Confirmé ». Le document signé et son certificat de preuve sont disponibles sur le devis :\n${link}\n\nL'équipe Symbola`,
-        },
-  );
+  // Lot 38a (D3) : texte fixe de Symbola, dans la langue de la personne, mis en page.
+  const t = createTranslator({ locale: contact.language, messages: contact.language === "en" ? enMessages : frMessages, namespace: "Emails.fixed.quoteSigned" });
+  await sendSymbolaEmail({ to: contact.email, locale: contact.language, subject: t("subject", { number: quote.number }), body: t("body", { number: quote.number, url: link }), button: { label: t("button"), url: link } });
 }
 
 // Document signé ou certificat de preuve de la version courante, lu dans le
@@ -3202,19 +3191,6 @@ export async function getClientContract(organizationId: string, eventId: string,
   return { quote, contract };
 }
 
-function contractSigningMail(input: { locale: "fr" | "en"; organizationName: string; number: string; url: string }) {
-  if (input.locale === "en") {
-    return {
-      subject: `Contract for quote ${input.number} to sign — ${input.organizationName}`,
-      text: `Hello,\n\n${input.organizationName} sends you the contract for quote ${input.number} to sign online. Your personal signing link:\n${input.url}\n\nThis link is personal: please do not forward it.\n\nThe Symbola team`,
-    };
-  }
-  return {
-    subject: `Contrat du devis ${input.number} à signer — ${input.organizationName}`,
-    text: `Bonjour,\n\n${input.organizationName} vous envoie le contrat du devis ${input.number} à signer en ligne. Votre lien personnel de signature :\n${input.url}\n\nCe lien vous est personnel : merci de ne pas le transférer.\n\nL'équipe Symbola`,
-  };
-}
-
 // D13 (réponse 1 de l'avocat) — contrat à distance : le lien de signature ne part pas par e-mail ;
 // il s'affiche sur l'espace personnel du signataire après sa commande. Chacun doit donc en avoir un.
 async function requirePortalLinks(organizationId: string, eventId: string, people: { name: string; email: string }[]): Promise<void> {
@@ -3222,19 +3198,6 @@ async function requirePortalLinks(organizationId: string, eventId: string, peopl
   const emails = new Set(links.map((link) => link.email.trim().toLowerCase()));
   const missing = people.filter((person) => !emails.has(person.email.trim().toLowerCase())).map((person) => person.name);
   if (missing.length > 0) throw new SignersWithoutPortalError(missing);
-}
-
-function orderFirstMail(input: { locale: "fr" | "en"; organizationName: string; number: string }) {
-  if (input.locale === "en") {
-    return {
-      subject: `Quote ${input.number} and its contract — ${input.organizationName}`,
-      text: `Hello,\n\n${input.organizationName} sends you quote ${input.number} and its contract. Open your personal space (the link ${input.organizationName} gave you) to read the contract, place your order, then sign.\n\nThe Symbola team`,
-    };
-  }
-  return {
-    subject: `Devis ${input.number} et son contrat — ${input.organizationName}`,
-    text: `Bonjour,\n\n${input.organizationName} vous envoie le devis ${input.number} et son contrat. Ouvrez votre espace personnel (le lien que ${input.organizationName} vous a remis) pour lire le contrat, passer commande, puis signer.\n\nL'équipe Symbola`,
-  };
 }
 
 // DOC-03 (D9) : contrat généré après la signature du devis, signé seul par les mêmes signataires.
@@ -3249,6 +3212,12 @@ export async function sendContractForSignature(input: SendContractForSignatureIn
   if (!provider) throw new SignatureUnavailableError();
   const people = quote.signature.signers.map((signer) => ({ eventClientId: signer.eventClientId, contactId: signer.contactId, name: signer.name, email: signer.email, billingAddress: signer.billingAddress }));
   if (contract.regime.orderRequired) await requirePortalLinks(input.organizationId, quote.eventId, people);
+  // Lot 38a (MSG-02, D8 ; MSG-01, D5) : garde-fou à plusieurs signataires ; chaque e-mail doit pouvoir partir.
+  assertRecipientsConfirmed(people.map((signer) => ({ name: signer.name, email: signer.email })), input.confirmedRecipients);
+  const mailKind = contract.regime.orderRequired ? "order_first" : "contract_signature";
+  if (!quote.isDemo) {
+    for (const signer of people) await assertOrganizationEmailReady({ organizationId: input.organizationId, kind: mailKind, locale: input.locale, values: { first_name: signer.name, quote_number: quote.number } });
+  }
   const signerIds = people.map(() => randomUUID());
   const created = await provider.createRequest({
     title: `${quote.number} — ${contract.title} V${contract.version}`,
@@ -3271,17 +3240,18 @@ export async function sendContractForSignature(input: SendContractForSignatureIn
   if (result.status === "not_sent") throw new QuoteNotSignedError();
   if (result.status !== "ok") throw new ContractNotFoundError();
   if (!quote.isDemo) {
-    const organizationName = quote.current.seller?.organizationName ?? "";
     const request = (await findContractRequests(input.organizationId, [contract.id])).find((candidate) => candidate.kind === "contract");
     const signers = request ? await findSignersOfRequest(input.organizationId, request.id) : [];
     let notMailed = 0;
     for (const signer of signers) {
       try {
-        await reserveOrganizationMail(input.organizationId);
-        const mail = contract.regime.orderRequired
-          ? orderFirstMail({ locale: input.locale, organizationName, number: quote.number })
-          : contractSigningMail({ locale: input.locale, organizationName, number: quote.number, url: signer.signingUrl });
-        await sendMail({ to: signer.email, ...mail });
+        await sendOrganizationEmail({
+          organizationId: input.organizationId,
+          to: signer.email,
+          kind: mailKind,
+          locale: input.locale,
+          values: { first_name: signer.name, quote_number: quote.number, ...(contract.regime.orderRequired ? {} : { link: signer.signingUrl }) },
+        });
       } catch (error) {
         notMailed += 1;
         console.error(`e-mail de signature du contrat non envoyé (signataire ${signer.id})`, error instanceof Error ? error.message : error);
@@ -3406,17 +3376,16 @@ export async function getContractEvidence(organizationId: string, quoteId: strin
 async function mailSignedContract(organizationId: string, quote: QuoteAggregate["quote"], signers: QuoteSignerRow[], signedPdf: Buffer): Promise<void> {
   if (quote.isDemo) return;
   const contact = await withDb((db) => getUserContact(db, organizationId, quote.createdByUserId));
-  const seller = await currentQuoteSeller(organizationId);
-  const english = contact?.language === "en";
+  const locale = contact?.language === "en" ? "en" : "fr";
   for (const signer of signers) {
     try {
-      await reserveOrganizationMail(organizationId);
-      await sendMail({
+      // Lot 38a (MSG-01) : le modèle « exemplaire signé » de l'organisation, le PDF signé joint.
+      await sendOrganizationEmail({
+        organizationId,
         to: signer.email,
-        subject: english ? `Your signed copy — quote ${quote.number}` : `Votre exemplaire signé — devis ${quote.number}`,
-        text: english
-          ? `Hello,\n\nPlease find attached your signed copy of quote ${quote.number} and its contract with ${seller.organizationName}. Keep it: it is your confirmation of the contract.\n\nThe Symbola team`
-          : `Bonjour,\n\nVous trouverez ci-joint votre exemplaire signé du devis ${quote.number} et de son contrat avec ${seller.organizationName}. Conservez-le : c'est la confirmation de votre contrat.\n\nL'équipe Symbola`,
+        kind: "signed_copy",
+        locale,
+        values: { first_name: signer.name, quote_number: quote.number },
         attachments: [{ filename: `${quote.number}-signe.pdf`, content: signedPdf, contentType: "application/pdf" }],
       });
     } catch (error) {

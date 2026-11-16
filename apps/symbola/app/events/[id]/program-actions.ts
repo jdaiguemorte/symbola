@@ -14,6 +14,9 @@ import {
   ProgramItemNotFoundError,
   ProgramShiftOutOfDayError,
   ProgramParticipantNotFoundError,
+  DemoEventRestrictionError,
+  notifyProgramVersion,
+  ProgramNotifyError,
   ProgramPublishError,
   ProgramTemplateNotFoundError,
   publishEventProgram,
@@ -23,8 +26,13 @@ import {
   updateProgramItem,
   type ProgramItemInput,
 } from "@/modules/events/service";
+import { MailQuotaExceededError } from "@symbola/mail";
+import type { RecipientsReview } from "@symbola/contracts";
+import { EmailVariableMissingError, RecipientsNotConfirmedError } from "@/modules/hub/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
+import { emailVariableMissingMessage } from "../../email-errors";
 import { isEventsModuleEnabled, isValidId } from "../module-access";
+import { renderRecipientProgramPdf } from "./programme/render-program-pdf";
 
 export type ProgramFormState = { error?: string; success?: boolean };
 
@@ -187,5 +195,42 @@ export async function publishProgramAction(_prevState: ProgramPublishState, form
     if (error instanceof ProgramPublishError) return { error: error.reason === "empty" ? t("programPublishEmpty") : t("programPublishUnchanged") };
     if (error instanceof EventNotFoundError) return { error: t("eventNotFound") };
     throw error;
+  }
+}
+
+// Lot 38a (D9 ; MSG-02, D8) — « Prévenir par e-mail » : la dernière version diffusée part à ses
+// destinataires, chacun avec son PDF, dans sa langue. À plusieurs, l'écran du garde-fou d'abord.
+export type ProgramNotifyState = { error?: string; sent?: number; notSent?: number; confirmRecipients?: RecipientsReview };
+
+export async function notifyProgramAction(_prevState: ProgramNotifyState, formData: FormData): Promise<ProgramNotifyState> {
+  const t = await getTranslations("Events");
+  const auth = await getPlannerAuthContext();
+  if (auth.status !== "authenticated" || !auth.user.organizationId) return { error: t("unauthenticated") };
+  const organizationId = auth.user.organizationId;
+  if (!(await isEventsModuleEnabled(organizationId))) return { error: t("moduleUnavailable") };
+  const eventId = String(formData.get("eventId") ?? "");
+  if (!isValidId(eventId)) return { error: t("eventNotFound") };
+  try {
+    const result = await notifyProgramVersion({
+      organizationId,
+      eventId,
+      confirmedRecipients: String(formData.get("confirmedRecipients") ?? "") || null,
+      renderDocument: (document) => renderRecipientProgramPdf(organizationId, document),
+    });
+    revalidatePath(`/events/${eventId}`);
+    return { sent: result.sent, notSent: result.notSent };
+  } catch (error) {
+    if (error instanceof RecipientsNotConfirmedError) return { confirmRecipients: error.review };
+    if (error instanceof EmailVariableMissingError) return { error: await emailVariableMissingMessage(error) };
+    if (error instanceof ProgramNotifyError) {
+      if (error.reason === "already_notified") revalidatePath(`/events/${eventId}`);
+      return { error: t(error.reason === "no_version" ? "programNotifyNoVersion" : error.reason === "already_notified" ? "programNotifyAlready" : "programNotifyNoRecipients") };
+    }
+    if (error instanceof MailQuotaExceededError) return { error: t("mailQuotaReached", { minutes: Math.max(1, Math.ceil(error.retryAfterSeconds / 60)) }) };
+    if (error instanceof DemoEventRestrictionError) return { error: t("programNotifyTrial") };
+    if (error instanceof EventNotFoundError) return { error: t("eventNotFound") };
+    // Messagerie injoignable : message clair ; nom de l'erreur seulement au journal (SEC-20).
+    console.error("envoi du programme échoué", error instanceof Error ? error.name : "erreur");
+    return { error: t("programNotifyFailed") };
   }
 }

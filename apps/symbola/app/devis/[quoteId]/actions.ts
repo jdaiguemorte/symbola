@@ -30,13 +30,25 @@ import {
   updateQuoteLine,
   type GlobalDiscountInput,
   type MissingMention,
+  type SignerInput,
 } from "@/modules/quotes/service";
+import type { RecipientsReview } from "@symbola/contracts";
 import { getEvent } from "@/modules/events/service";
 import { parseDecimal } from "../decimal-input";
 import { isValidId } from "../module-access";
 import { authorizedPlanner } from "../planner-access";
 
-export type QuoteFormState = { error?: string; success?: boolean; vatRegimeRequired?: boolean; missingMentions?: MissingMention[] };
+// Lot 38a (MSG-02, D8) : confirmRecipients ouvre l'écran du garde-fou ; signers et at remettent les
+// signataires saisis dans le formulaire, que React vide après l'action.
+export type QuoteFormState = {
+  error?: string;
+  success?: boolean;
+  vatRegimeRequired?: boolean;
+  missingMentions?: MissingMention[];
+  confirmRecipients?: RecipientsReview;
+  signers?: SignerInput[];
+  at?: number;
+};
 
 type Translate = Awaited<ReturnType<typeof getTranslations<"Quotes">>>;
 
