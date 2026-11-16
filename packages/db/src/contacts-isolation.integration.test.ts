@@ -7,7 +7,7 @@ import { assertOrganizationIsolation } from "@symbola/testing";
 import { eq } from "drizzle-orm";
 import { afterAll, describe, expect, it } from "vitest";
 import { createAppConnection } from "./client";
-import { contactMembers, contactNotes, contacts } from "./schema/hub";
+import { contactMembers, contactNotes, contacts, storageSnapshots } from "./schema/hub";
 import { withOrganization } from "./with-organization";
 
 const { sql, db } = createAppConnection();
@@ -16,6 +16,14 @@ type Tx = Parameters<Parameters<typeof withOrganization>[2]>[0];
 afterAll(async () => {
   await sql.end();
 });
+
+// Lot 37b : le refus d'une écriture interdite au rôle applicatif (message de PostgreSQL).
+async function refusal(work: Promise<unknown>): Promise<string> {
+  return work.then(
+    () => "",
+    (error: unknown) => String((error as { cause?: unknown }).cause ?? error),
+  );
+}
 
 function first<T>(rows: T[]): T {
   const row = rows[0];
@@ -83,5 +91,17 @@ describe("CRM-03 / SEC-10 — Isolation des contacts entre organisations (Postgr
     // Sans adresse, autant de contacts que nécessaire.
     await withOrganization(db, a, (tx) => seedContact(tx, a, null));
     await withOrganization(db, a, (tx) => seedContact(tx, a, null));
+  });
+});
+
+describe("DOC-12 / SEC-10 — Isolation des relevés de stockage entre organisations (lot 37b, PostgreSQL réel)", () => {
+  it("une organisation ne voit jamais le relevé d'une autre ; un relevé ne se modifie ni ne se supprime", async () => {
+    const [a, b] = [randomUUID(), randomUUID()];
+    const snapshot = await withOrganization(db, a, async (tx) => first(await tx.insert(storageSnapshots).values({ organizationId: a, month: "2026-11-01", nature: "uploads", fileCount: 2, totalBytes: 2048 }).returning()));
+    expect(await withOrganization(db, b, (tx) => tx.select().from(storageSnapshots))).toHaveLength(0);
+    expect((await withOrganization(db, a, (tx) => tx.select().from(storageSnapshots))).map((row) => row.id)).toEqual([snapshot.id]);
+    await expect(withOrganization(db, b, (tx) => tx.insert(storageSnapshots).values({ organizationId: a, month: "2026-12-01", nature: "uploads", fileCount: 0, totalBytes: 0 }))).rejects.toThrow();
+    expect(await refusal(withOrganization(db, a, (tx) => tx.update(storageSnapshots).set({ totalBytes: 1 }).where(eq(storageSnapshots.id, snapshot.id))))).toMatch(/permission denied/);
+    expect(await refusal(withOrganization(db, a, (tx) => tx.delete(storageSnapshots).where(eq(storageSnapshots.id, snapshot.id))))).toMatch(/permission denied/);
   });
 });

@@ -50,5 +50,8 @@ export async function register() {
     const { scheduleOrganizationExportPurge, scheduleOrganizationExports } = await import("./lib/export/organization-export-jobs");
     scheduleOrganizationExports();
     scheduleOrganizationExportPurge();
+    // Lot 37b (DOC-12, D12, ADR 0071) : relevé mensuel du stockage de chaque organisation.
+    const { scheduleStorageSnapshots } = await import("./lib/storage-snapshots");
+    scheduleStorageSnapshots();
   }
 }

@@ -1,10 +1,10 @@
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { appDatabase } from "@symbola/db/client";
-import { formatCalendarDate, type Locale } from "@symbola/i18n";
+import { formatCalendarDate, formatDateTime, type Locale } from "@symbola/i18n";
 import { ScreenHelp } from "@/app/screen-help";
 import type { ReactNode } from "react";
-import { getVendorLinkView, LinkAccessDeniedError, listLinkSharedDocuments, type LinkAccess } from "@/modules/events/service";
+import { getVendorLinkView, LinkAccessDeniedError, listLinkSharedDocuments, markLinkProgramSeen, type LinkAccess } from "@/modules/events/service";
 import { getOrganizationContact } from "@/modules/hub/service";
 import { isEventsModuleEnabled } from "@/app/events/module-access";
 import { closeLinkSessionAction } from "@/app/portail/actions";
@@ -50,6 +50,9 @@ export async function VendorSpaceContent({ access, preview = false, banner }: { 
   const contact = await getOrganizationContact(appDatabase(), organizationId);
   // Lot 37a (POR-10, D6) : les documents partagés avec les prestataires de l'évènement (rien par défaut).
   const sharedDocuments = await listLinkSharedDocuments(organizationId, linkId);
+  // Lot 37b (D11) : la version affichée est désormais vue ; jamais depuis l'aperçu « vu par ».
+  const program = view.program;
+  if (!preview && program.version) await markLinkProgramSeen(organizationId, linkId, program.version.number);
 
   return (
     <main className="portal">
@@ -103,21 +106,48 @@ export async function VendorSpaceContent({ access, preview = false, banner }: { 
         )}
       </section>
 
-      <h2>{t("programTitle")}</h2>
-      {view.programItems.length === 0 ? (
-        <p>{t("noProgramItems")}</p>
-      ) : (
-        <ul aria-label={t("programTitle")}>
-          {view.programItems.map((item) => (
-            <li key={item.id}>
-              <strong>
-                {item.endTime ? `${item.startTime} – ${item.endTime}` : item.startTime} — {item.label}
-              </strong>
-              {item.location ? ` — ${item.location}` : ""}
-            </li>
-          ))}
-        </ul>
-      )}
+      {/* Lot 37b (CHR-07 ; D9, D11) : la dernière version diffusée, ses séquences en entier et le
+          déroulé du jour en titres et horaires ; une nouvelle version est signalée une fois. */}
+      <section aria-labelledby="vendor-program-title">
+        <h2 id="vendor-program-title">{t("programTitle")}</h2>
+        {program.version ? (
+          <>
+            {program.isNew ? (
+              <p role="status" className="badge-warning">
+                {t("programNew", { number: program.version.number, date: formatDateTime(new Date(program.version.publishedAt), locale) })}
+              </p>
+            ) : null}
+            <p className="muted">{t("programVersion", { number: program.version.number, date: formatDateTime(new Date(program.version.publishedAt), locale) })}</p>
+            <p>{preview ? <span>{t("programPdf")}</span> : <a href="/prestataire/programme/pdf" download>{t("programPdf")}</a>}</p>
+            {program.ownItems.length === 0 ? (
+              <p>{t("noProgramItems")}</p>
+            ) : (
+              <ul aria-label={t("programTitle")}>
+                {program.ownItems.map((item) => (
+                  <li key={item.id}>
+                    <strong>
+                      {item.endTime ? `${item.startTime} – ${item.endTime}` : item.startTime} — {item.label}
+                    </strong>
+                    {item.location ? ` — ${item.location}` : ""}
+                    {item.responsible ? ` — ${tEvents("programResponsibleLine", { name: item.responsible })}` : ""}
+                  </li>
+                ))}
+              </ul>
+            )}
+            <h3 id="vendor-outline-title">{t("outlineTitle")}</h3>
+            <ul aria-labelledby="vendor-outline-title">
+              {program.outline.map((line) => (
+                <li key={line.id}>
+                  {line.endTime ? `${line.startTime} – ${line.endTime}` : line.startTime} — {line.label}
+                  {line.own ? ` (${t("outlineYours")})` : ""}
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : (
+          <p>{t("programNotPublished")}</p>
+        )}
+      </section>
 
       {sharedDocuments.length > 0 ? <SharedDocuments documents={sharedDocuments} basePath="/prestataire/documents" locale={locale} preview={preview} headingId="vendor-documents-title" /> : null}
 

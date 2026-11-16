@@ -5,7 +5,7 @@
 import { randomUUID } from "node:crypto";
 import { assertOrganizationIsolation } from "@symbola/testing";
 import { eq } from "drizzle-orm";
-import { afterAll, describe, it } from "vitest";
+import { afterAll, describe, expect, it } from "vitest";
 import { createAppConnection } from "./client";
 import {
   defaultVendorSlots,
@@ -21,6 +21,7 @@ import {
   eventDocumentLinks,
   eventDocuments,
   eventDocumentVersions,
+  programVersions,
   eventLinkSharedSlots,
   eventClients,
   events,
@@ -620,5 +621,33 @@ describe("PRD-EVT-01/02 — Isolation entre organisations (module events, Postgr
         return { affectedRows: updated.length };
       },
     });
+  });
+
+  it("SEC-10, lot 37b — une organisation ne voit ni ne supprime jamais les versions diffusées du programme d'une autre ; une version ne se modifie pas", async () => {
+    await assertOrganizationIsolation({
+      seed: async (organizationId) =>
+        withOrganization(db, organizationId, async (tx) => {
+          const [event] = await tx.insert(events).values({ organizationId }).returning();
+          const [row] = await tx.insert(programVersions).values({ organizationId, eventId: event!.id, number: 1, publishedByUserId: organizationId, items: [{ id: randomUUID(), startTime: "15:00", endTime: null, label: "Cérémonie", location: null, responsible: null, participants: [] }] }).returning();
+          if (!row) throw new Error("insertion attendue, aucune ligne renvoyée");
+          return row;
+        }),
+      listVisible: async (organizationId) => withOrganization(db, organizationId, (tx) => tx.select().from(programVersions)),
+      attemptCrossOrganizationUpdate: async (organizationId, targetRow) => {
+        const removed = await withOrganization(db, organizationId, (tx) => tx.delete(programVersions).where(eq(programVersions.id, targetRow.id)).returning());
+        return { affectedRows: removed.length };
+      },
+    });
+    const organizationId = randomUUID();
+    const version = await withOrganization(db, organizationId, async (tx) => {
+      const [event] = await tx.insert(events).values({ organizationId }).returning();
+      const [row] = await tx.insert(programVersions).values({ organizationId, eventId: event!.id, number: 1, items: [] }).returning();
+      return row!;
+    });
+    const refused = await withOrganization(db, organizationId, (tx) => tx.update(programVersions).set({ number: 2 }).where(eq(programVersions.id, version.id))).then(
+      () => "",
+      (error: unknown) => String((error as { cause?: unknown }).cause ?? error),
+    );
+    expect(refused).toMatch(/permission denied/);
   });
 });

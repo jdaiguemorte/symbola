@@ -32,6 +32,7 @@ import {
   lossReasons,
   programItemParticipants,
   programItems,
+  programVersions,
   programTemplateItems,
   programTemplates,
   prospectSources,
@@ -69,6 +70,8 @@ export const EVENTS_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   { table: eventTaskAttachments, ...ofEvent, files: ["fileKey"] },
   { table: programItems, ...ofEvent },
   { table: programItemParticipants, parents: { programItemId: "program_items" } },
+  // Lot 37b (DAT-14) : versions diffusées du programme.
+  { table: programVersions, ...ofEvent },
   // Liens personnels des tiers, pour mémoire : jamais leur jeton (haché) ; ils se recréent.
   { table: eventLinks, ...ofEvent, omit: ["tokenHash"] },
   { table: eventLinkSharedSlots, parents: { linkId: "event_links" } },

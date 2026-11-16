@@ -27,6 +27,7 @@ import {
   eventVendorSlots,
   programItemParticipants,
   programItems,
+  programVersions,
 } from "@symbola/db/schema/events";
 import { withOrganization } from "@symbola/db/with-organization";
 import { ANONYMIZED, idsOfKind, monthStart, type ErasureFate, type ErasureInput, type ErasurePlanItem } from "@symbola/privacy";
@@ -46,6 +47,9 @@ const FATES: Record<string, ErasureFate> = {
   task: "deleted",
   program_item: "deleted",
   program_participant: "deleted",
+  // Lot 37b (CHR-07, DAT-14) : une version diffusée recopie responsables et intervenants libres :
+  // supprimée (pas d'anonymisation partielle d'une version figée).
+  program_version: "deleted",
   event_place: "deleted",
   // Lot 29b : un document peut nommer la personne (plan de table) : supprimé,
   // fichier compris (pas d'anonymisation partielle d'un fichier).
@@ -94,6 +98,8 @@ async function existing(tx: Tx, input: ErasureInput): Promise<Found[]> {
   if (ids("task").length > 0) add("task", keep(await tx.select({ id: eventTasks.id, eventId: eventTasks.eventId }).from(eventTasks).where(inArray(eventTasks.id, ids("task")))));
   if (ids("program_item").length > 0)
     add("program_item", keep(await tx.select({ id: programItems.id, eventId: programItems.eventId }).from(programItems).where(inArray(programItems.id, ids("program_item")))));
+  if (ids("program_version").length > 0)
+    add("program_version", keep(await tx.select({ id: programVersions.id, eventId: programVersions.eventId }).from(programVersions).where(inArray(programVersions.id, ids("program_version")))));
   if (ids("event_place").length > 0)
     add("event_place", keep(await tx.select({ id: eventPlaces.id, eventId: eventPlaces.eventId }).from(eventPlaces).where(inArray(eventPlaces.id, ids("event_place")))));
   if (ids("program_participant").length > 0)
@@ -243,6 +249,7 @@ export async function eraseEventsData(input: ErasureInput): Promise<ErasurePlanI
       await tx.delete(eventTasks).where(inArray(eventTasks.id, idsFor("task")));
     }
     if (idsFor("program_participant").length > 0) await tx.delete(programItemParticipants).where(inArray(programItemParticipants.id, idsFor("program_participant")));
+    if (idsFor("program_version").length > 0) await tx.delete(programVersions).where(inArray(programVersions.id, idsFor("program_version")));
     if (idsFor("event_place").length > 0) await tx.delete(eventPlaces).where(inArray(eventPlaces.id, idsFor("event_place")));
     if (idsFor("program_item").length > 0) {
       await tx.delete(programItemParticipants).where(inArray(programItemParticipants.programItemId, idsFor("program_item")));

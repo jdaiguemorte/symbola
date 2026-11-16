@@ -51,11 +51,12 @@ const rollback = async (tag: string) => {
 };
 
 // Lots 26a à 29b : migrations au-dessus de celles du 28, annulées pour revenir à 0108.
+const LOT_37B = ["0140_lot37b_quotes_file_sizes", "0139_lot37b_hub_storage_snapshots", "0138_lot37b_events_program_versions"];
 const LOT_37A = ["0137_lot37a_events_documents"];
 const LOT_36B = ["0136_lot36b_contacts_members"];
 const LOT_36A = ["0135_lot36a_contacts"];
-// 0137 (lot 37a), puis 0136 (ses liens pointent vers les contacts), puis 0135.
-const LOT_36 = [...LOT_37A, ...LOT_36B, ...LOT_36A];
+// 0140 à 0138 (lot 37b), 0137 (lot 37a), puis 0136 (ses liens pointent vers les contacts), puis 0135.
+const LOT_36 = [...LOT_37B, ...LOT_37A, ...LOT_36B, ...LOT_36A];
 const LOT_35A = ["0134_lot35a_hub_organization_exports"];
 const LOT_34B = ["0133_lot34b_events_fiche_tasks"];
 const LOT_34A = ["0132_lot34a_events_lifecycle"];
@@ -104,9 +105,60 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     await expect(rollback("0099_inconnue")).rejects.toBeInstanceOf(RollbackRefusedError);
   });
 
+  it("lot 37b (CHR-07, DAT-14, DOC-12 ; D8, D11, D13) — 0138 à 0140 : le programme existant devient sa version 1, sans note interne, déjà vue par ses liens ; numéros uniques ; relevé au premier du mois ; l'annulation retire versions, relevés et tailles", async () => {
+    await migrateAll();
+    for (const tag of LOT_37B) await rollback(tag);
+    const organizationId = randomUUID();
+    const inOrganization = <T>(work: (tx: postgres.TransactionSql) => Promise<T>) =>
+      target.begin(async (tx) => {
+        await tx`select set_config('app.organization_id', ${organizationId}, true)`;
+        return work(tx);
+      }) as Promise<T>;
+    const ids = await inOrganization(async (tx) => {
+      const [event] = await tx<{ id: string }[]>`insert into events.events (organization_id, program_updated_at) values (${organizationId}, '2026-10-01T08:00:00Z') returning id`;
+      const [empty] = await tx<{ id: string }[]>`insert into events.events (organization_id) values (${organizationId}) returning id`;
+      const [slot] = await tx<{ id: string }[]>`insert into events.event_vendor_slots (organization_id, event_id, label) values (${organizationId}, ${event!.id}, 'Traiteur') returning id`;
+      const [late] = await tx<{ id: string }[]>`insert into events.program_items (organization_id, event_id, start_time, end_time, label, internal_note) values (${organizationId}, ${event!.id}, '19:00', null, 'Dîner', 'Prévoir les allergies') returning id`;
+      const [early] = await tx<{ id: string }[]>`insert into events.program_items (organization_id, event_id, start_time, end_time, label, location, responsible) values (${organizationId}, ${event!.id}, '15:00', '16:30', 'Cérémonie', 'Jardin', 'Camille') returning id`;
+      await tx`insert into events.program_item_participants (organization_id, program_item_id, vendor_slot_id, position) values (${organizationId}, ${late!.id}, ${slot!.id}, 0)`;
+      await tx`insert into events.program_item_participants (organization_id, program_item_id, free_label, position) values (${organizationId}, ${late!.id}, 'Officiant', 1)`;
+      const [link] = await tx<{ id: string }[]>`insert into events.event_links (organization_id, event_id, audience, person_name, email) values (${organizationId}, ${event!.id}, 'client', 'Léa', 'lea@example.test') returning id`;
+      return { event: event!.id, empty: empty!.id, slot: slot!.id, early: early!.id, late: late!.id, link: link!.id };
+    });
+
+    await migrateAll();
+    const versions = await inOrganization((tx) => tx<{ event_id: string; number: number; published_at: Date; published_by_user_id: string | null; items: unknown }[]>`select event_id, number, published_at, published_by_user_id, items from events.program_versions where organization_id = ${organizationId}`);
+    expect(versions).toHaveLength(1);
+    expect(versions[0]).toMatchObject({ event_id: ids.event, number: 1, published_by_user_id: null });
+    expect(new Date(versions[0]!.published_at).toISOString()).toBe("2026-10-01T08:00:00.000Z");
+    expect(versions[0]!.items).toEqual([
+      { id: ids.early, startTime: "15:00", endTime: "16:30", label: "Cérémonie", location: "Jardin", responsible: "Camille", participants: [] },
+      { id: ids.late, startTime: "19:00", endTime: null, label: "Dîner", location: null, responsible: null, participants: [{ vendorSlotId: ids.slot, label: "Traiteur" }, { vendorSlotId: null, label: "Officiant" }] },
+    ]);
+    expect(JSON.stringify(versions[0]!.items)).not.toContain("allergies");
+    const [link] = await inOrganization((tx) => tx<{ program_version_seen: number | null }[]>`select program_version_seen from events.event_links where id = ${ids.link}`);
+    expect(link!.program_version_seen).toBe(1);
+    await expect(inOrganization((tx) => tx`insert into events.program_versions (organization_id, event_id, number, items) values (${organizationId}, ${ids.event}, 1, '[]'::jsonb)`)).rejects.toThrow(/program_versions_event_number_unique/);
+    await expect(inOrganization((tx) => tx`insert into hub.storage_snapshots (organization_id, month, nature, file_count, total_bytes) values (${organizationId}, '2026-11-02', 'uploads', 0, 0)`)).rejects.toThrow(/storage_snapshots_month_check/);
+    await expect(inOrganization((tx) => tx`insert into hub.storage_snapshots (organization_id, month, nature, file_count, total_bytes) values (${organizationId}, '2026-11-01', 'exports', 0, 0)`)).rejects.toThrow(/storage_snapshots_nature_check/);
+    await inOrganization((tx) => tx`insert into hub.storage_snapshots (organization_id, month, nature, file_count, total_bytes) values (${organizationId}, '2026-11-01', 'uploads', 3, 4096)`);
+    await expect(inOrganization((tx) => tx`insert into hub.storage_snapshots (organization_id, month, nature, file_count, total_bytes) values (${organizationId}, '2026-11-01', 'uploads', 4, 5000)`)).rejects.toThrow(/storage_snapshots_month_nature_unique/);
+
+    for (const tag of LOT_37B) await rollback(tag);
+    for (const name of ["events.program_versions", "hub.storage_snapshots"]) {
+      const [table] = await target<{ name: string | null }[]>`select to_regclass(${name})::text as name`;
+      expect(table!.name).toBeNull();
+    }
+    expect(await hasColumn("events", "event_links", "program_version_seen")).toBe(false);
+    expect(await hasColumn("hub", "organization_profiles", "logo_size_bytes")).toBe(false);
+    expect(await hasColumn("quotes", "signature_requests", "signed_document_size_bytes")).toBe(false);
+    expect(await hasColumn("quotes", "contract_evidence", "size_bytes")).toBe(false);
+    await migrateAll();
+  });
+
   it("lot 37a (DOC-01, DOC-04 ; D3, D4, D7) — 0137 : chaque document déjà déposé devient sa version 1, sans dossier, non partagé ; versions uniques ; une ouverture de lien au fil bloque l'annulation, qui rend la liste plate", async () => {
     await migrateAll();
-    for (const tag of LOT_37A) await rollback(tag);
+    for (const tag of [...LOT_37B, ...LOT_37A]) await rollback(tag);
     const organizationId = randomUUID();
     const inOrganization = <T>(work: (tx: postgres.TransactionSql) => Promise<T>) =>
       target.begin(async (tx) => {
@@ -128,6 +180,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     await expect(inOrganization((tx) => tx`insert into events.event_document_folders (organization_id, event_id, name) values (${organizationId}, ${ids.event}, '')`)).rejects.toThrow(/event_document_folders_name_check/);
 
     const [activity] = await inOrganization((tx) => tx<{ id: string }[]>`insert into events.event_activities (organization_id, event_id, kind, task_label) values (${organizationId}, ${ids.event}, 'document_link_opened', 'Plan de table') returning id`);
+    for (const tag of LOT_37B) await rollback(tag);
     await expect(rollback(LOT_37A[0]!)).rejects.toThrow(/ouvertures de liens de partage/);
     await target`delete from events.event_activities where id = ${activity!.id}`;
     await rollback(LOT_37A[0]!);
@@ -166,7 +219,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
       insert into hub.imports (organization_id, created_by_user_id, entity_type, file_name, file_format, file_size_bytes, header_row_index, headers, row_count, expires_at)
       values (${organizationId}, ${randomUUID()}, 'contacts', 'contacts.csv', 'csv', 1, 0, '[]'::jsonb, 0, now())
       returning id`;
-    for (const tag of LOT_37A) await rollback(tag);
+    for (const tag of [...LOT_37B, ...LOT_37A]) await rollback(tag);
     await expect(rollback(LOT_36B[0]!)).rejects.toThrow(/imports de contacts/);
     expect(await entityTypes()).toContain("contacts");
     await target`delete from hub.imports where id = ${row!.id}`;

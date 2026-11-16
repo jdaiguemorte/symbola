@@ -14,7 +14,9 @@ import {
   ProgramItemNotFoundError,
   ProgramShiftOutOfDayError,
   ProgramParticipantNotFoundError,
+  ProgramPublishError,
   ProgramTemplateNotFoundError,
+  publishEventProgram,
   removeProgramItem,
   shiftProgramItems,
   TaskLabelRequiredError,
@@ -163,4 +165,27 @@ export async function removeProgramItemAction(formData: FormData): Promise<void>
   if (!isValidId(eventId) || !isValidId(itemId)) return;
   await removeProgramItem(access.organizationId, itemId);
   revalidatePath(`/events/${eventId}`);
+}
+
+// Lot 37b (CHR-07, DAT-14 ; D8, ADR 0071) : « Diffuser le programme » fige une version numérotée que
+// les clients et les prestataires liront ; refusée vide ou déjà diffusée telle quelle.
+export type ProgramPublishState = { error?: string; published?: number };
+
+export async function publishProgramAction(_prevState: ProgramPublishState, formData: FormData): Promise<ProgramPublishState> {
+  const t = await getTranslations("Events");
+  const auth = await getPlannerAuthContext();
+  if (auth.status !== "authenticated" || !auth.user.organizationId) return { error: t("unauthenticated") };
+  const organizationId = auth.user.organizationId;
+  if (!(await isEventsModuleEnabled(organizationId))) return { error: t("moduleUnavailable") };
+  const eventId = String(formData.get("eventId") ?? "");
+  if (!isValidId(eventId)) return { error: t("eventNotFound") };
+  try {
+    const version = await publishEventProgram({ organizationId, eventId, userId: auth.user.id });
+    revalidatePath(`/events/${eventId}`);
+    return { published: version.number };
+  } catch (error) {
+    if (error instanceof ProgramPublishError) return { error: error.reason === "empty" ? t("programPublishEmpty") : t("programPublishUnchanged") };
+    if (error instanceof EventNotFoundError) return { error: t("eventNotFound") };
+    throw error;
+  }
 }

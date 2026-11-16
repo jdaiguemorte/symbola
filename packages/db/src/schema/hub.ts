@@ -211,6 +211,9 @@ export const organizationProfiles = hubSchema.table("organization_profiles", {
   // Clé de l'objet dans le stockage privé (@symbola/files), jamais l'URL
   // directement (patron du lot 0, SOC-08).
   logoKey: text("logo_key"),
+  // Lot 37b (DOC-12, D13) : taille du logo, pour le relevé de stockage ; lue une fois au stockage
+  // pour un logo déposé avant le lot.
+  logoSizeBytes: integer("logo_size_bytes"),
   legalForm: legalFormEnum("legal_form"),
   metier: metierEnum("metier"),
   metierPrecision: text("metier_precision"),
@@ -783,6 +786,38 @@ export const organizationExports = hubSchema.table(
     check("organization_exports_status_check", sql`${table.status} in ('pending', 'running', 'ready', 'failed')`),
     check("organization_exports_error_check", sql`${table.error} is null or ${table.error} in ('too_large', 'failed')`),
     check("organization_exports_files_check", sql`${table.filesDone} >= 0 and ${table.filesTotal} >= 0 and ${table.missingFiles} >= 0`),
+  ],
+);
+
+// Lot 37b (DOC-12 ; D12, D13, ADR 0071) — relevé mensuel du stockage d'une organisation, par
+// nature : nombre de fichiers et volume, pris le premier du mois et gardé d'un mois sur l'autre ; il
+// alimentera le calcul des quotas (DOC-06). Des nombres seulement, jamais un nom de fichier
+// (SEC-09) : la titulaire le lit dans Paramètres, l'Admin en lit les totaux. En ajout seul.
+export const STORAGE_NATURES = ["legal_originals", "signed_documents", "uploads", "images"] as const;
+export type StorageNature = (typeof STORAGE_NATURES)[number];
+
+export const storageSnapshots = hubSchema.table(
+  "storage_snapshots",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    month: date("month").notNull(),
+    nature: text("nature", { enum: STORAGE_NATURES }).notNull(),
+    fileCount: integer("file_count").notNull(),
+    totalBytes: bigint("total_bytes", { mode: "number" }).notNull(),
+    takenAt: timestamp("taken_at", { withTimezone: true }).defaultNow().notNull(),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("storage_snapshots_organization_idx").on(table.organizationId),
+    unique("storage_snapshots_month_nature_unique").on(table.organizationId, table.month, table.nature),
+    check("storage_snapshots_nature_check", sql`${table.nature} in ('legal_originals', 'signed_documents', 'uploads', 'images')`),
+    check("storage_snapshots_month_check", sql`extract(day from ${table.month}) = 1`),
+    check("storage_snapshots_counts_check", sql`${table.fileCount} >= 0 and ${table.totalBytes} >= 0`),
   ],
 );
 

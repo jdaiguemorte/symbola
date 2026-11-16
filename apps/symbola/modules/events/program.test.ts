@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { findProgramOverlaps, normalizeTime, programForVariant, proposeProgramShift, shiftedTimes, sortProgramItems, startShift } from "./program";
+import type { ProgramItem, PublishedProgramItem } from "@symbola/contracts";
+import { findProgramOverlaps, normalizeTime, programChanges, programForVariant, proposeProgramShift, publishedProgramItems, shiftedTimes, sortProgramItems, startShift, vendorProgramOf } from "./program";
 
 type Line = Parameters<typeof findProgramOverlaps>[0][number];
 
@@ -121,5 +122,70 @@ describe("CHR-06 — Décaler une séquence propose de décaler les suivantes (l
       if (!there) continue;
       expect(shiftedTimes(there, -40)).toEqual({ startTime: item.startTime, endTime: item.endTime });
     }
+  });
+});
+
+// Lot 37b (CHR-07, DAT-14 ; D8, D9) — règles pures de la diffusion du programme.
+function item(id: string, startTime: string, label: string, extra: Partial<ProgramItem> = {}): ProgramItem {
+  return { id, eventId: "evt", startTime, endTime: null, label, location: null, internalNote: null, responsible: null, participants: [], ...extra };
+}
+
+describe("CHR-07 — Diffusion du chrono par destinataire, par lien et en PDF ; versions numérotées", () => {
+  const traiteur = { vendorSlotId: "slot-traiteur", label: "Traiteur" };
+  const photographe = { vendorSlotId: "slot-photo", label: "Photographe" };
+  const program = [
+    item("a", "15:00", "Cérémonie", { endTime: "16:30", location: "Jardin", responsible: "Camille", internalNote: "Ne pas oublier les alliances", participants: [photographe, { vendorSlotId: null, label: "Officiant" }] }),
+    item("b", "17:00", "Vin d'honneur", { location: "Terrasse", internalNote: "Marge 2 400 € sur le traiteur", participants: [traiteur, photographe] }),
+    item("c", "20:00", "Dîner", { location: "Orangerie", participants: [traiteur] }),
+  ];
+
+  it("la copie diffusée ne garde jamais la note interne", () => {
+    const published = publishedProgramItems(program);
+    expect(published).toHaveLength(3);
+    expect(JSON.stringify(published)).not.toMatch(/alliances|Marge|€/);
+    expect(published[0]).toEqual({ id: "a", startTime: "15:00", endTime: "16:30", label: "Cérémonie", location: "Jardin", responsible: "Camille", participants: [photographe, { vendorSlotId: null, label: "Officiant" }] });
+  });
+
+  it("dit ce qui a changé depuis la dernière diffusion : ajouts, modifications, retraits ; une note interne ne compte pas", () => {
+    const published = publishedProgramItems(program);
+    expect(programChanges(published, publishedProgramItems(program))).toEqual({ added: [], changed: [], removed: [] });
+    const noteOnly = program.map((line) => ({ ...line, internalNote: "autre note" }));
+    expect(programChanges(published, publishedProgramItems(noteOnly))).toEqual({ added: [], changed: [], removed: [] });
+    const edited = [
+      { ...program[0]!, startTime: "15:20", endTime: "16:50" },
+      { ...program[1]!, participants: [traiteur] },
+      item("d", "23:00", "Pièce montée"),
+    ];
+    expect(programChanges(published, publishedProgramItems(edited))).toEqual({ added: ["Pièce montée"], changed: ["Cérémonie", "Vin d'honneur"], removed: ["Dîner"] });
+  });
+
+  it("avant toute diffusion, toutes les séquences sont nouvelles", () => {
+    expect(programChanges(null, publishedProgramItems(program))).toEqual({ added: ["Cérémonie", "Vin d'honneur", "Dîner"], changed: [], removed: [] });
+  });
+
+  it("un prestataire voit ses séquences en entier, sans autre intervenant, et le déroulé du jour en titres et horaires seulement (D9)", () => {
+    const view = vendorProgramOf(publishedProgramItems(program), "slot-traiteur");
+    expect(view.ownItems).toEqual([
+      { id: "b", startTime: "17:00", endTime: null, label: "Vin d'honneur", location: "Terrasse", responsible: null },
+      { id: "c", startTime: "20:00", endTime: null, label: "Dîner", location: "Orangerie", responsible: null },
+    ]);
+    expect(view.outline).toEqual([
+      { id: "a", startTime: "15:00", endTime: "16:30", label: "Cérémonie", own: false },
+      { id: "b", startTime: "17:00", endTime: null, label: "Vin d'honneur", own: true },
+      { id: "c", startTime: "20:00", endTime: null, label: "Dîner", own: true },
+    ]);
+    const text = JSON.stringify(view);
+    expect(text).not.toMatch(/Photographe|Officiant|Jardin|Camille|alliances|Marge|€/);
+  });
+
+  it("un prestataire sans séquence voit seulement le déroulé du jour", () => {
+    const view = vendorProgramOf(publishedProgramItems(program), "slot-fleuriste");
+    expect(view.ownItems).toEqual([]);
+    expect(view.outline.map((line) => line.own)).toEqual([false, false, false]);
+  });
+
+  it("une copie relue garde son ordre par heure de début", () => {
+    const published: PublishedProgramItem[] = publishedProgramItems([program[2]!, program[0]!]);
+    expect(published.map((line) => line.id)).toEqual(["a", "c"]);
   });
 });

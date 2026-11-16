@@ -2996,6 +2996,19 @@
   .share-open-actions {
     @apply my-4 flex flex-wrap gap-3;
   }
+  /* Lot 37b (CHR-07, DAT-14 ; D8) : la diffusion du programme, sur la fiche. */
+  .program-publication {
+    @apply my-4 w-full min-w-0 border-y border-line py-3;
+  }
+  .program-publication > h3 {
+    @apply mb-1 font-semibold text-ink;
+  }
+  .program-publication ul {
+    @apply my-2 space-y-1;
+  }
+  .program-versions {
+    @apply mt-3 w-full min-w-0;
+  }
 }
 
 /* Lot 30a (JRJ-01, JRJ-03, UX-05 ; décision D3) — écran de terrain du jour J (et page

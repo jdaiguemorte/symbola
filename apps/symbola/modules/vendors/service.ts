@@ -120,6 +120,8 @@ export class VendorTagTierConflictError extends Error {
 }
 export { findModifiedImportedVendorsElements, importedVendorsToPlace, importVendorRows, listVendorImportCandidates, type VendorTypeChoiceInput, type VendorTypeTarget } from "./import";
 export { placeVendors, type PlacementResult } from "./placement";
+// Lot 37b (DOC-12, ADR 0071) : la part du module au relevé de stockage.
+export { measureVendorsStorage } from "./storage-usage";
 export { estimateTravel, haversineKm } from "./travel";
 export { vendorsPrivacy } from "./privacy";
 export type {

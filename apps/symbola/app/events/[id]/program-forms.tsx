@@ -8,8 +8,10 @@ import { endTimeAfter, minutesBetween } from "@/lib/program-spans";
 import {
   addProgramItemAction,
   applyProgramTemplateAction,
+  publishProgramAction,
   updateProgramItemAction,
   type ProgramFormState,
+  type ProgramPublishState,
 } from "./program-actions";
 
 type Draft = {
@@ -237,6 +239,23 @@ export function ApplyProgramTemplateForm({ eventId, templates }: { eventId: stri
       </button>
       {state.error ? <p role="alert">{state.error}</p> : null}
       {state.success ? <p role="status">{t("programTemplateApplied")}</p> : null}
+    </form>
+  );
+}
+
+// Lot 37b (CHR-07, D8) : diffuser le programme fige la version suivante ; le bouton dit laquelle.
+export function ProgramPublishForm({ eventId, nextNumber, canPublish }: { eventId: string; nextNumber: number; canPublish: boolean }) {
+  const t = useTranslations("Events");
+  const initialState: ProgramPublishState = {};
+  const [state, formAction, pending] = useActionState(publishProgramAction, initialState);
+  return (
+    <form action={formAction}>
+      <input type="hidden" name="eventId" value={eventId} />
+      <button type="submit" disabled={pending || !canPublish}>
+        {t("programPublish", { number: nextNumber })}
+      </button>
+      {state.error ? <p role="alert">{state.error}</p> : null}
+      {state.published ? <p role="status">{t("programPublished", { number: state.published })}</p> : null}
     </form>
   );
 }

@@ -100,6 +100,8 @@ export const HELP_SCREENS: HelpScreen[] = [
   { key: "contactDetail", group: "company", audience: "team", path: null, capture: false },
   // Lot 35a (HUB-13, D5) : export complet des données, titulaire seulement.
   { key: "organizationExport", group: "data", audience: "team", ownerOnly: true, path: "/parametres/export", capture: true },
+  // Lot 37b (DOC-12, D12) : relevé mensuel du stockage, titulaire seulement.
+  { key: "storage", group: "data", audience: "team", ownerOnly: true, path: "/parametres/stockage", capture: false },
   // Lot 23b (JUR-06) : archive comptable, titulaire seulement.
   { key: "ledgerArchive", group: "quotes", audience: "team", module: "quotes", ownerOnly: true, path: "/devis/parametres/archive", capture: true },
   // Administration de la suite (aucune capture : elle montrerait des organisations)

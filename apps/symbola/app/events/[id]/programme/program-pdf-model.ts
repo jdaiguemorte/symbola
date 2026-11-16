@@ -1,7 +1,7 @@
 // PRD-EVT-05 — contenu du PDF du programme du jour J, séparé du rendu pour
 // être testé : la variante « mariés » ne contient jamais de note interne.
 import { formatDateTime, type Locale } from "@symbola/i18n";
-import { programForVariant, type EventProgram, type ProgramVariant } from "@/modules/events/service";
+import { programForVariant, type EventProgram, type ProgramVariant, type PublishedProgramItem, type VendorProgramView } from "@/modules/events/service";
 import { programSpans, spanLabel, type SpanWords } from "@/lib/program-spans";
 
 export type ProgramPdfLogo = { data: Buffer; format: "png" | "jpg" };
@@ -56,6 +56,8 @@ export function buildProgramPdfModel(input: {
   logo: ProgramPdfLogo | null;
   watermark?: string | null;
   now?: Date;
+  // Lot 37b (CHR-07, D8) : une version diffusée porte son numéro (« Version 3 du … »).
+  versionLabel?: string;
 }): ProgramPdfModel {
   const { labels } = input;
   const showNotes = input.variant === "vendors";
@@ -77,11 +79,42 @@ export function buildProgramPdfModel(input: {
     title: labels.title,
     heading: input.heading,
     variant: labels.variant,
-    version: labels.version(formatDateTime(versionDate, input.locale)),
+    version: input.versionLabel ?? labels.version(formatDateTime(versionDate, input.locale)),
     columns: [labels.time, labels.item, labels.location, labels.participants, ...(showNotes ? [labels.note] : [])],
     rows,
     showNotes,
     empty: labels.empty,
     watermark: input.watermark ?? null,
+  };
+}
+
+// Lot 37b (CHR-07, DAT-14 ; D8, D10) — le programme d'une version diffusée, rendu comme la variante
+// « mariés » : la copie figée n'a pas de note interne.
+export function publishedPdfProgram(items: PublishedProgramItem[], publishedAt: string): EventProgram {
+  return { items: items.map((item) => ({ ...item, eventId: "", internalNote: null })), overlaps: [], updatedAt: publishedAt };
+}
+
+// Lot 37b (D9) — le PDF d'un prestataire : le déroulé du jour en titres et horaires ; ses séquences
+// en entier, sa colonne « votre poste » portant son poste. Rien d'autre : ni lieu ni responsable
+// d'une séquence qui n'est pas la sienne, ni autre intervenant.
+export function vendorPdfProgram(program: VendorProgramView, slotLabel: string, publishedAt: string): EventProgram {
+  const own = new Map(program.ownItems.map((item) => [item.id, item]));
+  return {
+    items: program.outline.map((line) => {
+      const detail = line.own ? own.get(line.id) : undefined;
+      return {
+        id: line.id,
+        eventId: "",
+        startTime: line.startTime,
+        endTime: line.endTime,
+        label: line.label,
+        location: detail?.location ?? null,
+        internalNote: null,
+        responsible: detail?.responsible ?? null,
+        participants: detail ? [{ vendorSlotId: null, label: slotLabel }] : [],
+      };
+    }),
+    overlaps: [],
+    updatedAt: publishedAt,
   };
 }

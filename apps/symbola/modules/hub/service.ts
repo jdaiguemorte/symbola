@@ -37,6 +37,19 @@ import {
 import type { Language } from "./types";
 
 // Lot 6 (RGPD-04) — demandes d'exercice de droits et réglages RGPD.
+// Lot 37b (DOC-12 ; D12, D13 ; ADR 0071) : relevé mensuel du stockage.
+export {
+  emptyStorageTotals,
+  getLatestStorageTotals,
+  hasStorageSnapshot,
+  listStorageSnapshots,
+  measureHubStorage,
+  recordStorageSnapshot,
+  type OrganizationStorageTotal,
+  type StorageSnapshotMonth,
+  type StorageTotals,
+} from "./storage";
+
 export {
   createPrivacyRequest,
   extendPrivacyRequest,
@@ -761,12 +774,13 @@ export async function uploadOrganizationLogo(db: AppDatabase, organizationId: st
   if (type?.mime !== "image/png" && type?.mime !== "image/jpeg") throw new LogoUploadError("unsupported_type");
   const upload = await uploadFile({ organizationId, buffer: Buffer.from(content), maxSizeBytes: LOGO_MAX_SIZE_BYTES });
   if (upload.status === "rejected") throw new LogoUploadError(upload.reason);
-  await upsertOrganizationProfileFields(db, organizationId, { logoKey: upload.key });
+  // Lot 37b (DOC-12, D13) : la taille du logo, pour le relevé de stockage.
+  await upsertOrganizationProfileFields(db, organizationId, { logoKey: upload.key, logoSizeBytes: upload.size });
   return upload.key;
 }
 
 export async function removeOrganizationLogo(db: AppDatabase, organizationId: string): Promise<void> {
-  await upsertOrganizationProfileFields(db, organizationId, { logoKey: null });
+  await upsertOrganizationProfileFields(db, organizationId, { logoKey: null, logoSizeBytes: null });
 }
 
 // ONB-01 — mentions légales déduites du régime de TVA (exemple du PRD :

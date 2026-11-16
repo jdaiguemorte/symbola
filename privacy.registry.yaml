@@ -581,6 +581,19 @@ fields:
       Trouvé par la recherche RGPD-01 ; la ligne du programme est supprimée lors
       d'une demande d'oubli qui la vise (RGPD-03), comme sa note interne.
   - schema: events
+    table: program_versions
+    field: items
+    category: contenu_libre
+    retention: >-
+      Lot 37b (CHR-07, DAT-14, D8) : copie figée des séquences du programme à chaque diffusion
+      (heures, intitulés, lieux, responsables, intervenants), sans note interne ; lue par les
+      clients et les prestataires de l'événement par leur lien. Un responsable ou un intervenant
+      libre peut nommer une personne. Tant que l'événement existe ; voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Trouvée par la recherche RGPD-01 (responsables et intervenants libres) ; la version est
+      supprimée lors d'une demande d'oubli qui la vise (pas d'anonymisation partielle d'une version
+      figée), et avec l'événement.
+  - schema: events
     table: event_client_accesses
     field: email
     category: contact

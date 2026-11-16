@@ -118,6 +118,18 @@
         }
       ]
     },
+    "programVersionSeen": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "revokedAt": {
       "anyOf": [
         {
@@ -182,6 +194,7 @@
     "customExpiresOn",
     "renewalRequestedAt",
     "lastOpenedAt",
+    "programVersionSeen",
     "revokedAt",
     "createdAt",
     "createdBy",

@@ -89,6 +89,9 @@ test("PRD-EVT-06 / UX-11 / SEC-17 — le marié ouvre son lien sans inscription,
   await newLine.getByLabel("Note interne").fill("Le témoin oublie toujours les alliances");
   await newLine.getByRole("button", { name: "Ajouter la ligne" }).click();
   await expect(planner.getByText("Ligne ajoutée.")).toBeVisible();
+  // Lot 37b (CHR-07, D10) : les clients lisent la version diffusée.
+  await planner.getByRole("button", { name: "Diffuser le programme (version 1)" }).click();
+  await expect(planner.getByText("Version 1 diffusée")).toBeVisible();
 
   // Le lien personnel d'Inès, profil « Marié(e) » ; montré une seule fois.
   const coupleEmail = `marie-evt06-${randomUUID()}@symbola.test`;
@@ -139,7 +142,7 @@ test("PRD-EVT-06 / UX-11 / SEC-17 — le marié ouvre son lien sans inscription,
   await expect(retroplanning.getByRole("button", { name: "Décocher la tâche Choisir les alliances" })).toBeVisible();
   const pdf = await couple.request.get("/portail/programme/pdf");
   expect(pdf.status()).toBe(200);
-  expect(pdf.headers()["content-disposition"]).toContain("programme-maries.pdf");
+  expect(pdf.headers()["content-disposition"]).toContain("programme-v1.pdf");
 
   // Les écrans et exports de la planner lui sont fermés : elle n'a pas de compte.
   await couple.goto(`/events/${eventId}`);

@@ -407,6 +407,11 @@ export async function AppShell({ children }: { children: ReactNode }) {
                     href: "/parametres/export",
                     label: tSettings("export"),
                   },
+                  // Lot 37b (DOC-12, décision D12) : relevé mensuel du stockage, titulaire seulement.
+                  {
+                    href: "/parametres/stockage",
+                    label: tSettings("storage"),
+                  },
                 ]
               : []),
           ],

@@ -2,7 +2,8 @@
 
 **Statut** : spécification **validée par Julien le 16/11/2026** (« Oui, je valide » : D1 à D13
 en (a)), ce qui vaut accord pour toucher les schémas `events`, `hub` et `quotes`.
-Branche `lot-37-documents`, partie de `main` après le lot 36 (PR #120).
+Branche `lot-37-documents`, partie de `main` après le lot 36 (PR #120) ; 37b sur la branche
+`lot-37-programme-stockage`, partie de `main` après la fusion du 37a (PR #121).
 
 ## Contexte
 
@@ -364,3 +365,77 @@ Chaque migration ne touche que le schéma de son module (DAT-09), et a son annul
   en taille ordinateur et en 375 px, avec axe-core.
 - Semgrep (`p/default`) : rien sur le code du lot. Gitleaks : aucune fuite dans les commits du lot.
 - Rejeu SC-02, étape 4 : sans blocage (`docs/recette/SC-02.md`).
+
+## Bilan du lot 37b (16/11/2026)
+
+### Fait
+
+- **Diffuser le programme** (CHR-07, DAT-14, D8) : l'onglet « Programme » de la fiche gagne la
+  section « Diffusion aux clients et aux prestataires ».
+  - « Diffuser le programme (version N) » fige une version numérotée, datée et signée, sans note
+    interne. Elle est refusée si le programme est vide ou déjà diffusé tel quel : un double clic ne
+    fait qu'une version, et une note interne seule n'en fait pas.
+  - La section dit ce qui a changé depuis la dernière diffusion (séquences ajoutées, modifiées,
+    retirées).
+  - Les versions restent, chacune consultable et imprimable (aperçu du PDF numéroté, nouvel onglet).
+- **Les tiers lisent la dernière version diffusée**, jamais le brouillon (D8, D10) :
+  - le client (portail) la lit en entier et la télécharge en PDF numéroté ;
+  - le prestataire (son espace, D9) lit ses séquences en entier, sans autre intervenant, et le
+    déroulé du jour en titres et horaires ; il télécharge le même contenu en PDF numéroté, sa
+    colonne « votre poste » portant son poste ;
+  - avant toute diffusion, l'un et l'autre lisent « pas encore diffusé ».
+- **Prévenir** (D11) : la page du prestataire et celle du client signalent une seule fois
+  « Nouvelle version du programme » (jamais à la première visite, jamais depuis l'aperçu
+  « vu par »). L'e-mail viendra avec le lot 38.
+- **Décisions** (POR-03) : approuver le programme fige la version diffusée que le client lit ; la
+  décision est signalée changée à la diffusion suivante, plus au moindre brouillon. Elle ne se
+  demande qu'une fois une version diffusée.
+- **Le PDF de l'équipe** : la variante avec notes internes s'appelle « équipe » (elle s'appelait
+  « prestataires ») ; les prestataires reçoivent leur version diffusée, sans note interne
+  (CHR-07).
+- **Le relevé du stockage** (DOC-12, D12, D13) :
+  - chaque module rend ses fichiers par nature (originaux légaux, documents signés, dépôts, images)
+    et par évènement ; les essais sont écartés, les exports ne comptent pas ;
+  - le hub garde le relevé du mois (heure de Paris), un par mois, pris au premier passage du
+    traitement horaire ;
+  - les tailles s'enregistrent à l'écriture (documents signés, certificats, dossiers de preuve,
+    logo) ; celles d'avant le lot sont lues une fois au stockage puis gardées ;
+  - la titulaire le lit dans Paramètres › Stockage (relevé du mois, historique), l'Admin le
+    dernier total de chaque organisation dans la console (des nombres seulement).
+- **RGPD et export** : registre à jour (copie des séquences diffusées) ; une version est trouvée
+  par ses responsables et intervenants libres, supprimée à l'oubli ; les versions entrent dans
+  l'export complet (la v1 tient), le relevé non (donnée d'exploitation).
+- **Migrations 0138 à 0140**, une par schéma (`events`, `hub`, `quotes`), chacune avec son
+  annulation et son test. Elles passent sans arrêter l'app. La reprise fait du programme existant
+  sa version 1, déjà vue par ses liens. ADR 0071, runbook, aide (fiche, portail, espace
+  prestataire, Paramètres › Stockage, console).
+
+### Écarts et points ouverts
+
+- **E-mail « nouvelle version du programme »** : avec les modèles d'e-mails du lot 38 (D11).
+- **Quotas par offre** (DOC-06, P1) : le relevé les alimentera ; aucun blocage n'existe.
+- **Capture du centre d'aide** de Paramètres › Stockage : pas encore prise (illustration
+  générique) ; elle viendra au prochain passage du script des captures.
+- **Le déroulé du jour du prestataire** montre les titres et horaires des autres séquences (D9) :
+  les parcours qui vérifiaient qu'un autre titre restait caché (lot 26b) vérifient désormais qu'il
+  n'est que dans le déroulé, jamais dans ses horaires, et que l'autre intervenant reste caché.
+
+### Vérifications (en local)
+
+- Lint, typecheck, frontières de modules : verts. Registre RGPD à jour.
+- Unitaires : app 514 (dont la diffusion pure, le PDF numéroté et celui du prestataire, le mois
+  du relevé à l'heure de Paris).
+- Intégration :
+  - app 679, dont 9 pour le programme diffusé (CHR-07, DAT-14, RGPD, abus) et 5 pour le relevé
+    du stockage (natures, mois, tailles lues une fois, totaux de l'Admin, isolation) ;
+  - `@symbola/db` 183 (annulation et reprise de 0138 à 0140, isolation des versions et des relevés,
+    accès Admin) ;
+  - `@symbola/auth` 21.
+- Semgrep (`p/default`) : rien sur le code du lot (les six signalements restants sont les anciens
+  `console.error` du module devis). Gitleaks : aucune fuite.
+- Parcours e2e, base rechargée : 297 réussis, 3 ignorés (les mêmes qu'avant), aucun instable.
+  Nouveau parcours `chr-07-doc-12-programme-stockage`, en taille ordinateur et en 375 px, avec
+  axe-core ; `prd-evt-06`, `por-01`, `sec-36` et `ux-05` diffusent désormais le programme avant
+  que les tiers le lisent, `prd-evt-05` suit le nom du PDF « équipe ».
+- Rejeu SC-08 (le chrono diffusé aux prestataires) : sans blocage, 8 gestes ; un défaut trouvé et
+  corrigé (un volume nul s'affichait « 0,1 Ko ») (`docs/recette/SC-08.md`).

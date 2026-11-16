@@ -11,7 +11,7 @@ import { afterAll, describe, expect, it } from "vitest";
 import { createAppConnection } from "./client";
 import { alertThresholds, budgetLineAttachments, budgetLines, vendorPayments } from "./schema/budget";
 import { vendors, vendorTypes } from "./schema/vendors";
-import { contactMembers, contactNotes, contacts, importItems, imports, privacyRequests } from "./schema/hub";
+import { contactMembers, contactNotes, contacts, importItems, imports, privacyRequests, storageSnapshots } from "./schema/hub";
 import {
   catalogItems,
   creditNotes,
@@ -46,6 +46,7 @@ import {
   eventDocumentLinks,
   eventDocumentVersions,
   eventDocuments,
+  programVersions,
 } from "./schema/events";
 import { withOrganization } from "./with-organization";
 
@@ -393,6 +394,23 @@ describe("PRD-HUB-03 — L'Admin ne lit jamais de donnée métier", () => {
       await tx.insert(eventDocumentLinks).values({ organizationId, eventId: event!.id, documentId: document!.id, tokenHash: `h-${randomUUID()}`, expiresAt: new Date(Date.now() + 86_400_000), createdByUserId: organizationId });
     });
     for (const table of [eventDocumentFolders, eventDocumentVersions, eventDocumentLinks]) {
+      try {
+        const rows = await db.select().from(table);
+        expect(rows).toHaveLength(0);
+      } catch (error) {
+        expect(error).toBeTruthy();
+      }
+    }
+  });
+
+  it("vaut aussi pour les versions diffusées du programme et les relevés de stockage (lot 37b, CHR-07, DOC-12, PostgreSQL réel)", async () => {
+    const organizationId = randomUUID();
+    await withOrganization(db, organizationId, async (tx) => {
+      const [event] = await tx.insert(events).values({ organizationId }).returning();
+      await tx.insert(programVersions).values({ organizationId, eventId: event!.id, number: 1, items: [] });
+      await tx.insert(storageSnapshots).values({ organizationId, month: "2026-11-01", nature: "uploads", fileCount: 1, totalBytes: 10 });
+    });
+    for (const table of [programVersions, storageSnapshots]) {
       try {
         const rows = await db.select().from(table);
         expect(rows).toHaveLength(0);

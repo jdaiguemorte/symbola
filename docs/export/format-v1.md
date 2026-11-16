@@ -78,3 +78,8 @@ La liste table par table, avec sa raison, est dans l'index généré. Un test
   de `events/event_documents` (`folderId`, `sharedWithClients`, `sharedWithVendors`) dont la valeur
   par défaut dit l'existant (« Divers », non partagé) et la valeur `document_link_opened` du fil
   d'activité ; la v1 tient.
+- **Lot 37b** : l'entité `events/program_versions` (versions diffusées du programme, sans note
+  interne) s'ajoute, ainsi que des champs facultatifs : `events/event_links.programVersionSeen`,
+  `hub/organization_profiles.logoSizeBytes`, `quotes/signature_requests.signedDocumentSizeBytes`
+  et `auditCertificateSizeBytes`, `quotes/contract_evidence.sizeBytes`. Le relevé du stockage
+  (`hub/storage_snapshots`), donnée d'exploitation, n'est pas exporté ; la v1 tient.

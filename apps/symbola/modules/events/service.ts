@@ -223,7 +223,8 @@ import {
   setDayChoice,
   setDocumentSharing,
 } from "./documents";
-import { findProgramOverlaps, MAX_SHIFT_MINUTES, normalizeTime, programForVariant, sortProgramItems } from "./program";
+import { findProgramOverlaps, hasProgramChanges, MAX_SHIFT_MINUTES, normalizeTime, programChanges, publishedProgramItems, sortProgramItems, vendorProgramOf } from "./program";
+import { findLatestProgramVersion, findLinkProgramSeen, findProgramVersion, findProgramVersions, insertProgramVersion, markProgramSeen, ProgramPublishError } from "./program-versions";
 import { endTimeAfter, MINUTES_PER_DAY } from "@/lib/program-spans";
 import type {
   PendingDecision,
@@ -295,6 +296,12 @@ import type {
   ProgramItem,
   ProgramItemInput,
   ProgramParticipant,
+  ProgramPublication,
+  ProgramVersion,
+  ProgramVersionSummary,
+  PublishEventProgramInput,
+  PublishedProgramView,
+  VendorProgramView,
   ProgramTemplate,
   ProgramTemplateItem,
   ProgramTemplateItemInput,
@@ -319,6 +326,11 @@ import type {
 export { eventsPrivacy } from "./privacy";
 export { monthKey } from "./schedule";
 export { programForVariant, type ProgramVariant } from "./program";
+// Lot 37b (CHR-07, DAT-14 ; D8) : diffusion du programme refusée (vide, ou déjà diffusé tel quel).
+export { ProgramPublishError } from "./program-versions";
+// Lot 37b (DOC-12, ADR 0071) : la part du module au relevé de stockage, et ses évènements d'essai.
+// Les évènements d'essai, écartés du relevé, viennent de listDemoEventIds (export complet).
+export { measureEventsStorage } from "./storage-usage";
 // Lot 30b (CHR-06, décision D8) : proposition de décalage, calculée par l'écran après
 // le changement d'une heure de début.
 export { proposeProgramShift } from "./program";
@@ -380,6 +392,13 @@ export type {
   UpdateEventTaskInput,
   EventProgram,
   ProgramItem,
+  ProgramPublication,
+  ProgramVersion,
+  ProgramVersionSummary,
+  PublishEventProgramInput,
+  PublishedProgramItem,
+  PublishedProgramView,
+  VendorProgramView,
   ProgramItemInput,
   ProgramOverlap,
   ProgramParticipant,
@@ -1543,6 +1562,43 @@ export async function getEventProgram(organizationId: string, eventId: string): 
   };
 }
 
+// Lot 37b (CHR-07, DAT-14 ; D8, ADR 0071) — « Diffuser le programme » fige une version numérotée,
+// sans note interne, avec sa date et son auteur ; refusé si le programme est vide ou déjà diffusé
+// tel quel. Clients et prestataires lisent la dernière version diffusée.
+export async function publishEventProgram(input: PublishEventProgramInput): Promise<ProgramVersionSummary> {
+  const program = await getEventProgram(input.organizationId, input.eventId);
+  const items = publishedProgramItems(program.items);
+  if (items.length === 0) throw new ProgramPublishError("empty");
+  const result = await insertProgramVersion({ organizationId: input.organizationId, eventId: input.eventId, userId: input.userId, items, now: input.now ?? new Date() });
+  if (result.status !== "published") throw result.status === "event_not_found" ? new EventNotFoundError() : new ProgramPublishError("unchanged");
+  return result.version;
+}
+
+// La diffusion vue de la fiche : la dernière version, la liste des versions et ce qui a changé depuis.
+export async function getEventProgramPublication(organizationId: string, eventId: string): Promise<ProgramPublication> {
+  const [program, versions, latest] = await Promise.all([getEventProgram(organizationId, eventId), findProgramVersions(organizationId, eventId), findLatestProgramVersion(organizationId, eventId)]);
+  const current = publishedProgramItems(program.items);
+  const changes = programChanges(latest?.items ?? null, current);
+  return { latest: versions[0] ?? null, versions, changes, canPublish: current.length > 0 && hasProgramChanges(changes) };
+}
+
+// DAT-14 : chaque version diffusée reste consultable et imprimable.
+export async function getEventProgramVersion(organizationId: string, eventId: string, number: number): Promise<ProgramVersion | null> {
+  if (!Number.isInteger(number) || number < 1) return null;
+  return findProgramVersion(organizationId, eventId, number);
+}
+
+// D11 : la page d'un lien marque la dernière version comme vue (jamais l'aperçu « vu par »).
+export async function markLinkProgramSeen(organizationId: string, linkId: string, number: number): Promise<void> {
+  if (!Number.isInteger(number) || number < 1) return;
+  await markProgramSeen(organizationId, linkId, number);
+}
+
+async function linkPublishedProgram(organizationId: string, linkId: string, eventId: string): Promise<{ version: ProgramVersion | null; isNew: boolean }> {
+  const [version, seen] = await Promise.all([findLatestProgramVersion(organizationId, eventId), findLinkProgramSeen(organizationId, linkId)]);
+  return { version, isNew: version !== null && seen !== null && version.number > seen };
+}
+
 export async function addProgramItem(organizationId: string, eventId: string, item: ProgramItemInput): Promise<ProgramItem> {
   return savedProgramItem(
     await insertProgramItem(
@@ -2074,22 +2130,26 @@ async function requireLinkRubric(organizationId: string, linkId: string, rubric?
 
 // Lot 26b (D9) — espace minimal du prestataire : prénoms des clients, date,
 // lieux, lignes du programme où figure son poste. Ni note interne, ni autre
-// intervenant, ni prix, ni budget.
+// intervenant, ni prix, ni budget. Lot 37b (CHR-07, D9) : le programme est la dernière version
+// diffusée ; ses séquences en entier, et le déroulé du jour en titres et horaires seulement.
 export async function getVendorLinkView(organizationId: string, linkId: string): Promise<VendorLinkView> {
   const access = await getLinkAccess(organizationId, linkId);
   if (!access || access.audience !== "vendor" || !access.vendorCandidateId) throw new LinkAccessDeniedError();
   const [vendor, found] = await Promise.all([findLinkVendorRow(organizationId, access.vendorCandidateId), findEventById(organizationId, access.eventId)]);
   if (!vendor || vendor.eventId !== access.eventId || !found) throw new LinkAccessDeniedError();
-  const [places, program] = await Promise.all([listEventPlaces(organizationId, access.eventId), getEventProgram(organizationId, access.eventId)]);
+  const [places, published] = await Promise.all([listEventPlaces(organizationId, access.eventId), linkPublishedProgram(organizationId, linkId, access.eventId)]);
+  const program: VendorProgramView = {
+    version: published.version ? { number: published.version.number, publishedAt: published.version.publishedAt } : null,
+    ...vendorProgramOf(published.version?.items ?? [], vendor.vendorSlotId),
+    isNew: published.isNew,
+  };
   return {
     vendorName: vendor.vendorName,
     slotLabel: vendor.slotLabel,
     clientFirstNames: found.clients.map((client) => client.firstName),
     eventDate: found.event.eventDate,
     places: places.map((place) => ({ id: place.id, label: place.label, address: place.address, city: place.city, startTime: place.startTime, endTime: place.endTime })),
-    programItems: program.items
-      .filter((item) => item.participants.some((participant) => participant.vendorSlotId === vendor.vendorSlotId))
-      .map((item) => ({ id: item.id, startTime: item.startTime, endTime: item.endTime, label: item.label, location: item.location })),
+    program,
     // Lot 34b (CHR-02, D12) : seulement les tâches qui lui sont confiées.
     tasks: (await findVendorTaskRows(organizationId, access.eventId, access.vendorCandidateId)).map((task) => ({ id: task.id, label: task.label, dueDate: task.dueDate, done: task.doneAt !== null })),
   };
@@ -2146,8 +2206,8 @@ export async function removeTaskComment(input: { organizationId: string; comment
   await removeComment(input);
 }
 
-// Vue du tiers : résumé de l'événement, rétroplanning et programme (variante
-// « mariés », jamais de note interne) si leurs rubriques sont ouvertes.
+// Vue du tiers : résumé de l'événement, rétroplanning et programme (jamais de note interne) si
+// leurs rubriques sont ouvertes. Lot 37b (D10) : la dernière version diffusée du programme.
 export async function getLinkEventView(organizationId: string, linkId: string): Promise<ClientEventView> {
   const access = await requireLinkRubric(organizationId, linkId);
   const found = await findEventById(organizationId, access.eventId);
@@ -2155,13 +2215,21 @@ export async function getLinkEventView(organizationId: string, linkId: string): 
   const rubrics = access.rights.rubrics;
   const [tasks, program] = await Promise.all([
     rubrics.includes("tasks") ? listEventTasks(organizationId, access.eventId) : Promise.resolve(null),
-    rubrics.includes("program") ? getEventProgram(organizationId, access.eventId) : Promise.resolve(null),
+    rubrics.includes("program") ? linkPublishedProgram(organizationId, linkId, access.eventId) : Promise.resolve(null),
   ]);
   return {
     // Résumé seulement : ni source du prospect ni motif de perte.
     event: toEventSummary(found.event, found.clients),
     tasks,
-    program: program ? { items: programForVariant(program.items, "couple"), overlaps: [], updatedAt: program.updatedAt } : null,
+    program: program ? clientProgramView(program) : null,
+  };
+}
+
+function clientProgramView(published: { version: ProgramVersion | null; isNew: boolean }): PublishedProgramView {
+  return {
+    version: published.version ? { number: published.version.number, publishedAt: published.version.publishedAt } : null,
+    items: published.version?.items ?? [],
+    isNew: published.isNew,
   };
 }
 
@@ -2239,7 +2307,7 @@ export class DecisionNotFoundError extends Error {
   }
 }
 
-function toDecision(row: EventDecisionRow, replacedBy: Map<string, string>, currentProgramUpdatedAt: string | null): EventDecision {
+function toDecision(row: EventDecisionRow, replacedBy: Map<string, string>, currentProgram: { updatedAt: string | null; latestVersion: number | null }): EventDecision {
   const snapshot = row.snapshot as DecisionSnapshot;
   return {
     id: row.id,
@@ -2260,14 +2328,16 @@ function toDecision(row: EventDecisionRow, replacedBy: Map<string, string>, curr
     replacesDecisionId: row.replacesDecisionId,
     replacedById: replacedBy.get(row.id) ?? null,
     requestedAt: row.requestedAt.toISOString(),
-    programChanged: row.status === "approved" && programChangedSince(snapshot, currentProgramUpdatedAt),
+    programChanged: row.status === "approved" && programChangedSince(snapshot, currentProgram),
   };
 }
 
 async function decisionsWithContext(organizationId: string, eventId: string, rows: EventDecisionRow[], all: EventDecisionRow[]): Promise<EventDecision[]> {
-  const programUpdatedAt = rows.some((row) => row.kind === "program") ? (await getEventProgram(organizationId, eventId)).updatedAt : null;
+  const hasProgram = rows.some((row) => row.kind === "program");
+  const [program, latest] = hasProgram ? await Promise.all([getEventProgram(organizationId, eventId), findLatestProgramVersion(organizationId, eventId)]) : [null, null];
+  const currentProgram = { updatedAt: program?.updatedAt ?? null, latestVersion: latest?.number ?? null };
   const replacedBy = replacementsOf(all);
-  return rows.map((row) => toDecision(row, replacedBy, programUpdatedAt));
+  return rows.map((row) => toDecision(row, replacedBy, currentProgram));
 }
 
 export async function requestDecision(input: RequestDecisionInput): Promise<EventDecision> {
@@ -2294,10 +2364,11 @@ export async function requestDecision(input: RequestDecisionInput): Promise<Even
     if (!slot || !label || !Number.isInteger(input.amountCents) || input.amountCents <= 0) throw new DecisionInvalidError("expense");
     subject = { subjectId: input.lineId, slotId: slot.id, title: label, snapshot: { kind: "expense", slotLabel: slot.label, label, vendorName: input.vendorName, amountCents: input.amountCents } };
   } else {
-    const program = await getEventProgram(organizationId, eventId);
-    if (program.items.length === 0) throw new DecisionInvalidError("program");
+    // Lot 37b (D10) : le client approuve la dernière version diffusée, celle qu'il lit.
+    const [program, version] = await Promise.all([getEventProgram(organizationId, eventId), findLatestProgramVersion(organizationId, eventId)]);
+    if (!version || version.items.length === 0) throw new DecisionInvalidError("program");
     // Titre vide : l'écran affiche « le programme du jour J » dans la langue de la personne.
-    subject = { subjectId: null, slotId: null, title: "", snapshot: { kind: "program", programUpdatedAt: program.updatedAt, itemCount: program.items.length } };
+    subject = { subjectId: null, slotId: null, title: "", snapshot: { kind: "program", programUpdatedAt: program.updatedAt, itemCount: version.items.length, programVersion: version.number } };
   }
 
   const existing = await findDecisionRows(organizationId, eventId);
@@ -2309,7 +2380,8 @@ export async function requestDecision(input: RequestDecisionInput): Promise<Even
     if (!replaced || !answered || replaced.kind !== input.kind || replaced.subjectId !== subject.subjectId || replacementsOf(existing).has(replaced.id)) throw new DecisionInvalidError("replace");
   }
   const row = await insertDecisionRow({ organizationId, eventId, kind: input.kind, ...subject, note, dueOn, replacesDecisionId });
-  return toDecision(row, new Map(), input.kind === "program" && subject.snapshot.kind === "program" ? subject.snapshot.programUpdatedAt : null);
+  const programVersion = subject.snapshot.kind === "program" ? (subject.snapshot.programVersion ?? null) : null;
+  return toDecision(row, new Map(), { updatedAt: subject.snapshot.kind === "program" ? subject.snapshot.programUpdatedAt : null, latestVersion: programVersion });
 }
 
 // Une demande sans réponse peut être retirée ; une décision répondue, non.
@@ -2685,6 +2757,10 @@ const _contractCheck: EventsServiceContract = {
   moveEventTask,
   removeEventTask,
   getEventProgram,
+  publishEventProgram,
+  getEventProgramPublication,
+  getEventProgramVersion,
+  markLinkProgramSeen,
   addProgramItem,
   updateProgramItem,
   removeProgramItem,

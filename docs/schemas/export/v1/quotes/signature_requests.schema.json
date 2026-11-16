@@ -72,6 +72,30 @@
         "null"
       ]
     },
+    "signedDocumentSizeBytes": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "auditCertificateSizeBytes": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "createdAt": {
       "type": "string",
       "format": "date-time",
@@ -131,6 +155,8 @@
     "auditCertificateKey",
     "signedDocumentSha256",
     "auditCertificateSha256",
+    "signedDocumentSizeBytes",
+    "auditCertificateSizeBytes",
     "createdAt",
     "completedAt",
     "createdBy",
