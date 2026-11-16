@@ -15,6 +15,8 @@ Le format est décrit dans `docs/export/format-v1.md`.
 | `contact_notes` | `id`, `contactId`, `authorUserId`, `body`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [contact_notes.schema.json](hub/contact_notes.schema.json) |
 | `contact_members` | `id`, `groupContactId`, `memberContactId`, `role`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [contact_members.schema.json](hub/contact_members.schema.json) |
 | `email_templates` | `id`, `kind`, `locale`, `subject`, `body`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [email_templates.schema.json](hub/email_templates.schema.json) |
+| `message_templates` | `id`, `eventTypeId`, `name`, `locale`, `version`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [message_templates.schema.json](hub/message_templates.schema.json) |
+| `message_template_versions` | `id`, `templateId`, `version`, `subject`, `body`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [message_template_versions.schema.json](hub/message_template_versions.schema.json) |
 | `privacy_settings` | `requestAlertDays`, `prospectRetentionMonths`, `clientRetentionMonths`, `accountingRetentionMonths`, `inactiveAccountMonths`, `signedQuoteRetentionMonths`, `requestProofRetentionMonths`, `linkPrivacyNotice`, `updatedAt`, `createdAt`, `createdBy`, `updatedBy` | [privacy_settings.schema.json](hub/privacy_settings.schema.json) |
 | `privacy_requests` | `id`, `type`, `personLabel`, `receivedOn`, `dueOn`, `status`, `extensionReason`, `extendedAt`, `closedAt`, `actionDoneAt`, `responseSentAt`, `createdByUserId`, `createdAt`, `updatedAt`, `createdBy`, `updatedBy` | [privacy_requests.schema.json](hub/privacy_requests.schema.json) |
 | `privacy_exports` | `id`, `requestId`, `recordCount`, `createdByUserId`, `createdAt`, `expiresAt`, `purgedAt`, `createdBy`, `updatedAt`, `updatedBy` | [privacy_exports.schema.json](hub/privacy_exports.schema.json) |
@@ -39,6 +41,7 @@ Tables non exportées :
 - `connection_traces` — exploitation : adresses IP des connexions, pour l'enquête de sécurité
 - `organization_exports` — technique : trace des exports complets eux-mêmes
 - `storage_snapshots` — exploitation : relevé mensuel du stockage (nombres de fichiers et volumes)
+- `calendar_feeds` — secret : adresses des flux de calendrier (jetons hachés), propres à chaque personne
 - `domain_events` — technique : événements internes entre modules
 - `domain_event_consumers` — technique : suivi des événements internes
 - `rate_limit_events` — exploitation : tentatives limitées

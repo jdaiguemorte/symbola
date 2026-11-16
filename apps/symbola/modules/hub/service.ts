@@ -51,11 +51,30 @@ export {
   recipientsDigest,
   RecipientsNotConfirmedError,
   reviewRecipients,
+  messageTemplateVariables,
   validateEmailTemplate,
   variableToken,
   type EmailBlock,
   type EmailTemplateProblems,
 } from "./email-template-rules";
+// Lot 38b (HUB-21 ; D10 ; ADR 0072) : modèles de messages de la planner, versionnés.
+export {
+  addStarterMessageTemplates,
+  createMessageTemplate,
+  deleteMessageTemplate,
+  duplicateMessageTemplate,
+  getMessageTemplate,
+  listMessageTemplates,
+  MESSAGE_TEMPLATE_NAME_MAX,
+  MessageTemplateInvalidError,
+  MessageTemplateNotFoundError,
+  messageTemplatesForEventType,
+  renderMessageForTemplate,
+  restoreMessageTemplateVersion,
+  saveMessageTemplate,
+} from "./message-templates";
+// Lot 38b (HUB-29 ; D11, D12 ; ADR 0072) : adresses secrètes des flux de calendrier.
+export { issueCalendarFeed, listCalendarFeeds, resolveCalendarFeed, revokeCalendarFeed, type CalendarFeedAccess, type CalendarFeedView } from "./calendar-feeds";
 export { EmailTemplateInvalidError, getEmailTemplate, isEmailTemplateKind, listEmailTemplates, recentEmailVariableProblems, resetEmailTemplate, saveEmailTemplate } from "./email-templates";
 export {
   assertOrganizationEmailReady,

@@ -1002,6 +1002,13 @@
       "when": 1794855943801,
       "tag": "0142_lot38a_hub_email_templates",
       "breakpoints": true
+    },
+    {
+      "idx": 143,
+      "version": "7",
+      "when": 1794861882369,
+      "tag": "0143_lot38b_hub_messages_calendar",
+      "breakpoints": true
     }
   ]
 }

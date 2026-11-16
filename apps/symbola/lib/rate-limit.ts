@@ -17,7 +17,7 @@ type Window = { limit: number; windowMs: number };
 // ADR 0037) reste en place en plus.
 // Lot 33 : « login » limite les demandes de lien de connexion (chacune envoie un e-mail) ; les
 // échecs de mot de passe et leurs délais sont chez le fournisseur d'identité (ADR 0067).
-export const RATE_LIMITS: Record<"login" | "search" | "upload" | "linkOpen" | "linkRenewal" | "linkCode" | "teamInvite" | "organizationExport", { ip: Window; account: Window }> = {
+export const RATE_LIMITS: Record<"login" | "search" | "upload" | "linkOpen" | "linkRenewal" | "linkCode" | "teamInvite" | "organizationExport" | "calendarFeed", { ip: Window; account: Window }> = {
   login: { ip: { limit: 20, windowMs: 15 * MINUTE }, account: { limit: 5, windowMs: 15 * MINUTE } },
   search: { ip: { limit: 300, windowMs: MINUTE }, account: { limit: 120, windowMs: MINUTE } },
   upload: { ip: { limit: 60, windowMs: 10 * MINUTE }, account: { limit: 30, windowMs: 10 * MINUTE } },
@@ -34,6 +34,9 @@ export const RATE_LIMITS: Record<"login" | "search" | "upload" | "linkOpen" | "l
   // Lot 35a (HUB-13, D4) : demandes d'un export complet, chacune prépare une archive de toutes les
   // données (« account » : l'organisation). Un seul export se prépare à la fois.
   organizationExport: { ip: { limit: 20, windowMs: 60 * MINUTE }, account: { limit: 10, windowMs: 24 * 60 * MINUTE } },
+  // Lot 38b (HUB-29, D11) : lecture d'un flux de calendrier par son adresse secrète ; les agendas
+  // relisent toutes les quelques minutes (« account » : l'organisation de l'adresse).
+  calendarFeed: { ip: { limit: 300, windowMs: 15 * MINUTE }, account: { limit: 300, windowMs: 15 * MINUTE } },
 };
 
 export type RateLimitedAction = keyof typeof RATE_LIMITS;

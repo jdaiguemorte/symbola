@@ -320,6 +320,7 @@ import type {
   ProgramRecipientDocument,
   NotifyProgramVersionInput,
   ProgramNotification,
+  CalendarEvent,
   PublishedProgramView,
   VendorProgramView,
   ProgramTemplate,
@@ -420,6 +421,7 @@ export type {
   ProgramRecipientDocument,
   NotifyProgramVersionInput,
   ProgramNotification,
+  CalendarEvent,
   PublishedProgramItem,
   PublishedProgramView,
   VendorProgramView,
@@ -513,6 +515,15 @@ export async function listEvents(input: ListEventsInput): Promise<EventSummary[]
     prospectSourceId: input.prospectSourceId,
   });
   return rows.map(({ event, clients }) => toEventSummary(event, clients));
+}
+
+// Lot 38b (HUB-29 ; D11) — les évènements du flux de calendrier de l'équipe : datés, ni essai, ni
+// perdus ou annulés.
+export async function listCalendarEvents(organizationId: string): Promise<CalendarEvent[]> {
+  const rows = await findEvents(organizationId, {});
+  return rows
+    .filter(({ event }) => event.eventDate !== null && !event.isDemo && event.status !== "cancelled")
+    .map(({ event, clients }) => ({ ...toEventSummary(event, clients), eventTypeId: event.eventTypeId }));
 }
 
 // Lot 13 (L13-HUB-15) — prospects sans nouvelle depuis au moins `days` jours
@@ -2893,6 +2904,7 @@ const _contractCheck: EventsServiceContract = {
   markLinkProgramSeen,
   listProgramRecipients,
   notifyProgramVersion,
+  listCalendarEvents,
   addProgramItem,
   updateProgramItem,
   removeProgramItem,

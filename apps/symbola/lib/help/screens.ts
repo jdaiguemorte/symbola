@@ -100,6 +100,9 @@ export const HELP_SCREENS: HelpScreen[] = [
   { key: "contactDetail", group: "company", audience: "team", path: null, capture: false },
   // Lot 38a (MSG-01, D3, D7) : modèles des e-mails envoyés au nom de l'organisation.
   { key: "emailTemplates", group: "company", audience: "team", path: "/parametres/emails", capture: false },
+  // Lot 38b (HUB-21, HUB-29 ; D10, D11) : modèles de messages ; Mon calendrier (dans le profil).
+  { key: "messageTemplates", group: "company", audience: "team", module: "events", path: "/parametres/messages", capture: false },
+  { key: "calendar", group: "company", audience: "team", module: "events", path: null, capture: false },
   // Lot 35a (HUB-13, D5) : export complet des données, titulaire seulement.
   { key: "organizationExport", group: "data", audience: "team", ownerOnly: true, path: "/parametres/export", capture: true },
   // Lot 37b (DOC-12, D12) : relevé mensuel du stockage, titulaire seulement.

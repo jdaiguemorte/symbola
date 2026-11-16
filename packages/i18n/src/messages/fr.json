@@ -1106,6 +1106,14 @@
     "emailTemplates": {
       "title": "Modèles d'e-mails",
       "body": "Les e-mails que Symbola envoie en votre nom (liens, rappels, demandes de signature, programme) partent de ces modèles, en français et en anglais selon la langue de la personne. Modifiez l'objet et le texte avec les variables proposées : une variable inconnue est refusée, et le lien ne peut pas manquer. L'aperçu montre l'e-mail avec des données fictives ; « M'envoyer un essai » l'envoie à votre seule adresse. Un e-mail dont une variable n'a pas de valeur ne part pas : Symbola vous dit laquelle. « Revenir au texte de départ » efface votre version."
+    },
+    "messageTemplates": {
+      "title": "Modèles de messages",
+      "body": "Vos messages types aux clients (réponse à une première demande, proposition de rendez-vous…), pour tous les évènements ou pour un type. Sur la fiche, « Écrire au client » propose ceux du type de l'évènement, en remplit les variables avec la fiche, montre l'aperçu et les destinataires, puis ouvre votre messagerie : vous relisez et envoyez vous-même. Chaque modification fait une version : les précédentes se relisent et se restaurent."
+    },
+    "calendar": {
+      "title": "Mon calendrier",
+      "body": "Une adresse secrète abonne votre agenda à vos évènements datés, et une autre, depuis la fiche, au programme d'un évènement. Votre agenda les relit tout seul. L'adresse ne s'affiche qu'une fois ; une nouvelle adresse remplace l'ancienne, et retirer une adresse l'arrête aussitôt."
     }
   },
   "Aide": {
@@ -4612,7 +4620,8 @@
     "contractTemplates": "Modèles de contrat",
     "export": "Exporter mes données",
     "storage": "Stockage",
-    "emailTemplates": "Modèles d'e-mails"
+    "emailTemplates": "Modèles d'e-mails",
+    "messageTemplates": "Modèles de messages"
   },
   "Common": {
     "closePanel": "Fermer le panneau",
@@ -4975,7 +4984,10 @@
       "events_event_document_links": "lien de partage d'un document",
       "events_program_versions": "version diffusée du programme",
       "hub_storage_snapshots": "relevé de stockage",
-      "hub_email_templates": "modèle d'e-mail"
+      "hub_email_templates": "modèle d'e-mail",
+      "hub_message_templates": "modèle de message",
+      "hub_message_template_versions": "version d'un modèle de message",
+      "hub_calendar_feeds": "adresse de calendrier"
     },
     "modules": {
       "events": "Événements",
@@ -6208,5 +6220,111 @@
     "variableMissing": "L'e-mail « {template} » ne peut pas partir : variable sans valeur ({tokens}). Complétez la fiche, ou corrigez le modèle dans Paramètres, Modèles d'e-mails.",
     "todayBanner": "{count, plural, one {Le rappel automatique d'un évènement ne part pas} other {Les rappels automatiques de # évènements ne partent pas}} : une variable du modèle « {template} » n'a pas de valeur.",
     "todayBannerLink": "Corriger le modèle"
+  },
+  "Calendar": {
+    "personFeed": "{organization} — évènements",
+    "eventFeed": "Programme — {event}",
+    "responsible": "Responsable : {name}",
+    "participants": "Intervenants : {names}",
+    "title": "Mon calendrier",
+    "intro": "Abonnez votre agenda (Google, Apple, Outlook…) à vos évènements : il les relit tout seul. Chaque adresse est secrète et personnelle : ne la partagez pas.",
+    "personTitle": "Mes évènements",
+    "personHint": "Les évènements datés de l'entreprise, en journée entière, avec le lien vers leur fiche. Ni essai, ni évènement perdu ou annulé.",
+    "create": "Créer mon adresse",
+    "regenerate": "Nouvelle adresse",
+    "regenerateHint": "Une nouvelle adresse remplace l'ancienne, qui cesse aussitôt de répondre.",
+    "revoke": "Retirer l'adresse",
+    "active": "Adresse créée le {date}, {used}.",
+    "lastUsed": "lue par votre agenda le {date}",
+    "neverUsed": "pas encore lue par un agenda",
+    "none": "Aucune adresse pour l'instant.",
+    "shownOnce": "Copiez-la maintenant dans votre agenda (« S'abonner à un calendrier » ou « Ajouter par URL ») : elle ne sera plus affichée.",
+    "addressLabel": "Adresse de votre calendrier",
+    "copy": "Copier l'adresse",
+    "copied": "Adresse copiée.",
+    "revoked": "Adresse retirée : elle ne répond plus.",
+    "eventsTitle": "Programmes suivis",
+    "eventsHint": "Ajoutez le programme d'un évènement depuis sa fiche (onglet du programme).",
+    "eventsNone": "Aucun programme suivi.",
+    "eventLine": "Programme — {event}",
+    "revokeEvent": "Retirer le programme de {event}",
+    "programAdd": "Ajouter le programme à mon agenda",
+    "programAddHint": "Chaque séquence, à l'heure de l'évènement, dans votre agenda ; il suit les changements du programme (sans les notes internes).",
+    "programFollowed": "Ce programme est dans votre agenda (adresse créée le {date}).",
+    "programRenew": "Nouvelle adresse du programme",
+    "programRevoke": "Retirer le programme de mon agenda",
+    "unavailable": "Le calendrier suit les évènements : il demande le module Évènements."
+  },
+  "MessageTemplates": {
+    "title": "Modèles de messages",
+    "subtitle": "Vos messages types aux clients : « Écrire au client », sur la fiche, les remplit et ouvre votre messagerie.",
+    "empty": "Aucun modèle de message pour l'instant.",
+    "addStarters": "Ajouter les modèles de départ",
+    "startersAdded": "{count, plural, =0 {Les modèles de départ sont déjà là.} one {Un modèle ajouté.} other {# modèles ajoutés.}}",
+    "newTitle": "Nouveau modèle",
+    "name": "Nom du modèle",
+    "eventType": "Type d'évènement",
+    "allTypes": "Tous les évènements",
+    "locale": "Langue du message",
+    "language": {
+      "fr": "Français",
+      "en": "Anglais"
+    },
+    "subject": "Objet",
+    "body": "Texte",
+    "bodyHint": "Une ligne vide sépare deux paragraphes. Les variables se remplissent avec la fiche de l'évènement ; recopiez-les telles quelles, accolades comprises.",
+    "variablesTitle": "Variables",
+    "variables": {
+      "first_name": "Les prénoms des destinataires du message",
+      "clients": "Les prénoms des clients",
+      "event": "L'évènement, dit aux clients : « votre mariage »",
+      "event_date": "La date de l'évènement",
+      "place": "Le lieu de réception",
+      "organization": "Le nom de votre entreprise"
+    },
+    "create": "Créer le modèle",
+    "save": "Enregistrer",
+    "saved": "Enregistré : version {version}.",
+    "unchanged": "Enregistré ; le texte n'a pas changé, la version reste la {version}.",
+    "summary": "{type} · {language} · version {version}",
+    "edit": "Modifier « {name} »",
+    "versionsTitle": "{count, plural, one {# version} other {# versions}}",
+    "versionLine": "Version {version}, le {date}",
+    "current": "en cours",
+    "restore": "Restaurer la version {version}",
+    "restored": "Version restaurée : elle devient la version en cours.",
+    "duplicate": "Dupliquer le modèle",
+    "copyName": "Copie de {name}",
+    "delete": "Supprimer le modèle",
+    "deleteTitle": "Supprimer « {name} » ?",
+    "deleteBody": "Le modèle et toutes ses versions sont supprimés. Les messages déjà écrits ne changent pas.",
+    "back": "Tous les modèles de messages",
+    "errorEmpty": "Le nom, l'objet et le texte sont obligatoires.",
+    "errorNameTooLong": "Le nom dépasse {max} caractères.",
+    "errorUnknown": "Variable inconnue : {tokens}.",
+    "errorSubjectTooLong": "L'objet dépasse {max} caractères.",
+    "errorBodyTooLong": "Le texte dépasse {max} caractères.",
+    "unavailable": "Les modèles de messages servent sur la fiche d'un évènement : ils demandent le module Évènements."
+  },
+  "WriteToClient": {
+    "title": "Écrire au client",
+    "template": "Modèle",
+    "noTemplate": "Aucun modèle de message pour ce type d'évènement.",
+    "createTemplates": "Créer des modèles de messages",
+    "withoutTemplate": "Écrire sans modèle",
+    "recipients": "Destinataires",
+    "noEmail": "{name} (pas d'adresse e-mail)",
+    "update": "Mettre à jour l'aperçu",
+    "previewTitle": "Aperçu",
+    "previewLabel": "Aperçu du message",
+    "subject": "Objet : {subject}",
+    "missing": "Ces variables n'ont pas de valeur : {tokens}. Complétez la fiche de l'évènement, ou choisissez un autre modèle : un message ne part jamais avec une variable vide.",
+    "guardTitle": "Ce message part à {count} personnes",
+    "open": "{count, plural, one {Ouvrir ma messagerie} other {Ouvrir ma messagerie pour # personnes}}",
+    "openHint": "Votre messagerie s'ouvre avec le message prêt ; vous le relisez et l'envoyez vous-même. Symbola n'envoie rien.",
+    "copy": "Copier le texte",
+    "copied": "Texte copié.",
+    "noRecipient": "Choisissez au moins un destinataire qui a une adresse e-mail.",
+    "back": "Retour à la fiche"
   }
 }

@@ -63,6 +63,8 @@ const PUBLIC_ENTRIES: Record<string, string> = {
   "lien/actions.ts#requestLinkRenewalAction": "jeton d'un lien expiré, même réponse dans tous les cas, limitée en débit",
   // Lot 26b (POR-01, D6).
   "lien/actions.ts#verifyLinkCodeAction": "jeton du lien et code à usage unique, vérifiés hachés sous RLS, cinq essais, limitée en débit",
+  // Lot 38b (HUB-29 ; D11, D12 ; ADR 0072) : flux de calendrier abonné par un agenda, sans session.
+  "calendrier/[jeton]/route.ts#GET": "adresse secrète d'un flux de calendrier : jeton vérifié haché sous RLS, compte toujours dans l'équipe, lecture seule, limitée en débit",
   "portail/actions.ts#closeLinkSessionAction": "ferme la session de lien du cookie, s'il y en a une",
   "signature-fictive/[token]/page.tsx#default": "jeton du signataire (fournisseur fictif, hors production)",
   "signature-fictive/[token]/actions.ts#fakeSignatureAction": "jeton du signataire (fournisseur fictif, hors production)",

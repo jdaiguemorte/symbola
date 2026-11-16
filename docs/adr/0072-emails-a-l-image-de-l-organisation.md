@@ -1,4 +1,4 @@
-# ADR 0072 — Les e-mails à l'image de l'organisation, des modèles à variables et le garde-fou d'envoi groupé
+# ADR 0072 — Les e-mails à l'image de l'organisation, des modèles à variables, le garde-fou d'envoi groupé et les flux de calendrier
 
 - Statut : accepté (lot 38, décisions D1 à D12 validées par Julien le 16/11/2026)
 - Date : 2026-11-16
@@ -6,9 +6,9 @@
   [0046](0046-documents-a-son-image.md) (couleur des documents),
   [0053](0053-acces-des-tiers-par-lien-personnel.md) (tiers par lien personnel),
   [0071](0071-programme-diffuse-et-releve-de-stockage.md) (programme diffusé par versions).
-- Exigences : MSG-01, MSG-02, HUB-18 (e-mails) de `docs/CAHIER_DES_CHARGES.md` ; spécification
-  `docs/lots/lot-38-emails.md` (partie 38a). La partie 38b (modèles de messages, flux de
-  calendrier) complétera cet ADR.
+- Exigences : MSG-01, MSG-02, HUB-18 (e-mails), HUB-21 (modèles de messages), HUB-29 (flux de
+  calendrier) de `docs/CAHIER_DES_CHARGES.md` ; spécification `docs/lots/lot-38-emails.md`
+  (parties 38a et 38b).
 
 ## Contexte
 
@@ -105,11 +105,60 @@ couleurs et la signature de l'organisation.
       un plafond atteint en cours d'envoi arrête l'envoi et la planner lit combien n'ont pas
       pu partir.
 
+### Les modèles de messages de la planner (HUB-21 ; D10, lot 38b)
+
+12. **Ses messages types** (« Réponse à une première demande », « Proposer un rendez-vous »…),
+    pour tous les évènements ou pour un type d'évènement, dans une langue :
+    `hub.message_templates` et `hub.message_template_versions`, sous RLS. Le type d'évènement est
+    un identifiant du module events, sans clé étrangère (avenant de l'ADR 0012).
+    - Chaque enregistrement d'un objet ou d'un texte changé fait une version ; une version ne se
+      modifie pas (le rôle de l'app n'a pas de droit `UPDATE` sur la table) ; restaurer une
+      version en fait une de plus avec son texte. Un modèle se duplique (version 1) et se
+      supprime avec ses versions.
+    - Les mêmes variables que les e-mails (`{{prénom}}` ou `{{first_name}}`…), sans variable
+      indispensable ; une variable inconnue, ou propre aux e-mails de service (le lien), est
+      refusée. Deux modèles de départ, en fichier de données traduisible, s'ajoutent d'un geste.
+13. **« Écrire au client »** sur la fiche propose les modèles du type de l'évènement d'abord, puis
+    ceux de tous les évènements (jamais ceux d'un autre type), en remplit les variables avec la
+    fiche, montre l'aperçu, les destinataires (les clients qui ont une adresse) et les valeurs
+    manquantes. Aucune variable vide : tant qu'il en manque, le message ne s'ouvre pas. Puis la
+    messagerie de la planner s'ouvre avec le message (lien `mailto:`), ou le texte se copie :
+    Symbola n'envoie rien ; la réponse arrive dans sa boîte. À plusieurs destinataires, le nombre
+    et la liste sont montrés avant le bouton « Ouvrir ma messagerie pour N personnes » (MSG-02) ;
+    l'envoi lui-même est le geste de la planner, dans sa messagerie, et non celui du serveur.
+
+### Les flux de calendrier (HUB-29 ; D11, D12, lot 38b)
+
+14. **Deux flux**, écrits par l'app en iCalendar (RFC 5545, sans dépendance : texte échappé,
+    lignes pliées à 75 octets, CRLF) :
+    - le flux d'une personne de l'équipe : les évènements datés de l'organisation (ni essai, ni
+      perdu ou annulé), en journée entière, intitulés « Type — prénoms des clients » (D12), avec
+      le lieu et le lien vers la fiche ;
+    - le flux d'un évènement (par personne) : son programme, séquence par séquence, sans note
+      interne. Les heures locales sont converties en instants UTC dans le fuseau de l'évènement
+      (heure d'été comprise) ; une séquence qui finit après minuit finit le lendemain. Écrire des
+      instants UTC évite d'embarquer des définitions de fuseau (`VTIMEZONE`) ; l'agenda les montre
+      à l'heure de celui qui le lit.
+15. **Une adresse secrète** : `/calendrier/<organisation>.<jeton>.ics`, jeton de 32 octets
+    aléatoires montré une fois ; `hub.calendar_feeds` n'en garde que l'empreinte (SHA-256).
+    L'organisation dans l'adresse permet de lire sous sa RLS, comme un lien personnel (ADR 0053).
+    Créer une adresse révoque la précédente ; retirer la révoque ; une adresse révoquée, inconnue,
+    mal formée, portée sur une autre organisation, ou celle d'une personne retirée de l'équipe ne
+    répond rien (404). Lecture seule, débit limité (par adresse IP et par organisation), sans
+    cache partagé ni indexation. Profil › Mon calendrier et l'onglet du programme de la fiche.
+16. **Ce que l'agenda reçoit** (D12) : les prénoms des clients, le type, la date et le lieu ; le
+    programme d'un évènement. Le registre RGPD le dit en en-tête : aucun champ nouveau, une copie
+    hors de Symbola que l'agenda garde ; retirer ou régénérer l'adresse arrête les mises à jour.
+    La synchronisation Google et Microsoft dans les deux sens reste en V1.
+
 ## Conséquences
 
 - Migrations 0141 (`events` : date et nombre d'envoi d'une version, droit `UPDATE` sur ces deux
   colonnes seulement) et 0142 (`hub` : `email_templates`), une par schéma (DAT-09), chacune avec
-  son annulation.
+  son annulation. Au 38b, 0143 (`hub` : modèles de messages et versions, adresses de calendrier ;
+  seules la révocation et la date de lecture d'une adresse se modifient), avec son annulation.
+- Les modèles de messages et leurs versions entrent dans l'export complet ; les adresses de
+  calendrier, secrètes et propres à chaque personne, n'y entrent pas.
 - Les modèles réécrits entrent dans l'export complet (`email_templates`, format v1) ; la date et
   le nombre d'envoi d'une version aussi. Le texte d'un modèle est celui de l'entreprise, pas une
   donnée d'un tiers : il n'entre pas dans le registre RGPD.

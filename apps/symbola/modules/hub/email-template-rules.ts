@@ -4,7 +4,7 @@
 // découpe le texte en paragraphes (un paragraphe fait du seul lien devient un bouton) et nomme
 // chaque variable employée sans valeur : un tel e-mail ne part pas.
 import { createHash } from "node:crypto";
-import type { EmailLocale, EmailRecipient, EmailTemplateKind, EmailTemplateText, EmailTemplateVariableView, EmailValues, EmailVariable, RecipientsReview } from "@symbola/contracts";
+import { MESSAGE_VARIABLES, type EmailLocale, type EmailRecipient, type EmailTemplateKind, type EmailTemplateText, type EmailTemplateVariableView, type EmailValues, type EmailVariable, type RecipientsReview } from "@symbola/contracts";
 
 export const EMAIL_SUBJECT_MAX = 200;
 export const EMAIL_BODY_MAX = 5000;
@@ -20,6 +20,7 @@ const TOKENS: Record<EmailVariable, Record<EmailLocale, string>> = {
   tasks: { fr: "tâches", en: "tasks" },
   quote_number: { fr: "numéro_devis", en: "quote_number" },
   version: { fr: "version", en: "version" },
+  place: { fr: "lieu", en: "place" },
 };
 
 const BY_TOKEN = new Map<string, EmailVariable>(
@@ -84,12 +85,10 @@ export function validateEmailTemplate(kind: EmailTemplateKind, text: EmailTempla
 export type EmailBlock = { kind: "paragraph"; text: string } | { kind: "button"; url: string };
 export type RenderedEmail = { subject: string; blocks: EmailBlock[]; text: string; missing: EmailVariable[] };
 
-// Au rendu : chaque variable employée doit avoir une valeur (MSG-01). Une variable étrangère à ce
-// modèle compte comme vide : l'e-mail ne part pas.
-export function renderEmailTemplate(kind: EmailTemplateKind, template: EmailTemplateText, values: EmailValues): RenderedEmail {
-  const allowed = new Set(EMAIL_TEMPLATE_RULES[kind].variables);
-  const missing: EmailVariable[] = [];
-  const fill = (text: string) =>
+// Remplace chaque variable permise par sa valeur ; une variable sans valeur, ou étrangère, reste
+// telle quelle et s'ajoute à « missing ».
+function filler(allowed: ReadonlySet<EmailVariable>, values: EmailValues, missing: EmailVariable[]) {
+  return (text: string) =>
     text.replace(TOKEN_PATTERN, (whole, token: string) => {
       const key = BY_TOKEN.get(token);
       const value = key && allowed.has(key) ? values[key]?.trim() : undefined;
@@ -100,6 +99,14 @@ export function renderEmailTemplate(kind: EmailTemplateKind, template: EmailTemp
       }
       return value;
     });
+}
+
+// Au rendu : chaque variable employée doit avoir une valeur (MSG-01). Une variable étrangère à ce
+// modèle compte comme vide : l'e-mail ne part pas.
+export function renderEmailTemplate(kind: EmailTemplateKind, template: EmailTemplateText, values: EmailValues): RenderedEmail {
+  const allowed = new Set(EMAIL_TEMPLATE_RULES[kind].variables);
+  const missing: EmailVariable[] = [];
+  const fill = filler(allowed, values, missing);
   const subject = fill(template.subject).replace(/\s+/g, " ").trim();
   const blocks: EmailBlock[] = template.body
     .replace(/\r\n/g, "\n")
@@ -116,6 +123,35 @@ export function renderEmailTemplate(kind: EmailTemplateKind, template: EmailTemp
     });
   const text = blocks.map((block) => (block.kind === "button" ? block.url : block.text)).join("\n\n");
   return { subject, blocks, text, missing };
+}
+
+// Lot 38b (HUB-21 ; D10) — les modèles de messages de la planner : les mêmes variables écrites en
+// français ou en anglais, sans variable indispensable ; le texte reste brut (il part de sa propre
+// messagerie). Aucune variable vide : « missing » nomme celles qui manquent.
+const MESSAGE_ALLOWED = new Set<EmailVariable>(MESSAGE_VARIABLES);
+
+export function messageTemplateVariables(locale: EmailLocale): EmailTemplateVariableView[] {
+  return MESSAGE_VARIABLES.map((key) => ({ key, token: `{{${TOKENS[key][locale]}}}`, required: false }));
+}
+
+export function validateMessageTemplate(text: EmailTemplateText): EmailTemplateProblems {
+  const unknown: string[] = [];
+  for (const token of [...tokensOf(text.subject), ...tokensOf(text.body)]) {
+    const key = BY_TOKEN.get(token);
+    if ((!key || !MESSAGE_ALLOWED.has(key)) && !unknown.includes(token)) unknown.push(token);
+  }
+  const tooLong: ("subject" | "body")[] = [];
+  if (text.subject.length > EMAIL_SUBJECT_MAX) tooLong.push("subject");
+  if (text.body.length > EMAIL_BODY_MAX) tooLong.push("body");
+  return { unknown, missingRequired: [], tooLong };
+}
+
+export type RenderedMessage = { subject: string; body: string; missing: EmailVariable[] };
+
+export function renderMessageTemplate(template: EmailTemplateText, values: EmailValues): RenderedMessage {
+  const missing: EmailVariable[] = [];
+  const fill = filler(MESSAGE_ALLOWED, values, missing);
+  return { subject: fill(template.subject).replace(/\s+/g, " ").trim(), body: fill(template.body.replace(/\r\n/g, "\n")).trim(), missing };
 }
 
 // MSG-02 — empreinte d'une liste de destinataires : adresses en minuscules, triées ; noms compris.

@@ -3495,3 +3495,11 @@
     @apply m-0;
   }
 }
+
+@layer components {
+  /* Lot 38b (HUB-21 ; D10) — le texte d'un message (versions d'un modèle, aperçu de « Écrire au
+     client ») garde ses retours à la ligne. */
+  .message-text {
+    @apply m-0 whitespace-pre-line break-words;
+  }
+}

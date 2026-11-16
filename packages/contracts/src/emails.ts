@@ -20,7 +20,8 @@ export type EmailLocale = (typeof EMAIL_LOCALES)[number];
 
 // Les variables, désignées par une clé stable ; chacune s'écrit en français ou en anglais dans un
 // modèle (« {{prénom}} », « {{first_name}} »).
-export const EMAIL_VARIABLES = ["first_name", "organization", "event", "event_date", "clients", "link", "valid_until", "tasks", "quote_number", "version"] as const;
+// Lot 38b : « place » (le lieu de réception) sert aux modèles de messages de la planner.
+export const EMAIL_VARIABLES = ["first_name", "organization", "event", "event_date", "clients", "link", "valid_until", "tasks", "quote_number", "version", "place"] as const;
 export type EmailVariable = (typeof EMAIL_VARIABLES)[number];
 export type EmailValues = Partial<Record<EmailVariable, string>>;
 
@@ -39,3 +40,23 @@ export type EmailTemplateVariableView = { key: EmailVariable; token: string; req
 // serveur que la liste confirmée est celle qu'il calcule au moment de l'envoi.
 export type EmailRecipient = { name: string; email: string };
 export type RecipientsReview = { count: number; recipients: EmailRecipient[]; digest: string };
+
+// Lot 38b (HUB-21 ; D10 ; ADR 0072) — modèles de messages de la planner : pour tous les évènements
+// ou pour un type (eventTypeId), dans une langue, versionnés. « Écrire au client » en remplit les
+// variables, puis ouvre sa messagerie (Symbola n'envoie rien).
+export const MESSAGE_VARIABLES = ["first_name", "clients", "event", "event_date", "place", "organization"] as const satisfies readonly EmailVariable[];
+
+export type MessageTemplateSummary = {
+  id: string;
+  name: string;
+  eventTypeId: string | null;
+  locale: EmailLocale;
+  // Numéro de la version en cours.
+  version: number;
+  updatedAt: string;
+};
+
+export type MessageTemplateVersionView = EmailTemplateText & { version: number; createdAt: string };
+
+// Le texte de la version en cours, et toutes les versions, la plus récente d'abord.
+export type MessageTemplateDetail = MessageTemplateSummary & EmailTemplateText & { versions: MessageTemplateVersionView[] };

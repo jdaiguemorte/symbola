@@ -1106,6 +1106,14 @@
     "emailTemplates": {
       "title": "Email templates",
       "body": "The emails Symbola sends on your behalf (links, reminders, signature requests, schedule) come from these templates, in French and English according to each person's language. Edit the subject and text with the variables offered: an unknown variable is refused, and the link cannot be missing. The preview shows the email with sample data; “Send me a test” sends it to your own address only. An email with a variable that has no value is not sent: Symbola tells you which one. “Back to the starter text” erases your version."
+    },
+    "messageTemplates": {
+      "title": "Message templates",
+      "body": "Your standard messages to clients (reply to a first enquiry, meeting suggestion…), for all events or for one type. On the record, “Write to the client” offers the event type's templates, fills in their variables from the record, shows the preview and recipients, then opens your mailbox: you review and send yourself. Each change makes a version: earlier ones can be read and restored."
+    },
+    "calendar": {
+      "title": "My calendar",
+      "body": "A secret address subscribes your calendar to your dated events, and another, from the record, to an event's schedule. Your calendar refreshes on its own. The address is shown only once; a new address replaces the old one, and removing an address stops it at once."
     }
   },
   "Aide": {
@@ -4612,7 +4620,8 @@
     "contractTemplates": "Contract templates",
     "export": "Export my data",
     "storage": "Storage",
-    "emailTemplates": "Email templates"
+    "emailTemplates": "Email templates",
+    "messageTemplates": "Message templates"
   },
   "Common": {
     "closePanel": "Close the panel",
@@ -4975,7 +4984,10 @@
       "events_event_document_links": "document share link",
       "events_program_versions": "shared version of the schedule",
       "hub_storage_snapshots": "storage reading",
-      "hub_email_templates": "email template"
+      "hub_email_templates": "email template",
+      "hub_message_templates": "message template",
+      "hub_message_template_versions": "message template version",
+      "hub_calendar_feeds": "calendar address"
     },
     "modules": {
       "events": "Events",
@@ -6208,5 +6220,111 @@
     "variableMissing": "The “{template}” email cannot be sent: a variable has no value ({tokens}). Complete the record, or fix the template in Settings, Email templates.",
     "todayBanner": "{count, plural, one {The automatic reminder of one event is not being sent} other {The automatic reminders of # events are not being sent}}: a variable of the “{template}” template has no value.",
     "todayBannerLink": "Fix the template"
+  },
+  "Calendar": {
+    "personFeed": "{organization} — events",
+    "eventFeed": "Schedule — {event}",
+    "responsible": "In charge: {name}",
+    "participants": "Participants: {names}",
+    "title": "My calendar",
+    "intro": "Subscribe your calendar (Google, Apple, Outlook…) to your events: it refreshes on its own. Each address is secret and personal: do not share it.",
+    "personTitle": "My events",
+    "personHint": "The business's dated events, as all-day events, with a link to their record. No trial, lost or cancelled event.",
+    "create": "Create my address",
+    "regenerate": "New address",
+    "regenerateHint": "A new address replaces the old one, which stops responding at once.",
+    "revoke": "Remove the address",
+    "active": "Address created on {date}, {used}.",
+    "lastUsed": "read by your calendar on {date}",
+    "neverUsed": "not read by a calendar yet",
+    "none": "No address yet.",
+    "shownOnce": "Copy it now into your calendar (“Subscribe to calendar” or “Add by URL”): it will not be shown again.",
+    "addressLabel": "Your calendar address",
+    "copy": "Copy the address",
+    "copied": "Address copied.",
+    "revoked": "Address removed: it no longer responds.",
+    "eventsTitle": "Followed schedules",
+    "eventsHint": "Add an event's schedule from its record (schedule tab).",
+    "eventsNone": "No followed schedule.",
+    "eventLine": "Schedule — {event}",
+    "revokeEvent": "Remove the schedule of {event}",
+    "programAdd": "Add the schedule to my calendar",
+    "programAddHint": "Each item, at the event's time, in your calendar; it follows the schedule's changes (without internal notes).",
+    "programFollowed": "This schedule is in your calendar (address created on {date}).",
+    "programRenew": "New schedule address",
+    "programRevoke": "Remove the schedule from my calendar",
+    "unavailable": "The calendar follows events: it needs the Events module."
+  },
+  "MessageTemplates": {
+    "title": "Message templates",
+    "subtitle": "Your standard messages to clients: “Write to the client”, on the record, fills them in and opens your mailbox.",
+    "empty": "No message template yet.",
+    "addStarters": "Add the starter templates",
+    "startersAdded": "{count, plural, =0 {The starter templates are already there.} one {One template added.} other {# templates added.}}",
+    "newTitle": "New template",
+    "name": "Template name",
+    "eventType": "Event type",
+    "allTypes": "All events",
+    "locale": "Message language",
+    "language": {
+      "fr": "French",
+      "en": "English"
+    },
+    "subject": "Subject",
+    "body": "Text",
+    "bodyHint": "A blank line separates two paragraphs. Variables are filled in from the event record; copy them as is, braces included.",
+    "variablesTitle": "Variables",
+    "variables": {
+      "first_name": "The first names of the message's recipients",
+      "clients": "The clients' first names",
+      "event": "The event, as told to the clients: “your wedding”",
+      "event_date": "The event date",
+      "place": "The reception venue",
+      "organization": "Your business name"
+    },
+    "create": "Create the template",
+    "save": "Save",
+    "saved": "Saved: version {version}.",
+    "unchanged": "Saved; the text did not change, the version stays {version}.",
+    "summary": "{type} · {language} · version {version}",
+    "edit": "Edit “{name}”",
+    "versionsTitle": "{count, plural, one {# version} other {# versions}}",
+    "versionLine": "Version {version}, on {date}",
+    "current": "current",
+    "restore": "Restore version {version}",
+    "restored": "Version restored: it becomes the current version.",
+    "duplicate": "Duplicate the template",
+    "copyName": "Copy of {name}",
+    "delete": "Delete the template",
+    "deleteTitle": "Delete “{name}”?",
+    "deleteBody": "The template and all its versions are deleted. Messages already written do not change.",
+    "back": "All message templates",
+    "errorEmpty": "The name, subject and text are required.",
+    "errorNameTooLong": "The name is longer than {max} characters.",
+    "errorUnknown": "Unknown variable: {tokens}.",
+    "errorSubjectTooLong": "The subject is longer than {max} characters.",
+    "errorBodyTooLong": "The text is longer than {max} characters.",
+    "unavailable": "Message templates are used on an event's record: they need the Events module."
+  },
+  "WriteToClient": {
+    "title": "Write to the client",
+    "template": "Template",
+    "noTemplate": "No message template for this event type.",
+    "createTemplates": "Create message templates",
+    "withoutTemplate": "Write without a template",
+    "recipients": "Recipients",
+    "noEmail": "{name} (no email address)",
+    "update": "Update the preview",
+    "previewTitle": "Preview",
+    "previewLabel": "Message preview",
+    "subject": "Subject: {subject}",
+    "missing": "These variables have no value: {tokens}. Complete the event record, or choose another template: a message never goes out with an empty variable.",
+    "guardTitle": "This message goes to {count} people",
+    "open": "{count, plural, one {Open my mailbox} other {Open my mailbox for # people}}",
+    "openHint": "Your mailbox opens with the message ready; you review and send it yourself. Symbola sends nothing.",
+    "copy": "Copy the text",
+    "copied": "Text copied.",
+    "noRecipient": "Choose at least one recipient with an email address.",
+    "back": "Back to the record"
   }
 }

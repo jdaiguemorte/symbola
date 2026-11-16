@@ -392,3 +392,63 @@ Chaque migration ne touche que le schéma de son module (DAT-09) et a son annula
 - Rejeu SC-02 étapes 4 et 5 et SC-08 étape 6 (`docs/recette/SC-02.md`, `SC-08.md`) : sans blocage.
   Un défaut trouvé et corrigé pendant la vérification : après « Revenir au texte de départ », le
   formulaire gardait l'ancien texte et l'ancien aperçu.
+
+## Bilan du lot 38b (16/11/2026)
+
+### Fait
+
+- **Les modèles de messages de la planner** (HUB-21, D10) : Paramètres › Modèles de messages.
+  - Pour tous les évènements ou pour un type, dans une langue ; nom, objet, texte, variables
+    (`{{prénom}}`, `{{évènement}}`, `{{date_évènement}}`, `{{lieu}}`, `{{clients}}`,
+    `{{organisation}}`, ou leur forme anglaise) ; une variable inconnue est refusée.
+  - Chaque enregistrement d'un texte changé fait une version ; les versions se relisent et se
+    restaurent (une restauration fait une version de plus) ; un modèle se duplique et se supprime
+    (confirmé). Deux modèles de départ, en fichier de données, s'ajoutent d'un geste.
+- **« Écrire au client »** sur la fiche : le modèle du type de l'évènement d'abord, puis ceux de
+  tous les évènements ; les variables remplies avec la fiche ; l'aperçu ; les destinataires (les
+  clients qui ont une adresse), avec le nombre et la liste à plusieurs (MSG-02) ; les valeurs
+  manquantes, qui empêchent d'ouvrir le message. Puis la messagerie de la planner s'ouvre (lien
+  `mailto:`), ou le texte se copie : Symbola n'envoie rien. Sans modèle, « Écrire sans modèle ».
+- **Les flux de calendrier** (HUB-29, D11, D12) :
+  - le flux d'une personne : les évènements datés de l'organisation (ni essai, ni perdu ou
+    annulé), en journée entière, « Type — prénoms des clients », avec le lieu et le lien vers la
+    fiche ; le flux d'un évènement : son programme, aux heures de son fuseau, sans note interne ;
+  - écrits par l'app (RFC 5545, sans dépendance), lus par l'agenda à une adresse secrète montrée
+    une fois, régénérable et retirable, en lecture seule et à débit limité ; une adresse
+    régénérée, retirée ou d'une personne retirée de l'équipe ne répond plus ;
+  - Profil › Mon calendrier ; « Ajouter le programme à mon agenda » sur l'onglet du programme.
+- **Migration 0143** (`hub`), avec son annulation et ses tests (annulation, isolation, accès
+  Admin) ; elle passe sans arrêter l'app. Export v1 : modèles de messages et versions ; les
+  adresses de calendrier n'y sont pas. Registre RGPD : aucun champ nouveau, l'en-tête dit ce que
+  l'agenda reçoit (D12). ADR 0072 complété, runbook, aide, grille d'écart (HUB-29 conforme,
+  HUB-21 partiel : rétroplanning, déroulé et budget sans versions, questionnaires au lot 45).
+- **Le lien de connexion** devient un bouton, comme les autres e-mails de Symbola (38a, suite).
+
+### Écarts et points ouverts
+
+- **Synchronisation Google et Microsoft** dans les deux sens (HUB-29, V1).
+- **HUB-21** reste partiel : rétroplanning, déroulé et budget sans duplication ni versions ;
+  questionnaires (lot 45).
+- **Capture du centre d'aide** des modèles de messages : au prochain passage du script.
+- **Test instable connu** (antérieur au lot) : `app/devis/quote-preview.integration.test.ts`
+  compare deux PDF à la seconde près ; il a échoué une fois sur la date de création, puis passé.
+
+### Vérifications (en local)
+
+- Lint, typecheck, frontières de modules : verts. Registre RGPD à jour.
+- Unitaires : app 529 (dont 4 pour l'écriture ICS et 3 pour les règles des messages).
+- Intégration :
+  - app 709, dont 7 pour les modèles de messages (versions, restauration, duplication, type
+    d'abord, variables, modèles de départ, isolation) et 5 pour les flux de calendrier (contenu,
+    fuseau, adresse régénérée ou retirée, personne retirée de l'équipe, isolation) ; le test
+    instable ci-dessus a échoué une fois, puis passé ;
+  - `@symbola/db` 188 (annulation de 0143, isolation des modèles, des versions et des adresses,
+    version et jeton non modifiables, accès Admin) ; `@symbola/auth` 21 ; `@symbola/mail` 3.
+- Semgrep (`p/default`) et Gitleaks sur les fichiers du lot : rien.
+- Parcours e2e, base rechargée : 306 réussis, 3 ignorés (les mêmes qu'avant) ; `hub-07` suit le
+  nouveau chemin de « Écrire au client », `lot-13-parametres` a échoué une fois à 375 px puis
+  passé deux fois. Nouveau parcours `hub-21-29-messages-calendrier`, en taille ordinateur et en
+  375 px, avec axe-core.
+- Rejeu SC-02 étape 2 (`docs/recette/SC-02.md`) : sans blocage. Un défaut trouvé et corrigé
+  pendant la vérification : après un enregistrement, la page du modèle remontait le formulaire et
+  le message « Enregistré » disparaissait.

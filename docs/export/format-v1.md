@@ -87,3 +87,7 @@ La liste table par table, avec sa raison, est dans l'index généré. Un test
   modèle absent vaut le texte de départ de Symbola) s'ajoute, ainsi que deux champs facultatifs de
   `events/program_versions` (`notifiedAt`, `notifiedCount` : envoi de la version par e-mail) ; la v1
   tient.
+- **Lot 38b** : les entités `hub/message_templates` (modèles de messages de la planner : nom,
+  langue, type d'évènement, version en cours) et `hub/message_template_versions` (chaque version de
+  leur texte) s'ajoutent ; les adresses de calendrier (`hub/calendar_feeds`), secrètes et propres à
+  chaque personne, ne sont pas exportées. La v1 tient.
