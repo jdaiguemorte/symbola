@@ -14,7 +14,8 @@
     "accessRefused": "Cet accès n'est plus ouvert. Rapprochez-vous de la titulaire de votre organisation.",
     "failed": "La connexion n'a pas abouti. Recommencez.",
     "magicLinkSubject": "Votre lien de connexion à Symbola",
-    "magicLinkBody": "Bonjour,\n\nVoici votre lien de connexion à Symbola. Il est valable quinze minutes et ne sert qu'une fois :\n{link}\n\nSi vous n'avez rien demandé, ignorez ce message : personne ne peut se connecter sans ce lien.\n\nL'équipe Symbola"
+    "magicLinkBody": "Bonjour,\n\nVoici votre lien de connexion à Symbola. Il est valable quinze minutes et ne sert qu'une fois :\n\n{link}\n\nSi vous n'avez rien demandé, ignorez ce message : personne ne peut se connecter sans ce lien.",
+    "magicLinkButton": "Me connecter"
   },
   "Signup": {
     "title": "Créer votre espace Symbola",

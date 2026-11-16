@@ -73,7 +73,8 @@ export async function sendMagicLink(email: string, locale: "fr" | "en"): Promise
     const sealed = sealMagicLink({ email: issued.email, token: issued.token, expiresAt: Date.now() + MAGIC_LINK_TTL_SECONDS * 1000 }, readMfaEncryptionKey());
     const t = await getTranslations({ locale, namespace: "Login" });
     // Lot 38a (D3) : la même mise en page que les autres e-mails de Symbola.
-    await sendSymbolaEmail({ to: email, locale, subject: t("magicLinkSubject"), body: t("magicLinkBody", { link: `${appPublicUrl}/auth/lien/${sealed}` }) });
+    const link = `${appPublicUrl}/auth/lien/${sealed}`;
+    await sendSymbolaEmail({ to: email, locale, subject: t("magicLinkSubject"), body: t("magicLinkBody", { link }), button: { label: t("magicLinkButton"), url: link } });
   } catch (error) {
     console.error("lien de connexion : envoi impossible", error instanceof Error ? error.name : "erreur");
   }

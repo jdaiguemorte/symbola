@@ -14,7 +14,8 @@
     "accessRefused": "This access is no longer open. Please contact your organization's owner.",
     "failed": "Sign-in did not complete. Please try again.",
     "magicLinkSubject": "Your Symbola sign-in link",
-    "magicLinkBody": "Hello,\n\nHere is your Symbola sign-in link. It is valid for fifteen minutes and works only once:\n{link}\n\nIf you did not ask for it, ignore this message: nobody can sign in without this link.\n\nThe Symbola team"
+    "magicLinkBody": "Hello,\n\nHere is your Symbola sign-in link. It is valid for fifteen minutes and works only once:\n\n{link}\n\nIf you did not ask for it, ignore this message: nobody can sign in without this link.",
+    "magicLinkButton": "Sign in"
   },
   "Signup": {
     "title": "Create your Symbola workspace",
