@@ -111,5 +111,6 @@ export async function resetEmailTemplateAction(formData: FormData): Promise<void
   const target = await readTarget(formData, auth.user.organizationId);
   await resetEmailTemplate(auth.user.organizationId, target.kind, target.locale);
   revalidatePath("/parametres/emails", "layout");
-  redirect(`/parametres/emails/${target.kind}?langue=${target.locale}&retabli=1`);
+  // La marque change à chaque retour : la page remonte le formulaire avec le texte de départ.
+  redirect(`/parametres/emails/${target.kind}?langue=${target.locale}&retabli=${Date.now()}`);
 }

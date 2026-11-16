@@ -113,8 +113,10 @@ test("MSG-01 / HUB-18 — Paramètres › Modèles d'e-mails : variable inconnue
   await page.getByRole("button", { name: "Revenir au texte de départ" }).click();
   const dialog = page.getByRole("dialog", { name: "Revenir au texte de départ ?" });
   await dialog.getByRole("button", { name: "Revenir au texte de départ" }).click();
-  await expect(page.getByRole("status")).toContainText("Texte de départ rétabli.");
+  await expect(page.getByRole("status").filter({ hasText: "Texte de départ rétabli." })).toBeVisible();
   await expect(preview).toContainText("Objet : Votre espace pour suivre votre mariage");
+  await expect(form.getByLabel("Objet")).toHaveValue("Votre espace pour suivre {{évènement}}");
+  await expect(page.getByRole("button", { name: "Revenir au texte de départ" })).toHaveCount(0);
 
   // L'autre langue : le modèle anglais, avec son aperçu.
   await page.getByRole("link", { name: "Tous les modèles d'e-mails" }).click();

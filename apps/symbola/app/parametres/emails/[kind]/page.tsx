@@ -54,8 +54,9 @@ export default async function EmailTemplatePage({ params, searchParams }: { para
         subtitle={t(`kinds.${kind}.description`)}
       />
       <ScreenHelp title={tHelp("emailTemplates.title")} body={tHelp("emailTemplates.body")} />
-      {query.retabli === "1" ? <p role="status">{t("resetDone")}</p> : null}
+      {query.retabli ? <p role="status">{t("resetDone")}</p> : null}
       <EmailTemplateForm
+        key={query.retabli ?? "modele"}
         kind={kind}
         locale={locale}
         template={{ subject: template.subject, body: template.body }}
