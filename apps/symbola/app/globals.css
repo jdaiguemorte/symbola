@@ -3443,3 +3443,55 @@
     @apply text-ink-muted line-through;
   }
 }
+
+@layer components {
+  /* Lot 38a (MSG-01, HUB-18 ; D4, D7) — l'écran d'un modèle d'e-mail : le formulaire, puis l'aperçu
+     (côte à côte sur grand écran). L'aperçu reprend la mise en page de l'e-mail ; sa couleur est
+     celle des documents de l'organisation, posée par le script (ADR 0046). */
+  .email-template-editor {
+    @apply grid grid-cols-1 items-start gap-8 xl:grid-cols-2;
+  }
+  .mail-preview {
+    @apply rounded-lg bg-ground p-4;
+  }
+  .mail-preview > p {
+    @apply m-0 mb-1 break-words;
+  }
+  .mail-preview-subject {
+    @apply font-semibold;
+  }
+  .mail-preview-card {
+    @apply mt-3 max-w-[600px] rounded-lg bg-surface;
+    border-top: 4px solid var(--mail-accent, var(--color-ink));
+  }
+  .mail-preview-head {
+    @apply px-6 pb-2 pt-6;
+  }
+  .mail-preview-logo {
+    @apply block max-h-14 max-w-[220px];
+  }
+  .mail-preview-name {
+    @apply m-0 text-title font-semibold;
+    color: var(--mail-accent, var(--color-ink));
+  }
+  .mail-preview-body {
+    @apply px-6 py-2;
+  }
+  .mail-preview-body p {
+    @apply m-0 mb-4 whitespace-pre-line break-words;
+  }
+  .mail-preview-button {
+    @apply mb-2 mt-2 inline-block rounded-md px-6 py-3 font-semibold;
+    background: var(--mail-accent, var(--color-ink));
+    color: var(--mail-on-accent, var(--color-surface));
+  }
+  .mail-preview-body .mail-preview-url {
+    @apply break-all text-label text-ink-muted;
+  }
+  .mail-preview-foot {
+    @apply border-t border-line px-6 pb-6 pt-4 text-label;
+  }
+  .mail-preview-foot p {
+    @apply m-0;
+  }
+}
