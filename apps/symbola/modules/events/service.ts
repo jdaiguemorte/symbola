@@ -8,7 +8,7 @@ import { canSetStatus, eventPhase } from "./lifecycle";
 export { canPostpone, canSetStatus, closingDue, eventPhase, FINISHED_STATUSES, FIRM_STATUSES, IN_PROGRESS_STATUSES, isInProgress, MANUAL_STATUSES, TENTATIVE_STATUSES, TIMELINE_PHASES } from "./lifecycle";
 import type { EventStatus as LifecycleStatus } from "@symbola/contracts";
 import { listTeam } from "@symbola/auth";
-import { SYSTEM_ACTOR, withActor } from "@symbola/db/actor";
+import { includingDeleted, SYSTEM_ACTOR, withActor } from "@symbola/db/actor";
 import { appDatabase } from "@symbola/db/client";
 import { parseEnv } from "@symbola/env";
 import { MailQuotaExceededError, reserveOrganizationMail } from "@symbola/mail";
@@ -102,6 +102,8 @@ import {
   updateEventIdentityRow,
   updateWantedBudgetRow,
   updateVenueRow,
+  restoreEventTaskRow,
+  restoreProgramItemRow,
 } from "./repository";
 import {
   addStarterEventTypes,
@@ -163,7 +165,7 @@ import { recordAudit } from "@symbola/db/audit";
 import { resolveClientContacts } from "./clients";
 import { assertOrganizationEmailReady, assertRecipientsConfirmed, ContactEmailTakenError, ContactInvalidError, ContactNotFoundError, EmailVariableMissingError, getUserContact, sendOrganizationEmail, sendSymbolaEmail, updateContact } from "@/modules/hub/service";
 import { createTranslator } from "next-intl";
-import type { EmailTemplateKind, EmailValues } from "@symbola/contracts";
+import type { EmailTemplateKind, EmailValues, TrashedObject } from "@symbola/contracts";
 import frMessages from "@symbola/i18n/messages/fr.json";
 import enMessages from "@symbola/i18n/messages/en.json";
 import { answerDecisionRow, findDecisionRow, findDecisionRows, insertDecisionRow, replacementsOf, withdrawDecisionRow, type EventDecisionRow } from "./decisions-repository";
@@ -171,9 +173,10 @@ import { findPendingDecisions, findUncontractedVendors, insertVendorReminder } f
 import { VendorCandidateNotFoundError as CandidateNotFoundError } from "./vendor-candidates";
 import { answerProblem, DECISION_NOTE_MAX, decisionOpenTo, programChangedSince } from "./decisions";
 import { hashLinkCode, LINK_CODE_TTL_MS, LINK_CODES_PER_HOUR, linkCodeExpiresAt, maskEmail, newLinkCode, normalizeLinkCode } from "./link-otp";
-import { addPlace, listPlaces, makeReceptionPlace, removePlace, updatePlace } from "./places";
+import { addPlace, listPlaces, makeReceptionPlace, removePlace, restorePlace, updatePlace } from "./places";
 import { attachFile, getAttachmentFile, listAttachments, listEventAttachments, removeAttachment } from "./task-attachments";
-import { addComment, listComments, removeComment } from "./task-comments";
+import { addComment, listComments, removeComment, restoreComment } from "./task-comments";
+import { listTrashedEventRows, restoreDocumentRow, restoreEventRow, restoreProgramTemplateRow, restoreTaskTemplateRow, trashEventRow } from "./trash";
 import { createStorageClient, deletePrivateObject } from "@symbola/files";
 import {
   addCandidate,
@@ -3005,4 +3008,74 @@ export async function listEventsOfContact(organizationId: string, contactId: str
   return (await findEvents(organizationId, {}))
     .filter((row) => ids.has(row.event.id) && !row.event.isDemo)
     .map((row) => toEventSummary(row.event, row.clients));
+}
+
+// —— Lot 39a (DAT-03, HUB-17, UX-07 ; ADR 0073) — corbeille du module ———————————————————————————
+
+export {
+  isContactUsedByAnEvent,
+  isEventObjectTrashed,
+  listTrashedEventIdsBefore,
+  purgeEventElements,
+  purgeTrashedEventObjects,
+  purgeTrashedEvents,
+  type EventTrashKind,
+} from "./trash";
+
+// L'évènement va à la corbeille à la date donnée (lib/trash.ts vérifie d'abord qu'il ne porte
+// aucune pièce à conserver, et fait suivre ses lignes de budget et de devis).
+export async function trashEvent(organizationId: string, eventId: string, at: Date): Promise<boolean> {
+  return trashEventRow(organizationId, eventId, at);
+}
+
+export async function restoreEvent(organizationId: string, eventId: string): Promise<Date | null> {
+  return restoreEventRow(organizationId, eventId);
+}
+
+export async function restoreEventTask(organizationId: string, taskId: string): Promise<boolean> {
+  return restoreEventTaskRow(organizationId, taskId);
+}
+
+export async function restoreProgramItem(organizationId: string, itemId: string): Promise<boolean> {
+  return restoreProgramItemRow(organizationId, itemId);
+}
+
+export async function restoreEventPlace(organizationId: string, placeId: string): Promise<boolean> {
+  return restorePlace(organizationId, placeId);
+}
+
+export async function restoreTaskComment(input: { organizationId: string; commentId: string; authorUserId: string }): Promise<boolean> {
+  return restoreComment(input);
+}
+
+export async function restoreEventDocument(organizationId: string, documentId: string): Promise<boolean> {
+  return restoreDocumentRow(organizationId, documentId);
+}
+
+export async function restoreTaskTemplate(organizationId: string, templateId: string): Promise<boolean> {
+  return restoreTaskTemplateRow(organizationId, templateId);
+}
+
+export async function restoreProgramTemplate(organizationId: string, templateId: string): Promise<boolean> {
+  return restoreProgramTemplateRow(organizationId, templateId);
+}
+
+// Les objets du module à la corbeille ; un évènement est nommé par les prénoms de ses clients.
+export async function listTrashedEventObjects(organizationId: string): Promise<TrashedObject[]> {
+  const rows = await listTrashedEventRows(organizationId);
+  return includingDeleted(() =>
+    Promise.all(
+      rows.map(async (row) => {
+        const event = row.kind === "event" ? await getEvent(organizationId, row.id) : null;
+        const label = row.kind === "event" ? (event ? eventNames(event.clients) : "") : (row.label ?? "");
+        return { kind: row.kind, id: row.id, label, eventId: row.eventId, deletedAt: row.deletedAt, deletedBy: row.deletedBy };
+      }),
+    ),
+  );
+}
+
+// Le libellé d'un évènement de la corbeille (bandeau « Annuler », confirmations).
+export async function getTrashedEventLabel(organizationId: string, eventId: string): Promise<string | null> {
+  const event = await includingDeleted(() => getEvent(organizationId, eventId));
+  return event ? eventNames(event.clients) : null;
 }

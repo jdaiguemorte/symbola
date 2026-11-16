@@ -1114,6 +1114,10 @@
     "calendar": {
       "title": "Mon calendrier",
       "body": "Une adresse secrète abonne votre agenda à vos évènements datés, et une autre, depuis la fiche, au programme d'un évènement. Votre agenda les relit tout seul. L'adresse ne s'affiche qu'une fois ; une nouvelle adresse remplace l'ancienne, et retirer une adresse l'arrête aussitôt."
+    },
+    "trash": {
+      "title": "Corbeille",
+      "body": "Ce que vous supprimez reste ici 30 jours : un évènement avec tout son contenu, un contact, un document, un modèle. « Restaurer » le remet tel qu'il était. Passé 30 jours, il est effacé pour de bon, fichiers compris ; seule la titulaire du compte peut l'effacer plus tôt. Les éléments d'une fiche (tâche, ligne, séquence, note…) ne passent pas par ici : ils s'annulent pendant dix secondes après leur suppression."
     }
   },
   "Aide": {
@@ -4621,7 +4625,8 @@
     "export": "Exporter mes données",
     "storage": "Stockage",
     "emailTemplates": "Modèles d'e-mails",
-    "messageTemplates": "Modèles de messages"
+    "messageTemplates": "Modèles de messages",
+    "trash": "Corbeille"
   },
   "Common": {
     "closePanel": "Fermer le panneau",
@@ -6326,5 +6331,64 @@
     "copied": "Texte copié.",
     "noRecipient": "Choisissez au moins un destinataire qui a une adresse e-mail.",
     "back": "Retour à la fiche"
+  },
+  "Trash": {
+    "title": "Corbeille",
+    "subtitle": "Ce qui a été supprimé depuis moins de 30 jours, prêt à revenir.",
+    "empty": "La corbeille est vide.",
+    "unnamed": "Sans nom",
+    "kinds": {
+      "event": "Évènement",
+      "contact": "Contact",
+      "document": "Document",
+      "taskTemplate": "Modèle de rétroplanning",
+      "programTemplate": "Modèle de programme",
+      "quoteTemplate": "Modèle de devis",
+      "contractTemplate": "Modèle de contrat",
+      "messageTemplate": "Modèle de message"
+    },
+    "deletedBy": "Supprimé le {date} par {author}",
+    "deletedOn": "Supprimé le {date}",
+    "purgeOn": "effacé pour de bon le {date}",
+    "restore": "Restaurer",
+    "restoreNamed": "Restaurer {name}",
+    "deleteForGood": "Supprimer définitivement",
+    "deleteForGoodNamed": "Supprimer définitivement {name}",
+    "deleteForGoodTitle": "Supprimer définitivement {kind} « {name} » ?",
+    "deleteForGoodBody": "Il sera effacé tout de suite, fichiers compris, et ne pourra plus revenir.",
+    "outcome": {
+      "rendu": "C'est restauré, tel que c'était.",
+      "conflit": "Un autre contact porte déjà cette adresse e-mail : modifiez-la ou supprimez ce doublon, puis restaurez.",
+      "introuvable": "Ce n'est plus dans la corbeille : déjà restauré ou effacé.",
+      "efface": "C'est effacé pour de bon.",
+      "reserve": "Seule la titulaire du compte peut supprimer définitivement."
+    },
+    "deleteEvent": "Supprimer l'évènement",
+    "deleteEventHint": "L'évènement va à la corbeille avec tout son contenu ; il se restaure pendant 30 jours.",
+    "eventRefused": "Cet évènement porte des pièces à conserver (devis signé, signature en cours, facture, reçu d'arrhes ou encaissement) : il ne se supprime pas. Annulez-le plutôt, depuis son statut.",
+    "deleteContact": "Supprimer le contact",
+    "contactRefused": "Ce contact est client d'un évènement, ou a un lien personnel : il ne se supprime pas tant que l'évènement s'appuie sur lui.",
+    "undo": {
+      "action": "Annuler",
+      "restored": "C'est rétabli.",
+      "gone": "Ce n'est plus possible : c'est déjà effacé.",
+      "conflict": "Un autre contact porte déjà cette adresse e-mail : le contact reste dans la corbeille.",
+      "seeTrash": "Voir la corbeille",
+      "task": "Tâche supprimée.",
+      "programItem": "Séquence supprimée.",
+      "place": "Lieu retiré.",
+      "taskComment": "Commentaire retiré.",
+      "contactNote": "Note retirée.",
+      "budgetLine": "Ligne de budget retirée.",
+      "quoteLine": "Ligne de devis retirée.",
+      "event": "Évènement mis à la corbeille.",
+      "contact": "Contact mis à la corbeille.",
+      "document": "Document mis à la corbeille.",
+      "taskTemplate": "Modèle mis à la corbeille.",
+      "programTemplate": "Modèle mis à la corbeille.",
+      "quoteTemplate": "Modèle mis à la corbeille.",
+      "contractTemplate": "Modèle mis à la corbeille.",
+      "messageTemplate": "Modèle mis à la corbeille."
+    }
   }
 }

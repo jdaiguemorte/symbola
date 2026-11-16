@@ -12,7 +12,7 @@ import { requirePlanner } from "@/lib/guards";
 import { listEventDocuments, listEventsOfContact } from "@/modules/events/service";
 import { getContact, isModuleEnabled, listContactGroups, listContactMembers, listContactNotes } from "@/modules/hub/service";
 import { listEventQuotes, listQuoteInvoices } from "@/modules/quotes/service";
-import { removeContactMemberAction, removeContactNoteAction } from "../actions";
+import { deleteContactAction, removeContactMemberAction, removeContactNoteAction } from "../actions";
 import { ContactForm, MemberForm, NoteForm } from "../contact-forms";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -23,7 +23,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 // notes. Messages et rendez-vous viendront avec leurs modules. Un identifiant inconnu, d'essai ou
 // d'une autre organisation répond comme une page absente (SEC-13). Lot 36b (D2) : un foyer ou une
 // entreprise montre ses membres ; une personne, les foyers et entreprises dont elle fait partie.
-export default async function ContactPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ContactPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ suppression?: string }> }) {
   const auth = await requirePlanner();
   const { id } = await params;
   if (!UUID.test(id)) notFound();
@@ -35,6 +35,8 @@ export default async function ContactPage({ params }: { params: Promise<{ id: st
   const tEvents = await getTranslations("Events");
   const tQuotes = await getTranslations("Quotes");
   const tHelp = await getTranslations("Help");
+  const tTrash = await getTranslations("Trash");
+  const deletionRefused = (await searchParams).suppression === "refusee";
   const locale = (await getLocale()) as Locale;
   const db = appDatabase();
   const isGroup = contact.kind !== "person";
@@ -210,6 +212,17 @@ export default async function ContactPage({ params }: { params: Promise<{ id: st
           </ul>
         )}
         <NoteForm contactId={contact.id} />
+      </section>
+      {/* Lot 39a (HUB-17 ; ADR 0073) : le contact va à la corbeille ; refusé s'il est client d'un évènement. */}
+      <section className="card" aria-labelledby="delete-contact-title">
+        <h2 id="delete-contact-title">{tTrash("deleteContact")}</h2>
+        {deletionRefused ? <p role="alert">{tTrash("contactRefused")}</p> : null}
+        <form action={deleteContactAction}>
+          <input type="hidden" name="id" value={contact.id} />
+          <button type="submit" className="button-ghost">
+            {tTrash("deleteContact")}
+          </button>
+        </form>
       </section>
     </main>
   );

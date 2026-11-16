@@ -1,6 +1,7 @@
 "use server";
 
 // PRD-EVT-04 — actions du rétroplanning et de la date sur la fiche d'un événement.
+import { offerUndo } from "@/lib/undo";
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import {
@@ -196,6 +197,7 @@ export async function removeEventTaskAction(formData: FormData): Promise<void> {
   const taskId = String(formData.get("taskId") ?? "");
   if (!isValidId(eventId) || !isValidId(taskId)) return;
   await removeEventTask(access.organizationId, taskId);
+  await offerUndo({ kind: "task", id: taskId });
   revalidatePath(`/events/${eventId}`);
 }
 

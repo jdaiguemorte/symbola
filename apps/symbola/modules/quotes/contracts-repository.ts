@@ -3,7 +3,8 @@
 // (figés, versionnés), aux actes des signataires (commande, exécution anticipée), aux dossiers de
 // preuve et aux factures d'acompte à émettre d'elles-mêmes. Jamais importé hors de
 // modules/quotes/ (ADR 0011).
-import { and, asc, desc, eq, inArray, lte, ne, sql as raw } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull, lte, ne, sql as raw } from "drizzle-orm";
+import { inTrash, markDeleted } from "@symbola/db/soft-delete";
 import { appDatabase } from "@symbola/db/client";
 import { appendAudit } from "@symbola/db/audit";
 import {
@@ -112,11 +113,12 @@ export async function insertTemplateAcceptance(organizationId: string, values: {
   await inOrganization(organizationId, (tx) => tx.insert(contractTemplateAcceptances).values({ organizationId, ...values }).onConflictDoNothing());
 }
 
+// Lot 39a (HUB-17 ; ADR 0073) : le modèle va à la corbeille ; la purge l'efface avec ses clauses.
 export async function deleteContractTemplateRow(organizationId: string, templateId: string): Promise<boolean> {
-  return inOrganization(organizationId, async (tx) => {
-    const deleted = await tx.delete(contractTemplates).where(eq(contractTemplates.id, templateId)).returning({ id: contractTemplates.id });
-    return deleted.length > 0;
-  });
+  const deleted = await inTrash(organizationId, (tx) =>
+    tx.update(contractTemplates).set(markDeleted()).where(and(eq(contractTemplates.id, templateId), isNull(contractTemplates.deletedAt))).returning({ id: contractTemplates.id }),
+  );
+  return deleted.length > 0;
 }
 
 export async function insertContractClause(organizationId: string, templateId: string, clause: ClauseData): Promise<boolean> {

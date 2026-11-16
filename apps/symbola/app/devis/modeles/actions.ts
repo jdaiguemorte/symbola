@@ -2,6 +2,7 @@
 
 // Lot 31a (FAC-01, HUB-21, HUB-26 ; décision D3) — modèles de devis : renommer, changer le
 // type d'événement, dupliquer, supprimer, ajouter le modèle de départ.
+import { offerUndo } from "@/lib/undo";
 import { revalidatePath } from "next/cache";
 import { getLocale, getTranslations } from "next-intl/server";
 import { addStarterQuoteTemplates, duplicateQuoteTemplate, QuoteTemplateNotFoundError, removeQuoteTemplate, renameQuoteTemplate } from "@/modules/quotes/service";
@@ -45,6 +46,7 @@ export async function duplicateTemplateAction(_prev: TemplateFormState, formData
 export async function removeTemplateAction(formData: FormData): Promise<void> {
   await run(formData, async (organizationId, templateId) => {
     await removeQuoteTemplate(organizationId, templateId);
+    await offerUndo({ kind: "quoteTemplate", id: templateId });
   });
 }
 

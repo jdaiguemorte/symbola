@@ -6,7 +6,8 @@
 // Lot 37a (DOC-01, DOC-04, POR-10 ; D3, D4, D6, D7 ; ADR 0070) : dossiers (un niveau), versions
 // (une nouvelle version garde les précédentes ; la dernière est recopiée sur le document), partage
 // avec les clients et les prestataires (rien par défaut), liens de partage à durée limitée.
-import { and, asc, desc, eq, inArray, max, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull, max, sql } from "drizzle-orm";
+import { inTrash, markDeleted } from "@symbola/db/soft-delete";
 import { appDatabase } from "@symbola/db/client";
 import {
   eventActivities,
@@ -262,20 +263,29 @@ export async function setDocumentSharing(organizationId: string, documentId: str
   if (updated.length === 0) throw new EventDocumentNotFoundError();
 }
 
-// La ligne et son choix pour le jour J d'abord, les fichiers de toutes ses versions ensuite
-// (supprimer un fichier absent ne fait rien).
+// Lot 39a (HUB-17, DAT-03 ; ADR 0073) : le document va à la corbeille avec ses versions, ses liens de
+// partage et son choix pour le jour J (cachés avec lui) ; la purge efface lignes et fichiers.
 export async function removeDocument(organizationId: string, documentId: string): Promise<void> {
   if (!UUID.test(documentId)) throw new EventDocumentNotFoundError();
-  const fileKeys = await inOrganization(organizationId, async (tx) => {
-    const versions = await tx.select({ key: eventDocumentVersions.fileKey }).from(eventDocumentVersions).where(eq(eventDocumentVersions.documentId, documentId));
-    const [row] = await tx.delete(eventDocuments).where(eq(eventDocuments.id, documentId)).returning();
-    if (!row) return null;
-    await tx.delete(eventDayDocuments).where(and(eq(eventDayDocuments.source, "event_document"), eq(eventDayDocuments.sourceId, documentId)));
-    return [...new Set([row.fileKey, ...versions.map((version) => version.key)])];
+  const rows = await inTrash(organizationId, (tx) =>
+    tx.update(eventDocuments).set(markDeleted()).where(and(eq(eventDocuments.id, documentId), isNull(eventDocuments.deletedAt))).returning({ id: eventDocuments.id }),
+  );
+  if (rows.length === 0) throw new EventDocumentNotFoundError();
+}
+
+// Purge réelle (corbeille échue, suppression définitive, effacement RGPD) : la ligne et son choix pour
+// le jour J d'abord, les fichiers de toutes ses versions ensuite (supprimer un fichier absent ne fait rien).
+export async function purgeDocuments(organizationId: string, documentIds: string[]): Promise<number> {
+  if (documentIds.length === 0) return 0;
+  const fileKeys = await inTrash(organizationId, async (tx) => {
+    const versions = await tx.select({ key: eventDocumentVersions.fileKey }).from(eventDocumentVersions).where(inArray(eventDocumentVersions.documentId, documentIds));
+    const deleted = await tx.delete(eventDocuments).where(inArray(eventDocuments.id, documentIds)).returning({ fileKey: eventDocuments.fileKey });
+    await tx.delete(eventDayDocuments).where(and(eq(eventDayDocuments.source, "event_document"), inArray(eventDayDocuments.sourceId, documentIds)));
+    return [...new Set([...deleted.map((row) => row.fileKey), ...versions.map((version) => version.key)])];
   });
-  if (!fileKeys) throw new EventDocumentNotFoundError();
   const storage = createStorageClient();
   for (const key of fileKeys) await deletePrivateObject(storage, key).catch(() => undefined);
+  return fileKeys.length;
 }
 
 function fileNameOf(label: string, fileKey: string, version?: number): string {
@@ -476,10 +486,18 @@ export async function openDocumentLink(token: string, now: Date = new Date()): P
 
 export async function listDayChoices(organizationId: string, eventId: string): Promise<DayDocumentChoice[]> {
   if (!UUID.test(eventId)) return [];
-  const rows = await inOrganization(organizationId, (tx) =>
-    tx.select({ source: eventDayDocuments.source, sourceId: eventDayDocuments.sourceId }).from(eventDayDocuments).where(eq(eventDayDocuments.eventId, eventId)).orderBy(asc(eventDayDocuments.createdAt)),
-  );
-  return rows.filter((row): row is DayDocumentChoice => isDayDocumentSource(row.source));
+  const { rows, visibleDocuments } = await inOrganization(organizationId, async (tx) => ({
+    rows: await tx
+      .select({ source: eventDayDocuments.source, sourceId: eventDayDocuments.sourceId })
+      .from(eventDayDocuments)
+      .where(eq(eventDayDocuments.eventId, eventId))
+      .orderBy(asc(eventDayDocuments.createdAt)),
+    visibleDocuments: new Set((await tx.select({ id: eventDocuments.id }).from(eventDocuments).where(eq(eventDocuments.eventId, eventId))).map((row) => row.id)),
+  }));
+  // Lot 39a (ADR 0073) : le choix d'un document à la corbeille est caché avec lui, et revient avec lui.
+  return rows
+    .filter((row): row is DayDocumentChoice => isDayDocumentSource(row.source))
+    .filter((row) => row.source !== "event_document" || visibleDocuments.has(row.sourceId));
 }
 
 // Embarquer ou non une pièce pour le jour J. L'appartenance de la pièce à

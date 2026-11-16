@@ -1,6 +1,7 @@
 // Accès aux données du module budget — jamais importé hors de
 // modules/budget/ (ADR 0011).
-import { and, asc, eq, inArray, isNotNull, isNull, lte, or, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, isNotNull, isNull, lt, lte, or, sql } from "drizzle-orm";
+import { inTrash, markDeleted, UNMARKED } from "@symbola/db/soft-delete";
 import type { BudgetAmountField, BudgetDocumentKind } from "@symbola/contracts";
 import { appDatabase } from "@symbola/db/client";
 import {
@@ -295,17 +296,51 @@ export async function updateBudgetLineRow(input: { organizationId: string; lineI
 // Lot 28b : une ligne supprimée emporte son historique, ses échéances et ses
 // documents (suppressions journalisées par la base) ; renvoie les clés des
 // fichiers à retirer du stockage.
-export async function deleteBudgetLine(organizationId: string, lineId: string): Promise<string[] | null> {
-  const db = appDatabase();
-  return await withOrganization(db, organizationId, async (tx) => {
-    const [line] = await tx.select({ id: budgetLines.id }).from(budgetLines).where(eq(budgetLines.id, lineId));
-    if (!line) return null;
-    const attachments = await tx.delete(budgetLineAttachments).where(eq(budgetLineAttachments.lineId, lineId)).returning({ fileKey: budgetLineAttachments.fileKey });
-    await tx.delete(vendorPayments).where(eq(vendorPayments.lineId, lineId));
-    await tx.delete(budgetLineHistory).where(eq(budgetLineHistory.lineId, lineId));
-    await tx.delete(budgetLines).where(eq(budgetLines.id, lineId));
-    return attachments.map((attachment) => attachment.fileKey);
+// Lot 39a (UX-07, DAT-03 ; ADR 0073) : la ligne est marquée (ses paiements et pièces jointes sont
+// cachés avec elle), « Annuler » la démarque ; purgeBudgetLines l'efface.
+export async function deleteBudgetLine(organizationId: string, lineId: string): Promise<boolean> {
+  const rows = await inTrash(organizationId, (tx) =>
+    tx.update(budgetLines).set(markDeleted()).where(and(eq(budgetLines.id, lineId), isNull(budgetLines.deletedAt))).returning({ id: budgetLines.id }),
+  );
+  return rows.length > 0;
+}
+
+export async function restoreBudgetLineRow(organizationId: string, lineId: string): Promise<string | null> {
+  const [row] = await inTrash(organizationId, (tx) =>
+    tx.update(budgetLines).set(UNMARKED).where(and(eq(budgetLines.id, lineId), isNotNull(budgetLines.deletedAt))).returning({ eventId: budgetLines.eventId }),
+  );
+  return row?.eventId ?? null;
+}
+
+// Purge réelle des lignes marquées avant la date donnée : pièces jointes, paiements, historique,
+// puis la ligne ; renvoie les fichiers à effacer.
+export async function purgeBudgetLines(organizationId: string, before: Date): Promise<{ count: number; fileKeys: string[] }> {
+  return inTrash(organizationId, async (tx) => {
+    const lineIds = (await tx.select({ id: budgetLines.id }).from(budgetLines).where(and(isNotNull(budgetLines.deletedAt), lt(budgetLines.deletedAt, before)))).map((row) => row.id);
+    if (lineIds.length === 0) return { count: 0, fileKeys: [] };
+    const attachments = await tx.delete(budgetLineAttachments).where(inArray(budgetLineAttachments.lineId, lineIds)).returning({ fileKey: budgetLineAttachments.fileKey });
+    await tx.delete(vendorPayments).where(inArray(vendorPayments.lineId, lineIds));
+    await tx.delete(budgetLineHistory).where(inArray(budgetLineHistory.lineId, lineIds));
+    await tx.delete(budgetLines).where(inArray(budgetLines.id, lineIds));
+    return { count: lineIds.length, fileKeys: attachments.map((attachment) => attachment.fileKey) };
   });
+}
+
+// Les paiements des prestataires d'un évènement supprimé le suivent, à sa date (ils sont les seules
+// lignes du budget lues hors de l'évènement : échéances, déclarations) ; restauration : ceux de
+// cette date seulement.
+export async function trashEventBudgetRows(organizationId: string, eventId: string, at: Date): Promise<number> {
+  const rows = await inTrash(organizationId, (tx) =>
+    tx.update(vendorPayments).set(markDeleted(at)).where(and(eq(vendorPayments.eventId, eventId), isNull(vendorPayments.deletedAt))).returning({ id: vendorPayments.id }),
+  );
+  return rows.length;
+}
+
+export async function restoreEventBudgetRows(organizationId: string, eventId: string, at: Date): Promise<number> {
+  const rows = await inTrash(organizationId, (tx) =>
+    tx.update(vendorPayments).set(UNMARKED).where(and(eq(vendorPayments.eventId, eventId), eq(vendorPayments.deletedAt, at))).returning({ id: vendorPayments.id }),
+  );
+  return rows.length;
 }
 
 // Lot 28a (BUD-01) : colonne de chaque montant saisissable.

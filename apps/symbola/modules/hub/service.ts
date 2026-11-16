@@ -1131,3 +1131,18 @@ export {
   undoImportedHubElements,
   type ContactImportCandidate,
 } from "./contacts-import";
+
+// Lot 39a (DAT-03, HUB-17, UX-07 ; ADR 0073) — corbeille du hub : contacts et modèles de messages,
+// notes de contact annulables.
+export {
+  ContactRestoreConflictError,
+  isHubObjectTrashed,
+  listTrashedHubRows,
+  purgeHubElements,
+  purgeTrashedHubObjects,
+  restoreContactRow as restoreContact,
+  restoreMessageTemplateRow as restoreMessageTemplate,
+  trashContactRow as trashContact,
+  type HubTrashKind,
+} from "./trash";
+export { restoreContactNote } from "./contacts";

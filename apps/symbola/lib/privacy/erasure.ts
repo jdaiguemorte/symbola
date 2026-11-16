@@ -4,7 +4,7 @@
 // supprimée, anonymisée, conservée avec motif légal et date de fin), puis
 // exécute sa part et renvoie un accusé. La demande n'est close que quand tous
 // les modules ont répondu ; un module en échec se relance depuis la trace.
-import { withAuditBulk } from "@symbola/db/actor";
+import { includingDeleted, withAuditBulk } from "@symbola/db/actor";
 import { recordAudit } from "@symbola/db/audit";
 import { appDatabase } from "@symbola/db/client";
 import { parisDate, type ErasurePlanItem, type ErasureRules, type PersonTerms, type PrivacyRecordRef } from "@symbola/privacy";
@@ -75,8 +75,9 @@ export async function previewErasure(
 
 // Lot 23 (SEC-19) : les effacements des modules ne vont pas un à un au journal
 // (purge en masse) ; l'appelant écrit une ligne de synthèse.
+// Lot 39a (ADR 0073) : l'effacement atteint aussi ce qui est à la corbeille, sans attendre la purge.
 export function runModules(organizationId: string, items: PrivacyErasureItem[], options: Options): Promise<PrivacyErasureAck[]> {
-  return withAuditBulk(() => runModulesNow(organizationId, items, options));
+  return withAuditBulk(() => includingDeleted(() => runModulesNow(organizationId, items, options)));
 }
 
 async function runModulesNow(organizationId: string, items: PrivacyErasureItem[], options: Options): Promise<PrivacyErasureAck[]> {

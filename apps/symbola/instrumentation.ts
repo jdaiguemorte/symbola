@@ -18,6 +18,10 @@ export async function register() {
     scheduleDemoPurge();
     const { scheduleImportPurge } = await import("./lib/import-purge");
     scheduleImportPurge();
+    // Lot 39a (DAT-03, ADR 0073) : purge horaire de la corbeille (éléments après dix minutes, objets
+    // après 30 jours).
+    const { scheduleTrashPurge } = await import("./lib/trash");
+    scheduleTrashPurge();
     const { schedulePrivacyExportPurge } = await import("./lib/privacy/export-purge");
     schedulePrivacyExportPurge();
     // Lot 6 : worker continu des événements internes (ADR 0014).

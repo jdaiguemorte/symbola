@@ -46,6 +46,7 @@ import { AUTO_TOURS_COOKIE } from "@/lib/help/preferences";
 import { SearchBox } from "./search-box";
 import { QuickCreate } from "./creation-rapide/quick-create";
 import { HelpProvider } from "./help-context";
+import { UndoNotice } from "./undo-notice";
 import { HelpButton } from "./help-button";
 import { OrganizationSwitcher } from "./organization-switcher";
 import { getHelpProgress } from "@/modules/hub/service";
@@ -298,6 +299,8 @@ export async function AppShell({ children }: { children: ReactNode }) {
             ...(events || quotes ? [{ href: "/parametres/emails", label: tSettings("emailTemplates") }] : []),
             // Lot 38b (HUB-21, D10) : les messages types de la planner, utilisés depuis la fiche.
             ...(events ? [{ href: "/parametres/messages", label: tSettings("messageTemplates") }] : []),
+            // Lot 39a (HUB-17, ADR 0073) : ce qui a été supprimé depuis moins de 30 jours.
+            { href: "/parametres/corbeille", label: tSettings("trash") },
           ],
         },
         ...(events || budget
@@ -505,6 +508,8 @@ export async function AppShell({ children }: { children: ReactNode }) {
             <section className="app-topbar" aria-label={t("topBar")}>
               <HelpButton />
             </section>
+            {/* Lot 39a (UX-07) : « Annuler » pendant dix secondes après une suppression. */}
+            <UndoNotice />
             {children}
           </div>
         </HelpProvider>
@@ -657,6 +662,8 @@ export async function AppShell({ children }: { children: ReactNode }) {
           {helpBar ? (
             <HelpBar tutorial={helpBar.tutorial} invites={helpBar.invites} />
           ) : null}
+          {/* Lot 39a (UX-07) : « Annuler » pendant dix secondes après une suppression. */}
+          <UndoNotice />
           {children}
         </div>
       </HelpProvider>

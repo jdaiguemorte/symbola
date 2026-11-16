@@ -1,6 +1,7 @@
 // Lot 34b (CHR-02, D13) — fil de commentaires d'une tâche (auteur, date, texte), lu et écrit par
 // l'équipe. Exposé seulement par service.ts (ADR 0011).
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, isNotNull, isNull } from "drizzle-orm";
+import { inTrash, markDeleted, UNMARKED } from "@symbola/db/soft-delete";
 import { appDatabase } from "@symbola/db/client";
 import { eventTaskComments, eventTasks } from "@symbola/db/schema/events";
 import { withOrganization } from "@symbola/db/with-organization";
@@ -54,8 +55,25 @@ export async function addComment(input: { organizationId: string; taskId: string
 // Seul l'auteur retire son commentaire.
 export async function removeComment(input: { organizationId: string; commentId: string; authorUserId: string }): Promise<void> {
   if (!UUID.test(input.commentId)) throw new TaskCommentNotFoundError();
-  const rows = await inOrganization(input.organizationId, (tx) =>
-    tx.delete(eventTaskComments).where(and(eq(eventTaskComments.id, input.commentId), eq(eventTaskComments.authorUserId, input.authorUserId))).returning({ id: eventTaskComments.id }),
+  // Lot 39a (UX-07 ; ADR 0073) : marqué, « Annuler » le démarque ; la purge l'efface.
+  const rows = await inTrash(input.organizationId, (tx) =>
+    tx
+      .update(eventTaskComments)
+      .set(markDeleted())
+      .where(and(eq(eventTaskComments.id, input.commentId), eq(eventTaskComments.authorUserId, input.authorUserId), isNull(eventTaskComments.deletedAt)))
+      .returning({ id: eventTaskComments.id }),
   );
   if (rows.length === 0) throw new TaskCommentNotFoundError();
+}
+
+// Seul son auteur rétablit le commentaire qu'il vient de retirer.
+export async function restoreComment(input: { organizationId: string; commentId: string; authorUserId: string }): Promise<boolean> {
+  const rows = await inTrash(input.organizationId, (tx) =>
+    tx
+      .update(eventTaskComments)
+      .set(UNMARKED)
+      .where(and(eq(eventTaskComments.id, input.commentId), eq(eventTaskComments.authorUserId, input.authorUserId), isNotNull(eventTaskComments.deletedAt)))
+      .returning({ id: eventTaskComments.id }),
+  );
+  return rows.length > 0;
 }

@@ -1,6 +1,8 @@
 // Accès aux données du module quotes — jamais importé hors de
 // modules/quotes/ (ADR 0011).
-import { and, asc, desc, eq, gte, inArray, ne, or, sql as raw } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, isNotNull, isNull, ne, or, sql as raw } from "drizzle-orm";
+import { includingDeleted } from "@symbola/db/actor";
+import { markDeleted, UNMARKED } from "@symbola/db/soft-delete";
 import { appDatabase } from "@symbola/db/client";
 import {
   catalogItems,
@@ -546,16 +548,33 @@ export async function updateQuoteLineRow(
   });
 }
 
+// Lot 39a (UX-07 ; ADR 0073) : la ligne est marquée (les totaux l'ignorent aussitôt), « Annuler » la
+// démarque tant que le devis est un brouillon ; la purge l'efface.
 export async function deleteQuoteLine(
   organizationId: string,
   lineId: string,
 ): Promise<WriteResult> {
-  return inOrganization(organizationId, async (tx) => {
-    const found = await draftOfLine(tx, lineId);
-    if (found.status !== "draft") return { status: found.status };
-    await tx.delete(quoteLines).where(eq(quoteLines.id, lineId));
-    return { status: "ok", quoteId: found.quoteId };
-  });
+  return includingDeleted(() =>
+    inOrganization(organizationId, async (tx) => {
+      const found = await draftOfLine(tx, lineId);
+      if (found.status !== "draft") return { status: found.status };
+      const marked = await tx.update(quoteLines).set(markDeleted()).where(and(eq(quoteLines.id, lineId), isNull(quoteLines.deletedAt))).returning({ id: quoteLines.id });
+      if (marked.length === 0) return { status: "not_found" };
+      return { status: "ok", quoteId: found.quoteId };
+    }),
+  );
+}
+
+export async function restoreQuoteLineRow(organizationId: string, lineId: string): Promise<WriteResult> {
+  return includingDeleted(() =>
+    inOrganization(organizationId, async (tx) => {
+      const found = await draftOfLine(tx, lineId);
+      if (found.status !== "draft") return { status: found.status };
+      const restored = await tx.update(quoteLines).set(UNMARKED).where(and(eq(quoteLines.id, lineId), isNotNull(quoteLines.deletedAt))).returning({ id: quoteLines.id });
+      if (restored.length === 0) return { status: "not_found" };
+      return { status: "ok", quoteId: found.quoteId };
+    }),
+  );
 }
 
 export async function setGlobalDiscountRow(
