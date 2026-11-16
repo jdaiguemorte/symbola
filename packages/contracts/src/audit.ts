@@ -92,6 +92,9 @@ export const AUDIT_ACTIONS = {
   "events.decision.withdrawn": { category: "partage", objectType: "event" },
   // Lot 24b (SEC-22, décision D5) : plafond d'e-mails de l'heure atteint.
   "hub.mail.quota_reached": { category: "partage", objectType: null },
+  // Lot 38a (MSG-01, D5) : un e-mail automatique n'est pas parti, une variable du modèle étant vide
+  // (nature du modèle et clés des variables seulement).
+  "hub.mail.variable_missing": { category: "partage", objectType: "event" },
   "quotes.quote.sent": { category: "partage", objectType: "quote" },
   "quotes.signature.requested": { category: "partage", objectType: "quote" },
   // Lot 34a (FAC-13, D7) : au report confirmé, les échéances d'un devis signé suivent la date.

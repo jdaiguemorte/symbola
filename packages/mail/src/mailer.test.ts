@@ -1,6 +1,7 @@
 import { parseEnv } from "@symbola/env";
 import { describe, expect, it } from "vitest";
-import { buildTransportOptions } from "./mailer";
+import { buildTransportOptions, senderAddress } from "./mailer";
+import { renderMailHtml, renderMailText, type MailLayout } from "./layout";
 
 function envWith(overrides: Record<string, string>) {
   return parseEnv({
@@ -34,3 +35,49 @@ describe("@symbola/mail — buildTransportOptions", () => {
     expect(options.auth).toEqual({ user: "alertes@symbola.fr", pass: "secret" });
   });
 });
+
+describe("MSG-01, HUB-18 (lot 38a) — mise en page d'un e-mail à l'image de l'organisation", () => {
+  const layout: MailLayout = {
+    lang: "fr",
+    subject: "Votre espace",
+    senderName: "Atelier <Camille> & Cie",
+    logoCid: null,
+    accent: "#7a2e4d",
+    textOnAccent: "#ffffff",
+    blocks: [
+      { kind: "paragraph", text: "Bonjour Léa,\nvoici <votre> lien : https://symbola.test/lien#abc" },
+      { kind: "button", url: "https://symbola.test/lien#abc", label: "Ouvrir mon espace" },
+    ],
+    footerLines: ["contact@atelier.test", "06 12 34 56 78"],
+    footerNote: "Envoyé avec Symbola",
+  };
+
+  it("échappe tout texte, garde les sauts de ligne, rend les adresses http(s) cliquables et le bouton à la couleur de l'organisation", () => {
+    const html = renderMailHtml(layout);
+    expect(html).toContain("Atelier &lt;Camille&gt; &amp; Cie");
+    expect(html).toContain("Bonjour Léa,<br>voici &lt;votre&gt; lien : <a href=\"https://symbola.test/lien#abc\"");
+    expect(html).toContain("background:#7a2e4d;color:#ffffff");
+    expect(html).toContain(">Ouvrir mon espace</a>");
+    expect(html).toContain("contact@atelier.test<br>06 12 34 56 78");
+    expect(html).not.toContain("<votre>");
+  });
+
+  it("le logo, quand il existe, remplace le nom en tête ; une couleur invalide ou une adresse non http(s) est écartée", () => {
+    const html = renderMailHtml({ ...layout, logoCid: "logo@symbola", accent: "red;background:url(x)", blocks: [{ kind: "button", url: "javascript:alert(1)", label: "x" }] });
+    expect(html).toContain('<img src="cid:logo@symbola" alt="Atelier &lt;Camille&gt; &amp; Cie"');
+    expect(html).not.toContain("red;background");
+    expect(html).not.toContain("javascript:");
+  });
+
+  it("la version texte reprend paragraphes, bouton (intitulé puis adresse), coordonnées et le bandeau d'essai", () => {
+    expect(renderMailText({ ...layout, banner: "Essai" })).toBe(
+      "Essai\n\nBonjour Léa,\nvoici <votre> lien : https://symbola.test/lien#abc\n\nOuvrir mon espace\nhttps://symbola.test/lien#abc\n\n--\ncontact@atelier.test\n06 12 34 56 78\nEnvoyé avec Symbola\n",
+    );
+  });
+
+  it("l'adresse d'expédition reste celle de Symbola, quel que soit le nom affiché", () => {
+    expect(senderAddress("Symbola <no-reply@symbola.fr>")).toBe("no-reply@symbola.fr");
+    expect(senderAddress(" no-reply@symbola.fr ")).toBe("no-reply@symbola.fr");
+  });
+});
+

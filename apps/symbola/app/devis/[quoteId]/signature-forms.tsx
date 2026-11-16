@@ -31,38 +31,49 @@ export function SendForSignatureForm({
       submitLabel={t("sendForSignature")}
       successMessage={t("signatureSent")}
     >
-      <p>{t("sendForSignatureHint")}</p>
-      {contract ? (
+      {(state) => (
         <>
-          <input type="hidden" name="contractId" value={contract.id} />
-          <p role="note">{tContracts("signedWithQuote", { version: contract.version })}</p>
+          <p>{t("sendForSignatureHint")}</p>
+          {contract ? (
+            <>
+              <input type="hidden" name="contractId" value={contract.id} />
+              <p role="note">{tContracts("signedWithQuote", { version: contract.version })}</p>
+            </>
+          ) : (
+            <p className="meta">{tContracts("quoteAloneHint")}</p>
+          )}
+          {Array.from({ length: rows }, (_, index) => {
+            // Lot 38a (MSG-02) : après un refus ou l'écran du garde-fou, les lignes saisies reviennent
+            // (la clé change à chaque réponse pour que React reprenne ces valeurs).
+            const submitted = state.signers?.[index];
+            const draft: SignerDraft | undefined = state.signers
+              ? submitted
+                ? { eventClientId: submitted.eventClientId ?? null, contactId: submitted.contactId ?? null, name: submitted.name, email: submitted.email, billingAddress: submitted.billingAddress }
+                : undefined
+              : drafts[index];
+            const id = (field: string) => `signer-${index}-${field}`;
+            return (
+              <fieldset key={`${index}-${state.at ?? 0}`}>
+                <legend>{t("signerNumber", { number: index + 1 })}</legend>
+                <input type="hidden" name={`signer_${index}_clientId`} value={draft?.eventClientId ?? ""} />
+                <input type="hidden" name={`signer_${index}_contactId`} value={draft?.contactId ?? ""} />
+                <label htmlFor={id("name")}>{t("signerName")}</label>
+                <input id={id("name")} type="text" name={`signer_${index}_name`} defaultValue={draft?.name ?? ""} autoComplete="name" />
+                <label htmlFor={id("email")}>{t("signerEmail")}</label>
+                <input id={id("email")} type="email" name={`signer_${index}_email`} defaultValue={draft?.email ?? ""} autoComplete="email" />
+                <label htmlFor={id("address")}>{t("signerAddress")}</label>
+                <textarea id={id("address")} name={`signer_${index}_address`} rows={2} autoComplete="street-address" defaultValue={draft?.billingAddress ?? ""} />
+                {draft?.contactId ? (
+                  <label className="checkbox">
+                    <input type="checkbox" name={`signer_${index}_saveAddress`} defaultChecked={submitted ? (submitted.saveBillingAddress ?? false) : true} />
+                    {t("signerSaveAddress")}
+                  </label>
+                ) : null}
+              </fieldset>
+            );
+          })}
         </>
-      ) : (
-        <p className="meta">{tContracts("quoteAloneHint")}</p>
       )}
-      {Array.from({ length: rows }, (_, index) => {
-        const draft = drafts[index];
-        const id = (field: string) => `signer-${index}-${field}`;
-        return (
-          <fieldset key={index}>
-            <legend>{t("signerNumber", { number: index + 1 })}</legend>
-            <input type="hidden" name={`signer_${index}_clientId`} value={draft?.eventClientId ?? ""} />
-            <input type="hidden" name={`signer_${index}_contactId`} value={draft?.contactId ?? ""} />
-            <label htmlFor={id("name")}>{t("signerName")}</label>
-            <input id={id("name")} type="text" name={`signer_${index}_name`} defaultValue={draft?.name ?? ""} autoComplete="name" />
-            <label htmlFor={id("email")}>{t("signerEmail")}</label>
-            <input id={id("email")} type="email" name={`signer_${index}_email`} defaultValue={draft?.email ?? ""} autoComplete="email" />
-            <label htmlFor={id("address")}>{t("signerAddress")}</label>
-            <textarea id={id("address")} name={`signer_${index}_address`} rows={2} autoComplete="street-address" defaultValue={draft?.billingAddress ?? ""} />
-            {draft?.contactId ? (
-              <label className="checkbox">
-                <input type="checkbox" name={`signer_${index}_saveAddress`} defaultChecked />
-                {t("signerSaveAddress")}
-              </label>
-            ) : null}
-          </fieldset>
-        );
-      })}
     </QuoteActionForm>
   );
 }

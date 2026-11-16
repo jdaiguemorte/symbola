@@ -36,6 +36,8 @@ import {
   type QuoteDetail,
 } from "./service";
 import { fillRequiredMentions } from "@/lib/test-fixtures/legal-mentions";
+import { confirmed } from "@/lib/test-fixtures/recipients";
+import { recipientsDigest, RecipientsNotConfirmedError } from "@/modules/hub/service";
 
 const MAILPIT_API = "http://localhost:8025/api/v1";
 const PDF = Buffer.from("%PDF-1.4\n%%EOF\n", "latin1");
@@ -139,7 +141,7 @@ function signers() {
 async function sendForSignature(organizationId: string, quoteId: string) {
   setSignatureProviderForTests(fakeSignatureProvider());
   const people = signers();
-  const detail = await sendQuoteForSignature({ organizationId, quoteId, signers: people, documentPdf: PDF, locale: "fr" });
+  const detail = await sendQuoteForSignature(confirmed({ organizationId, quoteId, signers: people, documentPdf: PDF, locale: "fr" }));
   return { detail, people };
 }
 
@@ -188,23 +190,23 @@ describe("DEV-02 — Envoi en signature", () => {
     const draft = await setup({ send: false });
     setSignatureProviderForTests(fakeSignatureProvider());
     await expect(
-      sendQuoteForSignature({ organizationId: draft.organizationId, quoteId: draft.quoteId, signers: signers(), documentPdf: PDF, locale: "fr" }),
+      sendQuoteForSignature(confirmed({ organizationId: draft.organizationId, quoteId: draft.quoteId, signers: signers(), documentPdf: PDF, locale: "fr" })),
     ).rejects.toBeInstanceOf(QuoteNotSentError);
 
     const { organizationId, quoteId } = await setup();
-    await expect(sendQuoteForSignature({ organizationId, quoteId, signers: [], documentPdf: PDF, locale: "fr" })).rejects.toBeInstanceOf(RangeError);
+    await expect(sendQuoteForSignature(confirmed({ organizationId, quoteId, signers: [], documentPdf: PDF, locale: "fr" }))).rejects.toBeInstanceOf(RangeError);
     await expect(
-      sendQuoteForSignature({
+      sendQuoteForSignature(confirmed({
         organizationId,
         quoteId,
         signers: [{ name: "Inès", email: "pas-un-email", billingAddress: "Lyon" }],
         documentPdf: PDF,
         locale: "fr",
-      }),
+      })),
     ).rejects.toBeInstanceOf(RangeError);
-    await sendQuoteForSignature({ organizationId, quoteId, signers: signers(), documentPdf: PDF, locale: "fr" });
+    await sendQuoteForSignature(confirmed({ organizationId, quoteId, signers: signers(), documentPdf: PDF, locale: "fr" }));
     await expect(
-      sendQuoteForSignature({ organizationId, quoteId, signers: signers(), documentPdf: PDF, locale: "fr" }),
+      sendQuoteForSignature(confirmed({ organizationId, quoteId, signers: signers(), documentPdf: PDF, locale: "fr" })),
     ).rejects.toBeInstanceOf(SignatureAlreadyRequestedError);
   });
 
@@ -215,7 +217,7 @@ describe("DEV-02 — Envoi en signature", () => {
     process.env.SMTP_PORT = "1"; // aucun serveur SMTP ici
     let caught: unknown;
     try {
-      await sendQuoteForSignature({ organizationId, quoteId, signers: signers(), documentPdf: PDF, locale: "fr" });
+      await sendQuoteForSignature(confirmed({ organizationId, quoteId, signers: signers(), documentPdf: PDF, locale: "fr" }));
     } catch (error) {
       caught = error;
     } finally {
@@ -233,9 +235,44 @@ describe("DEV-02 — Envoi en signature", () => {
     expect(isSignatureAvailable(false)).toBe(false);
     expect(isSignatureAvailable(true)).toBe(true);
     await expect(
-      sendQuoteForSignature({ organizationId, quoteId, signers: signers(), documentPdf: PDF, locale: "fr" }),
+      sendQuoteForSignature(confirmed({ organizationId, quoteId, signers: signers(), documentPdf: PDF, locale: "fr" })),
     ).rejects.toBeInstanceOf(SignatureUnavailableError);
     expect((await getQuote(organizationId, quoteId)).signature).toBeNull();
+  });
+});
+
+describe("MSG-02 — Garde-fou d'envoi groupé", () => {
+  it("à plusieurs signataires, aucune demande ne part sans l'écran du garde-fou : le service renvoie le nombre et la liste, sans rien envoyer", async () => {
+    const { organizationId, quoteId } = await setup();
+    setSignatureProviderForTests(fakeSignatureProvider());
+    const people = signers();
+    const refused = await sendQuoteForSignature({ organizationId, quoteId, signers: people, documentPdf: PDF, locale: "fr" }).catch((error: unknown) => error);
+    expect(refused).toBeInstanceOf(RecipientsNotConfirmedError);
+    expect((refused as RecipientsNotConfirmedError).review).toMatchObject({ count: 2, recipients: people.map(({ name, email }) => ({ name, email })) });
+    expect((await getQuote(organizationId, quoteId)).signature).toBeNull();
+    const response = await fetch(`${MAILPIT_API}/search?query=${encodeURIComponent(`to:${people[0]!.email}`)}`);
+    expect(((await response.json()) as { messages: unknown[] }).messages).toEqual([]);
+  });
+
+  it("une liste modifiée depuis l'écran (une personne ajoutée ou remplacée) est refusée ; la liste revue part", async () => {
+    const { organizationId, quoteId } = await setup();
+    setSignatureProviderForTests(fakeSignatureProvider());
+    const people = signers();
+    const screen = recipientsDigest(people);
+    const added = [...people, { name: "Camille Roux", email: `camille-${randomUUID()}@example.test`, billingAddress: "3 place Bellecour, 69002 Lyon" }];
+    const replaced = [people[0]!, { ...people[1]!, email: `autre-${randomUUID()}@example.test` }];
+    for (const changed of [added, replaced]) {
+      await expect(sendQuoteForSignature({ organizationId, quoteId, signers: changed, documentPdf: PDF, locale: "fr", confirmedRecipients: screen })).rejects.toBeInstanceOf(RecipientsNotConfirmedError);
+    }
+    const detail = await sendQuoteForSignature(confirmed({ organizationId, quoteId, signers: added, documentPdf: PDF, locale: "fr" }));
+    expect(detail.signature!.signers).toHaveLength(3);
+  });
+
+  it("à un seul signataire, pas d'écran : la demande part directement", async () => {
+    const { organizationId, quoteId } = await setup();
+    setSignatureProviderForTests(fakeSignatureProvider());
+    const detail = await sendQuoteForSignature({ organizationId, quoteId, signers: signers().slice(0, 1), documentPdf: PDF, locale: "fr" });
+    expect(detail.signature!.signers).toHaveLength(1);
   });
 });
 
@@ -426,7 +463,7 @@ describe("DEV-02 — Essai guidé (ADR 0008)", () => {
     await addQuoteLine(organizationId, quote.id, { label: "Fictif", unit: "forfait", quantityMilli: 1000, unitPriceCents: 50000 });
     await sendQuote({ organizationId, quoteId: quote.id });
     const people = signers();
-    const detail = await sendQuoteForSignature({ organizationId, quoteId: quote.id, signers: people, documentPdf: PDF, locale: "fr" });
+    const detail = await sendQuoteForSignature(confirmed({ organizationId, quoteId: quote.id, signers: people, documentPdf: PDF, locale: "fr" }));
     expect(detail.signature?.provider).toBe("fake");
     // Le marié fictif signe sur la page de signature fictive (pas de webhook HTTP).
     const tokens = detail.signature!.signers.map((signer) => signer.signingUrl.split("/").pop()!);

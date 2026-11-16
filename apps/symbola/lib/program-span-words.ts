@@ -4,8 +4,9 @@
 import { getTranslations } from "next-intl/server";
 import type { SpanWords } from "./program-spans";
 
-export async function programSpanWords(): Promise<SpanWords> {
-  const t = await getTranslations("DayOf");
+// Lot 38a (D9) : la langue est donnée pour le PDF joint à un e-mail (celle du destinataire).
+export async function programSpanWords(locale?: "fr" | "en"): Promise<SpanWords> {
+  const t = locale ? await getTranslations({ locale, namespace: "DayOf" }) : await getTranslations("DayOf");
   return {
     minutes: (minutes) => t("durationMinutes", { minutes }),
     hours: (hours) => t("durationHours", { hours }),

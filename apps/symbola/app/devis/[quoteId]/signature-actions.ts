@@ -23,6 +23,8 @@ import {
   signatureSlots,
   type SignerInput,
 } from "@/modules/quotes/service";
+import { assertRecipientsConfirmed, EmailVariableMissingError, RecipientsNotConfirmedError } from "@/modules/hub/service";
+import { emailVariableMissingMessage } from "../../email-errors";
 import { isValidId } from "../module-access";
 import { authorizedPlanner } from "../planner-access";
 import type { QuoteFormState } from "./actions";
@@ -63,11 +65,25 @@ export async function sendForSignatureAction(_prevState: QuoteFormState, formDat
   if (!isValidId(quoteId)) return { error: t("quoteNotFound") };
   const signers = readSigners(formData);
   if (signers.length === 0) return { error: t("missingSigners") };
-  const { organizationId } = planner;
+  const state = await requestSignature(planner.organizationId, quoteId, signers, formData, t);
+  // Lot 38a (MSG-02) : React vide le formulaire après l'action ; les signataires saisis y reviennent.
+  return state.success ? state : { ...state, signers, at: Date.now() };
+}
 
+async function requestSignature(
+  organizationId: string,
+  quoteId: string,
+  signers: SignerInput[],
+  formData: FormData,
+  t: Awaited<ReturnType<typeof getTranslations<"Quotes">>>,
+): Promise<QuoteFormState> {
   // Lot 31b (DOC-03, D9) : avec un contrat, un seul PDF (le devis puis le contrat).
   const contractId = String(formData.get("contractId") ?? "");
+  const confirmedRecipients = String(formData.get("confirmedRecipients") ?? "") || null;
   try {
+    // Lot 38a (MSG-02, D8) : à plusieurs signataires, l'écran du garde-fou passe avant tout geste
+    // qu'on ne défait pas (le brouillon envoyé fige sa version).
+    assertRecipientsConfirmed(signers.map(({ name, email }) => ({ name, email })), confirmedRecipients);
     let quote = await getQuote(organizationId, quoteId);
     if (quote.status === "draft") quote = await sendQuote({ organizationId, quoteId });
     const contract = isValidId(contractId) ? (await listQuoteContracts(organizationId, quoteId)).find((candidate) => candidate.id === contractId) : undefined;
@@ -83,8 +99,11 @@ export async function sendForSignatureAction(_prevState: QuoteFormState, formDat
       documentPdf,
       locale: (await getLocale()) === "en" ? "en" : "fr",
       contractId: contract?.id ?? null,
+      confirmedRecipients,
     });
   } catch (error) {
+    if (error instanceof RecipientsNotConfirmedError) return { confirmRecipients: error.review };
+    if (error instanceof EmailVariableMissingError) return { error: await emailVariableMissingMessage(error) };
     if (error instanceof ContractOutdatedError) return { error: (await getTranslations("Contracts"))("contractOutdatedBeforeSignature") };
     if (error instanceof SignersWithoutPortalError) return { error: (await getTranslations("Contracts"))("signersWithoutPortal", { names: error.names.join(", ") }) };
     if (error instanceof ContractNotFoundError) return { error: (await getTranslations("Contracts"))("contractNotFound") };

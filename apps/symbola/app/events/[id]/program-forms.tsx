@@ -8,11 +8,14 @@ import { endTimeAfter, minutesBetween } from "@/lib/program-spans";
 import {
   addProgramItemAction,
   applyProgramTemplateAction,
+  notifyProgramAction,
   publishProgramAction,
   updateProgramItemAction,
   type ProgramFormState,
+  type ProgramNotifyState,
   type ProgramPublishState,
 } from "./program-actions";
+import { RecipientsGuard } from "../../recipients-guard";
 
 type Draft = {
   startTime: string;
@@ -256,6 +259,29 @@ export function ProgramPublishForm({ eventId, nextNumber, canPublish }: { eventI
       </button>
       {state.error ? <p role="alert">{state.error}</p> : null}
       {state.published ? <p role="status">{t("programPublished", { number: state.published })}</p> : null}
+    </form>
+  );
+}
+
+// Lot 38a (D9 ; MSG-02, D8) : prévenir les destinataires de la dernière version diffusée. À plusieurs,
+// le bouton ouvre l'écran du garde-fou (nombre et liste), puis « Envoyer à N personnes ».
+export function ProgramNotifyForm({ eventId, number, recipients }: { eventId: string; number: number; recipients: number }) {
+  const t = useTranslations("Events");
+  const initialState: ProgramNotifyState = {};
+  const [state, formAction, pending] = useActionState(notifyProgramAction, initialState);
+  return (
+    <form action={formAction} aria-label={t("programNotify", { number })}>
+      <input type="hidden" name="eventId" value={eventId} />
+      <p className="meta">{t("programNotifyHint", { count: recipients })}</p>
+      {state.confirmRecipients ? (
+        <RecipientsGuard review={state.confirmRecipients} pending={pending} />
+      ) : (
+        <button type="submit" disabled={pending}>
+          {t("programNotify", { number })}
+        </button>
+      )}
+      {state.error ? <p role="alert">{state.error}</p> : null}
+      {state.sent ? <p role="status">{state.notSent ? t("programNotifyPartial", { sent: state.sent, notSent: state.notSent }) : t("programNotifySent", { count: state.sent })}</p> : null}
     </form>
   );
 }

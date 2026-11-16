@@ -7,7 +7,7 @@ import { assertOrganizationIsolation } from "@symbola/testing";
 import { eq } from "drizzle-orm";
 import { afterAll, describe, expect, it } from "vitest";
 import { createAppConnection } from "./client";
-import { contactMembers, contactNotes, contacts, storageSnapshots } from "./schema/hub";
+import { contactMembers, contactNotes, contacts, emailTemplates, storageSnapshots } from "./schema/hub";
 import { withOrganization } from "./with-organization";
 
 const { sql, db } = createAppConnection();
@@ -103,5 +103,19 @@ describe("DOC-12 / SEC-10 — Isolation des relevés de stockage entre organisat
     await expect(withOrganization(db, b, (tx) => tx.insert(storageSnapshots).values({ organizationId: a, month: "2026-12-01", nature: "uploads", fileCount: 0, totalBytes: 0 }))).rejects.toThrow();
     expect(await refusal(withOrganization(db, a, (tx) => tx.update(storageSnapshots).set({ totalBytes: 1 }).where(eq(storageSnapshots.id, snapshot.id))))).toMatch(/permission denied/);
     expect(await refusal(withOrganization(db, a, (tx) => tx.delete(storageSnapshots).where(eq(storageSnapshots.id, snapshot.id))))).toMatch(/permission denied/);
+  });
+});
+
+describe("MSG-01 / SEC-10 — Isolation des modèles d'e-mails entre organisations (lot 38a, PostgreSQL réel)", () => {
+  it("une organisation ne voit, ne change ni ne supprime jamais les modèles d'e-mails d'une autre", async () => {
+    await assertOrganizationIsolation({
+      seed: (organizationId) => withOrganization(db, organizationId, async (tx) => first(await tx.insert(emailTemplates).values({ organizationId, kind: "client_link", locale: "fr", subject: "Votre espace", body: "Bonjour {{prénom}}, {{lien}}" }).returning())),
+      listVisible: (organizationId) => withOrganization(db, organizationId, (tx) => tx.select().from(emailTemplates)),
+      attemptCrossOrganizationUpdate: async (organizationId, target) => {
+        const updated = await withOrganization(db, organizationId, (tx) => tx.update(emailTemplates).set({ subject: "falsifié" }).where(eq(emailTemplates.id, target.id)).returning());
+        const removed = await withOrganization(db, organizationId, (tx) => tx.delete(emailTemplates).where(eq(emailTemplates.id, target.id)).returning());
+        return { affectedRows: updated.length + removed.length };
+      },
+    });
   });
 });

@@ -789,6 +789,48 @@ export const organizationExports = hubSchema.table(
   ],
 );
 
+// Lot 38a (MSG-01 ; D3, D5, D6, ADR 0072) — modèles des e-mails que l'organisation adresse aux tiers
+// (liens, rappels, signatures, programme), par nature et par langue : objet et texte à variables
+// (« {{prénom}} »). Un modèle absent vaut le texte de départ (packages/starter-templates) ;
+// « Revenir au texte de départ » supprime la ligne.
+export const EMAIL_TEMPLATE_KINDS = [
+  "client_link",
+  "client_link_renewed",
+  "vendor_link",
+  "vendor_link_renewed",
+  "task_reminder",
+  "quote_signature",
+  "contract_signature",
+  "order_first",
+  "signed_copy",
+  "program_published",
+] as const;
+
+export const emailTemplates = hubSchema.table(
+  "email_templates",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    kind: text("kind", { enum: EMAIL_TEMPLATE_KINDS }).notNull(),
+    locale: text("locale").notNull(),
+    subject: text("subject").notNull(),
+    body: text("body").notNull(),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("email_templates_organization_idx").on(table.organizationId),
+    unique("email_templates_kind_locale_unique").on(table.organizationId, table.kind, table.locale),
+    check("email_templates_kind_check", sql`${table.kind} in ('client_link', 'client_link_renewed', 'vendor_link', 'vendor_link_renewed', 'task_reminder', 'quote_signature', 'contract_signature', 'order_first', 'signed_copy', 'program_published')`),
+    check("email_templates_locale_check", sql`${table.locale} in ('fr', 'en')`),
+    check("email_templates_subject_check", sql`char_length(${table.subject}) between 1 and 200`),
+    check("email_templates_body_check", sql`char_length(${table.body}) between 1 and 5000`),
+  ],
+);
+
 // Lot 37b (DOC-12 ; D12, D13, ADR 0071) — relevé mensuel du stockage d'une organisation, par
 // nature : nombre de fichiers et volume, pris le premier du mois et gardé d'un mois sur l'autre ; il
 // alimentera le calcul des quotas (DOC-06). Des nombres seulement, jamais un nom de fichier

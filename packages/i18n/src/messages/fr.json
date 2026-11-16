@@ -14,7 +14,8 @@
     "accessRefused": "Cet accès n'est plus ouvert. Rapprochez-vous de la titulaire de votre organisation.",
     "failed": "La connexion n'a pas abouti. Recommencez.",
     "magicLinkSubject": "Votre lien de connexion à Symbola",
-    "magicLinkBody": "Bonjour,\n\nVoici votre lien de connexion à Symbola. Il est valable quinze minutes et ne sert qu'une fois :\n{link}\n\nSi vous n'avez rien demandé, ignorez ce message : personne ne peut se connecter sans ce lien.\n\nL'équipe Symbola"
+    "magicLinkBody": "Bonjour,\n\nVoici votre lien de connexion à Symbola. Il est valable quinze minutes et ne sert qu'une fois :\n\n{link}\n\nSi vous n'avez rien demandé, ignorez ce message : personne ne peut se connecter sans ce lien.",
+    "magicLinkButton": "Me connecter"
   },
   "Signup": {
     "title": "Créer votre espace Symbola",
@@ -1101,6 +1102,10 @@
     "storage": {
       "title": "Stockage",
       "body": "Le premier de chaque mois, Symbola relève les fichiers de votre entreprise, par nature : originaux légaux (factures et avoirs émis), documents signés (devis et contrats signés, dossiers de preuve), dépôts (documents des évènements, pièces jointes, devis des prestataires, fichiers du carnet) et images (logo, images déposées). Chaque relevé donne le nombre de fichiers et leur volume ; il est gardé d'un mois sur l'autre. Les exports, temporaires, et les essais guidés ne comptent pas. Réservé à la titulaire du compte."
+    },
+    "emailTemplates": {
+      "title": "Modèles d'e-mails",
+      "body": "Les e-mails que Symbola envoie en votre nom (liens, rappels, demandes de signature, programme) partent de ces modèles, en français et en anglais selon la langue de la personne. Modifiez l'objet et le texte avec les variables proposées : une variable inconnue est refusée, et le lien ne peut pas manquer. L'aperçu montre l'e-mail avec des données fictives ; « M'envoyer un essai » l'envoie à votre seule adresse. Un e-mail dont une variable n'a pas de valeur ne part pas : Symbola vous dit laquelle. « Revenir au texte de départ » efface votre version."
     }
   },
   "Aide": {
@@ -1738,7 +1743,17 @@
     "programPdfPublishedVersion": "Version {number} du {date}",
     "programPdfVendor": "Programme du poste {slot}",
     "programPdfYourRole": "Votre poste",
-    "programPdfFilePublished": "programme-v{number}"
+    "programPdfFilePublished": "programme-v{number}",
+    "programNotify": "Prévenir par e-mail (version {number})",
+    "programNotifyHint": "{count, plural, one {# destinataire} other {# destinataires}} : les clients dont le lien ouvre le programme, et les prestataires. Chacun reçoit son programme en PDF ; son lien personnel ne se renvoie pas, il l'a déjà.",
+    "programNotifySent": "Version envoyée à {count, plural, one {# personne} other {# personnes}}.",
+    "programNotifyPartial": "Version envoyée à {sent, plural, one {# personne} other {# personnes}} ; {notSent, plural, one {# e-mail n'a pas pu partir} other {# e-mails n'ont pas pu partir}} (plafond d'envois ou messagerie). Prévenez {notSent, plural, one {cette personne} other {ces personnes}} autrement.",
+    "programNotifiedLine": "Version {number} envoyée par e-mail le {date} à {count, plural, one {# personne} other {# personnes}}.",
+    "programNotifyNoVersion": "Aucune version n'est diffusée : diffusez d'abord le programme.",
+    "programNotifyAlready": "Cette version est déjà partie par e-mail.",
+    "programNotifyNoRecipients": "Personne à prévenir par e-mail : aucun lien actif de client avec la rubrique Programme, ni de prestataire.",
+    "programNotifyTrial": "Pendant l'essai, aucun e-mail ne part.",
+    "programNotifyFailed": "Les e-mails n'ont pas pu partir : la messagerie ne répond pas. Réessayez plus tard."
   },
   "Budget": {
     "title": "Budget",
@@ -4596,7 +4611,8 @@
     "quoteTemplates": "Modèles de devis",
     "contractTemplates": "Modèles de contrat",
     "export": "Exporter mes données",
-    "storage": "Stockage"
+    "storage": "Stockage",
+    "emailTemplates": "Modèles d'e-mails"
   },
   "Common": {
     "closePanel": "Fermer le panneau",
@@ -4849,7 +4865,8 @@
       "quotes_contract_early_execution_requested": "Exécution anticipée demandée par le client",
       "hub_organization_export_requested": "Export complet demandé",
       "hub_organization_export_ready": "Export complet préparé",
-      "hub_organization_export_downloaded": "Export complet téléchargé"
+      "hub_organization_export_downloaded": "Export complet téléchargé",
+      "hub_mail_variable_missing": "E-mail automatique non envoyé : variable du modèle sans valeur"
     },
     "categories": {
       "connexion": "Connexions",
@@ -4957,7 +4974,8 @@
       "events_event_document_versions": "version d'un document",
       "events_event_document_links": "lien de partage d'un document",
       "events_program_versions": "version diffusée du programme",
-      "hub_storage_snapshots": "relevé de stockage"
+      "hub_storage_snapshots": "relevé de stockage",
+      "hub_email_templates": "modèle d'e-mail"
     },
     "modules": {
       "events": "Événements",
@@ -6016,5 +6034,179 @@
     "month": "Mois",
     "notCounted": "Ne comptent pas : les exports (complet et RGPD), effacés après leur téléchargement, et les fichiers des essais guidés.",
     "zeroVolume": "0 Ko"
+  },
+  "Emails": {
+    "button": {
+      "space": "Ouvrir mon espace",
+      "sign": "Signer en ligne"
+    },
+    "footerNote": "Envoyé avec Symbola",
+    "symbolaFooter": "Symbola — la suite des organisateurs d'évènements",
+    "testBanner": "Essai : cet e-mail montre votre modèle avec des données fictives.",
+    "testSubject": "[Essai] {subject}",
+    "sample": {
+      "firstName": "Léa",
+      "event": "votre mariage",
+      "eventDate": "12 juin 2027",
+      "clients": "Léa & Maxime",
+      "link": "https://symbola.fr/exemple",
+      "validUntil": "19 juin 2027",
+      "tasks": "- Choisir les alliances : avant le 10 mars 2027 (dans 7 jours)\n- Valider le menu : avant le 15 mars 2027 (dans 12 jours)",
+      "quoteNumber": "D-2027-0042",
+      "version": "3"
+    },
+    "event": {
+      "coupleClient": "votre mariage",
+      "clientsClient": "votre évènement",
+      "coupleVendor": "le mariage de {clients}",
+      "clientsVendor": "l'évènement de {clients}",
+      "coupleVendorUnnamed": "ce mariage",
+      "clientsVendorUnnamed": "cet évènement"
+    },
+    "task": {
+      "line": "- {label} : avant le {date} ({when})",
+      "overdue": "en retard",
+      "today": "aujourd'hui",
+      "tomorrow": "demain",
+      "inDays": "dans {days} jours"
+    },
+    "fixed": {
+      "linkCode": {
+        "subject": "Votre code Symbola : {code}",
+        "body": "Bonjour {name},\n\nVotre code pour ouvrir votre espace sur Symbola : {code}\n\nIl est valable {minutes} minutes et ne sert qu'une fois. Si vous ne l'avez pas demandé, ignorez ce message : personne ne peut ouvrir votre espace sans votre lien."
+      },
+      "renewalRequest": {
+        "subject": "Demande d'un nouveau lien : {name}",
+        "body": "Bonjour,\n\n{name} demande un nouveau lien personnel : le sien a expiré. Vous pouvez le renouveler depuis la fiche de l'évènement :\n\n{url}",
+        "button": "Ouvrir la fiche"
+      },
+      "quoteSigned": {
+        "subject": "Devis {number} signé",
+        "body": "Bonjour,\n\nLe devis {number} a été signé par tous les signataires. L'évènement passe en « Confirmé ». Le document signé et son certificat de preuve sont disponibles sur le devis :\n\n{url}",
+        "button": "Ouvrir le devis"
+      },
+      "exportReady": {
+        "subject": "Votre export Symbola est prêt",
+        "body": "Bonjour,\n\nL'export complet des données de « {organization} » est prêt. Téléchargez-le depuis Paramètres, Exporter mes données, jusqu'au {until} :\n\n{url}\n\nPour votre sécurité, l'archive n'est jamais jointe à un e-mail.",
+        "button": "Ouvrir mes exports"
+      },
+      "invitation": {
+        "subject": "Votre invitation Symbola",
+        "body": "Bonjour,\n\nVous avez été invité·e à rejoindre « {organization} » sur Symbola. Ce lien est valable 7 jours :\n\n{url}",
+        "button": "Accepter l'invitation"
+      }
+    }
+  },
+  "RecipientsGuard": {
+    "title": "Cet envoi part à {count} personnes",
+    "intro": "Vérifiez la liste : chacune reçoit son propre e-mail. Si la liste change d'ici l'envoi, cet écran revient avec la nouvelle.",
+    "confirm": "Envoyer à {count} personnes"
+  },
+  "EmailTemplates": {
+    "title": "Modèles d'e-mails",
+    "subtitle": "Les e-mails que Symbola envoie en votre nom à vos clients et à vos prestataires, à votre image.",
+    "intro": "Chaque e-mail part avec votre logo (ou votre nom), la couleur de vos documents et vos coordonnées. Votre nom est celui de l'expéditeur ; les réponses arrivent à votre adresse de contact.",
+    "languageLabel": "Langue des modèles",
+    "language": {
+      "fr": "Français",
+      "en": "Anglais"
+    },
+    "customized": "Personnalisé",
+    "starter": "Texte de départ",
+    "edit": "Modifier « {title} »",
+    "groups": {
+      "links": "Liens personnels",
+      "reminders": "Rappels",
+      "signatures": "Devis et contrats",
+      "program": "Programme"
+    },
+    "kinds": {
+      "client_link": {
+        "title": "Lien d'un client",
+        "description": "Part quand vous créez le lien personnel d'un client."
+      },
+      "client_link_renewed": {
+        "title": "Lien d'un client renouvelé",
+        "description": "Part quand vous renouvelez le lien d'un client."
+      },
+      "vendor_link": {
+        "title": "Lien d'un prestataire",
+        "description": "Part quand vous créez le lien d'un prestataire retenu."
+      },
+      "vendor_link_renewed": {
+        "title": "Lien d'un prestataire renouvelé",
+        "description": "Part quand vous renouvelez le lien d'un prestataire."
+      },
+      "task_reminder": {
+        "title": "Rappel des tâches du client",
+        "description": "Part tout seul, avant l'échéance des tâches confiées au client."
+      },
+      "quote_signature": {
+        "title": "Demande de signature du devis",
+        "description": "Part à chaque signataire, avec son lien de signature."
+      },
+      "contract_signature": {
+        "title": "Demande de signature du contrat",
+        "description": "Part à chaque signataire quand le contrat se signe seul, après le devis."
+      },
+      "order_first": {
+        "title": "Devis et contrat à commander d'abord",
+        "description": "Part quand le client doit passer commande dans son espace avant de signer."
+      },
+      "signed_copy": {
+        "title": "Exemplaire signé",
+        "description": "Part tout seul à chaque signataire, avec le devis et le contrat signés."
+      },
+      "program_published": {
+        "title": "Nouvelle version du programme",
+        "description": "Part quand vous prévenez par e-mail d'une version diffusée, avec le programme en PDF."
+      }
+    },
+    "variables": {
+      "first_name": "Le nom de la personne, tel que sur son lien ou sa signature",
+      "organization": "Le nom de votre entreprise",
+      "event": "L'évènement, dit à la personne : « votre mariage » au client, « le mariage de Léa & Maxime » au prestataire",
+      "event_date": "La date de l'évènement",
+      "clients": "Les prénoms des clients",
+      "link": "Son lien personnel ; seul sur sa ligne, il devient un bouton",
+      "valid_until": "La date de fin de validité du lien",
+      "tasks": "La liste des tâches à faire, avec leur échéance",
+      "quote_number": "Le numéro du devis",
+      "version": "Le numéro de la version du programme"
+    },
+    "back": "Tous les modèles d'e-mails",
+    "editorTitle": "{title} ({language})",
+    "subjectLabel": "Objet",
+    "bodyLabel": "Texte",
+    "bodyHint": "Une ligne vide sépare deux paragraphes. Recopiez une variable telle quelle, accolades comprises.",
+    "variablesTitle": "Variables de ce modèle",
+    "variableRequired": "indispensable",
+    "save": "Enregistrer",
+    "saved": "Modèle enregistré : les prochains e-mails partiront avec ce texte.",
+    "preview": "Mettre à jour l'aperçu",
+    "previewTitle": "Aperçu",
+    "previewHint": "L'e-mail tel qu'il partira, avec des données fictives (Léa, son mariage le 12 juin 2027…).",
+    "previewLabel": "Aperçu de l'e-mail",
+    "previewFrom": "De : {name}",
+    "previewReplyTo": "Les réponses arrivent à {email}.",
+    "previewNoReplyTo": "Aucune adresse de contact : les réponses n'arriveront nulle part. Renseignez-la dans Paramètres, Entreprise et TVA.",
+    "previewSubject": "Objet : {subject}",
+    "previewMissing": "Variable sans valeur : {tokens}. L'e-mail ne partirait pas.",
+    "sendTest": "M'envoyer un essai",
+    "testHint": "L'essai part à votre adresse seulement, marqué « Essai », avec le texte affiché (même pas encore enregistré). Il compte dans le plafond d'envois de l'heure.",
+    "testSent": "Essai envoyé à {email}.",
+    "testFailed": "L'essai n'a pas pu partir : la messagerie ne répond pas. Réessayez plus tard.",
+    "reset": "Revenir au texte de départ",
+    "resetTitle": "Revenir au texte de départ ?",
+    "resetBody": "Votre texte de ce modèle sera remplacé par celui de Symbola. Vous ne pourrez pas le retrouver.",
+    "resetDone": "Texte de départ rétabli.",
+    "errorEmpty": "L'objet et le texte sont obligatoires.",
+    "errorUnknown": "Variable inconnue ou étrangère à ce modèle : {tokens}.",
+    "errorRequired": "Variable indispensable absente du texte : {tokens}.",
+    "errorSubjectTooLong": "L'objet dépasse {max} caractères.",
+    "errorBodyTooLong": "Le texte dépasse {max} caractères.",
+    "variableMissing": "L'e-mail « {template} » ne peut pas partir : variable sans valeur ({tokens}). Complétez la fiche, ou corrigez le modèle dans Paramètres, Modèles d'e-mails.",
+    "todayBanner": "{count, plural, one {Le rappel automatique d'un évènement ne part pas} other {Les rappels automatiques de # évènements ne partent pas}} : une variable du modèle « {template} » n'a pas de valeur.",
+    "todayBannerLink": "Corriger le modèle"
   }
 }

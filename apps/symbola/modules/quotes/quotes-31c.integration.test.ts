@@ -48,6 +48,7 @@ import {
 } from "./service";
 import { fakeSignatureProvider, setSignatureProviderForTests } from "./signature";
 import { quotesPrivacy } from "./privacy";
+import { confirmed } from "@/lib/test-fixtures/recipients";
 
 const PDF = Buffer.from("%PDF-1.4\n%%EOF\n", "latin1");
 const NOW = new Date("2027-04-10T10:00:00Z");
@@ -82,7 +83,7 @@ async function draft(context: Context, options: { eventId?: string; schedule?: {
 async function sign(context: Context, quoteId: string) {
   await sendQuote({ organizationId: context.organizationId, quoteId, now: NOW });
   setSignatureProviderForTests(fakeSignatureProvider());
-  const sent = await sendQuoteForSignature({
+  const sent = await sendQuoteForSignature(confirmed({
     organizationId: context.organizationId,
     quoteId,
     signers: [
@@ -91,7 +92,7 @@ async function sign(context: Context, quoteId: string) {
     ],
     documentPdf: PDF,
     locale: "fr",
-  });
+  }));
   for (const signer of sent.signature!.signers) await actOnFakeSignature(signer.signingUrl.split("/").pop()!, "sign");
   return getQuote(context.organizationId, quoteId);
 }

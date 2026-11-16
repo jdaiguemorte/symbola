@@ -14,7 +14,10 @@ import { withOrganization } from "@symbola/db/with-organization";
 import { parseEnv } from "@symbola/env";
 import { createStorageClient, deletePrivateObject, openPrivateObjectStream, PrivateObjectNotFoundError, uploadPrivateFile } from "@symbola/files";
 import { formatDateTime, type Locale } from "@symbola/i18n";
-import { sendMail } from "@symbola/mail";
+import { createTranslator } from "next-intl";
+import frMessages from "@symbola/i18n/messages/fr.json";
+import enMessages from "@symbola/i18n/messages/en.json";
+import { sendSymbolaEmail } from "./emails";
 import { findOrganizationById, findPlatformSettings, insertDefaultPlatformSettings } from "./repository";
 
 const DAY_MS = 86_400_000;
@@ -340,18 +343,10 @@ export async function purgeExpiredOrganizationExports(db: AppDatabase, organizat
 
 // Texte de l'e-mail, dans la langue de l'organisation : ni l'archive, ni de lien direct vers
 // elle ; l'écran se trouve après connexion.
-export function organizationExportReadyMail(input: { locale: Locale; organizationName: string; expiresAt: Date; url: string }): { subject: string; text: string } {
-  const until = formatDateTime(input.expiresAt, input.locale);
-  if (input.locale === "en") {
-    return {
-      subject: "Your Symbola export is ready",
-      text: `Hello,\n\nThe full export of the data of "${input.organizationName}" is ready. Download it from Settings, Export my data, until ${until}:\n${input.url}\n\nFor your security, the archive is never attached to an e-mail.\n\nSee you soon,\nThe Symbola team`,
-    };
-  }
-  return {
-    subject: "Votre export Symbola est prêt",
-    text: `Bonjour,\n\nL'export complet des données de « ${input.organizationName} » est prêt. Téléchargez-le depuis Paramètres, Exporter mes données, jusqu'au ${until} :\n${input.url}\n\nPour votre sécurité, l'archive n'est jamais jointe à un e-mail.\n\nÀ bientôt,\nL'équipe Symbola`,
-  };
+// Lot 38a (D3) : texte fixe de Symbola, dans les fichiers de traduction.
+export function organizationExportReadyMail(input: { locale: Locale; organizationName: string; expiresAt: Date; url: string }): { subject: string; text: string; button: string } {
+  const t = createTranslator({ locale: input.locale, messages: input.locale === "en" ? enMessages : frMessages, namespace: "Emails.fixed.exportReady" });
+  return { subject: t("subject"), text: t("body", { organization: input.organizationName, until: formatDateTime(input.expiresAt, input.locale), url: input.url }), button: t("button") };
 }
 
 async function notifyExportReady(db: AppDatabase, row: ExportRow): Promise<void> {
@@ -365,5 +360,7 @@ async function notifyExportReady(db: AppDatabase, row: ExportRow): Promise<void>
     expiresAt: row.expiresAt,
     url: `${env.APP_PUBLIC_URL}/parametres/export`,
   });
-  await sendMail({ to: requester.email, subject: mail.subject, text: mail.text });
+  const locale = organization.language === "en" ? "en" : "fr";
+  const url = `${env.APP_PUBLIC_URL}/parametres/export`;
+  await sendSymbolaEmail({ to: requester.email, locale, subject: mail.subject, body: mail.text, button: { label: mail.button, url } });
 }

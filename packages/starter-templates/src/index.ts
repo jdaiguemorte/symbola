@@ -28,6 +28,7 @@ import quoteTemplatesFile from "./quote-templates.json";
 import contractTemplatesFile from "./contract-templates.json";
 import contractRulesFile from "./contract-rules.json";
 import linkPrivacyNoticeFile from "./link-privacy-notice.json";
+import emailTemplatesFile from "./email-templates.json";
 import programFile from "./program.json";
 import prospectSourcesFile from "./prospect-sources.json";
 import retroplanningFile from "./retroplanning.json";
@@ -1152,3 +1153,23 @@ export function isOnboardingVolume(key: string): boolean {
 export function isOnboardingTool(key: string): boolean {
   return onboarding.tools.some((tool) => tool.key === key);
 }
+
+// Lot 38a (MSG-01, D3, D6 ; ADR 0072) — textes de départ des e-mails que l'organisation adresse aux
+// tiers, par nature et par langue ; un modèle que la planner n'a pas réécrit vaut ce texte.
+const emailTemplateTextSchema = z.object({ subject: z.string().min(1).max(200), body: z.string().min(1).max(5000) });
+const emailTemplatesSchema = z.object({
+  version: z.literal(1),
+  templates: z.object({ fr: z.record(z.string(), emailTemplateTextSchema), en: z.record(z.string(), emailTemplateTextSchema) }),
+});
+const emailTemplates = emailTemplatesSchema.parse(emailTemplatesFile).templates;
+
+export function starterEmailTemplate(kind: string, locale: StarterLocale): { subject: string; body: string } {
+  const template = emailTemplates[locale][kind];
+  if (!template) throw new Error(`modèle d'e-mail de départ inconnu : ${kind}`);
+  return { subject: template.subject, body: template.body };
+}
+
+export function starterEmailTemplateKinds(): string[] {
+  return Object.keys(emailTemplates.fr);
+}
+

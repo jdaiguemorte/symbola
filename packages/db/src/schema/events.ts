@@ -416,6 +416,9 @@ export const programVersions = eventsSchema.table("program_versions", {
   publishedAt: timestamp("published_at", { withTimezone: true }).defaultNow().notNull(),
   publishedByUserId: uuid("published_by_user_id"),
   items: jsonb("items").$type<ProgramVersionItemRow[]>().notNull(),
+  // Lot 38a (D9) : la version a été envoyée par e-mail à ses destinataires (date, nombre).
+  notifiedAt: timestamp("notified_at", { withTimezone: true }),
+  notifiedCount: integer("notified_count"),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   createdBy: uuid("created_by"),

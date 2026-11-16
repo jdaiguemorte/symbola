@@ -14,7 +14,8 @@
     "accessRefused": "This access is no longer open. Please contact your organization's owner.",
     "failed": "Sign-in did not complete. Please try again.",
     "magicLinkSubject": "Your Symbola sign-in link",
-    "magicLinkBody": "Hello,\n\nHere is your Symbola sign-in link. It is valid for fifteen minutes and works only once:\n{link}\n\nIf you did not ask for it, ignore this message: nobody can sign in without this link.\n\nThe Symbola team"
+    "magicLinkBody": "Hello,\n\nHere is your Symbola sign-in link. It is valid for fifteen minutes and works only once:\n\n{link}\n\nIf you did not ask for it, ignore this message: nobody can sign in without this link.",
+    "magicLinkButton": "Sign in"
   },
   "Signup": {
     "title": "Create your Symbola workspace",
@@ -1101,6 +1102,10 @@
     "storage": {
       "title": "Storage",
       "body": "On the first of each month, Symbola takes a reading of your business's files, by kind: legal originals (issued invoices and credit notes), signed documents (signed quotes and contracts, evidence files), uploads (event documents, attachments, vendor quotes, vendor book files) and images (logo, uploaded images). Each reading gives the number of files and their size; it is kept month after month. Exports, which are temporary, and guided trials are not counted. Reserved for the account Owner."
+    },
+    "emailTemplates": {
+      "title": "Email templates",
+      "body": "The emails Symbola sends on your behalf (links, reminders, signature requests, schedule) come from these templates, in French and English according to each person's language. Edit the subject and text with the variables offered: an unknown variable is refused, and the link cannot be missing. The preview shows the email with sample data; “Send me a test” sends it to your own address only. An email with a variable that has no value is not sent: Symbola tells you which one. “Back to the starter text” erases your version."
     }
   },
   "Aide": {
@@ -1738,7 +1743,17 @@
     "programPdfPublishedVersion": "Version {number} of {date}",
     "programPdfVendor": "Schedule for {slot}",
     "programPdfYourRole": "Your role",
-    "programPdfFilePublished": "schedule-v{number}"
+    "programPdfFilePublished": "schedule-v{number}",
+    "programNotify": "Notify by email (version {number})",
+    "programNotifyHint": "{count, plural, one {# recipient} other {# recipients}}: clients whose link opens the schedule, and vendors. Each receives their schedule as a PDF; their personal link is not resent, they already have it.",
+    "programNotifySent": "Version sent to {count, plural, one {# person} other {# people}}.",
+    "programNotifyPartial": "Version sent to {sent, plural, one {# person} other {# people}}; {notSent, plural, one {# email could not be sent} other {# emails could not be sent}} (sending cap or mail server). Let {notSent, plural, one {this person} other {these people}} know another way.",
+    "programNotifiedLine": "Version {number} sent by email on {date} to {count, plural, one {# person} other {# people}}.",
+    "programNotifyNoVersion": "No version is shared: share the schedule first.",
+    "programNotifyAlready": "This version has already been sent by email.",
+    "programNotifyNoRecipients": "Nobody to notify by email: no active client link with the Schedule section, and no vendor link.",
+    "programNotifyTrial": "During the trial, no email is sent.",
+    "programNotifyFailed": "The emails could not be sent: the mail server is not responding. Try again later."
   },
   "Budget": {
     "title": "Budget",
@@ -4596,7 +4611,8 @@
     "quoteTemplates": "Quote templates",
     "contractTemplates": "Contract templates",
     "export": "Export my data",
-    "storage": "Storage"
+    "storage": "Storage",
+    "emailTemplates": "Email templates"
   },
   "Common": {
     "closePanel": "Close the panel",
@@ -4849,7 +4865,8 @@
       "quotes_contract_early_execution_requested": "Early performance requested by the client",
       "hub_organization_export_requested": "Full export requested",
       "hub_organization_export_ready": "Full export prepared",
-      "hub_organization_export_downloaded": "Full export downloaded"
+      "hub_organization_export_downloaded": "Full export downloaded",
+      "hub_mail_variable_missing": "Automatic e-mail not sent: template variable without a value"
     },
     "categories": {
       "connexion": "Sign-ins",
@@ -4957,7 +4974,8 @@
       "events_event_document_versions": "document version",
       "events_event_document_links": "document share link",
       "events_program_versions": "shared version of the schedule",
-      "hub_storage_snapshots": "storage reading"
+      "hub_storage_snapshots": "storage reading",
+      "hub_email_templates": "email template"
     },
     "modules": {
       "events": "Events",
@@ -6016,5 +6034,179 @@
     "month": "Month",
     "notCounted": "Not counted: exports (full and GDPR), deleted after download, and guided-trial files.",
     "zeroVolume": "0 KB"
+  },
+  "Emails": {
+    "button": {
+      "space": "Open my space",
+      "sign": "Sign online"
+    },
+    "footerNote": "Sent with Symbola",
+    "symbolaFooter": "Symbola — the suite for event organisers",
+    "testBanner": "Test: this e-mail shows your template with sample data.",
+    "testSubject": "[Test] {subject}",
+    "sample": {
+      "firstName": "Lea",
+      "event": "your wedding",
+      "eventDate": "June 12, 2027",
+      "clients": "Lea & Max",
+      "link": "https://symbola.fr/example",
+      "validUntil": "June 19, 2027",
+      "tasks": "- Choose the rings: due March 10, 2027 (in 7 days)\n- Confirm the menu: due March 15, 2027 (in 12 days)",
+      "quoteNumber": "D-2027-0042",
+      "version": "3"
+    },
+    "event": {
+      "coupleClient": "your wedding",
+      "clientsClient": "your event",
+      "coupleVendor": "the wedding of {clients}",
+      "clientsVendor": "the event of {clients}",
+      "coupleVendorUnnamed": "this wedding",
+      "clientsVendorUnnamed": "this event"
+    },
+    "task": {
+      "line": "- {label}: due {date} ({when})",
+      "overdue": "overdue",
+      "today": "today",
+      "tomorrow": "tomorrow",
+      "inDays": "in {days} days"
+    },
+    "fixed": {
+      "linkCode": {
+        "subject": "Your Symbola code: {code}",
+        "body": "Hello {name},\n\nYour code to open your space on Symbola: {code}\n\nIt is valid for {minutes} minutes and can be used only once. If you did not ask for it, ignore this message: nobody can open your space without your link."
+      },
+      "renewalRequest": {
+        "subject": "New link requested: {name}",
+        "body": "Hello,\n\n{name} is asking for a new personal link: theirs has expired. You can renew it from the event page:\n\n{url}",
+        "button": "Open the event page"
+      },
+      "quoteSigned": {
+        "subject": "Quote {number} signed",
+        "body": "Hello,\n\nQuote {number} has been signed by all signers. The event is now confirmed. The signed document and its audit certificate are available on the quote:\n\n{url}",
+        "button": "Open the quote"
+      },
+      "exportReady": {
+        "subject": "Your Symbola export is ready",
+        "body": "Hello,\n\nThe full export of the data of \"{organization}\" is ready. Download it from Settings, Export my data, until {until}:\n\n{url}\n\nFor your security, the archive is never attached to an e-mail.",
+        "button": "Open my exports"
+      },
+      "invitation": {
+        "subject": "Your Symbola invitation",
+        "body": "Hello,\n\nYou have been invited to join \"{organization}\" on Symbola. This link is valid for 7 days:\n\n{url}",
+        "button": "Accept the invitation"
+      }
+    }
+  },
+  "RecipientsGuard": {
+    "title": "This sending goes to {count} people",
+    "intro": "Check the list: each person receives their own email. If the list changes before sending, this screen comes back with the new one.",
+    "confirm": "Send to {count} people"
+  },
+  "EmailTemplates": {
+    "title": "Email templates",
+    "subtitle": "The emails Symbola sends on your behalf to your clients and vendors, in your image.",
+    "intro": "Each email carries your logo (or your name), the colour of your documents and your contact details. Your name is the sender's name; replies reach your contact address.",
+    "languageLabel": "Template language",
+    "language": {
+      "fr": "French",
+      "en": "English"
+    },
+    "customized": "Customised",
+    "starter": "Starter text",
+    "edit": "Edit “{title}”",
+    "groups": {
+      "links": "Personal links",
+      "reminders": "Reminders",
+      "signatures": "Quotes and contracts",
+      "program": "Schedule"
+    },
+    "kinds": {
+      "client_link": {
+        "title": "Client link",
+        "description": "Sent when you create a client's personal link."
+      },
+      "client_link_renewed": {
+        "title": "Client link renewed",
+        "description": "Sent when you renew a client's link."
+      },
+      "vendor_link": {
+        "title": "Vendor link",
+        "description": "Sent when you create the link of a retained vendor."
+      },
+      "vendor_link_renewed": {
+        "title": "Vendor link renewed",
+        "description": "Sent when you renew a vendor's link."
+      },
+      "task_reminder": {
+        "title": "Client task reminder",
+        "description": "Sent automatically before the due date of the client's tasks."
+      },
+      "quote_signature": {
+        "title": "Quote signature request",
+        "description": "Sent to each signer, with their signing link."
+      },
+      "contract_signature": {
+        "title": "Contract signature request",
+        "description": "Sent to each signer when the contract is signed on its own, after the quote."
+      },
+      "order_first": {
+        "title": "Quote and contract to order first",
+        "description": "Sent when the client must place the order in their space before signing."
+      },
+      "signed_copy": {
+        "title": "Signed copy",
+        "description": "Sent automatically to each signer, with the signed quote and contract."
+      },
+      "program_published": {
+        "title": "New schedule version",
+        "description": "Sent when you notify a shared version by email, with the schedule as a PDF."
+      }
+    },
+    "variables": {
+      "first_name": "The person's name, as on their link or signature",
+      "organization": "Your business name",
+      "event": "The event, as told to the person: “your wedding” to the client, “the wedding of Léa & Maxime” to a vendor",
+      "event_date": "The event date",
+      "clients": "The clients' first names",
+      "link": "Their personal link; alone on its line, it becomes a button",
+      "valid_until": "The link's expiry date",
+      "tasks": "The list of tasks to do, with their due dates",
+      "quote_number": "The quote number",
+      "version": "The schedule version number"
+    },
+    "back": "All email templates",
+    "editorTitle": "{title} ({language})",
+    "subjectLabel": "Subject",
+    "bodyLabel": "Text",
+    "bodyHint": "A blank line separates two paragraphs. Copy a variable as is, braces included.",
+    "variablesTitle": "Variables of this template",
+    "variableRequired": "required",
+    "save": "Save",
+    "saved": "Template saved: the next emails will use this text.",
+    "preview": "Update the preview",
+    "previewTitle": "Preview",
+    "previewHint": "The email as it will be sent, with sample data (Léa, her wedding on June 12, 2027…).",
+    "previewLabel": "Email preview",
+    "previewFrom": "From: {name}",
+    "previewReplyTo": "Replies reach {email}.",
+    "previewNoReplyTo": "No contact address: replies will go nowhere. Add it in Settings, Company and VAT.",
+    "previewSubject": "Subject: {subject}",
+    "previewMissing": "Variable without a value: {tokens}. The email would not be sent.",
+    "sendTest": "Send me a test",
+    "testHint": "The test goes to your own address only, marked “Test”, with the text shown (even if not saved yet). It counts towards the hourly sending cap.",
+    "testSent": "Test sent to {email}.",
+    "testFailed": "The test could not be sent: the mail server is not responding. Try again later.",
+    "reset": "Back to the starter text",
+    "resetTitle": "Back to the starter text?",
+    "resetBody": "Your text for this template will be replaced by Symbola's. You will not be able to get it back.",
+    "resetDone": "Starter text restored.",
+    "errorEmpty": "The subject and the text are required.",
+    "errorUnknown": "Unknown variable, or not part of this template: {tokens}.",
+    "errorRequired": "Required variable missing from the text: {tokens}.",
+    "errorSubjectTooLong": "The subject is longer than {max} characters.",
+    "errorBodyTooLong": "The text is longer than {max} characters.",
+    "variableMissing": "The “{template}” email cannot be sent: a variable has no value ({tokens}). Complete the record, or fix the template in Settings, Email templates.",
+    "todayBanner": "{count, plural, one {The automatic reminder of one event is not being sent} other {The automatic reminders of # events are not being sent}}: a variable of the “{template}” template has no value.",
+    "todayBannerLink": "Fix the template"
   }
 }

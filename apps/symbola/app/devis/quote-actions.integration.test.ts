@@ -230,7 +230,8 @@ describe("DEV-02 — L'envoi en signature est refusé hors de la planner de l'or
     sessionToken = context.clientToken;
     expect(await sendForSignatureAction({}, form({ quoteId: context.quoteId, ...signer }))).toEqual({ error: "unauthenticated" });
     sessionToken = context.otherPlannerToken;
-    expect(await sendForSignatureAction({}, form({ quoteId: context.quoteId, ...signer }))).toEqual({ error: "quoteNotFound" });
+    // Lot 38a : les signataires saisis reviennent dans le formulaire ; rien du devis de l'autre organisation.
+    expect(await sendForSignatureAction({}, form({ quoteId: context.quoteId, ...signer }))).toMatchObject({ error: "quoteNotFound" });
 
     const quote = await getQuote(context.organizationId, context.quoteId);
     expect(quote.status).toBe("draft");

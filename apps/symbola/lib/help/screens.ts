@@ -98,6 +98,8 @@ export const HELP_SCREENS: HelpScreen[] = [
   // Lot 36a (CRM-03) : les contacts de l'organisation et la fiche d'un contact.
   { key: "contactsList", group: "company", audience: "team", path: "/contacts", capture: true },
   { key: "contactDetail", group: "company", audience: "team", path: null, capture: false },
+  // Lot 38a (MSG-01, D3, D7) : modèles des e-mails envoyés au nom de l'organisation.
+  { key: "emailTemplates", group: "company", audience: "team", path: "/parametres/emails", capture: false },
   // Lot 35a (HUB-13, D5) : export complet des données, titulaire seulement.
   { key: "organizationExport", group: "data", audience: "team", ownerOnly: true, path: "/parametres/export", capture: true },
   // Lot 37b (DOC-12, D12) : relevé mensuel du stockage, titulaire seulement.

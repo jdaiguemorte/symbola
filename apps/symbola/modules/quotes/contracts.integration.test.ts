@@ -57,6 +57,8 @@ import {
 import { withdrawalPeriod } from "./contract-text";
 import { fakeSignatureProvider, setSignatureProviderForTests } from "./signature";
 import { quotesPrivacy } from "./privacy";
+import { confirmed } from "@/lib/test-fixtures/recipients";
+import { recipientsDigest } from "@/modules/hub/service";
 
 const PDF = Buffer.from("%PDF-1.4\n%%EOF\n", "latin1");
 const render = async () => new Uint8Array(PDF);
@@ -336,11 +338,11 @@ describe("DOC-03 / JUR-07 — Devis et contrat signés ensemble, actes du client
     setSignatureProviderForTests(fakeSignatureProvider());
     const people = signers();
     // À distance, sans espace personnel pour commander, l'envoi est refusé et nomme qui en manque.
-    const refused = await sendQuoteForSignature({ organizationId: context.organizationId, quoteId: sent.id, signers: people, documentPdf: PDF, locale: "fr", contractId: contract.id }).catch((error: unknown) => error);
+    const refused = await sendQuoteForSignature(confirmed({ organizationId: context.organizationId, quoteId: sent.id, signers: people, documentPdf: PDF, locale: "fr", contractId: contract.id })).catch((error: unknown) => error);
     expect(refused).toBeInstanceOf(SignersWithoutPortalError);
     expect((refused as SignersWithoutPortalError).names).toEqual(["Léa Martin", "Maxime Durand"]);
     await portalLinks(context, people);
-    const signing = await sendQuoteForSignature({ organizationId: context.organizationId, quoteId: sent.id, signers: people, documentPdf: PDF, locale: "fr", contractId: contract.id });
+    const signing = await sendQuoteForSignature(confirmed({ organizationId: context.organizationId, quoteId: sent.id, signers: people, documentPdf: PDF, locale: "fr", contractId: contract.id }));
     expect(signing.signature).toMatchObject({ kind: "quote_contract", contractId: contract.id });
 
     const portal = async (email: string) => (await listClientQuotesToSign(context.organizationId, context.eventId, email))[0]!;
@@ -394,12 +396,13 @@ describe("DOC-03 / JUR-07 — Devis et contrat signés ensemble, actes du client
     const context = await organization();
     const sent = await quote(context);
     setSignatureProviderForTests(fakeSignatureProvider());
-    const signing = await sendQuoteForSignature({ organizationId: context.organizationId, quoteId: sent.id, signers: signers(), documentPdf: PDF, locale: "fr" });
+    const signing = await sendQuoteForSignature(confirmed({ organizationId: context.organizationId, quoteId: sent.id, signers: signers(), documentPdf: PDF, locale: "fr" }));
     expect(signing.signature!.kind).toBe("quote");
     await signEveryone(signing);
     const template = await readyTemplate(context);
     const contract = await generateContract(generation(context, sent.id, template, { channel: "on_premises", optionalClauseIds: clauseIds(template, ON_PREMISES_CLAUSES) }));
-    const alone = await sendContractForSignature({ organizationId: context.organizationId, quoteId: sent.id, contractId: contract.id, documentPdf: PDF, locale: "fr" });
+    // Lot 38a (MSG-02) : les mêmes signataires, revus sur l'écran du garde-fou.
+    const alone = await sendContractForSignature({ organizationId: context.organizationId, quoteId: sent.id, contractId: contract.id, documentPdf: PDF, locale: "fr", confirmedRecipients: recipientsDigest(signing.signature!.signers) });
     expect(alone.signature).toMatchObject({ kind: "contract", status: "pending" });
     for (const signer of signing.signature!.signers) {
       const entry = (await listClientQuotesToSign(context.organizationId, context.eventId, signer.email)).find((candidate) => candidate.kind === "contract")!;
@@ -423,7 +426,7 @@ describe("FAC-05 — Facture d'acompte sans autre saisie (lot 31b, D6, D21)", ()
     setSignatureProviderForTests(fakeSignatureProvider());
     const people = signers();
     await portalLinks(context, people);
-    const signing = await sendQuoteForSignature({ organizationId: context.organizationId, quoteId: sent.id, signers: people, documentPdf: PDF, locale: "fr", contractId: contract.id });
+    const signing = await sendQuoteForSignature(confirmed({ organizationId: context.organizationId, quoteId: sent.id, signers: people, documentPdf: PDF, locale: "fr", contractId: contract.id }));
     // Une seule demande d'exécution anticipée : le délai court.
     await recordSignerAct({ organizationId: context.organizationId, eventId: context.eventId, clientEmail: people[0]!.email, contractId: contract.id, kind: "early_execution" });
     await signEveryone(signing);
@@ -443,7 +446,7 @@ describe("FAC-05 — Facture d'acompte sans autre saisie (lot 31b, D6, D21)", ()
     const template = await readyTemplate(context);
     const contract = await generateContract(generation(context, sent.id, template, { channel: "on_premises", optionalClauseIds: clauseIds(template, ON_PREMISES_CLAUSES) }));
     setSignatureProviderForTests(fakeSignatureProvider());
-    await signEveryone(await sendQuoteForSignature({ organizationId: context.organizationId, quoteId: sent.id, signers: signers(), documentPdf: PDF, locale: "fr", contractId: contract.id }));
+    await signEveryone(await sendQuoteForSignature(confirmed({ organizationId: context.organizationId, quoteId: sent.id, signers: signers(), documentPdf: PDF, locale: "fr", contractId: contract.id })));
     const settings = await getQuoteSettings(context.organizationId);
     await updateQuoteSettings(context.organizationId, { ...settings, invoiceMentions: "" });
     expect(await issueScheduledDepositInvoices({ organizationId: context.organizationId, renderOriginal: render })).toEqual({ issued: 0, blocked: 1 });
@@ -460,7 +463,7 @@ describe("FAC-05 — Facture d'acompte sans autre saisie (lot 31b, D6, D21)", ()
     await setQuoteAdvanceKind(context.organizationId, earnest.id, "earnest");
     await sendQuote({ organizationId: context.organizationId, quoteId: earnest.id });
     setSignatureProviderForTests(fakeSignatureProvider());
-    await signEveryone(await sendQuoteForSignature({ organizationId: context.organizationId, quoteId: earnest.id, signers: signers(), documentPdf: PDF, locale: "fr" }));
+    await signEveryone(await sendQuoteForSignature(confirmed({ organizationId: context.organizationId, quoteId: earnest.id, signers: signers(), documentPdf: PDF, locale: "fr" })));
     expect(await getQuoteScheduledDeposit(context.organizationId, earnest.id)).toBeNull();
 
     const today = parisDay();
@@ -468,7 +471,7 @@ describe("FAC-05 — Facture d'acompte sans autre saisie (lot 31b, D6, D21)", ()
     const template = await readyTemplate(context);
     const contract = await generateContract(generation(context, outside.id, template, { channel: "off_premises" }));
     const people = signers();
-    const signing = await sendQuoteForSignature({ organizationId: context.organizationId, quoteId: outside.id, signers: people, documentPdf: PDF, locale: "fr", contractId: contract.id });
+    const signing = await sendQuoteForSignature(confirmed({ organizationId: context.organizationId, quoteId: outside.id, signers: people, documentPdf: PDF, locale: "fr", contractId: contract.id }));
     for (const person of people) {
       await recordSignerAct({ organizationId: context.organizationId, eventId: context.eventId, clientEmail: person.email, contractId: contract.id, kind: "early_execution" });
     }
@@ -487,11 +490,11 @@ describe("RGP-05 / RGPD-03 — Contrats et actes des signataires dans la recherc
     const signedContract = await generateContract(generation(context, signedQuote.id, template, { channel: "on_premises", optionalClauseIds: clauseIds(template, ON_PREMISES_CLAUSES) }));
     setSignatureProviderForTests(fakeSignatureProvider());
     const people = signers();
-    await signEveryone(await sendQuoteForSignature({ organizationId: context.organizationId, quoteId: signedQuote.id, signers: people, documentPdf: PDF, locale: "fr", contractId: signedContract.id }));
+    await signEveryone(await sendQuoteForSignature(confirmed({ organizationId: context.organizationId, quoteId: signedQuote.id, signers: people, documentPdf: PDF, locale: "fr", contractId: signedContract.id })));
     const openQuote = await quote(context);
     const openContract = await generateContract(generation(context, openQuote.id, template));
     await portalLinks(context, people);
-    await sendQuoteForSignature({ organizationId: context.organizationId, quoteId: openQuote.id, signers: people, documentPdf: PDF, locale: "fr", contractId: openContract.id });
+    await sendQuoteForSignature(confirmed({ organizationId: context.organizationId, quoteId: openQuote.id, signers: people, documentPdf: PDF, locale: "fr", contractId: openContract.id }));
     await recordSignerAct({ organizationId: context.organizationId, eventId: context.eventId, clientEmail: people[0]!.email, contractId: openContract.id, kind: "order", orderText: "Je commande avec obligation de paiement" });
 
     const found = await quotesPrivacy.find({ organizationId: context.organizationId, terms: { name: "Lea Martin" } });
@@ -527,7 +530,7 @@ describe("FAC-13 / EVT-05 — Annulation : la facture d'acompte programmée atte
     const template = await readyTemplate(context);
     const contract = await generateContract(generation(context, sent.id, template, { channel: "on_premises", optionalClauseIds: clauseIds(template, ON_PREMISES_CLAUSES) }));
     setSignatureProviderForTests(fakeSignatureProvider());
-    await signEveryone(await sendQuoteForSignature({ organizationId: context.organizationId, quoteId: sent.id, signers: signers(), documentPdf: PDF, locale: "fr", contractId: contract.id }));
+    await signEveryone(await sendQuoteForSignature(confirmed({ organizationId: context.organizationId, quoteId: sent.id, signers: signers(), documentPdf: PDF, locale: "fr", contractId: contract.id })));
     expect((await getEvent(context.organizationId, context.eventId))?.status).toBe("confirmed");
 
     await cancelEvent({ organizationId: context.organizationId, eventId: context.eventId, changedByUserId: context.plannerId, lossReasonId: null, lossReasonNote: "Séparation" });

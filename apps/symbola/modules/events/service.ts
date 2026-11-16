@@ -11,7 +11,7 @@ import { listTeam } from "@symbola/auth";
 import { SYSTEM_ACTOR, withActor } from "@symbola/db/actor";
 import { appDatabase } from "@symbola/db/client";
 import { parseEnv } from "@symbola/env";
-import { MailQuotaExceededError, reserveOrganizationMail, sendMail } from "@symbola/mail";
+import { MailQuotaExceededError, reserveOrganizationMail } from "@symbola/mail";
 import { starterClientTaskReminders, starterDemoEvent, starterExampleEvent, starterLinkExpiry, starterLinkProfiles, starterProgram, starterRetroplanning, starterTutorialEvent, starterVendorSlots, type StarterLinkProfile } from "@symbola/starter-templates";
 import {
   postponeEventRow,
@@ -158,9 +158,14 @@ import {
   parseLinkToken,
   parisStartOfDay,
 } from "./link-tokens";
-import { isSendingHour, reminderMail, reminderThreshold, type ReminderTask } from "./task-reminders";
+import { isSendingHour, reminderTaskLines, reminderThreshold, type ReminderTask } from "./task-reminders";
+import { recordAudit } from "@symbola/db/audit";
 import { resolveClientContacts } from "./clients";
-import { ContactEmailTakenError, ContactInvalidError, ContactNotFoundError, updateContact } from "@/modules/hub/service";
+import { assertOrganizationEmailReady, assertRecipientsConfirmed, ContactEmailTakenError, ContactInvalidError, ContactNotFoundError, EmailVariableMissingError, getUserContact, sendOrganizationEmail, sendSymbolaEmail, updateContact } from "@/modules/hub/service";
+import { createTranslator } from "next-intl";
+import type { EmailTemplateKind, EmailValues } from "@symbola/contracts";
+import frMessages from "@symbola/i18n/messages/fr.json";
+import enMessages from "@symbola/i18n/messages/en.json";
 import { answerDecisionRow, findDecisionRow, findDecisionRows, insertDecisionRow, replacementsOf, withdrawDecisionRow, type EventDecisionRow } from "./decisions-repository";
 import { findPendingDecisions, findUncontractedVendors, insertVendorReminder } from "./today-sources";
 import { VendorCandidateNotFoundError as CandidateNotFoundError } from "./vendor-candidates";
@@ -224,7 +229,18 @@ import {
   setDocumentSharing,
 } from "./documents";
 import { findProgramOverlaps, hasProgramChanges, MAX_SHIFT_MINUTES, normalizeTime, programChanges, publishedProgramItems, sortProgramItems, vendorProgramOf } from "./program";
-import { findLatestProgramVersion, findLinkProgramSeen, findProgramVersion, findProgramVersions, insertProgramVersion, markProgramSeen, ProgramPublishError } from "./program-versions";
+import {
+  claimProgramNotification,
+  findLatestProgramVersion,
+  findLinkProgramSeen,
+  findProgramVersion,
+  findProgramVersions,
+  insertProgramVersion,
+  markProgramSeen,
+  ProgramPublishError,
+  recordProgramNotification,
+  releaseProgramNotification,
+} from "./program-versions";
 import { endTimeAfter, MINUTES_PER_DAY } from "@/lib/program-spans";
 import type {
   PendingDecision,
@@ -300,6 +316,10 @@ import type {
   ProgramVersion,
   ProgramVersionSummary,
   PublishEventProgramInput,
+  ProgramRecipient,
+  ProgramRecipientDocument,
+  NotifyProgramVersionInput,
+  ProgramNotification,
   PublishedProgramView,
   VendorProgramView,
   ProgramTemplate,
@@ -396,6 +416,10 @@ export type {
   ProgramVersion,
   ProgramVersionSummary,
   PublishEventProgramInput,
+  ProgramRecipient,
+  ProgramRecipientDocument,
+  NotifyProgramVersionInput,
+  ProgramNotification,
   PublishedProgramItem,
   PublishedProgramView,
   VendorProgramView,
@@ -1588,6 +1612,106 @@ export async function getEventProgramVersion(organizationId: string, eventId: st
   return findProgramVersion(organizationId, eventId, number);
 }
 
+// Lot 38a (D9) — « Prévenir par e-mail » : « no_version » (rien n'est diffusé), « already_notified »
+// (cette version est déjà partie), « no_recipients » (aucun lien actif concerné).
+export class ProgramNotifyError extends Error {
+  constructor(readonly reason: "no_version" | "already_notified" | "no_recipients") {
+    super(`envoi du programme refusé : ${reason}`);
+    this.name = "ProgramNotifyError";
+  }
+}
+
+type ProgramRecipientRow = ProgramRecipient & { vendor: { vendorSlotId: string; slotLabel: string } | null };
+
+// Les liens actifs des clients qui ont la rubrique Programme, et ceux des prestataires dont le poste
+// existe encore (sa vue du programme en dépend).
+async function programRecipientRows(organizationId: string, eventId: string, now: Date): Promise<ProgramRecipientRow[]> {
+  const rows: ProgramRecipientRow[] = [];
+  for (const context of await findEventLinkRows(organizationId, eventId)) {
+    if (!usableLink(context, now)) continue;
+    const base = { linkId: context.link.id, name: context.link.personName, email: context.link.email, locale: context.link.locale === "en" ? ("en" as const) : ("fr" as const) };
+    if (context.link.audience === "client" && rightsOf(context).rubrics.includes("program")) rows.push({ ...base, audience: "client", vendor: null });
+    if (context.link.audience === "vendor" && context.link.vendorCandidateId) {
+      const vendor = await findLinkVendorRow(organizationId, context.link.vendorCandidateId);
+      if (vendor && vendor.eventId === eventId) rows.push({ ...base, audience: "vendor", vendor: { vendorSlotId: vendor.vendorSlotId, slotLabel: vendor.slotLabel } });
+    }
+  }
+  return rows;
+}
+
+export async function listProgramRecipients(organizationId: string, eventId: string, now: Date = new Date()): Promise<ProgramRecipient[]> {
+  return (await programRecipientRows(organizationId, eventId, now)).map(({ vendor: _vendor, ...recipient }) => recipient);
+}
+
+// Chacun reçoit son programme de la dernière version : celui des clients, ou la vue de son poste
+// (ses séquences en entier, le déroulé du jour en titres et horaires ; jamais de note interne).
+function programDocumentOf(row: ProgramRecipientRow, found: { clients: { firstName: string }[]; event: { eventDate: string | null } }, version: ProgramVersion): ProgramRecipientDocument {
+  const { vendor, ...recipient } = row;
+  const event = { clientFirstNames: found.clients.map((client) => client.firstName), eventDate: found.event.eventDate };
+  const published = { number: version.number, publishedAt: version.publishedAt };
+  return vendor
+    ? { recipient, event, version: published, view: { kind: "vendor", slotLabel: vendor.slotLabel, ...vendorProgramOf(version.items, vendor.vendorSlotId) } }
+    : { recipient, event, version: published, view: { kind: "client", items: version.items } };
+}
+
+// Lot 38a (D9 ; MSG-02, D8 ; MSG-01, D5) — envoie la dernière version diffusée à ses destinataires,
+// une seule fois : garde-fou à plusieurs personnes, chaque e-mail vérifié avant le premier envoi,
+// chacun avec son PDF ; la version note quand et à combien de personnes elle est partie. Un plafond
+// d'envois atteint arrête l'envoi : les e-mails non partis sont comptés.
+export async function notifyProgramVersion(input: NotifyProgramVersionInput): Promise<ProgramNotification> {
+  const { organizationId, eventId } = input;
+  const now = input.now ?? new Date();
+  const [found, version] = await Promise.all([findEventById(organizationId, eventId), findLatestProgramVersion(organizationId, eventId)]);
+  if (!found) throw new EventNotFoundError();
+  if (found.event.isDemo) throw new DemoEventRestrictionError();
+  if (!version) throw new ProgramNotifyError("no_version");
+  if (version.notifiedAt) throw new ProgramNotifyError("already_notified");
+  const rows = await programRecipientRows(organizationId, eventId, now);
+  if (rows.length === 0) throw new ProgramNotifyError("no_recipients");
+  assertRecipientsConfirmed(
+    rows.map(({ name, email }) => ({ name, email })),
+    input.confirmedRecipients,
+  );
+  const vocabulary = (await findEventAudience(organizationId, eventId)) ?? "couple";
+  const letters: { row: ProgramRecipientRow; values: EmailValues }[] = [];
+  for (const row of rows) {
+    const values: EmailValues = {
+      ...(await linkEmailValues({ organizationId, eventId, audience: row.audience, personName: row.name, locale: row.locale, vocabulary, expiresOn: null })),
+      version: String(version.number),
+    };
+    await assertOrganizationEmailReady({ organizationId, kind: "program_published", locale: row.locale, values });
+    letters.push({ row, values });
+  }
+  if (!(await claimProgramNotification(organizationId, eventId, version.number, now))) throw new ProgramNotifyError("already_notified");
+  let sent = 0;
+  let failure: unknown = null;
+  for (const { row, values } of letters) {
+    try {
+      const pdf = await input.renderDocument(programDocumentOf(row, found, version));
+      await sendOrganizationEmail({
+        organizationId,
+        to: row.email,
+        kind: "program_published",
+        locale: row.locale,
+        values,
+        attachments: [{ filename: pdf.filename, content: Buffer.from(pdf.content), contentType: "application/pdf" }],
+      });
+      sent += 1;
+    } catch (error) {
+      failure = error;
+      if (error instanceof MailQuotaExceededError) break;
+      // Nom de l'erreur seulement au journal : jamais d'adresse (SEC-20).
+      console.error("e-mail du programme non parti", error instanceof Error ? error.name : "erreur");
+    }
+  }
+  if (sent === 0) {
+    await releaseProgramNotification(organizationId, eventId, version.number);
+    throw failure;
+  }
+  await recordProgramNotification(organizationId, eventId, version.number, sent);
+  return { version: version.number, sent, notSent: letters.length - sent };
+}
+
 // D11 : la page d'un lien marque la dernière version comme vue (jamais l'aperçu « vu par »).
 export async function markLinkProgramSeen(organizationId: string, linkId: string, number: number): Promise<void> {
   if (!Number.isInteger(number) || number < 1) return;
@@ -1847,62 +1971,52 @@ function linkUrl(token: string): string {
   return `${parseEnv(process.env).APP_PUBLIC_URL}/lien#${token}`;
 }
 
-async function sendLinkMail(input: {
-  audience: LinkAudience;
-  email: string;
-  personName: string;
-  locale: "fr" | "en";
-  vocabulary: EventTypeAudience;
-  url: string;
-  expiresOn: string;
-  renewed: boolean;
-}): Promise<void> {
-  if (input.audience === "vendor") {
-    await sendVendorLinkMail(input);
-    return;
-  }
-  // Service sans next-intl : variantes inline, comme l'invitation PRD-HUB-03.
-  // Lot 16 (ADR 0045) : un mariage parle de « votre mariage », les autres
-  // événements de « votre événement ».
-  const couple = input.vocabulary === "couple";
-  const until = formatCalendarDate(input.expiresOn, input.locale);
-  const fr = input.renewed
-    ? `Bonjour ${input.personName},\n\nVoici votre nouveau lien personnel pour suivre ${couple ? "votre mariage" : "votre événement"} sur Symbola, valable jusqu'au ${until} inclus :\n${input.url}\n\nL'ancien lien ne fonctionne plus. Ce lien vous est réservé : ne le transférez pas.\n\nÀ bientôt,\nL'équipe Symbola`
-    : `Bonjour ${input.personName},\n\n${couple ? "Votre wedding planner" : "Votre organisateur"} vous a ouvert un espace pour suivre ${couple ? "votre mariage" : "votre événement"} sur Symbola, sans compte ni mot de passe. Votre lien personnel, valable jusqu'au ${until} inclus :\n${input.url}\n\nCe lien vous est réservé : ne le transférez pas. Si vous ne l'attendiez pas, ignorez ce message.\n\nÀ bientôt,\nL'équipe Symbola`;
-  const en = input.renewed
-    ? `Hello ${input.personName},\n\nHere is your new personal link to follow ${couple ? "your wedding" : "your event"} on Symbola, valid until ${until} included:\n${input.url}\n\nThe previous link no longer works. This link is for you only: please do not forward it.\n\nSee you soon,\nThe Symbola team`
-    : `Hello ${input.personName},\n\n${couple ? "Your wedding planner" : "Your event organiser"} has opened a space for you to follow ${couple ? "your wedding" : "your event"} on Symbola, with no account or password. Your personal link, valid until ${until} included:\n${input.url}\n\nThis link is for you only: please do not forward it. If you were not expecting it, ignore this message.\n\nSee you soon,\nThe Symbola team`;
-  await sendMail({
-    to: input.email,
-    subject: input.locale === "en" ? (couple ? "Your wedding on Symbola" : "Your event on Symbola") : couple ? "Votre mariage sur Symbola" : "Votre événement sur Symbola",
-    text: input.locale === "en" ? en : fr,
-  });
+// Lot 38a (MSG-01 ; D3, D5, D6 ; ADR 0072) : l'e-mail d'un lien part du modèle de l'organisation, à
+// son image, dans la langue du lien. « {{évènement}} » dit « votre mariage » au client, « le mariage
+// de Léa & Maxime » au prestataire (ADR 0045 : le vocabulaire du type d'évènement).
+function emailTranslator(locale: "fr" | "en") {
+  return createTranslator({ locale, messages: locale === "en" ? enMessages : frMessages, namespace: "Emails" });
 }
 
-// Lot 26b (D9) : le prestataire reçoit l'accès à son espace (date, lieux,
-// horaires qui le concernent) ; jamais au portail du client.
-async function sendVendorLinkMail(input: { email: string; personName: string; locale: "fr" | "en"; url: string; expiresOn: string; renewed: boolean }): Promise<void> {
-  const until = formatCalendarDate(input.expiresOn, input.locale);
-  const fr = `Bonjour ${input.personName},\n\n${
-    input.renewed ? "Voici votre nouveau lien personnel" : "L'organisateur d'un événement auquel vous participez vous a ouvert un espace sur Symbola, sans compte ni mot de passe. Votre lien personnel"
-  } pour retrouver la date, les lieux et les horaires qui vous concernent, valable jusqu'au ${until} inclus :\n${input.url}\n\n${
-    input.renewed ? "L'ancien lien ne fonctionne plus. " : ""
-  }Ce lien vous est réservé : ne le transférez pas. Si vous ne l'attendiez pas, ignorez ce message.\n\nÀ bientôt,\nL'équipe Symbola`;
-  const en = `Hello ${input.personName},\n\n${
-    input.renewed ? "Here is your new personal link" : "The organiser of an event you are working on has opened a space for you on Symbola, with no account or password. Your personal link"
-  } to find the date, venues and times that concern you, valid until ${until} included:\n${input.url}\n\n${
-    input.renewed ? "The previous link no longer works. " : ""
-  }This link is for you only: please do not forward it. If you were not expecting it, ignore this message.\n\nSee you soon,\nThe Symbola team`;
-  await sendMail({
-    to: input.email,
-    subject: input.locale === "en" ? "Your event space on Symbola" : "Votre espace prestataire sur Symbola",
-    text: input.locale === "en" ? en : fr,
-  });
+function linkEmailKind(audience: LinkAudience, renewed: boolean): EmailTemplateKind {
+  if (audience === "vendor") return renewed ? "vendor_link_renewed" : "vendor_link";
+  return renewed ? "client_link_renewed" : "client_link";
+}
+
+async function linkEmailValues(input: { organizationId: string; eventId: string; audience: LinkAudience; personName: string; locale: "fr" | "en"; vocabulary: EventTypeAudience; expiresOn: string | null; url?: string }): Promise<EmailValues> {
+  const found = await findEventById(input.organizationId, input.eventId);
+  const clients = found ? eventNames(found.clients.filter((client) => client.firstName.trim())) : "";
+  const t = emailTranslator(input.locale);
+  const couple = input.vocabulary === "couple";
+  const event =
+    input.audience === "vendor"
+      ? clients
+        ? t(couple ? "event.coupleVendor" : "event.clientsVendor", { clients })
+        : t(couple ? "event.coupleVendorUnnamed" : "event.clientsVendorUnnamed")
+      : t(couple ? "event.coupleClient" : "event.clientsClient");
+  return {
+    first_name: input.personName,
+    event,
+    clients,
+    event_date: found?.event.eventDate ? formatCalendarDate(found.event.eventDate, input.locale) : "",
+    // Avant la création du lien, son échéance n'est pas encore connue : une valeur d'attente.
+    valid_until: input.expiresOn ? formatCalendarDate(input.expiresOn, input.locale) : "—",
+    ...(input.url ? { link: input.url } : {}),
+  };
 }
 
 export async function createEventLink(input: CreateEventLinkInput): Promise<EventLinkDelivery> {
   if (!CREATABLE_AUDIENCES.includes(input.audience)) throw new EventLinkInvalidError("audience");
   const fields = validLinkFields(input.link);
+  const vocabulary = input.vocabulary ?? (await findEventAudience(input.organizationId, input.eventId)) ?? "couple";
+  const kind = linkEmailKind(input.audience, false);
+  // L'évènement d'abord : un essai n'envoie jamais d'e-mail à un tiers (l'écriture le revérifie).
+  const found = await findEventById(input.organizationId, input.eventId);
+  if (!found) throw new EventNotFoundError();
+  if (found.event.isDemo) throw new DemoEventRestrictionError();
+  // Lot 38a (MSG-01, D5) : un lien ne se crée pas si son e-mail ne pourrait pas partir (variable vide).
+  const base = { organizationId: input.organizationId, eventId: input.eventId, audience: input.audience, personName: fields.personName, locale: input.locale, vocabulary };
+  await assertOrganizationEmailReady({ organizationId: input.organizationId, kind, locale: input.locale, values: await linkEmailValues({ ...base, expiresOn: null }) });
   // Lot 24b (SEC-22, décision D5) : l'e-mail est réservé avant tout, pour ne
   // pas créer de lien qu'on ne pourrait pas annoncer.
   await reserveOrganizationMail(input.organizationId);
@@ -1919,8 +2033,7 @@ export async function createEventLink(input: CreateEventLinkInput): Promise<Even
   if (result.status !== "saved") throw linkWriteError(result.status);
   const link = toEventLink(result.context);
   const url = linkUrl(formatLinkToken(input.organizationId, secret));
-  const vocabulary = input.vocabulary ?? (await findEventAudience(input.organizationId, input.eventId)) ?? "couple";
-  await sendLinkMail({ audience: link.audience, email: link.email, personName: link.personName, locale: input.locale, vocabulary, url, expiresOn: link.expiresOn, renewed: false });
+  await sendOrganizationEmail({ organizationId: input.organizationId, to: link.email, kind, locale: input.locale, values: await linkEmailValues({ ...base, personName: link.personName, expiresOn: link.expiresOn, url }), reserve: false });
   return { link, url };
 }
 
@@ -1944,14 +2057,18 @@ export async function renewEventLink(input: RenewEventLinkInput): Promise<EventL
   if (current.event.isDemo) throw new DemoEventRestrictionError();
   const now = new Date();
   const extendTo = isLinkExpired(expiresOnOf(current), now) ? addDays(parisToday(now), starterLinkExpiry().daysAfterEvent[current.link.audience]) : undefined;
+  const vocabulary = input.vocabulary ?? (await findEventAudience(input.organizationId, current.link.eventId)) ?? "couple";
+  const kind = linkEmailKind(current.link.audience, true);
+  const base = { organizationId: input.organizationId, eventId: current.link.eventId, audience: current.link.audience, personName: current.link.personName, locale: input.locale, vocabulary };
+  // Lot 38a (MSG-01, D5) : pas de nouveau jeton si l'e-mail ne pourrait pas partir.
+  await assertOrganizationEmailReady({ organizationId: input.organizationId, kind, locale: input.locale, values: await linkEmailValues({ ...base, expiresOn: null }) });
   await reserveOrganizationMail(input.organizationId);
   const secret = newLinkSecret();
   const context = await replaceLinkTokenRow(input.organizationId, input.linkId, hashLinkSecret(secret), extendTo, input.locale);
   if (!context) throw new EventLinkNotFoundError();
   const link = toEventLink(context, now);
   const url = linkUrl(formatLinkToken(input.organizationId, secret));
-  const vocabulary = input.vocabulary ?? (await findEventAudience(input.organizationId, link.eventId)) ?? "couple";
-  await sendLinkMail({ audience: link.audience, email: link.email, personName: link.personName, locale: input.locale, vocabulary, url, expiresOn: link.expiresOn, renewed: true });
+  await sendOrganizationEmail({ organizationId: input.organizationId, to: link.email, kind, locale: input.locale, values: await linkEmailValues({ ...base, expiresOn: link.expiresOn, url }), reserve: false });
   return { link, url };
 }
 
@@ -2026,14 +2143,9 @@ async function sendLinkCode(organizationId: string, context: LinkWithContext, no
   );
   if (issued === "throttled") return { outcome: "code_required", emailHint, codeSent: false };
   const minutes = Math.round(LINK_CODE_TTL_MS / 60_000);
-  await sendMail({
-    to: link.email,
-    subject: locale === "en" ? `Your Symbola code: ${code}` : `Votre code Symbola : ${code}`,
-    text:
-      locale === "en"
-        ? `Hello ${link.personName},\n\nYour code to open your space on Symbola: ${code}\n\nIt is valid for ${minutes} minutes and can be used only once. If you did not ask for it, ignore this message: nobody can open your space without your link.\n\nThe Symbola team`
-        : `Bonjour ${link.personName},\n\nVotre code pour ouvrir votre espace sur Symbola : ${code}\n\nIl est valable ${minutes} minutes et ne sert qu'une fois. Si vous ne l'avez pas demandé, ignorez ce message : personne ne peut ouvrir votre espace sans votre lien.\n\nL'équipe Symbola`,
-  });
+  // Lot 38a (D3) : un texte fixe de Symbola, mis en page.
+  const t = emailTranslator(locale);
+  await sendSymbolaEmail({ to: link.email, locale, subject: t("fixed.linkCode.subject", { code }), body: t("fixed.linkCode.body", { name: link.personName, code, minutes }) });
   return { outcome: "code_required", emailHint, codeSent: true };
 }
 
@@ -2105,10 +2217,15 @@ async function notifyRenewalRequest(organizationId: string, context: LinkWithCon
   const recipients = creator ? [creator] : team.filter((member) => member.role === "owner");
   const url = `${parseEnv(process.env).APP_PUBLIC_URL}/events/${context.link.eventId}?onglet=maries`;
   for (const member of recipients) {
-    await sendMail({
+    // Lot 38a (D3) : dans la langue de la personne de l'équipe, texte fixe de Symbola.
+    const locale = (await getUserContact(appDatabase(), organizationId, member.id))?.language ?? "fr";
+    const t = emailTranslator(locale);
+    await sendSymbolaEmail({
       to: member.email,
-      subject: "Demande d'un nouveau lien / New link requested",
-      text: `Bonjour,\n\n${context.link.personName} demande un nouveau lien personnel : le sien a expiré. Vous pouvez le renouveler depuis la fiche de l'événement :\n${url}\n\n—\n\nHello,\n\n${context.link.personName} is asking for a new personal link: theirs has expired. You can renew it from the event page:\n${url}\n\nL'équipe Symbola / The Symbola team`,
+      locale,
+      subject: t("fixed.renewalRequest.subject", { name: context.link.personName }),
+      body: t("fixed.renewalRequest.body", { name: context.link.personName, url }),
+      button: { label: t("fixed.renewalRequest.button"), url },
     });
   }
 }
@@ -2269,20 +2386,33 @@ export async function sendClientTaskReminders(organizationId: string, now: Date 
       return threshold && !candidate.sent.has(`${task.id}:${threshold}`) ? [{ taskId: task.id, label: task.label, dueDate: task.dueDate, threshold }] : [];
     });
     if (due.length === 0) continue;
+    const { link } = candidate.context;
+    // Lot 38a (MSG-01, D5 ; ADR 0072) : le rappel part du modèle de l'organisation. Une variable vide
+    // l'arrête avant toute réservation : il est porté au journal et signalé dans « Aujourd'hui ».
+    const locale = link.locale === "en" ? "en" : "fr";
+    const vocabulary = (await findEventAudience(organizationId, link.eventId)) ?? "couple";
+    const values: EmailValues = {
+      ...(await linkEmailValues({ organizationId, eventId: link.eventId, audience: "client", personName: link.personName, locale, vocabulary, expiresOn: null })),
+      tasks: reminderTaskLines({ locale, tasks: due, today }),
+    };
+    try {
+      await assertOrganizationEmailReady({ organizationId, kind: "task_reminder", locale, values });
+    } catch (error) {
+      if (!(error instanceof EmailVariableMissingError)) throw error;
+      await recordAudit(appDatabase(), { organizationId, action: "hub.mail.variable_missing", objectId: link.eventId, details: { kind: "task_reminder", locale, missing: error.missing.join(",") }, actor: SYSTEM_ACTOR });
+      continue;
+    }
     try {
       await reserveOrganizationMail(organizationId, { now });
     } catch (error) {
       if (error instanceof MailQuotaExceededError) break;
       throw error;
     }
-    const { link } = candidate.context;
     const recorded = await withActor(SYSTEM_ACTOR, () =>
       insertTaskRemindersRow({ organizationId, eventId: link.eventId, linkId: link.id, reminders: due.map(({ taskId, threshold }) => ({ taskId, threshold })), now }),
     );
     if (recorded === 0) continue;
-    const couple = ((await findEventAudience(organizationId, link.eventId)) ?? "couple") === "couple";
-    const mail = reminderMail({ personName: link.personName, locale: link.locale === "en" ? "en" : "fr", couple, tasks: due, today });
-    await sendMail({ to: link.email, subject: mail.subject, text: mail.text });
+    await sendOrganizationEmail({ organizationId, to: link.email, kind: "task_reminder", locale, values, reserve: false });
     sent += 1;
   }
   return sent;
@@ -2761,6 +2891,8 @@ const _contractCheck: EventsServiceContract = {
   getEventProgramPublication,
   getEventProgramVersion,
   markLinkProgramSeen,
+  listProgramRecipients,
+  notifyProgramVersion,
   addProgramItem,
   updateProgramItem,
   removeProgramItem,

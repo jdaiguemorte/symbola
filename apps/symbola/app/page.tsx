@@ -5,7 +5,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { formatDateTime, type Locale } from "@symbola/i18n";
 import { organizationMailQuota } from "@symbola/mail";
 import { appDatabase } from "@symbola/db/client";
-import { getOrganizationProfile, getSetupState, isModuleEnabled, SETUP_STEPS } from "@/modules/hub/service";
+import { getOrganizationProfile, getSetupState, isModuleEnabled, recentEmailVariableProblems, SETUP_STEPS } from "@/modules/hub/service";
 import { listEventTasks } from "@/modules/events/service";
 import { requireSignedIn } from "@/lib/guards";
 import { recordUsage } from "@/lib/usage";
@@ -69,6 +69,9 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const onboardingIncomplete = setup.completed && (await getOrganizationProfile(db, organizationId)).completedAt === null;
   // Lot 24b (SEC-22, décision D5) : plafond d'e-mails de l'heure atteint.
   const mailQuota = await organizationMailQuota(organizationId);
+  // Lot 38a (MSG-01, D5) : des rappels automatiques arrêtés par une variable sans valeur (24 heures).
+  const mailProblems = modules.events ? await recentEmailVariableProblems(organizationId) : null;
+  const tTemplates = await getTranslations("EmailTemplates");
 
   const now = new Date();
   const { items, today, events, unavailable } = await loadTodayItems(organizationId, modules, todayWords(t), locale, now);
@@ -102,6 +105,12 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       {mailQuota?.reached && mailQuota.resumesAt ? (
         <p className="notice" role="alert">
           {tHome("mailQuotaReached", { sent: mailQuota.sent, cap: mailQuota.cap, time: formatDateTime(mailQuota.resumesAt, locale) })}
+        </p>
+      ) : null}
+      {mailProblems ? (
+        <p className="notice" role="alert">
+          {tTemplates("todayBanner", { count: mailProblems.events, template: tTemplates(`kinds.${mailProblems.kind}.title`) })}{" "}
+          <Link href={`/parametres/emails/${mailProblems.kind}?langue=${mailProblems.locale}`}>{tTemplates("todayBannerLink")}</Link>
         </p>
       ) : null}
       {/* RGPD-04 : demandes dont l'échéance approche et purges annoncées, titulaire seulement. */}

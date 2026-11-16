@@ -294,6 +294,8 @@ export async function AppShell({ children }: { children: ReactNode }) {
             { href: "/profil", label: tSettings("account") },
             // Lot 24b (SEC-06, décision D3) : équipe, titulaire seulement.
             ...(isOwner ? [{ href: "/parametres/equipe", label: tSettings("team") }] : []),
+            // Lot 38a (MSG-01, D3) : les e-mails envoyés au nom de l'organisation (liens, rappels, signatures, programme).
+            ...(events || quotes ? [{ href: "/parametres/emails", label: tSettings("emailTemplates") }] : []),
           ],
         },
         ...(events || budget

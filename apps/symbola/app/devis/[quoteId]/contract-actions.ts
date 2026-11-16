@@ -25,6 +25,9 @@ import {
   type ConclusionChannel,
   type ContractProblem,
 } from "@/modules/quotes/service";
+import { assertRecipientsConfirmed, EmailVariableMissingError, RecipientsNotConfirmedError } from "@/modules/hub/service";
+import type { RecipientsReview } from "@symbola/contracts";
+import { emailVariableMissingMessage } from "../../email-errors";
 import { isValidId } from "../module-access";
 import { authorizedPlanner } from "../planner-access";
 import { renderContractPdf } from "./render-contract-pdf";
@@ -35,6 +38,8 @@ export type ContractFormState = {
   success?: boolean;
   problems?: ContractProblem[];
   values?: { channel: string; clauseIds: string[]; smallBusiness: boolean; acceptWarning: boolean };
+  // Lot 38a (MSG-02, D8) : l'écran du garde-fou, à plusieurs signataires.
+  confirmRecipients?: RecipientsReview;
 };
 
 const CHANNELS: ConclusionChannel[] = ["on_premises", "distance", "off_premises", "fair"];
@@ -90,10 +95,15 @@ export async function sendContractAloneAction(_prev: ContractFormState, formData
     const quote = await getQuote(auth.organizationId, quoteId);
     const contract = (await listQuoteContracts(auth.organizationId, quoteId)).find((candidate) => candidate.id === contractId);
     if (!contract) return { error: t("contractNotFound") };
+    // Lot 38a (MSG-02, D8) : les signataires du devis, revus sur l'écran du garde-fou avant le PDF.
+    const confirmedRecipients = String(formData.get("confirmedRecipients") ?? "") || null;
+    assertRecipientsConfirmed((quote.signature?.signers ?? []).map(({ name, email }) => ({ name, email })), confirmedRecipients);
     const slots = signatureSlots(quote.signature?.signers.length ?? 0);
     const documentPdf = await renderContractPdf({ organizationId: auth.organizationId, quote, contract, signatureSlots: slots });
-    await sendContractForSignature({ organizationId: auth.organizationId, quoteId, contractId, documentPdf, locale: (await getLocale()) === "en" ? "en" : "fr" });
+    await sendContractForSignature({ organizationId: auth.organizationId, quoteId, contractId, documentPdf, locale: (await getLocale()) === "en" ? "en" : "fr", confirmedRecipients });
   } catch (error) {
+    if (error instanceof RecipientsNotConfirmedError) return { confirmRecipients: error.review };
+    if (error instanceof EmailVariableMissingError) return { error: await emailVariableMissingMessage(error) };
     if (error instanceof ContractNotFoundError || error instanceof QuoteNotFoundError) return { error: t("contractNotFound") };
     if (error instanceof ContractOutdatedError) return { error: t("contractOutdated") };
     if (error instanceof SignersWithoutPortalError) return { error: t("signersWithoutPortal", { names: error.names.join(", ") }) };

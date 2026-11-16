@@ -14,6 +14,7 @@ import {
   contactMembers,
   contactNotes,
   contacts,
+  emailTemplates,
   membershipRoleEnum,
   organizationModules,
   organizationProfiles,
@@ -37,6 +38,9 @@ export const HUB_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   { table: contactNotes, parents: { contactId: "contacts" } },
   // Lot 36b (CRM-03, D2) : les membres des foyers et des entreprises.
   { table: contactMembers, parents: { groupContactId: "contacts", memberContactId: "contacts" } },
+  // Lot 38a (MSG-01, D3) : les modèles d'e-mails que l'organisation a réécrits (les autres valent le
+  // texte de départ de Symbola).
+  { table: emailTemplates },
   { table: privacySettings, idField: "organizationId" },
   { table: privacyRequests },
   // Trace des exports RGPD : leurs fichiers, effacés à l'expiration, ne sont pas repris.

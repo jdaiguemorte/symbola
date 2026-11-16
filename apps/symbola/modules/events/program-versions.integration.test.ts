@@ -71,7 +71,7 @@ describe("CHR-07 — Diffusion du chrono par destinataire, par lien et en PDF ; 
     const lea = await w.clientLink();
 
     const v1 = await publishEventProgram({ organizationId, eventId: w.eventId, userId: plannerId, now: at("2027-06-10T18:00:00Z") });
-    expect(v1).toEqual({ number: 1, publishedAt: "2027-06-10T18:00:00.000Z", publishedByUserId: plannerId });
+    expect(v1).toEqual({ number: 1, publishedAt: "2027-06-10T18:00:00.000Z", publishedByUserId: plannerId, notifiedAt: null, notifiedCount: null });
 
     await updateProgramItem(organizationId, w.dinner, { startTime: "20:30", label: "Dîner", location: "Orangerie", vendorSlotIds: [w.caterer], freeParticipants: [] });
     const vendorBefore = await getVendorLinkView(organizationId, karim);
@@ -192,8 +192,8 @@ describe("DAT-14 — Les documents contractuels gardent leurs versions : devis, 
 
     const publication = await getEventProgramPublication(organizationId, w.eventId);
     expect(publication.versions).toEqual([
-      { number: 2, publishedAt: "2027-06-05T10:00:00.000Z", publishedByUserId: plannerId },
-      { number: 1, publishedAt: "2027-06-01T10:00:00.000Z", publishedByUserId: plannerId },
+      { number: 2, publishedAt: "2027-06-05T10:00:00.000Z", publishedByUserId: plannerId, notifiedAt: null, notifiedCount: null },
+      { number: 1, publishedAt: "2027-06-01T10:00:00.000Z", publishedByUserId: plannerId, notifiedAt: null, notifiedCount: null },
     ]);
     const first = await getEventProgramVersion(organizationId, w.eventId, 1);
     expect(first!.items.find((item) => item.id === w.dinner)).toMatchObject({ startTime: "20:00", label: "Dîner" });

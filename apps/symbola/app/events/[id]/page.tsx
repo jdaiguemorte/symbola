@@ -21,6 +21,7 @@ import {
   getEvent,
   getEventProgram,
   getEventProgramPublication,
+  listProgramRecipients,
   proposeProgramShift,
   getEventStatusDates,
   closingDue,
@@ -79,6 +80,7 @@ import {
   AddProgramItemForm,
   ApplyProgramTemplateForm,
   EditProgramItemForm,
+  ProgramNotifyForm,
   ProgramPublishForm,
 } from "./program-forms";
 import {
@@ -265,6 +267,9 @@ export default async function EventDetailPage({
   // depuis, et les versions diffusées avec leur auteur (adresse de l'équipe).
   // Le client approuve une version diffusée (D10) : l'onglet Mariés propose la décision seulement alors.
   const publication = tab === "programme" || tab === "maries" ? await getEventProgramPublication(organizationId, id) : null;
+  // Lot 38a (D9) : qui recevrait la dernière version par e-mail, tant qu'elle n'est pas partie.
+  const programRecipients =
+    tab === "programme" && publication?.latest && !publication.latest.notifiedAt && !event.isDemo ? (await listProgramRecipients(organizationId, id)).length : 0;
   const publishers =
     publication && publication.versions.some((version) => version.publishedByUserId !== null)
       ? new Map((await listTeam(appDatabase(), organizationId)).map((member) => [member.id, member.email]))
@@ -1042,6 +1047,15 @@ export default async function EventDetailPage({
               ) : (
                 <p>{t("programNeverPublished")}</p>
               )}
+              {publication.latest?.notifiedAt ? (
+                <p>{t("programNotifiedLine", { number: publication.latest.number, date: eventTime(publication.latest.notifiedAt), count: publication.latest.notifiedCount ?? 0 })}</p>
+              ) : publication.latest && !event.isDemo ? (
+                programRecipients > 0 ? (
+                  <ProgramNotifyForm eventId={event.id} number={publication.latest.number} recipients={programRecipients} />
+                ) : (
+                  <p className="muted">{t("programNotifyNoRecipients")}</p>
+                )
+              ) : null}
               {publication.latest ? (
                 publication.canPublish ? (
                   <ul aria-label={t("programChangesTitle", { number: publication.latest.number })}>

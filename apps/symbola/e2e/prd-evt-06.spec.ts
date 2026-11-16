@@ -119,7 +119,9 @@ test("PRD-EVT-06 / UX-11 / SEC-17 — le marié ouvre son lien sans inscription,
   expect(await couple.evaluate(() => window.location.hash)).toBe("");
   await couple.goBack().catch(() => null);
   expect(couple.url()).not.toContain(secret);
-  await couple.goto("/portail");
+  // Le retour arrière mène à about:blank et peut s'achever après coup : il interromprait la
+  // navigation suivante, qu'on reprend alors une fois.
+  await couple.goto("/portail").catch(() => couple.goto("/portail"));
 
   // SEC-17 : ni indexation, ni référent, ni cache.
   const headers = (await couple.request.get("/portail")).headers();

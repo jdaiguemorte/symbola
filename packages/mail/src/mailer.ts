@@ -8,9 +8,20 @@ export type SendMailInput = {
   to: string;
   subject: string;
   text: string;
-  // Lot 31b (réponse 1 de l'avocat, D11) : le contrat signé, remis sur support durable.
-  attachments?: { filename: string; content: Buffer; contentType: string }[];
+  // Lot 31b (réponse 1 de l'avocat, D11) : le contrat signé, remis sur support durable. Lot 38a :
+  // « cid » joint l'image en ligne (le logo de l'en-tête).
+  attachments?: { filename: string; content: Buffer; contentType: string; cid?: string }[];
+  // Lot 38a (MSG-01, HUB-18 ; D2, D4) : la version HTML, le nom affiché de l'expéditeur (celui de
+  // l'organisation ; l'adresse reste SMTP_FROM) et l'adresse où vont les réponses.
+  html?: string;
+  fromName?: string;
+  replyTo?: string;
 };
+
+// L'adresse de SMTP_FROM, qu'il soit « adresse » ou « Nom <adresse> ».
+export function senderAddress(from: string): string {
+  return /<([^<>]+)>/.exec(from)?.[1]?.trim() ?? from.trim();
+}
 
 // Isolé de sendMail() pour être testé sans connexion réseau : le port 465
 // (SMTPS implicite) utilise une connexion chiffrée dès l'ouverture, les
@@ -29,10 +40,12 @@ export async function sendMail(input: SendMailInput): Promise<void> {
   const transport = nodemailer.createTransport(buildTransportOptions(env));
 
   await transport.sendMail({
-    from: env.SMTP_FROM,
+    from: input.fromName ? { name: input.fromName, address: senderAddress(env.SMTP_FROM) } : env.SMTP_FROM,
     to: input.to,
     subject: input.subject,
     text: input.text,
+    ...(input.html ? { html: input.html } : {}),
+    ...(input.replyTo ? { replyTo: input.replyTo } : {}),
     ...(input.attachments ? { attachments: input.attachments } : {}),
   });
 }

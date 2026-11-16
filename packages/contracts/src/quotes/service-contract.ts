@@ -458,6 +458,9 @@ export type SendForSignatureInput = {
   locale: "fr" | "en";
   // Lot 31b (DOC-03, D9) : contrat signé avec le devis, dans le même PDF (devis puis contrat).
   contractId?: string | null | undefined;
+  // Lot 38a (MSG-02, D8) : empreinte de la liste confirmée à l'écran du garde-fou, à plusieurs
+  // signataires.
+  confirmedRecipients?: string | null | undefined;
 };
 
 // Lot 31b (DOC-03, D9) — contrat généré après la signature du devis : signé seul, par les
@@ -468,6 +471,8 @@ export type SendContractForSignatureInput = {
   contractId: string;
   documentPdf: Uint8Array;
   locale: "fr" | "en";
+  // Lot 38a (MSG-02, D8) : empreinte de la liste confirmée, à plusieurs signataires.
+  confirmedRecipients?: string | null | undefined;
 };
 
 // Réponse du webhook : 401 si l'appel n'est pas authentifié (journalisé,
