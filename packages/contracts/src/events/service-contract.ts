@@ -478,6 +478,53 @@ export type EventProgram = {
   updatedAt: string | null;
 };
 
+// Lot 37b (CHR-07, DAT-14 ; D8, ADR 0071) — une séquence d'une version diffusée : la copie figée,
+// jamais de note interne.
+export type PublishedProgramItem = Omit<ProgramItem, "eventId" | "internalNote">;
+
+export type ProgramVersionSummary = {
+  number: number;
+  publishedAt: string;
+  // null : la version 1 reprise à la migration du lot 37b, sans auteur.
+  publishedByUserId: string | null;
+};
+
+export type ProgramVersion = ProgramVersionSummary & { items: PublishedProgramItem[] };
+
+// Ce qui a changé depuis la dernière diffusion : intitulés des séquences ajoutées, modifiées
+// (heure, intitulé, lieu, responsable, intervenants) et retirées. Une note interne n'y compte pas.
+export type ProgramChanges = { added: string[]; changed: string[]; removed: string[] };
+
+// Lot 37b (D8) — la diffusion vue de la fiche : la dernière version, la liste des versions (la plus
+// récente d'abord), ce qui a changé depuis, et si une diffusion est possible (programme non vide et
+// différent de la dernière version).
+export type ProgramPublication = {
+  latest: ProgramVersionSummary | null;
+  versions: ProgramVersionSummary[];
+  changes: ProgramChanges;
+  canPublish: boolean;
+};
+
+// Lot 37b (D10, D11) — le programme d'un client : la dernière version diffusée (version nulle et
+// aucune séquence tant que rien n'est diffusé) ; `isNew` quand elle est plus récente que la dernière
+// vue par son lien.
+export type PublishedProgramView = {
+  version: { number: number; publishedAt: string } | null;
+  items: PublishedProgramItem[];
+  isNew: boolean;
+};
+
+// Lot 37b (D9, D11) — le programme d'un prestataire, dans la dernière version diffusée : ses
+// séquences en entier (sans autre intervenant) et le déroulé du jour en titres et horaires.
+export type VendorProgramView = {
+  version: { number: number; publishedAt: string } | null;
+  ownItems: { id: string; startTime: string; endTime: string | null; label: string; location: string | null; responsible: string | null }[];
+  outline: { id: string; startTime: string; endTime: string | null; label: string; own: boolean }[];
+  isNew: boolean;
+};
+
+export type PublishEventProgramInput = { organizationId: string; eventId: string; userId: string; now?: Date | undefined };
+
 export type ProgramTemplateItem = {
   id: string;
   startTime: string;
@@ -623,17 +670,18 @@ export type VendorLinkView = {
   clientFirstNames: string[];
   eventDate: string | null;
   places: { id: string; label: string; address: string | null; city: string | null; startTime: string | null; endTime: string | null }[];
-  programItems: { id: string; startTime: string; endTime: string | null; label: string; location: string | null }[];
+  // Lot 37b (CHR-07, D9) : la dernière version diffusée du programme, vue du prestataire.
+  program: VendorProgramView;
   // Lot 34b (CHR-02, D12) : les tâches qui lui sont confiées, qu'il coche.
   tasks: { id: string; label: string; dueDate: string; done: boolean }[];
 };
 
-// Vue du tiers : jamais de note interne (programme en variante « mariés ») ;
-// une rubrique fermée vaut null.
+// Vue du tiers : jamais de note interne ; une rubrique fermée vaut null. Lot 37b (D10) : le
+// programme est la dernière version diffusée, pas le programme en cours de modification.
 export type ClientEventView = {
   event: EventSummary;
   tasks: EventTask[] | null;
-  program: EventProgram | null;
+  program: PublishedProgramView | null;
 };
 
 // Lot 32a (D6) : « vendor_reminded », un prestataire relancé depuis le cockpit (taskLabel : son nom).
@@ -658,7 +706,8 @@ export type DecisionOption = { candidateId: string; vendorName: string; quoteAmo
 export type DecisionSnapshot =
   | { kind: "option"; slotLabel: string; options: DecisionOption[] }
   | { kind: "expense"; slotLabel: string; label: string; vendorName: string | null; amountCents: number }
-  | { kind: "program"; programUpdatedAt: string | null; itemCount: number };
+  // Lot 37b (D10) : la version diffusée que le client approuve (absente avant le lot 37b).
+  | { kind: "program"; programUpdatedAt: string | null; itemCount: number; programVersion?: number | undefined };
 
 export type EventDecision = {
   id: string;
@@ -681,7 +730,7 @@ export type EventDecision = {
   // La décision qui remplace celle-ci, s'il y en a une.
   replacedById: string | null;
   requestedAt: string;
-  // Programme approuvé puis modifié depuis la réponse.
+  // Programme approuvé puis modifié depuis la réponse (lot 37b : une version plus récente diffusée).
   programChanged: boolean;
 };
 
@@ -808,6 +857,11 @@ export interface EventsServiceContract {
   moveEventTask(organizationId: string, taskId: string, direction: "up" | "down"): Promise<void>;
   removeEventTask(organizationId: string, taskId: string): Promise<void>;
   getEventProgram(organizationId: string, eventId: string): Promise<EventProgram>;
+  // Lot 37b (CHR-07, DAT-14 ; D8, D11).
+  publishEventProgram(input: PublishEventProgramInput): Promise<ProgramVersionSummary>;
+  getEventProgramPublication(organizationId: string, eventId: string): Promise<ProgramPublication>;
+  getEventProgramVersion(organizationId: string, eventId: string, number: number): Promise<ProgramVersion | null>;
+  markLinkProgramSeen(organizationId: string, linkId: string, number: number): Promise<void>;
   addProgramItem(organizationId: string, eventId: string, item: ProgramItemInput): Promise<ProgramItem>;
   updateProgramItem(organizationId: string, itemId: string, item: ProgramItemInput): Promise<ProgramItem>;
   removeProgramItem(organizationId: string, itemId: string): Promise<void>;

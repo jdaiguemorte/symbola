@@ -37,6 +37,7 @@ import {
   revokeEventLink,
   setLinkTaskDone,
   startEventsTrial,
+  publishEventProgram,
   updateEventLink,
 } from "./service";
 
@@ -273,10 +274,14 @@ describe("PRD-EVT-06, lot 26a — Ce que voit le tiers", () => {
     const plannerTask = await addEventTask(organizationId, eventId, { label: "Confirmer le traiteur", dueDate: "2027-05-01", responsible: "planner" });
     await addProgramItem(organizationId, eventId, { startTime: "15:00", label: "Cérémonie", internalNote: "Le témoin oublie toujours les alliances", vendorSlotIds: [], freeParticipants: ["Officiant"] });
     const { link: created } = await link(organizationId, eventId);
+    // Lot 37b (D10) : le tiers lit la dernière version diffusée.
+    expect((await getLinkEventView(organizationId, created.id)).program).toEqual({ version: null, items: [], isNew: false });
+    await publishEventProgram({ organizationId, eventId, userId: randomUUID() });
 
     const view = await getLinkEventView(organizationId, created.id);
     expect(view.tasks!.map((task) => task.label)).toEqual(["Choisir les alliances", "Confirmer le traiteur"]);
-    expect(view.program!.items).toMatchObject([{ label: "Cérémonie", internalNote: null }]);
+    expect(view.program!.items).toMatchObject([{ label: "Cérémonie", participants: [{ label: "Officiant" }] }]);
+    expect(view.program!.items[0]).not.toHaveProperty("internalNote");
     expect(JSON.stringify(view)).not.toContain("oublie toujours");
 
     await setLinkTaskDone(organizationId, created.id, coupleTask.id, true);

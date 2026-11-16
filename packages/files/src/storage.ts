@@ -1,7 +1,7 @@
 // Client de stockage objet compatible S3 (Garage, ADR 0015 — remplace
 // MinIO ; SOC-08). Bucket privé : jamais d'ACL publique, téléchargement
 // uniquement par lien signé à durée limitée.
-import { DeleteObjectCommand, GetObjectCommand, HeadBucketCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { DeleteObjectCommand, GetObjectCommand, HeadBucketCommand, HeadObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { createReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
@@ -101,6 +101,18 @@ export async function openPrivateObjectStream(
     return { stream: response.Body.transformToWebStream() as ReadableStream<Uint8Array>, contentLength: response.ContentLength ?? null };
   } catch (error) {
     if (error instanceof Error && (error.name === "NoSuchKey" || error.name === "NotFound")) throw new PrivateObjectNotFoundError();
+    throw error;
+  }
+}
+
+// Lot 37b (DOC-12, D13) : taille d'un objet privé, sans le lire ; null s'il est absent. Sert une
+// seule fois par fichier, pour un fichier déposé avant que sa taille soit enregistrée en base.
+export async function statPrivateObject(storage: ReturnType<typeof createStorageClient>, key: string): Promise<number | null> {
+  try {
+    const response = await storage.client.send(new HeadObjectCommand({ Bucket: storage.bucket, Key: key }));
+    return response.ContentLength ?? null;
+  } catch (error) {
+    if (error instanceof Error && (error.name === "NoSuchKey" || error.name === "NotFound")) return null;
     throw error;
   }
 }

@@ -30,6 +30,7 @@ import {
   LinkAccessDeniedError,
   listEventLinks,
   openEventLink,
+  publishEventProgram,
   removeVendorCandidate,
   resolveLinkSession,
   revokeEventLink,
@@ -154,23 +155,34 @@ describe("UX-11, lot 26b — Lien du prestataire (décision D9)", () => {
     await expect(createEventLink({ ...base, audience: "guest" })).rejects.toMatchObject({ reason: "audience" });
   });
 
-  it("l'espace montre prénoms, date, lieux et ses seules lignes du programme, sans note interne", async () => {
+  it("l'espace montre prénoms, date, lieux et ses seules lignes du programme, sans note interne ; lot 37b (CHR-07, D9) : dans la dernière version diffusée, avec le déroulé du jour en titres et horaires", async () => {
     const organizationId = await organization();
     const { eventId, karimId, placeId, cocktailId } = await wedding(organizationId);
     const { link } = await vendorLink(organizationId, eventId, karimId);
+    expect((await getVendorLinkView(organizationId, link.id)).program).toEqual({ version: null, ownItems: [], outline: [], isNew: false });
+    const published = await publishEventProgram({ organizationId, eventId, userId: plannerId });
     const view = await getVendorLinkView(organizationId, link.id);
+    const photos = view.program.outline.find((line) => !line.own)!;
     expect(view).toEqual({
       vendorName: "Traiteur Karim",
       slotLabel: "Traiteur",
       clientFirstNames: ["Léa", "Maxime"],
       eventDate: "2027-06-12",
       places: [{ id: placeId, label: "Domaine des Tilleuls", address: "1 allée des Tilleuls, Lyon", city: null, startTime: null, endTime: null }],
-      programItems: [{ id: cocktailId, startTime: "18:00", endTime: "19:30", label: "Cocktail", location: "Terrasse" }],
+      program: {
+        version: { number: 1, publishedAt: published.publishedAt },
+        ownItems: [{ id: cocktailId, startTime: "18:00", endTime: "19:30", label: "Cocktail", location: "Terrasse", responsible: null }],
+        outline: [
+          { id: photos.id, startTime: "16:00", endTime: null, label: "Photos de groupe", own: false },
+          { id: cocktailId, startTime: "18:00", endTime: "19:30", label: "Cocktail", own: true },
+        ],
+        isNew: false,
+      },
       // Lot 34b (CHR-02) : aucune tâche ne lui est confiée.
       tasks: [],
     });
     const text = JSON.stringify(view);
-    for (const hidden of ["Prévoir", "Studio Lumière", "Photos de groupe", "Témoins", "Martin", "Durand"]) expect(text).not.toContain(hidden);
+    for (const hidden of ["Prévoir", "Studio Lumière", "Photographe", "Témoins", "Martin", "Durand"]) expect(text).not.toContain(hidden);
   });
 
   it("modifier le lien ne lui ouvre aucune rubrique ; demander le code coupe les sessions ouvertes", async () => {

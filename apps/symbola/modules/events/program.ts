@@ -1,5 +1,7 @@
 // PRD-EVT-05 — règles pures du programme du jour J : heures, tri,
 // chevauchements d'un même intervenant, variantes du PDF.
+import type { ProgramChanges, ProgramItem, PublishedProgramItem, VendorProgramView } from "@symbola/contracts";
+
 const MINUTES_PER_DAY = 24 * 60;
 
 // La base renvoie « HH:MM:SS » ; le programme s'affiche et se saisit en « HH:MM ».
@@ -121,4 +123,50 @@ export type ProgramVariant = "couple" | "vendors";
 // Variante « mariés » : jamais de note interne (PRD PRD-EVT-05, PRD-EVT-06).
 export function programForVariant<T extends { internalNote: string | null }>(items: T[], variant: ProgramVariant): T[] {
   return variant === "couple" ? items.map((item) => ({ ...item, internalNote: null })) : items;
+}
+
+// Lot 37b (CHR-07, DAT-14 ; D8) — la copie diffusée d'un programme : ses séquences dans l'ordre du
+// jour, sans note interne ni identifiant d'évènement.
+export function publishedProgramItems(items: ProgramItem[]): PublishedProgramItem[] {
+  return sortProgramItems(items).map((item) => ({
+    id: item.id,
+    startTime: item.startTime,
+    endTime: item.endTime,
+    label: item.label,
+    location: item.location,
+    responsible: item.responsible,
+    participants: item.participants.map((participant) => ({ vendorSlotId: participant.vendorSlotId, label: participant.label })),
+  }));
+}
+
+// Ce qu'un tiers lit d'une séquence, dans un ordre fixe (le jsonb de la base ne garde pas l'ordre
+// des clés).
+function readableKey(item: PublishedProgramItem): string {
+  return JSON.stringify([item.startTime, item.endTime, item.label, item.location, item.responsible, item.participants.map((participant) => [participant.vendorSlotId, participant.label])]);
+}
+
+// Ce qui a changé depuis la dernière version diffusée (null : rien n'est encore diffusé).
+export function programChanges(published: PublishedProgramItem[] | null, current: PublishedProgramItem[]): ProgramChanges {
+  const before = new Map((published ?? []).map((item) => [item.id, item]));
+  const now = new Set(current.map((item) => item.id));
+  return {
+    added: current.filter((item) => !before.has(item.id)).map((item) => item.label),
+    changed: current.filter((item) => before.has(item.id) && readableKey(before.get(item.id)!) !== readableKey(item)).map((item) => item.label),
+    removed: (published ?? []).filter((item) => !now.has(item.id)).map((item) => item.label),
+  };
+}
+
+export function hasProgramChanges(changes: ProgramChanges): boolean {
+  return changes.added.length + changes.changed.length + changes.removed.length > 0;
+}
+
+// Lot 37b (D9) — ce qu'un prestataire lit d'une version diffusée : ses séquences en entier, sans
+// autre intervenant (lot 26b), et le déroulé du jour en titres et horaires seulement.
+export function vendorProgramOf(items: PublishedProgramItem[], vendorSlotId: string): Pick<VendorProgramView, "ownItems" | "outline"> {
+  const isOwn = (item: PublishedProgramItem) => item.participants.some((participant) => participant.vendorSlotId === vendorSlotId);
+  const sorted = sortProgramItems(items);
+  return {
+    ownItems: sorted.filter(isOwn).map((item) => ({ id: item.id, startTime: item.startTime, endTime: item.endTime, label: item.label, location: item.location, responsible: item.responsible })),
+    outline: sorted.map((item) => ({ id: item.id, startTime: item.startTime, endTime: item.endTime, label: item.label, own: isOwn(item) })),
+  };
 }

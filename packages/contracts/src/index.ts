@@ -11,7 +11,8 @@ export {
 } from "./audit";
 export { domainEventEnvelopeSchema, type DomainEventEnvelope } from "./domain-event";
 export type { FileDownload } from "./file-download";
-export type { MonthlyCount } from "./usage";
+export type { MonthlyCount, StorageNature, StorageUsageRow } from "./usage";
+export { STORAGE_NATURES } from "./usage";
 export type {
   EventSearchResult,
   EventsSearchResults,
@@ -101,7 +102,15 @@ export type {
   TaskTemplateItemInput,
   UpdateEventTaskInput,
   EventProgram,
+  ProgramChanges,
   ProgramItem,
+  ProgramPublication,
+  ProgramVersion,
+  ProgramVersionSummary,
+  PublishedProgramItem,
+  PublishedProgramView,
+  PublishEventProgramInput,
+  VendorProgramView,
   ProgramItemInput,
   ProgramOverlap,
   ProgramShiftProposal,

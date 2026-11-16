@@ -29,7 +29,11 @@ export function answerProblem(snapshot: DecisionSnapshot, answer: { answer: "app
   return answer.choiceId === null ? null : "choice";
 }
 
-// Le programme approuvé a-t-il changé depuis ? (version = dernière modification)
-export function programChangedSince(snapshot: DecisionSnapshot, currentUpdatedAt: string | null): boolean {
-  return snapshot.kind === "program" && snapshot.programUpdatedAt !== currentUpdatedAt;
+// Le programme approuvé a-t-il changé depuis ? Lot 37b (D10) : le client approuve une version
+// diffusée ; elle a changé quand une version plus récente est diffusée. Une approbation d'avant le
+// lot 37b (sans version) compare la dernière modification du programme.
+export function programChangedSince(snapshot: DecisionSnapshot, current: { updatedAt: string | null; latestVersion: number | null }): boolean {
+  if (snapshot.kind !== "program") return false;
+  if (snapshot.programVersion !== undefined) return current.latestVersion !== snapshot.programVersion;
+  return snapshot.programUpdatedAt !== current.updatedAt;
 }

@@ -27,6 +27,7 @@ import {
   listEventDecisions,
   listLinkDecisions,
   requestDecision,
+  publishEventProgram,
   updateProgramItem,
   updateVendorCandidate,
   withdrawDecision,
@@ -55,6 +56,8 @@ async function wedding() {
   await updateVendorCandidate({ organizationId, candidateId: haddad.id, shownToClients: true, quoteAmountCents: 960000 });
   await updateVendorCandidate({ organizationId, candidateId: sud.id, shownToClients: true });
   const item = await addProgramItem(organizationId, event.id, { startTime: "15:30", label: "Cérémonie", vendorSlotIds: [], freeParticipants: [] });
+  // Lot 37b (D10) : le client approuve une version diffusée.
+  await publishEventProgram({ organizationId, eventId: event.id, userId: plannerId });
   const link = async (personName: string, rights: EventLinkRights) =>
     (await createEventLink({ organizationId, eventId: event.id, createdByUserId: plannerId, audience: "client", locale: "fr", link: { personName, email: `${randomUUID()}@example.test`, rights } })).link.id;
   return { organizationId, eventId: event.id, catererId: caterer.id, venueId: venue.id, haddadId: haddad.id, sudId: sud.id, itemId: item.id, link };
@@ -94,21 +97,27 @@ describe("POR-03 — Décisions et validations horodatées, lisibles des deux c�
     expect((await listLinkDecisions(w.organizationId, maxime))[0]).toMatchObject({ status: "approved", decidedByName: "Léa Martin" });
   });
 
-  it("le programme approuvé puis modifié est signalé des deux côtés", async () => {
+  it("le programme approuvé puis modifié est signalé des deux côtés ; lot 37b (D10) : dès qu'une nouvelle version est diffusée, pas avant", async () => {
     const w = await wedding();
     const lea = await w.link("Léa Martin", COUPLE);
     const decision = await requestDecision({ organizationId: w.organizationId, eventId: w.eventId, requestedByUserId: plannerId, kind: "program" });
+    expect(decision.snapshot).toMatchObject({ kind: "program", itemCount: 1, programVersion: 1 });
     await answerLinkDecision({ organizationId: w.organizationId, linkId: lea, decisionId: decision.id, answer: "approved" });
     expect((await listLinkDecisions(w.organizationId, lea))[0]!.programChanged).toBe(false);
-    await new Promise((resolve) => setTimeout(resolve, 5));
     await updateProgramItem(w.organizationId, w.itemId, { startTime: "16:00", label: "Cérémonie", vendorSlotIds: [], freeParticipants: [] });
+    expect((await listLinkDecisions(w.organizationId, lea))[0]!.programChanged).toBe(false);
+    await publishEventProgram({ organizationId: w.organizationId, eventId: w.eventId, userId: plannerId });
     expect((await listLinkDecisions(w.organizationId, lea))[0]!.programChanged).toBe(true);
     expect((await listEventDecisions(w.organizationId, w.eventId))[0]!.programChanged).toBe(true);
   });
 
-  it("demandes refusées : moins de deux options montrées, programme vide, dépense sans montant, déjà une demande en attente sur le même sujet", async () => {
+  it("demandes refusées : moins de deux options montrées, programme vide ou jamais diffusé, dépense sans montant, déjà une demande en attente sur le même sujet", async () => {
     const w = await wedding();
     const base = { organizationId: w.organizationId, eventId: w.eventId, requestedByUserId: plannerId };
+    const source = await createProspectSource(w.organizationId, "Bouche-à-oreille");
+    const undiffused = await createProspect({ organizationId: w.organizationId, createdByUserId: plannerId, prospectSourceId: source.id, clients: [{ firstName: "Inès", lastName: "Roux" }] });
+    await addProgramItem(w.organizationId, undiffused.id, { startTime: "15:30", label: "Cérémonie", vendorSlotIds: [], freeParticipants: [] });
+    await expect(requestDecision({ ...base, eventId: undiffused.id, kind: "program" })).rejects.toMatchObject({ reason: "program" });
     await expect(requestDecision({ ...base, kind: "option", slotId: w.venueId })).rejects.toMatchObject({ reason: "options" });
     await expect(requestDecision({ ...base, kind: "expense", slotId: w.catererId, lineId: randomUUID(), slotLabel: "Traiteur", label: "Acompte", vendorName: null, amountCents: 0 })).rejects.toMatchObject({ reason: "expense" });
     await requestDecision({ ...base, kind: "option", slotId: w.catererId });

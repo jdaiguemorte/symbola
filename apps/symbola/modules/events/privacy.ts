@@ -27,6 +27,7 @@ import {
   eventVendorSlots,
   programItemParticipants,
   programItems,
+  programVersions,
 } from "@symbola/db/schema/events";
 import { withOrganization } from "@symbola/db/with-organization";
 import { hasTerms, prepareTerms, recordMatches, type PrivacyContractV1, type PrivacyRecord } from "@symbola/privacy";
@@ -46,6 +47,24 @@ function importedValues(fields: Record<string, string> | null): string[] {
 
 function importedFieldsOf(fields: Record<string, string> | null): Record<string, string> {
   return Object.fromEntries(Object.entries(fields ?? {}).map(([name, value]) => [`imported:${name}`, value]));
+}
+
+// Lot 37b (CHR-07, DAT-14) : une version diffusée du programme recopie les responsables et les
+// intervenants libres de ses séquences (des personnes, parfois) ; trouvée par eux, supprimée à
+// l'oubli. Libellé : son numéro.
+type ProgramVersionRow = typeof programVersions.$inferSelect;
+function programVersionPeople(version: ProgramVersionRow): { responsible: string | null; participants: string | null } {
+  const items = version.items ?? [];
+  const unique = (values: (string | null | undefined)[]) => [...new Set(values.filter((value): value is string => Boolean(value)))].join(", ") || null;
+  return {
+    responsible: unique(items.map((item) => item.responsible)),
+    participants: unique(items.flatMap((item) => (item.participants ?? []).filter((participant) => participant.vendorSlotId === null).map((participant) => participant.label))),
+  };
+}
+
+function programVersionRecord(version: ProgramVersionRow): PrivacyRecord {
+  const people = programVersionPeople(version);
+  return { module: MODULE, kind: "program_version", recordId: version.id, label: String(version.number), fields: compact({ responsible: people.responsible, participants: people.participants }), eventId: version.eventId };
 }
 
 function compact(fields: Record<string, string | null | undefined>): Record<string, string> {
@@ -221,6 +240,10 @@ export const eventsPrivacy: PrivacyContractV1 = {
       for (const folder of await tx.select().from(eventDocumentFolders).where(inArray(eventDocumentFolders.eventId, eventIds))) {
         if (recordMatches([folder.name], terms)) records.push(folderRecord(folder));
       }
+      for (const version of await tx.select().from(programVersions).where(inArray(programVersions.eventId, eventIds))) {
+        const people = programVersionPeople(version);
+        if (recordMatches([people.responsible, people.participants], terms)) records.push(programVersionRecord(version));
+      }
       const itemEvent = new Map(items.map((item) => [item.id, item]));
       if (items.length > 0) {
         for (const participant of await tx.select().from(programItemParticipants).where(inArray(programItemParticipants.programItemId, [...itemEvent.keys()]))) {
@@ -298,6 +321,7 @@ export const eventsPrivacy: PrivacyContractV1 = {
       for (const item of await tx.select().from(programItems).where(inArray(programItems.eventId, ids))) {
         records.push({ module: MODULE, kind: "program_item", recordId: item.id, label: item.label, fields: compact({ location: item.location, internalNote: item.internalNote, responsible: item.responsible }), eventId: item.eventId });
       }
+      for (const version of await tx.select().from(programVersions).where(inArray(programVersions.eventId, ids)).orderBy(asc(programVersions.number))) records.push(programVersionRecord(version));
       for (const place of await tx.select().from(eventPlaces).where(inArray(eventPlaces.eventId, ids)).orderBy(asc(eventPlaces.position))) records.push(placeRecord(place));
       for (const comment of await tx.select().from(eventTaskComments).where(inArray(eventTaskComments.eventId, ids)).orderBy(asc(eventTaskComments.createdAt))) records.push(commentRecord(comment));
       for (const attachment of await tx.select().from(eventTaskAttachments).where(inArray(eventTaskAttachments.eventId, ids)).orderBy(asc(eventTaskAttachments.createdAt))) records.push(attachmentRecord(attachment));

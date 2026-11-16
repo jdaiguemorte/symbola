@@ -321,6 +321,8 @@ export { EventNotFoundError };
 export { latePenaltySentence, professionalTermsText } from "./payment-terms";
 // Lot 17 : numéros des documents d'exemple de l'écran Documents (aucun rang consommé).
 export { formatDocumentNumber } from "./amounts";
+// Lot 37b (DOC-12, ADR 0071) : la part du module au relevé de stockage (tailles manquantes lues une fois).
+export { measureQuotesStorage } from "./storage-usage";
 export {
   DOCUMENT_INTRO_MAX_LENGTH,
   DOCUMENT_TERMS_MAX_LENGTH,
@@ -2032,10 +2034,13 @@ async function applySignatureState(
     const store = async (buffer: Buffer) => {
       const uploaded = await uploadFile({ organizationId, buffer, maxSizeBytes: SIGNED_DOCUMENT_MAX_BYTES });
       if (uploaded.status !== "uploaded" || uploaded.mime !== "application/pdf") throw new Error(`document signé refusé (${uploaded.status})`);
-      return uploaded.key;
+      return uploaded;
     };
-    const signedDocumentKey = await store(documents.signedPdf);
-    const auditCertificateKey = await store(documents.auditCertificatePdf);
+    // Lot 37b (DOC-12, D13) : la taille de chaque fichier, pour le relevé de stockage.
+    const signedDocument = await store(documents.signedPdf);
+    const auditCertificate = await store(documents.auditCertificatePdf);
+    const signedDocumentKey = signedDocument.key;
+    const auditCertificateKey = auditCertificate.key;
     // Lot 23b (DOC-08) : empreintes des fichiers archivés, vérifiées à la relecture.
     const signedDocumentSha256 = sha256Hex(documents.signedPdf);
     const auditCertificateSha256 = sha256Hex(documents.auditCertificatePdf);
@@ -2056,6 +2061,8 @@ async function applySignatureState(
       auditCertificateKey,
       signedDocumentSha256,
       auditCertificateSha256,
+      signedDocumentSizeBytes: signedDocument.size,
+      auditCertificateSizeBytes: auditCertificate.size,
       completedAt: now,
       event: { name: QUOTES_QUOTE_SIGNED, version: QUOTES_QUOTE_SIGNED_VERSION, payload },
     };
@@ -3372,7 +3379,7 @@ async function writeContractEvidence(
   const body = Buffer.from(JSON.stringify(document, null, 2), "utf8");
   const key = `evidence/${organizationId}/${contract.id}/${request.id}.json`;
   await uploadPrivateObject(createStorageClient(), { key, body, contentType: "application/json" });
-  await insertContractEvidence(organizationId, { requestId: request.id, contractId: contract.id, documentKey: key, sha256: sha256Hex(body) });
+  await insertContractEvidence(organizationId, { requestId: request.id, contractId: contract.id, documentKey: key, sha256: sha256Hex(body), sizeBytes: body.length });
 }
 
 export async function getContractEvidence(organizationId: string, quoteId: string, contractId: string): Promise<ContractEvidenceDocument & { sha256: string }> {

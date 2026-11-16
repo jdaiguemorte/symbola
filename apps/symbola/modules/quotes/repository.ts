@@ -1504,6 +1504,9 @@ export type SignatureStateUpdate = {
         // Lot 23b (DOC-08) : empreintes des fichiers archivés.
         signedDocumentSha256: string;
         auditCertificateSha256: string;
+        // Lot 37b (DOC-12, D13) : tailles, pour le relevé de stockage.
+        signedDocumentSizeBytes: number;
+        auditCertificateSizeBytes: number;
         completedAt: Date;
         event: { name: string; version: number; payload: unknown };
       }
@@ -1572,6 +1575,8 @@ export async function applySignatureStateRows(
           auditCertificateKey: update.outcome.auditCertificateKey,
           signedDocumentSha256: update.outcome.signedDocumentSha256,
           auditCertificateSha256: update.outcome.auditCertificateSha256,
+          signedDocumentSizeBytes: update.outcome.signedDocumentSizeBytes,
+          auditCertificateSizeBytes: update.outcome.auditCertificateSizeBytes,
           completedAt: update.outcome.completedAt,
         })
         .where(eq(signatureRequests.id, requestId));

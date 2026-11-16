@@ -291,7 +291,7 @@ export async function insertSignerAct(
 
 // --- Dossier de preuve (réponses 1 et 5 de l'avocat) ---
 
-export async function insertContractEvidence(organizationId: string, values: { requestId: string; contractId: string; documentKey: string; sha256: string }): Promise<void> {
+export async function insertContractEvidence(organizationId: string, values: { requestId: string; contractId: string; documentKey: string; sha256: string; sizeBytes: number }): Promise<void> {
   await inOrganization(organizationId, (tx) => tx.insert(contractEvidence).values({ organizationId, ...values }).onConflictDoNothing());
 }
 

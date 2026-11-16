@@ -41,10 +41,16 @@ describe("BUD-07, EVT-09 — Ce qu'une réponse contient", () => {
     expect(answerProblem(expense, { answer: "approved", choiceId: "a", comment: null })).toBe("choice");
   });
 
-  it("le programme approuvé est signalé dès qu'il change", () => {
+  it("le programme approuvé avant le lot 37b est signalé dès qu'il change", () => {
     const program: DecisionSnapshot = { kind: "program", programUpdatedAt: "2027-03-03T10:00:00.000Z", itemCount: 8 };
-    expect(programChangedSince(program, "2027-03-03T10:00:00.000Z")).toBe(false);
-    expect(programChangedSince(program, "2027-03-05T09:00:00.000Z")).toBe(true);
-    expect(programChangedSince(option, "2027-03-05T09:00:00.000Z")).toBe(false);
+    expect(programChangedSince(program, { updatedAt: "2027-03-03T10:00:00.000Z", latestVersion: 1 })).toBe(false);
+    expect(programChangedSince(program, { updatedAt: "2027-03-05T09:00:00.000Z", latestVersion: 1 })).toBe(true);
+    expect(programChangedSince(option, { updatedAt: "2027-03-05T09:00:00.000Z", latestVersion: 1 })).toBe(false);
+  });
+
+  it("CHR-07 (lot 37b, D10) — le programme approuvé est une version diffusée : signalé quand une version plus récente est diffusée, pas quand la planner modifie son brouillon", () => {
+    const program: DecisionSnapshot = { kind: "program", programUpdatedAt: "2027-03-03T10:00:00.000Z", itemCount: 8, programVersion: 2 };
+    expect(programChangedSince(program, { updatedAt: "2027-03-09T09:00:00.000Z", latestVersion: 2 })).toBe(false);
+    expect(programChangedSince(program, { updatedAt: "2027-03-09T09:00:00.000Z", latestVersion: 3 })).toBe(true);
   });
 });

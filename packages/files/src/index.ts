@@ -8,6 +8,7 @@ export {
   openPrivateObjectStream,
   PrivateObjectNotFoundError,
   readPrivateObject,
+  statPrivateObject,
   type PrivateObject,
   getSignedDownloadUrl,
   uploadPrivateFile,
