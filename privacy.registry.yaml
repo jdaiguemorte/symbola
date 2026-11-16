@@ -15,6 +15,13 @@
 # et son mot de passe s'il en a un ; il les supprime avec le compte. Ses journaux de requêtes
 # contiennent l'adresse e-mail (paramètre login_hint de ses pages) : ils restent sur le VPS et
 # tournent sur deux fichiers de 5 Mo au plus (docker-compose.prod.yml, service logto).
+#
+# Flux de calendrier (lot 38b, HUB-29, D12, ADR 0072) : aucun champ nouveau. L'adresse secrète d'une
+# personne de l'équipe (hub.calendar_feeds n'en garde que l'empreinte) livre à l'agenda qu'elle
+# abonne les prénoms des clients (hub.contacts), le type, la date et le lieu des évènements datés,
+# et le programme d'un évènement (events.program_items, sans note interne). L'agenda abonné en garde
+# une copie, hors de Symbola ; retirer ou régénérer l'adresse arrête les mises à jour, sans effacer
+# ce que l'agenda a déjà copié ; l'adresse d'une personne retirée de l'équipe ne répond plus.
 version: 1
 fields:
   - schema: hub

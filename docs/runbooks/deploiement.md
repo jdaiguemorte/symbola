@@ -428,6 +428,10 @@ sans cette clé, l'app refuse de démarrer.
    vides au départ (chacun vaut son texte de départ). Aucun réglage nouveau : l'adresse
    d'expédition reste `SMTP_FROM` ; le nom affiché devient celui de l'organisation et les réponses
    vont à son adresse de contact.
+   La migration 0143 (lot 38b, ADR 0072) passe aussi sans arrêter `symbola` : elle ajoute les
+   modèles de messages de la planner et leurs versions, et les adresses des flux de calendrier
+   (vides au départ). La route `/calendrier/…` est publique (adresse secrète, lecture seule,
+   débit limité) : rien à ouvrir de plus dans Caddy.
 4. Redémarrer seulement le service `symbola` :
    ```bash
    sudo docker compose -f infra/compose/docker-compose.prod.yml \
