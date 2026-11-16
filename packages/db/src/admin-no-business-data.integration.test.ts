@@ -6,12 +6,12 @@
 // construction toute lecture, même avec une base contenant de vraies
 // données. Démontré sur les sources de prospects, puis sur chaque table des
 // modules (même mécanisme).
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { afterAll, describe, expect, it } from "vitest";
 import { createAppConnection } from "./client";
 import { alertThresholds, budgetLineAttachments, budgetLines, vendorPayments } from "./schema/budget";
 import { vendors, vendorTypes } from "./schema/vendors";
-import { contactMembers, contactNotes, contacts, emailTemplates, importItems, imports, privacyRequests, storageSnapshots } from "./schema/hub";
+import { calendarFeeds, contactMembers, contactNotes, contacts, emailTemplates, importItems, imports, messageTemplates, messageTemplateVersions, privacyRequests, storageSnapshots, users } from "./schema/hub";
 import {
   catalogItems,
   creditNotes,
@@ -411,8 +411,13 @@ describe("PRD-HUB-03 — L'Admin ne lit jamais de donnée métier", () => {
       await tx.insert(storageSnapshots).values({ organizationId, month: "2026-11-01", nature: "uploads", fileCount: 1, totalBytes: 10 });
       // Lot 38a (MSG-01) : les modèles d'e-mails de l'organisation.
       await tx.insert(emailTemplates).values({ organizationId, kind: "client_link", locale: "fr", subject: "Votre espace", body: "Bonjour {{prénom}}, {{lien}}" });
+      // Lot 38b (HUB-21, HUB-29) : les modèles de messages, leurs versions, les adresses de calendrier.
+      const [template] = await tx.insert(messageTemplates).values({ organizationId, name: "Proposer un rendez-vous", locale: "fr" }).returning();
+      await tx.insert(messageTemplateVersions).values({ organizationId, templateId: template!.id, version: 1, subject: "Rendez-vous", body: "Bonjour {{prénom}}" });
     });
-    for (const table of [programVersions, storageSnapshots, emailTemplates]) {
+    const [user] = await db.insert(users).values({ email: `flux-${randomUUID()}@example.test` }).returning();
+    await withOrganization(db, organizationId, (tx) => tx.insert(calendarFeeds).values({ organizationId, userId: user!.id, tokenHash: createHash("sha256").update(randomUUID()).digest("hex") }));
+    for (const table of [programVersions, storageSnapshots, emailTemplates, messageTemplates, messageTemplateVersions, calendarFeeds]) {
       try {
         const rows = await db.select().from(table);
         expect(rows).toHaveLength(0);

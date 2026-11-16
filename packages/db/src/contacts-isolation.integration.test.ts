@@ -2,12 +2,12 @@
 // table : les contacts du hub, leurs notes et (lot 36b) les membres des foyers et entreprises. Une organisation ne voit et ne modifie jamais les
 // lignes d'une autre ; l'unicité de l'adresse e-mail vaut par organisation, pas au-delà.
 // PostgreSQL réel, rôle applicatif.
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { assertOrganizationIsolation } from "@symbola/testing";
 import { eq } from "drizzle-orm";
 import { afterAll, describe, expect, it } from "vitest";
 import { createAppConnection } from "./client";
-import { contactMembers, contactNotes, contacts, emailTemplates, storageSnapshots } from "./schema/hub";
+import { calendarFeeds, contactMembers, contactNotes, contacts, emailTemplates, messageTemplates, messageTemplateVersions, storageSnapshots, users } from "./schema/hub";
 import { withOrganization } from "./with-organization";
 
 const { sql, db } = createAppConnection();
@@ -117,5 +117,44 @@ describe("MSG-01 / SEC-10 — Isolation des modèles d'e-mails entre organisatio
         return { affectedRows: updated.length + removed.length };
       },
     });
+  });
+});
+
+describe("HUB-21 / SEC-10 — Isolation des modèles de messages entre organisations (lot 38b, PostgreSQL réel)", () => {
+  it("une organisation ne voit, ne change ni ne supprime jamais les modèles de messages d'une autre, ni leurs versions ; une version ne se modifie pas", async () => {
+    await assertOrganizationIsolation({
+      seed: (organizationId) => withOrganization(db, organizationId, async (tx) => first(await tx.insert(messageTemplates).values({ organizationId, name: "Proposer un rendez-vous", locale: "fr" }).returning())),
+      listVisible: (organizationId) => withOrganization(db, organizationId, (tx) => tx.select().from(messageTemplates)),
+      attemptCrossOrganizationUpdate: async (organizationId, target) => {
+        const updated = await withOrganization(db, organizationId, (tx) => tx.update(messageTemplates).set({ name: "falsifié" }).where(eq(messageTemplates.id, target.id)).returning());
+        const removed = await withOrganization(db, organizationId, (tx) => tx.delete(messageTemplates).where(eq(messageTemplates.id, target.id)).returning());
+        return { affectedRows: updated.length + removed.length };
+      },
+    });
+    const [a, b] = [randomUUID(), randomUUID()];
+    const template = await withOrganization(db, a, async (tx) => first(await tx.insert(messageTemplates).values({ organizationId: a, name: "Réponse", locale: "fr" }).returning()));
+    const version = await withOrganization(db, a, async (tx) => first(await tx.insert(messageTemplateVersions).values({ organizationId: a, templateId: template.id, version: 1, subject: "Merci", body: "Bonjour {{prénom}}" }).returning()));
+    expect(await withOrganization(db, b, (tx) => tx.select().from(messageTemplateVersions).where(eq(messageTemplateVersions.id, version.id)))).toHaveLength(0);
+    expect(await refusal(withOrganization(db, a, (tx) => tx.update(messageTemplateVersions).set({ body: "falsifié" }).where(eq(messageTemplateVersions.id, version.id))))).toMatch(/permission denied/);
+  });
+});
+
+describe("HUB-29 / SEC-10 — Isolation des adresses de calendrier entre organisations (lot 38b, PostgreSQL réel)", () => {
+  it("une organisation ne voit ni ne révoque jamais l'adresse de calendrier d'une autre ; seules la révocation et la date de lecture se modifient", async () => {
+    const [user] = await db.insert(users).values({ email: `flux-${randomUUID()}@example.test` }).returning();
+    const randomHash = () => createHash("sha256").update(randomUUID()).digest("hex");
+    await assertOrganizationIsolation({
+      seed: (organizationId) => withOrganization(db, organizationId, async (tx) => first(await tx.insert(calendarFeeds).values({ organizationId, userId: user!.id, tokenHash: randomHash() }).returning())),
+      listVisible: (organizationId) => withOrganization(db, organizationId, (tx) => tx.select().from(calendarFeeds)),
+      attemptCrossOrganizationUpdate: async (organizationId, target) => {
+        const updated = await withOrganization(db, organizationId, (tx) => tx.update(calendarFeeds).set({ revokedAt: new Date() }).where(eq(calendarFeeds.id, target.id)).returning());
+        const removed = await withOrganization(db, organizationId, (tx) => tx.delete(calendarFeeds).where(eq(calendarFeeds.id, target.id)).returning());
+        return { affectedRows: updated.length + removed.length };
+      },
+    });
+    const organizationId = randomUUID();
+    const feed = await withOrganization(db, organizationId, async (tx) => first(await tx.insert(calendarFeeds).values({ organizationId, userId: user!.id, tokenHash: randomHash() }).returning()));
+    await withOrganization(db, organizationId, (tx) => tx.update(calendarFeeds).set({ lastUsedAt: new Date(), revokedAt: new Date() }).where(eq(calendarFeeds.id, feed.id)));
+    expect(await refusal(withOrganization(db, organizationId, (tx) => tx.update(calendarFeeds).set({ tokenHash: randomHash() }).where(eq(calendarFeeds.id, feed.id))))).toMatch(/permission denied/);
   });
 });

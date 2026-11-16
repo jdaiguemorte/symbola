@@ -831,6 +831,94 @@ export const emailTemplates = hubSchema.table(
   ],
 );
 
+// Lot 38b (HUB-21 ; D10 ; ADR 0072) — modèles de messages de la planner (« Réponse à une première
+// demande », « Proposer un rendez-vous »…), pour tous les évènements ou pour un type d'évènement
+// (identifiant du module events, sans clé étrangère : ADR 0011, avenant de l'ADR 0012), dans une
+// langue. Chaque enregistrement fait une version, gardée telle quelle ; les précédentes se relisent
+// et se restaurent (une restauration fait une version de plus).
+export const messageTemplates = hubSchema.table(
+  "message_templates",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    eventTypeId: uuid("event_type_id"),
+    name: text("name").notNull(),
+    locale: text("locale").notNull(),
+    // Numéro de la version en cours (la plus récente).
+    version: integer("version").notNull().default(1),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("message_templates_organization_idx").on(table.organizationId),
+    check("message_templates_name_check", sql`char_length(${table.name}) between 1 and 120`),
+    check("message_templates_locale_check", sql`${table.locale} in ('fr', 'en')`),
+    check("message_templates_version_check", sql`${table.version} >= 1`),
+  ],
+);
+
+export const messageTemplateVersions = hubSchema.table(
+  "message_template_versions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    templateId: uuid("template_id")
+      .notNull()
+      .references(() => messageTemplates.id, { onDelete: "cascade" }),
+    version: integer("version").notNull(),
+    subject: text("subject").notNull(),
+    body: text("body").notNull(),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("message_template_versions_organization_idx").on(table.organizationId),
+    unique("message_template_versions_template_version_unique").on(table.templateId, table.version),
+    check("message_template_versions_version_check", sql`${table.version} >= 1`),
+    check("message_template_versions_subject_check", sql`char_length(${table.subject}) between 1 and 200`),
+    check("message_template_versions_body_check", sql`char_length(${table.body}) between 1 and 5000`),
+  ],
+);
+
+// Lot 38b (HUB-29 ; D11, D12 ; ADR 0072) — adresses secrètes des flux de calendrier : une par
+// personne de l'équipe pour les évènements datés de l'organisation (event_id nul), une par personne et
+// par évènement pour son programme. Le jeton n'est gardé que haché ; régénérer révoque l'ancienne
+// adresse (la ligne reste, datée), retirer la révoque aussi.
+export const calendarFeeds = hubSchema.table(
+  "calendar_feeds",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    // Évènement du module events (identifiant opaque, sans clé étrangère, ADR 0011).
+    eventId: uuid("event_id"),
+    tokenHash: text("token_hash").notNull(),
+    lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+    revokedAt: timestamp("revoked_at", { withTimezone: true }),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("calendar_feeds_organization_idx").on(table.organizationId),
+    unique("calendar_feeds_token_hash_unique").on(table.tokenHash),
+    // Une seule adresse active par personne, et par personne et évènement.
+    uniqueIndex("calendar_feeds_person_active_idx").on(table.organizationId, table.userId).where(sql`event_id is null and revoked_at is null`),
+    uniqueIndex("calendar_feeds_event_active_idx").on(table.organizationId, table.userId, table.eventId).where(sql`event_id is not null and revoked_at is null`),
+    check("calendar_feeds_token_hash_check", sql`${table.tokenHash} ~ '^[0-9a-f]{64}$'`),
+  ],
+);
+
 // Lot 37b (DOC-12 ; D12, D13, ADR 0071) — relevé mensuel du stockage d'une organisation, par
 // nature : nombre de fichiers et volume, pris le premier du mois et gardé d'un mois sur l'autre ; il
 // alimentera le calcul des quotas (DOC-06). Des nombres seulement, jamais un nom de fichier
