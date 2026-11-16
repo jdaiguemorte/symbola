@@ -649,5 +649,8 @@ describe("PRD-EVT-01/02 — Isolation entre organisations (module events, Postgr
       (error: unknown) => String((error as { cause?: unknown }).cause ?? error),
     );
     expect(refused).toMatch(/permission denied/);
+    // Lot 38a (D9) : seules la date et le nombre d'envois d'une version se modifient.
+    const notified = await withOrganization(db, organizationId, (tx) => tx.update(programVersions).set({ notifiedAt: new Date(), notifiedCount: 3 }).where(eq(programVersions.id, version.id)).returning());
+    expect(notified[0]).toMatchObject({ notifiedCount: 3, number: 1 });
   });
 });

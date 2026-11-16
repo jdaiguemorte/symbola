@@ -1,9 +1,13 @@
 # Lot 38 — Les e-mails à l'image de l'organisation, les modèles de messages et les flux de calendrier
 
-**Statut** : spécification **à valider par Julien** (décisions D1 à D12 ci-dessous). Le lot touche
-les schémas `hub` et `events` et les parcours P0 des liens, des signatures et du programme : il
-attend la validation avant le code (CLAUDE.md § 8). Branche `lot-38-emails`, partie de `main` après
-le lot 37b (PR #122).
+**Statut** : spécification **validée par Julien le 16/11/2026** (« Je valide » : D1 à D12 en (a)),
+ce qui vaut accord pour toucher les schémas `hub` et `events`. Branche `lot-38-emails`, partie de
+`main` après le lot 37b (PR #122).
+
+Julien a précisé le même jour qu'aucune version intermédiaire ne sera déployée ni testée en
+staging : la nouvelle version se teste en entier, à la fin des lots. Le rejeu local de chaque lot
+reste la preuve par lot ; le runbook ne décrit plus de retour arrière vers l'image d'un lot
+intermédiaire.
 
 ## Contexte
 

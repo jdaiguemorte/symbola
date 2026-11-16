@@ -11,7 +11,7 @@ import { afterAll, describe, expect, it } from "vitest";
 import { createAppConnection } from "./client";
 import { alertThresholds, budgetLineAttachments, budgetLines, vendorPayments } from "./schema/budget";
 import { vendors, vendorTypes } from "./schema/vendors";
-import { contactMembers, contactNotes, contacts, importItems, imports, privacyRequests, storageSnapshots } from "./schema/hub";
+import { contactMembers, contactNotes, contacts, emailTemplates, importItems, imports, privacyRequests, storageSnapshots } from "./schema/hub";
 import {
   catalogItems,
   creditNotes,
@@ -409,8 +409,10 @@ describe("PRD-HUB-03 — L'Admin ne lit jamais de donnée métier", () => {
       const [event] = await tx.insert(events).values({ organizationId }).returning();
       await tx.insert(programVersions).values({ organizationId, eventId: event!.id, number: 1, items: [] });
       await tx.insert(storageSnapshots).values({ organizationId, month: "2026-11-01", nature: "uploads", fileCount: 1, totalBytes: 10 });
+      // Lot 38a (MSG-01) : les modèles d'e-mails de l'organisation.
+      await tx.insert(emailTemplates).values({ organizationId, kind: "client_link", locale: "fr", subject: "Votre espace", body: "Bonjour {{prénom}}, {{lien}}" });
     });
-    for (const table of [programVersions, storageSnapshots]) {
+    for (const table of [programVersions, storageSnapshots, emailTemplates]) {
       try {
         const rows = await db.select().from(table);
         expect(rows).toHaveLength(0);
