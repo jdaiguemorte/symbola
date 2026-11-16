@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PageHeader } from "@/app/ui/page-header";
+import { listCalendarFeeds } from "@/modules/hub/service";
 import { ImportedFields } from "../../imported-fields";
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -83,6 +84,8 @@ import {
   ProgramNotifyForm,
   ProgramPublishForm,
 } from "./program-forms";
+import { revokeCalendarAddressAction } from "../../calendar-actions";
+import { CalendarAddressForm } from "../../calendar-address-form";
 import {
   releaseEventTaskAction,
   moveEventTaskAction,
@@ -268,6 +271,9 @@ export default async function EventDetailPage({
   // Le client approuve une version diffusée (D10) : l'onglet Mariés propose la décision seulement alors.
   const publication = tab === "programme" || tab === "maries" ? await getEventProgramPublication(organizationId, id) : null;
   // Lot 38a (D9) : qui recevrait la dernière version par e-mail, tant qu'elle n'est pas partie.
+  // Lot 38b (HUB-29 ; D11) : l'adresse du programme dans l'agenda de la personne connectée.
+  const programFeed = tab === "programme" && !event.isDemo ? ((await listCalendarFeeds(organizationId, auth.user.id)).find((feed) => feed.eventId === id) ?? null) : null;
+  const tCalendar = await getTranslations("Calendar");
   const programRecipients =
     tab === "programme" && publication?.latest && !publication.latest.notifiedAt && !event.isDemo ? (await listProgramRecipients(organizationId, id)).length : 0;
   const publishers =
@@ -390,7 +396,8 @@ export default async function EventDetailPage({
   // Lot 32a (EVT-02, D5) : compte à rebours, aperçu du portail, « Annuler » après une tâche cochée.
   const countdown = await countdownLabel(event.eventDate, today);
   const clientPreviewLink = links.find((link) => link.audience === "client" && link.status === "active") ?? null;
-  // Lot 32b (UX-03) : « Écrire au client » ouvre la messagerie de la planner (Symbola n'envoie rien).
+  // Lot 32b (UX-03), lot 38b (D10) : « Écrire au client » mène au message depuis un modèle ; la
+  // messagerie de la planner l'envoie (Symbola n'envoie rien).
   const clientEmails = event.clients.flatMap((client) => (client.email ? [client.email] : []));
   // Lot 33b (HUB-10) : l'évènement fictif en cours (essai ou exemple), pour sa date de suppression
   // et la proposition de le supprimer au premier évènement réel.
@@ -491,9 +498,10 @@ export default async function EventDetailPage({
           isDayOfOpen(event) || clientPreviewLink || clientEmails.length > 0 ? (
             <>
               {clientEmails.length > 0 ? (
-                <a href={`mailto:${clientEmails.map(encodeURIComponent).join(",")}`} className="button-link">
+                // Lot 38b (HUB-21, D10) : le message depuis un modèle, rempli avec la fiche ; la messagerie de la planner l'envoie.
+                <Link href={`/events/${event.id}/ecrire`} className="button-link">
                   {t("writeToClient")}
-                </a>
+                </Link>
               ) : null}
               {/* Lot 32a (EVT-02) : « Voir comme le client », l'aperçu du portail. */}
               {clientPreviewLink ? (
@@ -1095,6 +1103,24 @@ export default async function EventDetailPage({
               {t("programExportVendors")}
             </a>
           </nav>
+          {/* Lot 38b (HUB-29 ; D11) : le programme, séquence par séquence, dans l'agenda de la personne. */}
+          {!event.isDemo ? (
+            <section aria-labelledby="program-calendar-title" className="stack">
+              <h3 id="program-calendar-title">{tCalendar("title")}</h3>
+              <p className="meta">
+                {programFeed ? tCalendar("programFollowed", { date: eventTime(programFeed.createdAt) }) : tCalendar("programAddHint")}
+              </p>
+              <CalendarAddressForm eventId={event.id} hasActive={programFeed !== null} labels={{ create: tCalendar("programAdd"), renew: tCalendar("programRenew"), form: tCalendar("programAdd") }} />
+              {programFeed ? (
+                <form action={revokeCalendarAddressAction}>
+                  <input type="hidden" name="eventId" value={event.id} />
+                  <button type="submit" className="link-button">
+                    {tCalendar("programRevoke")}
+                  </button>
+                </form>
+              ) : null}
+            </section>
+          ) : null}
           {program.overlaps.length > 0 ? (
             <section aria-labelledby="program-overlaps-title">
               <h3 id="program-overlaps-title">{t("programOverlapsTitle")}</h3>

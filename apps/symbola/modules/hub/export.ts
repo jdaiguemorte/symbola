@@ -16,6 +16,8 @@ import {
   contacts,
   emailTemplates,
   membershipRoleEnum,
+  messageTemplates,
+  messageTemplateVersions,
   organizationModules,
   organizationProfiles,
   organizations,
@@ -41,6 +43,9 @@ export const HUB_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   // Lot 38a (MSG-01, D3) : les modèles d'e-mails que l'organisation a réécrits (les autres valent le
   // texte de départ de Symbola).
   { table: emailTemplates },
+  // Lot 38b (HUB-21, D10) : les modèles de messages de la planner et toutes leurs versions.
+  { table: messageTemplates },
+  { table: messageTemplateVersions, parents: { templateId: "message_templates" } },
   { table: privacySettings, idField: "organizationId" },
   { table: privacyRequests },
   // Trace des exports RGPD : leurs fichiers, effacés à l'expiration, ne sont pas repris.
@@ -79,6 +84,8 @@ export const HUB_EXPORT_EXCLUSIONS: Readonly<Record<string, string>> = {
   organization_exports: "technique : trace des exports complets eux-mêmes",
   // Lot 37b (DOC-12, D12) : des nombres pris chaque mois pour l'exploitation (quotas), sans donnée métier.
   storage_snapshots: "exploitation : relevé mensuel du stockage (nombres de fichiers et volumes)",
+  // Lot 38b (HUB-29, D11) : des adresses secrètes, propres à chaque personne ; une archive ne les porte pas.
+  calendar_feeds: "secret : adresses des flux de calendrier (jetons hachés), propres à chaque personne",
   domain_events: "technique : événements internes entre modules",
   domain_event_consumers: "technique : suivi des événements internes",
   rate_limit_events: "exploitation : tentatives limitées",

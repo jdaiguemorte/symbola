@@ -29,6 +29,7 @@ import contractTemplatesFile from "./contract-templates.json";
 import contractRulesFile from "./contract-rules.json";
 import linkPrivacyNoticeFile from "./link-privacy-notice.json";
 import emailTemplatesFile from "./email-templates.json";
+import messageTemplatesFile from "./message-templates.json";
 import programFile from "./program.json";
 import prospectSourcesFile from "./prospect-sources.json";
 import retroplanningFile from "./retroplanning.json";
@@ -1171,5 +1172,20 @@ export function starterEmailTemplate(kind: string, locale: StarterLocale): { sub
 
 export function starterEmailTemplateKinds(): string[] {
   return Object.keys(emailTemplates.fr);
+}
+
+// Lot 38b (HUB-21, D10 ; ADR 0072) — deux modèles de messages de départ, que la planner ajoute à
+// ses modèles puis adapte : « Réponse à une première demande », « Proposer un rendez-vous ».
+const starterMessageSchema = z.object({ key: z.string().min(1), name: z.string().min(1).max(120), subject: z.string().min(1).max(200), body: z.string().min(1).max(5000) });
+const messageTemplatesSchema = z.object({
+  version: z.literal(1),
+  templates: z.object({ fr: z.array(starterMessageSchema).min(1), en: z.array(starterMessageSchema).min(1) }),
+});
+const messageTemplates = messageTemplatesSchema.parse(messageTemplatesFile).templates;
+
+export type StarterMessageTemplate = z.infer<typeof starterMessageSchema>;
+
+export function starterMessageTemplates(locale: StarterLocale): StarterMessageTemplate[] {
+  return messageTemplates[locale].map((template) => ({ ...template }));
 }
 

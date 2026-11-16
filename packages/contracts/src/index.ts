@@ -107,6 +107,7 @@ export type {
   ProgramPublication,
   ProgramVersion,
   ProgramVersionSummary,
+  CalendarEvent,
   ProgramRecipient,
   ProgramRecipientDocument,
   NotifyProgramVersionInput,
@@ -356,5 +357,18 @@ export {
 // Lot 36a (CRM-03, DAT-12, ADR 0069) : le contact unique du hub.
 export type { Contact, ContactCompanyIds, ContactCoordinates, ContactInput, ContactKind, ContactMembership, ContactNote } from "./contacts";
 // Lot 38a (MSG-01, MSG-02, HUB-18 ; ADR 0072) : modèles d'e-mails et garde-fou d'envoi groupé.
-export type { EmailLocale, EmailRecipient, EmailTemplateKind, EmailTemplateText, EmailTemplateVariableView, EmailTemplateView, EmailValues, EmailVariable, RecipientsReview } from "./emails";
-export { EMAIL_LOCALES, EMAIL_TEMPLATE_KINDS, EMAIL_VARIABLES } from "./emails";
+export type {
+  EmailLocale,
+  EmailRecipient,
+  EmailTemplateKind,
+  EmailTemplateText,
+  EmailTemplateVariableView,
+  EmailTemplateView,
+  EmailValues,
+  EmailVariable,
+  MessageTemplateDetail,
+  MessageTemplateSummary,
+  MessageTemplateVersionView,
+  RecipientsReview,
+} from "./emails";
+export { EMAIL_LOCALES, EMAIL_TEMPLATE_KINDS, EMAIL_VARIABLES, MESSAGE_VARIABLES } from "./emails";

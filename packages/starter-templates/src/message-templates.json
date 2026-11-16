@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "templates": {
+    "fr": [
+      {
+        "key": "first_request",
+        "name": "Réponse à une première demande",
+        "subject": "Merci pour votre message — {{organisation}}",
+        "body": "Bonjour {{prénom}},\n\nMerci pour votre message et toutes nos félicitations ! Ce serait un plaisir de vous accompagner pour {{évènement}}.\n\nPour bien comprendre vos envies, je vous propose d'en parler de vive voix : dites-moi quand vous seriez disponibles.\n\nÀ très bientôt,\n{{organisation}}"
+      },
+      {
+        "key": "meeting",
+        "name": "Proposer un rendez-vous",
+        "subject": "Rendez-vous pour {{évènement}}",
+        "body": "Bonjour {{prénom}},\n\nJe vous propose de nous rencontrer pour parler de {{évènement}} :\n- le … à …\n- ou le … à …\n\nNous pouvons nous voir à l'atelier ou en visio, comme vous préférez. Dites-moi ce qui vous convient le mieux.\n\nÀ bientôt,\n{{organisation}}"
+      }
+    ],
+    "en": [
+      {
+        "key": "first_request",
+        "name": "Reply to a first enquiry",
+        "subject": "Thank you for your message — {{organization}}",
+        "body": "Hello {{first_name}},\n\nThank you for your message, and congratulations! It would be a pleasure to help you with {{event}}.\n\nTo understand what you have in mind, let's talk: tell me when you would be available.\n\nSpeak soon,\n{{organization}}"
+      },
+      {
+        "key": "meeting",
+        "name": "Suggest a meeting",
+        "subject": "Meeting about {{event}}",
+        "body": "Hello {{first_name}},\n\nI suggest we meet to talk about {{event}}:\n- on … at …\n- or on … at …\n\nWe can meet at the studio or by video call, as you prefer. Let me know what suits you best.\n\nSee you soon,\n{{organization}}"
+      }
+    ]
+  }
+}

@@ -62,6 +62,10 @@ export type EventSummary = {
   isDemo: boolean;
 };
 
+// Lot 38b (HUB-29 ; D11, D12) — un évènement du flux de calendrier de l'équipe : daté, ni essai, ni
+// perdu ou annulé ; avec son type, pour l'intitulé (« Mariage — Léa & Maxime »).
+export type CalendarEvent = EventSummary & { eventTypeId: string | null };
+
 export type EventDetail = EventSummary & {
   prospectSourceId: string | null;
   // Lot 16 (ADR 0045) : type de l'événement ; nul pour un événement d'avant le
@@ -892,6 +896,8 @@ export interface EventsServiceContract {
   markLinkProgramSeen(organizationId: string, linkId: string, number: number): Promise<void>;
   // Lot 38a (D9).
   listProgramRecipients(organizationId: string, eventId: string): Promise<ProgramRecipient[]>;
+  // Lot 38b (HUB-29, D11).
+  listCalendarEvents(organizationId: string): Promise<CalendarEvent[]>;
   notifyProgramVersion(input: NotifyProgramVersionInput): Promise<ProgramNotification>;
   addProgramItem(organizationId: string, eventId: string, item: ProgramItemInput): Promise<ProgramItem>;
   updateProgramItem(organizationId: string, itemId: string, item: ProgramItemInput): Promise<ProgramItem>;

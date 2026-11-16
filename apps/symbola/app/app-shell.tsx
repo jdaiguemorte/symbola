@@ -296,6 +296,8 @@ export async function AppShell({ children }: { children: ReactNode }) {
             ...(isOwner ? [{ href: "/parametres/equipe", label: tSettings("team") }] : []),
             // Lot 38a (MSG-01, D3) : les e-mails envoyés au nom de l'organisation (liens, rappels, signatures, programme).
             ...(events || quotes ? [{ href: "/parametres/emails", label: tSettings("emailTemplates") }] : []),
+            // Lot 38b (HUB-21, D10) : les messages types de la planner, utilisés depuis la fiche.
+            ...(events ? [{ href: "/parametres/messages", label: tSettings("messageTemplates") }] : []),
           ],
         },
         ...(events || budget

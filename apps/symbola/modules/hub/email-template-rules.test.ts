@@ -3,8 +3,8 @@
 // destinataires d'un envoi groupé.
 import { describe, expect, it } from "vitest";
 import { EMAIL_LOCALES, EMAIL_TEMPLATE_KINDS } from "@symbola/contracts";
-import { starterEmailTemplate } from "@symbola/starter-templates";
-import { EMAIL_TEMPLATE_RULES, emailTemplateVariables, recipientsDigest, renderEmailTemplate, validateEmailTemplate, variableToken } from "./email-template-rules";
+import { starterEmailTemplate, starterMessageTemplates } from "@symbola/starter-templates";
+import { EMAIL_TEMPLATE_RULES, emailTemplateVariables, messageTemplateVariables, recipientsDigest, renderEmailTemplate, renderMessageTemplate, validateEmailTemplate, validateMessageTemplate, variableToken } from "./email-template-rules";
 
 describe("MSG-01 — E-mails de service depuis des modèles à variables, avec aperçu et envoi test", () => {
   it("chaque modèle de départ, en français et en anglais, n'emploie que ses variables et contient ses variables indispensables", () => {
@@ -81,5 +81,30 @@ describe("MSG-02 — Garde-fou d'envoi groupé : nombre et liste des destinatair
     expect(recipientsDigest([lea, maxime])).not.toBe(recipientsDigest([lea]));
     expect(recipientsDigest([lea, maxime])).not.toBe(recipientsDigest([lea, { ...maxime, email: "max@exemple.test" }]));
     expect(recipientsDigest([lea])).toMatch(/^[0-9a-f]{64}$/);
+  });
+});
+
+describe("HUB-21 — Modèles de messages de la planner (lot 38b, D10)", () => {
+  it("les modèles de départ, en français et en anglais, n'emploient que les variables des messages", () => {
+    for (const locale of EMAIL_LOCALES) {
+      const starters = starterMessageTemplates(locale);
+      expect(starters.map((starter) => starter.key)).toEqual(["first_request", "meeting"]);
+      for (const starter of starters) expect(validateMessageTemplate(starter)).toEqual({ unknown: [], missingRequired: [], tooLong: [] });
+    }
+  });
+
+  it("une variable inconnue, ou propre aux e-mails de service (le lien), est refusée ; le lieu s'écrit {{lieu}} ou {{place}}", () => {
+    expect(validateMessageTemplate({ subject: "RDV", body: "Bonjour {{prénom}}, au {{lieu}} ou {{place}} : {{lien}} {{inconnue}}" }).unknown).toEqual(["lien", "inconnue"]);
+    expect(messageTemplateVariables("fr").map((variable) => variable.token)).toEqual(["{{prénom}}", "{{clients}}", "{{évènement}}", "{{date_évènement}}", "{{lieu}}", "{{organisation}}"]);
+  });
+
+  it("le rendu remplit chaque variable et garde les retours à la ligne ; aucune variable vide : chacune est nommée", () => {
+    const rendered = renderMessageTemplate(
+      { subject: "Rendez-vous pour {{évènement}}", body: "Bonjour {{prénom}},\r\n\nRendez-vous au {{lieu}} :\n- le … à …\n\n{{organisation}}" },
+      { first_name: "Léa & Maxime", event: "votre mariage", place: "", organization: "Atelier Camille R." },
+    );
+    expect(rendered.subject).toBe("Rendez-vous pour votre mariage");
+    expect(rendered.body).toBe("Bonjour Léa & Maxime,\n\nRendez-vous au {{lieu}} :\n- le … à …\n\nAtelier Camille R.");
+    expect(rendered.missing).toEqual(["place"]);
   });
 });
