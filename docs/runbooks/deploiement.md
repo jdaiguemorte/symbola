@@ -409,6 +409,9 @@ sans cette clé, l'app refuse de démarrer.
    les clients des évènements dans les contacts du hub, puis retire leurs coordonnées
    d'`event_clients`, que l'image du lot 35a lit encore. La reprise se fait dans une seule
    transaction : en cas d'échec, rien n'est repris et l'ancienne image redémarre telle quelle.
+   La migration 0136 (lot 36b : membres des foyers et entreprises, identifiants d'entreprise,
+   import de contacts) n'ajoute qu'une table, deux colonnes et une valeur : elle passe sans
+   arrêter `symbola`.
 4. Redémarrer seulement le service `symbola` :
    ```bash
    sudo docker compose -f infra/compose/docker-compose.prod.yml \
@@ -444,6 +447,12 @@ colonnes, reprises du premier lieu ; les horaires et le contact des lieux, les i
 les notes, les pièces jointes et les commentaires des tâches sont perdus (les fichiers des pièces
 jointes restent dans le stockage, sans ligne : `restauration.md`, § 4 bis), et une tâche confiée à
 un prestataire revient à la planner. Arrêter `symbola` avant l'annulation.
+
+**Vers une image du lot 36a** (antérieure au lot 36b) : la migration 0136 peut rester (l'image du
+lot 36a ignore sa table, ses colonnes et sa valeur) ; remettre l'ancien tag d'image, puis les
+étapes 4 et 5. Un import de contacts déjà au journal y apparaît sans libellé de nature. Pour revenir
+plus loin, annuler 0136 d'abord (`0136_lot36b_contacts_members`, refusée tant qu'un import de
+contacts existe ; les liens des foyers et les identifiants d'entreprise sont perdus).
 
 **Vers une image du lot 35a** (antérieure au lot 36a) : annuler la migration 0135
 (`0135_lot36a_contacts`), après une sauvegarde, `symbola` arrêté. Chaque client retrouve ses

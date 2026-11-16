@@ -27,9 +27,14 @@ import {
   decideImportMatches,
   decideImportVendorTypes,
   getImportWorkingSet,
+  importedContactValues,
+  listContactImportCandidates,
+  normalizeContactEmail,
+  setImportRowFilter,
   setImportRowStatuses,
   saveImportMatching,
   setManualImportMatch,
+  type ContactImportCandidate,
   type ImportMatch,
   type ImportMatching,
   type ImportRowEvent,
@@ -78,6 +83,7 @@ export function parseWorkingSetRows(set: ImportWorkingSet): ParsedImportRow[] {
       return reason ? { ...row, errors: [{ fieldKey: "source", code: "sheet_rejected" as const, value: reason }] } : row;
     });
   }
+  if (set.entityType === "contacts") return contactRows(set, rows);
   if (set.entityType !== "vendors") return rows;
   // Lot 14 (IMP-07) : valeurs du carnet remises en état dès la lecture
   // (entités HTML, code postal), pour l'aperçu comme pour l'écriture.
@@ -92,6 +98,121 @@ export function parseWorkingSetRows(set: ImportWorkingSet): ParsedImportRow[] {
     ),
     errors: row.errors.length > 0 || cleanVendorImportText("name", String(row.values.name ?? "")) !== "" ? row.errors : [...row.errors, { fieldKey: "name", code: "required_missing" as const, value: "" }],
   }));
+}
+
+// Lot 36b (D11) — valeur d'une cellule repliée, pour comparer les valeurs d'une colonne
+// (« Prestataire  », « prestataire » et « PRESTATAIRE » sont une seule valeur).
+export function foldedCell(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+// Lot 36b (HUB-14, D11) — lignes d'un import de contacts : écartées selon la colonne choisie
+// (la ligne garde ce seul motif, pour l'export des lignes écartées), sans nom, ou à l'adresse
+// e-mail illisible.
+function contactRows(set: ImportWorkingSet, rows: ParsedImportRow[]): ParsedImportRow[] {
+  const filter = set.matching?.rowFilter;
+  const excluded = new Set(filter?.excluded ?? []);
+  return rows.map((row) => {
+    if (filter && excluded.size > 0) {
+      const cell = set.rows[row.rowIndex]?.[filter.columnIndex] ?? "";
+      if (excluded.has(foldedCell(cell))) {
+        return { ...row, errors: [{ fieldKey: set.headers[filter.columnIndex] ?? "", code: "excluded_by_filter" as const, value: cell.trim() }] };
+      }
+    }
+    const errors = [...row.errors];
+    if (!importedContactValues(row.values)) errors.push({ fieldKey: "contactName", code: "required_missing" as const, value: "" });
+    const email = text(row.values.email);
+    if (email) {
+      try {
+        normalizeContactEmail(email);
+      } catch {
+        errors.push({ fieldKey: "email", code: "invalid_email" as const, value: email });
+      }
+    }
+    return errors.length === row.errors.length ? row : { ...row, errors };
+  });
+}
+
+// Nom replié d'une personne, pour reconnaître le même nom écrit autrement (« HENRY Mathieu »,
+// « Mathieu Henry »).
+function foldedPersonName(firstName: string | null, lastName: string | null): string {
+  return foldedCell([firstName, lastName].filter(Boolean).join(" "))
+    .split(" ")
+    .sort()
+    .join(" ");
+}
+
+export function contactCandidateLabel(candidate: ContactImportCandidate): string {
+  const name = [candidate.firstName, candidate.lastName].filter(Boolean).join(" ");
+  return [name, candidate.email, candidate.city].filter(Boolean).join(" — ");
+}
+
+// Un contact rapproché par son nom reste à vérifier (sous le seuil de « Tout accepter ») ; par son
+// adresse e-mail, il est sûr.
+const CONTACT_EMAIL_SCORE = 100;
+const CONTACT_NAME_SCORE = 80;
+
+// Lot 36b (DAT-12) — une ligne dont l'adresse est déjà connue de l'organisation rapproche son
+// contact ; sinon, un contact au même nom (sans autre adresse). Une adresse déjà vue plus haut dans
+// le fichier : la ligne complète la première (signalée, la planner peut l'ignorer).
+function computeContactMatching(rows: ParsedImportRow[], candidates: ContactImportCandidate[]): Pick<ImportMatching, "matches" | "duplicates"> {
+  const byEmail = new Map(candidates.filter((candidate) => candidate.email).map((candidate) => [candidate.email!, candidate]));
+  const byName = new Map<string, ContactImportCandidate[]>();
+  for (const candidate of candidates) {
+    const key = foldedPersonName(candidate.firstName, candidate.lastName);
+    byName.set(key, [...(byName.get(key) ?? []), candidate]);
+  }
+  const matches: ImportMatch[] = [];
+  const duplicates: { rowIndex: number; sameAsRowIndex: number }[] = [];
+  const firstRowOfEmail = new Map<string, number>();
+  for (const row of rows) {
+    const values = importedContactValues(row.values);
+    if (!values) continue;
+    if (values.email) {
+      const earlier = firstRowOfEmail.get(values.email);
+      if (earlier !== undefined) duplicates.push({ rowIndex: row.rowIndex, sameAsRowIndex: earlier });
+      else firstRowOfEmail.set(values.email, row.rowIndex);
+      const owner = byEmail.get(values.email);
+      if (owner) {
+        matches.push({ rowIndex: row.rowIndex, candidateId: owner.id, score: CONTACT_EMAIL_SCORE, status: "proposed", manual: false, reason: "email" });
+        continue;
+      }
+      if (earlier !== undefined) continue;
+    }
+    const sameName = (byName.get(foldedPersonName(values.firstName, values.lastName)) ?? []).filter(
+      (candidate) => !candidate.email || !values.email || candidate.email === values.email,
+    );
+    if (sameName.length === 1) {
+      matches.push({ rowIndex: row.rowIndex, candidateId: sameName[0]!.id, score: CONTACT_NAME_SCORE, status: "proposed", manual: false, reason: "name" });
+    }
+  }
+  return { matches, duplicates };
+}
+
+// Une ligne de contact telle que l'écran la montre : « Mathieu HENRY — adresse — ville ».
+export function contactRowTitle(values: Record<string, ImportValue>): string | null {
+  const row = importedContactValues(values);
+  if (!row) return null;
+  return [[row.firstName, row.lastName].filter(Boolean).join(" "), row.email, row.city].filter(Boolean).join(" — ");
+}
+
+const CONTACT_OPTIONS = 10;
+
+function closestContacts(values: Record<string, ImportValue>, candidates: ContactImportCandidate[]): MatchesRowView["options"] {
+  const row = importedContactValues(values);
+  if (!row) return [];
+  const reference = [row.firstName, row.lastName].filter(Boolean).join(" ");
+  return candidates
+    .map((candidate) => ({ candidate, score: labelSimilarity(reference, [candidate.firstName, candidate.lastName].filter(Boolean).join(" ")) }))
+    .filter((entry) => entry.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, CONTACT_OPTIONS)
+    .map(({ candidate }) => ({ id: candidate.id, label: contactCandidateLabel(candidate), event: null }));
 }
 
 function vendorReference(values: Record<string, ImportValue>): { name: string; city: string | null } {
@@ -256,6 +377,8 @@ export async function computeImportMatching(organizationId: string, set: ImportW
     for (const row of rows) proposed(row.rowIndex, bestMatch(rowEventReference(row.values), candidates, eventSimilarity));
     // IMP-08 : deux fiches du même lot qui décrivent le même événement.
     if (set.entityType === "event_sheets") return { matches, rowEvents, duplicates: findDuplicateSheets(rows) };
+  } else if (set.entityType === "contacts") {
+    return { ...computeContactMatching(rows, await listContactImportCandidates(organizationId)), rowEvents };
   } else if (set.entityType === "vendors") {
     const candidates = (await listVendorCandidates(organizationId)).map((vendor) => ({ id: vendor.id, value: vendor }));
     for (const row of rows) proposed(row.rowIndex, bestMatch(vendorReference(row.values), candidates, vendorSimilarity));
@@ -301,6 +424,8 @@ export type MatchesRowView = {
   options: { id: string; label: string | null; event: EventCandidate | null }[];
   // Lot 14c : fiche du même lot qui décrit déjà cet événement (n° de ligne).
   sameAsLine?: number;
+  // Lot 36b (DAT-12) : ligne de contact ignorée par la planner (doublon de son adresse).
+  ignored?: boolean;
 };
 
 export type MatchesView = {
@@ -330,7 +455,10 @@ export async function getImportMatchesView(organizationId: string, importId: str
   const eventsById = new Map(events.map((event) => [event.id, event]));
   const isVendorType = set.entityType === "vendors";
   const vendorCandidates = isVendorType ? await listVendorCandidates(organizationId) : [];
-  const labelCandidates = !isEventType && !hasEventReference && !isVendorType ? await listLabelCandidates(organizationId, set.entityType) : [];
+  const isContactType = set.entityType === "contacts";
+  const contactCandidates = isContactType ? await listContactImportCandidates(organizationId) : [];
+  const contactsById = new Map(contactCandidates.map((candidate) => [candidate.id, candidate]));
+  const labelCandidates = !isEventType && !hasEventReference && !isVendorType && !isContactType ? await listLabelCandidates(organizationId, set.entityType) : [];
   const itemsByEvent = new Map<string, LabelCandidate[]>();
   const itemsOf = async (eventId: string) => {
     let items = itemsByEvent.get(eventId);
@@ -349,6 +477,10 @@ export async function getImportMatchesView(organizationId: string, importId: str
   };
   // Décision J : statut choisi par la planner dans l'aperçu.
   const statusOverride = new Map((matching.rowStatuses ?? []).map((entry) => [entry.rowIndex, entry.status]));
+  // Lot 36b (DAT-12) : une ligne de contact est ignorée si la planner l'a dit, ou si elle a refusé
+  // de compléter le contact qui porte déjà son adresse (jamais deux contacts pour une adresse).
+  const ignoredRow = (rowIndex: number, match: ImportMatch | undefined) =>
+    statusOverride.get(rowIndex) === "ignore" || (match?.status === "refused" && match.reason === "email");
   const rows: MatchesRowView[] = [];
   for (const row of parsed) {
     if (set.entityType === "event_sheets" && statusOverride.has(row.rowIndex)) row.values = { ...row.values, status: statusOverride.get(row.rowIndex)! };
@@ -358,10 +490,16 @@ export async function getImportMatchesView(organizationId: string, importId: str
       if (isEventType) options = events.map((event) => ({ id: event.id, label: null, event }));
       else if (hasEventReference) options = resolution?.eventId ? (await itemsOf(resolution.eventId)).map((item) => ({ ...item, event: null })) : [];
       else if (isVendorType) options = closestVendors(row.values, vendorCandidates);
+      else if (isContactType) options = closestContacts(row.values, contactCandidates);
       else options = labelCandidates.map((item) => ({ ...item, event: null }));
     }
     const match = matching.matches.find((candidate) => candidate.rowIndex === row.rowIndex);
-    const option = match ? options.find((candidate) => candidate.id === match.candidateId) : undefined;
+    const matchedContact = isContactType && match ? contactsById.get(match.candidateId) : undefined;
+    const option = matchedContact
+      ? { id: matchedContact.id, label: contactCandidateLabel(matchedContact), event: null }
+      : match
+        ? options.find((candidate) => candidate.id === match.candidateId)
+        : undefined;
     rows.push({
       rowIndex: row.rowIndex,
       lineNumber: row.lineNumber,
@@ -379,6 +517,7 @@ export async function getImportMatchesView(organizationId: string, importId: str
       match: match ? { ...match, label: option?.label ?? null, event: option?.event ?? null } : null,
       options,
       ...sameAs(row.rowIndex),
+      ...(isContactType && ignoredRow(row.rowIndex, match) ? { ignored: true } : {}),
     });
   }
   if (!isVendorType) return { importId: set.importId, entityType: set.entityType, fileName: set.fileName, rows };
@@ -464,4 +603,81 @@ export async function setEventSheetStatuses(organizationId: string, importId: st
   const set = await withHubDb((db) => getImportWorkingSet(db, organizationId, importId));
   if (set?.entityType !== "event_sheets") return false;
   return withHubDb((db) => setImportRowStatuses(db, { organizationId, importId, statuses }));
+}
+
+// —— Lot 36b (D11, SC-10) : lignes à écarter d'un import de contacts ——————————————————————
+
+// Une colonne proposée pour écarter des lignes : pas un champ du contact, et peu de valeurs
+// différentes (une catégorie, un type), cellule vide comprise.
+const FILTER_MAX_VALUES = 12;
+
+export type RowFilterValue = { value: string; label: string; count: number };
+export type RowFilterColumn = { columnIndex: number; header: string; values: RowFilterValue[] };
+export type RowFilterView = {
+  importId: string;
+  fileName: string;
+  rowCount: number;
+  columns: RowFilterColumn[];
+  filter: { columnIndex: number; excluded: string[] } | null;
+};
+
+function filterColumns(set: ImportWorkingSet): RowFilterColumn[] {
+  const mapped = new Set(set.mapping.filter((choice) => choice.target === "field").map((choice) => choice.columnIndex));
+  return set.headers.flatMap((header, columnIndex) => {
+    if (mapped.has(columnIndex)) return [];
+    const groups = new Map<string, Map<string, number>>();
+    for (const row of set.rows) {
+      const cell = (row[columnIndex] ?? "").trim();
+      const key = foldedCell(cell);
+      const variants = groups.get(key) ?? new Map<string, number>();
+      variants.set(cell, (variants.get(cell) ?? 0) + 1);
+      groups.set(key, variants);
+      if (groups.size > FILTER_MAX_VALUES) return [];
+    }
+    if (groups.size < 2) return [];
+    const values = [...groups].map(([value, variants]) => {
+      const [label] = [...variants].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0]!;
+      return { value, label, count: [...variants.values()].reduce((sum, count) => sum + count, 0) };
+    });
+    values.sort((a, b) => b.count - a.count || a.value.localeCompare(b.value));
+    return [{ columnIndex, header, values }];
+  });
+}
+
+export async function getImportRowFilterView(organizationId: string, importId: string): Promise<RowFilterView | null> {
+  const set = await withHubDb((db) => getImportWorkingSet(db, organizationId, importId));
+  if (set?.entityType !== "contacts") return null;
+  return { importId, fileName: set.fileName, rowCount: set.rows.length, columns: filterColumns(set), filter: set.matching?.rowFilter ?? null };
+}
+
+// Nombre de colonnes proposées pour écarter des lignes (l'étape est faite d'office sans elles).
+export async function countImportRowFilterColumns(organizationId: string, importId: string): Promise<number> {
+  return (await getImportRowFilterView(organizationId, importId))?.columns.length ?? 0;
+}
+
+// Écarte les lignes dont la colonne vaut une des valeurs choisies (ou n'en écarte aucune), puis
+// recalcule les rapprochements des lignes gardées. Colonne et valeurs vérifiées contre le fichier.
+export async function setContactRowFilter(organizationId: string, importId: string, filter: { columnIndex: number; excluded: string[] } | null): Promise<boolean> {
+  const set = await withHubDb((db) => getImportWorkingSet(db, organizationId, importId));
+  if (set?.entityType !== "contacts") return false;
+  let kept: { columnIndex: number; excluded: string[] } | null = null;
+  if (filter && filter.excluded.length > 0) {
+    const column = filterColumns(set).find((candidate) => candidate.columnIndex === filter.columnIndex);
+    if (!column) return false;
+    const known = new Set(column.values.map((value) => value.value));
+    if (filter.excluded.some((value) => !known.has(value))) return false;
+    kept = { columnIndex: filter.columnIndex, excluded: [...new Set(filter.excluded)] };
+  }
+  const base: ImportMatching = { matches: [], rowEvents: [], ...(kept ? { rowFilter: kept } : {}) };
+  const matching = await computeImportMatching(organizationId, { ...set, matching: base });
+  // Les doublons sont à revoir : l'étape « Doublons » n'est plus faite.
+  return withHubDb((db) => setImportRowFilter(db, { organizationId, importId, matching: { ...matching, reviewed: {} }, filter: kept }));
+}
+
+// Lot 36b (DAT-12) — une ligne de contact ignorée (doublon d'une ligne plus haut), ou de nouveau
+// gardée : elle complète alors la première.
+export async function setContactRowsIgnored(organizationId: string, importId: string, rowIndexes: number[], ignored: boolean): Promise<boolean> {
+  const set = await withHubDb((db) => getImportWorkingSet(db, organizationId, importId));
+  if (set?.entityType !== "contacts" || rowIndexes.some((index) => !Number.isInteger(index))) return false;
+  return withHubDb((db) => setImportRowStatuses(db, { organizationId, importId, statuses: rowIndexes.map((rowIndex) => ({ rowIndex, status: ignored ? "ignore" : "keep" })) }));
 }

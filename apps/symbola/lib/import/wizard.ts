@@ -1,13 +1,13 @@
 // Lot 16 (IMP-11, ADR 0041) — assistant d'import : un seul service décide de
 // l'étape suivante (`nextImportStep`) ; les écrans ne le recalculent plus.
-// Étapes : Fichier, Colonnes, Types (prestataires seulement), Doublons,
-// Vérifier et confirmer. Une étape sans rien à décider est faite d'office et
+// Étapes : Fichier, Colonnes, Types (prestataires seulement), Lignes (contacts
+// seulement, lot 36b), Doublons, Vérifier et confirmer. Une étape sans rien à décider est faite d'office et
 // franchie, avec son résumé ; un brouillon reprend là où il s'était arrêté.
 import { appDatabase } from "@symbola/db/client";
 import { getImportDraft, type ImportDraft, type ImportEntityType } from "@/modules/hub/service";
-import { getImportMatchesView, type MatchesView } from "./matching";
+import { countImportRowFilterColumns, getImportMatchesView, type MatchesView } from "./matching";
 
-export type ImportStepKey = "file" | "columns" | "types" | "matches" | "confirm";
+export type ImportStepKey = "file" | "columns" | "types" | "rows" | "matches" | "confirm";
 
 // Étape « Doublons » : une proposition « sûre » est acceptée par « Tout accepter ».
 export const SAFE_MATCH_SCORE = 90;
@@ -17,6 +17,7 @@ export const IMPORT_STEP_PATHS: Record<ImportStepKey, string> = {
   file: "",
   columns: "/colonnes",
   types: "/types",
+  rows: "/lignes",
   matches: "/rapprochements",
   confirm: "/confirmation",
 };
@@ -50,7 +51,9 @@ type StepInput = {
   rowCount: number;
   readingDone: boolean;
   mapping: ImportDraft["mapping"];
-  reviewed: { types?: boolean; matches?: boolean };
+  reviewed: { types?: boolean; matches?: boolean; rows?: boolean };
+  // Lot 36b (D11) : colonnes proposées pour écarter des lignes d'un import de contacts.
+  rowFilterColumns?: number;
   // Rapprochements calculés (après les colonnes) : choix de types et lignes.
   matches: Pick<MatchesView, "rows" | "vendorTypes"> | null;
 };
@@ -101,14 +104,22 @@ export function importWizardSteps(input: StepInput): ImportWizardStep[] {
     previousDone = typesDone;
   }
 
+  if (input.entityType === "contacts") {
+    const rowsDone = previousDone && input.matches !== null && (input.reviewed.rows === true || (input.rowFilterColumns ?? 0) === 0);
+    const excluded = input.matches?.rows.filter((row) => row.errors.some((error) => error.code === "excluded_by_filter")).length ?? 0;
+    steps.push({ key: "rows", done: rowsDone, summary: input.matches !== null ? { key: "rows", values: { excluded } } : null });
+    previousDone = rowsDone;
+  }
+
   const rows = input.matches?.rows.filter((row) => row.errors.length === 0) ?? [];
   // À vérifier : une proposition en attente, ou une fiche du même lot qui décrit le même événement.
   const proposed = rows.filter((row) => row.match?.status === "proposed" || row.sameAsLine !== undefined).length;
-  const updates = rows.filter((row) => row.match?.status === "accepted").length;
+  const updates = rows.filter((row) => row.match?.status === "accepted" || (input.entityType === "contacts" && row.sameAsLine !== undefined && !row.ignored)).length;
+  const ignored = rows.filter((row) => row.ignored).length;
   steps.push({
     key: "matches",
     done: previousDone && input.matches !== null && (input.reviewed.matches === true || proposed === 0),
-    summary: input.matches !== null ? { key: "matches", values: { updates, creations: rows.length - updates, proposed } } : null,
+    summary: input.matches !== null ? { key: "matches", values: { updates, creations: rows.length - updates - ignored, proposed } } : null,
   });
   steps.push({ key: "confirm", done: false, summary: null });
   return steps;
@@ -130,6 +141,7 @@ export async function getImportWizard(organizationId: string, importId: string):
     mapping: draft.mapping,
     reviewed: draft.matching?.reviewed ?? {},
     matches,
+    ...(draft.entityType === "contacts" && matches ? { rowFilterColumns: await countImportRowFilterColumns(organizationId, importId) } : {}),
   });
   return { importId: draft.id, fileName: draft.fileName, entityType: draft.entityType, steps, next: nextImportStep(steps), draft, matches };
 }

@@ -6,7 +6,7 @@
 import { and, eq, inArray, isNotNull } from "drizzle-orm";
 import { appDatabase } from "@symbola/db/client";
 import { importItems, imports, privacyRequests } from "@symbola/db/schema/hub";
-import { anonymizeContacts, findContactsByTerms, getContactsByIds, listContactNotes } from "./contacts";
+import { anonymizeContacts, findContactsByTerms, getContactsByIds, listContactGroups, listContactMembers, listContactNotes } from "./contacts";
 import { withOrganization } from "@symbola/db/with-organization";
 import {
   ANONYMIZED,
@@ -120,9 +120,11 @@ export const hubPrivacy: PrivacyContractV1 = {
     if (!hasTerms(terms)) return [];
     const db = appDatabase();
     const records: PrivacyRecord[] = [];
-    // Lot 36a (CRM-03) : la fiche du contact, ses coordonnées et ses notes.
+    // Lot 36a (CRM-03) : la fiche du contact, ses coordonnées et ses notes. Lot 36b : ses
+    // identifiants d'entreprise, et les foyers ou entreprises qu'elle relie (avec les rôles).
     for (const contact of await findContactsByTerms(organizationId, rawTerms)) {
       const notes = await listContactNotes(organizationId, contact.id);
+      const links = contact.kind === "person" ? await listContactGroups(organizationId, contact.id) : await listContactMembers(organizationId, contact.id);
       const fields: Record<string, string> = {};
       for (const [key, value] of Object.entries({
         firstName: contact.firstName,
@@ -135,11 +137,16 @@ export const hubPrivacy: PrivacyContractV1 = {
         city: contact.city,
         country: contact.country,
         billingAddress: contact.billingAddress,
+        companyIdNumber: contact.companyIdNumber,
+        vatNumber: contact.vatNumber,
       })) {
         if (value) fields[key] = value;
       }
       notes.forEach((note, index) => {
         fields[`note${index + 1}`] = note.body;
+      });
+      links.forEach((link, index) => {
+        fields[`link${index + 1}`] = link.role ? `${link.contact.displayName} (${link.role})` : link.contact.displayName;
       });
       records.push({ module: MODULE, kind: "contact", recordId: contact.id, label: contact.displayName, fields, eventId: null });
     }

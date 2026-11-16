@@ -99,3 +99,36 @@ Avant le lot 36, chaque évènement gardait ses clients et leurs coordonnées da
   l'organisation ; une liste d'évènements fait une lecture de plus, par lot.
 - **Une table nouvelle du noyau** suit les règles des tables métier : RLS, journal des
   suppressions, registre RGPD, export, tests d'isolation et d'accès Admin.
+
+## Avenant du lot 36b (décisions D2 et D11, 16/11/2026)
+
+1. **Foyers et entreprises** (D2) : `hub.contact_members` relie une personne à un foyer (un couple,
+   une famille) ou à une entreprise (ses interlocuteurs), avec un rôle libre.
+   - Une personne peut appartenir à plusieurs groupes ; un groupe ne contient que des personnes.
+   - Le lien disparaît avec l'un de ses deux contacts ; le rôle s'efface quand l'un d'eux est
+     anonymisé.
+   - Le client d'un mariage reste les deux personnes : le foyer les relie, il ne les remplace pas.
+2. **Identifiants d'une entreprise** : SIREN ou SIRET, et numéro de TVA, sur `hub.contacts`.
+   - Une contrainte en base les réserve aux entreprises ; ils sont nettoyés à la saisie (espaces,
+     points, majuscules).
+   - Ils s'impriment sous le nom du client sur le devis.
+   - **Écart** : pas encore sur la facture. Une facture à un client professionnel est refusée tant
+     que la facturation électronique n'existe pas (lot 41) ; les identifiants y entreront avec
+     elle.
+3. **Import de contacts** (HUB-14, D11) : une nature d'import « contacts », écrite par le hub, avec
+   la mécanique de l'ADR 0022.
+   - Le nom et le prénom peuvent venir d'une seule colonne (« NOM Prénom »).
+   - Une étape « Lignes » écarte les lignes selon la valeur d'une colonne (« Catégorie » vaut
+     « prestataire »). Elles restent au rapport des écarts, téléchargeable pour un autre import.
+   - Une adresse déjà connue de l'organisation, ou déjà vue plus haut dans le fichier, complète le
+     contact (ses champs vides seulement) ou la ligne est ignorée : jamais deux contacts pour une
+     adresse (DAT-12).
+   - La colonne de notes et les colonnes gardées en champ libre deviennent une note de la fiche.
+   - L'annulation retire les contacts créés et rend leurs champs vides aux contacts complétés ;
+     un contact importé devenu depuis client d'un évènement, membre d'un foyer, ou annoté par
+     l'équipe, est gardé.
+4. **Reconnaissance des colonnes** : un champ d'e-mail ou de téléphone est désormais renforcé par
+   une colonne qui en contient, au lieu d'en être pénalisé. Tous les imports en profitent.
+5. **Migration `0136_lot36b_contacts_members`** : schéma `hub` seulement, compatible avec l'image
+   du lot 36a ; elle passe sans arrêter l'application.
+

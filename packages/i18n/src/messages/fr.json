@@ -772,7 +772,7 @@
     },
     "importFile": {
       "title": "Importer des données",
-      "body": "Choisissez ce que vous reprenez : vos prestataires ou vos fiches événement depuis votre outil actuel, ou un autre fichier. L'assistant enchaîne les étapes et ne vous demande que ce qui doit être décidé. Rien n'est enregistré avant la confirmation, et un import s'annule depuis le journal.",
+      "body": "Choisissez ce que vous reprenez : vos contacts (CSV ou Excel), vos prestataires ou vos fiches événement depuis votre outil actuel, ou un autre fichier. L'assistant enchaîne les étapes et ne vous demande que ce qui doit être décidé. Rien n'est enregistré avant la confirmation, et un import s'annule depuis le journal.",
       "faq": [
         {
           "q": "Que devient mon fichier ?",
@@ -1080,11 +1080,15 @@
     },
     "contactsList": {
       "title": "Contacts",
-      "body": "Chaque personne n'existe qu'une fois dans votre espace : un couple qui revient pour un second évènement garde sa fiche, ses coordonnées et son historique. Cherchez par nom, adresse ou téléphone ; une adresse e-mail n'appartient qu'à un contact. Les contacts d'essai n'apparaissent pas ici."
+      "body": "Chaque personne n'existe qu'une fois dans votre espace : un couple qui revient pour un second évènement garde sa fiche, ses coordonnées et son historique. Cherchez par nom, adresse ou téléphone ; une adresse e-mail n'appartient qu'à un contact. Un foyer relie des personnes (un couple, une famille) ; une entreprise, ses interlocuteurs, avec son SIREN et son numéro de TVA. « Importer des contacts » reprend votre fichier (CSV ou Excel). Les contacts d'essai n'apparaissent pas ici."
     },
     "contactDetail": {
       "title": "Fiche d'un contact",
-      "body": "Les coordonnées de la fiche sont celles que reprennent ses évènements, ses liens personnels et ses devis : les modifier ici les modifie partout. L'historique rassemble ses évènements, ses devis et factures, et les documents de ses évènements ; les notes sont à l'équipe. « Créer un évènement » le choisit d'emblée comme client."
+      "body": "Les coordonnées de la fiche sont celles que reprennent ses évènements, ses liens personnels et ses devis : les modifier ici les modifie partout. L'historique rassemble ses évènements, ses devis et factures, et les documents de ses évènements ; les notes sont à l'équipe. « Créer un évènement » le choisit d'emblée comme client. Sur la fiche d'un foyer ou d'une entreprise, ajoutez les personnes qui en font partie, avec leur rôle ; la fiche d'une personne dit de quels foyers et entreprises elle fait partie. Le SIREN ou SIRET et le numéro de TVA d'une entreprise se reportent sur ses devis."
+    },
+    "importRows": {
+      "title": "Écarter des lignes",
+      "body": "Un fichier de contacts mêle souvent clients, prospects et prestataires. Choisissez une colonne (une catégorie, un type) et cochez les valeurs à écarter : ces lignes ne sont pas importées, et restent au rapport des écarts, téléchargeable. Rien n'est encore enregistré : vous pouvez revenir sur ce choix."
     }
   },
   "Aide": {
@@ -2485,7 +2489,8 @@
       "loss_reasons": "Motifs de perte",
       "payment_methods": "Modes de paiement",
       "vendors": "Prestataires du carnet (une ligne par prestataire)",
-      "event_sheets": "Fiches événement (PDF, une fiche par événement)"
+      "event_sheets": "Fiches événement (PDF, une fiche par événement)",
+      "contacts": "Contacts (une ligne par personne : clients, prospects…)"
     },
     "fileLabel": "Fichier (CSV, Excel .xlsx ou JSON)",
     "fileHint": "Taille maximale : {maxSize}. L'encodage, le séparateur et la ligne d'en-tête sont reconnus automatiquement.",
@@ -2617,7 +2622,15 @@
       "wantedBudget": "Budget souhaité",
       "lineLabel": "Libellé de la ligne",
       "rating": "Évaluation (1 à 5)",
-      "indicativePrices": "Tarifs indicatifs"
+      "indicativePrices": "Tarifs indicatifs",
+      "lastFirstName": "Nom et prénom (le nom d'abord)",
+      "firstLastName": "Prénom et nom (le prénom d'abord)",
+      "firstName": "Prénom",
+      "lastName": "Nom",
+      "phone": "Téléphone",
+      "country": "Pays",
+      "notes": "Notes (deviennent une note de la fiche)",
+      "contactName": "Nom ou prénom"
     },
     "requiredField": "{field} (obligatoire)",
     "columnsStepTitle": "Colonnes",
@@ -2699,7 +2712,9 @@
       "invalid_boolean": "{field} : valeur non reconnue, attendu oui ou non ({value})",
       "invalid_choice": "{field} : valeur non reconnue ({value})",
       "event_not_found": "événement introuvable ou ambigu parmi vos événements",
-      "sheet_rejected": "Fiche refusée : {value}"
+      "sheet_rejected": "Fiche refusée : {value}",
+      "invalid_email": "{field} : adresse e-mail illisible ({value})",
+      "excluded_by_filter": "écartée : « {field} » vaut « {value} »"
     },
     "confirmStepTitle": "Confirmation",
     "continueToConfirmation": "Continuer : aperçu et confirmation",
@@ -2751,7 +2766,9 @@
       "default_vendor_slot": "Ligne du budget par défaut : {title}",
       "vendor": "Prestataire : {title}",
       "vendor_type": "Type de prestataire : {title}",
-      "vendor_tag": "Étiquette : {title}"
+      "vendor_tag": "Étiquette : {title}",
+      "contact": "Contact : {title}",
+      "contact_note": "Note de contact : {title}"
     },
     "importedFieldsTitle": "Champs importés",
     "columnByContent": "Proposé d'après le contenu de la colonne, pas son intitulé (colonnes inversées dans le fichier) : vérifiez.",
@@ -2785,6 +2802,12 @@
     "takeoverIntro": "Vous utilisiez déjà un logiciel de planification ? Reprenez d'abord votre carnet de prestataires, puis vos événements : Symbola reconnaît ses exports et corrige leurs défauts courants (colonnes inversées, caractères mal codés, codes postaux tronqués).",
     "takeoverExampleSheet": "Télécharger une fiche d'exemple (PDF fictif) pour essayer",
     "takeover": {
+      "contacts": {
+        "title": "Reprendre mes contacts",
+        "how": "Dans votre tableur ou votre outil actuel, enregistrez la liste de vos contacts au format CSV ou Excel : une ligne par personne, avec son nom (ou « NOM Prénom » dans une seule colonne), son e-mail, son téléphone, ses notes.",
+        "what": "Chaque ligne devient un contact : nom, coordonnées et notes. Une adresse e-mail déjà connue complète le contact qui la porte ; les lignes de vos prestataires peuvent être écartées.",
+        "start": "Importer mes contacts"
+      },
       "vendors": {
         "title": "Reprendre mes prestataires",
         "how": "Dans votre outil actuel, ouvrez la liste de vos prestataires et exportez-la au format Excel (.xlsx), sans retoucher le fichier.",
@@ -2815,13 +2838,15 @@
       "columns": "Colonnes",
       "types": "Types",
       "matches": "Doublons",
-      "confirm": "Vérifier et confirmer"
+      "confirm": "Vérifier et confirmer",
+      "rows": "Lignes"
     },
     "summary": {
       "file": "{rows, plural, one {# ligne} other {# lignes}}",
       "columns": "{recognized, plural, one {# colonne reconnue} other {# colonnes reconnues}}{kept, plural, =0 {} other {, # en champ libre}}{ignored, plural, =0 {} one {, # ignorée} other {, # ignorées}}",
       "types": "{labels, plural, one {# libellé} other {# libellés}}, {created, plural, =0 {aucun type créé} one {# type créé} other {# types créés}}{unclassified, plural, =0 {} other {, # à classer}}",
-      "matches": "{creations, plural, one {# nouveau} other {# nouveaux}}, {updates, plural, =0 {aucune mise à jour} one {# mise à jour} other {# mises à jour}}"
+      "matches": "{creations, plural, one {# nouveau} other {# nouveaux}}, {updates, plural, =0 {aucune mise à jour} one {# mise à jour} other {# mises à jour}}",
+      "rows": "{excluded, plural, =0 {toutes les lignes gardées} one {# ligne écartée} other {# lignes écartées}}"
     },
     "stepCurrent": "en cours",
     "wizardTitle": "Import de « {fileName} »",
@@ -2905,17 +2930,40 @@
       "prospect_sources": "Importer {count, plural, one {# source} other {# sources}}",
       "loss_reasons": "Importer {count, plural, one {# motif} other {# motifs}}",
       "payment_methods": "Importer {count, plural, one {# moyen de paiement} other {# moyens de paiement}}",
-      "vendors": "Importer {count, plural, one {# prestataire} other {# prestataires}}"
+      "vendors": "Importer {count, plural, one {# prestataire} other {# prestataires}}",
+      "contacts": "Importer {count, plural, one {# contact} other {# contacts}}"
     },
     "finishLink": {
       "vendors": "{count, plural, one {Voir le prestataire} other {Voir les # prestataires}}",
       "events": "{count, plural, one {Voir l'événement} other {Voir les # événements}}",
       "event_sheets": "{count, plural, one {Voir l'événement} other {Voir les # événements}}",
       "tasks": "{count, plural, one {Voir la tâche} other {Voir les # tâches}}",
-      "catalog_items": "{count, plural, one {Voir l'article} other {Voir les # articles}}"
+      "catalog_items": "{count, plural, one {Voir l'article} other {Voir les # articles}}",
+      "contacts": "{count, plural, one {Voir le contact} other {Voir les # contacts}}"
     },
     "confidenceProposal": "{field} ? ({value} %, à confirmer)",
-    "journalTable": "Tableau du journal des imports"
+    "journalTable": "Tableau du journal des imports",
+    "rowsIntro": "Votre fichier mêle peut-être plusieurs sortes de contacts. Cochez les valeurs dont vous ne voulez pas ici (vos prestataires, par exemple) : leurs lignes ne seront pas importées. Elles restent au rapport des écarts, d'où vous pouvez les télécharger pour les importer ailleurs.",
+    "rowsNoColumn": "Aucune colonne ne permet de trier les lignes : toutes seront importées.",
+    "rowsColumnLegend": "Écarter des lignes selon « {column} »",
+    "rowsColumnHint": "Les valeurs sont regroupées sans tenir compte des majuscules ni des espaces.",
+    "rowsValue": "{value} ({count, plural, one {# ligne} other {# lignes}})",
+    "rowsEmptyValue": "(vide)",
+    "rowsErrorColumns": "Cochez des valeurs dans une seule colonne.",
+    "rowsErrorValues": "Ces valeurs ne sont plus dans le fichier : rechargez la page et recommencez.",
+    "rowSameEmail": "Même adresse e-mail que la ligne {line} : cette ligne complète la première.",
+    "rowWillComplete": "À la confirmation, cette ligne complétera le contact existant (seulement ses champs vides).",
+    "rowWillCompleteLine": "À la confirmation, cette ligne complétera la ligne {line}.",
+    "rowIgnored": "Cette ligne sera ignorée.",
+    "contactMatchEmail": "Même adresse e-mail que : {element}",
+    "contactMatchName": "Même nom que : {element}",
+    "decisionComplete": "Compléter",
+    "decisionCompleteFor": "Compléter le contact existant pour {title}",
+    "decisionIgnore": "Ignorer la ligne",
+    "decisionIgnoreFor": "Ignorer la ligne {title}",
+    "decisionKeep": "Garder la ligne",
+    "decisionKeepFor": "Garder la ligne {title}",
+    "contactSameLine": "La ligne {line}, à la même adresse e-mail"
   },
   "Privacy": {
     "title": "Données personnelles",
@@ -3005,7 +3053,16 @@
       "sizeBytes": "Taille (octets)",
       "message": "Message",
       "label": "Libellé",
-      "paymentLabel": "Libellé de l'échéance"
+      "paymentLabel": "Libellé de l'échéance",
+      "phone": "Téléphone",
+      "addressLine": "Adresse",
+      "postalCode": "Code postal",
+      "city": "Ville",
+      "country": "Pays",
+      "companyIdNumber": "SIREN ou SIRET",
+      "vatNumber": "Numéro de TVA",
+      "noteN": "Note {n}",
+      "linkN": "Foyer ou entreprise {n}"
     },
     "requestsLink": "Demandes des personnes",
     "settingsLink": "Réglages RGPD",
@@ -4839,7 +4896,8 @@
       "hub_memberships": "adhésion",
       "hub_organization_exports": "export complet",
       "hub_contacts": "contact",
-      "hub_contact_notes": "note d'un contact"
+      "hub_contact_notes": "note d'un contact",
+      "hub_contact_members": "membre d'un foyer ou d'une entreprise"
     },
     "modules": {
       "events": "Événements",
@@ -5728,6 +5786,40 @@
     "pickerChange": "Changer",
     "pickerNone": "Aucun contact trouvé : saisissez le nom ci-dessous.",
     "sharedHint": "Ce sont les coordonnées de la fiche du contact : les modifier ici les modifie partout.",
-    "openContact": "Ouvrir la fiche de {name}"
+    "openContact": "Ouvrir la fiche de {name}",
+    "importLink": "Importer des contacts",
+    "kindLegend": "Nature du contact",
+    "kind": {
+      "person": "Personne",
+      "household": "Foyer",
+      "company": "Entreprise"
+    },
+    "nameHousehold": "Nom du foyer",
+    "nameCompany": "Raison sociale",
+    "companyIdNumber": "SIREN ou SIRET",
+    "vatNumber": "Numéro de TVA intracommunautaire",
+    "invalidCompanyIdNumber": "Le SIREN compte 9 chiffres, le SIRET 14.",
+    "invalidVatNumber": "Ce numéro de TVA n'est pas valide : deux lettres de pays, puis le numéro (FR12345678901).",
+    "missingName": "Indiquez un nom.",
+    "detailSubtitleHousehold": "Fiche du foyer",
+    "detailSubtitleCompany": "Fiche de l'entreprise",
+    "membersHousehold": "Membres du foyer",
+    "membersCompany": "Interlocuteurs",
+    "noMembers": "Personne pour l'instant.",
+    "memberAddHousehold": "Ajouter une personne au foyer",
+    "memberAddCompany": "Ajouter un interlocuteur",
+    "memberPickerLegend": "Ajouter une personne",
+    "memberRole": "Rôle (facultatif)",
+    "memberRoleHintHousehold": "Par exemple « mariée », « parent ».",
+    "memberRoleHintCompany": "Par exemple « assistante de direction », « comptabilité ».",
+    "memberAdd": "Ajouter",
+    "memberAdded": "Personne ajoutée.",
+    "memberRemove": "Retirer",
+    "memberRemoveFor": "Retirer {name}",
+    "memberInvalid": "Choisissez une personne (pas un foyer ni une entreprise).",
+    "memberRoleInvalid": "Le rôle compte 100 caractères au plus.",
+    "groupsTitle": "Foyers et entreprises",
+    "memberSearch": "Cherchez la personne par son nom, son e-mail ou son téléphone",
+    "pickerNoneAlone": "Aucun contact trouvé : ajoutez-le d'abord à vos contacts."
   }
 }

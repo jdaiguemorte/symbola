@@ -740,6 +740,94 @@
         "pricing",
         "price range"
       ]
+    },
+    "lastFirstName": {
+      "fr": [
+        "nom prénom",
+        "nom et prénom",
+        "nom puis prénom"
+      ],
+      "en": [
+        "last name first name",
+        "surname first name",
+        "surname and first name"
+      ]
+    },
+    "firstLastName": {
+      "fr": [
+        "prénom nom",
+        "prénom et nom",
+        "nom complet",
+        "contact",
+        "client"
+      ],
+      "en": [
+        "full name",
+        "first name last name",
+        "contact",
+        "client"
+      ]
+    },
+    "firstName": {
+      "fr": [
+        "prénom"
+      ],
+      "en": [
+        "first name",
+        "given name"
+      ]
+    },
+    "lastName": {
+      "fr": [
+        "nom",
+        "nom de famille"
+      ],
+      "en": [
+        "last name",
+        "surname",
+        "family name"
+      ]
+    },
+    "phone": {
+      "fr": [
+        "téléphone",
+        "tél",
+        "tel",
+        "portable",
+        "mobile",
+        "tel portable",
+        "numéro de téléphone"
+      ],
+      "en": [
+        "phone",
+        "telephone",
+        "mobile",
+        "cell",
+        "phone number"
+      ]
+    },
+    "country": {
+      "fr": [
+        "pays"
+      ],
+      "en": [
+        "country"
+      ]
+    },
+    "notes": {
+      "fr": [
+        "notes",
+        "note",
+        "remarques",
+        "commentaires",
+        "observations"
+      ],
+      "en": [
+        "notes",
+        "note",
+        "comments",
+        "remarks"
+      ]
     }
   },
   "choices": {

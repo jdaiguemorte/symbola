@@ -181,6 +181,8 @@ export function buildQuotePdfModel(input: {
   draftSeller: SellerSnapshot;
   draftLegalMention: string | null;
   clientNames: string;
+  // Lot 36b (CRM-03, SC-11) : identifiants d'un client entreprise (SIREN ou SIRET, TVA).
+  clientDetails?: string[];
   eventDate?: string | null;
   logo: QuotePdfLogo | null;
   labels: QuotePdfLabels;
@@ -243,7 +245,7 @@ export function buildQuotePdfModel(input: {
     appearance: appearanceOf(seller, input.defaultColor),
     logo: input.logo,
     seller: sellerBlock(seller, labels),
-    client: { heading: labels.clientHeading, lines: [input.clientNames] },
+    client: { heading: labels.clientHeading, lines: [input.clientNames, ...(input.clientDetails ?? [])] },
     dates,
     intro: document?.intro ?? null,
     columns: columnsFor(vat, labels),

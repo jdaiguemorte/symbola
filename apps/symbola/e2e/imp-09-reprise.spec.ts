@@ -39,12 +39,14 @@ test("IMP-09 — les reprises depuis l'outil actuel en premier, avec une fiche d
   await loginAndSetupMfa(page, email, password);
 
   await openSettingsTab(page, "Importer");
-  // Lot 16 (IMP-11) : « Que voulez-vous reprendre ? » en trois tuiles, les deux reprises en premier.
+  // Lot 16 (IMP-11) : « Que voulez-vous reprendre ? » en tuiles, les reprises en premier. Lot 36b
+  // (HUB-14, SC-10) : les contacts d'abord.
   const tiles = page.getByRole("navigation", { name: "Que voulez-vous reprendre ?" });
-  await expect(tiles.getByRole("link")).toHaveCount(3);
-  await expect(tiles.getByRole("link").nth(0)).toContainText("Reprendre mes prestataires");
-  await expect(tiles.getByRole("link").nth(1)).toContainText("Reprendre mes événements");
-  await expect(tiles.getByRole("link").nth(2)).toContainText("Un autre fichier");
+  await expect(tiles.getByRole("link")).toHaveCount(4);
+  await expect(tiles.getByRole("link").nth(0)).toContainText("Reprendre mes contacts");
+  await expect(tiles.getByRole("link").nth(1)).toContainText("Reprendre mes prestataires");
+  await expect(tiles.getByRole("link").nth(2)).toContainText("Reprendre mes événements");
+  await expect(tiles.getByRole("link").nth(3)).toContainText("Un autre fichier");
   await expectNoAxeViolation(page);
 
   // La tuile des prestataires ouvre directement le dépôt du fichier, sans choix à faire.

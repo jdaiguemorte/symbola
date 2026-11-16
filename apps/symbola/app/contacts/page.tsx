@@ -26,7 +26,15 @@ export default async function ContactsPage({ searchParams }: { searchParams: Pro
 
   return (
     <main>
-      <PageHeader title={t("title")} subtitle={t("subtitle")} />
+      <PageHeader
+        title={t("title")}
+        subtitle={t("subtitle")}
+        actions={
+          <Link className="button-link" href="/import?type=contacts#import-form">
+            {t("importLink")}
+          </Link>
+        }
+      />
       <ScreenHelp title={tHelp("contactsList.title")} body={tHelp("contactsList.body")} />
 
       <form role="search" aria-label={t("searchLabel")} className="row-wrap">
@@ -60,6 +68,7 @@ export default async function ContactsPage({ searchParams }: { searchParams: Pro
             <ListRow key={contact.id} href={`/contacts/${contact.id}`}>
               <th scope="row">
                 <Link href={`/contacts/${contact.id}`}>{contact.displayName}</Link>
+                {contact.kind !== "person" ? <span className="meta"> · {t(`kind.${contact.kind}`)}</span> : null}
               </th>
               <td>{contact.email ?? "—"}</td>
               <td>{contact.phone ?? "—"}</td>

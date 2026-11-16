@@ -362,3 +362,59 @@ d'ensemble.
   `quotes/service.ts`).
 - Rejeu : SC-02, étapes 1, 3 et 4 sans ressaisie, et SC-01, étape 4 (`docs/recette/`).
 
+## Bilan du lot 36b (16/11/2026)
+
+### Fait
+
+- **Foyers et entreprises** (CRM-03, D2) : `hub.contact_members` relie une personne à un foyer ou à
+  une entreprise, avec un rôle libre.
+  - Sur la fiche d'un foyer ou d'une entreprise, on ajoute et on retire ses personnes ; la fiche
+    d'une personne dit de quels groupes elle fait partie.
+  - La liste des contacts nomme la nature (foyer, entreprise) ; la création demande la nature.
+- **Identifiants d'une entreprise** : SIREN ou SIRET, et numéro de TVA, nettoyés à la saisie et
+  réservés aux entreprises par la base ; imprimés sous le nom du client sur le devis.
+- **Import de contacts** (HUB-14, D11) :
+  - une nature « Contacts », en tête de l'écran Import et accessible depuis la liste ;
+  - le nom et le prénom d'une seule colonne (« NOM Prénom ») ; un import sans colonne de nom est
+    refusé dès l'étape des colonnes ;
+  - une étape « Lignes » écarte les lignes selon la valeur d'une colonne, sans tenir compte de la
+    casse ni des espaces ; les lignes écartées restent au rapport des écarts ;
+  - les doublons d'adresse (dans le fichier ou l'organisation) complètent le contact, ses champs
+    vides seulement, ou la ligne est ignorée : jamais deux contacts pour une adresse (DAT-12) ;
+  - la colonne de notes et les colonnes gardées deviennent une note ; l'annulation est en bloc,
+    et garde un contact devenu client, membre d'un foyer ou annoté depuis.
+- **Reconnaissance des colonnes** : un champ d'e-mail ou de téléphone est renforcé par une colonne
+  qui en contient (tous les imports).
+- **RGPD et export** : registre à jour (identifiants d'entreprise, rôle) ; la recherche RGPD rapporte
+  les foyers et entreprises d'une personne ; le rôle s'efface à l'anonymisation ; l'entité
+  `hub/contact_members` entre dans l'export complet (v1).
+- **Migration 0136** (schéma `hub`), avec son annulation et son test ; elle passe sans arrêter
+  l'app. Avenant de l'ADR 0069.
+- **Corrections trouvées en route** :
+  - à 150 %, l'écran « Colonnes » et la frise des étapes débordaient de l'écran (défauts d'avant le
+    lot, sur le chemin de SC-10) ;
+  - après une erreur, le formulaire d'un contact perdait la nature choisie et ce qui était saisi ;
+  - les fiches RGPD d'un contact montraient des clés brutes (`phone`, `note1`) au lieu de libellés.
+
+### Écarts et points ouverts
+
+- **Identifiants d'entreprise sur la facture** : une facture à un client professionnel est refusée
+  tant que la facturation électronique n'existe pas (lot 41) ; ils y entreront avec elle.
+- **Tutoriel** : l'aide guidée de l'import montre les fiches événement, pas un fichier de contacts.
+- **Messages et rendez-vous** dans l'historique d'un contact : avec leurs modules (lots 38 et 46).
+- **Jeu fictif** : toujours la remarque du 36a sur les clients au nom de l'évènement (décision de
+  Julien).
+
+### Vérifications (en local)
+
+- Lint, typecheck, frontières de modules : verts. Registre RGPD à jour.
+- Unitaires : app 500 (le client entreprise sur le devis), `@symbola/contracts` 24.
+- Intégration : `@symbola/db` 174 (annulation de 0136, isolation des membres, accès Admin) ;
+  `@symbola/auth` 21 ; app 645, dont 8 pour l'import de contacts sur le fichier de 600 lignes et 4
+  pour les foyers et entreprises.
+- Parcours e2e, base rechargée : 289 réussis, 3 ignorés (les mêmes qu'avant). Nouveau parcours
+  `hub-14-sc-10-contacts`, en taille ordinateur et en 375 px, avec axe-core ; `imp-09-reprise`
+  compte désormais quatre tuiles (les contacts en tête).
+- Semgrep (`p/default`) : rien sur le code du lot. Gitleaks : aucune fuite dans les commits du lot.
+- Rejeu : SC-10, étapes 2 à 5, à 150 %, sans blocage (`docs/recette/SC-10.md`).
+

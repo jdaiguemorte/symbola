@@ -71,3 +71,5 @@ La liste table par table, avec sa raison, est dans l'index généré. Un test
   Les coordonnées des clients ont quitté `events/event_clients` pour `hub/contacts` (avec
   `hub/contact_notes`) ; `event_clients`, `event_links` et `quote_signers` portent l'identifiant du
   contact (`contactId`).
+- **Lot 36b** : l'entité `hub/contact_members` (membres des foyers et des entreprises) et deux champs
+  facultatifs de `hub/contacts` (`companyIdNumber`, `vatNumber`) s'ajoutent ; la v1 tient.

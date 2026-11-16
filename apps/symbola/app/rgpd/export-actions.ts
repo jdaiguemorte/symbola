@@ -18,7 +18,11 @@ export type ExportFormState = { error?: string; exportId?: string; recordCount?:
 
 function fieldLabel(t: Awaited<ReturnType<typeof getTranslations<"Privacy">>>, key: string): string {
   if (key.startsWith("imported:")) return t("importedField", { name: key.slice("imported:".length) });
-  return t.has(`field.${key}`) ? t(`field.${key}`) : key;
+  if (t.has(`field.${key}`)) return t(`field.${key}`);
+  // Lots 36a et 36b : champs numérotés d'une fiche de contact (« note1 », « link2 »).
+  const numbered = /^([a-z]+)(\d+)$/.exec(key);
+  if (numbered && t.has(`field.${numbered[1]}N`)) return t(`field.${numbered[1]}N`, { n: Number(numbered[2]) });
+  return key;
 }
 
 // RGPD-02 — export des fiches cochées (droits d'accès et de portabilité).

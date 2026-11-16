@@ -120,6 +120,10 @@ function contentAdjustment(field: MappableField, profile: ColumnProfile): number
     case "choice":
       return textLike >= 0.8 ? 0 : -30;
     case "text":
+      // Lot 36b (HUB-14) : un champ d'e-mail ou de téléphone est renforcé par une colonne qui en
+      // contient (« Mail », « tel portable »), au lieu d'en être pénalisé.
+      if (/email$/i.test(field.key)) return profile.emailRatio >= 0.8 ? 10 : profile.emailRatio >= 0.5 ? -15 : -45;
+      if (/phones?$/i.test(field.key)) return profile.phoneRatio >= 0.8 ? 10 : profile.phoneRatio >= 0.5 ? -15 : -45;
       if (profile.emailRatio >= 0.5 || profile.phoneRatio >= 0.5) return -50;
       return profile.dateRatio >= 0.8 || profile.amountRatio >= 0.8 ? -30 : 0;
   }

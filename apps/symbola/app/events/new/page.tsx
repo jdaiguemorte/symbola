@@ -37,7 +37,7 @@ export default async function NewProspectPage({ searchParams }: { searchParams: 
   // Lot 16 (ADR 0045) : le type de l'événement, et les libellés des clients qui le suivent.
   const [sources, eventTypes] = await Promise.all([listProspectSources(auth.user.organizationId), ensureEventTypes(auth.user.organizationId, locale)]);
   const contact = query.contact && UUID.test(query.contact) ? await getContact(auth.user.organizationId, query.contact) : null;
-  const initialContact = contact && !contact.isDemo && !contact.anonymized ? { id: contact.id, displayName: contact.displayName, email: contact.email, city: contact.city } : null;
+  const initialContact = contact && !contact.isDemo && !contact.anonymized ? { id: contact.id, kind: contact.kind, displayName: contact.displayName, email: contact.email, city: contact.city } : null;
 
   return (
     <main>

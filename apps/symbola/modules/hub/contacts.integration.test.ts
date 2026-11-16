@@ -2,7 +2,8 @@
 // modules (PostgreSQL réel) : une adresse e-mail n'appartient qu'à un contact ; un couple revient
 // pour un second évènement sans être ressaisi ; ses coordonnées se modifient une fois, partout ;
 // les évènements se retrouvent par le nom de leurs clients ; les notes ; l'isolation ; la purge
-// d'un contact sans évènement (horloge simulée) ; un essai emporte ses contacts.
+// d'un contact sans évènement (horloge simulée) ; un essai emporte ses contacts. Lot 36b (D2) : foyers
+// et entreprises, leurs membres et les identifiants d'une entreprise.
 import { randomUUID } from "node:crypto";
 import { afterAll, describe, expect, it } from "vitest";
 import { createOrganization, createUser } from "@symbola/auth";
@@ -22,14 +23,21 @@ import {
 } from "@/modules/events/service";
 import { globalSearch } from "./search";
 import {
+  addContactMember,
   addContactNote,
+  anonymizeContacts,
   ContactEmailTakenError,
+  ContactInvalidError,
+  ContactMemberNotFoundError,
   ContactNoteNotFoundError,
   ContactNotFoundError,
   createContact,
   getContact,
+  listContactGroups,
+  listContactMembers,
   listContactNotes,
   listContacts,
+  removeContactMember,
   removeContactNote,
   resolveContact,
   updateContact,
@@ -163,3 +171,67 @@ describe("AIDE-02 — Un essai guidé emporte ses contacts d'essai", () => {
     for (const id of contactIds) expect(await getContact(planner.organizationId, id)).toBeNull();
   });
 });
+
+describe("CRM-03 (lot 36b, D2) — Foyers et entreprises", () => {
+  it("un foyer relie des personnes, chacune avec un rôle libre ; la personne voit ses foyers ; le rôle se change, le lien se retire", async () => {
+    const planner = await createPlanner();
+    const household = await createContact(planner.organizationId, { kind: "household", name: "Famille Martin" });
+    const lea = await createContact(planner.organizationId, { firstName: "Léa", lastName: "Martin" });
+    const maxime = await createContact(planner.organizationId, { firstName: "Maxime", lastName: "Dubois" });
+    await addContactMember(planner.organizationId, { groupContactId: household.id, memberContactId: lea.id, role: "Mariée" });
+    const added = await addContactMember(planner.organizationId, { groupContactId: household.id, memberContactId: maxime.id, role: "  " });
+    expect(added.role).toBeNull();
+    expect((await listContactMembers(planner.organizationId, household.id)).map((member) => [member.contact.displayName, member.role])).toEqual([
+      ["Léa Martin", "Mariée"],
+      ["Maxime Dubois", null],
+    ]);
+    expect((await listContactGroups(planner.organizationId, lea.id)).map((group) => [group.contact.displayName, group.contact.kind])).toEqual([["Famille Martin", "household"]]);
+    // Rattachée de nouveau : son rôle change, sans second lien.
+    await addContactMember(planner.organizationId, { groupContactId: household.id, memberContactId: maxime.id, role: "Marié" });
+    const members = await listContactMembers(planner.organizationId, household.id);
+    expect(members.map((member) => member.role)).toEqual(["Mariée", "Marié"]);
+    await removeContactMember(planner.organizationId, members[0]!.id);
+    expect((await listContactMembers(planner.organizationId, household.id)).map((member) => member.contact.id)).toEqual([maxime.id]);
+    await expect(removeContactMember(planner.organizationId, members[0]!.id)).rejects.toBeInstanceOf(ContactMemberNotFoundError);
+  });
+
+  it("seule une personne est membre, seulement d'un foyer ou d'une entreprise ; un rôle trop long est refusé", async () => {
+    const planner = await createPlanner();
+    const household = await createContact(planner.organizationId, { kind: "household", name: "Famille Martin" });
+    const company = await createContact(planner.organizationId, { kind: "company", name: "Maison Lumière" });
+    const lea = await createContact(planner.organizationId, { firstName: "Léa" });
+    const hugo = await createContact(planner.organizationId, { firstName: "Hugo" });
+    await expect(addContactMember(planner.organizationId, { groupContactId: household.id, memberContactId: company.id })).rejects.toBeInstanceOf(ContactInvalidError);
+    await expect(addContactMember(planner.organizationId, { groupContactId: lea.id, memberContactId: hugo.id })).rejects.toBeInstanceOf(ContactInvalidError);
+    await expect(addContactMember(planner.organizationId, { groupContactId: household.id, memberContactId: household.id })).rejects.toBeInstanceOf(ContactInvalidError);
+    await expect(addContactMember(planner.organizationId, { groupContactId: household.id, memberContactId: lea.id, role: "x".repeat(101) })).rejects.toBeInstanceOf(ContactInvalidError);
+  });
+
+  it("une entreprise porte son SIREN ou SIRET et son numéro de TVA, nettoyés ; une valeur illisible est refusée ; une personne n'en a pas", async () => {
+    const planner = await createPlanner();
+    const company = await createContact(planner.organizationId, { kind: "company", name: "Maison Lumière", companyIdNumber: "123 456 789 00012", vatNumber: "fr 12 123456789" });
+    expect(company).toMatchObject({ kind: "company", displayName: "Maison Lumière", companyIdNumber: "12345678900012", vatNumber: "FR12123456789" });
+    await expect(updateContact(planner.organizationId, company.id, { companyIdNumber: "1234" })).rejects.toMatchObject({ field: "companyIdNumber" });
+    await expect(updateContact(planner.organizationId, company.id, { vatNumber: "12" })).rejects.toMatchObject({ field: "vatNumber" });
+    expect(await updateContact(planner.organizationId, company.id, { companyIdNumber: "123.456.789" })).toMatchObject({ companyIdNumber: "123456789" });
+    const person = await createContact(planner.organizationId, { firstName: "Claire", companyIdNumber: "123456789" });
+    expect(person.companyIdNumber).toBeNull();
+  });
+
+  it("isolation : une personne d'une autre organisation n'est pas rattachée ; l'anonymisation efface le rôle", async () => {
+    const plannerA = await createPlanner();
+    const plannerB = await createPlanner();
+    const householdA = await createContact(plannerA.organizationId, { kind: "household", name: "Famille A" });
+    const personB = await createContact(plannerB.organizationId, { firstName: "Secret" });
+    await expect(addContactMember(plannerA.organizationId, { groupContactId: householdA.id, memberContactId: personB.id })).rejects.toBeInstanceOf(ContactNotFoundError);
+    expect(await listContactGroups(plannerA.organizationId, personB.id)).toEqual([]);
+
+    const lea = await createContact(plannerA.organizationId, { firstName: "Léa" });
+    await addContactMember(plannerA.organizationId, { groupContactId: householdA.id, memberContactId: lea.id, role: "Mariée" });
+    await anonymizeContacts(plannerA.organizationId, [lea.id]);
+    const [member] = await listContactMembers(plannerA.organizationId, householdA.id);
+    expect(member).toMatchObject({ role: null, contact: { anonymized: true } });
+    expect(await getContact(plannerA.organizationId, lea.id)).toMatchObject({ companyIdNumber: null, vatNumber: null });
+  });
+});
+

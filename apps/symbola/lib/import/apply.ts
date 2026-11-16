@@ -18,17 +18,22 @@ import {
   importEventRows,
   importListRows,
   importTaskRows,
+  listLinkedContactIds,
   listProspectSources,
   undoImportedEventsElements,
 } from "@/modules/events/service";
 import {
   cancelImportJobs,
   createImportJob,
+  findModifiedImportedHubElements,
   getAppliedImport,
   getImportWorkingSet,
   getOrganizationProfile,
+  importContactRows,
+  importedContactValues,
   recordAppliedImport,
   recordImportUndo,
+  undoImportedHubElements,
   type AppliedImportItem,
   type AppliedImportView,
   type ImportResult,
@@ -108,8 +113,21 @@ async function defaultVatRate(organizationId: string): Promise<number | null> {
   return profile.vatRateDefaultBasisPoints;
 }
 
+// Lot 36b : une ligne de contact ignorée par la planner (doublon d'adresse) n'est pas importée.
 function isImportable(row: MatchesRowView): boolean {
-  return row.errors.length === 0 && (!row.event || row.event.candidate !== null);
+  return row.errors.length === 0 && (!row.event || row.event.candidate !== null) && row.ignored !== true;
+}
+
+// Lot 36b : une ligne de contact qui répète une adresse plus haut (sans contact rapproché) ne met à
+// jour que si elle apporte quelque chose à la première : un champ resté vide, ou une autre note.
+const CONTACT_FIELDS = ["firstName", "lastName", "email", "phone", "addressLine", "postalCode", "city", "country"] as const;
+
+function addsToEarlier(row: MatchesRowView, earlier: MatchesRowView | undefined, extra: Map<number, Record<string, string>>): boolean {
+  if (!earlier) return true;
+  const values = importedContactValues(row.values, extra.get(row.rowIndex));
+  const first = importedContactValues(earlier.values, extra.get(earlier.rowIndex));
+  if (!values || !first) return false;
+  return CONTACT_FIELDS.some((field) => values[field] !== null && first[field] === null) || (values.note !== null && values.note !== first.note);
 }
 
 export async function getImportPreview(organizationId: string, importId: string): Promise<ImportPreview | null> {
@@ -118,8 +136,17 @@ export async function getImportPreview(organizationId: string, importId: string)
   if (!gaps || !matches) return null;
 
   const importable = matches.rows.filter(isImportable);
-  const updates = importable.filter((row) => row.match?.status === "accepted");
-  const creations = importable.filter((row) => !row.match || row.match.status === "refused");
+  const contactsImport = matches.entityType === "contacts";
+  let updates = importable.filter((row) => row.match?.status === "accepted");
+  let creations = importable.filter((row) => !row.match || row.match.status === "refused");
+  if (contactsImport) {
+    const set = await withHubDb((db) => getImportWorkingSet(db, organizationId, importId));
+    const extra = new Map(set ? parseWorkingSetRows(set).map((row) => [row.rowIndex, row.extra]) : []);
+    const byLine = new Map(matches.rows.map((row) => [row.lineNumber, row]));
+    const repeats = importable.filter((row) => !row.match && row.sameAsLine !== undefined);
+    updates = [...updates, ...repeats.filter((row) => addsToEarlier(row, byLine.get(row.sameAsLine!), extra))].sort((a, b) => a.rowIndex - b.rowIndex);
+    creations = creations.filter((row) => !repeats.includes(row));
+  }
   const blockers: PreviewBlocker[] = [];
   if (gaps.columns.some((column) => column.decision === "undecided")) blockers.push("columns_undecided");
   if (importable.some((row) => row.match?.status === "proposed")) blockers.push("matches_undecided");
@@ -186,6 +213,8 @@ async function applyToModules(
       return importListRows({ organizationId, entityType, rows });
     case "vendors":
       return importVendorRows({ organizationId, rows, typeChoices: options.vendorTypeChoices, typeColumnHeader: options.typeColumnHeader ?? null });
+    case "contacts":
+      return importContactRows({ organizationId, userId, rows });
   }
 }
 
@@ -321,7 +350,9 @@ async function undoItems(
           ? await undoImportedBudgetElements(organizationId, userId, undo)
           : module === "vendors"
             ? await undoImportedVendorsElements(organizationId, undo)
-            : await undoImportedQuotesElements(organizationId, undo);
+            : module === "hub"
+              ? await undoImportedHubElements(organizationId, undo)
+              : await undoImportedQuotesElements(organizationId, undo);
     group.forEach((position, offset) => {
       outcomes[position] = groupOutcomes[offset] ?? "missing";
     });
@@ -335,7 +366,7 @@ export type UndoPreview = AppliedImportView & { pendingItems: UndoPreviewItem[] 
 
 async function modifiedFlags(organizationId: string, items: AppliedImportItem[]): Promise<boolean[]> {
   const flags = new Array<boolean>(items.length).fill(false);
-  for (const module of ["events", "budget", "quotes", "vendors"] as const) {
+  for (const module of ["events", "budget", "quotes", "vendors", "hub"] as const) {
     const positions = items.map((item, position) => (item.module === module ? position : -1)).filter((position) => position >= 0);
     if (positions.length === 0) continue;
     const subset = positions.map((position) => {
@@ -349,7 +380,9 @@ async function modifiedFlags(organizationId: string, items: AppliedImportItem[])
           ? await findModifiedImportedBudgetElements(organizationId, subset)
           : module === "vendors"
             ? await findModifiedImportedVendorsElements(organizationId, subset)
-            : await findModifiedImportedQuotesElements(organizationId, subset);
+            : module === "hub"
+              ? await findModifiedImportedHubElements(organizationId, subset)
+              : await findModifiedImportedQuotesElements(organizationId, subset);
     positions.forEach((position, offset) => {
       flags[position] = found[offset] ?? false;
     });
@@ -373,9 +406,16 @@ export async function getUndoPreview(organizationId: string, importId: string): 
   const pending = view.items.filter((item) => item.undoOutcome !== "undone" && item.undoOutcome !== "missing");
   const flags = await modifiedFlags(organizationId, pending);
   const withQuotes = await eventsWithQuotes(organizationId, importedEventIds(pending));
+  // Lot 36b : un contact créé par l'import, devenu depuis client d'un évènement, est gardé.
+  const createdContacts = pending.filter((item) => item.module === "hub" && item.kind === "contact" && item.action === "created").map((item) => item.elementId);
+  const linkedContacts = createdContacts.length > 0 ? await listLinkedContactIds(organizationId, createdContacts) : new Set<string>();
   return {
     ...view,
-    pendingItems: pending.map((item, index) => ({ ...item, modified: flags[index] ?? false, usedElsewhere: withQuotes.has(item.elementId) })),
+    pendingItems: pending.map((item, index) => ({
+      ...item,
+      modified: flags[index] ?? false,
+      usedElsewhere: withQuotes.has(item.elementId) || (item.module === "hub" && item.kind === "contact" && item.action === "created" && linkedContacts.has(item.elementId)),
+    })),
   };
 }
 

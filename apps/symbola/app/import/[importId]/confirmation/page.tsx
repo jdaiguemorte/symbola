@@ -9,7 +9,7 @@ import { ScreenHelp } from "@/app/screen-help";
 import { ActionBar } from "@/app/ui/action-bar";
 import { getImportPreview, type PreviewRow } from "@/lib/import/apply";
 import { getImportGapsView } from "@/lib/import/gaps";
-import { rowEventReference } from "@/lib/import/matching";
+import { contactRowTitle, rowEventReference } from "@/lib/import/matching";
 import { importStepHref } from "@/lib/import/wizard";
 import { listVendorTags } from "@/modules/vendors/service";
 import { STATUS_LABEL_KEYS } from "@/app/events/event-status";
@@ -55,6 +55,7 @@ export default async function ImportConfirmationPage({
       const clients = reference.clients.map((client) => `${client.firstName} ${client.lastName ?? ""}`.trim()).join(" & ");
       return reference.eventDate ? t("eventTitle", { clients, date: formatCalendarDate(reference.eventDate, locale) }) : clients;
     }
+    if (preview.entityType === "contacts") return contactRowTitle(values) ?? t("rowWithoutLabel");
     if (isVendors) {
       const record = normalizeVendorImportValues(values, separator);
       if (!record) return t("rowWithoutLabel");

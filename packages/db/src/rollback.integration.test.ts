@@ -51,13 +51,16 @@ const rollback = async (tag: string) => {
 };
 
 // Lots 26a à 29b : migrations au-dessus de celles du 28, annulées pour revenir à 0108.
+const LOT_36B = ["0136_lot36b_contacts_members"];
 const LOT_36A = ["0135_lot36a_contacts"];
+// 0136 se retire avant 0135 (ses liens pointent vers les contacts).
+const LOT_36 = [...LOT_36B, ...LOT_36A];
 const LOT_35A = ["0134_lot35a_hub_organization_exports"];
 const LOT_34B = ["0133_lot34b_events_fiche_tasks"];
 const LOT_34A = ["0132_lot34a_events_lifecycle"];
 const LOT_33B = ["0131_lot33b_hub_onboarding"];
 const LOT_33A = ["0130_lot33a_hub_drop_passwords", "0129_lot33a_hub_memberships"];
-const LOT_33 = [...LOT_36A, ...LOT_35A, ...LOT_34B, ...LOT_34A, ...LOT_33B, ...LOT_33A];
+const LOT_33 = [...LOT_36, ...LOT_35A, ...LOT_34B, ...LOT_34A, ...LOT_33B, ...LOT_33A];
 const LOT_32A = ["0128_lot32a_events_activity_vendor", "0127_lot32a_events_activity_vendor_kind"];
 const LOT_31C = ["0126_lot31c_quotes_payment_terms_receipts", "0125_lot31c_quotes_receipt_series"];
 const LOT_31B = ["0124_lot31b_hub_contract_retention", "0123_lot31b_quotes_contracts", "0122_lot31b_quotes_client_kind"];
@@ -100,8 +103,49 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     await expect(rollback("0099_inconnue")).rejects.toBeInstanceOf(RollbackRefusedError);
   });
 
+  it("lot 36b (CRM-03, HUB-14 ; D2, D11) — 0136 : membres d'un foyer ou d'une entreprise, identifiants d'une entreprise seulement ; un import de contacts bloque l'annulation, qui retire ensuite les liens et les identifiants", async () => {
+    await migrateAll();
+    const organizationId = randomUUID();
+    const inOrganization = <T>(work: (tx: postgres.TransactionSql) => Promise<T>) =>
+      target.begin(async (tx) => {
+        await tx`select set_config('app.organization_id', ${organizationId}, true)`;
+        return work(tx);
+      }) as Promise<T>;
+    const ids = await inOrganization(async (tx) => {
+      const [company] = await tx<{ id: string }[]>`insert into hub.contacts (organization_id, kind, name, company_id_number, vat_number) values (${organizationId}, 'company', 'Maison Lumière', '12345678900012', 'FR12123456789') returning id`;
+      const [claire] = await tx<{ id: string }[]>`insert into hub.contacts (organization_id, first_name) values (${organizationId}, 'Claire') returning id`;
+      await tx`insert into hub.contact_members (organization_id, group_contact_id, member_contact_id, role) values (${organizationId}, ${company!.id}, ${claire!.id}, 'Assistante de direction')`;
+      return { company: company!.id, claire: claire!.id };
+    });
+    // Les identifiants d'entreprise : sur une entreprise seulement, SIREN (9) ou SIRET (14 chiffres).
+    await expect(inOrganization((tx) => tx`update hub.contacts set company_id_number = '123456789' where id = ${ids.claire}`)).rejects.toThrow(/contacts_company_ids_check/);
+    await expect(inOrganization((tx) => tx`update hub.contacts set company_id_number = '1234' where id = ${ids.company}`)).rejects.toThrow(/contacts_company_ids_check/);
+    await expect(inOrganization((tx) => tx`update hub.contacts set vat_number = 'fr 12' where id = ${ids.company}`)).rejects.toThrow(/contacts_company_ids_check/);
+    // Une personne n'est membre qu'une fois d'un même groupe, et jamais d'elle-même.
+    await expect(inOrganization((tx) => tx`insert into hub.contact_members (organization_id, group_contact_id, member_contact_id) values (${organizationId}, ${ids.company}, ${ids.claire})`)).rejects.toThrow(/contact_members_pair_idx/);
+    await expect(inOrganization((tx) => tx`insert into hub.contact_members (organization_id, group_contact_id, member_contact_id) values (${organizationId}, ${ids.claire}, ${ids.claire})`)).rejects.toThrow(/contact_members_distinct_check/);
+    // L'isolation (rôle applicatif, RLS) est vérifiée par contacts-isolation.integration.test.ts.
+
+    const [row] = await target<{ id: string }[]>`
+      insert into hub.imports (organization_id, created_by_user_id, entity_type, file_name, file_format, file_size_bytes, header_row_index, headers, row_count, expires_at)
+      values (${organizationId}, ${randomUUID()}, 'contacts', 'contacts.csv', 'csv', 1, 0, '[]'::jsonb, 0, now())
+      returning id`;
+    await expect(rollback(LOT_36B[0]!)).rejects.toThrow(/imports de contacts/);
+    expect(await entityTypes()).toContain("contacts");
+    await target`delete from hub.imports where id = ${row!.id}`;
+    await rollback(LOT_36B[0]!);
+    expect(await entityTypes()).not.toContain("contacts");
+    expect(await hasColumn("hub", "contacts", "company_id_number")).toBe(false);
+    const [table] = await target<{ name: string | null }[]>`select to_regclass('hub.contact_members')::text as name`;
+    expect(table!.name).toBeNull();
+    // Les contacts eux-mêmes restent.
+    const kept = await inOrganization((tx) => tx<{ id: string }[]>`select id from hub.contacts where organization_id = ${organizationId}`);
+    expect(kept.map((contact) => contact.id).sort()).toEqual([ids.company, ids.claire].sort());
+    await migrateAll();
+  });
+
   it("lot 36a (CRM-03, DAT-12 ; D3, D6) — 0135 : chaque client devient un contact ; même adresse dans l'organisation, un seul contact ; un couple qui partage une adresse reste deux personnes ; liens et signataires rattachés ; l'annulation rend les clients", async () => {
-    for (const tag of LOT_36A) await rollback(tag);
+    for (const tag of LOT_36) await rollback(tag);
     const organizationId = randomUUID();
     const inOrganization = <T>(work: (tx: postgres.TransactionSql) => Promise<T>) =>
       target.begin(async (tx) => {
@@ -147,7 +191,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     await expect(inOrganization((tx) => tx`insert into hub.contacts (organization_id, first_name, email) values (${organizationId}, 'Autre', 'lea.martin@exemple.test')`)).rejects.toThrow(/contacts_email_idx/);
     await expect(inOrganization((tx) => tx`insert into hub.contacts (organization_id, first_name, email) values (${organizationId}, 'Autre', 'Lea@Exemple.test')`)).rejects.toThrow(/contacts_email_check/);
 
-    for (const tag of LOT_36A) await rollback(tag);
+    for (const tag of LOT_36) await rollback(tag);
     const back = await inOrganization((tx) => tx<{ id: string; first_name: string; last_name: string | null; email: string | null }[]>`select id, first_name, last_name, email from events.event_clients where organization_id = ${organizationId}`);
     const backOf = (clientId: string) => back.find((row) => row.id === clientId);
     expect(backOf(ids.lea1)).toMatchObject({ first_name: "Léa", last_name: "Martin-Durand", email: "lea.martin@exemple.test" });
@@ -180,7 +224,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     const [policy] = await target<{ qual: string }[]>`select qual from pg_policies where schemaname = 'hub' and tablename = 'organization_exports'`;
     expect(policy!.qual).toContain("app.organization_id");
 
-    for (const tag of [...LOT_36A, ...LOT_35A]) await rollback(tag);
+    for (const tag of [...LOT_36, ...LOT_35A]) await rollback(tag);
     const [table] = await target<{ name: string | null }[]>`select to_regclass('hub.organization_exports')::text as name`;
     expect(table!.name).toBeNull();
     expect(await hasColumn("hub", "platform_settings", "organization_export_retention_days")).toBe(false);
@@ -189,7 +233,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
   });
 
   it("lot 34b (EVT-03, CHR-02 ; D10 à D13) — 0133 : le lieu de réception devient le premier lieu (un lieu du même nom est repris) ; invités, style, notes ; tâche confiée à un prestataire ; l'annulation rend le lieu et la tâche à la planner", async () => {
-    for (const tag of [...LOT_36A, ...LOT_35A, ...LOT_34B]) await rollback(tag);
+    for (const tag of [...LOT_36, ...LOT_35A, ...LOT_34B]) await rollback(tag);
     const organizationId = randomUUID();
     const inOrganization = <T>(work: (tx: postgres.TransactionSql) => Promise<T>) =>
       target.begin(async (tx) => {
@@ -222,7 +266,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     const [task] = await inOrganization((tx) => tx<{ id: string }[]>`insert into events.event_tasks (organization_id, event_id, label, due_date, responsible) values (${organizationId}, ${ids.named!}, 'Livrer les fleurs', '2027-06-11', 'vendor') returning id`);
     await inOrganization((tx) => tx`insert into events.event_task_comments (organization_id, event_id, task_id, body) values (${organizationId}, ${ids.named!}, ${task!.id}, 'Accès par le portail nord')`);
 
-    for (const tag of [...LOT_36A, ...LOT_35A, ...LOT_34B]) await rollback(tag);
+    for (const tag of [...LOT_36, ...LOT_35A, ...LOT_34B]) await rollback(tag);
     const venues = await inOrganization((tx) => tx<{ id: string; venue_name: string | null; venue_city: string | null }[]>`select id, venue_name, venue_city from events.events where organization_id = ${organizationId}`);
     expect(Object.fromEntries(venues.map((row) => [row.id, [row.venue_name, row.venue_city]]))).toEqual({
       [ids.named!]: [" domaine des tilleuls ", "Lille"],
@@ -240,7 +284,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
   });
 
   it("lot 34a (EVT-05, DAT-07, ARC-17 ; D2) — 0132 : statuts du cahier des charges repris des anciens, historique compris ; écart des tâches ; fuseau ; l'annulation ramène les statuts du PRD", async () => {
-    for (const tag of [...LOT_36A, ...LOT_35A, ...LOT_34B, ...LOT_34A]) await rollback(tag);
+    for (const tag of [...LOT_36, ...LOT_35A, ...LOT_34B, ...LOT_34A]) await rollback(tag);
     const organizationId = randomUUID();
     const inOrganization = <T>(work: (tx: postgres.TransactionSql) => Promise<T>) =>
       target.begin(async (tx) => {
@@ -273,7 +317,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     expect(created!.status).toBe("option");
     await inOrganization((tx) => tx`update events.events set status = 'in_preparation' where id = ${ids.confirmed!}`);
 
-    for (const tag of [...LOT_36A, ...LOT_35A, ...LOT_34B, ...LOT_34A]) await rollback(tag);
+    for (const tag of [...LOT_36, ...LOT_35A, ...LOT_34B, ...LOT_34A]) await rollback(tag);
     const back = await inOrganization((tx) => tx<{ id: string; status: string }[]>`select id, status::text as status from events.events where id in (${ids.prospect!}, ${ids.confirmed!}, ${ids.done!}, ${ids.lost!})`);
     expect(Object.fromEntries(back.map((row) => [row.id, row.status]))).toEqual({ [ids.prospect!]: "prospect", [ids.confirmed!]: "confirmed", [ids.done!]: "done", [ids.lost!]: "lost" });
     expect(await hasColumn("events", "event_tasks", "offset_days")).toBe(false);
@@ -290,7 +334,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     expect(owner!.role).toBe("owner");
     await expect(target`update hub.organization_profiles set replaced_tools = ${"{a,b,c,d,e,f,g,h,i,j,k}"}::text[] where organization_id = ${organization!.id}`).rejects.toThrow(/replaced_tools_check/);
     const [planner] = await target<{ id: string }[]>`insert into hub.invitations (organization_id, email, token_hash, expires_at, role) values (${organization!.id}, ${`planner-${randomUUID()}@symbola.test`}, ${`t-${randomUUID()}`}, now() + interval '7 days', 'member') returning id`;
-    for (const tag of [...LOT_36A, ...LOT_35A, ...LOT_34B, ...LOT_34A]) await rollback(tag);
+    for (const tag of [...LOT_36, ...LOT_35A, ...LOT_34B, ...LOT_34A]) await rollback(tag);
     await expect(rollback(LOT_33B[0]!)).rejects.toThrow(/invitations de Planner/);
     await target`update hub.invitations set accepted_at = now() where id = ${planner!.id}`;
     await rollback(LOT_33B[0]!);
@@ -328,7 +372,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     expect(await hasColumn("hub", "trusted_devices", "token_hash")).toBe(false);
     // Annuler 0130 : colonnes revenues vides, organisation et rôle repris des adhésions ; les mots de
     // passe ne reviennent pas, donc revenir avant 0129 reste refusé.
-    for (const tag of [...LOT_36A, ...LOT_35A, ...LOT_34B, ...LOT_34A]) await rollback(tag);
+    for (const tag of [...LOT_36, ...LOT_35A, ...LOT_34B, ...LOT_34A]) await rollback(tag);
     await rollback(LOT_33B[0]!);
     await rollback(LOT_33A[0]!);
     const restored = await target<{ id: string; role: string; organization_id: string | null; password_hash: string | null }[]>`

@@ -5,9 +5,9 @@
 // (DAT-12) : une adresse déjà connue reprend le contact qui la porte, ou est refusée sur un autre.
 import { and, asc, count, desc, eq, ilike, inArray, ne, or, sql } from "drizzle-orm";
 import { z } from "zod";
-import type { Contact, ContactInput, ContactKind, ContactNote } from "@symbola/contracts";
+import type { Contact, ContactInput, ContactKind, ContactMembership, ContactNote } from "@symbola/contracts";
 import { appDatabase } from "@symbola/db/client";
-import { contactNotes, contacts } from "@symbola/db/schema/hub";
+import { contactMembers, contactNotes, contacts } from "@symbola/db/schema/hub";
 import { foldedContains } from "@symbola/db/search";
 import { withOrganization } from "@symbola/db/with-organization";
 import { ANONYMIZED, prepareTerms, recordMatches, type PersonTerms } from "@symbola/privacy";
@@ -22,7 +22,7 @@ export class ContactEmailTakenError extends Error {
   }
 }
 export class ContactInvalidError extends Error {
-  constructor(readonly field: "name" | "email" | "note") {
+  constructor(readonly field: "name" | "email" | "note" | "companyIdNumber" | "vatNumber" | "member" | "role") {
     super(field);
   }
 }
@@ -38,6 +38,22 @@ const emailSchema = z.email();
 function clean(value: string | null | undefined): string | null {
   const text = value?.trim() ?? "";
   return text === "" ? null : text.slice(0, TEXT_MAX);
+}
+
+// Lot 36b (SC-11) : SIREN (9 chiffres) ou SIRET (14), espaces et points retirés.
+export function normalizeCompanyIdNumber(value: string | null | undefined): string | null {
+  const digits = value?.replace(/[\s.]/g, "") ?? "";
+  if (digits === "") return null;
+  if (!/^[0-9]{9}([0-9]{5})?$/.test(digits)) throw new ContactInvalidError("companyIdNumber");
+  return digits;
+}
+
+// Numéro de TVA intracommunautaire : deux lettres de pays puis 2 à 13 caractères, sans espaces.
+export function normalizeVatNumber(value: string | null | undefined): string | null {
+  const compact = value?.replace(/\s/g, "").toUpperCase() ?? "";
+  if (compact === "") return null;
+  if (!/^[A-Z]{2}[0-9A-Z]{2,13}$/.test(compact)) throw new ContactInvalidError("vatNumber");
+  return compact;
 }
 
 export function normalizeContactEmail(value: string | null | undefined): string | null {
@@ -69,6 +85,8 @@ function toContact(row: ContactRow): Contact {
     city: row.city,
     country: row.country,
     billingAddress: row.billingAddress,
+    companyIdNumber: row.companyIdNumber,
+    vatNumber: row.vatNumber,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
@@ -91,6 +109,9 @@ function contactValues(input: ContactInput, kind: ContactKind) {
     city: clean(input.city),
     country: clean(input.country),
     billingAddress: input.billingAddress?.trim() ? input.billingAddress.trim().slice(0, 1000) : null,
+    // Lot 36b : identifiants d'une entreprise seulement.
+    companyIdNumber: kind === "company" ? normalizeCompanyIdNumber(input.companyIdNumber) : null,
+    vatNumber: kind === "company" ? normalizeVatNumber(input.vatNumber) : null,
   };
 }
 
@@ -195,6 +216,8 @@ export async function updateContact(organizationId: string, id: string, patch: C
     city: patch.city !== undefined ? patch.city : current.city,
     country: patch.country !== undefined ? patch.country : current.country,
     billingAddress: patch.billingAddress !== undefined ? patch.billingAddress : current.billingAddress,
+    companyIdNumber: patch.companyIdNumber !== undefined ? patch.companyIdNumber : current.companyIdNumber,
+    vatNumber: patch.vatNumber !== undefined ? patch.vatNumber : current.vatNumber,
   };
   const values = contactValues(merged, current.kind);
   if (values.email) {
@@ -315,13 +338,18 @@ export async function findContactsByTerms(organizationId: string, terms: PersonT
     .filter((contact) => !contact.anonymized && recordMatches([contact.firstName, contact.lastName, contact.name, contact.email, contact.phone, contact.addressLine, contact.city, contact.billingAddress], prepared));
 }
 
-// RGPD-03 et RGPD-05 : nom remplacé par « [anonymisé] », coordonnées et notes effacées. La ligne
-// reste, pour que les évènements et les statistiques restent justes.
+// RGPD-03 et RGPD-05 : nom remplacé par « [anonymisé] », coordonnées, notes et rôles effacés. La
+// ligne reste, pour que les évènements et les statistiques restent justes.
 export async function anonymizeContacts(organizationId: string, ids: readonly string[]): Promise<number> {
   const unique = [...new Set(ids)];
   if (unique.length === 0) return 0;
   return withOrganization(appDatabase(), organizationId, async (tx) => {
     await tx.delete(contactNotes).where(and(eq(contactNotes.organizationId, organizationId), inArray(contactNotes.contactId, unique)));
+    // Lot 36b : le rôle d'une personne dans un foyer ou une entreprise s'efface avec elle.
+    await tx
+      .update(contactMembers)
+      .set({ role: null })
+      .where(and(eq(contactMembers.organizationId, organizationId), or(inArray(contactMembers.groupContactId, unique), inArray(contactMembers.memberContactId, unique))));
     const rows = await tx
       .update(contacts)
       .set({
@@ -335,6 +363,8 @@ export async function anonymizeContacts(organizationId: string, ids: readonly st
         city: null,
         country: null,
         billingAddress: null,
+        companyIdNumber: null,
+        vatNumber: null,
       })
       .where(and(eq(contacts.organizationId, organizationId), inArray(contacts.id, unique)))
       .returning({ id: contacts.id });
@@ -408,4 +438,85 @@ export async function removeContactNote(organizationId: string, input: { noteId:
       .returning({ id: contactNotes.id }),
   );
   if (rows.length === 0) throw new ContactNoteNotFoundError();
+}
+
+// —— Foyers et entreprises (lot 36b, CRM-03, D2) ————————————————————————————————————
+
+export class ContactMemberNotFoundError extends Error {}
+
+const ROLE_MAX = 100;
+
+function membershipOf(row: typeof contactMembers.$inferSelect, other: Contact): ContactMembership {
+  return {
+    id: row.id,
+    groupContactId: row.groupContactId,
+    memberContactId: row.memberContactId,
+    role: row.role,
+    contact: { id: other.id, kind: other.kind, displayName: other.displayName, email: other.email, anonymized: other.anonymized },
+  };
+}
+
+// Les personnes d'un foyer ou d'une entreprise, dans l'ordre où elles ont été ajoutées.
+export async function listContactMembers(organizationId: string, groupContactId: string): Promise<ContactMembership[]> {
+  const rows = await withOrganization(appDatabase(), organizationId, (tx) =>
+    tx
+      .select()
+      .from(contactMembers)
+      .where(and(eq(contactMembers.organizationId, organizationId), eq(contactMembers.groupContactId, groupContactId)))
+      .orderBy(asc(contactMembers.createdAt), asc(contactMembers.id)),
+  );
+  const people = await getContactsByIds(organizationId, rows.map((row) => row.memberContactId));
+  return rows.flatMap((row) => {
+    const person = people.get(row.memberContactId);
+    return person ? [membershipOf(row, person)] : [];
+  });
+}
+
+// Les foyers et entreprises dont une personne fait partie.
+export async function listContactGroups(organizationId: string, memberContactId: string): Promise<ContactMembership[]> {
+  const rows = await withOrganization(appDatabase(), organizationId, (tx) =>
+    tx
+      .select()
+      .from(contactMembers)
+      .where(and(eq(contactMembers.organizationId, organizationId), eq(contactMembers.memberContactId, memberContactId)))
+      .orderBy(asc(contactMembers.createdAt), asc(contactMembers.id)),
+  );
+  const groups = await getContactsByIds(organizationId, rows.map((row) => row.groupContactId));
+  return rows.flatMap((row) => {
+    const group = groups.get(row.groupContactId);
+    return group ? [membershipOf(row, group)] : [];
+  });
+}
+
+// Rattache une personne à un foyer ou à une entreprise, avec un rôle libre ; déjà rattachée, son
+// rôle est mis à jour. Les deux contacts doivent exister dans l'organisation, hors essai et hors
+// RGPD ; un foyer ou une entreprise ne se rattache pas à un autre.
+export async function addContactMember(organizationId: string, input: { groupContactId: string; memberContactId: string; role?: string | null }): Promise<ContactMembership> {
+  const role = input.role?.trim() ? input.role.trim() : null;
+  if (role && role.length > ROLE_MAX) throw new ContactInvalidError("role");
+  if (input.groupContactId === input.memberContactId) throw new ContactInvalidError("member");
+  const found = await getContactsByIds(organizationId, [input.groupContactId, input.memberContactId]);
+  const group = found.get(input.groupContactId);
+  const member = found.get(input.memberContactId);
+  if (!group || group.anonymized || group.isDemo || !member || member.anonymized || member.isDemo) throw new ContactNotFoundError();
+  if (group.kind === "person" || member.kind !== "person") throw new ContactInvalidError("member");
+  const [row] = await withOrganization(appDatabase(), organizationId, (tx) =>
+    tx
+      .insert(contactMembers)
+      .values({ organizationId, groupContactId: group.id, memberContactId: member.id, role })
+      .onConflictDoUpdate({ target: [contactMembers.groupContactId, contactMembers.memberContactId], set: { role } })
+      .returning(),
+  );
+  if (!row) throw new Error("membre non enregistré");
+  return membershipOf(row, member);
+}
+
+export async function removeContactMember(organizationId: string, membershipId: string): Promise<void> {
+  const rows = await withOrganization(appDatabase(), organizationId, (tx) =>
+    tx
+      .delete(contactMembers)
+      .where(and(eq(contactMembers.organizationId, organizationId), eq(contactMembers.id, membershipId)))
+      .returning({ id: contactMembers.id }),
+  );
+  if (rows.length === 0) throw new ContactMemberNotFoundError();
 }

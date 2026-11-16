@@ -772,7 +772,7 @@
     },
     "importFile": {
       "title": "Importing data",
-      "body": "Choose what you are bringing in: your suppliers or event sheets from your current tool, or another file. The assistant runs through the steps and only asks what needs deciding. Nothing is saved before confirmation, and an import can be undone from the log.",
+      "body": "Choose what you are bringing in: your contacts (CSV or Excel), your suppliers or event sheets from your current tool, or another file. The assistant runs through the steps and only asks what needs deciding. Nothing is saved before confirmation, and an import can be undone from the log.",
       "faq": [
         {
           "q": "What happens to my file?",
@@ -1080,11 +1080,15 @@
     },
     "contactsList": {
       "title": "Contacts",
-      "body": "Each person exists only once in your space: a couple who comes back for a second event keeps their record, details and history. Search by name, address or phone; an e-mail address belongs to one contact only. Trial contacts do not appear here."
+      "body": "Each person exists only once in your space: a couple who comes back for a second event keeps their record, details and history. Search by name, address or phone; an email address belongs to one contact only. A household links people (a couple, a family); a company, its contact persons, with its SIREN and VAT number. “Import contacts” brings in your file (CSV or Excel). Trial contacts do not appear here."
     },
     "contactDetail": {
       "title": "Contact record",
-      "body": "The details on the record are the ones used by their events, personal links and quotes: changing them here changes them everywhere. The history gathers their events, quotes and invoices, and the documents of their events; notes are for the team. \"Create an event\" picks them as the client straight away."
+      "body": "The details on the record are the ones used by their events, personal links and quotes: changing them here changes them everywhere. The history gathers their events, quotes and invoices, and the documents of their events; notes are for the team. \"Create an event\" picks them as the client straight away. On a household or company record, add the people who belong to it, with their role; a person's record shows which households and companies they belong to. A company's SIREN or SIRET and VAT number carry over to its quotes."
+    },
+    "importRows": {
+      "title": "Setting rows aside",
+      "body": "A contacts file often mixes clients, prospects and vendors. Choose a column (a category, a type) and tick the values to set aside: those rows are not imported and stay in the gaps report, which you can download. Nothing is saved yet: you can change this choice."
     }
   },
   "Aide": {
@@ -2485,7 +2489,8 @@
       "loss_reasons": "Loss reasons",
       "payment_methods": "Payment methods",
       "vendors": "Vendor book entries (one row per vendor)",
-      "event_sheets": "Event sheets (PDF, one sheet per event)"
+      "event_sheets": "Event sheets (PDF, one sheet per event)",
+      "contacts": "Contacts (one row per person: clients, prospects…)"
     },
     "fileLabel": "File (CSV, Excel .xlsx or JSON)",
     "fileHint": "Maximum size: {maxSize}. Encoding, separator and header row are detected automatically.",
@@ -2617,7 +2622,15 @@
       "wantedBudget": "Wished budget",
       "lineLabel": "Line label",
       "rating": "Rating (1 to 5)",
-      "indicativePrices": "Indicative prices"
+      "indicativePrices": "Indicative prices",
+      "lastFirstName": "Last name and first name (last name first)",
+      "firstLastName": "First name and last name (first name first)",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "phone": "Phone",
+      "country": "Country",
+      "notes": "Notes (become a note on the record)",
+      "contactName": "Name or first name"
     },
     "requiredField": "{field} (required)",
     "columnsStepTitle": "Columns",
@@ -2699,7 +2712,9 @@
       "invalid_boolean": "{field}: unrecognised value, expected yes or no ({value})",
       "invalid_choice": "{field}: unrecognised value ({value})",
       "event_not_found": "event not found or ambiguous among your events",
-      "sheet_rejected": "Sheet rejected: {value}"
+      "sheet_rejected": "Sheet rejected: {value}",
+      "invalid_email": "{field}: unreadable email address ({value})",
+      "excluded_by_filter": "set aside: “{field}” is “{value}”"
     },
     "confirmStepTitle": "Confirmation",
     "continueToConfirmation": "Continue: preview and confirmation",
@@ -2751,7 +2766,9 @@
       "default_vendor_slot": "Default budget line: {title}",
       "vendor": "Vendor: {title}",
       "vendor_type": "Vendor type: {title}",
-      "vendor_tag": "Tag: {title}"
+      "vendor_tag": "Tag: {title}",
+      "contact": "Contact: {title}",
+      "contact_note": "Contact note: {title}"
     },
     "importedFieldsTitle": "Imported fields",
     "columnByContent": "Suggested from the column's content, not its heading (columns swapped in the file): please check.",
@@ -2785,6 +2802,12 @@
     "takeoverIntro": "Already using planning software? Bring over your vendor book first, then your events: Symbola recognises its exports and fixes their usual flaws (swapped columns, garbled characters, truncated postal codes).",
     "takeoverExampleSheet": "Download an example sheet (fictitious PDF) to try it",
     "takeover": {
+      "contacts": {
+        "title": "Bring over my contacts",
+        "how": "In your spreadsheet or current tool, save your contact list as CSV or Excel: one row per person, with their name (or “LAST First” in a single column), email, phone and notes.",
+        "what": "Each row becomes a contact: name, details and notes. An email address you already know completes the contact who has it; your vendors' rows can be set aside.",
+        "start": "Import my contacts"
+      },
       "vendors": {
         "title": "Bring over my vendors",
         "how": "In your current tool, open your vendor list and export it as Excel (.xlsx), without editing the file.",
@@ -2815,13 +2838,15 @@
       "columns": "Columns",
       "types": "Types",
       "matches": "Duplicates",
-      "confirm": "Review and confirm"
+      "confirm": "Review and confirm",
+      "rows": "Rows"
     },
     "summary": {
       "file": "{rows, plural, one {# row} other {# rows}}",
       "columns": "{recognized, plural, one {# column recognised} other {# columns recognised}}{kept, plural, =0 {} other {, # kept as free fields}}{ignored, plural, =0 {} other {, # ignored}}",
       "types": "{labels, plural, one {# label} other {# labels}}, {created, plural, =0 {no type created} one {# type created} other {# types created}}{unclassified, plural, =0 {} other {, # to sort}}",
-      "matches": "{creations, plural, other {# new}}, {updates, plural, =0 {no update} one {# update} other {# updates}}"
+      "matches": "{creations, plural, other {# new}}, {updates, plural, =0 {no update} one {# update} other {# updates}}",
+      "rows": "{excluded, plural, =0 {all rows kept} one {# row set aside} other {# rows set aside}}"
     },
     "stepCurrent": "in progress",
     "wizardTitle": "Importing “{fileName}”",
@@ -2905,17 +2930,40 @@
       "prospect_sources": "Import {count, plural, one {# source} other {# sources}}",
       "loss_reasons": "Import {count, plural, one {# reason} other {# reasons}}",
       "payment_methods": "Import {count, plural, one {# payment method} other {# payment methods}}",
-      "vendors": "Import {count, plural, one {# vendor} other {# vendors}}"
+      "vendors": "Import {count, plural, one {# vendor} other {# vendors}}",
+      "contacts": "Import {count, plural, one {# contact} other {# contacts}}"
     },
     "finishLink": {
       "vendors": "{count, plural, one {See the vendor} other {See the # vendors}}",
       "events": "{count, plural, one {See the event} other {See the # events}}",
       "event_sheets": "{count, plural, one {See the event} other {See the # events}}",
       "tasks": "{count, plural, one {See the task} other {See the # tasks}}",
-      "catalog_items": "{count, plural, one {See the item} other {See the # items}}"
+      "catalog_items": "{count, plural, one {See the item} other {See the # items}}",
+      "contacts": "{count, plural, one {See the contact} other {See the # contacts}}"
     },
     "confidenceProposal": "{field}? ({value}%, to confirm)",
-    "journalTable": "Import log table"
+    "journalTable": "Import log table",
+    "rowsIntro": "Your file may mix several kinds of contacts. Tick the values you do not want here (your vendors, for instance): their rows will not be imported. They stay in the gaps report, which you can download to import them elsewhere.",
+    "rowsNoColumn": "No column can sort the rows: all of them will be imported.",
+    "rowsColumnLegend": "Set rows aside by “{column}”",
+    "rowsColumnHint": "Values are grouped regardless of capitals and spaces.",
+    "rowsValue": "{value} ({count, plural, one {# row} other {# rows}})",
+    "rowsEmptyValue": "(empty)",
+    "rowsErrorColumns": "Tick values in one column only.",
+    "rowsErrorValues": "These values are no longer in the file: reload the page and try again.",
+    "rowSameEmail": "Same email address as row {line}: this row completes the first one.",
+    "rowWillComplete": "On confirmation, this row will complete the existing contact (its empty fields only).",
+    "rowWillCompleteLine": "On confirmation, this row will complete row {line}.",
+    "rowIgnored": "This row will be skipped.",
+    "contactMatchEmail": "Same email address as: {element}",
+    "contactMatchName": "Same name as: {element}",
+    "decisionComplete": "Complete",
+    "decisionCompleteFor": "Complete the existing contact for {title}",
+    "decisionIgnore": "Skip the row",
+    "decisionIgnoreFor": "Skip the row {title}",
+    "decisionKeep": "Keep the row",
+    "decisionKeepFor": "Keep the row {title}",
+    "contactSameLine": "Row {line}, with the same email address"
   },
   "Privacy": {
     "title": "Personal data",
@@ -3005,7 +3053,16 @@
       "sizeBytes": "Size (bytes)",
       "message": "Message",
       "label": "Label",
-      "paymentLabel": "Instalment label"
+      "paymentLabel": "Instalment label",
+      "phone": "Phone",
+      "addressLine": "Address",
+      "postalCode": "Postal code",
+      "city": "City",
+      "country": "Country",
+      "companyIdNumber": "SIREN or SIRET",
+      "vatNumber": "VAT number",
+      "noteN": "Note {n}",
+      "linkN": "Household or company {n}"
     },
     "requestsLink": "Requests from individuals",
     "settingsLink": "GDPR settings",
@@ -4839,7 +4896,8 @@
       "hub_memberships": "membership",
       "hub_organization_exports": "full export",
       "hub_contacts": "contact",
-      "hub_contact_notes": "contact note"
+      "hub_contact_notes": "contact note",
+      "hub_contact_members": "household or company member"
     },
     "modules": {
       "events": "Events",
@@ -5728,6 +5786,40 @@
     "pickerChange": "Change",
     "pickerNone": "No contact found: enter the name below.",
     "sharedHint": "These are the details of the contact's record: changing them here changes them everywhere.",
-    "openContact": "Open {name}'s record"
+    "openContact": "Open {name}'s record",
+    "importLink": "Import contacts",
+    "kindLegend": "Kind of contact",
+    "kind": {
+      "person": "Person",
+      "household": "Household",
+      "company": "Company"
+    },
+    "nameHousehold": "Household name",
+    "nameCompany": "Company name",
+    "companyIdNumber": "SIREN or SIRET",
+    "vatNumber": "EU VAT number",
+    "invalidCompanyIdNumber": "A SIREN has 9 digits, a SIRET 14.",
+    "invalidVatNumber": "This VAT number is not valid: two country letters, then the number (FR12345678901).",
+    "missingName": "Enter a name.",
+    "detailSubtitleHousehold": "Household record",
+    "detailSubtitleCompany": "Company record",
+    "membersHousehold": "Household members",
+    "membersCompany": "Contacts at the company",
+    "noMembers": "Nobody yet.",
+    "memberAddHousehold": "Add a person to the household",
+    "memberAddCompany": "Add a contact person",
+    "memberPickerLegend": "Add a person",
+    "memberRole": "Role (optional)",
+    "memberRoleHintHousehold": "For instance “bride”, “parent”.",
+    "memberRoleHintCompany": "For instance “executive assistant”, “accounts”.",
+    "memberAdd": "Add",
+    "memberAdded": "Person added.",
+    "memberRemove": "Remove",
+    "memberRemoveFor": "Remove {name}",
+    "memberInvalid": "Choose a person (not a household or a company).",
+    "memberRoleInvalid": "A role has 100 characters at most.",
+    "groupsTitle": "Households and companies",
+    "memberSearch": "Search for the person by name, email or phone",
+    "pickerNoneAlone": "No contact found: add them to your contacts first."
   }
 }

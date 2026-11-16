@@ -10,7 +10,7 @@ import { appDatabase } from "@symbola/db/client";
 import type { Locale } from "@symbola/i18n";
 import { starterDocumentStyle, starterLatePenalty } from "@symbola/starter-templates";
 import { getEvent } from "@/modules/events/service";
-import { computeLegalMention, getOrganizationProfile } from "@/modules/hub/service";
+import { computeLegalMention, getContactsByIds, getOrganizationProfile } from "@/modules/hub/service";
 import { currentQuoteSeller, type QuoteDetail, type QuoteVersionView } from "@/modules/quotes/service";
 import { loadDocumentLogo } from "@/lib/document-logo";
 import { pdfSafe } from "@/lib/pdf-text";
@@ -44,6 +44,14 @@ export async function quotePdfModelFor(input: {
   const t = await getTranslations("Documents");
   const tQuotes = await getTranslations("Quotes");
   const seller = version.sentAt && version.seller ? version.seller : draftSeller;
+  // Lot 36b (CRM-03, SC-11) : un client entreprise montre ses identifiants sous son nom.
+  const clientContacts = await getContactsByIds(organizationId, (event?.clients ?? []).map((client) => client.contactId).filter((id): id is string => id !== null));
+  const clientDetails = [...clientContacts.values()]
+    .filter((contact) => contact.kind === "company" && !contact.anonymized)
+    .flatMap((contact) => [
+      ...(contact.companyIdNumber ? [contact.companyIdNumber.length === 14 ? t("pdfSiret", { siret: contact.companyIdNumber }) : t("pdfSiren", { siren: contact.companyIdNumber })] : []),
+      ...(contact.vatNumber ? [t("pdfVatNumber", { vatNumber: contact.vatNumber })] : []),
+    ]);
 
   const model = buildQuotePdfModel({
     quote,
@@ -51,6 +59,7 @@ export async function quotePdfModelFor(input: {
     draftSeller,
     draftLegalMention: computeLegalMention(profile) || null,
     clientNames: event?.clients.map((client) => client.firstName).join(" & ") || tQuotes("noClient"),
+    clientDetails,
     eventDate: event?.eventDate ?? null,
     logo: await loadDocumentLogo(organizationId, seller.logoKey),
     locale,

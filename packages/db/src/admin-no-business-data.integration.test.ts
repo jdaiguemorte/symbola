@@ -11,7 +11,7 @@ import { afterAll, describe, expect, it } from "vitest";
 import { createAppConnection } from "./client";
 import { alertThresholds, budgetLineAttachments, budgetLines, vendorPayments } from "./schema/budget";
 import { vendors, vendorTypes } from "./schema/vendors";
-import { contactNotes, contacts, importItems, imports, privacyRequests } from "./schema/hub";
+import { contactMembers, contactNotes, contacts, importItems, imports, privacyRequests } from "./schema/hub";
 import {
   catalogItems,
   creditNotes,
@@ -379,13 +379,15 @@ describe("PRD-HUB-03 — L'Admin ne lit jamais de donnée métier", () => {
     }
   });
 
-  it("vaut aussi pour les contacts et leurs notes (lot 36a, CRM-03, PostgreSQL réel)", async () => {
+  it("vaut aussi pour les contacts, leurs notes et les membres des foyers (lots 36a et 36b, CRM-03, PostgreSQL réel)", async () => {
     const organizationId = randomUUID();
     await withOrganization(db, organizationId, async (tx) => {
       const [contact] = await tx.insert(contacts).values({ organizationId, firstName: "Élodie", lastName: "Durand", email: `elodie-${randomUUID()}@exemple.test` }).returning();
       await tx.insert(contactNotes).values({ organizationId, contactId: contact!.id, body: "Préfère être appelée le soir" });
+      const [household] = await tx.insert(contacts).values({ organizationId, kind: "household", name: "Famille Durand" }).returning();
+      await tx.insert(contactMembers).values({ organizationId, groupContactId: household!.id, memberContactId: contact!.id });
     });
-    for (const table of [contacts, contactNotes]) {
+    for (const table of [contacts, contactNotes, contactMembers]) {
       try {
         const rows = await db.select().from(table);
         expect(rows).toHaveLength(0);

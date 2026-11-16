@@ -220,6 +220,26 @@ describe("DEV-01 — PDF du devis", () => {
   });
 });
 
+describe("CRM-03 (lot 36b, SC-11) — Le client entreprise sur le devis", () => {
+  it("le bloc client porte, sous le nom, le SIRET et le numéro de TVA de l'entreprise ; un client particulier, son nom seul", () => {
+    const base = {
+      quote: quote(version()),
+      version: version(),
+      draftSeller,
+      draftLegalMention: "Mention courante",
+      eventDate: "2027-09-18",
+      logo: null,
+      labels,
+      locale: "fr" as const,
+      watermark: null,
+      defaultColor: DEFAULT_COLOR,
+    };
+    const company = buildQuotePdfModel({ ...base, clientNames: "Maison Lumière", clientDetails: ["SIRET 12345678900012", "TVA intracommunautaire FR12123456789"] });
+    expect(company.client.lines).toEqual(["Maison Lumière", "SIRET 12345678900012", "TVA intracommunautaire FR12123456789"]);
+    expect(buildQuotePdfModel({ ...base, clientNames: "Inès & Sacha" }).client.lines).toEqual(["Inès & Sacha"]);
+  });
+});
+
 describe("DEV-07 — Fiche entreprise complète pour les documents", () => {
   it("le nom d'un entrepreneur individuel est suivi de « EI », sans doublon", () => {
     expect(model(version()).seller.name).toBe("Atelier Lumière EI");

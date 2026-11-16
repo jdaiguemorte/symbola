@@ -21,7 +21,8 @@ export type ImportApplyRow = {
 
 export type ImportedItem = {
   rowIndex: number | null;
-  module: "events" | "budget" | "quotes" | "vendors";
+  // Lot 36b : « hub » pour les contacts importés.
+  module: "events" | "budget" | "quotes" | "vendors" | "hub";
   // Nature de l'élément, propre au module (event, task, catalog_item…).
   kind: string;
   elementId: string;
