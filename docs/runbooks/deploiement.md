@@ -412,6 +412,9 @@ sans cette clé, l'app refuse de démarrer.
    La migration 0136 (lot 36b : membres des foyers et entreprises, identifiants d'entreprise,
    import de contacts) n'ajoute qu'une table, deux colonnes et une valeur : elle passe sans
    arrêter `symbola`.
+   La migration 0137 (lot 37a : dossiers, versions, partage et liens de partage des documents d'un
+   évènement) ajoute trois tables, trois colonnes et une valeur, et met chaque document existant en
+   version 1, dans « Divers », non partagé : elle passe aussi sans arrêter `symbola`.
 4. Redémarrer seulement le service `symbola` :
    ```bash
    sudo docker compose -f infra/compose/docker-compose.prod.yml \
@@ -447,6 +450,15 @@ colonnes, reprises du premier lieu ; les horaires et le contact des lieux, les i
 les notes, les pièces jointes et les commentaires des tâches sont perdus (les fichiers des pièces
 jointes restent dans le stockage, sans ligne : `restauration.md`, § 4 bis), et une tâche confiée à
 un prestataire revient à la planner. Arrêter `symbola` avant l'annulation.
+
+**Vers une image du lot 36b** (antérieure au lot 37a) : la migration 0137 peut rester (l'image du
+lot 36b ignore les dossiers, les versions, le partage et les liens) ; remettre l'ancien tag
+d'image, puis les étapes 4 et 5. Les liens de partage ne s'ouvrent plus (la page `/partage`
+n'existe pas). Un document supprimé par cette image laisse dans le stockage les fichiers de ses
+versions précédentes ; un document qu'elle dépose n'a pas de version 1 au retour du lot 37a. Pour
+revenir plus loin, annuler 0137 d'abord (`0137_lot37a_events_documents`, refusée tant qu'une
+ouverture de lien est au fil d'activité ; les versions précédentes, les dossiers, les partages et
+les liens sont perdus, leurs fichiers restent dans le stockage).
 
 **Vers une image du lot 36a** (antérieure au lot 36b) : la migration 0136 peut rester (l'image du
 lot 36a ignore sa table, ses colonnes et sa valeur) ; remettre l'ancien tag d'image, puis les

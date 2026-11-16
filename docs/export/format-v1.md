@@ -73,3 +73,8 @@ La liste table par table, avec sa raison, est dans l'index généré. Un test
   contact (`contactId`).
 - **Lot 36b** : l'entité `hub/contact_members` (membres des foyers et des entreprises) et deux champs
   facultatifs de `hub/contacts` (`companyIdNumber`, `vatNumber`) s'ajoutent ; la v1 tient.
+- **Lot 37a** : les entités `events/event_document_folders`, `events/event_document_versions` (avec
+  leurs fichiers) et `events/event_document_links` (sans le jeton) s'ajoutent, ainsi que trois champs
+  de `events/event_documents` (`folderId`, `sharedWithClients`, `sharedWithVendors`) dont la valeur
+  par défaut dit l'existant (« Divers », non partagé) et la valeur `document_link_opened` du fil
+  d'activité ; la v1 tient.

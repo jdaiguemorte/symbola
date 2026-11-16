@@ -1,7 +1,7 @@
 # Lot 37 — Les documents de l'évènement et le programme diffusé
 
-**Statut** : spécification **à valider par Julien**. Le lot change les schémas `events`, `hub` et
-`quotes` : aucun code avant sa validation (CLAUDE.md § 8).
+**Statut** : spécification **validée par Julien le 16/11/2026** (« Oui, je valide » : D1 à D13
+en (a)), ce qui vaut accord pour toucher les schémas `events`, `hub` et `quotes`.
 Branche `lot-37-documents`, partie de `main` après le lot 36 (PR #120).
 
 ## Contexte
@@ -300,3 +300,67 @@ Chaque migration ne touche que le schéma de son module (DAT-09), et a son annul
 - **« Ses séquences et leur contexte »** (CHR-07) : jusqu'où va le contexte : D9.
 - **« Le relevé mensuel alimente le calcul des quotas »** (DOC-12) : les quotas eux-mêmes sont P1
   (DOC-06) ; ce lot fait le relevé, pas le blocage.
+
+## Bilan du lot 37a (16/11/2026)
+
+### Fait
+
+- **Un espace par évènement** (DOC-01, D2, D3) : l'onglet « Documents » réunit les documents
+  déposés, rangés dans des dossiers d'un niveau (« Divers » sans dossier ; retirer un dossier ne
+  supprime aucun document), et, en lecture, les pièces des modules dans leurs dossiers fixes :
+  devis et documents signés, factures et avoirs, pièces des tâches et du budget, devis des
+  prestataires consultés. Chaque module les fournit par son `service.ts`.
+- **Des versions** (D4) : une nouvelle version garde les précédentes, numérotées et consultables ;
+  la dernière est lue, partagée et embarquée pour le jour J. Supprimer un document supprime les
+  fichiers de toutes ses versions.
+- **L'aperçu sans téléchargement** (D5) : un PDF ou une image s'ouvre dans un nouvel onglet,
+  servi « à afficher » après les contrôles de droits (`?apercu=1`), sans cadre : les en-têtes
+  qui interdisent l'encadrement restent entiers (ADR 0070). Le devis s'aperçoit de la même façon
+  (« Aperçu du PDF » sur l'écran du devis).
+- **DOC-07** : testé, le PDF d'un devis en cours reconstruit est identique à son aperçu (hors dates
+  de production) et aucun PDF de brouillon n'est écrit au stockage.
+- **Le partage** (POR-04, POR-10, D6) : rien n'est partagé par défaut ; un document se partage
+  avec les clients, les prestataires, ou les deux. Le portail gagne une section « Documents » (les
+  documents partagés, et d'office les factures et avoirs émis pour l'évènement, originaux) ;
+  l'espace du prestataire, les documents partagés avec les prestataires.
+- **Le lien de partage** (DOC-04, D7) : un lien par document, de 1 à 30 jours, révocable ; jeton
+  haché, après « # », envoyé en POST ; débit limité ; inconnu, expiré ou révoqué, la même réponse
+  sans nom de fichier ni d'évènement ; chaque ouverture comptée et au fil d'activité de la fiche.
+- **RGPD et export** : registre à jour (versions, nom d'un dossier, fil d'activité) ; un dossier
+  est trouvé par la recherche RGPD et supprimé à l'oubli ; l'oubli d'un document emporte ses
+  versions, ses liens et leurs ouvertures au fil. Les trois tables entrent dans l'export complet,
+  sans jeton (la v1 tient).
+- **Migration 0137** (schéma `events`), avec son annulation (refusée tant qu'une ouverture de lien
+  est au fil) et son test ; elle passe sans arrêter l'app. ADR 0070, runbook, aide de la fiche, du
+  portail et de l'espace prestataire.
+- **Corrigé en route** : l'écran RGPD montrait des clés brutes pour douze natures de fiches
+  (document de l'évènement, pièce jointe d'une tâche, contrat, prestataire…) ; elles ont leur
+  libellé.
+
+### Écarts et points ouverts
+
+- **Le partage par règle** (« tous les plans aux prestataires ») n'existe pas : POR-10 l'autorise ;
+  il viendra si l'usage le demande.
+- **Paiement en ligne des factures au portail** : en V1 (FAC-08).
+- **Les contrats signés** ne sont pas listés à part dans l'espace documents : le document signé du
+  devis (avec son contrat, quand ils sont signés ensemble) y est ; le contrat signé seul reste sur
+  l'écran du devis.
+- **37b** : programme diffusé (CHR-07, DAT-14) et compteur de stockage (DOC-12).
+
+### Vérifications (en local)
+
+- Lint, typecheck, frontières de modules : verts. Registre RGPD à jour.
+- Unitaires : app 503 (aperçu des fichiers, règles d'accès et aide de la page `/partage`),
+  `@symbola/contracts` 24.
+- Intégration :
+  - app 665, dont 15 pour l'espace documents (dossiers, versions, partage, liens à horloge
+    simulée, abus, RGPD), 3 pour DOC-07 et 2 pour les factures d'un évènement au portail ;
+  - `@symbola/db` 179 (annulation de 0137, isolation des dossiers, versions et liens, accès
+    Admin) ;
+  - `@symbola/auth` 21.
+- Parcours e2e, base rechargée : 292 réussis, 3 ignorés (les mêmes qu'avant), 1 instable :
+  `prd-evt-06`, navigation interrompue après un retour arrière, sous la charge de cinq parcours en
+  parallèle ; relancé seul trois fois, 18 sur 18. Nouveau parcours `doc-01-04-por-04-documents`,
+  en taille ordinateur et en 375 px, avec axe-core.
+- Semgrep (`p/default`) : rien sur le code du lot. Gitleaks : aucune fuite dans les commits du lot.
+- Rejeu SC-02, étape 4 : sans blocage (`docs/recette/SC-02.md`).
