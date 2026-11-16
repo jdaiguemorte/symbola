@@ -1,9 +1,10 @@
 // PRD-BUD-03 — ouverture d'un devis joint : contrôle de la session planner,
 // de l'organisation et du module, puis fichier servi par l'app depuis le
 // stockage privé (ADR 0027 : jamais d'URL vers le stockage).
+// Lot 37a (DOC-01, D5) : « ?apercu=1 » l'affiche dans le navigateur (lib/file-response.ts).
 import { refusedResponse } from "@/lib/access-refusals";
 import { BudgetLineAttachmentNotFoundError, getBudgetLineAttachmentFile } from "@/modules/budget/service";
-import { fileDownloadResponse } from "@/lib/file-response";
+import { fileResponse } from "@/lib/file-response";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isBudgetModuleEnabled, isValidId } from "../../../module-access";
 
@@ -19,7 +20,7 @@ export async function GET(
   const { attachmentId } = await params;
   if (!isValidId(attachmentId)) return new Response(null, { status: 404 });
   try {
-    return fileDownloadResponse(await getBudgetLineAttachmentFile(organizationId, attachmentId));
+    return fileResponse(await getBudgetLineAttachmentFile(organizationId, attachmentId), request);
   } catch (error) {
     if (error instanceof BudgetLineAttachmentNotFoundError) return refusedResponse(request);
     throw error;

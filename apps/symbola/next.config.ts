@@ -27,7 +27,8 @@ const securityHeaders = [
     : []),
 ];
 
-const LINK_PAGES = ["/lien", "/lien/:path*", "/portail", "/portail/:path*", "/prestataire", "/prestataire/:path*"];
+// Lot 37a (DOC-04, ADR 0070) : la page d'un lien de partage de document, comme celles des liens personnels.
+const LINK_PAGES = ["/lien", "/lien/:path*", "/portail", "/portail/:path*", "/prestataire", "/prestataire/:path*", "/partage", "/partage/:path*"];
 const linkPageHeaders = [
   { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
   { key: "Referrer-Policy", value: "no-referrer" },

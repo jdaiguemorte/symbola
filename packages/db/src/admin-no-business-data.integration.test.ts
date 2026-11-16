@@ -42,6 +42,10 @@ import {
   programTemplates,
   taskTemplateItems,
   taskTemplates,
+  eventDocumentFolders,
+  eventDocumentLinks,
+  eventDocumentVersions,
+  eventDocuments,
 } from "./schema/events";
 import { withOrganization } from "./with-organization";
 
@@ -370,6 +374,25 @@ describe("PRD-HUB-03 — L'Admin ne lit jamais de donnée métier", () => {
     });
 
     for (const table of [vendors, vendorTypes, eventVendorCandidates]) {
+      try {
+        const rows = await db.select().from(table);
+        expect(rows).toHaveLength(0);
+      } catch (error) {
+        expect(error).toBeTruthy();
+      }
+    }
+  });
+
+  it("vaut aussi pour les dossiers, versions et liens de partage des documents (lot 37a, DOC-01, PostgreSQL réel)", async () => {
+    const organizationId = randomUUID();
+    await withOrganization(db, organizationId, async (tx) => {
+      const [event] = await tx.insert(events).values({ organizationId }).returning();
+      const [folder] = await tx.insert(eventDocumentFolders).values({ organizationId, eventId: event!.id, name: "Plans" }).returning();
+      const [document] = await tx.insert(eventDocuments).values({ organizationId, eventId: event!.id, folderId: folder!.id, label: "Plan", fileKey: `${organizationId}/plan.pdf`, mime: "application/pdf", sizeBytes: 10, uploadedByUserId: organizationId }).returning();
+      await tx.insert(eventDocumentVersions).values({ organizationId, documentId: document!.id, version: 1, fileKey: `${organizationId}/plan.pdf`, mime: "application/pdf", sizeBytes: 10, uploadedByUserId: organizationId });
+      await tx.insert(eventDocumentLinks).values({ organizationId, eventId: event!.id, documentId: document!.id, tokenHash: `h-${randomUUID()}`, expiresAt: new Date(Date.now() + 86_400_000), createdByUserId: organizationId });
+    });
+    for (const table of [eventDocumentFolders, eventDocumentVersions, eventDocumentLinks]) {
       try {
         const rows = await db.select().from(table);
         expect(rows).toHaveLength(0);

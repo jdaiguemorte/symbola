@@ -58,8 +58,7 @@ import { isEventsModuleEnabled, isValidId } from "../module-access";
 import { ChangeStatusForm } from "./change-status-form";
 import { CloseEventForm, ConfirmPostponementForm, TimeZoneForm } from "./lifecycle-forms";
 import { isDayOfOpen } from "@/app/jour-j/[eventId]/day-of-view";
-import { EventDocumentRenameForm, EventDocumentUploadForm } from "./document-forms";
-import { removeEventDocumentAction } from "./document-actions";
+import { DocumentsTab } from "./documents-tab";
 import { NextStepBanner } from "./next-step-banner";
 import { nextStep } from "./next-step";
 import { endTrialAction, removeExampleAction } from "../trial-actions";
@@ -386,7 +385,6 @@ export default async function EventDetailPage({
   const tour = await loadPageTour(auth.user.id, "event", query.visite);
   // Lot 29b (JRJ-04, D8) : documents de l'événement, et ceux embarqués pour le jour J.
   const eventDocuments = await listEventDocuments(organizationId, id);
-  const tDocuments = await getTranslations("EventDocuments");
   const embeddedDocumentIds =
     tab === "documents" ? new Set((await listDayDocumentChoices(organizationId, id)).filter((choice) => choice.source === "event_document").map((choice) => choice.sourceId)) : new Set<string>();
   const tabs: { key: Tab; label: string; href: string; count?: string; alert?: boolean }[] = [
@@ -668,7 +666,7 @@ export default async function EventDetailPage({
               {activity.map((entry) => (
                 <li key={entry.id}>
                   {eventTime(entry.createdAt)} —{" "}
-                  {t(entry.kind === "task_done" ? "activityTaskDone" : entry.kind === "decision_made" ? "activityDecisionMade" : entry.kind === "vendor_reminded" ? "activityVendorReminded" : "activityTaskUndone", {
+                  {t(entry.kind === "task_done" ? "activityTaskDone" : entry.kind === "decision_made" ? "activityDecisionMade" : entry.kind === "vendor_reminded" ? "activityVendorReminded" : entry.kind === "document_link_opened" ? "activityDocumentLinkOpened" : "activityTaskUndone", {
                     actor: entry.actorName ?? t("activityFormerClient"),
                     task: entry.taskLabel || (entry.kind === "vendor_reminded" ? t("activityVendorRemoved") : tDecisions("programLabel")),
                   })}
@@ -1374,48 +1372,9 @@ export default async function EventDetailPage({
         </section>
       ) : null}
 
-      {/* Lot 29b (JRJ-04, décision D8) : documents de l'événement. */}
+      {/* Lot 29b (JRJ-04, D8) ; lot 37a (DOC-01, DOC-04, POR-10) : l'espace documents de l'évènement. */}
       {tab === "documents" ? (
-        <section className="card" aria-labelledby="event-documents-title">
-          <h2 id="event-documents-title">{tDocuments("title")}</h2>
-          <p>{tDocuments("intro")}</p>
-          {eventDocuments.length === 0 ? (
-            <p>{tDocuments("empty")}</p>
-          ) : (
-            <ul className="item-list event-documents">
-              {eventDocuments.map((document) => (
-                <li key={document.id}>
-                  <div>
-                    <a href={`/events/${event.id}/documents/${document.id}`} download>
-                      {document.label}
-                    </a>
-                    <p className="meta">
-                      {formatFileSize(document.sizeBytes, locale)}
-                      {embeddedDocumentIds.has(document.id) ? ` · ${tDocuments("embedded")}` : ""}
-                    </p>
-                  </div>
-                  <EventDocumentRenameForm eventId={event.id} documentId={document.id} label={document.label} />
-                  <form action={removeEventDocumentAction}>
-                    <input type="hidden" name="eventId" value={event.id} />
-                    <input type="hidden" name="documentId" value={document.id} />
-                    <button type="submit" className="button-ghost" aria-label={tDocuments("removeLabel", { label: document.label })}>
-                      {tDocuments("remove")}
-                    </button>
-                  </form>
-                </li>
-              ))}
-            </ul>
-          )}
-          <h3>{tDocuments("addTitle")}</h3>
-          <EventDocumentUploadForm eventId={event.id} />
-          {isDayOfOpen(event) ? (
-            <p>
-              <a href={`/jour-j/${event.id}#documents`}>{tDocuments("chooseForDayOf")}</a>
-            </p>
-          ) : (
-            <p className="meta">{tDocuments("dayOfLater")}</p>
-          )}
-        </section>
+        <DocumentsTab eventId={event.id} organizationId={organizationId} locale={locale} documents={eventDocuments} embeddedDocumentIds={embeddedDocumentIds} dayOfOpen={isDayOfOpen(event)} />
       ) : null}
     </main>
   );

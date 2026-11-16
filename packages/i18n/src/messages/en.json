@@ -607,6 +607,10 @@
         {
           "q": "How do I follow up with a vendor whose contract isn't signed?",
           "a": "With « Follow up » on its line, in « Today » or the summary: your mail app opens on a ready message, to the address on its card, and the follow-up is logged in the activity feed."
+        },
+        {
+          "q": "How do I file and share the event's documents?",
+          "a": "In the Documents tab: upload a map or a document into a folder (“Maps”, “Caterer”), upload a new version without losing the earlier ones, and open the preview without downloading anything. Nothing is shared until you tick “With the clients” or “With the vendors”; issued invoices appear on the clients' portal automatically. For someone without a personal link, create a share link for 1 to 30 days: it opens that document only, each opening is logged in the activity feed, and you can revoke it at any time. Quotes, invoices and attachments from other screens appear there too, read-only."
         }
       ]
     },
@@ -646,11 +650,11 @@
     },
     "clientEvent": {
       "title": "Your space",
-      "body": "Your organiser has opened this space for you with a personal link, with no account or password. At the top, your next three actions and what you are asked to decide; further down, what they have shared with you: your tasks to tick, the schedule of the day, the budget in three figures and its instalments. Paid an instalment? Declare it: your organiser will confirm it. This link is for you only: please do not forward it."
+      "body": "Your organiser has opened this space for you with a personal link, with no account or password. At the top, your next three actions and what you are asked to decide; further down, what they have shared with you: your tasks to tick, the schedule of the day, the budget in three figures and its instalments, the documents shared with you and your invoices, to open or download. Paid an instalment? Declare it: your organiser will confirm it. This link is for you only: please do not forward it."
     },
     "vendorSpace": {
       "title": "Your vendor space",
-      "body": "Your organiser has opened this space for you with a personal link, with no account or password. You will find the date, the venues, the programme times that concern you, the tasks they give you (tick them once done) and how to reach them. This link is for you only: please do not forward it."
+      "body": "Your organiser has opened this space for you with a personal link, with no account or password. You will find the date, the venues, the programme times that concern you, the tasks they give you (tick them once done), the documents shared with you and how to reach them. This link is for you only: please do not forward it."
     },
     "budgetSettings": {
       "title": "Budget allocation",
@@ -1703,7 +1707,8 @@
     "guestsInvalid": "Enter a whole number of guests, from 0 to 100,000.",
     "identityInvalid": "The style fits in 2,000 characters and the notes in 10,000.",
     "interlocutorsLabel": "Contacts",
-    "interlocutorOfPlace": "{name} ({place})"
+    "interlocutorOfPlace": "{name} ({place})",
+    "activityDocumentLinkOpened": "Share link opened: “{task}”."
   },
   "Budget": {
     "title": "Budget",
@@ -1951,6 +1956,7 @@
     "reviseWithNewRegime": "Create a new version under the new regime",
     "linesCaption": "Lines of version {version}",
     "noLines": "No line yet: add a catalogue item or a free line.",
+    "previewPdf": "Preview the PDF (version {version}, new tab)",
     "downloadPdf": "Download the PDF (version {version})",
     "composeTitle": "Compose the quote",
     "editLineNamed": "Edit line “{label}”",
@@ -3012,7 +3018,19 @@
       "greeting": "Message",
       "link": "Personal link",
       "earnest_receipt": "Earnest money receipt",
-      "contact": "Contact"
+      "contact": "Contact",
+      "contract": "Contract",
+      "contract_signer_act": "Contract signer action",
+      "event_day_contact": "Day-of contact",
+      "event_document": "Event document",
+      "event_document_folder": "Document folder",
+      "event_place": "Event venue",
+      "quote_options_choice": "Quote options choice",
+      "task_attachment": "Task attachment",
+      "task_comment": "Task comment",
+      "vendor": "Vendor book entry",
+      "vendor_candidate": "Consulted vendor",
+      "vendor_payment": "Vendor payment"
     },
     "field": {
       "firstName": "First name",
@@ -4897,7 +4915,10 @@
       "hub_organization_exports": "full export",
       "hub_contacts": "contact",
       "hub_contact_notes": "contact note",
-      "hub_contact_members": "household or company member"
+      "hub_contact_members": "household or company member",
+      "events_event_document_folders": "document folder",
+      "events_event_document_versions": "document version",
+      "events_event_document_links": "document share link"
     },
     "modules": {
       "events": "Events",
@@ -5074,7 +5095,8 @@
     "declareSubmitShort": "Declare the payment",
     "cancelDeclarationShort": "Cancel my declaration",
     "navDecisions": "To decide",
-    "actionGoDecision": "Answer"
+    "actionGoDecision": "Answer",
+    "navDocuments": "Documents"
   },
   "VendorSpace": {
     "title": "Your vendor space",
@@ -5279,7 +5301,7 @@
   },
   "EventDocuments": {
     "title": "Event documents",
-    "intro": "Seating plan, access maps, plan B: keep them here. On the day-of screen, choose which ones to keep on the phone.",
+    "intro": "Seating plan, access maps, backup plan: upload them here, file them in folders, share them. Quotes, invoices and attachments from other screens appear here too, read-only.",
     "empty": "No document yet.",
     "addTitle": "Add a document",
     "label": "Title",
@@ -5301,7 +5323,86 @@
     "remove": "Delete",
     "removeLabel": "Delete “{label}”",
     "chooseForDayOf": "Choose the documents to keep for the day",
-    "dayOfLater": "Once the event is confirmed and dated, you will choose on the day-of screen which documents to keep on the phone."
+    "dayOfLater": "Once the event is confirmed and dated, you will choose on the day-of screen which documents to keep on the phone.",
+    "folder": "Folder",
+    "folderMisc": "Miscellaneous",
+    "folderInvalid": "This folder no longer exists: reload the page.",
+    "folderNameInvalid": "Give the folder a name of 80 characters at most.",
+    "foldersTitle": "Folders ({count})",
+    "foldersHint": "One level of folders is enough (“Maps”, “Caterer”). Removing a folder moves its documents to “Miscellaneous”: none is deleted.",
+    "folderName": "New folder",
+    "folderPlaceholder": "For example: Caterer",
+    "createFolder": "Create the folder",
+    "folderCreated": "Folder created.",
+    "folderRenameLabel": "New name for the folder “{name}”",
+    "folderRenamed": "Folder renamed.",
+    "folderRemove": "Remove the folder",
+    "folderRemoveLabel": "Remove the folder “{name}” (its documents move to “Miscellaneous”)",
+    "folderEmpty": "No document.",
+    "preview": "Preview",
+    "previewLabel": "Preview of “{label}” (new tab)",
+    "download": "Download",
+    "downloadLabel": "Download “{label}”",
+    "versionNumber": "version {version}",
+    "sharedBoth": "shared with the clients and the vendors",
+    "sharedClients": "shared with the clients",
+    "sharedVendors": "shared with the vendors",
+    "sharedNobody": "not shared",
+    "manageLabel": "Manage “{label}”",
+    "sharingLegend": "Share “{label}”",
+    "shareClients": "With the event's clients (their portal)",
+    "shareVendors": "With the event's vendors (their space)",
+    "saveSharing": "Save sharing",
+    "sharingSaved": "Sharing saved.",
+    "newVersionLabel": "New version of “{label}” (PDF or image, 20 MB at most)",
+    "newVersion": "Upload the new version",
+    "versionAdded": "New version uploaded. Earlier versions can still be opened.",
+    "versionsTitle": "Versions of “{label}”",
+    "versionsHeading": "Versions",
+    "versionLine": "Version {version} — {date} — {size}",
+    "versionCurrent": "the one shown and shared",
+    "versionOf": "{label}, version {version}",
+    "linksTitle": "Share links for “{label}”",
+    "linksHeading": "Share links",
+    "linksHint": "For someone without a personal link (a caterer not chosen yet, a venue manager): the link opens this document only, for 1 to 30 days. Each opening goes to the activity feed.",
+    "linkActive": "Valid until {date}",
+    "linkExpired": "Expired on {date}",
+    "linkRevoked": "Revoked",
+    "linkOpenedAt": "{count, plural, one {opened # time} other {opened # times}}, last on {date}",
+    "linkNeverOpened": "never opened",
+    "revokeLink": "Revoke the link",
+    "linkDaysLabel": "Duration of a new link for “{label}”, in days",
+    "linkDaysHint": "From {min} to {max} days.",
+    "linkDaysInvalid": "Choose a duration from {min} to {max} days.",
+    "createLink": "Create a share link",
+    "linkCreated": "Link created, valid until {date}.",
+    "linkUrlLabel": "Link address, for you to send",
+    "linkUrlOnce": "This address will not be shown again: copy it now. If lost, create a new link.",
+    "moveLabel": "File “{label}” in",
+    "move": "File",
+    "moved": "Document filed.",
+    "moduleTitle": "Files from other screens",
+    "moduleHint": "Quotes, invoices, task and budget attachments, quotes from consulted vendors: each is managed from its own screen. Invoices, credit notes and signed documents are shown as issued.",
+    "folderQuotes": "Quotes and signed documents",
+    "folderInvoices": "Invoices and credit notes",
+    "folderTasks": "Task attachments",
+    "folderBudget": "Budget attachments",
+    "folderCandidates": "Quotes from consulted vendors",
+    "moduleQuote": "Quote {number}",
+    "moduleQuoteDetail": "Version {version} · {status} · rendered on demand",
+    "moduleSignedQuote": "Signed quote {number}",
+    "moduleOriginal": "issued original",
+    "moduleInvoice": "Invoice {number}",
+    "moduleCreditNote": "Credit note {number}",
+    "moduleTaskDetail": "Task: {task}",
+    "moduleCandidateQuote": "Quote from {vendor}",
+    "quoteStatus": {
+      "draft": "draft",
+      "sent": "sent",
+      "signed": "signed",
+      "declined": "declined",
+      "expired": "expired"
+    }
   },
   "DayContacts": {
     "title": "Day-of contacts",
@@ -5821,5 +5922,24 @@
     "groupsTitle": "Households and companies",
     "memberSearch": "Search for the person by name, email or phone",
     "pickerNoneAlone": "No contact found: add them to your contacts first."
+  },
+  "SharedDocuments": {
+    "title": "Documents",
+    "hint": "Each document opens in a new tab, or can be downloaded.",
+    "documentsLabel": "Shared documents",
+    "invoicesTitle": "Invoices and credit notes",
+    "invoiceDetail": "Issued on {date} — {amount}",
+    "creditNoteDetail": "On invoice {invoice}, issued on {date} — {amount}",
+    "openingTitle": "Opening the document",
+    "openingBody": "Checking the link…",
+    "noScript": "Turn on JavaScript to open this document.",
+    "invalidTitle": "This link is no longer valid",
+    "invalidBody": "It has expired, been revoked or does not exist. Ask the person who sent it for a new link.",
+    "retryLater": "Too many attempts. Try again in {minutes} min.",
+    "sharedTitle": "A document has been shared with you",
+    "open": "Open the document",
+    "downloadFile": "Download",
+    "openNotice": "Each opening is recorded for the person who shared the document.",
+    "pageNotice": "This page keeps no personal data: it only checks the link."
   }
 }

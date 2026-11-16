@@ -51,10 +51,11 @@ const rollback = async (tag: string) => {
 };
 
 // Lots 26a à 29b : migrations au-dessus de celles du 28, annulées pour revenir à 0108.
+const LOT_37A = ["0137_lot37a_events_documents"];
 const LOT_36B = ["0136_lot36b_contacts_members"];
 const LOT_36A = ["0135_lot36a_contacts"];
-// 0136 se retire avant 0135 (ses liens pointent vers les contacts).
-const LOT_36 = [...LOT_36B, ...LOT_36A];
+// 0137 (lot 37a), puis 0136 (ses liens pointent vers les contacts), puis 0135.
+const LOT_36 = [...LOT_37A, ...LOT_36B, ...LOT_36A];
 const LOT_35A = ["0134_lot35a_hub_organization_exports"];
 const LOT_34B = ["0133_lot34b_events_fiche_tasks"];
 const LOT_34A = ["0132_lot34a_events_lifecycle"];
@@ -103,6 +104,41 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     await expect(rollback("0099_inconnue")).rejects.toBeInstanceOf(RollbackRefusedError);
   });
 
+  it("lot 37a (DOC-01, DOC-04 ; D3, D4, D7) — 0137 : chaque document déjà déposé devient sa version 1, sans dossier, non partagé ; versions uniques ; une ouverture de lien au fil bloque l'annulation, qui rend la liste plate", async () => {
+    await migrateAll();
+    for (const tag of LOT_37A) await rollback(tag);
+    const organizationId = randomUUID();
+    const inOrganization = <T>(work: (tx: postgres.TransactionSql) => Promise<T>) =>
+      target.begin(async (tx) => {
+        await tx`select set_config('app.organization_id', ${organizationId}, true)`;
+        return work(tx);
+      }) as Promise<T>;
+    const ids = await inOrganization(async (tx) => {
+      const [event] = await tx<{ id: string }[]>`insert into events.events (organization_id) values (${organizationId}) returning id`;
+      const [document] = await tx<{ id: string }[]>`insert into events.event_documents (organization_id, event_id, label, file_key, mime, size_bytes, uploaded_by_user_id) values (${organizationId}, ${event!.id}, 'Plan de table', 'cle/plan.pdf', 'application/pdf', 1200, ${randomUUID()}) returning id`;
+      return { event: event!.id, document: document!.id };
+    });
+
+    await migrateAll();
+    const [version] = await inOrganization((tx) => tx<{ version: number; file_key: string; size_bytes: number }[]>`select version, file_key, size_bytes from events.event_document_versions where document_id = ${ids.document}`);
+    expect(version).toEqual({ version: 1, file_key: "cle/plan.pdf", size_bytes: 1200 });
+    const [document] = await inOrganization((tx) => tx<{ folder_id: string | null; shared_with_clients: boolean; shared_with_vendors: boolean }[]>`select folder_id, shared_with_clients, shared_with_vendors from events.event_documents where id = ${ids.document}`);
+    expect(document).toEqual({ folder_id: null, shared_with_clients: false, shared_with_vendors: false });
+    await expect(inOrganization((tx) => tx`insert into events.event_document_versions (organization_id, document_id, version, file_key, mime, size_bytes, uploaded_by_user_id) values (${organizationId}, ${ids.document}, 1, 'cle/autre.pdf', 'application/pdf', 10, ${randomUUID()})`)).rejects.toThrow(/event_document_versions_unique/);
+    await expect(inOrganization((tx) => tx`insert into events.event_document_folders (organization_id, event_id, name) values (${organizationId}, ${ids.event}, '')`)).rejects.toThrow(/event_document_folders_name_check/);
+
+    const [activity] = await inOrganization((tx) => tx<{ id: string }[]>`insert into events.event_activities (organization_id, event_id, kind, task_label) values (${organizationId}, ${ids.event}, 'document_link_opened', 'Plan de table') returning id`);
+    await expect(rollback(LOT_37A[0]!)).rejects.toThrow(/ouvertures de liens de partage/);
+    await target`delete from events.event_activities where id = ${activity!.id}`;
+    await rollback(LOT_37A[0]!);
+    expect(await hasColumn("events", "event_documents", "folder_id")).toBe(false);
+    const [table] = await target<{ name: string | null }[]>`select to_regclass('events.event_document_versions')::text as name`;
+    expect(table!.name).toBeNull();
+    const [kept] = await inOrganization((tx) => tx<{ file_key: string }[]>`select file_key from events.event_documents where id = ${ids.document}`);
+    expect(kept!.file_key).toBe("cle/plan.pdf");
+    await migrateAll();
+  });
+
   it("lot 36b (CRM-03, HUB-14 ; D2, D11) — 0136 : membres d'un foyer ou d'une entreprise, identifiants d'une entreprise seulement ; un import de contacts bloque l'annulation, qui retire ensuite les liens et les identifiants", async () => {
     await migrateAll();
     const organizationId = randomUUID();
@@ -130,6 +166,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
       insert into hub.imports (organization_id, created_by_user_id, entity_type, file_name, file_format, file_size_bytes, header_row_index, headers, row_count, expires_at)
       values (${organizationId}, ${randomUUID()}, 'contacts', 'contacts.csv', 'csv', 1, 0, '[]'::jsonb, 0, now())
       returning id`;
+    for (const tag of LOT_37A) await rollback(tag);
     await expect(rollback(LOT_36B[0]!)).rejects.toThrow(/imports de contacts/);
     expect(await entityTypes()).toContain("contacts");
     await target`delete from hub.imports where id = ${row!.id}`;

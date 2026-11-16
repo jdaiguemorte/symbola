@@ -71,3 +71,4 @@ Un fichier par décision structurante, numéroté. Pour changer une décision : 
 - [0067 — Fournisseur d'identité : Logto, lien magique envoyé par Symbola](0067-fournisseur-d-identite-logto.md)
 - [0068 — Export complet : contrat export/v1, archive écrite en flux, format tiré des tables](0068-export-complet-contrat-export-v1.md)
 - [0069 — Le contact dans le noyau du hub ; une reprise qui traverse trois schémas](0069-contact-dans-le-noyau.md)
+- [0070 — L'espace documents d'un évènement, l'aperçu sans cadre et les liens de partage](0070-espace-documents-et-liens-de-partage.md)

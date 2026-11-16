@@ -35,6 +35,13 @@ export async function listAttachments(organizationId: string, taskId: string): P
   return rows.map(toAttachment);
 }
 
+// Lot 37a (DOC-01, D2) : toutes les pièces des tâches d'un évènement, pour son espace documents.
+export async function listEventAttachments(organizationId: string, eventId: string): Promise<EventTaskAttachment[]> {
+  if (!UUID.test(eventId)) return [];
+  const rows = await inOrganization(organizationId, (tx) => tx.select().from(eventTaskAttachments).where(eq(eventTaskAttachments.eventId, eventId)).orderBy(asc(eventTaskAttachments.createdAt)));
+  return rows.map(toAttachment);
+}
+
 // Le fichier est contrôlé et rangé avant la ligne : un refus n'enregistre rien. Null : la tâche
 // n'est pas de l'organisation.
 export async function attachFile(input: AttachTaskFileInput): Promise<EventTaskAttachment | null> {

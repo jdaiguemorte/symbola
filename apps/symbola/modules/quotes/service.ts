@@ -2696,6 +2696,39 @@ export async function listQuoteInvoices(organizationId: string, quoteId: string)
   return found.invoices.map((invoice) => toInvoiceView(invoice, found.quote.number, found.creditNotes));
 }
 
+// Lot 37a (POR-04, D2, D6) — factures émises des devis d'un évènement, avec leurs avoirs : pour son
+// espace documents et pour le portail de ses clients (une facture leur est adressée).
+export async function listEventInvoices(organizationId: string, eventId: string): Promise<InvoiceView[]> {
+  const quotes = await findEventQuotes(organizationId, eventId);
+  const invoices = (await Promise.all(quotes.map((quote) => listQuoteInvoices(organizationId, quote.id)))).flat();
+  return invoices.sort((a, b) => a.issuedOn.localeCompare(b.issuedOn) || a.number.localeCompare(b.number));
+}
+
+// Le PDF original d'une facture ou d'un avoir, seulement s'il est d'un devis de cet évènement :
+// sinon, comme une pièce inexistante (SEC-13).
+export async function getEventInvoicePdf(
+  organizationId: string,
+  eventId: string,
+  invoiceId: string,
+  render: RenderInvoiceOriginal,
+): Promise<{ pdf: Buffer; number: string; reconstructed: boolean }> {
+  const invoice = await getInvoice(organizationId, invoiceId);
+  if (!(await findEventQuotes(organizationId, eventId)).some((quote) => quote.id === invoice.quoteId)) throw new InvoiceNotFoundError();
+  return getInvoicePdf(organizationId, invoiceId, render);
+}
+
+export async function getEventCreditNotePdf(
+  organizationId: string,
+  eventId: string,
+  creditNoteId: string,
+  render: RenderCreditNoteOriginal,
+): Promise<{ pdf: Buffer; number: string; reconstructed: boolean }> {
+  const creditNote = await getCreditNote(organizationId, creditNoteId);
+  const invoice = await getInvoice(organizationId, creditNote.invoiceId);
+  if (!(await findEventQuotes(organizationId, eventId)).some((quote) => quote.id === invoice.quoteId)) throw new InvoiceNotFoundError();
+  return getCreditNotePdf(organizationId, creditNoteId, render);
+}
+
 export async function getInvoice(organizationId: string, invoiceId: string): Promise<InvoiceView> {
   const found = await findInvoiceById(organizationId, invoiceId);
   if (!found) throw new InvoiceNotFoundError();
@@ -3549,6 +3582,7 @@ const _contractCheck: QuotesServiceContract = {
   issueBalanceInvoice,
   issueCreditNote,
   listQuoteInvoices,
+  listEventInvoices,
   getInvoice,
   getCreditNote,
   getEReporting,

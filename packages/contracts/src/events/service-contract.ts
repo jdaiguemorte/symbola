@@ -208,8 +208,30 @@ export type RetainedVendor = { candidateId: string; vendorName: string; quoteAmo
 export const DAY_DOCUMENT_SOURCES = ["event_document", "signed_quote", "budget_attachment", "candidate_quote"] as const;
 export type DayDocumentSource = (typeof DAY_DOCUMENT_SOURCES)[number];
 export type DayDocumentChoice = { source: DayDocumentSource; sourceId: string };
-export type EventDocument = { id: string; eventId: string; label: string; mime: string; sizeBytes: number; createdAt: string };
-export type AttachEventDocumentInput = { organizationId: string; eventId: string; label: string; content: Uint8Array; uploadedByUserId: string };
+// Lot 37a (DOC-01, POR-10 ; D3, D4, D6) : un dossier (null : « Divers »), le numéro de la dernière
+// version, et le partage avec les clients et les prestataires de l'évènement (rien par défaut).
+export type EventDocument = {
+  id: string;
+  eventId: string;
+  label: string;
+  mime: string;
+  sizeBytes: number;
+  createdAt: string;
+  folderId: string | null;
+  version: number;
+  sharedWithClients: boolean;
+  sharedWithVendors: boolean;
+};
+export type AttachEventDocumentInput = { organizationId: string; eventId: string; label: string; content: Uint8Array; uploadedByUserId: string; folderId?: string | null | undefined };
+export type EventDocumentFolder = { id: string; eventId: string; name: string };
+export type EventDocumentVersion = { id: string; documentId: string; version: number; mime: string; sizeBytes: number; createdAt: string };
+// Lot 37a (DOC-04, D7) : lien de partage d'un document, à durée limitée ; le jeton n'est montré
+// qu'une fois, à la création.
+export type EventDocumentShareLink = { id: string; documentId: string; expiresAt: string; revokedAt: string | null; openCount: number; lastOpenedAt: string | null; createdAt: string };
+export type AddEventDocumentVersionInput = { organizationId: string; documentId: string; content: Uint8Array; uploadedByUserId: string };
+export type CreateEventDocumentLinkInput = { organizationId: string; documentId: string; days: number; createdByUserId: string; now?: Date | undefined };
+// Un lien de partage ouvert : le document seulement, jamais l'évènement ; le fichier est lu à la demande.
+export type OpenedEventDocumentLink = { label: string; mime: string; sizeBytes: number; file: () => Promise<FileDownload> };
 export type SetDayDocumentEmbeddedInput = { organizationId: string; eventId: string; source: DayDocumentSource; sourceId: string; embedded: boolean };
 
 // Lot 30a (JRJ-03, décision D4) — contacts du jour J saisis pour l'événement
@@ -615,7 +637,9 @@ export type ClientEventView = {
 };
 
 // Lot 32a (D6) : « vendor_reminded », un prestataire relancé depuis le cockpit (taskLabel : son nom).
-export type EventActivityKind = "task_done" | "task_undone" | "decision_made" | "vendor_reminded";
+// Lot 37a (DOC-04, D7) : « document_link_opened », un lien de partage ouvert (taskLabel : l'intitulé
+// du document à l'ouverture).
+export type EventActivityKind = "task_done" | "task_undone" | "decision_made" | "vendor_reminded" | "document_link_opened";
 
 // Lot 32a (HUB-08, UX-06) — décision du client sans réponse, pour la liste des urgences.
 export type PendingDecision = { id: string; eventId: string; kind: DecisionKind; title: string; dueOn: string | null; requestedAt: string };
@@ -824,6 +848,26 @@ export interface EventsServiceContract {
   renameEventDocument(organizationId: string, documentId: string, label: string): Promise<void>;
   removeEventDocument(organizationId: string, documentId: string): Promise<void>;
   getEventDocumentFile(organizationId: string, documentId: string): Promise<FileDownload>;
+  // Lot 37a (DOC-01, DOC-04, POR-10 ; D3, D4, D6, D7).
+  listEventTaskAttachments(organizationId: string, eventId: string): Promise<EventTaskAttachment[]>;
+  listEventDocumentFolders(organizationId: string, eventId: string): Promise<EventDocumentFolder[]>;
+  createEventDocumentFolder(organizationId: string, eventId: string, name: string): Promise<EventDocumentFolder>;
+  renameEventDocumentFolder(organizationId: string, folderId: string, name: string): Promise<void>;
+  removeEventDocumentFolder(organizationId: string, folderId: string): Promise<void>;
+  moveEventDocument(organizationId: string, documentId: string, folderId: string | null): Promise<void>;
+  addEventDocumentVersion(input: AddEventDocumentVersionInput): Promise<EventDocument>;
+  listEventDocumentVersions(organizationId: string, documentId: string): Promise<EventDocumentVersion[]>;
+  getEventDocumentVersionFile(organizationId: string, documentId: string, version: number): Promise<FileDownload>;
+  setEventDocumentSharing(organizationId: string, documentId: string, sharing: { clients: boolean; vendors: boolean }): Promise<void>;
+  listLinkSharedDocuments(organizationId: string, linkId: string): Promise<EventDocument[]>;
+  getLinkSharedDocumentFile(organizationId: string, linkId: string, documentId: string): Promise<FileDownload>;
+  createEventDocumentLink(input: CreateEventDocumentLinkInput): Promise<{ link: EventDocumentShareLink; token: string; url: string }>;
+  listEventDocumentLinks(organizationId: string, documentId: string): Promise<EventDocumentShareLink[]>;
+  listEventDocumentVersionsOfEvent(organizationId: string, eventId: string): Promise<EventDocumentVersion[]>;
+  listEventDocumentLinksOfEvent(organizationId: string, eventId: string): Promise<EventDocumentShareLink[]>;
+  revokeEventDocumentLink(organizationId: string, linkId: string, now?: Date): Promise<void>;
+  describeEventDocumentLink(token: string, now?: Date): Promise<{ label: string; mime: string; sizeBytes: number } | null>;
+  openEventDocumentLink(token: string, now?: Date): Promise<OpenedEventDocumentLink | null>;
   listDayDocumentChoices(organizationId: string, eventId: string): Promise<DayDocumentChoice[]>;
   setDayDocumentEmbedded(input: SetDayDocumentEmbeddedInput): Promise<void>;
   // Lot 30a (JRJ-03, décision D4).
