@@ -610,7 +610,9 @@ export const eventLinkSessions = eventsSchema.table("event_link_sessions", {
 // Lot 27b (EVT-09) : « decision_made », une décision répondue par un lien.
 // Lot 32a (PAR-03, SC-03 étape 5, décision D6) : « vendor_reminded », un prestataire relancé depuis
 // le cockpit ; task_label reste vide, le nom se lit sur le prestataire (RGP-05).
-export const eventActivityKindEnum = eventsSchema.enum("event_activity_kind", ["task_done", "task_undone", "decision_made", "vendor_reminded"]);
+// Lot 37a (DOC-04, D7) : « document_link_opened », un lien de partage d'un document ouvert ;
+// task_label porte l'intitulé du document.
+export const eventActivityKindEnum = eventsSchema.enum("event_activity_kind", ["task_done", "task_undone", "decision_made", "vendor_reminded", "document_link_opened"]);
 
 export const eventActivities = eventsSchema.table("event_activities", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -666,10 +668,32 @@ export const eventPlaces = eventsSchema.table("event_places", {
   ),
 ]);
 
+// Lot 37a (DOC-01, D3 ; ADR 0070) : dossiers des documents d'un évènement, un seul niveau, nommés
+// par l'équipe ; un document sans dossier est rangé dans « Divers ».
+export const eventDocumentFolders = eventsSchema.table("event_document_folders", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  eventId: uuid("event_id")
+    .notNull()
+    .references(() => events.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  createdBy: uuid("created_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedBy: uuid("updated_by"),
+}, (table) => [
+  index("event_document_folders_organization_idx").on(table.organizationId),
+  index("event_document_folders_event_idx").on(table.eventId),
+  check("event_document_folders_name_check", sql`char_length(${table.name}) between 1 and 80`),
+]);
+
 // Lot 29b (JRJ-04, décision D8 ; ADR 0064) : documents propres à l'événement
 // (plan de table, plans d'accès, plan B), envoyés par la planner. Le fichier est
 // privé (Garage), contrôlé à l'envoi (type par le contenu, antivirus) et servi par
 // l'app après contrôle des droits (ADR 0027).
+// Lot 37a (DOC-01, POR-10 ; D3, D4, D6 ; ADR 0070) : un dossier ; le fichier est celui de la
+// dernière version (event_document_versions garde toutes les versions) ; partagé, à la main, avec
+// les clients et les prestataires de l'évènement (rien par défaut).
 export const eventDocuments = eventsSchema.table("event_documents", {
   id: uuid("id").defaultRandom().primaryKey(),
   organizationId: uuid("organization_id").notNull(),
@@ -681,6 +705,9 @@ export const eventDocuments = eventsSchema.table("event_documents", {
   mime: text("mime").notNull(),
   sizeBytes: integer("size_bytes").notNull(),
   uploadedByUserId: uuid("uploaded_by_user_id").notNull(),
+  folderId: uuid("folder_id").references(() => eventDocumentFolders.id, { onDelete: "set null" }),
+  sharedWithClients: boolean("shared_with_clients").notNull().default(false),
+  sharedWithVendors: boolean("shared_with_vendors").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   createdBy: uuid("created_by"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
@@ -690,6 +717,58 @@ export const eventDocuments = eventsSchema.table("event_documents", {
   index("event_documents_event_idx").on(table.eventId),
   check("event_documents_label_check", sql`char_length(${table.label}) between 1 and 200`),
   check("event_documents_size_check", sql`${table.sizeBytes} > 0`),
+]);
+
+// Lot 37a (DOC-01, D4) : versions d'un document déposé, numérotées ; une nouvelle version garde les
+// précédentes, consultables. La dernière est recopiée sur le document (event_documents).
+export const eventDocumentVersions = eventsSchema.table("event_document_versions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  documentId: uuid("document_id")
+    .notNull()
+    .references(() => eventDocuments.id, { onDelete: "cascade" }),
+  version: integer("version").notNull(),
+  fileKey: text("file_key").notNull(),
+  mime: text("mime").notNull(),
+  sizeBytes: integer("size_bytes").notNull(),
+  uploadedByUserId: uuid("uploaded_by_user_id").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  createdBy: uuid("created_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedBy: uuid("updated_by"),
+}, (table) => [
+  index("event_document_versions_organization_idx").on(table.organizationId),
+  unique("event_document_versions_unique").on(table.documentId, table.version),
+  check("event_document_versions_version_check", sql`${table.version} >= 1`),
+  check("event_document_versions_size_check", sql`${table.sizeBytes} > 0`),
+]);
+
+// Lot 37a (DOC-04, D7 ; ADR 0070) : lien de partage d'un document, à durée limitée (1 à 30 jours),
+// pour une personne sans lien personnel. Jeton gardé haché (SEC-14), révocable ; expiré ou révoqué,
+// il répond comme un lien inconnu. Les ouvertures sont comptées et journalisées.
+export const eventDocumentLinks = eventsSchema.table("event_document_links", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  eventId: uuid("event_id")
+    .notNull()
+    .references(() => events.id, { onDelete: "cascade" }),
+  documentId: uuid("document_id")
+    .notNull()
+    .references(() => eventDocuments.id, { onDelete: "cascade" }),
+  tokenHash: text("token_hash").notNull().unique(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  revokedAt: timestamp("revoked_at", { withTimezone: true }),
+  createdByUserId: uuid("created_by_user_id").notNull(),
+  openCount: integer("open_count").notNull().default(0),
+  lastOpenedAt: timestamp("last_opened_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  createdBy: uuid("created_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedBy: uuid("updated_by"),
+}, (table) => [
+  index("event_document_links_organization_idx").on(table.organizationId),
+  index("event_document_links_document_idx").on(table.documentId),
+  check("event_document_links_open_count_check", sql`${table.openCount} >= 0`),
 ]);
 
 // Lot 29b (JRJ-04, décision D8) : documents embarqués pour le jour J, choisis

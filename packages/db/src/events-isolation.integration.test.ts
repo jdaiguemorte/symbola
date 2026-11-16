@@ -17,7 +17,10 @@ import {
   eventDecisions,
   eventDayContacts,
   eventDayDocuments,
+  eventDocumentFolders,
+  eventDocumentLinks,
   eventDocuments,
+  eventDocumentVersions,
   eventLinkSharedSlots,
   eventClients,
   events,
@@ -439,6 +442,62 @@ describe("PRD-EVT-01/02 — Isolation entre organisations (module events, Postgr
         );
         const deleted = await withOrganization(db, organizationId, (tx) => tx.delete(eventDocuments).where(eq(eventDocuments.id, targetRow.id)).returning());
         return { affectedRows: updated.length + deleted.length };
+      },
+    });
+  });
+
+  it("SEC-10, lot 37a — une organisation ne voit, ne change ni ne supprime jamais les dossiers de documents d'une autre", async () => {
+    await assertOrganizationIsolation({
+      seed: async (organizationId) =>
+        withOrganization(db, organizationId, async (tx) => {
+          const [event] = await tx.insert(events).values({ organizationId }).returning();
+          const [row] = await tx.insert(eventDocumentFolders).values({ organizationId, eventId: event!.id, name: "Plans" }).returning();
+          if (!row) throw new Error("insertion attendue, aucune ligne renvoyée");
+          return row;
+        }),
+      listVisible: async (organizationId) => withOrganization(db, organizationId, (tx) => tx.select().from(eventDocumentFolders)),
+      attemptCrossOrganizationUpdate: async (organizationId, targetRow) => {
+        const updated = await withOrganization(db, organizationId, (tx) => tx.update(eventDocumentFolders).set({ name: "Intrus" }).where(eq(eventDocumentFolders.id, targetRow.id)).returning());
+        const removed = await withOrganization(db, organizationId, (tx) => tx.delete(eventDocumentFolders).where(eq(eventDocumentFolders.id, targetRow.id)).returning());
+        return { affectedRows: updated.length + removed.length };
+      },
+    });
+  });
+
+  it("SEC-10, lot 37a — une organisation ne voit, ne change ni ne supprime jamais les versions de documents d'une autre", async () => {
+    await assertOrganizationIsolation({
+      seed: async (organizationId) =>
+        withOrganization(db, organizationId, async (tx) => {
+          const [event] = await tx.insert(events).values({ organizationId }).returning();
+          const [document] = await tx.insert(eventDocuments).values({ organizationId, eventId: event!.id, label: "Plan", fileKey: `${organizationId}/plan.pdf`, mime: "application/pdf", sizeBytes: 10, uploadedByUserId: organizationId }).returning();
+          const [row] = await tx.insert(eventDocumentVersions).values({ organizationId, documentId: document!.id, version: 1, fileKey: `${organizationId}/plan.pdf`, mime: "application/pdf", sizeBytes: 10, uploadedByUserId: organizationId }).returning();
+          if (!row) throw new Error("insertion attendue, aucune ligne renvoyée");
+          return row;
+        }),
+      listVisible: async (organizationId) => withOrganization(db, organizationId, (tx) => tx.select().from(eventDocumentVersions)),
+      attemptCrossOrganizationUpdate: async (organizationId, targetRow) => {
+        const updated = await withOrganization(db, organizationId, (tx) => tx.update(eventDocumentVersions).set({ fileKey: "intrus" }).where(eq(eventDocumentVersions.id, targetRow.id)).returning());
+        const removed = await withOrganization(db, organizationId, (tx) => tx.delete(eventDocumentVersions).where(eq(eventDocumentVersions.id, targetRow.id)).returning());
+        return { affectedRows: updated.length + removed.length };
+      },
+    });
+  });
+
+  it("SEC-10, lot 37a — une organisation ne voit, ne change ni ne supprime jamais les liens de partage de documents d'une autre", async () => {
+    await assertOrganizationIsolation({
+      seed: async (organizationId) =>
+        withOrganization(db, organizationId, async (tx) => {
+          const [event] = await tx.insert(events).values({ organizationId }).returning();
+          const [document] = await tx.insert(eventDocuments).values({ organizationId, eventId: event!.id, label: "Plan", fileKey: `${organizationId}/plan.pdf`, mime: "application/pdf", sizeBytes: 10, uploadedByUserId: organizationId }).returning();
+          const [row] = await tx.insert(eventDocumentLinks).values({ organizationId, eventId: event!.id, documentId: document!.id, tokenHash: `h-${randomUUID()}`, expiresAt: new Date(Date.now() + 86_400_000), createdByUserId: organizationId }).returning();
+          if (!row) throw new Error("insertion attendue, aucune ligne renvoyée");
+          return row;
+        }),
+      listVisible: async (organizationId) => withOrganization(db, organizationId, (tx) => tx.select().from(eventDocumentLinks)),
+      attemptCrossOrganizationUpdate: async (organizationId, targetRow) => {
+        const updated = await withOrganization(db, organizationId, (tx) => tx.update(eventDocumentLinks).set({ expiresAt: new Date(Date.now() + 99 * 86_400_000) }).where(eq(eventDocumentLinks.id, targetRow.id)).returning());
+        const removed = await withOrganization(db, organizationId, (tx) => tx.delete(eventDocumentLinks).where(eq(eventDocumentLinks.id, targetRow.id)).returning());
+        return { affectedRows: updated.length + removed.length };
       },
     });
   });
