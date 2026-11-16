@@ -471,7 +471,7 @@ export type RowStampColumns = "createdAt" | "createdBy" | "updatedAt" | "updated
 
 export type LineData = Omit<
   QuoteLineRow,
-  "id" | "organizationId" | "versionId" | "position" | RowStampColumns
+  "id" | "organizationId" | "versionId" | "position" | RowStampColumns | "deletedAt" | "deletedBy"
 >;
 
 export type WriteResult =

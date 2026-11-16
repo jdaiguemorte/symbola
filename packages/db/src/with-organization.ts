@@ -9,7 +9,7 @@
 // résolu AVANT d'ouvrir la transaction : le résolveur peut lui-même lire la
 // base, et ne doit pas attendre une connexion tenue par cette transaction.
 import { sql } from "drizzle-orm";
-import { currentActor, isAuditBulk, type Actor } from "./actor";
+import { currentActor, isAuditBulk, isIncludingDeleted, type Actor } from "./actor";
 import type { AppDatabase } from "./client";
 
 type Transaction = Parameters<Parameters<AppDatabase["transaction"]>[0]>[0];
@@ -27,10 +27,11 @@ export async function withOrganization<T>(
 ): Promise<T> {
   const actor = await currentActor();
   const bulk = isAuditBulk();
+  const deleted = isIncludingDeleted();
   return db.transaction(async (tx) => {
-    // Un seul aller-retour pour tout le contexte : organisation, auteur, purge.
+    // Un seul aller-retour pour tout le contexte : organisation, auteur, purge, corbeille (lot 39a).
     await tx.execute(
-      sql`select set_config('app.organization_id', ${organizationId}, true), set_config('app.actor_kind', ${actor.kind}, true), set_config('app.actor_id', ${actor.id ?? ""}, true), set_config('app.audit_bulk', ${bulk ? "on" : ""}, true)`,
+      sql`select set_config('app.organization_id', ${organizationId}, true), set_config('app.actor_kind', ${actor.kind}, true), set_config('app.actor_id', ${actor.id ?? ""}, true), set_config('app.audit_bulk', ${bulk ? "on" : ""}, true), set_config('app.include_deleted', ${deleted ? "on" : ""}, true)`,
     );
     return fn(tx);
   });

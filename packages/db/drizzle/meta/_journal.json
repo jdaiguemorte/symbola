@@ -1009,6 +1009,34 @@
       "when": 1794861882369,
       "tag": "0143_lot38b_hub_messages_calendar",
       "breakpoints": true
+    },
+    {
+      "idx": 144,
+      "version": "7",
+      "when": 1794866502677,
+      "tag": "0144_lot39a_events_soft_delete",
+      "breakpoints": true
+    },
+    {
+      "idx": 145,
+      "version": "7",
+      "when": 1794866503830,
+      "tag": "0145_lot39a_hub_soft_delete",
+      "breakpoints": true
+    },
+    {
+      "idx": 146,
+      "version": "7",
+      "when": 1794866504966,
+      "tag": "0146_lot39a_quotes_soft_delete",
+      "breakpoints": true
+    },
+    {
+      "idx": 147,
+      "version": "7",
+      "when": 1794866506102,
+      "tag": "0147_lot39a_budget_soft_delete",
+      "breakpoints": true
     }
   ]
 }

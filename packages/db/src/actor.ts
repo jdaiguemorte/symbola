@@ -21,6 +21,8 @@ type Registry = {
   storage: AsyncLocalStorage<Actor>;
   resolver: (() => Promise<Actor | null>) | null;
   bulk: AsyncLocalStorage<true>;
+  // Lot 39a (ADR 0073) : la transaction voit la corbeille (app.include_deleted).
+  deleted?: AsyncLocalStorage<true>;
 };
 
 // Un seul registre par processus : Next charge ce paquet dans plusieurs
@@ -46,6 +48,23 @@ export function withAuditBulk<T>(fn: () => Promise<T>): Promise<T> {
 
 export function isAuditBulk(): boolean {
   return registry().bulk.getStore() === true;
+}
+
+// Lot 39a (DAT-03, ADR 0073) : une ligne supprimée (deleted_at) est cachée par la base. Seuls la
+// suppression, la restauration, la purge, la corbeille, les demandes RGPD et l'export la voient :
+// ils passent par includingDeleted, que withOrganization reporte dans la transaction.
+function deletedStorage(): AsyncLocalStorage<true> {
+  const current = registry();
+  current.deleted ??= new AsyncLocalStorage<true>();
+  return current.deleted;
+}
+
+export function includingDeleted<T>(fn: () => Promise<T>): Promise<T> {
+  return deletedStorage().run(true, fn);
+}
+
+export function isIncludingDeleted(): boolean {
+  return deletedStorage().getStore() === true;
 }
 
 export function registerActorResolver(resolver: (() => Promise<Actor | null>) | null): void {

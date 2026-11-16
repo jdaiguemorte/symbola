@@ -673,10 +673,14 @@ export const contacts = hubSchema.table(
     createdBy: uuid("created_by"),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
     updatedBy: uuid("updated_by"),
+    // Lot 39a (DAT-03, ADR 0073) : suppression logique, cachée par la base (RLS).
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+    deletedBy: uuid("deleted_by"),
   },
   (table) => [
     index("contacts_organization_idx").on(table.organizationId),
-    uniqueIndex("contacts_email_idx").on(table.organizationId, table.email).where(sql`email is not null`),
+    // Lot 39a (ADR 0073) : un contact à la corbeille ne retient pas son adresse.
+    uniqueIndex("contacts_email_idx").on(table.organizationId, table.email).where(sql`email is not null and deleted_at is null`),
     check("contacts_kind_check", sql`${table.kind} in ('person', 'household', 'company')`),
     check("contacts_name_check", sql`case when ${table.kind} = 'person' then ${table.firstName} is not null else ${table.name} is not null end`),
     check("contacts_email_check", sql`${table.email} is null or (${table.email} = lower(btrim(${table.email})) and ${table.email} <> '')`),
@@ -735,6 +739,9 @@ export const contactNotes = hubSchema.table(
     createdBy: uuid("created_by"),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
     updatedBy: uuid("updated_by"),
+    // Lot 39a (DAT-03, ADR 0073) : suppression logique, cachée par la base (RLS).
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+    deletedBy: uuid("deleted_by"),
   },
   (table) => [
     index("contact_notes_organization_idx").on(table.organizationId),
@@ -851,6 +858,9 @@ export const messageTemplates = hubSchema.table(
     createdBy: uuid("created_by"),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
     updatedBy: uuid("updated_by"),
+    // Lot 39a (DAT-03, ADR 0073) : suppression logique, cachée par la base (RLS).
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+    deletedBy: uuid("deleted_by"),
   },
   (table) => [
     index("message_templates_organization_idx").on(table.organizationId),

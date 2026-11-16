@@ -1,8 +1,9 @@
 # Lot 39 — Saisie sûre : rien ne se perd, ni en supprimant, ni en saisissant
 
-**Statut** : spécification **à valider par Julien** (décisions D1 à D14 ci-dessous). Le lot change le
-schéma de données (suppression logique, brouillons) et touche des parcours P0 : rien n'est codé
-avant la validation. Branche `lot-39-saisie-sure`, partie de la tête du lot 38b (PR #124).
+**Statut** : spécification **validée par Julien le 16/11/2026** (« Je valide » : D1 à D14 en (a)),
+ce qui vaut accord pour toucher les schémas `events`, `hub`, `quotes` et `budget`, et pour le texte
+de mise en garde des champs libres proposé en D14. Branche `lot-39-saisie-sure`, partie de la tête
+du lot 38b (PR #124).
 
 Comme pour le lot 38 (précision de Julien du 16/11/2026) : aucune version intermédiaire n'est
 déployée ni testée en staging ; le rejeu local fait la preuve du lot, et le runbook ne décrit pas
