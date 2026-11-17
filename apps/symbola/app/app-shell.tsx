@@ -450,6 +450,10 @@ export async function AppShell({ children }: { children: ReactNode }) {
     const tAdmin = await getTranslations("AdminMenu");
     return (
       <div className="app-shell">
+        {/* Lot 40c (NFR-17, WCAG 2.4.1) : passer le menu au clavier. */}
+        <a className="skip-link" href="#contenu">
+          {t("skipToContent")}
+        </a>
         <AppSidebar
           brand={<Brand href="/exploitation" suffix={tAdmin("brand")} />}
           menuLabel={t("menuOpen")}
@@ -532,6 +536,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
             <UndoNotice />
             {/* Lot 39c (UX-15) : squelette d'écran au passage d'un écran à l'autre. */}
             <NavigationSkeleton label={tLoading("label")} />
+            <span id="contenu" className="skip-target" tabIndex={-1} />
             {children}
           </div>
         </HelpProvider>
@@ -541,6 +546,10 @@ export async function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="app-shell">
+      {/* Lot 40c (NFR-17, WCAG 2.4.1) : passer le menu au clavier. */}
+      <a className="skip-link" href="#contenu">
+        {t("skipToContent")}
+      </a>
       <AppSidebar
         brand={<Brand href="/" />}
         menuLabel={t("menuOpen")}
@@ -689,6 +698,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
           <UndoNotice />
           {/* Lot 39c (UX-15) : squelette d'écran au passage d'un écran à l'autre. */}
           <NavigationSkeleton label={tLoading("label")} />
+          <span id="contenu" className="skip-target" tabIndex={-1} />
           {/* Lot 39c (UX-07) : « Annuler » pendant dix secondes après une tâche cochée dans un tableau. */}
           <TaskUndoProvider undoLabel={tToday("undo.action")}>{children}</TaskUndoProvider>
         </div>
