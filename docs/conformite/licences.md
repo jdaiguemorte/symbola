@@ -10,17 +10,17 @@ Il ne tranche aucun point juridique ; les questions pour l'avocat sont à la fin
 
 ## Bibliothèques
 
-366 paquets installés, dont 350 dans les dépendances de l'app livrée (« production ») ; les autres
+379 paquets installés, dont 363 dans les dépendances de l'app livrée (« production ») ; les autres
 servent à construire et à tester (« développement »). Les paquets propres à une plateforme
 (macOS, Linux) comptent pour un.
 
 | Licence | Type | Production | Développement |
 | --- | --- | ---: | ---: |
-| MIT | permissive | 242 | 12 |
+| MIT | permissive | 252 | 12 |
 | Apache-2.0 | permissive | 52 | 1 |
 | ISC | permissive | 29 | 0 |
+| BSD-3-Clause | permissive | 10 | 1 |
 | BSD-2-Clause | permissive | 8 | 0 |
-| BSD-3-Clause | permissive | 7 | 1 |
 | MPL-2.0 | copyleft | 2 | 2 |
 | BlueOak-1.0.0 | permissive | 2 | 0 |
 | (MIT OR Apache-2.0) | permissive | 1 | 0 |

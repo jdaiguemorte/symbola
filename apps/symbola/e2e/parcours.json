@@ -1,0 +1,33 @@
+{
+  "$commentaire": "Lot 40b (NFR-21, décision D13, ADR 0076) — parcours P0 du cahier des charges (§ 7) et les parcours de bout en bout qui les couvrent. Contrôlé par lib/parcours-p0.test.ts : chaque parcours P0 en a au moins un, chaque fichier cité existe. « ecarts » : les étapes qui attendent leur lot.",
+  "PAR-01": {
+    "titre": "Démarrer : de l'inscription au premier évènement prêt",
+    "parcours": ["sc-01-sc-10-demarrage.spec.ts", "hub-09-10-demarrage.spec.ts", "onb-01-02-onboarding.spec.ts", "lot-12-demarrage.spec.ts", "sec-01-07-connexion.spec.ts"],
+    "ecarts": []
+  },
+  "PAR-02": {
+    "titre": "Convertir : de la demande au contrat signé et à l'acompte encaissé",
+    "parcours": ["prd-evt-01-02-07.spec.ts", "fac-01-07-devis-complet.spec.ts", "fac-04-05-contrat.spec.ts", "dev-02-signature.spec.ts", "dev-03-acomptes.spec.ts"],
+    "ecarts": ["étape 2, réponse depuis un modèle avec rendez-vous (lots 45 et 46)", "étape 5, page de proposition et paiement en ligne (lot 43)", "étape 7, relances à J+3 et J+7 (lot 45)"]
+  },
+  "PAR-03": {
+    "titre": "Piloter : le quotidien d'un évènement",
+    "parcours": ["hub-08-sc-03-lundi-matin.spec.ts", "hub-07-creation-rapide.spec.ts", "evt-03-chr-02-fiche-taches.spec.ts", "ux-08-13-hub-12-rgp-04-ecrans.spec.ts"],
+    "ecarts": ["étape 5, récapitulatif de fin de journée (lot 53)"]
+  },
+  "PAR-04": {
+    "titre": "Maîtriser l'argent : budget du client et facturation du planner",
+    "parcours": ["bud-01-02-cinq-montants.spec.ts", "bud-03-lignes-echeances.spec.ts", "dev-04-factures.spec.ts", "prd-bud-04-budget-maries.spec.ts"],
+    "ecarts": ["étape 5, relances d'impayés (lot 43)"]
+  },
+  "PAR-06": {
+    "titre": "Embarquer le client",
+    "parcours": ["por-02-05-portail-client.spec.ts", "por-03-decisions.spec.ts", "doc-01-04-por-04-documents.spec.ts"],
+    "ecarts": ["étape 5, messagerie par sujet (lot 55)"]
+  },
+  "PAR-08": {
+    "titre": "Tenir le jour J (lecture)",
+    "parcours": ["jrj-01-03-mode-jour-j.spec.ts", "jrj-02-jour-j-hors-ligne.spec.ts", "jrj-04-documents-embarques.spec.ts", "ux-05-tiers-360.spec.ts"],
+    "ecarts": ["étapes 4, 5 et 7, pointage, incidents et synchronisation (P1, lot 51)"]
+  }
+}
