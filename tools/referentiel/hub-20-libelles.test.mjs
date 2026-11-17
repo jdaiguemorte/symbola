@@ -42,21 +42,23 @@ function sourceFiles(directory, files = []) {
 }
 
 // Un libellé entre guillemets, sauf comme nom d'un espace de traductions (useTranslations("Security")).
+// Une seule lecture par fichier : les chaînes entre guillemets de chaque ligne, comparées à l'ensemble
+// des libellés (rapide même sur un runner de CI lent).
+const QUOTED = [/"([^"\n]{1,160})"/g, /'([^'\n]{1,160})'/g, /`([^`\n]{1,160})`/g];
+
 function findLabels(text, labels) {
+  const set = labels instanceof Set ? labels : new Set(labels);
   const found = [];
-  const lines = text.split("\n");
-  for (const label of labels) {
-    for (const quote of ['"', "'", "`"]) {
-      const quoted = `${quote}${label}${quote}`;
-      lines.forEach((content, index) => {
-        let at = content.indexOf(quoted);
-        while (at !== -1) {
-          if (!/(Translations\(|namespace:\s*)$/.test(content.slice(0, at))) found.push({ line: index + 1, label });
-          at = content.indexOf(quoted, at + 1);
-        }
-      });
+  text.split("\n").forEach((content, index) => {
+    if (!content.includes('"') && !content.includes("'") && !content.includes("`")) return;
+    for (const pattern of QUOTED) {
+      for (const match of content.matchAll(pattern)) {
+        if (!set.has(match[1])) continue;
+        if (/(Translations\(|namespace:\s*)$/.test(content.slice(0, match.index))) continue;
+        found.push({ line: index + 1, label: match[1] });
+      }
     }
-  }
+  });
   return found;
 }
 
@@ -67,7 +69,7 @@ describe("HUB-20 — Référentiels modifiables, aucun libellé métier dans le 
     for (const sample of ["Mariage", "Wedding", "Lieu de réception", "Budget insuffisant", "Virement bancaire"]) expect(labels.has(sample), sample).toBe(true);
   });
 
-  it("aucun libellé d'un référentiel n'est écrit dans les sources de l'app ni des paquets", () => {
+  it("aucun libellé d'un référentiel n'est écrit dans les sources de l'app ni des paquets", { timeout: 30_000 }, () => {
     const labels = referentialLabels();
     const problems = [join(repoRoot, "apps/symbola"), join(repoRoot, "packages")]
       .flatMap((directory) => sourceFiles(directory))
