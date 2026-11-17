@@ -31,6 +31,8 @@ export async function TaskTable({
   responsibleLabel?: (task: TaskRow) => string;
 }) {
   const t = await getTranslations("Events");
+  // Lot 39c (UX-07) : les textes du bandeau « Annuler », les mêmes que sur « Aujourd'hui ».
+  const tToday = await getTranslations("Today");
   const months = new Map<string, TaskRow[]>();
   for (const task of tasks) {
     const key = monthKey(task.dueDate);
@@ -64,7 +66,15 @@ export async function TaskTable({
               return (
                 <tr key={task.id} aria-current={task.id === selectedTaskId ? "true" : undefined}>
                   <td>
-                    <TaskCheck eventId={task.eventId} taskId={task.id} done={task.done} labelDone={t("markTaskDone", { label: task.label })} labelUndone={t("markTaskUndone", { label: task.label })} />
+                    <TaskCheck
+                      eventId={task.eventId}
+                      taskId={task.id}
+                      done={task.done}
+                      labelDone={t("markTaskDone", { label: task.label })}
+                      labelUndone={t("markTaskUndone", { label: task.label })}
+                      doneMessage={tToday("undo.taskDone", { label: task.label })}
+                      reopenedMessage={tToday("undo.taskReopened", { label: task.label })}
+                    />
                   </td>
                   <th scope="row" className={task.done ? "done" : undefined}>
                     {editHref ? <Link href={editHref(task)}>{task.label}</Link> : task.label}

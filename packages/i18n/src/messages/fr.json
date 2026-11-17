@@ -575,7 +575,7 @@
     },
     "eventsDetail": {
       "title": "Fiche de l'événement",
-      "body": "Tout l'événement, en onglets. La « Synthèse » s'ouvre sur la prochaine action et qui doit agir, puis la santé de l'événement (planning, budget, décisions du client) et les quatorze prochains jours ; « Modifier les informations », en tête de la fiche d'identité, ouvre un panneau où elles se modifient, fuseau de l'évènement compris. La frise du haut montre où il en est : Option, Confirmé, En préparation, Jour J, Clôturé. Cliquez une étape pour la poser ; « Jour J » s'applique de lui-même le jour de l'évènement, et la clôture vous est proposée dès le lendemain. « Reporter l'évènement… » demande la nouvelle date : à la confirmation du report, les échéances du rétroplanning suivent, sauf les tâches faites et celles dont vous avez fixé la date ; celles qui tomberaient dans le passé sont listées avant. « Annuler l'évènement… » demande un motif : les données restent, les liens se ferment, les rappels et les factures d'acompte programmées s'arrêtent, et un avoir vous est proposé pour chaque facture émise. La « Fiche d'identité » rassemble les invités estimés et confirmés, les lieux, les interlocuteurs, le style et les notes ; les lieux se gèrent dans l'onglet « Programme du jour J » (adresse, ville, horaires, contact sur place), le premier étant le lieu de réception. Une tâche se confie à vous, aux mariés ou à un prestataire retenu, qui la coche dans son espace ; ses pièces jointes et ses commentaires restent dans l'équipe. Le bandeau « Prochaine étape » propose l'étape du parcours (envoyer le devis, appliquer le rétroplanning, créer les liens des mariés). Chaque onglet a son lien « Réglages » vers ses modèles.",
+      "body": "Tout l'événement, en onglets. La « Synthèse » s'ouvre sur la prochaine action et qui doit agir, puis la santé de l'événement (planning, budget, décisions du client) et les quatorze prochains jours ; « Modifier les informations », en tête de la fiche d'identité, ouvre un panneau où elles se modifient, fuseau de l'évènement compris. La frise du haut montre où il en est : Option, Confirmé, En préparation, Jour J, Clôturé. Cliquez une étape pour la poser ; « Jour J » s'applique de lui-même le jour de l'évènement, et la clôture vous est proposée dès le lendemain. « Reporter l'évènement… » demande la nouvelle date : à la confirmation du report, les échéances du rétroplanning suivent, sauf les tâches faites et celles dont vous avez fixé la date ; celles qui tomberaient dans le passé sont listées avant. « Annuler l'évènement… » demande un motif : les données restent, les liens se ferment, les rappels et les factures d'acompte programmées s'arrêtent, et un avoir vous est proposé pour chaque facture émise. La « Fiche d'identité » rassemble les invités estimés et confirmés, les lieux, les interlocuteurs, le style et les notes ; les lieux se gèrent dans l'onglet « Programme du jour J » (adresse, ville, horaires, contact sur place), le premier étant le lieu de réception. Une tâche se confie à vous, aux mariés ou à un prestataire retenu, qui la coche dans son espace ; ses pièces jointes et ses commentaires restent dans l'équipe. Cochée par erreur, une tâche se rétablit par « Annuler », pendant dix secondes. Le bandeau « Prochaine étape » propose l'étape du parcours (envoyer le devis, appliquer le rétroplanning, créer les liens des mariés). Chaque onglet a son lien « Réglages » vers ses modèles.",
       "faq": [
         {
           "q": "Comment marquer un événement perdu ?",
@@ -845,7 +845,7 @@
     },
     "allTasks": {
       "title": "Les tâches de tous vos mariages",
-      "body": "Les tâches de tous vos événements, triées par échéance. Filtrez « En retard » pour rattraper, ou par qui la réalise ; cochez une tâche faite. « Calendrier » les range à leur échéance, mois par mois. Cliquez-en une pour la modifier sur la fiche de son mariage.",
+      "body": "Les tâches de tous vos événements, triées par échéance. Filtrez « En retard » pour rattraper, ou par qui la réalise ; cochez une tâche faite : elle l'est tout de suite, et « Annuler » la rétablit pendant dix secondes. « Calendrier » les range à leur échéance, mois par mois. Cliquez-en une pour la modifier sur la fiche de son mariage.",
       "faq": [
         {
           "q": "Les tâches des mariés apparaissent-elles ?",
@@ -5765,6 +5765,7 @@
     "upToDate": "À jour",
     "undo": {
       "taskDone": "Tâche « {label} » faite.",
+      "taskReopened": "Tâche « {label} » remise à faire.",
       "action": "Annuler"
     },
     "remind": {

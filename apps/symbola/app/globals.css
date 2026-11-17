@@ -3295,6 +3295,11 @@
   .undo-notice a {
     @apply text-on-primary underline;
   }
+  /* Lot 39c (UX-07) : l'offre après une coche (task-undo.tsx) se pose au-dessus de celle d'une
+     suppression quand les deux restent à l'écran. */
+  .undo-notice ~ .task-undo > .undo-notice {
+    @apply bottom-32;
+  }
 }
 
 @layer components {
