@@ -163,7 +163,9 @@ export async function syncDayCopy(input: {
   requiredBytes?: number;
   firstTime: boolean;
 }): Promise<SyncOutcome> {
-  if (input.firstTime) await navigator.storage?.persist?.().catch(() => false);
+  // Lot 40c (NFR-18) : demandé sans attendre la réponse. Firefox pose la question à la personne et
+  // ne répond qu'après son choix : attendre bloquait la copie sur « Copie en cours… ».
+  if (input.firstTime) void navigator.storage?.persist?.().catch(() => false);
   const estimate = await navigator.storage?.estimate?.().catch(() => null);
   if (estimate?.quota !== undefined && estimate.usage !== undefined && estimate.quota - estimate.usage < DAY_COPY_MIN_FREE_BYTES + (input.requiredBytes ?? 0)) {
     return { status: "space" };
