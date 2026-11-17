@@ -1,0 +1,27 @@
+[
+  {
+    "paquet": "@axe-core/playwright",
+    "licence": "MPL-2.0",
+    "usage": "Tests d'accessibilité des parcours de bout en bout (axe-core), employé sans modification ; outil de test, jamais livré avec l'app."
+  },
+  {
+    "paquet": "axe-core",
+    "licence": "MPL-2.0",
+    "usage": "Moteur des tests d'accessibilité, employé sans modification ; outil de test, jamais livré avec l'app."
+  },
+  {
+    "paquet": "@img/sharp-libvips-<plateforme>",
+    "licence": "LGPL-3.0-or-later",
+    "usage": "Bibliothèque native de traitement d'images (libvips), chargée par sharp pour l'optimisation des images de Next.js ; employée sans modification, telle que publiée."
+  },
+  {
+    "paquet": "lightningcss",
+    "licence": "MPL-2.0",
+    "usage": "Transformation du CSS (Tailwind CSS) à la construction de l'app, employée sans modification."
+  },
+  {
+    "paquet": "lightningcss-<plateforme>",
+    "licence": "MPL-2.0",
+    "usage": "Binaire natif de lightningcss pour la plateforme de construction, employé sans modification."
+  }
+]

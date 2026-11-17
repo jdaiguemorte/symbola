@@ -1,0 +1,37 @@
+# Lot 40a (NFR-23, décision D7, ADR 0075) — installation rejouée sur une machine neuve, telle que
+# docs/INSTALLATION.md la décrit, chronomètre en main (seuil : trente minutes). Sans cache : le
+# runner part de zéro, comme un poste neuf. À chaque version majeure (étiquette v*), à chaque
+# changement du guide ou du socle de dev, et à la demande. Les secrets sont tirés au hasard sur le
+# runner par le guide lui-même, et jetés avec lui.
+name: Installation
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+  pull_request:
+    paths:
+      - docs/INSTALLATION.md
+      - .env.example
+      - infra/compose/docker-compose.dev.yml
+      - tools/installation/**
+      - .github/workflows/installation.yml
+
+permissions:
+  contents: read
+
+jobs:
+  installation:
+    name: Installation en moins de trente minutes (NFR-23)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Rejouer docs/INSTALLATION.md
+        run: node tools/installation/rejouer.mjs docs/INSTALLATION.md
+      - name: "État du socle après un échec"
+        if: failure()
+        run: docker compose -f infra/compose/docker-compose.dev.yml --env-file .env ps --all
