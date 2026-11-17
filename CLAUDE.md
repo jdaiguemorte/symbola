@@ -105,7 +105,7 @@ Versions figées dans les ADR. Colonne « Pilote » = ce qu'on construit mainten
 | Déploiement | Docker Compose, `deploy.sh` en une commande : fenêtre, durcissement, sauvegarde, migrations, retour automatique (ADR 0075) | Chaîne automatique depuis la CI |
 | CI | GitHub Actions : Semgrep, Gitleaks, Trivy, OSV-Scanner, Renovate, OWASP ZAP (staging) | — |
 | Sauvegarde | restic chiffré vers Hetzner Storage Box, copies instantanées (ADR 0051) | — |
-| Surveillance | Uptime Kuma, alertes ntfy sur le téléphone | — |
+| Surveillance | Uptime Kuma, alertes ntfy sur le téléphone ; suivi des erreurs GlitchTip, hors d'internet (ADR 0077) | — |
 | E-mails | Mailpit en dev (jamais d'e-mail réel hors production), IONOS en production | Envoi depuis le domaine du planner (Q18, lots 38 et 55) |
 
 **Un seul serveur** (VPS Contabo, Luxembourg) héberge production et staging isolés (ADR 0016) ;
@@ -251,6 +251,8 @@ interne ; Julien passe par l'équivalent Docker donné à droite. Sur le VPS : `
 | Lint | `pnpm lint` | `docker run --rm -v "$PWD":/app -w /app node:22-slim pnpm lint` |
 | Vérification des types | `pnpm typecheck` | `docker run --rm -v "$PWD":/app -w /app node:22-slim pnpm typecheck` |
 | Tests | `pnpm test` | `docker run --rm -v "$PWD":/app -w /app node:22-slim pnpm test` |
+| Couverture des règles métier, seuil de 80 % (NFR-21, lot 40b, ADR 0076 ; aussi en CI) | `pnpm --filter @symbola/app test:coverage` | `docker run --rm -v "$PWD":/app -w /app node:22-slim pnpm --filter @symbola/app test:coverage` |
+| Ouvrir l'écran du suivi des erreurs (Q27, lot 40b, ADR 0077 ; **Julien**, une fois GlitchTip mis en service) | — | `ssh -L 8090:127.0.0.1:8090 symbola` puis <http://localhost:8090> (staging : 8091) |
 | Parcours bout en bout (Playwright, nécessite le socle démarré + bootstrap + migrate ; lancés aussi en CI, job `e2e`) | `pnpm --filter @symbola/app test:e2e` | — (navigateur requis : passer par la CI, ou Node et `pnpm --filter @symbola/app exec playwright install chromium`) |
 | Régénérer les captures du centre d'aide (lot 13, ADR 0033 ; socle démarré + bootstrap + migrate, puis relire les images dans la PR) | `pnpm --filter @symbola/app help:captures` | — (navigateur requis : passer par Claude Code) |
 | Contrôle des frontières de modules (ADR 0011) | `pnpm check:boundaries` | `docker run --rm -v "$PWD":/app -w /app node:22-slim pnpm check:boundaries` |

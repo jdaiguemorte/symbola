@@ -613,6 +613,38 @@ l'enregistre de nouveau sur son appareil.
 celui des appareils qui gardent un jour J. Il reste sans effet sur les autres écrans, mais pour
 l'enlever, déployer d'abord l'interrupteur d'arrêt, puis l'image antérieure.
 
+## Suivi des erreurs : mise en service de GlitchTip (lot 40b, ADR 0077)
+
+GlitchTip n'est jamais exposé sur internet : l'app lui écrit par le réseau Docker, son écran
+s'ouvre par un tunnel SSH. Tant qu'il n'est pas mis en service, les erreurs restent au journal du
+conteneur `symbola`, avec leur référence (ADR 0074). Pour un environnement (ici la production ;
+le staging prend `.env.staging`, `symbola-staging` et le port 8091) :
+
+1. Dans `.env.production` : `GLITCHTIP_DB_PASSWORD` et `GLITCHTIP_SECRET_KEY`
+   (`openssl rand -hex 32` chacun, distincts du staging), et ajouter `erreurs` à
+   `COMPOSE_PROFILES` (par exemple `signature,erreurs`). `GLITCHTIP_LOCAL_PORT` est déjà dans le
+   modèle (8090).
+2. Démarrer GlitchTip et sa base (il crée ses tables seul au premier démarrage) :
+   ```bash
+   sudo docker compose -f infra/compose/docker-compose.prod.yml \
+     --env-file infra/compose/.env.production -p symbola-production \
+     up -d glitchtip-postgres glitchtip
+   ```
+3. Depuis ton poste, un tunnel : `ssh -L 8090:127.0.0.1:8090 symbola`, puis
+   <http://localhost:8090>. Le premier compte s'inscrit ; les inscriptions se ferment après lui.
+   Créer l'organisation, puis un projet « symbola » (plateforme Node.js).
+4. Copier l'adresse (DSN) du projet en remplaçant l'hôte par `glitchtip:8000`, le nom du service
+   sur le réseau Docker : `ERROR_TRACKING_DSN=http://<clé>@glitchtip:8000/<numéro>` dans
+   `.env.production`. Puis redémarrer `symbola` (`up -d symbola`, ou le prochain `deploy.sh`).
+5. Alerte : dans le projet, une règle d'alerte vers un webhook, l'adresse du sujet ntfy de la
+   surveillance (`docs/runbooks/surveillance.md`).
+6. Vérifier : une erreur suivante apparaît dans le projet, avec la référence que montre l'écran.
+   Rien de personnel n'y figure : l'app trie ce qui part (ADR 0077).
+
+Mémoire : 768 Mo au plus pour GlitchTip et 256 Mo pour sa base en production (512 Mo et 256 Mo
+au staging) ; à noter au journal d'exploitation à la mise en service. Sa base n'est pas
+sauvegardée (des erreurs techniques, gardées 30 jours).
+
 ## Jeu fictif sur le staging (DAT-10, lot 40a)
 
 Après le déploiement de la version à recetter, sur le VPS :
