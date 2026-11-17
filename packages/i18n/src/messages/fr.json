@@ -3091,7 +3091,8 @@
       "vendor": "Prestataire du carnet",
       "vendor_candidate": "Prestataire consulté",
       "vendor_payment": "Paiement d'un prestataire",
-      "form_draft": "Brouillon de saisie"
+      "form_draft": "Brouillon de saisie",
+      "email_job": "E-mail en attente d'envoi"
     },
     "field": {
       "firstName": "Prénom",

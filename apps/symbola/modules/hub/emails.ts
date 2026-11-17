@@ -18,6 +18,7 @@ import { loadDocumentLogo, type DocumentLogo } from "@/lib/document-logo";
 import { getDocumentSettings } from "@/modules/quotes/service";
 import { EMAIL_TEMPLATE_RULES, renderEmailTemplate, variableToken } from "./email-template-rules";
 import { getEmailTemplate } from "./email-templates";
+import { jobKeyExists, queueAndSendEmail } from "./jobs";
 import { findOrganizationById, findOrganizationProfile, findUserContact } from "./repository";
 
 const LOGO_CID = "logo@symbola";
@@ -136,8 +137,10 @@ export async function assertOrganizationEmailReady(input: { organizationId: stri
   await composeOrganizationEmail({ ...input, values: { link: PLACEHOLDER_LINK, ...input.values } });
 }
 
-// Compose, réserve l'envoi dans le plafond de l'organisation (SEC-22, lot 24b), puis envoie. Une
-// variable vide arrête tout avant la réservation.
+// Compose, réserve l'envoi dans le plafond de l'organisation (SEC-22, lot 24b), puis l'inscrit dans
+// la file des tâches et le tente aussitôt (lot 40b, ARC-10) : un serveur d'envoi qui ne répond pas
+// le fait repartir plus tard. Une variable vide arrête tout avant la réservation. idempotencyKey (des
+// identifiants, jamais d'adresse) : un e-mail déjà inscrit sous cette clé ne repart pas.
 export async function sendOrganizationEmail(input: {
   organizationId: string;
   to: string;
@@ -146,10 +149,12 @@ export async function sendOrganizationEmail(input: {
   values: EmailValues;
   attachments?: Attachment[];
   reserve?: boolean;
+  idempotencyKey?: string;
 }): Promise<void> {
   const mail = await composeOrganizationEmail(input);
+  if (input.idempotencyKey && (await jobKeyExists(input.organizationId, input.idempotencyKey))) return;
   if (input.reserve !== false) await reserveOrganizationMail(input.organizationId);
-  await sendMail({
+  await queueAndSendEmail(input.organizationId, {
     to: input.to,
     subject: mail.subject,
     text: mail.text,
@@ -157,7 +162,7 @@ export async function sendOrganizationEmail(input: {
     fromName: mail.fromName,
     ...(mail.replyTo ? { replyTo: mail.replyTo } : {}),
     attachments: [...mail.attachments, ...(input.attachments ?? [])],
-  });
+  }, input.idempotencyKey);
 }
 
 // Données fictives de l'aperçu et de l'essai : celles de l'exemple de l'aide, dans la langue du modèle.
@@ -195,7 +200,7 @@ export async function sendTestEmail(input: { organizationId: string; userId: str
   const t = translator(input.locale);
   const mail = await composeOrganizationEmail({ ...input, values: sampleValues(input.locale), banner: t("testBanner") });
   await reserveOrganizationMail(input.organizationId);
-  await sendMail({
+  await queueAndSendEmail(input.organizationId, {
     to: contact.email,
     subject: t("testSubject", { subject: mail.subject }),
     text: mail.text,
@@ -209,6 +214,9 @@ export async function sendTestEmail(input: { organizationId: string; userId: str
 
 // Les e-mails de Symbola (code d'un lien, équipe, compte) : texte fixe des fichiers de traduction,
 // mis en page à l'image de Symbola. Un paragraphe égal à l'adresse du bouton devient le bouton.
+// Lot 40b (ARC-10, ADR 0076) : avec son organisation, l'e-mail passe par la file des tâches (repris
+// si le serveur d'envoi ne répond pas) ; sans organisation (lien de connexion, comptes créés par
+// l'Exploitation), il part en direct : un lien de connexion en retard ne sert plus, on le redemande.
 export async function sendSymbolaEmail(input: {
   to: string;
   locale: EmailLocale;
@@ -216,6 +224,8 @@ export async function sendSymbolaEmail(input: {
   body: string;
   button?: { label: string; url: string };
   attachments?: Attachment[];
+  organizationId?: string;
+  idempotencyKey?: string;
 }): Promise<void> {
   const t = translator(input.locale);
   const blocks: MailBlock[] = input.body
@@ -235,5 +245,11 @@ export async function sendSymbolaEmail(input: {
     footerLines: [],
     footerNote: t("symbolaFooter"),
   };
-  await sendMail({ to: input.to, subject: input.subject, text: renderMailText(layout), html: renderMailHtml(layout), ...(input.attachments ? { attachments: input.attachments } : {}) });
+  const message = { to: input.to, subject: input.subject, text: renderMailText(layout), html: renderMailHtml(layout), ...(input.attachments ? { attachments: input.attachments } : {}) };
+  if (input.organizationId) {
+    if (input.idempotencyKey && (await jobKeyExists(input.organizationId, input.idempotencyKey))) return;
+    await queueAndSendEmail(input.organizationId, message, input.idempotencyKey);
+    return;
+  }
+  await sendMail(message);
 }

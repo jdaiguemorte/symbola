@@ -1229,3 +1229,15 @@ fields:
       réseau) ; elle s'efface quand le brouillon est enregistré ou effacé.
     anonymization: >-
       Supprimé lors d'une demande d'oubli qui le vise, à la purge, ou avec le compte de son auteur.
+  - schema: hub
+    table: jobs
+    field: payload
+    category: contenu_libre
+    retention: >-
+      Lot 40b (ARC-10, D9, ADR 0076) : e-mail à envoyer (destinataire, sujet, texte, pièces
+      jointes), le temps de son envoi : tenté aussitôt, repris au plus cinq fois en une heure et
+      demie environ. Effacé dès la fin de la tâche, réussie, échouée ou interrompue ; la ligne garde
+      le genre, l'état et les dates 30 jours, sans contenu.
+    anonymization: >-
+      Supprimé lors d'une demande d'oubli qui le vise (l'e-mail ne part pas), ou à la fin de la
+      tâche.

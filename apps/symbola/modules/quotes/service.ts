@@ -2157,7 +2157,8 @@ async function confirmSignedQuote(organizationId: string, quoteId: string): Prom
   const link = `${env.APP_PUBLIC_URL}/devis/${quoteId}`;
   // Lot 38a (D3) : texte fixe de Symbola, dans la langue de la personne, mis en page.
   const t = createTranslator({ locale: contact.language, messages: contact.language === "en" ? enMessages : frMessages, namespace: "Emails.fixed.quoteSigned" });
-  await sendSymbolaEmail({ to: contact.email, locale: contact.language, subject: t("subject", { number: quote.number }), body: t("body", { number: quote.number, url: link }), button: { label: t("button"), url: link } });
+  // Lot 40b (ARC-10) : la signature peut être constatée deux fois (webhook, rapprochement) ; un seul e-mail.
+  await sendSymbolaEmail({ to: contact.email, locale: contact.language, subject: t("subject", { number: quote.number }), body: t("body", { number: quote.number, url: link }), button: { label: t("button"), url: link }, organizationId, idempotencyKey: `quote-signed:${quoteId}` });
 }
 
 // Document signé ou certificat de preuve de la version courante, lu dans le
@@ -3388,6 +3389,8 @@ async function mailSignedContract(organizationId: string, quote: QuoteAggregate[
         locale,
         values: { first_name: signer.name, quote_number: quote.number },
         attachments: [{ filename: `${quote.number}-signe.pdf`, content: signedPdf, contentType: "application/pdf" }],
+        // Lot 40b (ARC-10) : un seul exemplaire par signataire, même si la signature est rejouée.
+        idempotencyKey: `signed-copy:${quote.id}:${signer.id}`,
       });
     } catch (error) {
       console.error(`exemplaire signé non envoyé (signataire ${signer.id})`, error instanceof Error ? error.message : error);

@@ -335,6 +335,8 @@ export async function createOrganizationWithInvitation(db: AppDatabase, input: C
     subject: t("subject"),
     body: t("body", { organization: organization.name, url: invitationUrl }),
     button: { label: t("button"), url: invitationUrl },
+    organizationId: organization.id,
+    idempotencyKey: `invitation:${invitation.id}`,
   });
 
   return { organizationId: organization.id, invitationId: invitation.id, invitationToken };
@@ -1158,3 +1160,6 @@ export {
   saveFormDraft,
   type FormDraft,
 } from "./form-drafts";
+
+// Lot 40b (ARC-10 ; D9 ; ADR 0076) — file des tâches de fond (e-mails tentés aussitôt, puis repris).
+export { JOB_MAX_ATTEMPTS, JOB_RETENTION_DAYS, runDueJobs, type JobsPass } from "./jobs";

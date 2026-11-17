@@ -56,6 +56,7 @@ export async function inviteMemberAction(_prev: InviteMemberState, formData: For
       locale,
       subject: t("inviteMailSubject", { organization }),
       body: t("inviteMailBody", { organization, url, date: formatDate(result.expiresAt, locale) }),
+      organizationId,
     });
   } catch (error) {
     if (error instanceof MailQuotaExceededError) return { error: t("inviteMailQuota") };

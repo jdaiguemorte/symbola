@@ -362,5 +362,6 @@ async function notifyExportReady(db: AppDatabase, row: ExportRow): Promise<void>
   });
   const locale = organization.language === "en" ? "en" : "fr";
   const url = `${env.APP_PUBLIC_URL}/parametres/export`;
-  await sendSymbolaEmail({ to: requester.email, locale, subject: mail.subject, body: mail.text, button: { label: mail.button, url } });
+  // Lot 40b (ARC-10) : un seul e-mail par export, même si la notification est rejouée.
+  await sendSymbolaEmail({ to: requester.email, locale, subject: mail.subject, body: mail.text, button: { label: mail.button, url }, organizationId: row.organizationId, idempotencyKey: `export-ready:${row.id}` });
 }

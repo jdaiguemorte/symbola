@@ -3091,7 +3091,8 @@
       "vendor": "Vendor book entry",
       "vendor_candidate": "Consulted vendor",
       "vendor_payment": "Vendor payment",
-      "form_draft": "Unsaved draft"
+      "form_draft": "Unsaved draft",
+      "email_job": "Email waiting to be sent"
     },
     "field": {
       "firstName": "First name",

@@ -12,52 +12,61 @@ export async function register() {
   // AIDE-02 : purge horaire des essais abandonnés ; lot 5 : purge horaire
   // des imports en cours expirés ; lot 6 : purge horaire des exports RGPD
   // expirés. Côté Node seulement (pas dans le runtime
-  // edge du middleware).
+  // edge du middleware). Lot 40b (ARC-10, ADR 0076) : les tâches périodiques
+  // ne démarrent que dans le processus qui tient le verrou en base.
   if (process.env.NEXT_RUNTIME === "nodejs") {
-    const { scheduleDemoPurge } = await import("./lib/demo-purge");
-    scheduleDemoPurge();
-    const { scheduleImportPurge } = await import("./lib/import-purge");
-    scheduleImportPurge();
-    // Lot 39a (DAT-03, ADR 0073) : purge horaire de la corbeille (éléments après dix minutes, objets
-    // après 30 jours).
-    const { scheduleTrashPurge } = await import("./lib/trash");
-    scheduleTrashPurge();
-    const { schedulePrivacyExportPurge } = await import("./lib/privacy/export-purge");
-    schedulePrivacyExportPurge();
-    // Lot 6 : worker continu des événements internes (ADR 0014).
-    const { scheduleEventWorker } = await import("./lib/event-worker");
-    scheduleEventWorker();
-    // Lot 15 (ADR 0035) : traitements de fond des imports (lecture des fiches
-    // PDF, placement des prestataires sur la carte).
-    const { scheduleImportJobs } = await import("./lib/import-jobs");
-    scheduleImportJobs();
-    // Lot 8 (ADR 0026) : rattrapage des signatures dont le webhook s'est perdu.
-    const { scheduleSignatureReconciliation } = await import("./lib/signature-reconciliation");
-    scheduleSignatureReconciliation();
-    // Lot 16 (L16-SEC-02, ADR 0044) : tentatives limitées oubliées au bout d'un jour.
-    const { scheduleRateLimitPurge } = await import("./lib/rate-limit");
-    scheduleRateLimitPurge();
-    // Lot 23b (FAC-14, ADR 0061) : contrôle quotidien de la chaîne des pièces.
-    const { scheduleLedgerCheck } = await import("./lib/ledger-check");
-    scheduleLedgerCheck();
-    // Lot 23 (décision D5) : adresses IP des connexions oubliées après la durée réglée.
-    const { scheduleConnectionTracePurge } = await import("./lib/connection-traces-purge");
-    scheduleConnectionTracePurge();
-    // Lot 27a (CHR-04) : rappels par e-mail des tâches confiées au client.
-    const { scheduleClientTaskReminders } = await import("./lib/client-task-reminders");
-    scheduleClientTaskReminders();
-    // Lot 31b (FAC-05, D6) : factures d'acompte émises d'elles-mêmes (fin du délai de rétractation).
-    const { scheduleDepositInvoiceIssuance } = await import("./lib/deposit-invoices");
-    scheduleDepositInvoiceIssuance();
-    // Lot 35a (HUB-13, D4, ADR 0068) : préparation en arrière-plan des exports complets, et
-    // purge horaire de leurs archives expirées.
-    const { scheduleOrganizationExportPurge, scheduleOrganizationExports } = await import("./lib/export/organization-export-jobs");
-    scheduleOrganizationExports();
-    scheduleOrganizationExportPurge();
-    // Lot 37b (DOC-12, D12, ADR 0071) : relevé mensuel du stockage de chaque organisation.
-    const { scheduleStorageSnapshots } = await import("./lib/storage-snapshots");
-    scheduleStorageSnapshots();
+    const { whenSchedulerLockHeld } = await import("./lib/scheduler-lock");
+    whenSchedulerLockHeld(() => void startScheduledTasks());
   }
+}
+
+async function startScheduledTasks() {
+  const { scheduleDemoPurge } = await import("./lib/demo-purge");
+  scheduleDemoPurge();
+  const { scheduleImportPurge } = await import("./lib/import-purge");
+  scheduleImportPurge();
+  // Lot 39a (DAT-03, ADR 0073) : purge horaire de la corbeille (éléments après dix minutes, objets
+  // après 30 jours).
+  const { scheduleTrashPurge } = await import("./lib/trash");
+  scheduleTrashPurge();
+  const { schedulePrivacyExportPurge } = await import("./lib/privacy/export-purge");
+  schedulePrivacyExportPurge();
+  // Lot 6 : worker continu des événements internes (ADR 0014).
+  const { scheduleEventWorker } = await import("./lib/event-worker");
+  scheduleEventWorker();
+  // Lot 15 (ADR 0035) : traitements de fond des imports (lecture des fiches
+  // PDF, placement des prestataires sur la carte).
+  const { scheduleImportJobs } = await import("./lib/import-jobs");
+  scheduleImportJobs();
+  // Lot 8 (ADR 0026) : rattrapage des signatures dont le webhook s'est perdu.
+  const { scheduleSignatureReconciliation } = await import("./lib/signature-reconciliation");
+  scheduleSignatureReconciliation();
+  // Lot 16 (L16-SEC-02, ADR 0044) : tentatives limitées oubliées au bout d'un jour.
+  const { scheduleRateLimitPurge } = await import("./lib/rate-limit");
+  scheduleRateLimitPurge();
+  // Lot 23b (FAC-14, ADR 0061) : contrôle quotidien de la chaîne des pièces.
+  const { scheduleLedgerCheck } = await import("./lib/ledger-check");
+  scheduleLedgerCheck();
+  // Lot 23 (décision D5) : adresses IP des connexions oubliées après la durée réglée.
+  const { scheduleConnectionTracePurge } = await import("./lib/connection-traces-purge");
+  scheduleConnectionTracePurge();
+  // Lot 27a (CHR-04) : rappels par e-mail des tâches confiées au client.
+  const { scheduleClientTaskReminders } = await import("./lib/client-task-reminders");
+  scheduleClientTaskReminders();
+  // Lot 31b (FAC-05, D6) : factures d'acompte émises d'elles-mêmes (fin du délai de rétractation).
+  const { scheduleDepositInvoiceIssuance } = await import("./lib/deposit-invoices");
+  scheduleDepositInvoiceIssuance();
+  // Lot 35a (HUB-13, D4, ADR 0068) : préparation en arrière-plan des exports complets, et
+  // purge horaire de leurs archives expirées.
+  const { scheduleOrganizationExportPurge, scheduleOrganizationExports } = await import("./lib/export/organization-export-jobs");
+  scheduleOrganizationExports();
+  scheduleOrganizationExportPurge();
+  // Lot 37b (DOC-12, D12, ADR 0071) : relevé mensuel du stockage de chaque organisation.
+  const { scheduleStorageSnapshots } = await import("./lib/storage-snapshots");
+  scheduleStorageSnapshots();
+  // Lot 40b (ARC-10, ADR 0076) : e-mails repris quand le serveur d'envoi n'a pas répondu.
+  const { scheduleJobs } = await import("./lib/jobs");
+  scheduleJobs();
 }
 
 // Lot 39b (NFR-16 ; D9 ; ADR 0074) : toute erreur du serveur est notée avec sa référence courte — celle

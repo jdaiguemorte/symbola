@@ -8,6 +8,7 @@ import { appDatabase } from "@symbola/db/client";
 import { importItems, imports, privacyRequests } from "@symbola/db/schema/hub";
 import { anonymizeContacts, findContactsByTerms, getContactsByIds, listContactGroups, listContactMembers, listContactNotes } from "./contacts";
 import { eraseFormDrafts, findFormDraftsByTerms, listFormDraftIds } from "./form-drafts";
+import { erasePendingEmails, findPendingEmailsByTerms, listPendingEmailIds } from "./jobs";
 import { withOrganization } from "@symbola/db/with-organization";
 import {
   ANONYMIZED,
@@ -111,6 +112,10 @@ async function hubErasure(input: ErasureInput, execute: boolean): Promise<Erasur
   const draftIds = await listFormDraftIds(input.organizationId, idsOfKind(input.records, "form_draft").filter((id) => UUID.test(id)));
   if (execute) await eraseFormDrafts(input.organizationId, draftIds);
   for (const id of draftIds) items.push({ kind: "form_draft", recordId: id, fate: "deleted", legalBasis: null, keptUntil: null });
+  // Lot 40b (ARC-10, ADR 0076) : un e-mail encore en attente qui vise la personne ne part pas.
+  const pendingEmailIds = await listPendingEmailIds(input.organizationId, idsOfKind(input.records, "email_job").filter((id) => UUID.test(id)));
+  if (execute) await erasePendingEmails(input.organizationId, pendingEmailIds);
+  for (const id of pendingEmailIds) items.push({ kind: "email_job", recordId: id, fate: "deleted", legalBasis: null, keptUntil: null });
   return [...contactItems, ...items];
 }
 
@@ -187,6 +192,10 @@ export const hubPrivacy: PrivacyContractV1 = {
     // Lot 39b (UX-09, ADR 0074) : un brouillon de formulaire qui mentionne la personne.
     for (const draft of await findFormDraftsByTerms(organizationId, rawTerms)) {
       records.push({ module: MODULE, kind: "form_draft", recordId: draft.id, label: draft.formKey, fields: Object.fromEntries(Object.entries(draft.content).filter(([, value]) => value.trim() !== "")), eventId: null });
+    }
+    // Lot 40b (ARC-10, ADR 0076) : un e-mail encore en attente d'envoi qui vise la personne.
+    for (const email of await findPendingEmailsByTerms(organizationId, rawTerms)) {
+      records.push({ module: MODULE, kind: "email_job", recordId: email.id, label: email.subject, fields: email.fields, eventId: null });
     }
     return records;
   },
