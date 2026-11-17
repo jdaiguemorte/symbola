@@ -3,12 +3,13 @@
 // l'organisation : les clients d'un évènement, les liens personnels et les signataires d'un devis
 // ne gardent que son identifiant, et le lisent ici. Une adresse e-mail n'appartient qu'à un contact
 // (DAT-12) : une adresse déjà connue reprend le contact qui la porte, ou est refusée sur un autre.
-import { and, asc, count, desc, eq, ilike, inArray, ne, or, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, ilike, inArray, isNotNull, isNull, ne, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import type { Contact, ContactInput, ContactKind, ContactMembership, ContactNote } from "@symbola/contracts";
 import { appDatabase } from "@symbola/db/client";
 import { contactMembers, contactNotes, contacts } from "@symbola/db/schema/hub";
 import { foldedContains } from "@symbola/db/search";
+import { inTrash, markDeleted, UNMARKED } from "@symbola/db/soft-delete";
 import { withOrganization } from "@symbola/db/with-organization";
 import { ANONYMIZED, prepareTerms, recordMatches, type PersonTerms } from "@symbola/privacy";
 
@@ -63,7 +64,7 @@ export function normalizeContactEmail(value: string | null | undefined): string 
   return email;
 }
 
-function displayNameOf(row: Pick<ContactRow, "kind" | "firstName" | "lastName" | "name">): string {
+export function displayNameOf(row: Pick<ContactRow, "kind" | "firstName" | "lastName" | "name">): string {
   if (row.kind === "person") return [row.firstName, row.lastName].filter(Boolean).join(" ");
   return row.name ?? "";
 }
@@ -430,14 +431,27 @@ export async function addContactNote(organizationId: string, input: { contactId:
   return toNote(row);
 }
 
+// Lot 39a (UX-07 ; ADR 0073) : la note est marquée, « Annuler » la démarque ; la purge l'efface.
 export async function removeContactNote(organizationId: string, input: { noteId: string; authorUserId: string }): Promise<void> {
-  const rows = await withOrganization(appDatabase(), organizationId, (tx) =>
+  const rows = await inTrash(organizationId, (tx) =>
     tx
-      .delete(contactNotes)
-      .where(and(eq(contactNotes.organizationId, organizationId), eq(contactNotes.id, input.noteId), eq(contactNotes.authorUserId, input.authorUserId)))
+      .update(contactNotes)
+      .set(markDeleted())
+      .where(and(eq(contactNotes.id, input.noteId), eq(contactNotes.authorUserId, input.authorUserId), isNull(contactNotes.deletedAt)))
       .returning({ id: contactNotes.id }),
   );
   if (rows.length === 0) throw new ContactNoteNotFoundError();
+}
+
+export async function restoreContactNote(organizationId: string, input: { noteId: string; authorUserId: string }): Promise<boolean> {
+  const rows = await inTrash(organizationId, (tx) =>
+    tx
+      .update(contactNotes)
+      .set(UNMARKED)
+      .where(and(eq(contactNotes.id, input.noteId), eq(contactNotes.authorUserId, input.authorUserId), isNotNull(contactNotes.deletedAt)))
+      .returning({ id: contactNotes.id }),
+  );
+  return rows.length > 0;
 }
 
 // —— Foyers et entreprises (lot 36b, CRM-03, D2) ————————————————————————————————————

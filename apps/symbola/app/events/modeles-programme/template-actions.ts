@@ -3,6 +3,7 @@
 // PRD-EVT-05 — modèles de programme du jour J de l'organisation. Lot 21 (L21-EVT-21) :
 // la liste des modèles, puis le détail d'un modèle ; une ligne se modifie
 // sans être recréée, un modèle se renomme.
+import { offerUndo } from "@/lib/undo";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -133,6 +134,7 @@ export async function removeProgramTemplateAction(formData: FormData): Promise<v
   const templateId = String(formData.get("templateId") ?? "");
   if (!isValidId(templateId)) return;
   await removeProgramTemplate(organizationId, templateId);
+  await offerUndo({ kind: "programTemplate", id: templateId });
   revalidatePath(PATH);
   redirect(PATH);
 }

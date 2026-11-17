@@ -4,6 +4,10 @@
 import { createStorageClient, deletePrivateObject, PrivateObjectNotFoundError, readPrivateObject, uploadFile } from "@symbola/files";
 import {
   deleteBudgetLine,
+  purgeBudgetLines,
+  restoreBudgetLineRow,
+  restoreEventBudgetRows,
+  trashEventBudgetRows,
   deleteEventBudgetRows,
   deleteVendorPaymentRow,
   findBudgetLine,
@@ -745,10 +749,31 @@ export async function updateBudgetLineDetails(input: UpdateBudgetLineDetailsInpu
 export async function removeBudgetLine(organizationId: string, eventId: string, lineId: string): Promise<BudgetLinesView> {
   const line = await findBudgetLine(organizationId, lineId);
   if (!line || line.eventId !== eventId) throw new BudgetLineNotFoundError();
-  const fileKeys = (await deleteBudgetLine(organizationId, lineId)) ?? [];
+  // Lot 39a (UX-07 ; ADR 0073) : marquée, « Annuler » la rend ; la purge efface lignes et fichiers.
+  await deleteBudgetLine(organizationId, lineId);
+  return listBudgetLines(organizationId, eventId);
+}
+
+// —— Lot 39a (DAT-03, HUB-17, UX-07 ; ADR 0073) — corbeille du module ———————————————————————————
+
+export async function restoreBudgetLine(organizationId: string, lineId: string): Promise<string | null> {
+  return restoreBudgetLineRow(organizationId, lineId);
+}
+
+export async function trashEventBudget(organizationId: string, eventId: string, at: Date): Promise<number> {
+  return trashEventBudgetRows(organizationId, eventId, at);
+}
+
+export async function restoreEventBudget(organizationId: string, eventId: string, at: Date): Promise<number> {
+  return restoreEventBudgetRows(organizationId, eventId, at);
+}
+
+// Lignes retirées avant la date donnée (« Annuler » passé) : lignes et fichiers.
+export async function purgeBudgetElements(organizationId: string, before: Date): Promise<number> {
+  const { count, fileKeys } = await purgeBudgetLines(organizationId, before);
   const storage = fileKeys.length > 0 ? createStorageClient() : null;
   for (const key of fileKeys) await deletePrivateObject(storage!, key).catch(() => undefined);
-  return listBudgetLines(organizationId, eventId);
+  return count;
 }
 
 // Lot 3 (PRD-BUD-02) : gestionnaire de events.vendor_slot.booked, appelé par le

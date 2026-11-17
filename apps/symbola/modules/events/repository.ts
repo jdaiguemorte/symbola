@@ -1,6 +1,7 @@
 // Accès aux données du module events — jamais importé hors de
 // modules/events/ (ADR 0011).
-import { and, asc, desc, eq, exists, gt, gte, inArray, isNull, lte, notInArray, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, exists, gt, gte, inArray, isNotNull, isNull, lte, notInArray, or, sql } from "drizzle-orm";
+import { inTrash, markDeleted, UNMARKED } from "@symbola/db/soft-delete";
 import { appDatabase } from "@symbola/db/client";
 import {
   defaultVendorSlots,
@@ -602,12 +603,9 @@ export async function deleteTaskTemplateItem(organizationId: string, itemId: str
 
 // Les tâches déjà créées sur les événements restent : elles ne référencent
 // pas le modèle.
+// Lot 39a (HUB-17 ; ADR 0073) : le modèle va à la corbeille avec ses lignes ; la purge les efface.
 export async function deleteTaskTemplate(organizationId: string, templateId: string): Promise<void> {
-  const db = appDatabase();
-  await withOrganization(db, organizationId, async (tx) => {
-    await tx.delete(taskTemplateItems).where(eq(taskTemplateItems.templateId, templateId));
-    await tx.delete(taskTemplates).where(eq(taskTemplates.id, templateId));
-  });
+  await inTrash(organizationId, (tx) => tx.update(taskTemplates).set(markDeleted()).where(and(eq(taskTemplates.id, templateId), isNull(taskTemplates.deletedAt))));
 }
 
 // PRD-EVT-04 — recalcul des échéances après un changement de date.
@@ -1048,9 +1046,19 @@ export async function moveEventTaskRow(
   });
 }
 
-export async function deleteEventTask(organizationId: string, taskId: string): Promise<void> {
-  const db = appDatabase();
-  await withOrganization(db, organizationId, (tx) => tx.delete(eventTasks).where(eq(eventTasks.id, taskId)));
+// Lot 39a (UX-07, DAT-03 ; ADR 0073) : la tâche est marquée, « Annuler » la démarque ; la purge l'efface.
+export async function deleteEventTask(organizationId: string, taskId: string): Promise<boolean> {
+  const rows = await inTrash(organizationId, (tx) =>
+    tx.update(eventTasks).set(markDeleted()).where(and(eq(eventTasks.id, taskId), isNull(eventTasks.deletedAt))).returning({ id: eventTasks.id }),
+  );
+  return rows.length > 0;
+}
+
+export async function restoreEventTaskRow(organizationId: string, taskId: string): Promise<boolean> {
+  const rows = await inTrash(organizationId, (tx) =>
+    tx.update(eventTasks).set(UNMARKED).where(and(eq(eventTasks.id, taskId), isNotNull(eventTasks.deletedAt))).returning({ id: eventTasks.id }),
+  );
+  return rows.length > 0;
 }
 
 // PRD-EVT-05 — programme du jour J.
@@ -1221,11 +1229,19 @@ export async function shiftProgramItemRows(organizationId: string, eventId: stri
   });
 }
 
+// Lot 39a (UX-07 ; ADR 0073) : marquée puis purgée ; le programme compte comme modifié dans les deux sens.
 export async function deleteProgramItem(organizationId: string, itemId: string): Promise<void> {
-  const db = appDatabase();
-  await withOrganization(db, organizationId, async (tx) => {
-    const [deleted] = await tx.delete(programItems).where(eq(programItems.id, itemId)).returning();
+  await inTrash(organizationId, async (tx) => {
+    const [deleted] = await tx.update(programItems).set(markDeleted()).where(and(eq(programItems.id, itemId), isNull(programItems.deletedAt))).returning();
     if (deleted) await touchProgram(tx, deleted.eventId);
+  });
+}
+
+export async function restoreProgramItemRow(organizationId: string, itemId: string): Promise<boolean> {
+  return inTrash(organizationId, async (tx) => {
+    const [restored] = await tx.update(programItems).set(UNMARKED).where(and(eq(programItems.id, itemId), isNotNull(programItems.deletedAt))).returning();
+    if (restored) await touchProgram(tx, restored.eventId);
+    return Boolean(restored);
   });
 }
 
@@ -1336,11 +1352,9 @@ export async function deleteProgramTemplateItem(organizationId: string, itemId: 
 
 // Les lignes déjà copiées dans les programmes restent : elles ne
 // référencent pas le modèle.
+// Lot 39a (HUB-17 ; ADR 0073) : le modèle va à la corbeille ; la purge l'efface avec ses lignes.
 export async function deleteProgramTemplate(organizationId: string, templateId: string): Promise<void> {
-  const db = appDatabase();
-  await withOrganization(db, organizationId, (tx) =>
-    tx.delete(programTemplates).where(eq(programTemplates.id, templateId)),
-  );
+  await inTrash(organizationId, (tx) => tx.update(programTemplates).set(markDeleted()).where(and(eq(programTemplates.id, templateId), isNull(programTemplates.deletedAt))));
 }
 
 export type ApplyProgramTemplateResult =
@@ -1550,7 +1564,7 @@ export async function insertDemoEvent(organizationId: string, data: DemoEventDat
 
 // Supprime des événements d'essai et toutes leurs lignes, enfants d'abord
 // (les clés étrangères ne cascadent pas toutes).
-async function deleteDemoEventRows(tx: Tx, eventIds: string[]): Promise<void> {
+async function deleteDemoEventRows(tx: Tx, eventIds: string[], demoOnly = true): Promise<void> {
   if (eventIds.length === 0) return;
   await tx.delete(eventActivities).where(inArray(eventActivities.eventId, eventIds));
   await tx.delete(eventLinks).where(inArray(eventLinks.eventId, eventIds));
@@ -1559,7 +1573,14 @@ async function deleteDemoEventRows(tx: Tx, eventIds: string[]): Promise<void> {
   await tx.delete(eventVendorSlots).where(inArray(eventVendorSlots.eventId, eventIds));
   await tx.delete(eventStatusHistory).where(inArray(eventStatusHistory.eventId, eventIds));
   await tx.delete(eventClients).where(inArray(eventClients.eventId, eventIds));
-  await tx.delete(events).where(and(inArray(events.id, eventIds), eq(events.isDemo, true)));
+  await tx.delete(events).where(and(inArray(events.id, eventIds), ...(demoOnly ? [eq(events.isDemo, true)] : [])));
+}
+
+// Lot 39a (HUB-17, DAT-03 ; ADR 0073) : purge réelle d'évènements à la corbeille (échus ou supprimés
+// définitivement), mêmes lignes que l'essai guidé ; les fichiers sont effacés par l'appelant.
+export async function purgeEventRows(organizationId: string, eventIds: string[]): Promise<void> {
+  if (eventIds.length === 0) return;
+  await inTrash(organizationId, (tx) => deleteDemoEventRows(tx, eventIds, false));
 }
 
 // Ne supprime qu'un événement d'essai : un identifiant de vrai événement

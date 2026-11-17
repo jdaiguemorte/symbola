@@ -1114,6 +1114,10 @@
     "calendar": {
       "title": "My calendar",
       "body": "A secret address subscribes your calendar to your dated events, and another, from the record, to an event's schedule. Your calendar refreshes on its own. The address is shown only once; a new address replaces the old one, and removing an address stops it at once."
+    },
+    "trash": {
+      "title": "Trash",
+      "body": "What you delete stays here for 30 days: an event with all its content, a contact, a document, a template. \"Restore\" puts it back as it was. After 30 days it is erased for good, files included; only the account owner can erase it sooner. Items on a record (task, line, sequence, note…) do not come here: they can be undone for ten seconds after you delete them."
     }
   },
   "Aide": {
@@ -1562,7 +1566,7 @@
     "templateColumnActions": "Actions",
     "templateColumnDue": "Due",
     "templateColumnTask": "Task",
-    "deleteTemplate": "Delete this template…",
+    "deleteTemplate": "Delete this template",
     "deleteTemplateTitle": "Delete the template “{name}”?",
     "deleteProgramTemplateBody": "Programmes already applied to events do not change.",
     "deleteTaskTemplateBody": "Tasks already created on events remain.",
@@ -4621,7 +4625,8 @@
     "export": "Export my data",
     "storage": "Storage",
     "emailTemplates": "Email templates",
-    "messageTemplates": "Message templates"
+    "messageTemplates": "Message templates",
+    "trash": "Trash"
   },
   "Common": {
     "closePanel": "Close the panel",
@@ -6326,5 +6331,65 @@
     "copied": "Text copied.",
     "noRecipient": "Choose at least one recipient with an email address.",
     "back": "Back to the record"
+  },
+  "Trash": {
+    "title": "Trash",
+    "subtitle": "What was deleted less than 30 days ago, ready to come back.",
+    "empty": "The trash is empty.",
+    "unnamed": "Untitled",
+    "kinds": {
+      "event": "Event",
+      "contact": "Contact",
+      "document": "Document",
+      "taskTemplate": "Planning template",
+      "programTemplate": "Programme template",
+      "quoteTemplate": "Quote template",
+      "contractTemplate": "Contract template",
+      "messageTemplate": "Message template"
+    },
+    "deletedBy": "Deleted on {date} by {author}",
+    "deletedOn": "Deleted on {date}",
+    "purgeOn": "erased for good on {date}",
+    "restore": "Restore",
+    "restoreNamed": "Restore {name}",
+    "deleteForGood": "Delete for good",
+    "deleteForGoodNamed": "Delete {name} for good",
+    "deleteForGoodTitle": "Delete {kind} \"{name}\" for good?",
+    "deleteForGoodBody": "It will be erased right away, files included, and cannot come back.",
+    "outcome": {
+      "rendu": "Restored, just as it was.",
+      "conflit": "Another contact already uses this email address: change it or delete that duplicate, then restore.",
+      "introuvable": "It is no longer in the trash: already restored or erased.",
+      "efface": "Erased for good.",
+      "reserve": "Only the account owner can delete for good."
+    },
+    "deleteEvent": "Delete event",
+    "deleteEventHint": "The event goes to the trash with all its content; it can be restored for 30 days.",
+    "eventRefused": "This event holds records to keep (signed quote, signature in progress, invoice, earnest receipt or payment): it cannot be deleted. Cancel it instead, from its status.",
+    "deleteContact": "Delete contact",
+    "contactRefused": "This contact is a client of an event, or has a personal link: it cannot be deleted while the event relies on it.",
+    "undo": {
+      "action": "Undo",
+      "restored": "Restored.",
+      "gone": "No longer possible: it has already been erased.",
+      "conflict": "Another contact already uses this email address: the contact stays in the trash.",
+      "seeTrash": "View trash",
+      "task": "Task deleted.",
+      "programItem": "Sequence deleted.",
+      "place": "Place removed.",
+      "taskComment": "Comment removed.",
+      "contactNote": "Note removed.",
+      "budgetLine": "Budget line removed.",
+      "quoteLine": "Quote line removed.",
+      "event": "Event moved to the trash.",
+      "contact": "Contact moved to the trash.",
+      "document": "Document moved to the trash.",
+      "taskTemplate": "Template moved to the trash.",
+      "programTemplate": "Template moved to the trash.",
+      "quoteTemplate": "Template moved to the trash.",
+      "contractTemplate": "Template moved to the trash.",
+      "messageTemplate": "Template moved to the trash.",
+      "vendor": "Supplier archived."
+    }
   }
 }

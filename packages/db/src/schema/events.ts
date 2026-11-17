@@ -126,6 +126,9 @@ export const events = eventsSchema.table("events", {
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdBy: uuid("created_by"),
   updatedBy: uuid("updated_by"),
+  // Lot 39a (DAT-03, ADR 0073) : suppression logique, cachée par la base (RLS).
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  deletedBy: uuid("deleted_by"),
 }, (table) => [
   index("events_organization_idx").on(table.organizationId),
   check("events_time_zone_check", sql`char_length(${table.timeZone}) between 1 and 64`),
@@ -292,6 +295,9 @@ export const taskTemplates = eventsSchema.table("task_templates", {
   createdBy: uuid("created_by"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   updatedBy: uuid("updated_by"),
+  // Lot 39a (DAT-03, ADR 0073) : suppression logique, cachée par la base (RLS).
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  deletedBy: uuid("deleted_by"),
 }, (table) => [index("task_templates_organization_idx").on(table.organizationId)]);
 
 export const taskTemplateItems = eventsSchema.table("task_template_items", {
@@ -342,6 +348,9 @@ export const eventTasks = eventsSchema.table("event_tasks", {
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdBy: uuid("created_by"),
   updatedBy: uuid("updated_by"),
+  // Lot 39a (DAT-03, ADR 0073) : suppression logique, cachée par la base (RLS).
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  deletedBy: uuid("deleted_by"),
 }, (table) => [
   index("event_tasks_organization_idx").on(table.organizationId),
   index("event_tasks_vendor_candidate_idx").on(table.vendorCandidateId),
@@ -369,6 +378,9 @@ export const programItems = eventsSchema.table("program_items", {
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdBy: uuid("created_by"),
   updatedBy: uuid("updated_by"),
+  // Lot 39a (DAT-03, ADR 0073) : suppression logique, cachée par la base (RLS).
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  deletedBy: uuid("deleted_by"),
 }, (table) => [
   index("program_items_organization_idx").on(table.organizationId),
   check("program_items_responsible_check", sql`${table.responsible} is null or char_length(${table.responsible}) between 1 and 120`),
@@ -442,6 +454,9 @@ export const programTemplates = eventsSchema.table("program_templates", {
   createdBy: uuid("created_by"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   updatedBy: uuid("updated_by"),
+  // Lot 39a (DAT-03, ADR 0073) : suppression logique, cachée par la base (RLS).
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  deletedBy: uuid("deleted_by"),
 }, (table) => [index("program_templates_organization_idx").on(table.organizationId)]);
 
 export const programTemplateItems = eventsSchema.table("program_template_items", {
@@ -701,6 +716,9 @@ export const eventPlaces = eventsSchema.table("event_places", {
   createdBy: uuid("created_by"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   updatedBy: uuid("updated_by"),
+  // Lot 39a (DAT-03, ADR 0073) : suppression logique, cachée par la base (RLS).
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  deletedBy: uuid("deleted_by"),
 }, (table) => [
   index("event_places_organization_idx").on(table.organizationId),
   check(
@@ -753,6 +771,9 @@ export const eventDocuments = eventsSchema.table("event_documents", {
   createdBy: uuid("created_by"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   updatedBy: uuid("updated_by"),
+  // Lot 39a (DAT-03, ADR 0073) : suppression logique, cachée par la base (RLS).
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  deletedBy: uuid("deleted_by"),
 }, (table) => [
   index("event_documents_organization_idx").on(table.organizationId),
   index("event_documents_event_idx").on(table.eventId),
@@ -904,6 +925,9 @@ export const eventTaskComments = eventsSchema.table("event_task_comments", {
   createdBy: uuid("created_by"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   updatedBy: uuid("updated_by"),
+  // Lot 39a (DAT-03, ADR 0073) : suppression logique, cachée par la base (RLS).
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  deletedBy: uuid("deleted_by"),
 }, (table) => [
   index("event_task_comments_organization_idx").on(table.organizationId),
   index("event_task_comments_task_idx").on(table.taskId),

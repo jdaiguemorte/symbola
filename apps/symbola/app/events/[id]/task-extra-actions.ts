@@ -4,6 +4,7 @@
 // commenter, retirer son commentaire, retirer une pièce jointe. L'envoi d'une pièce jointe passe
 // par la route dédiée taches/[taskId]/pieces/route.ts. Contrôles côté serveur : session de
 // l'équipe, organisation, module Évènements ; la RLS borne la tâche à l'organisation.
+import { offerUndo } from "@/lib/undo";
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { addTaskComment, EventTaskNotFoundError, removeTaskAttachment, removeTaskComment, TaskAttachmentNotFoundError, TaskCommentNotFoundError } from "@/modules/events/service";
@@ -44,6 +45,7 @@ export async function removeTaskCommentAction(formData: FormData): Promise<void>
   if (!access || !isValidId(eventId) || !isValidId(commentId)) return;
   try {
     await removeTaskComment({ organizationId: access.organizationId, commentId, authorUserId: access.userId });
+    await offerUndo({ kind: "taskComment", id: commentId });
   } catch (error) {
     if (!(error instanceof TaskCommentNotFoundError)) throw error;
   }

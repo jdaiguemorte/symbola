@@ -4,6 +4,7 @@
 // version par texte changé), restaurer une version, dupliquer, supprimer, ajouter les modèles de
 // départ. Session planner vérifiée ; le module Évènements doit être souscrit ; le type d'évènement
 // choisi doit être un type de l'organisation.
+import { offerUndo } from "@/lib/undo";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -133,6 +134,7 @@ export async function deleteMessageTemplateAction(formData: FormData): Promise<v
   if (isValidId(templateId)) {
     try {
       await deleteMessageTemplate(organizationId, templateId);
+      await offerUndo({ kind: "messageTemplate", id: templateId });
     } catch (error) {
       if (!(error instanceof MessageTemplateNotFoundError)) throw error;
     }

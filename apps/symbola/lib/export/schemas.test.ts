@@ -135,8 +135,12 @@ describe("DAT-13 — Chaque entité a un format d'export stable et documenté", 
       updatedAt: "2026-11-15T10:00:00.000Z",
       createdBy: null,
       updatedBy: null,
+      // Lot 39a (ADR 0073) : une ligne à la corbeille porte sa date de suppression et son auteur.
+      deletedAt: null,
+      deletedBy: null,
     };
     expect(tasks.safeParse(task).success).toBe(true);
+    expect(tasks.safeParse({ ...task, deletedAt: "2026-11-16T10:00:00.000Z", deletedBy: task.eventId }).success).toBe(true);
     expect(tasks.safeParse({ ...task, organizationId: task.id }).success).toBe(false);
     expect(tasks.safeParse({ ...task, dueDate: "11/06/2027" }).success).toBe(false);
     expect(tasks.safeParse({ ...task, responsible: "anyone" }).success).toBe(false);

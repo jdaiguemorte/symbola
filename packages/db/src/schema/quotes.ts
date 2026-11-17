@@ -140,6 +140,9 @@ export const quotes = quotesSchema.table(
     // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
     createdBy: uuid("created_by"),
     updatedBy: uuid("updated_by"),
+    // Lot 39a (DAT-03, ADR 0073) : suppression logique, cachée par la base (RLS).
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+    deletedBy: uuid("deleted_by"),
   },
   (table) => [unique().on(table.organizationId, table.number)],
 );
@@ -245,6 +248,9 @@ export const quoteLines = quotesSchema.table("quote_lines", {
   createdBy: uuid("created_by"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   updatedBy: uuid("updated_by"),
+  // Lot 39a (DAT-03, ADR 0073) : suppression logique, cachée par la base (RLS).
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  deletedBy: uuid("deleted_by"),
 }, (table) => [index("quote_lines_organization_idx").on(table.organizationId)]);
 
 // Lot 31a (FAC-01, HUB-21, décision D3) — modèles de devis par type d'événement (null : pour
@@ -268,6 +274,9 @@ export const quoteTemplates = quotesSchema.table(
     createdBy: uuid("created_by"),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
     updatedBy: uuid("updated_by"),
+    // Lot 39a (DAT-03, ADR 0073) : suppression logique, cachée par la base (RLS).
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+    deletedBy: uuid("deleted_by"),
   },
   (table) => [
     index("quote_templates_organization_idx").on(table.organizationId),
@@ -397,6 +406,9 @@ export const contractTemplates = quotesSchema.table(
     createdBy: uuid("created_by"),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
     updatedBy: uuid("updated_by"),
+    // Lot 39a (DAT-03, ADR 0073) : suppression logique, cachée par la base (RLS).
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+    deletedBy: uuid("deleted_by"),
   },
   (table) => [
     index("contract_templates_organization_idx").on(table.organizationId),

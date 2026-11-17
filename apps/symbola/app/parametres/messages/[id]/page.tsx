@@ -6,7 +6,6 @@ import { ArrowLeft } from "lucide-react";
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatDateTime, type Locale } from "@symbola/i18n";
 import { ScreenHelp } from "@/app/screen-help";
-import { ConfirmDialog } from "@/app/ui/confirm-dialog";
 import { PageHeader } from "@/app/ui/page-header";
 import { requirePlanner } from "@/lib/guards";
 import { ensureEventTypes } from "@/lib/events/event-types";
@@ -24,7 +23,6 @@ export default async function MessageTemplatePage({ params, searchParams }: { pa
   if (!template) notFound();
   const t = await getTranslations("MessageTemplates");
   const tHelp = await getTranslations("Help");
-  const tCommon = await getTranslations("Common");
   const uiLocale = (await getLocale()) as Locale;
   const eventTypes = await ensureEventTypes(organizationId, uiLocale);
   const typeLabel = template.eventTypeId ? (eventTypes.find((type) => type.id === template.eventTypeId)?.label ?? t("allTypes")) : t("allTypes");
@@ -82,17 +80,13 @@ export default async function MessageTemplatePage({ params, searchParams }: { pa
             {t("duplicate")}
           </button>
         </form>
-        <ConfirmDialog
-          trigger={t("delete")}
-          triggerLabel={t("delete")}
-          triggerClassName="link-button"
-          title={t("deleteTitle", { name: template.name })}
-          body={t("deleteBody")}
-          confirmLabel={t("delete")}
-          cancelLabel={tCommon("cancel")}
-          action={deleteMessageTemplateAction}
-          fields={{ templateId: template.id }}
-        />
+        {/* Lot 39a (UX-07 ; ADR 0073) : le modèle va à la corbeille, « Annuler » pendant dix secondes. */}
+        <form action={deleteMessageTemplateAction}>
+          <input type="hidden" name="templateId" value={template.id} />
+          <button type="submit" className="link-button">
+            {t("delete")}
+          </button>
+        </form>
       </div>
     </main>
   );

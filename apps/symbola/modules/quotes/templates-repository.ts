@@ -1,7 +1,8 @@
 // Lot 31a (FAC-01, HUB-21, décision D3) — accès aux modèles de devis : sections, lignes,
 // options et échéancier type. Un modèle se copie dans un devis neuf ; le modifier ensuite
 // ne change aucun devis. Jamais importé hors de modules/quotes/ (ADR 0011).
-import { and, asc, eq, inArray, sql as raw } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull, sql as raw } from "drizzle-orm";
+import { inTrash, markDeleted } from "@symbola/db/soft-delete";
 import { appDatabase } from "@symbola/db/client";
 import {
   paymentScheduleItems,
@@ -161,11 +162,12 @@ export async function updateQuoteTemplateHeader(organizationId: string, template
   });
 }
 
+// Lot 39a (HUB-17 ; ADR 0073) : le modèle va à la corbeille ; la purge l'efface avec ses lignes.
 export async function deleteQuoteTemplateRow(organizationId: string, templateId: string): Promise<boolean> {
-  return inOrganization(organizationId, async (tx) => {
-    const deleted = await tx.delete(quoteTemplates).where(eq(quoteTemplates.id, templateId)).returning({ id: quoteTemplates.id });
-    return deleted.length > 0;
-  });
+  const deleted = await inTrash(organizationId, (tx) =>
+    tx.update(quoteTemplates).set(markDeleted()).where(and(eq(quoteTemplates.id, templateId), isNull(quoteTemplates.deletedAt))).returning({ id: quoteTemplates.id }),
+  );
+  return deleted.length > 0;
 }
 
 // Contenu de la version courante d'un devis, pour en faire un modèle.

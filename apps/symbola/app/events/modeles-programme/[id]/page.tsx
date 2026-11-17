@@ -8,7 +8,6 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Pencil, Plus, Trash2 } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { ScreenHelp } from "@/app/screen-help";
-import { ConfirmDialog } from "@/app/ui/confirm-dialog";
 import { PageHeader } from "@/app/ui/page-header";
 import { SidePanel } from "@/app/ui/side-panel";
 import { listProgramTemplates } from "@/modules/events/service";
@@ -117,17 +116,13 @@ export default async function ProgramTemplatePage({
         </table>
       )}
 
-      <ConfirmDialog
-        trigger={t("deleteTemplate")}
-        triggerLabel={t("deleteTemplate")}
-        triggerClassName="link-button template-delete"
-        title={t("deleteTemplateTitle", { name: template.name })}
-        body={t("deleteProgramTemplateBody")}
-        confirmLabel={t("deleteTemplateConfirm")}
-        cancelLabel={tCommon("cancel")}
-        action={removeProgramTemplateAction}
-        fields={{ templateId: template.id }}
-      />
+      {/* Lot 39a (UX-07 ; ADR 0073) : le modèle va à la corbeille, « Annuler » pendant dix secondes : plus de confirmation. */}
+      <form action={removeProgramTemplateAction}>
+        <input type="hidden" name="templateId" value={template.id} />
+        <button type="submit" className="link-button template-delete">
+          {t("deleteTemplate")}
+        </button>
+      </form>
 
       {ligne === "nouvelle" ? (
         <SidePanel title={t("newTemplateLine")} closeHref={base} closeLabel={tCommon("closePanel")}>

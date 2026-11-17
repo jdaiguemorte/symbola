@@ -79,22 +79,23 @@ test("L20-PRE-17 — archiver un prestataire depuis le carnet, après confirmati
   const results = page.locator(".vendor-results");
   await expect(results.getByRole("link", { name: "Domaine des Saules" })).toBeVisible();
 
-  // Annuler ne change rien.
+  // Lot 39a (UX-07 ; D6) : archiver s'exécute tout de suite (l'autre fiche reste) et s'annule pendant
+  // dix secondes ; plus de confirmation.
   await page.getByRole("button", { name: "Archiver Domaine des Saules" }).click();
-  const dialog = page.getByRole("dialog", { name: "Archiver Domaine des Saules ?" });
-  await expect(dialog).toBeVisible();
-  await expect(dialog).toContainText("Ses prestations restent sur vos événements et budgets.");
-  await expectNoAxeViolation(page);
-  await dialog.getByRole("button", { name: "Annuler" }).click();
-  await expect(dialog).toBeHidden();
-  await expect(results.getByRole("link", { name: "Domaine des Saules" })).toBeVisible();
-
-  // Confirmer archive la fiche ; l'autre reste.
-  await page.getByRole("button", { name: "Archiver Domaine des Saules" }).click();
-  await dialog.getByRole("button", { name: "Archiver la fiche" }).click();
   await expect(results.getByRole("link", { name: "Domaine des Saules" })).toHaveCount(0);
   await expect(results.getByRole("link", { name: "Fleurs de Lys" })).toBeVisible();
   await expect(page).toHaveURL(/\/prestataires$/);
+  const banner = page.getByRole("status").filter({ hasText: "Prestataire archivé." });
+  await expect(banner).toBeVisible();
+  await expectNoAxeViolation(page);
+  await banner.getByRole("button", { name: "Annuler" }).click();
+  await expect(page.getByText("C'est rétabli.")).toBeVisible();
+  await page.reload();
+  await expect(results.getByRole("link", { name: "Domaine des Saules" })).toBeVisible();
+
+  // Archivée à nouveau, la fiche quitte le carnet.
+  await page.getByRole("button", { name: "Archiver Domaine des Saules" }).click();
+  await expect(results.getByRole("link", { name: "Domaine des Saules" })).toHaveCount(0);
 });
 
 test("Décision 5 — étiquettes : paliers repérés puis rangés, choix unique sur la fiche, étiquettes de la famille seulement", async ({ page }) => {

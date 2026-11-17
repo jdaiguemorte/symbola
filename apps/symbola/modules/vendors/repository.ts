@@ -1,7 +1,7 @@
 // Accès aux données du module vendors — jamais importé hors de
 // modules/vendors/ (ADR 0011). Chaque requête passe par withOrganization
 // (RLS, CLAUDE.md § 5).
-import { and, asc, eq, gte, inArray, isNull, or, sql, type SQL } from "drizzle-orm";
+import { and, asc, eq, gte, inArray, isNotNull, isNull, or, sql, type SQL } from "drizzle-orm";
 import { appDatabase } from "@symbola/db/client";
 import { foldedColumn, likeWord } from "@symbola/db/search";
 import { vendorFiles, vendors, vendorSettings, vendorTagGroups, vendorTags, vendorTypeFields, vendorTypes } from "@symbola/db/schema/vendors";
@@ -244,6 +244,13 @@ export function archiveVendorRow(organizationId: string, vendorId: string): Prom
   return inOrganization(organizationId, async (tx) => {
     await tx.update(vendors).set({ archivedAt: new Date(), updatedAt: new Date() }).where(eq(vendors.id, vendorId));
   });
+}
+
+// Lot 39a (UX-07 ; D6 ; ADR 0073) : « Annuler » après l'archivage remet la fiche au carnet.
+export function unarchiveVendorRow(organizationId: string, vendorId: string): Promise<boolean> {
+  return inOrganization(organizationId, async (tx) =>
+    (await tx.update(vendors).set({ archivedAt: null, updatedAt: new Date() }).where(and(eq(vendors.id, vendorId), isNotNull(vendors.archivedAt))).returning({ id: vendors.id })).length > 0,
+  );
 }
 
 export function findVendor(organizationId: string, vendorId: string): Promise<{ vendor: VendorRow; files: VendorFileRow[] } | null> {

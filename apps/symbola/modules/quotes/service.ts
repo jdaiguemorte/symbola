@@ -217,6 +217,7 @@ import {
   type ScheduleItemData,
   type ScheduleItemRow,
   deleteQuoteLine,
+  restoreQuoteLineRow,
   findCatalogItem,
   countQuotesAndInvoicesByMonth as countQuotesAndInvoicesByMonthRows,
   searchQuoteRows,
@@ -3614,3 +3615,25 @@ export async function countOrganizationRealQuotes(organizationId: string): Promi
 
 // Lot 35a (HUB-13, DAT-13, ADR 0068) : entités du module dans l'export complet de l'organisation.
 export { describeQuotesExport, exportQuotesData, QUOTES_EXPORT_EXCLUSIONS } from "./export";
+
+// —— Lot 39a (DAT-03, HUB-17, UX-07 ; ADR 0073) — corbeille du module ———————————————————————————
+
+export {
+  findRetainedDocuments,
+  isQuotesObjectTrashed,
+  listTrashedQuotesRows,
+  purgeQuotesElements,
+  purgeTrashedQuotesObjects,
+  restoreContractTemplateRow as restoreContractTemplate,
+  restoreEventQuoteRows as restoreEventQuotes,
+  restoreQuoteTemplateRow as restoreQuoteTemplate,
+  trashEventQuoteRows as trashEventQuotes,
+  type QuotesTrashKind,
+  type RetainedDocuments,
+} from "./trash";
+
+// « Annuler » après avoir retiré une ligne : elle revient tant que le devis est un brouillon.
+export async function restoreQuoteLine(organizationId: string, lineId: string): Promise<QuoteDetail> {
+  const quoteId = unwrap(await restoreQuoteLineRow(organizationId, lineId));
+  return loadDetail(organizationId, quoteId);
+}

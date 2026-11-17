@@ -4,11 +4,13 @@
 // contact, modifier sa fiche, l'annoter, et le chercher pour l'ajouter comme client d'un évènement.
 // Contrôles côté serveur : session, organisation (requirePlanner), et le service du hub (RLS).
 // Une adresse e-mail déjà prise est refusée et nomme le contact qui la porte (DAT-12).
+import { offerUndo } from "@/lib/undo";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import type { ContactInput, ContactKind } from "@symbola/contracts";
 import { requirePlanner } from "@/lib/guards";
+import { ContactDeletionRefusedError, deleteContact, TrashItemNotFoundError } from "@/lib/trash";
 import {
   addContactMember,
   addContactNote,
@@ -113,6 +115,7 @@ export async function removeContactNoteAction(formData: FormData): Promise<void>
   if (!UUID.test(id) || !UUID.test(noteId)) return;
   try {
     await removeContactNote(auth.user.organizationId, { noteId, authorUserId: auth.user.id });
+    await offerUndo({ kind: "contactNote", id: noteId });
   } catch (error) {
     if (!(error instanceof ContactNoteNotFoundError)) throw error;
   }
@@ -168,4 +171,25 @@ export async function removeContactMemberAction(formData: FormData): Promise<voi
     if (!(error instanceof ContactMemberNotFoundError)) throw error;
   }
   revalidatePath(`/contacts/${groupContactId}`);
+}
+
+// Lot 39a (HUB-17, UX-07 ; ADR 0073) — « Supprimer le contact » : il va à la corbeille (« Annuler »
+// pendant dix secondes, restauration pendant 30 jours). Refusé s'il est client d'un évènement ou
+// titulaire d'un lien personnel : l'évènement s'appuie sur lui.
+export async function deleteContactAction(formData: FormData): Promise<void> {
+  const auth = await requirePlanner();
+  const id = String(formData.get("id") ?? "");
+  if (!UUID.test(id)) redirect("/contacts");
+  let outcome: "deleted" | "refused" | "missing" = "deleted";
+  try {
+    await deleteContact(auth.user.organizationId, id);
+  } catch (error) {
+    if (error instanceof ContactDeletionRefusedError) outcome = "refused";
+    else if (error instanceof TrashItemNotFoundError) outcome = "missing";
+    else throw error;
+  }
+  if (outcome === "refused") redirect(`/contacts/${id}?suppression=refusee`);
+  if (outcome === "deleted") await offerUndo({ kind: "contact", id });
+  revalidatePath("/contacts");
+  redirect("/contacts");
 }

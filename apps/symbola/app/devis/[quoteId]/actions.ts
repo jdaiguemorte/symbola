@@ -1,5 +1,6 @@
 "use server";
 
+import { offerUndo } from "@/lib/undo";
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import {
@@ -169,6 +170,7 @@ export async function removeLineAction(formData: FormData): Promise<void> {
     const lineId = String(formData.get("lineId") ?? "");
     if (!isValidId(lineId)) return {};
     await removeQuoteLine(organizationId, lineId);
+    await offerUndo({ kind: "quoteLine", id: lineId });
   });
 }
 

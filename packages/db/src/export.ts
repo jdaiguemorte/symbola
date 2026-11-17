@@ -165,7 +165,8 @@ export async function exportModuleEntities(
   const { organizationId, module, context } = input;
   return db.transaction(
     async (tx) => {
-      await tx.execute(sql`select set_config('app.organization_id', ${organizationId}, true)`);
+      // Lot 39a (ADR 0073) : l'export complet livre aussi la corbeille, avec la date de suppression.
+      await tx.execute(sql`select set_config('app.organization_id', ${organizationId}, true), set_config('app.include_deleted', 'on', true)`);
       // Identifiants exclus (essai), par entité : leurs enfants le sont aussi.
       const excluded = new Map<string, Set<string>>();
       const entities: ModuleExport["entities"] = [];

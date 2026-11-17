@@ -124,6 +124,7 @@ import {
 } from "./vendor-slot-status";
 import { countdownLabel, EventCockpit } from "./cockpit";
 import { UndoTaskNotice } from "@/app/accueil/today-client";
+import { deleteEventAction } from "./trash-actions";
 
 // Lot 26a (SEC-15) : état d'un lien personnel.
 const LINK_STATUS_KEYS = {
@@ -138,7 +139,7 @@ const LINK_STATUS_KEYS = {
 const TABS = ["apercu", "budget", "retroplanning", "programme", "devis", "maries", "documents"] as const;
 type Tab = (typeof TABS)[number];
 
-type SearchParams = { exemple?: string; onglet?: string; poste?: string; tache?: string; vue?: string; qui?: string; filtre?: string; visite?: string; decalage?: string; depuis?: string; fait?: string; evenement?: string };
+type SearchParams = { suppression?: string; exemple?: string; onglet?: string; poste?: string; tache?: string; vue?: string; qui?: string; filtre?: string; visite?: string; decalage?: string; depuis?: string; fait?: string; evenement?: string };
 
 // Lot 28a (PRE-02) : postes pourvus (un prestataire retenu) ou non requis.
 const SETTLED_SLOT_STATUSES = new Set<string>(["retained", "contract_signed", "paid_off", "not_required"]);
@@ -156,6 +157,7 @@ export default async function EventDetailPage({
   const { id } = await params;
   const query = await searchParams;
   const t = await getTranslations("Events");
+  const tTrash = await getTranslations("Trash");
   const tHelp = await getTranslations("Help");
 
   if (!(await isEventsModuleEnabled(organizationId))) {
@@ -1472,6 +1474,20 @@ export default async function EventDetailPage({
       {/* Lot 29b (JRJ-04, D8) ; lot 37a (DOC-01, DOC-04, POR-10) : l'espace documents de l'évènement. */}
       {tab === "documents" ? (
         <DocumentsTab eventId={event.id} organizationId={organizationId} locale={locale} documents={eventDocuments} embeddedDocumentIds={embeddedDocumentIds} dayOfOpen={isDayOfOpen(event)} />
+      ) : null}
+
+      {/* Lot 39a (HUB-17, D4 ; ADR 0073) : supprimer l'évènement le met à la corbeille avec tout son contenu ; refusé s'il porte une pièce à conserver. */}
+      {tab === "apercu" && !event.isDemo ? (
+        <section className="card" aria-labelledby="delete-event-title">
+          <h2 id="delete-event-title">{tTrash("deleteEvent")}</h2>
+          {query.suppression === "refusee" ? <p role="alert">{tTrash("eventRefused")}</p> : <p>{tTrash("deleteEventHint")}</p>}
+          <form action={deleteEventAction}>
+            <input type="hidden" name="eventId" value={event.id} />
+            <button type="submit" className="button-ghost">
+              {tTrash("deleteEvent")}
+            </button>
+          </form>
+        </section>
       ) : null}
     </main>
   );

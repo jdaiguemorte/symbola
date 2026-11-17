@@ -17,7 +17,6 @@ import { VendorForm } from "../vendor-form";
 import { VendorMap } from "../vendor-map";
 import { VendorFileForm, VendorLocationForm } from "./vendor-side-forms";
 import { ScreenHelp } from "@/app/screen-help";
-import { ConfirmDialog } from "@/app/ui/confirm-dialog";
 
 const OUTCOME_KEYS = { selected: "outcomeSelected", not_selected: "outcomeNotSelected", pending: "outcomePending" } as const;
 const OUTCOME_CLASSES = { selected: "badge badge-sauge", not_selected: "badge", pending: "badge badge-ambre" } as const;
@@ -186,17 +185,12 @@ export default async function VendorPage({ params, searchParams }: { params: Pro
       </section>
 
       {!vendor.archived ? (
-        // Lot 20 (L20-PRE-17) : même confirmation que depuis le carnet.
-        <ConfirmDialog
-          trigger={t("archive", { vendor: vendor.name })}
-          triggerLabel={t("archive", { vendor: vendor.name })}
-          title={t("archiveConfirmTitle", { vendor: vendor.name })}
-          body={t("archiveConfirmBody")}
-          confirmLabel={t("archiveConfirm")}
-          cancelLabel={t("archiveCancel")}
-          action={archiveVendorAction}
-          fields={{ vendorId: vendor.id }}
-        />
+        // Lot 39a (UX-07 ; D6) : l'archivage s'annule pendant dix secondes (comme depuis le carnet) :
+        // plus de confirmation.
+        <form action={archiveVendorAction}>
+          <input type="hidden" name="vendorId" value={vendor.id} />
+          <button type="submit">{t("archive", { vendor: vendor.name })}</button>
+        </form>
       ) : null}
     </main>
   );

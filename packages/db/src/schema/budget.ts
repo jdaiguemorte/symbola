@@ -102,6 +102,9 @@ export const budgetLines = budgetSchema.table("budget_lines", {
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdBy: uuid("created_by"),
   updatedBy: uuid("updated_by"),
+  // Lot 39a (DAT-03, ADR 0073) : suppression logique, cachée par la base (RLS).
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  deletedBy: uuid("deleted_by"),
 }, (table) => [
   index("budget_lines_organization_idx").on(table.organizationId),
   index("budget_lines_event_vendor_slot_idx").on(table.eventVendorSlotId),
@@ -209,6 +212,9 @@ export const vendorPayments = budgetSchema.table(
     createdBy: uuid("created_by"),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
     updatedBy: uuid("updated_by"),
+    // Lot 39a (DAT-03, ADR 0073) : suppression logique, cachée par la base (RLS).
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+    deletedBy: uuid("deleted_by"),
   },
   (table) => [
     index("vendor_payments_organization_idx").on(table.organizationId),

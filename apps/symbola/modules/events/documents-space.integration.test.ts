@@ -37,6 +37,8 @@ import {
   listEventDocuments,
   listEventDocumentVersions,
   listLinkSharedDocuments,
+  purgeTrashedEventObjects,
+  restoreEventDocument,
   moveEventDocument,
   openEventDocumentLink,
   removeEventDocument,
@@ -175,7 +177,9 @@ describe("DOC-01 — Espace documents par évènement : dossiers et versions (D3
     expect((await listEventDocumentVersions(organizationId, document.id)).map((version) => version.version)).toEqual([1]);
   });
 
-  it("supprimer un document supprime les fichiers de toutes ses versions", async () => {
+  // Lot 39a (HUB-17, DAT-03 ; ADR 0073) : supprimer met le document à la corbeille avec ses versions ;
+  // la purge (30 jours, ou suppression définitive) efface les fichiers de toutes ses versions.
+  it("supprimer un document le met à la corbeille avec ses versions ; la purge efface les fichiers de toutes ses versions", async () => {
     const { organizationId, eventId } = await wedding();
     const document = await attach(organizationId, eventId, "Plan");
     await addEventDocumentVersion({ organizationId, documentId: document.id, content: SECOND_PDF, uploadedByUserId: plannerId });
@@ -183,6 +187,10 @@ describe("DOC-01 — Espace documents par évènement : dossiers et versions (D3
     expect(keys).toHaveLength(2);
     await removeEventDocument(organizationId, document.id);
     expect(await listEventDocumentVersions(organizationId, document.id)).toEqual([]);
+    await restoreEventDocument(organizationId, document.id);
+    expect(await listEventDocumentVersions(organizationId, document.id)).toHaveLength(2);
+    await removeEventDocument(organizationId, document.id);
+    expect(await purgeTrashedEventObjects(organizationId, { kind: "document", id: document.id })).toBe(1);
     await expectGoneFromStorage(keys);
   });
 

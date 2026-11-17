@@ -2,6 +2,7 @@
 
 // Lot 11 (L11-PRE-01 à L11-PRE-03, L11-PRE-10) — actions du carnet de prestataires.
 // Chaque action vérifie session, organisation et module ; entrées validées.
+import { offerUndo } from "@/lib/undo";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -160,6 +161,7 @@ export async function archiveVendorAction(formData: FormData): Promise<void> {
   const vendorId = text(formData, "vendorId");
   if (!access || !isValidId(vendorId)) return;
   await archiveVendor(access.organizationId, vendorId);
+  await offerUndo({ kind: "vendor", id: vendorId });
   revalidatePath("/prestataires");
   // Lot 20 (L20-PRE-17) : depuis le carnet, on y revient avec ses filtres ; seule
   // une adresse du carnet est acceptée (jamais une autre origine).

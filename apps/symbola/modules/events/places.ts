@@ -2,7 +2,8 @@
 // préparatifs…), saisis une fois puis choisis dans le programme. Exposé aux
 // autres modules seulement par service.ts (ADR 0011). Lot 34b (EVT-03, D10) : une seule liste ;
 // chaque lieu porte adresse, ville, horaires et contact ; le premier est le lieu de réception.
-import { and, asc, eq, sql } from "drizzle-orm";
+import { and, asc, eq, isNotNull, isNull, sql } from "drizzle-orm";
+import { inTrash, markDeleted, UNMARKED } from "@symbola/db/soft-delete";
 import { appDatabase } from "@symbola/db/client";
 import { eventPlaces, events } from "@symbola/db/schema/events";
 import { withOrganization } from "@symbola/db/with-organization";
@@ -148,6 +149,16 @@ export async function makeReceptionPlace(organizationId: string, eventId: string
   });
 }
 
+// Lot 39a (UX-07 ; ADR 0073) : le lieu est marqué, « Annuler » le démarque ; la purge l'efface.
 export async function removePlace(organizationId: string, eventId: string, placeId: string): Promise<void> {
-  await inOrganization(organizationId, (tx) => tx.delete(eventPlaces).where(and(eq(eventPlaces.id, placeId), eq(eventPlaces.eventId, eventId))));
+  await inTrash(organizationId, (tx) =>
+    tx.update(eventPlaces).set(markDeleted()).where(and(eq(eventPlaces.id, placeId), eq(eventPlaces.eventId, eventId), isNull(eventPlaces.deletedAt))),
+  );
+}
+
+export async function restorePlace(organizationId: string, placeId: string): Promise<boolean> {
+  const rows = await inTrash(organizationId, (tx) =>
+    tx.update(eventPlaces).set(UNMARKED).where(and(eq(eventPlaces.id, placeId), isNotNull(eventPlaces.deletedAt))).returning({ id: eventPlaces.id }),
+  );
+  return rows.length > 0;
 }

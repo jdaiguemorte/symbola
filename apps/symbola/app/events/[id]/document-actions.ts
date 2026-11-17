@@ -3,6 +3,7 @@
 // Lot 29b (JRJ-04, décision D8) — documents de l'événement : renommer, supprimer
 // (le fichier et son choix pour le jour J partent avec la ligne). L'envoi passe par
 // la route dédiée documents/route.ts.
+import { offerUndo } from "@/lib/undo";
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import {
@@ -69,6 +70,7 @@ export async function removeEventDocumentAction(formData: FormData): Promise<voi
   if (!organizationId || !isValidId(eventId) || !isValidId(documentId)) return;
   try {
     await removeEventDocument(organizationId, documentId);
+    await offerUndo({ kind: "document", id: documentId });
   } catch (error) {
     if (!(error instanceof EventDocumentNotFoundError)) throw error;
   }

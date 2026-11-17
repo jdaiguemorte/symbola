@@ -3,6 +3,7 @@
 // les données rattachées aux événements de la personne (tâches, budget,
 // devis…). Un module en erreur ou trop lent rend le résultat incomplet,
 // jamais « aucune donnée ». Orchestration entre modules, comme lib/import.
+import { includingDeleted } from "@symbola/db/actor";
 import { appDatabase } from "@symbola/db/client";
 import { hasTerms, prepareTerms, type PersonTerms, type PrivacyContractV1, type PrivacyRecord } from "@symbola/privacy";
 import { budgetPrivacy } from "@/modules/budget/service";
@@ -65,9 +66,18 @@ function recordKey(record: PrivacyRecord): string {
   return `${record.module}:${record.kind}:${record.recordId}`;
 }
 
-export async function searchPerson(
+// Lot 39a (ADR 0073) : une donnée à la corbeille reste tenue ; la recherche (et donc l'export et
+// l'effacement, qui partent d'elle) la trouve.
+export function searchPerson(
   input: { organizationId: string; terms: PersonTerms },
   options: { participants?: typeof PARTICIPANTS; timeoutMs?: number } = {},
+): Promise<PersonSearchResult | null> {
+  return includingDeleted(() => searchPersonNow(input, options));
+}
+
+async function searchPersonNow(
+  input: { organizationId: string; terms: PersonTerms },
+  options: { participants?: typeof PARTICIPANTS; timeoutMs?: number },
 ): Promise<PersonSearchResult | null> {
   if (!hasTerms(prepareTerms(input.terms))) return null;
   const contracts = await subscribedParticipants(input.organizationId, options.participants ?? PARTICIPANTS);

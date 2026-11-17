@@ -1,5 +1,6 @@
 "use server";
 
+import { offerUndo } from "@/lib/undo";
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { BUDGET_AMOUNT_FIELDS, type BudgetAmountField } from "@symbola/contracts";
@@ -283,9 +284,14 @@ export async function removeBudgetLineAction(formData: FormData): Promise<void> 
   const eventId = String(formData.get("eventId") ?? "");
   const lineId = String(formData.get("lineId") ?? "");
   if (!access || !isValidId(eventId) || !isValidId(lineId)) return;
-  await removeBudgetLine(access.organizationId, eventId, lineId).catch((error: unknown) => {
-    if (!(error instanceof BudgetLineNotFoundError)) throw error;
-  });
+  const removed = await removeBudgetLine(access.organizationId, eventId, lineId).then(
+    () => true,
+    (error: unknown) => {
+      if (!(error instanceof BudgetLineNotFoundError)) throw error;
+      return false;
+    },
+  );
+  if (removed) await offerUndo({ kind: "budgetLine", id: lineId });
   refresh(eventId);
 }
 

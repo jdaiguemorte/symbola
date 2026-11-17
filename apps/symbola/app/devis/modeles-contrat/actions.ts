@@ -3,6 +3,7 @@
 // Lot 31b (FAC-04, HUB-21, HUB-26, JUR-20 ; D7, D10, partie N) — modèles de contrat : créer,
 // modifier le titre et la date de revue, ajouter, modifier, déplacer et supprimer les clauses,
 // dupliquer, supprimer, ajouter le modèle de départ. Session planner et organisation vérifiées.
+import { offerUndo } from "@/lib/undo";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -127,6 +128,7 @@ export async function duplicateContractTemplateAction(_prev: ContractTemplateFor
 export async function removeContractTemplateAction(formData: FormData): Promise<void> {
   const result = await run(formData, "templateId", async (organizationId, templateId) => {
     await removeContractTemplate(organizationId, templateId);
+    await offerUndo({ kind: "contractTemplate", id: templateId });
   });
   if (result.success) redirect("/devis/modeles-contrat");
 }

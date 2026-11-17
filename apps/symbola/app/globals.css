@@ -3284,6 +3284,10 @@
   .undo-notice .button-ghost {
     @apply !text-on-primary underline;
   }
+  /* Lot 39a (UX-07) : « Voir la corbeille », lisible sur le fond sombre du bandeau. */
+  .undo-notice a {
+    @apply text-on-primary underline;
+  }
 }
 
 @layer components {

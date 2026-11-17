@@ -183,14 +183,14 @@ test("L21-EVT-21 — Programme du jour J : la liste des modèles, puis le détai
   // Le panneau de modification se ferme à l'enregistrement.
   await expect(page.getByRole("complementary", { name: /^Modifier « / })).toHaveCount(0);
 
-  // Renommer, puis supprimer le modèle après confirmation.
+  // Renommer, puis supprimer le modèle (lot 39a : à la corbeille, « Annuler » proposé, sans confirmation).
   await page.getByRole("link", { name: "Renommer" }).click();
   await page.getByRole("complementary", { name: "Renommer le modèle" }).getByLabel("Nom du modèle de programme").fill("Mariage laïque");
   await page.getByRole("button", { name: "Enregistrer le nom" }).click();
   await expect(page.getByRole("heading", { name: "Mariage laïque", level: 1 })).toBeVisible();
-  await page.getByRole("button", { name: "Supprimer ce modèle…" }).click();
-  await page.getByRole("dialog", { name: "Supprimer le modèle « Mariage laïque » ?" }).getByRole("button", { name: "Supprimer le modèle" }).click();
+  await page.getByRole("button", { name: "Supprimer ce modèle" }).click();
   await expect(page).toHaveURL(/\/events\/modeles-programme$/);
+  await expect(page.getByRole("status").filter({ hasText: "Modèle mis à la corbeille." })).toBeVisible();
   await expect(page.getByText("Aucun modèle de programme pour l'instant.")).toBeVisible();
 });
 

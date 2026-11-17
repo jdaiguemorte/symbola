@@ -1,6 +1,7 @@
 "use server";
 
 // PRD-EVT-05 — actions du programme du jour J sur la fiche d'un événement.
+import { offerUndo } from "@/lib/undo";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
@@ -172,6 +173,7 @@ export async function removeProgramItemAction(formData: FormData): Promise<void>
   const itemId = String(formData.get("itemId") ?? "");
   if (!isValidId(eventId) || !isValidId(itemId)) return;
   await removeProgramItem(access.organizationId, itemId);
+  await offerUndo({ kind: "programItem", id: itemId });
   revalidatePath(`/events/${eventId}`);
 }
 

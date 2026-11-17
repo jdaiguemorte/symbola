@@ -3,6 +3,7 @@
 // PRD-EVT-04 — modèles de rétroplanning de l'organisation. Lot 21 (L21-EVT-22) : la
 // liste des modèles, puis le détail d'un modèle ; une tâche se modifie sans
 // être recréée, un modèle se renomme.
+import { offerUndo } from "@/lib/undo";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -143,6 +144,7 @@ export async function removeTaskTemplateAction(formData: FormData): Promise<void
   const templateId = String(formData.get("templateId") ?? "");
   if (!isValidId(templateId)) return;
   await removeTaskTemplate(organizationId, templateId);
+  await offerUndo({ kind: "taskTemplate", id: templateId });
   revalidatePath(PATH);
   redirect(PATH);
 }

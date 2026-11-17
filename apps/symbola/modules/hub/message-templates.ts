@@ -7,6 +7,7 @@
 import { and, asc, desc, eq, isNull, or } from "drizzle-orm";
 import { appDatabase } from "@symbola/db/client";
 import { messageTemplates, messageTemplateVersions } from "@symbola/db/schema/hub";
+import { inTrash, markDeleted } from "@symbola/db/soft-delete";
 import { withOrganization } from "@symbola/db/with-organization";
 import type { EmailLocale, EmailTemplateText, EmailValues, MessageTemplateDetail, MessageTemplateSummary } from "@symbola/contracts";
 import { starterMessageTemplates } from "@symbola/starter-templates";
@@ -117,8 +118,11 @@ export async function duplicateMessageTemplate(input: { organizationId: string; 
   return createMessageTemplate({ organizationId: input.organizationId, locale: detail.locale, name: input.name.slice(0, MESSAGE_TEMPLATE_NAME_MAX), eventTypeId: detail.eventTypeId, subject: detail.subject, body: detail.body });
 }
 
+// Lot 39a (HUB-17, UX-07 ; ADR 0073) : le modèle va à la corbeille avec ses versions ; la purge l'efface.
 export async function deleteMessageTemplate(organizationId: string, templateId: string): Promise<void> {
-  const removed = await withOrganization(appDatabase(), organizationId, (tx) => tx.delete(messageTemplates).where(eq(messageTemplates.id, templateId)).returning({ id: messageTemplates.id }));
+  const removed = await inTrash(organizationId, (tx) =>
+    tx.update(messageTemplates).set(markDeleted()).where(and(eq(messageTemplates.id, templateId), isNull(messageTemplates.deletedAt))).returning({ id: messageTemplates.id }),
+  );
   if (removed.length === 0) throw new MessageTemplateNotFoundError();
 }
 

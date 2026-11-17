@@ -2,6 +2,7 @@
 
 // Lot 12 (L12-EVT-15) — lieux de l'événement : ajout et retrait. Lot 34b (EVT-03, D10) : chaque lieu
 // porte adresse, ville, horaires et contact ; le premier de la liste est le lieu de réception.
+import { offerUndo } from "@/lib/undo";
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { addEventPlace, EventPlaceEventNotFoundError, EventPlaceNotFoundError, makeEventReceptionPlace, removeEventPlace, updateEventPlace } from "@/modules/events/service";
@@ -87,5 +88,6 @@ export async function removePlaceAction(formData: FormData): Promise<void> {
   const placeId = String(formData.get("placeId") ?? "");
   if (!organizationId || !isValidId(eventId) || !isValidId(placeId)) return;
   await removeEventPlace(organizationId, eventId, placeId);
+  await offerUndo({ kind: "place", id: placeId });
   revalidatePath(`/events/${eventId}`);
 }
