@@ -6,7 +6,7 @@
 // écran.
 import { randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
-import AxeBuilder from "@axe-core/playwright";
+import AxeBuilder from "./axe";
 import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";

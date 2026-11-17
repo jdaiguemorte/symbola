@@ -6,7 +6,7 @@
 // Lot 16 (IMP-11, IMP-12) : le même parcours dans l'assistant linéaire.
 import { randomUUID } from "node:crypto";
 import path from "node:path";
-import AxeBuilder from "@axe-core/playwright";
+import AxeBuilder from "./axe";
 import { createAppConnection } from "@symbola/db/client";
 import { vendors, vendorTypes } from "@symbola/db/schema/vendors";
 import { withOrganization } from "@symbola/db/with-organization";

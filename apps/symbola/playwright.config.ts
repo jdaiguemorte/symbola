@@ -3,6 +3,13 @@
 // Garage, ClamAV) démarré — docker-compose.dev.yml.
 import { defineConfig, devices } from "@playwright/test";
 
+// Lot 40c (NFR-18, NFR-19 ; décisions D17, D18 ; ADR 0078) : les parcours des scénarios du cahier des
+// charges tournent aussi sous Firefox et WebKit (moteur de Safari), à 360 et à 1 920 px ; SC-10 est
+// joué à 150 % (fenêtre de 1 280 × 800 réduite d'autant). Le reste de la suite reste sous Chromium,
+// qui couvre aussi Edge.
+const SCENARIO_SPECS = /(sc-01-sc-10-demarrage|hub-08-sc-03-lundi-matin|hub-14-sc-10-contacts|fac-01-07-devis-complet|fac-04-05-contrat|por-02-05-portail-client|jrj-01-03-mode-jour-j|jrj-04-documents-embarques|ux-09-nfr-16-saisie|imp-09-reprise)\.spec\.ts$/;
+const SC10_SPECS = /(sc-01-sc-10-demarrage|hub-14-sc-10-contacts)\.spec\.ts$/;
+
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: true,
@@ -39,6 +46,11 @@ export default defineConfig({
       name: "mobile-375",
       use: { viewport: { width: 375, height: 812 } },
     },
+    { name: "firefox", testMatch: SCENARIO_SPECS, use: { ...devices["Desktop Firefox"] } },
+    { name: "webkit", testMatch: SCENARIO_SPECS, use: { ...devices["Desktop Safari"] } },
+    { name: "mobile-360", testMatch: SCENARIO_SPECS, use: { viewport: { width: 360, height: 780 } } },
+    { name: "desktop-1920", testMatch: SCENARIO_SPECS, use: { ...devices["Desktop Chrome"], viewport: { width: 1920, height: 1080 } } },
+    { name: "zoom-150", testMatch: SC10_SPECS, use: { ...devices["Desktop Chrome"], viewport: { width: 853, height: 533 } } },
   ],
   // En CI : la version compilée (`next build`), démarrée par
   // E2E_SERVER_COMMAND avec NODE_ENV=test, qui autorise le faux fournisseur

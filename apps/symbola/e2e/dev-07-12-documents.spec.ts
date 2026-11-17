@@ -5,7 +5,7 @@
 // en 375 px, axe-core sur chaque écran. Les copies figées (DEV-12) sont
 // couvertes par modules/quotes/documents.integration.test.ts.
 import { randomUUID } from "node:crypto";
-import AxeBuilder from "@axe-core/playwright";
+import AxeBuilder from "./axe";
 import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";

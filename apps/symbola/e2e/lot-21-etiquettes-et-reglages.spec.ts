@@ -6,7 +6,7 @@
 // liste puis détail (L21-EVT-21), modes de paiement activables (DEV-13), groupes
 // lisibles dans le menu (L21-HUB-29). En taille ordinateur et en 375 px, axe-core.
 import { randomUUID } from "node:crypto";
-import AxeBuilder from "@axe-core/playwright";
+import AxeBuilder from "./axe";
 import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";

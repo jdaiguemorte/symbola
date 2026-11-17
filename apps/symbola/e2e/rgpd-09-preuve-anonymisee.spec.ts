@@ -4,7 +4,7 @@
 // « [anonymisé] », dates et journal gardés. En taille ordinateur et en 375 px,
 // axe-core.
 import { randomUUID } from "node:crypto";
-import AxeBuilder from "@axe-core/playwright";
+import AxeBuilder from "./axe";
 import { createAppConnection } from "@symbola/db/client";
 import { privacyRequests } from "@symbola/db/schema/hub";
 import { withOrganization } from "@symbola/db/with-organization";
