@@ -2,6 +2,7 @@
 // planner, pour tous les évènements ou pour un type ; les deux modèles de départ s'ajoutent d'un
 // geste ; un nouveau modèle se crée ici. Demande le module Évènements (CLAUDE.md § 2.2).
 import Link from "next/link";
+import { EmptyState } from "@/app/ui/empty-state";
 import { getLocale, getTranslations } from "next-intl/server";
 import { ScreenHelp } from "@/app/screen-help";
 import { PageHeader } from "@/app/ui/page-header";
@@ -37,7 +38,8 @@ export default async function MessageTemplatesPage({ searchParams }: { searchPar
       <PageHeader title={t("title")} subtitle={t("subtitle")} />
       <ScreenHelp title={tHelp("messageTemplates.title")} body={tHelp("messageTemplates.body")} />
       {added !== undefined && /^\d+$/.test(added) ? <p role="status">{t("startersAdded", { count: Number(added) })}</p> : null}
-      {templates.length === 0 ? <p>{t("empty")}</p> : null}
+      {/* Lot 39c (UX-08) : l'écran vide enseigne. */}
+      {templates.length === 0 ? <EmptyState screen="messageTemplates" title={t("empty")} actionHref="#modeles-de-depart" /> : null}
       {templates.length > 0 ? (
         <ul className="item-list" aria-label={t("title")}>
           {templates.map((template) => (
@@ -56,7 +58,7 @@ export default async function MessageTemplatesPage({ searchParams }: { searchPar
           ))}
         </ul>
       ) : null}
-      <form action={addStarterMessageTemplatesAction}>
+      <form action={addStarterMessageTemplatesAction} id="modeles-de-depart">
         <button type="submit" className="button-ghost">
           {t("addStarters")}
         </button>

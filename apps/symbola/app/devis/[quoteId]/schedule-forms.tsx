@@ -1,6 +1,7 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
+import { FreeTextNotice } from "@/app/ui/free-text-notice";
 import type { PaymentMethod, ScheduleItemView } from "@/modules/quotes/service";
 import { formatDecimal } from "../decimal-input";
 import { QuoteActionForm } from "./quote-forms";
@@ -115,6 +116,7 @@ export function MarkUnpaidForm({ quoteId, item }: { quoteId: string; item: Sched
       {/* Lot 23b (D2) : motif obligatoire, gardé avec l'écriture inverse. */}
       <label htmlFor={`reason-${item.id}`}>{t("reversalReason")}</label>
       <input id={`reason-${item.id}`} type="text" name="reason" required maxLength={300} />
+      <FreeTextNotice />
     </QuoteActionForm>
   );
 }

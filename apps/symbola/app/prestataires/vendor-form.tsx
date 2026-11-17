@@ -3,6 +3,7 @@
 // Lot 11 (L11-PRE-01 / L11-PRE-02) — fiche d'un prestataire : coordonnées, type et
 // ses champs, étiquettes, note interne. Les champs suivent le type choisi.
 import { useActionState, useState } from "react";
+import { FreeTextNotice } from "@/app/ui/free-text-notice";
 import { DraftKeeper } from "@/app/ui/draft-keeper";
 import { useTranslations } from "next-intl";
 import { VENDOR_SOCIAL_NETWORKS } from "@symbola/contracts";
@@ -240,6 +241,7 @@ export function VendorForm({
         {t("internalNote")}
         <textarea name="internalNote" rows={3} defaultValue={vendor?.internalNote ?? ""} />
       </label>
+      <FreeTextNotice />
       <p className="muted">{t("internalNoteHint")}</p>
       <button type="submit" disabled={pending}>
         {vendor ? t("save") : t("create")}

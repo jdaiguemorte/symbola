@@ -2,6 +2,7 @@
 // décision 3) : la liste des modèles ; un clic ouvre le détail. « Nouveau
 // modèle » demande le nom dans le panneau latéral, puis ouvre le modèle créé.
 import Link from "next/link";
+import { EmptyState } from "@/app/ui/empty-state";
 import { ChevronRight, Plus } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { ScreenHelp } from "@/app/screen-help";
@@ -47,7 +48,8 @@ export default async function ProgramTemplatesPage({ searchParams }: { searchPar
       <p>{t("programTemplatesIntro")}</p>
 
       {templates.length === 0 ? (
-        <p>{t("noProgramTemplates")}</p>
+        // Lot 39c (UX-08) : l'écran vide enseigne.
+        <EmptyState screen="programTemplates" title={t("noProgramTemplates")} actionHref={`${PATH}?nouveau=1`} />
       ) : (
         <ul className="template-list" aria-label={t("programTemplatesTitle")}>
           {templates.map((template) => {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
+import { FreeTextNotice } from "@/app/ui/free-text-notice";
 import { useTranslations } from "next-intl";
 import { Pencil } from "lucide-react";
 import type { EventVendorSlot, ProgramItem, ProgramTemplate } from "@/modules/events/service";
@@ -151,6 +152,7 @@ function ProgramItemFields({
         {t("programInternalNote")}
         <textarea name="internalNote" value={draft.internalNote} onChange={set("internalNote")} />
       </label>
+      <FreeTextNotice />
     </>
   );
 }

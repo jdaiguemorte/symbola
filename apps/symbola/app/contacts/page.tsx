@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { EmptyState } from "@/app/ui/empty-state";
 import { getTranslations } from "next-intl/server";
 import { ScreenHelp } from "@/app/screen-help";
 import { ListRow, ListTable } from "@/app/ui/list-table";
@@ -45,13 +46,18 @@ export default async function ContactsPage({ searchParams }: { searchParams: Pro
         <button type="submit">{t("searchSubmit")}</button>
       </form>
 
-      <details className="card">
+      <details className="card" id="nouveau-contact" open={result.contacts.length === 0 && !search}>
         <summary>{t("newTitle")}</summary>
         <NewContactForm />
       </details>
 
       {result.contacts.length === 0 ? (
-        <p>{search ? t("noResults") : t("empty")}</p>
+        search ? (
+          <p>{t("noResults")}</p>
+        ) : (
+          // Lot 39c (UX-08) : l'écran vide enseigne.
+          <EmptyState screen="contacts" title={t("empty")} actionHref="#nouveau-contact" />
+        )
       ) : (
         <ListTable
           label={t("listLabel")}

@@ -2,6 +2,7 @@
 // un devis type se crée en moins de cinq minutes. Modifier un modèle ne change aucun devis
 // déjà créé (il garde la version dont il vient). Le modèle de départ est « à adapter ».
 import Link from "next/link";
+import { EmptyState } from "@/app/ui/empty-state";
 import { getLocale, getTranslations } from "next-intl/server";
 import type { Locale } from "@symbola/i18n";
 import { ScreenHelp } from "@/app/screen-help";
@@ -39,10 +40,8 @@ export default async function QuoteTemplatesPage() {
         {t("templateAdaptWarning")}
       </p>
       {templates.length === 0 ? (
-        <section aria-labelledby="no-templates-title">
-          <h2 id="no-templates-title">{t("noTemplatesTitle")}</h2>
-          <p>{t("noTemplatesHint")}</p>
-        </section>
+        // Lot 39c (UX-08) : l'écran vide enseigne.
+        <EmptyState screen="quoteTemplates" title={t("noTemplatesTitle")} actionHref="#modeles-de-depart" />
       ) : (
         <ul className="item-list" aria-label={t("templatesTitle")}>
           {templates.map((template) => (
@@ -68,7 +67,7 @@ export default async function QuoteTemplatesPage() {
           ))}
         </ul>
       )}
-      <form action={addStarterTemplatesAction}>
+      <form action={addStarterTemplatesAction} id="modeles-de-depart">
         <button type="submit">{t("addStarterTemplates")}</button>
       </form>
       <p className="meta">

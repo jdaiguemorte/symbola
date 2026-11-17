@@ -3,6 +3,7 @@
 // modèles), qui l'a supprimé, quand la purge l'effacera ; « Restaurer » pour toute l'équipe,
 // « Supprimer définitivement » (confirmé, l'objet nommé) pour la titulaire seule.
 import { getLocale, getTranslations } from "next-intl/server";
+import { EmptyState } from "@/app/ui/empty-state";
 import { listTeam } from "@symbola/auth";
 import { trashPurgeDate } from "@symbola/contracts";
 import { appDatabase } from "@symbola/db/client";
@@ -35,7 +36,8 @@ export default async function TrashPage({ searchParams }: { searchParams: Promis
       <PageHeader title={t("title")} subtitle={t("subtitle")} />
       <ScreenHelp title={tHelp("trash.title")} body={tHelp("trash.body")} />
       {outcome ? <p role={outcome === "rendu" || outcome === "efface" ? "status" : "alert"}>{t(`outcome.${outcome}`)}</p> : null}
-      {items.length === 0 ? <p>{t("empty")}</p> : null}
+      {/* Lot 39c (UX-08) : l'écran vide enseigne. */}
+      {items.length === 0 ? <EmptyState screen="trash" title={t("empty")} actionHref="/" /> : null}
       {items.length > 0 ? (
         <ul className="item-list" aria-label={t("title")}>
           {items.map((item) => {

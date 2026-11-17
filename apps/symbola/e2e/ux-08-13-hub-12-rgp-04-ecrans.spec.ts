@@ -1,0 +1,105 @@
+// Lot 39c (UX-08, UX-13, HUB-12, RGP-04 ; décisions D11 à D14) — des écrans qui guident : l'écran vide
+// enseigne (action, exemple, aide) ; ⌘K propose aussi des actions ; « ? » ouvre l'aide de l'écran ; un
+// champ libre porte sa mise en garde. Ordinateur et 375 px, axe-core.
+import { randomUUID } from "node:crypto";
+import AxeBuilder from "@axe-core/playwright";
+import { expect, test, type Page } from "@playwright/test";
+import { createUser } from "@symbola/auth";
+import { createAppConnection } from "@symbola/db/client";
+import { createContact } from "../modules/hub/service";
+import { readyOrganization, signIn } from "./helpers";
+
+async function expectNoAxeViolation(page: Page) {
+  const result = await new AxeBuilder({ page }).analyze();
+  expect(result.violations, JSON.stringify(result.violations, null, 2)).toEqual([]);
+}
+
+async function atelierVide() {
+  const email = `planner-ux08-${randomUUID()}@symbola.test`;
+  const { sql, db } = createAppConnection();
+  try {
+    const organization = await readyOrganization(db, `Atelier ${randomUUID().slice(0, 6)}`);
+    await createUser(db, { organizationId: organization.id, email, role: "owner" });
+    return { email, organizationId: organization.id };
+  } finally {
+    await sql.end();
+  }
+}
+
+test("UX-08 — l'écran vide enseigne : une action principale, un exemple, l'aide", async ({ page }) => {
+  test.setTimeout(120_000);
+  const setup = await atelierVide();
+  await signIn(page, setup.email, /\/$/);
+
+  await page.goto("/contacts");
+  const contacts = page.getByRole("region", { name: "Aucun contact pour l'instant. Les clients de vos évènements deviennent des contacts." });
+  await expect(contacts).toBeVisible();
+  await expect(contacts.getByText("Par exemple : Léa Martin, ou la Maison Haddad.")).toBeVisible();
+  await expect(contacts.getByRole("link", { name: "Lire l'aide" })).toHaveAttribute("href", "/aide");
+  await expect(contacts.getByRole("link", { name: "Ajouter un contact" })).toBeVisible();
+  await expectNoAxeViolation(page);
+
+  await page.goto("/events");
+  const events = page.getByRole("region", { name: "Aucun évènement pour l'instant" });
+  await expect(events).toBeVisible();
+  await events.getByRole("link", { name: "Créer un évènement" }).click();
+  await expect(page).toHaveURL(/\/events\/new$/);
+
+  await page.goto("/parametres/corbeille");
+  await expect(page.getByRole("region", { name: "La corbeille est vide." })).toBeVisible();
+  await expectNoAxeViolation(page);
+
+  await page.goto("/devis/encaissements");
+  const payments = page.getByRole("region", { name: "Aucune échéance à encaisser." });
+  await expect(payments.getByRole("link", { name: "Voir les devis" })).toHaveAttribute("href", "/devis");
+  await expectNoAxeViolation(page);
+});
+
+test("UX-15 — un écran qui tarde laisse place à son squelette, puis à l'écran", async ({ page }) => {
+  test.setTimeout(120_000);
+  const setup = await atelierVide();
+  await signIn(page, setup.email, /\/$/);
+  await page.goto("/events");
+  await page.waitForLoadState("networkidle");
+  // L'écran visé tarde d'une seconde et demie.
+  await page.route(/\/events\/new\?_rsc=/, async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 1_500));
+    await route.continue();
+  });
+  await page.getByRole("region", { name: "Aucun évènement pour l'instant" }).getByRole("link", { name: "Créer un évènement" }).click();
+  const skeleton = page.locator("main[aria-busy='true']");
+  await expect(skeleton).toBeVisible();
+  await expect(skeleton.getByRole("status")).toHaveText("Chargement de la page…");
+  // L'écran courant laisse sa place : un seul contenu principal à la fois.
+  await expect(page.getByRole("main")).toHaveCount(1);
+  await expect(page.getByRole("heading", { level: 1, name: "Nouveau prospect" })).toBeVisible();
+  await expect(skeleton).toHaveCount(0);
+});
+
+test("HUB-12 — ⌘K propose aussi des actions, filtrées par les modules souscrits", async ({ page }) => {
+  test.setTimeout(120_000);
+  const setup = await atelierVide();
+  await signIn(page, setup.email, /\/$/);
+  const search = page.getByRole("search", { name: "Recherche dans Symbola" }).getByRole("combobox", { name: "Rechercher" });
+  await search.click();
+  await search.fill("corbeille");
+  const option = page.getByRole("option", { name: /Ouvrir la corbeille/ });
+  await expect(option).toBeVisible();
+  await expect(page.getByRole("group", { name: "Actions" })).toBeVisible();
+  await search.press("ArrowDown");
+  await search.press("Enter");
+  await expect(page).toHaveURL(/\/parametres\/corbeille$/);
+});
+
+test("UX-13 et RGP-04 — « ? » ouvre l'aide de l'écran ; une note de contact porte la mise en garde", async ({ page }) => {
+  test.setTimeout(120_000);
+  const setup = await atelierVide();
+  const contact = await createContact(setup.organizationId, { firstName: "Rose", lastName: "Fleuriste" });
+  await signIn(page, setup.email, /\/$/);
+  await page.goto(`/contacts/${contact.id}`);
+  await expect(page.getByRole("form", { name: "Ajouter la note" }).getByText("Ne notez ici ni donnée de santé, ni opinion, ni religion : ce champ peut être lu par votre équipe et exporté.")).toBeVisible();
+
+  const help = page.getByRole("button", { name: "Aide sur cet écran" });
+  await page.locator("body").press("?");
+  await expect(help).toHaveAttribute("aria-expanded", "true");
+});

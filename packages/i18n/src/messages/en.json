@@ -6425,5 +6425,109 @@
     "keepMine": "Keep my version",
     "takeTheirs": "Take the saved version",
     "empty": "(empty)"
+  },
+  "EmptyStates": {
+    "moreHelp": "Read the help",
+    "events": {
+      "title": "No event yet",
+      "help": "An event starts as a prospect: its clients, its date if known, its type. Its planning and budget prepare themselves, according to the type.",
+      "example": "For example: Léa and Maxime's wedding, on 12 June 2027, at Domaine des Tilleuls.",
+      "action": "Create an event"
+    },
+    "tasks": {
+      "title": "No task yet",
+      "help": "Tasks come with an event's planning, or are added from its record. Each has its due date, counted from the event date.",
+      "example": "For example: \"Send the invitations\", six weeks before the day.",
+      "action": "See the events"
+    },
+    "contacts": {
+      "title": "No contact yet",
+      "help": "A contact exists only once in the organisation: event clients, households, companies. Add one here, or import your contacts file.",
+      "example": "For example: Léa Martin, or Maison Haddad.",
+      "action": "Add a contact"
+    },
+    "vendors": {
+      "title": "No supplier in the book",
+      "help": "The book keeps your trusted suppliers: details, prices, notes. You then suggest them on each event, slot by slot.",
+      "example": "For example: the caterer Maison Haddad, in Lille.",
+      "action": "Add a supplier"
+    },
+    "quotes": {
+      "title": "No quote yet",
+      "help": "A quote starts from an event: open its record, Quotes tab, and start from a template or the catalogue. It stays a draft until you send it.",
+      "example": "For example: \"Day-of coordination\", one package.",
+      "action": "See the events"
+    },
+    "documents": {
+      "title": "No document for this event",
+      "help": "Seating plan, access maps, rain plan: drop them here, sort them into folders, share them with clients or suppliers.",
+      "example": "For example: the seating plan, as a PDF.",
+      "action": "Upload a document"
+    },
+    "taskTemplates": {
+      "title": "No planning template",
+      "help": "A planning template creates an event's tasks in one go, each a number of days from the date.",
+      "example": "For example: \"Wedding\", from D-365 to D+7.",
+      "action": "Create a template"
+    },
+    "programTemplates": {
+      "title": "No programme template",
+      "help": "A programme template lays out the sequences of an event's day in one go; you adjust them afterwards.",
+      "example": "For example: \"Civil wedding\", from the ceremony to the party.",
+      "action": "Create a template"
+    },
+    "quoteTemplates": {
+      "title": "No quote template",
+      "help": "A quote template keeps your usual lines, sections and instalments: a new quote starts from it.",
+      "example": "For example: \"Full coordination\", three sections.",
+      "action": "Create a template"
+    },
+    "messageTemplates": {
+      "title": "No message template",
+      "help": "Your standard messages to clients, filled from the event record: you review them, then your mailbox sends them.",
+      "example": "For example: \"Suggest a meeting\".",
+      "action": "Add the starter templates"
+    },
+    "payments": {
+      "title": "No instalment to collect",
+      "help": "Instalments come with the payment schedule of a signed quote: deposit, balance or several payments. Late ones come first, the others are grouped by month.",
+      "example": "For example: the 30% deposit on Léa and Maxime's quote, due on signature.",
+      "action": "See the quotes"
+    },
+    "trash": {
+      "title": "The trash is empty",
+      "help": "What you delete stays here for 30 days, ready to come back as it was.",
+      "example": "For example: an event deleted by mistake, with all its content.",
+      "action": "Back to home"
+    }
+  },
+  "FreeText": {
+    "notice": "Do not write health data, opinions or religion here: this field can be read by your team and exported."
+  },
+  "Loading": {
+    "label": "Loading the page…"
+  },
+  "Palette": {
+    "group": "Actions",
+    "detail": "Action",
+    "actions": {
+      "newEvent": "Create an event",
+      "contacts": "Add a contact",
+      "newVendor": "Add a supplier",
+      "quotes": "See quotes and invoices",
+      "tasks": "See tasks",
+      "today": "Go to Today",
+      "settings": "Go to Settings",
+      "trash": "Open the trash",
+      "help": "Open the help",
+      "import": "Import a file"
+    }
+  },
+  "Shortcuts": {
+    "title": "Keyboard shortcuts",
+    "search": "⌘K or Ctrl K: search, or run an action (\"create\", \"trash\"…).",
+    "create": "N: create (event, task, expense, quote), from any screen.",
+    "close": "Esc: close the open panel or window.",
+    "help": "?: open the screen's help."
   }
 }

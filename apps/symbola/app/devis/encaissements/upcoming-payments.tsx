@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { formatAmount, formatCalendarDate, formatMonth, type Locale } from "@symbola/i18n";
 import { getEvent } from "@/modules/events/service";
 import type { UnpaidPayment, UnpaidPaymentsView } from "@/modules/quotes/service";
+import { EmptyState } from "@/app/ui/empty-state";
 import { OVERDUE_CLASS } from "../quote-display";
 
 // DEV-03 — liste des échéances non payées (retards en tête, puis à venir
@@ -40,7 +41,10 @@ export async function UpcomingPayments({
     </li>
   );
 
-  if (view.overdue.length === 0 && view.upcoming.length === 0) return <p>{t("noUnpaidPayments")}</p>;
+  // Lot 39c (UX-08) : sur l'écran, l'écran vide enseigne ; le bloc du tableau de bord reste court.
+  if (view.overdue.length === 0 && view.upcoming.length === 0) {
+    return headingLevel === 2 ? <EmptyState screen="payments" title={t("noUnpaidPayments")} actionHref="/devis" /> : <p>{t("noUnpaidPayments")}</p>;
+  }
 
   return (
     <>

@@ -5,6 +5,7 @@
 // s'aperçoit dans un onglet du navigateur, sans téléchargement (« ?apercu=1 ») : l'app refuse
 // d'être encadrée (X-Frame-Options DENY), il n'y a donc pas d'aperçu dans un cadre.
 import { getTranslations } from "next-intl/server";
+import { EmptyState } from "@/app/ui/empty-state";
 import { formatDateTime, formatFileSize, type Locale } from "@symbola/i18n";
 import type { EventDocument, EventDocumentFolder, EventDocumentShareLink, EventDocumentVersion } from "@symbola/contracts";
 import { DOCUMENT_LINK_MAX_DAYS, DOCUMENT_LINK_MIN_DAYS, listEventDocumentFolders, listEventDocumentLinksOfEvent, listEventDocumentVersionsOfEvent } from "@/modules/events/service";
@@ -92,7 +93,9 @@ export async function DocumentsTab({ eventId, organizationId, locale, documents,
       <p>{t("intro")}</p>
 
       <h3>{t("addTitle")}</h3>
-      <EventDocumentUploadForm eventId={eventId} folders={folderOptions} />
+      <div id="deposer-un-document">
+        <EventDocumentUploadForm eventId={eventId} folders={folderOptions} />
+      </div>
 
       <details className="document-folders">
         <summary>{t("foldersTitle", { count: folders.length })}</summary>
@@ -116,7 +119,8 @@ export async function DocumentsTab({ eventId, organizationId, locale, documents,
         ) : null}
       </details>
 
-      {documents.length === 0 ? <p>{t("empty")}</p> : null}
+      {/* Lot 39c (UX-08) : l'écran vide enseigne. */}
+      {documents.length === 0 ? <EmptyState screen="documents" title={t("empty")} actionHref="#deposer-un-document" /> : null}
       {groups
         .filter((group) => group.folder !== null || group.documents.length > 0)
         .map((group) => {

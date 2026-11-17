@@ -5,7 +5,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { formatCalendarDate, formatMonth, type Locale } from "@symbola/i18n";
 import { monthKey, type EventTask } from "@/modules/events/service";
-import { toggleEventTaskAction } from "@/app/events/[id]/task-actions";
+import { TaskCheck } from "./task-check";
 import { RESPONSIBLE_LABEL_KEYS } from "@/app/events/[id]/task-responsible";
 
 export type TaskRow = EventTask & { event?: { id: string; names: string } };
@@ -64,22 +64,7 @@ export async function TaskTable({
               return (
                 <tr key={task.id} aria-current={task.id === selectedTaskId ? "true" : undefined}>
                   <td>
-                    <form action={toggleEventTaskAction} className="task-check">
-                      <input type="hidden" name="eventId" value={task.eventId} />
-                      <input type="hidden" name="taskId" value={task.id} />
-                      <input type="hidden" name="done" value={task.done ? "false" : "true"} />
-                      <button
-                        type="submit"
-                        aria-pressed={task.done}
-                        aria-label={task.done ? t("markTaskUndone", { label: task.label }) : t("markTaskDone", { label: task.label })}
-                      >
-                        {task.done ? (
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" aria-hidden="true">
-                            <path d="M5 12l5 5L20 7" />
-                          </svg>
-                        ) : null}
-                      </button>
-                    </form>
+                    <TaskCheck eventId={task.eventId} taskId={task.id} done={task.done} labelDone={t("markTaskDone", { label: task.label })} labelUndone={t("markTaskUndone", { label: task.label })} />
                   </td>
                   <th scope="row" className={task.done ? "done" : undefined}>
                     {editHref ? <Link href={editHref(task)}>{task.label}</Link> : task.label}

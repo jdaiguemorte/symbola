@@ -3,6 +3,7 @@
 // Lot 34b (CHR-02, D13) — dans le panneau d'une tâche : joindre un fichier, commenter. Réservés à
 // l'équipe (rien n'est partagé avec les tiers, POR-10).
 import { useActionState, useEffect, useId, useRef } from "react";
+import { FreeTextNotice } from "@/app/ui/free-text-notice";
 import { useTranslations } from "next-intl";
 import { useUploadAction } from "@/app/ui/use-upload";
 import type { UploadState } from "@/lib/uploads/state";
@@ -43,6 +44,7 @@ export function TaskCommentForm({ eventId, taskId }: { eventId: string; taskId: 
       <input type="hidden" name="taskId" value={taskId} />
       <label htmlFor={id}>{t("taskCommentLabel")}</label>
       <textarea id={id} name="body" maxLength={2000} required rows={3} />
+      <FreeTextNotice />
       <button type="submit" disabled={pending}>
         {t("taskCommentAdd")}
       </button>

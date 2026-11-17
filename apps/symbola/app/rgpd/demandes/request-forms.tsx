@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { FreeTextNotice } from "@/app/ui/free-text-notice";
 import { useTranslations } from "next-intl";
 import { createRequestAction, extendRequestAction, type RequestFormState } from "./actions";
 
@@ -52,6 +53,7 @@ export function ExtendRequestForm({ requestId, personLabel }: { requestId: strin
         {t("extensionReasonLabel", { person: personLabel })}
         <textarea name="reason" required maxLength={2000} rows={2} />
       </label>
+      <FreeTextNotice />
       <button type="submit" disabled={pending}>
         {t("extendRequest")}
       </button>

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { EmptyState } from "@/app/ui/empty-state";
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatCalendarDate, parisToday, type Locale } from "@symbola/i18n";
 import {
@@ -234,7 +235,8 @@ export default async function EventsListPage({
           </ListTable>
         </div>
       ) : null}
-      {!calendarView && items.length === 0 ? <p>{t("noResults")}</p> : null}
+      {/* Lot 39c (UX-08) : l'écran vide enseigne (action, exemple, aide). */}
+      {!calendarView && items.length === 0 ? counts.upcoming + counts.past === 0 ? <EmptyState screen="events" actionHref="/events/new" /> : <p>{t("noResults")}</p> : null}
       {/* Lot 32a (D3), 32b (D11) : l'agenda des mois à venir, en vue calendrier. */}
       {calendarView ? <AgendaBlock organizationId={organizationId} locale={locale} today={parisToday()} query={{ agenda, debut }} params={{ affichage: "calendrier" }} /> : null}
       {isPastTab ? null : <MonthlyLoad load={load} locale={locale} />}

@@ -2,6 +2,7 @@
 // cours (hors perdus et réalisés), en tableau, filtrables par état et par
 // responsable. Cocher une tâche ici la marque faite sur sa fiche.
 import { PageHeader } from "@/app/ui/page-header";
+import { EmptyState } from "@/app/ui/empty-state";
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import { parisToday, type Locale } from "@symbola/i18n";
@@ -83,7 +84,8 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
           </nav>
         </div>
         {calendar ? <TaskCalendar month={month} tasks={tasks} today={today} locale={locale} href={(next) => href({ mois: next })} /> : null}
-        {!calendar && tasks.length === 0 ? <p>{all.length === 0 && view !== "toutes" ? t("allTasksEmpty") : t("noTasksForFilter")}</p> : null}
+        {/* Lot 39c (UX-08) : l'écran vide enseigne. */}
+        {!calendar && tasks.length === 0 ? all.length === 0 && view !== "toutes" ? <EmptyState screen="tasks" title={t("allTasksEmpty")} actionHref="/events" /> : <p>{t("noTasksForFilter")}</p> : null}
         {!calendar && tasks.length > 0 ? (
           <TaskTable
             tasks={tasks}

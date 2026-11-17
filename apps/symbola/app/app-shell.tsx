@@ -48,6 +48,7 @@ import { QuickCreate } from "./creation-rapide/quick-create";
 import { HelpProvider } from "./help-context";
 import { UndoNotice } from "./undo-notice";
 import { NetworkStatus } from "./ui/network-status";
+import { NavigationSkeleton } from "./ui/navigation-skeleton";
 import { HelpButton } from "./help-button";
 import { OrganizationSwitcher } from "./organization-switcher";
 import { getHelpProgress } from "@/modules/hub/service";
@@ -151,6 +152,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
   const auth = await getAuthContext();
   const t = await getTranslations("Home");
   const tAide = await getTranslations("Aide");
+  const tLoading = await getTranslations("Loading");
 
   // Connexion, double authentification, invitation : pas de menu.
   if (auth.status !== "authenticated") {
@@ -186,6 +188,19 @@ export async function AppShell({ children }: { children: ReactNode }) {
     vendors = await isModuleEnabled(db, organizationId, "vendors");
   }
   const isOwner = auth.user.role === "owner" && Boolean(organizationId);
+  // Lot 39c (HUB-12, D12) : les actions de la palette ⌘K, selon les modules souscrits.
+  const tPalette = await getTranslations("Palette");
+  const paletteActions = [
+    ...(events ? [{ label: tPalette("actions.newEvent"), href: "/events/new" }, { label: tPalette("actions.tasks"), href: "/taches" }] : []),
+    { label: tPalette("actions.contacts"), href: "/contacts#nouveau-contact" },
+    ...(vendors ? [{ label: tPalette("actions.newVendor"), href: "/prestataires/nouveau" }] : []),
+    ...(quotes ? [{ label: tPalette("actions.quotes"), href: "/devis" }] : []),
+    { label: tPalette("actions.today"), href: "/" },
+    { label: tPalette("actions.settings"), href: "/parametres" },
+    { label: tPalette("actions.trash"), href: "/parametres/corbeille" },
+    { label: tPalette("actions.import"), href: "/import" },
+    { label: tPalette("actions.help"), href: "/aide" },
+  ];
   // Lot 18 (RGPD-07, décision D) : demandes RGPD en alerte (échéance proche ou
   // dépassée), signalées au menu ; la titulaire seule les traite.
   const privacyAlerts =
@@ -513,6 +528,8 @@ export async function AppShell({ children }: { children: ReactNode }) {
             <NetworkStatus />
             {/* Lot 39a (UX-07) : « Annuler » pendant dix secondes après une suppression. */}
             <UndoNotice />
+            {/* Lot 39c (UX-15) : squelette d'écran au passage d'un écran à l'autre. */}
+            <NavigationSkeleton label={tLoading("label")} />
             {children}
           </div>
         </HelpProvider>
@@ -650,7 +667,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
         <div className="app-main">
           {/* Lot 16 (L16-HUB-19, ADR 0039) : recherche à gauche, le seul « ? » à droite. */}
           <section className="app-topbar" aria-label={t("topBar")}>
-            {isTeam ? <SearchBox /> : null}
+            {isTeam ? <SearchBox actions={paletteActions} /> : null}
             {/* Lot 32b (HUB-07, D9) : création rapide, touche N ; ses entrées suivent les modules. */}
             {isTeam ? <QuickCreate modules={{ events, quotes, budget }} /> : null}
             <HelpButton />
@@ -668,6 +685,8 @@ export async function AppShell({ children }: { children: ReactNode }) {
           <NetworkStatus />
           {/* Lot 39a (UX-07) : « Annuler » pendant dix secondes après une suppression. */}
           <UndoNotice />
+          {/* Lot 39c (UX-15) : squelette d'écran au passage d'un écran à l'autre. */}
+          <NavigationSkeleton label={tLoading("label")} />
           {children}
         </div>
       </HelpProvider>
