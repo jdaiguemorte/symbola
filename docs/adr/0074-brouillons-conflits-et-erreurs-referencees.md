@@ -65,3 +65,21 @@ Camille ferme l'onglet, rouvre sur son téléphone et retrouve tout.
   à poser, une ligne à ajouter à l'action.
 - Une copie de la saisie peut rester dans le navigateur tant qu'elle n'a pas pu partir ; elle
   s'efface quand le brouillon est enregistré ou effacé (registre).
+
+## Avenant du 17/11/2026 — Squelettes d'écran sans `loading.tsx` (lot 39c, UX-15)
+
+La spécification du lot prévoyait des `loading.tsx` (squelettes rendus par Next.js). Avec
+Next 15.5, une limite de chargement placée au-dessus d'une page bloque la navigation qui suit une
+action serveur terminée par `redirect()` : le formulaire reste « en cours » et la page visée ne
+s'affiche jamais (création d'un évènement, essai guidé, corbeille… ; constaté sur tout le parcours
+bout en bout, qui repasse sans le fichier). Le routeur réutilise la réponse de l'action comme
+préchargement partiel et attend une suite qui ne vient pas.
+
+Décision : aucun `loading.tsx`. Le squelette naît dans le cadre de l'app
+(`app/ui/navigation-skeleton.tsx`) : au clic sur un lien interne vers un autre écran
+(`lib/navigation-target.ts`), si l'écran visé tarde plus de 80 ms, un squelette (titre, lignes,
+blocs) prend la place de l'écran courant, annoncé aux lecteurs d'écran ; il s'efface quand l'adresse
+change, ou au bout de dix secondes. Les envois de formulaire gardent leur bouton « en cours ».
+
+À revoir quand Next.js corrige ce comportement : revenir aux `loading.tsx` par écran, et retirer le
+composant.
