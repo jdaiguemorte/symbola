@@ -2160,7 +2160,7 @@ async function sendLinkCode(organizationId: string, context: LinkWithContext, no
   const minutes = Math.round(LINK_CODE_TTL_MS / 60_000);
   // Lot 38a (D3) : un texte fixe de Symbola, mis en page.
   const t = emailTranslator(locale);
-  await sendSymbolaEmail({ to: link.email, locale, subject: t("fixed.linkCode.subject", { code }), body: t("fixed.linkCode.body", { name: link.personName, code, minutes }) });
+  await sendSymbolaEmail({ to: link.email, locale, subject: t("fixed.linkCode.subject", { code }), body: t("fixed.linkCode.body", { name: link.personName, code, minutes }), organizationId });
   return { outcome: "code_required", emailHint, codeSent: true };
 }
 
@@ -2241,6 +2241,7 @@ async function notifyRenewalRequest(organizationId: string, context: LinkWithCon
       subject: t("fixed.renewalRequest.subject", { name: context.link.personName }),
       body: t("fixed.renewalRequest.body", { name: context.link.personName, url }),
       button: { label: t("fixed.renewalRequest.button"), url },
+      organizationId,
     });
   }
 }

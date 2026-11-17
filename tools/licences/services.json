@@ -18,6 +18,11 @@
     "aValider": "Même question que pour Documenso : AGPL-3.0 dans un service en ligne, sans modification, appelé par son API."
   },
   {
+    "image": "glitchtip/glitchtip",
+    "licence": "MIT",
+    "mode": "Suivi des erreurs (lot 40b, ADR 0077) : service séparé, sans modification ; l'app lui envoie des erreurs triées, sans donnée personnelle."
+  },
+  {
     "image": "louislam/uptime-kuma",
     "licence": "MIT",
     "mode": "Sonde de disponibilité, sans modification."

@@ -1948,13 +1948,15 @@ export async function sendQuoteForSignature(input: SendForSignatureInput): Promi
       try {
         // Lot 24b (SEC-22, décision D5) : au-delà du plafond de l'heure, l'e-mail
         // ne part pas ; la planner copie le lien depuis le devis. Lot 38a : le modèle de l'organisation.
-        await sendOrganizationEmail({
+        // Lot 40b (ARC-10) : un envoi immédiat en échec repart plus tard ; la planner le sait tout de suite.
+        const { deferred } = await sendOrganizationEmail({
           organizationId: input.organizationId,
           to: signer.email,
           kind: mailKind,
           locale: input.locale,
           values: { first_name: signer.name, quote_number: quote.number, ...(orderFirst ? {} : { link: signer.signingUrl }) },
         });
+        if (deferred) notMailed += 1;
       } catch (error) {
         // La demande existe chez le fournisseur : on n'annule rien, la
         // planner copie les liens depuis le devis (jamais l'adresse au journal).
@@ -2157,7 +2159,8 @@ async function confirmSignedQuote(organizationId: string, quoteId: string): Prom
   const link = `${env.APP_PUBLIC_URL}/devis/${quoteId}`;
   // Lot 38a (D3) : texte fixe de Symbola, dans la langue de la personne, mis en page.
   const t = createTranslator({ locale: contact.language, messages: contact.language === "en" ? enMessages : frMessages, namespace: "Emails.fixed.quoteSigned" });
-  await sendSymbolaEmail({ to: contact.email, locale: contact.language, subject: t("subject", { number: quote.number }), body: t("body", { number: quote.number, url: link }), button: { label: t("button"), url: link } });
+  // Lot 40b (ARC-10) : la signature peut être constatée deux fois (webhook, rapprochement) ; un seul e-mail.
+  await sendSymbolaEmail({ to: contact.email, locale: contact.language, subject: t("subject", { number: quote.number }), body: t("body", { number: quote.number, url: link }), button: { label: t("button"), url: link }, organizationId, idempotencyKey: `quote-signed:${quoteId}` });
 }
 
 // Document signé ou certificat de preuve de la version courante, lu dans le
@@ -3246,13 +3249,14 @@ export async function sendContractForSignature(input: SendContractForSignatureIn
     let notMailed = 0;
     for (const signer of signers) {
       try {
-        await sendOrganizationEmail({
+        const { deferred } = await sendOrganizationEmail({
           organizationId: input.organizationId,
           to: signer.email,
           kind: mailKind,
           locale: input.locale,
           values: { first_name: signer.name, quote_number: quote.number, ...(contract.regime.orderRequired ? {} : { link: signer.signingUrl }) },
         });
+        if (deferred) notMailed += 1;
       } catch (error) {
         notMailed += 1;
         console.error(`e-mail de signature du contrat non envoyé (signataire ${signer.id})`, error instanceof Error ? error.message : error);
@@ -3388,6 +3392,8 @@ async function mailSignedContract(organizationId: string, quote: QuoteAggregate[
         locale,
         values: { first_name: signer.name, quote_number: quote.number },
         attachments: [{ filename: `${quote.number}-signe.pdf`, content: signedPdf, contentType: "application/pdf" }],
+        // Lot 40b (ARC-10) : un seul exemplaire par signataire, même si la signature est rejouée.
+        idempotencyKey: `signed-copy:${quote.id}:${signer.id}`,
       });
     } catch (error) {
       console.error(`exemplaire signé non envoyé (signataire ${signer.id})`, error instanceof Error ? error.message : error);

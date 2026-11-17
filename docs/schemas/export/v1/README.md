@@ -43,6 +43,7 @@ Tables non exportées :
 - `storage_snapshots` — exploitation : relevé mensuel du stockage (nombres de fichiers et volumes)
 - `calendar_feeds` — secret : adresses des flux de calendrier (jetons hachés), propres à chaque personne
 - `form_drafts` — temporaire : brouillons de saisie, effacés à l'enregistrement et purgés après 30 jours
+- `jobs` — temporaire : e-mails en attente d'envoi ; contenu effacé à la fin, ligne purgée après 30 jours
 - `domain_events` — technique : événements internes entre modules
 - `domain_event_consumers` — technique : suivi des événements internes
 - `rate_limit_events` — exploitation : tentatives limitées

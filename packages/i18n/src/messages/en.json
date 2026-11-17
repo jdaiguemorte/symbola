@@ -2209,7 +2209,7 @@
     "csvPayment": "Payment",
     "csvTotal": "Total",
     "signingLinksHint": "A signer did not receive the e-mail? Send them their link above (right-click, “Copy link”). Each link is personal.",
-    "signatureLinksNotMailed": "The quote was sent for signature, but {count, plural, one {one e-mail could not be sent} other {# e-mails could not be sent}}. Copy the signing links shown on the quote and send them yourself.",
+    "signatureLinksNotMailed": "The quote was sent for signature, but {count, plural, one {one e-mail could not be sent right away} other {# e-mails could not be sent right away}}. If needed, copy the signing links shown on the quote and send them yourself.",
     "signatureServiceDown": "The signature service is not responding right now. Nothing was sent: please try again in a few minutes.",
     "allQuotesTitle": "Quotes and invoices",
     "allQuotesIntro": "All your quotes; open one to send it, have it signed and invoice it.",
@@ -3091,7 +3091,8 @@
       "vendor": "Vendor book entry",
       "vendor_candidate": "Consulted vendor",
       "vendor_payment": "Vendor payment",
-      "form_draft": "Unsaved draft"
+      "form_draft": "Unsaved draft",
+      "email_job": "Email waiting to be sent"
     },
     "field": {
       "firstName": "First name",

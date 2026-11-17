@@ -953,6 +953,47 @@ export const formDrafts = hubSchema.table(
   ],
 );
 
+// Lot 40b (ARC-10, décision D9, ADR 0076) — file des tâches de fond d'une organisation : un e-mail
+// à envoyer, tenté aussitôt puis repris (délais croissants, cinq tentatives). La clé d'unicité
+// empêche le double envoi : une tâche inscrite deux fois, ou rejouée, n'envoie qu'un e-mail. Le
+// contenu (destinataire, message) s'efface dès la fin, réussie ou non ; la ligne garde le genre,
+// l'état et les dates 30 jours. Une tâche interrompue en plein envoi (processus arrêté) n'est pas
+// renvoyée : « interrupted » (au plus une fois). Table technique : ni auteur ni journal.
+export const JOB_KINDS = ["email"] as const;
+export const JOB_STATES = ["pending", "running", "done", "failed", "interrupted"] as const;
+
+export const jobs = hubSchema.table(
+  "jobs",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    kind: text("kind", { enum: JOB_KINDS }).notNull(),
+    idempotencyKey: text("idempotency_key").notNull(),
+    state: text("state", { enum: JOB_STATES }).notNull().default("pending"),
+    payload: jsonb("payload").$type<Record<string, unknown>>(),
+    attempts: integer("attempts").notNull().default(0),
+    runAfter: timestamp("run_after", { withTimezone: true }).defaultNow().notNull(),
+    lockedUntil: timestamp("locked_until", { withTimezone: true }),
+    lastError: text("last_error"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    finishedAt: timestamp("finished_at", { withTimezone: true }),
+  },
+  (table) => [
+    uniqueIndex("jobs_organization_key_idx").on(table.organizationId, table.idempotencyKey),
+    index("jobs_organization_idx").on(table.organizationId),
+    index("jobs_due_idx").on(table.state, table.runAfter),
+    check("jobs_kind_check", sql`${table.kind} in ('email')`),
+    check("jobs_state_check", sql`${table.state} in ('pending', 'running', 'done', 'failed', 'interrupted')`),
+    check("jobs_key_check", sql`length(${table.idempotencyKey}) between 1 and 200`),
+    check("jobs_attempts_check", sql`${table.attempts} between 0 and 20`),
+    check("jobs_last_error_check", sql`${table.lastError} is null or length(${table.lastError}) <= 200`),
+    // Le contenu ne reste que tant que la tâche est à faire ou en cours.
+    check("jobs_payload_check", sql`(${table.state} in ('pending', 'running')) = (${table.payload} is not null)`),
+    check("jobs_payload_size_check", sql`${table.payload} is null or pg_column_size(${table.payload}) <= 33554432`),
+  ],
+);
+
 // Lot 37b (DOC-12 ; D12, D13, ADR 0071) — relevé mensuel du stockage d'une organisation, par
 // nature : nombre de fichiers et volume, pris le premier du mois et gardé d'un mois sur l'autre ; il
 // alimentera le calcul des quotas (DOC-06). Des nombres seulement, jamais un nom de fichier

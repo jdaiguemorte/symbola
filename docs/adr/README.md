@@ -77,3 +77,5 @@ Un fichier par décision structurante, numéroté. Pour changer une décision : 
 - [0073 — Suppression logique cachée par la base, corbeille de 30 jours et « Annuler »](0073-suppression-logique-et-corbeille.md)
 - [0074 — Brouillons repris sur tout appareil, enregistrement automatique sans écrasement, erreurs référencées](0074-brouillons-conflits-et-erreurs-referencees.md)
 - [0075 — Déploiement et retour arrière en une commande, migrations compatibles, licences et installation contrôlées](0075-deploiement-en-une-commande.md)
+- [0076 — File des tâches de fond, e-mail derrière une interface, couverture des règles métier](0076-file-des-taches-et-adaptateur-e-mail.md)
+- [0077 — Suivi des erreurs : GlitchTip, hors d'internet, et des erreurs triées par l'app](0077-suivi-des-erreurs-glitchtip.md)

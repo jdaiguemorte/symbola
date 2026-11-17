@@ -40,6 +40,7 @@ const WITHOUT_ENTRY: Record<string, string> = {
   "events.program_versions.items": "copie figée du programme diffusé, sans saisie",
   "events.event_activities.task_label": "copie de l'intitulé d'une tâche, écrite par l'app",
   "hub.form_drafts.content": "brouillon : la mise en garde est sous le champ d'origine",
+  "hub.jobs.payload": "e-mail en attente d'envoi : composé par Symbola à partir de champs qui portent déjà leur mise en garde",
   "budget.budget_lines.label": "libellé court d'une ligne de budget (nom d'une prestation)",
   "budget.vendor_payments.label": "libellé court d'un paiement (« Acompte », « Solde »)",
   "events.event_day_contacts.role": "rôle court d'un contact du jour J",

@@ -12,7 +12,16 @@ export async function register() {
   // AIDE-02 : purge horaire des essais abandonnés ; lot 5 : purge horaire
   // des imports en cours expirés ; lot 6 : purge horaire des exports RGPD
   // expirés. Côté Node seulement (pas dans le runtime
-  // edge du middleware).
+  // edge du middleware). Lot 40b (ARC-10, ADR 0076) : les tâches périodiques
+  // ne démarrent que dans le processus qui tient le verrou en base.
+  if (process.env.NEXT_RUNTIME === "nodejs") {
+    const { whenSchedulerLockHeld } = await import("./lib/scheduler-lock");
+    whenSchedulerLockHeld(() => void startScheduledTasks());
+  }
+}
+
+// Les imports restent sous la condition « nodejs » : Next.js ne les retire du build « edge » que là.
+async function startScheduledTasks() {
   if (process.env.NEXT_RUNTIME === "nodejs") {
     const { scheduleDemoPurge } = await import("./lib/demo-purge");
     scheduleDemoPurge();
@@ -57,6 +66,9 @@ export async function register() {
     // Lot 37b (DOC-12, D12, ADR 0071) : relevé mensuel du stockage de chaque organisation.
     const { scheduleStorageSnapshots } = await import("./lib/storage-snapshots");
     scheduleStorageSnapshots();
+    // Lot 40b (ARC-10, ADR 0076) : e-mails repris quand le serveur d'envoi n'a pas répondu.
+    const { scheduleJobs } = await import("./lib/jobs");
+    scheduleJobs();
   }
 }
 
@@ -67,5 +79,10 @@ export async function onRequestError(error: unknown, _request: unknown, context:
   const { errorReference } = await import("./lib/error-reference");
   const digest = (error as { digest?: unknown }).digest;
   const name = error instanceof Error ? error.name : "inconnue";
-  console.error("erreur serveur", JSON.stringify({ reference: errorReference(typeof digest === "string" ? digest : name), route: context.routePath ?? null, type: context.routeType ?? null, name }));
+  const reference = errorReference(typeof digest === "string" ? digest : name);
+  console.error("erreur serveur", JSON.stringify({ reference, route: context.routePath ?? null, type: context.routeType ?? null, name }));
+  // Lot 40b (Q27, D14, ADR 0077) : au suivi des erreurs aussi (sans message ni personne), si son
+  // adresse est réglée.
+  const { reportError } = await import("./lib/error-tracking");
+  await reportError({ reference, name, stack: error instanceof Error ? (error.stack ?? null) : null, route: context.routePath ?? null, source: "serveur", release: process.env.APP_VERSION ?? "dev" });
 }

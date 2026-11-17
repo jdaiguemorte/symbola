@@ -64,6 +64,15 @@ export function appDatabase(): AppDatabase {
   return store[SHARED_KEY].db;
 }
 
+// Lot 40b (ARC-10, ADR 0076) : une connexion de la réserve partagée gardée à part, le temps d'un
+// verrou de session (verrou des tâches périodiques) ; `release()` la rend à la réserve.
+export async function reserveAppConnection() {
+  appDatabase();
+  const shared = (globalThis as GlobalWithConnection)[SHARED_KEY];
+  if (!shared) throw new Error("réserve partagée indisponible");
+  return shared.sql.reserve();
+}
+
 // Ferme la réserve partagée : fin d'un fichier de tests, ou arrêt du
 // processus. Un appel suivant à `appDatabase()` en rouvre une.
 export async function closeAppDatabase(): Promise<void> {

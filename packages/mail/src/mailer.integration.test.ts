@@ -2,7 +2,10 @@
 // est effectivement reçu, avec le bon destinataire et le bon sujet.
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
+import { parseEnv } from "@symbola/env";
 import { sendMail } from "./mailer";
+import { mailTransportContract } from "./transport-contract";
+import { smtpTransport } from "./transport";
 
 const MAILPIT_API = "http://localhost:8025/api/v1";
 
@@ -50,3 +53,27 @@ describe("@symbola/mail — sendMail (Mailpit réel)", () => {
   });
 });
 
+// Lot 40b (ARC-12, ADR 0076) : l'adaptateur SMTP passe la même suite de contrat que le double en
+// mémoire, contre le vrai Mailpit.
+mailTransportContract("SMTP (Mailpit)", () => ({
+  transport: smtpTransport(),
+  async received(to) {
+    const search = await fetch(`${MAILPIT_API}/search?query=${encodeURIComponent(`to:${to}`)}`);
+    const { messages } = (await search.json()) as { messages: Array<{ ID: string }> };
+    if (messages.length === 0) return { count: 0, mail: null };
+    const message = (await (await fetch(`${MAILPIT_API}/message/${messages[0]!.ID}`)).json()) as {
+      Subject: string;
+      Text: string;
+      HTML: string;
+      ReplyTo: { Address: string }[];
+      Attachments: { FileName: string }[];
+    };
+    return {
+      count: messages.length,
+      mail: { subject: message.Subject, text: message.Text, html: message.HTML || null, replyTo: message.ReplyTo[0]?.Address ?? null, attachments: message.Attachments.map((part) => part.FileName) },
+    };
+  },
+  broken() {
+    return smtpTransport({ env: { ...parseEnv(process.env), SMTP_PORT: 1 } });
+  },
+}));

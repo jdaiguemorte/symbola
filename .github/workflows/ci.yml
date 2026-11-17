@@ -24,6 +24,8 @@ jobs:
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test
+      - name: Couverture des règles métier (NFR-21, lot 40b) — seuil de 80 % des lignes et des branches
+        run: pnpm --filter @symbola/app test:coverage
       - run: pnpm check:boundaries
       - name: Registre RGPD (SOC-07) — colonnes personnelles non déclarées
         run: pnpm --filter @symbola/privacy check:registry

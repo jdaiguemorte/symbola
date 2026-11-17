@@ -2209,7 +2209,7 @@
     "csvPayment": "Encaissement",
     "csvTotal": "Total",
     "signingLinksHint": "Un marié n'a pas reçu l'e-mail ? Envoyez-lui son lien ci-dessus (clic droit, « Copier le lien »). Chaque lien est personnel.",
-    "signatureLinksNotMailed": "Le devis est bien envoyé en signature, mais {count, plural, one {un e-mail n'a pas pu partir} other {# e-mails n'ont pas pu partir}}. Copiez les liens de signature affichés sur le devis et envoyez-les vous-même.",
+    "signatureLinksNotMailed": "Le devis est bien envoyé en signature, mais {count, plural, one {un e-mail n'a pas pu partir tout de suite} other {# e-mails n'ont pas pu partir tout de suite}}. Si besoin, copiez les liens de signature affichés sur le devis et envoyez-les vous-même.",
     "signatureServiceDown": "Le service de signature ne répond pas pour le moment. Rien n'a été envoyé : réessayez dans quelques minutes.",
     "allQuotesTitle": "Devis et factures",
     "allQuotesIntro": "Tous vos devis ; ouvrez-en un pour l'envoyer, le faire signer et le facturer.",
@@ -3091,7 +3091,8 @@
       "vendor": "Prestataire du carnet",
       "vendor_candidate": "Prestataire consulté",
       "vendor_payment": "Paiement d'un prestataire",
-      "form_draft": "Brouillon de saisie"
+      "form_draft": "Brouillon de saisie",
+      "email_job": "E-mail en attente d'envoi"
     },
     "field": {
       "firstName": "Prénom",
