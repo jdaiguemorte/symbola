@@ -1,0 +1,51 @@
+[
+  {
+    "image": "clamav/clamav",
+    "licence": "GPL-2.0-only",
+    "mode": "Antivirus des fichiers déposés : service séparé, appelé par son protocole réseau, sans modification.",
+    "aValider": "Service en ligne : obligations éventuelles de la GPL-2.0 pour un service séparé, non modifié et non distribué."
+  },
+  {
+    "image": "documenso/documenso",
+    "licence": "AGPL-3.0-only",
+    "mode": "Signature électronique (ADR 0026) : service séparé, appelé par son API, sans modification.",
+    "aValider": "Réponse 10 de l'avocat : obtenir de l'éditeur une confirmation écrite de cet usage, ou prévoir l'édition Business (démarche à suivre par Julien)."
+  },
+  {
+    "image": "dxflrs/garage",
+    "licence": "AGPL-3.0-only",
+    "mode": "Stockage des fichiers compatible S3 (ADR 0015, 0051) : service séparé, appelé par son API, sans modification.",
+    "aValider": "Même question que pour Documenso : AGPL-3.0 dans un service en ligne, sans modification, appelé par son API."
+  },
+  {
+    "image": "louislam/uptime-kuma",
+    "licence": "MIT",
+    "mode": "Sonde de disponibilité, sans modification."
+  },
+  {
+    "image": "node",
+    "licence": "MIT",
+    "mode": "Image Node.js des scripts d'exploitation (migrations, jeu fictif), sans modification ; elle embarque des paquets Debian sous leurs propres licences."
+  },
+  {
+    "image": "postgres",
+    "licence": "PostgreSQL",
+    "mode": "Base de données, sans modification."
+  },
+  {
+    "image": "restic/restic",
+    "licence": "BSD-2-Clause",
+    "mode": "Sauvegardes chiffrées (ADR 0051), sans modification."
+  },
+  {
+    "image": "svhd/logto",
+    "licence": "MPL-2.0",
+    "mode": "Fournisseur d'identité (lot 33, ADR 0067) : service séparé, appelé par son API, sans modification.",
+    "aValider": "La réponse 10 de l'avocat conseillait un fournisseur sous licence Apache ou MIT ; Logto, retenu au lot 33 (ADR 0067), est sous MPL-2.0 : à confirmer."
+  },
+  {
+    "image": "traefik",
+    "licence": "MIT",
+    "mode": "Proxy d'entrée du socle partagé du VPS, sans modification."
+  }
+]

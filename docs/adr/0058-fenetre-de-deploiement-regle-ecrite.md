@@ -1,7 +1,8 @@
 # ADR 0058 — Fenêtre de déploiement : règle écrite, appliquée à la main
 
-- Statut : accepté (décision Q32 de Julien du 11/11/2026) ; écart assumé à NFR-07 pendant le
-  pilote
+- Statut : remplacé par [0075](0075-deploiement-en-une-commande.md) le 17/11/2026 (lot 40a :
+  `deploy.sh` refuse la production hors fenêtre, sauf urgence motivée). Accepté à l'origine
+  (décision Q32 de Julien du 11/11/2026), écart assumé à NFR-07 pendant le pilote
 - Date : 2026-11-11
 - Exigences : NFR-07 de `docs/CAHIER_DES_CHARGES.md`.
 

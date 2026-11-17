@@ -128,6 +128,10 @@ export const AUDIT_ACTIONS = {
   "ops.database.opened": { category: "exploitation", objectType: null },
   "ops.database.closed": { category: "exploitation", objectType: null },
   "ops.backup.restored": { category: "exploitation", objectType: null },
+  // Lot 40a (NFR-07, ARC-14, ADR 0075) : deploy.sh et rollback.sh, avec la version et, pour un
+  // correctif urgent hors fenêtre, son motif.
+  "ops.deploy.completed": { category: "exploitation", objectType: null },
+  "ops.deploy.rolled_back": { category: "exploitation", objectType: null },
 } as const satisfies Record<string, ActionSpec>;
 
 export type AuditAction = keyof typeof AUDIT_ACTIONS;

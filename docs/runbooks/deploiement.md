@@ -8,10 +8,11 @@ VPS Contabo, en staging et en production.
 DNS ni aux secrets — Julien exécute chaque commande marquée « sur le
 VPS » ou « sur ton poste ».
 
-**Fenêtre de déploiement** (NFR-07, ADR 0058) : aucun déploiement en
-production du vendredi 12 h au lundi 8 h, heure de Paris, sauf correctif
-urgent, motivé et noté avec sa raison dans le journal d'exploitation. Le
-staging n'est pas concerné.
+**Fenêtre de déploiement** (NFR-07, ADR 0075, qui remplace l'ADR 0058) :
+aucun déploiement en production du vendredi 12 h au lundi 8 h, heure de
+Paris. `deploy.sh` (§ Mise à jour) refuse hors fenêtre, sauf correctif
+urgent passé avec `--urgence="motif"`, motif journalisé. Le staging n'est
+pas concerné ; le retour arrière (`rollback.sh`) non plus.
 
 **Accès au VPS** : `ssh symbola` (connexion root par SSH refusée,
 SOC-12), puis `sudo -i` pour les commandes root. Le dépôt `/opt/symbola`
@@ -374,33 +375,60 @@ sans cette clé, l'app refuse de démarrer.
    journal de l'app indique `double authentification : n secret(s) chiffré(s) au repos (L16-SEC-01)`
    (aucune ligne si tout était déjà chiffré).
 
-## Mise à jour (nouvelle version)
+## Mise à jour (nouvelle version) : une commande (lot 40a, ADR 0075)
 
-1. La CI a publié une nouvelle image taguée par le SHA du commit fusionné
-   sur `main` — noter ce SHA (ou utiliser `latest`).
-2. Sur le VPS, modifier `APP_IMAGE_TAG` dans le `.env.<environnement>`
-   concerné (SHA précis recommandé plutôt que `latest`, pour un retour
-   arrière fiable).
-3. Si la version ajoute une migration de base : la lancer **avant** de
-   redémarrer l'app, les migrations étant conçues pour rester compatibles
-   avec la version précédente le temps du déploiement. Julien n'a pas Node
-   sur son poste : la commande tourne sur le VPS, dans un conteneur
-   `node:22-slim` branché sur le réseau Docker de l'environnement (comme
-   « Premiers comptes »), depuis le dépôt à jour :
+1. La CI publie l'image de chaque commit fusionné sur `main`, taguée par son
+   SHA complet (40 caractères) : le noter.
+2. Sur le VPS, depuis ta session `julien` (sudo, pas `sudo -i`) :
    ```bash
-   cd /opt/symbola && sudo git pull   # depuis la session julien, pas depuis sudo -i
-   sudo docker run --rm --network symbola-staging_default -v "$PWD":/app -w /app \
-     --env-file infra/compose/.env.staging -e POSTGRES_HOST=postgres -e POSTGRES_PORT=5432 \
-     node:22-slim sh -c "corepack enable && pnpm install --frozen-lockfile && \
-       pnpm -s --filter @symbola/db migrate"
+   sudo /opt/symbola/infra/server/deploy.sh staging <sha>
    ```
-   En production : `symbola-production_default` et `.env.production`.
-   Depuis un poste qui a Node, le tunnel SSH ci-dessus reste possible.
+   Vérifier le staging, puis la même commande avec `production`.
+3. Le script enchaîne, et s'arrête au premier problème en le disant :
+   - **fenêtre** (production seulement) : refus du vendredi 12 h au lundi
+     8 h, heure de Paris ;
+   - **contrôle du durcissement** (`check-hardening.sh`) : un ÉCHEC arrête
+     tout, avant la moindre modification ;
+   - **sauvegarde** de l'environnement (`symbola-backup@<env>`) : en échec,
+     tout s'arrête ;
+   - **dépôt** `/opt/symbola` avancé jusqu'au commit (refus s'il n'est pas
+     sur `main`, ou si le dépôt est déjà plus loin : revenir en arrière,
+     c'est `rollback.sh`) ;
+   - **image** tirée, puis **migrations** : `migrate:plan` dit si l'une
+     demande d'arrêter `symbola`, que le script arrête alors le temps des
+     migrations (quelques secondes) ;
+   - **démarrage** et sonde de santé : si la nouvelle version ne répond pas,
+     le script remet aussitôt la précédente ;
+   - **journal** : « Nouvelle version de Symbola installée » au journal
+     d'audit (visible dans celui de chaque organisation), et une ligne dans
+     `/var/log/symbola/deploiements.log`.
+4. **Correctif urgent hors fenêtre**, ou contrôle du durcissement en échec
+   sans rapport avec la version : ajouter `--urgence="motif"` (sans donnée
+   personnelle), qui est journalisé. Une sauvegarde en échec arrête le
+   déploiement même en urgence.
+5. Le premier déploiement par le script note la version précédente
+   seulement si `APP_IMAGE_TAG` est un SHA (pas `latest`) : c'est elle que
+   `rollback.sh` remettra.
+
+### Migrations qui demandent l'arrêt de l'app (depuis le lot 40a)
+
+Une nouvelle migration qui retire, renomme ou change le type d'une colonne
+porte le marqueur `-- symbola: arret-requis <raison>`, et son paragraphe ici
+cite son tag (contrôle de la CI, `packages/db/src/migration-compatibility.test.ts`).
+Aucune pour l'instant.
+
+### Migrations livrées avant le lot 40a (déploiement d'ensemble)
+
+`deploy.sh` les applique d'un coup, `symbola` arrêté pendant ce temps :
+douze d'entre elles (0079, 0086, 0103 à 0106, 0111, 0112, 0130, 0132, 0133,
+0135) portent un changement que l'ancien code ne sait pas lire, et
+`migrate:plan` les signale « arrêt requis ». Ce que fait chacune, pour
+lire le résultat :
 
    **Exception, migration 0132 (lot 34a, ADR 0055)** : elle renomme les statuts des évènements
    (prospect et devis envoyé deviennent Option, réalisé devient Clôturé, perdu devient Annulé).
    L'image d'avant ne les lit plus : arrêter `symbola` (`… -p symbola-staging stop symbola`),
-   lancer la migration, puis démarrer la nouvelle image (étape 4). L'interruption dure le temps
+   lancer la migration, puis démarrer la nouvelle image (§ À la main ; `deploy.sh` le fait seul). L'interruption dure le temps
    de la migration, quelques secondes. **Même chose pour la migration 0133 (lot 34b)** : le lieu
    de réception passe de deux colonnes de l'évènement (`venue_name`, `venue_city`, retirées) au
    premier lieu de la liste ; l'image du lot 34a les lit encore. La migration 0134 (lot 35a,
@@ -441,7 +469,24 @@ sans cette clé, l'app refuse de démarrer.
    des brouillons de formulaires (vide au départ), purgée avec la corbeille. Les erreurs du serveur
    s'écrivent dans le journal du conteneur `symbola` sous la forme `erreur serveur {"reference":…}` :
    la référence est celle que l'écran d'erreur montre à la personne.
-4. Redémarrer seulement le service `symbola` :
+
+### À la main, si le script ne peut pas servir
+
+Les gestes que `deploy.sh` enchaîne, pour un cas qu'il ne couvre pas (noté
+au journal d'exploitation) : mettre `APP_IMAGE_TAG=<sha>` dans le
+`.env.<environnement>` concerné, lancer les migrations dans un conteneur
+`node:22-slim` branché sur le réseau Docker de l'environnement, depuis le
+dépôt à jour (arrêter `symbola` avant, si l'une d'elles le demande) :
+   ```bash
+   cd /opt/symbola && sudo git pull   # depuis la session julien, pas depuis sudo -i
+   sudo docker run --rm --network symbola-staging_default -v "$PWD":/app -w /app \
+     --env-file infra/compose/.env.staging -e POSTGRES_HOST=postgres -e POSTGRES_PORT=5432 \
+     node:22-slim sh -c "corepack enable && pnpm install --frozen-lockfile && \
+       pnpm -s --filter @symbola/db migrate"
+   ```
+   En production : `symbola-production_default` et `.env.production`.
+
+Puis redémarrer seulement le service `symbola` :
    ```bash
    sudo docker compose -f infra/compose/docker-compose.prod.yml \
      --env-file infra/compose/.env.staging -p symbola-staging \
@@ -450,9 +495,26 @@ sans cette clé, l'app refuse de démarrer.
      --env-file infra/compose/.env.staging -p symbola-staging \
      up -d symbola
    ```
-5. Vérifier `/` répond, puis promouvoir la même procédure en production.
+
+Vérifier que `/` répond, puis promouvoir la même procédure en production.
 
 ## Retour arrière
+
+**En une commande** (lot 40a, ADR 0075), sur le VPS :
+
+```bash
+sudo /opt/symbola/infra/server/rollback.sh production --motif="la page devis ne s'ouvre plus"
+```
+
+Il remet l'image de la version précédente notée par `deploy.sh`, attend la
+sonde de santé et journalise le retour (« Retour à la version précédente de
+Symbola », `/var/log/symbola/deploiements.log`). Le schéma ne bouge pas : les
+migrations restent compatibles avec la version précédente (contrôle de la
+CI). Il n'attend pas la fenêtre de déploiement. Relancé, il revient à la
+version qu'il vient de quitter. `--motif` est facultatif.
+
+Les paragraphes qui suivent valent pour revenir à une image d'avant le
+lot 40a, où le schéma doit être annulé à la main, après une sauvegarde.
 
 **Vers une image antérieure au lot 33** (ADR 0067) : un simple changement de tag ne suffit pas.
 Ces images connectent par mot de passe, et la migration 0130 a retiré les mots de passe, les
@@ -550,6 +612,19 @@ l'enregistre de nouveau sur son appareil.
 **Retour arrière vers une image antérieure au lot 29** : une image sans `sw.js` ne remplace pas
 celui des appareils qui gardent un jour J. Il reste sans effet sur les autres écrans, mais pour
 l'enlever, déployer d'abord l'interrupteur d'arrêt, puis l'image antérieure.
+
+## Jeu fictif sur le staging (DAT-10, lot 40a)
+
+Après le déploiement de la version à recetter, sur le VPS :
+
+```bash
+sudo /opt/symbola/infra/server/recette.sh staging
+```
+
+Il charge le jeu fictif (`docs/runbooks/jeu-fictif.md`) par le chargeur de
+l'app ; il refuse la production (ADR 0016) et une base déjà chargée. Les
+comptes et les liens créés vont dans `/root/symbola-recette/comptes-recette.txt`,
+lisible par root seul.
 
 ## Trajectoire (ADR 0011)
 

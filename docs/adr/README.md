@@ -59,7 +59,7 @@ Un fichier par décision structurante, numéroté. Pour changer une décision : 
 - [0055 — Statuts d'évènement, report et annulation ; rétroplanning à la création](0055-statuts-d-evenement-et-retroplanning-a-la-creation.md)
 - [0056 — Purge RGPD automatique avec préavis](0056-purge-rgpd-automatique-avec-preavis.md)
 - [0057 — Charte graphique : `DESIGN.md`](0057-charte-graphique-design-md.md)
-- [0058 — Fenêtre de déploiement : règle écrite, appliquée à la main](0058-fenetre-de-deploiement-regle-ecrite.md)
+- [0058 — Fenêtre de déploiement : règle écrite, appliquée à la main](0058-fenetre-de-deploiement-regle-ecrite.md) (remplacé par 0075)
 - [0059 — Arrondi des montants et de la TVA](0059-arrondi-des-montants-et-de-la-tva.md)
 - [0060 — Journal d'audit commun, auteur de chaque ligne, accès d'exploitation](0060-journal-d-audit-commun.md)
 - [0061 — Pièces inaltérables : originaux, encaissements en écritures, chaîne d'empreintes](0061-pieces-inalterables.md)
@@ -76,3 +76,4 @@ Un fichier par décision structurante, numéroté. Pour changer une décision : 
 - [0072 — Les e-mails à l'image de l'organisation, des modèles à variables, le garde-fou d'envoi groupé et les flux de calendrier](0072-emails-a-l-image-de-l-organisation.md)
 - [0073 — Suppression logique cachée par la base, corbeille de 30 jours et « Annuler »](0073-suppression-logique-et-corbeille.md)
 - [0074 — Brouillons repris sur tout appareil, enregistrement automatique sans écrasement, erreurs référencées](0074-brouillons-conflits-et-erreurs-referencees.md)
+- [0075 — Déploiement et retour arrière en une commande, migrations compatibles, licences et installation contrôlées](0075-deploiement-en-une-commande.md)

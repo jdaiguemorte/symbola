@@ -39,7 +39,7 @@ Architecture du pilote (ADR 0011 à 0014) : **une seule app Next.js** (`apps/sym
 internes, **une seule base PostgreSQL** à un schéma par module, des **événements internes**
 (`domain_events`), une identité déléguée à Logto, fournisseur open source hébergé sur le VPS
 (ADR 0052, ADR 0067, lot 33). L'architecture du cahier des charges (§ 10) reste la trajectoire ; chaque
-écart assumé a son ADR (ADR 0011, 0012, 0027, 0051, 0058, 0059).
+écart assumé a son ADR (ADR 0011, 0012, 0027, 0051, 0059).
 
 1. **Un module = une frontière** (ARC-01, ARC-02). Chaque module vit sous
    `apps/symbola/modules/<module>/` avec une porte d'entrée unique, `service.ts`. Jamais d'accès
@@ -102,7 +102,7 @@ Versions figées dans les ADR. Colonne « Pilote » = ce qu'on construit mainten
 | Carte | MapLibre GL + PMTiles servi par l'app, géocodage IGN derrière une interface (ADR 0031) | — |
 | Tests | Vitest, Playwright (ordinateur et 375 px), axe-core | — |
 | Proxy | Caddy partagé du VPS (ADR 0018) ; Traefik en dev local uniquement | — |
-| Déploiement | Docker Compose, à la main hors fenêtre (ADR 0058) | Chaîne qui refuse hors fenêtre (NFR-07, lot 40a) |
+| Déploiement | Docker Compose, `deploy.sh` en une commande : fenêtre, durcissement, sauvegarde, migrations, retour automatique (ADR 0075) | Chaîne automatique depuis la CI |
 | CI | GitHub Actions : Semgrep, Gitleaks, Trivy, OSV-Scanner, Renovate, OWASP ZAP (staging) | — |
 | Sauvegarde | restic chiffré vers Hetzner Storage Box, copies instantanées (ADR 0051) | — |
 | Surveillance | Uptime Kuma, alertes ntfy sur le téléphone | — |
@@ -246,6 +246,7 @@ interne ; Julien passe par l'équivalent Docker donné à droite. Sur le VPS : `
 | Besoin | Commande (si Node est disponible) | Équivalent Docker (poste de Julien) |
 | --- | --- | --- |
 | Installer les dépendances | `pnpm install` | `docker run --rm -v "$PWD":/app -w /app node:22-slim corepack enable && corepack use pnpm@9.15.0 && pnpm install` |
+| Installer un poste neuf, du clone à l'app avec le jeu fictif, en moins de trente minutes (NFR-23, lot 40a) | `docs/INSTALLATION.md` (rejoué par le workflow « Installation ») | — (Node requis : sinon, l'équivalent Docker de chaque commande ci-dessous) |
 | Démarrer le socle + l'app en dev | `pnpm dev` | `cp .env.example .env` (une fois, puis remplir les mots de passe, les trois secrets `GARAGE_*` et `LOGTO_M2M_SECRET`, générés par `openssl rand` ; après le bootstrap, `configure-identity` règle Logto) puis `docker compose -f infra/compose/docker-compose.dev.yml --env-file .env up -d && pnpm dev`, depuis la racine du dépôt |
 | Lint | `pnpm lint` | `docker run --rm -v "$PWD":/app -w /app node:22-slim pnpm lint` |
 | Vérification des types | `pnpm typecheck` | `docker run --rm -v "$PWD":/app -w /app node:22-slim pnpm typecheck` |
@@ -269,6 +270,11 @@ interne ; Julien passe par l'équivalent Docker donné à droite. Sur le VPS : `
 | Restaurer un environnement (SOC-10, **Julien, sur le VPS**, destructif) | — | `sudo /opt/symbola/infra/backup/restore.sh staging --confirm=staging` |
 | Contrôler que les copies instantanées de la Storage Box sont hors d'atteinte du VPS (lot 22, NFR-13, **Julien, sur le VPS**, avant la première donnée réelle) | — | `sudo /opt/symbola/infra/backup/check-snapshot-protection.sh staging --confirm=staging` (voir `docs/runbooks/restauration.md`, § 7) |
 | Vérifier le durcissement du VPS (SOC-12, **Julien, sur le VPS**) | — | `sudo bash infra/server/check-hardening.sh` (lecture seule, voir `docs/runbooks/durcissement-serveur.md`) |
+| Déployer une version (NFR-07, SEC-28, ARC-14, lot 40a, ADR 0075 ; **Julien, sur le VPS**, depuis sa session) | — | `sudo /opt/symbola/infra/server/deploy.sh staging <sha>` puis `production` ; hors fenêtre, `--urgence="motif"` (voir `docs/runbooks/deploiement.md`) |
+| Revenir à la version précédente (ARC-14, lot 40a ; **Julien, sur le VPS**) | — | `sudo /opt/symbola/infra/server/rollback.sh production [--motif="…"]` |
+| Charger le jeu fictif sur le staging (DAT-10, lot 40a ; **Julien, sur le VPS**) | — | `sudo /opt/symbola/infra/server/recette.sh staging` |
+| Migrations en attente, et si l'une demande d'arrêter l'app (ARC-14, lot 40a ; lu par `deploy.sh`) | `pnpm --filter @symbola/db migrate:plan` | `docker run --rm --network symbola-dev_default -v "$PWD":/app -w /app --env-file .env node:22-slim pnpm --filter @symbola/db migrate:plan` |
+| Réécrire l'inventaire des licences après un changement de dépendance ou de service (JUR-18, lot 40a) | `pnpm --filter @symbola/tools-licences inventaire` | `docker run --rm -v "$PWD":/app -w /app node:22-slim pnpm --filter @symbola/tools-licences inventaire` |
 | Ouvrir `psql` sur un environnement, tracé et motivé (SEC-09, lot 23, **Julien, sur le VPS**) | — | `sudo /opt/symbola/infra/server/acces-base.sh staging --motif="…"` (voir `docs/runbooks/acces-exploitation.md`) |
 
 Le socle de dev (Postgres, Garage, ClamAV, Mailpit, Logto, Traefik) est défini dans
