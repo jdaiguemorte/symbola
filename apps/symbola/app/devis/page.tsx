@@ -2,6 +2,7 @@
 // les plus récents d'abord, filtrables par statut, avec leur mariage. On en
 // crée un depuis la fiche de l'événement (onglet Devis).
 import { PageHeader } from "@/app/ui/page-header";
+import { EmptyState } from "@/app/ui/empty-state";
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatAmount, type Locale } from "@symbola/i18n";
@@ -68,7 +69,8 @@ export default async function QuotesListPage({ searchParams }: { searchParams: P
             </Link>
           ))}
         </nav>
-        {quotes.length === 0 ? <p>{t("allQuotesEmpty")}</p> : shown.length === 0 ? <p>{t("allQuotesNoneForFilter")}</p> : null}
+        {/* Lot 39c (UX-08) : l'écran vide enseigne. */}
+        {quotes.length === 0 ? <EmptyState screen="quotes" title={t("allQuotesEmpty")} actionHref="/events" /> : shown.length === 0 ? <p>{t("allQuotesNoneForFilter")}</p> : null}
         {shown.length > 0 ? (
           <div role="region" aria-label={t("allQuotesTitle")} tabIndex={0}>
             <table className="data-table">

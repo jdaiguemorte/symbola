@@ -423,3 +423,53 @@ suppression.
   erreurs (lot 40, Q27) ;
 - UX-10 : la relecture des autres messages d'erreur des parcours P0, selon la règle « ce qui s'est
   passé, comment en sortir ».
+
+## Bilan du lot 39c (17/11/2026)
+
+**Fait** :
+- UX-08 (D11) : un écran vide commun (`app/ui/empty-state.tsx`) : la phrase de l'écran, une aide
+  courte, un exemple, l'action principale et « Lire l'aide ». Posé sur les évènements, les tâches,
+  les contacts (le formulaire d'ajout s'ouvre de lui-même), le carnet de prestataires, les devis, les
+  encaissements, les documents d'un évènement, les quatre listes de modèles (rétroplanning,
+  programme, devis, messages) et la corbeille. L'agenda est un calendrier : son écran vide est celui
+  des évènements.
+- UX-15 : squelette d'écran (titre, lignes, blocs, annoncé aux lecteurs d'écran) quand un écran
+  tarde plus de 80 ms au passage d'un lien à l'autre ; une tâche se coche aussitôt (mise à jour
+  optimiste, défaite si le serveur refuse) ; les envois de formulaire gardent leur bouton « en
+  cours ». **Écart** : pas de `loading.tsx` (prévu par la partie G) : avec Next 15.5, une limite de
+  chargement au-dessus d'une page bloque la navigation qui suit une action serveur terminée par
+  `redirect()` ; le premier passage de la suite bout en bout l'a montré (créations d'évènement,
+  essai guidé, corbeille…). Le squelette naît donc dans le cadre de l'app (avenant de l'ADR 0074).
+- UX-13 (D13) : raccourcis communs (⌘K ou Ctrl K, N, Échap, ?), annoncés dans le centre d'aide
+  (« Raccourcis clavier ») ; « ? » ouvre l'aide de l'écran hors d'un champ de saisie. Relevé des
+  écrans hors patron (`docs/audits/2026-11-17-patron-ecrans.md`), validé par Julien le 17/11 ; puis
+  passés au panneau latéral : la création d'un contact, la fiche d'un contact et celle d'un
+  prestataire (lecture dans la page, « Modifier la fiche » en panneau), la synthèse d'un évènement
+  (« Modifier les informations » en panneau). « Créer » est en tête de la liste, « Modifier » en tête
+  de la section qu'il modifie. Budget, éditeur de devis et paramètres gardent la saisie dans la page
+  (exceptions validées).
+- HUB-12 (D12) : ⌘K propose aussi des actions (« Créer un évènement », « Ouvrir la corbeille »,
+  « Importer un fichier »…), réservées à l'équipe et selon les modules souscrits ; chaque mot tapé
+  filtre par début de mot, sans accent ni majuscule.
+- RGP-04 (D14) : sous chaque champ libre déclaré `contenu_libre` au registre, la mise en garde
+  validée (« Ne notez ici ni donnée de santé, ni opinion, ni religion : ce champ peut être lu par
+  votre équipe et exporté. ») ; `lib/free-text-notices.test.ts` lit le registre et échoue si un
+  champ libre déclaré n'a ni mise en garde ni raison écrite de ne pas en porter.
+
+**Preuves** :
+- parcours : `e2e/ux-08-13-hub-12-rgp-04-ecrans.spec.ts` (écrans vides, squelette d'un écran
+  retardé, palette, « ? », mise en garde ; ordinateur et 375 px, axe-core) ;
+- tests unitaires : registre et mises en garde, écran visé par un clic (`lib/navigation-target.ts`) ;
+- chaîne : unitaires app 541, bout en bout 328 passés et 3 ignorés (PRD-EVT-06 en 375 px, une
+  navigation interrompue sur le portail, passe rejoué seul), lint, typecheck, frontières, registre
+  RGPD, catalogues FR/EN (5 435 clés), Semgrep et Gitleaks sans alerte sur les fichiers du lot ;
+- rejeu : `docs/recette/SC-01.md` (un espace vide guide : écrans vides, palette) et
+  `docs/recette/SC-03.md` (étape 3 : la coche s'affiche en 4 ms, avant la réponse du serveur), puis
+  `docs/recette/UX-13.md` (les quatre écrans passés au panneau).
+
+**Reste** :
+- UX-15 : mise à jour optimiste du choix d'une option et du changement de statut ; mesure des
+  100 ms au lot 40b (NFR-01) ; revenir aux `loading.tsx` quand Next.js corrige ce comportement ;
+- HUB-12 : mesure des 500 ms au lot 40b ;
+- SC-03 étape 3 : une tâche cochée quitte « À faire » ; un « Annuler » de dix secondes après une
+  coche (comme après une suppression) est à arbitrer.

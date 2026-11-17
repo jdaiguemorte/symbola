@@ -575,7 +575,7 @@
     },
     "eventsDetail": {
       "title": "Event page",
-      "body": "The whole event, in tabs. The « Summary » opens on the next action and who has to act, then the event's health (planning, budget, client decisions) and the next fourteen days; details are edited at the bottom, under « Edit the details », the event's time zone included. The top timeline shows where it stands: Option, Confirmed, In preparation, Event day, Closed. Click a step to set it; « Event day » applies by itself on the day of the event, and closing is offered from the next day. « Postpone the event… » asks for the new date: once you confirm the postponement, the planning's due dates follow, except tasks already done and those whose date you set by hand; the ones that would fall in the past are listed first. « Cancel the event… » asks for a reason: the data stays, links close, reminders and scheduled deposit invoices stop, and a credit note is offered for each issued invoice. The « Event profile » gathers estimated and confirmed guests, venues, contacts, style and notes; venues are managed in the « Day programme » tab (address, town, times, on-site contact), the first being the reception venue. A task can be given to you, to the couple or to a retained vendor, who ticks it in their space; its attachments and comments stay within the team. The « Next step » banner suggests the next stage (send the quote, apply the planning, create the couple's links). Each tab has a « Settings » link to its templates.",
+      "body": "The whole event, in tabs. The « Summary » opens on the next action and who has to act, then the event's health (planning, budget, client decisions) and the next fourteen days; « Edit the details », at the top of the event profile, opens a panel where they are edited, the event's time zone included. The top timeline shows where it stands: Option, Confirmed, In preparation, Event day, Closed. Click a step to set it; « Event day » applies by itself on the day of the event, and closing is offered from the next day. « Postpone the event… » asks for the new date: once you confirm the postponement, the planning's due dates follow, except tasks already done and those whose date you set by hand; the ones that would fall in the past are listed first. « Cancel the event… » asks for a reason: the data stays, links close, reminders and scheduled deposit invoices stop, and a credit note is offered for each issued invoice. The « Event profile » gathers estimated and confirmed guests, venues, contacts, style and notes; venues are managed in the « Day programme » tab (address, town, times, on-site contact), the first being the reception venue. A task can be given to you, to the couple or to a retained vendor, who ticks it in their space; its attachments and comments stay within the team. The « Next step » banner suggests the next stage (send the quote, apply the planning, create the couple's links). Each tab has a « Settings » link to its templates.",
       "faq": [
         {
           "q": "How do I mark an event as lost?",
@@ -983,7 +983,7 @@
     },
     "vendorDetail": {
       "title": "Supplier record",
-      "body": "Everything you know about a supplier: contact details, its type's characteristics, tags, rating (1 to 5) and indicative prices, documents, internal note. Click a tag to choose it; only those of its family are shown. « History with you » lists its services, quoted and final price.",
+      "body": "Everything you know about a supplier: contact details, its type's characteristics, tags, rating (1 to 5) and indicative prices, documents, internal note. « Edit the record » opens all of this in a panel; click a tag to choose it; only those of its family are shown. « History with you » lists its services, quoted and final price.",
       "faq": [
         {
           "q": "Does archiving erase its history?",
@@ -1089,11 +1089,11 @@
     },
     "contactsList": {
       "title": "Contacts",
-      "body": "Each person exists only once in your space: a couple who comes back for a second event keeps their record, details and history. Search by name, address or phone; an email address belongs to one contact only. A household links people (a couple, a family); a company, its contact persons, with its SIREN and VAT number. “Import contacts” brings in your file (CSV or Excel). Trial contacts do not appear here."
+      "body": "Each person exists only once in your space: a couple who comes back for a second event keeps their record, details and history. Search by name, address or phone; an email address belongs to one contact only. A household links people (a couple, a family); a company, its contact persons, with its SIREN and VAT number. “Add a contact” opens a blank record in a panel; “Import contacts” brings in your file (CSV or Excel). Trial contacts do not appear here."
     },
     "contactDetail": {
       "title": "Contact record",
-      "body": "The details on the record are the ones used by their events, personal links and quotes: changing them here changes them everywhere. The history gathers their events, quotes and invoices, and the documents of their events; notes are for the team. \"Create an event\" picks them as the client straight away. On a household or company record, add the people who belong to it, with their role; a person's record shows which households and companies they belong to. A company's SIREN or SIRET and VAT number carry over to its quotes."
+      "body": "The details on the record are the ones used by their events, personal links and quotes: \"Edit the record\" opens them in a panel, and changing them there changes them everywhere. The history gathers their events, quotes and invoices, and the documents of their events; notes are for the team. \"Create an event\" picks them as the client straight away. On a household or company record, add the people who belong to it, with their role; a person's record shows which households and companies they belong to. A company's SIREN or SIRET and VAT number carry over to its quotes."
     },
     "importRows": {
       "title": "Setting rows aside",
@@ -3710,7 +3710,7 @@
         },
         {
           "title": "Move the date",
-          "body": "In the Summary tab, under \"Edit the details\", change the event date: Symbola offers to recompute the due dates. Accept and watch them follow."
+          "body": "In the Summary tab, open \"Edit the details\" and change the event date: Symbola offers to recompute the due dates. Accept and watch them follow."
         },
         {
           "title": "Keep or delete",
@@ -4355,7 +4355,10 @@
     "indicativePricesHint": "Free text, visible to your team only: for example “from €85 per guest” or “evening package €1,200”.",
     "invalidRating": "Choose a rating from 1 to 5.",
     "filterRating": "Rating",
-    "filterRatingAtLeast": "{rating, plural, =5 {5 out of 5} other {At least # out of 5}}"
+    "filterRatingAtLeast": "{rating, plural, =5 {5 out of 5} other {At least # out of 5}}",
+    "editRecord": "Edit the record",
+    "fieldYes": "Yes",
+    "fieldNo": "No"
   },
   "Onboarding": {
     "title": "Let's set up your workspace",
@@ -6002,7 +6005,8 @@
     "memberRoleInvalid": "A role has 100 characters at most.",
     "groupsTitle": "Households and companies",
     "memberSearch": "Search for the person by name, email or phone",
-    "pickerNoneAlone": "No contact found: add them to your contacts first."
+    "pickerNoneAlone": "No contact found: add them to your contacts first.",
+    "editRecord": "Edit the record"
   },
   "SharedDocuments": {
     "title": "Documents",
@@ -6425,5 +6429,109 @@
     "keepMine": "Keep my version",
     "takeTheirs": "Take the saved version",
     "empty": "(empty)"
+  },
+  "EmptyStates": {
+    "moreHelp": "Read the help",
+    "events": {
+      "title": "No event yet",
+      "help": "An event starts as a prospect: its clients, its date if known, its type. Its planning and budget prepare themselves, according to the type.",
+      "example": "For example: Léa and Maxime's wedding, on 12 June 2027, at Domaine des Tilleuls.",
+      "action": "Create an event"
+    },
+    "tasks": {
+      "title": "No task yet",
+      "help": "Tasks come with an event's planning, or are added from its record. Each has its due date, counted from the event date.",
+      "example": "For example: \"Send the invitations\", six weeks before the day.",
+      "action": "See the events"
+    },
+    "contacts": {
+      "title": "No contact yet",
+      "help": "A contact exists only once in the organisation: event clients, households, companies. Add one here, or import your contacts file.",
+      "example": "For example: Léa Martin, or Maison Haddad.",
+      "action": "Add a contact"
+    },
+    "vendors": {
+      "title": "No supplier in the book",
+      "help": "The book keeps your trusted suppliers: details, prices, notes. You then suggest them on each event, slot by slot.",
+      "example": "For example: the caterer Maison Haddad, in Lille.",
+      "action": "Add a supplier"
+    },
+    "quotes": {
+      "title": "No quote yet",
+      "help": "A quote starts from an event: open its record, Quotes tab, and start from a template or the catalogue. It stays a draft until you send it.",
+      "example": "For example: \"Day-of coordination\", one package.",
+      "action": "See the events"
+    },
+    "documents": {
+      "title": "No document for this event",
+      "help": "Seating plan, access maps, rain plan: drop them here, sort them into folders, share them with clients or suppliers.",
+      "example": "For example: the seating plan, as a PDF.",
+      "action": "Upload a document"
+    },
+    "taskTemplates": {
+      "title": "No planning template",
+      "help": "A planning template creates an event's tasks in one go, each a number of days from the date.",
+      "example": "For example: \"Wedding\", from D-365 to D+7.",
+      "action": "Create a template"
+    },
+    "programTemplates": {
+      "title": "No programme template",
+      "help": "A programme template lays out the sequences of an event's day in one go; you adjust them afterwards.",
+      "example": "For example: \"Civil wedding\", from the ceremony to the party.",
+      "action": "Create a template"
+    },
+    "quoteTemplates": {
+      "title": "No quote template",
+      "help": "A quote template keeps your usual lines, sections and instalments: a new quote starts from it.",
+      "example": "For example: \"Full coordination\", three sections.",
+      "action": "Create a template"
+    },
+    "messageTemplates": {
+      "title": "No message template",
+      "help": "Your standard messages to clients, filled from the event record: you review them, then your mailbox sends them.",
+      "example": "For example: \"Suggest a meeting\".",
+      "action": "Add the starter templates"
+    },
+    "payments": {
+      "title": "No instalment to collect",
+      "help": "Instalments come with the payment schedule of a signed quote: deposit, balance or several payments. Late ones come first, the others are grouped by month.",
+      "example": "For example: the 30% deposit on Léa and Maxime's quote, due on signature.",
+      "action": "See the quotes"
+    },
+    "trash": {
+      "title": "The trash is empty",
+      "help": "What you delete stays here for 30 days, ready to come back as it was.",
+      "example": "For example: an event deleted by mistake, with all its content.",
+      "action": "Back to home"
+    }
+  },
+  "FreeText": {
+    "notice": "Do not write health data, opinions or religion here: this field can be read by your team and exported."
+  },
+  "Loading": {
+    "label": "Loading the page…"
+  },
+  "Palette": {
+    "group": "Actions",
+    "detail": "Action",
+    "actions": {
+      "newEvent": "Create an event",
+      "contacts": "Add a contact",
+      "newVendor": "Add a supplier",
+      "quotes": "See quotes and invoices",
+      "tasks": "See tasks",
+      "today": "Go to Today",
+      "settings": "Go to Settings",
+      "trash": "Open the trash",
+      "help": "Open the help",
+      "import": "Import a file"
+    }
+  },
+  "Shortcuts": {
+    "title": "Keyboard shortcuts",
+    "search": "⌘K or Ctrl K: search, or run an action (\"create\", \"trash\"…).",
+    "create": "N: create (event, task, expense, quote), from any screen.",
+    "close": "Esc: close the open panel or window.",
+    "help": "?: open the screen's help."
   }
 }

@@ -59,7 +59,7 @@ test("EVT-03 / CHR-02 — fiche d'identité, lieu complet, tâche confiée au fl
   await expect(identity).toContainText("— estimés · — confirmés");
   await expect(identity).toContainText("Domaine des Tilleuls");
   await page.waitForLoadState("networkidle");
-  await page.locator("summary", { hasText: "Modifier les informations" }).click();
+  await page.getByRole("link", { name: "Modifier les informations" }).click();
   const identityForm = page.getByRole("form", { name: "Fiche d'identité" });
   await identityForm.getByLabel("Invités estimés").fill("120");
   await identityForm.getByLabel("Invités confirmés").fill("98");

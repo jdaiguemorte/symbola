@@ -4,6 +4,7 @@
 // prestataires montrés d'un poste, valider une dépense, approuver le
 // programme ; une note et une date de réponse souhaitée, facultatives.
 import { useActionState, useId, useState } from "react";
+import { FreeTextNotice } from "@/app/ui/free-text-notice";
 import { useTranslations } from "next-intl";
 import { requestDecisionAction, type DecisionFormState } from "./decision-actions";
 
@@ -55,6 +56,7 @@ export function RequestDecisionForm({ eventId, slots, expenses, hasProgram }: { 
       ) : null}
       <label htmlFor={ids.note}>{t("noteLabel")}</label>
       <textarea id={ids.note} name="note" maxLength={500} rows={2} />
+      <FreeTextNotice />
       <label htmlFor={ids.due}>{t("dueOnLabel")}</label>
       <input id={ids.due} type="date" name="dueOn" />
       <button type="submit" className="primary" disabled={pending}>

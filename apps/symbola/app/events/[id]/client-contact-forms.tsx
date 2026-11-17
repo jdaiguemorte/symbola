@@ -3,6 +3,7 @@
 // Lot 14 (décisions I et K) — coordonnées de chaque client de l'événement,
 // budget souhaité.
 import Link from "next/link";
+import { FreeTextNotice } from "@/app/ui/free-text-notice";
 import { useActionState } from "react";
 import { useTranslations } from "next-intl";
 import type { EventClient, EventDetail } from "@/modules/events/service";
@@ -133,10 +134,12 @@ export function EventIdentityForm({ eventId, identity, version }: { eventId: str
         {t("eventStyle")}
         <input type="text" name="style" maxLength={2000} defaultValue={identity.style ?? ""} />
       </label>
+      <FreeTextNotice />
       <label>
         {t("eventNotes")}
         <textarea name="notes" maxLength={10000} rows={4} defaultValue={identity.notes ?? ""} />
       </label>
+      <FreeTextNotice />
     </AutoSaveForm>
   );
 }

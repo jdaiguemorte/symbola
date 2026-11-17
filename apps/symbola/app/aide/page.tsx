@@ -19,6 +19,7 @@ import { AutoToursToggle } from "./auto-tours-toggle";
 type Faq = { q: string; a: string }[];
 
 export default async function AidePage() {
+  const tShortcuts = await getTranslations("Shortcuts");
   const auth = await requireSignedIn();
 
   const t = await getTranslations("Aide");
@@ -83,6 +84,18 @@ export default async function AidePage() {
         </section>
       ) : null}
       <AideSearch groups={groups} searchLabel={t("search")} noResults={t("noResults")} resultsLabel={tCenter.raw("results") as string} />
+      {/* Lot 39c (UX-13 ; D13) : les mêmes raccourcis sur tous les écrans de l'équipe. */}
+      {isTeam ? (
+        <section className="card" aria-labelledby="help-shortcuts-title">
+          <h2 id="help-shortcuts-title">{tShortcuts("title")}</h2>
+          <ul>
+            <li>{tShortcuts("search")}</li>
+            <li>{tShortcuts("create")}</li>
+            <li>{tShortcuts("close")}</li>
+            <li>{tShortcuts("help")}</li>
+          </ul>
+        </section>
+      ) : null}
     </main>
   );
 }

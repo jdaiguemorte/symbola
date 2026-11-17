@@ -9,11 +9,19 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, type ReactNode } from "react";
+import { useHelpContext } from "@/app/help-context";
 
 export function SidePanel({ title, closeHref, closeLabel, children }: { title: string; closeHref: string; closeLabel: string; children: ReactNode }) {
   const router = useRouter();
   const panelRef = useRef<HTMLElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
+  const help = useHelpContext();
+
+  // Lot 39c (UX-13) : un seul panneau à droite ; à son ouverture, l'édition ferme l'aide de l'écran
+  // (qu'un clic sur « ? » rouvre).
+  useEffect(() => {
+    if (help?.open) help.toggle();
+  }, []);
 
   useEffect(() => {
     titleRef.current?.focus();

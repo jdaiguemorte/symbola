@@ -71,7 +71,7 @@ test("UX-09 — un conflit d'édition entre deux fenêtres est montré champ par
   const other = await page.context().newPage();
   for (const view of [page, other]) {
     await view.goto(`/events/${setup.eventId}`);
-    await view.getByText("Modifier les informations").click();
+    await view.getByRole("link", { name: "Modifier les informations" }).click();
   }
   const style = (view: Page) => view.getByRole("form", { name: "Fiche d'identité" }).locator('input[name="style"]');
 
@@ -89,8 +89,8 @@ test("UX-09 — un conflit d'édition entre deux fenêtres est montré champ par
   await conflict.getByRole("button", { name: "Garder ma version" }).click();
   await expect(other.getByRole("form", { name: "Fiche d'identité" }).getByText("Fiche enregistrée.")).toBeVisible();
 
+  // Le panneau est dans l'adresse : il se rouvre au rechargement.
   await page.reload();
-  await page.getByText("Modifier les informations").click();
   await expect(style(page)).toHaveValue("Industriel");
   await other.close();
 });
@@ -100,7 +100,7 @@ test("NFR-16 — sans réseau, rien n'est envoyé et la saisie reste ; le retour
   const setup = await atelier();
   await signIn(page, setup.email, /\/$/);
   await page.goto("/contacts");
-  await page.getByText("Ajouter un contact", { exact: true }).click();
+  await page.getByRole("link", { name: "Ajouter un contact" }).first().click();
   const form = page.getByRole("form", { name: "Ajouter un contact" });
 
   await page.context().setOffline(true);

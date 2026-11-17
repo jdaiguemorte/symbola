@@ -154,7 +154,7 @@ test("AIDE-06 — tutoriel en faisant : modèle de rétroplanning proposé à la
 
   await page.getByRole("link", { name: "Ouvrir l'exemple" }).click();
   await page.waitForLoadState("networkidle");
-  await page.locator("summary", { hasText: "Modifier les informations" }).click();
+  await page.getByRole("link", { name: "Modifier les informations" }).click();
   await page.getByLabel("Date de l'événement").fill("2029-05-19");
   await page.getByRole("button", { name: "Changer la date" }).click();
   await expect(page.getByText("Date mise à jour.")).toBeVisible();

@@ -4,6 +4,7 @@
 // e-mail déjà prise renvoie vers le contact qui la porte. Lot 36b (D2) : un foyer ou une entreprise
 // a un nom ; une entreprise, ses identifiants (SIREN ou SIRET, TVA) ; on y ajoute des personnes.
 import Link from "next/link";
+import { FreeTextNotice } from "@/app/ui/free-text-notice";
 import { DraftKeeper } from "@/app/ui/draft-keeper";
 import { AutoSaveForm } from "@/app/ui/autosave-form";
 import { useActionState, useState } from "react";
@@ -187,6 +188,7 @@ export function NoteForm({ contactId }: { contactId: string }) {
         {t("noteBody")}
         <textarea name="body" rows={3} maxLength={2000} required />
       </label>
+      <FreeTextNotice />
       <button type="submit" disabled={pending}>
         {t("noteAdd")}
       </button>

@@ -85,10 +85,12 @@ test("PRD-EVT-04 — modèle de rétroplanning appliqué, recalcul des échéanc
   // modèle par défaut crée de lui-même les tâches, regroupées par mois.
   await openEventTab(page, "Synthèse");
   await page.waitForLoadState("networkidle");
-  await page.locator("summary", { hasText: "Modifier les informations" }).click();
+  await page.getByRole("link", { name: "Modifier les informations" }).click();
   await page.getByLabel("Date de l'événement").fill("2027-06-12");
   await page.getByRole("button", { name: "Changer la date" }).click();
   await expect(page.getByText("Date mise à jour.")).toBeVisible();
+  await page.getByRole("link", { name: "Fermer le panneau" }).click();
+  await expect(page.getByRole("complementary", { name: "Modifier les informations" })).toHaveCount(0);
   await openEventTab(page, "Rétroplanning");
   // Un autre modèle reste applicable à la main.
   await expect(page.getByRole("button", { name: "Appliquer le modèle" })).toBeVisible();
@@ -105,10 +107,12 @@ test("PRD-EVT-04 — modèle de rétroplanning appliqué, recalcul des échéanc
   await page.getByRole("button", { name: "Cocher la tâche Réserver le lieu" }).click();
   await expect(page.getByRole("button", { name: "Décocher la tâche Réserver le lieu" })).toBeVisible();
   await openEventTab(page, "Synthèse");
-  await page.locator("summary", { hasText: "Modifier les informations" }).click();
+  await page.getByRole("link", { name: "Modifier les informations" }).click();
   await page.getByLabel("Date de l'événement").fill("2027-06-19");
   await page.getByRole("button", { name: "Changer la date" }).click();
   await expect(page.getByText("Date mise à jour.")).toBeVisible();
+  await page.getByRole("link", { name: "Fermer le panneau" }).click();
+  await expect(page.getByRole("complementary", { name: "Modifier les informations" })).toHaveCount(0);
   await openEventTab(page, "Rétroplanning");
   const proposal = page.getByRole("region", { name: "Recalcul des échéances" });
   await expect(proposal).toContainText("repoussée de 7 jours. Décaler d'autant la tâche non faite ?");

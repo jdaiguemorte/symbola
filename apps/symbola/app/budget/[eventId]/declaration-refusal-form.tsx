@@ -3,6 +3,7 @@
 // Lot 27a (SC-06 étape 5, décision D6) — refuser un règlement déclaré par un
 // client : le motif est montré au client, l'échéance redevient à régler.
 import { useActionState, useId } from "react";
+import { FreeTextNotice } from "@/app/ui/free-text-notice";
 import { useTranslations } from "next-intl";
 import { refusePaymentDeclarationAction, type BudgetFormState } from "./actions";
 
@@ -16,6 +17,7 @@ export function DeclarationRefusalForm({ eventId, paymentId, label }: { eventId:
       <input type="hidden" name="paymentId" value={paymentId} />
       <label htmlFor={reasonId}>{t("declarationReason")}</label>
       <input id={reasonId} name="reason" required maxLength={300} />
+      <FreeTextNotice />
       <button type="submit" disabled={pending}>
         {t("refuseDeclaration", { label })}
       </button>

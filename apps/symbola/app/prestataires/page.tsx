@@ -6,6 +6,7 @@
 // famille choisie en second rang, « à classer » signalé ; couleur et
 // pictogramme de la famille sur la carte.
 import { PageHeader } from "@/app/ui/page-header";
+import { EmptyState } from "@/app/ui/empty-state";
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import { requirePlanner } from "@/lib/guards";
@@ -296,7 +297,8 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
               <a href={`/prestataires/export${queryString(query, { format: "pdf", fiche: "" })}`}>{t("exportPdf")}</a>
             </p>
           </div>
-          {results.length === 0 ? <p>{types.length === 0 ? t("emptyNoTypes") : t("empty")}</p> : null}
+          {/* Lot 39c (UX-08) : l'écran vide enseigne. */}
+          {results.length === 0 ? types.length === 0 ? <EmptyState screen="vendors" title={t("emptyNoTypes")} actionHref="/prestataires/nouveau" /> : <p>{t("empty")}</p> : null}
           <ul className="vendor-results">
             {results.map((vendor) => {
               const type = vendor.typeId ? typeById.get(vendor.typeId) : undefined;

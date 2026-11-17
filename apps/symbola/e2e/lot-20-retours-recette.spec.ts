@@ -132,7 +132,7 @@ test("Décision 5 — étiquettes : paliers repérés puis rangés, choix unique
   await expect(page.getByRole("heading", { name: /^Capacité/, level: 3 })).toContainText("Palier");
 
   // Sur la fiche d'un lieu : un seul palier à la fois, et l'étiquette des lieux.
-  await page.goto(`/prestataires/${venueId}`);
+  await page.goto(`/prestataires/${venueId}?modifier=1`);
   const capacity = page.getByRole("group", { name: "Capacité · un seul choix" });
   await capacity.getByText("100 à 150 personnes", { exact: true }).click();
   await capacity.getByText("150 à 200 personnes", { exact: true }).click();
@@ -142,14 +142,14 @@ test("Décision 5 — étiquettes : paliers repérés puis rangés, choix unique
   await expectNoAxeViolation(page);
   // La fiche se recharge après l'enregistrement : on attend la réponse, puis on relit.
   await Promise.all([
-    page.waitForResponse((response) => response.request().method() === "POST" && response.url().includes(`/prestataires/${venueId}`)),
+    page.waitForResponse((response) => response.request().method() === "POST" && response.url().includes(`/prestataires/${venueId}?modifier=1`)),
     page.getByRole("button", { name: "Enregistrer", exact: true }).click(),
   ]);
   await page.reload();
   await expect(page.getByRole("radio", { name: "150 à 200 personnes" })).toBeChecked();
 
   // Sur la fiche d'une fleuriste : pas d'étiquette réservée aux lieux.
-  await page.goto(`/prestataires/${floristId}`);
+  await page.goto(`/prestataires/${floristId}?modifier=1`);
   await expect(page.getByRole("radio", { name: "100 à 150 personnes" })).toBeAttached();
   await expect(page.getByRole("checkbox", { name: "Accès PMR" })).toHaveCount(0);
 });

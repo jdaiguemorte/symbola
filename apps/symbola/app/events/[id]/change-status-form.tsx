@@ -6,6 +6,7 @@
 // étape demande confirmation. « Reporter l'évènement… » demande la nouvelle date ; « Annuler
 // l'évènement… » demande le motif et nomme l'évènement (UX-07) ; un annulé se réactive en Option.
 import { useActionState, useEffect, useState } from "react";
+import { FreeTextNotice } from "@/app/ui/free-text-notice";
 import { useTranslations } from "next-intl";
 import { formatCalendarDate, type Locale } from "@symbola/i18n";
 import { cancelEventAction, changeEventStatusAction, postponeEventAction, reactivateEventAction, type ChangeStatusFormState } from "./actions";
@@ -177,10 +178,13 @@ export function ChangeStatusForm({
             </select>
           </label>
           {reason?.isFreeText ? (
-            <label>
-              {t("lossReasonNote")}
-              <textarea name="lossReasonNote" value={lossReasonNote} onChange={(event) => setLossReasonNote(event.target.value)} required />
-            </label>
+            <>
+              <label>
+                {t("lossReasonNote")}
+                <textarea name="lossReasonNote" value={lossReasonNote} onChange={(event) => setLossReasonNote(event.target.value)} required />
+              </label>
+              <FreeTextNotice />
+            </>
           ) : null}
           <button type="submit" disabled={busy}>
             {t("confirmCancel")}

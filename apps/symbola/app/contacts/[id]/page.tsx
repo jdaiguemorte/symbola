@@ -8,6 +8,7 @@ import { QUOTE_STATUS_LABEL_KEYS } from "@/app/devis/quote-display";
 import { EVENT_STATUS_CLASSES, STATUS_LABEL_KEYS } from "@/app/events/event-status";
 import { ScreenHelp } from "@/app/screen-help";
 import { PageHeader } from "@/app/ui/page-header";
+import { SidePanel } from "@/app/ui/side-panel";
 import { requirePlanner } from "@/lib/guards";
 import { listEventDocuments, listEventsOfContact } from "@/modules/events/service";
 import { getContact, getContactStamp, isModuleEnabled, listContactGroups, listContactMembers, listContactNotes } from "@/modules/hub/service";
@@ -23,7 +24,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 // notes. Messages et rendez-vous viendront avec leurs modules. Un identifiant inconnu, d'essai ou
 // d'une autre organisation répond comme une page absente (SEC-13). Lot 36b (D2) : un foyer ou une
 // entreprise montre ses membres ; une personne, les foyers et entreprises dont elle fait partie.
-export default async function ContactPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ suppression?: string }> }) {
+export default async function ContactPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ suppression?: string; modifier?: string }> }) {
   const auth = await requirePlanner();
   const { id } = await params;
   if (!UUID.test(id)) notFound();
@@ -39,7 +40,13 @@ export default async function ContactPage({ params, searchParams }: { params: Pr
   const tQuotes = await getTranslations("Quotes");
   const tHelp = await getTranslations("Help");
   const tTrash = await getTranslations("Trash");
-  const deletionRefused = (await searchParams).suppression === "refusee";
+  const tCommon = await getTranslations("Common");
+  const query = await searchParams;
+  const deletionRefused = query.suppression === "refusee";
+  // Lot 39c (UX-13, relevé validé le 17/11) : la fiche se lit dans la page, se modifie en panneau.
+  const editing = query.modifier === "1";
+  const contactHref = `/contacts/${contact.id}`;
+  const address = [contact.addressLine, [contact.postalCode, contact.city].filter(Boolean).join(" "), contact.country].filter(Boolean).join(", ");
   const locale = (await getLocale()) as Locale;
   const db = appDatabase();
   const isGroup = contact.kind !== "person";
@@ -81,9 +88,36 @@ export default async function ContactPage({ params, searchParams }: { params: Pr
       <ScreenHelp title={tHelp("contactDetail.title")} body={tHelp("contactDetail.body")} />
 
       <section aria-labelledby="contact-identity" className="card">
-        <h2 id="contact-identity">{t("identityTitle")}</h2>
-        <ContactForm contact={contact} version={contactVersion} />
+        <div className="section-head">
+          <h2 id="contact-identity">{t("identityTitle")}</h2>
+          <Link className="button-link" href={`${contactHref}?modifier=1`} scroll={false}>
+            {t("editRecord")}
+          </Link>
+        </div>
+        <dl className="identity-facts">
+          {contact.kind === "company" ? (
+            <>
+              <dt>{t("companyIdNumber")}</dt>
+              <dd>{contact.companyIdNumber ?? "—"}</dd>
+              <dt>{t("vatNumber")}</dt>
+              <dd>{contact.vatNumber ?? "—"}</dd>
+            </>
+          ) : null}
+          <dt>{t("email")}</dt>
+          <dd>{contact.email ?? "—"}</dd>
+          <dt>{t("phone")}</dt>
+          <dd>{contact.phone ?? "—"}</dd>
+          <dt>{t("addressLine")}</dt>
+          <dd>{address || "—"}</dd>
+          <dt>{t("billingAddress")}</dt>
+          <dd className="task-comment-body">{contact.billingAddress ?? "—"}</dd>
+        </dl>
       </section>
+      {editing ? (
+        <SidePanel title={t("editRecord")} closeHref={contactHref} closeLabel={tCommon("closePanel")}>
+          <ContactForm contact={contact} version={contactVersion} />
+        </SidePanel>
+      ) : null}
 
       {isGroup ? (
         <section aria-labelledby="contact-members" className="card">

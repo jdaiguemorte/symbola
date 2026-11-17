@@ -1184,6 +1184,13 @@
   .vendor-form fieldset:not(.tag-fieldset, .tag-group) > legend {
     @apply sm:col-span-2;
   }
+  /* Lot 39c (UX-13) : dans le panneau latéral (400 px), la fiche se remplit sur une colonne. */
+  .side-panel .vendor-form fieldset:not(.tag-fieldset, .tag-group) {
+    @apply sm:grid-cols-1;
+  }
+  .side-panel .vendor-form fieldset:not(.tag-fieldset, .tag-group) > legend {
+    @apply sm:col-span-1;
+  }
 }
 
 @layer components {
@@ -3314,9 +3321,6 @@
   .health-tiles dd.health-detail.text-overdue {
     @apply font-medium text-critical;
   }
-  .edit-info > summary {
-    @apply min-h-11 cursor-pointer font-semibold;
-  }
   .postpone {
     @apply mt-2;
   }
@@ -3519,5 +3523,32 @@
   }
   .autosave-conflict {
     @apply flex flex-col gap-3 rounded-md border border-line-strong bg-surface p-4;
+  }
+}
+
+@layer components {
+  /* Lot 39c (UX-08, UX-15, RGP-04) — écran vide qui enseigne, squelettes de chargement, mise en garde
+     sous un champ libre. */
+  .empty-state {
+    @apply flex flex-col gap-3 rounded-md border border-dashed border-line-strong bg-surface p-6;
+  }
+  .skeleton {
+    @apply mb-4 animate-pulse rounded-md bg-line-strong/40 motion-reduce:animate-none;
+  }
+  .skeleton-title {
+    @apply h-8 w-1/3;
+  }
+  .skeleton-line {
+    @apply h-4 w-2/3;
+  }
+  .skeleton-card {
+    @apply h-24 w-full;
+  }
+  .free-text-notice {
+    @apply mt-1;
+  }
+  /* Le squelette prend la place de l'écran courant tant que l'écran visé tarde. */
+  .app-main:has(> main.navigation-skeleton) > main:not(.navigation-skeleton) {
+    @apply hidden;
   }
 }

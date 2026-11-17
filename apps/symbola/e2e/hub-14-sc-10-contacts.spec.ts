@@ -104,7 +104,7 @@ test("CRM-03 / D2 — un foyer relie deux personnes avec leur rôle ; une entrep
   // Un foyer, créé depuis la liste.
   await page.goto("/contacts");
   await page.waitForLoadState("networkidle");
-  await page.locator("summary", { hasText: "Ajouter un contact" }).click();
+  await page.getByRole("link", { name: "Ajouter un contact" }).first().click();
   const form = page.getByRole("form", { name: "Ajouter un contact" });
   await form.getByRole("radio", { name: "Foyer" }).check();
   await form.getByLabel("Nom du foyer").fill(`Famille ${lastName}`);
@@ -131,7 +131,7 @@ test("CRM-03 / D2 — un foyer relie deux personnes avec leur rôle ; une entrep
   // Une entreprise : SIRET nettoyé ; un numéro illisible est refusé.
   await page.goto("/contacts");
   await page.waitForLoadState("networkidle");
-  await page.locator("summary", { hasText: "Ajouter un contact" }).click();
+  await page.getByRole("link", { name: "Ajouter un contact" }).first().click();
   const company = page.getByRole("form", { name: "Ajouter un contact" });
   await company.getByRole("radio", { name: "Entreprise" }).check();
   await company.getByLabel("Raison sociale").fill(`Maison ${lastName}`);
@@ -144,6 +144,6 @@ test("CRM-03 / D2 — un foyer relie deux personnes avec leur rôle ; une entrep
   await company.getByLabel("SIREN ou SIRET").fill("123 456 789 00012");
   await company.getByRole("button", { name: "Ajouter le contact" }).click();
   await expect(page.getByRole("heading", { level: 1, name: `Maison ${lastName}` })).toBeVisible();
-  await expect(page.getByLabel("SIREN ou SIRET")).toHaveValue("12345678900012");
+  await expect(page.getByRole("region", { name: "Identité et coordonnées" })).toContainText("12345678900012");
   await expectNoAxeViolation(page);
 });

@@ -9,8 +9,26 @@ import { useEffect, useId, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import type { SearchGroup } from "@/lib/search/run-search";
 
-export function SearchBox() {
+// Lot 39c (HUB-12 ; D12) — palette de commandes : ⌘K propose aussi des actions (créer, aller à…),
+// filtrées par les modules souscrits (le gabarit ne passe que celles-là). Elles passent avant les
+// résultats de la recherche.
+export type PaletteAction = { label: string; href: string };
+
+function fold(text: string): string {
+  return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+}
+
+function matches(label: string, query: string): boolean {
+  const words = fold(label).split(/[^a-z0-9]+/).filter(Boolean);
+  return fold(query)
+    .split(/\s+/)
+    .filter(Boolean)
+    .every((part) => words.some((word) => word.startsWith(part)));
+}
+
+export function SearchBox({ actions = [] }: { actions?: PaletteAction[] }) {
   const t = useTranslations("Search");
+  const tPalette = useTranslations("Palette");
   const router = useRouter();
   const listId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -25,7 +43,9 @@ export function SearchBox() {
   // L16-SEC-02 (ADR 0044) : message traduit d'une recherche refusée (trop de requêtes).
   const [notice, setNotice] = useState<string | null>(null);
 
-  const flat = groups.flatMap((group) => group.items.map((item) => ({ ...item, group: group.key })));
+  const actionItems = term.trim().length >= 2 ? actions.filter((action) => matches(action.label, term.trim())).map((action) => ({ title: action.label, detail: tPalette("detail"), href: action.href })) : [];
+  const shownGroups: { key: string; label: string; items: { title: string; detail: string; href: string }[] }[] = [...(actionItems.length > 0 ? [{ key: "actions", label: tPalette("group"), items: actionItems }] : []), ...groups];
+  const flat = shownGroups.flatMap((group) => group.items.map((item) => ({ ...item, group: group.key })));
 
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
@@ -124,11 +144,11 @@ export function SearchBox() {
         <div className="search-box-results">
           {notice ? (
             <p role="status">{notice}</p>
-          ) : groups.length === 0 ? (
+          ) : shownGroups.length === 0 ? (
             <p role="status">{t("noResults", { term: term.trim() })}</p>
           ) : (
             <ul id={`${listId}-list`} role="listbox" aria-label={t("label")}>
-              {groups.map((group) => (
+              {shownGroups.map((group) => (
                 <li key={group.key} role="presentation">
                   <p className="search-box-group" aria-hidden="true">
                     {group.label}

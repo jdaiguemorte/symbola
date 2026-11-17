@@ -5,6 +5,7 @@
 // Des cartes plutôt qu'un tableau : lisibles en 375 px. Lot 28a (PRE-02,
 // BUD-02) : sept statuts ; « Retenir » au-delà du seuil se confirme d'abord.
 import Link from "next/link";
+import { FreeTextNotice } from "@/app/ui/free-text-notice";
 import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useUploadAction } from "@/app/ui/use-upload";
@@ -74,6 +75,7 @@ export function SlotBriefForm({ eventId, slot }: { eventId: string; slot: EventV
         {t("briefLabel")}
         <textarea name="brief" rows={2} value={brief} onChange={(event) => setBrief(event.target.value)} />
       </label>
+      <FreeTextNotice />
       <button type="submit" disabled={pending}>
         {t("briefSave")}
       </button>
@@ -245,6 +247,7 @@ function CandidateCard({
             {t("newNote", { vendor: name })}
             <textarea name="body" rows={2} />
           </label>
+          <FreeTextNotice />
           <label className="checkbox">
             <input type="checkbox" name="visibleToClients" />
             {t("noteVisibleToClients")}

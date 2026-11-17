@@ -104,7 +104,7 @@ test("CRM-03 / UX-02 — Léa revient : sa fiche, son second évènement sans re
   await clickMenuLink(page, "Contacts");
   await page.getByRole("region", { name: "Liste des contacts" }).getByRole("link", { name: `Léa ${lastName}` }).click();
   await expect(page.getByRole("region", { name: "Historique" }).getByRole("list").first().getByRole("listitem")).toHaveCount(2);
-  await expect(page.getByLabel("Adresse de facturation")).toHaveValue("Domaine des Tilleuls, 60300 Senlis");
+  await expect(page.getByRole("region", { name: "Identité et coordonnées" })).toContainText("Domaine des Tilleuls, 60300 Senlis");
 });
 
 test("UX-02 / DAT-12 — un client déjà connu se choisit par la recherche ; une adresse déjà prise est refusée sur un autre contact", async ({ page }) => {
@@ -123,7 +123,7 @@ test("UX-02 / DAT-12 — un client déjà connu se choisit par la recherche ; un
   // DAT-12 : la même adresse sur un nouveau contact est refusée, avec un lien vers celui qui la porte.
   await page.goto("/contacts");
   await page.waitForLoadState("networkidle");
-  await page.locator("summary", { hasText: "Ajouter un contact" }).click();
+  await page.getByRole("link", { name: "Ajouter un contact" }).first().click();
   const form = page.getByRole("form", { name: "Ajouter un contact" });
   await form.getByLabel("Prénom").fill("Autre");
   await form.getByLabel("E-mail").fill(leaEmail.toUpperCase());
