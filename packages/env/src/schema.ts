@@ -86,6 +86,14 @@ export const envSchema = z.object({
   // d'anomalie). Vide = pas d'alerte externe ; l'anomalie va toujours au journal.
   // Un secret : elle permettrait de simuler un contrôle réussi.
   LEDGER_CHECK_PUSH_URL: z.string().trim().default(""),
+  // Lot 40b (Q27, D14, ADR 0077) : adresse (DSN) du projet de suivi des erreurs (GlitchTip), sur le
+  // réseau Docker de l'environnement : « http://<clé>@glitchtip:8000/<projet> ». Vide = rien n'est
+  // envoyé ; les erreurs restent au journal du serveur, avec leur référence.
+  ERROR_TRACKING_DSN: z
+    .string()
+    .trim()
+    .default("")
+    .refine((value) => value === "" || /^https?:\/\/[^@\s/]+@[^\s/]+\/\d+\/?$/.test(value), "DSN attendu : http://<clé>@<hôte>/<projet>"),
   // Lot 16 (L16-SEC-01, ADR 0037) : clé de chiffrement des secrets de double
   // authentification, 32 octets en base64 (openssl rand -base64 32). Requise
   // partout : sans elle, aucun compte ne pourrait configurer ni valider son

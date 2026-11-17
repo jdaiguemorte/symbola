@@ -292,3 +292,60 @@ describe("SOC-03/SOC-08 — Aucun secret Garage commité, même de développemen
     expect(ciWorkflow).toMatch(new RegExp(`-e ${name}="\\$\\(openssl rand`));
   });
 });
+
+describe("Q27 — Suivi des erreurs GlitchTip dans le compose d'environnement (lot 40b, ADR 0077)", () => {
+  const block = () => serviceBlock(prodCompose, "glitchtip");
+  const database = () => serviceBlock(prodCompose, "glitchtip-postgres");
+
+  it("épingle l'image glitchtip/glitchtip sur une version précise, un seul conteneur (web et worker), sans Valkey", () => {
+    expect(block()).toMatch(/image: glitchtip\/glitchtip:\d+\.\d+\.\d+\n/);
+    expect(block()).toContain("SERVER_ROLE: all_in_one");
+    expect(block()).toContain('VALKEY_URL: ""');
+  });
+
+  it("ne démarre que dans le profil « erreurs », activé explicitement par Julien ; les fichiers .env actuels restent valables", () => {
+    expect(block()).toContain('profiles: ["erreurs"]');
+    expect(database()).toContain('profiles: ["erreurs"]');
+    expect(prodCompose).not.toMatch(/GLITCHTIP_[A-Z_]+:\?/);
+  });
+
+  it("utilise son propre PostgreSQL (max_locks_per_transaction=512), jamais la base de Symbola", () => {
+    expect(block()).toMatch(/DATABASE_URL: postgres:\/\/glitchtip:\$\{GLITCHTIP_DB_PASSWORD:-\}@glitchtip-postgres:5432\/glitchtip/);
+    expect(database()).toContain('command: ["postgres", "-c", "max_locks_per_transaction=512"]');
+    expect(database()).toContain("glitchtip_postgres_data:/var/lib/postgresql/data");
+    expect(block()).not.toMatch(/@postgres:5432/);
+  });
+
+  it("n'est publié qu'en boucle locale, sur un port distinct par environnement, sans alias pour Caddy", () => {
+    const ports = block().match(/\n {4}ports:\n((?: {6}- .*\n)+)/)?.[1] ?? "";
+    expect(ports.trim().split("\n")).toEqual(['- "127.0.0.1:${GLITCHTIP_LOCAL_PORT:-8090}:8000"']);
+    expect(database()).not.toMatch(/\n {4}ports:/);
+    expect(block()).not.toContain("aliases");
+    expect(block()).toContain("ALLOWED_HOSTS: glitchtip,localhost,127.0.0.1");
+    expect(envValue(envExample("staging"), "GLITCHTIP_LOCAL_PORT")).not.toBe(envValue(envExample("production"), "GLITCHTIP_LOCAL_PORT"));
+  });
+
+  it("ferme les inscriptions et l'administration Django, garde les erreurs 30 jours, n'envoie aucun e-mail", () => {
+    expect(block()).toContain('ENABLE_USER_REGISTRATION: "False"');
+    expect(block()).toContain('ENABLE_ORGANIZATION_CREATION: "False"');
+    expect(block()).toContain('ENABLE_ADMIN: "False"');
+    expect(block()).toContain('GLITCHTIP_RETENTION_DAYS: "30"');
+    expect(block()).toContain("EMAIL_URL: consolemail://");
+  });
+
+  it("limite mémoire et CPU, staging jamais au-dessus de la production ; aucun secret dans les modèles", () => {
+    for (const service of [block(), database()]) {
+      expect(service).toContain("no-new-privileges:true");
+      expect(service).toMatch(/memory:\s*\$\{GLITCHTIP_(DB_)?MEM_LIMIT:-/);
+    }
+    const [staging, production] = [envExample("staging"), envExample("production")];
+    expect(toBytes(envValue(staging, "GLITCHTIP_MEM_LIMIT"))).toBeLessThanOrEqual(toBytes(envValue(production, "GLITCHTIP_MEM_LIMIT")));
+    for (const content of [staging, production]) {
+      for (const key of ["GLITCHTIP_DB_PASSWORD", "GLITCHTIP_SECRET_KEY", "ERROR_TRACKING_DSN"]) expect(envValue(content, key), key).toBe("");
+    }
+  });
+
+  it("l'app reçoit l'adresse du projet, vide par défaut : sans elle, rien n'est envoyé", () => {
+    expect(serviceBlock(prodCompose, "symbola")).toContain("ERROR_TRACKING_DSN: ${ERROR_TRACKING_DSN:-}");
+  });
+});

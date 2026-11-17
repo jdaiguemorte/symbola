@@ -75,6 +75,8 @@ const PUBLIC_ENTRIES: Record<string, string> = {
   "hors-ligne/page.tsx#default": "page « Hors ligne » : aucune donnée du serveur, seulement les copies gardées sur l'appareil",
   "icons/[name]/route.ts#GET": "icônes de l'application installée, sans donnée",
   "api/webhooks/signature/route.ts#POST": "webhook du fournisseur de signature, authentifié par son secret partagé",
+  // Lot 40b (Q27, ADR 0077) : l'écran d'erreur peut s'afficher sans session (page publique, lien personnel).
+  "api/erreurs/route.ts#POST": "relais des erreurs du navigateur vers le suivi : même origine, débit limité par adresse IP, taille bornée, champs triés, rien de gardé",
   // Lot 37a (DOC-04, D7 ; ADR 0070) : lien de partage d'un document, pour une personne sans lien personnel.
   "partage/page.tsx#default": "arrivée d'un lien de partage : le jeton reste dans le navigateur, la page n'affiche rien d'autre",
   "partage/actions.ts#describeShareLinkAction": "jeton du lien de partage, vérifié haché sous RLS, limité en débit ; l'intitulé seul, même réponse pour un lien inconnu, expiré ou révoqué",

@@ -8,6 +8,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { errorReference } from "@/lib/error-reference";
+import { reportBrowserError } from "@/lib/report-browser-error";
 
 export default function ErrorPage({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   const t = useTranslations("Errors");
@@ -16,6 +17,10 @@ export default function ErrorPage({ error, reset }: { error: Error & { digest?: 
     setOffline(!navigator.onLine);
   }, []);
   const reference = errorReference(error.digest ?? error.name);
+  // Lot 40b (Q27, ADR 0077) : une erreur née dans le navigateur part au suivi des erreurs, une fois.
+  useEffect(() => {
+    reportBrowserError(error, reference);
+  }, [error, reference]);
   return (
     <main>
       <h1>{offline ? t("offlineTitle") : t("title")}</h1>

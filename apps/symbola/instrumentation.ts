@@ -76,5 +76,10 @@ export async function onRequestError(error: unknown, _request: unknown, context:
   const { errorReference } = await import("./lib/error-reference");
   const digest = (error as { digest?: unknown }).digest;
   const name = error instanceof Error ? error.name : "inconnue";
-  console.error("erreur serveur", JSON.stringify({ reference: errorReference(typeof digest === "string" ? digest : name), route: context.routePath ?? null, type: context.routeType ?? null, name }));
+  const reference = errorReference(typeof digest === "string" ? digest : name);
+  console.error("erreur serveur", JSON.stringify({ reference, route: context.routePath ?? null, type: context.routeType ?? null, name }));
+  // Lot 40b (Q27, D14, ADR 0077) : au suivi des erreurs aussi (sans message ni personne), si son
+  // adresse est réglée.
+  const { reportError } = await import("./lib/error-tracking");
+  await reportError({ reference, name, stack: error instanceof Error ? (error.stack ?? null) : null, route: context.routePath ?? null, source: "serveur", release: process.env.APP_VERSION ?? "dev" });
 }

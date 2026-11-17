@@ -52,6 +52,7 @@ employées telles que publiées.
 | `clamav/clamav` | GPL-2.0-only | Antivirus des fichiers déposés : service séparé, appelé par son protocole réseau, sans modification. |
 | `documenso/documenso` | AGPL-3.0-only | Signature électronique (ADR 0026) : service séparé, appelé par son API, sans modification. |
 | `dxflrs/garage` | AGPL-3.0-only | Stockage des fichiers compatible S3 (ADR 0015, 0051) : service séparé, appelé par son API, sans modification. |
+| `glitchtip/glitchtip` | MIT | Suivi des erreurs (lot 40b, ADR 0077) : service séparé, sans modification ; l'app lui envoie des erreurs triées, sans donnée personnelle. |
 | `louislam/uptime-kuma` | MIT | Sonde de disponibilité, sans modification. |
 | `node` | MIT | Image Node.js des scripts d'exploitation (migrations, jeu fictif), sans modification ; elle embarque des paquets Debian sous leurs propres licences. |
 | `postgres` | PostgreSQL | Base de données, sans modification. |

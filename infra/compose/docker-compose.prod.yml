@@ -142,6 +142,9 @@ services:
       # = carte sans fond (liste, filtres et distances fonctionnent).
       GEOCODER: ${GEOCODER:-}
       LEDGER_CHECK_PUSH_URL: ${LEDGER_CHECK_PUSH_URL:-}
+      # Lot 40b (Q27, ADR 0077) : adresse (DSN) du projet GlitchTip, sur le réseau Docker (vide = rien
+      # n'est envoyé ; les erreurs restent au journal, avec leur référence).
+      ERROR_TRACKING_DSN: ${ERROR_TRACKING_DSN:-}
       MAP_TILES_DIR: /srv/carte
       # Lot 16 (L16-SEC-01, ADR 0037) : sans valeur par défaut, l'app refuse de
       # démarrer si la clé manque dans .env.<environnement>.
@@ -275,6 +278,63 @@ services:
     security_opt:
       - no-new-privileges:true
 
+  # Suivi des erreurs (lot 40b, Q27, ADR 0077) : GlitchTip, MIT, utilisé sans modification, en un
+  # seul conteneur (web et worker), sans Valkey (file et cache dans sa base). Profil « erreurs » : ne
+  # démarre que si Julien l'active (COMPOSE_PROFILES), après avoir rempli ses secrets. Sa base est
+  # dans son propre PostgreSQL : GlitchTip exige max_locks_per_transaction=512, un réglage du
+  # serveur qu'on ne change pas pour la base de Symbola. Pas exposé sur internet ni par Caddy : l'app
+  # lui envoie les erreurs par le réseau Docker, Julien ouvre son écran par un tunnel SSH (boucle
+  # locale). Inscriptions fermées après le premier compte. Données techniques (erreurs triées par
+  # l'app, sans donnée personnelle), gardées 30 jours, non sauvegardées.
+  glitchtip:
+    image: glitchtip/glitchtip:6.2.6
+    profiles: ["erreurs"]
+    restart: unless-stopped
+    environment:
+      SERVER_ROLE: all_in_one
+      DATABASE_URL: postgres://glitchtip:${GLITCHTIP_DB_PASSWORD:-}@glitchtip-postgres:5432/glitchtip
+      VALKEY_URL: ""
+      SECRET_KEY: ${GLITCHTIP_SECRET_KEY:-}
+      GLITCHTIP_DOMAIN: http://localhost:${GLITCHTIP_LOCAL_PORT:-8090}
+      # Les seuls noms par lesquels on l'appelle : l'app (réseau Docker) et le tunnel SSH.
+      ALLOWED_HOSTS: glitchtip,localhost,127.0.0.1
+      DEFAULT_FROM_EMAIL: glitchtip@localhost
+      EMAIL_URL: consolemail://
+      ENABLE_USER_REGISTRATION: "False"
+      ENABLE_ORGANIZATION_CREATION: "False"
+      ENABLE_ADMIN: "False"
+      GLITCHTIP_RETENTION_DAYS: "30"
+    ports:
+      - "127.0.0.1:${GLITCHTIP_LOCAL_PORT:-8090}:8000"
+    depends_on:
+      - glitchtip-postgres
+    deploy:
+      resources:
+        limits:
+          memory: ${GLITCHTIP_MEM_LIMIT:-512m}
+          cpus: ${GLITCHTIP_CPUS:-0.5}
+    security_opt:
+      - no-new-privileges:true
+
+  glitchtip-postgres:
+    image: postgres:16-alpine
+    profiles: ["erreurs"]
+    restart: unless-stopped
+    command: ["postgres", "-c", "max_locks_per_transaction=512"]
+    environment:
+      POSTGRES_DB: glitchtip
+      POSTGRES_USER: glitchtip
+      POSTGRES_PASSWORD: ${GLITCHTIP_DB_PASSWORD:-}
+    volumes:
+      - glitchtip_postgres_data:/var/lib/postgresql/data
+    deploy:
+      resources:
+        limits:
+          memory: ${GLITCHTIP_DB_MEM_LIMIT:-256m}
+          cpus: ${GLITCHTIP_DB_CPUS:-0.5}
+    security_opt:
+      - no-new-privileges:true
+
 networks:
   default:
 
@@ -282,3 +342,4 @@ volumes:
   postgres_data:
   garage_data:
   clamav_data:
+  glitchtip_postgres_data:

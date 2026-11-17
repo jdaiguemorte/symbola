@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import en from "@symbola/i18n/messages/global-error.en.json";
 import fr from "@symbola/i18n/messages/global-error.fr.json";
 import { errorReference } from "@/lib/error-reference";
+import { reportBrowserError } from "@/lib/report-browser-error";
 
 export default function GlobalError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   const [locale, setLocale] = useState<"fr" | "en">("fr");
@@ -17,6 +18,10 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
   }, []);
   const text = locale === "en" ? en : fr;
   const reference = errorReference(error.digest ?? error.name);
+  // Lot 40b (Q27, ADR 0077) : une erreur née dans le navigateur part au suivi des erreurs, une fois.
+  useEffect(() => {
+    reportBrowserError(error, reference);
+  }, [error, reference]);
   return (
     <html lang={locale}>
       <body>
